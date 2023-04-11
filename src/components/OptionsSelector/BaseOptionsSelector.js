@@ -331,14 +331,14 @@ class BaseOptionsSelector extends Component {
                                     </View>
                                     <View style={[styles.ph5, styles.pv5, styles.flexGrow1, styles.flexShrink0]}>
                                         {this.props.children}
-                                        {this.props.shouldShowTextInput ? textInput : null}
+                                        {this.props.shouldShowTextInput && textInput}
                                     </View>
                                 </>
                             ) : (
                                 <>
                                     <View style={[styles.ph5, styles.pv3]}>
                                         {this.props.children}
-                                        {this.props.shouldShowTextInput ? textInput : null}
+                                        {this.props.shouldShowTextInput && textInput}
                                     </View>
                                     {optionsList}
                                 </>

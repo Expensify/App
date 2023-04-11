@@ -326,16 +326,16 @@ class IOUConfirmationList extends Component {
                     description={this.props.translate('iou.amount')}
                     interactive={false} // This is so the menu item's background doesn't change color on hover
                     onPress={() => this.props.navigateToStep(0)} // Index 0 here because the amount step is always the first step.
-                    style={styles.iouMenuItem}
-                    titleStyle={styles.iouConfirmationAmount}
+                    style={styles.moneyRequestMenuItem}
+                    titleStyle={styles.moneyRequestConfirmationAmount}
                 />
                 <MenuItemWithTopDescription
                     shouldShowRightIcon
                     title={this.props.iou.comment}
                     description={this.props.translate('common.description')}
                     interactive={false} // This is so the menu item's background doesn't change color on hover
-                    onPress={() => Navigation.navigate(ROUTES.IOU_REQUEST_DESCRIPTION)}
-                    style={styles.iouMenuItem}
+                    onPress={() => Navigation.navigate(ROUTES.MONEY_REQUEST_DESCRIPTION)}
+                    style={styles.moneyRequestMenuItem}
                 />
             </OptionsSelector>
         );

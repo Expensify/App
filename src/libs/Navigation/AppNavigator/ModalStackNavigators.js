@@ -66,10 +66,10 @@ const IOURequestModalStackNavigator = createModalStackNavigator([{
 },
 {
     getComponent: () => {
-        const IOUDescriptionPage = require('../../../pages/iou/IOUDescriptionPage').default;
-        return IOUDescriptionPage;
+        const MoneyRequestDescriptionPage = require('../../../pages/iou/MoneyRequestDescriptionPage').default;
+        return MoneyRequestDescriptionPage;
     },
-    name: 'IOU_Request_Description',
+    name: 'Money_Request_Description',
 }]);
 
 const IOUSendModalStackNavigator = createModalStackNavigator([{

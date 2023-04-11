@@ -641,7 +641,7 @@ function setIOUSelectedCurrency(selectedCurrencyCode) {
  *
  * @param {String} comment
  */
-function setIOUComment(comment) {
+function setMoneyRequestDescription(comment) {
     Onyx.merge(ONYXKEYS.IOU, {comment});
 }
 
@@ -1004,7 +1004,7 @@ export {
     payMoneyRequestElsewhere,
     payMoneyRequestViaPaypal,
     setIOUSelectedCurrency,
-    setIOUComment,
+    setMoneyRequestDescription,
     sendMoneyWithWallet,
     payMoneyRequestWithWallet,
 };

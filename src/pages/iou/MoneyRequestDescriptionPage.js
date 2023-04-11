@@ -17,7 +17,7 @@ const propTypes = {
     ...withLocalizePropTypes,
 
     /** Onyx Props */
-    /** Holds data related to IOU view state, rather than the underlying IOU data. */
+    /** Holds data related to Money Request view state, rather than the underlying Money Request data. */
     iou: PropTypes.shape({
         comment: PropTypes.string,
     }),
@@ -29,7 +29,7 @@ const defaultProps = {
     },
 };
 
-class IOUDescriptionPage extends Component {
+class MoneyRequestDescriptionPage extends Component {
     constructor(props) {
         super(props);
 
@@ -43,7 +43,7 @@ class IOUDescriptionPage extends Component {
      * @param {String} value.iouComment
      */
     updateComment(value) {
-        IOU.setIOUComment(value.iouComment);
+        IOU.setMoneyRequestDescription(value.iouComment);
         Navigation.goBack();
     }
 
@@ -77,12 +77,12 @@ class IOUDescriptionPage extends Component {
     }
 }
 
-IOUDescriptionPage.propTypes = propTypes;
-IOUDescriptionPage.defaultProps = defaultProps;
+MoneyRequestDescriptionPage.propTypes = propTypes;
+MoneyRequestDescriptionPage.defaultProps = defaultProps;
 
 export default compose(
     withLocalize,
     withOnyx({
         iou: {key: ONYXKEYS.IOU},
     }),
-)(IOUDescriptionPage);
+)(MoneyRequestDescriptionPage);

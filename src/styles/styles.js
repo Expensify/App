@@ -2274,13 +2274,12 @@ const styles = {
         lineHeight: undefined,
     }, 0),
 
-    iouConfirmationAmount: {
-        fontFamily: fontFamily.EXP_NEW_KANSAS_MEDIUM,
-        fontWeight: '500',
-        fontSize: 19,
+    moneyRequestConfirmationAmount: {
+        ...headlineFont,
+        fontSize: variables.fontSizeh1,
     },
 
-    iouMenuItem: {
+    moneyRequestMenuItem: {
         flexDirection: 'row',
         borderRadius: 0,
         justifyContent: 'space-between',
