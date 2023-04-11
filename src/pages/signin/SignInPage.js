@@ -14,7 +14,9 @@ import ValidateCodeForm from './ValidateCodeForm';
 import ResendValidationForm from './ResendValidationForm';
 import withLocalize, {withLocalizePropTypes} from '../../components/withLocalize';
 import Performance from '../../libs/Performance';
+import * as App from '../../libs/actions/App';
 import Permissions from '../../libs/Permissions';
+import * as Localize from '../../libs/Localize';
 
 const propTypes = {
     /* Onyx Props */
@@ -50,6 +52,8 @@ const defaultProps = {
 class SignInPage extends Component {
     componentDidMount() {
         Performance.measureTTI();
+
+        App.setLocale(Localize.getDevicePreferredLocale());
     }
 
     render() {
