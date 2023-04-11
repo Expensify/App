@@ -17,10 +17,10 @@ const propTypes = {
     /** Whether to include padding top */
     includePaddingTop: PropTypes.bool,
 
-    // Called when navigated Screen's transition is finished. It does not fire when user exit the page.
+    /** Called when navigated Screen's transition is finished. It does not fire when user exit the page. */
     onEntryTransitionEnd: PropTypes.func,
 
-    // Is the test tools modal open?
+    /** Is the test tools modal open? */
     isTestToolsModalOpen: PropTypes.bool,
 
     /** The behavior to pass to the KeyboardAvoidingView, requires some trial and error depending on the layout/devices used.

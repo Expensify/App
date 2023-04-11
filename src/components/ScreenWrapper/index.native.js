@@ -3,7 +3,7 @@ import React from 'react';
 import _ from 'underscore';
 import {withOnyx} from 'react-native-onyx';
 import lodashGet from 'lodash/get';
-import DevMenu from "react-native-dev-menu";
+import DevMenu from 'react-native-dev-menu';
 import KeyboardAvoidingView from '../KeyboardAvoidingView';
 import CONST from '../../CONST';
 import KeyboardShortcut from '../../libs/KeyboardShortcut';

@@ -10,6 +10,11 @@ import TestToolMenu from './TestToolMenu';
 import styles from '../styles/styles';
 
 const propTypes = {
+    /** Details about modal */
+    modal: PropTypes.shape({
+        /** Indicates when an Alert modal is about to be visible */
+        willAlertModalBecomeVisible: PropTypes.bool,
+    }),
     /** Whether the test tools modal is open */
     isTestToolsModalOpen: PropTypes.bool,
 };
