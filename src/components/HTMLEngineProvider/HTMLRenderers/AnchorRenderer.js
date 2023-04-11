@@ -29,7 +29,7 @@ const AnchorRenderer = (props) => {
     const attrPath = lodashGet(Url.getURLObject(attrHref), 'path', '').replace('/', '');
     const hasExpensifyOrigin = Url.hasSameExpensifyOrigin(attrHref, CONFIG.EXPENSIFY.EXPENSIFY_URL) || Url.hasSameExpensifyOrigin(attrHref, CONFIG.EXPENSIFY.STAGING_API_ROOT);
     const internalNewExpensifyPath = (Url.hasSameExpensifyOrigin(attrHref, CONST.NEW_EXPENSIFY_URL) || Url.hasSameExpensifyOrigin(attrHref, CONST.STAGING_NEW_EXPENSIFY_URL))
-        && attrPath && !CONST.PATHS_TO_TREAT_AS_EXTERNAL.includes(attrPath);
+        && !CONST.PATHS_TO_TREAT_AS_EXTERNAL.includes(attrPath) ? attrPath : '';
     const internalExpensifyPath = hasExpensifyOrigin
                                     && !attrPath.startsWith(CONFIG.EXPENSIFY.CONCIERGE_URL_PATHNAME)
                                     && attrPath;
