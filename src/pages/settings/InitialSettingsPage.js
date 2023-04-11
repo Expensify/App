@@ -36,6 +36,10 @@ import * as Link from '../../libs/actions/Link';
 import OfflineWithFeedback from '../../components/OfflineWithFeedback';
 import * as UserUtils from '../../libs/UserUtils';
 import policyMemberPropType from '../policyMemberPropType';
+import withWindowDimensions, {windowDimensionsPropTypes} from '../../components/withWindowDimensions';
+import * as DeviceCapabilities from '../../libs/DeviceCapabilities';
+import ControlSelection from '../../libs/ControlSelection';
+import showPopover from '../../libs/showPopover';
 
 const propTypes = {
     /* Onyx Props */
@@ -96,6 +100,7 @@ const propTypes = {
 
     ...withLocalizePropTypes,
     ...withCurrentUserPersonalDetailsPropTypes,
+    ...windowDimensionsPropTypes,
 };
 
 const defaultProps = {
@@ -117,6 +122,8 @@ class InitialSettingsPage extends React.Component {
     constructor(props) {
         super(props);
 
+        this.popoverAnchor = React.createRef();
+        
         this.getWalletBalance = this.getWalletBalance.bind(this);
         this.getDefaultMenuItems = this.getDefaultMenuItems.bind(this);
         this.getMenuItem = this.getMenuItem.bind(this);
@@ -203,6 +210,7 @@ class InitialSettingsPage extends React.Component {
                 action: () => { Link.openExternalLink(CONST.NEWHELP_URL); },
                 shouldShowRightIcon: true,
                 iconRight: Expensicons.NewWindow,
+                link: CONST.NEWHELP_URL,
             },
             {
                 translationKey: 'initialSettingsPage.about',
@@ -236,6 +244,10 @@ class InitialSettingsPage extends React.Component {
                 brickRoadIndicator={item.brickRoadIndicator}
                 floatRightAvatars={item.floatRightAvatars}
                 shouldStackHorizontally={item.shouldStackHorizontally}
+                ref={this.popoverAnchor}
+                onPressIn={() => !_.isEmpty(item.link) && this.props.isSmallScreenWidth && DeviceCapabilities.canUseTouchScreen() && ControlSelection.block()}
+                onPressOut={() => !_.isEmpty(item.link) && ControlSelection.unblock()}
+                onSecondaryInteraction={e => !_.isEmpty(item.link) && showPopover(e, item.link, this.popoverAnchor.current)}
             />
         );
     }
@@ -334,6 +346,7 @@ InitialSettingsPage.propTypes = propTypes;
 InitialSettingsPage.defaultProps = defaultProps;
 
 export default compose(
+    withWindowDimensions,
     withLocalize,
     withCurrentUserPersonalDetails,
     withOnyx({

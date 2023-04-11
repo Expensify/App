@@ -1,4 +1,5 @@
 import PropTypes from 'prop-types';
+import stylePropTypes from '../../styles/stylePropTypes';
 
 const propTypes = {
     /** The function that should be called when this pressable is pressed */
@@ -34,6 +35,9 @@ const propTypes = {
 
     /** Disable focus trap for the element on secondary interaction  */
     withoutFocusOnSecondaryInteraction: PropTypes.bool,
+
+    /** Used to apply styles to the Pressable */
+    style: stylePropTypes,
 };
 
 const defaultProps = {
