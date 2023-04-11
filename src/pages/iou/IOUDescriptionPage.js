@@ -51,7 +51,7 @@ class IOUDescriptionPage extends Component {
         return (
             <ScreenWrapper includeSafeAreaPaddingBottom={false}>
                 <HeaderWithCloseButton
-                    title={this.props.translate('iOUConfirmationList.whatsItFor')}
+                    title={this.props.translate('common.description')}
                     shouldShowBackButton
                     shouldShowCloseButton={false}
                     onBackButtonPress={Navigation.goBack}
@@ -67,7 +67,7 @@ class IOUDescriptionPage extends Component {
                     <View style={styles.mb4}>
                         <TextInput
                             inputID="iouComment"
-                            name="ioucomment"
+                            name="iouComment"
                             defaultValue={this.props.iou.comment}
                         />
                     </View>

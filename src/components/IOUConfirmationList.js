@@ -289,7 +289,7 @@ class IOUConfirmationList extends Component {
                 onSelectRow={canModifyParticipants ? this.toggleOption : undefined}
                 onConfirmSelection={this.confirm}
                 onChangeText={this.props.onUpdateComment}
-                textInputLabel={this.props.translate('iOUConfirmationList.whatsItFor')}
+                textInputLabel={this.props.translate('common.description')}
                 placeholderText={this.props.translate('common.optional')}
                 selectedOptions={this.getSelectedOptions()}
                 canSelectMultipleOptions={canModifyParticipants}
@@ -332,7 +332,7 @@ class IOUConfirmationList extends Component {
                 <MenuItemWithTopDescription
                     shouldShowRightIcon
                     title={this.props.iou.comment}
-                    description={this.props.translate('iOUConfirmationList.whatsItFor')}
+                    description={this.props.translate('common.description')}
                     interactive={false} // This is so the menu item's background doesn't change color on hover
                     onPress={() => Navigation.navigate(ROUTES.IOU_REQUEST_DESCRIPTION)}
                     style={styles.iouMenuItem}

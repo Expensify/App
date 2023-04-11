@@ -40,6 +40,7 @@ const propTypes = {
     /** Can the participants be modified or not */
     canModifyParticipants: PropTypes.bool,
 
+    /** Function to navigate to a given step in the parent MoneyRequestModal */
     navigateToStep: PropTypes.func.isRequired,
 };
 

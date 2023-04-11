@@ -637,7 +637,7 @@ function setIOUSelectedCurrency(selectedCurrencyCode) {
 }
 
 /**
- * Sets IOU'S comment
+ * Sets Money Request description
  *
  * @param {String} comment
  */

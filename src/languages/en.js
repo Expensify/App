@@ -131,6 +131,7 @@ export default {
         yesContinue: 'Yes, continue',
         websiteExample: 'e.g. https://www.expensify.com',
         zipCodeExampleFormat: ({zipSampleFormat}) => (zipSampleFormat ? `e.g. ${zipSampleFormat}` : ''),
+        description: 'Description',
     },
     attachmentPicker: {
         cameraPermissionRequired: 'Camera access',
