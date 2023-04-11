@@ -233,7 +233,7 @@ class NewChatPage extends Component {
             maxParticipantsReached,
         );
         return (
-            <ScreenWrapper includeSafeAreaPaddingBottom={false} enableMaxHeight>
+            <ScreenWrapper includeSafeAreaPaddingBottom={false} shouldEnableMaxHeight>
                 {({didScreenTransitionEnd, safeAreaPaddingBottomStyle}) => (
                     <>
                         <HeaderWithCloseButton
