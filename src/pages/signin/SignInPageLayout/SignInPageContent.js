@@ -1,5 +1,5 @@
 import React from 'react';
-import {View} from 'react-native';
+import {View, ScrollView} from 'react-native';
 import PropTypes from 'prop-types';
 import {withSafeAreaInsets} from 'react-native-safe-area-context';
 import styles from '../../../styles/styles';
@@ -9,7 +9,6 @@ import withLocalize, {withLocalizePropTypes} from '../../../components/withLocal
 import SignInPageForm from '../../../components/SignInPageForm';
 import compose from '../../../libs/compose';
 import withWindowDimensions, {windowDimensionsPropTypes} from '../../../components/withWindowDimensions';
-import KeyboardAvoidingView from '../../../components/KeyboardAvoidingView';
 import OfflineIndicator from '../../../components/OfflineIndicator';
 import SignInHeroImage from '../SignInHeroImage';
 import * as StyleUtils from '../../../styles/StyleUtils';
@@ -38,18 +37,12 @@ const propTypes = {
 };
 
 const SignInPageContent = props => (
-    <View
+    <ScrollView
         contentContainerStyle={[styles.flex1, styles.signInPageLeftContainer]}
         keyboardShouldPersistTaps="handled"
         style={[!props.isSmallScreenWidth && styles.signInPageLeftContainerWide, styles.flex1]}
     >
-        <KeyboardAvoidingView
-            behavior="padding"
-            style={[styles.flex1, styles.alignSelfCenter, styles.signInPageWelcomeFormContainer]}
-
-            // This vertical offset is here to add some more margin above the keyboard. Without it, the TOS and footer stuff still hides behind the keyboard by a few pixels.
-            keyboardVerticalOffset={50}
-        >
+        <View style={[styles.flex1, styles.alignSelfCenter, styles.signInPageWelcomeFormContainer]}>
             {/* This empty view creates margin on the top of the sign in form which will shrink and grow depending on if the keyboard is open or not */}
             <View style={[styles.flexGrow1, styles.signInPageContentTopSpacer]} />
 
@@ -90,13 +83,13 @@ const SignInPageContent = props => (
                     </>
                 ) : undefined}
             </View>
-        </KeyboardAvoidingView>
+        </View>
         {!props.isSmallScreenWidth ? (
             <View style={[styles.mb8, styles.signInPageWelcomeTextContainer, styles.alignSelfCenter]}>
                 <OfflineIndicator style={[styles.m0, styles.pl0, styles.alignItemsStart]} />
             </View>
         ) : undefined}
-    </View>
+    </ScrollView>
 );
 
 SignInPageContent.propTypes = propTypes;
