@@ -54,7 +54,7 @@ const defaultProps = {
     shouldStackHorizontally: false,
 };
 
-const MenuItem = (props) => {
+const MenuItem = React.forwardRef((props, ref) => {
     const titleTextStyle = StyleUtils.combineStyles([
         styles.popoverMenuText,
         (props.icon ? styles.ml3 : undefined),
@@ -93,6 +93,7 @@ const MenuItem = (props) => {
                 ..._.isArray(props.wrapperStyle) ? props.wrapperStyle : [props.wrapperStyle],
             ])}
             disabled={props.disabled}
+            ref={ref}
         >
             {({hovered, pressed}) => (
                 <>
@@ -217,7 +218,7 @@ const MenuItem = (props) => {
             )}
         </PressableWithSecondaryInteraction>
     );
-};
+});
 
 MenuItem.propTypes = propTypes;
 MenuItem.defaultProps = defaultProps;
