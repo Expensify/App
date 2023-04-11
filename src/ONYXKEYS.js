@@ -30,7 +30,7 @@ export default {
     // Credentials to authenticate the user
     CREDENTIALS: 'credentials',
 
-    // Contains loading data for the IOU feature (IOUModal, IOUDetail, & IOUPreview Components)
+    // Contains loading data for the IOU feature (MoneyRequestModal, IOUDetail, & IOUPreview Components)
     IOU: 'iou',
 
     // Keeps track if there is modal currently visible or not

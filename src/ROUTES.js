@@ -6,9 +6,9 @@ import * as Url from './libs/Url';
  */
 
 const REPORT = 'r';
-const IOU_REQUEST = 'iou/request';
-const IOU_BILL = 'iou/split';
-const IOU_SEND = 'iou/send';
+const IOU_REQUEST = 'request/new';
+const IOU_BILL = 'split/new';
+const IOU_SEND = 'send/new';
 const IOU_DETAILS = 'iou/details';
 const IOU_REQUEST_CURRENCY = `${IOU_REQUEST}/currency`;
 const IOU_BILL_CURRENCY = `${IOU_BILL}/currency`;
