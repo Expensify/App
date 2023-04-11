@@ -811,7 +811,7 @@ function getHeaderMessage(hasSelectableOptions, hasUserToInvite, searchValue, ma
         if (/^\d+$/.test(searchValue) && !isValidPhone) {
             return Localize.translate(preferredLocale, 'messages.errorMessageInvalidPhone');
         }
-        else if (/@/.test(searchValue) && !isValidEmail) {
+        if (/@/.test(searchValue) && !isValidEmail) {
             return Localize.translate(preferredLocale, 'common.error.invalidEmail');
         }
 
@@ -820,7 +820,6 @@ function getHeaderMessage(hasSelectableOptions, hasUserToInvite, searchValue, ma
 
     return '';
 }
-
 
 export {
     addSMSDomainIfPhoneNumber,
