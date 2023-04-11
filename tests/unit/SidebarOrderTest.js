@@ -330,6 +330,7 @@ describe('Sidebar', () => {
             };
             const iouReport = {
                 ...LHNTestUtils.getFakeReport(['email7@test.com', 'email8@test.com']),
+                type: CONST.REPORT.TYPE.IOU,
                 ownerEmail: 'email2@test.com',
                 hasOutstandingIOU: true,
                 total: 10000,
@@ -635,6 +636,7 @@ describe('Sidebar', () => {
             };
             const iouReport1 = {
                 ...LHNTestUtils.getFakeReport(['email7@test.com', 'email8@test.com']),
+                type: CONST.REPORT.TYPE.IOU,
                 ownerEmail: 'email2@test.com',
                 hasOutstandingIOU: true,
                 total: 10000,
@@ -643,6 +645,7 @@ describe('Sidebar', () => {
             };
             const iouReport2 = {
                 ...LHNTestUtils.getFakeReport(['email9@test.com', 'email10@test.com']),
+                type: CONST.REPORT.TYPE.IOU,
                 ownerEmail: 'email2@test.com',
                 hasOutstandingIOU: true,
                 total: 10000,
@@ -651,6 +654,7 @@ describe('Sidebar', () => {
             };
             const iouReport3 = {
                 ...LHNTestUtils.getFakeReport(['email11@test.com', 'email12@test.com']),
+                type: CONST.REPORT.TYPE.IOU,
                 ownerEmail: 'email2@test.com',
                 hasOutstandingIOU: true,
                 total: 10000,
