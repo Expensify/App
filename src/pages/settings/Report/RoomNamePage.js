@@ -75,8 +75,9 @@ class RoomNamePage extends Component {
                         <TextInput
                             inputID="roomName"
                             name="name"
+                            prefixCharacter={CONST.POLICY.ROOM_PREFIX}
                             label={this.props.translate('newRoomPage.roomName')}
-                            defaultValue={this.props.report.reportName}
+                            defaultValue={this.props.report.reportName.substring(1)} // Since the room name always starts with a prefix, we omit the first character to avoid displaying it twice.
                             maxLength={CONST.REPORT.MAX_ROOM_NAME_LENGTH}
                         />
                     </View>
