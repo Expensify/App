@@ -294,6 +294,7 @@ export default {
     },
     iou: {
         amount: 'Importe',
+        cash: 'Efectivo',
         participants: 'Participantes',
         splitBill: 'Dividir factura',
         requestMoney: 'Pedir dinero',

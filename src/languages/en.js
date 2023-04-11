@@ -295,6 +295,7 @@ export default {
     },
     iou: {
         amount: 'Amount',
+        cash: 'Cash',
         participants: 'Participants',
         splitBill: 'Split bill',
         requestMoney: 'Request money',
