@@ -10,7 +10,6 @@ import compose from '../libs/compose';
 import themeColors from '../styles/themes/default';
 import styles from '../styles/styles';
 import * as StyleUtils from '../styles/StyleUtils';
-import variables from '../styles/variables';
 
 const propTypes = {
     ...environmentPropTypes,
@@ -24,23 +23,16 @@ const logoComponents = {
 };
 
 const ExpensifyWordmark = (props) => {
-    const logoWidth = {
-        [CONST.ENVIRONMENT.DEV]: props.isSmallScreenWidth ? variables.signInLogoWidthPill : variables.signInLogoWidthLargeScreenPill,
-        [CONST.ENVIRONMENT.STAGING]: props.isSmallScreenWidth ? variables.signInLogoWidthPill : variables.signInLogoWidthLargeScreenPill,
-        [CONST.ENVIRONMENT.PRODUCTION]: props.isSmallScreenWidth ? variables.signInLogoWidth : variables.signInLogoWidthLargeScreen,
-    };
-
-    const logoMarginStyle = {
-        [CONST.ENVIRONMENT.DEV]: props.isSmallScreenWidth ? styles.ml3 : {},
-        [CONST.ENVIRONMENT.STAGING]: props.isSmallScreenWidth ? styles.ml3 : {},
-        [CONST.ENVIRONMENT.PRODUCTION]: {},
-    };
-
     // PascalCase is required for React components, so capitalize the const here
     const LogoComponent = logoComponents[props.environment];
     return (
         <>
-            <View style={[StyleUtils.getWidthStyle(logoWidth[props.environment]), StyleUtils.getHeight(props.isSmallScreenWidth ? 28 : 34), logoMarginStyle[props.environment]]}>
+            <View style={[
+                StyleUtils.getSignInWordmarkWidthStyle(props.environment, props.isSmallScreenWidth),
+                StyleUtils.getHeight(props.isSmallScreenWidth ? 28 : 34),
+                (props.isSmallScreenWidth && (props.environment === CONST.ENVIRONMENT.DEV || props.environment === CONST.ENVIRONMENT.STAGING)) ? styles.ml3 : {},
+            ]}
+            >
                 <LogoComponent fill={themeColors.success} />
             </View>
         </>

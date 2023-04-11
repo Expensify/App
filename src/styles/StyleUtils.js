@@ -287,6 +287,26 @@ function getBackgroundColorStyle(backgroundColor) {
 }
 
 /**
+ * Returns a style with the specified backgroundColor
+ *
+ * @param {String} environment
+ * @param {Boolean} isSmallScreenWidth
+ * @returns {Object}
+ */
+function getSignInWordmarkWidthStyle(environment, isSmallScreenWidth) {
+    if (environment === CONST.ENVIRONMENT.DEV) {
+        return isSmallScreenWidth ? {width: variables.signInLogoWidthPill} : {width: variables.signInLogoWidthLargeScreenPill};
+    }
+    if (environment === CONST.ENVIRONMENT.STAGING) {
+        return isSmallScreenWidth ? {width: variables.signInLogoWidthPill} : {width: variables.signInLogoWidthLargeScreenPill};
+    }
+    if (environment === CONST.ENVIRONMENT.PRODUCTION) {
+        return isSmallScreenWidth ? {width: variables.signInLogoWidth} : {width: variables.signInLogoWidthLargeScreen};
+    }
+    return {};
+}
+
+/**
  * Converts a color in hexadecimal notation into RGB notation.
  *
  * @param {String} hexadecimal A color in hexadecimal notation.
@@ -1001,4 +1021,5 @@ export {
     getEmojiReactionCounterTextStyle,
     getDirectionStyle,
     getFontSizeStyle,
+    getSignInWordmarkWidthStyle,
 };
