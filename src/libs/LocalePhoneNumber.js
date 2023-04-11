@@ -39,31 +39,33 @@ Onyx.connect({
  * @param {String} number
  * @returns {String}
  */
-
 function formatPhoneNumber(number) {
-    const parsed = parsePhoneNumber(number);
+    const parsedPhoneNumber = parsePhoneNumber(number);
 
     // return the string untouched if it's not a phone number
-    if (!parsed.valid && !parsed.possible) {
+    if (!parsedPhoneNumber.valid && !parsedPhoneNumber.possible) {
         return number;
     }
 
-    let locale;
+    let signedInUserCountryCode;
 
+    /**
+     * if there is a phone number saved in the user's personal details we format the other numbers depending on
+     * the phone number's country code, otherwise we use country code based on the user's IP
+     */
     if (currentUserPersonalDetails.phoneNumber) {
-        locale = parsePhoneNumber(currentUserPersonalDetails.phoneNumber).countryCode;
+        signedInUserCountryCode = parsePhoneNumber(currentUserPersonalDetails.phoneNumber).countryCode;
     } else {
-        locale = countryCodeByIP;
+        signedInUserCountryCode = countryCodeByIP;
     }
 
-    const regionCode = parsed.countryCode;
+    const regionCode = parsedPhoneNumber.countryCode;
 
-    if (regionCode === locale) {
-        // replacing regular spaces for so-called "hard spaces" to avoid breaking the line on whitespace
-        return parsed.number.national;
+    if (regionCode === signedInUserCountryCode) {
+        return parsedPhoneNumber.number.national;
     }
 
-    return parsed.number.international;
+    return parsedPhoneNumber.number.international;
 }
 
 function formatPhoneNumberInText(text) {

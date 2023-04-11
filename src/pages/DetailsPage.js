@@ -110,7 +110,7 @@ class DetailsPage extends React.PureComponent {
 
         const phoneNumber = getPhoneNumber(details);
         const displayName = isSMSLogin ? this.props.formatPhoneNumber(phoneNumber) : details.displayName;
-        const communicationsLinkValue = isSMSLogin ? getPhoneNumber(details) : details.login;
+        const phoneOrEmail = isSMSLogin ? getPhoneNumber(details) : details.login;
 
         return (
             <ScreenWrapper>
@@ -166,9 +166,9 @@ class DetailsPage extends React.PureComponent {
                                                     : 'common.email')}
                                             </Text>
                                             <CommunicationsLink
-                                                value={communicationsLinkValue}
+                                                value={phoneOrEmail}
                                             >
-                                                <Tooltip text={communicationsLinkValue}>
+                                                <Tooltip text={phoneOrEmail}>
                                                     <Text numberOfLines={1}>
                                                         {isSMSLogin
                                                             ? this.props.formatPhoneNumber(phoneNumber)
