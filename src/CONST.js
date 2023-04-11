@@ -2199,6 +2199,12 @@ const CONST = {
         SAMPLE_INPUT: '123456.789',
         EXPECTED_OUTPUT: 'FCFA 123,457',
     },
+
+    // Test tool menu parameters
+    TEST_TOOL: {
+        // How many concurrent taps are there in a test menu gesture
+        NUMBER_TAPS: 4
+    }
 };
 
 export default CONST;

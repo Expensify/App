@@ -5,7 +5,7 @@ import {View} from 'react-native';
 import ONYXKEYS from '../ONYXKEYS';
 import Modal from './Modal';
 import CONST from '../CONST';
-import * as App from '../libs/actions/App';
+import {toggleTestToolsModal} from '../libs/actions/TestTool';
 import TestToolMenu from './TestToolMenu';
 import styles from '../styles/styles';
 
@@ -29,7 +29,7 @@ const TestToolsModal = props => (
     <Modal
         isVisible={props.isTestToolsModalOpen}
         type={CONST.MODAL.MODAL_TYPE.CENTERED_SMALL}
-        onClose={App.toggleTestToolsModal}
+        onClose={toggleTestToolsModal}
     >
         <View style={[styles.settingsPageBody, styles.p5]}>
             <TestToolMenu />
