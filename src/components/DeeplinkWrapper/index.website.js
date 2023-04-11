@@ -1,25 +1,34 @@
-import _ from 'underscore';
 import PropTypes from 'prop-types';
 import React, {PureComponent} from 'react';
 import {withOnyx} from 'react-native-onyx';
-import deeplinkRoutes from './deeplinkRoutes';
 import FullScreenLoadingIndicator from '../FullscreenLoadingIndicator';
 import styles from '../../styles/styles';
 import CONST from '../../CONST';
 import CONFIG from '../../CONFIG';
 import * as Browser from '../../libs/Browser';
 import ONYXKEYS from '../../ONYXKEYS';
+import * as Authentication from '../../libs/Authentication';
 
 const propTypes = {
     /** Children to render. */
     children: PropTypes.node.isRequired,
 
-    /** List of betas available to current user */
-    betas: PropTypes.arrayOf(PropTypes.string),
+    /** Session info for the currently logged-in user. */
+    session: PropTypes.shape({
+
+        /** Currently logged-in user email */
+        email: PropTypes.string,
+
+        /** Currently logged-in user authToken */
+        authToken: PropTypes.string,
+    }),
 };
 
 const defaultProps = {
-    betas: [],
+    session: {
+        email: '',
+        authToken: '',
+    },
 };
 
 class DeeplinkWrapper extends PureComponent {
@@ -30,6 +39,7 @@ class DeeplinkWrapper extends PureComponent {
             appInstallationCheckStatus: (this.isMacOSWeb() && CONFIG.ENVIRONMENT !== CONST.ENVIRONMENT.DEV)
                 ? CONST.DESKTOP_DEEPLINK_APP_STATE.CHECKING : CONST.DESKTOP_DEEPLINK_APP_STATE.NOT_INSTALLED,
         };
+        this.focused = true;
     }
 
     componentDidMount() {
@@ -37,37 +47,42 @@ class DeeplinkWrapper extends PureComponent {
             return;
         }
 
-        let focused = true;
-
         window.addEventListener('blur', () => {
-            focused = false;
+            this.focused = false;
         });
 
+        const expensifyUrl = new URL(CONFIG.EXPENSIFY.NEW_EXPENSIFY_URL);
+        const params = new URLSearchParams();
+        params.set('exitTo', `${window.location.pathname}${window.location.search}${window.location.hash}`);
+        if (!this.props.session.authToken) {
+            const expensifyDeeplinkUrl = `${CONST.DEEPLINK_BASE_URL}${expensifyUrl.host}/transition?${params.toString()}`;
+            this.openRouteInDesktopApp(expensifyDeeplinkUrl);
+            return;
+        }
+        Authentication.getShortLivedAuthToken().then((shortLivedAuthToken) => {
+            params.set('email', this.props.session.email);
+            params.set('shortLivedAuthToken', `${shortLivedAuthToken}`);
+            const expensifyDeeplinkUrl = `${CONST.DEEPLINK_BASE_URL}${expensifyUrl.host}/transition?${params.toString()}`;
+            this.openRouteInDesktopApp(expensifyDeeplinkUrl);
+        }).catch(() => {
+            // If the request is successful, we call the updateAppInstallationCheckStatus before the prompt pops up.
+            // If not, we only need to make sure that the state will be updated.
+            this.updateAppInstallationCheckStatus();
+        });
+    }
+
+    updateAppInstallationCheckStatus() {
         setTimeout(() => {
-            if (!focused) {
+            if (!this.focused) {
                 this.setState({appInstallationCheckStatus: CONST.DESKTOP_DEEPLINK_APP_STATE.INSTALLED});
             } else {
                 this.setState({appInstallationCheckStatus: CONST.DESKTOP_DEEPLINK_APP_STATE.NOT_INSTALLED});
             }
         }, 500);
-
-        // check if pathname matches with deeplink routes
-        const matchedRoute = _.find(deeplinkRoutes, (route) => {
-            if (route.isDisabled && route.isDisabled(this.props.betas)) {
-                return false;
-            }
-            const routeRegex = new RegExp(route.pattern);
-            return routeRegex.test(window.location.pathname);
-        });
-
-        if (matchedRoute) {
-            this.openRouteInDesktopApp();
-        }
     }
 
-    openRouteInDesktopApp() {
-        const expensifyUrl = new URL(CONFIG.EXPENSIFY.NEW_EXPENSIFY_URL);
-        const expensifyDeeplinkUrl = `${CONST.DEEPLINK_BASE_URL}${expensifyUrl.host}${window.location.pathname}${window.location.search}${window.location.hash}`;
+    openRouteInDesktopApp(expensifyDeeplinkUrl) {
+        this.updateAppInstallationCheckStatus();
 
         // This check is necessary for Safari, otherwise, if the user
         // does NOT have the Expensify desktop app installed, it's gonna
@@ -115,5 +130,5 @@ class DeeplinkWrapper extends PureComponent {
 DeeplinkWrapper.propTypes = propTypes;
 DeeplinkWrapper.defaultProps = defaultProps;
 export default withOnyx({
-    betas: {key: ONYXKEYS.BETAS},
+    session: {key: ONYXKEYS.SESSION},
 })(DeeplinkWrapper);
