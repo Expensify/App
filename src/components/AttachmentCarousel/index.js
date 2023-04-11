@@ -190,7 +190,7 @@ class AttachmentCarousel extends React.Component {
                             <View style={styles.leftAttachmentArrow}>
                                 <Tooltip text={this.props.translate('common.previous')}>
                                     <Button
-                                        medium
+                                        small
                                         innerStyles={[styles.arrowIcon]}
                                         icon={Expensicons.BackArrow}
                                         iconFill={themeColors.text}
@@ -204,7 +204,7 @@ class AttachmentCarousel extends React.Component {
                             <View style={styles.rightAttachmentArrow}>
                                 <Tooltip text={this.props.translate('common.next')}>
                                     <Button
-                                        medium
+                                        small
                                         innerStyles={[styles.arrowIcon]}
                                         icon={Expensicons.ArrowRight}
                                         iconFill={themeColors.text}

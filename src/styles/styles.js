@@ -2189,18 +2189,18 @@ const styles = {
     leftAttachmentArrow: {
         zIndex: 23,
         position: 'absolute',
-        left: 32,
+        left: 8,
     },
 
     rightAttachmentArrow: {
         zIndex: 23,
         position: 'absolute',
-        right: 32,
+        right: 8,
     },
 
     arrowIcon: {
-        height: 52,
-        width: 52,
+        height: 42,
+        width: 42,
     },
 
     detailsPageSectionVersion: {
