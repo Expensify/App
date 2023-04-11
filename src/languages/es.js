@@ -320,6 +320,7 @@ export default {
         },
     },
     notificationPreferences: {
+        header: 'Preferencias de Avisos',
         label: 'Avisar sobre nuevos mensajes',
         immediately: 'Inmediatamente',
         daily: 'Cada día',

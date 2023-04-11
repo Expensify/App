@@ -321,6 +321,7 @@ export default {
         },
     },
     notificationPreferences: {
+        header: 'Notification Preferences',
         label: 'Notify me about new messages',
         immediately: 'Immediately',
         daily: 'Daily',

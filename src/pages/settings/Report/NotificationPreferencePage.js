@@ -25,62 +25,50 @@ const propTypes = {
     report: reportPropTypes.isRequired,
 };
 
-class RoomNamePage extends Component {
+class NotificationPreferencePage extends Component {
     constructor(props) {
         super(props);
-        this.updateRoomName = this.updateRoomName.bind(this);
+        this.updateNotificationPreference = this.updateNotificationPreference.bind(this);
         this.validate = this.validate.bind(this);
     }
 
     /**
      * Submit form to update room's name
      * @param {Object} values
-     * @param {String} values.roomName
+     * @param {String} values.notificationPreference
      */
-    updateRoomName(values) {
-        Report.updatePolicyRoomName(this.props.report, RoomNameInputUtils.modifyRoomName(values.roomName));
+    updateNotificationPreference(values) {
+        Report.updateNotificationPreference(
+            this.props.report.reportID,
+            this.props.report.notificationPreference,
+            values.notificationPreference,
+        );
         Navigation.drawerGoBack(ROUTES.getReportSettingsRoute(this.props.report.reportID));
-    }
-
-    /**
-     * @param {Object} values
-     * @param {String} values.roomName
-     * @returns {Object} - An object containing the errors for each inputID
-     */
-    validate(values) {
-        const errors = {};
-        if (_.isEmpty(values.roomName)) {
-            errors.roomName = this.props.translate('common.error.fieldRequired');
-        }
-
-        return errors;
     }
 
     render() {
         return (
             <ScreenWrapper includeSafeAreaPaddingBottom={false}>
                 <HeaderWithCloseButton
-                    title={this.props.translate('newRoomPage.roomName')}
+                    title={this.props.translate('notificationPreferences.header')}
                     shouldShowBackButton
                     onBackButtonPress={() => Navigation.drawerGoBack(ROUTES.getReportSettingsRoute(this.props.report.reportID))}
                     onCloseButtonPress={() => Navigation.dismissModal(true)}
                 />
                 <Form
                     style={[styles.flexGrow1, styles.ph5]}
-                    formID={ONYXKEYS.FORMS.ROOM_NAME_FORM}
-                    onSubmit={this.updateRoomName}
+                    formID={ONYXKEYS.FORMS.NOTIFICATION_PREFERENCES_FORM}
+                    onSubmit={this.updateNotificationPreference}
                     validate={this.validate}
                     submitButtonText={this.props.translate('common.save')}
                     enabledWhenOffline
                 >
                     <View style={styles.mb4}>
                         <TextInput
-                            inputID="roomName"
-                            name="name"
-                            prefixCharacter={CONST.POLICY.ROOM_PREFIX}
-                            label={this.props.translate('newRoomPage.roomName')}
-                            defaultValue={this.props.report.reportName.substring(1)} // Since the room name always starts with a prefix, we omit the first character.
-                            maxLength={CONST.REPORT.MAX_ROOM_NAME_LENGTH}
+                            inputID="notificationPreferences"
+                            name="preferences"
+                            label={this.props.translate('notificationPreferences.label')}
+                            value={this.props.report.notificationPreference}
                         />
                     </View>
                 </Form>
@@ -89,9 +77,9 @@ class RoomNamePage extends Component {
     }
 }
 
-RoomNamePage.propTypes = propTypes;
+NotificationPreferencePage.propTypes = propTypes;
 
 export default compose(
     withLocalize,
     withReportOrNotFound,
-)(RoomNamePage);
+)(NotificationPreferencePage);
