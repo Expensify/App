@@ -88,6 +88,15 @@ const propTypes = {
 
     /** Prop to identify if we should load avatars vertically instead of diagonally */
     shouldStackHorizontally: PropTypes.bool,
+
+    /** The function that should be called when this component is pressedIn */
+    onPressIn: PropTypes.func,
+
+    /** The function that should be called when this component is pressedOut */
+    onPressOut: PropTypes.func,
+
+    /** The function that should be called when this component is LongPressed or right-clicked. */
+    onSecondaryInteraction: PropTypes.func,
 };
 
 export default propTypes;

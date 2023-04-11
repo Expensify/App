@@ -19,6 +19,9 @@ import * as Report from '../../../libs/actions/Report';
 import * as Link from '../../../libs/actions/Link';
 import getPlatformSpecificMenuItems from './getPlatformSpecificMenuItems';
 import compose from '../../../libs/compose';
+import * as DeviceCapabilities from '../../../libs/DeviceCapabilities';
+import ControlSelection from '../../../libs/ControlSelection';
+import showPopover from '../../../libs/showPopover';
 
 const propTypes = {
     ...withLocalizePropTypes,
@@ -26,6 +29,8 @@ const propTypes = {
 };
 
 const AboutPage = (props) => {
+    let popoverAnchor;
+
     const platformSpecificMenuItems = getPlatformSpecificMenuItems(props.isSmallScreenWidth);
 
     const menuItems = [
@@ -44,6 +49,7 @@ const AboutPage = (props) => {
             action: () => {
                 Link.openExternalLink(CONST.GITHUB_URL);
             },
+            link: CONST.GITHUB_URL,
         },
         {
             translationKey: 'initialSettingsPage.aboutPage.viewOpenJobs',
@@ -52,13 +58,14 @@ const AboutPage = (props) => {
             action: () => {
                 Link.openExternalLink(CONST.UPWORK_URL);
             },
+            link: CONST.UPWORK_URL,
         },
         {
             translationKey: 'initialSettingsPage.aboutPage.reportABug',
             icon: Expensicons.Bug,
             action: Report.navigateToConciergeChat,
         },
-    ];
+    ]
 
     return (
         <ScreenWrapper includeSafeAreaPaddingBottom={false}>
@@ -107,6 +114,10 @@ const AboutPage = (props) => {
                                     icon={item.icon}
                                     iconRight={item.iconRight}
                                     onPress={() => item.action()}
+                                    onPressIn={() => !_.isEmpty(item.link) && props.isSmallScreenWidth && DeviceCapabilities.canUseTouchScreen() && ControlSelection.block()}
+                                    onPressOut={() => !_.isEmpty(item.link) && ControlSelection.unblock()}
+                                    onSecondaryInteraction={e => !_.isEmpty(item.link) && showPopover(e, item.link, popoverAnchor)}
+                                    ref={el => popoverAnchor = el}
                                     shouldShowRightIcon
                                 />
                             ))}

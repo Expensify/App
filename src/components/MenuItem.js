@@ -1,8 +1,6 @@
 import _ from 'underscore';
 import React from 'react';
-import {
-    View, Pressable,
-} from 'react-native';
+import {View} from 'react-native';
 import Text from './Text';
 import styles from '../styles/styles';
 import * as StyleUtils from '../styles/StyleUtils';
@@ -18,6 +16,7 @@ import colors from '../styles/colors';
 import variables from '../styles/variables';
 import MultipleAvatars from './MultipleAvatars';
 import * as defaultWorkspaceAvatars from './Icon/WorkspaceDefaultAvatars';
+import PressableWithSecondaryInteraction from './PressableWithSecondaryInteraction';
 
 const propTypes = {
     ...menuItemPropTypes,
@@ -46,6 +45,9 @@ const defaultProps = {
     subtitle: undefined,
     iconType: CONST.ICON_TYPE_ICON,
     onPress: () => {},
+    onPressIn: () => {},
+    onPressOut: () => {},
+    onSecondaryInteraction: () => {},
     interactive: true,
     fallbackIcon: Expensicons.FallbackAvatar,
     brickRoadIndicator: '',
@@ -71,7 +73,7 @@ const MenuItem = (props) => {
     ]);
 
     return (
-        <Pressable
+        <PressableWithSecondaryInteraction
             onPress={(e) => {
                 if (props.disabled) {
                     return;
@@ -83,6 +85,9 @@ const MenuItem = (props) => {
 
                 props.onPress(e);
             }}
+            onPressIn={props.onPressIn}
+            onPressOut={props.onPressOut}
+            onSecondaryInteraction={props.onSecondaryInteraction}
             style={({hovered, pressed}) => ([
                 props.style,
                 StyleUtils.getButtonBackgroundColorStyle(getButtonState(props.focused || hovered, pressed, props.success, props.disabled, props.interactive), true),
@@ -212,7 +217,7 @@ const MenuItem = (props) => {
                     </View>
                 </>
             )}
-        </Pressable>
+        </PressableWithSecondaryInteraction>
     );
 };
 

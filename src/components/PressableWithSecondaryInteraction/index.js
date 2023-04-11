@@ -4,6 +4,7 @@ import {Pressable} from 'react-native';
 import * as pressableWithSecondaryInteractionPropTypes from './pressableWithSecondaryInteractionPropTypes';
 import styles from '../../styles/styles';
 import * as DeviceCapabilities from '../../libs/DeviceCapabilities';
+import * as StyleUtils from '../../styles/StyleUtils';
 
 /**
  * This is a special Pressable that calls onSecondaryInteraction when LongPressed, or right-clicked.
@@ -50,11 +51,12 @@ class PressableWithSecondaryInteraction extends Component {
 
     render() {
         const defaultPressableProps = _.omit(this.props, ['onSecondaryInteraction', 'children', 'onLongPress']);
+        const pressableStyle = this.props.style && StyleUtils.combineStyles(this.props.style);
 
         // On Web, Text does not support LongPress events thus manage inline mode with styling instead of using Text.
         return (
             <Pressable
-                style={this.props.inline && styles.dInline}
+                style={this.props.inline ? styles.dInline : pressableStyle}
                 onPressIn={this.props.onPressIn}
                 onLongPress={(e) => {
                     if (DeviceCapabilities.hasHoverSupport()) {
