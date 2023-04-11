@@ -70,18 +70,6 @@ class AttachmentCarousel extends React.Component {
     }
 
     /**
-     * On a touch screen device, automatically hide the arrows 
-     * if there is no interaction for 3 seconds.
-     */
-    scheduleHideArrow() {
-        if (this.canUseTouchScreen) {
-            this.scheduleHideArrowTimeout = setTimeout(() => {
-                this.toggleArrowsVisibility(false);
-            }, 3000);
-        }
-    }
-
-    /**
      * Helps to navigate between next/previous attachments
      * @param {Object} attachmentItem
      * @returns {Object}
@@ -95,6 +83,19 @@ class AttachmentCarousel extends React.Component {
             source,
             file,
         };
+    }
+
+    /**
+     * On a touch screen device, automatically hide the arrows
+     * if there is no interaction for 3 seconds.
+     */
+    scheduleHideArrow() {
+        if (!this.canUseTouchScreen) {
+            return;
+        }
+        this.scheduleHideArrowTimeout = setTimeout(() => {
+            this.toggleArrowsVisibility(false);
+        }, 3000);
     }
 
     /**
