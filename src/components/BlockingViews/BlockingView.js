@@ -8,7 +8,6 @@ import Text from '../Text';
 import themeColors from '../../styles/themes/default';
 import TextLink from '../TextLink';
 import Navigation from '../../libs/Navigation/Navigation';
-import ROUTES from '../../ROUTES';
 
 const propTypes = {
     /** Expensicon for the page */
@@ -51,7 +50,7 @@ const BlockingView = props => (
         {props.shouldShowBackHomeLink
             ? (
                 <TextLink
-                    onPress={() => Navigation.navigate(ROUTES.REPORT)}
+                    onPress={() => Navigation.dismissModal(true)}
                     style={[styles.link, styles.mt2]}
                 >
                     {props.link}

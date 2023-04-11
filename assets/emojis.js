@@ -1942,6 +1942,7 @@ const emojis = [
             'call_me_hand',
             'call',
             'hand',
+            'shaka',
         ],
         types: [
             '🤙🏿',

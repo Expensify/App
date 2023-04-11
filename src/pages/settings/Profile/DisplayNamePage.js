@@ -55,14 +55,14 @@ class DisplayNamePage extends Component {
      * @returns {Object} - An object containing the errors for each inputID
      */
     validate(values) {
-        let errors = {};
+        const errors = {};
 
         // First we validate the first name field
         if (!ValidationUtils.isValidDisplayName(values.firstName)) {
-            errors = ErrorUtils.addErrorMessage(errors, 'firstName', this.props.translate('personalDetails.error.hasInvalidCharacter'));
+            ErrorUtils.addErrorMessage(errors, 'firstName', this.props.translate('personalDetails.error.hasInvalidCharacter'));
         }
         if (ValidationUtils.doesContainReservedWord(values.firstName, CONST.DISPLAY_NAME.RESERVED_FIRST_NAMES)) {
-            errors = ErrorUtils.addErrorMessage(errors, 'firstName', this.props.translate('personalDetails.error.containsReservedWord'));
+            ErrorUtils.addErrorMessage(errors, 'firstName', this.props.translate('personalDetails.error.containsReservedWord'));
         }
 
         // Then we validate the last name field
@@ -101,8 +101,8 @@ class DisplayNamePage extends Component {
                             name="fname"
                             label={this.props.translate('common.firstName')}
                             defaultValue={lodashGet(currentUserDetails, 'firstName', '')}
-                            placeholder={this.props.translate('displayNamePage.john')}
                             maxLength={CONST.DISPLAY_NAME.MAX_LENGTH}
+                            autoCapitalize="words"
                         />
                     </View>
                     <View>
@@ -111,8 +111,8 @@ class DisplayNamePage extends Component {
                             name="lname"
                             label={this.props.translate('common.lastName')}
                             defaultValue={lodashGet(currentUserDetails, 'lastName', '')}
-                            placeholder={this.props.translate('displayNamePage.doe')}
                             maxLength={CONST.DISPLAY_NAME.MAX_LENGTH}
+                            autoCapitalize="words"
                         />
                     </View>
                 </Form>

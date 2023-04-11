@@ -29,11 +29,6 @@ import FullPageNotFoundView from '../components/BlockingViews/FullPageNotFoundVi
 const propTypes = {
     ...withLocalizePropTypes,
 
-    /** Whether or not to show the Compose Input */
-    session: PropTypes.shape({
-        accountID: PropTypes.number,
-    }).isRequired,
-
     /** The report currently being looked at */
     report: reportPropTypes.isRequired,
 
@@ -41,7 +36,7 @@ const propTypes = {
     policies: PropTypes.shape({
         /** Name of the policy */
         name: PropTypes.string,
-    }).isRequired,
+    }),
 
     /** Route params */
     route: PropTypes.shape({
@@ -52,7 +47,12 @@ const propTypes = {
     }).isRequired,
 
     /** Personal details of all the users */
-    personalDetails: PropTypes.objectOf(participantPropTypes).isRequired,
+    personalDetails: PropTypes.objectOf(participantPropTypes),
+};
+
+const defaultProps = {
+    policies: {},
+    personalDetails: {},
 };
 
 class ReportDetailsPage extends Component {
@@ -63,14 +63,15 @@ class ReportDetailsPage extends Component {
             return [];
         }
 
-        // All nonarchived chats should let you see their members
-        menuItems.push({
-            key: CONST.REPORT_DETAILS_MENU_ITEM.MEMBERS,
-            translationKey: 'common.members',
-            icon: Expensicons.Users,
-            subtitle: lodashGet(this.props.report, 'participants', []).length,
-            action: () => { Navigation.navigate(ROUTES.getReportParticipantsRoute(this.props.report.reportID)); },
-        });
+        if (lodashGet(this.props.report, 'participants', []).length) {
+            menuItems.push({
+                key: CONST.REPORT_DETAILS_MENU_ITEM.MEMBERS,
+                translationKey: 'common.members',
+                icon: Expensicons.Users,
+                subtitle: lodashGet(this.props.report, 'participants', []).length,
+                action: () => { Navigation.navigate(ROUTES.getReportParticipantsRoute(this.props.report.reportID)); },
+            });
+        }
 
         if (ReportUtils.isPolicyExpenseChat(this.props.report) || ReportUtils.isChatRoom(this.props.report)) {
             menuItems.push({
@@ -185,7 +186,7 @@ class ReportDetailsPage extends Component {
 }
 
 ReportDetailsPage.propTypes = propTypes;
-
+ReportDetailsPage.defaultProps = defaultProps;
 export default compose(
     withLocalize,
     withReportOrNotFound,
@@ -195,9 +196,6 @@ export default compose(
         },
         policies: {
             key: ONYXKEYS.COLLECTION.POLICY,
-        },
-        session: {
-            key: ONYXKEYS.SESSION,
         },
     }),
 )(ReportDetailsPage);

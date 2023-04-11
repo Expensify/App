@@ -6,9 +6,9 @@ import * as Url from './libs/Url';
  */
 
 const REPORT = 'r';
-const IOU_REQUEST = 'iou/request';
-const IOU_BILL = 'iou/split';
-const IOU_SEND = 'iou/send';
+const IOU_REQUEST = 'request/new';
+const IOU_BILL = 'split/new';
+const IOU_SEND = 'send/new';
 const IOU_DETAILS = 'iou/details';
 const IOU_REQUEST_CURRENCY = `${IOU_REQUEST}/currency`;
 const IOU_BILL_CURRENCY = `${IOU_BILL}/currency`;
@@ -20,7 +20,7 @@ export default {
     BANK_ACCOUNT: 'bank-account',
     BANK_ACCOUNT_WITH_STEP_TO_OPEN: 'bank-account/:stepToOpen?',
     BANK_ACCOUNT_PERSONAL: 'bank-account/personal',
-    getBankAccountRoute: (stepToOpen = '') => `bank-account/${stepToOpen}`,
+    getBankAccountRoute: (stepToOpen = '', policyID = '') => `bank-account/${stepToOpen}?policyID=${policyID}`,
     HOME: '',
     SETTINGS: 'settings',
     SETTINGS_PROFILE: 'settings/profile',
@@ -42,7 +42,6 @@ export default {
     SETTINGS_ADD_DEBIT_CARD: 'settings/payments/add-debit-card',
     SETTINGS_ADD_BANK_ACCOUNT: 'settings/payments/add-bank-account',
     SETTINGS_ENABLE_PAYMENTS: 'settings/payments/enable-payments',
-    SETTINGS_ADD_LOGIN: 'settings/addlogin/:type',
     getSettingsAddLoginRoute: type => `settings/addlogin/${type}`,
     SETTINGS_PAYMENTS_TRANSFER_BALANCE: 'settings/payments/transfer-balance',
     SETTINGS_PAYMENTS_CHOOSE_TRANSFER_ACCOUNT: 'settings/payments/choose-transfer-account',
@@ -51,6 +50,9 @@ export default {
     SETTINGS_PERSONAL_DETAILS_DATE_OF_BIRTH: `${SETTINGS_PERSONAL_DETAILS}/date-of-birth`,
     SETTINGS_PERSONAL_DETAILS_ADDRESS: `${SETTINGS_PERSONAL_DETAILS}/address`,
     SETTINGS_CONTACT_METHODS,
+    SETTINGS_CONTACT_METHOD_DETAILS: `${SETTINGS_CONTACT_METHODS}/:contactMethod/details`,
+    getEditContactMethodRoute: contactMethod => `${SETTINGS_CONTACT_METHODS}/${encodeURIComponent(contactMethod)}/details`,
+    SETTINGS_NEW_CONTACT_METHOD: `${SETTINGS_CONTACT_METHODS}/new`,
     NEW_GROUP: 'new/group',
     NEW_CHAT: 'new/chat',
     REPORT,

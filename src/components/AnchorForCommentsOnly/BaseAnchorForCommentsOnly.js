@@ -65,7 +65,7 @@ const BaseAnchorForCommentsOnly = (props) => {
             onPressIn={props.onPressIn}
             onPressOut={props.onPressOut}
         >
-            <Tooltip containerStyles={[styles.dInline]} text={Str.isValidEmailMarkdown(props.displayName) ? '' : props.href}>
+            <Tooltip containerStyles={[styles.dInline]} text={props.href}>
                 <Text
                     ref={el => linkRef = el}
                     style={StyleSheet.flatten([props.style, defaultTextStyle])}
@@ -75,6 +75,10 @@ const BaseAnchorForCommentsOnly = (props) => {
                         target: props.target,
                     }}
                     href={linkProps.href}
+
+                    // Add testID so it gets selected as an anchor tag by SelectionScraper
+                    testID="a"
+
                     // eslint-disable-next-line react/jsx-props-no-spreading
                     {...rest}
                 >

@@ -1,6 +1,7 @@
 import React, {Component} from 'react';
 import PropTypes from 'prop-types';
 import {withOnyx} from 'react-native-onyx';
+import lodashGet from 'lodash/get';
 import Str from 'expensify-common/lib/str';
 import {SafeAreaView} from 'react-native-safe-area-context';
 import ONYXKEYS from '../../ONYXKEYS';
@@ -13,7 +14,9 @@ import ValidateCodeForm from './ValidateCodeForm';
 import ResendValidationForm from './ResendValidationForm';
 import withLocalize, {withLocalizePropTypes} from '../../components/withLocalize';
 import Performance from '../../libs/Performance';
+import * as App from '../../libs/actions/App';
 import Permissions from '../../libs/Permissions';
+import * as Localize from '../../libs/Localize';
 
 const propTypes = {
     /* Onyx Props */
@@ -49,6 +52,8 @@ const defaultProps = {
 class SignInPage extends Component {
     componentDidMount() {
         Performance.measureTTI();
+
+        App.setLocale(Localize.getDevicePreferredLocale());
     }
 
     render() {
@@ -90,7 +95,7 @@ class SignInPage extends Component {
                 // We will only know this after a user signs in successfully, without their 2FA code
                 welcomeText = this.props.translate('validateCodeForm.enterAuthenticatorCode');
             } else {
-                const userLogin = Str.removeSMSDomain(this.props.credentials.login);
+                const userLogin = Str.removeSMSDomain(lodashGet(this.props, 'credentials.login', ''));
                 welcomeText = this.props.account.validated
                     ? this.props.translate('welcomeText.welcomeBackEnterMagicCode', {login: userLogin})
                     : this.props.translate('welcomeText.welcomeEnterMagicCode', {login: userLogin});
