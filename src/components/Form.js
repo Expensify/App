@@ -1,6 +1,6 @@
 import lodashGet from 'lodash/get';
 import React from 'react';
-import {ScrollView, StyleSheet} from 'react-native';
+import {Keyboard, ScrollView, StyleSheet} from 'react-native';
 import PropTypes from 'prop-types';
 import _ from 'underscore';
 import {withOnyx} from 'react-native-onyx';
@@ -106,6 +106,7 @@ class Form extends React.Component {
         };
 
         this.formRef = React.createRef(null);
+        this.formContentRef = React.createRef(null);
         this.inputRefs = {};
         this.touchedInputs = {};
 
@@ -171,14 +172,23 @@ class Form extends React.Component {
      * @returns {Object} - An object containing the errors for each inputID, e.g. {inputID1: error1, inputID2: error2}
      */
     validate(values) {
+        const trimmedStringValues = {};
+        _.each(values, (inputValue, inputID) => {
+            if (_.isString(inputValue)) {
+                (trimmedStringValues[inputID] = inputValue.trim());
+            } else {
+                trimmedStringValues[inputID] = inputValue;
+            }
+        });
+
         FormActions.setErrors(this.props.formID, null);
         FormActions.setErrorFields(this.props.formID, null);
 
         // Run any validations passed as a prop
-        const validationErrors = this.props.validate(values);
+        const validationErrors = this.props.validate(trimmedStringValues);
 
         // Validate the input for html tags. It should supercede any other error
-        _.each(values, (inputValue, inputID) => {
+        _.each(trimmedStringValues, (inputValue, inputID) => {
             // Return early if there is no value OR the value is not a string OR there are no HTML characters
             if (!inputValue || !_.isString(inputValue) || inputValue.search(CONST.VALIDATE_FOR_HTML_TAG_REGEX) === -1) {
                 return;
@@ -320,7 +330,7 @@ class Form extends React.Component {
 
     render() {
         const scrollViewContent = safeAreaPaddingBottomStyle => (
-            <FormSubmit style={StyleSheet.flatten([this.props.style, safeAreaPaddingBottomStyle])} onSubmit={this.submit}>
+            <FormSubmit ref={this.formContentRef} style={StyleSheet.flatten([this.props.style, safeAreaPaddingBottomStyle])} onSubmit={this.submit}>
                 {this.childrenWrapperWithProps(_.isFunction(this.props.children) ? this.props.children({inputValues: this.state.inputValues}) : this.props.children)}
                 {this.props.isSubmitButtonVisible && (
                 <FormAlertWithSubmitButton
@@ -333,13 +343,23 @@ class Form extends React.Component {
                         const errors = !_.isEmpty(this.state.errors) ? this.state.errors : this.props.formState.errorFields;
                         const focusKey = _.find(_.keys(this.inputRefs), key => _.keys(errors).includes(key));
                         const focusInput = this.inputRefs[focusKey];
-                        if (focusInput.focus && typeof focusInput.focus === 'function') {
-                            focusInput.focus();
-                        }
+
+                        const formRef = this.formRef.current;
+                        const formContentRef = this.formContentRef.current;
+
+                        // Start with dismissing the keyboard, so when we focus a non-text input, the keyboard is hidden
+                        Keyboard.dismiss();
 
                         // We subtract 10 to scroll slightly above the input
                         if (focusInput.measureLayout && typeof focusInput.measureLayout === 'function') {
-                            focusInput.measureLayout(this.formRef.current, (x, y) => this.formRef.current.scrollTo({y: y - 10, animated: false}));
+                            // We measure relative to the content root, not the scroll view, as that gives
+                            // consistent results across mobile and web
+                            focusInput.measureLayout(formContentRef, (x, y) => formRef.scrollTo({y: y - 10, animated: false}));
+                        }
+
+                        // Focus the input after scrolling, as on the Web it gives a slightly better visual result
+                        if (focusInput.focus && typeof focusInput.focus === 'function') {
+                            focusInput.focus();
                         }
                     }}
                     containerStyles={[styles.mh0, styles.mt5, styles.flex1]}

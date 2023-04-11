@@ -335,9 +335,14 @@ class ReportScreen extends React.Component {
                                         isComposerFullSize={this.props.isComposerFullSize}
                                         onSubmitComment={this.onSubmitComment}
                                     />
-                                    <EmojiPicker ref={EmojiPickerAction.emojiPickerRef} />
                                 </>
                             )}
+
+                            {!this.isReportReadyForDisplay() && (
+                                <ReportFooter shouldDisableCompose isOffline={this.props.network.isOffline} />
+                            )}
+
+                            <EmojiPicker ref={EmojiPickerAction.emojiPickerRef} />
                             <PortalHost name={CONST.REPORT.DROP_HOST_NAME} />
                         </View>
                     </FullPageNotFoundView>

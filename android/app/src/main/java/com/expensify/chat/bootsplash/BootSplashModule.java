@@ -1,30 +1,34 @@
 package com.expensify.chat.bootsplash;
 
-import android.animation.Animator;
-import android.animation.AnimatorListenerAdapter;
 import android.app.Activity;
+import android.content.DialogInterface;
+import android.os.Build;
 import android.view.View;
-import android.view.ViewGroup;
-import android.view.animation.AccelerateInterpolator;
-import android.widget.LinearLayout;
-import android.widget.LinearLayout.LayoutParams;
-import androidx.annotation.DrawableRes;
+import android.view.ViewTreeObserver;
+import android.window.SplashScreen;
+import android.window.SplashScreenView;
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 import com.expensify.chat.R;
+import com.facebook.common.logging.FLog;
 import com.facebook.react.bridge.Promise;
 import com.facebook.react.bridge.ReactApplicationContext;
 import com.facebook.react.bridge.ReactContextBaseJavaModule;
 import com.facebook.react.bridge.ReactMethod;
 import com.facebook.react.bridge.UiThreadUtil;
+import com.facebook.react.common.ReactConstants;
 import com.facebook.react.module.annotations.ReactModule;
 import java.util.Timer;
 import java.util.TimerTask;
 
-@ReactModule(name = BootSplashModule.MODULE_NAME)
+@ReactModule(name = BootSplashModule.NAME)
 public class BootSplashModule extends ReactContextBaseJavaModule {
 
-  public static final String MODULE_NAME = "BootSplash";
-  private static int mDrawableResId = -1;
-  private static boolean mSplashVisible = false;
+  public static final String NAME = "BootSplash";
+  private static boolean mShouldKeepOnScreen = true;
+
+  @Nullable
+  private static BootSplashDialog mDialog = null;
 
   public BootSplashModule(ReactApplicationContext reactContext) {
     super(reactContext);
@@ -32,35 +36,62 @@ public class BootSplashModule extends ReactContextBaseJavaModule {
 
   @Override
   public String getName() {
-    return MODULE_NAME;
+    return NAME;
   }
 
-  protected static void init(final @DrawableRes int drawableResId, final Activity activity) {
+  protected static void init(@Nullable final Activity activity) {
+    if (activity == null) {
+      FLog.w(ReactConstants.TAG, NAME + ": Ignored initialization, current activity is null.");
+      return;
+    }
+
+    activity.setTheme(R.style.AppTheme);
+
+    // Keep the splash screen on-screen until Dialog is shown
+    final View contentView = activity.findViewById(android.R.id.content);
+
+    contentView
+      .getViewTreeObserver()
+      .addOnPreDrawListener(new ViewTreeObserver.OnPreDrawListener() {
+      @Override
+      public boolean onPreDraw() {
+        if (mShouldKeepOnScreen) {
+          return false;
+        }
+
+        contentView
+          .getViewTreeObserver()
+          .removeOnPreDrawListener(this);
+
+        return true;
+      }
+    });
+
+    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+      // This is not called on Android 12 when activity is started using Android studio / notifications
+      activity
+        .getSplashScreen()
+        .setOnExitAnimationListener(new SplashScreen.OnExitAnimationListener() {
+          @Override
+          public void onSplashScreenExit(@NonNull SplashScreenView view) {
+            view.remove(); // Remove it without animation
+          }
+        });
+    }
+
+    mDialog = new BootSplashDialog(activity, R.style.BootTheme);
+
+    mDialog.setOnShowListener(new DialogInterface.OnShowListener() {
+      @Override
+      public void onShow(DialogInterface dialog) {
+        mShouldKeepOnScreen = false;
+      }
+    });
+
     UiThreadUtil.runOnUiThread(new Runnable() {
       @Override
       public void run() {
-        if (activity == null
-            || activity.isFinishing()
-            || activity.findViewById(R.id.bootsplash_layout_id) != null) {
-          return;
-        }
-
-        mDrawableResId = drawableResId;
-        mSplashVisible = true;
-
-        LinearLayout layout = new LinearLayout(activity);
-        layout.setId(R.id.bootsplash_layout_id);
-        layout.setLayoutTransition(null);
-        layout.setOrientation(LinearLayout.VERTICAL);
-
-        View view = new View(activity);
-        view.setBackgroundResource(mDrawableResId);
-
-        LayoutParams params = new LayoutParams(
-            LayoutParams.MATCH_PARENT, LayoutParams.MATCH_PARENT);
-
-        layout.addView(view, params);
-        activity.addContentView(layout, params);
+        mDialog.show();
       }
     });
   }
@@ -79,9 +110,6 @@ public class BootSplashModule extends ReactContextBaseJavaModule {
 
   @ReactMethod
   public void hide() {
-    if (mDrawableResId == -1)
-      return;
-
     UiThreadUtil.runOnUiThread(new Runnable() {
       @Override
       public void run() {
@@ -92,37 +120,22 @@ public class BootSplashModule extends ReactContextBaseJavaModule {
           return;
         }
 
-        final LinearLayout layout = activity.findViewById(R.id.bootsplash_layout_id);
+        if (mDialog != null) {
+          mDialog.setOnDismissListener(new DialogInterface.OnDismissListener() {
+            @Override
+            public void onDismiss(DialogInterface dialog) {
+              mDialog = null;
+            }
+          });
 
-        // check if splash screen is already hidden
-        if (layout == null)
-          return;
-
-        final ViewGroup parent = (ViewGroup) layout.getParent();
-
-        layout
-            .animate()
-            .setDuration(250)
-            .alpha(0.0f)
-            .setInterpolator(new AccelerateInterpolator())
-            .setListener(new AnimatorListenerAdapter() {
-              @Override
-              public void onAnimationEnd(Animator animation) {
-                super.onAnimationEnd(animation);
-
-                if (parent != null)
-                  parent.removeView(layout);
-
-                mDrawableResId = -1;
-                mSplashVisible = false;
-              }
-            }).start();
+          mDialog.dismiss();
+        }
       }
     });
   }
 
   @ReactMethod
   public void getVisibilityStatus(final Promise promise) {
-    promise.resolve(mSplashVisible ? "visible" : "hidden");
+    promise.resolve(mDialog != null ? "visible" : "hidden");
   }
 }

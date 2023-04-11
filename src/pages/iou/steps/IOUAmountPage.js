@@ -124,7 +124,9 @@ class IOUAmountPage extends React.Component {
      */
     getNewState(prevState, newAmount) {
         if (!this.validateAmount(newAmount)) {
-            return prevState;
+            // Use a shallow copy of selection to trigger setSelection
+            // More info: https://github.com/Expensify/App/issues/16385
+            return {amount: prevState.amount, selection: {...prevState.selection}};
         }
         const selection = this.getNewSelection(prevState.selection, prevState.amount.length, newAmount.length);
         return {amount: this.stripCommaFromAmount(newAmount), selection};
@@ -153,7 +155,13 @@ class IOUAmountPage extends React.Component {
     calculateAmountLength(amount) {
         const leadingZeroes = amount.match(/^0+/);
         const leadingZeroesLength = lodashGet(leadingZeroes, '[0].length', 0);
-        const absAmount = parseFloat((amount * 100).toFixed(2)).toString();
+        const absAmount = parseFloat((this.stripCommaFromAmount(amount) * 100).toFixed(2)).toString();
+
+        // The following logic will prevent users from pasting an amount that is excessively long in length,
+        // which would result in the 'absAmount' value being expressed in scientific notation or becoming infinity.
+        if (/\D/.test(absAmount)) {
+            return CONST.IOU.AMOUNT_MAX_LENGTH + 1;
+        }
 
         /*
         Return the sum of leading zeroes length and absolute amount length(including fraction digits).
@@ -269,7 +277,7 @@ class IOUAmountPage extends React.Component {
         if (this.props.hasMultipleParticipants) {
             return Navigation.navigate(ROUTES.getIouBillCurrencyRoute(this.props.reportID));
         }
-        if (this.props.iouType === CONST.IOU.IOU_TYPE.SEND) {
+        if (this.props.iouType === CONST.IOU.MONEY_REQUEST_TYPE.SEND) {
             return Navigation.navigate(ROUTES.getIouSendCurrencyRoute(this.props.reportID));
         }
         return Navigation.navigate(ROUTES.getIouRequestCurrencyRoute(this.props.reportID));
