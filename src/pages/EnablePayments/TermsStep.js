@@ -136,8 +136,5 @@ export default compose(
         walletTerms: {
             key: ONYXKEYS.WALLET_TERMS,
         },
-        userWallet: {
-            key: ONYXKEYS.USER_WALLET,
-        },
     }),
 )(TermsStep);

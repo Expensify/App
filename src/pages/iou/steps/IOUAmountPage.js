@@ -36,17 +36,18 @@ const propTypes = {
 
     /** Holds data related to IOU view state, rather than the underlying IOU data. */
     iou: PropTypes.shape({
-
-        /** Whether or not the IOU step is loading (retrieving users preferred currency) */
-        loading: PropTypes.bool,
-
         /** Selected Currency Code of the current IOU */
         selectedCurrencyCode: PropTypes.string,
-    }).isRequired,
+    }),
 
     ...withLocalizePropTypes,
 };
 
+const defaultProps = {
+    iou: {
+        selectedCurrencyCode: CONST.CURRENCY.USD,
+    },
+};
 class IOUAmountPage extends React.Component {
     constructor(props) {
         super(props);
@@ -57,6 +58,9 @@ class IOUAmountPage extends React.Component {
         this.stripCommaFromAmount = this.stripCommaFromAmount.bind(this);
         this.focusTextInput = this.focusTextInput.bind(this);
         this.navigateToCurrencySelectionPage = this.navigateToCurrencySelectionPage.bind(this);
+        this.amountViewID = 'amountView';
+        this.numPadContainerViewID = 'numPadContainerView';
+        this.numPadViewID = 'numPadView';
 
         this.state = {
             amount: props.selectedAmount,
@@ -82,6 +86,23 @@ class IOUAmountPage extends React.Component {
     }
 
     /**
+     * Event occurs when a user presses a mouse button over an DOM element.
+     *
+     * @param {Event} event
+     * @param {Array<string>} nativeIds
+     */
+    onMouseDown(event, nativeIds) {
+        const relatedTargetId = lodashGet(event, 'nativeEvent.target.id');
+        if (!_.contains(nativeIds, relatedTargetId)) {
+            return;
+        }
+        event.preventDefault();
+        if (!this.textInput.isFocused()) {
+            this.textInput.focus();
+        }
+    }
+
+    /**
      * Returns the new selection object based on the updated amount's length
      *
      * @param {Object} oldSelection
@@ -103,7 +124,9 @@ class IOUAmountPage extends React.Component {
      */
     getNewState(prevState, newAmount) {
         if (!this.validateAmount(newAmount)) {
-            return prevState;
+            // Use a shallow copy of selection to trigger setSelection
+            // More info: https://github.com/Expensify/App/issues/16385
+            return {amount: prevState.amount, selection: {...prevState.selection}};
         }
         const selection = this.getNewSelection(prevState.selection, prevState.amount.length, newAmount.length);
         return {amount: this.stripCommaFromAmount(newAmount), selection};
@@ -132,7 +155,13 @@ class IOUAmountPage extends React.Component {
     calculateAmountLength(amount) {
         const leadingZeroes = amount.match(/^0+/);
         const leadingZeroesLength = lodashGet(leadingZeroes, '[0].length', 0);
-        const absAmount = parseFloat((amount * 100).toFixed(2)).toString();
+        const absAmount = parseFloat((this.stripCommaFromAmount(amount) * 100).toFixed(2)).toString();
+
+        // The following logic will prevent users from pasting an amount that is excessively long in length,
+        // which would result in the 'absAmount' value being expressed in scientific notation or becoming infinity.
+        if (/\D/.test(absAmount)) {
+            return CONST.IOU.AMOUNT_MAX_LENGTH + 1;
+        }
 
         /*
         Return the sum of leading zeroes length and absolute amount length(including fraction digits).
@@ -179,7 +208,9 @@ class IOUAmountPage extends React.Component {
      * @param {String} key
      */
     updateAmountNumberPad(key) {
-        this.focusTextInput();
+        if (!this.textInput.isFocused()) {
+            this.textInput.focus();
+        }
 
         // Backspace button is pressed
         if (key === '<' || key === 'Backspace') {
@@ -246,7 +277,7 @@ class IOUAmountPage extends React.Component {
         if (this.props.hasMultipleParticipants) {
             return Navigation.navigate(ROUTES.getIouBillCurrencyRoute(this.props.reportID));
         }
-        if (this.props.iouType === CONST.IOU.IOU_TYPE.SEND) {
+        if (this.props.iouType === CONST.IOU.MONEY_REQUEST_TYPE.SEND) {
             return Navigation.navigate(ROUTES.getIouSendCurrencyRoute(this.props.reportID));
         }
         return Navigation.navigate(ROUTES.getIouRequestCurrencyRoute(this.props.reportID));
@@ -257,13 +288,16 @@ class IOUAmountPage extends React.Component {
 
         return (
             <>
-                <View style={[
-                    styles.flex1,
-                    styles.flexRow,
-                    styles.w100,
-                    styles.alignItemsCenter,
-                    styles.justifyContentCenter,
-                ]}
+                <View
+                    nativeID={this.amountViewID}
+                    onMouseDown={event => this.onMouseDown(event, [this.amountViewID])}
+                    style={[
+                        styles.flex1,
+                        styles.flexRow,
+                        styles.w100,
+                        styles.alignItemsCenter,
+                        styles.justifyContentCenter,
+                    ]}
                 >
                     <TextInputWithCurrencySymbol
                         formattedAmount={formattedAmount}
@@ -272,7 +306,7 @@ class IOUAmountPage extends React.Component {
                         placeholder={this.props.numberFormat(0)}
                         preferredLocale={this.props.preferredLocale}
                         ref={el => this.textInput = el}
-                        selectedCurrencyCode={this.props.iou.selectedCurrencyCode || CONST.CURRENCY.USD}
+                        selectedCurrencyCode={this.props.iou.selectedCurrencyCode}
                         selection={this.state.selection}
                         onSelectionChange={(e) => {
                             if (!this.state.shouldUpdateSelection) {
@@ -282,10 +316,15 @@ class IOUAmountPage extends React.Component {
                         }}
                     />
                 </View>
-                <View style={[styles.w100, styles.justifyContentEnd, styles.pageWrapper]}>
+                <View
+                    onMouseDown={event => this.onMouseDown(event, [this.numPadContainerViewID, this.numPadViewID])}
+                    style={[styles.w100, styles.justifyContentEnd, styles.pageWrapper]}
+                    nativeID={this.numPadContainerViewID}
+                >
                     {DeviceCapabilities.canUseTouchScreen()
                         ? (
                             <BigNumberPad
+                                nativeID={this.numPadViewID}
                                 numberPressed={this.updateAmountNumberPad}
                                 longPressHandlerStateChanged={this.updateLongPressHandlerState}
                             />
@@ -306,6 +345,7 @@ class IOUAmountPage extends React.Component {
 }
 
 IOUAmountPage.propTypes = propTypes;
+IOUAmountPage.defaultProps = defaultProps;
 
 export default compose(
     withLocalize,

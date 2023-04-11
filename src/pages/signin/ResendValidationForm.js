@@ -25,7 +25,7 @@ const propTypes = {
     credentials: PropTypes.shape({
         /** The email/phone the user logged in with */
         login: PropTypes.string,
-    }).isRequired,
+    }),
 
     /** The details about the account that the user is signing in with */
     account: PropTypes.shape({
@@ -43,6 +43,7 @@ const propTypes = {
 };
 
 const defaultProps = {
+    credentials: {},
     account: {},
 };
 

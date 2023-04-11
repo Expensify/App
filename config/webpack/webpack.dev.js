@@ -21,6 +21,7 @@ module.exports = (env = {}) => portfinder.getPortPromise({port: BASE_PORT})
             : {
                 proxy: {
                     '/api': 'http://[::1]:9000',
+                    '/staging': 'http://[::1]:9000',
                     '/chat-attachments': 'http://[::1]:9000',
                 },
             };

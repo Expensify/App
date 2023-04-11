@@ -1,6 +1,7 @@
 import _, {compose} from 'underscore';
 import React from 'react';
 import {withOnyx} from 'react-native-onyx';
+import PropTypes from 'prop-types';
 import HeaderWithCloseButton from '../../../components/HeaderWithCloseButton';
 import ScreenWrapper from '../../../components/ScreenWrapper';
 import withLocalize, {withLocalizePropTypes} from '../../../components/withLocalize';
@@ -13,11 +14,19 @@ import themeColors from '../../../styles/themes/default';
 import * as Expensicons from '../../../components/Icon/Expensicons';
 import ONYXKEYS from '../../../ONYXKEYS';
 import * as User from '../../../libs/actions/User';
+import CONST from '../../../CONST';
 
 const greenCheckmark = {src: Expensicons.Checkmark, color: themeColors.success};
 
 const propTypes = {
+    /** The chat priority mode */
+    priorityMode: PropTypes.string,
+
     ...withLocalizePropTypes,
+};
+
+const defaultProps = {
+    priorityMode: CONST.PRIORITY_MODE.DEFAULT,
 };
 
 const PriorityModePage = (props) => {
@@ -72,6 +81,7 @@ const PriorityModePage = (props) => {
 
 PriorityModePage.displayName = 'PriorityModePage';
 PriorityModePage.propTypes = propTypes;
+PriorityModePage.defaultProps = defaultProps;
 
 export default compose(
     withLocalize,

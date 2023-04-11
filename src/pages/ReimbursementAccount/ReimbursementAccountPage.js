@@ -30,7 +30,6 @@ import ROUTES from '../../ROUTES';
 import HeaderWithCloseButton from '../../components/HeaderWithCloseButton';
 import * as ReimbursementAccountProps from './reimbursementAccountPropTypes';
 import reimbursementAccountDraftPropTypes from './ReimbursementAccountDraftPropTypes';
-import * as ReimbursementAccountUtils from '../../libs/ReimbursementAccountUtils';
 import withPolicy from '../workspace/withPolicy';
 
 const propTypes = {
@@ -53,7 +52,7 @@ const propTypes = {
     session: PropTypes.shape({
         /** User login */
         email: PropTypes.string,
-    }).isRequired,
+    }),
 
     /** Route object from navigation */
     route: PropTypes.shape({
@@ -73,6 +72,9 @@ const defaultProps = {
     reimbursementAccountDraft: {},
     onfidoToken: '',
     plaidLinkToken: '',
+    session: {
+        email: null,
+    },
     route: {
         params: {
             stepToOpen: '',
@@ -125,7 +127,7 @@ class ReimbursementAccountPage extends React.Component {
      * @returns {*}
      */
     getDefaultStateForField(fieldName, defaultValue = '') {
-        return ReimbursementAccountUtils.getDefaultStateForField(this.props.reimbursementAccountDraft, this.props.reimbursementAccount, fieldName, defaultValue);
+        return lodashGet(this.props.reimbursementAccount, ['achData', fieldName], defaultValue);
     }
 
     /**

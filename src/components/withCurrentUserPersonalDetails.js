@@ -14,6 +14,28 @@ const withCurrentUserPersonalDetailsDefaultProps = {
 };
 
 export default function (WrappedComponent) {
+    const propTypes = {
+        forwardedRef: PropTypes.oneOfType([
+            PropTypes.func,
+            PropTypes.shape({current: PropTypes.instanceOf(React.Component)}),
+        ]),
+
+        /** Personal details of all the users, including current user */
+        personalDetails: PropTypes.objectOf(personalDetailsPropType),
+
+        /** Session of the current user */
+        session: PropTypes.shape({
+            email: PropTypes.string,
+        }),
+    };
+    const defaultProps = {
+        forwardedRef: undefined,
+        personalDetails: {},
+        session: {
+            email: '',
+        },
+    };
+
     const WithCurrentUserPersonalDetails = (props) => {
         const currentUserEmail = props.session.email;
 
@@ -28,28 +50,9 @@ export default function (WrappedComponent) {
     };
 
     WithCurrentUserPersonalDetails.displayName = `WithCurrentUserPersonalDetails(${getComponentDisplayName(WrappedComponent)})`;
-    WithCurrentUserPersonalDetails.propTypes = {
-        forwardedRef: PropTypes.oneOfType([
-            PropTypes.func,
-            PropTypes.shape({current: PropTypes.instanceOf(React.Component)}),
-        ]),
+    WithCurrentUserPersonalDetails.propTypes = propTypes;
 
-        /** Personal details of all the users, including current user */
-        personalDetails: PropTypes.objectOf(personalDetailsPropType),
-
-        /** Session of the current user */
-        session: PropTypes.shape({
-            email: PropTypes.string,
-        }),
-    };
-
-    WithCurrentUserPersonalDetails.defaultProps = {
-        forwardedRef: undefined,
-        personalDetails: {},
-        session: {
-            email: '',
-        },
-    };
+    WithCurrentUserPersonalDetails.defaultProps = defaultProps;
 
     const withCurrentUserPersonalDetails = React.forwardRef((props, ref) => (
         // eslint-disable-next-line react/jsx-props-no-spreading

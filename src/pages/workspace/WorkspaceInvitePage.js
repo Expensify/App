@@ -42,10 +42,10 @@ const personalDetailsPropTypes = PropTypes.shape({
 
 const propTypes = {
     /** Beta features list */
-    betas: PropTypes.arrayOf(PropTypes.string).isRequired,
+    betas: PropTypes.arrayOf(PropTypes.string),
 
     /** All of the personal details for everyone */
-    personalDetails: PropTypes.objectOf(personalDetailsPropTypes).isRequired,
+    personalDetails: PropTypes.objectOf(personalDetailsPropTypes),
 
     /** URL Route params */
     route: PropTypes.shape({
@@ -61,7 +61,11 @@ const propTypes = {
     network: networkPropTypes.isRequired,
 };
 
-const defaultProps = policyDefaultProps;
+const defaultProps = {
+    personalDetails: {},
+    betas: [],
+    ...policyDefaultProps,
+};
 
 class WorkspaceInvitePage extends React.Component {
     constructor(props) {

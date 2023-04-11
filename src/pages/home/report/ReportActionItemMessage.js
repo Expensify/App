@@ -34,6 +34,7 @@ const ReportActionItemMessage = props => (
                 fragment={fragment}
                 isAttachment={props.action.isAttachment}
                 attachmentInfo={props.action.attachmentInfo}
+                pendingAction={props.action.pendingAction}
                 source={lodashGet(props.action, 'originalMessage.source')}
                 loading={props.action.isLoading}
                 style={props.style}

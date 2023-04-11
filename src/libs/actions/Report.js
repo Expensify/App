@@ -1,4 +1,4 @@
-import {Linking, InteractionManager} from 'react-native';
+import {InteractionManager} from 'react-native';
 import _ from 'underscore';
 import lodashGet from 'lodash/get';
 import ExpensiMark from 'expensify-common/lib/ExpensiMark';
@@ -6,7 +6,6 @@ import Onyx from 'react-native-onyx';
 import ONYXKEYS from '../../ONYXKEYS';
 import * as Pusher from '../Pusher/pusher';
 import LocalNotification from '../Notification/LocalNotification';
-import PushNotification from '../Notification/PushNotification';
 import Navigation from '../Navigation/Navigation';
 import * as ActiveClientManager from '../ActiveClientManager';
 import Visibility from '../Visibility';
@@ -62,37 +61,6 @@ const typingWatchTimers = {};
  */
 function getReportChannelName(reportID) {
     return `${CONST.PUSHER.PRIVATE_REPORT_CHANNEL_PREFIX}${reportID}${CONFIG.PUSHER.SUFFIX}`;
-}
-
-/**
- * Setup reportComment push notification callbacks.
- */
-function subscribeToReportCommentPushNotifications() {
-    PushNotification.onReceived(PushNotification.TYPE.REPORT_COMMENT, ({reportID, onyxData}) => {
-        Log.info('[Report] Handled event sent by Airship', false, {reportID});
-        Onyx.update(onyxData);
-    });
-
-    // Open correct report when push notification is clicked
-    PushNotification.onSelected(PushNotification.TYPE.REPORT_COMMENT, ({reportID}) => {
-        if (Navigation.canNavigate('navigate')) {
-            // If a chat is visible other than the one we are trying to navigate to, then we need to navigate back
-            if (Navigation.getActiveRoute().slice(1, 2) === ROUTES.REPORT && !Navigation.isActiveRoute(`r/${reportID}`)) {
-                Navigation.goBack();
-            }
-            Navigation.isDrawerReady()
-                .then(() => {
-                    Navigation.navigate(ROUTES.getReportRoute(reportID));
-                });
-        } else {
-            // Navigation container is not yet ready, use deeplinking to open to correct report instead
-            Navigation.setDidTapNotification();
-            Navigation.isDrawerReady()
-                .then(() => {
-                    Linking.openURL(`${CONST.DEEPLINK_BASE_URL}${ROUTES.getReportRoute(reportID)}`);
-                });
-        }
-    });
 }
 
 /**
@@ -255,7 +223,6 @@ function addActions(reportID, text = '', file) {
         commentReportActionID: file && reportCommentAction ? reportCommentAction.reportActionID : null,
         reportComment: reportCommentText,
         file,
-        shouldKeyReportActionsByID: true,
     };
 
     const optimisticData = [
@@ -367,16 +334,23 @@ function openReport(reportID, participantList = [], newReportObject = {}) {
             isOptimisticReport: false,
         },
     };
+    const reportFailureData = {
+        onyxMethod: CONST.ONYX.METHOD.MERGE,
+        key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
+        value: {
+            isLoadingReportActions: false,
+        },
+    };
 
     const onyxData = {
         optimisticData: [optimisticReportData],
         successData: [reportSuccessData],
+        failureData: [reportFailureData],
     };
 
     const params = {
         reportID,
         emailList: participantList ? participantList.join(',') : '',
-        shouldKeyReportActionsByID: true,
     };
 
     // If we are creating a new report, we need to add the optimistic report data and a report action
@@ -440,7 +414,6 @@ function reconnect(reportID) {
     API.write('ReconnectToReport',
         {
             reportID,
-            shouldKeyReportActionsByID: true,
         },
         {
             optimisticData: [{
@@ -517,7 +490,6 @@ function openPaymentDetailsPage(chatReportID, iouReportID) {
     API.read('OpenPaymentDetailsPage', {
         reportID: chatReportID,
         iouReportID,
-        shouldKeyReportActionsByID: true,
     }, {
         optimisticData: [
             {
@@ -632,6 +604,15 @@ function saveReportComment(reportID, comment) {
 }
 
 /**
+ * Saves the number of lines for the comment
+ * @param {String} reportID
+ * @param {Number} numberOfLines
+ */
+function saveReportCommentNumberOfLines(reportID, numberOfLines) {
+    Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT_NUMBER_OF_LINES}${reportID}`, numberOfLines);
+}
+
+/**
  * Immediate indication whether the report has a draft comment.
  *
  * @param {String} reportID
@@ -706,14 +687,20 @@ function deleteReportComment(reportID, reportAction) {
         },
     };
 
-    // If we are deleting the last visible message, let's find the previous visible one and update the lastMessageText in the LHN.
+    // If we are deleting the last visible message, let's find the previous visible one (or set an empty one if there are none) and update the lastMessageText in the LHN.
     // Similarly, if we are deleting the last read comment we will want to update the lastVisibleActionCreated to use the previous visible message.
-    const lastMessageText = ReportActionsUtils.getLastVisibleMessageText(reportID, optimisticReportActions);
-    const lastVisibleActionCreated = ReportActionsUtils.getLastVisibleAction(reportID, optimisticReportActions).created;
-    const optimisticReport = {
-        lastMessageText,
-        lastVisibleActionCreated,
+    let optimisticReport = {
+        lastMessageText: '',
+        lastVisibleActionCreated: '',
     };
+    const lastMessageText = ReportActionsUtils.getLastVisibleMessageText(reportID, optimisticReportActions);
+    if (lastMessageText.length > 0) {
+        const lastVisibleActionCreated = ReportActionsUtils.getLastVisibleAction(reportID, optimisticReportActions).created;
+        optimisticReport = {
+            lastMessageText,
+            lastVisibleActionCreated,
+        };
+    }
 
     // If the API call fails we must show the original message again, so we revert the message content back to how it was
     // and and remove the pendingAction so the strike-through clears
@@ -760,7 +747,6 @@ function deleteReportComment(reportID, reportAction) {
     const parameters = {
         reportID,
         reportActionID: reportAction.reportActionID,
-        shouldKeyReportActionsByID: true,
     };
     API.write('DeleteComment', parameters, {optimisticData, successData, failureData});
 }
@@ -824,8 +810,8 @@ const handleUserDeletedLinks = (newCommentText, originalHtml) => {
         return newCommentText;
     }
     const htmlWithAutoLinks = parser.replace(newCommentText);
-    const markdownWithAutoLinks = parser.htmlToMarkdown(htmlWithAutoLinks);
-    const markdownOriginalComment = parser.htmlToMarkdown(originalHtml);
+    const markdownWithAutoLinks = parser.htmlToMarkdown(htmlWithAutoLinks).trim();
+    const markdownOriginalComment = parser.htmlToMarkdown(originalHtml).trim();
     const removedLinks = getRemovedMarkdownLinks(markdownOriginalComment, newCommentText);
     return removeLinks(markdownWithAutoLinks, removedLinks);
 };
@@ -854,7 +840,7 @@ function editReportComment(reportID, originalReportAction, textForNewComment) {
     let parsedOriginalCommentHTML = originalCommentHTML;
     if (markdownForNewComment.length < CONST.MAX_MARKUP_LENGTH) {
         htmlForNewComment = parser.replace(markdownForNewComment, autolinkFilter);
-        parsedOriginalCommentHTML = parser.replace(parser.htmlToMarkdown(originalCommentHTML), autolinkFilter);
+        parsedOriginalCommentHTML = parser.replace(parser.htmlToMarkdown(originalCommentHTML).trim(), autolinkFilter);
     }
 
     //  Delete the comment if it's empty
@@ -920,7 +906,6 @@ function editReportComment(reportID, originalReportAction, textForNewComment) {
         reportID,
         reportComment: htmlForNewComment,
         reportActionID,
-        shouldKeyReportActionsByID: true,
     };
     API.write('UpdateComment', parameters, {optimisticData, successData, failureData});
 }
@@ -934,6 +919,16 @@ function editReportComment(reportID, originalReportAction, textForNewComment) {
  */
 function saveReportActionDraft(reportID, reportActionID, draftMessage) {
     Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS_DRAFTS}${reportID}_${reportActionID}`, draftMessage);
+}
+
+/**
+ * Saves the number of lines for the report action draft
+ * @param {String} reportID
+ * @param {Number} reportActionID
+ * @param {Number} numberOfLines
+ */
+function saveReportActionDraftNumberOfLines(reportID, reportActionID, numberOfLines) {
+    Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT_NUMBER_OF_LINES}${reportID}_${reportActionID}`, numberOfLines);
 }
 
 /**
@@ -1134,50 +1129,70 @@ function setIsComposerFullSize(reportID, isComposerFullSize) {
 
 /**
  * @param {String} reportID
- * @param {Object} action
+ * @param {Object} action the associated report action (optional)
+ * @param {Boolean} isRemote whether or not this notification is a remote push notification
+ * @returns {Boolean}
  */
-function showReportActionNotification(reportID, action) {
-    if (ReportActionsUtils.isDeletedAction(action)) {
-        Log.info('[LOCAL_NOTIFICATION] Skipping notification because the action was deleted', false, {reportID, action});
-        return;
+function shouldShowReportActionNotification(reportID, action = null, isRemote = false) {
+    const tag = isRemote ? '[PushNotification]' : '[LocalNotification]';
+
+    // Due to payload size constraints, some push notifications may have their report action stripped
+    // so we must double check that we were provided an action before using it in these checks.
+    if (action && ReportActionsUtils.isDeletedAction(action)) {
+        Log.info(`${tag} Skipping notification because the action was deleted`, false, {reportID, action});
+        return false;
     }
 
     if (!ActiveClientManager.isClientTheLeader()) {
-        Log.info('[LOCAL_NOTIFICATION] Skipping notification because this client is not the leader');
-        return;
+        Log.info(`${tag} Skipping notification because this client is not the leader`);
+        return false;
     }
 
     // We don't want to send a local notification if the user preference is daily or mute
     const notificationPreference = lodashGet(allReports, [reportID, 'notificationPreference'], CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS);
     if (notificationPreference === CONST.REPORT.NOTIFICATION_PREFERENCE.MUTE || notificationPreference === CONST.REPORT.NOTIFICATION_PREFERENCE.DAILY) {
-        Log.info(`[LOCAL_NOTIFICATION] No notification because user preference is to be notified: ${notificationPreference}`);
-        return;
+        Log.info(`${tag} No notification because user preference is to be notified: ${notificationPreference}`);
+        return false;
     }
 
     // If this comment is from the current user we don't want to parrot whatever they wrote back to them.
-    if (action.actorAccountID === currentUserAccountID) {
-        Log.info('[LOCAL_NOTIFICATION] No notification because comment is from the currently logged in user');
-        return;
+    if (action && action.actorAccountID === currentUserAccountID) {
+        Log.info(`${tag} No notification because comment is from the currently logged in user`);
+        return false;
     }
 
     // If we are currently viewing this report do not show a notification.
     if (reportID === Navigation.getReportIDFromRoute() && Visibility.isVisible()) {
-        Log.info('[LOCAL_NOTIFICATION] No notification because it was a comment for the current report', false, {currentReport: Navigation.getReportIDFromRoute(), reportID, action});
-        return;
+        Log.info(`${tag} No notification because it was a comment for the current report`);
+        return false;
     }
 
-    // If the comment came from Concierge let's not show a notification since we already show one for expensify.com
-    if (lodashGet(action, 'actorEmail') === CONST.EMAIL.CONCIERGE) {
-        return;
+    // If this notification was delayed and the user saw the message already, don't show it
+    const report = allReports[reportID];
+    if (action && report && report.lastReadTime >= action.created) {
+        Log.info(`${tag} No notification because the comment was already read`, false, {created: action.created, lastReadTime: report.lastReadTime});
+        return false;
     }
 
     // Don't show a notification if no comment exists
-    if (!_.some(action.message, f => f.type === 'COMMENT')) {
-        Log.info('[LOCAL_NOTIFICATION] No notification because no comments exist for the current action');
+    if (action && !_.some(action.message, f => f.type === 'COMMENT')) {
+        Log.info(`${tag} No notification because no comments exist for the current action`);
+        return false;
+    }
+
+    return true;
+}
+
+/**
+ * @param {String} reportID
+ * @param {Object} action
+ */
+function showReportActionNotification(reportID, action) {
+    if (!shouldShowReportActionNotification(reportID, action)) {
         return;
     }
 
-    Log.info('[LOCAL_NOTIFICATION] Creating notification');
+    Log.info('[LocalNotification] Creating notification');
     LocalNotification.showCommentNotification({
         reportAction: action,
         onClick: () => {
@@ -1395,14 +1410,15 @@ export {
     reconnect,
     updateNotificationPreference,
     subscribeToReportTypingEvents,
-    subscribeToReportCommentPushNotifications,
     unsubscribeFromReportChannel,
     saveReportComment,
+    saveReportCommentNumberOfLines,
     broadcastUserIsTyping,
     togglePinnedState,
     editReportComment,
     handleUserDeletedLinks,
     saveReportActionDraft,
+    saveReportActionDraftNumberOfLines,
     deleteReportComment,
     navigateToConciergeChat,
     setReportWithDraft,
@@ -1426,4 +1442,5 @@ export {
     toggleEmojiReaction,
     hasAccountIDReacted,
     getCurrentUserAccountID,
+    shouldShowReportActionNotification,
 };

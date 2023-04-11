@@ -47,6 +47,9 @@ const propTypes = {
     /* Beta features list */
     betas: PropTypes.arrayOf(PropTypes.string),
 
+    /** Indicated whether the report data is loading */
+    isLoading: PropTypes.bool,
+
     ...withLocalizePropTypes,
 };
 const defaultProps = {
@@ -54,6 +57,7 @@ const defaultProps = {
     onShowCreateMenu: () => {},
     allPolicies: {},
     betas: [],
+    isLoading: false,
 };
 
 /**
