@@ -103,7 +103,7 @@ const AnchorRenderer = (props) => {
             onPress={
                 (
                     (internalNewExpensifyPath || internalExpensifyPath)
-                    && !CONST.INTERNAL_NEW_EXPENSIFY_EXCLUDED_PATHS.includes(attrPath)
+                    && !CONST.PATHS_TO_TREAT_AS_EXTERNAL.includes(attrPath)
                 )
                     ? navigateToLink
                     : undefined
