@@ -1,4 +1,4 @@
-import React from 'react';
+import React, {useRef} from 'react';
 import {View} from 'react-native';
 import _ from 'underscore';
 import {withOnyx} from 'react-native-onyx';
@@ -19,8 +19,6 @@ import withLocalize, {withLocalizePropTypes} from '../withLocalize';
 import compose from '../../libs/compose';
 import ONYXKEYS from '../../ONYXKEYS';
 import getPreferredEmojiCode from './getPreferredEmojiCode';
-
-const ICON_SIZE_SCALE_FACTOR = 1.3;
 
 const propTypes = {
     ...baseQuickEmojiReactionsPropTypes,
@@ -50,7 +48,7 @@ const defaultProps = {
  * @returns {JSX.Element}
  */
 const MiniQuickEmojiReactions = (props) => {
-    const ref = React.createRef();
+    const ref = useRef();
 
     const openEmojiPicker = () => {
         props.onPressOpenPicker();
@@ -73,8 +71,8 @@ const MiniQuickEmojiReactions = (props) => {
                     onPress={() => props.onEmojiSelected(emoji)}
                 >
                     <Text style={[
-                        styles.emojiReactionText,
-                        StyleUtils.getEmojiReactionTextStyle(ICON_SIZE_SCALE_FACTOR),
+                        styles.miniQuickEmojiReactionText,
+                        styles.userSelectNone,
                     ]}
                     >
                         {getPreferredEmojiCode(emoji, props.preferredSkinTone)}
@@ -85,7 +83,7 @@ const MiniQuickEmojiReactions = (props) => {
                 ref={ref}
                 onPress={openEmojiPicker}
                 isDelayButtonStateComplete={false}
-                tooltipText={props.translate('reportActionContextMenu.addReactionTooltip')}
+                tooltipText={props.translate('emojiReactions.addReactionTooltip')}
             >
                 {({hovered, pressed}) => (
                     <Icon

@@ -28,7 +28,7 @@ Onyx.connect({
     callback: val => sessionEmail = val ? val.email : null,
 });
 
-let preferredLocale = CONST.DEFAULT_LOCALE;
+let preferredLocale = CONST.LOCALES.DEFAULT;
 Onyx.connect({
     key: ONYXKEYS.NVP_PREFERRED_LOCALE,
     callback: (val) => {
@@ -89,7 +89,13 @@ function getChatType(report) {
  * @returns {string}
  */
 function getReportParticipantsTitle(logins) {
-    return _.map(logins, login => Str.removeSMSDomain(login)).join(', ');
+    return _.chain(logins)
+
+        // Somehow it's possible for the logins coming from report.participants to contain undefined values so we use compact to remove them.
+        .compact()
+        .map(login => Str.removeSMSDomain(login))
+        .value()
+        .join(', ');
 }
 
 /**
@@ -316,6 +322,25 @@ function getPolicyName(report, policies) {
     return policy.name
         || report.oldPolicyName
         || Localize.translateLocal('workspace.common.unavailable');
+}
+
+/**
+ * Checks if the current user is the admin of the policy given the policy expense chat.
+ * @param {Object} report
+ * @param {String} report.policyID
+ * @param {Object} policies must have OnyxKey prefix (i.e 'policy_') for keys
+ * @returns {Boolean}
+ */
+function isPolicyExpenseChatAdmin(report, policies) {
+    if (!isPolicyExpenseChat(report)) {
+        return false;
+    }
+
+    const policyRole = lodashGet(policies, [
+        `${ONYXKEYS.COLLECTION.POLICY}${report.policyID}`, 'role',
+    ]);
+
+    return policyRole === CONST.POLICY.ROLE.ADMIN;
 }
 
 /**
@@ -986,7 +1011,6 @@ function getIOUReportActionMessage(type, total, participants, comment, currency,
     const who = displayNames.length < 3
         ? displayNames.join(' and ')
         : `${displayNames.slice(0, -1).join(', ')}, and ${_.last(displayNames)}`;
-
     let paymentMethodMessage;
     switch (paymentType) {
         case CONST.IOU.PAYMENT_TYPE.EXPENSIFY:
@@ -1026,7 +1050,7 @@ function getIOUReportActionMessage(type, total, participants, comment, currency,
     }
 
     return [{
-        html: iouMessage,
+        html: getParsedComment(iouMessage),
         text: iouMessage,
         isEdited: false,
         type: CONST.REPORT.MESSAGE.TYPE.COMMENT,
@@ -1399,6 +1423,11 @@ function canSeeDefaultRoom(report, policies, betas) {
         return true;
     }
 
+    // Include any public announce rooms, since they could include people who should have access but we don't know to add to the beta
+    if (report.visibility === CONST.REPORT.VISIBILITY.PUBLIC_ANNOUNCE) {
+        return true;
+    }
+
     // For all other cases, just check that the user belongs to the default rooms beta
     return Permissions.canUseDefaultRooms(betas);
 }
@@ -1424,7 +1453,7 @@ function shouldReportBeInOptionList(report, reportIDFromRoute, isInGSDMode, curr
 
     // Exclude reports that have no data because there wouldn't be anything to show in the option item.
     // This can happen if data is currently loading from the server or a report is in various stages of being created.
-    if (!report || !report.reportID || !report.participants || _.isEmpty(report.participants) || isIOUReport(report)) {
+    if (!report || !report.reportID || !report.participants || (_.isEmpty(report.participants) && !isPublicRoom(report)) || isIOUReport(report)) {
         return false;
     }
 
@@ -1589,32 +1618,43 @@ function getReportIDFromLink(url) {
 }
 
 /**
+ * Users can request money in policy expense chats only if they are in a role of a member in the chat (in other words, if it's their policy expense chat)
+ *
+ * @param {Object} report
+ * @returns {Boolean}
+ */
+function canRequestMoney(report) {
+    return (!isPolicyExpenseChat(report) || report.isOwnPolicyExpenseChat);
+}
+
+/**
  * @param {Object} report
  * @param {Array} reportParticipants
  * @param {Array} betas
  * @returns {Array}
  */
-function getIOUOptions(report, reportParticipants, betas) {
+function getMoneyRequestOptions(report, reportParticipants, betas) {
     const participants = _.filter(reportParticipants, email => currentUserPersonalDetails.login !== email);
     const hasExcludedIOUEmails = lodashIntersection(reportParticipants, CONST.EXPENSIFY_EMAILS).length > 0;
     const hasMultipleParticipants = participants.length > 1;
 
-    if (hasExcludedIOUEmails || participants.length === 0 || !Permissions.canUseIOU(betas)) {
+    if (hasExcludedIOUEmails || (participants.length === 0 && !report.isOwnPolicyExpenseChat) || !Permissions.canUseIOU(betas)) {
         return [];
     }
 
     // User created policy rooms and default rooms like #admins or #announce will always have the Split Bill option
     // unless there are no participants at all (e.g. #admins room for a policy with only 1 admin)
-    // DM chats and workspace chats will have the Split Bill option only when there are at least 3 people in the chat.
-    if (isChatRoom(report) || hasMultipleParticipants) {
-        return [CONST.IOU.IOU_TYPE.SPLIT];
+    // DM chats will have the Split Bill option only when there are at least 3 people in the chat.
+    // There is no Split Bill option for Workspace chats
+    if (isChatRoom(report) || (hasMultipleParticipants && !isPolicyExpenseChat(report))) {
+        return [CONST.IOU.MONEY_REQUEST_TYPE.SPLIT];
     }
 
     // DM chats that only have 2 people will see the Send / Request money options.
     // Workspace chats should only see the Request money option, as "easy overages" is not available.
     return [
-        CONST.IOU.IOU_TYPE.REQUEST,
-        ...(Permissions.canUseIOUSend(betas) && !isPolicyExpenseChat(report) ? [CONST.IOU.IOU_TYPE.SEND] : []),
+        ...(canRequestMoney(report) ? [CONST.IOU.MONEY_REQUEST_TYPE.REQUEST] : []),
+        ...(Permissions.canUseIOUSend(betas) && !isPolicyExpenseChat(report) ? [CONST.IOU.MONEY_REQUEST_TYPE.SEND] : []),
     ];
 }
 
@@ -1666,6 +1706,7 @@ export {
     getPolicyName,
     getPolicyType,
     isArchivedRoom,
+    isPolicyExpenseChatAdmin,
     isPublicRoom,
     isConciergeChatReport,
     hasAutomatedExpensifyEmails,
@@ -1710,7 +1751,9 @@ export {
     hashLogin,
     getDefaultWorkspaceAvatar,
     getCommentLength,
+    getParsedComment,
     getFullSizeAvatar,
     getSmallSizeAvatar,
-    getIOUOptions,
+    getMoneyRequestOptions,
+    canRequestMoney,
 };

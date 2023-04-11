@@ -211,6 +211,11 @@ function removeMembers(members, policyID) {
         key: membersListKey,
         value: _.object(members, Array(members.length).fill({pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE})),
     }];
+    const successData = [{
+        onyxMethod: CONST.ONYX.METHOD.MERGE,
+        key: membersListKey,
+        value: _.object(members, Array(members.length).fill(null)),
+    }];
     const failureData = [{
         onyxMethod: CONST.ONYX.METHOD.MERGE,
         key: membersListKey,
@@ -219,7 +224,7 @@ function removeMembers(members, policyID) {
     API.write('DeleteMembersFromWorkspace', {
         emailList: members.join(','),
         policyID,
-    }, {optimisticData, failureData});
+    }, {optimisticData, successData, failureData});
 }
 
 /**
@@ -271,7 +276,9 @@ function addMembersToWorkspace(memberLogins, welcomeNote, policyID) {
 
     API.write('AddMembersToWorkspace', {
         employees: JSON.stringify(_.map(logins, login => ({email: login}))),
-        welcomeNote,
+
+        // Escape HTML special chars to enable them to appear in the invite email
+        welcomeNote: _.escape(welcomeNote),
         policyID,
     }, {optimisticData, successData, failureData});
 }

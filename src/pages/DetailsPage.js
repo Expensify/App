@@ -1,6 +1,7 @@
 import React from 'react';
 import {View, ScrollView} from 'react-native';
 import PropTypes from 'prop-types';
+import _ from 'underscore';
 import {withOnyx} from 'react-native-onyx';
 import Str from 'expensify-common/lib/str';
 import lodashGet from 'lodash/get';
@@ -25,6 +26,7 @@ import PressableWithoutFocus from '../components/PressableWithoutFocus';
 import * as Report from '../libs/actions/Report';
 import OfflineWithFeedback from '../components/OfflineWithFeedback';
 import AutoUpdateTime from '../components/AutoUpdateTime';
+import FullPageNotFoundView from '../components/BlockingViews/FullPageNotFoundView';
 
 const matchType = PropTypes.shape({
     params: PropTypes.shape({
@@ -80,20 +82,12 @@ const getPhoneNumber = (details) => {
 };
 
 class DetailsPage extends React.PureComponent {
-    componentDidMount() {
-        if (lodashGet(this.props.route.params, 'login')) {
-            return;
-        }
-
-        // Leave the page when the login information is not available
-        Navigation.dismissModal();
-    }
-
     render() {
-        let details = lodashGet(this.props.personalDetails, lodashGet(this.props.route.params, 'login'));
+        const login = lodashGet(this.props.route.params, 'login', '');
+        const reportID = lodashGet(this.props.route.params, 'reportID', '');
+        let details = lodashGet(this.props.personalDetails, login);
 
         if (!details) {
-            const login = lodashGet(this.props.route.params, 'login');
             details = {
                 login,
                 displayName: ReportUtils.getDisplayNameForParticipant(login),
@@ -105,7 +99,7 @@ class DetailsPage extends React.PureComponent {
 
         // If we have a reportID param this means that we
         // arrived here via the ParticipantsPage and should be allowed to navigate back to it
-        const shouldShowBackButton = Boolean(this.props.route.params.reportID);
+        const shouldShowBackButton = Boolean(reportID);
         const shouldShowLocalTime = !ReportUtils.hasAutomatedExpensifyEmails([details.login]) && details.timezone;
         let pronouns = details.pronouns;
 
@@ -116,91 +110,93 @@ class DetailsPage extends React.PureComponent {
 
         return (
             <ScreenWrapper>
-                <HeaderWithCloseButton
-                    title={this.props.translate('common.details')}
-                    shouldShowBackButton={shouldShowBackButton}
-                    onBackButtonPress={() => Navigation.goBack()}
-                    onCloseButtonPress={() => Navigation.dismissModal()}
-                />
-                <View
-                    pointerEvents="box-none"
-                    style={[
-                        styles.containerWithSpaceBetween,
-                    ]}
-                >
-                    {details ? (
-                        <ScrollView>
-                            <View style={styles.avatarSectionWrapper}>
-                                <AttachmentModal
-                                    headerTitle={isSMSLogin ? this.props.toLocalPhone(details.displayName) : details.displayName}
-                                    source={ReportUtils.getFullSizeAvatar(details.avatar, details.login)}
-                                    isAuthTokenRequired
-                                >
-                                    {({show}) => (
-                                        <PressableWithoutFocus
-                                            style={styles.noOutline}
-                                            onPress={show}
-                                        >
-                                            <OfflineWithFeedback
-                                                pendingAction={lodashGet(details, 'pendingFields.avatar', null)}
+                <FullPageNotFoundView shouldShow={_.isEmpty(login)}>
+                    <HeaderWithCloseButton
+                        title={this.props.translate('common.details')}
+                        shouldShowBackButton={shouldShowBackButton}
+                        onBackButtonPress={() => Navigation.goBack()}
+                        onCloseButtonPress={() => Navigation.dismissModal()}
+                    />
+                    <View
+                        pointerEvents="box-none"
+                        style={[
+                            styles.containerWithSpaceBetween,
+                        ]}
+                    >
+                        {details ? (
+                            <ScrollView>
+                                <View style={styles.avatarSectionWrapper}>
+                                    <AttachmentModal
+                                        headerTitle={isSMSLogin ? this.props.toLocalPhone(details.displayName) : details.displayName}
+                                        source={ReportUtils.getFullSizeAvatar(details.avatar, details.login)}
+                                        isAuthTokenRequired
+                                    >
+                                        {({show}) => (
+                                            <PressableWithoutFocus
+                                                style={styles.noOutline}
+                                                onPress={show}
                                             >
-                                                <Avatar
-                                                    containerStyles={[styles.avatarLarge, styles.mb3]}
-                                                    imageStyles={[styles.avatarLarge]}
-                                                    source={ReportUtils.getAvatar(details.avatar, details.login)}
-                                                    size={CONST.AVATAR_SIZE.LARGE}
-                                                />
-                                            </OfflineWithFeedback>
-                                        </PressableWithoutFocus>
+                                                <OfflineWithFeedback
+                                                    pendingAction={lodashGet(details, 'pendingFields.avatar', null)}
+                                                >
+                                                    <Avatar
+                                                        containerStyles={[styles.avatarLarge, styles.mb3]}
+                                                        imageStyles={[styles.avatarLarge]}
+                                                        source={ReportUtils.getAvatar(details.avatar, details.login)}
+                                                        size={CONST.AVATAR_SIZE.LARGE}
+                                                    />
+                                                </OfflineWithFeedback>
+                                            </PressableWithoutFocus>
+                                        )}
+                                    </AttachmentModal>
+                                    {details.displayName && (
+                                        <Text style={[styles.textHeadline, styles.mb6, styles.pre]} numberOfLines={1}>
+                                            {isSMSLogin ? this.props.toLocalPhone(details.displayName) : details.displayName}
+                                        </Text>
                                     )}
-                                </AttachmentModal>
-                                {details.displayName && (
-                                    <Text style={[styles.textHeadline, styles.mb6, styles.pre]} numberOfLines={1}>
-                                        {isSMSLogin ? this.props.toLocalPhone(details.displayName) : details.displayName}
-                                    </Text>
+                                    {details.login ? (
+                                        <View style={[styles.mb6, styles.detailsPageSectionContainer, styles.w100]}>
+                                            <Text style={[styles.textLabelSupporting, styles.mb1]} numberOfLines={1}>
+                                                {this.props.translate(isSMSLogin
+                                                    ? 'common.phoneNumber'
+                                                    : 'common.email')}
+                                            </Text>
+                                            <CommunicationsLink value={isSMSLogin ? getPhoneNumber(details) : details.login}>
+                                                <Tooltip text={isSMSLogin ? getPhoneNumber(details) : details.login}>
+                                                    <Text numberOfLines={1}>
+                                                        {isSMSLogin
+                                                            ? this.props.toLocalPhone(getPhoneNumber(details))
+                                                            : details.login}
+                                                    </Text>
+                                                </Tooltip>
+                                            </CommunicationsLink>
+                                        </View>
+                                    ) : null}
+                                    {pronouns ? (
+                                        <View style={[styles.mb6, styles.detailsPageSectionContainer]}>
+                                            <Text style={[styles.textLabelSupporting, styles.mb1]} numberOfLines={1}>
+                                                {this.props.translate('profilePage.preferredPronouns')}
+                                            </Text>
+                                            <Text numberOfLines={1}>
+                                                {pronouns}
+                                            </Text>
+                                        </View>
+                                    ) : null}
+                                    {shouldShowLocalTime && <AutoUpdateTime timezone={details.timezone} />}
+                                </View>
+                                {details.login !== this.props.session.email && (
+                                    <MenuItem
+                                        title={`${this.props.translate('common.message')}${details.displayName}`}
+                                        icon={Expensicons.ChatBubble}
+                                        onPress={() => Report.navigateToAndOpenReport([details.login])}
+                                        wrapperStyle={styles.breakAll}
+                                        shouldShowRightIcon
+                                    />
                                 )}
-                                {details.login ? (
-                                    <View style={[styles.mb6, styles.detailsPageSectionContainer, styles.w100]}>
-                                        <Text style={[styles.textLabelSupporting, styles.mb1]} numberOfLines={1}>
-                                            {this.props.translate(isSMSLogin
-                                                ? 'common.phoneNumber'
-                                                : 'common.email')}
-                                        </Text>
-                                        <CommunicationsLink value={isSMSLogin ? getPhoneNumber(details) : details.login}>
-                                            <Tooltip text={isSMSLogin ? getPhoneNumber(details) : details.login}>
-                                                <Text numberOfLines={1}>
-                                                    {isSMSLogin
-                                                        ? this.props.toLocalPhone(getPhoneNumber(details))
-                                                        : details.login}
-                                                </Text>
-                                            </Tooltip>
-                                        </CommunicationsLink>
-                                    </View>
-                                ) : null}
-                                {pronouns ? (
-                                    <View style={[styles.mb6, styles.detailsPageSectionContainer]}>
-                                        <Text style={[styles.textLabelSupporting, styles.mb1]} numberOfLines={1}>
-                                            {this.props.translate('profilePage.preferredPronouns')}
-                                        </Text>
-                                        <Text numberOfLines={1}>
-                                            {pronouns}
-                                        </Text>
-                                    </View>
-                                ) : null}
-                                {shouldShowLocalTime && <AutoUpdateTime timezone={details.timezone} />}
-                            </View>
-                            {details.login !== this.props.session.email && (
-                                <MenuItem
-                                    title={`${this.props.translate('common.message')}${details.displayName}`}
-                                    icon={Expensicons.ChatBubble}
-                                    onPress={() => Report.navigateToAndOpenReport([details.login])}
-                                    wrapperStyle={styles.breakAll}
-                                    shouldShowRightIcon
-                                />
-                            )}
-                        </ScrollView>
-                    ) : null}
-                </View>
+                            </ScrollView>
+                        ) : null}
+                    </View>
+                </FullPageNotFoundView>
             </ScreenWrapper>
         );
     }
