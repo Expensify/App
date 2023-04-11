@@ -480,6 +480,8 @@ export default {
         addPayPalAccount: 'Agregar cuenta de PayPal',
         growlMessageOnSave: 'Su nombre de usuario de PayPal se agregó correctamente',
         formatError: 'Usuario PayPal.me no válido',
+        checkListOf: 'Consulta la lista de ',
+        supportedCurrencies: 'monedas admitidas',
     },
     addDebitCardPage: {
         addADebitCard: 'Agregar una tarjeta de débito',

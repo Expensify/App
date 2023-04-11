@@ -4,6 +4,7 @@ import _ from 'underscore';
 import CONST from '../../../CONST';
 import ROUTES from '../../../ROUTES';
 import HeaderWithCloseButton from '../../../components/HeaderWithCloseButton';
+import TextLink from '../../../components/TextLink';
 import Text from '../../../components/Text';
 import ScreenWrapper from '../../../components/ScreenWrapper';
 import Navigation from '../../../libs/Navigation/Navigation';
@@ -15,6 +16,9 @@ import Growl from '../../../libs/Growl';
 import TextInput from '../../../components/TextInput';
 import * as ValidationUtils from '../../../libs/ValidationUtils';
 import * as User from '../../../libs/actions/User';
+import Icon from '../../../components/Icon';
+import * as Expensicons from '../../../components/Icon/Expensicons';
+import variables from '../../../styles/variables';
 
 class AddPayPalMePage extends React.Component {
     constructor(props) {
@@ -78,6 +82,23 @@ class AddPayPalMePage extends React.Component {
                             hasError={this.state.payPalMeUsernameError}
                             errorText={this.state.payPalMeUsernameError ? this.props.translate('addPayPalMePage.formatError') : ''}
                         />
+                        <View style={[styles.flexRow, styles.mt3]}>
+                            <Text style={[styles.textMicro, styles.flexRow]}>
+                                {this.props.translate('addPayPalMePage.checkListOf')}
+                                <TextLink
+                                    href="https://developer.paypal.com/docs/reports/reference/paypal-supported-currencies"
+                                    style={[styles.textMicro]}
+                                >
+                                    {this.props.translate('addPayPalMePage.supportedCurrencies')}
+                                </TextLink>
+                            </Text>
+                            <Icon
+                                src={Expensicons.NewWindow}
+                                height={variables.iconSizeExtraSmall}
+                                width={variables.iconSizeExtraSmall}
+                                additionalStyles={[styles.ml1]}
+                            />
+                        </View>
                     </View>
                 </View>
                 <FixedFooter>
