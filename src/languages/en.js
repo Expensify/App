@@ -374,12 +374,15 @@ export default {
         removeContactMethod: 'Remove contact method',
         removeAreYouSure: 'Are you sure you want to remove this contact method? This action cannot be undone.',
         resendMagicCode: 'Resend magic code',
+        failedNewContact: 'Failed to add this contact method.',
         genericFailureMessages: {
             requestContactMethodValidateCode: 'Failed to send a new magic code. Please wait a bit and try again.',
             validateSecondaryLogin: 'Failed to validate contact method with given magic code. Please request a new code and try again.',
             deleteContactMethod: 'Failed to delete contact method. Please reach out to Concierge for help.',
             setDefaultContactMethod: 'Failed to set a new default contact method. Please reach out to Concierge for help.',
+            addContactMethod: 'Failed to add this contact method. Please reach out to Concierge for help.',
         },
+        newContactMethod: 'New contact method',
     },
     pronouns: {
         coCos: 'Co / Cos',
@@ -410,13 +413,6 @@ export default {
         timezone: 'Timezone',
         isShownOnProfile: 'Your timezone is shown on your profile.',
         getLocationAutomatically: 'Automatically determine your location.',
-    },
-    addSecondaryLoginPage: {
-        addPhoneNumber: 'Add phone number',
-        addEmailAddress: 'Add email address',
-        enterPreferredPhoneNumberToSendValidationLink: 'Enter your preferred phone number to send a validation link.',
-        enterPreferredEmailToSendValidationLink: 'Enter your preferred email address to send a validation link.',
-        sendValidation: 'Send validation',
     },
     initialSettingsPage: {
         about: 'About',
