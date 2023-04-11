@@ -199,6 +199,7 @@ class ReportActionCompose extends React.Component {
             isEmojiPickerLarge: false,
             composerHeight: 0,
             hasExceededMaxCommentLength: false,
+            isEmojiPickerVisible: false,
         };
     }
 
@@ -474,6 +475,10 @@ class ReportActionCompose extends React.Component {
         }
 
         if (this.props.modal.isVisible) {
+            return;
+        }
+
+        if (this.state.isEmojiPickerVisible) {
             return;
         }
 
@@ -902,8 +907,12 @@ class ReportActionCompose extends React.Component {
                     {DeviceCapabilities.canUseTouchScreen() && this.props.isMediumScreenWidth ? null : (
                         <EmojiPickerButton
                             isDisabled={isBlockedFromConcierge || this.props.disabled}
-                            onModalHide={() => this.focus(true)}
+                            onModalHide={() => {
+                                this.focus(true);
+                                this.setState({isEmojiPickerVisible: false});
+                            }}
                             onEmojiSelected={this.addEmojiToTextBox}
+                            onWillShow={() => this.setState({isEmojiPickerVisible: true})}
                         />
                     )}
                     <View
