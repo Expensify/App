@@ -13,19 +13,19 @@ import reportPropTypes from '../../../reportPropTypes';
 
 const propTypes = {
     /** Beta features list */
-    betas: PropTypes.arrayOf(PropTypes.string).isRequired,
+    betas: PropTypes.arrayOf(PropTypes.string),
 
     /** Callback to inform parent modal of success */
     onStepComplete: PropTypes.func.isRequired,
 
-    /** Callback to add participants in IOUModal */
+    /** Callback to add participants in MoneyRequestModal */
     onAddParticipants: PropTypes.func.isRequired,
 
     /** All of the personal details for everyone */
-    personalDetails: PropTypes.objectOf(personalDetailsPropType).isRequired,
+    personalDetails: PropTypes.objectOf(personalDetailsPropType),
 
     /** All reports shared with the user */
-    reports: PropTypes.objectOf(reportPropTypes).isRequired,
+    reports: PropTypes.objectOf(reportPropTypes),
 
     /** padding bottom style of safe area */
     safeAreaPaddingBottomStyle: PropTypes.oneOfType([
@@ -33,11 +33,17 @@ const propTypes = {
         PropTypes.object,
     ]),
 
+    /** The type of IOU report, i.e. bill, request, send */
+    iouType: PropTypes.string.isRequired,
+
     ...withLocalizePropTypes,
 };
 
 const defaultProps = {
     safeAreaPaddingBottomStyle: {},
+    personalDetails: {},
+    reports: {},
+    betas: [],
 };
 
 class IOUParticipantsRequest extends Component {
@@ -51,14 +57,7 @@ class IOUParticipantsRequest extends Component {
             recentReports,
             personalDetails,
             userToInvite,
-        } = OptionsListUtils.getNewChatOptions(
-            props.reports,
-            props.personalDetails,
-            props.betas,
-            '',
-            [],
-            CONST.EXPENSIFY_EMAILS,
-        );
+        } = this.getRequestOptions();
 
         this.state = {
             recentReports,
@@ -66,6 +65,26 @@ class IOUParticipantsRequest extends Component {
             userToInvite,
             searchTerm: '',
         };
+    }
+
+    /**
+     * @param {string} searchTerm
+     * @returns {Object}
+     */
+    getRequestOptions(searchTerm = '') {
+        return OptionsListUtils.getNewChatOptions(
+            this.props.reports,
+            this.props.personalDetails,
+            this.props.betas,
+            searchTerm,
+            [],
+            CONST.EXPENSIFY_EMAILS,
+
+            // If we are using this component in the "Request money" flow then we pass the includeOwnedWorkspaceChats argument so that the current user
+            // sees the option to request money from their admin on their own Workspace Chat. These will always be shown in the "Recents" section of the selector
+            // along with any other recent chats.
+            this.props.iouType === CONST.IOU.MONEY_REQUEST_TYPE.REQUEST,
+        );
     }
 
     /**
@@ -110,14 +129,7 @@ class IOUParticipantsRequest extends Component {
             recentReports,
             personalDetails,
             userToInvite,
-        } = OptionsListUtils.getNewChatOptions(
-            this.props.reports,
-            this.props.personalDetails,
-            this.props.betas,
-            searchTerm,
-            [],
-            CONST.EXPENSIFY_EMAILS,
-        );
+        } = this.getRequestOptions(searchTerm);
         this.setState({
             searchTerm,
             recentReports,

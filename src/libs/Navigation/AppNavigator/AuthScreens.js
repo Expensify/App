@@ -1,5 +1,6 @@
 import React from 'react';
 import Onyx, {withOnyx} from 'react-native-onyx';
+import PropTypes from 'prop-types';
 import moment from 'moment';
 import _ from 'underscore';
 import lodashGet from 'lodash/get';
@@ -81,7 +82,17 @@ const modalScreenListeners = {
 };
 
 const propTypes = {
+    /** Session of currently logged in user */
+    session: PropTypes.shape({
+        email: PropTypes.string.isRequired,
+    }),
     ...windowDimensionsPropTypes,
+};
+
+const defaultProps = {
+    session: {
+        email: null,
+    },
 };
 
 class AuthScreens extends React.Component {
@@ -115,12 +126,10 @@ class AuthScreens extends React.Component {
         // the chat switcher, or new group chat
         // based on the key modifiers pressed and the operating system
         this.unsubscribeSearchShortcut = KeyboardShortcut.subscribe(searchShortcutConfig.shortcutKey, () => {
-            Modal.close();
-            Navigation.navigate(ROUTES.SEARCH);
+            Modal.close(() => Navigation.navigate(ROUTES.SEARCH));
         }, searchShortcutConfig.descriptionKey, searchShortcutConfig.modifiers, true);
         this.unsubscribeGroupShortcut = KeyboardShortcut.subscribe(groupShortcutConfig.shortcutKey, () => {
-            Modal.close();
-            Navigation.navigate(ROUTES.NEW_GROUP);
+            Modal.close(() => Navigation.navigate(ROUTES.NEW_GROUP));
         }, groupShortcutConfig.descriptionKey, groupShortcutConfig.modifiers, true);
     }
 
@@ -333,6 +342,7 @@ class AuthScreens extends React.Component {
 }
 
 AuthScreens.propTypes = propTypes;
+AuthScreens.defaultProps = defaultProps;
 export default compose(
     withWindowDimensions,
     withOnyx({

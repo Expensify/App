@@ -33,15 +33,29 @@ const propTypes = {
 
         /** ID of the policy */
         policyID: PropTypes.string,
-    }).isRequired,
+    }),
 
     /** List of betas available to current user */
     betas: PropTypes.arrayOf(PropTypes.string),
+
+    /** The list of policies the user has access to. */
+    policies: PropTypes.objectOf(PropTypes.shape({
+        /** The policy type */
+        type: PropTypes.oneOf(_.values(CONST.POLICY.TYPE)),
+
+        /** The name of the policy */
+        name: PropTypes.string,
+
+        /** The ID of the policy */
+        id: PropTypes.string,
+    })),
 
     ...withLocalizePropTypes,
 };
 const defaultProps = {
     betas: [],
+    reports: {},
+    policies: {},
 };
 
 class WorkspaceNewRoomPage extends React.Component {

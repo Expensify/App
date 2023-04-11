@@ -11,8 +11,6 @@ import ONYXKEYS from '../../../ONYXKEYS';
 import getPreferredEmojiCode from '../getPreferredEmojiCode';
 import Tooltip from '../../Tooltip';
 
-const EMOJI_BUBBLE_SCALE = 1.5;
-
 const baseQuickEmojiReactionsPropTypes = {
     /**
      * Callback to fire when an emoji is selected.
@@ -32,9 +30,19 @@ const baseQuickEmojiReactionsPropTypes = {
     onPressOpenPicker: PropTypes.func,
 };
 
+const baseQuickEmojiReactionsDefaultProps = {
+    onWillShowPicker: () => {},
+    onPressOpenPicker: () => {},
+};
+
 const propTypes = {
     ...baseQuickEmojiReactionsPropTypes,
-    preferredSkinTone: PropTypes.oneOfType([PropTypes.number, PropTypes.string]).isRequired,
+    preferredSkinTone: PropTypes.oneOfType([PropTypes.number, PropTypes.string]),
+};
+
+const defaultProps = {
+    ...baseQuickEmojiReactionsDefaultProps,
+    preferredSkinTone: CONST.EMOJI_DEFAULT_SKIN_TONE,
 };
 
 const BaseQuickEmojiReactions = props => (
@@ -45,7 +53,7 @@ const BaseQuickEmojiReactions = props => (
             <Tooltip text={`:${emoji.name}:`} key={emoji.name} focusable={false}>
                 <EmojiReactionBubble
                     emojiCodes={[getPreferredEmojiCode(emoji, props.preferredSkinTone)]}
-                    sizeScale={EMOJI_BUBBLE_SCALE}
+                    isContextMenu
                     onPress={() => {
                         props.onEmojiSelected(emoji);
                     }}
@@ -53,8 +61,7 @@ const BaseQuickEmojiReactions = props => (
             </Tooltip>
         ))}
         <AddReactionBubble
-            iconSizeScale={1.2}
-            sizeScale={EMOJI_BUBBLE_SCALE}
+            isContextMenu
             onPressOpenPicker={props.onPressOpenPicker}
             onWillShowPicker={props.onWillShowPicker}
             onSelectEmoji={props.onEmojiSelected}
@@ -64,6 +71,7 @@ const BaseQuickEmojiReactions = props => (
 
 BaseQuickEmojiReactions.displayName = 'BaseQuickEmojiReactions';
 BaseQuickEmojiReactions.propTypes = propTypes;
+BaseQuickEmojiReactions.defaultProps = defaultProps;
 export default withOnyx({
     preferredSkinTone: {
         key: ONYXKEYS.PREFERRED_EMOJI_SKIN_TONE,

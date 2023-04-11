@@ -14,11 +14,14 @@ export default {
         new: 'New',
         search: 'Search',
         next: 'Next',
+        previous: 'Previous',
         goBack: 'Go back',
         add: 'Add',
         resend: 'Resend',
         save: 'Save',
         saveChanges: 'Save changes',
+        rotate: 'Rotate',
+        zoom: 'Zoom',
         password: 'Password',
         magicCode: 'Magic code',
         workspaces: 'Workspaces',
@@ -124,8 +127,11 @@ export default {
         youAppearToBeOffline: 'You appear to be offline.',
         thisFeatureRequiresInternet: 'This feature requires an active internet connection to be used.',
         areYouSure: 'Are you sure?',
+        verify: 'Verify',
+        yesContinue: 'Yes, continue',
         zipCodeExample: 'e.g. 12345, 12345-1234, 12345 1234',
         websiteExample: 'e.g. https://www.expensify.com',
+        format: ({zipSampleFormat}) => (zipSampleFormat ? `Format: ${zipSampleFormat}` : ''),
     },
     attachmentPicker: {
         cameraPermissionRequired: 'Camera access',
@@ -157,9 +163,8 @@ export default {
     },
     deeplinkWrapper: {
         launching: 'Launching Expensify',
-        redirectedToDesktopApp: 'We\'ve redirected you to the desktop app.',
-        youCanAlso: 'You can also',
-        openLinkInBrowser: 'open this link in your browser',
+        expired: 'Your session has expired.',
+        signIn: 'Please sign in again.',
     },
     validateCodeModal: {
         successfulSignInTitle: 'Abracadabra,\nyou are signed in!',
@@ -237,7 +242,10 @@ export default {
         editComment: 'Edit comment',
         deleteComment: 'Delete comment',
         deleteConfirmation: 'Are you sure you want to delete this comment?',
+    },
+    emojiReactions: {
         addReactionTooltip: 'Add reaction',
+        reactedWith: 'reacted with',
     },
     reportActionsView: {
         beginningOfArchivedRoomPartOne: 'You missed the party in ',
@@ -250,7 +258,7 @@ export default {
         beginningOfChatHistoryAnnounceRoomPartTwo: ({workspaceName}) => ` to chat about anything ${workspaceName} related.`,
         beginningOfChatHistoryUserRoomPartOne: 'Collaboration starts here! 🎉\nUse this space to chat about anything ',
         beginningOfChatHistoryUserRoomPartTwo: ' related.',
-        beginningOfChatHistory: 'This is the beginning of your chat history with ',
+        beginningOfChatHistory: 'This is the beginning of your chat with ',
         beginningOfChatHistoryPolicyExpenseChatPartOne: 'Collaboration between ',
         beginningOfChatHistoryPolicyExpenseChatPartTwo: ' and ',
         beginningOfChatHistoryPolicyExpenseChatPartThree: ' starts here! 🎉 This is the place to chat, request money and settle up.',
@@ -282,9 +290,12 @@ export default {
         fabNewChat: 'New chat (Floating action)',
         chatPinned: 'Chat pinned',
         draftedMessage: 'Drafted message',
+        listOfChatMessages: 'List of chat messages',
+        listOfChats: 'List of chats',
     },
     iou: {
         amount: 'Amount',
+        cash: 'Cash',
         participants: 'Participants',
         splitBill: 'Split bill',
         requestMoney: 'Request money',
@@ -334,8 +345,6 @@ export default {
     },
     profilePage: {
         profile: 'Profile',
-        john: 'John',
-        doe: 'Doe',
         preferredPronouns: 'Preferred pronouns',
         selectYourPronouns: 'Select your pronouns',
         selfSelectYourPronoun: 'Self-select your pronoun',
@@ -351,10 +360,28 @@ export default {
     pronounsPage: {
         pronouns: 'Pronouns',
         isShownOnProfile: 'Your pronouns are shown on your profile.',
+        placeholderText: 'Search to see options',
     },
     contacts: {
         contactMethod: 'Contact method',
         contactMethods: 'Contact methods',
+        helpTextBeforeEmail: 'Add more ways for people to find you, and forward receipts to ',
+        helpTextAfterEmail: ' from multiple email addresses.',
+        pleaseVerify: 'Please verify this contact method',
+        getInTouch: "Whenever we need to get in touch with you, we'll use this contact method.",
+        enterMagicCode: ({contactMethod}) => `Please enter the magic code sent to ${contactMethod}`,
+        yourDefaultContactMethod: 'This is your current default contact method. You will not be able to delete this contact method until you set an alternative default by selecting another contact method and pressing “Set as default”.',
+        removeContactMethod: 'Remove contact method',
+        removeAreYouSure: 'Are you sure you want to remove this contact method? This action cannot be undone.',
+        resendMagicCode: 'Resend magic code',
+        failedNewContact: 'Failed to add this contact method.',
+        genericFailureMessages: {
+            requestContactMethodValidateCode: 'Failed to send a new magic code. Please wait a bit and try again.',
+            validateSecondaryLogin: 'Failed to validate contact method with given magic code. Please request a new code and try again.',
+            deleteContactMethod: 'Failed to delete contact method. Please reach out to Concierge for help.',
+            addContactMethod: 'Failed to add this contact method. Please reach out to Concierge for help.',
+        },
+        newContactMethod: 'New contact method',
     },
     pronouns: {
         coCos: 'Co / Cos',
@@ -380,20 +407,11 @@ export default {
     displayNamePage: {
         headerTitle: 'Display name',
         isShownOnProfile: 'Your display name is shown on your profile.',
-        john: 'John',
-        doe: 'Doe',
     },
     timezonePage: {
         timezone: 'Timezone',
         isShownOnProfile: 'Your timezone is shown on your profile.',
         getLocationAutomatically: 'Automatically determine your location.',
-    },
-    addSecondaryLoginPage: {
-        addPhoneNumber: 'Add phone number',
-        addEmailAddress: 'Add email address',
-        enterPreferredPhoneNumberToSendValidationLink: 'Enter your preferred phone number to send a validation link.',
-        enterPreferredEmailToSendValidationLink: 'Enter your preferred email address to send a validation link.',
-        sendValidation: 'Send validation',
     },
     initialSettingsPage: {
         about: 'About',
@@ -614,6 +632,7 @@ export default {
             invalidFormatEmailLogin: 'The email entered is invalid. Please fix the format and try again.',
         },
         cannotGetAccountDetails: 'Couldn\'t retrieve account details, please try to sign in again.',
+        loginForm: 'Login form',
     },
     personalDetails: {
         error: {
@@ -632,6 +651,7 @@ export default {
             dateShouldBeBefore: ({dateString}) => `Date should be before ${dateString}.`,
             dateShouldBeAfter: ({dateString}) => `Date should be after ${dateString}.`,
             hasInvalidCharacter: 'Name can only include letters and numbers.',
+            incorrectZipFormat: ({zipFormat}) => `Incorrect zip code format.${zipFormat ? ` Acceptable format: ${zipFormat}` : ''}`,
         },
     },
     resendValidationForm: {
@@ -911,7 +931,7 @@ export default {
         },
     },
     reimbursementAccountLoadingAnimation: {
-        oneMoment: 'One Moment',
+        oneMoment: 'One moment',
         explanationLine: 'We’re taking a look at your information. You will be able to continue with next steps shortly.',
     },
     session: {
@@ -1030,6 +1050,7 @@ export default {
             nameIsRequiredError: 'You need to define a name for your workspace.',
             currencyInputLabel: 'Default currency',
             currencyInputHelpText: 'All expenses on this workspace will be converted to this currency.',
+            currencyInputDisabledText: 'The default currency can\'t be changed because this workspace is linked to a USD bank account.',
             save: 'Save',
             genericFailureMessage: 'An error occurred updating the workspace, please try again.',
             avatarUploadFailureMessage: 'An error occurred uploading the avatar, please try again.',
@@ -1173,6 +1194,7 @@ export default {
     },
     report: {
         genericAddCommentFailureMessage: 'Unexpected error while posting the comment, please try again later',
+        noActivityYet: 'No activity yet',
     },
     chronos: {
         oooEventSummaryFullDay: ({summary, dayCount, date}) => `${summary} for ${dayCount} ${dayCount === 1 ? 'day' : 'days'} until ${date}`,
@@ -1204,9 +1226,20 @@ export default {
         expensifyOrg: 'Expensify.org',
         investorRelations: 'Investor Relations',
         getStarted: 'Get Started',
-        createAccount: 'Create a new account',
-        logIn: 'Log in',
+        createAccount: 'Create A New Account',
+        logIn: 'Log In',
     },
     allStates: COMMON_CONST.STATES,
     allCountries: CONST.ALL_COUNTRIES,
+    accessibilityHints: {
+        navigateToChatsList: 'Navigate back to chats list',
+        chatWelcomeMessage: 'Chat welcome message',
+        navigatesToChat: 'Navigates to a chat',
+        newMessageLineIndicator: 'New message line indicator',
+        chatMessage: 'Chat message',
+        lastChatMessagePreview: 'Last chat message preview',
+        workspaceName: 'Workspace name',
+        chatUserDisplayNames: 'Chat user display names',
+        scrollToNewestMessages: 'Scroll to newest messages',
+    },
 };

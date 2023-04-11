@@ -78,9 +78,9 @@ const ReportActionItemReactions = (props) => {
                                 accountIDs={reactionUsers}
                             />
                         )}
+                        key={reaction.emoji}
                     >
                         <EmojiReactionBubble
-                            key={reaction.emoji}
                             count={reactionCount}
                             emojiCodes={emojiCodes}
                             onPress={onPress}

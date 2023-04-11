@@ -15,6 +15,7 @@ import networkPropTypes from './networkPropTypes';
 import compose from '../libs/compose';
 import {withNetwork} from './OnyxProvider';
 import * as ApiUtils from '../libs/ApiUtils';
+import CONFIG from '../CONFIG';
 
 const propTypes = {
     /** User object in Onyx */
@@ -42,15 +43,18 @@ const TestToolMenu = props => (
         </Text>
 
         {/* Option to switch between staging and default api endpoints.
-        This enables QA and internal testers to take advantage of sandbox environments for 3rd party services like Plaid and Onfido. */}
-        <TestToolRow title="Use Staging Server">
-            <Switch
-                isOn={lodashGet(props, 'user.shouldUseStagingServer', ApiUtils.isUsingStagingApi())}
-                onToggle={() => User.setShouldUseStagingServer(
-                    !lodashGet(props, 'user.shouldUseStagingServer', ApiUtils.isUsingStagingApi()),
-                )}
-            />
-        </TestToolRow>
+        This enables QA, internal testers and external devs to take advantage of sandbox environments for 3rd party services like Plaid and Onfido.
+        This toggle is not rendered for internal devs as they make environment changes directly to the .env file. */}
+        {!CONFIG.IS_USING_LOCAL_WEB && (
+            <TestToolRow title="Use Staging Server">
+                <Switch
+                    isOn={lodashGet(props, 'user.shouldUseStagingServer', ApiUtils.isUsingStagingApi())}
+                    onToggle={() => User.setShouldUseStagingServer(
+                        !lodashGet(props, 'user.shouldUseStagingServer', ApiUtils.isUsingStagingApi()),
+                    )}
+                />
+            </TestToolRow>
+        )}
 
         {/* When toggled the app will be forced offline. */}
         <TestToolRow title="Force offline">

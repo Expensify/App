@@ -78,13 +78,19 @@ class EmojiPicker extends React.Component {
         }
     }
 
-    hideEmojiPicker() {
+    /**
+     * Hide the emoji picker menu.
+     *
+     * @param {Boolean} isNavigating
+     */
+    hideEmojiPicker(isNavigating) {
+        if (isNavigating) { this.onModalHide = () => {}; }
         this.emojiPopoverAnchor = null;
         this.setState({isEmojiPickerVisible: false});
     }
 
     /**
-     * Show the ReportActionContextMenu modal popover.
+     * Show the emoji picker menu.
      *
      * @param {Function} [onModalHide=() => {}] - Run a callback when Modal hides.
      * @param {Function} [onEmojiSelected=() => {}] - Run a callback when Emoji selected.
