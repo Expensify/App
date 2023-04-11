@@ -665,7 +665,6 @@ export default {
         unlink: 'Unlink',
         linkSent: 'Link sent!',
         succesfullyUnlinkedLogin: 'Secondary login successfully unlinked!',
-        validationLinkFailedMessage: 'It looks like there was an error with your validation link or it has expired.'
     },
     detailsPage: {
         localTime: 'Local time',

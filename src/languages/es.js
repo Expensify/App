@@ -663,8 +663,7 @@ export default {
         noLongerHaveAccess: ({primaryLogin}) => `Si ya no tienes acceso a ${primaryLogin} por favor, desvincula las cuentas.`,
         unlink: 'Desvincular',
         linkSent: '¡Enlace enviado!',
-        succesfullyUnlinkedLogin: 'Secondary login successfully unlinked!',
-        validationLinkFailedMessage: 'Parece que hubo un error con el enlace de validación o ha caducado.',
+        succesfullyUnlinkedLogin: '¡Nombre de usuario secundario desvinculado correctamente!',
     },
     detailsPage: {
         localTime: 'Hora local',
