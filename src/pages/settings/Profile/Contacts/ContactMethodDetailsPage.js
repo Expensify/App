@@ -27,9 +27,13 @@ import * as ErrorUtils from '../../../../libs/ErrorUtils';
 import themeColors from '../../../../styles/themes/default';
 import NotFoundPage from '../../../ErrorPage/NotFoundPage';
 import * as ValidationUtils from '../../../../libs/ValidationUtils';
+import Permissions from '../../../../libs/Permissions';
 
 const propTypes = {
     /* Onyx Props */
+
+    /** List of betas available to current user */
+    betas: PropTypes.arrayOf(PropTypes.string),
 
     /** Login list for the user that is signed in */
     loginList: PropTypes.shape({
@@ -74,6 +78,7 @@ const propTypes = {
 };
 
 const defaultProps = {
+    betas: [],
     loginList: {},
     session: {
         email: null,
@@ -96,6 +101,7 @@ class ContactMethodDetailsPage extends Component {
         this.resendValidateCode = this.resendValidateCode.bind(this);
         this.getContactMethod = this.getContactMethod.bind(this);
         this.validateAndSubmitCode = this.validateAndSubmitCode.bind(this);
+        this.setAsDefault = this.setAsDefault.bind(this);
 
         this.state = {
             formError: '',
@@ -173,6 +179,13 @@ class ContactMethodDetailsPage extends Component {
         }
     }
 
+    /**
+     * Attempt to set this contact method as user's "Default contact method"
+     */
+    setAsDefault() {
+        User.setContactMethodAsDefault(this.getContactMethod());
+    }
+
     render() {
         const contactMethod = this.getContactMethod();
         const loginData = this.props.loginList[contactMethod];
@@ -184,11 +197,15 @@ class ContactMethodDetailsPage extends Component {
         const hasMagicCodeBeenSent = lodashGet(this.props.loginList, [contactMethod, 'validateCodeSent'], false);
         const formErrorText = this.state.formError ? this.props.translate(this.state.formError) : '';
 
-        // Users are only allowed to change their default contact method to the current one if the current one:
-        // 1. Is not already their default contact method
-        // 2. Is validated
-        // 3. Is allowed by their domain security group (if this exists)
-        const canChangeDefaultContactMethod = !isDefaultContactMethod && loginData.validatedDate && this.getCanChangeDefaultContactMethod();
+        // Users are only allowed to change their default contact method to the current one if:
+        // 1. This contact method is not already their default
+        // 2. This contact method is validated
+        // 3. Default contact method switching is allowed by their domain security group (if this exists)
+        // 4. The user is on the passwordless beta
+        const canChangeDefaultContactMethod = !isDefaultContactMethod
+            && loginData.validatedDate
+            && this.getCanChangeDefaultContactMethod()
+            && Permissions.canUsePasswordlessLogins(this.props.betas);
 
         return (
             <ScreenWrapper>
@@ -268,10 +285,7 @@ class ContactMethodDetailsPage extends Component {
                             <MenuItem
                                 title={this.props.translate('contacts.setAsDefault')}
                                 icon={Expensicons.Profile}
-                                onPress={() => {
-                                    User.setContactMethodAsDefault(contactMethod);
-                                    Navigation.navigate(ROUTES.SETTINGS_CONTACT_METHODS);
-                                }}
+                                onPress={this.setAsDefault}
                             />
                         </OfflineWithFeedback>
                     )}
@@ -315,6 +329,9 @@ ContactMethodDetailsPage.defaultProps = defaultProps;
 export default compose(
     withLocalize,
     withOnyx({
+        betas: {
+            key: ONYXKEYS.BETAS,
+        },
         loginList: {
             key: ONYXKEYS.LOGIN_LIST,
         },
