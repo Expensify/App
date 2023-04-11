@@ -122,7 +122,7 @@ class InitialSettingsPage extends React.Component {
         super(props);
 
         this.popoverAnchor = React.createRef();
-        
+
         this.getWalletBalance = this.getWalletBalance.bind(this);
         this.getDefaultMenuItems = this.getDefaultMenuItems.bind(this);
         this.getMenuItem = this.getMenuItem.bind(this);

@@ -15,10 +15,16 @@ const propTypes = {
     onSecondaryInteraction: PropTypes.func.isRequired,
 
     /** The children which should be contained in this wrapper component. */
-    children: PropTypes.node.isRequired,
+    children: PropTypes.oneOfType([
+        PropTypes.func,
+        PropTypes.node,
+    ]).isRequired,
 
     /** The ref to the search input (may be null on small screen widths) */
-    forwardedRef: PropTypes.func,
+    forwardedRef: PropTypes.oneOfType([
+        PropTypes.func,
+        PropTypes.object,
+    ]),
 
     /** Prevent the default ContextMenu on web/Desktop */
     preventDefaultContentMenu: PropTypes.bool,

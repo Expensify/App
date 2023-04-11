@@ -6,6 +6,7 @@ import * as ReportActionContextMenu from '../pages/home/report/ContextMenu/Repor
  *
  * @param {Object} [event] - A press event.
  * @param {String} [selection] - Copied content.
+ * @param {Object} [popoverAnchor] - The popover anchor.
  */
 const showPopover = (event, selection, popoverAnchor) => {
     ReportActionContextMenu.showContextMenu(

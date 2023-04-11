@@ -65,7 +65,7 @@ const AboutPage = (props) => {
             icon: Expensicons.Bug,
             action: Report.navigateToConciergeChat,
         },
-    ]
+    ];
 
     return (
         <ScreenWrapper includeSafeAreaPaddingBottom={false}>
