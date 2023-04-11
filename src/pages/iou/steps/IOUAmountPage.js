@@ -124,7 +124,9 @@ class IOUAmountPage extends React.Component {
      */
     getNewState(prevState, newAmount) {
         if (!this.validateAmount(newAmount)) {
-            return prevState;
+            // Use a shallow copy of selection to trigger setSelection
+            // More info: https://github.com/Expensify/App/issues/16385
+            return {amount: prevState.amount, selection: {...prevState.selection}};
         }
         const selection = this.getNewSelection(prevState.selection, prevState.amount.length, newAmount.length);
         return {amount: this.stripCommaFromAmount(newAmount), selection};
