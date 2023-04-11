@@ -990,8 +990,8 @@ function buildOptimisticIOUReport(ownerEmail, userEmail, total, chatReportID, cu
         });
 
     return {
-        // If we're sending money, hasOutstandingIOU should be false
         type: CONST.REPORT.TYPE.IOU,
+        // If we're sending money, hasOutstandingIOU should be false
         hasOutstandingIOU: !isSendingMoney,
         cachedTotal: formattedTotal,
         chatReportID,
