@@ -53,7 +53,10 @@ function AutoUpdateTime(props) {
     }, [currentUserLocalTime]);
 
     useEffect(() => {
-        // If the user leaves this page open, we want to make sure the displayed time is updated every minute when the clock changes
+        // If the any of the props that getCurrentUserLocalTime depends on change, we want to update the displayed time immediately
+        setCurrentUserLocalTime(getCurrentUserLocalTime());
+
+        // Also, if the user leaves this page open, we want to make sure the displayed time is updated every minute when the clock changes
         // To do this we create an interval to check if the minute has changed every second and update the displayed time if it has
         const interval = setInterval(() => {
             const currentMinute = new Date().getMinutes();
@@ -63,11 +66,6 @@ function AutoUpdateTime(props) {
             }
         }, 1000);
         return () => clearInterval(interval);
-    }, [getCurrentUserLocalTime]);
-
-    useEffect(() => {
-        // If the any of the props that getCurrentUserLocalTime depends on change, we want to update the displayed time immediately
-        setCurrentUserLocalTime(getCurrentUserLocalTime());
     }, [getCurrentUserLocalTime]);
 
     return (
