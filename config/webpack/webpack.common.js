@@ -29,6 +29,7 @@ const envToLogoSuffixMap = {
     production: '',
     staging: '-stg',
     dev: '-dev',
+    adhoc: '-adhoc',
 };
 
 function mapEnvToLogoSuffix(envFile) {

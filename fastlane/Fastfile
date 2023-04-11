@@ -39,7 +39,7 @@ platform :android do
 
   desc "Build app for testing"
   lane :build_internal do
-    ENV["ENVFILE"]=".env.staging"
+    ENV["ENVFILE"]=".env.adhoc"
 
     gradle(
         project_dir: './android',
@@ -118,7 +118,7 @@ platform :ios do
   desc "Build app for testing"
   lane :build_internal do
     require 'securerandom'
-    ENV["ENVFILE"]=".env.staging"
+    ENV["ENVFILE"]=".env.adhoc"
 
     keychain_password = SecureRandom.uuid
 

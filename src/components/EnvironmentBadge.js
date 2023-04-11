@@ -10,6 +10,7 @@ const ENVIRONMENT_SHORT_FORM = {
     [CONST.ENVIRONMENT.DEV]: 'DEV',
     [CONST.ENVIRONMENT.STAGING]: 'STG',
     [CONST.ENVIRONMENT.PRODUCTION]: 'PROD',
+    [CONST.ENVIRONMENT.ADHOC]: 'ADHOC',
 };
 
 const EnvironmentBadge = (props) => {
@@ -22,8 +23,8 @@ const EnvironmentBadge = (props) => {
 
     return (
         <Badge
-            success={props.environment === CONST.ENVIRONMENT.STAGING}
-            error={props.environment !== CONST.ENVIRONMENT.STAGING}
+            success={props.environment === CONST.ENVIRONMENT.STAGING || props.environment === CONST.ENVIRONMENT.ADHOC}
+            error={props.environment !== CONST.ENVIRONMENT.STAGING && props.environment !== CONST.ENVIRONMENT.ADHOC}
             text={text}
             badgeStyles={[styles.alignSelfCenter]}
         />

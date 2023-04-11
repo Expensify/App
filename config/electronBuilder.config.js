@@ -20,7 +20,7 @@ const s3Path = {
 const macIcon = {
     production: './desktop/icon.png',
     staging: './desktop/icon-stg.png',
-    internal: './desktop/icon-stg.png',
+    internal: './desktop/icon-adhoc.png',
 };
 
 const isCorrectElectronEnv = ['production', 'staging', 'internal'].includes(

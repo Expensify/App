@@ -71,8 +71,11 @@ jobs:
         with:
           ref: ${{ github.event.pull_request.head.sha || needs.getBranchRef.outputs.REF }}
 
-      - name: Add PULL_REQUEST_NUMBER to .env.staging file
-        run: echo "PULL_REQUEST_NUMBER=$PULL_REQUEST_NUMBER" >> .env.staging
+      - name: Create .env.adhoc file based on staging and add PULL_REQUEST_NUMBER env to it
+        run: |
+          cp .env.staging .env.adhoc
+          sed -i 's/ENVIRONMENT=staging/ENVIRONMENT=adhoc/' .env.adhoc  
+          echo "PULL_REQUEST_NUMBER=$PULL_REQUEST_NUMBER" >> .env.adhoc
 
       - uses: Expensify/App/.github/actions/composite/setupNode@main
 
@@ -124,8 +127,11 @@ jobs:
         with:
           ref: ${{ github.event.pull_request.head.sha || needs.getBranchRef.outputs.REF }}
 
-      - name: Add PULL_REQUEST_NUMBER to .env.staging file
-        run: echo "PULL_REQUEST_NUMBER=$PULL_REQUEST_NUMBER" >> .env.staging
+      - name: Create .env.adhoc file based on staging and add PULL_REQUEST_NUMBER env to it
+        run: |
+          cp .env.staging .env.adhoc
+          sed -i '' 's/ENVIRONMENT=staging/ENVIRONMENT=adhoc/' .env.adhoc  
+          echo "PULL_REQUEST_NUMBER=$PULL_REQUEST_NUMBER" >> .env.adhoc
 
       - uses: Expensify/App/.github/actions/composite/setupNode@main
 
@@ -184,8 +190,11 @@ jobs:
           ref: ${{ github.event.pull_request.head.sha || needs.getBranchRef.outputs.REF }}
           fetch-depth: 0
 
-      - name: Add PULL_REQUEST_NUMBER to .env.staging file
-        run: echo "PULL_REQUEST_NUMBER=$PULL_REQUEST_NUMBER" >> .env.staging
+      - name: Create .env.adhoc file based on staging and add PULL_REQUEST_NUMBER env to it
+        run: |
+          cp .env.staging .env.adhoc
+          sed -i 's/ENVIRONMENT=staging/ENVIRONMENT=adhoc/' .env.adhoc  
+          echo "PULL_REQUEST_NUMBER=$PULL_REQUEST_NUMBER" >> .env.adhoc
 
       - uses: Expensify/App/.github/actions/composite/setupNode@main
 
@@ -223,8 +232,11 @@ jobs:
           fetch-depth: 0
           ref: ${{ github.event.pull_request.head.sha || needs.getBranchRef.outputs.REF }}
 
-      - name: Add PULL_REQUEST_NUMBER to .env.staging file
-        run: echo "PULL_REQUEST_NUMBER=$PULL_REQUEST_NUMBER" >> .env.staging
+      - name: Create .env.adhoc file based on staging and add PULL_REQUEST_NUMBER env to it
+        run: |
+          cp .env.staging .env.adhoc
+          sed -i 's/ENVIRONMENT=staging/ENVIRONMENT=adhoc/' .env.adhoc  
+          echo "PULL_REQUEST_NUMBER=$PULL_REQUEST_NUMBER" >> .env.adhoc
 
       - uses: Expensify/App/.github/actions/composite/setupNode@main
 
