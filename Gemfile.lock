@@ -286,4 +286,4 @@ DEPENDENCIES
   xcpretty (~> 0)
 
 BUNDLED WITH
-   2.3.24
+   2.1.4
