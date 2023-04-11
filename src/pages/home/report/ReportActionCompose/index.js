@@ -470,19 +470,7 @@ class ReportActionCompose extends React.Component {
     }
 
     keydownListener(e) {
-        if (this.state.isFocused) {
-            return;
-        }
-
-        if (this.props.modal.isVisible) {
-            return;
-        }
-
-        if (this.state.isEmojiPickerVisible) {
-            return;
-        }
-
-        if (this.props.isSmallScreenWidth) {
+        if (this.state.isFocused || this.state.isEmojiPickerVisible || this.props.modal.isVisible || this.props.isSmallScreenWidth) {
             return;
         }
 
