@@ -52,10 +52,12 @@ class AttachmentCarousel extends React.Component {
             isForwardDisabled: true,
             isBackDisabled: true,
         };
+        this.scheduleHideArrowTimeout = null;
     }
 
     componentDidMount() {
         this.makeStateWithReports();
+        this.scheduleHideArrow();
     }
 
     componentDidUpdate(prevProps) {
@@ -65,6 +67,18 @@ class AttachmentCarousel extends React.Component {
             return;
         }
         this.makeStateWithReports();
+    }
+
+    /**
+     * On a touch screen device, automatically hide the arrows 
+     * if there is no interaction for 3 seconds.
+     */
+    scheduleHideArrow() {
+        if (this.canUseTouchScreen) {
+            this.scheduleHideArrowTimeout = setTimeout(() => {
+                this.toggleArrowsVisibility(false);
+            }, 3000);
+        }
     }
 
     /**
@@ -88,6 +102,11 @@ class AttachmentCarousel extends React.Component {
      * @param {Boolean} shouldShowArrow
      */
     toggleArrowsVisibility(shouldShowArrow) {
+        if (shouldShowArrow) {
+            this.scheduleHideArrow();
+        } else {
+            clearTimeout(this.scheduleHideArrowTimeout);
+        }
         this.setState({shouldShowArrow});
     }
 
