@@ -19,7 +19,7 @@ import {propTypes, defaultProps} from './propTypes';
 import SafeAreaConsumer from '../SafeAreaConsumer';
 import TestToolsModal from '../TestToolsModal';
 import withKeyboardState from '../withKeyboardState';
-import {toggleTestToolsModal} from '../../libs/actions/TestTool';
+import * as TestToolActions from '../../libs/actions/TestTool';
 
 class BaseScreenWrapper extends React.Component {
     constructor(props) {
@@ -27,7 +27,7 @@ class BaseScreenWrapper extends React.Component {
 
         this.panResponder = PanResponder.create({
             onStartShouldSetPanResponderCapture: (e, gestureState) => gestureState.numberActiveTouches === CONST.TEST_TOOL.NUMBER_TAPS,
-            onPanResponderRelease: toggleTestToolsModal,
+            onPanResponderRelease: TestToolActions.toggleTestToolsModal,
         });
 
         this.state = {
