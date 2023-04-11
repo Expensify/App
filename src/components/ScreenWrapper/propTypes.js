@@ -1,4 +1,5 @@
 import PropTypes from 'prop-types';
+import {windowDimensionsPropTypes} from '../withWindowDimensions';
 import {environmentPropTypes} from '../withEnvironment';
 
 const propTypes = {
@@ -37,6 +38,8 @@ const propTypes = {
     shouldDismissKeyboardBeforeClose: PropTypes.bool,
 
     ...environmentPropTypes,
+
+    ...windowDimensionsPropTypes,
 };
 
 const defaultProps = {

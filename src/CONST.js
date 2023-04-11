@@ -406,6 +406,7 @@ const CONST = {
         },
         TYPE: {
             CHAT: 'chat',
+            EXPENSE: 'expense',
             IOU: 'iou',
         },
         CHAT_TYPE: {
@@ -2200,11 +2201,15 @@ const CONST = {
         EXPECTED_OUTPUT: 'FCFA 123,457',
     },
 
+    PATHS_TO_TREAT_AS_EXTERNAL: [
+        'NewExpensify.dmg',
+    ],
+
     // Test tool menu parameters
     TEST_TOOL: {
         // How many concurrent taps are there in a test menu gesture
         NUMBER_TAPS: 4
-    }
+    },
 };
 
 export default CONST;
