@@ -1,21 +1,19 @@
 GEM
   remote: https://rubygems.org/
   specs:
-    CFPropertyList (3.0.5)
+    CFPropertyList (3.0.6)
       rexml
-    activesupport (6.1.6)
+    activesupport (6.1.7.3)
       concurrent-ruby (~> 1.0, >= 1.0.2)
       i18n (>= 1.6, < 2)
       minitest (>= 5.1)
       tzinfo (~> 2.0)
       zeitwerk (~> 2.3)
-    addressable (2.8.1)
+    addressable (2.8.3)
       public_suffix (>= 2.0.2, < 6.0)
     algoliasearch (1.27.5)
       httpclient (~> 2.8, >= 2.8.3)
       json (>= 1.5.1)
-    apktools (0.7.4)
-      rubyzip (~> 2.0)
     artifactory (3.0.15)
     atomos (0.1.3)
     aws-eventstream (1.2.0)
@@ -77,7 +75,7 @@ GEM
     colored2 (3.1.2)
     commander (4.6.0)
       highline (~> 2.0.0)
-    concurrent-ruby (1.1.10)
+    concurrent-ruby (1.2.2)
     declarative (0.0.20)
     digest-crc (0.6.4)
       rake (>= 12.0.0, < 14.0.0)
@@ -86,7 +84,7 @@ GEM
     dotenv (2.8.1)
     emoji_regex (3.2.3)
     escape (0.0.4)
-    ethon (0.15.0)
+    ethon (0.16.0)
       ffi (>= 1.15.0)
     excon (0.93.0)
     faraday (1.10.2)
@@ -157,10 +155,6 @@ GEM
       xcodeproj (>= 1.13.0, < 2.0.0)
       xcpretty (~> 0.3.0)
       xcpretty-travis-formatter (>= 0.0.3)
-    fastlane-plugin-aws_s3 (2.1.0)
-      apktools (~> 0.7)
-      aws-sdk-s3 (~> 1)
-      mime-types (~> 3.3)
     ffi (1.15.5)
     fourflusher (2.3.1)
     fuzzy_match (2.0.4)
@@ -207,18 +201,15 @@ GEM
     http-cookie (1.0.5)
       domain_name (~> 0.5)
     httpclient (2.8.3)
-    i18n (1.10.0)
+    i18n (1.12.0)
       concurrent-ruby (~> 1.0)
     jmespath (1.6.1)
-    json (2.6.2)
+    json (2.6.3)
     jwt (2.5.0)
     memoist (0.16.2)
-    mime-types (3.4.1)
-      mime-types-data (~> 3.2015)
-    mime-types-data (3.2022.0105)
     mini_magick (4.11.0)
     mini_mime (1.1.2)
-    minitest (5.16.2)
+    minitest (5.18.0)
     molinillo (0.8.0)
     multi_json (1.15.0)
     multipart-post (2.0.0)
@@ -260,7 +251,7 @@ GEM
       tty-cursor (~> 0.7)
     typhoeus (1.4.0)
       ethon (>= 0.9.0)
-    tzinfo (2.0.4)
+    tzinfo (2.0.6)
       concurrent-ruby (~> 1.0)
     uber (0.1.0)
     unf (0.1.4)
@@ -280,7 +271,7 @@ GEM
       rouge (~> 2.0.7)
     xcpretty-travis-formatter (1.0.1)
       xcpretty (~> 0.2, >= 0.0.7)
-    zeitwerk (2.6.0)
+    zeitwerk (2.6.7)
 
 PLATFORMS
   arm64-darwin-21
@@ -292,8 +283,7 @@ PLATFORMS
 DEPENDENCIES
   cocoapods (~> 1.11.3)
   fastlane (~> 2)
-  fastlane-plugin-aws_s3
   xcpretty (~> 0)
 
 BUNDLED WITH
-   2.3.24
+   2.1.4

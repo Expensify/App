@@ -838,7 +838,13 @@ const CONST = {
         DURATION_LONG: 3500,
     },
 
-    DEFAULT_LOCALE: 'en',
+    LOCALES: {
+        EN: 'en',
+        ES_ES: 'es-ES',
+        ES: 'es',
+
+        DEFAULT: 'en',
+    },
 
     POLICY: {
         TYPE: {
