@@ -33,7 +33,7 @@ const ChangeExpensifyLoginLink = props => (
     <View style={[styles.changeExpensifyLoginLinkContainer, styles.mt3]}>
         {!_.isEmpty(props.credentials.login) && (
             <Text>
-                {props.translate('common.not')}
+                {props.translate('loginForm.not')}
                 &nbsp;
                 {Str.removeSMSDomain(props.credentials.login)}
                 {'? '}
