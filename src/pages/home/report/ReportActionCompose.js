@@ -644,13 +644,11 @@ class ReportActionCompose extends React.Component {
      * @param {Object} file
      */
     addAttachment(file) {
-        const comment = this.prepareCommentAndResetComposer();
-
         // Since we're submitting the form here which should clear the composer
         // We don't really care about saving the draft the user was typing
         // We need to make sure an empty draft gets saved instead
         this.debouncedSaveReportComment.cancel();
-
+        const comment = this.prepareCommentAndResetComposer();
         Report.addAttachment(this.props.reportID, file, comment);
         this.setTextInputShouldClear(false);
     }
