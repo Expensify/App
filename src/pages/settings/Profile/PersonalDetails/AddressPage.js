@@ -61,9 +61,8 @@ class AddressPage extends Component {
         this.onCountryUpdate = this.onCountryUpdate.bind(this);
 
         const currentCountry = lodashGet(this.props.privatePersonalDetails, 'address.country') || '';
-        const currentCountryISO = PersonalDetails.getCountryISO(currentCountry);
-        const targetCountryISO = !_.isEmpty(currentCountryISO) ? currentCountryISO : CONST.COUNTRY.US;
-        const zipSampleFormat = lodashGet(CONST.COUNTRY_ZIP_REGEX_DATA, [targetCountryISO, 'samples'], '');
+        const currentCountryISO = PersonalDetails.getCountryISO(currentCountry) || CONST.COUNTRY.US;
+        const zipSampleFormat = lodashGet(CONST.COUNTRY_ZIP_REGEX_DATA, [currentCountryISO, 'samples'], '');
         this.state = {
             isUsaForm: (currentCountry === CONST.COUNTRY.US || currentCountry === CONST.USA_COUNTRY_NAME),
             zipFormat: this.props.translate('common.zipCodeExampleFormat', {zipSampleFormat}),
