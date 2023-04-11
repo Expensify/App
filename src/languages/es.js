@@ -129,7 +129,7 @@ export default {
         verify: 'Verifique',
         yesContinue: 'Sí, Continuar',
         websiteExample: 'p. ej. https://www.expensify.com',
-        format: ({zipSampleFormat}) => (zipSampleFormat ? `p. ej. ${zipSampleFormat}` : ''),
+        zipCodeExampleFormat: ({zipSampleFormat}) => (zipSampleFormat ? `p. ej. ${zipSampleFormat}` : ''),
     },
     attachmentPicker: {
         cameraPermissionRequired: 'Permiso para acceder a la cámara',
