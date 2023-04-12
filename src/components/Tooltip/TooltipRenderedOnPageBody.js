@@ -118,8 +118,10 @@ class TooltipRenderedOnPageBody extends React.PureComponent {
     }
 
     render() {
-        if (this.state.tooltipContentWidth > this.props.maxWidth) {
-            this.updateTooltipContentWidth();
+        //We need to re-calculate the tooltipContentWidth if it is greater than maxWidth.
+        //So that the wrapperWidth still be updated again with correct value
+        if (this.state.tooltipContentWidth > this.props.maxWidth) { 
+            this.updateTooltipContentWidth(); 
         }
         const {
             animationStyle,
