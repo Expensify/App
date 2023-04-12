@@ -71,7 +71,7 @@ class ReportScreenWrapper extends Component {
                 this.props.reports,
                 !Permissions.canUseDefaultRooms(this.props.betas),
                 this.props.policies,
-                lodashGet(this.props, 'route.params.openOnAdminRoom', false),
+                lodashGet(this.props, 'openOnAdminRoom', false),
             );
 
             // It's possible that props.reports aren't fully loaded yet

@@ -3,8 +3,12 @@ import {createStackNavigator} from '@react-navigation/stack';
 
 import SCREENS from '../../../../SCREENS';
 import ReportScreenWrapper from '../ReportScreenWrapper';
+import getCurrentUrl from '../../currentUrl';
 
 const Stack = createStackNavigator();
+
+const url = getCurrentUrl();
+const openOnAdminRoom = url ? new URL(url).searchParams.get('openOnAdminRoom') : undefined;
 
 function CentralPaneNavigator() {
     return (
@@ -21,7 +25,8 @@ function CentralPaneNavigator() {
                         height: '100%',
                     },
                 }}
-                component={ReportScreenWrapper}
+                // eslint-disable-next-line react/jsx-props-no-spreading
+                component={props => <ReportScreenWrapper openOnAdminRoom={openOnAdminRoom === 'true'} {...props} />}
             />
         </Stack.Navigator>
     );

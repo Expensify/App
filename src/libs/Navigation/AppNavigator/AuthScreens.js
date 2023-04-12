@@ -162,10 +162,6 @@ class AuthScreens extends React.Component {
             cardStyle: styles.navigationModalCard(this.props.isSmallScreenWidth),
         };
 
-        // TODO-NR - we need find example url with openOnAdminRoom and adjust new architecture to parse it as a param for report screens
-        // const url = getCurrentUrl();
-        // const openOnAdminRoom = url ? new URL(url).searchParams.get('openOnAdminRoom') : '';
-
         return (
             <RootStack.Navigator
                 isSmallScreenWidth={this.props.isSmallScreenWidth}
@@ -192,7 +188,6 @@ class AuthScreens extends React.Component {
                         return SidebarScreen;
                     }}
 
-                    /* initialParams={{openOnAdminRoom: openOnAdminRoom === 'true'}} */
                 />
                 <RootStack.Screen
                     name={NAVIGATORS.CENTRAL_PANE_NAVIGATOR}
