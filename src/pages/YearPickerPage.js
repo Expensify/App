@@ -70,9 +70,11 @@ class YearPickerPage extends React.Component {
      * @param {String} text
      */
     filterYearList(text) {
+        // Remove all non-numeric characters from the input
+        const inputYear = text.replace(/[^0-9]/g, '');
         this.setState({
-            inputText: text,
-            yearOptions: _.filter(this.yearList, year => year.text.includes(text.trim())),
+            inputText: inputYear,
+            yearOptions: _.filter(this.yearList, year => year.text.includes(inputYear)),
         });
     }
 
