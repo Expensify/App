@@ -25,7 +25,7 @@ class BaseScreenWrapper extends React.Component {
         super(props);
 
         this.panResponder = PanResponder.create({
-            onStartShouldSetPanResponderCapture: (e, gestureState) => gestureState.numberActiveTouches === CONST.TEST_TOOL.NUMBER_TAPS,
+            onStartShouldSetPanResponderCapture: (e, gestureState) => gestureState.numberActiveTouches === CONST.TEST_TOOL.NUMBER_OF_TAPS,
             onPanResponderRelease: toggleTestToolsModal,
         });
 
