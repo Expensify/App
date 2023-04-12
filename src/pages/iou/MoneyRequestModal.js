@@ -104,22 +104,9 @@ const Steps = {
 };
 
 const MoneyRequestModal = (props) => {
-    const participantsWithDetails = _.map(
-        ReportUtils.isPolicyExpenseChat(props.report)
-            ? OptionsListUtils.getPolicyExpenseReportOptions(props.report)
-            : OptionsListUtils.getParticipantsOptions(props.report, props.personalDetails),
-        option => ({
-            login: option.login,
-            text: option.displayName,
-            firstName: lodashGet(option, 'firstName', ''),
-            lastName: lodashGet(option, 'lastName', ''),
-            alternateText: option.alternateText,
-            icons: option.icons,
-            keyForList: lodashGet(option, 'keyForList', option.login),
-            payPalMeAddress: lodashGet(option, 'payPalMeAddress', ''),
-            phoneNumber: lodashGet(option, 'phoneNumber', ''),
-        }),
-    );
+    const participantsWithDetails = ReportUtils.isPolicyExpenseChat(props.report)
+        ? OptionsListUtils.getPolicyExpenseReportOptions(props.report)
+        : OptionsListUtils.getParticipantsOptions(props.report, props.personalDetails);
 
     // Skip IOUParticipants step if participants are passed in
     const reportParticipants = lodashGet(props, 'report.participants', []);

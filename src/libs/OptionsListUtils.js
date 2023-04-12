@@ -101,6 +101,7 @@ function getPolicyExpenseReportOptions(report) {
         return {
             ...expenseReport,
             keyForList: expenseReport.policyID,
+            text: expenseReport.displayName,
             alternateText: Localize.translateLocal('workspace.common.workspace'),
             icons: [{
                 source: policyExpenseChatAvatarSource,
@@ -163,13 +164,19 @@ function getPersonalDetailsForLogins(logins, personalDetails) {
 function getParticipantsOptions(report, personalDetails) {
     const participants = lodashGet(report, 'participants', []);
     return _.map(getPersonalDetailsForLogins(participants, personalDetails), details => ({
-        ...details,
+        keyForList: details.login,
+        login: details.login,
+        text: details.displayName,
+        firstName: lodashGet(details, 'firstName', ''),
+        lastName: lodashGet(details, 'lastName', ''),
         alternateText: Str.isSMSLogin(details.login) ? Str.removeSMSDomain(details.login) : details.login,
         icons: [{
             source: ReportUtils.getAvatar(details.avatar, details.login),
             name: details.login,
             type: CONST.ICON_TYPE_AVATAR,
         }],
+        payPalMeAddress: lodashGet(details, 'payPalMeAddress', ''),
+        phoneNumber: lodashGet(details, 'phoneNumber', ''),
     }));
 }
 
