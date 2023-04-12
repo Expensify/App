@@ -4,7 +4,7 @@ import {withOnyx} from 'react-native-onyx';
 import {View} from 'react-native';
 import ONYXKEYS from '../../../../ONYXKEYS';
 import MoneyRequestParticipantsSplit from './MoneyRequestParticipantsSplit';
-import MoneyRequestParticipantsRequest from './MoneyRequestParticipantsRequest';
+import MoneyRequestParticipantsSelector from './MoneyRequestParticipantsSelector';
 import styles from '../../../../styles/styles';
 import FullScreenLoadingIndicator from '../../../../components/FullscreenLoadingIndicator';
 import optionPropTypes from '../../../../components/optionPropTypes';
@@ -66,7 +66,7 @@ const MoneyRequestParticipantsPage = (props) => {
             />
         )
         : (
-            <MoneyRequestParticipantsRequest
+            <MoneyRequestParticipantsSelector
                 onStepComplete={props.onStepComplete}
                 onAddParticipants={props.onAddParticipants}
                 safeAreaPaddingBottomStyle={props.safeAreaPaddingBottomStyle}
