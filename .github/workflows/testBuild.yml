@@ -247,7 +247,7 @@ jobs:
           AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
 
       - name: Build web for testing
-        run: npm run build-staging
+        run: npm run build-adhoc
 
       - name: Build docs
         run: npm run storybook-build
