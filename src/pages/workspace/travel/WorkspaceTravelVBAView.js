@@ -13,6 +13,8 @@ const propTypes = {
     ...withLocalizePropTypes,
 };
 
+const CONCIERGE_TRAVEL_URL = 'https://community.expensify.com/discussion/7066/introducing-concierge-travel';
+
 const WorkspaceTravelVBAView = props => (
     <Section
         title={props.translate('workspace.travel.packYourBags')}
@@ -25,6 +27,7 @@ const WorkspaceTravelVBAView = props => (
                 shouldShowRightIcon: true,
                 iconRight: Expensicons.NewWindow,
                 wrapperStyle: [styles.cardMenuItem],
+                link: () => Link.buildOldDotURL('domain_companycards'),
             },
             {
                 title: props.translate('workspace.travel.bookTravelWithConcierge'),
@@ -37,11 +40,12 @@ const WorkspaceTravelVBAView = props => (
             },
             {
                 title: props.translate('requestorStep.learnMore'),
-                onPress: () => Link.openExternalLink('https://community.expensify.com/discussion/7066/introducing-concierge-travel'),
+                onPress: () => Link.openExternalLink(CONCIERGE_TRAVEL_URL),
                 icon: Expensicons.Info,
                 shouldShowRightIcon: true,
                 iconRight: Expensicons.NewWindow,
                 wrapperStyle: [styles.cardMenuItem],
+                link: CONCIERGE_TRAVEL_URL,
             },
         ]}
     >

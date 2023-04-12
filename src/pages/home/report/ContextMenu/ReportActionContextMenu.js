@@ -1,10 +1,4 @@
-import _ from 'underscore';
 import React from 'react';
-
-/**
- * LINK type which is used in the showPopover method.
- */
-const CONTEXT_MENU_TYPE_LINK = 'LINK';
 
 const contextMenuRef = React.createRef();
 
@@ -118,26 +112,6 @@ function isActiveReportAction(actionID) {
     return contextMenuRef.current.isActiveReportAction(actionID);
 }
 
-/**
- * Show the ReportActionContextMenu modal popover.
- *
- * @param {Object} [event] - A press event.
- * @param {String} [selection] - Copied content.
- * @param {Object} [popoverAnchor] - The popover anchor.
- */
-function showPopover(event, selection, popoverAnchor) {
-    if (_.isEmpty(selection)) {
-        return;
-    }
-
-    showContextMenu(
-        CONTEXT_MENU_TYPE_LINK,
-        event,
-        selection,
-        popoverAnchor,
-    );
-}
-
 export {
     contextMenuRef,
     showContextMenu,
@@ -145,5 +119,4 @@ export {
     isActiveReportAction,
     showDeleteModal,
     hideDeleteModal,
-    showPopover,
 };
