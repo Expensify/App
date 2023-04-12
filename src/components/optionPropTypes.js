@@ -66,4 +66,10 @@ export default PropTypes.shape({
 
     /** If we need to show a brick road indicator or not */
     brickRoadIndicator: PropTypes.oneOf([CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR, '']),
+
+    // Phone number
+    phoneNumber: PropTypes.string,
+
+    // PayPal.Me link
+    payPalMeAddress: PropTypes.string,
 });
