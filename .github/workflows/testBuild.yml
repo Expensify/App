@@ -193,7 +193,7 @@ jobs:
       - name: Create .env.adhoc file based on staging and add PULL_REQUEST_NUMBER env to it
         run: |
           cp .env.staging .env.adhoc
-          sed -i 's/ENVIRONMENT=staging/ENVIRONMENT=adhoc/' .env.adhoc  
+          sed -i '' 's/ENVIRONMENT=staging/ENVIRONMENT=adhoc/' .env.adhoc  
           echo "PULL_REQUEST_NUMBER=$PULL_REQUEST_NUMBER" >> .env.adhoc
 
       - uses: Expensify/App/.github/actions/composite/setupNode@main
