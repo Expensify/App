@@ -176,7 +176,7 @@ class Button extends Component {
     renderContent() {
         const ContentComponent = this.props.ContentComponent;
         if (ContentComponent) {
-            return <ContentComponent />;
+            return ContentComponent();
         }
 
         const textComponent = (
