@@ -46,22 +46,4 @@ describe('LocalePhoneNumber utils', () => {
             expect(LocalePhoneNumber.formatPhoneNumber(US_NUMBER)).toBe('+1 833-240-3627');
         });
     });
-
-    describe('formatPhoneNumberInText', () => {
-        beforeEach(() => Onyx.multiSet({
-            [ONYXKEYS.SESSION]: {email: 'current@user.com'},
-            [ONYXKEYS.COUNTRY_CODE]: 1,
-            [ONYXKEYS.PERSONAL_DETAILS]: {'current@user.com': {phoneNumber: US_NUMBER}},
-        }).then(waitForPromisesToResolve));
-
-        afterEach(() => Onyx.clear());
-
-        it('should return empty string when no text is given', () => {
-            expect(LocalePhoneNumber.formatPhoneNumberInText(undefined)).toBe('');
-        });
-
-        it('should properly format the phone number in text', () => {
-            expect(LocalePhoneNumber.formatPhoneNumberInText(`Requested USD 20.00 from ${US_NUMBER}@expensify.sms`)).toBe('Requested USD 20.00 from (833) 240-3627');
-        });
-    });
 });

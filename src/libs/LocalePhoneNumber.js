@@ -68,22 +68,7 @@ function formatPhoneNumber(number) {
     return parsedPhoneNumber.number.international;
 }
 
-function formatPhoneNumberInText(text) {
-    if (!text) {
-        return '';
-    }
-
-    const textArray = text.split(' ');
-
-    return _.map(textArray, (txt) => {
-        if (Str.isSMSLogin(txt)) {
-            return formatPhoneNumber(Str.removeSMSDomain(txt));
-        }
-        return txt;
-    }).join(' ');
-}
-
 export {
+    // eslint-disable-next-line import/prefer-default-export
     formatPhoneNumber,
-    formatPhoneNumberInText,
 };

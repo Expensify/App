@@ -5,7 +5,6 @@ import styles from '../styles/styles';
 import CONST from '../CONST';
 import * as IOU from '../libs/actions/IOU';
 import * as ReportActions from '../libs/actions/ReportActions';
-import * as LocalePhoneNumber from '../libs/LocalePhoneNumber';
 import reportActionPropTypes from '../pages/home/report/reportActionPropTypes';
 import ReportActionItemSingle from '../pages/home/report/ReportActionItemSingle';
 import withLocalize, {withLocalizePropTypes} from './withLocalize';
@@ -77,7 +76,7 @@ class ReportTransaction extends Component {
                         wrapperStyles={[styles.reportTransactionWrapper]}
                     >
                         <Text style={[styles.chatItemMessage]}>
-                            {LocalePhoneNumber.formatPhoneNumberInText(this.props.action.message[0].text)}
+                            {this.props.action.message[0].text}
                         </Text>
                     </ReportActionItemSingle>
                     {this.props.canBeRejected && (
