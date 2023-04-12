@@ -19,9 +19,7 @@ import * as Report from '../../../libs/actions/Report';
 import * as Link from '../../../libs/actions/Link';
 import getPlatformSpecificMenuItems from './getPlatformSpecificMenuItems';
 import compose from '../../../libs/compose';
-import * as DeviceCapabilities from '../../../libs/DeviceCapabilities';
-import ControlSelection from '../../../libs/ControlSelection';
-import showPopover from '../../../libs/showPopover';
+import * as ReportActionContextMenu from '../../home/report/ContextMenu/ReportActionContextMenu';
 
 const propTypes = {
     ...withLocalizePropTypes,
@@ -114,9 +112,8 @@ const AboutPage = (props) => {
                                     icon={item.icon}
                                     iconRight={item.iconRight}
                                     onPress={() => item.action()}
-                                    onPressIn={() => !_.isEmpty(item.link) && props.isSmallScreenWidth && DeviceCapabilities.canUseTouchScreen() && ControlSelection.block()}
-                                    onPressOut={() => !_.isEmpty(item.link) && ControlSelection.unblock()}
-                                    onSecondaryInteraction={e => !_.isEmpty(item.link) && showPopover(e, item.link, popoverAnchor)}
+                                    shouldBlockSelection={!_.isEmpty(item.link)}
+                                    onSecondaryInteraction={e => ReportActionContextMenu.showPopover(e, item.link, popoverAnchor)}
                                     ref={el => popoverAnchor = el}
                                     shouldShowRightIcon
                                 />

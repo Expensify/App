@@ -17,9 +17,13 @@ import variables from '../styles/variables';
 import MultipleAvatars from './MultipleAvatars';
 import * as defaultWorkspaceAvatars from './Icon/WorkspaceDefaultAvatars';
 import PressableWithSecondaryInteraction from './PressableWithSecondaryInteraction';
+import withWindowDimensions, {windowDimensionsPropTypes} from './withWindowDimensions';
+import * as DeviceCapabilities from '../libs/DeviceCapabilities';
+import ControlSelection from '../libs/ControlSelection';
 
 const propTypes = {
     ...menuItemPropTypes,
+    ...windowDimensionsPropTypes,
 };
 
 const defaultProps = {
@@ -45,17 +49,16 @@ const defaultProps = {
     subtitle: undefined,
     iconType: CONST.ICON_TYPE_ICON,
     onPress: () => {},
-    onPressIn: () => {},
-    onPressOut: () => {},
     onSecondaryInteraction: () => {},
     interactive: true,
     fallbackIcon: Expensicons.FallbackAvatar,
     brickRoadIndicator: '',
     floatRightAvatars: [],
     shouldStackHorizontally: false,
+    shouldBlockSelection: false,
 };
 
-const MenuItem = React.forwardRef((props, ref) => {
+const MenuItem = (props) => {
     const titleTextStyle = StyleUtils.combineStyles([
         styles.popoverMenuText,
         (props.icon ? styles.ml3 : undefined),
@@ -85,8 +88,8 @@ const MenuItem = React.forwardRef((props, ref) => {
 
                 props.onPress(e);
             }}
-            onPressIn={props.onPressIn}
-            onPressOut={props.onPressOut}
+            onPressIn={() => props.shouldBlockSelection && props.isSmallScreenWidth && DeviceCapabilities.canUseTouchScreen() && ControlSelection.block()}
+            onPressOut={() => ControlSelection.unblock()}
             onSecondaryInteraction={props.onSecondaryInteraction}
             style={({hovered, pressed}) => ([
                 props.style,
@@ -95,7 +98,7 @@ const MenuItem = React.forwardRef((props, ref) => {
                 styles.popoverMaxWidth,
             ])}
             disabled={props.disabled}
-            ref={ref}
+            ref={props.forwardedRef}
         >
             {({hovered, pressed}) => (
                 <>
@@ -220,10 +223,12 @@ const MenuItem = React.forwardRef((props, ref) => {
             )}
         </PressableWithSecondaryInteraction>
     );
-});
+};
 
 MenuItem.propTypes = propTypes;
 MenuItem.defaultProps = defaultProps;
 MenuItem.displayName = 'MenuItem';
-
-export default MenuItem;
+export default withWindowDimensions(React.forwardRef((props, ref) => (
+    // eslint-disable-next-line react/jsx-props-no-spreading
+    <MenuItem {...props} forwardedRef={ref} />
+)));
