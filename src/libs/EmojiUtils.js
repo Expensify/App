@@ -269,7 +269,7 @@ function suggestEmojis(text, limit = 5) {
  * @param {String} text 
  * @param {Object} selection 
  * @param {String} emoji 
- * @returns 
+ * @returns {String}
  */
 function insertEmoji(text, selection, emoji) {
     return text.slice(0, selection.start) + emoji + text.slice(selection.end, text.length);
