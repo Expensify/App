@@ -39,6 +39,7 @@ class PopoverReportActionContextMenu extends React.Component {
             },
             isArchivedRoom: false,
             isChronosReport: false,
+            isReportSettled: false,
         };
         this.onPopoverShow = () => {};
         this.onPopoverHide = () => {};
@@ -125,6 +126,7 @@ class PopoverReportActionContextMenu extends React.Component {
      * @param {Function} [onHide] - Run a callback when Menu is hidden
      * @param {Boolean} isArchivedRoom - Whether the provided report is an archived room
      * @param {Boolean} isChronosReport - Flag to check if the chat participant is Chronos
+     * @param {Boolean} isReportSettled - Whether the provided report has been reimbursed
      */
     showContextMenu(
         type,
@@ -138,6 +140,7 @@ class PopoverReportActionContextMenu extends React.Component {
         onHide = () => {},
         isArchivedRoom,
         isChronosReport,
+        isReportSettled,
     ) {
         const nativeEvent = event.nativeEvent || {};
         this.contextMenuAnchor = contextMenuAnchor;
@@ -168,6 +171,7 @@ class PopoverReportActionContextMenu extends React.Component {
                 reportActionDraftMessage: draftMessage,
                 isArchivedRoom,
                 isChronosReport,
+                isReportSettled,
             });
         });
     }
@@ -242,6 +246,7 @@ class PopoverReportActionContextMenu extends React.Component {
                 reportAction={this.state.reportAction}
                 isArchivedRoom={this.state.isArchivedRoom}
                 isChronosReport={this.state.isChronosReport}
+                isReportSettled={this.state.isReportSettled}
                 anchor={this.contextMenuTargetNode}
                 contentRef={this.setContentRef}
             />
@@ -273,6 +278,7 @@ class PopoverReportActionContextMenu extends React.Component {
             shouldSetModalVisibilityForDeleteConfirmation: true,
             isArchivedRoom: false,
             isChronosReport: false,
+            isReportSettled: false,
         });
     }
 
@@ -319,6 +325,7 @@ class PopoverReportActionContextMenu extends React.Component {
                         draftMessage={this.state.reportActionDraftMessage}
                         isArchivedRoom={this.state.isArchivedRoom}
                         isChronosReport={this.state.isChronosReport}
+                        isReportSettled={this.state.isReportSettled}
                         anchor={this.contextMenuTargetNode}
                         contentRef={this.contentRef}
                     />
