@@ -1,5 +1,7 @@
 import React from 'react';
-import {View} from 'react-native';
+import {
+    View, TouchableWithoutFeedback, Linking,
+} from 'react-native';
 import _ from 'underscore';
 import CONST from '../../../CONST';
 import ROUTES from '../../../ROUTES';
@@ -82,22 +84,27 @@ class AddPayPalMePage extends React.Component {
                             hasError={this.state.payPalMeUsernameError}
                             errorText={this.state.payPalMeUsernameError ? this.props.translate('addPayPalMePage.formatError') : ''}
                         />
-                        <View style={[styles.flexRow, styles.mt3]}>
+                        <View style={[styles.mt3, styles.flexRow, styles.justifyContentBetween, styles.alignSelfStart]}>
                             <Text style={[styles.textMicro, styles.flexRow]}>
                                 {this.props.translate('addPayPalMePage.checkListOf')}
-                                <TextLink
-                                    href="https://developer.paypal.com/docs/reports/reference/paypal-supported-currencies"
-                                    style={[styles.textMicro]}
-                                >
-                                    {this.props.translate('addPayPalMePage.supportedCurrencies')}
-                                </TextLink>
                             </Text>
-                            <Icon
-                                src={Expensicons.NewWindow}
-                                height={variables.iconSizeExtraSmall}
-                                width={variables.iconSizeExtraSmall}
-                                additionalStyles={[styles.ml1]}
-                            />
+                            <TouchableWithoutFeedback
+                                // eslint-disable-next-line max-len
+                                onPress={() => Linking.openURL('https://developer.paypal.com/docs/reports/reference/paypal-supported-currencies')}
+                            >
+                                <View style={[styles.flexRow, styles.cursorPointer]}>
+                                    <TextLink
+                                        // eslint-disable-next-line max-len
+                                        href="https://developer.paypal.com/docs/reports/reference/paypal-supported-currencies"
+                                        style={[styles.textMicro]}
+                                    >
+                                        {this.props.translate('addPayPalMePage.supportedCurrencies')}
+                                    </TextLink>
+                                    <View style={[styles.ml1]}>
+                                        <Icon src={Expensicons.NewWindow} height={variables.iconSizeExtraSmall} width={variables.iconSizeExtraSmall} />
+                                    </View>
+                                </View>
+                            </TouchableWithoutFeedback>
                         </View>
                     </View>
                 </View>
