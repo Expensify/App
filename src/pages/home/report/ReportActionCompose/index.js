@@ -995,7 +995,6 @@ ReportActionCompose.defaultProps = defaultProps;
 export default compose(
     withWindowDimensions,
     withDrawerState,
-    withNavigation,
     withNavigationFocus,
     withLocalize,
     withNetwork(),
