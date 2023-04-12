@@ -1,3 +1,4 @@
+import {defaultStyles as defaultPickerStyles} from 'react-native-picker-select/src/styles';
 import fontFamily from './fontFamily';
 import addOutlineWidth from './addOutlineWidth';
 import themeColors from './themes/default';
@@ -605,6 +606,9 @@ const styles = {
         done: {
             color: themeColors.text,
         },
+        doneDepressed: {
+            fontSize: defaultPickerStyles.done.fontSize,
+        },
         modalViewMiddle: {
             backgroundColor: themeColors.border,
             borderTopWidth: 0,
@@ -942,6 +946,9 @@ const styles = {
         },
         done: {
             color: themeColors.text,
+        },
+        doneDepressed: {
+            fontSize: defaultPickerStyles.done.fontSize,
         },
         modalViewMiddle: {
             backgroundColor: themeColors.border,
