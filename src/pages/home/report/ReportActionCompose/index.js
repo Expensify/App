@@ -52,6 +52,7 @@ import withKeyboardState, {keyboardStatePropTypes} from '../../../../components/
 import ArrowKeyFocusManager from '../../../../components/ArrowKeyFocusManager';
 import KeyboardShortcut from '../../../../libs/KeyboardShortcut';
 import KeyDownAction from './keyDownAction';
+import CONST from '../../../../CONST';
 
 const propTypes = {
     /** Beta features list */
