@@ -139,10 +139,11 @@ class SidebarLinks extends React.Component {
         const optionListItems = SidebarUtils.getOrderedReportIDs(this.props.reportIDFromRoute);
 
         const skeletonPlaceholder = <LHNSkeletonView shouldAnimate={!shouldFreeze} />;
+        console.log('here: ' + this.props.isFocused);
 
         return (
             <View
-                accessibilityElementsHidden={this.props.isSmallScreenWidth && !this.props.isFocused}
+                testIsFocused={this.props.isFocused}
                 accessibilityLabel={this.props.translate('sidebarScreen.listOfChats')}
                 style={[styles.flex1, styles.h100]}
             >
