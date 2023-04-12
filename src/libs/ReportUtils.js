@@ -157,7 +157,7 @@ function canEditReportAction(reportAction) {
  * @returns {Boolean}
  */
 function isReimbursed(reportID) {
-    return allReports[`report_${reportID}`].status === CONST.REPORT.STATUS.REIMBURSED;
+    return lodashGet(allReports, [`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`, 'status'], '') === CONST.REPORT.STATUS.REIMBURSED;
 }
 
 /**
