@@ -120,6 +120,8 @@ function show({routes, showCreateMenu = () => {}, showPopoverMenu = () => {}}) {
             report => ReportUtils.isPolicyExpenseChat(report) && report.ownerEmail === email && report.statusNum !== CONST.REPORT.STATUS.CLOSED,
         );
         if (workspaceChatReport && !isDisplayingWorkspaceRoute) {
+            // This key is only updated when we call ReconnectApp, setting it to false now allows the user to navigate normally instead of always redirecting to the workspace chat
+            Onyx.set(ONYXKEYS.NVP_IS_FIRST_TIME_NEW_EXPENSIFY_USER, false);
             Navigation.navigate(ROUTES.getReportRoute(workspaceChatReport.reportID));
             showPopoverMenu();
             return;
