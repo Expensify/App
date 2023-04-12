@@ -489,7 +489,7 @@ class ReportActionCompose extends React.Component {
             return;
         }
 
-        // if we're typing on another input/text area, do not focus
+        // If we're typing on another input/text area, do not focus
         if (e.target.nodeName === 'INPUT' || e.target.nodeName === 'TEXTAREA') {
             return;
         }
