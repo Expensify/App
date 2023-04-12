@@ -18,7 +18,6 @@ import reportActionPropTypes from '../../pages/home/report/reportActionPropTypes
 import tryResolveUrlFromApiRoot from '../../libs/tryResolveUrlFromApiRoot';
 import Tooltip from '../Tooltip';
 import withLocalize, {withLocalizePropTypes} from '../withLocalize';
-import withWindowDimensions, {windowDimensionsPropTypes} from '../withWindowDimensions';
 import compose from '../../libs/compose';
 
 const propTypes = {
@@ -32,7 +31,6 @@ const propTypes = {
     reportActions: PropTypes.objectOf(PropTypes.shape(reportActionPropTypes)),
 
     ...withLocalizePropTypes,
-    ...windowDimensionsPropTypes,
 };
 
 const defaultProps = {
@@ -63,6 +61,7 @@ class AttachmentCarousel extends React.Component {
             attachments: [],
             source: this.props.source,
             shouldShowArrow: this.canUseTouchScreen,
+            containerWidth: 0,
         };
 
         this.state = {
@@ -104,10 +103,9 @@ class AttachmentCarousel extends React.Component {
      * @returns {{offset: Number, length: Number, index: Number}}
      */
     getItemLayout(data, index) {
-        const width = this.props.windowWidth;
         return ({
-            length: width,
-            offset: width * index,
+            length: this.state.containerWidth,
+            offset: this.state.containerWidth * index,
             index,
         });
     }
@@ -201,7 +199,7 @@ class AttachmentCarousel extends React.Component {
      * @returns {JSX.Element}
      */
     renderCell(props) {
-        const style = [props.style, styles.h100, {width: this.props.windowWidth}];
+        const style = [props.style, styles.h100, {width: this.state.containerWidth}];
 
         // Touch screen devices can toggle between showing and hiding the arrows by tapping on the image/container
         // Other devices toggle the arrows through hovering (mouse) instead (see render() root element)
@@ -237,6 +235,7 @@ class AttachmentCarousel extends React.Component {
         return (
             <View
                 style={[styles.attachmentModalArrowsContainer, styles.flex1]}
+                onLayout={({nativeEvent}) => this.setState({containerWidth: nativeEvent.layout.width + 1})}
                 onMouseEnter={() => this.toggleArrowsVisibility(true)}
                 onMouseLeave={() => this.toggleArrowsVisibility(false)}
             >
@@ -272,42 +271,46 @@ class AttachmentCarousel extends React.Component {
                         )}
                     </>
                 )}
-                <FlatList
-                    listKey="AttachmentCarousel"
-                    horizontal
 
-                    // Inverting the list for touchscreen devices that can swipe or have an animation when scrolling
-                    // promotes the natural feeling of swiping left/right to go to the next/previous image
-                    // We don't want to invert the list for desktop/web because this interferes with mouse
-                    // wheel or trackpad scrolling (in cases like document preview where you can scroll vertically)
-                    inverted={this.canUseTouchScreen}
+                {this.state.containerWidth > 0 && (
+                    <FlatList
+                        listKey="AttachmentCarousel"
+                        horizontal
 
-                    decelerationRate="fast"
-                    showsHorizontalScrollIndicator={false}
-                    bounces={false}
+                        // Inverting the list for touchscreen devices that can swipe or have an animation when scrolling
+                        // promotes the natural feeling of swiping left/right to go to the next/previous image
+                        // We don't want to invert the list for desktop/web because this interferes with mouse
+                        // wheel or trackpad scrolling (in cases like document preview where you can scroll vertically)
+                        inverted={this.canUseTouchScreen}
 
-                    // Scroll only one image at a time no matter how fast the user swipes
-                    disableIntervalMomentum
-                    pagingEnabled
-                    snapToAlignment="start"
-                    snapToInterval={this.props.windowWidth}
+                        decelerationRate="fast"
+                        showsHorizontalScrollIndicator={false}
+                        bounces={false}
 
-                    // Enable scrolling by swiping on mobile (touch) devices only
-                    // disable scroll for desktop/browsers because they add their scrollbars
-                    scrollEnabled={this.canUseTouchScreen}
-                    ref={this.scrollRef}
-                    initialScrollIndex={this.state.page}
-                    initialNumToRender={3}
-                    windowSize={5}
-                    maxToRenderPerBatch={3}
-                    data={this.state.attachments}
-                    CellRendererComponent={this.renderCell}
-                    renderItem={this.renderItem}
-                    getItemLayout={this.getItemLayout}
-                    keyExtractor={item => item.source}
-                    viewabilityConfig={this.viewabilityConfig}
-                    onViewableItemsChanged={this.updatePage}
-                />
+                        // Scroll only one image at a time no matter how fast the user swipes
+                        disableIntervalMomentum
+                        pagingEnabled
+                        snapToAlignment="start"
+                        snapToInterval={this.state.containerWidth}
+
+                        // Enable scrolling by swiping on mobile (touch) devices only
+                        // disable scroll for desktop/browsers because they add their scrollbars
+                        scrollEnabled={this.canUseTouchScreen}
+                        ref={this.scrollRef}
+                        initialScrollIndex={this.state.page}
+                        initialNumToRender={3}
+                        windowSize={5}
+                        maxToRenderPerBatch={3}
+                        data={this.state.attachments}
+                        CellRendererComponent={this.renderCell}
+                        renderItem={this.renderItem}
+                        getItemLayout={this.getItemLayout}
+                        keyExtractor={item => item.source}
+                        viewabilityConfig={this.viewabilityConfig}
+                        onViewableItemsChanged={this.updatePage}
+                    />
+                )}
+
                 <CarouselActions onCycleThroughAttachments={this.cycleThroughAttachments} />
             </View>
         );
@@ -325,5 +328,4 @@ export default compose(
         },
     }),
     withLocalize,
-    withWindowDimensions,
 )(AttachmentCarousel);
