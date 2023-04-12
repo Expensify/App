@@ -93,12 +93,7 @@ function getPolicyExpenseReportOptions(report) {
     if (!ReportUtils.isPolicyExpenseChat(report)) {
         return [];
     }
-    const filteredPolicyExpenseReports = _.filter(policyExpenseReports, (policyExpenseReport) => {
-        if (policyExpenseReport.policyID === report.policyID) {
-            return true;
-        }
-        return false;
-    });
+    const filteredPolicyExpenseReports = _.filter(policyExpenseReports, policyExpenseReport => policyExpenseReport.policyID === report.policyID);
     return _.map(filteredPolicyExpenseReports, (expenseReport) => {
         const policyExpenseChatAvatarSource = lodashGet(policies, [
             `${ONYXKEYS.COLLECTION.POLICY}${expenseReport.policyID}`, 'avatar',
