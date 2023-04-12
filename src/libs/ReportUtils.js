@@ -156,8 +156,8 @@ function canEditReportAction(reportAction) {
  * @param {String} reportID
  * @returns {Boolean}
  */
-function isReportSettled(reportID) {
-    return allReports[reportID].status === CONST.REPORT.STATUS.REIMBURSED;
+function isReimbursed(reportID) {
+    return allReports[`report_${reportID}`].status === CONST.REPORT.STATUS.REIMBURSED;
 }
 
 /**
@@ -169,7 +169,7 @@ function isReportSettled(reportID) {
 function canDeleteReportAction(reportAction) {
     return reportAction.actorEmail === sessionEmail
         && (reportAction.actionName === CONST.REPORT.ACTIONS.TYPE.ADDCOMMENT
-            || (reportAction.actionName === CONST.REPORT.ACTIONS.TYPE.IOU && !isReportSettled(reportAction.originalMessage.IOUReportID)))
+            || (reportAction.actionName === CONST.REPORT.ACTIONS.TYPE.IOU && !isReimbursed(reportAction.originalMessage.IOUReportID)))
         && reportAction.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE;
 }
 
@@ -1781,5 +1781,5 @@ export {
     getSmallSizeAvatar,
     getMoneyRequestOptions,
     canRequestMoney,
-    isReportSettled,
+    isReimbursed,
 };
