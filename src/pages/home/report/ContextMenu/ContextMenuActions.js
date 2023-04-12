@@ -237,8 +237,8 @@ export default [
     {
         textTranslateKey: 'reportActionContextMenu.deleteComment',
         icon: Expensicons.Trashcan,
-        shouldShow: (type, reportAction, isArchivedRoom, betas, menuTarget, isChronosReport, isReportSettled) => type === CONTEXT_MENU_TYPES.REPORT_ACTION
-            && ReportUtils.canDeleteReportAction(reportAction, isReportSettled) && !isArchivedRoom && !isChronosReport,
+        shouldShow: (type, reportAction, isArchivedRoom, betas, menuTarget, isChronosReport) => type === CONTEXT_MENU_TYPES.REPORT_ACTION
+            && ReportUtils.canDeleteReportAction(reportAction) && !isArchivedRoom && !isChronosReport,
         onPress: (closePopover, {reportID, reportAction}) => {
             if (closePopover) {
                 // Hide popover, then call showDeleteConfirmModal

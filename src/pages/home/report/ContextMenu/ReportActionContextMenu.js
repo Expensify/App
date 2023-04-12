@@ -16,7 +16,6 @@ const contextMenuRef = React.createRef();
  * @param {Function} [onHide=() => {}] - Run a callback when Menu is hidden
  * @param {Boolean} isArchivedRoom - Whether the provided report is an archived room
  * @param {Boolean} isChronosReport - Flag to check if the chat participant is Chronos
- * @param {Boolean} isReportSettled - Whether the provided report has been reimbursed
  */
 function showContextMenu(
     type,
@@ -30,7 +29,6 @@ function showContextMenu(
     onHide = () => {},
     isArchivedRoom = false,
     isChronosReport = false,
-    isReportSettled = false,
 ) {
     if (!contextMenuRef.current) {
         return;
@@ -47,7 +45,6 @@ function showContextMenu(
         onHide,
         isArchivedRoom,
         isChronosReport,
-        isReportSettled,
     );
 }
 

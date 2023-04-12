@@ -151,15 +151,25 @@ function canEditReportAction(reportAction) {
 }
 
 /**
+ * Returns whether the Money Request report has been reimbursed
+ *
+ * @param {String} reportID
+ * @returns {Boolean}
+ */
+function isReportSettled(reportID) {
+    return allReports[reportID].status === CONST.REPORT.STATUS.REIMBURSED;
+}
+
+/**
  * Can only delete if the author is this user and the action is an ADDCOMMENT action or an IOU action in an unsettled report
  *
  * @param {Object} reportAction
- * @param {Boolean} isReportSettled
  * @returns {Boolean}
  */
-function canDeleteReportAction(reportAction, isReportSettled) {
+function canDeleteReportAction(reportAction) {
     return reportAction.actorEmail === sessionEmail
-        && (reportAction.actionName === CONST.REPORT.ACTIONS.TYPE.ADDCOMMENT || (reportAction.actionName === CONST.REPORT.ACTIONS.TYPE.IOU && !isReportSettled))
+        && (reportAction.actionName === CONST.REPORT.ACTIONS.TYPE.ADDCOMMENT
+            || (reportAction.actionName === CONST.REPORT.ACTIONS.TYPE.IOU && !isReportSettled(reportAction.originalMessage.IOUReportID)))
         && reportAction.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE;
 }
 
@@ -1701,10 +1711,6 @@ function canLeaveRoom(report, isPolicyMember) {
         return false;
     }
     return true;
-}
-
-function isReportSettled(report) {
-    return report.status === CONST.REPORT.STATUS.REIMBURSED;
 }
 
 export {
