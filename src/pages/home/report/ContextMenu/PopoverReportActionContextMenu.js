@@ -268,7 +268,6 @@ class PopoverReportActionContextMenu extends React.Component {
         this.callbackWhenDeleteModalHide = () => this.onCancelDeleteModal = this.runAndResetCallback(this.onCancelDeleteModal);
         this.setState({
             reportID: '0',
-            reportAction: {},
             isDeleteCommentConfirmModalVisible: false,
             shouldSetModalVisibilityForDeleteConfirmation: true,
             isArchivedRoom: false,
