@@ -228,7 +228,6 @@ class AdditionalDetailsStep extends React.Component {
                         validate={this.validate}
                         onSubmit={this.activateWallet}
                         scrollContextEnabled
-                        scrollToOverflowEnabled
                         submitButtonText={this.props.translate('common.saveAndContinue')}
                         style={[styles.mh5, styles.flexGrow1]}
                     >
