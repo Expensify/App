@@ -116,7 +116,7 @@ function getAvatarBorderStyle(size, type) {
  * @param {String} [workspaceName]
  * @returns {Object}
  */
-function getDefaultWorspaceAvatarColor(workspaceName) {
+function getDefaultWorkspaceAvatarColor(workspaceName) {
     const colorHash = ReportUtils.hashLogin(workspaceName.trim(), workspaceColorOptions.length);
 
     return workspaceColorOptions[colorHash];
@@ -980,7 +980,7 @@ export {
     getEmojiSuggestionItemStyle,
     getEmojiSuggestionContainerStyle,
     getColoredBackgroundStyle,
-    getDefaultWorspaceAvatarColor,
+    getDefaultWorkspaceAvatarColor,
     getAvatarBorderRadius,
     getEmojiReactionBubbleStyle,
     getEmojiReactionBubbleTextStyle,
