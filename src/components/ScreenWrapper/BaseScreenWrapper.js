@@ -12,7 +12,6 @@ import HeaderGap from '../HeaderGap';
 import OfflineIndicator from '../OfflineIndicator';
 import compose from '../../libs/compose';
 import withNavigation from '../withNavigation';
-import withWindowDimensions from '../withWindowDimensions';
 import ONYXKEYS from '../../ONYXKEYS';
 import {withNetwork} from '../OnyxProvider';
 import {propTypes, defaultProps} from './propTypes';
@@ -147,7 +146,6 @@ BaseScreenWrapper.defaultProps = defaultProps;
 
 export default compose(
     withNavigation,
-    withWindowDimensions,
     withKeyboardState,
     withOnyx({
         modal: {
