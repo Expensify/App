@@ -27,6 +27,9 @@ const propTypes = {
     /** Whether the provided report is an archived room */
     isArchivedRoom: PropTypes.bool,
 
+    /** Whether the provided report has been reimbursed */
+    isReportSettled: PropTypes.bool,
+
     contentRef: PropTypes.oneOfType([PropTypes.node, PropTypes.object, PropTypes.func]),
 
     ...genericReportActionContextMenuPropTypes,
@@ -40,6 +43,7 @@ const defaultProps = {
     contentRef: null,
     isChronosReport: false,
     isArchivedRoom: false,
+    isReportSettled: false,
     ...GenericReportActionContextMenuDefaultProps,
 };
 class BaseReportActionContextMenu extends React.Component {
@@ -60,6 +64,7 @@ class BaseReportActionContextMenu extends React.Component {
             this.props.betas,
             this.props.anchor,
             this.props.isChronosReport,
+            this.props.isReportSettled,
         );
 
         return (this.props.isVisible || this.state.shouldKeepOpen) && (

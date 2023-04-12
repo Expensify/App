@@ -298,6 +298,7 @@ class ReportActionItem extends Component {
                                 }
                                 draftMessage={this.props.draftMessage}
                                 isChronosReport={ReportUtils.chatIncludesChronos(this.props.report)}
+                                isReportSettled={this.props.report.status === CONST.REPORT.REPORT.STATUS.REIMBURSED}
                             />
                         </View>
                     )}
