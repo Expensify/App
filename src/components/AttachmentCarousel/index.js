@@ -52,7 +52,6 @@ class AttachmentCarousel extends React.Component {
             isForwardDisabled: true,
             isBackDisabled: true,
         };
-        this.scheduleHideArrowTimeout = null;
     }
 
     componentDidMount() {
@@ -103,12 +102,13 @@ class AttachmentCarousel extends React.Component {
      * @param {Boolean} shouldShowArrow
      */
     toggleArrowsVisibility(shouldShowArrow) {
-        if (shouldShowArrow) {
-            this.scheduleHideArrow();
-        } else {
-            clearTimeout(this.scheduleHideArrowTimeout);
-        }
-        this.setState({shouldShowArrow});
+        this.setState({shouldShowArrow}, () => {
+            if (this.state.shouldShowArrow) {
+                this.scheduleHideArrow();
+            } else {
+                clearTimeout(this.scheduleHideArrowTimeout);
+            }
+        });
     }
 
     /**
