@@ -3,7 +3,7 @@ import PropTypes from 'prop-types';
 import {withOnyx} from 'react-native-onyx';
 import {View} from 'react-native';
 import ONYXKEYS from '../../../../ONYXKEYS';
-import MoneyRequestParticipantsSplit from './MoneyRequestParticipantsSplit';
+import MoneyRequestParticipantsSplitSelector from './MoneyRequestParticipantsSplitSelector';
 import MoneyRequestParticipantsSelector from './MoneyRequestParticipantsSelector';
 import styles from '../../../../styles/styles';
 import FullScreenLoadingIndicator from '../../../../components/FullscreenLoadingIndicator';
@@ -58,7 +58,7 @@ const MoneyRequestParticipantsPage = (props) => {
 
     return (props.hasMultipleParticipants
         ? (
-            <MoneyRequestParticipantsSplit
+            <MoneyRequestParticipantsSplitSelector
                 onStepComplete={props.onStepComplete}
                 participants={props.participants}
                 onAddParticipants={props.onAddParticipants}
