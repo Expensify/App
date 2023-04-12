@@ -24,7 +24,7 @@ const ArrowIcon = props => (
     <View style={[
         styles.p1,
         StyleUtils.getDirectionStyle(props.direction),
-        props.disabled ? styles.calendarButtonDisabled : {},
+        props.disabled ? styles.buttonOpacityDisabled : {},
     ]}
     >
         <Icon src={Expensicons.ArrowRight} />
