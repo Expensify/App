@@ -3078,6 +3078,10 @@ const styles = {
         width: variables.modalContentMaxWidth,
         textAlign: 'center',
     },
+
+    popoverDescriptionText: {
+        maxWidth: 500,
+    },
 };
 
 export default styles;

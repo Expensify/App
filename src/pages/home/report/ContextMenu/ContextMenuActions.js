@@ -14,7 +14,6 @@ import CONST from '../../../../CONST';
 import getAttachmentDetails from '../../../../libs/fileDownload/getAttachmentDetails';
 import fileDownload from '../../../../libs/fileDownload';
 import addEncryptedAuthTokenToURL from '../../../../libs/addEncryptedAuthTokenToURL';
-import * as ContextMenuUtils from './ContextMenuUtils';
 import * as Environment from '../../../../libs/Environment/Environment';
 import Permissions from '../../../../libs/Permissions';
 import QuickEmojiReactions from '../../../../components/Reactions/QuickEmojiReactions';
@@ -119,7 +118,7 @@ export default [
             Clipboard.setString(selection);
             hideContextMenu(true, ReportActionComposeFocusManager.focus);
         },
-        getDescription: ContextMenuUtils.getPopoverDescription,
+        getDescription: selection => selection,
     },
     {
         textTranslateKey: 'reportActionContextMenu.copyEmailToClipboard',

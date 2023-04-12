@@ -67,6 +67,7 @@ const MenuItem = (props) => {
         styles.breakWord,
         styles.lineHeightNormal,
         props.title ? descriptionVerticalMargin : undefined,
+        styles.popoverDescriptionText,
     ], props.style);
 
     return (
