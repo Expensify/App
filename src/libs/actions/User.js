@@ -3,7 +3,6 @@ import lodashGet from 'lodash/get';
 import Onyx from 'react-native-onyx';
 import moment from 'moment';
 import ONYXKEYS from '../../ONYXKEYS';
-import * as DeprecatedAPI from '../deprecatedAPI';
 import * as API from '../API';
 import CONFIG from '../../CONFIG';
 import CONST from '../../CONST';
@@ -183,48 +182,18 @@ function updateNewsletterSubscription(isSubscribed) {
 }
 
 /**
- * Adds a secondary login to a user's account
- *
- * @param {String} login
- * @param {String} password
- * @returns {Promise}
- */
-function setSecondaryLoginAndNavigate(login, password) {
-    Onyx.merge(ONYXKEYS.ACCOUNT, {...CONST.DEFAULT_ACCOUNT_DATA, isLoading: true});
-
-    return DeprecatedAPI.User_SecondaryLogin_Send({
-        email: login,
-        password,
-    }).then((response) => {
-        if (response.jsonCode === 200) {
-            Onyx.set(ONYXKEYS.LOGIN_LIST, response.loginList);
-            Navigation.navigate(ROUTES.SETTINGS_CONTACT_METHODS);
-            return;
-        }
-
-        let error = lodashGet(response, 'message', 'Unable to add secondary login. Please try again.');
-
-        // Replace error with a friendlier message
-        if (error.includes('already belongs to an existing Expensify account.')) {
-            error = 'This login already belongs to an existing Expensify account.';
-        }
-        if (error.includes('I couldn\'t validate the phone number')) {
-            error = Localize.translateLocal('common.error.phoneNumber');
-        }
-
-        Onyx.merge(ONYXKEYS.USER, {error});
-    }).finally(() => {
-        Onyx.merge(ONYXKEYS.ACCOUNT, {isLoading: false});
-    });
-}
-
-/**
  * Delete a specific contact method
  *
  * @param {String} contactMethod - the contact method being deleted
  * @param {Object} oldLoginData
  */
 function deleteContactMethod(contactMethod, oldLoginData) {
+    // If the contact method failed to be added to the account, then it should only be deleted locally.
+    if (lodashGet(oldLoginData, 'errorFields.addedLogin', null)) {
+        Onyx.merge(ONYXKEYS.LOGIN_LIST, {[contactMethod]: null});
+        return;
+    }
+
     const optimisticData = [{
         onyxMethod: CONST.ONYX.METHOD.MERGE,
         key: ONYXKEYS.LOGIN_LIST,
@@ -288,6 +257,61 @@ function clearContactMethodErrors(contactMethod, fieldName) {
             },
         },
     });
+}
+
+/**
+ * Adds a secondary login to a user's account
+ *
+ * @param {String} contactMethod
+ * @param {String} password
+ */
+function addNewContactMethodAndNavigate(contactMethod, password) {
+    const optimisticData = [{
+        onyxMethod: CONST.ONYX.METHOD.MERGE,
+        key: ONYXKEYS.LOGIN_LIST,
+        value: {
+            [contactMethod]: {
+                partnerUserID: contactMethod,
+                validatedDate: '',
+                errorFields: {
+                    addedLogin: null,
+                },
+                pendingFields: {
+                    addedLogin: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
+                },
+            },
+        },
+    }];
+    const successData = [{
+        onyxMethod: CONST.ONYX.METHOD.MERGE,
+        key: ONYXKEYS.LOGIN_LIST,
+        value: {
+            [contactMethod]: {
+                pendingFields: {
+                    addedLogin: null,
+                },
+            },
+        },
+    }];
+    const failureData = [{
+        onyxMethod: CONST.ONYX.METHOD.MERGE,
+        key: ONYXKEYS.LOGIN_LIST,
+        value: {
+            [contactMethod]: {
+                errorFields: {
+                    addedLogin: {
+                        [DateUtils.getMicroseconds()]: Localize.translateLocal('contacts.genericFailureMessages.addContactMethod'),
+                    },
+                },
+                pendingFields: {
+                    addedLogin: null,
+                },
+            },
+        },
+    }];
+
+    API.write('AddNewContactMethod', {partnerUserID: contactMethod, password}, {optimisticData, successData, failureData});
+    Navigation.navigate(ROUTES.SETTINGS_CONTACT_METHODS);
 }
 
 /**
@@ -660,9 +684,9 @@ export {
     resendValidateCode,
     requestContactMethodValidateCode,
     updateNewsletterSubscription,
-    setSecondaryLoginAndNavigate,
     deleteContactMethod,
     clearContactMethodErrors,
+    addNewContactMethodAndNavigate,
     validateLogin,
     validateSecondaryLogin,
     isBlockedFromConcierge,

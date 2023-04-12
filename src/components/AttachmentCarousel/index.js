@@ -16,6 +16,9 @@ import CONST from '../../CONST';
 import ONYXKEYS from '../../ONYXKEYS';
 import reportActionPropTypes from '../../pages/home/report/reportActionPropTypes';
 import tryResolveUrlFromApiRoot from '../../libs/tryResolveUrlFromApiRoot';
+import Tooltip from '../Tooltip';
+import withLocalize, {withLocalizePropTypes} from '../withLocalize';
+import compose from '../../libs/compose';
 
 const propTypes = {
     /** source is used to determine the starting index in the array of attachments */
@@ -26,6 +29,8 @@ const propTypes = {
 
     /** Object of report actions for this report */
     reportActions: PropTypes.objectOf(PropTypes.shape(reportActionPropTypes)),
+
+    ...withLocalizePropTypes,
 };
 
 const defaultProps = {
@@ -163,26 +168,32 @@ class AttachmentCarousel extends React.Component {
                 {(isPageSet && this.state.shouldShowArrow) && (
                     <>
                         {!this.state.isBackDisabled && (
-                            <Button
-                                medium
-                                style={[styles.leftAttachmentArrow]}
-                                innerStyles={[styles.arrowIcon]}
-                                icon={Expensicons.BackArrow}
-                                iconFill={themeColors.text}
-                                iconStyles={[styles.mr0]}
-                                onPress={() => this.cycleThroughAttachments(-1)}
-                            />
+                            <View style={styles.leftAttachmentArrow}>
+                                <Tooltip text={this.props.translate('common.previous')}>
+                                    <Button
+                                        medium
+                                        innerStyles={[styles.arrowIcon]}
+                                        icon={Expensicons.BackArrow}
+                                        iconFill={themeColors.text}
+                                        iconStyles={[styles.mr0]}
+                                        onPress={() => this.cycleThroughAttachments(-1)}
+                                    />
+                                </Tooltip>
+                            </View>
                         )}
                         {!this.state.isForwardDisabled && (
-                            <Button
-                                medium
-                                style={[styles.rightAttachmentArrow]}
-                                innerStyles={[styles.arrowIcon]}
-                                icon={Expensicons.ArrowRight}
-                                iconFill={themeColors.text}
-                                iconStyles={[styles.mr0]}
-                                onPress={() => this.cycleThroughAttachments(1)}
-                            />
+                            <View style={styles.rightAttachmentArrow}>
+                                <Tooltip text={this.props.translate('common.next')}>
+                                    <Button
+                                        medium
+                                        innerStyles={[styles.arrowIcon]}
+                                        icon={Expensicons.ArrowRight}
+                                        iconFill={themeColors.text}
+                                        iconStyles={[styles.mr0]}
+                                        onPress={() => this.cycleThroughAttachments(1)}
+                                    />
+                                </Tooltip>
+                            </View>
                         )}
                     </>
                 )}
@@ -208,9 +219,12 @@ class AttachmentCarousel extends React.Component {
 AttachmentCarousel.propTypes = propTypes;
 AttachmentCarousel.defaultProps = defaultProps;
 
-export default withOnyx({
-    reportActions: {
-        key: ({reportID}) => `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`,
-        canEvict: false,
-    },
-})(AttachmentCarousel);
+export default compose(
+    withOnyx({
+        reportActions: {
+            key: ({reportID}) => `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`,
+            canEvict: false,
+        },
+    }),
+    withLocalize,
+)(AttachmentCarousel);

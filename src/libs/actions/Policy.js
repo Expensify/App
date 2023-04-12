@@ -211,6 +211,11 @@ function removeMembers(members, policyID) {
         key: membersListKey,
         value: _.object(members, Array(members.length).fill({pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE})),
     }];
+    const successData = [{
+        onyxMethod: CONST.ONYX.METHOD.MERGE,
+        key: membersListKey,
+        value: _.object(members, Array(members.length).fill(null)),
+    }];
     const failureData = [{
         onyxMethod: CONST.ONYX.METHOD.MERGE,
         key: membersListKey,
@@ -219,7 +224,7 @@ function removeMembers(members, policyID) {
     API.write('DeleteMembersFromWorkspace', {
         emailList: members.join(','),
         policyID,
-    }, {optimisticData, failureData});
+    }, {optimisticData, successData, failureData});
 }
 
 /**
