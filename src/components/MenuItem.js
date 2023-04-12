@@ -67,7 +67,6 @@ const MenuItem = (props) => {
         styles.breakWord,
         styles.lineHeightNormal,
         props.title ? descriptionVerticalMargin : undefined,
-        styles.popoverDescriptionText,
     ], props.style);
 
     return (
@@ -87,6 +86,7 @@ const MenuItem = (props) => {
                 styles.popoverMenuItem,
                 StyleUtils.getButtonBackgroundColorStyle(getButtonState(props.focused || hovered, pressed, props.success, props.disabled, props.interactive), true),
                 ..._.isArray(props.wrapperStyle) ? props.wrapperStyle : [props.wrapperStyle],
+                styles.popoverMaxWidth,
             ])}
             disabled={props.disabled}
         >

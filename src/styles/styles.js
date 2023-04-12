@@ -3079,7 +3079,7 @@ const styles = {
         textAlign: 'center',
     },
 
-    popoverDescriptionText: {
+    popoverMaxWidth: {
         maxWidth: 375,
     },
 };
