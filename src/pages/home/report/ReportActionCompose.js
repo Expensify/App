@@ -92,6 +92,9 @@ const propTypes = {
     /** Is composer screen focused */
     isFocused: PropTypes.bool.isRequired,
 
+    /** Is composer full size */
+    isComposerFullSize: PropTypes.bool,
+
     /** Whether user interactions should be disabled */
     disabled: PropTypes.bool,
 
@@ -119,7 +122,7 @@ const propTypes = {
 const defaultProps = {
     betas: [],
     comment: '',
-    numberOfLines: 1,
+    numberOfLines: undefined,
     modal: {},
     report: {},
     reportActions: [],
@@ -127,6 +130,7 @@ const defaultProps = {
     personalDetails: {},
     preferredSkinTone: CONST.EMOJI_DEFAULT_SKIN_TONE,
     frequentlyUsedEmojis: [],
+    isComposerFullSize: false,
     ...withCurrentUserPersonalDetailsDefaultProps,
 };
 
@@ -180,6 +184,7 @@ class ReportActionCompose extends React.Component {
             textInputShouldClear: false,
             isCommentEmpty: props.comment.length === 0,
             isMenuVisible: false,
+            isDraggingOver: false,
             selection: {
                 start: props.comment.length,
                 end: props.comment.length,
@@ -644,6 +649,10 @@ class ReportActionCompose extends React.Component {
      * @param {Object} file
      */
     addAttachment(file) {
+        // Since we're submitting the form here which should clear the composer
+        // We don't really care about saving the draft the user was typing
+        // We need to make sure an empty draft gets saved instead
+        this.debouncedSaveReportComment.cancel();
         const comment = this.prepareCommentAndResetComposer();
         Report.addAttachment(this.props.reportID, file, comment);
         this.setTextInputShouldClear(false);
