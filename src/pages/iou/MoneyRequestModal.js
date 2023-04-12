@@ -23,8 +23,6 @@ import ScreenWrapper from '../../components/ScreenWrapper';
 import CONST from '../../CONST';
 import * as PersonalDetails from '../../libs/actions/PersonalDetails';
 import withCurrentUserPersonalDetails from '../../components/withCurrentUserPersonalDetails';
-import networkPropTypes from '../../components/networkPropTypes';
-import {withNetwork} from '../../components/OnyxProvider';
 import reportPropTypes from '../reportPropTypes';
 import * as ReportUtils from '../../libs/ReportUtils';
 import * as ReportScrollManager from '../../libs/ReportScrollManager';
@@ -335,12 +333,10 @@ const MoneyRequestModal = (props) => {
                                         {modalHeader}
                                         <IOUConfirmPage
                                             onConfirm={(selectedParticipants) => {
-                                                // TODO: ADD HANDLING TO DISABLE BUTTON FUNCTIONALITY WHILE REQUEST IS IN FLIGHT
                                                 createTransaction(selectedParticipants);
                                                 ReportScrollManager.scrollToBottom();
                                             }}
                                             onSendMoney={(paymentMethodType) => {
-                                                // TODO: ADD HANDLING TO DISABLE BUTTON FUNCTIONALITY WHILE REQUEST IS IN FLIGHT
                                                 sendMoney(paymentMethodType);
                                                 ReportScrollManager.scrollToBottom();
                                             }}
