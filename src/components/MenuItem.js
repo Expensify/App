@@ -60,11 +60,13 @@ const MenuItem = (props) => {
         (props.interactive && props.disabled ? {...styles.disabledText, ...styles.userSelectNone} : undefined),
         styles.pre,
     ], props.style);
+    const descriptionVerticalMargin = props.shouldShowDescriptionOnTop ? styles.mb1 : styles.mt1;
     const descriptionTextStyle = StyleUtils.combineStyles([
         styles.textLabelSupporting,
         (props.icon ? styles.ml3 : undefined),
         styles.breakWord,
         styles.lineHeightNormal,
+        props.title ? descriptionVerticalMargin : undefined,
     ], props.style);
 
     return (
@@ -90,7 +92,7 @@ const MenuItem = (props) => {
             {({hovered, pressed}) => (
                 <>
                     <View style={[styles.flexRow, styles.pointerEventsAuto, styles.flex1, props.disabled && styles.cursorDisabled]}>
-                        {props.icon && (
+                        {Boolean(props.icon) && (
                             <View
                                 style={[
                                     styles.popoverMenuIcon,
@@ -128,7 +130,7 @@ const MenuItem = (props) => {
                                 )}
                             </View>
                         )}
-                        <View style={[styles.justifyContentCenter, styles.menuItemTextContainer, styles.flex1, styles.gap1]}>
+                        <View style={[styles.justifyContentCenter, styles.menuItemTextContainer, styles.flex1]}>
                             {Boolean(props.description) && props.shouldShowDescriptionOnTop && (
                                 <Text
                                     style={descriptionTextStyle}
@@ -156,7 +158,7 @@ const MenuItem = (props) => {
                         </View>
                     </View>
                     <View style={[styles.flexRow, styles.menuItemTextContainer, styles.pointerEventsNone]}>
-                        {props.badgeText && (
+                        {Boolean(props.badgeText) && (
                         <Badge
                             text={props.badgeText}
                             badgeStyles={[styles.alignSelfCenter, (props.brickRoadIndicator ? styles.mr2 : undefined),

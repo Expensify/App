@@ -92,6 +92,9 @@ const propTypes = {
     /** Is composer screen focused */
     isFocused: PropTypes.bool.isRequired,
 
+    /** Is composer full size */
+    isComposerFullSize: PropTypes.bool,
+
     /** Whether user interactions should be disabled */
     disabled: PropTypes.bool,
 
@@ -119,7 +122,7 @@ const propTypes = {
 const defaultProps = {
     betas: [],
     comment: '',
-    numberOfLines: 1,
+    numberOfLines: undefined,
     modal: {},
     report: {},
     reportActions: [],
@@ -127,6 +130,7 @@ const defaultProps = {
     personalDetails: {},
     preferredSkinTone: CONST.EMOJI_DEFAULT_SKIN_TONE,
     frequentlyUsedEmojis: [],
+    isComposerFullSize: false,
     ...withCurrentUserPersonalDetailsDefaultProps,
 };
 
@@ -163,7 +167,7 @@ class ReportActionCompose extends React.Component {
         this.isEmojiCode = this.isEmojiCode.bind(this);
         this.setTextInputRef = this.setTextInputRef.bind(this);
         this.getInputPlaceholder = this.getInputPlaceholder.bind(this);
-        this.getIOUOptions = this.getIOUOptions.bind(this);
+        this.getMoneyRequestOptions = this.getMoneyRequestOptions.bind(this);
         this.addAttachment = this.addAttachment.bind(this);
         this.finishAddAttachmentFlow = this.finishAddAttachmentFlow.bind(this);
         this.insertSelectedEmoji = this.insertSelectedEmoji.bind(this);
@@ -182,6 +186,7 @@ class ReportActionCompose extends React.Component {
             textInputShouldClear: false,
             isCommentEmpty: props.comment.length === 0,
             isMenuVisible: false,
+            isDraggingOver: false,
             selection: {
                 start: props.comment.length,
                 end: props.comment.length,
@@ -334,25 +339,25 @@ class ReportActionCompose extends React.Component {
      * @param {Array} reportParticipants
      * @returns {Array<object>}
      */
-    getIOUOptions(reportParticipants) {
+    getMoneyRequestOptions(reportParticipants) {
         const options = {
-            [CONST.IOU.IOU_TYPE.SPLIT]: {
+            [CONST.IOU.MONEY_REQUEST_TYPE.SPLIT]: {
                 icon: Expensicons.Receipt,
                 text: this.props.translate('iou.splitBill'),
                 onSelected: () => Navigation.navigate(ROUTES.getIouSplitRoute(this.props.reportID)),
             },
-            [CONST.IOU.IOU_TYPE.REQUEST]: {
+            [CONST.IOU.MONEY_REQUEST_TYPE.REQUEST]: {
                 icon: Expensicons.MoneyCircle,
                 text: this.props.translate('iou.requestMoney'),
                 onSelected: () => Navigation.navigate(ROUTES.getIouRequestRoute(this.props.reportID)),
             },
-            [CONST.IOU.IOU_TYPE.SEND]: {
+            [CONST.IOU.MONEY_REQUEST_TYPE.SEND]: {
                 icon: Expensicons.Send,
                 text: this.props.translate('iou.sendMoney'),
                 onSelected: () => Navigation.navigate(ROUTES.getIOUSendRoute(this.props.reportID)),
             },
         };
-        return _.map(ReportUtils.getIOUOptions(this.props.report, reportParticipants, this.props.betas), option => options[option]);
+        return _.map(ReportUtils.getMoneyRequestOptions(this.props.report, reportParticipants, this.props.betas), option => options[option]);
     }
 
     /**
@@ -540,7 +545,7 @@ class ReportActionCompose extends React.Component {
      * @param {Boolean} shouldDebounceSaveComment
      */
     updateComment(comment, shouldDebounceSaveComment) {
-        const newComment = EmojiUtils.replaceEmojis(comment, this.props.isSmallScreenWidth);
+        const newComment = EmojiUtils.replaceEmojis(comment, this.props.isSmallScreenWidth, this.props.preferredSkinTone);
         this.setState((prevState) => {
             const newState = {
                 isCommentEmpty: !!newComment.match(/^(\s)*$/),
@@ -655,6 +660,10 @@ class ReportActionCompose extends React.Component {
      * @param {Object} file
      */
     addAttachment(file) {
+        // Since we're submitting the form here which should clear the composer
+        // We don't really care about saving the draft the user was typing
+        // We need to make sure an empty draft gets saved instead
+        this.debouncedSaveReportComment.cancel();
         const comment = this.prepareCommentAndResetComposer();
         Report.addAttachment(this.props.reportID, file, comment);
         this.setTextInputShouldClear(false);
@@ -812,7 +821,7 @@ class ReportActionCompose extends React.Component {
                                                     this.setIsInAddAttachmentFlow(item.text === this.props.translate('reportActionCompose.addAttachment'));
                                                 }}
                                                 anchorPosition={styles.createMenuPositionReportActionCompose}
-                                                menuItems={[...this.getIOUOptions(reportParticipants),
+                                                menuItems={[...this.getMoneyRequestOptions(reportParticipants),
                                                     {
                                                         icon: Expensicons.Paperclip,
                                                         text: this.props.translate('reportActionCompose.addAttachment'),

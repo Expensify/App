@@ -1,3 +1,4 @@
+/* eslint-disable rulesdir/onyx-props-must-have-default */
 import lodashGet from 'lodash/get';
 import React from 'react';
 import {InteractionManager, Keyboard, View} from 'react-native';
@@ -53,6 +54,9 @@ const propTypes = {
     /** Whether or not the emoji picker is disabled */
     shouldDisableEmojiPicker: PropTypes.bool,
 
+    /** Stores user's preferred skin tone */
+    preferredSkinTone: PropTypes.oneOfType([PropTypes.number, PropTypes.string]),
+
     ...withLocalizePropTypes,
     ...windowDimensionsPropTypes,
     ...keyboardStatePropTypes,
@@ -62,7 +66,8 @@ const defaultProps = {
     forwardedRef: () => {},
     report: {},
     shouldDisableEmojiPicker: false,
-    numberOfLines: 1,
+    numberOfLines: undefined,
+    preferredSkinTone: CONST.EMOJI_DEFAULT_SKIN_TONE,
 };
 
 class ReportActionItemMessageEdit extends React.Component {
@@ -83,7 +88,7 @@ class ReportActionItemMessageEdit extends React.Component {
         this.messageEditInput = 'messageEditInput';
 
         const parser = new ExpensiMark();
-        const draftMessage = parser.htmlToMarkdown(this.props.draftMessage);
+        const draftMessage = parser.htmlToMarkdown(this.props.draftMessage).trim();
 
         this.state = {
             draft: draftMessage,
@@ -94,6 +99,17 @@ class ReportActionItemMessageEdit extends React.Component {
             isFocused: false,
             hasExceededMaxCommentLength: false,
         };
+    }
+
+    componentWillUnmount() {
+        // Skip if this is not the focused message so the other edit composer stays focused.
+        if (!this.state.isFocused) {
+            return;
+        }
+
+        // Show the main composer when the focused message is deleted from another client
+        // to prevent the main composer stays hidden until we swtich to another chat.
+        toggleReportActionComposeView(true, this.props.isSmallScreenWidth);
     }
 
     /**
@@ -121,7 +137,7 @@ class ReportActionItemMessageEdit extends React.Component {
      * @param {String} draft
      */
     updateDraft(draft) {
-        const newDraft = EmojiUtils.replaceEmojis(draft, this.props.isSmallScreenWidth);
+        const newDraft = EmojiUtils.replaceEmojis(draft, this.props.isSmallScreenWidth, this.props.preferredSkinTone);
         this.setState((prevState) => {
             const newState = {draft: newDraft};
             if (draft !== newDraft) {
