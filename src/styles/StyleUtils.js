@@ -874,42 +874,52 @@ function getEmojiSuggestionContainerStyle(
  */
 const getColoredBackgroundStyle = isColored => ({backgroundColor: isColored ? colors.blueLink : null});
 
-function getEmojiReactionBubbleStyle(isHovered, hasUserReacted, sizeScale = 1) {
-    const sizeStyles = {
-        paddingVertical: styles.emojiReactionBubble.paddingVertical * sizeScale,
-        paddingHorizontal: styles.emojiReactionBubble.paddingHorizontal * sizeScale,
-    };
+function getEmojiReactionBubbleStyle(isHovered, hasUserReacted, isContextMenu = false) {
+    let backgroundColor = themeColors.border;
 
-    if (hasUserReacted) {
-        return {backgroundColor: themeColors.reactionActive, ...sizeStyles};
-    }
     if (isHovered) {
-        return {backgroundColor: themeColors.buttonHoveredBG, ...sizeStyles};
+        backgroundColor = themeColors.buttonHoveredBG;
     }
 
-    return sizeStyles;
-}
-
-function getEmojiReactionTextStyle(sizeScale = 1) {
-    return {
-        fontSize: styles.emojiReactionText.fontSize * sizeScale,
-        lineHeight: styles.emojiReactionText.lineHeight * sizeScale,
-    };
-}
-
-function getEmojiReactionCounterTextStyle(hasUserReacted, sizeScale = 1) {
-    const sizeStyles = {
-        fontSize: styles.reactionCounterText.fontSize * sizeScale,
-    };
-
     if (hasUserReacted) {
+        backgroundColor = themeColors.reactionActive;
+    }
+
+    if (isContextMenu) {
         return {
-            ...sizeStyles,
-            color: themeColors.link,
+            paddingVertical: 3,
+            paddingHorizontal: 12,
+            backgroundColor,
         };
     }
 
-    return sizeStyles;
+    return {
+        paddingVertical: 2,
+        paddingHorizontal: 8,
+        backgroundColor,
+    };
+}
+
+function getEmojiReactionBubbleTextStyle(isContextMenu = false) {
+    if (isContextMenu) {
+        return {
+            fontSize: 17,
+            lineHeight: 28,
+        };
+    }
+
+    return {
+        fontSize: 15,
+        lineHeight: 24,
+    };
+}
+
+function getEmojiReactionCounterTextStyle(hasUserReacted) {
+    if (hasUserReacted) {
+        return {color: themeColors.link};
+    }
+
+    return {color: themeColors.textLight};
 }
 
 /**
@@ -973,7 +983,7 @@ export {
     getDefaultWorspaceAvatarColor,
     getAvatarBorderRadius,
     getEmojiReactionBubbleStyle,
-    getEmojiReactionTextStyle,
+    getEmojiReactionBubbleTextStyle,
     getEmojiReactionCounterTextStyle,
     getDirectionStyle,
 };

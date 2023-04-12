@@ -63,14 +63,15 @@ class ReportDetailsPage extends Component {
             return [];
         }
 
-        // All nonarchived chats should let you see their members
-        menuItems.push({
-            key: CONST.REPORT_DETAILS_MENU_ITEM.MEMBERS,
-            translationKey: 'common.members',
-            icon: Expensicons.Users,
-            subtitle: lodashGet(this.props.report, 'participants', []).length,
-            action: () => { Navigation.navigate(ROUTES.getReportParticipantsRoute(this.props.report.reportID)); },
-        });
+        if (lodashGet(this.props.report, 'participants', []).length) {
+            menuItems.push({
+                key: CONST.REPORT_DETAILS_MENU_ITEM.MEMBERS,
+                translationKey: 'common.members',
+                icon: Expensicons.Users,
+                subtitle: lodashGet(this.props.report, 'participants', []).length,
+                action: () => { Navigation.navigate(ROUTES.getReportParticipantsRoute(this.props.report.reportID)); },
+            });
+        }
 
         if (ReportUtils.isPolicyExpenseChat(this.props.report) || ReportUtils.isChatRoom(this.props.report)) {
             menuItems.push({

@@ -61,7 +61,7 @@ const propTypes = {
 const defaultProps = {
     account: {},
     credentials: {},
-    preferredLocale: CONST.DEFAULT_LOCALE,
+    preferredLocale: CONST.LOCALES.DEFAULT,
 };
 
 class BaseValidateCodeForm extends React.Component {
@@ -245,7 +245,7 @@ class BaseValidateCodeForm extends React.Component {
                     </View>
                 )}
 
-                {this.props.account && !_.isEmpty(this.props.account.errors) && (
+                {Boolean(this.props.account) && !_.isEmpty(this.props.account.errors) && (
                     <FormHelpMessage message={ErrorUtils.getLatestErrorMessage(this.props.account)} />
                 )}
                 <View>
