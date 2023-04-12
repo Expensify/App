@@ -3080,7 +3080,7 @@ const styles = {
     },
 
     popoverDescriptionText: {
-        maxWidth: 500,
+        maxWidth: 375,
     },
 };
 
