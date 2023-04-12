@@ -632,7 +632,7 @@ export default {
         },
         cannotGetAccountDetails: 'No se pudieron cargar los detalles de tu cuenta. Intenta iniciar sesión de nuevo, por favor.',
         loginForm: 'Formulario de inicio de sesión',
-        not: '¿No eres',
+        notYou: ({user}) => `¿No eres ${user}?`,
     },
     personalDetails: {
         error: {
