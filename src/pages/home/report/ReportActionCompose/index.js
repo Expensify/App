@@ -43,6 +43,7 @@ import toggleReportActionComposeView from '../../../../libs/toggleReportActionCo
 import OfflineIndicator from '../../../../components/OfflineIndicator';
 import ExceededCommentLength from '../../../../components/ExceededCommentLength';
 import withNavigationFocus from '../../../../components/withNavigationFocus';
+import withNavigation from '../../../../components/withNavigation';
 import * as EmojiUtils from '../../../../libs/EmojiUtils';
 import ReportDropUI from '../ReportDropUI';
 import DragAndDrop from '../../../../components/DragAndDrop';
@@ -51,6 +52,7 @@ import EmojiSuggestions from '../../../../components/EmojiSuggestions';
 import withKeyboardState, {keyboardStatePropTypes} from '../../../../components/withKeyboardState';
 import ArrowKeyFocusManager from '../../../../components/ArrowKeyFocusManager';
 import KeyboardShortcut from '../../../../libs/KeyboardShortcut';
+import * as Welcome from '../../../../libs/actions/Welcome';
 import KeyDownAction from './keyDownAction';
 
 const propTypes = {
@@ -995,6 +997,7 @@ ReportActionCompose.defaultProps = defaultProps;
 export default compose(
     withWindowDimensions,
     withDrawerState,
+    withNavigation,
     withNavigationFocus,
     withLocalize,
     withNetwork(),
