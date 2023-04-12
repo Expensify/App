@@ -384,7 +384,7 @@ const MoneyRequestModal = (props) => {
                                         <MoneyRequestParticipantsPage
                                             participants={selectedOptions}
                                             hasMultipleParticipants={props.hasMultipleParticipants}
-                                            onAddParticipants={selectedParticipants => setSelectedOptions(selectedParticipants)}
+                                            onAddParticipants={setSelectedOptions}
                                             onStepComplete={navigateToNextStep}
                                             safeAreaPaddingBottomStyle={safeAreaPaddingBottomStyle}
                                             iouType={props.iouType}
