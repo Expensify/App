@@ -20,6 +20,7 @@ import compose from '../libs/compose';
 import personalDetailsPropType from './personalDetailsPropType';
 import reportPropTypes from './reportPropTypes';
 import Performance from '../libs/Performance';
+import FullScreenLoadingIndicator from '../components/FullscreenLoadingIndicator';
 
 const propTypes = {
     /* Onyx Props */
@@ -33,6 +34,9 @@ const propTypes = {
     /** All reports shared with the user */
     reports: PropTypes.objectOf(reportPropTypes),
 
+    /** Indicates whether report data is ready */
+    isLoadingReportData: PropTypes.bool,
+
     /** Window Dimensions Props */
     ...windowDimensionsPropTypes,
 
@@ -43,6 +47,7 @@ const defaultProps = {
     betas: [],
     personalDetails: {},
     reports: {},
+    isLoadingReportData: true,
 };
 
 class SearchPage extends Component {
@@ -74,6 +79,13 @@ class SearchPage extends Component {
             personalDetails,
             userToInvite,
         };
+    }
+
+    componentDidUpdate(prevProps) {
+        if (prevProps.isLoadingReportData === this.props.isLoadingReportData) {
+            return;
+        }
+        this.updateOptions();
     }
 
     onChangeText(searchValue = '') {
@@ -178,19 +190,23 @@ class SearchPage extends Component {
                             onCloseButtonPress={() => Navigation.dismissModal(true)}
                         />
                         <View style={[styles.flex1, styles.w100, styles.pRelative]}>
-                            <OptionsSelector
-                                sections={sections}
-                                value={this.state.searchValue}
-                                onSelectRow={this.selectReport}
-                                onChangeText={this.onChangeText}
-                                headerMessage={headerMessage}
-                                hideSectionHeaders
-                                showTitleTooltip
-                                shouldShowOptions={didScreenTransitionEnd}
-                                placeholderText={this.props.translate('optionsSelector.nameEmailOrPhoneNumber')}
-                                onLayout={this.searchRendered}
-                                safeAreaPaddingBottomStyle={safeAreaPaddingBottomStyle}
-                            />
+                            {didScreenTransitionEnd ? (
+                                <OptionsSelector
+                                    sections={sections}
+                                    value={this.state.searchValue}
+                                    onSelectRow={this.selectReport}
+                                    onChangeText={this.onChangeText}
+                                    headerMessage={headerMessage}
+                                    hideSectionHeaders
+                                    showTitleTooltip
+                                    shouldShowOptions={!this.props.isLoadingReportData}
+                                    placeholderText={this.props.translate('optionsSelector.nameEmailOrPhoneNumber')}
+                                    onLayout={this.searchRendered}
+                                    safeAreaPaddingBottomStyle={safeAreaPaddingBottomStyle}
+                                />
+                            ) : (
+                                <FullScreenLoadingIndicator />
+                            )}
                         </View>
                     </>
                 )}
@@ -214,6 +230,9 @@ export default compose(
         },
         betas: {
             key: ONYXKEYS.BETAS,
+        },
+        isLoadingReportData: {
+            key: ONYXKEYS.IS_LOADING_REPORT_DATA,
         },
     }),
 )(SearchPage);

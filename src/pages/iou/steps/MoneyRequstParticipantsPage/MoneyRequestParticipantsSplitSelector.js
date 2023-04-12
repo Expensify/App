@@ -49,6 +49,9 @@ const propTypes = {
         PropTypes.object,
     ]),
 
+    /** Indicates whether report data is ready */
+    isLoadingReportData: PropTypes.bool,
+
     ...withLocalizePropTypes,
 };
 
@@ -58,6 +61,7 @@ const defaultProps = {
     personalDetails: {},
     reports: {},
     safeAreaPaddingBottomStyle: {},
+    isLoadingReportData: true,
 };
 
 class MoneyRequestParticipantsSplitSelector extends Component {
@@ -87,6 +91,13 @@ class MoneyRequestParticipantsSplitSelector extends Component {
             personalDetails,
             userToInvite,
         };
+    }
+
+    componentDidUpdate(prevProps) {
+        if (prevProps.isLoadingReportData === this.props.isLoadingReportData) {
+            return;
+        }
+        this.updateOptionsWithSearchTerm(this.state.searchTerm);
     }
 
     /**
@@ -238,6 +249,7 @@ class MoneyRequestParticipantsSplitSelector extends Component {
                     onConfirmSelection={this.finalizeParticipants}
                     placeholderText={this.props.translate('optionsSelector.nameEmailOrPhoneNumber')}
                     safeAreaPaddingBottomStyle={this.props.safeAreaPaddingBottomStyle}
+                    shouldShowOptions={!this.props.isLoadingReportData}
                 />
             </View>
         );
@@ -258,6 +270,9 @@ export default compose(
         },
         betas: {
             key: ONYXKEYS.BETAS,
+        },
+        isLoadingReportData: {
+            key: ONYXKEYS.IS_LOADING_REPORT_DATA,
         },
     }),
 )(MoneyRequestParticipantsSplitSelector);

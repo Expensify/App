@@ -32,6 +32,9 @@ const propTypes = {
     /** All reports shared with the user */
     reports: PropTypes.objectOf(reportPropTypes),
 
+    /** Indicates whether the reports data is ready */
+    isLoadingReportData: PropTypes.bool,
+
     ...windowDimensionsPropTypes,
 
     ...withLocalizePropTypes,
@@ -42,6 +45,7 @@ const defaultProps = {
     betas: [],
     personalDetails: {},
     reports: {},
+    isLoadingReportData: true,
 };
 
 class NewChatPage extends Component {
@@ -73,6 +77,13 @@ class NewChatPage extends Component {
             selectedOptions: [],
             userToInvite,
         };
+    }
+
+    componentDidUpdate(prevProps) {
+        if (prevProps.isLoadingReportData === this.props.isLoadingReportData) {
+            return;
+        }
+        this.updateOptionsWithSearchTerm(this.state.searchTerm);
     }
 
     /**
@@ -255,6 +266,7 @@ class NewChatPage extends Component {
                                     boldStyle
                                     shouldFocusOnSelectRow={this.props.isGroupChat}
                                     shouldShowConfirmButton={this.props.isGroupChat}
+                                    shouldShowOptions={!this.props.isLoadingReportData}
                                     confirmButtonText={this.props.translate('newChatPage.createGroup')}
                                     onConfirmSelection={this.createGroup}
                                     placeholderText={this.props.translate('optionsSelector.nameEmailOrPhoneNumber')}
@@ -286,6 +298,9 @@ export default compose(
         },
         betas: {
             key: ONYXKEYS.BETAS,
+        },
+        isLoadingReportData: {
+            key: ONYXKEYS.IS_LOADING_REPORT_DATA,
         },
     }),
 )(NewChatPage);

@@ -27,6 +27,9 @@ const propTypes = {
     /** All reports shared with the user */
     reports: PropTypes.objectOf(reportPropTypes),
 
+    /** Indicates whether report data is ready */
+    isLoadingReportData: PropTypes.bool,
+
     /** padding bottom style of safe area */
     safeAreaPaddingBottomStyle: PropTypes.oneOfType([
         PropTypes.arrayOf(PropTypes.object),
@@ -44,6 +47,7 @@ const defaultProps = {
     personalDetails: {},
     reports: {},
     betas: [],
+    isLoadingReportData: true,
 };
 
 class MoneyRequestParticipantsSelector extends Component {
@@ -65,6 +69,13 @@ class MoneyRequestParticipantsSelector extends Component {
             userToInvite,
             searchTerm: '',
         };
+    }
+
+    componentDidUpdate(prevProps) {
+        if (prevProps.isLoadingReportData === this.props.isLoadingReportData) {
+            return;
+        }
+        this.updateOptionsWithSearchTerm(this.state.searchTerm);
     }
 
     /**
@@ -164,6 +175,7 @@ class MoneyRequestParticipantsSelector extends Component {
                 placeholderText={this.props.translate('optionsSelector.nameEmailOrPhoneNumber')}
                 boldStyle
                 safeAreaPaddingBottomStyle={this.props.safeAreaPaddingBottomStyle}
+                shouldShowOptions={!this.props.isLoadingReportData}
             />
         );
     }
@@ -183,6 +195,9 @@ export default compose(
         },
         betas: {
             key: ONYXKEYS.BETAS,
+        },
+        isLoadingReportData: {
+            key: ONYXKEYS.IS_LOADING_REPORT_DATA,
         },
     }),
 )(MoneyRequestParticipantsSelector);
