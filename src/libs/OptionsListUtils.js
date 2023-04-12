@@ -100,6 +100,7 @@ function getPolicyExpenseReportOptions(report) {
         ]) || ReportUtils.getDefaultWorkspaceAvatar(expenseReport.displayName);
         return {
             ...expenseReport,
+            keyForList: expenseReport.policyID,
             alternateText: Localize.translateLocal('workspace.common.workspace'),
             icons: [{
                 source: policyExpenseChatAvatarSource,
