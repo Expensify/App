@@ -1,5 +1,5 @@
 import React from 'react';
-import {StyleSheet} from 'react-native';
+import {StyleSheet, View, Text} from 'react-native';
 import PropTypes from 'prop-types';
 import _ from 'underscore';
 import ExpensiMark from 'expensify-common/lib/ExpensiMark';
@@ -73,6 +73,9 @@ const propTypes = {
     /** Whether the composer is full size */
     isComposerFullSize: PropTypes.bool,
 
+    /** Whether the composer is full size */
+    shouldCalculateCaretPosition: PropTypes.bool,
+
     ...withLocalizePropTypes,
 
     ...windowDimensionsPropTypes,
@@ -99,6 +102,7 @@ const defaultProps = {
     isFullComposerAvailable: false,
     setIsFullComposerAvailable: () => {},
     isComposerFullSize: false,
+    shouldCalculateCaretPosition: false,
 };
 
 const IMAGE_EXTENSIONS = {
@@ -129,6 +133,7 @@ class Composer extends React.Component {
                 start: initialValue.length,
                 end: initialValue.length,
             },
+            valueBeforeCaret: '',
         };
 
         this.paste = this.paste.bind(this);
@@ -137,6 +142,8 @@ class Composer extends React.Component {
         this.handleWheel = this.handleWheel.bind(this);
         this.putSelectionInClipboard = this.putSelectionInClipboard.bind(this);
         this.shouldCallUpdateNumberOfLines = this.shouldCallUpdateNumberOfLines.bind(this);
+        this.onSelectionChangeHandle = this.onSelectionChangeHandle.bind(this);
+        this.textRef = React.createRef(null);
     }
 
     componentDidMount() {
@@ -188,6 +195,36 @@ class Composer extends React.Component {
 
         this.textInput.removeEventListener('paste', this.handlePaste);
         this.textInput.removeEventListener('wheel', this.handleWheel);
+    }
+
+    onSelectionChangeHandle(event) {
+        if (this.props.shouldCalculateCaretPosition) {
+            this.setState(
+                {
+                    valueBeforeCaret: event.target.value.slice(
+                        0,
+                        event.nativeEvent.selection.start,
+                    ),
+                },
+
+                () => {
+                    const customEvent = {
+                        nativeEvent: {
+                            selection: {
+                                start: event.nativeEvent.selection.start,
+                                end: event.nativeEvent.selection.end,
+                                positionX: this.textRef.current.offsetLeft,
+                                positionY: this.textRef.current.offsetTop,
+                            },
+                        },
+                    };
+                    this.props.onSelectionChange(customEvent);
+                },
+            );
+            return;
+        }
+
+        this.props.onSelectionChange(event);
     }
 
     /**
@@ -328,6 +365,19 @@ class Composer extends React.Component {
     }
 
     /**
+     * Calculates the width of the text input.
+     *
+     * @param {Object} event - The layout event for the text input.
+     * @returns {null} - Returns null.
+     */
+    calculateWidth(event) {
+        if (this.props.shouldCalculateCaretPosition) {
+            this.setState({width: event.nativeEvent.layout.width});
+        }
+        return null;
+    }
+
+    /**
      * Check the current scrollHeight of the textarea (minus any padding) and
      * divide by line height to get the total number of rows for the textarea.
      */
@@ -360,26 +410,44 @@ class Composer extends React.Component {
 
         // We're disabling autoCorrect for iOS Safari until Safari fixes this issue. See https://github.com/Expensify/App/issues/8592
         return (
-            <RNTextInput
-                autoComplete="off"
-                autoCorrect={!Browser.isMobileSafari()}
-                placeholderTextColor={themeColors.placeholderText}
-                ref={el => this.textInput = el}
-                selection={this.state.selection}
-                onChange={this.shouldCallUpdateNumberOfLines}
-                onSelectionChange={this.onSelectionChange}
-                style={[
-                    propStyles,
+            <>
+                <RNTextInput
+                    autoComplete="off"
+                    autoCorrect={!Browser.isMobileSafari()}
+                    placeholderTextColor={themeColors.placeholderText}
+                    ref={el => this.textInput = el}
+                    selection={this.state.selection}
+                    onChange={this.shouldCallUpdateNumberOfLines}
+                    style={[
+                        propStyles,
 
-                    // We are hiding the scrollbar to prevent it from reducing the text input width,
-                    // so we can get the correct scroll height while calculating the number of lines.
-                    this.state.numberOfLines < this.props.maxLines ? styles.overflowHidden : {},
-                ]}
+                        // We are hiding the scrollbar to prevent it from reducing the text input width,
+                        // so we can get the correct scroll height while calculating the number of lines.
+                        this.state.numberOfLines < this.props.maxLines ? styles.overflowHidden : {},
+                    ]}
                 /* eslint-disable-next-line react/jsx-props-no-spreading */
-                {...propsWithoutStyles}
-                numberOfLines={this.state.numberOfLines}
-                disabled={this.props.isDisabled}
-            />
+                    {...propsWithoutStyles}
+                    onSelectionChange={this.onSelectionChangeHandle}
+                    numberOfLines={this.state.numberOfLines}
+                    disabled={this.props.isDisabled}
+                    onLayout={this.calculateWidth}
+                />
+                <View style={{
+                    position: 'absolute',
+                    bottom: -2000,
+                    zIndex: -1,
+                    opacity: 0,
+                }}
+                >
+                    <Text
+                        multiline
+                        style={[styles.textInputCompose, {width: this.state.width}]}
+                    >
+                        {this.state.valueBeforeCaret}
+                        <Text ref={this.textRef} />
+                    </Text>
+                </View>
+            </>
         );
     }
 }

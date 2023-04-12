@@ -844,6 +844,7 @@ class ReportActionCompose extends React.Component {
                                             value={this.state.value}
                                             numberOfLines={this.props.numberOfLines}
                                             onNumberOfLinesChange={this.updateNumberOfLines}
+                                            shouldCalculateCaretPosition
                                             onLayout={(e) => {
                                                 const composerHeight = e.nativeEvent.layout.height;
                                                 if (this.state.composerHeight === composerHeight) {
