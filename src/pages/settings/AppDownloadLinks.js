@@ -11,9 +11,9 @@ import compose from '../../libs/compose';
 import MenuItem from '../../components/MenuItem';
 import styles from '../../styles/styles';
 import * as Link from '../../libs/actions/Link';
-import ControlSelection from '../../libs/ControlSelection';
 import withWindowDimensions, {windowDimensionsPropTypes} from '../../components/withWindowDimensions';
 import * as ReportActionContextMenu from '../home/report/ContextMenu/ReportActionContextMenu';
+import {CONTEXT_MENU_TYPES} from '../home/report/ContextMenu/ContextMenuActions';
 
 const propTypes = {
     ...withLocalizePropTypes,
@@ -66,8 +66,7 @@ const AppDownloadLinksPage = (props) => {
                     <MenuItem
                         key={item.translationKey}
                         onPress={() => item.action()}
-                        onPressOut={() => ControlSelection.unblock()}
-                        onSecondaryInteraction={e => ReportActionContextMenu.showPopover(e, item.link, popoverAnchor)}
+                        onSecondaryInteraction={e => ReportActionContextMenu.showContextMenu(CONTEXT_MENU_TYPES.LINK, e, item.link, popoverAnchor)}
                         onKeyDown={(event) => {
                             event.target.blur();
                         }}

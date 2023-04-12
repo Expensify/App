@@ -37,6 +37,7 @@ import OfflineWithFeedback from '../../components/OfflineWithFeedback';
 import * as UserUtils from '../../libs/UserUtils';
 import policyMemberPropType from '../policyMemberPropType';
 import * as ReportActionContextMenu from '../home/report/ContextMenu/ReportActionContextMenu';
+import {CONTEXT_MENU_TYPES} from '../home/report/ContextMenu/ContextMenuActions';
 
 const propTypes = {
     /* Onyx Props */
@@ -242,7 +243,7 @@ class InitialSettingsPage extends React.Component {
                 shouldStackHorizontally={item.shouldStackHorizontally}
                 ref={this.popoverAnchor}
                 shouldBlockSelection={!_.isEmpty(item.link)}
-                onSecondaryInteraction={e => ReportActionContextMenu.showPopover(e, item.link, this.popoverAnchor.current)}
+                onSecondaryInteraction={e => !_.isEmpty(item.link) && ReportActionContextMenu.showContextMenu(CONTEXT_MENU_TYPES.LINK, e, item.link, this.popoverAnchor.current)}
             />
         );
     }

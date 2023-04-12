@@ -20,6 +20,7 @@ import * as Link from '../../../libs/actions/Link';
 import getPlatformSpecificMenuItems from './getPlatformSpecificMenuItems';
 import compose from '../../../libs/compose';
 import * as ReportActionContextMenu from '../../home/report/ContextMenu/ReportActionContextMenu';
+import {CONTEXT_MENU_TYPES} from '../../home/report/ContextMenu/ContextMenuActions';
 
 const propTypes = {
     ...withLocalizePropTypes,
@@ -113,7 +114,7 @@ const AboutPage = (props) => {
                                     iconRight={item.iconRight}
                                     onPress={() => item.action()}
                                     shouldBlockSelection={!_.isEmpty(item.link)}
-                                    onSecondaryInteraction={e => ReportActionContextMenu.showPopover(e, item.link, popoverAnchor)}
+                                    onSecondaryInteraction={e => !_.isEmpty(item.link) && ReportActionContextMenu.showContextMenu(CONTEXT_MENU_TYPES.LINK, e, item.link, popoverAnchor)}
                                     ref={el => popoverAnchor = el}
                                     shouldShowRightIcon
                                 />
