@@ -1,6 +1,4 @@
 import PropTypes from 'prop-types';
-import {windowDimensionsPropTypes} from '../withWindowDimensions';
-import {environmentPropTypes} from '../withEnvironment';
 
 const propTypes = {
     /** Array of additional styles to add */
@@ -36,10 +34,6 @@ const propTypes = {
 
     /** Whether to dismiss keyboard before leaving a screen */
     shouldDismissKeyboardBeforeClose: PropTypes.bool,
-
-    ...environmentPropTypes,
-
-    ...windowDimensionsPropTypes,
 };
 
 const defaultProps = {

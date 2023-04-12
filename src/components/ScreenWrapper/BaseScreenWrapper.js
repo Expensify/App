@@ -14,11 +14,19 @@ import compose from '../../libs/compose';
 import withNavigation from '../withNavigation';
 import ONYXKEYS from '../../ONYXKEYS';
 import {withNetwork} from '../OnyxProvider';
-import {propTypes, defaultProps} from './propTypes';
+import {propTypes as basePropTypes, defaultProps} from './propTypes';
 import SafeAreaConsumer from '../SafeAreaConsumer';
 import TestToolsModal from '../TestToolsModal';
 import withKeyboardState from '../withKeyboardState';
+import withWindowDimensions, {windowDimensionsPropTypes} from '../withWindowDimensions';
+import withEnvironment, {environmentPropTypes} from '../withEnvironment';
 import toggleTestToolsModal from '../../libs/actions/TestTool';
+
+const propTypes = {
+    ...basePropTypes,
+    ...windowDimensionsPropTypes,
+    ...environmentPropTypes,
+};
 
 class BaseScreenWrapper extends React.Component {
     constructor(props) {
@@ -146,6 +154,8 @@ BaseScreenWrapper.defaultProps = defaultProps;
 
 export default compose(
     withNavigation,
+    withEnvironment,
+    withWindowDimensions,
     withKeyboardState,
     withOnyx({
         modal: {
