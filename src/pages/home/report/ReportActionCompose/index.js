@@ -236,7 +236,7 @@ class ReportActionCompose extends React.Component {
         this.setMaxLines();
         this.updateComment(this.comment);
 
-        // Show popover on Workspace Welcome
+        // Shows Popover Menu on Workspace Chat at first sign-in
         Welcome.show({
             routes: lodashGet(this.props.navigation.getState(), 'routes', []),
             showPopoverMenu: this.showPopoverMenu,
@@ -725,8 +725,7 @@ class ReportActionCompose extends React.Component {
     }
 
     /**
-     * Used by Welcome.show to show Popover on Workspace Welcome
-     *
+     * Used to show Popover menu on Workspace chat at first sign-in
      */
     showPopoverMenu() {
         this.setMenuVisibility(true);
