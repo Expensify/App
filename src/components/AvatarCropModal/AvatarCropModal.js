@@ -405,7 +405,6 @@ const AvatarCropModal = (props) => {
                                         icon={Expensicons.Rotate}
                                         iconFill={themeColors.inverse}
                                         iconStyles={[styles.mr0]}
-                                        style={[styles.imageCropRotateButton]}
                                         onPress={rotateImage}
                                     />
                                 </Tooltip>
