@@ -869,34 +869,28 @@ function editReportComment(reportID, originalReportAction, textForNewComment) {
         },
     };
 
-    let optimisticReport = {
-        lastVisibleActionCreated: '',
-        lastMessageText: '',
-        lastActorEmail: currentUserEmail,
-    };
-
-    const lastMessageText = ReportActionsUtils.getLastVisibleMessageText(reportID, optimisticReportActions);
-    if (lastMessageText.length > 0) {
-        const lastVisibleActionCreated = ReportActionsUtils.getLastVisibleAction(reportID, optimisticReportActions).created;
-        optimisticReport = {
-            ...optimisticReport,
-            lastMessageText,
-            lastVisibleActionCreated,
-        };
-    }
-
     const optimisticData = [
         {
             onyxMethod: CONST.ONYX.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`,
             value: optimisticReportActions,
         },
-        {
+    ];
+
+    const lastVisibleAction = ReportActionsUtils.getLastVisibleAction(reportID, optimisticReportActions);
+    if (reportActionID === lastVisibleAction.reportActionID) {
+        const optimisticReport = {
+            lastMessageHTML: lodashGet(lastVisibleAction, 'message[0].html'),
+            lastMessageText: lodashGet(lastVisibleAction, 'message[0].text'),
+            lastVisibleActionCreated: lastVisibleAction.created,
+            lastActorEmail: lastVisibleAction.actorEmail,
+        };
+        optimisticData.push({
             onyxMethod: CONST.ONYX.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
             value: optimisticReport,
-        },
-    ];
+        });
+    }
 
     const failureData = [
         {
