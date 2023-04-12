@@ -88,7 +88,7 @@ const MenuItem = (props) => {
                 props.onPress(e);
             }}
             onPressIn={() => props.shouldBlockSelection && props.isSmallScreenWidth && DeviceCapabilities.canUseTouchScreen() && ControlSelection.block()}
-            onPressOut={() => ControlSelection.unblock()}
+            onPressOut={ControlSelection.unblock}
             onSecondaryInteraction={props.onSecondaryInteraction}
             style={({hovered, pressed}) => ([
                 styles.popoverMenuItem,
