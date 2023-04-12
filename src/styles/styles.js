@@ -2199,8 +2199,12 @@ const styles = {
     },
 
     arrowIcon: {
-        height: 42,
-        width: 42,
+        height: 40,
+        width: 40,
+        alignItems: 'center',
+        paddingHorizontal: 0,
+        paddingTop: 0,
+        paddingBottom: 0,
     },
 
     detailsPageSectionVersion: {
