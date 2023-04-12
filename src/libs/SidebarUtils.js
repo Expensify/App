@@ -265,7 +265,7 @@ function getOptionData(reportID) {
     // then try to get that from the last report action if that action is valid
     // to get data from.
     let lastActorDetails = personalDetails[report.lastActorEmail] || null;
-    if (!lastActorDetails && visibleReportActionItems[result.reportID]) {
+    if (!lastActorDetails && visibleReportActionItems[report.reportID]) {
         const lastActorDisplayName = lodashGet(visibleReportActionItems[report.reportID], 'person[0].text');
         lastActorDetails = lastActorDisplayName ? {
             displayName: lastActorDisplayName,
