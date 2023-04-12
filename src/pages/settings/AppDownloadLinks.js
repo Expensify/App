@@ -13,8 +13,7 @@ import styles from '../../styles/styles';
 import * as Link from '../../libs/actions/Link';
 import ControlSelection from '../../libs/ControlSelection';
 import withWindowDimensions, {windowDimensionsPropTypes} from '../../components/withWindowDimensions';
-import * as DeviceCapabilities from '../../libs/DeviceCapabilities';
-import showPopover from '../../libs/showPopover';
+import * as ReportActionContextMenu from '../home/report/ContextMenu/ReportActionContextMenu';
 
 const propTypes = {
     ...withLocalizePropTypes,
@@ -67,9 +66,8 @@ const AppDownloadLinksPage = (props) => {
                     <MenuItem
                         key={item.translationKey}
                         onPress={() => item.action()}
-                        onPressIn={() => props.isSmallScreenWidth && DeviceCapabilities.canUseTouchScreen() && ControlSelection.block()}
                         onPressOut={() => ControlSelection.unblock()}
-                        onSecondaryInteraction={e => showPopover(e, item.link, popoverAnchor)}
+                        onSecondaryInteraction={e => ReportActionContextMenu.showPopover(e, item.link, popoverAnchor)}
                         onKeyDown={(event) => {
                             event.target.blur();
                         }}
@@ -77,6 +75,7 @@ const AppDownloadLinksPage = (props) => {
                         title={props.translate(item.translationKey)}
                         icon={item.icon}
                         iconRight={item.iconRight}
+                        shouldBlockSelection
                         shouldShowRightIcon
                     />
                 ))}

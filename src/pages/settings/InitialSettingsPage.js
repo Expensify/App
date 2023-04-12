@@ -36,10 +36,7 @@ import * as Link from '../../libs/actions/Link';
 import OfflineWithFeedback from '../../components/OfflineWithFeedback';
 import * as UserUtils from '../../libs/UserUtils';
 import policyMemberPropType from '../policyMemberPropType';
-import withWindowDimensions, {windowDimensionsPropTypes} from '../../components/withWindowDimensions';
-import * as DeviceCapabilities from '../../libs/DeviceCapabilities';
-import ControlSelection from '../../libs/ControlSelection';
-import showPopover from '../../libs/showPopover';
+import * as ReportActionContextMenu from '../home/report/ContextMenu/ReportActionContextMenu';
 
 const propTypes = {
     /* Onyx Props */
@@ -100,7 +97,6 @@ const propTypes = {
 
     ...withLocalizePropTypes,
     ...withCurrentUserPersonalDetailsPropTypes,
-    ...windowDimensionsPropTypes,
 };
 
 const defaultProps = {
@@ -245,9 +241,8 @@ class InitialSettingsPage extends React.Component {
                 floatRightAvatars={item.floatRightAvatars}
                 shouldStackHorizontally={item.shouldStackHorizontally}
                 ref={this.popoverAnchor}
-                onPressIn={() => !_.isEmpty(item.link) && this.props.isSmallScreenWidth && DeviceCapabilities.canUseTouchScreen() && ControlSelection.block()}
-                onPressOut={() => !_.isEmpty(item.link) && ControlSelection.unblock()}
-                onSecondaryInteraction={e => !_.isEmpty(item.link) && showPopover(e, item.link, this.popoverAnchor.current)}
+                shouldBlockSelection={!_.isEmpty(item.link)}
+                onSecondaryInteraction={e => ReportActionContextMenu.showPopover(e, item.link, this.popoverAnchor.current)}
             />
         );
     }
@@ -346,7 +341,6 @@ InitialSettingsPage.propTypes = propTypes;
 InitialSettingsPage.defaultProps = defaultProps;
 
 export default compose(
-    withWindowDimensions,
     withLocalize,
     withCurrentUserPersonalDetails,
     withOnyx({
