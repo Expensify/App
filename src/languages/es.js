@@ -615,7 +615,7 @@ export default {
         requiredWhen2FAEnabled: 'Obligatorio cuando A2F está habilitado',
         error: {
             incorrectPassword: 'Contraseña incorrecta. Por favor, inténtalo de nuevo.',
-            incorrectLoginOrPassword: 'Usuario o constraseña incorrectos. Por favor, inténtalo de nuevo',
+            incorrectLoginOrPassword: 'Usuario o contraseña incorrectos. Por favor, inténtalo de nuevo',
             incorrect2fa: 'Código de autenticación de 2 factores incorrecto. Por favor, inténtalo de nuevo',
             twoFactorAuthenticationEnabled: 'Tienes autenticación de 2 factores activada en esta cuenta. Por favor, conéctate usando tu email o número de teléfono',
             invalidLoginOrPassword: 'Usuario o clave incorrectos. Por favor, inténtalo de nuevo o reestablece la contraseña',
@@ -632,7 +632,7 @@ export default {
         },
         cannotGetAccountDetails: 'No se pudieron cargar los detalles de tu cuenta, por favor, intenta iniciar sesión de nuevo.',
         loginForm: 'Formulario de inicio de sesión',
-        not: 'No eres',
+        not: '¿No eres',
     },
     personalDetails: {
         error: {
