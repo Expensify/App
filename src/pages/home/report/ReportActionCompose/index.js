@@ -93,6 +93,9 @@ const propTypes = {
     /** Is composer screen focused */
     isFocused: PropTypes.bool.isRequired,
 
+    /** Is composer full size */
+    isComposerFullSize: PropTypes.bool,
+
     /** Whether user interactions should be disabled */
     disabled: PropTypes.bool,
 
@@ -128,6 +131,7 @@ const defaultProps = {
     personalDetails: {},
     preferredSkinTone: CONST.EMOJI_DEFAULT_SKIN_TONE,
     frequentlyUsedEmojis: [],
+    isComposerFullSize: false,
     ...withCurrentUserPersonalDetailsDefaultProps,
 };
 
@@ -183,6 +187,7 @@ class ReportActionCompose extends React.Component {
             textInputShouldClear: false,
             isCommentEmpty: props.comment.length === 0,
             isMenuVisible: false,
+            isDraggingOver: false,
             selection: {
                 start: props.comment.length,
                 end: props.comment.length,
