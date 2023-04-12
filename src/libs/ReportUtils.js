@@ -151,14 +151,15 @@ function canEditReportAction(reportAction) {
 }
 
 /**
- * Can only delete if it's an ADDCOMMENT, the author is this user.
+ * Can only delete if the author is this user and the action is an ADDCOMMENT action or an IOU action in an unsettled report
  *
  * @param {Object} reportAction
+ * @param {Boolean} isReportSettled
  * @returns {Boolean}
  */
-function canDeleteReportAction(reportAction) {
+function canDeleteReportAction(reportAction, isReportSettled) {
     return reportAction.actorEmail === sessionEmail
-        && _.contains([CONST.REPORT.ACTIONS.TYPE.ADDCOMMENT, CONST.REPORT.ACTIONS.TYPE.IOU], reportAction.actionName)
+        && (reportAction.actionName === CONST.REPORT.ACTIONS.TYPE.ADDCOMMENT || (reportAction.actionName === CONST.REPORT.ACTIONS.TYPE.IOU && !isReportSettled))
         && reportAction.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE;
 }
 
