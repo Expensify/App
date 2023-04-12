@@ -63,6 +63,7 @@ const CONST = {
 
     DATE_BIRTH: {
         MIN_AGE: 5,
+        MIN_AGE_FOR_PAYMENT: 18,
         MAX_AGE: 150,
     },
 
