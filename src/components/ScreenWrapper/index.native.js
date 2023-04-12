@@ -1,7 +1,7 @@
 import {React, useEffect} from 'react';
 import DevMenu from 'react-native-dev-menu';
 import compose from '../../libs/compose';
-import * as TestToolActions from '../../libs/actions/TestTool';
+import toggleTestToolsModal from '../../libs/actions/TestTool';
 import {propTypes, defaultProps} from './propTypes';
 import BaseScreenWrapper from './BaseScreenWrapper';
 import withEnvironment from '../withEnvironment';
@@ -9,7 +9,7 @@ import withWindowDimensions from '../withWindowDimensions';
 
 const ScreenWrapper = (props) => {
     useEffect(() => {
-        DevMenu.addItem('Open DevMenu', TestToolActions.toggleTestToolsModal);
+        DevMenu.addItem('Open DevMenu', toggleTestToolsModal);
     }, []);
 
     return (
