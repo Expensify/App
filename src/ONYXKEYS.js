@@ -187,6 +187,7 @@ export default {
         HOME_ADDRESS_FORM: 'homeAddressForm',
         NEW_ROOM_FORM: 'newRoomForm',
         ROOM_SETTINGS_FORM: 'roomSettingsForm',
+        NEW_TASK_FORM: 'newTaskForm',
     },
 
     // Whether we should show the compose input or not

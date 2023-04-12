@@ -292,6 +292,7 @@ export default {
         draftedMessage: 'Drafted message',
         listOfChatMessages: 'List of chat messages',
         listOfChats: 'List of chats',
+        newTask: 'Assign task',
     },
     iou: {
         amount: 'Amount',
@@ -1127,6 +1128,14 @@ export default {
             public: 'Public',
             public_announce: 'Public Announce',
         },
+    },
+    newTaskPage: {
+        assignee: 'To',
+        assignTask: 'Assign task',
+        title: 'Title',
+        description: 'Description',
+        shareIn: 'Share in',
+        pleaseEnterTaskName: 'Please enter a task name',
     },
     statementPage: {
         generatingPDF: 'We\'re generating your PDF right now. Please come back later!',
