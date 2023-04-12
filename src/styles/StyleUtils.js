@@ -7,6 +7,7 @@ import colors from './colors';
 import positioning from './utilities/positioning';
 import styles from './styles';
 import * as ReportUtils from '../libs/ReportUtils';
+import getSafeAreaPaddingTop from '../libs/getSafeAreaPaddingTop';
 
 const workspaceColorOptions = [
     {backgroundColor: colors.blue200, fill: colors.blue700},
@@ -125,11 +126,12 @@ function getDefaultWorspaceAvatarColor(workspaceName) {
  * Takes safe area insets and returns padding to use for a View
  *
  * @param {Object} insets
+ * @param {Boolean} statusBarTranslucent
  * @returns {Object}
  */
-function getSafeAreaPadding(insets) {
+function getSafeAreaPadding(insets, statusBarTranslucent) {
     return {
-        paddingTop: insets.top,
+        paddingTop: getSafeAreaPaddingTop(insets, statusBarTranslucent),
         paddingBottom: insets.bottom * variables.safeInsertPercentage,
         paddingLeft: insets.left * variables.safeInsertPercentage,
         paddingRight: insets.right * variables.safeInsertPercentage,
@@ -809,42 +811,129 @@ function getReportWelcomeContainerStyle(isSmallScreenWidth) {
     };
 }
 
-function getEmojiReactionBubbleStyle(isHovered, hasUserReacted, sizeScale = 1) {
-    const sizeStyles = {
-        paddingVertical: styles.emojiReactionBubble.paddingVertical * sizeScale,
-        paddingHorizontal: styles.emojiReactionBubble.paddingHorizontal * sizeScale,
-    };
+/**
+ * Gets styles for Emoji Suggestion row
+ *
+ * @param {Number} highlightedEmojiIndex
+ * @param {Number} rowHeight
+ * @param {Boolean} hovered
+ * @param {Number} currentEmojiIndex
+ * @returns {Object}
+ */
+function getEmojiSuggestionItemStyle(
+    highlightedEmojiIndex,
+    rowHeight,
+    hovered,
+    currentEmojiIndex,
+) {
+    let backgroundColor;
 
-    if (hasUserReacted) {
-        return {backgroundColor: themeColors.reactionActive, ...sizeStyles};
-    }
-    if (isHovered) {
-        return {backgroundColor: themeColors.buttonHoveredBG, ...sizeStyles};
+    if (currentEmojiIndex === highlightedEmojiIndex) {
+        backgroundColor = themeColors.activeComponentBG;
+    } else if (hovered) {
+        backgroundColor = themeColors.hoverComponentBG;
     }
 
-    return sizeStyles;
+    return [
+        {
+            height: rowHeight,
+            justifyContent: 'center',
+        },
+        backgroundColor ? {
+            backgroundColor,
+        } : {},
+    ];
 }
 
-function getEmojiReactionTextStyle(sizeScale = 1) {
+/**
+ * Gets the correct position for emoji suggestion container
+ *
+ * @param {Number} itemsHeight
+ * @param {Boolean} shouldIncludeReportRecipientLocalTimeHeight
+ * @returns {Object}
+ */
+function getEmojiSuggestionContainerStyle(
+    itemsHeight,
+    shouldIncludeReportRecipientLocalTimeHeight,
+) {
+    const optionalPadding = shouldIncludeReportRecipientLocalTimeHeight ? CONST.RECIPIENT_LOCAL_TIME_HEIGHT : 0;
+    const padding = CONST.EMOJI_SUGGESTER.SUGGESTER_PADDING - optionalPadding;
+
+    // The suggester is positioned absolutely within the component that includes the input and RecipientLocalTime view (for non-expanded mode only). To position it correctly,
+    // we need to shift it by the suggester's height plus its padding and, if applicable, the height of the RecipientLocalTime view.
     return {
-        fontSize: styles.emojiReactionText.fontSize * sizeScale,
-        lineHeight: styles.emojiReactionText.lineHeight * sizeScale,
+        overflow: 'hidden',
+        top: -(itemsHeight + padding),
     };
 }
 
-function getEmojiReactionCounterTextStyle(hasUserReacted, sizeScale = 1) {
-    const sizeStyles = {
-        fontSize: styles.reactionCounterText.fontSize * sizeScale,
-    };
+/**
+ * Select the correct color for text.
+ * @param {Boolean} isColored
+ * @returns {String | null}
+ */
+const getColoredBackgroundStyle = isColored => ({backgroundColor: isColored ? colors.blueLink : null});
+
+function getEmojiReactionBubbleStyle(isHovered, hasUserReacted, isContextMenu = false) {
+    let backgroundColor = themeColors.border;
+
+    if (isHovered) {
+        backgroundColor = themeColors.buttonHoveredBG;
+    }
 
     if (hasUserReacted) {
+        backgroundColor = themeColors.reactionActive;
+    }
+
+    if (isContextMenu) {
         return {
-            ...sizeStyles,
-            color: themeColors.link,
+            paddingVertical: 3,
+            paddingHorizontal: 12,
+            backgroundColor,
         };
     }
 
-    return sizeStyles;
+    return {
+        paddingVertical: 2,
+        paddingHorizontal: 8,
+        backgroundColor,
+    };
+}
+
+function getEmojiReactionBubbleTextStyle(isContextMenu = false) {
+    if (isContextMenu) {
+        return {
+            fontSize: 17,
+            lineHeight: 28,
+        };
+    }
+
+    return {
+        fontSize: 15,
+        lineHeight: 24,
+    };
+}
+
+function getEmojiReactionCounterTextStyle(hasUserReacted) {
+    if (hasUserReacted) {
+        return {color: themeColors.link};
+    }
+
+    return {color: themeColors.textLight};
+}
+
+/**
+ * Returns a style object with a rotation transformation applied based on the provided direction prop.
+ *
+ * @param {string} direction - The direction of the rotation (CONST.DIRECTION.LEFT or CONST.DIRECTION.RIGHT).
+ * @returns {Object}
+ */
+function getDirectionStyle(direction) {
+    if (direction === CONST.DIRECTION.LEFT) {
+        return {transform: [{rotate: '180deg'}]};
+    }
+
+    return {};
 }
 
 export {
@@ -888,9 +977,13 @@ export {
     getReportWelcomeBackgroundImageStyle,
     getReportWelcomeTopMarginStyle,
     getReportWelcomeContainerStyle,
+    getEmojiSuggestionItemStyle,
+    getEmojiSuggestionContainerStyle,
+    getColoredBackgroundStyle,
     getDefaultWorspaceAvatarColor,
     getAvatarBorderRadius,
     getEmojiReactionBubbleStyle,
-    getEmojiReactionTextStyle,
+    getEmojiReactionBubbleTextStyle,
     getEmojiReactionCounterTextStyle,
+    getDirectionStyle,
 };

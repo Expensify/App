@@ -60,6 +60,9 @@ const propTypes = {
     /** Denotes whether it is an avatar or a workspace avatar */
     type: PropTypes.oneOf([CONST.ICON_TYPE_AVATAR, CONST.ICON_TYPE_WORKSPACE]),
 
+    /** Image crop vector mask */
+    editorMaskImage: PropTypes.func,
+
     ...withLocalizePropTypes,
 };
 
@@ -74,6 +77,7 @@ const defaultProps = {
     size: CONST.AVATAR_SIZE.DEFAULT,
     fallbackIcon: Expensicons.FallbackAvatar,
     type: CONST.ICON_TYPE_AVATAR,
+    editorMaskImage: undefined,
 };
 
 class AvatarWithImagePicker extends React.Component {
@@ -254,20 +258,22 @@ class AvatarWithImagePicker extends React.Component {
                     onPress={() => this.setState({isMenuVisible: true})}
                 >
                     <View style={[styles.pRelative, styles.avatarLarge]}>
-                        {this.props.source
-                            ? (
-                                <Avatar
-                                    containerStyles={styles.avatarLarge}
-                                    imageStyles={[styles.avatarLarge, styles.alignSelfCenter]}
-                                    source={this.props.source}
-                                    fallbackIcon={this.props.fallbackIcon}
-                                    size={this.props.size}
-                                    type={this.props.type}
-                                />
-                            )
-                            : (
-                                <DefaultAvatar />
-                            )}
+                        <Tooltip text={this.props.translate('avatarWithImagePicker.editImage')}>
+                            {this.props.source
+                                ? (
+                                    <Avatar
+                                        containerStyles={styles.avatarLarge}
+                                        imageStyles={[styles.avatarLarge, styles.alignSelfCenter]}
+                                        source={this.props.source}
+                                        fallbackIcon={this.props.fallbackIcon}
+                                        size={this.props.size}
+                                        type={this.props.type}
+                                    />
+                                )
+                                : (
+                                    <DefaultAvatar />
+                                )}
+                        </Tooltip>
                         <AttachmentPicker type={CONST.ATTACHMENT_PICKER_TYPE.IMAGE}>
                             {({openPicker}) => (
                                 <>
@@ -309,6 +315,7 @@ class AvatarWithImagePicker extends React.Component {
                     imageUri={this.state.imageUri}
                     imageName={this.state.imageName}
                     imageType={this.state.imageType}
+                    maskImage={this.props.editorMaskImage}
                 />
             </View>
         );

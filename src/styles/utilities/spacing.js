@@ -205,6 +205,10 @@ export default {
         marginBottom: 24,
     },
 
+    mb7: {
+        marginBottom: 28,
+    },
+
     mb8: {
         marginBottom: 32,
     },
@@ -408,9 +412,5 @@ export default {
 
     pb10Percentage: {
         paddingBottom: '10%',
-    },
-
-    gap1: {
-        gap: 4,
     },
 };

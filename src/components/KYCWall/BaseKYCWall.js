@@ -159,8 +159,4 @@ export default withOnyx({
     bankAccountList: {
         key: ONYXKEYS.BANK_ACCOUNT_LIST,
     },
-    isLoadingPaymentMethods: {
-        key: ONYXKEYS.IS_LOADING_PAYMENT_METHODS,
-        initWithStoredValues: false,
-    },
 })(KYCWall);

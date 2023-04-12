@@ -1,12 +1,12 @@
 import Onyx from 'react-native-onyx';
 import {beforeEach, jest, test} from '@jest/globals';
-import * as DeprecatedAPI from '../../src/libs/deprecatedAPI';
 import HttpUtils from '../../src/libs/HttpUtils';
 import waitForPromisesToResolve from '../utils/waitForPromisesToResolve';
 import ONYXKEYS from '../../src/ONYXKEYS';
 import * as TestHelper from '../utils/TestHelper';
 import CONST from '../../src/CONST';
 import PushNotification from '../../src/libs/Notification/PushNotification';
+import * as App from '../../src/libs/actions/App';
 
 // We are mocking this method so that we can later test to see if it was called and what arguments it was called with.
 // We test HttpUtils.xhr() since this means that our API command turned into a network request and isn't only queued.
@@ -61,7 +61,7 @@ describe('Session', () => {
                 // data.
                 HttpUtils.xhr
 
-                    // This will make the call to DeprecatedAPI.Get() below return with an expired session code
+                    // This will make the call to OpenApp below return with an expired session code
                     .mockImplementationOnce(() => Promise.resolve({
                         jsonCode: CONST.JSON_CODE.NOT_AUTHENTICATED,
                     }))
@@ -74,8 +74,8 @@ describe('Session', () => {
                         email: TEST_USER_LOGIN,
                     }));
 
-                // When we attempt to fetch the chatList via the API
-                DeprecatedAPI.Get({returnValueList: 'chatList'});
+                // When we attempt to fetch the initial app data via the API
+                App.openApp();
                 return waitForPromisesToResolve();
             })
             .then(() => {

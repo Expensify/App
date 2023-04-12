@@ -6,6 +6,8 @@ import variables from '../../styles/variables';
 import Icon from '../Icon';
 import Text from '../Text';
 import themeColors from '../../styles/themes/default';
+import TextLink from '../TextLink';
+import Navigation from '../../libs/Navigation/Navigation';
 
 const propTypes = {
     /** Expensicon for the page */
@@ -19,10 +21,18 @@ const propTypes = {
 
     /** Subtitle message below the title */
     subtitle: PropTypes.string.isRequired,
+
+    /** Link message below the subtitle */
+    link: PropTypes.string,
+
+    /** Whether we should show a go back home link */
+    shouldShowBackHomeLink: PropTypes.bool,
 };
 
 const defaultProps = {
     iconColor: themeColors.offline,
+    shouldShowBackHomeLink: false,
+    link: 'notFound.goBackHome',
 };
 
 const BlockingView = props => (
@@ -37,6 +47,15 @@ const BlockingView = props => (
         />
         <Text style={[styles.notFoundTextHeader]}>{props.title}</Text>
         <Text style={[styles.textAlignCenter]}>{props.subtitle}</Text>
+        {props.shouldShowBackHomeLink
+            ? (
+                <TextLink
+                    onPress={() => Navigation.dismissModal(true)}
+                    style={[styles.link, styles.mt2]}
+                >
+                    {props.link}
+                </TextLink>
+            ) : null}
     </View>
 );
 

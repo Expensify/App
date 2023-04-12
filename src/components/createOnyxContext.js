@@ -20,6 +20,7 @@ export default (onyxKeyName) => {
     Provider.propTypes = propTypes;
     Provider.displayName = `${Str.UCFirst(onyxKeyName)}Provider`;
 
+    // eslint-disable-next-line rulesdir/onyx-props-must-have-default
     const ProviderWithOnyx = withOnyx({
         [onyxKeyName]: {
             key: onyxKeyName,

@@ -194,7 +194,7 @@ function getSortedReportActionsForDisplay(reportActions) {
     const sortedReportActions = getSortedReportActions(filteredReportActions, true);
     return _.filter(sortedReportActions, (reportAction) => {
         // Filter out any unsupported reportAction types
-        if (!_.has(CONST.REPORT.ACTIONS.TYPE, reportAction.actionName)) {
+        if (!_.has(CONST.REPORT.ACTIONS.TYPE, reportAction.actionName) && !_.contains(_.values(CONST.REPORT.ACTIONS.TYPE.POLICYCHANGELOG), reportAction.actionName)) {
             return false;
         }
 
@@ -213,14 +213,35 @@ function getSortedReportActionsForDisplay(reportActions) {
 /**
  * In some cases, there can be multiple closed report actions in a chat report.
  * This method returns the last closed report action so we can always show the correct archived report reason.
+ * Additionally, archived #admins and #announce do not have the closed report action so we will return null if none is found.
  *
  * @param {Object} reportActions
- * @returns {Object}
+ * @returns {Object|null}
  */
 function getLastClosedReportAction(reportActions) {
+    // If closed report action is not present, return early
+    if (!_.some(reportActions, action => action.actionName === CONST.REPORT.ACTIONS.TYPE.CLOSED)) {
+        return null;
+    }
     const filteredReportActions = filterOutDeprecatedReportActions(reportActions);
     const sortedReportActions = getSortedReportActions(filteredReportActions);
     return lodashFindLast(sortedReportActions, action => action.actionName === CONST.REPORT.ACTIONS.TYPE.CLOSED);
+}
+
+/**
+ * @param {Array} onyxData
+ * @returns {Object} The latest report action in the `onyxData` or `null` if one couldn't be found
+ */
+function getLatestReportActionFromOnyxData(onyxData) {
+    const reportActionUpdate = _.find(onyxData, onyxUpdate => onyxUpdate.key.startsWith(ONYXKEYS.COLLECTION.REPORT_ACTIONS));
+
+    if (!reportActionUpdate) {
+        return null;
+    }
+
+    const reportActions = _.values(reportActionUpdate.value);
+    const sortedReportActions = getSortedReportActions(reportActions);
+    return _.last(sortedReportActions);
 }
 
 export {
@@ -232,4 +253,5 @@ export {
     isConsecutiveActionMadeByPreviousActor,
     getSortedReportActionsForDisplay,
     getLastClosedReportAction,
+    getLatestReportActionFromOnyxData,
 };

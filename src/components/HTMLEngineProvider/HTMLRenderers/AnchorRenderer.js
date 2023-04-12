@@ -16,6 +16,7 @@ import AnchorForCommentsOnly from '../../AnchorForCommentsOnly';
 import AnchorForAttachmentsOnly from '../../AnchorForAttachmentsOnly';
 import * as Url from '../../../libs/Url';
 import ROUTES from '../../../ROUTES';
+import tryResolveUrlFromApiRoot from '../../../libs/tryResolveUrlFromApiRoot';
 
 const AnchorRenderer = (props) => {
     const htmlAttribs = props.tnode.attributes;
@@ -26,8 +27,9 @@ const AnchorRenderer = (props) => {
     const parentStyle = lodashGet(props.tnode, 'parent.styles.nativeTextRet', {});
     const attrHref = htmlAttribs.href || '';
     const attrPath = lodashGet(Url.getURLObject(attrHref), 'path', '').replace('/', '');
-    const hasExpensifyOrigin = Url.hasSameExpensifyOrigin(attrHref, CONFIG.EXPENSIFY.EXPENSIFY_URL) || Url.hasSameExpensifyOrigin(attrHref, CONFIG.EXPENSIFY.STAGING_EXPENSIFY_URL);
-    const internalNewExpensifyPath = (Url.hasSameExpensifyOrigin(attrHref, CONST.NEW_EXPENSIFY_URL) || Url.hasSameExpensifyOrigin(attrHref, CONST.STAGING_NEW_EXPENSIFY_URL)) && attrPath;
+    const hasExpensifyOrigin = Url.hasSameExpensifyOrigin(attrHref, CONFIG.EXPENSIFY.EXPENSIFY_URL) || Url.hasSameExpensifyOrigin(attrHref, CONFIG.EXPENSIFY.STAGING_API_ROOT);
+    const internalNewExpensifyPath = (Url.hasSameExpensifyOrigin(attrHref, CONST.NEW_EXPENSIFY_URL) || Url.hasSameExpensifyOrigin(attrHref, CONST.STAGING_NEW_EXPENSIFY_URL))
+        && !CONST.PATHS_TO_TREAT_AS_EXTERNAL.includes(attrPath) ? attrPath : '';
     const internalExpensifyPath = hasExpensifyOrigin
                                     && !attrPath.startsWith(CONFIG.EXPENSIFY.CONCIERGE_URL_PATHNAME)
                                     && attrPath;
@@ -77,7 +79,7 @@ const AnchorRenderer = (props) => {
     if (isAttachment) {
         return (
             <AnchorForAttachmentsOnly
-                source={attrHref}
+                source={tryResolveUrlFromApiRoot(attrHref)}
                 displayName={displayName}
             />
         );
@@ -98,7 +100,7 @@ const AnchorRenderer = (props) => {
             key={props.key}
             displayName={displayName}
 
-            // Only pass the press handler for internal links, for public links fallback to default link handling
+            // Only pass the press handler for internal links. For public links or whitelisted internal links fallback to default link handling
             onPress={(internalNewExpensifyPath || internalExpensifyPath) ? navigateToLink : undefined}
         >
             <TNodeChildrenRenderer tnode={props.tnode} />

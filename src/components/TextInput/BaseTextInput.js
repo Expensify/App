@@ -316,9 +316,9 @@ class BaseTextInput extends Component {
                                         dataSet={{submitOnEnter: this.props.multiline && this.props.submitOnEnter}}
 
                                     />
-                                    {this.props.secureTextEntry && (
+                                    {Boolean(this.props.secureTextEntry) && (
                                         <Checkbox
-                                            style={styles.secureInputShowPasswordButton}
+                                            style={styles.textInputIconContainer}
                                             onPress={this.togglePasswordVisibility}
                                             onMouseDown={e => e.preventDefault()}
                                         >
@@ -327,6 +327,14 @@ class BaseTextInput extends Component {
                                                 fill={themeColors.icon}
                                             />
                                         </Checkbox>
+                                    )}
+                                    {!this.props.secureTextEntry && Boolean(this.props.icon) && (
+                                        <View style={[styles.textInputIconContainer, styles.cursorPointer]}>
+                                            <Icon
+                                                src={this.props.icon}
+                                                fill={themeColors.icon}
+                                            />
+                                        </View>
                                     )}
                                 </View>
                             </View>

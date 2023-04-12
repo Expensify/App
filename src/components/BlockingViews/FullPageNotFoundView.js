@@ -31,6 +31,12 @@ const propTypes = {
     /** Whether we should show a close button */
     shouldShowCloseButton: PropTypes.bool,
 
+    /** Whether we should show a go back home link */
+    shouldShowBackHomeLink: PropTypes.bool,
+
+    /** The key in the translations file to use for the go back link */
+    linkKey: PropTypes.string,
+
     /** Method to trigger when pressing the back button of the header */
     onBackButtonPress: PropTypes.func,
 };
@@ -40,7 +46,9 @@ const defaultProps = {
     shouldShow: false,
     titleKey: 'notFound.notHere',
     subtitleKey: 'notFound.pageNotFound',
+    linkKey: 'notFound.goBackHome',
     shouldShowBackButton: true,
+    shouldShowBackHomeLink: false,
     shouldShowCloseButton: true,
     onBackButtonPress: () => Navigation.dismissModal(),
 };
@@ -61,6 +69,8 @@ const FullPageNotFoundView = (props) => {
                         icon={Expensicons.QuestionMark}
                         title={props.translate(props.titleKey)}
                         subtitle={props.translate(props.subtitleKey)}
+                        link={props.translate(props.linkKey)}
+                        shouldShowBackHomeLink={props.shouldShowBackHomeLink}
                     />
                 </View>
             </>

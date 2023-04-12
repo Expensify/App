@@ -1,12 +1,12 @@
 import React from 'react';
 import {Keyboard, View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
+import PropTypes from 'prop-types';
 import _ from 'underscore';
 import lodashGet from 'lodash/get';
 import ONYXKEYS from '../../ONYXKEYS';
 import withLocalize, {withLocalizePropTypes} from '../../components/withLocalize';
 import styles from '../../styles/styles';
-import Text from '../../components/Text';
 import compose from '../../libs/compose';
 import * as Policy from '../../libs/actions/Policy';
 import * as Expensicons from '../../components/Icon/Expensicons';
@@ -21,13 +21,21 @@ import OfflineWithFeedback from '../../components/OfflineWithFeedback';
 import Form from '../../components/Form';
 import * as ReportUtils from '../../libs/ReportUtils';
 import Avatar from '../../components/Avatar';
+import Navigation from '../../libs/Navigation/Navigation';
+import ROUTES from '../../ROUTES';
 
 const propTypes = {
+    // The currency list constant object from Onyx
+    currencyList: PropTypes.objectOf(PropTypes.shape({
+        // Symbol for the currency
+        symbol: PropTypes.string,
+    })),
     ...policyPropTypes,
     ...withLocalizePropTypes,
 };
 
 const defaultProps = {
+    currencyList: {},
     ...policyDefaultProps,
 };
 
@@ -58,16 +66,12 @@ class WorkspaceSettingsPage extends React.Component {
         const outputCurrency = values.currency;
         Policy.updateGeneralSettings(this.props.policy.id, values.name, outputCurrency);
         Keyboard.dismiss();
+        Navigation.navigate(ROUTES.getWorkspaceInitialRoute(this.props.policy.id));
     }
 
     validate(values) {
         const errors = {};
         const name = values.name.trim();
-
-        // Searches for anything that looks like an html tag "< >""
-        if (name.search(/<(.|\n)*?>/g) !== -1) {
-            errors.name = this.props.translate('workspace.editor.nameHasHtml');
-        }
 
         if (!name || !name.length) {
             errors.name = this.props.translate('workspace.editor.nameIsRequiredError');
@@ -121,6 +125,7 @@ class WorkspaceSettingsPage extends React.Component {
                                 isUsingDefaultAvatar={!lodashGet(this.props.policy, 'avatar', null)}
                                 onImageSelected={file => Policy.updateWorkspaceAvatar(lodashGet(this.props.policy, 'id', ''), file)}
                                 onImageRemoved={() => Policy.deleteWorkspaceAvatar(lodashGet(this.props.policy, 'id', ''))}
+                                editorMaskImage={Expensicons.ImageCropSquareMask}
                             />
                         </OfflineWithFeedback>
                         <OfflineWithFeedback
@@ -140,11 +145,13 @@ class WorkspaceSettingsPage extends React.Component {
                                     items={this.getCurrencyItems()}
                                     isDisabled={hasVBA}
                                     defaultValue={this.props.policy.outputCurrency}
+                                    hintText={
+                                        hasVBA
+                                            ? this.props.translate('workspace.editor.currencyInputDisabledText')
+                                            : this.props.translate('workspace.editor.currencyInputHelpText')
+                                    }
                                 />
                             </View>
-                            <Text style={[styles.textLabel, styles.colorMuted, styles.mt2]}>
-                                {this.props.translate('workspace.editor.currencyInputHelpText')}
-                            </Text>
                         </OfflineWithFeedback>
                     </Form>
                 )}

@@ -60,7 +60,7 @@ function openOldDotLink(url) {
     }
 
     if (isNetworkOffline) {
-        Linking.openURL(buildOldDotURL());
+        buildOldDotURL().then(oldDotURL => Linking.openURL(oldDotURL));
         return;
     }
 

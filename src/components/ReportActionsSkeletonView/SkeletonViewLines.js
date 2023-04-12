@@ -9,16 +9,16 @@ import styles from '../../styles/styles';
 const propTypes = {
     /** Number of rows to show in Skeleton UI block */
     numberOfRows: PropTypes.number.isRequired,
-    animate: PropTypes.bool,
+    shouldAnimate: PropTypes.bool,
 };
 
 const defaultTypes = {
-    animate: true,
+    shouldAnimate: true,
 };
 
 const SkeletonViewLines = props => (
     <SkeletonViewContentLoader
-        animate={props.animate}
+        animate={props.shouldAnimate}
         height={CONST.CHAT_SKELETON_VIEW.HEIGHT_FOR_ROW_COUNT[props.numberOfRows]}
         backgroundColor={themeColors.highlightBG}
         foregroundColor={themeColors.border}
