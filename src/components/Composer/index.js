@@ -1,5 +1,6 @@
+/* eslint-disable rulesdir/onyx-props-must-have-default */
 import React from 'react';
-import {StyleSheet, View, Text} from 'react-native';
+import {StyleSheet, View} from 'react-native';
 import PropTypes from 'prop-types';
 import _ from 'underscore';
 import ExpensiMark from 'expensify-common/lib/ExpensiMark';
@@ -15,6 +16,7 @@ import Clipboard from '../../libs/Clipboard';
 import withWindowDimensions, {windowDimensionsPropTypes} from '../withWindowDimensions';
 import compose from '../../libs/compose';
 import styles from '../../styles/styles';
+import Text from '../Text';
 
 const propTypes = {
     /** Maximum number of lines in the text input */
@@ -365,19 +367,6 @@ class Composer extends React.Component {
     }
 
     /**
-     * Calculates the width of the text input.
-     *
-     * @param {Object} event - The layout event for the text input.
-     * @returns {null} - Returns null.
-     */
-    calculateWidth(event) {
-        if (this.props.shouldCalculateCaretPosition) {
-            this.setState({width: event.nativeEvent.layout.width});
-        }
-        return null;
-    }
-
-    /**
      * Check the current scrollHeight of the textarea (minus any padding) and
      * divide by line height to get the total number of rows for the textarea.
      */
@@ -398,6 +387,7 @@ class Composer extends React.Component {
             updateIsFullComposerAvailable(this.props, numberOfLines);
             this.setState({
                 numberOfLines,
+                width: computedStyle.width,
             });
             this.props.onNumberOfLinesChange(numberOfLines);
         });
@@ -407,6 +397,27 @@ class Composer extends React.Component {
         const propStyles = StyleSheet.flatten(this.props.style);
         propStyles.outline = 'none';
         const propsWithoutStyles = _.omit(this.props, 'style');
+
+        // This code creates a hidden text component that helps track the caret position in the visible input.
+
+        const calculationCaretPositionElement = (
+            <View
+                style={{
+                    position: 'absolute',
+                    bottom: -2000,
+                    zIndex: -1,
+                    opacity: 0,
+                }}
+            >
+                <Text
+                    multiline
+                    style={[styles.textInputCompose, {width: this.state.width}]}
+                >
+                    {this.state.valueBeforeCaret}
+                    <Text ref={this.textRef} />
+                </Text>
+            </View>
+        );
 
         // We're disabling autoCorrect for iOS Safari until Safari fixes this issue. See https://github.com/Expensify/App/issues/8592
         return (
@@ -430,23 +441,8 @@ class Composer extends React.Component {
                     onSelectionChange={this.onSelectionChangeHandle}
                     numberOfLines={this.state.numberOfLines}
                     disabled={this.props.isDisabled}
-                    onLayout={this.calculateWidth}
                 />
-                <View style={{
-                    position: 'absolute',
-                    bottom: -2000,
-                    zIndex: -1,
-                    opacity: 0,
-                }}
-                >
-                    <Text
-                        multiline
-                        style={[styles.textInputCompose, {width: this.state.width}]}
-                    >
-                        {this.state.valueBeforeCaret}
-                        <Text ref={this.textRef} />
-                    </Text>
-                </View>
+                {calculationCaretPositionElement}
             </>
         );
     }
