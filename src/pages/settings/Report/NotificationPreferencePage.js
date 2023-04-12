@@ -11,12 +11,11 @@ import TextInput from '../../../components/TextInput';
 import styles from '../../../styles/styles';
 import Navigation from '../../../libs/Navigation/Navigation';
 import compose from '../../../libs/compose';
-import * as RoomNameInputUtils from '../../../libs/RoomNameInputUtils';
 import withReportOrNotFound from '../../home/report/withReportOrNotFound';
 import reportPropTypes from '../../reportPropTypes';
 import ROUTES from '../../../ROUTES';
 import * as Report from '../../../libs/actions/Report';
-import OptionsSelector from "../../../components/OptionsSelector";
+import OptionsSelector from '../../../components/OptionsSelector';
 
 const propTypes = {
     ...withLocalizePropTypes,
@@ -31,7 +30,14 @@ class NotificationPreferencePage extends Component {
         super(props);
         this.updateNotificationPreference = this.updateNotificationPreference.bind(this);
         this.getNotificationPreferenceOptions = this.getNotificationPreferenceOptions.bind(this);
-        this.validate = this.validate.bind(this);
+    }
+
+    getNotificationPreferenceOptions() {
+        return [
+            this.props.translate('notificationPreferences.immediately'),
+            this.props.translate('notificationPreferences.daily'),
+            this.props.translate('notificationPreferences.mute'),
+        ];
     }
 
     /**
@@ -48,14 +54,6 @@ class NotificationPreferencePage extends Component {
         Navigation.drawerGoBack(ROUTES.getReportSettingsRoute(this.props.report.reportID));
     }
 
-    getNotificationPreferenceOptions() {
-        return [
-            {value: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS, label: this.props.translate('notificationPreferences.immediately')},
-            {value: CONST.REPORT.NOTIFICATION_PREFERENCE.DAILY, label: this.props.translate('notificationPreferences.daily')},
-            {value: CONST.REPORT.NOTIFICATION_PREFERENCE.MUTE, label: this.props.translate('notificationPreferences.mute')},
-        ];
-    }
-
     render() {
         return (
             <ScreenWrapper includeSafeAreaPaddingBottom={false}>
@@ -65,32 +63,17 @@ class NotificationPreferencePage extends Component {
                     onBackButtonPress={() => Navigation.drawerGoBack(ROUTES.getReportSettingsRoute(this.props.report.reportID))}
                     onCloseButtonPress={() => Navigation.dismissModal(true)}
                 />
-                <Form
-                    style={[styles.flexGrow1, styles.ph5]}
-                    formID={ONYXKEYS.FORMS.NOTIFICATION_PREFERENCES_FORM}
-                    onSubmit={this.updateNotificationPreference}
-                    validate={this.validate}
-                    submitButtonText={this.props.translate('common.save')}
-                    enabledWhenOffline
-                >
+
                     <View style={styles.mb4}>
                         <OptionsSelector
                             textInputLabel={this.props.translate('notificationPreferences.label')}
                             value={this.props.report.notificationPreference}
-                            onChangeText={this.filterShownTimezones}
                             onSelectRow={this.updateNotificationPreference}
                             optionHoveredStyle={styles.hoveredComponentBG}
                             sections={[{data: this.getNotificationPreferenceOptions(), indexOffset: 0, isDisabled: false}]}
                             shouldHaveOptionSeparator
                         />
-                        <TextInput
-                            inputID="notificationPreferences"
-                            name="preferences"
-                            label={this.props.translate('notificationPreferences.label')}
-                            value={this.props.report.notificationPreference}
-                        />
                     </View>
-                </Form>
             </ScreenWrapper>
         );
     }

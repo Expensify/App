@@ -166,7 +166,7 @@ class ReportSettingsPage extends Component {
                     <MenuItemWithTopDescription
                         title={this.props.report.notificationPreference}
                         description={this.props.translate('notificationPreferences.label')}
-                        onPress={() => Navigation.navigate(ROUTES.getReportSettingsRoomNameRoute(this.props.report.reportID))}
+                        onPress={() => Navigation.navigate(ROUTES.getReportSettingsNotificationPreferencesRoute(this.props.report.reportID))}
                     />
                     <Form
                         formID={ONYXKEYS.FORMS.ROOM_SETTINGS_FORM}

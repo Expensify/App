@@ -165,7 +165,7 @@ const ReportSettingsModalStackNavigator = createModalStackNavigator([{
         const NotificationPreferencesPage = require('../../../pages/settings/Report/NotificationPreferencePage').default;
         return NotificationPreferencesPage;
     },
-    name: 'Report_Settings_Room_Name',
+    name: 'Report_Settings_Notification_Preferences',
 },
 ]);
 
