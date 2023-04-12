@@ -181,13 +181,13 @@ class MoneyRequestConfirmationList extends Component {
             );
 
             sections.push({
-                title: this.props.translate('iOUConfirmationList.whoPaid'),
+                title: this.props.translate('moneyRequestConfirmationList.whoPaid'),
                 data: [formattedMyPersonalDetails],
                 shouldShow: true,
                 indexOffset: 0,
                 isDisabled: true,
             }, {
-                title: this.props.translate('iOUConfirmationList.whoWasThere'),
+                title: this.props.translate('moneyRequestConfirmationList.whoWasThere'),
                 data: formattedParticipants,
                 shouldShow: true,
                 indexOffset: 1,
@@ -280,7 +280,7 @@ class MoneyRequestConfirmationList extends Component {
                 onSelectRow={canModifyParticipants ? this.toggleOption : undefined}
                 onConfirmSelection={this.confirm}
                 onChangeText={this.props.onUpdateComment}
-                textInputLabel={this.props.translate('iOUConfirmationList.whatsItFor')}
+                textInputLabel={this.props.translate('moneyRequestConfirmationList.whatsItFor')}
                 placeholderText={this.props.translate('common.optional')}
                 selectedOptions={this.getSelectedOptions()}
                 canSelectMultipleOptions={canModifyParticipants}
