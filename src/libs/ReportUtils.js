@@ -1703,6 +1703,10 @@ function canLeaveRoom(report, isPolicyMember) {
     return true;
 }
 
+function isReportSettled(report) {
+    return report.status === CONST.REPORT.STATUS.REIMBURSED;
+}
+
 export {
     getReportParticipantsTitle,
     isReportMessageAttachment,
@@ -1771,4 +1775,5 @@ export {
     getSmallSizeAvatar,
     getMoneyRequestOptions,
     canRequestMoney,
+    isReportSettled,
 };
