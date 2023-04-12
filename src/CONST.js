@@ -463,6 +463,7 @@ const CONST = {
         },
         TYPE: {
             CHAT: 'chat',
+            EXPENSE: 'expense',
             IOU: 'iou',
         },
         CHAT_TYPE: {
@@ -2254,6 +2255,9 @@ const CONST = {
         SAMPLE_INPUT: '123456.789',
         EXPECTED_OUTPUT: 'FCFA 123,457',
     },
+    PATHS_TO_TREAT_AS_EXTERNAL: [
+        'NewExpensify.dmg',
+    ],
 };
 
 export default CONST;
