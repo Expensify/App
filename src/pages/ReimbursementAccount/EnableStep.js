@@ -107,7 +107,7 @@ const EnableStep = (props) => {
                         wrapperStyle={[styles.cardMenuItem, styles.mv3]}
                     />
                 </Section>
-                {props.user.isCheckingDomain && (
+                {Boolean(props.user.isCheckingDomain) && (
                     <Text style={[styles.formError, styles.mh5]}>
                         {props.translate('workspace.card.checkingDomain')}
                     </Text>
