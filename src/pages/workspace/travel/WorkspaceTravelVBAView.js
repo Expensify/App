@@ -8,12 +8,11 @@ import * as Illustrations from '../../../components/Icon/Illustrations';
 import Section from '../../../components/Section';
 import * as Link from '../../../libs/actions/Link';
 import * as Report from '../../../libs/actions/Report';
+import CONST from '../../../CONST';
 
 const propTypes = {
     ...withLocalizePropTypes,
 };
-
-const CONCIERGE_TRAVEL_URL = 'https://community.expensify.com/discussion/7066/introducing-concierge-travel';
 
 const WorkspaceTravelVBAView = props => (
     <Section
@@ -40,12 +39,12 @@ const WorkspaceTravelVBAView = props => (
             },
             {
                 title: props.translate('requestorStep.learnMore'),
-                onPress: () => Link.openExternalLink(CONCIERGE_TRAVEL_URL),
+                onPress: () => Link.openExternalLink(CONST.CONCIERGE_TRAVEL_URL),
                 icon: Expensicons.Info,
                 shouldShowRightIcon: true,
                 iconRight: Expensicons.NewWindow,
                 wrapperStyle: [styles.cardMenuItem],
-                link: CONCIERGE_TRAVEL_URL,
+                link: CONST.CONCIERGE_TRAVEL_URL,
             },
         ]}
     >
