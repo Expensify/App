@@ -542,7 +542,7 @@ function splitBillAndOpenReport(participants, currentUserLogin, amount, comment,
  * @param {String} type - cancel|decline
  * @param {Object} moneyRequestAction - the create IOU reportAction we are cancelling
  */
-function cancelMoneyRequest(chatReportID, iouReportID, type, moneyRequestAction) {
+function cancelMoneyRequest(chatReportID, iouReportID, type, moneyRequestAction, onlyRejectableRequest) {
     const chatReport = chatReports[`${ONYXKEYS.COLLECTION.REPORT}${chatReportID}`];
     const iouReport = iouReports[`${ONYXKEYS.COLLECTION.REPORT}${iouReportID}`];
     const transactionID = moneyRequestAction.originalMessage.IOUTransactionID;
@@ -623,8 +623,9 @@ function cancelMoneyRequest(chatReportID, iouReportID, type, moneyRequestAction)
         chatReportID,
         debtorEmail: chatReport.participants[0],
     }, {optimisticData, successData, failureData});
-
-    Navigation.navigate(ROUTES.getReportRoute(chatReportID));
+    if (onlyRejectableRequest) {
+        Navigation.navigate(ROUTES.getReportRoute(chatReportID));
+    }
 }
 
 /**
