@@ -115,7 +115,7 @@ const MoneyRequestModal = (props) => {
             lastName: lodashGet(option, 'lastName', ''),
             alternateText: option.alternateText,
             icons: option.icons,
-            keyForList: option.login,
+            keyForList: lodashGet(option, 'keyForList', option.login),
             payPalMeAddress: lodashGet(option, 'payPalMeAddress', ''),
             phoneNumber: lodashGet(option, 'phoneNumber', ''),
         }),
