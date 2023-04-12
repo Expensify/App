@@ -1015,7 +1015,6 @@ const CONST = {
     REPORT_DETAILS_MENU_ITEM: {
         MEMBERS: 'member',
         SETTINGS: 'settings',
-        INVITE: 'invite',
         LEAVE_ROOM: 'leaveRoom',
     },
 
