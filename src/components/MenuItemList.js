@@ -20,7 +20,7 @@ const MenuItemList = (props) => {
     /**
      * Handle the secondary interaction for a menu item.
      *
-     * @param {any} link the menu item link object or function
+     * @param {*} link the menu item link or function to get the link
      * @param {Event} e the interaction event
      */
     const secondaryInteraction = (link, e) => {

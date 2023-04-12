@@ -2200,6 +2200,8 @@ const CONST = {
     PATHS_TO_TREAT_AS_EXTERNAL: [
         'NewExpensify.dmg',
     ],
+
+    CONCIERGE_TRAVEL_URL: 'https://community.expensify.com/discussion/7066/introducing-concierge-travel',
 };
 
 export default CONST;
