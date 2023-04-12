@@ -20,6 +20,10 @@ const Airship = {
         iOS: {
             setBadgeNumber: jest.fn(),
             setForegroundPresentationOptions: jest.fn(),
+            setForegroundPresentationOptionsCallback: jest.fn(),
+        },
+        android: {
+            setForegroundDisplayPredicate: jest.fn(),
         },
         enableUserNotifications: () => Promise.resolve(false),
         clearNotifications: jest.fn(),
