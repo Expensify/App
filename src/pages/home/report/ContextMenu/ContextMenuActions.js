@@ -235,7 +235,7 @@ export default [
         getDescription: () => {},
     },
     {
-        textTranslateKey: 'reportActionContextMenu.deleteComment',
+        textTranslateKey: 'reportActionContextMenu.deleteAction',
         icon: Expensicons.Trashcan,
         shouldShow: (type, reportAction, isArchivedRoom, betas, menuTarget, isChronosReport) => type === CONTEXT_MENU_TYPES.REPORT_ACTION
             && ReportUtils.canDeleteReportAction(reportAction) && !isArchivedRoom && !isChronosReport,

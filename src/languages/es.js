@@ -238,8 +238,8 @@ export default {
         copyEmailToClipboard: 'Copiar email al portapapeles',
         markAsUnread: 'Marcar como no leído',
         editComment: 'Editar comentario',
-        deleteComment: 'Eliminar comentario',
-        deleteConfirmation: '¿Estás seguro de que quieres eliminar este comentario?',
+        deleteAction: ({actionName}) => `Eliminar ${actionName === CONST.REPORT.ACTIONS.TYPE.IOU ? 'pedido' : 'comentario'}`,
+        deleteConfirmation: ({actionName}) => `¿Estás seguro de que quieres eliminar este ${actionName === CONST.REPORT.ACTIONS.TYPE.IOU ? 'pedido' : 'comentario'}`,
     },
     emojiReactions: {
         addReactionTooltip: 'Añadir una reacción',
