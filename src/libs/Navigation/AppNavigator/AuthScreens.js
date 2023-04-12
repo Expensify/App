@@ -4,7 +4,6 @@ import PropTypes from 'prop-types';
 import moment from 'moment';
 import _ from 'underscore';
 import lodashGet from 'lodash/get';
-import getNavigationModalCardStyle from '../../../styles/getNavigationModalCardStyles';
 import withWindowDimensions, {windowDimensionsPropTypes} from '../../../components/withWindowDimensions';
 import CONST from '../../../CONST';
 import compose from '../../compose';
@@ -160,7 +159,7 @@ class AuthScreens extends React.Component {
 
         const rightModalNavigatorScreenOptions = {
             ...commonScreenOptions,
-            cardStyle: getNavigationModalCardStyle(this.props.isSmallScreenWidth),
+            cardStyle: styles.navigationModalCard(this.props.isSmallScreenWidth),
         };
 
         // TODO-NR - we need find example url with openOnAdminRoom and adjust new architecture to parse it as a param for report screens

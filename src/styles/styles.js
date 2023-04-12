@@ -1124,11 +1124,11 @@ const styles = {
     },
 
     leftPanelContainer: {
-        maxWidth: 350,
+        maxWidth: variables.leftPaneMaxWidth,
     },
 
     rightPanelContainer: {
-        width: 375,
+        width: variables.sideBarWidth,
     },
 
     onlyEmojisText: {
@@ -1615,6 +1615,15 @@ const styles = {
         marginTop: 5,
         marginRight: 4,
     },
+
+    navigationModalCard: isSmallScreenWidth => ({
+        position: 'absolute',
+        top: 0,
+        right: 0,
+        width: isSmallScreenWidth ? '100%' : variables.sideBarWidth,
+        backgroundColor: 'transparent',
+        height: '100%',
+    }),
 
     navigationModalOverlay: {
         userSelect: 'none',

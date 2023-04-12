@@ -70,6 +70,7 @@ export default {
     modalFullscreenBackdropOpacity: 0.5,
     tabletResponsiveWidthBreakpoint: 1024,
     safeInsertPercentage: 0.7,
+    leftPaneMaxWidth: 350,
     sideBarWidth: 375,
     pdfPageMaxWidth: 992,
     tooltipzIndex: 10050,
