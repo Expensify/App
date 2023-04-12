@@ -79,7 +79,7 @@ const propTypes = {
     }),
 
     /** Callback function to navigate to a provided step in the MoneyRequestModal flow */
-    navigateToStep: PropTypes.func,
+    navigateToStep: PropTypes.func.isRequired,
 };
 
 const defaultProps = {
@@ -325,7 +325,7 @@ class IOUConfirmationList extends Component {
                     title={formattedAmount}
                     description={this.props.translate('iou.amount')}
                     interactive={false} // This is so the menu item's background doesn't change color on hover
-                    onPress={() => this.props.navigateToStep(0)} // Index 0 here because the amount step is always the first step.
+                    onPress={() => this.props.navigateToStep(0)}
                     style={styles.moneyRequestMenuItem}
                     titleStyle={styles.moneyRequestConfirmationAmount}
                 />
