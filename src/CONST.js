@@ -2207,7 +2207,7 @@ const CONST = {
 
     // Test tool menu parameters
     TEST_TOOL: {
-        // How many concurrent taps are there in a test menu gesture
+        // Number of concurrent taps to open then the Test modal menu
         NUMBER_TAPS: 4,
     },
 };
