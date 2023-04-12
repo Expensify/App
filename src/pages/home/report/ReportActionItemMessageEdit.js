@@ -101,6 +101,17 @@ class ReportActionItemMessageEdit extends React.Component {
         };
     }
 
+    componentWillUnmount() {
+        // Skip if this is not the focused message so the other edit composer stays focused.
+        if (!this.state.isFocused) {
+            return;
+        }
+
+        // Show the main composer when the focused message is deleted from another client
+        // to prevent the main composer stays hidden until we swtich to another chat.
+        toggleReportActionComposeView(true, this.props.isSmallScreenWidth);
+    }
+
     /**
      * Update Selection on change cursor position.
      *
