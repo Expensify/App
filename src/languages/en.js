@@ -193,7 +193,7 @@ export default {
         nameEmailOrPhoneNumber: 'Name, email, or phone number',
     },
     videoChatButtonAndMenu: {
-        tooltip: 'Start a Call',
+        tooltip: 'Start a call',
         zoom: 'Zoom',
         googleMeet: 'Google Meet',
     },
@@ -508,7 +508,7 @@ export default {
         paymentMethodsTitle: 'Payment methods',
         setDefaultConfirmation: 'Make default payment method',
         setDefaultSuccess: 'Default payment method set!',
-        deleteAccount: 'Delete Account',
+        deleteAccount: 'Delete account',
         deleteConfirmation: 'Are you sure that you want to delete this account?',
         deletePayPalSuccess: 'PayPal.me successfully deleted',
         error: {
