@@ -266,9 +266,9 @@ function suggestEmojis(text, limit = 5) {
 
 /**
  * Replace substring between selection with an emoji.
- * @param {String} text 
- * @param {Object} selection 
- * @param {String} emoji 
+ * @param {String} text
+ * @param {Object} selection
+ * @param {String} emoji
  * @returns {String}
  */
 function insertEmoji(text, selection, emoji) {
