@@ -151,13 +151,13 @@ function canEditReportAction(reportAction) {
 }
 
 /**
- * Returns whether the Money Request report has been reimbursed
+ * Whether the Money Request report has been reimbursed
  *
  * @param {String} reportID
  * @returns {Boolean}
  */
-function isReimbursed(reportID) {
-    return lodashGet(allReports, [`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`, 'status'], '') === CONST.REPORT.STATUS.REIMBURSED;
+function isSettled(reportID) {
+    return !lodashGet(allReports, [`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, 'hasOutstandingIOU']);
 }
 
 /**
@@ -169,7 +169,7 @@ function isReimbursed(reportID) {
 function canDeleteReportAction(reportAction) {
     return reportAction.actorEmail === sessionEmail
         && (reportAction.actionName === CONST.REPORT.ACTIONS.TYPE.ADDCOMMENT
-            || (reportAction.actionName === CONST.REPORT.ACTIONS.TYPE.IOU && !isReimbursed(reportAction.originalMessage.IOUReportID)))
+            || (reportAction.actionName === CONST.REPORT.ACTIONS.TYPE.IOU && !isSettled(reportAction.originalMessage.IOUReportID)))
         && reportAction.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE;
 }
 
@@ -1781,5 +1781,5 @@ export {
     getSmallSizeAvatar,
     getMoneyRequestOptions,
     canRequestMoney,
-    isReimbursed,
+    isSettled,
 };
