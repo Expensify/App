@@ -1123,6 +1123,14 @@ const styles = {
         textDecorationLine: 'none',
     },
 
+    leftPanelContainer: {
+        maxWidth: 350,
+    },
+
+    rightPanelContainer: {
+        width: 375,
+    },
+
     onlyEmojisText: {
         fontSize: variables.fontSizeOnlyEmojis,
         lineHeight: variables.fontSizeOnlyEmojisHeight,
@@ -2449,6 +2457,11 @@ const styles = {
 
     cursorPointer: {
         cursor: 'pointer',
+    },
+
+    cardStyleNavigator: {
+        overflow: 'hidden',
+        height: '100%',
     },
 
     fullscreenCard: {

@@ -1,8 +1,6 @@
 import * as React from 'react';
 import _ from 'underscore';
-import {
-    View, Pressable, StyleSheet,
-} from 'react-native';
+import {View, Pressable} from 'react-native';
 import PropTypes from 'prop-types';
 import SCREENS from '../../../../SCREENS';
 import themeColors from '../../../../styles/themes/default';
@@ -10,36 +8,6 @@ import NAVIGATORS from '../../../../NAVIGATORS';
 import * as StyleUtils from '../../../../styles/StyleUtils';
 import {withNavigationPropTypes} from '../../../../components/withNavigation';
 import styles from '../../../../styles/styles';
-
-const RIGHT_PANEL_WIDTH = 375;
-const LEFT_PANEL_WIDTH = 350;
-
-// TODO-NR this has tobe removed
-const localStyles = StyleSheet.create({
-    leftPanelContainer: {
-        flex: 1,
-        maxWidth: LEFT_PANEL_WIDTH,
-        borderRightWidth: 1,
-
-        // TODO-NR maybe in different place?
-        borderRightColor: themeColors.border,
-    },
-    rightPanelContainer: {
-        width: '100%',
-        height: '100%',
-        position: 'absolute',
-        backgroundColor: 'rgba(0, 0, 0, 0.4)',
-        flexDirection: 'row',
-    },
-    rightPanelInnerContainer: {width: RIGHT_PANEL_WIDTH},
-    fullScreen: {
-        position: 'absolute',
-        top: 0,
-        left: 0,
-        width: '100%',
-        height: '100%',
-    },
-});
 
 const propTypes = {
     /* State from useNavigationBuilder */
@@ -61,7 +29,7 @@ const ThreePaneView = (props) => {
             {_.map(props.state.routes, (route, i) => {
                 if (route.name === SCREENS.HOME) {
                     return (
-                        <View key={route.key} style={localStyles.leftPanelContainer}>
+                        <View key={route.key} style={[styles.borderRight, styles.flex1, styles.leftPanelContainer]}>
                             {props.descriptors[route.key].render()}
                         </View>
                     );
@@ -84,13 +52,17 @@ const ThreePaneView = (props) => {
                         <View
                             key={route.key}
                             style={[
-                                localStyles.rightPanelContainer,
+                                styles.flexRow,
+                                styles.pAbsolute,
+                                styles.w100,
+                                styles.h100,
+                                StyleUtils.getBackgroundColorWithOpacityStyle(themeColors.shadow, 0.4),
                                 StyleUtils.displayIfTrue(props.state.index === i),
                             ]}
                         >
                             <Pressable style={[styles.flex1]} onPress={() => props.navigation.goBack()} />
                             <View
-                                style={localStyles.rightPanelInnerContainer}
+                                style={styles.rightPanelContainer}
                             >
                                 {props.descriptors[route.key].render()}
                             </View>
@@ -98,7 +70,16 @@ const ThreePaneView = (props) => {
                     );
                 }
                 return (
-                    <View key={route.key} style={localStyles.fullScreen}>
+                    <View
+                        key={route.key}
+                        style={[
+                            styles.pAbsolute,
+                            styles.t0,
+                            styles.l0,
+                            styles.w100,
+                            styles.h100,
+                        ]}
+                    >
                         {props.descriptors[route.key].render()}
                     </View>
                 );

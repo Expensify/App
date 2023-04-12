@@ -31,6 +31,7 @@ import RightModalNavigator from './Navigators/RightModalNavigator';
 import CentralPaneNavigator from './Navigators/CentralPaneNavigator';
 import NAVIGATORS from '../../../NAVIGATORS';
 import FullScreenNavigator from './Navigators/FullScreenNavigator';
+import styles from '../../../styles/styles';
 
 let currentUserEmail;
 Onyx.connect({
@@ -185,10 +186,7 @@ class AuthScreens extends React.Component {
                         title: 'New Expensify',
 
                         // Prevent unnecessary scrolling
-                        cardStyle: {
-                            overflow: 'hidden',
-                            height: '100%',
-                        },
+                        cardStyle: styles.cardStyleNavigator,
                     }}
                     getComponent={() => {
                         const SidebarScreen = require('../../../pages/home/sidebar/SidebarScreen').default;
@@ -204,10 +202,7 @@ class AuthScreens extends React.Component {
                         title: 'New Expensify',
 
                         // Prevent unnecessary scrolling
-                        cardStyle: {
-                            overflow: 'hidden',
-                            height: '100%',
-                        },
+                        cardStyle: styles.cardStyleNavigator,
                         cardStyleInterpolator: props => modalCardStyleInterpolator(this.props.isSmallScreenWidth, false, props),
                     }}
                     component={CentralPaneNavigator}
