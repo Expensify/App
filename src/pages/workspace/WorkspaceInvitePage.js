@@ -300,7 +300,7 @@ class WorkspaceInvitePage extends React.Component {
         const policyName = lodashGet(this.props.policy, 'name');
 
         return (
-            <ScreenWrapper>
+            <ScreenWrapper shouldEnableMaxHeight>
                 {({didScreenTransitionEnd}) => (
                     <FullPageNotFoundView
                         shouldShow={_.isEmpty(this.props.policy)}
