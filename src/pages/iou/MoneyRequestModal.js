@@ -329,7 +329,6 @@ const MoneyRequestModal = (props) => {
             );
             return;
         }
-        console.debug(selectedParticipants);
         if (!selectedParticipants[0].login) {
             // TODO - request to the policy expense chat. Not implemented yet!
             // Will be implemented here: https://github.com/Expensify/Expensify/issues/270581
