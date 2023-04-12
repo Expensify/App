@@ -7,6 +7,4 @@ const moveAccessibilityFocus = (ref) => {
     AccessibilityInfo.sendAccssibilityEvent(ref, 'focus');
 };
 
-export default {
-    moveAccessibilityFocus,
-};
+export default moveAccessibilityFocus;
