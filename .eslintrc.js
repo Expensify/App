@@ -1,7 +1,7 @@
 module.exports = {
     extends: ['expensify', 'plugin:storybook/recommended', 'plugin:prettier/recommended'],
     parser: 'babel-eslint',
-    ignorePatterns: ['!.*', 'src/vendor', '.github/actions/**/index.js', 'desktop/dist/*.js', 'dist/*.js', 'node_modules/.bin/**', '.git/**'],
+    ignorePatterns: ['*.md', '!.*', 'src/vendor', '.github/actions/**/index.js', 'desktop/dist/*.js', 'dist/*.js', 'node_modules/.bin/**', '.git/**'],
     env: {
         jest: true,
     },
