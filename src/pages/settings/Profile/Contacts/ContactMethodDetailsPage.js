@@ -146,6 +146,13 @@ class ContactMethodDetailsPage extends Component {
     }
 
     /**
+     * Attempt to set this contact method as user's "Default contact method"
+     */
+    setAsDefault() {
+        User.setContactMethodAsDefault(this.getContactMethod());
+    }
+
+    /**
      * Deletes the contact method if it has errors. Otherwise, it shows the confirmation alert and deletes it only if the user confirms.
      */
     deleteContactMethod() {
@@ -191,13 +198,6 @@ class ContactMethodDetailsPage extends Component {
             this.setState({formError: ''});
             User.validateSecondaryLogin(this.getContactMethod(), this.state.validateCode);
         }
-    }
-
-    /**
-     * Attempt to set this contact method as user's "Default contact method"
-     */
-    setAsDefault() {
-        User.setContactMethodAsDefault(this.getContactMethod());
     }
 
     render() {
@@ -292,7 +292,7 @@ class ContactMethodDetailsPage extends Component {
                             </OfflineWithFeedback>
                         </View>
                     )}
-                    {canChangeDefaultContactMethod && (
+                    {canChangeDefaultContactMethod ? (
                         <OfflineWithFeedback
                             errors={ErrorUtils.getLatestErrorField(loginData, 'defaultLogin')}
                             errorRowStyles={[styles.ml8, styles.mr5]}
@@ -304,7 +304,7 @@ class ContactMethodDetailsPage extends Component {
                                 onPress={this.setAsDefault}
                             />
                         </OfflineWithFeedback>
-                    )}
+                    ) : null}
                     {isDefaultContactMethod ? (
                         <OfflineWithFeedback
                             pendingAction={lodashGet(loginData, 'pendingFields.defaultLogin', null)}
