@@ -16,7 +16,6 @@ const propTypes = {
 const SignInHeroCopy = props => (
     <View style={[styles.flex1, styles.alignSelfCenter, styles.gap7]}>
         <Text style={[styles.loginHeroHeader,
-            props.isSmallScreenWidth && StyleUtils.getFontSizeStyle(variables.fontSizeSignInHeroSmall),
             props.isMediumScreenWidth && StyleUtils.getFontSizeStyle(variables.fontSizeSignInHeroMedium),
             props.isLargeScreenWidth && StyleUtils.getFontSizeStyle(variables.fontSizeSignInHeroLarge),
         ]}
