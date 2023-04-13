@@ -1535,6 +1535,7 @@ const styles = {
         ...spacing.pv0,
         ...spacing.ph0,
         lineHeight: variables.emojiLineHeight,
+        color: themeColors.black,
     },
 
     emojiItem: {
@@ -2987,6 +2988,7 @@ const styles = {
 
     emojiReactionBubbleText: {
         textAlignVertical: 'center',
+        color: themeColors.black,
     },
 
     reactionCounterText: {
@@ -3002,6 +3004,7 @@ const styles = {
     reactionEmojiTitle: {
         fontSize: variables.iconSizeLarge,
         lineHeight: variables.iconSizeXLarge,
+        color: themeColors.black,
     },
 
     textReactionSenders: {
