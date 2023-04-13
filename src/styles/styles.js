@@ -106,7 +106,7 @@ const webViewStyles = {
             paddingTop: 12,
             paddingBottom: 12,
             paddingRight: 8,
-            paddingLeft: 8,
+            ingLeft: 8,
             fontFamily: fontFamily.MONOSPACE,
             marginTop: 0,
             marginBottom: 0,
@@ -182,7 +182,7 @@ const styles = {
     },
 
     emojiSuggestionsEmoji: {
-        fontFamily: fontFamily.EMOJI_TEXT_FONT,
+        fontFamily: fontFamily.MONOSPACE,
         fontSize: variables.fontSizeMedium,
         width: 51,
         textAlign: 'center',
@@ -1529,13 +1529,12 @@ const styles = {
 
     // Emoji Picker Styles
     emojiText: {
-        fontFamily: fontFamily.EMOJI_TEXT_FONT,
+        fontFamily: fontFamily.EXP_NEW_KANSAS_MEDIUM, // New Kansas does not define any emojis, so we will display the emojis properly
         textAlign: 'center',
         fontSize: variables.emojiSize,
         ...spacing.pv0,
         ...spacing.ph0,
         lineHeight: variables.emojiLineHeight,
-        color: themeColors.black,
     },
 
     emojiItem: {
@@ -2987,8 +2986,8 @@ const styles = {
     },
 
     emojiReactionBubbleText: {
+        fontFamily: fontFamily.EXP_NEW_KANSAS_MEDIUM, // New Kansas does not define any emojis, so we will display the emojis properly
         textAlignVertical: 'center',
-        color: themeColors.black,
     },
 
     reactionCounterText: {
@@ -3002,9 +3001,9 @@ const styles = {
     },
 
     reactionEmojiTitle: {
+        fontFamily: fontFamily.EXP_NEW_KANSAS_MEDIUM, // New Kansas does not define any emojis, so we will display the emojis properly
         fontSize: variables.iconSizeLarge,
         lineHeight: variables.iconSizeXLarge,
-        color: themeColors.black,
     },
 
     textReactionSenders: {
