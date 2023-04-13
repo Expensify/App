@@ -98,7 +98,6 @@ export default {
             characterLimit: ({limit}) => `Exceeds the maximum length of ${limit} characters`,
             dateInvalid: 'Please enter a valid date',
             invalidCharacter: 'Invalid character',
-            invalidEmail: 'Invalid email',
         },
         comma: 'comma',
         semicolon: 'semicolon',
@@ -758,6 +757,7 @@ export default {
     },
     messages: {
         errorMessageInvalidPhone: `Please enter a valid phone number without brackets or dashes. If you're outside the US please include your country code (e.g. ${CONST.EXAMPLE_PHONE_NUMBER}).`,
+        errorMessageInvalidEmail: 'Invalid email',
     },
     onfidoStep: {
         acceptTerms: 'By continuing with the request to activate your Expensify wallet, you confirm that you have read, understand and accept ',

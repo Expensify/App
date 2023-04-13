@@ -812,7 +812,7 @@ function getHeaderMessage(hasSelectableOptions, hasUserToInvite, searchValue, ma
             return Localize.translate(preferredLocale, 'messages.errorMessageInvalidPhone');
         }
         if (/@/.test(searchValue) && !isValidEmail) {
-            return Localize.translate(preferredLocale, 'common.error.invalidEmail');
+            return Localize.translate(preferredLocale, 'messages.errorMessageInvalidEmail');
         }
 
         return Localize.translate(preferredLocale, 'common.noResultsFound');
