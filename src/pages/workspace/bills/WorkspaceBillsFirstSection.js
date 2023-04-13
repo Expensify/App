@@ -57,7 +57,7 @@ const WorkspaceBillsFirstSection = (props) => {
                     shouldShowRightIcon: true,
                     iconRight: Expensicons.NewWindow,
                     wrapperStyle: [styles.cardMenuItem],
-                    link: () => Link.buildOdDotURL(manageYourBillsUrl),
+                    link: () => Link.buildOldDotURL(manageYourBillsUrl),
                 },
             ]}
             containerStyles={[styles.cardSection]}

@@ -12,6 +12,7 @@ import * as StyleUtils from '../../styles/StyleUtils';
 class PressableWithSecondaryInteraction extends Component {
     constructor(props) {
         super(props);
+        this.executeSecondaryInteraction = this.executeSecondaryInteraction.bind(this);
         this.executeSecondaryInteractionOnContextMenu = this.executeSecondaryInteractionOnContextMenu.bind(this);
     }
 
@@ -24,6 +25,16 @@ class PressableWithSecondaryInteraction extends Component {
 
     componentWillUnmount() {
         this.pressableRef.removeEventListener('contextmenu', this.executeSecondaryInteractionOnContextMenu);
+    }
+
+    executeSecondaryInteraction(e) {
+        if (DeviceCapabilities.hasHoverSupport()) {
+            return;
+        }
+        if (this.props.withoutFocusOnSecondaryInteraction && this.pressableRef) {
+            this.pressableRef.blur();
+        }
+        this.props.onSecondaryInteraction(e);
     }
 
     /**
@@ -55,22 +66,13 @@ class PressableWithSecondaryInteraction extends Component {
 
     render() {
         const defaultPressableProps = _.omit(this.props, ['onSecondaryInteraction', 'children', 'onLongPress']);
-        const executeSecondaryInteraction = (e) => {
-            if (DeviceCapabilities.hasHoverSupport()) {
-                return;
-            }
-            if (this.props.withoutFocusOnSecondaryInteraction && this.pressableRef) {
-                this.pressableRef.blur();
-            }
-            this.props.onSecondaryInteraction(e);
-        };
 
         // On Web, Text does not support LongPress events thus manage inline mode with styling instead of using Text.
         return (
             <Pressable
                 style={StyleUtils.combineStyles(this.props.inline ? styles.dInline : this.props.style)}
                 onPressIn={this.props.onPressIn}
-                onLongPress={this.props.onSecondaryInteraction ? executeSecondaryInteraction : undefined}
+                onLongPress={this.props.onSecondaryInteraction ? this.executeSecondaryInteraction : undefined}
                 onPressOut={this.props.onPressOut}
                 onPress={this.props.onPress}
                 ref={el => this.pressableRef = el}
