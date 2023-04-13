@@ -5,6 +5,7 @@ import Text from '../Text';
 import * as StyleUtils from '../../styles/StyleUtils';
 import PressableWithSecondaryInteraction from '../PressableWithSecondaryInteraction';
 import withWindowDimensions, {windowDimensionsPropTypes} from '../withWindowDimensions';
+import {withCurrentUserPersonalDetailsDefaultProps} from '../withCurrentUserPersonalDetails';
 
 const propTypes = {
     /**
@@ -28,12 +29,8 @@ const propTypes = {
      */
     count: PropTypes.number,
 
-    /**
-     * The default size of the reaction bubble is defined
-     * by the styles in styles.js. This scale factor can be used
-     * to make the bubble bigger or smaller.
-     */
-    sizeScale: PropTypes.number,
+    /** Whether it is for context menu so we can modify its style */
+    isContextMenu: PropTypes.bool,
 
     /**
      * Returns true if the current account has reacted to the report action (with the given skin tone).
@@ -46,15 +43,16 @@ const propTypes = {
 const defaultProps = {
     count: 0,
     onReactionListOpen: () => {},
-    sizeScale: 1,
-    hasUserReacted: false,
+    isContextMenu: false,
+
+    ...withCurrentUserPersonalDetailsDefaultProps,
 };
 
 const EmojiReactionBubble = props => (
     <PressableWithSecondaryInteraction
         style={({hovered, pressed}) => [
             styles.emojiReactionBubble,
-            StyleUtils.getEmojiReactionBubbleStyle(hovered || pressed, props.hasUserReacted, props.sizeScale),
+            StyleUtils.getEmojiReactionBubbleStyle(hovered || pressed, props.hasUserReacted, props.isContextMenu),
         ]}
         onPress={props.onPress}
         onLongPress={props.onReactionListOpen}
@@ -62,21 +60,22 @@ const EmojiReactionBubble = props => (
         ref={props.forwardedRef}
         isLongPressEnabledWithHover={props.isSmallScreenWidth}
 
-            // Prevent text input blur when emoji reaction is clicked
+        // Prevent text input blur when emoji reaction is clicked
         onMouseDown={e => e.preventDefault()}
     >
         <Text style={[
-            styles.emojiReactionText,
-            StyleUtils.getEmojiReactionTextStyle(props.sizeScale),
+            styles.emojiReactionBubbleText,
+            styles.userSelectNone,
+            StyleUtils.getEmojiReactionBubbleTextStyle(props.isContextMenu),
         ]}
         >
             {props.emojiCodes.join('')}
         </Text>
         {props.count > 0 && (
-
             <Text style={[
                 styles.reactionCounterText,
-                StyleUtils.getEmojiReactionCounterTextStyle(props.hasUserReacted, props.sizeScale),
+                styles.userSelectNone,
+                StyleUtils.getEmojiReactionCounterTextStyle(props.hasUserReacted),
             ]}
             >
                 {props.count}

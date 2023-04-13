@@ -28,7 +28,7 @@ Onyx.connect({
     callback: val => sessionEmail = val ? val.email : null,
 });
 
-let preferredLocale = CONST.DEFAULT_LOCALE;
+let preferredLocale = CONST.LOCALES.DEFAULT;
 Onyx.connect({
     key: ONYXKEYS.NVP_PREFERRED_LOCALE,
     callback: (val) => {
@@ -99,12 +99,23 @@ function getReportParticipantsTitle(logins) {
 }
 
 /**
- * Attempts to find a report in onyx with the provided list of participants
+ * Checks if a report is an Expense report.
+ *
+ * @param {Object} report
+ * @returns {Boolean}
+ */
+function isExpenseReport(report) {
+    return lodashGet(report, 'type') === CONST.REPORT.TYPE.EXPENSE;
+}
+
+/**
+ * Checks if a report is an IOU report.
+ *
  * @param {Object} report
  * @returns {Boolean}
  */
 function isIOUReport(report) {
-    return report && _.has(report, 'total');
+    return lodashGet(report, 'type') === CONST.REPORT.TYPE.IOU;
 }
 
 /**
@@ -981,6 +992,7 @@ function buildOptimisticIOUReport(ownerEmail, userEmail, total, chatReportID, cu
     return {
         // If we're sending money, hasOutstandingIOU should be false
         hasOutstandingIOU: !isSendingMoney,
+        type: CONST.REPORT.TYPE.IOU,
         cachedTotal: formattedTotal,
         chatReportID,
         currency,
@@ -1146,6 +1158,7 @@ function buildOptimisticChatReport(
 ) {
     const currentTime = DateUtils.getDBTime();
     return {
+        type: CONST.REPORT.TYPE.CHAT,
         chatType,
         hasOutstandingIOU: false,
         isOwnPolicyExpenseChat,
@@ -1423,6 +1436,11 @@ function canSeeDefaultRoom(report, policies, betas) {
         return true;
     }
 
+    // Include any public announce rooms, since they could include people who should have access but we don't know to add to the beta
+    if (report.visibility === CONST.REPORT.VISIBILITY.PUBLIC_ANNOUNCE) {
+        return true;
+    }
+
     // For all other cases, just check that the user belongs to the default rooms beta
     return Permissions.canUseDefaultRooms(betas);
 }
@@ -1448,7 +1466,7 @@ function shouldReportBeInOptionList(report, reportIDFromRoute, isInGSDMode, curr
 
     // Exclude reports that have no data because there wouldn't be anything to show in the option item.
     // This can happen if data is currently loading from the server or a report is in various stages of being created.
-    if (!report || !report.reportID || !report.participants || _.isEmpty(report.participants) || isIOUReport(report)) {
+    if (!report || !report.reportID || !report.participants || (_.isEmpty(report.participants) && !isPublicRoom(report)) || isIOUReport(report)) {
         return false;
     }
 
@@ -1642,14 +1660,14 @@ function getMoneyRequestOptions(report, reportParticipants, betas) {
     // DM chats will have the Split Bill option only when there are at least 3 people in the chat.
     // There is no Split Bill option for Workspace chats
     if (isChatRoom(report) || (hasMultipleParticipants && !isPolicyExpenseChat(report))) {
-        return [CONST.IOU.IOU_TYPE.SPLIT];
+        return [CONST.IOU.MONEY_REQUEST_TYPE.SPLIT];
     }
 
     // DM chats that only have 2 people will see the Send / Request money options.
     // Workspace chats should only see the Request money option, as "easy overages" is not available.
     return [
-        ...(canRequestMoney(report) ? [CONST.IOU.IOU_TYPE.REQUEST] : []),
-        ...(Permissions.canUseIOUSend(betas) && !isPolicyExpenseChat(report) ? [CONST.IOU.IOU_TYPE.SEND] : []),
+        ...(canRequestMoney(report) ? [CONST.IOU.MONEY_REQUEST_TYPE.REQUEST] : []),
+        ...(Permissions.canUseIOUSend(betas) && !isPolicyExpenseChat(report) ? [CONST.IOU.MONEY_REQUEST_TYPE.SEND] : []),
     ];
 }
 
@@ -1736,6 +1754,7 @@ export {
     getAllPolicyReports,
     getIOUReportActionMessage,
     getDisplayNameForParticipant,
+    isExpenseReport,
     isIOUReport,
     chatIncludesChronos,
     getAvatar,

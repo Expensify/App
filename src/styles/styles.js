@@ -1,3 +1,4 @@
+import {defaultStyles as defaultPickerStyles} from 'react-native-picker-select/src/styles';
 import fontFamily from './fontFamily';
 import addOutlineWidth from './addOutlineWidth';
 import themeColors from './themes/default';
@@ -605,6 +606,9 @@ const styles = {
         done: {
             color: themeColors.text,
         },
+        doneDepressed: {
+            fontSize: defaultPickerStyles.done.fontSize,
+        },
         modalViewMiddle: {
             backgroundColor: themeColors.border,
             borderTopWidth: 0,
@@ -942,6 +946,9 @@ const styles = {
         },
         done: {
             color: themeColors.text,
+        },
+        doneDepressed: {
+            fontSize: defaultPickerStyles.done.fontSize,
         },
         modalViewMiddle: {
             backgroundColor: themeColors.border,
@@ -2819,6 +2826,12 @@ const styles = {
         cursor: 'move',
     },
 
+    sliderKnobTooltipView: {
+        height: variables.sliderKnobSize,
+        width: variables.sliderKnobSize,
+        borderRadius: variables.sliderKnobSize / 2,
+    },
+
     sliderKnob: {
         backgroundColor: themeColors.success,
         position: 'absolute',
@@ -2878,7 +2891,6 @@ const styles = {
     },
 
     textPill: {
-        ellipsizeMode: 'end',
         backgroundColor: themeColors.border,
         borderRadius: 10,
         overflow: 'hidden',
@@ -2958,10 +2970,7 @@ const styles = {
     },
 
     emojiReactionBubble: {
-        paddingVertical: 2,
-        paddingHorizontal: 8,
         borderRadius: 28,
-        backgroundColor: themeColors.border,
         alignItems: 'center',
         justifyContent: 'center',
         flexDirection: 'row',
@@ -2995,24 +3004,25 @@ const styles = {
     },
     reactionListHeaderText: {
         color: themeColors.textSupporting,
-        marginTop: 1,
+        marginBottom: 4,
         marginLeft: 8,
+        alignSelf: 'center',
     },
 
-    emojiReactionText: {
-        fontSize: 12,
+    miniQuickEmojiReactionText: {
+        fontSize: 15,
         lineHeight: 20,
         textAlignVertical: 'center',
-        userSelect: 'none',
-        WebkitUserSelect: 'none',
     },
+
+    emojiReactionBubbleText: {
+        textAlignVertical: 'center',
+    },
+
     reactionCounterText: {
-        fontSize: 11,
+        fontSize: 13,
         marginLeft: 4,
         fontWeight: 'bold',
-        color: themeColors.textLight,
-        userSelect: 'none',
-        WebkitUserSelect: 'none',
     },
 
     fontColorReactionLabel: {

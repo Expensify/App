@@ -61,7 +61,7 @@ class CopyTextToClipboard extends React.Component {
                 <Text style={this.props.textStyles}>{this.props.text}</Text>
                 <Tooltip text={this.props.translate(`reportActionContextMenu.${this.state.showCheckmark ? 'copied' : 'copyToClipboard'}`)}>
                     <Icon
-                        src={this.state.showCheckmark ? Expensicons.Checkmark : Expensicons.Clipboard}
+                        src={this.state.showCheckmark ? Expensicons.Checkmark : Expensicons.Copy}
                         fill={this.state.showCheckmark ? themeColors.iconSuccessFill : themeColors.icon}
                         width={variables.iconSizeSmall}
                         height={variables.iconSizeSmall}
