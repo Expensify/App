@@ -36,7 +36,6 @@ const darkTheme = {
     overlay: colors.greenHighlightBackground,
     inverse: colors.white,
     shadow: colors.black,
-    black: colors.black,
     componentBG: colors.greenAppBackground,
     hoverComponentBG: colors.greenHighlightBackground,
     activeComponentBG: colors.greenBorders,
