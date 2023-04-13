@@ -112,7 +112,7 @@ const BankAccountStep = (props) => {
                         <View style={[styles.mv3]}>
                             <Text>{props.translate('bankAccount.toGetStarted')}</Text>
                         </View>
-                        {plaidDesktopMessage && (
+                        {Boolean(plaidDesktopMessage) && (
                             <View style={[styles.mv3, styles.flexRow, styles.justifyContentBetween]}>
                                 <TextLink href={bankAccountRoute}>
                                     {props.translate(plaidDesktopMessage)}
@@ -130,7 +130,7 @@ const BankAccountStep = (props) => {
                             success
                             large
                         />
-                        {props.error && (
+                        {Boolean(props.error) && (
                             <Text style={[styles.formError, styles.mh5]}>
                                 {props.error}
                             </Text>
