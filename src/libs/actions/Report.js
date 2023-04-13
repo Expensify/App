@@ -880,7 +880,7 @@ function editReportComment(reportID, originalReportAction, textForNewComment) {
     const lastVisibleAction = ReportActionsUtils.getLastVisibleAction(reportID, optimisticReportActions);
     if (reportActionID === lastVisibleAction.reportActionID) {
         const optimisticReport = {
-            lastMessageHTML: lodashGet(lastVisibleAction, 'message[0].html'),
+            lastMessageHtml: lodashGet(lastVisibleAction, 'message[0].html'),
             lastMessageText: lodashGet(lastVisibleAction, 'message[0].text'),
             lastVisibleActionCreated: lastVisibleAction.created,
             lastActorEmail: lastVisibleAction.actorEmail,
