@@ -18,11 +18,11 @@ export default {
     l0: {
         left: 0,
     },
+    l1: {
+        left: 4,
+    },
     l2: {
         left: 8,
-    },
-    l4: {
-        left: 4,
     },
     l8: {
         left: 32,
