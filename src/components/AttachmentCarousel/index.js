@@ -56,7 +56,7 @@ class AttachmentCarousel extends React.Component {
 
     componentDidMount() {
         this.makeStateWithReports();
-        this.scheduleHideArrow();
+        this.autoHideArrow();
     }
 
     componentDidUpdate(prevProps) {
@@ -88,11 +88,11 @@ class AttachmentCarousel extends React.Component {
      * On a touch screen device, automatically hide the arrows
      * if there is no interaction for 3 seconds.
      */
-    scheduleHideArrow() {
+    autoHideArrow() {
         if (!this.canUseTouchScreen) {
             return;
         }
-        this.scheduleHideArrowTimeout = setTimeout(() => {
+        this.autoHideArrowTimeout = setTimeout(() => {
             this.toggleArrowsVisibility(false);
         }, 3000);
     }
@@ -104,9 +104,9 @@ class AttachmentCarousel extends React.Component {
     toggleArrowsVisibility(shouldShowArrow) {
         this.setState({shouldShowArrow}, () => {
             if (this.state.shouldShowArrow) {
-                this.scheduleHideArrow();
+                this.autoHideArrow();
             } else {
-                clearTimeout(this.scheduleHideArrowTimeout);
+                clearTimeout(this.autoHideArrowTimeout);
             }
         });
     }
@@ -197,6 +197,7 @@ class AttachmentCarousel extends React.Component {
                                         iconFill={themeColors.text}
                                         iconStyles={[styles.mr0]}
                                         onPress={() => this.cycleThroughAttachments(-1)}
+                                        onPressIn={}
                                     />
                                 </Tooltip>
                             </View>
