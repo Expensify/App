@@ -6,7 +6,7 @@ import BaseScreenWrapper from './BaseScreenWrapper';
 
 const ScreenWrapper = (props) => {
     useEffect(() => {
-        DevMenu.addItem('Open DevMenu', toggleTestToolsModal);
+        DevMenu.addItem('Open Test Preferences', toggleTestToolsModal);
     }, []);
 
     return (

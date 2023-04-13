@@ -161,9 +161,6 @@ export default compose(
         modal: {
             key: ONYXKEYS.MODAL,
         },
-        isTestToolsModalOpen: {
-            key: ONYXKEYS.IS_TEST_TOOLS_MODAL_OPEN,
-        },
     }),
     withNetwork(),
 )(BaseScreenWrapper);
