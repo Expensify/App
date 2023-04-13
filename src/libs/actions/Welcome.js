@@ -37,7 +37,11 @@ Onyx.connect({
     key: ONYXKEYS.NVP_IS_FIRST_TIME_NEW_EXPENSIFY_USER,
     initWithStoredValues: false,
     callback: (val) => {
-        isFirstTimeNewExpensifyUser = val;
+        // If this is a first time new expensify user, let's only update the state of isFirstTimeNewExpensifyUser from true to false
+        // after running all Welcome related logic in Welcome.show
+        if (!isFirstTimeNewExpensifyUser) {
+            isFirstTimeNewExpensifyUser = val;
+        }
         checkOnReady();
     },
 });
@@ -123,7 +127,13 @@ function show({routes, showCreateMenu = () => {}, showPopoverMenu = () => {}}) {
             // This key is only updated when we call ReconnectApp, setting it to false now allows the user to navigate normally instead of always redirecting to the workspace chat
             Onyx.set(ONYXKEYS.NVP_IS_FIRST_TIME_NEW_EXPENSIFY_USER, false);
             Navigation.navigate(ROUTES.getReportRoute(workspaceChatReport.reportID));
-            showPopoverMenu();
+
+            // If showPopoverMenu exists and returns true then it opened the Popover Menu succesfully and we can update the state of isFirstTimeNewExpensifyUser
+            // so the Welcome logic doesn't run again
+            if (showPopoverMenu && showPopoverMenu()) {
+                isFirstTimeNewExpensifyUser = false;
+            }
+
             return;
         }
 
@@ -132,6 +142,9 @@ function show({routes, showCreateMenu = () => {}, showPopoverMenu = () => {}}) {
         if (!Policy.isAdminOfFreePolicy(allPolicies) && !isDisplayingWorkspaceRoute) {
             showCreateMenu();
         }
+
+        // Update state of isFirstTimeNewExpensifyUser so the Welcome logic doesn't run again
+        isFirstTimeNewExpensifyUser = false;
     });
 }
 

@@ -731,9 +731,11 @@ class ReportActionCompose extends React.Component {
 
     /**
      * Used to show Popover menu on Workspace chat at first sign-in
+     * @returns {Boolean}
      */
     showPopoverMenu() {
         this.setMenuVisibility(true);
+        return true;
     }
 
     render() {
