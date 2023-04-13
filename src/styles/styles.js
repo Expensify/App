@@ -2516,6 +2516,10 @@ const styles = {
         cursor: 'pointer',
     },
 
+    cursorText: {
+        cursor: 'text',
+    },
+
     fullscreenCard: {
         position: 'absolute',
         left: 0,
