@@ -12,7 +12,7 @@ const propTypes = {
     onPressOut: PropTypes.func,
 
     /** The function that should be called when this pressable is LongPressed or right-clicked. */
-    onSecondaryInteraction: PropTypes.func.isRequired,
+    onSecondaryInteraction: PropTypes.func,
 
     /** The children which should be contained in this wrapper component. */
     children: PropTypes.oneOfType([
