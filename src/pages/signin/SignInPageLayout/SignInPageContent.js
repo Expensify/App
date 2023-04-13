@@ -63,12 +63,12 @@ const SignInPageContent = props => (
                             >
                                 {props.welcomeHeader}
                             </Text>
-                        ) : undefined}
+                        ) : null}
                         {(props.shouldShowWelcomeText && props.welcomeText) ? (
                             <Text style={[styles.loginHeroBody, styles.mb5, styles.textNormal, !props.isSmallScreenWidth ? styles.textAlignLeft : {}]}>
                                 {props.welcomeText}
                             </Text>
-                        ) : undefined}
+                        ) : null}
                     </View>
                     {props.children}
                 </SignInPageForm>
@@ -81,14 +81,14 @@ const SignInPageContent = props => (
                             <SignInHeroImage />
                         </View>
                     </>
-                ) : undefined}
+                ) : null}
             </View>
         </View>
         {!props.isSmallScreenWidth ? (
             <View style={[styles.mb8, styles.signInPageWelcomeTextContainer, styles.alignSelfCenter]}>
                 <OfflineIndicator style={[styles.m0, styles.pl0, styles.alignItemsStart]} />
             </View>
-        ) : undefined}
+        ) : null}
     </ScrollView>
 );
 

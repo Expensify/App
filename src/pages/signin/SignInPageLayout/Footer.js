@@ -162,7 +162,7 @@ const Footer = (props) => {
                     <View style={[styles.signInPageGradientMobile]}>
                         <SignInGradient height="100%" />
                     </View>
-                ) : undefined}
+                ) : null}
                 <View style={pageFooterWrapper}>
                     <View style={footerColumns}>
                         {_.map(columns, (column, i) => (

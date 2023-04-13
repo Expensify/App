@@ -1,4 +1,3 @@
-
 import {View} from 'react-native';
 import React from 'react';
 import Text from '../../components/Text';
@@ -17,15 +16,15 @@ const propTypes = {
 const SignInHeroCopy = props => (
     <View style={[styles.flex1, styles.alignSelfCenter, styles.gap7]}>
         <Text style={[styles.loginHeroHeader,
-            props.isSmallScreenWidth ? StyleUtils.getFontSizeStyle(variables.fontSizeSignInHeroSmall) : {},
-            props.isMediumScreenWidth ? StyleUtils.getFontSizeStyle(variables.fontSizeSignInHeroMedium) : {},
-            props.isLargeScreenWidth ? StyleUtils.getFontSizeStyle(variables.fontSizeSignInHeroLarge) : {},
+            props.isSmallScreenWidth && StyleUtils.getFontSizeStyle(variables.fontSizeSignInHeroSmall),
+            props.isMediumScreenWidth && StyleUtils.getFontSizeStyle(variables.fontSizeSignInHeroMedium),
+            props.isLargeScreenWidth && StyleUtils.getFontSizeStyle(variables.fontSizeSignInHeroLarge),
         ]}
         >
             {props.translate('login.hero.header')}
         </Text>
         <Text style={[styles.loginHeroBody]}>
-            {!props.isSmallScreenWidth ? props.translate('login.hero.body') : {}}
+            {props.translate('login.hero.body')}
         </Text>
     </View>
 );
@@ -37,4 +36,3 @@ export default compose(
     withWindowDimensions,
     withLocalize,
 )(SignInHeroCopy);
-
