@@ -16,9 +16,13 @@ class Hoverable extends Component {
         };
 
         this.wrapperView = null;
+
+        this.resetHoverStateOnOutsideClick = this.resetHoverStateOnOutsideClick.bind(this);
     }
 
     componentDidMount() {
+        document.addEventListener('mousedown', this.resetHoverStateOnOutsideClick);
+
         // we like to Block the hover on touch devices but we keep it for Hybrid devices so
         // following logic blocks hover on touch devices.
         this.disableHover = () => {
@@ -34,6 +38,7 @@ class Hoverable extends Component {
     }
 
     componentWillUnmount() {
+        document.removeEventListener('mousedown', this.resetHoverStateOnOutsideClick);
         document.removeEventListener('touchstart', this.disableHover);
         document.removeEventListener('touchmove', this.enableHover);
     }
@@ -51,6 +56,24 @@ class Hoverable extends Component {
         // we reset the Hover block in case touchmove was not first after touctstart
         if (!isHovered) {
             this.hoverDisabled = false;
+        }
+    }
+
+    /**
+     * If the user clicks outside this component, we want to make sure that the hover state is set to false.
+     * There are some edge cases where the mouse can leave the component without the `onMouseLeave` event firing,
+     * leaving this Hoverable in the incorrect state.
+     * One such example is when a modal is opened while this component is hovered, and you click outside the component
+     * to close the modal.
+     *
+     * @param {Object} event - A click event
+     */
+    resetHoverStateOnOutsideClick(event) {
+        if (!this.state.isHovered) {
+            return;
+        }
+        if (this.wrapperView && !this.wrapperView.contains(event.target)) {
+            this.setIsHovered(false);
         }
     }
 
@@ -80,15 +103,6 @@ class Hoverable extends Component {
                         this.props.children.props.onMouseLeave(el);
                     }
                 },
-                onBlur: (el) => {
-                    if (!this.wrapperView.contains(el.relatedTarget)) {
-                        this.setIsHovered(false);
-                    }
-
-                    if (_.isFunction(this.props.children.props.onBlur)) {
-                        this.props.children.props.onBlur(el);
-                    }
-                },
             });
         }
         return (
@@ -97,12 +111,6 @@ class Hoverable extends Component {
                 ref={el => this.wrapperView = el}
                 onMouseEnter={() => this.setIsHovered(true)}
                 onMouseLeave={() => this.setIsHovered(false)}
-                onBlur={(el) => {
-                    if (this.wrapperView.contains(el.relatedTarget)) {
-                        return;
-                    }
-                    this.setIsHovered(false);
-                }}
             >
                 { // If this.props.children is a function, call it to provide the hover state to the children.
                     _.isFunction(this.props.children)
