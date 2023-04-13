@@ -7,7 +7,7 @@ import CONST from '../../CONST';
 import CONFIG from '../../CONFIG';
 import * as Browser from '../../libs/Browser';
 import ONYXKEYS from '../../ONYXKEYS';
-import * as Authentication from '../../libs/Authentication';
+import * as App from '../../libs/actions/App';
 
 const propTypes = {
     /** Children to render. */
@@ -59,7 +59,9 @@ class DeeplinkWrapper extends PureComponent {
             this.openRouteInDesktopApp(expensifyDeeplinkUrl);
             return;
         }
-        Authentication.getShortLivedAuthToken().then((shortLivedAuthToken) => {
+
+        // eslint-disable-next-line rulesdir/no-thenable-actions-in-views
+        App.getShortLivedAuthToken().then((shortLivedAuthToken) => {
             params.set('email', this.props.session.email);
             params.set('shortLivedAuthToken', `${shortLivedAuthToken}`);
             const expensifyDeeplinkUrl = `${CONST.DEEPLINK_BASE_URL}${expensifyUrl.host}/transition?${params.toString()}`;
