@@ -5,7 +5,7 @@ import Accessibility from '../../../libs/Accessibility';
 import HapticFeedback from '../../../libs/HapticFeedback';
 import KeyboardShortcut from '../../../libs/KeyboardShortcut';
 import styles from '../../../styles/styles';
-import genericPressablePropTypes from './propTypes';
+import genericPressablePropTypes from './PropTypes';
 
 const parseStyleFromFunction = (style, state) => (_.isFunction(style) ? style(state) : style);
 

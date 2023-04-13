@@ -1,6 +1,6 @@
 import _ from 'underscore';
 import GenericPressable from './GenericPressable';
-import GenericPressablePropTypes from './propTypes';
+import GenericPressablePropTypes from './PropTypes';
 
 const WebGenericPressable = (props) => {
     // change all props with accessibility* to aria-*
