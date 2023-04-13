@@ -27,9 +27,6 @@ const propTypes = {
         type: PropTypes.string,
     })),
 
-    /** Whether the app should open on admins chat */
-    openOnAdminRoom: PropTypes.bool,
-
     route: PropTypes.shape({
         params: PropTypes.shape({
             openOnAdminRoom: PropTypes.bool,
@@ -46,7 +43,6 @@ const defaultProps = {
     reports: {},
     betas: [],
     policies: {},
-    openOnAdminRoom: false,
 };
 
 /**
@@ -75,7 +71,7 @@ class ReportScreenWrapper extends Component {
                 this.props.reports,
                 !Permissions.canUseDefaultRooms(this.props.betas),
                 this.props.policies,
-                this.props.openOnAdminRoom,
+                this.props.route.params.openOnAdminRoom,
             );
 
             // It's possible that props.reports aren't fully loaded yet

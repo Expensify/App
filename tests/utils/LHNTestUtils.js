@@ -7,6 +7,18 @@ import SidebarLinks from '../../src/pages/home/sidebar/SidebarLinks';
 import CONST from '../../src/CONST';
 import DateUtils from '../../src/libs/DateUtils';
 
+// we have to mock `useIsFocused` because it's used in the SidebarLinks component
+const mockedNavigate = jest.fn();
+jest.mock('@react-navigation/native', () => {
+    const actualNav = jest.requireActual('@react-navigation/native');
+    return {
+        ...actualNav,
+        useIsFocused: () => ({
+            navigate: mockedNavigate,
+        }),
+    };
+});
+
 const fakePersonalDetails = {
     'email1@test.com': {
         login: 'email1@test.com',

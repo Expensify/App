@@ -15,6 +15,9 @@ function CentralPaneNavigator() {
         <Stack.Navigator>
             <Stack.Screen
                 name={SCREENS.REPORT}
+
+                // we do it this way to avoid adding this to url
+                initialParams={{openOnAdminRoom: openOnAdminRoom ? 'true' : undefined}}
                 options={{
                     headerShown: false,
                     title: 'New Expensify',
@@ -25,8 +28,7 @@ function CentralPaneNavigator() {
                         height: '100%',
                     },
                 }}
-                // eslint-disable-next-line react/jsx-props-no-spreading
-                component={props => <ReportScreenWrapper openOnAdminRoom={openOnAdminRoom === 'true'} {...props} />}
+                component={ReportScreenWrapper}
             />
         </Stack.Navigator>
     );
