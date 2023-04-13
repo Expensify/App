@@ -16,7 +16,7 @@ The Lounge is a space for people to get work done. It is optimized to be the per
 - **#urgency** - Working remotely is great, but there's nothing like real-time collaboration with your colleagues.  Use the lounge to meet with co-workers IRL to continue the progress on whatever it is you're working on.
 - **#results** - Don't mistake time for effort or effort for output. Upon arrival, visualize what you want to accomplish, and don't leave until it's done.
 
-### Rule #2 - Don’t Ruin it for Everyone Else
+## Rule #2 - Don’t Ruin it for Everyone Else
 
 We want this place to be incredible, innovative, and always elvoving. To achieve that, we have some general guidelines:
 
@@ -28,13 +28,13 @@ We want this place to be incredible, innovative, and always elvoving. To achieve
 # How to Use the Expensify Lounge
 Keeping those two rules in mind, below is a guide on how our members can get the most out of the lounge.
 
-### Rule #1 - Getting Shit Done:
+### Rule #1 - Getting Shit Done
 - **Order drinks from Concierge** - [Write Concierge here](https://new.expensify.com/concierge) to ask lounge questions or order beverages. Concierge will bring your order directly to you!
 - **Using an office** - Offices are first come, first serve. If an office is open, feel free to use it! Please keep office use to under an hour. We currently do not allow reserving offices.
 - **Lounge hours** - The lounge will be open from 8am-6pm PT, Monday through Friday and closed on some major holidays. You can review our Google Maps profile to check our holiday hours.
 - **Make the lounge better** - Make any suggestions to improve the lounge experience in [#announce - Expensify Lounge](https://new.expensify.com/r/8292963527436014).
 
-### Rule #2 - Not Ruining it for Everyone Else:
+## Rule #2 - Not Ruining it for Everyone Else
 - **Offices are for calls** - Please do not occupy an office unless you have a call or collaborative meeting happening, and don't stay in an office for longer than an hour.
 - **Respect other people** - Please do not be too loud or distracting while others are trying to work. While collaborating in Expensify Chat, be respectful of others’ viewpoints and keep a positive environment.
 - **Stay home if you’re sick** - If you feel sick, please do not visit the lounge, or consider wearing a mask in public areas.
