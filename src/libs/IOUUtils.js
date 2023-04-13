@@ -1,9 +1,23 @@
 import _ from 'underscore';
+import Onyx from 'react-native-onyx';
+import lodashGet from 'lodash/get';
 import CONST from '../CONST';
+import ONYXKEYS from '../ONYXKEYS';
+
+let currencyList = {};
+Onyx.connect({
+    key: ONYXKEYS.CURRENCY_LIST,
+    callback: (val) => {
+        if (_.isEmpty(val)) {
+            return;
+        }
+
+        currencyList = val;
+    },
+});
 
 /**
- * Returns the number of digits after the decimal separator
- * for a specific currency following ISO 4217.
+ * Returns the number of digits after the decimal separator for a specific currency.
  * For currencies that have decimal places > 2, floor to 2 instead:
  * https://github.com/Expensify/App/issues/15878#issuecomment-1496291464
  *
@@ -11,16 +25,13 @@ import CONST from '../CONST';
  * @returns {Number}
  */
 function getCurrencyDecimals(currency) {
-    const formatted = Intl.NumberFormat('en', {style: 'currency', currency}).format(0);
-    const decimalPointIndex = formatted.indexOf('.');
-    return decimalPointIndex === -1
-        ? 0
-        : Math.min(formatted.length - decimalPointIndex - 1, 2);
+    const decimals = lodashGet(currencyList, [currency, 'decimals']);
+    return _.isUndefined(decimals) ? 0 : Math.min(decimals, 2);
 }
 
 /**
  * Returns the currency's minor unit quantity
- * i.e. Cent in USD
+ * e.g. Cent in USD
  *
  * @param {String} currency - IOU currency
  * @returns {Number}
