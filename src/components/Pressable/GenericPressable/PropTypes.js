@@ -25,6 +25,7 @@ const propTypes = {
     enableInScreenReaderStates: PropTypes.oneOf(['all', 'active', 'disabled']),
     nextFocusRef: PropTypes.func,
     accessibilityLabel: PropTypes.string.isRequired,
+    shouldUseAutoHitSlop: PropTypes.bool,
 };
 
 const defaultProps = {
@@ -36,7 +37,9 @@ const defaultProps = {
     focusStyle: {},
     pressedStyle: {},
     screenReaderActiveStyle: {},
-    screenReaderActive: 'always_active',
+    enableInScreenReaderStates: 'all',
+    nextFocusRef: undefined,
+    shouldUseAutoHitSlop: true,
 };
 
 export default {

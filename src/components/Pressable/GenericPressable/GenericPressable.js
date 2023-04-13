@@ -35,10 +35,12 @@ const GenericPressable = (props) => {
         nextFocusRef,
         keyboardShortcut,
         forwardedRef,
+        shouldUseAutoHitSlop,
         ...rest
     } = props;
 
     const isScreenReaderActive = Accessibility.useScreenReaderStatus();
+    const [hitslop, onLayout] = Accessibility.useAutoHitSlop();
     const shouldScreenReaderDisableComponent = React.useMemo(() => {
         switch (props.screenReaderActive) {
             case 'always_active':
@@ -92,6 +94,9 @@ const GenericPressable = (props) => {
 
     return (
         <Pressable
+            hitSlop={shouldUseAutoHitSlop && hitslop}
+            onLayout={onLayout}
+
             ref={forwardedRef}
             focusable
             accessible
@@ -119,6 +124,7 @@ const GenericPressable = (props) => {
             // ios-only form of inputs
             onMagicTap={onPressHandler}
             onAccessibilityTap={onPressHandler}
+
             // eslint-disable-next-line react/jsx-props-no-spreading
             {...rest}
         >
