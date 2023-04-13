@@ -97,7 +97,7 @@ class AttachmentCarousel extends React.Component {
         this.cancelAutoHideArrow();
         this.autoHideArrowTimeout = setTimeout(() => {
             this.toggleArrowsVisibility(false);
-        }, 3000);
+        }, CONST.ARROW_HIDE_DELAY);
     }
 
     /**
