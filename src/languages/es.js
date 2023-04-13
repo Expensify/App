@@ -102,7 +102,7 @@ export default {
         semicolon: 'el punto y coma',
         please: 'Por favor',
         contactUs: 'contáctenos',
-        pleaseEnterEmailOrPhoneNumber: 'Por favor escribe un email o número de teléfono',
+        pleaseEnterEmailOrPhoneNumber: 'Por favor, escribe un email o número de teléfono',
         fixTheErrors: 'corrige los errores',
         inTheFormBeforeContinuing: 'en el formulario antes de continuar',
         confirm: 'Confirmar',
@@ -121,7 +121,7 @@ export default {
         leaveRoom: 'Salir de la sala de chat',
         you: 'Tú',
         your: 'tu',
-        conciergeHelp: 'Por favor contacta con Concierge para obtener ayuda.',
+        conciergeHelp: 'Por favor, contacta con Concierge para obtener ayuda.',
         maxParticipantsReached: ({count}) => `Has seleccionado el número máximo (${count}) de participantes.`,
         youAppearToBeOffline: 'Parece que estás desconectado.',
         thisFeatureRequiresInternet: 'Esta función requiere una conexión a Internet activa para ser utilizada.',
@@ -136,8 +136,8 @@ export default {
         cameraPermissionRequired: 'Permiso para acceder a la cámara',
         expensifyDoesntHaveAccessToCamera: 'Expensify no puede tomar fotos sin acceso a tu cámara. Haz click en Configuración para actualizar los permisos.',
         attachmentError: 'Error al adjuntar archivo',
-        errorWhileSelectingAttachment: 'Ha ocurrido un error al seleccionar un adjunto, por favor inténtalo de nuevo',
-        errorWhileSelectingCorruptedImage: 'Ha ocurrido un error al seleccionar un adjunto corrupto, por favor inténtalo con otro archivo',
+        errorWhileSelectingAttachment: 'Ha ocurrido un error al seleccionar un adjunto, Por favor, inténtalo de nuevo',
+        errorWhileSelectingCorruptedImage: 'Ha ocurrido un error al seleccionar un adjunto corrupto, Por favor, inténtalo con otro archivo',
         takePhoto: 'Hacer una foto',
         chooseFromGallery: 'Elegir de la galería',
         chooseDocument: 'Elegir documento',
@@ -316,8 +316,8 @@ export default {
         error: {
             invalidSplit: 'La suma de las partes no equivale al monto total',
             other: 'Error inesperado, por favor inténtalo más tarde',
-            genericCreateFailureMessage: 'Error inesperado solicitando dinero, por favor inténtalo más tarde',
-            genericCancelFailureMessage: ({type}) => `Error inesperado al ${type === 'decline' ? 'rechazar' : 'cancelar'} la solicitud de dinero, por favor inténtalo más tarde`,
+            genericCreateFailureMessage: 'Error inesperado solicitando dinero, Por favor, inténtalo más tarde',
+            genericCancelFailureMessage: ({type}) => `Error inesperado al ${type === 'decline' ? 'rechazar' : 'cancelar'} la solicitud de dinero, Por favor, inténtalo más tarde`,
         },
     },
     notificationPreferences: {
@@ -377,8 +377,8 @@ export default {
         genericFailureMessages: {
             requestContactMethodValidateCode: 'No se ha podido enviar un nuevo código mágico. Espera un rato y vuelve a intentarlo.',
             validateSecondaryLogin: 'No se ha podido validar el método de contacto con el código mágico provisto. Solicita un nuevo código y vuelve a intentarlo.',
-            deleteContactMethod: 'No se ha podido eliminar el método de contacto. Por favor contacta con Concierge para obtener ayuda.',
-            addContactMethod: 'Hubo un error al añadir este método de contacto. Por favor contacta con Concierge para obtener ayuda.',
+            deleteContactMethod: 'No se ha podido eliminar este método de contacto. Por favor, contacta con Concierge para obtener ayuda.',
+            addContactMethod: 'Hubo un error al añadir este método de contacto. Por favor, contacta con Concierge para obtener ayuda.',
         },
         newContactMethod: 'Nuevo método de contacto',
     },
@@ -451,10 +451,10 @@ export default {
         enterMessageHere: 'Escribe aquí tu mensaje',
         closeAccountWarning: 'Una vez cerrada tu cuenta no se puede revertir.',
         closeAccountPermanentlyDeleteData: 'Esta acción eliminará permanentemente toda la información de tus gastos no enviados y cancelará o rechazará cualquier solicitud de dinero pendiente. ¿Estás seguro de que quieres eliminar tu cuenta?',
-        enterDefaultContactToConfirm: 'Por favor escribe tu método de contacto predeterminado para confirmar que deseas eliminar tu cuenta. Tu método de contacto predeterminado es:',
+        enterDefaultContactToConfirm: 'Por favor, escribe tu método de contacto predeterminado para confirmar que deseas eliminar tu cuenta. Tu método de contacto predeterminado es:',
         enterDefaultContact: 'Tu método de contacto predeterminado',
         defaultContact: 'Método de contacto predeterminado:',
-        enterYourDefaultContactMethod: 'Introduce tu método de contacto predeterminado para cerrar tu cuenta',
+        enterYourDefaultContactMethod: 'Por favor, introduce tu método de contacto predeterminado para cerrar tu cuenta.',
     },
     passwordPage: {
         changePassword: 'Cambiar contraseña',
@@ -492,16 +492,16 @@ export default {
         growlMessageOnSave: 'Su tarteja de débito se agregó correctamente',
         expensifyPassword: 'Contraseña de Expensify',
         error: {
-            invalidName: 'Introduce un nombre válido',
-            addressZipCode: 'Introduce un código postal válido',
+            invalidName: 'Por favor, introduce un nombre válido',
+            addressZipCode: 'Por favor, introduce un código postal válido',
             debitCardNumber: 'Introduce un número de tarjeta de débito válido',
-            expirationDate: 'Introduce una fecha de expiración válida',
+            expirationDate: 'Por favor, introduce una fecha de expiración válida',
             securityCode: 'Introduce un código de seguridad válido',
             addressStreet: 'Introduce una dirección de facturación válida que no sea un apartado postal',
-            addressState: 'Seleccione un estado',
-            addressCity: 'Introduce una ciudad',
-            genericFailureMessage: 'Se produjo un error al agregar tu tarjeta. Vuelve a intentarlo',
-            password: 'Introduce tu contraseña de Expensify',
+            addressState: 'Por favor, selecciona un estado',
+            addressCity: 'Por favor, introduce una ciudad',
+            genericFailureMessage: 'Se produjo un error al agregar tu tarjeta. Vuelva a intentarlo',
+            password: 'Por favor, introduce tu contraseña de Expensify',
         },
     },
     paymentsPage: {
@@ -595,7 +595,7 @@ export default {
     },
     validateCodeForm: {
         magicCodeNotReceived: '¿No recibiste un código mágico?',
-        enterAuthenticatorCode: 'Introduce el código de autenticador',
+        enterAuthenticatorCode: 'Por favor, introduce el código de autenticador',
         twoFactorCode: 'Autenticación de 2 factores',
         requiredWhen2FAEnabled: 'Obligatorio cuando A2F está habilitado',
         codeSent: '¡Código mágico enviado!',
@@ -630,7 +630,7 @@ export default {
         error: {
             invalidFormatEmailLogin: 'El email introducido no es válido. Corrígelo e inténtalo de nuevo.',
         },
-        cannotGetAccountDetails: 'No se pudieron cargar los detalles de tu cuenta. Intenta iniciar sesión de nuevo, por favor.',
+        cannotGetAccountDetails: 'No se pudieron cargar los detalles de tu cuenta. Por favor, intenta iniciar sesión de nuevo.',
         loginForm: 'Formulario de inicio de sesión',
         notYou: ({user}) => `¿No eres ${user}?`,
     },
@@ -656,7 +656,7 @@ export default {
     },
     resendValidationForm: {
         linkHasBeenResent: 'El enlace se ha reenviado',
-        weSentYouMagicSignInLink: ({login, loginType}) => `Te he enviado un hiperenlace mágico para iniciar sesión a ${login}. Por favor revisa tu ${loginType}`,
+        weSentYouMagicSignInLink: ({login, loginType}) => `Te he enviado un hiperenlace mágico para iniciar sesión a ${login}. Por favor, revisa tu ${loginType}`,
         resendLink: 'Reenviar enlace',
         validationCodeFailedMessage: 'Parece que hubo un error con el enlace de validación o ha caducado.',
     },
@@ -668,7 +668,7 @@ export default {
     },
     yearPickerPage: {
         year: 'Año',
-        selectYear: 'Por favor seleccione un año',
+        selectYear: 'Por favor, seleccione un año',
     },
     notFound: {
         chatYouLookingForCannotBeFound: 'El chat que estás buscando no se pudo encontrar.',
@@ -727,10 +727,10 @@ export default {
             address: 'Introduce una dirección válida',
             dob: 'Introduce una fecha de nacimiento válida',
             age: 'Debe ser mayor de 18 años',
-            ssnLast4: 'Introduce los últimos 4 dígitos del número de seguro social',
+            ssnLast4: 'Introduce los últimos 4 dígitos de tu número de seguridad social',
             firstName: 'Introduce el nombre',
             lastName: 'Introduce los apellidos',
-            noDefaultDepositAccountOrDebitCardAvailable: 'Por favor introduce una cuenta bancaria para depósitos o una tarjeta de débito',
+            noDefaultDepositAccountOrDebitCardAvailable: 'Por favor, agrega una cuenta bancaria para depósitos o una tarjeta de débito',
             validationAmounts: 'Los importes de validación que introduciste son incorrectos. Comprueba tu cuenta bancaria e inténtalo de nuevo.',
         },
     },
@@ -743,8 +743,8 @@ export default {
     },
     attachmentView: {
         unknownFilename: 'Archivo desconocido',
-        passwordRequired: 'Por favor introduce tu contraseña',
-        passwordIncorrect: 'Contraseña incorrecta. Por favor intenta de nuevo.',
+        passwordRequired: 'Por favor, introduce tu contraseña',
+        passwordIncorrect: 'Contraseña incorrecta. Por favor, intentalo de nuevo.',
         failedToLoadPDF: 'Hubo un error al intentar cargar el PDF.',
         pdfPasswordForm: {
             title: 'PDF protegido con contraseña',
@@ -756,7 +756,7 @@ export default {
         },
     },
     messages: {
-        errorMessageInvalidPhone: `Por favor, introduce un número de teléfono válido sin paréntesis o guiones. Si reside fuera de Estados Unidos, por favor incluye el prefijo internacional (p. ej. ${CONST.EXAMPLE_PHONE_NUMBER}).`,
+        errorMessageInvalidPhone: `Por favor, introduce un número de teléfono válido sin paréntesis o guiones. Si reside fuera de Estados Unidos, Por favor, incluye el prefijo internacional (p. ej. ${CONST.EXAMPLE_PHONE_NUMBER}).`,
     },
     onfidoStep: {
         acceptTerms: 'Al continuar con la solicitud para activar su billetera Expensify, confirma que ha leído, comprende y acepta ',
@@ -782,7 +782,7 @@ export default {
         legalMiddleNameLabel: 'Segundo nombre legal',
         legalLastNameLabel: 'Apellidos legales',
         selectAnswer: 'Selecciona una respuesta.',
-        ssnFull9Error: 'Introduce los 9 dígitos de un número de seguridad social válido',
+        ssnFull9Error: 'Por favor, introduce los 9 dígitos de un número de seguridad social válido',
         needSSNFull9: 'Estamos teniendo problemas para verificar tu número de seguridad social. Introduce los 9 dígitos del número de seguridad social.',
         weCouldNotVerify: 'No se pudo verificar',
         pleaseFixIt: 'Corrije esta información antes de continuar.',
@@ -914,7 +914,7 @@ export default {
         letsChatText: 'Gracias. Necesitamos tu ayuda para verificar la información, pero podemos hacerlo rápidamente a través del chat. ¿Estás listo?',
         letsChatTitle: '¡Vamos a chatear!',
         enable2FATitle: 'Evita fraudes, activa la autenticación de dos factores!',
-        enable2FAText: 'Tu seguridad es importante para nosotros, por favor, configura ahora la autenticación de dos factores. Eso nos permitirá disputar las transacciones de la Tarjeta Expensify y reducirá tu riesgo de fraude.',
+        enable2FAText: 'Tu seguridad es importante para nosotros. Por favor, configura ahora la autenticación de dos factores. Eso nos permitirá disputar las transacciones de la Tarjeta Expensify y reducirá tu riesgo de fraude.',
         secureYourAccount: 'Asegura tu cuenta',
     },
     beneficialOwnersStep: {
@@ -937,7 +937,7 @@ export default {
         explanationLine: 'Estamos verificando tu información y podrás continuar con los siguientes pasos en unos momentos.',
     },
     session: {
-        offlineMessageRetry: 'Parece que estás desconectado. Por favor chequea tu conexión e inténtalo otra vez',
+        offlineMessageRetry: 'Parece que estás desconectado. Por favor, chequea tu conexión e inténtalo otra vez',
     },
     workspace: {
         common: {
@@ -970,7 +970,7 @@ export default {
             getTheExpensifyCardAndMore: 'Consigue la Tarjeta Expensify y más',
         },
         people: {
-            genericFailureMessage: 'Se ha producido un error al intentar eliminar a un usuario del espacio de trabajo. Por favor inténtalo más tarde.',
+            genericFailureMessage: 'Se ha producido un error al intentar eliminar a un usuario del espacio de trabajo. Por favor, inténtalo más tarde.',
             removeMembersPrompt: '¿Estás seguro que quieres eliminar a los miembros seleccionados de tu espacio de trabajo?',
             removeMembersTitle: 'Eliminar miembros',
             selectAll: 'Seleccionar todo',
@@ -1009,7 +1009,7 @@ export default {
             captureNoVBACopyAfterEmail: ' y descarga la App de Expensify para controlar tus gastos en efectivo sobre la marcha.',
             unlockNoVBACopy: 'Conecta una cuenta bancaria para reembolsar online a los miembros de tu espacio de trabajo.',
             fastReimbursementsVBACopy: '¡Todo listo para reembolsar recibos desde tu cuenta bancaria!',
-            updateCustomUnitError: 'Los cambios no han podido ser guardados. El espacio de trabajo ha sido modificado mientras estabas desconectado, por favor inténtalo de nuevo.',
+            updateCustomUnitError: 'Los cambios no han podido ser guardados. El espacio de trabajo ha sido modificado mientras estabas desconectado, Por favor, inténtalo de nuevo.',
         },
         bills: {
             manageYourBills: 'Gestiona tus facturas',
@@ -1112,7 +1112,7 @@ export default {
         publicDescription: 'Cualquier persona puede unirse a esta sala',
         createRoom: 'Crea una sala de chat',
         roomAlreadyExistsError: 'Ya existe una sala con este nombre',
-        roomNameReservedError: ({reservedName}) => `${reservedName} es el nombre una sala por defecto de todos los espacios de trabajo. Por favor elige otro nombre.`,
+        roomNameReservedError: ({reservedName}) => `${reservedName} es el nombre una sala por defecto de todos los espacios de trabajo. Por favor, elige otro nombre.`,
         roomNameInvalidError: 'Los nombres de las salas solo pueden contener minúsculas, números y guiones',
         pleaseEnterRoomName: 'Por favor, escribe el nombre de una sala',
         pleaseSelectWorkspace: 'Por favor, selecciona un espacio de trabajo',
@@ -1195,7 +1195,7 @@ export default {
         },
     },
     report: {
-        genericAddCommentFailureMessage: 'Error inesperado al agregar el comentario, por favor inténtalo más tarde',
+        genericAddCommentFailureMessage: 'Error inesperado al agregar el comentario, Por favor, inténtalo más tarde',
         noActivityYet: 'Sin actividad todavía',
     },
     chronos: {
