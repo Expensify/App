@@ -6,6 +6,7 @@ module.exports = {
     ],
     parser: 'babel-eslint',
     ignorePatterns: [
+        '*.md',
         '!.*',
         'src/vendor',
         '.github/actions/**/index.js',
