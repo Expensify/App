@@ -1442,6 +1442,7 @@ const styles = {
 
     chatFooterFullCompose: {
         flex: 1,
+        flexBasis: '25%',
     },
 
     // Be extremely careful when editing the compose styles, as it is easy to introduce regressions.
