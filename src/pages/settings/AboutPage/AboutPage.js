@@ -114,7 +114,8 @@ const AboutPage = (props) => {
                                     iconRight={item.iconRight}
                                     onPress={() => item.action()}
                                     shouldBlockSelection={Boolean(item.link)}
-                                    onSecondaryInteraction={e => Boolean(item.link) && ReportActionContextMenu.showContextMenu(CONTEXT_MENU_TYPES.LINK, e, item.link, popoverAnchor)}
+                                    onSecondaryInteraction={!_.isEmpty(item.link)
+                                        ? e => ReportActionContextMenu.showContextMenu(CONTEXT_MENU_TYPES.LINK, e, item.link, popoverAnchor) : undefined}
                                     ref={el => popoverAnchor = el}
                                     shouldShowRightIcon
                                 />

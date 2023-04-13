@@ -31,6 +31,10 @@ class PressableWithSecondaryInteraction extends Component {
      * https://developer.mozilla.org/en-US/docs/Web/API/Element/contextmenu_event
      */
     executeSecondaryInteractionOnContextMenu(e) {
+        if (!this.props.onSecondaryInteraction) {
+            return;
+        }
+
         e.stopPropagation();
         if (this.props.preventDefaultContentMenu) {
             e.preventDefault();
@@ -58,6 +62,9 @@ class PressableWithSecondaryInteraction extends Component {
                 style={StyleUtils.combineStyles(this.props.inline ? styles.dInline : this.props.style)}
                 onPressIn={this.props.onPressIn}
                 onLongPress={(e) => {
+                    if (!this.props.onSecondaryInteraction) {
+                        return;
+                    }
                     if (DeviceCapabilities.hasHoverSupport()) {
                         return;
                     }
