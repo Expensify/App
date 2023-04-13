@@ -237,10 +237,12 @@ class ReportActionCompose extends React.Component {
         this.updateComment(this.comment);
 
         // Shows Popover Menu on Workspace Chat at first sign-in
-        Welcome.show({
-            routes: lodashGet(this.props.navigation.getState(), 'routes', []),
-            showPopoverMenu: this.showPopoverMenu,
-        });
+        if (!this.props.disabled) {
+            Welcome.show({
+                routes: lodashGet(this.props.navigation.getState(), 'routes', []),
+                showPopoverMenu: this.showPopoverMenu,
+            });
+        }
     }
 
     componentDidUpdate(prevProps) {
