@@ -45,6 +45,8 @@ class AttachmentCarousel extends React.Component {
 
         this.canUseTouchScreen = DeviceCapabilities.canUseTouchScreen();
         this.cycleThroughAttachments = this.cycleThroughAttachments.bind(this);
+        this.autoHideArrow = this.autoHideArrow.bind(this);
+        this.cancelAutoHideArrow = this.cancelAutoHideArrow.bind(this);
 
         this.state = {
             source: this.props.source,
@@ -92,9 +94,17 @@ class AttachmentCarousel extends React.Component {
         if (!this.canUseTouchScreen) {
             return;
         }
+        this.cancelAutoHideArrow();
         this.autoHideArrowTimeout = setTimeout(() => {
             this.toggleArrowsVisibility(false);
         }, 3000);
+    }
+
+    /**
+     * Cancels the automatic hiding of the arrows.
+     */
+    cancelAutoHideArrow() {
+        clearTimeout(this.autoHideArrowTimeout);
     }
 
     /**
@@ -106,7 +116,7 @@ class AttachmentCarousel extends React.Component {
             if (this.state.shouldShowArrow) {
                 this.autoHideArrow();
             } else {
-                clearTimeout(this.autoHideArrowTimeout);
+                this.cancelAutoHideArrow();
             }
         });
     }
@@ -196,8 +206,12 @@ class AttachmentCarousel extends React.Component {
                                         icon={Expensicons.BackArrow}
                                         iconFill={themeColors.text}
                                         iconStyles={[styles.mr0]}
-                                        onPress={() => this.cycleThroughAttachments(-1)}
-                                        onPressIn={}
+                                        onPress={() => {
+                                            this.cycleThroughAttachments(-1);
+                                            this.autoHideArrow();
+                                        }}
+                                        onPressIn={this.cancelAutoHideArrow}
+                                        onPressOut={this.autoHideArrow}
                                     />
                                 </Tooltip>
                             </View>
@@ -211,7 +225,12 @@ class AttachmentCarousel extends React.Component {
                                         icon={Expensicons.ArrowRight}
                                         iconFill={themeColors.text}
                                         iconStyles={[styles.mr0]}
-                                        onPress={() => this.cycleThroughAttachments(1)}
+                                        onPress={() => {
+                                            this.cycleThroughAttachments(1);
+                                            this.autoHideArrow();
+                                        }}
+                                        onPressIn={this.cancelAutoHideArrow}
+                                        onPressOut={this.autoHideArrow}
                                     />
                                 </Tooltip>
                             </View>
