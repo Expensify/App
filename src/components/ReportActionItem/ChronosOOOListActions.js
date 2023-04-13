@@ -27,38 +27,81 @@ const ChronosOOOListActions = (props) => {
 
     if (!events.length) {
         return (
-            <View style={[styles.flexRow, styles.alignItemsCenter, styles.pt, styles.ml18]}>
+            <View
+                style={[
+                    styles.flexRow,
+                    styles.alignItemsCenter,
+                    styles.pt,
+                    styles.ml18,
+                ]}
+            >
                 <Text>You haven&apos;t created any events</Text>
             </View>
         );
     }
 
     return (
-        <OfflineWithFeedback pendingAction={lodashGet(props.action, 'pendingAction', null)}>
+        <OfflineWithFeedback
+            pendingAction={lodashGet(props.action, 'pendingAction', null)}
+        >
             <View style={[styles.chatItemMessage]}>
                 {_.map(events, (event) => {
-                    const start = DateUtils.getLocalMomentFromDatetime(props.preferredLocale, lodashGet(event, 'start.date', ''));
-                    const end = DateUtils.getLocalMomentFromDatetime(props.preferredLocale, lodashGet(event, 'end.date', ''));
+                    const start = DateUtils.getLocalMomentFromDatetime(
+                        props.preferredLocale,
+                        lodashGet(event, 'start.date', ''),
+                    );
+                    const end = DateUtils.getLocalMomentFromDatetime(
+                        props.preferredLocale,
+                        lodashGet(event, 'end.date', ''),
+                    );
                     return (
-                        <View key={event.id} style={[styles.flexRow, styles.pt, styles.ml18, styles.pr4, styles.alignItemsCenter]}>
+                        <View
+                            key={event.id}
+                            style={[
+                                styles.flexRow,
+                                styles.pt,
+                                styles.ml18,
+                                styles.pr4,
+                                styles.alignItemsCenter,
+                            ]}
+                        >
                             <Text style={[styles.flexShrink1]}>
                                 {event.lengthInDays > 0
-                                    ? props.translate('chronos.oooEventSummaryFullDay', {
-                                          summary: event.summary,
-                                          dayCount: event.lengthInDays,
-                                          date: end.format('dddd LL'),
-                                      })
-                                    : props.translate('chronos.oooEventSummaryPartialDay', {
-                                          summary: event.summary,
-                                          timePeriod: `${start.format('LT')} - ${end.format('LT')}`,
-                                          date: end.format('dddd LL'),
-                                      })}
+                                    ? props.translate(
+                                          'chronos.oooEventSummaryFullDay',
+                                          {
+                                              summary: event.summary,
+                                              dayCount: event.lengthInDays,
+                                              date: end.format('dddd LL'),
+                                          },
+                                      )
+                                    : props.translate(
+                                          'chronos.oooEventSummaryPartialDay',
+                                          {
+                                              summary: event.summary,
+                                              timePeriod: `${start.format(
+                                                  'LT',
+                                              )} - ${end.format('LT')}`,
+                                              date: end.format('dddd LL'),
+                                          },
+                                      )}
                             </Text>
                             <Button
                                 small
                                 style={[styles.pl2]}
-                                onPress={() => Chronos.removeEvent(props.reportID, props.action.reportActionID, event.id, events)}
-                                ContentComponent={() => <Text style={styles.buttonSmallText}>{props.translate('common.remove')}</Text>}
+                                onPress={() =>
+                                    Chronos.removeEvent(
+                                        props.reportID,
+                                        props.action.reportActionID,
+                                        event.id,
+                                        events,
+                                    )
+                                }
+                                ContentComponent={() => (
+                                    <Text style={styles.buttonSmallText}>
+                                        {props.translate('common.remove')}
+                                    </Text>
+                                )}
                             />
                         </View>
                     );

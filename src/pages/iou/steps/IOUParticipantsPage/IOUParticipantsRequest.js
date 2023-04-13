@@ -5,7 +5,9 @@ import _ from 'underscore';
 import * as OptionsListUtils from '../../../../libs/OptionsListUtils';
 import OptionsSelector from '../../../../components/OptionsSelector';
 import ONYXKEYS from '../../../../ONYXKEYS';
-import withLocalize, {withLocalizePropTypes} from '../../../../components/withLocalize';
+import withLocalize, {
+    withLocalizePropTypes,
+} from '../../../../components/withLocalize';
 import compose from '../../../../libs/compose';
 import CONST from '../../../../CONST';
 import personalDetailsPropType from '../../../personalDetailsPropType';
@@ -28,7 +30,10 @@ const propTypes = {
     reports: PropTypes.objectOf(reportPropTypes).isRequired,
 
     /** padding bottom style of safe area */
-    safeAreaPaddingBottomStyle: PropTypes.oneOfType([PropTypes.arrayOf(PropTypes.object), PropTypes.object]),
+    safeAreaPaddingBottomStyle: PropTypes.oneOfType([
+        PropTypes.arrayOf(PropTypes.object),
+        PropTypes.object,
+    ]),
 
     ...withLocalizePropTypes,
 };
@@ -42,9 +47,18 @@ class IOUParticipantsRequest extends Component {
         super(props);
 
         this.addSingleParticipant = this.addSingleParticipant.bind(this);
-        this.updateOptionsWithSearchTerm = this.updateOptionsWithSearchTerm.bind(this);
+        this.updateOptionsWithSearchTerm =
+            this.updateOptionsWithSearchTerm.bind(this);
 
-        const {recentReports, personalDetails, userToInvite} = OptionsListUtils.getNewChatOptions(props.reports, props.personalDetails, props.betas, '', [], CONST.EXPENSIFY_EMAILS);
+        const {recentReports, personalDetails, userToInvite} =
+            OptionsListUtils.getNewChatOptions(
+                props.reports,
+                props.personalDetails,
+                props.betas,
+                '',
+                [],
+                CONST.EXPENSIFY_EMAILS,
+            );
 
         this.state = {
             recentReports,
@@ -79,7 +93,10 @@ class IOUParticipantsRequest extends Component {
         });
         indexOffset += this.state.personalDetails.length;
 
-        if (this.state.userToInvite && !OptionsListUtils.isCurrentUser(this.state.userToInvite)) {
+        if (
+            this.state.userToInvite &&
+            !OptionsListUtils.isCurrentUser(this.state.userToInvite)
+        ) {
             sections.push({
                 undefined,
                 data: [this.state.userToInvite],
@@ -92,14 +109,15 @@ class IOUParticipantsRequest extends Component {
     }
 
     updateOptionsWithSearchTerm(searchTerm = '') {
-        const {recentReports, personalDetails, userToInvite} = OptionsListUtils.getNewChatOptions(
-            this.props.reports,
-            this.props.personalDetails,
-            this.props.betas,
-            searchTerm,
-            [],
-            CONST.EXPENSIFY_EMAILS,
-        );
+        const {recentReports, personalDetails, userToInvite} =
+            OptionsListUtils.getNewChatOptions(
+                this.props.reports,
+                this.props.personalDetails,
+                this.props.betas,
+                searchTerm,
+                [],
+                CONST.EXPENSIFY_EMAILS,
+            );
         this.setState({
             searchTerm,
             recentReports,
@@ -120,7 +138,9 @@ class IOUParticipantsRequest extends Component {
 
     render() {
         const headerMessage = OptionsListUtils.getHeaderMessage(
-            this.state.personalDetails.length + this.state.recentReports.length !== 0,
+            this.state.personalDetails.length +
+                this.state.recentReports.length !==
+                0,
             Boolean(this.state.userToInvite),
             this.state.searchTerm,
         );
@@ -131,9 +151,13 @@ class IOUParticipantsRequest extends Component {
                 onSelectRow={this.addSingleParticipant}
                 onChangeText={this.updateOptionsWithSearchTerm}
                 headerMessage={headerMessage}
-                placeholderText={this.props.translate('optionsSelector.nameEmailOrPhoneNumber')}
+                placeholderText={this.props.translate(
+                    'optionsSelector.nameEmailOrPhoneNumber',
+                )}
                 boldStyle
-                safeAreaPaddingBottomStyle={this.props.safeAreaPaddingBottomStyle}
+                safeAreaPaddingBottomStyle={
+                    this.props.safeAreaPaddingBottomStyle
+                }
             />
         );
     }

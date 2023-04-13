@@ -11,7 +11,11 @@ class PreRenderer extends React.Component {
         super(props);
 
         this.scrollNode = this.scrollNode.bind(this);
-        this.debouncedIsScrollingVertically = _.debounce(this.isScrollingVertically.bind(this), 100, true);
+        this.debouncedIsScrollingVertically = _.debounce(
+            this.isScrollingVertically.bind(this),
+            100,
+            true,
+        );
     }
 
     componentDidMount() {
@@ -22,7 +26,9 @@ class PreRenderer extends React.Component {
     }
 
     componentWillUnmount() {
-        this.ref.getScrollableNode().removeEventListener('wheel', this.scrollNode);
+        this.ref
+            .getScrollableNode()
+            .removeEventListener('wheel', this.scrollNode);
     }
 
     /**
@@ -44,8 +50,13 @@ class PreRenderer extends React.Component {
     scrollNode(event) {
         const node = this.ref.getScrollableNode();
         const horizontalOverflow = node.scrollWidth > node.offsetWidth;
-        const isScrollingVertically = this.debouncedIsScrollingVertically(event);
-        if (event.currentTarget === node && horizontalOverflow && !isScrollingVertically) {
+        const isScrollingVertically =
+            this.debouncedIsScrollingVertically(event);
+        if (
+            event.currentTarget === node &&
+            horizontalOverflow &&
+            !isScrollingVertically
+        ) {
             node.scrollLeft += event.deltaX;
             event.preventDefault();
             event.stopPropagation();
@@ -58,7 +69,10 @@ class PreRenderer extends React.Component {
                 // eslint-disable-next-line react/jsx-props-no-spreading
                 {...this.props}
                 ref={(el) => (this.ref = el)}
-                onPressIn={() => DeviceCapabilities.canUseTouchScreen() && ControlSelection.block()}
+                onPressIn={() =>
+                    DeviceCapabilities.canUseTouchScreen() &&
+                    ControlSelection.block()
+                }
                 onPressOut={() => ControlSelection.unblock()}
             />
         );

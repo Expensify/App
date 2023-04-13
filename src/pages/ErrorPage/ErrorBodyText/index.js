@@ -1,6 +1,8 @@
 import React from 'react';
 import Text from '../../../components/Text';
-import withLocalize, {withLocalizePropTypes} from '../../../components/withLocalize';
+import withLocalize, {
+    withLocalizePropTypes,
+} from '../../../components/withLocalize';
 import TextLink from '../../../components/TextLink';
 import CONST from '../../../CONST';
 import styles from '../../../styles/styles';

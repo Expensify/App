@@ -18,7 +18,9 @@ const getEmojiUnicode = _.memoize((input) => {
     }
 
     if (input.length === 1) {
-        return _.map(input.charCodeAt(0).toString().split(' '), (val) => parseInt(val, 10).toString(16)).join(' ');
+        return _.map(input.charCodeAt(0).toString().split(' '), (val) =>
+            parseInt(val, 10).toString(16),
+        ).join(' ');
     }
 
     const pairs = [];
@@ -32,11 +34,21 @@ const getEmojiUnicode = _.memoize((input) => {
     for (let i = 0; i < input.length; i++) {
         if (input.charCodeAt(i) >= 0xd800 && input.charCodeAt(i) <= 0xdbff) {
             // high surrogate
-            if (input.charCodeAt(i + 1) >= 0xdc00 && input.charCodeAt(i + 1) <= 0xdfff) {
+            if (
+                input.charCodeAt(i + 1) >= 0xdc00 &&
+                input.charCodeAt(i + 1) <= 0xdfff
+            ) {
                 // low surrogate
-                pairs.push((input.charCodeAt(i) - 0xd800) * 0x400 + (input.charCodeAt(i + 1) - 0xdc00) + 0x10000);
+                pairs.push(
+                    (input.charCodeAt(i) - 0xd800) * 0x400 +
+                        (input.charCodeAt(i + 1) - 0xdc00) +
+                        0x10000,
+                );
             }
-        } else if (input.charCodeAt(i) < 0xd800 || input.charCodeAt(i) > 0xdfff) {
+        } else if (
+            input.charCodeAt(i) < 0xd800 ||
+            input.charCodeAt(i) > 0xdfff
+        ) {
             // modifiers and joiners
             pairs.push(input.charCodeAt(i));
         }
@@ -50,7 +62,9 @@ const getEmojiUnicode = _.memoize((input) => {
  * @returns {String}
  */
 function trimEmojiUnicode(emojiCode) {
-    return emojiCode.replace(/(fe0f|1f3fb|1f3fc|1f3fd|1f3fe|1f3ff)$/, '').trim();
+    return emojiCode
+        .replace(/(fe0f|1f3fb|1f3fc|1f3fd|1f3fe|1f3ff)$/, '')
+        .trim();
 }
 
 /**
@@ -81,7 +95,8 @@ function containsOnlyEmojis(message) {
     // to iterate over the actual emojis, not just characters that compose them
     const messageCodes = _.filter(
         _.map([...trimmedMessage], (char) => getEmojiUnicode(char)),
-        (string) => string.length > 0 && !CONST.INVISIBLE_CODEPOINTS.includes(string),
+        (string) =>
+            string.length > 0 && !CONST.INVISIBLE_CODEPOINTS.includes(string),
     );
     return codes.length === messageCodes.length;
 }
@@ -110,7 +125,8 @@ function getHeaderEmojis(emojis) {
  */
 function getDynamicSpacing(emojiCount, suffix) {
     const spacerEmojis = [];
-    let modLength = CONST.EMOJI_NUM_PER_ROW - (emojiCount % CONST.EMOJI_NUM_PER_ROW);
+    let modLength =
+        CONST.EMOJI_NUM_PER_ROW - (emojiCount % CONST.EMOJI_NUM_PER_ROW);
 
     // Empty spaces is pushed if the given row has less than eight emojis
     while (modLength > 0 && modLength < CONST.EMOJI_NUM_PER_ROW) {
@@ -132,7 +148,11 @@ function addSpacesToEmojiCategories(emojis) {
     let updatedEmojis = [];
     _.each(emojis, (emoji, index) => {
         if (emoji.header) {
-            updatedEmojis = updatedEmojis.concat(getDynamicSpacing(updatedEmojis.length, index), [emoji], getDynamicSpacing(1, index));
+            updatedEmojis = updatedEmojis.concat(
+                getDynamicSpacing(updatedEmojis.length, index),
+                [emoji],
+                getDynamicSpacing(1, index),
+            );
             return;
         }
         updatedEmojis.push(emoji);
@@ -146,7 +166,10 @@ function addSpacesToEmojiCategories(emojis) {
  * @param {Object[]} frequentlyUsedEmojis
  * @returns {Object[]}
  */
-function mergeEmojisWithFrequentlyUsedEmojis(emojis, frequentlyUsedEmojis = []) {
+function mergeEmojisWithFrequentlyUsedEmojis(
+    emojis,
+    frequentlyUsedEmojis = [],
+) {
     if (frequentlyUsedEmojis.length === 0) {
         return addSpacesToEmojiCategories(emojis);
     }
@@ -172,7 +195,10 @@ function addToFrequentlyUsedEmojis(frequentlyUsedEmojis, newEmoji) {
     let frequentEmojiList = frequentlyUsedEmojis;
     let currentEmojiCount = 1;
     const currentTimestamp = moment().unix();
-    const emojiIndex = _.findIndex(frequentEmojiList, (e) => e.code === newEmoji.code);
+    const emojiIndex = _.findIndex(
+        frequentEmojiList,
+        (e) => e.code === newEmoji.code,
+    );
     if (emojiIndex >= 0) {
         currentEmojiCount = frequentEmojiList[emojiIndex].count + 1;
         frequentEmojiList.splice(emojiIndex, 1);
@@ -181,16 +207,25 @@ function addToFrequentlyUsedEmojis(frequentlyUsedEmojis, newEmoji) {
         ...newEmoji,
         ...{count: currentEmojiCount, lastUpdatedAt: currentTimestamp},
     };
-    const maxFrequentEmojiCount = CONST.EMOJI_FREQUENT_ROW_COUNT * CONST.EMOJI_NUM_PER_ROW - 1;
+    const maxFrequentEmojiCount =
+        CONST.EMOJI_FREQUENT_ROW_COUNT * CONST.EMOJI_NUM_PER_ROW - 1;
 
     // We want to make sure the current emoji is added to the list
     // Hence, we take one less than the current high frequent used emojis and if same then sorted by lastUpdatedAt
-    frequentEmojiList = lodashOrderBy(frequentEmojiList, ['count', 'lastUpdatedAt'], ['desc', 'desc']);
+    frequentEmojiList = lodashOrderBy(
+        frequentEmojiList,
+        ['count', 'lastUpdatedAt'],
+        ['desc', 'desc'],
+    );
     frequentEmojiList = frequentEmojiList.slice(0, maxFrequentEmojiCount);
     frequentEmojiList.push(updatedEmoji);
 
     // Second sorting is required so that new emoji is properly placed at sort-ordered location
-    frequentEmojiList = lodashOrderBy(frequentEmojiList, ['count', 'lastUpdatedAt'], ['desc', 'desc']);
+    frequentEmojiList = lodashOrderBy(
+        frequentEmojiList,
+        ['count', 'lastUpdatedAt'],
+        ['desc', 'desc'],
+    );
     User.updateFrequentlyUsedEmojis(frequentEmojiList);
 }
 
@@ -214,7 +249,11 @@ function replaceEmojis(text, isSmallScreenWidth = false) {
 
             // If this is the last emoji in the message and it's the end of the message so far,
             // add a space after it so the user can keep typing easily.
-            if (isSmallScreenWidth && i === emojiData.length - 1 && text.endsWith(emojiData[i])) {
+            if (
+                isSmallScreenWidth &&
+                i === emojiData.length - 1 &&
+                text.endsWith(emojiData[i])
+            ) {
                 emojiReplacement += ' ';
             }
             newText = newText.replace(emojiData[i], emojiReplacement);
@@ -233,9 +272,15 @@ function suggestEmojis(text, limit = 5) {
     const emojiData = text.match(CONST.REGEX.EMOJI_SUGGESTIONS);
     if (emojiData) {
         const matching = [];
-        const nodes = emojisTrie.getAllMatchingWords(emojiData[0].toLowerCase().slice(1), limit);
+        const nodes = emojisTrie.getAllMatchingWords(
+            emojiData[0].toLowerCase().slice(1),
+            limit,
+        );
         for (let j = 0; j < nodes.length; j++) {
-            if (nodes[j].metaData.code && !_.find(matching, (obj) => obj.name === nodes[j].name)) {
+            if (
+                nodes[j].metaData.code &&
+                !_.find(matching, (obj) => obj.name === nodes[j].name)
+            ) {
                 if (matching.length === limit) {
                     return matching;
                 }
@@ -250,7 +295,9 @@ function suggestEmojis(text, limit = 5) {
                 if (matching.length === limit) {
                     return matching;
                 }
-                if (!_.find(matching, (obj) => obj.name === suggestions[i].name)) {
+                if (
+                    !_.find(matching, (obj) => obj.name === suggestions[i].name)
+                ) {
                     matching.push(suggestions[i]);
                 }
             }
@@ -276,4 +323,13 @@ const getEmojiCodeWithSkinColor = (item, preferredSkinToneIndex) => {
     return code;
 };
 
-export {getHeaderEmojis, mergeEmojisWithFrequentlyUsedEmojis, addToFrequentlyUsedEmojis, containsOnlyEmojis, replaceEmojis, suggestEmojis, trimEmojiUnicode, getEmojiCodeWithSkinColor};
+export {
+    getHeaderEmojis,
+    mergeEmojisWithFrequentlyUsedEmojis,
+    addToFrequentlyUsedEmojis,
+    containsOnlyEmojis,
+    replaceEmojis,
+    suggestEmojis,
+    trimEmojiUnicode,
+    getEmojiCodeWithSkinColor,
+};

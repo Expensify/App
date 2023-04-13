@@ -12,7 +12,13 @@ const propTypes = {
 const GrowlNotificationContainer = (props) => (
     <SafeAreaInsetsContext.Consumer>
         {(insets) => (
-            <Animated.View style={[StyleUtils.getSafeAreaPadding(insets), styles.growlNotificationContainer, styles.growlNotificationTranslateY(props.translateY)]}>
+            <Animated.View
+                style={[
+                    StyleUtils.getSafeAreaPadding(insets),
+                    styles.growlNotificationContainer,
+                    styles.growlNotificationTranslateY(props.translateY),
+                ]}
+            >
                 {props.children}
             </Animated.View>
         )}

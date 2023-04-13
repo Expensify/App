@@ -11,7 +11,9 @@ import ReportActionItemDate from './ReportActionItemDate';
 import Avatar from '../../../components/Avatar';
 import personalDetailsPropType from '../../personalDetailsPropType';
 import compose from '../../../libs/compose';
-import withLocalize, {withLocalizePropTypes} from '../../../components/withLocalize';
+import withLocalize, {
+    withLocalizePropTypes,
+} from '../../../components/withLocalize';
 import Navigation from '../../../libs/Navigation/Navigation';
 import ROUTES from '../../../ROUTES';
 import {withPersonalDetails} from '../../../components/OnyxProvider';
@@ -52,8 +54,12 @@ const showUserDetails = (email) => {
 };
 
 const ReportActionItemSingle = (props) => {
-    const actorEmail = props.action.actorEmail.replace(CONST.REGEX.MERGED_ACCOUNT_PREFIX, '');
-    const {avatar, displayName, login, pendingFields} = props.personalDetails[actorEmail] || {};
+    const actorEmail = props.action.actorEmail.replace(
+        CONST.REGEX.MERGED_ACCOUNT_PREFIX,
+        '',
+    );
+    const {avatar, displayName, login, pendingFields} =
+        props.personalDetails[actorEmail] || {};
     const avatarSource = ReportUtils.getAvatar(avatar, actorEmail);
 
     // Since the display name for a report action message is delivered with the report history as an array of fragments
@@ -63,17 +69,29 @@ const ReportActionItemSingle = (props) => {
         ? [
               {
                   type: 'TEXT',
-                  text: Str.isSMSLogin(login) ? props.toLocalPhone(displayName) : displayName,
+                  text: Str.isSMSLogin(login)
+                      ? props.toLocalPhone(displayName)
+                      : displayName,
               },
           ]
         : props.action.person;
 
     return (
         <View style={props.wrapperStyles}>
-            <Pressable style={[styles.alignSelfStart, styles.mr3]} onPressIn={ControlSelection.block} onPressOut={ControlSelection.unblock} onPress={() => showUserDetails(actorEmail)}>
+            <Pressable
+                style={[styles.alignSelfStart, styles.mr3]}
+                onPressIn={ControlSelection.block}
+                onPressOut={ControlSelection.unblock}
+                onPress={() => showUserDetails(actorEmail)}
+            >
                 <Tooltip text={actorEmail}>
-                    <OfflineWithFeedback pendingAction={lodashGet(pendingFields, 'avatar', null)}>
-                        <Avatar containerStyles={[styles.actionAvatar]} source={avatarSource} />
+                    <OfflineWithFeedback
+                        pendingAction={lodashGet(pendingFields, 'avatar', null)}
+                    >
+                        <Avatar
+                            containerStyles={[styles.actionAvatar]}
+                            source={avatarSource}
+                        />
                     </OfflineWithFeedback>
                 </Tooltip>
             </Pressable>
@@ -110,4 +128,7 @@ ReportActionItemSingle.propTypes = propTypes;
 ReportActionItemSingle.defaultProps = defaultProps;
 ReportActionItemSingle.displayName = 'ReportActionItemSingle';
 
-export default compose(withLocalize, withPersonalDetails())(ReportActionItemSingle);
+export default compose(
+    withLocalize,
+    withPersonalDetails(),
+)(ReportActionItemSingle);

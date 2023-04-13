@@ -11,20 +11,32 @@ class CustomVersionFilePlugin {
             this.constructor.name,
             () =>
                 new Promise((resolve, reject) => {
-                    const versionPath = path.join(__dirname, '/../../dist/version.json');
-                    fs.mkdir(path.dirname(versionPath), {recursive: true}, (dirErr) => {
-                        if (dirErr) {
-                            reject(dirErr);
-                            return;
-                        }
-                        fs.writeFile(versionPath, JSON.stringify({version: APP_VERSION}), 'utf8', (fileErr) => {
-                            if (fileErr) {
-                                reject(fileErr);
+                    const versionPath = path.join(
+                        __dirname,
+                        '/../../dist/version.json',
+                    );
+                    fs.mkdir(
+                        path.dirname(versionPath),
+                        {recursive: true},
+                        (dirErr) => {
+                            if (dirErr) {
+                                reject(dirErr);
                                 return;
                             }
-                            resolve();
-                        });
-                    });
+                            fs.writeFile(
+                                versionPath,
+                                JSON.stringify({version: APP_VERSION}),
+                                'utf8',
+                                (fileErr) => {
+                                    if (fileErr) {
+                                        reject(fileErr);
+                                        return;
+                                    }
+                                    resolve();
+                                },
+                            );
+                        },
+                    );
                 }),
         );
     }

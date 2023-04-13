@@ -61,9 +61,13 @@ const getHTMLOfSelection = () => {
             //     </div>
             // and finally commonAncestorContainer.parentNode.closest('data-testid') is targeted dom.
             if (range.commonAncestorContainer instanceof HTMLElement) {
-                node = range.commonAncestorContainer.closest(`[${tagAttribute}]`);
+                node = range.commonAncestorContainer.closest(
+                    `[${tagAttribute}]`,
+                );
             } else {
-                node = range.commonAncestorContainer.parentNode.closest(`[${tagAttribute}]`);
+                node = range.commonAncestorContainer.parentNode.closest(
+                    `[${tagAttribute}]`,
+                );
             }
 
             // This means "range.commonAncestorContainer" is a text node. We simply get its parent node.
@@ -102,7 +106,11 @@ const replaceNodes = (dom) => {
         if (!elementsWillBeSkipped.includes(dom.attribs[tagAttribute])) {
             domName = dom.attribs[tagAttribute];
         }
-    } else if (dom.name === 'div' && dom.children.length === 1 && dom.children[0].type !== 'text') {
+    } else if (
+        dom.name === 'div' &&
+        dom.children.length === 1 &&
+        dom.children[0].type !== 'text'
+    ) {
         // We are excluding divs that have only one child and no text nodes and don't have a tagAttribute to prevent
         // additional newlines from being added in the HTML to Markdown conversion process.
         return replaceNodes(dom.children[0]);
@@ -132,7 +140,10 @@ const replaceNodes = (dom) => {
  */
 const getCurrentSelection = () => {
     const domRepresentation = parseDocument(getHTMLOfSelection());
-    domRepresentation.children = _.map(domRepresentation.children, replaceNodes);
+    domRepresentation.children = _.map(
+        domRepresentation.children,
+        replaceNodes,
+    );
 
     const newHtml = render(domRepresentation);
     return newHtml || '';

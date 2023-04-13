@@ -8,7 +8,9 @@ import compose from '../../../libs/compose';
 import ONYXKEYS from '../../../ONYXKEYS';
 import styles from '../../../styles/styles';
 import * as PersonalDetails from '../../../libs/actions/PersonalDetails';
-import withLocalize, {withLocalizePropTypes} from '../../../components/withLocalize';
+import withLocalize, {
+    withLocalizePropTypes,
+} from '../../../components/withLocalize';
 import Text from '../../../components/Text';
 import TextWithEllipsis from '../../../components/TextWithEllipsis';
 
@@ -30,17 +32,30 @@ class ReportTypingIndicator extends React.Component {
     constructor(props) {
         super(props);
 
-        const usersTyping = props.userTypingStatuses ? _.filter(_.keys(props.userTypingStatuses), (login) => props.userTypingStatuses[login]) : [];
+        const usersTyping = props.userTypingStatuses
+            ? _.filter(
+                  _.keys(props.userTypingStatuses),
+                  (login) => props.userTypingStatuses[login],
+              )
+            : [];
         this.state = {usersTyping};
     }
 
     componentDidUpdate(prevProps) {
         // Make sure we only update the state if there's been a change in who's typing.
-        if (_.isEqual(prevProps.userTypingStatuses, this.props.userTypingStatuses)) {
+        if (
+            _.isEqual(
+                prevProps.userTypingStatuses,
+                this.props.userTypingStatuses,
+            )
+        ) {
             return;
         }
 
-        const usersTyping = _.filter(_.keys(this.props.userTypingStatuses), (login) => this.props.userTypingStatuses[login]);
+        const usersTyping = _.filter(
+            _.keys(this.props.userTypingStatuses),
+            (login) => this.props.userTypingStatuses[login],
+        );
 
         // eslint-disable-next-line react/no-did-update-set-state
         this.setState({usersTyping});
@@ -62,19 +77,38 @@ class ReportTypingIndicator extends React.Component {
             case 1:
                 return (
                     <TextWithEllipsis
-                        leadingText={PersonalDetails.getDisplayName(this.state.usersTyping[0])}
-                        trailingText={` ${this.props.translate('reportTypingIndicator.isTyping')}`}
+                        leadingText={PersonalDetails.getDisplayName(
+                            this.state.usersTyping[0],
+                        )}
+                        trailingText={` ${this.props.translate(
+                            'reportTypingIndicator.isTyping',
+                        )}`}
                         textStyle={[styles.chatItemComposeSecondaryRowSubText]}
-                        wrapperStyle={[styles.chatItemComposeSecondaryRow, styles.flex1]}
-                        leadingTextParentStyle={styles.chatItemComposeSecondaryRowOffset}
+                        wrapperStyle={[
+                            styles.chatItemComposeSecondaryRow,
+                            styles.flex1,
+                        ]}
+                        leadingTextParentStyle={
+                            styles.chatItemComposeSecondaryRowOffset
+                        }
                     />
                 );
 
             default:
                 return (
-                    <Text style={[styles.chatItemComposeSecondaryRowSubText, styles.chatItemComposeSecondaryRowOffset]} numberOfLines={1}>
-                        {this.props.translate('reportTypingIndicator.multipleUsers')}
-                        {` ${this.props.translate('reportTypingIndicator.areTyping')}`}
+                    <Text
+                        style={[
+                            styles.chatItemComposeSecondaryRowSubText,
+                            styles.chatItemComposeSecondaryRowOffset,
+                        ]}
+                        numberOfLines={1}
+                    >
+                        {this.props.translate(
+                            'reportTypingIndicator.multipleUsers',
+                        )}
+                        {` ${this.props.translate(
+                            'reportTypingIndicator.areTyping',
+                        )}`}
                     </Text>
                 );
         }
@@ -89,7 +123,8 @@ export default compose(
     withNetwork(),
     withOnyx({
         userTypingStatuses: {
-            key: ({reportID}) => `${ONYXKEYS.COLLECTION.REPORT_USER_IS_TYPING}${reportID}`,
+            key: ({reportID}) =>
+                `${ONYXKEYS.COLLECTION.REPORT_USER_IS_TYPING}${reportID}`,
         },
     }),
 )(ReportTypingIndicator);

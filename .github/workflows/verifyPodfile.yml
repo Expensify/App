@@ -1,20 +1,20 @@
 name: Verify Podfile
 
 on:
-    pull_request:
-        types: [opened, synchronize]
-        branches-ignore: [staging, production]
+  pull_request:
+    types: [opened, synchronize]
+    branches-ignore: [staging, production]
 
 jobs:
-    verify:
-        if: github.actor != 'OSBotify'
-        runs-on: macos-latest
-        steps:
-            # This action checks-out the repository, so the workflow can access it.
-            - uses: actions/checkout@93ea575cb5d8a053eaa0ac8fa3b40d7e05a33cc8
-              with:
-                  fetch-depth: 0
+  verify:
+    if: github.actor != 'OSBotify'
+    runs-on: macos-latest
+    steps:
+      # This action checks-out the repository, so the workflow can access it.
+      - uses: actions/checkout@93ea575cb5d8a053eaa0ac8fa3b40d7e05a33cc8
+        with:
+          fetch-depth: 0
 
-            - uses: Expensify/App/.github/actions/composite/setupNode@main
+      - uses: Expensify/App/.github/actions/composite/setupNode@main
 
-            - run: ./.github/scripts/verifyPodfile.sh
+      - run: ./.github/scripts/verifyPodfile.sh

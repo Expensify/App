@@ -18,7 +18,9 @@ const computeZ = (baselineMean, baselineStdev, currentMean, runs) => {
         return 1000;
     }
 
-    return Math.abs((currentMean - baselineMean) / (baselineStdev / Math.sqrt(runs)));
+    return Math.abs(
+        (currentMean - baselineMean) / (baselineStdev / Math.sqrt(runs)),
+    );
 };
 
 /**

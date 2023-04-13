@@ -14,7 +14,9 @@ import translations from '../languages/translations';
  */
 function toLocalPhone(locale, number) {
     const numString = lodashTrim(number);
-    const withoutPlusNum = lodashIncludes(numString, '+') ? Str.cutBefore(numString, '+') : numString;
+    const withoutPlusNum = lodashIncludes(numString, '+')
+        ? Str.cutBefore(numString, '+')
+        : numString;
     const country = lodashGet(translations, [locale, 'phoneCountryCode']);
 
     if (country) {
@@ -35,7 +37,9 @@ function toLocalPhone(locale, number) {
  */
 function fromLocalPhone(locale, number) {
     const numString = lodashTrim(number);
-    const withoutPlusNum = lodashIncludes(numString, '+') ? Str.cutBefore(numString, '+') : numString;
+    const withoutPlusNum = lodashIncludes(numString, '+')
+        ? Str.cutBefore(numString, '+')
+        : numString;
     const country = lodashGet(translations, [locale, 'phoneCountryCode']);
 
     if (country) {

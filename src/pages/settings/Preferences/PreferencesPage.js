@@ -14,9 +14,13 @@ import CONST from '../../../CONST';
 import * as User from '../../../libs/actions/User';
 import ScreenWrapper from '../../../components/ScreenWrapper';
 import Switch from '../../../components/Switch';
-import withLocalize, {withLocalizePropTypes} from '../../../components/withLocalize';
+import withLocalize, {
+    withLocalizePropTypes,
+} from '../../../components/withLocalize';
 import compose from '../../../libs/compose';
-import withEnvironment, {environmentPropTypes} from '../../../components/withEnvironment';
+import withEnvironment, {
+    environmentPropTypes,
+} from '../../../components/withEnvironment';
 import TestToolMenu from '../../../components/TestToolMenu';
 import MenuItemWithTopDescription from '../../../components/MenuItemWithTopDescription';
 
@@ -47,7 +51,10 @@ const PreferencesPage = (props) => {
     const languages = props.translate('languagePage.languages');
 
     // Enable additional test features in the staging or dev environments
-    const shouldShowTestToolMenu = _.contains([CONST.ENVIRONMENT.STAGING, CONST.ENVIRONMENT.DEV], props.environment);
+    const shouldShowTestToolMenu = _.contains(
+        [CONST.ENVIRONMENT.STAGING, CONST.ENVIRONMENT.DEV],
+        props.environment,
+    );
 
     return (
         <ScreenWrapper includeSafeAreaPaddingBottom={false}>
@@ -59,28 +66,61 @@ const PreferencesPage = (props) => {
             />
             <ScrollView style={[styles.flex1, styles.mt3]}>
                 <View style={styles.mb6}>
-                    <Text style={[styles.textLabelSupporting, styles.mb2, styles.ml5, styles.mr8]} numberOfLines={1}>
+                    <Text
+                        style={[
+                            styles.textLabelSupporting,
+                            styles.mb2,
+                            styles.ml5,
+                            styles.mr8,
+                        ]}
+                        numberOfLines={1}
+                    >
                         {props.translate('common.notifications')}
                     </Text>
-                    <View style={[styles.flexRow, styles.mb4, styles.justifyContentBetween, styles.ml5, styles.mr8]}>
+                    <View
+                        style={[
+                            styles.flexRow,
+                            styles.mb4,
+                            styles.justifyContentBetween,
+                            styles.ml5,
+                            styles.mr8,
+                        ]}
+                    >
                         <View style={styles.flex4}>
-                            <Text>{props.translate('preferencesPage.receiveRelevantFeatureUpdatesAndExpensifyNews')}</Text>
+                            <Text>
+                                {props.translate(
+                                    'preferencesPage.receiveRelevantFeatureUpdatesAndExpensifyNews',
+                                )}
+                            </Text>
                         </View>
                         <View style={[styles.flex1, styles.alignItemsEnd]}>
-                            <Switch isOn={lodashGet(props.user, 'isSubscribedToNewsletter', true)} onToggle={User.updateNewsletterSubscription} />
+                            <Switch
+                                isOn={lodashGet(
+                                    props.user,
+                                    'isSubscribedToNewsletter',
+                                    true,
+                                )}
+                                onToggle={User.updateNewsletterSubscription}
+                            />
                         </View>
                     </View>
                     <MenuItemWithTopDescription
                         shouldShowRightIcon
                         title={priorityModes[props.priorityMode].label}
-                        description={props.translate('priorityModePage.priorityMode')}
-                        onPress={() => Navigation.navigate(ROUTES.SETTINGS_PRIORITY_MODE)}
+                        description={props.translate(
+                            'priorityModePage.priorityMode',
+                        )}
+                        onPress={() =>
+                            Navigation.navigate(ROUTES.SETTINGS_PRIORITY_MODE)
+                        }
                     />
                     <MenuItemWithTopDescription
                         shouldShowRightIcon
                         title={languages[props.preferredLocale].label}
                         description={props.translate('languagePage.language')}
-                        onPress={() => Navigation.navigate(ROUTES.SETTINGS_LANGUAGE)}
+                        onPress={() =>
+                            Navigation.navigate(ROUTES.SETTINGS_LANGUAGE)
+                        }
                     />
                     {shouldShowTestToolMenu && (
                         <View style={[styles.ml5, styles.mr8, styles.mt6]}>

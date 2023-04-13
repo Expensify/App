@@ -4,13 +4,19 @@
  */
 import React from 'react';
 import BaseKeyboardSpacer from './BaseKeyboardSpacer';
-import withWindowDimensions, {windowDimensionsPropTypes} from '../withWindowDimensions';
+import withWindowDimensions, {
+    windowDimensionsPropTypes,
+} from '../withWindowDimensions';
 import * as StyleUtils from '../../styles/StyleUtils';
 import CONST from '../../CONST';
 
 const KeyboardSpacer = (props) => (
     <BaseKeyboardSpacer
-        topSpacing={StyleUtils.hasSafeAreas(props.windowWidth, props.windowHeight) ? CONST.IOS_KEYBOARD_SPACE_OFFSET : 0}
+        topSpacing={
+            StyleUtils.hasSafeAreas(props.windowWidth, props.windowHeight)
+                ? CONST.IOS_KEYBOARD_SPACE_OFFSET
+                : 0
+        }
         keyboardShowMethod="keyboardWillShow"
         keyboardHideMethod="keyboardWillHide"
     />

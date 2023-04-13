@@ -36,7 +36,10 @@ export default function (email = 'fake@email.com', password = 'Password123') {
         const connectionId = Onyx.connect({
             key: ONYXKEYS.SESSION,
             callback: (session) => {
-                if (session.authToken == null || session.authToken.length === 0) {
+                if (
+                    session.authToken == null ||
+                    session.authToken.length === 0
+                ) {
                     neededLogin = true;
 
                     // authenticate with a predefined user

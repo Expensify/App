@@ -23,7 +23,16 @@ import * as ErrorUtils from './ErrorUtils';
 function Authenticate(parameters) {
     const commandName = 'Authenticate';
 
-    requireParameters(['partnerName', 'partnerPassword', 'partnerUserID', 'partnerUserSecret'], parameters, commandName);
+    requireParameters(
+        [
+            'partnerName',
+            'partnerPassword',
+            'partnerUserID',
+            'partnerUserSecret',
+        ],
+        parameters,
+        commandName,
+    );
 
     return Network.post(commandName, {
         // When authenticating for the first time, we pass useExpensifyLogin as true so we check
@@ -76,18 +85,25 @@ function reauthenticate(command = '') {
 
         // If authentication fails and we are online then log the user out
         if (response.jsonCode !== 200) {
-            const errorMessage = ErrorUtils.getAuthenticateErrorMessage(response);
+            const errorMessage =
+                ErrorUtils.getAuthenticateErrorMessage(response);
             NetworkStore.setIsAuthenticating(false);
-            Log.hmmm('Redirecting to Sign In because we failed to reauthenticate', {
-                command,
-                error: errorMessage,
-            });
+            Log.hmmm(
+                'Redirecting to Sign In because we failed to reauthenticate',
+                {
+                    command,
+                    error: errorMessage,
+                },
+            );
             redirectToSignIn(errorMessage);
             return;
         }
 
         // Update authToken in Onyx and in our local variables so that API requests will use the new authToken
-        updateSessionAuthTokens(response.authToken, response.encryptedAuthToken);
+        updateSessionAuthTokens(
+            response.authToken,
+            response.encryptedAuthToken,
+        );
 
         // Note: It is important to manually set the authToken that is in the store here since any requests that are hooked into
         // reauthenticate .then() will immediate post and use the local authToken. Onyx updates subscribers lately so it is not

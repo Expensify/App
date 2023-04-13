@@ -23,12 +23,17 @@ function getNumberOfLines(lineHeight, paddingTopAndBottom, scrollHeight) {
  */
 function updateNumberOfLines(props, e) {
     const lineHeight = styles.textInputCompose.lineHeight;
-    const paddingTopAndBottom = styles.textInputComposeSpacing.paddingVertical * 2;
+    const paddingTopAndBottom =
+        styles.textInputComposeSpacing.paddingVertical * 2;
     const inputHeight = lodashGet(e, 'nativeEvent.contentSize.height', null);
     if (!inputHeight) {
         return;
     }
-    const numberOfLines = getNumberOfLines(lineHeight, paddingTopAndBottom, inputHeight);
+    const numberOfLines = getNumberOfLines(
+        lineHeight,
+        paddingTopAndBottom,
+        inputHeight,
+    );
     updateIsFullComposerAvailable(props, numberOfLines);
 }
 

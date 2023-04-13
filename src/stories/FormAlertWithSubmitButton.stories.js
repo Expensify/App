@@ -29,7 +29,8 @@ const defaultArgs = {
 };
 
 Default.args = defaultArgs;
-const html = '<em>This is</em> a <strong>test</strong>. None of <h1>these strings</h1> should display <del>as</del> <div>HTML</div>.';
+const html =
+    '<em>This is</em> a <strong>test</strong>. None of <h1>these strings</h1> should display <del>as</del> <div>HTML</div>.';
 HtmlError.args = {...defaultArgs, isMessageHtml: true, message: html};
 
 export default story;

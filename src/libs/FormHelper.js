@@ -26,7 +26,9 @@ class FormHelper {
      */
     clearErrors(props, paths) {
         const errors = this.getErrors(props);
-        const pathsWithErrors = _.filter(paths, (path) => lodashGet(errors, path, false));
+        const pathsWithErrors = _.filter(paths, (path) =>
+            lodashGet(errors, path, false),
+        );
         if (_.size(pathsWithErrors) === 0) {
             // No error found for this path
             return;

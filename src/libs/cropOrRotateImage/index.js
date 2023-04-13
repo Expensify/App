@@ -48,7 +48,13 @@ function rotateCanvas(canvas, degrees) {
     const radians = (degrees * Math.PI) / 180;
     context.rotate(radians);
 
-    context.drawImage(canvas, -canvas.width / 2, -canvas.height / 2, canvas.width, canvas.height);
+    context.drawImage(
+        canvas,
+        -canvas.width / 2,
+        -canvas.height / 2,
+        canvas.width,
+        canvas.height,
+    );
 
     return result;
 }
@@ -77,7 +83,17 @@ function cropCanvas(canvas, options) {
     result.height = height;
 
     const context = result.getContext('2d');
-    context.drawImage(canvas, originX, originY, width, height, 0, 0, width, height);
+    context.drawImage(
+        canvas,
+        originX,
+        originY,
+        width,
+        height,
+        0,
+        0,
+        width,
+        height,
+    );
 
     return result;
 }
@@ -115,7 +131,13 @@ function loadImageAsync(uri) {
             canvas.height = imageSource.naturalHeight;
 
             const context = canvas.getContext('2d');
-            context.drawImage(imageSource, 0, 0, imageSource.naturalWidth, imageSource.naturalHeight);
+            context.drawImage(
+                imageSource,
+                0,
+                0,
+                imageSource.naturalWidth,
+                imageSource.naturalHeight,
+            );
 
             resolve(canvas);
         };

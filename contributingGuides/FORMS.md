@@ -13,7 +13,10 @@ Labels are required for each input and should clearly mark the field. Optional t
 Labels and hints are enabled by passing the appropriate props to each input:
 
 ```jsx
-<TextInput label="Value" hint="Hint text goes here" />
+<TextInput
+    label="Value"
+    hint="Hint text goes here"
+/>
 ```
 
 ### Character Limits
@@ -21,15 +24,16 @@ Labels and hints are enabled by passing the appropriate props to each input:
 If a field has a character limit we should give that field a max limit. This is done by passing the maxLength prop to TextInput.
 
 ```jsx
-<TextInput maxLength={20} />
+<TextInput
+    maxLength={20}
+/>
 ```
-
 Note: We shouldn't place a max limit on a field if the entered value can be formatted. eg: Phone number.
 The phone number can be formatted in different ways.
 
--   2109400803
--   +12109400803
--   (210)-940-0803
+- 2109400803
+- +12109400803
+- (210)-940-0803
 
 ### Native Keyboards
 
@@ -38,7 +42,9 @@ We should always set people up for success on native platforms by enabling the b
 We have a couple of keyboard types [defined](https://github.com/Expensify/App/blob/572caa9e7cf32a2d64fe0e93d171bb05a1dfb217/src/CONST.js#L357-L360) and should be used like so:
 
 ```jsx
-<TextInput keyboardType={CONST.KEYBOARD_TYPE.NUMBER_PAD} />
+<TextInput
+    keyboardType={CONST.KEYBOARD_TYPE.NUMBER_PAD}
+/>
 ```
 
 ### Autofill Behavior
@@ -50,7 +56,9 @@ As a best practice we should avoid asking for information we can get via other m
 Browsers use the name prop to autofill information into the input. Here's a [reference](https://developers.google.com/web/fundamentals/design-and-ux/input/forms#recommended_input_name_and_autocomplete_attribute_values) for available values for the name prop.
 
 ```jsx
-<TextInput name="fname" />
+<TextInput
+    name="fname"
+/>
 ```
 
 ### Focus and Tab Behavior
@@ -83,7 +91,9 @@ To give a slightly more detailed example of how this would work with phone numbe
 Form inputs will NOT store draft values by default. This is to avoid accidentally storing any sensitive information like passwords, SSN or bank account information. We need to explicitly tell each form input to save draft values by passing the shouldSaveDraft prop to the input. Saving draft values is highly desirable and we should always try to save draft values. This way when a user continues a given flow they can easily pick up right where they left off if they accidentally exited a flow. Inputs with saved draft values [will be cleared when a user logs out](https://github.com/Expensify/App/blob/aa1f0f34eeba5d761657168255a1ae9aebdbd95e/src/libs/actions/SignInRedirect.js#L52) (like most data). Additionally, we should clear draft data once the form is successfully submitted by calling `Onyx.set(ONYXKEY.FORM_ID, null)` in the onSubmit callback passed to Form.
 
 ```jsx
-<TextInput shouldSaveDraft />
+<TextInput
+    shouldSaveDraft
+/>
 ```
 
 ## Form Validation and Error handling
@@ -96,7 +106,7 @@ Once a user has “touched” an input, i.e. blurred the input, we will also sta
 
 All form fields will additionally be validated when the form is submitted. Although we are validating on blur this additional step is necessary to cover edge cases where forms are auto-filled or when a form is submitted by pressing enter (i.e. there will be only a ‘submit’ event and no ‘blur’ event to hook into).
 
-The Form component takes care of validation internally and the only requirement is that we pass a validate callback prop. The validate callback takes in the input values as argument and should return an object with shape `{[inputID]: errorMessage}`.
+The Form component takes care of validation internally and the only requirement is that we pass a validate callback prop. The validate callback takes in the input values as argument and should return an object with shape `{[inputID]: errorMessage}`. 
 
 Here's an example for a form that has two inputs, `routingNumber` and `accountNumber`:
 
@@ -117,22 +127,22 @@ When more than one method is used to validate the value, the `addErrorMessage` f
 
 ```js
 function validate(values) {
-    let errors = {};
+        let errors = {};
 
-    if (!ValidationUtils.isValidDisplayName(values.firstName)) {
-        errors = ErrorUtils.addErrorMessage(errors, 'firstName', props.translate('personalDetails.error.hasInvalidCharacter'));
+        if (!ValidationUtils.isValidDisplayName(values.firstName)) {
+            errors = ErrorUtils.addErrorMessage(errors, 'firstName', props.translate('personalDetails.error.hasInvalidCharacter'));
+        }
+
+        if (ValidationUtils.doesContainReservedWord(values.firstName, CONST.DISPLAY_NAME.RESERVED_FIRST_NAMES)) {
+            errors = ErrorUtils.addErrorMessage(errors, 'firstName', props.translate('personalDetails.error.containsReservedWord'));
+        }
+
+        if (!ValidationUtils.isValidDisplayName(values.lastName)) {
+            errors.lastName = props.translate('personalDetails.error.hasInvalidCharacter');
+        }
+
+        return errors;
     }
-
-    if (ValidationUtils.doesContainReservedWord(values.firstName, CONST.DISPLAY_NAME.RESERVED_FIRST_NAMES)) {
-        errors = ErrorUtils.addErrorMessage(errors, 'firstName', props.translate('personalDetails.error.containsReservedWord'));
-    }
-
-    if (!ValidationUtils.isValidDisplayName(values.lastName)) {
-        errors.lastName = props.translate('personalDetails.error.hasInvalidCharacter');
-    }
-
-    return errors;
-}
 ```
 
 For a working example, check [Form story](https://github.com/Expensify/App/blob/aa1f0f34eeba5d761657168255a1ae9aebdbd95e/src/stories/Form.stories.js#L63-L72)
@@ -162,7 +172,6 @@ Note: This is not meant to suggest that we should avoid validating in the backen
 Note: There are edge cases where some server errors will inevitably relate to specific fields in a form with other fields unrelated to that error. We had trouble coming to a consensus on exactly how this edge case should be handled (e.g. show inline error, clear on blur, etc). For now, we will show the server error in the form alert and not inline (so the “fix the errors” link will not be present). In those cases, we will still attempt to inform the user which field needs attention, but not highlight the input or display an error below the input. We will be on the lookout for our first validation in the server that could benefit from being tied to a specific field and try to come up with a unified solution for all errors.
 
 ## Form Submission
-
 ### Submit Button Disabling
 
 Submit buttons shall not be disabled or blocked from being pressed in most cases. We will allow the user to submit a form and point them in the right direction if anything needs their attention.
@@ -192,13 +201,27 @@ function onSubmit(values) {
     }, 1000);
 }
 
-<Form formID="testForm" submitButtonText="Submit" validate={this.validate} onSubmit={this.onSubmit}>
+<Form
+    formID="testForm"
+    submitButtonText="Submit"
+    validate={this.validate}
+    onSubmit={this.onSubmit}
+>
     // Wrapping TextInput in a View to show that Form inputs can be nested in other components
     <View>
-        <TextInput label="Routing number" inputID="routingNumber" maxLength={8} shouldSaveDraft />
+        <TextInput
+            label="Routing number"
+            inputID="routingNumber"
+            maxLength={8}
+            shouldSaveDraft
+        />
     </View>
-    <TextInput label="Account number" inputID="accountNumber" containerStyles={[styles.mt4]} />
-</Form>;
+    <TextInput
+        label="Account number"
+        inputID="accountNumber"
+        containerStyles={[styles.mt4]}
+    />
+</Form>
 ```
 
 `Form.js` also works with inputs nested in a custom component, e.g. [AddressForm](https://github.com/Expensify/App/blob/86579225ff30b21dea507347735259637a2df461/src/pages/ReimbursementAccount/AddressForm.js). The only exception is that the nested component shouldn't be wrapped around any HoC.
@@ -207,35 +230,49 @@ function onSubmit(values) {
 const BankAccountForm = () => (
     <>
         <View>
-            <TextInput label="Routing number" inputID="routingNumber" maxLength={8} shouldSaveDraft />
+            <TextInput
+                label="Routing number"
+                inputID="routingNumber"
+                maxLength={8}
+                shouldSaveDraft
+            />
         </View>
-        <TextInput label="Account number" inputID="accountNumber" containerStyles={[styles.mt4]} />
+        <TextInput
+            label="Account number"
+            inputID="accountNumber"
+            containerStyles={[styles.mt4]}
+        />
     </>
 );
 
 // ...
-<Form formID="testForm" submitButtonText="Submit" validate={this.validate} onSubmit={this.onSubmit}>
+<Form
+    formID="testForm"
+    submitButtonText="Submit"
+    validate={this.validate}
+    onSubmit={this.onSubmit}
+>
     <BankAccountForm />
-</Form>;
+</Form>
 ```
 
 ### Props provided to Form inputs
 
 The following prop is available to form inputs:
 
--   inputID: An unique identifier for the input.
--   shouldSaveDraft: Saves a draft of the input value.
--   defaultValue: The initial value of the input.
--   value: The value to show for the input.
--   onValueChange: A callback that is called when the input's value changes.
+- inputID: An unique identifier for the input.
+- shouldSaveDraft: Saves a draft of the input value.
+- defaultValue: The initial value of the input.
+- value: The value to show for the input.
+- onValueChange: A callback that is called when the input's value changes.
 
 Form.js will automatically provide the following props to any input with the inputID prop.
 
--   ref: A React ref that must be attached to the input.
--   value: The input value.
--   errorText: The translated error text that is returned by validate for that specific input.
--   onBlur: An onBlur handler that calls validate.
--   onInputChange: An onChange handler that saves draft values and calls validate for that input (inputA). Passing an inputID as a second param allows inputA to manipulate the input value of the provided inputID (inputB).
+- ref: A React ref that must be attached to the input.
+- value: The input value.
+- errorText: The translated error text that is returned by validate for that specific input.
+- onBlur: An onBlur handler that calls validate.
+- onInputChange: An onChange handler that saves draft values and calls validate for that input (inputA). Passing an inputID as a second param allows inputA to manipulate the input value of the provided inputID (inputB).
 
 ## Dynamic Form Inputs
 

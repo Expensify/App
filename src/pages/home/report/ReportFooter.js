@@ -11,7 +11,9 @@ import OfflineWithFeedback from '../../../components/OfflineWithFeedback';
 import ArchivedReportFooter from '../../../components/ArchivedReportFooter';
 import compose from '../../../libs/compose';
 import ONYXKEYS from '../../../ONYXKEYS';
-import withWindowDimensions, {windowDimensionsPropTypes} from '../../../components/withWindowDimensions';
+import withWindowDimensions, {
+    windowDimensionsPropTypes,
+} from '../../../components/withWindowDimensions';
 import styles from '../../../styles/styles';
 import reportActionPropTypes from './reportActionPropTypes';
 import reportPropTypes from '../../reportPropTypes';
@@ -74,27 +76,58 @@ class ReportFooter extends React.Component {
         return (
             <>
                 {(isArchivedRoom || hideComposer) && (
-                    <View style={[styles.chatFooter, this.props.isSmallScreenWidth ? styles.mb5 : null]}>
-                        {isArchivedRoom && <ArchivedReportFooter report={this.props.report} />}
+                    <View
+                        style={[
+                            styles.chatFooter,
+                            this.props.isSmallScreenWidth ? styles.mb5 : null,
+                        ]}
+                    >
+                        {isArchivedRoom && (
+                            <ArchivedReportFooter report={this.props.report} />
+                        )}
                         {!this.props.isSmallScreenWidth && (
-                            <View style={styles.offlineIndicatorRow}>{hideComposer && <OfflineIndicator containerStyles={[styles.chatItemComposeSecondaryRow]} />}</View>
+                            <View style={styles.offlineIndicatorRow}>
+                                {hideComposer && (
+                                    <OfflineIndicator
+                                        containerStyles={[
+                                            styles.chatItemComposeSecondaryRow,
+                                        ]}
+                                    />
+                                )}
+                            </View>
                         )}
                     </View>
                 )}
                 {!hideComposer && this.props.shouldShowComposeInput && (
-                    <View style={[this.getChatFooterStyles(), this.props.isComposerFullSize && styles.chatFooterFullCompose]}>
+                    <View
+                        style={[
+                            this.getChatFooterStyles(),
+                            this.props.isComposerFullSize &&
+                                styles.chatFooterFullCompose,
+                        ]}
+                    >
                         <SwipeableView onSwipeDown={Keyboard.dismiss}>
                             <OfflineWithFeedback
                                 pendingAction={this.props.pendingAction}
-                                style={this.props.isComposerFullSize ? styles.chatItemFullComposeRow : {}}
-                                contentContainerStyle={this.props.isComposerFullSize ? styles.flex1 : {}}
+                                style={
+                                    this.props.isComposerFullSize
+                                        ? styles.chatItemFullComposeRow
+                                        : {}
+                                }
+                                contentContainerStyle={
+                                    this.props.isComposerFullSize
+                                        ? styles.flex1
+                                        : {}
+                                }
                             >
                                 <ReportActionCompose
                                     onSubmit={this.props.onSubmitComment}
                                     reportID={this.props.report.reportID.toString()}
                                     reportActions={this.props.reportActions}
                                     report={this.props.report}
-                                    isComposerFullSize={this.props.isComposerFullSize}
+                                    isComposerFullSize={
+                                        this.props.isComposerFullSize
+                                    }
                                     disabled={this.props.shouldDisableCompose}
                                 />
                             </OfflineWithFeedback>

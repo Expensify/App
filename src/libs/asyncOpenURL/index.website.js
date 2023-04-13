@@ -7,7 +7,11 @@ import {Linking} from 'react-native';
  * @param {string}  url
  * @param {Boolean} shouldSkipCustomSafariLogic When true, we will use `Linking.openURL` even if the browser is Safari.
  */
-export default function asyncOpenURL(promise, url, shouldSkipCustomSafariLogic) {
+export default function asyncOpenURL(
+    promise,
+    url,
+    shouldSkipCustomSafariLogic,
+) {
     if (!url) {
         return;
     }
@@ -22,7 +26,8 @@ export default function asyncOpenURL(promise, url, shouldSkipCustomSafariLogic) 
         const windowRef = window.open();
         promise
             .then((params) => {
-                windowRef.location = typeof url === 'string' ? url : url(params);
+                windowRef.location =
+                    typeof url === 'string' ? url : url(params);
             })
             .catch(() => windowRef.close());
     }

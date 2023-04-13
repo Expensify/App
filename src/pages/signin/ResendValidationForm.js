@@ -9,7 +9,9 @@ import Button from '../../components/Button';
 import Text from '../../components/Text';
 import * as Session from '../../libs/actions/Session';
 import ONYXKEYS from '../../ONYXKEYS';
-import withLocalize, {withLocalizePropTypes} from '../../components/withLocalize';
+import withLocalize, {
+    withLocalizePropTypes,
+} from '../../components/withLocalize';
 import compose from '../../libs/compose';
 import redirectToSignIn from '../../libs/actions/SignInRedirect';
 import Avatar from '../../components/Avatar';
@@ -48,35 +50,81 @@ const defaultProps = {
 
 const ResendValidationForm = (props) => {
     const isSMSLogin = Str.isSMSLogin(props.credentials.login);
-    const login = isSMSLogin ? props.toLocalPhone(Str.removeSMSDomain(props.credentials.login)) : props.credentials.login;
-    const loginType = (isSMSLogin ? props.translate('common.phone') : props.translate('common.email')).toLowerCase();
+    const login = isSMSLogin
+        ? props.toLocalPhone(Str.removeSMSDomain(props.credentials.login))
+        : props.credentials.login;
+    const loginType = (
+        isSMSLogin
+            ? props.translate('common.phone')
+            : props.translate('common.email')
+    ).toLowerCase();
 
     return (
         <>
-            <View style={[styles.mt3, styles.flexRow, styles.alignItemsCenter, styles.justifyContentStart]}>
-                <Avatar source={ReportUtils.getDefaultAvatar(props.credentials.login)} imageStyles={[styles.mr2]} />
+            <View
+                style={[
+                    styles.mt3,
+                    styles.flexRow,
+                    styles.alignItemsCenter,
+                    styles.justifyContentStart,
+                ]}
+            >
+                <Avatar
+                    source={ReportUtils.getDefaultAvatar(
+                        props.credentials.login,
+                    )}
+                    imageStyles={[styles.mr2]}
+                />
                 <View style={[styles.flex1]}>
                     <Text style={[styles.textStrong]}>{login}</Text>
                 </View>
             </View>
             <View style={[styles.mv5]}>
-                <Text>{props.translate('resendValidationForm.weSentYouMagicSignInLink', {login, loginType})}</Text>
+                <Text>
+                    {props.translate(
+                        'resendValidationForm.weSentYouMagicSignInLink',
+                        {login, loginType},
+                    )}
+                </Text>
             </View>
             {!_.isEmpty(props.account.message) && (
                 // DotIndicatorMessage mostly expects onyxData errors so we need to mock an object so that the messages looks similar to prop.account.errors
-                <DotIndicatorMessage style={[styles.mb5, styles.flex0]} type="success" messages={{0: props.account.message}} />
+                <DotIndicatorMessage
+                    style={[styles.mb5, styles.flex0]}
+                    type="success"
+                    messages={{0: props.account.message}}
+                />
             )}
-            {!_.isEmpty(props.account.errors) && <DotIndicatorMessage style={[styles.mb5]} type="error" messages={props.account.errors} />}
-            <View style={[styles.mb4, styles.flexRow, styles.justifyContentBetween, styles.alignItemsCenter]}>
+            {!_.isEmpty(props.account.errors) && (
+                <DotIndicatorMessage
+                    style={[styles.mb5]}
+                    type="error"
+                    messages={props.account.errors}
+                />
+            )}
+            <View
+                style={[
+                    styles.mb4,
+                    styles.flexRow,
+                    styles.justifyContentBetween,
+                    styles.alignItemsCenter,
+                ]}
+            >
                 <TouchableOpacity onPress={() => redirectToSignIn()}>
-                    <Text style={[styles.link]}>{props.translate('common.back')}</Text>
+                    <Text style={[styles.link]}>
+                        {props.translate('common.back')}
+                    </Text>
                 </TouchableOpacity>
                 <Button
                     medium
                     success
                     text={props.translate('resendValidationForm.resendLink')}
                     isLoading={props.account.isLoading}
-                    onPress={() => (props.account.validated ? Session.resendResetPassword() : Session.resendValidationLink())}
+                    onPress={() =>
+                        props.account.validated
+                            ? Session.resendResetPassword()
+                            : Session.resendValidationLink()
+                    }
                     isDisabled={props.network.isOffline}
                 />
             </View>

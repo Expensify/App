@@ -28,7 +28,10 @@ const propTypes = {
     lastNameError: PropTypes.string,
 
     /** Additional styles to add after local styles */
-    style: PropTypes.oneOfType([PropTypes.arrayOf(PropTypes.object), PropTypes.object]),
+    style: PropTypes.oneOfType([
+        PropTypes.arrayOf(PropTypes.object),
+        PropTypes.object,
+    ]),
 };
 const defaultProps = {
     firstName: '',
@@ -39,7 +42,9 @@ const defaultProps = {
 };
 
 const FullNameInputRow = (props) => {
-    const additionalStyles = _.isArray(props.style) ? props.style : [props.style];
+    const additionalStyles = _.isArray(props.style)
+        ? props.style
+        : [props.style];
     return (
         <View style={[styles.flexRow, ...additionalStyles]}>
             <View style={styles.flex1}>

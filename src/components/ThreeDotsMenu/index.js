@@ -72,7 +72,9 @@ class ThreeDotsMenu extends Component {
         return (
             <>
                 <View>
-                    <Tooltip text={this.props.translate(this.props.iconTooltip)}>
+                    <Tooltip
+                        text={this.props.translate(this.props.iconTooltip)}
+                    >
                         <Pressable
                             onPress={() => {
                                 this.showPopoverMenu();
@@ -81,9 +83,15 @@ class ThreeDotsMenu extends Component {
                                 }
                             }}
                             ref={(el) => (this.button = el)}
-                            style={[styles.touchableButtonImage, ...this.props.iconStyles]}
+                            style={[
+                                styles.touchableButtonImage,
+                                ...this.props.iconStyles,
+                            ]}
                         >
-                            <Icon src={this.props.icon} fill={this.props.iconFill} />
+                            <Icon
+                                src={this.props.icon}
+                                fill={this.props.iconFill}
+                            />
                         </Pressable>
                     </Tooltip>
                 </View>

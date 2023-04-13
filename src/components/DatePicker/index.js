@@ -4,7 +4,9 @@ import _ from 'underscore';
 import TextInput from '../TextInput';
 import CONST from '../../CONST';
 import {propTypes, defaultProps} from './datepickerPropTypes';
-import withWindowDimensions, {windowDimensionsPropTypes} from '../withWindowDimensions';
+import withWindowDimensions, {
+    windowDimensionsPropTypes,
+} from '../withWindowDimensions';
 import './styles.css';
 
 const datePickerPropTypes = {
@@ -22,7 +24,9 @@ class DatePicker extends React.Component {
         /* We're using uncontrolled input otherwise it wont be possible to
          * raise change events with a date value - each change will produce a date
          * and make us reset the text input */
-        this.defaultValue = props.defaultValue ? moment(props.defaultValue).format(CONST.DATE.MOMENT_FORMAT_STRING) : '';
+        this.defaultValue = props.defaultValue
+            ? moment(props.defaultValue).format(CONST.DATE.MOMENT_FORMAT_STRING)
+            : '';
     }
 
     componentDidMount() {
@@ -45,7 +49,9 @@ class DatePicker extends React.Component {
 
         const asMoment = moment(text, true);
         if (asMoment.isValid()) {
-            this.props.onInputChange(asMoment.format(CONST.DATE.MOMENT_FORMAT_STRING));
+            this.props.onInputChange(
+                asMoment.format(CONST.DATE.MOMENT_FORMAT_STRING),
+            );
         }
     }
 

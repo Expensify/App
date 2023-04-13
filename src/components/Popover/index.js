@@ -17,8 +17,12 @@ const Popover = (props) => {
                 {...props}
                 type={CONST.MODAL.MODAL_TYPE.POPOVER}
                 popoverAnchorPosition={props.anchorPosition}
-                animationInTiming={props.disableAnimation ? 1 : props.animationInTiming}
-                animationOutTiming={props.disableAnimation ? 1 : props.animationOutTiming}
+                animationInTiming={
+                    props.disableAnimation ? 1 : props.animationInTiming
+                }
+                animationOutTiming={
+                    props.disableAnimation ? 1 : props.animationOutTiming
+                }
                 shouldCloseOnOutsideClick
             />,
             document.body,
@@ -28,11 +32,25 @@ const Popover = (props) => {
         <Modal
             // eslint-disable-next-line react/jsx-props-no-spreading
             {...props}
-            type={props.isSmallScreenWidth ? CONST.MODAL.MODAL_TYPE.BOTTOM_DOCKED : CONST.MODAL.MODAL_TYPE.POPOVER}
-            popoverAnchorPosition={props.isSmallScreenWidth ? undefined : props.anchorPosition}
+            type={
+                props.isSmallScreenWidth
+                    ? CONST.MODAL.MODAL_TYPE.BOTTOM_DOCKED
+                    : CONST.MODAL.MODAL_TYPE.POPOVER
+            }
+            popoverAnchorPosition={
+                props.isSmallScreenWidth ? undefined : props.anchorPosition
+            }
             fullscreen={props.isSmallScreenWidth ? true : props.fullscreen}
-            animationInTiming={props.disableAnimation && !props.isSmallScreenWidth ? 1 : props.animationInTiming}
-            animationOutTiming={props.disableAnimation && !props.isSmallScreenWidth ? 1 : props.animationOutTiming}
+            animationInTiming={
+                props.disableAnimation && !props.isSmallScreenWidth
+                    ? 1
+                    : props.animationInTiming
+            }
+            animationOutTiming={
+                props.disableAnimation && !props.isSmallScreenWidth
+                    ? 1
+                    : props.animationOutTiming
+            }
         />
     );
 };

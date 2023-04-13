@@ -162,11 +162,20 @@ function setSecondaryLoginAndNavigate(login, password) {
                 return;
             }
 
-            let error = lodashGet(response, 'message', 'Unable to add secondary login. Please try again.');
+            let error = lodashGet(
+                response,
+                'message',
+                'Unable to add secondary login. Please try again.',
+            );
 
             // Replace error with a friendlier message
-            if (error.includes('already belongs to an existing Expensify account.')) {
-                error = 'This login already belongs to an existing Expensify account.';
+            if (
+                error.includes(
+                    'already belongs to an existing Expensify account.',
+                )
+            ) {
+                error =
+                    'This login already belongs to an existing Expensify account.';
             }
             if (error.includes("I couldn't validate the phone number")) {
                 error = Localize.translateLocal('common.error.phoneNumber');
@@ -285,7 +294,11 @@ function deletePaypalMeAddress() {
         },
     ];
     API.write('DeletePaypalMeAddress', {}, {optimisticData});
-    Growl.show(Localize.translateLocal('paymentsPage.deletePayPalSuccess'), CONST.GROWL.SUCCESS, 3000);
+    Growl.show(
+        Localize.translateLocal('paymentsPage.deletePayPalSuccess'),
+        CONST.GROWL.SUCCESS,
+        3000,
+    );
 }
 
 function triggerNotifications(onyxUpdates) {
@@ -294,10 +307,17 @@ function triggerNotifications(onyxUpdates) {
             return;
         }
 
-        const reportID = update.key.replace(ONYXKEYS.COLLECTION.REPORT_ACTIONS, '');
+        const reportID = update.key.replace(
+            ONYXKEYS.COLLECTION.REPORT_ACTIONS,
+            '',
+        );
         const reportActions = _.values(update.value);
-        const sortedReportActions = ReportActionsUtils.getSortedReportActions(reportActions);
-        Report.showReportActionNotification(reportID, _.last(sortedReportActions));
+        const sortedReportActions =
+            ReportActionsUtils.getSortedReportActions(reportActions);
+        Report.showReportActionNotification(
+            reportID,
+            _.last(sortedReportActions),
+        );
     });
 }
 
@@ -313,12 +333,16 @@ function subscribeToUserEvents() {
     const pusherChannelName = `${CONST.PUSHER.PRIVATE_USER_CHANNEL_PREFIX}${currentUserAccountID}${CONFIG.PUSHER.SUFFIX}`;
 
     // Receive any relevant Onyx updates from the server
-    PusherUtils.subscribeToPrivateUserChannelEvent(Pusher.TYPE.ONYX_API_UPDATE, currentUserAccountID, (pushJSON) => {
-        SequentialQueue.getCurrentRequest().then(() => {
-            Onyx.update(pushJSON);
-            triggerNotifications(pushJSON);
-        });
-    });
+    PusherUtils.subscribeToPrivateUserChannelEvent(
+        Pusher.TYPE.ONYX_API_UPDATE,
+        currentUserAccountID,
+        (pushJSON) => {
+            SequentialQueue.getCurrentRequest().then(() => {
+                Onyx.update(pushJSON);
+                triggerNotifications(pushJSON);
+            });
+        },
+    );
 
     // Live-update an user's preferred locale
     Pusher.subscribe(
@@ -328,7 +352,9 @@ function subscribeToUserEvents() {
             Onyx.merge(ONYXKEYS.NVP_PREFERRED_LOCALE, pushJSON.preferredLocale);
         },
         () => {
-            NetworkConnection.triggerReconnectionCallbacks('pusher re-subscribed to private user channel');
+            NetworkConnection.triggerReconnectionCallbacks(
+                'pusher re-subscribed to private user channel',
+            );
         },
     ).catch((error) => {
         Log.hmmm('[User] Failed to subscribe to Pusher channel', false, {
@@ -346,7 +372,9 @@ function subscribeToUserEvents() {
             Onyx.merge(ONYXKEYS.SCREEN_SHARE_REQUEST, pushJSON);
         },
         () => {
-            NetworkConnection.triggerReconnectionCallbacks('pusher re-subscribed to private user channel');
+            NetworkConnection.triggerReconnectionCallbacks(
+                'pusher re-subscribed to private user channel',
+            );
         },
     ).catch((error) => {
         Log.hmmm('[User] Failed to subscribe to Pusher channel', false, {
@@ -377,7 +405,10 @@ function subscribeToExpensifyCardUpdates() {
                     isUsingExpensifyCard: pushJSON.isUsingExpensifyCard,
                     isCheckingDomain: null,
                 });
-                Pusher.unsubscribe(pusherChannelName, Pusher.TYPE.EXPENSIFY_CARD_UPDATE);
+                Pusher.unsubscribe(
+                    pusherChannelName,
+                    Pusher.TYPE.EXPENSIFY_CARD_UPDATE,
+                );
             } else {
                 Onyx.merge(ONYXKEYS.USER, {
                     isCheckingDomain: pushJSON.isCheckingDomain,
@@ -385,7 +416,9 @@ function subscribeToExpensifyCardUpdates() {
             }
         },
         () => {
-            NetworkConnection.triggerReconnectionCallbacks('pusher re-subscribed to private user channel');
+            NetworkConnection.triggerReconnectionCallbacks(
+                'pusher re-subscribed to private user channel',
+            );
         },
     ).catch((error) => {
         Log.info('[User] Failed to subscribe to Pusher channel', false, {
@@ -484,7 +517,9 @@ function clearScreenShareRequest() {
  * @param {String} roomName Name of the screen share room to join
  */
 function joinScreenShare(accessToken, roomName) {
-    Link.openOldDotLink(`inbox?action=screenShare&accessToken=${accessToken}&name=${roomName}`);
+    Link.openOldDotLink(
+        `inbox?action=screenShare&accessToken=${accessToken}&name=${roomName}`,
+    );
     clearScreenShareRequest();
 }
 

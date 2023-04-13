@@ -7,12 +7,17 @@ import {Alert, Linking, View} from 'react-native';
 import {launchImageLibrary} from 'react-native-image-picker';
 import RNDocumentPicker from 'react-native-document-picker';
 import RNFetchBlob from 'react-native-blob-util';
-import {propTypes as basePropTypes, defaultProps} from './attachmentPickerPropTypes';
+import {
+    propTypes as basePropTypes,
+    defaultProps,
+} from './attachmentPickerPropTypes';
 import styles from '../../styles/styles';
 import Popover from '../Popover';
 import MenuItem from '../MenuItem';
 import * as Expensicons from '../Icon/Expensicons';
-import withWindowDimensions, {windowDimensionsPropTypes} from '../withWindowDimensions';
+import withWindowDimensions, {
+    windowDimensionsPropTypes,
+} from '../withWindowDimensions';
 import withLocalize, {withLocalizePropTypes} from '../withLocalize';
 import compose from '../../libs/compose';
 import launchCamera from './launchCamera';
@@ -43,7 +48,8 @@ const imagePickerOptions = {
  */
 function getImagePickerOptions(type) {
     // mediaType property is one of the ImagePicker configuration to restrict types'
-    const mediaType = type === CONST.ATTACHMENT_PICKER_TYPE.IMAGE ? 'photo' : 'mixed';
+    const mediaType =
+        type === CONST.ATTACHMENT_PICKER_TYPE.IMAGE ? 'photo' : 'mixed';
     return {
         mediaType,
         ...imagePickerOptions,
@@ -80,10 +86,12 @@ function getDataForUpload(fileData) {
         return Promise.resolve(fileResult);
     }
 
-    return RNFetchBlob.fs.stat(fileData.uri.replace('file://', '')).then((stats) => {
-        fileResult.size = stats.size;
-        return fileResult;
-    });
+    return RNFetchBlob.fs
+        .stat(fileData.uri.replace('file://', ''))
+        .then((stats) => {
+            fileResult.size = stats.size;
+            return fileResult;
+        });
 }
 
 /**
@@ -162,7 +170,9 @@ class AttachmentPicker extends Component {
     showPermissionsAlert() {
         Alert.alert(
             this.props.translate('attachmentPicker.cameraPermissionRequired'),
-            this.props.translate('attachmentPicker.expensifyDoesntHaveAccessToCamera'),
+            this.props.translate(
+                'attachmentPicker.expensifyDoesntHaveAccessToCamera',
+            ),
             [
                 {
                     text: this.props.translate('common.cancel'),
@@ -185,26 +195,33 @@ class AttachmentPicker extends Component {
      */
     showImagePicker(imagePickerFunc) {
         return new Promise((resolve, reject) => {
-            imagePickerFunc(getImagePickerOptions(this.props.type), (response) => {
-                if (response.didCancel) {
-                    // When the user cancelled resolve with no attachment
-                    return resolve();
-                }
-                if (response.errorCode) {
-                    switch (response.errorCode) {
-                        case 'permission':
-                            this.showPermissionsAlert();
-                            break;
-                        default:
-                            this.showGeneralAlert();
-                            break;
+            imagePickerFunc(
+                getImagePickerOptions(this.props.type),
+                (response) => {
+                    if (response.didCancel) {
+                        // When the user cancelled resolve with no attachment
+                        return resolve();
+                    }
+                    if (response.errorCode) {
+                        switch (response.errorCode) {
+                            case 'permission':
+                                this.showPermissionsAlert();
+                                break;
+                            default:
+                                this.showGeneralAlert();
+                                break;
+                        }
+
+                        return reject(
+                            new Error(
+                                `Error during attachment selection: ${response.errorMessage}`,
+                            ),
+                        );
                     }
 
-                    return reject(new Error(`Error during attachment selection: ${response.errorMessage}`));
-                }
-
-                return resolve(response.assets);
-            });
+                    return resolve(response.assets);
+                },
+            );
         });
     }
 
@@ -213,14 +230,24 @@ class AttachmentPicker extends Component {
      *
      */
     showGeneralAlert() {
-        Alert.alert(this.props.translate('attachmentPicker.attachmentError'), this.props.translate('attachmentPicker.errorWhileSelectingAttachment'));
+        Alert.alert(
+            this.props.translate('attachmentPicker.attachmentError'),
+            this.props.translate(
+                'attachmentPicker.errorWhileSelectingAttachment',
+            ),
+        );
     }
 
     /**
      * An attachment error dialog when user selected malformed images
      */
     showImageCorruptionAlert() {
-        Alert.alert(this.props.translate('attachmentPicker.attachmentError'), this.props.translate('attachmentPicker.errorWhileSelectingCorruptedImage'));
+        Alert.alert(
+            this.props.translate('attachmentPicker.attachmentError'),
+            this.props.translate(
+                'attachmentPicker.errorWhileSelectingCorruptedImage',
+            ),
+        );
     }
 
     /**
@@ -303,10 +330,28 @@ class AttachmentPicker extends Component {
     render() {
         return (
             <>
-                <Popover onClose={this.close} isVisible={this.state.isVisible} anchorPosition={styles.createMenuPosition} onModalHide={this.onModalHide}>
-                    <View style={this.props.isSmallScreenWidth ? {} : styles.createMenuContainer}>
+                <Popover
+                    onClose={this.close}
+                    isVisible={this.state.isVisible}
+                    anchorPosition={styles.createMenuPosition}
+                    onModalHide={this.onModalHide}
+                >
+                    <View
+                        style={
+                            this.props.isSmallScreenWidth
+                                ? {}
+                                : styles.createMenuContainer
+                        }
+                    >
                         {_.map(this.menuItemData, (item) => (
-                            <MenuItem key={item.textTranslationKey} icon={item.icon} title={this.props.translate(item.textTranslationKey)} onPress={() => this.selectItem(item)} />
+                            <MenuItem
+                                key={item.textTranslationKey}
+                                icon={item.icon}
+                                title={this.props.translate(
+                                    item.textTranslationKey,
+                                )}
+                                onPress={() => this.selectItem(item)}
+                            />
                         ))}
                     </View>
                 </Popover>

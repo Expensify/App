@@ -37,7 +37,7 @@
     font-family: ExpensifyMono-Bold;
     font-weight: 700;
     font-style: normal;
-    src: url('../assets/fonts/web/ExpensifyMono-Bold.woff2') format('woff2'), url('../assets/fonts/web/ExpensifyMono-Bold.woff') format('woff');
+    src: url('../assets/fonts/web/ExpensifyMono-Bold.woff2') format('woff2'),  url('../assets/fonts/web/ExpensifyMono-Bold.woff') format('woff');
 }
 
 * {

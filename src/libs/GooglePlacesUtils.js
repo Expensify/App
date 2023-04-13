@@ -17,10 +17,15 @@ function getAddressComponents(addressComponents, fieldsToExtract) {
     const result = _.mapObject(fieldsToExtract, () => '');
     _.each(addressComponents, (addressComponent) => {
         _.each(addressComponent.types, (addressType) => {
-            if (!_.has(fieldsToExtract, addressType) || !_.isEmpty(result[addressType])) {
+            if (
+                !_.has(fieldsToExtract, addressType) ||
+                !_.isEmpty(result[addressType])
+            ) {
                 return;
             }
-            const value = addressComponent[fieldsToExtract[addressType]] ? addressComponent[fieldsToExtract[addressType]] : '';
+            const value = addressComponent[fieldsToExtract[addressType]]
+                ? addressComponent[fieldsToExtract[addressType]]
+                : '';
             result[addressType] = value;
         });
     });

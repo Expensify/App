@@ -10,7 +10,10 @@ const InlineCodeBlock = (props) => {
             // eslint-disable-next-line react/jsx-props-no-spreading
             {...props.defaultRendererProps}
         >
-            <WrappedText textStyles={[props.textStyle]} wordStyles={[props.boxModelStyle, styles.codeWordStyle]}>
+            <WrappedText
+                textStyles={[props.textStyle]}
+                wordStyles={[props.boxModelStyle, styles.codeWordStyle]}
+            >
                 {props.defaultRendererProps.tnode.data}
             </WrappedText>
         </TDefaultRenderer>

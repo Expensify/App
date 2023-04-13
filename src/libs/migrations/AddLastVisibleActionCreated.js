@@ -26,18 +26,28 @@ export default function () {
                     }
 
                     reportsToUpdate[key] = report;
-                    reportsToUpdate[key].lastVisibleActionCreated = report.lastActionCreated;
+                    reportsToUpdate[key].lastVisibleActionCreated =
+                        report.lastActionCreated;
                     reportsToUpdate[key].lastActionCreated = null;
                 });
 
                 if (_.isEmpty(reportsToUpdate)) {
-                    Log.info('[Migrate Onyx] Skipped migration AddLastVisibleActionCreated');
+                    Log.info(
+                        '[Migrate Onyx] Skipped migration AddLastVisibleActionCreated',
+                    );
                     return resolve();
                 }
 
-                Log.info(`[Migrate Onyx] Adding lastVisibleActionCreated field to ${_.keys(reportsToUpdate).length} reports`);
+                Log.info(
+                    `[Migrate Onyx] Adding lastVisibleActionCreated field to ${
+                        _.keys(reportsToUpdate).length
+                    } reports`,
+                );
                 // eslint-disable-next-line rulesdir/prefer-actions-set-data
-                return Onyx.mergeCollection(ONYXKEYS.COLLECTION.REPORT, reportsToUpdate).then(resolve);
+                return Onyx.mergeCollection(
+                    ONYXKEYS.COLLECTION.REPORT,
+                    reportsToUpdate,
+                ).then(resolve);
             },
         });
     });

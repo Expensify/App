@@ -11,10 +11,14 @@ import * as ReimbursementAccountProps from '../../../pages/ReimbursementAccount/
  */
 function resetFreePlanBankAccount(bankAccountID) {
     if (!bankAccountID) {
-        throw new Error('Missing bankAccountID when attempting to reset free plan bank account');
+        throw new Error(
+            'Missing bankAccountID when attempting to reset free plan bank account',
+        );
     }
     if (!store.getCredentials() || !store.getCredentials().login) {
-        throw new Error('Missing credentials when attempting to reset free plan bank account');
+        throw new Error(
+            'Missing credentials when attempting to reset free plan bank account',
+        );
     }
 
     API.write(

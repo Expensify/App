@@ -1,4 +1,6 @@
-const {PERMISSIONS} = require('react-native-permissions/dist/commonjs/permissions');
+const {
+    PERMISSIONS,
+} = require('react-native-permissions/dist/commonjs/permissions');
 const {RESULTS} = require('react-native-permissions/dist/commonjs/results');
 const _ = require('underscore');
 
@@ -11,7 +13,14 @@ const request = jest.fn(() => RESULTS.GRANTED);
 const checkLocationAccuracy = jest.fn(() => 'full');
 const requestLocationAccuracy = jest.fn(() => 'full');
 
-const notificationOptions = ['alert', 'badge', 'sound', 'carPlay', 'criticalAlert', 'provisional'];
+const notificationOptions = [
+    'alert',
+    'badge',
+    'sound',
+    'carPlay',
+    'criticalAlert',
+    'provisional',
+];
 
 const notificationSettings = {
     alert: true,

@@ -14,7 +14,9 @@ import * as Report from '../../../libs/actions/Report';
 import reportPropTypes from '../../reportPropTypes';
 import EmptyStateBackgroundImage from '../../../../assets/images/empty-state_background-fade.png';
 import * as StyleUtils from '../../../styles/StyleUtils';
-import withWindowDimensions, {windowDimensionsPropTypes} from '../../../components/withWindowDimensions';
+import withWindowDimensions, {
+    windowDimensionsPropTypes,
+} from '../../../components/withWindowDimensions';
 import compose from '../../../libs/compose';
 
 const propTypes = {
@@ -42,18 +44,55 @@ const defaultProps = {
 };
 
 const ReportActionItemCreated = (props) => {
-    const icons = ReportUtils.getIcons(props.report, props.personalDetails, props.policies);
+    const icons = ReportUtils.getIcons(
+        props.report,
+        props.personalDetails,
+        props.policies,
+    );
     return (
         <OfflineWithFeedback
-            pendingAction={lodashGet(props.report, 'pendingFields.addWorkspaceRoom') || lodashGet(props.report, 'pendingFields.createChat')}
-            errors={lodashGet(props.report, 'errorFields.addWorkspaceRoom') || lodashGet(props.report, 'errorFields.createChat')}
+            pendingAction={
+                lodashGet(props.report, 'pendingFields.addWorkspaceRoom') ||
+                lodashGet(props.report, 'pendingFields.createChat')
+            }
+            errors={
+                lodashGet(props.report, 'errorFields.addWorkspaceRoom') ||
+                lodashGet(props.report, 'errorFields.createChat')
+            }
             errorRowStyles={[styles.ml10, styles.mr2]}
-            onClose={() => Report.navigateToConciergeChatAndDeleteReport(props.report.reportID)}
+            onClose={() =>
+                Report.navigateToConciergeChatAndDeleteReport(
+                    props.report.reportID,
+                )
+            }
         >
-            <View style={StyleUtils.getReportWelcomeContainerStyle(props.isSmallScreenWidth)}>
-                <Image pointerEvents="none" source={EmptyStateBackgroundImage} style={StyleUtils.getReportWelcomeBackgroundImageStyle(props.isSmallScreenWidth)} />
-                <View accessibilityLabel="Chat welcome message" style={[styles.p5, StyleUtils.getReportWelcomeTopMarginStyle(props.isSmallScreenWidth)]}>
-                    <Pressable onPress={() => ReportUtils.navigateToDetailsPage(props.report)} style={[styles.ph5, styles.pb3, styles.alignSelfStart]}>
+            <View
+                style={StyleUtils.getReportWelcomeContainerStyle(
+                    props.isSmallScreenWidth,
+                )}
+            >
+                <Image
+                    pointerEvents="none"
+                    source={EmptyStateBackgroundImage}
+                    style={StyleUtils.getReportWelcomeBackgroundImageStyle(
+                        props.isSmallScreenWidth,
+                    )}
+                />
+                <View
+                    accessibilityLabel="Chat welcome message"
+                    style={[
+                        styles.p5,
+                        StyleUtils.getReportWelcomeTopMarginStyle(
+                            props.isSmallScreenWidth,
+                        ),
+                    ]}
+                >
+                    <Pressable
+                        onPress={() =>
+                            ReportUtils.navigateToDetailsPage(props.report)
+                        }
+                        style={[styles.ph5, styles.pb3, styles.alignSelfStart]}
+                    >
                         <RoomHeaderAvatars icons={icons} />
                     </Pressable>
                     <View style={[styles.ph5]}>

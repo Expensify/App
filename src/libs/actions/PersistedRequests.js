@@ -25,7 +25,9 @@ function save(requestsToPersist) {
  * @param {Object} requestToRemove
  */
 function remove(requestToRemove) {
-    persistedRequests = _.reject(persistedRequests, (persistedRequest) => _.isEqual(persistedRequest, requestToRemove));
+    persistedRequests = _.reject(persistedRequests, (persistedRequest) =>
+        _.isEqual(persistedRequest, requestToRemove),
+    );
     Onyx.set(ONYXKEYS.PERSISTED_REQUESTS, persistedRequests);
 }
 

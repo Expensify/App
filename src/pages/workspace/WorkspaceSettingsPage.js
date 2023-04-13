@@ -4,7 +4,9 @@ import {withOnyx} from 'react-native-onyx';
 import _ from 'underscore';
 import lodashGet from 'lodash/get';
 import ONYXKEYS from '../../ONYXKEYS';
-import withLocalize, {withLocalizePropTypes} from '../../components/withLocalize';
+import withLocalize, {
+    withLocalizePropTypes,
+} from '../../components/withLocalize';
 import styles from '../../styles/styles';
 import Text from '../../components/Text';
 import compose from '../../libs/compose';
@@ -56,7 +58,11 @@ class WorkspaceSettingsPage extends React.Component {
             return;
         }
         const outputCurrency = values.currency;
-        Policy.updateGeneralSettings(this.props.policy.id, values.name, outputCurrency);
+        Policy.updateGeneralSettings(
+            this.props.policy.id,
+            values.name,
+            outputCurrency,
+        );
         Keyboard.dismiss();
     }
 
@@ -65,7 +71,9 @@ class WorkspaceSettingsPage extends React.Component {
         const name = values.name.trim();
 
         if (!name || !name.length) {
-            errors.name = this.props.translate('workspace.editor.nameIsRequiredError');
+            errors.name = this.props.translate(
+                'workspace.editor.nameIsRequiredError',
+            );
         }
 
         return errors;
@@ -82,7 +90,9 @@ class WorkspaceSettingsPage extends React.Component {
                 {(hasVBA) => (
                     <Form
                         formID={ONYXKEYS.FORMS.WORKSPACE_SETTINGS_FORM}
-                        submitButtonText={this.props.translate('workspace.editor.save')}
+                        submitButtonText={this.props.translate(
+                            'workspace.editor.save',
+                        )}
                         style={[styles.mh5, styles.flexGrow1]}
                         scrollContextEnabled
                         validate={this.validate}
@@ -90,38 +100,85 @@ class WorkspaceSettingsPage extends React.Component {
                         enabledWhenOffline
                     >
                         <OfflineWithFeedback
-                            pendingAction={lodashGet(this.props.policy, 'pendingFields.avatar', null)}
-                            errors={lodashGet(this.props.policy, 'errorFields.avatar', null)}
-                            onClose={() => Policy.clearAvatarErrors(this.props.policy.id)}
+                            pendingAction={lodashGet(
+                                this.props.policy,
+                                'pendingFields.avatar',
+                                null,
+                            )}
+                            errors={lodashGet(
+                                this.props.policy,
+                                'errorFields.avatar',
+                                null,
+                            )}
+                            onClose={() =>
+                                Policy.clearAvatarErrors(this.props.policy.id)
+                            }
                         >
                             <AvatarWithImagePicker
-                                isUploading={this.props.policy.isAvatarUploading}
+                                isUploading={
+                                    this.props.policy.isAvatarUploading
+                                }
                                 source={lodashGet(this.props.policy, 'avatar')}
                                 size={CONST.AVATAR_SIZE.LARGE}
                                 DefaultAvatar={() => (
                                     <Avatar
                                         containerStyles={styles.avatarLarge}
-                                        imageStyles={[styles.avatarLarge, styles.alignSelfCenter]}
-                                        source={this.props.policy.avatar ? this.props.policy.avatar : ReportUtils.getDefaultWorkspaceAvatar(policyName)}
-                                        fallbackIcon={Expensicons.FallbackWorkspaceAvatar}
+                                        imageStyles={[
+                                            styles.avatarLarge,
+                                            styles.alignSelfCenter,
+                                        ]}
+                                        source={
+                                            this.props.policy.avatar
+                                                ? this.props.policy.avatar
+                                                : ReportUtils.getDefaultWorkspaceAvatar(
+                                                      policyName,
+                                                  )
+                                        }
+                                        fallbackIcon={
+                                            Expensicons.FallbackWorkspaceAvatar
+                                        }
                                         size={CONST.AVATAR_SIZE.LARGE}
                                         name={policyName}
                                         type={CONST.ICON_TYPE_WORKSPACE}
                                     />
                                 )}
                                 type={CONST.ICON_TYPE_WORKSPACE}
-                                fallbackIcon={Expensicons.FallbackWorkspaceAvatar}
+                                fallbackIcon={
+                                    Expensicons.FallbackWorkspaceAvatar
+                                }
                                 style={[styles.mb3]}
                                 anchorPosition={{top: 172, right: 18}}
-                                isUsingDefaultAvatar={!lodashGet(this.props.policy, 'avatar', null)}
-                                onImageSelected={(file) => Policy.updateWorkspaceAvatar(lodashGet(this.props.policy, 'id', ''), file)}
-                                onImageRemoved={() => Policy.deleteWorkspaceAvatar(lodashGet(this.props.policy, 'id', ''))}
+                                isUsingDefaultAvatar={
+                                    !lodashGet(
+                                        this.props.policy,
+                                        'avatar',
+                                        null,
+                                    )
+                                }
+                                onImageSelected={(file) =>
+                                    Policy.updateWorkspaceAvatar(
+                                        lodashGet(this.props.policy, 'id', ''),
+                                        file,
+                                    )
+                                }
+                                onImageRemoved={() =>
+                                    Policy.deleteWorkspaceAvatar(
+                                        lodashGet(this.props.policy, 'id', ''),
+                                    )
+                                }
                             />
                         </OfflineWithFeedback>
-                        <OfflineWithFeedback pendingAction={lodashGet(this.props.policy, 'pendingFields.generalSettings')}>
+                        <OfflineWithFeedback
+                            pendingAction={lodashGet(
+                                this.props.policy,
+                                'pendingFields.generalSettings',
+                            )}
+                        >
                             <TextInput
                                 inputID="name"
-                                label={this.props.translate('workspace.editor.nameInputLabel')}
+                                label={this.props.translate(
+                                    'workspace.editor.nameInputLabel',
+                                )}
                                 containerStyles={[styles.mt4]}
                                 defaultValue={this.props.policy.name}
                                 maxLength={CONST.WORKSPACE_NAME_CHARACTER_LIMIT}
@@ -129,13 +186,27 @@ class WorkspaceSettingsPage extends React.Component {
                             <View style={[styles.mt4]}>
                                 <Picker
                                     inputID="currency"
-                                    label={this.props.translate('workspace.editor.currencyInputLabel')}
+                                    label={this.props.translate(
+                                        'workspace.editor.currencyInputLabel',
+                                    )}
                                     items={this.getCurrencyItems()}
                                     isDisabled={hasVBA}
-                                    defaultValue={this.props.policy.outputCurrency}
+                                    defaultValue={
+                                        this.props.policy.outputCurrency
+                                    }
                                 />
                             </View>
-                            <Text style={[styles.textLabel, styles.colorMuted, styles.mt2]}>{this.props.translate('workspace.editor.currencyInputHelpText')}</Text>
+                            <Text
+                                style={[
+                                    styles.textLabel,
+                                    styles.colorMuted,
+                                    styles.mt2,
+                                ]}
+                            >
+                                {this.props.translate(
+                                    'workspace.editor.currencyInputHelpText',
+                                )}
+                            </Text>
                         </OfflineWithFeedback>
                     </Form>
                 )}

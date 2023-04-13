@@ -6,7 +6,9 @@ import PropTypes from 'prop-types';
 import styles from '../styles/styles';
 import Icon from './Icon';
 import * as Expensicons from './Icon/Expensicons';
-import withWindowDimensions, {windowDimensionsPropTypes} from './withWindowDimensions';
+import withWindowDimensions, {
+    windowDimensionsPropTypes,
+} from './withWindowDimensions';
 import variables from '../styles/variables';
 import themeColors from '../styles/themes/default';
 
@@ -21,7 +23,12 @@ const defaultProps = {
 
 const ReportHeaderSkeletonView = (props) => (
     <View style={[styles.appContentHeader]}>
-        <View style={[styles.appContentHeaderTitle, !props.isSmallScreenWidth && styles.pl5]}>
+        <View
+            style={[
+                styles.appContentHeaderTitle,
+                !props.isSmallScreenWidth && styles.pl5,
+            ]}
+        >
             <Pressable onPress={() => {}} style={[styles.LHNToggle]}>
                 <Icon src={Expensicons.BackArrow} />
             </Pressable>

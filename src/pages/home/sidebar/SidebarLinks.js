@@ -19,7 +19,9 @@ import AvatarWithIndicator from '../../../components/AvatarWithIndicator';
 import Tooltip from '../../../components/Tooltip';
 import CONST from '../../../CONST';
 import participantPropTypes from '../../../components/participantPropTypes';
-import withLocalize, {withLocalizePropTypes} from '../../../components/withLocalize';
+import withLocalize, {
+    withLocalizePropTypes,
+} from '../../../components/withLocalize';
 import * as App from '../../../libs/actions/App';
 import * as ReportUtils from '../../../libs/ReportUtils';
 import withCurrentUserPersonalDetails from '../../../components/withCurrentUserPersonalDetails';
@@ -44,7 +46,9 @@ const propTypes = {
 
     /** All report actions for all reports */
     // eslint-disable-next-line react/no-unused-prop-types
-    reportActions: PropTypes.objectOf(PropTypes.arrayOf(PropTypes.shape(reportActionPropTypes))),
+    reportActions: PropTypes.objectOf(
+        PropTypes.arrayOf(PropTypes.shape(reportActionPropTypes)),
+    ),
 
     /** List of users' personal details */
     personalDetails: PropTypes.objectOf(participantPropTypes),
@@ -133,21 +137,42 @@ class SidebarLinks extends React.Component {
         if (_.isEmpty(this.props.personalDetails)) {
             return null;
         }
-        const optionListItems = SidebarUtils.getOrderedReportIDs(this.props.reportIDFromRoute);
+        const optionListItems = SidebarUtils.getOrderedReportIDs(
+            this.props.reportIDFromRoute,
+        );
 
         return (
-            <View accessibilityElementsHidden={this.props.isSmallScreenWidth && !this.props.isDrawerOpen} accessibilityLabel="List of chats" style={[styles.flex1, styles.h100]}>
-                <View style={[styles.flexRow, styles.ph5, styles.pv3, styles.justifyContentBetween, styles.alignItemsCenter]} nativeID="drag-area">
+            <View
+                accessibilityElementsHidden={
+                    this.props.isSmallScreenWidth && !this.props.isDrawerOpen
+                }
+                accessibilityLabel="List of chats"
+                style={[styles.flex1, styles.h100]}
+            >
+                <View
+                    style={[
+                        styles.flexRow,
+                        styles.ph5,
+                        styles.pv3,
+                        styles.justifyContentBetween,
+                        styles.alignItemsCenter,
+                    ]}
+                    nativeID="drag-area"
+                >
                     <Header
                         title={this.props.translate('sidebarScreen.headerChat')}
-                        accessibilityLabel={this.props.translate('sidebarScreen.headerChat')}
+                        accessibilityLabel={this.props.translate(
+                            'sidebarScreen.headerChat',
+                        )}
                         accessibilityRole="text"
                         shouldShowEnvironmentBadge
                         textStyles={[styles.textHeadline]}
                     />
                     <Tooltip text={this.props.translate('common.search')}>
                         <TouchableOpacity
-                            accessibilityLabel={this.props.translate('sidebarScreen.buttonSearch')}
+                            accessibilityLabel={this.props.translate(
+                                'sidebarScreen.buttonSearch',
+                            )}
                             accessibilityRole="button"
                             style={[styles.flexRow, styles.ph5]}
                             onPress={this.showSearchPage}
@@ -155,28 +180,65 @@ class SidebarLinks extends React.Component {
                             <Icon src={Expensicons.MagnifyingGlass} />
                         </TouchableOpacity>
                     </Tooltip>
-                    <TouchableOpacity accessibilityLabel={this.props.translate('sidebarScreen.buttonMySettings')} accessibilityRole="button" onPress={this.showSettingsPage}>
-                        <OfflineWithFeedback pendingAction={lodashGet(this.props.currentUserPersonalDetails, 'pendingFields.avatar', null)}>
+                    <TouchableOpacity
+                        accessibilityLabel={this.props.translate(
+                            'sidebarScreen.buttonMySettings',
+                        )}
+                        accessibilityRole="button"
+                        onPress={this.showSettingsPage}
+                    >
+                        <OfflineWithFeedback
+                            pendingAction={lodashGet(
+                                this.props.currentUserPersonalDetails,
+                                'pendingFields.avatar',
+                                null,
+                            )}
+                        >
                             <AvatarWithIndicator
-                                source={ReportUtils.getAvatar(this.props.currentUserPersonalDetails.avatar, this.props.currentUserPersonalDetails.login)}
-                                tooltipText={this.props.translate('common.settings')}
+                                source={ReportUtils.getAvatar(
+                                    this.props.currentUserPersonalDetails
+                                        .avatar,
+                                    this.props.currentUserPersonalDetails.login,
+                                )}
+                                tooltipText={this.props.translate(
+                                    'common.settings',
+                                )}
                             />
                         </OfflineWithFeedback>
                     </TouchableOpacity>
                 </View>
-                <Freeze freeze={this.props.isSmallScreenWidth && !this.props.isDrawerOpen && this.isSidebarLoaded}>
+                <Freeze
+                    freeze={
+                        this.props.isSmallScreenWidth &&
+                        !this.props.isDrawerOpen &&
+                        this.isSidebarLoaded
+                    }
+                >
                     <LHNOptionsList
                         contentContainerStyles={[
                             styles.sidebarListContainer,
                             {
-                                paddingBottom: StyleUtils.getSafeAreaMargins(this.props.insets).marginBottom,
+                                paddingBottom: StyleUtils.getSafeAreaMargins(
+                                    this.props.insets,
+                                ).marginBottom,
                             },
                         ]}
                         data={optionListItems}
-                        focusedIndex={_.findIndex(optionListItems, (option) => option.toString() === this.props.reportIDFromRoute)}
+                        focusedIndex={_.findIndex(
+                            optionListItems,
+                            (option) =>
+                                option.toString() ===
+                                this.props.reportIDFromRoute,
+                        )}
                         onSelectRow={this.showReportPage}
-                        shouldDisableFocusOptions={this.props.isSmallScreenWidth}
-                        optionMode={this.props.priorityMode === CONST.PRIORITY_MODE.GSD ? 'compact' : 'default'}
+                        shouldDisableFocusOptions={
+                            this.props.isSmallScreenWidth
+                        }
+                        optionMode={
+                            this.props.priorityMode === CONST.PRIORITY_MODE.GSD
+                                ? 'compact'
+                                : 'default'
+                        }
                         onLayout={() => {
                             this.props.onLayout();
                             App.setSidebarLoaded();
@@ -209,7 +271,8 @@ const chatReportSelector = (report) => {
             hasDraft: report.hasDraft,
             isPinned: report.isPinned,
             errorFields: {
-                addWorkspaceRoom: report.errorFields && report.errorFields.addWorkspaceRoom,
+                addWorkspaceRoom:
+                    report.errorFields && report.errorFields.addWorkspaceRoom,
             },
             lastReadTime: report.lastReadTime,
             lastMessageText: report.lastMessageText,
@@ -239,7 +302,10 @@ const personalDetailsSelector = (personalDetails) =>
                 login: personalData.login,
                 displayName: personalData.displayName,
                 firstName: personalData.firstName,
-                avatar: ReportUtils.getAvatar(personalData.avatar, personalData.login),
+                avatar: ReportUtils.getAvatar(
+                    personalData.avatar,
+                    personalData.login,
+                ),
             };
             return finalPersonalDetails;
         },

@@ -1,6 +1,10 @@
 require('dotenv').config();
 
-const defaultPresets = ['@babel/preset-react', '@babel/preset-env', '@babel/preset-flow'];
+const defaultPresets = [
+    '@babel/preset-react',
+    '@babel/preset-env',
+    '@babel/preset-flow',
+];
 const defaultPlugins = [
     // Adding the commonjs: true option to react-native-web plugin can cause styling conflicts
     ['react-native-web'],
@@ -51,7 +55,10 @@ const metro = {
  * To enable the <Profiler> for release builds we add these aliases */
 if (process.env.CAPTURE_METRICS === 'true') {
     const path = require('path');
-    const profilingRenderer = path.resolve(__dirname, './node_modules/react-native/Libraries/Renderer/implementations/ReactNativeRenderer-profiling');
+    const profilingRenderer = path.resolve(
+        __dirname,
+        './node_modules/react-native/Libraries/Renderer/implementations/ReactNativeRenderer-profiling',
+    );
 
     metro.plugins.push([
         'module-resolver',

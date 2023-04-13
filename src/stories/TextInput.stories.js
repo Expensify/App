@@ -112,4 +112,15 @@ HintAndErrorInput.args = {
 };
 
 export default story;
-export {AutoFocus, DefaultInput, DefaultValueInput, ErrorInput, ForceActiveLabel, PlaceholderInput, AutoGrowInput, PrefixedInput, MaxLengthInput, HintAndErrorInput};
+export {
+    AutoFocus,
+    DefaultInput,
+    DefaultValueInput,
+    ErrorInput,
+    ForceActiveLabel,
+    PlaceholderInput,
+    AutoGrowInput,
+    PrefixedInput,
+    MaxLengthInput,
+    HintAndErrorInput,
+};

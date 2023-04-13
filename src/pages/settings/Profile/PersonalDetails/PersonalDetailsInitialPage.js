@@ -4,7 +4,9 @@ import {ScrollView, View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import ScreenWrapper from '../../../../components/ScreenWrapper';
 import HeaderWithCloseButton from '../../../../components/HeaderWithCloseButton';
-import withLocalize, {withLocalizePropTypes} from '../../../../components/withLocalize';
+import withLocalize, {
+    withLocalizePropTypes,
+} from '../../../../components/withLocalize';
 import ROUTES from '../../../../ROUTES';
 import Text from '../../../../components/Text';
 import styles from '../../../../styles/styles';
@@ -57,7 +59,9 @@ const PersonalDetailsInitialPage = (props) => {
 
     const privateDetails = props.privatePersonalDetails || {};
     const address = privateDetails.address || {};
-    const legalName = `${privateDetails.legalFirstName || ''} ${privateDetails.legalLastName || ''}`.trim();
+    const legalName = `${privateDetails.legalFirstName || ''} ${
+        privateDetails.legalLastName || ''
+    }`.trim();
 
     /**
      * Applies common formatting to each piece of an address
@@ -75,7 +79,12 @@ const PersonalDetailsInitialPage = (props) => {
     const getFormattedAddress = () => {
         const [street1, street2] = (address.street || '').split('\n');
         const formattedAddress =
-            formatPiece(street1) + formatPiece(street2) + formatPiece(address.city) + formatPiece(address.state) + formatPiece(address.zip) + formatPiece(address.country);
+            formatPiece(street1) +
+            formatPiece(street2) +
+            formatPiece(address.city) +
+            formatPiece(address.state) +
+            formatPiece(address.zip) +
+            formatPiece(address.country);
 
         // Remove the last comma of the address
         return formattedAddress.trim().replace(/,$/, '');
@@ -84,33 +93,57 @@ const PersonalDetailsInitialPage = (props) => {
     return (
         <ScreenWrapper>
             <HeaderWithCloseButton
-                title={props.translate('privatePersonalDetails.personalDetails')}
+                title={props.translate(
+                    'privatePersonalDetails.personalDetails',
+                )}
                 shouldShowBackButton
-                onBackButtonPress={() => Navigation.navigate(ROUTES.SETTINGS_PROFILE)}
+                onBackButtonPress={() =>
+                    Navigation.navigate(ROUTES.SETTINGS_PROFILE)
+                }
                 onCloseButtonPress={() => Navigation.dismissModal(true)}
             />
             <ScrollView>
                 <View style={styles.flex1}>
                     <View style={[styles.ph5, styles.mb5]}>
-                        <Text>{props.translate('privatePersonalDetails.privateDataMessage')}</Text>
+                        <Text>
+                            {props.translate(
+                                'privatePersonalDetails.privateDataMessage',
+                            )}
+                        </Text>
                     </View>
                     <MenuItemWithTopDescription
                         title={legalName}
-                        description={props.translate('privatePersonalDetails.legalName')}
+                        description={props.translate(
+                            'privatePersonalDetails.legalName',
+                        )}
                         shouldShowRightIcon
-                        onPress={() => Navigation.navigate(ROUTES.SETTINGS_PERSONAL_DETAILS_LEGAL_NAME)}
+                        onPress={() =>
+                            Navigation.navigate(
+                                ROUTES.SETTINGS_PERSONAL_DETAILS_LEGAL_NAME,
+                            )
+                        }
                     />
                     <MenuItemWithTopDescription
                         title={privateDetails.dob || ''}
                         description={props.translate('common.dob')}
                         shouldShowRightIcon
-                        onPress={() => Navigation.navigate(ROUTES.SETTINGS_PERSONAL_DETAILS_DATE_OF_BIRTH)}
+                        onPress={() =>
+                            Navigation.navigate(
+                                ROUTES.SETTINGS_PERSONAL_DETAILS_DATE_OF_BIRTH,
+                            )
+                        }
                     />
                     <MenuItemWithTopDescription
                         title={getFormattedAddress()}
-                        description={props.translate('privatePersonalDetails.homeAddress')}
+                        description={props.translate(
+                            'privatePersonalDetails.homeAddress',
+                        )}
                         shouldShowRightIcon
-                        onPress={() => Navigation.navigate(ROUTES.SETTINGS_PERSONAL_DETAILS_ADDRESS)}
+                        onPress={() =>
+                            Navigation.navigate(
+                                ROUTES.SETTINGS_PERSONAL_DETAILS_ADDRESS,
+                            )
+                        }
                     />
                 </View>
             </ScrollView>

@@ -4,7 +4,9 @@ import {View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import ScreenWrapper from '../../../../components/ScreenWrapper';
 import HeaderWithCloseButton from '../../../../components/HeaderWithCloseButton';
-import withLocalize, {withLocalizePropTypes} from '../../../../components/withLocalize';
+import withLocalize, {
+    withLocalizePropTypes,
+} from '../../../../components/withLocalize';
 import ROUTES from '../../../../ROUTES';
 import Form from '../../../../components/Form';
 import ONYXKEYS from '../../../../ONYXKEYS';
@@ -62,7 +64,11 @@ class DateOfBirthPage extends Component {
         if (!values.dob || !ValidationUtils.isValidDate(values.dob)) {
             errors.dob = this.props.translate('common.error.fieldRequired');
         }
-        const dateError = ValidationUtils.getAgeRequirementError(values.dob, minimumAge, maximumAge);
+        const dateError = ValidationUtils.getAgeRequirementError(
+            values.dob,
+            minimumAge,
+            maximumAge,
+        );
         if (dateError) {
             errors.dob = dateError;
         }
@@ -78,7 +84,9 @@ class DateOfBirthPage extends Component {
                 <HeaderWithCloseButton
                     title={this.props.translate('common.dob')}
                     shouldShowBackButton
-                    onBackButtonPress={() => Navigation.navigate(ROUTES.SETTINGS_PERSONAL_DETAILS)}
+                    onBackButtonPress={() =>
+                        Navigation.navigate(ROUTES.SETTINGS_PERSONAL_DETAILS)
+                    }
                     onCloseButtonPress={() => Navigation.dismissModal(true)}
                 />
                 <Form
@@ -90,7 +98,13 @@ class DateOfBirthPage extends Component {
                     enabledWhenOffline
                 >
                     <View>
-                        <DatePicker placeholder="yyyy-mm-dd" inputID="dob" label={this.props.translate('common.date')} defaultValue={privateDetails.dob || ''} shouldSaveDraft />
+                        <DatePicker
+                            placeholder="yyyy-mm-dd"
+                            inputID="dob"
+                            label={this.props.translate('common.date')}
+                            defaultValue={privateDetails.dob || ''}
+                            shouldSaveDraft
+                        />
                     </View>
                 </Form>
             </ScreenWrapper>

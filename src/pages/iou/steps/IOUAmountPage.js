@@ -9,7 +9,9 @@ import styles from '../../../styles/styles';
 import BigNumberPad from '../../../components/BigNumberPad';
 import Navigation from '../../../libs/Navigation/Navigation';
 import ROUTES from '../../../ROUTES';
-import withLocalize, {withLocalizePropTypes} from '../../../components/withLocalize';
+import withLocalize, {
+    withLocalizePropTypes,
+} from '../../../components/withLocalize';
 import compose from '../../../libs/compose';
 import Button from '../../../components/Button';
 import CONST from '../../../CONST';
@@ -48,11 +50,13 @@ class IOUAmountPage extends React.Component {
         super(props);
 
         this.updateAmountNumberPad = this.updateAmountNumberPad.bind(this);
-        this.updateLongPressHandlerState = this.updateLongPressHandlerState.bind(this);
+        this.updateLongPressHandlerState =
+            this.updateLongPressHandlerState.bind(this);
         this.updateAmount = this.updateAmount.bind(this);
         this.stripCommaFromAmount = this.stripCommaFromAmount.bind(this);
         this.focusTextInput = this.focusTextInput.bind(this);
-        this.navigateToCurrencySelectionPage = this.navigateToCurrencySelectionPage.bind(this);
+        this.navigateToCurrencySelectionPage =
+            this.navigateToCurrencySelectionPage.bind(this);
 
         this.state = {
             amount: props.selectedAmount,
@@ -68,9 +72,12 @@ class IOUAmountPage extends React.Component {
         this.focusTextInput();
 
         // Focus automatically after navigating back from currency selector
-        this.unsubscribeNavFocus = this.props.navigation.addListener('focus', () => {
-            this.focusTextInput();
-        });
+        this.unsubscribeNavFocus = this.props.navigation.addListener(
+            'focus',
+            () => {
+                this.focusTextInput();
+            },
+        );
     }
 
     componentWillUnmount() {
@@ -101,7 +108,11 @@ class IOUAmountPage extends React.Component {
         if (!this.validateAmount(newAmount)) {
             return prevState;
         }
-        const selection = this.getNewSelection(prevState.selection, prevState.amount.length, newAmount.length);
+        const selection = this.getNewSelection(
+            prevState.selection,
+            prevState.amount.length,
+            newAmount.length,
+        );
         return {amount: this.stripCommaFromAmount(newAmount), selection};
     }
 
@@ -145,7 +156,12 @@ class IOUAmountPage extends React.Component {
      */
     validateAmount(amount) {
         const decimalNumberRegex = new RegExp(/^\d+(,\d+)*(\.\d{0,2})?$/, 'i');
-        return amount === '' || (decimalNumberRegex.test(amount) && this.calculateAmountLength(amount) <= CONST.IOU.AMOUNT_MAX_LENGTH);
+        return (
+            amount === '' ||
+            (decimalNumberRegex.test(amount) &&
+                this.calculateAmountLength(amount) <=
+                    CONST.IOU.AMOUNT_MAX_LENGTH)
+        );
     }
 
     /**
@@ -179,8 +195,14 @@ class IOUAmountPage extends React.Component {
         if (key === '<' || key === 'Backspace') {
             if (this.state.amount.length > 0) {
                 this.setState((prevState) => {
-                    const selectionStart = prevState.selection.start === prevState.selection.end ? prevState.selection.start - 1 : prevState.selection.start;
-                    const amount = `${prevState.amount.substring(0, selectionStart)}${prevState.amount.substring(prevState.selection.end)}`;
+                    const selectionStart =
+                        prevState.selection.start === prevState.selection.end
+                            ? prevState.selection.start - 1
+                            : prevState.selection.start;
+                    const amount = `${prevState.amount.substring(
+                        0,
+                        selectionStart,
+                    )}${prevState.amount.substring(prevState.selection.end)}`;
                     return this.getNewState(prevState, amount);
                 });
             }
@@ -188,7 +210,12 @@ class IOUAmountPage extends React.Component {
         }
 
         this.setState((prevState) => {
-            const amount = this.addLeadingZero(`${prevState.amount.substring(0, prevState.selection.start)}${key}${prevState.amount.substring(prevState.selection.end)}`);
+            const amount = this.addLeadingZero(
+                `${prevState.amount.substring(
+                    0,
+                    prevState.selection.start,
+                )}${key}${prevState.amount.substring(prevState.selection.end)}`,
+            );
             return this.getNewState(prevState, amount);
         });
     }
@@ -210,7 +237,9 @@ class IOUAmountPage extends React.Component {
      */
     updateAmount(text) {
         this.setState((prevState) => {
-            const amount = this.addLeadingZero(this.replaceAllDigits(text, this.props.fromLocaleDigit));
+            const amount = this.addLeadingZero(
+                this.replaceAllDigits(text, this.props.fromLocaleDigit),
+            );
             return this.getNewState(prevState, amount);
         });
     }
@@ -238,28 +267,50 @@ class IOUAmountPage extends React.Component {
 
     navigateToCurrencySelectionPage() {
         if (this.props.hasMultipleParticipants) {
-            return Navigation.navigate(ROUTES.getIouBillCurrencyRoute(this.props.reportID));
+            return Navigation.navigate(
+                ROUTES.getIouBillCurrencyRoute(this.props.reportID),
+            );
         }
         if (this.props.iouType === CONST.IOU.IOU_TYPE.SEND) {
-            return Navigation.navigate(ROUTES.getIouSendCurrencyRoute(this.props.reportID));
+            return Navigation.navigate(
+                ROUTES.getIouSendCurrencyRoute(this.props.reportID),
+            );
         }
-        return Navigation.navigate(ROUTES.getIouRequestCurrencyRoute(this.props.reportID));
+        return Navigation.navigate(
+            ROUTES.getIouRequestCurrencyRoute(this.props.reportID),
+        );
     }
 
     render() {
-        const formattedAmount = this.replaceAllDigits(this.state.amount, this.props.toLocaleDigit);
+        const formattedAmount = this.replaceAllDigits(
+            this.state.amount,
+            this.props.toLocaleDigit,
+        );
 
         return (
             <>
-                <View style={[styles.flex1, styles.flexRow, styles.w100, styles.alignItemsCenter, styles.justifyContentCenter]}>
+                <View
+                    style={[
+                        styles.flex1,
+                        styles.flexRow,
+                        styles.w100,
+                        styles.alignItemsCenter,
+                        styles.justifyContentCenter,
+                    ]}
+                >
                     <TextInputWithCurrencySymbol
                         formattedAmount={formattedAmount}
                         onChangeAmount={this.updateAmount}
-                        onCurrencyButtonPress={this.navigateToCurrencySelectionPage}
+                        onCurrencyButtonPress={
+                            this.navigateToCurrencySelectionPage
+                        }
                         placeholder={this.props.numberFormat(0)}
                         preferredLocale={this.props.preferredLocale}
                         ref={(el) => (this.textInput = el)}
-                        selectedCurrencyCode={this.props.iou.selectedCurrencyCode || CONST.CURRENCY.USD}
+                        selectedCurrencyCode={
+                            this.props.iou.selectedCurrencyCode ||
+                            CONST.CURRENCY.USD
+                        }
                         selection={this.state.selection}
                         onSelectionChange={(e) => {
                             if (!this.state.shouldUpdateSelection) {
@@ -269,9 +320,20 @@ class IOUAmountPage extends React.Component {
                         }}
                     />
                 </View>
-                <View style={[styles.w100, styles.justifyContentEnd, styles.pageWrapper]}>
+                <View
+                    style={[
+                        styles.w100,
+                        styles.justifyContentEnd,
+                        styles.pageWrapper,
+                    ]}
+                >
                     {DeviceCapabilities.canUseTouchScreen() ? (
-                        <BigNumberPad numberPressed={this.updateAmountNumberPad} longPressHandlerStateChanged={this.updateLongPressHandlerState} />
+                        <BigNumberPad
+                            numberPressed={this.updateAmountNumberPad}
+                            longPressHandlerStateChanged={
+                                this.updateLongPressHandlerState
+                            }
+                        />
                     ) : (
                         <View />
                     )}
@@ -279,9 +341,14 @@ class IOUAmountPage extends React.Component {
                     <Button
                         success
                         style={[styles.w100, styles.mt5]}
-                        onPress={() => this.props.onStepComplete(this.state.amount)}
+                        onPress={() =>
+                            this.props.onStepComplete(this.state.amount)
+                        }
                         pressOnEnter
-                        isDisabled={!this.state.amount.length || parseFloat(this.state.amount) < 0.01}
+                        isDisabled={
+                            !this.state.amount.length ||
+                            parseFloat(this.state.amount) < 0.01
+                        }
                         text={this.props.translate('common.next')}
                     />
                 </View>

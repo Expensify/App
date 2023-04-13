@@ -7,7 +7,9 @@ import Str from 'expensify-common/lib/str';
 import Text from '../../components/Text';
 import styles from '../../styles/styles';
 import ONYXKEYS from '../../ONYXKEYS';
-import withLocalize, {withLocalizePropTypes} from '../../components/withLocalize';
+import withLocalize, {
+    withLocalizePropTypes,
+} from '../../components/withLocalize';
 import compose from '../../libs/compose';
 
 const propTypes = {

@@ -5,7 +5,9 @@ import {withOnyx} from 'react-native-onyx';
 import moment from 'moment';
 import Str from 'expensify-common/lib/str';
 import Navigation from '../../libs/Navigation/Navigation';
-import withLocalize, {withLocalizePropTypes} from '../../components/withLocalize';
+import withLocalize, {
+    withLocalizePropTypes,
+} from '../../components/withLocalize';
 import HeaderWithCloseButton from '../../components/HeaderWithCloseButton';
 import ScreenWrapper from '../../components/ScreenWrapper';
 import ONYXKEYS from '../../ONYXKEYS';
@@ -57,7 +59,11 @@ class WalletStatementPage extends React.Component {
 
     componentDidMount() {
         const currentYearMonth = moment().format('YYYYMM');
-        if (!this.yearMonth || this.yearMonth.length !== 6 || this.yearMonth > currentYearMonth) {
+        if (
+            !this.yearMonth ||
+            this.yearMonth.length !== 6 ||
+            this.yearMonth > currentYearMonth
+        ) {
             Navigation.dismissModal(true);
         }
     }
@@ -76,7 +82,11 @@ class WalletStatementPage extends React.Component {
             return;
         }
 
-        Growl.show(this.props.translate('statementPage.generatingPDF'), CONST.GROWL.SUCCESS, 3000);
+        Growl.show(
+            this.props.translate('statementPage.generatingPDF'),
+            CONST.GROWL.SUCCESS,
+            3000,
+        );
         User.generateStatementPDF(this.yearMonth);
     }
 
@@ -92,9 +102,14 @@ class WalletStatementPage extends React.Component {
             <ScreenWrapper includeSafeAreaPaddingBottom={false}>
                 <HeaderWithCloseButton
                     title={Str.recapitalize(title)}
-                    shouldShowDownloadButton={!this.props.network.isOffline || this.props.walletStatement.isGenerating}
+                    shouldShowDownloadButton={
+                        !this.props.network.isOffline ||
+                        this.props.walletStatement.isGenerating
+                    }
                     onCloseButtonPress={() => Navigation.dismissModal(true)}
-                    onDownloadButtonPress={() => this.processDownload(this.yearMonth)}
+                    onDownloadButtonPress={() =>
+                        this.processDownload(this.yearMonth)
+                    }
                 />
                 <FullPageOfflineBlockingView>
                     <WalletStatementModal statementPageURL={url} />

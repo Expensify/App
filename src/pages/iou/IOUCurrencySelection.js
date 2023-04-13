@@ -9,7 +9,9 @@ import Navigation from '../../libs/Navigation/Navigation';
 import ScreenWrapper from '../../components/ScreenWrapper';
 import HeaderWithCloseButton from '../../components/HeaderWithCloseButton';
 import compose from '../../libs/compose';
-import withLocalize, {withLocalizePropTypes} from '../../components/withLocalize';
+import withLocalize, {
+    withLocalizePropTypes,
+} from '../../components/withLocalize';
 import * as IOU from '../../libs/actions/IOU';
 import * as CurrencySymbolUtils from '../../libs/CurrencySymbolUtils';
 import {withNetwork} from '../../components/OnyxProvider';
@@ -49,7 +51,8 @@ class IOUCurrencySelection extends Component {
         };
         this.getCurrencyOptions = this.getCurrencyOptions.bind(this);
         this.getSections = this.getSections.bind(this);
-        this.confirmCurrencySelection = this.confirmCurrencySelection.bind(this);
+        this.confirmCurrencySelection =
+            this.confirmCurrencySelection.bind(this);
         this.changeSearchValue = this.changeSearchValue.bind(this);
     }
 
@@ -78,7 +81,10 @@ class IOUCurrencySelection extends Component {
      */
     getCurrencyOptions() {
         return _.map(this.props.currencyList, (currencyInfo, currencyCode) => ({
-            text: `${currencyCode} - ${CurrencySymbolUtils.getLocalizedCurrencySymbol(this.props.preferredLocale, currencyCode)}`,
+            text: `${currencyCode} - ${CurrencySymbolUtils.getLocalizedCurrencySymbol(
+                this.props.preferredLocale,
+                currencyCode,
+            )}`,
             currencyCode,
             keyForList: currencyCode,
         }));
@@ -90,9 +96,13 @@ class IOUCurrencySelection extends Component {
      * @return {void}
      */
     changeSearchValue(searchValue) {
-        const currencyOptions = this.getCurrencyOptions(this.props.currencyList);
+        const currencyOptions = this.getCurrencyOptions(
+            this.props.currencyList,
+        );
         const searchRegex = new RegExp(Str.escapeForRegExp(searchValue), 'i');
-        const filteredCurrencies = _.filter(currencyOptions, (currencyOption) => searchRegex.test(currencyOption.text));
+        const filteredCurrencies = _.filter(currencyOptions, (currencyOption) =>
+            searchRegex.test(currencyOption.text),
+        );
 
         this.setState({
             searchValue,
@@ -112,20 +122,32 @@ class IOUCurrencySelection extends Component {
     }
 
     render() {
-        const headerMessage = this.state.searchValue.trim() && !this.state.currencyData.length ? this.props.translate('common.noResultsFound') : '';
+        const headerMessage =
+            this.state.searchValue.trim() && !this.state.currencyData.length
+                ? this.props.translate('common.noResultsFound')
+                : '';
         return (
             <ScreenWrapper includeSafeAreaPaddingBottom={false}>
                 {({safeAreaPaddingBottomStyle}) => (
                     <>
-                        <HeaderWithCloseButton title={this.props.translate('iOUCurrencySelection.selectCurrency')} onCloseButtonPress={Navigation.goBack} />
+                        <HeaderWithCloseButton
+                            title={this.props.translate(
+                                'iOUCurrencySelection.selectCurrency',
+                            )}
+                            onCloseButtonPress={Navigation.goBack}
+                        />
                         <OptionsSelector
                             sections={this.getSections()}
                             onSelectRow={this.confirmCurrencySelection}
                             value={this.state.searchValue}
                             onChangeText={this.changeSearchValue}
-                            placeholderText={this.props.translate('common.search')}
+                            placeholderText={this.props.translate(
+                                'common.search',
+                            )}
                             headerMessage={headerMessage}
-                            safeAreaPaddingBottomStyle={safeAreaPaddingBottomStyle}
+                            safeAreaPaddingBottomStyle={
+                                safeAreaPaddingBottomStyle
+                            }
                         />
                     </>
                 )}

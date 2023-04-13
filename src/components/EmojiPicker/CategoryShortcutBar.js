@@ -22,7 +22,12 @@ const propTypes = {
 const CategoryShortcutBar = (props) => (
     <View style={[styles.pt2, styles.ph4, styles.flexRow]}>
         {_.map(props.headerEmojis, (headerEmoji, i) => (
-            <CategoryShortcutButton icon={headerEmoji.icon} onPress={() => props.onPress(headerEmoji.index)} key={`categoryShortcut${i}`} code={headerEmoji.code} />
+            <CategoryShortcutButton
+                icon={headerEmoji.icon}
+                onPress={() => props.onPress(headerEmoji.index)}
+                key={`categoryShortcut${i}`}
+                code={headerEmoji.code}
+            />
         ))}
     </View>
 );

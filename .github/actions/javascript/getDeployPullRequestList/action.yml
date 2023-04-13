@@ -5,10 +5,10 @@ inputs:
         description: Git tag
         required: true
     GITHUB_TOKEN:
-        description: 'Github token for authentication'
+        description: "Github token for authentication"
         required: true
     IS_PRODUCTION_DEPLOY:
-        description: 'True if we are deploying to production'
+        description: "True if we are deploying to production"
         required: false
 outputs:
     PR_LIST:

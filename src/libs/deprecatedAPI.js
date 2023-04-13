@@ -29,7 +29,12 @@ Request.use(Middleware.SaveResponseInOnyx);
 function Get(parameters, shouldUseSecure = false) {
     const commandName = 'Get';
     requireParameters(['returnValueList'], parameters, commandName);
-    return Network.post(commandName, parameters, CONST.NETWORK.METHOD.POST, shouldUseSecure);
+    return Network.post(
+        commandName,
+        parameters,
+        CONST.NETWORK.METHOD.POST,
+        shouldUseSecure,
+    );
 }
 
 /**

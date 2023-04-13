@@ -15,7 +15,10 @@ const propTypes = {
     onPress: PropTypes.func.isRequired,
 
     /** Container styles */
-    style: PropTypes.oneOfType([PropTypes.arrayOf(PropTypes.object), PropTypes.object]),
+    style: PropTypes.oneOfType([
+        PropTypes.arrayOf(PropTypes.object),
+        PropTypes.object,
+    ]),
 
     /** Text that appears next to check box */
     label: PropTypes.string,
@@ -41,7 +44,9 @@ const defaultProps = {
 const RadioButtonWithLabel = (props) => {
     const LabelComponent = props.LabelComponent;
     const defaultStyles = [styles.flexRow, styles.alignItemsCenter];
-    const wrapperStyles = _.isArray(props.style) ? [...defaultStyles, ...props.style] : [...defaultStyles, props.style];
+    const wrapperStyles = _.isArray(props.style)
+        ? [...defaultStyles, ...props.style]
+        : [...defaultStyles, props.style];
 
     if (!props.label && !LabelComponent) {
         throw new Error('Must provide at least label or LabelComponent prop');
@@ -49,9 +54,27 @@ const RadioButtonWithLabel = (props) => {
     return (
         <>
             <View style={wrapperStyles}>
-                <RadioButton isChecked={props.isChecked} onPress={props.onPress} label={props.label} hasError={props.hasError} />
-                <TouchableOpacity onPress={() => props.onPress()} style={[styles.ml3, styles.pr2, styles.w100, styles.flexRow, styles.flexWrap, styles.flexShrink1, styles.alignItemsCenter]}>
-                    {props.label && <Text style={[styles.ml1]}>{props.label}</Text>}
+                <RadioButton
+                    isChecked={props.isChecked}
+                    onPress={props.onPress}
+                    label={props.label}
+                    hasError={props.hasError}
+                />
+                <TouchableOpacity
+                    onPress={() => props.onPress()}
+                    style={[
+                        styles.ml3,
+                        styles.pr2,
+                        styles.w100,
+                        styles.flexRow,
+                        styles.flexWrap,
+                        styles.flexShrink1,
+                        styles.alignItemsCenter,
+                    ]}
+                >
+                    {props.label && (
+                        <Text style={[styles.ml1]}>{props.label}</Text>
+                    )}
                     {LabelComponent && <LabelComponent />}
                 </TouchableOpacity>
             </View>

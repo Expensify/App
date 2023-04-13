@@ -10,14 +10,20 @@ const SidebarScreen = (props) => {
      * Method create event listener
      */
     const createDragoverListener = () => {
-        document.addEventListener('dragover', popoverModal.current.hideCreateMenu);
+        document.addEventListener(
+            'dragover',
+            popoverModal.current.hideCreateMenu,
+        );
     };
 
     /**
      * Method remove event listener.
      */
     const removeDragoverListener = () => {
-        document.removeEventListener('dragover', popoverModal.current.hideCreateMenu);
+        document.removeEventListener(
+            'dragover',
+            popoverModal.current.hideCreateMenu,
+        );
     };
 
     return (
@@ -25,7 +31,11 @@ const SidebarScreen = (props) => {
             // eslint-disable-next-line react/jsx-props-no-spreading
             {...props}
         >
-            <FloatingActionButtonAndPopover ref={popoverModal} onShowCreateMenu={createDragoverListener} onHideCreateMenu={removeDragoverListener} />
+            <FloatingActionButtonAndPopover
+                ref={popoverModal}
+                onShowCreateMenu={createDragoverListener}
+                onHideCreateMenu={removeDragoverListener}
+            />
         </BaseSidebarScreen>
     );
 };

@@ -118,10 +118,15 @@ class Expensify extends PureComponent {
             this.setState({isOnyxMigrated: true});
         });
 
-        this.appStateChangeListener = AppState.addEventListener('change', this.initializeClient);
+        this.appStateChangeListener = AppState.addEventListener(
+            'change',
+            this.initializeClient,
+        );
 
         // Open chat report from a deep link (only mobile native)
-        Linking.addEventListener('url', (state) => ReportUtils.openReportFromDeepLink(state.url));
+        Linking.addEventListener('url', (state) =>
+            ReportUtils.openReportFromDeepLink(state.url),
+        );
     }
 
     componentDidUpdate() {
@@ -129,7 +134,8 @@ class Expensify extends PureComponent {
             return;
         }
 
-        const shouldHideSplash = !this.isAuthenticated() || this.props.isSidebarLoaded;
+        const shouldHideSplash =
+            !this.isAuthenticated() || this.props.isSidebarLoaded;
 
         if (shouldHideSplash) {
             BootSplash.hide();
@@ -138,7 +144,9 @@ class Expensify extends PureComponent {
             this.setState({isSplashShown: false});
 
             // If the app is opened from a deep link, get the reportID (if exists) from the deep link and navigate to the chat report
-            Linking.getInitialURL().then((url) => ReportUtils.openReportFromDeepLink(url));
+            Linking.getInitialURL().then((url) =>
+                ReportUtils.openReportFromDeepLink(url),
+            );
         }
     }
 
@@ -183,7 +191,11 @@ class Expensify extends PureComponent {
             if (status === 'visible') {
                 const props = _.omit(this.props, ['children', 'session']);
                 props.isAuthenticated = this.isAuthenticated();
-                Log.alert('[BootSplash] splash screen is still visible', {props}, false);
+                Log.alert(
+                    '[BootSplash] splash screen is still visible',
+                    {props},
+                    false,
+                );
             }
         });
     }
@@ -200,24 +212,43 @@ class Expensify extends PureComponent {
                     <>
                         <KeyboardShortcutsModal />
                         <GrowlNotification ref={Growl.growlRef} />
-                        <PopoverReportActionContextMenu ref={ReportActionContextMenu.contextMenuRef} />
+                        <PopoverReportActionContextMenu
+                            ref={ReportActionContextMenu.contextMenuRef}
+                        />
                         {/* We include the modal for showing a new update at the top level so the option is always present. */}
                         {this.props.updateAvailable ? <UpdateAppModal /> : null}
                         {this.props.screenShareRequest ? (
                             <ConfirmModal
-                                title={this.props.translate('guides.screenShare')}
-                                onConfirm={() => User.joinScreenShare(this.props.screenShareRequest.accessToken, this.props.screenShareRequest.roomName)}
+                                title={this.props.translate(
+                                    'guides.screenShare',
+                                )}
+                                onConfirm={() =>
+                                    User.joinScreenShare(
+                                        this.props.screenShareRequest
+                                            .accessToken,
+                                        this.props.screenShareRequest.roomName,
+                                    )
+                                }
                                 onCancel={User.clearScreenShareRequest}
-                                prompt={this.props.translate('guides.screenShareRequest')}
-                                confirmText={this.props.translate('common.join')}
-                                cancelText={this.props.translate('common.decline')}
+                                prompt={this.props.translate(
+                                    'guides.screenShareRequest',
+                                )}
+                                confirmText={this.props.translate(
+                                    'common.join',
+                                )}
+                                cancelText={this.props.translate(
+                                    'common.decline',
+                                )}
                                 isVisible
                             />
                         ) : null}
                     </>
                 )}
 
-                <NavigationRoot onReady={this.setNavigationReady} authenticated={this.isAuthenticated()} />
+                <NavigationRoot
+                    onReady={this.setNavigationReady}
+                    authenticated={this.isAuthenticated()}
+                />
             </DeeplinkWrapper>
         );
     }

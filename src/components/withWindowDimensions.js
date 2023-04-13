@@ -35,8 +35,14 @@ class WindowDimensionsProvider extends React.Component {
         this.onDimensionChange = this.onDimensionChange.bind(this);
 
         const initialDimensions = Dimensions.get('window');
-        const isSmallScreenWidth = initialDimensions.width <= variables.mobileResponsiveWidthBreakpoint;
-        const isMediumScreenWidth = initialDimensions.width > variables.mobileResponsiveWidthBreakpoint && initialDimensions.width <= variables.tabletResponsiveWidthBreakpoint;
+        const isSmallScreenWidth =
+            initialDimensions.width <=
+            variables.mobileResponsiveWidthBreakpoint;
+        const isMediumScreenWidth =
+            initialDimensions.width >
+                variables.mobileResponsiveWidthBreakpoint &&
+            initialDimensions.width <=
+                variables.tabletResponsiveWidthBreakpoint;
         const isLargeScreenWidth = !isSmallScreenWidth && !isMediumScreenWidth;
 
         this.dimensionsEventListener = null;
@@ -51,7 +57,10 @@ class WindowDimensionsProvider extends React.Component {
     }
 
     componentDidMount() {
-        this.dimensionsEventListener = Dimensions.addEventListener('change', this.onDimensionChange);
+        this.dimensionsEventListener = Dimensions.addEventListener(
+            'change',
+            this.onDimensionChange,
+        );
     }
 
     componentWillUnmount() {
@@ -69,8 +78,11 @@ class WindowDimensionsProvider extends React.Component {
      */
     onDimensionChange(newDimensions) {
         const {window} = newDimensions;
-        const isSmallScreenWidth = window.width <= variables.mobileResponsiveWidthBreakpoint;
-        const isMediumScreenWidth = !isSmallScreenWidth && window.width <= variables.tabletResponsiveWidthBreakpoint;
+        const isSmallScreenWidth =
+            window.width <= variables.mobileResponsiveWidthBreakpoint;
+        const isMediumScreenWidth =
+            !isSmallScreenWidth &&
+            window.width <= variables.tabletResponsiveWidthBreakpoint;
         const isLargeScreenWidth = !isSmallScreenWidth && !isMediumScreenWidth;
         this.setState({
             windowHeight: window.height,
@@ -82,7 +94,11 @@ class WindowDimensionsProvider extends React.Component {
     }
 
     render() {
-        return <WindowDimensionsContext.Provider value={this.state}>{this.props.children}</WindowDimensionsContext.Provider>;
+        return (
+            <WindowDimensionsContext.Provider value={this.state}>
+                {this.props.children}
+            </WindowDimensionsContext.Provider>
+        );
     }
 }
 
@@ -107,7 +123,9 @@ export default function withWindowDimensions(WrappedComponent) {
         </WindowDimensionsContext.Consumer>
     ));
 
-    WithWindowDimensions.displayName = `withWindowDimensions(${getComponentDisplayName(WrappedComponent)})`;
+    WithWindowDimensions.displayName = `withWindowDimensions(${getComponentDisplayName(
+        WrappedComponent,
+    )})`;
     return WithWindowDimensions;
 }
 

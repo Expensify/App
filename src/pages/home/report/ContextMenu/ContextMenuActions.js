@@ -40,8 +40,14 @@ const CONTEXT_MENU_TYPES = {
 export default [
     {
         shouldKeepOpen: true,
-        shouldShow: (type, reportAction) => type === CONTEXT_MENU_TYPES.REPORT_ACTION && _.has(reportAction, 'message') && reportAction.actionName !== CONST.REPORT.ACTIONS.TYPE.IOU,
-        renderContent: (closePopover, {reportID, reportAction, close: closeManually, openContextMenu}) => {
+        shouldShow: (type, reportAction) =>
+            type === CONTEXT_MENU_TYPES.REPORT_ACTION &&
+            _.has(reportAction, 'message') &&
+            reportAction.actionName !== CONST.REPORT.ACTIONS.TYPE.IOU,
+        renderContent: (
+            closePopover,
+            {reportID, reportAction, close: closeManually, openContextMenu},
+        ) => {
             const isMini = !closePopover;
 
             const closeContextMenu = (onHideCallback) => {
@@ -61,10 +67,23 @@ export default [
             };
 
             if (isMini) {
-                return <MiniQuickEmojiReactions key="MiniQuickEmojiReactions" onEmojiSelected={onEmojiSelected} onPressOpenPicker={openContextMenu} onEmojiPickerClosed={closeContextMenu} />;
+                return (
+                    <MiniQuickEmojiReactions
+                        key="MiniQuickEmojiReactions"
+                        onEmojiSelected={onEmojiSelected}
+                        onPressOpenPicker={openContextMenu}
+                        onEmojiPickerClosed={closeContextMenu}
+                    />
+                );
             }
 
-            return <QuickEmojiReactions key="BaseQuickEmojiReactions" closeContextMenu={closeContextMenu} onEmojiSelected={onEmojiSelected} />;
+            return (
+                <QuickEmojiReactions
+                    key="BaseQuickEmojiReactions"
+                    closeContextMenu={closeContextMenu}
+                    onEmojiSelected={onEmojiSelected}
+                />
+            );
         },
     },
     {
@@ -74,7 +93,9 @@ export default [
         successIcon: Expensicons.Download,
         shouldShow: (type, reportAction) => {
             const message = _.last(lodashGet(reportAction, 'message', [{}]));
-            const isAttachment = _.has(reportAction, 'isAttachment') ? reportAction.isAttachment : ReportUtils.isReportMessageAttachment(message);
+            const isAttachment = _.has(reportAction, 'isAttachment')
+                ? reportAction.isAttachment
+                : ReportUtils.isReportMessageAttachment(message);
             return isAttachment && reportAction.reportActionID;
         },
         onPress: (closePopover, {reportAction}) => {
@@ -83,9 +104,12 @@ export default [
             const attachmentDetails = getAttachmentDetails(html);
             const {originalFileName, sourceURL} = attachmentDetails;
             const sourceURLWithAuth = addEncryptedAuthTokenToURL(sourceURL);
-            const sourceID = (sourceURL.match(CONST.REGEX.ATTACHMENT_ID) || [])[1];
+            const sourceID = (sourceURL.match(CONST.REGEX.ATTACHMENT_ID) ||
+                [])[1];
             Download.setDownload(sourceID, true);
-            fileDownload(sourceURLWithAuth, originalFileName).then(() => Download.setDownload(sourceID, false));
+            fileDownload(sourceURLWithAuth, originalFileName).then(() =>
+                Download.setDownload(sourceID, false),
+            );
             if (closePopover) {
                 hideContextMenu(true, ReportActionComposeFocusManager.focus);
             }
@@ -124,7 +148,9 @@ export default [
         shouldShow: (type, reportAction) =>
             type === CONTEXT_MENU_TYPES.REPORT_ACTION &&
             reportAction.actionName !== CONST.REPORT.ACTIONS.TYPE.IOU &&
-            !ReportUtils.isReportMessageAttachment(_.last(lodashGet(reportAction, ['message'], [{}]))),
+            !ReportUtils.isReportMessageAttachment(
+                _.last(lodashGet(reportAction, ['message'], [{}])),
+            ),
 
         // If return value is true, we switch the `text` and `icon` on
         // `ContextMenuItem` with `successText` and `successIcon` which will fallback to
@@ -133,7 +159,9 @@ export default [
             const message = _.last(lodashGet(reportAction, 'message', [{}]));
             const messageHtml = lodashGet(message, 'html', '');
 
-            const isAttachment = _.has(reportAction, 'isAttachment') ? reportAction.isAttachment : ReportUtils.isReportMessageAttachment(message);
+            const isAttachment = _.has(reportAction, 'isAttachment')
+                ? reportAction.isAttachment
+                : ReportUtils.isReportMessageAttachment(message);
             if (!isAttachment) {
                 const content = selection || messageHtml;
                 if (content) {
@@ -141,7 +169,9 @@ export default [
                     if (!Clipboard.canSetHtml()) {
                         Clipboard.setString(parser.htmlToMarkdown(content));
                     } else {
-                        const plainText = Str.htmlDecode(parser.htmlToText(content));
+                        const plainText = Str.htmlDecode(
+                            parser.htmlToText(content),
+                        );
                         Clipboard.setHtml(content, plainText);
                     }
                 }
@@ -161,16 +191,28 @@ export default [
         successIcon: Expensicons.Checkmark,
         successTextTranslateKey: 'reportActionContextMenu.copied',
         shouldShow: (type, reportAction, isArchivedRoom, betas, menuTarget) => {
-            const isAttachment = ReportUtils.isReportMessageAttachment(_.last(lodashGet(reportAction, ['message'], [{}])));
+            const isAttachment = ReportUtils.isReportMessageAttachment(
+                _.last(lodashGet(reportAction, ['message'], [{}])),
+            );
 
             // Only hide the copylink menu item when context menu is opened over img element.
-            const isAttachmentTarget = lodashGet(menuTarget, 'tagName') === 'IMG' && isAttachment;
-            return Permissions.canUseCommentLinking(betas) && type === CONTEXT_MENU_TYPES.REPORT_ACTION && !isAttachmentTarget;
+            const isAttachmentTarget =
+                lodashGet(menuTarget, 'tagName') === 'IMG' && isAttachment;
+            return (
+                Permissions.canUseCommentLinking(betas) &&
+                type === CONTEXT_MENU_TYPES.REPORT_ACTION &&
+                !isAttachmentTarget
+            );
         },
         onPress: (closePopover, {reportAction, reportID}) => {
             Environment.getEnvironmentURL().then((environmentURL) => {
-                const reportActionID = parseInt(lodashGet(reportAction, 'reportActionID'), 10);
-                Clipboard.setString(`${environmentURL}/r/${reportID}/${reportActionID}`);
+                const reportActionID = parseInt(
+                    lodashGet(reportAction, 'reportActionID'),
+                    10,
+                );
+                Clipboard.setString(
+                    `${environmentURL}/r/${reportID}/${reportActionID}`,
+                );
             });
             hideContextMenu(true, ReportActionComposeFocusManager.focus);
         },
@@ -194,10 +236,25 @@ export default [
     {
         textTranslateKey: 'reportActionContextMenu.editComment',
         icon: Expensicons.Pencil,
-        shouldShow: (type, reportAction, isArchivedRoom, betas, menuTarget, isChronosReport) =>
-            type === CONTEXT_MENU_TYPES.REPORT_ACTION && ReportUtils.canEditReportAction(reportAction) && !isArchivedRoom && !isChronosReport,
+        shouldShow: (
+            type,
+            reportAction,
+            isArchivedRoom,
+            betas,
+            menuTarget,
+            isChronosReport,
+        ) =>
+            type === CONTEXT_MENU_TYPES.REPORT_ACTION &&
+            ReportUtils.canEditReportAction(reportAction) &&
+            !isArchivedRoom &&
+            !isChronosReport,
         onPress: (closePopover, {reportID, reportAction, draftMessage}) => {
-            const editAction = () => Report.saveReportActionDraft(reportID, reportAction.reportActionID, _.isEmpty(draftMessage) ? getActionText(reportAction) : '');
+            const editAction = () =>
+                Report.saveReportActionDraft(
+                    reportID,
+                    reportAction.reportActionID,
+                    _.isEmpty(draftMessage) ? getActionText(reportAction) : '',
+                );
 
             if (closePopover) {
                 // Hide popover, then call editAction
@@ -213,12 +270,24 @@ export default [
     {
         textTranslateKey: 'reportActionContextMenu.deleteComment',
         icon: Expensicons.Trashcan,
-        shouldShow: (type, reportAction, isArchivedRoom, betas, menuTarget, isChronosReport) =>
-            type === CONTEXT_MENU_TYPES.REPORT_ACTION && ReportUtils.canDeleteReportAction(reportAction) && !isArchivedRoom && !isChronosReport,
+        shouldShow: (
+            type,
+            reportAction,
+            isArchivedRoom,
+            betas,
+            menuTarget,
+            isChronosReport,
+        ) =>
+            type === CONTEXT_MENU_TYPES.REPORT_ACTION &&
+            ReportUtils.canDeleteReportAction(reportAction) &&
+            !isArchivedRoom &&
+            !isChronosReport,
         onPress: (closePopover, {reportID, reportAction}) => {
             if (closePopover) {
                 // Hide popover, then call showDeleteConfirmModal
-                hideContextMenu(false, () => showDeleteModal(reportID, reportAction));
+                hideContextMenu(false, () =>
+                    showDeleteModal(reportID, reportAction),
+                );
                 return;
             }
 

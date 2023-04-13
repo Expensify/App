@@ -54,7 +54,10 @@ class LHNOptionsList extends Component {
      * @returns {Object}
      */
     getItemLayout(data, index) {
-        const optionHeight = this.props.optionMode === CONST.OPTION_MODE.COMPACT ? variables.optionRowHeightCompact : variables.optionRowHeight;
+        const optionHeight =
+            this.props.optionMode === CONST.OPTION_MODE.COMPACT
+                ? variables.optionRowHeightCompact
+                : variables.optionRowHeight;
         return {
             length: optionHeight,
             offset: index * optionHeight,
@@ -76,7 +79,10 @@ class LHNOptionsList extends Component {
             <OptionRowLHN
                 reportID={item}
                 viewMode={this.props.optionMode}
-                isFocused={!this.props.shouldDisableFocusOptions && this.props.focusedIndex === index}
+                isFocused={
+                    !this.props.shouldDisableFocusOptions &&
+                    this.props.focusedIndex === index
+                }
                 onSelectRow={this.props.onSelectRow}
             />
         );

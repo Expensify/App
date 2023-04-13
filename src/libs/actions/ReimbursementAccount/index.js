@@ -3,8 +3,16 @@ import ONYXKEYS from '../../../ONYXKEYS';
 import resetFreePlanBankAccount from './resetFreePlanBankAccount';
 import deleteFromBankAccountList from './deleteFromBankAccountList';
 
-export {goToWithdrawalAccountSetupStep, navigateToBankAccountRoute} from './navigation';
-export {setBankAccountFormValidationErrors, setPersonalBankAccountFormValidationErrorFields, resetReimbursementAccount, showBankAccountFormValidationError} from './errors';
+export {
+    goToWithdrawalAccountSetupStep,
+    navigateToBankAccountRoute,
+} from './navigation';
+export {
+    setBankAccountFormValidationErrors,
+    setPersonalBankAccountFormValidationErrorFields,
+    resetReimbursementAccount,
+    showBankAccountFormValidationError,
+} from './errors';
 
 /**
  * Set the current sub step in first step of adding withdrawal bank account:

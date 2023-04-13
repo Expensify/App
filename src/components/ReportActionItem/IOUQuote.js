@@ -54,24 +54,68 @@ const IOUQuote = (props) => (
         {_.map(props.action.message, (fragment, index) => (
             <Pressable
                 key={`iouQuote-${props.action.reportActionID}-${index}`}
-                onPress={props.shouldAllowViewDetails ? props.onViewDetailsPressed : () => {}}
-                onPressIn={() => DeviceCapabilities.canUseTouchScreen() && ControlSelection.block()}
+                onPress={
+                    props.shouldAllowViewDetails
+                        ? props.onViewDetailsPressed
+                        : () => {}
+                }
+                onPressIn={() =>
+                    DeviceCapabilities.canUseTouchScreen() &&
+                    ControlSelection.block()
+                }
                 onPressOut={() => ControlSelection.unblock()}
-                onLongPress={(event) => showContextMenuForReport(event, props.contextMenuAnchor, props.chatReportID, props.action, props.checkIfContextMenuActive)}
-                style={[styles.flexRow, styles.justifyContentBetween, props.shouldAllowViewDetails ? undefined : styles.cursorDefault]}
+                onLongPress={(event) =>
+                    showContextMenuForReport(
+                        event,
+                        props.contextMenuAnchor,
+                        props.chatReportID,
+                        props.action,
+                        props.checkIfContextMenuActive,
+                    )
+                }
+                style={[
+                    styles.flexRow,
+                    styles.justifyContentBetween,
+                    props.shouldAllowViewDetails
+                        ? undefined
+                        : styles.cursorDefault,
+                ]}
                 focusable={props.shouldAllowViewDetails}
             >
                 <Text style={[styles.flex1, styles.mr2]}>
-                    <Text style={props.shouldAllowViewDetails && styles.chatItemMessageLink}>
+                    <Text
+                        style={
+                            props.shouldAllowViewDetails &&
+                            styles.chatItemMessageLink
+                        }
+                    >
                         {/* Get first word of IOU message */}
                         {Str.htmlDecode(fragment.text.split(' ')[0])}
                     </Text>
-                    <Text style={[styles.chatItemMessage, props.shouldAllowViewDetails ? styles.cursorPointer : styles.cursorDefault]}>
+                    <Text
+                        style={[
+                            styles.chatItemMessage,
+                            props.shouldAllowViewDetails
+                                ? styles.cursorPointer
+                                : styles.cursorDefault,
+                        ]}
+                    >
                         {/* Get remainder of IOU message */}
-                        {Str.htmlDecode(fragment.text.substring(fragment.text.indexOf(' ')))}
+                        {Str.htmlDecode(
+                            fragment.text.substring(fragment.text.indexOf(' ')),
+                        )}
                     </Text>
                 </Text>
-                <Icon src={Expensicons.ArrowRight} fill={props.shouldAllowViewDetails ? StyleUtils.getIconFillColor(getButtonState(props.isHovered)) : themeColors.transparent} />
+                <Icon
+                    src={Expensicons.ArrowRight}
+                    fill={
+                        props.shouldAllowViewDetails
+                            ? StyleUtils.getIconFillColor(
+                                  getButtonState(props.isHovered),
+                              )
+                            : themeColors.transparent
+                    }
+                />
             </Pressable>
         ))}
     </View>

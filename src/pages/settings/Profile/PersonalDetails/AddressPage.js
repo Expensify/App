@@ -7,7 +7,9 @@ import {CONST as COMMON_CONST} from 'expensify-common/lib/CONST';
 import {withOnyx} from 'react-native-onyx';
 import ScreenWrapper from '../../../../components/ScreenWrapper';
 import HeaderWithCloseButton from '../../../../components/HeaderWithCloseButton';
-import withLocalize, {withLocalizePropTypes} from '../../../../components/withLocalize';
+import withLocalize, {
+    withLocalizePropTypes,
+} from '../../../../components/withLocalize';
 import ROUTES from '../../../../ROUTES';
 import Form from '../../../../components/Form';
 import ONYXKEYS from '../../../../ONYXKEYS';
@@ -59,9 +61,12 @@ class AddressPage extends Component {
         this.updateAddress = this.updateAddress.bind(this);
         this.onCountryUpdate = this.onCountryUpdate.bind(this);
 
-        const currentCountry = lodashGet(props.privatePersonalDetails, 'address.country') || '';
+        const currentCountry =
+            lodashGet(props.privatePersonalDetails, 'address.country') || '';
         this.state = {
-            isUsaForm: currentCountry === CONST.COUNTRY.US || currentCountry === CONST.USA_COUNTRY_NAME,
+            isUsaForm:
+                currentCountry === CONST.COUNTRY.US ||
+                currentCountry === CONST.USA_COUNTRY_NAME,
         };
     }
 
@@ -77,7 +82,14 @@ class AddressPage extends Component {
      * @param {Object} values - form input values
      */
     updateAddress(values) {
-        PersonalDetails.updateAddress(values.addressLine1.trim(), values.addressLine2.trim(), values.city.trim(), values.state.trim(), values.zipPostCode, values.country);
+        PersonalDetails.updateAddress(
+            values.addressLine1.trim(),
+            values.addressLine2.trim(),
+            values.city.trim(),
+            values.state.trim(),
+            values.zipPostCode,
+            values.country,
+        );
     }
 
     /**
@@ -87,7 +99,13 @@ class AddressPage extends Component {
     validate(values) {
         const errors = {};
 
-        const requiredFields = ['addressLine1', 'city', 'zipPostCode', 'country', 'state'];
+        const requiredFields = [
+            'addressLine1',
+            'city',
+            'zipPostCode',
+            'country',
+            'state',
+        ];
 
         // Check "State" dropdown is a valid state if selected Country is USA.
         if (this.state.isUsaForm && !COMMON_CONST.STATES[values.state]) {
@@ -99,22 +117,29 @@ class AddressPage extends Component {
             if (!_.isEmpty(values[fieldKey])) {
                 return;
             }
-            errors[fieldKey] = this.props.translate('common.error.fieldRequired');
+            errors[fieldKey] = this.props.translate(
+                'common.error.fieldRequired',
+            );
         });
 
         return errors;
     }
 
     render() {
-        const address = lodashGet(this.props.privatePersonalDetails, 'address') || {};
+        const address =
+            lodashGet(this.props.privatePersonalDetails, 'address') || {};
         const [street1, street2] = (address.street || '').split('\n');
 
         return (
             <ScreenWrapper includeSafeAreaPaddingBottom={false}>
                 <HeaderWithCloseButton
-                    title={this.props.translate('privatePersonalDetails.homeAddress')}
+                    title={this.props.translate(
+                        'privatePersonalDetails.homeAddress',
+                    )}
                     shouldShowBackButton
-                    onBackButtonPress={() => Navigation.navigate(ROUTES.SETTINGS_PERSONAL_DETAILS)}
+                    onBackButtonPress={() =>
+                        Navigation.navigate(ROUTES.SETTINGS_PERSONAL_DETAILS)
+                    }
                     onCloseButtonPress={() => Navigation.dismissModal(true)}
                 />
                 <Form
@@ -154,28 +179,53 @@ class AddressPage extends Component {
                         />
                     </View>
                     <View style={styles.mb4}>
-                        <TextInput inputID="city" label={this.props.translate('common.city')} defaultValue={address.city || ''} maxLength={CONST.FORM_CHARACTER_LIMIT} />
+                        <TextInput
+                            inputID="city"
+                            label={this.props.translate('common.city')}
+                            defaultValue={address.city || ''}
+                            maxLength={CONST.FORM_CHARACTER_LIMIT}
+                        />
                     </View>
                     <View style={[styles.flexRow, styles.mb4]}>
                         <View style={[styles.flex1, styles.mr2]}>
                             {this.state.isUsaForm ? (
-                                <StatePicker inputID="state" defaultValue={address.state || ''} />
+                                <StatePicker
+                                    inputID="state"
+                                    defaultValue={address.state || ''}
+                                />
                             ) : (
-                                <TextInput inputID="state" label={this.props.translate('common.stateOrProvince')} defaultValue={address.state || ''} maxLength={CONST.FORM_CHARACTER_LIMIT} />
+                                <TextInput
+                                    inputID="state"
+                                    label={this.props.translate(
+                                        'common.stateOrProvince',
+                                    )}
+                                    defaultValue={address.state || ''}
+                                    maxLength={CONST.FORM_CHARACTER_LIMIT}
+                                />
                             )}
                         </View>
                         <View style={[styles.flex1]}>
                             <TextInput
                                 inputID="zipPostCode"
-                                label={this.props.translate('common.zipPostCode')}
+                                label={this.props.translate(
+                                    'common.zipPostCode',
+                                )}
                                 keyboardType={CONST.KEYBOARD_TYPE.NUMBER_PAD}
                                 defaultValue={address.zip || ''}
-                                maxLength={CONST.BANK_ACCOUNT.MAX_LENGTH.ZIP_CODE}
+                                maxLength={
+                                    CONST.BANK_ACCOUNT.MAX_LENGTH.ZIP_CODE
+                                }
                             />
                         </View>
                     </View>
                     <View>
-                        <CountryPicker inputID="country" onValueChange={this.onCountryUpdate} defaultValue={PersonalDetails.getCountryISO(address.country)} />
+                        <CountryPicker
+                            inputID="country"
+                            onValueChange={this.onCountryUpdate}
+                            defaultValue={PersonalDetails.getCountryISO(
+                                address.country,
+                            )}
+                        />
                     </View>
                 </Form>
             </ScreenWrapper>

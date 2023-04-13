@@ -12,7 +12,9 @@ const Logger = require('./logger');
  */
 module.exports = function (platform = 'android', path) {
     if (platform !== 'android') {
-        throw new Error(`installApp() missing implementation for platform: ${platform}`);
+        throw new Error(
+            `installApp() missing implementation for platform: ${platform}`,
+        );
     }
 
     // Uninstall first, then install

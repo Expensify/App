@@ -10,7 +10,9 @@ import ROUTES from '../../../../ROUTES';
 import CONST from '../../../../CONST';
 import Navigation from '../../../../libs/Navigation/Navigation';
 import * as User from '../../../../libs/actions/User';
-import withLocalize, {withLocalizePropTypes} from '../../../../components/withLocalize';
+import withLocalize, {
+    withLocalizePropTypes,
+} from '../../../../components/withLocalize';
 import Button from '../../../../components/Button';
 import MenuItemWithTopDescription from '../../../../components/MenuItemWithTopDescription';
 
@@ -19,7 +21,8 @@ const propTypes = {
     label: PropTypes.string.isRequired,
 
     /** Type associated with the login */
-    type: PropTypes.oneOf([CONST.LOGIN_TYPE.EMAIL, CONST.LOGIN_TYPE.PHONE]).isRequired,
+    type: PropTypes.oneOf([CONST.LOGIN_TYPE.EMAIL, CONST.LOGIN_TYPE.PHONE])
+        .isRequired,
 
     /** Login associated with the user */
     login: PropTypes.shape({
@@ -79,33 +82,72 @@ class LoginField extends Component {
         if (this.props.login.partnerUserID && !this.props.login.validatedDate) {
             if (this.props.type === CONST.LOGIN_TYPE.PHONE) {
                 // Has unvalidated phone number
-                note = this.props.translate('loginField.numberHasNotBeenValidated');
+                note = this.props.translate(
+                    'loginField.numberHasNotBeenValidated',
+                );
             } else {
                 // Has unvalidated email
-                note = this.props.translate('loginField.emailHasNotBeenValidated');
+                note = this.props.translate(
+                    'loginField.emailHasNotBeenValidated',
+                );
             }
         }
 
         return (
             <View style={[styles.ph8]}>
                 <View>
-                    {!this.props.login.partnerUserID || this.props.login.validatedDate ? (
+                    {!this.props.login.partnerUserID ||
+                    this.props.login.validatedDate ? (
                         <View style={[styles.mln8, styles.mrn8]}>
                             <MenuItemWithTopDescription
                                 title={this.getTitle()}
-                                description={this.props.login.partnerUserID ? this.props.label : undefined}
-                                interactive={Boolean(!this.props.login.partnerUserID)}
-                                onPress={this.props.login.partnerUserID ? () => {} : () => Navigation.navigate(ROUTES.getSettingsAddLoginRoute(this.props.type))}
-                                shouldShowRightIcon={Boolean(!this.props.login.partnerUserID)}
-                                style={!this.props.login.partnerUserID ? styles.colorMuted : []}
+                                description={
+                                    this.props.login.partnerUserID
+                                        ? this.props.label
+                                        : undefined
+                                }
+                                interactive={Boolean(
+                                    !this.props.login.partnerUserID,
+                                )}
+                                onPress={
+                                    this.props.login.partnerUserID
+                                        ? () => {}
+                                        : () =>
+                                              Navigation.navigate(
+                                                  ROUTES.getSettingsAddLoginRoute(
+                                                      this.props.type,
+                                                  ),
+                                              )
+                                }
+                                shouldShowRightIcon={Boolean(
+                                    !this.props.login.partnerUserID,
+                                )}
+                                style={
+                                    !this.props.login.partnerUserID
+                                        ? styles.colorMuted
+                                        : []
+                                }
                             />
                         </View>
                     ) : (
                         <View style={[styles.mt2]}>
-                            <Text style={[styles.textLabelSupporting]}>{this.props.label}</Text>
-                            <View style={[styles.flexRow, styles.justifyContentBetween, styles.alignItemsCenter, styles.pt]}>
+                            <Text style={[styles.textLabelSupporting]}>
+                                {this.props.label}
+                            </Text>
+                            <View
+                                style={[
+                                    styles.flexRow,
+                                    styles.justifyContentBetween,
+                                    styles.alignItemsCenter,
+                                    styles.pt,
+                                ]}
+                            >
                                 <Text numberOfLines={1}>
-                                    {this.props.type === CONST.LOGIN_TYPE.PHONE ? this.props.toLocalPhone(this.props.login.partnerUserID) : this.props.login.partnerUserID}
+                                    {this.props.type === CONST.LOGIN_TYPE.PHONE
+                                        ? this.props.toLocalPhone(
+                                              this.props.login.partnerUserID,
+                                          )
+                                        : this.props.login.partnerUserID}
                                 </Text>
                                 <Button
                                     small
@@ -113,9 +155,18 @@ class LoginField extends Component {
                                     onPress={this.onResendClicked}
                                     ContentComponent={() =>
                                         this.state.showCheckmarkIcon ? (
-                                            <Icon fill={themeColors.inverse} src={Expensicons.Checkmark} />
+                                            <Icon
+                                                fill={themeColors.inverse}
+                                                src={Expensicons.Checkmark}
+                                            />
                                         ) : (
-                                            <Text style={styles.buttonSmallText}>{this.props.translate('common.resend')}</Text>
+                                            <Text
+                                                style={styles.buttonSmallText}
+                                            >
+                                                {this.props.translate(
+                                                    'common.resend',
+                                                )}
+                                            </Text>
                                         )
                                     }
                                 />
@@ -123,7 +174,11 @@ class LoginField extends Component {
                         </View>
                     )}
                 </View>
-                {note && <Text style={[styles.textLabel, styles.colorMuted]}>{note}</Text>}
+                {note && (
+                    <Text style={[styles.textLabel, styles.colorMuted]}>
+                        {note}
+                    </Text>
+                )}
             </View>
         );
     }

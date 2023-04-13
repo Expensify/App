@@ -16,7 +16,9 @@ export default function () {
 
                 // Fail early here because there is nothing to migrate
                 if (_.isEmpty(oldActiveClients)) {
-                    Log.info('[Migrate Onyx] Skipped migration RenameActiveClientsKey');
+                    Log.info(
+                        '[Migrate Onyx] Skipped migration RenameActiveClientsKey',
+                    );
                     return resolve();
                 }
 
@@ -24,7 +26,9 @@ export default function () {
                     activeClients2: null,
                     [ONYXKEYS.ACTIVE_CLIENTS]: oldActiveClients,
                 }).then(() => {
-                    Log.info('[Migrate Onyx] Ran migration RenameActiveClientsKey');
+                    Log.info(
+                        '[Migrate Onyx] Ran migration RenameActiveClientsKey',
+                    );
                     resolve();
                 });
             },

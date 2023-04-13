@@ -64,7 +64,11 @@ Onyx.connect({
  */
 function getNonOptimisticPolicyIDs(policies) {
     return _.chain(policies)
-        .reject((policy) => lodashGet(policy, 'pendingAction', null) === CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD)
+        .reject(
+            (policy) =>
+                lodashGet(policy, 'pendingAction', null) ===
+                CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
+        )
         .pluck('id')
         .compact()
         .value();
@@ -228,7 +232,10 @@ function setUpPoliciesAndNavigate(session) {
         return;
     }
 
-    const isLoggingInAsNewUser = SessionUtils.isLoggingInAsNewUser(currentUrl, session.email);
+    const isLoggingInAsNewUser = SessionUtils.isLoggingInAsNewUser(
+        currentUrl,
+        session.email,
+    );
     const url = new URL(currentUrl);
     const exitTo = url.searchParams.get('exitTo');
 
@@ -239,12 +246,18 @@ function setUpPoliciesAndNavigate(session) {
     const policyName = url.searchParams.get('policyName');
 
     // Sign out the current user if we're transitioning from oldDot with a different user
-    const isTransitioningFromOldDot = Str.startsWith(url.pathname, Str.normalizeUrl(ROUTES.TRANSITION_FROM_OLD_DOT));
+    const isTransitioningFromOldDot = Str.startsWith(
+        url.pathname,
+        Str.normalizeUrl(ROUTES.TRANSITION_FROM_OLD_DOT),
+    );
     if (isLoggingInAsNewUser && isTransitioningFromOldDot) {
         Session.signOut();
     }
 
-    const shouldCreateFreePolicy = !isLoggingInAsNewUser && isTransitioningFromOldDot && exitTo === ROUTES.WORKSPACE_NEW;
+    const shouldCreateFreePolicy =
+        !isLoggingInAsNewUser &&
+        isTransitioningFromOldDot &&
+        exitTo === ROUTES.WORKSPACE_NEW;
     if (shouldCreateFreePolicy) {
         Policy.createWorkspace(ownerEmail, makeMeAdmin, policyName, true);
         return;
@@ -308,4 +321,12 @@ function openProfile() {
     Navigation.navigate(ROUTES.SETTINGS_PROFILE);
 }
 
-export {setLocale, setLocaleAndNavigate, setSidebarLoaded, setUpPoliciesAndNavigate, openProfile, openApp, reconnectApp};
+export {
+    setLocale,
+    setLocaleAndNavigate,
+    setSidebarLoaded,
+    setUpPoliciesAndNavigate,
+    openProfile,
+    openApp,
+    reconnectApp,
+};

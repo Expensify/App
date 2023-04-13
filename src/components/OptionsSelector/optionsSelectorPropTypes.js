@@ -84,7 +84,10 @@ const propTypes = {
     footerContent: PropTypes.oneOfType([PropTypes.func, PropTypes.node]),
 
     /** Hover style for options in the OptionsList */
-    optionHoveredStyle: PropTypes.oneOfType([PropTypes.arrayOf(PropTypes.object), PropTypes.object]),
+    optionHoveredStyle: PropTypes.oneOfType([
+        PropTypes.arrayOf(PropTypes.object),
+        PropTypes.object,
+    ]),
 
     /** Whether to show options list */
     shouldShowOptions: PropTypes.bool,

@@ -4,7 +4,9 @@ import _ from 'underscore';
 import {withOnyx} from 'react-native-onyx';
 import PropTypes from 'prop-types';
 import * as Report from '../../libs/actions/Report';
-import withLocalize, {withLocalizePropTypes} from '../../components/withLocalize';
+import withLocalize, {
+    withLocalizePropTypes,
+} from '../../components/withLocalize';
 import compose from '../../libs/compose';
 import HeaderWithCloseButton from '../../components/HeaderWithCloseButton';
 import Navigation from '../../libs/Navigation/Navigation';
@@ -48,19 +50,25 @@ class WorkspaceNewRoomPage extends React.Component {
         super(props);
 
         this.state = {
-            visibilityDescription: this.props.translate('newRoomPage.restrictedDescription'),
+            visibilityDescription: this.props.translate(
+                'newRoomPage.restrictedDescription',
+            ),
         };
 
         this.validate = this.validate.bind(this);
         this.submit = this.submit.bind(this);
-        this.updateVisibilityDescription = this.updateVisibilityDescription.bind(this);
+        this.updateVisibilityDescription =
+            this.updateVisibilityDescription.bind(this);
     }
 
     /**
      * @param {Object} values - form input values passed by the Form component
      */
     submit(values) {
-        const policyID = this.props.policies[`${ONYXKEYS.COLLECTION.POLICY}${values.policyID}`];
+        const policyID =
+            this.props.policies[
+                `${ONYXKEYS.COLLECTION.POLICY}${values.policyID}`
+            ];
         Report.addPolicyReport(policyID, values.roomName, values.visibility);
     }
 
@@ -68,7 +76,9 @@ class WorkspaceNewRoomPage extends React.Component {
      * @param {String} visibility - form input value passed by the Form component
      */
     updateVisibilityDescription(visibility) {
-        const visibilityDescription = this.props.translate(`newRoomPage.${visibility}Description`);
+        const visibilityDescription = this.props.translate(
+            `newRoomPage.${visibility}Description`,
+        );
         if (visibilityDescription === this.state.visibilityDescription) {
             return;
         }
@@ -85,20 +95,36 @@ class WorkspaceNewRoomPage extends React.Component {
         // The following validations are ordered by precedence.
         // First priority: We error if the user doesn't enter a room name or left blank
         if (!values.roomName || values.roomName === CONST.POLICY.ROOM_PREFIX) {
-            errors.roomName = this.props.translate('newRoomPage.pleaseEnterRoomName');
+            errors.roomName = this.props.translate(
+                'newRoomPage.pleaseEnterRoomName',
+            );
         } else if (ValidationUtils.isReservedRoomName(values.roomName)) {
             // Second priority: Certain names are reserved for default rooms and should not be used for policy rooms.
-            errors.roomName = this.props.translate('newRoomPage.roomNameReservedError');
-        } else if (ValidationUtils.isExistingRoomName(values.roomName, this.props.reports, values.policyID)) {
+            errors.roomName = this.props.translate(
+                'newRoomPage.roomNameReservedError',
+            );
+        } else if (
+            ValidationUtils.isExistingRoomName(
+                values.roomName,
+                this.props.reports,
+                values.policyID,
+            )
+        ) {
             // Third priority: We error if the room name already exists.
-            errors.roomName = this.props.translate('newRoomPage.roomAlreadyExistsError');
+            errors.roomName = this.props.translate(
+                'newRoomPage.roomAlreadyExistsError',
+            );
         } else if (!ValidationUtils.isValidRoomName(values.roomName)) {
             // Fourth priority: We error if the room name has invalid characters
-            errors.roomName = this.props.translate('newRoomPage.roomNameInvalidError');
+            errors.roomName = this.props.translate(
+                'newRoomPage.roomNameInvalidError',
+            );
         }
 
         if (!values.policyID) {
-            errors.policyID = this.props.translate('newRoomPage.pleaseSelectWorkspace');
+            errors.policyID = this.props.translate(
+                'newRoomPage.pleaseSelectWorkspace',
+            );
         }
 
         return errors;
@@ -106,14 +132,19 @@ class WorkspaceNewRoomPage extends React.Component {
 
     render() {
         if (!Permissions.canUsePolicyRooms(this.props.betas)) {
-            Log.info('Not showing create Policy Room page since user is not on policy rooms beta');
+            Log.info(
+                'Not showing create Policy Room page since user is not on policy rooms beta',
+            );
             Navigation.dismissModal();
             return null;
         }
 
         // Workspaces are policies with type === 'free'
         const workspaceOptions = _.map(
-            _.filter(this.props.policies, (policy) => policy && policy.type === CONST.POLICY.TYPE.FREE),
+            _.filter(
+                this.props.policies,
+                (policy) => policy && policy.type === CONST.POLICY.TYPE.FREE,
+            ),
             (policy) => ({
                 label: policy.name,
                 key: policy.id,
@@ -122,20 +153,34 @@ class WorkspaceNewRoomPage extends React.Component {
         );
 
         const visibilityOptions = _.map(
-            _.filter(_.values(CONST.REPORT.VISIBILITY), (visibilityOption) => visibilityOption !== CONST.REPORT.VISIBILITY.PUBLIC_ANNOUNCE),
+            _.filter(
+                _.values(CONST.REPORT.VISIBILITY),
+                (visibilityOption) =>
+                    visibilityOption !==
+                    CONST.REPORT.VISIBILITY.PUBLIC_ANNOUNCE,
+            ),
             (visibilityOption) => ({
-                label: this.props.translate(`newRoomPage.visibilityOptions.${visibilityOption}`),
+                label: this.props.translate(
+                    `newRoomPage.visibilityOptions.${visibilityOption}`,
+                ),
                 value: visibilityOption,
-                description: this.props.translate(`newRoomPage.${visibilityOption}Description`),
+                description: this.props.translate(
+                    `newRoomPage.${visibilityOption}Description`,
+                ),
             }),
         );
 
         return (
             <ScreenWrapper includeSafeAreaPaddingBottom={false}>
-                <HeaderWithCloseButton title={this.props.translate('newRoomPage.newRoom')} onCloseButtonPress={() => Navigation.dismissModal()} />
+                <HeaderWithCloseButton
+                    title={this.props.translate('newRoomPage.newRoom')}
+                    onCloseButtonPress={() => Navigation.dismissModal()}
+                />
                 <Form
                     formID={ONYXKEYS.FORMS.NEW_ROOM_FORM}
-                    submitButtonText={this.props.translate('newRoomPage.createRoom')}
+                    submitButtonText={this.props.translate(
+                        'newRoomPage.createRoom',
+                    )}
                     scrollContextEnabled
                     style={[styles.mh5, styles.mt5, styles.flexGrow1]}
                     validate={this.validate}
@@ -143,15 +188,23 @@ class WorkspaceNewRoomPage extends React.Component {
                     enabledWhenOffline
                 >
                     <View style={styles.mb5}>
-                        <RoomNameInput inputID="roomName" autoFocus shouldDelayFocus={shouldDelayFocus} />
+                        <RoomNameInput
+                            inputID="roomName"
+                            autoFocus
+                            shouldDelayFocus={shouldDelayFocus}
+                        />
                     </View>
                     <View style={styles.mb5}>
                         <Picker
                             inputID="policyID"
-                            label={this.props.translate('workspace.common.workspace')}
+                            label={this.props.translate(
+                                'workspace.common.workspace',
+                            )}
                             placeholder={{
                                 value: '',
-                                label: this.props.translate('newRoomPage.selectAWorkspace'),
+                                label: this.props.translate(
+                                    'newRoomPage.selectAWorkspace',
+                                ),
                             }}
                             items={workspaceOptions}
                         />
@@ -159,13 +212,17 @@ class WorkspaceNewRoomPage extends React.Component {
                     <View style={styles.mb2}>
                         <Picker
                             inputID="visibility"
-                            label={this.props.translate('newRoomPage.visibility')}
+                            label={this.props.translate(
+                                'newRoomPage.visibility',
+                            )}
                             items={visibilityOptions}
                             onValueChange={this.updateVisibilityDescription}
                             defaultValue={CONST.REPORT.VISIBILITY.RESTRICTED}
                         />
                     </View>
-                    <Text style={[styles.textLabel, styles.colorMuted]}>{this.state.visibilityDescription}</Text>
+                    <Text style={[styles.textLabel, styles.colorMuted]}>
+                        {this.state.visibilityDescription}
+                    </Text>
                 </Form>
             </ScreenWrapper>
         );

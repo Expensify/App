@@ -5,7 +5,10 @@ import PropTypes from 'prop-types';
 import _ from 'underscore';
 import htmlRendererPropTypes from '../htmlRendererPropTypes';
 import withLocalize from '../../../withLocalize';
-import {ShowContextMenuContext, showContextMenuForReport} from '../../../ShowContextMenuContext';
+import {
+    ShowContextMenuContext,
+    showContextMenuForReport,
+} from '../../../ShowContextMenuContext';
 import styles from '../../../../styles/styles';
 
 const propTypes = {
@@ -25,7 +28,12 @@ const defaultProps = {
 
 const BasePreRenderer = forwardRef((props, ref) => {
     const TDefaultRenderer = props.TDefaultRenderer;
-    const defaultRendererProps = _.omit(props, ['TDefaultRenderer', 'onPressIn', 'onPressOut', 'onLongPress']);
+    const defaultRendererProps = _.omit(props, [
+        'TDefaultRenderer',
+        'onPressIn',
+        'onPressOut',
+        'onLongPress',
+    ]);
 
     return (
         <ScrollView ref={ref} horizontal style={styles.mv2}>
@@ -34,7 +42,15 @@ const BasePreRenderer = forwardRef((props, ref) => {
                     <TouchableWithoutFeedback
                         onPressIn={props.onPressIn}
                         onPressOut={props.onPressOut}
-                        onLongPress={(event) => showContextMenuForReport(event, anchor, reportID, action, checkIfContextMenuActive)}
+                        onLongPress={(event) =>
+                            showContextMenuForReport(
+                                event,
+                                anchor,
+                                reportID,
+                                action,
+                                checkIfContextMenuActive,
+                            )
+                        }
                     >
                         <View>
                             {/* eslint-disable-next-line react/jsx-props-no-spreading */}

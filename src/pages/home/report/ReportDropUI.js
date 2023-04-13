@@ -1,6 +1,8 @@
 import React from 'react';
 import {View} from 'react-native';
-import withLocalize, {withLocalizePropTypes} from '../../../components/withLocalize';
+import withLocalize, {
+    withLocalizePropTypes,
+} from '../../../components/withLocalize';
 import styles from '../../../styles/styles';
 import Text from '../../../components/Text';
 import CONST from '../../../CONST';
@@ -13,11 +15,16 @@ const propTypes = {
 };
 
 const ReportDropUI = (props) => (
-    <DropZone dropZoneViewHolderName={CONST.REPORT.DROP_HOST_NAME} dropZoneId={CONST.REPORT.ACTIVE_DROP_NATIVE_ID}>
+    <DropZone
+        dropZoneViewHolderName={CONST.REPORT.DROP_HOST_NAME}
+        dropZoneId={CONST.REPORT.ACTIVE_DROP_NATIVE_ID}
+    >
         <View style={styles.mb3}>
             <Icon src={Expensicons.DragAndDrop} width={100} height={100} />
         </View>
-        <Text style={[styles.textHeadline]}>{props.translate('reportActionCompose.dropToUpload')}</Text>
+        <Text style={[styles.textHeadline]}>
+            {props.translate('reportActionCompose.dropToUpload')}
+        </Text>
     </DropZone>
 );
 

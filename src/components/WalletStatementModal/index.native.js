@@ -6,7 +6,10 @@ import _ from 'underscore';
 import withLocalize from '../withLocalize';
 import ONYXKEYS from '../../ONYXKEYS';
 import compose from '../../libs/compose';
-import {walletStatementPropTypes, walletStatementDefaultProps} from './WalletStatementModalPropTypes';
+import {
+    walletStatementPropTypes,
+    walletStatementDefaultProps,
+} from './WalletStatementModalPropTypes';
 import FullScreenLoadingIndicator from '../FullscreenLoadingIndicator';
 import * as Report from '../../libs/actions/Report';
 import Navigation from '../../libs/Navigation/Navigation';
@@ -27,7 +30,10 @@ class WalletStatementModal extends React.Component {
      * @param {String} params.url
      */
     navigate({type, url}) {
-        if (!this.webview || (type !== 'STATEMENT_NAVIGATE' && type !== 'CONCIERGE_NAVIGATE')) {
+        if (
+            !this.webview ||
+            (type !== 'STATEMENT_NAVIGATE' && type !== 'CONCIERGE_NAVIGATE')
+        ) {
             return;
         }
 
@@ -37,8 +43,14 @@ class WalletStatementModal extends React.Component {
         }
 
         if (type === 'STATEMENT_NAVIGATE' && url) {
-            const iouRoutes = [ROUTES.IOU_REQUEST, ROUTES.IOU_SEND, ROUTES.IOU_BILL];
-            const navigateToIOURoute = _.find(iouRoutes, (iouRoute) => url.includes(iouRoute));
+            const iouRoutes = [
+                ROUTES.IOU_REQUEST,
+                ROUTES.IOU_SEND,
+                ROUTES.IOU_BILL,
+            ];
+            const navigateToIOURoute = _.find(iouRoutes, (iouRoute) =>
+                url.includes(iouRoute),
+            );
             if (navigateToIOURoute) {
                 this.webview.stopLoading();
                 Navigation.navigate(navigateToIOURoute);

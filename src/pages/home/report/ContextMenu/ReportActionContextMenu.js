@@ -33,7 +33,19 @@ function showContextMenu(
     if (!contextMenuRef.current) {
         return;
     }
-    contextMenuRef.current.showContextMenu(type, event, selection, contextMenuAnchor, reportID, reportAction, draftMessage, onShow, onHide, isArchivedRoom, isChronosReport);
+    contextMenuRef.current.showContextMenu(
+        type,
+        event,
+        selection,
+        contextMenuAnchor,
+        reportID,
+        reportAction,
+        draftMessage,
+        onShow,
+        onHide,
+        isArchivedRoom,
+        isChronosReport,
+    );
 }
 
 /**
@@ -80,11 +92,23 @@ function hideDeleteModal() {
  * @param {Function} [onConfirm]
  * @param {Function} [onCancel]
  */
-function showDeleteModal(reportID, reportAction, shouldSetModalVisibility, onConfirm, onCancel) {
+function showDeleteModal(
+    reportID,
+    reportAction,
+    shouldSetModalVisibility,
+    onConfirm,
+    onCancel,
+) {
     if (!contextMenuRef.current) {
         return;
     }
-    contextMenuRef.current.showDeleteModal(reportID, reportAction, shouldSetModalVisibility, onConfirm, onCancel);
+    contextMenuRef.current.showDeleteModal(
+        reportID,
+        reportAction,
+        shouldSetModalVisibility,
+        onConfirm,
+        onCancel,
+    );
 }
 
 /**
@@ -100,4 +124,11 @@ function isActiveReportAction(actionID) {
     return contextMenuRef.current.isActiveReportAction(actionID);
 }
 
-export {contextMenuRef, showContextMenu, hideContextMenu, isActiveReportAction, showDeleteModal, hideDeleteModal};
+export {
+    contextMenuRef,
+    showContextMenu,
+    hideContextMenu,
+    isActiveReportAction,
+    showDeleteModal,
+    hideDeleteModal,
+};

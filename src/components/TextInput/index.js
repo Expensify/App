@@ -16,7 +16,8 @@ class TextInput extends React.Component {
     }
 
     render() {
-        const isLabeledMultiline = Boolean(this.props.label.length) && this.props.multiline;
+        const isLabeledMultiline =
+            Boolean(this.props.label.length) && this.props.multiline;
 
         return (
             <BaseTextInput
@@ -35,7 +36,12 @@ class TextInput extends React.Component {
 
                     this.props.innerRef.current = el;
                 }}
-                inputStyle={[styles.baseTextInput, styles.textInputDesktop, isLabeledMultiline ? styles.textInputMultiline : {}, ...this.props.inputStyle]}
+                inputStyle={[
+                    styles.baseTextInput,
+                    styles.textInputDesktop,
+                    isLabeledMultiline ? styles.textInputMultiline : {},
+                    ...this.props.inputStyle,
+                ]}
             />
         );
     }

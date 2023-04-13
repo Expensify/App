@@ -12,9 +12,15 @@ function clear() {
  */
 function getRequestWaitTime() {
     if (requestWaitTime) {
-        requestWaitTime = Math.min(requestWaitTime * 2, CONST.NETWORK.MAX_RETRY_WAIT_TIME_MS);
+        requestWaitTime = Math.min(
+            requestWaitTime * 2,
+            CONST.NETWORK.MAX_RETRY_WAIT_TIME_MS,
+        );
     } else {
-        requestWaitTime = _.random(CONST.NETWORK.MIN_RETRY_WAIT_TIME_MS, CONST.NETWORK.MAX_RANDOM_RETRY_WAIT_TIME_MS);
+        requestWaitTime = _.random(
+            CONST.NETWORK.MIN_RETRY_WAIT_TIME_MS,
+            CONST.NETWORK.MAX_RANDOM_RETRY_WAIT_TIME_MS,
+        );
     }
     return requestWaitTime;
 }

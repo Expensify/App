@@ -55,7 +55,10 @@ jest.doMock('react-native', () => {
                         };
                     }
 
-                    return ReactNative.AppState.addEventListener(type, listener);
+                    return ReactNative.AppState.addEventListener(
+                        type,
+                        listener,
+                    );
                 },
             },
             Dimensions: {

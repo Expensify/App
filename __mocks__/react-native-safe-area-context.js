@@ -39,4 +39,12 @@ const useSafeAreaFrame = jest.fn(() => ({
 }));
 const useSafeAreaInsets = jest.fn(() => insets);
 
-export {SafeAreaProvider, SafeAreaConsumer, SafeAreaInsetsContext, withSafeAreaInsets, SafeAreaView, useSafeAreaFrame, useSafeAreaInsets};
+export {
+    SafeAreaProvider,
+    SafeAreaConsumer,
+    SafeAreaInsetsContext,
+    withSafeAreaInsets,
+    SafeAreaView,
+    useSafeAreaFrame,
+    useSafeAreaInsets,
+};

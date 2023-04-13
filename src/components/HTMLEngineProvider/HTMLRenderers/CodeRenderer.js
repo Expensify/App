@@ -8,7 +8,9 @@ import InlineCodeBlock from '../../InlineCodeBlock';
 const CodeRenderer = (props) => {
     // We split wrapper and inner styles
     // "boxModelStyle" corresponds to border, margin, padding and backgroundColor
-    const {boxModelStyle, otherStyle: textStyle} = splitBoxModelStyle(props.style);
+    const {boxModelStyle, otherStyle: textStyle} = splitBoxModelStyle(
+        props.style,
+    );
 
     // Get the correct fontFamily variant based in the fontStyle and fontWeight
     const font = StyleUtils.getFontFamilyMonospace({

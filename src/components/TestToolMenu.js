@@ -37,7 +37,10 @@ const defaultProps = {
 
 const TestToolMenu = (props) => (
     <>
-        <Text style={[styles.textLabelSupporting, styles.mb2, styles.mt6]} numberOfLines={1}>
+        <Text
+            style={[styles.textLabelSupporting, styles.mb2, styles.mt6]}
+            numberOfLines={1}
+        >
             Test Preferences
         </Text>
 
@@ -45,29 +48,62 @@ const TestToolMenu = (props) => (
         This enables QA and internal testers to take advantage of sandbox environments for 3rd party services like Plaid and Onfido. */}
         <TestToolRow title="Use Staging Server">
             <Switch
-                isOn={lodashGet(props, 'user.shouldUseStagingServer', _.contains([CONST.PLATFORM.WEB, CONST.PLATFORM.DESKTOP], getPlatform()))}
-                onToggle={() => User.setShouldUseStagingServer(!lodashGet(props, 'user.shouldUseStagingServer', true))}
+                isOn={lodashGet(
+                    props,
+                    'user.shouldUseStagingServer',
+                    _.contains(
+                        [CONST.PLATFORM.WEB, CONST.PLATFORM.DESKTOP],
+                        getPlatform(),
+                    ),
+                )}
+                onToggle={() =>
+                    User.setShouldUseStagingServer(
+                        !lodashGet(props, 'user.shouldUseStagingServer', true),
+                    )
+                }
             />
         </TestToolRow>
 
         {/* When toggled the app will be forced offline. */}
         <TestToolRow title="Force offline">
-            <Switch isOn={Boolean(props.network.shouldForceOffline)} onToggle={() => Network.setShouldForceOffline(!props.network.shouldForceOffline)} />
+            <Switch
+                isOn={Boolean(props.network.shouldForceOffline)}
+                onToggle={() =>
+                    Network.setShouldForceOffline(
+                        !props.network.shouldForceOffline,
+                    )
+                }
+            />
         </TestToolRow>
 
         {/* When toggled all network requests will fail. */}
         <TestToolRow title="Simulate failing network requests">
-            <Switch isOn={Boolean(props.network.shouldFailAllRequests)} onToggle={() => Network.setShouldFailAllRequests(!props.network.shouldFailAllRequests)} />
+            <Switch
+                isOn={Boolean(props.network.shouldFailAllRequests)}
+                onToggle={() =>
+                    Network.setShouldFailAllRequests(
+                        !props.network.shouldFailAllRequests,
+                    )
+                }
+            />
         </TestToolRow>
 
         {/* Instantly invalidates a user's local authToken. Useful for testing flows related to reauthentication. */}
         <TestToolRow title="Authentication status">
-            <Button small text="Invalidate" onPress={() => Session.invalidateAuthToken()} />
+            <Button
+                small
+                text="Invalidate"
+                onPress={() => Session.invalidateAuthToken()}
+            />
         </TestToolRow>
 
         {/* Invalidate stored user auto-generated credentials. Useful for manually testing sign out logic. */}
         <TestToolRow title="Device credentials">
-            <Button small text="Destroy" onPress={() => Session.invalidateCredentials()} />
+            <Button
+                small
+                text="Destroy"
+                onPress={() => Session.invalidateCredentials()}
+            />
         </TestToolRow>
     </>
 );
