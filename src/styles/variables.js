@@ -120,6 +120,7 @@ export default {
     signInContentMaxWidth: 1360,
     signInHeroContextMaxWidth: 740,
     signInContentMinHeight: 800,
+    signInLogoHeightSmallScreen: 28,
     signInLogoHeight: 34,
     signInLogoWidth: 120,
     signInLogoWidthLargeScreen: 144,

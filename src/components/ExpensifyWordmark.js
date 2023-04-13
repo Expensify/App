@@ -11,6 +11,7 @@ import compose from '../libs/compose';
 import themeColors from '../styles/themes/default';
 import styles from '../styles/styles';
 import * as StyleUtils from '../styles/StyleUtils';
+import variables from '../styles/variables';
 
 const propTypes = {
     ...environmentPropTypes,
@@ -30,7 +31,7 @@ const ExpensifyWordmark = (props) => {
         <>
             <View style={[
                 StyleUtils.getSignInWordmarkWidthStyle(props.environment, props.isSmallScreenWidth),
-                StyleUtils.getHeight(props.isSmallScreenWidth ? 28 : 34),
+                StyleUtils.getHeight(props.isSmallScreenWidth ? variables.signInLogoHeightSmallScreen : variables.signInLogoHeight),
                 (props.isSmallScreenWidth && (props.environment === CONST.ENVIRONMENT.DEV || props.environment === CONST.ENVIRONMENT.STAGING)) ? styles.ml3 : {},
             ]}
             >
