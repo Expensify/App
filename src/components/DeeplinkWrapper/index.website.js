@@ -1,3 +1,4 @@
+import _ from 'underscore';
 import PropTypes from 'prop-types';
 import React, {PureComponent} from 'react';
 import {withOnyx} from 'react-native-onyx';
@@ -28,6 +29,10 @@ const defaultProps = {
     session: {
         email: '',
         authToken: '',
+        shortLivedTokenForDeepLink: {
+            errors: {},
+            token: '',
+        },
     },
 };
 
@@ -60,17 +65,29 @@ class DeeplinkWrapper extends PureComponent {
             return;
         }
 
-        // eslint-disable-next-line rulesdir/no-thenable-actions-in-views
-        App.getShortLivedAuthToken().then((shortLivedAuthToken) => {
+        // Make the request to get a short lived token so we can redirect the user
+        App.beginDeepLinkRedirect();
+    }
+
+    componentDidUpdate(prevProps) {
+        const didShortLivedTokenAppear = !prevProps.session.shortLivedTokenForDeepLink.token && this.props.session.shortLivedTokenForDeepLink.token;
+        const didShortLivedTokenErrorAppear = _.isEmpty(prevProps.session.shortLivedTokenForDeepLink.errors) && !_.isEmpty(this.props.session.shortLivedTokenForDeepLink.errors);
+
+        // The BeginDeepLinkRedirect request is successful so check to see if the desktop app is installed and then deep link the user
+        if (didShortLivedTokenAppear) {
+            const expensifyUrl = new URL(CONFIG.EXPENSIFY.NEW_EXPENSIFY_URL);
+            const params = new URLSearchParams();
+            params.set('exitTo', `${window.location.pathname}${window.location.search}${window.location.hash}`);
             params.set('email', this.props.session.email);
-            params.set('shortLivedAuthToken', `${shortLivedAuthToken}`);
+            params.set('shortLivedAuthToken', `${this.props.session.shortLivedTokenForDeepLink.token}`);
             const expensifyDeeplinkUrl = `${CONST.DEEPLINK_BASE_URL}${expensifyUrl.host}/transition?${params.toString()}`;
             this.openRouteInDesktopApp(expensifyDeeplinkUrl);
-        }).catch(() => {
-            // If the request is successful, we call the updateAppInstallationCheckStatus before the prompt pops up.
-            // If not, we only need to make sure that the state will be updated.
+        }
+
+        // The BeginDeepLinkRedirect was not successful for some reason so we'll just render the app without blocking anything or redirecting
+        if (didShortLivedTokenErrorAppear) {
             this.updateAppInstallationCheckStatus();
-        });
+        }
     }
 
     updateAppInstallationCheckStatus() {

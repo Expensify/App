@@ -286,16 +286,8 @@ function openProfile() {
     Navigation.navigate(ROUTES.SETTINGS_PROFILE);
 }
 
-function getShortLivedAuthToken() {
-    // eslint-disable-next-line rulesdir/no-api-side-effects-method
-    return API.makeRequestWithSideEffects('OpenOldDotLink')
-        .then((response) => {
-            if (response && response.shortLivedAuthToken) {
-                return Promise.resolve(response.shortLivedAuthToken);
-            }
-
-            return Promise.reject();
-        });
+function beginDeepLinkRedirect() {
+    API.read('BeginDeepLinkRedirect');
 }
 
 export {
@@ -306,5 +298,5 @@ export {
     openProfile,
     openApp,
     reconnectApp,
-    getShortLivedAuthToken,
+    beginDeepLinkRedirect,
 };
