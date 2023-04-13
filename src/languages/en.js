@@ -115,7 +115,7 @@ export default {
         bankAccount: 'Bank account',
         join: 'Join',
         decline: 'Decline',
-        transferBalance: 'Transfer Balance',
+        transferBalance: 'Transfer balance',
         cantFindAddress: 'Can\'t find your address? ',
         enterManually: 'Enter it manually',
         message: 'Message ',
@@ -439,7 +439,7 @@ export default {
         versionLetter: 'v',
         readTheTermsAndPrivacy: {
             phrase1: 'Read the',
-            phrase2: 'terms of service',
+            phrase2: 'Terms of Service',
             phrase3: 'and',
             phrase4: 'privacy',
         },
@@ -533,7 +533,7 @@ export default {
         failedTransfer: 'Your balance isn’t fully settled. Please transfer to a bank account.',
     },
     chooseTransferAccountPage: {
-        chooseAccount: 'Choose Account',
+        chooseAccount: 'Choose account',
     },
     paymentMethodList: {
         addPaymentMethod: 'Add payment method',
@@ -587,7 +587,7 @@ export default {
     },
     termsOfUse: {
         phrase1: 'By logging in, you agree to the',
-        phrase2: 'terms of service',
+        phrase2: 'Terms of Service',
         phrase3: 'and',
         phrase4: 'privacy',
         phrase5: 'Money transmission is provided by Expensify Payments LLC (NMLS ID:2017010) pursuant to its',

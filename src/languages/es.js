@@ -438,7 +438,7 @@ export default {
         versionLetter: 'v',
         readTheTermsAndPrivacy: {
             phrase1: 'Leer los',
-            phrase2: 'términos de servicio',
+            phrase2: 'Términos de Servicio',
             phrase3: 'y',
             phrase4: 'privacidad',
         },
@@ -586,7 +586,7 @@ export default {
     },
     termsOfUse: {
         phrase1: 'Al iniciar sesión, estás accediendo a los',
-        phrase2: 'términos de servicio',
+        phrase2: 'Términos de Servicio',
         phrase3: 'y',
         phrase4: 'privacidad',
         phrase5: 'El envío de dinero es brindado por Expensify Payments LLC (NMLS ID:2017010) de conformidad con sus',
