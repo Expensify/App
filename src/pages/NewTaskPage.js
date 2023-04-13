@@ -68,7 +68,7 @@ const NewTaskPage = (props) => {
     return (
         <ScreenWrapper includeSafeAreaPaddingBottom={false}>
             <HeaderWithCloseButton
-                title={props.translate('sidebarScreen.newTask')}
+                title={props.translate('newTaskPage.assignTask')}
                 onCloseButtonPress={() => Navigation.dismissModal()}
             />
             <Form

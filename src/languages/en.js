@@ -292,7 +292,6 @@ export default {
         draftedMessage: 'Drafted message',
         listOfChatMessages: 'List of chat messages',
         listOfChats: 'List of chats',
-        newTask: 'Assign task',
     },
     iou: {
         amount: 'Amount',
