@@ -226,9 +226,9 @@ class BaseValidateCodeForm extends React.Component {
                             autoFocus
                         />
                         <View style={[styles.changeExpensifyLoginLinkContainer]}>
-                            {this.state.linkSent && this.props.account.message ? (
+                            {this.state.linkSent ? (
                                 <Text style={[styles.mt2]}>
-                                    {this.props.translate(this.props.account.message)}
+                                    {this.props.account.message ? this.props.translate(this.props.account.message) : ''}
                                 </Text>
                             ) : (
                                 <TouchableOpacity
