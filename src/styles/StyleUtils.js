@@ -116,7 +116,7 @@ function getAvatarBorderStyle(size, type) {
  * @param {String} [workspaceName]
  * @returns {Object}
  */
-function getDefaultWorspaceAvatarColor(workspaceName) {
+function getDefaultWorkspaceAvatarColor(workspaceName) {
     const colorHash = ReportUtils.hashLogin(workspaceName.trim(), workspaceColorOptions.length);
 
     return workspaceColorOptions[colorHash];
@@ -536,7 +536,7 @@ function getReportActionItemStyle(isHovered = false, isLoading = false) {
             // Warning: Setting this to a non-transparent color will cause unread indicator to break on Android
             : colors.transparent,
         opacity: isLoading ? 0.5 : 1,
-        cursor: 'default',
+        cursor: 'initial',
     };
 }
 
@@ -1024,7 +1024,7 @@ export {
     getEmojiSuggestionItemStyle,
     getEmojiSuggestionContainerStyle,
     getColoredBackgroundStyle,
-    getDefaultWorspaceAvatarColor,
+    getDefaultWorkspaceAvatarColor,
     getAvatarBorderRadius,
     getEmojiReactionBubbleStyle,
     getEmojiReactionBubbleTextStyle,

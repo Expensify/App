@@ -82,15 +82,6 @@ class ReportDetailsPage extends Component {
             });
         }
 
-        if (ReportUtils.isUserCreatedPolicyRoom(this.props.report)) {
-            menuItems.push({
-                key: CONST.REPORT_DETAILS_MENU_ITEM.INVITE,
-                translationKey: 'common.invite',
-                icon: Expensicons.Plus,
-                action: () => { /* Placeholder for when inviting other users is built in */ },
-            });
-        }
-
         const policy = this.props.policies[`${ONYXKEYS.COLLECTION.POLICY}${this.props.report.policyID}`];
         if (ReportUtils.isUserCreatedPolicyRoom(this.props.report) || ReportUtils.canLeaveRoom(this.props.report, !_.isEmpty(policy))) {
             menuItems.push({

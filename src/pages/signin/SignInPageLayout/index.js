@@ -1,4 +1,4 @@
-import React from 'react';
+import React, {useRef} from 'react';
 import {View, ScrollView} from 'react-native';
 import {withSafeAreaInsets} from 'react-native-safe-area-context';
 import PropTypes from 'prop-types';
@@ -38,6 +38,7 @@ const propTypes = {
 };
 
 const SignInPageLayout = (props) => {
+    const scrollViewRef = useRef(null);
     let containerStyles = [styles.flex1, styles.signInPageInner];
     let contentContainerStyles = [styles.flex1, styles.flexRow];
 
@@ -65,6 +66,7 @@ const SignInPageLayout = (props) => {
                         <ScrollView
                             style={[styles.flex1, StyleUtils.getBackgroundColorStyle(themeColors.signInPage)]}
                             contentContainerStyle={[styles.flex1]}
+                            ref={scrollViewRef}
                         >
                             <View style={[styles.flex1]}>
                                 <View style={styles.signInPageHeroCenter}>
@@ -84,7 +86,7 @@ const SignInPageLayout = (props) => {
                                         props.isLargeScreenWidth ? styles.ph25 : {}]}
                                     >
                                         <SignInPageHero />
-                                        <Footer />
+                                        <Footer scrollViewRef={scrollViewRef} />
                                     </View>
                                 </View>
                             </View>
@@ -94,6 +96,7 @@ const SignInPageLayout = (props) => {
                     <ScrollView
                         contentContainerStyle={scrollViewContentContainerStyles}
                         keyboardShouldPersistTaps="handled"
+                        ref={scrollViewRef}
                     >
                         <View style={[styles.flex1, styles.flexColumn, StyleUtils.getMinimumHeight(Math.max(variables.signInContentMinHeight, containerHeight))]}>
                             <SignInHeroBackgroundImageMobile
@@ -111,7 +114,7 @@ const SignInPageLayout = (props) => {
                             </SignInPageContent>
                         </View>
                         <View style={[styles.flex0]}>
-                            <Footer />
+                            <Footer scrollViewRef={scrollViewRef} />
                         </View>
                     </ScrollView>
                 )}

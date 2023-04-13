@@ -99,12 +99,23 @@ function getReportParticipantsTitle(logins) {
 }
 
 /**
- * Attempts to find a report in onyx with the provided list of participants
+ * Checks if a report is an Expense report.
+ *
+ * @param {Object} report
+ * @returns {Boolean}
+ */
+function isExpenseReport(report) {
+    return lodashGet(report, 'type') === CONST.REPORT.TYPE.EXPENSE;
+}
+
+/**
+ * Checks if a report is an IOU report.
+ *
  * @param {Object} report
  * @returns {Boolean}
  */
 function isIOUReport(report) {
-    return report && _.has(report, 'total');
+    return lodashGet(report, 'type') === CONST.REPORT.TYPE.IOU;
 }
 
 /**
@@ -453,6 +464,7 @@ function canShowReportRecipientLocalTime(personalDetails, report) {
     const isReportParticipantValidated = lodashGet(reportRecipient, 'validated', false);
     return Boolean(!hasMultipleParticipants
         && !isChatRoom(report)
+        && !isPolicyExpenseChat(report)
         && reportRecipient
         && reportRecipientTimezone
         && reportRecipientTimezone.selected
@@ -981,6 +993,7 @@ function buildOptimisticIOUReport(ownerEmail, userEmail, total, chatReportID, cu
     return {
         // If we're sending money, hasOutstandingIOU should be false
         hasOutstandingIOU: !isSendingMoney,
+        type: CONST.REPORT.TYPE.IOU,
         cachedTotal: formattedTotal,
         chatReportID,
         currency,
@@ -1146,6 +1159,7 @@ function buildOptimisticChatReport(
 ) {
     const currentTime = DateUtils.getDBTime();
     return {
+        type: CONST.REPORT.TYPE.CHAT,
         chatType,
         hasOutstandingIOU: false,
         isOwnPolicyExpenseChat,
@@ -1741,6 +1755,7 @@ export {
     getAllPolicyReports,
     getIOUReportActionMessage,
     getDisplayNameForParticipant,
+    isExpenseReport,
     isIOUReport,
     chatIncludesChronos,
     getAvatar,
