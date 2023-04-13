@@ -24,11 +24,10 @@ import ScreenWrapper from '../../components/ScreenWrapper';
 import CONST from '../../CONST';
 import * as PersonalDetails from '../../libs/actions/PersonalDetails';
 import withCurrentUserPersonalDetails from '../../components/withCurrentUserPersonalDetails';
-import networkPropTypes from '../../components/networkPropTypes';
-import {withNetwork} from '../../components/OnyxProvider';
 import reportPropTypes from '../reportPropTypes';
 import * as ReportUtils from '../../libs/ReportUtils';
 import * as ReportScrollManager from '../../libs/ReportScrollManager';
+import useOnNetworkReconnect from '../../components/hooks/useOnNetworkReconnect';
 
 /**
  * A modal used for requesting money, splitting bills or sending money.
@@ -43,9 +42,6 @@ const propTypes = {
     /** The report passed via the route */
     // eslint-disable-next-line react/no-unused-prop-types
     report: reportPropTypes,
-
-    /** Information about the network */
-    network: networkPropTypes.isRequired,
 
     // Holds data related to request view state, rather than the underlying request data.
     iou: PropTypes.shape({
@@ -126,7 +122,6 @@ const MoneyRequestModal = (props) => {
     const steps = reportParticipants.length ? [Steps.IOUAmount, Steps.IOUConfirm] : [Steps.IOUAmount, Steps.IOUParticipants, Steps.IOUConfirm];
 
     const prevCreatingIOUTransactionStatusRef = useRef(lodashGet(props.iou, 'creatingIOUTransaction'));
-    const prevNetworkStatusRef = useRef(props.network.isOffline);
 
     const [previousStepIndex, setPreviousStepIndex] = useState(0);
     const [currentStepIndex, setCurrentStepIndex] = useState(0);
@@ -154,18 +149,11 @@ const MoneyRequestModal = (props) => {
         }
     }, [props.iou]);
 
-    useEffect(() => {
-        if (props.network.isOffline || !prevNetworkStatusRef.current) {
-            return;
-        }
-
-        // User came back online, so let's refetch the currency details based on location
-        PersonalDetails.openMoneyRequestModalPage();
-    }, [props.network.isOffline]);
+    // User came back online, so let's refetch the currency details based on location
+    useOnNetworkReconnect(PersonalDetails.openMoneyRequestModalPage);
 
     useEffect(() => {
         // Used to store previous prop values to compare on next render
-        prevNetworkStatusRef.current = props.network.isOffline;
         prevCreatingIOUTransactionStatusRef.current = lodashGet(props.iou, 'creatingIOUTransaction');
     });
 
@@ -414,7 +402,6 @@ MoneyRequestModal.defaultProps = defaultProps;
 
 export default compose(
     withLocalize,
-    withNetwork(),
     withCurrentUserPersonalDetails,
     withOnyx({
         report: {
