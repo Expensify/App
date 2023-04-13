@@ -90,9 +90,15 @@ export default {
         conjunctionAt: 'a',
         genericErrorMessage: 'Ups... algo no ha ido bien y la acción no se ha podido completar. Por favor, inténtalo más tarde.',
         error: {
+<<<<<<< HEAD
             invalidAmount: 'Importe no válido',
             acceptTerms: 'Debes aceptar los Términos de servicio para continuar',
             phoneNumber: `Introduce un teléfono válido, incluyendo el código del país (p. ej. ${CONST.EXAMPLE_PHONE_NUMBER})`,
+=======
+            invalidAmount: 'Monto no válido',
+            acceptTerms: 'Debes aceptar los Términos de Servicio para continuar',
+            phoneNumber: `Ingresa un teléfono válido, incluyendo el código de país (p. ej. ${CONST.EXAMPLE_PHONE_NUMBER})`,
+>>>>>>> fix inconsistent capitalization of acceptTerms text in Spanish language
             fieldRequired: 'Este campo es obligatorio.',
             characterLimit: ({limit}) => `Supera el límite de ${limit} caracteres`,
             dateInvalid: 'Introduce una fecha válida',
