@@ -25,18 +25,12 @@ class KeyboardStateProvider extends React.Component {
     }
 
     componentDidMount() {
-        this.keyboardDidShowListener = Keyboard.addListener(
-            'keyboardDidShow',
-            () => {
-                this.setState({isKeyboardShown: true});
-            },
-        );
-        this.keyboardDidHideListener = Keyboard.addListener(
-            'keyboardDidHide',
-            () => {
-                this.setState({isKeyboardShown: false});
-            },
-        );
+        this.keyboardDidShowListener = Keyboard.addListener('keyboardDidShow', () => {
+            this.setState({isKeyboardShown: true});
+        });
+        this.keyboardDidHideListener = Keyboard.addListener('keyboardDidHide', () => {
+            this.setState({isKeyboardShown: false});
+        });
     }
 
     componentWillUnmount() {
@@ -45,11 +39,7 @@ class KeyboardStateProvider extends React.Component {
     }
 
     render() {
-        return (
-            <KeyboardStateContext.Provider value={this.state}>
-                {this.props.children}
-            </KeyboardStateContext.Provider>
-        );
+        return <KeyboardStateContext.Provider value={this.state}>{this.props.children}</KeyboardStateContext.Provider>;
     }
 }
 
@@ -74,9 +64,7 @@ export default function withKeyboardState(WrappedComponent) {
         </KeyboardStateContext.Consumer>
     ));
 
-    WithKeyboardState.displayName = `withKeyboardState(${getComponentDisplayName(
-        WrappedComponent,
-    )})`;
+    WithKeyboardState.displayName = `withKeyboardState(${getComponentDisplayName(WrappedComponent)})`;
     return WithKeyboardState;
 }
 

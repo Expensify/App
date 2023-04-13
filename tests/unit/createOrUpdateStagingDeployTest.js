@@ -23,8 +23,7 @@ beforeAll(() => {
                     Promise.resolve({
                         data: {
                             ...arg,
-                            html_url:
-                                'https://github.com/Expensify/App/issues/29',
+                            html_url: 'https://github.com/Expensify/App/issues/29',
                         },
                     }),
                 ),
@@ -44,11 +43,7 @@ beforeAll(() => {
                 list: jest.fn().mockResolvedValue([]),
             },
         },
-        paginate: jest
-            .fn()
-            .mockImplementation((objectMethod) =>
-                objectMethod().then(({data}) => data),
-            ),
+        paginate: jest.fn().mockImplementation((objectMethod) => objectMethod().then(({data}) => data)),
     };
     GithubUtils.internalOctokit = moctokit;
 
@@ -102,10 +97,7 @@ const basePRList = [
     'https://github.com/Expensify/App/issues/12',
 ];
 
-const baseIssueList = [
-    'https://github.com/Expensify/App/issues/11',
-    'https://github.com/Expensify/App/issues/12',
-];
+const baseIssueList = ['https://github.com/Expensify/App/issues/11', 'https://github.com/Expensify/App/issues/12'];
 // eslint-disable-next-line max-len
 const baseExpectedOutput = (tag = '1.0.2-1') =>
     `**Release Version:** \`${tag}\`\r\n**Compare Changes:** https://github.com/Expensify/App/compare/production...staging\r\n\r\n**This release contains changes from the following pull requests:**\r\n`;
@@ -156,14 +148,12 @@ describe('createOrUpdateStagingDeployCash', () => {
             }
         });
 
-        mockGetPullRequestsMergedBetween.mockImplementation(
-            (fromRef, toRef) => {
-                if (fromRef === '1.0.1-0' && toRef === '1.0.2-1') {
-                    return [...baseNewPullRequests];
-                }
-                return [];
-            },
-        );
+        mockGetPullRequestsMergedBetween.mockImplementation((fromRef, toRef) => {
+            if (fromRef === '1.0.1-0' && toRef === '1.0.2-1') {
+                return [...baseNewPullRequests];
+            }
+            return [];
+        });
 
         mockListIssues.mockImplementation((args) => {
             if (args.labels === GithubUtils.STAGING_DEPLOY_CASH_LABEL) {
@@ -177,9 +167,7 @@ describe('createOrUpdateStagingDeployCash', () => {
             expect(result).toStrictEqual({
                 owner: GithubUtils.GITHUB_OWNER,
                 repo: GithubUtils.APP_REPO,
-                title: `Deploy Checklist: New Expensify ${moment().format(
-                    'YYYY-MM-DD',
-                )}`,
+                title: `Deploy Checklist: New Expensify ${moment().format('YYYY-MM-DD')}`,
                 labels: [GithubUtils.STAGING_DEPLOY_CASH_LABEL],
                 html_url: 'https://github.com/Expensify/App/issues/29',
                 assignees: [GithubUtils.APPLAUSE_BOT],
@@ -253,22 +241,17 @@ describe('createOrUpdateStagingDeployCash', () => {
 
             // New pull requests to add to open StagingDeployCash
             const newPullRequests = ['9', '10'];
-            mockGetPullRequestsMergedBetween.mockImplementation(
-                (fromRef, toRef) => {
-                    if (fromRef === '1.0.1-0' && toRef === '1.0.2-2') {
-                        return [...baseNewPullRequests, ...newPullRequests];
-                    }
-                    return [];
-                },
-            );
+            mockGetPullRequestsMergedBetween.mockImplementation((fromRef, toRef) => {
+                if (fromRef === '1.0.1-0' && toRef === '1.0.2-2') {
+                    return [...baseNewPullRequests, ...newPullRequests];
+                }
+                return [];
+            });
 
             mockListIssues.mockImplementation((args) => {
                 if (args.labels === GithubUtils.STAGING_DEPLOY_CASH_LABEL) {
                     return {
-                        data: [
-                            openStagingDeployCashBefore,
-                            closedStagingDeployCash,
-                        ],
+                        data: [openStagingDeployCashBefore, closedStagingDeployCash],
                     };
                 }
 
@@ -277,15 +260,13 @@ describe('createOrUpdateStagingDeployCash', () => {
                         data: [
                             ...currentDeployBlockers,
                             {
-                                html_url:
-                                    'https://github.com/Expensify/App/issues/11', // New
+                                html_url: 'https://github.com/Expensify/App/issues/11', // New
                                 number: 11,
                                 state: 'open',
                                 labels: [LABELS.DEPLOY_BLOCKER_CASH],
                             },
                             {
-                                html_url:
-                                    'https://github.com/Expensify/App/issues/12', // New
+                                html_url: 'https://github.com/Expensify/App/issues/12', // New
                                 number: 12,
                                 state: 'open',
                                 labels: [LABELS.DEPLOY_BLOCKER_CASH],
@@ -334,21 +315,16 @@ describe('createOrUpdateStagingDeployCash', () => {
                 }
                 return 'fake_token';
             });
-            mockGetPullRequestsMergedBetween.mockImplementation(
-                (fromRef, toRef) => {
-                    if (fromRef === '1.0.1-0' && toRef === '1.0.2-2') {
-                        return [...baseNewPullRequests];
-                    }
-                    return [];
-                },
-            );
+            mockGetPullRequestsMergedBetween.mockImplementation((fromRef, toRef) => {
+                if (fromRef === '1.0.1-0' && toRef === '1.0.2-2') {
+                    return [...baseNewPullRequests];
+                }
+                return [];
+            });
             mockListIssues.mockImplementation((args) => {
                 if (args.labels === GithubUtils.STAGING_DEPLOY_CASH_LABEL) {
                     return {
-                        data: [
-                            openStagingDeployCashBefore,
-                            closedStagingDeployCash,
-                        ],
+                        data: [openStagingDeployCashBefore, closedStagingDeployCash],
                     };
                 }
 
@@ -357,15 +333,13 @@ describe('createOrUpdateStagingDeployCash', () => {
                         data: [
                             ...currentDeployBlockers,
                             {
-                                html_url:
-                                    'https://github.com/Expensify/App/issues/11', // New
+                                html_url: 'https://github.com/Expensify/App/issues/11', // New
                                 number: 11,
                                 state: 'open',
                                 labels: [LABELS.DEPLOY_BLOCKER_CASH],
                             },
                             {
-                                html_url:
-                                    'https://github.com/Expensify/App/issues/12', // New
+                                html_url: 'https://github.com/Expensify/App/issues/12', // New
                                 number: 12,
                                 state: 'open',
                                 labels: [LABELS.DEPLOY_BLOCKER_CASH],

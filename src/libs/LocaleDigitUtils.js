@@ -2,21 +2,7 @@ import _ from 'underscore';
 
 import * as NumberFormatUtils from './NumberFormatUtils';
 
-const STANDARD_DIGITS = [
-    '0',
-    '1',
-    '2',
-    '3',
-    '4',
-    '5',
-    '6',
-    '7',
-    '8',
-    '9',
-    '.',
-    '-',
-    ',',
-];
+const STANDARD_DIGITS = ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9', '.', '-', ','];
 
 const INDEX_DECIMAL = 10;
 const INDEX_MINUS_SIGN = 11;
@@ -58,9 +44,7 @@ const getLocaleDigits = _.memoize((locale) => {
 function toLocaleDigit(locale, digit) {
     const index = _.indexOf(STANDARD_DIGITS, digit);
     if (index < 0) {
-        throw new Error(
-            `"${digit}" must be in ${JSON.stringify(STANDARD_DIGITS)}`,
-        );
+        throw new Error(`"${digit}" must be in ${JSON.stringify(STANDARD_DIGITS)}`);
     }
     return getLocaleDigits(locale)[index];
 }
@@ -78,11 +62,7 @@ function toLocaleDigit(locale, digit) {
 function fromLocaleDigit(locale, localeDigit) {
     const index = _.indexOf(getLocaleDigits(locale), localeDigit);
     if (index < 0) {
-        throw new Error(
-            `"${localeDigit}" must be in ${JSON.stringify(
-                getLocaleDigits(locale),
-            )}`,
-        );
+        throw new Error(`"${localeDigit}" must be in ${JSON.stringify(getLocaleDigits(locale))}`);
     }
     return STANDARD_DIGITS[index];
 }

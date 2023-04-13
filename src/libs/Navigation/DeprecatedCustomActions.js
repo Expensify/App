@@ -1,10 +1,5 @@
 import _ from 'underscore';
-import {
-    CommonActions,
-    StackActions,
-    DrawerActions,
-    getStateFromPath,
-} from '@react-navigation/native';
+import {CommonActions, StackActions, DrawerActions, getStateFromPath} from '@react-navigation/native';
 import lodashGet from 'lodash/get';
 import linkingConfig from './linkingConfig';
 import navigationRef from './navigationRef';
@@ -90,10 +85,7 @@ function pushDrawerRoute(route) {
         const activeState = getActiveState();
         const activeScreenName = getScreenNameFromState(activeState);
         const activeScreenParams = getParamsFromState(activeState);
-        if (
-            newScreenName === activeScreenName &&
-            _.isEqual(activeScreenParams, newScreenParams)
-        ) {
+        if (newScreenName === activeScreenName && _.isEqual(activeScreenParams, newScreenParams)) {
             return DrawerActions.closeDrawer();
         }
 
@@ -107,17 +99,10 @@ function pushDrawerRoute(route) {
         }
 
         const screenRoute = {type: 'route', name: newScreenName};
-        const history = _.map(
-            state.history ? [...state.history] : [screenRoute],
-            () => screenRoute,
-        );
+        const history = _.map(state.history ? [...state.history] : [screenRoute], () => screenRoute);
 
-        const drawerHistoryItem = _.find(
-            state.history || [],
-            (h) => h.type === 'drawer',
-        );
-        const isDrawerClosed =
-            drawerHistoryItem && drawerHistoryItem.status === 'closed';
+        const drawerHistoryItem = _.find(state.history || [], (h) => h.type === 'drawer');
+        const isDrawerClosed = drawerHistoryItem && drawerHistoryItem.status === 'closed';
         if (!drawerHistoryItem || currentState.type !== 'drawer') {
             // Add the drawer item to the navigation history to control if the drawer should be in open or closed state
             history.push({
@@ -125,11 +110,7 @@ function pushDrawerRoute(route) {
 
                 // If current state is not from drawer navigator then always force the drawer to close by using closed status
                 // https://github.com/react-navigation/react-navigation/blob/94ab791cae5061455f036cd3f6bc7fa63167e7c7/packages/routers/src/DrawerRouter.tsx#L142
-                status:
-                    currentState.type !== 'drawer' ||
-                    currentState.default === 'open'
-                        ? 'closed'
-                        : 'open',
+                status: currentState.type !== 'drawer' || currentState.default === 'open' ? 'closed' : 'open',
             });
         } else if (isDrawerClosed) {
             // Keep the drawer closed if it's already closed

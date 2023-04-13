@@ -1,15 +1,10 @@
 import _ from 'underscore';
 import lodashGet from 'lodash/get';
 import React, {Component} from 'react';
-import withCurrentUserPersonalDetails, {
-    withCurrentUserPersonalDetailsPropTypes,
-    withCurrentUserPersonalDetailsDefaultProps,
-} from '../../../components/withCurrentUserPersonalDetails';
+import withCurrentUserPersonalDetails, {withCurrentUserPersonalDetailsPropTypes, withCurrentUserPersonalDetailsDefaultProps} from '../../../components/withCurrentUserPersonalDetails';
 import ScreenWrapper from '../../../components/ScreenWrapper';
 import HeaderWithCloseButton from '../../../components/HeaderWithCloseButton';
-import withLocalize, {
-    withLocalizePropTypes,
-} from '../../../components/withLocalize';
+import withLocalize, {withLocalizePropTypes} from '../../../components/withLocalize';
 import ROUTES from '../../../ROUTES';
 import Text from '../../../components/Text';
 import styles from '../../../styles/styles';
@@ -49,10 +44,7 @@ class PronounsPage extends Component {
     componentDidUpdate(prevProps) {
         // If the pronouns have changed, we need to update the pronouns list because refreshing the page
         // breaks the component lifecycle, so we need to "manually" reset the component.
-        if (
-            prevProps.currentUserPersonalDetails.pronouns ===
-            this.props.currentUserPersonalDetails.pronouns
-        ) {
+        if (prevProps.currentUserPersonalDetails.pronouns === this.props.currentUserPersonalDetails.pronouns) {
             return;
         }
 
@@ -75,13 +67,7 @@ class PronounsPage extends Component {
         if (searchedValue.length === 0) {
             return [];
         }
-        return _.filter(
-            this.pronounsList,
-            (pronous) =>
-                pronous.text
-                    .toLowerCase()
-                    .indexOf(searchedValue.toLowerCase()) >= 0,
-        );
+        return _.filter(this.pronounsList, (pronous) => pronous.text.toLowerCase().indexOf(searchedValue.toLowerCase()) >= 0);
     }
 
     /**
@@ -90,31 +76,24 @@ class PronounsPage extends Component {
      * @returns {void}
      */
     loadPronouns() {
-        const currentPronouns = lodashGet(
-            this.props.currentUserPersonalDetails,
-            'pronouns',
-            '',
-        );
+        const currentPronouns = lodashGet(this.props.currentUserPersonalDetails, 'pronouns', '');
 
-        this.pronounsList = _.map(
-            this.props.translate('pronouns'),
-            (value, key) => {
-                const fullPronounKey = `${CONST.PRONOUNS.PREFIX}${key}`;
-                const isCurrentPronouns = fullPronounKey === currentPronouns;
+        this.pronounsList = _.map(this.props.translate('pronouns'), (value, key) => {
+            const fullPronounKey = `${CONST.PRONOUNS.PREFIX}${key}`;
+            const isCurrentPronouns = fullPronounKey === currentPronouns;
 
-                return {
-                    text: value,
-                    value: fullPronounKey,
-                    keyForList: key,
+            return {
+                text: value,
+                value: fullPronounKey,
+                keyForList: key,
 
-                    // Include the green checkmark icon to indicate the currently selected value
-                    customIcon: isCurrentPronouns ? greenCheckmark : undefined,
+                // Include the green checkmark icon to indicate the currently selected value
+                customIcon: isCurrentPronouns ? greenCheckmark : undefined,
 
-                    // This property will make the currently selected value have bold text
-                    boldStyle: isCurrentPronouns,
-                };
-            },
-        );
+                // This property will make the currently selected value have bold text
+                boldStyle: isCurrentPronouns,
+            };
+        });
     }
 
     /**
@@ -132,34 +111,20 @@ class PronounsPage extends Component {
                 {({safeAreaPaddingBottomStyle}) => (
                     <>
                         <HeaderWithCloseButton
-                            title={this.props.translate(
-                                'pronounsPage.pronouns',
-                            )}
+                            title={this.props.translate('pronounsPage.pronouns')}
                             shouldShowBackButton
-                            onBackButtonPress={() =>
-                                Navigation.navigate(ROUTES.SETTINGS_PROFILE)
-                            }
-                            onCloseButtonPress={() =>
-                                Navigation.dismissModal(true)
-                            }
+                            onBackButtonPress={() => Navigation.navigate(ROUTES.SETTINGS_PROFILE)}
+                            onCloseButtonPress={() => Navigation.dismissModal(true)}
                         />
-                        <Text style={styles.ph5}>
-                            {this.props.translate(
-                                'pronounsPage.isShownOnProfile',
-                            )}
-                        </Text>
+                        <Text style={styles.ph5}>{this.props.translate('pronounsPage.isShownOnProfile')}</Text>
                         <OptionsSelector
-                            textInputLabel={this.props.translate(
-                                'pronounsPage.pronouns',
-                            )}
+                            textInputLabel={this.props.translate('pronounsPage.pronouns')}
                             sections={[{data: filteredPronounsList}]}
                             value={this.state.searchValue}
                             onSelectRow={this.updatePronouns}
                             onChangeText={this.onChangeText}
                             optionHoveredStyle={styles.hoveredComponentBG}
-                            safeAreaPaddingBottomStyle={
-                                safeAreaPaddingBottomStyle
-                            }
+                            safeAreaPaddingBottomStyle={safeAreaPaddingBottomStyle}
                             shouldFocusOnSelectRow
                             shouldHaveOptionSeparator
                         />
@@ -173,7 +138,4 @@ class PronounsPage extends Component {
 PronounsPage.propTypes = propTypes;
 PronounsPage.defaultProps = defaultProps;
 
-export default compose(
-    withLocalize,
-    withCurrentUserPersonalDetails,
-)(PronounsPage);
+export default compose(withLocalize, withCurrentUserPersonalDetails)(PronounsPage);

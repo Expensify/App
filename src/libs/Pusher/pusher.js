@@ -126,9 +126,7 @@ function bindEventToChannel(channel, eventName, eventCallback = () => {}) {
     const chunkedDataEvents = {};
     const callback = (eventData) => {
         if (shouldForceOffline) {
-            Log.info(
-                '[Pusher] Ignoring a Push event because shouldForceOffline = true',
-            );
+            Log.info('[Pusher] Ignoring a Push event because shouldForceOffline = true');
             return;
         }
 
@@ -142,11 +140,7 @@ function bindEventToChannel(channel, eventName, eventCallback = () => {}) {
             });
             return;
         }
-        if (
-            data.id === undefined ||
-            data.chunk === undefined ||
-            data.final === undefined
-        ) {
+        if (data.id === undefined || data.chunk === undefined || data.final === undefined) {
             eventCallback(data);
             return;
         }
@@ -171,21 +165,15 @@ function bindEventToChannel(channel, eventName, eventCallback = () => {}) {
 
         // Only call the event callback if we've received the last packet and we don't have any holes in the complete
         // packet.
-        if (
-            chunkedEvent.receivedFinal &&
-            chunkedEvent.chunks.length === _.keys(chunkedEvent.chunks).length
-        ) {
+        if (chunkedEvent.receivedFinal && chunkedEvent.chunks.length === _.keys(chunkedEvent.chunks).length) {
             eventCallback(JSON.parse(chunkedEvent.chunks.join('')));
             try {
                 eventCallback(JSON.parse(chunkedEvent.chunks.join('')));
             } catch (err) {
-                Log.alert(
-                    '[Pusher] Unable to parse chunked JSON response from Pusher',
-                    {
-                        error: err,
-                        eventData: chunkedEvent.chunks.join(''),
-                    },
-                );
+                Log.alert('[Pusher] Unable to parse chunked JSON response from Pusher', {
+                    error: err,
+                    eventData: chunkedEvent.chunks.join(''),
+                });
             }
 
             delete chunkedDataEvents[data.id];
@@ -207,12 +195,7 @@ function bindEventToChannel(channel, eventName, eventCallback = () => {}) {
  *
  * @public
  */
-function subscribe(
-    channelName,
-    eventName,
-    eventCallback = () => {},
-    onResubscribe = () => {},
-) {
+function subscribe(channelName, eventName, eventCallback = () => {}, onResubscribe = () => {}) {
     return new Promise((resolve, reject) => {
         // We cannot call subscribe() before init(). Prevent any attempt to do this on dev.
         if (!socket) {
@@ -247,15 +230,12 @@ function subscribe(
 
             channel.bind('pusher:subscription_error', (data = {}) => {
                 const {type, error, status} = data;
-                Log.hmmm(
-                    '[Pusher] Issue authenticating with Pusher during subscribe attempt.',
-                    {
-                        channelName,
-                        status,
-                        type,
-                        error,
-                    },
-                );
+                Log.hmmm('[Pusher] Issue authenticating with Pusher during subscribe attempt.', {
+                    channelName,
+                    status,
+                    type,
+                    error,
+                });
                 reject(error);
             });
         } else {
@@ -276,10 +256,7 @@ function unsubscribe(channelName, eventName = '') {
     const channel = getChannel(channelName);
 
     if (!channel) {
-        Log.hmmm(
-            '[Pusher] Attempted to unsubscribe or unbind from a channel, but Pusher-JS has no knowledge of it',
-            {channelName, eventName},
-        );
+        Log.hmmm('[Pusher] Attempted to unsubscribe or unbind from a channel, but Pusher-JS has no knowledge of it', {channelName, eventName});
         return;
     }
 
@@ -288,11 +265,7 @@ function unsubscribe(channelName, eventName = '') {
         channel.unbind(eventName);
     } else {
         if (!channel.subscribed) {
-            Log.info(
-                'Pusher] Attempted to unsubscribe from channel, but we are not subscribed to begin with',
-                false,
-                {channelName},
-            );
+            Log.info('Pusher] Attempted to unsubscribe from channel, but we are not subscribed to begin with', false, {channelName});
             return;
         }
         Log.info('[Pusher] Unsubscribing from channel', false, {channelName});
@@ -377,9 +350,7 @@ function registerCustomAuthorizer(authorizer) {
  */
 function disconnect() {
     if (!socket) {
-        Log.info(
-            '[Pusher] Attempting to disconnect from Pusher before initialisation has occurred, ignoring.',
-        );
+        Log.info('[Pusher] Attempting to disconnect from Pusher before initialisation has occurred, ignoring.');
         return;
     }
 
@@ -392,9 +363,7 @@ function disconnect() {
  */
 function reconnect() {
     if (!socket) {
-        Log.info(
-            '[Pusher] Unable to reconnect since Pusher instance does not yet exist.',
-        );
+        Log.info('[Pusher] Unable to reconnect since Pusher instance does not yet exist.');
         return;
     }
 
@@ -412,17 +381,4 @@ if (window) {
     window.getPusherInstance = () => socket;
 }
 
-export {
-    init,
-    subscribe,
-    unsubscribe,
-    getChannel,
-    isSubscribed,
-    isAlreadySubscribing,
-    sendEvent,
-    disconnect,
-    reconnect,
-    registerSocketEventCallback,
-    registerCustomAuthorizer,
-    TYPE,
-};
+export {init, subscribe, unsubscribe, getChannel, isSubscribed, isAlreadySubscribing, sendEvent, disconnect, reconnect, registerSocketEventCallback, registerCustomAuthorizer, TYPE};

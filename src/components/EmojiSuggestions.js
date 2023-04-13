@@ -60,10 +60,7 @@ const measureHeightOfEmojiRows = (numRows, isEmojiPickerLarge) => {
     }
     if (numRows > 2) {
         // on small screens, we display a scrollable window with a height of 2.5 items, indicating that there are more items available beyond what is currently visible
-        return (
-            CONST.EMOJI_SUGGESTER.SMALL_CONTAINER_HEIGHT_FACTOR *
-            CONST.EMOJI_SUGGESTER.ITEM_HEIGHT
-        );
+        return CONST.EMOJI_SUGGESTER.SMALL_CONTAINER_HEIGHT_FACTOR * CONST.EMOJI_SUGGESTER.ITEM_HEIGHT;
     }
     return numRows * CONST.EMOJI_SUGGESTER.ITEM_HEIGHT;
 };
@@ -88,33 +85,16 @@ const EmojiSuggestions = (props) => {
 
         return (
             <Pressable
-                style={({hovered}) =>
-                    StyleUtils.getEmojiSuggestionItemStyle(
-                        props.highlightedEmojiIndex,
-                        CONST.EMOJI_SUGGESTER.ITEM_HEIGHT,
-                        hovered,
-                        index,
-                    )
-                }
+                style={({hovered}) => StyleUtils.getEmojiSuggestionItemStyle(props.highlightedEmojiIndex, CONST.EMOJI_SUGGESTER.ITEM_HEIGHT, hovered, index)}
                 onMouseDown={(e) => e.preventDefault()}
                 onPress={() => props.onSelect(index)}
             >
                 <View style={styles.emojiSuggestionContainer}>
-                    <Text style={styles.emojiSuggestionsEmoji}>
-                        {EmojiUtils.getEmojiCodeWithSkinColor(
-                            item,
-                            props.preferredSkinToneIndex,
-                        )}
-                    </Text>
+                    <Text style={styles.emojiSuggestionsEmoji}>{EmojiUtils.getEmojiCodeWithSkinColor(item, props.preferredSkinToneIndex)}</Text>
                     <Text style={styles.emojiSuggestionsText}>
                         :
                         {_.map(styledTextArray, ({text, isColored}, i) => (
-                            <Text
-                                key={`${text}+${i}`}
-                                style={StyleUtils.getColoredBackgroundStyle(
-                                    isColored,
-                                )}
-                            >
+                            <Text key={`${text}+${i}`} style={StyleUtils.getColoredBackgroundStyle(isColored)}>
                                 {text}
                             </Text>
                         ))}
@@ -125,28 +105,11 @@ const EmojiSuggestions = (props) => {
         );
     };
 
-    const rowHeight = measureHeightOfEmojiRows(
-        props.emojis.length,
-        props.isEmojiPickerLarge,
-    );
+    const rowHeight = measureHeightOfEmojiRows(props.emojis.length, props.isEmojiPickerLarge);
 
     return (
-        <View
-            style={[
-                styles.emojiSuggestionsContainer,
-                StyleUtils.getEmojiSuggestionContainerStyle(
-                    rowHeight,
-                    props.shouldIncludeReportRecipientLocalTimeHeight,
-                ),
-            ]}
-        >
-            <FlatList
-                keyboardShouldPersistTaps="handled"
-                data={props.emojis}
-                renderItem={renderSuggestionMenuItem}
-                keyExtractor={keyExtractor}
-                style={{height: rowHeight}}
-            />
+        <View style={[styles.emojiSuggestionsContainer, StyleUtils.getEmojiSuggestionContainerStyle(rowHeight, props.shouldIncludeReportRecipientLocalTimeHeight)]}>
+            <FlatList keyboardShouldPersistTaps="handled" data={props.emojis} renderItem={renderSuggestionMenuItem} keyExtractor={keyExtractor} style={{height: rowHeight}} />
         </View>
     );
 };

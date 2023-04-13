@@ -7,9 +7,7 @@ import Text from '../../../../components/Text';
 import Icon from '../../../../components/Icon';
 import * as Expensicons from '../../../../components/Icon/Expensicons';
 import themeColors from '../../../../styles/themes/default';
-import withLocalize, {
-    withLocalizePropTypes,
-} from '../../../../components/withLocalize';
+import withLocalize, {withLocalizePropTypes} from '../../../../components/withLocalize';
 import FloatingMessageCounterContainer from './FloatingMessageCounterContainer';
 
 const propTypes = {
@@ -64,46 +62,17 @@ class FloatingMessageCounter extends PureComponent {
 
     render() {
         return (
-            <FloatingMessageCounterContainer
-                accessibilityHint="Scroll to newest messages"
-                containerStyles={[
-                    styles.floatingMessageCounterTransformation(
-                        this.translateY,
-                    ),
-                ]}
-            >
+            <FloatingMessageCounterContainer accessibilityHint="Scroll to newest messages" containerStyles={[styles.floatingMessageCounterTransformation(this.translateY)]}>
                 <View style={styles.floatingMessageCounter}>
-                    <View
-                        style={[
-                            styles.flexRow,
-                            styles.justifyContentBetween,
-                            styles.alignItemsCenter,
-                        ]}
-                    >
+                    <View style={[styles.flexRow, styles.justifyContentBetween, styles.alignItemsCenter]}>
                         <Button
                             success
                             small
                             onPress={this.props.onClick}
                             ContentComponent={() => (
-                                <View
-                                    style={[
-                                        styles.flexRow,
-                                        styles.alignItemsCenter,
-                                    ]}
-                                >
-                                    <Icon
-                                        small
-                                        src={Expensicons.DownArrow}
-                                        fill={themeColors.textLight}
-                                    />
-                                    <Text
-                                        selectable={false}
-                                        style={[
-                                            styles.ml2,
-                                            styles.buttonSmallText,
-                                            styles.textWhite,
-                                        ]}
-                                    >
+                                <View style={[styles.flexRow, styles.alignItemsCenter]}>
+                                    <Icon small src={Expensicons.DownArrow} fill={themeColors.textLight} />
+                                    <Text selectable={false} style={[styles.ml2, styles.buttonSmallText, styles.textWhite]}>
                                         {this.props.translate('newMessages')}
                                     </Text>
                                 </View>

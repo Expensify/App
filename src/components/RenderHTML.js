@@ -14,12 +14,7 @@ const propTypes = {
 // The provider is available at src/components/HTMLEngineProvider/
 const RenderHTML = (props) => {
     const {width} = useWindowDimensions();
-    return (
-        <RenderHTMLSource
-            contentWidth={width * 0.8}
-            source={{html: props.html}}
-        />
-    );
+    return <RenderHTMLSource contentWidth={width * 0.8} source={{html: props.html}} />;
 };
 
 RenderHTML.displayName = 'RenderHTML';

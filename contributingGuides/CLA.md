@@ -17,4 +17,3 @@ You agree that the following terms apply to all of your past, present and future
 **No Obligation.** You acknowledge that Expensify is under no obligation to use or incorporate your Contributions into any of the Projects. The decision to use or incorporate your Contributions into any of the Projects will be made at the sole discretion of Expensify or its authorized delegates.
 
 **Assignment.** You agree that Expensify may assign this Agreement, and all of its rights, obligations and licenses hereunder.
-

@@ -42,12 +42,7 @@ class PressableWithoutFocus extends React.Component {
 
     render() {
         return (
-            <Pressable
-                onPress={this.pressAndBlur}
-                onLongPress={this.props.onLongPress}
-                ref={(el) => (this.pressableRef = el)}
-                style={this.props.styles}
-            >
+            <Pressable onPress={this.pressAndBlur} onLongPress={this.props.onLongPress} ref={(el) => (this.pressableRef = el)} style={this.props.styles}>
                 {this.props.children}
             </Pressable>
         );

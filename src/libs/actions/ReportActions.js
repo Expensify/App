@@ -36,8 +36,4 @@ function clearSendMoneyErrors(chatReportID, reportActionID) {
     });
 }
 
-export {
-    clearReportActionErrors,
-    deleteOptimisticReportAction,
-    clearSendMoneyErrors,
-};
+export {clearReportActionErrors, deleteOptimisticReportAction, clearSendMoneyErrors};

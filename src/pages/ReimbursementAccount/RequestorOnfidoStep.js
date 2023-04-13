@@ -33,13 +33,7 @@ class RequestorOnfidoStep extends React.Component {
     }
 
     submit(onfidoData) {
-        BankAccounts.verifyIdentityForBankAccount(
-            lodashGet(
-                this.props.reimbursementAccount,
-                'achData.bankAccountID',
-            ) || 0,
-            onfidoData,
-        );
+        BankAccounts.verifyIdentityForBankAccount(lodashGet(this.props.reimbursementAccount, 'achData.bankAccountID') || 0, onfidoData);
 
         BankAccounts.updateReimbursementAccountDraft({
             isOnfidoSetupComplete: true,
@@ -53,9 +47,7 @@ class RequestorOnfidoStep extends React.Component {
                     title={this.props.translate('requestorStep.headerTitle')}
                     stepCounter={{step: 3, total: 5}}
                     shouldShowGetAssistanceButton
-                    guidesCallTaskID={
-                        CONST.GUIDES_CALL_TASK_IDS.WORKSPACE_BANK_ACCOUNT
-                    }
+                    guidesCallTaskID={CONST.GUIDES_CALL_TASK_IDS.WORKSPACE_BANK_ACCOUNT}
                     shouldShowBackButton
                     onBackButtonPress={this.props.onBackButtonPress}
                     onCloseButtonPress={Navigation.dismissModal}
@@ -66,22 +58,13 @@ class RequestorOnfidoStep extends React.Component {
                             sdkToken={this.props.onfidoToken}
                             onUserExit={() => {
                                 BankAccounts.clearOnfidoToken();
-                                BankAccounts.goToWithdrawalAccountSetupStep(
-                                    CONST.BANK_ACCOUNT.STEP.REQUESTOR,
-                                );
+                                BankAccounts.goToWithdrawalAccountSetupStep(CONST.BANK_ACCOUNT.STEP.REQUESTOR);
                             }}
                             onError={() => {
                                 // In case of any unexpected error we log it to the server, show a growl, and return the user back to the requestor step so they can try again.
-                                Growl.error(
-                                    this.props.translate(
-                                        'onfidoStep.genericError',
-                                    ),
-                                    10000,
-                                );
+                                Growl.error(this.props.translate('onfidoStep.genericError'), 10000);
                                 BankAccounts.clearOnfidoToken();
-                                BankAccounts.goToWithdrawalAccountSetupStep(
-                                    CONST.BANK_ACCOUNT.STEP.REQUESTOR,
-                                );
+                                BankAccounts.goToWithdrawalAccountSetupStep(CONST.BANK_ACCOUNT.STEP.REQUESTOR);
                             }}
                             onSuccess={(onfidoData) => {
                                 this.submit(onfidoData);

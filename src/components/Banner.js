@@ -65,51 +65,28 @@ const Banner = (props) => (
                         styles.alignItemsCenter,
                         styles.p5,
                         styles.borderRadiusNormal,
-                        shouldHighlight
-                            ? styles.activeComponentBG
-                            : styles.hoveredComponentBG,
+                        shouldHighlight ? styles.activeComponentBG : styles.hoveredComponentBG,
                         styles.breakAll,
                         ...props.containerStyles,
                     ]}
                 >
-                    <View
-                        style={[
-                            styles.flexRow,
-                            styles.flexGrow1,
-                            styles.mw100,
-                            styles.alignItemsCenter,
-                        ]}
-                    >
+                    <View style={[styles.flexRow, styles.flexGrow1, styles.mw100, styles.alignItemsCenter]}>
                         {props.shouldShowIcon && (
                             <View style={[styles.mr3]}>
-                                <Icon
-                                    src={Expensicons.Exclamation}
-                                    fill={StyleUtils.getIconFillColor(
-                                        getButtonState(shouldHighlight),
-                                    )}
-                                />
+                                <Icon src={Expensicons.Exclamation} fill={StyleUtils.getIconFillColor(getButtonState(shouldHighlight))} />
                             </View>
                         )}
                         {props.shouldRenderHTML ? (
                             <RenderHTML html={props.text} />
                         ) : (
-                            <Text
-                                style={[...props.textStyles]}
-                                onPress={props.onPress}
-                            >
+                            <Text style={[...props.textStyles]} onPress={props.onPress}>
                                 {props.text}
                             </Text>
                         )}
                     </View>
                     {props.shouldShowCloseButton && (
                         <Tooltip text={props.translate('common.close')}>
-                            <Pressable
-                                onPress={props.onClose}
-                                accessibilityRole="button"
-                                accessibilityLabel={props.translate(
-                                    'common.close',
-                                )}
-                            >
+                            <Pressable onPress={props.onClose} accessibilityRole="button" accessibilityLabel={props.translate('common.close')}>
                                 <Icon src={Expensicons.Close} />
                             </Pressable>
                         </Tooltip>

@@ -1,49 +1,49 @@
 name: Jest Unit Tests
 
 on:
-  workflow_call:
-  pull_request:
-    types: [opened, synchronize]
-    branches-ignore: [staging, production]
+    workflow_call:
+    pull_request:
+        types: [opened, synchronize]
+        branches-ignore: [staging, production]
 
 jobs:
-  jest:
-    if: ${{ github.actor != 'OSBotify' || github.event_name == 'workflow_call' }}
-    runs-on: ubuntu-latest
-    env:
-      CI: true
-    strategy:
-      fail-fast: false
-      matrix:
-        chunk: [ 1, 2, 3 ]
-    name: test (job ${{ fromJSON(matrix.chunk) }})
-    steps:
-      - uses: actions/checkout@885641592076c27bfb56c028cd5612cdad63e16d
+    jest:
+        if: ${{ github.actor != 'OSBotify' || github.event_name == 'workflow_call' }}
+        runs-on: ubuntu-latest
+        env:
+            CI: true
+        strategy:
+            fail-fast: false
+            matrix:
+                chunk: [1, 2, 3]
+        name: test (job ${{ fromJSON(matrix.chunk) }})
+        steps:
+            - uses: actions/checkout@885641592076c27bfb56c028cd5612cdad63e16d
 
-      - uses: Expensify/App/.github/actions/composite/setupNode@main
+            - uses: Expensify/App/.github/actions/composite/setupNode@main
 
-      - name: Get number of CPU cores
-        id: cpu-cores
-        uses: SimenB/github-actions-cpu-cores@31e91de0f8654375a21e8e83078be625380e2b18
+            - name: Get number of CPU cores
+              id: cpu-cores
+              uses: SimenB/github-actions-cpu-cores@31e91de0f8654375a21e8e83078be625380e2b18
 
-      - name: Cache Jest cache
-        id: cache-jest-cache
-        uses: actions/cache@ac25611caef967612169ab7e95533cf932c32270
-        with:
-          path: .jest-cache
-          key: ${{ runner.os }}-jest
+            - name: Cache Jest cache
+              id: cache-jest-cache
+              uses: actions/cache@ac25611caef967612169ab7e95533cf932c32270
+              with:
+                  path: .jest-cache
+                  key: ${{ runner.os }}-jest
 
-      - name: Jest tests
-        run: npx jest --silent --shard=${{ fromJSON(matrix.chunk) }}/${{ strategy.job-total }} --max-workers ${{ steps.cpu-cores.outputs.count }}
+            - name: Jest tests
+              run: npx jest --silent --shard=${{ fromJSON(matrix.chunk) }}/${{ strategy.job-total }} --max-workers ${{ steps.cpu-cores.outputs.count }}
 
-  shellTests:
-    if: ${{ github.actor != 'OSBotify' || github.event_name == 'workflow_call' }}
-    runs-on: ubuntu-latest
-    name: Shell tests
-    steps:
-      - uses: actions/checkout@885641592076c27bfb56c028cd5612cdad63e16d
+    shellTests:
+        if: ${{ github.actor != 'OSBotify' || github.event_name == 'workflow_call' }}
+        runs-on: ubuntu-latest
+        name: Shell tests
+        steps:
+            - uses: actions/checkout@885641592076c27bfb56c028cd5612cdad63e16d
 
-      - uses: Expensify/App/.github/actions/composite/setupNode@main
+            - uses: Expensify/App/.github/actions/composite/setupNode@main
 
-      - name: getPullRequestsMergedBetween
-        run: tests/unit/getPullRequestsMergedBetweenTest.sh
+            - name: getPullRequestsMergedBetween
+              run: tests/unit/getPullRequestsMergedBetweenTest.sh

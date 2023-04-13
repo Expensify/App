@@ -19,12 +19,9 @@ const WelcomeText = (props) => {
     const textSize = props.smallFontSize ? styles.textLabel : undefined;
     return (
         <>
-            <Text style={[textSize, styles.textStrong, styles.mb1]}>
-                {props.translate('welcomeText.welcome')}
-            </Text>
+            <Text style={[textSize, styles.textStrong, styles.mb1]}>{props.translate('welcomeText.welcome')}</Text>
             <Text style={[textSize]}>
-                {props.translate('welcomeText.phrase2')}{' '}
-                {props.translate('welcomeText.phrase3')}
+                {props.translate('welcomeText.phrase2')} {props.translate('welcomeText.phrase3')}
             </Text>
         </>
     );

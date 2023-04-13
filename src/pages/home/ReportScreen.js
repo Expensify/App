@@ -23,22 +23,16 @@ import toggleReportActionComposeView from '../../libs/toggleReportActionComposeV
 import {withNetwork} from '../../components/OnyxProvider';
 import compose from '../../libs/compose';
 import networkPropTypes from '../../components/networkPropTypes';
-import withWindowDimensions, {
-    windowDimensionsPropTypes,
-} from '../../components/withWindowDimensions';
+import withWindowDimensions, {windowDimensionsPropTypes} from '../../components/withWindowDimensions';
 import OfflineWithFeedback from '../../components/OfflineWithFeedback';
-import withDrawerState, {
-    withDrawerPropTypes,
-} from '../../components/withDrawerState';
+import withDrawerState, {withDrawerPropTypes} from '../../components/withDrawerState';
 import ReportFooter from './report/ReportFooter';
 import Banner from '../../components/Banner';
 import withLocalize from '../../components/withLocalize';
 import reportPropTypes from '../reportPropTypes';
 import FullPageNotFoundView from '../../components/BlockingViews/FullPageNotFoundView';
 import ReportHeaderSkeletonView from '../../components/ReportHeaderSkeletonView';
-import withViewportOffsetTop, {
-    viewportOffsetTopPropTypes,
-} from '../../components/withViewportOffsetTop';
+import withViewportOffsetTop, {viewportOffsetTopPropTypes} from '../../components/withViewportOffsetTop';
 import * as ReportActionsUtils from '../../libs/ReportActionsUtils';
 
 const propTypes = {
@@ -133,9 +127,7 @@ class ReportScreen extends React.Component {
     }
 
     componentDidUpdate(prevProps) {
-        if (
-            this.props.route.params.reportID === prevProps.route.params.reportID
-        ) {
+        if (this.props.route.params.reportID === prevProps.route.params.reportID) {
             return;
         }
 
@@ -159,12 +151,8 @@ class ReportScreen extends React.Component {
         const reportIDFromPath = getReportID(this.props.route);
 
         // This is necessary so that when we are retrieving the next report data from Onyx the ReportActionsView will remount completely
-        const isTransitioning =
-            this.props.report &&
-            this.props.report.reportID !== reportIDFromPath;
-        return (
-            reportIDFromPath && this.props.report.reportID && !isTransitioning
-        );
+        const isTransitioning = this.props.report && this.props.report.reportID !== reportIDFromPath;
+        return reportIDFromPath && this.props.report.reportID && !isTransitioning;
     }
 
     fetchReportIfNeeded() {
@@ -185,56 +173,31 @@ class ReportScreen extends React.Component {
     }
 
     chatWithAccountManager() {
-        Navigation.navigate(
-            ROUTES.getReportRoute(this.props.accountManagerReportID),
-        );
+        Navigation.navigate(ROUTES.getReportRoute(this.props.accountManagerReportID));
     }
 
     render() {
-        if (
-            !this.props.isSidebarLoaded ||
-            _.isEmpty(this.props.personalDetails)
-        ) {
+        if (!this.props.isSidebarLoaded || _.isEmpty(this.props.personalDetails)) {
             return null;
         }
 
-        if (
-            ReportUtils.isDefaultRoom(this.props.report) &&
-            !ReportUtils.canSeeDefaultRoom(
-                this.props.report,
-                this.props.policies,
-                this.props.betas,
-            )
-        ) {
+        if (ReportUtils.isDefaultRoom(this.props.report) && !ReportUtils.canSeeDefaultRoom(this.props.report, this.props.policies, this.props.betas)) {
             return null;
         }
 
-        if (
-            !Permissions.canUsePolicyRooms(this.props.betas) &&
-            ReportUtils.isUserCreatedPolicyRoom(this.props.report)
-        ) {
+        if (!Permissions.canUsePolicyRooms(this.props.betas) && ReportUtils.isUserCreatedPolicyRoom(this.props.report)) {
             return null;
         }
 
         // We are either adding a workspace room, or we're creating a chat, it isn't possible for both of these to be pending, or to have errors for the same report at the same time, so
         // simply looking up the first truthy value for each case will get the relevant property if it's set.
         const reportID = getReportID(this.props.route);
-        const addWorkspaceRoomOrChatPendingAction =
-            lodashGet(this.props.report, 'pendingFields.addWorkspaceRoom') ||
-            lodashGet(this.props.report, 'pendingFields.createChat');
-        const addWorkspaceRoomOrChatErrors =
-            lodashGet(this.props.report, 'errorFields.addWorkspaceRoom') ||
-            lodashGet(this.props.report, 'errorFields.createChat');
-        const screenWrapperStyle = [
-            styles.appContent,
-            styles.flex1,
-            {marginTop: this.props.viewportOffsetTop},
-        ];
+        const addWorkspaceRoomOrChatPendingAction = lodashGet(this.props.report, 'pendingFields.addWorkspaceRoom') || lodashGet(this.props.report, 'pendingFields.createChat');
+        const addWorkspaceRoomOrChatErrors = lodashGet(this.props.report, 'errorFields.addWorkspaceRoom') || lodashGet(this.props.report, 'errorFields.createChat');
+        const screenWrapperStyle = [styles.appContent, styles.flex1, {marginTop: this.props.viewportOffsetTop}];
 
         // There are no reportActions at all to display and we are still in the process of loading the next set of actions.
-        const isLoadingInitialReportActions =
-            _.isEmpty(this.props.reportActions) &&
-            this.props.report.isLoadingReportActions;
+        const isLoadingInitialReportActions = _.isEmpty(this.props.reportActions) && this.props.report.isLoadingReportActions;
 
         // When the ReportScreen is not open/in the viewport, we want to "freeze" it for performance reasons
         const freeze = this.props.isSmallScreenWidth && this.props.isDrawerOpen;
@@ -249,35 +212,16 @@ class ReportScreen extends React.Component {
                     freeze={freeze}
                     placeholder={
                         <>
-                            <ReportHeaderSkeletonView
-                                animate={animatePlaceholder}
-                            />
-                            <View
-                                style={[
-                                    styles.flex1,
-                                    styles.justifyContentEnd,
-                                    styles.overflowHidden,
-                                ]}
-                            >
-                                <ReportActionsSkeletonView
-                                    animate={animatePlaceholder}
-                                    containerHeight={
-                                        this.state.skeletonViewContainerHeight
-                                    }
-                                />
-                                <ReportFooter
-                                    shouldDisableCompose
-                                    isOffline={this.props.network.isOffline}
-                                />
+                            <ReportHeaderSkeletonView animate={animatePlaceholder} />
+                            <View style={[styles.flex1, styles.justifyContentEnd, styles.overflowHidden]}>
+                                <ReportActionsSkeletonView animate={animatePlaceholder} containerHeight={this.state.skeletonViewContainerHeight} />
+                                <ReportFooter shouldDisableCompose isOffline={this.props.network.isOffline} />
                             </View>
                         </>
                     }
                 >
                     <FullPageNotFoundView
-                        shouldShow={
-                            !this.props.report.reportID &&
-                            !this.props.report.isLoadingReportActions
-                        }
+                        shouldShow={!this.props.report.reportID && !this.props.report.isLoadingReportActions}
                         subtitleKey="notFound.noAccess"
                         shouldShowCloseButton={false}
                         shouldShowBackButton={this.props.isSmallScreenWidth}
@@ -285,122 +229,68 @@ class ReportScreen extends React.Component {
                             Navigation.navigate(ROUTES.HOME);
                         }}
                     >
-                        <OfflineWithFeedback
-                            pendingAction={addWorkspaceRoomOrChatPendingAction}
-                            errors={addWorkspaceRoomOrChatErrors}
-                            shouldShowErrorMessages={false}
-                        >
+                        <OfflineWithFeedback pendingAction={addWorkspaceRoomOrChatPendingAction} errors={addWorkspaceRoomOrChatErrors} shouldShowErrorMessages={false}>
                             <HeaderView
                                 reportID={reportID}
-                                onNavigationMenuButtonClicked={() =>
-                                    Navigation.navigate(ROUTES.HOME)
-                                }
+                                onNavigationMenuButtonClicked={() => Navigation.navigate(ROUTES.HOME)}
                                 personalDetails={this.props.personalDetails}
                                 report={this.props.report}
                                 policies={this.props.policies}
                             />
                         </OfflineWithFeedback>
-                        {this.props.accountManagerReportID &&
-                            ReportUtils.isConciergeChatReport(
-                                this.props.report,
-                            ) &&
-                            this.state.isBannerVisible && (
-                                <Banner
-                                    containerStyles={[
-                                        styles.mh4,
-                                        styles.mt4,
-                                        styles.p4,
-                                        styles.bgDark,
-                                    ]}
-                                    textStyles={[styles.colorReversed]}
-                                    text={this.props.translate(
-                                        'reportActionsView.chatWithAccountManager',
-                                    )}
-                                    onClose={this.dismissBanner}
-                                    onPress={this.chatWithAccountManager}
-                                    shouldShowCloseButton
-                                />
-                            )}
+                        {this.props.accountManagerReportID && ReportUtils.isConciergeChatReport(this.props.report) && this.state.isBannerVisible && (
+                            <Banner
+                                containerStyles={[styles.mh4, styles.mt4, styles.p4, styles.bgDark]}
+                                textStyles={[styles.colorReversed]}
+                                text={this.props.translate('reportActionsView.chatWithAccountManager')}
+                                onClose={this.dismissBanner}
+                                onPress={this.chatWithAccountManager}
+                                shouldShowCloseButton
+                            />
+                        )}
                         <View
                             nativeID={CONST.REPORT.DROP_NATIVE_ID}
-                            style={[
-                                styles.flex1,
-                                styles.justifyContentEnd,
-                                styles.overflowHidden,
-                            ]}
+                            style={[styles.flex1, styles.justifyContentEnd, styles.overflowHidden]}
                             onLayout={(event) => {
-                                const skeletonViewContainerHeight =
-                                    event.nativeEvent.layout.height;
+                                const skeletonViewContainerHeight = event.nativeEvent.layout.height;
 
                                 // The height can be 0 if the component unmounts - we are not interested in this value and want to know how much space it
                                 // takes up so we can set the skeleton view container height.
                                 if (skeletonViewContainerHeight === 0) {
                                     return;
                                 }
-                                reportActionsListViewHeight =
-                                    skeletonViewContainerHeight;
+                                reportActionsListViewHeight = skeletonViewContainerHeight;
                                 this.setState({skeletonViewContainerHeight});
                             }}
                         >
-                            {this.isReportReadyForDisplay() &&
-                                !isLoadingInitialReportActions && (
-                                    <>
-                                        <ReportActionsView
-                                            reportActions={
-                                                this.props.reportActions
-                                            }
-                                            report={this.props.report}
-                                            session={this.props.session}
-                                            isComposerFullSize={
-                                                this.props.isComposerFullSize
-                                            }
-                                            isDrawerOpen={
-                                                this.props.isDrawerOpen
-                                            }
-                                            parentViewHeight={
-                                                this.state
-                                                    .skeletonViewContainerHeight
-                                            }
-                                        />
-                                        <ReportFooter
-                                            errors={
-                                                addWorkspaceRoomOrChatErrors
-                                            }
-                                            pendingAction={
-                                                addWorkspaceRoomOrChatPendingAction
-                                            }
-                                            isOffline={
-                                                this.props.network.isOffline
-                                            }
-                                            reportActions={
-                                                this.props.reportActions
-                                            }
-                                            report={this.props.report}
-                                            isComposerFullSize={
-                                                this.props.isComposerFullSize
-                                            }
-                                            onSubmitComment={
-                                                this.onSubmitComment
-                                            }
-                                        />
-                                    </>
-                                )}
+                            {this.isReportReadyForDisplay() && !isLoadingInitialReportActions && (
+                                <>
+                                    <ReportActionsView
+                                        reportActions={this.props.reportActions}
+                                        report={this.props.report}
+                                        session={this.props.session}
+                                        isComposerFullSize={this.props.isComposerFullSize}
+                                        isDrawerOpen={this.props.isDrawerOpen}
+                                        parentViewHeight={this.state.skeletonViewContainerHeight}
+                                    />
+                                    <ReportFooter
+                                        errors={addWorkspaceRoomOrChatErrors}
+                                        pendingAction={addWorkspaceRoomOrChatPendingAction}
+                                        isOffline={this.props.network.isOffline}
+                                        reportActions={this.props.reportActions}
+                                        report={this.props.report}
+                                        isComposerFullSize={this.props.isComposerFullSize}
+                                        onSubmitComment={this.onSubmitComment}
+                                    />
+                                </>
+                            )}
 
                             {/* Note: The report should be allowed to mount even if the initial report actions are not loaded. If we prevent rendering the report while they are loading then
                             we'll unnecessarily unmount the ReportActionsView which will clear the new marker lines initial state. */}
-                            {(!this.isReportReadyForDisplay() ||
-                                isLoadingInitialReportActions) && (
+                            {(!this.isReportReadyForDisplay() || isLoadingInitialReportActions) && (
                                 <>
-                                    <ReportActionsSkeletonView
-                                        containerHeight={
-                                            this.state
-                                                .skeletonViewContainerHeight
-                                        }
-                                    />
-                                    <ReportFooter
-                                        shouldDisableCompose
-                                        isOffline={this.props.network.isOffline}
-                                    />
+                                    <ReportActionsSkeletonView containerHeight={this.state.skeletonViewContainerHeight} />
+                                    <ReportFooter shouldDisableCompose isOffline={this.props.network.isOffline} />
                                 </>
                             )}
                             <PortalHost name={CONST.REPORT.DROP_HOST_NAME} />
@@ -429,20 +319,15 @@ export default compose(
             key: ONYXKEYS.SESSION,
         },
         reportActions: {
-            key: ({route}) =>
-                `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${getReportID(route)}`,
+            key: ({route}) => `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${getReportID(route)}`,
             canEvict: false,
             selector: ReportActionsUtils.getSortedReportActionsForDisplay,
         },
         report: {
-            key: ({route}) =>
-                `${ONYXKEYS.COLLECTION.REPORT}${getReportID(route)}`,
+            key: ({route}) => `${ONYXKEYS.COLLECTION.REPORT}${getReportID(route)}`,
         },
         isComposerFullSize: {
-            key: ({route}) =>
-                `${
-                    ONYXKEYS.COLLECTION.REPORT_IS_COMPOSER_FULL_SIZE
-                }${getReportID(route)}`,
+            key: ({route}) => `${ONYXKEYS.COLLECTION.REPORT_IS_COMPOSER_FULL_SIZE}${getReportID(route)}`,
         },
         betas: {
             key: ONYXKEYS.BETAS,

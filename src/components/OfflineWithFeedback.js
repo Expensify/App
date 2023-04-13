@@ -73,11 +73,7 @@ function applyStrikeThrough(children) {
             return child;
         }
         const props = {
-            style: StyleUtils.combineStyles(
-                child.props.style,
-                styles.offlineFeedback.deleted,
-                styles.userSelectNone,
-            ),
+            style: StyleUtils.combineStyles(child.props.style, styles.offlineFeedback.deleted, styles.userSelectNone),
         };
         if (child.props.children) {
             props.children = applyStrikeThrough(child.props.children);
@@ -88,20 +84,12 @@ function applyStrikeThrough(children) {
 
 const OfflineWithFeedback = (props) => {
     const hasErrors = !_.isEmpty(props.errors);
-    const isOfflinePendingAction =
-        props.network.isOffline && props.pendingAction;
-    const isUpdateOrDeleteError =
-        hasErrors &&
-        (props.pendingAction === 'delete' || props.pendingAction === 'update');
+    const isOfflinePendingAction = props.network.isOffline && props.pendingAction;
+    const isUpdateOrDeleteError = hasErrors && (props.pendingAction === 'delete' || props.pendingAction === 'update');
     const isAddError = hasErrors && props.pendingAction === 'add';
-    const needsOpacity =
-        (isOfflinePendingAction && !isUpdateOrDeleteError) || isAddError;
-    const needsStrikeThrough =
-        props.network.isOffline && props.pendingAction === 'delete';
-    const hideChildren =
-        !props.network.isOffline &&
-        props.pendingAction === 'delete' &&
-        !hasErrors;
+    const needsOpacity = (isOfflinePendingAction && !isUpdateOrDeleteError) || isAddError;
+    const needsStrikeThrough = props.network.isOffline && props.pendingAction === 'delete';
+    const hideChildren = !props.network.isOffline && props.pendingAction === 'delete' && !hasErrors;
     let children = props.children;
 
     // Apply strikethrough to children if needed, but skip it if we are not going to render them
@@ -110,35 +98,12 @@ const OfflineWithFeedback = (props) => {
     }
     return (
         <View style={props.style}>
-            {!hideChildren && (
-                <View
-                    style={[
-                        needsOpacity ? styles.offlineFeedback.pending : {},
-                        props.contentContainerStyle,
-                    ]}
-                >
-                    {children}
-                </View>
-            )}
+            {!hideChildren && <View style={[needsOpacity ? styles.offlineFeedback.pending : {}, props.contentContainerStyle]}>{children}</View>}
             {props.shouldShowErrorMessages && hasErrors && (
-                <View
-                    style={StyleUtils.combineStyles(
-                        styles.offlineFeedback.error,
-                        props.errorRowStyles,
-                    )}
-                >
-                    <DotIndicatorMessage
-                        style={[styles.flex1]}
-                        messages={props.errors}
-                        type="error"
-                    />
+                <View style={StyleUtils.combineStyles(styles.offlineFeedback.error, props.errorRowStyles)}>
+                    <DotIndicatorMessage style={[styles.flex1]} messages={props.errors} type="error" />
                     <Tooltip text={props.translate('common.close')}>
-                        <Pressable
-                            onPress={props.onClose}
-                            style={[styles.touchableButtonImage]}
-                            accessibilityRole="button"
-                            accessibilityLabel={props.translate('common.close')}
-                        >
+                        <Pressable onPress={props.onClose} style={[styles.touchableButtonImage]} accessibilityRole="button" accessibilityLabel={props.translate('common.close')}>
                             <Icon src={Expensicons.Close} />
                         </Pressable>
                     </Tooltip>

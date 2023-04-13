@@ -10,9 +10,7 @@ import compose from '../../libs/compose';
 import ROUTES from '../../ROUTES';
 import HeaderWithCloseButton from '../../components/HeaderWithCloseButton';
 import ScreenWrapper from '../../components/ScreenWrapper';
-import withLocalize, {
-    withLocalizePropTypes,
-} from '../../components/withLocalize';
+import withLocalize, {withLocalizePropTypes} from '../../components/withLocalize';
 import ONYXKEYS from '../../ONYXKEYS';
 import * as BankAccounts from '../../libs/actions/BankAccounts';
 import BankAccount from '../../libs/models/BankAccount';
@@ -44,8 +42,7 @@ const propTypes = {
 
     /** From Onyx */
     /** Bank account attached to free plan */
-    reimbursementAccount:
-        ReimbursementAccountProps.reimbursementAccountPropTypes,
+    reimbursementAccount: ReimbursementAccountProps.reimbursementAccountPropTypes,
 
     /** User Data from Onyx */
     user: userPropTypes,
@@ -73,8 +70,7 @@ const propTypes = {
 const defaultProps = {
     children: () => {},
     user: {},
-    reimbursementAccount:
-        ReimbursementAccountProps.reimbursementAccountDefaultProps,
+    reimbursementAccount: ReimbursementAccountProps.reimbursementAccountDefaultProps,
     footer: null,
     guidesCallTaskID: '',
     shouldUseScrollView: false,
@@ -103,57 +99,27 @@ class WorkspacePageWithSections extends React.Component {
     }
 
     render() {
-        const achState = lodashGet(
-            this.props.reimbursementAccount,
-            'achData.state',
-            '',
-        );
+        const achState = lodashGet(this.props.reimbursementAccount, 'achData.state', '');
         const hasVBA = achState === BankAccount.STATE.OPEN;
-        const isUsingECard = lodashGet(
-            this.props.user,
-            'isUsingExpensifyCard',
-            false,
-        );
+        const isUsingECard = lodashGet(this.props.user, 'isUsingExpensifyCard', false);
         const policyID = lodashGet(this.props.route, 'params.policyID');
         const policyName = lodashGet(this.props.policy, 'name');
 
         return (
             <ScreenWrapper includeSafeAreaPaddingBottom={false}>
-                <FullPageNotFoundView
-                    shouldShow={_.isEmpty(this.props.policy)}
-                    onBackButtonPress={() =>
-                        Navigation.navigate(ROUTES.SETTINGS_WORKSPACES)
-                    }
-                >
+                <FullPageNotFoundView shouldShow={_.isEmpty(this.props.policy)} onBackButtonPress={() => Navigation.navigate(ROUTES.SETTINGS_WORKSPACES)}>
                     <HeaderWithCloseButton
                         title={this.props.headerText}
                         subtitle={policyName}
                         shouldShowGetAssistanceButton
                         guidesCallTaskID={this.props.guidesCallTaskID}
                         shouldShowBackButton
-                        onBackButtonPress={() =>
-                            Navigation.navigate(
-                                ROUTES.getWorkspaceInitialRoute(policyID),
-                            )
-                        }
+                        onBackButtonPress={() => Navigation.navigate(ROUTES.getWorkspaceInitialRoute(policyID))}
                         onCloseButtonPress={() => Navigation.dismissModal()}
                     />
                     {this.props.shouldUseScrollView ? (
-                        <ScrollViewWithContext
-                            keyboardShouldPersistTaps="handled"
-                            style={[
-                                styles.settingsPageBackground,
-                                styles.flex1,
-                                styles.w100,
-                            ]}
-                        >
-                            <View style={[styles.w100, styles.flex1]}>
-                                {this.props.children(
-                                    hasVBA,
-                                    policyID,
-                                    isUsingECard,
-                                )}
-                            </View>
+                        <ScrollViewWithContext keyboardShouldPersistTaps="handled" style={[styles.settingsPageBackground, styles.flex1, styles.w100]}>
+                            <View style={[styles.w100, styles.flex1]}>{this.props.children(hasVBA, policyID, isUsingECard)}</View>
                         </ScrollViewWithContext>
                     ) : (
                         this.props.children(hasVBA, policyID, isUsingECard)

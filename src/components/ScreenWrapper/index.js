@@ -44,40 +44,31 @@ class ScreenWrapper extends React.Component {
             true,
         );
 
-        this.unsubscribeTransitionStart = this.props.navigation.addListener(
-            'transitionStart',
-            () => {
-                Navigation.setIsNavigating(true);
-            },
-        );
+        this.unsubscribeTransitionStart = this.props.navigation.addListener('transitionStart', () => {
+            Navigation.setIsNavigating(true);
+        });
 
-        this.unsubscribeTransitionEnd = this.props.navigation.addListener(
-            'transitionEnd',
-            (event) => {
-                Navigation.setIsNavigating(false);
+        this.unsubscribeTransitionEnd = this.props.navigation.addListener('transitionEnd', (event) => {
+            Navigation.setIsNavigating(false);
 
-                // Prevent firing the prop callback when user is exiting the page.
-                if (lodashGet(event, 'data.closing')) {
-                    return;
-                }
-                this.setState({didScreenTransitionEnd: true});
-                this.props.onEntryTransitionEnd();
-            },
-        );
+            // Prevent firing the prop callback when user is exiting the page.
+            if (lodashGet(event, 'data.closing')) {
+                return;
+            }
+            this.setState({didScreenTransitionEnd: true});
+            this.props.onEntryTransitionEnd();
+        });
 
         // We need to have this prop to remove keyboard before going away from the screen, to avoid previous screen look weird for a brief moment,
         // also we need to have generic control in future - to prevent closing keyboard for some rare cases in which beforeRemove has limitations
         // described here https://reactnavigation.org/docs/preventing-going-back/#limitations
         if (this.props.shouldDismissKeyboardBeforeClose) {
-            this.beforeRemoveSubscription = this.props.navigation.addListener(
-                'beforeRemove',
-                () => {
-                    if (!this.props.isKeyboardShown) {
-                        return;
-                    }
-                    Keyboard.dismiss();
-                },
-            );
+            this.beforeRemoveSubscription = this.props.navigation.addListener('beforeRemove', () => {
+                if (!this.props.isKeyboardShown) {
+                    return;
+                }
+                Keyboard.dismiss();
+            });
         }
     }
 
@@ -89,10 +80,7 @@ class ScreenWrapper extends React.Component {
      * @returns {boolean}
      */
     shouldComponentUpdate(nextProps, nextState) {
-        return (
-            !_.isEqual(this.state, nextState) ||
-            !_.isEqual(_.omit(this.props, 'modal'), _.omit(nextProps, 'modal'))
-        );
+        return !_.isEqual(this.state, nextState) || !_.isEqual(_.omit(this.props, 'modal'), _.omit(nextProps, 'modal'));
     }
 
     componentWillUnmount() {
@@ -113,12 +101,7 @@ class ScreenWrapper extends React.Component {
     render() {
         return (
             <SafeAreaConsumer>
-                {({
-                    insets,
-                    paddingTop,
-                    paddingBottom,
-                    safeAreaPaddingBottomStyle,
-                }) => {
+                {({insets, paddingTop, paddingBottom, safeAreaPaddingBottomStyle}) => {
                     const paddingStyle = {};
 
                     if (this.props.includePaddingTop) {
@@ -126,31 +109,13 @@ class ScreenWrapper extends React.Component {
                     }
 
                     // We always need the safe area padding bottom if we're showing the offline indicator since it is bottom-docked.
-                    if (
-                        this.props.includeSafeAreaPaddingBottom ||
-                        this.props.network.isOffline
-                    ) {
+                    if (this.props.includeSafeAreaPaddingBottom || this.props.network.isOffline) {
                         paddingStyle.paddingBottom = paddingBottom;
                     }
 
                     return (
-                        <View
-                            style={[
-                                ...this.props.style,
-                                styles.flex1,
-                                paddingStyle,
-                            ]}
-                        >
-                            <KeyboardAvoidingView
-                                style={[
-                                    styles.w100,
-                                    styles.h100,
-                                    {maxHeight: this.props.windowHeight},
-                                ]}
-                                behavior={
-                                    this.props.keyboardAvoidingViewBehavior
-                                }
-                            >
+                        <View style={[...this.props.style, styles.flex1, paddingStyle]}>
+                            <KeyboardAvoidingView style={[styles.w100, styles.h100, {maxHeight: this.props.windowHeight}]} behavior={this.props.keyboardAvoidingViewBehavior}>
                                 <HeaderGap />
                                 {
                                     // If props.children is a function, call it to provide the insets to the children.
@@ -158,15 +123,11 @@ class ScreenWrapper extends React.Component {
                                         ? this.props.children({
                                               insets,
                                               safeAreaPaddingBottomStyle,
-                                              didScreenTransitionEnd:
-                                                  this.state
-                                                      .didScreenTransitionEnd,
+                                              didScreenTransitionEnd: this.state.didScreenTransitionEnd,
                                           })
                                         : this.props.children
                                 }
-                                {this.props.isSmallScreenWidth && (
-                                    <OfflineIndicator />
-                                )}
+                                {this.props.isSmallScreenWidth && <OfflineIndicator />}
                             </KeyboardAvoidingView>
                         </View>
                     );

@@ -16,10 +16,7 @@ const defaultProps = {
 const UnorderedList = (props) => (
     <>
         {_.map(props.items, (itemText) => (
-            <View
-                key={itemText}
-                style={[styles.flexRow, styles.alignItemsStart, styles.ml2]}
-            >
+            <View key={itemText} style={[styles.flexRow, styles.alignItemsStart, styles.ml2]}>
                 <Text style={[styles.mr2]}>{'\u2022'}</Text>
                 <Text>{itemText}</Text>
             </View>

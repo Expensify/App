@@ -2,9 +2,7 @@ import React from 'react';
 import {View} from 'react-native';
 import Text from '../../../components/Text';
 import styles from '../../../styles/styles';
-import withLocalize, {
-    withLocalizePropTypes,
-} from '../../../components/withLocalize';
+import withLocalize, {withLocalizePropTypes} from '../../../components/withLocalize';
 import * as Expensicons from '../../../components/Icon/Expensicons';
 import * as Illustrations from '../../../components/Icon/Illustrations';
 import Section from '../../../components/Section';
@@ -29,9 +27,7 @@ const WorkspaceTravelVBAView = (props) => (
                 wrapperStyle: [styles.cardMenuItem],
             },
             {
-                title: props.translate(
-                    'workspace.travel.bookTravelWithConcierge',
-                ),
+                title: props.translate('workspace.travel.bookTravelWithConcierge'),
                 onPress: () => {
                     Report.navigateToConciergeChat();
                 },
@@ -41,10 +37,7 @@ const WorkspaceTravelVBAView = (props) => (
             },
             {
                 title: props.translate('requestorStep.learnMore'),
-                onPress: () =>
-                    Link.openExternalLink(
-                        'https://community.expensify.com/discussion/7066/introducing-concierge-travel',
-                    ),
+                onPress: () => Link.openExternalLink('https://community.expensify.com/discussion/7066/introducing-concierge-travel'),
                 icon: Expensicons.Info,
                 shouldShowRightIcon: true,
                 iconRight: Expensicons.NewWindow,

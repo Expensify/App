@@ -122,18 +122,12 @@ describe('isPullRequestMergeable', () => {
             })
             .mockResolvedValueOnce({
                 data: {
-                    check_runs: [
-                        {status: 'in_progress'},
-                        {status: 'in_progress'},
-                    ],
+                    check_runs: [{status: 'in_progress'}, {status: 'in_progress'}],
                 },
             }) // first response
             .mockResolvedValueOnce({
                 data: {
-                    check_runs: [
-                        {status: 'completed'},
-                        {status: 'in_progress'},
-                    ],
+                    check_runs: [{status: 'completed'}, {status: 'in_progress'}],
                 },
             }); // second response
         return run().then(() => {

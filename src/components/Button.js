@@ -72,10 +72,7 @@ const propTypes = {
     enterKeyEventListenerPriority: PropTypes.number,
 
     /** Additional styles to add after local styles. Applied to Pressable portion of button */
-    style: PropTypes.oneOfType([
-        PropTypes.arrayOf(PropTypes.object),
-        PropTypes.object,
-    ]),
+    style: PropTypes.oneOfType([PropTypes.arrayOf(PropTypes.object), PropTypes.object]),
 
     /** Additional button styles. Specific to the OpacityView of button */
     // eslint-disable-next-line react/forbid-prop-types
@@ -159,12 +156,7 @@ class Button extends Component {
         this.unsubscribe = KeyboardShortcut.subscribe(
             shortcutConfig.shortcutKey,
             (e) => {
-                if (
-                    !this.props.isFocused ||
-                    this.props.isDisabled ||
-                    this.props.isLoading ||
-                    (e && e.target.nodeName === 'TEXTAREA')
-                ) {
+                if (!this.props.isFocused || this.props.isDisabled || this.props.isLoading || (e && e.target.nodeName === 'TEXTAREA')) {
                     return;
                 }
                 e.preventDefault();
@@ -217,28 +209,15 @@ class Button extends Component {
         if (this.props.icon) {
             return (
                 <View style={[styles.justifyContentBetween, styles.flexRow]}>
-                    <View
-                        style={[
-                            styles.alignItemsCenter,
-                            styles.flexRow,
-                            styles.flexShrink1,
-                        ]}
-                    >
+                    <View style={[styles.alignItemsCenter, styles.flexRow, styles.flexShrink1]}>
                         <View style={[styles.mr1, ...this.props.iconStyles]}>
-                            <Icon
-                                src={this.props.icon}
-                                fill={this.props.iconFill}
-                                small={this.props.small}
-                            />
+                            <Icon src={this.props.icon} fill={this.props.iconFill} small={this.props.small} />
                         </View>
                         {textComponent}
                     </View>
                     {this.props.shouldShowRightIcon && (
                         <View style={styles.justifyContentCenter}>
-                            <Icon
-                                src={this.props.iconRight}
-                                fill={this.props.iconFill}
-                            />
+                            <Icon src={this.props.iconRight} fill={this.props.iconFill} />
                         </View>
                     )}
                 </View>
@@ -272,16 +251,10 @@ class Button extends Component {
                 onMouseDown={this.props.onMouseDown}
                 disabled={this.props.isLoading || this.props.isDisabled}
                 style={[
-                    this.props.isDisabled
-                        ? {...styles.cursorDisabled, ...styles.noSelect}
-                        : {},
+                    this.props.isDisabled ? {...styles.cursorDisabled, ...styles.noSelect} : {},
                     styles.buttonContainer,
-                    this.props.shouldRemoveRightBorderRadius
-                        ? styles.noRightBorderRadius
-                        : undefined,
-                    this.props.shouldRemoveLeftBorderRadius
-                        ? styles.noLeftBorderRadius
-                        : undefined,
+                    this.props.shouldRemoveRightBorderRadius ? styles.noRightBorderRadius : undefined,
+                    this.props.shouldRemoveLeftBorderRadius ? styles.noLeftBorderRadius : undefined,
                     ...StyleUtils.parseStyleAsArray(this.props.style),
                 ]}
                 nativeID={this.props.nativeID}
@@ -293,60 +266,26 @@ class Button extends Component {
                             shouldDim={pressed}
                             style={[
                                 styles.button,
-                                this.props.small
-                                    ? styles.buttonSmall
-                                    : undefined,
-                                this.props.medium
-                                    ? styles.buttonMedium
-                                    : undefined,
-                                this.props.large
-                                    ? styles.buttonLarge
-                                    : undefined,
-                                this.props.success
-                                    ? styles.buttonSuccess
-                                    : undefined,
-                                this.props.danger
-                                    ? styles.buttonDanger
-                                    : undefined,
-                                this.props.isDisabled && this.props.success
-                                    ? styles.buttonSuccessDisabled
-                                    : undefined,
-                                this.props.isDisabled && this.props.danger
-                                    ? styles.buttonDangerDisabled
-                                    : undefined,
-                                this.props.isDisabled &&
-                                !this.props.danger &&
-                                !this.props.success
-                                    ? styles.buttonDisable
-                                    : undefined,
-                                this.props.success && activeAndHovered
-                                    ? styles.buttonSuccessHovered
-                                    : undefined,
-                                this.props.danger && activeAndHovered
-                                    ? styles.buttonDangerHovered
-                                    : undefined,
-                                this.props.shouldRemoveRightBorderRadius
-                                    ? styles.noRightBorderRadius
-                                    : undefined,
-                                this.props.shouldRemoveLeftBorderRadius
-                                    ? styles.noLeftBorderRadius
-                                    : undefined,
+                                this.props.small ? styles.buttonSmall : undefined,
+                                this.props.medium ? styles.buttonMedium : undefined,
+                                this.props.large ? styles.buttonLarge : undefined,
+                                this.props.success ? styles.buttonSuccess : undefined,
+                                this.props.danger ? styles.buttonDanger : undefined,
+                                this.props.isDisabled && this.props.success ? styles.buttonSuccessDisabled : undefined,
+                                this.props.isDisabled && this.props.danger ? styles.buttonDangerDisabled : undefined,
+                                this.props.isDisabled && !this.props.danger && !this.props.success ? styles.buttonDisable : undefined,
+                                this.props.success && activeAndHovered ? styles.buttonSuccessHovered : undefined,
+                                this.props.danger && activeAndHovered ? styles.buttonDangerHovered : undefined,
+                                this.props.shouldRemoveRightBorderRadius ? styles.noRightBorderRadius : undefined,
+                                this.props.shouldRemoveLeftBorderRadius ? styles.noLeftBorderRadius : undefined,
                                 ...this.props.innerStyles,
                             ]}
                         >
                             {this.renderContent()}
                             {this.props.isLoading && (
                                 <ActivityIndicator
-                                    color={
-                                        this.props.success || this.props.danger
-                                            ? themeColors.textLight
-                                            : themeColors.text
-                                    }
-                                    style={[
-                                        styles.pAbsolute,
-                                        styles.l0,
-                                        styles.r0,
-                                    ]}
+                                    color={this.props.success || this.props.danger ? themeColors.textLight : themeColors.text}
+                                    style={[styles.pAbsolute, styles.l0, styles.r0]}
                                 />
                             )}
                         </OpacityView>

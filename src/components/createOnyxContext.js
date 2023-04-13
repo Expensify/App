@@ -11,11 +11,7 @@ const propTypes = {
 
 export default (onyxKeyName) => {
     const Context = createContext();
-    const Provider = (props) => (
-        <Context.Provider value={props[onyxKeyName]}>
-            {props.children}
-        </Context.Provider>
-    );
+    const Provider = (props) => <Context.Provider value={props[onyxKeyName]}>{props.children}</Context.Provider>;
 
     Provider.propTypes = propTypes;
     Provider.displayName = `${Str.UCFirst(onyxKeyName)}Provider`;
@@ -34,9 +30,7 @@ export default (onyxKeyName) => {
                     {(value) => {
                         const propsToPass = {
                             ...props,
-                            [propName]: transformValue
-                                ? transformValue(value, props)
-                                : value,
+                            [propName]: transformValue ? transformValue(value, props) : value,
                         };
                         return (
                             // eslint-disable-next-line react/jsx-props-no-spreading
@@ -46,9 +40,7 @@ export default (onyxKeyName) => {
                 </Context.Consumer>
             ));
 
-            Consumer.displayName = `with${Str.UCFirst(
-                onyxKeyName,
-            )}(${getComponentDisplayName(WrappedComponent)})`;
+            Consumer.displayName = `with${Str.UCFirst(onyxKeyName)}(${getComponentDisplayName(WrappedComponent)})`;
             return Consumer;
         };
 

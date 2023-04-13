@@ -40,45 +40,26 @@ const defaultProps = {
 };
 
 const SubscriptAvatar = (props) => (
-    <View
-        style={
-            props.size === CONST.AVATAR_SIZE.SMALL
-                ? styles.emptyAvatarSmall
-                : styles.emptyAvatar
-        }
-    >
+    <View style={props.size === CONST.AVATAR_SIZE.SMALL ? styles.emptyAvatarSmall : styles.emptyAvatar}>
         <Tooltip text={props.mainTooltip}>
             <Avatar
                 source={props.mainAvatar.source}
-                size={
-                    props.size === CONST.AVATAR_SIZE.SMALL
-                        ? CONST.AVATAR_SIZE.SMALL
-                        : CONST.AVATAR_SIZE.DEFAULT
-                }
+                size={props.size === CONST.AVATAR_SIZE.SMALL ? CONST.AVATAR_SIZE.SMALL : CONST.AVATAR_SIZE.DEFAULT}
                 name={props.mainAvatar.name}
                 type={props.mainAvatar.type}
             />
         </Tooltip>
         <View
             style={[
-                props.size === CONST.AVATAR_SIZE.SMALL
-                    ? styles.secondAvatarSubscriptCompact
-                    : styles.secondAvatarSubscript,
+                props.size === CONST.AVATAR_SIZE.SMALL ? styles.secondAvatarSubscriptCompact : styles.secondAvatarSubscript,
                 StyleUtils.getBackgroundAndBorderStyle(props.backgroundColor),
-                StyleUtils.getAvatarBorderStyle(
-                    props.size,
-                    props.secondaryAvatar.type,
-                ),
+                StyleUtils.getAvatarBorderStyle(props.size, props.secondaryAvatar.type),
             ]}
         >
             <Tooltip text={props.secondaryTooltip}>
                 <Avatar
                     source={props.secondaryAvatar.source}
-                    size={
-                        props.size === CONST.AVATAR_SIZE.SMALL
-                            ? CONST.AVATAR_SIZE.SMALL_SUBSCRIPT
-                            : CONST.AVATAR_SIZE.SUBSCRIPT
-                    }
+                    size={props.size === CONST.AVATAR_SIZE.SMALL ? CONST.AVATAR_SIZE.SMALL_SUBSCRIPT : CONST.AVATAR_SIZE.SUBSCRIPT}
                     fill={themeColors.iconSuccessFill}
                     name={props.secondaryAvatar.name}
                     type={props.secondaryAvatar.type}

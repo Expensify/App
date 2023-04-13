@@ -4,10 +4,7 @@ import {Pressable} from 'react-native';
 import styles from '../../styles/styles';
 import Text from '../Text';
 import * as StyleUtils from '../../styles/StyleUtils';
-import withCurrentUserPersonalDetails, {
-    withCurrentUserPersonalDetailsDefaultProps,
-    withCurrentUserPersonalDetailsPropTypes,
-} from '../withCurrentUserPersonalDetails';
+import withCurrentUserPersonalDetails, {withCurrentUserPersonalDetailsDefaultProps, withCurrentUserPersonalDetailsPropTypes} from '../withCurrentUserPersonalDetails';
 import * as Report from '../../libs/actions/Report';
 import Tooltip from '../Tooltip';
 import ReactionTooltipContent from './ReactionTooltipContent';
@@ -61,53 +58,16 @@ const defaultProps = {
 };
 
 const EmojiReactionBubble = (props) => {
-    const hasUserReacted = Report.hasAccountIDReacted(
-        props.currentUserPersonalDetails.accountID,
-        props.reactionUsers,
-    );
+    const hasUserReacted = Report.hasAccountIDReacted(props.currentUserPersonalDetails.accountID, props.reactionUsers);
     return (
-        <Tooltip
-            renderTooltipContent={() => (
-                <ReactionTooltipContent
-                    emojiName={props.emojiName}
-                    emojiCodes={props.emojiCodes}
-                    accountIDs={props.reactionUsers}
-                />
-            )}
-        >
+        <Tooltip renderTooltipContent={() => <ReactionTooltipContent emojiName={props.emojiName} emojiCodes={props.emojiCodes} accountIDs={props.reactionUsers} />}>
             <Pressable
-                style={({hovered, pressed}) => [
-                    styles.emojiReactionBubble,
-                    StyleUtils.getEmojiReactionBubbleStyle(
-                        hovered || pressed,
-                        hasUserReacted,
-                        props.sizeScale,
-                    ),
-                ]}
+                style={({hovered, pressed}) => [styles.emojiReactionBubble, StyleUtils.getEmojiReactionBubbleStyle(hovered || pressed, hasUserReacted, props.sizeScale)]}
                 onPress={props.onPress}
                 onLongPress={props.onReactionListOpen}
             >
-                <Text
-                    style={[
-                        styles.emojiReactionText,
-                        StyleUtils.getEmojiReactionTextStyle(props.sizeScale),
-                    ]}
-                >
-                    {props.emojiCodes.join('')}
-                </Text>
-                {props.count > 0 && (
-                    <Text
-                        style={[
-                            styles.reactionCounterText,
-                            StyleUtils.getEmojiReactionCounterTextStyle(
-                                hasUserReacted,
-                                props.sizeScale,
-                            ),
-                        ]}
-                    >
-                        {props.count}
-                    </Text>
-                )}
+                <Text style={[styles.emojiReactionText, StyleUtils.getEmojiReactionTextStyle(props.sizeScale)]}>{props.emojiCodes.join('')}</Text>
+                {props.count > 0 && <Text style={[styles.reactionCounterText, StyleUtils.getEmojiReactionCounterTextStyle(hasUserReacted, props.sizeScale)]}>{props.count}</Text>}
             </Pressable>
         </Tooltip>
     );

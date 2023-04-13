@@ -31,10 +31,7 @@ class FormSubmit extends React.Component {
         }
 
         // Pressing Enter on TEXTAREA element adds a new line. When `dataset.submitOnEnter` prop is passed, call the submit callback.
-        if (
-            tagName === 'TEXTAREA' &&
-            lodashGet(event, 'target.dataset.submitOnEnter', 'false') === 'true'
-        ) {
+        if (tagName === 'TEXTAREA' && lodashGet(event, 'target.dataset.submitOnEnter', 'false') === 'true') {
             this.props.onSubmit();
             return;
         }

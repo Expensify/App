@@ -9,9 +9,7 @@ import styles from '../../styles/styles';
 import PDFInfoMessage from './PDFInfoMessage';
 import compose from '../../libs/compose';
 import withLocalize, {withLocalizePropTypes} from '../withLocalize';
-import withWindowDimensions, {
-    windowDimensionsPropTypes,
-} from '../withWindowDimensions';
+import withWindowDimensions, {windowDimensionsPropTypes} from '../withWindowDimensions';
 import shouldDelayFocus from '../../libs/shouldDelayFocus';
 
 const propTypes = {
@@ -53,8 +51,7 @@ class PDFPasswordForm extends Component {
         this.submitPassword = this.submitPassword.bind(this);
         this.updatePassword = this.updatePassword.bind(this);
         this.showForm = this.showForm.bind(this);
-        this.validateAndNotifyPasswordBlur =
-            this.validateAndNotifyPasswordBlur.bind(this);
+        this.validateAndNotifyPasswordBlur = this.validateAndNotifyPasswordBlur.bind(this);
     }
 
     submitPassword() {
@@ -77,9 +74,7 @@ class PDFPasswordForm extends Component {
             return true;
         }
         this.setState({
-            validationErrorText: this.props.translate(
-                'attachmentView.passwordRequired',
-            ),
+            validationErrorText: this.props.translate('attachmentView.passwordRequired'),
         });
         return false;
     }
@@ -94,24 +89,14 @@ class PDFPasswordForm extends Component {
     }
 
     render() {
-        const containerStyle = this.props.isSmallScreenWidth
-            ? [styles.flex1, styles.w100]
-            : styles.pdfPasswordForm.wideScreenWidth;
+        const containerStyle = this.props.isSmallScreenWidth ? [styles.flex1, styles.w100] : styles.pdfPasswordForm.wideScreenWidth;
 
         return (
             <>
                 {this.state.shouldShowForm ? (
-                    <ScrollView
-                        keyboardShouldPersistTaps="handled"
-                        style={containerStyle}
-                        contentContainerStyle={styles.p5}
-                    >
+                    <ScrollView keyboardShouldPersistTaps="handled" style={containerStyle} contentContainerStyle={styles.p5}>
                         <View style={styles.mb4}>
-                            <Text>
-                                {this.props.translate(
-                                    'attachmentView.pdfPasswordForm.formLabel',
-                                )}
-                            </Text>
+                            <Text>{this.props.translate('attachmentView.pdfPasswordForm.formLabel')}</Text>
                         </View>
                         <TextInput
                             label={this.props.translate('common.password')}
@@ -121,16 +106,8 @@ class PDFPasswordForm extends Component {
                             onChangeText={this.updatePassword}
                             returnKeyType="done"
                             onSubmitEditing={this.submitPassword}
-                            errorText={
-                                this.props.isPasswordInvalid
-                                    ? this.props.translate(
-                                          'attachmentView.passwordIncorrect',
-                                      )
-                                    : this.state.validationErrorText
-                            }
-                            onFocus={() =>
-                                this.props.onPasswordFieldFocused(true)
-                            }
+                            errorText={this.props.isPasswordInvalid ? this.props.translate('attachmentView.passwordIncorrect') : this.state.validationErrorText}
+                            onFocus={() => this.props.onPasswordFieldFocused(true)}
                             onBlur={this.validateAndNotifyPasswordBlur}
                             autoFocus
                             shouldDelayFocus={shouldDelayFocus}

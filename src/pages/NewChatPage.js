@@ -9,9 +9,7 @@ import ONYXKEYS from '../ONYXKEYS';
 import styles from '../styles/styles';
 import * as Report from '../libs/actions/Report';
 import CONST from '../CONST';
-import withWindowDimensions, {
-    windowDimensionsPropTypes,
-} from '../components/withWindowDimensions';
+import withWindowDimensions, {windowDimensionsPropTypes} from '../components/withWindowDimensions';
 import HeaderWithCloseButton from '../components/HeaderWithCloseButton';
 import Navigation from '../libs/Navigation/Navigation';
 import ScreenWrapper from '../components/ScreenWrapper';
@@ -55,22 +53,17 @@ class NewChatPage extends Component {
         this.toggleOption = this.toggleOption.bind(this);
         this.createChat = this.createChat.bind(this);
         this.createGroup = this.createGroup.bind(this);
-        this.updateOptionsWithSearchTerm =
-            this.updateOptionsWithSearchTerm.bind(this);
-        this.excludedGroupEmails = _.without(
-            CONST.EXPENSIFY_EMAILS,
-            CONST.EMAIL.CONCIERGE,
-        );
+        this.updateOptionsWithSearchTerm = this.updateOptionsWithSearchTerm.bind(this);
+        this.excludedGroupEmails = _.without(CONST.EXPENSIFY_EMAILS, CONST.EMAIL.CONCIERGE);
 
-        const {recentReports, personalDetails, userToInvite} =
-            OptionsListUtils.getNewChatOptions(
-                props.reports,
-                props.personalDetails,
-                props.betas,
-                '',
-                [],
-                this.props.isGroupChat ? this.excludedGroupEmails : [],
-            );
+        const {recentReports, personalDetails, userToInvite} = OptionsListUtils.getNewChatOptions(
+            props.reports,
+            props.personalDetails,
+            props.betas,
+            '',
+            [],
+            this.props.isGroupChat ? this.excludedGroupEmails : [],
+        );
         this.state = {
             searchTerm: '',
             recentReports,
@@ -105,22 +98,10 @@ class NewChatPage extends Component {
         }
 
         // Filtering out selected users from the search results
-        const filterText = _.reduce(
-            this.state.selectedOptions,
-            (str, {login}) => `${str} ${login}`,
-            '',
-        );
-        const recentReportsWithoutSelected = _.filter(
-            this.state.recentReports,
-            ({login}) => !filterText.includes(login),
-        );
-        const personalDetailsWithoutSelected = _.filter(
-            this.state.personalDetails,
-            ({login}) => !filterText.includes(login),
-        );
-        const hasUnselectedUserToInvite =
-            this.state.userToInvite &&
-            !filterText.includes(this.state.userToInvite.login);
+        const filterText = _.reduce(this.state.selectedOptions, (str, {login}) => `${str} ${login}`, '');
+        const recentReportsWithoutSelected = _.filter(this.state.recentReports, ({login}) => !filterText.includes(login));
+        const personalDetailsWithoutSelected = _.filter(this.state.personalDetails, ({login}) => !filterText.includes(login));
+        const hasUnselectedUserToInvite = this.state.userToInvite && !filterText.includes(this.state.userToInvite.login);
 
         sections.push({
             title: this.props.translate('common.recents'),
@@ -151,15 +132,14 @@ class NewChatPage extends Component {
     }
 
     updateOptionsWithSearchTerm(searchTerm = '') {
-        const {recentReports, personalDetails, userToInvite} =
-            OptionsListUtils.getNewChatOptions(
-                this.props.reports,
-                this.props.personalDetails,
-                this.props.betas,
-                searchTerm,
-                [],
-                this.props.isGroupChat ? this.excludedGroupEmails : [],
-            );
+        const {recentReports, personalDetails, userToInvite} = OptionsListUtils.getNewChatOptions(
+            this.props.reports,
+            this.props.personalDetails,
+            this.props.betas,
+            searchTerm,
+            [],
+            this.props.isGroupChat ? this.excludedGroupEmails : [],
+        );
         this.setState({
             searchTerm,
             userToInvite,
@@ -174,31 +154,24 @@ class NewChatPage extends Component {
      */
     toggleOption(option) {
         this.setState((prevState) => {
-            const isOptionInList = _.some(
-                prevState.selectedOptions,
-                (selectedOption) => selectedOption.login === option.login,
-            );
+            const isOptionInList = _.some(prevState.selectedOptions, (selectedOption) => selectedOption.login === option.login);
 
             let newSelectedOptions;
 
             if (isOptionInList) {
-                newSelectedOptions = _.reject(
-                    prevState.selectedOptions,
-                    (selectedOption) => selectedOption.login === option.login,
-                );
+                newSelectedOptions = _.reject(prevState.selectedOptions, (selectedOption) => selectedOption.login === option.login);
             } else {
                 newSelectedOptions = [...prevState.selectedOptions, option];
             }
 
-            const {recentReports, personalDetails, userToInvite} =
-                OptionsListUtils.getNewChatOptions(
-                    this.props.reports,
-                    this.props.personalDetails,
-                    this.props.betas,
-                    prevState.searchTerm,
-                    [],
-                    this.excludedGroupEmails,
-                );
+            const {recentReports, personalDetails, userToInvite} = OptionsListUtils.getNewChatOptions(
+                this.props.reports,
+                this.props.personalDetails,
+                this.props.betas,
+                prevState.searchTerm,
+                [],
+                this.excludedGroupEmails,
+            );
 
             return {
                 selectedOptions: newSelectedOptions,
@@ -237,14 +210,10 @@ class NewChatPage extends Component {
     }
 
     render() {
-        const maxParticipantsReached =
-            this.state.selectedOptions.length ===
-            CONST.REPORT.MAXIMUM_PARTICIPANTS;
+        const maxParticipantsReached = this.state.selectedOptions.length === CONST.REPORT.MAXIMUM_PARTICIPANTS;
         const sections = this.getSections(maxParticipantsReached);
         const headerMessage = OptionsListUtils.getHeaderMessage(
-            this.state.personalDetails.length +
-                this.state.recentReports.length !==
-                0,
+            this.state.personalDetails.length + this.state.recentReports.length !== 0,
             Boolean(this.state.userToInvite),
             this.state.searchTerm,
             maxParticipantsReached,
@@ -254,63 +223,26 @@ class NewChatPage extends Component {
                 {({didScreenTransitionEnd, safeAreaPaddingBottomStyle}) => (
                     <>
                         <HeaderWithCloseButton
-                            title={
-                                this.props.isGroupChat
-                                    ? this.props.translate(
-                                          'sidebarScreen.newGroup',
-                                      )
-                                    : this.props.translate(
-                                          'sidebarScreen.newChat',
-                                      )
-                            }
-                            onCloseButtonPress={() =>
-                                Navigation.dismissModal(true)
-                            }
+                            title={this.props.isGroupChat ? this.props.translate('sidebarScreen.newGroup') : this.props.translate('sidebarScreen.newChat')}
+                            onCloseButtonPress={() => Navigation.dismissModal(true)}
                         />
-                        <View
-                            style={[
-                                styles.flex1,
-                                styles.w100,
-                                styles.pRelative,
-                                this.state.selectedOptions.length > 0
-                                    ? safeAreaPaddingBottomStyle
-                                    : {},
-                            ]}
-                        >
+                        <View style={[styles.flex1, styles.w100, styles.pRelative, this.state.selectedOptions.length > 0 ? safeAreaPaddingBottomStyle : {}]}>
                             {didScreenTransitionEnd ? (
                                 <OptionsSelector
-                                    canSelectMultipleOptions={
-                                        this.props.isGroupChat
-                                    }
+                                    canSelectMultipleOptions={this.props.isGroupChat}
                                     sections={sections}
                                     selectedOptions={this.state.selectedOptions}
                                     value={this.state.searchTerm}
-                                    onSelectRow={(option) =>
-                                        this.props.isGroupChat
-                                            ? this.toggleOption(option)
-                                            : this.createChat(option)
-                                    }
-                                    onChangeText={
-                                        this.updateOptionsWithSearchTerm
-                                    }
+                                    onSelectRow={(option) => (this.props.isGroupChat ? this.toggleOption(option) : this.createChat(option))}
+                                    onChangeText={this.updateOptionsWithSearchTerm}
                                     headerMessage={headerMessage}
                                     boldStyle
-                                    shouldFocusOnSelectRow={
-                                        this.props.isGroupChat
-                                    }
-                                    shouldShowConfirmButton={
-                                        this.props.isGroupChat
-                                    }
-                                    confirmButtonText={this.props.translate(
-                                        'newChatPage.createGroup',
-                                    )}
+                                    shouldFocusOnSelectRow={this.props.isGroupChat}
+                                    shouldShowConfirmButton={this.props.isGroupChat}
+                                    confirmButtonText={this.props.translate('newChatPage.createGroup')}
                                     onConfirmSelection={this.createGroup}
-                                    placeholderText={this.props.translate(
-                                        'optionsSelector.nameEmailOrPhoneNumber',
-                                    )}
-                                    safeAreaPaddingBottomStyle={
-                                        safeAreaPaddingBottomStyle
-                                    }
+                                    placeholderText={this.props.translate('optionsSelector.nameEmailOrPhoneNumber')}
+                                    safeAreaPaddingBottomStyle={safeAreaPaddingBottomStyle}
                                 />
                             ) : (
                                 <FullScreenLoadingIndicator />

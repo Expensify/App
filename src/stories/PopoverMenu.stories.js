@@ -25,9 +25,7 @@ const Template = (args) => {
                 // eslint-disable-next-line react/jsx-props-no-spreading
                 {...args.menuItem}
                 onPress={toggleVisibility}
-                wrapperStyle={
-                    isVisible ? [{backgroundColor: themeColors.border}] : []
-                }
+                wrapperStyle={isVisible ? [{backgroundColor: themeColors.border}] : []}
             />
             <SafeAreaProvider>
                 <PopoverMenu

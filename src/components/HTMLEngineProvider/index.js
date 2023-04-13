@@ -5,12 +5,7 @@ import withWindowDimensions from '../withWindowDimensions';
 import * as DeviceCapabilities from '../../libs/DeviceCapabilities';
 
 const HTMLEngineProvider = (props) => (
-    <BaseHTMLEngineProvider
-        debug={props.debug}
-        textSelectable={
-            !DeviceCapabilities.canUseTouchScreen() || !props.isSmallScreenWidth
-        }
-    >
+    <BaseHTMLEngineProvider debug={props.debug} textSelectable={!DeviceCapabilities.canUseTouchScreen() || !props.isSmallScreenWidth}>
         {props.children}
     </BaseHTMLEngineProvider>
 );

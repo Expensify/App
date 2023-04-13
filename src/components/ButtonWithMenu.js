@@ -63,9 +63,7 @@ class ButtonWithMenu extends PureComponent {
                         buttonText={selectedItem.text}
                         isLoading={this.props.isLoading}
                         isDisabled={this.props.isDisabled}
-                        onButtonPress={(event) =>
-                            this.props.onPress(event, selectedItem.value)
-                        }
+                        onButtonPress={(event) => this.props.onPress(event, selectedItem.value)}
                         onDropdownPress={() => {
                             this.setMenuVisibility(true);
                         }}
@@ -77,12 +75,7 @@ class ButtonWithMenu extends PureComponent {
                         style={[styles.w100]}
                         isLoading={this.props.isLoading}
                         text={selectedItem.text}
-                        onPress={(event) =>
-                            this.props.onPress(
-                                event,
-                                this.props.options[0].value,
-                            )
-                        }
+                        onPress={(event) => this.props.onPress(event, this.props.options[0].value)}
                         pressOnEnter
                     />
                 )}

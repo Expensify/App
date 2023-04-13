@@ -112,7 +112,7 @@ h6 {
 }
 
 h1 {
-    font-family: "ExpensifyNewKansas", "Helvetica Neue", "Helvetica", Arial, sans-serif;
+    font-family: 'ExpensifyNewKansas', 'Helvetica Neue', 'Helvetica', Arial, sans-serif;
     font-weight: 500;
     font-size: larger;
 }
@@ -132,7 +132,7 @@ select,
 textarea {
     line-height: 1.4;
     font-weight: 400;
-    font-family: "ExpensifyNeue", "Helvetica Neue", "Helvetica", Arial, sans-serif;
+    font-family: 'ExpensifyNeue', 'Helvetica Neue', 'Helvetica', Arial, sans-serif;
     font-size: 16px;
     color: $color-white;
 }
@@ -140,7 +140,7 @@ textarea {
 button {
     border-radius: 12px;
     padding: 12px;
-    font-family: "ExpensifyNeue", "Helvetica Neue", "Helvetica", Arial, sans-serif;
+    font-family: 'ExpensifyNeue', 'Helvetica Neue', 'Helvetica', Arial, sans-serif;
     font-size: 15px;
     font-weight: bold;
 
@@ -199,7 +199,6 @@ button {
         list-style: none;
     }
 
-
     #lhn-content {
         overflow: auto;
         display: none;
@@ -222,7 +221,6 @@ button {
             &::-webkit-scrollbar {
                 display: none;
             }
-
         }
 
         &.expanded {
@@ -306,7 +304,7 @@ button {
         margin-left: 420px;
         /* On wide screens, the padding needs to be equal to
         the view width, minus the content size, minus the lhn size, divided by two. */
-        padding: 52px calc((100vw - 1000px - 420px)/2) 0 calc((100vw - 1000px - 420px)/2);
+        padding: 52px calc((100vw - 1000px - 420px) / 2) 0 calc((100vw - 1000px - 420px) / 2);
     }
 
     ul,
@@ -347,7 +345,6 @@ button {
             flex-wrap: wrap;
         }
     }
-
 }
 
 .link {
@@ -361,7 +358,6 @@ button {
 }
 
 .lhn-items {
-
     ol,
     ul {
         padding-left: 32px;
@@ -421,7 +417,7 @@ button {
 
     .row {
         display: flex;
-        flex-basis:100%;
+        flex-basis: 100%;
     }
 
     .left-icon {
@@ -468,8 +464,6 @@ button {
         }
     }
 
-
-
     p.description {
         padding: 0;
         margin: 0;
@@ -504,7 +498,7 @@ button {
             padding-top: 0px;
         }
     }
-    h2  {
+    h2 {
         padding-bottom: 24px;
     }
     p {
@@ -533,7 +527,7 @@ button {
         right: calc((100vw - 380px) / 2);
 
         @include breakpoint($breakpoint-tablet) {
-            right: calc((100vw - 320px - 500px ) / 2);
+            right: calc((100vw - 320px - 500px) / 2);
         }
 
         @include breakpoint($breakpoint-desktop) {

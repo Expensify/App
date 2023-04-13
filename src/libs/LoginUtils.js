@@ -20,7 +20,4 @@ function getPhoneNumberWithoutUSCountryCodeAndSpecialChars(phone) {
     return getPhoneNumberWithoutSpecialChars(phone.replace(/^\+1/, ''));
 }
 
-export {
-    getPhoneNumberWithoutSpecialChars,
-    getPhoneNumberWithoutUSCountryCodeAndSpecialChars,
-};
+export {getPhoneNumberWithoutSpecialChars, getPhoneNumberWithoutUSCountryCodeAndSpecialChars};

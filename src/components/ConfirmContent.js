@@ -62,21 +62,8 @@ const ConfirmContent = (props) => (
 
         {_.isString(props.prompt) ? <Text>{props.prompt}</Text> : props.prompt}
 
-        <Button
-            success={props.success}
-            danger={props.danger}
-            style={[styles.mt4]}
-            onPress={props.onConfirm}
-            pressOnEnter
-            text={props.confirmText || props.translate('common.yes')}
-        />
-        {props.shouldShowCancelButton && (
-            <Button
-                style={[styles.mt3, styles.noSelect]}
-                onPress={props.onCancel}
-                text={props.cancelText || props.translate('common.no')}
-            />
-        )}
+        <Button success={props.success} danger={props.danger} style={[styles.mt4]} onPress={props.onConfirm} pressOnEnter text={props.confirmText || props.translate('common.yes')} />
+        {props.shouldShowCancelButton && <Button style={[styles.mt3, styles.noSelect]} onPress={props.onCancel} text={props.cancelText || props.translate('common.no')} />}
     </View>
 );
 

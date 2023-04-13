@@ -28,10 +28,7 @@ Onyx.connect({
  */
 function showGrowlIfOffline() {
     if (isNetworkOffline) {
-        Growl.show(
-            Localize.translateLocal('session.offlineMessageRetry'),
-            CONST.GROWL.WARNING,
-        );
+        Growl.show(Localize.translateLocal('session.offlineMessageRetry'), CONST.GROWL.WARNING);
     }
     return isNetworkOffline;
 }
@@ -48,9 +45,7 @@ function openOldDotLink(url) {
         const hasHashParams = url.indexOf('#') !== -1;
         const hasURLParams = url.indexOf('?') !== -1;
 
-        const authTokenParam = shortLivedAuthToken
-            ? `authToken=${shortLivedAuthToken}`
-            : '';
+        const authTokenParam = shortLivedAuthToken ? `authToken=${shortLivedAuthToken}` : '';
         const emailParam = `email=${encodeURIComponent(currentUserEmail)}`;
 
         const params = _.compact([authTokenParam, emailParam]).join('&');
@@ -59,9 +54,7 @@ function openOldDotLink(url) {
             const oldDotDomain = Url.addTrailingForwardSlash(environmentURL);
 
             // If the URL contains # or ?, we can assume they don't need to have the `?` token to start listing url parameters.
-            return `${oldDotDomain}${url}${
-                hasHashParams || hasURLParams ? '&' : '?'
-            }${params}`;
+            return `${oldDotDomain}${url}${hasHashParams || hasURLParams ? '&' : '?'}${params}`;
         });
     }
 

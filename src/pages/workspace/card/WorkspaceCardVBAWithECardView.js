@@ -2,9 +2,7 @@ import React from 'react';
 import {View} from 'react-native';
 import Text from '../../../components/Text';
 import styles from '../../../styles/styles';
-import withLocalize, {
-    withLocalizePropTypes,
-} from '../../../components/withLocalize';
+import withLocalize, {withLocalizePropTypes} from '../../../components/withLocalize';
 import * as Expensicons from '../../../components/Icon/Expensicons';
 import * as Illustrations from '../../../components/Icon/Illustrations';
 import UnorderedList from '../../../components/UnorderedList';
@@ -27,12 +25,7 @@ const WorkspaceCardVBAWithECardView = (props) => {
         },
         {
             title: props.translate('workspace.common.reconcileCards'),
-            onPress: () =>
-                Link.openOldDotLink(
-                    encodeURI(
-                        'domain_companycards?param={"section":"cardReconciliation"}',
-                    ),
-                ),
+            onPress: () => Link.openOldDotLink(encodeURI('domain_companycards?param={"section":"cardReconciliation"}')),
             icon: Expensicons.ReceiptSearch,
             shouldShowRightIcon: true,
             iconRight: Expensicons.NewWindow,
@@ -40,12 +33,7 @@ const WorkspaceCardVBAWithECardView = (props) => {
         },
         {
             title: props.translate('workspace.common.settlementFrequency'),
-            onPress: () =>
-                Link.openOldDotLink(
-                    encodeURI(
-                        'domain_companycards?param={"section":"configureSettings"}',
-                    ),
-                ),
+            onPress: () => Link.openOldDotLink(encodeURI('domain_companycards?param={"section":"configureSettings"}')),
             icon: Expensicons.Gear,
             shouldShowRightIcon: true,
             iconRight: Expensicons.NewWindow,
@@ -54,15 +42,9 @@ const WorkspaceCardVBAWithECardView = (props) => {
     ];
 
     return (
-        <Section
-            title={props.translate('workspace.card.headerWithEcard')}
-            icon={Illustrations.CreditCardsNew}
-            menuItems={menuItems}
-        >
+        <Section title={props.translate('workspace.card.headerWithEcard')} icon={Illustrations.CreditCardsNew} menuItems={menuItems}>
             <View style={[styles.mv3]}>
-                <Text>
-                    {props.translate('workspace.card.VBAWithECardCopy')}
-                </Text>
+                <Text>{props.translate('workspace.card.VBAWithECardCopy')}</Text>
             </View>
 
             <View style={[styles.mv3]}>

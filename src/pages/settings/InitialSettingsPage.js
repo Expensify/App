@@ -18,17 +18,12 @@ import * as Expensicons from '../../components/Icon/Expensicons';
 import ScreenWrapper from '../../components/ScreenWrapper';
 import MenuItem from '../../components/MenuItem';
 import ROUTES from '../../ROUTES';
-import withLocalize, {
-    withLocalizePropTypes,
-} from '../../components/withLocalize';
+import withLocalize, {withLocalizePropTypes} from '../../components/withLocalize';
 import compose from '../../libs/compose';
 import CONST from '../../CONST';
 import Permissions from '../../libs/Permissions';
 import * as App from '../../libs/actions/App';
-import withCurrentUserPersonalDetails, {
-    withCurrentUserPersonalDetailsPropTypes,
-    withCurrentUserPersonalDetailsDefaultProps,
-} from '../../components/withCurrentUserPersonalDetails';
+import withCurrentUserPersonalDetails, {withCurrentUserPersonalDetailsPropTypes, withCurrentUserPersonalDetailsDefaultProps} from '../../components/withCurrentUserPersonalDetails';
 import * as PaymentMethods from '../../libs/actions/PaymentMethods';
 import bankAccountPropTypes from '../../components/bankAccountPropTypes';
 import cardPropTypes from '../../components/cardPropTypes';
@@ -65,9 +60,7 @@ const propTypes = {
             role: PropTypes.string,
 
             /** The current action that is waiting to happen on the policy */
-            pendingAction: PropTypes.oneOf(
-                _.values(CONST.RED_BRICK_ROAD_PENDING_ACTION),
-            ),
+            pendingAction: PropTypes.oneOf(_.values(CONST.RED_BRICK_ROAD_PENDING_ACTION)),
         }),
     ),
 
@@ -111,8 +104,7 @@ class InitialSettingsPage extends React.Component {
         this.getWalletBalance = this.getWalletBalance.bind(this);
         this.getDefaultMenuItems = this.getDefaultMenuItems.bind(this);
         this.getMenuItem = this.getMenuItem.bind(this);
-        this.toggleSignoutConfirmModal =
-            this.toggleSignoutConfirmModal.bind(this);
+        this.toggleSignoutConfirmModal = this.toggleSignoutConfirmModal.bind(this);
         this.signout = this.signOut.bind(this);
 
         this.state = {
@@ -143,37 +135,18 @@ class InitialSettingsPage extends React.Component {
      */
     getDefaultMenuItems() {
         const policiesAvatars = _.chain(this.props.policies)
-            .filter((policy) =>
-                PolicyUtils.shouldShowPolicy(
-                    policy,
-                    this.props.network.isOffline,
-                ),
-            )
+            .filter((policy) => PolicyUtils.shouldShowPolicy(policy, this.props.network.isOffline))
             .sortBy((policy) => policy.name)
             .map((policy) => ({
-                source:
-                    policy.avatar ||
-                    ReportUtils.getDefaultWorkspaceAvatar(policy.name),
+                source: policy.avatar || ReportUtils.getDefaultWorkspaceAvatar(policy.name),
                 name: policy.name,
                 type: CONST.ICON_TYPE_WORKSPACE,
             }))
             .value();
 
         const policyBrickRoadIndicator = _.chain(this.props.policies)
-            .filter(
-                (policy) =>
-                    policy &&
-                    policy.type === CONST.POLICY.TYPE.FREE &&
-                    policy.role === CONST.POLICY.ROLE.ADMIN,
-            )
-            .find(
-                (policy) =>
-                    PolicyUtils.hasPolicyError(policy) ||
-                    PolicyUtils.getPolicyBrickRoadIndicatorStatus(
-                        policy,
-                        this.props.policyMembers,
-                    ),
-            )
+            .filter((policy) => policy && policy.type === CONST.POLICY.TYPE.FREE && policy.role === CONST.POLICY.ROLE.ADMIN)
+            .find((policy) => PolicyUtils.hasPolicyError(policy) || PolicyUtils.getPolicyBrickRoadIndicatorStatus(policy, this.props.policyMembers))
             .value()
             ? 'error'
             : null;
@@ -217,10 +190,7 @@ class InitialSettingsPage extends React.Component {
                     Navigation.navigate(ROUTES.SETTINGS_PAYMENTS);
                 },
                 brickRoadIndicator:
-                    PaymentMethods.hasPaymentMethodError(
-                        this.props.bankAccountList,
-                        this.props.cardList,
-                    ) ||
+                    PaymentMethods.hasPaymentMethodError(this.props.bankAccountList, this.props.cardList) ||
                     !_.isEmpty(this.props.userWallet.errors) ||
                     !_.isEmpty(this.props.walletTerms.errors)
                         ? 'error'
@@ -253,9 +223,7 @@ class InitialSettingsPage extends React.Component {
     }
 
     getMenuItem(item, index) {
-        const keyTitle = item.translationKey
-            ? this.props.translate(item.translationKey)
-            : item.title;
+        const keyTitle = item.translationKey ? this.props.translate(item.translationKey) : item.title;
         const isPaymentItem = item.translationKey === 'common.payments';
 
         return (
@@ -308,122 +276,48 @@ class InitialSettingsPage extends React.Component {
             <ScreenWrapper includeSafeAreaPaddingBottom={false}>
                 {({safeAreaPaddingBottomStyle}) => (
                     <>
-                        <HeaderWithCloseButton
-                            title={this.props.translate('common.settings')}
-                            onCloseButtonPress={() =>
-                                Navigation.dismissModal(true)
-                            }
-                        />
-                        <ScrollView
-                            contentContainerStyle={safeAreaPaddingBottomStyle}
-                            style={[styles.settingsPageBackground]}
-                        >
+                        <HeaderWithCloseButton title={this.props.translate('common.settings')} onCloseButtonPress={() => Navigation.dismissModal(true)} />
+                        <ScrollView contentContainerStyle={safeAreaPaddingBottomStyle} style={[styles.settingsPageBackground]}>
                             <View style={styles.w100}>
                                 <View style={styles.avatarSectionWrapper}>
-                                    <Pressable
-                                        style={[styles.mb3]}
-                                        onPress={this.openProfileSettings}
-                                    >
-                                        <Tooltip
-                                            text={this.props.translate(
-                                                'common.profile',
-                                            )}
-                                        >
-                                            <OfflineWithFeedback
-                                                pendingAction={lodashGet(
-                                                    this.props
-                                                        .currentUserPersonalDetails,
-                                                    'pendingFields.avatar',
-                                                    null,
-                                                )}
-                                            >
+                                    <Pressable style={[styles.mb3]} onPress={this.openProfileSettings}>
+                                        <Tooltip text={this.props.translate('common.profile')}>
+                                            <OfflineWithFeedback pendingAction={lodashGet(this.props.currentUserPersonalDetails, 'pendingFields.avatar', null)}>
                                                 <Avatar
-                                                    imageStyles={[
-                                                        styles.avatarLarge,
-                                                    ]}
-                                                    source={ReportUtils.getAvatar(
-                                                        this.props
-                                                            .currentUserPersonalDetails
-                                                            .avatar,
-                                                        this.props.session
-                                                            .email,
-                                                    )}
-                                                    size={
-                                                        CONST.AVATAR_SIZE.LARGE
-                                                    }
+                                                    imageStyles={[styles.avatarLarge]}
+                                                    source={ReportUtils.getAvatar(this.props.currentUserPersonalDetails.avatar, this.props.session.email)}
+                                                    size={CONST.AVATAR_SIZE.LARGE}
                                                 />
                                             </OfflineWithFeedback>
                                         </Tooltip>
                                     </Pressable>
 
-                                    <Pressable
-                                        style={[styles.mt1, styles.mw100]}
-                                        onPress={this.openProfileSettings}
-                                    >
-                                        <Tooltip
-                                            text={this.props.translate(
-                                                'common.profile',
-                                            )}
-                                        >
-                                            <Text
-                                                style={[styles.textHeadline]}
-                                                numberOfLines={1}
-                                            >
-                                                {this.props
-                                                    .currentUserPersonalDetails
-                                                    .displayName
-                                                    ? this.props
-                                                          .currentUserPersonalDetails
-                                                          .displayName
-                                                    : Str.removeSMSDomain(
-                                                          this.props.session
-                                                              .email,
-                                                      )}
+                                    <Pressable style={[styles.mt1, styles.mw100]} onPress={this.openProfileSettings}>
+                                        <Tooltip text={this.props.translate('common.profile')}>
+                                            <Text style={[styles.textHeadline]} numberOfLines={1}>
+                                                {this.props.currentUserPersonalDetails.displayName
+                                                    ? this.props.currentUserPersonalDetails.displayName
+                                                    : Str.removeSMSDomain(this.props.session.email)}
                                             </Text>
                                         </Tooltip>
                                     </Pressable>
-                                    {this.props.currentUserPersonalDetails
-                                        .displayName && (
-                                        <Text
-                                            style={[
-                                                styles.textLabelSupporting,
-                                                styles.mt1,
-                                            ]}
-                                            numberOfLines={1}
-                                        >
-                                            {Str.removeSMSDomain(
-                                                this.props.session.email,
-                                            )}
+                                    {this.props.currentUserPersonalDetails.displayName && (
+                                        <Text style={[styles.textLabelSupporting, styles.mt1]} numberOfLines={1}>
+                                            {Str.removeSMSDomain(this.props.session.email)}
                                         </Text>
                                     )}
                                 </View>
-                                {_.map(
-                                    this.getDefaultMenuItems(),
-                                    (item, index) =>
-                                        this.getMenuItem(item, index),
-                                )}
+                                {_.map(this.getDefaultMenuItems(), (item, index) => this.getMenuItem(item, index))}
 
                                 <ConfirmModal
                                     danger
-                                    title={this.props.translate(
-                                        'common.areYouSure',
-                                    )}
-                                    prompt={this.props.translate(
-                                        'initialSettingsPage.signOutConfirmationText',
-                                    )}
-                                    confirmText={this.props.translate(
-                                        'initialSettingsPage.signOut',
-                                    )}
-                                    cancelText={this.props.translate(
-                                        'common.cancel',
-                                    )}
-                                    isVisible={
-                                        this.state.shouldShowSignoutConfirmModal
-                                    }
+                                    title={this.props.translate('common.areYouSure')}
+                                    prompt={this.props.translate('initialSettingsPage.signOutConfirmationText')}
+                                    confirmText={this.props.translate('initialSettingsPage.signOut')}
+                                    cancelText={this.props.translate('common.cancel')}
+                                    isVisible={this.state.shouldShowSignoutConfirmModal}
                                     onConfirm={() => this.signOut(true)}
-                                    onCancel={() =>
-                                        this.toggleSignoutConfirmModal(false)
-                                    }
+                                    onCancel={() => this.toggleSignoutConfirmModal(false)}
                                 />
                             </View>
                         </ScrollView>

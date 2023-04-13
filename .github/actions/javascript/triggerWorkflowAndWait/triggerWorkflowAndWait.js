@@ -22,8 +22,7 @@ const WORKFLOW_COMPLETION_TIMEOUT = 7200000;
  * URL prefixed to a specific workflow run
  * @type {string}
  */
-const WORKFLOW_RUN_URL_PREFIX =
-    'https://github.com/Expensify/App/actions/runs/';
+const WORKFLOW_RUN_URL_PREFIX = 'https://github.com/Expensify/App/actions/runs/';
 
 const run = function () {
     const workflow = core.getInput('WORKFLOW', {required: true});
@@ -35,9 +34,7 @@ const run = function () {
     });
 
     if (_.keys(inputs).length > 10) {
-        const err = new Error(
-            'Inputs to the workflow_dispatch event cannot have more than 10 keys, or GitHub will 🤮',
-        );
+        const err = new Error('Inputs to the workflow_dispatch event cannot have more than 10 keys, or GitHub will 🤮');
         console.error(err.message);
         core.setFailed(err);
         process.exit(1);
@@ -56,9 +53,7 @@ const run = function () {
     return (
         GithubUtils.getLatestWorkflowRunID(workflow)
             .then((lastWorkflowRunID) => {
-                console.log(
-                    `Latest ${workflow} workflow run has ID: ${lastWorkflowRunID}`,
-                );
+                console.log(`Latest ${workflow} workflow run has ID: ${lastWorkflowRunID}`);
                 previousWorkflowRunID = lastWorkflowRunID;
 
                 console.log(`Dispatching workflow: ${workflow}`);
@@ -81,52 +76,33 @@ const run = function () {
             .then(() => {
                 let waitTimer = -GithubUtils.POLL_RATE;
                 return promiseWhile(
-                    () =>
-                        !hasNewWorkflowStarted &&
-                        waitTimer < NEW_WORKFLOW_TIMEOUT,
+                    () => !hasNewWorkflowStarted && waitTimer < NEW_WORKFLOW_TIMEOUT,
                     _.throttle(() => {
-                        console.log(
-                            `\n🤚 Waiting for a new ${workflow} workflow run to begin...`,
-                        );
+                        console.log(`\n🤚 Waiting for a new ${workflow} workflow run to begin...`);
                         return GithubUtils.getLatestWorkflowRunID(workflow)
                             .then((lastWorkflowRunID) => {
                                 newWorkflowRunID = lastWorkflowRunID;
-                                newWorkflowRunURL =
-                                    WORKFLOW_RUN_URL_PREFIX + newWorkflowRunID;
-                                hasNewWorkflowStarted =
-                                    newWorkflowRunID !== previousWorkflowRunID;
+                                newWorkflowRunURL = WORKFLOW_RUN_URL_PREFIX + newWorkflowRunID;
+                                hasNewWorkflowStarted = newWorkflowRunID !== previousWorkflowRunID;
 
                                 if (!hasNewWorkflowStarted) {
                                     waitTimer += GithubUtils.POLL_RATE;
                                     if (waitTimer < NEW_WORKFLOW_TIMEOUT) {
                                         // eslint-disable-next-line max-len
-                                        console.log(
-                                            `After ${
-                                                waitTimer / 1000
-                                            } seconds, there's still no new ${workflow} workflow run 🙁`,
-                                        );
+                                        console.log(`After ${waitTimer / 1000} seconds, there's still no new ${workflow} workflow run 🙁`);
                                     } else {
                                         // eslint-disable-next-line max-len
-                                        const err = new Error(
-                                            `After ${
-                                                NEW_WORKFLOW_TIMEOUT / 1000
-                                            } seconds, the ${workflow} workflow did not start.`,
-                                        );
+                                        const err = new Error(`After ${NEW_WORKFLOW_TIMEOUT / 1000} seconds, the ${workflow} workflow did not start.`);
                                         console.error(err);
                                         core.setFailed(err);
                                         process.exit(1);
                                     }
                                 } else {
-                                    console.log(
-                                        `\n🚀 New ${workflow} run ${newWorkflowRunURL} has started`,
-                                    );
+                                    console.log(`\n🚀 New ${workflow} run ${newWorkflowRunURL} has started`);
                                 }
                             })
                             .catch((err) => {
-                                console.warn(
-                                    'Failed to fetch latest workflow run.',
-                                    err,
-                                );
+                                console.warn('Failed to fetch latest workflow run.', err);
                             });
                     }, GithubUtils.POLL_RATE),
                 );
@@ -136,13 +112,9 @@ const run = function () {
             .then(() => {
                 let waitTimer = -GithubUtils.POLL_RATE;
                 return promiseWhile(
-                    () =>
-                        !workflowCompleted &&
-                        waitTimer < WORKFLOW_COMPLETION_TIMEOUT,
+                    () => !workflowCompleted && waitTimer < WORKFLOW_COMPLETION_TIMEOUT,
                     _.throttle(() => {
-                        console.log(
-                            `\n⏳ Waiting for workflow run ${newWorkflowRunURL} to finish...`,
-                        );
+                        console.log(`\n⏳ Waiting for workflow run ${newWorkflowRunURL} to finish...`);
                         return GithubUtils.octokit.actions
                             .getWorkflowRun({
                                 owner: GithubUtils.GITHUB_OWNER,
@@ -150,20 +122,11 @@ const run = function () {
                                 run_id: newWorkflowRunID,
                             })
                             .then(({data}) => {
-                                workflowCompleted =
-                                    data.status === 'completed' &&
-                                    data.conclusion !== null;
+                                workflowCompleted = data.status === 'completed' && data.conclusion !== null;
                                 waitTimer += GithubUtils.POLL_RATE;
                                 if (waitTimer > WORKFLOW_COMPLETION_TIMEOUT) {
                                     // eslint-disable-next-line max-len
-                                    const err = new Error(
-                                        `After ${
-                                            WORKFLOW_COMPLETION_TIMEOUT /
-                                            1000 /
-                                            60 /
-                                            60
-                                        } hours, workflow ${newWorkflowRunURL} did not complete.`,
-                                    );
+                                    const err = new Error(`After ${WORKFLOW_COMPLETION_TIMEOUT / 1000 / 60 / 60} hours, workflow ${newWorkflowRunURL} did not complete.`);
                                     console.error(err);
                                     core.setFailed(err);
                                     process.exit(1);
@@ -171,14 +134,10 @@ const run = function () {
                                 if (workflowCompleted) {
                                     if (data.conclusion === 'success') {
                                         // eslint-disable-next-line max-len
-                                        console.log(
-                                            `\n🎉 ${workflow} run ${newWorkflowRunURL} completed successfully! 🎉`,
-                                        );
+                                        console.log(`\n🎉 ${workflow} run ${newWorkflowRunURL} completed successfully! 🎉`);
                                     } else {
                                         // eslint-disable-next-line max-len
-                                        const err = new Error(
-                                            `🙅‍ ${workflow} run ${newWorkflowRunURL} finished with conclusion ${data.conclusion}`,
-                                        );
+                                        const err = new Error(`🙅‍ ${workflow} run ${newWorkflowRunURL} finished with conclusion ${data.conclusion}`);
                                         console.error(err.message);
                                         core.setFailed(err);
                                         process.exit(1);

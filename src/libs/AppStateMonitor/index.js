@@ -15,20 +15,12 @@ function addBecameActiveListener(callback) {
      * @param {String} state
      */
     function appStateChangeCallback(state) {
-        if (
-            shouldReportActivity &&
-            (appState === CONST.APP_STATE.INACTIVE ||
-                appState === CONST.APP_STATE.BACKGROUND) &&
-            state === CONST.APP_STATE.ACTIVE
-        ) {
+        if (shouldReportActivity && (appState === CONST.APP_STATE.INACTIVE || appState === CONST.APP_STATE.BACKGROUND) && state === CONST.APP_STATE.ACTIVE) {
             callback();
         }
         appState = state;
     }
-    const appStateChangeSubscription = AppState.addEventListener(
-        'change',
-        appStateChangeCallback,
-    );
+    const appStateChangeSubscription = AppState.addEventListener('change', appStateChangeCallback);
     return () => {
         if (!appStateChangeSubscription) {
             return;

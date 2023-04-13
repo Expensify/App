@@ -7,9 +7,7 @@ import ROUTES from '../../../ROUTES';
 import styles from '../../../styles/styles';
 import * as Expensicons from '../../../components/Icon/Expensicons';
 import ScreenWrapper from '../../../components/ScreenWrapper';
-import withLocalize, {
-    withLocalizePropTypes,
-} from '../../../components/withLocalize';
+import withLocalize, {withLocalizePropTypes} from '../../../components/withLocalize';
 import MenuItem from '../../../components/MenuItem';
 
 const propTypes = {
@@ -42,13 +40,7 @@ const SecuritySettingsPage = (props) => {
                 onBackButtonPress={() => Navigation.navigate(ROUTES.SETTINGS)}
                 onCloseButtonPress={() => Navigation.dismissModal(true)}
             />
-            <ScrollView
-                contentContainerStyle={[
-                    styles.flexGrow1,
-                    styles.flexColumn,
-                    styles.justifyContentBetween,
-                ]}
-            >
+            <ScrollView contentContainerStyle={[styles.flexGrow1, styles.flexColumn, styles.justifyContentBetween]}>
                 <View style={[styles.flex1]}>
                     {_.map(menuItems, (item) => (
                         <MenuItem

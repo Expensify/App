@@ -20,9 +20,7 @@ const reconnectionCallbacks = {};
  */
 const triggerReconnectionCallbacks = _.throttle(
     (reason) => {
-        Log.info(
-            `[NetworkConnection] Firing reconnection callbacks because ${reason}`,
-        );
+        Log.info(`[NetworkConnection] Firing reconnection callbacks because ${reason}`);
         _.each(reconnectionCallbacks, (callback) => callback());
     },
     5000,
@@ -64,9 +62,7 @@ Onyx.connect({
             setOfflineStatus(true);
         } else {
             // If we are no longer forcing offline fetch the NetInfo to set isOffline appropriately
-            NetInfo.fetch().then((state) =>
-                setOfflineStatus(state.isInternetReachable === false),
-            );
+            NetInfo.fetch().then((state) => setOfflineStatus(state.isInternetReachable === false));
         }
     },
 });
@@ -86,8 +82,7 @@ function subscribeToNetInfo() {
             // When App is served locally (or from Electron) this address is always reachable - even offline
             // Using the API url ensures reachability is tested over internet
             reachabilityUrl: `${CONFIG.EXPENSIFY.URL_API_ROOT}api`,
-            reachabilityTest: (response) =>
-                Promise.resolve(response.status === 200),
+            reachabilityTest: (response) => Promise.resolve(response.status === 200),
 
             // If a check is taking longer than this time we're considered offline
             reachabilityRequestTimeout: CONST.NETWORK.MAX_PENDING_TIME_MS,
@@ -99,9 +94,7 @@ function subscribeToNetInfo() {
     NetInfo.addEventListener((state) => {
         Log.info('[NetworkConnection] NetInfo state change', false, state);
         if (shouldForceOffline) {
-            Log.info(
-                '[NetworkConnection] Not setting offline status because shouldForceOffline = true',
-            );
+            Log.info('[NetworkConnection] Not setting offline status because shouldForceOffline = true');
             return;
         }
         setOfflineStatus(state.isInternetReachable === false);
@@ -133,10 +126,7 @@ function onReconnect(callback) {
  * Delete all queued reconnection callbacks
  */
 function clearReconnectionCallbacks() {
-    _.each(
-        _.keys(reconnectionCallbacks),
-        (key) => delete reconnectionCallbacks[key],
-    );
+    _.each(_.keys(reconnectionCallbacks), (key) => delete reconnectionCallbacks[key]);
 }
 
 /**

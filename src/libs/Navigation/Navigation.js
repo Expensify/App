@@ -1,11 +1,7 @@
 import _ from 'underscore';
 import lodashGet from 'lodash/get';
 import {Keyboard} from 'react-native';
-import {
-    DrawerActions,
-    getPathFromState,
-    StackActions,
-} from '@react-navigation/native';
+import {DrawerActions, getPathFromState, StackActions} from '@react-navigation/native';
 import Onyx from 'react-native-onyx';
 import Log from '../Log';
 import DomUtils from '../DomUtils';
@@ -64,17 +60,11 @@ function canNavigate(methodName, params = {}) {
     }
 
     if (isNavigating) {
-        Log.hmmm(
-            `[Navigation] ${methodName} failed because navigation is progress`,
-            params,
-        );
+        Log.hmmm(`[Navigation] ${methodName} failed because navigation is progress`, params);
         return false;
     }
 
-    Log.hmmm(
-        `[Navigation] ${methodName} failed because navigation ref was not yet ready`,
-        params,
-    );
+    Log.hmmm(`[Navigation] ${methodName} failed because navigation ref was not yet ready`, params);
     return false;
 }
 
@@ -152,8 +142,7 @@ function goBack(shouldOpenDrawer = true) {
  * @returns {Boolean}
  */
 function isDrawerRoute(route) {
-    const {reportID, isSubReportPageRoute} =
-        ROUTES.parseReportRouteParams(route);
+    const {reportID, isSubReportPageRoute} = ROUTES.parseReportRouteParams(route);
     return reportID && !isSubReportPageRoute;
 }
 
@@ -165,9 +154,7 @@ function navigate(route = ROUTES.HOME) {
     if (!canNavigate('navigate', {route})) {
         // Store intended route if the navigator is not yet available,
         // we will try again after the NavigationContainer is ready
-        Log.hmmm(
-            `[Navigation] Container not yet ready, storing route as pending: ${route}`,
-        );
+        Log.hmmm(`[Navigation] Container not yet ready, storing route as pending: ${route}`);
         pendingRoute = route;
         return;
     }
@@ -191,9 +178,7 @@ function navigate(route = ROUTES.HOME) {
     }
 
     if (isDrawerRoute(route)) {
-        navigationRef.current.dispatch(
-            DeprecatedCustomActions.pushDrawerRoute(route),
-        );
+        navigationRef.current.dispatch(DeprecatedCustomActions.pushDrawerRoute(route));
         return;
     }
 
@@ -210,9 +195,7 @@ function dismissModal(shouldOpenDrawer = false) {
         return;
     }
 
-    const normalizedShouldOpenDrawer = _.isBoolean(shouldOpenDrawer)
-        ? shouldOpenDrawer
-        : false;
+    const normalizedShouldOpenDrawer = _.isBoolean(shouldOpenDrawer) ? shouldOpenDrawer : false;
 
     DeprecatedCustomActions.navigateBackToRootDrawer();
     if (normalizedShouldOpenDrawer) {
@@ -225,12 +208,7 @@ function dismissModal(shouldOpenDrawer = false) {
  * @returns {String}
  */
 function getActiveRoute() {
-    return navigationRef.current && navigationRef.current.getCurrentRoute().name
-        ? getPathFromState(
-              navigationRef.current.getState(),
-              linkingConfig.config,
-          )
-        : '';
+    return navigationRef.current && navigationRef.current.getCurrentRoute().name ? getPathFromState(navigationRef.current.getState(), linkingConfig.config) : '';
 }
 
 /**
@@ -241,11 +219,7 @@ function getReportIDFromRoute() {
         return '';
     }
 
-    const drawerState = lodashGet(navigationRef.current.getState(), [
-        'routes',
-        0,
-        'state',
-    ]);
+    const drawerState = lodashGet(navigationRef.current.getState(), ['routes', 0, 'state']);
     const reportRoute = lodashGet(drawerState, ['routes', 0]);
     return lodashGet(reportRoute, ['params', 'reportID'], '');
 }
@@ -272,9 +246,7 @@ function goToPendingRoute() {
     if (pendingRoute === null) {
         return;
     }
-    Log.hmmm(
-        `[Navigation] Container now ready, going to pending route: ${pendingRoute}`,
-    );
+    Log.hmmm(`[Navigation] Container now ready, going to pending route: ${pendingRoute}`);
     navigate(pendingRoute);
     pendingRoute = null;
 }

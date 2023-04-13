@@ -51,16 +51,13 @@ describe('Sidebar', () => {
                     // When Onyx is updated to contain that report
                     .then(() =>
                         Onyx.multiSet({
-                            [`${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`]:
-                                report,
+                            [`${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`]: report,
                         }),
                     )
 
                     // Then no reports are rendered in the LHN
                     .then(() => {
-                        const optionRows = screen.queryAllByAccessibilityHint(
-                            'Navigates to a chat',
-                        );
+                        const optionRows = screen.queryAllByAccessibilityHint('Navigates to a chat');
                         expect(optionRows).toHaveLength(0);
                     })
             );
@@ -82,18 +79,14 @@ describe('Sidebar', () => {
                     .then(() =>
                         Onyx.multiSet({
                             [ONYXKEYS.BETAS]: [],
-                            [ONYXKEYS.PERSONAL_DETAILS]:
-                                LHNTestUtils.fakePersonalDetails,
-                            [`${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`]:
-                                report,
+                            [ONYXKEYS.PERSONAL_DETAILS]: LHNTestUtils.fakePersonalDetails,
+                            [`${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`]: report,
                         }),
                     )
 
                     // Then no reports are rendered in the LHN
                     .then(() => {
-                        const optionRows = screen.queryAllByAccessibilityHint(
-                            'Navigates to a chat',
-                        );
+                        const optionRows = screen.queryAllByAccessibilityHint('Navigates to a chat');
                         expect(optionRows).toHaveLength(0);
                     })
 
@@ -106,9 +99,7 @@ describe('Sidebar', () => {
 
                     // Then there is one report rendered in the LHN
                     .then(() => {
-                        const optionRows = screen.queryAllByAccessibilityHint(
-                            'Navigates to a chat',
-                        );
+                        const optionRows = screen.queryAllByAccessibilityHint('Navigates to a chat');
                         expect(optionRows).toHaveLength(1);
                     })
             );
@@ -130,18 +121,14 @@ describe('Sidebar', () => {
                     .then(() =>
                         Onyx.multiSet({
                             [ONYXKEYS.BETAS]: [],
-                            [ONYXKEYS.PERSONAL_DETAILS]:
-                                LHNTestUtils.fakePersonalDetails,
-                            [`${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`]:
-                                report,
+                            [ONYXKEYS.PERSONAL_DETAILS]: LHNTestUtils.fakePersonalDetails,
+                            [`${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`]: report,
                         }),
                     )
 
                     // Then no reports are rendered in the LHN
                     .then(() => {
-                        const optionRows = screen.queryAllByAccessibilityHint(
-                            'Navigates to a chat',
-                        );
+                        const optionRows = screen.queryAllByAccessibilityHint('Navigates to a chat');
                         expect(optionRows).toHaveLength(0);
                     })
 
@@ -154,9 +141,7 @@ describe('Sidebar', () => {
 
                     // Then there is one report rendered in the LHN
                     .then(() => {
-                        const optionRows = screen.queryAllByAccessibilityHint(
-                            'Navigates to a chat',
-                        );
+                        const optionRows = screen.queryAllByAccessibilityHint('Navigates to a chat');
                         expect(optionRows).toHaveLength(1);
                     })
             );
@@ -172,17 +157,11 @@ describe('Sidebar', () => {
                 chatType: CONST.REPORT.CHAT_TYPE.POLICY_ADMINS,
             };
             const report2 = {
-                ...LHNTestUtils.getFakeReport([
-                    'email3@test.com',
-                    'email4@test.com',
-                ]),
+                ...LHNTestUtils.getFakeReport(['email3@test.com', 'email4@test.com']),
                 chatType: CONST.REPORT.CHAT_TYPE.POLICY_ANNOUNCE,
             };
             const report3 = {
-                ...LHNTestUtils.getFakeReport([
-                    'email5@test.com',
-                    'email6@test.com',
-                ]),
+                ...LHNTestUtils.getFakeReport(['email5@test.com', 'email6@test.com']),
                 chatType: CONST.REPORT.CHAT_TYPE.DOMAIN_ALL,
             };
 
@@ -192,22 +171,16 @@ describe('Sidebar', () => {
                     .then(() =>
                         Onyx.multiSet({
                             [ONYXKEYS.BETAS]: [],
-                            [ONYXKEYS.PERSONAL_DETAILS]:
-                                LHNTestUtils.fakePersonalDetails,
-                            [`${ONYXKEYS.COLLECTION.REPORT}${report1.reportID}`]:
-                                report1,
-                            [`${ONYXKEYS.COLLECTION.REPORT}${report2.reportID}`]:
-                                report2,
-                            [`${ONYXKEYS.COLLECTION.REPORT}${report3.reportID}`]:
-                                report3,
+                            [ONYXKEYS.PERSONAL_DETAILS]: LHNTestUtils.fakePersonalDetails,
+                            [`${ONYXKEYS.COLLECTION.REPORT}${report1.reportID}`]: report1,
+                            [`${ONYXKEYS.COLLECTION.REPORT}${report2.reportID}`]: report2,
+                            [`${ONYXKEYS.COLLECTION.REPORT}${report3.reportID}`]: report3,
                         }),
                     )
 
                     // Then no reports are rendered in the LHN
                     .then(() => {
-                        const optionRows = screen.queryAllByAccessibilityHint(
-                            'Navigates to a chat',
-                        );
+                        const optionRows = screen.queryAllByAccessibilityHint('Navigates to a chat');
                         expect(optionRows).toHaveLength(0);
                     })
 
@@ -220,9 +193,7 @@ describe('Sidebar', () => {
 
                     // Then all three reports are showing in the LHN
                     .then(() => {
-                        const optionRows = screen.queryAllByAccessibilityHint(
-                            'Navigates to a chat',
-                        );
+                        const optionRows = screen.queryAllByAccessibilityHint('Navigates to a chat');
                         expect(optionRows).toHaveLength(3);
                     })
             );
@@ -249,36 +220,24 @@ describe('Sidebar', () => {
                     .then(() =>
                         Onyx.multiSet({
                             [ONYXKEYS.BETAS]: [],
-                            [ONYXKEYS.PERSONAL_DETAILS]:
-                                LHNTestUtils.fakePersonalDetails,
-                            [`${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`]:
-                                report,
-                            [`${ONYXKEYS.COLLECTION.POLICY}${policy.policyID}`]:
-                                policy,
+                            [ONYXKEYS.PERSONAL_DETAILS]: LHNTestUtils.fakePersonalDetails,
+                            [`${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`]: report,
+                            [`${ONYXKEYS.COLLECTION.POLICY}${policy.policyID}`]: policy,
                         }),
                     )
 
                     // Then the report is rendered in the LHN
                     .then(() => {
-                        const optionRows = screen.queryAllByAccessibilityHint(
-                            'Navigates to a chat',
-                        );
+                        const optionRows = screen.queryAllByAccessibilityHint('Navigates to a chat');
                         expect(optionRows).toHaveLength(1);
                     })
 
                     // When the policy is a paid policy
-                    .then(() =>
-                        Onyx.merge(
-                            `${ONYXKEYS.COLLECTION.POLICY}${policy.policyID}`,
-                            {type: CONST.POLICY.TYPE.CORPORATE},
-                        ),
-                    )
+                    .then(() => Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policy.policyID}`, {type: CONST.POLICY.TYPE.CORPORATE}))
 
                     // Then the report is not rendered in the LHN
                     .then(() => {
-                        const optionRows = screen.queryAllByAccessibilityHint(
-                            'Navigates to a chat',
-                        );
+                        const optionRows = screen.queryAllByAccessibilityHint('Navigates to a chat');
                         expect(optionRows).toHaveLength(0);
                     })
             );
@@ -286,10 +245,7 @@ describe('Sidebar', () => {
 
         describe('all combinations of isArchived, isUserCreatedPolicyRoom, hasAddWorkspaceError, isUnread, isPinned, hasDraft', () => {
             // Given a report that is the active report and doesn't change
-            const report1 = LHNTestUtils.getFakeReport([
-                'email3@test.com',
-                'email4@test.com',
-            ]);
+            const report1 = LHNTestUtils.getFakeReport(['email3@test.com', 'email4@test.com']);
 
             // Given a free policy that doesn't change
             const policy = {
@@ -299,11 +255,7 @@ describe('Sidebar', () => {
             };
 
             // Given the user is in all betas
-            const betas = [
-                CONST.BETAS.DEFAULT_ROOMS,
-                CONST.BETAS.POLICY_ROOMS,
-                CONST.BETAS.POLICY_EXPENSE_CHAT,
-            ];
+            const betas = [CONST.BETAS.DEFAULT_ROOMS, CONST.BETAS.POLICY_ROOMS, CONST.BETAS.POLICY_EXPENSE_CHAT];
 
             // Given there are 6 boolean variables tested in the filtering logic:
             // 1. isArchived
@@ -344,65 +296,33 @@ describe('Sidebar', () => {
                         ...LHNTestUtils.getAdvancedFakeReport(...boolArr),
                         policyID: policy.policyID,
                     };
-                    LHNTestUtils.getDefaultRenderedSidebarLinks(
-                        report1.reportID,
-                    );
+                    LHNTestUtils.getDefaultRenderedSidebarLinks(report1.reportID);
 
                     return (
                         waitForPromisesToResolve()
                             // When Onyx is updated to contain that data and the sidebar re-renders
                             .then(() =>
                                 Onyx.multiSet({
-                                    [ONYXKEYS.NVP_PRIORITY_MODE]:
-                                        CONST.PRIORITY_MODE.GSD,
+                                    [ONYXKEYS.NVP_PRIORITY_MODE]: CONST.PRIORITY_MODE.GSD,
                                     [ONYXKEYS.BETAS]: betas,
-                                    [ONYXKEYS.PERSONAL_DETAILS]:
-                                        LHNTestUtils.fakePersonalDetails,
-                                    [`${ONYXKEYS.COLLECTION.REPORT}${report1.reportID}`]:
-                                        report1,
-                                    [`${ONYXKEYS.COLLECTION.REPORT}${report2.reportID}`]:
-                                        report2,
-                                    [`${ONYXKEYS.COLLECTION.POLICY}${policy.policyID}`]:
-                                        policy,
+                                    [ONYXKEYS.PERSONAL_DETAILS]: LHNTestUtils.fakePersonalDetails,
+                                    [`${ONYXKEYS.COLLECTION.REPORT}${report1.reportID}`]: report1,
+                                    [`${ONYXKEYS.COLLECTION.REPORT}${report2.reportID}`]: report2,
+                                    [`${ONYXKEYS.COLLECTION.POLICY}${policy.policyID}`]: policy,
                                 }),
                             )
 
                             // Then depending on the outcome, either one or two reports are visible
                             .then(() => {
-                                if (
-                                    booleansWhichRemovesActiveReport.indexOf(
-                                        JSON.stringify(boolArr),
-                                    ) > -1
-                                ) {
+                                if (booleansWhichRemovesActiveReport.indexOf(JSON.stringify(boolArr)) > -1) {
                                     // Only one report visible
-                                    expect(
-                                        screen.queryAllByAccessibilityHint(
-                                            'Navigates to a chat',
-                                        ),
-                                    ).toHaveLength(1);
-                                    expect(
-                                        screen.queryAllByLabelText(
-                                            'Chat user display names',
-                                        ),
-                                    ).toHaveLength(1);
-                                    const displayNames =
-                                        screen.queryAllByLabelText(
-                                            'Chat user display names',
-                                        );
-                                    expect(
-                                        lodashGet(displayNames, [
-                                            0,
-                                            'props',
-                                            'children',
-                                        ]),
-                                    ).toBe('Three, Four');
+                                    expect(screen.queryAllByAccessibilityHint('Navigates to a chat')).toHaveLength(1);
+                                    expect(screen.queryAllByLabelText('Chat user display names')).toHaveLength(1);
+                                    const displayNames = screen.queryAllByLabelText('Chat user display names');
+                                    expect(lodashGet(displayNames, [0, 'props', 'children'])).toBe('Three, Four');
                                 } else {
                                     // Both reports visible
-                                    expect(
-                                        screen.queryAllByAccessibilityHint(
-                                            'Navigates to a chat',
-                                        ),
-                                    ).toHaveLength(2);
+                                    expect(screen.queryAllByAccessibilityHint('Navigates to a chat')).toHaveLength(2);
                                 }
                             })
                     );
@@ -415,20 +335,9 @@ describe('Sidebar', () => {
         it('hides unread chats', () => {
             // Given the sidebar is rendered in #focus mode (hides read chats)
             // with report 1 and 2 having unread actions
-            const report1 = LHNTestUtils.getFakeReport(
-                ['email1@test.com', 'email2@test.com'],
-                0,
-                true,
-            );
-            const report2 = LHNTestUtils.getFakeReport(
-                ['email3@test.com', 'email4@test.com'],
-                0,
-                true,
-            );
-            const report3 = LHNTestUtils.getFakeReport([
-                'email5@test.com',
-                'email6@test.com',
-            ]);
+            const report1 = LHNTestUtils.getFakeReport(['email1@test.com', 'email2@test.com'], 0, true);
+            const report2 = LHNTestUtils.getFakeReport(['email3@test.com', 'email4@test.com'], 0, true);
+            const report3 = LHNTestUtils.getFakeReport(['email5@test.com', 'email6@test.com']);
             LHNTestUtils.getDefaultRenderedSidebarLinks(report1.reportID);
 
             return (
@@ -436,86 +345,51 @@ describe('Sidebar', () => {
                     // When Onyx is updated to contain that data and the sidebar re-renders
                     .then(() =>
                         Onyx.multiSet({
-                            [ONYXKEYS.NVP_PRIORITY_MODE]:
-                                CONST.PRIORITY_MODE.GSD,
-                            [ONYXKEYS.PERSONAL_DETAILS]:
-                                LHNTestUtils.fakePersonalDetails,
-                            [`${ONYXKEYS.COLLECTION.REPORT}${report1.reportID}`]:
-                                report1,
-                            [`${ONYXKEYS.COLLECTION.REPORT}${report2.reportID}`]:
-                                report2,
-                            [`${ONYXKEYS.COLLECTION.REPORT}${report3.reportID}`]:
-                                report3,
+                            [ONYXKEYS.NVP_PRIORITY_MODE]: CONST.PRIORITY_MODE.GSD,
+                            [ONYXKEYS.PERSONAL_DETAILS]: LHNTestUtils.fakePersonalDetails,
+                            [`${ONYXKEYS.COLLECTION.REPORT}${report1.reportID}`]: report1,
+                            [`${ONYXKEYS.COLLECTION.REPORT}${report2.reportID}`]: report2,
+                            [`${ONYXKEYS.COLLECTION.REPORT}${report3.reportID}`]: report3,
                         }),
                     )
 
                     // Then the reports 1 and 2 are shown and 3 is not
                     .then(() => {
-                        const displayNames = screen.queryAllByLabelText(
-                            'Chat user display names',
-                        );
+                        const displayNames = screen.queryAllByLabelText('Chat user display names');
                         expect(displayNames).toHaveLength(2);
-                        expect(
-                            lodashGet(displayNames, [0, 'props', 'children']),
-                        ).toBe('One, Two');
-                        expect(
-                            lodashGet(displayNames, [1, 'props', 'children']),
-                        ).toBe('Three, Four');
+                        expect(lodashGet(displayNames, [0, 'props', 'children'])).toBe('One, Two');
+                        expect(lodashGet(displayNames, [1, 'props', 'children'])).toBe('Three, Four');
                     })
 
                     // When report3 becomes unread
                     .then(() => {
                         jest.advanceTimersByTime(10);
-                        return Onyx.merge(
-                            `${ONYXKEYS.COLLECTION.REPORT}${report3.reportID}`,
-                            {lastVisibleActionCreated: DateUtils.getDBTime()},
-                        );
+                        return Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${report3.reportID}`, {lastVisibleActionCreated: DateUtils.getDBTime()});
                     })
 
                     // Then all three chats are showing
                     .then(() => {
-                        expect(
-                            screen.queryAllByAccessibilityHint(
-                                'Navigates to a chat',
-                            ),
-                        ).toHaveLength(3);
+                        expect(screen.queryAllByAccessibilityHint('Navigates to a chat')).toHaveLength(3);
                     })
 
                     // When report 1 becomes read (it's the active report)
-                    .then(() =>
-                        Onyx.merge(
-                            `${ONYXKEYS.COLLECTION.REPORT}${report1.reportID}`,
-                            {lastReadTime: DateUtils.getDBTime()},
-                        ),
-                    )
+                    .then(() => Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${report1.reportID}`, {lastReadTime: DateUtils.getDBTime()}))
 
                     // Then all three chats are still showing
                     .then(() => {
-                        expect(
-                            screen.queryAllByAccessibilityHint(
-                                'Navigates to a chat',
-                            ),
-                        ).toHaveLength(3);
+                        expect(screen.queryAllByAccessibilityHint('Navigates to a chat')).toHaveLength(3);
                     })
 
                     // When report 2 becomes the active report
                     .then(() => {
-                        LHNTestUtils.getDefaultRenderedSidebarLinks(
-                            report2.reportID,
-                        );
+                        LHNTestUtils.getDefaultRenderedSidebarLinks(report2.reportID);
                         return waitForPromisesToResolve();
                     })
 
                     // Then report 1 should now disappear
                     .then(() => {
-                        expect(
-                            screen.queryAllByAccessibilityHint(
-                                'Navigates to a chat',
-                            ),
-                        ).toHaveLength(2);
-                        expect(screen.queryAllByText(/One, Two/)).toHaveLength(
-                            0,
-                        );
+                        expect(screen.queryAllByAccessibilityHint('Navigates to a chat')).toHaveLength(2);
+                        expect(screen.queryAllByText(/One, Two/)).toHaveLength(0);
                     })
             );
         });
@@ -523,17 +397,11 @@ describe('Sidebar', () => {
         it('always shows pinned and draft chats', () => {
             // Given a draft report and a pinned report
             const draftReport = {
-                ...LHNTestUtils.getFakeReport([
-                    'email1@test.com',
-                    'email2@test.com',
-                ]),
+                ...LHNTestUtils.getFakeReport(['email1@test.com', 'email2@test.com']),
                 hasDraft: true,
             };
             const pinnedReport = {
-                ...LHNTestUtils.getFakeReport([
-                    'email3@test.com',
-                    'email4@test.com',
-                ]),
+                ...LHNTestUtils.getFakeReport(['email3@test.com', 'email4@test.com']),
                 isPinned: true,
             };
             LHNTestUtils.getDefaultRenderedSidebarLinks(draftReport.reportID);
@@ -543,29 +411,19 @@ describe('Sidebar', () => {
                     // When Onyx is updated to contain that data and the sidebar re-renders
                     .then(() =>
                         Onyx.multiSet({
-                            [ONYXKEYS.NVP_PRIORITY_MODE]:
-                                CONST.PRIORITY_MODE.GSD,
-                            [ONYXKEYS.PERSONAL_DETAILS]:
-                                LHNTestUtils.fakePersonalDetails,
-                            [`${ONYXKEYS.COLLECTION.REPORT}${draftReport.reportID}`]:
-                                draftReport,
-                            [`${ONYXKEYS.COLLECTION.REPORT}${pinnedReport.reportID}`]:
-                                pinnedReport,
+                            [ONYXKEYS.NVP_PRIORITY_MODE]: CONST.PRIORITY_MODE.GSD,
+                            [ONYXKEYS.PERSONAL_DETAILS]: LHNTestUtils.fakePersonalDetails,
+                            [`${ONYXKEYS.COLLECTION.REPORT}${draftReport.reportID}`]: draftReport,
+                            [`${ONYXKEYS.COLLECTION.REPORT}${pinnedReport.reportID}`]: pinnedReport,
                         }),
                     )
 
                     // Then both reports are visible
                     .then(() => {
-                        const displayNames = screen.queryAllByLabelText(
-                            'Chat user display names',
-                        );
+                        const displayNames = screen.queryAllByLabelText('Chat user display names');
                         expect(displayNames).toHaveLength(2);
-                        expect(
-                            lodashGet(displayNames, [0, 'props', 'children']),
-                        ).toBe('Three, Four');
-                        expect(
-                            lodashGet(displayNames, [1, 'props', 'children']),
-                        ).toBe('One, Two');
+                        expect(lodashGet(displayNames, [0, 'props', 'children'])).toBe('Three, Four');
+                        expect(lodashGet(displayNames, [1, 'props', 'children'])).toBe('One, Two');
                     })
             );
         });
@@ -573,98 +431,67 @@ describe('Sidebar', () => {
         it('archived rooms are displayed only when they have unread messages', () => {
             // Given an archived chat report, an archived default policy room, and an archived user created policy room
             const archivedReport = {
-                ...LHNTestUtils.getFakeReport([
-                    'email1@test.com',
-                    'email2@test.com',
-                ]),
+                ...LHNTestUtils.getFakeReport(['email1@test.com', 'email2@test.com']),
                 statusNum: CONST.REPORT.STATUS.CLOSED,
                 stateNum: CONST.REPORT.STATE_NUM.SUBMITTED,
             };
             const archivedPolicyRoomReport = {
-                ...LHNTestUtils.getFakeReport([
-                    'email1@test.com',
-                    'email2@test.com',
-                ]),
+                ...LHNTestUtils.getFakeReport(['email1@test.com', 'email2@test.com']),
                 chatType: CONST.REPORT.CHAT_TYPE.POLICY_ANNOUNCE,
                 statusNum: CONST.REPORT.STATUS.CLOSED,
                 stateNum: CONST.REPORT.STATE_NUM.SUBMITTED,
             };
             const archivedUserCreatedPolicyRoomReport = {
-                ...LHNTestUtils.getFakeReport([
-                    'email1@test.com',
-                    'email2@test.com',
-                ]),
+                ...LHNTestUtils.getFakeReport(['email1@test.com', 'email2@test.com']),
                 chatType: CONST.REPORT.CHAT_TYPE.POLICY_ROOM,
                 statusNum: CONST.REPORT.STATUS.CLOSED,
                 stateNum: CONST.REPORT.STATE_NUM.SUBMITTED,
             };
             LHNTestUtils.getDefaultRenderedSidebarLinks();
 
-            const betas = [
-                CONST.BETAS.DEFAULT_ROOMS,
-                CONST.BETAS.POLICY_ROOMS,
-                CONST.BETAS.POLICY_EXPENSE_CHAT,
-            ];
+            const betas = [CONST.BETAS.DEFAULT_ROOMS, CONST.BETAS.POLICY_ROOMS, CONST.BETAS.POLICY_EXPENSE_CHAT];
 
             return (
                 waitForPromisesToResolve()
                     // When Onyx is updated to contain that data and the sidebar re-renders
                     .then(() =>
                         Onyx.multiSet({
-                            [ONYXKEYS.NVP_PRIORITY_MODE]:
-                                CONST.PRIORITY_MODE.GSD,
+                            [ONYXKEYS.NVP_PRIORITY_MODE]: CONST.PRIORITY_MODE.GSD,
                             [ONYXKEYS.BETAS]: betas,
-                            [ONYXKEYS.PERSONAL_DETAILS]:
-                                LHNTestUtils.fakePersonalDetails,
-                            [`${ONYXKEYS.COLLECTION.REPORT}${archivedReport.reportID}`]:
-                                archivedReport,
-                            [`${ONYXKEYS.COLLECTION.REPORT}${archivedPolicyRoomReport.reportID}`]:
-                                archivedPolicyRoomReport,
-                            [`${ONYXKEYS.COLLECTION.REPORT}${archivedUserCreatedPolicyRoomReport.reportID}`]:
-                                archivedUserCreatedPolicyRoomReport,
+                            [ONYXKEYS.PERSONAL_DETAILS]: LHNTestUtils.fakePersonalDetails,
+                            [`${ONYXKEYS.COLLECTION.REPORT}${archivedReport.reportID}`]: archivedReport,
+                            [`${ONYXKEYS.COLLECTION.REPORT}${archivedPolicyRoomReport.reportID}`]: archivedPolicyRoomReport,
+                            [`${ONYXKEYS.COLLECTION.REPORT}${archivedUserCreatedPolicyRoomReport.reportID}`]: archivedUserCreatedPolicyRoomReport,
                         }),
                     )
 
                     // Then neither reports are visible
                     .then(() => {
-                        const displayNames = screen.queryAllByLabelText(
-                            'Chat user display names',
-                        );
+                        const displayNames = screen.queryAllByLabelText('Chat user display names');
                         expect(displayNames).toHaveLength(0);
                     })
 
                     // When they have unread messages
                     .then(() => {
                         jest.advanceTimersByTime(10);
-                        return Onyx.merge(
-                            `${ONYXKEYS.COLLECTION.REPORT}${archivedReport.reportID}`,
-                            {
-                                lastVisibleActionCreated: DateUtils.getDBTime(),
-                            },
-                        );
+                        return Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${archivedReport.reportID}`, {
+                            lastVisibleActionCreated: DateUtils.getDBTime(),
+                        });
                     })
                     .then(() =>
-                        Onyx.merge(
-                            `${ONYXKEYS.COLLECTION.REPORT}${archivedPolicyRoomReport.reportID}`,
-                            {
-                                lastVisibleActionCreated: DateUtils.getDBTime(),
-                            },
-                        ),
+                        Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${archivedPolicyRoomReport.reportID}`, {
+                            lastVisibleActionCreated: DateUtils.getDBTime(),
+                        }),
                     )
                     .then(() =>
-                        Onyx.merge(
-                            `${ONYXKEYS.COLLECTION.REPORT}${archivedUserCreatedPolicyRoomReport.reportID}`,
-                            {
-                                lastVisibleActionCreated: DateUtils.getDBTime(),
-                            },
-                        ),
+                        Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${archivedUserCreatedPolicyRoomReport.reportID}`, {
+                            lastVisibleActionCreated: DateUtils.getDBTime(),
+                        }),
                     )
 
                     // Then they are all visible
                     .then(() => {
-                        const displayNames = screen.queryAllByLabelText(
-                            'Chat user display names',
-                        );
+                        const displayNames = screen.queryAllByLabelText('Chat user display names');
                         expect(displayNames).toHaveLength(3);
                     })
             );
@@ -673,76 +500,52 @@ describe('Sidebar', () => {
         it('policy rooms are displayed only when they have unread messages', () => {
             // Given a default policy room and user created policy room
             const policyRoomReport = {
-                ...LHNTestUtils.getFakeReport([
-                    'email1@test.com',
-                    'email2@test.com',
-                ]),
+                ...LHNTestUtils.getFakeReport(['email1@test.com', 'email2@test.com']),
                 chatType: CONST.REPORT.CHAT_TYPE.POLICY_ANNOUNCE,
             };
             const userCreatedPolicyRoomReport = {
-                ...LHNTestUtils.getFakeReport([
-                    'email1@test.com',
-                    'email2@test.com',
-                ]),
+                ...LHNTestUtils.getFakeReport(['email1@test.com', 'email2@test.com']),
                 chatType: CONST.REPORT.CHAT_TYPE.POLICY_ROOM,
             };
             LHNTestUtils.getDefaultRenderedSidebarLinks();
 
-            const betas = [
-                CONST.BETAS.DEFAULT_ROOMS,
-                CONST.BETAS.POLICY_ROOMS,
-                CONST.BETAS.POLICY_EXPENSE_CHAT,
-            ];
+            const betas = [CONST.BETAS.DEFAULT_ROOMS, CONST.BETAS.POLICY_ROOMS, CONST.BETAS.POLICY_EXPENSE_CHAT];
 
             return (
                 waitForPromisesToResolve()
                     // When Onyx is updated to contain that data and the sidebar re-renders
                     .then(() =>
                         Onyx.multiSet({
-                            [ONYXKEYS.NVP_PRIORITY_MODE]:
-                                CONST.PRIORITY_MODE.GSD,
+                            [ONYXKEYS.NVP_PRIORITY_MODE]: CONST.PRIORITY_MODE.GSD,
                             [ONYXKEYS.BETAS]: betas,
-                            [ONYXKEYS.PERSONAL_DETAILS]:
-                                LHNTestUtils.fakePersonalDetails,
-                            [`${ONYXKEYS.COLLECTION.REPORT}${policyRoomReport.reportID}`]:
-                                policyRoomReport,
-                            [`${ONYXKEYS.COLLECTION.REPORT}${userCreatedPolicyRoomReport.reportID}`]:
-                                userCreatedPolicyRoomReport,
+                            [ONYXKEYS.PERSONAL_DETAILS]: LHNTestUtils.fakePersonalDetails,
+                            [`${ONYXKEYS.COLLECTION.REPORT}${policyRoomReport.reportID}`]: policyRoomReport,
+                            [`${ONYXKEYS.COLLECTION.REPORT}${userCreatedPolicyRoomReport.reportID}`]: userCreatedPolicyRoomReport,
                         }),
                     )
 
                     // Then neither reports are visible
                     .then(() => {
-                        const displayNames = screen.queryAllByLabelText(
-                            'Chat user display names',
-                        );
+                        const displayNames = screen.queryAllByLabelText('Chat user display names');
                         expect(displayNames).toHaveLength(0);
                     })
 
                     // When they both have unread messages
                     .then(() => {
                         jest.advanceTimersByTime(10);
-                        return Onyx.merge(
-                            `${ONYXKEYS.COLLECTION.REPORT}${policyRoomReport.reportID}`,
-                            {
-                                lastVisibleActionCreated: DateUtils.getDBTime(),
-                            },
-                        );
+                        return Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${policyRoomReport.reportID}`, {
+                            lastVisibleActionCreated: DateUtils.getDBTime(),
+                        });
                     })
                     .then(() =>
-                        Onyx.merge(
-                            `${ONYXKEYS.COLLECTION.REPORT}${userCreatedPolicyRoomReport.reportID}`,
-                            {
-                                lastVisibleActionCreated: DateUtils.getDBTime(),
-                            },
-                        ),
+                        Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${userCreatedPolicyRoomReport.reportID}`, {
+                            lastVisibleActionCreated: DateUtils.getDBTime(),
+                        }),
                     )
 
                     // Then both rooms are visible
                     .then(() => {
-                        const displayNames = screen.queryAllByLabelText(
-                            'Chat user display names',
-                        );
+                        const displayNames = screen.queryAllByLabelText('Chat user display names');
                         expect(displayNames).toHaveLength(2);
                     })
             );
@@ -751,10 +554,7 @@ describe('Sidebar', () => {
 
     describe('all combinations of isArchived, isUserCreatedPolicyRoom, hasAddWorkspaceError, isUnread, isPinned, hasDraft', () => {
         // Given a report that is the active report and doesn't change
-        const report1 = LHNTestUtils.getFakeReport([
-            'email3@test.com',
-            'email4@test.com',
-        ]);
+        const report1 = LHNTestUtils.getFakeReport(['email3@test.com', 'email4@test.com']);
 
         // Given a free policy that doesn't change
         const policy = {
@@ -764,11 +564,7 @@ describe('Sidebar', () => {
         };
 
         // Given the user is in all betas
-        const betas = [
-            CONST.BETAS.DEFAULT_ROOMS,
-            CONST.BETAS.POLICY_ROOMS,
-            CONST.BETAS.POLICY_EXPENSE_CHAT,
-        ];
+        const betas = [CONST.BETAS.DEFAULT_ROOMS, CONST.BETAS.POLICY_ROOMS, CONST.BETAS.POLICY_EXPENSE_CHAT];
 
         // Given there are 6 boolean variables tested in the filtering logic:
         // 1. isArchived
@@ -816,55 +612,26 @@ describe('Sidebar', () => {
                         // When Onyx is updated to contain that data and the sidebar re-renders
                         .then(() =>
                             Onyx.multiSet({
-                                [ONYXKEYS.NVP_PRIORITY_MODE]:
-                                    CONST.PRIORITY_MODE.GSD,
+                                [ONYXKEYS.NVP_PRIORITY_MODE]: CONST.PRIORITY_MODE.GSD,
                                 [ONYXKEYS.BETAS]: betas,
-                                [ONYXKEYS.PERSONAL_DETAILS]:
-                                    LHNTestUtils.fakePersonalDetails,
-                                [`${ONYXKEYS.COLLECTION.REPORT}${report1.reportID}`]:
-                                    report1,
-                                [`${ONYXKEYS.COLLECTION.REPORT}${report2.reportID}`]:
-                                    report2,
-                                [`${ONYXKEYS.COLLECTION.POLICY}${policy.policyID}`]:
-                                    policy,
+                                [ONYXKEYS.PERSONAL_DETAILS]: LHNTestUtils.fakePersonalDetails,
+                                [`${ONYXKEYS.COLLECTION.REPORT}${report1.reportID}`]: report1,
+                                [`${ONYXKEYS.COLLECTION.REPORT}${report2.reportID}`]: report2,
+                                [`${ONYXKEYS.COLLECTION.POLICY}${policy.policyID}`]: policy,
                             }),
                         )
 
                         // Then depending on the outcome, either one or two reports are visible
                         .then(() => {
-                            if (
-                                booleansWhichRemovesActiveReport.indexOf(
-                                    JSON.stringify(boolArr),
-                                ) > -1
-                            ) {
+                            if (booleansWhichRemovesActiveReport.indexOf(JSON.stringify(boolArr)) > -1) {
                                 // Only one report visible
-                                expect(
-                                    screen.queryAllByAccessibilityHint(
-                                        'Navigates to a chat',
-                                    ),
-                                ).toHaveLength(1);
-                                expect(
-                                    screen.queryAllByLabelText(
-                                        'Chat user display names',
-                                    ),
-                                ).toHaveLength(1);
-                                const displayNames = screen.queryAllByLabelText(
-                                    'Chat user display names',
-                                );
-                                expect(
-                                    lodashGet(displayNames, [
-                                        0,
-                                        'props',
-                                        'children',
-                                    ]),
-                                ).toBe('Three, Four');
+                                expect(screen.queryAllByAccessibilityHint('Navigates to a chat')).toHaveLength(1);
+                                expect(screen.queryAllByLabelText('Chat user display names')).toHaveLength(1);
+                                const displayNames = screen.queryAllByLabelText('Chat user display names');
+                                expect(lodashGet(displayNames, [0, 'props', 'children'])).toBe('Three, Four');
                             } else {
                                 // Both reports visible
-                                expect(
-                                    screen.queryAllByAccessibilityHint(
-                                        'Navigates to a chat',
-                                    ),
-                                ).toHaveLength(2);
+                                expect(screen.queryAllByAccessibilityHint('Navigates to a chat')).toHaveLength(2);
                             }
                         })
                 );
@@ -886,53 +653,36 @@ describe('Sidebar', () => {
                 };
 
                 // Given the user is in all betas
-                const betas = [
-                    CONST.BETAS.DEFAULT_ROOMS,
-                    CONST.BETAS.POLICY_ROOMS,
-                    CONST.BETAS.POLICY_EXPENSE_CHAT,
-                ];
+                const betas = [CONST.BETAS.DEFAULT_ROOMS, CONST.BETAS.POLICY_ROOMS, CONST.BETAS.POLICY_EXPENSE_CHAT];
 
                 return (
                     waitForPromisesToResolve()
                         // When Onyx is updated to contain that data and the sidebar re-renders
                         .then(() =>
                             Onyx.multiSet({
-                                [ONYXKEYS.NVP_PRIORITY_MODE]:
-                                    CONST.PRIORITY_MODE.DEFAULT,
+                                [ONYXKEYS.NVP_PRIORITY_MODE]: CONST.PRIORITY_MODE.DEFAULT,
                                 [ONYXKEYS.BETAS]: betas,
-                                [ONYXKEYS.PERSONAL_DETAILS]:
-                                    LHNTestUtils.fakePersonalDetails,
-                                [`${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`]:
-                                    report,
+                                [ONYXKEYS.PERSONAL_DETAILS]: LHNTestUtils.fakePersonalDetails,
+                                [`${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`]: report,
                             }),
                         )
 
                         // Then the report is rendered in the LHN
                         .then(() => {
-                            const optionRows =
-                                screen.queryAllByAccessibilityHint(
-                                    'Navigates to a chat',
-                                );
+                            const optionRows = screen.queryAllByAccessibilityHint('Navigates to a chat');
                             expect(optionRows).toHaveLength(1);
                         })
 
                         // When the report has comments
                         .then(() =>
-                            Onyx.merge(
-                                `${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`,
-                                {
-                                    lastVisibleActionCreated:
-                                        DateUtils.getDBTime(),
-                                },
-                            ),
+                            Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`, {
+                                lastVisibleActionCreated: DateUtils.getDBTime(),
+                            }),
                         )
 
                         // Then the report is rendered in the LHN
                         .then(() => {
-                            const optionRows =
-                                screen.queryAllByAccessibilityHint(
-                                    'Navigates to a chat',
-                                );
+                            const optionRows = screen.queryAllByAccessibilityHint('Navigates to a chat');
                             expect(optionRows).toHaveLength(1);
                         })
                 );
@@ -951,54 +701,37 @@ describe('Sidebar', () => {
                 };
 
                 // Given the user is in all betas
-                const betas = [
-                    CONST.BETAS.DEFAULT_ROOMS,
-                    CONST.BETAS.POLICY_ROOMS,
-                    CONST.BETAS.POLICY_EXPENSE_CHAT,
-                ];
+                const betas = [CONST.BETAS.DEFAULT_ROOMS, CONST.BETAS.POLICY_ROOMS, CONST.BETAS.POLICY_EXPENSE_CHAT];
 
                 return (
                     waitForPromisesToResolve()
                         // When Onyx is updated to contain that data and the sidebar re-renders
                         .then(() =>
                             Onyx.multiSet({
-                                [ONYXKEYS.NVP_PRIORITY_MODE]:
-                                    CONST.PRIORITY_MODE.GSD,
+                                [ONYXKEYS.NVP_PRIORITY_MODE]: CONST.PRIORITY_MODE.GSD,
                                 [ONYXKEYS.BETAS]: betas,
-                                [ONYXKEYS.PERSONAL_DETAILS]:
-                                    LHNTestUtils.fakePersonalDetails,
-                                [`${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`]:
-                                    report,
+                                [ONYXKEYS.PERSONAL_DETAILS]: LHNTestUtils.fakePersonalDetails,
+                                [`${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`]: report,
                             }),
                         )
 
                         // Then the report is not rendered in the LHN
                         .then(() => {
-                            const optionRows =
-                                screen.queryAllByAccessibilityHint(
-                                    'Navigates to a chat',
-                                );
+                            const optionRows = screen.queryAllByAccessibilityHint('Navigates to a chat');
                             expect(optionRows).toHaveLength(0);
                         })
 
                         // When the report has a new comment and is now unread
                         .then(() => {
                             jest.advanceTimersByTime(10);
-                            return Onyx.merge(
-                                `${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`,
-                                {
-                                    lastVisibleActionCreated:
-                                        DateUtils.getDBTime(),
-                                },
-                            );
+                            return Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`, {
+                                lastVisibleActionCreated: DateUtils.getDBTime(),
+                            });
                         })
 
                         // Then the report is rendered in the LHN
                         .then(() => {
-                            const optionRows =
-                                screen.queryAllByAccessibilityHint(
-                                    'Navigates to a chat',
-                                );
+                            const optionRows = screen.queryAllByAccessibilityHint('Navigates to a chat');
                             expect(optionRows).toHaveLength(1);
                         })
                 );
@@ -1016,50 +749,32 @@ describe('Sidebar', () => {
                 };
 
                 // Given the user is in all betas
-                const betas = [
-                    CONST.BETAS.DEFAULT_ROOMS,
-                    CONST.BETAS.POLICY_ROOMS,
-                    CONST.BETAS.POLICY_EXPENSE_CHAT,
-                ];
+                const betas = [CONST.BETAS.DEFAULT_ROOMS, CONST.BETAS.POLICY_ROOMS, CONST.BETAS.POLICY_EXPENSE_CHAT];
 
                 return (
                     waitForPromisesToResolve()
                         // When Onyx is updated to contain that data and the sidebar re-renders
                         .then(() =>
                             Onyx.multiSet({
-                                [ONYXKEYS.NVP_PRIORITY_MODE]:
-                                    CONST.PRIORITY_MODE.GSD,
+                                [ONYXKEYS.NVP_PRIORITY_MODE]: CONST.PRIORITY_MODE.GSD,
                                 [ONYXKEYS.BETAS]: betas,
-                                [ONYXKEYS.PERSONAL_DETAILS]:
-                                    LHNTestUtils.fakePersonalDetails,
-                                [`${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`]:
-                                    report,
+                                [ONYXKEYS.PERSONAL_DETAILS]: LHNTestUtils.fakePersonalDetails,
+                                [`${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`]: report,
                             }),
                         )
 
                         // Then the report is not rendered in the LHN
                         .then(() => {
-                            const optionRows =
-                                screen.queryAllByAccessibilityHint(
-                                    'Navigates to a chat',
-                                );
+                            const optionRows = screen.queryAllByAccessibilityHint('Navigates to a chat');
                             expect(optionRows).toHaveLength(0);
                         })
 
                         // When the report is pinned
-                        .then(() =>
-                            Onyx.merge(
-                                `${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`,
-                                {isPinned: true},
-                            ),
-                        )
+                        .then(() => Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`, {isPinned: true}))
 
                         // Then the report is rendered in the LHN
                         .then(() => {
-                            const optionRows =
-                                screen.queryAllByAccessibilityHint(
-                                    'Navigates to a chat',
-                                );
+                            const optionRows = screen.queryAllByAccessibilityHint('Navigates to a chat');
                             expect(optionRows).toHaveLength(1);
                         })
                 );
@@ -1076,50 +791,35 @@ describe('Sidebar', () => {
                 };
 
                 // Given the user is in all betas
-                const betas = [
-                    CONST.BETAS.DEFAULT_ROOMS,
-                    CONST.BETAS.POLICY_ROOMS,
-                    CONST.BETAS.POLICY_EXPENSE_CHAT,
-                ];
+                const betas = [CONST.BETAS.DEFAULT_ROOMS, CONST.BETAS.POLICY_ROOMS, CONST.BETAS.POLICY_EXPENSE_CHAT];
 
                 return (
                     waitForPromisesToResolve()
                         // When Onyx is updated to contain that data and the sidebar re-renders
                         .then(() =>
                             Onyx.multiSet({
-                                [ONYXKEYS.NVP_PRIORITY_MODE]:
-                                    CONST.PRIORITY_MODE.GSD,
+                                [ONYXKEYS.NVP_PRIORITY_MODE]: CONST.PRIORITY_MODE.GSD,
                                 [ONYXKEYS.BETAS]: betas,
-                                [ONYXKEYS.PERSONAL_DETAILS]:
-                                    LHNTestUtils.fakePersonalDetails,
-                                [`${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`]:
-                                    report,
+                                [ONYXKEYS.PERSONAL_DETAILS]: LHNTestUtils.fakePersonalDetails,
+                                [`${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`]: report,
                             }),
                         )
 
                         // Then the report is not rendered in the LHN
                         .then(() => {
-                            const optionRows =
-                                screen.queryAllByAccessibilityHint(
-                                    'Navigates to a chat',
-                                );
+                            const optionRows = screen.queryAllByAccessibilityHint('Navigates to a chat');
                             expect(optionRows).toHaveLength(0);
                         })
 
                         // When sidebar is rendered with the active report ID matching the archived report in Onyx
                         .then(() => {
-                            LHNTestUtils.getDefaultRenderedSidebarLinks(
-                                report.reportID,
-                            );
+                            LHNTestUtils.getDefaultRenderedSidebarLinks(report.reportID);
                             return waitForPromisesToResolve();
                         })
 
                         // Then the report is rendered in the LHN
                         .then(() => {
-                            const optionRows =
-                                screen.queryAllByAccessibilityHint(
-                                    'Navigates to a chat',
-                                );
+                            const optionRows = screen.queryAllByAccessibilityHint('Navigates to a chat');
                             expect(optionRows).toHaveLength(1);
                         })
                 );

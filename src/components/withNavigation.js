@@ -20,14 +20,9 @@ export default function withNavigation(WrappedComponent) {
         );
     };
 
-    WithNavigation.displayName = `withNavigation(${getComponentDisplayName(
-        WrappedComponent,
-    )})`;
+    WithNavigation.displayName = `withNavigation(${getComponentDisplayName(WrappedComponent)})`;
     WithNavigation.propTypes = {
-        forwardedRef: PropTypes.oneOfType([
-            PropTypes.func,
-            PropTypes.shape({current: PropTypes.instanceOf(React.Component)}),
-        ]),
+        forwardedRef: PropTypes.oneOfType([PropTypes.func, PropTypes.shape({current: PropTypes.instanceOf(React.Component)})]),
     };
     WithNavigation.defaultProps = {
         forwardedRef: undefined,

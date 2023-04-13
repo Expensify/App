@@ -40,19 +40,12 @@ class Tooltip extends PureComponent {
     }
 
     componentDidUpdate(prevProps) {
-        if (
-            this.props.windowWidth === prevProps.windowWidth &&
-            this.props.windowHeight === prevProps.windowHeight
-        ) {
+        if (this.props.windowWidth === prevProps.windowWidth && this.props.windowHeight === prevProps.windowHeight) {
             return;
         }
 
-        this.getWrapperPositionPromise = makeCancellablePromise(
-            this.getWrapperPosition(),
-        );
-        this.getWrapperPositionPromise.promise.then(({x, y}) =>
-            this.setState({xOffset: x, yOffset: y}),
-        );
+        this.getWrapperPositionPromise = makeCancellablePromise(this.getWrapperPosition());
+        this.getWrapperPositionPromise.promise.then(({x, y}) => this.setState({xOffset: x, yOffset: y}));
     }
 
     componentWillUnmount() {
@@ -71,10 +64,7 @@ class Tooltip extends PureComponent {
     getWrapperPosition() {
         return new Promise((resolve) => {
             // Make sure the wrapper is mounted before attempting to measure it.
-            if (
-                this.wrapperView &&
-                _.isFunction(this.wrapperView.measureInWindow)
-            ) {
+            if (this.wrapperView && _.isFunction(this.wrapperView.measureInWindow)) {
                 this.wrapperView.measureInWindow((x, y, width, height) =>
                     resolve({
                         x,
@@ -106,9 +96,7 @@ class Tooltip extends PureComponent {
 
         // We have to dynamically calculate the position here as tooltip could have been rendered on some elments
         // that has changed its position
-        this.getWrapperPositionPromise = makeCancellablePromise(
-            this.getWrapperPosition(),
-        );
+        this.getWrapperPositionPromise = makeCancellablePromise(this.getWrapperPosition());
         this.getWrapperPositionPromise.promise.then(({x, y, width, height}) => {
             this.setState({
                 wrapperWidth: width,
@@ -160,49 +148,37 @@ class Tooltip extends PureComponent {
     render() {
         // Skip the tooltip and return the children if the text is empty,
         // we don't have a render function or the device does not support hovering
-        if (
-            (_.isEmpty(this.props.text) &&
-                this.props.renderTooltipContent == null) ||
-            !this.hasHoverSupport
-        ) {
+        if ((_.isEmpty(this.props.text) && this.props.renderTooltipContent == null) || !this.hasHoverSupport) {
             return this.props.children;
         }
         let child = (
-            <View
-                ref={(el) => (this.wrapperView = el)}
-                onBlur={this.hideTooltip}
-                focusable={this.props.focusable}
-                style={this.props.containerStyles}
-            >
+            <View ref={(el) => (this.wrapperView = el)} onBlur={this.hideTooltip} focusable={this.props.focusable} style={this.props.containerStyles}>
                 {this.props.children}
             </View>
         );
 
         if (this.props.absolute && React.isValidElement(this.props.children)) {
-            child = React.cloneElement(
-                React.Children.only(this.props.children),
-                {
-                    ref: (el) => {
-                        this.wrapperView = el;
+            child = React.cloneElement(React.Children.only(this.props.children), {
+                ref: (el) => {
+                    this.wrapperView = el;
 
-                        // Call the original ref, if any
-                        const {ref} = this.props.children;
-                        if (_.isFunction(ref)) {
-                            ref(el);
-                        }
-                    },
-                    onBlur: (el) => {
-                        this.hideTooltip();
-
-                        // Call the original onBlur, if any
-                        const {onBlur} = this.props.children;
-                        if (_.isFunction(onBlur)) {
-                            onBlur(el);
-                        }
-                    },
-                    focusable: true,
+                    // Call the original ref, if any
+                    const {ref} = this.props.children;
+                    if (_.isFunction(ref)) {
+                        ref(el);
+                    }
                 },
-            );
+                onBlur: (el) => {
+                    this.hideTooltip();
+
+                    // Call the original onBlur, if any
+                    const {onBlur} = this.props.children;
+                    if (_.isFunction(onBlur)) {
+                        onBlur(el);
+                    }
+                },
+                focusable: true,
+            });
         }
 
         return (
@@ -215,10 +191,7 @@ class Tooltip extends PureComponent {
                         yOffset={this.state.yOffset}
                         wrapperWidth={this.state.wrapperWidth}
                         wrapperHeight={this.state.wrapperHeight}
-                        shiftHorizontal={_.result(
-                            this.props,
-                            'shiftHorizontal',
-                        )}
+                        shiftHorizontal={_.result(this.props, 'shiftHorizontal')}
                         shiftVertical={_.result(this.props, 'shiftVertical')}
                         text={this.props.text}
                         maxWidth={this.props.maxWidth}
@@ -226,12 +199,7 @@ class Tooltip extends PureComponent {
                         renderTooltipContent={this.props.renderTooltipContent}
                     />
                 )}
-                <Hoverable
-                    absolute={this.props.absolute}
-                    containerStyles={this.props.containerStyles}
-                    onHoverIn={this.showTooltip}
-                    onHoverOut={this.hideTooltip}
-                >
+                <Hoverable absolute={this.props.absolute} containerStyles={this.props.containerStyles} onHoverIn={this.showTooltip} onHoverOut={this.hideTooltip}>
                     {child}
                 </Hoverable>
             </>

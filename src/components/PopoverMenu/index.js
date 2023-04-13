@@ -3,14 +3,9 @@ import React, {PureComponent} from 'react';
 import {View} from 'react-native';
 import Popover from '../Popover';
 import styles from '../../styles/styles';
-import withWindowDimensions, {
-    windowDimensionsPropTypes,
-} from '../withWindowDimensions';
+import withWindowDimensions, {windowDimensionsPropTypes} from '../withWindowDimensions';
 import MenuItem from '../MenuItem';
-import {
-    propTypes as createMenuPropTypes,
-    defaultProps,
-} from './popoverMenuPropTypes';
+import {propTypes as createMenuPropTypes, defaultProps} from './popoverMenuPropTypes';
 import ArrowKeyFocusManager from '../ArrowKeyFocusManager';
 import Text from '../Text';
 import KeyboardShortcut from '../../libs/KeyboardShortcut';
@@ -104,31 +99,16 @@ class PopoverMenu extends PureComponent {
                 disableAnimation={this.props.disableAnimation}
                 fromSidebarMediumScreen={this.props.fromSidebarMediumScreen}
             >
-                <View
-                    style={
-                        this.props.isSmallScreenWidth
-                            ? {}
-                            : styles.createMenuContainer
-                    }
-                >
+                <View style={this.props.isSmallScreenWidth ? {} : styles.createMenuContainer}>
                     {!_.isEmpty(this.props.headerText) && (
                         <View style={styles.createMenuItem}>
-                            <Text
-                                style={[
-                                    styles.createMenuHeaderText,
-                                    styles.ml3,
-                                ]}
-                            >
-                                {this.props.headerText}
-                            </Text>
+                            <Text style={[styles.createMenuHeaderText, styles.ml3]}>{this.props.headerText}</Text>
                         </View>
                     )}
                     <ArrowKeyFocusManager
                         focusedIndex={this.state.focusedIndex}
                         maxIndex={this.props.menuItems.length - 1}
-                        onFocusedIndexChanged={(index) =>
-                            this.setState({focusedIndex: index})
-                        }
+                        onFocusedIndexChanged={(index) => this.setState({focusedIndex: index})}
                     >
                         {_.map(this.props.menuItems, (item, menuIndex) => (
                             <MenuItem

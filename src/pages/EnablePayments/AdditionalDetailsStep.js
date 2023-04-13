@@ -6,9 +6,7 @@ import {View} from 'react-native';
 import IdologyQuestions from './IdologyQuestions';
 import ScreenWrapper from '../../components/ScreenWrapper';
 import HeaderWithCloseButton from '../../components/HeaderWithCloseButton';
-import withLocalize, {
-    withLocalizePropTypes,
-} from '../../components/withLocalize';
+import withLocalize, {withLocalizePropTypes} from '../../components/withLocalize';
 import Navigation from '../../libs/Navigation/Navigation';
 import styles from '../../styles/styles';
 import Text from '../../components/Text';
@@ -23,10 +21,7 @@ import * as LoginUtils from '../../libs/LoginUtils';
 import AddressForm from '../ReimbursementAccount/AddressForm';
 import DatePicker from '../../components/DatePicker';
 import Form from '../../components/Form';
-import withCurrentUserPersonalDetails, {
-    withCurrentUserPersonalDetailsPropTypes,
-    withCurrentUserPersonalDetailsDefaultProps,
-} from '../../components/withCurrentUserPersonalDetails';
+import withCurrentUserPersonalDetails, {withCurrentUserPersonalDetailsPropTypes, withCurrentUserPersonalDetailsDefaultProps} from '../../components/withCurrentUserPersonalDetails';
 import * as PersonalDetails from '../../libs/actions/PersonalDetails';
 import OfflineIndicator from '../../components/OfflineIndicator';
 
@@ -124,84 +119,49 @@ class AdditionalDetailsStep extends React.Component {
         const errors = {};
 
         if (_.isEmpty(values[INPUT_IDS.LEGAL_FIRST_NAME])) {
-            errors[INPUT_IDS.LEGAL_FIRST_NAME] = this.props.translate(
-                this.errorTranslationKeys.legalFirstName,
-            );
+            errors[INPUT_IDS.LEGAL_FIRST_NAME] = this.props.translate(this.errorTranslationKeys.legalFirstName);
         }
 
         if (_.isEmpty(values[INPUT_IDS.LEGAL_LAST_NAME])) {
-            errors[INPUT_IDS.LEGAL_LAST_NAME] = this.props.translate(
-                this.errorTranslationKeys.legalLastName,
-            );
+            errors[INPUT_IDS.LEGAL_LAST_NAME] = this.props.translate(this.errorTranslationKeys.legalLastName);
         }
 
         if (!ValidationUtils.isValidPastDate(values[INPUT_IDS.DOB])) {
-            errors[INPUT_IDS.DOB] = this.props.translate(
-                this.errorTranslationKeys.dob,
-            );
+            errors[INPUT_IDS.DOB] = this.props.translate(this.errorTranslationKeys.dob);
         }
 
         if (!ValidationUtils.meetsAgeRequirements(values[INPUT_IDS.DOB])) {
-            errors[INPUT_IDS.DOB] = this.props.translate(
-                this.errorTranslationKeys.age,
-            );
+            errors[INPUT_IDS.DOB] = this.props.translate(this.errorTranslationKeys.age);
         }
 
-        if (
-            !ValidationUtils.isValidAddress(values[INPUT_IDS.ADDRESS.street]) ||
-            _.isEmpty(values[INPUT_IDS.ADDRESS.street])
-        ) {
-            errors[INPUT_IDS.ADDRESS.street] = this.props.translate(
-                'bankAccount.error.addressStreet',
-            );
+        if (!ValidationUtils.isValidAddress(values[INPUT_IDS.ADDRESS.street]) || _.isEmpty(values[INPUT_IDS.ADDRESS.street])) {
+            errors[INPUT_IDS.ADDRESS.street] = this.props.translate('bankAccount.error.addressStreet');
         }
 
         if (_.isEmpty(values[INPUT_IDS.ADDRESS.city])) {
-            errors[INPUT_IDS.ADDRESS.city] = this.props.translate(
-                'bankAccount.error.addressCity',
-            );
+            errors[INPUT_IDS.ADDRESS.city] = this.props.translate('bankAccount.error.addressCity');
         }
 
         if (_.isEmpty(values[INPUT_IDS.ADDRESS.state])) {
-            errors[INPUT_IDS.ADDRESS.state] = this.props.translate(
-                'bankAccount.error.addressState',
-            );
+            errors[INPUT_IDS.ADDRESS.state] = this.props.translate('bankAccount.error.addressState');
         }
 
-        if (
-            !ValidationUtils.isValidZipCode(values[INPUT_IDS.ADDRESS.zipCode])
-        ) {
-            errors[INPUT_IDS.ADDRESS.zipCode] = this.props.translate(
-                'bankAccount.error.zipCode',
-            );
+        if (!ValidationUtils.isValidZipCode(values[INPUT_IDS.ADDRESS.zipCode])) {
+            errors[INPUT_IDS.ADDRESS.zipCode] = this.props.translate('bankAccount.error.zipCode');
         }
 
-        if (
-            !ValidationUtils.isValidUSPhone(
-                values[INPUT_IDS.PHONE_NUMBER],
-                true,
-            )
-        ) {
-            errors[INPUT_IDS.PHONE_NUMBER] = this.props.translate(
-                this.errorTranslationKeys.phoneNumber,
-            );
+        if (!ValidationUtils.isValidUSPhone(values[INPUT_IDS.PHONE_NUMBER], true)) {
+            errors[INPUT_IDS.PHONE_NUMBER] = this.props.translate(this.errorTranslationKeys.phoneNumber);
         }
 
         // this.props.walletAdditionalDetails stores errors returned by the server. If the server returns an SSN error
         // then the user needs to provide the full 9 digit SSN.
-        if (
-            this.props.walletAdditionalDetails.errorCode ===
-            CONST.WALLET.ERROR.SSN
-        ) {
+        if (this.props.walletAdditionalDetails.errorCode === CONST.WALLET.ERROR.SSN) {
             if (!ValidationUtils.isValidSSNFullNine(values[INPUT_IDS.SSN])) {
-                errors[INPUT_IDS.SSN] = this.props.translate(
-                    this.errorTranslationKeys.ssnFull9,
-                );
+                errors[INPUT_IDS.SSN] = this.props.translate(this.errorTranslationKeys.ssnFull9);
             }
         } else if (!ValidationUtils.isValidSSNLastFour(values[INPUT_IDS.SSN])) {
-            errors[INPUT_IDS.SSN] = this.props.translate(
-                this.errorTranslationKeys.ssn,
-            );
+            errors[INPUT_IDS.SSN] = this.props.translate(this.errorTranslationKeys.ssn);
         }
 
         return errors;
@@ -212,10 +172,7 @@ class AdditionalDetailsStep extends React.Component {
      */
     activateWallet(values) {
         const personalDetails = {
-            phoneNumber:
-                LoginUtils.getPhoneNumberWithoutUSCountryCodeAndSpecialChars(
-                    values[INPUT_IDS.PHONE_NUMBER],
-                ),
+            phoneNumber: LoginUtils.getPhoneNumberWithoutUSCountryCodeAndSpecialChars(values[INPUT_IDS.PHONE_NUMBER]),
             legalFirstName: values[INPUT_IDS.LEGAL_FIRST_NAME],
             legalLastName: values[INPUT_IDS.LEGAL_LAST_NAME],
             addressStreet: values[INPUT_IDS.ADDRESS.street],
@@ -233,53 +190,27 @@ class AdditionalDetailsStep extends React.Component {
     render() {
         if (!_.isEmpty(this.props.walletAdditionalDetails.questions)) {
             return (
-                <ScreenWrapper
-                    style={[styles.flex1]}
-                    keyboardAvoidingViewBehavior="height"
-                >
+                <ScreenWrapper style={[styles.flex1]} keyboardAvoidingViewBehavior="height">
                     <HeaderWithCloseButton
-                        title={this.props.translate(
-                            'additionalDetailsStep.headerTitle',
-                        )}
+                        title={this.props.translate('additionalDetailsStep.headerTitle')}
                         onCloseButtonPress={() => Navigation.dismissModal()}
                         shouldShowBackButton
-                        onBackButtonPress={() =>
-                            Wallet.setAdditionalDetailsQuestions(null)
-                        }
+                        onBackButtonPress={() => Wallet.setAdditionalDetailsQuestions(null)}
                     />
-                    <IdologyQuestions
-                        questions={this.props.walletAdditionalDetails.questions}
-                        idNumber={this.props.walletAdditionalDetails.idNumber}
-                    />
+                    <IdologyQuestions questions={this.props.walletAdditionalDetails.questions} idNumber={this.props.walletAdditionalDetails.idNumber} />
                 </ScreenWrapper>
             );
         }
-        const shouldAskForFullSSN =
-            this.props.walletAdditionalDetails.errorCode ===
-            CONST.WALLET.ERROR.SSN;
+        const shouldAskForFullSSN = this.props.walletAdditionalDetails.errorCode === CONST.WALLET.ERROR.SSN;
 
         return (
             <>
-                <HeaderWithCloseButton
-                    title={this.props.translate(
-                        'additionalDetailsStep.headerTitle',
-                    )}
-                    onCloseButtonPress={() => Navigation.dismissModal()}
-                />
+                <HeaderWithCloseButton title={this.props.translate('additionalDetailsStep.headerTitle')} onCloseButtonPress={() => Navigation.dismissModal()} />
                 <View style={[styles.flex1]}>
                     <View style={[styles.ph5]}>
-                        <Text style={styles.mb3}>
-                            {this.props.translate(
-                                'additionalDetailsStep.helpText',
-                            )}
-                        </Text>
-                        <TextLink
-                            style={styles.mb3}
-                            href="https://use.expensify.com/usa-patriot-act"
-                        >
-                            {this.props.translate(
-                                'additionalDetailsStep.helpLink',
-                            )}
+                        <Text style={styles.mb3}>{this.props.translate('additionalDetailsStep.helpText')}</Text>
+                        <TextLink style={styles.mb3} href="https://use.expensify.com/usa-patriot-act">
+                            {this.props.translate('additionalDetailsStep.helpLink')}
                         </TextLink>
                     </View>
                     <Form
@@ -288,84 +219,48 @@ class AdditionalDetailsStep extends React.Component {
                         onSubmit={this.activateWallet}
                         scrollContextEnabled
                         scrollToOverflowEnabled
-                        submitButtonText={this.props.translate(
-                            'common.saveAndContinue',
-                        )}
+                        submitButtonText={this.props.translate('common.saveAndContinue')}
                         style={[styles.mh5, styles.flexGrow1]}
                     >
                         <TextInput
                             inputID={INPUT_IDS.LEGAL_FIRST_NAME}
                             containerStyles={[styles.mt4]}
-                            label={this.props.translate(
-                                this.fieldNameTranslationKeys.legalFirstName,
-                            )}
-                            defaultValue={
-                                PersonalDetails.extractFirstAndLastNameFromAvailableDetails(
-                                    this.props.currentUserPersonalDetails,
-                                ).firstName
-                            }
+                            label={this.props.translate(this.fieldNameTranslationKeys.legalFirstName)}
+                            defaultValue={PersonalDetails.extractFirstAndLastNameFromAvailableDetails(this.props.currentUserPersonalDetails).firstName}
                             shouldSaveDraft
                         />
                         <TextInput
                             inputID={INPUT_IDS.LEGAL_LAST_NAME}
                             containerStyles={[styles.mt4]}
-                            label={this.props.translate(
-                                this.fieldNameTranslationKeys.legalLastName,
-                            )}
-                            defaultValue={
-                                PersonalDetails.extractFirstAndLastNameFromAvailableDetails(
-                                    this.props.currentUserPersonalDetails,
-                                ).lastName
-                            }
+                            label={this.props.translate(this.fieldNameTranslationKeys.legalLastName)}
+                            defaultValue={PersonalDetails.extractFirstAndLastNameFromAvailableDetails(this.props.currentUserPersonalDetails).lastName}
                             shouldSaveDraft
                         />
-                        <AddressForm
-                            inputKeys={INPUT_IDS.ADDRESS}
-                            translate={this.props.translate}
-                            streetTranslationKey={
-                                this.fieldNameTranslationKeys.addressStreet
-                            }
-                            shouldSaveDraft
-                        />
+                        <AddressForm inputKeys={INPUT_IDS.ADDRESS} translate={this.props.translate} streetTranslationKey={this.fieldNameTranslationKeys.addressStreet} shouldSaveDraft />
                         <TextInput
                             inputID={INPUT_IDS.PHONE_NUMBER}
                             containerStyles={[styles.mt4]}
                             keyboardType={CONST.KEYBOARD_TYPE.PHONE_PAD}
-                            label={this.props.translate(
-                                this.fieldNameTranslationKeys.phoneNumber,
-                            )}
-                            defaultValue={
-                                this.props.currentUserPersonalDetails
-                                    .phoneNumber
-                            }
-                            placeholder={this.props.translate(
-                                'common.phoneNumberPlaceholder',
-                            )}
+                            label={this.props.translate(this.fieldNameTranslationKeys.phoneNumber)}
+                            defaultValue={this.props.currentUserPersonalDetails.phoneNumber}
+                            placeholder={this.props.translate('common.phoneNumberPlaceholder')}
                             shouldSaveDraft
                         />
                         <DatePicker
                             inputID={INPUT_IDS.DOB}
                             containerStyles={[styles.mt4]}
-                            label={this.props.translate(
-                                this.fieldNameTranslationKeys.dob,
-                            )}
+                            label={this.props.translate(this.fieldNameTranslationKeys.dob)}
                             placeholder={this.props.translate('common.dob')}
                             shouldSaveDraft
                         />
                         <TextInput
                             inputID={INPUT_IDS.SSN}
                             containerStyles={[styles.mt4]}
-                            label={this.props.translate(
-                                this.fieldNameTranslationKeys[
-                                    shouldAskForFullSSN ? 'ssnFull9' : 'ssn'
-                                ],
-                            )}
+                            label={this.props.translate(this.fieldNameTranslationKeys[shouldAskForFullSSN ? 'ssnFull9' : 'ssn'])}
                             maxLength={shouldAskForFullSSN ? 9 : 4}
                             keyboardType={CONST.KEYBOARD_TYPE.NUMBER_PAD}
                         />
-                        <OfflineIndicator
-                            containerStyles={[styles.mh5, styles.mb3]}
-                        />
+                        <OfflineIndicator containerStyles={[styles.mh5, styles.mb3]} />
                     </Form>
                 </View>
             </>

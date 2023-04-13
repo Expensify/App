@@ -23,10 +23,7 @@ class ExceededCommentLength extends PureComponent {
         };
 
         // By debouncing, we defer the calculation until there is a break in typing
-        this.updateCommentLength = debounce(
-            this.updateCommentLength.bind(this),
-            CONST.TIMING.COMMENT_LENGTH_DEBOUNCE_TIME,
-        );
+        this.updateCommentLength = debounce(this.updateCommentLength.bind(this), CONST.TIMING.COMMENT_LENGTH_DEBOUNCE_TIME);
     }
 
     componentDidMount() {
@@ -44,9 +41,7 @@ class ExceededCommentLength extends PureComponent {
     updateCommentLength() {
         const commentLength = ReportUtils.getCommentLength(this.props.comment);
         this.setState({commentLength});
-        this.props.onExceededMaxCommentLength(
-            commentLength > CONST.MAX_COMMENT_LENGTH,
-        );
+        this.props.onExceededMaxCommentLength(commentLength > CONST.MAX_COMMENT_LENGTH);
     }
 
     render() {
@@ -55,15 +50,7 @@ class ExceededCommentLength extends PureComponent {
         }
 
         return (
-            <Text
-                style={[
-                    styles.textMicro,
-                    styles.textDanger,
-                    styles.chatItemComposeSecondaryRow,
-                    styles.mlAuto,
-                    styles.pl2,
-                ]}
-            >
+            <Text style={[styles.textMicro, styles.textDanger, styles.chatItemComposeSecondaryRow, styles.mlAuto, styles.pl2]}>
                 {`${this.state.commentLength}/${CONST.MAX_COMMENT_LENGTH}`}
             </Text>
         );

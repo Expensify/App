@@ -56,19 +56,14 @@ const FormAlertWrapper = (props) => {
         children = (
             <Text style={[styles.formError, styles.mb0]}>
                 {`${props.translate('common.please')} `}
-                <TextLink
-                    style={styles.label}
-                    onPress={props.onFixTheErrorsLinkPressed}
-                >
+                <TextLink style={styles.label} onPress={props.onFixTheErrorsLinkPressed}>
                     {props.translate('common.fixTheErrors')}
                 </TextLink>
                 {` ${props.translate('common.inTheFormBeforeContinuing')}.`}
             </Text>
         );
     } else if (props.isMessageHtml) {
-        children = (
-            <RenderHTML html={`<muted-text>${props.message}</muted-text>`} />
-        );
+        children = <RenderHTML html={`<muted-text>${props.message}</muted-text>`} />;
     }
     return (
         <View style={props.containerStyles}>

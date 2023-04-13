@@ -6,10 +6,7 @@ import {SafeAreaInsetsContext} from 'react-native-safe-area-context';
 import styles from '../../styles/styles';
 import * as StyleUtils from '../../styles/StyleUtils';
 import themeColors from '../../styles/themes/default';
-import {
-    propTypes as modalPropTypes,
-    defaultProps as modalDefaultProps,
-} from './modalPropTypes';
+import {propTypes as modalPropTypes, defaultProps as modalDefaultProps} from './modalPropTypes';
 import * as Modal from '../../libs/actions/Modal';
 import getModalStyles from '../../styles/getModalStyles';
 import variables from '../../styles/variables';
@@ -125,19 +122,12 @@ class BaseModal extends PureComponent {
                 style={modalStyle}
                 // When `statusBarTranslucent` is true on Android, the modal fully covers the status bar.
                 // Since `windowHeight` doesn't include status bar height, it should be added in the `deviceHeight` calculation.
-                deviceHeight={
-                    this.props.windowHeight +
-                    ((this.props.statusBarTranslucent &&
-                        StatusBar.currentHeight) ||
-                        0)
-                }
+                deviceHeight={this.props.windowHeight + ((this.props.statusBarTranslucent && StatusBar.currentHeight) || 0)}
                 deviceWidth={this.props.windowWidth}
                 animationIn={this.props.animationIn || animationIn}
                 animationOut={this.props.animationOut || animationOut}
                 useNativeDriver={this.props.useNativeDriver}
-                hideModalContentWhileAnimating={
-                    this.props.hideModalContentWhileAnimating
-                }
+                hideModalContentWhileAnimating={this.props.hideModalContentWhileAnimating}
                 animationInTiming={this.props.animationInTiming}
                 animationOutTiming={this.props.animationOutTiming}
                 statusBarTranslucent={this.props.statusBarTranslucent}
@@ -151,25 +141,20 @@ class BaseModal extends PureComponent {
                             paddingRight: safeAreaPaddingRight,
                         } = StyleUtils.getSafeAreaPadding(insets);
 
-                        const modalPaddingStyles =
-                            StyleUtils.getModalPaddingStyles({
-                                safeAreaPaddingTop,
-                                safeAreaPaddingBottom,
-                                safeAreaPaddingLeft,
-                                safeAreaPaddingRight,
-                                shouldAddBottomSafeAreaMargin,
-                                shouldAddTopSafeAreaMargin,
-                                shouldAddBottomSafeAreaPadding,
-                                shouldAddTopSafeAreaPadding,
-                                modalContainerStyleMarginTop:
-                                    modalContainerStyle.marginTop,
-                                modalContainerStyleMarginBottom:
-                                    modalContainerStyle.marginBottom,
-                                modalContainerStylePaddingTop:
-                                    modalContainerStyle.paddingTop,
-                                modalContainerStylePaddingBottom:
-                                    modalContainerStyle.paddingBottom,
-                            });
+                        const modalPaddingStyles = StyleUtils.getModalPaddingStyles({
+                            safeAreaPaddingTop,
+                            safeAreaPaddingBottom,
+                            safeAreaPaddingLeft,
+                            safeAreaPaddingRight,
+                            shouldAddBottomSafeAreaMargin,
+                            shouldAddTopSafeAreaMargin,
+                            shouldAddBottomSafeAreaPadding,
+                            shouldAddTopSafeAreaPadding,
+                            modalContainerStyleMarginTop: modalContainerStyle.marginTop,
+                            modalContainerStyleMarginBottom: modalContainerStyle.marginBottom,
+                            modalContainerStylePaddingTop: modalContainerStyle.paddingTop,
+                            modalContainerStylePaddingBottom: modalContainerStyle.paddingBottom,
+                        });
 
                         return (
                             <View

@@ -72,12 +72,7 @@ const Default = () => {
                     <PortalHost name="portalHost" />
                 </View>
             </DragAndDrop>
-            {draggingOver && (
-                <DropZone
-                    dropZoneViewHolderName="portalHost"
-                    dropZoneId="activeDropZoneId"
-                />
-            )}
+            {draggingOver && <DropZone dropZoneViewHolderName="portalHost" dropZoneId="activeDropZoneId" />}
         </PortalProvider>
     );
 };

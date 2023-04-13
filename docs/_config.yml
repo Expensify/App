@@ -7,12 +7,12 @@ logo: /assets/images/expensify-help.svg
 open_url: true
 
 defaults:
-  - scope:
-      path: "" # an empty string here means all files in the project
-    values:
-      layout: "default"
+    - scope:
+          path: '' # an empty string here means all files in the project
+      values:
+          layout: 'default'
 
 exclude: [README.md, TEMPLATE.md, vendor]
 
 plugins:
-  - jekyll-seo-tag
+    - jekyll-seo-tag

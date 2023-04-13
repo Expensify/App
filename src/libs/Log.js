@@ -17,11 +17,7 @@ let timeout = null;
  */
 function LogCommand(parameters) {
     const commandName = 'Log';
-    requireParameters(
-        ['logPacket', 'expensifyCashAppVersion'],
-        parameters,
-        commandName,
-    );
+    requireParameters(['logPacket', 'expensifyCashAppVersion'], parameters, commandName);
 
     // Note: We are forcing Log to run since it requires no authToken and should only be queued when we are offline.
     // Non-cancellable request: during logout, when requests are cancelled, we don't want to cancel any remaining logs
@@ -45,18 +41,12 @@ function serverLoggingCallback(logger, params) {
     const requestParams = params;
     requestParams.shouldProcessImmediately = false;
     requestParams.shouldRetry = false;
-    requestParams.expensifyCashAppVersion = `expensifyCash[${getPlatform()}]${
-        pkg.version
-    }`;
+    requestParams.expensifyCashAppVersion = `expensifyCash[${getPlatform()}]${pkg.version}`;
     if (requestParams.parameters) {
         requestParams.parameters = JSON.stringify(params.parameters);
     }
     clearTimeout(timeout);
-    timeout = setTimeout(
-        () =>
-            logger.info('Flushing logs older than 10 minutes', true, {}, true),
-        10 * 60 * 1000,
-    );
+    timeout = setTimeout(() => logger.info('Flushing logs older than 10 minutes', true, {}, true), 10 * 60 * 1000);
     return LogCommand(requestParams);
 }
 
@@ -69,9 +59,6 @@ const Log = new Logger({
     },
     isDebug: true,
 });
-timeout = setTimeout(
-    () => Log.info('Flushing logs older than 10 minutes', true, {}, true),
-    10 * 60 * 1000,
-);
+timeout = setTimeout(() => Log.info('Flushing logs older than 10 minutes', true, {}, true), 10 * 60 * 1000);
 
 export default Log;

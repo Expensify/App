@@ -17,10 +17,7 @@ const invalidJSONData = [
     ['Add \\', 'Add \\'],
 
     // From https://github.com/Expensify/App/pull/13500/commits/b730d5c43643f32baa3b189f0238f4de61aae0b7
-    [
-        'Prevent commit messages that end in `\\` from breaking `getMergeLogsAsJSON()`',
-        'Prevent commit messages that end in `\\` from breaking `getMergeLogsAsJSON()`',
-    ],
+    ['Prevent commit messages that end in `\\` from breaking `getMergeLogsAsJSON()`', 'Prevent commit messages that end in `\\` from breaking `getMergeLogsAsJSON()`'],
 ];
 
 // Valid JSON Data should be able to get parsed and the input text should be unmodified.
@@ -37,29 +34,19 @@ describe('santizeStringForJSONParse', () => {
         });
     });
 
-    describe.each(invalidJSONData)(
-        'canHandleInvalidJSON',
-        (input, expectedOutput) => {
-            test('sanitizeStringForJSONParse', () => {
-                const badJSON = `{"key": "${input}"}`;
-                expect(() => JSON.parse(badJSON)).toThrow();
-                const goodJSON = JSON.parse(
-                    `{"key": "${sanitizeStringForJSONParse(input)}"}`,
-                );
-                expect(goodJSON.key).toStrictEqual(expectedOutput);
-            });
-        },
-    );
+    describe.each(invalidJSONData)('canHandleInvalidJSON', (input, expectedOutput) => {
+        test('sanitizeStringForJSONParse', () => {
+            const badJSON = `{"key": "${input}"}`;
+            expect(() => JSON.parse(badJSON)).toThrow();
+            const goodJSON = JSON.parse(`{"key": "${sanitizeStringForJSONParse(input)}"}`);
+            expect(goodJSON.key).toStrictEqual(expectedOutput);
+        });
+    });
 
-    describe.each(validJSONData)(
-        'canHandleValidJSON',
-        (input, expectedOutput) => {
-            test('sanitizeStringForJSONParse', () => {
-                const goodJSON = JSON.parse(
-                    `{"key": "${sanitizeStringForJSONParse(input)}"}`,
-                );
-                expect(goodJSON.key).toStrictEqual(expectedOutput);
-            });
-        },
-    );
+    describe.each(validJSONData)('canHandleValidJSON', (input, expectedOutput) => {
+        test('sanitizeStringForJSONParse', () => {
+            const goodJSON = JSON.parse(`{"key": "${sanitizeStringForJSONParse(input)}"}`);
+            expect(goodJSON.key).toStrictEqual(expectedOutput);
+        });
+    });
 });

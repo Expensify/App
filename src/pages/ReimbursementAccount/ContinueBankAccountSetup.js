@@ -5,9 +5,7 @@ import {ScrollView} from 'react-native';
 import _ from 'underscore';
 import * as Expensicons from '../../components/Icon/Expensicons';
 import * as Illustrations from '../../components/Icon/Illustrations';
-import withLocalize, {
-    withLocalizePropTypes,
-} from '../../components/withLocalize';
+import withLocalize, {withLocalizePropTypes} from '../../components/withLocalize';
 import Button from '../../components/Button';
 import compose from '../../libs/compose';
 import CONST from '../../CONST';
@@ -26,8 +24,7 @@ import * as BankAccounts from '../../libs/actions/BankAccounts';
 
 const propTypes = {
     /** Bank account currently in setup */
-    reimbursementAccount:
-        ReimbursementAccountProps.reimbursementAccountPropTypes.isRequired,
+    reimbursementAccount: ReimbursementAccountProps.reimbursementAccountPropTypes.isRequired,
 
     /** Callback to continue to the next step of the setup */
     continue: PropTypes.func.isRequired,
@@ -52,25 +49,14 @@ const ContinueBankAccountSetup = (props) => (
                 onCloseButtonPress={Navigation.dismissModal}
                 onBackButtonPress={Navigation.goBack}
                 shouldShowGetAssistanceButton
-                guidesCallTaskID={
-                    CONST.GUIDES_CALL_TASK_IDS.WORKSPACE_BANK_ACCOUNT
-                }
+                guidesCallTaskID={CONST.GUIDES_CALL_TASK_IDS.WORKSPACE_BANK_ACCOUNT}
                 shouldShowBackButton
             />
             <ScrollView style={styles.flex1}>
-                <Section
-                    title={props.translate('workspace.bankAccount.almostDone')}
-                    icon={Illustrations.BankArrow}
-                >
-                    <Text>
-                        {props.translate(
-                            'workspace.bankAccount.youreAlmostDone',
-                        )}
-                    </Text>
+                <Section title={props.translate('workspace.bankAccount.almostDone')} icon={Illustrations.BankArrow}>
+                    <Text>{props.translate('workspace.bankAccount.youreAlmostDone')}</Text>
                     <Button
-                        text={props.translate(
-                            'workspace.bankAccount.continueWithSetup',
-                        )}
+                        text={props.translate('workspace.bankAccount.continueWithSetup')}
                         onPress={props.continue}
                         icon={Expensicons.Bank}
                         style={[styles.mv4]}
@@ -80,13 +66,9 @@ const ContinueBankAccountSetup = (props) => (
                         success
                     />
                     <MenuItem
-                        title={props.translate(
-                            'workspace.bankAccount.startOver',
-                        )}
+                        title={props.translate('workspace.bankAccount.startOver')}
                         icon={Expensicons.RotateLeft}
-                        onPress={() =>
-                            BankAccounts.requestResetFreePlanBankAccount()
-                        }
+                        onPress={() => BankAccounts.requestResetFreePlanBankAccount()}
                         shouldShowRightIcon
                         wrapperStyle={[styles.cardMenuItem]}
                     />
@@ -94,12 +76,7 @@ const ContinueBankAccountSetup = (props) => (
             </ScrollView>
         </FullPageNotFoundView>
 
-        {props.reimbursementAccount.shouldShowResetModal && (
-            <WorkspaceResetBankAccountModal
-                reimbursementAccount={props.reimbursementAccount}
-                onConfirm={props.startOver}
-            />
-        )}
+        {props.reimbursementAccount.shouldShowResetModal && <WorkspaceResetBankAccountModal reimbursementAccount={props.reimbursementAccount} onConfirm={props.startOver} />}
     </ScreenWrapper>
 );
 

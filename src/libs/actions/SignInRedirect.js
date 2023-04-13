@@ -46,8 +46,7 @@ function clearStorageAndRedirect(errorMessage) {
         // `Onyx.clear` reinitializes the Onyx instance with initial values so use `Onyx.merge` instead of `Onyx.set`
         Onyx.merge(ONYXKEYS.SESSION, {
             errors: {
-                [DateUtils.getMicroseconds()]:
-                    Localize.translateLocal(errorMessage),
+                [DateUtils.getMicroseconds()]: Localize.translateLocal(errorMessage),
             },
         });
     });

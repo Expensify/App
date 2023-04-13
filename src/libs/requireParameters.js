@@ -7,31 +7,16 @@ import _ from 'underscore';
  * @param {Object} parameters A map from available parameter names to their values
  * @param {String} commandName The name of the API command
  */
-export default function requireParameters(
-    parameterNames,
-    parameters,
-    commandName,
-) {
+export default function requireParameters(parameterNames, parameters, commandName) {
     parameterNames.forEach((parameterName) => {
-        if (
-            _(parameters).has(parameterName) &&
-            parameters[parameterName] !== null &&
-            parameters[parameterName] !== undefined
-        ) {
+        if (_(parameters).has(parameterName) && parameters[parameterName] !== null && parameters[parameterName] !== undefined) {
             return;
         }
 
-        const propertiesToRedact = [
-            'authToken',
-            'password',
-            'partnerUserSecret',
-            'twoFactorAuthCode',
-        ];
+        const propertiesToRedact = ['authToken', 'password', 'partnerUserSecret', 'twoFactorAuthCode'];
         const parametersCopy = _.chain(parameters)
             .clone()
-            .mapObject((val, key) =>
-                _.contains(propertiesToRedact, key) ? '<redacted>' : val,
-            )
+            .mapObject((val, key) => (_.contains(propertiesToRedact, key) ? '<redacted>' : val))
             .value();
         const keys = _(parametersCopy).keys().join(', ') || 'none';
 

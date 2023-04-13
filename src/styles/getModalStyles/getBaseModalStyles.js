@@ -2,13 +2,7 @@ import CONST from '../../CONST';
 import variables from '../variables';
 import themeColors from '../themes/default';
 
-export default (
-    type,
-    windowDimensions,
-    popoverAnchorPosition = {},
-    innerContainerStyle = {},
-    outerStyle = {},
-) => {
+export default (type, windowDimensions, popoverAnchorPosition = {}, innerContainerStyle = {}, outerStyle = {}) => {
     const {isSmallScreenWidth, windowWidth} = windowDimensions;
 
     let modalStyle = {
@@ -180,9 +174,7 @@ export default (
             modalStyle = {
                 ...modalStyle,
                 ...{
-                    marginLeft: isSmallScreenWidth
-                        ? 0
-                        : windowWidth - variables.sideBarWidth,
+                    marginLeft: isSmallScreenWidth ? 0 : windowWidth - variables.sideBarWidth,
                     width: isSmallScreenWidth ? '100%' : variables.sideBarWidth,
                     flexDirection: 'row',
                     justifyContent: 'flex-end',
@@ -196,9 +188,7 @@ export default (
 
             animationIn = {
                 from: {
-                    translateX: isSmallScreenWidth
-                        ? windowWidth
-                        : variables.sideBarWidth,
+                    translateX: isSmallScreenWidth ? windowWidth : variables.sideBarWidth,
                 },
                 to: {
                     translateX: 0,
@@ -209,9 +199,7 @@ export default (
                     translateX: 0,
                 },
                 to: {
-                    translateX: isSmallScreenWidth
-                        ? windowWidth
-                        : variables.sideBarWidth,
+                    translateX: isSmallScreenWidth ? windowWidth : variables.sideBarWidth,
                 },
             };
             swipeDirection = undefined;

@@ -10,10 +10,7 @@ import AddressForm from './AddressForm';
 
 const propTypes = {
     /** Style for wrapping View */
-    style: PropTypes.oneOfType([
-        PropTypes.arrayOf(PropTypes.object),
-        PropTypes.object,
-    ]),
+    style: PropTypes.oneOfType([PropTypes.arrayOf(PropTypes.object), PropTypes.object]),
 
     /** Callback fired when a field changes. Passes args as {[fieldName]: val} */
     onFieldChange: PropTypes.func,
@@ -39,10 +36,7 @@ const propTypes = {
         zipCode: PropTypes.string,
 
         /** Date of birth field */
-        dob: PropTypes.oneOfType([
-            PropTypes.string,
-            PropTypes.instanceOf(Date),
-        ]),
+        dob: PropTypes.oneOfType([PropTypes.string, PropTypes.instanceOf(Date)]),
 
         /** Last 4 digits of SSN */
         ssnLast4: PropTypes.string,
@@ -69,10 +63,7 @@ const propTypes = {
         zipCode: PropTypes.string,
 
         /** Date of birth field */
-        dob: PropTypes.oneOfType([
-            PropTypes.string,
-            PropTypes.instanceOf(Date),
-        ]),
+        dob: PropTypes.oneOfType([PropTypes.string, PropTypes.instanceOf(Date)]),
 
         /** Last 4 digits of SSN */
         ssnLast4: PropTypes.string,
@@ -139,9 +130,7 @@ const defaultProps = {
 
 const IdentityForm = (props) => {
     // dob field has multiple validations/errors, we are handling it temporarily like this.
-    const dobErrorText =
-        (props.errors.dob ? props.translate('bankAccount.error.dob') : '') ||
-        (props.errors.dobAge ? props.translate('bankAccount.error.age') : '');
+    const dobErrorText = (props.errors.dob ? props.translate('bankAccount.error.dob') : '') || (props.errors.dobAge ? props.translate('bankAccount.error.age') : '');
     const identityFormInputKeys = ['firstName', 'lastName', 'dob', 'ssnLast4'];
 
     return (
@@ -154,14 +143,8 @@ const IdentityForm = (props) => {
                         label={`${props.translate('common.firstName')}`}
                         value={props.values.firstName}
                         defaultValue={props.defaultValues.firstName}
-                        onChangeText={(value) =>
-                            props.onFieldChange({firstName: value})
-                        }
-                        errorText={
-                            props.errors.firstName
-                                ? props.translate('bankAccount.error.firstName')
-                                : ''
-                        }
+                        onChangeText={(value) => props.onFieldChange({firstName: value})}
+                        errorText={props.errors.firstName ? props.translate('bankAccount.error.firstName') : ''}
                     />
                 </View>
                 <View style={[styles.flex2]}>
@@ -171,14 +154,8 @@ const IdentityForm = (props) => {
                         label={`${props.translate('common.lastName')}`}
                         value={props.values.lastName}
                         defaultValue={props.defaultValues.lastName}
-                        onChangeText={(value) =>
-                            props.onFieldChange({lastName: value})
-                        }
-                        errorText={
-                            props.errors.lastName
-                                ? props.translate('bankAccount.error.lastName')
-                                : ''
-                        }
+                        onChangeText={(value) => props.onFieldChange({lastName: value})}
+                        errorText={props.errors.lastName ? props.translate('bankAccount.error.lastName') : ''}
                     />
                 </View>
             </View>
@@ -200,11 +177,7 @@ const IdentityForm = (props) => {
                 keyboardType={CONST.KEYBOARD_TYPE.NUMBER_PAD}
                 defaultValue={props.defaultValues.ssnLast4}
                 onChangeText={(value) => props.onFieldChange({ssnLast4: value})}
-                errorText={
-                    props.errors.ssnLast4
-                        ? props.translate('bankAccount.error.ssnLast4')
-                        : ''
-                }
+                errorText={props.errors.ssnLast4 ? props.translate('bankAccount.error.ssnLast4') : ''}
                 maxLength={CONST.BANK_ACCOUNT.MAX_LENGTH.SSN}
             />
             <AddressForm
@@ -213,10 +186,7 @@ const IdentityForm = (props) => {
                 translate={props.translate}
                 streetTranslationKey="common.personalAddress"
                 values={_.omit(props.values, identityFormInputKeys)}
-                defaultValues={_.omit(
-                    props.defaultValues,
-                    identityFormInputKeys,
-                )}
+                defaultValues={_.omit(props.defaultValues, identityFormInputKeys)}
                 errors={props.errors}
                 onFieldChange={props.onFieldChange}
             />

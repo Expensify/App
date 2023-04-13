@@ -9,10 +9,7 @@ const propTypes = {
     formattedAmount: PropTypes.string.isRequired,
 
     /** A ref to forward to amount text input */
-    forwardedRef: PropTypes.oneOfType([
-        PropTypes.func,
-        PropTypes.shape({current: PropTypes.instanceOf(React.Component)}),
-    ]),
+    forwardedRef: PropTypes.oneOfType([PropTypes.func, PropTypes.shape({current: PropTypes.instanceOf(React.Component)})]),
 
     /** Function to call when amount in text input is changed */
     onChangeAmount: PropTypes.func.isRequired,
@@ -42,17 +39,8 @@ function AmountTextInput(props) {
             disableKeyboard
             autoGrow
             hideFocusedState
-            inputStyle={[
-                styles.iouAmountTextInput,
-                styles.p0,
-                styles.noLeftBorderRadius,
-                styles.noRightBorderRadius,
-            ]}
-            textInputContainerStyles={[
-                styles.borderNone,
-                styles.noLeftBorderRadius,
-                styles.noRightBorderRadius,
-            ]}
+            inputStyle={[styles.iouAmountTextInput, styles.p0, styles.noLeftBorderRadius, styles.noRightBorderRadius]}
+            textInputContainerStyles={[styles.borderNone, styles.noLeftBorderRadius, styles.noRightBorderRadius]}
             onChangeText={props.onChangeAmount}
             ref={props.forwardedRef}
             value={props.formattedAmount}

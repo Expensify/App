@@ -1,24 +1,24 @@
 name: Lint code
 
 on:
-  workflow_call:
-  pull_request:
-    types: [opened, synchronize]
-    branches-ignore: [staging, production]
+    workflow_call:
+    pull_request:
+        types: [opened, synchronize]
+        branches-ignore: [staging, production]
 
 jobs:
-  lint:
-    if: ${{ github.actor != 'OSBotify' || github.event_name == 'workflow_call' }}
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@93ea575cb5d8a053eaa0ac8fa3b40d7e05a33cc8
+    lint:
+        if: ${{ github.actor != 'OSBotify' || github.event_name == 'workflow_call' }}
+        runs-on: ubuntu-latest
+        steps:
+            - uses: actions/checkout@93ea575cb5d8a053eaa0ac8fa3b40d7e05a33cc8
 
-      - uses: Expensify/App/.github/actions/composite/setupNode@main
+            - uses: Expensify/App/.github/actions/composite/setupNode@main
 
-      - name: Lint JavaScript with ESLint
-        run: npm run lint
-        env:
-          CI: true
+            - name: Lint JavaScript with ESLint
+              run: npm run lint
+              env:
+                  CI: true
 
-      - name: Lint shell scripts with ShellCheck
-        run: npm run shellcheck
+            - name: Lint shell scripts with ShellCheck
+              run: npm run shellcheck

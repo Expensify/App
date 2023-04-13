@@ -18,11 +18,7 @@ const propTypes = {
 
     /** The behavior to pass to the KeyboardAvoidingView, requires some trial and error depending on the layout/devices used.
      *  Search 'switch(behavior)' in ./node_modules/react-native/Libraries/Components/Keyboard/KeyboardAvoidingView.js for more context */
-    keyboardAvoidingViewBehavior: PropTypes.oneOf([
-        'padding',
-        'height',
-        'position',
-    ]),
+    keyboardAvoidingViewBehavior: PropTypes.oneOf(['padding', 'height', 'position']),
 
     /** Details about any modals being used */
     modal: PropTypes.shape({

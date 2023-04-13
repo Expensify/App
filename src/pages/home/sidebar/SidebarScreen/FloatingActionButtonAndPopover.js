@@ -14,9 +14,7 @@ import PopoverMenu from '../../../../components/PopoverMenu';
 import CONST from '../../../../CONST';
 import FloatingActionButton from '../../../../components/FloatingActionButton';
 import compose from '../../../../libs/compose';
-import withLocalize, {
-    withLocalizePropTypes,
-} from '../../../../components/withLocalize';
+import withLocalize, {withLocalizePropTypes} from '../../../../components/withLocalize';
 import withWindowDimensions from '../../../../components/withWindowDimensions';
 import ONYXKEYS from '../../../../ONYXKEYS';
 import withNavigation from '../../../../components/withNavigation';
@@ -76,11 +74,7 @@ class FloatingActionButtonAndPopover extends React.Component {
     }
 
     componentDidMount() {
-        const routes = lodashGet(
-            this.props.navigation.getState(),
-            'routes',
-            [],
-        );
+        const routes = lodashGet(this.props.navigation.getState(), 'routes', []);
         Welcome.show({routes, showCreateMenu: this.showCreateMenu});
     }
 
@@ -165,10 +159,7 @@ class FloatingActionButtonAndPopover extends React.Component {
 
     render() {
         // Workspaces are policies with type === 'free'
-        const workspaces = _.filter(
-            this.props.allPolicies,
-            (policy) => policy && policy.type === CONST.POLICY.TYPE.FREE,
-        );
+        const workspaces = _.filter(this.props.allPolicies, (policy) => policy && policy.type === CONST.POLICY.TYPE.FREE);
 
         return (
             <View>
@@ -182,29 +173,19 @@ class FloatingActionButtonAndPopover extends React.Component {
                         {
                             icon: Expensicons.ChatBubble,
                             text: this.props.translate('sidebarScreen.newChat'),
-                            onSelected: () =>
-                                Navigation.navigate(ROUTES.NEW_CHAT),
+                            onSelected: () => Navigation.navigate(ROUTES.NEW_CHAT),
                         },
                         {
                             icon: Expensicons.Users,
-                            text: this.props.translate(
-                                'sidebarScreen.newGroup',
-                            ),
-                            onSelected: () =>
-                                Navigation.navigate(ROUTES.NEW_GROUP),
+                            text: this.props.translate('sidebarScreen.newGroup'),
+                            onSelected: () => Navigation.navigate(ROUTES.NEW_GROUP),
                         },
-                        ...(Permissions.canUsePolicyRooms(this.props.betas) &&
-                        workspaces.length
+                        ...(Permissions.canUsePolicyRooms(this.props.betas) && workspaces.length
                             ? [
                                   {
                                       icon: Expensicons.Hashtag,
-                                      text: this.props.translate(
-                                          'sidebarScreen.newRoom',
-                                      ),
-                                      onSelected: () =>
-                                          Navigation.navigate(
-                                              ROUTES.WORKSPACE_NEW_ROOM,
-                                          ),
+                                      text: this.props.translate('sidebarScreen.newRoom'),
+                                      onSelected: () => Navigation.navigate(ROUTES.WORKSPACE_NEW_ROOM),
                                   },
                               ]
                             : []),
@@ -212,11 +193,8 @@ class FloatingActionButtonAndPopover extends React.Component {
                             ? [
                                   {
                                       icon: Expensicons.Send,
-                                      text: this.props.translate(
-                                          'iou.sendMoney',
-                                      ),
-                                      onSelected: () =>
-                                          Navigation.navigate(ROUTES.IOU_SEND),
+                                      text: this.props.translate('iou.sendMoney'),
+                                      onSelected: () => Navigation.navigate(ROUTES.IOU_SEND),
                                   },
                               ]
                             : []),
@@ -224,13 +202,8 @@ class FloatingActionButtonAndPopover extends React.Component {
                             ? [
                                   {
                                       icon: Expensicons.MoneyCircle,
-                                      text: this.props.translate(
-                                          'iou.requestMoney',
-                                      ),
-                                      onSelected: () =>
-                                          Navigation.navigate(
-                                              ROUTES.IOU_REQUEST,
-                                          ),
+                                      text: this.props.translate('iou.requestMoney'),
+                                      onSelected: () => Navigation.navigate(ROUTES.IOU_REQUEST),
                                   },
                               ]
                             : []),
@@ -238,11 +211,8 @@ class FloatingActionButtonAndPopover extends React.Component {
                             ? [
                                   {
                                       icon: Expensicons.Receipt,
-                                      text: this.props.translate(
-                                          'iou.splitBill',
-                                      ),
-                                      onSelected: () =>
-                                          Navigation.navigate(ROUTES.IOU_BILL),
+                                      text: this.props.translate('iou.splitBill'),
+                                      onSelected: () => Navigation.navigate(ROUTES.IOU_BILL),
                                   },
                               ]
                             : []),
@@ -252,23 +222,16 @@ class FloatingActionButtonAndPopover extends React.Component {
                                       icon: Expensicons.NewWorkspace,
                                       iconWidth: 46,
                                       iconHeight: 40,
-                                      text: this.props.translate(
-                                          'workspace.new.newWorkspace',
-                                      ),
-                                      description: this.props.translate(
-                                          'workspace.new.getTheExpensifyCardAndMore',
-                                      ),
-                                      onSelected: () =>
-                                          Policy.createWorkspace(),
+                                      text: this.props.translate('workspace.new.newWorkspace'),
+                                      description: this.props.translate('workspace.new.getTheExpensifyCardAndMore'),
+                                      onSelected: () => Policy.createWorkspace(),
                                   },
                               ]
                             : []),
                     ]}
                 />
                 <FloatingActionButton
-                    accessibilityLabel={this.props.translate(
-                        'sidebarScreen.fabNewChat',
-                    )}
+                    accessibilityLabel={this.props.translate('sidebarScreen.fabNewChat')}
                     accessibilityRole="button"
                     isActive={this.state.isCreateMenuActive}
                     onPress={this.showCreateMenu}

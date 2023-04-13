@@ -37,7 +37,7 @@ that you might need to pass to the test running inside the app:
 
 ### Create the actual test
 
-We created a new test file in `src/libs/E2E/tests/`. Typically, the 
+We created a new test file in `src/libs/E2E/tests/`. Typically, the
 tests ends on `.e2e.js`, so we can distinguish it from the other tests.
 
 Inside this test, we write logic that gets executed in the app. You can basically do
@@ -45,7 +45,7 @@ anything here, like connecting to onyx, calling APIs, navigating.
 
 There are some common actions that are common among different test cases:
 
-- `src/libs/E2E/actions/e2eLogin.js` - Log a user into the app.
+-   `src/libs/E2E/actions/e2eLogin.js` - Log a user into the app.
 
 The test will be called once the app is ready, which mean you can immediately start.
 Your test is expected to default export its test function.
@@ -55,25 +55,22 @@ An example test, which test the time it takes to navigate to a screen might look
 ```js
 // new file in src/libs/E2E/tests/anotherTest.e2e.js
 
-import Navigation from "src/libs/Navigation/Navigation";
-import Performance from "src/libs/Performance";
-import E2EClient from "./client.js";
+import Navigation from 'src/libs/Navigation/Navigation';
+import Performance from 'src/libs/Performance';
+import E2EClient from './client.js';
 
 const test = () => {
-  const firstReportIDInList = // ... some logic to get a report
-  
-  performance.markStart("navigateToReport");
-  Navigation.navigate(ROUTES.getReportRoute(firstReportIDInList));
+    const firstReportIDInList = performance.markStart('navigateToReport'); // ... some logic to get a report
+    Navigation.navigate(ROUTES.getReportRoute(firstReportIDInList));
 
-  // markEnd will be called in the Screen's implementation
-  performance.subscribeToMeasurements("navigateToReport", (measurement) => {
-      // ... do something with the measurements
-      E2EClient.submitTestResults({
-          name: "Navigate to report",
-          duration: measurement.duration,
-      }).then(E2EClient.submitTestDone)
-  });
-    
+    // markEnd will be called in the Screen's implementation
+    performance.subscribeToMeasurements('navigateToReport', (measurement) => {
+        // ... do something with the measurements
+        E2EClient.submitTestResults({
+            name: 'Navigate to report',
+            duration: measurement.duration,
+        }).then(E2EClient.submitTestDone);
+    });
 };
 
 export default test;
@@ -99,4 +96,3 @@ Done! When you now start the test runner, your new test will be executed as well
 To check your new test you can simply run `npm run test:e2e`, which uses the
 `--development` flag. This will run the tests on the branch you are currently on
 and will do fewer iterations.
-

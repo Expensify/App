@@ -18,12 +18,7 @@ const getVersionNumberFromString = (versionString) => {
     const [version, build] = versionString.split('-');
     const [major, minor, patch] = _.map(version.split('.'), (n) => Number(n));
 
-    return [
-        major,
-        minor,
-        patch,
-        Number.isInteger(Number(build)) ? Number(build) : 0,
-    ];
+    return [major, minor, patch, Number.isInteger(Number(build)) ? Number(build) : 0];
 };
 
 /**
@@ -35,8 +30,7 @@ const getVersionNumberFromString = (versionString) => {
  * @param {Number} [build]
  * @returns {String}
  */
-const getVersionStringFromNumber = (major, minor, patch, build = 0) =>
-    `${major}.${minor}.${patch}-${build}`;
+const getVersionStringFromNumber = (major, minor, patch, build = 0) => `${major}.${minor}.${patch}-${build}`;
 
 /**
  * Increments a minor version
