@@ -27,6 +27,9 @@ class PressableWithSecondaryInteraction extends Component {
         this.pressableRef.removeEventListener('contextmenu', this.executeSecondaryInteractionOnContextMenu);
     }
 
+    /**
+     * @param {Event} e - the secondary interaction event
+     */
     executeSecondaryInteraction(e) {
         if (DeviceCapabilities.hasHoverSupport()) {
             return;
