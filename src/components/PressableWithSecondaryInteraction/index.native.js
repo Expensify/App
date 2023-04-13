@@ -18,14 +18,11 @@ const PressableWithSecondaryInteraction = (props) => {
         <Node
             ref={props.forwardedRef}
             onPress={props.onPress}
-            onLongPress={(e) => {
-                if (!props.onSecondaryInteraction) {
-                    return;
-                }
+            onLongPress={props.onSecondaryInteraction ? (e) => {
                 e.preventDefault();
                 HapticFeedback.longPress();
                 props.onSecondaryInteraction(e);
-            }}
+            } : undefined}
             onPressIn={props.onPressIn}
             onPressOut={props.onPressOut}
             // eslint-disable-next-line react/jsx-props-no-spreading
