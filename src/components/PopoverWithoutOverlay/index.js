@@ -1,6 +1,7 @@
 import React from 'react';
 import {Pressable, View} from 'react-native';
 import {SafeAreaInsetsContext} from 'react-native-safe-area-context';
+import {PopoverContext} from '../PopoverProvider';
 import * as Modal from '../../libs/actions/Modal';
 import {propTypes, defaultProps} from './popoverPropTypes';
 import styles from '../../styles/styles';
@@ -14,6 +15,7 @@ import withWindowDimensions from '../withWindowDimensions';
  */
 const Popover = (props) => {
     const ref = React.useRef(null);
+    const {onOpen} = React.useContext(PopoverContext);
 
     const {
         modalStyle,
@@ -35,65 +37,12 @@ const Popover = (props) => {
     );
 
     React.useEffect(() => {
-        const listener = (e) => {
-            if (!ref.current || ref.current.contains(e.target)) {
-                return;
-            }
-            props.onClose();
-        };
-        document.addEventListener('click', listener, true);
-        return () => {
-            document.removeEventListener('click', listener, true);
-        };
-    }, []);
-
-    React.useEffect(() => {
-        const listener = (e) => {
-            if (e.key !== 'Escape') {
-                return;
-            }
-            props.onClose();
-        };
-        document.addEventListener('keydown', listener);
-        return () => {
-            document.removeEventListener('keydown', listener);
-        };
-    }, []);
-
-    React.useEffect(() => {
-        const listener = () => {
-            if (document.hasFocus()) {
-                return;
-            }
-            props.onClose();
-        };
-        document.addEventListener('visibilitychange', listener);
-        return () => {
-            document.removeEventListener('visibilitychange', listener);
-        };
-    }, []);
-
-    React.useEffect(() => {
-        const listener = () => {
-            props.onClose();
-        };
-        document.addEventListener('contextmenu', listener);
-        return () => {
-            document.removeEventListener('contextmenu', listener);
-        };
-    }, []);
-
-    React.useEffect(() => {
-        Modal.setCloseModal(props.onClose);
-
-        return () => {
-            Modal.setCloseModal(null);
-        };
-    }, []);
-
-    React.useEffect(() => {
         if (props.isVisible) {
             props.onModalShow();
+            onOpen({
+                ref,
+                close: props.onClose,
+            });
         } else {
             props.onModalHide();
         }
