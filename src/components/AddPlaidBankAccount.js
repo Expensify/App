@@ -78,9 +78,7 @@ class AddPlaidBankAccount extends React.Component {
 
     componentDidMount() {
         // If we're coming from Plaid OAuth flow then we need to reuse the existing plaidLinkToken
-        if ((this.props.receivedRedirectURI && this.props.plaidLinkOAuthToken)
-            || !_.isEmpty(lodashGet(this.props.plaidData, 'bankAccounts'))
-            || !_.isEmpty(lodashGet(this.props.plaidData, 'errors'))) {
+        if (this.isAuthenticatedWithPlaid()) {
             return;
         }
 
@@ -88,11 +86,11 @@ class AddPlaidBankAccount extends React.Component {
     }
 
     componentDidUpdate(prevProps) {
-        if (!prevProps.network.isOffline || this.props.network.isOffline) {
+        if (!prevProps.network.isOffline || this.props.network.isOffline || this.isAuthenticatedWithPlaid()) {
             return;
         }
 
-        // If we are coming back from offline, we need to re-run our call to kick off Plaid
+        // If we are coming back from offline and we haven't authenticated with Plaid yet, we need to re-run our call to kick off Plaid
         BankAccounts.openPlaidBankLogin(this.props.allowDebit, this.props.bankAccountID);
     }
 
@@ -107,6 +105,15 @@ class AddPlaidBankAccount extends React.Component {
         if (this.props.receivedRedirectURI && this.props.plaidLinkOAuthToken) {
             return this.props.plaidLinkOAuthToken;
         }
+    }
+
+    /**
+     * @returns {Boolean}
+     */
+    isAuthenticatedWithPlaid() {
+        return ((this.props.receivedRedirectURI && this.props.plaidLinkOAuthToken)
+                || !_.isEmpty(lodashGet(this.props.plaidData, 'bankAccounts'))
+                || !_.isEmpty(lodashGet(this.props.plaidData, 'errors')));
     }
 
     render() {

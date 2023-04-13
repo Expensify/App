@@ -30,7 +30,7 @@ Onyx.connect({
     },
 });
 
-let preferredLocale = CONST.DEFAULT_LOCALE;
+let preferredLocale = CONST.LOCALES.DEFAULT;
 Onyx.connect({
     key: ONYXKEYS.NVP_PREFERRED_LOCALE,
     callback: (val) => {
@@ -850,6 +850,13 @@ function getPayMoneyRequestParams(chatReport, iouReport, recipient, paymentMetho
                 [optimisticIOUReportAction.reportActionID]: {
                     pendingAction: null,
                 },
+            },
+        },
+        {
+            onyxMethod: CONST.ONYX.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT}${chatReport.reportID}`,
+            value: {
+                iouReportID: null,
             },
         },
     ];

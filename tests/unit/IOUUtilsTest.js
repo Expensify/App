@@ -1,3 +1,4 @@
+import CONST from '../../src/CONST';
 import * as IOUUtils from '../../src/libs/IOUUtils';
 import * as ReportUtils from '../../src/libs/ReportUtils';
 
@@ -49,7 +50,7 @@ beforeEach(() => {
         amount,
         chatReportID,
         currency,
-        'en',
+        CONST.LOCALES.EN,
     );
 
     // The starting point of all tests is the IOUReport containing a single non-pending transaction in USD
