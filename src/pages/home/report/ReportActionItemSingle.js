@@ -20,6 +20,7 @@ import ControlSelection from '../../../libs/ControlSelection';
 import * as ReportUtils from '../../../libs/ReportUtils';
 import OfflineWithFeedback from '../../../components/OfflineWithFeedback';
 import CONST from '../../../CONST';
+import Text from '../../../components/Text';
 
 const propTypes = {
     /** All the data of the action */
@@ -38,6 +39,9 @@ const propTypes = {
     /** Show header for action */
     showHeader: PropTypes.bool,
 
+    /** Current domain of report */
+    currentDomain: PropTypes.string,
+
     ...withLocalizePropTypes,
 };
 
@@ -45,6 +49,7 @@ const defaultProps = {
     personalDetails: {},
     wrapperStyles: [styles.chatItem],
     showHeader: true,
+    currentDomain: null,
 };
 
 const showUserDetails = (email) => {
@@ -67,6 +72,8 @@ const ReportActionItemSingle = (props) => {
     const personArray = displayName
         ? [{type: 'TEXT', text: Str.isSMSLogin(login) ? props.toLocalPhone(displayName) : displayName}]
         : props.action.person;
+
+    const handle = ReportUtils.getPersonHandle(lodashGet(personArray, '[0].text', null), actorEmail, props.currentDomain);
 
     return (
         <View style={props.wrapperStyles}>
@@ -107,6 +114,7 @@ const ReportActionItemSingle = (props) => {
                                 />
                             ))}
                         </Pressable>
+                        {!!handle && <Text numberOfLines={1} ellipsizeMode="head" style={[styles.chatItemProfileHandle, styles.flexShrink1, styles.mr1]}>{handle}</Text>}
                         <ReportActionItemDate created={props.action.created} />
                     </View>
                 ) : null}

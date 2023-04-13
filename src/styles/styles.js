@@ -1380,6 +1380,13 @@ const styles = {
         ...wordBreak.breakWord,
     },
 
+    chatItemProfileHandle: {
+        fontFamily: fontFamily.EXP_NEUE_BOLD,
+        color: themeColors.textSupporting,
+        fontSize: variables.fontSizeNormal,
+        lineHeight: variables.lineHeightXLarge,
+    },
+
     chatItemMessageHeaderTimestamp: {
         flexShrink: 0,
         color: themeColors.textSupporting,

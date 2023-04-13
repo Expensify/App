@@ -4,6 +4,7 @@ import lodashGet from 'lodash/get';
 import lodashIntersection from 'lodash/intersection';
 import Onyx from 'react-native-onyx';
 import ExpensiMark from 'expensify-common/lib/ExpensiMark';
+import {PUBLIC_DOMAINS} from 'expensify-common/lib/CONST';
 import ONYXKEYS from '../ONYXKEYS';
 import CONST from '../CONST';
 import * as Localize from './Localize';
@@ -407,6 +408,42 @@ function getRoomWelcomeMessage(report, policiesMap) {
     }
 
     return welcomeMessage;
+}
+
+/**
+ * Function to get the handle of a person based on their display name, primary login, and viewer domain.
+ * @param {String} displayName the display name of the person
+ * @param {String} primaryLogin the primary login of the person, in the format of "username@domain.com"
+ * @param {String} viewerDomain the domain of the viewer in the format of "+@domain.com"
+ * @returns {String | null} the handle of the person, in the format of "@username", or null if no handle can be determined
+ */
+function getPersonHandle(displayName, primaryLogin, viewerDomain) {
+    let handle = null;
+
+    const normalizedViewerDomain = viewerDomain && viewerDomain.startsWith('+@') ? viewerDomain.slice(2) : undefined;
+
+    const isPublicEmail = primaryLogin
+        && normalizedViewerDomain
+        && _.some(PUBLIC_DOMAINS, d => primaryLogin.includes(d));
+
+    if (primaryLogin) {
+        const [username, userDomain] = primaryLogin.split('@');
+        if (CONST.REGEX.POSITIVE_INTEGER.test(username.replace('+', '')) && displayName !== username) {
+            handle = username.replace('+', '');
+        } else if (isPublicEmail != null && !isPublicEmail && normalizedViewerDomain === userDomain) {
+            handle = username;
+        } else {
+            handle = primaryLogin;
+        }
+    }
+
+    if (displayName === handle) {
+        handle = null;
+    } else if (handle) {
+        handle = `@${handle}`;
+    }
+
+    return handle;
 }
 
 /**
@@ -1753,6 +1790,7 @@ export {
     getChatByParticipants,
     getAllPolicyReports,
     getIOUReportActionMessage,
+    getPersonHandle,
     getDisplayNameForParticipant,
     isExpenseReport,
     isIOUReport,
