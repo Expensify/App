@@ -3,6 +3,7 @@ import React from 'react';
 import PropTypes from 'prop-types';
 import {withOnyx} from 'react-native-onyx';
 import {View} from 'react-native';
+import moment from 'moment/moment';
 import IdologyQuestions from './IdologyQuestions';
 import ScreenWrapper from '../../components/ScreenWrapper';
 import HeaderWithCloseButton from '../../components/HeaderWithCloseButton';
@@ -108,6 +109,9 @@ class AdditionalDetailsStep extends React.Component {
             ssn: 'common.ssnLast4',
             ssnFull9: 'common.ssnFull9',
         };
+
+        this.minDate = moment().subtract(CONST.DATE_BIRTH.MAX_AGE, 'Y').toDate();
+        this.maxDate = moment().subtract(CONST.DATE_BIRTH.MIN_AGE_FOR_PAYMENT, 'Y').toDate();
     }
 
     /**
@@ -262,6 +266,8 @@ class AdditionalDetailsStep extends React.Component {
                             containerStyles={[styles.mt4]}
                             label={this.props.translate(this.fieldNameTranslationKeys.dob)}
                             placeholder={this.props.translate('common.dob')}
+                            minDate={this.minDate}
+                            maxDate={this.maxDate}
                             shouldSaveDraft
                         />
                         <TextInput
