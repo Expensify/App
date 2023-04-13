@@ -15,6 +15,7 @@ import ROUTES from '../../ROUTES';
 import * as SessionUtils from '../SessionUtils';
 import getCurrentUrl from '../Navigation/currentUrl';
 import * as Session from './Session';
+import DateUtils from '../DateUtils';
 
 let currentUserAccountID;
 let currentUserEmail = '';
@@ -287,7 +288,19 @@ function openProfile() {
 }
 
 function beginDeepLinkRedirect() {
-    API.read('BeginDeepLinkRedirect');
+    API.read('BeginDeepLinkRedirect', {}, {
+        failureData: [{
+            onyxMethod: CONST.ONYX.METHOD.MERGE,
+            key: ONYXKEYS.SESSION,
+            value: {
+                shortLivedTokenForDeepLink: {
+                    // We won't actually show this error anywhere, but it is necessary for the DeeplinkWrapper component to continue if this request fails for some reason
+                    // eslint-disable-next-line rulesdir/prefer-localization
+                    errors: {[DateUtils.getMicroseconds()]: ''},
+                },
+            },
+        }],
+    });
 }
 
 export {
