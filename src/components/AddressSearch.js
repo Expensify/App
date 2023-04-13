@@ -263,6 +263,7 @@ const AddressSearch = (props) => {
                             displayListViewBorder && styles.borderTopRounded,
                             displayListViewBorder && styles.borderBottomRounded,
                             displayListViewBorder && styles.mt1,
+                            displayListViewBorder && styles.pv1,
                             styles.overflowAuto,
                             styles.borderLeft,
                             styles.borderRight,
