@@ -1,4 +1,4 @@
-import React from 'react';
+import React, {useRef} from 'react';
 import _ from 'underscore';
 import {View} from 'react-native';
 import PropTypes from 'prop-types';
@@ -8,9 +8,9 @@ import emojis from '../../../assets/emojis';
 import AddReactionBubble from './AddReactionBubble';
 import withCurrentUserPersonalDetails, {withCurrentUserPersonalDetailsDefaultProps, withCurrentUserPersonalDetailsPropTypes} from '../withCurrentUserPersonalDetails';
 import getPreferredEmojiCode from './getPreferredEmojiCode';
-
+import * as PersonalDetailsUtils from '../../libs/PersonalDetailsUtils';
 import * as Report from '../../libs/actions/Report';
-
+import * as ReactionList from '../../pages/home/report/ReactionList/ReactionList';
 import Tooltip from '../Tooltip';
 import ReactionTooltipContent from './ReactionTooltipContent';
 
@@ -57,15 +57,6 @@ const propTypes = {
      */
     toggleReaction: PropTypes.func.isRequired,
 
-    /** A ref to PressableWithSecondaryInteraction */
-    forwardedRef: PropTypes.oneOfType([
-        PropTypes.func,
-        PropTypes.shape({current: PropTypes.instanceOf(React.Component)}),
-    ]).isRequired,
-
-    /** Function which opens Reaction List popup */
-    onReactionListOpen: PropTypes.func.isRequired,
-
     ...withCurrentUserPersonalDetailsPropTypes,
 };
 
@@ -74,10 +65,14 @@ const defaultProps = {
 };
 
 const ReportActionItemReactions = (props) => {
+    const popoverReactionListAnchor = useRef(null);
     const reactionsWithCount = _.filter(props.reactions, reaction => reaction.users.length > 0);
 
     return (
-        <View style={[styles.flexRow, styles.flexWrap]}>
+        <View
+            ref={popoverReactionListAnchor}
+            style={[styles.flexRow, styles.flexWrap]}
+        >
             {_.map(reactionsWithCount, (reaction) => {
                 const reactionCount = reaction.users.length;
                 const reactionUsers = _.map(reaction.users, sender => sender.accountID.toString());
@@ -89,7 +84,16 @@ const ReportActionItemReactions = (props) => {
                     props.toggleReaction(emoji);
                 };
                 const onReactionListOpen = (event) => {
-                    props.onReactionListOpen(event, reactionUsers, reaction.emoji, emojiCodes, reactionCount, hasUserReacted);
+                    const users = PersonalDetailsUtils.getPersonalDetailsByIDs(reactionUsers);
+                    ReactionList.showReactionList(
+                        event,
+                        popoverReactionListAnchor.current,
+                        users,
+                        reaction.emoji,
+                        emojiCodes,
+                        reactionCount,
+                        hasUserReacted,
+                    );
                 };
 
                 return (
@@ -124,8 +128,5 @@ const ReportActionItemReactions = (props) => {
 ReportActionItemReactions.displayName = 'ReportActionItemReactions';
 ReportActionItemReactions.propTypes = propTypes;
 ReportActionItemReactions.defaultProps = defaultProps;
-export default withCurrentUserPersonalDetails(React.forwardRef((props, ref) => (
-    // eslint-disable-next-line react/jsx-props-no-spreading
-    <ReportActionItemReactions {...props} forwardedRef={ref} />
-)));
+export default withCurrentUserPersonalDetails(ReportActionItemReactions);
 

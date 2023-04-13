@@ -38,9 +38,7 @@ import {ShowContextMenuContext} from '../../../components/ShowContextMenuContext
 import focusTextInputAfterAnimation from '../../../libs/focusTextInputAfterAnimation';
 import ChronosOOOListActions from '../../../components/ReportActionItem/ChronosOOOListActions';
 import ReportActionItemReactions from '../../../components/Reactions/ReportActionItemReactions';
-import * as ReactionList from './ReactionList/ReactionList';
 import * as Report from '../../../libs/actions/Report';
-import * as PersonalDetailsUtils from '../../../libs/PersonalDetailsUtils';
 import withLocalize from '../../../components/withLocalize';
 
 const propTypes = {
@@ -84,7 +82,6 @@ class ReportActionItem extends Component {
     constructor(props) {
         super(props);
         this.popoverAnchor = undefined;
-        this.popoverReactionListAnchor = undefined;
         this.state = {
             isContextMenuActive: ReportActionContextMenu.isActiveReportAction(props.action.reportActionID),
         };
@@ -216,27 +213,13 @@ class ReportActionItem extends Component {
 
         const reactions = _.get(this.props, ['action', 'message', 0, 'reactions'], []);
         const hasReactions = reactions.length > 0;
-        const onReactionListOpen = (event, reactionUsers, emojiName, emojiCode, emojiCount, hasUserReacted) => {
-            const users = PersonalDetailsUtils.getPersonalDetailsByIDs(reactionUsers);
-            ReactionList.showReactionList(
-                event,
-                this.popoverReactionListAnchor,
-                users,
-                emojiName,
-                emojiCode,
-                emojiCount,
-                hasUserReacted,
-            );
-        };
         return (
             <>
                 {children}
                 {hasReactions && (
                     <ReportActionItemReactions
-                        ref={el => this.popoverReactionListAnchor = el}
                         reactions={reactions}
                         toggleReaction={this.toggleReaction}
-                        onReactionListOpen={onReactionListOpen}
                     />
                 )}
             </>

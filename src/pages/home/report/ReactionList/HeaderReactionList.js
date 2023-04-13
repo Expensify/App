@@ -1,5 +1,6 @@
 import React from 'react';
 import {View, TouchableOpacity} from 'react-native';
+import PropTypes from 'prop-types';
 import styles from '../../../../styles/styles';
 import withLocalize, {withLocalizePropTypes} from '../../../../components/withLocalize';
 import Text from '../../../../components/Text';
@@ -11,21 +12,28 @@ import {
     defaultProps as reactionDefaultProps,
 } from './reactionPropTypes';
 import compose from '../../../../libs/compose';
-import withWindowDimensions from '../../../../components/withWindowDimensions';
+import withWindowDimensions, {windowDimensionsPropTypes} from '../../../../components/withWindowDimensions';
 
 const propTypes = {
     ...reactionPropTypes,
     ...withLocalizePropTypes,
+    ...windowDimensionsPropTypes,
+
+    /**
+     * Returns true if the current account has reacted to the report action (with the given skin tone).
+     */
+    hasUserReacted: PropTypes.bool,
 };
 
 const defaultProps = {
     ...reactionDefaultProps,
+    hasUserReacted: false,
 };
 
 const HeaderReactionList = props => (
     <View style={[styles.flexRow, styles.justifyContentBetween, styles.alignItemsCenter, styles.emojiReactionListHeader, !props.isSmallScreenWidth && styles.pt4]}>
         <View style={styles.flexRow}>
-            <View style={[styles.emojiReactionListHeaderBubble, StyleUtils.getEmojiReactionListHeaderBubbleStyle(props.hasUserReacted)]}>
+            <View style={[styles.emojiReactionListHeaderBubble, StyleUtils.getEmojiReactionBubbleStyle(false, props.hasUserReacted)]}>
                 <Text style={[styles.emojiReactionText, StyleUtils.getEmojiReactionTextStyle(props.sizeScale)]}>
                     {props.emojiCodes.join('')}
                 </Text>

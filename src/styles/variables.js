@@ -104,4 +104,5 @@ export default {
     verticalLogoWidth: 111,
     badgeMaxWidth: 180,
     modalContentMaxWidth: 360,
+    listItemHeightNormal: 64,
 };

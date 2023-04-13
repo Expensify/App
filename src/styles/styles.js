@@ -19,7 +19,6 @@ import pointerEventsNone from './pointerEventsNone';
 import pointerEventsAuto from './pointerEventsAuto';
 import overflowXHidden from './overflowXHidden';
 import CONST from '../CONST';
-import colors from './colors';
 
 const picker = {
     backgroundColor: themeColors.transparent,
@@ -2974,7 +2973,7 @@ const styles = {
     emojiReactionListHeader: {
         marginTop: 8,
         paddingBottom: 20,
-        borderBottomColor: colors.greenBorders,
+        borderBottomColor: themeColors.border,
         borderBottomWidth: 1,
         marginHorizontal: 20,
     },
@@ -2990,13 +2989,12 @@ const styles = {
         marginRight: 4,
     },
     reactionListItem: {
-        display: 'flex',
         flexDirection: 'row',
         paddingVertical: 12,
         paddingHorizontal: 20,
     },
     reactionListHeaderText: {
-        color: colors.greenSupportingText,
+        color: themeColors.textSupporting,
         marginTop: 1,
         marginLeft: 8,
     },
@@ -3040,7 +3038,8 @@ const styles = {
     },
 
     reactionListContainer: {
-        maxHeight: 450,
+        maxHeight: variables.listItemHeightNormal * 5.75,
+        ...spacing.pv2,
     },
 
     validateCodeDigits: {

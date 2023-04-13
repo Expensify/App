@@ -3,7 +3,6 @@ import PropTypes from 'prop-types';
 import styles from '../../styles/styles';
 import Text from '../Text';
 import * as StyleUtils from '../../styles/StyleUtils';
-import {withCurrentUserPersonalDetailsDefaultProps, withCurrentUserPersonalDetailsPropTypes} from '../withCurrentUserPersonalDetails';
 import PressableWithSecondaryInteraction from '../PressableWithSecondaryInteraction';
 import withWindowDimensions, {windowDimensionsPropTypes} from '../withWindowDimensions';
 
@@ -41,7 +40,6 @@ const propTypes = {
      */
     hasUserReacted: PropTypes.bool,
 
-    ...withCurrentUserPersonalDetailsPropTypes,
     ...windowDimensionsPropTypes,
 };
 
@@ -50,8 +48,6 @@ const defaultProps = {
     onReactionListOpen: () => {},
     sizeScale: 1,
     hasUserReacted: false,
-
-    ...withCurrentUserPersonalDetailsDefaultProps,
 };
 
 const EmojiReactionBubble = props => (
@@ -63,7 +59,7 @@ const EmojiReactionBubble = props => (
         onPress={props.onPress}
         onLongPress={props.onReactionListOpen}
         onSecondaryInteraction={props.onReactionListOpen}
-        ref={props.forwardRef}
+        ref={props.forwardedRef}
         isLongPressEnabledWithHover={props.isSmallScreenWidth}
 
             // Prevent text input blur when emoji reaction is clicked
@@ -95,5 +91,5 @@ EmojiReactionBubble.displayName = 'EmojiReactionBubble';
 
 export default withWindowDimensions(React.forwardRef((props, ref) => (
     /* eslint-disable-next-line react/jsx-props-no-spreading */
-    <EmojiReactionBubble {...props} forwardRef={ref} />
+    <EmojiReactionBubble {...props} forwardedRef={ref} />
 )));
