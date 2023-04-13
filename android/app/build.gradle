@@ -234,7 +234,7 @@ android {
             applicationId "com.expensify.chat"
         }
         adhoc {
-            applicationId "com.expensify.chat.internal"
+            applicationId "com.expensify.chat.adhoc"
         }
         development {
             applicationId "com.expensify.chat.dev"
