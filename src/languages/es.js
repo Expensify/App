@@ -474,7 +474,7 @@ export default {
         gotIt: 'Ok, entendido',
     },
     addPayPalMePage: {
-        enterYourUsernameToGetPaidViaPayPal: 'Recibe pagos via PayPal.',
+        enterYourUsernameToGetPaidViaPayPal: 'Recibe pagos vía PayPal.',
         payPalMe: 'PayPal.me/',
         yourPayPalUsername: 'Tu usuario de PayPal',
         addPayPalAccount: 'Agregar cuenta de PayPal',
