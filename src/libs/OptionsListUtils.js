@@ -169,7 +169,7 @@ function getPersonalDetailsForLogins(logins, personalDetails) {
 /**
  * Get the participant options for a report.
  * @param {Object} report
- * @param {Array<Object>} personalDetailList
+ * @param {Array<Object>} personalDetails
  * @returns {Array}
  */
 function getParticipantsOptions(report, personalDetails) {

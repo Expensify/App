@@ -104,10 +104,6 @@ const Steps = {
 };
 
 const MoneyRequestModal = (props) => {
-    const participantsWithDetails = ReportUtils.isPolicyExpenseChat(props.report)
-        ? OptionsListUtils.getPolicyExpenseReportOptions(props.report)
-        : OptionsListUtils.getParticipantsOptions(props.report, props.personalDetails);
-
     // Skip IOUParticipants step if participants are passed in
     const reportParticipants = lodashGet(props, 'report.participants', []);
     const steps = reportParticipants.length ? [Steps.MoneyRequestAmount, Steps.MoneyRequestConfirm] : [Steps.MoneyRequestAmount, Steps.MoneyRequestParticipants, Steps.MoneyRequestConfirm];
@@ -117,7 +113,11 @@ const MoneyRequestModal = (props) => {
 
     const [previousStepIndex, setPreviousStepIndex] = useState(0);
     const [currentStepIndex, setCurrentStepIndex] = useState(0);
-    const [selectedOptions, setSelectedOptions] = useState(participantsWithDetails);
+    const [selectedOptions, setSelectedOptions] = useState(
+        ReportUtils.isPolicyExpenseChat(props.report)
+            ? OptionsListUtils.getPolicyExpenseReportOptions(props.report)
+            : OptionsListUtils.getParticipantsOptions(props.report, props.personalDetails),
+    );
     const [amount, setAmount] = useState('');
     const [comment, setComment] = useState('');
 
