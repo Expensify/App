@@ -26,12 +26,7 @@ class Modal extends Component {
     }
 
     closeOnOutsideClick(event) {
-        if (
-            !this.props.isVisible ||
-            !this.baseModalRef ||
-            this.baseModalRef.contains(event.target) ||
-            !this.props.shouldCloseOnOutsideClick
-        ) {
+        if (!this.props.isVisible || !this.baseModalRef || this.baseModalRef.contains(event.target) || !this.props.shouldCloseOnOutsideClick) {
             return;
         }
 

@@ -32,18 +32,12 @@ class DeeplinkWrapper extends PureComponent {
 
         this.state = {
             appInstallationCheckStatus:
-                this.isMacOSWeb() &&
-                CONFIG.ENVIRONMENT !== CONST.ENVIRONMENT.DEV
-                    ? CONST.DESKTOP_DEEPLINK_APP_STATE.CHECKING
-                    : CONST.DESKTOP_DEEPLINK_APP_STATE.NOT_INSTALLED,
+                this.isMacOSWeb() && CONFIG.ENVIRONMENT !== CONST.ENVIRONMENT.DEV ? CONST.DESKTOP_DEEPLINK_APP_STATE.CHECKING : CONST.DESKTOP_DEEPLINK_APP_STATE.NOT_INSTALLED,
         };
     }
 
     componentDidMount() {
-        if (
-            !this.isMacOSWeb() ||
-            CONFIG.ENVIRONMENT === CONST.ENVIRONMENT.DEV
-        ) {
+        if (!this.isMacOSWeb() || CONFIG.ENVIRONMENT === CONST.ENVIRONMENT.DEV) {
             return;
         }
 
@@ -56,13 +50,11 @@ class DeeplinkWrapper extends PureComponent {
         setTimeout(() => {
             if (!focused) {
                 this.setState({
-                    appInstallationCheckStatus:
-                        CONST.DESKTOP_DEEPLINK_APP_STATE.INSTALLED,
+                    appInstallationCheckStatus: CONST.DESKTOP_DEEPLINK_APP_STATE.INSTALLED,
                 });
             } else {
                 this.setState({
-                    appInstallationCheckStatus:
-                        CONST.DESKTOP_DEEPLINK_APP_STATE.NOT_INSTALLED,
+                    appInstallationCheckStatus: CONST.DESKTOP_DEEPLINK_APP_STATE.NOT_INSTALLED,
                 });
             }
         }, 500);
@@ -114,75 +106,33 @@ class DeeplinkWrapper extends PureComponent {
     }
 
     isMacOSWeb() {
-        return (
-            !Browser.isMobile() &&
-            typeof navigator === 'object' &&
-            typeof navigator.userAgent === 'string' &&
-            /Mac/i.test(navigator.userAgent) &&
-            !/Electron/i.test(navigator.userAgent)
-        );
+        return !Browser.isMobile() && typeof navigator === 'object' && typeof navigator.userAgent === 'string' && /Mac/i.test(navigator.userAgent) && !/Electron/i.test(navigator.userAgent);
     }
 
     render() {
-        if (
-            this.state.appInstallationCheckStatus ===
-            CONST.DESKTOP_DEEPLINK_APP_STATE.CHECKING
-        ) {
+        if (this.state.appInstallationCheckStatus === CONST.DESKTOP_DEEPLINK_APP_STATE.CHECKING) {
             return <FullScreenLoadingIndicator style={styles.flex1} />;
         }
 
-        if (
-            this.state.deeplinkMatch &&
-            this.state.appInstallationCheckStatus ===
-                CONST.DESKTOP_DEEPLINK_APP_STATE.INSTALLED
-        ) {
+        if (this.state.deeplinkMatch && this.state.appInstallationCheckStatus === CONST.DESKTOP_DEEPLINK_APP_STATE.INSTALLED) {
             return (
                 <View style={styles.deeplinkWrapperContainer}>
                     <View style={styles.deeplinkWrapperMessage}>
                         <View style={styles.mb2}>
-                            <Icon
-                                width={200}
-                                height={164}
-                                src={Illustrations.RocketBlue}
-                            />
+                            <Icon width={200} height={164} src={Illustrations.RocketBlue} />
                         </View>
-                        <Text style={[styles.textHeadline, styles.textXXLarge]}>
-                            {this.props.translate('deeplinkWrapper.launching')}
-                        </Text>
+                        <Text style={[styles.textHeadline, styles.textXXLarge]}>{this.props.translate('deeplinkWrapper.launching')}</Text>
                         <View style={styles.mt2}>
-                            <Text
-                                style={[
-                                    styles.fontSizeNormal,
-                                    styles.textAlignCenter,
-                                ]}
-                            >
-                                {this.props.translate(
-                                    'deeplinkWrapper.redirectedToDesktopApp',
-                                )}
+                            <Text style={[styles.fontSizeNormal, styles.textAlignCenter]}>
+                                {this.props.translate('deeplinkWrapper.redirectedToDesktopApp')}
                                 {'\n'}
-                                {this.props.translate(
-                                    'deeplinkWrapper.youCanAlso',
-                                )}{' '}
-                                <TextLink
-                                    onPress={() =>
-                                        this.setState({deeplinkMatch: false})
-                                    }
-                                >
-                                    {this.props.translate(
-                                        'deeplinkWrapper.openLinkInBrowser',
-                                    )}
-                                </TextLink>
-                                .
+                                {this.props.translate('deeplinkWrapper.youCanAlso')}{' '}
+                                <TextLink onPress={() => this.setState({deeplinkMatch: false})}>{this.props.translate('deeplinkWrapper.openLinkInBrowser')}</TextLink>.
                             </Text>
                         </View>
                     </View>
                     <View style={styles.deeplinkWrapperFooter}>
-                        <Icon
-                            width={154}
-                            height={34}
-                            fill={colors.green}
-                            src={Expensicons.ExpensifyWordmark}
-                        />
+                        <Icon width={154} height={34} fill={colors.green} src={Expensicons.ExpensifyWordmark} />
                     </View>
                 </View>
             );

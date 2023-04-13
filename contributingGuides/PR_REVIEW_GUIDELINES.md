@@ -4,24 +4,23 @@ This document lists specific guidelines for all PR reviews and aims to clarify i
 
 # Check PR template
 
-1. Make sure the “Fixed Issues” section is formatted correctly. Links should be clickable and lead to the correct issue being fixed by this PR.
-2. Make sure the testing steps are clear and correctly test the changes made. Make note of what’s required for the test account (i.e. do you need to test using a brand new account, have a workspace, have a bank account, etc).
-    - > **Rule of thumb**: Over-explain what the tester needs to do. Do not rely on the tester having existing knowledge of the app.
-      > 
-      > ### Example of bad steps:
-      >
-	  >	1. Go to this page
-	  >	2. Click the button
-      >
-      > ### Example of good steps:
-      >
-      > 1. Log in with an account that has a workspace, or follow `[these steps](link-to-instructions-for setting-up-workspace)` to make one.
-      > 2. Click the settings button on the top left (the one with your avatar)
-      > 3. Navigate to “Your Workspace” > Reimburse Receipts > Connect bank account
-      > 4. Verify that the bank account view opens without errors
-      >
-    - Take note of the distinction between testing _locally_ and _on staging_. Note: The staging site references the production version of the API.
-3. Make sure that the test includes both **success** and **fail** scenarios.
+1.  Make sure the “Fixed Issues” section is formatted correctly. Links should be clickable and lead to the correct issue being fixed by this PR.
+2.  Make sure the testing steps are clear and correctly test the changes made. Make note of what’s required for the test account (i.e. do you need to test using a brand new account, have a workspace, have a bank account, etc).
+    -   > **Rule of thumb**: Over-explain what the tester needs to do. Do not rely on the tester having existing knowledge of the app.
+        >
+        > ### Example of bad steps:
+        >
+        >     1. Go to this page
+        >     2. Click the button
+        >
+        > ### Example of good steps:
+        >
+        > 1. Log in with an account that has a workspace, or follow `[these steps](link-to-instructions-for setting-up-workspace)` to make one.
+        > 2. Click the settings button on the top left (the one with your avatar)
+        > 3. Navigate to “Your Workspace” > Reimburse Receipts > Connect bank account
+        > 4. Verify that the bank account view opens without errors
+    -   Take note of the distinction between testing _locally_ and _on staging_. Note: The staging site references the production version of the API.
+3.  Make sure that the test includes both **success** and **fail** scenarios.
     - Ex: if the issue was to prevent the user from saving a field when it is empty, besides testing that we should also test that they can save the field _if it is not empty_.
 
 # Testing the changes
@@ -37,7 +36,7 @@ This document lists specific guidelines for all PR reviews and aims to clarify i
 ## Good code patterns to require
 
 1. Check that functions have comments when appropriate.
-    - If the function has params or returns something, use [JSDocs syntax]((https://github.com/Expensify/App/blob/main/contributingGuides/STYLE.md#jsdocs)) to describe them.
+    - If the function has params or returns something, use [JSDocs syntax](<(https://github.com/Expensify/App/blob/main/contributingGuides/STYLE.md#jsdocs)>) to describe them.
         - Indicate the param name(s), data type passed and / or returned, and purpose if not immediately obvious.
     - Obvious functions (with no params / return value) should not have comments.
     - **In short: _Add comments & docs, only when useful._**

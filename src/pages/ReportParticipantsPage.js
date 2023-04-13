@@ -63,10 +63,7 @@ const getAllParticipants = (report, personalDetails) => {
             displayName: userPersonalDetail.displayName,
             icons: [
                 {
-                    source: ReportUtils.getAvatar(
-                        userPersonalDetail.avatar,
-                        login,
-                    ),
+                    source: ReportUtils.getAvatar(userPersonalDetail.avatar, login),
                     name: login,
                     type: CONST.ICON_TYPE_AVATAR,
                 },
@@ -75,41 +72,25 @@ const getAllParticipants = (report, personalDetails) => {
             login,
             text: userPersonalDetail.displayName,
             tooltipText: userLogin,
-            participantsList: [
-                {login: userLogin, displayName: userPersonalDetail.displayName},
-            ],
+            participantsList: [{login: userLogin, displayName: userPersonalDetail.displayName}],
         };
     });
 };
 
 const ReportParticipantsPage = (props) => {
-    const participants = getAllParticipants(
-        props.report,
-        props.personalDetails,
-    );
+    const participants = getAllParticipants(props.report, props.personalDetails);
 
     return (
         <ScreenWrapper includeSafeAreaPaddingBottom={false}>
             {({safeAreaPaddingBottomStyle}) => (
                 <FullPageNotFoundView shouldShow={_.isEmpty(props.report)}>
                     <HeaderWithCloseButton
-                        title={props.translate(
-                            ReportUtils.isChatRoom(props.report) ||
-                                ReportUtils.isPolicyExpenseChat(props.report)
-                                ? 'common.members'
-                                : 'common.details',
-                        )}
+                        title={props.translate(ReportUtils.isChatRoom(props.report) || ReportUtils.isPolicyExpenseChat(props.report) ? 'common.members' : 'common.details')}
                         onCloseButtonPress={Navigation.dismissModal}
                         onBackButtonPress={Navigation.goBack}
-                        shouldShowBackButton={
-                            ReportUtils.isChatRoom(props.report) ||
-                            ReportUtils.isPolicyExpenseChat(props.report)
-                        }
+                        shouldShowBackButton={ReportUtils.isChatRoom(props.report) || ReportUtils.isPolicyExpenseChat(props.report)}
                     />
-                    <View
-                        pointerEvents="box-none"
-                        style={[styles.containerWithSpaceBetween]}
-                    >
+                    <View pointerEvents="box-none" style={[styles.containerWithSpaceBetween]}>
                         {Boolean(participants.length) && (
                             <OptionsList
                                 sections={[
@@ -121,21 +102,14 @@ const ReportParticipantsPage = (props) => {
                                     },
                                 ]}
                                 onSelectRow={(option) => {
-                                    Navigation.navigate(
-                                        ROUTES.getReportParticipantRoute(
-                                            props.route.params.reportID,
-                                            option.login,
-                                        ),
-                                    );
+                                    Navigation.navigate(ROUTES.getReportParticipantRoute(props.route.params.reportID, option.login));
                                 }}
                                 hideSectionHeaders
                                 showTitleTooltip
                                 disableFocusOptions
                                 boldStyle
                                 optionHoveredStyle={styles.hoveredComponentBG}
-                                contentContainerStyles={[
-                                    safeAreaPaddingBottomStyle,
-                                ]}
+                                contentContainerStyles={[safeAreaPaddingBottomStyle]}
                             />
                         )}
                     </View>

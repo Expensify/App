@@ -15,9 +15,7 @@ function SaveResponseInOnyx(response, request) {
         // First apply any onyx data updates that are being sent back from the API. We wait for this to complete and then
         // apply successData or failureData. This ensures that we do not update any pending, loading, or other UI states contained
         // in successData/failureData until after the component has received and API data.
-        const onyxDataUpdatePromise = responseData.onyxData
-            ? Onyx.update(responseData.onyxData)
-            : Promise.resolve();
+        const onyxDataUpdatePromise = responseData.onyxData ? Onyx.update(responseData.onyxData) : Promise.resolve();
 
         onyxDataUpdatePromise.then(() => {
             // Handle the request's success/failure data (client-side data)

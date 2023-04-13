@@ -1,6 +1,6 @@
 ## Storybook
 
->Storybook is an open source tool for building UI components and pages in isolation. It streamlines UI development, testing, and documentation.
+> Storybook is an open source tool for building UI components and pages in isolation. It streamlines UI development, testing, and documentation.
 
 At Expensify, we primarily use [Storybook](https://storybook.js.org/) to provide interactive documentation of our design system. This helps bridge the gap between design and engineering to encourage code reusibility and improve communication.
 
@@ -26,7 +26,7 @@ npm run storybook
 
 ### What's a "story" and how do I create one?
 
->A story captures the rendered state of a UI component. Developers write multiple stories per component that describe all the “interesting” states a component can support.
+> A story captures the rendered state of a UI component. Developers write multiple stories per component that describe all the “interesting” states a component can support.
 
 All of our stories are located in a single directory `/src/stories`.
 
@@ -39,13 +39,13 @@ import React from 'react';
 import Button from '../components/Button';
 
 const story = {
-	// Title field will determine how the story displays in the sidebar
+    // Title field will determine how the story displays in the sidebar
     title: 'Components/Button',
     component: Button,
 };
 
 // Optional `args` are passed which determine the props the example component will have
-const Template = args => <Button {...args} />;
+const Template = (args) => <Button {...args} />;
 
 // Each story must be exported with a named export
 const Default = Template.bind({});
@@ -55,9 +55,7 @@ Default.args = {
 };
 
 export default story;
-export {
-    Default,
-};
+export {Default};
 ```
 
 That will give us an interactive playground to test out various component attributes with the defaults we passed.

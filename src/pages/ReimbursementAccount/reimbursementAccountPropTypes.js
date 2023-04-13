@@ -27,9 +27,7 @@ const reimbursementAccountPropTypes = PropTypes.shape({
     error: PropTypes.string,
 
     /** Which field needs attention? */
-    errorFields: PropTypes.objectOf(
-        PropTypes.oneOfType([PropTypes.bool, PropTypes.array]),
-    ),
+    errorFields: PropTypes.objectOf(PropTypes.oneOfType([PropTypes.bool, PropTypes.array])),
 
     /** Any additional error message to show */
     errors: PropTypes.objectOf(PropTypes.string),

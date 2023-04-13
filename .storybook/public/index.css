@@ -1,8 +1,11 @@
-.search-field *, .sidebar-item, .search-result-item--label {
+.search-field *,
+.sidebar-item,
+.search-result-item--label {
     color: #fff !important;
 }
 
-.sidebar-subheading *, .search-result-item {
+.sidebar-subheading *,
+.search-result-item {
     color: #fff;
 }
 

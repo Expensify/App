@@ -5,9 +5,7 @@ import Icon from './Icon';
 import styles from '../styles/styles';
 import * as StyleUtils from '../styles/StyleUtils';
 import getButtonState from '../libs/getButtonState';
-import withDelayToggleButtonState, {
-    withDelayToggleButtonStatePropTypes,
-} from './withDelayToggleButtonState';
+import withDelayToggleButtonState, {withDelayToggleButtonStatePropTypes} from './withDelayToggleButtonState';
 import BaseMiniContextMenuItem from './BaseMiniContextMenuItem';
 
 const propTypes = {
@@ -50,8 +48,7 @@ class ContextMenuItem extends Component {
     constructor(props) {
         super(props);
 
-        this.triggerPressAndUpdateSuccess =
-            this.triggerPressAndUpdateSuccess.bind(this);
+        this.triggerPressAndUpdateSuccess = this.triggerPressAndUpdateSuccess.bind(this);
     }
 
     /**
@@ -71,33 +68,11 @@ class ContextMenuItem extends Component {
     }
 
     render() {
-        const icon = this.props.isDelayButtonStateComplete
-            ? this.props.successIcon || this.props.icon
-            : this.props.icon;
-        const text = this.props.isDelayButtonStateComplete
-            ? this.props.successText || this.props.text
-            : this.props.text;
+        const icon = this.props.isDelayButtonStateComplete ? this.props.successIcon || this.props.icon : this.props.icon;
+        const text = this.props.isDelayButtonStateComplete ? this.props.successText || this.props.text : this.props.text;
         return this.props.isMini ? (
-            <BaseMiniContextMenuItem
-                tooltipText={text}
-                onPress={this.triggerPressAndUpdateSuccess}
-                isDelayButtonStateComplete={
-                    this.props.isDelayButtonStateComplete
-                }
-            >
-                {({hovered, pressed}) => (
-                    <Icon
-                        small
-                        src={icon}
-                        fill={StyleUtils.getIconFillColor(
-                            getButtonState(
-                                hovered,
-                                pressed,
-                                this.props.isDelayButtonStateComplete,
-                            ),
-                        )}
-                    />
-                )}
+            <BaseMiniContextMenuItem tooltipText={text} onPress={this.triggerPressAndUpdateSuccess} isDelayButtonStateComplete={this.props.isDelayButtonStateComplete}>
+                {({hovered, pressed}) => <Icon small src={icon} fill={StyleUtils.getIconFillColor(getButtonState(hovered, pressed, this.props.isDelayButtonStateComplete))} />}
             </BaseMiniContextMenuItem>
         ) : (
             <MenuItem

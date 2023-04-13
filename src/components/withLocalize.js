@@ -89,11 +89,7 @@ class LocaleContextProvider extends React.Component {
      * @returns {String}
      */
     translate(phrase, variables) {
-        return Localize.translate(
-            this.props.preferredLocale,
-            phrase,
-            variables,
-        );
+        return Localize.translate(this.props.preferredLocale, phrase, variables);
     }
 
     /**
@@ -102,11 +98,7 @@ class LocaleContextProvider extends React.Component {
      * @returns {String}
      */
     numberFormat(number, options) {
-        return NumberFormatUtils.format(
-            this.props.preferredLocale,
-            number,
-            options,
-        );
+        return NumberFormatUtils.format(this.props.preferredLocale, number, options);
     }
 
     /**
@@ -114,10 +106,7 @@ class LocaleContextProvider extends React.Component {
      * @returns {String}
      */
     datetimeToRelative(datetime) {
-        return DateUtils.datetimeToRelative(
-            this.props.preferredLocale,
-            datetime,
-        );
+        return DateUtils.datetimeToRelative(this.props.preferredLocale, datetime);
     }
 
     /**
@@ -126,15 +115,7 @@ class LocaleContextProvider extends React.Component {
      * @returns {String}
      */
     datetimeToCalendarTime(datetime, includeTimezone) {
-        return DateUtils.datetimeToCalendarTime(
-            this.props.preferredLocale,
-            datetime,
-            includeTimezone,
-            lodashGet(
-                this.props,
-                'currentUserPersonalDetails.timezone.selected',
-            ),
-        );
+        return DateUtils.datetimeToCalendarTime(this.props.preferredLocale, datetime, includeTimezone, lodashGet(this.props, 'currentUserPersonalDetails.timezone.selected'));
     }
 
     /**
@@ -142,10 +123,7 @@ class LocaleContextProvider extends React.Component {
      * @returns {String}
      */
     toLocalPhone(number) {
-        return LocalePhoneNumber.toLocalPhone(
-            this.props.preferredLocale,
-            number,
-        );
+        return LocalePhoneNumber.toLocalPhone(this.props.preferredLocale, number);
     }
 
     /**
@@ -153,10 +131,7 @@ class LocaleContextProvider extends React.Component {
      * @returns {String}
      */
     fromLocalPhone(number) {
-        return LocalePhoneNumber.fromLocalPhone(
-            this.props.preferredLocale,
-            number,
-        );
+        return LocalePhoneNumber.fromLocalPhone(this.props.preferredLocale, number);
     }
 
     /**
@@ -164,10 +139,7 @@ class LocaleContextProvider extends React.Component {
      * @returns {String}
      */
     toLocaleDigit(digit) {
-        return LocaleDigitUtils.toLocaleDigit(
-            this.props.preferredLocale,
-            digit,
-        );
+        return LocaleDigitUtils.toLocaleDigit(this.props.preferredLocale, digit);
     }
 
     /**
@@ -175,18 +147,11 @@ class LocaleContextProvider extends React.Component {
      * @returns {String}
      */
     fromLocaleDigit(localeDigit) {
-        return LocaleDigitUtils.fromLocaleDigit(
-            this.props.preferredLocale,
-            localeDigit,
-        );
+        return LocaleDigitUtils.fromLocaleDigit(this.props.preferredLocale, localeDigit);
     }
 
     render() {
-        return (
-            <LocaleContext.Provider value={this.getContextValue()}>
-                {this.props.children}
-            </LocaleContext.Provider>
-        );
+        return <LocaleContext.Provider value={this.getContextValue()}>{this.props.children}</LocaleContext.Provider>;
     }
 }
 
@@ -214,9 +179,7 @@ export default function withLocalize(WrappedComponent) {
         </LocaleContext.Consumer>
     ));
 
-    WithLocalize.displayName = `withLocalize(${getComponentDisplayName(
-        WrappedComponent,
-    )})`;
+    WithLocalize.displayName = `withLocalize(${getComponentDisplayName(WrappedComponent)})`;
 
     return WithLocalize;
 }

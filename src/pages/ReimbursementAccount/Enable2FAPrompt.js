@@ -2,9 +2,7 @@ import React from 'react';
 import {View} from 'react-native';
 import Text from '../../components/Text';
 import styles from '../../styles/styles';
-import withLocalize, {
-    withLocalizePropTypes,
-} from '../../components/withLocalize';
+import withLocalize, {withLocalizePropTypes} from '../../components/withLocalize';
 import * as Expensicons from '../../components/Icon/Expensicons';
 import * as Illustrations from '../../components/Icon/Illustrations';
 import Section from '../../components/Section';
@@ -23,11 +21,7 @@ const Enable2FAPrompt = (props) => (
             {
                 title: props.translate('validationStep.secureYourAccount'),
                 onPress: () => {
-                    Link.openOldDotLink(
-                        encodeURI(
-                            `settings?param={"section":"account","action":"enableTwoFactorAuth","exitTo":"${ROUTES.getBankAccountRoute()}","isFromNewDot":"true"}`,
-                        ),
-                    );
+                    Link.openOldDotLink(encodeURI(`settings?param={"section":"account","action":"enableTwoFactorAuth","exitTo":"${ROUTES.getBankAccountRoute()}","isFromNewDot":"true"}`));
                 },
                 icon: Expensicons.Shield,
                 shouldShowRightIcon: true,

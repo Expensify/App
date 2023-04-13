@@ -36,11 +36,7 @@ class BaseErrorBoundary extends React.Component {
     }
 
     componentDidCatch(error, errorInfo) {
-        this.props.logError(
-            this.props.errorMessage,
-            error,
-            JSON.stringify(errorInfo),
-        );
+        this.props.logError(this.props.errorMessage, error, JSON.stringify(errorInfo));
 
         // We hide the splash screen since the error might happened during app init
         BootSplash.hide();

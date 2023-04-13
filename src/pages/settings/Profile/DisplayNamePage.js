@@ -1,15 +1,10 @@
 import lodashGet from 'lodash/get';
 import React, {Component} from 'react';
 import {View} from 'react-native';
-import withCurrentUserPersonalDetails, {
-    withCurrentUserPersonalDetailsPropTypes,
-    withCurrentUserPersonalDetailsDefaultProps,
-} from '../../../components/withCurrentUserPersonalDetails';
+import withCurrentUserPersonalDetails, {withCurrentUserPersonalDetailsPropTypes, withCurrentUserPersonalDetailsDefaultProps} from '../../../components/withCurrentUserPersonalDetails';
 import ScreenWrapper from '../../../components/ScreenWrapper';
 import HeaderWithCloseButton from '../../../components/HeaderWithCloseButton';
-import withLocalize, {
-    withLocalizePropTypes,
-} from '../../../components/withLocalize';
+import withLocalize, {withLocalizePropTypes} from '../../../components/withLocalize';
 import ROUTES from '../../../ROUTES';
 import Form from '../../../components/Form';
 import ONYXKEYS from '../../../ONYXKEYS';
@@ -47,10 +42,7 @@ class DisplayNamePage extends Component {
      * @param {String} values.lastName
      */
     updateDisplayName(values) {
-        PersonalDetails.updateDisplayName(
-            values.firstName.trim(),
-            values.lastName.trim(),
-        );
+        PersonalDetails.updateDisplayName(values.firstName.trim(), values.lastName.trim());
     }
 
     /**
@@ -64,34 +56,15 @@ class DisplayNamePage extends Component {
 
         // First we validate the first name field
         if (!ValidationUtils.isValidDisplayName(values.firstName)) {
-            errors = ErrorUtils.addErrorMessage(
-                errors,
-                'firstName',
-                this.props.translate(
-                    'personalDetails.error.hasInvalidCharacter',
-                ),
-            );
+            errors = ErrorUtils.addErrorMessage(errors, 'firstName', this.props.translate('personalDetails.error.hasInvalidCharacter'));
         }
-        if (
-            ValidationUtils.doesContainReservedWord(
-                values.firstName,
-                CONST.DISPLAY_NAME.RESERVED_FIRST_NAMES,
-            )
-        ) {
-            errors = ErrorUtils.addErrorMessage(
-                errors,
-                'firstName',
-                this.props.translate(
-                    'personalDetails.error.containsReservedWord',
-                ),
-            );
+        if (ValidationUtils.doesContainReservedWord(values.firstName, CONST.DISPLAY_NAME.RESERVED_FIRST_NAMES)) {
+            errors = ErrorUtils.addErrorMessage(errors, 'firstName', this.props.translate('personalDetails.error.containsReservedWord'));
         }
 
         // Then we validate the last name field
         if (!ValidationUtils.isValidDisplayName(values.lastName)) {
-            errors.lastName = this.props.translate(
-                'personalDetails.error.hasInvalidCharacter',
-            );
+            errors.lastName = this.props.translate('personalDetails.error.hasInvalidCharacter');
         }
 
         return errors;
@@ -105,9 +78,7 @@ class DisplayNamePage extends Component {
                 <HeaderWithCloseButton
                     title={this.props.translate('displayNamePage.headerTitle')}
                     shouldShowBackButton
-                    onBackButtonPress={() =>
-                        Navigation.navigate(ROUTES.SETTINGS_PROFILE)
-                    }
+                    onBackButtonPress={() => Navigation.navigate(ROUTES.SETTINGS_PROFILE)}
                     onCloseButtonPress={() => Navigation.dismissModal(true)}
                 />
                 <Form
@@ -118,24 +89,14 @@ class DisplayNamePage extends Component {
                     submitButtonText={this.props.translate('common.save')}
                     enabledWhenOffline
                 >
-                    <Text style={[styles.mb6]}>
-                        {this.props.translate(
-                            'displayNamePage.isShownOnProfile',
-                        )}
-                    </Text>
+                    <Text style={[styles.mb6]}>{this.props.translate('displayNamePage.isShownOnProfile')}</Text>
                     <View style={styles.mb4}>
                         <TextInput
                             inputID="firstName"
                             name="fname"
                             label={this.props.translate('common.firstName')}
-                            defaultValue={lodashGet(
-                                currentUserDetails,
-                                'firstName',
-                                '',
-                            )}
-                            placeholder={this.props.translate(
-                                'displayNamePage.john',
-                            )}
+                            defaultValue={lodashGet(currentUserDetails, 'firstName', '')}
+                            placeholder={this.props.translate('displayNamePage.john')}
                             maxLength={CONST.DISPLAY_NAME.MAX_LENGTH}
                         />
                     </View>
@@ -144,14 +105,8 @@ class DisplayNamePage extends Component {
                             inputID="lastName"
                             name="lname"
                             label={this.props.translate('common.lastName')}
-                            defaultValue={lodashGet(
-                                currentUserDetails,
-                                'lastName',
-                                '',
-                            )}
-                            placeholder={this.props.translate(
-                                'displayNamePage.doe',
-                            )}
+                            defaultValue={lodashGet(currentUserDetails, 'lastName', '')}
+                            placeholder={this.props.translate('displayNamePage.doe')}
                             maxLength={CONST.DISPLAY_NAME.MAX_LENGTH}
                         />
                     </View>
@@ -164,7 +119,4 @@ class DisplayNamePage extends Component {
 DisplayNamePage.propTypes = propTypes;
 DisplayNamePage.defaultProps = defaultProps;
 
-export default compose(
-    withLocalize,
-    withCurrentUserPersonalDetails,
-)(DisplayNamePage);
+export default compose(withLocalize, withCurrentUserPersonalDetails)(DisplayNamePage);

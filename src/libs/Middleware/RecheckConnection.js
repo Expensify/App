@@ -6,10 +6,7 @@ import NetworkConnection from '../NetworkConnection';
  */
 function startRecheckTimeoutTimer() {
     // If request is still in processing after this time, we might be offline
-    const timerID = setTimeout(
-        NetworkConnection.recheckNetworkConnection,
-        CONST.NETWORK.MAX_PENDING_TIME_MS,
-    );
+    const timerID = setTimeout(NetworkConnection.recheckNetworkConnection, CONST.NETWORK.MAX_PENDING_TIME_MS);
     return () => clearTimeout(timerID);
 }
 

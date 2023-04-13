@@ -11,10 +11,7 @@ class Image extends React.Component {
     constructor(props) {
         super(props);
 
-        this.debouncedConfigureImageSource = _.debounce(
-            this.configureImageSource,
-            220,
-        );
+        this.debouncedConfigureImageSource = _.debounce(this.configureImageSource, 220);
 
         this.state = {
             imageSource: undefined,
@@ -47,15 +44,9 @@ class Image extends React.Component {
             // There is currently a `react-native-web` bug preventing the authToken being passed
             // in the headers of the image request so the authToken is added as a query param.
             // On native the authToken IS passed in the image request headers
-            const authToken = lodashGet(
-                this.props,
-                'session.encryptedAuthToken',
-                null,
-            );
+            const authToken = lodashGet(this.props, 'session.encryptedAuthToken', null);
             imageSource = {
-                uri: `${source.uri}?encryptedAuthToken=${encodeURIComponent(
-                    authToken,
-                )}`,
+                uri: `${source.uri}?encryptedAuthToken=${encodeURIComponent(authToken)}`,
             };
         }
         this.setState({imageSource});
@@ -73,7 +64,7 @@ class Image extends React.Component {
 
     render() {
         // eslint-disable-next-line
-        const { source, onLoad, ...rest } = this.props;
+        const {source, onLoad, ...rest} = this.props;
 
         // eslint-disable-next-line
         return <RNImage {...rest} source={this.state.imageSource} />;

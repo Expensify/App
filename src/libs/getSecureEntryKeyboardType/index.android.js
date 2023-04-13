@@ -8,7 +8,4 @@ import CONST from '../../CONST';
  * @param {Boolean} passwordHidden
  * @return {String}
  */
-export default (keyboardType, secureTextEntry, passwordHidden) =>
-    secureTextEntry && !passwordHidden
-        ? CONST.KEYBOARD_TYPE.VISIBLE_PASSWORD
-        : keyboardType;
+export default (keyboardType, secureTextEntry, passwordHidden) => (secureTextEntry && !passwordHidden ? CONST.KEYBOARD_TYPE.VISIBLE_PASSWORD : keyboardType);

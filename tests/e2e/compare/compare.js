@@ -50,17 +50,10 @@ function buildCompareEntry(name, compare, baseline) {
     const diff = compare.mean - baseline.mean;
     const relativeDurationDiff = diff / baseline.mean;
 
-    const z = computeZ(
-        baseline.mean,
-        baseline.stdev,
-        compare.mean,
-        compare.runs,
-    );
+    const z = computeZ(baseline.mean, baseline.stdev, compare.mean, compare.runs);
     const prob = computeProbability(z);
 
-    const isDurationDiffOfSignificance =
-        prob < PROBABILITY_CONSIDERED_SIGNIFICANCE &&
-        Math.abs(diff) >= DURATION_DIFF_THRESHOLD_SIGNIFICANCE;
+    const isDurationDiffOfSignificance = prob < PROBABILITY_CONSIDERED_SIGNIFICANCE && Math.abs(diff) >= DURATION_DIFF_THRESHOLD_SIGNIFICANCE;
 
     return {
         name,
@@ -81,12 +74,7 @@ function buildCompareEntry(name, compare, baseline) {
  */
 function compareResults(compareEntries, baselineEntries) {
     // Unique test scenario names
-    const names = [
-        ...new Set([
-            ..._.keys(compareEntries),
-            ..._.keys(baselineEntries || {}),
-        ]),
-    ];
+    const names = [...new Set([..._.keys(compareEntries), ..._.keys(baselineEntries || {})])];
 
     const compared = [];
     const added = [];
@@ -131,23 +119,15 @@ function compareResults(compareEntries, baselineEntries) {
     };
 }
 
-module.exports = (
-    baselineFile = `${OUTPUT_DIR}/baseline.json`,
-    compareFile = `${OUTPUT_DIR}/compare.json`,
-    outputFormat = 'all',
-) => {
+module.exports = (baselineFile = `${OUTPUT_DIR}/baseline.json`, compareFile = `${OUTPUT_DIR}/compare.json`, outputFormat = 'all') => {
     const hasBaselineFile = fsSync.existsSync(baselineFile);
     if (!hasBaselineFile) {
-        throw new Error(
-            `Baseline results files "${baselineFile}" does not exists.`,
-        );
+        throw new Error(`Baseline results files "${baselineFile}" does not exists.`);
     }
     return loadFile(baselineFile).then((baseline) => {
         const hasCompareFile = fsSync.existsSync(compareFile);
         if (!hasCompareFile) {
-            throw new Error(
-                `Compare results files "${compareFile}" does not exists.`,
-            );
+            throw new Error(`Compare results files "${compareFile}" does not exists.`);
         }
         return loadFile(compareFile).then((compare) => {
             const outputData = compareResults(compare, baseline);

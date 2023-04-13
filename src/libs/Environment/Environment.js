@@ -22,10 +22,7 @@ const OLDDOT_ENVIRONMENT_URLS = {
  * @return {boolean}
  */
 function isDevelopment() {
-    return (
-        lodashGet(Config, 'ENVIRONMENT', CONST.ENVIRONMENT.DEV) ===
-        CONST.ENVIRONMENT.DEV
-    );
+    return lodashGet(Config, 'ENVIRONMENT', CONST.ENVIRONMENT.DEV) === CONST.ENVIRONMENT.DEV;
 }
 
 /**
@@ -35,9 +32,7 @@ function isDevelopment() {
  */
 function getEnvironmentURL() {
     return new Promise((resolve) => {
-        getEnvironment().then((environment) =>
-            resolve(ENVIRONMENT_URLS[environment]),
-        );
+        getEnvironment().then((environment) => resolve(ENVIRONMENT_URLS[environment]));
     });
 }
 
@@ -47,14 +42,7 @@ function getEnvironmentURL() {
  * @returns {Promise<string>}
  */
 function getOldDotEnvironmentURL() {
-    return getEnvironment().then(
-        (environment) => OLDDOT_ENVIRONMENT_URLS[environment],
-    );
+    return getEnvironment().then((environment) => OLDDOT_ENVIRONMENT_URLS[environment]);
 }
 
-export {
-    getEnvironment,
-    isDevelopment,
-    getEnvironmentURL,
-    getOldDotEnvironmentURL,
-};
+export {getEnvironment, isDevelopment, getEnvironmentURL, getOldDotEnvironmentURL};

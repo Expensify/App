@@ -20,10 +20,7 @@ class LogOutPreviousUserPage extends Component {
     componentDidMount() {
         Linking.getInitialURL().then((transitionURL) => {
             const sessionEmail = lodashGet(this.props.session, 'email', '');
-            const isLoggingInAsNewUser = SessionUtils.isLoggingInAsNewUser(
-                transitionURL,
-                sessionEmail,
-            );
+            const isLoggingInAsNewUser = SessionUtils.isLoggingInAsNewUser(transitionURL, sessionEmail);
 
             if (isLoggingInAsNewUser) {
                 Session.signOutAndRedirectToSignIn();
@@ -33,20 +30,11 @@ class LogOutPreviousUserPage extends Component {
             // and their authToken stored in Onyx becomes invalid.
             // This workflow is triggered while setting up VBBA. User is redirected from NewDot to OldDot to set up 2FA, and then redirected back to NewDot
             // On Enabling 2FA, authToken stored in Onyx becomes expired and hence we need to fetch new authToken
-            const shouldForceLogin =
-                lodashGet(this.props, 'route.params.shouldForceLogin', '') ===
-                'true';
+            const shouldForceLogin = lodashGet(this.props, 'route.params.shouldForceLogin', '') === 'true';
             if (shouldForceLogin) {
                 const email = lodashGet(this.props, 'route.params.email', '');
-                const shortLivedAuthToken = lodashGet(
-                    this.props,
-                    'route.params.shortLivedAuthToken',
-                    '',
-                );
-                Session.signInWithShortLivedAuthToken(
-                    email,
-                    shortLivedAuthToken,
-                );
+                const shortLivedAuthToken = lodashGet(this.props, 'route.params.shortLivedAuthToken', '');
+                Session.signInWithShortLivedAuthToken(email, shortLivedAuthToken);
             }
         });
     }

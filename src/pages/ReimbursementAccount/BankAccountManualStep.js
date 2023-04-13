@@ -36,35 +36,19 @@ class BankAccountManualStep extends React.Component {
      */
     validate(values) {
         const errorFields = {};
-        const routingNumber =
-            values.routingNumber && values.routingNumber.trim();
+        const routingNumber = values.routingNumber && values.routingNumber.trim();
 
         if (
             !values.accountNumber ||
-            (!CONST.BANK_ACCOUNT.REGEX.US_ACCOUNT_NUMBER.test(
-                values.accountNumber.trim(),
-            ) &&
-                !CONST.BANK_ACCOUNT.REGEX.MASKED_US_ACCOUNT_NUMBER.test(
-                    values.accountNumber.trim(),
-                ))
+            (!CONST.BANK_ACCOUNT.REGEX.US_ACCOUNT_NUMBER.test(values.accountNumber.trim()) && !CONST.BANK_ACCOUNT.REGEX.MASKED_US_ACCOUNT_NUMBER.test(values.accountNumber.trim()))
         ) {
-            errorFields.accountNumber = this.props.translate(
-                'bankAccount.error.accountNumber',
-            );
+            errorFields.accountNumber = this.props.translate('bankAccount.error.accountNumber');
         }
-        if (
-            !routingNumber ||
-            !CONST.BANK_ACCOUNT.REGEX.SWIFT_BIC.test(routingNumber) ||
-            !ValidationUtils.isValidRoutingNumber(routingNumber)
-        ) {
-            errorFields.routingNumber = this.props.translate(
-                'bankAccount.error.routingNumber',
-            );
+        if (!routingNumber || !CONST.BANK_ACCOUNT.REGEX.SWIFT_BIC.test(routingNumber) || !ValidationUtils.isValidRoutingNumber(routingNumber)) {
+            errorFields.routingNumber = this.props.translate('bankAccount.error.routingNumber');
         }
         if (!values.acceptTerms) {
-            errorFields.acceptTerms = this.props.translate(
-                'common.error.acceptTerms',
-            );
+            errorFields.acceptTerms = this.props.translate('common.error.acceptTerms');
         }
 
         return errorFields;
@@ -72,10 +56,7 @@ class BankAccountManualStep extends React.Component {
 
     submit(values) {
         BankAccounts.connectBankAccountManually(
-            lodashGet(
-                this.props.reimbursementAccount,
-                'achData.bankAccountID',
-            ) || 0,
+            lodashGet(this.props.reimbursementAccount, 'achData.bankAccountID') || 0,
             values.accountNumber,
             values.routingNumber,
             this.props.getDefaultStateForField('plaidMask'),
@@ -83,9 +64,7 @@ class BankAccountManualStep extends React.Component {
     }
 
     render() {
-        const shouldDisableInputs = Boolean(
-            lodashGet(this.props.reimbursementAccount, 'achData.bankAccountID'),
-        );
+        const shouldDisableInputs = Boolean(lodashGet(this.props.reimbursementAccount, 'achData.bankAccountID'));
 
         return (
             <ScreenWrapper includeSafeAreaPaddingBottom={false}>
@@ -93,9 +72,7 @@ class BankAccountManualStep extends React.Component {
                     title={this.props.translate('workspace.common.bankAccount')}
                     stepCounter={{step: 1, total: 5}}
                     shouldShowGetAssistanceButton
-                    guidesCallTaskID={
-                        CONST.GUIDES_CALL_TASK_IDS.WORKSPACE_BANK_ACCOUNT
-                    }
+                    guidesCallTaskID={CONST.GUIDES_CALL_TASK_IDS.WORKSPACE_BANK_ACCOUNT}
                     shouldShowBackButton
                     onBackButtonPress={this.props.onBackButtonPress}
                     onCloseButtonPress={Navigation.dismissModal}
@@ -107,25 +84,14 @@ class BankAccountManualStep extends React.Component {
                     submitButtonText={this.props.translate('common.continue')}
                     style={[styles.mh5, styles.flexGrow1]}
                 >
-                    <Text style={[styles.mb5]}>
-                        {this.props.translate('bankAccount.checkHelpLine')}
-                    </Text>
-                    <Image
-                        resizeMode="contain"
-                        style={[styles.exampleCheckImage, styles.mb5]}
-                        source={exampleCheckImage(this.props.preferredLocale)}
-                    />
+                    <Text style={[styles.mb5]}>{this.props.translate('bankAccount.checkHelpLine')}</Text>
+                    <Image resizeMode="contain" style={[styles.exampleCheckImage, styles.mb5]} source={exampleCheckImage(this.props.preferredLocale)} />
                     <TextInput
                         autoFocus
                         shouldDelayFocus={shouldDelayFocus}
                         inputID="routingNumber"
-                        label={this.props.translate(
-                            'bankAccount.routingNumber',
-                        )}
-                        defaultValue={this.props.getDefaultStateForField(
-                            'routingNumber',
-                            '',
-                        )}
+                        label={this.props.translate('bankAccount.routingNumber')}
+                        defaultValue={this.props.getDefaultStateForField('routingNumber', '')}
                         keyboardType={CONST.KEYBOARD_TYPE.NUMBER_PAD}
                         disabled={shouldDisableInputs}
                         shouldSaveDraft
@@ -133,13 +99,8 @@ class BankAccountManualStep extends React.Component {
                     <TextInput
                         inputID="accountNumber"
                         containerStyles={[styles.mt4]}
-                        label={this.props.translate(
-                            'bankAccount.accountNumber',
-                        )}
-                        defaultValue={this.props.getDefaultStateForField(
-                            'accountNumber',
-                            '',
-                        )}
+                        label={this.props.translate('bankAccount.accountNumber')}
+                        defaultValue={this.props.getDefaultStateForField('accountNumber', '')}
                         keyboardType={CONST.KEYBOARD_TYPE.NUMBER_PAD}
                         disabled={shouldDisableInputs}
                         shouldSaveDraft
@@ -155,16 +116,11 @@ class BankAccountManualStep extends React.Component {
                                     // to call the onPress in the TextLink before the input blur is fired and shift the link element
                                     onMouseDown={(e) => e.preventDefault()}
                                 >
-                                    {this.props.translate(
-                                        'common.expensifyTermsOfService',
-                                    )}
+                                    {this.props.translate('common.expensifyTermsOfService')}
                                 </TextLink>
                             </Text>
                         )}
-                        defaultValue={this.props.getDefaultStateForField(
-                            'acceptTerms',
-                            false,
-                        )}
+                        defaultValue={this.props.getDefaultStateForField('acceptTerms', false)}
                         shouldSaveDraft
                     />
                 </Form>

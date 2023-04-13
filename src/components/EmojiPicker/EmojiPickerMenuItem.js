@@ -32,15 +32,9 @@ const EmojiPickerMenuItem = (props) => (
         onHoverIn={props.onHoverIn}
         onHoverOut={props.onHoverOut}
         style={({pressed}) => [
-            StyleUtils.getButtonBackgroundColorStyle(
-                getButtonState(false, pressed),
-            ),
-            props.isHighlighted && props.isUsingKeyboardMovement
-                ? styles.emojiItemKeyboardHighlighted
-                : {},
-            props.isHighlighted && !props.isUsingKeyboardMovement
-                ? styles.emojiItemHighlighted
-                : {},
+            StyleUtils.getButtonBackgroundColorStyle(getButtonState(false, pressed)),
+            props.isHighlighted && props.isUsingKeyboardMovement ? styles.emojiItemKeyboardHighlighted : {},
+            props.isHighlighted && !props.isUsingKeyboardMovement ? styles.emojiItemHighlighted : {},
             styles.emojiItem,
         ]}
     >
@@ -61,7 +55,5 @@ EmojiPickerMenuItem.defaultProps = {
 export default React.memo(
     EmojiPickerMenuItem,
     (prevProps, nextProps) =>
-        prevProps.isHighlighted === nextProps.isHighlighted &&
-        prevProps.emoji === nextProps.emoji &&
-        prevProps.isUsingKeyboardMovement === nextProps.isUsingKeyboardMovement,
+        prevProps.isHighlighted === nextProps.isHighlighted && prevProps.emoji === nextProps.emoji && prevProps.isUsingKeyboardMovement === nextProps.isUsingKeyboardMovement,
 );

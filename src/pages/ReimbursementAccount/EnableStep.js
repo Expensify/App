@@ -3,9 +3,7 @@ import {ScrollView} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import lodashGet from 'lodash/get';
 import styles from '../../styles/styles';
-import withLocalize, {
-    withLocalizePropTypes,
-} from '../../components/withLocalize';
+import withLocalize, {withLocalizePropTypes} from '../../components/withLocalize';
 import HeaderWithCloseButton from '../../components/HeaderWithCloseButton';
 import Navigation from '../../libs/Navigation/Navigation';
 import Text from '../../components/Text';
@@ -28,8 +26,7 @@ import WorkspaceResetBankAccountModal from '../workspace/WorkspaceResetBankAccou
 
 const propTypes = {
     /** Bank account currently in setup */
-    reimbursementAccount:
-        ReimbursementAccountProps.reimbursementAccountPropTypes.isRequired,
+    reimbursementAccount: ReimbursementAccountProps.reimbursementAccountPropTypes.isRequired,
 
     /* Onyx Props */
     user: userPropTypes.isRequired,
@@ -41,42 +38,23 @@ const EnableStep = (props) => {
     const isUsingExpensifyCard = props.user.isUsingExpensifyCard;
     const achData = lodashGet(props.reimbursementAccount, 'achData') || {};
     const {icon, iconSize} = getBankIcon(achData.bankName);
-    const formattedBankAccountNumber = achData.accountNumber
-        ? `${props.translate(
-              'paymentMethodList.accountLastFour',
-          )} ${achData.accountNumber.slice(-4)}`
-        : '';
+    const formattedBankAccountNumber = achData.accountNumber ? `${props.translate('paymentMethodList.accountLastFour')} ${achData.accountNumber.slice(-4)}` : '';
     const bankName = achData.addressName;
 
     return (
-        <ScreenWrapper
-            style={[styles.flex1, styles.justifyContentBetween]}
-            includeSafeAreaPaddingBottom={false}
-        >
+        <ScreenWrapper style={[styles.flex1, styles.justifyContentBetween]} includeSafeAreaPaddingBottom={false}>
             <HeaderWithCloseButton
                 title={props.translate('workspace.common.bankAccount')}
                 onCloseButtonPress={Navigation.dismissModal}
                 shouldShowGetAssistanceButton
-                guidesCallTaskID={
-                    CONST.GUIDES_CALL_TASK_IDS.WORKSPACE_BANK_ACCOUNT
-                }
+                guidesCallTaskID={CONST.GUIDES_CALL_TASK_IDS.WORKSPACE_BANK_ACCOUNT}
                 shouldShowBackButton
                 onBackButtonPress={() => Navigation.goBack()}
             />
             <ScrollView style={[styles.flex1]}>
                 <Section
-                    title={
-                        !isUsingExpensifyCard
-                            ? props.translate(
-                                  'workspace.bankAccount.oneMoreThing',
-                              )
-                            : props.translate('workspace.bankAccount.allSet')
-                    }
-                    icon={
-                        !isUsingExpensifyCard
-                            ? Illustrations.ConciergeNew
-                            : Illustrations.ThumbsUpStars
-                    }
+                    title={!isUsingExpensifyCard ? props.translate('workspace.bankAccount.oneMoreThing') : props.translate('workspace.bankAccount.allSet')}
+                    icon={!isUsingExpensifyCard ? Illustrations.ConciergeNew : Illustrations.ThumbsUpStars}
                 >
                     <MenuItem
                         title={bankName}
@@ -89,23 +67,13 @@ const EnableStep = (props) => {
                         wrapperStyle={[styles.cardMenuItem, styles.mv3]}
                     />
                     <Text style={[styles.mv3]}>
-                        {!isUsingExpensifyCard
-                            ? props.translate(
-                                  'workspace.bankAccount.accountDescriptionNoCards',
-                              )
-                            : props.translate(
-                                  'workspace.bankAccount.accountDescriptionWithCards',
-                              )}
+                        {!isUsingExpensifyCard ? props.translate('workspace.bankAccount.accountDescriptionNoCards') : props.translate('workspace.bankAccount.accountDescriptionWithCards')}
                     </Text>
                     {!isUsingExpensifyCard && (
                         <Button
-                            text={props.translate(
-                                'workspace.bankAccount.addWorkEmail',
-                            )}
+                            text={props.translate('workspace.bankAccount.addWorkEmail')}
                             onPress={() => {
-                                Link.openOldDotLink(
-                                    CONST.ADD_SECONDARY_LOGIN_URL,
-                                );
+                                Link.openOldDotLink(CONST.ADD_SECONDARY_LOGIN_URL);
                                 User.subscribeToExpensifyCardUpdates();
                             }}
                             icon={Expensicons.Mail}
@@ -117,25 +85,15 @@ const EnableStep = (props) => {
                         />
                     )}
                     <MenuItem
-                        title={props.translate(
-                            'workspace.bankAccount.disconnectBankAccount',
-                        )}
+                        title={props.translate('workspace.bankAccount.disconnectBankAccount')}
                         icon={Expensicons.Close}
                         onPress={BankAccounts.requestResetFreePlanBankAccount}
                         wrapperStyle={[styles.cardMenuItem, styles.mv3]}
                     />
                 </Section>
-                {props.user.isCheckingDomain && (
-                    <Text style={[styles.formError, styles.mh5]}>
-                        {props.translate('workspace.card.checkingDomain')}
-                    </Text>
-                )}
+                {props.user.isCheckingDomain && <Text style={[styles.formError, styles.mh5]}>{props.translate('workspace.card.checkingDomain')}</Text>}
             </ScrollView>
-            {props.reimbursementAccount.shouldShowResetModal && (
-                <WorkspaceResetBankAccountModal
-                    reimbursementAccount={props.reimbursementAccount}
-                />
-            )}
+            {props.reimbursementAccount.shouldShowResetModal && <WorkspaceResetBankAccountModal reimbursementAccount={props.reimbursementAccount} />}
         </ScreenWrapper>
     );
 };

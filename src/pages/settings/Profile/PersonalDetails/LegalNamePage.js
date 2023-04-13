@@ -5,9 +5,7 @@ import {View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import ScreenWrapper from '../../../../components/ScreenWrapper';
 import HeaderWithCloseButton from '../../../../components/HeaderWithCloseButton';
-import withLocalize, {
-    withLocalizePropTypes,
-} from '../../../../components/withLocalize';
+import withLocalize, {withLocalizePropTypes} from '../../../../components/withLocalize';
 import ROUTES from '../../../../ROUTES';
 import Form from '../../../../components/Form';
 import ONYXKEYS from '../../../../ONYXKEYS';
@@ -53,10 +51,7 @@ class LegalNamePage extends Component {
      * @param {String} values.legalLastName
      */
     updateLegalName(values) {
-        PersonalDetails.updateLegalName(
-            values.legalFirstName.trim(),
-            values.legalLastName.trim(),
-        );
+        PersonalDetails.updateLegalName(values.legalFirstName.trim(), values.legalLastName.trim());
     }
 
     /**
@@ -69,23 +64,15 @@ class LegalNamePage extends Component {
         const errors = {};
 
         if (!ValidationUtils.isValidDisplayName(values.legalFirstName)) {
-            errors.legalFirstName = this.props.translate(
-                'personalDetails.error.hasInvalidCharacter',
-            );
+            errors.legalFirstName = this.props.translate('personalDetails.error.hasInvalidCharacter');
         } else if (_.isEmpty(values.legalFirstName)) {
-            errors.legalFirstName = this.props.translate(
-                'common.error.fieldRequired',
-            );
+            errors.legalFirstName = this.props.translate('common.error.fieldRequired');
         }
 
         if (!ValidationUtils.isValidDisplayName(values.legalLastName)) {
-            errors.legalLastName = this.props.translate(
-                'personalDetails.error.hasInvalidCharacter',
-            );
+            errors.legalLastName = this.props.translate('personalDetails.error.hasInvalidCharacter');
         } else if (_.isEmpty(values.legalLastName)) {
-            errors.legalLastName = this.props.translate(
-                'common.error.fieldRequired',
-            );
+            errors.legalLastName = this.props.translate('common.error.fieldRequired');
         }
 
         return errors;
@@ -97,13 +84,9 @@ class LegalNamePage extends Component {
         return (
             <ScreenWrapper includeSafeAreaPaddingBottom={false}>
                 <HeaderWithCloseButton
-                    title={this.props.translate(
-                        'privatePersonalDetails.legalName',
-                    )}
+                    title={this.props.translate('privatePersonalDetails.legalName')}
                     shouldShowBackButton
-                    onBackButtonPress={() =>
-                        Navigation.navigate(ROUTES.SETTINGS_PERSONAL_DETAILS)
-                    }
+                    onBackButtonPress={() => Navigation.navigate(ROUTES.SETTINGS_PERSONAL_DETAILS)}
                     onCloseButtonPress={() => Navigation.dismissModal(true)}
                 />
                 <Form
@@ -118,9 +101,7 @@ class LegalNamePage extends Component {
                         <TextInput
                             inputID="legalFirstName"
                             name="lfname"
-                            label={this.props.translate(
-                                'privatePersonalDetails.legalFirstName',
-                            )}
+                            label={this.props.translate('privatePersonalDetails.legalFirstName')}
                             defaultValue={privateDetails.legalFirstName || ''}
                             maxLength={CONST.DISPLAY_NAME.MAX_LENGTH}
                         />
@@ -129,9 +110,7 @@ class LegalNamePage extends Component {
                         <TextInput
                             inputID="legalLastName"
                             name="llname"
-                            label={this.props.translate(
-                                'privatePersonalDetails.legalLastName',
-                            )}
+                            label={this.props.translate('privatePersonalDetails.legalLastName')}
                             defaultValue={privateDetails.legalLastName || ''}
                             maxLength={CONST.DISPLAY_NAME.MAX_LENGTH}
                         />

@@ -34,14 +34,9 @@ export default function (WrappedComponent) {
         }
     }
     WithNavigationFallback.contextType = NavigationContext;
-    WithNavigationFallback.displayName = `WithNavigationFocusWithFallback(${getComponentDisplayName(
-        WrappedComponent,
-    )})`;
+    WithNavigationFallback.displayName = `WithNavigationFocusWithFallback(${getComponentDisplayName(WrappedComponent)})`;
     WithNavigationFallback.propTypes = {
-        forwardedRef: PropTypes.oneOfType([
-            PropTypes.func,
-            PropTypes.shape({current: PropTypes.instanceOf(React.Component)}),
-        ]),
+        forwardedRef: PropTypes.oneOfType([PropTypes.func, PropTypes.shape({current: PropTypes.instanceOf(React.Component)})]),
     };
     WithNavigationFallback.defaultProps = {
         forwardedRef: undefined,

@@ -35,21 +35,12 @@ const defaultProps = {
 };
 
 const Badge = (props) => {
-    const textStyles =
-        props.success || props.error ? styles.textWhite : undefined;
+    const textStyles = props.success || props.error ? styles.textWhite : undefined;
     const Wrapper = props.pressable ? Pressable : View;
-    const wrapperStyles = ({pressed}) => [
-        styles.badge,
-        styles.ml2,
-        StyleUtils.getBadgeColorStyle(props.success, props.error, pressed),
-        ...props.badgeStyles,
-    ];
+    const wrapperStyles = ({pressed}) => [styles.badge, styles.ml2, StyleUtils.getBadgeColorStyle(props.success, props.error, pressed), ...props.badgeStyles];
 
     return (
-        <Wrapper
-            style={props.pressable ? wrapperStyles : wrapperStyles(false)}
-            onPress={props.onPress}
-        >
+        <Wrapper style={props.pressable ? wrapperStyles : wrapperStyles(false)} onPress={props.onPress}>
             <Text style={[styles.badgeText, textStyles]} numberOfLines={1}>
                 {props.text}
             </Text>

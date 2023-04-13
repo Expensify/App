@@ -4,17 +4,12 @@ const fs = require('fs/promises');
 const path = require('path');
 const _ = require('underscore');
 const markdownTable = require('./markdownTable');
-const {
-    formatDuration,
-    formatPercent,
-    formatDurationDiffChange,
-} = require('./format');
+const {formatDuration, formatPercent, formatDurationDiffChange} = require('./format');
 const Logger = require('../../utils/logger');
 
 const tableHeader = ['Name', 'Duration'];
 
-const collapsibleSection = (title, content) =>
-    `<details>\n<summary>${title}</summary>\n\n${content}\n</details>\n\n`;
+const collapsibleSection = (title, content) => `<details>\n<summary>${title}</summary>\n\n${content}\n</details>\n\n`;
 
 const buildDurationDetails = (title, entry) => {
     const relativeStdev = entry.stdev / entry.mean;
@@ -23,9 +18,7 @@ const buildDurationDetails = (title, entry) => {
         [
             `**${title}**`,
             `Mean: ${formatDuration(entry.mean)}`,
-            `Stdev: ${formatDuration(entry.stdev)} (${formatPercent(
-                relativeStdev,
-            )})`,
+            `Stdev: ${formatDuration(entry.stdev)} (${formatPercent(relativeStdev)})`,
             entry.entries ? `Runs: ${entry.entries.join(' ')}` : '',
         ],
         Boolean,
@@ -33,17 +26,9 @@ const buildDurationDetails = (title, entry) => {
 };
 
 const buildDurationDetailsEntry = (entry) =>
-    _.filter(
-        [
-            'baseline' in entry
-                ? buildDurationDetails('Baseline', entry.baseline)
-                : '',
-            'current' in entry
-                ? buildDurationDetails('Current', entry.current)
-                : '',
-        ],
-        Boolean,
-    ).join('<br/><br/>');
+    _.filter(['baseline' in entry ? buildDurationDetails('Baseline', entry.baseline) : '', 'current' in entry ? buildDurationDetails('Current', entry.current) : ''], Boolean).join(
+        '<br/><br/>',
+    );
 
 const formatEntryDuration = (entry) => {
     if ('baseline' in entry && 'current' in entry) {
@@ -63,10 +48,7 @@ const buildDetailsTable = (entries) => {
         return '';
     }
 
-    const rows = _.map(entries, (entry) => [
-        entry.name,
-        buildDurationDetailsEntry(entry),
-    ]);
+    const rows = _.map(entries, (entry) => [entry.name, buildDurationDetailsEntry(entry)]);
     const content = markdownTable([tableHeader, ...rows]);
 
     return collapsibleSection('Show details', content);
@@ -77,10 +59,7 @@ const buildSummaryTable = (entries, collapse = false) => {
         return '_There are no entries_';
     }
 
-    const rows = _.map(entries, (entry) => [
-        entry.name,
-        formatEntryDuration(entry),
-    ]);
+    const rows = _.map(entries, (entry) => [entry.name, formatEntryDuration(entry)]);
     const content = markdownTable([tableHeader, ...rows]);
 
     return collapse ? collapsibleSection('Show entries', content) : content;

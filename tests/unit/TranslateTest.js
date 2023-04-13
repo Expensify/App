@@ -37,9 +37,7 @@ describe('translate', () => {
 
     test('Test when key is not found in default', () => {
         expect(() => Localize.translate('es-ES', 'testKey4')).toThrow(Error);
-        expect(() => Localize.translate('es-ES', ['a', 'b', 'c'])).toThrow(
-            Error,
-        );
+        expect(() => Localize.translate('es-ES', ['a', 'b', 'c'])).toThrow(Error);
     });
 
     test('Test when key is not found in default (Production Mode)', () => {
@@ -80,10 +78,7 @@ describe('Translation Keys', () => {
         return pathArray;
     }
     const excludeLanguages = ['en', 'es-ES'];
-    const languages = _.without(
-        _.keys(originalTranslations.default),
-        ...excludeLanguages,
-    );
+    const languages = _.without(_.keys(originalTranslations.default), ...excludeLanguages);
     const mainLanguage = originalTranslations.default.en;
     const mainLanguageKeys = traverseKeyPath(mainLanguage);
 
@@ -93,12 +88,8 @@ describe('Translation Keys', () => {
         it(`Does ${ln} locale has all the keys`, () => {
             const hasAllKeys = _.difference(mainLanguageKeys, languageKeys);
             if (hasAllKeys.length) {
-                console.debug(
-                    `🏹 [ ${hasAllKeys.join(', ')} ] are missing from ${ln}.js`,
-                );
-                AnnotationError(
-                    `🏹 [ ${hasAllKeys.join(', ')} ] are missing from ${ln}.js`,
-                );
+                console.debug(`🏹 [ ${hasAllKeys.join(', ')} ] are missing from ${ln}.js`);
+                AnnotationError(`🏹 [ ${hasAllKeys.join(', ')} ] are missing from ${ln}.js`);
             }
             expect(hasAllKeys).toEqual([]);
         });
@@ -106,16 +97,8 @@ describe('Translation Keys', () => {
         it(`Does ${ln} locale has unused keys`, () => {
             const hasAllKeys = _.difference(languageKeys, mainLanguageKeys);
             if (hasAllKeys.length) {
-                console.debug(
-                    `🏹 [ ${hasAllKeys.join(
-                        ', ',
-                    )} ] are unused keys in ${ln}.js`,
-                );
-                AnnotationError(
-                    `🏹 [ ${hasAllKeys.join(
-                        ', ',
-                    )} ] are unused keys in ${ln}.js`,
-                );
+                console.debug(`🏹 [ ${hasAllKeys.join(', ')} ] are unused keys in ${ln}.js`);
+                AnnotationError(`🏹 [ ${hasAllKeys.join(', ')} ] are unused keys in ${ln}.js`);
             }
             expect(hasAllKeys).toEqual([]);
         });

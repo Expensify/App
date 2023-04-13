@@ -20,32 +20,19 @@ const symbolPositions = [
 
 describe('CurrencySymbolUtils', () => {
     describe('getLocalizedCurrencySymbol', () => {
-        test.each(AVAILABLE_LOCALES)(
-            'Returns non empty string for all currencyCode with preferredLocale %s',
-            (prefrredLocale) => {
-                _.forEach(currencyCodeList, (currencyCode) => {
-                    const localizedSymbol =
-                        CurrencySymbolUtils.getLocalizedCurrencySymbol(
-                            prefrredLocale,
-                            currencyCode,
-                        );
+        test.each(AVAILABLE_LOCALES)('Returns non empty string for all currencyCode with preferredLocale %s', (prefrredLocale) => {
+            _.forEach(currencyCodeList, (currencyCode) => {
+                const localizedSymbol = CurrencySymbolUtils.getLocalizedCurrencySymbol(prefrredLocale, currencyCode);
 
-                    expect(localizedSymbol).toBeTruthy();
-                });
-            },
-        );
+                expect(localizedSymbol).toBeTruthy();
+            });
+        });
     });
 
     describe('isCurrencySymbolLTR', () => {
-        test.each(symbolPositions)(
-            'Returns %s for preferredLocale %s and currencyCode %s',
-            (isLeft, locale, currencyCode) => {
-                const isSymbolLeft = CurrencySymbolUtils.isCurrencySymbolLTR(
-                    locale,
-                    currencyCode,
-                );
-                expect(isSymbolLeft).toBe(isLeft);
-            },
-        );
+        test.each(symbolPositions)('Returns %s for preferredLocale %s and currencyCode %s', (isLeft, locale, currencyCode) => {
+            const isSymbolLeft = CurrencySymbolUtils.isCurrencySymbolLTR(locale, currencyCode);
+            expect(isSymbolLeft).toBe(isLeft);
+        });
     });
 });

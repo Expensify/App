@@ -42,16 +42,7 @@ const Socials = () => (
                 style={styles.pr1}
                 key={social.link}
             >
-                {({hovered}) => (
-                    <Icon
-                        src={social.iconURL}
-                        height={variables.iconSizeLarge}
-                        width={variables.iconSizeLarge}
-                        fill={
-                            hovered ? themeColors.link : themeColors.textLight
-                        }
-                    />
-                )}
+                {({hovered}) => <Icon src={social.iconURL} height={variables.iconSizeLarge} width={variables.iconSizeLarge} fill={hovered ? themeColors.link : themeColors.textLight} />}
             </Pressable>
         ))}
     </Text>

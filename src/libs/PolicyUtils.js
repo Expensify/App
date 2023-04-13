@@ -23,12 +23,7 @@ function hasPolicyMemberError(policyMemberList) {
  * @return {Boolean}
  */
 function hasPolicyError(policy) {
-    return !_.isEmpty(lodashGet(policy, 'errors', {}))
-        ? true
-        : _.some(
-              lodashGet(policy, 'errorFields', {}),
-              (fieldErrors) => !_.isEmpty(fieldErrors),
-          );
+    return !_.isEmpty(lodashGet(policy, 'errors', {})) ? true : _.some(lodashGet(policy, 'errorFields', {}), (fieldErrors) => !_.isEmpty(fieldErrors));
 }
 
 /**
@@ -50,11 +45,7 @@ function hasCustomUnitsError(policy) {
  * @returns {String}
  */
 function getPolicyBrickRoadIndicatorStatus(policy, policyMembers) {
-    const policyMemberList = lodashGet(
-        policyMembers,
-        `${ONYXKEYS.COLLECTION.POLICY_MEMBER_LIST}${policy.id}`,
-        {},
-    );
+    const policyMemberList = lodashGet(policyMembers, `${ONYXKEYS.COLLECTION.POLICY_MEMBER_LIST}${policy.id}`, {});
     if (hasPolicyMemberError(policyMemberList) || hasCustomUnitsError(policy)) {
         return CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR;
     }
@@ -76,17 +67,8 @@ function shouldShowPolicy(policy, isOffline) {
         policy &&
         policy.type === CONST.POLICY.TYPE.FREE &&
         policy.role === CONST.POLICY.ROLE.ADMIN &&
-        (isOffline ||
-            policy.pendingAction !==
-                CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE ||
-            !_.isEmpty(policy.errors))
+        (isOffline || policy.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE || !_.isEmpty(policy.errors))
     );
 }
 
-export {
-    hasPolicyMemberError,
-    hasPolicyError,
-    hasCustomUnitsError,
-    getPolicyBrickRoadIndicatorStatus,
-    shouldShowPolicy,
-};
+export {hasPolicyMemberError, hasPolicyError, hasCustomUnitsError, getPolicyBrickRoadIndicatorStatus, shouldShowPolicy};

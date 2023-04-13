@@ -1,10 +1,5 @@
 const path = require('path');
-const {
-    IgnorePlugin,
-    DefinePlugin,
-    ProvidePlugin,
-    EnvironmentPlugin,
-} = require('webpack');
+const {IgnorePlugin, DefinePlugin, ProvidePlugin, EnvironmentPlugin} = require('webpack');
 const {CleanWebpackPlugin} = require('clean-webpack-plugin');
 const HtmlWebpackPlugin = require('html-webpack-plugin');
 const CopyPlugin = require('copy-webpack-plugin');
@@ -123,9 +118,7 @@ const webpackConfig = ({envFile = '.env', platform = 'web'}) => ({
         ...(platform === 'web' ? [new CustomVersionFilePlugin()] : []),
         new DefinePlugin({
             ...(platform === 'desktop' ? {} : {process: {env: {}}}),
-            __REACT_WEB_CONFIG__: JSON.stringify(
-                dotenv.config({path: envFile}).parsed,
-            ),
+            __REACT_WEB_CONFIG__: JSON.stringify(dotenv.config({path: envFile}).parsed),
 
             // React Native JavaScript environment requires the global __DEV__ variable to be accessible.
             // react-native-render-html uses variable to log exclusively during development.
@@ -134,9 +127,7 @@ const webpackConfig = ({envFile = '.env', platform = 'web'}) => ({
         }),
 
         // This allows us to interactively inspect JS bundle contents
-        ...(process.env.ANALYZE_BUNDLE === 'true'
-            ? [new BundleAnalyzerPlugin()]
-            : []),
+        ...(process.env.ANALYZE_BUNDLE === 'true' ? [new BundleAnalyzerPlugin()] : []),
     ],
     module: {
         rules: [
@@ -153,19 +144,13 @@ const webpackConfig = ({envFile = '.env', platform = 'web'}) => ({
                  * You can remove something from this list if it doesn't use "react-native" as an import and it doesn't
                  * use JSX/JS that needs to be transformed by babel.
                  */
-                exclude: [
-                    new RegExp(
-                        `node_modules/(?!(${includeModules})/).*|.native.js$`,
-                    ),
-                ],
+                exclude: [new RegExp(`node_modules/(?!(${includeModules})/).*|.native.js$`)],
             },
 
             // We are importing this worker as a string by using asset/source otherwise it will default to loading via an HTTPS request later.
             // This causes issues if we have gone offline before the pdfjs web worker is set up as we won't be able to load it from the server.
             {
-                test: new RegExp(
-                    'node_modules/pdfjs-dist/legacy/build/pdf.worker.js',
-                ),
+                test: new RegExp('node_modules/pdfjs-dist/legacy/build/pdf.worker.js'),
                 type: 'asset/source',
             },
 
@@ -223,12 +208,7 @@ const webpackConfig = ({envFile = '.env', platform = 'web'}) => ({
     },
     resolve: {
         alias: {
-            logo$: path.resolve(
-                __dirname,
-                `../../assets/images/new-expensify${mapEnvToLogoSuffix(
-                    envFile,
-                )}.svg`,
-            ),
+            logo$: path.resolve(__dirname, `../../assets/images/new-expensify${mapEnvToLogoSuffix(envFile)}.svg`),
             'react-native-config': 'react-web-config',
             'react-native$': '@expensify/react-native-web',
             'react-native-web': '@expensify/react-native-web',
@@ -241,12 +221,7 @@ const webpackConfig = ({envFile = '.env', platform = 'web'}) => ({
         // This is also why we have to use .website.js for our own web-specific files...
         // Because desktop also relies on "web-specific" module implementations
         // This also skips packing web only dependencies to desktop and vice versa
-        extensions: [
-            '.web.js',
-            platform === 'web' ? '.website.js' : '.desktop.js',
-            '.js',
-            '.jsx',
-        ],
+        extensions: ['.web.js', platform === 'web' ? '.website.js' : '.desktop.js', '.js', '.jsx'],
         fallback: {
             'process/browser': require.resolve('process/browser'),
         },

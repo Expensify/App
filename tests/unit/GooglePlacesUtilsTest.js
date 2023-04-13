@@ -152,12 +152,7 @@ describe('GooglePlacesUtilsTest', () => {
                     'doesnt-exist': 'long_name',
                 }),
             ).toStrictEqual({'doesnt-exist': ''});
-            expect(
-                GooglePlacesUtils.getAddressComponents(
-                    addressComponents,
-                    standardObjectToFind,
-                ),
-            ).toStrictEqual({
+            expect(GooglePlacesUtils.getAddressComponents(addressComponents, standardObjectToFind)).toStrictEqual({
                 sublocality: 'Brooklyn',
                 administrative_area_level_1: 'NY',
                 postal_code: '11206',
@@ -192,12 +187,7 @@ describe('GooglePlacesUtilsTest', () => {
                     country: 'long_name',
                 }),
             ).toStrictEqual({country: 'United States'});
-            expect(
-                GooglePlacesUtils.getAddressComponents(
-                    addressComponents,
-                    objectWithCountryToFind,
-                ),
-            ).toStrictEqual({
+            expect(GooglePlacesUtils.getAddressComponents(addressComponents, objectWithCountryToFind)).toStrictEqual({
                 sublocality: 'Brooklyn',
                 administrative_area_level_1: 'NY',
                 postal_code: '11206',
@@ -210,10 +200,7 @@ describe('GooglePlacesUtilsTest', () => {
         it('should not be slow when executing', () => {
             const startTime = performance.now();
             for (let i = 100; i > 0; i--) {
-                GooglePlacesUtils.getAddressComponents(
-                    addressComponents,
-                    standardObjectToFind,
-                );
+                GooglePlacesUtils.getAddressComponents(addressComponents, standardObjectToFind);
             }
             const endTime = performance.now();
             const executionTime = endTime - startTime;
@@ -227,10 +214,7 @@ describe('GooglePlacesUtilsTest', () => {
         it('should not be slow when executing', () => {
             const startTime = performance.now();
             for (let i = 100; i > 0; i--) {
-                GooglePlacesUtils.getAddressComponents(
-                    addressComponents,
-                    bigObjectToFind,
-                );
+                GooglePlacesUtils.getAddressComponents(addressComponents, bigObjectToFind);
             }
             const endTime = performance.now();
             const executionTime = endTime - startTime;

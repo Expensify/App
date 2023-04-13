@@ -33,10 +33,7 @@ function getAssetIcon(bankName, isCard) {
         return AmericanExpress;
     }
 
-    if (
-        bankName.includes('bank of america') ||
-        bankName.includes('bankofamerica')
-    ) {
+    if (bankName.includes('bank of america') || bankName.includes('bankofamerica')) {
         return BankOfAmerica;
     }
 
@@ -52,10 +49,7 @@ function getAssetIcon(bankName, isCard) {
         return Chase;
     }
 
-    if (
-        bankName.includes('charles schwab') ||
-        bankName.includes('charlesschwab')
-    ) {
+    if (bankName.includes('charles schwab') || bankName.includes('charlesschwab')) {
         return CharlesSchwab;
     }
 
@@ -63,18 +57,11 @@ function getAssetIcon(bankName, isCard) {
         return CitiBank;
     }
 
-    if (
-        bankName.startsWith('citizens bank') ||
-        bankName.includes('citizensbank')
-    ) {
+    if (bankName.startsWith('citizens bank') || bankName.includes('citizensbank')) {
         return CitizensBank;
     }
 
-    if (
-        bankName.startsWith('discover ') ||
-        bankName.includes('discover.') ||
-        bankName === 'discover'
-    ) {
+    if (bankName.startsWith('discover ') || bankName.includes('discover.') || bankName === 'discover') {
         return Discover;
     }
 
@@ -82,18 +69,11 @@ function getAssetIcon(bankName, isCard) {
         return Fidelity;
     }
 
-    if (
-        bankName.startsWith('huntington bank') ||
-        bankName.includes('huntingtonnational') ||
-        bankName.includes('huntington national')
-    ) {
+    if (bankName.startsWith('huntington bank') || bankName.includes('huntingtonnational') || bankName.includes('huntington national')) {
         return HuntingtonBank;
     }
 
-    if (
-        bankName.startsWith('navy federal credit union') ||
-        bankName.includes('navy federal credit union')
-    ) {
+    if (bankName.startsWith('navy federal credit union') || bankName.includes('navy federal credit union')) {
         return NavyFederalCreditUnion;
     }
 
@@ -101,10 +81,7 @@ function getAssetIcon(bankName, isCard) {
         return PNC;
     }
 
-    if (
-        bankName.startsWith('regions bank') ||
-        bankName.includes('regionsbank')
-    ) {
+    if (bankName.startsWith('regions bank') || bankName.includes('regionsbank')) {
         return RegionsBank;
     }
 
@@ -112,11 +89,7 @@ function getAssetIcon(bankName, isCard) {
         return SunTrust;
     }
 
-    if (
-        bankName.startsWith('td bank') ||
-        bankName.startsWith('tdbank') ||
-        bankName.includes('tdbank')
-    ) {
+    if (bankName.startsWith('td bank') || bankName.startsWith('tdbank') || bankName.includes('tdbank')) {
         return TdBank;
     }
 

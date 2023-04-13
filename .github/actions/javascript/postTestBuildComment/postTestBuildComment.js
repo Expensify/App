@@ -6,23 +6,14 @@ const GithubUtils = require('../../../libs/GithubUtils');
  * @returns {String}
  */
 function getTestBuildMessage() {
-    console.log(
-        'Input for android',
-        core.getInput('ANDROID', {required: true}),
-    );
-    const androidSuccess =
-        core.getInput('ANDROID', {required: true}) === 'success';
-    const desktopSuccess =
-        core.getInput('DESKTOP', {required: true}) === 'success';
+    console.log('Input for android', core.getInput('ANDROID', {required: true}));
+    const androidSuccess = core.getInput('ANDROID', {required: true}) === 'success';
+    const desktopSuccess = core.getInput('DESKTOP', {required: true}) === 'success';
     const iOSSuccess = core.getInput('IOS', {required: true}) === 'success';
     const webSuccess = core.getInput('WEB', {required: true}) === 'success';
 
-    const androidLink = androidSuccess
-        ? core.getInput('ANDROID_LINK')
-        : '❌ FAILED ❌';
-    const desktopLink = desktopSuccess
-        ? core.getInput('DESKTOP_LINK')
-        : '❌ FAILED ❌';
+    const androidLink = androidSuccess ? core.getInput('ANDROID_LINK') : '❌ FAILED ❌';
+    const desktopLink = desktopSuccess ? core.getInput('DESKTOP_LINK') : '❌ FAILED ❌';
     const iOSLink = iOSSuccess ? core.getInput('IOS_LINK') : '❌ FAILED ❌';
     const webLink = webSuccess ? core.getInput('WEB_LINK') : '❌ FAILED ❌';
 
@@ -32,12 +23,8 @@ function getTestBuildMessage() {
     const desktopQRCode = desktopSuccess
         ? `![Desktop](https://api.qrserver.com/v1/create-qr-code/?size=120x120&data=${desktopLink})`
         : "The QR code can't be generated, because the Desktop build failed";
-    const iOSQRCode = iOSSuccess
-        ? `![iOS](https://api.qrserver.com/v1/create-qr-code/?size=120x120&data=${iOSLink})`
-        : "The QR code can't be generated, because the iOS build failed";
-    const webQRCode = webSuccess
-        ? `![Web](https://api.qrserver.com/v1/create-qr-code/?size=120x120&data=${webLink})`
-        : "The QR code can't be generated, because the web build failed";
+    const iOSQRCode = iOSSuccess ? `![iOS](https://api.qrserver.com/v1/create-qr-code/?size=120x120&data=${iOSLink})` : "The QR code can't be generated, because the iOS build failed";
+    const webQRCode = webSuccess ? `![Web](https://api.qrserver.com/v1/create-qr-code/?size=120x120&data=${webLink})` : "The QR code can't be generated, because the web build failed";
 
     const message = `:test_tube::test_tube: Use the links below to test this build in android and iOS. Happy testing! :test_tube::test_tube:
 | android :robot:  | iOS :apple: |
@@ -70,9 +57,7 @@ function commentPR(PR, message) {
 
 const run = function () {
     const PR_NUMBER = core.getInput('PR_NUMBER', {required: true});
-    return commentPR(PR_NUMBER, getTestBuildMessage()).then(() =>
-        Promise.resolve(),
-    );
+    return commentPR(PR_NUMBER, getTestBuildMessage()).then(() => Promise.resolve());
 };
 
 if (require.main === module) {

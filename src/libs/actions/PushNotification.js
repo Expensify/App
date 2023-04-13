@@ -17,9 +17,7 @@ Onyx.connect({
  */
 function setPushNotificationOptInStatus(isOptingIn) {
     Device.getDeviceID().then((deviceID) => {
-        const commandName = isOptingIn
-            ? 'OptInToPushNotifications'
-            : 'OptOutOfPushNotifications';
+        const commandName = isOptingIn ? 'OptInToPushNotifications' : 'OptOutOfPushNotifications';
         const optimisticData = [
             {
                 onyxMethod: CONST.ONYX.METHOD.MERGE,

@@ -26,19 +26,9 @@ class Trie {
         }
         if (!newNode.children[newWord[0]]) {
             newNode.children[newWord[0]] = new TrieNode();
-            this.add(
-                newWord.substring(1),
-                metaData,
-                newNode.children[newWord[0]],
-                true,
-            );
+            this.add(newWord.substring(1), metaData, newNode.children[newWord[0]], true);
         }
-        this.add(
-            newWord.substring(1),
-            metaData,
-            newNode.children[newWord[0]],
-            true,
-        );
+        this.add(newWord.substring(1), metaData, newNode.children[newWord[0]], true);
     }
 
     /**
@@ -57,9 +47,7 @@ class Trie {
 
             newWord = newWord.substring(1);
         }
-        return node.children[newWord] && node.children[newWord].isEndOfWord
-            ? node.children[newWord]
-            : null;
+        return node.children[newWord] && node.children[newWord].isEndOfWord ? node.children[newWord] : null;
     }
 
     /**
@@ -118,12 +106,7 @@ class Trie {
         }
         const children = _.keys(node.children);
         for (let i = 0; i < children.length; i++) {
-            this.getChildMatching(
-                node.children[children[i]],
-                prefix + children[i],
-                limit,
-                matching,
-            );
+            this.getChildMatching(node.children[children[i]], prefix + children[i], limit, matching);
         }
         return matching;
     }

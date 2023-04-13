@@ -42,9 +42,7 @@ export default function (WrappedComponent) {
 
     WithReportOrNotFound.propTypes = propTypes;
     WithReportOrNotFound.defaultProps = defaultProps;
-    WithReportOrNotFound.displayName = `withReportOrNotFound(${getComponentDisplayName(
-        WrappedComponent,
-    )})`;
+    WithReportOrNotFound.displayName = `withReportOrNotFound(${getComponentDisplayName(WrappedComponent)})`;
     // eslint-disable-next-line rulesdir/no-negated-variables
     const withReportOrNotFound = React.forwardRef((props, ref) => (
         // eslint-disable-next-line react/jsx-props-no-spreading
@@ -53,8 +51,7 @@ export default function (WrappedComponent) {
 
     return withOnyx({
         report: {
-            key: ({route}) =>
-                `${ONYXKEYS.COLLECTION.REPORT}${route.params.reportID}`,
+            key: ({route}) => `${ONYXKEYS.COLLECTION.REPORT}${route.params.reportID}`,
         },
     })(withReportOrNotFound);
 }

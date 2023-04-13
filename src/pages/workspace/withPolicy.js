@@ -85,9 +85,7 @@ export default function (WrappedComponent) {
     };
 
     const WithPolicy = (props) => {
-        const currentRoute = _.last(
-            useNavigationState((state) => state.routes || []),
-        );
+        const currentRoute = _.last(useNavigationState((state) => state.routes || []));
         const policyID = getPolicyIDFromRoute(currentRoute);
 
         if (_.isString(policyID) && !_.isEmpty(policyID)) {
@@ -106,9 +104,7 @@ export default function (WrappedComponent) {
 
     WithPolicy.propTypes = propTypes;
     WithPolicy.defaultProps = defaultProps;
-    WithPolicy.displayName = `withPolicy(${getComponentDisplayName(
-        WrappedComponent,
-    )})`;
+    WithPolicy.displayName = `withPolicy(${getComponentDisplayName(WrappedComponent)})`;
     const withPolicy = React.forwardRef((props, ref) => (
         // eslint-disable-next-line react/jsx-props-no-spreading
         <WithPolicy {...props} forwardedRef={ref} />
@@ -116,16 +112,10 @@ export default function (WrappedComponent) {
 
     return withOnyx({
         policy: {
-            key: (props) =>
-                `${ONYXKEYS.COLLECTION.POLICY}${getPolicyIDFromRoute(
-                    props.route,
-                )}`,
+            key: (props) => `${ONYXKEYS.COLLECTION.POLICY}${getPolicyIDFromRoute(props.route)}`,
         },
         policyMemberList: {
-            key: (props) =>
-                `${
-                    ONYXKEYS.COLLECTION.POLICY_MEMBER_LIST
-                }${getPolicyIDFromRoute(props.route)}`,
+            key: (props) => `${ONYXKEYS.COLLECTION.POLICY_MEMBER_LIST}${getPolicyIDFromRoute(props.route)}`,
         },
     })(withPolicy);
 }

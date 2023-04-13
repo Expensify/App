@@ -1,8 +1,6 @@
 import React from 'react';
 import PropTypes from 'prop-types';
-import BaseQuickEmojiReactions, {
-    baseQuickEmojiReactionsPropTypes,
-} from './BaseQuickEmojiReactions';
+import BaseQuickEmojiReactions, {baseQuickEmojiReactionsPropTypes} from './BaseQuickEmojiReactions';
 import {contextMenuRef} from '../../../pages/home/report/ContextMenu/ReportActionContextMenu';
 import CONST from '../../../CONST';
 

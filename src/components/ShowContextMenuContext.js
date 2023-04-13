@@ -20,24 +20,8 @@ ShowContextMenuContext.displayName = 'ShowContextMenuContext';
  * @param {Object} action - ReportAction for ContextMenu
  * @param {Function} checkIfContextMenuActive Callback to update context menu active state
  */
-function showContextMenuForReport(
-    event,
-    anchor,
-    reportID,
-    action,
-    checkIfContextMenuActive,
-) {
-    ReportActionContextMenu.showContextMenu(
-        ContextMenuActions.CONTEXT_MENU_TYPES.REPORT_ACTION,
-        event,
-        '',
-        anchor,
-        reportID,
-        action,
-        '',
-        checkIfContextMenuActive,
-        checkIfContextMenuActive,
-    );
+function showContextMenuForReport(event, anchor, reportID, action, checkIfContextMenuActive) {
+    ReportActionContextMenu.showContextMenu(ContextMenuActions.CONTEXT_MENU_TYPES.REPORT_ACTION, event, '', anchor, reportID, action, '', checkIfContextMenuActive, checkIfContextMenuActive);
 }
 
 export {ShowContextMenuContext, showContextMenuForReport};

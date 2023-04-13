@@ -2,9 +2,7 @@ import React from 'react';
 import PropTypes from 'prop-types';
 import Modal from './Modal';
 import CONST from '../CONST';
-import withWindowDimensions, {
-    windowDimensionsPropTypes,
-} from './withWindowDimensions';
+import withWindowDimensions, {windowDimensionsPropTypes} from './withWindowDimensions';
 import ConfirmContent from './ConfirmContent';
 
 const propTypes = {
@@ -67,11 +65,7 @@ const ConfirmModal = (props) => (
         isVisible={props.isVisible}
         shouldSetModalVisibility={props.shouldSetModalVisibility}
         onModalHide={props.onModalHide}
-        type={
-            props.isSmallScreenWidth
-                ? CONST.MODAL.MODAL_TYPE.BOTTOM_DOCKED
-                : CONST.MODAL.MODAL_TYPE.CONFIRM
-        }
+        type={props.isSmallScreenWidth ? CONST.MODAL.MODAL_TYPE.BOTTOM_DOCKED : CONST.MODAL.MODAL_TYPE.CONFIRM}
     >
         <ConfirmContent
             title={props.title}

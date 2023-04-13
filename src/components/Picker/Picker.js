@@ -25,8 +25,7 @@ const propTypes = {
     items: PropTypes.arrayOf(
         PropTypes.shape({
             /** The value of the item that is being selected */
-            value: PropTypes.oneOfType([PropTypes.string, PropTypes.number])
-                .isRequired,
+            value: PropTypes.oneOfType([PropTypes.string, PropTypes.number]).isRequired,
 
             /** The text to display for the item */
             label: PropTypes.string.isRequired,
@@ -161,12 +160,7 @@ class Picker extends PureComponent {
     setDefaultValue() {
         // When there is only 1 element in the selector, we do the user a favor and automatically select it for them
         // so they don't have to spend extra time selecting the only possible value.
-        if (
-            this.props.value ||
-            !this.props.items ||
-            this.props.items.length !== 1 ||
-            !this.props.onInputChange
-        ) {
+        if (this.props.value || !this.props.items || this.props.items.length !== 1 || !this.props.onInputChange) {
             return;
         }
         this.props.onInputChange(this.props.items[0].value, 0);
@@ -199,13 +193,7 @@ class Picker extends PureComponent {
                     ]}
                 >
                     {this.props.label && (
-                        <Text
-                            pointerEvents="none"
-                            style={[
-                                styles.pickerLabel,
-                                styles.textLabelSupporting,
-                            ]}
-                        >
+                        <Text pointerEvents="none" style={[styles.pickerLabel, styles.textLabelSupporting]}>
                             {this.props.label}
                         </Text>
                     )}
@@ -216,14 +204,7 @@ class Picker extends PureComponent {
                             ...item,
                             color: themeColors.pickerOptionsTextColor,
                         }))}
-                        style={
-                            this.props.size === 'normal'
-                                ? styles.picker(
-                                      this.props.isDisabled,
-                                      this.props.backgroundColor,
-                                  )
-                                : styles.pickerSmall(this.props.backgroundColor)
-                        }
+                        style={this.props.size === 'normal' ? styles.picker(this.props.isDisabled, this.props.backgroundColor) : styles.pickerSmall(this.props.backgroundColor)}
                         useNativeAndroidPickerStyle={false}
                         placeholder={this.placeholder}
                         value={this.props.value}
@@ -239,13 +220,10 @@ class Picker extends PureComponent {
                                 this.disableHighlight();
                                 this.props.onBlur();
                             },
-                            ...this.props.additionalPickerEvents(
-                                this.enableHighlight,
-                                (value, index) => {
-                                    this.onInputChange(value, index);
-                                    this.disableHighlight();
-                                },
-                            ),
+                            ...this.props.additionalPickerEvents(this.enableHighlight, (value, index) => {
+                                this.onInputChange(value, index);
+                                this.disableHighlight();
+                            }),
                         }}
                         ref={(el) => {
                             if (!_.isFunction(this.props.innerRef)) {
@@ -253,12 +231,8 @@ class Picker extends PureComponent {
                             }
                             this.props.innerRef(el);
                         }}
-                        scrollViewRef={
-                            this.context && this.context.scrollViewRef
-                        }
-                        scrollViewContentOffsetY={
-                            this.context && this.context.contentOffsetY
-                        }
+                        scrollViewRef={this.context && this.context.scrollViewRef}
+                        scrollViewContentOffsetY={this.context && this.context.contentOffsetY}
                     />
                 </View>
                 <FormHelpMessage message={this.props.errorText} />

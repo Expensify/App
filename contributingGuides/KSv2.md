@@ -2,13 +2,13 @@
 
 In Expensify, we use a prioritization system called called "Kernel Scheduler v2" (KSv2) to help us keep aligned on how frequently GitHub issues should be worked on, depending on their time priority:
 
-**Hourly**: If a Github issue has the `Hourly` label, the assignee should update it *at least* once an hour
+**Hourly**: If a Github issue has the `Hourly` label, the assignee should update it _at least_ once an hour
 
-**Daily**: If a Github issue has the `Daily` label, the assignee should update it *at least* once a day
+**Daily**: If a Github issue has the `Daily` label, the assignee should update it _at least_ once a day
 
-**Weekly**: If a Github issue has the `Weekly` label, the assignee should update it *at least* once a week
+**Weekly**: If a Github issue has the `Weekly` label, the assignee should update it _at least_ once a week
 
-**Monthly**: If a Github issue has the `Monthly` label, the assignee should update it *at least* once a month.
+**Monthly**: If a Github issue has the `Monthly` label, the assignee should update it _at least_ once a month.
 
 ## Dashboard
 
@@ -57,14 +57,16 @@ Additionally, the extension provides a button that facilitates the creation of t
 You can install the KSv2 extension from [here](https://github.com/Expensify/k2-extension/).
 
 ## Best Practices
-- Look at the dashboard every day, before you start any work
-- Work your way down from the top to the bottom
+
+-   Look at the dashboard every day, before you start any work
+-   Work your way down from the top to the bottom
     1. Look at PRs you need to review first
     2. Next, provide updates for issues assigned to you
     3. Check the progress on PRs you've written
     4. Finally, find something new to work on
 
 ## Why is it called "Kernel Scheduler v2?"
+
 KSv2 is a shout-out to Windows 95 improving the kernel scheduler used in Windows 3.1. In Windows 3.1, if a program was in the foreground, it was given 100% of the CPU time. This meant that if you watched a background application like the clock, it wouldn't update its time until the foreground application was no longer in the foreground. Then the clock could "catch up" and update to show the current time. Windows 95 made it so that background applications could update by dedicating a small amount of the foreground CPU usage as "spare cycles" for background apps to use. This meant that the clock could now update in real-time, even though it was running in the background.
 
 We brought the same thinking to GitHub priority. A monthly issue is like the "background app". Rather than never getting any work done on it ever, we say that it should have _something_ done on it once a month. It doesn't need to be closed or completed, but it should have something done to it. That way most of a developer's bandwidth can be used on the high-priority items that are hourly and daily, yet still, make some progress on weekly and monthly issues.

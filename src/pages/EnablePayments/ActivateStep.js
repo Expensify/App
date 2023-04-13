@@ -4,9 +4,7 @@ import FireworksAnimation from '../../../assets/animations/Fireworks.json';
 import ReviewingBankInfoAnimation from '../../../assets/animations/ReviewingBankInfo.json';
 import HeaderWithCloseButton from '../../components/HeaderWithCloseButton';
 import Navigation from '../../libs/Navigation/Navigation';
-import withLocalize, {
-    withLocalizePropTypes,
-} from '../../components/withLocalize';
+import withLocalize, {withLocalizePropTypes} from '../../components/withLocalize';
 import userWalletPropTypes from './userWalletPropTypes';
 import CONST from '../../CONST';
 import * as PaymentMethods from '../../libs/actions/PaymentMethods';
@@ -33,14 +31,9 @@ const defaultProps = {
 };
 
 const ActivateStep = (props) => {
-    const isGoldWallet =
-        props.userWallet.tierName === CONST.WALLET.TIER_NAME.GOLD;
-    const animation = isGoldWallet
-        ? FireworksAnimation
-        : ReviewingBankInfoAnimation;
-    const continueButtonText = props.walletTerms.chatReportID
-        ? props.translate('activateStep.continueToPayment')
-        : props.translate('activateStep.continueToTransfer');
+    const isGoldWallet = props.userWallet.tierName === CONST.WALLET.TIER_NAME.GOLD;
+    const animation = isGoldWallet ? FireworksAnimation : ReviewingBankInfoAnimation;
+    const continueButtonText = props.walletTerms.chatReportID ? props.translate('activateStep.continueToPayment') : props.translate('activateStep.continueToTransfer');
 
     return (
         <>
@@ -52,16 +45,8 @@ const ActivateStep = (props) => {
             />
             <ConfirmationPage
                 animation={animation}
-                heading={props.translate(
-                    `activateStep.${
-                        isGoldWallet ? 'activated' : 'checkBackLater'
-                    }Title`,
-                )}
-                description={props.translate(
-                    `activateStep.${
-                        isGoldWallet ? 'activated' : 'checkBackLater'
-                    }Message`,
-                )}
+                heading={props.translate(`activateStep.${isGoldWallet ? 'activated' : 'checkBackLater'}Title`)}
+                description={props.translate(`activateStep.${isGoldWallet ? 'activated' : 'checkBackLater'}Message`)}
                 shouldShowButton={isGoldWallet}
                 buttonText={continueButtonText}
                 onButtonPress={PaymentMethods.continueSetup}

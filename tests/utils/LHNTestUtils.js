@@ -72,24 +72,13 @@ let lastFakeReportID = 0;
  * @param {boolean} isUnread
  * @returns {Object}
  */
-function getFakeReport(
-    participants = ['email1@test.com', 'email2@test.com'],
-    millisecondsInThePast = 0,
-    isUnread = false,
-) {
-    const lastVisibleActionCreated = DateUtils.getDBTime(
-        Date.now() - millisecondsInThePast,
-    );
+function getFakeReport(participants = ['email1@test.com', 'email2@test.com'], millisecondsInThePast = 0, isUnread = false) {
+    const lastVisibleActionCreated = DateUtils.getDBTime(Date.now() - millisecondsInThePast);
     return {
         reportID: `${++lastFakeReportID}`,
         reportName: 'Report',
         lastVisibleActionCreated,
-        lastReadTime: isUnread
-            ? DateUtils.subtractMillisecondsFromDateTime(
-                  lastVisibleActionCreated,
-                  1,
-              )
-            : lastVisibleActionCreated,
+        lastReadTime: isUnread ? DateUtils.subtractMillisecondsFromDateTime(lastVisibleActionCreated, 1) : lastVisibleActionCreated,
         participants,
     };
 }
@@ -106,19 +95,10 @@ function getFakeReport(
  * @param {boolean} hasDraft
  * @returns {Object}
  */
-function getAdvancedFakeReport(
-    isArchived,
-    isUserCreatedPolicyRoom,
-    hasAddWorkspaceError,
-    isUnread,
-    isPinned,
-    hasDraft,
-) {
+function getAdvancedFakeReport(isArchived, isUserCreatedPolicyRoom, hasAddWorkspaceError, isUnread, isPinned, hasDraft) {
     return {
         ...getFakeReport(['email1@test.com', 'email2@test.com'], 0, isUnread),
-        chatType: isUserCreatedPolicyRoom
-            ? CONST.REPORT.CHAT_TYPE.POLICY_ROOM
-            : CONST.REPORT.CHAT_TYPE.POLICY_ADMINS,
+        chatType: isUserCreatedPolicyRoom ? CONST.REPORT.CHAT_TYPE.POLICY_ROOM : CONST.REPORT.CHAT_TYPE.POLICY_ADMINS,
         statusNum: isArchived ? CONST.REPORT.STATUS.CLOSED : 0,
         stateNum: isArchived ? CONST.REPORT.STATE_NUM.SUBMITTED : 0,
         errorFields: hasAddWorkspaceError ? {addWorkspaceRoom: 'blah'} : null,
@@ -176,9 +156,4 @@ function getDefaultRenderedSidebarLinks(reportIDFromRoute = '') {
     );
 }
 
-export {
-    fakePersonalDetails,
-    getDefaultRenderedSidebarLinks,
-    getAdvancedFakeReport,
-    getFakeReport,
-};
+export {fakePersonalDetails, getDefaultRenderedSidebarLinks, getAdvancedFakeReport, getFakeReport};

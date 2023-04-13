@@ -1,9 +1,7 @@
 import React from 'react';
 import PropTypes from 'prop-types';
 import Popover from './Popover';
-import withWindowDimensions, {
-    windowDimensionsPropTypes,
-} from './withWindowDimensions';
+import withWindowDimensions, {windowDimensionsPropTypes} from './withWindowDimensions';
 import ConfirmContent from './ConfirmContent';
 
 const propTypes = {
@@ -58,12 +56,7 @@ const defaultProps = {
 };
 
 const ConfirmPopover = (props) => (
-    <Popover
-        onSubmit={props.onConfirm}
-        onClose={props.onCancel}
-        isVisible={props.isVisible}
-        anchorPosition={props.anchorPosition}
-    >
+    <Popover onSubmit={props.onConfirm} onClose={props.onCancel} isVisible={props.isVisible} anchorPosition={props.anchorPosition}>
         <ConfirmContent
             contentStyles={props.contentStyles}
             title={props.title}

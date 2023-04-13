@@ -15,9 +15,7 @@ import * as IOU from '../../libs/actions/IOU';
 import * as Expensicons from '../../components/Icon/Expensicons';
 import Navigation from '../../libs/Navigation/Navigation';
 import ONYXKEYS from '../../ONYXKEYS';
-import withLocalize, {
-    withLocalizePropTypes,
-} from '../../components/withLocalize';
+import withLocalize, {withLocalizePropTypes} from '../../components/withLocalize';
 import compose from '../../libs/compose';
 import * as OptionsListUtils from '../../libs/OptionsListUtils';
 import FullScreenLoadingIndicator from '../../components/FullscreenLoadingIndicator';
@@ -115,38 +113,23 @@ class IOUModal extends Component {
         this.sendMoney = this.sendMoney.bind(this);
 
         const participants = lodashGet(props, 'report.participants', []);
-        const participantsWithDetails = _.map(
-            OptionsListUtils.getPersonalDetailsForLogins(
-                participants,
-                props.personalDetails,
-            ),
-            (personalDetails) => ({
-                login: personalDetails.login,
-                text: personalDetails.displayName,
-                firstName: lodashGet(personalDetails, 'firstName', ''),
-                lastName: lodashGet(personalDetails, 'lastName', ''),
-                alternateText: Str.isSMSLogin(personalDetails.login)
-                    ? Str.removeSMSDomain(personalDetails.login)
-                    : personalDetails.login,
-                icons: [
-                    {
-                        source: ReportUtils.getAvatar(
-                            personalDetails.avatar,
-                            personalDetails.login,
-                        ),
-                        name: personalDetails.login,
-                        type: CONST.ICON_TYPE_AVATAR,
-                    },
-                ],
-                keyForList: personalDetails.login,
-                payPalMeAddress: lodashGet(
-                    personalDetails,
-                    'payPalMeAddress',
-                    '',
-                ),
-                phoneNumber: lodashGet(personalDetails, 'phoneNumber', ''),
-            }),
-        );
+        const participantsWithDetails = _.map(OptionsListUtils.getPersonalDetailsForLogins(participants, props.personalDetails), (personalDetails) => ({
+            login: personalDetails.login,
+            text: personalDetails.displayName,
+            firstName: lodashGet(personalDetails, 'firstName', ''),
+            lastName: lodashGet(personalDetails, 'lastName', ''),
+            alternateText: Str.isSMSLogin(personalDetails.login) ? Str.removeSMSDomain(personalDetails.login) : personalDetails.login,
+            icons: [
+                {
+                    source: ReportUtils.getAvatar(personalDetails.avatar, personalDetails.login),
+                    name: personalDetails.login,
+                    type: CONST.ICON_TYPE_AVATAR,
+                },
+            ],
+            keyForList: personalDetails.login,
+            payPalMeAddress: lodashGet(personalDetails, 'payPalMeAddress', ''),
+            phoneNumber: lodashGet(personalDetails, 'phoneNumber', ''),
+        }));
 
         this.state = {
             previousStepIndex: 0,
@@ -163,37 +146,24 @@ class IOUModal extends Component {
             // The steps to be shown within the create IOU flow.
             this.steps = [Steps.IOUAmount, Steps.IOUConfirm];
         } else {
-            this.steps = [
-                Steps.IOUAmount,
-                Steps.IOUParticipants,
-                Steps.IOUConfirm,
-            ];
+            this.steps = [Steps.IOUAmount, Steps.IOUParticipants, Steps.IOUConfirm];
         }
     }
 
     componentDidMount() {
         PersonalDetails.openIOUModalPage();
-        IOU.setIOUSelectedCurrency(
-            this.props.currentUserPersonalDetails.localCurrencyCode,
-        );
+        IOU.setIOUSelectedCurrency(this.props.currentUserPersonalDetails.localCurrencyCode);
     }
 
     componentDidUpdate(prevProps) {
-        const wasCreatingIOUTransaction = lodashGet(
-            prevProps,
-            'iou.creatingIOUTransaction',
-        );
+        const wasCreatingIOUTransaction = lodashGet(prevProps, 'iou.creatingIOUTransaction');
         const iouError = lodashGet(this.props, 'iou.error');
         if (prevProps.network.isOffline && !this.props.network.isOffline) {
             PersonalDetails.openIOUModalPage();
         }
 
         // Successfully close the modal if transaction creation has ended and there is no error
-        if (
-            wasCreatingIOUTransaction &&
-            !lodashGet(this.props, 'iou.creatingIOUTransaction') &&
-            !iouError
-        ) {
+        if (wasCreatingIOUTransaction && !lodashGet(this.props, 'iou.creatingIOUTransaction') && !iouError) {
             Navigation.dismissModal();
         }
 
@@ -205,14 +175,8 @@ class IOUModal extends Component {
             this.creatingIOUTransaction = false;
         }
 
-        const currentSelectedCurrencyCode = lodashGet(
-            this.props,
-            'iou.selectedCurrencyCode',
-        );
-        if (
-            lodashGet(prevProps, 'iou.selectedCurrencyCode') !==
-            currentSelectedCurrencyCode
-        ) {
+        const currentSelectedCurrencyCode = lodashGet(this.props, 'iou.selectedCurrencyCode');
+        if (lodashGet(prevProps, 'iou.selectedCurrencyCode') !== currentSelectedCurrencyCode) {
             IOU.setIOUSelectedCurrency(currentSelectedCurrencyCode);
         }
     }
@@ -254,24 +218,15 @@ class IOUModal extends Component {
                     amount: formattedAmount,
                 });
             }
-            return this.props.translate(
-                this.props.hasMultipleParticipants
-                    ? 'iou.split'
-                    : 'iou.request',
-                {
-                    amount: formattedAmount,
-                },
-            );
+            return this.props.translate(this.props.hasMultipleParticipants ? 'iou.split' : 'iou.request', {
+                amount: formattedAmount,
+            });
         }
         if (currentStepIndex === 0) {
             if (isSendingMoney) {
                 return this.props.translate('iou.sendMoney');
             }
-            return this.props.translate(
-                this.props.hasMultipleParticipants
-                    ? 'iou.splitBill'
-                    : 'iou.requestMoney',
-            );
+            return this.props.translate(this.props.hasMultipleParticipants ? 'iou.splitBill' : 'iou.requestMoney');
         }
 
         return this.props.translate(this.steps[currentStepIndex]) || '';
@@ -338,38 +293,17 @@ class IOUModal extends Component {
         const participant = this.state.participants[0];
 
         if (paymentMethodType === CONST.IOU.PAYMENT_TYPE.ELSEWHERE) {
-            IOU.sendMoneyElsewhere(
-                this.props.report,
-                amount,
-                currency,
-                comment,
-                this.props.currentUserPersonalDetails.login,
-                participant,
-            );
+            IOU.sendMoneyElsewhere(this.props.report, amount, currency, comment, this.props.currentUserPersonalDetails.login, participant);
             return;
         }
 
         if (paymentMethodType === CONST.IOU.PAYMENT_TYPE.PAYPAL_ME) {
-            IOU.sendMoneyViaPaypal(
-                this.props.report,
-                amount,
-                currency,
-                comment,
-                this.props.currentUserPersonalDetails.login,
-                participant,
-            );
+            IOU.sendMoneyViaPaypal(this.props.report, amount, currency, comment, this.props.currentUserPersonalDetails.login, participant);
             return;
         }
 
         if (paymentMethodType === CONST.IOU.PAYMENT_TYPE.EXPENSIFY) {
-            IOU.sendMoneyWithWallet(
-                this.props.report,
-                amount,
-                currency,
-                comment,
-                this.props.currentUserPersonalDetails.login,
-                participant,
-            );
+            IOU.sendMoneyWithWallet(this.props.report, amount, currency, comment, this.props.currentUserPersonalDetails.login, participant);
         }
     }
 
@@ -382,10 +316,7 @@ class IOUModal extends Component {
 
         // IOUs created from a group report will have a reportID param in the route.
         // Since the user is already viewing the report, we don't need to navigate them to the report
-        if (
-            this.props.hasMultipleParticipants &&
-            CONST.REGEX.NUMBER.test(reportID)
-        ) {
+        if (this.props.hasMultipleParticipants && CONST.REGEX.NUMBER.test(reportID)) {
             IOU.splitBill(
                 selectedParticipants,
                 this.props.currentUserPersonalDetails.login,
@@ -423,44 +354,24 @@ class IOUModal extends Component {
     renderHeader() {
         return (
             <View style={[styles.headerBar]}>
-                <View
-                    style={[
-                        styles.dFlex,
-                        styles.flexRow,
-                        styles.alignItemsCenter,
-                        styles.flexGrow1,
-                        styles.justifyContentBetween,
-                        styles.overflowHidden,
-                    ]}
-                >
+                <View style={[styles.dFlex, styles.flexRow, styles.alignItemsCenter, styles.flexGrow1, styles.justifyContentBetween, styles.overflowHidden]}>
                     {this.state.currentStepIndex > 0 && (
                         <View style={[styles.mr2]}>
                             <Tooltip text={this.props.translate('common.back')}>
-                                <TouchableOpacity
-                                    onPress={this.navigateToPreviousStep}
-                                    style={[styles.touchableButtonImage]}
-                                >
+                                <TouchableOpacity onPress={this.navigateToPreviousStep} style={[styles.touchableButtonImage]}>
                                     <Icon src={Expensicons.BackArrow} />
                                 </TouchableOpacity>
                             </Tooltip>
                         </View>
                     )}
                     <Header title={this.getTitleForStep()} />
-                    <View
-                        style={[
-                            styles.reportOptions,
-                            styles.flexRow,
-                            styles.pr5,
-                        ]}
-                    >
+                    <View style={[styles.reportOptions, styles.flexRow, styles.pr5]}>
                         <Tooltip text={this.props.translate('common.close')}>
                             <TouchableOpacity
                                 onPress={() => Navigation.dismissModal()}
                                 style={[styles.touchableButtonImage]}
                                 accessibilityRole="button"
-                                accessibilityLabel={this.props.translate(
-                                    'common.close',
-                                )}
+                                accessibilityLabel={this.props.translate('common.close')}
                             >
                                 <Icon src={Expensicons.Close} />
                             </TouchableOpacity>
@@ -479,19 +390,11 @@ class IOUModal extends Component {
                 {({didScreenTransitionEnd, safeAreaPaddingBottomStyle}) => (
                     <>
                         <View style={[styles.pRelative, styles.flex1]}>
-                            {!didScreenTransitionEnd && (
-                                <FullScreenLoadingIndicator />
-                            )}
+                            {!didScreenTransitionEnd && <FullScreenLoadingIndicator />}
                             {didScreenTransitionEnd && (
                                 <>
                                     {currentStep === Steps.IOUAmount && (
-                                        <AnimatedStep
-                                            direction={this.getDirection()}
-                                            style={[
-                                                styles.flex1,
-                                                safeAreaPaddingBottomStyle,
-                                            ]}
-                                        >
+                                        <AnimatedStep direction={this.getDirection()} style={[styles.flex1, safeAreaPaddingBottomStyle]}>
                                             {this.renderHeader()}
                                             <IOUAmountPage
                                                 onStepComplete={(amount) => {
@@ -499,113 +402,58 @@ class IOUModal extends Component {
                                                     this.navigateToNextStep();
                                                 }}
                                                 reportID={reportID}
-                                                hasMultipleParticipants={
-                                                    this.props
-                                                        .hasMultipleParticipants
-                                                }
-                                                selectedAmount={
-                                                    this.state.amount
-                                                }
-                                                navigation={
-                                                    this.props.navigation
-                                                }
+                                                hasMultipleParticipants={this.props.hasMultipleParticipants}
+                                                selectedAmount={this.state.amount}
+                                                navigation={this.props.navigation}
                                                 iouType={this.props.iouType}
                                             />
                                         </AnimatedStep>
                                     )}
                                     {currentStep === Steps.IOUParticipants && (
-                                        <AnimatedStep
-                                            style={[styles.flex1]}
-                                            direction={this.getDirection()}
-                                        >
+                                        <AnimatedStep style={[styles.flex1]} direction={this.getDirection()}>
                                             {this.renderHeader()}
                                             <IOUParticipantsPage
-                                                participants={
-                                                    this.state.participants
-                                                }
-                                                hasMultipleParticipants={
-                                                    this.props
-                                                        .hasMultipleParticipants
-                                                }
-                                                onAddParticipants={
-                                                    this.addParticipants
-                                                }
-                                                onStepComplete={
-                                                    this.navigateToNextStep
-                                                }
-                                                safeAreaPaddingBottomStyle={
-                                                    safeAreaPaddingBottomStyle
-                                                }
+                                                participants={this.state.participants}
+                                                hasMultipleParticipants={this.props.hasMultipleParticipants}
+                                                onAddParticipants={this.addParticipants}
+                                                onStepComplete={this.navigateToNextStep}
+                                                safeAreaPaddingBottomStyle={safeAreaPaddingBottomStyle}
                                             />
                                         </AnimatedStep>
                                     )}
                                     {currentStep === Steps.IOUConfirm && (
-                                        <AnimatedStep
-                                            style={[
-                                                styles.flex1,
-                                                safeAreaPaddingBottomStyle,
-                                            ]}
-                                            direction={this.getDirection()}
-                                        >
+                                        <AnimatedStep style={[styles.flex1, safeAreaPaddingBottomStyle]} direction={this.getDirection()}>
                                             {this.renderHeader()}
                                             <IOUConfirmPage
-                                                onConfirm={(
-                                                    selectedParticipants,
-                                                ) => {
+                                                onConfirm={(selectedParticipants) => {
                                                     // Prevent creating multiple transactions if the button is pressed repeatedly
-                                                    if (
-                                                        this
-                                                            .creatingIOUTransaction
-                                                    ) {
+                                                    if (this.creatingIOUTransaction) {
                                                         return;
                                                     }
                                                     this.creatingIOUTransaction = true;
-                                                    this.createTransaction(
-                                                        selectedParticipants,
-                                                    );
+                                                    this.createTransaction(selectedParticipants);
                                                     ReportScrollManager.scrollToBottom();
                                                 }}
-                                                onSendMoney={(
-                                                    paymentMethodType,
-                                                ) => {
-                                                    if (
-                                                        this
-                                                            .creatingIOUTransaction
-                                                    ) {
+                                                onSendMoney={(paymentMethodType) => {
+                                                    if (this.creatingIOUTransaction) {
                                                         return;
                                                     }
                                                     this.creatingIOUTransaction = true;
-                                                    this.sendMoney(
-                                                        paymentMethodType,
-                                                    );
+                                                    this.sendMoney(paymentMethodType);
                                                     ReportScrollManager.scrollToBottom();
                                                 }}
-                                                hasMultipleParticipants={
-                                                    this.props
-                                                        .hasMultipleParticipants
-                                                }
-                                                participants={_.filter(
-                                                    this.state.participants,
-                                                    (email) =>
-                                                        this.props
-                                                            .currentUserPersonalDetails
-                                                            .login !==
-                                                        email.login,
-                                                )}
+                                                hasMultipleParticipants={this.props.hasMultipleParticipants}
+                                                participants={_.filter(this.state.participants, (email) => this.props.currentUserPersonalDetails.login !== email.login)}
                                                 iouAmount={this.state.amount}
                                                 comment={this.state.comment}
-                                                onUpdateComment={
-                                                    this.updateComment
-                                                }
+                                                onUpdateComment={this.updateComment}
                                                 iouType={this.props.iouType}
                                                 // The participants can only be modified when the action is initiated from directly within a group chat and not the floating-action-button.
                                                 // This is because when there is a group of people, say they are on a trip, and you have some shared expenses with some of the people,
                                                 // but not all of them (maybe someone skipped out on dinner). Then it's nice to be able to select/deselect people from the group chat bill
                                                 // split rather than forcing the user to create a new group, just for that expense. The reportID is empty, when the action was initiated from
                                                 // the floating-action-button (since it is something that exists outside the context of a report).
-                                                canModifyParticipants={
-                                                    !_.isEmpty(reportID)
-                                                }
+                                                canModifyParticipants={!_.isEmpty(reportID)}
                                             />
                                         </AnimatedStep>
                                     )}
@@ -628,12 +476,7 @@ export default compose(
     withCurrentUserPersonalDetails,
     withOnyx({
         report: {
-            key: ({route}) =>
-                `${ONYXKEYS.COLLECTION.REPORT}${lodashGet(
-                    route,
-                    'params.reportID',
-                    '',
-                )}`,
+            key: ({route}) => `${ONYXKEYS.COLLECTION.REPORT}${lodashGet(route, 'params.reportID', '')}`,
         },
         iou: {
             key: ONYXKEYS.IOU,

@@ -4,9 +4,7 @@ import {View} from 'react-native';
 import HeaderWithCloseButton from '../../../components/HeaderWithCloseButton';
 import ScreenWrapper from '../../../components/ScreenWrapper';
 import Navigation from '../../../libs/Navigation/Navigation';
-import withLocalize, {
-    withLocalizePropTypes,
-} from '../../../components/withLocalize';
+import withLocalize, {withLocalizePropTypes} from '../../../components/withLocalize';
 import CONST from '../../../CONST';
 import PaymentMethodList from './PaymentMethodList';
 import * as PaymentMethods from '../../../libs/actions/PaymentMethods';
@@ -38,12 +36,7 @@ const ChooseTransferAccountPage = (props) => {
      * @param {Object} account of the selected account data
      */
     const selectAccountAndNavigateBack = (event, accountType, account) => {
-        PaymentMethods.saveWalletTransferAccountTypeAndID(
-            accountType,
-            accountType === CONST.PAYMENT_METHODS.BANK_ACCOUNT
-                ? account.bankAccountID
-                : account.fundID,
-        );
+        PaymentMethods.saveWalletTransferAccountTypeAndID(accountType, accountType === CONST.PAYMENT_METHODS.BANK_ACCOUNT ? account.bankAccountID : account.fundID);
         Navigation.navigate(ROUTES.SETTINGS_PAYMENTS_TRANSFER_BALANCE);
     };
 
@@ -51,10 +44,7 @@ const ChooseTransferAccountPage = (props) => {
      * @param {String} paymentType
      */
     const navigateToAddPaymentMethodPage = () => {
-        if (
-            props.walletTransfer.filterPaymentMethodType ===
-            CONST.PAYMENT_METHODS.DEBIT_CARD
-        ) {
+        if (props.walletTransfer.filterPaymentMethodType === CONST.PAYMENT_METHODS.DEBIT_CARD) {
             Navigation.navigate(ROUTES.SETTINGS_ADD_DEBIT_CARD);
             return;
         }
@@ -64,16 +54,12 @@ const ChooseTransferAccountPage = (props) => {
     return (
         <ScreenWrapper>
             <HeaderWithCloseButton
-                title={props.translate(
-                    'chooseTransferAccountPage.chooseAccount',
-                )}
+                title={props.translate('chooseTransferAccountPage.chooseAccount')}
                 shouldShowBackButton
                 onBackButtonPress={() => Navigation.goBack()}
                 onCloseButtonPress={() => Navigation.dismissModal()}
             />
-            <View
-                style={[styles.mt6, styles.flexShrink1, styles.flexBasisAuto]}
-            >
+            <View style={[styles.mt6, styles.flexShrink1, styles.flexBasisAuto]}>
                 <PaymentMethodList
                     onPress={selectAccountAndNavigateBack}
                     shouldShowSelectedState
@@ -85,8 +71,7 @@ const ChooseTransferAccountPage = (props) => {
             <MenuItem
                 onPress={navigateToAddPaymentMethodPage}
                 title={
-                    props.walletTransfer.filterPaymentMethodType ===
-                    CONST.PAYMENT_METHODS.BANK_ACCOUNT
+                    props.walletTransfer.filterPaymentMethodType === CONST.PAYMENT_METHODS.BANK_ACCOUNT
                         ? props.translate('paymentMethodList.addNewBankAccount')
                         : props.translate('paymentMethodList.addNewDebitCard')
                 }

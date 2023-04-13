@@ -12,16 +12,14 @@ import RNFetchBlob from 'react-native-blob-util';
 function cropOrRotateImage(uri, actions, options = {}) {
     return new Promise((resolve) => {
         RNImageManipulator.manipulate(uri, actions, options).then((result) => {
-            RNFetchBlob.fs
-                .stat(result.uri.replace('file://', ''))
-                .then(({size}) => {
-                    resolve({
-                        ...result,
-                        size,
-                        type: options.type || 'image/jpeg',
-                        name: options.name || 'fileName.jpg',
-                    });
+            RNFetchBlob.fs.stat(result.uri.replace('file://', '')).then(({size}) => {
+                resolve({
+                    ...result,
+                    size,
+                    type: options.type || 'image/jpeg',
+                    name: options.name || 'fileName.jpg',
                 });
+            });
         });
     });
 }

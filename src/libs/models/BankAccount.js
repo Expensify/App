@@ -147,9 +147,7 @@ class BankAccount {
      */
     getClientID() {
         // eslint-disable-next-line max-len
-        return `${Str.makeID(this.getMaskedAccountNumber())}${Str.makeID(
-            this.getAddressName(),
-        )}${Str.makeID(this.getRoutingNumber())}${this.getType()}`;
+        return `${Str.makeID(this.getMaskedAccountNumber())}${Str.makeID(this.getAddressName())}${Str.makeID(this.getRoutingNumber())}${this.getType()}`;
     }
 
     /**
@@ -189,11 +187,7 @@ class BankAccount {
      * @returns {string}
      */
     getCountry() {
-        return lodashGet(
-            this.json,
-            ['accountData', 'additionalData', 'country'],
-            CONST.COUNTRY.US,
-        );
+        return lodashGet(this.json, ['accountData', 'additionalData', 'country'], CONST.COUNTRY.US);
     }
 
     /**
@@ -201,11 +195,7 @@ class BankAccount {
      * @returns {String}
      */
     getCurrency() {
-        return lodashGet(
-            this.json,
-            ['accountData', 'additionalData', 'currency'],
-            'USD',
-        );
+        return lodashGet(this.json, ['accountData', 'additionalData', 'currency'], 'USD');
     }
 
     /**
@@ -213,11 +203,7 @@ class BankAccount {
      * @returns {String}
      */
     getBankName() {
-        return lodashGet(
-            this.json,
-            ['accountData', 'additionalData', 'bankName'],
-            '',
-        );
+        return lodashGet(this.json, ['accountData', 'additionalData', 'bankName'], '');
     }
 
     /**
@@ -225,13 +211,7 @@ class BankAccount {
      * @returns {Boolean}
      */
     hasInternationalWireDetails() {
-        return (
-            lodashGet(
-                this.json,
-                ['accountData', 'additionalData', 'fieldsType'],
-                'local',
-            ) === 'international'
-        );
+        return lodashGet(this.json, ['accountData', 'additionalData', 'fieldsType'], 'local') === 'international';
     }
 
     /**
@@ -267,14 +247,7 @@ class BankAccount {
      * @return {Boolean}
      */
     needsToUpgrade() {
-        return (
-            !this.isInSetup() &&
-            !lodashHas(this.json, [
-                'accountData',
-                'additionalData',
-                'beneficialOwners',
-            ])
-        );
+        return !this.isInSetup() && !lodashHas(this.json, ['accountData', 'additionalData', 'beneficialOwners']);
     }
 }
 

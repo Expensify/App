@@ -5,9 +5,7 @@ import Image from '../Image';
 import styles from '../../styles/styles';
 import * as StyleUtils from '../../styles/StyleUtils';
 import * as DeviceCapabilities from '../../libs/DeviceCapabilities';
-import withWindowDimensions, {
-    windowDimensionsPropTypes,
-} from '../withWindowDimensions';
+import withWindowDimensions, {windowDimensionsPropTypes} from '../withWindowDimensions';
 import FullscreenLoadingIndicator from '../FullscreenLoadingIndicator';
 
 const propTypes = {
@@ -28,8 +26,7 @@ class ImageView extends PureComponent {
         super(props);
         this.scrollableRef = null;
         this.canUseTouchScreen = DeviceCapabilities.canUseTouchScreen();
-        this.onContainerLayoutChanged =
-            this.onContainerLayoutChanged.bind(this);
+        this.onContainerLayoutChanged = this.onContainerLayoutChanged.bind(this);
         this.onContainerPressIn = this.onContainerPressIn.bind(this);
         this.onContainerPress = this.onContainerPress.bind(this);
         this.imageLoad = this.imageLoad.bind(this);
@@ -117,19 +114,12 @@ class ImageView extends PureComponent {
 
             // Dividing clicked positions by the zoom scale to get coordinates
             // so that once we zoom we will scroll to the clicked location.
-            const delta = this.getScrollOffset(
-                offsetX / this.state.zoomScale,
-                offsetY / this.state.zoomScale,
-            );
+            const delta = this.getScrollOffset(offsetX / this.state.zoomScale, offsetY / this.state.zoomScale);
             scrollX = delta.offsetX;
             scrollY = delta.offsetY;
         }
 
-        if (
-            this.state.isZoomed &&
-            this.state.isDragging &&
-            this.state.isMouseDown
-        ) {
+        if (this.state.isZoomed && this.state.isDragging && this.state.isMouseDown) {
             this.setState({isDragging: false, isMouseDown: false});
         } else {
             // We first zoom and once its done then we scroll to the location the user clicked.
@@ -156,12 +146,7 @@ class ImageView extends PureComponent {
             return;
         }
 
-        this.setScale(
-            this.state.containerWidth,
-            this.state.containerHeight,
-            imageWidth,
-            imageHeight,
-        );
+        this.setScale(this.state.containerWidth, this.state.containerHeight, imageWidth, imageHeight);
         this.setState({
             imgWidth: imageWidth,
             imgHeight: imageHeight,
@@ -175,18 +160,10 @@ class ImageView extends PureComponent {
      * @param {Number} imageHeight
      */
     setScale(containerWidth, containerHeight, imageWidth, imageHeight) {
-        if (
-            !containerWidth ||
-            !imageWidth ||
-            !containerHeight ||
-            !imageHeight
-        ) {
+        if (!containerWidth || !imageWidth || !containerHeight || !imageHeight) {
             return;
         }
-        const newZoomScale = Math.min(
-            containerWidth / imageWidth,
-            containerHeight / imageHeight,
-        );
+        const newZoomScale = Math.min(containerWidth / imageWidth, containerHeight / imageHeight);
         this.setState({zoomScale: newZoomScale});
     }
 
@@ -221,16 +198,9 @@ class ImageView extends PureComponent {
      */
     trackPointerPosition(e) {
         // Whether the pointer is released inside the ImageView
-        const isInsideImageView = this.scrollableRef.contains(
-            e.nativeEvent.target,
-        );
+        const isInsideImageView = this.scrollableRef.contains(e.nativeEvent.target);
 
-        if (
-            !isInsideImageView &&
-            this.state.isZoomed &&
-            this.state.isDragging &&
-            this.state.isMouseDown
-        ) {
+        if (!isInsideImageView && this.state.isZoomed && this.state.isDragging && this.state.isMouseDown) {
             this.setState({isDragging: false, isMouseDown: false});
         }
     }
@@ -245,8 +215,7 @@ class ImageView extends PureComponent {
             const y = e.nativeEvent.y;
             const moveX = this.state.initialX - x;
             const moveY = this.state.initialY - y;
-            this.scrollableRef.scrollLeft =
-                this.state.initialScrollLeft + moveX;
+            this.scrollableRef.scrollLeft = this.state.initialScrollLeft + moveX;
             this.scrollableRef.scrollTop = this.state.initialScrollTop + moveY;
         }
 
@@ -268,47 +237,24 @@ class ImageView extends PureComponent {
     render() {
         if (this.canUseTouchScreen) {
             return (
-                <View
-                    style={[styles.imageViewContainer, styles.overflowHidden]}
-                    onLayout={this.onContainerLayoutChanged}
-                >
+                <View style={[styles.imageViewContainer, styles.overflowHidden]} onLayout={this.onContainerLayoutChanged}>
                     <Image
                         source={{uri: this.props.url}}
                         isAuthTokenRequired={this.props.isAuthTokenRequired}
                         // Hide image until finished loading to prevent showing preview with wrong dimensions.
-                        style={
-                            this.state.isLoading
-                                ? undefined
-                                : [styles.w100, styles.h100]
-                        }
+                        style={this.state.isLoading ? undefined : [styles.w100, styles.h100]}
                         // When Image dimensions are lower than the container boundary(zoomscale <= 1), use `contain` to render the image with natural dimensions.
                         // Both `center` and `contain` keeps the image centered on both x and y axis.
-                        resizeMode={
-                            this.state.zoomScale > 1
-                                ? Image.resizeMode.center
-                                : Image.resizeMode.contain
-                        }
+                        resizeMode={this.state.zoomScale > 1 ? Image.resizeMode.center : Image.resizeMode.contain}
                         onLoadStart={this.imageLoadingStart}
                         onLoad={this.imageLoad}
                     />
-                    {this.state.isLoading && (
-                        <FullscreenLoadingIndicator
-                            style={[styles.opacity1, styles.bgTransparent]}
-                        />
-                    )}
+                    {this.state.isLoading && <FullscreenLoadingIndicator style={[styles.opacity1, styles.bgTransparent]} />}
                 </View>
             );
         }
         return (
-            <View
-                ref={(el) => (this.scrollableRef = el)}
-                onLayout={this.onContainerLayoutChanged}
-                style={[
-                    styles.imageViewContainer,
-                    styles.overflowAuto,
-                    styles.pRelative,
-                ]}
-            >
+            <View ref={(el) => (this.scrollableRef = el)} onLayout={this.onContainerLayoutChanged} style={[styles.imageViewContainer, styles.overflowAuto, styles.pRelative]}>
                 <Pressable
                     style={{
                         ...StyleUtils.getZoomSizingStyle(
@@ -319,13 +265,8 @@ class ImageView extends PureComponent {
                             this.state.containerHeight,
                             this.state.containerWidth,
                         ),
-                        ...StyleUtils.getZoomCursorStyle(
-                            this.state.isZoomed,
-                            this.state.isDragging,
-                        ),
-                        ...(this.state.isZoomed && this.state.zoomScale >= 1
-                            ? styles.pRelative
-                            : styles.pAbsolute),
+                        ...StyleUtils.getZoomCursorStyle(this.state.isZoomed, this.state.isDragging),
+                        ...(this.state.isZoomed && this.state.zoomScale >= 1 ? styles.pRelative : styles.pAbsolute),
                         ...styles.flex1,
                     }}
                     onPressIn={this.onContainerPressIn}
@@ -333,22 +274,14 @@ class ImageView extends PureComponent {
                 >
                     <Image
                         source={{uri: this.props.url}}
-                        style={
-                            this.state.isLoading
-                                ? undefined
-                                : [styles.h100, styles.w100]
-                        } // Hide image until finished loading to prevent showing preview with wrong dimensions.
+                        style={this.state.isLoading ? undefined : [styles.h100, styles.w100]} // Hide image until finished loading to prevent showing preview with wrong dimensions.
                         resizeMode={Image.resizeMode.contain}
                         onLoadStart={this.imageLoadingStart}
                         onLoad={this.imageLoad}
                     />
                 </Pressable>
 
-                {this.state.isLoading && (
-                    <FullscreenLoadingIndicator
-                        style={[styles.opacity1, styles.bgTransparent]}
-                    />
-                )}
+                {this.state.isLoading && <FullscreenLoadingIndicator style={[styles.opacity1, styles.bgTransparent]} />}
             </View>
         );
     }

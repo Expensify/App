@@ -28,11 +28,7 @@ let timezone = CONST.DEFAULT_TIME_ZONE;
 Onyx.connect({
     key: ONYXKEYS.PERSONAL_DETAILS,
     callback: (val) => {
-        timezone = lodashGet(
-            val,
-            [currentUserEmail, 'timezone'],
-            CONST.DEFAULT_TIME_ZONE,
-        );
+        timezone = lodashGet(val, [currentUserEmail, 'timezone'], CONST.DEFAULT_TIME_ZONE);
     },
 });
 
@@ -48,11 +44,7 @@ Onyx.connect({
  *
  * @private
  */
-function getLocalMomentFromDatetime(
-    locale,
-    datetime,
-    currentSelectedTimezone = timezone.selected,
-) {
+function getLocalMomentFromDatetime(locale, datetime, currentSelectedTimezone = timezone.selected) {
     moment.locale(locale);
     if (!datetime) {
         return moment.tz(currentSelectedTimezone);
@@ -76,17 +68,8 @@ function getLocalMomentFromDatetime(
  *
  * @returns {String}
  */
-function datetimeToCalendarTime(
-    locale,
-    datetime,
-    includeTimeZone = false,
-    currentSelectedTimezone,
-) {
-    const date = getLocalMomentFromDatetime(
-        locale,
-        datetime,
-        currentSelectedTimezone,
-    );
+function datetimeToCalendarTime(locale, datetime, includeTimeZone = false, currentSelectedTimezone) {
+    const date = getLocalMomentFromDatetime(locale, datetime, currentSelectedTimezone);
     const tz = includeTimeZone ? ' [UTC]Z' : '';
 
     const todayAt = Localize.translate(locale, 'common.todayAt');
@@ -198,10 +181,7 @@ function getDBTime(timestamp = '') {
  * @returns {String}
  */
 function subtractMillisecondsFromDateTime(dateTime, milliseconds) {
-    const newTimestamp = moment
-        .utc(dateTime)
-        .subtract(milliseconds, 'milliseconds')
-        .valueOf();
+    const newTimestamp = moment.utc(dateTime).subtract(milliseconds, 'milliseconds').valueOf();
     return getDBTime(newTimestamp);
 }
 
