@@ -15,14 +15,8 @@ export default function () {
                 Onyx.disconnect(connectionID);
 
                 // Fail early here because there is nothing to migrate
-                if (
-                    !user ||
-                    _.isNull(user.expensifyNewsStatus) ||
-                    _.isUndefined(user.expensifyNewsStatus)
-                ) {
-                    Log.info(
-                        '[Migrate Onyx] Skipped migration RenameExpensifyNewsStatus',
-                    );
+                if (!user || _.isNull(user.expensifyNewsStatus) || _.isUndefined(user.expensifyNewsStatus)) {
+                    Log.info('[Migrate Onyx] Skipped migration RenameExpensifyNewsStatus');
                     return resolve();
                 }
 
@@ -31,9 +25,7 @@ export default function () {
                     expensifyNewsStatus: null,
                     isSubscribedToNewsletter: user.expensifyNewsStatus,
                 }).then(() => {
-                    Log.info(
-                        '[Migrate Onyx] Ran migration RenameExpensifyNewsStatus',
-                    );
+                    Log.info('[Migrate Onyx] Ran migration RenameExpensifyNewsStatus');
                     resolve();
                 });
             },

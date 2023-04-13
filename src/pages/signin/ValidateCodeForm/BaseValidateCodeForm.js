@@ -12,15 +12,11 @@ import * as Session from '../../../libs/actions/Session';
 import ONYXKEYS from '../../../ONYXKEYS';
 import CONST from '../../../CONST';
 import ChangeExpensifyLoginLink from '../ChangeExpensifyLoginLink';
-import withLocalize, {
-    withLocalizePropTypes,
-} from '../../../components/withLocalize';
+import withLocalize, {withLocalizePropTypes} from '../../../components/withLocalize';
 import compose from '../../../libs/compose';
 import TextInput from '../../../components/TextInput';
 import * as ValidationUtils from '../../../libs/ValidationUtils';
-import withToggleVisibilityView, {
-    toggleVisibilityViewPropTypes,
-} from '../../../components/withToggleVisibilityView';
+import withToggleVisibilityView, {toggleVisibilityViewPropTypes} from '../../../components/withToggleVisibilityView';
 import canFocusInputOnScreenFocus from '../../../libs/canFocusInputOnScreenFocus';
 import * as ErrorUtils from '../../../libs/ErrorUtils';
 import {withNetwork} from '../../../components/OnyxProvider';
@@ -78,11 +74,7 @@ class BaseValidateCodeForm extends React.Component {
     }
 
     componentDidMount() {
-        if (
-            !canFocusInputOnScreenFocus() ||
-            !this.inputValidateCode ||
-            !this.props.isVisible
-        ) {
+        if (!canFocusInputOnScreenFocus() || !this.inputValidateCode || !this.props.isVisible) {
             return;
         }
         this.inputValidateCode.focus();
@@ -92,29 +84,16 @@ class BaseValidateCodeForm extends React.Component {
         if (!prevProps.isVisible && this.props.isVisible) {
             this.inputValidateCode.focus();
         }
-        if (
-            prevProps.isVisible &&
-            !this.props.isVisible &&
-            this.state.validateCode
-        ) {
+        if (prevProps.isVisible && !this.props.isVisible && this.state.validateCode) {
             this.clearValidateCode();
         }
-        if (
-            !prevProps.credentials.validateCode &&
-            this.props.credentials.validateCode
-        ) {
+        if (!prevProps.credentials.validateCode && this.props.credentials.validateCode) {
             this.setState({validateCode: this.props.credentials.validateCode});
         }
-        if (
-            !prevProps.account.requiresTwoFactorAuth &&
-            this.props.account.requiresTwoFactorAuth
-        ) {
+        if (!prevProps.account.requiresTwoFactorAuth && this.props.account.requiresTwoFactorAuth) {
             this.input2FA.focus();
         }
-        if (
-            prevState.twoFactorAuthCode !== this.state.twoFactorAuthCode &&
-            this.state.twoFactorAuthCode.length === CONST.TFA_CODE_LENGTH
-        ) {
+        if (prevState.twoFactorAuthCode !== this.state.twoFactorAuthCode && this.state.twoFactorAuthCode.length === CONST.TFA_CODE_LENGTH) {
             this.validateAndSubmitForm();
         }
     }
@@ -192,17 +171,13 @@ class BaseValidateCodeForm extends React.Component {
         if (requiresTwoFactorAuth && !this.state.twoFactorAuthCode.trim()) {
             this.setState({
                 formError: {
-                    twoFactorAuthCode:
-                        'validateCodeForm.error.pleaseFillTwoFactorAuth',
+                    twoFactorAuthCode: 'validateCodeForm.error.pleaseFillTwoFactorAuth',
                 },
             });
             return;
         }
 
-        if (
-            requiresTwoFactorAuth &&
-            !ValidationUtils.isValidTwoFactorCode(this.state.twoFactorAuthCode)
-        ) {
+        if (requiresTwoFactorAuth && !ValidationUtils.isValidTwoFactorCode(this.state.twoFactorAuthCode)) {
             this.setState({
                 formError: {
                     twoFactorAuthCode: 'passwordForm.error.incorrect2fa',
@@ -217,17 +192,9 @@ class BaseValidateCodeForm extends React.Component {
 
         const accountID = lodashGet(this.props, 'credentials.accountID');
         if (accountID) {
-            Session.signInWithValidateCode(
-                accountID,
-                this.state.validateCode,
-                this.state.twoFactorAuthCode,
-            );
+            Session.signInWithValidateCode(accountID, this.state.validateCode, this.state.twoFactorAuthCode);
         } else {
-            Session.signIn(
-                '',
-                this.state.validateCode,
-                this.state.twoFactorAuthCode,
-            );
+            Session.signIn('', this.state.validateCode, this.state.twoFactorAuthCode);
         }
     }
 
@@ -239,29 +206,16 @@ class BaseValidateCodeForm extends React.Component {
                     <View style={[styles.mv3]}>
                         <TextInput
                             ref={(el) => (this.input2FA = el)}
-                            label={this.props.translate(
-                                'validateCodeForm.twoFactorCode',
-                            )}
+                            label={this.props.translate('validateCodeForm.twoFactorCode')}
                             value={this.state.twoFactorAuthCode}
-                            placeholder={this.props.translate(
-                                'validateCodeForm.requiredWhen2FAEnabled',
-                            )}
+                            placeholder={this.props.translate('validateCodeForm.requiredWhen2FAEnabled')}
                             placeholderTextColor={themeColors.placeholderText}
-                            onChangeText={(text) =>
-                                this.onTextInput(text, 'twoFactorAuthCode')
-                            }
+                            onChangeText={(text) => this.onTextInput(text, 'twoFactorAuthCode')}
                             onSubmitEditing={this.validateAndSubmitForm}
                             keyboardType={CONST.KEYBOARD_TYPE.NUMBER_PAD}
                             blurOnSubmit={false}
                             maxLength={CONST.TFA_CODE_LENGTH}
-                            errorText={
-                                this.state.formError.twoFactorAuthCode
-                                    ? this.props.translate(
-                                          this.state.formError
-                                              .twoFactorAuthCode,
-                                      )
-                                    : ''
-                            }
+                            errorText={this.state.formError.twoFactorAuthCode ? this.props.translate(this.state.formError.twoFactorAuthCode) : ''}
                         />
                     </View>
                 ) : (
@@ -274,53 +228,30 @@ class BaseValidateCodeForm extends React.Component {
                             nativeID="validateCode"
                             name="validateCode"
                             value={this.state.validateCode}
-                            onChangeText={(text) =>
-                                this.onTextInput(text, 'validateCode')
-                            }
+                            onChangeText={(text) => this.onTextInput(text, 'validateCode')}
                             onSubmitEditing={this.validateAndSubmitForm}
                             blurOnSubmit={false}
                             keyboardType={CONST.KEYBOARD_TYPE.NUMBER_PAD}
-                            errorText={
-                                this.state.formError.validateCode
-                                    ? this.props.translate(
-                                          this.state.formError.validateCode,
-                                      )
-                                    : ''
-                            }
+                            errorText={this.state.formError.validateCode ? this.props.translate(this.state.formError.validateCode) : ''}
                             autoFocus
                         />
-                        <View
-                            style={[styles.changeExpensifyLoginLinkContainer]}
-                        >
+                        <View style={[styles.changeExpensifyLoginLinkContainer]}>
                             {this.state.linkSent ? (
-                                <Text style={[styles.mt2]}>
-                                    {this.props.account.message}
-                                </Text>
+                                <Text style={[styles.mt2]}>{this.props.account.message}</Text>
                             ) : (
                                 <TouchableOpacity
                                     style={[styles.mt2]}
                                     onPress={this.resendValidateCode}
                                     underlayColor={themeColors.componentBG}
                                 >
-                                    <Text style={[styles.link]}>
-                                        {this.props.translate(
-                                            'validateCodeForm.magicCodeNotReceived',
-                                        )}
-                                    </Text>
+                                    <Text style={[styles.link]}>{this.props.translate('validateCodeForm.magicCodeNotReceived')}</Text>
                                 </TouchableOpacity>
                             )}
                         </View>
                     </View>
                 )}
 
-                {this.props.account &&
-                    !_.isEmpty(this.props.account.errors) && (
-                        <FormHelpMessage
-                            message={ErrorUtils.getLatestErrorMessage(
-                                this.props.account,
-                            )}
-                        />
-                    )}
+                {this.props.account && !_.isEmpty(this.props.account.errors) && <FormHelpMessage message={ErrorUtils.getLatestErrorMessage(this.props.account)} />}
                 <View>
                     <Button
                         isDisabled={this.props.network.isOffline}
@@ -332,9 +263,7 @@ class BaseValidateCodeForm extends React.Component {
                     />
                     <ChangeExpensifyLoginLink onPress={this.clearSignInData} />
                 </View>
-                <View
-                    style={[styles.mt5, styles.signInPageWelcomeTextContainer]}
-                >
+                <View style={[styles.mt5, styles.signInPageWelcomeTextContainer]}>
                     <Terms />
                 </View>
             </>

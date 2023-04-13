@@ -3,9 +3,7 @@ import _ from 'underscore';
 import PropTypes from 'prop-types';
 import {createDrawerNavigator} from '@react-navigation/drawer';
 import {View} from 'react-native';
-import withWindowDimensions, {
-    windowDimensionsPropTypes,
-} from '../../../components/withWindowDimensions';
+import withWindowDimensions, {windowDimensionsPropTypes} from '../../../components/withWindowDimensions';
 import styles from '../../../styles/styles';
 import * as StyleUtils from '../../../styles/StyleUtils';
 
@@ -49,9 +47,7 @@ class BaseDrawerNavigator extends Component {
             // Calculate the defaultStatus only once on mount to prevent breaking the navigation internal state.
             // Directly passing the dynamically calculated defaultStatus to drawer Navigator breaks the internal state
             // And prevents the drawer actions from reaching to active Drawer Navigator while screen is resized on from Web to mobile Web.
-            defaultStatus: Navigation.getDefaultDrawerState(
-                props.isSmallScreenWidth,
-            ),
+            defaultStatus: Navigation.getDefaultDrawerState(props.isSmallScreenWidth),
         };
     }
 
@@ -68,9 +64,7 @@ class BaseDrawerNavigator extends Component {
 
         // eslint-disable-next-line react/no-did-update-set-state
         this.setState({
-            defaultStatus: Navigation.getDefaultDrawerState(
-                this.props.isSmallScreenWidth,
-            ),
+            defaultStatus: Navigation.getDefaultDrawerState(this.props.isSmallScreenWidth),
         });
     }
 
@@ -91,12 +85,8 @@ class BaseDrawerNavigator extends Component {
                 screenOptions={{
                     cardStyle: styles.navigationScreenCardStyle,
                     headerShown: false,
-                    drawerType: StyleUtils.getNavigationDrawerType(
-                        this.props.isSmallScreenWidth,
-                    ),
-                    drawerStyle: StyleUtils.getNavigationDrawerStyle(
-                        this.props.isSmallScreenWidth,
-                    ),
+                    drawerType: StyleUtils.getNavigationDrawerType(this.props.isSmallScreenWidth),
+                    drawerStyle: StyleUtils.getNavigationDrawerStyle(this.props.isSmallScreenWidth),
                     swipeEdgeWidth: 500,
                 }}
             >
@@ -112,11 +102,7 @@ class BaseDrawerNavigator extends Component {
         );
 
         if (!this.props.isMainScreen && !this.props.isSmallScreenWidth) {
-            return (
-                <View style={styles.navigationSceneFullScreenWrapper}>
-                    {content}
-                </View>
-            );
+            return <View style={styles.navigationSceneFullScreenWrapper}>{content}</View>;
         }
 
         return content;

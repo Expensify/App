@@ -32,31 +32,16 @@ function run() {
                     .then((responses) => {
                         const workflowRuns = responses[0].data.workflow_runs;
                         if (!tag) {
-                            workflowRuns.push(
-                                ...responses[1].data.workflow_runs,
-                            );
+                            workflowRuns.push(...responses[1].data.workflow_runs);
                         }
                         return workflowRuns;
                     })
-                    .then(
-                        (workflowRuns) =>
-                            (currentStagingDeploys = _.filter(
-                                workflowRuns,
-                                (workflowRun) =>
-                                    workflowRun.status !== 'completed',
-                            )),
-                    )
+                    .then((workflowRuns) => (currentStagingDeploys = _.filter(workflowRuns, (workflowRun) => workflowRun.status !== 'completed')))
                     .then(() =>
                         console.log(
                             _.isEmpty(currentStagingDeploys)
                                 ? 'No current staging deploys found'
-                                : `Found ${
-                                      currentStagingDeploys.length
-                                  } staging deploy${
-                                      currentStagingDeploys.length > 1
-                                          ? 's'
-                                          : ''
-                                  } still running...`,
+                                : `Found ${currentStagingDeploys.length} staging deploy${currentStagingDeploys.length > 1 ? 's' : ''} still running...`,
                         ),
                     ),
 

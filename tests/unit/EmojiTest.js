@@ -16,9 +16,7 @@ describe('EmojiTest', () => {
             let skinToneMatched = true;
             if (emoji.types) {
                 // and every skin tone variant of the Emoji code
-                skinToneMatched = _.every(emoji.types, (emojiWithSkinTone) =>
-                    EmojiUtils.containsOnlyEmojis(emojiWithSkinTone),
-                );
+                skinToneMatched = _.every(emoji.types, (emojiWithSkinTone) => EmojiUtils.containsOnlyEmojis(emojiWithSkinTone));
             }
             return skinToneMatched && isEmojiMatched;
         });
@@ -102,16 +100,12 @@ describe('EmojiTest', () => {
 
     it('will not add a space after the last emoji if there is text after it', () => {
         const text = 'Hi :smile::wave:no space after last emoji';
-        expect(EmojiUtils.replaceEmojis(text)).toBe(
-            'Hi 😄👋no space after last emoji',
-        );
+        expect(EmojiUtils.replaceEmojis(text)).toBe('Hi 😄👋no space after last emoji');
     });
 
     it('will not add a space after the last emoji when there is text after it on mobile', () => {
         const text = 'Hi :smile::wave:no space after last emoji';
-        expect(EmojiUtils.replaceEmojis(text, true)).toBe(
-            'Hi 😄👋no space after last emoji',
-        );
+        expect(EmojiUtils.replaceEmojis(text, true)).toBe('Hi 😄👋no space after last emoji');
     });
 
     it("will not add a space after the last emoji if we're not on mobile", () => {
@@ -121,9 +115,7 @@ describe('EmojiTest', () => {
 
     it('suggests emojis when typing emojis prefix after colon', () => {
         const text = 'Hi :coffin';
-        expect(EmojiUtils.suggestEmojis(text)).toEqual([
-            {code: '⚰️', name: 'coffin'},
-        ]);
+        expect(EmojiUtils.suggestEmojis(text)).toEqual([{code: '⚰️', name: 'coffin'}]);
     });
 
     it('suggests a limited number of matching emojis', () => {

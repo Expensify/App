@@ -41,48 +41,28 @@ describe('ValidationUtils', () => {
         });
 
         test('room name with 81 characters', () => {
-            expect(
-                ValidationUtils.isValidRoomName(
-                    '#123456789012345678901234567890123456789012345678901234567890123456789012345678901',
-                ),
-            ).toBe(false);
+            expect(ValidationUtils.isValidRoomName('#123456789012345678901234567890123456789012345678901234567890123456789012345678901')).toBe(false);
         });
 
         test('room name with lowercase letters, numbers, and dashes', () => {
-            expect(ValidationUtils.isValidRoomName('#this-is-a-room1')).toBe(
-                true,
-            );
+            expect(ValidationUtils.isValidRoomName('#this-is-a-room1')).toBe(true);
         });
     });
 
     describe('isValidWebsite', () => {
         test('Valid URLs with https protocol', () => {
-            expect(
-                ValidationUtils.isValidWebsite('https://www.expensify.com'),
-            ).toBe(true);
-            expect(
-                ValidationUtils.isValidWebsite('https://expensify.com/inbox/'),
-            ).toBe(true);
-            expect(
-                ValidationUtils.isValidWebsite(
-                    'https://we.are.expensify.com/how-we-got-here',
-                ),
-            ).toBe(true);
+            expect(ValidationUtils.isValidWebsite('https://www.expensify.com')).toBe(true);
+            expect(ValidationUtils.isValidWebsite('https://expensify.com/inbox/')).toBe(true);
+            expect(ValidationUtils.isValidWebsite('https://we.are.expensify.com/how-we-got-here')).toBe(true);
         });
 
         test('Valid URLs with http protocol', () => {
-            expect(
-                ValidationUtils.isValidWebsite('http://www.expensify.com'),
-            ).toBe(true);
-            expect(
-                ValidationUtils.isValidWebsite('http://use.expensify.com'),
-            ).toBe(true);
+            expect(ValidationUtils.isValidWebsite('http://www.expensify.com')).toBe(true);
+            expect(ValidationUtils.isValidWebsite('http://use.expensify.com')).toBe(true);
         });
 
         test('Valid URL with ftp protocol', () => {
-            expect(
-                ValidationUtils.isValidWebsite('ftp://expensify.com/files'),
-            ).toBe(true);
+            expect(ValidationUtils.isValidWebsite('ftp://expensify.com/files')).toBe(true);
         });
 
         test('Invalid URLs', () => {
@@ -92,22 +72,14 @@ describe('ValidationUtils', () => {
         });
 
         test('Invalid URLs without protocols', () => {
-            expect(ValidationUtils.isValidWebsite('www.expensify.com')).toBe(
-                false,
-            );
+            expect(ValidationUtils.isValidWebsite('www.expensify.com')).toBe(false);
             expect(ValidationUtils.isValidWebsite('expensify.com')).toBe(false);
         });
 
         test('Invalid URLs with special characters and emojis', () => {
-            expect(ValidationUtils.isValidWebsite('www.~expensify.com')).toBe(
-                false,
-            );
-            expect(
-                ValidationUtils.isValidWebsite('https://www.expen$ify.com'),
-            ).toBe(false);
-            expect(ValidationUtils.isValidWebsite('www.expensify😄.com')).toBe(
-                false,
-            );
+            expect(ValidationUtils.isValidWebsite('www.~expensify.com')).toBe(false);
+            expect(ValidationUtils.isValidWebsite('https://www.expen$ify.com')).toBe(false);
+            expect(ValidationUtils.isValidWebsite('www.expensify😄.com')).toBe(false);
         });
     });
 });

@@ -27,11 +27,7 @@ document.addEventListener(
         const intervalId = setInterval(() => {
             passedMiliseconds += 250;
             isRootMounted = root.children.length > 0;
-            if (
-                passedMiliseconds >= minMilisecondsToWait &&
-                isRootMounted &&
-                areFontsReady
-            ) {
+            if (passedMiliseconds >= minMilisecondsToWait && isRootMounted && areFontsReady) {
                 splash.parentNode.removeChild(splash);
                 clearInterval(intervalId);
             }

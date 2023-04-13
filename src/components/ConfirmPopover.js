@@ -1,9 +1,7 @@
 import React from 'react';
 import PropTypes from 'prop-types';
 import Popover from './Popover';
-import withWindowDimensions, {
-    windowDimensionsPropTypes,
-} from './withWindowDimensions';
+import withWindowDimensions, {windowDimensionsPropTypes} from './withWindowDimensions';
 import ConfirmContent from './ConfirmContent';
 
 const propTypes = {

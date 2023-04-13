@@ -57,10 +57,7 @@ const AddPaymentMethodMenu = (props) => (
                       {
                           text: props.translate('common.debitCard'),
                           icon: Expensicons.CreditCard,
-                          onSelected: () =>
-                              props.onItemSelected(
-                                  CONST.PAYMENT_METHODS.DEBIT_CARD,
-                              ),
+                          onSelected: () => props.onItemSelected(CONST.PAYMENT_METHODS.DEBIT_CARD),
                       },
                   ]
                 : []),
@@ -69,10 +66,7 @@ const AddPaymentMethodMenu = (props) => (
                       {
                           text: props.translate('common.payPalMe'),
                           icon: Expensicons.PayPal,
-                          onSelected: () =>
-                              props.onItemSelected(
-                                  CONST.PAYMENT_METHODS.PAYPAL,
-                              ),
+                          onSelected: () => props.onItemSelected(CONST.PAYMENT_METHODS.PAYPAL),
                       },
                   ]
                 : []),

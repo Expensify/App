@@ -19,7 +19,10 @@ const Template = (args) => (
         }}
     >
         {/* eslint-disable-next-line react/jsx-props-no-spreading */}
-        <Tooltip {...args} maxWidth={args.maxWidth || undefined}>
+        <Tooltip
+            {...args}
+            maxWidth={args.maxWidth || undefined}
+        >
             <div
                 style={{
                     width: 100,

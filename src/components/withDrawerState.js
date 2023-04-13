@@ -21,21 +21,19 @@ export default function withDrawerState(WrappedComponent) {
         );
     };
 
-    WithDrawerState.displayName = `withDrawerState(${getComponentDisplayName(
-        WrappedComponent,
-    )})`;
+    WithDrawerState.displayName = `withDrawerState(${getComponentDisplayName(WrappedComponent)})`;
     WithDrawerState.propTypes = {
-        forwardedRef: PropTypes.oneOfType([
-            PropTypes.func,
-            PropTypes.shape({current: PropTypes.instanceOf(React.Component)}),
-        ]),
+        forwardedRef: PropTypes.oneOfType([PropTypes.func, PropTypes.shape({current: PropTypes.instanceOf(React.Component)})]),
     };
     WithDrawerState.defaultProps = {
         forwardedRef: undefined,
     };
     return React.forwardRef((props, ref) => (
         // eslint-disable-next-line react/jsx-props-no-spreading
-        <WithDrawerState {...props} forwardedRef={ref} />
+        <WithDrawerState
+            {...props}
+            forwardedRef={ref}
+        />
     ));
 }
 

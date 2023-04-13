@@ -12,77 +12,49 @@ import TextLink from '../../../components/TextLink';
 
 const termsData = [
     {
-        title: Localize.translateLocal(
-            'termsStep.longTermsForm.openingAccountTitle',
-        ),
+        title: Localize.translateLocal('termsStep.longTermsForm.openingAccountTitle'),
         rightText: Localize.translateLocal('termsStep.feeAmountZero'),
-        details: Localize.translateLocal(
-            'termsStep.longTermsForm.openingAccountDetails',
-        ),
+        details: Localize.translateLocal('termsStep.longTermsForm.openingAccountDetails'),
     },
     {
         title: Localize.translateLocal('termsStep.monthlyFee'),
         rightText: Localize.translateLocal('termsStep.feeAmountZero'),
-        details: Localize.translateLocal(
-            'termsStep.longTermsForm.monthlyFeeDetails',
-        ),
+        details: Localize.translateLocal('termsStep.longTermsForm.monthlyFeeDetails'),
     },
     {
-        title: Localize.translateLocal(
-            'termsStep.longTermsForm.customerServiceTitle',
-        ),
+        title: Localize.translateLocal('termsStep.longTermsForm.customerServiceTitle'),
         subTitle: Localize.translateLocal('termsStep.longTermsForm.automated'),
         rightText: Localize.translateLocal('termsStep.feeAmountZero'),
-        details: Localize.translateLocal(
-            'termsStep.longTermsForm.customerServiceDetails',
-        ),
+        details: Localize.translateLocal('termsStep.longTermsForm.customerServiceDetails'),
     },
     {
-        title: Localize.translateLocal(
-            'termsStep.longTermsForm.customerServiceTitle',
-        ),
+        title: Localize.translateLocal('termsStep.longTermsForm.customerServiceTitle'),
         subTitle: Localize.translateLocal('termsStep.longTermsForm.liveAgent'),
         rightText: Localize.translateLocal('termsStep.feeAmountZero'),
-        details: Localize.translateLocal(
-            'termsStep.longTermsForm.customerServiceDetails',
-        ),
+        details: Localize.translateLocal('termsStep.longTermsForm.customerServiceDetails'),
     },
     {
         title: Localize.translateLocal('termsStep.inactivity'),
         rightText: Localize.translateLocal('termsStep.feeAmountZero'),
-        details: Localize.translateLocal(
-            'termsStep.longTermsForm.inactivityDetails',
-        ),
+        details: Localize.translateLocal('termsStep.longTermsForm.inactivityDetails'),
     },
     {
-        title: Localize.translateLocal(
-            'termsStep.longTermsForm.sendingFundsTitle',
-        ),
+        title: Localize.translateLocal('termsStep.longTermsForm.sendingFundsTitle'),
         rightText: Localize.translateLocal('termsStep.feeAmountZero'),
-        details: Localize.translateLocal(
-            'termsStep.longTermsForm.sendingFundsDetails',
-        ),
+        details: Localize.translateLocal('termsStep.longTermsForm.sendingFundsDetails'),
     },
     {
         title: Localize.translateLocal('termsStep.electronicFundsWithdrawal'),
         subTitle: Localize.translateLocal('termsStep.standard'),
         rightText: Localize.translateLocal('termsStep.feeAmountZero'),
-        details: Localize.translateLocal(
-            'termsStep.longTermsForm.electronicFundsStandardDetails',
-        ),
+        details: Localize.translateLocal('termsStep.longTermsForm.electronicFundsStandardDetails'),
     },
     {
         title: Localize.translateLocal('termsStep.electronicFundsWithdrawal'),
         subTitle: Localize.translateLocal('termsStep.longTermsForm.instant'),
-        rightText: Localize.translateLocal(
-            'termsStep.electronicFundsInstantFee',
-        ),
-        subRightText: Localize.translateLocal(
-            'termsStep.longTermsForm.electronicFundsInstantFeeMin',
-        ),
-        details: Localize.translateLocal(
-            'termsStep.longTermsForm.electronicFundsInstantDetails',
-        ),
+        rightText: Localize.translateLocal('termsStep.electronicFundsInstantFee'),
+        subRightText: Localize.translateLocal('termsStep.longTermsForm.electronicFundsInstantFeeMin'),
+        details: Localize.translateLocal('termsStep.longTermsForm.electronicFundsInstantDetails'),
     },
 ];
 
@@ -93,85 +65,45 @@ const getLongTermsSections = () =>
             <View style={[styles.longTermsRow]}>
                 <View style={[styles.flex4]}>
                     <Text>{section.title}</Text>
-                    {section.subTitle && (
-                        <Text style={[styles.textMicroSupporting, styles.mt1]}>
-                            {section.subTitle}
-                        </Text>
-                    )}
+                    {section.subTitle && <Text style={[styles.textMicroSupporting, styles.mt1]}>{section.subTitle}</Text>}
                 </View>
                 <View style={[styles.flex1, styles.termsCenterRight]}>
-                    <Text style={[styles.textStrong, styles.textAlignRight]}>
-                        {section.rightText}
-                    </Text>
-                    {section.subRightText && (
-                        <Text
-                            style={[
-                                styles.textMicroSupporting,
-                                styles.mt1,
-                                styles.textAlignRight,
-                            ]}
-                        >
-                            {section.subRightText}
-                        </Text>
-                    )}
+                    <Text style={[styles.textStrong, styles.textAlignRight]}>{section.rightText}</Text>
+                    {section.subRightText && <Text style={[styles.textMicroSupporting, styles.mt1, styles.textAlignRight]}>{section.subRightText}</Text>}
                 </View>
             </View>
-            <Text style={[styles.textLabelSupporting, styles.mt2]}>
-                {section.details}
-            </Text>
+            <Text style={[styles.textLabelSupporting, styles.mt2]}>{section.details}</Text>
         </View>
     ));
 
 const LongTermsForm = () => (
     <>
-        <CollapsibleSection
-            title={Localize.translateLocal(
-                'termsStep.longTermsForm.listOfAllFees',
-            )}
-        >
-            {getLongTermsSections()}
-        </CollapsibleSection>
+        <CollapsibleSection title={Localize.translateLocal('termsStep.longTermsForm.listOfAllFees')}>{getLongTermsSections()}</CollapsibleSection>
 
         <Text style={[styles.mb4, styles.mt6, styles.textMicroSupporting]}>
-            {Localize.translateLocal(
-                'termsStep.longTermsForm.fdicInsuranceBancorp',
-            )}{' '}
-            {CONST.TERMS.FDIC_PREPAID}{' '}
-            {Localize.translateLocal(
-                'termsStep.longTermsForm.fdicInsuranceBancorp2',
-            )}
+            {Localize.translateLocal('termsStep.longTermsForm.fdicInsuranceBancorp')} {CONST.TERMS.FDIC_PREPAID} {Localize.translateLocal('termsStep.longTermsForm.fdicInsuranceBancorp2')}
         </Text>
+        <Text style={[styles.mb4, styles.textMicroSupporting]}>{Localize.translateLocal('termsStep.noOverdraftOrCredit')}</Text>
         <Text style={[styles.mb4, styles.textMicroSupporting]}>
-            {Localize.translateLocal('termsStep.noOverdraftOrCredit')}
-        </Text>
-        <Text style={[styles.mb4, styles.textMicroSupporting]}>
-            {Localize.translateLocal(
-                'termsStep.longTermsForm.contactExpensifyPayments',
-            )}{' '}
-            {CONST.EMAIL.CONCIERGE}{' '}
-            {Localize.translateLocal(
-                'termsStep.longTermsForm.contactExpensifyPayments2',
-            )}{' '}
-            {CONST.NEW_EXPENSIFY_URL}.
+            {Localize.translateLocal('termsStep.longTermsForm.contactExpensifyPayments')} {CONST.EMAIL.CONCIERGE}{' '}
+            {Localize.translateLocal('termsStep.longTermsForm.contactExpensifyPayments2')} {CONST.NEW_EXPENSIFY_URL}.
         </Text>
         <Text style={[styles.mb6, styles.textMicroSupporting]}>
-            {Localize.translateLocal(
-                'termsStep.longTermsForm.generalInformation',
-            )}{' '}
-            {CONST.TERMS.CFPB_PREPAID}
+            {Localize.translateLocal('termsStep.longTermsForm.generalInformation')} {CONST.TERMS.CFPB_PREPAID}
             {'. '}
-            {Localize.translateLocal(
-                'termsStep.longTermsForm.generalInformation2',
-            )}{' '}
-            {CONST.TERMS.CFPB_COMPLAINT}.
+            {Localize.translateLocal('termsStep.longTermsForm.generalInformation2')} {CONST.TERMS.CFPB_COMPLAINT}.
         </Text>
 
         <View style={styles.flexRow}>
-            <Icon style={styles.flex1} src={Expensicons.Printer} />
-            <TextLink style={styles.ml1} href={CONST.FEES_URL}>
-                {Localize.translateLocal(
-                    'termsStep.longTermsForm.printerFriendlyView',
-                )}
+            <Icon
+                style={styles.flex1}
+                src={Expensicons.Printer}
+            />
+            <TextLink
+                style={styles.ml1}
+                href={CONST.FEES_URL}
+            >
+                {Localize.translateLocal('termsStep.longTermsForm.printerFriendlyView')}
             </TextLink>
         </View>
     </>

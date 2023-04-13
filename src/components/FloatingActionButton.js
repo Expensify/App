@@ -71,7 +71,10 @@ class FloatingActionButton extends PureComponent {
         });
 
         return (
-            <Tooltip absolute text={this.props.translate('common.new')}>
+            <Tooltip
+                absolute
+                text={this.props.translate('common.new')}
+            >
                 <View style={styles.floatingActionButtonContainer}>
                     <AnimatedPressable
                         ref={(el) => (this.fabPressable = el)}
@@ -82,15 +85,12 @@ class FloatingActionButton extends PureComponent {
                             this.fabPressable.blur();
                             this.props.onPress(e);
                         }}
-                        style={[
-                            styles.floatingActionButton,
-                            StyleUtils.getAnimatedFABStyle(
-                                rotate,
-                                backgroundColor,
-                            ),
-                        ]}
+                        style={[styles.floatingActionButton, StyleUtils.getAnimatedFABStyle(rotate, backgroundColor)]}
                     >
-                        <AnimatedIcon src={Expensicons.Plus} fill={fill} />
+                        <AnimatedIcon
+                            src={Expensicons.Plus}
+                            fill={fill}
+                        />
                     </AnimatedPressable>
                 </View>
             </Tooltip>

@@ -105,19 +105,14 @@ cc @Expensify/applauseleads
 }
 
 describe('checkDeployBlockers', () => {
-    const allClearIssue = mockIssue([
-        {url: 'https://github.com/Expensify/App/pull/6882', isQASuccess: true},
-    ]);
+    const allClearIssue = mockIssue([{url: 'https://github.com/Expensify/App/pull/6882', isQASuccess: true}]);
 
     describe('checkDeployBlockers', () => {
         test('Test an issue with all checked items and :shipit:', () => {
             mockGetIssue.mockResolvedValue(allClearIssue);
             mockListComments.mockResolvedValue(baseComments);
             return run().then(() => {
-                expect(mockSetOutput).toHaveBeenCalledWith(
-                    'HAS_DEPLOY_BLOCKERS',
-                    false,
-                );
+                expect(mockSetOutput).toHaveBeenCalledWith('HAS_DEPLOY_BLOCKERS', false);
             });
         });
 
@@ -133,10 +128,7 @@ describe('checkDeployBlockers', () => {
             };
             mockListComments.mockResolvedValue(extraComments);
             return run().then(() => {
-                expect(mockSetOutput).toHaveBeenCalledWith(
-                    'HAS_DEPLOY_BLOCKERS',
-                    true,
-                );
+                expect(mockSetOutput).toHaveBeenCalledWith('HAS_DEPLOY_BLOCKERS', true);
             });
         });
 
@@ -144,10 +136,7 @@ describe('checkDeployBlockers', () => {
             mockGetIssue.mockResolvedValue(allClearIssue);
             mockListComments.mockResolvedValue({data: []});
             return run().then(() => {
-                expect(mockSetOutput).toHaveBeenCalledWith(
-                    'HAS_DEPLOY_BLOCKERS',
-                    true,
-                );
+                expect(mockSetOutput).toHaveBeenCalledWith('HAS_DEPLOY_BLOCKERS', true);
             });
         });
 
@@ -170,10 +159,7 @@ describe('checkDeployBlockers', () => {
             );
             mockListComments.mockResolvedValue(baseComments);
             return run().then(() => {
-                expect(mockSetOutput).toHaveBeenCalledWith(
-                    'HAS_DEPLOY_BLOCKERS',
-                    true,
-                );
+                expect(mockSetOutput).toHaveBeenCalledWith('HAS_DEPLOY_BLOCKERS', true);
             });
         });
 
@@ -196,10 +182,7 @@ describe('checkDeployBlockers', () => {
             );
             mockListComments.mockResolvedValue(baseComments);
             return run().then(() => {
-                expect(mockSetOutput).toHaveBeenCalledWith(
-                    'HAS_DEPLOY_BLOCKERS',
-                    false,
-                );
+                expect(mockSetOutput).toHaveBeenCalledWith('HAS_DEPLOY_BLOCKERS', false);
             });
         });
     });

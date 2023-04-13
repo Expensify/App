@@ -11,16 +11,11 @@ import GoogleMeetIcon from '../../../assets/images/google-meet.svg';
 import CONST from '../../CONST';
 import styles from '../../styles/styles';
 import themeColors from '../../styles/themes/default';
-import withWindowDimensions, {
-    windowDimensionsPropTypes,
-} from '../withWindowDimensions';
+import withWindowDimensions, {windowDimensionsPropTypes} from '../withWindowDimensions';
 import withLocalize, {withLocalizePropTypes} from '../withLocalize';
 import compose from '../../libs/compose';
 import Tooltip from '../Tooltip';
-import {
-    propTypes as videoChatButtonAndMenuPropTypes,
-    defaultProps,
-} from './videoChatButtonAndMenuPropTypes';
+import {propTypes as videoChatButtonAndMenuPropTypes, defaultProps} from './videoChatButtonAndMenuPropTypes';
 
 const propTypes = {
     /** Link to open when user wants to create a new google meet meeting */
@@ -38,8 +33,7 @@ class BaseVideoChatButtonAndMenu extends Component {
         this.dimensionsEventListener = null;
 
         this.toggleVideoChatMenu = this.toggleVideoChatMenu.bind(this);
-        this.measureVideoChatIconPosition =
-            this.measureVideoChatIconPosition.bind(this);
+        this.measureVideoChatIconPosition = this.measureVideoChatIconPosition.bind(this);
         this.videoChatIconWrapper = null;
         this.menuItemData = [
             {
@@ -67,10 +61,7 @@ class BaseVideoChatButtonAndMenu extends Component {
     }
 
     componentDidMount() {
-        this.dimensionsEventListener = Dimensions.addEventListener(
-            'change',
-            this.measureVideoChatIconPosition,
-        );
+        this.dimensionsEventListener = Dimensions.addEventListener('change', this.measureVideoChatIconPosition);
     }
 
     componentWillUnmount() {
@@ -111,11 +102,7 @@ class BaseVideoChatButtonAndMenu extends Component {
                     ref={(el) => (this.videoChatIconWrapper = el)}
                     onLayout={this.measureVideoChatIconPosition}
                 >
-                    <Tooltip
-                        text={this.props.translate(
-                            'videoChatButtonAndMenu.tooltip',
-                        )}
-                    >
+                    <Tooltip text={this.props.translate('videoChatButtonAndMenu.tooltip')}>
                         <Pressable
                             ref={(el) => (this.videoChatButton = el)}
                             onPress={() => {
@@ -123,13 +110,8 @@ class BaseVideoChatButtonAndMenu extends Component {
                                 this.videoChatButton.blur();
 
                                 // If this is the Concierge chat, we'll open the modal for requesting a setup call instead
-                                if (
-                                    this.props.isConcierge &&
-                                    this.props.guideCalendarLink
-                                ) {
-                                    Linking.openURL(
-                                        this.props.guideCalendarLink,
-                                    );
+                                if (this.props.isConcierge && this.props.guideCalendarLink) {
+                                    Linking.openURL(this.props.guideCalendarLink);
                                     return;
                                 }
                                 this.toggleVideoChatMenu();
@@ -138,11 +120,7 @@ class BaseVideoChatButtonAndMenu extends Component {
                         >
                             <Icon
                                 src={Expensicons.Phone}
-                                fill={
-                                    this.state.isVideoChatMenuActive
-                                        ? themeColors.heading
-                                        : themeColors.icon
-                                }
+                                fill={this.state.isVideoChatMenuActive ? themeColors.heading : themeColors.icon}
                             />
                         </Pressable>
                     </Tooltip>
@@ -173,7 +151,4 @@ class BaseVideoChatButtonAndMenu extends Component {
 BaseVideoChatButtonAndMenu.propTypes = propTypes;
 BaseVideoChatButtonAndMenu.defaultProps = defaultProps;
 
-export default compose(
-    withWindowDimensions,
-    withLocalize,
-)(BaseVideoChatButtonAndMenu);
+export default compose(withWindowDimensions, withLocalize)(BaseVideoChatButtonAndMenu);

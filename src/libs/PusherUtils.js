@@ -18,17 +18,11 @@ function subscribeToPrivateUserChannelEvent(eventName, accountID, onEvent) {
      * @param {Object} pushJSON
      */
     function logPusherEvent(pushJSON) {
-        Log.info(
-            `[Report] Handled ${eventName} event sent by Pusher`,
-            false,
-            pushJSON,
-        );
+        Log.info(`[Report] Handled ${eventName} event sent by Pusher`, false, pushJSON);
     }
 
     function onPusherResubscribeToPrivateUserChannel() {
-        NetworkConnection.triggerReconnectionCallbacks(
-            'Pusher re-subscribed to private user channel',
-        );
+        NetworkConnection.triggerReconnectionCallbacks('Pusher re-subscribed to private user channel');
     }
 
     /**
@@ -49,12 +43,7 @@ function subscribeToPrivateUserChannelEvent(eventName, accountID, onEvent) {
             eventName,
         });
     }
-    Pusher.subscribe(
-        pusherChannelName,
-        eventName,
-        onEventPush,
-        onPusherResubscribeToPrivateUserChannel,
-    ).catch(onSubscriptionFailed);
+    Pusher.subscribe(pusherChannelName, eventName, onEventPush, onPusherResubscribeToPrivateUserChannel).catch(onSubscriptionFailed);
 }
 
 export default {

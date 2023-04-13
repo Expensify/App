@@ -25,9 +25,7 @@ function calculateAmount(participants, total, isDefaultUser = false) {
     const sumAmount = amountPerPerson * totalParticipants;
     const difference = iouAmount - sumAmount;
 
-    return iouAmount !== sumAmount
-        ? amountPerPerson + difference
-        : amountPerPerson;
+    return iouAmount !== sumAmount ? amountPerPerson + difference : amountPerPerson;
 }
 
 /**
@@ -43,13 +41,7 @@ function calculateAmount(participants, total, isDefaultUser = false) {
  * @param {String} type
  * @returns {Object}
  */
-function updateIOUOwnerAndTotal(
-    iouReport,
-    actorEmail,
-    amount,
-    currency,
-    type = CONST.IOU.REPORT_ACTION_TYPE.CREATE,
-) {
+function updateIOUOwnerAndTotal(iouReport, actorEmail, amount, currency, type = CONST.IOU.REPORT_ACTION_TYPE.CREATE) {
     if (currency !== iouReport.currency) {
         return iouReport;
     }
@@ -57,11 +49,9 @@ function updateIOUOwnerAndTotal(
     const iouReportUpdate = {...iouReport};
 
     if (actorEmail === iouReport.ownerEmail) {
-        iouReportUpdate.total +=
-            type === CONST.IOU.REPORT_ACTION_TYPE.CANCEL ? -amount : amount;
+        iouReportUpdate.total += type === CONST.IOU.REPORT_ACTION_TYPE.CANCEL ? -amount : amount;
     } else {
-        iouReportUpdate.total +=
-            type === CONST.IOU.REPORT_ACTION_TYPE.CANCEL ? amount : -amount;
+        iouReportUpdate.total += type === CONST.IOU.REPORT_ACTION_TYPE.CANCEL ? amount : -amount;
     }
 
     if (iouReportUpdate.total < 0) {
@@ -88,37 +78,12 @@ function updateIOUOwnerAndTotal(
  *
  * @returns {Array}
  */
-function getIOUReportActions(
-    reportActions,
-    iouReport,
-    type = '',
-    pendingAction = '',
-    filterRequestsInDifferentCurrency = false,
-) {
+function getIOUReportActions(reportActions, iouReport, type = '', pendingAction = '', filterRequestsInDifferentCurrency = false) {
     return _.chain(reportActions)
-        .filter(
-            (action) =>
-                action.originalMessage &&
-                action.actionName === CONST.REPORT.ACTIONS.TYPE.IOU &&
-                (!_.isEmpty(type)
-                    ? action.originalMessage.type === type
-                    : true),
-        )
-        .filter(
-            (action) =>
-                action.originalMessage.IOUReportID.toString() ===
-                iouReport.reportID.toString(),
-        )
-        .filter((action) =>
-            !_.isEmpty(pendingAction)
-                ? action.pendingAction === pendingAction
-                : true,
-        )
-        .filter((action) =>
-            filterRequestsInDifferentCurrency
-                ? action.originalMessage.currency !== iouReport.currency
-                : true,
-        )
+        .filter((action) => action.originalMessage && action.actionName === CONST.REPORT.ACTIONS.TYPE.IOU && (!_.isEmpty(type) ? action.originalMessage.type === type : true))
+        .filter((action) => action.originalMessage.IOUReportID.toString() === iouReport.reportID.toString())
+        .filter((action) => (!_.isEmpty(pendingAction) ? action.pendingAction === pendingAction : true))
+        .filter((action) => (filterRequestsInDifferentCurrency ? action.originalMessage.currency !== iouReport.currency : true))
         .value();
 }
 
@@ -133,47 +98,24 @@ function getIOUReportActions(
  */
 function isIOUReportPendingCurrencyConversion(reportActions, iouReport) {
     // Pending money requests that are in a different currency
-    const pendingRequestsInDifferentCurrency = _.chain(
-        getIOUReportActions(
-            reportActions,
-            iouReport,
-            CONST.IOU.REPORT_ACTION_TYPE.CREATE,
-            CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
-            true,
-        ),
-    )
+    const pendingRequestsInDifferentCurrency = _.chain(getIOUReportActions(reportActions, iouReport, CONST.IOU.REPORT_ACTION_TYPE.CREATE, CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD, true))
         .map((action) => action.originalMessage.IOUTransactionID)
         .sort()
         .value();
 
     // Pending cancelled money requests that are in a different currency
     const pendingCancelledRequestsInDifferentCurrency = _.chain(
-        getIOUReportActions(
-            reportActions,
-            iouReport,
-            CONST.IOU.REPORT_ACTION_TYPE.CANCEL,
-            CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
-            true,
-        ),
+        getIOUReportActions(reportActions, iouReport, CONST.IOU.REPORT_ACTION_TYPE.CANCEL, CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD, true),
     )
         .map((action) => action.originalMessage.IOUTransactionID)
         .sort()
         .value();
 
-    const hasPendingRequests = Boolean(
-        pendingRequestsInDifferentCurrency.length ||
-            pendingCancelledRequestsInDifferentCurrency.length,
-    );
+    const hasPendingRequests = Boolean(pendingRequestsInDifferentCurrency.length || pendingCancelledRequestsInDifferentCurrency.length);
 
     // If we have pending money requests made offline, check if all of them have been cancelled offline
     // In order to do that, we can grab transactionIDs of all the created and cancelled money requests and check if they're identical
-    if (
-        hasPendingRequests &&
-        _.isEqual(
-            pendingRequestsInDifferentCurrency,
-            pendingCancelledRequestsInDifferentCurrency,
-        )
-    ) {
+    if (hasPendingRequests && _.isEqual(pendingRequestsInDifferentCurrency, pendingCancelledRequestsInDifferentCurrency)) {
         return false;
     }
 
@@ -182,9 +124,4 @@ function isIOUReportPendingCurrencyConversion(reportActions, iouReport) {
     return hasPendingRequests;
 }
 
-export {
-    calculateAmount,
-    updateIOUOwnerAndTotal,
-    getIOUReportActions,
-    isIOUReportPendingCurrencyConversion,
-};
+export {calculateAmount, updateIOUOwnerAndTotal, getIOUReportActions, isIOUReportPendingCurrencyConversion};

@@ -34,28 +34,15 @@ const EmojiPickerButton = (props) => {
         >
             <Pressable
                 ref={(el) => (emojiPopoverAnchor = el)}
-                style={({hovered, pressed}) => [
-                    styles.chatItemEmojiButton,
-                    StyleUtils.getButtonBackgroundColorStyle(
-                        getButtonState(hovered, pressed),
-                    ),
-                ]}
+                style={({hovered, pressed}) => [styles.chatItemEmojiButton, StyleUtils.getButtonBackgroundColorStyle(getButtonState(hovered, pressed))]}
                 disabled={props.isDisabled}
-                onPress={() =>
-                    EmojiPickerAction.showEmojiPicker(
-                        props.onModalHide,
-                        props.onEmojiSelected,
-                        emojiPopoverAnchor,
-                    )
-                }
+                onPress={() => EmojiPickerAction.showEmojiPicker(props.onModalHide, props.onEmojiSelected, emojiPopoverAnchor)}
                 nativeID={props.nativeID}
             >
                 {({hovered, pressed}) => (
                     <Icon
                         src={Expensicons.Emoji}
-                        fill={StyleUtils.getIconFillColor(
-                            getButtonState(hovered, pressed),
-                        )}
+                        fill={StyleUtils.getIconFillColor(getButtonState(hovered, pressed))}
                     />
                 )}
             </Pressable>

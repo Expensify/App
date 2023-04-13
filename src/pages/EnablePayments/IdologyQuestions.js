@@ -4,9 +4,7 @@ import PropTypes from 'prop-types';
 import {View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import RadioButtons from '../../components/RadioButtons';
-import withLocalize, {
-    withLocalizePropTypes,
-} from '../../components/withLocalize';
+import withLocalize, {withLocalizePropTypes} from '../../components/withLocalize';
 import styles from '../../styles/styles';
 import * as BankAccounts from '../../libs/actions/BankAccounts';
 import Text from '../../components/Text';
@@ -101,32 +99,20 @@ class IdologyQuestions extends React.Component {
             // User must pick an answer
             if (!prevState.answers[prevState.questionNumber]) {
                 return {
-                    errorMessage: this.props.translate(
-                        'additionalDetailsStep.selectAnswer',
-                    ),
+                    errorMessage: this.props.translate('additionalDetailsStep.selectAnswer'),
                 };
             }
 
             // Get the number of questions that were skipped by the user.
-            const skippedQuestionsCount = _.filter(
-                prevState.answers,
-                (answer) => answer.answer === SKIP_QUESTION_TEXT,
-            ).length;
+            const skippedQuestionsCount = _.filter(prevState.answers, (answer) => answer.answer === SKIP_QUESTION_TEXT).length;
 
             // We have enough answers, let's call expectID KBA to verify them
-            if (
-                prevState.answers.length - skippedQuestionsCount >=
-                this.props.questions.length - MAX_SKIP
-            ) {
+            if (prevState.answers.length - skippedQuestionsCount >= this.props.questions.length - MAX_SKIP) {
                 const answers = prevState.answers;
 
                 // Auto skip any remaining questions
                 if (answers.length < this.props.questions.length) {
-                    for (
-                        let i = answers.length;
-                        i < this.props.questions.length;
-                        i++
-                    ) {
+                    for (let i = answers.length; i < this.props.questions.length; i++) {
                         answers[i] = {
                             question: this.props.questions[i].type,
                             answer: SKIP_QUESTION_TEXT,
@@ -134,10 +120,7 @@ class IdologyQuestions extends React.Component {
                     }
                 }
 
-                BankAccounts.answerQuestionsForWallet(
-                    answers,
-                    this.props.idNumber,
-                );
+                BankAccounts.answerQuestionsForWallet(answers, this.props.idNumber);
                 return {answers};
             }
 
@@ -165,19 +148,12 @@ class IdologyQuestions extends React.Component {
             }),
         );
 
-        const errorMessage =
-            ErrorUtils.getLatestErrorMessage(
-                this.props.walletAdditionalDetails,
-            ) || this.state.errorMessage;
+        const errorMessage = ErrorUtils.getLatestErrorMessage(this.props.walletAdditionalDetails) || this.state.errorMessage;
 
         return (
             <View style={[styles.flex1]}>
                 <View style={[styles.ph5]}>
-                    <Text style={styles.mb3}>
-                        {this.props.translate(
-                            'additionalDetailsStep.helpTextIdologyQuestions',
-                        )}
-                    </Text>
+                    <Text style={styles.mb3}>{this.props.translate('additionalDetailsStep.helpTextIdologyQuestions')}</Text>
                     <TextLink
                         style={styles.mb3}
                         href="https://use.expensify.com/usa-patriot-act"
@@ -190,15 +166,11 @@ class IdologyQuestions extends React.Component {
                         style={[styles.mh5, styles.mb5, styles.mt5]}
                         key={question.type}
                     >
-                        <Text style={[styles.textStrong, styles.mb5]}>
-                            {question.prompt}
-                        </Text>
+                        <Text style={[styles.textStrong, styles.mb5]}>{question.prompt}</Text>
                         <RadioButtons
                             items={possibleAnswers}
                             key={questionIndex}
-                            onPress={(answer) =>
-                                this.chooseAnswer(questionIndex, answer)
-                            }
+                            onPress={(answer) => this.chooseAnswer(questionIndex, answer)}
                         />
                     </View>
                 </FormScrollView>
@@ -211,14 +183,10 @@ class IdologyQuestions extends React.Component {
                         }}
                         message={errorMessage}
                         isLoading={this.props.walletAdditionalDetails.isLoading}
-                        buttonText={this.props.translate(
-                            'common.saveAndContinue',
-                        )}
+                        buttonText={this.props.translate('common.saveAndContinue')}
                         containerStyles={[styles.mh0, styles.mv0, styles.mb0]}
                     />
-                    <OfflineIndicator
-                        containerStyles={[styles.mh5, styles.mb3]}
-                    />
+                    <OfflineIndicator containerStyles={[styles.mh5, styles.mb3]} />
                 </FixedFooter>
             </View>
         );

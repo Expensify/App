@@ -12,8 +12,7 @@ const FloatingMessageCounterContainer = (props) => (
     </Animated.View>
 );
 
-FloatingMessageCounterContainer.propTypes =
-    floatingMessageCounterContainerPropTypes;
+FloatingMessageCounterContainer.propTypes = floatingMessageCounterContainerPropTypes;
 FloatingMessageCounterContainer.displayName = 'FloatingMessageCounterContainer';
 
 export default FloatingMessageCounterContainer;

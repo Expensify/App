@@ -68,17 +68,8 @@ const AttachmentView = (props) => {
 
     // Check both source and file.name since PDFs dragged into the the text field
     // will appear with a source that is a blob
-    if (
-        Str.isPDF(props.source) ||
-        (props.file &&
-            Str.isPDF(
-                props.file.name ||
-                    props.translate('attachmentView.unknownFilename'),
-            ))
-    ) {
-        const sourceURL = props.isAuthTokenRequired
-            ? addEncryptedAuthTokenToURL(props.source)
-            : props.source;
+    if (Str.isPDF(props.source) || (props.file && Str.isPDF(props.file.name || props.translate('attachmentView.unknownFilename')))) {
+        const sourceURL = props.isAuthTokenRequired ? addEncryptedAuthTokenToURL(props.source) : props.source;
         return (
             <PDFView
                 onPress={props.onPress}
@@ -91,10 +82,7 @@ const AttachmentView = (props) => {
 
     // For this check we use both source and file.name since temporary file source is a blob
     // both PDFs and images will appear as images when pasted into the the text field
-    if (
-        Str.isImage(props.source) ||
-        (props.file && Str.isImage(props.file.name))
-    ) {
+    if (Str.isImage(props.source) || (props.file && Str.isImage(props.file.name))) {
         return (
             <ImageView
                 onPress={props.onPress}
@@ -110,25 +98,14 @@ const AttachmentView = (props) => {
                 <Icon src={Expensicons.Paperclip} />
             </View>
 
-            <Text
-                style={[
-                    styles.textStrong,
-                    styles.flexShrink1,
-                    styles.breakAll,
-                    styles.flexWrap,
-                    styles.mw100,
-                ]}
-            >
-                {props.file && props.file.name}
-            </Text>
-            {!props.shouldShowLoadingSpinnerIcon &&
-                props.shouldShowDownloadIcon && (
-                    <View style={styles.ml2}>
-                        <Tooltip text={props.translate('common.download')}>
-                            <Icon src={Expensicons.Download} />
-                        </Tooltip>
-                    </View>
-                )}
+            <Text style={[styles.textStrong, styles.flexShrink1, styles.breakAll, styles.flexWrap, styles.mw100]}>{props.file && props.file.name}</Text>
+            {!props.shouldShowLoadingSpinnerIcon && props.shouldShowDownloadIcon && (
+                <View style={styles.ml2}>
+                    <Tooltip text={props.translate('common.download')}>
+                        <Icon src={Expensicons.Download} />
+                    </Tooltip>
+                </View>
+            )}
             {props.shouldShowLoadingSpinnerIcon && (
                 <View style={styles.ml2}>
                     <Tooltip text={props.translate('common.downloading')}>

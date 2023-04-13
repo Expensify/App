@@ -30,18 +30,8 @@ const defaultProps = {
 };
 
 const TextWithEllipsis = (props) => (
-    <View
-        style={[
-            styles.flexRow,
-            ...StyleUtils.parseStyleAsArray(props.wrapperStyle),
-        ]}
-    >
-        <View
-            style={[
-                styles.flexShrink1,
-                ...StyleUtils.parseStyleAsArray(props.leadingTextParentStyle),
-            ]}
-        >
+    <View style={[styles.flexRow, ...StyleUtils.parseStyleAsArray(props.wrapperStyle)]}>
+        <View style={[styles.flexShrink1, ...StyleUtils.parseStyleAsArray(props.leadingTextParentStyle)]}>
             <Text
                 style={[...StyleUtils.parseStyleAsArray(props.textStyle)]}
                 numberOfLines={1}

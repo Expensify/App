@@ -4,7 +4,10 @@ import PropTypes from 'prop-types';
 import styles from '../../styles/styles';
 
 const SafeArea = (props) => (
-    <SafeAreaView style={[styles.iPhoneXSafeArea]} edges={['left', 'right']}>
+    <SafeAreaView
+        style={[styles.iPhoneXSafeArea]}
+        edges={['left', 'right']}
+    >
         {props.children}
     </SafeAreaView>
 );

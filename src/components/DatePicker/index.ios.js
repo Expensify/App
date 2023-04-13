@@ -26,10 +26,7 @@ class DatePicker extends React.Component {
 
         this.state = {
             isPickerVisible: false,
-            selectedDate:
-                props.value || props.defaultValue
-                    ? moment(props.value || props.defaultValue).toDate()
-                    : new Date(),
+            selectedDate: props.value || props.defaultValue ? moment(props.value || props.defaultValue).toDate() : new Date(),
         };
 
         this.showPicker = this.showPicker.bind(this);
@@ -68,9 +65,7 @@ class DatePicker extends React.Component {
     selectDate() {
         this.setState({isPickerVisible: false});
         const asMoment = moment(this.state.selectedDate, true);
-        this.props.onInputChange(
-            asMoment.format(CONST.DATE.MOMENT_FORMAT_STRING),
-        );
+        this.props.onInputChange(asMoment.format(CONST.DATE.MOMENT_FORMAT_STRING));
     }
 
     /**
@@ -82,12 +77,7 @@ class DatePicker extends React.Component {
     }
 
     render() {
-        const dateAsText =
-            this.props.value || this.props.defaultValue
-                ? moment(this.props.value || this.props.defaultValue).format(
-                      CONST.DATE.MOMENT_FORMAT_STRING,
-                  )
-                : '';
+        const dateAsText = this.props.value || this.props.defaultValue ? moment(this.props.value || this.props.defaultValue).format(CONST.DATE.MOMENT_FORMAT_STRING) : '';
         return (
             <>
                 <TextInput
@@ -97,11 +87,7 @@ class DatePicker extends React.Component {
                     placeholder={this.props.placeholder}
                     errorText={this.props.errorText}
                     containerStyles={this.props.containerStyles}
-                    textInputContainerStyles={
-                        this.state.isPickerVisible
-                            ? [styles.borderColorFocus]
-                            : []
-                    }
+                    textInputContainerStyles={this.state.isPickerVisible ? [styles.borderColorFocus] : []}
                     onPress={this.showPicker}
                     editable={false}
                     disabled={this.props.disabled}
@@ -124,15 +110,7 @@ class DatePicker extends React.Component {
                     isVisible={this.state.isPickerVisible}
                     onClose={this.selectDate}
                 >
-                    <View
-                        style={[
-                            styles.flexRow,
-                            styles.justifyContentBetween,
-                            styles.borderBottom,
-                            styles.pb1,
-                            styles.ph4,
-                        ]}
-                    >
+                    <View style={[styles.flexRow, styles.justifyContentBetween, styles.borderBottom, styles.pb1, styles.ph4]}>
                         <Button
                             title={this.props.translate('common.reset')}
                             color={themeColors.textError}
@@ -175,6 +153,9 @@ export default compose(
 )(
     React.forwardRef((props, ref) => (
         /* eslint-disable-next-line react/jsx-props-no-spreading */
-        <DatePicker {...props} innerRef={ref} />
+        <DatePicker
+            {...props}
+            innerRef={ref}
+        />
     )),
 );

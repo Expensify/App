@@ -20,10 +20,7 @@ class SwipeableView extends PureComponent {
             // The PanResponder gets focus only when the y-axis movement is over minimumPixelDistance
             // & swip direction is downwards
             onMoveShouldSetPanResponderCapture: (_event, gestureState) => {
-                if (
-                    gestureState.dy - this.oldY > 0 &&
-                    gestureState.dy > minimumPixelDistance
-                ) {
+                if (gestureState.dy - this.oldY > 0 && gestureState.dy > minimumPixelDistance) {
                     return true;
                 }
                 this.oldY = gestureState.dy;
@@ -37,9 +34,7 @@ class SwipeableView extends PureComponent {
     render() {
         return (
             // eslint-disable-next-line react/jsx-props-no-spreading
-            <View {...this.panResponder.panHandlers}>
-                {this.props.children}
-            </View>
+            <View {...this.panResponder.panHandlers}>{this.props.children}</View>
         );
     }
 }

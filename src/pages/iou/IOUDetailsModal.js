@@ -14,9 +14,7 @@ import * as IOU from '../../libs/actions/IOU';
 import * as Report from '../../libs/actions/Report';
 import IOUPreview from '../../components/ReportActionItem/IOUPreview';
 import IOUTransactions from './IOUTransactions';
-import withLocalize, {
-    withLocalizePropTypes,
-} from '../../components/withLocalize';
+import withLocalize, {withLocalizePropTypes} from '../../components/withLocalize';
 import compose from '../../libs/compose';
 import CONST from '../../CONST';
 import SettlementButton from '../../components/SettlementButton';
@@ -104,10 +102,7 @@ class IOUDetailsModal extends Component {
     }
 
     fetchData() {
-        Report.openPaymentDetailsPage(
-            this.props.route.params.chatReportID,
-            this.props.route.params.iouReportID,
-        );
+        Report.openPaymentDetailsPage(this.props.route.params.chatReportID, this.props.route.params.iouReportID);
     }
 
     /**
@@ -120,32 +115,18 @@ class IOUDetailsModal extends Component {
         };
 
         if (paymentMethodType === CONST.IOU.PAYMENT_TYPE.ELSEWHERE) {
-            IOU.payMoneyRequestElsewhere(
-                this.props.chatReport,
-                this.props.iouReport,
-                recipient,
-            );
+            IOU.payMoneyRequestElsewhere(this.props.chatReport, this.props.iouReport, recipient);
             return;
         }
 
         if (paymentMethodType === CONST.IOU.PAYMENT_TYPE.PAYPAL_ME) {
-            IOU.payMoneyRequestViaPaypal(
-                this.props.chatReport,
-                this.props.iouReport,
-                recipient,
-            );
+            IOU.payMoneyRequestViaPaypal(this.props.chatReport, this.props.iouReport, recipient);
             return;
         }
 
         if (paymentMethodType === CONST.IOU.PAYMENT_TYPE.EXPENSIFY) {
-            IOU.payMoneyRequestWithWallet(
-                this.props.chatReport,
-                this.props.iouReport,
-                recipient,
-            );
-            Navigation.navigate(
-                ROUTES.getReportRoute(this.props.route.params.chatReportID),
-            );
+            IOU.payMoneyRequestWithWallet(this.props.chatReport, this.props.iouReport, recipient);
+            Navigation.navigate(ROUTES.getReportRoute(this.props.route.params.chatReportID));
         }
     }
 
@@ -154,10 +135,7 @@ class IOUDetailsModal extends Component {
         return _.find(
             this.props.reportActions,
             (reportAction) =>
-                reportAction.originalMessage &&
-                Number(reportAction.originalMessage.IOUReportID) ===
-                    Number(this.props.route.params.iouReportID) &&
-                !_.isEmpty(reportAction.pendingAction),
+                reportAction.originalMessage && Number(reportAction.originalMessage.IOUReportID) === Number(this.props.route.params.iouReportID) && !_.isEmpty(reportAction.pendingAction),
         );
     }
 
@@ -165,13 +143,8 @@ class IOUDetailsModal extends Component {
         const sessionEmail = lodashGet(this.props.session, 'email', null);
         const pendingAction = this.findPendingAction();
         const iouReportStateNum = lodashGet(this.props.iouReport, 'stateNum');
-        const hasOutstandingIOU = lodashGet(
-            this.props.iouReport,
-            'hasOutstandingIOU',
-        );
-        const hasFixedFooter =
-            hasOutstandingIOU &&
-            this.props.iouReport.managerEmail === sessionEmail;
+        const hasOutstandingIOU = lodashGet(this.props.iouReport, 'hasOutstandingIOU');
+        const hasFixedFooter = hasOutstandingIOU && this.props.iouReport.managerEmail === sessionEmail;
         return (
             <ScreenWrapper includeSafeAreaPaddingBottom={hasFixedFooter}>
                 {({safeAreaPaddingBottomStyle}) => (
@@ -189,80 +162,34 @@ class IOUDetailsModal extends Component {
                                 <FullScreenLoadingIndicator />
                             </View>
                         ) : (
-                            <View
-                                style={[
-                                    styles.flex1,
-                                    styles.justifyContentBetween,
-                                ]}
-                            >
-                                <ScrollView
-                                    contentContainerStyle={[
-                                        styles.iouDetailsContainer,
-                                        hasFixedFooter
-                                            ? {}
-                                            : safeAreaPaddingBottomStyle,
-                                    ]}
-                                >
+                            <View style={[styles.flex1, styles.justifyContentBetween]}>
+                                <ScrollView contentContainerStyle={[styles.iouDetailsContainer, hasFixedFooter ? {} : safeAreaPaddingBottomStyle]}>
                                     <IOUPreview
-                                        chatReportID={
-                                            this.props.route.params.chatReportID
-                                        }
-                                        iouReportID={
-                                            this.props.route.params.iouReportID
-                                        }
+                                        chatReportID={this.props.route.params.chatReportID}
+                                        iouReportID={this.props.route.params.iouReportID}
                                         pendingAction={pendingAction}
                                         shouldHidePayButton
                                     />
                                     <IOUTransactions
-                                        chatReportID={
-                                            this.props.route.params.chatReportID
-                                        }
-                                        iouReportID={
-                                            this.props.route.params.iouReportID
-                                        }
-                                        isIOUSettled={
-                                            iouReportStateNum ===
-                                            CONST.REPORT.STATE_NUM.SUBMITTED
-                                        }
+                                        chatReportID={this.props.route.params.chatReportID}
+                                        iouReportID={this.props.route.params.iouReportID}
+                                        isIOUSettled={iouReportStateNum === CONST.REPORT.STATE_NUM.SUBMITTED}
                                         userEmail={sessionEmail}
                                     />
                                 </ScrollView>
-                                {hasOutstandingIOU &&
-                                    this.props.iouReport.managerEmail ===
-                                        sessionEmail && (
-                                        <FixedFooter>
-                                            <SettlementButton
-                                                onPress={(paymentMethodType) =>
-                                                    this.payMoneyRequest(
-                                                        paymentMethodType,
-                                                    )
-                                                }
-                                                shouldShowPaypal={Boolean(
-                                                    lodashGet(
-                                                        this.props,
-                                                        'iouReport.submitterPayPalMeAddress',
-                                                    ),
-                                                )}
-                                                currency={lodashGet(
-                                                    this.props,
-                                                    'iouReport.currency',
-                                                )}
-                                                enablePaymentsRoute={
-                                                    ROUTES.IOU_DETAILS_ENABLE_PAYMENTS
-                                                }
-                                                addBankAccountRoute={
-                                                    ROUTES.IOU_DETAILS_ADD_BANK_ACCOUNT
-                                                }
-                                                addDebitCardRoute={
-                                                    ROUTES.IOU_DETAILS_ADD_DEBIT_CARD
-                                                }
-                                                chatReportID={
-                                                    this.props.route.params
-                                                        .chatReportID
-                                                }
-                                            />
-                                        </FixedFooter>
-                                    )}
+                                {hasOutstandingIOU && this.props.iouReport.managerEmail === sessionEmail && (
+                                    <FixedFooter>
+                                        <SettlementButton
+                                            onPress={(paymentMethodType) => this.payMoneyRequest(paymentMethodType)}
+                                            shouldShowPaypal={Boolean(lodashGet(this.props, 'iouReport.submitterPayPalMeAddress'))}
+                                            currency={lodashGet(this.props, 'iouReport.currency')}
+                                            enablePaymentsRoute={ROUTES.IOU_DETAILS_ENABLE_PAYMENTS}
+                                            addBankAccountRoute={ROUTES.IOU_DETAILS_ADD_BANK_ACCOUNT}
+                                            addDebitCardRoute={ROUTES.IOU_DETAILS_ADD_DEBIT_CARD}
+                                            chatReportID={this.props.route.params.chatReportID}
+                                        />
+                                    </FixedFooter>
+                                )}
                             </View>
                         )}
                     </FullPageNotFoundView>
@@ -283,19 +210,16 @@ export default compose(
             key: ONYXKEYS.IOU,
         },
         chatReport: {
-            key: ({route}) =>
-                `${ONYXKEYS.COLLECTION.REPORT}${route.params.chatReportID}`,
+            key: ({route}) => `${ONYXKEYS.COLLECTION.REPORT}${route.params.chatReportID}`,
         },
         iouReport: {
-            key: ({route}) =>
-                `${ONYXKEYS.COLLECTION.REPORT}${route.params.iouReportID}`,
+            key: ({route}) => `${ONYXKEYS.COLLECTION.REPORT}${route.params.iouReportID}`,
         },
         session: {
             key: ONYXKEYS.SESSION,
         },
         reportActions: {
-            key: ({route}) =>
-                `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${route.params.chatReportID}`,
+            key: ({route}) => `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${route.params.chatReportID}`,
             canEvict: false,
         },
     }),

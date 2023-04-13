@@ -4,10 +4,7 @@ const ActionUtils = require('../../../libs/ActionUtils');
 const GithubUtils = require('../../../libs/GithubUtils');
 
 // Parse the stringified JSON array of PR numbers, and cast each from String -> Number
-const PRList = _.map(
-    ActionUtils.getJSONInput('PR_LIST', {required: true}),
-    Number,
-);
+const PRList = _.map(ActionUtils.getJSONInput('PR_LIST', {required: true}), Number);
 console.log(`Got PR list: ${PRList}`);
 
 const releaseBody = GithubUtils.getReleaseBody(PRList);

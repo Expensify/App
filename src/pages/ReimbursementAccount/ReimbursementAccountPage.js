@@ -12,9 +12,7 @@ import ReimbursementAccountLoadingIndicator from '../../components/Reimbursement
 import Navigation from '../../libs/Navigation/Navigation';
 import CONST from '../../CONST';
 import BankAccount from '../../libs/models/BankAccount';
-import withLocalize, {
-    withLocalizePropTypes,
-} from '../../components/withLocalize';
+import withLocalize, {withLocalizePropTypes} from '../../components/withLocalize';
 import compose from '../../libs/compose';
 import styles from '../../styles/styles';
 import getPlaidOAuthReceivedRedirectURI from '../../libs/getPlaidOAuthReceivedRedirectURI';
@@ -39,8 +37,7 @@ const propTypes = {
     plaidLinkToken: PropTypes.string,
 
     /** ACH data for the withdrawal account actively being set up */
-    reimbursementAccount:
-        ReimbursementAccountProps.reimbursementAccountPropTypes,
+    reimbursementAccount: ReimbursementAccountProps.reimbursementAccountPropTypes,
 
     /** The draft values of the bank account being setup */
     reimbursementAccountDraft: reimbursementAccountDraftPropTypes,
@@ -70,8 +67,7 @@ const propTypes = {
 };
 
 const defaultProps = {
-    reimbursementAccount:
-        ReimbursementAccountProps.reimbursementAccountDefaultProps,
+    reimbursementAccount: ReimbursementAccountProps.reimbursementAccountDefaultProps,
     reimbursementAccountDraft: {},
     onfidoToken: '',
     plaidLinkToken: '',
@@ -88,15 +84,8 @@ class ReimbursementAccountPage extends React.Component {
         this.continue = this.continue.bind(this);
         this.getDefaultStateForField = this.getDefaultStateForField.bind(this);
         this.goBack = this.goBack.bind(this);
-        const achData = lodashGet(
-            this.props.reimbursementAccount,
-            'achData',
-            {},
-        );
-        const hasInProgressVBBA =
-            achData.bankAccountID &&
-            achData.state !== BankAccount.STATE.OPEN &&
-            achData.state !== BankAccount.STATE.LOCKED;
+        const achData = lodashGet(this.props.reimbursementAccount, 'achData', {});
+        const hasInProgressVBBA = achData.bankAccountID && achData.state !== BankAccount.STATE.OPEN && achData.state !== BankAccount.STATE.LOCKED;
 
         this.state = {
             shouldHideContinueSetupButton: !hasInProgressVBBA,
@@ -111,12 +100,8 @@ class ReimbursementAccountPage extends React.Component {
         if (prevProps.network.isOffline && !this.props.network.isOffline) {
             this.fetchData();
         }
-        const currentStep =
-            lodashGet(this.props.reimbursementAccount, 'achData.currentStep') ||
-            CONST.BANK_ACCOUNT.STEP.BANK_ACCOUNT;
-        const previousStep =
-            lodashGet(prevProps.reimbursementAccount, 'achData.currentStep') ||
-            CONST.BANK_ACCOUNT.STEP.BANK_ACCOUNT;
+        const currentStep = lodashGet(this.props.reimbursementAccount, 'achData.currentStep') || CONST.BANK_ACCOUNT.STEP.BANK_ACCOUNT;
+        const previousStep = lodashGet(prevProps.reimbursementAccount, 'achData.currentStep') || CONST.BANK_ACCOUNT.STEP.BANK_ACCOUNT;
         if (currentStep === previousStep) {
             return;
         }
@@ -125,11 +110,7 @@ class ReimbursementAccountPage extends React.Component {
         // the route params when the component first mounts to jump to a specific route instead of picking up where the
         // user left off in the flow.
         BankAccounts.hideBankAccountErrors();
-        Navigation.navigate(
-            ROUTES.getBankAccountRoute(
-                this.getRouteForCurrentStep(currentStep),
-            ),
-        );
+        Navigation.navigate(ROUTES.getBankAccountRoute(this.getRouteForCurrentStep(currentStep)));
     }
 
     /**
@@ -139,12 +120,7 @@ class ReimbursementAccountPage extends React.Component {
      * @returns {*}
      */
     getDefaultStateForField(fieldName, defaultValue = '') {
-        return ReimbursementAccountUtils.getDefaultStateForField(
-            this.props.reimbursementAccountDraft,
-            this.props.reimbursementAccount,
-            fieldName,
-            defaultValue,
-        );
+        return ReimbursementAccountUtils.getDefaultStateForField(this.props.reimbursementAccountDraft, this.props.reimbursementAccount, fieldName, defaultValue);
     }
 
     /**
@@ -204,18 +180,10 @@ class ReimbursementAccountPage extends React.Component {
         // We can specify a step to navigate to by using route params when the component mounts.
         // We want to use the same stepToOpen variable when the network state changes because we can be redirected to a different step when the account refreshes.
         const stepToOpen = this.getStepToOpenFromRouteParams();
-        const achData = lodashGet(
-            this.props.reimbursementAccount,
-            'achData',
-            {},
-        );
+        const achData = lodashGet(this.props.reimbursementAccount, 'achData', {});
         const subStep = achData.subStep || '';
         const localCurrentStep = achData.currentStep || '';
-        BankAccounts.openReimbursementAccountPage(
-            stepToOpen,
-            subStep,
-            ignoreLocalCurrentStep ? '' : localCurrentStep,
-        );
+        BankAccounts.openReimbursementAccountPage(stepToOpen, subStep, ignoreLocalCurrentStep ? '' : localCurrentStep);
     }
 
     continue() {
@@ -226,20 +194,11 @@ class ReimbursementAccountPage extends React.Component {
     }
 
     goBack() {
-        const achData = lodashGet(
-            this.props.reimbursementAccount,
-            'achData',
-            {},
-        );
-        const currentStep =
-            achData.currentStep || CONST.BANK_ACCOUNT.STEP.BANK_ACCOUNT;
+        const achData = lodashGet(this.props.reimbursementAccount, 'achData', {});
+        const currentStep = achData.currentStep || CONST.BANK_ACCOUNT.STEP.BANK_ACCOUNT;
         const subStep = achData.subStep;
-        const shouldShowOnfido =
-            this.props.onfidoToken && !achData.isOnfidoSetupComplete;
-        const hasInProgressVBBA =
-            achData.bankAccountID &&
-            achData.state !== BankAccount.STATE.OPEN &&
-            achData.state !== BankAccount.STATE.LOCKED;
+        const shouldShowOnfido = this.props.onfidoToken && !achData.isOnfidoSetupComplete;
+        const hasInProgressVBBA = achData.bankAccountID && achData.state !== BankAccount.STATE.OPEN && achData.state !== BankAccount.STATE.LOCKED;
         switch (currentStep) {
             case CONST.BANK_ACCOUNT.STEP.BANK_ACCOUNT:
                 if (hasInProgressVBBA) {
@@ -252,36 +211,22 @@ class ReimbursementAccountPage extends React.Component {
                 }
                 break;
             case CONST.BANK_ACCOUNT.STEP.COMPANY:
-                BankAccounts.goToWithdrawalAccountSetupStep(
-                    CONST.BANK_ACCOUNT.STEP.BANK_ACCOUNT,
-                    {subStep: CONST.BANK_ACCOUNT.SUBSTEP.MANUAL},
-                );
+                BankAccounts.goToWithdrawalAccountSetupStep(CONST.BANK_ACCOUNT.STEP.BANK_ACCOUNT, {subStep: CONST.BANK_ACCOUNT.SUBSTEP.MANUAL});
                 break;
             case CONST.BANK_ACCOUNT.STEP.REQUESTOR:
                 if (shouldShowOnfido) {
                     BankAccounts.clearOnfidoToken();
                 } else {
-                    BankAccounts.goToWithdrawalAccountSetupStep(
-                        CONST.BANK_ACCOUNT.STEP.COMPANY,
-                    );
+                    BankAccounts.goToWithdrawalAccountSetupStep(CONST.BANK_ACCOUNT.STEP.COMPANY);
                 }
                 break;
             case CONST.BANK_ACCOUNT.STEP.ACH_CONTRACT:
                 BankAccounts.clearOnfidoToken();
-                BankAccounts.goToWithdrawalAccountSetupStep(
-                    CONST.BANK_ACCOUNT.STEP.REQUESTOR,
-                );
+                BankAccounts.goToWithdrawalAccountSetupStep(CONST.BANK_ACCOUNT.STEP.REQUESTOR);
                 break;
             case CONST.BANK_ACCOUNT.STEP.VALIDATION:
-                if (
-                    _.contains(
-                        [BankAccount.STATE.VERIFYING, BankAccount.STATE.SETUP],
-                        achData.state,
-                    )
-                ) {
-                    BankAccounts.goToWithdrawalAccountSetupStep(
-                        CONST.BANK_ACCOUNT.STEP.ACH_CONTRACT,
-                    );
+                if (_.contains([BankAccount.STATE.VERIFYING, BankAccount.STATE.SETUP], achData.state)) {
+                    BankAccounts.goToWithdrawalAccountSetupStep(CONST.BANK_ACCOUNT.STEP.ACH_CONTRACT);
                 } else if (achData.state === BankAccount.STATE.PENDING) {
                     this.setState({
                         shouldHideContinueSetupButton: false,
@@ -301,35 +246,15 @@ class ReimbursementAccountPage extends React.Component {
         // display. We can also specify a specific route to navigate to via route params when the component first
         // mounts which will set the achData.currentStep after the account data is fetched and overwrite the logical
         // next step.
-        const achData = lodashGet(
-            this.props.reimbursementAccount,
-            'achData',
-            {},
-        );
-        const currentStep =
-            achData.currentStep || CONST.BANK_ACCOUNT.STEP.BANK_ACCOUNT;
+        const achData = lodashGet(this.props.reimbursementAccount, 'achData', {});
+        const currentStep = achData.currentStep || CONST.BANK_ACCOUNT.STEP.BANK_ACCOUNT;
 
         // Don't show the loading indicator if we're offline and restarted the bank account setup process
-        if (
-            this.props.reimbursementAccount.isLoading &&
-            !(
-                this.props.network.isOffline &&
-                currentStep === CONST.BANK_ACCOUNT.STEP.BANK_ACCOUNT
-            )
-        ) {
-            const isSubmittingVerificationsData = _.contains(
-                [
-                    CONST.BANK_ACCOUNT.STEP.COMPANY,
-                    CONST.BANK_ACCOUNT.STEP.REQUESTOR,
-                    CONST.BANK_ACCOUNT.STEP.ACH_CONTRACT,
-                ],
-                currentStep,
-            );
+        if (this.props.reimbursementAccount.isLoading && !(this.props.network.isOffline && currentStep === CONST.BANK_ACCOUNT.STEP.BANK_ACCOUNT)) {
+            const isSubmittingVerificationsData = _.contains([CONST.BANK_ACCOUNT.STEP.COMPANY, CONST.BANK_ACCOUNT.STEP.REQUESTOR, CONST.BANK_ACCOUNT.STEP.ACH_CONTRACT], currentStep);
             return (
                 <ReimbursementAccountLoadingIndicator
-                    isSubmittingVerificationsData={
-                        isSubmittingVerificationsData
-                    }
+                    isSubmittingVerificationsData={isSubmittingVerificationsData}
                     onBackButtonPress={this.goBack}
                 />
             );
@@ -342,51 +267,33 @@ class ReimbursementAccountPage extends React.Component {
             Boolean(achData.bankAccountID) &&
             achData.state !== BankAccount.STATE.OPEN &&
             achData.state !== BankAccount.STATE.LOCKED &&
-            (_.contains(
-                [CONST.BANK_ACCOUNT.STEP.BANK_ACCOUNT, ''],
-                this.getStepToOpenFromRouteParams(),
-            ) ||
-                achData.state === BankAccount.STATE.PENDING)
+            (_.contains([CONST.BANK_ACCOUNT.STEP.BANK_ACCOUNT, ''], this.getStepToOpenFromRouteParams()) || achData.state === BankAccount.STATE.PENDING)
         ) {
             return (
                 <ContinueBankAccountSetup
                     reimbursementAccount={this.props.reimbursementAccount}
                     continue={this.continue}
-                    startOver={() =>
-                        this.setState({shouldHideContinueSetupButton: true})
-                    }
+                    startOver={() => this.setState({shouldHideContinueSetupButton: true})}
                 />
             );
         }
 
         let errorComponent;
-        const userHasPhonePrimaryEmail = Str.endsWith(
-            this.props.session.email,
-            CONST.SMS.DOMAIN,
-        );
+        const userHasPhonePrimaryEmail = Str.endsWith(this.props.session.email, CONST.SMS.DOMAIN);
 
         if (userHasPhonePrimaryEmail) {
             errorComponent = (
                 <View style={[styles.m5]}>
-                    <Text>
-                        {this.props.translate('bankAccount.hasPhoneLoginError')}
-                    </Text>
+                    <Text>{this.props.translate('bankAccount.hasPhoneLoginError')}</Text>
                 </View>
             );
         }
 
-        const throttledDate = lodashGet(
-            this.props.reimbursementAccount,
-            'throttledDate',
-        );
+        const throttledDate = lodashGet(this.props.reimbursementAccount, 'throttledDate');
         if (throttledDate) {
             errorComponent = (
                 <View style={[styles.m5]}>
-                    <Text>
-                        {this.props.translate(
-                            'bankAccount.hasBeenThrottledError',
-                        )}
-                    </Text>
+                    <Text>{this.props.translate('bankAccount.hasBeenThrottledError')}</Text>
                 </View>
             );
         }
@@ -395,9 +302,7 @@ class ReimbursementAccountPage extends React.Component {
             return (
                 <ScreenWrapper>
                     <HeaderWithCloseButton
-                        title={this.props.translate(
-                            'workspace.common.bankAccount',
-                        )}
+                        title={this.props.translate('workspace.common.bankAccount')}
                         onCloseButtonPress={Navigation.dismissModal}
                     />
                     {errorComponent}
@@ -409,9 +314,7 @@ class ReimbursementAccountPage extends React.Component {
             return (
                 <BankAccountStep
                     reimbursementAccount={this.props.reimbursementAccount}
-                    reimbursementAccountDraft={
-                        this.props.reimbursementAccountDraft
-                    }
+                    reimbursementAccountDraft={this.props.reimbursementAccountDraft}
                     onBackButtonPress={this.goBack}
                     receivedRedirectURI={getPlaidOAuthReceivedRedirectURI()}
                     plaidLinkOAuthToken={this.props.plaidLinkToken}
@@ -424,9 +327,7 @@ class ReimbursementAccountPage extends React.Component {
             return (
                 <CompanyStep
                     reimbursementAccount={this.props.reimbursementAccount}
-                    reimbursementAccountDraft={
-                        this.props.reimbursementAccountDraft
-                    }
+                    reimbursementAccountDraft={this.props.reimbursementAccountDraft}
                     onBackButtonPress={this.goBack}
                     getDefaultStateForField={this.getDefaultStateForField}
                 />
@@ -434,14 +335,11 @@ class ReimbursementAccountPage extends React.Component {
         }
 
         if (currentStep === CONST.BANK_ACCOUNT.STEP.REQUESTOR) {
-            const shouldShowOnfido =
-                this.props.onfidoToken && !achData.isOnfidoSetupComplete;
+            const shouldShowOnfido = this.props.onfidoToken && !achData.isOnfidoSetupComplete;
             return (
                 <RequestorStep
                     reimbursementAccount={this.props.reimbursementAccount}
-                    reimbursementAccountDraft={
-                        this.props.reimbursementAccountDraft
-                    }
+                    reimbursementAccountDraft={this.props.reimbursementAccountDraft}
                     onBackButtonPress={this.goBack}
                     shouldShowOnfido={Boolean(shouldShowOnfido)}
                     getDefaultStateForField={this.getDefaultStateForField}
@@ -453,9 +351,7 @@ class ReimbursementAccountPage extends React.Component {
             return (
                 <ACHContractStep
                     reimbursementAccount={this.props.reimbursementAccount}
-                    reimbursementAccountDraft={
-                        this.props.reimbursementAccountDraft
-                    }
+                    reimbursementAccountDraft={this.props.reimbursementAccountDraft}
                     onBackButtonPress={this.goBack}
                     companyName={achData.companyName}
                     getDefaultStateForField={this.getDefaultStateForField}
@@ -473,11 +369,7 @@ class ReimbursementAccountPage extends React.Component {
         }
 
         if (currentStep === CONST.BANK_ACCOUNT.STEP.ENABLE) {
-            return (
-                <EnableStep
-                    reimbursementAccount={this.props.reimbursementAccount}
-                />
-            );
+            return <EnableStep reimbursementAccount={this.props.reimbursementAccount} />;
         }
     }
 }

@@ -47,11 +47,7 @@ class SettlementButton extends React.Component {
     getButtonOptionsFromProps() {
         const buttonOptions = [];
 
-        if (
-            this.props.currency === CONST.CURRENCY.USD &&
-            Permissions.canUsePayWithExpensify(this.props.betas) &&
-            Permissions.canUseWallet(this.props.betas)
-        ) {
+        if (this.props.currency === CONST.CURRENCY.USD && Permissions.canUsePayWithExpensify(this.props.betas) && Permissions.canUseWallet(this.props.betas)) {
             buttonOptions.push({
                 text: this.props.translate('iou.settleExpensify'),
                 icon: Expensicons.Wallet,
@@ -79,9 +75,7 @@ class SettlementButton extends React.Component {
     render() {
         return (
             <KYCWall
-                onSuccessfulKYC={() =>
-                    this.props.onPress(CONST.IOU.PAYMENT_TYPE.EXPENSIFY)
-                }
+                onSuccessfulKYC={() => this.props.onPress(CONST.IOU.PAYMENT_TYPE.EXPENSIFY)}
                 enablePaymentsRoute={this.props.enablePaymentsRoute}
                 addBankAccountRoute={this.props.addBankAccountRoute}
                 addDebitCardRoute={this.props.addDebitCardRoute}
@@ -93,10 +87,7 @@ class SettlementButton extends React.Component {
                         isDisabled={this.props.isDisabled}
                         isLoading={this.props.isLoading}
                         onPress={(event, iouPaymentType) => {
-                            if (
-                                iouPaymentType ===
-                                CONST.IOU.PAYMENT_TYPE.EXPENSIFY
-                            ) {
+                            if (iouPaymentType === CONST.IOU.PAYMENT_TYPE.EXPENSIFY) {
                                 triggerKYCFlow(event);
                                 return;
                             }

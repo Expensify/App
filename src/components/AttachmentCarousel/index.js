@@ -94,10 +94,7 @@ class AttachmentCarousel extends React.Component {
      */
     makeStateWithReports() {
         let page;
-        const actions = ReportActionsUtils.getSortedReportActions(
-            _.values(this.props.reportActions),
-            true,
-        );
+        const actions = ReportActionsUtils.getSortedReportActions(_.values(this.props.reportActions), true);
 
         /**
          * Looping to filter out attachments and retrieve the src URL and name of attachments.
@@ -105,16 +102,10 @@ class AttachmentCarousel extends React.Component {
         const attachments = [];
         _.forEach(actions, ({originalMessage, message}) => {
             // Check for attachment which hasn't been deleted
-            if (
-                !originalMessage ||
-                !originalMessage.html ||
-                _.some(message, (m) => m.isEdited)
-            ) {
+            if (!originalMessage || !originalMessage.html || _.some(message, (m) => m.isEdited)) {
                 return;
             }
-            const matches = [
-                ...originalMessage.html.matchAll(CONST.REGEX.ATTACHMENT_DATA),
-            ];
+            const matches = [...originalMessage.html.matchAll(CONST.REGEX.ATTACHMENT_DATA)];
 
             // matchAll captured both source url and name of the attachment
             if (matches.length === 2) {
@@ -146,10 +137,7 @@ class AttachmentCarousel extends React.Component {
      * @param {Number} deltaSlide
      */
     cycleThroughAttachments(deltaSlide) {
-        if (
-            (deltaSlide > 0 && this.state.isForwardDisabled) ||
-            (deltaSlide < 0 && this.state.isBackDisabled)
-        ) {
+        if ((deltaSlide > 0 && this.state.isForwardDisabled) || (deltaSlide < 0 && this.state.isBackDisabled)) {
             return;
         }
 
@@ -205,18 +193,11 @@ class AttachmentCarousel extends React.Component {
                     styles={[styles.attachmentModalArrowsContainer]}
                     canSwipeLeft={!this.state.isBackDisabled}
                     canSwipeRight={!this.state.isForwardDisabled}
-                    onPress={() =>
-                        this.canUseTouchScreen &&
-                        this.toggleArrowsVisibility(!this.state.shouldShowArrow)
-                    }
+                    onPress={() => this.canUseTouchScreen && this.toggleArrowsVisibility(!this.state.shouldShowArrow)}
                     onCycleThroughAttachments={this.cycleThroughAttachments}
                 >
                     <AttachmentView
-                        onPress={() =>
-                            this.toggleArrowsVisibility(
-                                !this.state.shouldShowArrow,
-                            )
-                        }
+                        onPress={() => this.toggleArrowsVisibility(!this.state.shouldShowArrow)}
                         source={authSource}
                         file={this.state.file}
                     />

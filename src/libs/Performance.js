@@ -27,10 +27,7 @@ function diffObject(object, base) {
             }
 
             // eslint-disable-next-line no-param-reassign
-            result[key] =
-                _.isObject(value) && _.isObject(comparisonObject[key])
-                    ? changes(value, comparisonObject[key])
-                    : value;
+            result[key] = _.isObject(value) && _.isObject(comparisonObject[key]) ? changes(value, comparisonObject[key]) : value;
         });
     }
     return changes(object, base);
@@ -56,11 +53,7 @@ if (Metrics.canCapturePerformanceMetrics()) {
     perfModule.setResourceLoggingEnabled(true);
     rnPerformance = perfModule.default;
 
-    Performance.measureFailSafe = (
-        measureName,
-        startOrMeasureOptions,
-        endMark,
-    ) => {
+    Performance.measureFailSafe = (measureName, startOrMeasureOptions, endMark) => {
         try {
             rnPerformance.measure(measureName, startOrMeasureOptions, endMark);
         } catch (error) {
@@ -77,11 +70,7 @@ if (Metrics.canCapturePerformanceMetrics()) {
         // Make sure TTI is captured when the app is really usable
         InteractionManager.runAfterInteractions(() => {
             requestAnimationFrame(() => {
-                Performance.measureFailSafe(
-                    'TTI',
-                    'nativeLaunchStart',
-                    endMark,
-                );
+                Performance.measureFailSafe('TTI', 'nativeLaunchStart', endMark);
 
                 // we don't want the alert to show on an e2e test session
                 if (!isE2ETestSession()) {
@@ -102,32 +91,17 @@ if (Metrics.canCapturePerformanceMetrics()) {
         new perfModule.PerformanceObserver((list, observer) => {
             list.getEntries().forEach((entry) => {
                 if (entry.name === 'nativeLaunchEnd') {
-                    Performance.measureFailSafe(
-                        'nativeLaunch',
-                        'nativeLaunchStart',
-                        'nativeLaunchEnd',
-                    );
+                    Performance.measureFailSafe('nativeLaunch', 'nativeLaunchStart', 'nativeLaunchEnd');
                 }
                 if (entry.name === 'downloadEnd') {
-                    Performance.measureFailSafe(
-                        'jsBundleDownload',
-                        'downloadStart',
-                        'downloadEnd',
-                    );
+                    Performance.measureFailSafe('jsBundleDownload', 'downloadStart', 'downloadEnd');
                 }
                 if (entry.name === 'runJsBundleEnd') {
-                    Performance.measureFailSafe(
-                        'runJsBundle',
-                        'runJsBundleStart',
-                        'runJsBundleEnd',
-                    );
+                    Performance.measureFailSafe('runJsBundle', 'runJsBundleStart', 'runJsBundleEnd');
                 }
 
                 // We don't need to keep the observer past this point
-                if (
-                    entry.name === 'runJsBundleEnd' ||
-                    entry.name === 'downloadEnd'
-                ) {
+                if (entry.name === 'runJsBundleEnd' || entry.name === 'downloadEnd') {
                     observer.disconnect();
                 }
             });
@@ -168,10 +142,7 @@ if (Metrics.canCapturePerformanceMetrics()) {
      */
     Performance.printPerformanceMetrics = () => {
         const stats = Performance.getPerformanceMetrics();
-        const statsAsText = _.map(
-            stats,
-            (entry) => `\u2022 ${entry.name}: ${entry.duration.toFixed(1)}ms`,
-        ).join('\n');
+        const statsAsText = _.map(stats, (entry) => `\u2022 ${entry.name}: ${entry.duration.toFixed(1)}ms`).join('\n');
 
         if (stats.length > 0) {
             Alert.alert('Performance', statsAsText);
@@ -190,8 +161,7 @@ if (Metrics.canCapturePerformanceMetrics()) {
      * @param {Object} [detail]
      * @returns {PerformanceMark}
      */
-    Performance.markStart = (name, detail) =>
-        rnPerformance.mark(`${name}_start`, {detail});
+    Performance.markStart = (name, detail) => rnPerformance.mark(`${name}_start`, {detail});
 
     /**
      * Add an end mark to the performance entries
@@ -200,8 +170,7 @@ if (Metrics.canCapturePerformanceMetrics()) {
      * @param {Object} [detail]
      * @returns {PerformanceMark}
      */
-    Performance.markEnd = (name, detail) =>
-        rnPerformance.mark(`${name}_end`, {detail});
+    Performance.markEnd = (name, detail) => rnPerformance.mark(`${name}_end`, {detail});
 
     /**
      * Put data emitted by Profiler components on the timeline
@@ -214,15 +183,7 @@ if (Metrics.canCapturePerformanceMetrics()) {
      * @param {Set} interactions the Set of interactions belonging to this update
      * @returns {PerformanceMeasure}
      */
-    Performance.traceRender = (
-        id,
-        phase,
-        actualDuration,
-        baseDuration,
-        startTime,
-        commitTime,
-        interactions,
-    ) =>
+    Performance.traceRender = (id, phase, actualDuration, baseDuration, startTime, commitTime, interactions) =>
         rnPerformance.measure(id, {
             start: startTime,
             duration: actualDuration,
@@ -244,15 +205,19 @@ if (Metrics.canCapturePerformanceMetrics()) {
         ({id}) =>
         (WrappedComponent) => {
             const WithRenderTrace = forwardRef((props, ref) => (
-                <Profiler id={id} onRender={Performance.traceRender}>
+                <Profiler
+                    id={id}
+                    onRender={Performance.traceRender}
+                >
                     {/* eslint-disable-next-line react/jsx-props-no-spreading */}
-                    <WrappedComponent {...props} ref={ref} />
+                    <WrappedComponent
+                        {...props}
+                        ref={ref}
+                    />
                 </Profiler>
             ));
 
-            WithRenderTrace.displayName = `withRenderTrace(${getComponentDisplayName(
-                WrappedComponent,
-            )})`;
+            WithRenderTrace.displayName = `withRenderTrace(${getComponentDisplayName(WrappedComponent)})`;
             return WithRenderTrace;
         };
 }

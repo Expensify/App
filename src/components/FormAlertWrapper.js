@@ -66,14 +66,15 @@ const FormAlertWrapper = (props) => {
             </Text>
         );
     } else if (props.isMessageHtml) {
-        children = (
-            <RenderHTML html={`<muted-text>${props.message}</muted-text>`} />
-        );
+        children = <RenderHTML html={`<muted-text>${props.message}</muted-text>`} />;
     }
     return (
         <View style={props.containerStyles}>
             {props.isAlertVisible && (
-                <FormHelpMessage message={props.message} style={[styles.mb3]}>
+                <FormHelpMessage
+                    message={props.message}
+                    style={[styles.mb3]}
+                >
                     {children}
                 </FormHelpMessage>
             )}

@@ -29,9 +29,7 @@ class DatePicker extends React.Component {
 
         if (event.type === 'set') {
             const asMoment = moment(selectedDate, true);
-            this.props.onInputChange(
-                asMoment.format(CONST.DATE.MOMENT_FORMAT_STRING),
-            );
+            this.props.onInputChange(asMoment.format(CONST.DATE.MOMENT_FORMAT_STRING));
         }
     }
 
@@ -41,12 +39,7 @@ class DatePicker extends React.Component {
     }
 
     render() {
-        const dateAsText =
-            this.props.value || this.props.defaultValue
-                ? moment(this.props.value || this.props.defaultValue).format(
-                      CONST.DATE.MOMENT_FORMAT_STRING,
-                  )
-                : '';
+        const dateAsText = this.props.value || this.props.defaultValue ? moment(this.props.value || this.props.defaultValue).format(CONST.DATE.MOMENT_FORMAT_STRING) : '';
 
         return (
             <>
@@ -57,11 +50,7 @@ class DatePicker extends React.Component {
                     placeholder={this.props.placeholder}
                     errorText={this.props.errorText}
                     containerStyles={this.props.containerStyles}
-                    textInputContainerStyles={
-                        this.state.isPickerVisible
-                            ? [styles.borderColorFocus]
-                            : []
-                    }
+                    textInputContainerStyles={this.state.isPickerVisible ? [styles.borderColorFocus] : []}
                     onPress={this.showPicker}
                     editable={false}
                     disabled={this.props.disabled}
@@ -82,14 +71,7 @@ class DatePicker extends React.Component {
                 />
                 {this.state.isPickerVisible && (
                     <RNDatePicker
-                        value={
-                            this.props.value || this.props.defaultValue
-                                ? moment(
-                                      this.props.value ||
-                                          this.props.defaultValue,
-                                  ).toDate()
-                                : new Date()
-                        }
+                        value={this.props.value || this.props.defaultValue ? moment(this.props.value || this.props.defaultValue).toDate() : new Date()}
                         mode="date"
                         onChange={this.setDate}
                         maximumDate={new Date(CONST.DATE.MAX_DATE)}
@@ -106,5 +88,8 @@ DatePicker.defaultProps = defaultProps;
 
 export default React.forwardRef((props, ref) => (
     /* eslint-disable-next-line react/jsx-props-no-spreading */
-    <DatePicker {...props} innerRef={ref} />
+    <DatePicker
+        {...props}
+        innerRef={ref}
+    />
 ));

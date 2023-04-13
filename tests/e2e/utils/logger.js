@@ -8,8 +8,7 @@ const setLogLevelVerbose = (value) => {
 
 // On CI systems when using .progressInfo, the current line won't reset but a new line gets added
 // Which can flood the logs. You can increase this rate to mitigate this effect.
-const LOGGER_PROGRESS_REFRESH_RATE =
-    process.env.LOGGER_PROGRESS_REFRESH_RATE || 250;
+const LOGGER_PROGRESS_REFRESH_RATE = process.env.LOGGER_PROGRESS_REFRESH_RATE || 250;
 const COLOR_DIM = '\x1b[2m';
 const COLOR_RESET = '\x1b[0m';
 const COLOR_YELLOW = '\x1b[33m';
@@ -30,12 +29,7 @@ const log = (...args) => {
 
 const progressInfo = (textParam) => {
     let text = textParam || '';
-    const getTexts = () => [
-        `🕛 ${text}`,
-        `🕔 ${text}`,
-        `🕗 ${text}`,
-        `🕙 ${text}`,
-    ];
+    const getTexts = () => [`🕛 ${text}`, `🕔 ${text}`, `🕗 ${text}`, `🕙 ${text}`];
     log(textParam);
 
     const startTime = Date.now();
@@ -47,9 +41,7 @@ const progressInfo = (textParam) => {
     }, Number(LOGGER_PROGRESS_REFRESH_RATE));
 
     const getTimeText = () => {
-        const timeInSeconds = Math.round(
-            (Date.now() - startTime) / 1000,
-        ).toFixed(0);
+        const timeInSeconds = Math.round((Date.now() - startTime) / 1000).toFixed(0);
         return `(${COLOR_DIM}took: ${timeInSeconds}s${COLOR_RESET})`;
     };
     return {

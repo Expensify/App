@@ -57,12 +57,7 @@ function getDisplayName(login, personalDetail) {
  *
  * @returns {Object}
  */
-function extractFirstAndLastNameFromAvailableDetails({
-    login,
-    displayName,
-    firstName,
-    lastName,
-}) {
+function extractFirstAndLastNameFromAvailableDetails({login, displayName, firstName, lastName}) {
     if (firstName || lastName) {
         return {firstName: firstName || '', lastName: lastName || ''};
     }
@@ -92,10 +87,7 @@ function getCountryISO(countryName) {
     if (_.isEmpty(countryName) || countryName.length === 2) {
         return countryName;
     }
-    return (
-        _.findKey(CONST.ALL_COUNTRIES, (country) => country === countryName) ||
-        ''
-    );
+    return _.findKey(CONST.ALL_COUNTRIES, (country) => country === countryName) || '';
 }
 
 /**
@@ -358,9 +350,7 @@ function updateAvatar(file) {
             value: {
                 [currentUserEmail]: {
                     avatar: personalDetails[currentUserEmail].avatar,
-                    avatarThumbnail:
-                        personalDetails[currentUserEmail].avatarThumbnail ||
-                        personalDetails[currentUserEmail].avatar,
+                    avatarThumbnail: personalDetails[currentUserEmail].avatarThumbnail || personalDetails[currentUserEmail].avatar,
                     pendingFields: {
                         avatar: null,
                     },
@@ -369,11 +359,7 @@ function updateAvatar(file) {
         },
     ];
 
-    API.write(
-        'UpdateUserAvatar',
-        {file},
-        {optimisticData, successData, failureData},
-    );
+    API.write('UpdateUserAvatar', {file}, {optimisticData, successData, failureData});
 }
 
 /**

@@ -49,7 +49,10 @@ class Carousel extends React.Component {
 
     render() {
         return (
-            <Pressable style={this.props.styles} onPress={this.props.onPress}>
+            <Pressable
+                style={this.props.styles}
+                onPress={this.props.onPress}
+            >
                 {this.props.children}
             </Pressable>
         );

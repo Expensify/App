@@ -18,8 +18,7 @@ function buildPersonalDetails(login, accountID, firstName = 'Test') {
         accountID,
         login,
         avatar: 'https://d2k5nsl2zxldvw.cloudfront.net/images/avatars/avatar_7.png',
-        avatarThumbnail:
-            'https://d2k5nsl2zxldvw.cloudfront.net/images/avatars/avatar_7.png',
+        avatarThumbnail: 'https://d2k5nsl2zxldvw.cloudfront.net/images/avatars/avatar_7.png',
         displayName: `${firstName} User`,
         firstName,
         lastName: 'User',
@@ -41,13 +40,7 @@ function buildPersonalDetails(login, accountID, firstName = 'Test') {
  * @param {String} [firstName]
  * @return {Promise}
  */
-function signInWithTestUser(
-    accountID = 1,
-    login = 'test@user.com',
-    password = 'Password1',
-    authToken = 'asdfqwerty',
-    firstName = 'Test',
-) {
+function signInWithTestUser(accountID = 1, login = 'test@user.com', password = 'Password1', authToken = 'asdfqwerty', firstName = 'Test') {
     const originalXhr = HttpUtils.xhr;
     HttpUtils.xhr = jest.fn();
     HttpUtils.xhr.mockResolvedValue({
@@ -178,12 +171,7 @@ function setPersonalDetails(login, accountID) {
  * @param {String} actionID
  * @returns {Object}
  */
-function buildTestReportComment(
-    actorEmail,
-    created,
-    actorAccountID,
-    actionID = null,
-) {
+function buildTestReportComment(actorEmail, created, actorAccountID, actionID = null) {
     const reportActionID = actionID || NumberUtils.rand64();
     return {
         actionName: CONST.REPORT.ACTIONS.TYPE.ADDCOMMENT,
@@ -202,11 +190,4 @@ function buildTestReportComment(
     };
 }
 
-export {
-    getGlobalFetchMock,
-    signInWithTestUser,
-    signOutTestUser,
-    setPersonalDetails,
-    buildPersonalDetails,
-    buildTestReportComment,
-};
+export {getGlobalFetchMock, signInWithTestUser, signOutTestUser, setPersonalDetails, buildPersonalDetails, buildTestReportComment};

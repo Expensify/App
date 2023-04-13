@@ -6,9 +6,7 @@ import Str from 'expensify-common/lib/str';
 import _ from 'underscore';
 import PropTypes from 'prop-types';
 import styles from '../../styles/styles';
-import withLocalize, {
-    withLocalizePropTypes,
-} from '../../components/withLocalize';
+import withLocalize, {withLocalizePropTypes} from '../../components/withLocalize';
 import compose from '../../libs/compose';
 import * as BankAccounts from '../../libs/actions/BankAccounts';
 import * as Report from '../../libs/actions/Report';
@@ -37,8 +35,7 @@ const propTypes = {
     ...withLocalizePropTypes,
 
     /** Bank account currently in setup */
-    reimbursementAccount:
-        ReimbursementAccountProps.reimbursementAccountPropTypes.isRequired,
+    reimbursementAccount: ReimbursementAccountProps.reimbursementAccountPropTypes.isRequired,
 
     onBackButtonPress: PropTypes.func.isRequired,
 
@@ -92,10 +89,7 @@ class ValidationStep extends React.Component {
         const validateCode = [amount1, amount2, amount3].join(',');
 
         // Send valid amounts to BankAccountAPI::validateBankAccount in Web-Expensify
-        const bankaccountID = lodashGet(
-            this.props.reimbursementAccount,
-            'achData.bankAccountID',
-        );
+        const bankaccountID = lodashGet(this.props.reimbursementAccount, 'achData.bankAccountID');
         BankAccounts.validateBankAccount(bankaccountID, validateCode);
     }
 
@@ -110,11 +104,7 @@ class ValidationStep extends React.Component {
      */
     filterInput(amount) {
         let value = amount ? amount.toString().trim() : '';
-        if (
-            value === '' ||
-            !Math.abs(Str.fromUSDToNumber(value)) ||
-            _.isNaN(Number(value))
-        ) {
+        if (value === '' || !Math.abs(Str.fromUSDToNumber(value)) || _.isNaN(Number(value))) {
             return '';
         }
 
@@ -127,26 +117,16 @@ class ValidationStep extends React.Component {
     }
 
     render() {
-        const state = lodashGet(
-            this.props.reimbursementAccount,
-            'achData.state',
-        );
+        const state = lodashGet(this.props.reimbursementAccount, 'achData.state');
 
         // If a user tries to navigate directly to the validate page we'll show them the EnableStep
         if (state === BankAccount.STATE.OPEN) {
             return <EnableStep />;
         }
 
-        const maxAttemptsReached = lodashGet(
-            this.props.reimbursementAccount,
-            'maxAttemptsReached',
-        );
-        const isVerifying =
-            !maxAttemptsReached && state === BankAccount.STATE.VERIFYING;
-        const requiresTwoFactorAuth = lodashGet(
-            this.props,
-            'account.requiresTwoFactorAuth',
-        );
+        const maxAttemptsReached = lodashGet(this.props.reimbursementAccount, 'maxAttemptsReached');
+        const isVerifying = !maxAttemptsReached && state === BankAccount.STATE.VERIFYING;
+        const requiresTwoFactorAuth = lodashGet(this.props, 'account.requiresTwoFactorAuth');
 
         return (
             <ScreenWrapper
@@ -154,58 +134,34 @@ class ValidationStep extends React.Component {
                 includeSafeAreaPaddingBottom={false}
             >
                 <HeaderWithCloseButton
-                    title={
-                        isVerifying
-                            ? this.props.translate('validationStep.headerTitle')
-                            : this.props.translate(
-                                  'workspace.common.testTransactions',
-                              )
-                    }
+                    title={isVerifying ? this.props.translate('validationStep.headerTitle') : this.props.translate('workspace.common.testTransactions')}
                     stepCounter={{step: 5, total: 5}}
                     onCloseButtonPress={Navigation.dismissModal}
                     onBackButtonPress={this.props.onBackButtonPress}
                     shouldShowGetAssistanceButton
-                    guidesCallTaskID={
-                        CONST.GUIDES_CALL_TASK_IDS.WORKSPACE_BANK_ACCOUNT
-                    }
+                    guidesCallTaskID={CONST.GUIDES_CALL_TASK_IDS.WORKSPACE_BANK_ACCOUNT}
                     shouldShowBackButton
                     shouldShowStepCounter={!isVerifying}
                 />
                 {maxAttemptsReached && (
                     <View style={[styles.m5, styles.flex1]}>
                         <Text>
-                            {this.props.translate(
-                                'validationStep.maxAttemptsReached',
-                            )}{' '}
-                            {this.props.translate('common.please')}{' '}
-                            <TextLink onPress={Report.navigateToConciergeChat}>
-                                {this.props.translate('common.contactUs')}
-                            </TextLink>
-                            .
+                            {this.props.translate('validationStep.maxAttemptsReached')} {this.props.translate('common.please')}{' '}
+                            <TextLink onPress={Report.navigateToConciergeChat}>{this.props.translate('common.contactUs')}</TextLink>.
                         </Text>
                     </View>
                 )}
                 {!maxAttemptsReached && state === BankAccount.STATE.PENDING && (
                     <Form
                         formID={ONYXKEYS.REIMBURSEMENT_ACCOUNT}
-                        submitButtonText={this.props.translate(
-                            'validationStep.buttonText',
-                        )}
+                        submitButtonText={this.props.translate('validationStep.buttonText')}
                         onSubmit={this.submit}
                         validate={this.validate}
                         style={[styles.mh5, styles.flexGrow1]}
                     >
                         <View style={[styles.mb2]}>
-                            <Text style={[styles.mb5]}>
-                                {this.props.translate(
-                                    'validationStep.description',
-                                )}
-                            </Text>
-                            <Text style={[styles.mb2]}>
-                                {this.props.translate(
-                                    'validationStep.descriptionCTA',
-                                )}
-                            </Text>
+                            <Text style={[styles.mb5]}>{this.props.translate('validationStep.description')}</Text>
+                            <Text style={[styles.mb2]}>{this.props.translate('validationStep.descriptionCTA')}</Text>
                         </View>
                         <View style={[styles.mv5]}>
                             <TextInput
@@ -240,20 +196,12 @@ class ValidationStep extends React.Component {
                 {isVerifying && (
                     <ScrollView style={[styles.flex1]}>
                         <Section
-                            title={this.props.translate(
-                                'workspace.bankAccount.letsFinishInChat',
-                            )}
+                            title={this.props.translate('workspace.bankAccount.letsFinishInChat')}
                             icon={Illustrations.ConciergeBubble}
                         >
-                            <Text>
-                                {this.props.translate(
-                                    'validationStep.letsChatText',
-                                )}
-                            </Text>
+                            <Text>{this.props.translate('validationStep.letsChatText')}</Text>
                             <Button
-                                text={this.props.translate(
-                                    'validationStep.letsChatCTA',
-                                )}
+                                text={this.props.translate('validationStep.letsChatCTA')}
                                 onPress={Report.navigateToConciergeChat}
                                 icon={Expensicons.ChatBubble}
                                 style={[styles.mt4]}
@@ -263,25 +211,14 @@ class ValidationStep extends React.Component {
                                 success
                             />
                             <MenuItem
-                                title={this.props.translate(
-                                    'workspace.bankAccount.noLetsStartOver',
-                                )}
+                                title={this.props.translate('workspace.bankAccount.noLetsStartOver')}
                                 icon={Expensicons.RotateLeft}
-                                onPress={
-                                    BankAccounts.requestResetFreePlanBankAccount
-                                }
+                                onPress={BankAccounts.requestResetFreePlanBankAccount}
                                 shouldShowRightIcon
                                 wrapperStyle={[styles.cardMenuItem, styles.mv3]}
                             />
                         </Section>
-                        {this.props.reimbursementAccount
-                            .shouldShowResetModal && (
-                            <WorkspaceResetBankAccountModal
-                                reimbursementAccount={
-                                    this.props.reimbursementAccount
-                                }
-                            />
-                        )}
+                        {this.props.reimbursementAccount.shouldShowResetModal && <WorkspaceResetBankAccountModal reimbursementAccount={this.props.reimbursementAccount} />}
                         {!requiresTwoFactorAuth && <Enable2FAPrompt />}
                     </ScrollView>
                 )}

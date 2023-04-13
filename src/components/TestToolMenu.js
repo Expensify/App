@@ -48,19 +48,8 @@ const TestToolMenu = (props) => (
         This enables QA and internal testers to take advantage of sandbox environments for 3rd party services like Plaid and Onfido. */}
         <TestToolRow title="Use Staging Server">
             <Switch
-                isOn={lodashGet(
-                    props,
-                    'user.shouldUseStagingServer',
-                    _.contains(
-                        [CONST.PLATFORM.WEB, CONST.PLATFORM.DESKTOP],
-                        getPlatform(),
-                    ),
-                )}
-                onToggle={() =>
-                    User.setShouldUseStagingServer(
-                        !lodashGet(props, 'user.shouldUseStagingServer', true),
-                    )
-                }
+                isOn={lodashGet(props, 'user.shouldUseStagingServer', _.contains([CONST.PLATFORM.WEB, CONST.PLATFORM.DESKTOP], getPlatform()))}
+                onToggle={() => User.setShouldUseStagingServer(!lodashGet(props, 'user.shouldUseStagingServer', true))}
             />
         </TestToolRow>
 
@@ -68,11 +57,7 @@ const TestToolMenu = (props) => (
         <TestToolRow title="Force offline">
             <Switch
                 isOn={Boolean(props.network.shouldForceOffline)}
-                onToggle={() =>
-                    Network.setShouldForceOffline(
-                        !props.network.shouldForceOffline,
-                    )
-                }
+                onToggle={() => Network.setShouldForceOffline(!props.network.shouldForceOffline)}
             />
         </TestToolRow>
 
@@ -80,11 +65,7 @@ const TestToolMenu = (props) => (
         <TestToolRow title="Simulate failing network requests">
             <Switch
                 isOn={Boolean(props.network.shouldFailAllRequests)}
-                onToggle={() =>
-                    Network.setShouldFailAllRequests(
-                        !props.network.shouldFailAllRequests,
-                    )
-                }
+                onToggle={() => Network.setShouldFailAllRequests(!props.network.shouldFailAllRequests)}
             />
         </TestToolRow>
 

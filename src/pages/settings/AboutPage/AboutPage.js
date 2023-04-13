@@ -10,12 +10,8 @@ import TextLink from '../../../components/TextLink';
 import CONST from '../../../CONST';
 import * as Expensicons from '../../../components/Icon/Expensicons';
 import ScreenWrapper from '../../../components/ScreenWrapper';
-import withLocalize, {
-    withLocalizePropTypes,
-} from '../../../components/withLocalize';
-import withWindowDimensions, {
-    windowDimensionsPropTypes,
-} from '../../../components/withWindowDimensions';
+import withLocalize, {withLocalizePropTypes} from '../../../components/withLocalize';
+import withWindowDimensions, {windowDimensionsPropTypes} from '../../../components/withWindowDimensions';
 import MenuItem from '../../../components/MenuItem';
 import Logo from '../../../../assets/images/new-expensify.svg';
 import pkg from '../../../../package.json';
@@ -30,9 +26,7 @@ const propTypes = {
 };
 
 const AboutPage = (props) => {
-    const platformSpecificMenuItems = getPlatformSpecificMenuItems(
-        props.isSmallScreenWidth,
-    );
+    const platformSpecificMenuItems = getPlatformSpecificMenuItems(props.isSmallScreenWidth);
 
     const menuItems = [
         {
@@ -73,51 +67,24 @@ const AboutPage = (props) => {
                     <HeaderWithCloseButton
                         title={props.translate('initialSettingsPage.about')}
                         shouldShowBackButton
-                        onBackButtonPress={() =>
-                            Navigation.navigate(ROUTES.SETTINGS)
-                        }
+                        onBackButtonPress={() => Navigation.navigate(ROUTES.SETTINGS)}
                         onCloseButtonPress={() => Navigation.dismissModal(true)}
                     />
-                    <ScrollView
-                        contentContainerStyle={[
-                            styles.flexGrow1,
-                            styles.flexColumn,
-                            styles.justifyContentBetween,
-                            safeAreaPaddingBottomStyle,
-                        ]}
-                    >
+                    <ScrollView contentContainerStyle={[styles.flexGrow1, styles.flexColumn, styles.justifyContentBetween, safeAreaPaddingBottomStyle]}>
                         <View style={[styles.flex1]}>
                             <View style={styles.pageWrapper}>
-                                <View
-                                    style={[
-                                        styles.settingsPageBody,
-                                        styles.mb6,
-                                        styles.alignItemsCenter,
-                                    ]}
-                                >
-                                    <Logo height={80} width={80} />
+                                <View style={[styles.settingsPageBody, styles.mb6, styles.alignItemsCenter]}>
+                                    <Logo
+                                        height={80}
+                                        width={80}
+                                    />
                                     <Text
                                         selectable
-                                        style={[
-                                            styles.textLabel,
-                                            styles.alignSelfCenter,
-                                            styles.mt6,
-                                            styles.mb2,
-                                            styles.colorMuted,
-                                        ]}
+                                        style={[styles.textLabel, styles.alignSelfCenter, styles.mt6, styles.mb2, styles.colorMuted]}
                                     >
                                         v{pkg.version}
                                     </Text>
-                                    <Text
-                                        style={[
-                                            styles.baseFontStyle,
-                                            styles.mv5,
-                                        ]}
-                                    >
-                                        {props.translate(
-                                            'initialSettingsPage.aboutPage.description',
-                                        )}
-                                    </Text>
+                                    <Text style={[styles.baseFontStyle, styles.mv5]}>{props.translate('initialSettingsPage.aboutPage.description')}</Text>
                                 </View>
                             </View>
                             {_.map(menuItems, (item) => (
@@ -136,33 +103,19 @@ const AboutPage = (props) => {
                                 style={[styles.chatItemMessageHeaderTimestamp]}
                                 numberOfLines={1}
                             >
-                                {props.translate(
-                                    'initialSettingsPage.readTheTermsAndPrivacy.phrase1',
-                                )}{' '}
+                                {props.translate('initialSettingsPage.readTheTermsAndPrivacy.phrase1')}{' '}
                                 <TextLink
-                                    style={[
-                                        styles.textMicroSupporting,
-                                        styles.link,
-                                    ]}
+                                    style={[styles.textMicroSupporting, styles.link]}
                                     href={CONST.TERMS_URL}
                                 >
-                                    {props.translate(
-                                        'initialSettingsPage.readTheTermsAndPrivacy.phrase2',
-                                    )}
+                                    {props.translate('initialSettingsPage.readTheTermsAndPrivacy.phrase2')}
                                 </TextLink>{' '}
-                                {props.translate(
-                                    'initialSettingsPage.readTheTermsAndPrivacy.phrase3',
-                                )}{' '}
+                                {props.translate('initialSettingsPage.readTheTermsAndPrivacy.phrase3')}{' '}
                                 <TextLink
-                                    style={[
-                                        styles.textMicroSupporting,
-                                        styles.link,
-                                    ]}
+                                    style={[styles.textMicroSupporting, styles.link]}
                                     href={CONST.PRIVACY_URL}
                                 >
-                                    {props.translate(
-                                        'initialSettingsPage.readTheTermsAndPrivacy.phrase4',
-                                    )}
+                                    {props.translate('initialSettingsPage.readTheTermsAndPrivacy.phrase4')}
                                 </TextLink>
                                 .
                             </Text>

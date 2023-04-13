@@ -15,18 +15,13 @@ const defaultProps = {
 };
 
 const FullScreenLoadingIndicator = (props) => {
-    const additionalStyles = _.isArray(props.style)
-        ? props.style
-        : [props.style];
+    const additionalStyles = _.isArray(props.style) ? props.style : [props.style];
     return (
-        <View
-            style={[
-                StyleSheet.absoluteFillObject,
-                styles.fullScreenLoading,
-                ...additionalStyles,
-            ]}
-        >
-            <ActivityIndicator color={themeColors.spinner} size="large" />
+        <View style={[StyleSheet.absoluteFillObject, styles.fullScreenLoading, ...additionalStyles]}>
+            <ActivityIndicator
+                color={themeColors.spinner}
+                size="large"
+            />
         </View>
     );
 };

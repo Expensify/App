@@ -110,9 +110,7 @@ function isValidExpirationDate(string) {
     }
 
     // Use the last of the month to check if the expiration date is in the future or not
-    const expirationDate = `${CardUtils.getYearFromExpirationDateString(
-        string,
-    )}-${CardUtils.getMonthFromExpirationDateString(string)}-01`;
+    const expirationDate = `${CardUtils.getYearFromExpirationDateString(string)}-${CardUtils.getMonthFromExpirationDateString(string)}-01`;
     return moment(expirationDate).endOf('month').isAfter(moment());
 }
 
@@ -192,10 +190,7 @@ function isValidSSNFullNine(ssnFull9) {
  * @returns {Boolean}
  */
 function isValidPaypalUsername(paypalUsername) {
-    return (
-        Boolean(paypalUsername) &&
-        CONST.REGEX.PAYPAL_ME_USERNAME.test(paypalUsername)
-    );
+    return Boolean(paypalUsername) && CONST.REGEX.PAYPAL_ME_USERNAME.test(paypalUsername);
 }
 
 /**
@@ -208,10 +203,7 @@ function meetsAgeRequirements(date) {
     const eighteenYearsAgo = moment().subtract(18, 'years');
     const oneHundredFiftyYearsAgo = moment().subtract(150, 'years');
     const testDate = moment(date);
-    return (
-        testDate.isValid() &&
-        testDate.isBetween(oneHundredFiftyYearsAgo, eighteenYearsAgo)
-    );
+    return testDate.isValid() && testDate.isBetween(oneHundredFiftyYearsAgo, eighteenYearsAgo);
 }
 
 /**
@@ -233,15 +225,9 @@ function getAgeRequirementError(date, minimumAge, maximumAge) {
         return '';
     }
     if (testDate.isSameOrAfter(recentDate)) {
-        return Localize.translateLocal(
-            'privatePersonalDetails.error.dateShouldBeBefore',
-            {dateString: recentDate.format(CONST.DATE.MOMENT_FORMAT_STRING)},
-        );
+        return Localize.translateLocal('privatePersonalDetails.error.dateShouldBeBefore', {dateString: recentDate.format(CONST.DATE.MOMENT_FORMAT_STRING)});
     }
-    return Localize.translateLocal(
-        'privatePersonalDetails.error.dateShouldBeAfter',
-        {dateString: longAgoDate.format(CONST.DATE.MOMENT_FORMAT_STRING)},
-    );
+    return Localize.translateLocal('privatePersonalDetails.error.dateShouldBeAfter', {dateString: longAgoDate.format(CONST.DATE.MOMENT_FORMAT_STRING)});
 }
 
 /**
@@ -260,16 +246,7 @@ function isValidWebsite(url) {
  * @returns {Object}
  */
 function validateIdentity(identity) {
-    const requiredFields = [
-        'firstName',
-        'lastName',
-        'street',
-        'city',
-        'zipCode',
-        'state',
-        'ssnLast4',
-        'dob',
-    ];
+    const requiredFields = ['firstName', 'lastName', 'street', 'city', 'zipCode', 'state', 'ssnLast4', 'dob'];
     const errors = {};
 
     // Check that all required fields are filled
@@ -309,13 +286,8 @@ function validateIdentity(identity) {
  */
 function isValidUSPhone(phoneNumber = '', isCountryCodeOptional) {
     // Remove non alphanumeric characters from the phone number
-    const sanitizedPhone = (phoneNumber || '').replace(
-        CONST.REGEX.NON_ALPHA_NUMERIC,
-        '',
-    );
-    const isUsPhone = isCountryCodeOptional
-        ? CONST.REGEX.US_PHONE_WITH_OPTIONAL_COUNTRY_CODE.test(sanitizedPhone)
-        : CONST.REGEX.US_PHONE.test(sanitizedPhone);
+    const sanitizedPhone = (phoneNumber || '').replace(CONST.REGEX.NON_ALPHA_NUMERIC, '');
+    const isUsPhone = isCountryCodeOptional ? CONST.REGEX.US_PHONE_WITH_OPTIONAL_COUNTRY_CODE.test(sanitizedPhone) : CONST.REGEX.US_PHONE.test(sanitizedPhone);
 
     return CONST.REGEX.PHONE_E164_PLUS.test(sanitizedPhone) && isUsPhone;
 }
@@ -362,10 +334,7 @@ function isNumericWithSpecialChars(input) {
 function isValidRoutingNumber(number) {
     let n = 0;
     for (let i = 0; i < number.length; i += 3) {
-        n +=
-            parseInt(number.charAt(i), 10) * 3 +
-            parseInt(number.charAt(i + 1), 10) * 7 +
-            parseInt(number.charAt(i + 2), 10);
+        n += parseInt(number.charAt(i), 10) * 3 + parseInt(number.charAt(i + 1), 10) * 7 + parseInt(number.charAt(i + 2), 10);
     }
 
     // If the resulting sum is an even multiple of ten (but not zero),
@@ -395,9 +364,7 @@ function isValidDisplayName(name) {
  */
 function doesContainReservedWord(value, reservedWords) {
     const valueToCheck = value.trim().toLowerCase();
-    return _.some(reservedWords, (reservedWord) =>
-        valueToCheck.includes(reservedWord.toLowerCase()),
-    );
+    return _.some(reservedWords, (reservedWord) => valueToCheck.includes(reservedWord.toLowerCase()));
 }
 
 /**
@@ -420,13 +387,7 @@ function isReservedRoomName(roomName) {
  * @returns {Boolean}
  */
 function isExistingRoomName(roomName, reports, policyID) {
-    return _.some(
-        reports,
-        (report) =>
-            report &&
-            report.policyID === policyID &&
-            report.reportName === roomName,
-    );
+    return _.some(reports, (report) => report && report.policyID === policyID && report.reportName === roomName);
 }
 
 /**
@@ -449,10 +410,7 @@ function isValidRoomName(roomName) {
  * @returns {Boolean}
  */
 function isValidTaxID(taxID) {
-    return (
-        taxID &&
-        CONST.REGEX.TAX_ID.test(taxID.replace(CONST.REGEX.NON_NUMERIC, ''))
-    );
+    return taxID && CONST.REGEX.TAX_ID.test(taxID.replace(CONST.REGEX.NON_NUMERIC, ''));
 }
 
 export {

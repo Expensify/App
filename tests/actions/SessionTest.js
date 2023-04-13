@@ -43,12 +43,7 @@ describe('Session', () => {
         });
 
         // When we sign in with the test user
-        return TestHelper.signInWithTestUser(
-            TEST_USER_ACCOUNT_ID,
-            TEST_USER_LOGIN,
-            'Password1',
-            TEST_INITIAL_AUTH_TOKEN,
-        )
+        return TestHelper.signInWithTestUser(TEST_USER_ACCOUNT_ID, TEST_USER_LOGIN, 'Password1', TEST_INITIAL_AUTH_TOKEN)
             .then(() => {
                 // Then our re-authentication credentials should be generated and our session data
                 // have the correct information + initial authToken.
@@ -94,10 +89,7 @@ describe('Session', () => {
             });
     });
 
-    test('Push notifications are subscribed after signing in', () =>
-        TestHelper.signInWithTestUser().then(() =>
-            expect(PushNotification.register).toBeCalled(),
-        ));
+    test('Push notifications are subscribed after signing in', () => TestHelper.signInWithTestUser().then(() => expect(PushNotification.register).toBeCalled()));
 
     test('Push notifications are unsubscribed after signing out', () =>
         TestHelper.signInWithTestUser()

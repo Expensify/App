@@ -24,18 +24,8 @@ class TextInputLabel extends PureComponent {
                     styles.textInputLabelTransformation(
                         this.props.labelTranslateY,
                         this.props.labelScale.interpolate({
-                            inputRange: [
-                                styleConst.ACTIVE_LABEL_SCALE,
-                                styleConst.INACTIVE_LABEL_SCALE,
-                            ],
-                            outputRange: [
-                                -(
-                                    this.state.width -
-                                    this.state.width *
-                                        styleConst.ACTIVE_LABEL_SCALE
-                                ) / 2,
-                                0,
-                            ],
+                            inputRange: [styleConst.ACTIVE_LABEL_SCALE, styleConst.INACTIVE_LABEL_SCALE],
+                            outputRange: [-(this.state.width - this.state.width * styleConst.ACTIVE_LABEL_SCALE) / 2, 0],
                         }),
                         this.props.labelScale,
                     ),

@@ -34,8 +34,7 @@ const baseQuickEmojiReactionsPropTypes = {
 
 const propTypes = {
     ...baseQuickEmojiReactionsPropTypes,
-    preferredSkinTone: PropTypes.oneOfType([PropTypes.number, PropTypes.string])
-        .isRequired,
+    preferredSkinTone: PropTypes.oneOfType([PropTypes.number, PropTypes.string]).isRequired,
 };
 
 const BaseQuickEmojiReactions = (props) => (
@@ -49,9 +48,7 @@ const BaseQuickEmojiReactions = (props) => (
             >
                 <EmojiReactionBubble
                     emojiName={emoji.name}
-                    emojiCodes={[
-                        getPreferredEmojiCode(emoji, props.preferredSkinTone),
-                    ]}
+                    emojiCodes={[getPreferredEmojiCode(emoji, props.preferredSkinTone)]}
                     sizeScale={EMOJI_BUBBLE_SCALE}
                     onPress={() => {
                         props.onEmojiSelected(emoji);

@@ -76,18 +76,14 @@ class AddPlaidBankAccount extends React.Component {
     componentDidMount() {
         // If we're coming from Plaid OAuth flow then we need to reuse the existing plaidLinkToken
         if (
-            (this.props.receivedRedirectURI &&
-                this.props.plaidLinkOAuthToken) ||
+            (this.props.receivedRedirectURI && this.props.plaidLinkOAuthToken) ||
             !_.isEmpty(lodashGet(this.props.plaidData, 'bankAccounts')) ||
             !_.isEmpty(lodashGet(this.props.plaidData, 'errors'))
         ) {
             return;
         }
 
-        BankAccounts.openPlaidBankLogin(
-            this.props.allowDebit,
-            this.props.bankAccountID,
-        );
+        BankAccounts.openPlaidBankLogin(this.props.allowDebit, this.props.bankAccountID);
     }
 
     componentDidUpdate(prevProps) {
@@ -96,10 +92,7 @@ class AddPlaidBankAccount extends React.Component {
         }
 
         // If we are coming back from offline, we need to re-run our call to kick off Plaid
-        BankAccounts.openPlaidBankLogin(
-            this.props.allowDebit,
-            this.props.bankAccountID,
-        );
+        BankAccounts.openPlaidBankLogin(this.props.allowDebit, this.props.bankAccountID);
     }
 
     /**
@@ -116,8 +109,7 @@ class AddPlaidBankAccount extends React.Component {
     }
 
     render() {
-        const plaidBankAccounts =
-            lodashGet(this.props.plaidData, 'bankAccounts') || [];
+        const plaidBankAccounts = lodashGet(this.props.plaidData, 'bankAccounts') || [];
         const token = this.getPlaidLinkToken();
         const options = _.map(plaidBankAccounts, (account) => ({
             value: account.plaidAccountID,
@@ -125,9 +117,7 @@ class AddPlaidBankAccount extends React.Component {
         }));
         const {icon, iconSize} = getBankIcon();
         const plaidErrors = lodashGet(this.props.plaidData, 'errors');
-        const plaidDataErrorMessage = !_.isEmpty(plaidErrors)
-            ? _.chain(plaidErrors).values().first().value()
-            : '';
+        const plaidDataErrorMessage = !_.isEmpty(plaidErrors) ? _.chain(plaidErrors).values().first().value() : '';
         const bankName = lodashGet(this.props.plaidData, 'bankName');
 
         // Plaid Link view
@@ -135,34 +125,20 @@ class AddPlaidBankAccount extends React.Component {
             return (
                 <FullPageOfflineBlockingView>
                     {lodashGet(this.props.plaidData, 'isLoading') && (
-                        <View
-                            style={[
-                                styles.flex1,
-                                styles.alignItemsCenter,
-                                styles.justifyContentCenter,
-                            ]}
-                        >
+                        <View style={[styles.flex1, styles.alignItemsCenter, styles.justifyContentCenter]}>
                             <ActivityIndicator
                                 color={themeColors.spinner}
                                 size="large"
                             />
                         </View>
                     )}
-                    {Boolean(plaidDataErrorMessage) && (
-                        <Text style={[styles.formError, styles.mh5]}>
-                            {plaidDataErrorMessage}
-                        </Text>
-                    )}
+                    {Boolean(plaidDataErrorMessage) && <Text style={[styles.formError, styles.mh5]}>{plaidDataErrorMessage}</Text>}
                     {Boolean(token) && !bankName && (
                         <PlaidLink
                             token={token}
                             onSuccess={({publicToken, metadata}) => {
                                 Log.info('[PlaidLink] Success!');
-                                BankAccounts.openPlaidBankAccountSelector(
-                                    publicToken,
-                                    metadata.institution.name,
-                                    this.props.allowDebit,
-                                );
+                                BankAccounts.openPlaidBankAccountSelector(publicToken, metadata.institution.name, this.props.allowDebit);
                             }}
                             onError={(error) => {
                                 Log.hmmm('[PlaidLink] Error: ', error.message);
@@ -180,33 +156,23 @@ class AddPlaidBankAccount extends React.Component {
         // Plaid bank accounts view
         return (
             <View>
-                {!_.isEmpty(this.props.text) && (
-                    <Text style={[styles.mb5]}>{this.props.text}</Text>
-                )}
-                <View
-                    style={[
-                        styles.flexRow,
-                        styles.alignItemsCenter,
-                        styles.mb5,
-                    ]}
-                >
-                    <Icon src={icon} height={iconSize} width={iconSize} />
-                    <Text style={[styles.ml3, styles.textStrong]}>
-                        {bankName}
-                    </Text>
+                {!_.isEmpty(this.props.text) && <Text style={[styles.mb5]}>{this.props.text}</Text>}
+                <View style={[styles.flexRow, styles.alignItemsCenter, styles.mb5]}>
+                    <Icon
+                        src={icon}
+                        height={iconSize}
+                        width={iconSize}
+                    />
+                    <Text style={[styles.ml3, styles.textStrong]}>{bankName}</Text>
                 </View>
                 <View style={[styles.mb5]}>
                     <Picker
-                        label={this.props.translate(
-                            'addPersonalBankAccountPage.chooseAccountLabel',
-                        )}
+                        label={this.props.translate('addPersonalBankAccountPage.chooseAccountLabel')}
                         onInputChange={this.props.onSelect}
                         items={options}
                         placeholder={{
                             value: '',
-                            label: this.props.translate(
-                                'bankAccount.chooseAnAccount',
-                            ),
+                            label: this.props.translate('bankAccount.chooseAnAccount'),
                         }}
                         value={this.props.selectedPlaidAccountID}
                     />

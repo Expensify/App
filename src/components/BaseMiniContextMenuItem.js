@@ -55,28 +55,12 @@ const BaseMiniContextMenuItem = (props) => (
             accessibilityLabel={props.tooltipText}
             style={({hovered, pressed}) => [
                 styles.reportActionContextMenuMiniButton,
-                StyleUtils.getButtonBackgroundColorStyle(
-                    getButtonState(
-                        hovered,
-                        pressed,
-                        props.isDelayButtonStateComplete,
-                    ),
-                ),
+                StyleUtils.getButtonBackgroundColorStyle(getButtonState(hovered, pressed, props.isDelayButtonStateComplete)),
             ]}
         >
             {(pressableState) => (
-                <View
-                    style={[
-                        StyleUtils.getWidthAndHeightStyle(
-                            variables.iconSizeNormal,
-                        ),
-                        styles.alignItemsCenter,
-                        styles.justifyContentCenter,
-                    ]}
-                >
-                    {_.isFunction(props.children)
-                        ? props.children(pressableState)
-                        : props.children}
+                <View style={[StyleUtils.getWidthAndHeightStyle(variables.iconSizeNormal), styles.alignItemsCenter, styles.justifyContentCenter]}>
+                    {_.isFunction(props.children) ? props.children(pressableState) : props.children}
                 </View>
             )}
         </Pressable>
@@ -89,5 +73,8 @@ BaseMiniContextMenuItem.displayName = 'BaseMiniContextMenuItem';
 
 export default React.forwardRef((props, ref) => (
     // eslint-disable-next-line react/jsx-props-no-spreading
-    <BaseMiniContextMenuItem {...props} innerRef={ref} />
+    <BaseMiniContextMenuItem
+        {...props}
+        innerRef={ref}
+    />
 ));

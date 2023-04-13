@@ -31,18 +31,12 @@ function getDeployTableMessage(platformResult) {
     }
 }
 
-const androidResult = getDeployTableMessage(
-    core.getInput('ANDROID', {required: true}),
-);
-const desktopResult = getDeployTableMessage(
-    core.getInput('DESKTOP', {required: true}),
-);
+const androidResult = getDeployTableMessage(core.getInput('ANDROID', {required: true}));
+const desktopResult = getDeployTableMessage(core.getInput('DESKTOP', {required: true}));
 const iOSResult = getDeployTableMessage(core.getInput('IOS', {required: true}));
 const webResult = getDeployTableMessage(core.getInput('WEB', {required: true}));
 
-const workflowURL =
-    `${process.env.GITHUB_SERVER_URL}/${process.env.GITHUB_REPOSITORY}` +
-    `/actions/runs/${process.env.GITHUB_RUN_ID}`;
+const workflowURL = `${process.env.GITHUB_SERVER_URL}/${process.env.GITHUB_REPOSITORY}` + `/actions/runs/${process.env.GITHUB_RUN_ID}`;
 
 /**
  * @param {String} deployer
@@ -51,9 +45,7 @@ const workflowURL =
  * @returns {String}
  */
 function getDeployMessage(deployer, deployVerb, prTitle) {
-    let message = `🚀 [${deployVerb}](${workflowURL}) to ${
-        isProd ? 'production' : 'staging'
-    }`;
+    let message = `🚀 [${deployVerb}](${workflowURL}) to ${isProd ? 'production' : 'staging'}`;
     message += ` by https://github.com/${deployer} in version: ${version} 🚀`;
     message += `\n\n platform | result \n ---|--- \n🤖 android 🤖|${androidResult} \n🖥 desktop 🖥|${desktopResult}`;
     message += `\n🍎 iOS 🍎|${iOSResult} \n🕸 web 🕸|${webResult}`;
@@ -94,18 +86,11 @@ const run = function () {
                 state: 'closed',
             })
             .then(({data}) => _.first(data).number)
-            .then((lastDeployChecklistNumber) =>
-                GithubUtils.getActorWhoClosedIssue(lastDeployChecklistNumber),
-            )
+            .then((lastDeployChecklistNumber) => GithubUtils.getActorWhoClosedIssue(lastDeployChecklistNumber))
             .then((actor) => {
                 // Create comment on each pull request (one after another to avoid throttling issues)
                 const deployMessage = getDeployMessage(actor, 'Deployed');
-                _.reduce(
-                    prList,
-                    (promise, pr) =>
-                        promise.then(() => commentPR(pr, deployMessage)),
-                    Promise.resolve(),
-                );
+                _.reduce(prList, (promise, pr) => promise.then(() => commentPR(pr, deployMessage)), Promise.resolve());
             });
     }
 
@@ -117,8 +102,7 @@ const run = function () {
             per_page: 100,
         })
         .then(({data}) => {
-            const tagSHA = _.find(data, (tag) => tag.name === version).commit
-                .sha;
+            const tagSHA = _.find(data, (tag) => tag.name === version).commit.sha;
             return GithubUtils.octokit.git.getCommit({
                 owner: GithubUtils.GITHUB_OWNER,
                 repo: GithubUtils.APP_REPO,
@@ -126,10 +110,7 @@ const run = function () {
             });
         })
         .then(({data}) => {
-            const isCP =
-                /Merge pull request #\d+ from Expensify\/.*-?cherry-pick-staging-\d+/.test(
-                    data.message,
-                );
+            const isCP = /Merge pull request #\d+ from Expensify\/.*-?cherry-pick-staging-\d+/.test(data.message);
             _.reduce(
                 prList,
                 (promise, PR) =>
@@ -151,33 +132,15 @@ const run = function () {
                              *   3. For manual CPs (using the GH UI), the person who triggered the workflow
                              *      (reflected in the branch name).
                              */
-                            let deployer = lodashGet(
-                                response,
-                                'data.merged_by.login',
-                                '',
-                            );
-                            const issueTitle = lodashGet(
-                                response,
-                                'data.title',
-                                '',
-                            );
-                            const CPActorMatches = data.message.match(
-                                /Merge pull request #\d+ from Expensify\/(.+)-cherry-pick-staging-\d+/,
-                            );
-                            if (
-                                _.isArray(CPActorMatches) &&
-                                CPActorMatches.length === 2 &&
-                                CPActorMatches[1] !== 'OSBotify'
-                            ) {
+                            let deployer = lodashGet(response, 'data.merged_by.login', '');
+                            const issueTitle = lodashGet(response, 'data.title', '');
+                            const CPActorMatches = data.message.match(/Merge pull request #\d+ from Expensify\/(.+)-cherry-pick-staging-\d+/);
+                            if (_.isArray(CPActorMatches) && CPActorMatches.length === 2 && CPActorMatches[1] !== 'OSBotify') {
                                 deployer = CPActorMatches[1];
                             }
 
                             // Finally, comment on the PR
-                            const deployMessage = getDeployMessage(
-                                deployer,
-                                isCP ? 'Cherry-picked' : 'Deployed',
-                                issueTitle,
-                            );
+                            const deployMessage = getDeployMessage(deployer, isCP ? 'Cherry-picked' : 'Deployed', issueTitle);
                             return commentPR(PR, deployMessage);
                         }),
                 Promise.resolve(),

@@ -4,9 +4,7 @@ import _ from 'underscore';
 import * as StyleUtils from '../../../styles/StyleUtils';
 import * as Link from '../../../libs/actions/Link';
 import SVGImage from '../../../components/SVGImage';
-import withWindowDimensions, {
-    windowDimensionsPropTypes,
-} from '../../../components/withWindowDimensions';
+import withWindowDimensions, {windowDimensionsPropTypes} from '../../../components/withWindowDimensions';
 
 const backgroundStyle = StyleUtils.getLoginPagePromoStyle();
 
@@ -16,10 +14,7 @@ const propTypes = {
 
 const SignInPageGraphics = (props) => (
     <Pressable
-        style={[
-            StyleUtils.getHeight(props.windowHeight),
-            StyleUtils.getBackgroundColorStyle(backgroundStyle.backgroundColor),
-        ]}
+        style={[StyleUtils.getHeight(props.windowHeight), StyleUtils.getBackgroundColorStyle(backgroundStyle.backgroundColor)]}
         onPress={() => {
             Link.openExternalLink(backgroundStyle.redirectUri);
         }}

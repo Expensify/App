@@ -33,10 +33,7 @@ class KYCWall extends React.Component {
     componentDidMount() {
         PaymentMethods.kycWallRef.current = this;
         if (this.props.shouldListenForResize) {
-            this.dimensionsSubscription = Dimensions.addEventListener(
-                'change',
-                this.setMenuPosition,
-            );
+            this.dimensionsSubscription = Dimensions.addEventListener('change', this.setMenuPosition);
         }
         Wallet.setKYCWallSourceChatReportID(this.props.chatReportID);
     }
@@ -52,9 +49,7 @@ class KYCWall extends React.Component {
         if (!this.state.transferBalanceButton) {
             return;
         }
-        const buttonPosition = getClickedTargetLocation(
-            this.state.transferBalanceButton,
-        );
+        const buttonPosition = getClickedTargetLocation(this.state.transferBalanceButton);
         const position = this.getAnchorPosition(buttonPosition);
         this.setPositionAddPaymentMenu(position);
     }
@@ -102,16 +97,9 @@ class KYCWall extends React.Component {
         });
 
         // Check to see if user has a valid payment method on file and display the add payment popover if they don't
-        if (
-            !PaymentUtils.hasExpensifyPaymentMethod(
-                this.props.cardList,
-                this.props.bankAccountList,
-            )
-        ) {
+        if (!PaymentUtils.hasExpensifyPaymentMethod(this.props.cardList, this.props.bankAccountList)) {
             Log.info('[KYC Wallet] User does not have valid payment method');
-            const clickedElementLocation = getClickedTargetLocation(
-                event.nativeEvent.target,
-            );
+            const clickedElementLocation = getClickedTargetLocation(event.nativeEvent.target);
             const position = this.getAnchorPosition(clickedElementLocation);
             this.setPositionAddPaymentMenu(position);
             this.setState({
@@ -121,18 +109,14 @@ class KYCWall extends React.Component {
         }
 
         // Ask the user to upgrade to a gold wallet as this means they have not yet went through our Know Your Customer (KYC) checks
-        const hasGoldWallet =
-            this.props.userWallet.tierName &&
-            this.props.userWallet.tierName === CONST.WALLET.TIER_NAME.GOLD;
+        const hasGoldWallet = this.props.userWallet.tierName && this.props.userWallet.tierName === CONST.WALLET.TIER_NAME.GOLD;
         if (!hasGoldWallet) {
             Log.info('[KYC Wallet] User does not have gold wallet');
             Navigation.navigate(this.props.enablePaymentsRoute);
             return;
         }
 
-        Log.info(
-            '[KYC Wallet] User has valid payment method and passed KYC checks',
-        );
+        Log.info('[KYC Wallet] User has valid payment method and passed KYC checks');
         this.props.onSuccessfulKYC();
     }
 
@@ -141,9 +125,7 @@ class KYCWall extends React.Component {
             <>
                 <AddPaymentMethodMenu
                     isVisible={this.state.shouldShowAddPaymentMenu}
-                    onClose={() =>
-                        this.setState({shouldShowAddPaymentMenu: false})
-                    }
+                    onClose={() => this.setState({shouldShowAddPaymentMenu: false})}
                     anchorPosition={{
                         top: this.state.anchorPositionTop,
                         left: this.state.anchorPositionLeft,

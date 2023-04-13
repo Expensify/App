@@ -68,9 +68,7 @@ class RoomNameInput extends Component {
                 onChange={this.setModifiedRoomName}
                 value={this.props.value.substring(1)} // Since the room name always starts with a prefix, we omit the first character to avoid displaying it twice.
                 selection={this.state.selection}
-                onSelectionChange={(event) =>
-                    this.setSelection(event.nativeEvent.selection)
-                }
+                onSelectionChange={(event) => this.setSelection(event.nativeEvent.selection)}
                 errorText={this.props.errorText}
                 autoCapitalize="none"
                 onBlur={this.props.onBlur}
@@ -87,6 +85,9 @@ RoomNameInput.defaultProps = roomNameInputPropTypes.defaultProps;
 export default withLocalize(
     React.forwardRef((props, ref) => (
         // eslint-disable-next-line react/jsx-props-no-spreading
-        <RoomNameInput {...props} forwardedRef={ref} />
+        <RoomNameInput
+            {...props}
+            forwardedRef={ref}
+        />
     )),
 );

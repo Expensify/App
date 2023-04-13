@@ -1,11 +1,6 @@
 import React, {Component} from 'react';
 import {View, Animated} from 'react-native';
-import {
-    Directions,
-    FlingGestureHandler,
-    State,
-    TouchableWithoutFeedback,
-} from 'react-native-gesture-handler';
+import {Directions, FlingGestureHandler, State, TouchableWithoutFeedback} from 'react-native-gesture-handler';
 import colors from '../../styles/colors';
 import Text from '../Text';
 import Icon from '../Icon';
@@ -98,18 +93,14 @@ class GrowlNotification extends Component {
                 }}
             >
                 <View style={styles.growlNotificationWrapper}>
-                    <GrowlNotificationContainer
-                        translateY={this.state.translateY}
-                    >
+                    <GrowlNotificationContainer translateY={this.state.translateY}>
                         <TouchableWithoutFeedback onPress={this.fling}>
                             <View style={styles.growlNotificationBox}>
                                 <Icon
                                     src={types[this.state.type].icon}
                                     fill={types[this.state.type].iconColor}
                                 />
-                                <Text style={styles.growlNotificationText}>
-                                    {this.state.bodyText}
-                                </Text>
+                                <Text style={styles.growlNotificationText}>{this.state.bodyText}</Text>
                             </View>
                         </TouchableWithoutFeedback>
                     </GrowlNotificationContainer>

@@ -36,10 +36,7 @@ const RoomHeaderAvatars = (props) => {
         );
     }
 
-    const iconsToDisplay = props.icons.slice(
-        0,
-        CONST.REPORT.MAX_PREVIEW_AVATARS,
-    );
+    const iconsToDisplay = props.icons.slice(0, CONST.REPORT.MAX_PREVIEW_AVATARS);
 
     const iconStyle = [
         styles.roomHeaderAvatar,
@@ -53,51 +50,30 @@ const RoomHeaderAvatars = (props) => {
                 {_.map(iconsToDisplay, (icon, index) => (
                     <View
                         key={`${icon.source}${index}`}
-                        style={[
-                            styles.justifyContentCenter,
-                            styles.alignItemsCenter,
-                        ]}
+                        style={[styles.justifyContentCenter, styles.alignItemsCenter]}
                     >
                         <Avatar
                             source={icon.source}
                             fill={themeColors.iconSuccessFill}
                             size={CONST.AVATAR_SIZE.LARGE}
-                            containerStyles={[
-                                ...iconStyle,
-                                StyleUtils.getAvatarBorderRadius(
-                                    CONST.AVATAR_SIZE.LARGE_BORDERED,
-                                    icon.type,
-                                ),
-                            ]}
+                            containerStyles={[...iconStyle, StyleUtils.getAvatarBorderRadius(CONST.AVATAR_SIZE.LARGE_BORDERED, icon.type)]}
                             name={icon.name}
                             type={icon.type}
                         />
-                        {index === CONST.REPORT.MAX_PREVIEW_AVATARS - 1 &&
-                            props.icons.length -
-                                CONST.REPORT.MAX_PREVIEW_AVATARS !==
-                                0 && (
-                                <>
-                                    <View
-                                        style={[
-                                            styles.roomHeaderAvatarSize,
-                                            styles.roomHeaderAvatar,
-                                            ...iconStyle,
-                                            StyleUtils.getAvatarBorderRadius(
-                                                CONST.AVATAR_SIZE
-                                                    .LARGE_BORDERED,
-                                                icon.type,
-                                            ),
-                                            styles.roomHeaderAvatarOverlay,
-                                        ]}
-                                    />
-                                    <Text style={styles.avatarInnerTextChat}>
-                                        {`+${
-                                            props.icons.length -
-                                            CONST.REPORT.MAX_PREVIEW_AVATARS
-                                        }`}
-                                    </Text>
-                                </>
-                            )}
+                        {index === CONST.REPORT.MAX_PREVIEW_AVATARS - 1 && props.icons.length - CONST.REPORT.MAX_PREVIEW_AVATARS !== 0 && (
+                            <>
+                                <View
+                                    style={[
+                                        styles.roomHeaderAvatarSize,
+                                        styles.roomHeaderAvatar,
+                                        ...iconStyle,
+                                        StyleUtils.getAvatarBorderRadius(CONST.AVATAR_SIZE.LARGE_BORDERED, icon.type),
+                                        styles.roomHeaderAvatarOverlay,
+                                    ]}
+                                />
+                                <Text style={styles.avatarInnerTextChat}>{`+${props.icons.length - CONST.REPORT.MAX_PREVIEW_AVATARS}`}</Text>
+                            </>
+                        )}
                     </View>
                 ))}
             </View>

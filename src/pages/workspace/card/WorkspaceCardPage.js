@@ -1,8 +1,6 @@
 import React from 'react';
 import PropTypes from 'prop-types';
-import withLocalize, {
-    withLocalizePropTypes,
-} from '../../../components/withLocalize';
+import withLocalize, {withLocalizePropTypes} from '../../../components/withLocalize';
 import WorkspaceCardNoVBAView from './WorkspaceCardNoVBAView';
 import WorkspaceCardVBANoECardView from './WorkspaceCardVBANoECardView';
 import WorkspaceCardVBAWithECardView from './WorkspaceCardVBAWithECardView';

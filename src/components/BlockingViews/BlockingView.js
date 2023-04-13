@@ -37,14 +37,7 @@ const defaultProps = {
 };
 
 const BlockingView = (props) => (
-    <View
-        style={[
-            styles.flex1,
-            styles.alignItemsCenter,
-            styles.justifyContentCenter,
-            styles.ph10,
-        ]}
-    >
+    <View style={[styles.flex1, styles.alignItemsCenter, styles.justifyContentCenter, styles.ph10]}>
         <Icon
             src={props.icon}
             fill={props.iconColor}

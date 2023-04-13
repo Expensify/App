@@ -30,8 +30,7 @@ const propTypes = {
     onEmojiPickerClosed: PropTypes.func,
 
     ...withLocalizePropTypes,
-    preferredSkinTone: PropTypes.oneOfType([PropTypes.number, PropTypes.string])
-        .isRequired,
+    preferredSkinTone: PropTypes.oneOfType([PropTypes.number, PropTypes.string]).isRequired,
 };
 
 const defaultProps = {
@@ -69,33 +68,20 @@ const MiniQuickEmojiReactions = (props) => {
                     tooltipText={`:${emoji.name}:`}
                     onPress={() => props.onEmojiSelected(emoji)}
                 >
-                    <Text
-                        style={[
-                            styles.emojiReactionText,
-                            StyleUtils.getEmojiReactionTextStyle(
-                                ICON_SIZE_SCALE_FACTOR,
-                            ),
-                        ]}
-                    >
-                        {getPreferredEmojiCode(emoji, props.preferredSkinTone)}
-                    </Text>
+                    <Text style={[styles.emojiReactionText, StyleUtils.getEmojiReactionTextStyle(ICON_SIZE_SCALE_FACTOR)]}>{getPreferredEmojiCode(emoji, props.preferredSkinTone)}</Text>
                 </BaseMiniContextMenuItem>
             ))}
             <BaseMiniContextMenuItem
                 ref={ref}
                 onPress={openEmojiPicker}
                 isDelayButtonStateComplete={false}
-                tooltipText={props.translate(
-                    'reportActionContextMenu.addReactionTooltip',
-                )}
+                tooltipText={props.translate('reportActionContextMenu.addReactionTooltip')}
             >
                 {({hovered, pressed}) => (
                     <Icon
                         small
                         src={Expensicons.AddReaction}
-                        fill={StyleUtils.getIconFillColor(
-                            getButtonState(hovered, pressed, false),
-                        )}
+                        fill={StyleUtils.getIconFillColor(getButtonState(hovered, pressed, false))}
                     />
                 )}
             </BaseMiniContextMenuItem>

@@ -32,13 +32,7 @@ const defaultProps = {
 };
 
 const ButtonWithDropdown = (props) => (
-    <View
-        style={[
-            styles.flexRow,
-            styles.justifyContentBetween,
-            styles.alignItemsCenter,
-        ]}
-    >
+    <View style={[styles.flexRow, styles.justifyContentBetween, styles.alignItemsCenter]}>
         <Button
             success
             onPress={props.onButtonPress}

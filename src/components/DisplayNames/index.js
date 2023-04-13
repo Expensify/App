@@ -20,11 +20,7 @@ class DisplayNames extends PureComponent {
 
     componentDidMount() {
         this.setState({
-            isEllipsisActive:
-                this.containerRef &&
-                this.containerRef.offsetWidth &&
-                this.containerRef.scrollWidth &&
-                this.containerRef.offsetWidth < this.containerRef.scrollWidth,
+            isEllipsisActive: this.containerRef && this.containerRef.offsetWidth && this.containerRef.scrollWidth && this.containerRef.offsetWidth < this.containerRef.scrollWidth,
         });
     }
 
@@ -54,12 +50,10 @@ class DisplayNames extends PureComponent {
         if (!this.containerLayout || !this.childRefs[index]) {
             return;
         }
-        const {width: containerWidth, left: containerLeft} =
-            this.containerLayout;
+        const {width: containerWidth, left: containerLeft} = this.containerLayout;
 
         // We have to return the value as Number so we can't use `measureWindow` which takes a callback
-        const {width: textNodeWidth, left: textNodeLeft} =
-            this.childRefs[index].getBoundingClientRect();
+        const {width: textNodeWidth, left: textNodeLeft} = this.childRefs[index].getBoundingClientRect();
         const tooltipX = textNodeWidth / 2 + textNodeLeft;
         const containerRight = containerWidth + containerLeft;
         const textNodeRight = textNodeWidth + textNodeLeft;
@@ -92,49 +86,34 @@ class DisplayNames extends PureComponent {
             >
                 {this.props.shouldUseFullTitle
                     ? this.props.fullTitle
-                    : _.map(
-                          this.props.displayNamesWithTooltips,
-                          ({displayName, tooltip}, index) => (
-                              <Fragment key={index}>
-                                  <Tooltip
-                                      key={index}
-                                      text={tooltip}
-                                      containerStyles={[styles.dInline]}
-                                      shiftHorizontal={() =>
-                                          this.getTooltipShiftX(index)
-                                      }
-                                  >
-                                      {/*  // We need to get the refs to all the names which will be used to correct
+                    : _.map(this.props.displayNamesWithTooltips, ({displayName, tooltip}, index) => (
+                          <Fragment key={index}>
+                              <Tooltip
+                                  key={index}
+                                  text={tooltip}
+                                  containerStyles={[styles.dInline]}
+                                  shiftHorizontal={() => this.getTooltipShiftX(index)}
+                              >
+                                  {/*  // We need to get the refs to all the names which will be used to correct
                                     the horizontal position of the tooltip */}
-                                      <Text
-                                          ref={(el) =>
-                                              (this.childRefs[index] = el)
-                                          }
-                                          style={this.props.textStyles}
-                                      >
-                                          {displayName}
-                                      </Text>
-                                  </Tooltip>
-                                  {index <
-                                      this.props.displayNamesWithTooltips
-                                          .length -
-                                          1 && (
-                                      <Text style={this.props.textStyles}>
-                                          ,&nbsp;
-                                      </Text>
-                                  )}
-                              </Fragment>
-                          ),
-                      )}
-                {this.props.displayNamesWithTooltips.length > 1 &&
-                    this.state.isEllipsisActive && (
-                        <View style={styles.displayNameTooltipEllipsis}>
-                            <Tooltip text={this.props.fullTitle}>
-                                {/* There is some Gap for real ellipsis so we are adding 4 `.` to cover */}
-                                <Text>....</Text>
-                            </Tooltip>
-                        </View>
-                    )}
+                                  <Text
+                                      ref={(el) => (this.childRefs[index] = el)}
+                                      style={this.props.textStyles}
+                                  >
+                                      {displayName}
+                                  </Text>
+                              </Tooltip>
+                              {index < this.props.displayNamesWithTooltips.length - 1 && <Text style={this.props.textStyles}>,&nbsp;</Text>}
+                          </Fragment>
+                      ))}
+                {this.props.displayNamesWithTooltips.length > 1 && this.state.isEllipsisActive && (
+                    <View style={styles.displayNameTooltipEllipsis}>
+                        <Tooltip text={this.props.fullTitle}>
+                            {/* There is some Gap for real ellipsis so we are adding 4 `.` to cover */}
+                            <Text>....</Text>
+                        </Tooltip>
+                    </View>
+                )}
             </Text>
         );
     }

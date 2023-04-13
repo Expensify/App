@@ -25,7 +25,12 @@ const Image = (props) => {
     }
 
     // eslint-disable-next-line react/jsx-props-no-spreading
-    return <RNFastImage {...rest} source={imageSource} />;
+    return (
+        <RNFastImage
+            {...rest}
+            source={imageSource}
+        />
+    );
 };
 
 Image.propTypes = imagePropTypes;

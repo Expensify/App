@@ -140,13 +140,8 @@ class AvatarWithImagePicker extends React.Component {
      * @returns {Boolean}
      */
     isValidExtension(image) {
-        const {fileExtension} = FileUtils.splitExtensionFromFileName(
-            lodashGet(image, 'name', ''),
-        );
-        return _.contains(
-            CONST.AVATAR_ALLOWED_EXTENSIONS,
-            fileExtension.toLowerCase(),
-        );
+        const {fileExtension} = FileUtils.splitExtensionFromFileName(lodashGet(image, 'name', ''));
+        return _.contains(CONST.AVATAR_ALLOWED_EXTENSIONS, fileExtension.toLowerCase());
     }
 
     /**
@@ -156,10 +151,7 @@ class AvatarWithImagePicker extends React.Component {
      * @returns {Boolean}
      */
     isValidSize(image) {
-        return (
-            image &&
-            lodashGet(image, 'size', 0) < CONST.AVATAR_MAX_ATTACHMENT_SIZE
-        );
+        return image && lodashGet(image, 'size', 0) < CONST.AVATAR_MAX_ATTACHMENT_SIZE;
     }
 
     /**
@@ -187,10 +179,7 @@ class AvatarWithImagePicker extends React.Component {
         if (!this.isValidExtension(image)) {
             this.showErrorModal(
                 this.props.translate('avatarWithImagePicker.imageUploadFailed'),
-                this.props.translate(
-                    'avatarWithImagePicker.notAllowedExtension',
-                    {allowedExtensions: CONST.AVATAR_ALLOWED_EXTENSIONS},
-                ),
+                this.props.translate('avatarWithImagePicker.notAllowedExtension', {allowedExtensions: CONST.AVATAR_ALLOWED_EXTENSIONS}),
             );
             return;
         }
@@ -198,8 +187,7 @@ class AvatarWithImagePicker extends React.Component {
             this.showErrorModal(
                 this.props.translate('avatarWithImagePicker.imageUploadFailed'),
                 this.props.translate('avatarWithImagePicker.sizeExceeded', {
-                    maxUploadSizeInMB:
-                        CONST.AVATAR_MAX_ATTACHMENT_SIZE / (1024 * 1024),
+                    maxUploadSizeInMB: CONST.AVATAR_MAX_ATTACHMENT_SIZE / (1024 * 1024),
                 }),
             );
             return;
@@ -208,18 +196,13 @@ class AvatarWithImagePicker extends React.Component {
         this.isValidResolution(image).then((isValidResolution) => {
             if (!isValidResolution) {
                 this.showErrorModal(
-                    this.props.translate(
-                        'avatarWithImagePicker.imageUploadFailed',
-                    ),
-                    this.props.translate(
-                        'avatarWithImagePicker.resolutionConstraints',
-                        {
-                            minHeightInPx: CONST.AVATAR_MIN_HEIGHT_PX,
-                            minWidthInPx: CONST.AVATAR_MIN_WIDTH_PX,
-                            maxHeightInPx: CONST.AVATAR_MAX_HEIGHT_PX,
-                            maxWidthInPx: CONST.AVATAR_MAX_WIDTH_PX,
-                        },
-                    ),
+                    this.props.translate('avatarWithImagePicker.imageUploadFailed'),
+                    this.props.translate('avatarWithImagePicker.resolutionConstraints', {
+                        minHeightInPx: CONST.AVATAR_MIN_HEIGHT_PX,
+                        minWidthInPx: CONST.AVATAR_MIN_WIDTH_PX,
+                        maxHeightInPx: CONST.AVATAR_MAX_HEIGHT_PX,
+                        maxWidthInPx: CONST.AVATAR_MAX_WIDTH_PX,
+                    }),
                 );
                 return;
             }
@@ -271,9 +254,7 @@ class AvatarWithImagePicker extends React.Component {
 
     render() {
         const DefaultAvatar = this.props.DefaultAvatar;
-        const additionalStyles = _.isArray(this.props.style)
-            ? this.props.style
-            : [this.props.style];
+        const additionalStyles = _.isArray(this.props.style) ? this.props.style : [this.props.style];
 
         return (
             <View style={[styles.alignItemsCenter, ...additionalStyles]}>
@@ -282,10 +263,7 @@ class AvatarWithImagePicker extends React.Component {
                         {this.props.source ? (
                             <Avatar
                                 containerStyles={styles.avatarLarge}
-                                imageStyles={[
-                                    styles.avatarLarge,
-                                    styles.alignSelfCenter,
-                                ]}
+                                imageStyles={[styles.avatarLarge, styles.alignSelfCenter]}
                                 source={this.props.source}
                                 fallbackIcon={this.props.fallbackIcon}
                                 size={this.props.size}
@@ -294,23 +272,14 @@ class AvatarWithImagePicker extends React.Component {
                         ) : (
                             <DefaultAvatar />
                         )}
-                        <AttachmentPicker
-                            type={CONST.ATTACHMENT_PICKER_TYPE.IMAGE}
-                        >
+                        <AttachmentPicker type={CONST.ATTACHMENT_PICKER_TYPE.IMAGE}>
                             {({openPicker}) => (
                                 <>
                                     <Tooltip
                                         absolute
-                                        text={this.props.translate(
-                                            'avatarWithImagePicker.editImage',
-                                        )}
+                                        text={this.props.translate('avatarWithImagePicker.editImage')}
                                     >
-                                        <View
-                                            style={[
-                                                styles.smallEditIcon,
-                                                styles.smallAvatarEditIcon,
-                                            ]}
-                                        >
+                                        <View style={[styles.smallEditIcon, styles.smallAvatarEditIcon]}>
                                             <Icon
                                                 src={Expensicons.Camera}
                                                 width={variables.iconSizeSmall}
@@ -331,12 +300,8 @@ class AvatarWithImagePicker extends React.Component {
                                                 isMenuVisible: false,
                                             })
                                         }
-                                        menuItems={this.createMenuItems(
-                                            openPicker,
-                                        )}
-                                        anchorPosition={
-                                            this.props.anchorPosition
-                                        }
+                                        menuItems={this.createMenuItems(openPicker)}
+                                        anchorPosition={this.props.anchorPosition}
                                     />
                                 </>
                             )}

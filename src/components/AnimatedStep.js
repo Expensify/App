@@ -26,15 +26,9 @@ const AnimatedStep = (props) => {
         let animationStyle;
 
         if (direction === 'in') {
-            animationStyle = styles.makeSlideInTranslation(
-                'translateX',
-                CONST.ANIMATED_TRANSITION_FROM_VALUE,
-            );
+            animationStyle = styles.makeSlideInTranslation('translateX', CONST.ANIMATED_TRANSITION_FROM_VALUE);
         } else if (direction === 'out') {
-            animationStyle = styles.makeSlideInTranslation(
-                'translateX',
-                -CONST.ANIMATED_TRANSITION_FROM_VALUE,
-            );
+            animationStyle = styles.makeSlideInTranslation('translateX', -CONST.ANIMATED_TRANSITION_FROM_VALUE);
         }
         return animationStyle;
     }

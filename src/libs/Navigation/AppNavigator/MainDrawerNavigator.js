@@ -58,18 +58,8 @@ const defaultProps = {
  * @param {Boolean} openOnAdminRoom
  * @returns {Object}
  */
-const getInitialReportScreenParams = (
-    reports,
-    ignoreDefaultRooms,
-    policies,
-    openOnAdminRoom,
-) => {
-    const last = ReportUtils.findLastAccessedReport(
-        reports,
-        ignoreDefaultRooms,
-        policies,
-        openOnAdminRoom,
-    );
+const getInitialReportScreenParams = (reports, ignoreDefaultRooms, policies, openOnAdminRoom) => {
+    const last = ReportUtils.findLastAccessedReport(reports, ignoreDefaultRooms, policies, openOnAdminRoom);
 
     // Fallback to empty if for some reason reportID cannot be derived - prevents the app from crashing
     const reportID = lodashGet(last, 'reportID', '');
@@ -129,12 +119,7 @@ class MainDrawerNavigator extends Component {
             <BaseDrawerNavigator
                 drawerContent={({navigation, state}) => {
                     // This state belongs to the drawer so it should always have the ReportScreen as it's initial (and only) route
-                    const reportIDFromRoute = lodashGet(state, [
-                        'routes',
-                        0,
-                        'params',
-                        'reportID',
-                    ]);
+                    const reportIDFromRoute = lodashGet(state, ['routes', 0, 'params', 'reportID']);
                     return (
                         <SidebarScreen
                             navigation={navigation}

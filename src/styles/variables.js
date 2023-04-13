@@ -11,9 +11,7 @@ import {PixelRatio} from 'react-native';
  * @returns {Number}
  */
 function getValueUsingPixelRatio(defaultValue, maxValue) {
-    return PixelRatio.getFontScale() * defaultValue > maxValue
-        ? maxValue
-        : defaultValue * PixelRatio.getFontScale();
+    return PixelRatio.getFontScale() * defaultValue > maxValue ? maxValue : defaultValue * PixelRatio.getFontScale();
 }
 
 export default {

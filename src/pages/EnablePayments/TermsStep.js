@@ -3,9 +3,7 @@ import {ScrollView} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import HeaderWithCloseButton from '../../components/HeaderWithCloseButton';
 import Navigation from '../../libs/Navigation/Navigation';
-import withLocalize, {
-    withLocalizePropTypes,
-} from '../../components/withLocalize';
+import withLocalize, {withLocalizePropTypes} from '../../components/withLocalize';
 import styles from '../../styles/styles';
 import * as BankAccounts from '../../libs/actions/BankAccounts';
 import TextLink from '../../components/TextLink';
@@ -44,10 +42,7 @@ class TermsStep extends React.Component {
     }
 
     clearError() {
-        if (
-            !this.state.hasAcceptedDisclosure ||
-            !this.state.hasAcceptedPrivacyPolicyAndWalletAgreement
-        ) {
+        if (!this.state.hasAcceptedDisclosure || !this.state.hasAcceptedPrivacyPolicyAndWalletAgreement) {
             return;
         }
 
@@ -66,17 +61,14 @@ class TermsStep extends React.Component {
     togglePrivacyPolicy() {
         this.setState(
             (prevState) => ({
-                hasAcceptedPrivacyPolicyAndWalletAgreement:
-                    !prevState.hasAcceptedPrivacyPolicyAndWalletAgreement,
+                hasAcceptedPrivacyPolicyAndWalletAgreement: !prevState.hasAcceptedPrivacyPolicyAndWalletAgreement,
             }),
             () => this.clearError(),
         );
     }
 
     render() {
-        const errorMessage = this.state.error
-            ? this.props.translate('common.error.acceptTerms')
-            : ErrorUtils.getLatestErrorMessage(this.props.walletTerms) || '';
+        const errorMessage = this.state.error ? this.props.translate('common.error.acceptTerms') : ErrorUtils.getLatestErrorMessage(this.props.walletTerms) || '';
         return (
             <>
                 <HeaderWithCloseButton
@@ -95,73 +87,42 @@ class TermsStep extends React.Component {
                         onInputChange={this.toggleDisclosure}
                         LabelComponent={() => (
                             <Text>
-                                {`${this.props.translate(
-                                    'termsStep.haveReadAndAgree',
-                                )}`}
-                                <TextLink href="https://use.expensify.com/esignagreement">
-                                    {`${this.props.translate(
-                                        'termsStep.electronicDisclosures',
-                                    )}.`}
-                                </TextLink>
+                                {`${this.props.translate('termsStep.haveReadAndAgree')}`}
+                                <TextLink href="https://use.expensify.com/esignagreement">{`${this.props.translate('termsStep.electronicDisclosures')}.`}</TextLink>
                             </Text>
                         )}
                     />
                     <CheckboxWithLabel
-                        isChecked={
-                            this.state
-                                .hasAcceptedPrivacyPolicyAndWalletAgreement
-                        }
+                        isChecked={this.state.hasAcceptedPrivacyPolicyAndWalletAgreement}
                         onInputChange={this.togglePrivacyPolicy}
                         LabelComponent={() => (
                             <Text>
-                                {`${this.props.translate(
-                                    'termsStep.agreeToThe',
-                                )} `}
+                                {`${this.props.translate('termsStep.agreeToThe')} `}
 
-                                <TextLink href="https://use.expensify.com/privacy">
-                                    {`${this.props.translate(
-                                        'common.privacy',
-                                    )} `}
-                                </TextLink>
+                                <TextLink href="https://use.expensify.com/privacy">{`${this.props.translate('common.privacy')} `}</TextLink>
 
                                 {`${this.props.translate('common.and')} `}
 
-                                <TextLink href="https://use.expensify.com/walletagreement">
-                                    {`${this.props.translate(
-                                        'termsStep.walletAgreement',
-                                    )}.`}
-                                </TextLink>
+                                <TextLink href="https://use.expensify.com/walletagreement">{`${this.props.translate('termsStep.walletAgreement')}.`}</TextLink>
                             </Text>
                         )}
                     />
                     <FormAlertWithSubmitButton
-                        buttonText={this.props.translate(
-                            'termsStep.enablePayments',
-                        )}
+                        buttonText={this.props.translate('termsStep.enablePayments')}
                         onSubmit={() => {
-                            if (
-                                !this.state.hasAcceptedDisclosure ||
-                                !this.state
-                                    .hasAcceptedPrivacyPolicyAndWalletAgreement
-                            ) {
+                            if (!this.state.hasAcceptedDisclosure || !this.state.hasAcceptedPrivacyPolicyAndWalletAgreement) {
                                 this.setState({error: true});
                                 return;
                             }
 
                             this.setState({error: false});
                             BankAccounts.acceptWalletTerms({
-                                hasAcceptedTerms:
-                                    this.state.hasAcceptedDisclosure &&
-                                    this.state
-                                        .hasAcceptedPrivacyPolicyAndWalletAgreement,
-                                chatReportID:
-                                    this.props.walletTerms.chatReportID,
+                                hasAcceptedTerms: this.state.hasAcceptedDisclosure && this.state.hasAcceptedPrivacyPolicyAndWalletAgreement,
+                                chatReportID: this.props.walletTerms.chatReportID,
                             });
                         }}
                         message={errorMessage}
-                        isAlertVisible={
-                            this.state.error || Boolean(errorMessage)
-                        }
+                        isAlertVisible={this.state.error || Boolean(errorMessage)}
                         containerStyles={[styles.mh0, styles.mv4]}
                     />
                 </ScrollView>

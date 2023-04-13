@@ -2,10 +2,7 @@ import React, {Component} from 'react';
 import PropTypes from 'prop-types';
 import {withOnyx} from 'react-native-onyx';
 import lodashGet from 'lodash/get';
-import {
-    propTypes as validateLinkPropTypes,
-    defaultProps as validateLinkDefaultProps,
-} from './validateLinkPropTypes';
+import {propTypes as validateLinkPropTypes, defaultProps as validateLinkDefaultProps} from './validateLinkPropTypes';
 import * as User from '../../libs/actions/User';
 import compose from '../../libs/compose';
 import FullScreenLoadingIndicator from '../../components/FullscreenLoadingIndicator';
@@ -13,9 +10,7 @@ import ValidateCodeModal from '../../components/ValidateCodeModal';
 import ONYXKEYS from '../../ONYXKEYS';
 import * as Session from '../../libs/actions/Session';
 import Permissions from '../../libs/Permissions';
-import withLocalize, {
-    withLocalizePropTypes,
-} from '../../components/withLocalize';
+import withLocalize, {withLocalizePropTypes} from '../../components/withLocalize';
 
 const propTypes = {
     /** The accountID and validateCode are passed via the URL */
@@ -51,26 +46,13 @@ class ValidateLoginPage extends Component {
         // - The user is on the passwordless beta
         // - AND the user is not authenticated
         // - AND the user has initiated the sign in process in another tab
-        if (
-            this.isOnPasswordlessBeta() &&
-            !this.isAuthenticated() &&
-            this.isSignInInitiated()
-        ) {
-            Session.signInWithValidateCode(
-                this.accountID(),
-                this.validateCode(),
-            );
+        if (this.isOnPasswordlessBeta() && !this.isAuthenticated() && this.isSignInInitiated()) {
+            Session.signInWithValidateCode(this.accountID(), this.validateCode());
         }
     }
 
     componentDidUpdate(prevProps) {
-        if (
-            !(
-                prevProps.credentials &&
-                !prevProps.credentials.validateCode &&
-                this.props.credentials.validateCode
-            )
-        ) {
+        if (!(prevProps.credentials && !prevProps.credentials.validateCode && this.props.credentials.validateCode)) {
             return;
         }
         this.setState({justSignedIn: true});
@@ -79,8 +61,7 @@ class ValidateLoginPage extends Component {
     /**
      * @returns {Boolean}
      */
-    isOnPasswordlessBeta = () =>
-        Permissions.canUsePasswordlessLogins(this.props.betas);
+    isOnPasswordlessBeta = () => Permissions.canUsePasswordlessLogins(this.props.betas);
 
     /**
      * @returns {String}
@@ -95,33 +76,21 @@ class ValidateLoginPage extends Component {
     /**
      * @returns {Boolean}
      */
-    isAuthenticated = () =>
-        Boolean(lodashGet(this.props, 'session.authToken', null));
+    isAuthenticated = () => Boolean(lodashGet(this.props, 'session.authToken', null));
 
     /**
      * Whether SignIn was initiated on the current browser.
      * @returns {Boolean}
      */
-    isSignInInitiated = () =>
-        !this.isAuthenticated() &&
-        lodashGet(this.props, 'credentials.login', null);
+    isSignInInitiated = () => !this.isAuthenticated() && lodashGet(this.props, 'credentials.login', null);
 
     render() {
-        return this.isOnPasswordlessBeta() &&
-            !this.isSignInInitiated() &&
-            !lodashGet(this.props, 'account.isLoading', true) ? (
+        return this.isOnPasswordlessBeta() && !this.isSignInInitiated() && !lodashGet(this.props, 'account.isLoading', true) ? (
             <ValidateCodeModal
                 isSuccessfullySignedIn={this.state.justSignedIn}
                 code={this.validateCode()}
-                shouldShowSignInHere={
-                    !this.isAuthenticated() && !this.isSignInInitiated()
-                }
-                onSignInHereClick={() =>
-                    Session.signInWithValidateCodeAndNavigate(
-                        this.accountID(),
-                        this.validateCode(),
-                    )
-                }
+                shouldShowSignInHere={!this.isAuthenticated() && !this.isSignInInitiated()}
+                onSignInHereClick={() => Session.signInWithValidateCodeAndNavigate(this.accountID(), this.validateCode())}
             />
         ) : (
             <FullScreenLoadingIndicator />

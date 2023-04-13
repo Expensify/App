@@ -7,8 +7,7 @@ export default (isSmallScreenWidth) => {
     }
     return [
         {
-            translationKey:
-                'initialSettingsPage.aboutPage.viewKeyboardShortcuts',
+            translationKey: 'initialSettingsPage.aboutPage.viewKeyboardShortcuts',
             icon: Expensicons.Keyboard,
             action: KeyboardShortcuts.showKeyboardShortcutModal,
         },

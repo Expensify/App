@@ -20,7 +20,10 @@ function withSafeAreaInsets(WrappedComponent) {
     );
     return forwardRef((props, ref) => (
         // eslint-disable-next-line react/jsx-props-no-spreading
-        <WithSafeAreaInsets {...props} forwardedRef={ref} />
+        <WithSafeAreaInsets
+            {...props}
+            forwardedRef={ref}
+        />
     ));
 }
 
@@ -39,12 +42,4 @@ const useSafeAreaFrame = jest.fn(() => ({
 }));
 const useSafeAreaInsets = jest.fn(() => insets);
 
-export {
-    SafeAreaProvider,
-    SafeAreaConsumer,
-    SafeAreaInsetsContext,
-    withSafeAreaInsets,
-    SafeAreaView,
-    useSafeAreaFrame,
-    useSafeAreaInsets,
-};
+export {SafeAreaProvider, SafeAreaConsumer, SafeAreaInsetsContext, withSafeAreaInsets, SafeAreaView, useSafeAreaFrame, useSafeAreaInsets};

@@ -9,9 +9,7 @@ import Timing from '../../../../libs/actions/Timing';
 import CONST from '../../../../CONST';
 import Performance from '../../../../libs/Performance';
 import withDrawerState from '../../../../components/withDrawerState';
-import withWindowDimensions, {
-    windowDimensionsPropTypes,
-} from '../../../../components/withWindowDimensions';
+import withWindowDimensions, {windowDimensionsPropTypes} from '../../../../components/withWindowDimensions';
 import compose from '../../../../libs/compose';
 import sidebarPropTypes from './sidebarPropTypes';
 
@@ -61,9 +59,7 @@ class BaseSidebarScreen extends Component {
                                 onLinkClick={this.startTimer}
                                 insets={insets}
                                 onAvatarClick={this.navigateToSettings}
-                                isSmallScreenWidth={
-                                    this.props.isSmallScreenWidth
-                                }
+                                isSmallScreenWidth={this.props.isSmallScreenWidth}
                                 isDrawerOpen={this.props.isDrawerOpen}
                                 reportIDFromRoute={this.props.reportIDFromRoute}
                                 onLayout={this.props.onLayout}
@@ -79,7 +75,4 @@ class BaseSidebarScreen extends Component {
 
 BaseSidebarScreen.propTypes = propTypes;
 
-export default compose(
-    withWindowDimensions,
-    withDrawerState,
-)(BaseSidebarScreen);
+export default compose(withWindowDimensions, withDrawerState)(BaseSidebarScreen);

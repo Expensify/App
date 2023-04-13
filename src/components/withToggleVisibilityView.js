@@ -21,14 +21,9 @@ export default function (WrappedComponent) {
         </View>
     );
 
-    WithToggleVisibilityView.displayName = `WithToggleVisibilityView(${getComponentDisplayName(
-        WrappedComponent,
-    )})`;
+    WithToggleVisibilityView.displayName = `WithToggleVisibilityView(${getComponentDisplayName(WrappedComponent)})`;
     WithToggleVisibilityView.propTypes = {
-        forwardedRef: PropTypes.oneOfType([
-            PropTypes.func,
-            PropTypes.shape({current: PropTypes.instanceOf(React.Component)}),
-        ]),
+        forwardedRef: PropTypes.oneOfType([PropTypes.func, PropTypes.shape({current: PropTypes.instanceOf(React.Component)})]),
 
         /** Whether the content is visible. */
         isVisible: PropTypes.bool,
@@ -39,7 +34,10 @@ export default function (WrappedComponent) {
     };
     return React.forwardRef((props, ref) => (
         // eslint-disable-next-line react/jsx-props-no-spreading
-        <WithToggleVisibilityView {...props} forwardedRef={ref} />
+        <WithToggleVisibilityView
+            {...props}
+            forwardedRef={ref}
+        />
     ));
 }
 

@@ -24,8 +24,7 @@ const propTypes = {
     }).isRequired,
 
     /** Bank account attached to free plan */
-    reimbursementAccount:
-        ReimbursementAccountProps.reimbursementAccountPropTypes.isRequired,
+    reimbursementAccount: ReimbursementAccountProps.reimbursementAccountPropTypes.isRequired,
 
     /** Information about the network */
     network: networkPropTypes.isRequired,
@@ -41,10 +40,7 @@ class WorkspaceReimburseSection extends React.Component {
             shouldShowLoadingSpinner: false,
         };
 
-        this.debounceSetShouldShowLoadingSpinner = _.debounce(
-            this.setShouldShowLoadingSpinner.bind(this),
-            CONST.TIMING.SHOW_LOADING_SPINNER_DEBOUNCE_TIME,
-        );
+        this.debounceSetShouldShowLoadingSpinner = _.debounce(this.setShouldShowLoadingSpinner.bind(this), CONST.TIMING.SHOW_LOADING_SPINNER_DEBOUNCE_TIME);
     }
 
     componentDidUpdate() {
@@ -52,57 +48,37 @@ class WorkspaceReimburseSection extends React.Component {
     }
 
     setShouldShowLoadingSpinner() {
-        const shouldShowLoadingSpinner =
-            this.props.reimbursementAccount.isLoading || false;
+        const shouldShowLoadingSpinner = this.props.reimbursementAccount.isLoading || false;
         if (shouldShowLoadingSpinner !== this.state.shouldShowLoadingSpinner) {
             this.setState({shouldShowLoadingSpinner});
         }
     }
 
     render() {
-        const achState = lodashGet(
-            this.props.reimbursementAccount,
-            'achData.state',
-            '',
-        );
+        const achState = lodashGet(this.props.reimbursementAccount, 'achData.state', '');
         const hasVBA = achState === BankAccount.STATE.OPEN;
 
         if (this.props.network.isOffline) {
             return (
                 <Section
-                    title={this.props.translate(
-                        'workspace.reimburse.reimburseReceipts',
-                    )}
+                    title={this.props.translate('workspace.reimburse.reimburseReceipts')}
                     icon={Illustrations.MoneyWings}
                 >
                     <View style={[styles.mv3]}>
-                        <Text>{`${this.props.translate(
-                            'common.youAppearToBeOffline',
-                        )} ${this.props.translate(
-                            'common.thisFeatureRequiresInternet',
-                        )}`}</Text>
+                        <Text>{`${this.props.translate('common.youAppearToBeOffline')} ${this.props.translate('common.thisFeatureRequiresInternet')}`}</Text>
                     </View>
                 </Section>
             );
         }
 
         // If the reimbursementAccount is loading but not enough time has passed to show a spinner, then render nothing.
-        if (
-            this.props.reimbursementAccount.isLoading &&
-            !this.state.shouldShowLoadingSpinner
-        ) {
+        if (this.props.reimbursementAccount.isLoading && !this.state.shouldShowLoadingSpinner) {
             return null;
         }
 
         if (this.state.shouldShowLoadingSpinner) {
             return (
-                <View
-                    style={[
-                        styles.flex1,
-                        styles.alignItemsCenter,
-                        styles.justifyContentCenter,
-                    ]}
-                >
+                <View style={[styles.flex1, styles.alignItemsCenter, styles.justifyContentCenter]}>
                     <ActivityIndicator
                         color={themeColors.spinner}
                         size="large"
@@ -115,19 +91,12 @@ class WorkspaceReimburseSection extends React.Component {
             <>
                 {hasVBA ? (
                     <Section
-                        title={this.props.translate(
-                            'workspace.reimburse.fastReimbursementsHappyMembers',
-                        )}
+                        title={this.props.translate('workspace.reimburse.fastReimbursementsHappyMembers')}
                         icon={Illustrations.TreasureChest}
                         menuItems={[
                             {
-                                title: this.props.translate(
-                                    'workspace.reimburse.reimburseReceipts',
-                                ),
-                                onPress: () =>
-                                    Link.openOldDotLink(
-                                        `reports?policyID=${this.props.policy.id}&from=all&type=expense&showStates=Archived&isAdvancedFilterMode=true`,
-                                    ),
+                                title: this.props.translate('workspace.reimburse.reimburseReceipts'),
+                                onPress: () => Link.openOldDotLink(`reports?policyID=${this.props.policy.id}&from=all&type=expense&showStates=Archived&isAdvancedFilterMode=true`),
                                 icon: Expensicons.Bank,
                                 shouldShowRightIcon: true,
                                 iconRight: Expensicons.NewWindow,
@@ -136,36 +105,20 @@ class WorkspaceReimburseSection extends React.Component {
                         ]}
                     >
                         <View style={[styles.mv3]}>
-                            <Text>
-                                {this.props.translate(
-                                    'workspace.reimburse.fastReimbursementsVBACopy',
-                                )}
-                            </Text>
+                            <Text>{this.props.translate('workspace.reimburse.fastReimbursementsVBACopy')}</Text>
                         </View>
                     </Section>
                 ) : (
                     <Section
-                        title={this.props.translate(
-                            'workspace.reimburse.unlockNextDayReimbursements',
-                        )}
+                        title={this.props.translate('workspace.reimburse.unlockNextDayReimbursements')}
                         icon={Illustrations.OpenSafe}
                     >
                         <View style={[styles.mv3]}>
-                            <Text>
-                                {this.props.translate(
-                                    'workspace.reimburse.unlockNoVBACopy',
-                                )}
-                            </Text>
+                            <Text>{this.props.translate('workspace.reimburse.unlockNoVBACopy')}</Text>
                         </View>
                         <Button
-                            text={this.props.translate(
-                                'workspace.common.bankAccount',
-                            )}
-                            onPress={() =>
-                                ReimbursementAccount.navigateToBankAccountRoute(
-                                    this.props.policy.id,
-                                )
-                            }
+                            text={this.props.translate('workspace.common.bankAccount')}
+                            onPress={() => ReimbursementAccount.navigateToBankAccountRoute(this.props.policy.id)}
                             icon={Expensicons.Bank}
                             style={[styles.mt4]}
                             iconStyles={[styles.buttonCTAIcon]}

@@ -42,15 +42,11 @@ class RequestorStep extends React.Component {
         const errors = {};
 
         if (!ValidationUtils.isRequiredFulfilled(values.firstName)) {
-            errors.firstName = this.props.translate(
-                'bankAccount.error.firstName',
-            );
+            errors.firstName = this.props.translate('bankAccount.error.firstName');
         }
 
         if (!ValidationUtils.isRequiredFulfilled(values.lastName)) {
-            errors.lastName = this.props.translate(
-                'bankAccount.error.lastName',
-            );
+            errors.lastName = this.props.translate('bankAccount.error.lastName');
         }
 
         if (!ValidationUtils.isRequiredFulfilled(values.dob)) {
@@ -61,61 +57,32 @@ class RequestorStep extends React.Component {
             errors.dob = this.props.translate('bankAccount.error.age');
         }
 
-        if (
-            !ValidationUtils.isRequiredFulfilled(values.ssnLast4) ||
-            !ValidationUtils.isValidSSNLastFour(values.ssnLast4)
-        ) {
-            errors.ssnLast4 = this.props.translate(
-                'bankAccount.error.ssnLast4',
-            );
+        if (!ValidationUtils.isRequiredFulfilled(values.ssnLast4) || !ValidationUtils.isValidSSNLastFour(values.ssnLast4)) {
+            errors.ssnLast4 = this.props.translate('bankAccount.error.ssnLast4');
         }
 
-        if (
-            !ValidationUtils.isRequiredFulfilled(values.requestorAddressStreet)
-        ) {
-            errors.requestorAddressStreet = this.props.translate(
-                'bankAccount.error.address',
-            );
+        if (!ValidationUtils.isRequiredFulfilled(values.requestorAddressStreet)) {
+            errors.requestorAddressStreet = this.props.translate('bankAccount.error.address');
         }
 
-        if (
-            values.requestorAddressStreet &&
-            !ValidationUtils.isValidAddress(values.requestorAddressStreet)
-        ) {
-            errors.requestorAddressStreet = this.props.translate(
-                'bankAccount.error.addressStreet',
-            );
+        if (values.requestorAddressStreet && !ValidationUtils.isValidAddress(values.requestorAddressStreet)) {
+            errors.requestorAddressStreet = this.props.translate('bankAccount.error.addressStreet');
         }
 
         if (!ValidationUtils.isRequiredFulfilled(values.requestorAddressCity)) {
-            errors.requestorAddressCity = this.props.translate(
-                'bankAccount.error.addressCity',
-            );
+            errors.requestorAddressCity = this.props.translate('bankAccount.error.addressCity');
         }
 
-        if (
-            !ValidationUtils.isRequiredFulfilled(values.requestorAddressState)
-        ) {
-            errors.requestorAddressState = this.props.translate(
-                'bankAccount.error.addressState',
-            );
+        if (!ValidationUtils.isRequiredFulfilled(values.requestorAddressState)) {
+            errors.requestorAddressState = this.props.translate('bankAccount.error.addressState');
         }
 
-        if (
-            !ValidationUtils.isRequiredFulfilled(
-                values.requestorAddressZipCode,
-            ) ||
-            !ValidationUtils.isValidZipCode(values.requestorAddressZipCode)
-        ) {
-            errors.requestorAddressZipCode = this.props.translate(
-                'bankAccount.error.zipCode',
-            );
+        if (!ValidationUtils.isRequiredFulfilled(values.requestorAddressZipCode) || !ValidationUtils.isValidZipCode(values.requestorAddressZipCode)) {
+            errors.requestorAddressZipCode = this.props.translate('bankAccount.error.zipCode');
         }
 
         if (!ValidationUtils.isRequiredFulfilled(values.isControllingOfficer)) {
-            errors.isControllingOfficer = this.props.translate(
-                'requestorStep.isControllingOfficerError',
-            );
+            errors.isControllingOfficer = this.props.translate('requestorStep.isControllingOfficerError');
         }
 
         return errors;
@@ -123,11 +90,7 @@ class RequestorStep extends React.Component {
 
     submit(values) {
         const payload = {
-            bankAccountID:
-                lodashGet(
-                    this.props.reimbursementAccount,
-                    'achData.bankAccountID',
-                ) || 0,
+            bankAccountID: lodashGet(this.props.reimbursementAccount, 'achData.bankAccountID') || 0,
             ...values,
         };
 
@@ -139,9 +102,7 @@ class RequestorStep extends React.Component {
             return (
                 <RequestorOnfidoStep
                     reimbursementAccount={this.props.reimbursementAccount}
-                    reimbursementAccountDraft={
-                        this.props.reimbursementAccountDraft
-                    }
+                    reimbursementAccountDraft={this.props.reimbursementAccountDraft}
                     onBackButtonPress={this.props.onBackButtonPress}
                     getDefaultStateForField={this.props.getDefaultStateForField}
                 />
@@ -154,78 +115,48 @@ class RequestorStep extends React.Component {
                     title={this.props.translate('requestorStep.headerTitle')}
                     stepCounter={{step: 3, total: 5}}
                     shouldShowGetAssistanceButton
-                    guidesCallTaskID={
-                        CONST.GUIDES_CALL_TASK_IDS.WORKSPACE_BANK_ACCOUNT
-                    }
+                    guidesCallTaskID={CONST.GUIDES_CALL_TASK_IDS.WORKSPACE_BANK_ACCOUNT}
                     shouldShowBackButton
                     onBackButtonPress={this.props.onBackButtonPress}
                     onCloseButtonPress={Navigation.dismissModal}
                 />
                 <Form
                     formID={ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM}
-                    submitButtonText={this.props.translate(
-                        'common.saveAndContinue',
-                    )}
+                    submitButtonText={this.props.translate('common.saveAndContinue')}
                     validate={this.validate}
                     scrollContextEnabled
                     onSubmit={this.submit}
                     style={[styles.mh5, styles.flexGrow1]}
                 >
-                    <Text>
-                        {this.props.translate('requestorStep.subtitle')}
-                    </Text>
-                    <View
-                        style={[
-                            styles.mb5,
-                            styles.mt1,
-                            styles.dFlex,
-                            styles.flexRow,
-                        ]}
-                    >
+                    <Text>{this.props.translate('requestorStep.subtitle')}</Text>
+                    <View style={[styles.mb5, styles.mt1, styles.dFlex, styles.flexRow]}>
                         <TextLink
                             style={[styles.textMicro]}
                             // eslint-disable-next-line max-len
                             href="https://community.expensify.com/discussion/6983/faq-why-do-i-need-to-provide-personal-documentation-when-setting-up-updating-my-bank-account"
                         >
-                            {`${this.props.translate(
-                                'requestorStep.learnMore',
-                            )}`}
+                            {`${this.props.translate('requestorStep.learnMore')}`}
                         </TextLink>
-                        <Text style={[styles.textMicroSupporting]}>
-                            {' | '}
-                        </Text>
+                        <Text style={[styles.textMicroSupporting]}>{' | '}</Text>
                         <TextLink
                             style={[styles.textMicro, styles.textLink]}
                             // eslint-disable-next-line max-len
                             href="https://community.expensify.com/discussion/5677/deep-dive-security-how-expensify-protects-your-information"
                         >
-                            {`${this.props.translate(
-                                'requestorStep.isMyDataSafe',
-                            )}`}
+                            {`${this.props.translate('requestorStep.isMyDataSafe')}`}
                         </TextLink>
                     </View>
                     <IdentityForm
                         translate={this.props.translate}
                         defaultValues={{
-                            firstName:
-                                this.props.getDefaultStateForField('firstName'),
-                            lastName:
-                                this.props.getDefaultStateForField('lastName'),
-                            street: this.props.getDefaultStateForField(
-                                'requestorAddressStreet',
-                            ),
-                            city: this.props.getDefaultStateForField(
-                                'requestorAddressCity',
-                            ),
-                            state: this.props.getDefaultStateForField(
-                                'requestorAddressState',
-                            ),
-                            zipCode: this.props.getDefaultStateForField(
-                                'requestorAddressZipCode',
-                            ),
+                            firstName: this.props.getDefaultStateForField('firstName'),
+                            lastName: this.props.getDefaultStateForField('lastName'),
+                            street: this.props.getDefaultStateForField('requestorAddressStreet'),
+                            city: this.props.getDefaultStateForField('requestorAddressCity'),
+                            state: this.props.getDefaultStateForField('requestorAddressState'),
+                            zipCode: this.props.getDefaultStateForField('requestorAddressZipCode'),
                             dob: this.props.getDefaultStateForField('dob'),
-                            ssnLast4:
-                                this.props.getDefaultStateForField('ssnLast4'),
+                            ssnLast4: this.props.getDefaultStateForField('ssnLast4'),
                         }}
                         inputKeys={{
                             firstName: 'firstName',
@@ -241,17 +172,10 @@ class RequestorStep extends React.Component {
                     />
                     <CheckboxWithLabel
                         inputID="isControllingOfficer"
-                        defaultValue={this.props.getDefaultStateForField(
-                            'isControllingOfficer',
-                            false,
-                        )}
+                        defaultValue={this.props.getDefaultStateForField('isControllingOfficer', false)}
                         LabelComponent={() => (
                             <View style={[styles.flex1, styles.pr1]}>
-                                <Text>
-                                    {this.props.translate(
-                                        'requestorStep.isControllingOfficer',
-                                    )}
-                                </Text>
+                                <Text>{this.props.translate('requestorStep.isControllingOfficer')}</Text>
                             </View>
                         )}
                         style={[styles.mt4]}

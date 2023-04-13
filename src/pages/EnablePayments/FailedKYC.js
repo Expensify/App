@@ -3,9 +3,7 @@ import {View} from 'react-native';
 import CONST from '../../CONST';
 import Text from '../../components/Text';
 import TextLink from '../../components/TextLink';
-import withLocalize, {
-    withLocalizePropTypes,
-} from '../../components/withLocalize';
+import withLocalize, {withLocalizePropTypes} from '../../components/withLocalize';
 import styles from '../../styles/styles';
 
 const propTypes = {

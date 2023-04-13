@@ -21,15 +21,9 @@ import * as EmojiUtils from '../../../libs/EmojiUtils';
 import reportPropTypes from '../../reportPropTypes';
 import ExceededCommentLength from '../../../components/ExceededCommentLength';
 import CONST from '../../../CONST';
-import withWindowDimensions, {
-    windowDimensionsPropTypes,
-} from '../../../components/withWindowDimensions';
-import withLocalize, {
-    withLocalizePropTypes,
-} from '../../../components/withLocalize';
-import withKeyboardState, {
-    keyboardStatePropTypes,
-} from '../../../components/withKeyboardState';
+import withWindowDimensions, {windowDimensionsPropTypes} from '../../../components/withWindowDimensions';
+import withLocalize, {withLocalizePropTypes} from '../../../components/withLocalize';
+import withKeyboardState, {keyboardStatePropTypes} from '../../../components/withKeyboardState';
 
 const propTypes = {
     /** All the data of the action */
@@ -70,16 +64,12 @@ class ReportActionItemMessageEdit extends React.Component {
         super(props);
         this.updateDraft = this.updateDraft.bind(this);
         this.deleteDraft = this.deleteDraft.bind(this);
-        this.debouncedSaveDraft = _.debounce(
-            this.debouncedSaveDraft.bind(this),
-            1000,
-        );
+        this.debouncedSaveDraft = _.debounce(this.debouncedSaveDraft.bind(this), 1000);
         this.publishDraft = this.publishDraft.bind(this);
         this.triggerSaveOrCancel = this.triggerSaveOrCancel.bind(this);
         this.onSelectionChange = this.onSelectionChange.bind(this);
         this.addEmojiToTextBox = this.addEmojiToTextBox.bind(this);
-        this.setExceededMaxCommentLength =
-            this.setExceededMaxCommentLength.bind(this);
+        this.setExceededMaxCommentLength = this.setExceededMaxCommentLength.bind(this);
         this.saveButtonID = 'saveButton';
         this.cancelButtonID = 'cancelButton';
         this.emojiButtonID = 'emojiButton';
@@ -124,16 +114,11 @@ class ReportActionItemMessageEdit extends React.Component {
      * @param {String} draft
      */
     updateDraft(draft) {
-        const newDraft = EmojiUtils.replaceEmojis(
-            draft,
-            this.props.isSmallScreenWidth,
-        );
+        const newDraft = EmojiUtils.replaceEmojis(draft, this.props.isSmallScreenWidth);
         this.setState((prevState) => {
             const newState = {draft: newDraft};
             if (draft !== newDraft) {
-                const remainder = prevState.draft.slice(
-                    prevState.selection.end,
-                ).length;
+                const remainder = prevState.draft.slice(prevState.selection.end).length;
                 newState.selection = {
                     start: newDraft.length - remainder,
                     end: newDraft.length - remainder,
@@ -156,26 +141,16 @@ class ReportActionItemMessageEdit extends React.Component {
      */
     deleteDraft() {
         this.debouncedSaveDraft.cancel();
-        Report.saveReportActionDraft(
-            this.props.reportID,
-            this.props.action.reportActionID,
-            '',
-        );
+        Report.saveReportActionDraft(this.props.reportID, this.props.action.reportActionID, '');
         toggleReportActionComposeView(true, this.props.isSmallScreenWidth);
         ReportActionComposeFocusManager.focus();
 
         // Scroll to the last comment after editing to make sure the whole comment is clearly visible in the report.
         if (this.props.index === 0) {
-            const keyboardDidHideListener = Keyboard.addListener(
-                'keyboardDidHide',
-                () => {
-                    ReportScrollManager.scrollToIndex(
-                        {animated: true, index: this.props.index},
-                        false,
-                    );
-                    keyboardDidHideListener.remove();
-                },
-            );
+            const keyboardDidHideListener = Keyboard.addListener('keyboardDidHide', () => {
+                ReportScrollManager.scrollToIndex({animated: true, index: this.props.index}, false);
+                keyboardDidHideListener.remove();
+            });
         }
     }
 
@@ -185,11 +160,7 @@ class ReportActionItemMessageEdit extends React.Component {
      * @param {String} newDraft
      */
     debouncedSaveDraft(newDraft) {
-        Report.saveReportActionDraft(
-            this.props.reportID,
-            this.props.action.reportActionID,
-            newDraft,
-        );
+        Report.saveReportActionDraft(this.props.reportID, this.props.action.reportActionID, newDraft);
     }
 
     /**
@@ -198,10 +169,7 @@ class ReportActionItemMessageEdit extends React.Component {
      */
     publishDraft() {
         // Do nothing if draft exceed the character limit
-        if (
-            ReportUtils.getCommentLength(this.state.draft) >
-            CONST.MAX_COMMENT_LENGTH
-        ) {
+        if (ReportUtils.getCommentLength(this.state.draft) > CONST.MAX_COMMENT_LENGTH) {
             return;
         }
 
@@ -213,23 +181,12 @@ class ReportActionItemMessageEdit extends React.Component {
 
         // When user tries to save the empty message, it will delete it. Prompt the user to confirm deleting.
         if (!trimmedNewDraft) {
-            ReportActionContextMenu.showDeleteModal(
-                this.props.reportID,
-                this.props.action,
-                false,
-                this.deleteDraft,
-                () =>
-                    InteractionManager.runAfterInteractions(() =>
-                        this.textInput.focus(),
-                    ),
+            ReportActionContextMenu.showDeleteModal(this.props.reportID, this.props.action, false, this.deleteDraft, () =>
+                InteractionManager.runAfterInteractions(() => this.textInput.focus()),
             );
             return;
         }
-        Report.editReportComment(
-            this.props.reportID,
-            this.props.action,
-            trimmedNewDraft,
-        );
+        Report.editReportComment(this.props.reportID, this.props.action, trimmedNewDraft);
         this.deleteDraft();
     }
 
@@ -237,13 +194,7 @@ class ReportActionItemMessageEdit extends React.Component {
      * @param {String} emoji
      */
     addEmojiToTextBox(emoji) {
-        const newComment =
-            this.state.draft.slice(0, this.state.selection.start) +
-            emoji +
-            this.state.draft.slice(
-                this.state.selection.end,
-                this.state.draft.length,
-            );
+        const newComment = this.state.draft.slice(0, this.state.selection.start) + emoji + this.state.draft.slice(this.state.selection.end, this.state.draft.length);
         this.setState((prevState) => ({
             selection: {
                 start: prevState.selection.start + emoji.length,
@@ -273,17 +224,14 @@ class ReportActionItemMessageEdit extends React.Component {
     }
 
     render() {
-        const hasExceededMaxCommentLength =
-            this.state.hasExceededMaxCommentLength;
+        const hasExceededMaxCommentLength = this.state.hasExceededMaxCommentLength;
         return (
             <View style={styles.chatItemMessage}>
                 <View
                     style={[
                         styles.chatItemComposeBox,
                         styles.flexRow,
-                        this.state.isFocused
-                            ? styles.chatItemComposeBoxFocusedColor
-                            : styles.chatItemComposeBoxColor,
+                        this.state.isFocused ? styles.chatItemComposeBoxFocusedColor : styles.chatItemComposeBoxColor,
                         hasExceededMaxCommentLength && styles.borderColorDanger,
                     ]}
                 >
@@ -298,49 +246,25 @@ class ReportActionItemMessageEdit extends React.Component {
                         onKeyPress={this.triggerSaveOrCancel}
                         value={this.state.draft}
                         maxLines={16} // This is the same that slack has
-                        style={[
-                            styles.textInputCompose,
-                            styles.flex4,
-                            styles.editInputComposeSpacing,
-                        ]}
+                        style={[styles.textInputCompose, styles.flex4, styles.editInputComposeSpacing]}
                         onFocus={() => {
                             this.setState({isFocused: true});
-                            ReportScrollManager.scrollToIndex(
-                                {animated: true, index: this.props.index},
-                                true,
-                            );
-                            toggleReportActionComposeView(
-                                false,
-                                this.props.isSmallScreenWidth,
-                            );
+                            ReportScrollManager.scrollToIndex({animated: true, index: this.props.index}, true);
+                            toggleReportActionComposeView(false, this.props.isSmallScreenWidth);
                         }}
                         onBlur={(event) => {
                             this.setState({isFocused: false});
-                            const relatedTargetId = lodashGet(
-                                event,
-                                'nativeEvent.relatedTarget.id',
-                            );
+                            const relatedTargetId = lodashGet(event, 'nativeEvent.relatedTarget.id');
 
                             // Return to prevent re-render when save/cancel button is pressed which cancels the onPress event by re-rendering
-                            if (
-                                _.contains(
-                                    [
-                                        this.saveButtonID,
-                                        this.cancelButtonID,
-                                        this.emojiButtonID,
-                                    ],
-                                    relatedTargetId,
-                                )
-                            ) {
+                            if (_.contains([this.saveButtonID, this.cancelButtonID, this.emojiButtonID], relatedTargetId)) {
                                 return;
                             }
 
                             if (this.messageEditInput === relatedTargetId) {
                                 return;
                             }
-                            openReportActionComposeViewWhenClosingMessageEdit(
-                                this.props.isSmallScreenWidth,
-                            );
+                            openReportActionComposeViewWhenClosingMessageEdit(this.props.isSmallScreenWidth);
                         }}
                         selection={this.state.selection}
                         onSelectionChange={this.onSelectionChange}
@@ -348,11 +272,7 @@ class ReportActionItemMessageEdit extends React.Component {
                     <View style={styles.editChatItemEmojiWrapper}>
                         <EmojiPickerButton
                             isDisabled={this.props.shouldDisableEmojiPicker}
-                            onModalHide={() =>
-                                InteractionManager.runAfterInteractions(() =>
-                                    this.textInput.focus(),
-                                )
-                            }
+                            onModalHide={() => InteractionManager.runAfterInteractions(() => this.textInput.focus())}
                             onEmojiSelected={this.addEmojiToTextBox}
                             nativeID={this.emojiButtonID}
                         />
@@ -377,9 +297,7 @@ class ReportActionItemMessageEdit extends React.Component {
                     />
                     <ExceededCommentLength
                         comment={this.state.draft}
-                        onExceededMaxCommentLength={
-                            this.setExceededMaxCommentLength
-                        }
+                        onExceededMaxCommentLength={this.setExceededMaxCommentLength}
                     />
                 </View>
             </View>
@@ -396,6 +314,9 @@ export default compose(
 )(
     React.forwardRef((props, ref) => (
         /* eslint-disable-next-line react/jsx-props-no-spreading */
-        <ReportActionItemMessageEdit {...props} forwardedRef={ref} />
+        <ReportActionItemMessageEdit
+            {...props}
+            forwardedRef={ref}
+        />
     )),
 );

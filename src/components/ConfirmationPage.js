@@ -46,15 +46,7 @@ const ConfirmationPage = (props) => (
                 loop
                 style={styles.confirmationAnimation}
             />
-            <Text
-                style={[
-                    styles.textHeadline,
-                    styles.textAlignCenter,
-                    styles.mv2,
-                ]}
-            >
-                {props.heading}
-            </Text>
+            <Text style={[styles.textHeadline, styles.textAlignCenter, styles.mv2]}>{props.heading}</Text>
             <Text style={styles.textAlignCenter}>{props.description}</Text>
         </View>
         {props.shouldShowButton && (

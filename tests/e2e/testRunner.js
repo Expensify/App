@@ -68,9 +68,7 @@ try {
 }
 
 if (isDevMode) {
-    Logger.note(
-        `Running in development mode. Set baseline branch to same as current ${baselineBranch}`,
-    );
+    Logger.note(`Running in development mode. Set baseline branch to same as current ${baselineBranch}`);
 }
 
 const restartApp = async () => {
@@ -84,61 +82,44 @@ const runTestsOnBranch = async (baselineOrCompare, branch) => {
     if (args.includes('--buildMode')) {
         buildMode = args[args.indexOf('--buildMode') + 1];
     }
-    let appPath =
-        baselineOrCompare === 'baseline'
-            ? config.APP_PATHS.baseline
-            : config.APP_PATHS.compare;
+    let appPath = baselineOrCompare === 'baseline' ? config.APP_PATHS.baseline : config.APP_PATHS.compare;
 
     // check if using buildMode "js-only" or "none" is possible
     if (buildMode !== 'full') {
         const appExists = fs.existsSync(appPath);
         if (!appExists) {
-            Logger.warn(
-                `Build mode "${buildMode}" is not possible, because the app does not exist. Falling back to build mode "full".`,
-            );
+            Logger.warn(`Build mode "${buildMode}" is not possible, because the app does not exist. Falling back to build mode "full".`);
             buildMode = 'full';
         }
     }
 
     if (branch != null) {
         // Switch branch
-        Logger.log(
-            `Preparing ${baselineOrCompare} tests on branch '${branch}'`,
-        );
+        Logger.log(`Preparing ${baselineOrCompare} tests on branch '${branch}'`);
         await execAsync(`git checkout ${branch}`);
     }
 
     if (!args.includes('--skipInstallDeps')) {
-        Logger.log(
-            `Preparing ${baselineOrCompare} tests on branch '${branch}' - npm install`,
-        );
+        Logger.log(`Preparing ${baselineOrCompare} tests on branch '${branch}' - npm install`);
         await execAsync('npm i');
     }
 
     // Build app
     if (buildMode === 'full') {
-        Logger.log(
-            `Preparing ${baselineOrCompare} tests on branch '${branch}' - building app`,
-        );
+        Logger.log(`Preparing ${baselineOrCompare} tests on branch '${branch}' - building app`);
         await execAsync('npm run android-build-e2e');
     } else if (buildMode === 'js-only') {
-        Logger.log(
-            `Preparing ${baselineOrCompare} tests on branch '${branch}' - building js bundle`,
-        );
+        Logger.log(`Preparing ${baselineOrCompare} tests on branch '${branch}' - building js bundle`);
 
         // Build a new JS bundle
         const tempDir = `${config.OUTPUT_DIR}/temp`;
         const tempBundlePath = `${tempDir}/index.android.bundle`;
         await execAsync(`rm -rf ${tempDir} && mkdir ${tempDir}`);
-        await execAsync(
-            `E2E_TESTING=true npx react-native bundle --platform android --dev false --entry-file ${config.ENTRY_FILE} --bundle-output ${tempBundlePath}`,
-        );
+        await execAsync(`E2E_TESTING=true npx react-native bundle --platform android --dev false --entry-file ${config.ENTRY_FILE} --bundle-output ${tempBundlePath}`);
 
         // Repackage the existing native app with the new bundle
         const tempApkPath = `${tempDir}/app-release.apk`;
-        await execAsync(
-            `./scripts/android-repackage-app-bundle-and-sign.sh ${appPath} ${tempBundlePath} ${tempApkPath}`,
-        );
+        await execAsync(`./scripts/android-repackage-app-bundle-and-sign.sh ${appPath} ${tempBundlePath} ${tempApkPath}`);
         appPath = tempApkPath;
     }
 
@@ -158,20 +139,14 @@ const runTestsOnBranch = async (baselineOrCompare, branch) => {
     // Collect results while tests are being executed
     server.addTestResultListener((testResult) => {
         if (testResult.error != null) {
-            throw new Error(
-                `Test '${testResult.name}' failed with error: ${testResult.error}`,
-            );
+            throw new Error(`Test '${testResult.name}' failed with error: ${testResult.error}`);
         }
         if (testResult.duration < 0) {
             return;
         }
 
-        Logger.log(
-            `[LISTENER] Test '${testResult.name}' took ${testResult.duration}ms`,
-        );
-        durationsByTestName[testResult.name] = (
-            durationsByTestName[testResult.name] || []
-        ).concat(testResult.duration);
+        Logger.log(`[LISTENER] Test '${testResult.name}' took ${testResult.duration}ms`);
+        durationsByTestName[testResult.name] = (durationsByTestName[testResult.name] || []).concat(testResult.duration);
     });
 
     // Run the tests
@@ -192,19 +167,9 @@ const runTestsOnBranch = async (baselineOrCompare, branch) => {
 
         server.setTestConfig(testConfig);
 
-        const warmupLogs = Logger.progressInfo(
-            `Running test '${testConfig.name}'`,
-        );
-        for (
-            let warmUpRuns = 0;
-            warmUpRuns < config.WARM_UP_RUNS;
-            warmUpRuns++
-        ) {
-            const progressText = `(${
-                testIndex + 1
-            }/${numOfTests}) Warmup for test '${testConfig.name}' (iteration ${
-                warmUpRuns + 1
-            }/${config.WARM_UP_RUNS})`;
+        const warmupLogs = Logger.progressInfo(`Running test '${testConfig.name}'`);
+        for (let warmUpRuns = 0; warmUpRuns < config.WARM_UP_RUNS; warmUpRuns++) {
+            const progressText = `(${testIndex + 1}/${numOfTests}) Warmup for test '${testConfig.name}' (iteration ${warmUpRuns + 1}/${config.WARM_UP_RUNS})`;
             warmupLogs.updateText(progressText);
 
             await restartApp();
@@ -225,11 +190,7 @@ const runTestsOnBranch = async (baselineOrCompare, branch) => {
         // We run each test multiple time to average out the results
         const testLog = Logger.progressInfo('');
         for (let i = 0; i < config.RUNS; i++) {
-            const progressText = `(${
-                testIndex + 1
-            }/${numOfTests}) Running test '${testConfig.name}' (iteration ${
-                i + 1
-            }/${config.RUNS})`;
+            const progressText = `(${testIndex + 1}/${numOfTests}) Running test '${testConfig.name}' (iteration ${i + 1}/${config.RUNS})`;
             testLog.updateText(progressText);
 
             await restartApp();
@@ -256,9 +217,7 @@ const runTestsOnBranch = async (baselineOrCompare, branch) => {
     }
 
     // Calculate statistics and write them to our work file
-    progressLog = Logger.progressInfo(
-        'Calculating statics and writing results',
-    );
+    progressLog = Logger.progressInfo('Calculating statics and writing results');
     const outputFileName = `${config.OUTPUT_DIR}/${baselineOrCompare}.json`;
     for (const testName of _.keys(durationsByTestName)) {
         const stats = math.getStats(durationsByTestName[testName]);
@@ -282,10 +241,7 @@ const runTests = async () => {
         const skipCheckout = args.includes('--skipCheckout');
 
         // Run tests on baseline branch
-        await runTestsOnBranch(
-            'baseline',
-            skipCheckout ? null : baselineBranch,
-        );
+        await runTestsOnBranch('baseline', skipCheckout ? null : baselineBranch);
 
         // Run tests on current branch
         await runTestsOnBranch('compare', skipCheckout ? null : '-');
@@ -294,30 +250,16 @@ const runTests = async () => {
 
         process.exit(0);
     } catch (e) {
-        Logger.info(
-            '\n\nE2E test suite failed due to error:',
-            e,
-            '\nPrinting full logs:\n\n',
-        );
+        Logger.info('\n\nE2E test suite failed due to error:', e, '\nPrinting full logs:\n\n');
 
         // Write logcat, meminfo, emulator info to file as well:
-        require('node:child_process').execSync(
-            `adb logcat -d > ${config.OUTPUT_DIR}/logcat.txt`,
-        );
-        require('node:child_process').execSync(
-            `adb shell "cat /proc/meminfo" > ${config.OUTPUT_DIR}/meminfo.txt`,
-        );
-        require('node:child_process').execSync(
-            `adb shell "getprop" > ${config.OUTPUT_DIR}/emulator-properties.txt`,
-        );
+        require('node:child_process').execSync(`adb logcat -d > ${config.OUTPUT_DIR}/logcat.txt`);
+        require('node:child_process').execSync(`adb shell "cat /proc/meminfo" > ${config.OUTPUT_DIR}/meminfo.txt`);
+        require('node:child_process').execSync(`adb shell "getprop" > ${config.OUTPUT_DIR}/emulator-properties.txt`);
 
         require('node:child_process').execSync(`cat ${config.LOG_FILE}`);
         try {
-            require('node:child_process').execSync(
-                `cat ~/.android/avd/${
-                    process.env.AVD_NAME || 'test'
-                }.avd/config.ini > ${config.OUTPUT_DIR}/emulator-config.ini`,
-            );
+            require('node:child_process').execSync(`cat ~/.android/avd/${process.env.AVD_NAME || 'test'}.avd/config.ini > ${config.OUTPUT_DIR}/emulator-config.ini`);
         } catch (ignoredError) {
             // the error is ignored, as the file might not exist if the test
             // run wasn't started with an emulator

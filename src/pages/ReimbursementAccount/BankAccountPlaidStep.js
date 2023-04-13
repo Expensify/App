@@ -44,13 +44,9 @@ class BankAccountPlaidStep extends React.Component {
     }
 
     submit() {
-        const selectedPlaidBankAccount = _.findWhere(
-            lodashGet(this.props.plaidData, 'bankAccounts', []),
-            {
-                plaidAccountID:
-                    this.props.getDefaultStateForField('plaidAccountID'),
-            },
-        );
+        const selectedPlaidBankAccount = _.findWhere(lodashGet(this.props.plaidData, 'bankAccounts', []), {
+            plaidAccountID: this.props.getDefaultStateForField('plaidAccountID'),
+        });
 
         const bankAccountData = {
             routingNumber: selectedPlaidBankAccount.routingNumber,
@@ -59,32 +55,17 @@ class BankAccountPlaidStep extends React.Component {
             isSavings: selectedPlaidBankAccount.isSavings,
             bankName: lodashGet(this.props.plaidData, 'bankName') || '',
             plaidAccountID: selectedPlaidBankAccount.plaidAccountID,
-            plaidAccessToken:
-                lodashGet(this.props.plaidData, 'plaidAccessToken') || '',
+            plaidAccessToken: lodashGet(this.props.plaidData, 'plaidAccessToken') || '',
         };
         ReimbursementAccount.updateReimbursementAccountDraft(bankAccountData);
 
-        const bankAccountID =
-            lodashGet(
-                this.props.reimbursementAccount,
-                'achData.bankAccountID',
-            ) || 0;
-        BankAccounts.connectBankAccountWithPlaid(
-            bankAccountID,
-            bankAccountData,
-        );
+        const bankAccountID = lodashGet(this.props.reimbursementAccount, 'achData.bankAccountID') || 0;
+        BankAccounts.connectBankAccountWithPlaid(bankAccountID, bankAccountData);
     }
 
     render() {
-        const bankAccountID =
-            lodashGet(
-                this.props.reimbursementAccount,
-                'achData.bankAccountID',
-            ) || 0;
-        const selectedPlaidAccountID = this.props.getDefaultStateForField(
-            'plaidAccountID',
-            '',
-        );
+        const bankAccountID = lodashGet(this.props.reimbursementAccount, 'achData.bankAccountID') || 0;
+        const selectedPlaidAccountID = this.props.getDefaultStateForField('plaidAccountID', '');
 
         return (
             <ScreenWrapper includeSafeAreaPaddingBottom={false}>
@@ -92,9 +73,7 @@ class BankAccountPlaidStep extends React.Component {
                     title={this.props.translate('workspace.common.bankAccount')}
                     stepCounter={{step: 1, total: 5}}
                     shouldShowGetAssistanceButton
-                    guidesCallTaskID={
-                        CONST.GUIDES_CALL_TASK_IDS.WORKSPACE_BANK_ACCOUNT
-                    }
+                    guidesCallTaskID={CONST.GUIDES_CALL_TASK_IDS.WORKSPACE_BANK_ACCOUNT}
                     shouldShowBackButton
                     onBackButtonPress={this.props.onBackButtonPress}
                     onCloseButtonPress={Navigation.dismissModal}
@@ -104,28 +83,17 @@ class BankAccountPlaidStep extends React.Component {
                     validate={() => ({})}
                     onSubmit={this.submit}
                     scrollContextEnabled
-                    submitButtonText={this.props.translate(
-                        'common.saveAndContinue',
-                    )}
+                    submitButtonText={this.props.translate('common.saveAndContinue')}
                     style={[styles.mh5, styles.flexGrow1]}
-                    isSubmitButtonVisible={
-                        Boolean(selectedPlaidAccountID) &&
-                        !_.isEmpty(
-                            lodashGet(this.props.plaidData, 'bankAccounts'),
-                        )
-                    }
+                    isSubmitButtonVisible={Boolean(selectedPlaidAccountID) && !_.isEmpty(lodashGet(this.props.plaidData, 'bankAccounts'))}
                 >
                     <AddPlaidBankAccount
                         text={this.props.translate('bankAccount.plaidBodyCopy')}
                         onSelect={(plaidAccountID) => {
-                            ReimbursementAccount.updateReimbursementAccountDraft(
-                                {plaidAccountID},
-                            );
+                            ReimbursementAccount.updateReimbursementAccountDraft({plaidAccountID});
                         }}
                         plaidData={this.props.plaidData}
-                        onExitPlaid={() =>
-                            BankAccounts.setBankAccountSubStep(null)
-                        }
+                        onExitPlaid={() => BankAccounts.setBankAccountSubStep(null)}
                         receivedRedirectURI={this.props.receivedRedirectURI}
                         plaidLinkOAuthToken={this.props.plaidLinkOAuthToken}
                         allowDebit

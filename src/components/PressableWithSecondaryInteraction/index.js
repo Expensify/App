@@ -11,25 +11,18 @@ import * as DeviceCapabilities from '../../libs/DeviceCapabilities';
 class PressableWithSecondaryInteraction extends Component {
     constructor(props) {
         super(props);
-        this.executeSecondaryInteractionOnContextMenu =
-            this.executeSecondaryInteractionOnContextMenu.bind(this);
+        this.executeSecondaryInteractionOnContextMenu = this.executeSecondaryInteractionOnContextMenu.bind(this);
     }
 
     componentDidMount() {
         if (this.props.forwardedRef && _.isFunction(this.props.forwardedRef)) {
             this.props.forwardedRef(this.pressableRef);
         }
-        this.pressableRef.addEventListener(
-            'contextmenu',
-            this.executeSecondaryInteractionOnContextMenu,
-        );
+        this.pressableRef.addEventListener('contextmenu', this.executeSecondaryInteractionOnContextMenu);
     }
 
     componentWillUnmount() {
-        this.pressableRef.removeEventListener(
-            'contextmenu',
-            this.executeSecondaryInteractionOnContextMenu,
-        );
+        this.pressableRef.removeEventListener('contextmenu', this.executeSecondaryInteractionOnContextMenu);
     }
 
     /**
@@ -49,21 +42,14 @@ class PressableWithSecondaryInteraction extends Component {
          * Therefore it shifts the element to bring it back to focus.
          * https://github.com/Expensify/App/issues/14148
          */
-        if (
-            this.props.withoutFocusOnSecondaryInteraction &&
-            this.pressableRef
-        ) {
+        if (this.props.withoutFocusOnSecondaryInteraction && this.pressableRef) {
             this.pressableRef.blur();
         }
         this.props.onSecondaryInteraction(e);
     }
 
     render() {
-        const defaultPressableProps = _.omit(this.props, [
-            'onSecondaryInteraction',
-            'children',
-            'onLongPress',
-        ]);
+        const defaultPressableProps = _.omit(this.props, ['onSecondaryInteraction', 'children', 'onLongPress']);
 
         // On Web, Text does not support LongPress events thus manage inline mode with styling instead of using Text.
         return (
@@ -74,10 +60,7 @@ class PressableWithSecondaryInteraction extends Component {
                     if (DeviceCapabilities.hasHoverSupport()) {
                         return;
                     }
-                    if (
-                        this.props.withoutFocusOnSecondaryInteraction &&
-                        this.pressableRef
-                    ) {
+                    if (this.props.withoutFocusOnSecondaryInteraction && this.pressableRef) {
                         this.pressableRef.blur();
                     }
                     this.props.onSecondaryInteraction(e);
@@ -94,11 +77,12 @@ class PressableWithSecondaryInteraction extends Component {
     }
 }
 
-PressableWithSecondaryInteraction.propTypes =
-    pressableWithSecondaryInteractionPropTypes.propTypes;
-PressableWithSecondaryInteraction.defaultProps =
-    pressableWithSecondaryInteractionPropTypes.defaultProps;
+PressableWithSecondaryInteraction.propTypes = pressableWithSecondaryInteractionPropTypes.propTypes;
+PressableWithSecondaryInteraction.defaultProps = pressableWithSecondaryInteractionPropTypes.defaultProps;
 export default React.forwardRef((props, ref) => (
     // eslint-disable-next-line react/jsx-props-no-spreading
-    <PressableWithSecondaryInteraction {...props} forwardedRef={ref} />
+    <PressableWithSecondaryInteraction
+        {...props}
+        forwardedRef={ref}
+    />
 ));

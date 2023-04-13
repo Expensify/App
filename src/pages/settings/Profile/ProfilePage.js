@@ -10,13 +10,8 @@ import MenuItem from '../../../components/MenuItem';
 import MenuItemWithTopDescription from '../../../components/MenuItemWithTopDescription';
 import OfflineWithFeedback from '../../../components/OfflineWithFeedback';
 import ScreenWrapper from '../../../components/ScreenWrapper';
-import withCurrentUserPersonalDetails, {
-    withCurrentUserPersonalDetailsDefaultProps,
-    withCurrentUserPersonalDetailsPropTypes,
-} from '../../../components/withCurrentUserPersonalDetails';
-import withLocalize, {
-    withLocalizePropTypes,
-} from '../../../components/withLocalize';
+import withCurrentUserPersonalDetails, {withCurrentUserPersonalDetailsDefaultProps, withCurrentUserPersonalDetailsPropTypes} from '../../../components/withCurrentUserPersonalDetails';
+import withLocalize, {withLocalizePropTypes} from '../../../components/withLocalize';
 import CONST from '../../../CONST';
 import * as PersonalDetails from '../../../libs/actions/PersonalDetails';
 import compose from '../../../libs/compose';
@@ -37,19 +32,11 @@ const defaultProps = {
 
 const ProfilePage = (props) => {
     const getPronouns = () => {
-        let pronounsKey = lodashGet(
-            props.currentUserPersonalDetails,
-            'pronouns',
-            '',
-        );
+        let pronounsKey = lodashGet(props.currentUserPersonalDetails, 'pronouns', '');
         if (pronounsKey.startsWith(CONST.PRONOUNS.PREFIX)) {
             pronounsKey = pronounsKey.slice(CONST.PRONOUNS.PREFIX.length);
         }
-        return lodashGet(
-            props.translate('pronouns'),
-            pronounsKey,
-            props.translate('profilePage.selectYourPronouns'),
-        );
+        return lodashGet(props.translate('pronouns'), pronounsKey, props.translate('profilePage.selectYourPronouns'));
     };
     const currentUserDetails = props.currentUserPersonalDetails || {};
     const profileSettingsOptions = [
@@ -60,9 +47,7 @@ const ProfilePage = (props) => {
         },
         {
             description: props.translate('contacts.contactMethod'),
-            title: Str.removeSMSDomain(
-                lodashGet(currentUserDetails, 'login', ''),
-            ),
+            title: Str.removeSMSDomain(lodashGet(currentUserDetails, 'login', '')),
             pageRoute: ROUTES.SETTINGS_CONTACT_METHODS,
         },
         {
@@ -87,27 +72,14 @@ const ProfilePage = (props) => {
             />
             <ScrollView>
                 <OfflineWithFeedback
-                    pendingAction={lodashGet(
-                        props.currentUserPersonalDetails,
-                        'pendingFields.avatar',
-                        null,
-                    )}
-                    errors={lodashGet(
-                        props.currentUserPersonalDetails,
-                        'errorFields.avatar',
-                        null,
-                    )}
+                    pendingAction={lodashGet(props.currentUserPersonalDetails, 'pendingFields.avatar', null)}
+                    errors={lodashGet(props.currentUserPersonalDetails, 'errorFields.avatar', null)}
                     errorRowStyles={[styles.mt6]}
                     onClose={PersonalDetails.clearAvatarErrors}
                 >
                     <AvatarWithImagePicker
-                        isUsingDefaultAvatar={ReportUtils.isDefaultAvatar(
-                            lodashGet(currentUserDetails, 'avatar', ''),
-                        )}
-                        source={ReportUtils.getAvatar(
-                            lodashGet(currentUserDetails, 'avatar', ''),
-                            lodashGet(currentUserDetails, 'login', ''),
-                        )}
+                        isUsingDefaultAvatar={ReportUtils.isDefaultAvatar(lodashGet(currentUserDetails, 'avatar', ''))}
+                        source={ReportUtils.getAvatar(lodashGet(currentUserDetails, 'avatar', ''), lodashGet(currentUserDetails, 'login', ''))}
                         onImageSelected={PersonalDetails.updateAvatar}
                         onImageRemoved={PersonalDetails.deleteAvatar}
                         anchorPosition={styles.createMenuPositionProfile}
@@ -121,20 +93,14 @@ const ProfilePage = (props) => {
                             shouldShowRightIcon
                             title={detail.title}
                             description={detail.description}
-                            onPress={() =>
-                                Navigation.navigate(detail.pageRoute)
-                            }
+                            onPress={() => Navigation.navigate(detail.pageRoute)}
                         />
                     ))}
                 </View>
                 <MenuItem
-                    title={props.translate(
-                        'privatePersonalDetails.personalDetails',
-                    )}
+                    title={props.translate('privatePersonalDetails.personalDetails')}
                     icon={Expensicons.User}
-                    onPress={() =>
-                        Navigation.navigate(ROUTES.SETTINGS_PERSONAL_DETAILS)
-                    }
+                    onPress={() => Navigation.navigate(ROUTES.SETTINGS_PERSONAL_DETAILS)}
                     shouldShowRightIcon
                 />
             </ScrollView>
@@ -146,7 +112,4 @@ ProfilePage.propTypes = propTypes;
 ProfilePage.defaultProps = defaultProps;
 ProfilePage.displayName = 'ProfilePage';
 
-export default compose(
-    withLocalize,
-    withCurrentUserPersonalDetails,
-)(ProfilePage);
+export default compose(withLocalize, withCurrentUserPersonalDetails)(ProfilePage);

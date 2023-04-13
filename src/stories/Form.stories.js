@@ -105,14 +105,15 @@ const Template = (args) => {
                 ]}
             />
             <View style={styles.mt4}>
-                <StatePicker inputID="state" shouldSaveDraft />
+                <StatePicker
+                    inputID="state"
+                    shouldSaveDraft
+                />
             </View>
             <CheckboxWithLabel
                 inputID="checkbox"
                 style={[styles.mb4, styles.mt5]}
-                LabelComponent={() => (
-                    <Text>I accept the Expensify Terms of Service</Text>
-                )}
+                LabelComponent={() => <Text>I accept the Expensify Terms of Service</Text>}
             />
         </Form>
     );
@@ -180,20 +181,13 @@ const defaultArgs = {
             errors.state = 'Please select a state';
         }
         if (!values.checkbox) {
-            errors.checkbox =
-                'You must accept the Terms of Service to continue';
+            errors.checkbox = 'You must accept the Terms of Service to continue';
         }
         return errors;
     },
     onSubmit: (values) => {
         setTimeout(() => {
-            alert(
-                `Form submitted!\n\nInput values: ${JSON.stringify(
-                    values,
-                    null,
-                    4,
-                )}`,
-            );
+            alert(`Form submitted!\n\nInput values: ${JSON.stringify(values, null, 4)}`);
             FormActions.setIsLoading('TestForm', false);
         }, 1000);
     },

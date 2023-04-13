@@ -34,9 +34,7 @@ class CollapsibleSection extends React.Component {
     }
 
     render() {
-        const src = this.state.isExpanded
-            ? Expensicons.UpArrow
-            : Expensicons.DownArrow;
+        const src = this.state.isExpanded ? Expensicons.UpArrow : Expensicons.DownArrow;
 
         return (
             <View style={styles.mt4}>
@@ -44,9 +42,7 @@ class CollapsibleSection extends React.Component {
                     onPress={this.toggleSection}
                     style={[styles.pb4, styles.flexRow]}
                 >
-                    <Text style={[styles.flex1, styles.textStrong]}>
-                        {this.props.title}
-                    </Text>
+                    <Text style={[styles.flex1, styles.textStrong]}>{this.props.title}</Text>
                     <Icon src={src} />
                 </TouchableOpacity>
                 <View style={styles.collapsibleSectionBorder} />

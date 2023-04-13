@@ -38,10 +38,7 @@ const propTypes = {
     /** Toggle between compact and default view */
     viewMode: PropTypes.oneOf(_.values(CONST.OPTION_MODE)),
 
-    style: PropTypes.oneOfType([
-        PropTypes.arrayOf(PropTypes.object),
-        PropTypes.object,
-    ]),
+    style: PropTypes.oneOfType([PropTypes.arrayOf(PropTypes.object), PropTypes.object]),
 
     ...withLocalizePropTypes,
 };
@@ -61,81 +58,26 @@ const OptionRowLHN = (props) => {
     }
 
     let touchableRef = null;
-    const textStyle = props.isFocused
-        ? styles.sidebarLinkActiveText
-        : styles.sidebarLinkText;
-    const textUnreadStyle = optionItem.isUnread
-        ? [textStyle, styles.sidebarLinkTextBold]
-        : [textStyle];
-    const displayNameStyle = StyleUtils.combineStyles(
-        [
-            styles.optionDisplayName,
-            styles.optionDisplayNameCompact,
-            ...textUnreadStyle,
-        ],
-        props.style,
-    );
-    const textPillStyle = props.isFocused
-        ? [
-              styles.ml1,
-              StyleUtils.getBackgroundColorWithOpacityStyle(
-                  themeColors.icon,
-                  0.5,
-              ),
-          ]
-        : [styles.ml1];
+    const textStyle = props.isFocused ? styles.sidebarLinkActiveText : styles.sidebarLinkText;
+    const textUnreadStyle = optionItem.isUnread ? [textStyle, styles.sidebarLinkTextBold] : [textStyle];
+    const displayNameStyle = StyleUtils.combineStyles([styles.optionDisplayName, styles.optionDisplayNameCompact, ...textUnreadStyle], props.style);
+    const textPillStyle = props.isFocused ? [styles.ml1, StyleUtils.getBackgroundColorWithOpacityStyle(themeColors.icon, 0.5)] : [styles.ml1];
     const alternateTextStyle = StyleUtils.combineStyles(
         props.viewMode === CONST.OPTION_MODE.COMPACT
-            ? [
-                  textStyle,
-                  styles.optionAlternateText,
-                  styles.textLabelSupporting,
-                  styles.optionAlternateTextCompact,
-                  styles.ml2,
-              ]
-            : [
-                  textStyle,
-                  styles.optionAlternateText,
-                  styles.textLabelSupporting,
-              ],
+            ? [textStyle, styles.optionAlternateText, styles.textLabelSupporting, styles.optionAlternateTextCompact, styles.ml2]
+            : [textStyle, styles.optionAlternateText, styles.textLabelSupporting],
         props.style,
     );
-    const contentContainerStyles =
-        props.viewMode === CONST.OPTION_MODE.COMPACT
-            ? [
-                  styles.flex1,
-                  styles.flexRow,
-                  styles.overflowHidden,
-                  styles.alignItemsCenter,
-              ]
-            : [styles.flex1];
+    const contentContainerStyles = props.viewMode === CONST.OPTION_MODE.COMPACT ? [styles.flex1, styles.flexRow, styles.overflowHidden, styles.alignItemsCenter] : [styles.flex1];
     const sidebarInnerRowStyle = StyleSheet.flatten(
         props.viewMode === CONST.OPTION_MODE.COMPACT
-            ? [
-                  styles.chatLinkRowPressable,
-                  styles.flexGrow1,
-                  styles.optionItemAvatarNameWrapper,
-                  styles.optionRowCompact,
-                  styles.justifyContentCenter,
-              ]
-            : [
-                  styles.chatLinkRowPressable,
-                  styles.flexGrow1,
-                  styles.optionItemAvatarNameWrapper,
-                  styles.optionRow,
-                  styles.justifyContentCenter,
-              ],
+            ? [styles.chatLinkRowPressable, styles.flexGrow1, styles.optionItemAvatarNameWrapper, styles.optionRowCompact, styles.justifyContentCenter]
+            : [styles.chatLinkRowPressable, styles.flexGrow1, styles.optionItemAvatarNameWrapper, styles.optionRow, styles.justifyContentCenter],
     );
-    const hoveredBackgroundColor =
-        props.hoverStyle && props.hoverStyle.backgroundColor
-            ? props.hoverStyle.backgroundColor
-            : themeColors.sidebar;
+    const hoveredBackgroundColor = props.hoverStyle && props.hoverStyle.backgroundColor ? props.hoverStyle.backgroundColor : themeColors.sidebar;
     const focusedBackgroundColor = styles.sidebarLinkActive.backgroundColor;
 
-    const avatarTooltips =
-        !optionItem.isChatRoom && !optionItem.isArchivedRoom
-            ? _.pluck(optionItem.displayNamesWithTooltips, 'tooltip')
-            : undefined;
+    const avatarTooltips = !optionItem.isChatRoom && !optionItem.isArchivedRoom ? _.pluck(optionItem.displayNamesWithTooltips, 'tooltip') : undefined;
 
     return (
         <OfflineWithFeedback
@@ -161,105 +103,49 @@ const OptionRowLHN = (props) => {
                             styles.justifyContentBetween,
                             styles.sidebarLink,
                             styles.sidebarLinkInner,
-                            StyleUtils.getBackgroundColorStyle(
-                                themeColors.sidebar,
-                            ),
+                            StyleUtils.getBackgroundColorStyle(themeColors.sidebar),
                             props.isFocused ? styles.sidebarLinkActive : null,
-                            hovered && !props.isFocused
-                                ? props.hoverStyle
-                                : null,
+                            hovered && !props.isFocused ? props.hoverStyle : null,
                         ]}
                     >
                         <View
                             accessibilityHint="Navigates to a chat"
                             style={sidebarInnerRowStyle}
                         >
-                            <View
-                                style={[
-                                    styles.flexRow,
-                                    styles.alignItemsCenter,
-                                ]}
-                            >
+                            <View style={[styles.flexRow, styles.alignItemsCenter]}>
                                 {!_.isEmpty(optionItem.icons) &&
                                     (optionItem.shouldShowSubscript ? (
                                         <SubscriptAvatar
-                                            backgroundColor={
-                                                props.isFocused
-                                                    ? themeColors.activeComponentBG
-                                                    : themeColors.sidebar
-                                            }
+                                            backgroundColor={props.isFocused ? themeColors.activeComponentBG : themeColors.sidebar}
                                             mainAvatar={optionItem.icons[0]}
-                                            secondaryAvatar={
-                                                optionItem.icons[1]
-                                            }
+                                            secondaryAvatar={optionItem.icons[1]}
                                             mainTooltip={optionItem.ownerEmail}
-                                            secondaryTooltip={
-                                                optionItem.subtitle
-                                            }
-                                            size={
-                                                props.viewMode ===
-                                                CONST.OPTION_MODE.COMPACT
-                                                    ? CONST.AVATAR_SIZE.SMALL
-                                                    : CONST.AVATAR_SIZE.DEFAULT
-                                            }
+                                            secondaryTooltip={optionItem.subtitle}
+                                            size={props.viewMode === CONST.OPTION_MODE.COMPACT ? CONST.AVATAR_SIZE.SMALL : CONST.AVATAR_SIZE.DEFAULT}
                                         />
                                     ) : (
                                         <MultipleAvatars
                                             icons={optionItem.icons}
-                                            isFocusMode={
-                                                props.viewMode ===
-                                                CONST.OPTION_MODE.COMPACT
-                                            }
-                                            size={
-                                                props.viewMode ===
-                                                CONST.OPTION_MODE.COMPACT
-                                                    ? CONST.AVATAR_SIZE.SMALL
-                                                    : CONST.AVATAR_SIZE.DEFAULT
-                                            }
+                                            isFocusMode={props.viewMode === CONST.OPTION_MODE.COMPACT}
+                                            size={props.viewMode === CONST.OPTION_MODE.COMPACT ? CONST.AVATAR_SIZE.SMALL : CONST.AVATAR_SIZE.DEFAULT}
                                             secondAvatarStyle={[
-                                                StyleUtils.getBackgroundAndBorderStyle(
-                                                    themeColors.sidebar,
-                                                ),
-                                                props.isFocused
-                                                    ? StyleUtils.getBackgroundAndBorderStyle(
-                                                          focusedBackgroundColor,
-                                                      )
-                                                    : undefined,
-                                                hovered && !props.isFocused
-                                                    ? StyleUtils.getBackgroundAndBorderStyle(
-                                                          hoveredBackgroundColor,
-                                                      )
-                                                    : undefined,
+                                                StyleUtils.getBackgroundAndBorderStyle(themeColors.sidebar),
+                                                props.isFocused ? StyleUtils.getBackgroundAndBorderStyle(focusedBackgroundColor) : undefined,
+                                                hovered && !props.isFocused ? StyleUtils.getBackgroundAndBorderStyle(hoveredBackgroundColor) : undefined,
                                             ]}
-                                            avatarTooltips={
-                                                optionItem.isPolicyExpenseChat
-                                                    ? [optionItem.subtitle]
-                                                    : avatarTooltips
-                                            }
+                                            avatarTooltips={optionItem.isPolicyExpenseChat ? [optionItem.subtitle] : avatarTooltips}
                                         />
                                     ))}
                                 <View style={contentContainerStyles}>
-                                    <View
-                                        style={[
-                                            styles.flexRow,
-                                            styles.alignItemsCenter,
-                                            styles.mw100,
-                                            styles.overflowHidden,
-                                        ]}
-                                    >
+                                    <View style={[styles.flexRow, styles.alignItemsCenter, styles.mw100, styles.overflowHidden]}>
                                         <DisplayNames
                                             accessibilityLabel="Chat user display names"
                                             fullTitle={optionItem.text}
-                                            displayNamesWithTooltips={
-                                                optionItem.displayNamesWithTooltips
-                                            }
+                                            displayNamesWithTooltips={optionItem.displayNamesWithTooltips}
                                             tooltipEnabled
                                             numberOfLines={1}
                                             textStyles={displayNameStyle}
-                                            shouldUseFullTitle={
-                                                optionItem.isChatRoom ||
-                                                optionItem.isPolicyExpenseChat
-                                            }
+                                            shouldUseFullTitle={optionItem.isChatRoom || optionItem.isPolicyExpenseChat}
                                         />
                                         {optionItem.isChatRoom && (
                                             <TextPill
@@ -281,19 +167,11 @@ const OptionRowLHN = (props) => {
                                 </View>
                                 {optionItem.descriptiveText ? (
                                     <View style={[styles.flexWrap]}>
-                                        <Text style={[styles.textLabel]}>
-                                            {optionItem.descriptiveText}
-                                        </Text>
+                                        <Text style={[styles.textLabel]}>{optionItem.descriptiveText}</Text>
                                     </View>
                                 ) : null}
-                                {optionItem.brickRoadIndicator ===
-                                    CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR && (
-                                    <View
-                                        style={[
-                                            styles.alignItemsCenter,
-                                            styles.justifyContentCenter,
-                                        ]}
-                                    >
+                                {optionItem.brickRoadIndicator === CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR && (
+                                    <View style={[styles.alignItemsCenter, styles.justifyContentCenter]}>
                                         <Icon
                                             src={Expensicons.DotIndicator}
                                             fill={colors.red}
@@ -311,9 +189,7 @@ const OptionRowLHN = (props) => {
                             {optionItem.hasDraftComment && (
                                 <View
                                     style={styles.ml2}
-                                    accessibilityLabel={props.translate(
-                                        'sidebarScreen.draftedMessage',
-                                    )}
+                                    accessibilityLabel={props.translate('sidebarScreen.draftedMessage')}
                                 >
                                     <Icon
                                         src={Expensicons.Pencil}
@@ -322,17 +198,11 @@ const OptionRowLHN = (props) => {
                                     />
                                 </View>
                             )}
-                            {optionItem.hasOutstandingIOU && (
-                                <IOUBadge
-                                    iouReportID={optionItem.iouReportID}
-                                />
-                            )}
+                            {optionItem.hasOutstandingIOU && <IOUBadge iouReportID={optionItem.iouReportID} />}
                             {optionItem.isPinned && (
                                 <View
                                     style={styles.ml2}
-                                    accessibilityLabel={props.translate(
-                                        'sidebarScreen.chatPinned',
-                                    )}
+                                    accessibilityLabel={props.translate('sidebarScreen.chatPinned')}
                                 >
                                     <Icon
                                         src={Expensicons.Pin}

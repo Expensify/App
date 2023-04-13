@@ -74,10 +74,7 @@ class Composer extends React.Component {
         // get a ref to the inner textInput element e.g. if we do
         // <constructor ref={el => this.textInput = el} /> this will not
         // return a ref to the component, but rather the HTML element by default
-        if (
-            !this.props.forwardedRef ||
-            !_.isFunction(this.props.forwardedRef)
-        ) {
+        if (!this.props.forwardedRef || !_.isFunction(this.props.forwardedRef)) {
             return;
         }
 
@@ -104,14 +101,8 @@ class Composer extends React.Component {
                 autoComplete="off"
                 placeholderTextColor={themeColors.placeholderText}
                 ref={(el) => (this.textInput = el)}
-                maxHeight={
-                    this.props.isComposerFullSize
-                        ? '100%'
-                        : CONST.COMPOSER_MAX_HEIGHT
-                }
-                onContentSizeChange={(e) =>
-                    ComposerUtils.updateNumberOfLines(this.props, e)
-                }
+                maxHeight={this.props.isComposerFullSize ? '100%' : CONST.COMPOSER_MAX_HEIGHT}
+                onContentSizeChange={(e) => ComposerUtils.updateNumberOfLines(this.props, e)}
                 rejectResponderTermination={false}
                 textAlignVertical="center"
                 style={this.state.propStyles}
@@ -128,5 +119,8 @@ Composer.defaultProps = defaultProps;
 
 export default React.forwardRef((props, ref) => (
     /* eslint-disable-next-line react/jsx-props-no-spreading */
-    <Composer {...props} forwardedRef={ref} />
+    <Composer
+        {...props}
+        forwardedRef={ref}
+    />
 ));

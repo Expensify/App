@@ -44,14 +44,8 @@ class Hoverable extends Component {
      * @param {Boolean} isHovered - Whether or not this component is hovered.
      */
     setIsHovered(isHovered) {
-        if (
-            isHovered !== this.state.isHovered &&
-            !(isHovered && this.hoverDisabled)
-        ) {
-            this.setState(
-                {isHovered},
-                isHovered ? this.props.onHoverIn : this.props.onHoverOut,
-            );
+        if (isHovered !== this.state.isHovered && !(isHovered && this.hoverDisabled)) {
+            this.setState({isHovered}, isHovered ? this.props.onHoverIn : this.props.onHoverOut);
         }
 
         // we reset the Hover block in case touchmove was not first after touctstart
@@ -62,49 +56,46 @@ class Hoverable extends Component {
 
     render() {
         if (this.props.absolute && React.isValidElement(this.props.children)) {
-            return React.cloneElement(
-                React.Children.only(this.props.children),
-                {
-                    ref: (el) => {
-                        this.wrapperView = el;
+            return React.cloneElement(React.Children.only(this.props.children), {
+                ref: (el) => {
+                    this.wrapperView = el;
 
-                        // Call the original ref, if any
-                        const {ref} = this.props.children;
-                        if (_.isFunction(ref)) {
-                            ref(el);
-                        }
-                    },
-                    onMouseEnter: (el) => {
-                        this.setIsHovered(true);
-
-                        // Call the original onMouseEnter, if any
-                        const {onMouseEnter} = this.props.children;
-                        if (_.isFunction(onMouseEnter)) {
-                            onMouseEnter(el);
-                        }
-                    },
-                    onMouseLeave: (el) => {
-                        this.setIsHovered(false);
-
-                        // Call the original onMouseLeave, if any
-                        const {onMouseLeave} = this.props.children;
-                        if (_.isFunction(onMouseLeave)) {
-                            onMouseLeave(el);
-                        }
-                    },
-                    onBlur: (el) => {
-                        if (!this.wrapperView.contains(el.relatedTarget)) {
-                            this.setIsHovered(false);
-                        }
-
-                        // Call the original onBlur, if any
-                        const {onBlur} = this.props.children;
-                        if (_.isFunction(onBlur)) {
-                            onBlur(el);
-                        }
-                    },
+                    // Call the original ref, if any
+                    const {ref} = this.props.children;
+                    if (_.isFunction(ref)) {
+                        ref(el);
+                    }
                 },
-            );
+                onMouseEnter: (el) => {
+                    this.setIsHovered(true);
+
+                    // Call the original onMouseEnter, if any
+                    const {onMouseEnter} = this.props.children;
+                    if (_.isFunction(onMouseEnter)) {
+                        onMouseEnter(el);
+                    }
+                },
+                onMouseLeave: (el) => {
+                    this.setIsHovered(false);
+
+                    // Call the original onMouseLeave, if any
+                    const {onMouseLeave} = this.props.children;
+                    if (_.isFunction(onMouseLeave)) {
+                        onMouseLeave(el);
+                    }
+                },
+                onBlur: (el) => {
+                    if (!this.wrapperView.contains(el.relatedTarget)) {
+                        this.setIsHovered(false);
+                    }
+
+                    // Call the original onBlur, if any
+                    const {onBlur} = this.props.children;
+                    if (_.isFunction(onBlur)) {
+                        onBlur(el);
+                    }
+                },
+            });
         }
         return (
             <View
@@ -121,9 +112,7 @@ class Hoverable extends Component {
             >
                 {
                     // If this.props.children is a function, call it to provide the hover state to the children.
-                    _.isFunction(this.props.children)
-                        ? this.props.children(this.state.isHovered)
-                        : this.props.children
+                    _.isFunction(this.props.children) ? this.props.children(this.state.isHovered) : this.props.children
                 }
             </View>
         );

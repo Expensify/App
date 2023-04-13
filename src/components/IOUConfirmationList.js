@@ -7,19 +7,14 @@ import * as OptionsListUtils from '../libs/OptionsListUtils';
 import OptionsSelector from './OptionsSelector';
 import ONYXKEYS from '../ONYXKEYS';
 import withLocalize, {withLocalizePropTypes} from './withLocalize';
-import withWindowDimensions, {
-    windowDimensionsPropTypes,
-} from './withWindowDimensions';
+import withWindowDimensions, {windowDimensionsPropTypes} from './withWindowDimensions';
 import compose from '../libs/compose';
 import CONST from '../CONST';
 import ButtonWithMenu from './ButtonWithMenu';
 import Log from '../libs/Log';
 import SettlementButton from './SettlementButton';
 import ROUTES from '../ROUTES';
-import withCurrentUserPersonalDetails, {
-    withCurrentUserPersonalDetailsPropTypes,
-    withCurrentUserPersonalDetailsDefaultProps,
-} from './withCurrentUserPersonalDetails';
+import withCurrentUserPersonalDetails, {withCurrentUserPersonalDetailsPropTypes, withCurrentUserPersonalDetailsDefaultProps} from './withCurrentUserPersonalDetails';
 import * as IOUUtils from '../libs/IOUUtils';
 import avatarPropTypes from './avatarPropTypes';
 
@@ -104,13 +99,10 @@ class IOUConfirmationList extends Component {
     constructor(props) {
         super(props);
 
-        const formattedParticipants = _.map(
-            this.getParticipantsWithAmount(props.participants),
-            (participant) => ({
-                ...participant,
-                selected: true,
-            }),
-        );
+        const formattedParticipants = _.map(this.getParticipantsWithAmount(props.participants), (participant) => ({
+            ...participant,
+            selected: true,
+        }));
 
         this.state = {
             participants: formattedParticipants,
@@ -127,20 +119,13 @@ class IOUConfirmationList extends Component {
     getSplitOrRequestOptions() {
         return [
             {
-                text: this.props.translate(
-                    this.props.hasMultipleParticipants
-                        ? 'iou.split'
-                        : 'iou.request',
-                    {
-                        amount: this.props.numberFormat(this.props.iouAmount, {
-                            style: 'currency',
-                            currency: this.props.iou.selectedCurrencyCode,
-                        }),
-                    },
-                ),
-                value: this.props.hasMultipleParticipants
-                    ? CONST.IOU.IOU_TYPE.SPLIT
-                    : CONST.IOU.IOU_TYPE.REQUEST,
+                text: this.props.translate(this.props.hasMultipleParticipants ? 'iou.split' : 'iou.request', {
+                    amount: this.props.numberFormat(this.props.iouAmount, {
+                        style: 'currency',
+                        currency: this.props.iou.selectedCurrencyCode,
+                    }),
+                }),
+                value: this.props.hasMultipleParticipants ? CONST.IOU.IOU_TYPE.SPLIT : CONST.IOU.IOU_TYPE.REQUEST,
             },
         ];
     }
@@ -150,10 +135,7 @@ class IOUConfirmationList extends Component {
      * @returns {Array}
      */
     getSelectedParticipants() {
-        return _.filter(
-            this.state.participants,
-            (participant) => participant.selected,
-        );
+        return _.filter(this.state.participants, (participant) => participant.selected);
     }
 
     /**
@@ -161,10 +143,7 @@ class IOUConfirmationList extends Component {
      * @returns {Array}
      */
     getUnselectedParticipants() {
-        return _.filter(
-            this.state.participants,
-            (participant) => !participant.selected,
-        );
+        return _.filter(this.state.participants, (participant) => !participant.selected);
     }
 
     /**
@@ -175,14 +154,10 @@ class IOUConfirmationList extends Component {
     getParticipantsWithAmount(participants) {
         return OptionsListUtils.getIOUConfirmationOptionsFromParticipants(
             participants,
-            this.props.numberFormat(
-                IOUUtils.calculateAmount(participants, this.props.iouAmount) /
-                    100,
-                {
-                    style: 'currency',
-                    currency: this.props.iou.selectedCurrencyCode,
-                },
-            ),
+            this.props.numberFormat(IOUUtils.calculateAmount(participants, this.props.iouAmount) / 100, {
+                style: 'currency',
+                currency: this.props.iou.selectedCurrencyCode,
+            }),
         );
     }
 
@@ -193,9 +168,7 @@ class IOUConfirmationList extends Component {
      * @returns {Array}
      */
     getParticipantsWithoutAmount(participants) {
-        return _.map(participants, (option) =>
-            _.omit(option, 'descriptiveText'),
-        );
+        return _.map(participants, (option) => _.omit(option, 'descriptiveText'));
     }
 
     /**
@@ -209,30 +182,17 @@ class IOUConfirmationList extends Component {
             const selectedParticipants = this.getSelectedParticipants();
             const unselectedParticipants = this.getUnselectedParticipants();
 
-            const formattedSelectedParticipants =
-                this.getParticipantsWithAmount(selectedParticipants);
-            const formattedUnselectedParticipants =
-                this.getParticipantsWithoutAmount(unselectedParticipants);
-            const formattedParticipants = _.union(
-                formattedSelectedParticipants,
-                formattedUnselectedParticipants,
-            );
+            const formattedSelectedParticipants = this.getParticipantsWithAmount(selectedParticipants);
+            const formattedUnselectedParticipants = this.getParticipantsWithoutAmount(unselectedParticipants);
+            const formattedParticipants = _.union(formattedSelectedParticipants, formattedUnselectedParticipants);
 
-            const formattedMyPersonalDetails =
-                OptionsListUtils.getIOUConfirmationOptionsFromMyPersonalDetail(
-                    this.props.currentUserPersonalDetails,
-                    this.props.numberFormat(
-                        IOUUtils.calculateAmount(
-                            selectedParticipants,
-                            this.props.iouAmount,
-                            true,
-                        ) / 100,
-                        {
-                            style: 'currency',
-                            currency: this.props.iou.selectedCurrencyCode,
-                        },
-                    ),
-                );
+            const formattedMyPersonalDetails = OptionsListUtils.getIOUConfirmationOptionsFromMyPersonalDetail(
+                this.props.currentUserPersonalDetails,
+                this.props.numberFormat(IOUUtils.calculateAmount(selectedParticipants, this.props.iouAmount, true) / 100, {
+                    style: 'currency',
+                    currency: this.props.iou.selectedCurrencyCode,
+                }),
+            );
 
             sections.push(
                 {
@@ -243,23 +203,20 @@ class IOUConfirmationList extends Component {
                     isDisabled: true,
                 },
                 {
-                    title: this.props.translate(
-                        'iOUConfirmationList.whoWasThere',
-                    ),
+                    title: this.props.translate('iOUConfirmationList.whoWasThere'),
                     data: formattedParticipants,
                     shouldShow: true,
                     indexOffset: 1,
                 },
             );
         } else {
-            const formattedParticipants =
-                OptionsListUtils.getIOUConfirmationOptionsFromParticipants(
-                    this.props.participants,
-                    this.props.numberFormat(this.props.iouAmount, {
-                        style: 'currency',
-                        currency: this.props.iou.selectedCurrencyCode,
-                    }),
-                );
+            const formattedParticipants = OptionsListUtils.getIOUConfirmationOptionsFromParticipants(
+                this.props.participants,
+                this.props.numberFormat(this.props.iouAmount, {
+                    style: 'currency',
+                    currency: this.props.iou.selectedCurrencyCode,
+                }),
+            );
 
             sections.push({
                 title: this.props.translate('common.to'),
@@ -280,12 +237,7 @@ class IOUConfirmationList extends Component {
             return [];
         }
         const selectedParticipants = this.getSelectedParticipants();
-        return [
-            ...selectedParticipants,
-            OptionsListUtils.getIOUConfirmationOptionsFromMyPersonalDetail(
-                this.props.currentUserPersonalDetails,
-            ),
-        ];
+        return [...selectedParticipants, OptionsListUtils.getIOUConfirmationOptionsFromMyPersonalDetail(this.props.currentUserPersonalDetails)];
     }
 
     /**
@@ -299,18 +251,15 @@ class IOUConfirmationList extends Component {
         }
 
         this.setState((prevState) => {
-            const newParticipants = _.map(
-                prevState.participants,
-                (participant) => {
-                    if (participant.login === option.login) {
-                        return {
-                            ...participant,
-                            selected: !participant.selected,
-                        };
-                    }
-                    return participant;
-                },
-            );
+            const newParticipants = _.map(prevState.participants, (participant) => {
+                if (participant.login === option.login) {
+                    return {
+                        ...participant,
+                        selected: !participant.selected,
+                    };
+                }
+                return participant;
+            });
             return {participants: newParticipants};
         });
     }
@@ -338,26 +287,19 @@ class IOUConfirmationList extends Component {
 
     render() {
         const selectedParticipants = this.getSelectedParticipants();
-        const shouldShowSettlementButton =
-            this.props.iouType === CONST.IOU.IOU_TYPE.SEND;
+        const shouldShowSettlementButton = this.props.iouType === CONST.IOU.IOU_TYPE.SEND;
         const shouldDisableButton = selectedParticipants.length === 0;
         const recipient = this.state.participants[0];
-        const canModifyParticipants =
-            this.props.canModifyParticipants &&
-            this.props.hasMultipleParticipants;
+        const canModifyParticipants = this.props.canModifyParticipants && this.props.hasMultipleParticipants;
 
         return (
             <OptionsSelector
                 sections={this.getSections()}
                 value={this.props.comment}
-                onSelectRow={
-                    canModifyParticipants ? this.toggleOption : undefined
-                }
+                onSelectRow={canModifyParticipants ? this.toggleOption : undefined}
                 onConfirmSelection={this.confirm}
                 onChangeText={this.props.onUpdateComment}
-                textInputLabel={this.props.translate(
-                    'iOUConfirmationList.whatsItFor',
-                )}
+                textInputLabel={this.props.translate('iOUConfirmationList.whatsItFor')}
                 placeholderText={this.props.translate('common.optional')}
                 selectedOptions={this.getSelectedOptions()}
                 canSelectMultipleOptions={canModifyParticipants}
@@ -367,23 +309,15 @@ class IOUConfirmationList extends Component {
                 autoFocus
                 shouldDelayFocus
                 shouldTextInputAppearBelowOptions
-                optionHoveredStyle={
-                    canModifyParticipants ? styles.hoveredComponentBG : {}
-                }
+                optionHoveredStyle={canModifyParticipants ? styles.hoveredComponentBG : {}}
                 footerContent={
                     shouldShowSettlementButton ? (
                         <SettlementButton
                             isDisabled={shouldDisableButton}
                             onPress={this.confirm}
-                            shouldShowPaypal={Boolean(
-                                recipient.payPalMeAddress,
-                            )}
-                            enablePaymentsRoute={
-                                ROUTES.IOU_SEND_ENABLE_PAYMENTS
-                            }
-                            addBankAccountRoute={
-                                ROUTES.IOU_SEND_ADD_BANK_ACCOUNT
-                            }
+                            shouldShowPaypal={Boolean(recipient.payPalMeAddress)}
+                            enablePaymentsRoute={ROUTES.IOU_SEND_ENABLE_PAYMENTS}
+                            addBankAccountRoute={ROUTES.IOU_SEND_ADD_BANK_ACCOUNT}
                             addDebitCardRoute={ROUTES.IOU_SEND_ADD_DEBIT_CARD}
                             currency={this.props.iou.selectedCurrencyCode}
                         />

@@ -29,16 +29,9 @@ const POINTER_WIDTH = 12;
  *                                         and a negative value shifts it to the left.
  * @returns {Number}
  */
-function computeHorizontalShift(
-    windowWidth,
-    xOffset,
-    componentWidth,
-    tooltipWidth,
-    manualShiftHorizontal,
-) {
+function computeHorizontalShift(windowWidth, xOffset, componentWidth, tooltipWidth, manualShiftHorizontal) {
     // First find the left and right edges of the tooltip (by default, it is centered on the component).
-    const componentCenter =
-        xOffset + componentWidth / 2 + manualShiftHorizontal;
+    const componentCenter = xOffset + componentWidth / 2 + manualShiftHorizontal;
     const tooltipLeftEdge = componentCenter - tooltipWidth / 2;
     const tooltipRightEdge = componentCenter + tooltipWidth / 2;
 
@@ -49,9 +42,7 @@ function computeHorizontalShift(
 
     if (tooltipRightEdge > windowWidth - GUTTER_WIDTH) {
         // Tooltip is in right gutter, shift left by a multiple of four.
-        return roundToNearestMultipleOfFour(
-            windowWidth - GUTTER_WIDTH - tooltipRightEdge,
-        );
+        return roundToNearestMultipleOfFour(windowWidth - GUTTER_WIDTH - tooltipRightEdge);
     }
 
     // Tooltip is not in the gutter, so no need to shift it horizontally
@@ -101,13 +92,7 @@ export default function getTooltipStyles(
 
     // Determine if we need to shift the tooltip horizontally to prevent it
     // from displaying too near to the edge of the screen.
-    const horizontalShift = computeHorizontalShift(
-        windowWidth,
-        xOffset,
-        componentWidth,
-        tooltipWidth,
-        manualShiftHorizontal,
-    );
+    const horizontalShift = computeHorizontalShift(windowWidth, xOffset, componentWidth, tooltipWidth, manualShiftHorizontal);
 
     const tooltipVerticalPadding = spacing.pv1;
     const tooltipFontSize = variables.fontSizeSmall;
@@ -115,11 +100,7 @@ export default function getTooltipStyles(
     // We get wrapper width based on the tooltip's inner text width so the wrapper is just big enough to fit text and prevent white space.
     // If the text width is less than the maximum available width, add horizontal padding.
     // Note: tooltipContentWidth ignores the fractions (OffsetWidth) so add 1px to fit the text properly.
-    const wrapperWidth =
-        tooltipContentWidth &&
-        (tooltipContentWidth < maxWidth
-            ? tooltipContentWidth + spacing.ph2.paddingHorizontal * 2 + 1
-            : maxWidth);
+    const wrapperWidth = tooltipContentWidth && (tooltipContentWidth < maxWidth ? tooltipContentWidth + spacing.ph2.paddingHorizontal * 2 + 1 : maxWidth);
 
     // Hide the tooltip entirely if it's position hasn't finished measuring yet. This prevents UI jank where the tooltip flashes in the top left corner of the screen.
     const opacity = xOffset === 0 && yOffset === 0 ? 0 : 1;
@@ -154,14 +135,9 @@ export default function getTooltipStyles(
             // To shift the tooltip up, we'll give `top` a negative value.
             top: shouldShowBelow
                 ? // We need to shift the tooltip down below the component. So shift the tooltip down (+) by...
-                  yOffset +
-                  componentHeight +
-                  POINTER_HEIGHT +
-                  manualShiftVertical
+                  yOffset + componentHeight + POINTER_HEIGHT + manualShiftVertical
                 : // We need to shift the tooltip up above the component. So shift the tooltip up (-) by...
-                  yOffset -
-                  (tooltipHeight + POINTER_HEIGHT) +
-                  manualShiftVertical,
+                  yOffset - (tooltipHeight + POINTER_HEIGHT) + manualShiftVertical,
 
             // Next, we'll position it horizontally.
             // we will use xOffset to position the tooltip relative to the Wrapped Component
@@ -175,11 +151,7 @@ export default function getTooltipStyles(
             //      so the tooltip's center lines up with the center of the wrapped component.
             //   3) Add the horizontal shift (left or right) computed above to keep it out of the gutters.
             //   4) Lastly, add the manual horizontal shift passed in as a parameter.
-            left:
-                xOffset +
-                (componentWidth / 2 - tooltipWidth / 2) +
-                horizontalShift +
-                manualShiftHorizontal,
+            left: xOffset + (componentWidth / 2 - tooltipWidth / 2) + horizontalShift + manualShiftHorizontal,
 
             opacity,
         },

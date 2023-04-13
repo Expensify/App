@@ -10,8 +10,7 @@ function addViewportResizeListener(onViewportResize) {
     }
 
     window.visualViewport.addEventListener('resize', onViewportResize);
-    return () =>
-        window.visualViewport.removeEventListener('resize', onViewportResize);
+    return () => window.visualViewport.removeEventListener('resize', onViewportResize);
 }
 
 export default addViewportResizeListener;

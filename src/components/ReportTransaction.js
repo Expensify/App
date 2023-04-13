@@ -29,10 +29,7 @@ const propTypes = {
     canBeRejected: PropTypes.bool,
 
     /** Type of the reject transaction button */
-    rejectButtonType: PropTypes.oneOf([
-        CONST.IOU.REPORT_ACTION_TYPE.DECLINE,
-        CONST.IOU.REPORT_ACTION_TYPE.CANCEL,
-    ]).isRequired,
+    rejectButtonType: PropTypes.oneOf([CONST.IOU.REPORT_ACTION_TYPE.DECLINE, CONST.IOU.REPORT_ACTION_TYPE.CANCEL]).isRequired,
 
     ...withLocalizePropTypes,
 };
@@ -49,40 +46,20 @@ class ReportTransaction extends Component {
     }
 
     cancelMoneyRequest() {
-        IOU.cancelMoneyRequest(
-            this.props.chatReportID,
-            this.props.iouReportID,
-            this.props.rejectButtonType,
-            this.props.action,
-        );
+        IOU.cancelMoneyRequest(this.props.chatReportID, this.props.iouReportID, this.props.rejectButtonType, this.props.action);
     }
 
     render() {
         return (
             <OfflineWithFeedback
                 onClose={() => {
-                    if (
-                        this.props.action.actionName ===
-                        CONST.REPORT.ACTIONS.TYPE.IOU
-                    ) {
-                        ReportActions.clearSendMoneyErrors(
-                            this.props.chatReportID,
-                            this.props.action.reportActionID,
-                        );
+                    if (this.props.action.actionName === CONST.REPORT.ACTIONS.TYPE.IOU) {
+                        ReportActions.clearSendMoneyErrors(this.props.chatReportID, this.props.action.reportActionID);
                     }
-                    if (
-                        this.props.action.pendingAction ===
-                        CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD
-                    ) {
-                        ReportActions.deleteOptimisticReportAction(
-                            this.props.chatReportID,
-                            this.props.action.reportActionID,
-                        );
+                    if (this.props.action.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD) {
+                        ReportActions.deleteOptimisticReportAction(this.props.chatReportID, this.props.action.reportActionID);
                     } else {
-                        ReportActions.clearReportActionErrors(
-                            this.props.chatReportID,
-                            this.props.action.reportActionID,
-                        );
+                        ReportActions.clearReportActionErrors(this.props.chatReportID, this.props.action.reportActionID);
                     }
                 }}
                 pendingAction={this.props.action.pendingAction}
@@ -94,23 +71,14 @@ class ReportTransaction extends Component {
                         action={this.props.action}
                         wrapperStyles={[styles.reportTransactionWrapper]}
                     >
-                        <Text style={[styles.chatItemMessage]}>
-                            {Str.htmlDecode(this.props.action.message[0].html)}
-                        </Text>
+                        <Text style={[styles.chatItemMessage]}>{Str.htmlDecode(this.props.action.message[0].html)}</Text>
                     </ReportActionItemSingle>
                     {this.props.canBeRejected && (
-                        <View
-                            style={[styles.flexRow, styles.justifyContentStart]}
-                        >
+                        <View style={[styles.flexRow, styles.justifyContentStart]}>
                             <Button
                                 small
-                                text={this.props.translate(
-                                    `common.${this.props.rejectButtonType}`,
-                                )}
-                                style={[
-                                    styles.mb3,
-                                    styles.chatItemComposeSecondaryRowOffset,
-                                ]}
+                                text={this.props.translate(`common.${this.props.rejectButtonType}`)}
+                                style={[styles.mb3, styles.chatItemComposeSecondaryRowOffset]}
                                 onPress={this.cancelMoneyRequest}
                             />
                         </View>

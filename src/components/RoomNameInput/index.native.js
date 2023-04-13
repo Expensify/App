@@ -30,10 +30,7 @@ class RoomNameInput extends Component {
     }
 
     render() {
-        const keyboardType =
-            getOperatingSystem() === CONST.OS.IOS
-                ? CONST.KEYBOARD_TYPE.ASCII_CAPABLE
-                : CONST.KEYBOARD_TYPE.VISIBLE_PASSWORD;
+        const keyboardType = getOperatingSystem() === CONST.OS.IOS ? CONST.KEYBOARD_TYPE.ASCII_CAPABLE : CONST.KEYBOARD_TYPE.VISIBLE_PASSWORD;
         return (
             <TextInput
                 ref={this.props.forwardedRef}
@@ -61,6 +58,9 @@ RoomNameInput.defaultProps = roomNameInputPropTypes.defaultProps;
 export default withLocalize(
     React.forwardRef((props, ref) => (
         // eslint-disable-next-line react/jsx-props-no-spreading
-        <RoomNameInput {...props} forwardedRef={ref} />
+        <RoomNameInput
+            {...props}
+            forwardedRef={ref}
+        />
     )),
 );

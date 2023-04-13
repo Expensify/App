@@ -77,9 +77,7 @@ const GetAssistancePage = (props) => {
                     menuItems={menuItems}
                 >
                     <View style={styles.mv3}>
-                        <Text>
-                            {props.translate('getAssistancePage.description')}
-                        </Text>
+                        <Text>{props.translate('getAssistancePage.description')}</Text>
                     </View>
                 </Section>
             </ScrollView>
@@ -95,8 +93,7 @@ export default compose(
     withOnyx({
         account: {
             key: ONYXKEYS.ACCOUNT,
-            selector: (account) =>
-                account && {guideCalendarLink: account.guideCalendarLink},
+            selector: (account) => account && {guideCalendarLink: account.guideCalendarLink},
         },
     }),
 )(GetAssistancePage);

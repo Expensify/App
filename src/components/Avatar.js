@@ -70,8 +70,7 @@ class Avatar extends PureComponent {
     }
 
     componentDidUpdate(prevProps) {
-        const isReconnecting =
-            prevProps.network.isOffline && !this.props.network.isOffline;
+        const isReconnecting = prevProps.network.isOffline && !this.props.network.isOffline;
         if (!this.state.imageError || !isReconnecting) {
             return;
         }
@@ -86,66 +85,36 @@ class Avatar extends PureComponent {
         const isWorkspace = this.props.type === CONST.ICON_TYPE_WORKSPACE;
         const iconSize = StyleUtils.getAvatarSize(this.props.size);
 
-        const imageStyle = [
-            StyleUtils.getAvatarStyle(this.props.size),
-            ...this.props.imageStyles,
-            StyleUtils.getAvatarBorderRadius(this.props.size, this.props.type),
-        ];
+        const imageStyle = [StyleUtils.getAvatarStyle(this.props.size), ...this.props.imageStyles, StyleUtils.getAvatarBorderRadius(this.props.size, this.props.type)];
 
-        const iconStyle = [
-            StyleUtils.getAvatarStyle(this.props.size),
-            styles.bgTransparent,
-            ...this.props.imageStyles,
-        ];
+        const iconStyle = [StyleUtils.getAvatarStyle(this.props.size), styles.bgTransparent, ...this.props.imageStyles];
 
-        const iconFillColor = isWorkspace
-            ? StyleUtils.getDefaultWorspaceAvatarColor(this.props.name).fill
-            : this.props.fill;
-        const fallbackAvatar = isWorkspace
-            ? ReportUtils.getDefaultWorkspaceAvatar(this.props.name)
-            : this.props.fallbackIcon;
+        const iconFillColor = isWorkspace ? StyleUtils.getDefaultWorspaceAvatarColor(this.props.name).fill : this.props.fill;
+        const fallbackAvatar = isWorkspace ? ReportUtils.getDefaultWorkspaceAvatar(this.props.name) : this.props.fallbackIcon;
 
         return (
-            <View pointerEvents="none" style={this.props.containerStyles}>
+            <View
+                pointerEvents="none"
+                style={this.props.containerStyles}
+            >
                 {_.isFunction(this.props.source) || this.state.imageError ? (
                     <View style={iconStyle}>
                         <Icon
-                            src={
-                                this.state.imageError
-                                    ? fallbackAvatar
-                                    : this.props.source
-                            }
+                            src={this.state.imageError ? fallbackAvatar : this.props.source}
                             height={iconSize}
                             width={iconSize}
-                            fill={
-                                this.state.imageError
-                                    ? themeColors.offline
-                                    : iconFillColor
-                            }
+                            fill={this.state.imageError ? themeColors.offline : iconFillColor}
                             additionalStyles={[
-                                StyleUtils.getAvatarBorderStyle(
-                                    this.props.size,
-                                    this.props.type,
-                                ),
-                                isWorkspace
-                                    ? StyleUtils.getDefaultWorspaceAvatarColor(
-                                          this.props.name,
-                                      )
-                                    : {},
-                                this.state.imageError
-                                    ? StyleUtils.getBackgroundColorStyle(
-                                          themeColors.fallbackIconColor,
-                                      )
-                                    : {},
+                                StyleUtils.getAvatarBorderStyle(this.props.size, this.props.type),
+                                isWorkspace ? StyleUtils.getDefaultWorspaceAvatarColor(this.props.name) : {},
+                                this.state.imageError ? StyleUtils.getBackgroundColorStyle(themeColors.fallbackIconColor) : {},
                             ]}
                         />
                     </View>
                 ) : (
                     <Image
                         source={{uri: this.props.source}}
-                        defaultSource={getAvatarDefaultSource(
-                            this.props.source,
-                        )}
+                        defaultSource={getAvatarDefaultSource(this.props.source)}
                         style={imageStyle}
                         onError={() => this.setState({imageError: true})}
                     />

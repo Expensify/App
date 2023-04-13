@@ -4,14 +4,10 @@ import linkingConfig from './linkingConfig';
 export default function linkTo(navigation, path) {
     const normalizedPath = !path.startsWith('/') ? `/${path}` : path;
     if (navigation === undefined) {
-        throw new Error(
-            "Couldn't find a navigation object. Is your component inside a screen in a navigator?",
-        );
+        throw new Error("Couldn't find a navigation object. Is your component inside a screen in a navigator?");
     }
 
-    const state = linkingConfig.getStateFromPath
-        ? linkingConfig.getStateFromPath(normalizedPath, linkingConfig.config)
-        : getStateFromPath(normalizedPath, linkingConfig.config);
+    const state = linkingConfig.getStateFromPath ? linkingConfig.getStateFromPath(normalizedPath, linkingConfig.config) : getStateFromPath(normalizedPath, linkingConfig.config);
 
     if (!state) {
         throw new Error('Failed to parse the path to a navigation state.');

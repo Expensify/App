@@ -68,12 +68,7 @@ function write(command, apiCommandParameters = {}, onyxData = {}) {
  *                                    response back to the caller or to trigger reconnection callbacks when re-authentication is required.
  * @returns {Promise}
  */
-function makeRequestWithSideEffects(
-    command,
-    apiCommandParameters = {},
-    onyxData = {},
-    apiRequestType = CONST.API_REQUEST_TYPE.MAKE_REQUEST_WITH_SIDE_EFFECTS,
-) {
+function makeRequestWithSideEffects(command, apiCommandParameters = {}, onyxData = {}, apiRequestType = CONST.API_REQUEST_TYPE.MAKE_REQUEST_WITH_SIDE_EFFECTS) {
     // Optimistically update Onyx
     if (onyxData.optimisticData) {
         Onyx.update(onyxData.optimisticData);
@@ -113,14 +108,7 @@ function read(command, apiCommandParameters, onyxData) {
     // Ensure all write requests on the sequential queue have finished responding before running read requests.
     // Responses from read requests can overwrite the optimistic data inserted by
     // write requests that use the same Onyx keys and haven't responded yet.
-    SequentialQueue.waitForIdle().then(() =>
-        makeRequestWithSideEffects(
-            command,
-            apiCommandParameters,
-            onyxData,
-            CONST.API_REQUEST_TYPE.READ,
-        ),
-    );
+    SequentialQueue.waitForIdle().then(() => makeRequestWithSideEffects(command, apiCommandParameters, onyxData, CONST.API_REQUEST_TYPE.READ));
 }
 
 export {write, makeRequestWithSideEffects, read};

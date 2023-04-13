@@ -6,18 +6,14 @@ import Navigation from '../../libs/Navigation/Navigation';
 import CONST from '../../CONST';
 import * as Expensicons from '../../components/Icon/Expensicons';
 import ScreenWrapper from '../../components/ScreenWrapper';
-import withLocalize, {
-    withLocalizePropTypes,
-} from '../../components/withLocalize';
+import withLocalize, {withLocalizePropTypes} from '../../components/withLocalize';
 import compose from '../../libs/compose';
 import MenuItem from '../../components/MenuItem';
 import styles from '../../styles/styles';
 import * as Link from '../../libs/actions/Link';
 import PressableWithSecondaryInteraction from '../../components/PressableWithSecondaryInteraction';
 import ControlSelection from '../../libs/ControlSelection';
-import withWindowDimensions, {
-    windowDimensionsPropTypes,
-} from '../../components/withWindowDimensions';
+import withWindowDimensions, {windowDimensionsPropTypes} from '../../components/withWindowDimensions';
 import * as DeviceCapabilities from '../../libs/DeviceCapabilities';
 import * as ReportActionContextMenu from '../home/report/ContextMenu/ReportActionContextMenu';
 import * as ContextMenuActions from '../home/report/ContextMenu/ContextMenuActions';
@@ -32,8 +28,7 @@ const AppDownloadLinksPage = (props) => {
 
     const menuItems = [
         {
-            translationKey:
-                'initialSettingsPage.appDownloadLinks.android.label',
+            translationKey: 'initialSettingsPage.appDownloadLinks.android.label',
             icon: Expensicons.Android,
             iconRight: Expensicons.NewWindow,
             action: () => {
@@ -51,8 +46,7 @@ const AppDownloadLinksPage = (props) => {
             link: CONST.APP_DOWNLOAD_LINKS.IOS,
         },
         {
-            translationKey:
-                'initialSettingsPage.appDownloadLinks.desktop.label',
+            translationKey: 'initialSettingsPage.appDownloadLinks.desktop.label',
             icon: Expensicons.Monitor,
             iconRight: Expensicons.NewWindow,
             action: () => {
@@ -69,20 +63,13 @@ const AppDownloadLinksPage = (props) => {
      * @param {String} [selection] - Copied content.
      */
     const showPopover = (event, selection) => {
-        ReportActionContextMenu.showContextMenu(
-            ContextMenuActions.CONTEXT_MENU_TYPES.LINK,
-            event,
-            selection,
-            popoverAnchor,
-        );
+        ReportActionContextMenu.showContextMenu(ContextMenuActions.CONTEXT_MENU_TYPES.LINK, event, selection, popoverAnchor);
     };
 
     return (
         <ScreenWrapper>
             <HeaderWithCloseButton
-                title={props.translate(
-                    'initialSettingsPage.aboutPage.appDownloadLinks',
-                )}
+                title={props.translate('initialSettingsPage.aboutPage.appDownloadLinks')}
                 shouldShowBackButton
                 onBackButtonPress={() => Navigation.goBack()}
                 onCloseButtonPress={() => Navigation.dismissModal(true)}
@@ -91,15 +78,9 @@ const AppDownloadLinksPage = (props) => {
                 {_.map(menuItems, (item) => (
                     <PressableWithSecondaryInteraction
                         key={item.translationKey}
-                        onPressIn={() =>
-                            props.isSmallScreenWidth &&
-                            DeviceCapabilities.canUseTouchScreen() &&
-                            ControlSelection.block()
-                        }
+                        onPressIn={() => props.isSmallScreenWidth && DeviceCapabilities.canUseTouchScreen() && ControlSelection.block()}
                         onPressOut={() => ControlSelection.unblock()}
-                        onSecondaryInteraction={(e) =>
-                            showPopover(e, item.link)
-                        }
+                        onSecondaryInteraction={(e) => showPopover(e, item.link)}
                         ref={(el) => (popoverAnchor = el)}
                         onKeyDown={(event) => {
                             event.target.blur();
@@ -122,7 +103,4 @@ const AppDownloadLinksPage = (props) => {
 AppDownloadLinksPage.propTypes = propTypes;
 AppDownloadLinksPage.displayName = 'AppDownloadLinksPage';
 
-export default compose(
-    withWindowDimensions,
-    withLocalize,
-)(AppDownloadLinksPage);
+export default compose(withWindowDimensions, withLocalize)(AppDownloadLinksPage);

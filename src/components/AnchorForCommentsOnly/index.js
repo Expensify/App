@@ -8,16 +8,13 @@ const AnchorForCommentsOnly = (props) => (
     <BaseAnchorForCommentsOnly
         // eslint-disable-next-line react/jsx-props-no-spreading
         {...props}
-        onPressIn={() =>
-            DeviceCapabilities.canUseTouchScreen() && ControlSelection.block()
-        }
+        onPressIn={() => DeviceCapabilities.canUseTouchScreen() && ControlSelection.block()}
         onPressOut={() => ControlSelection.unblock()}
     />
 );
 
 AnchorForCommentsOnly.propTypes = anchorForCommentsOnlyPropTypes.propTypes;
-AnchorForCommentsOnly.defaultProps =
-    anchorForCommentsOnlyPropTypes.defaultProps;
+AnchorForCommentsOnly.defaultProps = anchorForCommentsOnlyPropTypes.defaultProps;
 AnchorForCommentsOnly.displayName = 'AnchorForCommentsOnly';
 
 export default AnchorForCommentsOnly;

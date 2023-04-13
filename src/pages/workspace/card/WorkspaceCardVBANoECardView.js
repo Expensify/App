@@ -4,9 +4,7 @@ import {withOnyx} from 'react-native-onyx';
 import Text from '../../../components/Text';
 import Button from '../../../components/Button';
 import styles from '../../../styles/styles';
-import withLocalize, {
-    withLocalizePropTypes,
-} from '../../../components/withLocalize';
+import withLocalize, {withLocalizePropTypes} from '../../../components/withLocalize';
 import * as Expensicons from '../../../components/Icon/Expensicons';
 import * as Illustrations from '../../../components/Icon/Illustrations';
 import UnorderedList from '../../../components/UnorderedList';
@@ -51,11 +49,7 @@ const WorkspaceCardVBANoECardView = (props) => (
                 success
             />
         </Section>
-        {props.user.isCheckingDomain && (
-            <Text style={[styles.m5, styles.formError]}>
-                {props.translate('workspace.card.checkingDomain')}
-            </Text>
-        )}
+        {props.user.isCheckingDomain && <Text style={[styles.m5, styles.formError]}>{props.translate('workspace.card.checkingDomain')}</Text>}
     </>
 );
 

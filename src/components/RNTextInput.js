@@ -33,5 +33,8 @@ RNTextInput.displayName = 'RNTextInput';
 
 export default React.forwardRef((props, ref) => (
     /* eslint-disable-next-line react/jsx-props-no-spreading */
-    <RNTextInput {...props} forwardedRef={ref} />
+    <RNTextInput
+        {...props}
+        forwardedRef={ref}
+    />
 ));

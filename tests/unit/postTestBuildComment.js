@@ -43,33 +43,15 @@ describe('Post test build comments action tests', () => {
     });
 
     test('Test GH action', () => {
-        when(core.getInput)
-            .calledWith('PR_NUMBER', {required: true})
-            .mockReturnValue(12);
-        when(core.getInput)
-            .calledWith('ANDROID', {required: true})
-            .mockReturnValue('success');
-        when(core.getInput)
-            .calledWith('IOS', {required: true})
-            .mockReturnValue('success');
-        when(core.getInput)
-            .calledWith('WEB', {required: true})
-            .mockReturnValue('success');
-        when(core.getInput)
-            .calledWith('DESKTOP', {required: true})
-            .mockReturnValue('success');
-        when(core.getInput)
-            .calledWith('ANDROID_LINK')
-            .mockReturnValue('https://expensify.app/ANDROID_LINK');
-        when(core.getInput)
-            .calledWith('IOS_LINK')
-            .mockReturnValue('https://expensify.app/IOS_LINK');
-        when(core.getInput)
-            .calledWith('WEB_LINK')
-            .mockReturnValue('https://expensify.app/WEB_LINK');
-        when(core.getInput)
-            .calledWith('DESKTOP_LINK')
-            .mockReturnValue('https://expensify.app/DESKTOP_LINK');
+        when(core.getInput).calledWith('PR_NUMBER', {required: true}).mockReturnValue(12);
+        when(core.getInput).calledWith('ANDROID', {required: true}).mockReturnValue('success');
+        when(core.getInput).calledWith('IOS', {required: true}).mockReturnValue('success');
+        when(core.getInput).calledWith('WEB', {required: true}).mockReturnValue('success');
+        when(core.getInput).calledWith('DESKTOP', {required: true}).mockReturnValue('success');
+        when(core.getInput).calledWith('ANDROID_LINK').mockReturnValue('https://expensify.app/ANDROID_LINK');
+        when(core.getInput).calledWith('IOS_LINK').mockReturnValue('https://expensify.app/IOS_LINK');
+        when(core.getInput).calledWith('WEB_LINK').mockReturnValue('https://expensify.app/WEB_LINK');
+        when(core.getInput).calledWith('DESKTOP_LINK').mockReturnValue('https://expensify.app/DESKTOP_LINK');
         GithubUtils.createComment.mockResolvedValue(true);
         ghAction();
         expect(GithubUtils.createComment).toBeCalledTimes(1);

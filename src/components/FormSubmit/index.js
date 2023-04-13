@@ -31,10 +31,7 @@ class FormSubmit extends React.Component {
         }
 
         // Pressing Enter on TEXTAREA element adds a new line. When `dataset.submitOnEnter` prop is passed, call the submit callback.
-        if (
-            tagName === 'TEXTAREA' &&
-            lodashGet(event, 'target.dataset.submitOnEnter', 'false') === 'true'
-        ) {
+        if (tagName === 'TEXTAREA' && lodashGet(event, 'target.dataset.submitOnEnter', 'false') === 'true') {
             this.props.onSubmit();
             return;
         }
@@ -50,7 +47,10 @@ class FormSubmit extends React.Component {
             // React-native-web prevents event bubbling on TextInput for key presses
             // https://github.com/necolas/react-native-web/blob/fa47f80d34ee6cde2536b2a2241e326f84b633c4/packages/react-native-web/src/exports/TextInput/index.js#L272
             // Thus use capture phase.
-            <View onKeyDownCapture={this.submitForm} style={this.props.style}>
+            <View
+                onKeyDownCapture={this.submitForm}
+                style={this.props.style}
+            >
                 {this.props.children}
             </View>
         );

@@ -4,9 +4,7 @@ import {Pressable, View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import _ from 'underscore';
 import lodashGet from 'lodash/get';
-import withLocalize, {
-    withLocalizePropTypes,
-} from '../../components/withLocalize';
+import withLocalize, {withLocalizePropTypes} from '../../components/withLocalize';
 import ScreenWrapper from '../../components/ScreenWrapper';
 import HeaderWithCloseButton from '../../components/HeaderWithCloseButton';
 import Navigation from '../../libs/Navigation/Navigation';
@@ -73,17 +71,10 @@ class WorkspaceInvitePage extends React.Component {
         this.clearErrors = this.clearErrors.bind(this);
         this.getExcludedUsers = this.getExcludedUsers.bind(this);
         this.toggleOption = this.toggleOption.bind(this);
-        this.updateOptionsWithSearchTerm =
-            this.updateOptionsWithSearchTerm.bind(this);
+        this.updateOptionsWithSearchTerm = this.updateOptionsWithSearchTerm.bind(this);
         this.openPrivacyURL = this.openPrivacyURL.bind(this);
 
-        const {personalDetails, userToInvite} =
-            OptionsListUtils.getMemberInviteOptions(
-                props.personalDetails,
-                props.betas,
-                '',
-                this.getExcludedUsers(),
-            );
+        const {personalDetails, userToInvite} = OptionsListUtils.getMemberInviteOptions(props.personalDetails, props.betas, '', this.getExcludedUsers());
         this.state = {
             searchTerm: '',
             personalDetails,
@@ -98,36 +89,24 @@ class WorkspaceInvitePage extends React.Component {
         this.clearErrors();
 
         const clientPolicyMembers = _.keys(this.props.policyMemberList);
-        Policy.openWorkspaceInvitePage(
-            this.props.route.params.policyID,
-            clientPolicyMembers,
-        );
+        Policy.openWorkspaceInvitePage(this.props.route.params.policyID, clientPolicyMembers);
     }
 
     componentDidUpdate(prevProps) {
         if (
             prevProps.preferredLocale !== this.props.preferredLocale &&
-            this.state.welcomeNote ===
-                Localize.translate(
-                    prevProps.preferredLocale,
-                    'workspace.invite.welcomeNote',
-                    {workspaceName: this.props.policy.name},
-                )
+            this.state.welcomeNote === Localize.translate(prevProps.preferredLocale, 'workspace.invite.welcomeNote', {workspaceName: this.props.policy.name})
         ) {
             this.setState({welcomeNote: this.getWelcomeNote()});
         }
 
-        const isReconnecting =
-            prevProps.network.isOffline && !this.props.network.isOffline;
+        const isReconnecting = prevProps.network.isOffline && !this.props.network.isOffline;
         if (!isReconnecting) {
             return;
         }
 
         const clientPolicyMembers = _.keys(this.props.policyMemberList);
-        Policy.openWorkspaceInvitePage(
-            this.props.route.params.policyID,
-            clientPolicyMembers,
-        );
+        Policy.openWorkspaceInvitePage(this.props.route.params.policyID, clientPolicyMembers);
     }
 
     getExcludedUsers() {
@@ -136,8 +115,7 @@ class WorkspaceInvitePage extends React.Component {
             _.keys(policyMemberList),
             (policyMember) =>
                 this.props.network.isOffline ||
-                policyMemberList[policyMember].pendingAction !==
-                    CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE ||
+                policyMemberList[policyMember].pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE ||
                 !_.isEmpty(policyMemberList[policyMember].errors),
         );
         return [...CONST.EXPENSIFY_EMAILS, ...usersToExclude];
@@ -158,10 +136,7 @@ class WorkspaceInvitePage extends React.Component {
      * @returns {Boolean}
      */
     getShouldShowAlertPrompt() {
-        return (
-            _.size(lodashGet(this.props.policy, 'errors', {})) > 0 ||
-            lodashGet(this.props.policy, 'alertMessage', '').length > 0
-        );
+        return _.size(lodashGet(this.props.policy, 'errors', {})) > 0 || lodashGet(this.props.policy, 'alertMessage', '').length > 0;
     }
 
     /**
@@ -181,18 +156,9 @@ class WorkspaceInvitePage extends React.Component {
         indexOffset += this.state.selectedOptions.length;
 
         // Filtering out selected users from the search results
-        const filterText = _.reduce(
-            this.state.selectedOptions,
-            (str, {login}) => `${str} ${login}`,
-            '',
-        );
-        const personalDetailsWithoutSelected = _.filter(
-            this.state.personalDetails,
-            ({login}) => !filterText.includes(login),
-        );
-        const hasUnselectedUserToInvite =
-            this.state.userToInvite &&
-            !filterText.includes(this.state.userToInvite.login);
+        const filterText = _.reduce(this.state.selectedOptions, (str, {login}) => `${str} ${login}`, '');
+        const personalDetailsWithoutSelected = _.filter(this.state.personalDetails, ({login}) => !filterText.includes(login));
+        const hasUnselectedUserToInvite = this.state.userToInvite && !filterText.includes(this.state.userToInvite.login);
 
         sections.push({
             title: this.props.translate('common.contacts'),
@@ -215,13 +181,7 @@ class WorkspaceInvitePage extends React.Component {
     }
 
     updateOptionsWithSearchTerm(searchTerm = '') {
-        const {personalDetails, userToInvite} =
-            OptionsListUtils.getMemberInviteOptions(
-                this.props.personalDetails,
-                this.props.betas,
-                searchTerm,
-                this.getExcludedUsers(),
-            );
+        const {personalDetails, userToInvite} = OptionsListUtils.getMemberInviteOptions(this.props.personalDetails, this.props.betas, searchTerm, this.getExcludedUsers());
         this.setState({
             searchTerm,
             userToInvite,
@@ -250,29 +210,17 @@ class WorkspaceInvitePage extends React.Component {
         this.clearErrors();
 
         this.setState((prevState) => {
-            const isOptionInList = _.some(
-                prevState.selectedOptions,
-                (selectedOption) => selectedOption.login === option.login,
-            );
+            const isOptionInList = _.some(prevState.selectedOptions, (selectedOption) => selectedOption.login === option.login);
 
             let newSelectedOptions;
 
             if (isOptionInList) {
-                newSelectedOptions = _.reject(
-                    prevState.selectedOptions,
-                    (selectedOption) => selectedOption.login === option.login,
-                );
+                newSelectedOptions = _.reject(prevState.selectedOptions, (selectedOption) => selectedOption.login === option.login);
             } else {
                 newSelectedOptions = [...prevState.selectedOptions, option];
             }
 
-            const {personalDetails, userToInvite} =
-                OptionsListUtils.getMemberInviteOptions(
-                    this.props.personalDetails,
-                    this.props.betas,
-                    prevState.searchTerm,
-                    this.getExcludedUsers(),
-                );
+            const {personalDetails, userToInvite} = OptionsListUtils.getMemberInviteOptions(this.props.personalDetails, this.props.betas, prevState.searchTerm, this.getExcludedUsers());
 
             return {
                 selectedOptions: newSelectedOptions,
@@ -292,18 +240,9 @@ class WorkspaceInvitePage extends React.Component {
         }
 
         this.setState({shouldDisableButton: true}, () => {
-            const logins = _.map(
-                this.state.selectedOptions,
-                (option) => option.login,
-            );
-            const filteredLogins = _.uniq(
-                _.compact(_.map(logins, (login) => login.toLowerCase().trim())),
-            );
-            Policy.addMembersToWorkspace(
-                filteredLogins,
-                this.state.welcomeNote || this.getWelcomeNote(),
-                this.props.route.params.policyID,
-            );
+            const logins = _.map(this.state.selectedOptions, (option) => option.login);
+            const filteredLogins = _.uniq(_.compact(_.map(logins, (login) => login.toLowerCase().trim())));
+            Policy.addMembersToWorkspace(filteredLogins, this.state.welcomeNote || this.getWelcomeNote(), this.props.route.params.policyID);
             Navigation.goBack();
         });
     }
@@ -323,11 +262,7 @@ class WorkspaceInvitePage extends React.Component {
 
     render() {
         const sections = this.getSections();
-        const headerMessage = OptionsListUtils.getHeaderMessage(
-            this.state.personalDetails.length !== 0,
-            Boolean(this.state.userToInvite),
-            this.state.searchTerm,
-        );
+        const headerMessage = OptionsListUtils.getHeaderMessage(this.state.personalDetails.length !== 0, Boolean(this.state.userToInvite), this.state.searchTerm);
         const policyName = lodashGet(this.props.policy, 'name');
 
         return (
@@ -335,26 +270,18 @@ class WorkspaceInvitePage extends React.Component {
                 {({didScreenTransitionEnd}) => (
                     <FullPageNotFoundView
                         shouldShow={_.isEmpty(this.props.policy)}
-                        onBackButtonPress={() =>
-                            Navigation.navigate(ROUTES.SETTINGS_WORKSPACES)
-                        }
+                        onBackButtonPress={() => Navigation.navigate(ROUTES.SETTINGS_WORKSPACES)}
                     >
                         <FormSubmit
                             style={[styles.flex1]}
                             onSubmit={this.inviteUser}
                         >
                             <HeaderWithCloseButton
-                                title={this.props.translate(
-                                    'workspace.invite.invitePeople',
-                                )}
+                                title={this.props.translate('workspace.invite.invitePeople')}
                                 subtitle={policyName}
-                                onCloseButtonPress={() =>
-                                    this.clearErrors(true)
-                                }
+                                onCloseButtonPress={() => this.clearErrors(true)}
                                 shouldShowGetAssistanceButton
-                                guidesCallTaskID={
-                                    CONST.GUIDES_CALL_TASK_IDS.WORKSPACE_MEMBERS
-                                }
+                                guidesCallTaskID={CONST.GUIDES_CALL_TASK_IDS.WORKSPACE_MEMBERS}
                                 shouldShowBackButton
                                 onBackButtonPress={() => Navigation.goBack()}
                             />
@@ -364,22 +291,16 @@ class WorkspaceInvitePage extends React.Component {
                                         autoFocus={false}
                                         canSelectMultipleOptions
                                         sections={sections}
-                                        selectedOptions={
-                                            this.state.selectedOptions
-                                        }
+                                        selectedOptions={this.state.selectedOptions}
                                         value={this.state.searchTerm}
                                         onSelectRow={this.toggleOption}
-                                        onChangeText={
-                                            this.updateOptionsWithSearchTerm
-                                        }
+                                        onChangeText={this.updateOptionsWithSearchTerm}
                                         onConfirmSelection={this.inviteUser}
                                         headerMessage={headerMessage}
                                         hideSectionHeaders
                                         boldStyle
                                         shouldFocusOnSelectRow
-                                        placeholderText={this.props.translate(
-                                            'optionsSelector.nameEmailOrPhoneNumber',
-                                        )}
+                                        placeholderText={this.props.translate('optionsSelector.nameEmailOrPhoneNumber')}
                                     />
                                 ) : (
                                     <FullScreenLoadingIndicator />
@@ -388,41 +309,24 @@ class WorkspaceInvitePage extends React.Component {
                             <View style={[styles.flexShrink0]}>
                                 <View style={[styles.ph5, styles.pv3]}>
                                     <TextInput
-                                        label={this.props.translate(
-                                            'workspace.invite.personalMessagePrompt',
-                                        )}
+                                        label={this.props.translate('workspace.invite.personalMessagePrompt')}
                                         autoCompleteType="off"
                                         autoCorrect={false}
                                         numberOfLines={4}
                                         textAlignVertical="top"
                                         multiline
-                                        containerStyles={[
-                                            styles.workspaceInviteWelcome,
-                                        ]}
+                                        containerStyles={[styles.workspaceInviteWelcome]}
                                         value={this.state.welcomeNote}
-                                        onChangeText={(text) =>
-                                            this.setState({welcomeNote: text})
-                                        }
+                                        onChangeText={(text) => this.setState({welcomeNote: text})}
                                     />
                                 </View>
                                 <FormAlertWithSubmitButton
-                                    isDisabled={
-                                        !this.state.selectedOptions.length ||
-                                        this.state.shouldDisableButton
-                                    }
+                                    isDisabled={!this.state.selectedOptions.length || this.state.shouldDisableButton}
                                     isAlertVisible={this.getShouldShowAlertPrompt()}
-                                    buttonText={this.props.translate(
-                                        'common.invite',
-                                    )}
+                                    buttonText={this.props.translate('common.invite')}
                                     onSubmit={this.inviteUser}
                                     message={this.props.policy.alertMessage}
-                                    containerStyles={[
-                                        styles.flexReset,
-                                        styles.mb0,
-                                        styles.flexGrow0,
-                                        styles.flexShrink0,
-                                        styles.flexBasisAuto,
-                                    ]}
+                                    containerStyles={[styles.flexReset, styles.mb0, styles.flexGrow0, styles.flexShrink0, styles.flexBasisAuto]}
                                     enabledWhenOffline
                                     disablePressOnEnter
                                 />
@@ -430,24 +334,10 @@ class WorkspaceInvitePage extends React.Component {
                                     onPress={this.openPrivacyURL}
                                     accessibilityRole="link"
                                     href={CONST.PRIVACY_URL}
-                                    style={[
-                                        styles.mh5,
-                                        styles.mv2,
-                                        styles.alignSelfStart,
-                                    ]}
+                                    style={[styles.mh5, styles.mv2, styles.alignSelfStart]}
                                 >
                                     <View style={[styles.flexRow]}>
-                                        <Text
-                                            style={[
-                                                styles.mr1,
-                                                styles.label,
-                                                styles.link,
-                                            ]}
-                                        >
-                                            {this.props.translate(
-                                                'common.privacy',
-                                            )}
-                                        </Text>
+                                        <Text style={[styles.mr1, styles.label, styles.link]}>{this.props.translate('common.privacy')}</Text>
                                     </View>
                                 </Pressable>
                             </View>

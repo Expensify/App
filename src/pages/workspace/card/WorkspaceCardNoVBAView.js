@@ -3,9 +3,7 @@ import PropTypes from 'prop-types';
 import {View} from 'react-native';
 import Text from '../../../components/Text';
 import styles from '../../../styles/styles';
-import withLocalize, {
-    withLocalizePropTypes,
-} from '../../../components/withLocalize';
+import withLocalize, {withLocalizePropTypes} from '../../../components/withLocalize';
 import * as Expensicons from '../../../components/Icon/Expensicons';
 import * as Illustrations from '../../../components/Icon/Illustrations';
 import UnorderedList from '../../../components/UnorderedList';
@@ -39,9 +37,7 @@ const WorkspaceCardNoVBAView = (props) => (
         />
         <Button
             text={props.translate('workspace.common.bankAccount')}
-            onPress={() =>
-                ReimbursementAccount.navigateToBankAccountRoute(props.policyID)
-            }
+            onPress={() => ReimbursementAccount.navigateToBankAccountRoute(props.policyID)}
             icon={Expensicons.Bank}
             style={[styles.mt6]}
             iconStyles={[styles.mr5]}

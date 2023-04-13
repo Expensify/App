@@ -74,22 +74,15 @@ class AddPersonalBankAccountPage extends React.Component {
     }
 
     submit() {
-        const selectedPlaidBankAccount = _.findWhere(
-            lodashGet(this.props.plaidData, 'bankAccounts', []),
-            {
-                plaidAccountID: this.state.selectedPlaidAccountID,
-            },
-        );
+        const selectedPlaidBankAccount = _.findWhere(lodashGet(this.props.plaidData, 'bankAccounts', []), {
+            plaidAccountID: this.state.selectedPlaidAccountID,
+        });
 
         BankAccounts.addPersonalBankAccount(selectedPlaidBankAccount);
     }
 
     render() {
-        const shouldShowSuccess = lodashGet(
-            this.props,
-            'personalBankAccount.shouldShowSuccess',
-            false,
-        );
+        const shouldShowSuccess = lodashGet(this.props, 'personalBankAccount.shouldShowSuccess', false);
 
         return (
             <ScreenWrapper includeSafeAreaPaddingBottom={shouldShowSuccess}>
@@ -101,12 +94,8 @@ class AddPersonalBankAccountPage extends React.Component {
                 />
                 {shouldShowSuccess ? (
                     <ConfirmationPage
-                        heading={this.props.translate(
-                            'addPersonalBankAccountPage.successTitle',
-                        )}
-                        description={this.props.translate(
-                            'addPersonalBankAccountPage.successMessage',
-                        )}
+                        heading={this.props.translate('addPersonalBankAccountPage.successTitle')}
+                        description={this.props.translate('addPersonalBankAccountPage.successMessage')}
                         shouldShowButton
                         buttonText={this.props.translate('common.continue')}
                         onButtonPress={() => {
@@ -117,12 +106,8 @@ class AddPersonalBankAccountPage extends React.Component {
                 ) : (
                     <Form
                         formID={ONYXKEYS.PERSONAL_BANK_ACCOUNT}
-                        isSubmitButtonVisible={Boolean(
-                            this.state.selectedPlaidAccountID,
-                        )}
-                        submitButtonText={this.props.translate(
-                            'common.saveAndContinue',
-                        )}
+                        isSubmitButtonVisible={Boolean(this.state.selectedPlaidAccountID)}
+                        submitButtonText={this.props.translate('common.saveAndContinue')}
                         scrollContextEnabled
                         onSubmit={this.submit}
                         validate={this.validate}
@@ -136,9 +121,7 @@ class AddPersonalBankAccountPage extends React.Component {
                                 plaidData={this.props.plaidData}
                                 onExitPlaid={Navigation.goBack}
                                 receivedRedirectURI={getPlaidOAuthReceivedRedirectURI()}
-                                selectedPlaidAccountID={
-                                    this.state.selectedPlaidAccountID
-                                }
+                                selectedPlaidAccountID={this.state.selectedPlaidAccountID}
                             />
                         </>
                     </Form>

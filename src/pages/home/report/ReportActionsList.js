@@ -3,20 +3,13 @@ import React from 'react';
 import {Animated} from 'react-native';
 import _ from 'underscore';
 import InvertedFlatList from '../../../components/InvertedFlatList';
-import withDrawerState, {
-    withDrawerPropTypes,
-} from '../../../components/withDrawerState';
+import withDrawerState, {withDrawerPropTypes} from '../../../components/withDrawerState';
 import compose from '../../../libs/compose';
 import * as ReportScrollManager from '../../../libs/ReportScrollManager';
 import styles from '../../../styles/styles';
 import * as ReportUtils from '../../../libs/ReportUtils';
-import withWindowDimensions, {
-    windowDimensionsPropTypes,
-} from '../../../components/withWindowDimensions';
-import {
-    withNetwork,
-    withPersonalDetails,
-} from '../../../components/OnyxProvider';
+import withWindowDimensions, {windowDimensionsPropTypes} from '../../../components/withWindowDimensions';
+import {withNetwork, withPersonalDetails} from '../../../components/OnyxProvider';
 import ReportActionItem from './ReportActionItem';
 import ReportActionsSkeletonView from '../../../components/ReportActionsSkeletonView';
 import variables from '../../../styles/variables';
@@ -39,9 +32,7 @@ const propTypes = {
     report: reportPropTypes.isRequired,
 
     /** Sorted actions prepared for display */
-    sortedReportActions: PropTypes.arrayOf(
-        PropTypes.shape(reportActionPropTypes),
-    ).isRequired,
+    sortedReportActions: PropTypes.arrayOf(PropTypes.shape(reportActionPropTypes)).isRequired,
 
     /** The ID of the most recent IOU report action connected with the shown report */
     mostRecentIOUReportActionID: PropTypes.string,
@@ -102,13 +93,8 @@ class ReportActionsList extends React.Component {
      * @return {Number}
      */
     calculateInitialNumToRender() {
-        const minimumReportActionHeight =
-            styles.chatItem.paddingTop +
-            styles.chatItem.paddingBottom +
-            variables.fontSizeNormalHeight;
-        const availableHeight =
-            this.props.windowHeight -
-            (CONST.CHAT_FOOTER_MIN_HEIGHT + variables.contentHeaderHeight);
+        const minimumReportActionHeight = styles.chatItem.paddingTop + styles.chatItem.paddingBottom + variables.fontSizeNormalHeight;
+        const availableHeight = this.props.windowHeight - (CONST.CHAT_FOOTER_MIN_HEIGHT + variables.contentHeaderHeight);
         return Math.ceil(availableHeight / minimumReportActionHeight);
     }
 
@@ -137,21 +123,14 @@ class ReportActionsList extends React.Component {
      */
     renderItem({item: reportAction, index}) {
         // When the new indicator should not be displayed we explicitly set it to null
-        const shouldDisplayNewMarker =
-            reportAction.reportActionID === this.props.newMarkerReportActionID;
+        const shouldDisplayNewMarker = reportAction.reportActionID === this.props.newMarkerReportActionID;
         return (
             <ReportActionItem
                 report={this.props.report}
                 action={reportAction}
-                displayAsGroup={ReportActionsUtils.isConsecutiveActionMadeByPreviousActor(
-                    this.props.sortedReportActions,
-                    index,
-                )}
+                displayAsGroup={ReportActionsUtils.isConsecutiveActionMadeByPreviousActor(this.props.sortedReportActions, index)}
                 shouldDisplayNewMarker={shouldDisplayNewMarker}
-                isMostRecentIOUReportAction={
-                    reportAction.reportActionID ===
-                    this.props.mostRecentIOUReportActionID
-                }
+                isMostRecentIOUReportAction={reportAction.reportActionID === this.props.mostRecentIOUReportActionID}
                 hasOutstandingIOU={this.props.report.hasOutstandingIOU}
                 index={index}
             />
@@ -161,31 +140,16 @@ class ReportActionsList extends React.Component {
     render() {
         // Native mobile does not render updates flatlist the changes even though component did update called.
         // To notify there something changes we can use extraData prop to flatlist
-        const extraData =
-            !this.props.isDrawerOpen && this.props.isSmallScreenWidth
-                ? this.props.newMarkerReportActionID
-                : undefined;
-        const shouldShowReportRecipientLocalTime =
-            ReportUtils.canShowReportRecipientLocalTime(
-                this.props.personalDetails,
-                this.props.report,
-            );
+        const extraData = !this.props.isDrawerOpen && this.props.isSmallScreenWidth ? this.props.newMarkerReportActionID : undefined;
+        const shouldShowReportRecipientLocalTime = ReportUtils.canShowReportRecipientLocalTime(this.props.personalDetails, this.props.report);
         return (
-            <Animated.View
-                style={[
-                    StyleUtils.fade(this.state.fadeInAnimation),
-                    styles.flex1,
-                ]}
-            >
+            <Animated.View style={[StyleUtils.fade(this.state.fadeInAnimation), styles.flex1]}>
                 <InvertedFlatList
                     accessibilityLabel="List of chat messages"
                     ref={ReportScrollManager.flatListRef}
                     data={this.props.sortedReportActions}
                     renderItem={this.renderItem}
-                    contentContainerStyle={[
-                        styles.chatContentScrollView,
-                        shouldShowReportRecipientLocalTime && styles.pt0,
-                    ]}
+                    contentContainerStyle={[styles.chatContentScrollView, shouldShowReportRecipientLocalTime && styles.pt0]}
                     keyExtractor={this.keyExtractor}
                     initialRowHeight={32}
                     initialNumToRender={this.calculateInitialNumToRender()}
@@ -193,31 +157,17 @@ class ReportActionsList extends React.Component {
                     onEndReachedThreshold={0.75}
                     ListFooterComponent={() => {
                         if (this.props.report.isLoadingMoreReportActions) {
-                            return (
-                                <ReportActionsSkeletonView
-                                    containerHeight={
-                                        CONST.CHAT_SKELETON_VIEW
-                                            .AVERAGE_ROW_HEIGHT * 3
-                                    }
-                                />
-                            );
+                            return <ReportActionsSkeletonView containerHeight={CONST.CHAT_SKELETON_VIEW.AVERAGE_ROW_HEIGHT * 3} />;
                         }
 
                         // Make sure the oldest report action loaded is not the first. This is so we do not show the
                         // skeleton view above the created action in a newly generated optimistic chat or one with not
                         // that many comments.
-                        const lastReportAction =
-                            _.last(this.props.sortedReportActions) || {};
-                        if (
-                            this.props.report.isLoadingReportActions &&
-                            lastReportAction.actionName !==
-                                CONST.REPORT.ACTIONS.TYPE.CREATED
-                        ) {
+                        const lastReportAction = _.last(this.props.sortedReportActions) || {};
+                        if (this.props.report.isLoadingReportActions && lastReportAction.actionName !== CONST.REPORT.ACTIONS.TYPE.CREATED) {
                             return (
                                 <ReportActionsSkeletonView
-                                    containerHeight={
-                                        this.state.skeletonViewHeight
-                                    }
+                                    containerHeight={this.state.skeletonViewHeight}
                                     animate={!this.props.network.isOffline}
                                 />
                             );
@@ -243,9 +193,4 @@ class ReportActionsList extends React.Component {
 ReportActionsList.propTypes = propTypes;
 ReportActionsList.defaultProps = defaultProps;
 
-export default compose(
-    withDrawerState,
-    withWindowDimensions,
-    withPersonalDetails(),
-    withNetwork(),
-)(ReportActionsList);
+export default compose(withDrawerState, withWindowDimensions, withPersonalDetails(), withNetwork())(ReportActionsList);

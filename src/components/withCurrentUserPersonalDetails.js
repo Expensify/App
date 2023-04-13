@@ -22,21 +22,14 @@ export default function (WrappedComponent) {
                 // eslint-disable-next-line react/jsx-props-no-spreading
                 {...props}
                 ref={props.forwardedRef}
-                currentUserPersonalDetails={
-                    props.personalDetails[currentUserEmail]
-                }
+                currentUserPersonalDetails={props.personalDetails[currentUserEmail]}
             />
         );
     };
 
-    WithCurrentUserPersonalDetails.displayName = `WithCurrentUserPersonalDetails(${getComponentDisplayName(
-        WrappedComponent,
-    )})`;
+    WithCurrentUserPersonalDetails.displayName = `WithCurrentUserPersonalDetails(${getComponentDisplayName(WrappedComponent)})`;
     WithCurrentUserPersonalDetails.propTypes = {
-        forwardedRef: PropTypes.oneOfType([
-            PropTypes.func,
-            PropTypes.shape({current: PropTypes.instanceOf(React.Component)}),
-        ]),
+        forwardedRef: PropTypes.oneOfType([PropTypes.func, PropTypes.shape({current: PropTypes.instanceOf(React.Component)})]),
 
         /** Personal details of all the users, including current user */
         personalDetails: PropTypes.objectOf(personalDetailsPropType),
@@ -57,7 +50,10 @@ export default function (WrappedComponent) {
 
     const withCurrentUserPersonalDetails = React.forwardRef((props, ref) => (
         // eslint-disable-next-line react/jsx-props-no-spreading
-        <WithCurrentUserPersonalDetails {...props} forwardedRef={ref} />
+        <WithCurrentUserPersonalDetails
+            {...props}
+            forwardedRef={ref}
+        />
     ));
 
     return withOnyx({
@@ -70,7 +66,4 @@ export default function (WrappedComponent) {
     })(withCurrentUserPersonalDetails);
 }
 
-export {
-    withCurrentUserPersonalDetailsPropTypes,
-    withCurrentUserPersonalDetailsDefaultProps,
-};
+export {withCurrentUserPersonalDetailsPropTypes, withCurrentUserPersonalDetailsDefaultProps};

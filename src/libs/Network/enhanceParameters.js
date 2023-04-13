@@ -11,10 +11,7 @@ import * as NetworkStore from './NetworkStore';
  * @return {Boolean}
  */
 function isAuthTokenRequired(command) {
-    return !_.contains(
-        ['Log', 'Authenticate', 'BeginSignIn', 'SetPassword'],
-        command,
-    );
+    return !_.contains(['Log', 'Authenticate', 'BeginSignIn', 'SetPassword'], command);
 }
 
 /**
@@ -43,11 +40,7 @@ export default function enhanceParameters(command, parameters) {
     finalParameters.api_setCookie = false;
 
     // Include current user's email in every request and the server logs
-    finalParameters.email = lodashGet(
-        parameters,
-        'email',
-        NetworkStore.getCurrentUserEmail(),
-    );
+    finalParameters.email = lodashGet(parameters, 'email', NetworkStore.getCurrentUserEmail());
 
     return finalParameters;
 }

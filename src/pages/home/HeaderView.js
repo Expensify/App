@@ -10,9 +10,7 @@ import Icon from '../../components/Icon';
 import * as Expensicons from '../../components/Icon/Expensicons';
 import compose from '../../libs/compose';
 import * as Report from '../../libs/actions/Report';
-import withWindowDimensions, {
-    windowDimensionsPropTypes,
-} from '../../components/withWindowDimensions';
+import withWindowDimensions, {windowDimensionsPropTypes} from '../../components/withWindowDimensions';
 import MultipleAvatars from '../../components/MultipleAvatars';
 import SubscriptAvatar from '../../components/SubscriptAvatar';
 import DisplayNames from '../../components/DisplayNames';
@@ -20,9 +18,7 @@ import * as OptionsListUtils from '../../libs/OptionsListUtils';
 import participantPropTypes from '../../components/participantPropTypes';
 import VideoChatButtonAndMenu from '../../components/VideoChatButtonAndMenu';
 import IOUBadge from '../../components/IOUBadge';
-import withLocalize, {
-    withLocalizePropTypes,
-} from '../../components/withLocalize';
+import withLocalize, {withLocalizePropTypes} from '../../components/withLocalize';
 import CONST from '../../CONST';
 import * as ReportUtils from '../../libs/ReportUtils';
 import Text from '../../components/Text';
@@ -62,59 +58,31 @@ const defaultProps = {
 
 const HeaderView = (props) => {
     const participants = lodashGet(props.report, 'participants', []);
-    const participantPersonalDetails =
-        OptionsListUtils.getPersonalDetailsForLogins(
-            participants,
-            props.personalDetails,
-        );
+    const participantPersonalDetails = OptionsListUtils.getPersonalDetailsForLogins(participants, props.personalDetails);
     const isMultipleParticipant = participants.length > 1;
-    const displayNamesWithTooltips = ReportUtils.getDisplayNamesWithTooltips(
-        participantPersonalDetails,
-        isMultipleParticipant,
-    );
+    const displayNamesWithTooltips = ReportUtils.getDisplayNamesWithTooltips(participantPersonalDetails, isMultipleParticipant);
     const isChatRoom = ReportUtils.isChatRoom(props.report);
     const isPolicyExpenseChat = ReportUtils.isPolicyExpenseChat(props.report);
     const title = ReportUtils.getReportName(props.report, props.policies);
 
-    const subtitle = ReportUtils.getChatRoomSubtitle(
-        props.report,
-        props.policies,
-    );
-    const isConcierge =
-        participants.length === 1 &&
-        _.contains(participants, CONST.EMAIL.CONCIERGE);
-    const isAutomatedExpensifyAccount =
-        participants.length === 1 &&
-        ReportUtils.hasAutomatedExpensifyEmails(participants);
+    const subtitle = ReportUtils.getChatRoomSubtitle(props.report, props.policies);
+    const isConcierge = participants.length === 1 && _.contains(participants, CONST.EMAIL.CONCIERGE);
+    const isAutomatedExpensifyAccount = participants.length === 1 && ReportUtils.hasAutomatedExpensifyEmails(participants);
     const guideCalendarLink = lodashGet(props.account, 'guideCalendarLink');
 
     // We hide the button when we are chatting with an automated Expensify account since it's not possible to contact
     // these users via alternative means. It is possible to request a call with Concierge so we leave the option for them.
-    const shouldShowCallButton =
-        (isConcierge && guideCalendarLink) || !isAutomatedExpensifyAccount;
-    const avatarTooltip = isChatRoom
-        ? undefined
-        : _.pluck(displayNamesWithTooltips, 'tooltip');
-    const shouldShowSubscript =
-        isPolicyExpenseChat &&
-        !props.report.isOwnPolicyExpenseChat &&
-        !ReportUtils.isArchivedRoom(props.report);
-    const icons = ReportUtils.getIcons(
-        props.report,
-        props.personalDetails,
-        props.policies,
-    );
-    const brickRoadIndicator = ReportUtils.hasReportNameError(props.report)
-        ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR
-        : '';
+    const shouldShowCallButton = (isConcierge && guideCalendarLink) || !isAutomatedExpensifyAccount;
+    const avatarTooltip = isChatRoom ? undefined : _.pluck(displayNamesWithTooltips, 'tooltip');
+    const shouldShowSubscript = isPolicyExpenseChat && !props.report.isOwnPolicyExpenseChat && !ReportUtils.isArchivedRoom(props.report);
+    const icons = ReportUtils.getIcons(props.report, props.personalDetails, props.policies);
+    const brickRoadIndicator = ReportUtils.hasReportNameError(props.report) ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : '';
     return (
-        <View style={[styles.appContentHeader]} nativeID="drag-area">
-            <View
-                style={[
-                    styles.appContentHeaderTitle,
-                    !props.isSmallScreenWidth && styles.pl5,
-                ]}
-            >
+        <View
+            style={[styles.appContentHeader]}
+            nativeID="drag-area"
+        >
+            <View style={[styles.appContentHeaderTitle, !props.isSmallScreenWidth && styles.pl5]}>
                 {props.isSmallScreenWidth && (
                     <Pressable
                         onPress={props.onNavigationMenuButtonClicked}
@@ -130,23 +98,10 @@ const HeaderView = (props) => {
                     </Pressable>
                 )}
                 {Boolean(props.report && title) && (
-                    <View
-                        style={[
-                            styles.flex1,
-                            styles.flexRow,
-                            styles.alignItemsCenter,
-                            styles.justifyContentBetween,
-                        ]}
-                    >
+                    <View style={[styles.flex1, styles.flexRow, styles.alignItemsCenter, styles.justifyContentBetween]}>
                         <Pressable
-                            onPress={() =>
-                                ReportUtils.navigateToDetailsPage(props.report)
-                            }
-                            style={[
-                                styles.flexRow,
-                                styles.alignItemsCenter,
-                                styles.flex1,
-                            ]}
+                            onPress={() => ReportUtils.navigateToDetailsPage(props.report)}
+                            style={[styles.flexRow, styles.alignItemsCenter, styles.flex1]}
                         >
                             {shouldShowSubscript ? (
                                 <SubscriptAvatar
@@ -164,40 +119,23 @@ const HeaderView = (props) => {
                             <View style={[styles.flex1, styles.flexColumn]}>
                                 <DisplayNames
                                     fullTitle={title}
-                                    displayNamesWithTooltips={
-                                        displayNamesWithTooltips
-                                    }
+                                    displayNamesWithTooltips={displayNamesWithTooltips}
                                     tooltipEnabled
                                     numberOfLines={1}
-                                    textStyles={[
-                                        styles.headerText,
-                                        styles.textNoWrap,
-                                    ]}
-                                    shouldUseFullTitle={
-                                        isChatRoom || isPolicyExpenseChat
-                                    }
+                                    textStyles={[styles.headerText, styles.textNoWrap]}
+                                    shouldUseFullTitle={isChatRoom || isPolicyExpenseChat}
                                 />
                                 {(isChatRoom || isPolicyExpenseChat) && (
                                     <Text
-                                        style={[
-                                            styles.sidebarLinkText,
-                                            styles.optionAlternateText,
-                                            styles.textLabelSupporting,
-                                        ]}
+                                        style={[styles.sidebarLinkText, styles.optionAlternateText, styles.textLabelSupporting]}
                                         numberOfLines={1}
                                     >
                                         {subtitle}
                                     </Text>
                                 )}
                             </View>
-                            {brickRoadIndicator ===
-                                CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR && (
-                                <View
-                                    style={[
-                                        styles.alignItemsCenter,
-                                        styles.justifyContentCenter,
-                                    ]}
-                                >
+                            {brickRoadIndicator === CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR && (
+                                <View style={[styles.alignItemsCenter, styles.justifyContentCenter]}>
                                     <Icon
                                         src={Expensicons.DotIndicator}
                                         fill={colors.red}
@@ -207,18 +145,8 @@ const HeaderView = (props) => {
                                 </View>
                             )}
                         </Pressable>
-                        <View
-                            style={[
-                                styles.reportOptions,
-                                styles.flexRow,
-                                styles.alignItemsCenter,
-                            ]}
-                        >
-                            {props.report.hasOutstandingIOU && (
-                                <IOUBadge
-                                    iouReportID={props.report.iouReportID}
-                                />
-                            )}
+                        <View style={[styles.reportOptions, styles.flexRow, styles.alignItemsCenter]}>
+                            {props.report.hasOutstandingIOU && <IOUBadge iouReportID={props.report.iouReportID} />}
 
                             {shouldShowCallButton && (
                                 <VideoChatButtonAndMenu
@@ -226,26 +154,14 @@ const HeaderView = (props) => {
                                     guideCalendarLink={guideCalendarLink}
                                 />
                             )}
-                            <Tooltip
-                                text={
-                                    props.report.isPinned
-                                        ? props.translate('common.unPin')
-                                        : props.translate('common.pin')
-                                }
-                            >
+                            <Tooltip text={props.report.isPinned ? props.translate('common.unPin') : props.translate('common.pin')}>
                                 <Pressable
-                                    onPress={() =>
-                                        Report.togglePinnedState(props.report)
-                                    }
+                                    onPress={() => Report.togglePinnedState(props.report)}
                                     style={[styles.touchableButtonImage]}
                                 >
                                     <Icon
                                         src={Expensicons.Pin}
-                                        fill={
-                                            props.report.isPinned
-                                                ? themeColors.heading
-                                                : themeColors.icon
-                                        }
+                                        fill={props.report.isPinned ? themeColors.heading : themeColors.icon}
                                     />
                                 </Pressable>
                             </Tooltip>
@@ -266,8 +182,7 @@ export default compose(
     withOnyx({
         account: {
             key: ONYXKEYS.ACCOUNT,
-            selector: (account) =>
-                account && {guideCalendarLink: account.guideCalendarLink},
+            selector: (account) => account && {guideCalendarLink: account.guideCalendarLink},
         },
     }),
 )(HeaderView);

@@ -11,16 +11,12 @@ import * as Session from '../../libs/actions/Session';
 import ONYXKEYS from '../../ONYXKEYS';
 import CONST from '../../CONST';
 import ChangeExpensifyLoginLink from './ChangeExpensifyLoginLink';
-import withLocalize, {
-    withLocalizePropTypes,
-} from '../../components/withLocalize';
+import withLocalize, {withLocalizePropTypes} from '../../components/withLocalize';
 import compose from '../../libs/compose';
 import TextInput from '../../components/TextInput';
 import * as ComponentUtils from '../../libs/ComponentUtils';
 import * as ValidationUtils from '../../libs/ValidationUtils';
-import withToggleVisibilityView, {
-    toggleVisibilityViewPropTypes,
-} from '../../components/withToggleVisibilityView';
+import withToggleVisibilityView, {toggleVisibilityViewPropTypes} from '../../components/withToggleVisibilityView';
 import canFocusInputOnScreenFocus from '../../libs/canFocusInputOnScreenFocus';
 import * as ErrorUtils from '../../libs/ErrorUtils';
 import {withNetwork} from '../../components/OnyxProvider';
@@ -66,11 +62,7 @@ class PasswordForm extends React.Component {
     }
 
     componentDidMount() {
-        if (
-            !canFocusInputOnScreenFocus() ||
-            !this.inputPassword ||
-            !this.props.isVisible
-        ) {
+        if (!canFocusInputOnScreenFocus() || !this.inputPassword || !this.props.isVisible) {
             return;
         }
         this.inputPassword.focus();
@@ -80,23 +72,13 @@ class PasswordForm extends React.Component {
         if (!prevProps.isVisible && this.props.isVisible) {
             this.inputPassword.focus();
         }
-        if (
-            prevProps.isVisible &&
-            !this.props.isVisible &&
-            this.state.password
-        ) {
+        if (prevProps.isVisible && !this.props.isVisible && this.state.password) {
             this.clearPassword();
         }
-        if (
-            !prevProps.account.requiresTwoFactorAuth &&
-            this.props.account.requiresTwoFactorAuth
-        ) {
+        if (!prevProps.account.requiresTwoFactorAuth && this.props.account.requiresTwoFactorAuth) {
             this.input2FA.focus();
         }
-        if (
-            prevState.twoFactorAuthCode !== this.state.twoFactorAuthCode &&
-            this.state.twoFactorAuthCode.length === CONST.TFA_CODE_LENGTH
-        ) {
+        if (prevState.twoFactorAuthCode !== this.state.twoFactorAuthCode && this.state.twoFactorAuthCode.length === CONST.TFA_CODE_LENGTH) {
             this.validateAndSubmitForm();
         }
     }
@@ -175,10 +157,7 @@ class PasswordForm extends React.Component {
             return;
         }
 
-        if (
-            requiresTwoFactorAuth &&
-            !ValidationUtils.isValidTwoFactorCode(twoFactorCode)
-        ) {
+        if (requiresTwoFactorAuth && !ValidationUtils.isValidTwoFactorCode(twoFactorCode)) {
             this.setState({
                 formError: {
                     twoFactorAuthCode: 'passwordForm.error.incorrect2fa',
@@ -202,34 +181,22 @@ class PasswordForm extends React.Component {
                         ref={(el) => (this.inputPassword = el)}
                         label={this.props.translate('common.password')}
                         secureTextEntry
-                        autoCompleteType={
-                            ComponentUtils.PASSWORD_AUTOCOMPLETE_TYPE
-                        }
+                        autoCompleteType={ComponentUtils.PASSWORD_AUTOCOMPLETE_TYPE}
                         textContentType="password"
                         nativeID="password"
                         name="password"
                         value={this.state.password}
-                        onChangeText={(text) =>
-                            this.onTextInput(text, 'password')
-                        }
+                        onChangeText={(text) => this.onTextInput(text, 'password')}
                         onSubmitEditing={this.validateAndSubmitForm}
                         blurOnSubmit={false}
-                        errorText={
-                            this.state.formError.password
-                                ? this.props.translate(
-                                      this.state.formError.password,
-                                  )
-                                : ''
-                        }
+                        errorText={this.state.formError.password ? this.props.translate(this.state.formError.password) : ''}
                     />
                     <View style={[styles.changeExpensifyLoginLinkContainer]}>
                         <TouchableOpacity
                             style={[styles.mt2]}
                             onPress={this.resetPassword}
                         >
-                            <Text style={[styles.link]}>
-                                {this.props.translate('passwordForm.forgot')}
-                            </Text>
+                            <Text style={[styles.link]}>{this.props.translate('passwordForm.forgot')}</Text>
                         </TouchableOpacity>
                     </View>
                 </View>
@@ -238,41 +205,21 @@ class PasswordForm extends React.Component {
                     <View style={[styles.mv3]}>
                         <TextInput
                             ref={(el) => (this.input2FA = el)}
-                            label={this.props.translate(
-                                'passwordForm.twoFactorCode',
-                            )}
+                            label={this.props.translate('passwordForm.twoFactorCode')}
                             value={this.state.twoFactorAuthCode}
-                            placeholder={this.props.translate(
-                                'passwordForm.requiredWhen2FAEnabled',
-                            )}
+                            placeholder={this.props.translate('passwordForm.requiredWhen2FAEnabled')}
                             placeholderTextColor={themeColors.placeholderText}
-                            onChangeText={(text) =>
-                                this.onTextInput(text, 'twoFactorAuthCode')
-                            }
+                            onChangeText={(text) => this.onTextInput(text, 'twoFactorAuthCode')}
                             onSubmitEditing={this.validateAndSubmitForm}
                             keyboardType={CONST.KEYBOARD_TYPE.NUMBER_PAD}
                             blurOnSubmit={false}
                             maxLength={CONST.TFA_CODE_LENGTH}
-                            errorText={
-                                this.state.formError.twoFactorAuthCode
-                                    ? this.props.translate(
-                                          this.state.formError
-                                              .twoFactorAuthCode,
-                                      )
-                                    : ''
-                            }
+                            errorText={this.state.formError.twoFactorAuthCode ? this.props.translate(this.state.formError.twoFactorAuthCode) : ''}
                         />
                     </View>
                 )}
 
-                {this.props.account &&
-                    !_.isEmpty(this.props.account.errors) && (
-                        <FormHelpMessage
-                            message={ErrorUtils.getLatestErrorMessage(
-                                this.props.account,
-                            )}
-                        />
-                    )}
+                {this.props.account && !_.isEmpty(this.props.account.errors) && <FormHelpMessage message={ErrorUtils.getLatestErrorMessage(this.props.account)} />}
                 <View>
                     <Button
                         isDisabled={this.props.network.isOffline}
@@ -284,9 +231,7 @@ class PasswordForm extends React.Component {
                     />
                     <ChangeExpensifyLoginLink onPress={this.clearSignInData} />
                 </View>
-                <View
-                    style={[styles.mt5, styles.signInPageWelcomeTextContainer]}
-                >
+                <View style={[styles.mt5, styles.signInPageWelcomeTextContainer]}>
                     <Terms />
                 </View>
             </>

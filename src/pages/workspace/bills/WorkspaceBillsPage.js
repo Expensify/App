@@ -1,8 +1,6 @@
 import React from 'react';
 import PropTypes from 'prop-types';
-import withLocalize, {
-    withLocalizePropTypes,
-} from '../../../components/withLocalize';
+import withLocalize, {withLocalizePropTypes} from '../../../components/withLocalize';
 import WorkspaceBillsNoVBAView from './WorkspaceBillsNoVBAView';
 import WorkspaceBillsVBAView from './WorkspaceBillsVBAView';
 import WorkspacePageWithSections from '../WorkspacePageWithSections';

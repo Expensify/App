@@ -47,19 +47,10 @@ function canUseBrowserNotifications() {
  *
  * @return {Promise} - resolves with Notification object or undefined
  */
-function push({
-    title,
-    body,
-    delay = DEFAULT_DELAY,
-    onClick = () => {},
-    tag = '',
-    icon,
-}) {
+function push({title, body, delay = DEFAULT_DELAY, onClick = () => {}, tag = '', icon}) {
     return new Promise((resolve) => {
         if (!title || !body) {
-            throw new Error(
-                'BrowserNotification must include title and body parameter.',
-            );
+            throw new Error('BrowserNotification must include title and body parameter.');
         }
 
         canUseBrowserNotifications().then((canUseNotifications) => {
@@ -108,14 +99,10 @@ export default {
      */
     pushReportCommentNotification({reportAction, onClick}, usesIcon = false) {
         const {person, message} = reportAction;
-        const plainTextPerson = Str.htmlDecode(
-            _.map(person, (f) => f.text).join(),
-        );
+        const plainTextPerson = Str.htmlDecode(_.map(person, (f) => f.text).join());
 
         // Specifically target the comment part of the message
-        const plainTextMessage = Str.htmlDecode(
-            (_.find(message, (f) => f.type === 'COMMENT') || {}).text,
-        );
+        const plainTextMessage = Str.htmlDecode((_.find(message, (f) => f.type === 'COMMENT') || {}).text);
 
         push({
             title: plainTextPerson,

@@ -24,9 +24,7 @@ export default function (WrappedComponent) {
         }
 
         componentDidMount() {
-            this.removeViewportResizeListener = addViewportResizeListener(
-                this.updateDimensions,
-            );
+            this.removeViewportResizeListener = addViewportResizeListener(this.updateDimensions);
         }
 
         componentWillUnmount() {
@@ -53,21 +51,19 @@ export default function (WrappedComponent) {
         }
     }
 
-    WithViewportOffsetTop.displayName = `WithViewportOffsetTop(${getComponentDisplayName(
-        WrappedComponent,
-    )})`;
+    WithViewportOffsetTop.displayName = `WithViewportOffsetTop(${getComponentDisplayName(WrappedComponent)})`;
     WithViewportOffsetTop.propTypes = {
-        forwardedRef: PropTypes.oneOfType([
-            PropTypes.func,
-            PropTypes.shape({current: PropTypes.instanceOf(React.Component)}),
-        ]),
+        forwardedRef: PropTypes.oneOfType([PropTypes.func, PropTypes.shape({current: PropTypes.instanceOf(React.Component)})]),
     };
     WithViewportOffsetTop.defaultProps = {
         forwardedRef: undefined,
     };
     return React.forwardRef((props, ref) => (
         // eslint-disable-next-line react/jsx-props-no-spreading
-        <WithViewportOffsetTop {...props} forwardedRef={ref} />
+        <WithViewportOffsetTop
+            {...props}
+            forwardedRef={ref}
+        />
     ));
 }
 

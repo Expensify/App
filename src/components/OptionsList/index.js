@@ -68,6 +68,9 @@ OptionsList.defaultProps = defaultProps;
 export default withWindowDimensions(
     forwardRef((props, ref) => (
         // eslint-disable-next-line react/jsx-props-no-spreading
-        <OptionsList forwardedRef={ref} {...props} />
+        <OptionsList
+            forwardedRef={ref}
+            {...props}
+        />
     )),
 );

@@ -57,14 +57,7 @@ const WrappedText = (props) => {
                             key={`${colText}-${colIndex}`}
                             style={styles.codeWordWrapper}
                         >
-                            <View
-                                style={[
-                                    props.wordStyles,
-                                    colIndex === 0 && styles.codeFirstWordStyle,
-                                    colIndex === rowText.length - 1 &&
-                                        styles.codeLastWordStyle,
-                                ]}
-                            >
+                            <View style={[props.wordStyles, colIndex === 0 && styles.codeFirstWordStyle, colIndex === rowText.length - 1 && styles.codeLastWordStyle]}>
                                 <Text style={props.textStyles}>{colText}</Text>
                             </View>
                         </View>
