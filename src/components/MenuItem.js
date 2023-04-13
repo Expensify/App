@@ -48,7 +48,7 @@ const defaultProps = {
     subtitle: undefined,
     iconType: CONST.ICON_TYPE_ICON,
     onPress: () => {},
-    onSecondaryInteraction: () => {},
+    onSecondaryInteraction: undefined,
     interactive: true,
     fallbackIcon: Expensicons.FallbackAvatar,
     brickRoadIndicator: '',

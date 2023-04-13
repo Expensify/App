@@ -55,21 +55,22 @@ class PressableWithSecondaryInteraction extends Component {
 
     render() {
         const defaultPressableProps = _.omit(this.props, ['onSecondaryInteraction', 'children', 'onLongPress']);
+        const executeSecondaryInteraction = (e) => {
+            if (DeviceCapabilities.hasHoverSupport()) {
+                return;
+            }
+            if (this.props.withoutFocusOnSecondaryInteraction && this.pressableRef) {
+                this.pressableRef.blur();
+            }
+            this.props.onSecondaryInteraction(e);
+        };
 
         // On Web, Text does not support LongPress events thus manage inline mode with styling instead of using Text.
         return (
             <Pressable
                 style={StyleUtils.combineStyles(this.props.inline ? styles.dInline : this.props.style)}
                 onPressIn={this.props.onPressIn}
-                onLongPress={this.props.onSecondaryInteraction ? (e) => {
-                    if (DeviceCapabilities.hasHoverSupport()) {
-                        return;
-                    }
-                    if (this.props.withoutFocusOnSecondaryInteraction && this.pressableRef) {
-                        this.pressableRef.blur();
-                    }
-                    this.props.onSecondaryInteraction(e);
-                } : undefined}
+                onLongPress={this.props.onSecondaryInteraction ? executeSecondaryInteraction : undefined}
                 onPressOut={this.props.onPressOut}
                 onPress={this.props.onPress}
                 ref={el => this.pressableRef = el}
