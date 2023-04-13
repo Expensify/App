@@ -33,6 +33,7 @@ platform :android do
     gradle(
       project_dir: './android',
       task: 'assemble',
+      flavor: 'Production',
       build_type: 'Release',
     )
   end
@@ -44,7 +45,8 @@ platform :android do
     gradle(
         project_dir: './android',
         task: 'assemble',
-        build_type: 'InternalRelease',
+        flavor: 'Adhoc',
+        build_type: 'Release',
     )
 
     aws_s3(
@@ -67,6 +69,7 @@ platform :android do
     gradle(
         project_dir: './android',
         task: 'bundle',
+        flavor: 'Production',
         build_type: 'Release',
     )
 
