@@ -60,7 +60,7 @@ const ResendValidationForm = (props) => {
                     imageStyles={[styles.mr2]}
                 />
                 <View style={[styles.flex1]}>
-                    <Text style={[styles.textStrong]}>
+                    <Text textBreakStrategy="simple" style={[styles.textStrong]}>
                         {login}
                     </Text>
                 </View>
