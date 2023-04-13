@@ -38,7 +38,7 @@ const MenuItemList = (props) => {
                     key={menuItemProps.title}
                     onSecondaryInteraction={e => secondaryInteraction(menuItemProps.link, e)}
                     ref={el => popoverAnchor = el}
-                    shouldBlockSelection={typeof menuItemProps.link === 'function' || !_.isEmpty(menuItemProps.link)}
+                    shouldBlockSelection={Boolean(menuItemProps.link)}
                     // eslint-disable-next-line react/jsx-props-no-spreading
                     {...menuItemProps}
                 />
