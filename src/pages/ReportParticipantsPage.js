@@ -57,7 +57,7 @@ const defaultProps = {
 const getAllParticipants = (report, personalDetails) => {
     const {participants} = report;
 
-    return _.map(participants, (login) => {
+    return _.chain(participants).sort().map((login) => {
         const userLogin = Str.removeSMSDomain(login);
         const userPersonalDetail = lodashGet(personalDetails, login, {displayName: userLogin, avatar: ''});
 
@@ -74,7 +74,7 @@ const getAllParticipants = (report, personalDetails) => {
             text: userPersonalDetail.displayName,
             tooltipText: userLogin,
             participantsList: [{login, displayName: userPersonalDetail.displayName}],
-        });
+        }).value();
     });
 };
 
