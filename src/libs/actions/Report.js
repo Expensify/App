@@ -3,6 +3,7 @@ import _ from 'underscore';
 import lodashGet from 'lodash/get';
 import ExpensiMark from 'expensify-common/lib/ExpensiMark';
 import Onyx from 'react-native-onyx';
+import Str from 'expensify-common/lib/str';
 import ONYXKEYS from '../../ONYXKEYS';
 import * as Pusher from '../Pusher/pusher';
 import LocalNotification from '../Notification/LocalNotification';
@@ -201,9 +202,11 @@ function addActions(reportID, text = '', file) {
 
     const currentTime = DateUtils.getDBTime();
 
+    const lastCommentText = ReportUtils.formatReportLastMessageText(lastAction.message[0].text);
+
     const optimisticReport = {
         lastVisibleActionCreated: currentTime,
-        lastMessageText: ReportUtils.formatReportLastMessageText(lastAction.message[0].text),
+        lastMessageText: Str.htmlDecode(lastCommentText),
         lastActorEmail: currentUserEmail,
         lastReadTime: currentTime,
     };
