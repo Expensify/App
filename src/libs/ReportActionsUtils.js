@@ -158,26 +158,64 @@ function getLastVisibleMessageText(reportID, actionsToMerge = {}) {
 }
 
 /**
+ * Checks if a reportAction is deprecated.
+ *
+ * @param {Object} reportAction
+ * @param {String} key
+ * @returns {Boolean}
+ */
+function isReportActionDeprecated(reportAction, key) {
+    if (!reportAction) {
+        return true;
+    }
+
+    // HACK ALERT: We're temporarily filtering out any reportActions keyed by sequenceNumber
+    // to prevent bugs during the migration from sequenceNumber -> reportActionID
+    if (String(reportAction.sequenceNumber) === key) {
+        Log.info('Front-end filtered out reportAction keyed by sequenceNumber!', false, reportAction);
+        return true;
+    }
+
+    return false;
+}
+
+/**
+ * Checks if a reportAction is fit for display, meaning that it's not deprecated, is of a valid
+ * and supported type, it's not deleted and also not closed.
+ *
+ * @param {Object} reportAction
+ * @param {String} key
+ * @returns {Boolean}
+ */
+function shouldReportActionBeVisible(reportAction, key) {
+    if (isReportActionDeprecated(reportAction, key)) {
+        return false;
+    }
+
+    // Filter out any unsupported reportAction types
+    if (!_.has(CONST.REPORT.ACTIONS.TYPE, reportAction.actionName) && !_.contains(_.values(CONST.REPORT.ACTIONS.TYPE.POLICYCHANGELOG), reportAction.actionName)) {
+        return false;
+    }
+
+    // Ignore closed action here since we're already displaying a footer that explains why the report was closed
+    if (reportAction.actionName === CONST.REPORT.ACTIONS.TYPE.CLOSED) {
+        return false;
+    }
+
+    // All other actions are displayed except deleted, non-pending actions
+    const isDeleted = isDeletedAction(reportAction);
+    const isPending = !_.isEmpty(reportAction.pendingAction);
+    return !isDeleted || isPending;
+}
+
+/**
  * A helper method to filter out report actions keyed by sequenceNumbers.
  *
  * @param {Object} reportActions
  * @returns {Array}
  */
 function filterOutDeprecatedReportActions(reportActions) {
-    // HACK ALERT: We're temporarily filtering out any reportActions keyed by sequenceNumber
-    // to prevent bugs during the migration from sequenceNumber -> reportActionID
-    return _.filter(reportActions, (reportAction, key) => {
-        if (!reportAction) {
-            return false;
-        }
-
-        if (String(reportAction.sequenceNumber) === key) {
-            Log.info('Front-end filtered out reportAction keyed by sequenceNumber!', false, reportAction);
-            return false;
-        }
-
-        return true;
-    });
+    return _.filter(reportActions, (reportAction, key) => !isReportActionDeprecated(reportAction, key));
 }
 
 /**
@@ -190,24 +228,8 @@ function filterOutDeprecatedReportActions(reportActions) {
  * @returns {Array}
  */
 function getSortedReportActionsForDisplay(reportActions) {
-    const filteredReportActions = filterOutDeprecatedReportActions(reportActions);
-    const sortedReportActions = getSortedReportActions(filteredReportActions, true);
-    return _.filter(sortedReportActions, (reportAction) => {
-        // Filter out any unsupported reportAction types
-        if (!_.has(CONST.REPORT.ACTIONS.TYPE, reportAction.actionName) && !_.contains(_.values(CONST.REPORT.ACTIONS.TYPE.POLICYCHANGELOG), reportAction.actionName)) {
-            return false;
-        }
-
-        // Ignore closed action here since we're already displaying a footer that explains why the report was closed
-        if (reportAction.actionName === CONST.REPORT.ACTIONS.TYPE.CLOSED) {
-            return false;
-        }
-
-        // All other actions are displayed except deleted, non-pending actions
-        const isDeleted = isDeletedAction(reportAction);
-        const isPending = !_.isEmpty(reportAction.pendingAction);
-        return !isDeleted || isPending;
-    });
+    const filteredReportActions = _.filter(reportActions, (reportAction, key) => shouldReportActionBeVisible(reportAction, key));
+    return getSortedReportActions(filteredReportActions, true);
 }
 
 /**
@@ -250,6 +272,8 @@ export {
     getLastVisibleMessageText,
     getMostRecentIOURequestActionID,
     isDeletedAction,
+    shouldReportActionBeVisible,
+    isReportActionDeprecated,
     isConsecutiveActionMadeByPreviousActor,
     getSortedReportActionsForDisplay,
     getLastClosedReportAction,
