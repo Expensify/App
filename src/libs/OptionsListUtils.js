@@ -166,6 +166,12 @@ function getPersonalDetailsForLogins(logins, personalDetails) {
     return personalDetailsForLogins;
 }
 
+/**
+ * Get the participant options for a report.
+ * @param {Object} report
+ * @param {Array<Object>} personalDetailList
+ * @returns {Array}
+ */
 function getParticipantsOptions(report, personalDetails) {
     const participants = lodashGet(report, 'participants', []);
     return _.map(getPersonalDetailsForLogins(participants, personalDetails), details => ({
