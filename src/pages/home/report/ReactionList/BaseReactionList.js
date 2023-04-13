@@ -8,10 +8,7 @@ import HeaderReactionList from './HeaderReactionList';
 import * as ReportUtils from '../../../../libs/ReportUtils';
 import CONST from '../../../../CONST';
 import participantPropTypes from '../../../../components/participantPropTypes';
-import {
-    propTypes as reactionPropTypes,
-    defaultProps as reactionDefaultProps,
-} from './reactionPropTypes';
+import reactionPropTypes from './reactionPropTypes';
 import OptionRow from '../../../../components/OptionRow';
 import variables from '../../../../styles/variables';
 
@@ -20,7 +17,7 @@ const propTypes = {
     /**
     *  Array of personal detail objects
     */
-    users: PropTypes.arrayOf(participantPropTypes),
+    users: PropTypes.arrayOf(participantPropTypes).isRequired,
 
     /**
      * Returns true if the current account has reacted to the report action (with the given skin tone).
@@ -31,8 +28,6 @@ const propTypes = {
 };
 
 const defaultProps = {
-    ...reactionDefaultProps,
-
     hasUserReacted: false,
 };
 
@@ -49,6 +44,7 @@ const renderItem = ({item}) => (
     <OptionRow
         item={item}
         boldStyle
+        style={{maxWidth: variables.mobileResponsiveWidthBreakpoint}}
         option={{
             text: Str.removeSMSDomain(item.displayName),
             alternateText: Str.removeSMSDomain(item.login),
@@ -99,7 +95,6 @@ const BaseReactionList = (props) => {
                 emojiCodes={props.emojiCodes}
                 emojiCount={props.emojiCount}
                 hasUserReacted={props.hasUserReacted}
-                sizeScale={props.sizeScale}
             />
             <FlatList
                 data={props.users}

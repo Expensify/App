@@ -30,7 +30,6 @@ class PopoverReactionList extends React.Component {
             users: [],
             emojiCodes: [],
             emojiName: '',
-            sizeScale: 1,
             emojiCount: 0,
             hasUserReacted: false,
         };
@@ -173,7 +172,6 @@ class PopoverReactionList extends React.Component {
                 emojiCodes={this.state.emojiCodes}
                 emojiCount={this.state.emojiCount}
                 onClose={this.hideReactionList}
-                sizeScale={this.state.sizeScale}
                 hasUserReacted={this.state.hasUserReacted}
             />
         );
@@ -201,7 +199,6 @@ class PopoverReactionList extends React.Component {
                         emojiCodes={this.state.emojiCodes}
                         emojiCount={this.state.emojiCount}
                         onClose={this.hideReactionList}
-                        sizeScale={this.state.sizeScale}
                         hasUserReacted={this.state.hasUserReacted}
                     />
                 </PopoverWithMeasuredContent>

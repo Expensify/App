@@ -7,10 +7,7 @@ import Text from '../../../../components/Text';
 import Icon from '../../../../components/Icon';
 import * as Expensicons from '../../../../components/Icon/Expensicons';
 import * as StyleUtils from '../../../../styles/StyleUtils';
-import {
-    propTypes as reactionPropTypes,
-    defaultProps as reactionDefaultProps,
-} from './reactionPropTypes';
+import reactionPropTypes from './reactionPropTypes';
 import compose from '../../../../libs/compose';
 import withWindowDimensions, {windowDimensionsPropTypes} from '../../../../components/withWindowDimensions';
 
@@ -26,7 +23,6 @@ const propTypes = {
 };
 
 const defaultProps = {
-    ...reactionDefaultProps,
     hasUserReacted: false,
 };
 
@@ -34,10 +30,10 @@ const HeaderReactionList = props => (
     <View style={[styles.flexRow, styles.justifyContentBetween, styles.alignItemsCenter, styles.emojiReactionListHeader, !props.isSmallScreenWidth && styles.pt4]}>
         <View style={styles.flexRow}>
             <View style={[styles.emojiReactionListHeaderBubble, StyleUtils.getEmojiReactionBubbleStyle(false, props.hasUserReacted)]}>
-                <Text style={[styles.emojiReactionText, StyleUtils.getEmojiReactionTextStyle(props.sizeScale)]}>
+                <Text style={[styles.miniQuickEmojiReactionText, StyleUtils.getEmojiReactionBubbleTextStyle(true)]}>
                     {props.emojiCodes.join('')}
                 </Text>
-                <Text style={[styles.reactionCounterText, StyleUtils.getEmojiReactionCounterTextStyle(props.hasUserReacted, props.sizeScale)]}>
+                <Text style={[styles.reactionCounterText, StyleUtils.getEmojiReactionCounterTextStyle(props.hasUserReacted)]}>
                     {props.emojiCount}
                 </Text>
             </View>

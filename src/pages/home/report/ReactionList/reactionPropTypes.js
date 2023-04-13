@@ -13,16 +13,6 @@ const propTypes = {
     /** Count of the emoji */
     emojiCount: PropTypes.number.isRequired,
 
-    /**
-     * The default size of the reaction bubble is defined
-     * by the styles in styles.js. This scale factor can be used
-     * to make the bubble bigger or smaller.
-     */
-    sizeScale: PropTypes.number,
 };
 
-const defaultProps = {
-    sizeScale: 1,
-};
-
-export {propTypes, defaultProps};
+export default propTypes;

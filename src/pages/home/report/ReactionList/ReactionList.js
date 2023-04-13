@@ -11,7 +11,6 @@ const reactionListRef = React.createRef();
  * @param {String} emojiName - the emoji codes to display near the bubble.
  * @param {String} emojiCodes - the emoji codes to display in the bubble.
  * @param {Boolean} hasUserReacted - show if user has reacted
- * @param {Number} sizeScale - set the sizeScale of emoji
  */
 function showReactionList(
     event,
@@ -20,7 +19,6 @@ function showReactionList(
     emojiName,
     emojiCodes,
     hasUserReacted,
-    sizeScale,
 ) {
     if (!reactionListRef.current) {
         return;
@@ -32,7 +30,6 @@ function showReactionList(
         emojiName,
         emojiCodes,
         hasUserReacted,
-        sizeScale,
     );
 }
 
