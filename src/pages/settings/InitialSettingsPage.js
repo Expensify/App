@@ -242,7 +242,7 @@ class InitialSettingsPage extends React.Component {
                 shouldStackHorizontally={item.shouldStackHorizontally}
                 ref={this.popoverAnchor}
                 shouldBlockSelection={Boolean(item.link)}
-                onSecondaryInteraction={e => Boolean(item.link) && ReportActionContextMenu.showContextMenu(CONTEXT_MENU_TYPES.LINK, e, item.link, this.popoverAnchor.current)}
+                onSecondaryInteraction={!_.isEmpty(item.link) ? e => ReportActionContextMenu.showContextMenu(CONTEXT_MENU_TYPES.LINK, e, item.link, this.popoverAnchor.current) : undefined}
             />
         );
     }
