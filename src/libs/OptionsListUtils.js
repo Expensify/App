@@ -89,6 +89,11 @@ Onyx.connect({
     },
 });
 
+/**
+ * Get the options for a policy expense report.
+ * @param {Object} report
+ * @returns {Array}
+ */
 function getPolicyExpenseReportOptions(report) {
     if (!ReportUtils.isPolicyExpenseChat(report)) {
         return [];
