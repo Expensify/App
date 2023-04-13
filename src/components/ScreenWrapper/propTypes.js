@@ -1,5 +1,6 @@
 import PropTypes from 'prop-types';
 import * as DeviceCapabilities from '../../libs/DeviceCapabilities';
+import {windowDimensionsPropTypes} from '../withWindowDimensions';
 
 const propTypes = {
     /** Array of additional styles to add */
@@ -35,6 +36,8 @@ const propTypes = {
 
     /** Whether to use the maxHeight (true) or use the 100% of the height (false) */
     shouldEnableMaxHeight: PropTypes.bool,
+
+    ...windowDimensionsPropTypes,
 };
 
 const defaultProps = {

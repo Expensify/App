@@ -86,7 +86,7 @@ const defaultProps = {
     report: {
         participants: [],
     },
-    iouType: CONST.IOU.IOU_TYPE.REQUEST,
+    iouType: CONST.IOU.MONEY_REQUEST_TYPE.REQUEST,
     currentUserPersonalDetails: {
         localCurrencyCode: CONST.CURRENCY.USD,
     },
@@ -195,35 +195,15 @@ const MoneyRequestModal = (props) => {
      * @returns {String}
      */
     const titleForStep = useMemo(() => {
-        const isSendingMoney = props.iouType === CONST.IOU.IOU_TYPE.SEND;
-        if (currentStepIndex === 1 || currentStepIndex === 2) {
-            const formattedAmount = props.numberFormat(
-                amount, {
-                    style: 'currency',
-                    currency: props.iou.selectedCurrencyCode,
-                },
-            );
-            if (isSendingMoney) {
-                return props.translate('iou.send', {
-                    amount: formattedAmount,
-                });
-            }
-            return props.translate(
-                props.hasMultipleParticipants ? 'iou.split' : 'iou.request', {
-                    amount: formattedAmount,
-                },
-            );
-        }
         if (currentStepIndex === 0) {
-            if (isSendingMoney) {
+            if (props.iouType === CONST.IOU.MONEY_REQUEST_TYPE.SEND) {
                 return props.translate('iou.sendMoney');
             }
             return props.translate(props.hasMultipleParticipants ? 'iou.splitBill' : 'iou.requestMoney');
         }
-
-        return props.translate(steps[currentStepIndex]) || '';
+        return props.translate('iou.cash');
         // eslint-disable-next-line react-hooks/exhaustive-deps -- props does not need to be a dependency as it will always exist
-    }, [amount, currentStepIndex, props.hasMultipleParticipants, props.iou.selectedCurrencyCode, props.iouType, props.numberFormat, steps]);
+    }, [currentStepIndex, props.translate]);
 
     /**
      * Navigate to the previous request step if possible
@@ -385,6 +365,7 @@ const MoneyRequestModal = (props) => {
                                             onAddParticipants={selectedParticipants => setParticipants(selectedParticipants)}
                                             onStepComplete={navigateToNextStep}
                                             safeAreaPaddingBottomStyle={safeAreaPaddingBottomStyle}
+                                            iouType={props.iouType}
                                         />
                                     </AnimatedStep>
                                 )}
