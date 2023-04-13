@@ -5,4 +5,5 @@ module.exports = {
     bracketSpacing: false,
     arrowParens: 'always',
     printWidth: 190,
+    singleAttributePerLine: true,
 };
