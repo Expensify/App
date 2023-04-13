@@ -92,7 +92,7 @@ const MenuItem = (props) => {
             {({hovered, pressed}) => (
                 <>
                     <View style={[styles.flexRow, styles.pointerEventsAuto, styles.flex1, props.disabled && styles.cursorDisabled]}>
-                        {props.icon && (
+                        {Boolean(props.icon) && (
                             <View
                                 style={[
                                     styles.popoverMenuIcon,
@@ -158,7 +158,7 @@ const MenuItem = (props) => {
                         </View>
                     </View>
                     <View style={[styles.flexRow, styles.menuItemTextContainer, styles.pointerEventsNone]}>
-                        {props.badgeText && (
+                        {Boolean(props.badgeText) && (
                         <Badge
                             text={props.badgeText}
                             badgeStyles={[styles.alignSelfCenter, (props.brickRoadIndicator ? styles.mr2 : undefined),

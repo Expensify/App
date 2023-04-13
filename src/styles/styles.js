@@ -1,3 +1,4 @@
+import {defaultStyles as defaultPickerStyles} from 'react-native-picker-select/src/styles';
 import fontFamily from './fontFamily';
 import addOutlineWidth from './addOutlineWidth';
 import themeColors from './themes/default';
@@ -605,6 +606,9 @@ const styles = {
         done: {
             color: themeColors.text,
         },
+        doneDepressed: {
+            fontSize: defaultPickerStyles.done.fontSize,
+        },
         modalViewMiddle: {
             backgroundColor: themeColors.border,
             borderTopWidth: 0,
@@ -942,6 +946,9 @@ const styles = {
         },
         done: {
             color: themeColors.text,
+        },
+        doneDepressed: {
+            fontSize: defaultPickerStyles.done.fontSize,
         },
         modalViewMiddle: {
             backgroundColor: themeColors.border,
@@ -1290,8 +1297,8 @@ const styles = {
         // Starting version 6.3.2 @react-navigation/drawer adds "user-select: none;" to its container.
         // We add user-select-auto to the inner component to prevent incorrect triple-click text selection.
         // For further explanation see - https://github.com/Expensify/App/pull/12730/files#r1022883823
-        userSelect: 'auto',
-        WebkitUserSelect: 'auto',
+        userSelect: 'text',
+        WebkitUserSelect: 'text',
     },
 
     appContentHeader: {
