@@ -77,6 +77,8 @@ const AvatarCropModal = (props) => {
     const rotation = useSharedValue(0);
     const translateSlider = useSharedValue(0);
     const isPressableEnabled = useSharedValue(true);
+
+    // Check if image cropping, saving or uploading is in progress
     const isLoading = useSharedValue(false);
 
     // The previous offset values are maintained to recalculate the offset value in proportion
