@@ -2186,16 +2186,9 @@ const styles = {
         width: '100%',
     },
 
-    leftAttachmentArrow: {
+    attachmentArrow: {
         zIndex: 23,
         position: 'absolute',
-        left: 8,
-    },
-
-    rightAttachmentArrow: {
-        zIndex: 23,
-        position: 'absolute',
-        right: 8,
     },
 
     arrowIcon: {

@@ -19,6 +19,7 @@ import tryResolveUrlFromApiRoot from '../../libs/tryResolveUrlFromApiRoot';
 import Tooltip from '../Tooltip';
 import withLocalize, {withLocalizePropTypes} from '../withLocalize';
 import compose from '../../libs/compose';
+import withWindowDimensions from '../withWindowDimensions';
 
 const propTypes = {
     /** source is used to determine the starting index in the array of attachments */
@@ -198,7 +199,12 @@ class AttachmentCarousel extends React.Component {
                 {(isPageSet && this.state.shouldShowArrow) && (
                     <>
                         {!this.state.isBackDisabled && (
-                            <View style={styles.leftAttachmentArrow}>
+                            <View
+                                style={[
+                                    styles.attachmentArrow,
+                                    this.props.isSmallScreenWidth ? styles.l2 : styles.l8,
+                                ]}
+                            >
                                 <Tooltip text={this.props.translate('common.previous')}>
                                     <Button
                                         small
@@ -217,7 +223,12 @@ class AttachmentCarousel extends React.Component {
                             </View>
                         )}
                         {!this.state.isForwardDisabled && (
-                            <View style={styles.rightAttachmentArrow}>
+                            <View
+                                style={[
+                                    styles.attachmentArrow,
+                                    this.props.isSmallScreenWidth ? styles.r2 : styles.r8,
+                                ]}
+                            >
                                 <Tooltip text={this.props.translate('common.next')}>
                                     <Button
                                         small
@@ -267,4 +278,5 @@ export default compose(
         },
     }),
     withLocalize,
+    withWindowDimensions,
 )(AttachmentCarousel);
