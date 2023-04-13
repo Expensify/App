@@ -12,7 +12,9 @@ import Text from '../../components/Text';
 import ConfirmModal from '../../components/ConfirmModal';
 import * as Expensicons from '../../components/Icon/Expensicons';
 import ScreenWrapper from '../../components/ScreenWrapper';
-import withLocalize, {withLocalizePropTypes} from '../../components/withLocalize';
+import withLocalize, {
+    withLocalizePropTypes,
+} from '../../components/withLocalize';
 import MenuItem from '../../components/MenuItem';
 import HeaderWithCloseButton from '../../components/HeaderWithCloseButton';
 import compose from '../../libs/compose';
@@ -46,7 +48,8 @@ class WorkspaceInitialPage extends React.Component {
 
         this.openEditor = this.openEditor.bind(this);
         this.toggleDeleteModal = this.toggleDeleteModal.bind(this);
-        this.confirmDeleteAndHideModal = this.confirmDeleteAndHideModal.bind(this);
+        this.confirmDeleteAndHideModal =
+            this.confirmDeleteAndHideModal.bind(this);
         this.hasPolicyCreationError = this.hasPolicyCreationError.bind(this);
         this.dismissError = this.dismissError.bind(this);
 
@@ -59,7 +62,9 @@ class WorkspaceInitialPage extends React.Component {
      * Open Workspace Editor
      */
     openEditor() {
-        Navigation.navigate(ROUTES.getWorkspaceSettingsRoute(this.props.policy.id));
+        Navigation.navigate(
+            ROUTES.getWorkspaceSettingsRoute(this.props.policy.id),
+        );
     }
 
     /**
@@ -74,8 +79,15 @@ class WorkspaceInitialPage extends React.Component {
      * Call the delete policy and hide the modal
      */
     confirmDeleteAndHideModal() {
-        const policyReports = _.filter(this.props.reports, (report) => report && report.policyID === this.props.policy.id);
-        Policy.deleteWorkspace(this.props.policy.id, policyReports, this.props.policy.name);
+        const policyReports = _.filter(
+            this.props.reports,
+            (report) => report && report.policyID === this.props.policy.id,
+        );
+        Policy.deleteWorkspace(
+            this.props.policy.id,
+            policyReports,
+            this.props.policy.name,
+        );
         this.toggleDeleteModal(false);
         Navigation.navigate(ROUTES.SETTINGS_WORKSPACES);
     }
@@ -84,7 +96,11 @@ class WorkspaceInitialPage extends React.Component {
      * @returns {Boolean}
      */
     hasPolicyCreationError() {
-        return Boolean(this.props.policy.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD && this.props.policy.errors);
+        return Boolean(
+            this.props.policy.pendingAction ===
+                CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD &&
+                this.props.policy.errors,
+        );
     }
 
     dismissError() {
@@ -95,80 +111,136 @@ class WorkspaceInitialPage extends React.Component {
     render() {
         const policy = this.props.policy;
         const policyName = lodashGet(this.props.policy, 'name', '');
-        const hasMembersError = PolicyUtils.hasPolicyMemberError(this.props.policyMemberList);
-        const hasGeneralSettingsError = !_.isEmpty(lodashGet(this.props.policy, 'errorFields.generalSettings', {})) || !_.isEmpty(lodashGet(this.props.policy, 'errorFields.avatar', {}));
-        const hasCustomUnitsError = PolicyUtils.hasCustomUnitsError(this.props.policy);
+        const hasMembersError = PolicyUtils.hasPolicyMemberError(
+            this.props.policyMemberList,
+        );
+        const hasGeneralSettingsError =
+            !_.isEmpty(
+                lodashGet(this.props.policy, 'errorFields.generalSettings', {}),
+            ) ||
+            !_.isEmpty(lodashGet(this.props.policy, 'errorFields.avatar', {}));
+        const hasCustomUnitsError = PolicyUtils.hasCustomUnitsError(
+            this.props.policy,
+        );
         const menuItems = [
             {
                 translationKey: 'workspace.common.settings',
                 icon: Expensicons.Gear,
-                action: () => Navigation.navigate(ROUTES.getWorkspaceSettingsRoute(policy.id)),
-                brickRoadIndicator: hasGeneralSettingsError ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : '',
+                action: () =>
+                    Navigation.navigate(
+                        ROUTES.getWorkspaceSettingsRoute(policy.id),
+                    ),
+                brickRoadIndicator: hasGeneralSettingsError
+                    ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR
+                    : '',
             },
             {
                 translationKey: 'workspace.common.card',
                 icon: Expensicons.ExpensifyCard,
-                action: () => Navigation.navigate(ROUTES.getWorkspaceCardRoute(policy.id)),
+                action: () =>
+                    Navigation.navigate(
+                        ROUTES.getWorkspaceCardRoute(policy.id),
+                    ),
             },
             {
                 translationKey: 'workspace.common.reimburse',
                 icon: Expensicons.Receipt,
-                action: () => Navigation.navigate(ROUTES.getWorkspaceReimburseRoute(policy.id)),
+                action: () =>
+                    Navigation.navigate(
+                        ROUTES.getWorkspaceReimburseRoute(policy.id),
+                    ),
                 error: hasCustomUnitsError,
             },
             {
                 translationKey: 'workspace.common.bills',
                 icon: Expensicons.Bill,
-                action: () => Navigation.navigate(ROUTES.getWorkspaceBillsRoute(policy.id)),
+                action: () =>
+                    Navigation.navigate(
+                        ROUTES.getWorkspaceBillsRoute(policy.id),
+                    ),
             },
             {
                 translationKey: 'workspace.common.invoices',
                 icon: Expensicons.Invoice,
-                action: () => Navigation.navigate(ROUTES.getWorkspaceInvoicesRoute(policy.id)),
+                action: () =>
+                    Navigation.navigate(
+                        ROUTES.getWorkspaceInvoicesRoute(policy.id),
+                    ),
             },
             {
                 translationKey: 'workspace.common.travel',
                 icon: Expensicons.Luggage,
-                action: () => Navigation.navigate(ROUTES.getWorkspaceTravelRoute(policy.id)),
+                action: () =>
+                    Navigation.navigate(
+                        ROUTES.getWorkspaceTravelRoute(policy.id),
+                    ),
             },
             {
                 translationKey: 'workspace.common.members',
                 icon: Expensicons.Users,
-                action: () => Navigation.navigate(ROUTES.getWorkspaceMembersRoute(policy.id)),
-                brickRoadIndicator: hasMembersError ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : '',
+                action: () =>
+                    Navigation.navigate(
+                        ROUTES.getWorkspaceMembersRoute(policy.id),
+                    ),
+                brickRoadIndicator: hasMembersError
+                    ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR
+                    : '',
             },
             {
                 translationKey: 'workspace.common.bankAccount',
                 icon: Expensicons.Bank,
-                action: () => ReimbursementAccount.navigateToBankAccountRoute(policy.id),
+                action: () =>
+                    ReimbursementAccount.navigateToBankAccountRoute(policy.id),
             },
         ];
 
         return (
             <ScreenWrapper includeSafeAreaPaddingBottom={false}>
                 {({safeAreaPaddingBottomStyle}) => (
-                    <FullPageNotFoundView shouldShow={_.isEmpty(this.props.policy)} onBackButtonPress={() => Navigation.navigate(ROUTES.SETTINGS_WORKSPACES)}>
+                    <FullPageNotFoundView
+                        shouldShow={_.isEmpty(this.props.policy)}
+                        onBackButtonPress={() =>
+                            Navigation.navigate(ROUTES.SETTINGS_WORKSPACES)
+                        }
+                    >
                         <HeaderWithCloseButton
-                            title={this.props.translate('workspace.common.workspace')}
+                            title={this.props.translate(
+                                'workspace.common.workspace',
+                            )}
                             shouldShowBackButton
-                            onBackButtonPress={() => Navigation.navigate(ROUTES.SETTINGS_WORKSPACES)}
+                            onBackButtonPress={() =>
+                                Navigation.navigate(ROUTES.SETTINGS_WORKSPACES)
+                            }
                             onCloseButtonPress={() => Navigation.dismissModal()}
                             shouldShowThreeDotsButton
                             shouldShowGetAssistanceButton
-                            guidesCallTaskID={CONST.GUIDES_CALL_TASK_IDS.WORKSPACE_INITIAL}
+                            guidesCallTaskID={
+                                CONST.GUIDES_CALL_TASK_IDS.WORKSPACE_INITIAL
+                            }
                             threeDotsMenuItems={[
                                 {
                                     icon: Expensicons.Trashcan,
-                                    text: this.props.translate('workspace.common.delete'),
+                                    text: this.props.translate(
+                                        'workspace.common.delete',
+                                    ),
                                     onSelected: () =>
                                         this.setState({
                                             isDeleteModalOpen: true,
                                         }),
                                 },
                             ]}
-                            threeDotsAnchorPosition={styles.threeDotsPopoverOffset}
+                            threeDotsAnchorPosition={
+                                styles.threeDotsPopoverOffset
+                            }
                         />
-                        <ScrollView contentContainerStyle={[styles.flexGrow1, styles.flexColumn, styles.justifyContentBetween, safeAreaPaddingBottomStyle]}>
+                        <ScrollView
+                            contentContainerStyle={[
+                                styles.flexGrow1,
+                                styles.flexColumn,
+                                styles.justifyContentBetween,
+                                safeAreaPaddingBottomStyle,
+                            ]}
+                        >
                             <OfflineWithFeedback
                                 pendingAction={this.props.policy.pendingAction}
                                 onClose={this.dismissError}
@@ -177,25 +249,85 @@ class WorkspaceInitialPage extends React.Component {
                             >
                                 <View style={[styles.flex1]}>
                                     <View style={styles.avatarSectionWrapper}>
-                                        <View style={[styles.settingsPageBody, styles.alignItemsCenter]}>
-                                            <Pressable disabled={this.hasPolicyCreationError()} style={[styles.pRelative, styles.avatarLarge]} onPress={this.openEditor}>
-                                                <Tooltip text={this.props.translate('workspace.common.settings')}>
+                                        <View
+                                            style={[
+                                                styles.settingsPageBody,
+                                                styles.alignItemsCenter,
+                                            ]}
+                                        >
+                                            <Pressable
+                                                disabled={this.hasPolicyCreationError()}
+                                                style={[
+                                                    styles.pRelative,
+                                                    styles.avatarLarge,
+                                                ]}
+                                                onPress={this.openEditor}
+                                            >
+                                                <Tooltip
+                                                    text={this.props.translate(
+                                                        'workspace.common.settings',
+                                                    )}
+                                                >
                                                     <Avatar
-                                                        containerStyles={styles.avatarLarge}
-                                                        imageStyles={[styles.avatarLarge, styles.alignSelfCenter]}
-                                                        source={this.props.policy.avatar ? this.props.policy.avatar : ReportUtils.getDefaultWorkspaceAvatar(policyName)}
-                                                        fallbackIcon={Expensicons.FallbackWorkspaceAvatar}
-                                                        size={CONST.AVATAR_SIZE.LARGE}
+                                                        containerStyles={
+                                                            styles.avatarLarge
+                                                        }
+                                                        imageStyles={[
+                                                            styles.avatarLarge,
+                                                            styles.alignSelfCenter,
+                                                        ]}
+                                                        source={
+                                                            this.props.policy
+                                                                .avatar
+                                                                ? this.props
+                                                                      .policy
+                                                                      .avatar
+                                                                : ReportUtils.getDefaultWorkspaceAvatar(
+                                                                      policyName,
+                                                                  )
+                                                        }
+                                                        fallbackIcon={
+                                                            Expensicons.FallbackWorkspaceAvatar
+                                                        }
+                                                        size={
+                                                            CONST.AVATAR_SIZE
+                                                                .LARGE
+                                                        }
                                                         name={policyName}
-                                                        type={CONST.ICON_TYPE_WORKSPACE}
+                                                        type={
+                                                            CONST.ICON_TYPE_WORKSPACE
+                                                        }
                                                     />
                                                 </Tooltip>
                                             </Pressable>
-                                            {!_.isEmpty(this.props.policy.name) && (
-                                                <Pressable disabled={this.hasPolicyCreationError()} style={[styles.alignSelfCenter, styles.mt4, styles.w100]} onPress={this.openEditor}>
-                                                    <Tooltip text={this.props.translate('workspace.common.settings')}>
-                                                        <Text numberOfLines={1} style={[styles.textHeadline, styles.alignSelfCenter]}>
-                                                            {this.props.policy.name}
+                                            {!_.isEmpty(
+                                                this.props.policy.name,
+                                            ) && (
+                                                <Pressable
+                                                    disabled={this.hasPolicyCreationError()}
+                                                    style={[
+                                                        styles.alignSelfCenter,
+                                                        styles.mt4,
+                                                        styles.w100,
+                                                    ]}
+                                                    onPress={this.openEditor}
+                                                >
+                                                    <Tooltip
+                                                        text={this.props.translate(
+                                                            'workspace.common.settings',
+                                                        )}
+                                                    >
+                                                        <Text
+                                                            numberOfLines={1}
+                                                            style={[
+                                                                styles.textHeadline,
+                                                                styles.alignSelfCenter,
+                                                            ]}
+                                                        >
+                                                            {
+                                                                this.props
+                                                                    .policy.name
+                                                            }
                                                         </Text>
                                                     </Tooltip>
                                                 </Pressable>
@@ -206,24 +338,34 @@ class WorkspaceInitialPage extends React.Component {
                                         <MenuItem
                                             key={item.translationKey}
                                             disabled={this.hasPolicyCreationError()}
-                                            interactive={!this.hasPolicyCreationError()}
-                                            title={this.props.translate(item.translationKey)}
+                                            interactive={
+                                                !this.hasPolicyCreationError()
+                                            }
+                                            title={this.props.translate(
+                                                item.translationKey,
+                                            )}
                                             icon={item.icon}
                                             iconRight={item.iconRight}
                                             onPress={() => item.action()}
                                             shouldShowRightIcon
-                                            brickRoadIndicator={item.brickRoadIndicator}
+                                            brickRoadIndicator={
+                                                item.brickRoadIndicator
+                                            }
                                         />
                                     ))}
                                 </View>
                             </OfflineWithFeedback>
                         </ScrollView>
                         <ConfirmModal
-                            title={this.props.translate('workspace.common.delete')}
+                            title={this.props.translate(
+                                'workspace.common.delete',
+                            )}
                             isVisible={this.state.isDeleteModalOpen}
                             onConfirm={this.confirmDeleteAndHideModal}
                             onCancel={() => this.toggleDeleteModal(false)}
-                            prompt={this.props.translate('workspace.common.deleteConfirmation')}
+                            prompt={this.props.translate(
+                                'workspace.common.deleteConfirmation',
+                            )}
                             confirmText={this.props.translate('common.delete')}
                             cancelText={this.props.translate('common.cancel')}
                             danger

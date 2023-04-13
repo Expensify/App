@@ -8,7 +8,9 @@ import Text from '../../../components/Text';
 import ScreenWrapper from '../../../components/ScreenWrapper';
 import Navigation from '../../../libs/Navigation/Navigation';
 import styles from '../../../styles/styles';
-import withLocalize, {withLocalizePropTypes} from '../../../components/withLocalize';
+import withLocalize, {
+    withLocalizePropTypes,
+} from '../../../components/withLocalize';
 import Button from '../../../components/Button';
 import FixedFooter from '../../../components/FixedFooter';
 import Growl from '../../../libs/Growl';
@@ -32,7 +34,9 @@ class AddPayPalMePage extends React.Component {
      * Sets the payPalMeUsername for the current user
      */
     setPayPalMeUsername() {
-        const isValid = ValidationUtils.isValidPaypalUsername(this.state.payPalMeUsername);
+        const isValid = ValidationUtils.isValidPaypalUsername(
+            this.state.payPalMeUsername,
+        );
         if (!isValid) {
             this.setState({payPalMeUsernameError: true});
             return;
@@ -40,7 +44,11 @@ class AddPayPalMePage extends React.Component {
         this.setState({payPalMeUsernameError: false});
         User.addPaypalMeAddress(this.state.payPalMeUsername);
 
-        Growl.show(this.props.translate('addPayPalMePage.growlMessageOnSave'), CONST.GROWL.SUCCESS, 3000);
+        Growl.show(
+            this.props.translate('addPayPalMePage.growlMessageOnSave'),
+            CONST.GROWL.SUCCESS,
+            3000,
+        );
         Navigation.navigate(ROUTES.SETTINGS_PAYMENTS);
     }
 
@@ -58,19 +66,29 @@ class AddPayPalMePage extends React.Component {
                 <HeaderWithCloseButton
                     title={this.props.translate('common.payPalMe')}
                     shouldShowBackButton
-                    onBackButtonPress={() => Navigation.navigate(ROUTES.SETTINGS_PAYMENTS)}
+                    onBackButtonPress={() =>
+                        Navigation.navigate(ROUTES.SETTINGS_PAYMENTS)
+                    }
                     onCloseButtonPress={() => Navigation.dismissModal(true)}
                 />
                 <View style={[styles.flex1, styles.p5]}>
                     <View style={[styles.flex1]}>
-                        <Text style={[styles.mb4]}>{this.props.translate('addPayPalMePage.enterYourUsernameToGetPaidViaPayPal')}</Text>
+                        <Text style={[styles.mb4]}>
+                            {this.props.translate(
+                                'addPayPalMePage.enterYourUsernameToGetPaidViaPayPal',
+                            )}
+                        </Text>
                         <TextInput
                             ref={(el) => (this.payPalMeInputRef = el)}
-                            label={this.props.translate('addPayPalMePage.payPalMe')}
+                            label={this.props.translate(
+                                'addPayPalMePage.payPalMe',
+                            )}
                             autoCompleteType="off"
                             autoCorrect={false}
                             value={this.state.payPalMeUsername}
-                            placeholder={this.props.translate('addPayPalMePage.yourPayPalUsername')}
+                            placeholder={this.props.translate(
+                                'addPayPalMePage.yourPayPalUsername',
+                            )}
                             onChangeText={(text) =>
                                 this.setState({
                                     payPalMeUsername: text,
@@ -79,7 +97,13 @@ class AddPayPalMePage extends React.Component {
                             }
                             returnKeyType="done"
                             hasError={this.state.payPalMeUsernameError}
-                            errorText={this.state.payPalMeUsernameError ? this.props.translate('addPayPalMePage.formatError') : ''}
+                            errorText={
+                                this.state.payPalMeUsernameError
+                                    ? this.props.translate(
+                                          'addPayPalMePage.formatError',
+                                      )
+                                    : ''
+                            }
                         />
                     </View>
                 </View>
@@ -89,8 +113,12 @@ class AddPayPalMePage extends React.Component {
                         onPress={this.setPayPalMeUsername}
                         pressOnEnter
                         style={[styles.mt3]}
-                        isDisabled={_.isEmpty(this.state.payPalMeUsername.trim())}
-                        text={this.props.translate('addPayPalMePage.addPayPalAccount')}
+                        isDisabled={_.isEmpty(
+                            this.state.payPalMeUsername.trim(),
+                        )}
+                        text={this.props.translate(
+                            'addPayPalMePage.addPayPalAccount',
+                        )}
                     />
                 </FixedFooter>
             </ScreenWrapper>

@@ -25,9 +25,11 @@ class PDFView extends Component {
             isKeyboardOpen: false,
         };
         this.onDocumentLoadSuccess = this.onDocumentLoadSuccess.bind(this);
-        this.initiatePasswordChallenge = this.initiatePasswordChallenge.bind(this);
+        this.initiatePasswordChallenge =
+            this.initiatePasswordChallenge.bind(this);
         this.attemptPDFLoad = this.attemptPDFLoad.bind(this);
-        this.toggleKeyboardOnSmallScreens = this.toggleKeyboardOnSmallScreens.bind(this);
+        this.toggleKeyboardOnSmallScreens =
+            this.toggleKeyboardOnSmallScreens.bind(this);
 
         const workerBlob = new Blob([pdfWorkerSource], {
             type: 'text/javascript',
@@ -39,9 +41,15 @@ class PDFView extends Component {
         // Use window height changes to toggle the keyboard. To maintain keyboard state
         // on all platforms we also use focus/blur events. So we need to make sure here
         // that we avoid redundant keyboard toggling.
-        if (!this.state.isKeyboardOpen && this.props.windowHeight < prevProps.windowHeight) {
+        if (
+            !this.state.isKeyboardOpen &&
+            this.props.windowHeight < prevProps.windowHeight
+        ) {
             this.toggleKeyboardOnSmallScreens(true);
-        } else if (this.state.isKeyboardOpen && this.props.windowHeight > prevProps.windowHeight) {
+        } else if (
+            this.state.isKeyboardOpen &&
+            this.props.windowHeight > prevProps.windowHeight
+        ) {
             this.toggleKeyboardOnSmallScreens(false);
         }
     }
@@ -77,9 +85,16 @@ class PDFView extends Component {
     initiatePasswordChallenge(callback, reason) {
         this.onPasswordCallback = callback;
 
-        if (reason === CONST.PDF_PASSWORD_FORM.REACT_PDF_PASSWORD_RESPONSES.NEED_PASSWORD) {
+        if (
+            reason ===
+            CONST.PDF_PASSWORD_FORM.REACT_PDF_PASSWORD_RESPONSES.NEED_PASSWORD
+        ) {
             this.setState({shouldRequestPassword: true});
-        } else if (reason === CONST.PDF_PASSWORD_FORM.REACT_PDF_PASSWORD_RESPONSES.INCORRECT_PASSWORD) {
+        } else if (
+            reason ===
+            CONST.PDF_PASSWORD_FORM.REACT_PDF_PASSWORD_RESPONSES
+                .INCORRECT_PASSWORD
+        ) {
             this.setState({
                 shouldRequestPassword: true,
                 isPasswordInvalid: true,
@@ -112,15 +127,30 @@ class PDFView extends Component {
 
     render() {
         const pdfContainerWidth = this.state.windowWidth - 100;
-        const pageWidthOnLargeScreen = pdfContainerWidth <= variables.pdfPageMaxWidth ? pdfContainerWidth : variables.pdfPageMaxWidth;
-        const pageWidth = this.props.isSmallScreenWidth ? this.state.windowWidth - 30 : pageWidthOnLargeScreen;
+        const pageWidthOnLargeScreen =
+            pdfContainerWidth <= variables.pdfPageMaxWidth
+                ? pdfContainerWidth
+                : variables.pdfPageMaxWidth;
+        const pageWidth = this.props.isSmallScreenWidth
+            ? this.state.windowWidth - 30
+            : pageWidthOnLargeScreen;
 
-        const outerContainerStyle = [styles.w100, styles.h100, styles.justifyContentCenter, styles.alignItemsCenter];
+        const outerContainerStyle = [
+            styles.w100,
+            styles.h100,
+            styles.justifyContentCenter,
+            styles.alignItemsCenter,
+        ];
 
         // If we're requesting a password then we need to hide - but still render -
         // the PDF component.
         const pdfContainerStyle = this.state.shouldRequestPassword
-            ? [styles.PDFView, styles.noSelect, this.props.style, styles.invisible]
+            ? [
+                  styles.PDFView,
+                  styles.noSelect,
+                  this.props.style,
+                  styles.invisible,
+              ]
             : [styles.PDFView, styles.noSelect, this.props.style];
 
         return (
@@ -135,7 +165,13 @@ class PDFView extends Component {
                     }
                 >
                     <Document
-                        error={<Text style={[styles.textLabel, styles.textLarge]}>{this.props.translate('attachmentView.failedToLoadPDF')}</Text>}
+                        error={
+                            <Text style={[styles.textLabel, styles.textLarge]}>
+                                {this.props.translate(
+                                    'attachmentView.failedToLoadPDF',
+                                )}
+                            </Text>
+                        }
                         loading={<FullScreenLoadingIndicator />}
                         file={this.props.sourceURL}
                         options={{
@@ -161,9 +197,13 @@ class PDFView extends Component {
                 {this.state.shouldRequestPassword && (
                     <PDFPasswordForm
                         onSubmit={this.attemptPDFLoad}
-                        onPasswordUpdated={() => this.setState({isPasswordInvalid: false})}
+                        onPasswordUpdated={() =>
+                            this.setState({isPasswordInvalid: false})
+                        }
                         isPasswordInvalid={this.state.isPasswordInvalid}
-                        onPasswordFieldFocused={this.toggleKeyboardOnSmallScreens}
+                        onPasswordFieldFocused={
+                            this.toggleKeyboardOnSmallScreens
+                        }
                     />
                 )}
             </View>

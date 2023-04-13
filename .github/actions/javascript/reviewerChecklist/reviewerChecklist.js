@@ -3,9 +3,12 @@ const github = require('@actions/github');
 const https = require('https');
 const GitHubUtils = require('../../../libs/GithubUtils');
 
-const pathToReviewerChecklist = 'https://raw.githubusercontent.com/Expensify/App/main/contributingGuides/REVIEWER_CHECKLIST.md';
+const pathToReviewerChecklist =
+    'https://raw.githubusercontent.com/Expensify/App/main/contributingGuides/REVIEWER_CHECKLIST.md';
 const reviewerChecklistContains = '# Reviewer Checklist';
-const issue = github.context.payload.issue ? github.context.payload.issue.number : github.context.payload.pull_request.number;
+const issue = github.context.payload.issue
+    ? github.context.payload.issue.number
+    : github.context.payload.pull_request.number;
 const combinedComments = [];
 
 /**
@@ -21,8 +24,12 @@ function getNumberOfItemsFromReviewerChecklist() {
                     fileContents += chunk;
                 });
                 res.on('end', () => {
-                    const numberOfChecklistItems = (fileContents.match(/- \[ \]/g) || []).length;
-                    console.log(`There are ${numberOfChecklistItems} items in the reviewer checklist.`);
+                    const numberOfChecklistItems = (
+                        fileContents.match(/- \[ \]/g) || []
+                    ).length;
+                    console.log(
+                        `There are ${numberOfChecklistItems} items in the reviewer checklist.`,
+                    );
                     resolve(numberOfChecklistItems);
                 });
             })
@@ -39,16 +46,22 @@ function getNumberOfItemsFromReviewerChecklist() {
 function checkIssueForCompletedChecklist(numberOfChecklistItems) {
     GitHubUtils.getAllReviewComments(issue)
         .then((reviewComments) => {
-            console.log(`Pulled ${reviewComments.length} review comments, now adding them to the list...`);
+            console.log(
+                `Pulled ${reviewComments.length} review comments, now adding them to the list...`,
+            );
             combinedComments.push(...reviewComments);
         })
         .then(() => GitHubUtils.getAllComments(issue))
         .then((comments) => {
-            console.log(`Pulled ${comments.length} comments, now adding them to the list...`);
+            console.log(
+                `Pulled ${comments.length} comments, now adding them to the list...`,
+            );
             combinedComments.push(...comments);
         })
         .then(() => {
-            console.log(`Looking through all ${combinedComments.length} comments for the reviewer checklist...`);
+            console.log(
+                `Looking through all ${combinedComments.length} comments for the reviewer checklist...`,
+            );
             let foundReviewerChecklist = false;
             let numberOfFinishedChecklistItems = 0;
             let numberOfUnfinishedChecklistItems = 0;
@@ -63,14 +76,20 @@ function checkIssueForCompletedChecklist(numberOfChecklistItems) {
                 const whitespace = /([\n\r])/gm;
                 const comment = combinedComments[i].replace(whitespace, '');
 
-                console.log(`Comment ${i} starts with: ${comment.slice(0, 20)}...`);
+                console.log(
+                    `Comment ${i} starts with: ${comment.slice(0, 20)}...`,
+                );
 
                 // Found the reviewer checklist, so count how many completed checklist items there are
                 if (comment.indexOf(reviewerChecklistContains) !== -1) {
                     console.log('Found the reviewer checklist!');
                     foundReviewerChecklist = true;
-                    numberOfFinishedChecklistItems = (comment.match(/- \[x\]/gi) || []).length;
-                    numberOfUnfinishedChecklistItems = (comment.match(/- \[ \]/g) || []).length;
+                    numberOfFinishedChecklistItems = (
+                        comment.match(/- \[x\]/gi) || []
+                    ).length;
+                    numberOfUnfinishedChecklistItems = (
+                        comment.match(/- \[ \]/g) || []
+                    ).length;
                 }
             }
 
@@ -82,15 +101,25 @@ function checkIssueForCompletedChecklist(numberOfChecklistItems) {
             const maxCompletedItems = numberOfChecklistItems + 2;
             const minCompletedItems = numberOfChecklistItems - 2;
 
-            console.log(`You completed ${numberOfFinishedChecklistItems} out of ${numberOfChecklistItems} checklist items with ${numberOfUnfinishedChecklistItems} unfinished items`);
+            console.log(
+                `You completed ${numberOfFinishedChecklistItems} out of ${numberOfChecklistItems} checklist items with ${numberOfUnfinishedChecklistItems} unfinished items`,
+            );
 
-            if (numberOfFinishedChecklistItems >= minCompletedItems && numberOfFinishedChecklistItems <= maxCompletedItems && numberOfUnfinishedChecklistItems === 0) {
+            if (
+                numberOfFinishedChecklistItems >= minCompletedItems &&
+                numberOfFinishedChecklistItems <= maxCompletedItems &&
+                numberOfUnfinishedChecklistItems === 0
+            ) {
                 console.log('PR Reviewer checklist is complete 🎉');
                 return;
             }
 
-            console.log(`Make sure you are using the most up to date checklist found here: ${pathToReviewerChecklist}`);
-            core.setFailed("PR Reviewer Checklist is not completely filled out. Please check every box to verify you've thought about the item.");
+            console.log(
+                `Make sure you are using the most up to date checklist found here: ${pathToReviewerChecklist}`,
+            );
+            core.setFailed(
+                "PR Reviewer Checklist is not completely filled out. Please check every box to verify you've thought about the item.",
+            );
         });
 }
 

@@ -122,9 +122,10 @@ const AddressSearch = (props) => {
 
         // The state's iso code (short_name) is needed for the StatePicker component but we also
         // need the state's full name (long_name) when we render the state in a TextInput.
-        const {administrative_area_level_1: longStateName} = GooglePlacesUtils.getAddressComponents(addressComponents, {
-            administrative_area_level_1: 'long_name',
-        });
+        const {administrative_area_level_1: longStateName} =
+            GooglePlacesUtils.getAddressComponents(addressComponents, {
+                administrative_area_level_1: 'long_name',
+            });
 
         const values = {
             street: props.value ? props.value.trim() : '',
@@ -257,7 +258,9 @@ const AddressSearch = (props) => {
                         // We use the height of the element to determine if we should hide the border of the listView dropdown
                         // to prevent a lingering border when there are no address suggestions.
                         // The height of the empty element is 2px (1px height for each top and bottom borders)
-                        setDisplayListViewBorder(event.nativeEvent.layout.height > 2);
+                        setDisplayListViewBorder(
+                            event.nativeEvent.layout.height > 2,
+                        );
                     }}
                 />
             </View>

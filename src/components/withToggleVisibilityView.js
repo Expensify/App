@@ -21,9 +21,14 @@ export default function (WrappedComponent) {
         </View>
     );
 
-    WithToggleVisibilityView.displayName = `WithToggleVisibilityView(${getComponentDisplayName(WrappedComponent)})`;
+    WithToggleVisibilityView.displayName = `WithToggleVisibilityView(${getComponentDisplayName(
+        WrappedComponent,
+    )})`;
     WithToggleVisibilityView.propTypes = {
-        forwardedRef: PropTypes.oneOfType([PropTypes.func, PropTypes.shape({current: PropTypes.instanceOf(React.Component)})]),
+        forwardedRef: PropTypes.oneOfType([
+            PropTypes.func,
+            PropTypes.shape({current: PropTypes.instanceOf(React.Component)}),
+        ]),
 
         /** Whether the content is visible. */
         isVisible: PropTypes.bool,

@@ -20,7 +20,10 @@ let networkRequestQueue = [];
 function canMakeRequest(request) {
     // Some requests are always made even when we are in the process of authenticating (typically because they require no authToken e.g. Log, BeginSignIn)
     // However, if we are in the process of authenticating we always want to queue requests until we are no longer authenticating.
-    return request.data.forceNetworkRequest === true || (!NetworkStore.isAuthenticating() && !SequentialQueue.isRunning());
+    return (
+        request.data.forceNetworkRequest === true ||
+        (!NetworkStore.isAuthenticating() && !SequentialQueue.isRunning())
+    );
 }
 
 /**
@@ -66,7 +69,10 @@ function process() {
             if (shouldRetry) {
                 requestsToProcessOnNextRun.push(queuedRequest);
             } else {
-                console.debug('Skipping request that should not be re-tried: ', {command: queuedRequest.command});
+                console.debug(
+                    'Skipping request that should not be re-tried: ',
+                    {command: queuedRequest.command},
+                );
             }
             return;
         }
@@ -84,7 +90,10 @@ function process() {
  * Non-cancellable requests like Log would not be cleared
  */
 function clear() {
-    networkRequestQueue = _.filter(networkRequestQueue, (request) => !request.data.canCancel);
+    networkRequestQueue = _.filter(
+        networkRequestQueue,
+        (request) => !request.data.canCancel,
+    );
 }
 
 /**

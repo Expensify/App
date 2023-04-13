@@ -48,7 +48,9 @@ function isInRange(num, min, max) {
 function navigateBack() {
     const hubs = JSON.parse(document.getElementById('hubs-data').value);
     // eslint-disable-next-line rulesdir/prefer-underscore-method
-    const hubToNavigate = hubs.find((hub) => window.location.pathname.includes(hub));
+    const hubToNavigate = hubs.find((hub) =>
+        window.location.pathname.includes(hub),
+    );
     if (hubToNavigate) {
         window.location.href = `/hubs/${hubToNavigate}`;
     } else {
@@ -106,7 +108,9 @@ window.addEventListener('DOMContentLoaded', () => {
         });
     }
 
-    document.getElementById('header-button').addEventListener('click', toggleHeaderMenu);
+    document
+        .getElementById('header-button')
+        .addEventListener('click', toggleHeaderMenu);
 
     // Back button doesn't exist on all the pages
     const backButton = document.getElementById('back-button');
@@ -119,14 +123,26 @@ window.addEventListener('DOMContentLoaded', () => {
     lhnContent.addEventListener('wheel', (e) => {
         const scrollTop = lhnContent.scrollTop;
         const isScrollingPastLHNTop = e.deltaY < 0 && scrollTop === 0;
-        const isScrollingPastLHNBottom = e.deltaY > 0 && isInRange(lhnContent.scrollHeight - lhnContent.offsetHeight, scrollTop - 1, scrollTop + 1);
+        const isScrollingPastLHNBottom =
+            e.deltaY > 0 &&
+            isInRange(
+                lhnContent.scrollHeight - lhnContent.offsetHeight,
+                scrollTop - 1,
+                scrollTop + 1,
+            );
         if (isScrollingPastLHNTop || isScrollingPastLHNBottom) {
             e.preventDefault();
         }
     });
     window.addEventListener('scroll', (e) => {
         const scrollingElement = e.target.scrollingElement;
-        const scrollPercentageInArticleContent = clamp(scrollingElement.scrollTop - articleContent.offsetTop, 0, articleContent.scrollHeight) / articleContent.scrollHeight;
-        lhnContent.scrollTop = scrollPercentageInArticleContent * lhnContent.scrollHeight;
+        const scrollPercentageInArticleContent =
+            clamp(
+                scrollingElement.scrollTop - articleContent.offsetTop,
+                0,
+                articleContent.scrollHeight,
+            ) / articleContent.scrollHeight;
+        lhnContent.scrollTop =
+            scrollPercentageInArticleContent * lhnContent.scrollHeight;
     });
 });

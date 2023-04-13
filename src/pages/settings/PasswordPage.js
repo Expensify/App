@@ -12,7 +12,9 @@ import ONYXKEYS from '../../ONYXKEYS';
 import Button from '../../components/Button';
 import * as ValidationUtils from '../../libs/ValidationUtils';
 import * as User from '../../libs/actions/User';
-import withLocalize, {withLocalizePropTypes} from '../../components/withLocalize';
+import withLocalize, {
+    withLocalizePropTypes,
+} from '../../components/withLocalize';
 import compose from '../../libs/compose';
 import FixedFooter from '../../components/FixedFooter';
 import TextInput from '../../components/TextInput';
@@ -113,11 +115,18 @@ class PasswordPage extends Component {
             errors.currentPassword = true;
         }
 
-        if (!this.state.newPassword || !ValidationUtils.isValidPassword(this.state.newPassword)) {
+        if (
+            !this.state.newPassword ||
+            !ValidationUtils.isValidPassword(this.state.newPassword)
+        ) {
             errors.newPassword = true;
         }
 
-        if (this.state.currentPassword && this.state.newPassword && _.isEqual(this.state.currentPassword, this.state.newPassword)) {
+        if (
+            this.state.currentPassword &&
+            this.state.newPassword &&
+            _.isEqual(this.state.currentPassword, this.state.newPassword)
+        ) {
             errors.newPasswordSameAsOld = true;
         }
 
@@ -136,7 +145,9 @@ class PasswordPage extends Component {
     }
 
     render() {
-        const shouldShowNewPasswordPrompt = !this.state.errors.newPassword && !this.state.errors.newPasswordSameAsOld;
+        const shouldShowNewPasswordPrompt =
+            !this.state.errors.newPassword &&
+            !this.state.errors.newPasswordSameAsOld;
         return (
             <ScreenWrapper
                 onEntryTransitionEnd={() => {
@@ -155,11 +166,17 @@ class PasswordPage extends Component {
                 />
                 {!_.isEmpty(this.props.account.success) ? (
                     <ConfirmationPage
-                        heading={this.props.translate('passwordConfirmationScreen.passwordUpdated')}
+                        heading={this.props.translate(
+                            'passwordConfirmationScreen.passwordUpdated',
+                        )}
                         shouldShowButton
                         onButtonPress={Navigation.goBack}
-                        buttonText={this.props.translate('passwordConfirmationScreen.gotIt')}
-                        description={this.props.translate('passwordConfirmationScreen.allSet')}
+                        buttonText={this.props.translate(
+                            'passwordConfirmationScreen.gotIt',
+                        )}
+                        description={this.props.translate(
+                            'passwordConfirmationScreen.allSet',
+                        )}
                     />
                 ) : (
                     <>
@@ -170,42 +187,95 @@ class PasswordPage extends Component {
                             // eslint-disable-next-line react/jsx-props-no-multi-spaces
                             keyboardShouldPersistTaps="always"
                         >
-                            <Text style={[styles.mb6]}>{this.props.translate('passwordPage.changingYourPasswordPrompt')}</Text>
+                            <Text style={[styles.mb6]}>
+                                {this.props.translate(
+                                    'passwordPage.changingYourPasswordPrompt',
+                                )}
+                            </Text>
                             <View style={styles.mb6}>
                                 <TextInput
-                                    label={`${this.props.translate('passwordPage.currentPassword')}*`}
-                                    ref={(el) => (this.currentPasswordInputRef = el)}
+                                    label={`${this.props.translate(
+                                        'passwordPage.currentPassword',
+                                    )}*`}
+                                    ref={(el) =>
+                                        (this.currentPasswordInputRef = el)
+                                    }
                                     secureTextEntry
                                     autoCompleteType="password"
                                     textContentType="password"
                                     value={this.state.currentPassword}
-                                    onChangeText={(text) => this.clearErrorAndSetValue('currentPassword', text)}
+                                    onChangeText={(text) =>
+                                        this.clearErrorAndSetValue(
+                                            'currentPassword',
+                                            text,
+                                        )
+                                    }
                                     returnKeyType="done"
                                     hasError={this.state.errors.currentPassword}
-                                    errorText={this.getErrorText('currentPassword')}
+                                    errorText={this.getErrorText(
+                                        'currentPassword',
+                                    )}
                                     onSubmitEditing={this.submit}
                                 />
                             </View>
                             <View style={styles.mb6}>
                                 <TextInput
-                                    label={`${this.props.translate('passwordPage.newPassword')}*`}
+                                    label={`${this.props.translate(
+                                        'passwordPage.newPassword',
+                                    )}*`}
                                     secureTextEntry
                                     autoCompleteType="password"
                                     textContentType="password"
                                     value={this.state.newPassword}
-                                    hasError={this.state.errors.newPassword || this.state.errors.newPasswordSameAsOld}
-                                    errorText={this.state.errors.newPasswordSameAsOld ? this.getErrorText('newPasswordSameAsOld') : this.getErrorText('newPassword')}
-                                    onChangeText={(text) => this.clearErrorAndSetValue('newPassword', text, ['newPasswordSameAsOld'])}
+                                    hasError={
+                                        this.state.errors.newPassword ||
+                                        this.state.errors.newPasswordSameAsOld
+                                    }
+                                    errorText={
+                                        this.state.errors.newPasswordSameAsOld
+                                            ? this.getErrorText(
+                                                  'newPasswordSameAsOld',
+                                              )
+                                            : this.getErrorText('newPassword')
+                                    }
+                                    onChangeText={(text) =>
+                                        this.clearErrorAndSetValue(
+                                            'newPassword',
+                                            text,
+                                            ['newPasswordSameAsOld'],
+                                        )
+                                    }
                                     onSubmitEditing={this.submit}
                                 />
-                                {shouldShowNewPasswordPrompt && <Text style={[styles.textLabelSupporting, styles.mt1]}>{this.props.translate('passwordPage.newPasswordPrompt')}</Text>}
+                                {shouldShowNewPasswordPrompt && (
+                                    <Text
+                                        style={[
+                                            styles.textLabelSupporting,
+                                            styles.mt1,
+                                        ]}
+                                    >
+                                        {this.props.translate(
+                                            'passwordPage.newPasswordPrompt',
+                                        )}
+                                    </Text>
+                                )}
                             </View>
-                            {_.every(this.state.errors, (error) => !error) && !_.isEmpty(this.props.account.errors) && (
-                                <Text style={styles.formError}>{ErrorUtils.getLatestErrorMessage(this.props.account)}</Text>
-                            )}
+                            {_.every(this.state.errors, (error) => !error) &&
+                                !_.isEmpty(this.props.account.errors) && (
+                                    <Text style={styles.formError}>
+                                        {ErrorUtils.getLatestErrorMessage(
+                                            this.props.account,
+                                        )}
+                                    </Text>
+                                )}
                         </ScrollView>
                         <FixedFooter style={[styles.flexGrow0]}>
-                            <Button success isLoading={this.props.account.isLoading} text={this.props.translate('common.save')} onPress={this.submit} />
+                            <Button
+                                success
+                                isLoading={this.props.account.isLoading}
+                                text={this.props.translate('common.save')}
+                                onPress={this.submit}
+                            />
                         </FixedFooter>
                     </>
                 )}

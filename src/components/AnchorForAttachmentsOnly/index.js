@@ -8,13 +8,17 @@ const AnchorForAttachmentsOnly = (props) => (
     <BaseAnchorForAttachmentsOnly
         // eslint-disable-next-line react/jsx-props-no-spreading
         {...props}
-        onPressIn={() => DeviceCapabilities.canUseTouchScreen() && ControlSelection.block()}
+        onPressIn={() =>
+            DeviceCapabilities.canUseTouchScreen() && ControlSelection.block()
+        }
         onPressOut={() => ControlSelection.unblock()}
     />
 );
 
-AnchorForAttachmentsOnly.propTypes = anchorForAttachmentsOnlyPropTypes.propTypes;
-AnchorForAttachmentsOnly.defaultProps = anchorForAttachmentsOnlyPropTypes.defaultProps;
+AnchorForAttachmentsOnly.propTypes =
+    anchorForAttachmentsOnlyPropTypes.propTypes;
+AnchorForAttachmentsOnly.defaultProps =
+    anchorForAttachmentsOnlyPropTypes.defaultProps;
 AnchorForAttachmentsOnly.displayName = 'AnchorForAttachmentsOnly';
 
 export default AnchorForAttachmentsOnly;

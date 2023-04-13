@@ -1,6 +1,9 @@
 import _ from 'underscore';
 import PropTypes from 'prop-types';
-import {propTypes as modalPropTypes, defaultProps as defaultModalProps} from '../Modal/modalPropTypes';
+import {
+    propTypes as modalPropTypes,
+    defaultProps as defaultModalProps,
+} from '../Modal/modalPropTypes';
 import CONST from '../../CONST';
 
 const propTypes = {

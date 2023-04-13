@@ -31,7 +31,9 @@ describe('Migrations', () => {
         let mockMultiSet;
         beforeEach(() => {
             getPlatform.mockImplementation(() => CONST.PLATFORM.WEB);
-            mockMultiSet = jest.spyOn(Onyx, 'multiSet').mockImplementation(() => Promise.resolve());
+            mockMultiSet = jest
+                .spyOn(Onyx, 'multiSet')
+                .mockImplementation(() => Promise.resolve());
             localStorage.clear();
         });
 
@@ -70,7 +72,9 @@ describe('Migrations', () => {
                 [ONYXKEYS.NETWORK]: {isOffline: true},
             };
 
-            _.forEach(data, (value, key) => localStorage.setItem(key, JSON.stringify(value)));
+            _.forEach(data, (value, key) =>
+                localStorage.setItem(key, JSON.stringify(value)),
+            );
 
             // When the migration runs
             return MoveToIndexedDB().then(() => {
@@ -81,7 +85,10 @@ describe('Migrations', () => {
 
         it('Should not clear non Onyx keys from localStorage', () => {
             // Given some Onyx and non-Onyx data exists in localStorage
-            localStorage.setItem(ONYXKEYS.SESSION, JSON.stringify({authToken: 'mock-token'}));
+            localStorage.setItem(
+                ONYXKEYS.SESSION,
+                JSON.stringify({authToken: 'mock-token'}),
+            );
             localStorage.setItem('non-onyx-item', 'MOCK');
 
             // When the migration runs
@@ -104,7 +111,9 @@ describe('Migrations', () => {
             })
                 .then(AddLastVisibleActionCreated)
                 .then(() => {
-                    expect(LogSpy).toHaveBeenCalledWith('[Migrate Onyx] Adding lastVisibleActionCreated field to 2 reports');
+                    expect(LogSpy).toHaveBeenCalledWith(
+                        '[Migrate Onyx] Adding lastVisibleActionCreated field to 2 reports',
+                    );
                     const connectionID = Onyx.connect({
                         key: ONYXKEYS.COLLECTION.REPORT,
                         waitForCollectionCallback: true,
@@ -112,10 +121,16 @@ describe('Migrations', () => {
                             Onyx.disconnect(connectionID);
                             expect(_.keys(allReports).length).toBe(2);
                             _.each(allReports, (report) => {
-                                expect(_.has(report, 'lastVisibleActionCreated')).toBe(true);
+                                expect(
+                                    _.has(report, 'lastVisibleActionCreated'),
+                                ).toBe(true);
                             });
-                            expect(allReports.report_1.lastVisibleActionCreated).toBe('2022-11-16 01:31:13.702');
-                            expect(allReports.report_2.lastVisibleActionCreated).toBe('2022-11-16 01:31:54.821');
+                            expect(
+                                allReports.report_1.lastVisibleActionCreated,
+                            ).toBe('2022-11-16 01:31:13.702');
+                            expect(
+                                allReports.report_2.lastVisibleActionCreated,
+                            ).toBe('2022-11-16 01:31:54.821');
                         },
                     });
                 }));
@@ -131,12 +146,16 @@ describe('Migrations', () => {
             })
                 .then(AddLastVisibleActionCreated)
                 .then(() => {
-                    expect(LogSpy).toHaveBeenCalledWith('[Migrate Onyx] Skipped migration AddLastVisibleActionCreated');
+                    expect(LogSpy).toHaveBeenCalledWith(
+                        '[Migrate Onyx] Skipped migration AddLastVisibleActionCreated',
+                    );
                 }));
 
         it('Should work even if there is no report data', () =>
             AddLastVisibleActionCreated().then(() => {
-                expect(LogSpy).toHaveBeenCalledWith('[Migrate Onyx] Skipped migration AddLastVisibleActionCreated');
+                expect(LogSpy).toHaveBeenCalledWith(
+                    '[Migrate Onyx] Skipped migration AddLastVisibleActionCreated',
+                );
                 const connectionID = Onyx.connect({
                     key: ONYXKEYS.COLLECTION.REPORT,
                     waitForCollectionCallback: true,
@@ -152,7 +171,9 @@ describe('Migrations', () => {
         // Warning: this test has to come before the others in this suite because Onyx.clear leaves traces and keys with null values aren't cleared out between tests
         it("Should work even if there's no reportAction data in Onyx", () =>
             KeyReportActionsByReportActionID().then(() =>
-                expect(LogSpy).toHaveBeenCalledWith('[Migrate Onyx] Skipped migration KeyReportActionsByReportActionID because there were no reportActions'),
+                expect(LogSpy).toHaveBeenCalledWith(
+                    '[Migrate Onyx] Skipped migration KeyReportActionsByReportActionID because there were no reportActions',
+                ),
             ));
 
         it("Should work even if there's zombie reportAction data in Onyx", () =>
@@ -162,13 +183,17 @@ describe('Migrations', () => {
             })
                 .then(KeyReportActionsByReportActionID)
                 .then(() => {
-                    expect(LogSpy).toHaveBeenCalledWith('[Migrate Onyx] Skipped migration KeyReportActionsByReportActionID because there are no actions to migrate');
+                    expect(LogSpy).toHaveBeenCalledWith(
+                        '[Migrate Onyx] Skipped migration KeyReportActionsByReportActionID because there are no actions to migrate',
+                    );
                     const connectionID = Onyx.connect({
                         key: ONYXKEYS.COLLECTION.REPORT_ACTIONS,
                         waitForCollectionCallback: true,
                         callback: (allReportActions) => {
                             Onyx.disconnect(connectionID);
-                            _.each(allReportActions, (reportActionsForReport) => expect(reportActionsForReport).toBeNull());
+                            _.each(allReportActions, (reportActionsForReport) =>
+                                expect(reportActionsForReport).toBeNull(),
+                            );
                         },
                     });
                 }));
@@ -198,18 +223,28 @@ describe('Migrations', () => {
             })
                 .then(KeyReportActionsByReportActionID)
                 .then(() => {
-                    expect(LogSpy).toHaveBeenCalledWith('[Migrate Onyx] Re-keying reportActions by reportActionID for 2 reports');
+                    expect(LogSpy).toHaveBeenCalledWith(
+                        '[Migrate Onyx] Re-keying reportActions by reportActionID for 2 reports',
+                    );
                     const connectionID = Onyx.connect({
                         key: ONYXKEYS.COLLECTION.REPORT_ACTIONS,
                         waitForCollectionCallback: true,
                         callback: (allReportActions) => {
                             Onyx.disconnect(connectionID);
                             expect(_.keys(allReportActions).length).toBe(2);
-                            _.each(allReportActions, (reportActionsForReport) => {
-                                _.each(reportActionsForReport, (reportAction, key) => {
-                                    expect(key).toBe(reportAction.reportActionID);
-                                });
-                            });
+                            _.each(
+                                allReportActions,
+                                (reportActionsForReport) => {
+                                    _.each(
+                                        reportActionsForReport,
+                                        (reportAction, key) => {
+                                            expect(key).toBe(
+                                                reportAction.reportActionID,
+                                            );
+                                        },
+                                    );
+                                },
+                            );
                         },
                     });
                 }));
@@ -237,18 +272,28 @@ describe('Migrations', () => {
             })
                 .then(KeyReportActionsByReportActionID)
                 .then(() => {
-                    expect(LogSpy).toHaveBeenCalledWith('[Migrate Onyx] Skipped migration KeyReportActionsByReportActionID because we already migrated it');
+                    expect(LogSpy).toHaveBeenCalledWith(
+                        '[Migrate Onyx] Skipped migration KeyReportActionsByReportActionID because we already migrated it',
+                    );
                     const connectionID = Onyx.connect({
                         key: ONYXKEYS.COLLECTION.REPORT_ACTIONS,
                         waitForCollectionCallback: true,
                         callback: (allReportActions) => {
                             Onyx.disconnect(connectionID);
                             expect(_.keys(allReportActions).length).toBe(2);
-                            _.each(allReportActions, (reportActionsForReport) => {
-                                _.each(reportActionsForReport, (reportAction, key) => {
-                                    expect(key).toBe(reportAction.reportActionID);
-                                });
-                            });
+                            _.each(
+                                allReportActions,
+                                (reportActionsForReport) => {
+                                    _.each(
+                                        reportActionsForReport,
+                                        (reportAction, key) => {
+                                            expect(key).toBe(
+                                                reportAction.reportActionID,
+                                            );
+                                        },
+                                    );
+                                },
+                            );
                         },
                     });
                 }));

@@ -37,7 +37,9 @@ class CompanyStep extends React.Component {
         this.submit = this.submit.bind(this);
         this.validate = this.validate.bind(this);
 
-        this.defaultWebsite = lodashGet(props, 'user.isFromPublicDomain', false) ? 'https://' : `https://www.${Str.extractEmailDomain(props.session.email, '')}`;
+        this.defaultWebsite = lodashGet(props, 'user.isFromPublicDomain', false)
+            ? 'https://'
+            : `https://www.${Str.extractEmailDomain(props.session.email, '')}`;
     }
 
     componentWillUnmount() {
@@ -51,7 +53,10 @@ class CompanyStep extends React.Component {
      */
     getBankAccountFields(fieldNames) {
         return {
-            ..._.pick(lodashGet(this.props.reimbursementAccount, 'achData'), ...fieldNames),
+            ..._.pick(
+                lodashGet(this.props.reimbursementAccount, 'achData'),
+                ...fieldNames,
+            ),
             ..._.pick(this.props.reimbursementAccountDraft, ...fieldNames),
         };
     }
@@ -64,53 +69,98 @@ class CompanyStep extends React.Component {
         const errors = {};
 
         if (!values.companyName) {
-            errors.companyName = this.props.translate('bankAccount.error.companyName');
+            errors.companyName = this.props.translate(
+                'bankAccount.error.companyName',
+            );
         }
 
-        if (!values.addressStreet || !ValidationUtils.isValidAddress(values.addressStreet)) {
-            errors.addressStreet = this.props.translate('bankAccount.error.addressStreet');
+        if (
+            !values.addressStreet ||
+            !ValidationUtils.isValidAddress(values.addressStreet)
+        ) {
+            errors.addressStreet = this.props.translate(
+                'bankAccount.error.addressStreet',
+            );
         }
 
-        if (!values.addressZipCode || !ValidationUtils.isValidZipCode(values.addressZipCode)) {
-            errors.addressZipCode = this.props.translate('bankAccount.error.zipCode');
+        if (
+            !values.addressZipCode ||
+            !ValidationUtils.isValidZipCode(values.addressZipCode)
+        ) {
+            errors.addressZipCode = this.props.translate(
+                'bankAccount.error.zipCode',
+            );
         }
 
         if (!values.addressCity) {
-            errors.addressCity = this.props.translate('bankAccount.error.addressCity');
+            errors.addressCity = this.props.translate(
+                'bankAccount.error.addressCity',
+            );
         }
 
         if (!values.addressState) {
-            errors.addressState = this.props.translate('bankAccount.error.addressState');
+            errors.addressState = this.props.translate(
+                'bankAccount.error.addressState',
+            );
         }
 
-        if (!values.companyPhone || !ValidationUtils.isValidUSPhone(values.companyPhone, true)) {
-            errors.companyPhone = this.props.translate('bankAccount.error.phoneNumber');
+        if (
+            !values.companyPhone ||
+            !ValidationUtils.isValidUSPhone(values.companyPhone, true)
+        ) {
+            errors.companyPhone = this.props.translate(
+                'bankAccount.error.phoneNumber',
+            );
         }
 
-        if (!values.website || !ValidationUtils.isValidWebsite(values.website)) {
+        if (
+            !values.website ||
+            !ValidationUtils.isValidWebsite(values.website)
+        ) {
             errors.website = this.props.translate('bankAccount.error.website');
         }
 
-        if (!values.companyTaxID || !ValidationUtils.isValidTaxID(values.companyTaxID)) {
-            errors.companyTaxID = this.props.translate('bankAccount.error.taxID');
+        if (
+            !values.companyTaxID ||
+            !ValidationUtils.isValidTaxID(values.companyTaxID)
+        ) {
+            errors.companyTaxID = this.props.translate(
+                'bankAccount.error.taxID',
+            );
         }
 
         if (!values.incorporationType) {
-            errors.incorporationType = this.props.translate('bankAccount.error.companyType');
+            errors.incorporationType = this.props.translate(
+                'bankAccount.error.companyType',
+            );
         }
 
-        if (!values.incorporationDate || !ValidationUtils.isValidDate(values.incorporationDate)) {
-            errors.incorporationDate = this.props.translate('common.error.dateInvalid');
-        } else if (!values.incorporationDate || !ValidationUtils.isValidPastDate(values.incorporationDate)) {
-            errors.incorporationDate = this.props.translate('bankAccount.error.incorporationDateFuture');
+        if (
+            !values.incorporationDate ||
+            !ValidationUtils.isValidDate(values.incorporationDate)
+        ) {
+            errors.incorporationDate = this.props.translate(
+                'common.error.dateInvalid',
+            );
+        } else if (
+            !values.incorporationDate ||
+            !ValidationUtils.isValidPastDate(values.incorporationDate)
+        ) {
+            errors.incorporationDate = this.props.translate(
+                'bankAccount.error.incorporationDateFuture',
+            );
         }
 
         if (!values.incorporationState) {
-            errors.incorporationState = this.props.translate('bankAccount.error.incorporationState');
+            errors.incorporationState = this.props.translate(
+                'bankAccount.error.incorporationState',
+            );
         }
 
         if (!values.hasNoConnectionToCannabis) {
-            errors.hasNoConnectionToCannabis = this.props.translate('bankAccount.error.restrictedBusiness');
+            errors.hasNoConnectionToCannabis = this.props.translate(
+                'bankAccount.error.restrictedBusiness',
+            );
         }
 
         return errors;
@@ -118,24 +168,49 @@ class CompanyStep extends React.Component {
 
     submit(values) {
         const bankAccount = {
-            bankAccountID: lodashGet(this.props.reimbursementAccount, 'achData.bankAccountID') || 0,
+            bankAccountID:
+                lodashGet(
+                    this.props.reimbursementAccount,
+                    'achData.bankAccountID',
+                ) || 0,
 
             // Fields from BankAccount step
-            ...this.getBankAccountFields(['routingNumber', 'accountNumber', 'bankName', 'plaidAccountID', 'plaidAccessToken', 'isSavings']),
+            ...this.getBankAccountFields([
+                'routingNumber',
+                'accountNumber',
+                'bankName',
+                'plaidAccountID',
+                'plaidAccessToken',
+                'isSavings',
+            ]),
 
             // Fields from Company step
             ...values,
-            companyTaxID: values.companyTaxID.replace(CONST.REGEX.NON_NUMERIC, ''),
-            companyPhone: LoginUtils.getPhoneNumberWithoutUSCountryCodeAndSpecialChars(values.companyPhone),
+            companyTaxID: values.companyTaxID.replace(
+                CONST.REGEX.NON_NUMERIC,
+                '',
+            ),
+            companyPhone:
+                LoginUtils.getPhoneNumberWithoutUSCountryCodeAndSpecialChars(
+                    values.companyPhone,
+                ),
         };
 
         BankAccounts.updateCompanyInformationForBankAccount(bankAccount);
     }
 
     render() {
-        const bankAccountID = lodashGet(this.props.reimbursementAccount, 'achData.bankAccountID', 0);
-        const shouldDisableCompanyName = Boolean(bankAccountID && this.props.getDefaultStateForField('companyName'));
-        const shouldDisableCompanyTaxID = Boolean(bankAccountID && this.props.getDefaultStateForField('companyTaxID'));
+        const bankAccountID = lodashGet(
+            this.props.reimbursementAccount,
+            'achData.bankAccountID',
+            0,
+        );
+        const shouldDisableCompanyName = Boolean(
+            bankAccountID && this.props.getDefaultStateForField('companyName'),
+        );
+        const shouldDisableCompanyTaxID = Boolean(
+            bankAccountID && this.props.getDefaultStateForField('companyTaxID'),
+        );
 
         return (
             <ScreenWrapper includeSafeAreaPaddingBottom={false}>
@@ -143,7 +218,9 @@ class CompanyStep extends React.Component {
                     title={this.props.translate('companyStep.headerTitle')}
                     stepCounter={{step: 2, total: 5}}
                     shouldShowGetAssistanceButton
-                    guidesCallTaskID={CONST.GUIDES_CALL_TASK_IDS.WORKSPACE_BANK_ACCOUNT}
+                    guidesCallTaskID={
+                        CONST.GUIDES_CALL_TASK_IDS.WORKSPACE_BANK_ACCOUNT
+                    }
                     shouldShowBackButton
                     onBackButtonPress={this.props.onBackButtonPress}
                     onCloseButtonPress={Navigation.dismissModal}
@@ -154,25 +231,40 @@ class CompanyStep extends React.Component {
                     onSubmit={this.submit}
                     scrollContextEnabled
                     scrollToOverflowEnabled
-                    submitButtonText={this.props.translate('common.saveAndContinue')}
+                    submitButtonText={this.props.translate(
+                        'common.saveAndContinue',
+                    )}
                     style={[styles.ph5, styles.flexGrow1]}
                 >
                     <Text>{this.props.translate('companyStep.subtitle')}</Text>
                     <TextInput
-                        label={this.props.translate('companyStep.legalBusinessName')}
+                        label={this.props.translate(
+                            'companyStep.legalBusinessName',
+                        )}
                         inputID="companyName"
                         containerStyles={[styles.mt4]}
                         disabled={shouldDisableCompanyName}
-                        defaultValue={this.props.getDefaultStateForField('companyName')}
+                        defaultValue={this.props.getDefaultStateForField(
+                            'companyName',
+                        )}
                         shouldSaveDraft
                     />
                     <AddressForm
                         translate={this.props.translate}
                         defaultValues={{
-                            street: this.props.getDefaultStateForField('addressStreet'),
-                            city: this.props.getDefaultStateForField('addressCity'),
-                            state: this.props.getDefaultStateForField('addressState'),
-                            zipCode: this.props.getDefaultStateForField('addressZipCode'),
+                            street: this.props.getDefaultStateForField(
+                                'addressStreet',
+                            ),
+                            city: this.props.getDefaultStateForField(
+                                'addressCity',
+                            ),
+                            state: this.props.getDefaultStateForField(
+                                'addressState',
+                            ),
+                            zipCode:
+                                this.props.getDefaultStateForField(
+                                    'addressZipCode',
+                                ),
                         }}
                         inputKeys={{
                             street: 'addressStreet',
@@ -188,15 +280,24 @@ class CompanyStep extends React.Component {
                         label={this.props.translate('common.phoneNumber')}
                         containerStyles={[styles.mt4]}
                         keyboardType={CONST.KEYBOARD_TYPE.PHONE_PAD}
-                        placeholder={this.props.translate('common.phoneNumberPlaceholder')}
-                        defaultValue={this.props.getDefaultStateForField('companyPhone')}
+                        placeholder={this.props.translate(
+                            'common.phoneNumberPlaceholder',
+                        )}
+                        defaultValue={this.props.getDefaultStateForField(
+                            'companyPhone',
+                        )}
                         shouldSaveDraft
                     />
                     <TextInput
                         inputID="website"
-                        label={this.props.translate('companyStep.companyWebsite')}
+                        label={this.props.translate(
+                            'companyStep.companyWebsite',
+                        )}
                         containerStyles={[styles.mt4]}
-                        defaultValue={this.props.getDefaultStateForField('website', this.defaultWebsite)}
+                        defaultValue={this.props.getDefaultStateForField(
+                            'website',
+                            this.defaultWebsite,
+                        )}
                         shouldSaveDraft
                         hint={this.props.translate('common.websiteExample')}
                         keyboardType={CONST.KEYBOARD_TYPE.URL}
@@ -207,48 +308,78 @@ class CompanyStep extends React.Component {
                         containerStyles={[styles.mt4]}
                         keyboardType={CONST.KEYBOARD_TYPE.NUMBER_PAD}
                         disabled={shouldDisableCompanyTaxID}
-                        placeholder={this.props.translate('companyStep.taxIDNumberPlaceholder')}
-                        defaultValue={this.props.getDefaultStateForField('companyTaxID')}
+                        placeholder={this.props.translate(
+                            'companyStep.taxIDNumberPlaceholder',
+                        )}
+                        defaultValue={this.props.getDefaultStateForField(
+                            'companyTaxID',
+                        )}
                         shouldSaveDraft
                     />
                     <View style={styles.mt4}>
                         <Picker
                             inputID="incorporationType"
-                            label={this.props.translate('companyStep.companyType')}
-                            items={_.map(this.props.translate('companyStep.incorporationTypes'), (label, value) => ({value, label}))}
+                            label={this.props.translate(
+                                'companyStep.companyType',
+                            )}
+                            items={_.map(
+                                this.props.translate(
+                                    'companyStep.incorporationTypes',
+                                ),
+                                (label, value) => ({value, label}),
+                            )}
                             placeholder={{value: '', label: '-'}}
-                            defaultValue={this.props.getDefaultStateForField('incorporationType')}
+                            defaultValue={this.props.getDefaultStateForField(
+                                'incorporationType',
+                            )}
                             shouldSaveDraft
                         />
                     </View>
                     <View style={styles.mt4}>
                         <DatePicker
                             inputID="incorporationDate"
-                            label={this.props.translate('companyStep.incorporationDate')}
-                            placeholder={this.props.translate('companyStep.incorporationDatePlaceholder')}
-                            defaultValue={this.props.getDefaultStateForField('incorporationDate')}
+                            label={this.props.translate(
+                                'companyStep.incorporationDate',
+                            )}
+                            placeholder={this.props.translate(
+                                'companyStep.incorporationDatePlaceholder',
+                            )}
+                            defaultValue={this.props.getDefaultStateForField(
+                                'incorporationDate',
+                            )}
                             shouldSaveDraft
                         />
                     </View>
                     <View style={styles.mt4}>
                         <StatePicker
                             inputID="incorporationState"
-                            label={this.props.translate('companyStep.incorporationState')}
-                            defaultValue={this.props.getDefaultStateForField('incorporationState')}
+                            label={this.props.translate(
+                                'companyStep.incorporationState',
+                            )}
+                            defaultValue={this.props.getDefaultStateForField(
+                                'incorporationState',
+                            )}
                             shouldSaveDraft
                         />
                     </View>
                     <CheckboxWithLabel
                         inputID="hasNoConnectionToCannabis"
-                        defaultValue={this.props.getDefaultStateForField('hasNoConnectionToCannabis', false)}
+                        defaultValue={this.props.getDefaultStateForField(
+                            'hasNoConnectionToCannabis',
+                            false,
+                        )}
                         LabelComponent={() => (
                             <Text>
-                                {`${this.props.translate('companyStep.confirmCompanyIsNot')} `}
+                                {`${this.props.translate(
+                                    'companyStep.confirmCompanyIsNot',
+                                )} `}
                                 <TextLink
                                     // eslint-disable-next-line max-len
                                     href="https://community.expensify.com/discussion/6191/list-of-restricted-businesses"
                                 >
-                                    {`${this.props.translate('companyStep.listOfRestrictedBusinesses')}.`}
+                                    {`${this.props.translate(
+                                        'companyStep.listOfRestrictedBusinesses',
+                                    )}.`}
                                 </TextLink>
                             </Text>
                         )}

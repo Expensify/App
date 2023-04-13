@@ -11,7 +11,8 @@ function oldCurrencyData() {
             style: CONST.POLYFILL_TEST.STYLE,
             currency: CONST.POLYFILL_TEST.CURRENCY,
             currencyDisplay: CONST.POLYFILL_TEST.FORMAT,
-        }).format(CONST.POLYFILL_TEST.SAMPLE_INPUT) !== CONST.POLYFILL_TEST.EXPECTED_OUTPUT
+        }).format(CONST.POLYFILL_TEST.SAMPLE_INPUT) !==
+        CONST.POLYFILL_TEST.EXPECTED_OUTPUT
     );
 }
 
@@ -21,5 +22,9 @@ function oldCurrencyData() {
  * @returns {Boolean}
  */
 export default function shouldPolyfill() {
-    return typeof Intl === 'undefined' || !('NumberFormat' in Intl) || oldCurrencyData();
+    return (
+        typeof Intl === 'undefined' ||
+        !('NumberFormat' in Intl) ||
+        oldCurrencyData()
+    );
 }

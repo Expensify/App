@@ -116,7 +116,10 @@ function getAvatarBorderStyle(size, type) {
  * @returns {Object}
  */
 function getDefaultWorspaceAvatarColor(workspaceName) {
-    const colorHash = ReportUtils.hashLogin(workspaceName.trim(), workspaceColorOptions.length);
+    const colorHash = ReportUtils.hashLogin(
+        workspaceName.trim(),
+        workspaceColorOptions.length,
+    );
 
     return workspaceColorOptions[colorHash];
 }
@@ -196,7 +199,14 @@ function getZoomCursorStyle(isZoomed, isDragging) {
  * @param {Number} containerWidth
  * @return {Object}
  */
-function getZoomSizingStyle(isZoomed, imgWidth, imgHeight, zoomScale, containerHeight, containerWidth) {
+function getZoomSizingStyle(
+    isZoomed,
+    imgWidth,
+    imgHeight,
+    zoomScale,
+    containerHeight,
+    containerWidth,
+) {
     if (imgWidth === 0 || imgHeight === 0) {
         return {
             height: isZoomed ? '250%' : '100%',
@@ -237,8 +247,14 @@ function getZoomSizingStyle(isZoomed, imgWidth, imgHeight, zoomScale, containerH
 
     // If image is bigger than container size, display full image in the screen with scaled size (fit by container size) and position absolute.
     // top, left offset should be different when displaying long or wide image.
-    const scaledTop = `${Math.max((containerHeight - imgHeight * zoomScale) / 2, 0)}px`;
-    const scaledLeft = `${Math.max((containerWidth - imgWidth * zoomScale) / 2, 0)}px`;
+    const scaledTop = `${Math.max(
+        (containerHeight - imgHeight * zoomScale) / 2,
+        0,
+    )}px`;
+    const scaledLeft = `${Math.max(
+        (containerWidth - imgWidth * zoomScale) / 2,
+        0,
+    )}px`;
     return {
         height: `${imgHeight * zoomScale}px`,
         width: `${imgWidth * zoomScale}px`,
@@ -291,7 +307,9 @@ function getBackgroundColorStyle(backgroundColor) {
  * @returns {Array} `undefined` if the input color is not in hexadecimal notation. Otherwise, the RGB components of the input color.
  */
 function hexadecimalToRGBArray(hexadecimal) {
-    const components = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hexadecimal);
+    const components = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(
+        hexadecimal,
+    );
 
     if (components === null) {
         return undefined;
@@ -342,12 +360,17 @@ function getBadgeColorStyle(success, error, isPressed = false) {
  * @param {Boolean} isMenuItem - whether this button is apart of a list
  * @returns {Object}
  */
-function getButtonBackgroundColorStyle(buttonState = CONST.BUTTON_STATES.DEFAULT, isMenuItem = false) {
+function getButtonBackgroundColorStyle(
+    buttonState = CONST.BUTTON_STATES.DEFAULT,
+    isMenuItem = false,
+) {
     switch (buttonState) {
         case CONST.BUTTON_STATES.PRESSED:
             return {backgroundColor: themeColors.buttonPressedBG};
         case CONST.BUTTON_STATES.ACTIVE:
-            return isMenuItem ? {backgroundColor: themeColors.border} : {backgroundColor: themeColors.buttonHoveredBG};
+            return isMenuItem
+                ? {backgroundColor: themeColors.border}
+                : {backgroundColor: themeColors.buttonHoveredBG};
         case CONST.BUTTON_STATES.DISABLED:
         case CONST.BUTTON_STATES.DEFAULT:
         default:
@@ -362,7 +385,10 @@ function getButtonBackgroundColorStyle(buttonState = CONST.BUTTON_STATES.DEFAULT
  * @param {Boolean} isMenuIcon - whether this icon is apart of a list
  * @returns {Object}
  */
-function getIconFillColor(buttonState = CONST.BUTTON_STATES.DEFAULT, isMenuIcon = false) {
+function getIconFillColor(
+    buttonState = CONST.BUTTON_STATES.DEFAULT,
+    isMenuIcon = false,
+) {
     switch (buttonState) {
         case CONST.BUTTON_STATES.ACTIVE:
         case CONST.BUTTON_STATES.PRESSED:
@@ -422,10 +448,18 @@ function getModalPaddingStyles({
     modalContainerStylePaddingBottom,
 }) {
     return {
-        marginTop: (modalContainerStyleMarginTop || 0) + (shouldAddTopSafeAreaMargin ? safeAreaPaddingTop : 0),
-        marginBottom: (modalContainerStyleMarginBottom || 0) + (shouldAddBottomSafeAreaMargin ? safeAreaPaddingBottom : 0),
-        paddingTop: shouldAddTopSafeAreaPadding ? (modalContainerStylePaddingTop || 0) + safeAreaPaddingTop : modalContainerStylePaddingTop || 0,
-        paddingBottom: shouldAddBottomSafeAreaPadding ? (modalContainerStylePaddingBottom || 0) + safeAreaPaddingBottom : modalContainerStylePaddingBottom || 0,
+        marginTop:
+            (modalContainerStyleMarginTop || 0) +
+            (shouldAddTopSafeAreaMargin ? safeAreaPaddingTop : 0),
+        marginBottom:
+            (modalContainerStyleMarginBottom || 0) +
+            (shouldAddBottomSafeAreaMargin ? safeAreaPaddingBottom : 0),
+        paddingTop: shouldAddTopSafeAreaPadding
+            ? (modalContainerStylePaddingTop || 0) + safeAreaPaddingTop
+            : modalContainerStylePaddingTop || 0,
+        paddingBottom: shouldAddBottomSafeAreaPadding
+            ? (modalContainerStylePaddingBottom || 0) + safeAreaPaddingBottom
+            : modalContainerStylePaddingBottom || 0,
         paddingLeft: safeAreaPaddingLeft || 0,
         paddingRight: safeAreaPaddingRight || 0,
     };
@@ -537,7 +571,9 @@ function getMiniReportActionContextMenuWrapperStyle(isReportActionItemGrouped) {
 function getPaymentMethodMenuWidth(isSmallScreenWidth) {
     const margin = 20;
     return {
-        width: !isSmallScreenWidth ? variables.sideBarWidth - margin * 2 : undefined,
+        width: !isSmallScreenWidth
+            ? variables.sideBarWidth - margin * 2
+            : undefined,
     };
 }
 
@@ -553,7 +589,11 @@ function convertRGBAToRGB(foregroundRGB, backgroundRGB, opacity) {
     const [foregroundRed, foregroundGreen, foregroundBlue] = foregroundRGB;
     const [backgroundRed, backgroundGreen, backgroundBlue] = backgroundRGB;
 
-    return [(1 - opacity) * backgroundRed + opacity * foregroundRed, (1 - opacity) * backgroundGreen + opacity * foregroundGreen, (1 - opacity) * backgroundBlue + opacity * foregroundBlue];
+    return [
+        (1 - opacity) * backgroundRed + opacity * foregroundRed,
+        (1 - opacity) * backgroundGreen + opacity * foregroundGreen,
+        (1 - opacity) * backgroundBlue + opacity * foregroundBlue,
+    ];
 }
 
 /**
@@ -565,7 +605,11 @@ function convertRGBAToRGB(foregroundRGB, backgroundRGB, opacity) {
  * @returns {Array} An array with the three components of a color in RGB notation.
  */
 function convertUnitValuesToRGB(red, green, blue) {
-    return [Math.floor(red * 255), Math.floor(green * 255), Math.floor(blue * 255)];
+    return [
+        Math.floor(red * 255),
+        Math.floor(green * 255),
+        Math.floor(blue * 255),
+    ];
 }
 
 /**
@@ -589,11 +633,26 @@ function convertRGBToUnitValues(red, green, blue) {
 function getThemeBackgroundColor() {
     const backdropOpacity = variables.modalFullscreenBackdropOpacity;
 
-    const [backgroundRed, backgroundGreen, backgroundBlue] = hexadecimalToRGBArray(themeColors.appBG);
-    const [backdropRed, backdropGreen, backdropBlue] = hexadecimalToRGBArray(themeColors.modalBackdrop);
-    const normalizedBackdropRGB = convertRGBToUnitValues(backdropRed, backdropGreen, backdropBlue);
-    const normalizedBackgroundRGB = convertRGBToUnitValues(backgroundRed, backgroundGreen, backgroundBlue);
-    const themeRGBNormalized = convertRGBAToRGB(normalizedBackdropRGB, normalizedBackgroundRGB, backdropOpacity);
+    const [backgroundRed, backgroundGreen, backgroundBlue] =
+        hexadecimalToRGBArray(themeColors.appBG);
+    const [backdropRed, backdropGreen, backdropBlue] = hexadecimalToRGBArray(
+        themeColors.modalBackdrop,
+    );
+    const normalizedBackdropRGB = convertRGBToUnitValues(
+        backdropRed,
+        backdropGreen,
+        backdropBlue,
+    );
+    const normalizedBackgroundRGB = convertRGBToUnitValues(
+        backgroundRed,
+        backgroundGreen,
+        backgroundBlue,
+    );
+    const themeRGBNormalized = convertRGBAToRGB(
+        normalizedBackdropRGB,
+        normalizedBackgroundRGB,
+        backdropOpacity,
+    );
     const themeRGB = convertUnitValuesToRGB(...themeRGBNormalized);
 
     return `rgb(${themeRGB.join(', ')})`;
@@ -651,7 +710,10 @@ function convertToLTR(text) {
  */
 function hasSafeAreas(windowWidth, windowHeight) {
     const heightsIphonesWithNotches = [812, 896, 844, 926];
-    return _.contains(heightsIphonesWithNotches, windowHeight) || _.contains(heightsIphonesWithNotches, windowWidth);
+    return (
+        _.contains(heightsIphonesWithNotches, windowHeight) ||
+        _.contains(heightsIphonesWithNotches, windowWidth)
+    );
 }
 
 /**
@@ -783,7 +845,8 @@ function getReportWelcomeTopMarginStyle(isSmallScreenWidth) {
 function getReportWelcomeContainerStyle(isSmallScreenWidth) {
     if (isSmallScreenWidth) {
         return {
-            minHeight: CONST.EMPTY_STATE_BACKGROUND.SMALL_SCREEN.CONTAINER_MINHEIGHT,
+            minHeight:
+                CONST.EMPTY_STATE_BACKGROUND.SMALL_SCREEN.CONTAINER_MINHEIGHT,
             display: 'flex',
             justifyContent: 'space-between',
         };
@@ -805,7 +868,12 @@ function getReportWelcomeContainerStyle(isSmallScreenWidth) {
  * @param {Number} currentEmojiIndex
  * @returns {Object}
  */
-function getEmojiSuggestionItemStyle(highlightedEmojiIndex, rowHeight, hovered, currentEmojiIndex) {
+function getEmojiSuggestionItemStyle(
+    highlightedEmojiIndex,
+    rowHeight,
+    hovered,
+    currentEmojiIndex,
+) {
     return [
         {
             height: rowHeight,
@@ -826,8 +894,13 @@ function getEmojiSuggestionItemStyle(highlightedEmojiIndex, rowHeight, hovered, 
  * @param {Boolean} shouldIncludeReportRecipientLocalTimeHeight
  * @returns {Object}
  */
-function getEmojiSuggestionContainerStyle(itemsHeight, shouldIncludeReportRecipientLocalTimeHeight) {
-    const optionalPadding = shouldIncludeReportRecipientLocalTimeHeight ? CONST.RECIPIENT_LOCAL_TIME_HEIGHT : 0;
+function getEmojiSuggestionContainerStyle(
+    itemsHeight,
+    shouldIncludeReportRecipientLocalTimeHeight,
+) {
+    const optionalPadding = shouldIncludeReportRecipientLocalTimeHeight
+        ? CONST.RECIPIENT_LOCAL_TIME_HEIGHT
+        : 0;
     const padding = CONST.EMOJI_SUGGESTER.SUGGESTER_PADDING - optionalPadding;
 
     // The suggester is positioned absolutely within the component that includes the input and RecipientLocalTime view (for non-expanded mode only). To position it correctly,
@@ -850,7 +923,8 @@ const getColoredBackgroundStyle = (isColored) => ({
 function getEmojiReactionBubbleStyle(isHovered, hasUserReacted, sizeScale = 1) {
     const sizeStyles = {
         paddingVertical: styles.emojiReactionBubble.paddingVertical * sizeScale,
-        paddingHorizontal: styles.emojiReactionBubble.paddingHorizontal * sizeScale,
+        paddingHorizontal:
+            styles.emojiReactionBubble.paddingHorizontal * sizeScale,
     };
 
     if (hasUserReacted) {

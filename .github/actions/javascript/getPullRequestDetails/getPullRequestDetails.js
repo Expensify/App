@@ -8,7 +8,11 @@ const DEFAULT_PAYLOAD = {
     repo: GithubUtils.APP_REPO,
 };
 
-const pullRequestNumber = ActionUtils.getJSONInput('PULL_REQUEST_NUMBER', {required: false}, null);
+const pullRequestNumber = ActionUtils.getJSONInput(
+    'PULL_REQUEST_NUMBER',
+    {required: false},
+    null,
+);
 const user = core.getInput('USER', {required: true});
 let titleRegex = core.getInput('TITLE_REGEX', {required: false});
 
@@ -22,7 +26,9 @@ if (user) {
 
 if (titleRegex) {
     titleRegex = new RegExp(titleRegex);
-    console.log(`Looking for pull request w/ title matching: ${titleRegex.toString()}`);
+    console.log(
+        `Looking for pull request w/ title matching: ${titleRegex.toString()}`,
+    );
 }
 
 /**
@@ -89,7 +95,13 @@ if (pullRequestNumber) {
             ...DEFAULT_PAYLOAD,
             state: 'all',
         })
-        .then(({data}) => _.find(data, (PR) => PR.user.login === user && titleRegex.test(PR.title)).number)
+        .then(
+            ({data}) =>
+                _.find(
+                    data,
+                    (PR) => PR.user.login === user && titleRegex.test(PR.title),
+                ).number,
+        )
         .then((matchingPRNum) =>
             GithubUtils.octokit.pulls.get({
                 ...DEFAULT_PAYLOAD,

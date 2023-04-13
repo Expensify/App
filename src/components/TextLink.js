@@ -11,7 +11,11 @@ const propTypes = {
     href: PropTypes.string,
 
     /** Text content child */
-    children: PropTypes.oneOfType([PropTypes.string, PropTypes.array, PropTypes.object]).isRequired,
+    children: PropTypes.oneOfType([
+        PropTypes.string,
+        PropTypes.array,
+        PropTypes.object,
+    ]).isRequired,
 
     /** Additional style props */
     style: stylePropTypes,
@@ -31,7 +35,9 @@ const defaultProps = {
 };
 
 const TextLink = (props) => {
-    const additionalStyles = _.isArray(props.style) ? props.style : [props.style];
+    const additionalStyles = _.isArray(props.style)
+        ? props.style
+        : [props.style];
 
     /**
      * @param {Event} event
@@ -57,7 +63,14 @@ const TextLink = (props) => {
     };
 
     return (
-        <Text style={[styles.link, ...additionalStyles]} accessibilityRole="link" href={props.href} onPress={openLink} onMouseDown={props.onMouseDown} onKeyDown={openLinkIfEnterKeyPressed}>
+        <Text
+            style={[styles.link, ...additionalStyles]}
+            accessibilityRole="link"
+            href={props.href}
+            onPress={openLink}
+            onMouseDown={props.onMouseDown}
+            onKeyDown={openLinkIfEnterKeyPressed}
+        >
             {props.children}
         </Text>
     );

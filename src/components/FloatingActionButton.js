@@ -82,7 +82,13 @@ class FloatingActionButton extends PureComponent {
                             this.fabPressable.blur();
                             this.props.onPress(e);
                         }}
-                        style={[styles.floatingActionButton, StyleUtils.getAnimatedFABStyle(rotate, backgroundColor)]}
+                        style={[
+                            styles.floatingActionButton,
+                            StyleUtils.getAnimatedFABStyle(
+                                rotate,
+                                backgroundColor,
+                            ),
+                        ]}
                     >
                         <AnimatedIcon src={Expensicons.Plus} fill={fill} />
                     </AnimatedPressable>

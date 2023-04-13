@@ -40,13 +40,32 @@ const defaultProps = {
 const ConfirmationPage = (props) => (
     <>
         <View style={[styles.screenCenteredContainer, styles.alignItemsCenter]}>
-            <Lottie source={props.animation} autoPlay loop style={styles.confirmationAnimation} />
-            <Text style={[styles.textHeadline, styles.textAlignCenter, styles.mv2]}>{props.heading}</Text>
+            <Lottie
+                source={props.animation}
+                autoPlay
+                loop
+                style={styles.confirmationAnimation}
+            />
+            <Text
+                style={[
+                    styles.textHeadline,
+                    styles.textAlignCenter,
+                    styles.mv2,
+                ]}
+            >
+                {props.heading}
+            </Text>
             <Text style={styles.textAlignCenter}>{props.description}</Text>
         </View>
         {props.shouldShowButton && (
             <FixedFooter>
-                <Button success text={props.buttonText} style={styles.mt6} pressOnEnter onPress={props.onButtonPress} />
+                <Button
+                    success
+                    text={props.buttonText}
+                    style={styles.mt6}
+                    pressOnEnter
+                    onPress={props.onButtonPress}
+                />
             </FixedFooter>
         )}
     </>

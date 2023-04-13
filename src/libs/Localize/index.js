@@ -19,7 +19,11 @@ LocaleListener.connect();
  * @param {Object} [phraseParameters] Parameters to supply if the phrase is a template literal.
  * @returns {String}
  */
-function translate(desiredLanguage = CONST.DEFAULT_LOCALE, phraseKey, phraseParameters = {}) {
+function translate(
+    desiredLanguage = CONST.DEFAULT_LOCALE,
+    phraseKey,
+    phraseParameters = {},
+) {
     const languageAbbreviation = desiredLanguage.substring(0, 2);
     let translatedPhrase;
 
@@ -31,13 +35,18 @@ function translate(desiredLanguage = CONST.DEFAULT_LOCALE, phraseKey, phrasePara
     }
 
     // Phrase is not found in full locale, search it in fallback language e.g. es
-    const fallbackLanguageDictionary = lodashGet(translations, languageAbbreviation);
+    const fallbackLanguageDictionary = lodashGet(
+        translations,
+        languageAbbreviation,
+    );
     translatedPhrase = lodashGet(fallbackLanguageDictionary, phraseKey);
     if (translatedPhrase) {
         return Str.result(translatedPhrase, phraseParameters);
     }
     if (languageAbbreviation !== 'en') {
-        Log.alert(`${phraseKey} was not found in the ${languageAbbreviation} locale`);
+        Log.alert(
+            `${phraseKey} was not found in the ${languageAbbreviation} locale`,
+        );
     }
 
     // Phrase is not translated, search it in default language (en)
@@ -50,7 +59,9 @@ function translate(desiredLanguage = CONST.DEFAULT_LOCALE, phraseKey, phrasePara
     // Phrase is not found in default language, on production log an alert to server
     // on development throw an error
     if (Config.IS_IN_PRODUCTION) {
-        const phraseString = _.isArray(phraseKey) ? phraseKey.join('.') : phraseKey;
+        const phraseString = _.isArray(phraseKey)
+            ? phraseKey.join('.')
+            : phraseKey;
         Log.alert(`${phraseString} was not found in the en locale`);
         return phraseString;
     }
@@ -65,7 +76,11 @@ function translate(desiredLanguage = CONST.DEFAULT_LOCALE, phraseKey, phrasePara
  * @returns {String}
  */
 function translateLocal(phrase, variables) {
-    return translate(BaseLocaleListener.getPreferredLocale(), phrase, variables);
+    return translate(
+        BaseLocaleListener.getPreferredLocale(),
+        phrase,
+        variables,
+    );
 }
 
 /**
@@ -82,7 +97,9 @@ function arrayToString(anArray) {
     } else if (_.size(anArray) === 2) {
         aString = anArray.join(` ${and} `);
     } else if (_.size(anArray) > 2) {
-        aString = `${anArray.slice(0, -1).join(', ')} ${and} ${anArray.slice(-1)}`;
+        aString = `${anArray.slice(0, -1).join(', ')} ${and} ${anArray.slice(
+            -1,
+        )}`;
     }
     return aString;
 }

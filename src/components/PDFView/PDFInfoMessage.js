@@ -18,12 +18,24 @@ const propTypes = {
 
 const PDFInfoMessage = (props) => (
     <View style={styles.alignItemsCenter}>
-        <Icon src={Expensicons.EyeDisabled} width={variables.iconSizeSuperLarge} height={variables.iconSizeSuperLarge} />
-        <Text style={[styles.textHeadline, styles.mb3, styles.mt3]}>{props.translate('attachmentView.pdfPasswordForm.title')}</Text>
-        <Text>{props.translate('attachmentView.pdfPasswordForm.infoText')}</Text>
+        <Icon
+            src={Expensicons.EyeDisabled}
+            width={variables.iconSizeSuperLarge}
+            height={variables.iconSizeSuperLarge}
+        />
+        <Text style={[styles.textHeadline, styles.mb3, styles.mt3]}>
+            {props.translate('attachmentView.pdfPasswordForm.title')}
+        </Text>
+        <Text>
+            {props.translate('attachmentView.pdfPasswordForm.infoText')}
+        </Text>
         <Text>
             {props.translate('attachmentView.pdfPasswordForm.beforeLinkText')}
-            <TextLink onPress={props.onShowForm}>{` ${props.translate('attachmentView.pdfPasswordForm.linkText')} `}</TextLink>
+            <TextLink onPress={props.onShowForm}>
+                {` ${props.translate(
+                    'attachmentView.pdfPasswordForm.linkText',
+                )} `}
+            </TextLink>
             {props.translate('attachmentView.pdfPasswordForm.afterLinkText')}
         </Text>
     </View>

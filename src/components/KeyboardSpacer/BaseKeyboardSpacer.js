@@ -17,7 +17,10 @@ class BaseKeyboardSpacer extends PureComponent {
     componentDidMount() {
         const updateListener = this.props.keyboardShowMethod;
         const resetListener = this.props.keyboardHideMethod;
-        this.keyboardListeners = [Keyboard.addListener(updateListener, this.updateKeyboardSpace), Keyboard.addListener(resetListener, this.resetKeyboardSpace)];
+        this.keyboardListeners = [
+            Keyboard.addListener(updateListener, this.updateKeyboardSpace),
+            Keyboard.addListener(resetListener, this.resetKeyboardSpace),
+        ];
     }
 
     componentWillUnmount() {
@@ -35,7 +38,8 @@ class BaseKeyboardSpacer extends PureComponent {
         }
 
         const screenHeight = Dimensions.get('window').height;
-        const keyboardSpace = screenHeight - event.endCoordinates.screenY + this.props.topSpacing;
+        const keyboardSpace =
+            screenHeight - event.endCoordinates.screenY + this.props.topSpacing;
         this.setState(
             {
                 keyboardSpace,

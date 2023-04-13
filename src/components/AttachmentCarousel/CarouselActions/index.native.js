@@ -45,7 +45,11 @@ class Carousel extends Component {
                 }
 
                 const deltaSlide = gestureState.dx > 0 ? 1 : -1;
-                if (Math.abs(gestureState.vx) < 1 || (deltaSlide === 1 && !this.props.canSwipeLeft) || (deltaSlide === -1 && !this.props.canSwipeRight)) {
+                if (
+                    Math.abs(gestureState.vx) < 1 ||
+                    (deltaSlide === 1 && !this.props.canSwipeLeft) ||
+                    (deltaSlide === -1 && !this.props.canSwipeRight)
+                ) {
                     return Animated.spring(this.pan, {
                         useNativeDriver: false,
                         toValue: 0,
@@ -78,7 +82,11 @@ class Carousel extends Component {
     render() {
         return (
             <Animated.View
-                style={[styles.w100, styles.h100, {transform: [{translateX: this.pan}]}]}
+                style={[
+                    styles.w100,
+                    styles.h100,
+                    {transform: [{translateX: this.pan}]},
+                ]}
                 // eslint-disable-next-line react/jsx-props-no-spreading
                 {...this.panResponder.panHandlers}
             >

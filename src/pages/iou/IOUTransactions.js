@@ -37,7 +37,8 @@ class IOUTransactions extends Component {
     constructor(props) {
         super(props);
 
-        this.getRejectableTransactions = this.getRejectableTransactions.bind(this);
+        this.getRejectableTransactions =
+            this.getRejectableTransactions.bind(this);
     }
 
     /**
@@ -55,36 +56,68 @@ class IOUTransactions extends Component {
         // iouReportIDs should be strings, but we still have places that send them as ints so we convert them both to Numbers for comparison
         const actionsForIOUReport = _.filter(
             this.props.reportActions,
-            (action) => action.originalMessage && action.originalMessage.type && Number(action.originalMessage.IOUReportID) === Number(this.props.iouReportID),
+            (action) =>
+                action.originalMessage &&
+                action.originalMessage.type &&
+                Number(action.originalMessage.IOUReportID) ===
+                    Number(this.props.iouReportID),
         );
 
         const rejectedTransactionIDs = _.chain(actionsForIOUReport)
-            .filter((action) => _.contains(['cancel', 'decline'], action.originalMessage.type))
-            .map((rejectedAction) => lodashGet(rejectedAction, 'originalMessage.IOUTransactionID', ''))
+            .filter((action) =>
+                _.contains(['cancel', 'decline'], action.originalMessage.type),
+            )
+            .map((rejectedAction) =>
+                lodashGet(
+                    rejectedAction,
+                    'originalMessage.IOUTransactionID',
+                    '',
+                ),
+            )
             .compact()
             .value();
 
         return _.chain(actionsForIOUReport)
             .filter((action) => action.originalMessage.type === 'create')
-            .filter((action) => !_.contains(rejectedTransactionIDs, action.originalMessage.IOUTransactionID))
-            .map((action) => lodashGet(action, 'originalMessage.IOUTransactionID', ''))
+            .filter(
+                (action) =>
+                    !_.contains(
+                        rejectedTransactionIDs,
+                        action.originalMessage.IOUTransactionID,
+                    ),
+            )
+            .map((action) =>
+                lodashGet(action, 'originalMessage.IOUTransactionID', ''),
+            )
             .compact()
             .value();
     }
 
     render() {
-        const sortedReportActions = ReportActionsUtils.getSortedReportActionsForDisplay(this.props.reportActions);
+        const sortedReportActions =
+            ReportActionsUtils.getSortedReportActionsForDisplay(
+                this.props.reportActions,
+            );
         return (
             <View style={[styles.mt3]}>
                 {_.map(sortedReportActions, (reportAction) => {
                     // iouReportIDs should be strings, but we still have places that send them as ints so we convert them both to Numbers for comparison
-                    if (!reportAction.originalMessage || Number(reportAction.originalMessage.IOUReportID) !== Number(this.props.iouReportID)) {
+                    if (
+                        !reportAction.originalMessage ||
+                        Number(reportAction.originalMessage.IOUReportID) !==
+                            Number(this.props.iouReportID)
+                    ) {
                         return;
                     }
 
-                    const rejectableTransactions = this.getRejectableTransactions();
-                    const canBeRejected = _.contains(rejectableTransactions, reportAction.originalMessage.IOUTransactionID);
-                    const isCurrentUserTransactionCreator = this.props.userEmail === reportAction.actorEmail;
+                    const rejectableTransactions =
+                        this.getRejectableTransactions();
+                    const canBeRejected = _.contains(
+                        rejectableTransactions,
+                        reportAction.originalMessage.IOUTransactionID,
+                    );
+                    const isCurrentUserTransactionCreator =
+                        this.props.userEmail === reportAction.actorEmail;
                     return (
                         <ReportTransaction
                             chatReportID={this.props.chatReportID}
@@ -93,7 +126,11 @@ class IOUTransactions extends Component {
                             action={reportAction}
                             key={reportAction.reportActionID}
                             canBeRejected={canBeRejected}
-                            rejectButtonType={isCurrentUserTransactionCreator ? CONST.IOU.REPORT_ACTION_TYPE.CANCEL : CONST.IOU.REPORT_ACTION_TYPE.DECLINE}
+                            rejectButtonType={
+                                isCurrentUserTransactionCreator
+                                    ? CONST.IOU.REPORT_ACTION_TYPE.CANCEL
+                                    : CONST.IOU.REPORT_ACTION_TYPE.DECLINE
+                            }
                         />
                     );
                 })}
@@ -106,7 +143,8 @@ IOUTransactions.defaultProps = defaultProps;
 IOUTransactions.propTypes = propTypes;
 export default withOnyx({
     reportActions: {
-        key: ({chatReportID}) => `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${chatReportID}`,
+        key: ({chatReportID}) =>
+            `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${chatReportID}`,
         canEvict: false,
     },
 })(IOUTransactions);

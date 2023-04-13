@@ -5,7 +5,6 @@
 ### What is the root cause of that problem?
 
 ### What changes do you think we should make in order to solve the problem?
-
 <!-- DO NOT POST CODE DIFFS -->
 
 ### What alternative solutions did you explore? (Optional)

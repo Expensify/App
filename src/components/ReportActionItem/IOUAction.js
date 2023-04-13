@@ -67,11 +67,19 @@ const defaultProps = {
 
 const IOUAction = (props) => {
     const launchDetailsModal = () => {
-        Navigation.navigate(ROUTES.getIouDetailsRoute(props.chatReportID, props.action.originalMessage.IOUReportID));
+        Navigation.navigate(
+            ROUTES.getIouDetailsRoute(
+                props.chatReportID,
+                props.action.originalMessage.IOUReportID,
+            ),
+        );
     };
 
     const shouldShowIOUPreview =
-        (props.isMostRecentIOUReportAction && Boolean(props.action.originalMessage.IOUReportID) && props.chatReport.hasOutstandingIOU) || props.action.originalMessage.type === 'pay';
+        (props.isMostRecentIOUReportAction &&
+            Boolean(props.action.originalMessage.IOUReportID) &&
+            props.chatReport.hasOutstandingIOU) ||
+        props.action.originalMessage.type === 'pay';
 
     let shouldShowPendingConversionMessage = false;
     if (
@@ -79,10 +87,15 @@ const IOUAction = (props) => {
         !_.isEmpty(props.reportActions) &&
         props.chatReport.hasOutstandingIOU &&
         props.isMostRecentIOUReportAction &&
-        props.action.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD &&
+        props.action.pendingAction ===
+            CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD &&
         props.network.isOffline
     ) {
-        shouldShowPendingConversionMessage = IOUUtils.isIOUReportPendingCurrencyConversion(props.reportActions, props.iouReport);
+        shouldShowPendingConversionMessage =
+            IOUUtils.isIOUReportPendingCurrencyConversion(
+                props.reportActions,
+                props.iouReport,
+            );
     }
 
     return (
@@ -91,7 +104,9 @@ const IOUAction = (props) => {
                 action={props.action}
                 chatReportID={props.chatReportID}
                 contextMenuAnchor={props.contextMenuAnchor}
-                shouldAllowViewDetails={Boolean(props.action.originalMessage.IOUReportID)}
+                shouldAllowViewDetails={Boolean(
+                    props.action.originalMessage.IOUReportID,
+                )}
                 onViewDetailsPressed={launchDetailsModal}
                 checkIfContextMenuActive={props.checkIfContextMenuActive}
                 isHovered={props.isHovered}
@@ -103,10 +118,15 @@ const IOUAction = (props) => {
                     action={props.action}
                     contextMenuAnchor={props.contextMenuAnchor}
                     checkIfContextMenuActive={props.checkIfContextMenuActive}
-                    shouldShowPendingConversionMessage={shouldShowPendingConversionMessage}
+                    shouldShowPendingConversionMessage={
+                        shouldShowPendingConversionMessage
+                    }
                     onPayButtonPressed={launchDetailsModal}
                     onPreviewPressed={launchDetailsModal}
-                    containerStyles={[styles.cursorPointer, props.isHovered ? styles.iouPreviewBoxHover : undefined]}
+                    containerStyles={[
+                        styles.cursorPointer,
+                        props.isHovered ? styles.iouPreviewBoxHover : undefined,
+                    ]}
                     isHovered={props.isHovered}
                 />
             )}
@@ -121,13 +141,16 @@ IOUAction.displayName = 'IOUAction';
 export default compose(
     withOnyx({
         chatReport: {
-            key: ({chatReportID}) => `${ONYXKEYS.COLLECTION.REPORT}${chatReportID}`,
+            key: ({chatReportID}) =>
+                `${ONYXKEYS.COLLECTION.REPORT}${chatReportID}`,
         },
         iouReport: {
-            key: ({action}) => `${ONYXKEYS.COLLECTION.REPORT}${action.originalMessage.IOUReportID}`,
+            key: ({action}) =>
+                `${ONYXKEYS.COLLECTION.REPORT}${action.originalMessage.IOUReportID}`,
         },
         reportActions: {
-            key: ({chatReportID}) => `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${chatReportID}`,
+            key: ({chatReportID}) =>
+                `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${chatReportID}`,
             canEvict: false,
         },
     }),

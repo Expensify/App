@@ -55,7 +55,13 @@ function getDisplayName(key, modifiers) {
         displayName = [..._.sortBy(modifiers), ...displayName];
     }
 
-    displayName = _.map(displayName, (modifier) => lodashGet(CONST.KEYBOARD_SHORTCUT_KEY_DISPLAY_NAME, modifier.toUpperCase(), modifier));
+    displayName = _.map(displayName, (modifier) =>
+        lodashGet(
+            CONST.KEYBOARD_SHORTCUT_KEY_DISPLAY_NAME,
+            modifier.toUpperCase(),
+            modifier,
+        ),
+    );
 
     return displayName.join(' + ');
 }
@@ -81,7 +87,12 @@ function bindHandlerToKeydownEvent(event) {
         }
 
         // If configured to do so, prevent input text control to trigger this event
-        if (!callback.captureOnInputs && (event.target.nodeName === 'INPUT' || event.target.nodeName === 'TEXTAREA' || event.target.contentEditable === 'true')) {
+        if (
+            !callback.captureOnInputs &&
+            (event.target.nodeName === 'INPUT' ||
+                event.target.nodeName === 'TEXTAREA' ||
+                event.target.contentEditable === 'true')
+        ) {
             return true;
         }
 
@@ -119,7 +130,10 @@ document.addEventListener('keydown', bindHandlerToKeydownEvent, {
  * @private
  */
 function unsubscribe(displayName, callbackID) {
-    eventHandlers[displayName] = _.reject(eventHandlers[displayName], (callback) => callback.id === callbackID);
+    eventHandlers[displayName] = _.reject(
+        eventHandlers[displayName],
+        (callback) => callback.id === callbackID,
+    );
 }
 
 /**
@@ -136,7 +150,11 @@ function getPlatformEquivalentForKeys(keys) {
         }
 
         const platformModifiers = CONST.PLATFORM_SPECIFIC_KEYS[key];
-        return lodashGet(platformModifiers, operatingSystem, platformModifiers.DEFAULT || key);
+        return lodashGet(
+            platformModifiers,
+            operatingSystem,
+            platformModifiers.DEFAULT || key,
+        );
     });
 }
 
@@ -153,7 +171,17 @@ function getPlatformEquivalentForKeys(keys) {
  * @param {Array<String>} [excludedNodes] Do not capture key events targeting excluded nodes (i.e. do not prevent default and let the event bubble)
  * @returns {Function} clean up method
  */
-function subscribe(key, callback, descriptionKey, modifiers = 'shift', captureOnInputs = false, shouldBubble = false, priority = 0, shouldPreventDefault = true, excludedNodes = []) {
+function subscribe(
+    key,
+    callback,
+    descriptionKey,
+    modifiers = 'shift',
+    captureOnInputs = false,
+    shouldBubble = false,
+    priority = 0,
+    shouldPreventDefault = true,
+    excludedNodes = [],
+) {
     const platformAdjustedModifiers = getPlatformEquivalentForKeys(modifiers);
     const displayName = getDisplayName(key, platformAdjustedModifiers);
     if (!_.has(eventHandlers, displayName)) {

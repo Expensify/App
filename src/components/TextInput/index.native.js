@@ -9,7 +9,11 @@ const TextInput = forwardRef((props, ref) => (
         {...props}
         // Setting autoCompleteType to new-password throws an error on Android/iOS, so fall back to password in that case
         // eslint-disable-next-line react/jsx-props-no-multi-spaces
-        autoCompleteType={props.autoCompleteType === 'new-password' ? 'password' : props.autoCompleteType}
+        autoCompleteType={
+            props.autoCompleteType === 'new-password'
+                ? 'password'
+                : props.autoCompleteType
+        }
         innerRef={ref}
         inputStyle={[styles.baseTextInput, ...props.inputStyle]}
     />

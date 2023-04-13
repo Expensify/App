@@ -27,13 +27,20 @@ const defaultProps = {
 };
 
 const LocalePicker = (props) => {
-    const localesToLanguages = _.map(props.translate('languagePage.languages'), (language, key) => ({
-        value: key,
-        label: language.label,
-    }));
+    const localesToLanguages = _.map(
+        props.translate('languagePage.languages'),
+        (language, key) => ({
+            value: key,
+            label: language.label,
+        }),
+    );
     return (
         <Picker
-            label={props.size === 'normal' ? props.translate('languagePage.language') : null}
+            label={
+                props.size === 'normal'
+                    ? props.translate('languagePage.language')
+                    : null
+            }
             onInputChange={(locale) => {
                 if (locale === props.preferredLocale) {
                     return;
@@ -44,7 +51,9 @@ const LocalePicker = (props) => {
             items={localesToLanguages}
             size={props.size}
             value={props.preferredLocale}
-            containerStyles={props.size === 'small' ? [styles.pickerContainerSmall] : []}
+            containerStyles={
+                props.size === 'small' ? [styles.pickerContainerSmall] : []
+            }
             backgroundColor={themeColors.midtone}
         />
     );

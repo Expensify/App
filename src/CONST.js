@@ -3,7 +3,9 @@ import Config from 'react-native-config';
 import * as Url from './libs/Url';
 
 const CLOUDFRONT_URL = 'https://d2k5nsl2zxldvw.cloudfront.net';
-const ACTIVE_EXPENSIFY_URL = Url.addTrailingForwardSlash(lodashGet(Config, 'NEW_EXPENSIFY_URL', 'https://new.expensify.com'));
+const ACTIVE_EXPENSIFY_URL = Url.addTrailingForwardSlash(
+    lodashGet(Config, 'NEW_EXPENSIFY_URL', 'https://new.expensify.com'),
+);
 const USE_EXPENSIFY_URL = 'https://use.expensify.com';
 const PLATFORM_OS_MACOS = 'Mac OS';
 const ANDROID_PACKAGE_NAME = 'com.expensify.chat';
@@ -17,7 +19,25 @@ const CONST = {
 
     API_ATTACHMENT_VALIDATIONS: {
         // Same as the PHP layer allows
-        ALLOWED_EXTENSIONS: ['jpg', 'jpeg', 'png', 'gif', 'pdf', 'html', 'txt', 'rtf', 'doc', 'docx', 'htm', 'tiff', 'tif', 'xml', 'mp3', 'mp4', 'mov'],
+        ALLOWED_EXTENSIONS: [
+            'jpg',
+            'jpeg',
+            'png',
+            'gif',
+            'pdf',
+            'html',
+            'txt',
+            'rtf',
+            'doc',
+            'docx',
+            'htm',
+            'tiff',
+            'tif',
+            'xml',
+            'mp3',
+            'mp4',
+            'mov',
+        ],
 
         // 24 megabytes in bytes, this is limit set on servers, do not update without wider internal discussion
         MAX_SIZE: 25165824,
@@ -85,8 +105,10 @@ const CONST = {
         ERROR: {
             MISSING_ROUTING_NUMBER: '402 Missing routingNumber',
             MAX_ROUTING_NUMBER: '402 Maximum Size Exceeded routingNumber',
-            MISSING_INCORPORATION_STATE: '402 Missing incorporationState in additionalData',
-            MISSING_INCORPORATION_TYPE: '402 Missing incorporationType in additionalData',
+            MISSING_INCORPORATION_STATE:
+                '402 Missing incorporationState in additionalData',
+            MISSING_INCORPORATION_TYPE:
+                '402 Missing incorporationType in additionalData',
         },
         STEP: {
             // In the order they appear in the VBA flow
@@ -124,7 +146,8 @@ const CONST = {
 
             // If the account number length is from 4 to 13 digits, we show the last 4 digits and hide the rest with X
             // If the length is longer than 13 digits, we show the first 6 and last 4 digits, hiding the rest with X
-            MASKED_US_ACCOUNT_NUMBER: /^[X]{0,9}[0-9]{4}$|^[0-9]{6}[X]{4,7}[0-9]{4}$/,
+            MASKED_US_ACCOUNT_NUMBER:
+                /^[X]{0,9}[0-9]{4}$|^[0-9]{6}[X]{4,7}[0-9]{4}$/,
             SWIFT_BIC: /^[A-Za-z0-9]{8,11}$/,
         },
         VERIFICATION_MAX_ATTEMPTS: 7,
@@ -273,13 +296,17 @@ const CONST = {
     PDF_VIEWER_URL: '/pdf/web/viewer.html',
     EXPENSIFY_ICON_URL: `${CLOUDFRONT_URL}/images/favicon-2019.png`,
     CONCIERGE_ICON_URL: `${CLOUDFRONT_URL}/images/icons/concierge_2022.png`,
-    UPWORK_URL: 'https://github.com/Expensify/App/issues?q=is%3Aopen+is%3Aissue+label%3A%22Help+Wanted%22',
+    UPWORK_URL:
+        'https://github.com/Expensify/App/issues?q=is%3Aopen+is%3Aissue+label%3A%22Help+Wanted%22',
     GITHUB_URL: 'https://github.com/Expensify/App',
     TERMS_URL: `${USE_EXPENSIFY_URL}/terms`,
     PRIVACY_URL: `${USE_EXPENSIFY_URL}/privacy`,
     LICENSES_URL: `${USE_EXPENSIFY_URL}/licenses`,
-    GITHUB_RELEASE_URL: 'https://api.github.com/repos/expensify/app/releases/latest',
-    ADD_SECONDARY_LOGIN_URL: encodeURI('settings?param={"section":"account","openModal":"secondaryLogin"}'),
+    GITHUB_RELEASE_URL:
+        'https://api.github.com/repos/expensify/app/releases/latest',
+    ADD_SECONDARY_LOGIN_URL: encodeURI(
+        'settings?param={"section":"account","openModal":"secondaryLogin"}',
+    ),
     MANAGE_CARDS_URL: 'domain_companycards',
     FEES_URL: `${USE_EXPENSIFY_URL}/fees`,
     CFPB_PREPAID_URL: 'https://cfpb.gov/prepaid',
@@ -444,11 +471,13 @@ const CONST = {
         WEB_SOCKET_ERROR: 'WebSocketError',
         NETWORK_REQUEST_FAILED: 'Network request failed',
         SAFARI_DOCUMENT_LOAD_ABORTED: 'cancelled',
-        FIREFOX_DOCUMENT_LOAD_ABORTED: 'NetworkError when attempting to fetch resource.',
+        FIREFOX_DOCUMENT_LOAD_ABORTED:
+            'NetworkError when attempting to fetch resource.',
         IOS_NETWORK_CONNECTION_LOST: 'The network connection was lost.',
         IOS_NETWORK_CONNECTION_LOST_RUSSIAN: 'Сетевое соединение потеряно.',
         IOS_NETWORK_CONNECTION_LOST_SWEDISH: 'Nätverksanslutningen förlorades.',
-        IOS_NETWORK_CONNECTION_LOST_SPANISH: 'La conexión a Internet parece estar desactivada.',
+        IOS_NETWORK_CONNECTION_LOST_SPANISH:
+            'La conexión a Internet parece estar desactivada.',
         IOS_LOAD_FAILED: 'Load failed',
         SAFARI_CANNOT_PARSE_RESPONSE: 'cannot parse response',
         GATEWAY_TIMEOUT: 'Gateway Timeout',
@@ -478,8 +507,10 @@ const CONST = {
         TIMEZONE: 'timeZone',
         FREE_PLAN_BANK_ACCOUNT_ID: 'expensify_freePlanBankAccountID',
         ACH_DATA_THROTTLED: 'expensify_ACHData_throttled',
-        FAILED_BANK_ACCOUNT_VALIDATIONS_PREFIX: 'private_failedBankValidations_',
-        PLAID_THROTTLED: 'private_throttledHistory_openPlaidBankAccountSelector',
+        FAILED_BANK_ACCOUNT_VALIDATIONS_PREFIX:
+            'private_failedBankValidations_',
+        PLAID_THROTTLED:
+            'private_throttledHistory_openPlaidBankAccountSelector',
         PREFERRED_LOCALE: 'preferredLocale',
         KYC_MIGRATION: 'expensify_migration_2020_04_28_RunKycVerifications',
         PREFERRED_EMOJI_SKIN_TONE: 'expensify_preferredEmojiSkinTone',
@@ -496,7 +527,8 @@ const CONST = {
     },
 
     // at least 8 characters, 1 capital letter, 1 lowercase number, 1 number
-    PASSWORD_COMPLEXITY_REGEX_STRING: '^(?=.*[A-Z])(?=.*[0-9])(?=.*[a-z]).{8,}$',
+    PASSWORD_COMPLEXITY_REGEX_STRING:
+        '^(?=.*[A-Z])(?=.*[0-9])(?=.*[a-z]).{8,}$',
 
     // 6 numeric digits
     VALIDATE_CODE_REGEX_STRING: /^\d{6}$/,
@@ -658,8 +690,10 @@ const CONST = {
             KBA_NEEDED: 'KBA needed',
             NO_ACCOUNT_TO_LINK: '405 No account to link to wallet',
             INVALID_WALLET: '405 Invalid wallet account',
-            NOT_OWNER_OF_BANK_ACCOUNT: '401 Wallet owner does not own linked bank account',
-            INVALID_BANK_ACCOUNT: '405 Attempting to link an invalid bank account to a wallet',
+            NOT_OWNER_OF_BANK_ACCOUNT:
+                '401 Wallet owner does not own linked bank account',
+            INVALID_BANK_ACCOUNT:
+                '405 Attempting to link an invalid bank account to a wallet',
             NOT_OWNER_OF_FUND: '401 Wallet owner does not own linked fund',
             INVALID_FUND: '405 Attempting to link an invalid fund to a wallet',
         },
@@ -822,7 +856,8 @@ const CONST = {
         US_PHONE_WITH_OPTIONAL_COUNTRY_CODE: /^(\+1)?\d{10}$/,
         DIGITS_AND_PLUS: /^\+?[0-9]*$/,
         PHONE_E164_PLUS: /^\+?[1-9]\d{1,14}$/,
-        PHONE_WITH_SPECIAL_CHARS: /^\s*(?:\+?(\d{1,3}))?[-. (]*(\d{3})[-. )]*(\d{3})[-. ]*(\d{4})(?: *x(\d+))?\s*$/,
+        PHONE_WITH_SPECIAL_CHARS:
+            /^\s*(?:\+?(\d{1,3}))?[-. (]*(\d{3})[-. )]*(\d{3})[-. ]*(\d{4})(?: *x(\d+))?\s*$/,
         ALPHABETIC_CHARS: /[a-zA-Z]+/,
         POSITIVE_INTEGER: /^\d+$/,
         NON_ALPHA_NUMERIC: /[^A-Za-z0-9+]/g,
@@ -839,7 +874,8 @@ const CONST = {
         PAYPAL_ME_USERNAME: /^[a-zA-Z0-9]+$/,
         ROOM_NAME: /^#[a-z0-9-]{1,80}$/,
 
-        WEBSITE: /^((https?|ftp):\/\/)(([a-z\d]([a-z\d-]*[a-z\d])*)\.)+[a-z]{2,}(:\d+)?(\/[-a-z\d%_.~+]*)*(\?[;&a-z\d%_.~+=-]*)?(#[-a-z\d_]*)?$/i,
+        WEBSITE:
+            /^((https?|ftp):\/\/)(([a-z\d]([a-z\d-]*[a-z\d])*)\.)+[a-z]{2,}(:\d+)?(\/[-a-z\d%_.~+]*)*(\?[;&a-z\d%_.~+=-]*)?(#[-a-z\d_]*)?$/i,
 
         // eslint-disable-next-line max-len, no-misleading-character-class
         EMOJIS: /[\p{Extended_Pictographic}\u200d\u{1f1e6}-\u{1f1ff}\u{1f3fb}-\u{1f3ff}\u{e0020}-\u{e007f}\u20E3\uFE0F]|[#*0-9]\uFE0F?\u20E3/gu,

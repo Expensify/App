@@ -74,11 +74,14 @@ class TooltipRenderedOnPageBody extends React.PureComponent {
         };
 
         if (props.renderTooltipContent && props.text) {
-            Log.warn('Developer error: Cannot use both text and renderTooltipContent props at the same time in <TooltipRenderedOnPageBody />!');
+            Log.warn(
+                'Developer error: Cannot use both text and renderTooltipContent props at the same time in <TooltipRenderedOnPageBody />!',
+            );
         }
 
         this.measureTooltip = this.measureTooltip.bind(this);
-        this.updateTooltipContentWidth = this.updateTooltipContentWidth.bind(this);
+        this.updateTooltipContentWidth =
+            this.updateTooltipContentWidth.bind(this);
     }
 
     componentDidMount() {
@@ -86,13 +89,19 @@ class TooltipRenderedOnPageBody extends React.PureComponent {
     }
 
     componentDidUpdate(prevProps) {
-        if (prevProps.text === this.props.text && prevProps.renderTooltipContent === this.props.renderTooltipContent) {
+        if (
+            prevProps.text === this.props.text &&
+            prevProps.renderTooltipContent === this.props.renderTooltipContent
+        ) {
             return;
         }
 
         // Reset the tooltip text width to 0 so that we can measure it again.
         // eslint-disable-next-line react/no-did-update-set-state
-        this.setState({tooltipContentWidth: undefined}, this.updateTooltipContentWidth);
+        this.setState(
+            {tooltipContentWidth: undefined},
+            this.updateTooltipContentWidth,
+        );
     }
 
     updateTooltipContentWidth() {
@@ -118,7 +127,13 @@ class TooltipRenderedOnPageBody extends React.PureComponent {
     }
 
     render() {
-        const {animationStyle, tooltipWrapperStyle, tooltipTextStyle, pointerWrapperStyle, pointerStyle} = getTooltipStyles(
+        const {
+            animationStyle,
+            tooltipWrapperStyle,
+            tooltipTextStyle,
+            pointerWrapperStyle,
+            pointerStyle,
+        } = getTooltipStyles(
             this.props.animation,
             this.props.windowWidth,
             this.props.xOffset,
@@ -146,10 +161,17 @@ class TooltipRenderedOnPageBody extends React.PureComponent {
 
         let content;
         if (this.props.renderTooltipContent) {
-            content = <View ref={contentRef}>{this.props.renderTooltipContent()}</View>;
+            content = (
+                <View ref={contentRef}>
+                    {this.props.renderTooltipContent()}
+                </View>
+            );
         } else {
             content = (
-                <Text numberOfLines={this.props.numberOfLines} style={tooltipTextStyle}>
+                <Text
+                    numberOfLines={this.props.numberOfLines}
+                    style={tooltipTextStyle}
+                >
                     <Text style={tooltipTextStyle} ref={contentRef}>
                         {this.props.text}
                     </Text>
@@ -158,7 +180,10 @@ class TooltipRenderedOnPageBody extends React.PureComponent {
         }
 
         return ReactDOM.createPortal(
-            <Animated.View onLayout={this.measureTooltip} style={[tooltipWrapperStyle, animationStyle]}>
+            <Animated.View
+                onLayout={this.measureTooltip}
+                style={[tooltipWrapperStyle, animationStyle]}
+            >
                 {content}
                 <View style={pointerWrapperStyle}>
                     <View style={pointerStyle} />

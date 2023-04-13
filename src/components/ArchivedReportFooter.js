@@ -55,15 +55,31 @@ const defaultProps = {
 };
 
 const ArchivedReportFooter = (props) => {
-    const archiveReason = lodashGet(props.reportClosedAction, 'originalMessage.reason', CONST.REPORT.ARCHIVE_REASON.DEFAULT);
-    let displayName = lodashGet(props.personalDetails, `${props.report.ownerEmail}.displayName`, props.report.ownerEmail);
+    const archiveReason = lodashGet(
+        props.reportClosedAction,
+        'originalMessage.reason',
+        CONST.REPORT.ARCHIVE_REASON.DEFAULT,
+    );
+    let displayName = lodashGet(
+        props.personalDetails,
+        `${props.report.ownerEmail}.displayName`,
+        props.report.ownerEmail,
+    );
 
     let oldDisplayName;
     if (archiveReason === CONST.REPORT.ARCHIVE_REASON.ACCOUNT_MERGED) {
         const newLogin = props.reportClosedAction.originalMessage.newLogin;
         const oldLogin = props.reportClosedAction.originalMessage.oldLogin;
-        displayName = lodashGet(props.personalDetails, `${newLogin}.displayName`, newLogin);
-        oldDisplayName = lodashGet(props.personalDetails, `${oldLogin}.displayName`, oldLogin);
+        displayName = lodashGet(
+            props.personalDetails,
+            `${newLogin}.displayName`,
+            newLogin,
+        );
+        oldDisplayName = lodashGet(
+            props.personalDetails,
+            `${oldLogin}.displayName`,
+            oldLogin,
+        );
     }
 
     return (
@@ -72,9 +88,14 @@ const ArchivedReportFooter = (props) => {
             text={props.translate(`reportArchiveReasons.${archiveReason}`, {
                 displayName: `<strong>${displayName}</strong>`,
                 oldDisplayName: `<strong>${oldDisplayName}</strong>`,
-                policyName: `<strong>${ReportUtils.getPolicyName(props.report, props.policies)}</strong>`,
+                policyName: `<strong>${ReportUtils.getPolicyName(
+                    props.report,
+                    props.policies,
+                )}</strong>`,
             })}
-            shouldRenderHTML={archiveReason !== CONST.REPORT.ARCHIVE_REASON.DEFAULT}
+            shouldRenderHTML={
+                archiveReason !== CONST.REPORT.ARCHIVE_REASON.DEFAULT
+            }
             shouldShowIcon
         />
     );
@@ -94,7 +115,8 @@ export default compose(
             key: ONYXKEYS.COLLECTION.POLICY,
         },
         reportClosedAction: {
-            key: ({report}) => `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.reportID}`,
+            key: ({report}) =>
+                `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.reportID}`,
             canEvict: false,
             selector: ReportActionsUtils.getLastClosedReportAction,
         },

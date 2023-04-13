@@ -3,7 +3,9 @@ import React from 'react';
 import PropTypes from 'prop-types';
 import HeaderWithCloseButton from '../../../components/HeaderWithCloseButton';
 import ScreenWrapper from '../../../components/ScreenWrapper';
-import withLocalize, {withLocalizePropTypes} from '../../../components/withLocalize';
+import withLocalize, {
+    withLocalizePropTypes,
+} from '../../../components/withLocalize';
 import Navigation from '../../../libs/Navigation/Navigation';
 import ROUTES from '../../../ROUTES';
 import OptionsList from '../../../components/OptionsList';
@@ -22,29 +24,37 @@ const propTypes = {
 };
 
 const LanguagePage = (props) => {
-    const localesToLanguages = _.map(props.translate('languagePage.languages'), (language, key) => ({
-        value: key,
-        text: language.label,
-        keyForList: key,
+    const localesToLanguages = _.map(
+        props.translate('languagePage.languages'),
+        (language, key) => ({
+            value: key,
+            text: language.label,
+            keyForList: key,
 
-        // Include the green checkmark icon to indicate the currently selected value
-        customIcon: props.preferredLocale === key ? greenCheckmark : undefined,
+            // Include the green checkmark icon to indicate the currently selected value
+            customIcon:
+                props.preferredLocale === key ? greenCheckmark : undefined,
 
-        // This property will make the currently selected value have bold text
-        boldStyle: props.preferredLocale === key,
-    }));
+            // This property will make the currently selected value have bold text
+            boldStyle: props.preferredLocale === key,
+        }),
+    );
 
     return (
         <ScreenWrapper includeSafeAreaPaddingBottom={false}>
             <HeaderWithCloseButton
                 title={props.translate('languagePage.language')}
                 shouldShowBackButton
-                onBackButtonPress={() => Navigation.navigate(ROUTES.SETTINGS_PREFERENCES)}
+                onBackButtonPress={() =>
+                    Navigation.navigate(ROUTES.SETTINGS_PREFERENCES)
+                }
                 onCloseButtonPress={() => Navigation.dismissModal(true)}
             />
             <OptionsList
                 sections={[{data: localesToLanguages}]}
-                onSelectRow={(language) => App.setLocaleAndNavigate(language.value)}
+                onSelectRow={(language) =>
+                    App.setLocaleAndNavigate(language.value)
+                }
                 hideSectionHeaders
                 optionHoveredStyle={{
                     ...styles.hoveredComponentBG,

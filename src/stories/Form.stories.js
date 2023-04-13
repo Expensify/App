@@ -41,11 +41,28 @@ const Template = (args) => {
         // eslint-disable-next-line react/jsx-props-no-spreading
         <Form {...args}>
             <View>
-                <TextInput label="Routing number" inputID="routingNumber" shouldSaveDraft />
+                <TextInput
+                    label="Routing number"
+                    inputID="routingNumber"
+                    shouldSaveDraft
+                />
             </View>
-            <TextInput label="Account number" inputID="accountNumber" containerStyles={[styles.mt4]} />
-            <AddressSearch label="Street" inputID="street" containerStyles={[styles.mt4]} hint="No PO box" />
-            <DatePicker label="Date of birth" inputID="dob" containerStyles={[styles.mt4]} />
+            <TextInput
+                label="Account number"
+                inputID="accountNumber"
+                containerStyles={[styles.mt4]}
+            />
+            <AddressSearch
+                label="Street"
+                inputID="street"
+                containerStyles={[styles.mt4]}
+                hint="No PO box"
+            />
+            <DatePicker
+                label="Date of birth"
+                inputID="dob"
+                containerStyles={[styles.mt4]}
+            />
             <View>
                 <Picker
                     label="Fruit"
@@ -90,7 +107,13 @@ const Template = (args) => {
             <View style={styles.mt4}>
                 <StatePicker inputID="state" shouldSaveDraft />
             </View>
-            <CheckboxWithLabel inputID="checkbox" style={[styles.mb4, styles.mt5]} LabelComponent={() => <Text>I accept the Expensify Terms of Service</Text>} />
+            <CheckboxWithLabel
+                inputID="checkbox"
+                style={[styles.mb4, styles.mt5]}
+                LabelComponent={() => (
+                    <Text>I accept the Expensify Terms of Service</Text>
+                )}
+            />
         </Form>
     );
 };
@@ -112,7 +135,12 @@ const WithNativeEventHandler = (args) => {
     return (
         // eslint-disable-next-line react/jsx-props-no-spreading
         <Form {...args}>
-            <TextInput label="Routing number" inputID="routingNumber" onChangeText={setLog} shouldSaveDraft />
+            <TextInput
+                label="Routing number"
+                inputID="routingNumber"
+                onChangeText={setLog}
+                shouldSaveDraft
+            />
             <Text>{`Entered routing number: ${log}`}</Text>
         </Form>
     );
@@ -152,13 +180,20 @@ const defaultArgs = {
             errors.state = 'Please select a state';
         }
         if (!values.checkbox) {
-            errors.checkbox = 'You must accept the Terms of Service to continue';
+            errors.checkbox =
+                'You must accept the Terms of Service to continue';
         }
         return errors;
     },
     onSubmit: (values) => {
         setTimeout(() => {
-            alert(`Form submitted!\n\nInput values: ${JSON.stringify(values, null, 4)}`);
+            alert(
+                `Form submitted!\n\nInput values: ${JSON.stringify(
+                    values,
+                    null,
+                    4,
+                )}`,
+            );
             FormActions.setIsLoading('TestForm', false);
         }, 1000);
     },

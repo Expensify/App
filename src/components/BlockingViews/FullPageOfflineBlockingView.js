@@ -20,7 +20,13 @@ const propTypes = {
 
 const FullPageOfflineBlockingView = (props) => {
     if (props.network.isOffline) {
-        return <BlockingView icon={Expensicons.OfflineCloud} title={props.translate('common.youAppearToBeOffline')} subtitle={props.translate('common.thisFeatureRequiresInternet')} />;
+        return (
+            <BlockingView
+                icon={Expensicons.OfflineCloud}
+                title={props.translate('common.youAppearToBeOffline')}
+                subtitle={props.translate('common.thisFeatureRequiresInternet')}
+            />
+        );
     }
 
     return props.children;
@@ -29,4 +35,7 @@ const FullPageOfflineBlockingView = (props) => {
 FullPageOfflineBlockingView.propTypes = propTypes;
 FullPageOfflineBlockingView.displayName = 'FullPageOfflineBlockingView';
 
-export default compose(withLocalize, withNetwork())(FullPageOfflineBlockingView);
+export default compose(
+    withLocalize,
+    withNetwork(),
+)(FullPageOfflineBlockingView);

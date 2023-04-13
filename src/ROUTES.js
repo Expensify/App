@@ -45,7 +45,8 @@ export default {
     SETTINGS_ADD_LOGIN: 'settings/addlogin/:type',
     getSettingsAddLoginRoute: (type) => `settings/addlogin/${type}`,
     SETTINGS_PAYMENTS_TRANSFER_BALANCE: 'settings/payments/transfer-balance',
-    SETTINGS_PAYMENTS_CHOOSE_TRANSFER_ACCOUNT: 'settings/payments/choose-transfer-account',
+    SETTINGS_PAYMENTS_CHOOSE_TRANSFER_ACCOUNT:
+        'settings/payments/choose-transfer-account',
     SETTINGS_PERSONAL_DETAILS,
     SETTINGS_PERSONAL_DETAILS_LEGAL_NAME: `${SETTINGS_PERSONAL_DETAILS}/legal-name`,
     SETTINGS_PERSONAL_DETAILS_DATE_OF_BIRTH: `${SETTINGS_PERSONAL_DETAILS}/date-of-birth`,
@@ -75,7 +76,8 @@ export default {
     IOU_SEND_ADD_BANK_ACCOUNT: `${IOU_SEND}/add-bank-account`,
     IOU_SEND_ADD_DEBIT_CARD: `${IOU_SEND}/add-debit-card`,
     IOU_SEND_ENABLE_PAYMENTS: `${IOU_SEND}/enable-payments`,
-    getIouRequestCurrencyRoute: (reportID) => `${IOU_REQUEST_CURRENCY}/${reportID}`,
+    getIouRequestCurrencyRoute: (reportID) =>
+        `${IOU_REQUEST_CURRENCY}/${reportID}`,
     getIouBillCurrencyRoute: (reportID) => `${IOU_BILL_CURRENCY}/${reportID}`,
     getIouSendCurrencyRoute: (reportID) => `${IOU_SEND_CURRENCY}/${reportID}`,
     IOU_DETAILS,
@@ -83,7 +85,8 @@ export default {
     IOU_DETAILS_ADD_DEBIT_CARD: `${IOU_DETAILS}/add-debit-card`,
     IOU_DETAILS_ENABLE_PAYMENTS: `${IOU_DETAILS}/enable-payments`,
     IOU_DETAILS_WITH_IOU_REPORT_ID: `${IOU_DETAILS}/:chatReportID/:iouReportID/`,
-    getIouDetailsRoute: (chatReportID, iouReportID) => `iou/details/${chatReportID}/${iouReportID}`,
+    getIouDetailsRoute: (chatReportID, iouReportID) =>
+        `iou/details/${chatReportID}/${iouReportID}`,
     SEARCH: 'search',
     SET_PASSWORD_WITH_VALIDATE_CODE: 'setpassword/:accountID/:validateCode',
     DETAILS: 'details',
@@ -91,7 +94,8 @@ export default {
     REPORT_PARTICIPANTS: 'r/:reportID/participants',
     getReportParticipantsRoute: (reportID) => `r/${reportID}/participants`,
     REPORT_PARTICIPANT: 'r/:reportID/participants/details',
-    getReportParticipantRoute: (reportID, login) => `r/${reportID}/participants/details?login=${encodeURIComponent(login)}`,
+    getReportParticipantRoute: (reportID, login) =>
+        `r/${reportID}/participants/details?login=${encodeURIComponent(login)}`,
     REPORT_WITH_ID_DETAILS: 'r/:reportID/details',
     getReportDetailsRoute: (reportID) => `r/${reportID}/details`,
     REPORT_SETTINGS: 'r/:reportID/settings',

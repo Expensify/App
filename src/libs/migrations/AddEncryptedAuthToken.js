@@ -18,19 +18,30 @@ export default function () {
                 Onyx.disconnect(connectionID);
 
                 if (session && !_.isEmpty(session.encryptedAuthToken)) {
-                    Log.info('[Migrate Onyx] Skipped migration AddEncryptedAuthToken');
+                    Log.info(
+                        '[Migrate Onyx] Skipped migration AddEncryptedAuthToken',
+                    );
                     return resolve();
                 }
 
                 if (!session || !session.authToken) {
-                    Log.info('[Migrate Onyx] Skipped migration AddEncryptedAuthToken');
+                    Log.info(
+                        '[Migrate Onyx] Skipped migration AddEncryptedAuthToken',
+                    );
                     return resolve();
                 }
 
                 // If there is an auth token but no encrypted auth token, reauthenticate.
-                if (session.authToken && _.isUndefined(session.encryptedAuthToken)) {
-                    return Authentication.reauthenticate('Onyx_Migration_AddEncryptedAuthToken').then(() => {
-                        Log.info('[Migrate Onyx] Ran migration AddEncryptedAuthToken');
+                if (
+                    session.authToken &&
+                    _.isUndefined(session.encryptedAuthToken)
+                ) {
+                    return Authentication.reauthenticate(
+                        'Onyx_Migration_AddEncryptedAuthToken',
+                    ).then(() => {
+                        Log.info(
+                            '[Migrate Onyx] Ran migration AddEncryptedAuthToken',
+                        );
                         return resolve();
                     });
                 }

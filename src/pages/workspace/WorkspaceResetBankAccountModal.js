@@ -3,7 +3,9 @@ import PropTypes from 'prop-types';
 import React from 'react';
 import ConfirmModal from '../../components/ConfirmModal';
 import * as BankAccounts from '../../libs/actions/BankAccounts';
-import withLocalize, {withLocalizePropTypes} from '../../components/withLocalize';
+import withLocalize, {
+    withLocalizePropTypes,
+} from '../../components/withLocalize';
 import * as ReimbursementAccountProps from '../ReimbursementAccount/reimbursementAccountPropTypes';
 import Text from '../../components/Text';
 import styles from '../../styles/styles';
@@ -11,7 +13,8 @@ import BankAccount from '../../libs/models/BankAccount';
 
 const propTypes = {
     /** Reimbursement account data */
-    reimbursementAccount: ReimbursementAccountProps.reimbursementAccountPropTypes.isRequired,
+    reimbursementAccount:
+        ReimbursementAccountProps.reimbursementAccountPropTypes.isRequired,
 
     /** Callback when the user confirms resetting the workspace bank account */
     onConfirm: PropTypes.func,
@@ -27,19 +30,35 @@ const WorkspaceResetBankAccountModal = (props) => {
     const achData = lodashGet(props.reimbursementAccount, 'achData') || {};
     const isInOpenState = achData.state === BankAccount.STATE.OPEN;
     const bankAccountID = achData.bankAccountID;
-    const bankShortName = `${achData.addressName || ''} ${(achData.accountNumber || '').slice(-4)}`;
+    const bankShortName = `${achData.addressName || ''} ${(
+        achData.accountNumber || ''
+    ).slice(-4)}`;
 
     return (
         <ConfirmModal
             title={props.translate('workspace.bankAccount.areYouSure')}
-            confirmText={isInOpenState ? props.translate('workspace.bankAccount.yesDisconnectMyBankAccount') : props.translate('workspace.bankAccount.yesStartOver')}
+            confirmText={
+                isInOpenState
+                    ? props.translate(
+                          'workspace.bankAccount.yesDisconnectMyBankAccount',
+                      )
+                    : props.translate('workspace.bankAccount.yesStartOver')
+            }
             cancelText={props.translate('common.cancel')}
             prompt={
                 isInOpenState ? (
                     <Text>
-                        <Text>{props.translate('workspace.bankAccount.disconnectYour')}</Text>
+                        <Text>
+                            {props.translate(
+                                'workspace.bankAccount.disconnectYour',
+                            )}
+                        </Text>
                         <Text style={styles.textStrong}>{bankShortName}</Text>
-                        <Text>{props.translate('workspace.bankAccount.bankAccountAnyTransactions')}</Text>
+                        <Text>
+                            {props.translate(
+                                'workspace.bankAccount.bankAccountAnyTransactions',
+                            )}
+                        </Text>
                     </Text>
                 ) : (
                     props.translate('workspace.bankAccount.clearProgress')

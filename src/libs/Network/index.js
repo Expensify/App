@@ -22,7 +22,12 @@ ActiveClientManager.isReady().then(() => {
  * @param {Boolean} [shouldUseSecure] - Whether we should use the secure API
  * @returns {Promise}
  */
-function post(command, data = {}, type = CONST.NETWORK.METHOD.POST, shouldUseSecure = false) {
+function post(
+    command,
+    data = {},
+    type = CONST.NETWORK.METHOD.POST,
+    shouldUseSecure = false,
+) {
     return new Promise((resolve, reject) => {
         const request = {
             command,
@@ -56,7 +61,11 @@ function post(command, data = {}, type = CONST.NETWORK.METHOD.POST, shouldUseSec
         // This check is mainly used to prevent API commands from triggering calls to MainQueue.process() from inside the context of a previous
         // call to MainQueue.process() e.g. calling a Log command without this would cause the requests in mainQueue to double process
         // since we call Log inside MainQueue.process().
-        const shouldProcessImmediately = lodashGet(request, 'data.shouldProcessImmediately', true);
+        const shouldProcessImmediately = lodashGet(
+            request,
+            'data.shouldProcessImmediately',
+            true,
+        );
         if (!shouldProcessImmediately) {
             return;
         }

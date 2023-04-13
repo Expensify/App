@@ -71,10 +71,14 @@ const getDurationSymbols = (entry) => {
 const formatDurationDiffChange = (entry) => {
     const {baseline, current} = entry;
 
-    let output = `${formatDuration(baseline.mean)} → ${formatDuration(current.mean)}`;
+    let output = `${formatDuration(baseline.mean)} → ${formatDuration(
+        current.mean,
+    )}`;
 
     if (baseline.mean !== current.mean) {
-        output += ` (${formatDurationChange(entry.diff)}, ${formatPercentChange(entry.relativeDurationDiff)})`;
+        output += ` (${formatDurationChange(entry.diff)}, ${formatPercentChange(
+            entry.relativeDurationDiff,
+        )})`;
     }
 
     output += ` ${getDurationSymbols(entry)}`;

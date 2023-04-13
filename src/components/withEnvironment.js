@@ -37,9 +37,14 @@ export default function (WrappedComponent) {
         }
     }
 
-    WithEnvironment.displayName = `withEnvironment(${getComponentDisplayName(WrappedComponent)})`;
+    WithEnvironment.displayName = `withEnvironment(${getComponentDisplayName(
+        WrappedComponent,
+    )})`;
     WithEnvironment.propTypes = {
-        forwardedRef: PropTypes.oneOfType([PropTypes.func, PropTypes.shape({current: PropTypes.instanceOf(React.Component)})]),
+        forwardedRef: PropTypes.oneOfType([
+            PropTypes.func,
+            PropTypes.shape({current: PropTypes.instanceOf(React.Component)}),
+        ]),
     };
     WithEnvironment.defaultProps = {
         forwardedRef: undefined,

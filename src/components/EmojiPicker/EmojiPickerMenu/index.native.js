@@ -5,7 +5,9 @@ import PropTypes from 'prop-types';
 import _ from 'underscore';
 import Animated, {runOnUI, _scrollTo} from 'react-native-reanimated';
 import compose from '../../../libs/compose';
-import withWindowDimensions, {windowDimensionsPropTypes} from '../../withWindowDimensions';
+import withWindowDimensions, {
+    windowDimensionsPropTypes,
+} from '../../withWindowDimensions';
 import CONST from '../../../CONST';
 import ONYXKEYS from '../../../ONYXKEYS';
 import styles from '../../../styles/styles';
@@ -23,7 +25,10 @@ const propTypes = {
     onEmojiSelected: PropTypes.func.isRequired,
 
     /** Stores user's preferred skin tone */
-    preferredSkinTone: PropTypes.oneOfType([PropTypes.number, PropTypes.string]),
+    preferredSkinTone: PropTypes.oneOfType([
+        PropTypes.number,
+        PropTypes.string,
+    ]),
 
     /** User's frequently used emojis */
     frequentlyUsedEmojis: PropTypes.arrayOf(
@@ -51,7 +56,10 @@ class EmojiPickerMenu extends Component {
         // Ref for emoji FlatList
         this.emojiList = undefined;
 
-        this.emojis = EmojiUtils.mergeEmojisWithFrequentlyUsedEmojis(emojis, this.props.frequentlyUsedEmojis);
+        this.emojis = EmojiUtils.mergeEmojisWithFrequentlyUsedEmojis(
+            emojis,
+            this.props.frequentlyUsedEmojis,
+        );
 
         // Get the header emojis along with the code, index and icon.
         // index is the actual header index starting at the first emoji and counting each one
@@ -60,7 +68,9 @@ class EmojiPickerMenu extends Component {
         // This is the indices of each header's Row
         // The positions are static, and are calculated as index/numColumns (8 in our case)
         // This is because each row of 8 emojis counts as one index to the flatlist
-        this.headerRowIndices = _.map(this.headerEmojis, (headerEmoji) => Math.floor(headerEmoji.index / CONST.EMOJI_NUM_PER_ROW));
+        this.headerRowIndices = _.map(this.headerEmojis, (headerEmoji) =>
+            Math.floor(headerEmoji.index / CONST.EMOJI_NUM_PER_ROW),
+        );
 
         this.renderItem = this.renderItem.bind(this);
         this.isMobileLandscape = this.isMobileLandscape.bind(this);
@@ -82,7 +92,10 @@ class EmojiPickerMenu extends Component {
      * @param {Object} emojiObject
      */
     addToFrequentAndSelectEmoji(emoji, emojiObject) {
-        EmojiUtils.addToFrequentlyUsedEmojis(this.props.frequentlyUsedEmojis, emojiObject);
+        EmojiUtils.addToFrequentlyUsedEmojis(
+            this.props.frequentlyUsedEmojis,
+            emojiObject,
+        );
         this.props.onEmojiSelected(emoji, emojiObject);
     }
 
@@ -107,7 +120,9 @@ class EmojiPickerMenu extends Component {
     }
 
     scrollToHeader(headerIndex) {
-        const calculatedOffset = Math.floor(headerIndex / CONST.EMOJI_NUM_PER_ROW) * CONST.EMOJI_PICKER_HEADER_HEIGHT;
+        const calculatedOffset =
+            Math.floor(headerIndex / CONST.EMOJI_NUM_PER_ROW) *
+            CONST.EMOJI_PICKER_HEADER_HEIGHT;
         this.emojiList.flashScrollIndicators();
         const node = findNodeHandle(this.emojiList);
         runOnUI(() => {
@@ -134,21 +149,38 @@ class EmojiPickerMenu extends Component {
         if (item.header) {
             return (
                 <View style={styles.emojiHeaderContainer}>
-                    <Text style={styles.textLabelSupporting}>{this.props.translate(`emojiPicker.headers.${item.code}`)}</Text>
+                    <Text style={styles.textLabelSupporting}>
+                        {this.props.translate(
+                            `emojiPicker.headers.${item.code}`,
+                        )}
+                    </Text>
                 </View>
             );
         }
 
-        const emojiCode = types && types[this.props.preferredSkinTone] ? types[this.props.preferredSkinTone] : code;
+        const emojiCode =
+            types && types[this.props.preferredSkinTone]
+                ? types[this.props.preferredSkinTone]
+                : code;
 
-        return <EmojiPickerMenuItem onPress={(emoji) => this.addToFrequentAndSelectEmoji(emoji, item)} emoji={emojiCode} />;
+        return (
+            <EmojiPickerMenuItem
+                onPress={(emoji) =>
+                    this.addToFrequentAndSelectEmoji(emoji, item)
+                }
+                emoji={emojiCode}
+            />
+        );
     }
 
     render() {
         return (
             <View style={styles.emojiPickerContainer}>
                 <View>
-                    <CategoryShortcutBar headerEmojis={this.headerEmojis} onPress={this.scrollToHeader} />
+                    <CategoryShortcutBar
+                        headerEmojis={this.headerEmojis}
+                        onPress={this.scrollToHeader}
+                    />
                 </View>
                 <Animated.FlatList
                     ref={(el) => (this.emojiList = el)}
@@ -156,12 +188,19 @@ class EmojiPickerMenu extends Component {
                     renderItem={this.renderItem}
                     keyExtractor={(item) => `emoji_picker_${item.code}`}
                     numColumns={CONST.EMOJI_NUM_PER_ROW}
-                    style={[styles.emojiPickerList, this.isMobileLandscape() && styles.emojiPickerListLandscape]}
+                    style={[
+                        styles.emojiPickerList,
+                        this.isMobileLandscape() &&
+                            styles.emojiPickerListLandscape,
+                    ]}
                     stickyHeaderIndices={this.headerRowIndices}
                     getItemLayout={this.getItemLayout}
                     showsVerticalScrollIndicator
                 />
-                <EmojiSkinToneList updatePreferredSkinTone={this.updatePreferredSkinTone} preferredSkinTone={this.props.preferredSkinTone} />
+                <EmojiSkinToneList
+                    updatePreferredSkinTone={this.updatePreferredSkinTone}
+                    preferredSkinTone={this.props.preferredSkinTone}
+                />
             </View>
         );
     }

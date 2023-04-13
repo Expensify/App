@@ -24,9 +24,16 @@ const propTypes = {
 };
 
 const ReimbursementAccountLoadingIndicator = (props) => (
-    <ScreenWrapper style={[StyleSheet.absoluteFillObject, styles.reimbursementAccountFullScreenLoading]}>
+    <ScreenWrapper
+        style={[
+            StyleSheet.absoluteFillObject,
+            styles.reimbursementAccountFullScreenLoading,
+        ]}
+    >
         <HeaderWithCloseButton
-            title={props.translate('reimbursementAccountLoadingAnimation.oneMoment')}
+            title={props.translate(
+                'reimbursementAccountLoadingAnimation.oneMoment',
+            )}
             onCloseButtonPress={Navigation.dismissModal}
             shouldShowBackButton={props.network.isOffline}
             onBackButtonPress={props.onBackButtonPress}
@@ -34,19 +41,34 @@ const ReimbursementAccountLoadingIndicator = (props) => (
         <FullPageOfflineBlockingView>
             {props.isSubmittingVerificationsData ? (
                 <View style={[styles.pageWrapper]}>
-                    <Lottie source={ReviewingBankInfoAnimation} autoPlay loop style={styles.loadingVBAAnimation} />
+                    <Lottie
+                        source={ReviewingBankInfoAnimation}
+                        autoPlay
+                        loop
+                        style={styles.loadingVBAAnimation}
+                    />
                     <View style={[styles.ph6]}>
-                        <Text style={[styles.textAlignCenter]}>{props.translate('reimbursementAccountLoadingAnimation.explanationLine')}</Text>
+                        <Text style={[styles.textAlignCenter]}>
+                            {props.translate(
+                                'reimbursementAccountLoadingAnimation.explanationLine',
+                            )}
+                        </Text>
                     </View>
                 </View>
             ) : (
-                <FullScreenLoadingIndicator style={[styles.flex1, styles.pRelative]} />
+                <FullScreenLoadingIndicator
+                    style={[styles.flex1, styles.pRelative]}
+                />
             )}
         </FullPageOfflineBlockingView>
     </ScreenWrapper>
 );
 
 ReimbursementAccountLoadingIndicator.propTypes = propTypes;
-ReimbursementAccountLoadingIndicator.displayName = 'ReimbursementAccountLoadingIndicator';
+ReimbursementAccountLoadingIndicator.displayName =
+    'ReimbursementAccountLoadingIndicator';
 
-export default compose(withLocalize, withNetwork())(ReimbursementAccountLoadingIndicator);
+export default compose(
+    withLocalize,
+    withNetwork(),
+)(ReimbursementAccountLoadingIndicator);

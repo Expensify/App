@@ -33,12 +33,16 @@ function pushNotificationEventCallback(eventType, notification) {
     Log.info(`[PUSH_NOTIFICATION] Callback triggered for ${eventType}`);
 
     if (!payload) {
-        Log.warn('[PUSH_NOTIFICATION] Notification has null or undefined payload, not executing any callback.');
+        Log.warn(
+            '[PUSH_NOTIFICATION] Notification has null or undefined payload, not executing any callback.',
+        );
         return;
     }
 
     if (!payload.type) {
-        Log.warn('[PUSH_NOTIFICATION] No type value provided in payload, not executing any callback.');
+        Log.warn(
+            '[PUSH_NOTIFICATION] No type value provided in payload, not executing any callback.',
+        );
         return;
     }
 
@@ -58,12 +62,17 @@ function pushNotificationEventCallback(eventType, notification) {
  */
 function refreshNotificationOptInStatus() {
     UrbanAirship.getNotificationStatus().then((notificationStatus) => {
-        const isOptedIn = notificationStatus.airshipOptIn && notificationStatus.systemEnabled;
+        const isOptedIn =
+            notificationStatus.airshipOptIn && notificationStatus.systemEnabled;
         if (isOptedIn === isUserOptedInToPushNotifications) {
             return;
         }
 
-        Log.info('[PUSH_NOTIFICATION] Push notification opt-in status changed.', false, {isOptedIn});
+        Log.info(
+            '[PUSH_NOTIFICATION] Push notification opt-in status changed.',
+            false,
+            {isOptedIn},
+        );
         PushNotification.setPushNotificationOptInStatus(isOptedIn);
     });
 }
@@ -89,17 +98,27 @@ function init() {
     // Note: the NotificationResponse event has a nested PushReceived event,
     // so event.notification refers to the same thing as notification above ^
     UrbanAirship.addListener(EventType.NotificationResponse, (event) => {
-        pushNotificationEventCallback(EventType.NotificationResponse, event.notification);
+        pushNotificationEventCallback(
+            EventType.NotificationResponse,
+            event.notification,
+        );
     });
 
     // Keep track of which users have enabled push notifications via an NVP.
-    UrbanAirship.addListener(EventType.NotificationOptInStatus, refreshNotificationOptInStatus);
+    UrbanAirship.addListener(
+        EventType.NotificationOptInStatus,
+        refreshNotificationOptInStatus,
+    );
 
     // This statement has effect on iOS only.
     // It enables the App to display push notifications when the App is in foreground.
     // By default, the push notifications are silenced on iOS if the App is in foreground.
     // More info here https://developer.apple.com/documentation/usernotifications/unusernotificationcenterdelegate/1649518-usernotificationcenter
-    UrbanAirship.setForegroundPresentationOptions([iOS.ForegroundPresentationOption.Alert, iOS.ForegroundPresentationOption.Sound, iOS.ForegroundPresentationOption.Badge]);
+    UrbanAirship.setForegroundPresentationOptions([
+        iOS.ForegroundPresentationOption.Alert,
+        iOS.ForegroundPresentationOption.Sound,
+        iOS.ForegroundPresentationOption.Badge,
+    ]);
 }
 
 /**
@@ -119,12 +138,16 @@ function register(accountID) {
             return;
         }
 
-        Log.info('[PUSH_NOTIFICATIONS] User has disabled visible push notifications for this app.');
+        Log.info(
+            '[PUSH_NOTIFICATIONS] User has disabled visible push notifications for this app.',
+        );
     });
 
     // Register this device as a named user in AirshipAPI.
     // Regardless of the user's opt-in status, we still want to receive silent push notifications.
-    Log.info(`[PUSH_NOTIFICATIONS] Subscribing to notifications for account ID ${accountID}`);
+    Log.info(
+        `[PUSH_NOTIFICATIONS] Subscribing to notifications for account ID ${accountID}`,
+    );
     UrbanAirship.setNamedUser(accountID.toString());
 
     // Refresh notification opt-in status NVP for the new user.

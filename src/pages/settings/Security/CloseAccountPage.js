@@ -13,8 +13,12 @@ import styles from '../../../styles/styles';
 import ScreenWrapper from '../../../components/ScreenWrapper';
 import TextInput from '../../../components/TextInput';
 import Text from '../../../components/Text';
-import withLocalize, {withLocalizePropTypes} from '../../../components/withLocalize';
-import withWindowDimensions, {windowDimensionsPropTypes} from '../../../components/withWindowDimensions';
+import withLocalize, {
+    withLocalizePropTypes,
+} from '../../../components/withLocalize';
+import withWindowDimensions, {
+    windowDimensionsPropTypes,
+} from '../../../components/withWindowDimensions';
 import * as CloseAccount from '../../../libs/actions/CloseAccount';
 import ONYXKEYS from '../../../ONYXKEYS';
 import Form from '../../../components/Form';
@@ -70,8 +74,13 @@ class CloseAccountPage extends Component {
         const userEmailOrPhone = Str.removeSMSDomain(this.props.session.email);
         const errors = {};
 
-        if (_.isEmpty(values.phoneOrEmail) || userEmailOrPhone.toLowerCase() !== values.phoneOrEmail.toLowerCase()) {
-            errors.phoneOrEmail = this.props.translate('closeAccountPage.enterYourDefaultContactMethod');
+        if (
+            _.isEmpty(values.phoneOrEmail) ||
+            userEmailOrPhone.toLowerCase() !== values.phoneOrEmail.toLowerCase()
+        ) {
+            errors.phoneOrEmail = this.props.translate(
+                'closeAccountPage.enterYourDefaultContactMethod',
+            );
         }
         return errors;
     }
@@ -81,46 +90,73 @@ class CloseAccountPage extends Component {
         return (
             <ScreenWrapper includeSafeAreaPaddingBottom={false}>
                 <HeaderWithCloseButton
-                    title={this.props.translate('closeAccountPage.closeAccount')}
+                    title={this.props.translate(
+                        'closeAccountPage.closeAccount',
+                    )}
                     shouldShowBackButton
-                    onBackButtonPress={() => Navigation.navigate(ROUTES.SETTINGS_SECURITY)}
+                    onBackButtonPress={() =>
+                        Navigation.navigate(ROUTES.SETTINGS_SECURITY)
+                    }
                     onCloseButtonPress={() => Navigation.dismissModal(true)}
                 />
                 <Form
                     formID={ONYXKEYS.FORMS.CLOSE_ACCOUNT_FORM}
                     validate={this.validate}
                     onSubmit={this.showConfirmModal}
-                    submitButtonText={this.props.translate('closeAccountPage.closeAccount')}
+                    submitButtonText={this.props.translate(
+                        'closeAccountPage.closeAccount',
+                    )}
                     style={[styles.flexGrow1, styles.mh5]}
                     isSubmitActionDangerous
                 >
                     <View style={[styles.flexGrow1]}>
-                        <Text>{this.props.translate('closeAccountPage.reasonForLeavingPrompt')}</Text>
+                        <Text>
+                            {this.props.translate(
+                                'closeAccountPage.reasonForLeavingPrompt',
+                            )}
+                        </Text>
                         <TextInput
                             inputID="reasonForLeaving"
                             multiline
                             numberOfLines={6}
                             textAlignVertical="top"
-                            label={this.props.translate('closeAccountPage.enterMessageHere')}
-                            containerStyles={[styles.mt5, styles.closeAccountMessageInput]}
+                            label={this.props.translate(
+                                'closeAccountPage.enterMessageHere',
+                            )}
+                            containerStyles={[
+                                styles.mt5,
+                                styles.closeAccountMessageInput,
+                            ]}
                         />
                         <Text style={[styles.mt5]}>
-                            {this.props.translate('closeAccountPage.enterDefaultContactToConfirm')} <Text style={[styles.textStrong]}>{userEmailOrPhone}</Text>.
+                            {this.props.translate(
+                                'closeAccountPage.enterDefaultContactToConfirm',
+                            )}{' '}
+                            <Text style={[styles.textStrong]}>
+                                {userEmailOrPhone}
+                            </Text>
+                            .
                         </Text>
                         <TextInput
                             inputID="phoneOrEmail"
                             autoCapitalize="none"
-                            label={this.props.translate('closeAccountPage.enterDefaultContact')}
+                            label={this.props.translate(
+                                'closeAccountPage.enterDefaultContact',
+                            )}
                             containerStyles={[styles.mt5]}
                             autoCorrect={false}
                             keyboardType={CONST.KEYBOARD_TYPE.EMAIL_ADDRESS}
                         />
                         <ConfirmModal
-                            title={this.props.translate('closeAccountPage.closeAccountWarning')}
+                            title={this.props.translate(
+                                'closeAccountPage.closeAccountWarning',
+                            )}
                             onConfirm={this.onConfirm}
                             onCancel={this.hideConfirmModal}
                             isVisible={this.state.isConfirmModalVisible}
-                            prompt={this.props.translate('closeAccountPage.closeAccountPermanentlyDeleteData')}
+                            prompt={this.props.translate(
+                                'closeAccountPage.closeAccountPermanentlyDeleteData',
+                            )}
                             confirmText={this.props.translate('common.yes')}
                             cancelText={this.props.translate('common.cancel')}
                             shouldShowCancelButton

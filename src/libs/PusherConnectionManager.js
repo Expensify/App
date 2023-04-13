@@ -31,17 +31,26 @@ function init() {
                     Log.hmmm('[PusherConnectionManager] Channels Error 1006', {
                         error,
                     });
-                } else if (errorType === CONST.ERROR.PUSHER_ERROR && code === 4201) {
+                } else if (
+                    errorType === CONST.ERROR.PUSHER_ERROR &&
+                    code === 4201
+                ) {
                     // This means the connection was closed because Pusher did not receive a reply from the client when it pinged them for a response
                     // https://pusher.com/docs/channels/library_auth_reference/pusher-websockets-protocol/#4200-4299
-                    Log.hmmm('[PusherConnectionManager] Pong reply not received', {error});
+                    Log.hmmm(
+                        '[PusherConnectionManager] Pong reply not received',
+                        {error},
+                    );
                 } else if (errorType === CONST.ERROR.WEB_SOCKET_ERROR) {
                     // It's not clear why some errors are wrapped in a WebSocketError type - this error could mean different things depending on the contents.
                     Log.hmmm('[PusherConnectionManager] WebSocketError', {
                         error,
                     });
                 } else {
-                    Log.alert(`${CONST.ERROR.ENSURE_BUGBOT} [PusherConnectionManager] Unknown error event`, {error});
+                    Log.alert(
+                        `${CONST.ERROR.ENSURE_BUGBOT} [PusherConnectionManager] Unknown error event`,
+                        {error},
+                    );
                 }
                 break;
             }

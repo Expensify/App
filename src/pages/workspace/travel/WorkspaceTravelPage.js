@@ -1,6 +1,8 @@
 import React from 'react';
 import PropTypes from 'prop-types';
-import withLocalize, {withLocalizePropTypes} from '../../../components/withLocalize';
+import withLocalize, {
+    withLocalizePropTypes,
+} from '../../../components/withLocalize';
 import WorkspacePageWithSections from '../WorkspacePageWithSections';
 import WorkspaceTravelNoVBAView from './WorkspaceTravelNoVBAView';
 import WorkspaceTravelVBAView from './WorkspaceTravelVBAView';
@@ -20,7 +22,12 @@ const propTypes = {
 };
 
 const WorkspaceTravelPage = (props) => (
-    <WorkspacePageWithSections shouldUseScrollView headerText={props.translate('workspace.common.travel')} route={props.route} guidesCallTaskID={CONST.GUIDES_CALL_TASK_IDS.WORKSPACE_TRAVEL}>
+    <WorkspacePageWithSections
+        shouldUseScrollView
+        headerText={props.translate('workspace.common.travel')}
+        route={props.route}
+        guidesCallTaskID={CONST.GUIDES_CALL_TASK_IDS.WORKSPACE_TRAVEL}
+    >
         {(hasVBA, policyID) => (
             <>
                 {!hasVBA && <WorkspaceTravelNoVBAView policyID={policyID} />}

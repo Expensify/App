@@ -37,12 +37,27 @@ const defaultProps = {
 };
 
 const BlockingView = (props) => (
-    <View style={[styles.flex1, styles.alignItemsCenter, styles.justifyContentCenter, styles.ph10]}>
-        <Icon src={props.icon} fill={props.iconColor} width={variables.iconSizeSuperLarge} height={variables.iconSizeSuperLarge} />
+    <View
+        style={[
+            styles.flex1,
+            styles.alignItemsCenter,
+            styles.justifyContentCenter,
+            styles.ph10,
+        ]}
+    >
+        <Icon
+            src={props.icon}
+            fill={props.iconColor}
+            width={variables.iconSizeSuperLarge}
+            height={variables.iconSizeSuperLarge}
+        />
         <Text style={[styles.notFoundTextHeader]}>{props.title}</Text>
         <Text style={[styles.textAlignCenter]}>{props.subtitle}</Text>
         {props.shouldShowBackHomeLink ? (
-            <TextLink onPress={() => Navigation.navigate(ROUTES.REPORT)} style={[styles.link, styles.mt2]}>
+            <TextLink
+                onPress={() => Navigation.navigate(ROUTES.REPORT)}
+                style={[styles.link, styles.mt2]}
+            >
                 {props.link}
             </TextLink>
         ) : null}

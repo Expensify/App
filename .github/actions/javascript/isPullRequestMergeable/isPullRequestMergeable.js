@@ -7,7 +7,9 @@ const MAX_RETRIES = 30;
 const THROTTLE_DURATION = process.env.NODE_ENV === 'test' ? 5 : 5000;
 
 const run = function () {
-    const pullRequestNumber = Number(core.getInput('PULL_REQUEST_NUMBER', {required: true}));
+    const pullRequestNumber = Number(
+        core.getInput('PULL_REQUEST_NUMBER', {required: true}),
+    );
 
     let retryCount = 0;
     let isMergeable = false;
@@ -39,34 +41,51 @@ const run = function () {
                         ])
                             .then(([prResponse, checksResponse]) => {
                                 const mergeable = prResponse.data.mergeable;
-                                const mergeableState = prResponse.data.mergeable_state;
-                                const areChecksComplete = _.every(checksResponse.data.check_runs, (check) => check.status === 'completed');
+                                const mergeableState =
+                                    prResponse.data.mergeable_state;
+                                const areChecksComplete = _.every(
+                                    checksResponse.data.check_runs,
+                                    (check) => check.status === 'completed',
+                                );
 
                                 if (_.isNull(mergeable)) {
-                                    console.log('Pull request mergeability is not yet resolved...');
+                                    console.log(
+                                        'Pull request mergeability is not yet resolved...',
+                                    );
                                     retryCount++;
                                     return;
                                 }
 
                                 if (_.isEmpty(mergeableState)) {
-                                    console.log('Pull request mergeable_state is not yet resolved...');
+                                    console.log(
+                                        'Pull request mergeable_state is not yet resolved...',
+                                    );
                                     retryCount++;
                                     return;
                                 }
 
                                 if (!areChecksComplete) {
-                                    console.log('Pull request checks are not yet complete...');
+                                    console.log(
+                                        'Pull request checks are not yet complete...',
+                                    );
                                     retryCount++;
                                     return;
                                 }
 
                                 mergeabilityResolved = true;
-                                console.log(`Merge information for #${pullRequestNumber} - mergeable: ${mergeable}, mergeable_state: ${mergeableState}`);
-                                isMergeable = mergeable && mergeableState !== 'blocked';
+                                console.log(
+                                    `Merge information for #${pullRequestNumber} - mergeable: ${mergeable}, mergeable_state: ${mergeableState}`,
+                                );
+                                isMergeable =
+                                    mergeable && mergeableState !== 'blocked';
                             })
                             .catch((githubError) => {
                                 mergeabilityResolved = true;
-                                console.error(`An error occurred fetching the PR from Github: ${JSON.stringify(githubError)}`);
+                                console.error(
+                                    `An error occurred fetching the PR from Github: ${JSON.stringify(
+                                        githubError,
+                                    )}`,
+                                );
                                 core.setFailed(githubError);
                             }),
                     THROTTLE_DURATION,
@@ -75,15 +94,25 @@ const run = function () {
         )
         .then(() => {
             if (retryCount >= MAX_RETRIES) {
-                console.error('Maximum retries reached, mergeability is undetermined, defaulting to false');
+                console.error(
+                    'Maximum retries reached, mergeability is undetermined, defaulting to false',
+                );
             } else {
-                console.log(`Pull request #${pullRequestNumber} is ${isMergeable ? '' : 'not '}mergeable`);
+                console.log(
+                    `Pull request #${pullRequestNumber} is ${
+                        isMergeable ? '' : 'not '
+                    }mergeable`,
+                );
             }
             core.setOutput('IS_MERGEABLE', isMergeable);
         })
         .catch((githubError) => {
             mergeabilityResolved = true;
-            console.error(`An error occurred fetching the PR from Github: ${JSON.stringify(githubError)}`);
+            console.error(
+                `An error occurred fetching the PR from Github: ${JSON.stringify(
+                    githubError,
+                )}`,
+            );
             core.setFailed(githubError);
         });
 };

@@ -11,8 +11,13 @@ import * as ContextMenuActions from '../../pages/home/report/ContextMenu/Context
 import Tooltip from '../Tooltip';
 import * as DeviceCapabilities from '../../libs/DeviceCapabilities';
 import styles from '../../styles/styles';
-import withWindowDimensions, {windowDimensionsPropTypes} from '../withWindowDimensions';
-import {propTypes as anchorForCommentsOnlyPropTypes, defaultProps as anchorForCommentsOnlyDefaultProps} from './anchorForCommentsOnlyPropTypes';
+import withWindowDimensions, {
+    windowDimensionsPropTypes,
+} from '../withWindowDimensions';
+import {
+    propTypes as anchorForCommentsOnlyPropTypes,
+    defaultProps as anchorForCommentsOnlyDefaultProps,
+} from './anchorForCommentsOnlyPropTypes';
 
 const propTypes = {
     /** Press in handler for the link */
@@ -43,14 +48,19 @@ const BaseAnchorForCommentsOnly = (props) => {
     } else {
         linkProps.href = props.href;
     }
-    const defaultTextStyle = DeviceCapabilities.canUseTouchScreen() || props.isSmallScreenWidth ? {} : styles.userSelectText;
+    const defaultTextStyle =
+        DeviceCapabilities.canUseTouchScreen() || props.isSmallScreenWidth
+            ? {}
+            : styles.userSelectText;
 
     return (
         <PressableWithSecondaryInteraction
             inline
             onSecondaryInteraction={(event) => {
                 ReportActionContextMenu.showContextMenu(
-                    Str.isValidEmail(props.displayName) ? ContextMenuActions.CONTEXT_MENU_TYPES.EMAIL : ContextMenuActions.CONTEXT_MENU_TYPES.LINK,
+                    Str.isValidEmail(props.displayName)
+                        ? ContextMenuActions.CONTEXT_MENU_TYPES.EMAIL
+                        : ContextMenuActions.CONTEXT_MENU_TYPES.LINK,
                     event,
                     props.href,
                     lodashGet(linkRef, 'current'),
@@ -60,7 +70,10 @@ const BaseAnchorForCommentsOnly = (props) => {
             onPressIn={props.onPressIn}
             onPressOut={props.onPressOut}
         >
-            <Tooltip containerStyles={[styles.dInline]} text={Str.isValidEmail(props.displayName) ? '' : props.href}>
+            <Tooltip
+                containerStyles={[styles.dInline]}
+                text={Str.isValidEmail(props.displayName) ? '' : props.href}
+            >
                 <Text
                     ref={(el) => (linkRef = el)}
                     style={StyleSheet.flatten([props.style, defaultTextStyle])}

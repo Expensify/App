@@ -1,7 +1,9 @@
 import React from 'react';
 import PropTypes from 'prop-types';
 import {Pressable} from 'react-native';
-import withWindowDimensions, {windowDimensionsPropTypes} from '../../../components/withWindowDimensions';
+import withWindowDimensions, {
+    windowDimensionsPropTypes,
+} from '../../../components/withWindowDimensions';
 import Navigation from '../Navigation';
 import styles from '../../../styles/styles';
 
@@ -17,7 +19,12 @@ const ClickAwayHandler = (props) => {
         return null;
     }
 
-    return <Pressable style={styles.navigationModalOverlay} onPress={() => Navigation.dismissModal()} />;
+    return (
+        <Pressable
+            style={styles.navigationModalOverlay}
+            onPress={() => Navigation.dismissModal()}
+        />
+    );
 };
 
 ClickAwayHandler.propTypes = propTypes;

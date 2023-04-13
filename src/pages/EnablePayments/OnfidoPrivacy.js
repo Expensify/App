@@ -8,7 +8,9 @@ import ONYXKEYS from '../../ONYXKEYS';
 import * as BankAccounts from '../../libs/actions/BankAccounts';
 import styles from '../../styles/styles';
 import TextLink from '../../components/TextLink';
-import withLocalize, {withLocalizePropTypes} from '../../components/withLocalize';
+import withLocalize, {
+    withLocalizePropTypes,
+} from '../../components/withLocalize';
 import compose from '../../libs/compose';
 import Text from '../../components/Text';
 import FormAlertWithSubmitButton from '../../components/FormAlertWithSubmitButton';
@@ -47,23 +49,48 @@ class OnfidoPrivacy extends React.Component {
     }
 
     render() {
-        let onfidoError = ErrorUtils.getLatestErrorMessage(this.props.walletOnfidoData) || '';
-        const onfidoFixableErrors = lodashGet(this.props, 'walletOnfidoData.fixableErrors', []);
-        onfidoError += !_.isEmpty(onfidoFixableErrors) ? `\n${onfidoFixableErrors.join('\n')}` : '';
+        let onfidoError =
+            ErrorUtils.getLatestErrorMessage(this.props.walletOnfidoData) || '';
+        const onfidoFixableErrors = lodashGet(
+            this.props,
+            'walletOnfidoData.fixableErrors',
+            [],
+        );
+        onfidoError += !_.isEmpty(onfidoFixableErrors)
+            ? `\n${onfidoFixableErrors.join('\n')}`
+            : '';
 
         return (
             <View style={[styles.flex1, styles.justifyContentBetween]}>
                 {!this.props.walletOnfidoData.hasAcceptedPrivacyPolicy ? (
                     <>
                         <FormScrollView ref={(el) => (this.form = el)}>
-                            <View style={[styles.mh5, styles.justifyContentCenter]}>
+                            <View
+                                style={[
+                                    styles.mh5,
+                                    styles.justifyContentCenter,
+                                ]}
+                            >
                                 <Text style={[styles.mb5]}>
-                                    {this.props.translate('onfidoStep.acceptTerms')}
-                                    <TextLink href="https://onfido.com/facial-scan-policy-and-release/">{this.props.translate('onfidoStep.facialScan')}</TextLink>
+                                    {this.props.translate(
+                                        'onfidoStep.acceptTerms',
+                                    )}
+                                    <TextLink href="https://onfido.com/facial-scan-policy-and-release/">
+                                        {this.props.translate(
+                                            'onfidoStep.facialScan',
+                                        )}
+                                    </TextLink>
                                     {', '}
-                                    <TextLink href="https://onfido.com/privacy/">{this.props.translate('common.privacy')}</TextLink>
+                                    <TextLink href="https://onfido.com/privacy/">
+                                        {this.props.translate('common.privacy')}
+                                    </TextLink>
                                     {` ${this.props.translate('common.and')} `}
-                                    <TextLink href="https://onfido.com/terms-of-service/">{this.props.translate('common.termsOfService')}</TextLink>.
+                                    <TextLink href="https://onfido.com/terms-of-service/">
+                                        {this.props.translate(
+                                            'common.termsOfService',
+                                        )}
+                                    </TextLink>
+                                    .
                                 </Text>
                             </View>
                         </FormScrollView>
@@ -75,14 +102,31 @@ class OnfidoPrivacy extends React.Component {
                                     this.form.scrollTo({y: 0, animated: true});
                                 }}
                                 message={onfidoError}
-                                isLoading={this.props.walletOnfidoData.isLoading}
-                                buttonText={onfidoError ? this.props.translate('onfidoStep.tryAgain') : this.props.translate('common.continue')}
-                                containerStyles={[styles.mh0, styles.mv0, styles.mb0]}
+                                isLoading={
+                                    this.props.walletOnfidoData.isLoading
+                                }
+                                buttonText={
+                                    onfidoError
+                                        ? this.props.translate(
+                                              'onfidoStep.tryAgain',
+                                          )
+                                        : this.props.translate(
+                                              'common.continue',
+                                          )
+                                }
+                                containerStyles={[
+                                    styles.mh0,
+                                    styles.mv0,
+                                    styles.mb0,
+                                ]}
                             />
                         </FixedFooter>
                     </>
                 ) : null}
-                {this.props.walletOnfidoData.hasAcceptedPrivacyPolicy && this.props.walletOnfidoData.isLoading ? <FullscreenLoadingIndicator /> : null}
+                {this.props.walletOnfidoData.hasAcceptedPrivacyPolicy &&
+                this.props.walletOnfidoData.isLoading ? (
+                    <FullscreenLoadingIndicator />
+                ) : null}
             </View>
         );
     }

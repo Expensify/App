@@ -24,7 +24,8 @@ class ScrollViewWithContext extends React.Component {
         };
         this.scrollViewRef = this.props.innerRef || React.createRef(null);
 
-        this.setContextScrollPosition = this.setContextScrollPosition.bind(this);
+        this.setContextScrollPosition =
+            this.setContextScrollPosition.bind(this);
     }
 
     setContextScrollPosition(event) {
@@ -41,7 +42,10 @@ class ScrollViewWithContext extends React.Component {
                 {...this.props}
                 ref={this.scrollViewRef}
                 onScroll={this.setContextScrollPosition}
-                scrollEventThrottle={this.props.scrollEventThrottle || MIN_SMOOTH_SCROLL_EVENT_THROTTLE}
+                scrollEventThrottle={
+                    this.props.scrollEventThrottle ||
+                    MIN_SMOOTH_SCROLL_EVENT_THROTTLE
+                }
             >
                 <ScrollContext.Provider
                     value={{

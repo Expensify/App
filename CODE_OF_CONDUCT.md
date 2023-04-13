@@ -1,7 +1,6 @@
 # Expensify Code of Conduct
 
 ## Overview of Expensify
-
 At Expensify, our unique approach to solving a real-world problem allows people to
 spend less time managing expenses and more time pursuing their real goals. Today,
 millions of people use Expensify across the globe — more than the rest of the industry
@@ -14,8 +13,9 @@ We pride ourselves as a company and as individual employees on our core qualitie
 Talent, Ambition, & Humility. The environment we have developed uses these qualities
 to adhere to our two golden rules of Expensify:
 
--   Get Shit Done
--   Don’t Ruin it for Everyone Else
+
+- Get Shit Done
+- Don’t Ruin it for Everyone Else
 
 We view our partnerships with contributors as an extension of Expensify and
 representative of our company and values. To maintain fairness and promote the safety
@@ -25,7 +25,6 @@ operate. Furthermore, we expect that any failure to adhere to the
 principles set out in this Contributor Code of Conduct can result in an immediate termination of your participation in the Expensify Contributor Community.
 
 ## Inclusiveness
-
 At Expensify, we are a diverse group of people, with employees of different races,
 ethnicities, nationalities, ages, gender identities, sexual orientations, and more. This
 diversity is important -- it expands our worldview, increases our empathy, feeds our
@@ -41,11 +40,10 @@ It’s possible to be unintentionally offensive. Everyone has some unconscious b
 one is expected to be perfect or to know everything. However, we draw a clear line as a
 company when:
 
-There is intentional discrimination against anyone. Bases of discrimination include but are not limited to age, sex, race, gender, gender identity or expression, sexual orientation, national origin, citizenship, ethnicity, religion, and disability;
-
--   Encouraging discrimination, even if the discrimination being encouraged is
-    outside of Expensify, or if no actual discrimination occurs; and/or
--   Celebrating discrimination, whether the discrimination being celebrated is real or theoretical.
+There is intentional discrimination against anyone. Bases of discrimination include but are not limited to age, sex, race, gender, gender identity or expression, sexual orientation, national origin, citizenship, ethnicity, religion, and disability; 
+- Encouraging discrimination, even if the discrimination being encouraged is
+outside of Expensify, or if no actual discrimination occurs; and/or
+- Celebrating discrimination, whether the discrimination being celebrated is real or theoretical. 
 
 While it certainly takes more than the above to create an inclusive environment, this is
 our minimum expectation for every contributor. We encourage everyone to be curious while simultaneously being respectful of our differences. Building an inclusive environment requires clear communication, checking for understanding, taking note of non-verbal communication and being aware of our own assumptions. The best interactions occur when there is a baseline understanding that everyone is equal and all people are individuals with unique experiences.
@@ -53,8 +51,7 @@ our minimum expectation for every contributor. We encourage everyone to be curio
 Acting inclusively is of equal importance when we are interacting with colleagues as it is
 when we are interacting with others. Diversity of thought is one of our strengths, so let’s all do our part to protect it.
 
-## Compliance
-
+## Compliance 
 As a contributor, you agree to abide by the terms of this Code and acknowledge that
 compliance with this Code is required to maintain your status as an Expensify contributor. You agree that all business conducted on behalf of Expensify shall be accomplished in full compliance with applicable laws, rules, regulations, and policies. If local laws are less restrictive than the principles set forth in this Code, contributors are expected to, at a minimum, comply with the Code. If local laws are more restrictive than this Code, contributors are expected to, at a minimum, comply with applicable local laws.
 

@@ -23,7 +23,10 @@ const propTypes = {
     children: PropTypes.func.isRequired,
 
     /** The types of files that can be selected with this picker. */
-    type: PropTypes.oneOf([CONST.ATTACHMENT_PICKER_TYPE.FILE, CONST.ATTACHMENT_PICKER_TYPE.IMAGE]),
+    type: PropTypes.oneOf([
+        CONST.ATTACHMENT_PICKER_TYPE.FILE,
+        CONST.ATTACHMENT_PICKER_TYPE.IMAGE,
+    ]),
 };
 
 const defaultProps = {

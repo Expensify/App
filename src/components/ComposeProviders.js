@@ -4,7 +4,9 @@ import PropTypes from 'prop-types';
 
 const propTypes = {
     /** Provider components go here */
-    components: PropTypes.arrayOf(PropTypes.oneOfType([PropTypes.object, PropTypes.func])).isRequired,
+    components: PropTypes.arrayOf(
+        PropTypes.oneOfType([PropTypes.object, PropTypes.func]),
+    ).isRequired,
 
     /** Rendered child component */
     children: PropTypes.node.isRequired,

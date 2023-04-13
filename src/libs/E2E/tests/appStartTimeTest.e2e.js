@@ -30,7 +30,10 @@ const test = () => {
                 E2EClient.submitTestDone();
             })
             .catch((err) => {
-                console.debug('[E2E] Error while submitting test results:', err);
+                console.debug(
+                    '[E2E] Error while submitting test results:',
+                    err,
+                );
             });
     });
 };

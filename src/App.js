@@ -33,7 +33,18 @@ const fill = {flex: 1};
 
 const App = () => (
     <GestureHandlerRootView style={fill}>
-        <ComposeProviders components={[OnyxProvider, SafeAreaProvider, PortalProvider, SafeArea, LocaleContextProvider, HTMLEngineProvider, WindowDimensionsProvider, KeyboardStateProvider]}>
+        <ComposeProviders
+            components={[
+                OnyxProvider,
+                SafeAreaProvider,
+                PortalProvider,
+                SafeArea,
+                LocaleContextProvider,
+                HTMLEngineProvider,
+                WindowDimensionsProvider,
+                KeyboardStateProvider,
+            ]}
+        >
             <CustomStatusBar />
             <ErrorBoundary errorMessage="NewExpensify crash caught by error boundary">
                 <Expensify />

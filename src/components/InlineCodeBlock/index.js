@@ -9,7 +9,9 @@ const InlineCodeBlock = (props) => {
             // eslint-disable-next-line react/jsx-props-no-spreading
             {...props.defaultRendererProps}
         >
-            <Text style={{...props.boxModelStyle, ...props.textStyle}}>{props.defaultRendererProps.tnode.data}</Text>
+            <Text style={{...props.boxModelStyle, ...props.textStyle}}>
+                {props.defaultRendererProps.tnode.data}
+            </Text>
         </TDefaultRenderer>
     );
 };

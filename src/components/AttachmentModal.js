@@ -15,7 +15,9 @@ import * as StyleUtils from '../styles/StyleUtils';
 import * as FileUtils from '../libs/fileDownload/FileUtils';
 import themeColors from '../styles/themes/default';
 import compose from '../libs/compose';
-import withWindowDimensions, {windowDimensionsPropTypes} from './withWindowDimensions';
+import withWindowDimensions, {
+    windowDimensionsPropTypes,
+} from './withWindowDimensions';
 import Button from './Button';
 import HeaderWithCloseButton from './HeaderWithCloseButton';
 import fileDownload from '../libs/fileDownload';
@@ -89,8 +91,10 @@ class AttachmentModal extends PureComponent {
         this.submitAndClose = this.submitAndClose.bind(this);
         this.closeConfirmModal = this.closeConfirmModal.bind(this);
         this.onNavigate = this.onNavigate.bind(this);
-        this.validateAndDisplayFileToUpload = this.validateAndDisplayFileToUpload.bind(this);
-        this.updateConfirmButtonVisibility = this.updateConfirmButtonVisibility.bind(this);
+        this.validateAndDisplayFileToUpload =
+            this.validateAndDisplayFileToUpload.bind(this);
+        this.updateConfirmButtonVisibility =
+            this.updateConfirmButtonVisibility.bind(this);
     }
 
     /**
@@ -109,7 +113,15 @@ class AttachmentModal extends PureComponent {
      * @returns {String}
      */
     getModalType(sourceURL, file) {
-        return sourceURL && (Str.isPDF(sourceURL) || (file && Str.isPDF(file.name || this.props.translate('attachmentView.unknownFilename'))))
+        return sourceURL &&
+            (Str.isPDF(sourceURL) ||
+                (file &&
+                    Str.isPDF(
+                        file.name ||
+                            this.props.translate(
+                                'attachmentView.unknownFilename',
+                            ),
+                    )))
             ? CONST.MODAL.MODAL_TYPE.CENTERED_UNSWIPEABLE
             : CONST.MODAL.MODAL_TYPE.CENTERED;
     }
@@ -118,7 +130,8 @@ class AttachmentModal extends PureComponent {
      * @param {String} sourceURL
      */
     downloadAttachment(sourceURL) {
-        const originalFileName = lodashGet(this.state, 'file.name') || this.props.originalFileName;
+        const originalFileName =
+            lodashGet(this.state, 'file.name') || this.props.originalFileName;
         fileDownload(sourceURL, originalFileName);
 
         // At ios, if the keyboard is open while opening the attachment, then after downloading
@@ -137,7 +150,9 @@ class AttachmentModal extends PureComponent {
         }
 
         if (this.props.onConfirm) {
-            this.props.onConfirm(lodashExtend(this.state.file, {source: this.state.source}));
+            this.props.onConfirm(
+                lodashExtend(this.state.file, {source: this.state.source}),
+            );
         }
 
         this.setState({isModalOpen: false});
@@ -155,31 +170,58 @@ class AttachmentModal extends PureComponent {
      * @returns {Boolean}
      */
     isValidFile(file) {
-        const {fileExtension} = FileUtils.splitExtensionFromFileName(lodashGet(file, 'name', ''));
-        if (!_.contains(CONST.API_ATTACHMENT_VALIDATIONS.ALLOWED_EXTENSIONS, fileExtension.toLowerCase())) {
-            const invalidReason = `${this.props.translate('attachmentPicker.notAllowedExtension')} ${CONST.API_ATTACHMENT_VALIDATIONS.ALLOWED_EXTENSIONS.join(', ')}`;
+        const {fileExtension} = FileUtils.splitExtensionFromFileName(
+            lodashGet(file, 'name', ''),
+        );
+        if (
+            !_.contains(
+                CONST.API_ATTACHMENT_VALIDATIONS.ALLOWED_EXTENSIONS,
+                fileExtension.toLowerCase(),
+            )
+        ) {
+            const invalidReason = `${this.props.translate(
+                'attachmentPicker.notAllowedExtension',
+            )} ${CONST.API_ATTACHMENT_VALIDATIONS.ALLOWED_EXTENSIONS.join(
+                ', ',
+            )}`;
             this.setState({
                 isAttachmentInvalid: true,
-                attachmentInvalidReasonTitle: this.props.translate('attachmentPicker.wrongFileType'),
+                attachmentInvalidReasonTitle: this.props.translate(
+                    'attachmentPicker.wrongFileType',
+                ),
                 attachmentInvalidReason: invalidReason,
             });
             return false;
         }
 
-        if (lodashGet(file, 'size', 0) > CONST.API_ATTACHMENT_VALIDATIONS.MAX_SIZE) {
+        if (
+            lodashGet(file, 'size', 0) >
+            CONST.API_ATTACHMENT_VALIDATIONS.MAX_SIZE
+        ) {
             this.setState({
                 isAttachmentInvalid: true,
-                attachmentInvalidReasonTitle: this.props.translate('attachmentPicker.attachmentTooLarge'),
-                attachmentInvalidReason: this.props.translate('attachmentPicker.sizeExceeded'),
+                attachmentInvalidReasonTitle: this.props.translate(
+                    'attachmentPicker.attachmentTooLarge',
+                ),
+                attachmentInvalidReason: this.props.translate(
+                    'attachmentPicker.sizeExceeded',
+                ),
             });
             return false;
         }
 
-        if (lodashGet(file, 'size', 0) < CONST.API_ATTACHMENT_VALIDATIONS.MIN_SIZE) {
+        if (
+            lodashGet(file, 'size', 0) <
+            CONST.API_ATTACHMENT_VALIDATIONS.MIN_SIZE
+        ) {
             this.setState({
                 isAttachmentInvalid: true,
-                attachmentInvalidReasonTitle: this.props.translate('attachmentPicker.attachmentTooSmall'),
-                attachmentInvalidReason: this.props.translate('attachmentPicker.sizeNotMet'),
+                attachmentInvalidReasonTitle: this.props.translate(
+                    'attachmentPicker.attachmentTooSmall',
+                ),
+                attachmentInvalidReason: this.props.translate(
+                    'attachmentPicker.sizeNotMet',
+                ),
             });
             return false;
         }
@@ -249,7 +291,9 @@ class AttachmentModal extends PureComponent {
                     onClose={() => this.setState({isModalOpen: false})}
                     isVisible={this.state.isModalOpen}
                     backgroundColor={themeColors.componentBG}
-                    onModalShow={() => this.setState({shouldLoadAttachment: true})}
+                    onModalShow={() =>
+                        this.setState({shouldLoadAttachment: true})
+                    }
                     onModalHide={(e) => {
                         this.props.onModalHide(e);
                         this.setState({shouldLoadAttachment: false});
@@ -258,11 +302,18 @@ class AttachmentModal extends PureComponent {
                 >
                     {this.props.isSmallScreenWidth && <HeaderGap />}
                     <HeaderWithCloseButton
-                        title={this.props.headerTitle || this.props.translate('common.attachment')}
+                        title={
+                            this.props.headerTitle ||
+                            this.props.translate('common.attachment')
+                        }
                         shouldShowBorderBottom
                         shouldShowDownloadButton={this.props.allowDownload}
-                        onDownloadButtonPress={() => this.downloadAttachment(source)}
-                        onCloseButtonPress={() => this.setState({isModalOpen: false})}
+                        onDownloadButtonPress={() =>
+                            this.downloadAttachment(source)
+                        }
+                        onCloseButtonPress={() =>
+                            this.setState({isModalOpen: false})
+                        }
                     />
                     <View style={styles.imageModalImageCenterContainer}>
                         {this.state.reportID ? (
@@ -270,16 +321,22 @@ class AttachmentModal extends PureComponent {
                                 reportID={this.state.reportID}
                                 onNavigate={this.onNavigate}
                                 source={this.props.source}
-                                onToggleKeyboard={this.updateConfirmButtonVisibility}
+                                onToggleKeyboard={
+                                    this.updateConfirmButtonVisibility
+                                }
                             />
                         ) : (
                             this.state.source &&
                             this.state.shouldLoadAttachment && (
                                 <AttachmentView
                                     source={source}
-                                    isAuthTokenRequired={this.props.isAuthTokenRequired}
+                                    isAuthTokenRequired={
+                                        this.props.isAuthTokenRequired
+                                    }
                                     file={this.state.file}
-                                    onToggleKeyboard={this.updateConfirmButtonVisibility}
+                                    onToggleKeyboard={
+                                        this.updateConfirmButtonVisibility
+                                    }
                                 />
                             )
                         )}
@@ -288,14 +345,31 @@ class AttachmentModal extends PureComponent {
                     {this.props.onConfirm && (
                         <SafeAreaConsumer>
                             {({safeAreaPaddingBottomStyle}) => (
-                                <Animated.View style={[StyleUtils.fade(this.state.confirmButtonFadeAnimation), safeAreaPaddingBottomStyle]}>
+                                <Animated.View
+                                    style={[
+                                        StyleUtils.fade(
+                                            this.state
+                                                .confirmButtonFadeAnimation,
+                                        ),
+                                        safeAreaPaddingBottomStyle,
+                                    ]}
+                                >
                                     <Button
                                         success
-                                        style={[styles.buttonConfirm, this.props.isSmallScreenWidth ? {} : styles.attachmentButtonBigScreen]}
+                                        style={[
+                                            styles.buttonConfirm,
+                                            this.props.isSmallScreenWidth
+                                                ? {}
+                                                : styles.attachmentButtonBigScreen,
+                                        ]}
                                         textStyles={[styles.buttonConfirmText]}
-                                        text={this.props.translate('common.send')}
+                                        text={this.props.translate(
+                                            'common.send',
+                                        )}
                                         onPress={this.submitAndClose}
-                                        disabled={this.state.isConfirmButtonDisabled}
+                                        disabled={
+                                            this.state.isConfirmButtonDisabled
+                                        }
                                         pressOnEnter
                                     />
                                 </Animated.View>

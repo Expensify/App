@@ -56,7 +56,10 @@ const propTypes = {
     headerMessage: PropTypes.string,
 
     /** Passed via forwardRef so we can access the SectionList ref */
-    innerRef: PropTypes.oneOfType([PropTypes.func, PropTypes.shape({current: PropTypes.instanceOf(SectionList)})]),
+    innerRef: PropTypes.oneOfType([
+        PropTypes.func,
+        PropTypes.shape({current: PropTypes.instanceOf(SectionList)}),
+    ]),
 
     /** Whether to show the title tooltip */
     showTitleTooltip: PropTypes.bool,

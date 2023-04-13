@@ -22,7 +22,12 @@ export {
     cancelResetFreePlanBankAccount,
 } from './ReimbursementAccount';
 export {openPlaidBankAccountSelector, openPlaidBankLogin} from './Plaid';
-export {openOnfidoFlow, answerQuestionsForWallet, verifyIdentity, acceptWalletTerms} from './Wallet';
+export {
+    openOnfidoFlow,
+    answerQuestionsForWallet,
+    verifyIdentity,
+    acceptWalletTerms,
+} from './Wallet';
 
 function clearPlaid() {
     Onyx.set(ONYXKEYS.PLAID_LINK_TOKEN, '');
@@ -31,11 +36,17 @@ function clearPlaid() {
 }
 
 function openPlaidView() {
-    clearPlaid().then(() => ReimbursementAccount.setBankAccountSubStep(CONST.BANK_ACCOUNT.SETUP_TYPE.PLAID));
+    clearPlaid().then(() =>
+        ReimbursementAccount.setBankAccountSubStep(
+            CONST.BANK_ACCOUNT.SETUP_TYPE.PLAID,
+        ),
+    );
 }
 
 function openPersonalBankAccountSetupView() {
-    clearPlaid().then(() => Navigation.navigate(ROUTES.SETTINGS_ADD_BANK_ACCOUNT));
+    clearPlaid().then(() =>
+        Navigation.navigate(ROUTES.SETTINGS_ADD_BANK_ACCOUNT),
+    );
 }
 
 function clearPersonalBankAccount() {
@@ -81,7 +92,9 @@ function getVBBADataForOnyx() {
                 value: {
                     isLoading: false,
                     errors: {
-                        [DateUtils.getMicroseconds()]: Localize.translateLocal('paymentsPage.addBankAccountFailure'),
+                        [DateUtils.getMicroseconds()]: Localize.translateLocal(
+                            'paymentsPage.addBankAccountFailure',
+                        ),
                     },
                 },
             },
@@ -160,7 +173,9 @@ function addPersonalBankAccount(account) {
                 value: {
                     isLoading: false,
                     errors: {
-                        [DateUtils.getMicroseconds()]: Localize.translateLocal('paymentsPage.addBankAccountFailure'),
+                        [DateUtils.getMicroseconds()]: Localize.translateLocal(
+                            'paymentsPage.addBankAccountFailure',
+                        ),
                     },
                 },
             },
@@ -183,7 +198,8 @@ function deletePaymentBankAccount(bankAccountID) {
                     key: `${ONYXKEYS.BANK_ACCOUNT_LIST}`,
                     value: {
                         [bankAccountID]: {
-                            pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
+                            pendingAction:
+                                CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
                         },
                     },
                 },
@@ -222,7 +238,11 @@ function deletePaymentBankAccount(bankAccountID) {
  * @param {Boolean} [params.isOnfidoSetupComplete]
  */
 function updatePersonalInformationForBankAccount(params) {
-    API.write('UpdatePersonalInformationForBankAccount', params, getVBBADataForOnyx());
+    API.write(
+        'UpdatePersonalInformationForBankAccount',
+        params,
+        getVBBADataForOnyx(),
+    );
 }
 
 /**
@@ -339,7 +359,11 @@ function openReimbursementAccountPage(stepToOpen, subStep, localCurrentStep) {
  * @param {Boolean} [bankAccount.hasNoConnectionToCannabis]
  */
 function updateCompanyInformationForBankAccount(bankAccount) {
-    API.write('UpdateCompanyInformationForBankAccount', bankAccount, getVBBADataForOnyx());
+    API.write(
+        'UpdateCompanyInformationForBankAccount',
+        bankAccount,
+        getVBBADataForOnyx(),
+    );
 }
 
 /**
@@ -355,7 +379,11 @@ function updateCompanyInformationForBankAccount(bankAccount) {
  * @param {String}  [params.beneficialOwners]
  */
 function updateBeneficialOwnersForBankAccount(params) {
-    API.write('UpdateBeneficialOwnersForBankAccount', {...params}, getVBBADataForOnyx());
+    API.write(
+        'UpdateBeneficialOwnersForBankAccount',
+        {...params},
+        getVBBADataForOnyx(),
+    );
 }
 
 /**
@@ -367,7 +395,12 @@ function updateBeneficialOwnersForBankAccount(params) {
  * @param {String} [plaidMask]
  *
  */
-function connectBankAccountManually(bankAccountID, accountNumber, routingNumber, plaidMask) {
+function connectBankAccountManually(
+    bankAccountID,
+    accountNumber,
+    routingNumber,
+    plaidMask,
+) {
     API.write(
         'ConnectBankAccountManually',
         {

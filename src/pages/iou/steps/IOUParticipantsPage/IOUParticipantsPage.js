@@ -45,7 +45,10 @@ const propTypes = {
     }),
 
     /** padding bottom style of safe area */
-    safeAreaPaddingBottomStyle: PropTypes.oneOfType([PropTypes.arrayOf(PropTypes.object), PropTypes.object]),
+    safeAreaPaddingBottomStyle: PropTypes.oneOfType([
+        PropTypes.arrayOf(PropTypes.object),
+        PropTypes.object,
+    ]),
 };
 
 const defaultProps = {
@@ -71,7 +74,11 @@ const IOUParticipantsPage = (props) => {
             safeAreaPaddingBottomStyle={props.safeAreaPaddingBottomStyle}
         />
     ) : (
-        <IOUParticipantsRequest onStepComplete={props.onStepComplete} onAddParticipants={props.onAddParticipants} safeAreaPaddingBottomStyle={props.safeAreaPaddingBottomStyle} />
+        <IOUParticipantsRequest
+            onStepComplete={props.onStepComplete}
+            onAddParticipants={props.onAddParticipants}
+            safeAreaPaddingBottomStyle={props.safeAreaPaddingBottomStyle}
+        />
     );
 };
 

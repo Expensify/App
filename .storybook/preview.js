@@ -13,7 +13,13 @@ Onyx.init({
 
 const decorators = [
     (Story) => (
-        <ComposeProviders components={[OnyxProvider, LocaleContextProvider, HTMLEngineProvider]}>
+        <ComposeProviders
+            components={[
+                OnyxProvider,
+                LocaleContextProvider,
+                HTMLEngineProvider,
+            ]}
+        >
             <Story />
         </ComposeProviders>
     ),

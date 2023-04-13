@@ -1,14 +1,14 @@
 name: Verify signed commits
 
 on:
-    pull_request:
-        types: [opened, synchronize]
-        branches-ignore: [staging, production]
+  pull_request:
+    types: [opened, synchronize]
+    branches-ignore: [staging, production]
 
 jobs:
-    verifySignedCommits:
-        runs-on: ubuntu-latest
-        steps:
-            - uses: Expensify/App/.github/actions/javascript/verifySignedCommits@main
-              with:
-                  GITHUB_TOKEN: ${{ github.token }}
+  verifySignedCommits:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: Expensify/App/.github/actions/javascript/verifySignedCommits@main
+        with:
+          GITHUB_TOKEN: ${{ github.token }}

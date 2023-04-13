@@ -26,10 +26,15 @@ function reopenIssueWithComment() {
 
 reopenIssueWithComment()
     .then(() => {
-        console.log(`Issue #${issueNumber} successfully reopened and commented: "${comment}"`);
+        console.log(
+            `Issue #${issueNumber} successfully reopened and commented: "${comment}"`,
+        );
         process.exit(0);
     })
     .catch((err) => {
-        console.error(`Something went wrong. The issue #${issueNumber} was not successfully reopened`, err);
+        console.error(
+            `Something went wrong. The issue #${issueNumber} was not successfully reopened`,
+            err,
+        );
         core.setFailed(err);
     });

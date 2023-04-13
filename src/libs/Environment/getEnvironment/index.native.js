@@ -17,14 +17,19 @@ function getEnvironment() {
             return resolve(environment);
         }
 
-        if (lodashGet(Config, 'ENVIRONMENT', CONST.ENVIRONMENT.DEV) === CONST.ENVIRONMENT.DEV) {
+        if (
+            lodashGet(Config, 'ENVIRONMENT', CONST.ENVIRONMENT.DEV) ===
+            CONST.ENVIRONMENT.DEV
+        ) {
             environment = CONST.ENVIRONMENT.DEV;
             return resolve(environment);
         }
 
         // If we haven't set the environment yet and we aren't on dev, check to see if this is a beta build
         betaChecker.isBetaBuild().then((isBeta) => {
-            environment = isBeta ? CONST.ENVIRONMENT.STAGING : CONST.ENVIRONMENT.PRODUCTION;
+            environment = isBeta
+                ? CONST.ENVIRONMENT.STAGING
+                : CONST.ENVIRONMENT.PRODUCTION;
             resolve(environment);
         });
     });

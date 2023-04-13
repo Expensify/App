@@ -16,7 +16,9 @@ export default function () {
 
                 // Fail early here because there is nothing to migrate
                 if (_.isEmpty(oldPriorityMode)) {
-                    Log.info('[Migrate Onyx] Skipped migration RenamePriorityModeKey');
+                    Log.info(
+                        '[Migrate Onyx] Skipped migration RenamePriorityModeKey',
+                    );
                     return resolve();
                 }
 
@@ -24,7 +26,9 @@ export default function () {
                     priorityMode: null,
                     [ONYXKEYS.NVP_PRIORITY_MODE]: oldPriorityMode,
                 }).then(() => {
-                    Log.info('[Migrate Onyx] Ran migration RenamePriorityModeKey');
+                    Log.info(
+                        '[Migrate Onyx] Ran migration RenamePriorityModeKey',
+                    );
                     resolve();
                 });
             },

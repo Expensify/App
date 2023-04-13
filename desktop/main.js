@@ -1,4 +1,12 @@
-const {app, dialog, BrowserWindow, Menu, MenuItem, shell, ipcMain} = require('electron');
+const {
+    app,
+    dialog,
+    BrowserWindow,
+    Menu,
+    MenuItem,
+    shell,
+    ipcMain,
+} = require('electron');
 const _ = require('underscore');
 const serve = require('electron-serve');
 const contextMenu = require('electron-context-menu');
@@ -59,7 +67,9 @@ let expectedUpdateVersion;
 for (let i = 0; i < process.argv.length; i++) {
     const arg = process.argv[i];
     if (arg.startsWith(`${EXPECTED_UPDATE_VERSION_FLAG}=`)) {
-        expectedUpdateVersion = arg.substr(`${EXPECTED_UPDATE_VERSION_FLAG}=`.length);
+        expectedUpdateVersion = arg.substr(
+            `${EXPECTED_UPDATE_VERSION_FLAG}=`.length,
+        );
     }
 }
 
@@ -101,23 +111,56 @@ const manuallyCheckForUpdates = (menuItem, browserWindow) => {
             if (downloadPromise) {
                 dialog.showMessageBox(browserWindow, {
                     type: 'info',
-                    message: Localize.translate(preferredLocale, 'checkForUpdatesModal.available.title'),
-                    detail: Localize.translate(preferredLocale, 'checkForUpdatesModal.available.message'),
-                    buttons: [Localize.translate(preferredLocale, 'checkForUpdatesModal.available.soundsGood')],
+                    message: Localize.translate(
+                        preferredLocale,
+                        'checkForUpdatesModal.available.title',
+                    ),
+                    detail: Localize.translate(
+                        preferredLocale,
+                        'checkForUpdatesModal.available.message',
+                    ),
+                    buttons: [
+                        Localize.translate(
+                            preferredLocale,
+                            'checkForUpdatesModal.available.soundsGood',
+                        ),
+                    ],
                 });
             } else if (result && result.error) {
                 dialog.showMessageBox(browserWindow, {
                     type: 'error',
-                    message: Localize.translate(preferredLocale, 'checkForUpdatesModal.error.title'),
-                    detail: Localize.translate(preferredLocale, 'checkForUpdatesModal.error.message'),
-                    buttons: [Localize.translate(preferredLocale, 'checkForUpdatesModal.notAvailable.okay')],
+                    message: Localize.translate(
+                        preferredLocale,
+                        'checkForUpdatesModal.error.title',
+                    ),
+                    detail: Localize.translate(
+                        preferredLocale,
+                        'checkForUpdatesModal.error.message',
+                    ),
+                    buttons: [
+                        Localize.translate(
+                            preferredLocale,
+                            'checkForUpdatesModal.notAvailable.okay',
+                        ),
+                    ],
                 });
             } else {
                 dialog.showMessageBox(browserWindow, {
                     type: 'info',
-                    message: Localize.translate(preferredLocale, 'checkForUpdatesModal.notAvailable.title'),
-                    detail: Localize.translate(preferredLocale, 'checkForUpdatesModal.notAvailable.message'),
-                    buttons: [Localize.translate(preferredLocale, 'checkForUpdatesModal.notAvailable.okay')],
+                    message: Localize.translate(
+                        preferredLocale,
+                        'checkForUpdatesModal.notAvailable.title',
+                    ),
+                    detail: Localize.translate(
+                        preferredLocale,
+                        'checkForUpdatesModal.notAvailable.message',
+                    ),
+                    buttons: [
+                        Localize.translate(
+                            preferredLocale,
+                            'checkForUpdatesModal.notAvailable.okay',
+                        ),
+                    ],
                     cancelId: 2,
                 });
             }
@@ -139,7 +182,9 @@ const showKeyboardShortcutsModal = (browserWindow) => {
     if (!browserWindow.isVisible()) {
         return;
     }
-    browserWindow.webContents.send(ELECTRON_EVENTS.SHOW_KEYBOARD_SHORTCUTS_MODAL);
+    browserWindow.webContents.send(
+        ELECTRON_EVENTS.SHOW_KEYBOARD_SHORTCUTS_MODAL,
+    );
 };
 
 // Actual auto-update listeners
@@ -148,10 +193,17 @@ const electronUpdater = (browserWindow) => ({
         autoUpdater.on(ELECTRON_EVENTS.UPDATE_DOWNLOADED, (info) => {
             const systemMenu = Menu.getApplicationMenu();
             downloadedVersion = info.version;
-            systemMenu.getMenuItemById(`updateAppMenuItem-${preferredLocale}`).visible = true;
-            systemMenu.getMenuItemById(`checkForUpdateMenuItem-${preferredLocale}`).visible = false;
+            systemMenu.getMenuItemById(
+                `updateAppMenuItem-${preferredLocale}`,
+            ).visible = true;
+            systemMenu.getMenuItemById(
+                `checkForUpdateMenuItem-${preferredLocale}`,
+            ).visible = false;
             if (browserWindow.isVisible()) {
-                browserWindow.webContents.send(ELECTRON_EVENTS.UPDATE_DOWNLOADED, info.version);
+                browserWindow.webContents.send(
+                    ELECTRON_EVENTS.UPDATE_DOWNLOADED,
+                    info.version,
+                );
             } else {
                 quitAndInstallWithUpdate();
             }
@@ -174,20 +226,31 @@ const localizeMenuItems = (browserWindow, systemMenu) => {
         4,
         new MenuItem({
             id: `historyMenuItem-${preferredLocale}`,
-            label: Localize.translate(preferredLocale, 'desktopApplicationMenu.history'),
+            label: Localize.translate(
+                preferredLocale,
+                'desktopApplicationMenu.history',
+            ),
             submenu: [
                 {
                     id: `backMenuItem-${preferredLocale}`,
-                    label: Localize.translate(preferredLocale, 'historyMenu.back'),
-                    accelerator: process.platform === 'darwin' ? 'Cmd+[' : 'Shift+[',
+                    label: Localize.translate(
+                        preferredLocale,
+                        'historyMenu.back',
+                    ),
+                    accelerator:
+                        process.platform === 'darwin' ? 'Cmd+[' : 'Shift+[',
                     click: () => {
                         browserWindow.webContents.goBack();
                     },
                 },
                 {
                     id: `forwardMenuItem-${preferredLocale}`,
-                    label: Localize.translate(preferredLocale, 'historyMenu.forward'),
-                    accelerator: process.platform === 'darwin' ? 'Cmd+]' : 'Shift+]',
+                    label: Localize.translate(
+                        preferredLocale,
+                        'historyMenu.forward',
+                    ),
+                    accelerator:
+                        process.platform === 'darwin' ? 'Cmd+]' : 'Shift+]',
                     click: () => {
                         browserWindow.webContents.goForward();
                     },
@@ -200,7 +263,10 @@ const localizeMenuItems = (browserWindow, systemMenu) => {
     // This menu item should become visible after an update is downloaded and ready to be applied
     const updateAppMenuItem = new MenuItem({
         id: `updateAppMenuItem-${preferredLocale}`,
-        label: Localize.translate(preferredLocale, 'desktopApplicationMenu.updateExpensify'),
+        label: Localize.translate(
+            preferredLocale,
+            'desktopApplicationMenu.updateExpensify',
+        ),
         visible: false,
         click: quitAndInstallWithUpdate,
     });
@@ -208,7 +274,10 @@ const localizeMenuItems = (browserWindow, systemMenu) => {
     // System-level menu item to manually check for App updates
     const checkForUpdateMenuItem = new MenuItem({
         id: `checkForUpdateMenuItem-${preferredLocale}`,
-        label: Localize.translate(preferredLocale, 'desktopApplicationMenu.checkForUpdates'),
+        label: Localize.translate(
+            preferredLocale,
+            'desktopApplicationMenu.checkForUpdates',
+        ),
         visible: true,
         click: manuallyCheckForUpdates,
     });
@@ -216,7 +285,10 @@ const localizeMenuItems = (browserWindow, systemMenu) => {
     // Defines the system-level menu item for opening keyboard shortcuts modal
     const keyboardShortcutsMenuItem = new MenuItem({
         id: `keyboardShortcutsMenuItem-${preferredLocale}`,
-        label: Localize.translate(preferredLocale, 'initialSettingsPage.aboutPage.viewKeyboardShortcuts'),
+        label: Localize.translate(
+            preferredLocale,
+            'initialSettingsPage.aboutPage.viewKeyboardShortcuts',
+        ),
         accelerator: 'CmdOrCtrl+I',
         click: () => {
             showKeyboardShortcutsModal(browserWindow);
@@ -233,7 +305,9 @@ const mainWindow = () => {
     let deeplinkUrl;
     let browserWindow;
 
-    const loadURL = __DEV__ ? (win) => win.loadURL(`http://localhost:${port}`) : serve({directory: `${__dirname}/www`});
+    const loadURL = __DEV__
+        ? (win) => win.loadURL(`http://localhost:${port}`)
+        : serve({directory: `${__dirname}/www`});
 
     // Prod and staging set the icon in the electron-builder config, so only update it here for dev
     if (__DEV__) {
@@ -285,7 +359,9 @@ const mainWindow = () => {
                     titleBarStyle: 'hidden',
                 });
 
-                ipcMain.handle(ELECTRON_EVENTS.REQUEST_DEVICE_ID, () => machineId());
+                ipcMain.handle(ELECTRON_EVENTS.REQUEST_DEVICE_ID, () =>
+                    machineId(),
+                );
 
                 /*
                  * The default origin of our Electron app is app://- instead of https://new.expensify.com or https://staging.new.expensify.com
@@ -304,23 +380,41 @@ const mainWindow = () => {
                 /* eslint-disable no-param-reassign */
                 if (!__DEV__) {
                     // Modify the origin and referer for requests sent to our API
-                    webRequest.onBeforeSendHeaders(validDestinationFilters, (details, callback) => {
-                        details.requestHeaders.origin = CONFIG.EXPENSIFY.URL_EXPENSIFY_CASH;
-                        details.requestHeaders.referer = CONFIG.EXPENSIFY.URL_EXPENSIFY_CASH;
-                        callback({requestHeaders: details.requestHeaders});
-                    });
+                    webRequest.onBeforeSendHeaders(
+                        validDestinationFilters,
+                        (details, callback) => {
+                            details.requestHeaders.origin =
+                                CONFIG.EXPENSIFY.URL_EXPENSIFY_CASH;
+                            details.requestHeaders.referer =
+                                CONFIG.EXPENSIFY.URL_EXPENSIFY_CASH;
+                            callback({requestHeaders: details.requestHeaders});
+                        },
+                    );
                 }
 
                 // Modify access-control-allow-origin header and CSP for the response
-                webRequest.onHeadersReceived(validDestinationFilters, (details, callback) => {
-                    details.responseHeaders['access-control-allow-origin'] = [APP_DOMAIN];
-                    if (details.responseHeaders['content-security-policy']) {
-                        details.responseHeaders['content-security-policy'] = _.map(details.responseHeaders['content-security-policy'], (value) =>
-                            value.startsWith('frame-ancestors') ? `${value} ${APP_DOMAIN}` : value,
-                        );
-                    }
-                    callback({responseHeaders: details.responseHeaders});
-                });
+                webRequest.onHeadersReceived(
+                    validDestinationFilters,
+                    (details, callback) => {
+                        details.responseHeaders['access-control-allow-origin'] =
+                            [APP_DOMAIN];
+                        if (
+                            details.responseHeaders['content-security-policy']
+                        ) {
+                            details.responseHeaders['content-security-policy'] =
+                                _.map(
+                                    details.responseHeaders[
+                                        'content-security-policy'
+                                    ],
+                                    (value) =>
+                                        value.startsWith('frame-ancestors')
+                                            ? `${value} ${APP_DOMAIN}`
+                                            : value,
+                                );
+                        }
+                        callback({responseHeaders: details.responseHeaders});
+                    },
+                );
                 /* eslint-enable */
 
                 // Prod and staging overwrite the app name in the electron-builder config, so only update it here for dev
@@ -331,7 +425,10 @@ const mainWindow = () => {
                 const systemMenu = Menu.getApplicationMenu();
 
                 // Register the custom Paste and Match Style command and place it near the default shortcut of the same role.
-                const editMenu = _.find(systemMenu.items, (item) => item.role === 'editmenu');
+                const editMenu = _.find(
+                    systemMenu.items,
+                    (item) => item.role === 'editmenu',
+                );
                 editMenu.submenu.insert(
                     6,
                     new MenuItem({
@@ -345,7 +442,10 @@ const mainWindow = () => {
 
                 // On mac, pressing cmd++ actually sends a cmd+=. cmd++ is generally the zoom in shortcut, but this is
                 // not properly listened for by electron. Adding in an invisible cmd+= listener fixes this.
-                const viewWindow = _.find(systemMenu.items, (item) => item.role === 'viewmenu');
+                const viewWindow = _.find(
+                    systemMenu.items,
+                    (item) => item.role === 'viewmenu',
+                );
                 viewWindow.submenu.append(
                     new MenuItem({
                         role: 'zoomin',
@@ -353,7 +453,10 @@ const mainWindow = () => {
                         visible: false,
                     }),
                 );
-                const windowMenu = _.find(systemMenu.items, (item) => item.role === 'windowmenu');
+                const windowMenu = _.find(
+                    systemMenu.items,
+                    (item) => item.role === 'windowmenu',
+                );
                 windowMenu.submenu.append(new MenuItem({type: 'separator'}));
                 windowMenu.submenu.append(
                     new MenuItem({
@@ -370,7 +473,10 @@ const mainWindow = () => {
                     const denial = {action: 'deny'};
 
                     // Make sure local urls stay in electron perimeter
-                    if (url.substr(0, 'file://'.length).toLowerCase() === 'file://') {
+                    if (
+                        url.substr(0, 'file://'.length).toLowerCase() ===
+                        'file://'
+                    ) {
                         return denial;
                     }
 
@@ -392,7 +498,9 @@ const mainWindow = () => {
 
                     // Check if window is fullscreen and exit fullscreen before hiding
                     if (browserWindow.isFullScreen()) {
-                        browserWindow.once('leave-full-screen', () => browserWindow.hide());
+                        browserWindow.once('leave-full-screen', () =>
+                            browserWindow.hide(),
+                        );
                         browserWindow.setFullScreen(false);
                     } else {
                         browserWindow.hide();
@@ -418,7 +526,10 @@ const mainWindow = () => {
 
                 app.on('before-quit', () => (quitting = true));
                 app.on('activate', () => {
-                    if (expectedUpdateVersion && app.getVersion() !== expectedUpdateVersion) {
+                    if (
+                        expectedUpdateVersion &&
+                        app.getVersion() !== expectedUpdateVersion
+                    ) {
                         return;
                     }
 
@@ -426,46 +537,79 @@ const mainWindow = () => {
                 });
 
                 // Hide the app if we expected to upgrade to a new version but never did.
-                if (expectedUpdateVersion && app.getVersion() !== expectedUpdateVersion) {
+                if (
+                    expectedUpdateVersion &&
+                    app.getVersion() !== expectedUpdateVersion
+                ) {
                     browserWindow.hide();
                     app.hide();
                 }
 
-                ipcMain.on(ELECTRON_EVENTS.LOCALE_UPDATED, (event, updatedLocale) => {
-                    // Store the old locale so we can hide/remove these items after adding/showing the new ones.
-                    const outdatedLocale = preferredLocale;
-                    preferredLocale = updatedLocale;
+                ipcMain.on(
+                    ELECTRON_EVENTS.LOCALE_UPDATED,
+                    (event, updatedLocale) => {
+                        // Store the old locale so we can hide/remove these items after adding/showing the new ones.
+                        const outdatedLocale = preferredLocale;
+                        preferredLocale = updatedLocale;
 
-                    const currentHistoryMenuItem = systemMenu.getMenuItemById(`historyMenuItem-${outdatedLocale}`);
-                    const currentUpdateAppMenuItem = systemMenu.getMenuItemById(`updateAppMenuItem-${outdatedLocale}`);
-                    const currentCheckForUpdateMenuItem = systemMenu.getMenuItemById(`checkForUpdateMenuItem-${outdatedLocale}`);
-                    const currentKeyboardShortcutsMenuItem = systemMenu.getMenuItemById(`keyboardShortcutsMenuItem-${outdatedLocale}`);
+                        const currentHistoryMenuItem =
+                            systemMenu.getMenuItemById(
+                                `historyMenuItem-${outdatedLocale}`,
+                            );
+                        const currentUpdateAppMenuItem =
+                            systemMenu.getMenuItemById(
+                                `updateAppMenuItem-${outdatedLocale}`,
+                            );
+                        const currentCheckForUpdateMenuItem =
+                            systemMenu.getMenuItemById(
+                                `checkForUpdateMenuItem-${outdatedLocale}`,
+                            );
+                        const currentKeyboardShortcutsMenuItem =
+                            systemMenu.getMenuItemById(
+                                `keyboardShortcutsMenuItem-${outdatedLocale}`,
+                            );
 
-                    // If we have previously added those languages, don't add new menu items, reshow them.
-                    if (!systemMenu.getMenuItemById(`updateAppMenuItem-${updatedLocale}`)) {
-                        // Update the labels and ids to use the translations.
-                        localizeMenuItems(browserWindow, systemMenu);
-                    }
+                        // If we have previously added those languages, don't add new menu items, reshow them.
+                        if (
+                            !systemMenu.getMenuItemById(
+                                `updateAppMenuItem-${updatedLocale}`,
+                            )
+                        ) {
+                            // Update the labels and ids to use the translations.
+                            localizeMenuItems(browserWindow, systemMenu);
+                        }
 
-                    // Show the localized menu items if there were visible before we updated the locale.
-                    systemMenu.getMenuItemById(`updateAppMenuItem-${updatedLocale}`).visible = currentUpdateAppMenuItem.visible;
-                    systemMenu.getMenuItemById(`checkForUpdateMenuItem-${updatedLocale}`).visible = currentCheckForUpdateMenuItem.visible;
-                    systemMenu.getMenuItemById(`keyboardShortcutsMenuItem-${updatedLocale}`).visible = currentKeyboardShortcutsMenuItem.visible;
-                    systemMenu.getMenuItemById(`historyMenuItem-${updatedLocale}`).visible = currentHistoryMenuItem.visible;
+                        // Show the localized menu items if there were visible before we updated the locale.
+                        systemMenu.getMenuItemById(
+                            `updateAppMenuItem-${updatedLocale}`,
+                        ).visible = currentUpdateAppMenuItem.visible;
+                        systemMenu.getMenuItemById(
+                            `checkForUpdateMenuItem-${updatedLocale}`,
+                        ).visible = currentCheckForUpdateMenuItem.visible;
+                        systemMenu.getMenuItemById(
+                            `keyboardShortcutsMenuItem-${updatedLocale}`,
+                        ).visible = currentKeyboardShortcutsMenuItem.visible;
+                        systemMenu.getMenuItemById(
+                            `historyMenuItem-${updatedLocale}`,
+                        ).visible = currentHistoryMenuItem.visible;
 
-                    // Since we can't remove menu items, we hide the old ones.
-                    currentUpdateAppMenuItem.visible = false;
-                    currentCheckForUpdateMenuItem.visible = false;
-                    currentKeyboardShortcutsMenuItem.visible = false;
-                    currentHistoryMenuItem.visible = false;
+                        // Since we can't remove menu items, we hide the old ones.
+                        currentUpdateAppMenuItem.visible = false;
+                        currentCheckForUpdateMenuItem.visible = false;
+                        currentKeyboardShortcutsMenuItem.visible = false;
+                        currentHistoryMenuItem.visible = false;
 
-                    Menu.setApplicationMenu(systemMenu);
-                });
+                        Menu.setApplicationMenu(systemMenu);
+                    },
+                );
 
                 ipcMain.on(ELECTRON_EVENTS.REQUEST_VISIBILITY, (event) => {
                     // This is how synchronous messages work in Electron
                     // eslint-disable-next-line no-param-reassign
-                    event.returnValue = browserWindow && !browserWindow.isDestroyed() && browserWindow.isFocused();
+                    event.returnValue =
+                        browserWindow &&
+                        !browserWindow.isDestroyed() &&
+                        browserWindow.isFocused();
                 });
 
                 // This allows the renderer process to bring the app
@@ -476,17 +620,20 @@ const mainWindow = () => {
 
                 // Listen to badge updater event emitted by the render process
                 // and update the app badge count (MacOS only)
-                ipcMain.on(ELECTRON_EVENTS.REQUEST_UPDATE_BADGE_COUNT, (event, totalCount) => {
-                    if (totalCount === -1) {
-                        // The electron docs say you should be able to update this and pass no parameters to set the badge
-                        // to a single red dot, but in practice it resulted in an error "TypeError: Insufficient number of
-                        // arguments." - Thus, setting to 1 instead.
-                        // See: https://www.electronjs.org/docs/api/app#appsetbadgecountcount-linux-macos
-                        app.setBadgeCount(1);
-                    } else {
-                        app.setBadgeCount(totalCount);
-                    }
-                });
+                ipcMain.on(
+                    ELECTRON_EVENTS.REQUEST_UPDATE_BADGE_COUNT,
+                    (event, totalCount) => {
+                        if (totalCount === -1) {
+                            // The electron docs say you should be able to update this and pass no parameters to set the badge
+                            // to a single red dot, but in practice it resulted in an error "TypeError: Insufficient number of
+                            // arguments." - Thus, setting to 1 instead.
+                            // See: https://www.electronjs.org/docs/api/app#appsetbadgecountcount-linux-macos
+                            app.setBadgeCount(1);
+                        } else {
+                            app.setBadgeCount(totalCount);
+                        }
+                    },
+                );
 
                 return browserWindow;
             })

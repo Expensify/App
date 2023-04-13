@@ -33,9 +33,12 @@ const PressableWithSecondaryInteraction = (props) => {
     );
 };
 
-PressableWithSecondaryInteraction.propTypes = pressableWithSecondaryInteractionPropTypes.propTypes;
-PressableWithSecondaryInteraction.defaultProps = pressableWithSecondaryInteractionPropTypes.defaultProps;
-PressableWithSecondaryInteraction.displayName = 'PressableWithSecondaryInteraction';
+PressableWithSecondaryInteraction.propTypes =
+    pressableWithSecondaryInteractionPropTypes.propTypes;
+PressableWithSecondaryInteraction.defaultProps =
+    pressableWithSecondaryInteractionPropTypes.defaultProps;
+PressableWithSecondaryInteraction.displayName =
+    'PressableWithSecondaryInteraction';
 
 export default forwardRef((props, ref) => (
     // eslint-disable-next-line react/jsx-props-no-spreading

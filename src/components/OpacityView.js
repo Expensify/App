@@ -56,7 +56,13 @@ class OpacityView extends React.Component {
     }
 
     render() {
-        return <Animated.View style={[{opacity: this.opacity}, ...this.props.style]}>{this.props.children}</Animated.View>;
+        return (
+            <Animated.View
+                style={[{opacity: this.opacity}, ...this.props.style]}
+            >
+                {this.props.children}
+            </Animated.View>
+        );
     }
 }
 

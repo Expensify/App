@@ -21,7 +21,10 @@ module.exports = (env) => {
     rendererConfig.output.path = path.join(outputPath, 'www');
 
     // Expose react-native-config to desktop-main
-    const definePlugin = _.find(rendererConfig.plugins, (plugin) => plugin.constructor === webpack.DefinePlugin);
+    const definePlugin = _.find(
+        rendererConfig.plugins,
+        (plugin) => plugin.constructor === webpack.DefinePlugin,
+    );
 
     const mainProcessConfig = {
         mode: 'production',

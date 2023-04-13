@@ -24,7 +24,9 @@ export default function (WrappedComponent) {
         }
 
         componentDidMount() {
-            this.removeViewportResizeListener = addViewportResizeListener(this.updateDimensions);
+            this.removeViewportResizeListener = addViewportResizeListener(
+                this.updateDimensions,
+            );
         }
 
         componentWillUnmount() {
@@ -51,9 +53,14 @@ export default function (WrappedComponent) {
         }
     }
 
-    WithViewportOffsetTop.displayName = `WithViewportOffsetTop(${getComponentDisplayName(WrappedComponent)})`;
+    WithViewportOffsetTop.displayName = `WithViewportOffsetTop(${getComponentDisplayName(
+        WrappedComponent,
+    )})`;
     WithViewportOffsetTop.propTypes = {
-        forwardedRef: PropTypes.oneOfType([PropTypes.func, PropTypes.shape({current: PropTypes.instanceOf(React.Component)})]),
+        forwardedRef: PropTypes.oneOfType([
+            PropTypes.func,
+            PropTypes.shape({current: PropTypes.instanceOf(React.Component)}),
+        ]),
     };
     WithViewportOffsetTop.defaultProps = {
         forwardedRef: undefined,

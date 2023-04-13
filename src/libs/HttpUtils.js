@@ -9,11 +9,19 @@ import shouldUseStagingServer from './shouldUseStagingServer';
 import getPlatform from './getPlatform';
 
 // Desktop and web use staging config too so we we should default to staging API endpoint if on those platforms
-const shouldDefaultToStaging = _.contains([CONST.PLATFORM.WEB, CONST.PLATFORM.DESKTOP], getPlatform());
+const shouldDefaultToStaging = _.contains(
+    [CONST.PLATFORM.WEB, CONST.PLATFORM.DESKTOP],
+    getPlatform(),
+);
 let stagingServerToggleState = false;
 Onyx.connect({
     key: ONYXKEYS.USER,
-    callback: (val) => (stagingServerToggleState = lodashGet(val, 'shouldUseStagingServer', shouldDefaultToStaging)),
+    callback: (val) =>
+        (stagingServerToggleState = lodashGet(
+            val,
+            'shouldUseStagingServer',
+            shouldDefaultToStaging,
+        )),
 });
 
 let shouldFailAllRequests = false;
@@ -42,7 +50,12 @@ let cancellationController = new AbortController();
  * @param {Boolean} [canCancel]
  * @returns {Promise}
  */
-function processHTTPRequest(url, method = 'get', body = null, canCancel = true) {
+function processHTTPRequest(
+    url,
+    method = 'get',
+    body = null,
+    canCancel = true,
+) {
     return fetch(url, {
         // We hook requests to the same Controller signal, so we can cancel them all at once
         signal: canCancel ? cancellationController.signal : undefined,
@@ -71,7 +84,9 @@ function processHTTPRequest(url, method = 'get', body = null, canCancel = true) 
                         status: response.status,
                         title: 'Issue connecting to Expensify site',
                     });
-                } else if (response.status === CONST.HTTP_STATUS.TOO_MANY_REQUESTS) {
+                } else if (
+                    response.status === CONST.HTTP_STATUS.TOO_MANY_REQUESTS
+                ) {
                     throw new HttpsError({
                         message: CONST.ERROR.THROTTLED,
                         status: response.status,
@@ -89,7 +104,11 @@ function processHTTPRequest(url, method = 'get', body = null, canCancel = true) 
         })
         .then((response) => {
             // Auth is down or timed out while making a request
-            if (response.jsonCode === CONST.JSON_CODE.EXP_ERROR && response.title === CONST.ERROR_TITLE.SOCKET && response.type === CONST.ERROR_TYPE.SOCKET) {
+            if (
+                response.jsonCode === CONST.JSON_CODE.EXP_ERROR &&
+                response.title === CONST.ERROR_TITLE.SOCKET &&
+                response.type === CONST.ERROR_TYPE.SOCKET
+            ) {
                 throw new HttpsError({
                     message: CONST.ERROR.EXPENSIFY_SERVICE_INTERRUPTED,
                     status: CONST.JSON_CODE.EXP_ERROR,
@@ -108,7 +127,12 @@ function processHTTPRequest(url, method = 'get', body = null, canCancel = true) 
  * @param {Boolean} shouldUseSecure should we use the secure server
  * @returns {Promise}
  */
-function xhr(command, data, type = CONST.NETWORK.METHOD.POST, shouldUseSecure = false) {
+function xhr(
+    command,
+    data,
+    type = CONST.NETWORK.METHOD.POST,
+    shouldUseSecure = false,
+) {
     const formData = new FormData();
     _.each(data, (val, key) => {
         // Do not send undefined request parameters to our API. They will be processed as strings of 'undefined'.
@@ -119,13 +143,22 @@ function xhr(command, data, type = CONST.NETWORK.METHOD.POST, shouldUseSecure = 
         formData.append(key, val);
     });
 
-    let apiRoot = shouldUseSecure ? CONFIG.EXPENSIFY.SECURE_EXPENSIFY_URL : CONFIG.EXPENSIFY.URL_API_ROOT;
+    let apiRoot = shouldUseSecure
+        ? CONFIG.EXPENSIFY.SECURE_EXPENSIFY_URL
+        : CONFIG.EXPENSIFY.URL_API_ROOT;
 
     if (shouldUseStagingServer(stagingServerToggleState)) {
-        apiRoot = shouldUseSecure ? CONFIG.EXPENSIFY.STAGING_SECURE_EXPENSIFY_URL : CONFIG.EXPENSIFY.STAGING_EXPENSIFY_URL;
+        apiRoot = shouldUseSecure
+            ? CONFIG.EXPENSIFY.STAGING_SECURE_EXPENSIFY_URL
+            : CONFIG.EXPENSIFY.STAGING_EXPENSIFY_URL;
     }
 
-    return processHTTPRequest(`${apiRoot}api?command=${command}`, type, formData, data.canCancel);
+    return processHTTPRequest(
+        `${apiRoot}api?command=${command}`,
+        type,
+        formData,
+        data.canCancel,
+    );
 }
 
 function cancelPendingRequests() {

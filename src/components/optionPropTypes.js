@@ -65,5 +65,8 @@ export default PropTypes.shape({
     tooltipText: PropTypes.string,
 
     /** If we need to show a brick road indicator or not */
-    brickRoadIndicator: PropTypes.oneOf([CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR, '']),
+    brickRoadIndicator: PropTypes.oneOf([
+        CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR,
+        '',
+    ]),
 });

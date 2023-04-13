@@ -57,7 +57,12 @@ const defaultProps = {
 
 const FormAlertWithSubmitButton = (props) => (
     <FormAlertWrapper
-        containerStyles={[styles.mh5, styles.mb5, styles.justifyContentEnd, ...props.containerStyles]}
+        containerStyles={[
+            styles.mh5,
+            styles.mb5,
+            styles.justifyContentEnd,
+            ...props.containerStyles,
+        ]}
         isAlertVisible={props.isAlertVisible}
         isMessageHtml={props.isMessageHtml}
         message={props.message}
@@ -65,7 +70,13 @@ const FormAlertWithSubmitButton = (props) => (
     >
         {(isOffline) =>
             isOffline && !props.enabledWhenOffline ? (
-                <Button success isDisabled text={props.buttonText} style={[styles.mb3]} danger={props.isSubmitActionDangerous} />
+                <Button
+                    success
+                    isDisabled
+                    text={props.buttonText}
+                    style={[styles.mb3]}
+                    danger={props.isSubmitActionDangerous}
+                />
             ) : (
                 <Button
                     success

@@ -30,7 +30,10 @@ const propTypes = {
     onMouseDown: PropTypes.func,
 
     /** A ref to forward to the Pressable */
-    forwardedRef: PropTypes.oneOfType([PropTypes.func, PropTypes.shape({current: PropTypes.instanceOf(React.Component)})]),
+    forwardedRef: PropTypes.oneOfType([
+        PropTypes.func,
+        PropTypes.shape({current: PropTypes.instanceOf(React.Component)}),
+    ]),
 };
 
 const defaultProps = {
@@ -115,10 +118,18 @@ class Checkbox extends React.Component {
                             this.props.isChecked && styles.checkedContainer,
                             this.props.hasError && styles.borderColorDanger,
                             this.props.disabled && styles.cursorDisabled,
-                            (this.state.isFocused || this.props.isChecked) && styles.borderColorFocus,
+                            (this.state.isFocused || this.props.isChecked) &&
+                                styles.borderColorFocus,
                         ]}
                     >
-                        {this.props.isChecked && <Icon src={Expensicons.Checkmark} fill={themeColors.textLight} height={14} width={14} />}
+                        {this.props.isChecked && (
+                            <Icon
+                                src={Expensicons.Checkmark}
+                                fill={themeColors.textLight}
+                                height={14}
+                                width={14}
+                            />
+                        )}
                     </View>
                 )}
             </Pressable>

@@ -13,7 +13,11 @@ const propTypes = {
 };
 
 const EditedRenderer = (props) => {
-    const defaultRendererProps = _.omit(props, ['TDefaultRenderer', 'style', 'tnode']);
+    const defaultRendererProps = _.omit(props, [
+        'TDefaultRenderer',
+        'style',
+        'tnode',
+    ]);
     return (
         <Text
             // eslint-disable-next-line react/jsx-props-no-spreading

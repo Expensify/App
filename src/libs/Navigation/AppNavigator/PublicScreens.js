@@ -12,11 +12,31 @@ const RootStack = createStackNavigator();
 
 const PublicScreens = () => (
     <RootStack.Navigator>
-        <RootStack.Screen name={SCREENS.HOME} options={defaultScreenOptions} component={SignInPage} />
-        <RootStack.Screen name={SCREENS.TRANSITION_FROM_OLD_DOT} options={defaultScreenOptions} component={LogInWithShortLivedAuthTokenPage} />
-        <RootStack.Screen name="ValidateLogin" options={defaultScreenOptions} component={ValidateLoginPage} />
-        <RootStack.Screen name="SetPassword" options={defaultScreenOptions} component={SetPasswordPage} />
-        <RootStack.Screen name="Concierge" options={defaultScreenOptions} component={ConciergePage} />
+        <RootStack.Screen
+            name={SCREENS.HOME}
+            options={defaultScreenOptions}
+            component={SignInPage}
+        />
+        <RootStack.Screen
+            name={SCREENS.TRANSITION_FROM_OLD_DOT}
+            options={defaultScreenOptions}
+            component={LogInWithShortLivedAuthTokenPage}
+        />
+        <RootStack.Screen
+            name="ValidateLogin"
+            options={defaultScreenOptions}
+            component={ValidateLoginPage}
+        />
+        <RootStack.Screen
+            name="SetPassword"
+            options={defaultScreenOptions}
+            component={SetPasswordPage}
+        />
+        <RootStack.Screen
+            name="Concierge"
+            options={defaultScreenOptions}
+            component={ConciergePage}
+        />
     </RootStack.Navigator>
 );
 

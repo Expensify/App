@@ -5,7 +5,8 @@ import ONYXKEYS from '../ONYXKEYS';
 let encryptedAuthToken = '';
 Onyx.connect({
     key: ONYXKEYS.SESSION,
-    callback: (session) => (encryptedAuthToken = lodashGet(session, 'encryptedAuthToken', '')),
+    callback: (session) =>
+        (encryptedAuthToken = lodashGet(session, 'encryptedAuthToken', '')),
 });
 
 /**
@@ -15,5 +16,7 @@ Onyx.connect({
  * @returns {String}
  */
 export default function (url) {
-    return `${url}?encryptedAuthToken=${encodeURIComponent(encryptedAuthToken)}`;
+    return `${url}?encryptedAuthToken=${encodeURIComponent(
+        encryptedAuthToken,
+    )}`;
 }

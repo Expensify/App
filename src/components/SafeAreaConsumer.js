@@ -18,7 +18,8 @@ const propTypes = {
 const SafeAreaConsumer = (props) => (
     <SafeAreaInsetsContext.Consumer>
         {(insets) => {
-            const {paddingTop, paddingBottom} = StyleUtils.getSafeAreaPadding(insets);
+            const {paddingTop, paddingBottom} =
+                StyleUtils.getSafeAreaPadding(insets);
             return props.children({
                 paddingTop,
                 paddingBottom,

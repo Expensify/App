@@ -1,6 +1,10 @@
 import React from 'react';
 import PropTypes from 'prop-types';
-import {NavigationContainer, DefaultTheme, getPathFromState} from '@react-navigation/native';
+import {
+    NavigationContainer,
+    DefaultTheme,
+    getPathFromState,
+} from '@react-navigation/native';
 import {useFlipper} from '@react-navigation/devtools';
 import Navigation, {navigationRef} from './Navigation';
 import linkingConfig from './linkingConfig';
@@ -40,7 +44,9 @@ function parseAndLogRoute(state) {
 
     // Don't log the route transitions from OldDot because they contain authTokens
     if (currentPath.includes('/transition')) {
-        Log.info('Navigating from transition link from OldDot using short lived authToken');
+        Log.info(
+            'Navigating from transition link from OldDot using short lived authToken',
+        );
     } else {
         Log.info('Navigating to route', false, {path: currentPath});
     }
@@ -52,7 +58,11 @@ const NavigationRoot = (props) => {
     useFlipper(navigationRef);
     return (
         <NavigationContainer
-            fallback={<FullScreenLoadingIndicator style={styles.navigatorFullScreenLoading} />}
+            fallback={
+                <FullScreenLoadingIndicator
+                    style={styles.navigatorFullScreenLoading}
+                />
+            }
             onStateChange={parseAndLogRoute}
             onReady={props.onReady}
             theme={navigationTheme}
