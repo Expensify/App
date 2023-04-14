@@ -504,6 +504,7 @@ const CONST = {
         SUCCESS: 200,
         NOT_AUTHENTICATED: 407,
         EXP_ERROR: 666,
+        MANY_WRITES_ERROR: 665,
         UNABLE_TO_RETRY: 'unableToRetry',
     },
     HTTP_STATUS: {
