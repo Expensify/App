@@ -16,6 +16,7 @@ import withLocalize, {withLocalizePropTypes} from '../components/withLocalize';
 import compose from '../libs/compose';
 import TextLink from '../components/TextLink';
 import ONYXKEYS from '../ONYXKEYS';
+import networkPropTypes from '../components/networkPropTypes';
 
 const propTypes = {
     /** The parameters needed to authenticate with a short lived token are in the URL */
@@ -35,12 +36,23 @@ const propTypes = {
 
     ...withLocalizePropTypes,
 
-    /** Whether the short lived auth token is valid */
-    isTokenValid: PropTypes.bool,
+    /** The details about the account that the user is signing in with */
+    account: PropTypes.shape({
+        /** Whether a sign is loading */
+        isLoading: PropTypes.bool,
+    }),
+
+    /** Props to detect online status */
+    network: networkPropTypes,
 };
 
 const defaultProps = {
-    isTokenValid: true,
+    account: {
+        isLoading: false,
+    },
+    network: {
+        isOffline: false,
+    },
 };
 
 class LogInWithShortLivedAuthTokenPage extends Component {
@@ -62,7 +74,12 @@ class LogInWithShortLivedAuthTokenPage extends Component {
     }
 
     render() {
-        if (this.props.isTokenValid) {
+        // TODO: Not sure if we should redirect the user to the login page or just show the expiration screen or offline message
+        if (this.props.network.isOffline) {
+            Navigation.navigate();
+            return;
+        }
+        if (this.props.account.isLoading) {
             return <FullScreenLoadingIndicator />;
         }
         return (
@@ -107,6 +124,7 @@ LogInWithShortLivedAuthTokenPage.defaultProps = defaultProps;
 export default compose(
     withLocalize,
     withOnyx({
-        isTokenValid: {key: ONYXKEYS.IS_TOKEN_VALID},
+        account: {key: ONYXKEYS.ACCOUNT},
+        network: {key: ONYXKEYS.NETWORK},
     }),
 )(LogInWithShortLivedAuthTokenPage);

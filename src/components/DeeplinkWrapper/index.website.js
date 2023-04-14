@@ -7,7 +7,7 @@ import CONST from '../../CONST';
 import CONFIG from '../../CONFIG';
 import * as Browser from '../../libs/Browser';
 import ONYXKEYS from '../../ONYXKEYS';
-import * as Authentication from '../../libs/Authentication';
+import * as Session from '../../libs/actions/Session';
 
 const propTypes = {
     /** Children to render. */
@@ -21,6 +21,9 @@ const propTypes = {
 
         /** Currently logged-in user authToken */
         authToken: PropTypes.string,
+
+        /** The short-lived auth token for navigating to desktop app */
+        shortLivedAuthToken: PropTypes.string,
     }),
 };
 
@@ -28,6 +31,7 @@ const defaultProps = {
     session: {
         email: '',
         authToken: '',
+        shortLivedAuthToken: '',
     },
 };
 
@@ -36,53 +40,43 @@ class DeeplinkWrapper extends PureComponent {
         super(props);
 
         this.state = {
-            appInstallationCheckStatus: (this.isMacOSWeb() && CONFIG.ENVIRONMENT !== CONST.ENVIRONMENT.DEV)
-                ? CONST.DESKTOP_DEEPLINK_APP_STATE.CHECKING : CONST.DESKTOP_DEEPLINK_APP_STATE.NOT_INSTALLED,
+            isShortLivedAuthTokenLoading: this.isMacOSWeb() && CONFIG.ENVIRONMENT !== CONST.ENVIRONMENT.DEV,
         };
-        this.focused = true;
     }
 
     componentDidMount() {
         if (!this.isMacOSWeb() || CONFIG.ENVIRONMENT === CONST.ENVIRONMENT.DEV) {
             return;
         }
-
-        window.addEventListener('blur', () => {
-            this.focused = false;
-        });
-
-        const expensifyUrl = new URL(CONFIG.EXPENSIFY.NEW_EXPENSIFY_URL);
-        const params = new URLSearchParams();
-        params.set('exitTo', `${window.location.pathname}${window.location.search}${window.location.hash}`);
         if (!this.props.session.authToken) {
-            const expensifyDeeplinkUrl = `${CONST.DEEPLINK_BASE_URL}${expensifyUrl.host}/transition?${params.toString()}`;
-            this.openRouteInDesktopApp(expensifyDeeplinkUrl);
+            this.openRouteInDesktopApp();
             return;
         }
-        Authentication.getShortLivedAuthToken().then((shortLivedAuthToken) => {
-            params.set('email', this.props.session.email);
-            params.set('shortLivedAuthToken', `${shortLivedAuthToken}`);
-            const expensifyDeeplinkUrl = `${CONST.DEEPLINK_BASE_URL}${expensifyUrl.host}/transition?${params.toString()}`;
-            this.openRouteInDesktopApp(expensifyDeeplinkUrl);
-        }).catch(() => {
-            // If the request is successful, we call the updateAppInstallationCheckStatus before the prompt pops up.
-            // If not, we only need to make sure that the state will be updated.
-            this.updateAppInstallationCheckStatus();
+        Session.getShortLivedAuthToken();
+    }
+
+    componentDidUpdate(prevProps) {
+        if (prevProps.session.shortLivedAuthToken || !this.props.session.shortLivedAuthToken) {
+            return;
+        }
+        this.openRouteInDesktopApp();
+        Session.removeShortLivedAuthToken();
+    }
+
+    openRouteInDesktopApp() {
+        this.setState({
+            isShortLivedAuthTokenLoading: false,
         });
-    }
 
-    updateAppInstallationCheckStatus() {
-        setTimeout(() => {
-            if (!this.focused) {
-                this.setState({appInstallationCheckStatus: CONST.DESKTOP_DEEPLINK_APP_STATE.INSTALLED});
-            } else {
-                this.setState({appInstallationCheckStatus: CONST.DESKTOP_DEEPLINK_APP_STATE.NOT_INSTALLED});
-            }
-        }, 500);
-    }
-
-    openRouteInDesktopApp(expensifyDeeplinkUrl) {
-        this.updateAppInstallationCheckStatus();
+        const params = new URLSearchParams();
+        params.set('exitTo', `${window.location.pathname}${window.location.search}${window.location.hash}`);
+        const session = this.props.session;
+        if (session.email && session.shortLivedAuthToken) {
+            params.set('email', session.email);
+            params.set('shortLivedAuthToken', session.shortLivedAuthToken);
+        }
+        const expensifyUrl = new URL(CONFIG.EXPENSIFY.NEW_EXPENSIFY_URL);
+        const expensifyDeeplinkUrl = `${CONST.DEEPLINK_BASE_URL}${expensifyUrl.host}/transition?${params.toString()}`;
 
         // This check is necessary for Safari, otherwise, if the user
         // does NOT have the Expensify desktop app installed, it's gonna
@@ -101,7 +95,6 @@ class DeeplinkWrapper extends PureComponent {
                 if (!iframe.parentNode) {
                     return;
                 }
-
                 iframe.parentNode.removeChild(iframe);
             }, 100);
         } else {
@@ -119,10 +112,9 @@ class DeeplinkWrapper extends PureComponent {
     }
 
     render() {
-        if (this.state.appInstallationCheckStatus === CONST.DESKTOP_DEEPLINK_APP_STATE.CHECKING) {
+        if (this.state.isShortLivedAuthTokenLoading) {
             return <FullScreenLoadingIndicator style={styles.flex1} />;
         }
-
         return this.props.children;
     }
 }

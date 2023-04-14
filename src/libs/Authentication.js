@@ -105,17 +105,7 @@ function reauthenticate(command = '') {
         });
 }
 
-function getShortLivedAuthToken() {
-    return Network.post('OpenOldDotLink', {shouldRetry: false}).then((response) => {
-        if (response && response.shortLivedAuthToken) {
-            return Promise.resolve(response.shortLivedAuthToken);
-        }
-        return Promise.reject();
-    });
-}
-
 export {
     reauthenticate,
     Authenticate,
-    getShortLivedAuthToken,
 };
