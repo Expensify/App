@@ -153,7 +153,7 @@ class DetailsPage extends React.PureComponent {
                                             </PressableWithoutFocus>
                                         )}
                                     </AttachmentModal>
-                                    {details.displayName && (
+                                    {Boolean(details.displayName) && (
                                         <Text style={[styles.textHeadline, styles.mb6, styles.pre]} numberOfLines={1}>
                                             {displayName}
                                         </Text>
