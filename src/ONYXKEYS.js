@@ -112,7 +112,7 @@ export default {
         REPORT_DRAFT_COMMENT_NUMBER_OF_LINES: 'reportDraftCommentNumberOfLines_',
         REPORT_IS_COMPOSER_FULL_SIZE: 'reportIsComposerFullSize_',
         REPORT_USER_IS_TYPING: 'reportUserIsTyping_',
-        TRANSACTION: 'transaction_',
+        TRANSACTION: 'transactions_',
     },
 
     // Indicates which locale should be used
