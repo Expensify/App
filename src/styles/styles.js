@@ -2553,6 +2553,7 @@ const styles = {
         width: '100%',
         flexDirection: 'row',
         justifyContent: 'space-between',
+        alignItems: 'center',
         ...spacing.pt2,
     },
 
@@ -2560,10 +2561,6 @@ const styles = {
         borderColor: themeColors.border,
         borderBottomWidth: 1,
         ...spacing.pb2,
-    },
-
-    peopleRowCell: {
-        justifyContent: 'center',
     },
 
     peopleBadge: {
