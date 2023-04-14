@@ -329,7 +329,7 @@ function getBackgroundColorWithOpacityStyle(backgroundColor, opacity) {
 function getBadgeColorStyle(success, error, isPressed = false, isAdHoc = false) {
     if (success) {
         if (isAdHoc) {
-            return isPressed ? styles.badgeSuccessPressed : styles.badgeSuccess;
+            return isPressed ? styles.badgeAdHocSuccessPressed : styles.badgeAdHocSuccess;
         }
         return isPressed ? styles.badgeSuccessPressed : styles.badgeSuccess;
     }
