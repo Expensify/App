@@ -35,7 +35,7 @@ class ImageView extends PureComponent {
         this.trackPointerPosition = this.trackPointerPosition.bind(this);
 
         this.state = {
-            isLoading: false,
+            isLoading: true,
             containerHeight: 0,
             containerWidth: 0,
             isZoomed: false,
