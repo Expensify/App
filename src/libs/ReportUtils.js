@@ -1665,17 +1665,14 @@ function getMoneyRequestOptions(report, reportParticipants, betas) {
     // DM chats will have the Split Bill option only when there are at least 3 people in the chat.
     // There is no Split Bill option for Workspace chats
     if (isChatRoom(report) || (hasMultipleParticipants && !isPolicyExpenseChat(report))) {
-        return [
-            CONST.IOU.MONEY_REQUEST_TYPE.SPLIT,
-            Permissions.canUseTasks(betas) ? CONST.REPORT.TYPE.TASK : '',
-        ];
+        return [CONST.IOU.MONEY_REQUEST_TYPE.SPLIT];
     }
 
-    // DM chats that only have 2 people will see the Send / Request money / Assign task options.
-    // Workspace chats should see the Request money and Assign Task option, as "easy overages" is not available.
+    // DM chats that only have 2 people will see the Send / Request money options.
+    // Workspace chats should only see the Request money option, as "easy overages" is not available.
     return [
-        ...(canRequestMoney(report) ? [CONST.IOU.IOU_TYPE.REQUEST] : []),
-        ...(Permissions.canUseIOUSend(betas) && !isPolicyExpenseChat(report) ? [CONST.IOU.IOU_TYPE.SEND] : []),
+        ...(canRequestMoney(report) ? [CONST.IOU.MONEY_REQUEST_TYPE.REQUEST] : []),
+        ...(Permissions.canUseIOUSend(betas) && !isPolicyExpenseChat(report) ? [CONST.IOU.MONEY_REQUEST_TYPE.SEND] : []),
     ];
 }
 
