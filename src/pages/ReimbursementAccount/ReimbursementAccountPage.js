@@ -116,7 +116,6 @@ class ReimbursementAccountPage extends React.Component {
                 // If we are here, it is because this is the first time we load the ACHData from the server and
                 // this.props.reimbursementAccount.isLoading just changed to false. From now on, it makes sense to run the code
                 // below updating states and the route, and this will happen in the next react lifecycle.
-                this.hasACHDataBeenLoaded = true;
                 this.setState({
                     shouldShowContinueSetupButton: this.getShouldShowContinueSetupButtonInitialValue(),
                     hasACHDataBeenLoaded: true,
