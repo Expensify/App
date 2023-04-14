@@ -18,7 +18,6 @@ import * as PersistedRequests from '../../src/libs/actions/PersistedRequests';
 import * as User from '../../src/libs/actions/User';
 import * as ReportUtils from '../../src/libs/ReportUtils';
 import DateUtils from '../../src/libs/DateUtils';
-import ExpensiMark from 'expensify-common/lib/ExpensiMark';
 
 jest.mock('../../src/libs/actions/Report', () => {
     const originalModule = jest.requireActual('../../src/libs/actions/Report');
@@ -427,15 +426,12 @@ describe('actions/Report', () => {
          * already in the comment and the user deleted it on purpose.
          */
 
-        const parser = new ExpensiMark();
-        const autolinkFilter = {filterRules: _.filter(_.pluck(parser.rules, 'name'), name => name !== 'autolink')};
-
         // User edits comment to add link
         // We should generate link
         let originalCommentHTML = 'Original Comment';
         let afterEditCommentText = 'Original Comment www.google.com';
         let newCommentMarkdown = Report.handleUserDeletedLinksInHtml(afterEditCommentText, originalCommentHTML);
-        let expectedOutput = parser.replace('Original Comment [www.google.com](https://www.google.com)', autolinkFilter);
+        let expectedOutput = 'Original Comment <a href="https://www.google.com" target="_blank" rel="noreferrer noopener">www.google.com</a>';
         expect(newCommentMarkdown).toBe(expectedOutput);
 
         // User deletes www.google.com link from comment but keeps link text
@@ -443,7 +439,7 @@ describe('actions/Report', () => {
         originalCommentHTML = 'Comment <a href="https://www.google.com" target="_blank">www.google.com</a>';
         afterEditCommentText = 'Comment www.google.com';
         newCommentMarkdown = Report.handleUserDeletedLinksInHtml(afterEditCommentText, originalCommentHTML);
-        expectedOutput = parser.replace('Comment www.google.com', autolinkFilter);
+        expectedOutput = 'Comment www.google.com';
         expect(newCommentMarkdown).toBe(expectedOutput);
 
         // User Delete only () part of link but leaves the []
@@ -451,7 +447,7 @@ describe('actions/Report', () => {
         originalCommentHTML = 'Comment <a href="https://www.google.com" target="_blank">www.google.com</a>';
         afterEditCommentText = 'Comment [www.google.com]';
         newCommentMarkdown = Report.handleUserDeletedLinksInHtml(afterEditCommentText, originalCommentHTML);
-        expectedOutput = parser.replace('Comment [www.google.com]', autolinkFilter);
+        expectedOutput = 'Comment [www.google.com]';
         expect(newCommentMarkdown).toBe(expectedOutput);
 
         // User Generates multiple links in one edit
@@ -459,7 +455,8 @@ describe('actions/Report', () => {
         originalCommentHTML = 'Comment';
         afterEditCommentText = 'Comment www.google.com www.facebook.com';
         newCommentMarkdown = Report.handleUserDeletedLinksInHtml(afterEditCommentText, originalCommentHTML);
-        expectedOutput = parser.replace('Comment [www.google.com](https://www.google.com) [www.facebook.com](https://www.facebook.com)', autolinkFilter);
+        expectedOutput = 'Comment <a href="https://www.google.com" target="_blank" rel="noreferrer noopener">www.google.com</a> '
+            + '<a href="https://www.facebook.com" target="_blank" rel="noreferrer noopener">www.facebook.com</a>';
         expect(newCommentMarkdown).toBe(expectedOutput);
 
         // Comment has two links but user deletes only one of them
@@ -467,7 +464,23 @@ describe('actions/Report', () => {
         originalCommentHTML = 'Comment <a href="https://www.google.com" target="_blank">www.google.com</a>  <a href="https://www.facebook.com" target="_blank">www.facebook.com</a>';
         afterEditCommentText = 'Comment www.google.com  [www.facebook.com](https://www.facebook.com)';
         newCommentMarkdown = Report.handleUserDeletedLinksInHtml(afterEditCommentText, originalCommentHTML);
-        expectedOutput = parser.replace('Comment www.google.com  [www.facebook.com](https://www.facebook.com)', autolinkFilter);
+        expectedOutput = 'Comment www.google.com  <a href="https://www.facebook.com" target="_blank" rel="noreferrer noopener">www.facebook.com</a>';
+        expect(newCommentMarkdown).toBe(expectedOutput);
+
+        // User edit and replace comment with link include underscore
+        // We should generate link and the link text is same as the link
+        originalCommentHTML = 'Comment';
+        afterEditCommentText = 'https://www.facebook.com/hashtag/__main/?__eep__=6';
+        newCommentMarkdown = Report.handleUserDeletedLinksInHtml(afterEditCommentText, originalCommentHTML);
+        expectedOutput = '<a href="https://www.facebook.com/hashtag/__main/?__eep__=6" target="_blank" rel="noreferrer noopener">https://www.facebook.com/hashtag/__main/?__eep__=6</a>';
+        expect(newCommentMarkdown).toBe(expectedOutput);
+
+        // User edit and delete the link with underscore
+        // We should not generate link and not translate underscores in the link
+        originalCommentHTML = '<a href="https://www.facebook.com/hashtag/__main/?__eep__=6" target="_blank" rel="noreferrer noopener">https://www.facebook.com/hashtag/__main/?__eep__=6</a>';
+        afterEditCommentText = 'https://www.facebook.com/hashtag/__main/?__eep__=6';
+        newCommentMarkdown = Report.handleUserDeletedLinksInHtml(afterEditCommentText, originalCommentHTML);
+        expectedOutput = 'https://www.facebook.com/hashtag/__main/?__eep__=6';
         expect(newCommentMarkdown).toBe(expectedOutput);
     });
 

@@ -824,52 +824,13 @@ const getRemovedMarkdownLinks = (oldComment, newComment) => {
 };
 
 /**
- * Removes the links in a markdown comment.
- * example:
- *      comment="test [link](https://www.google.com) test",
- *      links=["https://www.google.com"]
- * returns: "test link test"
- * @param {String} comment
- * @param {Array} links
- * @returns {String}
- */
-const removeLinks = (comment, links) => {
-    let commentCopy = comment.slice();
-    _.forEach(links, (link) => {
-        const regex = new RegExp(`\\[([^\\[\\]]*)\\]\\(${Str.escapeForRegExp(link)}\\)`, 'gm');
-        const linkMatch = regex.exec(commentCopy);
-        const linkText = linkMatch && linkMatch[1];
-        commentCopy = commentCopy.replace(`[${linkText}](${link})`, linkText);
-    });
-    return commentCopy;
-};
-
-/**
- * This function will handle removing only links that were purposely removed by the user while editing.
- * @param {String} newCommentText text of the comment after editing.
- * @param {Array} originalHtml original html of the comment before editing
- * @returns {String}
- */
-const handleUserDeletedLinks = (newCommentText, originalHtml) => {
-    const parser = new ExpensiMark();
-    if (newCommentText.length >= CONST.MAX_MARKUP_LENGTH) {
-        return newCommentText;
-    }
-    const htmlWithAutoLinks = parser.replace(newCommentText);
-    const markdownWithAutoLinks = parser.htmlToMarkdown(htmlWithAutoLinks).trim();
-    const markdownOriginalComment = parser.htmlToMarkdown(originalHtml).trim();
-    const removedLinks = getRemovedMarkdownLinks(markdownOriginalComment, newCommentText);
-    return removeLinks(markdownWithAutoLinks, removedLinks);
-};
-
-/**
  * Removes the links in html of a comment.
  * example:
  *      comment="test [link](https://www.google.com) test",
  *      html="test <a href="https://www.google.com" target="_blank" rel="noreferrer noopener">link</a> test"
  *      links=["https://www.google.com"]
  * returns: "test link test"
- * 
+ *
  * @param {String} html
  * @param {Array} links
  * @returns {String}
@@ -885,7 +846,7 @@ const removeLinksFromHtml = (html, links) => {
 
 /**
  * This function will handle removing only links that were purposely removed by the user while editing.
- * 
+ *
  * @param {String} newCommentText text of the comment after editing.
  * @param {String} originalHtml original html of the comment before editing.
  * @returns {String}
@@ -1513,7 +1474,6 @@ export {
     broadcastUserIsTyping,
     togglePinnedState,
     editReportComment,
-    handleUserDeletedLinks,
     handleUserDeletedLinksInHtml,
     saveReportActionDraft,
     saveReportActionDraftNumberOfLines,
