@@ -37,6 +37,14 @@ class MoneyRequestDescriptionPage extends Component {
     }
 
     /**
+     * Closes the modal and clears the description from Onyx.
+     */
+    onCloseButtonPress() {
+        IOU.setMoneyRequestDescription('');
+        Navigation.dismissModal();
+    }
+
+    /**
      * Sets the money request comment by saving it to Onyx.
      *
      * @param {Object} value
@@ -53,8 +61,8 @@ class MoneyRequestDescriptionPage extends Component {
                 <HeaderWithCloseButton
                     title={this.props.translate('common.description')}
                     shouldShowBackButton
-                    shouldShowCloseButton={false}
                     onBackButtonPress={Navigation.goBack}
+                    onCloseButtonPress={this.onCloseButtonPress}
                 />
                 <Form
                     style={[styles.flexGrow1, styles.ph5]}
