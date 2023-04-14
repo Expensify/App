@@ -180,7 +180,7 @@ export default {
         tfaRequiredTitle: 'Two factor authentication\nrequired',
         tfaRequiredDescription: 'Please enter the two-factor authentication code\nwhere you are trying to sign in.',
     },
-    iOUConfirmationList: {
+    moneyRequestConfirmationList: {
         whoPaid: 'Who paid?',
         whoWasThere: 'Who was there?',
         whatsItFor: 'What\'s it for?',
