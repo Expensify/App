@@ -207,6 +207,7 @@ const MoneyRequestModal = (props) => {
     /**
      * Navigate to a provided step.
      *
+     * @param {Number} stepIndex
      * @type {(function(*): void)|*}
      */
     const navigateToStep = useCallback((stepIndex) => {

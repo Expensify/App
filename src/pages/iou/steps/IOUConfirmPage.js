@@ -1,6 +1,6 @@
 import React from 'react';
 import PropTypes from 'prop-types';
-import IOUConfirmationList from '../../../components/IOUConfirmationList';
+import IOUConfirmationList from '../../../components/MoneyRequestConfirmationList';
 import CONST from '../../../CONST';
 import avatarPropTypes from '../../../components/avatarPropTypes';
 

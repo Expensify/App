@@ -37,13 +37,13 @@ class MoneyRequestDescriptionPage extends Component {
     }
 
     /**
-     * Sets the IOU comment by saving it to Onyx.
+     * Sets the money request comment by saving it to Onyx.
      *
      * @param {Object} value
-     * @param {String} value.iouComment
+     * @param {String} value.moneyRequestComment
      */
     updateComment(value) {
-        IOU.setMoneyRequestDescription(value.iouComment);
+        IOU.setMoneyRequestDescription(value.moneyRequestComment);
         Navigation.goBack();
     }
 
@@ -58,7 +58,7 @@ class MoneyRequestDescriptionPage extends Component {
                 />
                 <Form
                     style={[styles.flexGrow1, styles.ph5]}
-                    formID={ONYXKEYS.FORMS.IOU_DESCRIPTION_FORM}
+                    formID={ONYXKEYS.FORMS.MONEY_REQUEST_DESCRIPTION_FORM}
                     onSubmit={this.updateComment}
                     submitButtonText={this.props.translate('common.save')}
                     validate={() => ({})}
@@ -66,8 +66,8 @@ class MoneyRequestDescriptionPage extends Component {
                 >
                     <View style={styles.mb4}>
                         <TextInput
-                            inputID="iouComment"
-                            name="iouComment"
+                            inputID="moneyRequestComment"
+                            name="moneyRequestComment"
                             defaultValue={this.props.iou.comment}
                             label={this.props.translate('iOUConfirmationList.whatsItFor')}
                         />

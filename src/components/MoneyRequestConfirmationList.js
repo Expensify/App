@@ -94,7 +94,7 @@ const defaultProps = {
     ...withCurrentUserPersonalDetailsDefaultProps,
 };
 
-class IOUConfirmationList extends Component {
+class MoneyRequestConfirmationList extends Component {
     constructor(props) {
         super(props);
 
@@ -342,8 +342,8 @@ class IOUConfirmationList extends Component {
     }
 }
 
-IOUConfirmationList.propTypes = propTypes;
-IOUConfirmationList.defaultProps = defaultProps;
+MoneyRequestConfirmationList.propTypes = propTypes;
+MoneyRequestConfirmationList.defaultProps = defaultProps;
 
 export default compose(
     withLocalize,
@@ -355,4 +355,4 @@ export default compose(
             key: ONYXKEYS.SESSION,
         },
     }),
-)(IOUConfirmationList);
+)(MoneyRequestConfirmationList);
