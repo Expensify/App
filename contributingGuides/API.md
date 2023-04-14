@@ -1,5 +1,6 @@
 # API Details
-These are best practices related to the current API used for App. This does not relate to any of our `DeprecatedAPI`.
+These are best practices related to the current API used for App.
+
 ## Philosophy
 - We desire to have a 1:1:1 ratio of user action to web server (PHP) commands to database server (Auth) commands.
 - Each user action should generate at most 1 API call.

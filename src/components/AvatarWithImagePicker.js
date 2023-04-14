@@ -258,20 +258,22 @@ class AvatarWithImagePicker extends React.Component {
                     onPress={() => this.setState({isMenuVisible: true})}
                 >
                     <View style={[styles.pRelative, styles.avatarLarge]}>
-                        {this.props.source
-                            ? (
-                                <Avatar
-                                    containerStyles={styles.avatarLarge}
-                                    imageStyles={[styles.avatarLarge, styles.alignSelfCenter]}
-                                    source={this.props.source}
-                                    fallbackIcon={this.props.fallbackIcon}
-                                    size={this.props.size}
-                                    type={this.props.type}
-                                />
-                            )
-                            : (
-                                <DefaultAvatar />
-                            )}
+                        <Tooltip text={this.props.translate('avatarWithImagePicker.editImage')}>
+                            {this.props.source
+                                ? (
+                                    <Avatar
+                                        containerStyles={styles.avatarLarge}
+                                        imageStyles={[styles.avatarLarge, styles.alignSelfCenter]}
+                                        source={this.props.source}
+                                        fallbackIcon={this.props.fallbackIcon}
+                                        size={this.props.size}
+                                        type={this.props.type}
+                                    />
+                                )
+                                : (
+                                    <DefaultAvatar />
+                                )}
+                        </Tooltip>
                         <AttachmentPicker type={CONST.ATTACHMENT_PICKER_TYPE.IMAGE}>
                             {({openPicker}) => (
                                 <>

@@ -129,9 +129,8 @@ export default {
         areYouSure: 'Are you sure?',
         verify: 'Verify',
         yesContinue: 'Yes, continue',
-        zipCodeExample: 'e.g. 12345, 12345-1234, 12345 1234',
         websiteExample: 'e.g. https://www.expensify.com',
-        format: ({zipSampleFormat}) => (zipSampleFormat ? `Format: ${zipSampleFormat}` : ''),
+        zipCodeExampleFormat: ({zipSampleFormat}) => (zipSampleFormat ? `e.g. ${zipSampleFormat}` : ''),
     },
     attachmentPicker: {
         cameraPermissionRequired: 'Camera access',
@@ -181,7 +180,7 @@ export default {
         tfaRequiredTitle: 'Two factor authentication\nrequired',
         tfaRequiredDescription: 'Please enter the two-factor authentication code\nwhere you are trying to sign in.',
     },
-    iOUConfirmationList: {
+    moneyRequestConfirmationList: {
         whoPaid: 'Who paid?',
         whoWasThere: 'Who was there?',
         whatsItFor: 'What\'s it for?',
@@ -295,6 +294,7 @@ export default {
     },
     iou: {
         amount: 'Amount',
+        cash: 'Cash',
         participants: 'Participants',
         splitBill: 'Split bill',
         requestMoney: 'Request money',
@@ -373,11 +373,14 @@ export default {
         removeContactMethod: 'Remove contact method',
         removeAreYouSure: 'Are you sure you want to remove this contact method? This action cannot be undone.',
         resendMagicCode: 'Resend magic code',
+        failedNewContact: 'Failed to add this contact method.',
         genericFailureMessages: {
             requestContactMethodValidateCode: 'Failed to send a new magic code. Please wait a bit and try again.',
             validateSecondaryLogin: 'Failed to validate contact method with given magic code. Please request a new code and try again.',
             deleteContactMethod: 'Failed to delete contact method. Please reach out to Concierge for help.',
+            addContactMethod: 'Failed to add this contact method. Please reach out to Concierge for help.',
         },
+        newContactMethod: 'New contact method',
     },
     pronouns: {
         coCos: 'Co / Cos',
@@ -408,13 +411,6 @@ export default {
         timezone: 'Timezone',
         isShownOnProfile: 'Your timezone is shown on your profile.',
         getLocationAutomatically: 'Automatically determine your location.',
-    },
-    addSecondaryLoginPage: {
-        addPhoneNumber: 'Add phone number',
-        addEmailAddress: 'Add email address',
-        enterPreferredPhoneNumberToSendValidationLink: 'Enter your preferred phone number to send a validation link.',
-        enterPreferredEmailToSendValidationLink: 'Enter your preferred email address to send a validation link.',
-        sendValidation: 'Send validation',
     },
     initialSettingsPage: {
         about: 'About',
@@ -636,6 +632,7 @@ export default {
         },
         cannotGetAccountDetails: 'Couldn\'t retrieve account details, please try to sign in again.',
         loginForm: 'Login form',
+        notYou: ({user}) => `Not ${user}?`,
     },
     personalDetails: {
         error: {

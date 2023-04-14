@@ -81,7 +81,7 @@ class SignInPage extends Component {
         // - AND haven't forgotten password
         // - AND the login isn't an unvalidated secondary login
         // - AND the user is NOT on the passwordless beta
-        const showPasswordForm = this.props.credentials.login
+        const showPasswordForm = Boolean(this.props.credentials.login)
             && this.props.account.validated
             && !this.props.credentials.password
             && !this.props.account.forgotPassword
@@ -102,7 +102,7 @@ class SignInPage extends Component {
         // - AND is not validated or password is forgotten
         // - AND the login isn't an unvalidated secondary login
         // - AND user is not on 'passwordless' beta
-        const showResendValidationForm = this.props.credentials.login
+        const showResendValidationForm = Boolean(this.props.credentials.login)
             && (!this.props.account.validated || this.props.account.forgotPassword)
             && !showUnlinkLoginForm
             && !Permissions.canUsePasswordlessLogins(this.props.betas);
