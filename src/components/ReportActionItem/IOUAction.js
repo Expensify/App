@@ -20,7 +20,7 @@ const propTypes = {
     /** All the data of the action */
     action: PropTypes.shape(reportActionPropTypes).isRequired,
 
-    /** The ID of the associated chatReport */
+    /** The ID of the associated USELESS CHANGE chatReport */
     chatReportID: PropTypes.string.isRequired,
 
     /** Is this IOUACTION the most recent? */
