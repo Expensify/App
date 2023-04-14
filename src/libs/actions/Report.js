@@ -687,6 +687,7 @@ function deleteReportComment(reportID, reportAction) {
             pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
             previousMessage: reportAction.message,
             message: deletedMessage,
+            errors: null,
         },
     };
 
