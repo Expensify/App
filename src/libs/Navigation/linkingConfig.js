@@ -207,7 +207,7 @@ export default {
             },
             NewTask: {
                 screens: {
-                    NewTask_Root: ROUTES.NEW_TASK,
+                    NewTask_Root: ROUTES.NEW_TASK_WITH_REPORT_ID,
                 },
             },
             Search: {

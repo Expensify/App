@@ -790,6 +790,11 @@ class ReportActionCompose extends React.Component {
                                                             });
                                                         },
                                                     },
+                                                    {
+                                                        icon: Expensicons.Clipboard,
+                                                        text: this.props.translate('newTaskPage.assignTask'),
+                                                        onSelected: () => Navigation.navigate(ROUTES.getNewTaskRoute(this.props.reportID)),
+                                                    },
                                                 ]}
                                             />
                                         </>

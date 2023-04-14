@@ -2,7 +2,6 @@ import React from 'react';
 import {View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import PropTypes from 'prop-types';
-import * as Report from '../libs/actions/Report';
 import withLocalize, {withLocalizePropTypes} from '../components/withLocalize';
 import compose from '../libs/compose';
 import HeaderWithCloseButton from '../components/HeaderWithCloseButton';
@@ -10,12 +9,11 @@ import Navigation from '../libs/Navigation/Navigation';
 import ScreenWrapper from '../components/ScreenWrapper';
 import styles from '../styles/styles';
 import ONYXKEYS from '../ONYXKEYS';
-import CONST from '../CONST';
 import * as ErrorUtils from '../libs/ErrorUtils';
-import * as ValidationUtils from '../libs/ValidationUtils';
 import Form from '../components/Form';
 import shouldDelayFocus from '../libs/shouldDelayFocus';
 import TextInput from '../components/TextInput';
+import Permissions from '../libs/Permissions';
 
 const propTypes = {
     /** All reports shared with the user */
@@ -57,7 +55,7 @@ const NewTaskPage = (props) => {
     }
 
     function onSubmit() {
-        console.log('submitted');
+
     }
 
     if (!Permissions.canUseTasks(props.betas)) {
@@ -74,7 +72,6 @@ const NewTaskPage = (props) => {
             <Form
                 formID={ONYXKEYS.FORMS.NEW_TASK_FORM}
                 submitButtonText={props.translate('newTaskPage.assignTask')}
-                scrollContextEnabled
                 style={[styles.mh5, styles.mt5, styles.flexGrow1]}
                 validate={values => validate(values)}
                 onSubmit={() => onSubmit()}
@@ -83,19 +80,14 @@ const NewTaskPage = (props) => {
                 <View style={styles.mb5}>
                     <TextInput
                         autoFocus
-                        shouldDelayFocus={shouldDelayFocus}
                         inputID="taskTitle"
                         label={props.translate('newTaskPage.title')}
-                        shouldSaveDraft
                     />
                 </View>
                 <View style={styles.mb5}>
                     <TextInput
-                        autoFocus
-                        shouldDelayFocus={shouldDelayFocus}
                         inputID="taskDescription"
                         label={props.translate('newTaskPage.description')}
-                        shouldSaveDraft
                     />
                 </View>
             </Form>
