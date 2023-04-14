@@ -764,6 +764,7 @@ class ReportActionCompose extends React.Component {
                                             <View style={[
                                                 styles.dFlex, styles.flexColumn,
                                                 (this.state.isFullComposerAvailable || this.props.isComposerFullSize) ? styles.justifyContentBetween : styles.justifyContentEnd,
+                                                styles.chatItemAttachBorder,
                                             ]}
                                             >
                                                 {this.props.isComposerFullSize && (
@@ -804,22 +805,20 @@ class ReportActionCompose extends React.Component {
                                                     </Tooltip>
                                                 )}
                                                 <Tooltip text={this.props.translate('reportActionCompose.addAction')}>
-                                                    <View style={styles.chatItemAttachBorder}>
-                                                        <TouchableOpacity
-                                                            ref={el => this.actionButton = el}
-                                                            onPress={(e) => {
-                                                                e.preventDefault();
+                                                    <TouchableOpacity
+                                                        ref={el => this.actionButton = el}
+                                                        onPress={(e) => {
+                                                            e.preventDefault();
 
-                                                                // Drop focus to avoid blue focus ring.
-                                                                this.actionButton.blur();
-                                                                this.setMenuVisibility(true);
-                                                            }}
-                                                            style={styles.composerSizeButton}
-                                                            disabled={isBlockedFromConcierge || this.props.disabled}
-                                                        >
-                                                            <Icon src={Expensicons.Plus} />
-                                                        </TouchableOpacity>
-                                                    </View>
+                                                            // Drop focus to avoid blue focus ring.
+                                                            this.actionButton.blur();
+                                                            this.setMenuVisibility(true);
+                                                        }}
+                                                        style={styles.composerSizeButton}
+                                                        disabled={isBlockedFromConcierge || this.props.disabled}
+                                                    >
+                                                        <Icon src={Expensicons.Plus} />
+                                                    </TouchableOpacity>
                                                 </Tooltip>
                                             </View>
                                             <PopoverMenu
