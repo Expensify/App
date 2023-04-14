@@ -64,7 +64,7 @@ const MenuItem = (props) => {
     const descriptionTextStyle = StyleUtils.combineStyles([
         styles.textLabelSupporting,
         (props.icon ? styles.ml3 : undefined),
-        styles.breakWord,
+        styles.breakAll,
         styles.lineHeightNormal,
         props.title ? descriptionVerticalMargin : undefined,
     ], props.style);
