@@ -163,8 +163,8 @@ const MoneyRequestModal = (props) => {
     const direction = useMemo(() => {
         // If we're going to the "amount" step from the "confirm" step, push it in and pop it out like we're moving
         // forward instead of backwards.
-        const amountIndex = _.indexOf(steps, Steps.IOUAmount);
-        const confirmIndex = _.indexOf(steps, Steps.IOUConfirm);
+        const amountIndex = _.indexOf(steps, Steps.MoneyRequestAmount);
+        const confirmIndex = _.indexOf(steps, Steps.MoneyRequestConfirm);
         if (previousStepIndex === confirmIndex && currentStepIndex === amountIndex) {
             return 'in';
         }
@@ -241,7 +241,7 @@ const MoneyRequestModal = (props) => {
         }
 
         // If we're coming from the confirm step, it means we were editing something so go back to the confirm step.
-        const confirmIndex = _.indexOf(steps, Steps.IOUConfirm);
+        const confirmIndex = _.indexOf(steps, Steps.MoneyRequestConfirm);
         if (previousStepIndex === confirmIndex) {
             navigateToStep(confirmIndex);
             return;
@@ -351,7 +351,7 @@ const MoneyRequestModal = (props) => {
     const reportID = lodashGet(props, 'route.params.reportID', '');
     const shouldShowBackButton = currentStepIndex > 0;
     const modalHeader = <ModalHeader title={titleForStep} shouldShowBackButton={shouldShowBackButton} onBackButtonPress={navigateToPreviousStep} />;
-    const amountButtonText = previousStepIndex === _.indexOf(steps, Steps.IOUConfirm) ? props.translate('common.save') : props.translate('common.next');
+    const amountButtonText = previousStepIndex === _.indexOf(steps, Steps.MoneyRequestConfirm) ? props.translate('common.save') : props.translate('common.next');
     return (
         <ScreenWrapper includeSafeAreaPaddingBottom={false}>
             {({didScreenTransitionEnd, safeAreaPaddingBottomStyle}) => (
