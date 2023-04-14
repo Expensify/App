@@ -81,7 +81,7 @@ class Hoverable extends Component {
                     }
                 },
                 onBlur: (el) => {
-                    if (!this.wrapperView.contains(el.relatedTarget)) {
+                    if (this.wrapperView && !this.wrapperView.contains(el.relatedTarget)) {
                         this.setIsHovered(false);
                     }
 
@@ -98,10 +98,9 @@ class Hoverable extends Component {
                 onMouseEnter={() => this.setIsHovered(true)}
                 onMouseLeave={() => this.setIsHovered(false)}
                 onBlur={(el) => {
-                    if (this.wrapperView.contains(el.relatedTarget)) {
-                        return;
+                    if (this.wrapperView && !this.wrapperView.contains(el.relatedTarget)) {
+                        this.setIsHovered(false);
                     }
-                    this.setIsHovered(false);
                 }}
             >
                 { // If this.props.children is a function, call it to provide the hover state to the children.
