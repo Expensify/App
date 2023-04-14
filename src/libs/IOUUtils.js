@@ -26,7 +26,7 @@ Onyx.connect({
  */
 function getCurrencyDecimals(currency) {
     const decimals = lodashGet(currencyList, [currency, 'decimals']);
-    return _.isUndefined(decimals) ? 0 : Math.min(decimals, 2);
+    return _.isUndefined(decimals) ? 2 : Math.min(decimals, 2);
 }
 
 /**
