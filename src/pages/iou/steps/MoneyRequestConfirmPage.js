@@ -1,14 +1,14 @@
 import React from 'react';
 import PropTypes from 'prop-types';
-import IOUConfirmationList from '../../../components/MoneyRequestConfirmationList';
+import MoneyRequestConfirmationList from '../../../components/MoneyRequestConfirmationList';
 import CONST from '../../../CONST';
-import avatarPropTypes from '../../../components/avatarPropTypes';
+import optionPropTypes from '../../../components/optionPropTypes';
 
 const propTypes = {
     /** Callback to inform parent modal of success */
     onConfirm: PropTypes.func.isRequired,
 
-    /** Callback to to parent modal to send money */
+    /** Callback to parent modal to send money */
     onSendMoney: PropTypes.func.isRequired,
 
     /** Should we request a single or multiple participant selection from user */
@@ -18,21 +18,7 @@ const propTypes = {
     iouAmount: PropTypes.string.isRequired,
 
     /** Selected participants from MoneyRequestModal with login */
-    participants: PropTypes.arrayOf(PropTypes.shape({
-        login: PropTypes.string.isRequired,
-        alternateText: PropTypes.string,
-        hasDraftComment: PropTypes.bool,
-        icons: PropTypes.arrayOf(avatarPropTypes),
-        searchText: PropTypes.string,
-        text: PropTypes.string,
-        keyForList: PropTypes.string,
-        isPinned: PropTypes.bool,
-        reportID: PropTypes.string,
-        // eslint-disable-next-line react/forbid-prop-types
-        participantsList: PropTypes.arrayOf(PropTypes.object),
-        payPalMeAddress: PropTypes.string,
-        phoneNumber: PropTypes.string,
-    })).isRequired,
+    participants: PropTypes.arrayOf(optionPropTypes).isRequired,
 
     /** IOU type */
     iouType: PropTypes.string,
@@ -49,8 +35,8 @@ const defaultProps = {
     canModifyParticipants: false,
 };
 
-const IOUConfirmPage = props => (
-    <IOUConfirmationList
+const MoneyRequestConfirmPage = props => (
+    <MoneyRequestConfirmationList
         hasMultipleParticipants={props.hasMultipleParticipants}
         participants={props.participants}
         iouAmount={props.iouAmount}
@@ -62,8 +48,8 @@ const IOUConfirmPage = props => (
     />
 );
 
-IOUConfirmPage.displayName = 'IOUConfirmPage';
-IOUConfirmPage.propTypes = propTypes;
-IOUConfirmPage.defaultProps = defaultProps;
+MoneyRequestConfirmPage.displayName = 'IOUConfirmPage';
+MoneyRequestConfirmPage.propTypes = propTypes;
+MoneyRequestConfirmPage.defaultProps = defaultProps;
 
-export default IOUConfirmPage;
+export default MoneyRequestConfirmPage;
