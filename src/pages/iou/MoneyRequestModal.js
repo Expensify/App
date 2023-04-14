@@ -197,7 +197,7 @@ const MoneyRequestModal = (props) => {
         if (previousStepIndex === currentStepIndex) {
             return null;
         }
-    }, [previousStepIndex, currentStepIndex]);
+    }, [previousStepIndex, currentStepIndex, steps]);
 
     /**
      * Retrieve title for current step, based upon current step and type of request
