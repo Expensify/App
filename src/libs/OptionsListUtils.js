@@ -39,7 +39,7 @@ Onyx.connect({
 let preferredLocale;
 Onyx.connect({
     key: ONYXKEYS.NVP_PREFERRED_LOCALE,
-    callback: val => preferredLocale = val || CONST.DEFAULT_LOCALE,
+    callback: val => preferredLocale = val || CONST.LOCALES.DEFAULT,
 });
 
 const policies = {};
@@ -54,14 +54,23 @@ Onyx.connect({
     },
 });
 
+const expenseReports = {};
 const iouReports = {};
 Onyx.connect({
     key: ONYXKEYS.COLLECTION.REPORT,
-    callback: (iouReport, key) => {
-        if (!iouReport || !key || !iouReport.ownerEmail || !ReportUtils.isIOUReport(iouReport)) {
+    callback: (report, key) => {
+        if (!report || !key || !report.ownerEmail) {
             return;
         }
-        iouReports[key] = iouReport;
+
+        if (ReportUtils.isExpenseReport(report)) {
+            expenseReports[key] = report;
+            return;
+        }
+
+        if (ReportUtils.isIOUReport(report)) {
+            iouReports[key] = report;
+        }
     },
 });
 
