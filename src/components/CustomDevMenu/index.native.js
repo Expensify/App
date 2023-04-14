@@ -1,4 +1,4 @@
-import {React, useEffect} from 'react';
+import {useEffect} from 'react';
 import DevMenu from 'react-native-dev-menu';
 import PropTypes from 'prop-types';
 import toggleTestToolsModal from '../../libs/actions/TestTool';
