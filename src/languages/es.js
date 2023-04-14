@@ -1126,6 +1126,14 @@ export default {
             public_announce: 'Anuncio Público',
         },
     },
+    newTaskPage: {
+        assignee: 'Verso',
+        assignTask: 'Atribuir tarefa',
+        title: 'Título',
+        description: 'Descrição',
+        shareIn: 'Compartilhar em',
+        pleaseEnterTaskName: 'Por favor, insira um nome de tarefa',
+    },
     statementPage: {
         generatingPDF: 'Estamos generando tu PDF ahora mismo. ¡Por favor, vuelve más tarde!',
     },
