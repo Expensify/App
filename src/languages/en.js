@@ -632,6 +632,7 @@ export default {
         },
         cannotGetAccountDetails: 'Couldn\'t retrieve account details, please try to sign in again.',
         loginForm: 'Login form',
+        notYou: ({user}) => `Not ${user}?`,
     },
     personalDetails: {
         error: {

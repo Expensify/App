@@ -464,6 +464,7 @@ function canShowReportRecipientLocalTime(personalDetails, report) {
     const isReportParticipantValidated = lodashGet(reportRecipient, 'validated', false);
     return Boolean(!hasMultipleParticipants
         && !isChatRoom(report)
+        && !isPolicyExpenseChat(report)
         && reportRecipient
         && reportRecipientTimezone
         && reportRecipientTimezone.selected
