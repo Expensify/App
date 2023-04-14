@@ -95,6 +95,17 @@ const defaultProps = {
     },
 };
 
+const stringToBool = (str) => {
+    switch (str.toLowerCase()) {
+        case 'true':
+            return true;
+        case 'false':
+            return false;
+        default:
+            return undefined;
+    }
+};
+
 class AuthScreens extends React.Component {
     constructor(props) {
         super(props);
@@ -199,7 +210,7 @@ class AuthScreens extends React.Component {
                         const MainDrawerNavigator = require('./MainDrawerNavigator').default;
                         return MainDrawerNavigator;
                     }}
-                    initialParams={{openOnAdminRoom: openOnAdminRoom === 'true'}}
+                    initialParams={{openOnAdminRoom: stringToBool(openOnAdminRoom)}}
                 />
                 <RootStack.Screen
                     name="ValidateLogin"
