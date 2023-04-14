@@ -62,22 +62,21 @@ function NewContactMethodPage(props) {
     *
     * @returns {Boolean}
     */
-    validateForm() {
-        const login = this.state.login.trim();
-        const phoneLogin = LoginUtils.getPhoneNumberWithoutSpecialChars(login);
+    const validateForm = useCallback(() => {
+        const phoneLogin = LoginUtils.getPhoneNumberWithoutSpecialChars(login.trim());
 
-        return (Permissions.canUsePasswordlessLogins(this.props.betas) || this.state.password)
+        return (Permissions.canUsePasswordlessLogins(props.betas) || this.state.password)
             && (Str.isValidEmail(login) || Str.isValidPhone(phoneLogin));
-    }
+    }, [login, password, props.betas]);
 
-    submitForm() {
+    const submitForm = useCallback(() => {
         // If this login already exists, just go back.
-        if (lodashGet(this.props.loginList, this.state.login)) {
+        if (lodashGet(props.loginList, login)) {
             Navigation.navigate(ROUTES.SETTINGS_CONTACT_METHODS);
             return;
         }
-        User.addNewContactMethodAndNavigate(this.state.login, this.state.password);
-    }
+        User.addNewContactMethodAndNavigate(login, password);
+    }, [login, props.loginList, password]);
 
     render() {
         return (
