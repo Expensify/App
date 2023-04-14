@@ -193,8 +193,8 @@ class AttachmentCarousel extends React.Component {
         return (
             <View
                 style={[styles.attachmentModalArrowsContainer]}
-                onMouseEnter={() => this.toggleArrowsVisibility(true)}
-                onMouseLeave={() => this.toggleArrowsVisibility(false)}
+                onMouseEnter={() => !this.canUseTouchScreen && this.toggleArrowsVisibility(true)}
+                onMouseLeave={() => !this.canUseTouchScreen && this.toggleArrowsVisibility(false)}
             >
                 {(isPageSet && this.state.shouldShowArrow) && (
                     <>
