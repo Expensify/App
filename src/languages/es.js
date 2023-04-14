@@ -179,7 +179,7 @@ export default {
         tfaRequiredTitle: 'Se requiere autenticación\nde dos factores',
         tfaRequiredDescription: 'Por favor, introduce el código de autenticación de dos factores\ndonde estás intentando iniciar sesión.',
     },
-    iOUConfirmationList: {
+    moneyRequestConfirmationList: {
         whoPaid: '¿Quién pago?',
         whoWasThere: '¿Quién asistió?',
         whatsItFor: '¿Para qué es?',

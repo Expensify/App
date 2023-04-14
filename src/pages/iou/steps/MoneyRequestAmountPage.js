@@ -48,7 +48,7 @@ const defaultProps = {
         selectedCurrencyCode: CONST.CURRENCY.USD,
     },
 };
-class IOUAmountPage extends React.Component {
+class MoneyRequestAmountPage extends React.Component {
     constructor(props) {
         super(props);
 
@@ -344,12 +344,12 @@ class IOUAmountPage extends React.Component {
     }
 }
 
-IOUAmountPage.propTypes = propTypes;
-IOUAmountPage.defaultProps = defaultProps;
+MoneyRequestAmountPage.propTypes = propTypes;
+MoneyRequestAmountPage.defaultProps = defaultProps;
 
 export default compose(
     withLocalize,
     withOnyx({
         iou: {key: ONYXKEYS.IOU},
     }),
-)(IOUAmountPage);
+)(MoneyRequestAmountPage);
