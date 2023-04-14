@@ -213,7 +213,7 @@ class FloatingActionButtonAndPopover extends React.Component {
                         ] : []),
                         ...(Permissions.canUseTasks(this.props.betas) ? [
                             {
-                                icon: Expensicons.Checkmark,
+                                icon: Expensicons.Task,
                                 text: this.props.translate('newTaskPage.assignTask'),
                                 onSelected: () => Navigation.navigate(ROUTES.NEW_TASK),
                             },

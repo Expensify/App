@@ -1126,12 +1126,11 @@ export default {
         },
     },
     newTaskPage: {
-        assignee: 'To',
         assignTask: 'Assign task',
         title: 'Title',
         description: 'Description',
         shareIn: 'Share in',
-        pleaseEnterTaskName: 'Please enter a task name',
+        pleaseEnterTaskName: 'Please enter a title',
     },
     statementPage: {
         generatingPDF: 'We\'re generating your PDF right now. Please come back later!',
