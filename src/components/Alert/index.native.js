@@ -1,3 +1,3 @@
-import Alert from 'react-native';
+import {Alert} from 'react-native';
 
-export default Alert;
+export default Alert.alert;
