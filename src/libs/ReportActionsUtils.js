@@ -134,7 +134,7 @@ function isConsecutiveActionMadeByPreviousActor(reportActions, actionIndex) {
 function getLastVisibleAction(reportID, actionsToMerge = {}) {
     const actions = _.toArray(lodashMerge({}, allReportActions[reportID], actionsToMerge));
     const visibleActions = _.filter(actions, action => (!isDeletedAction(action)));
-    return _.max(visibleActions, action => moment.utc(action.created).valueOf());
+    return _.max(visibleActions, action => moment.utc(action.created).valueOf()) || {};
 }
 
 /**
@@ -144,7 +144,12 @@ function getLastVisibleAction(reportID, actionsToMerge = {}) {
  */
 function getLastVisibleMessageText(reportID, actionsToMerge = {}) {
     const lastVisibleAction = getLastVisibleAction(reportID, actionsToMerge);
-    const message = lodashGet(lastVisibleAction, ['message', 0]);
+    const message = lodashGet(lastVisibleAction, ['message', 0], {});
+
+    if (_.isEmpty(message)) {
+        return '';
+    }
+
     if (isReportMessageAttachment(message)) {
         return CONST.ATTACHMENT_MESSAGE_TEXT;
     }
