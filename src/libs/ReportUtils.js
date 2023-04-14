@@ -1656,7 +1656,7 @@ function getMenuItemOptions(report, reportParticipants, betas) {
     const hasExcludedIOUEmails = lodashIntersection(reportParticipants, CONST.EXPENSIFY_EMAILS).length > 0;
     const hasMultipleParticipants = participants.length > 1;
 
-    if (hasExcludedIOUEmails || (participants.length === 0 && !report.isOwnPolicyExpenseChat) || !Permissions.canUseIOU(betas) || !Permissions.canUseTasks(betas)) {
+    if (hasExcludedIOUEmails || (participants.length === 0 && !report.isOwnPolicyExpenseChat) || !Permissions.canUseIOU(betas)) {
         return [];
     }
 
@@ -1671,8 +1671,8 @@ function getMenuItemOptions(report, reportParticipants, betas) {
         ];
     }
 
-    // DM chats that only have 2 people will see the Send / Request money options.
-    // Workspace chats should only see the Request money option, as "easy overages" is not available.
+    // DM chats that only have 2 people will see the Send / Request money / Assign task options.
+    // Workspace chats should see the Request money and Assign Task option, as "easy overages" is not available.
     return [
         ...(canRequestMoney(report) ? [CONST.IOU.MONEY_REQUEST_TYPE.REQUEST] : []),
         ...(Permissions.canUseIOUSend(betas) && !isPolicyExpenseChat(report) ? [CONST.IOU.MONEY_REQUEST_TYPE.SEND] : []),
