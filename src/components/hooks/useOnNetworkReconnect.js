@@ -1,7 +1,13 @@
 import {useRef, useContext, useEffect} from 'react';
 import {NetworkContext} from '../OnyxProvider';
 
-export default function useOnNetworkReconnect(callback) {
+/**
+ * @param {Function} onNetworkReconnect
+ */
+export default function useOnNetworkReconnect(onNetworkReconnect) {
+    const callback = useRef(onNetworkReconnect);
+    callback.current = onNetworkReconnect;
+
     const {isOffline} = useContext(NetworkContext);
     const prevOfflineStatusRef = useRef(isOffline);
     useEffect(() => {
@@ -11,8 +17,8 @@ export default function useOnNetworkReconnect(callback) {
             return;
         }
 
-        callback();
-    }, [isOffline, callback]);
+        callback.current();
+    }, [isOffline]);
 
     useEffect(() => {
         // Used to store previous prop values to compare on next render

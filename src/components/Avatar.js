@@ -59,13 +59,7 @@ const defaultProps = {
 function Avatar(props) {
     const [imageError, setImageError] = useState(false);
 
-    useOnNetworkReconnect(() => {
-        if (!imageError) {
-            return;
-        }
-
-        setImageError(false);
-    });
+    useOnNetworkReconnect(() => setImageError(false));
 
     if (!props.source) {
         return null;
