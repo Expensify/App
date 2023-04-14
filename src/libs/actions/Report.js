@@ -878,7 +878,7 @@ const removeLinksFromHtml = (html, links) => {
     let htmlCopy = html.slice();
     _.forEach(links, (link) => {
         const regex = new RegExp(`<(a)[^><]*href\\s*=\\s*(['"])(${Str.escapeForRegExp(link)})\\2(?:".*?"|'.*?'|[^'"><])*>([\\s\\S]*?)<\\/\\1>(?![^<]*(<\\/pre>|<\\/code>))`, 'gi');
-        htmlCopy = htmlCopy.replace(regex, '$3');
+        htmlCopy = htmlCopy.replace(regex, '$4');
     });
     return htmlCopy;
 };
