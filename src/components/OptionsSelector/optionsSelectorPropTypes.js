@@ -28,7 +28,7 @@ const propTypes = {
     value: PropTypes.string.isRequired,
 
     /** Callback fired when text changes */
-    onChangeText: PropTypes.func.isRequired,
+    onChangeText: PropTypes.func,
 
     /** Limits the maximum number of characters that can be entered in input field */
     maxLength: PropTypes.number,
@@ -129,6 +129,7 @@ const defaultProps = {
     initiallyFocusedOptionKey: undefined,
     maxLength: undefined,
     shouldShowTextInput: true,
+    onChangeText: () => {},
 };
 
 export {propTypes, defaultProps};
