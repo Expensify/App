@@ -115,6 +115,9 @@ const propTypes = {
         keywords: PropTypes.arrayOf(PropTypes.string),
     })),
 
+    /** The type of action that's pending  */
+    pendingAction: PropTypes.oneOf(['add', 'update', 'delete']),
+
     ...windowDimensionsPropTypes,
     ...withLocalizePropTypes,
     ...withCurrentUserPersonalDetailsPropTypes,
@@ -133,6 +136,7 @@ const defaultProps = {
     preferredSkinTone: CONST.EMOJI_DEFAULT_SKIN_TONE,
     frequentlyUsedEmojis: [],
     isComposerFullSize: false,
+    pendingAction: null,
     ...withCurrentUserPersonalDetailsDefaultProps,
 };
 
