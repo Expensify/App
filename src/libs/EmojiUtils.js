@@ -264,6 +264,17 @@ function suggestEmojis(text, limit = 5) {
     return [];
 }
 
+/**
+ * Replace substring between selection with an emoji.
+ * @param {String} text
+ * @param {Object} selection
+ * @param {String} emoji
+ * @returns {String}
+ */
+function insertEmoji(text, selection, emoji) {
+    return text.slice(0, selection.start) + emoji + text.slice(selection.end, text.length);
+}
+
 export {
     getHeaderEmojis,
     mergeEmojisWithFrequentlyUsedEmojis,
@@ -273,4 +284,5 @@ export {
     suggestEmojis,
     trimEmojiUnicode,
     getEmojiCodeWithSkinColor,
+    insertEmoji,
 };

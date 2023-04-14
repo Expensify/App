@@ -52,7 +52,6 @@ import withKeyboardState, {keyboardStatePropTypes} from '../../../../components/
 import ArrowKeyFocusManager from '../../../../components/ArrowKeyFocusManager';
 import KeyboardShortcut from '../../../../libs/KeyboardShortcut';
 import KeyDownAction from './keyDownAction';
-import * as ComposerUtils from '../../../../libs/ComposerUtils';
 
 const propTypes = {
     /** Beta features list */
@@ -508,8 +507,7 @@ class ReportActionCompose extends React.Component {
                 start: prevState.selection.start + text.length,
                 end: prevState.selection.start + text.length,
             },
-        }));
-        this.updateComment(ComposerUtils.insertText(this.comment, this.state.selection, text));
+        }), this.updateComment(EmojiUtils.insertEmoji(this.comment, this.state.selection, text)));
     }
 
     /**
