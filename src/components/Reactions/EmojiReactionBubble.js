@@ -9,12 +9,8 @@ import withCurrentUserPersonalDetails, {
     withCurrentUserPersonalDetailsPropTypes,
 } from '../withCurrentUserPersonalDetails';
 import * as Report from '../../libs/actions/Report';
-import Tooltip from '../Tooltip';
-import ReactionTooltipContent from './ReactionTooltipContent';
 
 const propTypes = {
-    emojiName: PropTypes.string.isRequired,
-
     /**
      * The emoji codes to display in the bubble.
      */
@@ -41,12 +37,8 @@ const propTypes = {
      */
     reactionUsers: PropTypes.arrayOf(PropTypes.string),
 
-    /**
-     * The default size of the reaction bubble is defined
-     * by the styles in styles.js. This scale factor can be used
-     * to make the bubble bigger or smaller.
-     */
-    sizeScale: PropTypes.number,
+    /** Whether it is for context menu so we can modify its style */
+    isContextMenu: PropTypes.bool,
 
     ...withCurrentUserPersonalDetailsPropTypes,
 };
@@ -55,7 +47,7 @@ const defaultProps = {
     count: 0,
     onReactionListOpen: () => {},
     reactionUsers: [],
-    sizeScale: 1,
+    isContextMenu: false,
 
     ...withCurrentUserPersonalDetailsDefaultProps,
 };
@@ -63,41 +55,36 @@ const defaultProps = {
 const EmojiReactionBubble = (props) => {
     const hasUserReacted = Report.hasAccountIDReacted(props.currentUserPersonalDetails.accountID, props.reactionUsers);
     return (
-        <Tooltip
-            renderTooltipContent={() => (
-                <ReactionTooltipContent
-                    emojiName={props.emojiName}
-                    emojiCodes={props.emojiCodes}
-                    accountIDs={props.reactionUsers}
-                />
-            )}
+        <Pressable
+            style={({hovered, pressed}) => [
+                styles.emojiReactionBubble,
+                StyleUtils.getEmojiReactionBubbleStyle(hovered || pressed, hasUserReacted, props.isContextMenu),
+            ]}
+            onPress={props.onPress}
+            onLongPress={props.onReactionListOpen}
+
+            // Prevent text input blur when emoji reaction is clicked
+            onMouseDown={e => e.preventDefault()}
         >
-            <Pressable
-                style={({hovered, pressed}) => [
-                    styles.emojiReactionBubble,
-                    StyleUtils.getEmojiReactionBubbleStyle(hovered || pressed, hasUserReacted, props.sizeScale),
-                ]}
-                onPress={props.onPress}
-                onLongPress={props.onReactionListOpen}
+            <Text style={[
+                styles.emojiReactionBubbleText,
+                styles.userSelectNone,
+                StyleUtils.getEmojiReactionBubbleTextStyle(props.isContextMenu),
+            ]}
             >
-                <Text style={[
-                    styles.emojiReactionText,
-                    StyleUtils.getEmojiReactionTextStyle(props.sizeScale),
-                ]}
-                >
-                    {props.emojiCodes.join('')}
-                </Text>
-                {props.count > 0 && (
-                <Text style={[
-                    styles.reactionCounterText,
-                    StyleUtils.getEmojiReactionCounterTextStyle(hasUserReacted, props.sizeScale),
-                ]}
-                >
-                    {props.count}
-                </Text>
-                )}
-            </Pressable>
-        </Tooltip>
+                {props.emojiCodes.join('')}
+            </Text>
+            {props.count > 0 && (
+            <Text style={[
+                styles.reactionCounterText,
+                styles.userSelectNone,
+                StyleUtils.getEmojiReactionCounterTextStyle(hasUserReacted),
+            ]}
+            >
+                {props.count}
+            </Text>
+            )}
+        </Pressable>
     );
 };
 

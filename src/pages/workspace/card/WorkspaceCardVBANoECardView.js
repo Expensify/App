@@ -14,9 +14,17 @@ import * as User from '../../../libs/actions/User';
 import ONYXKEYS from '../../../ONYXKEYS';
 import compose from '../../../libs/compose';
 import CONST from '../../../CONST';
+import userPropTypes from '../../settings/userPropTypes';
 
 const propTypes = {
+    /** Information about the logged in user's account */
+    user: userPropTypes,
+
     ...withLocalizePropTypes,
+};
+
+const defaultProps = {
+    user: {},
 };
 
 const WorkspaceCardVBANoECardView = props => (
@@ -49,7 +57,7 @@ const WorkspaceCardVBANoECardView = props => (
                 success
             />
         </Section>
-        {props.user.isCheckingDomain && (
+        {Boolean(props.user.isCheckingDomain) && (
             <Text style={[styles.m5, styles.formError]}>
                 {props.translate('workspace.card.checkingDomain')}
             </Text>
@@ -58,6 +66,7 @@ const WorkspaceCardVBANoECardView = props => (
 );
 
 WorkspaceCardVBANoECardView.propTypes = propTypes;
+WorkspaceCardVBANoECardView.defaultProps = defaultProps;
 WorkspaceCardVBANoECardView.displayName = 'WorkspaceCardVBANoECardView';
 
 export default compose(

@@ -35,6 +35,8 @@ import * as ReportUtils from '../../libs/ReportUtils';
 import * as Link from '../../libs/actions/Link';
 import OfflineWithFeedback from '../../components/OfflineWithFeedback';
 import * as ReimbursementAccountProps from '../ReimbursementAccount/reimbursementAccountPropTypes';
+import * as UserUtils from '../../libs/UserUtils';
+import policyMemberPropType from '../policyMemberPropType';
 
 const propTypes = {
     /* Onyx Props */
@@ -84,6 +86,18 @@ const propTypes = {
     /** Information about the user accepting the terms for payments */
     walletTerms: walletTermsPropTypes,
 
+    /** Login list for the user that is signed in */
+    loginList: PropTypes.shape({
+        /** Date login was validated, used to show brickroad info status */
+        validatedDate: PropTypes.string,
+
+        /** Field-specific server side errors keyed by microtime */
+        errorFields: PropTypes.objectOf(PropTypes.objectOf(PropTypes.string)),
+    }),
+
+    /** List of policy members */
+    policyMembers: PropTypes.objectOf(policyMemberPropType),
+
     ...withLocalizePropTypes,
     ...withCurrentUserPersonalDetailsPropTypes,
 };
@@ -97,6 +111,10 @@ const defaultProps = {
     reimbursementAccount: {},
     betas: [],
     walletTerms: {},
+    bankAccountList: {},
+    cardList: {},
+    loginList: {},
+    policyMembers: {},
     ...withCurrentUserPersonalDetailsDefaultProps,
 };
 
@@ -151,6 +169,7 @@ class InitialSettingsPage extends React.Component {
                 .filter(policy => policy && policy.type === CONST.POLICY.TYPE.FREE && policy.role === CONST.POLICY.ROLE.ADMIN)
                 .some(policy => PolicyUtils.hasPolicyError(policy) || PolicyUtils.getPolicyBrickRoadIndicatorStatus(policy, this.props.policyMembers))
                 .value()) ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : null;
+        const profileBrickRoadIndicator = UserUtils.getLoginListBrickRoadIndicator(this.props.loginList);
 
         return ([
             {
@@ -165,6 +184,7 @@ class InitialSettingsPage extends React.Component {
                 translationKey: 'common.profile',
                 icon: Expensicons.Profile,
                 action: () => { App.openProfile(); },
+                brickRoadIndicator: profileBrickRoadIndicator,
             },
             {
                 translationKey: 'common.preferences',
@@ -215,7 +235,6 @@ class InitialSettingsPage extends React.Component {
                 iconType={item.iconType}
                 onPress={item.action}
                 iconStyles={item.iconStyles}
-                iconFill={item.iconFill}
                 shouldShowRightIcon
                 iconRight={item.iconRight}
                 badgeText={this.getWalletBalance(isPaymentItem)}
@@ -280,14 +299,14 @@ class InitialSettingsPage extends React.Component {
 
                                     <Pressable style={[styles.mt1, styles.mw100]} onPress={this.openProfileSettings}>
                                         <Tooltip text={this.props.translate('common.profile')}>
-                                            <Text style={[styles.textHeadline]} numberOfLines={1}>
+                                            <Text style={[styles.textHeadline, styles.pre]} numberOfLines={1}>
                                                 {this.props.currentUserPersonalDetails.displayName
                                                     ? this.props.currentUserPersonalDetails.displayName
                                                     : Str.removeSMSDomain(this.props.session.email)}
                                             </Text>
                                         </Tooltip>
                                     </Pressable>
-                                    {this.props.currentUserPersonalDetails.displayName && (
+                                    {Boolean(this.props.currentUserPersonalDetails.displayName) && (
                                         <Text
                                             style={[styles.textLabelSupporting, styles.mt1]}
                                             numberOfLines={1}
@@ -350,6 +369,9 @@ export default compose(
         },
         walletTerms: {
             key: ONYXKEYS.WALLET_TERMS,
+        },
+        loginList: {
+            key: ONYXKEYS.LOGIN_LIST,
         },
     }),
     withNetwork(),

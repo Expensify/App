@@ -9,6 +9,7 @@ import withLocalize, {withLocalizePropTypes} from '../../../../components/withLo
 import PopoverWithMeasuredContent from '../../../../components/PopoverWithMeasuredContent';
 import BaseReportActionContextMenu from './BaseReportActionContextMenu';
 import ConfirmModal from '../../../../components/ConfirmModal';
+import CONST from '../../../../CONST';
 
 const propTypes = {
     ...withLocalizePropTypes,
@@ -69,8 +70,8 @@ class PopoverReportActionContextMenu extends React.Component {
     }
 
     shouldComponentUpdate(nextProps, nextState) {
-        const previousLocale = lodashGet(this.props, 'preferredLocale', 'en');
-        const nextLocale = lodashGet(nextProps, 'preferredLocale', 'en');
+        const previousLocale = lodashGet(this.props, 'preferredLocale', CONST.LOCALES.DEFAULT);
+        const nextLocale = lodashGet(nextProps, 'preferredLocale', CONST.LOCALES.DEFAULT);
         return this.state.isPopoverVisible !== nextState.isPopoverVisible
             || this.state.popoverAnchorPosition !== nextState.popoverAnchorPosition
             || this.state.isDeleteCommentConfirmModalVisible !== nextState.isDeleteCommentConfirmModalVisible
@@ -146,11 +147,9 @@ class PopoverReportActionContextMenu extends React.Component {
         // But it is possible that every new request registers new callbacks thus instanceID is used to corelate those callbacks
         this.instanceID = Math.random().toString(36).substr(2, 5);
 
-        // Register the onHide callback only when Popover is shown to remove the race conditions when there are mutltiple popover open requests
-        this.onPopoverShow = () => {
-            onShow();
-            this.onPopoverHide = onHide;
-        };
+        this.onPopoverShow = onShow;
+        this.onPopoverHide = onHide;
+
         this.getContextMenuMeasuredLocation().then(({x, y}) => {
             this.setState({
                 cursorRelativePosition: {

@@ -13,18 +13,19 @@ import Bolt from '../../../assets/images/bolt.svg';
 import Briefcase from '../../../assets/images/briefcase.svg';
 import Bug from '../../../assets/images/bug.svg';
 import Building from '../../../assets/images/building.svg';
+import Calendar from '../../../assets/images/calendar.svg';
 import Camera from '../../../assets/images/camera.svg';
 import Cash from '../../../assets/images/cash.svg';
 import ChatBubble from '../../../assets/images/chatbubble.svg';
 import Checkmark from '../../../assets/images/checkmark.svg';
 import Chair from '../../../assets/images/chair.svg';
-import Clipboard from '../../../assets/images/clipboard.svg';
 import Close from '../../../assets/images/close.svg';
 import ClosedSign from '../../../assets/images/closed-sign.svg';
 import Collapse from '../../../assets/images/collapse.svg';
 import Concierge from '../../../assets/images/concierge.svg';
 import ConciergeAvatar from '../../../assets/images/avatars/concierge-avatar.svg';
 import Connect from '../../../assets/images/connect.svg';
+import Copy from '../../../assets/images/copy.svg';
 import CreditCard from '../../../assets/images/creditcard.svg';
 import Document from '../../../assets/images/document.svg';
 import DeletedRoomAvatar from '../../../assets/images/avatars/deleted-room.svg';
@@ -46,7 +47,8 @@ import Globe from '../../../assets/images/globe.svg';
 import Hashtag from '../../../assets/images/hashtag.svg';
 import History from '../../../assets/images/history.svg';
 import Hourglass from '../../../assets/images/hourglass.svg';
-import ImageCropMask from '../../../assets/images/image-crop-mask.svg';
+import ImageCropCircleMask from '../../../assets/images/image-crop-circle-mask.svg';
+import ImageCropSquareMask from '../../../assets/images/image-crop-square-mask.svg';
 import Info from '../../../assets/images/info.svg';
 import Invoice from '../../../assets/images/invoice.svg';
 import Key from '../../../assets/images/key.svg';
@@ -125,18 +127,19 @@ export {
     Briefcase,
     Bug,
     Building,
+    Calendar,
     Camera,
     Cash,
     ChatBubble,
     Checkmark,
     Chair,
-    Clipboard,
     Close,
     ClosedSign,
     Collapse,
     Concierge,
     ConciergeAvatar,
     Connect,
+    Copy,
     CreditCard,
     DeletedRoomAvatar,
     Document,
@@ -163,7 +166,8 @@ export {
     Hashtag,
     History,
     Hourglass,
-    ImageCropMask,
+    ImageCropCircleMask,
+    ImageCropSquareMask,
     Info,
     Invoice,
     Key,

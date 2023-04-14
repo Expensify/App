@@ -42,10 +42,10 @@ const personalDetailsPropTypes = PropTypes.shape({
 
 const propTypes = {
     /** Beta features list */
-    betas: PropTypes.arrayOf(PropTypes.string).isRequired,
+    betas: PropTypes.arrayOf(PropTypes.string),
 
     /** All of the personal details for everyone */
-    personalDetails: PropTypes.objectOf(personalDetailsPropTypes).isRequired,
+    personalDetails: PropTypes.objectOf(personalDetailsPropTypes),
 
     /** URL Route params */
     route: PropTypes.shape({
@@ -61,7 +61,11 @@ const propTypes = {
     network: networkPropTypes.isRequired,
 };
 
-const defaultProps = policyDefaultProps;
+const defaultProps = {
+    personalDetails: {},
+    betas: [],
+    ...policyDefaultProps,
+};
 
 class WorkspaceInvitePage extends React.Component {
     constructor(props) {
@@ -268,7 +272,7 @@ class WorkspaceInvitePage extends React.Component {
         this.setState({shouldDisableButton: true}, () => {
             const logins = _.map(this.state.selectedOptions, option => option.login);
             const filteredLogins = _.uniq(_.compact(_.map(logins, login => login.toLowerCase().trim())));
-            Policy.addMembersToWorkspace(filteredLogins, this.state.welcomeNote || this.getWelcomeNote(), this.props.route.params.policyID);
+            Policy.addMembersToWorkspace(filteredLogins, this.state.welcomeNote, this.props.route.params.policyID);
             Navigation.goBack();
         });
     }

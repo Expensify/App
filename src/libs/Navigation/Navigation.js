@@ -12,6 +12,7 @@ import ONYXKEYS from '../../ONYXKEYS';
 import linkingConfig from './linkingConfig';
 import navigationRef from './navigationRef';
 import SCREENS from '../../SCREENS';
+import dismissKeyboardGoingBack from './dismissKeyboardGoingBack';
 
 let resolveNavigationIsReadyPromise;
 const navigationIsReadyPromise = new Promise((resolve) => {
@@ -24,13 +25,12 @@ let drawerIsReadyPromise = new Promise((resolve) => {
 });
 
 let resolveReportScreenIsReadyPromise;
-const reportScreenIsReadyPromise = new Promise((resolve) => {
+let reportScreenIsReadyPromise = new Promise((resolve) => {
     resolveReportScreenIsReadyPromise = resolve;
 });
 
 let isLoggedIn = false;
 let pendingRoute = null;
-let isNavigating = false;
 
 Onyx.connect({
     key: ONYXKEYS.SESSION,
@@ -56,25 +56,11 @@ function setDidTapNotification() {
  * @returns {Boolean}
  */
 function canNavigate(methodName, params = {}) {
-    if (navigationRef.isReady() && !isNavigating) {
+    if (navigationRef.isReady()) {
         return true;
     }
-
-    if (isNavigating) {
-        Log.hmmm(`[Navigation] ${methodName} failed because navigation is progress`, params);
-        return false;
-    }
-
     Log.hmmm(`[Navigation] ${methodName} failed because navigation ref was not yet ready`, params);
     return false;
-}
-
-/**
- * Sets Navigation State
- * @param {Boolean} isNavigatingValue
- */
-function setIsNavigating(isNavigatingValue) {
-    isNavigating = isNavigatingValue;
 }
 
 /**
@@ -129,7 +115,6 @@ function goBack(shouldOpenDrawer = true) {
         }
         return;
     }
-
     navigationRef.current.goBack();
 }
 
@@ -184,6 +169,19 @@ function navigate(route = ROUTES.HOME) {
     }
 
     linkTo(navigationRef.current, route);
+}
+
+/**
+ * Update route params for the specified route.
+ *
+ * @param {Object} params
+ * @param {String} routeKey
+ */
+function setParams(params, routeKey) {
+    navigationRef.current.dispatch({
+        ...CommonActions.setParams(params),
+        source: routeKey,
+    });
 }
 
 /**
@@ -268,6 +266,12 @@ function setIsNavigationReady() {
     resolveNavigationIsReadyPromise();
 }
 
+function resetIsReportScreenReadyPromise() {
+    reportScreenIsReadyPromise = new Promise((resolve) => {
+        resolveReportScreenIsReadyPromise = resolve;
+    });
+}
+
 /**
  * @returns {Promise}
  */
@@ -293,9 +297,26 @@ function setIsReportScreenIsReady() {
     resolveReportScreenIsReadyPromise();
 }
 
+/**
+ * Navigation function with additional logic to dismiss the opened keyboard
+ *
+ * Navigation events are not fired when we navigate to an existing screen in the navigation stack,
+ * that is why we need to manipulate closing keyboard manually
+ * @param {string} backRoute - Name of the screen to navigate the user to
+ */
+function drawerGoBack(backRoute) {
+    dismissKeyboardGoingBack();
+    if (!backRoute) {
+        goBack();
+        return;
+    }
+    navigate(backRoute);
+}
+
 export default {
     canNavigate,
     navigate,
+    setParams,
     dismissModal,
     isActiveRoute,
     getActiveRoute,
@@ -309,10 +330,11 @@ export default {
     isDrawerReady,
     setIsDrawerReady,
     resetDrawerIsReadyPromise,
+    resetIsReportScreenReadyPromise,
     isDrawerRoute,
-    setIsNavigating,
     isReportScreenReady,
     setIsReportScreenIsReady,
+    drawerGoBack,
 };
 
 export {

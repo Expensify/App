@@ -275,6 +275,8 @@ class BaseOptionsSelector extends Component {
                 label={this.props.textInputLabel}
                 onChangeText={this.props.onChangeText}
                 placeholder={this.props.placeholderText}
+                maxLength={this.props.maxLength}
+                keyboardType={this.props.keyboardType}
                 onBlur={(e) => {
                     if (!this.props.shouldFocusOnSelectRow) {
                         return;

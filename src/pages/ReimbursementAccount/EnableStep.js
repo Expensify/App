@@ -2,6 +2,7 @@ import React from 'react';
 import _ from 'underscore';
 import {ScrollView} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
+import PropTypes from 'prop-types';
 import lodashGet from 'lodash/get';
 import styles from '../../styles/styles';
 import withLocalize, {withLocalizePropTypes} from '../../components/withLocalize';
@@ -31,9 +32,17 @@ const propTypes = {
     reimbursementAccount: ReimbursementAccountProps.reimbursementAccountPropTypes.isRequired,
 
     /* Onyx Props */
-    user: userPropTypes.isRequired,
+    user: userPropTypes,
+
+    /* The workspace name */
+    policyName: PropTypes.string,
 
     ...withLocalizePropTypes,
+};
+
+const defaultProps = {
+    user: {},
+    policyName: '',
 };
 
 const EnableStep = (props) => {
@@ -53,6 +62,7 @@ const EnableStep = (props) => {
         <ScreenWrapper style={[styles.flex1, styles.justifyContentBetween]} includeSafeAreaPaddingBottom={false}>
             <HeaderWithCloseButton
                 title={props.translate('workspace.common.bankAccount')}
+                subtitle={props.policyName}
                 onCloseButtonPress={Navigation.dismissModal}
                 shouldShowGetAssistanceButton
                 guidesCallTaskID={CONST.GUIDES_CALL_TASK_IDS.WORKSPACE_BANK_ACCOUNT}
@@ -110,7 +120,7 @@ const EnableStep = (props) => {
                         />
                     </OfflineWithFeedback>
                 </Section>
-                {props.user.isCheckingDomain && (
+                {Boolean(props.user.isCheckingDomain) && (
                     <Text style={[styles.formError, styles.mh5]}>
                         {props.translate('workspace.card.checkingDomain')}
                     </Text>
@@ -127,6 +137,7 @@ const EnableStep = (props) => {
 
 EnableStep.displayName = 'EnableStep';
 EnableStep.propTypes = propTypes;
+EnableStep.defaultProps = defaultProps;
 
 export default compose(
     withLocalize,

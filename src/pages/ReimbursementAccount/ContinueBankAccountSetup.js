@@ -1,8 +1,8 @@
-import lodashGet from 'lodash/get';
 import PropTypes from 'prop-types';
 import React from 'react';
 import {ScrollView} from 'react-native';
 import _ from 'underscore';
+import lodashGet from 'lodash/get';
 import * as Expensicons from '../../components/Icon/Expensicons';
 import * as Illustrations from '../../components/Icon/Illustrations';
 import withLocalize, {withLocalizePropTypes} from '../../components/withLocalize';
@@ -35,8 +35,13 @@ const propTypes = {
         name: PropTypes.string,
     }).isRequired,
 
+    /* The workspace name */
+    policyName: PropTypes.string,
+
     ...withLocalizePropTypes,
 };
+
+const defaultProps = {policyName: ''};
 
 const ContinueBankAccountSetup = (props) => {
     const errors = lodashGet(props.reimbursementAccount, 'errors', {});
@@ -46,7 +51,7 @@ const ContinueBankAccountSetup = (props) => {
             <FullPageNotFoundView shouldShow={_.isEmpty(props.policy)}>
                 <HeaderWithCloseButton
                     title={props.translate('workspace.common.bankAccount')}
-                    subtitle={lodashGet(props.policy, 'name')}
+                    subtitle={props.policyName}
                     onCloseButtonPress={Navigation.dismissModal}
                     onBackButtonPress={Navigation.goBack}
                     shouldShowGetAssistanceButton
@@ -101,6 +106,7 @@ const ContinueBankAccountSetup = (props) => {
 };
 
 ContinueBankAccountSetup.propTypes = propTypes;
+ContinueBankAccountSetup.defaultProps = defaultProps;
 ContinueBankAccountSetup.displayName = 'ContinueBankAccountSetup';
 
 export default compose(
