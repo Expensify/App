@@ -37,7 +37,6 @@ class Tooltip extends PureComponent {
         this.getWrapperPosition = this.getWrapperPosition.bind(this);
         this.showTooltip = this.showTooltip.bind(this);
         this.hideTooltip = this.hideTooltip.bind(this);
-        this.isFocusable = this.isFocusable.bind(this);
     }
 
     componentDidUpdate(prevProps) {
@@ -142,17 +141,6 @@ class Tooltip extends PureComponent {
         TooltipSense.deactivate();
     }
 
-    /**
-     * Returns true if children is a focusable component.
-     *
-     * @returns {Boolean}
-     */
-    isFocusable() {
-        const name = this.props.children.type.displayName;
-        const isPressableText = name === 'Text' && Boolean(this.props.children.props.onPress);
-        return isPressableText || ['TouchableOpacity', 'Pressable', 'TouchableWithoutFeedback'].includes(name);
-    }
-
     render() {
         // Skip the tooltip and return the children if the text is empty,
         // we don't have a render function or the device does not support hovering
@@ -174,16 +162,6 @@ class Tooltip extends PureComponent {
                     ref(el);
                 }
             },
-            onBlur: (el) => {
-                this.hideTooltip();
-
-                // Call the original onBlur, if any
-                const {onBlur} = this.props.children;
-                if (_.isFunction(onBlur)) {
-                    onBlur(el);
-                }
-            },
-            focusable: this.isFocusable(),
         });
 
         return (
