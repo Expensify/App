@@ -4,6 +4,7 @@ import PropTypes from 'prop-types';
 import moment from 'moment';
 import _ from 'underscore';
 import lodashGet from 'lodash/get';
+import Str from 'expensify-common/lib/str';
 import getNavigationModalCardStyle from '../../../styles/getNavigationModalCardStyles';
 import withWindowDimensions, {windowDimensionsPropTypes} from '../../../components/withWindowDimensions';
 import CONST from '../../../CONST';
@@ -96,14 +97,18 @@ const defaultProps = {
 };
 
 const stringToBool = (str) => {
-    switch (str.toLowerCase()) {
-        case 'true':
-            return true;
-        case 'false':
-            return false;
-        default:
-            return undefined;
+    if (Str.isString(str)) {
+        switch (str.toLowerCase()) {
+            case 'true':
+                return true;
+            case 'false':
+                return false;
+            default:
+                return undefined;
+        }
     }
+
+    return undefined;
 };
 
 class AuthScreens extends React.Component {
