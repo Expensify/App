@@ -553,7 +553,7 @@ function cancelMoneyRequest(chatReportID, iouReportID, type, moneyRequestAction)
         type,
         amount,
         moneyRequestAction.originalMessage.currency,
-        moneyRequestAction.originalMessage.comment,
+        Str.htmlDecode(moneyRequestAction.originalMessage.comment),
         [],
         '',
         transactionID,
@@ -859,6 +859,13 @@ function getPayMoneyRequestParams(chatReport, iouReport, recipient, paymentMetho
                 [optimisticIOUReportAction.reportActionID]: {
                     pendingAction: null,
                 },
+            },
+        },
+        {
+            onyxMethod: CONST.ONYX.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT}${chatReport.reportID}`,
+            value: {
+                iouReportID: null,
             },
         },
     ];
