@@ -1,15 +1,5 @@
-import PropTypes from 'prop-types';
+const CustomDevMenu = () => {}
 
-const propTypes = {
-    /** Children to wrap in CustomDevMenu */
-    children: PropTypes.node.isRequired,
-};
-
-const CustomDevMenu = props => (
-    props.children
-);
-
-CustomDevMenu.propTypes = propTypes;
 CustomDevMenu.displayName = 'CustomDevMenu';
 
 export default CustomDevMenu;
