@@ -151,19 +151,15 @@ class IOUConfirmationList extends Component {
      * @returns {Array}
      */
     getParticipantsWithAmount(participants) {
+        const iouAmount = IOUUtils.calculateAmount(participants, this.props.iouAmount, this.props.iou.selectedCurrencyCode);
+        const currencyUnits = IOUUtils.getCurrencyUnits(this.props.iou.selectedCurrencyCode);
+
         return OptionsListUtils.getIOUConfirmationOptionsFromParticipants(
             participants,
-            this.props.numberFormat(
-                IOUUtils.calculateAmount(
-                    participants,
-                    this.props.iouAmount,
-                    this.props.iou.selectedCurrencyCode,
-                ) / IOUUtils.getCurrencyUnits(this.props.iou.selectedCurrencyCode),
-                {
-                    style: 'currency',
-                    currency: this.props.iou.selectedCurrencyCode,
-                },
-            ),
+            this.props.numberFormat(iouAmount / currencyUnits, {
+                style: 'currency',
+                currency: this.props.iou.selectedCurrencyCode,
+            }),
         );
     }
 
@@ -192,20 +188,14 @@ class IOUConfirmationList extends Component {
             const formattedUnselectedParticipants = this.getParticipantsWithoutAmount(unselectedParticipants);
             const formattedParticipants = _.union(formattedSelectedParticipants, formattedUnselectedParticipants);
 
+            const myIOUAmount = IOUUtils.calculateAmount(selectedParticipants, this.props.iouAmount, this.props.iou.selectedCurrencyCode, true);
+            const currencyUnits = IOUUtils.getCurrencyUnits(this.props.iou.selectedCurrencyCode);
             const formattedMyPersonalDetails = OptionsListUtils.getIOUConfirmationOptionsFromMyPersonalDetail(
                 this.props.currentUserPersonalDetails,
-                this.props.numberFormat(
-                    IOUUtils.calculateAmount(
-                        selectedParticipants,
-                        this.props.iouAmount,
-                        this.props.iou.selectedCurrencyCode,
-                        true,
-                    ) / IOUUtils.getCurrencyUnits(this.props.iou.selectedCurrencyCode),
-                    {
-                        style: 'currency',
-                        currency: this.props.iou.selectedCurrencyCode,
-                    },
-                ),
+                this.props.numberFormat(myIOUAmount / currencyUnits, {
+                    style: 'currency',
+                    currency: this.props.iou.selectedCurrencyCode,
+                }),
             );
 
             sections.push({
