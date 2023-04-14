@@ -507,7 +507,8 @@ class ReportActionCompose extends React.Component {
                 start: prevState.selection.start + text.length,
                 end: prevState.selection.start + text.length,
             },
-        }), this.updateComment(EmojiUtils.insertEmoji(this.comment, this.state.selection, text)));
+        }));
+        this.updateComment(ReportUtils.insertText(this.comment, this.state.selection, text));
     }
 
     /**

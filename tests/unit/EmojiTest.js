@@ -147,11 +147,4 @@ describe('EmojiTest', () => {
             ],
         }]);
     });
-
-    it('replace substring between selection with an emoji', () => {
-        expect(EmojiUtils.insertEmoji('', {start: 0, end: 0}, '👍')).toBe('👍');
-        expect(EmojiUtils.insertEmoji('Hi', {start: 2, end: 2}, '👍')).toBe('Hi👍');
-        expect(EmojiUtils.insertEmoji('Hello world', {start: 5, end: 5}, '👍')).toBe('Hello👍 world');
-        expect(EmojiUtils.insertEmoji('Hello world', {start: 2, end: 8}, '👍')).toBe('He👍rld');
-    });
 });

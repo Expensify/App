@@ -1707,6 +1707,17 @@ function canLeaveRoom(report, isPolicyMember) {
     return true;
 }
 
+/**
+ * Replace substring between selection with a text.
+ * @param {String} text
+ * @param {Object} selection
+ * @param {String} emoji
+ * @returns {String}
+ */
+function insertText(text, selection, textToInsert) {
+    return text.slice(0, selection.start) + textToInsert + text.slice(selection.end, text.length);
+}
+
 export {
     getReportParticipantsTitle,
     isReportMessageAttachment,
@@ -1775,4 +1786,5 @@ export {
     getSmallSizeAvatar,
     getMoneyRequestOptions,
     canRequestMoney,
+    insertText,
 };

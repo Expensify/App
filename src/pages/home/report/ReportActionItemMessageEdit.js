@@ -235,7 +235,7 @@ class ReportActionItemMessageEdit extends React.Component {
                 end: prevState.selection.start + emoji.length,
             },
         }));
-        this.updateDraft(EmojiUtils.insertEmoji(this.state.draft, this.state.selection, emoji));
+        this.updateDraft(ReportUtils.insertText(this.state.draft, this.state.selection, emoji));
     }
 
     /**
