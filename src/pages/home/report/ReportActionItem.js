@@ -98,7 +98,9 @@ class ReportActionItem extends Component {
             || this.props.hasOutstandingIOU !== nextProps.hasOutstandingIOU
             || this.props.shouldDisplayNewMarker !== nextProps.shouldDisplayNewMarker
             || !_.isEqual(this.props.action, nextProps.action)
-            || this.state.isContextMenuActive !== nextState.isContextMenuActive;
+            || this.state.isContextMenuActive !== nextState.isContextMenuActive
+            || lodashGet(this.props.report, 'statusNum') !== lodashGet(nextProps.report, 'statusNum')
+            || lodashGet(this.props.report, 'stateNum') !== lodashGet(nextProps.report, 'stateNum');
     }
 
     componentDidUpdate(prevProps) {

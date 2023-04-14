@@ -1,3 +1,4 @@
+import PropTypes from 'prop-types';
 import {View} from 'react-native';
 import React from 'react';
 import _ from 'underscore';
@@ -13,16 +14,37 @@ import Licenses from '../Licenses';
 import Socials from '../Socials';
 import Hoverable from '../../../components/Hoverable';
 import CONST from '../../../CONST';
-import Navigation from '../../../libs/Navigation/Navigation';
+import Navigation, {navigationRef} from '../../../libs/Navigation/Navigation';
 import * as Session from '../../../libs/actions/Session';
+import screens from '../../../SCREENS';
 
 const propTypes = {
+    scrollViewRef: PropTypes.shape({
+        // eslint-disable-next-line react/forbid-prop-types
+        current: PropTypes.any,
+    }),
     ...windowDimensionsPropTypes,
     ...withLocalizePropTypes,
 };
 
-const navigateHome = () => {
-    Navigation.navigate();
+const defaultProps = {
+    scrollViewRef: undefined,
+};
+
+const navigateHome = (scrollViewRef) => {
+    const currentRoute = navigationRef.current.getCurrentRoute();
+    if (
+        currentRoute.name === screens.HOME
+        && scrollViewRef
+        && scrollViewRef.current
+    ) {
+        scrollViewRef.current.scrollTo({
+            y: 0,
+            animated: true,
+        });
+    } else {
+        Navigation.navigate();
+    }
 
     // We need to clear sign in data in case the user is already in the ValidateCodeForm or PasswordForm pages
     Session.clearSignInData();
@@ -174,7 +196,7 @@ const Footer = (props) => {
                                                 <TextLink
                                                     style={[styles.footerRow, hovered ? styles.textBlue : {}]}
                                                     href={row.link}
-                                                    onPress={row.onPress}
+                                                    onPress={row.onPress ? () => row.onPress(props.scrollViewRef) : undefined}
                                                 >
                                                     {props.translate(row.translationPath)}
                                                 </TextLink>
@@ -211,6 +233,7 @@ const Footer = (props) => {
 
 Footer.propTypes = propTypes;
 Footer.displayName = 'Footer';
+Footer.defaultProps = defaultProps;
 
 export default compose(
     withLocalize,
