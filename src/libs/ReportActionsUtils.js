@@ -45,7 +45,7 @@ function isDeletedAction(reportAction) {
  * @returns {Boolean}
  */
 function isMoneyRequestAction(reportAction) {
-    return reportAction.actionName === CONST.REPORT.ACTIONS.TYPE.IOU;
+    return lodashGet(reportAction, 'actionName', '') === CONST.REPORT.ACTIONS.TYPE.IOU;
 }
 
 /**
