@@ -118,7 +118,7 @@ class ScreenWrapper extends React.Component {
                                 paddingStyle,
                             ]}
                             // eslint-disable-next-line react/jsx-props-no-spreading
-                            {...(this.props.environment === CONST.ENVIRONMENT.DEV) ? this.panResponder.panHandlers : {}}
+                            {...(this.props.environment === CONST.ENVIRONMENT.DEV ? this.panResponder.panHandlers : {})}
                         >
                             <KeyboardAvoidingView style={[styles.w100, styles.h100, {maxHeight: this.props.windowHeight}]} behavior={this.props.keyboardAvoidingViewBehavior}>
                                 <HeaderGap />
