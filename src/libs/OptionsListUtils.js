@@ -11,6 +11,7 @@ import Permissions from './Permissions';
 import * as CollectionUtils from './CollectionUtils';
 import Navigation from './Navigation/Navigation';
 import * as LoginUtils from './LoginUtils';
+import * as LocalePhoneNumber from './LocalePhoneNumber';
 
 /**
  * OptionsListUtils is used to build a list options passed to the OptionsList component. Several different UI views can
@@ -112,7 +113,7 @@ function getPersonalDetailsForLogins(logins, personalDetails) {
             if (!personalDetail) {
                 personalDetail = {
                     login,
-                    displayName: Str.removeSMSDomain(login),
+                    displayName: LocalePhoneNumber.formatPhoneNumber(login),
                     avatar: ReportUtils.getDefaultAvatar(login),
                 };
             }
@@ -357,13 +358,13 @@ function createOption(logins, personalDetails, report, reportActions = {}, {
         } else {
             result.alternateText = (showChatPreviewLine && lastMessageText)
                 ? lastMessageText
-                : Str.removeSMSDomain(personalDetail.login);
+                : LocalePhoneNumber.formatPhoneNumber(personalDetail.login);
         }
         reportName = ReportUtils.getReportName(report, policies);
     } else {
         reportName = ReportUtils.getDisplayNameForParticipant(logins[0]);
         result.keyForList = personalDetail.login;
-        result.alternateText = Str.removeSMSDomain(personalDetail.login);
+        result.alternateText = LocalePhoneNumber.formatPhoneNumber(personalDetail.login);
     }
 
     result.isIOUReportOwner = ReportUtils.isIOUOwnedByCurrentUser(result, iouReports);

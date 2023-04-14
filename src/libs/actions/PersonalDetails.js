@@ -6,6 +6,7 @@ import ONYXKEYS from '../../ONYXKEYS';
 import CONST from '../../CONST';
 import * as API from '../API';
 import * as ReportUtils from '../ReportUtils';
+import * as LocalePhoneNumber from '../LocalePhoneNumber';
 import ROUTES from '../../ROUTES';
 import Navigation from '../Navigation/Navigation';
 
@@ -29,9 +30,9 @@ Onyx.connect({
  * @returns {String}
  */
 function getDisplayName(login, personalDetail) {
-    // If we have a number like +15857527441@expensify.sms then let's remove @expensify.sms
+    // If we have a number like +15857527441@expensify.sms then let's remove @expensify.sms and format it
     // so that the option looks cleaner in our UI.
-    const userLogin = Str.removeSMSDomain(login);
+    const userLogin = LocalePhoneNumber.formatPhoneNumber(login);
     const userDetails = personalDetail || lodashGet(personalDetails, login);
 
     if (!userDetails) {

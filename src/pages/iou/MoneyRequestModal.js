@@ -111,7 +111,7 @@ const MoneyRequestModal = (props) => {
         text: personalDetails.displayName,
         firstName: lodashGet(personalDetails, 'firstName', ''),
         lastName: lodashGet(personalDetails, 'lastName', ''),
-        alternateText: Str.isSMSLogin(personalDetails.login) ? Str.removeSMSDomain(personalDetails.login) : personalDetails.login,
+        alternateText: Str.isSMSLogin(personalDetails.login) ? props.formatPhoneNumber(personalDetails.login) : personalDetails.login,
         icons: [{
             source: ReportUtils.getAvatar(personalDetails.avatar, personalDetails.login),
             name: personalDetails.login,
