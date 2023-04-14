@@ -14,7 +14,9 @@ import ValidateCodeForm from './ValidateCodeForm';
 import ResendValidationForm from './ResendValidationForm';
 import withLocalize, {withLocalizePropTypes} from '../../components/withLocalize';
 import Performance from '../../libs/Performance';
+import * as App from '../../libs/actions/App';
 import Permissions from '../../libs/Permissions';
+import * as Localize from '../../libs/Localize';
 
 const propTypes = {
     /* Onyx Props */
@@ -50,6 +52,8 @@ const defaultProps = {
 class SignInPage extends Component {
     componentDidMount() {
         Performance.measureTTI();
+
+        App.setLocale(Localize.getDevicePreferredLocale());
     }
 
     render() {
@@ -64,7 +68,7 @@ class SignInPage extends Component {
         // - AND a password hasn't been entered yet
         // - AND haven't forgotten password
         // - AND the user is NOT on the passwordless beta
-        const showPasswordForm = this.props.credentials.login
+        const showPasswordForm = Boolean(this.props.credentials.login)
             && this.props.account.validated
             && !this.props.credentials.password
             && !this.props.account.forgotPassword
@@ -81,7 +85,7 @@ class SignInPage extends Component {
         // - A login has been entered
         // - AND is not validated or password is forgotten
         // - AND user is not on 'passwordless' beta
-        const showResendValidationForm = this.props.credentials.login
+        const showResendValidationForm = Boolean(this.props.credentials.login)
             && (!this.props.account.validated || this.props.account.forgotPassword)
             && !Permissions.canUsePasswordlessLogins(this.props.betas);
 

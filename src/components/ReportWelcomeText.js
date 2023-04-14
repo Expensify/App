@@ -132,7 +132,7 @@ const ReportWelcomeText = (props) => {
                         ))}
                     </Text>
                 )}
-                {(menuItemOptions.includes(CONST.IOU.IOU_TYPE.SEND) || menuItemOptions.includes(CONST.IOU.IOU_TYPE.REQUEST)) && (
+                {(menuItemOptions.includes(CONST.IOU.MONEY_REQUEST_TYPE.SEND) || menuItemOptions.includes(CONST.IOU.MONEY_REQUEST_TYPE.REQUEST)) && (
                     <Text>
                         {/* Need to confirm copy for the below with marketing, and then add to translations. */}
                         {props.translate('reportActionsView.usePlusButton')}

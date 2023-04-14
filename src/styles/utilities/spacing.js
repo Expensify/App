@@ -413,8 +413,4 @@ export default {
     pb10Percentage: {
         paddingBottom: '10%',
     },
-
-    gap1: {
-        gap: 4,
-    },
 };

@@ -42,7 +42,7 @@ Onyx.init({keys: ONYXKEYS});
 beforeAll(() => waitForPromisesToResolve()
     .then(() => Onyx.set(ONYXKEYS.PERSONAL_DETAILS, participantsPersonalDetails))
     .then(() => Onyx.set(ONYXKEYS.SESSION, {email: currentUserEmail})));
-beforeEach(() => Onyx.set(ONYXKEYS.NVP_PREFERRED_LOCALE, CONST.DEFAULT_LOCALE).then(waitForPromisesToResolve));
+beforeEach(() => Onyx.set(ONYXKEYS.NVP_PREFERRED_LOCALE, CONST.LOCALES.DEFAULT).then(waitForPromisesToResolve));
 
 describe('ReportUtils', () => {
     describe('getDisplayNamesWithTooltips', () => {
@@ -143,7 +143,7 @@ describe('ReportUtils', () => {
 
                 expect(ReportUtils.getReportName(archivedAdminsRoom)).toBe('#admins (archived)');
 
-                return Onyx.set(ONYXKEYS.NVP_PREFERRED_LOCALE, 'es')
+                return Onyx.set(ONYXKEYS.NVP_PREFERRED_LOCALE, CONST.LOCALES.ES)
                     .then(() => expect(ReportUtils.getReportName(archivedAdminsRoom)).toBe('#admins (archivado)'));
             });
         });
@@ -167,7 +167,7 @@ describe('ReportUtils', () => {
 
                 expect(ReportUtils.getReportName(archivedPolicyRoom)).toBe('#VikingsChat (archived)');
 
-                return Onyx.set(ONYXKEYS.NVP_PREFERRED_LOCALE, 'es')
+                return Onyx.set(ONYXKEYS.NVP_PREFERRED_LOCALE, CONST.LOCALES.ES)
                     .then(() => expect(ReportUtils.getReportName(archivedPolicyRoom)).toBe('#VikingsChat (archivado)'));
             });
         });
@@ -211,7 +211,7 @@ describe('ReportUtils', () => {
 
                     expect(ReportUtils.getReportName(memberArchivedPolicyExpenseChat, policies)).toBe('Vikings Policy (archived)');
 
-                    return Onyx.set(ONYXKEYS.NVP_PREFERRED_LOCALE, 'es')
+                    return Onyx.set(ONYXKEYS.NVP_PREFERRED_LOCALE, CONST.LOCALES.ES)
                         .then(() => expect(ReportUtils.getReportName(memberArchivedPolicyExpenseChat, policies)).toBe('Vikings Policy (archivado)'));
                 });
 
@@ -223,7 +223,7 @@ describe('ReportUtils', () => {
 
                     expect(ReportUtils.getReportName(adminArchivedPolicyExpenseChat)).toBe('Ragnar Lothbrok (archived)');
 
-                    return Onyx.set(ONYXKEYS.NVP_PREFERRED_LOCALE, 'es')
+                    return Onyx.set(ONYXKEYS.NVP_PREFERRED_LOCALE, CONST.LOCALES.ES)
                         .then(() => expect(ReportUtils.getReportName(adminArchivedPolicyExpenseChat)).toBe('Ragnar Lothbrok (archivado)'));
                 });
             });
@@ -353,17 +353,16 @@ describe('ReportUtils', () => {
                         ...LHNTestUtils.getFakeReport(),
                         chatType,
                     };
-                    const moneyRequestOptions = ReportUtils.getMenuItemOptions(report, [currentUserEmail, participants[0]], [CONST.BETAS.IOU]);
-                    return moneyRequestOptions.length === 1 && moneyRequestOptions.includes(CONST.IOU.IOU_TYPE.SPLIT);
+                    const menuItemOptions = ReportUtils.getMenuItemOptions(report, [currentUserEmail, participants[0]], [CONST.BETAS.IOU]);
+                    return menuItemOptions.length === 1 && menuItemOptions.includes(CONST.IOU.MONEY_REQUEST_TYPE.SPLIT);
                 });
                 expect(onlyHaveSplitOption).toBe(true);
             });
 
             it('has multiple participants exclude self', () => {
-                const menuItemOptions = ReportUtils.getMenuItemOptions({}, [currentUserEmail, ...participants], [CONST.BETAS.IOU, CONST.BETAS.TASKS]);
-                expect(menuItemOptions.length).toBe(2);
-                expect(menuItemOptions.includes(CONST.IOU.IOU_TYPE.SPLIT)).toBe(true);
-                expect(menuItemOptions.includes(CONST.REPORT.TYPE.TASK)).toBe(true);
+                const menuItemOptions = ReportUtils.getMenuItemOptions({}, [currentUserEmail, ...participants], [CONST.BETAS.IOU]);
+                expect(menuItemOptions.length).toBe(1);
+                expect(menuItemOptions.includes(CONST.IOU.MONEY_REQUEST_TYPE.SPLIT)).toBe(true);
             });
         });
 
@@ -371,7 +370,7 @@ describe('ReportUtils', () => {
             it(' does not have iou send permission', () => {
                 const menuItemOptions = ReportUtils.getMenuItemOptions({}, [currentUserEmail, participants], [CONST.BETAS.IOU]);
                 expect(menuItemOptions.length).toBe(1);
-                expect(menuItemOptions.includes(CONST.IOU.IOU_TYPE.REQUEST)).toBe(true);
+                expect(menuItemOptions.includes(CONST.IOU.MONEY_REQUEST_TYPE.REQUEST)).toBe(true);
             });
 
             it('a policy expense chat', () => {
@@ -380,18 +379,36 @@ describe('ReportUtils', () => {
                     chatType: CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT,
                     isOwnPolicyExpenseChat: true,
                 };
-                const menuItemOptions = ReportUtils.getMenuItemOptions(report, [currentUserEmail, participants], [CONST.BETAS.IOU, CONST.BETAS.IOU_SEND, CONST.BETAS.TASKS]);
-                expect(menuItemOptions.length).toBe(2);
-                expect(menuItemOptions.includes(CONST.IOU.IOU_TYPE.REQUEST)).toBe(true);
+                const menuItemOptions = ReportUtils.getMenuItemOptions(report, [currentUserEmail, participants], [CONST.BETAS.IOU, CONST.BETAS.IOU_SEND]);
+                expect(menuItemOptions.length).toBe(1);
+                expect(menuItemOptions.includes(CONST.IOU.MONEY_REQUEST_TYPE.REQUEST)).toBe(true);
+            });
+        });
+
+        describe('return only task option if', () => {
+            it('only has task permission', () => {
+                const menuItemOptions = ReportUtils.getMenuItemOptions({}, [currentUserEmail, participants], [CONST.BETAS.TASKS]);
+                expect(menuItemOptions.length).toBe(1);
+                expect(menuItemOptions.includes(CONST.REPORT.TYPE.TASK)).toBe(true);
+            });
+
+            it('a policy expense chat', () => {
+                const report = {
+                    ...LHNTestUtils.getFakeReport(),
+                    chatType: CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT,
+                    isOwnPolicyExpenseChat: true,
+                };
+                const menuItemOptions = ReportUtils.getMenuItemOptions(report, [currentUserEmail, participants], [CONST.BETAS.TASKS]);
+                expect(menuItemOptions.length).toBe(1);
                 expect(menuItemOptions.includes(CONST.REPORT.TYPE.TASK)).toBe(true);
             });
         });
 
-        it('return iou send, request money, and task', () => {
+        it('return iou send, request money, and assign task', () => {
             const menuItemOptions = ReportUtils.getMenuItemOptions({}, [currentUserEmail, participants], [CONST.BETAS.IOU, CONST.BETAS.IOU_SEND, CONST.BETAS.TASKS]);
             expect(menuItemOptions.length).toBe(3);
-            expect(menuItemOptions.includes(CONST.IOU.IOU_TYPE.REQUEST)).toBe(true);
-            expect(menuItemOptions.includes(CONST.IOU.IOU_TYPE.SEND)).toBe(true);
+            expect(menuItemOptions.includes(CONST.IOU.MONEY_REQUEST_TYPE.REQUEST)).toBe(true);
+            expect(menuItemOptions.includes(CONST.IOU.MONEY_REQUEST_TYPE.SEND)).toBe(true);
             expect(menuItemOptions.includes(CONST.REPORT.TYPE.TASK)).toBe(true);
         });
     });
