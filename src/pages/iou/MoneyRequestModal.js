@@ -113,7 +113,7 @@ const MoneyRequestModal = (props) => {
     const prevCreatingIOUTransactionStatusRef = useRef(lodashGet(props.iou, 'creatingIOUTransaction'));
     const prevNetworkStatusRef = useRef(props.network.isOffline);
 
-    const [previousStepIndex, setPreviousStepIndex] = useState(0);
+    const [previousStepIndex, setPreviousStepIndex] = useState(-1);
     const [currentStepIndex, setCurrentStepIndex] = useState(0);
     const [selectedOptions, setSelectedOptions] = useState(
         ReportUtils.isPolicyExpenseChat(props.report)
@@ -195,6 +195,10 @@ const MoneyRequestModal = (props) => {
      */
     const titleForStep = useMemo(() => {
         if (currentStepIndex === 0) {
+            const confirmIndex = _.indexOf(steps, Steps.MoneyRequestConfirm);
+            if (previousStepIndex === confirmIndex) {
+                return props.translate('iou.amount');
+            }
             if (props.iouType === CONST.IOU.MONEY_REQUEST_TYPE.SEND) {
                 return props.translate('iou.sendMoney');
             }
@@ -227,7 +231,7 @@ const MoneyRequestModal = (props) => {
      * Navigate to the previous request step if possible
      */
     const navigateToPreviousStep = useCallback(() => {
-        if (currentStepIndex <= 0) {
+        if (currentStepIndex <= 0 && previousStepIndex < 0) {
             return;
         }
 
@@ -351,10 +355,18 @@ const MoneyRequestModal = (props) => {
     }, [amount, props.iou.comment, props.currentUserPersonalDetails.login, props.hasMultipleParticipants, props.iou.selectedCurrencyCode, props.preferredLocale, props.report, props.route]);
 
     const currentStep = steps[currentStepIndex];
+    const moneyRequestStepIndex = _.indexOf(steps, Steps.MoneyRequestConfirm);
+    const isEditingAmountAfterConfirm = currentStepIndex === 0 && previousStepIndex === _.indexOf(steps, Steps.MoneyRequestConfirm);
     const reportID = lodashGet(props, 'route.params.reportID', '');
-    const shouldShowBackButton = currentStepIndex > 0;
-    const modalHeader = <ModalHeader title={titleForStep} shouldShowBackButton={shouldShowBackButton} onBackButtonPress={navigateToPreviousStep} />;
-    const amountButtonText = previousStepIndex === _.indexOf(steps, Steps.MoneyRequestConfirm) ? props.translate('common.save') : props.translate('common.next');
+    const shouldShowBackButton = currentStepIndex > 0 || isEditingAmountAfterConfirm;
+    const modalHeader = (
+        <ModalHeader
+            title={titleForStep}
+            shouldShowBackButton={shouldShowBackButton}
+            onBackButtonPress={isEditingAmountAfterConfirm ? () => navigateToStep(moneyRequestStepIndex) : navigateToPreviousStep}
+        />
+    );
+    const amountButtonText = isEditingAmountAfterConfirm ? props.translate('common.save') : props.translate('common.next');
     return (
         <ScreenWrapper includeSafeAreaPaddingBottom={false}>
             {({didScreenTransitionEnd, safeAreaPaddingBottomStyle}) => (
