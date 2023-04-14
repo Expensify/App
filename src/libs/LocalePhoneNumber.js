@@ -1,5 +1,6 @@
 import lodashGet from 'lodash/get';
 import Onyx from 'react-native-onyx';
+import Str from 'expensify-common/lib/str';
 import {parsePhoneNumber} from 'awesome-phonenumber';
 import ONYXKEYS from '../ONYXKEYS';
 
@@ -38,7 +39,7 @@ Onyx.connect({
  * @returns {String}
  */
 function formatPhoneNumber(number) {
-    const parsedPhoneNumber = parsePhoneNumber(number);
+    const parsedPhoneNumber = parsePhoneNumber(Str.removeSMSDomain(number));
 
     // return the string untouched if it's not a phone number
     if (!parsedPhoneNumber.valid && !parsedPhoneNumber.possible) {

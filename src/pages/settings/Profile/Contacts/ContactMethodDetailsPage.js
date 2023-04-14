@@ -159,7 +159,7 @@ class ContactMethodDetailsPage extends Component {
 
         // replacing spaces with "hard spaces" to prevent breaking the number
         const formattedContactMethod = Str.isSMSLogin(contactMethod)
-            ? this.props.formatPhoneNumber(Str.removeSMSDomain(contactMethod)).replace(/ /g, '\u00A0')
+            ? this.props.formatPhoneNumber(contactMethod).replace(/ /g, '\u00A0')
             : contactMethod;
 
         const loginData = this.props.loginList[contactMethod];

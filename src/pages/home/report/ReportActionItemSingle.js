@@ -67,7 +67,7 @@ const ReportActionItemSingle = (props) => {
     const personArray = displayName
         ? [{
             type: 'TEXT',
-            text: Str.isSMSLogin(login) ? props.formatPhoneNumber(Str.removeSMSDomain(displayName)) : displayName,
+            text: Str.isSMSLogin(login) ? props.formatPhoneNumber(displayName) : displayName,
         }]
         : props.action.person;
 

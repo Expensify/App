@@ -52,7 +52,7 @@ const ResendValidationForm = (props) => {
 
     // replacing spaces with "hard spaces" to prevent breaking the number
     const login = isSMSLogin
-        ? props.formatPhoneNumber(Str.removeSMSDomain(props.credentials.login)).replace(/ /g, '\u00A0')
+        ? props.formatPhoneNumber(props.credentials.login).replace(/ /g, '\u00A0')
         : props.credentials.login;
 
     const loginType = (isSMSLogin ? props.translate('common.phone') : props.translate('common.email')).toLowerCase();
