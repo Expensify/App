@@ -1,4 +1,4 @@
-import React, {Component} from 'react';
+import React, {useCallback, useRef, useState} from 'react';
 import PropTypes from 'prop-types';
 import {View} from 'react-native';
 import {ScrollView} from 'react-native-gesture-handler';
@@ -52,22 +52,10 @@ const defaultProps = {
     loginList: {},
 };
 
-class NewContactMethodPage extends Component {
-    constructor(props) {
-        super(props);
-
-        this.state = {
-            login: '',
-            password: '',
-        };
-        this.onLoginChange = this.onLoginChange.bind(this);
-        this.validateForm = this.validateForm.bind(this);
-        this.submitForm = this.submitForm.bind(this);
-    }
-
-    onLoginChange(login) {
-        this.setState({login});
-    }
+function NewContactMethodPage(props) {
+    const [login, setLogin] = useState('');
+    const [password, setPassword] = useState('');
+    const loginInputRef = useRef(null);
 
     /**
     * Determine whether the form is valid
