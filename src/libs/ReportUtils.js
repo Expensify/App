@@ -1711,7 +1711,7 @@ function canLeaveRoom(report, isPolicyMember) {
  * Replace substring between selection with a text.
  * @param {String} text
  * @param {Object} selection
- * @param {String} emoji
+ * @param {String} textToInsert
  * @returns {String}
  */
 function insertText(text, selection, textToInsert) {
