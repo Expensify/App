@@ -4,13 +4,13 @@ import PropTypes from 'prop-types';
 import moment from 'moment';
 import _ from 'underscore';
 import lodashGet from 'lodash/get';
-import Str from 'expensify-common/lib/str';
 import getNavigationModalCardStyle from '../../../styles/getNavigationModalCardStyles';
 import withWindowDimensions, {windowDimensionsPropTypes} from '../../../components/withWindowDimensions';
 import CONST from '../../../CONST';
 import compose from '../../compose';
 import * as PersonalDetails from '../../actions/PersonalDetails';
 import * as Pusher from '../../Pusher/pusher';
+import * as ValidationUtils from '../../ValidationUtils';
 import PusherConnectionManager from '../../PusherConnectionManager';
 import ROUTES from '../../../ROUTES';
 import ONYXKEYS from '../../../ONYXKEYS';
@@ -94,21 +94,6 @@ const defaultProps = {
     session: {
         email: null,
     },
-};
-
-const stringToBool = (str) => {
-    if (Str.isString(str)) {
-        switch (str.toLowerCase()) {
-            case 'true':
-                return true;
-            case 'false':
-                return false;
-            default:
-                return undefined;
-        }
-    }
-
-    return undefined;
 };
 
 class AuthScreens extends React.Component {
@@ -215,7 +200,7 @@ class AuthScreens extends React.Component {
                         const MainDrawerNavigator = require('./MainDrawerNavigator').default;
                         return MainDrawerNavigator;
                     }}
-                    initialParams={{openOnAdminRoom: stringToBool(openOnAdminRoom)}}
+                    initialParams={{openOnAdminRoom: ValidationUtils.stringToBool(openOnAdminRoom)}}
                 />
                 <RootStack.Screen
                     name="ValidateLogin"
