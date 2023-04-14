@@ -936,6 +936,25 @@ function getDirectionStyle(direction) {
     return {};
 }
 
+/**
+ * @param {Boolean} shouldDisplayBorder
+ * @returns {Object}
+ */
+function getGoolgeListViewStyle(shouldDisplayBorder) {
+    if (shouldDisplayBorder) {
+        return {
+            ...styles.borderTopRounded,
+            ...styles.borderBottomRounded,
+            marginTop: 4,
+            paddingVertical: 6,
+        };
+    }
+
+    return {
+        transform: [{scale: 0}],
+    };
+}
+
 export {
     getAvatarSize,
     getAvatarStyle,
@@ -986,4 +1005,5 @@ export {
     getEmojiReactionBubbleTextStyle,
     getEmojiReactionCounterTextStyle,
     getDirectionStyle,
+    getGoolgeListViewStyle,
 };
