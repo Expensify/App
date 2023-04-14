@@ -4,7 +4,6 @@ import {Keyboard} from 'react-native';
 import {CommonActions, DrawerActions, getPathFromState} from '@react-navigation/native';
 import Onyx from 'react-native-onyx';
 import Log from '../Log';
-import DomUtils from '../DomUtils';
 import linkTo from './linkTo';
 import ROUTES from '../../ROUTES';
 import DeprecatedCustomActions from './DeprecatedCustomActions';
