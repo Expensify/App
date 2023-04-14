@@ -163,7 +163,7 @@ class ReportActionCompose extends React.Component {
         this.isEmojiCode = this.isEmojiCode.bind(this);
         this.setTextInputRef = this.setTextInputRef.bind(this);
         this.getInputPlaceholder = this.getInputPlaceholder.bind(this);
-        this.getMoneyRequestOptions = this.getMoneyRequestOptions.bind(this);
+        this.getMenuItemOptions = this.getMenuItemOptions.bind(this);
         this.addAttachment = this.addAttachment.bind(this);
         this.insertSelectedEmoji = this.insertSelectedEmoji.bind(this);
         this.setExceededMaxCommentLength = this.setExceededMaxCommentLength.bind(this);
@@ -332,7 +332,7 @@ class ReportActionCompose extends React.Component {
      * @param {Array} reportParticipants
      * @returns {Array<object>}
      */
-    getMoneyRequestOptions(reportParticipants) {
+    getMenuItemOptions(reportParticipants) {
         const options = {
             [CONST.IOU.IOU_TYPE.SPLIT]: {
                 icon: Expensicons.Receipt,
@@ -349,8 +349,13 @@ class ReportActionCompose extends React.Component {
                 text: this.props.translate('iou.sendMoney'),
                 onSelected: () => Navigation.navigate(ROUTES.getIOUSendRoute(this.props.reportID)),
             },
+            [CONST.REPORT.TYPE.TASK]: {
+                icon: Expensicons.Clipboard,
+                text: this.props.translate('newTaskPage.assignTask'),
+                onSelected: () => Navigation.navigate(ROUTES.getNewTaskRoute(this.props.reportID)),
+            },
         };
-        return _.map(ReportUtils.getMoneyRequestOptions(this.props.report, reportParticipants, this.props.betas), option => options[option]);
+        return _.map(ReportUtils.getMenuItemOptions(this.props.report, reportParticipants, this.props.betas), option => options[option]);
     }
 
     /**
@@ -780,7 +785,7 @@ class ReportActionCompose extends React.Component {
                                                 onClose={() => this.setMenuVisibility(false)}
                                                 onItemSelected={() => this.setMenuVisibility(false)}
                                                 anchorPosition={styles.createMenuPositionReportActionCompose}
-                                                menuItems={[...this.getMoneyRequestOptions(reportParticipants),
+                                                menuItems={[...this.getMenuItemOptions(reportParticipants),
                                                     {
                                                         icon: Expensicons.Paperclip,
                                                         text: this.props.translate('reportActionCompose.addAttachment'),
@@ -789,11 +794,6 @@ class ReportActionCompose extends React.Component {
                                                                 onPicked: displayFileInModal,
                                                             });
                                                         },
-                                                    },
-                                                    {
-                                                        icon: Expensicons.Clipboard,
-                                                        text: this.props.translate('newTaskPage.assignTask'),
-                                                        onSelected: () => Navigation.navigate(ROUTES.getNewTaskRoute(this.props.reportID)),
                                                     },
                                                 ]}
                                             />

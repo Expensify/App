@@ -405,6 +405,7 @@ const CONST = {
         TYPE: {
             CHAT: 'chat',
             IOU: 'iou',
+            TASK: 'task',
         },
         CHAT_TYPE: {
             POLICY_ANNOUNCE: 'policyAnnounce',

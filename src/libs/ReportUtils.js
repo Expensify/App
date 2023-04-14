@@ -1628,7 +1628,7 @@ function canRequestMoney(report) {
  * @param {Array} betas
  * @returns {Array}
  */
-function getMoneyRequestOptions(report, reportParticipants, betas) {
+function getMenuItemOptions(report, reportParticipants, betas) {
     const participants = _.filter(reportParticipants, email => currentUserPersonalDetails.login !== email);
     const hasExcludedIOUEmails = lodashIntersection(reportParticipants, CONST.EXPENSIFY_EMAILS).length > 0;
     const hasMultipleParticipants = participants.length > 1;
@@ -1650,6 +1650,7 @@ function getMoneyRequestOptions(report, reportParticipants, betas) {
     return [
         ...(canRequestMoney(report) ? [CONST.IOU.IOU_TYPE.REQUEST] : []),
         ...(Permissions.canUseIOUSend(betas) && !isPolicyExpenseChat(report) ? [CONST.IOU.IOU_TYPE.SEND] : []),
+        ...(Permissions.canUseTasks(betas) ? [CONST.REPORT.TYPE.TASK] : []),
     ];
 }
 
@@ -1749,6 +1750,6 @@ export {
     getParsedComment,
     getFullSizeAvatar,
     getSmallSizeAvatar,
-    getMoneyRequestOptions,
+    getMenuItemOptions,
     canRequestMoney,
 };

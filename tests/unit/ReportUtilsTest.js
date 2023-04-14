@@ -308,7 +308,7 @@ describe('ReportUtils', () => {
         });
     });
 
-    describe('getMoneyRequestOptions', () => {
+    describe('getMenuItemOptions', () => {
         const participants = _.keys(participantsPersonalDetails);
 
         beforeAll(() => {
@@ -324,19 +324,19 @@ describe('ReportUtils', () => {
         describe('return empty iou options if', () => {
             it('participants contains excluded iou emails', () => {
                 const allEmpty = _.every(CONST.EXPENSIFY_EMAILS, (email) => {
-                    const moneyRequestOptions = ReportUtils.getMoneyRequestOptions({}, [currentUserEmail, email], [CONST.BETAS.IOU]);
+                    const moneyRequestOptions = ReportUtils.getMenuItemOptions({}, [currentUserEmail, email], [CONST.BETAS.IOU]);
                     return moneyRequestOptions.length === 0;
                 });
                 expect(allEmpty).toBe(true);
             });
 
             it('no participants except self', () => {
-                const moneyRequestOptions = ReportUtils.getMoneyRequestOptions({}, [currentUserEmail], [CONST.BETAS.IOU]);
+                const moneyRequestOptions = ReportUtils.getMenuItemOptions({}, [currentUserEmail], [CONST.BETAS.IOU]);
                 expect(moneyRequestOptions.length).toBe(0);
             });
 
             it('no iou permission', () => {
-                const moneyRequestOptions = ReportUtils.getMoneyRequestOptions({}, [currentUserEmail, participants], []);
+                const moneyRequestOptions = ReportUtils.getMenuItemOptions({}, [currentUserEmail, participants], []);
                 expect(moneyRequestOptions.length).toBe(0);
             });
         });
@@ -353,14 +353,14 @@ describe('ReportUtils', () => {
                         ...LHNTestUtils.getFakeReport(),
                         chatType,
                     };
-                    const moneyRequestOptions = ReportUtils.getMoneyRequestOptions(report, [currentUserEmail, participants[0]], [CONST.BETAS.IOU]);
+                    const moneyRequestOptions = ReportUtils.getMenuItemOptions(report, [currentUserEmail, participants[0]], [CONST.BETAS.IOU]);
                     return moneyRequestOptions.length === 1 && moneyRequestOptions.includes(CONST.IOU.IOU_TYPE.SPLIT);
                 });
                 expect(onlyHaveSplitOption).toBe(true);
             });
 
             it('has multiple participants exclude self', () => {
-                const moneyRequestOptions = ReportUtils.getMoneyRequestOptions({}, [currentUserEmail, ...participants], [CONST.BETAS.IOU]);
+                const moneyRequestOptions = ReportUtils.getMenuItemOptions({}, [currentUserEmail, ...participants], [CONST.BETAS.IOU]);
                 expect(moneyRequestOptions.length).toBe(1);
                 expect(moneyRequestOptions.includes(CONST.IOU.IOU_TYPE.SPLIT)).toBe(true);
             });
@@ -368,7 +368,7 @@ describe('ReportUtils', () => {
 
         describe('return only iou request option if', () => {
             it(' does not have iou send permission', () => {
-                const moneyRequestOptions = ReportUtils.getMoneyRequestOptions({}, [currentUserEmail, participants], [CONST.BETAS.IOU]);
+                const moneyRequestOptions = ReportUtils.getMenuItemOptions({}, [currentUserEmail, participants], [CONST.BETAS.IOU]);
                 expect(moneyRequestOptions.length).toBe(1);
                 expect(moneyRequestOptions.includes(CONST.IOU.IOU_TYPE.REQUEST)).toBe(true);
             });
@@ -379,14 +379,14 @@ describe('ReportUtils', () => {
                     chatType: CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT,
                     isOwnPolicyExpenseChat: true,
                 };
-                const moneyRequestOptions = ReportUtils.getMoneyRequestOptions(report, [currentUserEmail, participants], [CONST.BETAS.IOU, CONST.BETAS.IOU_SEND]);
+                const moneyRequestOptions = ReportUtils.getMenuItemOptions(report, [currentUserEmail, participants], [CONST.BETAS.IOU, CONST.BETAS.IOU_SEND]);
                 expect(moneyRequestOptions.length).toBe(1);
                 expect(moneyRequestOptions.includes(CONST.IOU.IOU_TYPE.REQUEST)).toBe(true);
             });
         });
 
         it('return both iou send and request money', () => {
-            const moneyRequestOptions = ReportUtils.getMoneyRequestOptions({}, [currentUserEmail, participants], [CONST.BETAS.IOU, CONST.BETAS.IOU_SEND]);
+            const moneyRequestOptions = ReportUtils.getMenuItemOptions({}, [currentUserEmail, participants], [CONST.BETAS.IOU, CONST.BETAS.IOU_SEND]);
             expect(moneyRequestOptions.length).toBe(2);
             expect(moneyRequestOptions.includes(CONST.IOU.IOU_TYPE.REQUEST)).toBe(true);
             expect(moneyRequestOptions.includes(CONST.IOU.IOU_TYPE.SEND)).toBe(true);
