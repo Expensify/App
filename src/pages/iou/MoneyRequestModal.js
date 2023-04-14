@@ -175,6 +175,17 @@ const MoneyRequestModal = (props) => {
      * @returns {String|null}
     */
     const direction = useMemo(() => {
+        // If we're going to the "amount" step from the "confirm" step, push it in and pop it out like we're moving
+        // forward instead of backwards.
+        const amountIndex = _.indexOf(steps, Steps.IOUAmount);
+        const confirmIndex = _.indexOf(steps, Steps.IOUConfirm);
+        if (previousStepIndex === confirmIndex && currentStepIndex === amountIndex) {
+            return 'in';
+        }
+        if (previousStepIndex === amountIndex && currentStepIndex === confirmIndex) {
+            return 'out';
+        }
+
         if (previousStepIndex < currentStepIndex) {
             return 'in';
         }
@@ -349,6 +360,7 @@ const MoneyRequestModal = (props) => {
     const reportID = lodashGet(props, 'route.params.reportID', '');
     const shouldShowBackButton = currentStepIndex > 0;
     const modalHeader = <ModalHeader title={titleForStep} shouldShowBackButton={shouldShowBackButton} onBackButtonPress={navigateToPreviousStep} />;
+    const amountButtonText = previousStepIndex === _.indexOf(steps, Steps.IOUConfirm) ? props.translate('common.save') : props.translate('common.next');
     return (
         <ScreenWrapper includeSafeAreaPaddingBottom={false}>
             {({didScreenTransitionEnd, safeAreaPaddingBottomStyle}) => (
@@ -373,6 +385,7 @@ const MoneyRequestModal = (props) => {
                                             selectedAmount={amount}
                                             navigation={props.navigation}
                                             iouType={props.iouType}
+                                            buttonText={amountButtonText}
                                         />
                                     </AnimatedStep>
                                 )}
