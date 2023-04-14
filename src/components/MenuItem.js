@@ -1,8 +1,6 @@
 import _ from 'underscore';
 import React from 'react';
-import {
-    View, Pressable,
-} from 'react-native';
+import {View} from 'react-native';
 import Text from './Text';
 import styles from '../styles/styles';
 import * as StyleUtils from '../styles/StyleUtils';
@@ -18,9 +16,14 @@ import colors from '../styles/colors';
 import variables from '../styles/variables';
 import MultipleAvatars from './MultipleAvatars';
 import * as defaultWorkspaceAvatars from './Icon/WorkspaceDefaultAvatars';
+import PressableWithSecondaryInteraction from './PressableWithSecondaryInteraction';
+import withWindowDimensions, {windowDimensionsPropTypes} from './withWindowDimensions';
+import * as DeviceCapabilities from '../libs/DeviceCapabilities';
+import ControlSelection from '../libs/ControlSelection';
 
 const propTypes = {
     ...menuItemPropTypes,
+    ...windowDimensionsPropTypes,
 };
 
 const defaultProps = {
@@ -46,11 +49,13 @@ const defaultProps = {
     subtitle: undefined,
     iconType: CONST.ICON_TYPE_ICON,
     onPress: () => {},
+    onSecondaryInteraction: undefined,
     interactive: true,
     fallbackIcon: Expensicons.FallbackAvatar,
     brickRoadIndicator: '',
     floatRightAvatars: [],
     shouldStackHorizontally: false,
+    shouldBlockSelection: false,
 };
 
 const MenuItem = (props) => {
@@ -71,7 +76,7 @@ const MenuItem = (props) => {
     ]);
 
     return (
-        <Pressable
+        <PressableWithSecondaryInteraction
             onPress={(e) => {
                 if (props.disabled) {
                     return;
@@ -83,12 +88,16 @@ const MenuItem = (props) => {
 
                 props.onPress(e);
             }}
+            onPressIn={() => props.shouldBlockSelection && props.isSmallScreenWidth && DeviceCapabilities.canUseTouchScreen() && ControlSelection.block()}
+            onPressOut={ControlSelection.unblock}
+            onSecondaryInteraction={props.onSecondaryInteraction}
             style={({hovered, pressed}) => ([
                 props.style,
                 StyleUtils.getButtonBackgroundColorStyle(getButtonState(props.focused || hovered, pressed, props.success, props.disabled, props.interactive), true),
                 ..._.isArray(props.wrapperStyle) ? props.wrapperStyle : [props.wrapperStyle],
             ])}
             disabled={props.disabled}
+            ref={props.forwardedRef}
         >
             {({hovered, pressed}) => (
                 <>
@@ -211,12 +220,14 @@ const MenuItem = (props) => {
                     </View>
                 </>
             )}
-        </Pressable>
+        </PressableWithSecondaryInteraction>
     );
 };
 
 MenuItem.propTypes = propTypes;
 MenuItem.defaultProps = defaultProps;
 MenuItem.displayName = 'MenuItem';
-
-export default MenuItem;
+export default withWindowDimensions(React.forwardRef((props, ref) => (
+    // eslint-disable-next-line react/jsx-props-no-spreading
+    <MenuItem {...props} forwardedRef={ref} />
+)));
