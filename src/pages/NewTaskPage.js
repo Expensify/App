@@ -15,18 +15,6 @@ import TextInput from '../components/TextInput';
 import Permissions from '../libs/Permissions';
 
 const propTypes = {
-    /** All reports shared with the user */
-    reports: PropTypes.shape({
-        /** The report name */
-        reportName: PropTypes.string,
-
-        /** The report type */
-        type: PropTypes.string,
-
-        /** ID of the policy */
-        policyID: PropTypes.string,
-    }),
-
     /** List of betas available to current user */
     betas: PropTypes.arrayOf(PropTypes.string),
 
@@ -34,7 +22,6 @@ const propTypes = {
 };
 const defaultProps = {
     betas: [],
-    reports: {},
 };
 
 const NewTaskPage = (props) => {
@@ -102,9 +89,6 @@ export default compose(
     withOnyx({
         betas: {
             key: ONYXKEYS.BETAS,
-        },
-        reports: {
-            key: ONYXKEYS.COLLECTION.REPORT,
         },
     }),
     withLocalize,
