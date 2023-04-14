@@ -11,7 +11,6 @@ import styles from '../styles/styles';
 import ONYXKEYS from '../ONYXKEYS';
 import * as ErrorUtils from '../libs/ErrorUtils';
 import Form from '../components/Form';
-import shouldDelayFocus from '../libs/shouldDelayFocus';
 import TextInput from '../components/TextInput';
 import Permissions from '../libs/Permissions';
 

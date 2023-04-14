@@ -68,7 +68,7 @@ const ReportWelcomeText = (props) => {
         isMultipleParticipant,
     );
     const roomWelcomeMessage = ReportUtils.getRoomWelcomeMessage(props.report, props.policies);
-    const moneyRequestOptions = ReportUtils.getMoneyRequestOptions(props.report, participants, props.betas);
+    const menuItemOptions = ReportUtils.getMenuItemOptions(props.report, participants, props.betas);
     return (
         <>
             <View>
@@ -132,7 +132,7 @@ const ReportWelcomeText = (props) => {
                         ))}
                     </Text>
                 )}
-                {(moneyRequestOptions.includes(CONST.IOU.IOU_TYPE.SEND) || moneyRequestOptions.includes(CONST.IOU.IOU_TYPE.REQUEST)) && (
+                {(menuItemOptions.includes(CONST.IOU.IOU_TYPE.SEND) || menuItemOptions.includes(CONST.IOU.IOU_TYPE.REQUEST)) && (
                     <Text>
                         {/* Need to confirm copy for the below with marketing, and then add to translations. */}
                         {props.translate('reportActionsView.usePlusButton')}

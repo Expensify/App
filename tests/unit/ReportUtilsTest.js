@@ -324,20 +324,20 @@ describe('ReportUtils', () => {
         describe('return empty iou options if', () => {
             it('participants contains excluded iou emails', () => {
                 const allEmpty = _.every(CONST.EXPENSIFY_EMAILS, (email) => {
-                    const moneyRequestOptions = ReportUtils.getMenuItemOptions({}, [currentUserEmail, email], [CONST.BETAS.IOU]);
-                    return moneyRequestOptions.length === 0;
+                    const menuItemOptions = ReportUtils.getMenuItemOptions({}, [currentUserEmail, email], [CONST.BETAS.IOU]);
+                    return menuItemOptions.length === 0;
                 });
                 expect(allEmpty).toBe(true);
             });
 
             it('no participants except self', () => {
-                const moneyRequestOptions = ReportUtils.getMenuItemOptions({}, [currentUserEmail], [CONST.BETAS.IOU]);
-                expect(moneyRequestOptions.length).toBe(0);
+                const menuItemOptions = ReportUtils.getMenuItemOptions({}, [currentUserEmail], [CONST.BETAS.IOU, CONST.BETAS.TASKS]);
+                expect(menuItemOptions.length).toBe(0);
             });
 
-            it('no iou permission', () => {
-                const moneyRequestOptions = ReportUtils.getMenuItemOptions({}, [currentUserEmail, participants], []);
-                expect(moneyRequestOptions.length).toBe(0);
+            it('no iou/task permission', () => {
+                const menuItemOptions = ReportUtils.getMenuItemOptions({}, [currentUserEmail, participants], []);
+                expect(menuItemOptions.length).toBe(0);
             });
         });
 
@@ -360,17 +360,18 @@ describe('ReportUtils', () => {
             });
 
             it('has multiple participants exclude self', () => {
-                const moneyRequestOptions = ReportUtils.getMenuItemOptions({}, [currentUserEmail, ...participants], [CONST.BETAS.IOU]);
-                expect(moneyRequestOptions.length).toBe(1);
-                expect(moneyRequestOptions.includes(CONST.IOU.IOU_TYPE.SPLIT)).toBe(true);
+                const menuItemOptions = ReportUtils.getMenuItemOptions({}, [currentUserEmail, ...participants], [CONST.BETAS.IOU, CONST.BETAS.TASKS]);
+                expect(menuItemOptions.length).toBe(2);
+                expect(menuItemOptions.includes(CONST.IOU.IOU_TYPE.SPLIT)).toBe(true);
+                expect(menuItemOptions.includes(CONST.REPORT.TYPE.TASK)).toBe(true);
             });
         });
 
         describe('return only iou request option if', () => {
             it(' does not have iou send permission', () => {
-                const moneyRequestOptions = ReportUtils.getMenuItemOptions({}, [currentUserEmail, participants], [CONST.BETAS.IOU]);
-                expect(moneyRequestOptions.length).toBe(1);
-                expect(moneyRequestOptions.includes(CONST.IOU.IOU_TYPE.REQUEST)).toBe(true);
+                const menuItemOptions = ReportUtils.getMenuItemOptions({}, [currentUserEmail, participants], [CONST.BETAS.IOU]);
+                expect(menuItemOptions.length).toBe(1);
+                expect(menuItemOptions.includes(CONST.IOU.IOU_TYPE.REQUEST)).toBe(true);
             });
 
             it('a policy expense chat', () => {
@@ -379,17 +380,19 @@ describe('ReportUtils', () => {
                     chatType: CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT,
                     isOwnPolicyExpenseChat: true,
                 };
-                const moneyRequestOptions = ReportUtils.getMenuItemOptions(report, [currentUserEmail, participants], [CONST.BETAS.IOU, CONST.BETAS.IOU_SEND]);
-                expect(moneyRequestOptions.length).toBe(1);
-                expect(moneyRequestOptions.includes(CONST.IOU.IOU_TYPE.REQUEST)).toBe(true);
+                const menuItemOptions = ReportUtils.getMenuItemOptions(report, [currentUserEmail, participants], [CONST.BETAS.IOU, CONST.BETAS.IOU_SEND, CONST.BETAS.TASKS]);
+                expect(menuItemOptions.length).toBe(2);
+                expect(menuItemOptions.includes(CONST.IOU.IOU_TYPE.REQUEST)).toBe(true);
+                expect(menuItemOptions.includes(CONST.REPORT.TYPE.TASK)).toBe(true);
             });
         });
 
-        it('return both iou send and request money', () => {
-            const moneyRequestOptions = ReportUtils.getMenuItemOptions({}, [currentUserEmail, participants], [CONST.BETAS.IOU, CONST.BETAS.IOU_SEND]);
-            expect(moneyRequestOptions.length).toBe(2);
-            expect(moneyRequestOptions.includes(CONST.IOU.IOU_TYPE.REQUEST)).toBe(true);
-            expect(moneyRequestOptions.includes(CONST.IOU.IOU_TYPE.SEND)).toBe(true);
+        it('return iou send, request money, and task', () => {
+            const menuItemOptions = ReportUtils.getMenuItemOptions({}, [currentUserEmail, participants], [CONST.BETAS.IOU, CONST.BETAS.IOU_SEND, CONST.BETAS.TASKS]);
+            expect(menuItemOptions.length).toBe(3);
+            expect(menuItemOptions.includes(CONST.IOU.IOU_TYPE.REQUEST)).toBe(true);
+            expect(menuItemOptions.includes(CONST.IOU.IOU_TYPE.SEND)).toBe(true);
+            expect(menuItemOptions.includes(CONST.REPORT.TYPE.TASK)).toBe(true);
         });
     });
 
