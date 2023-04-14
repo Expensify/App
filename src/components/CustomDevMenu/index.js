@@ -1,4 +1,4 @@
-const CustomDevMenu = () => {}
+const CustomDevMenu = () => {};
 
 CustomDevMenu.displayName = 'CustomDevMenu';
 
