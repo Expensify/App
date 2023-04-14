@@ -11,6 +11,7 @@ import withLocalize, {withLocalizePropTypes} from './withLocalize';
 import OfflineWithFeedback from './OfflineWithFeedback';
 import Text from './Text';
 import Button from './Button';
+import * as ReportActionsUtils from '../libs/ReportActionsUtils';
 
 const propTypes = {
     /** The chatReport which the transaction is associated with */
@@ -57,7 +58,7 @@ class ReportTransaction extends Component {
         return (
             <OfflineWithFeedback
                 onClose={() => {
-                    if (this.props.action.actionName === CONST.REPORT.ACTIONS.TYPE.IOU) {
+                    if (ReportActionsUtils.isMoneyRequestAction(this.props.action)) {
                         ReportActions.clearSendMoneyErrors(this.props.chatReportID, this.props.action.reportActionID);
                     }
                     if (this.props.action.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD) {

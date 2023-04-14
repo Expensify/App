@@ -10,6 +10,7 @@ import PopoverWithMeasuredContent from '../../../../components/PopoverWithMeasur
 import BaseReportActionContextMenu from './BaseReportActionContextMenu';
 import ConfirmModal from '../../../../components/ConfirmModal';
 import CONST from '../../../../CONST';
+import * as ReportActionsUtils from '../../../../libs/ReportActionsUtils';
 
 const propTypes = {
     ...withLocalizePropTypes,
@@ -261,7 +262,7 @@ class PopoverReportActionContextMenu extends React.Component {
     confirmDeleteAndHideModal() {
         this.callbackWhenDeleteModalHide = () => this.onComfirmDeleteModal = this.runAndResetCallback(this.onComfirmDeleteModal);
 
-        if (this.state.reportAction.actionName === CONST.REPORT.ACTIONS.TYPE.IOU) {
+        if (ReportActionsUtils.isMoneyRequestAction(this.state.reportAction)) {
             // @TODO: Implement new DeleteMoneyRequest API command from issue https://github.com/Expensify/Expensify/issues/270502
         } else {
             Report.deleteReportComment(this.state.reportID, this.state.reportAction);

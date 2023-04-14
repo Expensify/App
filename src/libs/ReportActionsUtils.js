@@ -41,6 +41,14 @@ function isDeletedAction(reportAction) {
 }
 
 /**
+ * @param {Object} reportAction
+ * @returns {Boolean}
+ */
+function isMoneyRequestAction(reportAction) {
+    return reportAction.actionName === CONST.REPORT.ACTIONS.TYPE.IOU;
+}
+
+/**
  * Sort an array of reportActions by their created timestamp first, and reportActionID second
  * This gives us a stable order even in the case of multiple reportActions created on the same millisecond
  *
@@ -254,4 +262,5 @@ export {
     getSortedReportActionsForDisplay,
     getLastClosedReportAction,
     getLatestReportActionFromOnyxData,
+    isMoneyRequestAction,
 };
