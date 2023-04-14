@@ -221,6 +221,7 @@ class ImageView extends PureComponent {
                                 // due to ImageZoom
                                 shouldShowLoadingIndicator ? styles.opacity0 : styles.opacity1,
                             ]}
+                            disableTransformation
                             source={{uri: this.props.url}}
                             isAuthTokenRequired={this.props.isAuthTokenRequired}
                             resizeMode={Image.resizeMode.contain}

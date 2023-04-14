@@ -16,7 +16,7 @@ import SettlementButton from './SettlementButton';
 import ROUTES from '../ROUTES';
 import withCurrentUserPersonalDetails, {withCurrentUserPersonalDetailsPropTypes, withCurrentUserPersonalDetailsDefaultProps} from './withCurrentUserPersonalDetails';
 import * as IOUUtils from '../libs/IOUUtils';
-import avatarPropTypes from './avatarPropTypes';
+import optionPropTypes from './optionPropTypes';
 
 const propTypes = {
     /** Callback to inform parent modal of success */
@@ -41,20 +41,7 @@ const propTypes = {
     iouType: PropTypes.string,
 
     /** Selected participants from MoneyRequestModal with login */
-    participants: PropTypes.arrayOf(PropTypes.shape({
-        login: PropTypes.string.isRequired,
-        alternateText: PropTypes.string,
-        hasDraftComment: PropTypes.bool,
-        icons: PropTypes.arrayOf(avatarPropTypes),
-        searchText: PropTypes.string,
-        text: PropTypes.string,
-        keyForList: PropTypes.string,
-        reportID: PropTypes.string,
-        // eslint-disable-next-line react/forbid-prop-types
-        participantsList: PropTypes.arrayOf(PropTypes.object),
-        payPalMeAddress: PropTypes.string,
-        phoneNumber: PropTypes.string,
-    })).isRequired,
+    participants: PropTypes.arrayOf(optionPropTypes).isRequired,
 
     /** Can the participants be modified or not */
     canModifyParticipants: PropTypes.bool,
@@ -97,7 +84,7 @@ const defaultProps = {
     ...withCurrentUserPersonalDetailsDefaultProps,
 };
 
-class IOUConfirmationList extends Component {
+class MoneyRequestConfirmationList extends Component {
     constructor(props) {
         super(props);
 
@@ -194,13 +181,13 @@ class IOUConfirmationList extends Component {
             );
 
             sections.push({
-                title: this.props.translate('iOUConfirmationList.whoPaid'),
+                title: this.props.translate('moneyRequestConfirmationList.whoPaid'),
                 data: [formattedMyPersonalDetails],
                 shouldShow: true,
                 indexOffset: 0,
                 isDisabled: true,
             }, {
-                title: this.props.translate('iOUConfirmationList.whoWasThere'),
+                title: this.props.translate('moneyRequestConfirmationList.whoWasThere'),
                 data: formattedParticipants,
                 shouldShow: true,
                 indexOffset: 1,
@@ -293,7 +280,7 @@ class IOUConfirmationList extends Component {
                 onSelectRow={canModifyParticipants ? this.toggleOption : undefined}
                 onConfirmSelection={this.confirm}
                 onChangeText={this.props.onUpdateComment}
-                textInputLabel={this.props.translate('iOUConfirmationList.whatsItFor')}
+                textInputLabel={this.props.translate('moneyRequestConfirmationList.whatsItFor')}
                 placeholderText={this.props.translate('common.optional')}
                 selectedOptions={this.getSelectedOptions()}
                 canSelectMultipleOptions={canModifyParticipants}
@@ -327,8 +314,8 @@ class IOUConfirmationList extends Component {
     }
 }
 
-IOUConfirmationList.propTypes = propTypes;
-IOUConfirmationList.defaultProps = defaultProps;
+MoneyRequestConfirmationList.propTypes = propTypes;
+MoneyRequestConfirmationList.defaultProps = defaultProps;
 
 export default compose(
     withLocalize,
@@ -340,4 +327,4 @@ export default compose(
             key: ONYXKEYS.SESSION,
         },
     }),
-)(IOUConfirmationList);
+)(MoneyRequestConfirmationList);
