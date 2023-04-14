@@ -289,15 +289,11 @@ class MoneyRequestConfirmationList extends Component {
                 onSelectRow={canModifyParticipants ? this.toggleOption : undefined}
                 onConfirmSelection={this.confirm}
                 onChangeText={this.props.onUpdateComment}
-                textInputLabel={this.props.translate('common.description')}
-                placeholderText={this.props.translate('common.optional')}
                 selectedOptions={this.getSelectedOptions()}
                 canSelectMultipleOptions={canModifyParticipants}
                 disableArrowKeysActions={!canModifyParticipants}
                 isDisabled={!canModifyParticipants}
                 boldStyle
-                autoFocus
-                shouldDelayFocus
                 shouldTextInputAppearBelowOptions
                 shouldShowTextInput={false}
                 optionHoveredStyle={canModifyParticipants ? styles.hoveredComponentBG : {}}
