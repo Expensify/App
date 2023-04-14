@@ -52,27 +52,27 @@ function initCurrencyList() {
     return waitForPromisesToResolve();
 }
 
-beforeEach(() => {
-    reportActions = [];
-    const chatReportID = ReportUtils.generateReportID();
-    const amount = 1000;
-    const currency = 'USD';
-
-    iouReport = ReportUtils.buildOptimisticIOUReport(
-        ownerEmail,
-        managerEmail,
-        amount,
-        chatReportID,
-        currency,
-        CONST.LOCALES.EN,
-    );
-
-    // The starting point of all tests is the IOUReport containing a single non-pending transaction in USD
-    // All requests in the tests are assumed to be offline, unless isOnline is specified
-    createIOUReportAction('create', amount, currency, {IOUTransactionID: '', isOnline: true});
-});
-
 describe('isIOUReportPendingCurrencyConversion', () => {
+    beforeEach(() => {
+        reportActions = [];
+        const chatReportID = ReportUtils.generateReportID();
+        const amount = 1000;
+        const currency = 'USD';
+
+        iouReport = ReportUtils.buildOptimisticIOUReport(
+            ownerEmail,
+            managerEmail,
+            amount,
+            chatReportID,
+            currency,
+            CONST.LOCALES.EN,
+        );
+
+        // The starting point of all tests is the IOUReport containing a single non-pending transaction in USD
+        // All requests in the tests are assumed to be offline, unless isOnline is specified
+        createIOUReportAction('create', amount, currency, {IOUTransactionID: '', isOnline: true});
+    });
+
     test('Requesting money offline in a different currency will show the pending conversion message', () => {
         // Request money offline in AED
         createIOUReportAction('create', 100, 'AED');
@@ -171,5 +171,20 @@ describe('getCurrencyUnits', () => {
 
     test('Currency with decimals larger than 2 should be floor to 2', () => {
         expect(IOUUtils.getCurrencyUnits('LYD')).toBe(100);
+    });
+});
+
+describe('calculateAmount', () => {
+    beforeAll(() => initCurrencyList());
+    test('103 JPY split among 3 participants including the default user should be [35, 34, 34]', () => {
+        const participants = ['tonystark@expensify.com', 'reedrichards@expensify.com'];
+        expect(IOUUtils.calculateAmount(participants, 103, 'JPY', true)).toBe(35);
+        expect(IOUUtils.calculateAmount(participants, 103, 'JPY')).toBe(34);
+    });
+
+    test('10 AFN split among 4 participants including the default user should be [1, 3, 3, 3]', () => {
+        const participants = ['tonystark@expensify.com', 'reedrichards@expensify.com', 'suestorm@expensify.com'];
+        expect(IOUUtils.calculateAmount(participants, 10, 'AFN', true)).toBe(1);
+        expect(IOUUtils.calculateAmount(participants, 10, 'AFN')).toBe(3);
     });
 });
