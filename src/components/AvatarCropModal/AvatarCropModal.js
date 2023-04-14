@@ -400,14 +400,16 @@ const AvatarCropModal = (props) => {
                                     <Slider sliderValue={translateSlider} onGesture={panSliderGestureEventHandler} />
                                 </Pressable>
                                 <Tooltip text={props.translate('common.rotate')} shiftVertical={-2}>
-                                    <Button
-                                        medium
-                                        icon={Expensicons.Rotate}
-                                        iconFill={themeColors.inverse}
-                                        iconStyles={[styles.mr0]}
-                                        style={[styles.imageCropRotateButton]}
-                                        onPress={rotateImage}
-                                    />
+                                    <View>
+                                        <Button
+                                            medium
+                                            icon={Expensicons.Rotate}
+                                            iconFill={themeColors.inverse}
+                                            iconStyles={[styles.mr0]}
+                                            style={[styles.imageCropRotateButton]}
+                                            onPress={rotateImage}
+                                        />
+                                    </View>
                                 </Tooltip>
                             </View>
                         </>

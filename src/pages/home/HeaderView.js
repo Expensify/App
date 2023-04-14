@@ -95,7 +95,9 @@ const HeaderView = (props) => {
                         accessibilityHint={props.translate('accessibilityHints.navigateToChatsList')}
                     >
                         <Tooltip text={props.translate('common.back')} shiftVertical={4}>
-                            <Icon src={Expensicons.BackArrow} />
+                            <View>
+                                <Icon src={Expensicons.BackArrow} />
+                            </View>
                         </Tooltip>
                     </Pressable>
                 )}

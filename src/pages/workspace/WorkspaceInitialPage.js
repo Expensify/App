@@ -192,7 +192,6 @@ const WorkspaceInitialPage = (props) => {
                                                     ]}
                                                     onPress={() => openEditor(policy.id)}
                                                 >
-                                                
                                                     <Text
                                                         numberOfLines={1}
                                                         style={[

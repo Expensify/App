@@ -168,8 +168,8 @@ class AttachmentCarousel extends React.Component {
                 {(isPageSet && this.state.shouldShowArrow) && (
                     <>
                         {!this.state.isBackDisabled && (
-                            <View style={styles.leftAttachmentArrow}>
-                                <Tooltip text={this.props.translate('common.previous')}>
+                            <Tooltip text={this.props.translate('common.previous')}>
+                                <View style={styles.leftAttachmentArrow}>
                                     <Button
                                         medium
                                         innerStyles={[styles.arrowIcon]}
@@ -178,12 +178,12 @@ class AttachmentCarousel extends React.Component {
                                         iconStyles={[styles.mr0]}
                                         onPress={() => this.cycleThroughAttachments(-1)}
                                     />
-                                </Tooltip>
-                            </View>
+                                </View>
+                            </Tooltip>
                         )}
                         {!this.state.isForwardDisabled && (
-                            <View style={styles.rightAttachmentArrow}>
-                                <Tooltip text={this.props.translate('common.next')}>
+                            <Tooltip text={this.props.translate('common.next')}>
+                                <View style={styles.rightAttachmentArrow}>
                                     <Button
                                         medium
                                         innerStyles={[styles.arrowIcon]}
@@ -192,8 +192,8 @@ class AttachmentCarousel extends React.Component {
                                         iconStyles={[styles.mr0]}
                                         onPress={() => this.cycleThroughAttachments(1)}
                                     />
-                                </Tooltip>
-                            </View>
+                                </View>
+                            </Tooltip>
                         )}
                     </>
                 )}
