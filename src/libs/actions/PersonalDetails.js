@@ -289,11 +289,13 @@ function updateAvatar(file) {
             [currentUserEmail]: {
                 avatar: file.uri,
                 avatarThumbnail: file.uri,
+                avatarFileName: file.name,
                 errorFields: {
                     avatar: null,
                 },
                 pendingFields: {
                     avatar: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
+                    avatarFileName: null,
                 },
             },
         },
