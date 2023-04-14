@@ -1656,7 +1656,7 @@ function getMenuItemOptions(report, reportParticipants, betas) {
     const hasExcludedIOUEmails = lodashIntersection(reportParticipants, CONST.EXPENSIFY_EMAILS).length > 0;
     const hasMultipleParticipants = participants.length > 1;
 
-    if (hasExcludedIOUEmails || (participants.length === 0 && !report.isOwnPolicyExpenseChat) || !Permissions.canUseIOU(betas)) {
+    if (hasExcludedIOUEmails || (participants.length === 0 && !report.isOwnPolicyExpenseChat) || !Permissions.canUseIOU(betas) || !Permissions.canUseTasks(betas)) {
         return [];
     }
 
@@ -1665,7 +1665,10 @@ function getMenuItemOptions(report, reportParticipants, betas) {
     // DM chats will have the Split Bill option only when there are at least 3 people in the chat.
     // There is no Split Bill option for Workspace chats
     if (isChatRoom(report) || (hasMultipleParticipants && !isPolicyExpenseChat(report))) {
-        return [CONST.IOU.MONEY_REQUEST_TYPE.SPLIT];
+        return [
+            CONST.IOU.MONEY_REQUEST_TYPE.SPLIT,
+            Permissions.canUseTasks(betas) ? CONST.REPORT.TYPE.TASK : '',
+        ];
     }
 
     // DM chats that only have 2 people will see the Send / Request money options.

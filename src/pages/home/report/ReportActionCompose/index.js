@@ -364,7 +364,7 @@ class ReportActionCompose extends React.Component {
                 onSelected: () => Navigation.navigate(ROUTES.getIOUSendRoute(this.props.reportID)),
             },
             [CONST.REPORT.TYPE.TASK]: {
-                icon: Expensicons.Clipboard,
+                icon: Expensicons.Checkmark,
                 text: this.props.translate('newTaskPage.assignTask'),
                 onSelected: () => Navigation.navigate(ROUTES.getNewTaskRoute(this.props.reportID)),
             },
