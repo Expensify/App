@@ -106,7 +106,10 @@ const Steps = {
 const MoneyRequestModal = (props) => {
     // Skip MoneyRequestParticipants step if participants are passed in
     const reportParticipants = lodashGet(props, 'report.participants', []);
-    const steps = useMemo(() => (reportParticipants.length ? [Steps.MoneyRequestAmount, Steps.MoneyRequestConfirm] : [Steps.MoneyRequestAmount, Steps.MoneyRequestParticipants, Steps.MoneyRequestConfirm]), [reportParticipants.length]);
+    const steps = useMemo(() => (reportParticipants.length
+        ? [Steps.MoneyRequestAmount, Steps.MoneyRequestConfirm]
+        : [Steps.MoneyRequestAmount, Steps.MoneyRequestParticipants, Steps.MoneyRequestConfirm]),
+    [reportParticipants.length]);
     const prevCreatingIOUTransactionStatusRef = useRef(lodashGet(props.iou, 'creatingIOUTransaction'));
     const prevNetworkStatusRef = useRef(props.network.isOffline);
 
