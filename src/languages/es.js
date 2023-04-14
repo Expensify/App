@@ -1127,12 +1127,12 @@ export default {
         },
     },
     newTaskPage: {
-        assignee: 'Verso',
-        assignTask: 'Atribuir tarefa',
+        assignee: 'Para',
+        assignTask: 'Asignar tarea',
         title: 'Título',
-        description: 'Descrição',
-        shareIn: 'Compartilhar em',
-        pleaseEnterTaskName: 'Por favor, insira um nome de tarefa',
+        description: 'Descripción',
+        shareIn: 'Compartir en',
+        pleaseEnterTaskName: 'Por favor, ingrese un nombre para la tarea',
     },
     statementPage: {
         generatingPDF: 'Estamos generando tu PDF ahora mismo. ¡Por favor, vuelve más tarde!',
