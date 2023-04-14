@@ -74,7 +74,7 @@ class LogInWithShortLivedAuthTokenPage extends Component {
     }
 
     render() {
-        // TODO: Not sure if we should redirect the user to the login page or just show the expiration screen or offline message
+        // redirect the user to the login page if there is a sudden disconnection
         if (this.props.network.isOffline) {
             Navigation.navigate();
             return;

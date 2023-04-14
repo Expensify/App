@@ -48,6 +48,10 @@ class DeeplinkWrapper extends PureComponent {
         if (!this.isMacOSWeb() || CONFIG.ENVIRONMENT === CONST.ENVIRONMENT.DEV) {
             return;
         }
+
+        // We need to clear the old short-lived auth token if it exists.
+        Session.removeShortLivedAuthToken();
+
         if (!this.props.session.authToken) {
             this.openRouteInDesktopApp();
             return;
@@ -59,8 +63,9 @@ class DeeplinkWrapper extends PureComponent {
         if (prevProps.session.shortLivedAuthToken || !this.props.session.shortLivedAuthToken) {
             return;
         }
+
+        // Now that there is a shortLivedAuthToken, the route to the desktop app can be opened.
         this.openRouteInDesktopApp();
-        Session.removeShortLivedAuthToken();
     }
 
     openRouteInDesktopApp() {
@@ -96,7 +101,7 @@ class DeeplinkWrapper extends PureComponent {
                     return;
                 }
                 iframe.parentNode.removeChild(iframe);
-            }, 100);
+            }, 0);
         } else {
             window.location.href = expensifyDeeplinkUrl;
         }
