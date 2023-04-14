@@ -1,4 +1,4 @@
-import React, {useRef} from 'react';
+import React, {useRef, useEffect} from 'react';
 import {View, ScrollView} from 'react-native';
 import {withSafeAreaInsets} from 'react-native-safe-area-context';
 import PropTypes from 'prop-types';
@@ -38,7 +38,7 @@ const propTypes = {
 };
 
 const SignInPageLayout = (props) => {
-    const scrollViewRef = useRef(null);
+    const scrollViewRef = useRef();
     let containerStyles = [styles.flex1, styles.signInPageInner];
     let contentContainerStyles = [styles.flex1, styles.flexRow];
 
@@ -49,6 +49,13 @@ const SignInPageLayout = (props) => {
         containerStyles = [styles.flex1];
         contentContainerStyles = [styles.flex1, styles.flexColumn];
     }
+
+    useEffect(() => {
+        if (!scrollViewRef.current) {
+            return;
+        }
+        scrollViewRef.current.scrollTo({y: 0, animated: true});
+    }, [props.children]);
 
     return (
         <View style={containerStyles}>
@@ -86,7 +93,7 @@ const SignInPageLayout = (props) => {
                                         props.isLargeScreenWidth ? styles.ph25 : {}]}
                                     >
                                         <SignInPageHero />
-                                        <Footer scrollViewRef={scrollViewRef} />
+                                        <Footer />
                                     </View>
                                 </View>
                             </View>
@@ -114,7 +121,7 @@ const SignInPageLayout = (props) => {
                             </SignInPageContent>
                         </View>
                         <View style={[styles.flex0]}>
-                            <Footer scrollViewRef={scrollViewRef} />
+                            <Footer />
                         </View>
                     </ScrollView>
                 )}
