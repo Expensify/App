@@ -1,6 +1,10 @@
+import Onyx from 'react-native-onyx';
 import CONST from '../../src/CONST';
 import * as IOUUtils from '../../src/libs/IOUUtils';
 import * as ReportUtils from '../../src/libs/ReportUtils';
+import ONYXKEYS from '../../src/ONYXKEYS';
+import waitForPromisesToResolve from '../utils/waitForPromisesToResolve';
+import currencyList from './currencyList.json';
 
 let iouReport;
 let reportActions;
@@ -36,6 +40,16 @@ function cancelMoneyRequest(moneyRequestAction, {isOnline} = {}) {
             isOnline,
         },
     );
+}
+
+function initCurrencyList() {
+    Onyx.init({
+        keys: ONYXKEYS,
+        initialKeyStates: {
+            [ONYXKEYS.CURRENCY_LIST]: currencyList,
+        },
+    });
+    return waitForPromisesToResolve();
 }
 
 beforeEach(() => {
@@ -133,6 +147,7 @@ describe('isIOUReportPendingCurrencyConversion', () => {
 });
 
 describe('getCurrencyDecimals', () => {
+    beforeAll(() => initCurrencyList());
     test('Currency decimals smaller than or equal 2', () => {
         expect(IOUUtils.getCurrencyDecimals('JPY')).toBe(0);
         expect(IOUUtils.getCurrencyDecimals('USD')).toBe(2);
@@ -148,6 +163,7 @@ describe('getCurrencyDecimals', () => {
 });
 
 describe('getCurrencyUnits', () => {
+    beforeAll(() => initCurrencyList());
     test('Currency with decimals smaller than or equal 2', () => {
         expect(IOUUtils.getCurrencyUnits('JPY')).toBe(1);
         expect(IOUUtils.getCurrencyUnits('USD')).toBe(100);
