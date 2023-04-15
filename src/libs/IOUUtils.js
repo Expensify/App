@@ -36,7 +36,7 @@ function getCurrencyDecimals(currency) {
  * @param {String} currency - IOU currency
  * @returns {Number}
  */
-function getCurrencyUnits(currency) {
+function getCurrencyUnit(currency) {
     return 10 ** getCurrencyDecimals(currency);
 }
 
@@ -56,8 +56,8 @@ function calculateAmount(participants, total, currency, isDefaultUser = false, s
     // numbers cannot be represented with perfect accuracy.
     // Currencies that do not have minor units (i.e. no decimal place) are also supported.
     // https://github.com/Expensify/App/issues/15878
-    const currencyUnits = getCurrencyUnits(currency);
-    const iouAmount = Math.round(parseFloat(total * currencyUnits));
+    const currencyUnit = getCurrencyUnit(currency);
+    const iouAmount = Math.round(parseFloat(total * currencyUnit));
 
     const totalParticipants = participants.length + 1;
     const amountPerPerson = Math.round(iouAmount / totalParticipants);
@@ -71,7 +71,7 @@ function calculateAmount(participants, total, currency, isDefaultUser = false, s
     }
 
     if (shouldConvertTo2DigitsFormat) {
-        finalAmount = (finalAmount * 100) / currencyUnits;
+        finalAmount = (finalAmount * 100) / currencyUnit;
     }
 
     return finalAmount;
@@ -188,6 +188,6 @@ export {
     updateIOUOwnerAndTotal,
     getIOUReportActions,
     isIOUReportPendingCurrencyConversion,
-    getCurrencyUnits,
+    getCurrencyUnit,
     getCurrencyDecimals,
 };

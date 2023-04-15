@@ -165,12 +165,12 @@ describe('getCurrencyDecimals', () => {
 describe('getCurrencyUnits', () => {
     beforeAll(() => initCurrencyList());
     test('Currency with decimals smaller than or equal 2', () => {
-        expect(IOUUtils.getCurrencyUnits('JPY')).toBe(1);
-        expect(IOUUtils.getCurrencyUnits('USD')).toBe(100);
+        expect(IOUUtils.getCurrencyUnit('JPY')).toBe(1);
+        expect(IOUUtils.getCurrencyUnit('USD')).toBe(100);
     });
 
     test('Currency with decimals larger than 2 should be floor to 2', () => {
-        expect(IOUUtils.getCurrencyUnits('LYD')).toBe(100);
+        expect(IOUUtils.getCurrencyUnit('LYD')).toBe(100);
     });
 });
 
