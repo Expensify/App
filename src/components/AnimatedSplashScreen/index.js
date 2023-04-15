@@ -1,9 +1,14 @@
 import PropTypes from 'prop-types';
 import {useEffect, useState} from 'react';
-import {Animated, Easing, StatusBar, StyleSheet} from 'react-native';
+import {
+    Animated,
+    Easing,
+    StatusBar,
+    StyleSheet,
+} from 'react-native';
 import BootSplash from '../../libs/BootSplash';
 import Logo from '../../../assets/images/new-expensify-dark.svg';
-import colors from '../../styles/colors';
+import styles from '../../styles/styles';
 
 const SCALE_RATIO = 10;
 
@@ -52,15 +57,15 @@ const AnimatedSplashScreen = (props) => {
 
     return (
         <Animated.View
-            style={{
-                ...StyleSheet.absoluteFillObject,
-                backgroundColor: colors.green400,
-                alignItems: 'center',
-                justifyContent: 'center',
-                opacity,
-                marginTop: -StatusBar.currentHeight,
-                marginBottom: -BootSplash.navigationBarHeight,
-            }}
+            style={[
+                StyleSheet.absoluteFill,
+                styles.animatedSplashScreen,
+                {
+                    marginBottom: -BootSplash.navigationBarHeight,
+                    marginTop: -StatusBar.currentHeight,
+                    opacity,
+                },
+            ]}
         >
             <Animated.View
                 style={{
