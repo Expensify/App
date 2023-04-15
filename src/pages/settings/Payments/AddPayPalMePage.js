@@ -17,7 +17,6 @@ import * as ValidationUtils from '../../../libs/ValidationUtils';
 import * as User from '../../../libs/actions/User';
 
 const AddPayPalMePage = (props) => {
-
     const [payPalMeUsername, setPayPalMeUsername] = useState('');
     const [payPalMeUsernameError, setPayPalMeUsernameError] = useState(false);
     const payPalMeInput = useRef(null);
@@ -76,7 +75,7 @@ const AddPayPalMePage = (props) => {
             </FixedFooter>
         </ScreenWrapper>
     );
-}
+};
 
 AddPayPalMePage.propTypes = {...withLocalizePropTypes};
 AddPayPalMePage.displayName = 'AddPayPalMePage';
