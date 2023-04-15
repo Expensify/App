@@ -41,6 +41,7 @@ const AnimatedSplashScreen = (props) => {
             delay: 220,
             duration: 220,
             toValue: 0,
+            isInteraction: false,
             useNativeDriver: true,
         }).start(() => {
             setIsVisible(false);
