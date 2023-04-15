@@ -57,6 +57,7 @@ class WorkspaceReimburseSection extends React.Component {
     render() {
         const achState = lodashGet(this.props.reimbursementAccount, 'achData.state', '');
         const hasVBA = achState === BankAccount.STATE.OPEN;
+        const reimburseReceiptsUrl = `reports?policyID=${this.props.policy.id}&from=all&type=expense&showStates=Archived&isAdvancedFilterMode=true`;
 
         if (this.props.network.isOffline) {
             return (
@@ -93,11 +94,12 @@ class WorkspaceReimburseSection extends React.Component {
                         menuItems={[
                             {
                                 title: this.props.translate('workspace.reimburse.reimburseReceipts'),
-                                onPress: () => Link.openOldDotLink(`reports?policyID=${this.props.policy.id}&from=all&type=expense&showStates=Archived&isAdvancedFilterMode=true`),
+                                onPress: () => Link.openOldDotLink(reimburseReceiptsUrl),
                                 icon: Expensicons.Bank,
                                 shouldShowRightIcon: true,
                                 iconRight: Expensicons.NewWindow,
                                 wrapperStyle: [styles.cardMenuItem],
+                                link: () => Link.buildOldDotURL(reimburseReceiptsUrl),
                             },
                         ]}
                     >

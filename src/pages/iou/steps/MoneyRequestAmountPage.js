@@ -32,6 +32,9 @@ const propTypes = {
     /** Previously selected amount to show if the user comes back to this screen */
     selectedAmount: PropTypes.string.isRequired,
 
+    /** Text to display on the button that "saves" the amount */
+    buttonText: PropTypes.string.isRequired,
+
     /* Onyx Props */
 
     /** Holds data related to IOU view state, rather than the underlying IOU data. */
@@ -48,7 +51,7 @@ const defaultProps = {
         selectedCurrencyCode: CONST.CURRENCY.USD,
     },
 };
-class IOUAmountPage extends React.Component {
+class MoneyRequestAmountPage extends React.Component {
     constructor(props) {
         super(props);
 
@@ -336,7 +339,7 @@ class IOUAmountPage extends React.Component {
                         onPress={() => this.props.onStepComplete(this.state.amount)}
                         pressOnEnter
                         isDisabled={!this.state.amount.length || parseFloat(this.state.amount) < 0.01}
-                        text={this.props.translate('common.next')}
+                        text={this.props.buttonText}
                     />
                 </View>
             </>
@@ -344,12 +347,12 @@ class IOUAmountPage extends React.Component {
     }
 }
 
-IOUAmountPage.propTypes = propTypes;
-IOUAmountPage.defaultProps = defaultProps;
+MoneyRequestAmountPage.propTypes = propTypes;
+MoneyRequestAmountPage.defaultProps = defaultProps;
 
 export default compose(
     withLocalize,
     withOnyx({
         iou: {key: ONYXKEYS.IOU},
     }),
-)(IOUAmountPage);
+)(MoneyRequestAmountPage);

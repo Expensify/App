@@ -1,6 +1,6 @@
-import {CONST} from 'expensify-common/lib/CONST';
 import {Linking} from 'react-native';
 import Onyx from 'react-native-onyx';
+import CONST from '../../../CONST';
 import PushNotification from '.';
 import ROUTES from '../../../ROUTES';
 import Log from '../../Log';

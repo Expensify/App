@@ -129,9 +129,9 @@ export default {
         areYouSure: 'Are you sure?',
         verify: 'Verify',
         yesContinue: 'Yes, continue',
-        zipCodeExample: 'e.g. 12345, 12345-1234, 12345 1234',
         websiteExample: 'e.g. https://www.expensify.com',
-        format: ({zipSampleFormat}) => (zipSampleFormat ? `Format: ${zipSampleFormat}` : ''),
+        zipCodeExampleFormat: ({zipSampleFormat}) => (zipSampleFormat ? `e.g. ${zipSampleFormat}` : ''),
+        description: 'Description',
     },
     attachmentPicker: {
         cameraPermissionRequired: 'Camera access',
@@ -181,7 +181,7 @@ export default {
         tfaRequiredTitle: 'Two factor authentication\nrequired',
         tfaRequiredDescription: 'Please enter the two-factor authentication code\nwhere you are trying to sign in.',
     },
-    iOUConfirmationList: {
+    moneyRequestConfirmationList: {
         whoPaid: 'Who paid?',
         whoWasThere: 'Who was there?',
         whatsItFor: 'What\'s it for?',
@@ -635,6 +635,7 @@ export default {
         },
         cannotGetAccountDetails: 'Couldn\'t retrieve account details, please try to sign in again.',
         loginForm: 'Login form',
+        notYou: ({user}) => `Not ${user}?`,
     },
     personalDetails: {
         error: {
