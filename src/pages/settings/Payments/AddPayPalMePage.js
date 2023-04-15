@@ -1,4 +1,4 @@
-import React from 'react';
+import React, {useState} from 'react';
 import {View} from 'react-native';
 import _ from 'underscore';
 import CONST from '../../../CONST';
@@ -16,33 +16,25 @@ import TextInput from '../../../components/TextInput';
 import * as ValidationUtils from '../../../libs/ValidationUtils';
 import * as User from '../../../libs/actions/User';
 
-class AddPayPalMePage extends React.Component {
-    constructor(props) {
-        super(props);
+const AddPayPalMePage = (props) => {
 
-        this.state = {
-            payPalMeUsername: '',
-            payPalMeUsernameError: false,
-        };
-        this.setPayPalMeUsername = this.setPayPalMeUsername.bind(this);
-        this.focusPayPalMeInput = this.focusPayPalMeInput.bind(this);
-    }
+    const [payPalMeUsername, setPayPalMeUsername] = useState('');
+    const [payPalMeUsernameError, setPayPalMeUsernameError] = useState(false);
 
     /**
-     * Sets the payPalMeUsername for the current user
+     * Sets the payPalMe username and error data for the current user
      */
-    setPayPalMeUsername() {
-        const isValid = ValidationUtils.isValidPaypalUsername(this.state.payPalMeUsername);
-        if (!isValid) {
-            this.setState({payPalMeUsernameError: true});
+    const setPayPalMeData = () => {
+        if (!ValidationUtils.isValidPaypalUsername(payPalMeUsername)) {
+            setPayPalMeUsernameError(true);
             return;
         }
-        this.setState({payPalMeUsernameError: false});
-        User.addPaypalMeAddress(this.state.payPalMeUsername);
+        setPayPalMeUsernameError(false);
+        User.addPaypalMeAddress(payPalMeUsername);
 
-        Growl.show(this.props.translate('addPayPalMePage.growlMessageOnSave'), CONST.GROWL.SUCCESS, 3000);
+        Growl.show(props.translate('addPayPalMePage.growlMessageOnSave'), CONST.GROWL.SUCCESS, 3000);
         Navigation.navigate(ROUTES.SETTINGS_PAYMENTS);
-    }
+    };
 
     focusPayPalMeInput() {
         if (!this.payPalMeInputRef) {
@@ -52,49 +44,48 @@ class AddPayPalMePage extends React.Component {
         this.payPalMeInputRef.focus();
     }
 
-    render() {
-        return (
-            <ScreenWrapper onEntryTransitionEnd={this.focusPayPalMeInput}>
-                <HeaderWithCloseButton
-                    title={this.props.translate('common.payPalMe')}
-                    shouldShowBackButton
-                    onBackButtonPress={() => Navigation.navigate(ROUTES.SETTINGS_PAYMENTS)}
-                    onCloseButtonPress={() => Navigation.dismissModal(true)}
-                />
-                <View style={[styles.flex1, styles.p5]}>
-                    <View style={[styles.flex1]}>
-                        <Text style={[styles.mb4]}>
-                            {this.props.translate('addPayPalMePage.enterYourUsernameToGetPaidViaPayPal')}
-                        </Text>
-                        <TextInput
-                            ref={el => this.payPalMeInputRef = el}
-                            label={this.props.translate('addPayPalMePage.payPalMe')}
-                            autoCompleteType="off"
-                            autoCorrect={false}
-                            value={this.state.payPalMeUsername}
-                            placeholder={this.props.translate('addPayPalMePage.yourPayPalUsername')}
-                            onChangeText={text => this.setState({payPalMeUsername: text, payPalMeUsernameError: false})}
-                            returnKeyType="done"
-                            hasError={this.state.payPalMeUsernameError}
-                            errorText={this.state.payPalMeUsernameError ? this.props.translate('addPayPalMePage.formatError') : ''}
-                        />
-                    </View>
-                </View>
-                <FixedFooter>
-                    <Button
-                        success
-                        onPress={this.setPayPalMeUsername}
-                        pressOnEnter
-                        style={[styles.mt3]}
-                        isDisabled={_.isEmpty(this.state.payPalMeUsername.trim())}
-                        text={this.props.translate('addPayPalMePage.addPayPalAccount')}
+    return (
+        <ScreenWrapper onEntryTransitionEnd={this.focusPayPalMeInput}>
+            <HeaderWithCloseButton
+                title={this.props.translate('common.payPalMe')}
+                shouldShowBackButton
+                onBackButtonPress={() => Navigation.navigate(ROUTES.SETTINGS_PAYMENTS)}
+                onCloseButtonPress={() => Navigation.dismissModal(true)}
+            />
+            <View style={[styles.flex1, styles.p5]}>
+                <View style={[styles.flex1]}>
+                    <Text style={[styles.mb4]}>
+                        {this.props.translate('addPayPalMePage.enterYourUsernameToGetPaidViaPayPal')}
+                    </Text>
+                    <TextInput
+                        ref={el => this.payPalMeInputRef = el}
+                        label={this.props.translate('addPayPalMePage.payPalMe')}
+                        autoCompleteType="off"
+                        autoCorrect={false}
+                        value={payPalMeUsername}
+                        placeholder={this.props.translate('addPayPalMePage.yourPayPalUsername')}
+                        onChangeText={(text) => { setPayPalMeUsername(text); setPayPalMeUsernameError(false); }}
+                        returnKeyType="done"
+                        hasError={payPalMeUsernameError}
+                        errorText={payPalMeUsernameError ? this.props.translate('addPayPalMePage.formatError') : ''}
                     />
-                </FixedFooter>
-            </ScreenWrapper>
-        );
-    }
+                </View>
+            </View>
+            <FixedFooter>
+                <Button
+                    success
+                    onPress={setPayPalMeData}
+                    pressOnEnter
+                    style={[styles.mt3]}
+                    isDisabled={_.isEmpty(payPalMeUsername.trim())}
+                    text={this.props.translate('addPayPalMePage.addPayPalAccount')}
+                />
+            </FixedFooter>
+        </ScreenWrapper>
+    );
 }
 
 AddPayPalMePage.propTypes = {...withLocalizePropTypes};
+AddPayPalMePage.displayName = 'AddPayPalMePage';
 
 export default withLocalize(AddPayPalMePage);
