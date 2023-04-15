@@ -1,4 +1,4 @@
-import React, {useState} from 'react';
+import React, {useRef, useState} from 'react';
 import {View} from 'react-native';
 import _ from 'underscore';
 import CONST from '../../../CONST';
@@ -20,6 +20,7 @@ const AddPayPalMePage = (props) => {
 
     const [payPalMeUsername, setPayPalMeUsername] = useState('');
     const [payPalMeUsernameError, setPayPalMeUsernameError] = useState(false);
+    const payPalMeInput = useRef(null);
 
     /**
      * Sets the payPalMe username and error data for the current user
@@ -32,20 +33,12 @@ const AddPayPalMePage = (props) => {
         setPayPalMeUsernameError(false);
         User.addPaypalMeAddress(payPalMeUsername);
 
-        Growl.show(props.translate('addPayPalMePage.growlMessageOnSave'), CONST.GROWL.SUCCESS, 3000);
+        Growl.show(this.props.translate('addPayPalMePage.growlMessageOnSave'), CONST.GROWL.SUCCESS, 3000);
         Navigation.navigate(ROUTES.SETTINGS_PAYMENTS);
     };
 
-    focusPayPalMeInput() {
-        if (!this.payPalMeInputRef) {
-            return;
-        }
-
-        this.payPalMeInputRef.focus();
-    }
-
     return (
-        <ScreenWrapper onEntryTransitionEnd={this.focusPayPalMeInput}>
+        <ScreenWrapper onEntryTransitionEnd={payPalMeInput.current && payPalMeInput.current.focus()}>
             <HeaderWithCloseButton
                 title={this.props.translate('common.payPalMe')}
                 shouldShowBackButton
@@ -58,7 +51,7 @@ const AddPayPalMePage = (props) => {
                         {this.props.translate('addPayPalMePage.enterYourUsernameToGetPaidViaPayPal')}
                     </Text>
                     <TextInput
-                        ref={el => this.payPalMeInputRef = el}
+                        ref={payPalMeInput.current}
                         label={this.props.translate('addPayPalMePage.payPalMe')}
                         autoCompleteType="off"
                         autoCorrect={false}
