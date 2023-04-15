@@ -24,7 +24,7 @@ Onyx.connect({
  * @param {String} currency - IOU currency
  * @returns {Number}
  */
-function getCurrencyDecimals(currency) {
+function getCurrencyDecimals(currency = CONST.CURRENCY.USD) {
     const decimals = lodashGet(currencyList, [currency, 'decimals']);
     return _.isUndefined(decimals) ? 2 : Math.min(decimals, 2);
 }
@@ -36,7 +36,7 @@ function getCurrencyDecimals(currency) {
  * @param {String} currency - IOU currency
  * @returns {Number}
  */
-function getCurrencyUnit(currency) {
+function getCurrencyUnit(currency = CONST.CURRENCY.USD) {
     return 10 ** getCurrencyDecimals(currency);
 }
 
