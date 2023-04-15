@@ -47,6 +47,7 @@ const propTypes = {
 
 const defaultProps = {
     account: {},
+    credentials: {},
 };
 
 const UnlinkLoginForm = (props) => {
