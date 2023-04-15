@@ -203,7 +203,9 @@ function meetsAgeRequirements(date) {
     const eighteenYearsAgo = moment().subtract(18, 'years');
     const oneHundredFiftyYearsAgo = moment().subtract(150, 'years');
     const testDate = moment(date);
-    return testDate.isValid() && testDate.isBetween(oneHundredFiftyYearsAgo, eighteenYearsAgo);
+
+    // Only compare the dates (ignore the time), and make the comparison inclusive of the start and end dates
+    return testDate.isValid() && testDate.isBetween(oneHundredFiftyYearsAgo, eighteenYearsAgo, 'day', '[]');
 }
 
 /**
