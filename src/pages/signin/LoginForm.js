@@ -23,6 +23,8 @@ import * as ErrorUtils from '../../libs/ErrorUtils';
 import DotIndicatorMessage from '../../components/DotIndicatorMessage';
 import * as CloseAccount from '../../libs/actions/CloseAccount';
 import CONST from '../../CONST';
+import AppleSignIn from '../../components/SignInButtons/AppleSignIn';
+import GoogleSignIn from '../../components/SignInButtons/GoogleSignIn';
 
 const propTypes = {
     /** Should we dismiss the keyboard when transitioning away from the page? */
@@ -207,6 +209,13 @@ class LoginForm extends React.Component {
                                 isAlertVisible={!_.isEmpty(serverErrorText)}
                                 containerStyles={[styles.mh0]}
                             />
+                            <View style={{
+                                flexDirection: 'row', backgroundColor: 'red', height: 100, width: 200,
+                            }}
+                            >
+                                <AppleSignIn />
+                                <GoogleSignIn />
+                            </View>
                         </View>
                     )
                 }
