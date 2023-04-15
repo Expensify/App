@@ -16,6 +16,8 @@ import reportPropTypes from '../../reportPropTypes';
 import ROUTES from '../../../ROUTES';
 import * as Report from '../../../libs/actions/Report';
 import OptionsSelector from '../../../components/OptionsSelector';
+import * as Expensicons from "../../../components/Icon/Expensicons";
+import themeColors from "../../../styles/themes/default";
 
 const propTypes = {
     ...withLocalizePropTypes,
@@ -24,20 +26,41 @@ const propTypes = {
     /** The active report */
     report: reportPropTypes.isRequired,
 };
+const greenCheckmark = {src: Expensicons.Checkmark, color: themeColors.success};
 
 class NotificationPreferencePage extends Component {
     constructor(props) {
         super(props);
         this.updateNotificationPreference = this.updateNotificationPreference.bind(this);
         this.getNotificationPreferenceOptions = this.getNotificationPreferenceOptions.bind(this);
+        this.getPreferenceOption = this.getPreferenceOption.bind(this);
     }
 
     getNotificationPreferenceOptions() {
-        return [
+        const frequencies = [
             this.props.translate('notificationPreferences.immediately'),
             this.props.translate('notificationPreferences.daily'),
             this.props.translate('notificationPreferences.mute'),
         ];
+        return _.map(frequencies, frequency => this.getPreferenceOption(frequency));
+    }
+
+    /**
+     * Get timezone option object for the list.
+     * @param {String} text
+     * @return {Object} Timezone list option
+     */
+    getPreferenceOption(text) {
+        return {
+            text,
+            keyForList: text,
+
+            // Include the green checkmark icon to indicate the currently selected value
+            customIcon: text === this.props.report.notificationPreference ? greenCheckmark : undefined,
+
+            // This property will make the currently selected value have bold text
+            boldStyle: text === this.props.report.notificationPreference,
+        };
     }
 
     /**
