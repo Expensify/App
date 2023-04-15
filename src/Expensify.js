@@ -27,6 +27,7 @@ import Navigation from './libs/Navigation/Navigation';
 import DeeplinkWrapper from './components/DeeplinkWrapper';
 import PopoverReportActionContextMenu from './pages/home/report/ContextMenu/PopoverReportActionContextMenu';
 import * as ReportActionContextMenu from './pages/home/report/ContextMenu/ReportActionContextMenu';
+import AnimatedSplashScreen from './components/AnimatedSplashScreen';
 import KeyboardShortcutsModal from './components/KeyboardShortcutsModal';
 
 // This lib needs to be imported, but it has nothing to export since all it contains is an Onyx connection
@@ -202,6 +203,8 @@ function Expensify(props) {
                 onReady={setNavigationReady}
                 authenticated={isAuthenticated}
             />
+
+            <AnimatedSplashScreen isReady={!isSplashShown} />
         </DeeplinkWrapper>
     );
 }

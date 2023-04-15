@@ -11,4 +11,5 @@ function hide() {
 export default {
     hide,
     getVisibilityStatus: BootSplash.getVisibilityStatus,
+    navigationBarHeight: BootSplash.navigationBarHeight || 0,
 };
