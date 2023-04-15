@@ -166,9 +166,7 @@ function Expensify(props) {
         const shouldHideSplash = !isAuthenticated || props.isSidebarLoaded;
 
         if (shouldHideSplash) {
-            BootSplash.hide();
-
-            setIsSplashShown(false);
+            BootSplash.hide().then(() => setIsSplashShown(false));
         }
     }, [props.isSidebarLoaded, isNavigationReady, isSplashShown, isAuthenticated]);
 
