@@ -1,6 +1,6 @@
 import PropTypes from 'prop-types';
 import {useEffect, useState} from 'react';
-import {Animated, StatusBar, StyleSheet} from 'react-native';
+import {Animated, Easing, StatusBar, StyleSheet} from 'react-native';
 import BootSplash from '../../libs/BootSplash';
 import Logo from '../../../assets/images/new-expensify-dark.svg';
 import colors from '../../styles/colors';
@@ -26,24 +26,22 @@ const AnimatedSplashScreen = (props) => {
             return;
         }
 
-        Animated.stagger(220, [
-            Animated.spring(scale, {
-                toValue: 1 / (SCALE_RATIO * 2),
-                useNativeDriver: true,
-            }),
-            Animated.spring(scale, {
+        Animated.stagger(300, [
+            Animated.timing(scale, {
+                duration: 350,
+                easing: Easing.back(0.75),
                 toValue: 1,
+                isInteraction: false,
                 useNativeDriver: true,
             }),
-        ]).start();
-
-        Animated.timing(opacity, {
-            delay: 220,
-            duration: 220,
-            toValue: 0,
-            isInteraction: false,
-            useNativeDriver: true,
-        }).start(() => {
+            Animated.timing(opacity, {
+                duration: 250,
+                easing: Easing.out(Easing.ease),
+                toValue: 0,
+                isInteraction: false,
+                useNativeDriver: true,
+            }),
+        ]).start(() => {
             setIsVisible(false);
         });
     }, [props.isReady, isVisible, opacity, scale]);
