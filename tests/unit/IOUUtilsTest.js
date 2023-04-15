@@ -187,4 +187,10 @@ describe('calculateAmount', () => {
         expect(IOUUtils.calculateAmount(participants, 10, 'AFN', true)).toBe(1);
         expect(IOUUtils.calculateAmount(participants, 10, 'AFN')).toBe(3);
     });
+
+    test('0.02 USD split among 4 participants including the default user should be [-1, 1, 1, 1]', () => {
+        const participants = ['tonystark@expensify.com', 'reedrichards@expensify.com', 'suestorm@expensify.com'];
+        expect(IOUUtils.calculateAmount(participants, 0.02, 'USD', true)).toBe(-1);
+        expect(IOUUtils.calculateAmount(participants, 0.02, 'USD')).toBe(1);
+    });
 });
