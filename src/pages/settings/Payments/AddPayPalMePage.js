@@ -33,14 +33,14 @@ const AddPayPalMePage = (props) => {
         setPayPalMeUsernameError(false);
         User.addPaypalMeAddress(payPalMeUsername);
 
-        Growl.show(this.props.translate('addPayPalMePage.growlMessageOnSave'), CONST.GROWL.SUCCESS, 3000);
+        Growl.show(props.translate('addPayPalMePage.growlMessageOnSave'), CONST.GROWL.SUCCESS, 3000);
         Navigation.navigate(ROUTES.SETTINGS_PAYMENTS);
     };
 
     return (
         <ScreenWrapper onEntryTransitionEnd={payPalMeInput.current && payPalMeInput.current.focus()}>
             <HeaderWithCloseButton
-                title={this.props.translate('common.payPalMe')}
+                title={props.translate('common.payPalMe')}
                 shouldShowBackButton
                 onBackButtonPress={() => Navigation.navigate(ROUTES.SETTINGS_PAYMENTS)}
                 onCloseButtonPress={() => Navigation.dismissModal(true)}
@@ -48,19 +48,19 @@ const AddPayPalMePage = (props) => {
             <View style={[styles.flex1, styles.p5]}>
                 <View style={[styles.flex1]}>
                     <Text style={[styles.mb4]}>
-                        {this.props.translate('addPayPalMePage.enterYourUsernameToGetPaidViaPayPal')}
+                        {props.translate('addPayPalMePage.enterYourUsernameToGetPaidViaPayPal')}
                     </Text>
                     <TextInput
                         ref={payPalMeInput.current}
-                        label={this.props.translate('addPayPalMePage.payPalMe')}
+                        label={props.translate('addPayPalMePage.payPalMe')}
                         autoCompleteType="off"
                         autoCorrect={false}
                         value={payPalMeUsername}
-                        placeholder={this.props.translate('addPayPalMePage.yourPayPalUsername')}
+                        placeholder={props.translate('addPayPalMePage.yourPayPalUsername')}
                         onChangeText={(text) => { setPayPalMeUsername(text); setPayPalMeUsernameError(false); }}
                         returnKeyType="done"
                         hasError={payPalMeUsernameError}
-                        errorText={payPalMeUsernameError ? this.props.translate('addPayPalMePage.formatError') : ''}
+                        errorText={payPalMeUsernameError ? props.translate('addPayPalMePage.formatError') : ''}
                     />
                 </View>
             </View>
@@ -71,7 +71,7 @@ const AddPayPalMePage = (props) => {
                     pressOnEnter
                     style={[styles.mt3]}
                     isDisabled={_.isEmpty(payPalMeUsername.trim())}
-                    text={this.props.translate('addPayPalMePage.addPayPalAccount')}
+                    text={props.translate('addPayPalMePage.addPayPalAccount')}
                 />
             </FixedFooter>
         </ScreenWrapper>
