@@ -34,14 +34,14 @@ const AnimatedSplashScreen = (props) => {
 
         Animated.stagger(200, [
             Animated.timing(scale, {
-                duration: 300,
+                duration: 250,
                 easing: Easing.back(0.85),
                 toValue: 1,
                 isInteraction: false,
                 useNativeDriver: true,
             }),
             Animated.timing(opacity, {
-                duration: 350,
+                duration: 300,
                 easing: Easing.out(Easing.ease),
                 toValue: 0,
                 isInteraction: false,
