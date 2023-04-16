@@ -55,7 +55,7 @@ const ImageRenderer = (props) => {
                 anchor,
                 reportID,
                 action,
-                setContextMenuActive,
+                checkIfContextMenuActive,
             }) => (
                 <AttachmentModal
                     allowDownload
@@ -68,7 +68,7 @@ const ImageRenderer = (props) => {
                         <PressableWithoutFocus
                             style={styles.noOutline}
                             onPress={show}
-                            onLongPress={event => showContextMenuForReport(event, anchor, reportID, action, setContextMenuActive)}
+                            onLongPress={event => showContextMenuForReport(event, anchor, reportID, action, checkIfContextMenuActive)}
                         >
                             <ThumbnailImage
                                 previewSourceURL={previewSource}

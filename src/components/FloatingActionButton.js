@@ -73,8 +73,8 @@ class FloatingActionButton extends PureComponent {
         });
 
         return (
-            <Tooltip absolute text={this.props.isActive ? this.props.translate('common.close') : this.props.translate('common.new')}>
-                <View style={styles.floatingActionButtonContainer} ref={this.props.innerRef}>
+            <Tooltip absolute text={this.props.translate('common.new')}>
+                <View style={styles.floatingActionButtonContainer}>
                     <AnimatedPressable
                         ref={el => this.fabPressable = el}
                         accessibilityLabel={this.props.accessibilityLabel}
@@ -99,7 +99,4 @@ class FloatingActionButton extends PureComponent {
 
 FloatingActionButton.propTypes = propTypes;
 
-export default withLocalize(React.forwardRef((props, ref) => (
-    // eslint-disable-next-line react/jsx-props-no-spreading
-    <FloatingActionButton {...props} innerRef={ref} />
-)));
+export default withLocalize(FloatingActionButton);

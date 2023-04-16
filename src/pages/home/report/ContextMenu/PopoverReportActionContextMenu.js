@@ -54,6 +54,7 @@ class PopoverReportActionContextMenu extends React.Component {
         this.runAndResetOnPopoverShow = this.runAndResetOnPopoverShow.bind(this);
         this.runAndResetOnPopoverHide = this.runAndResetOnPopoverHide.bind(this);
         this.getContextMenuMeasuredLocation = this.getContextMenuMeasuredLocation.bind(this);
+        this.isActiveReportAction = this.isActiveReportAction.bind(this);
 
         this.dimensionsEventListener = null;
 
@@ -101,6 +102,16 @@ class PopoverReportActionContextMenu extends React.Component {
     }
 
     /**
+     * Whether Context Menu is active for the Report Action.
+     *
+     * @param {Number|String} actionID
+     * @return {Boolean}
+     */
+    isActiveReportAction(actionID) {
+        return Boolean(actionID) && this.state.reportAction.reportActionID === actionID;
+    }
+
+    /**
      * Show the ReportActionContextMenu modal popover.
      *
      * @param {string} type - context menu type [EMAIL, LINK, REPORT_ACTION]
@@ -128,11 +139,6 @@ class PopoverReportActionContextMenu extends React.Component {
         isArchivedRoom,
         isChronosReport,
     ) {
-        if (!_.isEmpty(reportAction) && reportAction.reportActionID !== this.state.reportAction.reportActionID) {
-            this.onPopoverHide();
-        }
-
-        this.ignoreHide = true;
         const nativeEvent = event.nativeEvent || {};
         this.contextMenuAnchor = contextMenuAnchor;
         this.contextMenuTargetNode = nativeEvent.target;
@@ -162,8 +168,6 @@ class PopoverReportActionContextMenu extends React.Component {
                 reportActionDraftMessage: draftMessage,
                 isArchivedRoom,
                 isChronosReport,
-            }, () => {
-                this.ignoreHide = false;
             });
         });
     }
@@ -202,9 +206,6 @@ class PopoverReportActionContextMenu extends React.Component {
      * After Popover hides, call the registered onPopoverHide & onPopoverHideActionCallback callback and reset it
      */
     runAndResetOnPopoverHide() {
-        if (this.ignoreHide) {
-            return;
-        }
         this.setState({reportID: '0', reportAction: {}}, () => {
             this.onPopoverHide = this.runAndResetCallback(this.onPopoverHide);
             this.onPopoverHideActionCallback = this.runAndResetCallback(this.onPopoverHideActionCallback);

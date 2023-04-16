@@ -170,7 +170,6 @@ class FloatingActionButtonAndPopover extends React.Component {
                     onClose={this.hideCreateMenu}
                     isVisible={this.state.isCreateMenuActive}
                     anchorPosition={styles.createMenuPositionSidebar}
-                    targetToIgnore={this.fab}
                     onItemSelected={this.hideCreateMenu}
                     fromSidebarMediumScreen={!this.props.isSmallScreenWidth}
                     menuItems={[
@@ -225,17 +224,10 @@ class FloatingActionButtonAndPopover extends React.Component {
                     ]}
                 />
                 <FloatingActionButton
-                    ref={el => this.fab = el}
                     accessibilityLabel={this.props.translate('sidebarScreen.fabNewChat')}
                     accessibilityRole="button"
                     isActive={this.state.isCreateMenuActive}
-                    onPress={() => {
-                        if (this.state.isCreateMenuActive) {
-                            this.hideCreateMenu();
-                        } else {
-                            this.showCreateMenu();
-                        }
-                    }}
+                    onPress={this.showCreateMenu}
                 />
             </View>
         );

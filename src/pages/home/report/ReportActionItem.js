@@ -40,7 +40,6 @@ import ChronosOOOListActions from '../../../components/ReportActionItem/ChronosO
 import ReportActionItemReactions from '../../../components/Reactions/ReportActionItemReactions';
 import * as Report from '../../../libs/actions/Report';
 import withLocalize from '../../../components/withLocalize';
-import DomUtils from '../../../libs/DomUtils';
 
 const propTypes = {
     /** Report for this action */
@@ -84,10 +83,9 @@ class ReportActionItem extends Component {
         super(props);
         this.popoverAnchor = undefined;
         this.state = {
-            isContextMenuActive: false,
-            popoverEvent: null,
+            isContextMenuActive: ReportActionContextMenu.isActiveReportAction(props.action.reportActionID),
         };
-        this.setContextMenuActive = this.setContextMenuActive.bind(this);
+        this.checkIfContextMenuActive = this.checkIfContextMenuActive.bind(this);
         this.showPopover = this.showPopover.bind(this);
         this.renderItemContent = this.renderItemContent.bind(this);
         this.toggleReaction = this.toggleReaction.bind(this);
@@ -116,8 +114,8 @@ class ReportActionItem extends Component {
         focusTextInputAfterAnimation(this.textInput, 100);
     }
 
-    setContextMenuActive(isContextMenuActive, popoverEvent = null) {
-        this.setState({isContextMenuActive, popoverEvent});
+    checkIfContextMenuActive() {
+        this.setState({isContextMenuActive: ReportActionContextMenu.isActiveReportAction(this.props.action.reportActionID)});
     }
 
     /**
@@ -131,7 +129,7 @@ class ReportActionItem extends Component {
             return;
         }
 
-        this.setContextMenuActive(true, event);
+        this.setState({isContextMenuActive: true});
 
         const selection = SelectionScraper.getCurrentSelection();
         ReportActionContextMenu.showContextMenu(
@@ -143,7 +141,7 @@ class ReportActionItem extends Component {
             this.props.action,
             this.props.draftMessage,
             undefined,
-            () => this.setContextMenuActive(false),
+            this.checkIfContextMenuActive,
             ReportUtils.isArchivedRoom(this.props.report),
             ReportUtils.chatIncludesChronos(this.props.report),
         );
@@ -168,7 +166,7 @@ class ReportActionItem extends Component {
                     isMostRecentIOUReportAction={this.props.isMostRecentIOUReportAction}
                     isHovered={hovered}
                     contextMenuAnchor={this.popoverAnchor}
-                    setContextMenuActive={this.setContextMenuActive}
+                    checkIfContextMenuActive={this.checkIfContextMenuActive}
                 />
             );
         } else {
@@ -182,7 +180,7 @@ class ReportActionItem extends Component {
                         anchor: this.popoverAnchor,
                         reportID: this.props.report.reportID,
                         action: this.props.action,
-                        setContextMenuActive: this.setContextMenuActive,
+                        checkIfContextMenuActive: this.checkIfContextMenuActive,
                     }}
                 >
                     {!this.props.draftMessage
@@ -252,7 +250,7 @@ class ReportActionItem extends Component {
                 withoutFocusOnSecondaryInteraction
             >
                 <Hoverable>
-                    {(hovered, setIsHovered) => (
+                    {hovered => (
                         <View accessibilityLabel={this.props.translate('accessibilityHints.chatMessage')}>
                             {this.props.shouldDisplayNewMarker && (
                                 <UnreadActionIndicator reportActionID={this.props.action.reportActionID} />
@@ -298,18 +296,8 @@ class ReportActionItem extends Component {
                                 displayAsGroup={this.props.displayAsGroup}
                                 isVisible={
                                     hovered
-                                    && !this.state.isContextMenuActive
                                     && !this.props.draftMessage
                                 }
-                                onHide={() => {
-                                    // mouseleave event is not fired if the element is removed from the DOM.
-                                    // If mini context menu hides while the mouse position is out of this element,
-                                    // manually set the hovered state to false.
-                                    if (!this.state.popoverEvent || DomUtils.isMouseInsideElement(this.state.popoverEvent, this.popoverAnchor)) {
-                                        return;
-                                    }
-                                    setIsHovered(false);
-                                }}
                                 draftMessage={this.props.draftMessage}
                                 isChronosReport={ReportUtils.chatIncludesChronos(this.props.report)}
                             />

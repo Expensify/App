@@ -11,7 +11,6 @@ import {propTypes, defaultProps} from './hoverablePropTypes';
 class Hoverable extends Component {
     constructor(props) {
         super(props);
-        this.setIsHovered = this.setIsHovered.bind(this);
         this.state = {
             isHovered: false,
         };
@@ -107,7 +106,7 @@ class Hoverable extends Component {
             >
                 { // If this.props.children is a function, call it to provide the hover state to the children.
                     _.isFunction(this.props.children)
-                        ? this.props.children(this.state.isHovered, this.setIsHovered)
+                        ? this.props.children(this.state.isHovered)
                         : this.props.children
                 }
             </View>

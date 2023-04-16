@@ -32,7 +32,7 @@ const propTypes = {
     onViewDetailsPressed: PropTypes.func,
 
     /** Callback for updating context menu active state, used for showing context menu */
-    setContextMenuActive: PropTypes.func,
+    checkIfContextMenuActive: PropTypes.func,
 
     /** Whether the IOU is hovered so we can modify its style */
     isHovered: PropTypes.bool,
@@ -45,7 +45,7 @@ const defaultProps = {
     shouldAllowViewDetails: false,
     isHovered: false,
     onViewDetailsPressed: () => {},
-    setContextMenuActive: () => {},
+    checkIfContextMenuActive: () => {},
 };
 
 const IOUQuote = props => (
@@ -63,7 +63,7 @@ const IOUQuote = props => (
                     props.contextMenuAnchor,
                     props.chatReportID,
                     props.action,
-                    props.setContextMenuActive,
+                    props.checkIfContextMenuActive,
                 )}
                 style={[styles.flexRow, styles.justifyContentBetween,
                     props.shouldAllowViewDetails

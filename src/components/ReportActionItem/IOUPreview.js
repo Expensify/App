@@ -53,7 +53,7 @@ const propTypes = {
     contextMenuAnchor: PropTypes.shape({current: PropTypes.elementType}),
 
     /** Callback for updating context menu active state, used for showing context menu */
-    setContextMenuActive: PropTypes.func,
+    checkIfContextMenuActive: PropTypes.func,
 
     /** Extra styles to pass to View wrapper */
     // eslint-disable-next-line react/forbid-prop-types
@@ -116,7 +116,7 @@ const defaultProps = {
     onPreviewPressed: () => {},
     action: undefined,
     contextMenuAnchor: undefined,
-    setContextMenuActive: () => {},
+    checkIfContextMenuActive: () => {},
     containerStyles: [],
     walletTerms: {},
     pendingAction: null,
@@ -175,7 +175,7 @@ const IOUPreview = (props) => {
             props.contextMenuAnchor,
             props.chatReportID,
             props.action,
-            props.setContextMenuActive,
+            props.checkIfContextMenuActive,
         );
     };
 
