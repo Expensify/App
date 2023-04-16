@@ -38,12 +38,12 @@ const BasePreRenderer = forwardRef((props, ref) => {
                     anchor,
                     reportID,
                     action,
-                    checkIfContextMenuActive,
+                    setContextMenuActive,
                 }) => (
                     <TouchableWithoutFeedback
                         onPressIn={props.onPressIn}
                         onPressOut={props.onPressOut}
-                        onLongPress={event => showContextMenuForReport(event, anchor, reportID, action, checkIfContextMenuActive)}
+                        onLongPress={event => showContextMenuForReport(event, anchor, reportID, action, setContextMenuActive)}
                     >
                         <View>
                             {/* eslint-disable-next-line react/jsx-props-no-spreading */}

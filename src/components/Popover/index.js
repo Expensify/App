@@ -10,11 +10,12 @@ import withWindowDimensions from '../withWindowDimensions';
  * On small screen widths, it uses BottomDocked modal type, and a Popover type on wide screen widths.
  */
 const Popover = (props) => {
-    if (!props.fullscreen && !props.isSmallScreenWidth) {
+    if (!props.isSmallScreenWidth) {
         return createPortal(
             <Modal
                 // eslint-disable-next-line react/jsx-props-no-spreading
                 {...props}
+                fullscreen={false}
                 type={CONST.MODAL.MODAL_TYPE.POPOVER}
                 popoverAnchorPosition={props.anchorPosition}
                 animationInTiming={props.disableAnimation ? 1 : props.animationInTiming}
@@ -28,11 +29,10 @@ const Popover = (props) => {
         <Modal
             // eslint-disable-next-line react/jsx-props-no-spreading
             {...props}
-            type={props.isSmallScreenWidth ? CONST.MODAL.MODAL_TYPE.BOTTOM_DOCKED : CONST.MODAL.MODAL_TYPE.POPOVER}
-            popoverAnchorPosition={props.isSmallScreenWidth ? undefined : props.anchorPosition}
-            fullscreen={props.isSmallScreenWidth ? true : props.fullscreen}
-            animationInTiming={props.disableAnimation && !props.isSmallScreenWidth ? 1 : props.animationInTiming}
-            animationOutTiming={props.disableAnimation && !props.isSmallScreenWidth ? 1 : props.animationOutTiming}
+            fullscreen
+            type={CONST.MODAL.MODAL_TYPE.BOTTOM_DOCKED}
+            animationInTiming={props.disableAnimation && props.animationInTiming}
+            animationOutTiming={props.disableAnimation && props.animationOutTiming}
         />
     );
 };

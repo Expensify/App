@@ -50,7 +50,7 @@ const BaseAnchorForAttachmentsOnly = (props) => {
                 anchor,
                 reportID,
                 action,
-                checkIfContextMenuActive,
+                setContextMenuActive,
             }) => (
                 <Pressable
                     style={props.style}
@@ -68,7 +68,7 @@ const BaseAnchorForAttachmentsOnly = (props) => {
                         anchor,
                         reportID,
                         action,
-                        checkIfContextMenuActive,
+                        setContextMenuActive,
                     )}
                 >
                     <AttachmentView

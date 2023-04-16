@@ -1,4 +1,4 @@
-import React from 'react';
+import React, {useCallback, useEffect, useRef} from 'react';
 import withWindowDimensions from '../withWindowDimensions';
 import BaseModal from './BaseModal';
 import {propTypes, defaultProps} from './modalPropTypes';
@@ -6,6 +6,32 @@ import * as StyleUtils from '../../styles/StyleUtils';
 import themeColors from '../../styles/themes/default';
 
 const Modal = (props) => {
+    const baseModalRef = useRef();
+    const isVisible = props.isVisible;
+    const targetToIgnore = props.targetToIgnore;
+    const onClose = props.onClose;
+    const shouldCloseOnOutsideClick = props.shouldCloseOnOutsideClick;
+
+    const closeOnOutsideClick = useCallback((event) => {
+        if (!baseModalRef.current
+            || baseModalRef.current.contains(event.target)
+            || (targetToIgnore && targetToIgnore.contains(event.target))) {
+            return;
+        }
+
+        onClose();
+    }, [targetToIgnore, onClose]);
+
+    useEffect(() => {
+        if (!shouldCloseOnOutsideClick || !isVisible) {
+            return;
+        }
+        document.addEventListener('mousedown', closeOnOutsideClick);
+        return () => {
+            document.removeEventListener('mousedown', closeOnOutsideClick);
+        };
+    }, [isVisible, shouldCloseOnOutsideClick, closeOnOutsideClick]);
+
     const setStatusBarColor = (color = themeColors.appBG) => {
         if (!props.fullscreen) {
             return;
@@ -29,6 +55,7 @@ const Modal = (props) => {
         <BaseModal
             // eslint-disable-next-line react/jsx-props-no-spreading
             {...props}
+            ref={baseModalRef}
             onModalHide={hideModal}
             onModalShow={showModal}
         >

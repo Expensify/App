@@ -99,24 +99,10 @@ function showDeleteModal(reportID, reportAction, shouldSetModalVisibility, onCon
     contextMenuRef.current.showDeleteModal(reportID, reportAction, shouldSetModalVisibility, onConfirm, onCancel);
 }
 
-/**
- * Whether Context Menu is active for the Report Action.
- *
- * @param {Number|String} actionID
- * @return {Boolean}
- */
-function isActiveReportAction(actionID) {
-    if (!contextMenuRef.current) {
-        return;
-    }
-    return contextMenuRef.current.isActiveReportAction(actionID);
-}
-
 export {
     contextMenuRef,
     showContextMenu,
     hideContextMenu,
-    isActiveReportAction,
     showDeleteModal,
     hideDeleteModal,
 };

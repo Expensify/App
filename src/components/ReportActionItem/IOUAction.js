@@ -30,7 +30,7 @@ const propTypes = {
     contextMenuAnchor: PropTypes.shape({current: PropTypes.elementType}),
 
     /** Callback for updating context menu active state, used for showing context menu */
-    checkIfContextMenuActive: PropTypes.func,
+    setContextMenuActive: PropTypes.func,
 
     /* Onyx Props */
     /** chatReport associated with iouReport */
@@ -56,7 +56,7 @@ const propTypes = {
 
 const defaultProps = {
     contextMenuAnchor: undefined,
-    checkIfContextMenuActive: () => {},
+    setContextMenuActive: () => {},
     chatReport: {
         participants: [],
     },
@@ -95,7 +95,7 @@ const IOUAction = (props) => {
                 contextMenuAnchor={props.contextMenuAnchor}
                 shouldAllowViewDetails={Boolean(props.action.originalMessage.IOUReportID)}
                 onViewDetailsPressed={launchDetailsModal}
-                checkIfContextMenuActive={props.checkIfContextMenuActive}
+                setContextMenuActive={props.setContextMenuActive}
                 isHovered={props.isHovered}
             />
             {shouldShowIOUPreview && (
@@ -104,7 +104,7 @@ const IOUAction = (props) => {
                     chatReportID={props.chatReportID}
                     action={props.action}
                     contextMenuAnchor={props.contextMenuAnchor}
-                    checkIfContextMenuActive={props.checkIfContextMenuActive}
+                    setContextMenuActive={props.setContextMenuActive}
                     shouldShowPendingConversionMessage={shouldShowPendingConversionMessage}
                     onPayButtonPressed={launchDetailsModal}
                     onPreviewPressed={launchDetailsModal}
