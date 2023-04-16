@@ -3,6 +3,7 @@ import {useEffect, useState} from 'react';
 import {
     Animated,
     Easing,
+    Platform,
     StatusBar,
     StyleSheet,
 } from 'react-native';
@@ -60,10 +61,10 @@ const AnimatedSplashScreen = (props) => {
             style={[
                 StyleSheet.absoluteFill,
                 styles.animatedSplashScreen,
-                {
-                    marginBottom: -BootSplash.navigationBarHeight,
+                {opacity},
+                Platform.OS === 'android' && {
                     marginTop: -StatusBar.currentHeight,
-                    opacity,
+                    marginBottom: -BootSplash.navigationBarHeight,
                 },
             ]}
         >
