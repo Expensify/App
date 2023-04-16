@@ -23,7 +23,8 @@
                             <a href="#{{ section.href }}" class="link">{{ section.title }}</a>
                             <ul>
                                 {% for article in section.articles %}
-                                    {% include lhn-article-link.html hub=hub.href href=article.href title=article.title %}
+                                    {% assign article_href = section.href | append: '/' | append: article.href %}
+                                    {% include lhn-article-link.html hub=hub.href href=article_href title=article.title %}
                                 {% endfor %}
                             </ul>
                         </li>
