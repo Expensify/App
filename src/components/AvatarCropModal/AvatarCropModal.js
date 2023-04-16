@@ -97,7 +97,7 @@ const AvatarCropModal = (props) => {
         const {height, width} = event.nativeEvent.layout;
 
         // Even if the browser height is reduced too much, the relative height should not be negative
-        const relativeHeight = Math.max(height - styles.imageCropRotateButton.height, CONST.AVATAR_CROP_MODAL.INITIAL_SIZE);
+        const relativeHeight = Math.max(height, CONST.AVATAR_CROP_MODAL.INITIAL_SIZE);
         setImageContainerSize(Math.floor(Math.min(relativeHeight, width)));
     }, []);
 

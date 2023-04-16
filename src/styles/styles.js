@@ -2860,10 +2860,6 @@ const styles = {
         justifyContent: 'center',
     },
 
-    imageCropRotateButton: {
-        height: variables.iconSizeExtraLarge,
-    },
-
     userSelectText: {
         userSelect: 'text',
         WebkitUserSelect: 'text',
