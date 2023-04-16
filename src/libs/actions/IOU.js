@@ -553,7 +553,7 @@ function cancelMoneyRequest(chatReportID, iouReportID, type, moneyRequestAction)
         type,
         amount,
         moneyRequestAction.originalMessage.currency,
-        moneyRequestAction.originalMessage.comment,
+        Str.htmlDecode(moneyRequestAction.originalMessage.comment),
         [],
         '',
         transactionID,
@@ -634,6 +634,15 @@ function cancelMoneyRequest(chatReportID, iouReportID, type, moneyRequestAction)
  */
 function setIOUSelectedCurrency(selectedCurrencyCode) {
     Onyx.merge(ONYXKEYS.IOU, {selectedCurrencyCode});
+}
+
+/**
+ * Sets Money Request description
+ *
+ * @param {String} comment
+ */
+function setMoneyRequestDescription(comment) {
+    Onyx.merge(ONYXKEYS.IOU, {comment});
 }
 
 /**
@@ -1002,6 +1011,7 @@ export {
     payMoneyRequestElsewhere,
     payMoneyRequestViaPaypal,
     setIOUSelectedCurrency,
+    setMoneyRequestDescription,
     sendMoneyWithWallet,
     payMoneyRequestWithWallet,
 };
