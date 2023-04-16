@@ -1,7 +1,8 @@
 import React from 'react';
+import {View} from 'react-native';
 
 const GoogleSignIn = () => (
-    <>
+    <View style={{height: 40, width: 40, backgroundColor: 'yellow'}}>
         <div
             id="g_id_onload"
             data-client_id="CLIENTID"
@@ -19,7 +20,7 @@ const GoogleSignIn = () => (
             data-text="signin_with"
             data-size="large"
         />
-    </>
+    </View>
 );
 
 export default GoogleSignIn;
