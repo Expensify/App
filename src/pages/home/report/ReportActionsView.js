@@ -22,6 +22,7 @@ import * as ReportActionsUtils from '../../../libs/ReportActionsUtils';
 import * as ReportUtils from '../../../libs/ReportUtils';
 import reportPropTypes from '../../reportPropTypes';
 import getIsReportFullyVisible from '../../../libs/getIsReportFullyVisible';
+import * as ReportActionContextMenu from './ContextMenu/ReportActionContextMenu';
 
 const propTypes = {
     /** The report currently being looked at */
@@ -311,6 +312,7 @@ class ReportActionsView extends React.Component {
      * @param {Object} {nativeEvent}
      */
     trackScroll({nativeEvent}) {
+        ReportActionContextMenu.hideContextMenu(false);
         this.currentScrollOffset = -nativeEvent.contentOffset.y;
         this.toggleFloatingMessageCounter();
     }
