@@ -16,19 +16,23 @@ const SCALE_RATIO = 10;
 const propTypes = {
     /** Screen is ready to be animated */
     isReady: PropTypes.bool,
+
+    /** Animated has ended */
+    onAnimationEnd: PropTypes.func,
 };
 
 const defaultProps = {
     isReady: false,
+    onAnimationEnd: () => {},
 };
 
 const AnimatedSplashScreen = (props) => {
-    const [isVisible, setIsVisible] = useState(true);
+    const onAnimationEnd = props.onAnimationEnd;
     const [scale] = useState(() => new Animated.Value(1 / SCALE_RATIO));
     const [opacity] = useState(() => new Animated.Value(1));
 
     useEffect(() => {
-        if (!props.isReady || !isVisible) {
+        if (!props.isReady) {
             return;
         }
 
@@ -47,13 +51,9 @@ const AnimatedSplashScreen = (props) => {
             isInteraction: false,
             useNativeDriver: true,
         }).start(() => {
-            setIsVisible(false);
+            onAnimationEnd();
         });
-    }, [props.isReady, isVisible, opacity, scale]);
-
-    if (!isVisible) {
-        return null;
-    }
+    }, [props.isReady, onAnimationEnd, opacity, scale]);
 
     return (
         <Animated.View

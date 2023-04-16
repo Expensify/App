@@ -2,7 +2,7 @@ import _ from 'underscore';
 import lodashGet from 'lodash/get';
 import PropTypes from 'prop-types';
 import React, {useCallback, useState, useEffect, useRef, useLayoutEffect, useMemo} from 'react';
-import {AppState, Linking} from 'react-native';
+import {AppState, Linking, Platform} from 'react-native';
 import Onyx, {withOnyx} from 'react-native-onyx';
 
 import * as Report from './libs/actions/Report';
@@ -87,7 +87,8 @@ function Expensify(props) {
     const appStateChangeListener = useRef(null);
     const [isNavigationReady, setIsNavigationReady] = useState(false);
     const [isOnyxMigrated, setIsOnyxMigrated] = useState(false);
-    const [isSplashShown, setIsSplashShown] = useState(true);
+    const [isStaticSplashShown, setIsStaticSplashShown] = useState(true);
+    const [isAnimatedSplashShown, setIsAnimatedSplashShown] = useState(Platform.OS !== 'web');
 
     const isAuthenticated = useMemo(() => Boolean(lodashGet(props.session, 'authToken', null)), [props.session]);
 
@@ -104,6 +105,10 @@ function Expensify(props) {
 
         // Navigate to any pending routes now that the NavigationContainer is ready
         Navigation.setIsNavigationReady();
+    }, []);
+
+    const onSplashAnimationEnd = useCallback(() => {
+        setIsAnimatedSplashShown(false);
     }, []);
 
     useLayoutEffect(() => {
@@ -160,16 +165,16 @@ function Expensify(props) {
     }, []);
 
     useEffect(() => {
-        if (!isNavigationReady || !isSplashShown) {
+        if (!isNavigationReady || !isStaticSplashShown) {
             return;
         }
 
         const shouldHideSplash = !isAuthenticated || props.isSidebarLoaded;
 
         if (shouldHideSplash) {
-            BootSplash.hide().then(() => setIsSplashShown(false));
+            BootSplash.hide().then(() => setIsStaticSplashShown(false));
         }
-    }, [props.isSidebarLoaded, isNavigationReady, isSplashShown, isAuthenticated]);
+    }, [props.isSidebarLoaded, isNavigationReady, isStaticSplashShown, isAuthenticated]);
 
     // Display a blank page until the onyx migration completes
     if (!isOnyxMigrated) {
@@ -178,7 +183,7 @@ function Expensify(props) {
 
     return (
         <DeeplinkWrapper>
-            {!isSplashShown && (
+            {!isStaticSplashShown && (
                 <>
                     <KeyboardShortcutsModal />
                     <GrowlNotification ref={Growl.growlRef} />
@@ -204,7 +209,12 @@ function Expensify(props) {
                 authenticated={isAuthenticated}
             />
 
-            <AnimatedSplashScreen isReady={!isSplashShown} />
+            {isAnimatedSplashShown && (
+                <AnimatedSplashScreen
+                    isReady={!isStaticSplashShown}
+                    onAnimationEnd={onSplashAnimationEnd}
+                />
+            )}
         </DeeplinkWrapper>
     );
 }
