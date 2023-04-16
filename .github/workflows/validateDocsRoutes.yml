@@ -1,0 +1,24 @@
+name: Validate Docs Routes File
+
+on:
+  pull_request:
+    types: [opened, synchronize]
+    paths:
+      - docs/**
+
+jobs:
+  verify:
+    if: github.actor != 'OSBotify'
+    runs-on: ubuntu-latest
+    steps:
+      # This action checks-out the repository, so the workflow can access it.
+      - uses: actions/checkout@93ea575cb5d8a053eaa0ac8fa3b40d7e05a33cc8
+        with:
+          fetch-depth: 0
+
+      - uses: Expensify/App/.github/actions/composite/setupNode@main
+
+      # Generate the routes.yml file again and check for a diff. Fail if there is one,
+      # because that would be a sign that the PR author did not regenerate the docs routes.
+      - name: Validate Docs Routes File
+        run: ./.github/scripts/verifyDocsRoutes.sh

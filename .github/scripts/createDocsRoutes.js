@@ -48,7 +48,8 @@ function run() {
     const hubs = fs.readdirSync(`${docsDir}/articles`);
     if (hubs.length !== routes.hubs.length) {
         // If new hubs have been added without metadata addition to _routes.yml
-        throw new Error(warn);
+        console.error(warn);
+        process.exit(1);
     }
     _.each(hubs, (hub) => {
         // Iterate through each directory in articles
@@ -87,4 +88,5 @@ try {
     run();
 } catch (error) {
     console.error('A problem occurred while trying to read the directories.', error);
+    process.exit(1);
 }
