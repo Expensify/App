@@ -63,6 +63,7 @@ const AnimatedSplashScreen = (props) => {
                 styles.animatedSplashScreen,
                 {opacity},
                 Platform.OS === 'android' && {
+                    // Apply negative margins to center the logo on window (instead of screen)
                     marginTop: -StatusBar.currentHeight,
                     marginBottom: -BootSplash.navigationBarHeight,
                 },
