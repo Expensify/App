@@ -23,6 +23,7 @@
     "desktop-build": "scripts/build-desktop.sh production",
     "desktop-build-staging": "scripts/build-desktop.sh staging",
     "desktop-build-internal": "scripts/build-desktop.sh internal",
+    "createDocsRoutes": "node .github/scripts/createDocsRoutes.js",
     "ios-build": "fastlane ios build",
     "android-build": "fastlane android build",
     "android-build-e2e": "bundle exec fastlane android build_e2e",
