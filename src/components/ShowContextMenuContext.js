@@ -6,7 +6,7 @@ const ShowContextMenuContext = React.createContext({
     anchor: null,
     reportID: null,
     action: undefined,
-    checkIfContextMenuActive: () => {},
+    setContextMenuActive: () => {},
 });
 
 ShowContextMenuContext.displayName = 'ShowContextMenuContext';
@@ -18,9 +18,9 @@ ShowContextMenuContext.displayName = 'ShowContextMenuContext';
  * @param {Element} anchor - Context menu anchor
  * @param {String} reportID - Active Report ID
  * @param {Object} action - ReportAction for ContextMenu
- * @param {Function} checkIfContextMenuActive Callback to update context menu active state
+ * @param {Function} setContextMenuActive Callback to update context menu active state
  */
-function showContextMenuForReport(event, anchor, reportID, action, checkIfContextMenuActive) {
+function showContextMenuForReport(event, anchor, reportID, action, setContextMenuActive) {
     ReportActionContextMenu.showContextMenu(
         ContextMenuActions.CONTEXT_MENU_TYPES.REPORT_ACTION,
         event,
@@ -29,8 +29,8 @@ function showContextMenuForReport(event, anchor, reportID, action, checkIfContex
         reportID,
         action,
         '',
-        checkIfContextMenuActive,
-        checkIfContextMenuActive,
+        () => setContextMenuActive(true),
+        () => setContextMenuActive(false),
     );
 }
 

@@ -52,6 +52,13 @@ class BaseReportActionContextMenu extends React.Component {
         };
     }
 
+    componentDidUpdate(prevProps) {
+        if (!this.props.onHide || this.props.isVisible || !prevProps.isVisible) {
+            return;
+        }
+        this.props.onHide();
+    }
+
     render() {
         const shouldShowFilter = contextAction => contextAction.shouldShow(
             this.props.type,
