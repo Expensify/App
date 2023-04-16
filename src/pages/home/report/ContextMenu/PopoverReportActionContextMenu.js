@@ -308,7 +308,6 @@ class PopoverReportActionContextMenu extends React.Component {
                     animationOutTiming={1}
                     measureContent={this.measureContent}
                     shouldSetModalVisibility={false}
-                    fullscreen
                 >
                     <BaseReportActionContextMenu
                         isVisible

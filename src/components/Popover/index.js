@@ -31,8 +31,8 @@ const Popover = (props) => {
             {...props}
             fullscreen
             type={CONST.MODAL.MODAL_TYPE.BOTTOM_DOCKED}
-            animationInTiming={props.disableAnimation && props.animationInTiming}
-            animationOutTiming={props.disableAnimation && props.animationOutTiming}
+            animationInTiming={props.disableAnimation ? 1 : props.animationInTiming}
+            animationOutTiming={props.disableAnimation ? 1 : props.animationOutTiming}
         />
     );
 };
