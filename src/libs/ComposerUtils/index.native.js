@@ -1,6 +1,7 @@
 import lodashGet from 'lodash/get';
 import styles from '../../styles/styles';
 import updateIsFullComposerAvailable from './updateIsFullComposerAvailable';
+// eslint-disable-next-line import/extensions
 import * as ComposerUtils from './index.js';
 
 /**
