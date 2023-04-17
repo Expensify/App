@@ -1,3 +1,4 @@
+import {defaultStyles as defaultPickerStyles} from 'react-native-picker-select/src/styles';
 import fontFamily from './fontFamily';
 import addOutlineWidth from './addOutlineWidth';
 import themeColors from './themes/default';
@@ -605,6 +606,9 @@ const styles = {
         done: {
             color: themeColors.text,
         },
+        doneDepressed: {
+            fontSize: defaultPickerStyles.done.fontSize,
+        },
         modalViewMiddle: {
             backgroundColor: themeColors.border,
             borderTopWidth: 0,
@@ -942,6 +946,9 @@ const styles = {
         },
         done: {
             color: themeColors.text,
+        },
+        doneDepressed: {
+            fontSize: defaultPickerStyles.done.fontSize,
         },
         modalViewMiddle: {
             backgroundColor: themeColors.border,
@@ -1290,8 +1297,8 @@ const styles = {
         // Starting version 6.3.2 @react-navigation/drawer adds "user-select: none;" to its container.
         // We add user-select-auto to the inner component to prevent incorrect triple-click text selection.
         // For further explanation see - https://github.com/Expensify/App/pull/12730/files#r1022883823
-        userSelect: 'auto',
-        WebkitUserSelect: 'auto',
+        userSelect: 'text',
+        WebkitUserSelect: 'text',
     },
 
     appContentHeader: {
@@ -2274,6 +2281,19 @@ const styles = {
         lineHeight: undefined,
     }, 0),
 
+    moneyRequestConfirmationAmount: {
+        ...headlineFont,
+        fontSize: variables.fontSizeh1,
+    },
+
+    moneyRequestMenuItem: {
+        flexDirection: 'row',
+        borderRadius: 0,
+        justifyContent: 'space-between',
+        width: '100%',
+        marginBottom: 20,
+    },
+
     iouPreviewBox: {
         backgroundColor: themeColors.cardBG,
         borderRadius: variables.componentBorderRadiusCard,
@@ -2546,6 +2566,7 @@ const styles = {
         width: '100%',
         flexDirection: 'row',
         justifyContent: 'space-between',
+        alignItems: 'center',
         ...spacing.pt2,
     },
 
@@ -2553,10 +2574,6 @@ const styles = {
         borderColor: themeColors.border,
         borderBottomWidth: 1,
         ...spacing.pb2,
-    },
-
-    peopleRowCell: {
-        justifyContent: 'center',
     },
 
     peopleBadge: {
@@ -2819,6 +2836,12 @@ const styles = {
         cursor: 'move',
     },
 
+    sliderKnobTooltipView: {
+        height: variables.sliderKnobSize,
+        width: variables.sliderKnobSize,
+        borderRadius: variables.sliderKnobSize / 2,
+    },
+
     sliderKnob: {
         backgroundColor: themeColors.success,
         position: 'absolute',
@@ -2878,7 +2901,6 @@ const styles = {
     },
 
     textPill: {
-        ellipsizeMode: 'end',
         backgroundColor: themeColors.border,
         borderRadius: 10,
         overflow: 'hidden',
@@ -2958,10 +2980,7 @@ const styles = {
     },
 
     emojiReactionBubble: {
-        paddingVertical: 2,
-        paddingHorizontal: 8,
         borderRadius: 28,
-        backgroundColor: themeColors.border,
         alignItems: 'center',
         justifyContent: 'center',
         flexDirection: 'row',
@@ -2970,20 +2989,20 @@ const styles = {
         marginRight: 4,
     },
 
-    emojiReactionText: {
-        fontSize: 12,
+    miniQuickEmojiReactionText: {
+        fontSize: 15,
         lineHeight: 20,
         textAlignVertical: 'center',
-        userSelect: 'none',
-        WebkitUserSelect: 'none',
     },
+
+    emojiReactionBubbleText: {
+        textAlignVertical: 'center',
+    },
+
     reactionCounterText: {
-        fontSize: 11,
+        fontSize: 13,
         marginLeft: 4,
         fontWeight: 'bold',
-        color: themeColors.textLight,
-        userSelect: 'none',
-        WebkitUserSelect: 'none',
     },
 
     fontColorReactionLabel: {

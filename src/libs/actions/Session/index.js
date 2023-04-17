@@ -15,9 +15,10 @@ import * as Authentication from '../../Authentication';
 import * as Welcome from '../Welcome';
 import * as API from '../../API';
 import * as NetworkStore from '../../Network/NetworkStore';
-import * as Report from '../Report';
 import DateUtils from '../../DateUtils';
 import Navigation from '../../Navigation/Navigation';
+import subscribeToReportCommentPushNotifications from '../../Notification/PushNotification/subscribeToReportCommentPushNotifications';
+import ROUTES from '../../../ROUTES';
 
 let credentials = {};
 Onyx.connect({
@@ -39,7 +40,7 @@ Onyx.connect({
 
             // Prevent issue where report linking fails after users switch accounts without closing the app
             PushNotification.init();
-            Report.subscribeToReportCommentPushNotifications();
+            subscribeToReportCommentPushNotifications();
         } else {
             PushNotification.deregister();
             PushNotification.clearNotifications();
@@ -91,7 +92,7 @@ function resendValidationLink(login = credentials.login) {
         key: ONYXKEYS.ACCOUNT,
         value: {
             isLoading: false,
-            message: Localize.translateLocal('resendValidationForm.linkHasBeenResent'),
+            message: 'resendValidationForm.linkHasBeenResent',
         },
     }];
     const failureData = [{
@@ -126,7 +127,7 @@ function resendValidateCode(login = credentials.login) {
         key: ONYXKEYS.ACCOUNT,
         value: {
             isLoading: false,
-            message: Localize.translateLocal('validateCodeForm.codeSent'),
+            message: 'validateCodeForm.codeSent',
         },
     }];
     const failureData = [{
@@ -300,7 +301,7 @@ function signInWithShortLivedAuthToken(email, authToken) {
  * @param {String} [twoFactorAuthCode]
  * @param {String} [preferredLocale] Indicates which language to use when the user lands in the app
  */
-function signIn(password, validateCode, twoFactorAuthCode, preferredLocale = CONST.DEFAULT_LOCALE) {
+function signIn(password, validateCode, twoFactorAuthCode, preferredLocale = CONST.LOCALES.DEFAULT) {
     const optimisticData = [
         {
             onyxMethod: CONST.ONYX.METHOD.MERGE,
@@ -402,6 +403,11 @@ function signInWithValidateCode(accountID, validateCode, twoFactorAuthCode) {
     }, {optimisticData, successData, failureData});
 }
 
+function signInWithValidateCodeAndNavigate(accountID, validateCode, twoFactorAuthCode) {
+    signInWithValidateCode(accountID, validateCode, twoFactorAuthCode);
+    Navigation.navigate(ROUTES.HOME);
+}
+
 /**
  * Initializes the state of the automatic authentication when the user clicks on a magic link.
  *
@@ -467,7 +473,7 @@ function resendResetPassword() {
                 key: ONYXKEYS.ACCOUNT,
                 value: {
                     isLoading: false,
-                    message: Localize.translateLocal('resendValidationForm.linkHasBeenResent'),
+                    message: 'resendValidationForm.linkHasBeenResent',
                 },
             },
         ],
@@ -641,6 +647,7 @@ export {
     updatePasswordAndSignin,
     signIn,
     signInWithValidateCode,
+    signInWithValidateCodeAndNavigate,
     initAutoAuthState,
     signInWithShortLivedAuthToken,
     cleanupSession,

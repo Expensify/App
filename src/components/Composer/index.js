@@ -86,7 +86,7 @@ const propTypes = {
 const defaultProps = {
     defaultValue: undefined,
     value: undefined,
-    numberOfLines: 1,
+    numberOfLines: undefined,
     onNumberOfLinesChange: () => {},
     maxLines: -1,
     onPasteFile: () => {},

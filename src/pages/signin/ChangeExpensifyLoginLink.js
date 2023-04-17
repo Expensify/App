@@ -32,11 +32,8 @@ const defaultProps = {
 const ChangeExpensifyLoginLink = props => (
     <View style={[styles.changeExpensifyLoginLinkContainer, styles.mt3]}>
         {!_.isEmpty(props.credentials.login) && (
-            <Text>
-                {props.translate('common.not')}
-                &nbsp;
-                {Str.removeSMSDomain(props.credentials.login)}
-                {'? '}
+            <Text style={styles.mr1}>
+                {props.translate('loginForm.notYou', {user: Str.removeSMSDomain(props.credentials.login)})}
             </Text>
         )}
         <TouchableOpacity

@@ -127,8 +127,9 @@ export default {
                     Settings_ContactMethodDetails: {
                         path: ROUTES.SETTINGS_CONTACT_METHOD_DETAILS,
                     },
-                    Settings_Add_Secondary_Login: {
-                        path: ROUTES.SETTINGS_ADD_LOGIN,
+                    Settings_NewContactMethod: {
+                        path: ROUTES.SETTINGS_NEW_CONTACT_METHOD,
+                        exact: true,
                     },
                     Settings_PersonalDetails_Initial: {
                         path: ROUTES.SETTINGS_PERSONAL_DETAILS,
@@ -225,6 +226,7 @@ export default {
                 screens: {
                     IOU_Request_Root: ROUTES.IOU_REQUEST_WITH_REPORT_ID,
                     IOU_Request_Currency: ROUTES.IOU_REQUEST_CURRENCY,
+                    Money_Request_Description: ROUTES.MONEY_REQUEST_DESCRIPTION,
                 },
             },
             IOU_Bill: {

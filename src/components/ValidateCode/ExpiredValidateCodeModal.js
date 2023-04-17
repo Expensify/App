@@ -92,7 +92,7 @@ class ExpiredValidateCodeModal extends PureComponent {
                                     </>
                                 )}
                         </Text>
-                        {this.shouldShowRequestCodeLink() && codeRequestedErrors
+                        {this.shouldShowRequestCodeLink() && Boolean(codeRequestedErrors)
                             && (
                                 <Text style={[styles.textDanger, styles.validateCodeMessage]}>
                                     <br />
@@ -100,7 +100,7 @@ class ExpiredValidateCodeModal extends PureComponent {
                                     {codeRequestedErrors}
                                 </Text>
                             )}
-                        {this.shouldShowRequestCodeLink() && codeRequestedMessage
+                        {this.shouldShowRequestCodeLink() && Boolean(codeRequestedMessage)
                             && (
                                 <Text style={styles.validateCodeMessage}>
                                     <br />

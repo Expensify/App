@@ -30,7 +30,7 @@ Onyx.connect({
     },
 });
 
-let preferredLocale = CONST.DEFAULT_LOCALE;
+let preferredLocale = CONST.LOCALES.DEFAULT;
 Onyx.connect({
     key: ONYXKEYS.NVP_PREFERRED_LOCALE,
     callback: (val) => {
@@ -553,7 +553,7 @@ function cancelMoneyRequest(chatReportID, iouReportID, type, moneyRequestAction)
         type,
         amount,
         moneyRequestAction.originalMessage.currency,
-        moneyRequestAction.originalMessage.comment,
+        Str.htmlDecode(moneyRequestAction.originalMessage.comment),
         [],
         '',
         transactionID,
@@ -634,6 +634,15 @@ function cancelMoneyRequest(chatReportID, iouReportID, type, moneyRequestAction)
  */
 function setIOUSelectedCurrency(selectedCurrencyCode) {
     Onyx.merge(ONYXKEYS.IOU, {selectedCurrencyCode});
+}
+
+/**
+ * Sets Money Request description
+ *
+ * @param {String} comment
+ */
+function setMoneyRequestDescription(comment) {
+    Onyx.merge(ONYXKEYS.IOU, {comment});
 }
 
 /**
@@ -852,6 +861,13 @@ function getPayMoneyRequestParams(chatReport, iouReport, recipient, paymentMetho
                 },
             },
         },
+        {
+            onyxMethod: CONST.ONYX.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT}${chatReport.reportID}`,
+            value: {
+                iouReportID: null,
+            },
+        },
     ];
 
     const failureData = [
@@ -995,6 +1011,7 @@ export {
     payMoneyRequestElsewhere,
     payMoneyRequestViaPaypal,
     setIOUSelectedCurrency,
+    setMoneyRequestDescription,
     sendMoneyWithWallet,
     payMoneyRequestWithWallet,
 };

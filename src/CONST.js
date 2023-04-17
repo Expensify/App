@@ -63,6 +63,7 @@ const CONST = {
 
     DATE_BIRTH: {
         MIN_AGE: 5,
+        MIN_AGE_FOR_PAYMENT: 18,
         MAX_AGE: 150,
     },
 
@@ -351,10 +352,12 @@ const CONST = {
                     DELETE_CATEGORY: 'POLICYCHANGELOG_DELETE_CATEGORY',
                     DELETE_CUSTOM_UNIT: 'POLICYCHANGELOG_DELETE_CUSTOM_UNIT',
                     DELETE_CUSTOM_UNIT_RATE: 'POLICYCHANGELOG_DELETE_CUSTOM_UNIT_RATE',
+                    DELETE_CUSTOM_UNIT_SUB_RATE: 'POLICYCHANGELOG_DELETE_CUSTOM_UNIT_SUB_RATE',
                     DELETE_EMPLOYEE: 'POLICYCHANGELOG_DELETE_EMPLOYEE',
                     DELETE_INTEGRATION: 'POLICYCHANGELOG_DELETE_INTEGRATION',
                     DELETE_REPORT_FIELD: 'POLICYCHANGELOG_DELETE_REPORT_FIELD',
                     DELETE_TAG: 'POLICYCHANGELOG_DELETE_TAG',
+                    IMPORT_CUSTOM_UNIT_RATES: 'POLICYCHANGELOG_IMPORT_CUSTOM_UNIT_RATES',
                     IMPORT_TAGS: 'POLICYCHANGELOG_IMPORT_TAGS',
                     SET_AUTOREIMBURSEMENT: 'POLICYCHANGELOG_SET_AUTOREIMBURSEMENT',
                     SET_AUTO_JOIN: 'POLICYCHANGELOG_SET_AUTO_JOIN',
@@ -369,6 +372,7 @@ const CONST = {
                     UPDATE_CURRENCY: 'POLICYCHANGELOG_UPDATE_CURRENCY',
                     UPDATE_CUSTOM_UNIT: 'POLICYCHANGELOG_UPDATE_CUSTOM_UNIT',
                     UPDATE_CUSTOM_UNIT_RATE: 'POLICYCHANGELOG_UPDATE_CUSTOM_UNIT_RATE',
+                    UPDATE_CUSTOM_UNIT_SUB_RATE: 'POLICYCHANGELOG_UPDATE_CUSTOM_UNIT_SUB_RATE',
                     UPDATE_DEFAULT_TITLE: 'POLICYCHANGELOG_UPDATE_DEFAULT_TITLE',
                     UPDATE_DEFAULT_TITLE_ENFORCED: 'POLICYCHANGELOG_UPDATE_DEFAULT_TITLE_ENFORCED',
                     UPDATE_DISABLED_FIELDS: 'POLICYCHANGELOG_UPDATE_DISABLED_FIELDS',
@@ -403,6 +407,7 @@ const CONST = {
         },
         TYPE: {
             CHAT: 'chat',
+            EXPENSE: 'expense',
             IOU: 'iou',
         },
         CHAT_TYPE: {
@@ -499,6 +504,7 @@ const CONST = {
         SUCCESS: 200,
         NOT_AUTHENTICATED: 407,
         EXP_ERROR: 666,
+        MANY_WRITES_ERROR: 665,
         UNABLE_TO_RETRY: 'unableToRetry',
     },
     HTTP_STATUS: {
@@ -548,22 +554,6 @@ const CONST = {
         COMMAND: {
             RECONNECT_APP: 'ReconnectApp',
         },
-    },
-    NVP: {
-        IS_FIRST_TIME_NEW_EXPENSIFY_USER: 'isFirstTimeNewExpensifyUser',
-        BLOCKED_FROM_CONCIERGE: 'private_blockedFromConcierge',
-        PAYPAL_ME_ADDRESS: 'expensify_payPalMeAddress',
-        PRIORITY_MODE: 'priorityMode',
-        TIMEZONE: 'timeZone',
-        FREE_PLAN_BANK_ACCOUNT_ID: 'expensify_freePlanBankAccountID',
-        ACH_DATA_THROTTLED: 'expensify_ACHData_throttled',
-        FAILED_BANK_ACCOUNT_VALIDATIONS_PREFIX: 'private_failedBankValidations_',
-        PLAID_THROTTLED: 'private_throttledHistory_openPlaidBankAccountSelector',
-        PREFERRED_LOCALE: 'preferredLocale',
-        KYC_MIGRATION: 'expensify_migration_2020_04_28_RunKycVerifications',
-        PREFERRED_EMOJI_SKIN_TONE: 'expensify_preferredEmojiSkinTone',
-        FREQUENTLY_USED_EMOJIS: 'expensify_frequentlyUsedEmojis',
-        PUSH_NOTIFICATIONS_ENABLED: 'pushNotificationsEnabled',
     },
     DEFAULT_TIME_ZONE: {automatic: true, selected: 'America/Los_Angeles'},
     DEFAULT_ACCOUNT_DATA: {errors: null, success: '', isLoading: false},
@@ -825,7 +815,7 @@ const CONST = {
             EXPENSIFY: 'Expensify',
             PAYPAL_ME: 'PayPal.me',
         },
-        IOU_TYPE: {
+        MONEY_REQUEST_TYPE: {
             SEND: 'send',
             SPLIT: 'split',
             REQUEST: 'request',
@@ -848,7 +838,13 @@ const CONST = {
         DURATION_LONG: 3500,
     },
 
-    DEFAULT_LOCALE: 'en',
+    LOCALES: {
+        EN: 'en',
+        ES_ES: 'es-ES',
+        ES: 'es',
+
+        DEFAULT: 'en',
+    },
 
     POLICY: {
         TYPE: {
@@ -1021,7 +1017,6 @@ const CONST = {
     REPORT_DETAILS_MENU_ITEM: {
         MEMBERS: 'member',
         SETTINGS: 'settings',
-        INVITE: 'invite',
         LEAVE_ROOM: 'leaveRoom',
     },
 
@@ -2204,6 +2199,15 @@ const CONST = {
         SAMPLE_INPUT: '123456.789',
         EXPECTED_OUTPUT: 'FCFA 123,457',
     },
+    PATHS_TO_TREAT_AS_EXTERNAL: [
+        'NewExpensify.dmg',
+    ],
+    PAYPAL_SUPPORTED_CURRENCIES: [
+        'AUD', 'BRL', 'CAD', 'CZK', 'DKK', 'EUR', 'HKD', 'HUF',
+        'ILS', 'JPY', 'MYR', 'MXN', 'TWD', 'NZD', 'NOK', 'PHP',
+        'PLN', 'GBP', 'RUB', 'SGD', 'SEK', 'CHF', 'THB', 'USD',
+    ],
+    CONCIERGE_TRAVEL_URL: 'https://community.expensify.com/discussion/7066/introducing-concierge-travel',
 };
 
 export default CONST;
