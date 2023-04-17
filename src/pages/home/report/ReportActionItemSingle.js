@@ -23,7 +23,7 @@ import OfflineWithFeedback from '../../../components/OfflineWithFeedback';
 import CONST from '../../../CONST';
 import * as Expensicons from '../../../components/Icon/Expensicons';
 import Icon from '../../../components/Icon';
-import DisplayNames from "../../../components/DisplayNames";
+import DisplayNames from '../../../components/DisplayNames';
 
 const propTypes = {
     /** All the data of the action */
@@ -87,11 +87,11 @@ const ReportActionItemSingle = (props) => {
                         {props.translate('reportActionContextMenu.onlyVisible')}
                     </Text>
                     <DisplayNames
-                        fullTitle={ReportUtils.getWhisperDisplayNames(props.action.participants || [])}
+                        fullTitle={ReportUtils.getWhisperDisplayNames(props.action.whisperedTo || [])}
                         displayNamesWithTooltips={displayNamesWithTooltips}
                         tooltipEnabled
                         numberOfLines={1}
-                        textStyles={[styles.chatItemMessageHeaderTimestamp, styles.pre]}
+                        textStyles={[styles.chatItemMessageHeaderTimestamp]}
                         shouldUseFullTitle={false}
                     />
                 </View>
