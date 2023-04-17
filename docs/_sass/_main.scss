@@ -174,7 +174,7 @@ button {
 
 #lhn {
     position: fixed;
-    background-color: $color-darker-green;
+    background-color: $color-super-dark-green;
     box-sizing: border-box;
     border-right-color: $color-dark-green;
     border-right-width: 1px;
@@ -269,6 +269,7 @@ button {
         display: grid;
         grid-template-columns: 40px auto;
         cursor: pointer;
+        align-items: center;
     }
 
     .selected {
@@ -489,9 +490,10 @@ button {
     color: $color-gray-green;
     font-size: larger;
     display: inline;
-
-    &.fa-angle-right {
-        padding-left: 4px;
+    
+    &.icon-left, &.icon-right, &.icon-up, &.icon-down {
+        width: 16px;
+        height: 16px;
     }
 }
 
