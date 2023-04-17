@@ -34,8 +34,7 @@ class BaseVideoChatButtonAndMenu extends Component {
 
         this.dimensionsEventListener = null;
 
-        this.toggleVideoChatMenu = this.toggleVideoChatMenu.bind(this);
-        this.hideVideoChatMenu = this.hideVideoChatMenu.bind(this);
+        this.setMenuVisibility = this.setMenuVisibility.bind(this);
         this.measureVideoChatIconPosition = this.measureVideoChatIconPosition.bind(this);
         this.videoChatIconWrapper = null;
         this.menuItemData = [
@@ -43,7 +42,7 @@ class BaseVideoChatButtonAndMenu extends Component {
                 icon: ZoomIcon,
                 text: props.translate('videoChatButtonAndMenu.zoom'),
                 onPress: () => {
-                    this.toggleVideoChatMenu();
+                    this.setMenuVisibility(false);
                     Linking.openURL(CONST.NEW_ZOOM_MEETING_URL);
                 },
             },
@@ -51,7 +50,7 @@ class BaseVideoChatButtonAndMenu extends Component {
                 icon: GoogleMeetIcon,
                 text: props.translate('videoChatButtonAndMenu.googleMeet'),
                 onPress: () => {
-                    this.toggleVideoChatMenu();
+                    this.setMenuVisibility(false);
                     Linking.openURL(this.props.googleMeetURL);
                 },
             },
@@ -75,19 +74,11 @@ class BaseVideoChatButtonAndMenu extends Component {
     }
 
     /**
-     * Toggles the state variable isVideoChatMenuActive
+     * Set the state variable isVideoChatMenuActive
+     * @param {Boolean} isVideoChatMenuActive
      */
-    toggleVideoChatMenu() {
-        this.setState(prevState => ({
-            isVideoChatMenuActive: !prevState.isVideoChatMenuActive,
-        }));
-    }
-
-    /**
-     * Hide the VideoChatMenu popover
-     */
-    hideVideoChatMenu() {
-        this.setState({isVideoChatMenuActive: false});
+    setMenuVisibility(isVideoChatMenuActive) {
+        this.setState({isVideoChatMenuActive});
     }
 
     /**
@@ -122,7 +113,7 @@ class BaseVideoChatButtonAndMenu extends Component {
                                     Linking.openURL(this.props.guideCalendarLink);
                                     return;
                                 }
-                                this.toggleVideoChatMenu();
+                                this.setMenuVisibility(true);
                             }}
                             style={[styles.touchableButtonImage]}
                         >
@@ -134,7 +125,7 @@ class BaseVideoChatButtonAndMenu extends Component {
                     </Tooltip>
                 </View>
                 <Popover
-                    onClose={this.hideVideoChatMenu}
+                    onClose={() => this.setMenuVisibility(false)}
                     isVisible={this.state.isVideoChatMenuActive}
                     anchorPosition={{
                         left: this.state.videoChatIconPosition.x - 150,
