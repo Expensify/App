@@ -1,5 +1,6 @@
 import lodashGet from 'lodash/get';
 import Config from 'react-native-config';
+import * as KeyCommand from 'react-native-key-command';
 import * as Url from './libs/Url';
 
 const CLOUDFRONT_DOMAIN = 'cloudfront.net';
@@ -7,9 +8,19 @@ const CLOUDFRONT_URL = `https://d2k5nsl2zxldvw.${CLOUDFRONT_DOMAIN}`;
 const ACTIVE_EXPENSIFY_URL = Url.addTrailingForwardSlash(lodashGet(Config, 'NEW_EXPENSIFY_URL', 'https://new.expensify.com'));
 const USE_EXPENSIFY_URL = 'https://use.expensify.com';
 const PLATFORM_OS_MACOS = 'Mac OS';
+const PLATFORM_IOS = 'iOS';
 const ANDROID_PACKAGE_NAME = 'com.expensify.chat';
 const USA_COUNTRY_NAME = 'United States';
 const CURRENT_YEAR = new Date().getFullYear();
+
+const keyModifierControl = lodashGet(KeyCommand, 'constants.keyModifierControl', 'keyModifierControl');
+const keyModifierCommand = lodashGet(KeyCommand, 'constants.keyModifierCommand', 'keyModifierCommand');
+const keyModifierShiftControl = lodashGet(KeyCommand, 'constants.keyModifierShiftControl', 'keyModifierShiftControl');
+const keyModifierShiftCommand = lodashGet(KeyCommand, 'constants.keyModifierShiftCommand', 'keyModifierShiftCommand');
+const keyInputEscape = lodashGet(KeyCommand, 'constants.keyInputEscape', 'keyInputEscape');
+const keyInputEnter = lodashGet(KeyCommand, 'constants.keyInputEnter', 'keyInputEnter');
+const keyInputUpArrow = lodashGet(KeyCommand, 'constants.keyInputUpArrow', 'keyInputUpArrow');
+const keyInputDownArrow = lodashGet(KeyCommand, 'constants.keyInputDownArrow', 'keyInputDownArrow');
 
 const CONST = {
     ANDROID_PACKAGE_NAME,
@@ -223,6 +234,7 @@ const CONST = {
         CTRL: {
             DEFAULT: 'control',
             [PLATFORM_OS_MACOS]: 'meta',
+            [PLATFORM_IOS]: 'meta',
         },
         SHIFT: {
             DEFAULT: 'shift',
@@ -233,46 +245,91 @@ const CONST = {
             descriptionKey: 'search',
             shortcutKey: 'K',
             modifiers: ['CTRL'],
+            trigger: {
+                DEFAULT: {input: 'k', modifierFlags: keyModifierControl},
+                [PLATFORM_OS_MACOS]: {input: 'k', modifierFlags: keyModifierCommand},
+                [PLATFORM_IOS]: {input: 'k', modifierFlags: keyModifierCommand},
+            },
         },
         NEW_GROUP: {
             descriptionKey: 'newGroup',
             shortcutKey: 'K',
             modifiers: ['CTRL', 'SHIFT'],
+            trigger: {
+                DEFAULT: {input: 'k', modifierFlags: keyModifierShiftControl},
+                [PLATFORM_OS_MACOS]: {input: 'k', modifierFlags: keyModifierShiftCommand},
+                [PLATFORM_IOS]: {input: 'k', modifierFlags: keyModifierShiftCommand},
+            },
         },
         SHORTCUT_MODAL: {
             descriptionKey: 'openShortcutDialog',
             shortcutKey: 'I',
             modifiers: ['CTRL'],
+            trigger: {
+                DEFAULT: {input: 'i', modifierFlags: keyModifierControl},
+                [PLATFORM_OS_MACOS]: {input: 'i', modifierFlags: keyModifierCommand},
+                [PLATFORM_IOS]: {input: 'i', modifierFlags: keyModifierCommand},
+            },
         },
         ESCAPE: {
             descriptionKey: 'escape',
             shortcutKey: 'Escape',
             modifiers: [],
+            trigger: {
+                DEFAULT: {input: keyInputEscape},
+                [PLATFORM_OS_MACOS]: {input: keyInputEscape},
+                [PLATFORM_IOS]: {input: keyInputEscape},
+            },
         },
         ENTER: {
             descriptionKey: null,
             shortcutKey: 'Enter',
             modifiers: [],
+            trigger: {
+                DEFAULT: {input: keyInputEnter},
+                [PLATFORM_OS_MACOS]: {input: keyInputEnter},
+                [PLATFORM_IOS]: {input: keyInputEnter},
+            },
         },
         CTRL_ENTER: {
             descriptionKey: null,
             shortcutKey: 'Enter',
             modifiers: ['CTRL'],
+            trigger: {
+                DEFAULT: {input: keyInputEnter, modifierFlags: keyModifierControl},
+                [PLATFORM_OS_MACOS]: {input: keyInputEnter, modifierFlags: keyModifierCommand},
+                [PLATFORM_IOS]: {input: keyInputEnter, modifierFlags: keyModifierCommand},
+            },
         },
         COPY: {
             descriptionKey: 'copy',
             shortcutKey: 'C',
             modifiers: ['CTRL'],
+            trigger: {
+                DEFAULT: {input: 'c', modifierFlags: keyModifierControl},
+                [PLATFORM_OS_MACOS]: {input: 'c', modifierFlags: keyModifierCommand},
+                [PLATFORM_IOS]: {input: 'c', modifierFlags: keyModifierCommand},
+            },
         },
         ARROW_UP: {
             descriptionKey: null,
             shortcutKey: 'ArrowUp',
             modifiers: [],
+            trigger: {
+                DEFAULT: {input: keyInputUpArrow},
+                [PLATFORM_OS_MACOS]: {input: keyInputUpArrow},
+                [PLATFORM_IOS]: {input: keyInputUpArrow},
+            },
         },
         ARROW_DOWN: {
             descriptionKey: null,
             shortcutKey: 'ArrowDown',
             modifiers: [],
+            trigger: {
+                DEFAULT: {input: keyInputDownArrow},
+                [PLATFORM_OS_MACOS]: {input: keyInputDownArrow},
+                [PLATFORM_IOS]: {input: keyInputDownArrow},
+            },
         },
         TAB: {
             descriptionKey: null,
@@ -781,7 +838,7 @@ const CONST = {
         WINDOWS: 'Windows',
         MAC_OS: PLATFORM_OS_MACOS,
         ANDROID: 'Android',
-        IOS: 'iOS',
+        IOS: PLATFORM_IOS,
         LINUX: 'Linux',
         NATIVE: 'Native',
     },

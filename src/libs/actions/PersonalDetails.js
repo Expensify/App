@@ -182,7 +182,7 @@ function updateDateOfBirth(dob) {
  */
 function updateAddress(street, street2, city, state, zip, country) {
     const parameters = {
-        addressStreet: street,
+        homeAddressStreet: street,
         addressStreet2: street2,
         addressCity: city,
         addressState: state,
