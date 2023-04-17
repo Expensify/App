@@ -2,8 +2,8 @@ import React from 'react';
 
 class AppleSignInScript extends React.Component {
     componentDidMount() {
-        const clientId = 'com.expensify.expensifylite.AppleSignIn';
-        const redirectURI = 'https://www.expensify.com/partners/apple/loginCallback';
+        const clientId = 'com.infinitered.expensify.test';
+        const redirectURI = 'https://exptest.serveo.net/appleauth';
         const scope = 'name email';
         const state = '';
         const script = document.createElement('script');
@@ -15,7 +15,7 @@ class AppleSignInScript extends React.Component {
                 scope,
                 redirectURI,
                 state,
-                usePopup: false,
+                usePopup: true,
             });
         };
 
