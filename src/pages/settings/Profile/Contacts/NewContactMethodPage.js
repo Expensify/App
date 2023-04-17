@@ -1,4 +1,4 @@
-import React, {useCallback, useRef, useState} from 'react';
+import React, {useCallback, useMemo, useRef, useState} from 'react';
 import PropTypes from 'prop-types';
 import {View} from 'react-native';
 import {ScrollView} from 'react-native-gesture-handler';
@@ -57,12 +57,7 @@ function NewContactMethodPage(props) {
     const [password, setPassword] = useState('');
     const loginInputRef = useRef(null);
 
-    /**
-    * Determine whether the form is valid
-    *
-    * @returns {Boolean}
-    */
-    const validateForm = useCallback(() => {
+    const isFormValid = useMemo(() => {
         const phoneLogin = LoginUtils.getPhoneNumberWithoutSpecialChars(login.trim());
 
         return (Permissions.canUsePasswordlessLogins(props.betas) || password)
@@ -122,7 +117,7 @@ function NewContactMethodPage(props) {
             <FixedFooter style={[styles.flexGrow0]}>
                 <Button
                     success
-                    isDisabled={!validateForm()}
+                    isDisabled={!isFormValid}
                     text={props.translate('common.add')}
                     onPress={submitForm}
                     pressOnEnter
