@@ -130,7 +130,7 @@ function show({routes, showCreateMenu = () => {}, showPopoverMenu = () => {}}) {
 
             // If showPopoverMenu exists and returns true then it opened the Popover Menu succesfully and we can update the state of isFirstTimeNewExpensifyUser
             // so the Welcome logic doesn't run again
-            if (showPopoverMenu && showPopoverMenu()) {
+            if (showPopoverMenu()) {
                 isFirstTimeNewExpensifyUser = false;
             }
 
