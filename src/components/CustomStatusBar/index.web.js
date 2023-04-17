@@ -7,10 +7,7 @@ export default class CustomStatusBar extends React.Component {
         StatusBar.setBarStyle('light-content', true);
 
         // For mobile web browsers, match the default status bar color to the app's background color
-        const element = document.querySelector('meta[name=theme-color]');
-        if (element) {
-            element.content = themeColors.appBG;
-        }
+        document.querySelector('meta[name=theme-color]').content = themeColors.appBG;
     }
 
     render() {

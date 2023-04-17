@@ -11,7 +11,6 @@ import TextInput from './TextInput';
 import * as ApiUtils from '../libs/ApiUtils';
 import * as GooglePlacesUtils from '../libs/GooglePlacesUtils';
 import CONST from '../CONST';
-import * as StyleUtils from '../styles/StyleUtils';
 
 // The error that's being thrown below will be ignored until we fork the
 // react-native-google-places-autocomplete repo and replace the
@@ -260,7 +259,10 @@ const AddressSearch = (props) => {
                     styles={{
                         textInputContainer: [styles.flexColumn],
                         listView: [
-                            StyleUtils.getGoolgeListViewStyle(displayListViewBorder),
+                            !displayListViewBorder && styles.googleListView,
+                            displayListViewBorder && styles.borderTopRounded,
+                            displayListViewBorder && styles.borderBottomRounded,
+                            displayListViewBorder && styles.mt1,
                             styles.overflowAuto,
                             styles.borderLeft,
                             styles.borderRight,
