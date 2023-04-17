@@ -124,7 +124,6 @@ class TooltipRenderedOnPageBody extends React.PureComponent {
     }
 
     render() {
-        
         const {
             animationStyle,
             tooltipWrapperStyle,
