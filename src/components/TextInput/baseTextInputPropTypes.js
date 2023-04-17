@@ -47,7 +47,11 @@ const propTypes = {
     hideFocusedState: PropTypes.bool,
 
     /** Forward the inner ref */
-    innerRef: PropTypes.func,
+    innerRef: PropTypes.oneOfType([
+        PropTypes.func,
+        // eslint-disable-next-line react/forbid-prop-types
+        PropTypes.shape({current: PropTypes.any}),
+    ]),
 
     /** Maximum characters allowed */
     maxLength: PropTypes.number,
