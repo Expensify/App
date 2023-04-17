@@ -201,12 +201,20 @@ export default {
     hello: 'Hello',
     phoneCountryCode: '1',
     welcomeText: {
-        welcome: 'Welcome to New Expensify! Enter your phone number or email to continue.',
-        welcomeEnterMagicCode: ({login}) => `It's always great to see a new face around here! Please enter the magic code sent to ${login}`,
+        getStarted: 'Get started below.',
+        welcomeBack: 'Welcome back!',
+        welcome: 'Welcome!',
         phrase2: 'Money talks. And now that chat and payments are in one place, it\'s also easy.',
         phrase3: 'Your payments get to you as fast as you can get your point across.',
-        welcomeBack: 'Welcome back to the New Expensify! Please enter your password.',
-        welcomeBackEnterMagicCode: ({login}) => `Welcome back! Please enter the magic code sent to ${login}`,
+        enterPassword: 'Please enter your password',
+        newFaceEnterMagicCode: ({login}) => `It's always great to see a new face around here! Please enter the magic code sent to ${login}`,
+        welcomeEnterMagicCode: ({login}) => `Please enter the magic code sent to ${login}`,
+    },
+    login: {
+        hero: {
+            header: 'Split bills, request payments, and chat with friends.',
+            body: 'Welcome to the future of Expensify, your new go-to place for financial collaboration with friends and teammates alike.',
+        },
     },
     reportActionCompose: {
         addAction: 'Actions',
