@@ -78,6 +78,9 @@ const AvatarCropModal = (props) => {
     const translateSlider = useSharedValue(0);
     const isPressableEnabled = useSharedValue(true);
 
+    // Check if image cropping, saving or uploading is in progress
+    const isLoading = useSharedValue(false);
+
     // The previous offset values are maintained to recalculate the offset value in proportion
     // to the container size, especially when the window size is first decreased and then increased
     const prevMaxOffsetX = useSharedValue(0);
@@ -114,11 +117,12 @@ const AvatarCropModal = (props) => {
         translateSlider.value = 0;
         prevMaxOffsetX.value = 0;
         prevMaxOffsetY.value = 0;
+        isLoading.value = false;
         setImageContainerSize(CONST.AVATAR_CROP_MODAL.INITIAL_SIZE);
         setSliderContainerSize(CONST.AVATAR_CROP_MODAL.INITIAL_SIZE);
         setIsImageContainerInitialized(false);
         setIsImageInitialized(false);
-    }, [originalImageHeight, originalImageWidth, prevMaxOffsetX, prevMaxOffsetY, rotation, scale, translateSlider, translateX, translateY]);
+    }, [originalImageHeight, originalImageWidth, prevMaxOffsetX, prevMaxOffsetY, rotation, scale, translateSlider, translateX, translateY, isLoading]);
 
     // In order to calculate proper image position/size/animation, we have to know its size.
     // And we have to update image size if image url changes.
@@ -305,6 +309,10 @@ const AvatarCropModal = (props) => {
     // Crops an image that was provided in the imageUri prop, using the current position/scale
     // then calls onSave and onClose callbacks
     const cropAndSaveImage = useCallback(() => {
+        if (isLoading.value) {
+            return;
+        }
+        isLoading.value = true;
         const smallerSize = Math.min(originalImageHeight.value, originalImageWidth.value);
         const size = smallerSize / scale.value;
         const imageCenterX = originalImageWidth.value / 2;
@@ -334,8 +342,11 @@ const AvatarCropModal = (props) => {
             .then((newImage) => {
                 props.onClose();
                 props.onSave(newImage);
+            })
+            .catch(() => {
+                isLoading.value = false;
             });
-    }, [originalImageHeight.value, originalImageWidth.value, scale.value, translateX.value, imageContainerSize, translateY.value, props, rotation.value]);
+    }, [originalImageHeight.value, originalImageWidth.value, scale.value, translateX.value, imageContainerSize, translateY.value, props, rotation.value, isLoading]);
 
     /**
      * @param {Number} locationX
@@ -346,7 +357,7 @@ const AvatarCropModal = (props) => {
 
         'worklet';
 
-        if (!isPressableEnabled.value) {
+        if (!locationX || !isPressableEnabled.value) {
             return;
         }
         const newSliderValue = clamp(locationX, [0, sliderContainerSize]);
