@@ -430,58 +430,74 @@ describe('actions/Report', () => {
         // We should generate link
         let originalCommentHTML = 'Original Comment';
         let afterEditCommentText = 'Original Comment www.google.com';
-        let newCommentMarkdown = Report.handleUserDeletedLinksInHtml(afterEditCommentText, originalCommentHTML);
+        let newCommentHTML = Report.handleUserDeletedLinksInHtml(afterEditCommentText, originalCommentHTML);
         let expectedOutput = 'Original Comment <a href="https://www.google.com" target="_blank" rel="noreferrer noopener">www.google.com</a>';
-        expect(newCommentMarkdown).toBe(expectedOutput);
+        expect(newCommentHTML).toBe(expectedOutput);
 
         // User deletes www.google.com link from comment but keeps link text
         // We should not generate link
         originalCommentHTML = 'Comment <a href="https://www.google.com" target="_blank">www.google.com</a>';
         afterEditCommentText = 'Comment www.google.com';
-        newCommentMarkdown = Report.handleUserDeletedLinksInHtml(afterEditCommentText, originalCommentHTML);
+        newCommentHTML = Report.handleUserDeletedLinksInHtml(afterEditCommentText, originalCommentHTML);
         expectedOutput = 'Comment www.google.com';
-        expect(newCommentMarkdown).toBe(expectedOutput);
+        expect(newCommentHTML).toBe(expectedOutput);
 
         // User Delete only () part of link but leaves the []
         // We should not generate link
         originalCommentHTML = 'Comment <a href="https://www.google.com" target="_blank">www.google.com</a>';
         afterEditCommentText = 'Comment [www.google.com]';
-        newCommentMarkdown = Report.handleUserDeletedLinksInHtml(afterEditCommentText, originalCommentHTML);
+        newCommentHTML = Report.handleUserDeletedLinksInHtml(afterEditCommentText, originalCommentHTML);
         expectedOutput = 'Comment [www.google.com]';
-        expect(newCommentMarkdown).toBe(expectedOutput);
+        expect(newCommentHTML).toBe(expectedOutput);
 
         // User Generates multiple links in one edit
         // We should generate both links
         originalCommentHTML = 'Comment';
         afterEditCommentText = 'Comment www.google.com www.facebook.com';
-        newCommentMarkdown = Report.handleUserDeletedLinksInHtml(afterEditCommentText, originalCommentHTML);
+        newCommentHTML = Report.handleUserDeletedLinksInHtml(afterEditCommentText, originalCommentHTML);
         expectedOutput = 'Comment <a href="https://www.google.com" target="_blank" rel="noreferrer noopener">www.google.com</a> '
             + '<a href="https://www.facebook.com" target="_blank" rel="noreferrer noopener">www.facebook.com</a>';
-        expect(newCommentMarkdown).toBe(expectedOutput);
+        expect(newCommentHTML).toBe(expectedOutput);
 
         // Comment has two links but user deletes only one of them
         // Should not generate link again for the deleted one
         originalCommentHTML = 'Comment <a href="https://www.google.com" target="_blank">www.google.com</a>  <a href="https://www.facebook.com" target="_blank">www.facebook.com</a>';
         afterEditCommentText = 'Comment www.google.com  [www.facebook.com](https://www.facebook.com)';
-        newCommentMarkdown = Report.handleUserDeletedLinksInHtml(afterEditCommentText, originalCommentHTML);
+        newCommentHTML = Report.handleUserDeletedLinksInHtml(afterEditCommentText, originalCommentHTML);
         expectedOutput = 'Comment www.google.com  <a href="https://www.facebook.com" target="_blank" rel="noreferrer noopener">www.facebook.com</a>';
-        expect(newCommentMarkdown).toBe(expectedOutput);
+        expect(newCommentHTML).toBe(expectedOutput);
 
         // User edit and replace comment with link include underscore
-        // We should generate link and the link text is same as the link
+        // We should generate link
         originalCommentHTML = 'Comment';
         afterEditCommentText = 'https://www.facebook.com/hashtag/__main/?__eep__=6';
-        newCommentMarkdown = Report.handleUserDeletedLinksInHtml(afterEditCommentText, originalCommentHTML);
+        newCommentHTML = Report.handleUserDeletedLinksInHtml(afterEditCommentText, originalCommentHTML);
         expectedOutput = '<a href="https://www.facebook.com/hashtag/__main/?__eep__=6" target="_blank" rel="noreferrer noopener">https://www.facebook.com/hashtag/__main/?__eep__=6</a>';
-        expect(newCommentMarkdown).toBe(expectedOutput);
+        expect(newCommentHTML).toBe(expectedOutput);
 
         // User edit and delete the link with underscore
-        // We should not generate link and not translate underscores in the link
+        // We should not generate link
         originalCommentHTML = '<a href="https://www.facebook.com/hashtag/__main/?__eep__=6" target="_blank" rel="noreferrer noopener">https://www.facebook.com/hashtag/__main/?__eep__=6</a>';
         afterEditCommentText = 'https://www.facebook.com/hashtag/__main/?__eep__=6';
-        newCommentMarkdown = Report.handleUserDeletedLinksInHtml(afterEditCommentText, originalCommentHTML);
+        newCommentHTML = Report.handleUserDeletedLinksInHtml(afterEditCommentText, originalCommentHTML);
         expectedOutput = 'https://www.facebook.com/hashtag/__main/?__eep__=6';
-        expect(newCommentMarkdown).toBe(expectedOutput);
+        expect(newCommentHTML).toBe(expectedOutput);
+
+        // User edit and replace comment with link include asterisk
+        // We should generate link
+        originalCommentHTML = 'Comment';
+        afterEditCommentText = 'http://example.com/foo/*/bar/*/test.txt';
+        newCommentHTML = Report.handleUserDeletedLinksInHtml(afterEditCommentText, originalCommentHTML);
+        expectedOutput = '<a href="http://example.com/foo/*/bar/*/test.txt" target="_blank" rel="noreferrer noopener">http://example.com/foo/*/bar/*/test.txt</a>';
+        expect(newCommentHTML).toBe(expectedOutput);
+
+        // User edit and delete the link with asterisk
+        // We should not generate link
+        originalCommentHTML = '<a href="http://example.com/foo/*/bar/*/test.txt" target="_blank" rel="noreferrer noopener">http://example.com/foo/*/bar/*/test.txt</a>';
+        afterEditCommentText = 'http://example.com/foo/*/bar/*/test.txt';
+        newCommentHTML = Report.handleUserDeletedLinksInHtml(afterEditCommentText, originalCommentHTML);
+        expectedOutput = 'http://example.com/foo/*/bar/*/test.txt';
+        expect(newCommentHTML).toBe(expectedOutput);
     });
 
     it('should show a notification for report action updates with shouldNotify', () => {
