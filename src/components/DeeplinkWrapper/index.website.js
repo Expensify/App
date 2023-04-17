@@ -49,7 +49,9 @@ class DeeplinkWrapper extends PureComponent {
             return;
         }
 
-        // We need to clear the old short-lived auth token if it exists.
+        // We need to clear the old short-lived auth token if it exists,
+        // so that after getting a new short-lived auth token,
+        // we can open the popup that navigates the user to the desktop app.
         Session.removeShortLivedAuthToken();
 
         if (!this.props.session.authToken) {
@@ -92,10 +94,9 @@ class DeeplinkWrapper extends PureComponent {
             document.body.appendChild(iframe);
             iframe.contentWindow.location.href = expensifyDeeplinkUrl;
 
-            // Since we're creating an iframe for Safari to handle
-            // deeplink we need to give this iframe some time for
-            // it to do what it needs to do. After that we can just
-            // remove the iframe.
+            // Since we're creating an iframe for Safari to handle deeplink,
+            // we need to give Safari some time to open the pop-up window.
+            // After that we can just remove the iframe.
             setTimeout(() => {
                 if (!iframe.parentNode) {
                     return;
