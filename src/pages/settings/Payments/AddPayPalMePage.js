@@ -37,7 +37,7 @@ const AddPayPalMePage = (props) => {
     };
 
     return (
-        <ScreenWrapper onEntryTransitionEnd={payPalMeInput.current && payPalMeInput.current.focus()}>
+        <ScreenWrapper onEntryTransitionEnd={() => payPalMeInput.current && payPalMeInput.current.focus()}>
             <HeaderWithCloseButton
                 title={props.translate('common.payPalMe')}
                 shouldShowBackButton
@@ -50,7 +50,7 @@ const AddPayPalMePage = (props) => {
                         {props.translate('addPayPalMePage.enterYourUsernameToGetPaidViaPayPal')}
                     </Text>
                     <TextInput
-                        ref={payPalMeInput.current}
+                        ref={payPalMeInput}
                         label={props.translate('addPayPalMePage.payPalMe')}
                         autoCompleteType="off"
                         autoCorrect={false}
