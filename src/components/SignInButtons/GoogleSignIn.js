@@ -1,26 +1,36 @@
 import React from 'react';
 import {View} from 'react-native';
 
-const GoogleSignIn = () => (
-    <View style={{height: 40, width: 40, backgroundColor: 'yellow'}}>
-        <div
-            id="g_id_onload"
-            data-client_id="CLIENTID"
-            data-context="signin"
-            data-ux_mode="popup"
-            data-login_uri="URI"
-            data-auto_prompt="false"
-        />
+const GoogleSignIn = () => {
+    console.log('HELLO FROM GOOGLESIGNIN');
 
-        <div
-            className="g_id_signin"
-            data-type="icon"
-            data-shape="circle"
-            data-theme="outline"
-            data-text="signin_with"
-            data-size="large"
-        />
-    </View>
-);
+    React.useEffect(() => {
+        if (window.google) {
+            window.google.accounts.id.initialize({
+                client_id: '921154746561-gpsoaqgqfuqrfsjdf8l7vohfkfj7b9up.apps.googleusercontent.com',
+                callback: handleCredentialResponse,
+            });
+            google.accounts.id.renderButton(
+                document.getElementById('buttonDiv'),
+                {
+                    theme: 'outline',
+                    size: 'large',
+                    type: 'icon',
+                    shape: 'circle',
+                }, // customization attributes
+            );
+        }
+    }, []);
+
+    const handleCredentialResponse = (response) => {
+        onCredentialResponse(response);
+    };
+
+    return (
+        <View style={{height: 60, width: 60, backgroundColor: 'green'}}>
+            <div id="buttonDiv" />
+        </View>
+    );
+};
 
 export default GoogleSignIn;
