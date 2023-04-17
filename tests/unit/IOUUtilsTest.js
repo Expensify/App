@@ -162,7 +162,7 @@ describe('getCurrencyDecimals', () => {
     });
 });
 
-describe('getCurrencyUnits', () => {
+describe('getCurrencyUnit', () => {
     beforeAll(() => initCurrencyList());
     test('Currency with decimals smaller than or equal 2', () => {
         expect(IOUUtils.getCurrencyUnit('JPY')).toBe(1);
@@ -186,6 +186,12 @@ describe('calculateAmount', () => {
         const participants = ['tonystark@expensify.com', 'reedrichards@expensify.com', 'suestorm@expensify.com'];
         expect(IOUUtils.calculateAmount(participants, 10, 'AFN', true)).toBe(1);
         expect(IOUUtils.calculateAmount(participants, 10, 'AFN')).toBe(3);
+    });
+
+    test('10 BHD split among 3 participants including the default user should be [334, 333, 333]', () => {
+        const participants = ['tonystark@expensify.com', 'reedrichards@expensify.com'];
+        expect(IOUUtils.calculateAmount(participants, 10, 'BHD', true)).toBe(334);
+        expect(IOUUtils.calculateAmount(participants, 10, 'BHD')).toBe(333);
     });
 
     test('0.02 USD split among 4 participants including the default user should be [-1, 1, 1, 1]', () => {
