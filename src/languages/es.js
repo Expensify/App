@@ -241,6 +241,7 @@ export default {
         editComment: 'Editar comentario',
         deleteComment: 'Eliminar comentario',
         deleteConfirmation: '¿Estás seguro de que quieres eliminar este comentario?',
+        onlyVisible: 'Only visible to you',
     },
     emojiReactions: {
         addReactionTooltip: 'Añadir una reacción',

@@ -15,11 +15,14 @@ import withLocalize, {withLocalizePropTypes} from '../../../components/withLocal
 import Navigation from '../../../libs/Navigation/Navigation';
 import ROUTES from '../../../ROUTES';
 import {withPersonalDetails} from '../../../components/OnyxProvider';
+import Text from '../../../components/Text';
 import Tooltip from '../../../components/Tooltip';
 import ControlSelection from '../../../libs/ControlSelection';
 import * as ReportUtils from '../../../libs/ReportUtils';
 import OfflineWithFeedback from '../../../components/OfflineWithFeedback';
 import CONST from '../../../CONST';
+import * as Expensicons from "../../../components/Icon/Expensicons";
+import Icon from "../../../components/Icon";
 
 const propTypes = {
     /** All the data of the action */
@@ -70,47 +73,57 @@ const ReportActionItemSingle = (props) => {
 
     return (
         <View style={props.wrapperStyles}>
-            <Pressable
-                style={[styles.alignSelfStart, styles.mr3]}
-                onPressIn={ControlSelection.block}
-                onPressOut={ControlSelection.unblock}
-                onPress={() => showUserDetails(actorEmail)}
-            >
-                <Tooltip text={actorEmail}>
-                    <OfflineWithFeedback
-                        pendingAction={lodashGet(pendingFields, 'avatar', null)}
-                    >
-                        <Avatar
-                            containerStyles={[styles.actionAvatar]}
-                            source={avatarSource}
-                        />
-                    </OfflineWithFeedback>
-                </Tooltip>
-            </Pressable>
-            <View style={[styles.chatItemRight]}>
-                {props.showHeader ? (
-                    <View style={[styles.chatItemMessageHeader]}>
-                        <Pressable
-                            style={[styles.flexShrink1, styles.mr1]}
-                            onPressIn={ControlSelection.block}
-                            onPressOut={ControlSelection.unblock}
-                            onPress={() => showUserDetails(actorEmail)}
+            <View style={[styles.chatItem]}>
+                <View style={[styles.chatItemRight, styles.mr3]}>
+                    <Icon src={Expensicons.Eye} />
+                </View>
+                <Text style={[styles.chatItemMessageHeaderTimestamp]}>
+                    {props.translate('reportActionContextMenu.onlyVisible')}
+                </Text>
+            </View>
+            <View style={[styles.chatItem]}>
+                <Pressable
+                    style={[styles.alignSelfStart, styles.mr3]}
+                    onPressIn={ControlSelection.block}
+                    onPressOut={ControlSelection.unblock}
+                    onPress={() => showUserDetails(actorEmail)}
+                >
+                    <Tooltip text={actorEmail}>
+                        <OfflineWithFeedback
+                            pendingAction={lodashGet(pendingFields, 'avatar', null)}
                         >
-                            {_.map(personArray, (fragment, index) => (
-                                <ReportActionItemFragment
-                                    key={`person-${props.action.reportActionID}-${index}`}
-                                    fragment={fragment}
-                                    tooltipText={actorEmail}
-                                    isAttachment={props.action.isAttachment}
-                                    isLoading={props.action.isLoading}
-                                    isSingleLine
-                                />
-                            ))}
-                        </Pressable>
-                        <ReportActionItemDate created={props.action.created} />
-                    </View>
-                ) : null}
-                {props.children}
+                            <Avatar
+                                containerStyles={[styles.actionAvatar]}
+                                source={avatarSource}
+                            />
+                        </OfflineWithFeedback>
+                    </Tooltip>
+                </Pressable>
+                <View style={[styles.chatItemRight]}>
+                    {props.showHeader ? (
+                        <View style={[styles.chatItemMessageHeader]}>
+                            <Pressable
+                                style={[styles.flexShrink1, styles.mr1]}
+                                onPressIn={ControlSelection.block}
+                                onPressOut={ControlSelection.unblock}
+                                onPress={() => showUserDetails(actorEmail)}
+                            >
+                                {_.map(personArray, (fragment, index) => (
+                                    <ReportActionItemFragment
+                                        key={`person-${props.action.reportActionID}-${index}`}
+                                        fragment={fragment}
+                                        tooltipText={actorEmail}
+                                        isAttachment={props.action.isAttachment}
+                                        isLoading={props.action.isLoading}
+                                        isSingleLine
+                                    />
+                                ))}
+                            </Pressable>
+                            <ReportActionItemDate created={props.action.created} />
+                        </View>
+                    ) : null}
+                    {props.children}
+                </View>
             </View>
         </View>
     );
