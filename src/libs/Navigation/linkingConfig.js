@@ -2,7 +2,6 @@ import ROUTES from '../../ROUTES';
 import SCREENS from '../../SCREENS';
 import CONST from '../../CONST';
 import NAVIGATORS from '../../NAVIGATORS';
-import { getStateFromPath as gs } from '@react-navigation/native';
 
 export default {
     prefixes: [
@@ -13,10 +12,6 @@ export default {
         CONST.NEW_EXPENSIFY_URL,
         CONST.STAGING_NEW_EXPENSIFY_URL,
     ],
-    getStateFromPath: (path, options) => {
-        console.log('helllo', path);
-        return gs(path, options);
-    },
     config: {
         initialRouteName: SCREENS.HOME,
         screens: {

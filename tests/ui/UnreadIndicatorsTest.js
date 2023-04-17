@@ -404,6 +404,7 @@ describe('Unread Indicators', () => {
         .then(navigateToSidebar)
         .then(() => {
             expect(areYouOnChatListScreen()).toBe(true);
+
             // Verify the report is marked as unread in the sidebar
             const hintText = Localize.translateLocal('accessibilityHints.chatUserDisplayNames');
             const displayNameTexts = screen.queryAllByLabelText(hintText);
@@ -416,6 +417,7 @@ describe('Unread Indicators', () => {
         })
         .then(() => {
             expect(areYouOnChatListScreen()).toBe(false);
+
             // It's difficult to trigger marking a report comment as unread since we would have to mock the long press event and then
             // another press on the context menu item so we will do it via the action directly and then test if the UI has updated properly
             return waitForPromisesToResolve();
@@ -423,6 +425,7 @@ describe('Unread Indicators', () => {
         .then(navigateToSidebar)
         .then(() => {
             expect(areYouOnChatListScreen()).toBe(true);
+
             // Verify the report is now marked as read
             const hintText = Localize.translateLocal('accessibilityHints.chatUserDisplayNames');
             const displayNameTexts = screen.queryAllByLabelText(hintText);

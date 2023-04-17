@@ -139,7 +139,6 @@ class SidebarLinks extends React.Component {
         const optionListItems = SidebarUtils.getOrderedReportIDs(this.props.reportIDFromRoute);
 
         const skeletonPlaceholder = <LHNSkeletonView shouldAnimate={!shouldFreeze} />;
-        console.log('here: ' + this.props.isFocused);
 
         return (
             <View
