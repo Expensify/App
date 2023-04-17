@@ -1,12 +1,7 @@
-<<<<<<< HEAD
 import React, {useRef, useState} from 'react';
-import {View} from 'react-native';
-=======
-import React from 'react';
 import {
     View, TouchableWithoutFeedback, Linking,
 } from 'react-native';
->>>>>>> cbb22d4789f9155f6101c48e6db9d901e9151d64
 import _ from 'underscore';
 import CONST from '../../../CONST';
 import ROUTES from '../../../ROUTES';
