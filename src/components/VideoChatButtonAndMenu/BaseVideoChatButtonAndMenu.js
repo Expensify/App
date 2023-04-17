@@ -35,6 +35,7 @@ class BaseVideoChatButtonAndMenu extends Component {
         this.dimensionsEventListener = null;
 
         this.toggleVideoChatMenu = this.toggleVideoChatMenu.bind(this);
+        this.hideVideoChatMenu = this.hideVideoChatMenu.bind(this);
         this.measureVideoChatIconPosition = this.measureVideoChatIconPosition.bind(this);
         this.videoChatIconWrapper = null;
         this.menuItemData = [
@@ -83,6 +84,13 @@ class BaseVideoChatButtonAndMenu extends Component {
     }
 
     /**
+     * Hide the VideoChatMenu popover
+     */
+    hideVideoChatMenu() {
+        this.setState({isVideoChatMenuActive: false});
+    }
+
+    /**
      * This gets called onLayout to find the cooridnates of the wrapper for the video chat button.
      */
     measureVideoChatIconPosition() {
@@ -126,7 +134,7 @@ class BaseVideoChatButtonAndMenu extends Component {
                     </Tooltip>
                 </View>
                 <Popover
-                    onClose={this.toggleVideoChatMenu}
+                    onClose={this.hideVideoChatMenu}
                     isVisible={this.state.isVideoChatMenuActive}
                     anchorPosition={{
                         left: this.state.videoChatIconPosition.x - 150,
