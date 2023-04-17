@@ -3,11 +3,11 @@ import PropTypes from 'prop-types';
 import {withOnyx} from 'react-native-onyx';
 import {View} from 'react-native';
 import ONYXKEYS from '../../../../ONYXKEYS';
-import IOUParticipantsSplit from './IOUParticipantsSplit';
-import IOUParticipantsRequest from './IOUParticipantsRequest';
+import MoneyRequestParticipantsSplitSelector from './MoneyRequestParticipantsSplitSelector';
+import MoneyRequestParticipantsSelector from './MoneyRequestParticipantsSelector';
 import styles from '../../../../styles/styles';
 import FullScreenLoadingIndicator from '../../../../components/FullscreenLoadingIndicator';
-import avatarPropTypes from '../../../../components/avatarPropTypes';
+import optionPropTypes from '../../../../components/optionPropTypes';
 
 const propTypes = {
     /** Callback to inform parent modal of success */
@@ -20,19 +20,7 @@ const propTypes = {
     onAddParticipants: PropTypes.func.isRequired,
 
     /** Selected participants from MoneyRequestModal with login */
-    participants: PropTypes.arrayOf(PropTypes.shape({
-        login: PropTypes.string.isRequired,
-        alternateText: PropTypes.string,
-        hasDraftComment: PropTypes.bool,
-        icons: PropTypes.arrayOf(avatarPropTypes),
-        searchText: PropTypes.string,
-        text: PropTypes.string,
-        keyForList: PropTypes.string,
-        isPinned: PropTypes.bool,
-        reportID: PropTypes.string,
-        phoneNumber: PropTypes.string,
-        payPalMeAddress: PropTypes.string,
-    })),
+    participants: PropTypes.arrayOf(optionPropTypes),
 
     /* Onyx Props */
 
@@ -59,7 +47,7 @@ const defaultProps = {
     safeAreaPaddingBottomStyle: {},
 };
 
-const IOUParticipantsPage = (props) => {
+const MoneyRequestParticipantsPage = (props) => {
     if (props.iou.loading) {
         return (
             <View style={styles.flex1}>
@@ -70,7 +58,7 @@ const IOUParticipantsPage = (props) => {
 
     return (props.hasMultipleParticipants
         ? (
-            <IOUParticipantsSplit
+            <MoneyRequestParticipantsSplitSelector
                 onStepComplete={props.onStepComplete}
                 participants={props.participants}
                 onAddParticipants={props.onAddParticipants}
@@ -78,7 +66,7 @@ const IOUParticipantsPage = (props) => {
             />
         )
         : (
-            <IOUParticipantsRequest
+            <MoneyRequestParticipantsSelector
                 onStepComplete={props.onStepComplete}
                 onAddParticipants={props.onAddParticipants}
                 safeAreaPaddingBottomStyle={props.safeAreaPaddingBottomStyle}
@@ -88,10 +76,10 @@ const IOUParticipantsPage = (props) => {
     );
 };
 
-IOUParticipantsPage.displayName = 'IOUParticipantsPage';
-IOUParticipantsPage.propTypes = propTypes;
-IOUParticipantsPage.defaultProps = defaultProps;
+MoneyRequestParticipantsPage.displayName = 'IOUParticipantsPage';
+MoneyRequestParticipantsPage.propTypes = propTypes;
+MoneyRequestParticipantsPage.defaultProps = defaultProps;
 
 export default withOnyx({
     iou: {key: ONYXKEYS.IOU},
-})(IOUParticipantsPage);
+})(MoneyRequestParticipantsPage);

@@ -52,6 +52,7 @@ import withKeyboardState, {keyboardStatePropTypes} from '../../../../components/
 import ArrowKeyFocusManager from '../../../../components/ArrowKeyFocusManager';
 import KeyboardShortcut from '../../../../libs/KeyboardShortcut';
 import KeyDownAction from './keyDownAction';
+import OfflineWithFeedback from '../../../../components/OfflineWithFeedback';
 
 const propTypes = {
     /** Beta features list */
@@ -114,6 +115,9 @@ const propTypes = {
         keywords: PropTypes.arrayOf(PropTypes.string),
     })),
 
+    /** The type of action that's pending  */
+    pendingAction: PropTypes.oneOf(['add', 'update', 'delete']),
+
     ...windowDimensionsPropTypes,
     ...withLocalizePropTypes,
     ...withCurrentUserPersonalDetailsPropTypes,
@@ -132,6 +136,7 @@ const defaultProps = {
     preferredSkinTone: CONST.EMOJI_DEFAULT_SKIN_TONE,
     frequentlyUsedEmojis: [],
     isComposerFullSize: false,
+    pendingAction: null,
     ...withCurrentUserPersonalDetailsDefaultProps,
 };
 
@@ -490,12 +495,17 @@ class ReportActionCompose extends React.Component {
             return;
         }
 
-        // if the key pressed is non-character keys like Enter, Shift, ... do not focus
+        // If the key pressed is non-character keys like Enter, Shift, ... do not focus
         if (e.key.length > 1) {
             return;
         }
 
-        // if we're typing on another input/text area, do not focus
+        // If a key is pressed in combination with Meta, Control or Alt do not focus
+        if (e.metaKey || e.ctrlKey || e.altKey) {
+            return;
+        }
+
+        // If we're typing on another input/text area, do not focus
         if (e.target.nodeName === 'INPUT' || e.target.nodeName === 'TEXTAREA') {
             return;
         }
@@ -759,224 +769,230 @@ class ReportActionCompose extends React.Component {
                 this.props.isComposerFullSize && styles.chatItemFullComposeRow,
             ]}
             >
-                {shouldShowReportRecipientLocalTime && <ParticipantLocalTime participant={reportRecipient} />}
-                <View style={[
-                    shouldUseFocusedColor
-                        ? styles.chatItemComposeBoxFocusedColor
-                        : styles.chatItemComposeBoxColor,
-                    styles.flexRow,
-                    styles.chatItemComposeBox,
-                    this.props.isComposerFullSize && styles.chatItemFullComposeBox,
-                    hasExceededMaxCommentLength && styles.borderColorDanger,
-                ]}
+                <OfflineWithFeedback
+                    pendingAction={this.props.pendingAction}
+                    style={this.props.isComposerFullSize ? styles.chatItemFullComposeRow : {}}
+                    contentContainerStyle={this.props.isComposerFullSize ? styles.flex1 : {}}
                 >
-                    <AttachmentModal
-                        onModalHide={this.finishAddAttachmentFlow}
-                        headerTitle={this.props.translate('reportActionCompose.sendAttachment')}
-                        onConfirm={this.addAttachment}
+                    {shouldShowReportRecipientLocalTime && <ParticipantLocalTime participant={reportRecipient} />}
+                    <View style={[
+                        shouldUseFocusedColor
+                            ? styles.chatItemComposeBoxFocusedColor
+                            : styles.chatItemComposeBoxColor,
+                        styles.flexRow,
+                        styles.chatItemComposeBox,
+                        this.props.isComposerFullSize && styles.chatItemFullComposeBox,
+                        hasExceededMaxCommentLength && styles.borderColorDanger,
+                    ]}
                     >
-                        {({displayFileInModal}) => (
-                            <>
-                                <AttachmentPicker>
-                                    {({openPicker}) => (
-                                        <>
-                                            <View style={[
-                                                styles.dFlex, styles.flexColumn,
-                                                (this.state.isFullComposerAvailable || this.props.isComposerFullSize) ? styles.justifyContentBetween : styles.justifyContentEnd,
-                                            ]}
-                                            >
-                                                {this.props.isComposerFullSize && (
-                                                    <Tooltip text={this.props.translate('reportActionCompose.collapse')}>
-                                                        <TouchableOpacity
-                                                            onPress={(e) => {
-                                                                e.preventDefault();
-                                                                this.setShouldShowSuggestionMenuToFalse();
-                                                                Report.setIsComposerFullSize(this.props.reportID, false);
-                                                            }}
-
-                                                            // Keep focus on the composer when Collapse button is clicked.
-                                                            onMouseDown={e => e.preventDefault()}
-                                                            style={styles.composerSizeButton}
-                                                            disabled={isBlockedFromConcierge || this.props.disabled}
-                                                        >
-                                                            <Icon src={Expensicons.Collapse} />
-                                                        </TouchableOpacity>
-                                                    </Tooltip>
-
-                                                )}
-                                                {(!this.props.isComposerFullSize && this.state.isFullComposerAvailable) && (
-                                                    <Tooltip text={this.props.translate('reportActionCompose.expand')}>
-                                                        <TouchableOpacity
-                                                            onPress={(e) => {
-                                                                e.preventDefault();
-                                                                this.setShouldShowSuggestionMenuToFalse();
-                                                                Report.setIsComposerFullSize(this.props.reportID, true);
-                                                            }}
-
-                                                            // Keep focus on the composer when Expand button is clicked.
-                                                            onMouseDown={e => e.preventDefault()}
-                                                            style={styles.composerSizeButton}
-                                                            disabled={isBlockedFromConcierge || this.props.disabled}
-                                                        >
-                                                            <Icon src={Expensicons.Expand} />
-                                                        </TouchableOpacity>
-                                                    </Tooltip>
-                                                )}
-                                                <Tooltip text={this.props.translate('reportActionCompose.addAction')}>
-                                                    <View style={styles.chatItemAttachBorder}>
-                                                        <TouchableOpacity
-                                                            ref={el => this.actionButton = el}
-                                                            onPress={(e) => {
-                                                                e.preventDefault();
-
-                                                                // Drop focus to avoid blue focus ring.
-                                                                this.actionButton.blur();
-
-                                                                // we blur the input here to avoid an android specific issue where the keyboard
-                                                                // doesn't open when we re-focus the input due to it never losing focus
-                                                                this.textInput.blur();
-                                                                this.setMenuVisibility(true);
-                                                            }}
-                                                            style={styles.composerSizeButton}
-                                                            disabled={isBlockedFromConcierge || this.props.disabled}
-                                                        >
-                                                            <Icon src={Expensicons.Plus} />
-                                                        </TouchableOpacity>
-                                                    </View>
-                                                </Tooltip>
-                                            </View>
-                                            <PopoverMenu
-                                                animationInTiming={CONST.ANIMATION_IN_TIMING}
-                                                isVisible={this.state.isMenuVisible}
-                                                onClose={() => this.setMenuVisibility(false)}
-                                                onModalHide={this.finishAddAttachmentFlow}
-                                                onItemSelected={(item) => {
-                                                    this.setMenuVisibility(false);
-                                                    this.setIsInAddAttachmentFlow(item.text === this.props.translate('reportActionCompose.addAttachment'));
-                                                }}
-                                                anchorPosition={styles.createMenuPositionReportActionCompose}
-                                                menuItems={[...this.getMoneyRequestOptions(reportParticipants),
-                                                    {
-                                                        icon: Expensicons.Paperclip,
-                                                        text: this.props.translate('reportActionCompose.addAttachment'),
-                                                        onSelected: () => {
-                                                            openPicker({
-                                                                onPicked: displayFileInModal,
-                                                                onModalHide: this.finishAddAttachmentFlow,
-                                                            });
-                                                        },
-                                                    },
+                        <AttachmentModal
+                            onModalHide={this.finishAddAttachmentFlow}
+                            headerTitle={this.props.translate('reportActionCompose.sendAttachment')}
+                            onConfirm={this.addAttachment}
+                        >
+                            {({displayFileInModal}) => (
+                                <>
+                                    <AttachmentPicker>
+                                        {({openPicker}) => (
+                                            <>
+                                                <View style={[
+                                                    styles.dFlex, styles.flexColumn,
+                                                    (this.state.isFullComposerAvailable || this.props.isComposerFullSize) ? styles.justifyContentBetween : styles.justifyContentEnd,
                                                 ]}
+                                                >
+                                                    {this.props.isComposerFullSize && (
+                                                        <Tooltip text={this.props.translate('reportActionCompose.collapse')}>
+                                                            <TouchableOpacity
+                                                                onPress={(e) => {
+                                                                    e.preventDefault();
+                                                                    this.setShouldShowSuggestionMenuToFalse();
+                                                                    Report.setIsComposerFullSize(this.props.reportID, false);
+                                                                }}
+
+                                                                // Keep focus on the composer when Collapse button is clicked.
+                                                                onMouseDown={e => e.preventDefault()}
+                                                                style={styles.composerSizeButton}
+                                                                disabled={isBlockedFromConcierge || this.props.disabled}
+                                                            >
+                                                                <Icon src={Expensicons.Collapse} />
+                                                            </TouchableOpacity>
+                                                        </Tooltip>
+
+                                                    )}
+                                                    {(!this.props.isComposerFullSize && this.state.isFullComposerAvailable) && (
+                                                        <Tooltip text={this.props.translate('reportActionCompose.expand')}>
+                                                            <TouchableOpacity
+                                                                onPress={(e) => {
+                                                                    e.preventDefault();
+                                                                    this.setShouldShowSuggestionMenuToFalse();
+                                                                    Report.setIsComposerFullSize(this.props.reportID, true);
+                                                                }}
+
+                                                                // Keep focus on the composer when Expand button is clicked.
+                                                                onMouseDown={e => e.preventDefault()}
+                                                                style={styles.composerSizeButton}
+                                                                disabled={isBlockedFromConcierge || this.props.disabled}
+                                                            >
+                                                                <Icon src={Expensicons.Expand} />
+                                                            </TouchableOpacity>
+                                                        </Tooltip>
+                                                    )}
+                                                    <Tooltip text={this.props.translate('reportActionCompose.addAction')}>
+                                                        <View style={styles.chatItemAttachBorder}>
+                                                            <TouchableOpacity
+                                                                ref={el => this.actionButton = el}
+                                                                onPress={(e) => {
+                                                                    e.preventDefault();
+
+                                                                    // Drop focus to avoid blue focus ring.
+                                                                    this.actionButton.blur();
+
+                                                                    // we blur the input here to avoid an android specific issue where the keyboard
+                                                                    // doesn't open when we re-focus the input due to it never losing focus
+                                                                    this.textInput.blur();
+                                                                    this.setMenuVisibility(true);
+                                                                }}
+                                                                style={styles.composerSizeButton}
+                                                                disabled={isBlockedFromConcierge || this.props.disabled}
+                                                            >
+                                                                <Icon src={Expensicons.Plus} />
+                                                            </TouchableOpacity>
+                                                        </View>
+                                                    </Tooltip>
+                                                </View>
+                                                <PopoverMenu
+                                                    animationInTiming={CONST.ANIMATION_IN_TIMING}
+                                                    isVisible={this.state.isMenuVisible}
+                                                    onClose={() => this.setMenuVisibility(false)}
+                                                    onModalHide={this.finishAddAttachmentFlow}
+                                                    onItemSelected={(item) => {
+                                                        this.setMenuVisibility(false);
+                                                        this.setIsInAddAttachmentFlow(item.text === this.props.translate('reportActionCompose.addAttachment'));
+                                                    }}
+                                                    anchorPosition={styles.createMenuPositionReportActionCompose}
+                                                    menuItems={[...this.getMoneyRequestOptions(reportParticipants),
+                                                        {
+                                                            icon: Expensicons.Paperclip,
+                                                            text: this.props.translate('reportActionCompose.addAttachment'),
+                                                            onSelected: () => {
+                                                                openPicker({
+                                                                    onPicked: displayFileInModal,
+                                                                    onModalHide: this.finishAddAttachmentFlow,
+                                                                });
+                                                            },
+                                                        },
+                                                    ]}
+                                                />
+                                            </>
+                                        )}
+                                    </AttachmentPicker>
+                                    <View style={[styles.textInputComposeSpacing]}>
+                                        <DragAndDrop
+                                            dropZoneId={CONST.REPORT.DROP_NATIVE_ID}
+                                            activeDropZoneId={CONST.REPORT.ACTIVE_DROP_NATIVE_ID}
+                                            onDragEnter={() => {
+                                                this.setState({isDraggingOver: true});
+                                            }}
+                                            onDragLeave={() => {
+                                                this.setState({isDraggingOver: false});
+                                            }}
+                                            onDrop={(e) => {
+                                                e.preventDefault();
+
+                                                const file = lodashGet(e, ['dataTransfer', 'files', 0]);
+
+                                                displayFileInModal(file);
+
+                                                this.setState({isDraggingOver: false});
+                                            }}
+                                            disabled={this.props.disabled}
+                                        >
+                                            <Composer
+                                                autoFocus={!this.props.modal.isVisible && (this.willBlurTextInputOnTapOutside || this.isEmptyChat())}
+                                                multiline
+                                                ref={this.setTextInputRef}
+                                                textAlignVertical="top"
+                                                placeholder={inputPlaceholder}
+                                                placeholderTextColor={themeColors.placeholderText}
+                                                onChangeText={comment => this.updateComment(comment, true)}
+                                                onKeyPress={this.triggerHotkeyActions}
+                                                style={[styles.textInputCompose, this.props.isComposerFullSize ? styles.textInputFullCompose : styles.flex4]}
+                                                maxLines={this.state.maxLines}
+                                                onFocus={() => this.setIsFocused(true)}
+                                                onBlur={() => {
+                                                    this.setIsFocused(false);
+                                                    this.resetSuggestedEmojis();
+                                                }}
+                                                onPasteFile={displayFileInModal}
+                                                shouldClear={this.state.textInputShouldClear}
+                                                onClear={() => this.setTextInputShouldClear(false)}
+                                                isDisabled={isComposeDisabled || isBlockedFromConcierge || this.props.disabled}
+                                                selection={this.state.selection}
+                                                onSelectionChange={this.onSelectionChange}
+                                                isFullComposerAvailable={this.state.isFullComposerAvailable}
+                                                setIsFullComposerAvailable={this.setIsFullComposerAvailable}
+                                                isComposerFullSize={this.props.isComposerFullSize}
+                                                value={this.state.value}
+                                                numberOfLines={this.props.numberOfLines}
+                                                onNumberOfLinesChange={this.updateNumberOfLines}
+                                                onLayout={(e) => {
+                                                    const composerHeight = e.nativeEvent.layout.height;
+                                                    if (this.state.composerHeight === composerHeight) {
+                                                        return;
+                                                    }
+                                                    this.setState({composerHeight});
+                                                }}
+                                                onScroll={() => this.setShouldShowSuggestionMenuToFalse()}
                                             />
-                                        </>
-                                    )}
-                                </AttachmentPicker>
-                                <View style={[styles.textInputComposeSpacing]}>
-                                    <DragAndDrop
-                                        dropZoneId={CONST.REPORT.DROP_NATIVE_ID}
-                                        activeDropZoneId={CONST.REPORT.ACTIVE_DROP_NATIVE_ID}
-                                        onDragEnter={() => {
-                                            this.setState({isDraggingOver: true});
-                                        }}
-                                        onDragLeave={() => {
-                                            this.setState({isDraggingOver: false});
-                                        }}
-                                        onDrop={(e) => {
-                                            e.preventDefault();
-
-                                            const file = lodashGet(e, ['dataTransfer', 'files', 0]);
-
-                                            displayFileInModal(file);
-
-                                            this.setState({isDraggingOver: false});
-                                        }}
-                                        disabled={this.props.disabled}
-                                    >
-                                        <Composer
-                                            autoFocus={!this.props.modal.isVisible && (this.willBlurTextInputOnTapOutside || this.isEmptyChat())}
-                                            multiline
-                                            ref={this.setTextInputRef}
-                                            textAlignVertical="top"
-                                            placeholder={inputPlaceholder}
-                                            placeholderTextColor={themeColors.placeholderText}
-                                            onChangeText={comment => this.updateComment(comment, true)}
-                                            onKeyPress={this.triggerHotkeyActions}
-                                            style={[styles.textInputCompose, this.props.isComposerFullSize ? styles.textInputFullCompose : styles.flex4]}
-                                            maxLines={this.state.maxLines}
-                                            onFocus={() => this.setIsFocused(true)}
-                                            onBlur={() => {
-                                                this.setIsFocused(false);
-                                                this.resetSuggestedEmojis();
-                                            }}
-                                            onPasteFile={displayFileInModal}
-                                            shouldClear={this.state.textInputShouldClear}
-                                            onClear={() => this.setTextInputShouldClear(false)}
-                                            isDisabled={isComposeDisabled || isBlockedFromConcierge || this.props.disabled}
-                                            selection={this.state.selection}
-                                            onSelectionChange={this.onSelectionChange}
-                                            isFullComposerAvailable={this.state.isFullComposerAvailable}
-                                            setIsFullComposerAvailable={this.setIsFullComposerAvailable}
-                                            isComposerFullSize={this.props.isComposerFullSize}
-                                            value={this.state.value}
-                                            numberOfLines={this.props.numberOfLines}
-                                            onNumberOfLinesChange={this.updateNumberOfLines}
-                                            onLayout={(e) => {
-                                                const composerHeight = e.nativeEvent.layout.height;
-                                                if (this.state.composerHeight === composerHeight) {
-                                                    return;
-                                                }
-                                                this.setState({composerHeight});
-                                            }}
-                                            onScroll={() => this.setShouldShowSuggestionMenuToFalse()}
-                                        />
-                                    </DragAndDrop>
-                                </View>
-                            </>
-                        )}
-                    </AttachmentModal>
-                    {DeviceCapabilities.canUseTouchScreen() && this.props.isMediumScreenWidth ? null : (
-                        <EmojiPickerButton
-                            isDisabled={isBlockedFromConcierge || this.props.disabled}
-                            onModalHide={() => {
-                                this.focus(true);
-                                this.setState({isEmojiPickerVisible: false});
-                            }}
-                            onEmojiSelected={this.addEmojiToTextBox}
-                            onWillShow={() => this.setState({isEmojiPickerVisible: true})}
-                        />
-                    )}
-                    <View
-                        style={[styles.justifyContentEnd]}
-
-                        // Keep focus on the composer when Send message is clicked.
-                        onMouseDown={e => e.preventDefault()}
-                    >
-                        <Tooltip text={this.props.translate('common.send')}>
-                            <TouchableOpacity
-                                style={[styles.chatItemSubmitButton,
-                                    (this.state.isCommentEmpty || hasExceededMaxCommentLength) ? undefined : styles.buttonSuccess,
-                                ]}
-                                onPress={this.submitForm}
-                                disabled={this.state.isCommentEmpty || isBlockedFromConcierge || this.props.disabled || hasExceededMaxCommentLength}
-                                hitSlop={{
-                                    top: 3, right: 3, bottom: 3, left: 3,
+                                        </DragAndDrop>
+                                    </View>
+                                </>
+                            )}
+                        </AttachmentModal>
+                        {DeviceCapabilities.canUseTouchScreen() && this.props.isMediumScreenWidth ? null : (
+                            <EmojiPickerButton
+                                isDisabled={isBlockedFromConcierge || this.props.disabled}
+                                onModalHide={() => {
+                                    this.focus(true);
+                                    this.setState({isEmojiPickerVisible: false});
                                 }}
-                            >
-                                <Icon src={Expensicons.Send} fill={(this.state.isCommentEmpty || hasExceededMaxCommentLength) ? themeColors.icon : themeColors.textLight} />
-                            </TouchableOpacity>
-                        </Tooltip>
+                                onEmojiSelected={this.addEmojiToTextBox}
+                                onWillShow={() => this.setState({isEmojiPickerVisible: true})}
+                            />
+                        )}
+                        <View
+                            style={[styles.justifyContentEnd]}
+
+                            // Keep focus on the composer when Send message is clicked.
+                            onMouseDown={e => e.preventDefault()}
+                        >
+                            <Tooltip text={this.props.translate('common.send')}>
+                                <TouchableOpacity
+                                    style={[styles.chatItemSubmitButton,
+                                        (this.state.isCommentEmpty || hasExceededMaxCommentLength) ? undefined : styles.buttonSuccess,
+                                    ]}
+                                    onPress={this.submitForm}
+                                    disabled={this.state.isCommentEmpty || isBlockedFromConcierge || this.props.disabled || hasExceededMaxCommentLength}
+                                    hitSlop={{
+                                        top: 3, right: 3, bottom: 3, left: 3,
+                                    }}
+                                >
+                                    <Icon src={Expensicons.Send} fill={(this.state.isCommentEmpty || hasExceededMaxCommentLength) ? themeColors.icon : themeColors.textLight} />
+                                </TouchableOpacity>
+                            </Tooltip>
+                        </View>
                     </View>
-                </View>
-                <View style={[
-                    styles.flexRow,
-                    styles.justifyContentBetween,
-                    styles.alignItemsCenter,
-                    (!this.props.isSmallScreenWidth || (this.props.isSmallScreenWidth && !this.props.network.isOffline)) && styles.chatItemComposeSecondaryRow]}
-                >
-                    {!this.props.isSmallScreenWidth && <OfflineIndicator containerStyles={[styles.chatItemComposeSecondaryRow]} />}
-                    <ReportTypingIndicator reportID={this.props.reportID} />
-                    <ExceededCommentLength comment={this.comment} onExceededMaxCommentLength={this.setExceededMaxCommentLength} />
-                </View>
+                    <View style={[
+                        styles.flexRow,
+                        styles.justifyContentBetween,
+                        styles.alignItemsCenter,
+                        (!this.props.isSmallScreenWidth || (this.props.isSmallScreenWidth && !this.props.network.isOffline)) && styles.chatItemComposeSecondaryRow]}
+                    >
+                        {!this.props.isSmallScreenWidth && <OfflineIndicator containerStyles={[styles.chatItemComposeSecondaryRow]} />}
+                        <ReportTypingIndicator reportID={this.props.reportID} />
+                        <ExceededCommentLength comment={this.comment} onExceededMaxCommentLength={this.setExceededMaxCommentLength} />
+                    </View>
+                </OfflineWithFeedback>
                 {this.state.isDraggingOver && <ReportDropUI />}
                 {!_.isEmpty(this.state.suggestedEmojis) && this.state.shouldShowSuggestionMenu && (
                     <ArrowKeyFocusManager
