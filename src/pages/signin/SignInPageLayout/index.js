@@ -1,4 +1,4 @@
-import React from 'react';
+import React, {useRef} from 'react';
 import {View, ScrollView} from 'react-native';
 import {withSafeAreaInsets} from 'react-native-safe-area-context';
 import PropTypes from 'prop-types';
@@ -26,6 +26,7 @@ const propTypes = {
 };
 
 const SignInPageLayout = (props) => {
+    const scrollViewRef = useRef(null);
     let containerStyles = [styles.flex1, styles.signInPageInner];
     let contentContainerStyles = [styles.flex1, styles.flexRow];
 
@@ -51,15 +52,17 @@ const SignInPageLayout = (props) => {
                         <ScrollView
                             style={[styles.flex1]}
                             contentContainerStyle={[styles.flex1]}
+                            ref={scrollViewRef}
                         >
                             <SignInPageGraphics />
-                            <Footer />
+                            <Footer scrollViewRef={scrollViewRef} />
                         </ScrollView>
                     </View>
                 ) : (
                     <ScrollView
                         contentContainerStyle={scrollViewContentContainerStyles}
                         keyboardShouldPersistTaps="handled"
+                        ref={scrollViewRef}
                     >
                         <View style={[styles.flex1, StyleUtils.getMinimumHeight(containerHeight)]}>
                             <SignInPageContent
@@ -70,7 +73,7 @@ const SignInPageLayout = (props) => {
                             </SignInPageContent>
                         </View>
                         <View style={[styles.flex0]}>
-                            <Footer />
+                            <Footer scrollViewRef={scrollViewRef} />
                         </View>
                     </ScrollView>
                 )}

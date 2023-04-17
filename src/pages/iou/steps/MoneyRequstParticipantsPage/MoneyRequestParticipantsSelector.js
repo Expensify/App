@@ -46,7 +46,7 @@ const defaultProps = {
     betas: [],
 };
 
-class IOUParticipantsRequest extends Component {
+class MoneyRequestParticipantsSelector extends Component {
     constructor(props) {
         super(props);
 
@@ -169,8 +169,8 @@ class IOUParticipantsRequest extends Component {
     }
 }
 
-IOUParticipantsRequest.propTypes = propTypes;
-IOUParticipantsRequest.defaultProps = defaultProps;
+MoneyRequestParticipantsSelector.propTypes = propTypes;
+MoneyRequestParticipantsSelector.defaultProps = defaultProps;
 
 export default compose(
     withLocalize,
@@ -185,4 +185,4 @@ export default compose(
             key: ONYXKEYS.BETAS,
         },
     }),
-)(IOUParticipantsRequest);
+)(MoneyRequestParticipantsSelector);
