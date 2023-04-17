@@ -478,7 +478,7 @@ const styles = {
         borderWidth: 0,
     },
 
-    buttonSuccessDisabled: {
+    buttonOpacityDisabled: {
         opacity: 0.5,
     },
 
@@ -492,16 +492,12 @@ const styles = {
         borderWidth: 0,
     },
 
-    buttonDangerDisabled: {
-        opacity: 0.5,
-    },
-
     buttonDangerHovered: {
         backgroundColor: themeColors.dangerHover,
         borderWidth: 0,
     },
 
-    buttonDisable: {
+    buttonDisabled: {
         backgroundColor: themeColors.buttonDefaultBG,
         borderWidth: 0,
     },
@@ -789,10 +785,6 @@ const styles = {
 
     calendarDayContainerSelected: {
         backgroundColor: themeColors.buttonDefaultBG,
-    },
-
-    calendarButtonDisabled: {
-        opacity: 0.5,
     },
 
     textInputContainer: {
