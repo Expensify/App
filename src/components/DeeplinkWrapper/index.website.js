@@ -49,9 +49,7 @@ class DeeplinkWrapper extends PureComponent {
             return;
         }
 
-        // We need to clear the old short-lived auth token if it exists,
-        // so that after getting a new short-lived auth token,
-        // we can open the popup that navigates the user to the desktop app.
+        // Since we open the popup based on a valid short-lived auth token, make sure its value is empty before getting a new token.
         Session.removeShortLivedAuthToken();
 
         if (!this.props.session.authToken) {
