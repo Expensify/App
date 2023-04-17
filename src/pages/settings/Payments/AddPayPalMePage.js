@@ -29,6 +29,8 @@ const AddPayPalMePage = (props) => {
     const [payPalMeUsernameError, setPayPalMeUsernameError] = useState(false);
     const payPalMeInput = useRef(null);
 
+    const growlMessageOnSave = props.translate('addPayPalMePage.growlMessageOnSave');
+
     /**
      * Sets the payPalMe username and error data for the current user
      */
@@ -40,9 +42,9 @@ const AddPayPalMePage = (props) => {
         setPayPalMeUsernameError(false);
         User.addPaypalMeAddress(payPalMeUsername);
 
-        Growl.show(props.translate('addPayPalMePage.growlMessageOnSave'), CONST.GROWL.SUCCESS, 3000);
+        Growl.show(growlMessageOnSave, CONST.GROWL.SUCCESS, 3000);
         Navigation.navigate(ROUTES.SETTINGS_PAYMENTS);
-    }, [payPalMeUsername]);
+    }, [payPalMeUsername, growlMessageOnSave]);
 
     return (
         <ScreenWrapper onEntryTransitionEnd={() => payPalMeInput.current && payPalMeInput.current.focus()}>
