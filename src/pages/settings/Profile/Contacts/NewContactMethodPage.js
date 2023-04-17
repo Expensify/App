@@ -65,7 +65,7 @@ function NewContactMethodPage(props) {
     const validateForm = useCallback(() => {
         const phoneLogin = LoginUtils.getPhoneNumberWithoutSpecialChars(login.trim());
 
-        return (Permissions.canUsePasswordlessLogins(props.betas) || this.state.password)
+        return (Permissions.canUsePasswordlessLogins(props.betas) || password)
             && (Str.isValidEmail(login) || Str.isValidPhone(phoneLogin));
     }, [login, password, props.betas]);
 
