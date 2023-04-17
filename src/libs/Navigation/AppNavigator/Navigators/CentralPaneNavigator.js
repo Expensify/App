@@ -4,6 +4,7 @@ import {createStackNavigator} from '@react-navigation/stack';
 import SCREENS from '../../../../SCREENS';
 import ReportScreenWrapper from '../ReportScreenWrapper';
 import getCurrentUrl from '../../currentUrl';
+import styles from '../../../../styles/styles';
 
 const Stack = createStackNavigator();
 
@@ -23,10 +24,7 @@ function CentralPaneNavigator() {
                     title: 'New Expensify',
 
                     // Prevent unnecessary scrolling
-                    cardStyle: {
-                        overflow: 'hidden',
-                        height: '100%',
-                    },
+                    cardStyle: styles.cardStyleNavigator,
                 }}
                 component={ReportScreenWrapper}
             />

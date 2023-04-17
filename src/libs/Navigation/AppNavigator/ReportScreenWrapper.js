@@ -10,6 +10,7 @@ import ReportScreen from '../../../pages/home/ReportScreen';
 import * as ReportUtils from '../../ReportUtils';
 import reportPropTypes from '../../../pages/reportPropTypes';
 import FullScreenLoadingIndicator from '../../../components/FullscreenLoadingIndicator';
+import {withNavigationPropTypes} from '../../../components/withNavigation';
 
 const propTypes = {
     /** Available reports that would be displayed in this navigator */
@@ -27,16 +28,19 @@ const propTypes = {
         type: PropTypes.string,
     })),
 
+    /** Navigation route context info provided by react navigation */
     route: PropTypes.shape({
+        /** Route specific parameters used on this screen */
         params: PropTypes.shape({
+            /** If the admin room should be opened */
             openOnAdminRoom: PropTypes.bool,
+
+            /** The ID of the report this screen should display */
             reportID: PropTypes.string,
         }),
     }).isRequired,
 
-    navigation: PropTypes.shape({
-        setParams: PropTypes.func,
-    }).isRequired,
+    ...withNavigationPropTypes,
 };
 
 const defaultProps = {
@@ -52,7 +56,7 @@ const defaultProps = {
  * @param {Boolean} [ignoreDefaultRooms]
  * @param {Object} policies
  * @param {Boolean} openOnAdminRoom
- * @returns {Object}
+ * @returns {Number}
  */
 const getLastAccessedReportID = (reports, ignoreDefaultRooms, policies, openOnAdminRoom) => {
     const lastReport = ReportUtils.findLastAccessedReport(reports, ignoreDefaultRooms, policies, openOnAdminRoom);

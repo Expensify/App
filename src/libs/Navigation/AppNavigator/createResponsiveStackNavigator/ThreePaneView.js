@@ -8,6 +8,7 @@ import NAVIGATORS from '../../../../NAVIGATORS';
 import * as StyleUtils from '../../../../styles/StyleUtils';
 import {withNavigationPropTypes} from '../../../../components/withNavigation';
 import styles from '../../../../styles/styles';
+import CONST from '../../../../CONST';
 
 const propTypes = {
     /* State from useNavigationBuilder */
@@ -56,7 +57,7 @@ const ThreePaneView = (props) => {
                                 styles.pAbsolute,
                                 styles.w100,
                                 styles.h100,
-                                StyleUtils.getBackgroundColorWithOpacityStyle(themeColors.shadow, 0.4),
+                                StyleUtils.getBackgroundColorWithOpacityStyle(themeColors.shadow, CONST.RIGHT_MODAL_BACKGROUND_OVERLAY_OPACITY),
                                 StyleUtils.displayIfTrue(props.state.index === i),
                             ]}
                         >

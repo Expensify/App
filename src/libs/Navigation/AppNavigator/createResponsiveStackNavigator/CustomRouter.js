@@ -4,7 +4,7 @@ import NAVIGATORS from '../../../../NAVIGATORS';
 
 /**
  * @param {Object} state - react-navigation state
- * @returns {boolean}
+ * @returns {Boolean}
  */
 const isAtLeastOneCentralPaneNavigatorInState = state => _.find(state.routes, r => r.name === NAVIGATORS.CENTRAL_PANE_NAVIGATOR);
 
