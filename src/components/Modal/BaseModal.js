@@ -144,7 +144,7 @@ class BaseModal extends PureComponent {
 
                         const modalPaddingStyles = StyleUtils.getModalPaddingStyles({
                             safeAreaPaddingTop,
-                            safeAreaPaddingBottom: insets.bottom === 0 ? 12 : safeAreaPaddingBottom,
+                            safeAreaPaddingBottom,
                             safeAreaPaddingLeft,
                             safeAreaPaddingRight,
                             shouldAddBottomSafeAreaMargin,
@@ -155,6 +155,7 @@ class BaseModal extends PureComponent {
                             modalContainerStyleMarginBottom: modalContainerStyle.marginBottom,
                             modalContainerStylePaddingTop: modalContainerStyle.paddingTop,
                             modalContainerStylePaddingBottom: modalContainerStyle.paddingBottom,
+                            insets,
                         });
 
                         return (
