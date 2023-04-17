@@ -17,6 +17,7 @@ import compose from '../libs/compose';
 import TextLink from '../components/TextLink';
 import ONYXKEYS from '../ONYXKEYS';
 import networkPropTypes from '../components/networkPropTypes';
+import ROUTES from '../ROUTES';
 
 const propTypes = {
     /** The parameters needed to authenticate with a short lived token are in the URL */
@@ -76,7 +77,7 @@ class LogInWithShortLivedAuthTokenPage extends Component {
     render() {
         // redirect the user to the login page if there is a sudden disconnection
         if (this.props.network.isOffline) {
-            Navigation.navigate();
+            Navigation.navigate(ROUTES.HOME);
             return;
         }
         if (this.props.account.isLoading) {
