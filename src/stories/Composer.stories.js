@@ -64,7 +64,7 @@ const Default = (args) => {
                 >
                     <Text style={[styles.mb2, styles.textLabelSupporting]}>Rendered Comment</Text>
                     {Boolean(renderedHTML) && <RenderHTML html={renderedHTML} />}
-                    {pastedFile && (
+                    {Boolean(pastedFile) && (
                         <View style={styles.mv3}>
                             <Image
                                 source={{uri: URL.createObjectURL(pastedFile)}}

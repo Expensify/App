@@ -42,7 +42,7 @@ Onyx.init({keys: ONYXKEYS});
 beforeAll(() => waitForPromisesToResolve()
     .then(() => Onyx.set(ONYXKEYS.PERSONAL_DETAILS, participantsPersonalDetails))
     .then(() => Onyx.set(ONYXKEYS.SESSION, {email: currentUserEmail})));
-beforeEach(() => Onyx.set(ONYXKEYS.NVP_PREFERRED_LOCALE, CONST.DEFAULT_LOCALE).then(waitForPromisesToResolve));
+beforeEach(() => Onyx.set(ONYXKEYS.NVP_PREFERRED_LOCALE, CONST.LOCALES.DEFAULT).then(waitForPromisesToResolve));
 
 describe('ReportUtils', () => {
     describe('getDisplayNamesWithTooltips', () => {
@@ -143,7 +143,7 @@ describe('ReportUtils', () => {
 
                 expect(ReportUtils.getReportName(archivedAdminsRoom)).toBe('#admins (archived)');
 
-                return Onyx.set(ONYXKEYS.NVP_PREFERRED_LOCALE, 'es')
+                return Onyx.set(ONYXKEYS.NVP_PREFERRED_LOCALE, CONST.LOCALES.ES)
                     .then(() => expect(ReportUtils.getReportName(archivedAdminsRoom)).toBe('#admins (archivado)'));
             });
         });
@@ -167,7 +167,7 @@ describe('ReportUtils', () => {
 
                 expect(ReportUtils.getReportName(archivedPolicyRoom)).toBe('#VikingsChat (archived)');
 
-                return Onyx.set(ONYXKEYS.NVP_PREFERRED_LOCALE, 'es')
+                return Onyx.set(ONYXKEYS.NVP_PREFERRED_LOCALE, CONST.LOCALES.ES)
                     .then(() => expect(ReportUtils.getReportName(archivedPolicyRoom)).toBe('#VikingsChat (archivado)'));
             });
         });
@@ -211,7 +211,7 @@ describe('ReportUtils', () => {
 
                     expect(ReportUtils.getReportName(memberArchivedPolicyExpenseChat, policies)).toBe('Vikings Policy (archived)');
 
-                    return Onyx.set(ONYXKEYS.NVP_PREFERRED_LOCALE, 'es')
+                    return Onyx.set(ONYXKEYS.NVP_PREFERRED_LOCALE, CONST.LOCALES.ES)
                         .then(() => expect(ReportUtils.getReportName(memberArchivedPolicyExpenseChat, policies)).toBe('Vikings Policy (archivado)'));
                 });
 
@@ -223,7 +223,7 @@ describe('ReportUtils', () => {
 
                     expect(ReportUtils.getReportName(adminArchivedPolicyExpenseChat)).toBe('Ragnar Lothbrok (archived)');
 
-                    return Onyx.set(ONYXKEYS.NVP_PREFERRED_LOCALE, 'es')
+                    return Onyx.set(ONYXKEYS.NVP_PREFERRED_LOCALE, CONST.LOCALES.ES)
                         .then(() => expect(ReportUtils.getReportName(adminArchivedPolicyExpenseChat)).toBe('Ragnar Lothbrok (archivado)'));
                 });
             });
@@ -354,7 +354,7 @@ describe('ReportUtils', () => {
                         chatType,
                     };
                     const moneyRequestOptions = ReportUtils.getMoneyRequestOptions(report, [currentUserEmail, participants[0]], [CONST.BETAS.IOU]);
-                    return moneyRequestOptions.length === 1 && moneyRequestOptions.includes(CONST.IOU.IOU_TYPE.SPLIT);
+                    return moneyRequestOptions.length === 1 && moneyRequestOptions.includes(CONST.IOU.MONEY_REQUEST_TYPE.SPLIT);
                 });
                 expect(onlyHaveSplitOption).toBe(true);
             });
@@ -362,7 +362,7 @@ describe('ReportUtils', () => {
             it('has multiple participants exclude self', () => {
                 const moneyRequestOptions = ReportUtils.getMoneyRequestOptions({}, [currentUserEmail, ...participants], [CONST.BETAS.IOU]);
                 expect(moneyRequestOptions.length).toBe(1);
-                expect(moneyRequestOptions.includes(CONST.IOU.IOU_TYPE.SPLIT)).toBe(true);
+                expect(moneyRequestOptions.includes(CONST.IOU.MONEY_REQUEST_TYPE.SPLIT)).toBe(true);
             });
         });
 
@@ -370,7 +370,7 @@ describe('ReportUtils', () => {
             it(' does not have iou send permission', () => {
                 const moneyRequestOptions = ReportUtils.getMoneyRequestOptions({}, [currentUserEmail, participants], [CONST.BETAS.IOU]);
                 expect(moneyRequestOptions.length).toBe(1);
-                expect(moneyRequestOptions.includes(CONST.IOU.IOU_TYPE.REQUEST)).toBe(true);
+                expect(moneyRequestOptions.includes(CONST.IOU.MONEY_REQUEST_TYPE.REQUEST)).toBe(true);
             });
 
             it('a policy expense chat', () => {
@@ -381,15 +381,15 @@ describe('ReportUtils', () => {
                 };
                 const moneyRequestOptions = ReportUtils.getMoneyRequestOptions(report, [currentUserEmail, participants], [CONST.BETAS.IOU, CONST.BETAS.IOU_SEND]);
                 expect(moneyRequestOptions.length).toBe(1);
-                expect(moneyRequestOptions.includes(CONST.IOU.IOU_TYPE.REQUEST)).toBe(true);
+                expect(moneyRequestOptions.includes(CONST.IOU.MONEY_REQUEST_TYPE.REQUEST)).toBe(true);
             });
         });
 
         it('return both iou send and request money', () => {
             const moneyRequestOptions = ReportUtils.getMoneyRequestOptions({}, [currentUserEmail, participants], [CONST.BETAS.IOU, CONST.BETAS.IOU_SEND]);
             expect(moneyRequestOptions.length).toBe(2);
-            expect(moneyRequestOptions.includes(CONST.IOU.IOU_TYPE.REQUEST)).toBe(true);
-            expect(moneyRequestOptions.includes(CONST.IOU.IOU_TYPE.SEND)).toBe(true);
+            expect(moneyRequestOptions.includes(CONST.IOU.MONEY_REQUEST_TYPE.REQUEST)).toBe(true);
+            expect(moneyRequestOptions.includes(CONST.IOU.MONEY_REQUEST_TYPE.SEND)).toBe(true);
         });
     });
 

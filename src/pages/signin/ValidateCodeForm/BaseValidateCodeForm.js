@@ -61,7 +61,7 @@ const propTypes = {
 const defaultProps = {
     account: {},
     credentials: {},
-    preferredLocale: CONST.DEFAULT_LOCALE,
+    preferredLocale: CONST.LOCALES.DEFAULT,
 };
 
 class BaseValidateCodeForm extends React.Component {
@@ -228,7 +228,7 @@ class BaseValidateCodeForm extends React.Component {
                         <View style={[styles.changeExpensifyLoginLinkContainer]}>
                             {this.state.linkSent ? (
                                 <Text style={[styles.mt2]}>
-                                    {this.props.account.message}
+                                    {this.props.account.message ? this.props.translate(this.props.account.message) : ''}
                                 </Text>
                             ) : (
                                 <TouchableOpacity
@@ -245,7 +245,7 @@ class BaseValidateCodeForm extends React.Component {
                     </View>
                 )}
 
-                {this.props.account && !_.isEmpty(this.props.account.errors) && (
+                {Boolean(this.props.account) && !_.isEmpty(this.props.account.errors) && (
                     <FormHelpMessage message={ErrorUtils.getLatestErrorMessage(this.props.account)} />
                 )}
                 <View>

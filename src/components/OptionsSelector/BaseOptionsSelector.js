@@ -99,10 +99,12 @@ class BaseOptionsSelector extends Component {
             return;
         }
 
-        if (this.props.shouldDelayFocus) {
-            this.focusTimeout = setTimeout(() => this.textInput.focus(), CONST.ANIMATED_TRANSITION);
-        } else {
-            this.textInput.focus();
+        if (this.props.shouldShowTextInput) {
+            if (this.props.shouldDelayFocus) {
+                this.focusTimeout = setTimeout(() => this.textInput.focus(), CONST.ANIMATED_TRANSITION);
+            } else {
+                this.textInput.focus();
+            }
         }
     }
 
@@ -238,7 +240,7 @@ class BaseOptionsSelector extends Component {
      */
     selectRow(option, ref) {
         return new Promise((resolve) => {
-            if (this.props.shouldFocusOnSelectRow) {
+            if (this.props.shouldShowTextInput && this.props.shouldFocusOnSelectRow) {
                 if (this.relatedTarget && ref === this.relatedTarget) {
                     this.textInput.focus();
                     this.relatedTarget = null;
@@ -328,13 +330,15 @@ class BaseOptionsSelector extends Component {
                                         {optionsList}
                                     </View>
                                     <View style={[styles.ph5, styles.pv5, styles.flexGrow1, styles.flexShrink0]}>
-                                        {textInput}
+                                        {this.props.children}
+                                        {this.props.shouldShowTextInput && textInput}
                                     </View>
                                 </>
                             ) : (
                                 <>
                                     <View style={[styles.ph5, styles.pv3]}>
-                                        {textInput}
+                                        {this.props.children}
+                                        {this.props.shouldShowTextInput && textInput}
                                     </View>
                                     {optionsList}
                                 </>

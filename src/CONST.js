@@ -1,5 +1,6 @@
 import lodashGet from 'lodash/get';
 import Config from 'react-native-config';
+import * as KeyCommand from 'react-native-key-command';
 import * as Url from './libs/Url';
 
 const CLOUDFRONT_DOMAIN = 'cloudfront.net';
@@ -7,9 +8,19 @@ const CLOUDFRONT_URL = `https://d2k5nsl2zxldvw.${CLOUDFRONT_DOMAIN}`;
 const ACTIVE_EXPENSIFY_URL = Url.addTrailingForwardSlash(lodashGet(Config, 'NEW_EXPENSIFY_URL', 'https://new.expensify.com'));
 const USE_EXPENSIFY_URL = 'https://use.expensify.com';
 const PLATFORM_OS_MACOS = 'Mac OS';
+const PLATFORM_IOS = 'iOS';
 const ANDROID_PACKAGE_NAME = 'com.expensify.chat';
 const USA_COUNTRY_NAME = 'United States';
 const CURRENT_YEAR = new Date().getFullYear();
+
+const keyModifierControl = lodashGet(KeyCommand, 'constants.keyModifierControl', 'keyModifierControl');
+const keyModifierCommand = lodashGet(KeyCommand, 'constants.keyModifierCommand', 'keyModifierCommand');
+const keyModifierShiftControl = lodashGet(KeyCommand, 'constants.keyModifierShiftControl', 'keyModifierShiftControl');
+const keyModifierShiftCommand = lodashGet(KeyCommand, 'constants.keyModifierShiftCommand', 'keyModifierShiftCommand');
+const keyInputEscape = lodashGet(KeyCommand, 'constants.keyInputEscape', 'keyInputEscape');
+const keyInputEnter = lodashGet(KeyCommand, 'constants.keyInputEnter', 'keyInputEnter');
+const keyInputUpArrow = lodashGet(KeyCommand, 'constants.keyInputUpArrow', 'keyInputUpArrow');
+const keyInputDownArrow = lodashGet(KeyCommand, 'constants.keyInputDownArrow', 'keyInputDownArrow');
 
 const CONST = {
     ANDROID_PACKAGE_NAME,
@@ -63,6 +74,7 @@ const CONST = {
 
     DATE_BIRTH: {
         MIN_AGE: 5,
+        MIN_AGE_FOR_PAYMENT: 18,
         MAX_AGE: 150,
     },
 
@@ -222,6 +234,7 @@ const CONST = {
         CTRL: {
             DEFAULT: 'control',
             [PLATFORM_OS_MACOS]: 'meta',
+            [PLATFORM_IOS]: 'meta',
         },
         SHIFT: {
             DEFAULT: 'shift',
@@ -232,46 +245,91 @@ const CONST = {
             descriptionKey: 'search',
             shortcutKey: 'K',
             modifiers: ['CTRL'],
+            trigger: {
+                DEFAULT: {input: 'k', modifierFlags: keyModifierControl},
+                [PLATFORM_OS_MACOS]: {input: 'k', modifierFlags: keyModifierCommand},
+                [PLATFORM_IOS]: {input: 'k', modifierFlags: keyModifierCommand},
+            },
         },
         NEW_GROUP: {
             descriptionKey: 'newGroup',
             shortcutKey: 'K',
             modifiers: ['CTRL', 'SHIFT'],
+            trigger: {
+                DEFAULT: {input: 'k', modifierFlags: keyModifierShiftControl},
+                [PLATFORM_OS_MACOS]: {input: 'k', modifierFlags: keyModifierShiftCommand},
+                [PLATFORM_IOS]: {input: 'k', modifierFlags: keyModifierShiftCommand},
+            },
         },
         SHORTCUT_MODAL: {
             descriptionKey: 'openShortcutDialog',
             shortcutKey: 'I',
             modifiers: ['CTRL'],
+            trigger: {
+                DEFAULT: {input: 'i', modifierFlags: keyModifierControl},
+                [PLATFORM_OS_MACOS]: {input: 'i', modifierFlags: keyModifierCommand},
+                [PLATFORM_IOS]: {input: 'i', modifierFlags: keyModifierCommand},
+            },
         },
         ESCAPE: {
             descriptionKey: 'escape',
             shortcutKey: 'Escape',
             modifiers: [],
+            trigger: {
+                DEFAULT: {input: keyInputEscape},
+                [PLATFORM_OS_MACOS]: {input: keyInputEscape},
+                [PLATFORM_IOS]: {input: keyInputEscape},
+            },
         },
         ENTER: {
             descriptionKey: null,
             shortcutKey: 'Enter',
             modifiers: [],
+            trigger: {
+                DEFAULT: {input: keyInputEnter},
+                [PLATFORM_OS_MACOS]: {input: keyInputEnter},
+                [PLATFORM_IOS]: {input: keyInputEnter},
+            },
         },
         CTRL_ENTER: {
             descriptionKey: null,
             shortcutKey: 'Enter',
             modifiers: ['CTRL'],
+            trigger: {
+                DEFAULT: {input: keyInputEnter, modifierFlags: keyModifierControl},
+                [PLATFORM_OS_MACOS]: {input: keyInputEnter, modifierFlags: keyModifierCommand},
+                [PLATFORM_IOS]: {input: keyInputEnter, modifierFlags: keyModifierCommand},
+            },
         },
         COPY: {
             descriptionKey: 'copy',
             shortcutKey: 'C',
             modifiers: ['CTRL'],
+            trigger: {
+                DEFAULT: {input: 'c', modifierFlags: keyModifierControl},
+                [PLATFORM_OS_MACOS]: {input: 'c', modifierFlags: keyModifierCommand},
+                [PLATFORM_IOS]: {input: 'c', modifierFlags: keyModifierCommand},
+            },
         },
         ARROW_UP: {
             descriptionKey: null,
             shortcutKey: 'ArrowUp',
             modifiers: [],
+            trigger: {
+                DEFAULT: {input: keyInputUpArrow},
+                [PLATFORM_OS_MACOS]: {input: keyInputUpArrow},
+                [PLATFORM_IOS]: {input: keyInputUpArrow},
+            },
         },
         ARROW_DOWN: {
             descriptionKey: null,
             shortcutKey: 'ArrowDown',
             modifiers: [],
+            trigger: {
+                DEFAULT: {input: keyInputDownArrow},
+                [PLATFORM_OS_MACOS]: {input: keyInputDownArrow},
+                [PLATFORM_IOS]: {input: keyInputDownArrow},
+            },
         },
         TAB: {
             descriptionKey: null,
@@ -351,10 +409,12 @@ const CONST = {
                     DELETE_CATEGORY: 'POLICYCHANGELOG_DELETE_CATEGORY',
                     DELETE_CUSTOM_UNIT: 'POLICYCHANGELOG_DELETE_CUSTOM_UNIT',
                     DELETE_CUSTOM_UNIT_RATE: 'POLICYCHANGELOG_DELETE_CUSTOM_UNIT_RATE',
+                    DELETE_CUSTOM_UNIT_SUB_RATE: 'POLICYCHANGELOG_DELETE_CUSTOM_UNIT_SUB_RATE',
                     DELETE_EMPLOYEE: 'POLICYCHANGELOG_DELETE_EMPLOYEE',
                     DELETE_INTEGRATION: 'POLICYCHANGELOG_DELETE_INTEGRATION',
                     DELETE_REPORT_FIELD: 'POLICYCHANGELOG_DELETE_REPORT_FIELD',
                     DELETE_TAG: 'POLICYCHANGELOG_DELETE_TAG',
+                    IMPORT_CUSTOM_UNIT_RATES: 'POLICYCHANGELOG_IMPORT_CUSTOM_UNIT_RATES',
                     IMPORT_TAGS: 'POLICYCHANGELOG_IMPORT_TAGS',
                     SET_AUTOREIMBURSEMENT: 'POLICYCHANGELOG_SET_AUTOREIMBURSEMENT',
                     SET_AUTO_JOIN: 'POLICYCHANGELOG_SET_AUTO_JOIN',
@@ -369,6 +429,7 @@ const CONST = {
                     UPDATE_CURRENCY: 'POLICYCHANGELOG_UPDATE_CURRENCY',
                     UPDATE_CUSTOM_UNIT: 'POLICYCHANGELOG_UPDATE_CUSTOM_UNIT',
                     UPDATE_CUSTOM_UNIT_RATE: 'POLICYCHANGELOG_UPDATE_CUSTOM_UNIT_RATE',
+                    UPDATE_CUSTOM_UNIT_SUB_RATE: 'POLICYCHANGELOG_UPDATE_CUSTOM_UNIT_SUB_RATE',
                     UPDATE_DEFAULT_TITLE: 'POLICYCHANGELOG_UPDATE_DEFAULT_TITLE',
                     UPDATE_DEFAULT_TITLE_ENFORCED: 'POLICYCHANGELOG_UPDATE_DEFAULT_TITLE_ENFORCED',
                     UPDATE_DISABLED_FIELDS: 'POLICYCHANGELOG_UPDATE_DISABLED_FIELDS',
@@ -403,6 +464,7 @@ const CONST = {
         },
         TYPE: {
             CHAT: 'chat',
+            EXPENSE: 'expense',
             IOU: 'iou',
         },
         CHAT_TYPE: {
@@ -499,6 +561,7 @@ const CONST = {
         SUCCESS: 200,
         NOT_AUTHENTICATED: 407,
         EXP_ERROR: 666,
+        MANY_WRITES_ERROR: 665,
         UNABLE_TO_RETRY: 'unableToRetry',
     },
     HTTP_STATUS: {
@@ -548,22 +611,6 @@ const CONST = {
         COMMAND: {
             RECONNECT_APP: 'ReconnectApp',
         },
-    },
-    NVP: {
-        IS_FIRST_TIME_NEW_EXPENSIFY_USER: 'isFirstTimeNewExpensifyUser',
-        BLOCKED_FROM_CONCIERGE: 'private_blockedFromConcierge',
-        PAYPAL_ME_ADDRESS: 'expensify_payPalMeAddress',
-        PRIORITY_MODE: 'priorityMode',
-        TIMEZONE: 'timeZone',
-        FREE_PLAN_BANK_ACCOUNT_ID: 'expensify_freePlanBankAccountID',
-        ACH_DATA_THROTTLED: 'expensify_ACHData_throttled',
-        FAILED_BANK_ACCOUNT_VALIDATIONS_PREFIX: 'private_failedBankValidations_',
-        PLAID_THROTTLED: 'private_throttledHistory_openPlaidBankAccountSelector',
-        PREFERRED_LOCALE: 'preferredLocale',
-        KYC_MIGRATION: 'expensify_migration_2020_04_28_RunKycVerifications',
-        PREFERRED_EMOJI_SKIN_TONE: 'expensify_preferredEmojiSkinTone',
-        FREQUENTLY_USED_EMOJIS: 'expensify_frequentlyUsedEmojis',
-        PUSH_NOTIFICATIONS_ENABLED: 'pushNotificationsEnabled',
     },
     DEFAULT_TIME_ZONE: {automatic: true, selected: 'America/Los_Angeles'},
     DEFAULT_ACCOUNT_DATA: {errors: null, success: '', isLoading: false},
@@ -791,7 +838,7 @@ const CONST = {
         WINDOWS: 'Windows',
         MAC_OS: PLATFORM_OS_MACOS,
         ANDROID: 'Android',
-        IOS: 'iOS',
+        IOS: PLATFORM_IOS,
         LINUX: 'Linux',
         NATIVE: 'Native',
     },
@@ -825,7 +872,7 @@ const CONST = {
             EXPENSIFY: 'Expensify',
             PAYPAL_ME: 'PayPal.me',
         },
-        IOU_TYPE: {
+        MONEY_REQUEST_TYPE: {
             SEND: 'send',
             SPLIT: 'split',
             REQUEST: 'request',
@@ -848,7 +895,13 @@ const CONST = {
         DURATION_LONG: 3500,
     },
 
-    DEFAULT_LOCALE: 'en',
+    LOCALES: {
+        EN: 'en',
+        ES_ES: 'es-ES',
+        ES: 'es',
+
+        DEFAULT: 'en',
+    },
 
     POLICY: {
         TYPE: {
@@ -1021,7 +1074,6 @@ const CONST = {
     REPORT_DETAILS_MENU_ITEM: {
         MEMBERS: 'member',
         SETTINGS: 'settings',
-        INVITE: 'invite',
         LEAVE_ROOM: 'leaveRoom',
     },
 
@@ -2204,6 +2256,15 @@ const CONST = {
         SAMPLE_INPUT: '123456.789',
         EXPECTED_OUTPUT: 'FCFA 123,457',
     },
+    PATHS_TO_TREAT_AS_EXTERNAL: [
+        'NewExpensify.dmg',
+    ],
+    PAYPAL_SUPPORTED_CURRENCIES: [
+        'AUD', 'BRL', 'CAD', 'CZK', 'DKK', 'EUR', 'HKD', 'HUF',
+        'ILS', 'JPY', 'MYR', 'MXN', 'TWD', 'NZD', 'NOK', 'PHP',
+        'PLN', 'GBP', 'RUB', 'SGD', 'SEK', 'CHF', 'THB', 'USD',
+    ],
+    CONCIERGE_TRAVEL_URL: 'https://community.expensify.com/discussion/7066/introducing-concierge-travel',
 };
 
 export default CONST;
