@@ -130,7 +130,7 @@ class DetailsPage extends React.PureComponent {
                                         headerTitle={isSMSLogin ? this.props.toLocalPhone(details.displayName) : details.displayName}
                                         source={ReportUtils.getFullSizeAvatar(details.avatar, details.login)}
                                         isAuthTokenRequired
-                                        fileName={details.avatarFileName}
+                                        originalFileName={details.avatarFileName}
                                     >
                                         {({show}) => (
                                             <PressableWithoutFocus

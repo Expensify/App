@@ -56,9 +56,6 @@ const propTypes = {
     /** The ID of the report that has this attachment */
     reportID: PropTypes.string,
 
-    /** Filename of the attachment */
-    fileName: PropTypes.string,
-
     ...withLocalizePropTypes,
 
     ...windowDimensionsPropTypes,
@@ -68,7 +65,6 @@ const defaultProps = {
     source: '',
     onConfirm: null,
     originalFileName: '',
-    fileName: '',
     isAuthTokenRequired: false,
     allowDownload: false,
     headerTitle: null,
@@ -90,9 +86,9 @@ class AttachmentModal extends PureComponent {
             modalType: CONST.MODAL.MODAL_TYPE.CENTERED_UNSWIPEABLE,
             isConfirmButtonDisabled: false,
             confirmButtonFadeAnimation: new Animated.Value(1),
-            file: props.fileName ? {
-                name: props.fileName,
-            } : undefined,
+            file: props.originalFileName && {
+                name: props.originalFileName,
+            },
         };
 
         this.submitAndClose = this.submitAndClose.bind(this);
