@@ -87,7 +87,7 @@ class ThumbnailImage extends PureComponent {
 
     render() {
         return (
-            <View style={[this.props.style, styles.overflowHidden]}>
+            <View style={[this.props.style, styles.overflowHidden, styles.alignSelfStart]}>
                 <View
                     style={[
                         StyleUtils.getWidthAndHeightStyle(this.state.thumbnailWidth, this.state.thumbnailHeight),
