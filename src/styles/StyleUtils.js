@@ -423,7 +423,7 @@ function getModalPaddingStyles({
     insets,
 }) {
     // set fallback value for safeAreaPaddingBottom to keep padding bottom consistent with padding top.
-    // // More info: issue #17376
+    // More info: issue #17376
     if (insets.bottom === 0) {
         // eslint-disable-next-line no-param-reassign
         safeAreaPaddingBottom = modalContainerStylePaddingTop;
