@@ -21,8 +21,9 @@ import ControlSelection from '../../../libs/ControlSelection';
 import * as ReportUtils from '../../../libs/ReportUtils';
 import OfflineWithFeedback from '../../../components/OfflineWithFeedback';
 import CONST from '../../../CONST';
-import * as Expensicons from "../../../components/Icon/Expensicons";
-import Icon from "../../../components/Icon";
+import * as Expensicons from '../../../components/Icon/Expensicons';
+import Icon from '../../../components/Icon';
+import * as EmojiUtils from "../../../libs/EmojiUtils";
 
 const propTypes = {
     /** All the data of the action */
@@ -72,15 +73,17 @@ const ReportActionItemSingle = (props) => {
         : props.action.person;
 
     return (
-        <View style={props.wrapperStyles}>
-            <View style={[styles.chatItem]}>
-                <View style={[styles.chatItemRight, styles.mr3]}>
-                    <Icon src={Expensicons.Eye} />
+        <View style={[props.wrapperStyles, props.action.isWhisper ? styles.whisper : undefined]}>
+            {props.action.isWhisper && (
+                <View style={[styles.chatItem]}>
+                    <View style={[styles.chatItemRight, styles.mr3]}>
+                        <Icon src={Expensicons.Eye} />
+                    </View>
+                    <Text style={[styles.chatItemMessageHeaderTimestamp]}>
+                        {props.translate('reportActionContextMenu.onlyVisible')}
+                    </Text>
                 </View>
-                <Text style={[styles.chatItemMessageHeaderTimestamp]}>
-                    {props.translate('reportActionContextMenu.onlyVisible')}
-                </Text>
-            </View>
+            )}
             <View style={[styles.chatItem]}>
                 <Pressable
                     style={[styles.alignSelfStart, styles.mr3]}

@@ -3094,6 +3094,10 @@ const styles = {
         width: variables.modalContentMaxWidth,
         textAlign: 'center',
     },
+
+    whisper: {
+        backgroundColor: themeColors.cardBG,
+    },
 };
 
 export default styles;

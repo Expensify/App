@@ -29,4 +29,7 @@ export default PropTypes.shape({
 
     /** Fragment edited flag */
     isEdited: PropTypes.bool,
+
+    /** Flag to signal that the message is not visible to all participants */
+    isWhisper: PropTypes.bool,
 });
