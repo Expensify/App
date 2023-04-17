@@ -20,6 +20,8 @@ import * as Link from '../../../libs/actions/Link';
 import getPlatformSpecificMenuItems from './getPlatformSpecificMenuItems';
 import compose from '../../../libs/compose';
 import * as Environment from '../../../libs/Environment/Environment';
+import * as ReportActionContextMenu from '../../home/report/ContextMenu/ReportActionContextMenu';
+import {CONTEXT_MENU_TYPES} from '../../home/report/ContextMenu/ContextMenuActions';
 
 const propTypes = {
     ...withLocalizePropTypes,
@@ -27,6 +29,8 @@ const propTypes = {
 };
 
 const AboutPage = (props) => {
+    let popoverAnchor;
+
     const platformSpecificMenuItems = getPlatformSpecificMenuItems(props.isSmallScreenWidth);
 
     const menuItems = [
@@ -45,6 +49,7 @@ const AboutPage = (props) => {
             action: () => {
                 Link.openExternalLink(CONST.GITHUB_URL);
             },
+            link: CONST.GITHUB_URL,
         },
         {
             translationKey: 'initialSettingsPage.aboutPage.viewOpenJobs',
@@ -53,6 +58,7 @@ const AboutPage = (props) => {
             action: () => {
                 Link.openExternalLink(CONST.UPWORK_URL);
             },
+            link: CONST.UPWORK_URL,
         },
         {
             translationKey: 'initialSettingsPage.aboutPage.reportABug',
@@ -108,6 +114,10 @@ const AboutPage = (props) => {
                                     icon={item.icon}
                                     iconRight={item.iconRight}
                                     onPress={() => item.action()}
+                                    shouldBlockSelection={Boolean(item.link)}
+                                    onSecondaryInteraction={!_.isEmpty(item.link)
+                                        ? e => ReportActionContextMenu.showContextMenu(CONTEXT_MENU_TYPES.LINK, e, item.link, popoverAnchor) : undefined}
+                                    ref={el => popoverAnchor = el}
                                     shouldShowRightIcon
                                 />
                             ))}
