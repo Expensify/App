@@ -9,51 +9,6 @@ import {
 import _ from 'underscore';
 import lodashGet from 'lodash/get';
 import {withOnyx} from 'react-native-onyx';
-<<<<<<< HEAD:src/pages/home/report/ReportActionCompose/index.js
-import styles from '../../../../styles/styles';
-import themeColors from '../../../../styles/themes/default';
-import Composer from '../../../../components/Composer';
-import ONYXKEYS from '../../../../ONYXKEYS';
-import Icon from '../../../../components/Icon';
-import * as Expensicons from '../../../../components/Icon/Expensicons';
-import AttachmentPicker from '../../../../components/AttachmentPicker';
-import * as Report from '../../../../libs/actions/Report';
-import ReportTypingIndicator from '../ReportTypingIndicator';
-import AttachmentModal from '../../../../components/AttachmentModal';
-import compose from '../../../../libs/compose';
-import PopoverMenu from '../../../../components/PopoverMenu';
-import withWindowDimensions, {windowDimensionsPropTypes} from '../../../../components/withWindowDimensions';
-import withDrawerState from '../../../../components/withDrawerState';
-import withLocalize, {withLocalizePropTypes} from '../../../../components/withLocalize';
-import willBlurTextInputOnTapOutside from '../../../../libs/willBlurTextInputOnTapOutside';
-import CONST from '../../../../CONST';
-import Navigation from '../../../../libs/Navigation/Navigation';
-import ROUTES from '../../../../ROUTES';
-import reportActionPropTypes from '../reportActionPropTypes';
-import * as ReportUtils from '../../../../libs/ReportUtils';
-import ReportActionComposeFocusManager from '../../../../libs/ReportActionComposeFocusManager';
-import participantPropTypes from '../../../../components/participantPropTypes';
-import ParticipantLocalTime from '../ParticipantLocalTime';
-import withCurrentUserPersonalDetails, {withCurrentUserPersonalDetailsPropTypes, withCurrentUserPersonalDetailsDefaultProps} from '../../../../components/withCurrentUserPersonalDetails';
-import {withNetwork, withPersonalDetails} from '../../../../components/OnyxProvider';
-import * as User from '../../../../libs/actions/User';
-import Tooltip from '../../../../components/Tooltip';
-import EmojiPickerButton from '../../../../components/EmojiPicker/EmojiPickerButton';
-import * as DeviceCapabilities from '../../../../libs/DeviceCapabilities';
-import toggleReportActionComposeView from '../../../../libs/toggleReportActionComposeView';
-import OfflineIndicator from '../../../../components/OfflineIndicator';
-import ExceededCommentLength from '../../../../components/ExceededCommentLength';
-import withNavigationFocus from '../../../../components/withNavigationFocus';
-import * as EmojiUtils from '../../../../libs/EmojiUtils';
-import ReportDropUI from '../ReportDropUI';
-import DragAndDrop from '../../../../components/DragAndDrop';
-import reportPropTypes from '../../../reportPropTypes';
-import EmojiSuggestions from '../../../../components/EmojiSuggestions';
-import withKeyboardState, {keyboardStatePropTypes} from '../../../../components/withKeyboardState';
-import ArrowKeyFocusManager from '../../../../components/ArrowKeyFocusManager';
-import KeyboardShortcut from '../../../../libs/KeyboardShortcut';
-import KeyDownAction from './keyDownAction';
-=======
 import styles from '../../../styles/styles';
 import themeColors from '../../../styles/themes/default';
 import Composer from '../../../components/Composer';
@@ -97,7 +52,6 @@ import withKeyboardState, {keyboardStatePropTypes} from '../../../components/wit
 import ArrowKeyFocusManager from '../../../components/ArrowKeyFocusManager';
 import OfflineWithFeedback from '../../../components/OfflineWithFeedback';
 import KeyboardShortcut from '../../../libs/KeyboardShortcut';
->>>>>>> 86f7effe54 (Merge pull request #17475 from tienifr/revert/17138-17360-listen-keydown-from-user):src/pages/home/report/ReportActionCompose.js
 
 const propTypes = {
     /** Beta features list */
@@ -848,7 +802,6 @@ class ReportActionCompose extends React.Component {
                                                     },
                                                 ]}
                                             />
-<<<<<<< HEAD:src/pages/home/report/ReportActionCompose/index.js
                                         </>
                                     )}
                                 </AttachmentPicker>
@@ -864,24 +817,6 @@ class ReportActionCompose extends React.Component {
                                         }}
                                         onDrop={(e) => {
                                             e.preventDefault();
-=======
-                                        </DragAndDrop>
-                                    </View>
-                                </>
-                            )}
-                        </AttachmentModal>
-                        {DeviceCapabilities.canUseTouchScreen() && this.props.isMediumScreenWidth ? null : (
-                            <EmojiPickerButton
-                                isDisabled={isBlockedFromConcierge || this.props.disabled}
-                                onModalHide={() => {
-                                    this.focus(true);
-                                }}
-                                onEmojiSelected={this.addEmojiToTextBox}
-                            />
-                        )}
-                        <View
-                            style={[styles.justifyContentEnd]}
->>>>>>> 86f7effe54 (Merge pull request #17475 from tienifr/revert/17138-17360-listen-keydown-from-user):src/pages/home/report/ReportActionCompose.js
 
                                             const file = lodashGet(e, ['dataTransfer', 'files', 0]);
 
@@ -938,10 +873,8 @@ class ReportActionCompose extends React.Component {
                             isDisabled={isBlockedFromConcierge || this.props.disabled}
                             onModalHide={() => {
                                 this.focus(true);
-                                this.setState({isEmojiPickerVisible: false});
                             }}
                             onEmojiSelected={this.addEmojiToTextBox}
-                            onWillShow={() => this.setState({isEmojiPickerVisible: true})}
                         />
                     )}
                     <View
