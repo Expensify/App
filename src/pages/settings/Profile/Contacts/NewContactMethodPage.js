@@ -102,7 +102,7 @@ function NewContactMethodPage(props) {
                         label={`${props.translate('common.email')}/${props.translate('common.phoneNumber')}`}
                         ref={loginInputRef}
                         value={login}
-                        onChangeText={value => setLogin(value)}
+                        onChangeText={setLogin}
                         autoCapitalize="none"
                         returnKeyType={Permissions.canUsePasswordlessLogins(props.betas) ? 'done' : 'next'}
                     />
@@ -113,7 +113,7 @@ function NewContactMethodPage(props) {
                             <TextInput
                                 label={props.translate('common.password')}
                                 value={password}
-                                onChangeText={value => setPassword(value)}
+                                onChangeText={setPassword}
                                 returnKeyType="done"
                             />
                         </View>
