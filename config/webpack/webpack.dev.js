@@ -42,6 +42,7 @@ module.exports = (env = {}) => portfinder.getPortPromise({port: BASE_PORT})
                 ...proxySettings,
                 historyApiFallback: true,
                 port,
+              allowedHosts: 'all',
             },
             plugins: [
                 new DefinePlugin({
