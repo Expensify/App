@@ -292,6 +292,10 @@ const styles = {
         fontSize: variables.fontSizeExtraSmall,
     },
 
+    textNormal: {
+        fontSize: variables.fontSizeNormal,
+    },
+
     textLarge: {
         fontSize: variables.fontSizeLarge,
     },
@@ -1010,9 +1014,49 @@ const styles = {
     },
 
     signInPage: {
-        backgroundColor: themeColors.sidebar,
+        backgroundColor: themeColors.highlightBG,
         minHeight: '100%',
         flex: 1,
+    },
+
+    signInPageHeroCenter: {
+        position: 'absolute',
+        top: 0,
+        left: 0,
+        right: 0,
+        bottom: 0,
+        justifyContent: 'center',
+        alignItems: 'center',
+    },
+
+    signInPageGradient: {
+        height: '100%',
+        width: 540,
+        position: 'absolute',
+        top: 0,
+        left: 0,
+    },
+
+    signInPageGradientMobile: {
+        height: 300,
+        width: 800,
+        position: 'absolute',
+        top: 0,
+        left: 0,
+    },
+
+    signInBackgroundDesktop: {
+        position: 'absolute',
+        bottom: 0,
+        left: 0,
+        minHeight: 700,
+    },
+
+    signInBackgroundMobile: {
+        position: 'absolute',
+        bottom: 0,
+        left: 0,
+        minHeight: 700,
     },
 
     signInPageInner: {
@@ -1033,7 +1077,7 @@ const styles = {
     },
 
     signInPageLeftContainerWide: {
-        maxWidth: 360,
+        maxWidth: variables.sideBarWidth,
     },
 
     signInPageWelcomeFormContainer: {
@@ -3035,14 +3079,10 @@ const styles = {
         fontSize: variables.fontSizeXXLarge,
         letterSpacing: 4,
     },
-    footer: {
-        backgroundColor: themeColors.midtone,
-    },
 
     footerWrapper: {
         fontSize: variables.fontSizeNormal,
         paddingTop: 64,
-        paddingHorizontal: 32,
         maxWidth: 1100, // Match footer across all Expensify platforms
     },
 
@@ -3088,6 +3128,19 @@ const styles = {
         alignSelf: 'center',
         top: 60,
         zIndex: 100,
+    },
+    loginHeroHeader: {
+        fontFamily: fontFamily.EXP_NEW_KANSAS_MEDIUM,
+        color: themeColors.success,
+        fontWeight: '500',
+        textAlign: 'center',
+    },
+
+    loginHeroBody: {
+        fontFamily: fontFamily.EXP_NEUE,
+        fontSize: variables.fontSizeSignInHeroBody,
+        color: themeColors.textLight,
+        textAlign: 'center',
     },
 
     validateCodeMessage: {
