@@ -50,7 +50,7 @@ const customHTMLElementModels = {
     }),
 };
 
-const defaultViewProps = {style: [styles.alignItemsStart, styles.userSelectText]};
+const defaultViewProps = {style: [styles.dBlock, styles.userSelectText]};
 
 // We are using the explicit composite architecture for performance gains.
 // Configuration for RenderHTML is handled in a top-level component providing
