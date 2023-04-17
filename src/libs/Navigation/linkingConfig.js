@@ -29,6 +29,7 @@ export default {
             ValidateLogin: ROUTES.VALIDATE_LOGIN,
             [SCREENS.TRANSITION_FROM_OLD_DOT]: ROUTES.TRANSITION_FROM_OLD_DOT,
             Concierge: ROUTES.CONCIERGE,
+            AppleOAuth: ROUTES.APPLEOAUTH,
 
             // Modal Screens
             Settings: {
