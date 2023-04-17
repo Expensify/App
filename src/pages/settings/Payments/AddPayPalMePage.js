@@ -1,4 +1,6 @@
-import React, {useRef, useState} from 'react';
+import React, {
+    useRef, useState, useCallback,
+} from 'react';
 import {
     View, TouchableWithoutFeedback, Linking,
 } from 'react-native';
@@ -30,7 +32,7 @@ const AddPayPalMePage = (props) => {
     /**
      * Sets the payPalMe username and error data for the current user
      */
-    const setPayPalMeData = () => {
+    const setPayPalMeData = useCallback(() => {
         if (!ValidationUtils.isValidPaypalUsername(payPalMeUsername)) {
             setPayPalMeUsernameError(true);
             return;
@@ -40,7 +42,7 @@ const AddPayPalMePage = (props) => {
 
         Growl.show(props.translate('addPayPalMePage.growlMessageOnSave'), CONST.GROWL.SUCCESS, 3000);
         Navigation.navigate(ROUTES.SETTINGS_PAYMENTS);
-    };
+    }, [payPalMeUsername]);
 
     return (
         <ScreenWrapper onEntryTransitionEnd={() => payPalMeInput.current && payPalMeInput.current.focus()}>
@@ -62,7 +64,10 @@ const AddPayPalMePage = (props) => {
                         autoCorrect={false}
                         value={payPalMeUsername}
                         placeholder={props.translate('addPayPalMePage.yourPayPalUsername')}
-                        onChangeText={(text) => { setPayPalMeUsername(text); setPayPalMeUsernameError(false); }}
+                        onChangeText={(text) => {
+                            setPayPalMeUsername(text);
+                            setPayPalMeUsernameError(false);
+                        }}
                         returnKeyType="done"
                         hasError={payPalMeUsernameError}
                         errorText={payPalMeUsernameError ? props.translate('addPayPalMePage.formatError') : ''}
