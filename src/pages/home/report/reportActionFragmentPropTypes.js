@@ -1,5 +1,4 @@
 import PropTypes from 'prop-types';
-import participantPropTypes from "../../../components/participantPropTypes";
 
 export default PropTypes.shape({
     /** The type of the action item fragment. Used to render a corresponding component */
@@ -30,10 +29,4 @@ export default PropTypes.shape({
 
     /** Fragment edited flag */
     isEdited: PropTypes.bool,
-
-    /** Flag to signal that the message is not visible to all participants */
-    isWhisper: PropTypes.bool,
-
-    /** Display names of the people to which the whisper was sent to */
-    whisperedTo: PropTypes.arrayOf(participantPropTypes),
 });

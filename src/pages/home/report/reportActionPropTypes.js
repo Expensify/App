@@ -1,6 +1,7 @@
 import PropTypes from 'prop-types';
 
 import reportActionFragmentPropTypes from './reportActionFragmentPropTypes';
+import participantPropTypes from '../../../components/participantPropTypes';
 
 export default {
     /** The ID of the reportAction. It is the string representation of the a 64-bit integer. */
@@ -29,4 +30,7 @@ export default {
 
     /** Error message that's come back from the server. */
     error: PropTypes.string,
+
+    /** Display names of the people to which the whisper was sent to (if any) */
+    whisperedTo: PropTypes.arrayOf(participantPropTypes),
 };

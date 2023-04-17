@@ -75,10 +75,10 @@ const ReportActionItemSingle = (props) => {
     // We only create tooltips for the first 10 users or so since some reports have hundreds of users, causing performance to degrade.
     const isMultipleParticipant = lodashGet(props.action, 'whisperedTo', 0) > 1;
     const displayNamesWithTooltips = ReportUtils.getDisplayNamesWithTooltips((props.action.whisperedTo || []).slice(0, 10), isMultipleParticipant);
-
+    const isWhisper = (props.action.whisperedTo || []).length > 0;
     return (
-        <View style={[props.wrapperStyles, props.action.isWhisper ? styles.whisper : undefined]}>
-            {props.action.isWhisper && (
+        <View style={[props.wrapperStyles, isWhisper ? styles.whisper : undefined]}>
+            {isWhisper && (
                 <View style={[styles.chatItem]}>
                     <View style={[styles.chatItemRight, styles.mr3]}>
                         <Icon src={Expensicons.Eye} />
