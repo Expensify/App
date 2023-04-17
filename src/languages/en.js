@@ -131,6 +131,7 @@ export default {
         yesContinue: 'Yes, continue',
         websiteExample: 'e.g. https://www.expensify.com',
         zipCodeExampleFormat: ({zipSampleFormat}) => (zipSampleFormat ? `e.g. ${zipSampleFormat}` : ''),
+        description: 'Description',
     },
     attachmentPicker: {
         cameraPermissionRequired: 'Camera access',
@@ -180,7 +181,7 @@ export default {
         tfaRequiredTitle: 'Two factor authentication\nrequired',
         tfaRequiredDescription: 'Please enter the two-factor authentication code\nwhere you are trying to sign in.',
     },
-    iOUConfirmationList: {
+    moneyRequestConfirmationList: {
         whoPaid: 'Who paid?',
         whoWasThere: 'Who was there?',
         whatsItFor: 'What\'s it for?',
@@ -476,12 +477,14 @@ export default {
         gotIt: 'Got it',
     },
     addPayPalMePage: {
-        enterYourUsernameToGetPaidViaPayPal: 'Enter your username to get paid back via PayPal.',
+        enterYourUsernameToGetPaidViaPayPal: 'Get paid back via PayPal.',
         payPalMe: 'PayPal.me/',
         yourPayPalUsername: 'Your PayPal username',
         addPayPalAccount: 'Add PayPal account',
         growlMessageOnSave: 'Your PayPal username was successfully added',
         formatError: 'Invalid PayPal.me username',
+        checkListOf: 'Check the list of ',
+        supportedCurrencies: 'supported currencies',
     },
     addDebitCardPage: {
         addADebitCard: 'Add a debit card',
@@ -634,6 +637,7 @@ export default {
         },
         cannotGetAccountDetails: 'Couldn\'t retrieve account details, please try to sign in again.',
         loginForm: 'Login form',
+        notYou: ({user}) => `Not ${user}?`,
     },
     personalDetails: {
         error: {
