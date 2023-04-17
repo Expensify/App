@@ -1,17 +1,18 @@
 import React from 'react';
-import {ScrollView, View} from 'react-native';
+import {View, ScrollView} from 'react-native';
 import PropTypes from 'prop-types';
 import {withSafeAreaInsets} from 'react-native-safe-area-context';
 import styles from '../../../styles/styles';
-import variables from '../../../styles/variables';
-import ExpensifyCashLogo from '../../../components/ExpensifyCashLogo';
+import ExpensifyWordmark from '../../../components/ExpensifyWordmark';
 import Text from '../../../components/Text';
 import withLocalize, {withLocalizePropTypes} from '../../../components/withLocalize';
 import SignInPageForm from '../../../components/SignInPageForm';
 import compose from '../../../libs/compose';
 import withWindowDimensions, {windowDimensionsPropTypes} from '../../../components/withWindowDimensions';
-import KeyboardAvoidingView from '../../../components/KeyboardAvoidingView';
 import OfflineIndicator from '../../../components/OfflineIndicator';
+import SignInHeroImage from '../SignInHeroImage';
+import * as StyleUtils from '../../../styles/StyleUtils';
+import variables from '../../../styles/variables';
 
 const propTypes = {
     /** The children to show inside the layout */
@@ -21,8 +22,15 @@ const propTypes = {
      * on form type (set password, sign in, etc.) */
     welcomeText: PropTypes.string.isRequired,
 
+    /** Welcome header to show in the header of the form, changes depending
+     * on form type (set password, sign in, etc.) and small vs large screens */
+    welcomeHeader: PropTypes.string.isRequired,
+
     /** Whether to show welcome text on a particular page */
     shouldShowWelcomeText: PropTypes.bool.isRequired,
+
+    /** Whether to show welcome header on a particular page */
+    shouldShowWelcomeHeader: PropTypes.bool.isRequired,
 
     ...withLocalizePropTypes,
     ...windowDimensionsPropTypes,
@@ -34,42 +42,53 @@ const SignInPageContent = props => (
         keyboardShouldPersistTaps="handled"
         style={[!props.isSmallScreenWidth && styles.signInPageLeftContainerWide, styles.flex1]}
     >
-        <KeyboardAvoidingView
-            behavior="padding"
-            style={[styles.flex1, styles.alignSelfCenter, styles.signInPageWelcomeFormContainer]}
-
-            // This vertical offset is here to add some more margin above the keyboard. Without it, the TOS and footer stuff still hides behind the keyboard by a few pixels.
-            keyboardVerticalOffset={50}
-        >
+        <View style={[styles.flex1, styles.alignSelfCenter, styles.signInPageWelcomeFormContainer]}>
             {/* This empty view creates margin on the top of the sign in form which will shrink and grow depending on if the keyboard is open or not */}
             <View style={[styles.flexGrow1, styles.signInPageContentTopSpacer]} />
 
-            <View style={[styles.flexGrow2]}>
+            <View style={[styles.flexGrow2, styles.mb8]}>
                 <SignInPageForm style={[styles.alignSelfStretch]}>
-                    <View style={[
-                        styles.componentHeightLarge,
-                        ...(props.isSmallScreenWidth ? [styles.mb2] : [styles.mt6, styles.mb5]),
-                    ]}
-                    >
-                        <ExpensifyCashLogo
-                            width={variables.componentSizeLarge}
-                            height={variables.componentSizeLarge}
-                        />
+                    <View style={[props.isSmallScreenWidth ? styles.mb8 : styles.mb15, props.isSmallScreenWidth ? styles.alignItemsCenter : styles.alignSelfStart]}>
+                        <ExpensifyWordmark />
                     </View>
-                    {props.shouldShowWelcomeText && (
                     <View style={[styles.signInPageWelcomeTextContainer]}>
-                        <Text style={[styles.mv5, styles.textLabel, styles.h3]}>
-                            {props.welcomeText}
-                        </Text>
+                        {(props.shouldShowWelcomeHeader && props.welcomeHeader) ? (
+                            <Text style={[
+                                styles.loginHeroHeader,
+                                StyleUtils.getFontSizeStyle(variables.fontSizeSignInHeroXSmall),
+                                !props.welcomeText ? styles.mb5 : {},
+                                !props.isSmallScreenWidth ? styles.textAlignLeft : {},
+                                styles.mb5,
+                            ]}
+                            >
+                                {props.welcomeHeader}
+                            </Text>
+                        ) : null}
+                        {(props.shouldShowWelcomeText && props.welcomeText) ? (
+                            <Text style={[styles.loginHeroBody, styles.mb5, styles.textNormal, !props.isSmallScreenWidth ? styles.textAlignLeft : {}]}>
+                                {props.welcomeText}
+                            </Text>
+                        ) : null}
                     </View>
-                    )}
                     {props.children}
                 </SignInPageForm>
+                {props.isSmallScreenWidth ? (
+                    <>
+                        <View style={[styles.mb8, styles.signInPageWelcomeTextContainer, styles.alignSelfCenter]}>
+                            <OfflineIndicator style={[styles.m0, styles.pl0, styles.alignItemsStart]} />
+                        </View>
+                        <View style={[styles.mt8]}>
+                            <SignInHeroImage />
+                        </View>
+                    </>
+                ) : null}
             </View>
-        </KeyboardAvoidingView>
-        <View style={[styles.mb5, styles.signInPageWelcomeTextContainer, styles.alignSelfCenter]}>
-            <OfflineIndicator style={[styles.m0, styles.pl0, styles.alignItemsStart]} />
         </View>
+        {!props.isSmallScreenWidth ? (
+            <View style={[styles.mb8, styles.signInPageWelcomeTextContainer, styles.alignSelfCenter]}>
+                <OfflineIndicator style={[styles.m0, styles.pl0, styles.alignItemsStart]} />
+            </View>
+        ) : null}
     </ScrollView>
 );
 
