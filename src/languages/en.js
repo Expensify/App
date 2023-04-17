@@ -475,12 +475,14 @@ export default {
         gotIt: 'Got it',
     },
     addPayPalMePage: {
-        enterYourUsernameToGetPaidViaPayPal: 'Enter your username to get paid back via PayPal.',
+        enterYourUsernameToGetPaidViaPayPal: 'Get paid back via PayPal.',
         payPalMe: 'PayPal.me/',
         yourPayPalUsername: 'Your PayPal username',
         addPayPalAccount: 'Add PayPal account',
         growlMessageOnSave: 'Your PayPal username was successfully added',
         formatError: 'Invalid PayPal.me username',
+        checkListOf: 'Check the list of ',
+        supportedCurrencies: 'supported currencies',
     },
     addDebitCardPage: {
         addADebitCard: 'Add a debit card',

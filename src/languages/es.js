@@ -474,12 +474,14 @@ export default {
         gotIt: 'Ok, entendido',
     },
     addPayPalMePage: {
-        enterYourUsernameToGetPaidViaPayPal: 'Escribe tu nombre de usuario para que otros puedan pagarte a través de PayPal.',
+        enterYourUsernameToGetPaidViaPayPal: 'Recibe pagos vía PayPal.',
         payPalMe: 'PayPal.me/',
         yourPayPalUsername: 'Tu usuario de PayPal',
         addPayPalAccount: 'Agregar cuenta de PayPal',
         growlMessageOnSave: 'Tu nombre de usuario de PayPal se agregó correctamente',
         formatError: 'Usuario PayPal.me no válido',
+        checkListOf: 'Consulta la lista de ',
+        supportedCurrencies: 'monedas admitidas',
     },
     addDebitCardPage: {
         addADebitCard: 'Agregar una tarjeta de débito',
