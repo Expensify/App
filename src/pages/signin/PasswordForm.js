@@ -168,12 +168,12 @@ class PasswordForm extends React.Component {
     }
 
     render() {
-        const twoFactorAuthRequired = Boolean(this.props.account.requiresTwoFactorAuth);
+        const isTwoFactorAuthRequired = Boolean(this.props.account.requiresTwoFactorAuth);
         const serverHasError = Boolean(this.props.account) && !_.isEmpty(this.props.account.errors);
 
         // When the 2FA required flag is set, user has already passed/completed the password field
-        const passwordFieldHasError = !twoFactorAuthRequired && serverHasError;
-        const twoFactorFieldHasError = twoFactorAuthRequired && serverHasError;
+        const passwordFieldHasError = !isTwoFactorAuthRequired && serverHasError;
+        const twoFactorFieldHasError = isTwoFactorAuthRequired && serverHasError;
         return (
             <>
                 <View style={[styles.mv3]}>
@@ -204,7 +204,7 @@ class PasswordForm extends React.Component {
                     </View>
                 </View>
 
-                {twoFactorAuthRequired && (
+                {isTwoFactorAuthRequired && (
                     <View style={[styles.mv3]}>
                         <TextInput
                             ref={el => this.input2FA = el}
