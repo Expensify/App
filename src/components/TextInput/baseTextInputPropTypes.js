@@ -47,7 +47,10 @@ const propTypes = {
     hideFocusedState: PropTypes.bool,
 
     /** Forward the inner ref */
-    innerRef: PropTypes.func,
+    innerRef: PropTypes.oneOfType([
+        PropTypes.func,
+        PropTypes.shape({current: PropTypes.instanceOf(Element)}),
+    ]),
 
     /** Maximum characters allowed */
     maxLength: PropTypes.number,
