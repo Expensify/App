@@ -1707,6 +1707,23 @@ function canLeaveRoom(report, isPolicyMember) {
     return true;
 }
 
+function getWhisperDisplayNames(participants) {
+    const participantsWithoutCurrentUser = _.without(participants, sessionEmail);
+    const isMultipleParticipantReport = participantsWithoutCurrentUser.length > 1;
+
+    // If we removed the user seeing the whispers, it means it's only visible to "you"
+    if (!isMultipleParticipantReport) {
+        return Localize.translateLocal('common.youAfterPreposition');
+    }
+
+    const displayNames = [];
+    for (let i = 0; i < participantsWithoutCurrentUser.length; i++) {
+        const login = participantsWithoutCurrentUser[i];
+        displayNames.push(getDisplayNameForParticipant(login, isMultipleParticipantReport));
+    }
+    return displayNames.join(', ');
+}
+
 export {
     getReportParticipantsTitle,
     isReportMessageAttachment,
@@ -1775,4 +1792,5 @@ export {
     getSmallSizeAvatar,
     getMoneyRequestOptions,
     canRequestMoney,
+    getWhisperDisplayNames,
 };

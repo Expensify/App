@@ -121,6 +121,7 @@ export default {
         message: 'Message ',
         leaveRoom: 'Leave room',
         you: 'You',
+        youAfterPreposition: 'you',
         your: 'your',
         conciergeHelp: 'Please reach out to Concierge for help.',
         maxParticipantsReached: ({count}) => `You've selected the maximum number (${count}) of participants.`,
@@ -242,7 +243,7 @@ export default {
         editComment: 'Edit comment',
         deleteComment: 'Delete comment',
         deleteConfirmation: 'Are you sure you want to delete this comment?',
-        onlyVisible: 'Only visible to you',
+        onlyVisible: ({participants}) => `Only visible to ${participants}`,
     },
     emojiReactions: {
         addReactionTooltip: 'Add reaction',

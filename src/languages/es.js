@@ -120,6 +120,7 @@ export default {
         message: 'Chatear con ',
         leaveRoom: 'Salir de la sala de chat',
         you: 'Tú',
+        youAfterPreposition: 'ti',
         your: 'tu',
         conciergeHelp: 'Por favor, contacta con Concierge para obtener ayuda.',
         maxParticipantsReached: ({count}) => `Has seleccionado el número máximo (${count}) de participantes.`,
@@ -241,7 +242,7 @@ export default {
         editComment: 'Editar comentario',
         deleteComment: 'Eliminar comentario',
         deleteConfirmation: '¿Estás seguro de que quieres eliminar este comentario?',
-        onlyVisible: 'Only visible to you',
+        onlyVisible: ({participants}) => `Visible sólo para ${participants}`,
     },
     emojiReactions: {
         addReactionTooltip: 'Añadir una reacción',

@@ -23,7 +23,7 @@ import OfflineWithFeedback from '../../../components/OfflineWithFeedback';
 import CONST from '../../../CONST';
 import * as Expensicons from '../../../components/Icon/Expensicons';
 import Icon from '../../../components/Icon';
-import * as EmojiUtils from "../../../libs/EmojiUtils";
+import DisplayNames from "../../../components/DisplayNames";
 
 const propTypes = {
     /** All the data of the action */
@@ -72,6 +72,10 @@ const ReportActionItemSingle = (props) => {
         ? [{type: 'TEXT', text: Str.isSMSLogin(login) ? props.toLocalPhone(displayName) : displayName}]
         : props.action.person;
 
+    // We only create tooltips for the first 10 users or so since some reports have hundreds of users, causing performance to degrade.
+    const isMultipleParticipant = lodashGet(props.action, 'whisperedTo', 0) > 1;
+    const displayNamesWithTooltips = ReportUtils.getDisplayNamesWithTooltips((props.action.whisperedTo || []).slice(0, 10), isMultipleParticipant);
+
     return (
         <View style={[props.wrapperStyles, props.action.isWhisper ? styles.whisper : undefined]}>
             {props.action.isWhisper && (
@@ -82,6 +86,14 @@ const ReportActionItemSingle = (props) => {
                     <Text style={[styles.chatItemMessageHeaderTimestamp]}>
                         {props.translate('reportActionContextMenu.onlyVisible')}
                     </Text>
+                    <DisplayNames
+                        fullTitle={ReportUtils.getWhisperDisplayNames(props.action.participants || [])}
+                        displayNamesWithTooltips={displayNamesWithTooltips}
+                        tooltipEnabled
+                        numberOfLines={1}
+                        textStyles={[styles.chatItemMessageHeaderTimestamp, styles.pre]}
+                        shouldUseFullTitle={false}
+                    />
                 </View>
             )}
             <View style={[styles.chatItem]}>
