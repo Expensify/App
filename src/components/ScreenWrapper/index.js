@@ -36,7 +36,7 @@ class ScreenWrapper extends React.Component {
             }
 
             Navigation.dismissModal();
-        }, shortcutConfig.descriptionKey, shortcutConfig.modifiers, true);
+        }, shortcutConfig.descriptionKey, shortcutConfig.modifiers, true, true);
 
         this.unsubscribeTransitionEnd = this.props.navigation.addListener('transitionEnd', (event) => {
             // Prevent firing the prop callback when user is exiting the page.
