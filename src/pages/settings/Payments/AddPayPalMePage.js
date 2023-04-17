@@ -57,7 +57,7 @@ const AddPayPalMePage = (props) => {
                     </Text>
                     <TextInput
                         ref={payPalMeInput}
-                        label={propstranslate('addPayPalMePage.payPalMe')}
+                        label={props.translate('addPayPalMePage.payPalMe')}
                         autoCompleteType="off"
                         autoCorrect={false}
                         value={payPalMeUsername}
@@ -103,7 +103,6 @@ const AddPayPalMePage = (props) => {
             </FixedFooter>
         </ScreenWrapper>
     );
-
 };
 
 AddPayPalMePage.propTypes = {...withLocalizePropTypes};
