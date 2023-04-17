@@ -49,7 +49,9 @@ class DeeplinkWrapper extends PureComponent {
             return;
         }
 
-        // Since we open the popup based on a valid short-lived auth token, make sure its value is empty before getting a new token.
+        // Since there is no way to know if a previous short-lived authToken is still valid,
+        // any previous short-lived authToken must be cleared out and a new one must be fetched
+        // so that the popup window will only open when we know the short-lived authToken is valid.
         Session.removeShortLivedAuthToken();
 
         if (!this.props.session.authToken) {
