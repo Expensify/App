@@ -1,6 +1,7 @@
 import lodashGet from 'lodash/get';
 import styles from '../../styles/styles';
 import updateIsFullComposerAvailable from './updateIsFullComposerAvailable';
+import * as ComposerUtils from './index.js';
 
 /**
  * Get the current number of lines in the composer
@@ -32,7 +33,17 @@ function updateNumberOfLines(props, e) {
     updateIsFullComposerAvailable(props, numberOfLines);
 }
 
+/**
+ * Replace substring between selection with a text.
+ * @param {String} text
+ * @param {Object} selection
+ * @param {String} textToInsert
+ * @returns {String}
+ */
+const insertText = ComposerUtils.insertText;
+
 export {
     getNumberOfLines,
     updateNumberOfLines,
+    insertText,
 };

@@ -27,6 +27,7 @@ import withWindowDimensions, {windowDimensionsPropTypes} from '../../../componen
 import withLocalize, {withLocalizePropTypes} from '../../../components/withLocalize';
 import withKeyboardState, {keyboardStatePropTypes} from '../../../components/withKeyboardState';
 import ONYXKEYS from '../../../ONYXKEYS';
+import * as ComposerUtils from '../../../libs/ComposerUtils';
 
 const propTypes = {
     /** All the data of the action */
@@ -235,7 +236,7 @@ class ReportActionItemMessageEdit extends React.Component {
                 end: prevState.selection.start + emoji.length,
             },
         }));
-        this.updateDraft(ReportUtils.insertText(this.state.draft, this.state.selection, emoji));
+        this.updateDraft(ComposerUtils.insertText(this.state.draft, this.state.selection, emoji));
     }
 
     /**
