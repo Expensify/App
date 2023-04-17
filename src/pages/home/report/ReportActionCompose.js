@@ -50,6 +50,7 @@ import reportPropTypes from '../../reportPropTypes';
 import EmojiSuggestions from '../../../components/EmojiSuggestions';
 import withKeyboardState, {keyboardStatePropTypes} from '../../../components/withKeyboardState';
 import ArrowKeyFocusManager from '../../../components/ArrowKeyFocusManager';
+import OfflineWithFeedback from '../../../components/OfflineWithFeedback';
 import KeyboardShortcut from '../../../libs/KeyboardShortcut';
 
 const propTypes = {
@@ -649,6 +650,10 @@ class ReportActionCompose extends React.Component {
      * @param {Object} file
      */
     addAttachment(file) {
+        // Since we're submitting the form here which should clear the composer
+        // We don't really care about saving the draft the user was typing
+        // We need to make sure an empty draft gets saved instead
+        this.debouncedSaveReportComment.cancel();
         const comment = this.prepareCommentAndResetComposer();
         Report.addAttachment(this.props.reportID, file, comment);
         this.setTextInputShouldClear(false);
@@ -866,7 +871,9 @@ class ReportActionCompose extends React.Component {
                     {DeviceCapabilities.canUseTouchScreen() && this.props.isMediumScreenWidth ? null : (
                         <EmojiPickerButton
                             isDisabled={isBlockedFromConcierge || this.props.disabled}
-                            onModalHide={() => this.focus(true)}
+                            onModalHide={() => {
+                                this.focus(true);
+                            }}
                             onEmojiSelected={this.addEmojiToTextBox}
                         />
                     )}
