@@ -63,11 +63,10 @@ class AttachmentCarousel extends React.Component {
             shouldShowArrow: this.canUseTouchScreen,
             containerWidth: 0,
         };
+    }
 
-        this.state = {
-            ...this.state,
-            ...this.makeStateWithReports(),
-        };
+    componentDidMount() {
+        this.makeStateWithReports();
     }
 
     componentDidUpdate(prevProps) {
@@ -77,8 +76,7 @@ class AttachmentCarousel extends React.Component {
             return;
         }
 
-        const nextState = this.makeStateWithReports();
-        this.setState(nextState);
+        this.makeStateWithReports();
     }
 
     /**
@@ -120,7 +118,6 @@ class AttachmentCarousel extends React.Component {
 
     /**
      * Map report actions to attachment items
-     * @returns {{attachments: Array<{source: String, file: {name: String}}>, page: Number}}
      */
     makeStateWithReports() {
         let page = 0;
@@ -152,10 +149,10 @@ class AttachmentCarousel extends React.Component {
             }
         });
 
-        return {
+        this.setState({
             page,
             attachments,
-        };
+        });
     }
 
     /**
