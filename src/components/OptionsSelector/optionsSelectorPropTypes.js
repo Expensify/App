@@ -28,7 +28,7 @@ const propTypes = {
     value: PropTypes.string.isRequired,
 
     /** Callback fired when text changes */
-    onChangeText: PropTypes.func.isRequired,
+    onChangeText: PropTypes.func,
 
     /** Limits the maximum number of characters that can be entered in input field */
     maxLength: PropTypes.number,
@@ -84,6 +84,9 @@ const propTypes = {
     /** If true, the text input will be below the options in the selector, not above. */
     shouldTextInputAppearBelowOptions: PropTypes.bool,
 
+    /** If false, the text input will not be shown at all. Defaults to true */
+    shouldShowTextInput: PropTypes.bool,
+
     /** Custom content to display in the footer instead of the default button. */
     footerContent: PropTypes.oneOfType([PropTypes.func, PropTypes.node]),
 
@@ -125,6 +128,8 @@ const defaultProps = {
     shouldHaveOptionSeparator: false,
     initiallyFocusedOptionKey: undefined,
     maxLength: undefined,
+    shouldShowTextInput: true,
+    onChangeText: () => {},
 };
 
 export {propTypes, defaultProps};
