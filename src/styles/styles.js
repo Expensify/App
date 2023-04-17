@@ -2281,6 +2281,19 @@ const styles = {
         lineHeight: undefined,
     }, 0),
 
+    moneyRequestConfirmationAmount: {
+        ...headlineFont,
+        fontSize: variables.fontSizeh1,
+    },
+
+    moneyRequestMenuItem: {
+        flexDirection: 'row',
+        borderRadius: 0,
+        justifyContent: 'space-between',
+        width: '100%',
+        marginBottom: 20,
+    },
+
     iouPreviewBox: {
         backgroundColor: themeColors.cardBG,
         borderRadius: variables.componentBorderRadiusCard,
@@ -2553,6 +2566,7 @@ const styles = {
         width: '100%',
         flexDirection: 'row',
         justifyContent: 'space-between',
+        alignItems: 'center',
         ...spacing.pt2,
     },
 
@@ -2560,10 +2574,6 @@ const styles = {
         borderColor: themeColors.border,
         borderBottomWidth: 1,
         ...spacing.pb2,
-    },
-
-    peopleRowCell: {
-        justifyContent: 'center',
     },
 
     peopleBadge: {
