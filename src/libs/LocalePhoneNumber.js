@@ -42,7 +42,7 @@ function formatPhoneNumber(number) {
     const parsedPhoneNumber = parsePhoneNumber(Str.removeSMSDomain(number));
 
     // return the string untouched if it's not a phone number
-    if (!parsedPhoneNumber.valid && !parsedPhoneNumber.possible) {
+    if (!parsedPhoneNumber.valid) {
         return number;
     }
 
