@@ -36,6 +36,8 @@ import * as Link from '../../libs/actions/Link';
 import OfflineWithFeedback from '../../components/OfflineWithFeedback';
 import * as UserUtils from '../../libs/UserUtils';
 import policyMemberPropType from '../policyMemberPropType';
+import * as ReportActionContextMenu from '../home/report/ContextMenu/ReportActionContextMenu';
+import {CONTEXT_MENU_TYPES} from '../home/report/ContextMenu/ContextMenuActions';
 
 const propTypes = {
     /* Onyx Props */
@@ -116,6 +118,8 @@ const defaultProps = {
 class InitialSettingsPage extends React.Component {
     constructor(props) {
         super(props);
+
+        this.popoverAnchor = React.createRef();
 
         this.getWalletBalance = this.getWalletBalance.bind(this);
         this.getDefaultMenuItems = this.getDefaultMenuItems.bind(this);
@@ -203,6 +207,7 @@ class InitialSettingsPage extends React.Component {
                 action: () => { Link.openExternalLink(CONST.NEWHELP_URL); },
                 shouldShowRightIcon: true,
                 iconRight: Expensicons.NewWindow,
+                link: CONST.NEWHELP_URL,
             },
             {
                 translationKey: 'initialSettingsPage.about',
@@ -236,6 +241,9 @@ class InitialSettingsPage extends React.Component {
                 brickRoadIndicator={item.brickRoadIndicator}
                 floatRightAvatars={item.floatRightAvatars}
                 shouldStackHorizontally={item.shouldStackHorizontally}
+                ref={this.popoverAnchor}
+                shouldBlockSelection={Boolean(item.link)}
+                onSecondaryInteraction={!_.isEmpty(item.link) ? e => ReportActionContextMenu.showContextMenu(CONTEXT_MENU_TYPES.LINK, e, item.link, this.popoverAnchor.current) : undefined}
             />
         );
     }
