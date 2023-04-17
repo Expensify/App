@@ -35,7 +35,7 @@ const useAutoHitSlop = () => {
     const onLayout = useCallback((event) => {
         const {layout} = event.nativeEvent;
         if (layout.width !== frameSize.x && layout.height !== frameSize.y) {
-            setFrameSize({frameSize: {x: layout.width, y: layout.height}});
+            setFrameSize({x: layout.width, y: layout.height});
         }
     }, [frameSize]);
     return [getHitSlopForSize(frameSize), onLayout];
