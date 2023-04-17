@@ -3,6 +3,7 @@ import _ from 'underscore';
 import lodashGet from 'lodash/get';
 import ExpensiMark from 'expensify-common/lib/ExpensiMark';
 import Onyx from 'react-native-onyx';
+import Str from 'expensify-common/lib/str';
 import ONYXKEYS from '../../ONYXKEYS';
 import * as Pusher from '../Pusher/pusher';
 import LocalNotification from '../Notification/LocalNotification';
@@ -201,9 +202,11 @@ function addActions(reportID, text = '', file) {
 
     const currentTime = DateUtils.getDBTime();
 
+    const lastCommentText = ReportUtils.formatReportLastMessageText(lastAction.message[0].text);
+
     const optimisticReport = {
         lastVisibleActionCreated: currentTime,
-        lastMessageText: ReportUtils.formatReportLastMessageText(lastAction.message[0].text),
+        lastMessageText: Str.htmlDecode(lastCommentText),
         lastActorEmail: currentUserEmail,
         lastReadTime: currentTime,
     };
@@ -522,6 +525,47 @@ function openPaymentDetailsPage(chatReportID, iouReportID) {
 }
 
 /**
+ * Gets transactions and data associated with the linked report (expense or IOU report)
+ *
+ * @param {String} chatReportID
+ * @param {String} linkedReportID
+ */
+function openMoneyRequestsReportPage(chatReportID, linkedReportID) {
+    API.read('OpenMoneyRequestsReportPage', {
+        reportID: chatReportID,
+        linkedReportID,
+    }, {
+        optimisticData: [
+            {
+                onyxMethod: CONST.ONYX.METHOD.MERGE,
+                key: ONYXKEYS.IOU,
+                value: {
+                    loading: true,
+                },
+            },
+        ],
+        successData: [
+            {
+                onyxMethod: CONST.ONYX.METHOD.MERGE,
+                key: ONYXKEYS.IOU,
+                value: {
+                    loading: false,
+                },
+            },
+        ],
+        failureData: [
+            {
+                onyxMethod: CONST.ONYX.METHOD.MERGE,
+                key: ONYXKEYS.IOU,
+                value: {
+                    loading: false,
+                },
+            },
+        ],
+    });
+}
+
+/**
  * Marks the new report actions as read
  *
  * @param {String} reportID
@@ -684,6 +728,7 @@ function deleteReportComment(reportID, reportAction) {
             pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
             previousMessage: reportAction.message,
             message: deletedMessage,
+            errors: null,
         },
     };
 
@@ -1447,6 +1492,7 @@ export {
     openReportFromDeepLink,
     navigateToAndOpenReport,
     openPaymentDetailsPage,
+    openMoneyRequestsReportPage,
     updatePolicyRoomName,
     clearPolicyRoomNameErrors,
     clearIOUError,

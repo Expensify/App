@@ -1,7 +1,9 @@
 import _ from 'underscore';
 import lodashGet from 'lodash/get';
 import PropTypes from 'prop-types';
-import React, {PureComponent} from 'react';
+import React, {
+    useCallback, useState, useEffect, useRef, useLayoutEffect, useMemo,
+} from 'react';
 import {AppState, Linking} from 'react-native';
 import Onyx, {withOnyx} from 'react-native-onyx';
 
@@ -84,27 +86,52 @@ const defaultProps = {
     screenShareRequest: null,
 };
 
-class Expensify extends PureComponent {
-    constructor(props) {
-        super(props);
+function Expensify(props) {
+    const appStateChangeListener = useRef(null);
+    const [isNavigationReady, setIsNavigationReady] = useState(false);
+    const [isOnyxMigrated, setIsOnyxMigrated] = useState(false);
+    const [isSplashShown, setIsSplashShown] = useState(true);
 
+    const isAuthenticated = useMemo(() => Boolean(lodashGet(props.session, 'authToken', null)), [props.session]);
+
+    const initializeClient = () => {
+        if (!Visibility.isVisible()) {
+            return;
+        }
+
+        ActiveClientManager.init();
+    };
+
+    const setNavigationReady = useCallback(() => {
+        setIsNavigationReady(true);
+
+        // Navigate to any pending routes now that the NavigationContainer is ready
+        Navigation.setIsNavigationReady();
+    }, []);
+
+    useLayoutEffect(() => {
         // Initialize this client as being an active client
         ActiveClientManager.init();
-        this.setNavigationReady = this.setNavigationReady.bind(this);
-        this.initializeClient = this.initializeClient.bind(true);
-        this.appStateChangeListener = null;
-        this.state = {
-            isNavigationReady: false,
-            isOnyxMigrated: false,
-            isSplashShown: true,
-        };
 
         // Used for the offline indicator appearing when someone is offline
         NetworkConnection.subscribeToNetInfo();
-    }
+    }, []);
 
-    componentDidMount() {
-        setTimeout(() => this.reportBootSplashStatus(), 30 * 1000);
+    useEffect(() => {
+        setTimeout(() => {
+            BootSplash
+                .getVisibilityStatus()
+                .then((status) => {
+                    const appState = AppState.currentState;
+                    Log.info('[BootSplash] splash screen status', false, {appState, status});
+
+                    if (status === 'visible') {
+                        const propsToLog = _.omit(props, ['children', 'session']);
+                        propsToLog.isAuthenticated = isAuthenticated;
+                        Log.alert('[BootSplash] splash screen is still visible', {propsToLog}, false);
+                    }
+                });
+        }, 30 * 1000);
 
         // This timer is set in the native layer when launching the app and we stop it here so we can measure how long
         // it took for the main app itself to load.
@@ -114,118 +141,78 @@ class Expensify extends PureComponent {
         migrateOnyx()
             .then(() => {
                 // In case of a crash that led to disconnection, we want to remove all the push notifications.
-                if (!this.isAuthenticated()) {
+                if (!isAuthenticated) {
                     PushNotification.clearNotifications();
                 }
 
-                this.setState({isOnyxMigrated: true});
+                setIsOnyxMigrated(true);
             });
 
-        this.appStateChangeListener = AppState.addEventListener('change', this.initializeClient);
+        appStateChangeListener.current = AppState.addEventListener('change', initializeClient);
 
         // Open chat report from a deep link (only mobile native)
         Linking.addEventListener('url', state => Report.openReportFromDeepLink(state.url));
-    }
 
-    componentDidUpdate() {
-        if (!this.state.isNavigationReady || !this.state.isSplashShown) {
+        return () => {
+            if (!appStateChangeListener.current) { return; }
+            appStateChangeListener.current.remove();
+        };
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- we don't want this effect to run again
+    }, []);
+
+    useEffect(() => {
+        if (!isNavigationReady || !isSplashShown) {
             return;
         }
 
-        const shouldHideSplash = !this.isAuthenticated() || this.props.isSidebarLoaded;
+        const shouldHideSplash = !isAuthenticated || props.isSidebarLoaded;
 
         if (shouldHideSplash) {
             BootSplash.hide();
 
-            // eslint-disable-next-line react/no-did-update-set-state
-            this.setState({isSplashShown: false});
+            setIsSplashShown(false);
 
             // If the app is opened from a deep link, get the reportID (if exists) from the deep link and navigate to the chat report
             Linking.getInitialURL().then(url => Report.openReportFromDeepLink(url));
         }
+    }, [props.isSidebarLoaded, isNavigationReady, isSplashShown, isAuthenticated]);
+
+    // Display a blank page until the onyx migration completes
+    if (!isOnyxMigrated) {
+        return null;
     }
 
-    componentWillUnmount() {
-        if (!this.appStateChangeListener) { return; }
-        this.appStateChangeListener.remove();
-    }
-
-    setNavigationReady() {
-        this.setState({isNavigationReady: true});
-
-        // Navigate to any pending routes now that the NavigationContainer is ready
-        Navigation.setIsNavigationReady();
-    }
-
-    /**
-     * @returns {boolean}
-     */
-    isAuthenticated() {
-        const authToken = lodashGet(this.props, 'session.authToken', null);
-        return Boolean(authToken);
-    }
-
-    initializeClient() {
-        if (!Visibility.isVisible()) {
-            return;
-        }
-
-        ActiveClientManager.init();
-    }
-
-    reportBootSplashStatus() {
-        BootSplash
-            .getVisibilityStatus()
-            .then((status) => {
-                const appState = AppState.currentState;
-                Log.info('[BootSplash] splash screen status', false, {appState, status});
-
-                if (status === 'visible') {
-                    const props = _.omit(this.props, ['children', 'session']);
-                    props.isAuthenticated = this.isAuthenticated();
-                    Log.alert('[BootSplash] splash screen is still visible', {props}, false);
-                }
-            });
-    }
-
-    render() {
-        // Display a blank page until the onyx migration completes
-        if (!this.state.isOnyxMigrated) {
-            return null;
-        }
-
-        return (
-            <DeeplinkWrapper>
-                {!this.state.isSplashShown && (
-                    <>
-                        <KeyboardShortcutsModal />
-                        <GrowlNotification ref={Growl.growlRef} />
-                        <PopoverReportActionContextMenu
-                            ref={ReportActionContextMenu.contextMenuRef}
+    return (
+        <DeeplinkWrapper>
+            {!isSplashShown && (
+                <>
+                    <KeyboardShortcutsModal />
+                    <GrowlNotification ref={Growl.growlRef} />
+                    <PopoverReportActionContextMenu
+                        ref={ReportActionContextMenu.contextMenuRef}
+                    />
+                    {/* We include the modal for showing a new update at the top level so the option is always present. */}
+                    {props.updateAvailable ? <UpdateAppModal /> : null}
+                    {props.screenShareRequest ? (
+                        <ConfirmModal
+                            title={props.translate('guides.screenShare')}
+                            onConfirm={() => User.joinScreenShare(props.screenShareRequest.accessToken, props.screenShareRequest.roomName)}
+                            onCancel={User.clearScreenShareRequest}
+                            prompt={props.translate('guides.screenShareRequest')}
+                            confirmText={props.translate('common.join')}
+                            cancelText={props.translate('common.decline')}
+                            isVisible
                         />
-                        {/* We include the modal for showing a new update at the top level so the option is always present. */}
-                        {this.props.updateAvailable ? <UpdateAppModal /> : null}
-                        {this.props.screenShareRequest ? (
-                            <ConfirmModal
-                                title={this.props.translate('guides.screenShare')}
-                                onConfirm={() => User.joinScreenShare(this.props.screenShareRequest.accessToken, this.props.screenShareRequest.roomName)}
-                                onCancel={User.clearScreenShareRequest}
-                                prompt={this.props.translate('guides.screenShareRequest')}
-                                confirmText={this.props.translate('common.join')}
-                                cancelText={this.props.translate('common.decline')}
-                                isVisible
-                            />
-                        ) : null}
-                    </>
-                )}
+                    ) : null}
+                </>
+            )}
 
-                <NavigationRoot
-                    onReady={this.setNavigationReady}
-                    authenticated={this.isAuthenticated()}
-                />
-            </DeeplinkWrapper>
-        );
-    }
+            <NavigationRoot
+                onReady={setNavigationReady}
+                authenticated={isAuthenticated}
+            />
+        </DeeplinkWrapper>
+    );
 }
 
 Expensify.propTypes = propTypes;

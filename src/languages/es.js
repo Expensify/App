@@ -130,6 +130,7 @@ export default {
         yesContinue: 'Sí, Continuar',
         websiteExample: 'p. ej. https://www.expensify.com',
         zipCodeExampleFormat: ({zipSampleFormat}) => (zipSampleFormat ? `p. ej. ${zipSampleFormat}` : ''),
+        description: 'Descripción',
     },
     attachmentPicker: {
         cameraPermissionRequired: 'Permiso para acceder a la cámara',
@@ -179,7 +180,7 @@ export default {
         tfaRequiredTitle: 'Se requiere autenticación\nde dos factores',
         tfaRequiredDescription: 'Por favor, introduce el código de autenticación de dos factores\ndonde estás intentando iniciar sesión.',
     },
-    iOUConfirmationList: {
+    moneyRequestConfirmationList: {
         whoPaid: '¿Quién pago?',
         whoWasThere: '¿Quién asistió?',
         whatsItFor: '¿Para qué es?',
@@ -481,12 +482,14 @@ export default {
         gotIt: 'Ok, entendido',
     },
     addPayPalMePage: {
-        enterYourUsernameToGetPaidViaPayPal: 'Escribe tu nombre de usuario para que otros puedan pagarte a través de PayPal.',
+        enterYourUsernameToGetPaidViaPayPal: 'Recibe pagos vía PayPal.',
         payPalMe: 'PayPal.me/',
         yourPayPalUsername: 'Tu usuario de PayPal',
         addPayPalAccount: 'Agregar cuenta de PayPal',
         growlMessageOnSave: 'Tu nombre de usuario de PayPal se agregó correctamente',
         formatError: 'Usuario PayPal.me no válido',
+        checkListOf: 'Consulta la lista de ',
+        supportedCurrencies: 'monedas admitidas',
     },
     addDebitCardPage: {
         addADebitCard: 'Agregar una tarjeta de débito',
