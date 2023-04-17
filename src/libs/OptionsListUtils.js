@@ -864,6 +864,8 @@ function getHeaderMessage(hasSelectableOptions, hasUserToInvite, searchValue, ma
 
     const isValidPhone = Str.isValidPhone(LoginUtils.appendCountryCode(searchValue));
 
+    const isValidEmail = Str.isValidEmail(searchValue);
+
     if (searchValue && CONST.REGEX.DIGITS_AND_PLUS.test(searchValue) && !isValidPhone) {
         return Localize.translate(preferredLocale, 'messages.errorMessageInvalidPhone');
     }
@@ -873,6 +875,9 @@ function getHeaderMessage(hasSelectableOptions, hasUserToInvite, searchValue, ma
     if (searchValue && !hasSelectableOptions && !hasUserToInvite) {
         if (/^\d+$/.test(searchValue) && !isValidPhone) {
             return Localize.translate(preferredLocale, 'messages.errorMessageInvalidPhone');
+        }
+        if (/@/.test(searchValue) && !isValidEmail) {
+            return Localize.translate(preferredLocale, 'messages.errorMessageInvalidEmail');
         }
 
         return Localize.translate(preferredLocale, 'common.noResultsFound');

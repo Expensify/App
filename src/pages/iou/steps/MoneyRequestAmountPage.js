@@ -32,6 +32,9 @@ const propTypes = {
     /** Previously selected amount to show if the user comes back to this screen */
     selectedAmount: PropTypes.string.isRequired,
 
+    /** Text to display on the button that "saves" the amount */
+    buttonText: PropTypes.string.isRequired,
+
     /* Onyx Props */
 
     /** Holds data related to IOU view state, rather than the underlying IOU data. */
@@ -336,7 +339,7 @@ class MoneyRequestAmountPage extends React.Component {
                         onPress={() => this.props.onStepComplete(this.state.amount)}
                         pressOnEnter
                         isDisabled={!this.state.amount.length || parseFloat(this.state.amount) < 0.01}
-                        text={this.props.translate('common.next')}
+                        text={this.props.buttonText}
                     />
                 </View>
             </>
