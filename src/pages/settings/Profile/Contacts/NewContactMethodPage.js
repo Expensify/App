@@ -113,7 +113,7 @@ function NewContactMethodPage(props) {
                             <TextInput
                                 label={props.translate('common.password')}
                                 value={password}
-                                onChangeText={password => setPassword(password)}
+                                onChangeText={value => setPassword(value)}
                                 returnKeyType="done"
                             />
                         </View>
