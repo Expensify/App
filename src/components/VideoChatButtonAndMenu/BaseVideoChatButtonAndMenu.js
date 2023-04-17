@@ -34,7 +34,6 @@ class BaseVideoChatButtonAndMenu extends Component {
 
         this.dimensionsEventListener = null;
 
-        this.setMenuVisibility = this.setMenuVisibility.bind(this);
         this.measureVideoChatIconPosition = this.measureVideoChatIconPosition.bind(this);
         this.videoChatIconWrapper = null;
         this.menuItemData = [
