@@ -8,6 +8,7 @@ import ONYXKEYS from '../ONYXKEYS';
 import CONST from '../CONST';
 import * as ReportUtils from './ReportUtils';
 import * as Localize from './Localize';
+import * as Expensicons from '../components/Icon/Expensicons';
 import Permissions from './Permissions';
 import * as CollectionUtils from './CollectionUtils';
 import Navigation from './Navigation/Navigation';
@@ -167,7 +168,7 @@ function getPersonalDetailsForLogins(logins, personalDetails) {
             }
 
             if (login === CONST.EMAIL.CONCIERGE) {
-                personalDetail.avatar = CONST.CONCIERGE_ICON_URL;
+                personalDetail.avatar = Expensicons.ConciergeAvatar;
             }
 
             personalDetailsForLogins[login] = personalDetail;
@@ -864,6 +865,8 @@ function getHeaderMessage(hasSelectableOptions, hasUserToInvite, searchValue, ma
 
     const isValidPhone = Str.isValidPhone(LoginUtils.appendCountryCode(searchValue));
 
+    const isValidEmail = Str.isValidEmail(searchValue);
+
     if (searchValue && CONST.REGEX.DIGITS_AND_PLUS.test(searchValue) && !isValidPhone) {
         return Localize.translate(preferredLocale, 'messages.errorMessageInvalidPhone');
     }
@@ -873,6 +876,9 @@ function getHeaderMessage(hasSelectableOptions, hasUserToInvite, searchValue, ma
     if (searchValue && !hasSelectableOptions && !hasUserToInvite) {
         if (/^\d+$/.test(searchValue) && !isValidPhone) {
             return Localize.translate(preferredLocale, 'messages.errorMessageInvalidPhone');
+        }
+        if (/@/.test(searchValue) && !isValidEmail) {
+            return Localize.translate(preferredLocale, 'messages.errorMessageInvalidEmail');
         }
 
         return Localize.translate(preferredLocale, 'common.noResultsFound');

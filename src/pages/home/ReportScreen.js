@@ -295,14 +295,32 @@ class ReportScreen extends React.Component {
                             this.setState({skeletonViewContainerHeight});
                         }}
                     >
-                        {(this.isReportReadyForDisplay() && !isLoadingInitialReportActions && !isLoading) && (
-                            <ReportActionsView
-                                reportActions={this.props.reportActions}
-                                report={this.props.report}
-                                isComposerFullSize={this.props.isComposerFullSize}
-                                isDrawerOpen={this.props.isDrawerOpen}
-                                parentViewHeight={this.state.skeletonViewContainerHeight}
-                            />
+                        {isLoading ? <ReportHeaderSkeletonView shouldAnimate={shouldAnimate} /> : (
+                            <>
+                                <OfflineWithFeedback
+                                    pendingAction={addWorkspaceRoomOrChatPendingAction}
+                                    errors={addWorkspaceRoomOrChatErrors}
+                                    shouldShowErrorMessages={false}
+                                >
+                                    <HeaderView
+                                        reportID={reportID}
+                                        onNavigationMenuButtonClicked={() => Navigation.navigate(ROUTES.HOME)}
+                                        personalDetails={this.props.personalDetails}
+                                        report={this.props.report}
+                                        policies={this.props.policies}
+                                    />
+                                </OfflineWithFeedback>
+                                {Boolean(this.props.accountManagerReportID) && ReportUtils.isConciergeChatReport(this.props.report) && this.state.isBannerVisible && (
+                                    <Banner
+                                        containerStyles={[styles.mh4, styles.mt4, styles.p4, styles.bgDark]}
+                                        textStyles={[styles.colorReversed]}
+                                        text={this.props.translate('reportActionsView.chatWithAccountManager')}
+                                        onClose={this.dismissBanner}
+                                        onPress={this.chatWithAccountManager}
+                                        shouldShowCloseButton
+                                    />
+                                )}
+                            </>
                         )}
 
                         {/* Note: The report should be allowed to mount even if the initial report actions are not loaded. If we prevent rendering the report while they are loading then

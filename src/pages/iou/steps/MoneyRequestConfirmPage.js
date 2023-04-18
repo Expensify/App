@@ -8,14 +8,8 @@ const propTypes = {
     /** Callback to inform parent modal of success */
     onConfirm: PropTypes.func.isRequired,
 
-    /** Callback to to parent modal to send money */
+    /** Callback to parent modal to send money */
     onSendMoney: PropTypes.func.isRequired,
-
-    /** Callback to update comment from MoneyRequestModal */
-    onUpdateComment: PropTypes.func,
-
-    /** Comment value from MoneyRequestModal */
-    comment: PropTypes.string,
 
     /** Should we request a single or multiple participant selection from user */
     hasMultipleParticipants: PropTypes.bool.isRequired,
@@ -31,11 +25,12 @@ const propTypes = {
 
     /** Can the participants be modified or not */
     canModifyParticipants: PropTypes.bool,
+
+    /** Function to navigate to a given step in the parent MoneyRequestModal */
+    navigateToStep: PropTypes.func.isRequired,
 };
 
 const defaultProps = {
-    onUpdateComment: null,
-    comment: '',
     iouType: CONST.IOU.MONEY_REQUEST_TYPE.REQUEST,
     canModifyParticipants: false,
 };
@@ -44,13 +39,12 @@ const MoneyRequestConfirmPage = props => (
     <MoneyRequestConfirmationList
         hasMultipleParticipants={props.hasMultipleParticipants}
         participants={props.participants}
-        comment={props.comment}
-        onUpdateComment={props.onUpdateComment}
         iouAmount={props.iouAmount}
         onConfirm={props.onConfirm}
         onSendMoney={props.onSendMoney}
         iouType={props.iouType}
         canModifyParticipants={props.canModifyParticipants}
+        navigateToStep={props.navigateToStep}
     />
 );
 
