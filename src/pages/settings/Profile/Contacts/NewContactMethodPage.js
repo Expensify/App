@@ -1,4 +1,6 @@
-import React, {useCallback, useMemo, useRef, useState} from 'react';
+import React, {
+    useCallback, useMemo, useRef, useState,
+} from 'react';
 import PropTypes from 'prop-types';
 import {View} from 'react-native';
 import {ScrollView} from 'react-native-gesture-handler';
