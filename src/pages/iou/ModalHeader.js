@@ -40,7 +40,7 @@ const ModalHeader = props => (
         >
             {props.shouldShowBackButton
                     && (
-                    <View style={[styles.mr2]}>
+                    <View>
                         <Tooltip text={props.translate('common.back')}>
                             <TouchableOpacity
                                 onPress={props.onBackButtonPress}
