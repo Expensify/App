@@ -923,11 +923,10 @@ function editReportComment(reportID, originalReportAction, textForNewComment) {
     ];
 
     const lastVisibleAction = ReportActionsUtils.getLastVisibleAction(reportID, optimisticReportActions);
-    const reportComment = parser.htmlToText(ReportUtils.getParsedComment(textForNewComment));
-    const lastCommentText = ReportUtils.formatReportLastMessageText(reportComment);
-    const currentTime = DateUtils.getDBTime();
-
     if (reportActionID === lastVisibleAction.reportActionID) {
+        const reportComment = parser.htmlToText(ReportUtils.getParsedComment(textForNewComment));
+        const lastCommentText = ReportUtils.formatReportLastMessageText(reportComment);
+        const currentTime = DateUtils.getDBTime();
         const optimisticReport = {
             lastVisibleActionCreated: currentTime,
             lastMessageText: Str.htmlDecode(lastCommentText),
