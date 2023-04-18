@@ -13,9 +13,11 @@ const getCursorStyle = (isDisabled, isText) => {
     if (isDisabled) {
         return styles.cursorDisabled;
     }
+
     if (isText) {
         return styles.cursorText;
     }
+
     return styles.cursorPointer;
 };
 
@@ -104,8 +106,6 @@ const GenericPressable = forwardRef((props, ref) => {
             hitSlop={shouldUseAutoHitSlop && hitslop}
             onLayout={onLayout}
             ref={ref}
-            focusable
-            accessible
             onPress={!isDisabled && onPressHandler}
             onLongPress={!isDisabled && onLongPressHandler}
             onKeyPress={!isDisabled && onKeyPressHandler}
@@ -116,23 +116,24 @@ const GenericPressable = forwardRef((props, ref) => {
                 state.focused && parseStyleFromFunction(props.focusStyle, state),
                 state.hovered && parseStyleFromFunction(props.hoverStyle, state),
                 state.pressed && parseStyleFromFunction(props.pressedStyle, state),
-                isDisabled && [parseStyleFromFunction(props.disabledStyle, state), styles.cursorDisabled, styles.noSelect],
+                isDisabled && [parseStyleFromFunction(props.disabledStyle, state), styles.noSelect],
             ]}
 
             // accessibility props
+            focusable
+            accessible
+            tabIndex={0}
             accessibilityHint={props.accessibilityHint || props.accessibilityLabel}
             accessibilityState={{
                 disabled: isDisabled,
                 ...props.accessibilityState,
             }}
+            aria-disabled={isDisabled}
+            aria-keyshortcuts={keyboardShortcut && `${keyboardShortcut.modifiers}+${keyboardShortcut.shortcutKey}`}
 
             // ios-only form of inputs
             onMagicTap={!isDisabled && onPressHandler}
             onAccessibilityTap={!isDisabled && onPressHandler}
-
-            //react-native-web exclusive props
-            aria-disabled={isDisabled}
-            aria-keyshortcuts={keyboardShortcut && `${keyboardShortcut.modifiers}+${keyboardShortcut.shortcutKey}`}
 
             // eslint-disable-next-line react/jsx-props-no-spreading
             {...rest}
