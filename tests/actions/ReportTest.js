@@ -491,7 +491,7 @@ describe('actions/Report', () => {
         expectedOutput = '<a href="http://example.com/foo/*/bar/*/test.txt" target="_blank" rel="noreferrer noopener">http://example.com/foo/*/bar/*/test.txt</a>';
         expect(newCommentHTML).toBe(expectedOutput);
 
-        // User edit and delete the link with asterisk
+        // User edits and deletes the link containing asterisks
         // We should not generate link
         originalCommentHTML = '<a href="http://example.com/foo/*/bar/*/test.txt" target="_blank" rel="noreferrer noopener">http://example.com/foo/*/bar/*/test.txt</a>';
         afterEditCommentText = 'http://example.com/foo/*/bar/*/test.txt';
