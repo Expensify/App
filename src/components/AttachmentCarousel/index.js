@@ -1,5 +1,5 @@
 import React from 'react';
-import {View, FlatList, Pressable} from 'react-native';
+import {View, FlatList} from 'react-native';
 import PropTypes from 'prop-types';
 import {withOnyx} from 'react-native-onyx';
 import _ from 'underscore';
@@ -56,12 +56,14 @@ class AttachmentCarousel extends React.Component {
         this.renderItem = this.renderItem.bind(this);
         this.renderCell = this.renderCell.bind(this);
         this.updatePage = this.updatePage.bind(this);
+        this.toggleZoomed = this.toggleZoomed.bind(this);
 
         this.state = {
             attachments: [],
             source: this.props.source,
             shouldShowArrow: this.canUseTouchScreen,
             containerWidth: 0,
+            isZoomed: false,
         };
     }
 
@@ -114,6 +116,17 @@ class AttachmentCarousel extends React.Component {
      */
     toggleArrowsVisibility(shouldShowArrow) {
         this.setState({shouldShowArrow});
+    }
+
+    /**
+     * Toggles zoomed state to enable panning the PDF
+     * @param {Number} scale current PDF scale
+     */
+    toggleZoomed(scale) {
+        if ((scale <= 1 && !this.state.isZoomed) || (scale > 1 && this.state.isZoomed)) {
+            return;
+        }
+        this.setState(current => ({isZoomed: !current.isZoomed}));
     }
 
     /**
@@ -206,11 +219,14 @@ class AttachmentCarousel extends React.Component {
         }
 
         return (
-            <Pressable
+            <View
                 // eslint-disable-next-line react/jsx-props-no-spreading
                 {...props}
-                onPress={() => this.setState(current => ({shouldShowArrow: !current.shouldShowArrow}))}
+
+                // onPress={() => this.setState(current => ({shouldShowArrow: !current.shouldShowArrow}))}
                 style={style}
+                // eslint-disable-next-line react/jsx-props-no-spreading
+                // {...this.panResponder.panHandlers}
             />
         );
     }
@@ -222,7 +238,18 @@ class AttachmentCarousel extends React.Component {
      */
     renderItem({item}) {
         const authSource = addEncryptedAuthTokenToURL(item.source);
-        return <AttachmentView source={authSource} file={item.file} />;
+        if (!this.canUseTouchScreen) {
+            return <AttachmentView source={authSource} file={item.file} />;
+        }
+
+        return (
+            <AttachmentView
+                source={authSource}
+                file={item.file}
+                onScaleChanged={this.toggleZoomed}
+                onPress={() => this.setState(current => ({shouldShowArrow: !current.shouldShowArrow}))}
+            />
+        );
     }
 
     render() {
@@ -292,7 +319,8 @@ class AttachmentCarousel extends React.Component {
 
                         // Enable scrolling by swiping on mobile (touch) devices only
                         // disable scroll for desktop/browsers because they add their scrollbars
-                        scrollEnabled={this.canUseTouchScreen}
+                        // disable scroll in PDF zoomed state
+                        scrollEnabled={this.canUseTouchScreen && !this.state.isZoomed}
                         ref={this.scrollRef}
                         initialScrollIndex={this.state.page}
                         initialNumToRender={3}

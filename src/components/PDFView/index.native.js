@@ -1,5 +1,5 @@
 import React, {Component} from 'react';
-import {TouchableWithoutFeedback, View} from 'react-native';
+import {View} from 'react-native';
 import PDF from 'react-native-pdf';
 import KeyboardAvoidingView from '../KeyboardAvoidingView';
 import styles from '../../styles/styles';
@@ -152,7 +152,7 @@ class PDFView extends Component {
                     </View>
                 )}
                 {this.state.shouldAttemptPDFLoad && (
-                    <TouchableWithoutFeedback style={touchableStyles}>
+                    <View style={touchableStyles}>
                         <PDF
                             trustAllCerts={false}
                             renderActivityIndicator={() => <FullScreenLoadingIndicator />}
@@ -162,8 +162,9 @@ class PDFView extends Component {
                             password={this.state.password}
                             onLoadComplete={this.finishPDFLoad}
                             onPageSingleTap={this.props.onPress}
+                            onScaleChanged={this.props.onScaleChanged}
                         />
-                    </TouchableWithoutFeedback>
+                    </View>
                 )}
                 {this.state.shouldRequestPassword && (
                     <KeyboardAvoidingView style={styles.flex1}>

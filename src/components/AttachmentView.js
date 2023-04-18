@@ -37,6 +37,9 @@ const propTypes = {
     /** Function for handle on press */
     onPress: PropTypes.func,
 
+    /** Handles scale changed event in PDF component */
+    onScaleChanged: PropTypes.func,
+
     /** Notify parent that the UI should be modified to accommodate keyboard */
     onToggleKeyboard: PropTypes.func,
 
@@ -51,6 +54,7 @@ const defaultProps = {
     shouldShowDownloadIcon: false,
     shouldShowLoadingSpinnerIcon: false,
     onPress: () => {},
+    onScaleChanged: () => {},
     onToggleKeyboard: () => {},
 };
 
@@ -75,6 +79,7 @@ const AttachmentView = (props) => {
                 sourceURL={sourceURL}
                 style={styles.imageModalPDF}
                 onToggleKeyboard={props.onToggleKeyboard}
+                onScaleChanged={props.onScaleChanged}
             />
         );
     }
