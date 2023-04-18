@@ -228,7 +228,11 @@ const MenuItem = (props) => {
 MenuItem.propTypes = propTypes;
 MenuItem.defaultProps = defaultProps;
 MenuItem.displayName = 'MenuItem';
-export default withWindowDimensions(React.forwardRef((props, ref) => (
+
+const MenuItemWithWindowDimensions = withWindowDimensions(React.forwardRef((props, ref) => (
     // eslint-disable-next-line react/jsx-props-no-spreading
     <MenuItem {...props} forwardedRef={ref} />
 )));
+MenuItemWithWindowDimensions.defaultProps = defaultProps;
+
+export default MenuItemWithWindowDimensions;
