@@ -81,7 +81,7 @@ class Hoverable extends Component {
                     }
                 },
                 onBlur: (el) => {
-                    if (this.wrapperView && !this.wrapperView.contains(el.relatedTarget)) {
+                    if (!this.wrapperView.contains(el.relatedTarget)) {
                         this.setIsHovered(false);
                     }
 
