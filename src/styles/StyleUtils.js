@@ -197,7 +197,7 @@ function getZoomCursorStyle(isZoomed, isDragging) {
  * @param {Number} containerHeight
  * @param {Number} containerWidth
  * @param {Boolean} isLoading
- * @returns {Object | null}
+ * @returns {Object | undefined}
  */
 function getZoomSizingStyle(isZoomed, imgWidth, imgHeight, zoomScale, containerHeight, containerWidth, isLoading) {
     // Hide image until finished loading to prevent showing preview with wrong dimensions
