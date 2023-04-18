@@ -4,7 +4,6 @@ import {View, ScrollView, Pressable} from 'react-native';
 import PropTypes from 'prop-types';
 import _ from 'underscore';
 import {withOnyx} from 'react-native-onyx';
-import Str from 'expensify-common/lib/str';
 import {withNetwork} from '../../components/OnyxProvider';
 import styles from '../../styles/styles';
 import Text from '../../components/Text';
@@ -304,7 +303,7 @@ class InitialSettingsPage extends React.Component {
                                             <Text style={[styles.textHeadline, styles.pre]} numberOfLines={1}>
                                                 {this.props.currentUserPersonalDetails.displayName
                                                     ? this.props.currentUserPersonalDetails.displayName
-                                                    : Str.removeSMSDomain(this.props.session.email)}
+                                                    : this.props.formatPhoneNumber(this.props.session.email)}
                                             </Text>
                                         </Tooltip>
                                     </Pressable>
@@ -313,7 +312,7 @@ class InitialSettingsPage extends React.Component {
                                             style={[styles.textLabelSupporting, styles.mt1]}
                                             numberOfLines={1}
                                         >
-                                            {Str.removeSMSDomain(this.props.session.email)}
+                                            {this.props.formatPhoneNumber(this.props.session.email)}
                                         </Text>
                                     )}
                                 </View>
