@@ -825,9 +825,9 @@ const getRemovedMarkdownLinks = (oldComment, newComment) => {
 /**
  * Removes the links in html of a comment.
  * example:
- *      html="test <a href="https://www.google.com" target="_blank" rel="noreferrer noopener">link</a> test"
+ *      html="test <a href="https://www.google.com" target="_blank" rel="noreferrer noopener">https://www.google.com</a> test"
  *      links=["https://www.google.com"]
- * returns: "test link test"
+ * returns: "test https://www.google.com test"
  *
  * @param {String} html
  * @param {Array} links
