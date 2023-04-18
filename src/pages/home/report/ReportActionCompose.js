@@ -933,7 +933,7 @@ class ReportActionCompose extends React.Component {
                             comment={this.state.value}
                             updateComment={newComment => this.setState({value: newComment})}
                             colonIndex={this.state.colonIndex}
-                            prefix={this.state.value.slice(this.state.colonIndex + 1).split(' ')[0]}
+                            prefix={this.state.value.slice(this.state.colonIndex + 1, this.state.selection.start)}
                             onSelect={this.insertSelectedEmoji}
                             isComposerFullSize={this.props.isComposerFullSize}
                             preferredSkinToneIndex={this.props.preferredSkinTone}

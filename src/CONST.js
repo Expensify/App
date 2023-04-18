@@ -991,7 +991,7 @@ const CONST = {
         CODE_2FA: /^\d{6}$/,
         ATTACHMENT_ID: /chat-attachments\/(\d+)/,
         HAS_COLON_ONLY_AT_THE_BEGINNING: /^:[^:]+$/,
-        NEW_LINE_OR_WHITE_SPACE: /[\n\s]/g,
+        NEW_LINE_OR_WHITE_SPACE_OR_EMOJI: /([\uD800-\uDBFF][\uDC00-\uDFFF]|[\n\s])/g,
 
         // Define the regular expression pattern to match a string starting with a colon and ending with a space or newline character
         EMOJI_REPLACER: /^:[^\n\r]+?(?=$|\s)/,
