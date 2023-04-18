@@ -955,8 +955,6 @@ const CONST = {
         US_PHONE: /^\+1\d{10}$/,
         US_PHONE_WITH_OPTIONAL_COUNTRY_CODE: /^(\+1)?\d{10}$/,
         DIGITS_AND_PLUS: /^\+?[0-9]*$/,
-        PHONE_E164_PLUS: /^\+?[1-9]\d{1,14}$/,
-        PHONE_WITH_SPECIAL_CHARS: /^\s*(?:\+?(\d{1,3}))?[-. (]*(\d{3})[-. )]*(\d{3})[-. ]*(\d{4})(?: *x(\d+))?\s*$/,
         ALPHABETIC_CHARS: /[a-zA-Z]+/,
         ALPHABETIC_CHARS_WITH_NUMBER: /^[a-zA-Z0-9 ]*$/,
         POSITIVE_INTEGER: /^\d+$/,

@@ -105,7 +105,7 @@ class CompanyStep extends React.Component {
             errors.addressState = this.props.translate('bankAccount.error.addressState');
         }
 
-        if (!values.companyPhone || !ValidationUtils.isValidUSPhone(values.companyPhone, true)) {
+        if (!values.companyPhone || !ValidationUtils.isValidUSPhone(values.companyPhone)) {
             errors.companyPhone = this.props.translate('bankAccount.error.phoneNumber');
         }
 

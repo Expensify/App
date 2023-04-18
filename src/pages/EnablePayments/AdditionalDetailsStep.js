@@ -151,7 +151,7 @@ class AdditionalDetailsStep extends React.Component {
             errors[INPUT_IDS.ADDRESS.zipCode] = this.props.translate('bankAccount.error.zipCode');
         }
 
-        if (!ValidationUtils.isValidUSPhone(values[INPUT_IDS.PHONE_NUMBER], true)) {
+        if (!ValidationUtils.isValidUSPhone(values[INPUT_IDS.PHONE_NUMBER])) {
             errors[INPUT_IDS.PHONE_NUMBER] = this.props.translate(this.errorTranslationKeys.phoneNumber);
         }
 
