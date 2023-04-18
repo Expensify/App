@@ -3142,6 +3142,9 @@ const styles = {
     whisper: {
         backgroundColor: themeColors.cardBG,
     },
+    contextMenuItemPopoverMaxWidth: {
+        maxWidth: 375,
+    },
 };
 
 export default styles;
