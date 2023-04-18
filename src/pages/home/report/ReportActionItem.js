@@ -40,6 +40,11 @@ import ChronosOOOListActions from '../../../components/ReportActionItem/ChronosO
 import ReportActionItemReactions from '../../../components/Reactions/ReportActionItemReactions';
 import * as Report from '../../../libs/actions/Report';
 import withLocalize from '../../../components/withLocalize';
+import Icon from "../../../components/Icon";
+import * as Expensicons from "../../../components/Icon/Expensicons";
+import Text from "../../../components/Text";
+import DisplayNames from "../../../components/DisplayNames";
+import * as OptionsListUtils from "../../../libs/OptionsListUtils";
 
 const propTypes = {
     /** Report for this action */
@@ -239,6 +244,12 @@ class ReportActionItem extends Component {
         if (this.props.action.actionName === CONST.REPORT.ACTIONS.TYPE.CHRONOSOOOLIST) {
             return <ChronosOOOListActions action={this.props.action} reportID={this.props.report.reportID} />;
         }
+
+        const whisperedTo = lodashGet(this.props.action, 'whisperedTo', []);
+        const isWhisper = _.size(whisperedTo) > 0;
+        const isMultipleParticipant = _.size(whisperedTo) > 1;
+        const participantPersonalDetailList = isWhisper ? _.values(OptionsListUtils.getPersonalDetailsForLogins(_.keys(whisperedTo), whisperedTo)) : [];
+        const displayNamesWithTooltips = isWhisper ? ReportUtils.getDisplayNamesWithTooltips(participantPersonalDetailList, isMultipleParticipant) : [];
         return (
             <PressableWithSecondaryInteraction
                 pointerEvents={this.props.action.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE ? 'none' : 'auto'}
@@ -276,6 +287,24 @@ class ReportActionItem extends Component {
                                     errorRowStyles={[styles.ml10, styles.mr2]}
                                     needsOffscreenAlphaCompositing={this.props.action.actionName === CONST.REPORT.ACTIONS.TYPE.IOU}
                                 >
+                                    {isWhisper && (
+                                        <View style={[styles.chatItem]}>
+                                            <View style={[styles.chatItemRight, styles.mr3]}>
+                                                <Icon src={Expensicons.Eye} />
+                                            </View>
+                                            <Text style={[styles.chatItemMessageHeaderTimestamp]}>
+                                                {this.props.translate('reportActionContextMenu.onlyVisible')}
+                                            </Text>
+                                            <DisplayNames
+                                                fullTitle={ReportUtils.getWhisperDisplayNames(participantPersonalDetailList)}
+                                                displayNamesWithTooltips={displayNamesWithTooltips}
+                                                tooltipEnabled
+                                                numberOfLines={1}
+                                                textStyles={[styles.chatItemMessageHeaderTimestamp]}
+                                                shouldUseFullTitle={false}
+                                            />
+                                        </View>
+                                    )}
                                     {!this.props.displayAsGroup
                                         ? (
                                             <ReportActionItemSingle action={this.props.action} showHeader={!this.props.draftMessage}>

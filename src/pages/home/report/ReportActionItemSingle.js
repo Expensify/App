@@ -15,15 +15,11 @@ import withLocalize, {withLocalizePropTypes} from '../../../components/withLocal
 import Navigation from '../../../libs/Navigation/Navigation';
 import ROUTES from '../../../ROUTES';
 import {withPersonalDetails} from '../../../components/OnyxProvider';
-import Text from '../../../components/Text';
 import Tooltip from '../../../components/Tooltip';
 import ControlSelection from '../../../libs/ControlSelection';
 import * as ReportUtils from '../../../libs/ReportUtils';
 import OfflineWithFeedback from '../../../components/OfflineWithFeedback';
 import CONST from '../../../CONST';
-import * as Expensicons from '../../../components/Icon/Expensicons';
-import Icon from '../../../components/Icon';
-import DisplayNames from '../../../components/DisplayNames';
 
 const propTypes = {
     /** All the data of the action */
@@ -72,30 +68,8 @@ const ReportActionItemSingle = (props) => {
         ? [{type: 'TEXT', text: Str.isSMSLogin(login) ? props.toLocalPhone(displayName) : displayName}]
         : props.action.person;
 
-    // We only create tooltips for the first 10 users or so since some reports have hundreds of users, causing performance to degrade.
-    const isMultipleParticipant = lodashGet(props.action, 'whisperedTo', 0) > 1;
-    const displayNamesWithTooltips = ReportUtils.getDisplayNamesWithTooltips((props.action.whisperedTo || []).slice(0, 10), isMultipleParticipant);
-    const isWhisper = (props.action.whisperedTo || []).length > 0;
     return (
-        <View style={[props.wrapperStyles, isWhisper ? styles.whisper : undefined]}>
-            {isWhisper && (
-                <View style={[styles.chatItem]}>
-                    <View style={[styles.chatItemRight, styles.mr3]}>
-                        <Icon src={Expensicons.Eye} />
-                    </View>
-                    <Text style={[styles.chatItemMessageHeaderTimestamp]}>
-                        {props.translate('reportActionContextMenu.onlyVisible')}
-                    </Text>
-                    <DisplayNames
-                        fullTitle={ReportUtils.getWhisperDisplayNames(props.action.whisperedTo || [])}
-                        displayNamesWithTooltips={displayNamesWithTooltips}
-                        tooltipEnabled
-                        numberOfLines={1}
-                        textStyles={[styles.chatItemMessageHeaderTimestamp]}
-                        shouldUseFullTitle={false}
-                    />
-                </View>
-            )}
+        <View style={[props.wrapperStyles]}>
             <View style={[styles.chatItem]}>
                 <Pressable
                     style={[styles.alignSelfStart, styles.mr3]}

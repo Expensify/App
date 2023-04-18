@@ -1,4 +1,4 @@
-import PropTypes from 'prop-types';
+import PropTypes, {array} from 'prop-types';
 
 import reportActionFragmentPropTypes from './reportActionFragmentPropTypes';
 import participantPropTypes from '../../../components/participantPropTypes';
@@ -31,6 +31,6 @@ export default {
     /** Error message that's come back from the server. */
     error: PropTypes.string,
 
-    /** Display names of the people to which the whisper was sent to (if any) */
-    whisperedTo: PropTypes.arrayOf(participantPropTypes),
+    /** Display names of the people to which the whisper was sent to (if any). Returns empty array if it is not a whisper */
+    whisperedTo: PropTypes.oneOfType([PropTypes.array, PropTypes.objectOf(participantPropTypes)]),
 };
