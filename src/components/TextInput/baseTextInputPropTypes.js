@@ -49,7 +49,7 @@ const propTypes = {
     /** Forward the inner ref */
     innerRef: PropTypes.oneOfType([
         PropTypes.func,
-        PropTypes.shape({current: PropTypes.instanceOf(Element)}),
+        PropTypes.object,
     ]),
 
     /** Maximum characters allowed */
