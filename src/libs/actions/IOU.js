@@ -572,6 +572,7 @@ function deleteMoneyRequest(chatReportID, iouReportID, moneyRequestAction) {
                     ...optimisticReportAction,
                     pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
                 },
+                [moneyRequestAction.reportActionID]: null,
             },
         },
         {
@@ -609,6 +610,7 @@ function deleteMoneyRequest(chatReportID, iouReportID, moneyRequestAction) {
                         [DateUtils.getMicroseconds()]: Localize.translateLocal('iou.error.genericDeleteFailureMessage'),
                     },
                 },
+                [moneyRequestAction.reportActionID]: moneyRequestAction,
             },
         },
     ];
