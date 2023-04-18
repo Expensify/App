@@ -1,6 +1,6 @@
 import React, {Component} from 'react';
 import PropTypes from 'prop-types';
-import {View, Keyboard} from 'react-native';
+import {View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import _ from 'underscore';
 import lodashGet from 'lodash/get';
@@ -16,13 +16,9 @@ import HeaderWithCloseButton from '../../../components/HeaderWithCloseButton';
 import ScreenWrapper from '../../../components/ScreenWrapper';
 import withLocalize, {withLocalizePropTypes} from '../../../components/withLocalize';
 import Text from '../../../components/Text';
-import Picker from '../../../components/Picker';
-import * as ValidationUtils from '../../../libs/ValidationUtils';
-import * as ErrorUtils from '../../../libs/ErrorUtils';
 import OfflineWithFeedback from '../../../components/OfflineWithFeedback';
 import reportPropTypes from '../../reportPropTypes';
 import withReportOrNotFound from '../../home/report/withReportOrNotFound';
-import Form from '../../../components/Form';
 import FullPageNotFoundView from '../../../components/BlockingViews/FullPageNotFoundView';
 import MenuItemWithTopDescription from '../../../components/MenuItemWithTopDescription';
 import ROUTES from '../../../ROUTES';
@@ -51,31 +47,13 @@ const propTypes = {
         /** ID of the policy */
         id: PropTypes.string,
     }),
-
-    /** All reports shared with the user */
-    reports: PropTypes.objectOf(reportPropTypes),
 };
 
 const defaultProps = {
     policies: {},
-    reports: {},
 };
 
 class ReportSettingsPage extends Component {
-    constructor(props) {
-        super(props);
-
-        this.validate = this.validate.bind(this);
-    }
-
-    getNotificationPreferenceOptions() {
-        return [
-            {value: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS, label: this.props.translate('notificationPreferences.immediately')},
-            {value: CONST.REPORT.NOTIFICATION_PREFERENCE.DAILY, label: this.props.translate('notificationPreferences.daily')},
-            {value: CONST.REPORT.NOTIFICATION_PREFERENCE.MUTE, label: this.props.translate('notificationPreferences.mute')},
-        ];
-    }
-
     /**
      * @param {Object|null} linkedWorkspace - the workspace the report is on, null if the user isn't a member of the workspace
      * @returns {Boolean}
@@ -99,48 +77,6 @@ class ReportSettingsPage extends Component {
         // If there is a linked workspace, that means the user is a member of the workspace the report is in.
         // Still, we only want policy owners and admins to be able to modify the name.
         return !Policy.isPolicyOwner(linkedWorkspace) && linkedWorkspace.role !== CONST.POLICY.ROLE.ADMIN;
-    }
-
-    /**
-     * @param {Object} values - form input values passed by the Form component
-     */
-    updatePolicyRoomName(values) {
-        Keyboard.dismiss();
-
-        // When the room name has not changed, skip the Form submission
-        if (values.newRoomName === this.props.report.reportName) {
-            return;
-        }
-        Report.updatePolicyRoomName(this.props.report, values.newRoomName);
-    }
-
-    /**
-     * @param {Object} values - form input values passed by the Form component
-     * @returns {Boolean}
-     */
-    validate(values) {
-        const errors = {};
-
-        // We should skip validation hence we return an empty errors and we skip Form submission on the onSubmit method
-        if (values.newRoomName === this.props.report.reportName) {
-            return errors;
-        }
-
-        if (!values.newRoomName || values.newRoomName === CONST.POLICY.ROOM_PREFIX) {
-            // We error if the user doesn't enter a room name or left blank
-            ErrorUtils.addErrorMessage(errors, 'newRoomName', this.props.translate('newRoomPage.pleaseEnterRoomName'));
-        } else if (values.newRoomName !== CONST.POLICY.ROOM_PREFIX && !ValidationUtils.isValidRoomName(values.newRoomName)) {
-            // We error if the room name has invalid characters
-            ErrorUtils.addErrorMessage(errors, 'newRoomName', this.props.translate('newRoomPage.roomNameInvalidError'));
-        } else if (ValidationUtils.isReservedRoomName(values.newRoomName)) {
-            // Certain names are reserved for default rooms and should not be used for policy rooms.
-            ErrorUtils.addErrorMessage(errors, 'newRoomName', this.props.translate('newRoomPage.roomNameReservedError', {reservedName: values.newRoomName}));
-        } else if (ValidationUtils.isExistingRoomName(values.newRoomName, this.props.reports, this.props.report.policyID)) {
-            // Certain names are reserved for default rooms and should not be used for policy rooms.
-            ErrorUtils.addErrorMessage(errors, 'newRoomName', this.props.translate('newRoomPage.roomAlreadyExistsError'));
-        }
-
-        return errors;
     }
 
     render() {
@@ -236,9 +172,6 @@ export default compose(
     withOnyx({
         policies: {
             key: ONYXKEYS.COLLECTION.POLICY,
-        },
-        reports: {
-            key: ONYXKEYS.COLLECTION.REPORT,
         },
     }),
 )(ReportSettingsPage);
