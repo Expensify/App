@@ -1,5 +1,6 @@
 import {View} from 'react-native';
 import React from 'react';
+import PropTypes from 'prop-types';
 import _ from 'underscore';
 import Text from '../../../components/Text';
 import styles from '../../../styles/styles';
@@ -21,17 +22,20 @@ import SignInGradient from '../../../../assets/images/home-fade-gradient--mobile
 const propTypes = {
     ...windowDimensionsPropTypes,
     ...withLocalizePropTypes,
+    scrollPageToTop: PropTypes.func.isRequired,
 };
 
 const defaultProps = {
 };
 
-const navigateHome = () => {
+const navigateHome = (scrollPageToTop) => {
+    scrollPageToTop();
+
     // We need to clear sign in data in case the user is already in the ValidateCodeForm or PasswordForm pages
     Session.clearSignInData();
 };
 
-const columns = [
+const columns = ({scrollPageToTop}) => ([
     {
         translationPath: 'footer.features',
         rows: [
@@ -135,16 +139,16 @@ const columns = [
         translationPath: 'footer.getStarted',
         rows: [
             {
-                onPress: navigateHome,
+                onPress: () => navigateHome(scrollPageToTop),
                 translationPath: 'footer.createAccount',
             },
             {
-                onPress: navigateHome,
+                onPress: () => navigateHome(scrollPageToTop),
                 translationPath: 'footer.logIn',
             },
         ],
     },
-];
+]);
 
 const Footer = (props) => {
     const isVertical = props.isSmallScreenWidth;
@@ -165,7 +169,7 @@ const Footer = (props) => {
                 ) : null}
                 <View style={pageFooterWrapper}>
                     <View style={footerColumns}>
-                        {_.map(columns, (column, i) => (
+                        {_.map(columns({scrollPageToTop: props.scrollPageToTop}), (column, i) => (
                             <View
                                 key={column.translationPath}
                                 style={footerColumn}

@@ -50,12 +50,14 @@ const SignInPageLayout = (props) => {
         contentContainerStyles = [styles.flex1, styles.flexColumn];
     }
 
-    useEffect(() => {
+    const scrollPageToTop = (animated = false) => {
         if (!scrollViewRef.current) {
             return;
         }
-        scrollViewRef.current.scrollTo({y: 0, animated: true});
-    }, [props.children]);
+        scrollViewRef.current.scrollTo({y: 0, animated});
+    };
+
+    useEffect(scrollPageToTop, [props.shouldShowWelcomeHeader, props.shouldShowWelcomeText]);
 
     return (
         <View style={containerStyles}>
@@ -93,7 +95,7 @@ const SignInPageLayout = (props) => {
                                         props.isLargeScreenWidth ? styles.ph25 : {}]}
                                     >
                                         <SignInPageHero />
-                                        <Footer />
+                                        <Footer scrollPageToTop={scrollPageToTop} />
                                     </View>
                                 </View>
                             </View>
@@ -121,7 +123,7 @@ const SignInPageLayout = (props) => {
                             </SignInPageContent>
                         </View>
                         <View style={[styles.flex0]}>
-                            <Footer />
+                            <Footer scrollPageToTop={scrollPageToTop} />
                         </View>
                     </ScrollView>
                 )}
