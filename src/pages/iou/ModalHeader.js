@@ -28,7 +28,7 @@ const defaultProps = {
 };
 
 const ModalHeader = props => (
-    <View style={[styles.headerBar]}>
+    <View style={[styles.headerBar, props.shouldShowBackButton && styles.pl2]}>
         <View style={[
             styles.dFlex,
             styles.flexRow,
