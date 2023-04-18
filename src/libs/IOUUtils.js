@@ -51,7 +51,7 @@ function updateIOUOwnerAndTotal(iouReport, actorEmail, amount, currency, type = 
     if (actorEmail === iouReport.ownerEmail) {
         iouReportUpdate.total += type === CONST.IOU.REPORT_ACTION_TYPE.DELETE ? -amount : amount;
     } else {
-        iouReportUpdate.total -= amount;
+        iouReportUpdate.total += type === CONST.IOU.REPORT_ACTION_TYPE.DELETE ? amount : -amount;
     }
 
     if (iouReportUpdate.total < 0) {
