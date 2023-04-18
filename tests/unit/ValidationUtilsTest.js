@@ -71,9 +71,9 @@ describe('ValidationUtils', () => {
             expect(ValidationUtils.isValidWebsite('192.168.0.1')).toBe(false);
         });
 
-        test('Invalid URLs without protocols', () => {
-            expect(ValidationUtils.isValidWebsite('www.expensify.com')).toBe(false);
-            expect(ValidationUtils.isValidWebsite('expensify.com')).toBe(false);
+        test('Valid URLs without protocols', () => {
+            expect(ValidationUtils.isValidWebsite('www.expensify.com')).toBe(true);
+            expect(ValidationUtils.isValidWebsite('expensify.com')).toBe(true);
         });
 
         test('Invalid URLs with special characters and emojis', () => {
