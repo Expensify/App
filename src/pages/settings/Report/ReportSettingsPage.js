@@ -61,7 +61,6 @@ const defaultProps = {
     reports: {},
 };
 
-
 class ReportSettingsPage extends Component {
     constructor(props) {
         super(props);
@@ -159,76 +158,42 @@ class ReportSettingsPage extends Component {
                         onCloseButtonPress={Navigation.dismissModal}
                     />
                     <MenuItemWithTopDescription
-                        title={this.props.report.reportName}
-                        description={this.props.translate('newRoomPage.roomName')}
-                        onPress={() => Navigation.navigate(ROUTES.getReportSettingsRoomNameRoute(this.props.report.reportID))}
-                    />
-                    <MenuItemWithTopDescription
+                        shouldShowRightIcon
                         title={this.props.report.notificationPreference}
                         description={this.props.translate('notificationPreferences.label')}
                         onPress={() => Navigation.navigate(ROUTES.getReportSettingsNotificationPreferencesRoute(this.props.report.reportID))}
                     />
-                    <Form
-                        formID={ONYXKEYS.FORMS.ROOM_SETTINGS_FORM}
-                        submitButtonText={this.props.translate('common.save')}
-                        style={[styles.mh5, styles.mt5, styles.flexGrow1]}
-                        validate={this.validate}
-                        onSubmit={values => !shouldDisableRename && this.updatePolicyRoomName(values)}
-                        scrollContextEnabled
-                        isSubmitButtonVisible={shouldShowRoomName && !shouldDisableRename}
-                        enabledWhenOffline
-                    >
-                        <View>
-                            <View style={[styles.mt2]}>
-                                <Picker
-                                    label={this.props.translate('notificationPreferences.label')}
-                                    onInputChange={(notificationPreference) => {
-                                        if (this.props.report.notificationPreference === notificationPreference) {
-                                            return;
-                                        }
-
-                                        Report.updateNotificationPreference(
-                                            this.props.report.reportID,
-                                            this.props.report.notificationPreference,
-                                            notificationPreference,
-                                        );
-                                    }}
-                                    items={this.getNotificationPreferenceOptions()}
-                                    value={this.props.report.notificationPreference}
-                                />
-                            </View>
-                        </View>
-                        {shouldShowRoomName && (
-                            <View style={styles.mt4}>
-                                <OfflineWithFeedback
-                                    pendingAction={lodashGet(this.props.report, 'pendingFields.reportName', null)}
-                                    errors={lodashGet(this.props.report, 'errorFields.reportName', null)}
-                                    onClose={() => Report.clearPolicyRoomNameErrors(this.props.report.reportID)}
-                                >
-                                    <View style={[styles.flexRow]}>
-                                        <View style={[styles.flex3]}>
-                                            {shouldDisableRename ? (
-                                                <View>
-                                                    <Text style={[styles.textLabelSupporting, styles.lh16, styles.mb1]} numberOfLines={1}>
-                                                        {this.props.translate('newRoomPage.roomName')}
-                                                    </Text>
-                                                    <Text numberOfLines={1} style={[styles.optionAlternateText, styles.pre]}>
-                                                        {this.props.report.reportName}
-                                                    </Text>
-                                                </View>
-                                            )
-                                                : (
-                                                    <MenuItemWithTopDescription
-                                                        title={this.props.report.reportName}
-                                                        description={this.props.translate('newRoomPage.roomName')}
-                                                        onPress={() => Navigation.navigate(ROUTES.getReportSettingsRoute(this.props.report.reportID))}
-                                                    />
-                                                )}
+                    {shouldShowRoomName && (
+                        <OfflineWithFeedback
+                            pendingAction={lodashGet(this.props.report, 'pendingFields.reportName', null)}
+                            errors={lodashGet(this.props.report, 'errorFields.reportName', null)}
+                            onClose={() => Report.clearPolicyRoomNameErrors(this.props.report.reportID)}
+                        >
+                            <View style={[styles.flexRow]}>
+                                <View style={[styles.flex3]}>
+                                    {shouldDisableRename ? (
+                                        <View>
+                                            <Text style={[styles.textLabelSupporting, styles.lh16, styles.mb1]} numberOfLines={1}>
+                                                {this.props.translate('newRoomPage.roomName')}
+                                            </Text>
+                                            <Text numberOfLines={1} style={[styles.optionAlternateText, styles.pre]}>
+                                                {this.props.report.reportName}
+                                            </Text>
                                         </View>
-                                    </View>
-                                </OfflineWithFeedback>
+                                    )
+                                        : (
+                                            <MenuItemWithTopDescription
+                                                shouldShowRightIcon
+                                                title={this.props.report.reportName}
+                                                description={this.props.translate('newRoomPage.roomName')}
+                                                onPress={() => Navigation.navigate(ROUTES.getReportSettingsRoomNameRoute(this.props.report.reportID))}
+                                            />
+                                        )}
+                                </View>
                             </View>
-                        )}
+                        </OfflineWithFeedback>
+                    )}
+                    <View style={[styles.ph5]}>
                         {linkedWorkspace && (
                             <View style={[styles.mt4]}>
                                 <Text style={[styles.textLabelSupporting, styles.lh16, styles.mb1]} numberOfLines={1}>
@@ -256,7 +221,7 @@ class ReportSettingsPage extends Component {
                                 </Text>
                             </View>
                         )}
-                    </Form>
+                    </View>
                 </FullPageNotFoundView>
             </ScreenWrapper>
         );
