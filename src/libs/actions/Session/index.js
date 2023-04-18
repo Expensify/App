@@ -50,6 +50,17 @@ Onyx.connect({
 });
 
 /**
+ * @private
+ * @returns {string}
+ */
+function getDeviceInfoForLogin() {
+    return JSON.stringify({
+        ...Device.getDeviceInfo(),
+        parentLogin: credentials.login,
+    });
+}
+
+/**
  * Clears the Onyx store and redirects user to the sign in page
  */
 function signOut() {
@@ -338,7 +349,7 @@ function signIn(password, validateCode, twoFactorAuthCode, preferredLocale = CON
         twoFactorAuthCode,
         email: credentials.login,
         preferredLocale,
-        deviceInfo: JSON.stringify(Device.getDeviceInfo()),
+        deviceInfo: getDeviceInfoForLogin(),
     };
 
     // Conditionally pass a password or validateCode to command since we temporarily allow both flows
@@ -406,7 +417,7 @@ function signInWithValidateCode(accountID, validateCode, twoFactorAuthCode) {
         accountID,
         validateCode,
         twoFactorAuthCode,
-        deviceInfo: JSON.stringify(Device.getDeviceInfo()),
+        deviceInfo: getDeviceInfoForLogin(),
     }, {optimisticData, successData, failureData});
 }
 
