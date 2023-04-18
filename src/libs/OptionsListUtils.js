@@ -4,6 +4,7 @@ import Onyx from 'react-native-onyx';
 import lodashOrderBy from 'lodash/orderBy';
 import lodashGet from 'lodash/get';
 import Str from 'expensify-common/lib/str';
+import {parsePhoneNumber} from 'awesome-phonenumber';
 import ONYXKEYS from '../ONYXKEYS';
 import CONST from '../CONST';
 import * as ReportUtils from './ReportUtils';
@@ -681,7 +682,7 @@ function getOptions(reports, personalDetails, {
     if (login && (noOptions || noOptionsMatchExactly)
         && !isCurrentUser({login})
         && _.every(selectedOptions, option => option.login !== login)
-        && ((Str.isValidEmail(login) && !Str.isDomainEmail(login)) || Str.isValidPhone(login))
+        && ((Str.isValidEmail(login) && !Str.isDomainEmail(login)) || parsePhoneNumber(login).valid)
         && (!_.find(loginOptionsToExclude, loginOptionToExclude => loginOptionToExclude.login === addSMSDomainIfPhoneNumber(login).toLowerCase()))
         && (login !== CONST.EMAIL.CHRONOS || Permissions.canUseChronos(betas))
     ) {

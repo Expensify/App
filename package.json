@@ -65,6 +65,7 @@
     "@react-navigation/native": "6.0.13",
     "@react-navigation/stack": "6.3.1",
     "@ua/react-native-airship": "^15.2.0",
+    "awesome-phonenumber": "^5.4.0",
     "babel-plugin-transform-remove-console": "^6.9.4",
     "babel-polyfill": "^6.26.0",
     "dom-serializer": "^0.2.2",
