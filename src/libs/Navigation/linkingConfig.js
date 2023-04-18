@@ -30,6 +30,7 @@ export default {
             [SCREENS.TRANSITION_FROM_OLD_DOT]: ROUTES.TRANSITION_FROM_OLD_DOT,
             Concierge: ROUTES.CONCIERGE,
             AppleOAuth: ROUTES.APPLEOAUTH,
+            AppleOAuthReceiver: ROUTES.APPLEOAUTHRECEIVER,
 
             // Modal Screens
             Settings: {
