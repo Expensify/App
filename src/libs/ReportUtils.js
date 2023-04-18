@@ -1009,7 +1009,7 @@ function buildOptimisticIOUReport(ownerEmail, userEmail, total, chatReportID, cu
 }
 
 /**
- * @param {String} type - IOUReportAction type. Can be oneOf(create, decline, cancel, pay, split)
+ * @param {String} type - IOUReportAction type. Can be oneOf(create, delete, pay, split)
  * @param {Number} total - IOU total in cents
  * @param {Array} participants - List of logins for the IOU participants, excluding the current user login
  * @param {String} comment - IOU comment
@@ -1070,14 +1070,14 @@ function getIOUReportActionMessage(type, total, participants, comment, currency,
 /**
  * Builds an optimistic IOU reportAction object
  *
- * @param {String} type - IOUReportAction type. Can be oneOf(create, decline, cancel, pay, split).
+ * @param {String} type - IOUReportAction type. Can be oneOf(create, delete, pay, split).
  * @param {Number} amount - IOU amount in cents.
  * @param {String} currency
  * @param {String} comment - User comment for the IOU.
  * @param {Array}  participants - An array with participants details.
  * @param {String} [paymentType] - Only required if the IOUReportAction type is 'pay'. Can be oneOf(elsewhere, payPal, Expensify).
- * @param {String} [iouTransactionID] - Only required if the IOUReportAction type is oneOf(cancel, decline). Generates a randomID as default.
- * @param {String} [iouReportID] - Only required if the IOUReportActions type is oneOf(decline, cancel, pay). Generates a randomID as default.
+ * @param {String} [iouTransactionID] - Only required if the IOUReportAction type is 'delete'. Generates a randomID as default.
+ * @param {String} [iouReportID] - Only required if the IOUReportActions type is oneOf(delete, pay). Generates a randomID as default.
  * @param {Boolean} [isSettlingUp] - Whether we are settling up an IOU.
  *
  * @returns {Object}
