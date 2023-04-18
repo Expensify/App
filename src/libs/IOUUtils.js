@@ -72,7 +72,7 @@ function updateIOUOwnerAndTotal(iouReport, actorEmail, amount, currency, type = 
  *
  * @param {Array} reportActions
  * @param {Object} iouReport
- * @param {String} type - iouReportAction type. Can be oneOf(create, decline, cancel, pay, split)
+ * @param {String} type - iouReportAction type. Can be oneOf(create, delete, pay, split)
  * @param {String} pendingAction
  * @param {Boolean} filterRequestsInDifferentCurrency
  *
@@ -110,11 +110,11 @@ function isIOUReportPendingCurrencyConversion(reportActions, iouReport) {
         .sort()
         .value();
 
-    // Pending cancelled money requests that are in a different currency
+    // Pending deleted money requests that are in a different currency
     const pendingCancelledRequestsInDifferentCurrency = _.chain(getIOUReportActions(
         reportActions,
         iouReport,
-        CONST.IOU.REPORT_ACTION_TYPE.CANCEL,
+        CONST.IOU.REPORT_ACTION_TYPE.DELETE,
         CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
         true,
     )).map(action => action.originalMessage.IOUTransactionID)

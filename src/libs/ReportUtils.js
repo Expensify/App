@@ -1047,12 +1047,6 @@ function getIOUReportActionMessage(type, total, participants, comment, currency,
         case CONST.IOU.REPORT_ACTION_TYPE.SPLIT:
             iouMessage = `Split ${amount} with ${who}${comment && ` for ${comment}`}`;
             break;
-        case CONST.IOU.REPORT_ACTION_TYPE.CANCEL:
-            iouMessage = `Cancelled the ${amount} request${comment && ` for ${comment}`}`;
-            break;
-        case CONST.IOU.REPORT_ACTION_TYPE.DECLINE:
-            iouMessage = `Declined the ${amount} request${comment && ` for ${comment}`}`;
-            break;
         case CONST.IOU.REPORT_ACTION_TYPE.DELETE:
             iouMessage = `deleted the ${amount} request${comment && ` for ${comment}`}`;
             break;
