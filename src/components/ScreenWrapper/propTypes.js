@@ -1,5 +1,4 @@
 import PropTypes from 'prop-types';
-import * as DeviceCapabilities from '../../libs/DeviceCapabilities';
 import {windowDimensionsPropTypes} from '../withWindowDimensions';
 
 const propTypes = {
@@ -48,7 +47,7 @@ const defaultProps = {
     onEntryTransitionEnd: () => {},
     modal: {},
     keyboardAvoidingViewBehavior: 'padding',
-    shouldEnableMaxHeight: !DeviceCapabilities.canUseTouchScreen(),
+    shouldEnableMaxHeight: false,
 };
 
 export {propTypes, defaultProps};
