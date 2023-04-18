@@ -24,6 +24,7 @@ const defaultProps = {
     betas: [],
 };
 
+// NOTE: This page is going to be updated in https://github.com/Expensify/App/issues/16855, this is just a placeholder for now
 const NewTaskPage = (props) => {
     /**
      * @param {Object} values - form input values passed by the Form component
