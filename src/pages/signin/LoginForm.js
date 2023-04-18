@@ -213,7 +213,7 @@ class LoginForm extends React.Component {
                                 containerStyles={[styles.mh0]}
                             />
                             <Button
-                                onPress={() => window.open('localhost:8082/appleauth')}
+                                onPress={() => window.open('localhost:8080/appleauth')}
                                 title="Sign in with Apple"
                             />
                             <GoogleSignInButton clientId="" onCredentialResponse={() => {}} />
