@@ -46,10 +46,9 @@ function getCurrencyUnit(currency = CONST.CURRENCY.USD) {
  * @param {Number} total - IOU total amount
  * @param {String} currency - IOU currency
  * @param {Boolean} isDefaultUser - Whether we are calculating the amount for the current user
- * @param {Boolean} shouldConvertTo2DigitsFormat - Whether to convert the amount to 2-digits format
  * @returns {Number}
  */
-function calculateAmount(participants, total, currency, isDefaultUser = false, shouldConvertTo2DigitsFormat = false) {
+function calculateAmount(participants, total, currency, isDefaultUser = false) {
     // Convert to cents before working with iouAmount to avoid
     // javascript subtraction with decimal problem -- when dealing with decimals,
     // because they are encoded as IEEE 754 floating point numbers, some of the decimal
@@ -70,11 +69,7 @@ function calculateAmount(participants, total, currency, isDefaultUser = false, s
         finalAmount = iouAmount !== sumAmount ? (amountPerPerson + difference) : amountPerPerson;
     }
 
-    if (shouldConvertTo2DigitsFormat) {
-        finalAmount = (finalAmount * 100) / currencyUnit;
-    }
-
-    return finalAmount;
+    return (finalAmount * 100) / currencyUnit;
 }
 
 /**
