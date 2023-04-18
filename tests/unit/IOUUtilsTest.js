@@ -28,7 +28,7 @@ function createIOUReportAction(type, amount, currency, {IOUTransactionID, isOnli
 
 function deleteMoneyRequest(moneyRequestAction, {isOnline} = {}) {
     createIOUReportAction(
-        'cancel',
+        CONST.IOU.REPORT_ACTION_TYPE.DELETE,
         moneyRequestAction.originalMessage.amount,
         moneyRequestAction.originalMessage.currency,
         {
