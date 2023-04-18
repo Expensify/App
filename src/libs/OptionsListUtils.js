@@ -863,11 +863,11 @@ function getHeaderMessage(hasSelectableOptions, hasUserToInvite, searchValue, ma
         return Localize.translate(preferredLocale, 'common.maxParticipantsReached', {count: CONST.REPORT.MAXIMUM_PARTICIPANTS});
     }
 
-    const isValidPhone = Str.isValidPhone(LoginUtils.appendCountryCode(searchValue));
+    const isValidPhone = parsePhoneNumber(LoginUtils.appendCountryCode(searchValue.replace(CONST.REGEX.NON_NUMERIC_WITH_PLUS, '')));
 
     const isValidEmail = Str.isValidEmail(searchValue);
 
-    if (searchValue && CONST.REGEX.DIGITS_AND_PLUS.test(searchValue) && !isValidPhone) {
+    if (searchValue && CONST.REGEX.DIGITS_AND_PLUS.test(searchValue) && !isValidPhone.valid) {
         return Localize.translate(preferredLocale, 'messages.errorMessageInvalidPhone');
     }
 
