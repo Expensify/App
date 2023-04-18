@@ -134,7 +134,7 @@ function getPolicyExpenseReportOptions(report) {
  * @return {String}
  */
 function addSMSDomainIfPhoneNumber(login) {
-    if (Str.isValidPhone(login) && !Str.isValidEmail(login)) {
+    if (parsePhoneNumber(login).possible && !Str.isValidEmail(login)) {
         const smsLogin = login + CONST.SMS.DOMAIN;
         return smsLogin.includes('+') ? smsLogin : `+${countryCodeByIP}${smsLogin}`;
     }
@@ -532,9 +532,7 @@ function getOptions(reports, personalDetails, {
     let personalDetailsOptions = [];
     const reportMapForLogins = {};
     const parsedPhoneNumber = parsePhoneNumber(LoginUtils.appendCountryCode(searchInputValue));
-    console.log(parsedPhoneNumber);
     const searchValue = parsedPhoneNumber.possible ? parsedPhoneNumber.number.e164 : searchInputValue;
-    console.log(searchInputValue);
 
     // Filter out all the reports that shouldn't be displayed
     const filteredReports = _.filter(reports, report => ReportUtils.shouldReportBeInOptionList(

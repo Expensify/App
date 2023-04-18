@@ -5,6 +5,7 @@ import _ from 'underscore';
 import {withOnyx} from 'react-native-onyx';
 import Str from 'expensify-common/lib/str';
 import lodashGet from 'lodash/get';
+import {parsePhoneNumber} from 'awesome-phonenumber';
 import styles from '../styles/styles';
 import Text from '../components/Text';
 import ONYXKEYS from '../ONYXKEYS';
@@ -73,7 +74,7 @@ const defaultProps = {
  */
 const getPhoneNumber = (details) => {
     // If the user hasn't set a displayName, it is set to their phone number, so use that
-    if (Str.isValidPhone(details.displayName)) {
+    if (parsePhoneNumber(details.displayName).possible) {
         return details.displayName;
     }
 

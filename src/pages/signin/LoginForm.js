@@ -4,6 +4,7 @@ import {withOnyx} from 'react-native-onyx';
 import PropTypes from 'prop-types';
 import _ from 'underscore';
 import Str from 'expensify-common/lib/str';
+import {parsePhoneNumber} from 'awesome-phonenumber';
 import styles from '../../styles/styles';
 import Text from '../../components/Text';
 import * as Session from '../../libs/actions/Session';
@@ -144,7 +145,7 @@ class LoginForm extends React.Component {
         }
 
         const phoneLogin = LoginUtils.getPhoneNumberWithoutSpecialChars(login);
-        const isValidPhoneLogin = Str.isValidPhone(phoneLogin);
+        const isValidPhoneLogin = parsePhoneNumber(phoneLogin).possible;
 
         if (!Str.isValidEmail(login) && !isValidPhoneLogin) {
             if (ValidationUtils.isNumericWithSpecialChars(login)) {

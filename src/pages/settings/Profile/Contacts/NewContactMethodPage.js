@@ -6,6 +6,7 @@ import {withOnyx} from 'react-native-onyx';
 import {compose} from 'underscore';
 import lodashGet from 'lodash/get';
 import Str from 'expensify-common/lib/str';
+import {parsePhoneNumber} from 'awesome-phonenumber';
 import Button from '../../../../components/Button';
 import FixedFooter from '../../../../components/FixedFooter';
 import HeaderWithCloseButton from '../../../../components/HeaderWithCloseButton';
@@ -79,7 +80,7 @@ class NewContactMethodPage extends Component {
         const phoneLogin = LoginUtils.getPhoneNumberWithoutSpecialChars(login);
 
         return (Permissions.canUsePasswordlessLogins(this.props.betas) || this.state.password)
-            && (Str.isValidEmail(login) || Str.isValidPhone(phoneLogin));
+            && (Str.isValidEmail(login) || parsePhoneNumber(phoneLogin).possible);
     }
 
     submitForm() {
