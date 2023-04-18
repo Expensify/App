@@ -279,6 +279,7 @@ class ReportActionItem extends Component {
                             <View
                                 style={StyleUtils.getReportActionItemStyle(
                                     hovered
+                                    || isWhisper
                                     || this.state.isContextMenuActive
                                     || this.props.draftMessage,
                                     (this.props.network.isOffline && this.props.action.isLoading) || this.props.action.error,
@@ -298,9 +299,9 @@ class ReportActionItem extends Component {
                                     needsOffscreenAlphaCompositing={this.props.action.actionName === CONST.REPORT.ACTIONS.TYPE.IOU}
                                 >
                                     {isWhisper && (
-                                        <View style={[styles.chatItem]}>
-                                            <View style={[styles.chatItemRight, styles.mr3]}>
-                                                <Icon src={Expensicons.Eye} />
+                                        <View style={[styles.flexRow, styles.pl5, styles.pt2]}>
+                                            <View style={[styles.pl6, styles.mr3]}>
+                                                <Icon src={Expensicons.Eye} small />
                                             </View>
                                             <Text style={[styles.chatItemMessageHeaderTimestamp]}>
                                                 {this.props.translate('reportActionContextMenu.onlyVisible')}
@@ -318,12 +319,16 @@ class ReportActionItem extends Component {
                                     )}
                                     {!this.props.displayAsGroup
                                         ? (
-                                            <ReportActionItemSingle action={this.props.action} showHeader={!this.props.draftMessage}>
+                                            <ReportActionItemSingle
+                                                action={this.props.action}
+                                                showHeader={!this.props.draftMessage}
+                                                wrapperStyles={[styles.chatItem, isWhisper && styles.pt1]}
+                                            >
                                                 {this.renderItemContent(hovered || this.state.isContextMenuActive)}
                                             </ReportActionItemSingle>
                                         )
                                         : (
-                                            <ReportActionItemGrouped>
+                                            <ReportActionItemGrouped wrapperStyles={[styles.chatItem, isWhisper && styles.pt1]}>
                                                 {this.renderItemContent(hovered || this.state.isContextMenuActive)}
                                             </ReportActionItemGrouped>
                                         )}
