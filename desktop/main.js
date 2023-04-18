@@ -366,6 +366,13 @@ const mainWindow = (() => {
                     return denial;
                 }
 
+                if (/^https:\/\/appleid.apple.com\/auth\/authorize/.test(url)) {
+                    console.log('MATCHED URL');
+                    return {action: 'allow'};
+                }
+
+                // https://appleid.apple.com/auth/authorize
+
                 // Open every other protocol in the default browser, not Electron
                 shell.openExternal(url);
                 return denial;
