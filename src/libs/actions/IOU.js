@@ -536,10 +536,9 @@ function splitBillAndOpenReport(participants, currentUserLogin, amount, comment,
 /**
  * @param {String} chatReportID
  * @param {String} iouReportID
- * @param {String} type - cancel|decline
  * @param {Object} moneyRequestAction - the IOU reportAction we are deleting
  */
-function deleteMoneyRequest(chatReportID, iouReportID, type, moneyRequestAction) {
+function deleteMoneyRequest(chatReportID, iouReportID, moneyRequestAction) {
     const chatReport = chatReports[`${ONYXKEYS.COLLECTION.REPORT}${chatReportID}`];
     const iouReport = iouReports[`${ONYXKEYS.COLLECTION.REPORT}${iouReportID}`];
     const transactionID = moneyRequestAction.originalMessage.IOUTransactionID;
@@ -547,7 +546,7 @@ function deleteMoneyRequest(chatReportID, iouReportID, type, moneyRequestAction)
     // Get the amount we are cancelling
     const amount = moneyRequestAction.originalMessage.amount;
     const optimisticReportAction = ReportUtils.buildOptimisticIOUReportAction(
-        type,
+        CONST.IOU.REPORT_ACTION_TYPE.DELETE,
         amount,
         moneyRequestAction.originalMessage.currency,
         Str.htmlDecode(moneyRequestAction.originalMessage.comment),
@@ -558,7 +557,7 @@ function deleteMoneyRequest(chatReportID, iouReportID, type, moneyRequestAction)
     );
 
     const currentUserEmail = optimisticReportAction.actorEmail;
-    const updatedIOUReport = IOUUtils.updateIOUOwnerAndTotal(iouReport, currentUserEmail, amount, moneyRequestAction.originalMessage.currency, type);
+    const updatedIOUReport = IOUUtils.updateIOUOwnerAndTotal(iouReport, currentUserEmail, amount, moneyRequestAction.originalMessage.currency, CONST.IOU.REPORT_ACTION_TYPE.DELETE);
 
     chatReport.lastMessageText = optimisticReportAction.message[0].text;
     chatReport.lastMessageHtml = optimisticReportAction.message[0].html;
@@ -605,7 +604,7 @@ function deleteMoneyRequest(chatReportID, iouReportID, type, moneyRequestAction)
                 [optimisticReportAction.reportActionID]: {
                     pendingAction: null,
                     errors: {
-                        [DateUtils.getMicroseconds()]: Localize.translateLocal('iou.error.genericCancelFailureMessage', {type}),
+                        [DateUtils.getMicroseconds()]: Localize.translateLocal('iou.error.genericDeleteFailureMessage', {type: CONST.IOU.REPORT_ACTION_TYPE.DELETE}),
                     },
                 },
             },
