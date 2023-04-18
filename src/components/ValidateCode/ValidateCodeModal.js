@@ -1,4 +1,4 @@
-import React, {PureComponent} from 'react';
+import React from 'react';
 import PropTypes from 'prop-types';
 import {compose} from 'underscore';
 import {withOnyx} from 'react-native-onyx';
@@ -85,7 +85,6 @@ function ValidateCodeModal(props) {
             </View>
         </View>
     );
-
 }
 
 ValidateCodeModal.propTypes = propTypes;
