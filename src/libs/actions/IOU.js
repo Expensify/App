@@ -543,7 +543,7 @@ function deleteMoneyRequest(chatReportID, iouReportID, moneyRequestAction) {
     const iouReport = iouReports[`${ONYXKEYS.COLLECTION.REPORT}${iouReportID}`];
     const transactionID = moneyRequestAction.originalMessage.IOUTransactionID;
 
-    // Get the amount we are cancelling
+    // Get the amount we are deleting
     const amount = moneyRequestAction.originalMessage.amount;
     const optimisticReportAction = ReportUtils.buildOptimisticIOUReportAction(
         CONST.IOU.REPORT_ACTION_TYPE.DELETE,
