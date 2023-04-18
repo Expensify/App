@@ -1707,21 +1707,37 @@ function canLeaveRoom(report, isPolicyMember) {
     return true;
 }
 
+/**
+ * Returns display names for those that can see the whisper.
+ * However, it returns "you" if only the current user can see it besides the person that sent it.
+ *
+ * @param {string[]} participants
+ * @returns {Boolean}
+ */
 function getWhisperDisplayNames(participants) {
-    const participantsWithoutCurrentUser = _.without(participants, sessionEmail);
-    const isMultipleParticipantReport = participantsWithoutCurrentUser.length > 1;
+    const isOneOnOneWhisper = this.isOnlyVisibleByCurrentUser(participants);
 
-    // If we removed the user seeing the whispers, it means it's only visible to "you"
-    if (!isMultipleParticipantReport) {
+    // If we removed all users, it means it's only visible to "you"
+    if (!isOneOnOneWhisper) {
         return Localize.translateLocal('common.youAfterPreposition');
     }
 
     const displayNames = [];
-    for (let i = 0; i < participantsWithoutCurrentUser.length; i++) {
-        const login = participantsWithoutCurrentUser[i];
-        displayNames.push(getDisplayNameForParticipant(login, isMultipleParticipantReport));
+    for (let i = 0; i < participants.length; i++) {
+        const login = participants[i];
+        displayNames.push(getDisplayNameForParticipant(login, !isOneOnOneWhisper));
     }
     return displayNames.join(', ');
+}
+
+/**
+ * Returns whether a whisper is only visible by the current user and whoever sent it.
+ * @param {string[]} participants
+ * @returns {Boolean}
+ */
+function isOnlyVisibleByCurrentUser(participants) {
+    const participantsWithoutCurrentUser = _.without(participants, sessionEmail);
+    return participantsWithoutCurrentUser.length > 0;
 }
 
 export {
@@ -1778,6 +1794,7 @@ export {
     getDisplayNameForParticipant,
     isExpenseReport,
     isIOUReport,
+    isOnlyVisibleByCurrentUser,
     chatIncludesChronos,
     getAvatar,
     isDefaultAvatar,

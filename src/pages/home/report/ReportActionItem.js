@@ -248,6 +248,7 @@ class ReportActionItem extends Component {
         const whisperedTo = lodashGet(this.props.action, 'whisperedTo', []);
         const isWhisper = _.size(whisperedTo) > 0;
         const isMultipleParticipant = _.size(whisperedTo) > 1;
+        const isOnlyVisibleByUser = ReportUtils.isOnlyVisibleByCurrentUser(_.keys(whisperedTo));
         const displayNamesWithTooltips = isWhisper ? ReportUtils.getDisplayNamesWithTooltips(whisperedTo, isMultipleParticipant) : [];
         return (
             <PressableWithSecondaryInteraction
@@ -293,14 +294,15 @@ class ReportActionItem extends Component {
                                             </View>
                                             <Text style={[styles.chatItemMessageHeaderTimestamp]}>
                                                 {this.props.translate('reportActionContextMenu.onlyVisible')}
+                                                &nbsp;
                                             </Text>
                                             <DisplayNames
-                                                fullTitle={ReportUtils.getWhisperDisplayNames(whisperedTo)}
+                                                fullTitle={ReportUtils.getWhisperDisplayNames(_.keys(whisperedTo))}
                                                 displayNamesWithTooltips={displayNamesWithTooltips}
                                                 tooltipEnabled
                                                 numberOfLines={1}
                                                 textStyles={[styles.chatItemMessageHeaderTimestamp]}
-                                                shouldUseFullTitle={false}
+                                                shouldUseFullTitle={!isOnlyVisibleByUser}
                                             />
                                         </View>
                                     )}
