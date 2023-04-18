@@ -1,5 +1,5 @@
 import React from 'react';
-import {View} from 'react-native';
+import {View, FlatList, Pressable} from 'react-native';
 import PropTypes from 'prop-types';
 import {withOnyx} from 'react-native-onyx';
 import _ from 'underscore';
@@ -43,14 +43,25 @@ class AttachmentCarousel extends React.Component {
     constructor(props) {
         super(props);
 
+        this.scrollRef = React.createRef();
         this.canUseTouchScreen = DeviceCapabilities.canUseTouchScreen();
+        this.viewabilityConfig = {
+            // To facilitate paging through the attachments, we want to consider an item "viewable" when it is
+            // more than 90% visible. When that happens we update the page index in the state.
+            itemVisiblePercentThreshold: 95,
+        };
+
         this.cycleThroughAttachments = this.cycleThroughAttachments.bind(this);
+        this.getItemLayout = this.getItemLayout.bind(this);
+        this.renderItem = this.renderItem.bind(this);
+        this.renderCell = this.renderCell.bind(this);
+        this.updatePage = this.updatePage.bind(this);
 
         this.state = {
+            attachments: [],
             source: this.props.source,
             shouldShowArrow: this.canUseTouchScreen,
-            isForwardDisabled: true,
-            isBackDisabled: true,
+            containerWidth: 0,
         };
     }
 
@@ -64,6 +75,7 @@ class AttachmentCarousel extends React.Component {
         if (previousReportActionsCount === currentReportActionsCount) {
             return;
         }
+
         this.makeStateWithReports();
     }
 
@@ -75,12 +87,25 @@ class AttachmentCarousel extends React.Component {
     getAttachment(attachmentItem) {
         const source = _.get(attachmentItem, 'source', '');
         const file = _.get(attachmentItem, 'file', {name: ''});
-        this.props.onNavigate({source: addEncryptedAuthTokenToURL(source), file});
 
         return {
             source,
             file,
         };
+    }
+
+    /**
+     * Calculate items layout information to optimize scrolling performance
+     * @param {*} data
+     * @param {Number} index
+     * @returns {{offset: Number, length: Number, index: Number}}
+     */
+    getItemLayout(data, index) {
+        return ({
+            length: this.state.containerWidth,
+            offset: this.state.containerWidth * index,
+            index,
+        });
     }
 
     /**
@@ -92,10 +117,10 @@ class AttachmentCarousel extends React.Component {
     }
 
     /**
-     * This is called when there are new reports to set the state
+     * Map report actions to attachment items
      */
     makeStateWithReports() {
-        let page;
+        let page = 0;
         const actions = ReportActionsUtils.getSortedReportActions(_.values(this.props.reportActions), true);
 
         /**
@@ -124,50 +149,96 @@ class AttachmentCarousel extends React.Component {
             }
         });
 
-        const {file} = this.getAttachment(attachments[page]);
         this.setState({
             page,
             attachments,
-            file,
-            isForwardDisabled: page === 0,
-            isBackDisabled: page === attachments.length - 1,
         });
     }
 
     /**
      * Increments or decrements the index to get another selected item
      * @param {Number} deltaSlide
-    */
+     */
     cycleThroughAttachments(deltaSlide) {
-        if ((deltaSlide > 0 && this.state.isForwardDisabled) || (deltaSlide < 0 && this.state.isBackDisabled)) {
+        const nextIndex = this.state.page - deltaSlide;
+        const nextItem = this.state.attachments[nextIndex];
+
+        if (!nextItem) {
             return;
         }
 
-        this.setState(({attachments, page}) => {
-            const nextIndex = page - deltaSlide;
-            const {source, file} = this.getAttachment(attachments[nextIndex]);
-            return {
-                page: nextIndex,
-                source,
-                file,
-                isBackDisabled: nextIndex === attachments.length - 1,
-                isForwardDisabled: nextIndex === 0,
-            };
-        });
+        // The sliding transition is a bit too much on web, because of the wider and bigger images,
+        // so we only enable it for mobile
+        this.scrollRef.current.scrollToIndex({index: nextIndex, animated: this.canUseTouchScreen});
+    }
+
+    /**
+     * Updates the page state when the user navigates between attachments
+     * @param {Array<{item: *, index: Number}>} viewableItems
+     */
+    updatePage({viewableItems}) {
+        // Since we can have only one item in view at a time, we can use the first item in the array
+        // to get the index of the current page
+        const entry = _.first(viewableItems);
+        if (!entry) {
+            return;
+        }
+
+        const page = entry.index;
+        const {source, file} = this.getAttachment(entry.item);
+        this.props.onNavigate({source: addEncryptedAuthTokenToURL(source), file});
+        this.setState({page, source});
+    }
+
+    /**
+     * Defines how a container for a single attachment should be rendered
+     * @param {Object} props
+     * @returns {JSX.Element}
+     */
+    renderCell(props) {
+        const style = [props.style, styles.h100, {width: this.state.containerWidth}];
+
+        // Touch screen devices can toggle between showing and hiding the arrows by tapping on the image/container
+        // Other devices toggle the arrows through hovering (mouse) instead (see render() root element)
+        if (!this.canUseTouchScreen) {
+            // eslint-disable-next-line react/jsx-props-no-spreading
+            return <View {...props} style={style} />;
+        }
+
+        return (
+            <Pressable
+                // eslint-disable-next-line react/jsx-props-no-spreading
+                {...props}
+                onPress={() => this.setState(current => ({shouldShowArrow: !current.shouldShowArrow}))}
+                style={style}
+            />
+        );
+    }
+
+    /**
+     * Defines how a single attachment should be rendered
+     * @param {{ source: String, file: { name: String } }} item
+     * @returns {JSX.Element}
+     */
+    renderItem({item}) {
+        const authSource = addEncryptedAuthTokenToURL(item.source);
+        return <AttachmentView source={authSource} file={item.file} />;
     }
 
     render() {
-        const isPageSet = Number.isInteger(this.state.page);
-        const authSource = addEncryptedAuthTokenToURL(this.state.source);
+        const isForwardDisabled = this.state.page === 0;
+        const isBackDisabled = this.state.page === _.size(this.state.attachments) - 1;
+
         return (
             <View
-                style={[styles.attachmentModalArrowsContainer]}
+                style={[styles.attachmentModalArrowsContainer, styles.flex1]}
+                onLayout={({nativeEvent}) => this.setState({containerWidth: nativeEvent.layout.width + 1})}
                 onMouseEnter={() => this.toggleArrowsVisibility(true)}
                 onMouseLeave={() => this.toggleArrowsVisibility(false)}
             >
-                {(isPageSet && this.state.shouldShowArrow) && (
+                {this.state.shouldShowArrow && (
                     <>
-                        {!this.state.isBackDisabled && (
+                        {!isBackDisabled && (
                             <View style={styles.leftAttachmentArrow}>
                                 <Tooltip text={this.props.translate('common.previous')}>
                                     <Button
@@ -181,7 +252,7 @@ class AttachmentCarousel extends React.Component {
                                 </Tooltip>
                             </View>
                         )}
-                        {!this.state.isForwardDisabled && (
+                        {!isForwardDisabled && (
                             <View style={styles.rightAttachmentArrow}>
                                 <Tooltip text={this.props.translate('common.next')}>
                                     <Button
@@ -197,20 +268,47 @@ class AttachmentCarousel extends React.Component {
                         )}
                     </>
                 )}
-                <CarouselActions
-                    styles={[styles.attachmentModalArrowsContainer]}
-                    canSwipeLeft={!this.state.isBackDisabled}
-                    canSwipeRight={!this.state.isForwardDisabled}
-                    onPress={() => this.canUseTouchScreen && this.toggleArrowsVisibility(!this.state.shouldShowArrow)}
-                    onCycleThroughAttachments={this.cycleThroughAttachments}
-                >
-                    <AttachmentView
-                        onPress={() => this.toggleArrowsVisibility(!this.state.shouldShowArrow)}
-                        source={authSource}
-                        key={authSource}
-                        file={this.state.file}
+
+                {this.state.containerWidth > 0 && (
+                    <FlatList
+                        listKey="AttachmentCarousel"
+                        horizontal
+
+                        // Inverting the list for touchscreen devices that can swipe or have an animation when scrolling
+                        // promotes the natural feeling of swiping left/right to go to the next/previous image
+                        // We don't want to invert the list for desktop/web because this interferes with mouse
+                        // wheel or trackpad scrolling (in cases like document preview where you can scroll vertically)
+                        inverted={this.canUseTouchScreen}
+
+                        decelerationRate="fast"
+                        showsHorizontalScrollIndicator={false}
+                        bounces={false}
+
+                        // Scroll only one image at a time no matter how fast the user swipes
+                        disableIntervalMomentum
+                        pagingEnabled
+                        snapToAlignment="start"
+                        snapToInterval={this.state.containerWidth}
+
+                        // Enable scrolling by swiping on mobile (touch) devices only
+                        // disable scroll for desktop/browsers because they add their scrollbars
+                        scrollEnabled={this.canUseTouchScreen}
+                        ref={this.scrollRef}
+                        initialScrollIndex={this.state.page}
+                        initialNumToRender={3}
+                        windowSize={5}
+                        maxToRenderPerBatch={3}
+                        data={this.state.attachments}
+                        CellRendererComponent={this.renderCell}
+                        renderItem={this.renderItem}
+                        getItemLayout={this.getItemLayout}
+                        keyExtractor={item => item.source}
+                        viewabilityConfig={this.viewabilityConfig}
+                        onViewableItemsChanged={this.updatePage}
                     />
-                </CarouselActions>
+                )}
+
+                <CarouselActions onCycleThroughAttachments={this.cycleThroughAttachments} />
             </View>
         );
     }
