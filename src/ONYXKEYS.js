@@ -102,16 +102,17 @@ export default {
 
     // Collection Keys
     COLLECTION: {
+        DOWNLOAD: 'download_',
+        POLICY: 'policy_',
+        POLICY_MEMBER_LIST: 'policyMemberList_',
         REPORT: 'report_',
         REPORT_ACTIONS: 'reportActions_',
+        REPORT_ACTIONS_DRAFTS: 'reportActionsDrafts_',
         REPORT_DRAFT_COMMENT: 'reportDraftComment_',
         REPORT_DRAFT_COMMENT_NUMBER_OF_LINES: 'reportDraftCommentNumberOfLines_',
-        REPORT_ACTIONS_DRAFTS: 'reportActionsDrafts_',
-        REPORT_USER_IS_TYPING: 'reportUserIsTyping_',
-        POLICY: 'policy_',
         REPORT_IS_COMPOSER_FULL_SIZE: 'reportIsComposerFullSize_',
-        POLICY_MEMBER_LIST: 'policyMemberList_',
-        DOWNLOAD: 'download_',
+        REPORT_USER_IS_TYPING: 'reportUserIsTyping_',
+        TRANSACTION: 'transactions_',
     },
 
     // Indicates which locale should be used
@@ -187,6 +188,7 @@ export default {
         HOME_ADDRESS_FORM: 'homeAddressForm',
         NEW_ROOM_FORM: 'newRoomForm',
         ROOM_SETTINGS_FORM: 'roomSettingsForm',
+        MONEY_REQUEST_DESCRIPTION_FORM: 'moneyRequestDescriptionForm',
     },
 
     // Whether we should show the compose input or not

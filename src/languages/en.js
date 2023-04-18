@@ -129,9 +129,9 @@ export default {
         areYouSure: 'Are you sure?',
         verify: 'Verify',
         yesContinue: 'Yes, continue',
-        zipCodeExample: 'e.g. 12345, 12345-1234, 12345 1234',
         websiteExample: 'e.g. https://www.expensify.com',
-        format: ({zipSampleFormat}) => (zipSampleFormat ? `Format: ${zipSampleFormat}` : ''),
+        zipCodeExampleFormat: ({zipSampleFormat}) => (zipSampleFormat ? `e.g. ${zipSampleFormat}` : ''),
+        description: 'Description',
     },
     attachmentPicker: {
         cameraPermissionRequired: 'Camera access',
@@ -181,7 +181,7 @@ export default {
         tfaRequiredTitle: 'Two factor authentication\nrequired',
         tfaRequiredDescription: 'Please enter the two-factor authentication code\nwhere you are trying to sign in.',
     },
-    iOUConfirmationList: {
+    moneyRequestConfirmationList: {
         whoPaid: 'Who paid?',
         whoWasThere: 'Who was there?',
         whatsItFor: 'What\'s it for?',
@@ -201,12 +201,20 @@ export default {
     hello: 'Hello',
     phoneCountryCode: '1',
     welcomeText: {
-        welcome: 'Welcome to New Expensify! Enter your phone number or email to continue.',
-        welcomeEnterMagicCode: ({login}) => `It's always great to see a new face around here! Please enter the magic code sent to ${login}`,
+        getStarted: 'Get started below.',
+        welcomeBack: 'Welcome back!',
+        welcome: 'Welcome!',
         phrase2: 'Money talks. And now that chat and payments are in one place, it\'s also easy.',
         phrase3: 'Your payments get to you as fast as you can get your point across.',
-        welcomeBack: 'Welcome back to the New Expensify! Please enter your password.',
-        welcomeBackEnterMagicCode: ({login}) => `Welcome back! Please enter the magic code sent to ${login}`,
+        enterPassword: 'Please enter your password',
+        newFaceEnterMagicCode: ({login}) => `It's always great to see a new face around here! Please enter the magic code sent to ${login}`,
+        welcomeEnterMagicCode: ({login}) => `Please enter the magic code sent to ${login}`,
+    },
+    login: {
+        hero: {
+            header: 'Split bills, request payments, and chat with friends.',
+            body: 'Welcome to the future of Expensify, your new go-to place for financial collaboration with friends and teammates alike.',
+        },
     },
     reportActionCompose: {
         addAction: 'Actions',
@@ -295,6 +303,7 @@ export default {
     },
     iou: {
         amount: 'Amount',
+        cash: 'Cash',
         participants: 'Participants',
         splitBill: 'Split bill',
         requestMoney: 'Request money',
@@ -474,12 +483,14 @@ export default {
         gotIt: 'Got it',
     },
     addPayPalMePage: {
-        enterYourUsernameToGetPaidViaPayPal: 'Enter your username to get paid back via PayPal.',
+        enterYourUsernameToGetPaidViaPayPal: 'Get paid back via PayPal.',
         payPalMe: 'PayPal.me/',
         yourPayPalUsername: 'Your PayPal username',
         addPayPalAccount: 'Add PayPal account',
         growlMessageOnSave: 'Your PayPal username was successfully added',
         formatError: 'Invalid PayPal.me username',
+        checkListOf: 'Check the list of ',
+        supportedCurrencies: 'supported currencies',
     },
     addDebitCardPage: {
         addADebitCard: 'Add a debit card',
@@ -632,6 +643,7 @@ export default {
         },
         cannotGetAccountDetails: 'Couldn\'t retrieve account details, please try to sign in again.',
         loginForm: 'Login form',
+        notYou: ({user}) => `Not ${user}?`,
     },
     personalDetails: {
         error: {
@@ -756,6 +768,7 @@ export default {
     },
     messages: {
         errorMessageInvalidPhone: `Please enter a valid phone number without brackets or dashes. If you're outside the US please include your country code (e.g. ${CONST.EXAMPLE_PHONE_NUMBER}).`,
+        errorMessageInvalidEmail: 'Invalid email',
     },
     onfidoStep: {
         acceptTerms: 'By continuing with the request to activate your Expensify wallet, you confirm that you have read, understand and accept ',
