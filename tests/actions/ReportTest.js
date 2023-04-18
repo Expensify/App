@@ -467,7 +467,7 @@ describe('actions/Report', () => {
         expectedOutput = 'Comment www.google.com  <a href="https://www.facebook.com" target="_blank" rel="noreferrer noopener">www.facebook.com</a>';
         expect(newCommentHTML).toBe(expectedOutput);
 
-        // User edit and replace comment with link include underscore
+        // User edits and replaces comment with a link containing underscores
         // We should generate link
         originalCommentHTML = 'Comment';
         afterEditCommentText = 'https://www.facebook.com/hashtag/__main/?__eep__=6';
