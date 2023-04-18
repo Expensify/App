@@ -200,12 +200,20 @@ export default {
     hello: 'Hola',
     phoneCountryCode: '34',
     welcomeText: {
-        welcome: '¡Bienvenido al Nuevo Expensify! Por favor, introduce tu número de teléfono o email para continuar.',
-        welcomeEnterMagicCode: ({login}) => `¡Siempre es genial ver una cara nueva por aquí! Por favor, introduce el código mágico enviado a ${login}`,
+        getStarted: 'Comience a continuación.',
+        welcomeBack: '¡Bienvenido de nuevo!',
+        welcome: '¡Bienvenido!',
         phrase2: 'El dinero habla. Y ahora que chat y pagos están en un mismo lugar, es también fácil.',
         phrase3: 'Tus pagos llegan tan rápido como tus mensajes.',
-        welcomeBack: '¡Bienvenido de nuevo al Nuevo Expensify! Por favor, introduce tu contraseña.',
-        welcomeBackEnterMagicCode: ({login}) => `¡Bienvenido de nuevo! Por favor, introduce el código mágico enviado a ${login}`,
+        enterPassword: 'Por favor, introduce tu contraseña',
+        newFaceEnterMagicCode: ({login}) => `¡Siempre es genial ver una cara nueva por aquí! Por favor ingresa el código mágico enviado a ${login}`,
+        welcomeEnterMagicCode: ({login}) => `Por favor, introduce el código mágico enviado a ${login}`,
+    },
+    login: {
+        hero: {
+            header: 'Divida las facturas, solicite pagos y chatee con sus amigos.',
+            body: 'Bienvenido al futuro de Expensify, tu nuevo lugar de referencia para la colaboración financiera con amigos y compañeros de equipo por igual.',
+        },
     },
     reportActionCompose: {
         addAction: 'Acción',
@@ -758,7 +766,8 @@ export default {
         },
     },
     messages: {
-        errorMessageInvalidPhone: `Por favor, introduce un número de teléfono válido sin paréntesis o guiones. Si reside fuera de Estados Unidos, incluye el prefijo internacional (p. ej. ${CONST.EXAMPLE_PHONE_NUMBER}).`,
+        errorMessageInvalidPhone: `Por favor, introduce un número de teléfono válido sin paréntesis o guiones. Si reside fuera de Estados Unidos, por favor incluye el prefijo internacional (p. ej. ${CONST.EXAMPLE_PHONE_NUMBER}).`,
+        errorMessageInvalidEmail: 'Email inválido',
     },
     onfidoStep: {
         acceptTerms: 'Al continuar con la solicitud para activar su billetera Expensify, confirma que ha leído, comprende y acepta ',

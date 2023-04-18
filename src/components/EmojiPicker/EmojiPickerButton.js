@@ -36,7 +36,7 @@ const EmojiPickerButton = (props) => {
                     StyleUtils.getButtonBackgroundColorStyle(getButtonState(hovered, pressed)),
                 ])}
                 disabled={props.isDisabled}
-                onPress={() => EmojiPickerAction.showEmojiPicker(props.onModalHide, props.onEmojiSelected, emojiPopoverAnchor, undefined, props.onWillShow)}
+                onPress={() => EmojiPickerAction.showEmojiPicker(props.onModalHide, props.onEmojiSelected, emojiPopoverAnchor)}
                 nativeID={props.nativeID}
             >
                 {({hovered, pressed}) => (
