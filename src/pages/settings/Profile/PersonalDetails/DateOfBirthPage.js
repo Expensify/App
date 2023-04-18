@@ -39,7 +39,6 @@ class DateOfBirthPage extends Component {
 
         this.validate = this.validate.bind(this);
         this.updateDateOfBirth = this.updateDateOfBirth.bind(this);
-        this.clearSelectedYear = this.clearSelectedYear.bind(this);
         this.getYearFromRouteParams = this.getYearFromRouteParams.bind(this);
         this.minDate = moment().subtract(CONST.DATE_BIRTH.MAX_AGE, 'Y').toDate();
         this.maxDate = moment().subtract(CONST.DATE_BIRTH.MIN_AGE, 'Y').toDate();
@@ -65,9 +64,6 @@ class DateOfBirthPage extends Component {
         const {params} = this.props.route;
         if (params && params.year) {
             this.setState({selectedYear: params.year});
-            if (this.datePicker) {
-                this.datePicker.showPicker();
-            }
         }
     }
 
@@ -80,13 +76,6 @@ class DateOfBirthPage extends Component {
         PersonalDetails.updateDateOfBirth(
             values.dob,
         );
-    }
-
-    /**
-     * A function to clear selected year
-     */
-    clearSelectedYear() {
-        this.setState({selectedYear: ''});
     }
 
     /**
@@ -131,14 +120,12 @@ class DateOfBirthPage extends Component {
                 >
                     <NewDatePicker
                         autoFocus
-                        ref={ref => this.datePicker = ref}
                         inputID="dob"
                         label={this.props.translate('common.date')}
                         defaultValue={privateDetails.dob || ''}
                         minDate={this.minDate}
                         maxDate={this.maxDate}
                         selectedYear={this.state.selectedYear}
-                        onHidePicker={this.clearSelectedYear}
                     />
                 </Form>
             </ScreenWrapper>
