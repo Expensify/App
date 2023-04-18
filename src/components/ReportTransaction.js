@@ -41,7 +41,7 @@ class ReportTransaction extends Component {
     constructor(props) {
         super(props);
 
-        this.deleeteMoneyRequest = this.deleteMoneyRequest.bind(this);
+        this.deleteMoneyRequest = this.deleteMoneyRequest.bind(this);
     }
 
     deleteMoneyRequest() {
