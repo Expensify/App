@@ -1,6 +1,5 @@
 import moment from 'moment';
 import _ from 'underscore';
-import {parsePhoneNumber} from 'awesome-phonenumber';
 import CONST from '../CONST';
 import * as CardUtils from './CardUtils';
 import * as LoginUtils from './LoginUtils';
@@ -282,11 +281,16 @@ function validateIdentity(identity) {
 
 /**
  * @param {String} phoneNumber
+ * @param {Boolean} [isCountryCodeOptional]
  * @returns {Boolean}
  */
-function isValidUSPhone(phoneNumber = '') {
+function isValidUSPhone(phoneNumber = '', isCountryCodeOptional) {
     // Remove non alphanumeric characters from the phone number
-    return parsePhoneNumber(LoginUtils.appendCountryCode(phoneNumber));
+    const sanitizedPhone = (phoneNumber || '').replace(CONST.REGEX.NON_ALPHA_NUMERIC, '');
+    const isUsPhone = isCountryCodeOptional
+        ? CONST.REGEX.US_PHONE_WITH_OPTIONAL_COUNTRY_CODE.test(sanitizedPhone) : CONST.REGEX.US_PHONE.test(sanitizedPhone);
+
+    return CONST.REGEX.PHONE_E164_PLUS.test(sanitizedPhone) && isUsPhone;
 }
 
 /**

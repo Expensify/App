@@ -859,7 +859,7 @@ function getHeaderMessage(hasSelectableOptions, hasUserToInvite, searchValue, ma
         return Localize.translate(preferredLocale, 'common.maxParticipantsReached', {count: CONST.REPORT.MAXIMUM_PARTICIPANTS});
     }
 
-    const isValidPhone = parsePhoneNumber(LoginUtils.appendCountryCode(searchValue.replace(CONST.REGEX.NON_NUMERIC_WITH_PLUS, '')));
+    const isValidPhone = parsePhoneNumber(LoginUtils.appendCountryCode(searchValue.replace(CONST.REGEX.NON_NUMERIC_WITH_PLUS, ''))).possible;
 
     const isValidEmail = Str.isValidEmail(searchValue);
 
