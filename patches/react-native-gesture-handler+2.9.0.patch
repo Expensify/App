@@ -1,0 +1,137 @@
+diff --git a/node_modules/react-native-gesture-handler/ios/RNGestureHandlerManager.mm b/node_modules/react-native-gesture-handler/ios/RNGestureHandlerManager.mm
+index 8c2d99d..4a2c5c4 100644
+--- a/node_modules/react-native-gesture-handler/ios/RNGestureHandlerManager.mm
++++ b/node_modules/react-native-gesture-handler/ios/RNGestureHandlerManager.mm
+@@ -45,6 +45,7 @@ @implementation RNGestureHandlerManager {
+   RNGestureHandlerRegistry *_registry;
+   RCTUIManager *_uiManager;
+   NSHashTable<RNRootViewGestureRecognizer *> *_rootViewGestureRecognizers;
++    NSMutableDictionary<NSNumber*, NSNumber*> *_attachRetryCounter;
+   RCTEventDispatcher *_eventDispatcher;
+   id _reanimatedModule;
+ }
+@@ -56,6 +57,7 @@ - (instancetype)initWithUIManager:(RCTUIManager *)uiManager eventDispatcher:(RCT
+     _eventDispatcher = eventDispatcher;
+     _registry = [RNGestureHandlerRegistry new];
+     _rootViewGestureRecognizers = [NSHashTable hashTableWithOptions:NSPointerFunctionsWeakMemory];
++      _attachRetryCounter = [[NSMutableDictionary alloc] init];
+     _reanimatedModule = nil;
+   }
+   return self;
+@@ -103,9 +105,29 @@ - (void)attachGestureHandler:(nonnull NSNumber *)handlerTag
+   if (view == nil) {
+     // Happens when the view with given tag has been flattened.
+     // We cannot attach gesture handler to a non-existent view.
++      
++    NSNumber *counter = [_attachRetryCounter objectForKey:viewTag];
++      if (counter == nil) {
++          counter = @1;
++      } else {
++          counter = [NSNumber numberWithInt:counter.intValue + 1];
++      }
++      
++      if (counter.intValue > 30) {
++          [_attachRetryCounter removeObjectForKey:viewTag];
++      } else {
++          [_attachRetryCounter setObject:counter forKey:viewTag];
++          
++          dispatch_after(dispatch_time(DISPATCH_TIME_NOW, 0.1 * NSEC_PER_SEC), dispatch_get_main_queue(), ^{
++              [self attachGestureHandler:handlerTag toViewWithTag:viewTag withActionType:actionType];
++          });
++      }
++      
+     return;
+   }
+     
++    [_attachRetryCounter removeObjectForKey:viewTag];
++
+   // I think it should be moved to RNNativeViewHandler, but that would require
+   // additional logic for setting contentView.reactTag, this works for now
+   if ([view isKindOfClass:[RCTViewComponentView class]]) {
+diff --git a/node_modules/react-native-gesture-handler/lib/commonjs/GestureHandlerRootView.android.js b/node_modules/react-native-gesture-handler/lib/commonjs/GestureHandlerRootView.android.js
+index 15caf4a..112ec0c 100644
+--- a/node_modules/react-native-gesture-handler/lib/commonjs/GestureHandlerRootView.android.js
++++ b/node_modules/react-native-gesture-handler/lib/commonjs/GestureHandlerRootView.android.js
+@@ -18,7 +18,7 @@ function _getRequireWildcardCache() { if (typeof WeakMap !== "function") return
+ function _interopRequireWildcard(obj) { if (obj && obj.__esModule) { return obj; } if (obj === null || typeof obj !== "object" && typeof obj !== "function") { return { default: obj }; } var cache = _getRequireWildcardCache(); if (cache && cache.has(obj)) { return cache.get(obj); } var newObj = {}; var hasPropertyDescriptor = Object.defineProperty && Object.getOwnPropertyDescriptor; for (var key in obj) { if (Object.prototype.hasOwnProperty.call(obj, key)) { var desc = hasPropertyDescriptor ? Object.getOwnPropertyDescriptor(obj, key) : null; if (desc && (desc.get || desc.set)) { Object.defineProperty(newObj, key, desc); } else { newObj[key] = obj[key]; } } } newObj.default = obj; if (cache) { cache.set(obj, newObj); } return newObj; }
+ 
+ /* eslint-disable @typescript-eslint/no-var-requires */
+-const GestureHandlerRootViewNativeComponent = (0, _utils.shouldUseCodegenNativeComponent)() ? require('./fabric/RNGestureHandlerRootViewNativeComponent').default : (0, _reactNative.requireNativeComponent)('RNGestureHandlerRootView');
++const GestureHandlerRootViewNativeComponent = require('./fabric/RNGestureHandlerRootViewNativeComponent').default;
+ 
+ function GestureHandlerRootView(props) {
+   // try initialize fabric on the first render, at this point we can
+diff --git a/node_modules/react-native-gesture-handler/lib/commonjs/components/GestureHandlerButton.js b/node_modules/react-native-gesture-handler/lib/commonjs/components/GestureHandlerButton.js
+index 13478f7..9c2d004 100644
+--- a/node_modules/react-native-gesture-handler/lib/commonjs/components/GestureHandlerButton.js
++++ b/node_modules/react-native-gesture-handler/lib/commonjs/components/GestureHandlerButton.js
+@@ -10,7 +10,7 @@ var _reactNative = require("react-native");
+ var _utils = require("../utils");
+ 
+ /* eslint-disable @typescript-eslint/no-var-requires */
+-const RNGestureHandlerButtonNativeComponent = (0, _utils.shouldUseCodegenNativeComponent)() ? require('../fabric/RNGestureHandlerButtonNativeComponent').default : (0, _reactNative.requireNativeComponent)('RNGestureHandlerButton');
++const RNGestureHandlerButtonNativeComponent = require('../fabric/RNGestureHandlerButtonNativeComponent').default;
+ var _default = RNGestureHandlerButtonNativeComponent;
+ exports.default = _default;
+ //# sourceMappingURL=GestureHandlerButton.js.map
+\ No newline at end of file
+diff --git a/node_modules/react-native-gesture-handler/lib/module/GestureHandlerRootView.android.js b/node_modules/react-native-gesture-handler/lib/module/GestureHandlerRootView.android.js
+index 07b700d..7d7598f 100644
+--- a/node_modules/react-native-gesture-handler/lib/module/GestureHandlerRootView.android.js
++++ b/node_modules/react-native-gesture-handler/lib/module/GestureHandlerRootView.android.js
+@@ -3,7 +3,7 @@ import * as React from 'react';
+ import { requireNativeComponent } from 'react-native';
+ import { maybeInitializeFabric } from './init';
+ import { shouldUseCodegenNativeComponent } from './utils';
+-const GestureHandlerRootViewNativeComponent = shouldUseCodegenNativeComponent() ? require('./fabric/RNGestureHandlerRootViewNativeComponent').default : requireNativeComponent('RNGestureHandlerRootView');
++const GestureHandlerRootViewNativeComponent = require('./fabric/RNGestureHandlerRootViewNativeComponent').default;
+ export default function GestureHandlerRootView(props) {
+   // try initialize fabric on the first render, at this point we can
+   // reliably check if fabric is enabled (the function contains a flag
+diff --git a/node_modules/react-native-gesture-handler/lib/module/components/GestureHandlerButton.js b/node_modules/react-native-gesture-handler/lib/module/components/GestureHandlerButton.js
+index 9a3aba8..4b15cae 100644
+--- a/node_modules/react-native-gesture-handler/lib/module/components/GestureHandlerButton.js
++++ b/node_modules/react-native-gesture-handler/lib/module/components/GestureHandlerButton.js
+@@ -1,6 +1,6 @@
+ /* eslint-disable @typescript-eslint/no-var-requires */
+ import { requireNativeComponent } from 'react-native';
+ import { shouldUseCodegenNativeComponent } from '../utils';
+-const RNGestureHandlerButtonNativeComponent = shouldUseCodegenNativeComponent() ? require('../fabric/RNGestureHandlerButtonNativeComponent').default : requireNativeComponent('RNGestureHandlerButton');
++const RNGestureHandlerButtonNativeComponent = require('../fabric/RNGestureHandlerButtonNativeComponent').default;
+ export default RNGestureHandlerButtonNativeComponent;
+ //# sourceMappingURL=GestureHandlerButton.js.map
+\ No newline at end of file
+diff --git a/node_modules/react-native-gesture-handler/src/GestureHandlerRootView.android.tsx b/node_modules/react-native-gesture-handler/src/GestureHandlerRootView.android.tsx
+index 310886d..a0ded76 100644
+--- a/node_modules/react-native-gesture-handler/src/GestureHandlerRootView.android.tsx
++++ b/node_modules/react-native-gesture-handler/src/GestureHandlerRootView.android.tsx
+@@ -1,13 +1,11 @@
+ /* eslint-disable @typescript-eslint/no-var-requires */
+ import * as React from 'react';
+ import { PropsWithChildren } from 'react';
+-import { requireNativeComponent, ViewProps } from 'react-native';
++import { ViewProps } from 'react-native';
+ import { maybeInitializeFabric } from './init';
+ import { shouldUseCodegenNativeComponent } from './utils';
+ 
+-const GestureHandlerRootViewNativeComponent = shouldUseCodegenNativeComponent()
+-  ? require('./fabric/RNGestureHandlerRootViewNativeComponent').default
+-  : requireNativeComponent('RNGestureHandlerRootView');
++const GestureHandlerRootViewNativeComponent = require('./fabric/RNGestureHandlerRootViewNativeComponent').default;
+ 
+ export interface GestureHandlerRootViewProps
+   extends PropsWithChildren<ViewProps> {}
+diff --git a/node_modules/react-native-gesture-handler/src/components/GestureHandlerButton.tsx b/node_modules/react-native-gesture-handler/src/components/GestureHandlerButton.tsx
+index aab837e..311618a 100644
+--- a/node_modules/react-native-gesture-handler/src/components/GestureHandlerButton.tsx
++++ b/node_modules/react-native-gesture-handler/src/components/GestureHandlerButton.tsx
+@@ -3,8 +3,6 @@ import { HostComponent, requireNativeComponent } from 'react-native';
+ import { RawButtonProps } from './GestureButtons';
+ import { shouldUseCodegenNativeComponent } from '../utils';
+ 
+-const RNGestureHandlerButtonNativeComponent = shouldUseCodegenNativeComponent()
+-  ? require('../fabric/RNGestureHandlerButtonNativeComponent').default
+-  : requireNativeComponent('RNGestureHandlerButton');
++const RNGestureHandlerButtonNativeComponent = require('../fabric/RNGestureHandlerButtonNativeComponent').default;
+ 
+ export default RNGestureHandlerButtonNativeComponent as HostComponent<RawButtonProps>;

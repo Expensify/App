@@ -1,0 +1,15 @@
+diff --git a/node_modules/react-native-permissions/android/build.gradle b/node_modules/react-native-permissions/android/build.gradle
+index 4b669c2..7d31188 100644
+--- a/node_modules/react-native-permissions/android/build.gradle
++++ b/node_modules/react-native-permissions/android/build.gradle
+@@ -105,10 +105,5 @@ repositories {
+ }
+ 
+ dependencies {
+-    if (isNewArchitectureEnabled() && REACT_NATIVE_MINOR_VERSION < 71) {
+-        implementation project(":ReactAndroid")
+-    } else {
+-        //noinspection GradleDynamicVersion
+         implementation 'com.facebook.react:react-native:+'
+-    }
+ }

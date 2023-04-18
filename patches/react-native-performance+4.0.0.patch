@@ -1,0 +1,16 @@
+diff --git a/node_modules/react-native-performance/android/build.gradle b/node_modules/react-native-performance/android/build.gradle
+index a6bbf7a..13831d9 100644
+--- a/node_modules/react-native-performance/android/build.gradle
++++ b/node_modules/react-native-performance/android/build.gradle
+@@ -100,11 +100,7 @@ repositories {
+ }
+ 
+ dependencies {
+-    if (isNewArchitectureEnabled()) {
+-        implementation project(":ReactAndroid")
+-    } else {
+         implementation 'com.facebook.react:react-native:+'
+-    }
+ }
+ 
+ if (isNewArchitectureEnabled()) {

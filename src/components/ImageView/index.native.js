@@ -175,7 +175,7 @@ class ImageView extends PureComponent {
                     });
                 }}
             >
-                {this.state.containerHeight && (
+                {Boolean(this.state.containerHeight) && (
                     <ImageZoom
                         ref={el => this.zoom = el}
                         onClick={() => this.props.onPress()}
@@ -221,6 +221,7 @@ class ImageView extends PureComponent {
                                 // due to ImageZoom
                                 shouldShowLoadingIndicator ? styles.opacity0 : styles.opacity1,
                             ]}
+                            disableTransformation
                             source={{uri: this.props.url}}
                             isAuthTokenRequired={this.props.isAuthTokenRequired}
                             resizeMode={Image.resizeMode.contain}
