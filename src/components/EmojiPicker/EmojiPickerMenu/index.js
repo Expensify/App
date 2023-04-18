@@ -520,8 +520,6 @@ class EmojiPickerMenu extends Component {
                             style={[
                                 styles.disabledText,
                                 styles.emojiPickerList,
-                                styles.dFlex,
-                                styles.flexGrow1,
                                 styles.textLabel,
                                 styles.colorMuted,
                                 this.isMobileLandscape() && styles.emojiPickerListLandscape,
