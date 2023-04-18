@@ -534,15 +534,12 @@ function splitBillAndOpenReport(participants, currentUserLogin, amount, comment,
 }
 
 /**
- * Cancels or declines a transaction in iouReport.
- * Declining and cancelling transactions are done via the same Auth command.
- *
  * @param {String} chatReportID
  * @param {String} iouReportID
  * @param {String} type - cancel|decline
- * @param {Object} moneyRequestAction - the create IOU reportAction we are cancelling
+ * @param {Object} moneyRequestAction - the IOU reportAction we are deleting
  */
-function cancelMoneyRequest(chatReportID, iouReportID, type, moneyRequestAction) {
+function deleteMoneyRequest(chatReportID, iouReportID, type, moneyRequestAction) {
     const chatReport = chatReports[`${ONYXKEYS.COLLECTION.REPORT}${chatReportID}`];
     const iouReport = iouReports[`${ONYXKEYS.COLLECTION.REPORT}${iouReportID}`];
     const transactionID = moneyRequestAction.originalMessage.IOUTransactionID;
@@ -615,11 +612,11 @@ function cancelMoneyRequest(chatReportID, iouReportID, type, moneyRequestAction)
         },
     ];
 
-    API.write('CancelMoneyRequest', {
+    API.write('DeleteMoneyRequest', {
         transactionID,
         iouReportID: updatedIOUReport.reportID,
         comment: '',
-        cancelMoneyRequestReportActionID: optimisticReportAction.reportActionID,
+        deleteMoneyRequestReportActionID: optimisticReportAction.reportActionID,
         chatReportID,
         debtorEmail: chatReport.participants[0],
     }, {optimisticData, successData, failureData});
@@ -1002,7 +999,7 @@ function payMoneyRequestViaPaypal(chatReport, iouReport, recipient) {
 }
 
 export {
-    cancelMoneyRequest,
+    deleteMoneyRequest,
     splitBill,
     splitBillAndOpenReport,
     requestMoney,

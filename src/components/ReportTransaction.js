@@ -41,11 +41,11 @@ class ReportTransaction extends Component {
     constructor(props) {
         super(props);
 
-        this.cancelMoneyRequest = this.cancelMoneyRequest.bind(this);
+        this.deleeteMoneyRequest = this.deleteMoneyRequest.bind(this);
     }
 
-    cancelMoneyRequest() {
-        IOU.cancelMoneyRequest(
+    deleteMoneyRequest() {
+        IOU.deleteMoneyRequest(
             this.props.chatReportID,
             this.props.iouReportID,
             this.props.rejectButtonType,
@@ -85,7 +85,7 @@ class ReportTransaction extends Component {
                                 small
                                 text={this.props.translate(`common.${this.props.rejectButtonType}`)}
                                 style={[styles.mb3, styles.chatItemComposeSecondaryRowOffset]}
-                                onPress={this.cancelMoneyRequest}
+                                onPress={this.deleteMoneyRequest}
                             />
                         </View>
                     )}

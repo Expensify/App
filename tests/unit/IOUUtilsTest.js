@@ -26,7 +26,7 @@ function createIOUReportAction(type, amount, currency, {IOUTransactionID, isOnli
     return moneyRequestAction;
 }
 
-function cancelMoneyRequest(moneyRequestAction, {isOnline} = {}) {
+function deleteMoneyRequest(moneyRequestAction, {isOnline} = {}) {
     createIOUReportAction(
         'cancel',
         moneyRequestAction.originalMessage.amount,
@@ -73,8 +73,8 @@ describe('isIOUReportPendingCurrencyConversion', () => {
         const moneyRequestB = createIOUReportAction('create', 1000, 'AED');
 
         // Cancel both requests
-        cancelMoneyRequest(moneyRequestA);
-        cancelMoneyRequest(moneyRequestB);
+        deleteMoneyRequest(moneyRequestA);
+        deleteMoneyRequest(moneyRequestB);
 
         // Both requests made offline have been cancelled, total won't update so no need to show a pending conversion message
         expect(IOUUtils.isIOUReportPendingCurrencyConversion(reportActions, iouReport)).toBe(false);
@@ -85,7 +85,7 @@ describe('isIOUReportPendingCurrencyConversion', () => {
         const moneyRequest = createIOUReportAction('create', 1000, 'AED', {isOnline: true});
 
         // Cancel it offline
-        cancelMoneyRequest(moneyRequest);
+        deleteMoneyRequest(moneyRequest);
 
         // We don't know what the total is because we need to subtract the converted amount of the offline request from the total
         expect(IOUUtils.isIOUReportPendingCurrencyConversion(reportActions, iouReport)).toBe(true);
@@ -99,7 +99,7 @@ describe('isIOUReportPendingCurrencyConversion', () => {
         const moneyRequestOffline = createIOUReportAction('create', 1000, 'AED');
 
         // Cancel the request made offline
-        cancelMoneyRequest(moneyRequestOffline);
+        deleteMoneyRequest(moneyRequestOffline);
 
         expect(IOUUtils.isIOUReportPendingCurrencyConversion(reportActions, iouReport)).toBe(false);
     });
@@ -112,7 +112,7 @@ describe('isIOUReportPendingCurrencyConversion', () => {
         createIOUReportAction('create', 1000, 'AED');
 
         // Cancel the request made online
-        cancelMoneyRequest(moneyRequestOnline);
+        deleteMoneyRequest(moneyRequestOnline);
 
         // We don't know what the total is because we need to subtract the converted amount of the offline request from the total
         expect(IOUUtils.isIOUReportPendingCurrencyConversion(reportActions, iouReport)).toBe(true);
@@ -126,7 +126,7 @@ describe('isIOUReportPendingCurrencyConversion', () => {
         createIOUReportAction('create', 2000, 'AED', {isOnline: true});
 
         // Cancel the USD request offline
-        cancelMoneyRequest(onlineMoneyRequestInUSD);
+        deleteMoneyRequest(onlineMoneyRequestInUSD);
 
         expect(IOUUtils.isIOUReportPendingCurrencyConversion(reportActions, iouReport)).toBe(false);
     });
