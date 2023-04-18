@@ -82,11 +82,6 @@ const PublicScreens = () => (
             component={SetPasswordPage}
         />
         <RootStack.Screen
-            name="Concierge"
-            options={defaultScreenOptions}
-            component={ConciergePage}
-        />
-        <RootStack.Screen
             name="AppleOAuth"
             options={defaultScreenOptions}
             component={AppleAuthScreen}
