@@ -2629,6 +2629,9 @@ const styles = {
             textDecorationLine: 'line-through',
             textDecorationStyle: 'solid',
         },
+        edited: {
+            display: 'inline-block',
+        },
         pending: {
             opacity: 0.5,
         },
