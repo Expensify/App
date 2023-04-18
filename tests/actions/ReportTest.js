@@ -475,7 +475,7 @@ describe('actions/Report', () => {
         expectedOutput = '<a href="https://www.facebook.com/hashtag/__main/?__eep__=6" target="_blank" rel="noreferrer noopener">https://www.facebook.com/hashtag/__main/?__eep__=6</a>';
         expect(newCommentHTML).toBe(expectedOutput);
 
-        // User edit and delete the link with underscore
+        // User edits and deletes the link containing underscores
         // We should not generate link
         originalCommentHTML = '<a href="https://www.facebook.com/hashtag/__main/?__eep__=6" target="_blank" rel="noreferrer noopener">https://www.facebook.com/hashtag/__main/?__eep__=6</a>';
         afterEditCommentText = 'https://www.facebook.com/hashtag/__main/?__eep__=6';
