@@ -531,8 +531,10 @@ function getOptions(reports, personalDetails, {
     let recentReportOptions = [];
     let personalDetailsOptions = [];
     const reportMapForLogins = {};
-    const isPhoneNumber = CONST.REGEX.PHONE_WITH_SPECIAL_CHARS.test(searchInputValue);
-    const searchValue = isPhoneNumber ? searchInputValue.replace(CONST.REGEX.NON_NUMERIC_WITH_PLUS, '') : searchInputValue;
+    const parsedPhoneNumber = parsePhoneNumber(LoginUtils.appendCountryCode(searchInputValue));
+    console.log(parsedPhoneNumber);
+    const searchValue = parsedPhoneNumber.possible ? parsedPhoneNumber.number.e164 : searchInputValue;
+    console.log(searchInputValue);
 
     // Filter out all the reports that shouldn't be displayed
     const filteredReports = _.filter(reports, report => ReportUtils.shouldReportBeInOptionList(
@@ -675,25 +677,21 @@ function getOptions(reports, personalDetails, {
     const noOptions = (recentReportOptions.length + personalDetailsOptions.length) === 0;
     const noOptionsMatchExactly = !_.find(personalDetailsOptions.concat(recentReportOptions), option => option.login === searchValue.toLowerCase());
 
-    // If the phone number doesn't have an international code then let's prefix it with the
-    // current user's international code based on their IP address.
-    const login = LoginUtils.appendCountryCode(searchValue);
-
-    if (login && (noOptions || noOptionsMatchExactly)
-        && !isCurrentUser({login})
-        && _.every(selectedOptions, option => option.login !== login)
-        && ((Str.isValidEmail(login) && !Str.isDomainEmail(login)) || parsePhoneNumber(login).possible)
-        && (!_.find(loginOptionsToExclude, loginOptionToExclude => loginOptionToExclude.login === addSMSDomainIfPhoneNumber(login).toLowerCase()))
-        && (login !== CONST.EMAIL.CHRONOS || Permissions.canUseChronos(betas))
+    if (searchValue && (noOptions || noOptionsMatchExactly)
+        && !isCurrentUser({login: searchValue})
+        && _.every(selectedOptions, option => option.login !== searchValue)
+        && ((Str.isValidEmail(searchValue) && !Str.isDomainEmail(searchValue)) || parsedPhoneNumber.possible)
+        && (!_.find(loginOptionsToExclude, loginOptionToExclude => loginOptionToExclude.login === addSMSDomainIfPhoneNumber(searchValue).toLowerCase()))
+        && (searchValue !== CONST.EMAIL.CHRONOS || Permissions.canUseChronos(betas))
     ) {
-        userToInvite = createOption([login], personalDetails, null, reportActions, {
+        userToInvite = createOption([searchValue], personalDetails, null, reportActions, {
             showChatPreviewLine,
         });
 
         // If user doesn't exist, use a default avatar
         userToInvite.icons = [{
-            source: ReportUtils.getAvatar('', login),
-            name: login,
+            source: ReportUtils.getAvatar('', searchValue),
+            name: searchValue,
             type: CONST.ICON_TYPE_AVATAR,
         }];
     }
