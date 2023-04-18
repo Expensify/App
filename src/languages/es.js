@@ -250,7 +250,7 @@ export default {
         editComment: 'Editar comentario',
         deleteComment: 'Eliminar comentario',
         deleteConfirmation: '¿Estás seguro de que quieres eliminar este comentario?',
-        onlyVisible: `Visible sólo para`,
+        onlyVisible: 'Visible sólo para',
     },
     emojiReactions: {
         addReactionTooltip: 'Añadir una reacción',

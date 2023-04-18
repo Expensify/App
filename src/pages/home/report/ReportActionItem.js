@@ -40,11 +40,10 @@ import ChronosOOOListActions from '../../../components/ReportActionItem/ChronosO
 import ReportActionItemReactions from '../../../components/Reactions/ReportActionItemReactions';
 import * as Report from '../../../libs/actions/Report';
 import withLocalize from '../../../components/withLocalize';
-import Icon from "../../../components/Icon";
-import * as Expensicons from "../../../components/Icon/Expensicons";
-import Text from "../../../components/Text";
-import DisplayNames from "../../../components/DisplayNames";
-import * as OptionsListUtils from "../../../libs/OptionsListUtils";
+import Icon from '../../../components/Icon';
+import * as Expensicons from '../../../components/Icon/Expensicons';
+import Text from '../../../components/Text';
+import DisplayNames from '../../../components/DisplayNames';
 
 const propTypes = {
     /** Report for this action */

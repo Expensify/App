@@ -1,4 +1,4 @@
-import PropTypes, {array} from 'prop-types';
+import PropTypes from 'prop-types';
 
 import reportActionFragmentPropTypes from './reportActionFragmentPropTypes';
 import participantPropTypes from '../../../components/participantPropTypes';
