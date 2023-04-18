@@ -82,17 +82,4 @@ describe('ValidationUtils', () => {
             expect(ValidationUtils.isValidWebsite('www.expensify😄.com')).toBe(false);
         });
     });
-
-    describe('stringToBool', () => {
-        test('Normal literals', () => {
-            expect(ValidationUtils.stringToBool('true')).toBe(true);
-            expect(ValidationUtils.stringToBool('false')).toBe(false);
-            expect(ValidationUtils.stringToBool('')).toBe(undefined);
-            expect(ValidationUtils.stringToBool('foo')).toBe(undefined);
-        });
-
-        test('Case insensitive', () => {
-            expect(ValidationUtils.stringToBool('True')).toBe(true);
-        });
-    });
 });

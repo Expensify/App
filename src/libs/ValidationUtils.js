@@ -431,27 +431,6 @@ function isValidTaxID(taxID) {
     return taxID && CONST.REGEX.TAX_ID.test(taxID.replace(CONST.REGEX.NON_NUMERIC, ''));
 }
 
-/**
- * Converts string to boolean.
- *
- * @param {String} value
- * @returns {Boolean|undefined}
- */
-function stringToBool(value) {
-    if (Str.isString(value)) {
-        switch (value.toLowerCase()) {
-            case 'true':
-                return true;
-            case 'false':
-                return false;
-            default:
-                return undefined;
-        }
-    }
-
-    return undefined;
-}
-
 export {
     meetsAgeRequirements,
     getAgeRequirementError,
@@ -483,5 +462,4 @@ export {
     isValidDisplayName,
     isValidLegalName,
     doesContainReservedWord,
-    stringToBool,
 };
