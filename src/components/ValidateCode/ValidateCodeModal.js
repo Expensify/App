@@ -39,64 +39,53 @@ const defaultProps = {
     },
 };
 
-class ValidateCodeModal extends PureComponent {
-    constructor(props) {
-        super(props);
-
-        this.signInHere = this.signInHere.bind(this);
-    }
-
-    signInHere() {
-        Session.signInWithValidateCode(this.props.accountID, this.props.code);
-    }
-
-    render() {
-        return (
-            <View style={styles.deeplinkWrapperContainer}>
-                <View style={styles.deeplinkWrapperMessage}>
-                    <View style={styles.mb2}>
-                        <Icon
-                            width={variables.modalTopIconWidth}
-                            height={variables.modalTopIconHeight}
-                            src={Illustrations.MagicCode}
-                        />
-                    </View>
-                    <Text style={[styles.textHeadline, styles.textXXLarge, styles.textAlignCenter]}>
-                        {this.props.translate('validateCodeModal.title')}
-                    </Text>
-                    <View style={[styles.mt2, styles.mb2]}>
-                        <Text style={[styles.fontSizeNormal, styles.textAlignCenter]}>
-                            {this.props.translate('validateCodeModal.description')}
-                            {!lodashGet(this.props, 'session.authToken', null)
-                                && (
-                                    <>
-                                        {this.props.translate('validateCodeModal.or')}
-                                        {' '}
-                                        <TextLink onPress={this.signInHere}>
-                                            {this.props.translate('validateCodeModal.signInHere')}
-                                        </TextLink>
-                                    </>
-                                )}
-                            {this.props.shouldShowSignInHere ? '!' : '.'}
-                        </Text>
-                    </View>
-                    <View style={styles.mt6}>
-                        <Text style={styles.validateCodeDigits}>
-                            {this.props.code}
-                        </Text>
-                    </View>
-                </View>
-                <View style={styles.deeplinkWrapperFooter}>
+function ValidateCodeModal(props) {
+    return (
+        <View style={styles.deeplinkWrapperContainer}>
+            <View style={styles.deeplinkWrapperMessage}>
+                <View style={styles.mb2}>
                     <Icon
-                        width={variables.modalWordmarkWidth}
-                        height={variables.modalWordmarkHeight}
-                        fill={colors.green}
-                        src={Expensicons.ExpensifyWordmark}
+                        width={variables.modalTopIconWidth}
+                        height={variables.modalTopIconHeight}
+                        src={Illustrations.MagicCode}
                     />
                 </View>
+                <Text style={[styles.textHeadline, styles.textXXLarge, styles.textAlignCenter]}>
+                    {props.translate('validateCodeModal.title')}
+                </Text>
+                <View style={[styles.mt2, styles.mb2]}>
+                    <Text style={[styles.fontSizeNormal, styles.textAlignCenter]}>
+                        {props.translate('validateCodeModal.description')}
+                        {!lodashGet(props, 'session.authToken', null)
+                            && (
+                                <>
+                                    {props.translate('validateCodeModal.or')}
+                                    {' '}
+                                    <TextLink onPress={() => Session.signInWithValidateCode(props.accountID, props.code)}>
+                                        {props.translate('validateCodeModal.signInHere')}
+                                    </TextLink>
+                                </>
+                            )}
+                        {props.shouldShowSignInHere ? '!' : '.'}
+                    </Text>
+                </View>
+                <View style={styles.mt6}>
+                    <Text style={styles.validateCodeDigits}>
+                        {props.code}
+                    </Text>
+                </View>
             </View>
-        );
-    }
+            <View style={styles.deeplinkWrapperFooter}>
+                <Icon
+                    width={variables.modalWordmarkWidth}
+                    height={variables.modalWordmarkHeight}
+                    fill={colors.green}
+                    src={Expensicons.ExpensifyWordmark}
+                />
+            </View>
+        </View>
+    );
+
 }
 
 ValidateCodeModal.propTypes = propTypes;
