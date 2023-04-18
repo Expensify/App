@@ -236,7 +236,7 @@ function createPolicyExpenseChats(policyID, members, betas) {
         onyxSuccessData: [],
         onyxOptimisticData: [],
         onyxFailureData: [],
-        reportIDs: {},
+        reportCreationData: {},
     };
 
     // If the user is not in the beta, we don't want to create any chats
