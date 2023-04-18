@@ -24,7 +24,12 @@ import * as DeviceCapabilities from '../../../libs/DeviceCapabilities';
 import MiniReportActionContextMenu from './ContextMenu/MiniReportActionContextMenu';
 import * as ReportActionContextMenu from './ContextMenu/ReportActionContextMenu';
 import * as ContextMenuActions from './ContextMenu/ContextMenuActions';
-import {withBlockedFromConcierge, withNetwork, withReportActionsDrafts} from '../../../components/OnyxProvider';
+import {
+    withBlockedFromConcierge,
+    withNetwork,
+    withPersonalDetails,
+    withReportActionsDrafts
+} from '../../../components/OnyxProvider';
 import RenameAction from '../../../components/ReportActionItem/RenameAction';
 import InlineSystemMessage from '../../../components/InlineSystemMessage';
 import styles from '../../../styles/styles';
@@ -44,6 +49,7 @@ import Icon from '../../../components/Icon';
 import * as Expensicons from '../../../components/Icon/Expensicons';
 import Text from '../../../components/Text';
 import DisplayNames from '../../../components/DisplayNames';
+import personalDetailsPropType from '../../personalDetailsPropType';
 
 const propTypes = {
     /** Report for this action */
@@ -73,6 +79,9 @@ const propTypes = {
     /** Stores user's preferred skin tone */
     preferredSkinTone: PropTypes.oneOfType([PropTypes.number, PropTypes.string]),
 
+    /** All of the personalDetails */
+    personalDetails: PropTypes.objectOf(personalDetailsPropType),
+
     ...windowDimensionsPropTypes,
 };
 
@@ -80,6 +89,7 @@ const defaultProps = {
     draftMessage: '',
     hasOutstandingIOU: false,
     preferredSkinTone: CONST.EMOJI_DEFAULT_SKIN_TONE,
+    personalDetails: {},
 };
 
 class ReportActionItem extends Component {
@@ -248,7 +258,8 @@ class ReportActionItem extends Component {
         const isWhisper = _.size(whisperedTo) > 0;
         const isMultipleParticipant = _.size(whisperedTo) > 1;
         const isOnlyVisibleByUser = ReportUtils.isOnlyVisibleByCurrentUser(_.keys(whisperedTo));
-        const displayNamesWithTooltips = isWhisper ? ReportUtils.getDisplayNamesWithTooltips(whisperedTo, isMultipleParticipant) : [];
+        const whisperedToPersonalDetails = _.filter(this.props.personalDetails, details => _.includes(whisperedTo, details.login));
+        const displayNamesWithTooltips = isWhisper ? ReportUtils.getDisplayNamesWithTooltips(whisperedToPersonalDetails, isMultipleParticipant) : [];
         return (
             <PressableWithSecondaryInteraction
                 pointerEvents={this.props.action.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE ? 'none' : 'auto'}
@@ -347,6 +358,7 @@ export default compose(
     withWindowDimensions,
     withLocalize,
     withNetwork(),
+    withPersonalDetails(),
     withBlockedFromConcierge({propName: 'blockedFromConcierge'}),
     withReportActionsDrafts({
         propName: 'draftMessage',
