@@ -29,16 +29,16 @@ function SaveResponseInOnyx(response, request) {
                 ? updateHandler(responseData.onyxData)
                 : Promise.resolve();
 
-            onyxDataUpdatePromise.then(() => {
+            return onyxDataUpdatePromise.then(() => {
                 // Handle the request's success/failure data (client-side data)
                 if (responseData.jsonCode === 200 && request.successData) {
-                    updateHandler(request.successData);
-                } else if (responseData.jsonCode !== 200 && request.failureData) {
-                    updateHandler(request.failureData);
+                    return updateHandler(request.successData);
                 }
-            });
-
-            return responseData;
+                if (responseData.jsonCode !== 200 && request.failureData) {
+                    return updateHandler(request.failureData);
+                }
+                return Promise.resolve();
+            }).then(() => responseData);
         });
 }
 
