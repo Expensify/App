@@ -878,12 +878,16 @@ function editReportComment(reportID, originalReportAction, textForNewComment) {
     ];
 
     const lastVisibleAction = ReportActionsUtils.getLastVisibleAction(reportID, optimisticReportActions);
+    const reportComment = parser.htmlToText(ReportUtils.getParsedComment(textForNewComment));
+    const lastCommentText = ReportUtils.formatReportLastMessageText(reportComment);
+    const currentTime = DateUtils.getDBTime();
+
     if (reportActionID === lastVisibleAction.reportActionID) {
         const optimisticReport = {
-            lastMessageHtml: lodashGet(lastVisibleAction, 'message[0].html'),
-            lastMessageText: lodashGet(lastVisibleAction, 'message[0].text'),
-            lastVisibleActionCreated: lastVisibleAction.created,
-            lastActorEmail: lastVisibleAction.actorEmail,
+            lastVisibleActionCreated: currentTime,
+            lastMessageText: Str.htmlDecode(lastCommentText),
+            lastActorEmail: currentUserEmail,
+            lastReadTime: currentTime,
         };
         optimisticData.push({
             onyxMethod: CONST.ONYX.METHOD.MERGE,
