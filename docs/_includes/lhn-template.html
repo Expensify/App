@@ -13,7 +13,7 @@
         {% if hub.href == activeHub %}
             <li>
                 <div class="icon-with-link selected">
-                    <img src="/assets/images/down.svg" class="icon icon-down"></img>
+                    <img src="/assets/images/down.svg" class="base-icon"></img>
                     <span>{{ hub.title }}</span>
                 </div>
                 <ul class="nested-treeview">
@@ -38,7 +38,7 @@
         {% else %}
             <li>
                 <a href="/hubs/{{ hub.href }}" class="icon-with-link link">
-                    <img src="/assets/images/arrow-right.svg" class="icon icon-right"></img>
+                    <img src="/assets/images/arrow-right.svg" class="base-icon"></img>
                     {{ hub.title }}
                 </a>
             </li>

@@ -486,16 +486,11 @@ button {
     }
 }
 
-.icon {
-    color: $color-gray-green;
-    font-size: larger;
-    display: inline;
-    
-    &.icon-left, &.icon-right, &.icon-up, &.icon-down {
-        width: 16px;
-        height: 16px;
-    }
+.base-icon {
+    width: 20px;
+    height: 20px;
 }
+
 
 .homepage {
     h1 {
