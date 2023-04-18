@@ -9,6 +9,7 @@ import ONYXKEYS from '../../ONYXKEYS';
 import * as ReportActionsUtils from '../../libs/ReportActionsUtils';
 import reportActionPropTypes from '../home/report/reportActionPropTypes';
 import ReportTransaction from '../../components/ReportTransaction';
+import CONST from '../../CONST';
 
 const propTypes = {
     /** Actions from the ChatReport */
@@ -56,13 +57,13 @@ class IOUTransactions extends Component {
             && action.originalMessage.type && Number(action.originalMessage.IOUReportID) === Number(this.props.iouReportID));
 
         const rejectedTransactionIDs = _.chain(actionsForIOUReport)
-            .filter(action => _.contains(['cancel', 'decline'], action.originalMessage.type))
+            .filter(action => _.contains([CONST.IOU.REPORT_ACTION_TYPE.CANCEL, CONST.IOU.REPORT_ACTION_TYPE.DECLINE], action.originalMessage.type))
             .map(rejectedAction => lodashGet(rejectedAction, 'originalMessage.IOUTransactionID', ''))
             .compact()
             .value();
 
         return _.chain(actionsForIOUReport)
-            .filter(action => action.originalMessage.type === 'create')
+            .filter(action => action.originalMessage.type === CONST.IOU.REPORT_ACTION_TYPE.CREATE)
             .filter(action => !_.contains(rejectedTransactionIDs, action.originalMessage.IOUTransactionID))
             .filter(action => this.props.userEmail === action.actorEmail)
             .map(action => lodashGet(action, 'originalMessage.IOUTransactionID', ''))
