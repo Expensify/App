@@ -3135,6 +3135,10 @@ const styles = {
         width: variables.modalContentMaxWidth,
         textAlign: 'center',
     },
+
+    popoverMaxWidth: {
+        maxWidth: 375,
+    },
 };
 
 export default styles;
