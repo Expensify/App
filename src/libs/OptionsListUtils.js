@@ -682,7 +682,7 @@ function getOptions(reports, personalDetails, {
     if (login && (noOptions || noOptionsMatchExactly)
         && !isCurrentUser({login})
         && _.every(selectedOptions, option => option.login !== login)
-        && ((Str.isValidEmail(login) && !Str.isDomainEmail(login)) || parsePhoneNumber(login).valid)
+        && ((Str.isValidEmail(login) && !Str.isDomainEmail(login)) || parsePhoneNumber(login).possible)
         && (!_.find(loginOptionsToExclude, loginOptionToExclude => loginOptionToExclude.login === addSMSDomainIfPhoneNumber(login).toLowerCase()))
         && (login !== CONST.EMAIL.CHRONOS || Permissions.canUseChronos(betas))
     ) {
@@ -867,7 +867,7 @@ function getHeaderMessage(hasSelectableOptions, hasUserToInvite, searchValue, ma
 
     const isValidEmail = Str.isValidEmail(searchValue);
 
-    if (searchValue && CONST.REGEX.DIGITS_AND_PLUS.test(searchValue) && !isValidPhone.valid) {
+    if (searchValue && CONST.REGEX.DIGITS_AND_PLUS.test(searchValue) && !isValidPhone.possible) {
         return Localize.translate(preferredLocale, 'messages.errorMessageInvalidPhone');
     }
 
