@@ -483,7 +483,7 @@ describe('actions/Report', () => {
         expectedOutput = 'https://www.facebook.com/hashtag/__main/?__eep__=6';
         expect(newCommentHTML).toBe(expectedOutput);
 
-        // User edit and replace comment with link include asterisk
+        // User edits and replaces comment with a link containing asterisks
         // We should generate link
         originalCommentHTML = 'Comment';
         afterEditCommentText = 'http://example.com/foo/*/bar/*/test.txt';
