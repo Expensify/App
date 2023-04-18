@@ -75,6 +75,7 @@ export default {
     getIOUSendRoute: reportID => `${IOU_SEND}/${reportID}`,
     IOU_BILL_CURRENCY: `${IOU_BILL_CURRENCY}/:reportID?`,
     IOU_REQUEST_CURRENCY: `${IOU_REQUEST_CURRENCY}/:reportID?`,
+    MONEY_REQUEST_DESCRIPTION: `${IOU_REQUEST}/description`,
     IOU_SEND_CURRENCY: `${IOU_SEND_CURRENCY}/:reportID?`,
     IOU_SEND_ADD_BANK_ACCOUNT: `${IOU_SEND}/add-bank-account`,
     IOU_SEND_ADD_DEBIT_CARD: `${IOU_SEND}/add-debit-card`,

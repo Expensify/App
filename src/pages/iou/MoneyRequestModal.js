@@ -6,10 +6,9 @@ import {View} from 'react-native';
 import PropTypes from 'prop-types';
 import lodashGet from 'lodash/get';
 import {withOnyx} from 'react-native-onyx';
-import Str from 'expensify-common/lib/str';
-import IOUAmountPage from './steps/IOUAmountPage';
-import IOUParticipantsPage from './steps/IOUParticipantsPage/IOUParticipantsPage';
-import IOUConfirmPage from './steps/IOUConfirmPage';
+import MoneyRequestAmountPage from './steps/MoneyRequestAmountPage';
+import MoneyRequestParticipantsPage from './steps/MoneyRequstParticipantsPage/MoneyRequestParticipantsPage';
+import MoneyRequestConfirmPage from './steps/MoneyRequestConfirmPage';
 import ModalHeader from './ModalHeader';
 import styles from '../../styles/styles';
 import * as IOU from '../../libs/actions/IOU';
@@ -99,44 +98,34 @@ const defaultProps = {
 
 // Determines type of step to display within Modal, value provides the title for that page.
 const Steps = {
-    IOUAmount: 'iou.amount',
-    IOUParticipants: 'iou.participants',
-    IOUConfirm: 'iou.confirm',
+    MoneyRequestAmount: 'moneyRequest.amount',
+    MoneyRequestParticipants: 'moneyRequest.participants',
+    MoneyRequestConfirm: 'moneyRequest.confirm',
 };
 
 const MoneyRequestModal = (props) => {
+    // Skip MoneyRequestParticipants step if participants are passed in
     const reportParticipants = lodashGet(props, 'report.participants', []);
-    const participantsWithDetails = _.map(OptionsListUtils.getPersonalDetailsForLogins(reportParticipants, props.personalDetails), personalDetails => ({
-        login: personalDetails.login,
-        text: personalDetails.displayName,
-        firstName: lodashGet(personalDetails, 'firstName', ''),
-        lastName: lodashGet(personalDetails, 'lastName', ''),
-        alternateText: Str.isSMSLogin(personalDetails.login) ? Str.removeSMSDomain(personalDetails.login) : personalDetails.login,
-        icons: [{
-            source: ReportUtils.getAvatar(personalDetails.avatar, personalDetails.login),
-            name: personalDetails.login,
-            type: CONST.ICON_TYPE_AVATAR,
-        }],
-        keyForList: personalDetails.login,
-        payPalMeAddress: lodashGet(personalDetails, 'payPalMeAddress', ''),
-        phoneNumber: lodashGet(personalDetails, 'phoneNumber', ''),
-    }));
-
-    // Skip IOUParticipants step if participants are passed in
-    const steps = reportParticipants.length ? [Steps.IOUAmount, Steps.IOUConfirm] : [Steps.IOUAmount, Steps.IOUParticipants, Steps.IOUConfirm];
-
+    const steps = useMemo(() => (reportParticipants.length
+        ? [Steps.MoneyRequestAmount, Steps.MoneyRequestConfirm]
+        : [Steps.MoneyRequestAmount, Steps.MoneyRequestParticipants, Steps.MoneyRequestConfirm]),
+    [reportParticipants.length]);
     const prevCreatingIOUTransactionStatusRef = useRef(lodashGet(props.iou, 'creatingIOUTransaction'));
     const prevNetworkStatusRef = useRef(props.network.isOffline);
 
-    const [previousStepIndex, setPreviousStepIndex] = useState(0);
+    const [previousStepIndex, setPreviousStepIndex] = useState(-1);
     const [currentStepIndex, setCurrentStepIndex] = useState(0);
-    const [participants, setParticipants] = useState(participantsWithDetails);
+    const [selectedOptions, setSelectedOptions] = useState(
+        ReportUtils.isPolicyExpenseChat(props.report)
+            ? OptionsListUtils.getPolicyExpenseReportOptions(props.report)
+            : OptionsListUtils.getParticipantsOptions(props.report, props.personalDetails),
+    );
     const [amount, setAmount] = useState('');
-    const [comment, setComment] = useState('');
 
     useEffect(() => {
         PersonalDetails.openMoneyRequestModalPage();
         IOU.setIOUSelectedCurrency(props.currentUserPersonalDetails.localCurrencyCode);
+        IOU.setMoneyRequestDescription('');
     // eslint-disable-next-line react-hooks/exhaustive-deps -- props.currentUserPersonalDetails will always exist from Onyx and we don't want this effect to run again
     }, []);
 
@@ -175,6 +164,17 @@ const MoneyRequestModal = (props) => {
      * @returns {String|null}
     */
     const direction = useMemo(() => {
+        // If we're going to the "amount" step from the "confirm" step, push it in and pop it out like we're moving
+        // forward instead of backwards.
+        const amountIndex = _.indexOf(steps, Steps.MoneyRequestAmount);
+        const confirmIndex = _.indexOf(steps, Steps.MoneyRequestConfirm);
+        if (previousStepIndex === confirmIndex && currentStepIndex === amountIndex) {
+            return 'in';
+        }
+        if (previousStepIndex === amountIndex && currentStepIndex === confirmIndex) {
+            return 'out';
+        }
+
         if (previousStepIndex < currentStepIndex) {
             return 'in';
         }
@@ -186,7 +186,7 @@ const MoneyRequestModal = (props) => {
         if (previousStepIndex === currentStepIndex) {
             return null;
         }
-    }, [previousStepIndex, currentStepIndex]);
+    }, [previousStepIndex, currentStepIndex, steps]);
 
     /**
      * Retrieve title for current step, based upon current step and type of request
@@ -194,47 +194,50 @@ const MoneyRequestModal = (props) => {
      * @returns {String}
      */
     const titleForStep = useMemo(() => {
-        const isSendingMoney = props.iouType === CONST.IOU.MONEY_REQUEST_TYPE.SEND;
-        if (currentStepIndex === 1 || currentStepIndex === 2) {
-            const formattedAmount = props.numberFormat(
-                amount, {
-                    style: 'currency',
-                    currency: props.iou.selectedCurrencyCode,
-                },
-            );
-            if (isSendingMoney) {
-                return props.translate('iou.send', {
-                    amount: formattedAmount,
-                });
-            }
-            return props.translate(
-                props.hasMultipleParticipants ? 'iou.split' : 'iou.request', {
-                    amount: formattedAmount,
-                },
-            );
-        }
         if (currentStepIndex === 0) {
-            if (isSendingMoney) {
+            const confirmIndex = _.indexOf(steps, Steps.MoneyRequestConfirm);
+            if (previousStepIndex === confirmIndex) {
+                return props.translate('iou.amount');
+            }
+            if (props.iouType === CONST.IOU.MONEY_REQUEST_TYPE.SEND) {
                 return props.translate('iou.sendMoney');
             }
             return props.translate(props.hasMultipleParticipants ? 'iou.splitBill' : 'iou.requestMoney');
         }
-
-        return props.translate(steps[currentStepIndex]) || '';
+        return props.translate('iou.cash');
         // eslint-disable-next-line react-hooks/exhaustive-deps -- props does not need to be a dependency as it will always exist
-    }, [amount, currentStepIndex, props.hasMultipleParticipants, props.iou.selectedCurrencyCode, props.iouType, props.numberFormat, steps]);
+    }, [currentStepIndex, props.translate, steps]);
+
+    /**
+     * Navigate to a provided step.
+     *
+     * @param {Number} stepIndex
+     * @type {(function(*): void)|*}
+     */
+    const navigateToStep = useCallback((stepIndex) => {
+        if (stepIndex < 0 || stepIndex > steps.length) {
+            return;
+        }
+
+        if (currentStepIndex === stepIndex) {
+            return;
+        }
+
+        setPreviousStepIndex(currentStepIndex);
+        setCurrentStepIndex(stepIndex);
+    }, [currentStepIndex, steps.length]);
 
     /**
      * Navigate to the previous request step if possible
      */
     const navigateToPreviousStep = useCallback(() => {
-        if (currentStepIndex <= 0) {
+        if (currentStepIndex <= 0 && previousStepIndex < 0) {
             return;
         }
 
         setPreviousStepIndex(currentStepIndex);
         setCurrentStepIndex(currentStepIndex - 1);
-    }, [currentStepIndex]);
+    }, [currentStepIndex, previousStepIndex]);
 
     /**
      * Navigate to the next request step if possible
@@ -244,9 +247,16 @@ const MoneyRequestModal = (props) => {
             return;
         }
 
+        // If we're coming from the confirm step, it means we were editing something so go back to the confirm step.
+        const confirmIndex = _.indexOf(steps, Steps.MoneyRequestConfirm);
+        if (previousStepIndex === confirmIndex) {
+            navigateToStep(confirmIndex);
+            return;
+        }
+
         setPreviousStepIndex(currentStepIndex);
         setCurrentStepIndex(currentStepIndex + 1);
-    }, [currentStepIndex, steps.length]);
+    }, [currentStepIndex, previousStepIndex, navigateToStep, steps]);
 
     /**
      * Checks if user has a GOLD wallet then creates a paid IOU report on the fly
@@ -256,8 +266,8 @@ const MoneyRequestModal = (props) => {
     const sendMoney = useCallback((paymentMethodType) => {
         const amountInDollars = Math.round(amount * 100);
         const currency = props.iou.selectedCurrencyCode;
-        const trimmedComment = comment.trim();
-        const participant = participants[0];
+        const trimmedComment = props.iou.comment.trim();
+        const participant = selectedOptions[0];
 
         if (paymentMethodType === CONST.IOU.PAYMENT_TYPE.ELSEWHERE) {
             IOU.sendMoneyElsewhere(
@@ -293,14 +303,14 @@ const MoneyRequestModal = (props) => {
                 participant,
             );
         }
-    }, [amount, comment, participants, props.currentUserPersonalDetails.login, props.iou.selectedCurrencyCode, props.report]);
+    }, [amount, props.iou.comment, selectedOptions, props.currentUserPersonalDetails.login, props.iou.selectedCurrencyCode, props.report]);
 
     /**
      * @param {Array} selectedParticipants
      */
     const createTransaction = useCallback((selectedParticipants) => {
         const reportID = lodashGet(props.route, 'params.reportID', '');
-        const trimmedComment = comment.trim();
+        const trimmedComment = props.iou.comment.trim();
 
         // IOUs created from a group report will have a reportID param in the route.
         // Since the user is already viewing the report, we don't need to navigate them to the report
@@ -329,6 +339,11 @@ const MoneyRequestModal = (props) => {
             );
             return;
         }
+        if (!selectedParticipants[0].login) {
+            // TODO - request to the policy expense chat. Not implemented yet!
+            // Will be implemented here: https://github.com/Expensify/Expensify/issues/270581
+            return;
+        }
         IOU.requestMoney(
             props.report,
             Math.round(amount * 100),
@@ -337,12 +352,21 @@ const MoneyRequestModal = (props) => {
             selectedParticipants[0],
             trimmedComment,
         );
-    }, [amount, comment, props.currentUserPersonalDetails.login, props.hasMultipleParticipants, props.iou.selectedCurrencyCode, props.preferredLocale, props.report, props.route]);
+    }, [amount, props.iou.comment, props.currentUserPersonalDetails.login, props.hasMultipleParticipants, props.iou.selectedCurrencyCode, props.preferredLocale, props.report, props.route]);
 
     const currentStep = steps[currentStepIndex];
+    const moneyRequestStepIndex = _.indexOf(steps, Steps.MoneyRequestConfirm);
+    const isEditingAmountAfterConfirm = currentStepIndex === 0 && previousStepIndex === _.indexOf(steps, Steps.MoneyRequestConfirm);
     const reportID = lodashGet(props, 'route.params.reportID', '');
-    const shouldShowBackButton = currentStepIndex > 0;
-    const modalHeader = <ModalHeader title={titleForStep} shouldShowBackButton={shouldShowBackButton} onBackButtonPress={navigateToPreviousStep} />;
+    const shouldShowBackButton = currentStepIndex > 0 || isEditingAmountAfterConfirm;
+    const modalHeader = (
+        <ModalHeader
+            title={titleForStep}
+            shouldShowBackButton={shouldShowBackButton}
+            onBackButtonPress={isEditingAmountAfterConfirm ? () => navigateToStep(moneyRequestStepIndex) : navigateToPreviousStep}
+        />
+    );
+    const amountButtonText = isEditingAmountAfterConfirm ? props.translate('common.save') : props.translate('common.next');
     return (
         <ScreenWrapper includeSafeAreaPaddingBottom={false}>
             {({didScreenTransitionEnd, safeAreaPaddingBottomStyle}) => (
@@ -351,13 +375,13 @@ const MoneyRequestModal = (props) => {
                         {!didScreenTransitionEnd && <FullScreenLoadingIndicator />}
                         {didScreenTransitionEnd && (
                             <>
-                                {currentStep === Steps.IOUAmount && (
+                                {currentStep === Steps.MoneyRequestAmount && (
                                     <AnimatedStep
                                         direction={direction}
                                         style={[styles.flex1, safeAreaPaddingBottomStyle]}
                                     >
                                         {modalHeader}
-                                        <IOUAmountPage
+                                        <MoneyRequestAmountPage
                                             onStepComplete={(value) => {
                                                 setAmount(value);
                                                 navigateToNextStep();
@@ -367,32 +391,33 @@ const MoneyRequestModal = (props) => {
                                             selectedAmount={amount}
                                             navigation={props.navigation}
                                             iouType={props.iouType}
+                                            buttonText={amountButtonText}
                                         />
                                     </AnimatedStep>
                                 )}
-                                {currentStep === Steps.IOUParticipants && (
+                                {currentStep === Steps.MoneyRequestParticipants && (
                                     <AnimatedStep
                                         style={[styles.flex1]}
                                         direction={direction}
                                     >
                                         {modalHeader}
-                                        <IOUParticipantsPage
-                                            participants={participants}
+                                        <MoneyRequestParticipantsPage
+                                            participants={selectedOptions}
                                             hasMultipleParticipants={props.hasMultipleParticipants}
-                                            onAddParticipants={selectedParticipants => setParticipants(selectedParticipants)}
+                                            onAddParticipants={setSelectedOptions}
                                             onStepComplete={navigateToNextStep}
                                             safeAreaPaddingBottomStyle={safeAreaPaddingBottomStyle}
                                             iouType={props.iouType}
                                         />
                                     </AnimatedStep>
                                 )}
-                                {currentStep === Steps.IOUConfirm && (
+                                {currentStep === Steps.MoneyRequestConfirm && (
                                     <AnimatedStep
                                         style={[styles.flex1, safeAreaPaddingBottomStyle]}
                                         direction={direction}
                                     >
                                         {modalHeader}
-                                        <IOUConfirmPage
+                                        <MoneyRequestConfirmPage
                                             onConfirm={(selectedParticipants) => {
                                                 // TODO: ADD HANDLING TO DISABLE BUTTON FUNCTIONALITY WHILE REQUEST IS IN FLIGHT
                                                 createTransaction(selectedParticipants);
@@ -404,10 +429,8 @@ const MoneyRequestModal = (props) => {
                                                 ReportScrollManager.scrollToBottom();
                                             }}
                                             hasMultipleParticipants={props.hasMultipleParticipants}
-                                            participants={_.filter(participants, email => props.currentUserPersonalDetails.login !== email.login)}
+                                            participants={_.filter(selectedOptions, email => props.currentUserPersonalDetails.login !== email.login)}
                                             iouAmount={amount}
-                                            comment={comment}
-                                            onUpdateComment={value => setComment(value)}
                                             iouType={props.iouType}
 
                                             // The participants can only be modified when the action is initiated from directly within a group chat and not the floating-action-button.
@@ -416,6 +439,7 @@ const MoneyRequestModal = (props) => {
                                             // split rather than forcing the user to create a new group, just for that expense. The reportID is empty, when the action was initiated from
                                             // the floating-action-button (since it is something that exists outside the context of a report).
                                             canModifyParticipants={!_.isEmpty(reportID)}
+                                            navigateToStep={navigateToStep}
                                         />
                                     </AnimatedStep>
                                 )}

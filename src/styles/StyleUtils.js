@@ -116,7 +116,7 @@ function getAvatarBorderStyle(size, type) {
  * @param {String} [workspaceName]
  * @returns {Object}
  */
-function getDefaultWorspaceAvatarColor(workspaceName) {
+function getDefaultWorkspaceAvatarColor(workspaceName) {
     const colorHash = ReportUtils.hashLogin(workspaceName.trim(), workspaceColorOptions.length);
 
     return workspaceColorOptions[colorHash];
@@ -284,6 +284,26 @@ function getBackgroundColorStyle(backgroundColor) {
     return {
         backgroundColor,
     };
+}
+
+/**
+ * Returns the width style for the wordmark logo on the sign in page
+ *
+ * @param {String} environment
+ * @param {Boolean} isSmallScreenWidth
+ * @returns {Object}
+ */
+function getSignInWordmarkWidthStyle(environment, isSmallScreenWidth) {
+    if (environment === CONST.ENVIRONMENT.DEV) {
+        return isSmallScreenWidth ? {width: variables.signInLogoWidthPill} : {width: variables.signInLogoWidthLargeScreenPill};
+    }
+    if (environment === CONST.ENVIRONMENT.STAGING) {
+        return isSmallScreenWidth ? {width: variables.signInLogoWidthPill} : {width: variables.signInLogoWidthLargeScreenPill};
+    }
+    if (environment === CONST.ENVIRONMENT.PRODUCTION) {
+        return isSmallScreenWidth ? {width: variables.signInLogoWidth} : {width: variables.signInLogoWidthLargeScreen};
+    }
+    return isSmallScreenWidth ? {width: variables.signInLogoWidthPill} : {width: variables.signInLogoWidthLargeScreenPill};
 }
 
 /**
@@ -516,7 +536,7 @@ function getReportActionItemStyle(isHovered = false, isLoading = false) {
             // Warning: Setting this to a non-transparent color will cause unread indicator to break on Android
             : colors.transparent,
         opacity: isLoading ? 0.5 : 1,
-        cursor: 'default',
+        cursor: 'initial',
     };
 }
 
@@ -692,6 +712,17 @@ function getMinimumHeight(minHeight) {
 }
 
 /**
+ * Get maximum width as style
+ * @param {Number} maxWidth
+ * @returns {Object}
+ */
+function getMaximumWidth(maxWidth) {
+    return {
+        maxWidth,
+    };
+}
+
+/**
  * Return style for opacity animation.
  *
  * @param {Animated.Value} fadeAnimation
@@ -786,6 +817,18 @@ function getReportWelcomeTopMarginStyle(isSmallScreenWidth) {
 
     return {
         marginTop: CONST.EMPTY_STATE_BACKGROUND.WIDE_SCREEN.VIEW_HEIGHT,
+    };
+}
+
+/**
+ * Returns fontSize style
+ *
+ * @param {Number} fontSize
+ * @returns {Object}
+ */
+function getFontSizeStyle(fontSize) {
+    return {
+        fontSize,
     };
 }
 
@@ -980,6 +1023,7 @@ export {
     hasSafeAreas,
     getHeight,
     getMinimumHeight,
+    getMaximumWidth,
     fade,
     getHorizontalStackedAvatarBorderStyle,
     getReportWelcomeBackgroundImageStyle,
@@ -988,11 +1032,13 @@ export {
     getEmojiSuggestionItemStyle,
     getEmojiSuggestionContainerStyle,
     getColoredBackgroundStyle,
-    getDefaultWorspaceAvatarColor,
+    getDefaultWorkspaceAvatarColor,
     getAvatarBorderRadius,
     getEmojiReactionBubbleStyle,
     getEmojiReactionBubbleTextStyle,
     getEmojiReactionCounterTextStyle,
     getDirectionStyle,
     displayIfTrue,
+    getFontSizeStyle,
+    getSignInWordmarkWidthStyle,
 };
