@@ -24,17 +24,14 @@ const propTypes = {
     /** The report action which we are displaying */
     action: PropTypes.shape(reportActionPropTypes).isRequired,
 
-    /** Can this transaction be rejected? */
-    canBeRejected: PropTypes.bool,
-
-    /** Type of the reject transaction button */
-    rejectButtonType: PropTypes.oneOf([CONST.IOU.REPORT_ACTION_TYPE.DECLINE, CONST.IOU.REPORT_ACTION_TYPE.CANCEL]).isRequired,
+    /** Can this transaction be deleted? */
+    canBeDeleted: PropTypes.bool,
 
     ...withLocalizePropTypes,
 };
 
 const defaultProps = {
-    canBeRejected: false,
+    canBeDeleted: false,
 };
 
 class ReportTransaction extends Component {
@@ -78,11 +75,11 @@ class ReportTransaction extends Component {
                             {this.props.action.message[0].text}
                         </Text>
                     </ReportActionItemSingle>
-                    {this.props.canBeRejected && (
+                    {this.props.canBeDeleted && (
                         <View style={[styles.flexRow, styles.justifyContentStart]}>
                             <Button
                                 small
-                                text={this.props.translate(`common.${this.props.rejectButtonType}`)}
+                                text={this.props.translate('common.delete')}
                                 style={[styles.mb3, styles.chatItemComposeSecondaryRowOffset]}
                                 onPress={this.deleteMoneyRequest}
                             />

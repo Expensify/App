@@ -9,7 +9,6 @@ import ONYXKEYS from '../../ONYXKEYS';
 import * as ReportActionsUtils from '../../libs/ReportActionsUtils';
 import reportActionPropTypes from '../home/report/reportActionPropTypes';
 import ReportTransaction from '../../components/ReportTransaction';
-import CONST from '../../CONST';
 
 const propTypes = {
     /** Actions from the ChatReport */
@@ -37,17 +36,17 @@ class IOUTransactions extends Component {
     constructor(props) {
         super(props);
 
-        this.getRejectableTransactions = this.getRejectableTransactions.bind(this);
+        this.getDeletableTransactions = this.getDeletableTransactions.bind(this);
     }
 
     /**
-     * Builds and returns the rejectableTransactionIDs array. A transaction must meet multiple requirements in order
-     * to be rejectable. We must exclude transactions not associated with the iouReportID, actions which have already
+     * Builds and returns the deletableTransactionIDs array. A transaction must meet multiple requirements in order
+     * to be deletable. We must exclude transactions not associated with the iouReportID, actions which have already
      * been rejected, and those which are not of type 'create'.
      *
      * @returns {Array}
      */
-    getRejectableTransactions() {
+    getDeletableTransactions() {
         if (this.props.isIOUSettled) {
             return [];
         }
@@ -65,6 +64,7 @@ class IOUTransactions extends Component {
         return _.chain(actionsForIOUReport)
             .filter(action => action.originalMessage.type === 'create')
             .filter(action => !_.contains(rejectedTransactionIDs, action.originalMessage.IOUTransactionID))
+            .filter(action => this.props.userEmail === action.actorEmail)
             .map(action => lodashGet(action, 'originalMessage.IOUTransactionID', ''))
             .compact()
             .value();
@@ -80,10 +80,9 @@ class IOUTransactions extends Component {
                         return;
                     }
 
-                    const rejectableTransactions = this.getRejectableTransactions();
-                    const canBeRejected = _.contains(rejectableTransactions,
+                    const deletableTransactions = this.getDeletableTransactions();
+                    const canBeDelete = _.contains(deletableTransactions,
                         reportAction.originalMessage.IOUTransactionID);
-                    const isCurrentUserTransactionCreator = this.props.userEmail === reportAction.actorEmail;
                     return (
                         <ReportTransaction
                             chatReportID={this.props.chatReportID}
@@ -91,8 +90,7 @@ class IOUTransactions extends Component {
                             reportActions={sortedReportActions}
                             action={reportAction}
                             key={reportAction.reportActionID}
-                            canBeRejected={canBeRejected}
-                            rejectButtonType={isCurrentUserTransactionCreator ? CONST.IOU.REPORT_ACTION_TYPE.CANCEL : CONST.IOU.REPORT_ACTION_TYPE.DECLINE}
+                            canBeDeleted={canBeDelete}
                         />
                     );
                 })}

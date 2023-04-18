@@ -584,6 +584,8 @@ function deleteMoneyRequest(chatReportID, iouReportID, moneyRequestAction) {
             key: `${ONYXKEYS.COLLECTION.REPORT}${iouReportID}`,
             value: updatedIOUReport,
         },
+
+        // @TODO: need to update transactions key
     ];
     const successData = [
         {
@@ -604,7 +606,7 @@ function deleteMoneyRequest(chatReportID, iouReportID, moneyRequestAction) {
                 [optimisticReportAction.reportActionID]: {
                     pendingAction: null,
                     errors: {
-                        [DateUtils.getMicroseconds()]: Localize.translateLocal('iou.error.genericDeleteFailureMessage', {type: CONST.IOU.REPORT_ACTION_TYPE.DELETE}),
+                        [DateUtils.getMicroseconds()]: Localize.translateLocal('iou.error.genericDeleteFailureMessage'),
                     },
                 },
             },
