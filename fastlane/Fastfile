@@ -114,7 +114,7 @@ platform :ios do
 
     build_app(
         workspace: "./ios/NewExpensify.xcworkspace",
-        scheme: "NewExpensify"
+        scheme: "New Expensify"
     )
   end
 
@@ -147,7 +147,7 @@ platform :ios do
     build_app(
         workspace: "./ios/NewExpensify.xcworkspace",
         skip_profile_detection: true,
-        scheme: "NewExpensify",
+        scheme: "New Expensify AdHoc",
         xcargs: { :PROVISIONING_PROFILE_SPECIFIER => "chat_expensify_adhoc", },
         export_method: "ad-hoc",
         export_options: {
@@ -200,7 +200,7 @@ platform :ios do
 
     build_app(
         workspace: "./ios/NewExpensify.xcworkspace",
-        scheme: "NewExpensify",
+        scheme: "New Expensify",
         export_options: {
             manageAppVersionAndBuildNumber: false
         }

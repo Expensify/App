@@ -625,7 +625,7 @@
 /* End PBXTargetDependency section */
 
 /* Begin XCBuildConfiguration section */
-		00E356F61AD99517003FC87E /* DebugDevelopment */ = {
+		00E356F61AD99517003FC87E /* Debug Development */ = {
 			isa = XCBuildConfiguration;
 			baseConfigurationReference = 2E0F63FDD5228F12D38D693D /* Pods-NewExpensify-NewExpensifyTests.debug development.xcconfig */;
 			buildSettings = {
@@ -648,7 +648,7 @@
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/NewExpensify.app/NewExpensify";
 			};
-			name = DebugDevelopment;
+			name = "Debug Development";
 		};
 		00E356F71AD99517003FC87E /* Release Development */ = {
 			isa = XCBuildConfiguration;
@@ -673,11 +673,12 @@
 			};
 			name = "Release Development";
 		};
-		13B07F941A680F5B00A75B9A /* DebugDevelopment */ = {
+		13B07F941A680F5B00A75B9A /* Debug Development */ = {
 			isa = XCBuildConfiguration;
 			baseConfigurationReference = 04AE503EFB65C54C6421A21C /* Pods-NewExpensify.debug development.xcconfig */;
 			buildSettings = {
-				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIconDev;
+				ASSETCATALOG_COMPILER_INCLUDE_ALL_APPICON_ASSETS = NO;
 				CLANG_ENABLE_MODULES = YES;
 				CODE_SIGN_ENTITLEMENTS = NewExpensify/Chat.entitlements;
 				CODE_SIGN_IDENTITY = "iPhone Distribution";
@@ -703,13 +704,14 @@
 				TARGETED_DEVICE_FAMILY = "1,2";
 				VERSIONING_SYSTEM = "apple-generic";
 			};
-			name = DebugDevelopment;
+			name = "Debug Development";
 		};
 		13B07F951A680F5B00A75B9A /* Release Development */ = {
 			isa = XCBuildConfiguration;
 			baseConfigurationReference = 217521EF395019214E1FD024 /* Pods-NewExpensify.release development.xcconfig */;
 			buildSettings = {
-				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIconDev;
+				ASSETCATALOG_COMPILER_INCLUDE_ALL_APPICON_ASSETS = NO;
 				CLANG_ENABLE_MODULES = YES;
 				CODE_SIGN_ENTITLEMENTS = NewExpensify/Chat.entitlements;
 				CODE_SIGN_IDENTITY = "iPhone Distribution";
@@ -735,7 +737,7 @@
 			};
 			name = "Release Development";
 		};
-		83CBBA201A601CBA00E9B192 /* DebugDevelopment */ = {
+		83CBBA201A601CBA00E9B192 /* Debug Development */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ALWAYS_SEARCH_USER_PATHS = NO;
@@ -796,7 +798,7 @@
 				REACT_NATIVE_PATH = "${PODS_ROOT}/../../node_modules/react-native";
 				SDKROOT = iphoneos;
 			};
-			name = DebugDevelopment;
+			name = "Debug Development";
 		};
 		83CBBA211A601CBA00E9B192 /* Release Development */ = {
 			isa = XCBuildConfiguration;
@@ -923,6 +925,7 @@
 			baseConfigurationReference = BE5D56AF4DB6A25E47D361DC /* Pods-NewExpensify.debug production.xcconfig */;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				ASSETCATALOG_COMPILER_INCLUDE_ALL_APPICON_ASSETS = NO;
 				CLANG_ENABLE_MODULES = YES;
 				CODE_SIGN_ENTITLEMENTS = NewExpensify/Chat.entitlements;
 				CODE_SIGN_IDENTITY = "iPhone Distribution";
@@ -1044,6 +1047,7 @@
 			baseConfigurationReference = D75E95E752F1B927C07EFEAA /* Pods-NewExpensify.debug staging.xcconfig */;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				ASSETCATALOG_COMPILER_INCLUDE_ALL_APPICON_ASSETS = NO;
 				CLANG_ENABLE_MODULES = YES;
 				CODE_SIGN_ENTITLEMENTS = NewExpensify/Chat.entitlements;
 				CODE_SIGN_IDENTITY = "iPhone Distribution";
@@ -1163,7 +1167,8 @@
 			isa = XCBuildConfiguration;
 			baseConfigurationReference = 350474CA00D741EB18BA356D /* Pods-NewExpensify.debug adhoc.xcconfig */;
 			buildSettings = {
-				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIconAdHoc;
+				ASSETCATALOG_COMPILER_INCLUDE_ALL_APPICON_ASSETS = NO;
 				CLANG_ENABLE_MODULES = YES;
 				CODE_SIGN_ENTITLEMENTS = NewExpensify/Chat.entitlements;
 				CODE_SIGN_IDENTITY = "iPhone Distribution";
@@ -1278,6 +1283,7 @@
 			baseConfigurationReference = EB898CE48C59A29BD2334AD7 /* Pods-NewExpensify.release production.xcconfig */;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				ASSETCATALOG_COMPILER_INCLUDE_ALL_APPICON_ASSETS = NO;
 				CLANG_ENABLE_MODULES = YES;
 				CODE_SIGN_ENTITLEMENTS = NewExpensify/Chat.entitlements;
 				CODE_SIGN_IDENTITY = "iPhone Distribution";
@@ -1387,6 +1393,7 @@
 			baseConfigurationReference = F760457136098BA2628C3A90 /* Pods-NewExpensify.release staging.xcconfig */;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				ASSETCATALOG_COMPILER_INCLUDE_ALL_APPICON_ASSETS = NO;
 				CLANG_ENABLE_MODULES = YES;
 				CODE_SIGN_ENTITLEMENTS = NewExpensify/Chat.entitlements;
 				CODE_SIGN_IDENTITY = "iPhone Distribution";
@@ -1496,7 +1503,8 @@
 			isa = XCBuildConfiguration;
 			baseConfigurationReference = 15A9AE9FCEA8582EC9D4B818 /* Pods-NewExpensify.release adhoc.xcconfig */;
 			buildSettings = {
-				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIconAdHoc;
+				ASSETCATALOG_COMPILER_INCLUDE_ALL_APPICON_ASSETS = NO;
 				CLANG_ENABLE_MODULES = YES;
 				CODE_SIGN_ENTITLEMENTS = NewExpensify/Chat.entitlements;
 				CODE_SIGN_IDENTITY = "iPhone Distribution";
@@ -1551,7 +1559,7 @@
 		00E357021AD99517003FC87E /* Build configuration list for PBXNativeTarget "NewExpensifyTests" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
-				00E356F61AD99517003FC87E /* DebugDevelopment */,
+				00E356F61AD99517003FC87E /* Debug Development */,
 				CF9AF94629EE927A001FA527 /* Debug AdHoc */,
 				CF9AF94329EE9278001FA527 /* Debug Staging */,
 				CF9AF94029EE9276001FA527 /* Debug Production */,
@@ -1566,7 +1574,7 @@
 		13B07F931A680F5B00A75B9A /* Build configuration list for PBXNativeTarget "NewExpensify" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
-				13B07F941A680F5B00A75B9A /* DebugDevelopment */,
+				13B07F941A680F5B00A75B9A /* Debug Development */,
 				CF9AF94529EE927A001FA527 /* Debug AdHoc */,
 				CF9AF94229EE9278001FA527 /* Debug Staging */,
 				CF9AF93F29EE9276001FA527 /* Debug Production */,
@@ -1581,7 +1589,7 @@
 		83CBB9FA1A601CBA00E9B192 /* Build configuration list for PBXProject "NewExpensify" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
-				83CBBA201A601CBA00E9B192 /* DebugDevelopment */,
+				83CBBA201A601CBA00E9B192 /* Debug Development */,
 				CF9AF94429EE927A001FA527 /* Debug AdHoc */,
 				CF9AF94129EE9278001FA527 /* Debug Staging */,
 				CF9AF93E29EE9276001FA527 /* Debug Production */,
