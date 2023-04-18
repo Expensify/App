@@ -25,7 +25,13 @@ function getEnvironment() {
         // If we haven't set the environment yet and we aren't on dev, check to see if this is a beta build
         betaChecker.isBetaBuild()
             .then((isBeta) => {
-                environment = isBeta || CONST.PULL_REQUEST_NUMBER ? CONST.ENVIRONMENT.ADHOC : CONST.ENVIRONMENT.PRODUCTION;
+                if (isBeta && CONST.PULL_REQUEST_NUMBER) {
+                    environment = CONST.ENVIRONMENT.ADHOC;
+                } else if (isBeta) {
+                    environment = CONST.ENVIRONMENT.STAGING;
+                } else {
+                    environment = CONST.ENVIRONMENT.PRODUCTION;
+                }
                 resolve(environment);
             });
     });
