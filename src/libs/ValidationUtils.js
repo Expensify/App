@@ -1,6 +1,5 @@
 import moment from 'moment';
 import _ from 'underscore';
-import Str from 'expensify-common/lib/str';
 import CONST from '../CONST';
 import * as CardUtils from './CardUtils';
 import * as LoginUtils from './LoginUtils';
