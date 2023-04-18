@@ -178,14 +178,14 @@ describe('calculateAmount', () => {
     beforeAll(() => initCurrencyList());
     test('103 JPY split among 3 participants including the default user should be [35, 34, 34]', () => {
         const participants = ['tonystark@expensify.com', 'reedrichards@expensify.com'];
-        expect(IOUUtils.calculateAmount(participants, 103, 'JPY', true)).toBe(35);
-        expect(IOUUtils.calculateAmount(participants, 103, 'JPY')).toBe(34);
+        expect(IOUUtils.calculateAmount(participants, 103, 'JPY', true)).toBe(3500);
+        expect(IOUUtils.calculateAmount(participants, 103, 'JPY')).toBe(3400);
     });
 
     test('10 AFN split among 4 participants including the default user should be [1, 3, 3, 3]', () => {
         const participants = ['tonystark@expensify.com', 'reedrichards@expensify.com', 'suestorm@expensify.com'];
-        expect(IOUUtils.calculateAmount(participants, 10, 'AFN', true)).toBe(1);
-        expect(IOUUtils.calculateAmount(participants, 10, 'AFN')).toBe(3);
+        expect(IOUUtils.calculateAmount(participants, 10, 'AFN', true)).toBe(100);
+        expect(IOUUtils.calculateAmount(participants, 10, 'AFN')).toBe(300);
     });
 
     test('10 BHD split among 3 participants including the default user should be [334, 333, 333]', () => {
