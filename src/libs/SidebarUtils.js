@@ -230,7 +230,7 @@ function getOptionData(reportID) {
     };
 
     const participantPersonalDetailList = _.values(OptionsListUtils.getPersonalDetailsForLogins(report.participants, personalDetails));
-    const personalDetail = participantPersonalDetailList[0] || {};
+    const personalDetail = participantPersonalDetailList[0] || {login: ''};
 
     result.isChatRoom = ReportUtils.isChatRoom(report);
     result.isArchivedRoom = ReportUtils.isArchivedRoom(report);
