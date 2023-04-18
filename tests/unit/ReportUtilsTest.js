@@ -25,8 +25,8 @@ const participantsPersonalDetails = {
         login: 'lagertha@vikings.net',
         pronouns: 'She/her',
     },
-    '+12223334444@expensify.sms': {
-        login: '+12223334444@expensify.sms',
+    '+18332403627@expensify.sms': {
+        login: '+18332403627@expensify.sms',
     },
 };
 const policy = {
@@ -64,8 +64,8 @@ describe('ReportUtils', () => {
                     pronouns: 'She/her',
                 },
                 {
-                    displayName: '2223334444',
-                    tooltip: '+12223334444',
+                    displayName: '(833) 240-3627',
+                    tooltip: '+18332403627',
                     pronouns: undefined,
                 },
             ]);
@@ -89,8 +89,8 @@ describe('ReportUtils', () => {
                     pronouns: 'She/her',
                 },
                 {
-                    displayName: '2223334444',
-                    tooltip: '+12223334444',
+                    displayName: '(833) 240-3627',
+                    tooltip: '+18332403627',
                     pronouns: undefined,
                 },
             ]);
@@ -113,15 +113,15 @@ describe('ReportUtils', () => {
 
             test('SMS', () => {
                 expect(ReportUtils.getReportName({
-                    participants: [currentUserEmail, '+12223334444@expensify.sms'],
-                })).toBe('2223334444');
+                    participants: [currentUserEmail, '+18332403627@expensify.sms'],
+                })).toBe('(833) 240-3627');
             });
         });
 
         test('Group DM', () => {
             expect(ReportUtils.getReportName({
-                participants: [currentUserEmail, 'ragnar@vikings.net', 'floki@vikings.net', 'lagertha@vikings.net', '+12223334444@expensify.sms'],
-            })).toBe('Ragnar, floki@vikings.net, Lagertha, 2223334444');
+                participants: [currentUserEmail, 'ragnar@vikings.net', 'floki@vikings.net', 'lagertha@vikings.net', '+18332403627@expensify.sms'],
+            })).toBe('Ragnar, floki@vikings.net, Lagertha, (833) 240-3627');
         });
 
         describe('Default Policy Room', () => {

@@ -30,6 +30,7 @@ const darkTheme = {
     successPressed: colors.greenPressed,
     transparent: colors.transparent,
     midtone: colors.green700,
+    signInPage: colors.green800,
     dark: colors.midnight,
 
     // Additional keys
@@ -39,6 +40,7 @@ const darkTheme = {
     componentBG: colors.greenAppBackground,
     hoverComponentBG: colors.greenHighlightBackground,
     activeComponentBG: colors.greenBorders,
+    signInSidebar: colors.green800,
     sidebar: colors.greenHighlightBackground,
     sidebarHover: colors.greenAppBackground,
     heading: colors.white,
