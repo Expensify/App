@@ -381,7 +381,7 @@ function addMembersToWorkspace(memberLogins, welcomeNote, policyID, betas) {
         // Escape HTML special chars to enable them to appear in the invite email
         welcomeNote: _.escape(welcomeNote),
         policyID,
-        reportIDs: JSON.stringify(membersChats.reportIDs),
+        reportCreationData: JSON.stringify(membersChats.reportCreationData),
     }, {optimisticData, successData, failureData});
 }
 
