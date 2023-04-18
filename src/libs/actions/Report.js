@@ -924,14 +924,10 @@ function editReportComment(reportID, originalReportAction, textForNewComment) {
 
     const lastVisibleAction = ReportActionsUtils.getLastVisibleAction(reportID, optimisticReportActions);
     if (reportActionID === lastVisibleAction.reportActionID) {
-        const reportComment = parser.htmlToText(ReportUtils.getParsedComment(textForNewComment));
-        const lastCommentText = ReportUtils.formatReportLastMessageText(reportComment);
-        const currentTime = DateUtils.getDBTime();
+        const reportComment = parser.htmlToText(htmlForNewComment);
+        const lastMessageText = ReportUtils.formatReportLastMessageText(reportComment);
         const optimisticReport = {
-            lastVisibleActionCreated: currentTime,
-            lastMessageText: Str.htmlDecode(lastCommentText),
-            lastActorEmail: currentUserEmail,
-            lastReadTime: currentTime,
+            lastMessageText: Str.htmlDecode(lastMessageText),
         };
         optimisticData.push({
             onyxMethod: CONST.ONYX.METHOD.MERGE,
