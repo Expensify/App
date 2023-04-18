@@ -127,6 +127,8 @@ class MoneyRequestAmountPage extends React.Component {
      * @returns {Object}
      */
     getNewState(prevState, newAmount) {
+        // Remove spaces from the newAmount value because Safari on iOS adds spaces when pasting a copied value
+        // More info: https://github.com/Expensify/App/issues/16974
         const newAmountWithoutSpaces = this.stripSpacesFromAmount(newAmount);
         if (!this.validateAmount(newAmountWithoutSpaces)) {
             // Use a shallow copy of selection to trigger setSelection
