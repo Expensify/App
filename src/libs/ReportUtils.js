@@ -1030,6 +1030,32 @@ function buildOptimisticAddCommentReportAction(text, file) {
 }
 
 /**
+ * Builds an optimistic Task Report with a randomly generated reportID
+ *
+ * @param {String} ownerEmail - Email of the person generating the Task.
+ * @param {String} userEmail - Email of the other person participating in the Task.
+ * @param {String} chatReportID - Report ID of the chat where the Task is.
+ * @param {String} name - Task name.
+ * @param {String} description - Task description.
+ *
+ * @returns {Object}
+ */
+
+function buildOptimisticTaskReport(ownerEmail, userEmail, parentReportID, parentReportActionID, name, description) {
+    return {
+        reportID: generateReportID(),
+        reportName: name,
+        description,
+        ownerEmail,
+        assignee: userEmail,
+        type: CONST.REPORT.TYPE.TASK,
+        parentReportID,
+        parentReportActionID,
+        state: CONST.REPORT.STATE.OPEN,
+    };
+}
+
+/**
  * Builds an optimistic IOU report with a randomly generated reportID
  *
  * @param {String} ownerEmail - Email of the person generating the IOU.
@@ -1856,6 +1882,7 @@ export {
     isUnread,
     isUnreadWithMention,
     buildOptimisticWorkspaceChats,
+    buildOptimisticTaskReport,
     buildOptimisticChatReport,
     buildOptimisticClosedReportAction,
     buildOptimisticCreatedReportAction,
