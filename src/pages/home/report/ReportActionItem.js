@@ -28,7 +28,7 @@ import {
     withBlockedFromConcierge,
     withNetwork,
     withPersonalDetails,
-    withReportActionsDrafts
+    withReportActionsDrafts,
 } from '../../../components/OnyxProvider';
 import RenameAction from '../../../components/ReportActionItem/RenameAction';
 import InlineSystemMessage from '../../../components/InlineSystemMessage';
@@ -322,13 +322,13 @@ class ReportActionItem extends Component {
                                             <ReportActionItemSingle
                                                 action={this.props.action}
                                                 showHeader={!this.props.draftMessage}
-                                                wrapperStyles={[styles.chatItem, isWhisper && styles.pt1]}
+                                                wrapperStyles={[styles.chatItem, isWhisper ? styles.pt1 : null]}
                                             >
                                                 {this.renderItemContent(hovered || this.state.isContextMenuActive)}
                                             </ReportActionItemSingle>
                                         )
                                         : (
-                                            <ReportActionItemGrouped wrapperStyles={[styles.chatItem, isWhisper && styles.pt1]}>
+                                            <ReportActionItemGrouped wrapperStyles={[styles.chatItem, isWhisper ? styles.pt1 : null]}>
                                                 {this.renderItemContent(hovered || this.state.isContextMenuActive)}
                                             </ReportActionItemGrouped>
                                         )}
