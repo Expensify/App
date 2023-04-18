@@ -24,6 +24,7 @@ import DotIndicatorMessage from '../../components/DotIndicatorMessage';
 import * as CloseAccount from '../../libs/actions/CloseAccount';
 import AppleSignInScript from './AppleSignInScript';
 import CONST from '../../CONST';
+import GoogleSignInButton from '../../libs/signInWithGoogle';
 
 const propTypes = {
     /** Should we dismiss the keyboard when transitioning away from the page? */
@@ -215,6 +216,7 @@ class LoginForm extends React.Component {
                                 onPress={Session.beginAppleSignIn}
                                 title="Sign in with Apple"
                             />
+                            <GoogleSignInButton clientId="" onCredentialResponse={() => {}} />
                         </View>
                     )
                 }
