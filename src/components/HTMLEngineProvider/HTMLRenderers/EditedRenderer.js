@@ -14,12 +14,14 @@ const propTypes = {
 
 const EditedRenderer = (props) => {
     const defaultRendererProps = _.omit(props, ['TDefaultRenderer', 'style', 'tnode']);
+    const isPendingDelete = !!props.tnode.attributes.deleted;
     return (
         <Text
             // eslint-disable-next-line react/jsx-props-no-spreading
             {...defaultRendererProps}
             fontSize={variables.fontSizeSmall}
             color={themeColors.textSupporting}
+            style={isPendingDelete ? [styles.offlineFeedback.deleted, styles.offlineFeedback.edited] : {}}
         >
             {/* Native devices do not support margin between nested text */}
             <Text style={styles.w1}>{' '}</Text>

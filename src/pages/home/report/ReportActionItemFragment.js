@@ -111,7 +111,7 @@ const ReportActionItemFragment = (props) => {
             // Only render HTML if we have html in the fragment
             if (!differByLineBreaksOnly) {
                 const isPendingDelete = props.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE && props.network.isOffline;
-                const editedTag = props.fragment.isEdited ? '<edited></edited>' : '';
+                const editedTag = props.fragment.isEdited ? `<edited ${isPendingDelete ? 'deleted="true"' : ''}></edited>` : '';
                 const htmlContent = applyStrikethrough(html + editedTag, isPendingDelete);
 
                 return (
