@@ -248,8 +248,7 @@ class ReportActionItem extends Component {
         const whisperedTo = lodashGet(this.props.action, 'whisperedTo', []);
         const isWhisper = _.size(whisperedTo) > 0;
         const isMultipleParticipant = _.size(whisperedTo) > 1;
-        const participantPersonalDetailList = isWhisper ? _.values(OptionsListUtils.getPersonalDetailsForLogins(_.keys(whisperedTo), whisperedTo)) : [];
-        const displayNamesWithTooltips = isWhisper ? ReportUtils.getDisplayNamesWithTooltips(participantPersonalDetailList, isMultipleParticipant) : [];
+        const displayNamesWithTooltips = isWhisper ? ReportUtils.getDisplayNamesWithTooltips(whisperedTo, isMultipleParticipant) : [];
         return (
             <PressableWithSecondaryInteraction
                 pointerEvents={this.props.action.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE ? 'none' : 'auto'}
@@ -296,7 +295,7 @@ class ReportActionItem extends Component {
                                                 {this.props.translate('reportActionContextMenu.onlyVisible')}
                                             </Text>
                                             <DisplayNames
-                                                fullTitle={ReportUtils.getWhisperDisplayNames(participantPersonalDetailList)}
+                                                fullTitle={ReportUtils.getWhisperDisplayNames(whisperedTo)}
                                                 displayNamesWithTooltips={displayNamesWithTooltips}
                                                 tooltipEnabled
                                                 numberOfLines={1}

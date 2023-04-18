@@ -69,50 +69,48 @@ const ReportActionItemSingle = (props) => {
         : props.action.person;
 
     return (
-        <View style={[props.wrapperStyles]}>
-            <View style={[styles.chatItem]}>
-                <Pressable
-                    style={[styles.alignSelfStart, styles.mr3]}
-                    onPressIn={ControlSelection.block}
-                    onPressOut={ControlSelection.unblock}
-                    onPress={() => showUserDetails(actorEmail)}
-                >
-                    <Tooltip text={actorEmail}>
-                        <OfflineWithFeedback
-                            pendingAction={lodashGet(pendingFields, 'avatar', null)}
+        <View style={props.wrapperStyles}>
+            <Pressable
+                style={[styles.alignSelfStart, styles.mr3]}
+                onPressIn={ControlSelection.block}
+                onPressOut={ControlSelection.unblock}
+                onPress={() => showUserDetails(actorEmail)}
+            >
+                <Tooltip text={actorEmail}>
+                    <OfflineWithFeedback
+                        pendingAction={lodashGet(pendingFields, 'avatar', null)}
+                    >
+                        <Avatar
+                            containerStyles={[styles.actionAvatar]}
+                            source={avatarSource}
+                        />
+                    </OfflineWithFeedback>
+                </Tooltip>
+            </Pressable>
+            <View style={[styles.chatItemRight]}>
+                {props.showHeader ? (
+                    <View style={[styles.chatItemMessageHeader]}>
+                        <Pressable
+                            style={[styles.flexShrink1, styles.mr1]}
+                            onPressIn={ControlSelection.block}
+                            onPressOut={ControlSelection.unblock}
+                            onPress={() => showUserDetails(actorEmail)}
                         >
-                            <Avatar
-                                containerStyles={[styles.actionAvatar]}
-                                source={avatarSource}
-                            />
-                        </OfflineWithFeedback>
-                    </Tooltip>
-                </Pressable>
-                <View style={[styles.chatItemRight]}>
-                    {props.showHeader ? (
-                        <View style={[styles.chatItemMessageHeader]}>
-                            <Pressable
-                                style={[styles.flexShrink1, styles.mr1]}
-                                onPressIn={ControlSelection.block}
-                                onPressOut={ControlSelection.unblock}
-                                onPress={() => showUserDetails(actorEmail)}
-                            >
-                                {_.map(personArray, (fragment, index) => (
-                                    <ReportActionItemFragment
-                                        key={`person-${props.action.reportActionID}-${index}`}
-                                        fragment={fragment}
-                                        tooltipText={actorEmail}
-                                        isAttachment={props.action.isAttachment}
-                                        isLoading={props.action.isLoading}
-                                        isSingleLine
-                                    />
-                                ))}
-                            </Pressable>
-                            <ReportActionItemDate created={props.action.created} />
-                        </View>
-                    ) : null}
-                    {props.children}
-                </View>
+                            {_.map(personArray, (fragment, index) => (
+                                <ReportActionItemFragment
+                                    key={`person-${props.action.reportActionID}-${index}`}
+                                    fragment={fragment}
+                                    tooltipText={actorEmail}
+                                    isAttachment={props.action.isAttachment}
+                                    isLoading={props.action.isLoading}
+                                    isSingleLine
+                                />
+                            ))}
+                        </Pressable>
+                        <ReportActionItemDate created={props.action.created} />
+                    </View>
+                ) : null}
+                {props.children}
             </View>
         </View>
     );
