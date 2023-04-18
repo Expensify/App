@@ -257,8 +257,8 @@ class ReportActionItem extends Component {
         const whisperedTo = lodashGet(this.props.action, 'whisperedTo', []);
         const isWhisper = _.size(whisperedTo) > 0;
         const isMultipleParticipant = _.size(whisperedTo) > 1;
-        const isOnlyVisibleByUser = ReportUtils.isOnlyVisibleByCurrentUser(_.keys(whisperedTo));
-        const whisperedToPersonalDetails = _.filter(this.props.personalDetails, details => _.includes(whisperedTo, details.login));
+        const isOnlyVisibleByUser = isWhisper ? ReportUtils.isOnlyVisibleByCurrentUser(whisperedTo) : false;
+        const whisperedToPersonalDetails = isWhisper ? _.filter(this.props.personalDetails, details => _.includes(whisperedTo, details.login)) : [];
         const displayNamesWithTooltips = isWhisper ? ReportUtils.getDisplayNamesWithTooltips(whisperedToPersonalDetails, isMultipleParticipant) : [];
         return (
             <PressableWithSecondaryInteraction
@@ -308,12 +308,12 @@ class ReportActionItem extends Component {
                                                 &nbsp;
                                             </Text>
                                             <DisplayNames
-                                                fullTitle={ReportUtils.getWhisperDisplayNames(_.keys(whisperedTo))}
+                                                fullTitle={ReportUtils.getWhisperDisplayNames(whisperedTo)}
                                                 displayNamesWithTooltips={displayNamesWithTooltips}
                                                 tooltipEnabled
                                                 numberOfLines={1}
                                                 textStyles={[styles.chatItemMessageHeaderTimestamp]}
-                                                shouldUseFullTitle={!isOnlyVisibleByUser}
+                                                shouldUseFullTitle={isOnlyVisibleByUser}
                                             />
                                         </View>
                                     )}
