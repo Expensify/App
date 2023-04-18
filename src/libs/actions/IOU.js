@@ -617,7 +617,7 @@ function deleteMoneyRequest(chatReportID, iouReportID, moneyRequestAction) {
         comment: '',
         deleteMoneyRequestReportActionID: optimisticReportAction.reportActionID,
         chatReportID,
-        debtorEmail: chatReport.participants[0],
+        payerEmail: chatReport.participants[0],
     }, {optimisticData, successData, failureData});
 
     Navigation.navigate(ROUTES.getReportRoute(chatReportID));
