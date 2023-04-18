@@ -83,6 +83,7 @@ class ReportSettingsPage extends Component {
         const shouldShowRoomName = !ReportUtils.isPolicyExpenseChat(this.props.report);
         const linkedWorkspace = _.find(this.props.policies, policy => policy && policy.id === this.props.report.policyID);
         const shouldDisableRename = this.shouldDisableRename(linkedWorkspace);
+        const notificationPreference = this.props.translate(`notificationPreferences.${this.props.report.notificationPreference}`);
 
         return (
             <ScreenWrapper>
@@ -95,7 +96,7 @@ class ReportSettingsPage extends Component {
                     />
                     <MenuItemWithTopDescription
                         shouldShowRightIcon
-                        title={this.props.report.notificationPreference}
+                        title={notificationPreference}
                         description={this.props.translate('notificationPreferences.label')}
                         onPress={() => Navigation.navigate(ROUTES.getReportSettingsNotificationPreferencesRoute(this.props.report.reportID))}
                     />
