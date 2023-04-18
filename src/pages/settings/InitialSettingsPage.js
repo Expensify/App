@@ -4,7 +4,6 @@ import {View, ScrollView, Pressable} from 'react-native';
 import PropTypes from 'prop-types';
 import _ from 'underscore';
 import {withOnyx} from 'react-native-onyx';
-import Str from 'expensify-common/lib/str';
 import {withNetwork} from '../../components/OnyxProvider';
 import styles from '../../styles/styles';
 import Text from '../../components/Text';
@@ -36,8 +35,6 @@ import * as Link from '../../libs/actions/Link';
 import OfflineWithFeedback from '../../components/OfflineWithFeedback';
 import * as UserUtils from '../../libs/UserUtils';
 import policyMemberPropType from '../policyMemberPropType';
-import * as ReportActionContextMenu from '../home/report/ContextMenu/ReportActionContextMenu';
-import {CONTEXT_MENU_TYPES} from '../home/report/ContextMenu/ContextMenuActions';
 
 const propTypes = {
     /* Onyx Props */
@@ -118,8 +115,6 @@ const defaultProps = {
 class InitialSettingsPage extends React.Component {
     constructor(props) {
         super(props);
-
-        this.popoverAnchor = React.createRef();
 
         this.getWalletBalance = this.getWalletBalance.bind(this);
         this.getDefaultMenuItems = this.getDefaultMenuItems.bind(this);
@@ -207,7 +202,6 @@ class InitialSettingsPage extends React.Component {
                 action: () => { Link.openExternalLink(CONST.NEWHELP_URL); },
                 shouldShowRightIcon: true,
                 iconRight: Expensicons.NewWindow,
-                link: CONST.NEWHELP_URL,
             },
             {
                 translationKey: 'initialSettingsPage.about',
@@ -241,9 +235,6 @@ class InitialSettingsPage extends React.Component {
                 brickRoadIndicator={item.brickRoadIndicator}
                 floatRightAvatars={item.floatRightAvatars}
                 shouldStackHorizontally={item.shouldStackHorizontally}
-                ref={this.popoverAnchor}
-                shouldBlockSelection={Boolean(item.link)}
-                onSecondaryInteraction={!_.isEmpty(item.link) ? e => ReportActionContextMenu.showContextMenu(CONTEXT_MENU_TYPES.LINK, e, item.link, this.popoverAnchor.current) : undefined}
             />
         );
     }
@@ -304,7 +295,7 @@ class InitialSettingsPage extends React.Component {
                                             <Text style={[styles.textHeadline, styles.pre]} numberOfLines={1}>
                                                 {this.props.currentUserPersonalDetails.displayName
                                                     ? this.props.currentUserPersonalDetails.displayName
-                                                    : Str.removeSMSDomain(this.props.session.email)}
+                                                    : this.props.formatPhoneNumber(this.props.session.email)}
                                             </Text>
                                         </Tooltip>
                                     </Pressable>
@@ -313,7 +304,7 @@ class InitialSettingsPage extends React.Component {
                                             style={[styles.textLabelSupporting, styles.mt1]}
                                             numberOfLines={1}
                                         >
-                                            {Str.removeSMSDomain(this.props.session.email)}
+                                            {this.props.formatPhoneNumber(this.props.session.email)}
                                         </Text>
                                     )}
                                 </View>

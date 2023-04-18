@@ -13,36 +13,31 @@ import themeColors from '../../styles/themes/default';
 const propTypes = {
     ...withLocalizePropTypes,
 };
-const Enable2FAPrompt = (props) => {
-    const secureYourAccountUrl = encodeURI(`settings?param={"section":"account","action":"enableTwoFactorAuth","exitTo":"${ROUTES.getBankAccountRoute()}","isFromNewDot":"true"}`);
-
-    return (
-        <Section
-            title={props.translate('validationStep.enable2FATitle')}
-            icon={Illustrations.ShieldYellow}
-            menuItems={[
-                {
-                    title: props.translate('validationStep.secureYourAccount'),
-                    onPress: () => {
-                        Link.openOldDotLink(secureYourAccountUrl);
-                    },
-                    icon: Expensicons.Shield,
-                    shouldShowRightIcon: true,
-                    iconRight: Expensicons.NewWindow,
-                    iconFill: themeColors.success,
-                    wrapperStyle: [styles.cardMenuItem],
-                    link: () => Link.buildOldDotURL(secureYourAccountUrl),
+const Enable2FAPrompt = props => (
+    <Section
+        title={props.translate('validationStep.enable2FATitle')}
+        icon={Illustrations.ShieldYellow}
+        menuItems={[
+            {
+                title: props.translate('validationStep.secureYourAccount'),
+                onPress: () => {
+                    Link.openOldDotLink(encodeURI(`settings?param={"section":"account","action":"enableTwoFactorAuth","exitTo":"${ROUTES.getBankAccountRoute()}","isFromNewDot":"true"}`));
                 },
-            ]}
-        >
-            <View style={[styles.mv3]}>
-                <Text>
-                    {props.translate('validationStep.enable2FAText')}
-                </Text>
-            </View>
-        </Section>
-    );
-};
+                icon: Expensicons.Shield,
+                shouldShowRightIcon: true,
+                iconRight: Expensicons.NewWindow,
+                iconFill: themeColors.success,
+                wrapperStyle: [styles.cardMenuItem],
+            },
+        ]}
+    >
+        <View style={[styles.mv3]}>
+            <Text>
+                {props.translate('validationStep.enable2FAText')}
+            </Text>
+        </View>
+    </Section>
+);
 
 Enable2FAPrompt.propTypes = propTypes;
 Enable2FAPrompt.displayName = 'Enable2FAPrompt';
