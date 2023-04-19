@@ -9,7 +9,7 @@ import withLocalize, {withLocalizePropTypes} from '../withLocalize';
 import Growl from '../../libs/Growl';
 import themeColors from '../../styles/themes/default';
 import updateIsFullComposerAvailable from '../../libs/ComposerUtils/updateIsFullComposerAvailable';
-import * as ComposerUtils from '../../libs/ComposerUtils/index';
+import * as ComposerUtils from '../../libs/ComposerUtils';
 import * as Browser from '../../libs/Browser';
 import Clipboard from '../../libs/Clipboard';
 import withWindowDimensions, {windowDimensionsPropTypes} from '../withWindowDimensions';

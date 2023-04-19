@@ -1,3 +1,1 @@
-function updateNumberOfLines() {}
-
-export default updateNumberOfLines;
+export default {};
