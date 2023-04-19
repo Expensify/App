@@ -29,6 +29,12 @@ Onyx.connect({
     },
 });
 
+let loginList;
+Onyx.connect({
+    key: ONYXKEYS.LOGIN_LIST,
+    callback: val => loginList = val,
+});
+
 /**
  * Changes a password for a given account
  *
@@ -185,12 +191,14 @@ function updateNewsletterSubscription(isSubscribed) {
  * Delete a specific contact method
  *
  * @param {String} contactMethod - the contact method being deleted
- * @param {Object} oldLoginData
  */
-function deleteContactMethod(contactMethod, oldLoginData) {
+function deleteContactMethod(contactMethod) {
+    const oldLoginData = loginList[contactMethod];
+
     // If the contact method failed to be added to the account, then it should only be deleted locally.
     if (lodashGet(oldLoginData, 'errorFields.addedLogin', null)) {
         Onyx.merge(ONYXKEYS.LOGIN_LIST, {[contactMethod]: null});
+        Navigation.navigate(ROUTES.SETTINGS_CONTACT_METHODS);
         return;
     }
 
