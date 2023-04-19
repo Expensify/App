@@ -211,24 +211,8 @@ class AttachmentCarousel extends React.Component {
     renderCell(props) {
         const style = [props.style, styles.h100, {width: this.state.containerWidth}];
 
-        // Touch screen devices can toggle between showing and hiding the arrows by tapping on the image/container
-        // Other devices toggle the arrows through hovering (mouse) instead (see render() root element)
-        if (!this.canUseTouchScreen) {
-            // eslint-disable-next-line react/jsx-props-no-spreading
-            return <View {...props} style={style} />;
-        }
-
-        return (
-            <View
-                // eslint-disable-next-line react/jsx-props-no-spreading
-                {...props}
-
-                // onPress={() => this.setState(current => ({shouldShowArrow: !current.shouldShowArrow}))}
-                style={style}
-                // eslint-disable-next-line react/jsx-props-no-spreading
-                // {...this.panResponder.panHandlers}
-            />
-        );
+        // eslint-disable-next-line react/jsx-props-no-spreading
+        return <View {...props} style={style} />;
     }
 
     /**
