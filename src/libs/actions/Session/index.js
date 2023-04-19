@@ -622,7 +622,6 @@ function authenticatePusher(socketID, channelName, callback) {
 }
 
 function getShortLivedAuthToken() {
-    // TODO: If we have any way to read the shortLivedAuthToken and save it, we can also no longer call makeRequestWithSideEffects.
     // eslint-disable-next-line rulesdir/no-api-side-effects-method
     API.makeRequestWithSideEffects(
         'OpenOldDotLink', {shouldRetry: false}, {},
