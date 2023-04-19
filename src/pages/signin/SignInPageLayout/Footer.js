@@ -1,8 +1,11 @@
+import PropTypes from 'prop-types';
 import {View} from 'react-native';
 import React from 'react';
 import _ from 'underscore';
 import Text from '../../../components/Text';
 import styles from '../../../styles/styles';
+import * as StyleUtils from '../../../styles/StyleUtils';
+import themeColors from '../../../styles/themes/default';
 import variables from '../../../styles/variables';
 import * as Expensicons from '../../../components/Icon/Expensicons';
 import TextLink from '../../../components/TextLink';
@@ -13,16 +16,38 @@ import Licenses from '../Licenses';
 import Socials from '../Socials';
 import Hoverable from '../../../components/Hoverable';
 import CONST from '../../../CONST';
-import Navigation from '../../../libs/Navigation/Navigation';
+import Navigation, {navigationRef} from '../../../libs/Navigation/Navigation';
 import * as Session from '../../../libs/actions/Session';
+import SignInGradient from '../../../../assets/images/home-fade-gradient--mobile.svg';
+import screens from '../../../SCREENS';
 
 const propTypes = {
+    scrollViewRef: PropTypes.shape({
+        // eslint-disable-next-line react/forbid-prop-types
+        current: PropTypes.any,
+    }),
     ...windowDimensionsPropTypes,
     ...withLocalizePropTypes,
 };
 
-const navigateHome = () => {
-    Navigation.navigate();
+const defaultProps = {
+    scrollViewRef: undefined,
+};
+
+const navigateHome = (scrollViewRef) => {
+    const currentRoute = navigationRef.current.getCurrentRoute();
+    if (
+        currentRoute.name === screens.HOME
+        && scrollViewRef
+        && scrollViewRef.current
+    ) {
+        scrollViewRef.current.scrollTo({
+            y: 0,
+            animated: true,
+        });
+    } else {
+        Navigation.navigate();
+    }
 
     // We need to clear sign in data in case the user is already in the ValidateCodeForm or PasswordForm pages
     Session.clearSignInData();
@@ -148,13 +173,18 @@ const Footer = (props) => {
     const imageDirection = isVertical ? styles.flexRow : styles.flexColumn;
     const imageStyle = isVertical ? styles.pr0 : styles.alignSelfCenter;
     const columnDirection = isVertical ? styles.flexColumn : styles.flexRow;
-    const pageFooterWrapper = [styles.footerWrapper, imageDirection, imageStyle];
+    const pageFooterWrapper = [styles.footerWrapper, imageDirection, imageStyle, isVertical ? styles.pl10 : {}];
     const footerColumns = [styles.footerColumnsContainer, columnDirection];
     const footerColumn = isVertical ? [styles.p4] : [styles.p4, props.isMediumScreenWidth ? styles.w50 : styles.w25];
 
     return (
         <View style={[styles.flex1]}>
-            <View style={styles.footer}>
+            <View style={[props.isSmallScreenWidth ? StyleUtils.getBackgroundColorStyle(themeColors.signInPage) : {}]}>
+                {props.isSmallScreenWidth ? (
+                    <View style={[styles.signInPageGradientMobile]}>
+                        <SignInGradient height="100%" />
+                    </View>
+                ) : null}
                 <View style={pageFooterWrapper}>
                     <View style={footerColumns}>
                         {_.map(columns, (column, i) => (
@@ -174,7 +204,7 @@ const Footer = (props) => {
                                                 <TextLink
                                                     style={[styles.footerRow, hovered ? styles.textBlue : {}]}
                                                     href={row.link}
-                                                    onPress={row.onPress}
+                                                    onPress={row.onPress ? () => row.onPress(props.scrollViewRef) : undefined}
                                                 >
                                                     {props.translate(row.translationPath)}
                                                 </TextLink>
@@ -211,6 +241,7 @@ const Footer = (props) => {
 
 Footer.propTypes = propTypes;
 Footer.displayName = 'Footer';
+Footer.defaultProps = defaultProps;
 
 export default compose(
     withLocalize,
