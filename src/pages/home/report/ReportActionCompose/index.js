@@ -479,12 +479,17 @@ class ReportActionCompose extends React.Component {
             return;
         }
 
-        // if the key pressed is non-character keys like Enter, Shift, ... do not focus
+        // If the key pressed is non-character keys like Enter, Shift, ... do not focus
         if (e.key.length > 1) {
             return;
         }
 
-        // if we're typing on another input/text area, do not focus
+        // If a key is pressed in combination with Meta, Control or Alt do not focus
+        if (e.metaKey || e.ctrlKey || e.altKey) {
+            return;
+        }
+
+        // If we're typing on another input/text area, do not focus
         if (e.target.nodeName === 'INPUT' || e.target.nodeName === 'TEXTAREA') {
             return;
         }
