@@ -168,8 +168,9 @@ class EmojiPickerMenu extends Component {
                 return;
             }
 
-            // Return if the key is related to any tab cycling event so that the default logic
-            // can be executed.
+            // Enable keyboard movement if tab or enter is pressed or if shift is pressed while the input
+            // is not focused, so that the navigation and tab cycling can be done using the keyboard without
+            // interfering with the input behaviour.
             if (keyBoardEvent.key === 'Tab' || keyBoardEvent.key === 'Enter'
                 || (keyBoardEvent.key === 'Shift' && this.searchInput && !this.searchInput.isFocused())) {
                 this.setState({isUsingKeyboardMovement: true});
