@@ -2792,10 +2792,6 @@ const styles = {
         right: 60,
     },
 
-    googleListView: {
-        transform: [{scale: 0}],
-    },
-
     invert: {
         // It's important to invert the Y AND X axis to prevent a react native issue that can lead to ANRs on android 13
         transform: [{scaleX: -1}, {scaleY: -1}],
@@ -2803,9 +2799,7 @@ const styles = {
 
     keyboardShortcutModalContainer: {
         maxHeight: '100%',
-        flexShrink: 0,
-        flexGrow: 0,
-        flexBasis: 'auto',
+        flex: '0 0 auto',
     },
 
     keyboardShortcutTableWrapper: {
@@ -2886,7 +2880,6 @@ const styles = {
         height: variables.sliderKnobSize,
         width: variables.sliderKnobSize,
         borderRadius: variables.sliderKnobSize / 2,
-        top: -variables.sliderBarHeight,
         left: -(variables.sliderKnobSize / 2),
         cursor: 'pointer',
     },
@@ -2896,10 +2889,7 @@ const styles = {
         height: variables.sliderBarHeight,
         borderRadius: variables.sliderBarHeight / 2,
         alignSelf: 'stretch',
-    },
-
-    imageCropRotateButton: {
-        height: variables.iconSizeExtraLarge,
+        justifyContent: 'center',
     },
 
     userSelectText: {
@@ -3138,6 +3128,10 @@ const styles = {
     validateCodeMessage: {
         width: variables.modalContentMaxWidth,
         textAlign: 'center',
+    },
+
+    popoverMaxWidth: {
+        maxWidth: 375,
     },
 };
 

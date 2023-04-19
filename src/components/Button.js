@@ -1,20 +1,19 @@
 import React, {Component} from 'react';
 import {Pressable, ActivityIndicator, View} from 'react-native';
 import PropTypes from 'prop-types';
-import styles from '../../styles/styles';
-import themeColors from '../../styles/themes/default';
-import OpacityView from '../OpacityView';
-import Text from '../Text';
-import KeyboardShortcut from '../../libs/KeyboardShortcut';
-import Icon from '../Icon';
-import CONST from '../../CONST';
-import * as StyleUtils from '../../styles/StyleUtils';
-import HapticFeedback from '../../libs/HapticFeedback';
-import withNavigationFallback from '../withNavigationFallback';
-import compose from '../../libs/compose';
-import * as Expensicons from '../Icon/Expensicons';
-import withNavigationFocus from '../withNavigationFocus';
-import validateSubmitShortcut from './validateSubmitShortcut';
+import styles from '../styles/styles';
+import themeColors from '../styles/themes/default';
+import OpacityView from './OpacityView';
+import Text from './Text';
+import KeyboardShortcut from '../libs/KeyboardShortcut';
+import Icon from './Icon';
+import CONST from '../CONST';
+import * as StyleUtils from '../styles/StyleUtils';
+import HapticFeedback from '../libs/HapticFeedback';
+import withNavigationFallback from './withNavigationFallback';
+import compose from '../libs/compose';
+import * as Expensicons from './Icon/Expensicons';
+import withNavigationFocus from './withNavigationFocus';
 
 const propTypes = {
     /** The text for the button label */
@@ -158,10 +157,10 @@ class Button extends Component {
 
         // Setup and attach keypress handler for pressing the button with Enter key
         this.unsubscribe = KeyboardShortcut.subscribe(shortcutConfig.shortcutKey, (e) => {
-            if (!validateSubmitShortcut(this.props.isFocused, this.props.isDisabled, this.props.isLoading, e)) {
+            if (!this.props.isFocused || this.props.isDisabled || this.props.isLoading || (e && e.target.nodeName === 'TEXTAREA')) {
                 return;
             }
-
+            e.preventDefault();
             this.props.onPress();
         }, shortcutConfig.descriptionKey, shortcutConfig.modifiers, true, false, this.props.enterKeyEventListenerPriority, false);
     }

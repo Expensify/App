@@ -54,6 +54,7 @@ import ArrowKeyFocusManager from '../../../components/ArrowKeyFocusManager';
 import OfflineWithFeedback from '../../../components/OfflineWithFeedback';
 import KeyboardShortcut from '../../../libs/KeyboardShortcut';
 import * as Welcome from '../../../libs/actions/Welcome';
+import Permissions from '../../../libs/Permissions';
 
 const propTypes = {
     /** Beta features list */
@@ -175,6 +176,7 @@ class ReportActionCompose extends React.Component {
         this.setTextInputRef = this.setTextInputRef.bind(this);
         this.getInputPlaceholder = this.getInputPlaceholder.bind(this);
         this.getMoneyRequestOptions = this.getMoneyRequestOptions.bind(this);
+        this.getTaskOption = this.getTaskOption.bind(this);
         this.addAttachment = this.addAttachment.bind(this);
         this.insertSelectedEmoji = this.insertSelectedEmoji.bind(this);
         this.setExceededMaxCommentLength = this.setExceededMaxCommentLength.bind(this);
@@ -230,7 +232,7 @@ class ReportActionCompose extends React.Component {
             }
 
             this.updateComment('', true);
-        }, shortcutConfig.descriptionKey, shortcutConfig.modifiers, true, true);
+        }, shortcutConfig.descriptionKey, shortcutConfig.modifiers, true);
 
         this.setMaxLines();
         this.updateComment(this.comment);
@@ -400,6 +402,29 @@ class ReportActionCompose extends React.Component {
         if (this.state && this.state.shouldShowSuggestionMenu) {
             this.setState({shouldShowSuggestionMenu: false});
         }
+    }
+
+    /**
+     * Determines if we can show the task option
+     * @param {Array} reportParticipants
+     * @returns {Boolean}
+     */
+    getTaskOption(reportParticipants) {
+        // We only prevent the task option from showing if it's a DM and the other user is an Expensify default email
+        if (!Permissions.canUseTasks(this.props.betas) || (lodashGet(this.props.report, 'participants', []).length === 1 && _.some(reportParticipants, email => _.contains(
+            CONST.EXPENSIFY_EMAILS,
+            email,
+        )))) {
+            return [];
+        }
+
+        return [
+            {
+                icon: Expensicons.Task,
+                text: this.props.translate('newTaskPage.assignTask'),
+                onSelected: () => Navigation.navigate(ROUTES.getNewTaskRoute(this.props.reportID)),
+            },
+        ];
     }
 
     /**
@@ -818,7 +843,7 @@ class ReportActionCompose extends React.Component {
                                                     onClose={() => this.setMenuVisibility(false)}
                                                     onItemSelected={() => this.setMenuVisibility(false)}
                                                     anchorPosition={styles.createMenuPositionReportActionCompose}
-                                                    menuItems={[...this.getMoneyRequestOptions(reportParticipants),
+                                                    menuItems={[...this.getMoneyRequestOptions(reportParticipants), ...this.getTaskOption(reportParticipants),
                                                         {
                                                             icon: Expensicons.Paperclip,
                                                             text: this.props.translate('reportActionCompose.addAttachment'),
