@@ -4,6 +4,8 @@ import React from 'react';
 import _ from 'underscore';
 import Text from '../../../components/Text';
 import styles from '../../../styles/styles';
+import * as StyleUtils from '../../../styles/StyleUtils';
+import themeColors from '../../../styles/themes/default';
 import variables from '../../../styles/variables';
 import * as Expensicons from '../../../components/Icon/Expensicons';
 import TextLink from '../../../components/TextLink';
@@ -16,6 +18,7 @@ import Hoverable from '../../../components/Hoverable';
 import CONST from '../../../CONST';
 import Navigation, {navigationRef} from '../../../libs/Navigation/Navigation';
 import * as Session from '../../../libs/actions/Session';
+import SignInGradient from '../../../../assets/images/home-fade-gradient--mobile.svg';
 import screens from '../../../SCREENS';
 
 const propTypes = {
@@ -170,13 +173,18 @@ const Footer = (props) => {
     const imageDirection = isVertical ? styles.flexRow : styles.flexColumn;
     const imageStyle = isVertical ? styles.pr0 : styles.alignSelfCenter;
     const columnDirection = isVertical ? styles.flexColumn : styles.flexRow;
-    const pageFooterWrapper = [styles.footerWrapper, imageDirection, imageStyle];
+    const pageFooterWrapper = [styles.footerWrapper, imageDirection, imageStyle, isVertical ? styles.pl10 : {}];
     const footerColumns = [styles.footerColumnsContainer, columnDirection];
     const footerColumn = isVertical ? [styles.p4] : [styles.p4, props.isMediumScreenWidth ? styles.w50 : styles.w25];
 
     return (
         <View style={[styles.flex1]}>
-            <View style={styles.footer}>
+            <View style={[props.isSmallScreenWidth ? StyleUtils.getBackgroundColorStyle(themeColors.signInPage) : {}]}>
+                {props.isSmallScreenWidth ? (
+                    <View style={[styles.signInPageGradientMobile]}>
+                        <SignInGradient height="100%" />
+                    </View>
+                ) : null}
                 <View style={pageFooterWrapper}>
                     <View style={footerColumns}>
                         {_.map(columns, (column, i) => (
