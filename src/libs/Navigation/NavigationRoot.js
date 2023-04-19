@@ -1,9 +1,7 @@
-import React, {useContext} from 'react';
+import React from 'react';
 import PropTypes from 'prop-types';
 import {NavigationContainer, DefaultTheme, getPathFromState} from '@react-navigation/native';
 import {useFlipper} from '@react-navigation/devtools';
-import Reanimated, {useAnimatedStyle} from 'react-native-reanimated';
-import ThemeContext from '../../styles/themes/ThemeContext';
 import Navigation, {navigationRef} from './Navigation';
 import linkingConfig from './linkingConfig';
 import AppNavigator from './AppNavigator';
@@ -53,15 +51,6 @@ function parseAndLogRoute(state) {
 const NavigationRoot = (props) => {
     useFlipper(navigationRef);
 
-    const themeContext = useContext(ThemeContext);
-
-    if (themeContext == null) { throw new Error('You forgot to wrap this component with <ThemeContext.Provider />'); }
-
-    const animatedBackgroundStyle = useAnimatedStyle(() => ({
-        backgroundColor: themeContext.appBG.value,
-        flex: 1,
-    }));
-
     return (
         <NavigationContainer
             fallback={(
@@ -78,9 +67,7 @@ const NavigationRoot = (props) => {
                 enabled: false,
             }}
         >
-            <Reanimated.View style={animatedBackgroundStyle}>
-                <AppNavigator authenticated={props.authenticated} />
-            </Reanimated.View>
+            <AppNavigator authenticated={props.authenticated} />
         </NavigationContainer>
     );
 };
