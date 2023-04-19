@@ -98,9 +98,6 @@ class Hoverable extends Component {
                 onMouseEnter={() => this.setIsHovered(true)}
                 onMouseLeave={() => this.setIsHovered(false)}
                 onBlur={(el) => {
-                    if (!this.wrapperView) {
-                        return;
-                    }
                     if (this.wrapperView.contains(el.relatedTarget)) {
                         return;
                     }
