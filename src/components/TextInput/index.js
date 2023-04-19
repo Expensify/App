@@ -38,6 +38,7 @@ class TextInput extends React.Component {
                 inputStyle={[
                     styles.baseTextInput,
                     styles.textInputDesktop,
+                    styles.textAlignLeft,
                     isLabeledMultiline ? styles.textInputMultiline : {},
                     ...this.props.inputStyle,
                 ]}
