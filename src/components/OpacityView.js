@@ -4,17 +4,27 @@ import PropTypes from 'prop-types';
 import * as StyleUtils from '../styles/StyleUtils';
 
 const propTypes = {
-    // Should we dim the view
+    /**
+     * Should we dim the view
+     */
     shouldDim: PropTypes.bool.isRequired,
 
-    // Content to render
+    /**
+     * Content to render
+     */
     children: PropTypes.node.isRequired,
 
-    // Array of style objects
+    /**
+     * Array of style objects
+     * @default []
+     */
     // eslint-disable-next-line react/forbid-prop-types
     style: PropTypes.arrayOf(PropTypes.object),
 
-    // The value to use for the opacity when the view is dimmed
+    /**
+     * The value to use for the opacity when the view is dimmed
+     * @default 0.5
+     */
     dimmingValue: PropTypes.number,
 };
 
