@@ -37,7 +37,7 @@ Onyx.connect({
     key: ONYXKEYS.NVP_IS_FIRST_TIME_NEW_EXPENSIFY_USER,
     initWithStoredValues: false,
     callback: (val) => {
-        // If this is a first time new expensify user, let's only update the state of isFirstTimeNewExpensifyUser from true to false
+        // If this is a first time new Expensify user, let's only update isFirstTimeNewExpensifyUser from true to false
         // after running all Welcome related logic in Welcome.show
         if (!isFirstTimeNewExpensifyUser) {
             isFirstTimeNewExpensifyUser = val;
@@ -143,7 +143,7 @@ function show({routes, showCreateMenu = () => {}, showPopoverMenu = () => {}}) {
             showCreateMenu();
         }
 
-        // Update state of isFirstTimeNewExpensifyUser so the Welcome logic doesn't run again
+        // Update isFirstTimeNewExpensifyUser so the Welcome logic doesn't run again
         isFirstTimeNewExpensifyUser = false;
     });
 }
