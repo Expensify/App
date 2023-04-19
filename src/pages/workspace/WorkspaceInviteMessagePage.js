@@ -150,7 +150,7 @@ class WorkspaceInviteMessagePage extends React.Component {
                                 onPress={this.openPrivacyURL}
                                 accessibilityRole="link"
                                 href={CONST.PRIVACY_URL}
-                                style={[styles.mb5, styles.alignSelfStart]}
+                                style={[styles.mv2, styles.alignSelfStart]}
                             >
                                 <View style={[styles.flexRow]}>
                                     <Text style={[styles.mr1, styles.label, styles.link]}>
