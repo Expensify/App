@@ -4,7 +4,7 @@ import PropTypes from 'prop-types';
 import React, {
     useCallback, useState, useEffect, useRef, useLayoutEffect, useMemo,
 } from 'react';
-import {AppState, Linking} from 'react-native';
+import {AppState, Linking, Button} from 'react-native';
 import Onyx, {withOnyx} from 'react-native-onyx';
 
 import * as Report from './libs/actions/Report';
@@ -73,6 +73,8 @@ const propTypes = {
         roomName: PropTypes.string,
     }),
 
+    colorTheme: PropTypes.string,
+
     ...withLocalizePropTypes,
 };
 
@@ -84,6 +86,7 @@ const defaultProps = {
     updateAvailable: false,
     isSidebarLoaded: false,
     screenShareRequest: null,
+    colorTheme: 'light',
 };
 
 function Expensify(props) {
@@ -182,6 +185,8 @@ function Expensify(props) {
         return null;
     }
 
+    console.log(props.colorTheme);
+
     return (
         <DeeplinkWrapper>
             {!isSplashShown && (
@@ -211,6 +216,8 @@ function Expensify(props) {
                 onReady={setNavigationReady}
                 authenticated={isAuthenticated}
             />
+
+            <Button title="Change color theme" onPress={() => Onyx.set(ONYXKEYS.COLOR_THEME, props.colorTheme === 'light' ? 'dark' : 'light')} />
         </DeeplinkWrapper>
     );
 }
@@ -232,6 +239,9 @@ export default compose(
         },
         screenShareRequest: {
             key: ONYXKEYS.SCREEN_SHARE_REQUEST,
+        },
+        colorTheme: {
+            key: ONYXKEYS.COLOR_THEME,
         },
     }),
 )(Expensify);
