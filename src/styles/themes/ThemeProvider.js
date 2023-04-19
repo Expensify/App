@@ -18,7 +18,7 @@ function ThemeProvider(props) {
 
     const {appBG: appBGDark, ...restOfTheme} = defaultColors;
 
-    const appBG = useDerivedValue(() => interpolateColor(themeAnimation.value, [0, 1], ['#ffffff', appBGDark]));
+    const appBG = useDerivedValue(() => interpolateColor(themeAnimation.value, [0, 1], ['#FFFFFF', appBGDark]));
 
     const theme = useMemo(
         () => ({
@@ -33,13 +33,14 @@ function ThemeProvider(props) {
         if (lightMode) {
             themeAnimation.value = 0;
         } else { themeAnimation.value = 1; }
-    }, [lightMode, themeAnimation]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, []);
 
     // Animating the color values based on the current theme
     useEffect(() => {
         if (lightMode && themeAnimation.value === 1) {
             themeAnimation.value = withSpring(0);
-        } else if (themeAnimation.value === 0) { themeAnimation.value = 0; }
+        } else if (!lightMode && themeAnimation.value === 0) { themeAnimation.value = withSpring(1); }
     }, [lightMode, themeAnimation]);
 
     return (

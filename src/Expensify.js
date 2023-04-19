@@ -2,11 +2,12 @@ import _ from 'underscore';
 import lodashGet from 'lodash/get';
 import PropTypes from 'prop-types';
 import React, {
-    useCallback, useState, useEffect, useRef, useLayoutEffect, useMemo,
+    useCallback, useState, useEffect, useRef, useLayoutEffect, useMemo, useContext,
 } from 'react';
 import {AppState, Linking, Button} from 'react-native';
 import Onyx, {withOnyx} from 'react-native-onyx';
 
+import Reanimated, {useAnimatedReaction, useAnimatedStyle} from 'react-native-reanimated';
 import * as Report from './libs/actions/Report';
 import BootSplash from './libs/BootSplash';
 import * as ActiveClientManager from './libs/ActiveClientManager';
@@ -34,6 +35,7 @@ import KeyboardShortcutsModal from './components/KeyboardShortcutsModal';
 // This lib needs to be imported, but it has nothing to export since all it contains is an Onyx connection
 // eslint-disable-next-line no-unused-vars
 import UnreadIndicatorUpdater from './libs/UnreadIndicatorUpdater';
+import ThemeContext from './styles/themes/ThemeContext';
 
 Onyx.registerLogger(({level, message}) => {
     if (level === 'alert') {
@@ -180,12 +182,24 @@ function Expensify(props) {
         }
     }, [props.isSidebarLoaded, isNavigationReady, isSplashShown, isAuthenticated]);
 
+    const themeContext = useContext(ThemeContext);
+
+    if (themeContext == null) { throw new Error('You forgot to wrap this component with <ThemeContext.Provider />'); }
+
+    console.log('Background color');
+    console.log(themeContext.appBG.value);
+    const backgroundColor = themeContext.appBG;
+
+    useAnimatedReaction(() => backgroundColor.value, v => console.log(v));
+
+    const animatedStyle = useAnimatedStyle(() => ({
+        backgroundColor: backgroundColor.value,
+    }));
+
     // Display a blank page until the onyx migration completes
     if (!isOnyxMigrated) {
         return null;
     }
-
-    console.log(props.colorTheme);
 
     return (
         <DeeplinkWrapper>
@@ -218,6 +232,11 @@ function Expensify(props) {
             />
 
             <Button title="Change color theme" onPress={() => Onyx.set(ONYXKEYS.COLOR_THEME, props.colorTheme === 'light' ? 'dark' : 'light')} />
+
+            <Reanimated.View style={[{
+                width: 100, height: 100, position: 'absolute', left: 20, top: 20,
+            }, animatedStyle]}
+            />
         </DeeplinkWrapper>
     );
 }
