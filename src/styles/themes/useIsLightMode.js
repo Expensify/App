@@ -22,7 +22,7 @@ function useIsLightMode() {
         });
 
         return () => Onyx.disconnect(connectionId);
-    }, []);
+    }, [systemColorTheme]);
 
     return colorTheme;
 }
