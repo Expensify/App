@@ -249,7 +249,9 @@ function createPolicyExpenseChats(policyID, members, betas) {
 
         // If the chat already exists, we don't want to create a new one - just make sure it's not archived
         if (oldChat) {
-            workspaceMembersChats.optimisticReportIDs[login] = oldChat.reportID;
+            workspaceMembersChats.reportCreationData[login] = {
+                reportID: oldChat.reportID,
+            };
             workspaceMembersChats.onyxOptimisticData.push({
                 onyxMethod: CONST.ONYX.METHOD.MERGE,
                 key: `${ONYXKEYS.COLLECTION.REPORT}${oldChat.reportID}`,
