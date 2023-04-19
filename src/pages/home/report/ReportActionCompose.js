@@ -53,6 +53,7 @@ import ArrowKeyFocusManager from '../../../components/ArrowKeyFocusManager';
 import OfflineWithFeedback from '../../../components/OfflineWithFeedback';
 import KeyboardShortcut from '../../../libs/KeyboardShortcut';
 import Permissions from '../../../libs/Permissions';
+import setSelection from '../../../libs/setSelection';
 
 const propTypes = {
     /** Beta features list */
@@ -479,15 +480,12 @@ class ReportActionCompose extends React.Component {
         const emojiObject = this.state.suggestedEmojis[highlightedEmojiIndex];
         const emojiCode = emojiObject.types && emojiObject.types[this.props.preferredSkinTone] ? emojiObject.types[this.props.preferredSkinTone] : emojiObject.code;
         const commentAfterColonWithEmojiNameRemoved = this.state.value.slice(this.state.selection.end).replace(CONST.REGEX.EMOJI_REPLACER, CONST.SPACE);
+        const oldColonIndex = this.state.colonIndex;
 
         this.updateComment(`${commentBeforeColon}${emojiCode} ${commentAfterColonWithEmojiNameRemoved}`, true);
-        this.setState(prevState => ({
-            selection: {
-                start: prevState.colonIndex + emojiCode.length + CONST.SPACE_LENGTH,
-                end: prevState.colonIndex + emojiCode.length + CONST.SPACE_LENGTH,
-            },
-            suggestedEmojis: [],
-        }));
+        this.setState({suggestedEmojis: []}, () => {
+            setSelection(this.textInput, oldColonIndex + emojiCode.length + CONST.SPACE_LENGTH, oldColonIndex + emojiCode.length + CONST.SPACE_LENGTH);
+        });
         EmojiUtils.addToFrequentlyUsedEmojis(this.props.frequentlyUsedEmojis, emojiObject);
     }
 
@@ -505,13 +503,11 @@ class ReportActionCompose extends React.Component {
         const newComment = this.comment.slice(0, this.state.selection.start)
             + emojiWithSpace
             + this.comment.slice(this.state.selection.end, this.comment.length);
-        this.setState(prevState => ({
-            selection: {
-                start: prevState.selection.start + emojiWithSpace.length,
-                end: prevState.selection.start + emojiWithSpace.length,
-            },
-        }));
-        this.updateComment(newComment);
+        const newSelection = {
+            start: this.state.selection.start + emojiWithSpace.length,
+            end: this.state.selection.start + emojiWithSpace.length,
+        };
+        this.updateComment(newComment, false, newSelection);
     }
 
     /**
@@ -562,22 +558,22 @@ class ReportActionCompose extends React.Component {
      *
      * @param {String} comment
      * @param {Boolean} shouldDebounceSaveComment
+     * @param {Object} selection
      */
-    updateComment(comment, shouldDebounceSaveComment) {
+    updateComment(comment, shouldDebounceSaveComment, selection) {
+        const oldComment = this.state.value;
+        const oldSelection = this.state.selection;
         const newComment = EmojiUtils.replaceEmojis(comment, this.props.isSmallScreenWidth, this.props.preferredSkinTone);
-        this.setState((prevState) => {
-            const newState = {
-                isCommentEmpty: !!newComment.match(/^(\s)*$/),
-                value: newComment,
-            };
-            if (comment !== newComment) {
-                const remainder = prevState.value.slice(prevState.selection.end).length;
-                newState.selection = {
-                    start: newComment.length - remainder,
-                    end: newComment.length - remainder,
-                };
+        this.setState({
+            isCommentEmpty: !!newComment.match(/^(\s)*$/),
+            value: newComment,
+        }, () => {
+            if (selection) {
+                setSelection(this.textInput, selection.start, selection.end);
+            } else if (comment !== newComment) {
+                const remainder = oldComment.slice(oldSelection.end).length;
+                setSelection(this.textInput, newComment.length - remainder, newComment.length - remainder);
             }
-            return newState;
         });
 
         // Indicate that draft has been created.
@@ -879,7 +875,6 @@ class ReportActionCompose extends React.Component {
                                                 shouldClear={this.state.textInputShouldClear}
                                                 onClear={() => this.setTextInputShouldClear(false)}
                                                 isDisabled={isComposeDisabled || isBlockedFromConcierge || this.props.disabled}
-                                                selection={this.state.selection}
                                                 onSelectionChange={this.onSelectionChange}
                                                 isFullComposerAvailable={this.state.isFullComposerAvailable}
                                                 setIsFullComposerAvailable={this.setIsFullComposerAvailable}

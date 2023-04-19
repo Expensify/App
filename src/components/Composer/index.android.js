@@ -24,12 +24,6 @@ const propTypes = {
     /** Prevent edits and interactions like focus for this input. */
     isDisabled: PropTypes.bool,
 
-    /** Selection Object */
-    selection: PropTypes.shape({
-        start: PropTypes.number,
-        end: PropTypes.number,
-    }),
-
     /** Whether the full composer can be opened */
     isFullComposerAvailable: PropTypes.bool,
 
@@ -51,10 +45,6 @@ const defaultProps = {
     autoFocus: false,
     isDisabled: false,
     forwardedRef: null,
-    selection: {
-        start: 0,
-        end: 0,
-    },
     isFullComposerAvailable: false,
     setIsFullComposerAvailable: () => {},
     isComposerFullSize: false,

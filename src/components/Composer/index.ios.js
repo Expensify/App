@@ -24,12 +24,6 @@ const propTypes = {
     /** Prevent edits and interactions like focus for this input. */
     isDisabled: PropTypes.bool,
 
-    /** Selection Object */
-    selection: PropTypes.shape({
-        start: PropTypes.number,
-        end: PropTypes.number,
-    }),
-
     /** Whether the full composer can be opened */
     isFullComposerAvailable: PropTypes.bool,
 
@@ -51,10 +45,6 @@ const defaultProps = {
     autoFocus: false,
     isDisabled: false,
     forwardedRef: null,
-    selection: {
-        start: 0,
-        end: 0,
-    },
     isFullComposerAvailable: false,
     setIsFullComposerAvailable: () => {},
     isComposerFullSize: false,
@@ -92,11 +82,6 @@ class Composer extends React.Component {
     }
 
     render() {
-        // On native layers we like to have the Text Input not focused so the
-        // user can read new chats without the keyboard in the way of the view.
-        // On Android, the selection prop is required on the TextInput but this prop has issues on IOS
-        // https://github.com/facebook/react-native/issues/29063
-        const propsToPass = _.omit(this.props, 'selection');
         return (
             <RNTextInput
                 autoComplete="off"
@@ -108,7 +93,7 @@ class Composer extends React.Component {
                 textAlignVertical="center"
                 style={this.state.propStyles}
                 /* eslint-disable-next-line react/jsx-props-no-spreading */
-                {...propsToPass}
+                {...this.props}
                 editable={!this.props.isDisabled}
             />
         );

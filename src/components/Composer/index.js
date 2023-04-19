@@ -58,12 +58,6 @@ const propTypes = {
     /** Update selection position on change */
     onSelectionChange: PropTypes.func,
 
-    /** Selection Object */
-    selection: PropTypes.shape({
-        start: PropTypes.number,
-        end: PropTypes.number,
-    }),
-
     /** Whether the full composer can be opened */
     isFullComposerAvailable: PropTypes.bool,
 
@@ -92,10 +86,6 @@ const defaultProps = {
     autoFocus: false,
     forwardedRef: null,
     onSelectionChange: () => {},
-    selection: {
-        start: 0,
-        end: 0,
-    },
     isFullComposerAvailable: false,
     setIsFullComposerAvailable: () => {},
     isComposerFullSize: false,
@@ -173,11 +163,6 @@ class Composer extends React.Component {
             || prevProps.windowWidth !== this.props.windowWidth
             || prevProps.numberOfLines !== this.props.numberOfLines) {
             this.updateNumberOfLines();
-        }
-
-        if (prevProps.selection !== this.props.selection) {
-            // eslint-disable-next-line react/no-did-update-set-state
-            this.setState({selection: this.props.selection});
         }
     }
 
@@ -365,7 +350,6 @@ class Composer extends React.Component {
                 autoCorrect={!Browser.isMobileSafari()}
                 placeholderTextColor={themeColors.placeholderText}
                 ref={el => this.textInput = el}
-                selection={this.state.selection}
                 onChange={this.shouldCallUpdateNumberOfLines}
                 onSelectionChange={this.onSelectionChange}
                 style={[

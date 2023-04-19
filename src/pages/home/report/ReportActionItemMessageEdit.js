@@ -27,6 +27,7 @@ import withWindowDimensions, {windowDimensionsPropTypes} from '../../../componen
 import withLocalize, {withLocalizePropTypes} from '../../../components/withLocalize';
 import withKeyboardState, {keyboardStatePropTypes} from '../../../components/withKeyboardState';
 import ONYXKEYS from '../../../ONYXKEYS';
+import setSelection from '../../../libs/setSelection';
 
 const propTypes = {
     /** All the data of the action */
@@ -135,19 +136,19 @@ class ReportActionItemMessageEdit extends React.Component {
      * Update the value of the draft in Onyx
      *
      * @param {String} draft
+     * @param {Object} selection
      */
-    updateDraft(draft) {
+    updateDraft(draft, selection) {
+        const oldDraft = this.state.draft;
+        const oldSelection = this.state.selection;
         const newDraft = EmojiUtils.replaceEmojis(draft, this.props.isSmallScreenWidth, this.props.preferredSkinTone);
-        this.setState((prevState) => {
-            const newState = {draft: newDraft};
-            if (draft !== newDraft) {
-                const remainder = prevState.draft.slice(prevState.selection.end).length;
-                newState.selection = {
-                    start: newDraft.length - remainder,
-                    end: newDraft.length - remainder,
-                };
+        this.setState({draft: newDraft}, () => {
+            if (selection) {
+                setSelection(this.textInput, selection.start, selection.end);
+            } else if (draft !== newDraft) {
+                const remainder = oldDraft.slice(oldSelection.end).length;
+                setSelection(this.textInput, newDraft.length - remainder, newDraft.length - remainder);
             }
-            return newState;
         });
 
         // This component is rendered only when draft is set to a non-empty string. In order to prevent component
@@ -231,13 +232,11 @@ class ReportActionItemMessageEdit extends React.Component {
     addEmojiToTextBox(emoji) {
         const newComment = this.state.draft.slice(0, this.state.selection.start)
             + emoji + this.state.draft.slice(this.state.selection.end, this.state.draft.length);
-        this.setState(prevState => ({
-            selection: {
-                start: prevState.selection.start + emoji.length,
-                end: prevState.selection.start + emoji.length,
-            },
-        }));
-        this.updateDraft(newComment);
+        const newSelection = {
+            start: this.state.selection.start + emoji.length,
+            end: this.state.selection.start + emoji.length,
+        };
+        this.updateDraft(newComment, newSelection);
     }
 
     /**
@@ -302,7 +301,6 @@ class ReportActionItemMessageEdit extends React.Component {
                             }
                             openReportActionComposeViewWhenClosingMessageEdit(this.props.isSmallScreenWidth);
                         }}
-                        selection={this.state.selection}
                         onSelectionChange={this.onSelectionChange}
                         numberOfLines={this.props.numberOfLines}
                         onNumberOfLinesChange={this.updateNumberOfLines}
