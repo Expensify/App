@@ -33,7 +33,7 @@ const OpacityView = (props) => {
         if (props.shouldDim) {
             opacity.value = withTiming(props.dimmingValue, {duration: 50});
         } else {
-            opacity.value = 1;
+            opacity.value = withTiming(1, {duration: 50});
         }
     }, [props.shouldDim, props.dimmingValue, opacity]);
 
