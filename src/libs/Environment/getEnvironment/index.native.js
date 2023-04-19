@@ -25,10 +25,10 @@ function getEnvironment() {
         // If we haven't set the environment yet and we aren't on dev, check to see if this is a beta build
         betaChecker.isBetaBuild()
             .then((isBeta) => {
-                if (isBeta && CONST.PULL_REQUEST_NUMBER) {
-                    environment = CONST.ENVIRONMENT.ADHOC;
-                } else if (isBeta) {
+                if (isBeta) {
                     environment = CONST.ENVIRONMENT.STAGING;
+                } else if (CONST.PULL_REQUEST_NUMBER) {
+                    environment = CONST.ENVIRONMENT.ADHOC;
                 } else {
                     environment = CONST.ENVIRONMENT.PRODUCTION;
                 }
