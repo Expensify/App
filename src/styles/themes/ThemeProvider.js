@@ -1,12 +1,16 @@
 /* eslint-disable react/jsx-props-no-spreading */
 import React, {useEffect, useMemo} from 'react';
-import {View} from 'react-native';
 import {
     useSharedValue, interpolateColor, useDerivedValue, withSpring,
 } from 'react-native-reanimated';
+import PropTypes from 'prop-types';
 import ThemeContext from './ThemeContext';
 import useIsLightMode from './useIsLightMode';
 import defaultColors from './default';
+
+const propTypes = {
+    children: PropTypes.node.isRequired,
+};
 
 function ThemeProvider(props) {
     const lightMode = useIsLightMode();
@@ -14,7 +18,7 @@ function ThemeProvider(props) {
 
     const {appBG: appBGDark, ...restOfTheme} = defaultColors;
 
-    const appBG = useDerivedValue(() => interpolateColor(themeAnimation, [0, 1], ['#ffffff', appBGDark]));
+    const appBG = useDerivedValue(() => interpolateColor(themeAnimation.value, [0, 1], ['#ffffff', appBGDark]));
 
     const theme = useMemo(
         () => ({
@@ -28,21 +32,23 @@ function ThemeProvider(props) {
     useEffect(() => {
         if (lightMode) {
             themeAnimation.value = 0;
-        } else { themeAnimation.value = 0; }
-    }, []);
+        } else { themeAnimation.value = 1; }
+    }, [lightMode, themeAnimation]);
 
     // Animating the color values based on the current theme
     useEffect(() => {
         if (lightMode && themeAnimation.value === 1) {
             themeAnimation.value = withSpring(0);
         } else if (themeAnimation.value === 0) { themeAnimation.value = 0; }
-    }, [lightMode]);
+    }, [lightMode, themeAnimation]);
 
     return (
         <ThemeContext.Provider value={theme}>
-            <View {...props} />
+            {props.children}
         </ThemeContext.Provider>
     );
 }
+ThemeProvider.propTypes = propTypes;
+ThemeProvider.displayName = 'ThemeProvider';
 
 export default ThemeProvider;
