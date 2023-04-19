@@ -155,6 +155,7 @@ class BaseModal extends PureComponent {
                             modalContainerStyleMarginBottom: modalContainerStyle.marginBottom,
                             modalContainerStylePaddingTop: modalContainerStyle.paddingTop,
                             modalContainerStylePaddingBottom: modalContainerStyle.paddingBottom,
+                            insets,
                         });
 
                         return (
