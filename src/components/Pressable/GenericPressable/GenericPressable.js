@@ -7,8 +7,7 @@ import KeyboardShortcut from '../../../libs/KeyboardShortcut';
 import styles from '../../../styles/styles';
 import genericPressablePropTypes from './PropTypes';
 import CONST from '../../../CONST';
-
-const parseStyleFromFunction = (style, state) => (_.isFunction(style) ? style(state) : style);
+import * as StyleUtils from '../../../styles/StyleUtils';
 
 const getCursorStyle = (isDisabled, isText) => {
     if (isDisabled) {
@@ -85,16 +84,10 @@ const GenericPressable = forwardRef((props, ref) => {
 
     useEffect(() => {
         if (!keyboardShortcut) {
-            return;
+            return () => {};
         }
         const {shortcutKey, descriptionKey, modifiers} = keyboardShortcut;
-        const unsubscribe = KeyboardShortcut.subscribe(shortcutKey, onPressHandler, descriptionKey, modifiers, true, false, 0, false);
-        return () => {
-            if (!unsubscribe) {
-                return;
-            }
-            unsubscribe();
-        };
+        return KeyboardShortcut.subscribe(shortcutKey, onPressHandler, descriptionKey, modifiers, true, false, 0, false);
     }, [keyboardShortcut, onPressHandler]);
 
     return (
@@ -108,11 +101,11 @@ const GenericPressable = forwardRef((props, ref) => {
             style={state => [
                 getCursorStyle(isDisabled, [props.accessibilityRole, props.role].includes('text')),
                 props.style,
-                isScreenReaderActive && parseStyleFromFunction(props.screenReaderActiveStyle, state),
-                state.focused && parseStyleFromFunction(props.focusStyle, state),
-                state.hovered && parseStyleFromFunction(props.hoverStyle, state),
-                state.pressed && parseStyleFromFunction(props.pressedStyle, state),
-                isDisabled && [parseStyleFromFunction(props.disabledStyle, state), styles.noSelect],
+                isScreenReaderActive && StyleUtils.parseStyleFromFunction(props.screenReaderActiveStyle, state),
+                state.focused && StyleUtils.parseStyleFromFunction(props.focusStyle, state),
+                state.hovered && StyleUtils.parseStyleFromFunction(props.hoverStyle, state),
+                state.pressed && StyleUtils.parseStyleFromFunction(props.pressedStyle, state),
+                isDisabled && [...StyleUtils.parseStyleFromFunction(props.disabledStyle, state), styles.noSelect],
             ]}
 
             // accessibility props
