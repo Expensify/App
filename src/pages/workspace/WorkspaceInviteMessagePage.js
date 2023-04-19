@@ -147,8 +147,6 @@ class WorkspaceInviteMessagePage extends React.Component {
                 <Form
                     style={[styles.flexGrow1, styles.ph5]}
                     formID={ONYXKEYS.FORMS.WORKSPACE_INVITE_MESSAGE_FORM}
-
-                    // No validation is required single the invite message is optional.
                     validate={this.validate}
                     onSubmit={this.onSubmit}
                     submitButtonText={this.props.translate('common.invite')}
