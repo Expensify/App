@@ -1,0 +1,8 @@
+[commit]
+    gpgsign = true
+[user]
+    email = kyle33hatch@gmail.com
+    name = Kyle Hatch
+    signingkey = 9453241852803D7D
+[gpg]
+    program = gpg
