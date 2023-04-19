@@ -134,9 +134,8 @@ function getPolicyExpenseReportOptions(report) {
  * @return {String}
  */
 function addSMSDomainIfPhoneNumber(login) {
-    if (parsePhoneNumber(LoginUtils.appendCountryCode(login)).possible && !Str.isValidEmail(login)) {
-        const smsLogin = login + CONST.SMS.DOMAIN;
-        return smsLogin.includes('+') ? smsLogin : `+${countryCodeByIP}${smsLogin}`;
+    if (parsePhoneNumber(login).possible && !Str.isValidEmail(login)) {
+        return login + CONST.SMS.DOMAIN;
     }
     return login;
 }
@@ -863,7 +862,7 @@ function getHeaderMessage(hasSelectableOptions, hasUserToInvite, searchValue, ma
 
     const isValidEmail = Str.isValidEmail(searchValue);
 
-    if (searchValue && CONST.REGEX.DIGITS_AND_PLUS.test(searchValue) && !isValidPhone.possible) {
+    if (searchValue && CONST.REGEX.DIGITS_AND_PLUS.test(searchValue) && !isValidPhone) {
         return Localize.translate(preferredLocale, 'messages.errorMessageInvalidPhone');
     }
 

@@ -286,8 +286,9 @@ function validateIdentity(identity) {
  * @returns {Boolean}
  */
 function isValidUSPhone(phoneNumber = '', isCountryCodeOptional) {
+    let phone = phoneNumber || '';
+
     // If the country code is not present, we manually add it since the library needs international formatting
-    let phone = phoneNumber;
     if (isCountryCodeOptional && !phone.startsWith('+')) {
         phone = `+1${phone}`;
     }
