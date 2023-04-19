@@ -199,4 +199,6 @@ export default {
 
     // Whether the auth token is valid
     IS_TOKEN_VALID: 'isTokenValid',
+
+    COLOR_THEME: 'colorTheme',
 };

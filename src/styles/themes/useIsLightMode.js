@@ -1,16 +1,30 @@
 import {useState, useEffect} from 'react';
 import {Appearance} from 'react-native';
+import Onyx from 'react-native-onyx';
+import ONYXKEYS from '../../ONYXKEYS';
 
 function useIsLightMode() {
-    const [colorScheme, setColorScheme] = useState(() => Appearance.getColorScheme());
+    const [colorTheme, setColorTheme] = useState();
+    const [systemColorTheme, setSystemColorTheme] = useState();
 
     useEffect(() => {
-        const unsubcribe = Appearance.addChangeListener(({newColorScheme}) => setColorScheme(newColorScheme)).remove;
-
-        return unsubcribe;
+        const systemThemeSubscription = Appearance.addChangeListener(({colorScheme}) => setSystemColorTheme(colorScheme));
+        return systemThemeSubscription.remove();
     }, []);
 
-    return colorScheme === 'light';
+    useEffect(() => {
+        // eslint-disable-next-line rulesdir/prefer-onyx-connect-in-libs
+        const connectionId = Onyx.connect({
+            key: ONYXKEYS.COLOR_THEME,
+            callback: newColorTheme => (newColorTheme === 'system'
+                ? setColorTheme(systemColorTheme) : setColorTheme(newColorTheme))
+            ,
+        });
+
+        return () => Onyx.disconnect(connectionId);
+    }, []);
+
+    return colorTheme;
 }
 
 export default useIsLightMode;
