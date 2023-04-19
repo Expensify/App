@@ -464,6 +464,7 @@ function canShowReportRecipientLocalTime(personalDetails, report) {
     const isReportParticipantValidated = lodashGet(reportRecipient, 'validated', false);
     return Boolean(!hasMultipleParticipants
         && !isChatRoom(report)
+        && !isPolicyExpenseChat(report)
         && reportRecipient
         && reportRecipientTimezone
         && reportRecipientTimezone.selected
@@ -1087,9 +1088,13 @@ function getIOUReportActionMessage(type, total, participants, comment, currency,
 function buildOptimisticIOUReportAction(type, amount, currency, comment, participants, paymentType = '', iouTransactionID = '', iouReportID = '', isSettlingUp = false) {
     const IOUTransactionID = iouTransactionID || NumberUtils.rand64();
     const IOUReportID = iouReportID || generateReportID();
+    const parser = new ExpensiMark();
+    const commentText = getParsedComment(comment);
+    const textForNewComment = parser.htmlToText(commentText);
+    const textForNewCommentDecoded = Str.htmlDecode(textForNewComment);
     const originalMessage = {
         amount,
-        comment,
+        comment: textForNewComment,
         currency,
         IOUTransactionID,
         IOUReportID,
@@ -1118,7 +1123,7 @@ function buildOptimisticIOUReportAction(type, amount, currency, comment, partici
         avatar: lodashGet(currentUserPersonalDetails, 'avatar', getDefaultAvatar(currentUserEmail)),
         isAttachment: false,
         originalMessage,
-        message: getIOUReportActionMessage(type, amount, participants, comment, currency, paymentType, isSettlingUp),
+        message: getIOUReportActionMessage(type, amount, participants, textForNewCommentDecoded, currency, paymentType, isSettlingUp),
         person: [{
             style: 'strong',
             text: lodashGet(currentUserPersonalDetails, 'displayName', currentUserEmail),
