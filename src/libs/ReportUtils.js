@@ -7,7 +7,6 @@ import ExpensiMark from 'expensify-common/lib/ExpensiMark';
 import ONYXKEYS from '../ONYXKEYS';
 import CONST from '../CONST';
 import * as Localize from './Localize';
-import * as LocalePhoneNumber from './LocalePhoneNumber';
 import * as Expensicons from '../components/Icon/Expensicons';
 import hashCode from './hashCode';
 import Navigation from './Navigation/Navigation';
@@ -21,6 +20,7 @@ import linkingConfig from './Navigation/linkingConfig';
 import * as defaultAvatars from '../components/Icon/DefaultAvatars';
 import isReportMessageAttachment from './isReportMessageAttachment';
 import * as defaultWorkspaceAvatars from '../components/Icon/WorkspaceDefaultAvatars';
+import * as LocalePhoneNumber from './LocalePhoneNumber';
 
 let sessionEmail;
 Onyx.connect({
@@ -536,7 +536,7 @@ function getDefaultWorkspaceAvatar(workspaceName) {
  */
 function getOldDotDefaultAvatar(login = '') {
     if (login === CONST.EMAIL.CONCIERGE) {
-        return CONST.CONCIERGE_ICON_URL;
+        return Expensicons.ConciergeAvatar;
     }
 
     // There are 8 possible old dot default avatars, so we choose which one this user has based
@@ -643,7 +643,7 @@ function getIcons(report, personalDetails, policies, defaultIcon = null) {
         return [result];
     }
     if (isConciergeChatReport(report)) {
-        result.source = CONST.CONCIERGE_ICON_URL;
+        result.source = Expensicons.ConciergeAvatar;
         return [result];
     }
     if (isArchivedRoom(report)) {
@@ -766,7 +766,7 @@ function getDisplayNameForParticipant(login, shouldUseShortForm = false) {
     const loginWithoutSMSDomain = Str.removeSMSDomain(personalDetails.login);
     let longName = personalDetails.displayName || loginWithoutSMSDomain;
     if (longName === loginWithoutSMSDomain && Str.isSMSLogin(longName)) {
-        longName = LocalePhoneNumber.toLocalPhone(preferredLocale, longName);
+        longName = LocalePhoneNumber.formatPhoneNumber(longName);
     }
     const shortName = personalDetails.firstName || longName;
 
@@ -1088,9 +1088,13 @@ function getIOUReportActionMessage(type, total, participants, comment, currency,
 function buildOptimisticIOUReportAction(type, amount, currency, comment, participants, paymentType = '', iouTransactionID = '', iouReportID = '', isSettlingUp = false) {
     const IOUTransactionID = iouTransactionID || NumberUtils.rand64();
     const IOUReportID = iouReportID || generateReportID();
+    const parser = new ExpensiMark();
+    const commentText = getParsedComment(comment);
+    const textForNewComment = parser.htmlToText(commentText);
+    const textForNewCommentDecoded = Str.htmlDecode(textForNewComment);
     const originalMessage = {
         amount,
-        comment,
+        comment: textForNewComment,
         currency,
         IOUTransactionID,
         IOUReportID,
@@ -1119,7 +1123,7 @@ function buildOptimisticIOUReportAction(type, amount, currency, comment, partici
         avatar: lodashGet(currentUserPersonalDetails, 'avatar', getDefaultAvatar(currentUserEmail)),
         isAttachment: false,
         originalMessage,
-        message: getIOUReportActionMessage(type, amount, participants, comment, currency, paymentType, isSettlingUp),
+        message: getIOUReportActionMessage(type, amount, participants, textForNewCommentDecoded, currency, paymentType, isSettlingUp),
         person: [{
             style: 'strong',
             text: lodashGet(currentUserPersonalDetails, 'displayName', currentUserEmail),
