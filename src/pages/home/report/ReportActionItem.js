@@ -251,6 +251,12 @@ class ReportActionItem extends Component {
         );
     }
 
+    /**
+     * Get ReportActionItem with a proper wrapper
+     * @param {Boolean} hovered whether the ReportActionItem is hovered
+     * @param {Boolean} isWhisper whether the ReportActionItem is a whisper
+     * @returns {Object} report action item
+     */
     renderReportActionItem(hovered, isWhisper) {
         const content = this.renderItemContent(hovered || this.state.isContextMenuActive);
 
