@@ -1,3 +1,6 @@
+/*
+ * The KeyboardAvoidingView is only used on ios
+ */
 import React from 'react';
 import {KeyboardAvoidingView as KeyboardAvoidingViewComponent} from 'react-native';
 

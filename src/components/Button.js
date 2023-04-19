@@ -241,13 +241,13 @@ class Button extends Component {
                     }
 
                     if (this.props.shouldEnableHapticFeedback) {
-                        HapticFeedback.trigger();
+                        HapticFeedback.press();
                     }
                     this.props.onPress(e);
                 }}
                 onLongPress={(e) => {
                     if (this.props.shouldEnableHapticFeedback) {
-                        HapticFeedback.trigger();
+                        HapticFeedback.longPress();
                     }
                     this.props.onLongPress(e);
                 }}
@@ -276,9 +276,8 @@ class Button extends Component {
                                 this.props.large ? styles.buttonLarge : undefined,
                                 this.props.success ? styles.buttonSuccess : undefined,
                                 this.props.danger ? styles.buttonDanger : undefined,
-                                (this.props.isDisabled && this.props.success) ? styles.buttonSuccessDisabled : undefined,
-                                (this.props.isDisabled && this.props.danger) ? styles.buttonDangerDisabled : undefined,
-                                (this.props.isDisabled && !this.props.danger && !this.props.success) ? styles.buttonDisable : undefined,
+                                (this.props.isDisabled && (this.props.success || this.props.danger)) ? styles.buttonOpacityDisabled : undefined,
+                                (this.props.isDisabled && !this.props.danger && !this.props.success) ? styles.buttonDisabled : undefined,
                                 (this.props.success && activeAndHovered) ? styles.buttonSuccessHovered : undefined,
                                 (this.props.danger && activeAndHovered) ? styles.buttonDangerHovered : undefined,
                                 this.props.shouldRemoveRightBorderRadius ? styles.noRightBorderRadius : undefined,

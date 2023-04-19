@@ -18,7 +18,7 @@ $ https://github.com/Expensify/App/issues/<number-of-the-issue(comment)>
 
 Do NOT only link the issue number like this: $ #<number-of-the-issue>
 --->
-$ GH_LINK   
+$ GH_LINK
 PROPOSAL: GH_LINK_ISSUE(COMMENT)
 
 
@@ -84,7 +84,7 @@ This is a checklist for PR authors. Please make sure to complete all tasks and c
     - [ ] I verified any copy / text shown in the product is localized by adding it to `src/languages/*` files and using the [translation method](https://github.com/Expensify/App/blob/4bd99402cebdf4d7394e0d1f260879ea238197eb/src/components/withLocalize.js#L60)
       - [ ] If any non-english text was added/modified, I verified the translation was requested/reviewed in #expensify-open-source and it was approved by an internal Expensify engineer. Link to Slack message:
     - [ ] I verified all numbers, amounts, dates and phone numbers shown in the product are using the [localization methods](https://github.com/Expensify/App/blob/4bd99402cebdf4d7394e0d1f260879ea238197eb/src/components/withLocalize.js#L60-L68)
-    - [ ] I verified any copy / text that was added to the app is correct English and approved by marketing by adding the `Waiting for Copy` label for a copy review on the original GH to get the correct copy.
+    - [ ] I verified any copy / text that was added to the app is grammatically correct in English. It adheres to proper capitalization guidelines (note: only the first word of header/labels should be capitalized), and is approved by marketing by adding the `Waiting for Copy` label for a copy review on the original GH to get the correct copy.
     - [ ] I verified proper file naming conventions were followed for any new files or renamed files. All non-platform specific files are named after what they export and are not named "index.js". All platform-specific files are named for the platform the code supports as outlined in the README.
     - [ ] I verified the JSDocs style guidelines (in [`STYLE.md`](https://github.com/Expensify/App/blob/main/contributingGuides/STYLE.md#jsdocs)) were followed
 - [ ] If a new code pattern is added I verified it was agreed to be used by multiple Expensify engineers
@@ -107,7 +107,8 @@ This is a checklist for PR authors. Please make sure to complete all tasks and c
     - [ ] The file has a description of what it does and/or why is needed at the top of the file if the code is not self explanatory
 - [ ] If a new CSS style is added I verified that:
     - [ ] A similar style doesn't already exist
-    - [ ] The style can't be created with an existing [StyleUtils](https://github.com/Expensify/App/blob/main/src/styles/StyleUtils.js) function (i.e. `StyleUtils.getBackgroundAndBorderStyle(themeColors.componentBG`)
+    - [ ] The style can't be created with an existing [StyleUtils](https://github.com/Expensify/App/blob/main/src/styles/StyleUtils.js) function (i.e. `StyleUtils.getBackgroundAndBorderStyle(themeColors.componentBG)`)
+- [ ] If the PR modifies code that runs when editing or sending messages, I tested and verified there is no unexpected behavior for all supported markdown - URLs, single line code, code blocks, quotes, headings, bold, strikethrough, and italic.
 - [ ] If the PR modifies a generic component, I tested and verified that those changes do not break usages of that component in the rest of the App (i.e. if a shared library or component like `Avatar` is modified, I verified that `Avatar` is working as expected in all cases)
 - [ ] If the PR modifies a component related to any of the existing Storybook stories, I tested and verified all stories for that component are still working as expected.
 - [ ] If a new page is added, I verified it's using the `ScrollView` component to make it scrollable when more elements are added to the page.

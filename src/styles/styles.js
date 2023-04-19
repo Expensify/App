@@ -1,3 +1,4 @@
+import {defaultStyles as defaultPickerStyles} from 'react-native-picker-select/src/styles';
 import fontFamily from './fontFamily';
 import addOutlineWidth from './addOutlineWidth';
 import themeColors from './themes/default';
@@ -291,6 +292,10 @@ const styles = {
         fontSize: variables.fontSizeExtraSmall,
     },
 
+    textNormal: {
+        fontSize: variables.fontSizeNormal,
+    },
+
     textLarge: {
         fontSize: variables.fontSizeLarge,
     },
@@ -473,7 +478,7 @@ const styles = {
         borderWidth: 0,
     },
 
-    buttonSuccessDisabled: {
+    buttonOpacityDisabled: {
         opacity: 0.5,
     },
 
@@ -487,16 +492,12 @@ const styles = {
         borderWidth: 0,
     },
 
-    buttonDangerDisabled: {
-        opacity: 0.5,
-    },
-
     buttonDangerHovered: {
         backgroundColor: themeColors.dangerHover,
         borderWidth: 0,
     },
 
-    buttonDisable: {
+    buttonDisabled: {
         backgroundColor: themeColors.buttonDefaultBG,
         borderWidth: 0,
     },
@@ -604,6 +605,9 @@ const styles = {
         },
         done: {
             color: themeColors.text,
+        },
+        doneDepressed: {
+            fontSize: defaultPickerStyles.done.fontSize,
         },
         modalViewMiddle: {
             backgroundColor: themeColors.border,
@@ -783,10 +787,6 @@ const styles = {
         backgroundColor: themeColors.buttonDefaultBG,
     },
 
-    calendarButtonDisabled: {
-        opacity: 0.5,
-    },
-
     textInputContainer: {
         flex: 1,
         justifyContent: 'center',
@@ -943,6 +943,9 @@ const styles = {
         done: {
             color: themeColors.text,
         },
+        doneDepressed: {
+            fontSize: defaultPickerStyles.done.fontSize,
+        },
         modalViewMiddle: {
             backgroundColor: themeColors.border,
             borderTopWidth: 0,
@@ -1003,9 +1006,49 @@ const styles = {
     },
 
     signInPage: {
-        backgroundColor: themeColors.sidebar,
+        backgroundColor: themeColors.highlightBG,
         minHeight: '100%',
         flex: 1,
+    },
+
+    signInPageHeroCenter: {
+        position: 'absolute',
+        top: 0,
+        left: 0,
+        right: 0,
+        bottom: 0,
+        justifyContent: 'center',
+        alignItems: 'center',
+    },
+
+    signInPageGradient: {
+        height: '100%',
+        width: 540,
+        position: 'absolute',
+        top: 0,
+        left: 0,
+    },
+
+    signInPageGradientMobile: {
+        height: 300,
+        width: 800,
+        position: 'absolute',
+        top: 0,
+        left: 0,
+    },
+
+    signInBackgroundDesktop: {
+        position: 'absolute',
+        bottom: 0,
+        left: 0,
+        minHeight: 700,
+    },
+
+    signInBackgroundMobile: {
+        position: 'absolute',
+        bottom: 0,
+        left: 0,
+        minHeight: 700,
     },
 
     signInPageInner: {
@@ -1026,7 +1069,7 @@ const styles = {
     },
 
     signInPageLeftContainerWide: {
-        maxWidth: 360,
+        maxWidth: variables.sideBarWidth,
     },
 
     signInPageWelcomeFormContainer: {
@@ -1064,49 +1107,18 @@ const styles = {
         width: variables.componentSizeNormal,
     },
 
-    statusIndicator: {
+    statusIndicator: (backgroundColor = themeColors.danger) => ({
         borderColor: themeColors.sidebar,
-        backgroundColor: themeColors.danger,
-        borderRadius: 6,
-        borderWidth: 2,
-        position: 'absolute',
-        right: -1,
-        bottom: -1,
-        height: 12,
-        width: 12,
-        zIndex: 10,
-    },
-
-    statusIndicatorLarge: {
-        borderColor: themeColors.componentBG,
-        backgroundColor: themeColors.danger,
+        backgroundColor,
         borderRadius: 8,
         borderWidth: 2,
         position: 'absolute',
-        right: 4,
-        bottom: 4,
+        right: -2,
+        top: -1,
         height: 16,
         width: 16,
         zIndex: 10,
-    },
-
-    statusIndicatorOnline: {
-        backgroundColor: themeColors.success,
-    },
-
-    avatarWithIndicator: {
-        errorDot: {
-            borderColor: themeColors.sidebar,
-            borderRadius: 6,
-            borderWidth: 2,
-            position: 'absolute',
-            right: -1,
-            bottom: -1,
-            height: 12,
-            width: 12,
-            zIndex: 10,
-        },
-    },
+    }),
 
     floatingActionButtonContainer: {
         position: 'absolute',
@@ -1321,8 +1333,8 @@ const styles = {
         // Starting version 6.3.2 @react-navigation/drawer adds "user-select: none;" to its container.
         // We add user-select-auto to the inner component to prevent incorrect triple-click text selection.
         // For further explanation see - https://github.com/Expensify/App/pull/12730/files#r1022883823
-        userSelect: 'auto',
-        WebkitUserSelect: 'auto',
+        userSelect: 'text',
+        WebkitUserSelect: 'text',
     },
 
     appContentHeader: {
@@ -1523,25 +1535,12 @@ const styles = {
     emojiPickerContainer: {
         backgroundColor: themeColors.componentBG,
     },
-    emojiPickerList: {
-        height: CONST.NON_NATIVE_EMOJI_PICKER_LIST_HEIGHT,
-        width: '100%',
-        ...spacing.ph4,
-    },
-    emojiPickerListWithPadding: {
-        height: CONST.NON_NATIVE_EMOJI_PICKER_LIST_HEIGHT + CONST.CATEGORY_SHORTCUT_BAR_HEIGHT,
-        width: '100%',
-        ...spacing.ph4,
-    },
-    emojiPickerSearchListContainer: {
-        position: 'absolute',
-        top: 60,
-        right: 0,
-        bottom: 4,
-        left: 0,
-        backgroundColor: themeColors.appBG,
-    },
 
+    emojiPickerList: {
+        height: 288,
+        width: '100%',
+        ...spacing.ph4,
+    },
     emojiPickerListLandscape: {
         height: 240,
     },
@@ -2318,6 +2317,19 @@ const styles = {
         lineHeight: undefined,
     }, 0),
 
+    moneyRequestConfirmationAmount: {
+        ...headlineFont,
+        fontSize: variables.fontSizeh1,
+    },
+
+    moneyRequestMenuItem: {
+        flexDirection: 'row',
+        borderRadius: 0,
+        justifyContent: 'space-between',
+        width: '100%',
+        marginBottom: 20,
+    },
+
     iouPreviewBox: {
         backgroundColor: themeColors.cardBG,
         borderRadius: variables.componentBorderRadiusCard,
@@ -2590,6 +2602,7 @@ const styles = {
         width: '100%',
         flexDirection: 'row',
         justifyContent: 'space-between',
+        alignItems: 'center',
         ...spacing.pt2,
     },
 
@@ -2597,10 +2610,6 @@ const styles = {
         borderColor: themeColors.border,
         borderBottomWidth: 1,
         ...spacing.pb2,
-    },
-
-    peopleRowCell: {
-        justifyContent: 'center',
     },
 
     peopleBadge: {
@@ -2783,10 +2792,6 @@ const styles = {
         right: 60,
     },
 
-    googleListView: {
-        transform: [{scale: 0}],
-    },
-
     invert: {
         // It's important to invert the Y AND X axis to prevent a react native issue that can lead to ANRs on android 13
         transform: [{scaleX: -1}, {scaleY: -1}],
@@ -2863,13 +2868,18 @@ const styles = {
         cursor: 'move',
     },
 
+    sliderKnobTooltipView: {
+        height: variables.sliderKnobSize,
+        width: variables.sliderKnobSize,
+        borderRadius: variables.sliderKnobSize / 2,
+    },
+
     sliderKnob: {
         backgroundColor: themeColors.success,
         position: 'absolute',
         height: variables.sliderKnobSize,
         width: variables.sliderKnobSize,
         borderRadius: variables.sliderKnobSize / 2,
-        top: -variables.sliderBarHeight,
         left: -(variables.sliderKnobSize / 2),
         cursor: 'pointer',
     },
@@ -2879,10 +2889,7 @@ const styles = {
         height: variables.sliderBarHeight,
         borderRadius: variables.sliderBarHeight / 2,
         alignSelf: 'stretch',
-    },
-
-    imageCropRotateButton: {
-        height: variables.iconSizeExtraLarge,
+        justifyContent: 'center',
     },
 
     userSelectText: {
@@ -2922,7 +2929,6 @@ const styles = {
     },
 
     textPill: {
-        ellipsizeMode: 'end',
         backgroundColor: themeColors.border,
         borderRadius: 10,
         overflow: 'hidden',
@@ -3002,10 +3008,7 @@ const styles = {
     },
 
     emojiReactionBubble: {
-        paddingVertical: 2,
-        paddingHorizontal: 8,
         borderRadius: 28,
-        backgroundColor: themeColors.border,
         alignItems: 'center',
         justifyContent: 'center',
         flexDirection: 'row',
@@ -3014,20 +3017,20 @@ const styles = {
         marginRight: 4,
     },
 
-    emojiReactionText: {
-        fontSize: 12,
+    miniQuickEmojiReactionText: {
+        fontSize: 15,
         lineHeight: 20,
         textAlignVertical: 'center',
-        userSelect: 'none',
-        WebkitUserSelect: 'none',
     },
+
+    emojiReactionBubbleText: {
+        textAlignVertical: 'center',
+    },
+
     reactionCounterText: {
-        fontSize: 11,
+        fontSize: 13,
         marginLeft: 4,
         fontWeight: 'bold',
-        color: themeColors.textLight,
-        userSelect: 'none',
-        WebkitUserSelect: 'none',
     },
 
     fontColorReactionLabel: {
@@ -3058,14 +3061,10 @@ const styles = {
         fontSize: variables.fontSizeXXLarge,
         letterSpacing: 4,
     },
-    footer: {
-        backgroundColor: themeColors.midtone,
-    },
 
     footerWrapper: {
         fontSize: variables.fontSizeNormal,
         paddingTop: 64,
-        paddingHorizontal: 32,
         maxWidth: 1100, // Match footer across all Expensify platforms
     },
 
@@ -3112,10 +3111,27 @@ const styles = {
         top: 60,
         zIndex: 100,
     },
+    loginHeroHeader: {
+        fontFamily: fontFamily.EXP_NEW_KANSAS_MEDIUM,
+        color: themeColors.success,
+        fontWeight: '500',
+        textAlign: 'center',
+    },
+
+    loginHeroBody: {
+        fontFamily: fontFamily.EXP_NEUE,
+        fontSize: variables.fontSizeSignInHeroBody,
+        color: themeColors.textLight,
+        textAlign: 'center',
+    },
 
     validateCodeMessage: {
         width: variables.modalContentMaxWidth,
         textAlign: 'center',
+    },
+
+    popoverMaxWidth: {
+        maxWidth: 375,
     },
 };
 
