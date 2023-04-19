@@ -303,7 +303,7 @@ class AttachmentCarousel extends React.Component {
 
                         // Enable scrolling by swiping on mobile (touch) devices only
                         // disable scroll for desktop/browsers because they add their scrollbars
-                        // disable scroll in PDF zoomed state
+                        // Enable scrolling FlatList only when PDF is not in a zoomed state
                         scrollEnabled={this.canUseTouchScreen && !this.state.isZoomed}
                         ref={this.scrollRef}
                         initialScrollIndex={this.state.page}
