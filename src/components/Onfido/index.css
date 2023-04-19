@@ -3,6 +3,13 @@
     border-style: none !important;
     width: 100% !important;
 }
+
+/* The Onfido Tips badge currently has position absolute. When the Onfido window scrollable, it makes the Tips badge floats on the screen.
+ This css will make the Tips positioned relative to scrollableContent div so that when scrollableContent div is scrolled, it keeps position of the Tips badge */
+.onfido-sdk-ui-Theme-scrollableContent {
+    position: relative;
+}
+
 @media only screen and (max-width: 600px) {
     .onfido-sdk-ui-Modal-inner {
         /* This keeps the bottom of the Onfido window from being cut off on mobile web because the height was being
