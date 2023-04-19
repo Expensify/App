@@ -1,89 +1,49 @@
-const localePhoneNumber = require('../../src/libs/LocalePhoneNumber');
-const CONST = require('../../src/CONST').default;
+import Onyx from 'react-native-onyx';
+import ONYXKEYS from '../../src/ONYXKEYS';
+import * as LocalePhoneNumber from '../../src/libs/LocalePhoneNumber';
+import waitForPromisesToResolve from '../utils/waitForPromisesToResolve';
 
-describe('localePhoneNumber', () => {
-    it('Test to local Number Conversion by locale', () => {
-        expect(localePhoneNumber.toLocalPhone(CONST.LOCALES.ES_ES, '34547474747474')).toBe('547474747474');
+const ES_NUMBER = '+34702474537';
+const US_NUMBER = '+18332403627';
+
+describe('LocalePhoneNumber utils', () => {
+    beforeAll(() => Onyx.init({
+        keys: ONYXKEYS,
+    }));
+
+    describe('formatPhoneNumber function - when the current user has a phone number', () => {
+        beforeEach(() => Onyx.multiSet({
+            [ONYXKEYS.SESSION]: {email: 'current@user.com'},
+            [ONYXKEYS.COUNTRY_CODE]: 34,
+            [ONYXKEYS.PERSONAL_DETAILS]: {'current@user.com': {phoneNumber: US_NUMBER}},
+        }).then(waitForPromisesToResolve));
+
+        afterEach(() => Onyx.clear());
+
+        it('should display a number from the same region formatted locally', () => {
+            expect(LocalePhoneNumber.formatPhoneNumber(US_NUMBER)).toBe('(833) 240-3627');
+        });
+
+        it('should display a number from another region formatted internationally', () => {
+            expect(LocalePhoneNumber.formatPhoneNumber(ES_NUMBER)).toBe('+34 702 47 45 37');
+        });
     });
 
-    // Failing due to the use of Trimstart.
-    it('Test to local Number Conversion by locale', () => {
-        expect(localePhoneNumber.toLocalPhone(CONST.LOCALES.ES_ES, '343434343434')).toBe('3434343434');
-    });
+    describe('formatPhoneNumber function - when the current user does not have a phone number', () => {
+        beforeEach(() => Onyx.multiSet({
+            [ONYXKEYS.SESSION]: {email: 'current@user.com'},
+            [ONYXKEYS.COUNTRY_CODE]: 34,
+            [ONYXKEYS.PERSONAL_DETAILS]: {'current@user.com': {phoneNumber: ''}},
+        }).then(waitForPromisesToResolve));
 
-    it('Test to local Number Conversion by locale', () => {
-        expect(localePhoneNumber.toLocalPhone(CONST.LOCALES.ES_ES, '+34547474747474')).toBe('547474747474');
-    });
+        afterEach(() => Onyx.clear());
 
-    it('Test to local Number Conversion by locale', () => {
-        expect(localePhoneNumber.toLocalPhone(CONST.LOCALES.ES_ES, '547474747474')).toBe('547474747474');
-    });
+        it('should display a number from the same region formatted locally', () => {
+            expect(LocalePhoneNumber.formatPhoneNumber(ES_NUMBER)).toBe('702 47 45 37');
+        });
 
-    it('Test to local Number Conversion by locale', () => {
-        expect(localePhoneNumber.toLocalPhone(CONST.LOCALES.ES_ES, '+17474747474')).toBe('+17474747474');
-    });
-
-    it('Test to local Number Conversion by locale', () => {
-        expect(localePhoneNumber.toLocalPhone(CONST.LOCALES.EN, '+1547474747474')).toBe('547474747474');
-    });
-
-    it('Test to local Number Conversion by locale', () => {
-        expect(localePhoneNumber.toLocalPhone(CONST.LOCALES.EN, '1547474747474')).toBe('547474747474');
-    });
-
-    it('Test to local Number Conversion by locale', () => {
-        expect(localePhoneNumber.toLocalPhone(CONST.LOCALES.EN, '547474747474')).toBe('547474747474');
-    });
-
-    it('Test to local Number Conversion by locale', () => {
-        expect(localePhoneNumber.toLocalPhone(CONST.LOCALES.EN, '+347474747474')).toBe('+347474747474');
-    });
-
-    it('Test to local Number Conversion by locale', () => {
-        expect(localePhoneNumber.toLocalPhone(CONST.LOCALES.EN, '+34 747 474 7474')).toBe('+34 747 474 7474');
-    });
-
-    it('Test to local Number Conversion by locale', () => {
-        expect(localePhoneNumber.toLocalPhone('en-EN', '+17474747474')).toBe('+17474747474');
-    });
-
-    it('Test to international Number Conversion by locale', () => {
-        expect(localePhoneNumber.fromLocalPhone(CONST.LOCALES.ES_ES, '34547474747474')).toBe('+34547474747474');
-    });
-
-    it('Test to international Number Conversion by locale', () => {
-        expect(localePhoneNumber.fromLocalPhone(CONST.LOCALES.ES_ES, '+34547474747474')).toBe('+34547474747474');
-    });
-
-    it('Test to international Number Conversion by locale', () => {
-        expect(localePhoneNumber.fromLocalPhone(CONST.LOCALES.ES_ES, '547474747474')).toBe('+34547474747474');
-    });
-
-    it('Test to international Number Conversion by locale', () => {
-        expect(localePhoneNumber.fromLocalPhone(CONST.LOCALES.ES_ES, '+17474747474')).toBe('+3417474747474');
-    });
-
-    it('Test to international Number Conversion by locale', () => {
-        expect(localePhoneNumber.fromLocalPhone(CONST.LOCALES.EN, '+1547474747474')).toBe('+1547474747474');
-    });
-
-    it('Test to international Number Conversion by locale', () => {
-        expect(localePhoneNumber.fromLocalPhone(CONST.LOCALES.EN, '1547474747474')).toBe('+1547474747474');
-    });
-
-    it('Test to international Number Conversion by locale', () => {
-        expect(localePhoneNumber.fromLocalPhone(CONST.LOCALES.EN, '547474747474')).toBe('+1547474747474');
-    });
-
-    it('Test to international Number Conversion by locale', () => {
-        expect(localePhoneNumber.fromLocalPhone(CONST.LOCALES.EN, '+347474747474')).toBe('+1347474747474');
-    });
-
-    it('Test to international Number Conversion by locale', () => {
-        expect(localePhoneNumber.fromLocalPhone(CONST.LOCALES.EN, ' + 34 747 474 7474 ')).toBe('+1 34 747 474 7474');
-    });
-
-    it('Test to international Number Conversion by locale', () => {
-        expect(localePhoneNumber.fromLocalPhone('en-EN', '+17474747474')).toBe('+17474747474');
+        it('should display a number from another region formatted internationally', () => {
+            expect(LocalePhoneNumber.formatPhoneNumber(US_NUMBER)).toBe('+1 833-240-3627');
+        });
     });
 });

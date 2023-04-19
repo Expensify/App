@@ -207,6 +207,11 @@ export default {
                     NewChat_Root: ROUTES.NEW_CHAT,
                 },
             },
+            NewTask: {
+                screens: {
+                    NewTask_Root: ROUTES.NEW_TASK_WITH_REPORT_ID,
+                },
+            },
             Search: {
                 screens: {
                     Search_Root: ROUTES.SEARCH,
@@ -227,6 +232,7 @@ export default {
                 screens: {
                     IOU_Request_Root: ROUTES.IOU_REQUEST_WITH_REPORT_ID,
                     IOU_Request_Currency: ROUTES.IOU_REQUEST_CURRENCY,
+                    Money_Request_Description: ROUTES.MONEY_REQUEST_DESCRIPTION,
                 },
             },
             IOU_Bill: {
