@@ -9,6 +9,12 @@ import genericPressablePropTypes from './PropTypes';
 import CONST from '../../../CONST';
 import * as StyleUtils from '../../../styles/StyleUtils';
 
+/**
+ * Returns the cursor style based on the state of Pressable
+ * @param {Boolean} isDisabled
+ * @param {Boolean} isText
+ * @returns {Object}
+ */
 const getCursorStyle = (isDisabled, isText) => {
     if (isDisabled) {
         return styles.cursorDisabled;
