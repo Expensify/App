@@ -197,4 +197,7 @@ export default {
 
     // Whether the auth token is valid
     IS_TOKEN_VALID: 'isTokenValid',
+
+    // Keeps track if there is emoji picker currently visible or not
+    IS_EMOJI_PICKER_VISIBLE: 'isEmojiPickerVisible',
 };

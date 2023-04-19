@@ -1404,6 +1404,16 @@ function getCurrentUserAccountID() {
     return currentUserAccountID;
 }
 
+/**
+ * Allows other parts of app to know that an emoji picker is about to open.
+ * This will trigger as soon as a emoji picker is opened but not yet visible while animation is running.
+ *
+ * @param {Boolean} isVisible
+ */
+function willAlertEmojiPickerBecomeVisible(isVisible) {
+    Onyx.set(ONYXKEYS.IS_EMOJI_PICKER_VISIBLE, isVisible);
+}
+
 export {
     addComment,
     addAttachment,
@@ -1443,4 +1453,5 @@ export {
     hasAccountIDReacted,
     getCurrentUserAccountID,
     shouldShowReportActionNotification,
+    willAlertEmojiPickerBecomeVisible,
 };

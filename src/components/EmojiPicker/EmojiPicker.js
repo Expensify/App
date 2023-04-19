@@ -4,6 +4,7 @@ import _ from 'underscore';
 import EmojiPickerMenu from './EmojiPickerMenu';
 import CONST from '../../CONST';
 import PopoverWithMeasuredContent from '../PopoverWithMeasuredContent';
+import * as Report from '../../libs/actions/Report';
 
 const DEFAULT_ANCHOR_ORIGIN = {
     horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.RIGHT,
@@ -99,7 +100,10 @@ class EmojiPicker extends React.Component {
      * @param {Function} [onWillShow=() => {}] - Run a callback when Popover will show
      */
     showEmojiPicker(onModalHide, onEmojiSelected, emojiPopoverAnchor, anchorOrigin, onWillShow = () => {}) {
-        this.onModalHide = onModalHide;
+        this.onModalHide = () => {
+            Report.willAlertEmojiPickerBecomeVisible(false);
+            onModalHide();
+        };
         this.onEmojiSelected = onEmojiSelected;
         this.emojiPopoverAnchor = emojiPopoverAnchor;
 
@@ -109,6 +113,7 @@ class EmojiPicker extends React.Component {
         }
 
         this.measureEmojiPopoverAnchorPosition().then((emojiPopoverAnchorPosition) => {
+            Report.willAlertEmojiPickerBecomeVisible(true);
             onWillShow();
             this.setState({isEmojiPickerVisible: true, emojiPopoverAnchorPosition, emojiPopoverAnchorOrigin: anchorOrigin || DEFAULT_ANCHOR_ORIGIN});
         });

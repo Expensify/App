@@ -93,6 +93,9 @@ const propTypes = {
     /** Is composer screen focused */
     isFocused: PropTypes.bool.isRequired,
 
+    /** Is composer screen focused */
+    isEmojiPickerVisible: PropTypes.bool,
+
     /** Is composer full size */
     isComposerFullSize: PropTypes.bool,
 
@@ -132,6 +135,7 @@ const defaultProps = {
     preferredSkinTone: CONST.EMOJI_DEFAULT_SKIN_TONE,
     frequentlyUsedEmojis: [],
     isComposerFullSize: false,
+    isEmojiPickerVisible: false,
     ...withCurrentUserPersonalDetailsDefaultProps,
 };
 
@@ -204,7 +208,6 @@ class ReportActionCompose extends React.Component {
             isEmojiPickerLarge: false,
             composerHeight: 0,
             hasExceededMaxCommentLength: false,
-            isEmojiPickerVisible: false,
         };
     }
 
@@ -475,7 +478,7 @@ class ReportActionCompose extends React.Component {
     }
 
     keydownListener(e) {
-        if (this.state.isFocused || this.state.isEmojiPickerVisible || this.props.modal.isVisible || this.props.isSmallScreenWidth) {
+        if (this.state.isFocused || this.props.isEmojiPickerVisible || this.props.modal.isVisible || this.props.isSmallScreenWidth) {
             return;
         }
 
@@ -911,10 +914,8 @@ class ReportActionCompose extends React.Component {
                             isDisabled={isBlockedFromConcierge || this.props.disabled}
                             onModalHide={() => {
                                 this.focus(true);
-                                this.setState({isEmojiPickerVisible: false});
                             }}
                             onEmojiSelected={this.addEmojiToTextBox}
-                            onWillShow={() => this.setState({isEmojiPickerVisible: true})}
                         />
                     )}
                     <View
@@ -1012,6 +1013,9 @@ export default compose(
         },
         preferredSkinTone: {
             key: ONYXKEYS.PREFERRED_EMOJI_SKIN_TONE,
+        },
+        isEmojiPickerVisible: {
+            key: ONYXKEYS.IS_EMOJI_PICKER_VISIBLE,
         },
     }),
 )(ReportActionCompose);
