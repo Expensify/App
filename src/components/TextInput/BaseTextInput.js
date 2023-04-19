@@ -279,7 +279,7 @@ class BaseTextInput extends Component {
                                         ref={(ref) => {
                                             if (typeof this.props.innerRef === 'function') {
                                                 this.props.innerRef(ref);
-                                            } else if (this.props.innerRef && this.props.innerRef.hasOwnProperty('current')) {
+                                            } else if (this.props.innerRef && _.has(this.props.innerRef, 'current')) {
                                                 this.props.innerRef.current = ref;
                                             }
                                             this.input = ref;
