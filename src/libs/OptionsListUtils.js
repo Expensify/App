@@ -32,12 +32,6 @@ Onyx.connect({
     callback: val => loginList = _.isEmpty(val) ? {} : val,
 });
 
-let countryCodeByIP;
-Onyx.connect({
-    key: ONYXKEYS.COUNTRY_CODE,
-    callback: val => countryCodeByIP = val || 1,
-});
-
 let preferredLocale;
 Onyx.connect({
     key: ONYXKEYS.NVP_PREFERRED_LOCALE,
