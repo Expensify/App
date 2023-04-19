@@ -63,6 +63,13 @@ const IOURequestModalStackNavigator = createModalStackNavigator([{
         return IOUCurrencySelection;
     },
     name: 'IOU_Request_Currency',
+},
+{
+    getComponent: () => {
+        const MoneyRequestDescriptionPage = require('../../../pages/iou/MoneyRequestDescriptionPage').default;
+        return MoneyRequestDescriptionPage;
+    },
+    name: 'Money_Request_Description',
 }]);
 
 const IOUSendModalStackNavigator = createModalStackNavigator([{
@@ -193,6 +200,14 @@ const NewChatModalStackNavigator = createModalStackNavigator([{
         return NewChatPage;
     },
     name: 'NewChat_Root',
+}]);
+
+const NewTaskModalStackNavigator = createModalStackNavigator([{
+    getComponent: () => {
+        const NewTaskPage = require('../../../pages/NewTaskPage').default;
+        return NewTaskPage;
+    },
+    name: 'NewTask_Root',
 }]);
 
 const SettingsModalStackNavigator = createModalStackNavigator([
@@ -538,6 +553,7 @@ export {
     SearchModalStackNavigator,
     NewGroupModalStackNavigator,
     NewChatModalStackNavigator,
+    NewTaskModalStackNavigator,
     SettingsModalStackNavigator,
     EnablePaymentsStackNavigator,
     AddPersonalBankAccountModalStackNavigator,
