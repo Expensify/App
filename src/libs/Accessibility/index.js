@@ -6,9 +6,7 @@ import moveAccessibilityFocus from './moveAccessibilityFocus';
 const useScreenReaderStatus = () => {
     const [isScreenReaderEnabled, setIsScreenReaderEnabled] = useState(false);
     useEffect(() => {
-        const subscription = AccessibilityInfo.addEventListener('screenReaderChanged', (isEnabled) => {
-            setIsScreenReaderEnabled(isEnabled);
-        });
+        const subscription = AccessibilityInfo.addEventListener('screenReaderChanged', setIsScreenReaderEnabled);
 
         return () => {
             if (!subscription) {
