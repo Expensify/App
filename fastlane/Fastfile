@@ -17,7 +17,7 @@ platform :android do
   desc "Generate a new local APK for e2e testing"
   lane :build_e2e do
     ENV["ENVFILE"]="tests/e2e/.env.e2e"
-    ENV["ENTRY_FILE"]="src/libs/E2E/reactNativeLaunchingTest.js"
+    ENV["ENTRY_FILE"]="#{Dir.pwd}/../src/libs/E2E/reactNativeLaunchingTest.js"
     ENV["E2E_TESTING"]="true"
 
     gradle(
