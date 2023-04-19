@@ -52,6 +52,7 @@ class AttachmentCarousel extends React.Component {
             itemVisiblePercentThreshold: 95,
         };
 
+        this.toggleArrowsVisibility = this.toggleArrowsVisibility.bind(this);
         this.cycleThroughAttachments = this.cycleThroughAttachments.bind(this);
         this.autoHideArrow = this.autoHideArrow.bind(this);
         this.cancelAutoHideArrow = this.cancelAutoHideArrow.bind(this);
@@ -138,7 +139,9 @@ class AttachmentCarousel extends React.Component {
      * @param {Boolean} shouldShowArrow
      */
     toggleArrowsVisibility(shouldShowArrow) {
-        this.setState({shouldShowArrow}, () => {
+        this.setState(current => ({
+            shouldShowArrow: shouldShowArrow ?? !current,
+        }), () => {
             if (this.state.shouldShowArrow) {
                 this.autoHideArrow();
             } else {
@@ -240,7 +243,7 @@ class AttachmentCarousel extends React.Component {
             <Pressable
                 // eslint-disable-next-line react/jsx-props-no-spreading
                 {...props}
-                onPress={() => this.setState(current => ({shouldShowArrow: !current.shouldShowArrow}))}
+                onPress={this.toggleArrowsVisibility}
                 style={style}
             />
         );
