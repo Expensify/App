@@ -42,7 +42,6 @@ const defaultProps = {
 
 const WorkspaceBillsFirstSection = (props) => {
     const emailDomain = Str.extractEmailDomain(props.session.email);
-    const manageYourBillsUrl = `reports?policyID=${props.policyID}&from=all&type=bill&showStates=Open,Processing,Approved,Reimbursed,Archived&isAdvancedFilterMode=true`;
     return (
         <Section
             title={props.translate('workspace.bills.manageYourBills')}
@@ -51,13 +50,12 @@ const WorkspaceBillsFirstSection = (props) => {
                 {
                     title: props.translate('workspace.bills.viewAllBills'),
                     onPress: () => (
-                        Link.openOldDotLink(manageYourBillsUrl)
+                        Link.openOldDotLink(`reports?policyID=${props.policyID}&from=all&type=bill&showStates=Open,Processing,Approved,Reimbursed,Archived&isAdvancedFilterMode=true`)
                     ),
                     icon: Expensicons.Bill,
                     shouldShowRightIcon: true,
                     iconRight: Expensicons.NewWindow,
                     wrapperStyle: [styles.cardMenuItem],
-                    link: () => Link.buildOldDotURL(manageYourBillsUrl),
                 },
             ]}
             containerStyles={[styles.cardSection]}

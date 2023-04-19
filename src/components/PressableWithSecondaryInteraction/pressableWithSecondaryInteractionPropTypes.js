@@ -1,5 +1,4 @@
 import PropTypes from 'prop-types';
-import stylePropTypes from '../../styles/stylePropTypes';
 
 const propTypes = {
     /** The function that should be called when this pressable is pressed */
@@ -12,19 +11,13 @@ const propTypes = {
     onPressOut: PropTypes.func,
 
     /** The function that should be called when this pressable is LongPressed or right-clicked. */
-    onSecondaryInteraction: PropTypes.func,
+    onSecondaryInteraction: PropTypes.func.isRequired,
 
     /** The children which should be contained in this wrapper component. */
-    children: PropTypes.oneOfType([
-        PropTypes.func,
-        PropTypes.node,
-    ]).isRequired,
+    children: PropTypes.node.isRequired,
 
     /** The ref to the search input (may be null on small screen widths) */
-    forwardedRef: PropTypes.oneOfType([
-        PropTypes.func,
-        PropTypes.object,
-    ]),
+    forwardedRef: PropTypes.func,
 
     /** Prevent the default ContextMenu on web/Desktop */
     preventDefaultContentMenu: PropTypes.bool,
@@ -41,9 +34,6 @@ const propTypes = {
 
     /** Disable focus trap for the element on secondary interaction  */
     withoutFocusOnSecondaryInteraction: PropTypes.bool,
-
-    /** Used to apply styles to the Pressable */
-    style: stylePropTypes,
 };
 
 const defaultProps = {

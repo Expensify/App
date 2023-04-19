@@ -289,6 +289,12 @@ class AuthScreens extends React.Component {
                     listeners={modalScreenListeners}
                 />
                 <RootStack.Screen
+                    name="NewTask"
+                    options={modalScreenOptions}
+                    component={ModalStackNavigators.NewTaskModalStackNavigator}
+                    listeners={modalScreenListeners}
+                />
+                <RootStack.Screen
                     name="IOU_Bill"
                     options={modalScreenOptions}
                     component={ModalStackNavigators.IOUBillStackNavigator}

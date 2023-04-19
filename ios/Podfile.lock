@@ -514,8 +514,6 @@ PODS:
     - React
   - react-native-image-picker (5.1.0):
     - React-Core
-  - react-native-key-command (0.9.1):
-    - React-Core
   - react-native-netinfo (8.3.1):
     - React-Core
   - react-native-pdf (6.6.2):
@@ -767,7 +765,6 @@ DEPENDENCIES:
   - react-native-flipper (from `../node_modules/react-native-flipper`)
   - "react-native-image-manipulator (from `../node_modules/@oguzhnatly/react-native-image-manipulator`)"
   - react-native-image-picker (from `../node_modules/react-native-image-picker`)
-  - react-native-key-command (from `../node_modules/react-native-key-command`)
   - "react-native-netinfo (from `../node_modules/@react-native-community/netinfo`)"
   - react-native-pdf (from `../node_modules/react-native-pdf`)
   - react-native-performance (from `../node_modules/react-native-performance`)
@@ -919,8 +916,6 @@ EXTERNAL SOURCES:
     :path: "../node_modules/@oguzhnatly/react-native-image-manipulator"
   react-native-image-picker:
     :path: "../node_modules/react-native-image-picker"
-  react-native-key-command:
-    :path: "../node_modules/react-native-key-command"
   react-native-netinfo:
     :path: "../node_modules/@react-native-community/netinfo"
   react-native-pdf:
@@ -1007,7 +1002,7 @@ EXTERNAL SOURCES:
 SPEC CHECKSUMS:
   Airship: 19ead2c0bdc791c1b9d6ebb7940aaac99614414e
   AirshipFrameworkProxy: 037a0ad6491757c45de2c70a6cc47bae5fcfa32b
-  boost: a7c83b31436843459a1961bfd74b96033dc77234
+  boost: 57d2868c099736d80fcd648bf211b4431e51a558
   CocoaAsyncSocket: 065fd1e645c7abab64f7a6a2007a48038fdc6a99
   DoubleConversion: 5189b271737e1565bdce30deb4a08d647e3f5f54
   FBLazyVector: ff54429f0110d3c722630a98096ba689c39f6d5f
@@ -1050,7 +1045,7 @@ SPEC CHECKSUMS:
   Permission-LocationWhenInUse: 3ba99e45c852763f730eabecec2870c2382b7bd4
   Plaid: 7d340abeadb46c7aa1a91f896c5b22395a31fcf2
   PromisesObjC: 09985d6d70fbe7878040aa746d78236e6946d2ef
-  RCT-Folly: 0080d0a6ebf2577475bda044aa59e2ca1f909cda
+  RCT-Folly: 424b8c9a7a0b9ab2886ffe9c3b041ef628fd4fb1
   RCTRequired: e9e7b8b45aa9bedb2fdad71740adf07a7265b9be
   RCTTypeSafety: 9ae0e9206625e995f0df4d5b9ddc94411929fb30
   React: a71c8e1380f07e01de721ccd52bcf9c03e81867d
@@ -1072,7 +1067,6 @@ SPEC CHECKSUMS:
   react-native-flipper: dc5290261fbeeb2faec1bdc57ae6dd8d562e1de4
   react-native-image-manipulator: c48f64221cfcd46e9eec53619c4c0374f3328a56
   react-native-image-picker: c33d4e79f0a14a2b66e5065e14946ae63749660b
-  react-native-key-command: e49d6e44d44705779696d8d3a5ac6b9e3a198941
   react-native-netinfo: 1a6035d3b9780221d407c277ebfb5722ace00658
   react-native-pdf: 33c622cbdf776a649929e8b9d1ce2d313347c4fa
   react-native-performance: 224bd53e6a835fda4353302cf891d088a0af7406

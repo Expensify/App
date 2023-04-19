@@ -2,9 +2,7 @@ package com.expensify.chat;
 
 import android.os.Bundle;
 import android.content.pm.ActivityInfo;
-import android.view.KeyEvent;
 import com.expensify.chat.bootsplash.BootSplash;
-import com.expensify.reactnativekeycommand.KeyCommandModule;
 import com.facebook.react.ReactActivity;
 import com.facebook.react.ReactActivityDelegate;
 import com.facebook.react.defaults.DefaultNewArchitectureEntryPoint;
@@ -45,35 +43,5 @@ public class MainActivity extends ReactActivity {
     if (getResources().getBoolean(R.bool.portrait_only)) {
       setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_PORTRAIT);
     }
-  }
-
-  /**
-   * This method is called when a key down event has occurred.
-   * Forwards the event to the KeyCommandModule
-   */
-  @Override
-  public boolean onKeyDown(int keyCode, KeyEvent event) {
-    // Disabling hardware ESCAPE support which is handled by Android
-    if (event.getKeyCode() == KeyEvent.KEYCODE_ESCAPE) { 
-        return false; 
-    }
-    KeyCommandModule.getInstance().onKeyDownEvent(keyCode, event);
-    return super.onKeyDown(keyCode, event);
-  }
-
-  @Override
-  public boolean onKeyLongPress(int keyCode, KeyEvent event) {    
-    // Disabling hardware ESCAPE support which is handled by Android
-    if (event.getKeyCode() == KeyEvent.KEYCODE_ESCAPE) { return false; }
-    KeyCommandModule.getInstance().onKeyDownEvent(keyCode, event);
-    return super.onKeyLongPress(keyCode, event);
-  }
-
-  @Override
-  public boolean onKeyUp(int keyCode, KeyEvent event) {    
-    // Disabling hardware ESCAPE support which is handled by Android
-    if (event.getKeyCode() == KeyEvent.KEYCODE_ESCAPE) { return false; }
-    KeyCommandModule.getInstance().onKeyDownEvent(keyCode, event);
-    return super.onKeyUp(keyCode, event);
   }
 }
