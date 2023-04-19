@@ -230,7 +230,7 @@ function getOptionData(reportID) {
     };
 
     const participantPersonalDetailList = _.values(OptionsListUtils.getPersonalDetailsForLogins(report.participants, personalDetails));
-    const personalDetail = participantPersonalDetailList[0] || {login: ''};
+    const personalDetail = participantPersonalDetailList[0] || {};
 
     result.isChatRoom = ReportUtils.isChatRoom(report);
     result.isArchivedRoom = ReportUtils.isArchivedRoom(report);
@@ -252,7 +252,7 @@ function getOptionData(reportID) {
     const hasMultipleParticipants = participantPersonalDetailList.length > 1 || result.isChatRoom || result.isPolicyExpenseChat;
     const subtitle = ReportUtils.getChatRoomSubtitle(report, policies);
 
-    const login = Str.removeSMSDomain(personalDetail.login);
+    const login = Str.removeSMSDomain(personalDetail.login || '');
     const formattedLogin = Str.isSMSLogin(login) ? LocalePhoneNumber.formatPhoneNumber(login) : login;
 
     // We only create tooltips for the first 10 users or so since some reports have hundreds of users, causing performance to degrade.
