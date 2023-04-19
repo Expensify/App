@@ -94,7 +94,7 @@ const AboutPage = (props) => {
                                         ]}
                                     >
                                         v
-                                        {Environment.isInternalTestBuild() ? `${pkg.version}-PR.${CONST.PULL_REQUEST_NUMBER}` : pkg.version}
+                                        {Environment.isInternalTestBuild() ? `${pkg.version} PR:${CONST.PULL_REQUEST_NUMBER}` : pkg.version}
                                     </Text>
                                     <Text style={[styles.baseFontStyle, styles.mv5]}>
                                         {props.translate('initialSettingsPage.aboutPage.description')}

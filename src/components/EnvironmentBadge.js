@@ -19,7 +19,7 @@ const EnvironmentBadge = (props) => {
         return null;
     }
 
-    const text = Environment.isInternalTestBuild() ? `${pkg.version}-PR.${CONST.PULL_REQUEST_NUMBER}` : ENVIRONMENT_SHORT_FORM[props.environment];
+    const text = Environment.isInternalTestBuild() ? `v${pkg.version} PR:${CONST.PULL_REQUEST_NUMBER}` : ENVIRONMENT_SHORT_FORM[props.environment];
 
     return (
         <Badge
