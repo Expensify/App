@@ -9,49 +9,50 @@ import {
 import _ from 'underscore';
 import lodashGet from 'lodash/get';
 import {withOnyx} from 'react-native-onyx';
-import styles from '../../../styles/styles';
-import themeColors from '../../../styles/themes/default';
-import Composer from '../../../components/Composer';
-import ONYXKEYS from '../../../ONYXKEYS';
-import Icon from '../../../components/Icon';
-import * as Expensicons from '../../../components/Icon/Expensicons';
-import AttachmentPicker from '../../../components/AttachmentPicker';
-import * as Report from '../../../libs/actions/Report';
-import ReportTypingIndicator from './ReportTypingIndicator';
-import AttachmentModal from '../../../components/AttachmentModal';
-import compose from '../../../libs/compose';
-import PopoverMenu from '../../../components/PopoverMenu';
-import withWindowDimensions, {windowDimensionsPropTypes} from '../../../components/withWindowDimensions';
-import withDrawerState from '../../../components/withDrawerState';
-import withLocalize, {withLocalizePropTypes} from '../../../components/withLocalize';
-import willBlurTextInputOnTapOutside from '../../../libs/willBlurTextInputOnTapOutside';
-import CONST from '../../../CONST';
-import Navigation from '../../../libs/Navigation/Navigation';
-import ROUTES from '../../../ROUTES';
-import reportActionPropTypes from './reportActionPropTypes';
-import * as ReportUtils from '../../../libs/ReportUtils';
-import ReportActionComposeFocusManager from '../../../libs/ReportActionComposeFocusManager';
-import participantPropTypes from '../../../components/participantPropTypes';
-import ParticipantLocalTime from './ParticipantLocalTime';
-import withCurrentUserPersonalDetails, {withCurrentUserPersonalDetailsPropTypes, withCurrentUserPersonalDetailsDefaultProps} from '../../../components/withCurrentUserPersonalDetails';
-import {withNetwork, withPersonalDetails} from '../../../components/OnyxProvider';
-import * as User from '../../../libs/actions/User';
-import Tooltip from '../../../components/Tooltip';
-import EmojiPickerButton from '../../../components/EmojiPicker/EmojiPickerButton';
-import * as DeviceCapabilities from '../../../libs/DeviceCapabilities';
-import toggleReportActionComposeView from '../../../libs/toggleReportActionComposeView';
-import OfflineIndicator from '../../../components/OfflineIndicator';
-import ExceededCommentLength from '../../../components/ExceededCommentLength';
-import withNavigationFocus from '../../../components/withNavigationFocus';
-import * as EmojiUtils from '../../../libs/EmojiUtils';
-import ReportDropUI from './ReportDropUI';
-import DragAndDrop from '../../../components/DragAndDrop';
-import reportPropTypes from '../../reportPropTypes';
-import EmojiSuggestions from '../../../components/EmojiSuggestions';
-import withKeyboardState, {keyboardStatePropTypes} from '../../../components/withKeyboardState';
-import ArrowKeyFocusManager from '../../../components/ArrowKeyFocusManager';
-import OfflineWithFeedback from '../../../components/OfflineWithFeedback';
-import KeyboardShortcut from '../../../libs/KeyboardShortcut';
+import styles from '../../../../styles/styles';
+import themeColors from '../../../../styles/themes/default';
+import Composer from '../../../../components/Composer';
+import ONYXKEYS from '../../../../ONYXKEYS';
+import Icon from '../../../../components/Icon';
+import * as Expensicons from '../../../../components/Icon/Expensicons';
+import AttachmentPicker from '../../../../components/AttachmentPicker';
+import * as Report from '../../../../libs/actions/Report';
+import ReportTypingIndicator from '../ReportTypingIndicator';
+import AttachmentModal from '../../../../components/AttachmentModal';
+import compose from '../../../../libs/compose';
+import PopoverMenu from '../../../../components/PopoverMenu';
+import withWindowDimensions, {windowDimensionsPropTypes} from '../../../../components/withWindowDimensions';
+import withDrawerState from '../../../../components/withDrawerState';
+import withLocalize, {withLocalizePropTypes} from '../../../../components/withLocalize';
+import willBlurTextInputOnTapOutside from '../../../../libs/willBlurTextInputOnTapOutside';
+import CONST from '../../../../CONST';
+import Navigation from '../../../../libs/Navigation/Navigation';
+import ROUTES from '../../../../ROUTES';
+import reportActionPropTypes from '../reportActionPropTypes';
+import * as ReportUtils from '../../../../libs/ReportUtils';
+import ReportActionComposeFocusManager from '../../../../libs/ReportActionComposeFocusManager';
+import participantPropTypes from '../../../../components/participantPropTypes';
+import ParticipantLocalTime from '../ParticipantLocalTime';
+import withCurrentUserPersonalDetails, {withCurrentUserPersonalDetailsPropTypes, withCurrentUserPersonalDetailsDefaultProps} from '../../../../components/withCurrentUserPersonalDetails';
+import {withNetwork, withPersonalDetails} from '../../../../components/OnyxProvider';
+import * as User from '../../../../libs/actions/User';
+import Tooltip from '../../../../components/Tooltip';
+import EmojiPickerButton from '../../../../components/EmojiPicker/EmojiPickerButton';
+import * as DeviceCapabilities from '../../../../libs/DeviceCapabilities';
+import toggleReportActionComposeView from '../../../../libs/toggleReportActionComposeView';
+import OfflineIndicator from '../../../../components/OfflineIndicator';
+import ExceededCommentLength from '../../../../components/ExceededCommentLength';
+import withNavigationFocus from '../../../../components/withNavigationFocus';
+import * as EmojiUtils from '../../../../libs/EmojiUtils';
+import ReportDropUI from '../ReportDropUI';
+import DragAndDrop from '../../../../components/DragAndDrop';
+import reportPropTypes from '../../../reportPropTypes';
+import EmojiSuggestions from '../../../../components/EmojiSuggestions';
+import withKeyboardState, {keyboardStatePropTypes} from '../../../../components/withKeyboardState';
+import ArrowKeyFocusManager from '../../../../components/ArrowKeyFocusManager';
+import OfflineWithFeedback from '../../../../components/OfflineWithFeedback';
+import KeyboardShortcut from '../../../../libs/KeyboardShortcut';
+import keydownAction from './keydownAction';
 
 const propTypes = {
     /** Beta features list */
@@ -181,6 +182,8 @@ class ReportActionCompose extends React.Component {
         this.insertSelectedEmoji = this.insertSelectedEmoji.bind(this);
         this.setExceededMaxCommentLength = this.setExceededMaxCommentLength.bind(this);
         this.updateNumberOfLines = this.updateNumberOfLines.bind(this);
+        this.replaceSelectionWithInput = this.replaceSelectionWithInput.bind(this);
+        this.keydownListener = this.keydownListener.bind(this);
         this.comment = props.comment;
 
         // React Native will retain focus on an input for native devices but web/mWeb behave differently so we have some focus management
@@ -214,6 +217,8 @@ class ReportActionCompose extends React.Component {
     }
 
     componentDidMount() {
+        keydownAction.listenKeyDown(this.keydownListener);
+
         // This callback is used in the contextMenuActions to manage giving focus back to the compose input.
         // TODO: we should clean up this convoluted code and instead move focus management to something like ReportFooter.js or another higher up component
         ReportActionComposeFocusManager.onComposerFocus(() => {
@@ -269,6 +274,9 @@ class ReportActionCompose extends React.Component {
     }
 
     componentWillUnmount() {
+        if (this.keydownListener) {
+            KeyDownAction.removeListenKeyDown(this.keydownListener);
+        }
         ReportActionComposeFocusManager.clear();
 
         if (this.unsubscribeEscapeKey) {
@@ -520,16 +528,7 @@ class ReportActionCompose extends React.Component {
      */
     addEmojiToTextBox(emoji) {
         const emojiWithSpace = `${emoji} `;
-        const newComment = this.comment.slice(0, this.state.selection.start)
-            + emojiWithSpace
-            + this.comment.slice(this.state.selection.end, this.comment.length);
-        this.setState(prevState => ({
-            selection: {
-                start: prevState.selection.start + emojiWithSpace.length,
-                end: prevState.selection.start + emojiWithSpace.length,
-            },
-        }));
-        this.updateComment(newComment);
+        this.replaceSelectionWithInput(emojiWithSpace);
     }
 
     /**
