@@ -1,18 +1,5 @@
-/**
- * Get the current number of lines in the composer
- *
- * @param {Number} maxLines
- * @param {Number} lineHeight
- * @param {Number} paddingTopAndBottom
- * @param {Number} scrollHeight
- *
- * @returns {Number}
- */
-function getNumberOfLines(maxLines, lineHeight, paddingTopAndBottom, scrollHeight) {
-    let newNumberOfLines = Math.ceil((scrollHeight - paddingTopAndBottom) / lineHeight);
-    newNumberOfLines = maxLines <= 0 ? newNumberOfLines : Math.min(newNumberOfLines, maxLines);
-    return newNumberOfLines;
-}
+import getNumberOfLines from './getNumberOfLines';
+import updateNumberOfLines from './updateNumberOfLines';
 
 /**
  * Replace substring between selection with a text.
@@ -27,5 +14,6 @@ function insertText(text, selection, textToInsert) {
 
 export {
     getNumberOfLines,
+    updateNumberOfLines,
     insertText,
 };
