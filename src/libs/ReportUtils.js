@@ -860,12 +860,7 @@ function getReportName(report, policies = {}) {
     const participantsWithoutCurrentUser = _.without(participants, sessionEmail);
     const isMultipleParticipantReport = participantsWithoutCurrentUser.length > 1;
 
-    const displayNames = [];
-    for (let i = 0; i < participantsWithoutCurrentUser.length; i++) {
-        const login = participantsWithoutCurrentUser[i];
-        displayNames.push(getDisplayNameForParticipant(login, isMultipleParticipantReport));
-    }
-    return displayNames.join(', ');
+    return _.map(participants, login => getDisplayNameForParticipant(login, isMultipleParticipantReport)).join(', ');
 }
 
 /**
@@ -1709,20 +1704,20 @@ function canLeaveRoom(report, isPolicyMember) {
 
 /**
  * Returns display names for those that can see the whisper.
- * However, it returns "you" if only the current user can see it besides the person that sent it.
+ * However, it returns "you" if the current user is the only one who can see it besides the person that sent it.
  *
  * @param {string[]} participants
  * @returns {string}
  */
 function getWhisperDisplayNames(participants) {
-    const isCurrentUserTheOnlyParticipant = this.isCurrentUserTheOnlyParticipant(participants);
+    const isWhisperOnlyVisibleToCurrentUSer = this.isCurrentUserTheOnlyParticipant(participants);
 
     // When the current user is the only participant, the display name needs to be "you" because that's the only person reading it
-    if (isCurrentUserTheOnlyParticipant) {
+    if (isWhisperOnlyVisibleToCurrentUSer) {
         return Localize.translateLocal('common.youAfterPreposition');
     }
 
-    return _.map(participants, login => getDisplayNameForParticipant(login, ! isCurrentUserTheOnlyParticipant)).join(', ');
+    return _.map(participants, login => getDisplayNameForParticipant(login, !isWhisperOnlyVisibleToCurrentUSer)).join(', ');
 }
 
 /**
@@ -1753,6 +1748,7 @@ export {
     isPolicyExpenseChatAdmin,
     isPublicRoom,
     isConciergeChatReport,
+    isCurrentUserTheOnlyParticipant,
     hasAutomatedExpensifyEmails,
     hasExpensifyGuidesEmails,
     hasOutstandingIOU,
@@ -1787,7 +1783,6 @@ export {
     getDisplayNameForParticipant,
     isExpenseReport,
     isIOUReport,
-    isOnlyVisibleByCurrentUser,
     chatIncludesChronos,
     getAvatar,
     isDefaultAvatar,

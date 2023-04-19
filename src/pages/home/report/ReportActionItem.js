@@ -313,7 +313,7 @@ class ReportActionItem extends Component {
                                                 tooltipEnabled
                                                 numberOfLines={1}
                                                 textStyles={[styles.chatItemMessageHeaderTimestamp]}
-                                                shouldUseFullTitle={isOnlyVisibleByUser}
+                                                shouldUseFullTitle={isWhisperOnlyVisibleByUser}
                                             />
                                         </View>
                                     )}
