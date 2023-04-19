@@ -135,9 +135,11 @@ class MoneyRequestConfirmationList extends Component {
      * @returns {Array}
      */
     getParticipantsWithAmount(participants) {
+        const iouAmount = IOUUtils.calculateAmount(participants, this.props.iouAmount, this.props.iou.selectedCurrencyCode);
+
         return OptionsListUtils.getIOUConfirmationOptionsFromParticipants(
             participants,
-            this.props.numberFormat(IOUUtils.calculateAmount(participants, this.props.iouAmount) / 100, {
+            this.props.numberFormat(iouAmount / 100, {
                 style: 'currency',
                 currency: this.props.iou.selectedCurrencyCode,
             }),
@@ -169,9 +171,10 @@ class MoneyRequestConfirmationList extends Component {
             const formattedUnselectedParticipants = this.getParticipantsWithoutAmount(unselectedParticipants);
             const formattedParticipants = _.union(formattedSelectedParticipants, formattedUnselectedParticipants);
 
+            const myIOUAmount = IOUUtils.calculateAmount(selectedParticipants, this.props.iouAmount, this.props.iou.selectedCurrencyCode, true);
             const formattedMyPersonalDetails = OptionsListUtils.getIOUConfirmationOptionsFromMyPersonalDetail(
                 this.props.currentUserPersonalDetails,
-                this.props.numberFormat(IOUUtils.calculateAmount(selectedParticipants, this.props.iouAmount, true) / 100, {
+                this.props.numberFormat(myIOUAmount / 100, {
                     style: 'currency',
                     currency: this.props.iou.selectedCurrencyCode,
                 }),
