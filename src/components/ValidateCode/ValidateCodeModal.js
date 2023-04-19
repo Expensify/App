@@ -1,4 +1,4 @@
-import React from 'react';
+import React, {useCallback} from 'react';
 import PropTypes from 'prop-types';
 import {compose} from 'underscore';
 import {withOnyx} from 'react-native-onyx';
@@ -40,6 +40,8 @@ const defaultProps = {
 };
 
 function ValidateCodeModal(props) {
+    const signInHere = useCallback(() => Session.signInWithValidateCode(props.accountID, props.code), [props.accountID, props.code]);
+
     return (
         <View style={styles.deeplinkWrapperContainer}>
             <View style={styles.deeplinkWrapperMessage}>
@@ -61,7 +63,7 @@ function ValidateCodeModal(props) {
                                 <>
                                     {props.translate('validateCodeModal.or')}
                                     {' '}
-                                    <TextLink onPress={() => Session.signInWithValidateCode(props.accountID, props.code)}>
+                                    <TextLink onPress={signInHere}>
                                         {props.translate('validateCodeModal.signInHere')}
                                     </TextLink>
                                 </>
