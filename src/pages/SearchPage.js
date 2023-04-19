@@ -135,18 +135,18 @@ class SearchPage extends Component {
             this.state.searchValue.trim(),
             this.props.betas,
         );
-        const headerMessage = OptionsListUtils.getHeaderMessage(
-            (recentReports.length + personalDetails.length) !== 0,
-            Boolean(userToInvite),
-            // Ignoring the ESLint checks, accessing `searchValue.trim` above works fine, so accessing searchValue will also work fine
-            // eslint-disable-next-line react/no-access-state-in-setstate
-            this.state.searchValue,
-        );
-        this.setState({
-            headerMessage,
-            userToInvite,
-            recentReports,
-            personalDetails,
+        this.setState((prevState) => {
+            const headerMessage = OptionsListUtils.getHeaderMessage(
+                (recentReports.length + personalDetails.length) !== 0,
+                Boolean(userToInvite),
+                prevState.searchValue,
+            );
+            return ({
+                headerMessage,
+                userToInvite,
+                recentReports,
+                personalDetails,
+            });
         });
     }
 
