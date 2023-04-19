@@ -191,6 +191,7 @@ export default {
     },
     optionsSelector: {
         nameEmailOrPhoneNumber: 'Nombre, email o número de teléfono',
+        findMember: 'Encuentra un miembro',
     },
     videoChatButtonAndMenu: {
         tooltip: 'Iniciar una llamada',
@@ -971,6 +972,7 @@ export default {
             deleteConfirmation: '¿Estás seguro de que quieres eliminar este espacio de trabajo?',
             growlMessageOnDeleteError: 'No se puede eliminar el espacio de trabajo porque tiene informes que están siendo procesados',
             unavailable: 'Espacio de trabajo no disponible',
+            memberNotFound: 'Miembro no encontrado. Para invitar a un nuevo miembro al espacio de trabajo, por favor, utiliza el botón Invitar que está arriba.',
         },
         emptyWorkspace: {
             title: 'Crear un nuevo espacio de trabajo',

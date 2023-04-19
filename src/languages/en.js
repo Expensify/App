@@ -192,6 +192,7 @@ export default {
     },
     optionsSelector: {
         nameEmailOrPhoneNumber: 'Name, email, or phone number',
+        findMember: 'Find a member',
     },
     videoChatButtonAndMenu: {
         tooltip: 'Start a Call',
@@ -970,6 +971,7 @@ export default {
             growlMessageOnDelete: 'Workspace deleted',
             growlMessageOnDeleteError: 'This workspace cannot be deleted right now because reports are actively being processed',
             unavailable: 'Unavailable workspace',
+            memberNotFound: 'Member not found. To invite a new member to the workspace, please use the Invite button above.',
         },
         emptyWorkspace: {
             title: 'Create a new workspace',
