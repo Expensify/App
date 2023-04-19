@@ -30,7 +30,8 @@ const defaultProps = {
     shouldShowBasicTitle: false,
     shouldShowDescriptionOnTop: false,
     wrapperStyle: [],
-    style: {},
+    style: styles.popoverMenuItem,
+    titleStyle: {},
     success: false,
     icon: undefined,
     iconWidth: undefined,
@@ -60,13 +61,15 @@ const MenuItem = (props) => {
         (props.shouldShowBasicTitle ? undefined : styles.textStrong),
         (props.interactive && props.disabled ? {...styles.disabledText, ...styles.userSelectNone} : undefined),
         styles.pre,
-    ], props.style);
+    ], props.titleStyle);
+    const descriptionVerticalMargin = props.shouldShowDescriptionOnTop ? styles.mb1 : styles.mt1;
     const descriptionTextStyle = StyleUtils.combineStyles([
         styles.textLabelSupporting,
         (props.icon ? styles.ml3 : undefined),
         styles.breakAll,
         styles.lineHeightNormal,
-    ], props.style);
+        props.title ? descriptionVerticalMargin : undefined,
+    ]);
 
     const fallbackAvatarSize = (props.viewMode === CONST.OPTION_MODE.COMPACT) ? CONST.AVATAR_SIZE.SMALL : CONST.AVATAR_SIZE.DEFAULT;
 
@@ -84,16 +87,17 @@ const MenuItem = (props) => {
                 props.onPress(e);
             }}
             style={({hovered, pressed}) => ([
-                styles.popoverMenuItem,
+                props.style,
                 StyleUtils.getButtonBackgroundColorStyle(getButtonState(props.focused || hovered, pressed, props.success, props.disabled, props.interactive), true),
                 ..._.isArray(props.wrapperStyle) ? props.wrapperStyle : [props.wrapperStyle],
+                styles.popoverMaxWidth,
             ])}
             disabled={props.disabled}
         >
             {({hovered, pressed}) => (
                 <>
                     <View style={[styles.flexRow, styles.pointerEventsAuto, styles.flex1, props.disabled && styles.cursorDisabled]}>
-                        {props.icon && (
+                        {Boolean(props.icon) && (
                             <View
                                 style={[
                                     styles.popoverMenuIcon,
@@ -131,7 +135,7 @@ const MenuItem = (props) => {
                                 )}
                             </View>
                         )}
-                        <View style={[styles.justifyContentCenter, styles.menuItemTextContainer, styles.flex1, styles.gap1]}>
+                        <View style={[styles.justifyContentCenter, styles.menuItemTextContainer, styles.flex1]}>
                             {Boolean(props.description) && props.shouldShowDescriptionOnTop && (
                                 <Text
                                     style={descriptionTextStyle}
@@ -159,7 +163,7 @@ const MenuItem = (props) => {
                         </View>
                     </View>
                     <View style={[styles.flexRow, styles.menuItemTextContainer, styles.pointerEventsNone]}>
-                        {props.badgeText && (
+                        {Boolean(props.badgeText) && (
                         <Badge
                             text={props.badgeText}
                             badgeStyles={[styles.alignSelfCenter, (props.brickRoadIndicator ? styles.mr2 : undefined),

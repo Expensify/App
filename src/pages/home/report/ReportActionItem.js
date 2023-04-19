@@ -3,6 +3,7 @@ import lodashGet from 'lodash/get';
 import React, {Component} from 'react';
 import {View} from 'react-native';
 import PropTypes from 'prop-types';
+import {withOnyx} from 'react-native-onyx';
 import CONST from '../../../CONST';
 import ONYXKEYS from '../../../ONYXKEYS';
 import reportActionPropTypes from './reportActionPropTypes';
@@ -38,6 +39,7 @@ import focusTextInputAfterAnimation from '../../../libs/focusTextInputAfterAnima
 import ChronosOOOListActions from '../../../components/ReportActionItem/ChronosOOOListActions';
 import ReportActionItemReactions from '../../../components/Reactions/ReportActionItemReactions';
 import * as Report from '../../../libs/actions/Report';
+import withLocalize from '../../../components/withLocalize';
 
 const propTypes = {
     /** Report for this action */
@@ -64,12 +66,16 @@ const propTypes = {
     /** Draft message - if this is set the comment is in 'edit' mode */
     draftMessage: PropTypes.string,
 
+    /** Stores user's preferred skin tone */
+    preferredSkinTone: PropTypes.oneOfType([PropTypes.number, PropTypes.string]),
+
     ...windowDimensionsPropTypes,
 };
 
 const defaultProps = {
     draftMessage: '',
     hasOutstandingIOU: false,
+    preferredSkinTone: CONST.EMOJI_DEFAULT_SKIN_TONE,
 };
 
 class ReportActionItem extends Component {
@@ -92,7 +98,9 @@ class ReportActionItem extends Component {
             || this.props.hasOutstandingIOU !== nextProps.hasOutstandingIOU
             || this.props.shouldDisplayNewMarker !== nextProps.shouldDisplayNewMarker
             || !_.isEqual(this.props.action, nextProps.action)
-            || this.state.isContextMenuActive !== nextState.isContextMenuActive;
+            || this.state.isContextMenuActive !== nextState.isContextMenuActive
+            || lodashGet(this.props.report, 'statusNum') !== lodashGet(nextProps.report, 'statusNum')
+            || lodashGet(this.props.report, 'stateNum') !== lodashGet(nextProps.report, 'stateNum');
     }
 
     componentDidUpdate(prevProps) {
@@ -123,10 +131,7 @@ class ReportActionItem extends Component {
 
         this.setState({isContextMenuActive: true});
 
-        // Newline characters need to be removed here because getCurrentSelection() returns html mixed with newlines, and when
-        // <br> tags are converted later to markdown, it creates duplicate newline characters. This means that when the content
-        // is pasted, there are extra newlines in the content that we want to avoid.
-        const selection = SelectionScraper.getCurrentSelection().replace(/\n/g, '');
+        const selection = SelectionScraper.getCurrentSelection();
         ReportActionContextMenu.showContextMenu(
             ContextMenuActions.CONTEXT_MENU_TYPES.REPORT_ACTION,
             event,
@@ -182,7 +187,10 @@ class ReportActionItem extends Component {
                         ? (
                             <ReportActionItemMessage
                                 action={this.props.action}
-                                style={(!this.props.displayAsGroup && isAttachment) ? [styles.mt2] : undefined}
+                                style={[
+                                    (!this.props.displayAsGroup && isAttachment) ? styles.mt2 : undefined,
+                                    _.contains(_.values(CONST.REPORT.ACTIONS.TYPE.POLICYCHANGELOG), this.props.action.actionName) ? styles.colorMuted : undefined,
+                                ]}
                             />
                         ) : (
                             <ReportActionItemMessageEdit
@@ -192,6 +200,9 @@ class ReportActionItem extends Component {
                                 index={this.props.index}
                                 ref={el => this.textInput = el}
                                 report={this.props.report}
+
+                                // Avoid defining within component due to an existing Onyx bug
+                                preferredSkinTone={this.props.preferredSkinTone}
                                 shouldDisableEmojiPicker={
                                     (ReportUtils.chatIncludesConcierge(this.props.report) && User.isBlockedFromConcierge(this.props.blockedFromConcierge))
                                     || ReportUtils.isArchivedRoom(this.props.report)
@@ -240,7 +251,7 @@ class ReportActionItem extends Component {
             >
                 <Hoverable>
                     {hovered => (
-                        <View accessibilityLabel="Chat message">
+                        <View accessibilityLabel={this.props.translate('accessibilityHints.chatMessage')}>
                             {this.props.shouldDisplayNewMarker && (
                                 <UnreadActionIndicator reportActionID={this.props.action.reportActionID} />
                             )}
@@ -305,6 +316,7 @@ ReportActionItem.defaultProps = defaultProps;
 
 export default compose(
     withWindowDimensions,
+    withLocalize,
     withNetwork(),
     withBlockedFromConcierge({propName: 'blockedFromConcierge'}),
     withReportActionsDrafts({
@@ -312,6 +324,11 @@ export default compose(
         transformValue: (drafts, props) => {
             const draftKey = `${ONYXKEYS.COLLECTION.REPORT_ACTIONS_DRAFTS}${props.report.reportID}_${props.action.reportActionID}`;
             return lodashGet(drafts, draftKey, '');
+        },
+    }),
+    withOnyx({
+        preferredSkinTone: {
+            key: ONYXKEYS.PREFERRED_EMOJI_SKIN_TONE,
         },
     }),
 )(ReportActionItem);

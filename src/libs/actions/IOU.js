@@ -30,7 +30,7 @@ Onyx.connect({
     },
 });
 
-let preferredLocale = CONST.DEFAULT_LOCALE;
+let preferredLocale = CONST.LOCALES.DEFAULT;
 Onyx.connect({
     key: ONYXKEYS.NVP_PREFERRED_LOCALE,
     callback: (val) => {
@@ -193,17 +193,17 @@ function requestMoney(report, amount, currency, recipientEmail, participant, com
         reportActionsFailureData,
     ];
 
+    const parsedComment = ReportUtils.getParsedComment(comment);
     API.write('RequestMoney', {
         debtorEmail,
         amount,
         currency,
-        comment,
+        comment: parsedComment,
         iouReportID: iouReport.reportID,
         chatReportID: chatReport.reportID,
         transactionID: optimisticReportAction.originalMessage.IOUTransactionID,
         reportActionID: optimisticReportAction.reportActionID,
         createdReportActionID: isNewChat ? optimisticCreatedAction.reportActionID : 0,
-        shouldKeyReportActionsByID: true,
     }, {optimisticData, successData, failureData});
     Navigation.navigate(ROUTES.getReportRoute(chatReport.reportID));
 }
@@ -311,8 +311,8 @@ function createSplitsAndOnyxData(participants, currentUserLogin, amount, comment
     ];
 
     // Loop through participants creating individual chats, iouReports and reportActionIDs as needed
-    const splitAmount = IOUUtils.calculateAmount(participants, amount);
-    const splits = [{email: currentUserEmail, amount: IOUUtils.calculateAmount(participants, amount, true)}];
+    const splitAmount = IOUUtils.calculateAmount(participants, amount, currency, false);
+    const splits = [{email: currentUserEmail, amount: IOUUtils.calculateAmount(participants, amount, currency, true)}];
 
     const hasMultipleParticipants = participants.length > 1;
     _.each(participants, (participant) => {
@@ -491,17 +491,17 @@ function createSplitsAndOnyxData(participants, currentUserLogin, amount, comment
  */
 function splitBill(participants, currentUserLogin, amount, comment, currency, locale, existingGroupChatReportID = '') {
     const {groupData, splits, onyxData} = createSplitsAndOnyxData(participants, currentUserLogin, amount, comment, currency, locale, existingGroupChatReportID);
+    const parsedComment = ReportUtils.getParsedComment(comment);
 
     API.write('SplitBill', {
         reportID: groupData.chatReportID,
         amount: Math.round(amount * 100),
         splits: JSON.stringify(splits),
         currency,
-        comment,
+        comment: parsedComment,
         transactionID: groupData.transactionID,
         reportActionID: groupData.reportActionID,
         createdReportActionID: groupData.createdReportActionID,
-        shouldKeyReportActionsByID: true,
     }, onyxData);
 
     Navigation.dismissModal();
@@ -517,17 +517,17 @@ function splitBill(participants, currentUserLogin, amount, comment, currency, lo
  */
 function splitBillAndOpenReport(participants, currentUserLogin, amount, comment, currency, locale) {
     const {groupData, splits, onyxData} = createSplitsAndOnyxData(participants, currentUserLogin, amount, comment, currency, locale);
+    const parsedComment = ReportUtils.getParsedComment(comment);
 
     API.write('SplitBillAndOpenReport', {
         reportID: groupData.chatReportID,
         amount: Math.round(amount * 100),
         splits: JSON.stringify(splits),
         currency,
-        comment,
+        comment: parsedComment,
         transactionID: groupData.transactionID,
         reportActionID: groupData.reportActionID,
         createdReportActionID: groupData.createdReportActionID,
-        shouldKeyReportActionsByID: true,
     }, onyxData);
 
     Navigation.navigate(ROUTES.getReportRoute(groupData.chatReportID));
@@ -553,7 +553,7 @@ function cancelMoneyRequest(chatReportID, iouReportID, type, moneyRequestAction)
         type,
         amount,
         moneyRequestAction.originalMessage.currency,
-        moneyRequestAction.originalMessage.comment,
+        Str.htmlDecode(moneyRequestAction.originalMessage.comment),
         [],
         '',
         transactionID,
@@ -637,6 +637,15 @@ function setIOUSelectedCurrency(selectedCurrencyCode) {
 }
 
 /**
+ * Sets Money Request description
+ *
+ * @param {String} comment
+ */
+function setMoneyRequestDescription(comment) {
+    Onyx.merge(ONYXKEYS.IOU, {comment});
+}
+
+/**
  * @param {Number} amount
  * @param {String} submitterPayPalMeAddress
  * @param {String} currency
@@ -658,12 +667,12 @@ function buildPayPalPaymentUrl(amount, submitterPayPalMeAddress, currency) {
  */
 function getSendMoneyParams(report, amount, currency, comment, paymentMethodType, managerEmail, recipient) {
     const recipientEmail = OptionsListUtils.addSMSDomainIfPhoneNumber(recipient.login);
-
+    const parsedComment = ReportUtils.getParsedComment(comment);
     const newIOUReportDetails = JSON.stringify({
         amount,
         currency,
         requestorEmail: recipientEmail,
-        comment,
+        comment: parsedComment,
         idempotencyKey: Str.guid(),
     });
 
@@ -852,6 +861,13 @@ function getPayMoneyRequestParams(chatReport, iouReport, recipient, paymentMetho
                 },
             },
         },
+        {
+            onyxMethod: CONST.ONYX.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT}${chatReport.reportID}`,
+            value: {
+                iouReportID: null,
+            },
+        },
     ];
 
     const failureData = [
@@ -995,6 +1011,7 @@ export {
     payMoneyRequestElsewhere,
     payMoneyRequestViaPaypal,
     setIOUSelectedCurrency,
+    setMoneyRequestDescription,
     sendMoneyWithWallet,
     payMoneyRequestWithWallet,
 };

@@ -158,26 +158,64 @@ function getLastVisibleMessageText(reportID, actionsToMerge = {}) {
 }
 
 /**
+ * Checks if a reportAction is deprecated.
+ *
+ * @param {Object} reportAction
+ * @param {String} key
+ * @returns {Boolean}
+ */
+function isReportActionDeprecated(reportAction, key) {
+    if (!reportAction) {
+        return true;
+    }
+
+    // HACK ALERT: We're temporarily filtering out any reportActions keyed by sequenceNumber
+    // to prevent bugs during the migration from sequenceNumber -> reportActionID
+    if (String(reportAction.sequenceNumber) === key) {
+        Log.info('Front-end filtered out reportAction keyed by sequenceNumber!', false, reportAction);
+        return true;
+    }
+
+    return false;
+}
+
+/**
+ * Checks if a reportAction is fit for display, meaning that it's not deprecated, is of a valid
+ * and supported type, it's not deleted and also not closed.
+ *
+ * @param {Object} reportAction
+ * @param {String} key
+ * @returns {Boolean}
+ */
+function shouldReportActionBeVisible(reportAction, key) {
+    if (isReportActionDeprecated(reportAction, key)) {
+        return false;
+    }
+
+    // Filter out any unsupported reportAction types
+    if (!_.has(CONST.REPORT.ACTIONS.TYPE, reportAction.actionName) && !_.contains(_.values(CONST.REPORT.ACTIONS.TYPE.POLICYCHANGELOG), reportAction.actionName)) {
+        return false;
+    }
+
+    // Ignore closed action here since we're already displaying a footer that explains why the report was closed
+    if (reportAction.actionName === CONST.REPORT.ACTIONS.TYPE.CLOSED) {
+        return false;
+    }
+
+    // All other actions are displayed except deleted, non-pending actions
+    const isDeleted = isDeletedAction(reportAction);
+    const isPending = !_.isEmpty(reportAction.pendingAction);
+    return !isDeleted || isPending;
+}
+
+/**
  * A helper method to filter out report actions keyed by sequenceNumbers.
  *
  * @param {Object} reportActions
  * @returns {Array}
  */
 function filterOutDeprecatedReportActions(reportActions) {
-    // HACK ALERT: We're temporarily filtering out any reportActions keyed by sequenceNumber
-    // to prevent bugs during the migration from sequenceNumber -> reportActionID
-    return _.filter(reportActions, (reportAction, key) => {
-        if (!reportAction) {
-            return false;
-        }
-
-        if (String(reportAction.sequenceNumber) === key) {
-            Log.info('Front-end filtered out reportAction keyed by sequenceNumber!', false, reportAction);
-            return false;
-        }
-
-        return true;
-    });
+    return _.filter(reportActions, (reportAction, key) => !isReportActionDeprecated(reportAction, key));
 }
 
 /**
@@ -190,37 +228,42 @@ function filterOutDeprecatedReportActions(reportActions) {
  * @returns {Array}
  */
 function getSortedReportActionsForDisplay(reportActions) {
-    const filteredReportActions = filterOutDeprecatedReportActions(reportActions);
-    const sortedReportActions = getSortedReportActions(filteredReportActions, true);
-    return _.filter(sortedReportActions, (reportAction) => {
-        // Filter out any unsupported reportAction types
-        if (!_.has(CONST.REPORT.ACTIONS.TYPE, reportAction.actionName)) {
-            return false;
-        }
-
-        // Ignore closed action here since we're already displaying a footer that explains why the report was closed
-        if (reportAction.actionName === CONST.REPORT.ACTIONS.TYPE.CLOSED) {
-            return false;
-        }
-
-        // All other actions are displayed except deleted, non-pending actions
-        const isDeleted = isDeletedAction(reportAction);
-        const isPending = !_.isEmpty(reportAction.pendingAction);
-        return !isDeleted || isPending;
-    });
+    const filteredReportActions = _.filter(reportActions, (reportAction, key) => shouldReportActionBeVisible(reportAction, key));
+    return getSortedReportActions(filteredReportActions, true);
 }
 
 /**
  * In some cases, there can be multiple closed report actions in a chat report.
  * This method returns the last closed report action so we can always show the correct archived report reason.
+ * Additionally, archived #admins and #announce do not have the closed report action so we will return null if none is found.
  *
  * @param {Object} reportActions
- * @returns {Object}
+ * @returns {Object|null}
  */
 function getLastClosedReportAction(reportActions) {
+    // If closed report action is not present, return early
+    if (!_.some(reportActions, action => action.actionName === CONST.REPORT.ACTIONS.TYPE.CLOSED)) {
+        return null;
+    }
     const filteredReportActions = filterOutDeprecatedReportActions(reportActions);
     const sortedReportActions = getSortedReportActions(filteredReportActions);
     return lodashFindLast(sortedReportActions, action => action.actionName === CONST.REPORT.ACTIONS.TYPE.CLOSED);
+}
+
+/**
+ * @param {Array} onyxData
+ * @returns {Object} The latest report action in the `onyxData` or `null` if one couldn't be found
+ */
+function getLatestReportActionFromOnyxData(onyxData) {
+    const reportActionUpdate = _.find(onyxData, onyxUpdate => onyxUpdate.key.startsWith(ONYXKEYS.COLLECTION.REPORT_ACTIONS));
+
+    if (!reportActionUpdate) {
+        return null;
+    }
+
+    const reportActions = _.values(reportActionUpdate.value);
+    const sortedReportActions = getSortedReportActions(reportActions);
+    return _.last(sortedReportActions);
 }
 
 export {
@@ -229,7 +272,10 @@ export {
     getLastVisibleMessageText,
     getMostRecentIOURequestActionID,
     isDeletedAction,
+    shouldReportActionBeVisible,
+    isReportActionDeprecated,
     isConsecutiveActionMadeByPreviousActor,
     getSortedReportActionsForDisplay,
     getLastClosedReportAction,
+    getLatestReportActionFromOnyxData,
 };

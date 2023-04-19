@@ -15,6 +15,9 @@ const propTypes = {
     /** Used to apply offline styles to child text components */
     style: stylePropTypes,
 
+    /** Used to apply styles specifically to the title */
+    titleStyle: stylePropTypes,
+
     /** Function to fire when component is pressed */
     onPress: PropTypes.func,
 

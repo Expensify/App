@@ -76,6 +76,12 @@ const propTypes = {
 
     /** Indicate whether pressing Enter on multiline input is allowed to submit the form. */
     submitOnEnter: PropTypes.bool,
+
+    /** Indicate whether input is multiline */
+    multiline: PropTypes.bool,
+
+    /** Set the default value to the input if there is a valid saved value */
+    shouldUseDefaultValue: PropTypes.bool,
 };
 
 const defaultProps = {
@@ -109,6 +115,8 @@ const defaultProps = {
     shouldDelayFocus: false,
     submitOnEnter: false,
     icon: null,
+    shouldUseDefaultValue: false,
+    multiline: false,
 };
 
 export {propTypes, defaultProps};

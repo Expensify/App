@@ -38,6 +38,9 @@ const propTypes = {
         isLoading: PropTypes.bool,
     }),
 
+    /** Indicates which locale the user currently has selected */
+    preferredLocale: PropTypes.string,
+
     /** Information about the network */
     network: networkPropTypes.isRequired,
 
@@ -47,6 +50,7 @@ const propTypes = {
 
 const defaultProps = {
     account: {},
+    preferredLocale: CONST.LOCALES.DEFAULT,
 };
 
 class PasswordForm extends React.Component {
@@ -160,10 +164,16 @@ class PasswordForm extends React.Component {
             formError: {},
         });
 
-        Session.signIn(password, '', twoFactorCode);
+        Session.signIn(password, '', twoFactorCode, this.props.preferredLocale);
     }
 
     render() {
+        const isTwoFactorAuthRequired = Boolean(this.props.account.requiresTwoFactorAuth);
+        const hasServerError = Boolean(this.props.account) && !_.isEmpty(this.props.account.errors);
+
+        // When the 2FA required flag is set, user has already passed/completed the password field
+        const passwordFieldHasError = !isTwoFactorAuthRequired && hasServerError;
+        const twoFactorFieldHasError = isTwoFactorAuthRequired && hasServerError;
         return (
             <>
                 <View style={[styles.mv3]}>
@@ -180,6 +190,7 @@ class PasswordForm extends React.Component {
                         onSubmitEditing={this.validateAndSubmitForm}
                         blurOnSubmit={false}
                         errorText={this.state.formError.password ? this.props.translate(this.state.formError.password) : ''}
+                        hasError={passwordFieldHasError}
                     />
                     <View style={[styles.changeExpensifyLoginLinkContainer]}>
                         <TouchableOpacity
@@ -193,7 +204,7 @@ class PasswordForm extends React.Component {
                     </View>
                 </View>
 
-                {this.props.account.requiresTwoFactorAuth && (
+                {isTwoFactorAuthRequired && (
                     <View style={[styles.mv3]}>
                         <TextInput
                             ref={el => this.input2FA = el}
@@ -207,11 +218,12 @@ class PasswordForm extends React.Component {
                             blurOnSubmit={false}
                             maxLength={CONST.TFA_CODE_LENGTH}
                             errorText={this.state.formError.twoFactorAuthCode ? this.props.translate(this.state.formError.twoFactorAuthCode) : ''}
+                            hasError={twoFactorFieldHasError}
                         />
                     </View>
                 )}
 
-                {this.props.account && !_.isEmpty(this.props.account.errors) && (
+                {hasServerError && (
                     <FormHelpMessage message={ErrorUtils.getLatestErrorMessage(this.props.account)} />
                 )}
                 <View>
@@ -240,6 +252,7 @@ export default compose(
     withLocalize,
     withOnyx({
         account: {key: ONYXKEYS.ACCOUNT},
+        preferredLocale: {key: ONYXKEYS.NVP_PREFERRED_LOCALE},
     }),
     withToggleVisibilityView,
     withNetwork(),

@@ -276,7 +276,7 @@ class AttachmentModal extends PureComponent {
                                 source={this.props.source}
                                 onToggleKeyboard={this.updateConfirmButtonVisibility}
                             />
-                        ) : this.state.source && this.state.shouldLoadAttachment && (
+                        ) : Boolean(this.state.source) && this.state.shouldLoadAttachment && (
                             <AttachmentView
                                 source={source}
                                 isAuthTokenRequired={this.props.isAuthTokenRequired}
@@ -286,7 +286,7 @@ class AttachmentModal extends PureComponent {
                         )}
                     </View>
                     {/* If we have an onConfirm method show a confirmation button */}
-                    {this.props.onConfirm && (
+                    {Boolean(this.props.onConfirm) && (
                         <SafeAreaConsumer>
                             {({safeAreaPaddingBottomStyle}) => (
                                 <Animated.View style={[StyleUtils.fade(this.state.confirmButtonFadeAnimation), safeAreaPaddingBottomStyle]}>

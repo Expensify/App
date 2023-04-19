@@ -2,6 +2,7 @@ import _ from 'underscore';
 import React from 'react';
 import {View, TouchableOpacity, Pressable} from 'react-native';
 import moment from 'moment';
+import Str from 'expensify-common/lib/str';
 import Text from '../Text';
 import ArrowIcon from './ArrowIcon';
 import styles from '../../styles/styles';
@@ -18,12 +19,15 @@ class CalendarPicker extends React.PureComponent {
     constructor(props) {
         super(props);
 
-        this.monthNames = moment.localeData(props.preferredLocale).months();
-        this.daysOfWeek = moment.localeData(props.preferredLocale).weekdays();
+        this.monthNames = _.map(moment.localeData(props.preferredLocale).months(), Str.recapitalize);
+        this.daysOfWeek = _.map(moment.localeData(props.preferredLocale).weekdays(), day => day.toUpperCase());
 
         let currentDateView = props.value;
         if (props.selectedYear) {
             currentDateView = moment(currentDateView).set('year', props.selectedYear).toDate();
+        }
+        if (props.selectedMonth != null) {
+            currentDateView = moment(currentDateView).set('month', props.selectedMonth).toDate();
         }
         if (props.maxDate < currentDateView) {
             currentDateView = props.maxDate;
@@ -68,6 +72,7 @@ class CalendarPicker extends React.PureComponent {
         const maxYear = moment(this.props.maxDate).year();
         const currentYear = this.state.currentDateView.getFullYear();
         Navigation.navigate(ROUTES.getYearSelectionRoute(minYear, maxYear, currentYear, Navigation.getActiveRoute()));
+        this.props.onYearPickerOpen(this.state.currentDateView);
     }
 
     /**
@@ -152,7 +157,7 @@ class CalendarPicker extends React.PureComponent {
                                                 StyleUtils.getButtonBackgroundColorStyle(getButtonState(hovered, pressed)),
                                             ]}
                                         >
-                                            <Text style={isDisabled ? styles.calendarButtonDisabled : styles.dayText}>{day}</Text>
+                                            <Text style={isDisabled ? styles.buttonOpacityDisabled : styles.dayText}>{day}</Text>
                                         </View>
                                     )}
                                 </Pressable>
