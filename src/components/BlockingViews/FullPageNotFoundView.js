@@ -68,8 +68,8 @@ const FullPageNotFoundView = (props) => {
                 <View style={[styles.flex1, styles.blockingViewContainer]}>
                     <BlockingView
                         icon={Illustrations.ToddBehindCloud}
-                        width={variables.modalTopIconWidth}
-                        height={variables.modalTopIconHeight}
+                        iconWidth={variables.modalTopIconWidth}
+                        iconHeight={variables.modalTopIconHeight}
                         title={props.translate(props.titleKey)}
                         subtitle={props.translate(props.subtitleKey)}
                         link={props.translate(props.linkKey)}
