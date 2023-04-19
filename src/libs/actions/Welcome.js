@@ -128,7 +128,7 @@ function show({routes, showCreateMenu = () => {}, showPopoverMenu = () => {}}) {
             Onyx.set(ONYXKEYS.NVP_IS_FIRST_TIME_NEW_EXPENSIFY_USER, false);
             Navigation.navigate(ROUTES.getReportRoute(workspaceChatReport.reportID));
 
-            // If showPopoverMenu exists and returns true then it opened the Popover Menu succesfully and we can update the state of isFirstTimeNewExpensifyUser
+            // If showPopoverMenu exists and returns true then it opened the Popover Menu successfully, and we can update isFirstTimeNewExpensifyUser
             // so the Welcome logic doesn't run again
             if (showPopoverMenu()) {
                 isFirstTimeNewExpensifyUser = false;
