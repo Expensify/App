@@ -46,19 +46,14 @@ const GenericPressable = forwardRef((props, ref) => {
 
     const isDisabled = useMemo(() => {
         let shouldBeDisabledByScreenReader = false;
-        switch (enableInScreenReaderStates) {
-            case CONST.SCREEN_READER_STATES.ALL:
-                shouldBeDisabledByScreenReader = false;
-                break;
-            case CONST.SCREEN_READER_STATES.DISABLED:
-                shouldBeDisabledByScreenReader = !isScreenReaderActive;
-                break;
-            case CONST.SCREEN_READER_STATES.ACTIVE:
-                shouldBeDisabledByScreenReader = isScreenReaderActive;
-                break;
-            default:
-                break;
+        if (enableInScreenReaderStates === CONST.SCREEN_READER_STATES.ACTIVE) {
+            shouldBeDisabledByScreenReader = !isScreenReaderActive;
         }
+
+        if (enableInScreenReaderStates === CONST.SCREEN_READER_STATES.DISABLED) {
+            shouldBeDisabledByScreenReader = isScreenReaderActive;
+        }
+
         return props.disabled || shouldBeDisabledByScreenReader;
     }, [isScreenReaderActive, enableInScreenReaderStates, props.disabled]);
 
