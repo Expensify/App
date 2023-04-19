@@ -1451,7 +1451,7 @@ export default {
         },
         DC: {
             stateISO: 'DC',
-            stateName: 'District Of Columbia',
+            stateName: 'Distrito de Columbia',
         },
     },
     allCountries: {
