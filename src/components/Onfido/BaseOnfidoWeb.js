@@ -106,6 +106,9 @@ class Onfido extends React.Component {
             },
             language: {
                 locale: this.props.preferredLocale,
+
+                // https://documentation.onfido.com/sdk/web/#custom-languages
+                // See #17244 to know why we are customising this.
                 phrases: {
                     'generic.back': this.props.translate('common.back'),
                 },
