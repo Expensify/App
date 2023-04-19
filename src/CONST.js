@@ -2282,6 +2282,11 @@ const CONST = {
         'PLN', 'GBP', 'RUB', 'SGD', 'SEK', 'CHF', 'THB', 'USD',
     ],
     CONCIERGE_TRAVEL_URL: 'https://community.expensify.com/discussion/7066/introducing-concierge-travel',
+    SCREEN_READER_STATES: {
+        ALL: 'all',
+        ACTIVE: 'active',
+        DISABLED: 'disabled',
+    }
 };
 
 export default CONST;

@@ -6,6 +6,7 @@ import HapticFeedback from '../../../libs/HapticFeedback';
 import KeyboardShortcut from '../../../libs/KeyboardShortcut';
 import styles from '../../../styles/styles';
 import genericPressablePropTypes from './PropTypes';
+import CONST from '../../../CONST';
 
 const parseStyleFromFunction = (style, state) => (_.isFunction(style) ? style(state) : style);
 
@@ -46,13 +47,13 @@ const GenericPressable = forwardRef((props, ref) => {
     const isDisabled = useMemo(() => {
         let shouldBeDisabledByScreenReader = false;
         switch (enableInScreenReaderStates) {
-            case 'all':
+            case CONST.SCREEN_READER_STATES.ALL:
                 shouldBeDisabledByScreenReader = false;
                 break;
-            case 'disabled':
+            case CONST.SCREEN_READER_STATES.DISABLED:
                 shouldBeDisabledByScreenReader = !isScreenReaderActive;
                 break;
-            case 'active':
+            case CONST.SCREEN_READER_STATES.ACTIVE:
                 shouldBeDisabledByScreenReader = isScreenReaderActive;
                 break;
             default:

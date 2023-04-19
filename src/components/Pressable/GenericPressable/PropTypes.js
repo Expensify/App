@@ -1,6 +1,7 @@
 import PropTypes from 'prop-types';
 import {PressableProps} from 'react-native';
 import * as StyleUtils from '../../../styles/StyleUtils';
+import CONST from '../../../CONST';
 
 const stylePropTypeWithFunction = PropTypes.oneOfType([
     StyleUtils.stylePropType,
@@ -85,7 +86,7 @@ const propTypes = {
      * @example 'active' - the component is accessible only when the screen reader is on
      * @example 'disabled' - the component is not accessible when the screen reader is on
      */
-    enableInScreenReaderStates: PropTypes.oneOf(['all', 'active', 'disabled']),
+    enableInScreenReaderStates: PropTypes.oneOf([CONST.SCREEN_READER_STATES.ALL, CONST.SCREEN_READER_STATES.ACTIVE, CONST.SCREEN_READER_STATES.DISABLED]),
 
     /**
      * Specifies which component should be focused after interacting with this component
@@ -109,7 +110,7 @@ const defaultProps = {
     focusStyle: {},
     pressedStyle: {},
     screenReaderActiveStyle: {},
-    enableInScreenReaderStates: 'all',
+    enableInScreenReaderStates: CONST.SCREEN_READER_STATES.ALL,
     nextFocusRef: undefined,
     shouldUseAutoHitSlop: true,
 };
