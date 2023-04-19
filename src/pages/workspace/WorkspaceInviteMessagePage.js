@@ -67,6 +67,7 @@ class WorkspaceInviteMessagePage extends React.Component {
         super(props);
 
         this.onSubmit = this.onSubmit.bind(this);
+        this.validate = this.validate.bind(this);
         this.openPrivacyURL = this.openPrivacyURL.bind(this);
         this.state = {
             welcomeNote: this.getWelcomeNote(),
@@ -121,6 +122,14 @@ class WorkspaceInviteMessagePage extends React.Component {
         Link.openExternalLink(CONST.PRIVACY_URL);
     }
 
+    validate() {
+        const errorFields = {};
+        if (_.isEmpty(this.props.invitedMembersDraft)) {
+            errorFields.welcomeMessage = this.props.translate('workspace.inviteMessage.inviteNoMembersError');
+        }
+        return errorFields;
+    }
+
     render() {
         const policyName = lodashGet(this.props.policy, 'name');
 
@@ -140,7 +149,7 @@ class WorkspaceInviteMessagePage extends React.Component {
                     formID={ONYXKEYS.FORMS.WORKSPACE_INVITE_MESSAGE_FORM}
 
                     // No validation is required single the invite message is optional.
-                    validate={() => ({})}
+                    validate={this.validate}
                     onSubmit={this.onSubmit}
                     submitButtonText={this.props.translate('common.invite')}
                     enabledWhenOffline
@@ -179,6 +188,7 @@ class WorkspaceInviteMessagePage extends React.Component {
                     </View>
                     <View style={[styles.mb3]}>
                         <TextInput
+                            inputID="welcomeMessage"
                             label={this.props.translate('workspace.inviteMessage.personalMessagePrompt')}
                             autoCompleteType="off"
                             autoCorrect={false}
