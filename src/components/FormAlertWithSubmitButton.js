@@ -1,9 +1,9 @@
 import React from 'react';
 import PropTypes from 'prop-types';
+import {View} from 'react-native';
 import styles from '../styles/styles';
 import Button from './Button';
 import FormAlertWrapper from './FormAlertWrapper';
-import {View} from 'react-native';
 
 const propTypes = {
     /** Text for the button */
