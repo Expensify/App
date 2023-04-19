@@ -284,47 +284,51 @@ class ReportActionItemMessageEdit extends React.Component {
                 </View>
                 <View
                     style={[
+                        this.state.isFocused ? styles.chatItemComposeBoxFocusedColor : styles.chatItemComposeBoxColor,
+                        styles.flexRow,
                         styles.flex1,
                         styles.chatItemComposeBox,
-                        styles.flexRow,
-                        this.state.isFocused ? styles.chatItemComposeBoxFocusedColor : styles.chatItemComposeBoxColor,
                         hasExceededMaxCommentLength && styles.borderColorDanger,
                     ]}
                 >
-                    <Composer
-                        multiline
-                        ref={(el) => {
-                            this.textInput = el;
-                            this.props.forwardedRef(el);
-                        }}
-                        nativeID={this.messageEditInput}
-                        onChangeText={this.updateDraft} // Debounced saveDraftComment
-                        onKeyPress={this.triggerSaveOrCancel}
-                        value={this.state.draft}
-                        maxLines={16} // This is the same that slack has
-                        style={[styles.textInputCompose, styles.flex1, styles.editInputComposeSpacing]}
-                        onFocus={() => {
-                            this.setState({isFocused: true});
-                            ReportScrollManager.scrollToIndex({animated: true, index: this.props.index}, true);
-                            toggleReportActionComposeView(false, this.props.isSmallScreenWidth);
-                        }}
-                        onBlur={(event) => {
-                            this.setState({isFocused: false});
-                            const relatedTargetId = lodashGet(event, 'nativeEvent.relatedTarget.id');
+                    <View style={styles.textInputComposeSpacing}>
+                        <Composer
+                            multiline
+                            ref={(el) => {
+                                this.textInput = el;
+                                this.props.forwardedRef(el);
+                            }}
+                            nativeID={this.messageEditInput}
+                            onChangeText={this.updateDraft} // Debounced saveDraftComment
+                            onKeyPress={this.triggerSaveOrCancel}
+                            value={this.state.draft}
+                            maxLines={16} // This is the same that slack has
+                            style={[styles.textInputCompose, styles.flex1, styles.bgTransparent]}
 
-                            // Return to prevent re-render when save/cancel button is pressed which cancels the onPress event by re-rendering
-                            if (_.contains([this.saveButtonID, this.cancelButtonID, this.emojiButtonID], relatedTargetId)) {
-                                return;
-                            }
+                            // textAlignVertical="top"
+                            onFocus={() => {
+                                this.setState({isFocused: true});
+                                ReportScrollManager.scrollToIndex({animated: true, index: this.props.index}, true);
+                                toggleReportActionComposeView(false, this.props.isSmallScreenWidth);
+                            }}
+                            onBlur={(event) => {
+                                this.setState({isFocused: false});
+                                const relatedTargetId = lodashGet(event, 'nativeEvent.relatedTarget.id');
 
-                            if (this.messageEditInput === relatedTargetId) {
-                                return;
-                            }
-                            openReportActionComposeViewWhenClosingMessageEdit(this.props.isSmallScreenWidth);
-                        }}
-                        selection={this.state.selection}
-                        onSelectionChange={this.onSelectionChange}
-                    />
+                                // Return to prevent re-render when save/cancel button is pressed which cancels the onPress event by re-rendering
+                                if (_.contains([this.saveButtonID, this.cancelButtonID, this.emojiButtonID], relatedTargetId)) {
+                                    return;
+                                }
+
+                                if (this.messageEditInput === relatedTargetId) {
+                                    return;
+                                }
+                                openReportActionComposeViewWhenClosingMessageEdit(this.props.isSmallScreenWidth);
+                            }}
+                            selection={this.state.selection}
+                            onSelectionChange={this.onSelectionChange}
+                        />
+                    </View>
                     <View style={styles.editChatItemEmojiWrapper}>
                         <EmojiPickerButton
                             isDisabled={this.props.shouldDisableEmojiPicker}
