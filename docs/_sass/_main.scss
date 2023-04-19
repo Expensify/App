@@ -63,11 +63,11 @@ html,
 body {
     height: 100%;
     min-height: 100%;
-    background: $color-darker-green;
+    background: $color-green-highlightBG;
 }
 
 hr {
-    background: $color-light-blue;
+    background: $color-blue200;
     border: none;
     display: inline-block;
     width: 24px;
@@ -84,7 +84,7 @@ em {
 }
 
 a {
-    color: $color-light-blue;
+    color: $color-blue200;
     text-decoration: none;
 
     img {
@@ -145,7 +145,7 @@ button {
     font-weight: bold;
 
     &.success {
-        background-color: $color-green;
+        background-color: $color-green400;
         color: $color-white;
         width: 100%;
         border-radius: 100px;
@@ -153,7 +153,7 @@ button {
         padding-right: 20px;
 
         &:hover {
-            background-color: desaturate($color-green, 15%);
+            background-color: desaturate($color-green400, 15%);
             cursor: pointer;
         }
 
@@ -174,9 +174,9 @@ button {
 
 #lhn {
     position: fixed;
-    background-color: $color-darker-green;
+    background-color: $color-green-highlightBG;
     box-sizing: border-box;
-    border-right-color: $color-dark-green;
+    border-right-color: $color-green-borders;
     border-right-width: 1px;
     border-style: solid;
     width: 100%;
@@ -287,7 +287,7 @@ button {
 #content-area {
     display: flex;
     flex-direction: column;
-    background-color: $color-super-dark-green;
+    background-color: $color-green-appBG;
     min-height: 100vh;
     margin-left: 0;
     padding: 80px 24px 0px 24px;
@@ -414,10 +414,10 @@ button {
     font-weight: 700;
     cursor: pointer;
     color: $color-white;
-    background-color: $color-darker-green;
+    background-color: $color-green-highlightBG;
 
     &:hover {
-        background-color: darken($color-darker-green, 1%);
+        background-color: darken($color-green-highlightBG, 1%);
     }
 
     .row {
@@ -605,7 +605,7 @@ button {
     }
 
     h3 {
-        color: $color-green;
+        color: $color-green400;
         font-size: 17px;
         font-weight: 700;
         margin-bottom: 16px;
@@ -626,7 +626,7 @@ button {
                 word-break: break-word;
 
                 &:hover {
-                    color: $color-green;
+                    color: $color-green400;
                 }
             }
         }
@@ -640,13 +640,13 @@ button {
             display: inline-block;
 
             &:hover {
-                color: $color-green;
+                color: $color-green400;
             }
         }
     }
 
     &__fine-print {
-        color: $color-gray-green;
+        color: $color-green-icons;
         font-size: 10px;
 
         a {
