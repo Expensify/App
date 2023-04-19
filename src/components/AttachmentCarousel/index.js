@@ -52,7 +52,6 @@ class AttachmentCarousel extends React.Component {
             itemVisiblePercentThreshold: 95,
         };
 
-        this.toggleArrowsVisibility = this.toggleArrowsVisibility.bind(this);
         this.cycleThroughAttachments = this.cycleThroughAttachments.bind(this);
         this.autoHideArrow = this.autoHideArrow.bind(this);
         this.cancelAutoHideArrow = this.cancelAutoHideArrow.bind(this);
