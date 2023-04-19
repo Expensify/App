@@ -102,16 +102,18 @@ class SignInPage extends Component {
             } else {
                 const userLogin = Str.removeSMSDomain(lodashGet(this.props, 'credentials.login', ''));
 
+                // replacing spaces with "hard spaces" to prevent breaking the number
+                const userLoginToDisplay = Str.isSMSLogin(userLogin) ? this.props.formatPhoneNumber(userLogin).replace(/ /g, '\u00A0') : userLogin;
                 if (this.props.account.validated) {
                     welcomeHeader = this.props.isSmallScreenWidth ? '' : this.props.translate('welcomeText.welcomeBack');
                     welcomeText = this.props.isSmallScreenWidth
-                        ? `${this.props.translate('welcomeText.welcomeBack')} ${this.props.translate('welcomeText.welcomeEnterMagicCode', {login: userLogin})}`
-                        : this.props.translate('welcomeText.welcomeEnterMagicCode', {login: userLogin});
+                        ? `${this.props.translate('welcomeText.welcomeBack')} ${this.props.translate('welcomeText.welcomeEnterMagicCode', {login: userLoginToDisplay})}`
+                        : this.props.translate('welcomeText.welcomeEnterMagicCode', {login: userLoginToDisplay});
                 } else {
                     welcomeHeader = this.props.isSmallScreenWidth ? '' : this.props.translate('welcomeText.welcome');
                     welcomeText = this.props.isSmallScreenWidth
-                        ? `${this.props.translate('welcomeText.welcome')} ${this.props.translate('welcomeText.newFaceEnterMagicCode', {login: userLogin})}`
-                        : this.props.translate('welcomeText.newFaceEnterMagicCode', {login: userLogin});
+                        ? `${this.props.translate('welcomeText.welcome')} ${this.props.translate('welcomeText.newFaceEnterMagicCode', {login: userLoginToDisplay})}`
+                        : this.props.translate('welcomeText.newFaceEnterMagicCode', {login: userLoginToDisplay});
                 }
             }
         } else if (showPasswordForm) {
