@@ -100,6 +100,20 @@ class AttachmentCarousel extends React.Component {
     }
 
     /**
+     * Calculate items layout information to optimize scrolling performance
+     * @param {*} data
+     * @param {Number} index
+     * @returns {{offset: Number, length: Number, index: Number}}
+     */
+    getItemLayout(data, index) {
+        return ({
+            length: this.state.containerWidth,
+            offset: this.state.containerWidth * index,
+            index,
+        });
+    }
+
+    /**
      * On a touch screen device, automatically hide the arrows
      * if there is no interaction for 3 seconds.
      */
@@ -121,27 +135,14 @@ class AttachmentCarousel extends React.Component {
     }
 
     /**
-     * Calculate items layout information to optimize scrolling performance
-     * @param {*} data
-     * @param {Number} index
-     * @returns {{offset: Number, length: Number, index: Number}}
-     */
-    getItemLayout(data, index) {
-        return ({
-            length: this.state.containerWidth,
-            offset: this.state.containerWidth * index,
-            index,
-        });
-    }
-
-    /**
      * Toggles the visibility of the arrows
      * @param {Boolean} shouldShowArrow
      */
     toggleArrowsVisibility(shouldShowArrow) {
-        this.setState(current => ({
-            shouldShowArrow: shouldShowArrow ?? !current,
-        }), () => {
+        this.setState((current) => {
+            const newShouldShowArrow = !_.isUndefined(shouldShowArrow) ? shouldShowArrow : !current.shouldShowArrow;
+            return {shouldShowArrow: newShouldShowArrow};
+        }, () => {
             if (this.state.shouldShowArrow) {
                 this.autoHideArrow();
             } else {
@@ -243,7 +244,7 @@ class AttachmentCarousel extends React.Component {
             <Pressable
                 // eslint-disable-next-line react/jsx-props-no-spreading
                 {...props}
-                onPress={this.toggleArrowsVisibility}
+                onPress={() => this.toggleArrowsVisibility()}
                 style={style}
             />
         );
