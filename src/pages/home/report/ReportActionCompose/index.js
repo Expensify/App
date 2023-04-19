@@ -52,7 +52,7 @@ import withKeyboardState, {keyboardStatePropTypes} from '../../../../components/
 import ArrowKeyFocusManager from '../../../../components/ArrowKeyFocusManager';
 import OfflineWithFeedback from '../../../../components/OfflineWithFeedback';
 import KeyboardShortcut from '../../../../libs/KeyboardShortcut';
-import keydownAction from './keydownAction';
+import KeyDownAction from './keyDownAction';
 
 const propTypes = {
     /** Beta features list */
@@ -217,7 +217,7 @@ class ReportActionCompose extends React.Component {
     }
 
     componentDidMount() {
-        keydownAction.listenKeyDown(this.keydownListener);
+        KeyDownAction.listenKeyDown(this.keydownListener);
 
         // This callback is used in the contextMenuActions to manage giving focus back to the compose input.
         // TODO: we should clean up this convoluted code and instead move focus management to something like ReportFooter.js or another higher up component
