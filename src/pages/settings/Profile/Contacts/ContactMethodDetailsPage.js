@@ -156,6 +156,12 @@ class ContactMethodDetailsPage extends Component {
 
     render() {
         const contactMethod = this.getContactMethod();
+
+        // replacing spaces with "hard spaces" to prevent breaking the number
+        const formattedContactMethod = Str.isSMSLogin(contactMethod)
+            ? this.props.formatPhoneNumber(contactMethod).replace(/ /g, '\u00A0')
+            : contactMethod;
+
         const loginData = this.props.loginList[contactMethod];
         if (!contactMethod || !loginData) {
             return <NotFoundPage />;
@@ -169,7 +175,7 @@ class ContactMethodDetailsPage extends Component {
         return (
             <ScreenWrapper>
                 <HeaderWithCloseButton
-                    title={Str.removeSMSDomain(contactMethod)}
+                    title={formattedContactMethod}
                     shouldShowBackButton
                     onBackButtonPress={() => Navigation.navigate(ROUTES.SETTINGS_CONTACT_METHODS)}
                     onCloseButtonPress={() => Navigation.dismissModal(true)}
@@ -191,7 +197,7 @@ class ContactMethodDetailsPage extends Component {
                                 <Icon src={Expensicons.DotIndicator} fill={colors.green} />
                                 <View style={[styles.flex1, styles.ml4]}>
                                     <Text>
-                                        {this.props.translate('contacts.enterMagicCode', {contactMethod})}
+                                        {this.props.translate('contacts.enterMagicCode', {contactMethod: formattedContactMethod})}
                                     </Text>
                                 </View>
                             </View>
