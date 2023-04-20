@@ -20,3 +20,7 @@ function buildOptimisticTransaction(amount, comment, currency) {
         created,
     };
 }
+
+export default {
+    buildOptimisticTransaction,
+};
