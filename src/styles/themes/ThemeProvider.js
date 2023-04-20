@@ -6,7 +6,15 @@ import {
 import PropTypes from 'prop-types';
 import ThemeContext from './ThemeContext';
 import useIsLightMode from './useIsLightMode';
-import defaultColors from './default';
+
+// Going to eventually import the light theme here too
+import darkTheme from './default';
+
+// Temporarily add a light theme here
+const lightTheme = {
+    appBG: '#F9F4F0',
+    text: '#001F40',
+};
 
 const useAnimatedThemeColor = (animation, lightColor, darkColor) => useDerivedValue(() => interpolateColor(animation.value, [0, 1], [lightColor, darkColor]), [lightColor, darkColor]);
 
@@ -18,21 +26,17 @@ function ThemeProvider(props) {
     const lightMode = useIsLightMode();
     const themeAnimation = useSharedValue(0);
 
-    // Going to import the light theme here too
-    const {appBG: appBGDark, text: textDark, ...restOfDarkTheme} = defaultColors;
-
-    const appBG = useAnimatedThemeColor(themeAnimation, '#F9F4F0', appBGDark);
-    const text = useAnimatedThemeColor(themeAnimation, '#001F40', textDark);
+    const appBG = useAnimatedThemeColor(themeAnimation, lightTheme.appBG, darkTheme.appBG);
+    const text = useAnimatedThemeColor(themeAnimation, lightTheme.text, darkTheme.text);
 
     const theme = useMemo(
         () => ({
+            // Once every color is defined in light theme, we can stop spreading the dark theme here
+            ...darkTheme,
             appBG,
             text,
-
-            // Once every color is set in light theme, we can stop spreading the dark theme here
-            ...restOfDarkTheme,
         }),
-        [appBG, restOfDarkTheme, text],
+        [appBG, text],
     );
 
     // Setting the correct theme initially
