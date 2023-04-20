@@ -408,7 +408,7 @@ class WorkspaceMembersPage extends React.Component {
                                 <TextInput
                                     value={this.state.searchValue}
                                     onChangeText={this.updateSearchValue}
-                                    placeholder={this.props.translate('optionsSelector.nameEmailOrPhoneNumber')}
+                                    placeholder={this.props.translate('optionsSelector.findMember')}
                                 />
                             </View>
                             {data.length > 0 ? (
@@ -438,7 +438,7 @@ class WorkspaceMembersPage extends React.Component {
                             ) : (
                                 <View style={[styles.ph5]}>
                                     <Text style={[styles.textLabel, styles.colorMuted]}>
-                                        {this.props.translate('common.noResultsFound')}
+                                        {this.props.translate('workspace.common.memberNotFound')}
                                     </Text>
                                 </View>
                             )}

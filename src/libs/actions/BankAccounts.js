@@ -266,7 +266,6 @@ function openReimbursementAccountPage(stepToOpen, subStep, localCurrentStep) {
                 onyxMethod: CONST.ONYX.METHOD.MERGE,
                 key: ONYXKEYS.REIMBURSEMENT_ACCOUNT,
                 value: {
-                    errors: null,
                     isLoading: true,
                 },
             },

@@ -536,7 +536,7 @@ function getDefaultWorkspaceAvatar(workspaceName) {
  */
 function getOldDotDefaultAvatar(login = '') {
     if (login === CONST.EMAIL.CONCIERGE) {
-        return Expensicons.ConciergeAvatar;
+        return CONST.CONCIERGE_ICON_URL;
     }
 
     // There are 8 possible old dot default avatars, so we choose which one this user has based
@@ -643,7 +643,7 @@ function getIcons(report, personalDetails, policies, defaultIcon = null) {
         return [result];
     }
     if (isConciergeChatReport(report)) {
-        result.source = Expensicons.ConciergeAvatar;
+        result.source = CONST.CONCIERGE_ICON_URL;
         return [result];
     }
     if (isArchivedRoom(report)) {
@@ -860,12 +860,7 @@ function getReportName(report, policies = {}) {
     const participantsWithoutCurrentUser = _.without(participants, sessionEmail);
     const isMultipleParticipantReport = participantsWithoutCurrentUser.length > 1;
 
-    const displayNames = [];
-    for (let i = 0; i < participantsWithoutCurrentUser.length; i++) {
-        const login = participantsWithoutCurrentUser[i];
-        displayNames.push(getDisplayNameForParticipant(login, isMultipleParticipantReport));
-    }
-    return displayNames.join(', ');
+    return _.map(participantsWithoutCurrentUser, login => getDisplayNameForParticipant(login, isMultipleParticipantReport)).join(', ');
 }
 
 /**
@@ -1471,7 +1466,8 @@ function shouldReportBeInOptionList(report, reportIDFromRoute, isInGSDMode, curr
 
     // Exclude reports that have no data because there wouldn't be anything to show in the option item.
     // This can happen if data is currently loading from the server or a report is in various stages of being created.
-    if (!report || !report.reportID || !report.participants || (_.isEmpty(report.participants) && !isPublicRoom(report)) || isIOUReport(report)) {
+    // This can also happen for anyone accessing a public room or archived room for which they don't have access to the underlying policy.
+    if (!report || !report.reportID || !report.participants || (_.isEmpty(report.participants) && !isPublicRoom(report) && !isArchivedRoom(report)) || isIOUReport(report)) {
         return false;
     }
 
@@ -1707,6 +1703,32 @@ function canLeaveRoom(report, isPolicyMember) {
     return true;
 }
 
+/**
+ * Returns display names for those that can see the whisper.
+ * However, it returns "you" if the current user is the only one who can see it besides the person that sent it.
+ *
+ * @param {string[]} participants
+ * @returns {string}
+ */
+function getWhisperDisplayNames(participants) {
+    const isWhisperOnlyVisibleToCurrentUSer = this.isCurrentUserTheOnlyParticipant(participants);
+
+    // When the current user is the only participant, the display name needs to be "you" because that's the only person reading it
+    if (isWhisperOnlyVisibleToCurrentUSer) {
+        return Localize.translateLocal('common.youAfterPreposition');
+    }
+
+    return _.map(participants, login => getDisplayNameForParticipant(login, !isWhisperOnlyVisibleToCurrentUSer)).join(', ');
+}
+
+/**
+ * @param {string[]} participants
+ * @returns {Boolean}
+ */
+function isCurrentUserTheOnlyParticipant(participants) {
+    return participants && participants.length === 1 && participants[0] === sessionEmail;
+}
+
 export {
     getReportParticipantsTitle,
     isReportMessageAttachment,
@@ -1727,6 +1749,7 @@ export {
     isPolicyExpenseChatAdmin,
     isPublicRoom,
     isConciergeChatReport,
+    isCurrentUserTheOnlyParticipant,
     hasAutomatedExpensifyEmails,
     hasExpensifyGuidesEmails,
     hasOutstandingIOU,
@@ -1775,4 +1798,5 @@ export {
     getSmallSizeAvatar,
     getMoneyRequestOptions,
     canRequestMoney,
+    getWhisperDisplayNames,
 };

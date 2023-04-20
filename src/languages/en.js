@@ -121,6 +121,7 @@ export default {
         message: 'Message ',
         leaveRoom: 'Leave room',
         you: 'You',
+        youAfterPreposition: 'you',
         your: 'your',
         conciergeHelp: 'Please reach out to Concierge for help.',
         maxParticipantsReached: ({count}) => `You've selected the maximum number (${count}) of participants.`,
@@ -192,6 +193,7 @@ export default {
     },
     optionsSelector: {
         nameEmailOrPhoneNumber: 'Name, email, or phone number',
+        findMember: 'Find a member',
     },
     videoChatButtonAndMenu: {
         tooltip: 'Start a Call',
@@ -250,6 +252,7 @@ export default {
         editComment: 'Edit comment',
         deleteComment: 'Delete comment',
         deleteConfirmation: 'Are you sure you want to delete this comment?',
+        onlyVisible: 'Only visible to',
     },
     emojiReactions: {
         addReactionTooltip: 'Add reaction',
@@ -970,6 +973,7 @@ export default {
             growlMessageOnDelete: 'Workspace deleted',
             growlMessageOnDeleteError: 'This workspace cannot be deleted right now because reports are actively being processed',
             unavailable: 'Unavailable workspace',
+            memberNotFound: 'Member not found. To invite a new member to the workspace, please use the Invite button above.',
         },
         emptyWorkspace: {
             title: 'Create a new workspace',
@@ -1136,6 +1140,13 @@ export default {
             public: 'Public',
             public_announce: 'Public Announce',
         },
+    },
+    newTaskPage: {
+        assignTask: 'Assign task',
+        title: 'Title',
+        description: 'Description',
+        shareIn: 'Share in',
+        pleaseEnterTaskName: 'Please enter a title',
     },
     statementPage: {
         generatingPDF: 'We\'re generating your PDF right now. Please come back later!',
