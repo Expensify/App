@@ -24,7 +24,7 @@ function useIsLightMode() {
         return () => Onyx.disconnect(connectionId);
     }, [systemColorTheme]);
 
-    return colorTheme === 'light';
+    return (colorTheme || 'light') === 'light';
 }
 
 export default useIsLightMode;
