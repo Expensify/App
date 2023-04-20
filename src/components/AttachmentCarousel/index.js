@@ -57,6 +57,7 @@ class AttachmentCarousel extends React.Component {
         this.renderCell = this.renderCell.bind(this);
         this.updatePage = this.updatePage.bind(this);
         this.updateZoomState = this.updateZoomState.bind(this);
+        this.toggleArrowsDebounced = _.debounce(this.toggleArrowsDebounced.bind(this), 300);
 
         this.state = {
             attachments: [],
@@ -65,6 +66,15 @@ class AttachmentCarousel extends React.Component {
             containerWidth: 0,
             isZoomed: false,
         };
+
+        this.panResponder = PanResponder.create({
+            onStartShouldSetPanResponder: (event, gestureState) => {
+                if (gestureState.numberActiveTouches > 1 || this.state.isZoomed) {
+                    return false;
+                }
+                this.toggleArrowsDebounced();
+            },            
+        });
     }
 
     componentDidMount() {
@@ -116,6 +126,18 @@ class AttachmentCarousel extends React.Component {
      */
     toggleArrowsVisibility(shouldShowArrow) {
         this.setState({shouldShowArrow});
+    }
+
+    /**
+     * Toggles the visibility of the arrows (debounced)
+     */
+    toggleArrowsDebounced() {
+
+        // Don't toggle arrows in a zoomed state
+        if (this.state.isZoomed) {
+            return;
+        }
+        this.setState(current => ({shouldShowArrow: !current.shouldShowArrow}));
     }
 
     /**
@@ -212,8 +234,22 @@ class AttachmentCarousel extends React.Component {
     renderCell(props) {
         const style = [props.style, styles.h100, {width: this.state.containerWidth}];
 
-        // eslint-disable-next-line react/jsx-props-no-spreading
-        return <View {...props} style={style} />;
+        // Touch screen devices can toggle between showing and hiding the arrows by tapping on the image/container
+        // Other devices toggle the arrows through hovering (mouse) instead (see render() root element)
+        if (!this.canUseTouchScreen) {
+            // eslint-disable-next-line react/jsx-props-no-spreading
+            return <View {...props} style={style} />;
+        }
+
+        return (
+            <View
+                // eslint-disable-next-line react/jsx-props-no-spreading
+                {...props}
+                // eslint-disable-next-line react/jsx-props-no-spreading
+                {...this.panResponder.panHandlers}
+               style={style}
+            />
+        );
     }
 
     /**
@@ -232,7 +268,6 @@ class AttachmentCarousel extends React.Component {
                 source={authSource}
                 file={item.file}
                 onScaleChanged={this.updateZoomState}
-                onPress={() => this.setState(current => ({shouldShowArrow: !current.shouldShowArrow}))}
             />
         );
     }
@@ -318,6 +353,7 @@ class AttachmentCarousel extends React.Component {
                         keyExtractor={item => item.source}
                         viewabilityConfig={this.viewabilityConfig}
                         onViewableItemsChanged={this.updatePage}
+                        onScrollBeginDrag={this.toggleArrowsDebounced.cancel}
                     />
                 )}
 
