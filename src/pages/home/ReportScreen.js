@@ -1,7 +1,7 @@
 import React from 'react';
 import {withOnyx} from 'react-native-onyx';
 import PropTypes from 'prop-types';
-import {View} from 'react-native';
+import {InteractionManager, View} from 'react-native';
 import lodashGet from 'lodash/get';
 import _ from 'underscore';
 import {Freeze} from 'react-freeze';
@@ -117,12 +117,9 @@ function getReportID(route) {
 let reportActionsListViewHeight = 0;
 
 class ReportScreen extends React.Component {
-    firstRenderRef = React.createRef()
 
     constructor(props) {
         super(props);
-
-        this.firstRenderRef.current = true;
 
         this.onSubmitComment = this.onSubmitComment.bind(this);
         this.chatWithAccountManager = this.chatWithAccountManager.bind(this);
@@ -131,6 +128,7 @@ class ReportScreen extends React.Component {
         this.state = {
             skeletonViewContainerHeight: reportActionsListViewHeight,
             isBannerVisible: true,
+            animationFinished: false,
         };
     }
 
@@ -148,6 +146,10 @@ class ReportScreen extends React.Component {
         this.fetchReportIfNeeded();
         toggleReportActionComposeView(true);
         Navigation.setIsReportScreenIsReady();
+
+        InteractionManager.runAfterInteractions(() => {
+            this.setState({animationFinished: true});
+        });
     }
 
     componentDidUpdate(prevProps) {
@@ -238,16 +240,11 @@ class ReportScreen extends React.Component {
         // When the ReportScreen is not open/in the viewport, we want to "freeze" it for performance reasons
         const shouldFreeze = this.props.isSmallScreenWidth && !this.props.isFocused;
 
-        const isLoading = !reportID || !this.props.isSidebarLoaded || _.isEmpty(this.props.personalDetails) || this.firstRenderRef.current;
+        const isLoading = !reportID || !this.props.isSidebarLoaded || _.isEmpty(this.props.personalDetails) || !this.state.animationFinished;
 
         // the moment the ReportScreen becomes unfrozen we want to start the animation of the placeholder skeleton content
         // (which is shown, until all the actual views of the ReportScreen have been rendered)
         const shouldAnimate = !shouldFreeze;
-
-        // firstRenderRef is one of the components of isLoading value
-        // render loading screen on the first render to avoid lag between selecting the report and seeing the screen.
-        // especialy visible on the mobile platforms
-        this.firstRenderRef.current = false;
 
         return (
             <ScreenWrapper
