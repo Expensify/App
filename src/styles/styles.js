@@ -3130,13 +3130,8 @@ const styles = {
         textAlign: 'center',
     },
 
-<<<<<<< HEAD
-    popoverMaxWidth: {
-        maxWidth: 375,
-=======
     whisper: {
         backgroundColor: themeColors.cardBG,
->>>>>>> 56afc481d2 (Merge pull request #17739 from Expensify/vit-revert17321)
     },
 };
 
