@@ -6,6 +6,7 @@ export default create({
     brandImage: 'logomark.svg',
     fontBase: 'ExpensifyNeue-Regular',
     fontCode: 'monospace',
+    base: 'dark',
     appBg: colors.greenHighlightBackground,
     colorPrimary: colors.greenDefaultButton,
     colorSecondary: colors.green,
