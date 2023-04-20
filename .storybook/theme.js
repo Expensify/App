@@ -11,7 +11,6 @@ export default create({
     colorSecondary: colors.green,
     appContentBg: colors.greenAppBackground,
     textColor: colors.white,
-    textInverseColor: colors.white,
     barTextColor: colors.white,
     barSelectedColor: colors.blueLink,
     barBg: colors.greenHighlightBackground,
