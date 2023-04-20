@@ -1061,6 +1061,7 @@ export default {
             inviteMessageTitle: 'Añadir un mensaje',
             inviteMessagePrompt: 'Añadir un mensaje para hacer tu invitación destacar',
             personalMessagePrompt: 'Mensaje',
+            inviteNoMembersError: 'Por favor, selecciona al menos un miembro a invitar',
             genericFailureMessage: 'Se produjo un error al invitar al usuario al espacio de trabajo. Vuelva a intentarlo..',
             welcomeNote: ({workspaceName}) => `¡Has sido invitado a ${workspaceName}! Descargue la aplicación móvil Expensify en use.expensify.com/download para comenzar a rastrear sus gastos.`,
         },
