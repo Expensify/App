@@ -182,7 +182,8 @@ class ReimbursementAccountPage extends React.Component {
      * @returns {*}
      */
     getDefaultStateForField(fieldName, defaultValue = '') {
-        return lodashGet(this.props.reimbursementAccount, ['achData', fieldName], defaultValue);
+        return lodashGet(this.props, ['reimbursementAccountDraft', fieldName])
+        || lodashGet(this.props, ['reimbursementAccount', 'achData', fieldName], defaultValue);
     }
 
     /**
