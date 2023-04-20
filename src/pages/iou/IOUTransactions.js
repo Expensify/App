@@ -57,7 +57,7 @@ class IOUTransactions extends Component {
             && action.originalMessage.type && Number(action.originalMessage.IOUReportID) === Number(this.props.iouReportID));
 
         const rejectedTransactionIDs = _.chain(actionsForIOUReport)
-            .filter(action => _.contains([CONST.IOU.REPORT_ACTION_TYPE.CANCEL, CONST.IOU.REPORT_ACTION_TYPE.DECLINE], action.originalMessage.type))
+            .filter(action => _.contains([CONST.IOU.REPORT_ACTION_TYPE.CANCEL, CONST.IOU.REPORT_ACTION_TYPE.DECLINE, CONST.IOU.REPORT_ACTION_TYPE.DELETE], action.originalMessage.type))
             .map(rejectedAction => lodashGet(rejectedAction, 'originalMessage.IOUTransactionID', ''))
             .compact()
             .value();
