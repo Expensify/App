@@ -77,7 +77,7 @@ class NewContactMethodPage extends Component {
     */
     validateForm() {
         const login = this.state.login.trim();
-        const phoneLogin = LoginUtils.getPhoneNumberWithoutSpecialChars(login);
+        const phoneLogin = LoginUtils.appendCountryCode(LoginUtils.getPhoneNumberWithoutSpecialChars(login));
 
         return (Permissions.canUsePasswordlessLogins(this.props.betas) || this.state.password)
             && (Str.isValidEmail(login) || parsePhoneNumber(phoneLogin).possible);

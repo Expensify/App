@@ -144,7 +144,7 @@ class LoginForm extends React.Component {
             return;
         }
 
-        const phoneLogin = LoginUtils.getPhoneNumberWithoutSpecialChars(login);
+        const phoneLogin = LoginUtils.appendCountryCode(LoginUtils.getPhoneNumberWithoutSpecialChars(login));
         const isValidPhoneLogin = parsePhoneNumber(phoneLogin).possible;
 
         if (!Str.isValidEmail(login) && !isValidPhoneLogin) {
