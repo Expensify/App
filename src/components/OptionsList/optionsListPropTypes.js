@@ -65,6 +65,9 @@ const propTypes = {
     /** Whether to disable the interactivity of the list's option row(s) */
     isDisabled: PropTypes.bool,
 
+    /** Whether the options list skeleton loading view should be displayed */
+    isLoading: PropTypes.bool,
+
     /** Callback to execute when the SectionList lays out */
     onLayout: PropTypes.func,
 
@@ -91,6 +94,7 @@ const defaultProps = {
     innerRef: null,
     showTitleTooltip: false,
     isDisabled: false,
+    isLoading: false,
     onLayout: undefined,
     shouldHaveOptionSeparator: false,
     shouldDisableRowInnerPadding: false,
