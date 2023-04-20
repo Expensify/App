@@ -122,11 +122,12 @@ class AttachmentCarousel extends React.Component {
      * Toggles zoomed state to enable panning the PDF
      * @param {Number} scale current PDF scale
      */
-    toggleZoomed(scale) {
-        if ((scale <= 1 && !this.state.isZoomed) || (scale > 1 && this.state.isZoomed)) {
+    updateZoomState(scale) {
+        const isZoomed = scale > 1;
+        if (isZoomed === this.state.isZoomed) {
             return;
         }
-        this.setState(current => ({isZoomed: !current.isZoomed}));
+        this.setState({isZoomed});
     }
 
     /**
