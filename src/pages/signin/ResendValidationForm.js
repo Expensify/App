@@ -49,7 +49,12 @@ const defaultProps = {
 
 const ResendValidationForm = (props) => {
     const isSMSLogin = Str.isSMSLogin(props.credentials.login);
-    const login = isSMSLogin ? props.toLocalPhone(Str.removeSMSDomain(props.credentials.login)) : props.credentials.login;
+
+    // replacing spaces with "hard spaces" to prevent breaking the number
+    const login = isSMSLogin
+        ? props.formatPhoneNumber(props.credentials.login).replace(/ /g, '\u00A0')
+        : props.credentials.login;
+
     const loginType = (isSMSLogin ? props.translate('common.phone') : props.translate('common.email')).toLowerCase();
 
     return (
