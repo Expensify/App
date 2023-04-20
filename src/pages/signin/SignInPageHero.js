@@ -17,7 +17,7 @@ const SignInPageHero = props => (
         StyleUtils.getMinimumHeight(variables.signInContentMinHeight),
         props.windowWidth <= variables.tabletResponsiveWidthBreakpoint ? styles.flexColumn : styles.flexColumn,
         styles.pt20,
-        StyleUtils.getMaximumWidth(variables.signInContextMaxWidth),
+        StyleUtils.getMaximumWidth(variables.signInHeroContextMaxWidth),
         styles.alignSelfCenter,
     ]}
     >

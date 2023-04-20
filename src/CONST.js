@@ -1,6 +1,5 @@
 import lodashGet from 'lodash/get';
 import Config from 'react-native-config';
-import * as KeyCommand from 'react-native-key-command';
 import * as Url from './libs/Url';
 
 const CLOUDFRONT_DOMAIN = 'cloudfront.net';
@@ -8,19 +7,10 @@ const CLOUDFRONT_URL = `https://d2k5nsl2zxldvw.${CLOUDFRONT_DOMAIN}`;
 const ACTIVE_EXPENSIFY_URL = Url.addTrailingForwardSlash(lodashGet(Config, 'NEW_EXPENSIFY_URL', 'https://new.expensify.com'));
 const USE_EXPENSIFY_URL = 'https://use.expensify.com';
 const PLATFORM_OS_MACOS = 'Mac OS';
-const PLATFORM_IOS = 'iOS';
 const ANDROID_PACKAGE_NAME = 'com.expensify.chat';
 const USA_COUNTRY_NAME = 'United States';
 const CURRENT_YEAR = new Date().getFullYear();
-
-const keyModifierControl = lodashGet(KeyCommand, 'constants.keyModifierControl', 'keyModifierControl');
-const keyModifierCommand = lodashGet(KeyCommand, 'constants.keyModifierCommand', 'keyModifierCommand');
-const keyModifierShiftControl = lodashGet(KeyCommand, 'constants.keyModifierShiftControl', 'keyModifierShiftControl');
-const keyModifierShiftCommand = lodashGet(KeyCommand, 'constants.keyModifierShiftCommand', 'keyModifierShiftCommand');
-const keyInputEscape = lodashGet(KeyCommand, 'constants.keyInputEscape', 'keyInputEscape');
-const keyInputEnter = lodashGet(KeyCommand, 'constants.keyInputEnter', 'keyInputEnter');
-const keyInputUpArrow = lodashGet(KeyCommand, 'constants.keyInputUpArrow', 'keyInputUpArrow');
-const keyInputDownArrow = lodashGet(KeyCommand, 'constants.keyInputDownArrow', 'keyInputDownArrow');
+const PULL_REQUEST_NUMBER = lodashGet(Config, 'PULL_REQUEST_NUMBER', '');
 
 const CONST = {
     ANDROID_PACKAGE_NAME,
@@ -65,6 +55,8 @@ const CONST = {
         MAX_LENGTH: 50,
         RESERVED_FIRST_NAMES: ['Expensify', 'Concierge'],
     },
+
+    PULL_REQUEST_NUMBER,
 
     CALENDAR_PICKER: {
         // Numbers were arbitrarily picked.
@@ -202,6 +194,7 @@ const CONST = {
         POLICY_ROOMS: 'policyRooms',
         POLICY_EXPENSE_CHAT: 'policyExpenseChat',
         PASSWORDLESS: 'passwordless',
+        TASKS: 'tasks',
     },
     BUTTON_STATES: {
         DEFAULT: 'default',
@@ -234,7 +227,6 @@ const CONST = {
         CTRL: {
             DEFAULT: 'control',
             [PLATFORM_OS_MACOS]: 'meta',
-            [PLATFORM_IOS]: 'meta',
         },
         SHIFT: {
             DEFAULT: 'shift',
@@ -245,91 +237,46 @@ const CONST = {
             descriptionKey: 'search',
             shortcutKey: 'K',
             modifiers: ['CTRL'],
-            trigger: {
-                DEFAULT: {input: 'k', modifierFlags: keyModifierControl},
-                [PLATFORM_OS_MACOS]: {input: 'k', modifierFlags: keyModifierCommand},
-                [PLATFORM_IOS]: {input: 'k', modifierFlags: keyModifierCommand},
-            },
         },
         NEW_GROUP: {
             descriptionKey: 'newGroup',
             shortcutKey: 'K',
             modifiers: ['CTRL', 'SHIFT'],
-            trigger: {
-                DEFAULT: {input: 'k', modifierFlags: keyModifierShiftControl},
-                [PLATFORM_OS_MACOS]: {input: 'k', modifierFlags: keyModifierShiftCommand},
-                [PLATFORM_IOS]: {input: 'k', modifierFlags: keyModifierShiftCommand},
-            },
         },
         SHORTCUT_MODAL: {
             descriptionKey: 'openShortcutDialog',
             shortcutKey: 'I',
             modifiers: ['CTRL'],
-            trigger: {
-                DEFAULT: {input: 'i', modifierFlags: keyModifierControl},
-                [PLATFORM_OS_MACOS]: {input: 'i', modifierFlags: keyModifierCommand},
-                [PLATFORM_IOS]: {input: 'i', modifierFlags: keyModifierCommand},
-            },
         },
         ESCAPE: {
             descriptionKey: 'escape',
             shortcutKey: 'Escape',
             modifiers: [],
-            trigger: {
-                DEFAULT: {input: keyInputEscape},
-                [PLATFORM_OS_MACOS]: {input: keyInputEscape},
-                [PLATFORM_IOS]: {input: keyInputEscape},
-            },
         },
         ENTER: {
             descriptionKey: null,
             shortcutKey: 'Enter',
             modifiers: [],
-            trigger: {
-                DEFAULT: {input: keyInputEnter},
-                [PLATFORM_OS_MACOS]: {input: keyInputEnter},
-                [PLATFORM_IOS]: {input: keyInputEnter},
-            },
         },
         CTRL_ENTER: {
             descriptionKey: null,
             shortcutKey: 'Enter',
             modifiers: ['CTRL'],
-            trigger: {
-                DEFAULT: {input: keyInputEnter, modifierFlags: keyModifierControl},
-                [PLATFORM_OS_MACOS]: {input: keyInputEnter, modifierFlags: keyModifierCommand},
-                [PLATFORM_IOS]: {input: keyInputEnter, modifierFlags: keyModifierCommand},
-            },
         },
         COPY: {
             descriptionKey: 'copy',
             shortcutKey: 'C',
             modifiers: ['CTRL'],
-            trigger: {
-                DEFAULT: {input: 'c', modifierFlags: keyModifierControl},
-                [PLATFORM_OS_MACOS]: {input: 'c', modifierFlags: keyModifierCommand},
-                [PLATFORM_IOS]: {input: 'c', modifierFlags: keyModifierCommand},
-            },
         },
         ARROW_UP: {
             descriptionKey: null,
             shortcutKey: 'ArrowUp',
             modifiers: [],
-            trigger: {
-                DEFAULT: {input: keyInputUpArrow},
-                [PLATFORM_OS_MACOS]: {input: keyInputUpArrow},
-                [PLATFORM_IOS]: {input: keyInputUpArrow},
-            },
         },
         ARROW_DOWN: {
             descriptionKey: null,
             shortcutKey: 'ArrowDown',
             modifiers: [],
-            trigger: {
-                DEFAULT: {input: keyInputDownArrow},
-                [PLATFORM_OS_MACOS]: {input: keyInputDownArrow},
-                [PLATFORM_IOS]: {input: keyInputDownArrow},
-            },
         },
         TAB: {
             descriptionKey: null,
@@ -524,6 +471,7 @@ const CONST = {
             CONFIRM: 'confirm',
             CENTERED: 'centered',
             CENTERED_UNSWIPEABLE: 'centered_unswipeable',
+            CENTERED_SMALL: 'centered_small',
             BOTTOM_DOCKED: 'bottom_docked',
             POPOVER: 'popover',
             RIGHT_DOCKED: 'right_docked',
@@ -549,6 +497,7 @@ const CONST = {
         WARM: 'warm',
         REPORT_ACTION_ITEM_LAYOUT_DEBOUNCE_TIME: 1500,
         SHOW_LOADING_SPINNER_DEBOUNCE_TIME: 250,
+        TEST_TOOLS_MODAL_THROTTLE_TIME: 800,
         TOOLTIP_SENSE: 1000,
         TRIE_INITIALIZATION: 'trie_initialization',
         COMMENT_LENGTH_DEBOUNCE_TIME: 500,
@@ -748,6 +697,7 @@ const CONST = {
         DEV: 'development',
         STAGING: 'staging',
         PRODUCTION: 'production',
+        ADHOC: 'adhoc',
     },
 
     // Used to delay the initial fetching of reportActions when the app first inits or reconnects (e.g. returning
@@ -838,7 +788,7 @@ const CONST = {
         WINDOWS: 'Windows',
         MAC_OS: PLATFORM_OS_MACOS,
         ANDROID: 'Android',
-        IOS: PLATFORM_IOS,
+        IOS: 'iOS',
         LINUX: 'Linux',
         NATIVE: 'Native',
     },
@@ -2256,9 +2206,17 @@ const CONST = {
         SAMPLE_INPUT: '123456.789',
         EXPECTED_OUTPUT: 'FCFA 123,457',
     },
+
     PATHS_TO_TREAT_AS_EXTERNAL: [
         'NewExpensify.dmg',
     ],
+
+    // Test tool menu parameters
+    TEST_TOOL: {
+        // Number of concurrent taps to open then the Test modal menu
+        NUMBER_OF_TAPS: 4,
+    },
+
     PAYPAL_SUPPORTED_CURRENCIES: [
         'AUD', 'BRL', 'CAD', 'CZK', 'DKK', 'EUR', 'HKD', 'HUF',
         'ILS', 'JPY', 'MYR', 'MXN', 'TWD', 'NZD', 'NOK', 'PHP',
