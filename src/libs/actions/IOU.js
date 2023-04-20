@@ -310,7 +310,7 @@ function createSplitsAndOnyxData(participants, currentUserLogin, amount, comment
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.TRANSACTION}${groupTransaction.transactionID}`,
             value: groupTransaction,
-        }
+        },
     ];
 
     const successData = [
@@ -331,7 +331,7 @@ function createSplitsAndOnyxData(participants, currentUserLogin, amount, comment
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.TRANSACTION}${groupTransaction.transactionID}`,
             value: {pendingAction: null},
-        }
+        },
     ];
 
     const failureData = [
@@ -778,7 +778,7 @@ function getSendMoneyParams(report, amount, currency, comment, paymentMethodType
         [recipient],
         optimisticTransaction.transactionID,
         paymentMethodType,
-        optimisticIOUReport.reportID
+        optimisticIOUReport.reportID,
     );
 
     // First, add data that will be used in all cases
@@ -823,7 +823,7 @@ function getSendMoneyParams(report, amount, currency, comment, paymentMethodType
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.TRANSACTION}${optimisticTransaction.transactionID}`,
             value: {pendingAction: null},
-        }
+        },
     ];
 
     const failureData = [
@@ -874,6 +874,7 @@ function getSendMoneyParams(report, amount, currency, comment, paymentMethodType
         optimisticChatReportData,
         optimisticIOUReportData,
         optimisticReportActionsData,
+        optimisticTransactionData,
     ];
 
     return {
@@ -910,7 +911,7 @@ function getPayMoneyRequestParams(chatReport, iouReport, recipient, paymentMetho
         optimisticTransaction.transactionID,
         paymentMethodType,
         iouReport.reportID,
-        true
+        true,
     );
 
     const optimisticData = [

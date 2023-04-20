@@ -8,6 +8,7 @@ import * as NumberUtils from './NumberUtils';
  * @param {Number} amount – in cents
  * @param {String} currency
  * @param {String} comment
+ * @returns {Object}
  */
 function buildOptimisticTransaction(amount, currency, comment = '') {
     // transactionIDs are random, positive, 64-bit numbers.
