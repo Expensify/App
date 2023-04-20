@@ -4,7 +4,7 @@ import * as ContextMenuActions from '../pages/home/report/ContextMenu/ContextMen
 
 const ShowContextMenuContext = React.createContext({
     anchor: null,
-    reportID: null,
+    report: null,
     action: undefined,
     checkIfContextMenuActive: () => {},
 });
@@ -19,8 +19,9 @@ ShowContextMenuContext.displayName = 'ShowContextMenuContext';
  * @param {String} reportID - Active Report ID
  * @param {Object} action - ReportAction for ContextMenu
  * @param {Function} checkIfContextMenuActive Callback to update context menu active state
+ * @param {Boolean} [isArchivedRoom=false] - Is the report an archived room
  */
-function showContextMenuForReport(event, anchor, reportID, action, checkIfContextMenuActive) {
+function showContextMenuForReport(event, anchor, reportID, action, checkIfContextMenuActive, isArchivedRoom = false) {
     ReportActionContextMenu.showContextMenu(
         ContextMenuActions.CONTEXT_MENU_TYPES.REPORT_ACTION,
         event,
@@ -31,6 +32,7 @@ function showContextMenuForReport(event, anchor, reportID, action, checkIfContex
         '',
         checkIfContextMenuActive,
         checkIfContextMenuActive,
+        isArchivedRoom
     );
 }
 
