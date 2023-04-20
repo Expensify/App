@@ -1,7 +1,6 @@
 import * as API from '../API';
 import * as ReportUtils from '../ReportUtils';
 import * as Report from './Report';
-import CONST from '../../CONST';
 
 /**
  * Assign a task to a user
@@ -15,10 +14,10 @@ import CONST from '../../CONST';
  *
  */
 
-function assignTask(parentReportActionID, parentReportID, taskReportID, name, description, assignee, assigneeChatReportID) {
+function assignTask(parentReportActionID, parentReportID, taskReportID, name, description, assignee, assigneeChatReportID, ownerEmail) {
     let parentReport;
 
-    // If there isn't a parentReport provided and assignee is given, we need to optimistically create a new parent report
+    // If there isn't a parentReportId provided and assignee is given, we need to optimistically create a new parent chat report
     // between the task creator and the assignee.
     if (!parentReportID && assignee) {
         parentReport = ReportUtils.getChatByParticipants([assignee]);
@@ -36,16 +35,14 @@ function assignTask(parentReportActionID, parentReportID, taskReportID, name, de
         Report.openReport(finalParentReportID, [assignee]);
     }
 
-    const ownerEmail = getOwnerEmail(); // need to figure out how to get the owner email
+    const optimisticCreatedAction = ReportUtils.buildOptimisticCreatedReportAction(ownerEmail);
+
     const optimisticTaskReport = ReportUtils.buildOptimisticTaskReport(ownerEmail, assignee, finalParentReportID, parentReportActionID, name, description);
 
     // AddCommentReportAction on the parent chat report
     const optimisticAddCommentReportAction = ReportUtils.buildOptimisticAddCommentReportAction(finalParentReportID, optimisticTaskReport.reportID);
 
-    const optimisticData = {
-        taskReport: optimisticTaskReport,
-        addCommentReportAction: optimisticAddCommentReportAction,
-    };
+    const optimisticData = [optimisticCreatedAction, optimisticTaskReport, optimisticAddCommentReportAction];
 
     const successData = {};
 
@@ -54,6 +51,11 @@ function assignTask(parentReportActionID, parentReportID, taskReportID, name, de
             {
                 method: 'DELETE_TASK_REPORT',
                 reportID: optimisticTaskReport.reportID,
+            },
+            {
+                method: 'DELETE_REPORT_ACTION',
+                reportID: finalParentReportID,
+                actionID: optimisticCreatedAction.actionID,
             },
             {
                 method: 'DELETE_ADD_COMMENT_REPORT_ACTION',
