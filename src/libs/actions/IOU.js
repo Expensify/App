@@ -79,26 +79,29 @@ function requestMoney(report, amount, currency, recipientEmail, participant, com
     const optimisticTransaction = TransactionUtils.buildOptimisticTransaction(amount, currency);
     const optimisticTransactionData = {
         onyxMethod: Onyx.METHOD.MERGE,
-        key: optimisticTransaction.transactionID,
+        key: `${ONYXKEYS.COLLECTION.TRANSACTION}${optimisticTransaction.transactionID}`,
         value: optimisticTransaction,
     };
     const transactionSuccessData = {
         onyxMethod: Onyx.METHOD.MERGE,
-        key: optimisticTransaction.transactionID,
+        key: `${ONYXKEYS.COLLECTION.TRANSACTION}${optimisticTransaction.transactionID}`,
         value: {
             pendingAction: null,
         },
     };
     const transactionFailureData = {
-        pendingAction: null,
-        errors: {
-            [DateUtils.getMicroseconds()]: Localize.translateLocal('iou.error.genericCreateFailureMessage'),
+        onyxMethod: Onyx.METHOD.MERGE,
+        key: `${ONYXKEYS.COLLECTION.TRANSACTION}${optimisticTransaction.transactionID}`,
+        value: {
+            pendingAction: null,
+            errors: {
+                [DateUtils.getMicroseconds()]: Localize.translateLocal('iou.error.genericCreateFailureMessage'),
+            },
         },
     };
 
     // Note: The created action must be optimistically generated before the IOU action so there's no chance that the created action appears after the IOU action in the chat
     const optimisticCreatedAction = ReportUtils.buildOptimisticCreatedReportAction(recipientEmail);
-    // TODO: optimistic TransactionID
     const optimisticReportAction = ReportUtils.buildOptimisticIOUReportAction(
         CONST.IOU.REPORT_ACTION_TYPE.CREATE,
         amount,
@@ -262,15 +265,18 @@ function createSplitsAndOnyxData(participants, currentUserLogin, amount, comment
         : ReportUtils.getChatByParticipants(participantLogins);
     const groupChatReport = existingGroupChatReport || ReportUtils.buildOptimisticChatReport(participantLogins);
 
+    const amountInCents = Math.round(amount * 100);
+    const groupTransaction = TransactionUtils.buildOptimisticTransaction(amountInCents, currency);
+
     // Note: The created action must be optimistically generated before the IOU action so there's no chance that the created action appears after the IOU action in the chat
     const groupCreatedReportAction = ReportUtils.buildOptimisticCreatedReportAction(currentUserEmail);
-    // TODO: Optimistic transactionID
     const groupIOUReportAction = ReportUtils.buildOptimisticIOUReportAction(
         CONST.IOU.REPORT_ACTION_TYPE.SPLIT,
-        Math.round(amount * 100),
+        amountInCents,
         currency,
         comment,
         participants,
+        groupTransaction.transactionID,
     );
 
     groupChatReport.lastReadTime = DateUtils.getDBTime();
@@ -300,6 +306,11 @@ function createSplitsAndOnyxData(participants, currentUserLogin, amount, comment
                 [groupIOUReportAction.reportActionID]: groupIOUReportAction,
             },
         },
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.TRANSACTION}${groupTransaction.transactionID}`,
+            value: groupTransaction,
+        }
     ];
 
     const successData = [
@@ -316,6 +327,11 @@ function createSplitsAndOnyxData(participants, currentUserLogin, amount, comment
                 [groupIOUReportAction.reportActionID]: {pendingAction: null},
             },
         },
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.TRANSACTION}${groupTransaction.transactionID}`,
+            value: {pendingAction: null},
+        }
     ];
 
     const failureData = [
@@ -332,6 +348,16 @@ function createSplitsAndOnyxData(participants, currentUserLogin, amount, comment
             value: {
                 ...(existingGroupChatReport ? {} : {[groupCreatedReportAction.reportActionID]: {pendingAction: null}}),
                 [groupIOUReportAction.reportActionID]: {pendingAction: null},
+            },
+        },
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.TRANSACTION}${groupTransaction.transactionID}`,
+            value: {
+                pendingFields: null,
+                errors: {
+                    [DateUtils.getMicroseconds()]: Localize.translateLocal('iou.error.genericCreateFailureMessage'),
+                },
             },
         },
     ];
@@ -374,16 +400,17 @@ function createSplitsAndOnyxData(participants, currentUserLogin, amount, comment
             oneOnOneChatReport.iouReportID = oneOnOneIOUReport.reportID;
         }
 
+        const oneOnOneTransaction = TransactionUtils.buildOptimisticTransaction(amountInCents, currency);
+
         // Note: The created action must be optimistically generated before the IOU action so there's no chance that the created action appears after the IOU action in the chat
         const oneOnOneCreatedReportAction = ReportUtils.buildOptimisticCreatedReportAction(currentUserEmail);
-        // TODO: optimistic transactionID
         const oneOnOneIOUReportAction = ReportUtils.buildOptimisticIOUReportAction(
             CONST.IOU.REPORT_ACTION_TYPE.CREATE,
             splitAmount,
             currency,
             comment,
             [participant],
-            '',
+            oneOnOneTransaction.transactionID,
             '',
             oneOnOneIOUReport.reportID,
         );
@@ -414,6 +441,11 @@ function createSplitsAndOnyxData(participants, currentUserLogin, amount, comment
                     [oneOnOneIOUReportAction.reportActionID]: oneOnOneIOUReportAction,
                 },
             },
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.TRANSACTION}${oneOnOneTransaction.transactionID}`,
+                value: oneOnOneTransaction,
+            },
         );
 
         successData.push(
@@ -432,6 +464,11 @@ function createSplitsAndOnyxData(participants, currentUserLogin, amount, comment
                     ),
                     [oneOnOneIOUReportAction.reportActionID]: {pendingAction: null},
                 },
+            },
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.TRANSACTION}${oneOnOneTransaction.transactionID}`,
+                value: {pendingAction: null},
             },
         );
 
@@ -454,6 +491,16 @@ function createSplitsAndOnyxData(participants, currentUserLogin, amount, comment
                         : {[oneOnOneCreatedReportAction.reportActionID]: {pendingAction: null}}
                     ),
                     [oneOnOneIOUReportAction.reportActionID]: {pendingAction: null},
+                },
+            },
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.TRANSACTION}${oneOnOneTransaction.transactionID}`,
+                value: {
+                    pendingFields: null,
+                    errors: {
+                        [DateUtils.getMicroseconds()]: Localize.translateLocal('iou.error.genericCreateFailureMessage'),
+                    },
                 },
             },
         );
@@ -479,7 +526,7 @@ function createSplitsAndOnyxData(participants, currentUserLogin, amount, comment
             amount: splitAmount,
             iouReportID: oneOnOneIOUReport.reportID,
             chatReportID: oneOnOneChatReport.reportID,
-            transactionID: oneOnOneIOUReportAction.originalMessage.IOUTransactionID,
+            transactionID: oneOnOneTransaction.transactionID,
             reportActionID: oneOnOneIOUReportAction.reportActionID,
         };
 
@@ -492,7 +539,7 @@ function createSplitsAndOnyxData(participants, currentUserLogin, amount, comment
 
     const groupData = {
         chatReportID: groupChatReport.reportID,
-        transactionID: groupIOUReportAction.originalMessage.IOUTransactionID,
+        transactionID: groupTransaction.transactionID,
         reportActionID: groupIOUReportAction.reportActionID,
     };
 

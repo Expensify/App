@@ -13,12 +13,11 @@ function buildOptimisticTransaction(amount, currency, comment = '') {
     // transactionIDs are random, positive, 64-bit numbers.
     // Because JS can only handle 53-bit numbers, transactionIDs are strings in the front-end (just like reportActionID)
     const transactionID = NumberUtils.rand64();
-    const created = DateUtils.getDBTime();
     return {
         transactionID,
         amount,
         comment,
-        created,
+        created: DateUtils.getDBTime(),
         pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
     };
 }
