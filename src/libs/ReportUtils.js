@@ -1095,7 +1095,7 @@ function buildOptimisticIOUReportAction(type, amount, currency, comment, partici
         amount,
         comment: textForNewComment,
         currency,
-        iouTransactionID,
+        IOUTransactionID: iouTransactionID,
         IOUReportID,
         type,
     };

@@ -76,6 +76,26 @@ function requestMoney(report, amount, currency, recipientEmail, participant, com
         iouReport = ReportUtils.buildOptimisticIOUReport(recipientEmail, debtorEmail, amount, chatReport.reportID, currency, preferredLocale);
     }
 
+    const optimisticTransaction = TransactionUtils.buildOptimisticTransaction(amount, currency);
+    const optimisticTransactionData = {
+        onyxMethod: Onyx.METHOD.MERGE,
+        key: optimisticTransaction.transactionID,
+        value: optimisticTransaction,
+    };
+    const transactionSuccessData = {
+        onyxMethod: Onyx.METHOD.MERGE,
+        key: optimisticTransaction.transactionID,
+        value: {
+            pendingAction: null,
+        },
+    };
+    const transactionFailureData = {
+        pendingAction: null,
+        errors: {
+            [DateUtils.getMicroseconds()]: Localize.translateLocal('iou.error.genericCreateFailureMessage'),
+        },
+    };
+
     // Note: The created action must be optimistically generated before the IOU action so there's no chance that the created action appears after the IOU action in the chat
     const optimisticCreatedAction = ReportUtils.buildOptimisticCreatedReportAction(recipientEmail);
     // TODO: optimistic TransactionID
@@ -85,7 +105,7 @@ function requestMoney(report, amount, currency, recipientEmail, participant, com
         currency,
         comment,
         [participant],
-        '',
+        optimisticTransaction.transactionID,
         '',
         iouReport.reportID,
     );
@@ -177,27 +197,6 @@ function requestMoney(report, amount, currency, recipientEmail, participant, com
         reportActionsFailureData.value[optimisticCreatedAction.reportActionID] = {pendingAction: null};
     }
 
-    const optimisticTransaction = TransactionUtils.buildOptimisticTransaction(amount, currency);
-    const optimisticTransactionData = {
-        onyxMethod: Onyx.METHOD.MERGE,
-        key: optimisticTransaction.transactionID,
-        value: optimisticTransaction,
-    };
-    const transactionSuccessData = {
-        onyxMethod: Onyx.METHOD.MERGE,
-        key: optimisticTransaction.transactionID,
-        value: {
-            pendingAction: null,
-        },
-    };
-    const transactionFailureData = {
-        pendingAction: null,
-        errors: {
-            [DateUtils.getMicroseconds()]: Localize.translateLocal('iou.error.genericCreateFailureMessage'),
-        },
-    };
-
-
     const optimisticData = [
         optimisticChatReportData,
         optimisticIOUReportData,
@@ -227,7 +226,7 @@ function requestMoney(report, amount, currency, recipientEmail, participant, com
         comment: parsedComment,
         iouReportID: iouReport.reportID,
         chatReportID: chatReport.reportID,
-        transactionID: optimisticReportAction.originalMessage.IOUTransactionID,
+        transactionID: optimisticTransaction.transactionID,
         reportActionID: optimisticReportAction.reportActionID,
         createdReportActionID: isNewChat ? optimisticCreatedAction.reportActionID : 0,
     }, {optimisticData, successData, failureData});
