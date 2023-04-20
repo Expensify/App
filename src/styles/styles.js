@@ -3130,8 +3130,8 @@ const styles = {
         textAlign: 'center',
     },
 
-    popoverMaxWidth: {
-        maxWidth: 375,
+    whisper: {
+        backgroundColor: themeColors.cardBG,
     },
 };
 
