@@ -650,11 +650,10 @@ function deleteMoneyRequest(chatReportID, iouReportID, moneyRequestAction) {
 
     API.write('DeleteMoneyRequest', {
         transactionID,
-        iouReportID: updatedIOUReport.reportID,
-        comment: '',
-        deleteMoneyRequestReportActionID: optimisticReportAction.reportActionID,
         chatReportID,
-        payerEmail: chatReport.participants[0],
+        reportActionID: optimisticReportAction.reportActionID,
+        comment: '',
+        iouReportID: updatedIOUReport.reportID,
     }, {optimisticData, successData, failureData});
 
     Navigation.navigate(ROUTES.getReportRoute(chatReportID));
