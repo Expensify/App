@@ -20,6 +20,7 @@ const EditedRenderer = (props) => {
             {...defaultRendererProps}
             fontSize={variables.fontSizeSmall}
             color={themeColors.textSupporting}
+            style={[styles.alignItemsBaseline, styles.dInlineFlex]}
         >
             {/* Native devices do not support margin between nested text */}
             <Text style={styles.w1}>{' '}</Text>
