@@ -83,7 +83,7 @@ class SearchPage extends Component {
     }
 
     componentDidUpdate(prevProps) {
-        if (prevProps.isLoadingReportData === this.props.isLoadingReportData) {
+        if (_.isEqual(prevProps.reports, this.props.reports) && _.isEqual(prevProps.personalDetails, this.props.personalDetails)) {
             return;
         }
         this.updateOptions();
