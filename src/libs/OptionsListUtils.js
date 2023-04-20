@@ -528,6 +528,16 @@ function getOptions(reports, personalDetails, {
     forcePolicyNamePreview = false,
     includeOwnedWorkspaceChats = false,
 }) {
+    const personalDetailsReady = !_.isEmpty(personalDetails) && _.every(_.keys(personalDetails), key => personalDetails[key].login);
+
+    if (!personalDetailsReady) {
+        return {
+            recentReports: [],
+            personalDetails: [],
+            userToInvite: null,
+        };
+    }
+
     let recentReportOptions = [];
     let personalDetailsOptions = [];
     const reportMapForLogins = {};
