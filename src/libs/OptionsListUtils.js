@@ -8,7 +8,6 @@ import ONYXKEYS from '../ONYXKEYS';
 import CONST from '../CONST';
 import * as ReportUtils from './ReportUtils';
 import * as Localize from './Localize';
-import * as Expensicons from '../components/Icon/Expensicons';
 import Permissions from './Permissions';
 import * as CollectionUtils from './CollectionUtils';
 import Navigation from './Navigation/Navigation';
@@ -169,7 +168,7 @@ function getPersonalDetailsForLogins(logins, personalDetails) {
             }
 
             if (login === CONST.EMAIL.CONCIERGE) {
-                personalDetail.avatar = Expensicons.ConciergeAvatar;
+                personalDetail.avatar = CONST.CONCIERGE_ICON_URL;
             }
 
             personalDetailsForLogins[login] = personalDetail;
