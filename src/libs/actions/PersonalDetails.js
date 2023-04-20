@@ -184,7 +184,7 @@ function updateAddress(street, street2, city, state, zip, country) {
     const parameters = {
         homeAddressStreet: street,
         addressStreet2: street2,
-        addressCity: city,
+        homeAddressCity: city,
         addressState: state,
         addressZipCode: zip,
         addressCountry: country,
