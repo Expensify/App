@@ -879,14 +879,14 @@ function getSendMoneyParams(report, amount, currency, comment, paymentMethodType
  * @returns {Object}
  */
 function getPayMoneyRequestParams(chatReport, iouReport, recipient, paymentMethodType) {
-    // TODO: transactionID
+    const optimisticTransaction = TransactionUtils.buildOptimisticTransaction(iouReport.total, iouReport.currency);
     const optimisticIOUReportAction = ReportUtils.buildOptimisticIOUReportAction(
         CONST.IOU.REPORT_ACTION_TYPE.PAY,
         iouReport.total,
         iouReport.currency,
         '',
         [recipient],
-        '',
+        optimisticTransaction.transactionID,
         paymentMethodType,
         iouReport.reportID,
         true
@@ -925,6 +925,11 @@ function getPayMoneyRequestParams(chatReport, iouReport, recipient, paymentMetho
                 stateNum: CONST.REPORT.STATE_NUM.SUBMITTED,
             },
         },
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.TRANSACTION}${optimisticTransaction.transactionID}`,
+            value: optimisticTransaction,
+        },
     ];
 
     const successData = [
@@ -944,6 +949,13 @@ function getPayMoneyRequestParams(chatReport, iouReport, recipient, paymentMetho
                 iouReportID: null,
             },
         },
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.TRANSACTION}${optimisticTransaction.transactionID}`,
+            value: {
+                pendingAction: null,
+            },
+        },
     ];
 
     const failureData = [
@@ -956,6 +968,16 @@ function getPayMoneyRequestParams(chatReport, iouReport, recipient, paymentMetho
                     errors: {
                         [DateUtils.getMicroseconds()]: Localize.translateLocal('iou.error.other'),
                     },
+                },
+            },
+        },
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.TRANSACTION}${optimisticTransaction.transactionID}`,
+            value: {
+                pendingAction: null,
+                errors: {
+                    [DateUtils.getMicroseconds()]: Localize.translateLocal('iou.error.genericCreateFailureMessage'),
                 },
             },
         },
