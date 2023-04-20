@@ -69,7 +69,7 @@
     "babel-polyfill": "^6.26.0",
     "dom-serializer": "^0.2.2",
     "domhandler": "^4.3.0",
-    "expensify-common": "git+ssh://git@github.com/Expensify/expensify-common.git#458f3e530c10daa22e6998dd6fab191cea9c8ddc",
+    "expensify-common": "git+ssh://git@github.com/Expensify/expensify-common.git#e93e1eb448ad6bdbde911fd6239f70d5e749635e",
     "fbjs": "^3.0.2",
     "html-entities": "^1.3.1",
     "htmlparser2": "^7.2.0",
@@ -123,7 +123,6 @@
     "save": "^2.4.0",
     "semver": "^7.3.8",
     "shim-keyboard-event-key": "^1.0.3",
-    "ua-parser-js": "^1.0.35",
     "underscore": "^1.13.1"
   },
   "devDependencies": {
