@@ -44,14 +44,13 @@ const App = () => (
                 HTMLEngineProvider,
                 WindowDimensionsProvider,
                 KeyboardStateProvider,
+                ThemeProvider,
             ]}
         >
-            <ThemeProvider>
-                <CustomStatusBar />
-                <ErrorBoundary errorMessage="NewExpensify crash caught by error boundary">
-                    <Expensify />
-                </ErrorBoundary>
-            </ThemeProvider>
+            <CustomStatusBar />
+            <ErrorBoundary errorMessage="NewExpensify crash caught by error boundary">
+                <Expensify />
+            </ErrorBoundary>
         </ComposeProviders>
 
     </GestureHandlerRootView>
