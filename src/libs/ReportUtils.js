@@ -1042,18 +1042,18 @@ function getIOUReportActionMessage(type, total, participants, comment, currency,
     let iouMessage;
     switch (type) {
         case CONST.IOU.REPORT_ACTION_TYPE.CREATE:
-            iouMessage = `Requested ${amount} from ${who}${comment && ` for ${comment}`}`;
+            iouMessage = `requested ${amount} from ${who}${comment && ` for ${comment}`}`;
             break;
         case CONST.IOU.REPORT_ACTION_TYPE.SPLIT:
-            iouMessage = `Split ${amount} with ${who}${comment && ` for ${comment}`}`;
+            iouMessage = `split ${amount} with ${who}${comment && ` for ${comment}`}`;
             break;
         case CONST.IOU.REPORT_ACTION_TYPE.DELETE:
             iouMessage = `deleted the ${amount} request${comment && ` for ${comment}`}`;
             break;
         case CONST.IOU.REPORT_ACTION_TYPE.PAY:
             iouMessage = isSettlingUp
-                ? `Settled up${paymentMethodMessage}`
-                : `Sent ${amount}${comment && ` for ${comment}`}${paymentMethodMessage}`;
+                ? `settled up${paymentMethodMessage}`
+                : `sent ${amount}${comment && ` for ${comment}`}${paymentMethodMessage}`;
             break;
         default:
             break;
