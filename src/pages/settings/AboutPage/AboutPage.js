@@ -21,6 +21,7 @@ import getPlatformSpecificMenuItems from './getPlatformSpecificMenuItems';
 import compose from '../../../libs/compose';
 import * as ReportActionContextMenu from '../../home/report/ContextMenu/ReportActionContextMenu';
 import {CONTEXT_MENU_TYPES} from '../../home/report/ContextMenu/ContextMenuActions';
+import * as Environment from '../../../libs/Environment/Environment';
 
 const propTypes = {
     ...withLocalizePropTypes,
@@ -99,7 +100,7 @@ const AboutPage = (props) => {
                                         ]}
                                     >
                                         v
-                                        {pkg.version}
+                                        {Environment.isInternalTestBuild() ? `${pkg.version} PR:${CONST.PULL_REQUEST_NUMBER}` : pkg.version}
                                     </Text>
                                     <Text style={[styles.baseFontStyle, styles.mv5]}>
                                         {props.translate('initialSettingsPage.aboutPage.description')}

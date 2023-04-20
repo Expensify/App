@@ -1,4 +1,4 @@
-import {Keyboard, View} from 'react-native';
+import {Keyboard, View, PanResponder} from 'react-native';
 import React from 'react';
 import _ from 'underscore';
 import {withOnyx} from 'react-native-onyx';
@@ -12,16 +12,25 @@ import HeaderGap from '../HeaderGap';
 import OfflineIndicator from '../OfflineIndicator';
 import compose from '../../libs/compose';
 import withNavigation from '../withNavigation';
-import withWindowDimensions from '../withWindowDimensions';
 import ONYXKEYS from '../../ONYXKEYS';
 import {withNetwork} from '../OnyxProvider';
 import {propTypes, defaultProps} from './propTypes';
 import SafeAreaConsumer from '../SafeAreaConsumer';
+import TestToolsModal from '../TestToolsModal';
 import withKeyboardState from '../withKeyboardState';
+import withWindowDimensions from '../withWindowDimensions';
+import withEnvironment from '../withEnvironment';
+import toggleTestToolsModal from '../../libs/actions/TestTool';
+import CustomDevMenu from '../CustomDevMenu';
 
 class ScreenWrapper extends React.Component {
     constructor(props) {
         super(props);
+
+        this.panResponder = PanResponder.create({
+            onStartShouldSetPanResponderCapture: (e, gestureState) => gestureState.numberActiveTouches === CONST.TEST_TOOL.NUMBER_OF_TAPS,
+            onPanResponderRelease: toggleTestToolsModal,
+        });
 
         this.state = {
             didScreenTransitionEnd: false,
@@ -108,9 +117,13 @@ class ScreenWrapper extends React.Component {
                                 styles.flex1,
                                 paddingStyle,
                             ]}
+                            // eslint-disable-next-line react/jsx-props-no-spreading
+                            {...(this.props.environment === CONST.ENVIRONMENT.DEV ? this.panResponder.panHandlers : {})}
                         >
                             <KeyboardAvoidingView style={[styles.w100, styles.h100, {maxHeight: this.props.windowHeight}]} behavior={this.props.keyboardAvoidingViewBehavior}>
                                 <HeaderGap />
+                                {(this.props.environment === CONST.ENVIRONMENT.DEV) && <TestToolsModal />}
+                                {(this.props.environment === CONST.ENVIRONMENT.DEV) && <CustomDevMenu />}
                                 {// If props.children is a function, call it to provide the insets to the children.
                                     _.isFunction(this.props.children)
                                         ? this.props.children({
@@ -137,6 +150,7 @@ ScreenWrapper.defaultProps = defaultProps;
 
 export default compose(
     withNavigation,
+    withEnvironment,
     withWindowDimensions,
     withKeyboardState,
     withOnyx({
