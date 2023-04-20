@@ -43,6 +43,7 @@ import toggleReportActionComposeView from '../../../libs/toggleReportActionCompo
 import OfflineIndicator from '../../../components/OfflineIndicator';
 import ExceededCommentLength from '../../../components/ExceededCommentLength';
 import withNavigationFocus from '../../../components/withNavigationFocus';
+import withNavigation from '../../../components/withNavigation';
 import * as EmojiUtils from '../../../libs/EmojiUtils';
 import ReportDropUI from './ReportDropUI';
 import DragAndDrop from '../../../components/DragAndDrop';
@@ -53,6 +54,7 @@ import ArrowKeyFocusManager from '../../../components/ArrowKeyFocusManager';
 import OfflineWithFeedback from '../../../components/OfflineWithFeedback';
 import KeyboardShortcut from '../../../libs/KeyboardShortcut';
 import * as ComposerUtils from '../../../libs/ComposerUtils';
+import * as Welcome from '../../../libs/actions/Welcome';
 import Permissions from '../../../libs/Permissions';
 
 const propTypes = {
@@ -180,6 +182,7 @@ class ReportActionCompose extends React.Component {
         this.insertSelectedEmoji = this.insertSelectedEmoji.bind(this);
         this.setExceededMaxCommentLength = this.setExceededMaxCommentLength.bind(this);
         this.updateNumberOfLines = this.updateNumberOfLines.bind(this);
+        this.showPopoverMenu = this.showPopoverMenu.bind(this);
         this.comment = props.comment;
 
         // React Native will retain focus on an input for native devices but web/mWeb behave differently so we have some focus management
@@ -234,6 +237,14 @@ class ReportActionCompose extends React.Component {
 
         this.setMaxLines();
         this.updateComment(this.comment);
+
+        // Shows Popover Menu on Workspace Chat at first sign-in
+        if (!this.props.disabled) {
+            Welcome.show({
+                routes: lodashGet(this.props.navigation.getState(), 'routes', []),
+                showPopoverMenu: this.showPopoverMenu,
+            });
+        }
     }
 
     componentDidUpdate(prevProps) {
@@ -708,6 +719,15 @@ class ReportActionCompose extends React.Component {
         this.props.onSubmit(comment);
     }
 
+    /**
+     * Used to show Popover menu on Workspace chat at first sign-in
+     * @returns {Boolean}
+     */
+    showPopoverMenu() {
+        this.setMenuVisibility(true);
+        return true;
+    }
+
     render() {
         const reportParticipants = _.without(lodashGet(this.props.report, 'participants', []), this.props.currentUserPersonalDetails.login);
         const participantsWithoutExpensifyEmails = _.difference(reportParticipants, CONST.EXPENSIFY_EMAILS);
@@ -976,6 +996,7 @@ ReportActionCompose.defaultProps = defaultProps;
 export default compose(
     withWindowDimensions,
     withDrawerState,
+    withNavigation,
     withNavigationFocus,
     withLocalize,
     withNetwork(),
