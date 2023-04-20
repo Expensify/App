@@ -7,7 +7,7 @@ import React, {
 import {AppState, Linking, Button} from 'react-native';
 import Onyx, {withOnyx} from 'react-native-onyx';
 
-import Reanimated, {useAnimatedReaction, useAnimatedStyle} from 'react-native-reanimated';
+import Reanimated from 'react-native-reanimated';
 import * as Report from './libs/actions/Report';
 import BootSplash from './libs/BootSplash';
 import * as ActiveClientManager from './libs/ActiveClientManager';
@@ -186,15 +186,7 @@ function Expensify(props) {
 
     if (themeContext == null) { throw new Error('You forgot to wrap this component with <ThemeContext.Provider />'); }
 
-    console.log('Background color');
-    console.log(themeContext.appBG.value);
     const backgroundColor = themeContext.appBG;
-
-    useAnimatedReaction(() => backgroundColor.value, v => console.log(v));
-
-    const animatedStyle = useAnimatedStyle(() => ({
-        backgroundColor: backgroundColor.value,
-    }));
 
     // Display a blank page until the onyx migration completes
     if (!isOnyxMigrated) {
@@ -234,8 +226,8 @@ function Expensify(props) {
             <Button title="Change color theme" onPress={() => Onyx.set(ONYXKEYS.COLOR_THEME, props.colorTheme === 'light' ? 'dark' : 'light')} />
 
             <Reanimated.View style={[{
-                width: 100, height: 100, position: 'absolute', left: 20, top: 20,
-            }, animatedStyle]}
+                width: 200, height: 200, position: 'absolute', left: 100, top: 100, backgroundColor,
+            }]}
             />
         </DeeplinkWrapper>
     );
