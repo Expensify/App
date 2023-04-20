@@ -107,8 +107,10 @@ class Onfido extends React.Component {
             language: {
                 locale: this.props.preferredLocale,
 
+                // Provide a custom phrase for the back button so that the first letter is capitalized,
+                // and translate the phrase while we're at it. See the issue and documentation for more context.
+                // https://github.com/Expensify/App/issues/17244
                 // https://documentation.onfido.com/sdk/web/#custom-languages
-                // See #17244 to know why we are customising this.
                 phrases: {
                     'generic.back': this.props.translate('common.back'),
                 },
