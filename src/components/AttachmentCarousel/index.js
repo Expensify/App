@@ -1,5 +1,5 @@
 import React from 'react';
-import {View, FlatList} from 'react-native';
+import {View, FlatList, PanResponder} from 'react-native';
 import PropTypes from 'prop-types';
 import {withOnyx} from 'react-native-onyx';
 import _ from 'underscore';
@@ -73,7 +73,7 @@ class AttachmentCarousel extends React.Component {
                     return false;
                 }
                 this.toggleArrowsDebounced();
-            },            
+            },
         });
     }
 
@@ -132,7 +132,6 @@ class AttachmentCarousel extends React.Component {
      * Toggles the visibility of the arrows (debounced)
      */
     toggleArrowsDebounced() {
-
         // Don't toggle arrows in a zoomed state
         if (this.state.isZoomed) {
             return;
@@ -247,7 +246,7 @@ class AttachmentCarousel extends React.Component {
                 {...props}
                 // eslint-disable-next-line react/jsx-props-no-spreading
                 {...this.panResponder.panHandlers}
-               style={style}
+                style={style}
             />
         );
     }
