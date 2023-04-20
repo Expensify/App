@@ -13,6 +13,7 @@ import * as ReportUtils from '../ReportUtils';
 import * as IOUUtils from '../IOUUtils';
 import * as OptionsListUtils from '../OptionsListUtils';
 import DateUtils from '../DateUtils';
+import TransactionUtils from '../TransactionUtils';
 
 const chatReports = {};
 const iouReports = {};
@@ -175,14 +176,37 @@ function requestMoney(report, amount, currency, recipientEmail, participant, com
         reportActionsFailureData.value[optimisticCreatedAction.reportActionID] = {pendingAction: null};
     }
 
+    const optimisticTransaction = TransactionUtils.buildOptimisticTransaction(amount, currency);
+    const optimisticTransactionData = {
+        onyxMethod: Onyx.METHOD.MERGE,
+        key: optimisticTransaction.transactionID,
+        value: optimisticTransaction,
+    };
+    const transactionSuccessData = {
+        onyxMethod: Onyx.METHOD.MERGE,
+        key: optimisticTransaction.transactionID,
+        value: {
+            pendingAction: null,
+        },
+    };
+    const transactionFailureData = {
+        pendingAction: null,
+        errors: {
+            [DateUtils.getMicroseconds()]: Localize.translateLocal('iou.error.genericCreateFailureMessage'),
+        },
+    };
+
+
     const optimisticData = [
         optimisticChatReportData,
         optimisticIOUReportData,
         optimisticReportActionsData,
+        optimisticTransactionData,
     ];
 
     const successData = [
         reportActionsSuccessData,
+        transactionSuccessData,
     ];
     if (!_.isEmpty(chatReportSuccessData)) {
         successData.push(chatReportSuccessData);
@@ -191,6 +215,7 @@ function requestMoney(report, amount, currency, recipientEmail, participant, com
     const failureData = [
         chatReportFailureData,
         reportActionsFailureData,
+        transactionFailureData,
     ];
 
     const parsedComment = ReportUtils.getParsedComment(comment);

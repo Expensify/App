@@ -1,3 +1,4 @@
+import CONST from '../CONST';
 import DateUtils from './DateUtils';
 import * as NumberUtils from './NumberUtils';
 
@@ -18,6 +19,7 @@ function buildOptimisticTransaction(amount, currency, comment = '') {
         amount,
         comment,
         created,
+        pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
     };
 }
 
