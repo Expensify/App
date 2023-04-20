@@ -56,7 +56,7 @@ class AttachmentCarousel extends React.Component {
         this.renderItem = this.renderItem.bind(this);
         this.renderCell = this.renderCell.bind(this);
         this.updatePage = this.updatePage.bind(this);
-        this.toggleZoomed = this.toggleZoomed.bind(this);
+        this.updateZoomState = this.updateZoomState.bind(this);
 
         this.state = {
             attachments: [],
@@ -231,7 +231,7 @@ class AttachmentCarousel extends React.Component {
             <AttachmentView
                 source={authSource}
                 file={item.file}
-                onScaleChanged={this.toggleZoomed}
+                onScaleChanged={this.updateZoomState}
                 onPress={() => this.setState(current => ({shouldShowArrow: !current.shouldShowArrow}))}
             />
         );
