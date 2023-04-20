@@ -191,6 +191,7 @@ const CONST = {
         POLICY_ROOMS: 'policyRooms',
         POLICY_EXPENSE_CHAT: 'policyExpenseChat',
         PASSWORDLESS: 'passwordless',
+        TASKS: 'tasks',
     },
     BUTTON_STATES: {
         DEFAULT: 'default',
@@ -466,6 +467,7 @@ const CONST = {
             CONFIRM: 'confirm',
             CENTERED: 'centered',
             CENTERED_UNSWIPEABLE: 'centered_unswipeable',
+            CENTERED_SMALL: 'centered_small',
             BOTTOM_DOCKED: 'bottom_docked',
             POPOVER: 'popover',
             RIGHT_DOCKED: 'right_docked',
@@ -491,6 +493,7 @@ const CONST = {
         WARM: 'warm',
         REPORT_ACTION_ITEM_LAYOUT_DEBOUNCE_TIME: 1500,
         SHOW_LOADING_SPINNER_DEBOUNCE_TIME: 250,
+        TEST_TOOLS_MODAL_THROTTLE_TIME: 800,
         TOOLTIP_SENSE: 1000,
         TRIE_INITIALIZATION: 'trie_initialization',
         COMMENT_LENGTH_DEBOUNCE_TIME: 500,
@@ -2198,9 +2201,17 @@ const CONST = {
         SAMPLE_INPUT: '123456.789',
         EXPECTED_OUTPUT: 'FCFA 123,457',
     },
+
     PATHS_TO_TREAT_AS_EXTERNAL: [
         'NewExpensify.dmg',
     ],
+
+    // Test tool menu parameters
+    TEST_TOOL: {
+        // Number of concurrent taps to open then the Test modal menu
+        NUMBER_OF_TAPS: 4,
+    },
+
     PAYPAL_SUPPORTED_CURRENCIES: [
         'AUD', 'BRL', 'CAD', 'CZK', 'DKK', 'EUR', 'HKD', 'HUF',
         'ILS', 'JPY', 'MYR', 'MXN', 'TWD', 'NZD', 'NOK', 'PHP',

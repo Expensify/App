@@ -6,7 +6,7 @@ import {AppState} from 'react-native';
  * @returns {Boolean}
  */
 function isVisible() {
-    return document.visibilityState === 'visible';
+    return document.visibilityState === 'visible' && document.hasFocus();
 }
 
 /**

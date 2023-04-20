@@ -1139,6 +1139,13 @@ export default {
             public_announce: 'Public Announce',
         },
     },
+    newTaskPage: {
+        assignTask: 'Assign task',
+        title: 'Title',
+        description: 'Description',
+        shareIn: 'Share in',
+        pleaseEnterTaskName: 'Please enter a title',
+    },
     statementPage: {
         generatingPDF: 'We\'re generating your PDF right now. Please come back later!',
     },
