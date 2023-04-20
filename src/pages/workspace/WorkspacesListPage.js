@@ -24,6 +24,7 @@ import Button from '../../components/Button';
 import FixedFooter from '../../components/FixedFooter';
 import BlockingView from '../../components/BlockingViews/BlockingView';
 import {withNetwork} from '../../components/OnyxProvider';
+import * as ReimbursementAccountProps from '../ReimbursementAccount/reimbursementAccountPropTypes';
 import * as ReportUtils from '../../libs/ReportUtils';
 
 const propTypes = {
@@ -47,6 +48,9 @@ const propTypes = {
         pendingAction: PropTypes.oneOf(_.values(CONST.RED_BRICK_ROAD_PENDING_ACTION)),
     })),
 
+    /** Bank account attached to free plan */
+    reimbursementAccount: ReimbursementAccountProps.reimbursementAccountPropTypes,
+
     /** List of policy members */
     policyMembers: PropTypes.objectOf(policyMemberPropType),
 
@@ -65,6 +69,7 @@ const propTypes = {
 const defaultProps = {
     policies: {},
     policyMembers: {},
+    reimbursementAccount: {},
     userWallet: {
         currentBalance: 0,
     },
@@ -116,6 +121,7 @@ class WorkspacesListPage extends Component {
      * @returns {Array} the menu item list
      */
     getWorkspaces() {
+        const reimbursementAccountBrickRoadIndicator = !_.isEmpty(this.props.reimbursementAccount.errors) ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : '';
         return _.chain(this.props.policies)
             .filter(policy => PolicyUtils.shouldShowPolicy(policy, this.props.network.isOffline))
             .map(policy => ({
@@ -125,7 +131,7 @@ class WorkspacesListPage extends Component {
                 action: () => Navigation.navigate(ROUTES.getWorkspaceInitialRoute(policy.id)),
                 iconFill: themeColors.textLight,
                 fallbackIcon: Expensicons.FallbackWorkspaceAvatar,
-                brickRoadIndicator: PolicyUtils.getPolicyBrickRoadIndicatorStatus(policy, this.props.policyMembers),
+                brickRoadIndicator: reimbursementAccountBrickRoadIndicator || PolicyUtils.getPolicyBrickRoadIndicatorStatus(policy, this.props.policyMembers),
                 pendingAction: policy.pendingAction,
                 errors: policy.errors,
                 dismissError: () => dismissWorkspaceError(policy.id, policy.pendingAction),
@@ -216,6 +222,9 @@ export default compose(
         },
         policyMembers: {
             key: ONYXKEYS.COLLECTION.POLICY_MEMBER_LIST,
+        },
+        reimbursementAccount: {
+            key: ONYXKEYS.REIMBURSEMENT_ACCOUNT,
         },
         userWallet: {
             key: ONYXKEYS.USER_WALLET,
