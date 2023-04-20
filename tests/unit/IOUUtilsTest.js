@@ -18,9 +18,9 @@ function createIOUReportAction(type, amount, currency, {IOUTransactionID, isOnli
         currency,
         'Test comment',
         [managerEmail],
-        '',
         IOUTransactionID,
-        iouReport.reportID,
+        '',
+        iouReport.reportID
     );
 
     // Default is to create requests offline, if this is specified then we need to remove the pendingAction

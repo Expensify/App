@@ -78,6 +78,7 @@ function requestMoney(report, amount, currency, recipientEmail, participant, com
 
     // Note: The created action must be optimistically generated before the IOU action so there's no chance that the created action appears after the IOU action in the chat
     const optimisticCreatedAction = ReportUtils.buildOptimisticCreatedReportAction(recipientEmail);
+    // TODO: optimistic TransactionID
     const optimisticReportAction = ReportUtils.buildOptimisticIOUReportAction(
         CONST.IOU.REPORT_ACTION_TYPE.CREATE,
         amount,
@@ -264,6 +265,7 @@ function createSplitsAndOnyxData(participants, currentUserLogin, amount, comment
 
     // Note: The created action must be optimistically generated before the IOU action so there's no chance that the created action appears after the IOU action in the chat
     const groupCreatedReportAction = ReportUtils.buildOptimisticCreatedReportAction(currentUserEmail);
+    // TODO: Optimistic transactionID
     const groupIOUReportAction = ReportUtils.buildOptimisticIOUReportAction(
         CONST.IOU.REPORT_ACTION_TYPE.SPLIT,
         Math.round(amount * 100),
@@ -375,6 +377,7 @@ function createSplitsAndOnyxData(participants, currentUserLogin, amount, comment
 
         // Note: The created action must be optimistically generated before the IOU action so there's no chance that the created action appears after the IOU action in the chat
         const oneOnOneCreatedReportAction = ReportUtils.buildOptimisticCreatedReportAction(currentUserEmail);
+        // TODO: optimistic transactionID
         const oneOnOneIOUReportAction = ReportUtils.buildOptimisticIOUReportAction(
             CONST.IOU.REPORT_ACTION_TYPE.CREATE,
             splitAmount,
@@ -580,8 +583,8 @@ function cancelMoneyRequest(chatReportID, iouReportID, type, moneyRequestAction)
         moneyRequestAction.originalMessage.currency,
         Str.htmlDecode(moneyRequestAction.originalMessage.comment),
         [],
-        '',
         transactionID,
+        '',
         iouReportID,
     );
 
@@ -714,15 +717,16 @@ function getSendMoneyParams(report, amount, currency, comment, paymentMethodType
 
     // Note: The created action must be optimistically generated before the IOU action so there's no chance that the created action appears after the IOU action in the chat
     const optimisticCreatedAction = ReportUtils.buildOptimisticCreatedReportAction(recipientEmail);
+    // TODO: optimistic transactionID
     const optimisticIOUReportAction = ReportUtils.buildOptimisticIOUReportAction(
         CONST.IOU.REPORT_ACTION_TYPE.PAY,
         amount,
         currency,
         comment,
         [recipient],
-        paymentMethodType,
         '',
-        optimisticIOUReport.reportID,
+        paymentMethodType,
+        optimisticIOUReport.reportID
     );
 
     // First, add data that will be used in all cases
@@ -829,16 +833,17 @@ function getSendMoneyParams(report, amount, currency, comment, paymentMethodType
  * @returns {Object}
  */
 function getPayMoneyRequestParams(chatReport, iouReport, recipient, paymentMethodType) {
+    // TODO: transactionID
     const optimisticIOUReportAction = ReportUtils.buildOptimisticIOUReportAction(
         CONST.IOU.REPORT_ACTION_TYPE.PAY,
         iouReport.total,
         iouReport.currency,
         '',
         [recipient],
-        paymentMethodType,
         '',
+        paymentMethodType,
         iouReport.reportID,
-        true,
+        true
     );
 
     const optimisticData = [
