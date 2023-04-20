@@ -66,7 +66,7 @@ const defaultProps = {
     forwardedRef: () => {},
     report: {},
     shouldDisableEmojiPicker: false,
-    numberOfLines: 1,
+    numberOfLines: undefined,
     preferredSkinTone: CONST.EMOJI_DEFAULT_SKIN_TONE,
 };
 
@@ -99,6 +99,17 @@ class ReportActionItemMessageEdit extends React.Component {
             isFocused: false,
             hasExceededMaxCommentLength: false,
         };
+    }
+
+    componentWillUnmount() {
+        // Skip if this is not the focused message so the other edit composer stays focused.
+        if (!this.state.isFocused) {
+            return;
+        }
+
+        // Show the main composer when the focused message is deleted from another client
+        // to prevent the main composer stays hidden until we swtich to another chat.
+        toggleReportActionComposeView(true, this.props.isSmallScreenWidth);
     }
 
     /**

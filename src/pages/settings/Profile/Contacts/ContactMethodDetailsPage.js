@@ -1,5 +1,6 @@
 import Str from 'expensify-common/lib/str';
 import lodashGet from 'lodash/get';
+import _ from 'underscore';
 import React, {Component} from 'react';
 import {View, ScrollView} from 'react-native';
 import PropTypes from 'prop-types';
@@ -16,6 +17,7 @@ import styles from '../../../../styles/styles';
 import * as Expensicons from '../../../../components/Icon/Expensicons';
 import Text from '../../../../components/Text';
 import OfflineWithFeedback from '../../../../components/OfflineWithFeedback';
+import DotIndicatorMessage from '../../../../components/DotIndicatorMessage';
 import ConfirmModal from '../../../../components/ConfirmModal';
 import * as User from '../../../../libs/actions/User';
 import TextInput from '../../../../components/TextInput';
@@ -81,6 +83,7 @@ class ContactMethodDetailsPage extends Component {
     constructor(props) {
         super(props);
 
+        this.deleteContactMethod = this.deleteContactMethod.bind(this);
         this.toggleDeleteModal = this.toggleDeleteModal.bind(this);
         this.confirmDeleteAndHideModal = this.confirmDeleteAndHideModal.bind(this);
         this.resendValidateCode = this.resendValidateCode.bind(this);
@@ -101,6 +104,17 @@ class ContactMethodDetailsPage extends Component {
      */
     getContactMethod() {
         return decodeURIComponent(lodashGet(this.props.route, 'params.contactMethod'));
+    }
+
+    /**
+     * Deletes the contact method if it has errors. Otherwise, it shows the confirmation alert and deletes it only if the user confirms.
+     */
+    deleteContactMethod() {
+        if (!_.isEmpty(lodashGet(this.props.loginList, [this.getContactMethod(), 'errorFields'], {}))) {
+            User.deleteContactMethod(this.getContactMethod());
+            return;
+        }
+        this.toggleDeleteModal(true);
     }
 
     /**
@@ -142,6 +156,12 @@ class ContactMethodDetailsPage extends Component {
 
     render() {
         const contactMethod = this.getContactMethod();
+
+        // replacing spaces with "hard spaces" to prevent breaking the number
+        const formattedContactMethod = Str.isSMSLogin(contactMethod)
+            ? this.props.formatPhoneNumber(contactMethod).replace(/ /g, '\u00A0')
+            : contactMethod;
+
         const loginData = this.props.loginList[contactMethod];
         if (!contactMethod || !loginData) {
             return <NotFoundPage />;
@@ -150,11 +170,12 @@ class ContactMethodDetailsPage extends Component {
         const isDefaultContactMethod = this.props.session.email === loginData.partnerUserID;
         const hasMagicCodeBeenSent = lodashGet(this.props.loginList, [contactMethod, 'validateCodeSent'], false);
         const formErrorText = this.state.formError ? this.props.translate(this.state.formError) : '';
+        const isFailedAddContactMethod = Boolean(lodashGet(loginData, 'errorFields.addedLogin'));
 
         return (
             <ScreenWrapper>
                 <HeaderWithCloseButton
-                    title={Str.removeSMSDomain(contactMethod)}
+                    title={formattedContactMethod}
                     shouldShowBackButton
                     onBackButtonPress={() => Navigation.navigate(ROUTES.SETTINGS_CONTACT_METHODS)}
                     onCloseButtonPress={() => Navigation.dismissModal(true)}
@@ -169,13 +190,14 @@ class ContactMethodDetailsPage extends Component {
                         isVisible={this.state.isDeleteModalOpen}
                         danger
                     />
-                    {!loginData.validatedDate && (
+                    {isFailedAddContactMethod && <DotIndicatorMessage style={[styles.mh5]} messages={ErrorUtils.getLatestErrorField(loginData, 'addedLogin')} type="error" />}
+                    {!loginData.validatedDate && !isFailedAddContactMethod && (
                         <View style={[styles.ph5, styles.mt3, styles.mb7]}>
                             <View style={[styles.flexRow, styles.alignItemsCenter, styles.mb1]}>
                                 <Icon src={Expensicons.DotIndicator} fill={colors.green} />
                                 <View style={[styles.flex1, styles.ml4]}>
                                     <Text>
-                                        {this.props.translate('contacts.enterMagicCode', {contactMethod})}
+                                        {this.props.translate('contacts.enterMagicCode', {contactMethod: formattedContactMethod})}
                                     </Text>
                                 </View>
                             </View>
@@ -235,7 +257,7 @@ class ContactMethodDetailsPage extends Component {
                                 title={this.props.translate('common.remove')}
                                 icon={Expensicons.Trashcan}
                                 iconFill={themeColors.danger}
-                                onPress={() => this.toggleDeleteModal(true)}
+                                onPress={this.deleteContactMethod}
                             />
                         </OfflineWithFeedback>
                     )}

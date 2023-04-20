@@ -71,6 +71,12 @@ jobs:
         with:
           ref: ${{ github.event.pull_request.head.sha || needs.getBranchRef.outputs.REF }}
 
+      - name: Create .env.adhoc file based on staging and add PULL_REQUEST_NUMBER env to it
+        run: |
+          cp .env.staging .env.adhoc
+          sed -i 's/ENVIRONMENT=staging/ENVIRONMENT=adhoc/' .env.adhoc  
+          echo "PULL_REQUEST_NUMBER=$PULL_REQUEST_NUMBER" >> .env.adhoc
+
       - uses: Expensify/App/.github/actions/composite/setupNode@main
 
       - uses: ruby/setup-ruby@eae47962baca661befdfd24e4d6c34ade04858f7
@@ -120,6 +126,12 @@ jobs:
       - uses: actions/checkout@93ea575cb5d8a053eaa0ac8fa3b40d7e05a33cc8
         with:
           ref: ${{ github.event.pull_request.head.sha || needs.getBranchRef.outputs.REF }}
+
+      - name: Create .env.adhoc file based on staging and add PULL_REQUEST_NUMBER env to it
+        run: |
+          cp .env.staging .env.adhoc
+          sed -i '' 's/ENVIRONMENT=staging/ENVIRONMENT=adhoc/' .env.adhoc  
+          echo "PULL_REQUEST_NUMBER=$PULL_REQUEST_NUMBER" >> .env.adhoc
 
       - uses: Expensify/App/.github/actions/composite/setupNode@main
 
@@ -178,6 +190,12 @@ jobs:
           ref: ${{ github.event.pull_request.head.sha || needs.getBranchRef.outputs.REF }}
           fetch-depth: 0
 
+      - name: Create .env.adhoc file based on staging and add PULL_REQUEST_NUMBER env to it
+        run: |
+          cp .env.staging .env.adhoc
+          sed -i '' 's/ENVIRONMENT=staging/ENVIRONMENT=adhoc/' .env.adhoc  
+          echo "PULL_REQUEST_NUMBER=$PULL_REQUEST_NUMBER" >> .env.adhoc
+
       - uses: Expensify/App/.github/actions/composite/setupNode@main
 
       - name: Decrypt Developer ID Certificate
@@ -192,7 +210,7 @@ jobs:
           AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
 
       - name: Build desktop app for testing
-        run: npm run desktop-build-internal -- --publish always
+        run: npm run desktop-build-adhoc -- --publish always
         env:
           CSC_LINK: ${{ secrets.CSC_LINK }}
           CSC_KEY_PASSWORD: ${{ secrets.CSC_KEY_PASSWORD }}
@@ -214,6 +232,12 @@ jobs:
           fetch-depth: 0
           ref: ${{ github.event.pull_request.head.sha || needs.getBranchRef.outputs.REF }}
 
+      - name: Create .env.adhoc file based on staging and add PULL_REQUEST_NUMBER env to it
+        run: |
+          cp .env.staging .env.adhoc
+          sed -i 's/ENVIRONMENT=staging/ENVIRONMENT=adhoc/' .env.adhoc  
+          echo "PULL_REQUEST_NUMBER=$PULL_REQUEST_NUMBER" >> .env.adhoc
+
       - uses: Expensify/App/.github/actions/composite/setupNode@main
 
       - name: Configure AWS Credentials
@@ -223,7 +247,7 @@ jobs:
           AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
 
       - name: Build web for testing
-        run: npm run build-staging
+        run: npm run build-adhoc
 
       - name: Build docs
         run: npm run storybook-build

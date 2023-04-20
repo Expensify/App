@@ -277,7 +277,11 @@ class BaseTextInput extends Component {
                                     )}
                                     <RNTextInput
                                         ref={(ref) => {
-                                            if (typeof this.props.innerRef === 'function') { this.props.innerRef(ref); }
+                                            if (typeof this.props.innerRef === 'function') {
+                                                this.props.innerRef(ref);
+                                            } else if (this.props.innerRef && _.has(this.props.innerRef, 'current')) {
+                                                this.props.innerRef.current = ref;
+                                            }
                                             this.input = ref;
                                         }}
                                         // eslint-disable-next-line
@@ -316,7 +320,7 @@ class BaseTextInput extends Component {
                                         dataSet={{submitOnEnter: this.props.multiline && this.props.submitOnEnter}}
 
                                     />
-                                    {this.props.secureTextEntry && (
+                                    {Boolean(this.props.secureTextEntry) && (
                                         <Checkbox
                                             style={styles.textInputIconContainer}
                                             onPress={this.togglePasswordVisibility}
@@ -328,7 +332,7 @@ class BaseTextInput extends Component {
                                             />
                                         </Checkbox>
                                     )}
-                                    {!this.props.secureTextEntry && this.props.icon && (
+                                    {!this.props.secureTextEntry && Boolean(this.props.icon) && (
                                         <View style={[styles.textInputIconContainer, styles.cursorPointer]}>
                                             <Icon
                                                 src={this.props.icon}

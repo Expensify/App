@@ -15,10 +15,10 @@ import * as Authentication from '../../Authentication';
 import * as Welcome from '../Welcome';
 import * as API from '../../API';
 import * as NetworkStore from '../../Network/NetworkStore';
-import * as Report from '../Report';
 import DateUtils from '../../DateUtils';
 import Navigation from '../../Navigation/Navigation';
 import * as Device from '../Device';
+import subscribeToReportCommentPushNotifications from '../../Notification/PushNotification/subscribeToReportCommentPushNotifications';
 import ROUTES from '../../../ROUTES';
 
 let credentials = {};
@@ -41,7 +41,7 @@ Onyx.connect({
 
             // Prevent issue where report linking fails after users switch accounts without closing the app
             PushNotification.init();
-            Report.subscribeToReportCommentPushNotifications();
+            subscribeToReportCommentPushNotifications();
         } else {
             PushNotification.deregister();
             PushNotification.clearNotifications();
@@ -104,7 +104,7 @@ function resendValidationLink(login = credentials.login) {
         key: ONYXKEYS.ACCOUNT,
         value: {
             isLoading: false,
-            message: Localize.translateLocal('resendValidationForm.linkHasBeenResent'),
+            message: 'resendValidationForm.linkHasBeenResent',
         },
     }];
     const failureData = [{
@@ -139,7 +139,7 @@ function resendValidateCode(login = credentials.login) {
         key: ONYXKEYS.ACCOUNT,
         value: {
             isLoading: false,
-            message: Localize.translateLocal('validateCodeForm.codeSent'),
+            message: 'validateCodeForm.codeSent',
         },
     }];
     const failureData = [{
@@ -491,7 +491,7 @@ function resendResetPassword() {
                 key: ONYXKEYS.ACCOUNT,
                 value: {
                     isLoading: false,
-                    message: Localize.translateLocal('resendValidationForm.linkHasBeenResent'),
+                    message: 'resendValidationForm.linkHasBeenResent',
                 },
             },
         ],
