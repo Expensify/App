@@ -323,13 +323,13 @@ class ReportActionItem extends Component {
                                             <ReportActionItemSingle
                                                 action={this.props.action}
                                                 showHeader={!this.props.draftMessage}
-                                                wrapperStyles={[styles.chatItem, isWhisper ? styles.pt1 : null]}
+                                                wrapperStyles={[styles.chatItem, isWhisper ? styles.pt1 : {}]}
                                             >
                                                 {this.renderItemContent(hovered || this.state.isContextMenuActive)}
                                             </ReportActionItemSingle>
                                         )
                                         : (
-                                            <ReportActionItemGrouped wrapperStyles={[styles.chatItem, isWhisper ? styles.pt1 : null]}>
+                                            <ReportActionItemGrouped wrapperStyles={[styles.chatItem, isWhisper ? styles.pt1 : {}]}>
                                                 {this.renderItemContent(hovered || this.state.isContextMenuActive)}
                                             </ReportActionItemGrouped>
                                         )}
