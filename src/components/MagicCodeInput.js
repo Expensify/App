@@ -182,27 +182,39 @@ class MagicCodeInput extends React.PureComponent {
                 // If the currently focused index already has a value, it will delete
                 // that value but maintain the focus on the same input.
                 if (numbers[focusedIndex] !== CONST.MAGIC_CODE_EMPTY_CHAR) {
+                    const newNumbers = [
+                        ...numbers.slice(0, focusedIndex),
+                        CONST.MAGIC_CODE_EMPTY_CHAR,
+                        ...numbers.slice(focusedIndex + 1, CONST.MAGIC_CODE_LENGTH),
+                    ];
                     return {
                         input: '',
-                        numbers: [
-                            ...numbers.slice(0, focusedIndex),
-                            CONST.MAGIC_CODE_EMPTY_CHAR,
-                            ...numbers.slice(focusedIndex + 1, CONST.MAGIC_CODE_LENGTH),
-                        ],
+                        numbers: newNumbers,
                     };
                 }
 
-                // Deletes the value of the previous input and focuses on it.
                 const hasInputs = _.filter(numbers, n => ValidationUtils.isNumeric(n)).length !== 0;
+                let newNumbers = numbers;
+
+                // Fill the array with empty characters if there are no inputs.
+                if (focusedIndex === 0 && !hasInputs) {
+                    newNumbers = Array(CONST.MAGIC_CODE_LENGTH).fill(CONST.MAGIC_CODE_EMPTY_CHAR);
+
+                // Deletes the value of the previous input and focuses on it.
+                } else if (focusedIndex !== 0) {
+                    newNumbers = [
+                        ...numbers.slice(0, Math.max(0, focusedIndex - 1)),
+                        CONST.MAGIC_CODE_EMPTY_CHAR,
+                        ...numbers.slice(focusedIndex, CONST.MAGIC_CODE_LENGTH),
+                    ];
+                }
+
+                // Saves the input string so that it can compare to the change text
+                // event that will be triggered, this is a workaround for mobile that
+                // triggers the change text on the event after the key press.
                 return {
                     input: '',
-                    numbers: focusedIndex === 0 && !hasInputs
-                        ? Array(CONST.MAGIC_CODE_LENGTH).fill(CONST.MAGIC_CODE_EMPTY_CHAR)
-                        : [
-                            ...numbers.slice(0, focusedIndex - 1),
-                            CONST.MAGIC_CODE_EMPTY_CHAR,
-                            ...numbers.slice(focusedIndex, CONST.MAGIC_CODE_LENGTH),
-                        ],
+                    numbers: newNumbers,
                     focusedIndex: Math.max(0, focusedIndex - 1),
                     editIndex: Math.max(0, focusedIndex - 1),
                 };
