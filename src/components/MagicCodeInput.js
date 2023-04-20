@@ -4,6 +4,7 @@ import PropTypes from 'prop-types';
 import _ from 'underscore';
 import styles from '../styles/styles';
 import * as ValidationUtils from '../libs/ValidationUtils';
+import getPlatform from '../libs/getPlatform';
 import CONST from '../CONST';
 import Text from './Text';
 import TextInput from './TextInput';
@@ -153,11 +154,16 @@ class MagicCodeInput extends React.PureComponent {
                 numbers,
                 focusedIndex,
                 input: value,
-                editIndex: prevState.editIndex,
             };
         }, () => {
             const finalInput = this.composeToString(this.state.numbers);
             this.props.onChangeText(finalInput);
+
+            // Only focus on web, since focusing on mobile it will cause flickering when
+            // fast typing.
+            if (getPlatform() === CONST.PLATFORM.WEB) {
+                this.inputRefs[this.state.focusedIndex].focus();
+            }
 
             // Blurs the input and removes focus from the last input and, if it should submit
             // on complete, it will call the onFulfill callback.
@@ -190,6 +196,7 @@ class MagicCodeInput extends React.PureComponent {
                     return {
                         input: '',
                         numbers: newNumbers,
+                        editIndex: focusedIndex,
                     };
                 }
 
@@ -218,19 +225,18 @@ class MagicCodeInput extends React.PureComponent {
                     focusedIndex: Math.max(0, focusedIndex - 1),
                     editIndex: Math.max(0, focusedIndex - 1),
                 };
+            }, () => {
+                if (_.isUndefined(this.state.focusedIndex)) {
+                    return;
+                }
+                this.inputRefs[this.state.focusedIndex].focus();
             });
-        } else if (keyValue === 'ArrowLeft') {
-            this.setState(prevState => ({
-                input: '',
-                focusedIndex: prevState.focusedIndex - 1,
-                editIndex: prevState.focusedIndex - 1,
-            }));
-        } else if (keyValue === 'ArrowRight') {
-            this.setState(prevState => ({
-                input: '',
-                focusedIndex: prevState.focusedIndex + 1,
-                editIndex: prevState.focusedIndex + 1,
-            }));
+        } else if (keyValue === 'ArrowLeft' && !_.isUndefined(this.state.focusedIndex)) {
+            this.inputRefs[Math.max(0, this.state.focusedIndex - 1)].focus();
+            this.setState({input: ''});
+        } else if (keyValue === 'ArrowRight' && !_.isUndefined(this.state.focusedIndex)) {
+            this.inputRefs[Math.min(this.state.focusedIndex + 1, CONST.MAGIC_CODE_LENGTH - 1)].focus();
+            this.setState({input: ''});
         } else if (keyValue === 'Enter') {
             this.setState({input: ''});
             this.props.onFulfill(this.composeToString(this.state.numbers));
@@ -291,7 +297,16 @@ class MagicCodeInput extends React.PureComponent {
                                     hideFocusedState
                                     autoComplete={index === 0 ? this.props.autoComplete : 'off'}
                                     keyboardType={CONST.KEYBOARD_TYPE.NUMBER_PAD}
-                                    onChangeText={this.onChangeText}
+                                    onChangeText={(value) => {
+                                        // Do not run when the event comes from an input that
+                                        // is not currently being responsible for the input,
+                                        // this is necessary to avoid calls when the input
+                                        // changes due to delete of characters.
+                                        if (index !== this.state.editIndex) {
+                                            return;
+                                        }
+                                        this.onChangeText(value);
+                                    }}
                                     onKeyPress={this.onKeyPress}
                                     onPress={event => this.onFocus(event, index)}
                                     onFocus={event => this.onFocus(event, index)}
