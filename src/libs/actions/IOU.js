@@ -34,7 +34,12 @@ let transactions = {};
 Onyx.connect({
     key: ONYXKEYS.COLLECTION.TRANSACTION,
     waitForCollectionCallback: true,
-    callback: val => transactions = val,
+    callback: (val) => {
+        if (!val) {
+            return;
+        }
+        transactions = val;
+    },
 });
 
 let preferredLocale = CONST.LOCALES.DEFAULT;
