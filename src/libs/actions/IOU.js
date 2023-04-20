@@ -761,16 +761,22 @@ function getSendMoneyParams(report, amount, currency, comment, paymentMethodType
     }
     const optimisticIOUReport = ReportUtils.buildOptimisticIOUReport(recipientEmail, managerEmail, amount, chatReport.reportID, currency, preferredLocale, true);
 
+    const optimisticTransaction = TransactionUtils.buildOptimisticTransaction(amount, currency, comment);
+    const optimisticTransactionData = {
+        onyxMethod: Onyx.METHOD.MERGE,
+        key: `${ONYXKEYS.COLLECTION.TRANSACTION}${optimisticTransaction.transactionID}`,
+        value: optimisticTransaction,
+    };
+
     // Note: The created action must be optimistically generated before the IOU action so there's no chance that the created action appears after the IOU action in the chat
     const optimisticCreatedAction = ReportUtils.buildOptimisticCreatedReportAction(recipientEmail);
-    // TODO: optimistic transactionID
     const optimisticIOUReportAction = ReportUtils.buildOptimisticIOUReportAction(
         CONST.IOU.REPORT_ACTION_TYPE.PAY,
         amount,
         currency,
         comment,
         [recipient],
-        '',
+        optimisticTransaction.transactionID,
         paymentMethodType,
         optimisticIOUReport.reportID
     );
@@ -813,6 +819,11 @@ function getSendMoneyParams(report, amount, currency, comment, paymentMethodType
                 },
             },
         },
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.TRANSACTION}${optimisticTransaction.transactionID}`,
+            value: {pendingAction: null},
+        }
     ];
 
     const failureData = [
@@ -824,6 +835,16 @@ function getSendMoneyParams(report, amount, currency, comment, paymentMethodType
                     errors: {
                         [DateUtils.getMicroseconds()]: Localize.translateLocal('iou.error.other'),
                     },
+                },
+            },
+        },
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.TRANSACTION}${optimisticTransaction.transactionID}`,
+            value: {
+                pendingAction: null,
+                errors: {
+                    [DateUtils.getMicroseconds()]: Localize.translateLocal('iou.error.other'),
                 },
             },
         },
@@ -861,7 +882,7 @@ function getSendMoneyParams(report, amount, currency, comment, paymentMethodType
             chatReportID: chatReport.reportID,
             reportActionID: optimisticIOUReportAction.reportActionID,
             paymentMethodType,
-            transactionID: optimisticIOUReportAction.originalMessage.IOUTransactionID,
+            transactionID: optimisticTransaction.transactionID,
             newIOUReportDetails,
             createdReportActionID: isNewChat ? optimisticCreatedAction.reportActionID : 0,
         },
