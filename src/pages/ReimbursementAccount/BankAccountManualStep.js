@@ -97,7 +97,6 @@ class BankAccountManualStep extends React.Component {
                         shouldDelayFocus={shouldDelayFocus}
                         inputID="routingNumber"
                         label={this.props.translate('bankAccount.routingNumber')}
-                        /* maybe update this? */
                         defaultValue={this.props.getDefaultStateForField('routingNumber', '')}
                         keyboardType={CONST.KEYBOARD_TYPE.NUMBER_PAD}
                         disabled={shouldDisableInputs}
@@ -108,7 +107,6 @@ class BankAccountManualStep extends React.Component {
                         inputID="accountNumber"
                         containerStyles={[styles.mt4]}
                         label={this.props.translate('bankAccount.accountNumber')}
-                        /* maybe update this? */
                         defaultValue={this.props.getDefaultStateForField('accountNumber', '')}
                         keyboardType={CONST.KEYBOARD_TYPE.NUMBER_PAD}
                         disabled={shouldDisableInputs}
@@ -131,7 +129,6 @@ class BankAccountManualStep extends React.Component {
                                 </TextLink>
                             </Text>
                         )}
-                        /* maybe update this? */
                         defaultValue={this.props.getDefaultStateForField('acceptTerms', false)}
                         shouldSaveDraft
                     />
