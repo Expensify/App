@@ -7,9 +7,10 @@ $color-highlightBG: $color-green-highlightBG;
 $color-borders: $color-green-borders;
 $color-icons: $color-green-icons;
 $color-text: $color-white;
-$color-link: $color-blue200;
-$color-link-hovered: $color-blue100;
+$color-link: $color-blue300;
+$color-link-hovered: $color-blue200;
 $color-success: $color-green400;
+$color-text-supporting: $color-light-gray-green;
 
 * {
     margin: 0;
@@ -72,7 +73,7 @@ html,
 body {
     height: 100%;
     min-height: 100%;
-    background: $color-highlightBG;
+    background: $color-appBG;
 }
 
 hr {
@@ -93,6 +94,7 @@ em {
 }
 
 a {
+    color: $color-link;
     text-decoration: none;
 
     img {
@@ -295,7 +297,6 @@ button {
 #content-area {
     display: flex;
     flex-direction: column;
-    background-color: $color-appBG;
     min-height: 100vh;
     margin-left: 0;
     padding: 80px 24px 0px 24px;
@@ -654,7 +655,7 @@ button {
     }
 
     &__fine-print {
-        color: $color-icons;
+        color: $color-text-supporting;
         font-size: 10px;
 
         a {
