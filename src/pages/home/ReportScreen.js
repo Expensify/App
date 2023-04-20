@@ -117,7 +117,6 @@ function getReportID(route) {
 let reportActionsListViewHeight = 0;
 
 class ReportScreen extends React.Component {
-
     constructor(props) {
         super(props);
 
@@ -316,7 +315,6 @@ class ReportScreen extends React.Component {
                                     reportActions={this.props.reportActions}
                                     report={this.props.report}
                                     isComposerFullSize={this.props.isComposerFullSize}
-                                    isDrawerOpen={this.props.isDrawerOpen}
                                     parentViewHeight={this.state.skeletonViewContainerHeight}
                                 />
                             )}

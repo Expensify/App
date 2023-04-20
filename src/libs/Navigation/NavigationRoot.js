@@ -55,15 +55,13 @@ function parseAndLogRoute(state) {
 
 const NavigationRoot = (props) => {
     useFlipper(navigationRef);
-    const stateRef = useRef(null);
+    const navigationStateRef = useRef(undefined);
 
-    const handleStateChange = (state) => {
-        stateRef.current = state;
+    const updateSavedNavigationStateAndLogRoute = (state) => {
+        navigationStateRef.current = state;
         props.updateCurrentReportId(state);
         parseAndLogRoute(state);
     };
-
-    const handleInitialState = () => stateRef.current;
 
     return (
         <NavigationContainer
@@ -73,8 +71,8 @@ const NavigationRoot = (props) => {
                     style={styles.navigatorFullScreenLoading}
                 />
             )}
-            onStateChange={handleStateChange}
-            initialState={handleInitialState()}
+            onStateChange={updateSavedNavigationStateAndLogRoute}
+            initialState={navigationStateRef.current}
             onReady={props.onReady}
             theme={navigationTheme}
             ref={navigationRef}

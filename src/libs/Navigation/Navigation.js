@@ -10,7 +10,7 @@ import ROUTES from '../../ROUTES';
 import linkingConfig from './linkingConfig';
 import navigationRef from './navigationRef';
 import NAVIGATORS from '../../NAVIGATORS';
-import getTopmostReportId from './getTopmostReportId';
+import originalGetTopmostReportId from './getTopmostReportId';
 import dismissKeyboardGoingBack from './dismissKeyboardGoingBack';
 
 let resolveNavigationIsReadyPromise;
@@ -37,6 +37,8 @@ function canNavigate(methodName, params = {}) {
     Log.hmmm(`[Navigation] ${methodName} failed because navigation ref was not yet ready`, params);
     return false;
 }
+
+const getTopmostReportId = (state = navigationRef.getState()) => originalGetTopmostReportId(state)
 
 /**
  * @private
@@ -212,7 +214,8 @@ export default {
     setIsReportScreenIsReady,
 
     // Re-exporting the getTopmostReportId here to fill in default value for state. The getTopmostReportId isn't defined in this file to avoid cyclic dependencies.
-    getTopmostReportId: (state = navigationRef.getState()) => getTopmostReportId(state),
+    // getTopmostReportId: (state = navigationRef.getState()) => getTopmostReportId(state),
+    getTopmostReportId,
     drawerGoBack,
 };
 

@@ -173,7 +173,6 @@ class AuthScreens extends React.Component {
                 // eslint-disable-next-line react/jsx-props-no-multi-spaces
                 keyboardHandlingEnabled={false}
             >
-                {/* The MainDrawerNavigator contains the SidebarScreen and ReportScreen */}
                 <RootStack.Screen
                     name={SCREENS.HOME}
                     options={{
