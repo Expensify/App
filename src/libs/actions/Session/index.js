@@ -668,7 +668,6 @@ function requestUnlinkValidationLink() {
         key: ONYXKEYS.ACCOUNT,
         value: {
             isLoading: false,
-            message: null,
         },
     }];
 
@@ -704,7 +703,6 @@ function unlinkLogin(accountID, validateCode) {
         key: ONYXKEYS.ACCOUNT,
         value: {
             isLoading: false,
-            message: null,
         },
     }];
 
