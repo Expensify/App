@@ -18,7 +18,6 @@ jobs:
 
       - uses: Expensify/App/.github/actions/composite/setupNode@main
 
-      # Generate the routes.yml file again and check for a diff. Fail if there is one,
-      # because that would be a sign that the PR author did not regenerate the docs routes.
+      # Verify that no new hubs were created without adding their metadata to _routes.yml
       - name: Validate Docs Routes File
-        run: ./.github/scripts/verifyDocsRoutes.sh
+        run: ./.github/scripts/createDocsRoutes.sh

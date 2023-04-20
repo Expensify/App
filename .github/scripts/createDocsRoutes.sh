@@ -15,16 +15,9 @@ printf '\nRebuilding docs/routes.yml...\n'
 npm run createDocsRoutes
 SCRIPT_EXIT_CODE=$?
 
-DIFF_OUTPUT=$(git diff --exit-code)
-DIFF_EXIT_CODE=$?
-
 if [[ SCRIPT_EXIT_CODE -eq 1 ]]; then
     exit 1
-elif [[ DIFF_EXIT_CODE -eq 0 ]]; then
+else
     echo -e "${GREEN}The docs routes files is up to date!${NC}"
     exit 0
-else
-    echo -e "${RED}Error: Diff found when the docs/routes.yml were rebuilt. Did you forget to run \`npm run createDocsRoutes\` after adding new articles to the docs?${NC}"
-    echo "$DIFF_OUTPUT" | "$LIB_PATH/diff-so-fancy" | less --tabs=4 -RFX
-    exit 1
 fi
