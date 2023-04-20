@@ -114,7 +114,8 @@ class ReportActionItem extends Component {
             || !_.isEqual(this.props.action, nextProps.action)
             || this.state.isContextMenuActive !== nextState.isContextMenuActive
             || lodashGet(this.props.report, 'statusNum') !== lodashGet(nextProps.report, 'statusNum')
-            || lodashGet(this.props.report, 'stateNum') !== lodashGet(nextProps.report, 'stateNum');
+            || lodashGet(this.props.report, 'stateNum') !== lodashGet(nextProps.report, 'stateNum')
+            || this.props.translate !== nextProps.translate;
     }
 
     componentDidUpdate(prevProps) {
