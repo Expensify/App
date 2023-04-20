@@ -113,7 +113,7 @@ const defaultProps = {
     iouReport: {},
     shouldHidePayButton: false,
     onPayButtonPressed: null,
-    onPreviewPressed: () => {},
+    onPreviewPressed: null,
     action: undefined,
     contextMenuAnchor: undefined,
     checkIfContextMenuActive: () => {},
