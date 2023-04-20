@@ -281,7 +281,7 @@ function getOptionData(reportID) {
         : '';
     lastMessageText += report ? lastMessageTextFromReport : '';
 
-    if (result.isPolicyExpenseChat && result.isArchivedRoom) {
+    if (result.isArchivedRoom && lastMessageText.length === 0) {
         const archiveReason = (lastReportActions[report.reportID] && lastReportActions[report.reportID].originalMessage && lastReportActions[report.reportID].originalMessage.reason)
             || CONST.REPORT.ARCHIVE_REASON.DEFAULT;
         lastMessageText = Localize.translate(preferredLocale, `reportArchiveReasons.${archiveReason}`, {
@@ -290,7 +290,7 @@ function getOptionData(reportID) {
         });
     }
 
-    if (result.isChatRoom || result.isPolicyExpenseChat) {
+    if ((result.isChatRoom || result.isPolicyExpenseChat) && !result.isArchivedRoom) {
         result.alternateText = lastMessageTextFromReport.length > 0 ? lastMessageText : Localize.translate(preferredLocale, 'report.noActivityYet');
     } else {
         if (!lastMessageText) {
