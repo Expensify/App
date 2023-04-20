@@ -542,6 +542,7 @@ function deleteMoneyRequest(chatReportID, iouReportID, moneyRequestAction) {
     const chatReport = chatReports[`${ONYXKEYS.COLLECTION.REPORT}${chatReportID}`];
     const iouReport = iouReports[`${ONYXKEYS.COLLECTION.REPORT}${iouReportID}`];
     const transactionID = moneyRequestAction.originalMessage.IOUTransactionID;
+    const transaction = transactions[];
 
     // Get the amount we are deleting
     const amount = moneyRequestAction.originalMessage.amount;
@@ -585,8 +586,11 @@ function deleteMoneyRequest(chatReportID, iouReportID, moneyRequestAction) {
             key: `${ONYXKEYS.COLLECTION.REPORT}${iouReportID}`,
             value: updatedIOUReport,
         },
-
-        // @TODO: need to update transactions key
+        {
+            onyxMethod: CONST.ONYX.METHOD.SET,
+            key: `${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`,
+            value: null,
+        },
     ];
     const successData = [
         {
@@ -612,6 +616,7 @@ function deleteMoneyRequest(chatReportID, iouReportID, moneyRequestAction) {
                 },
                 [moneyRequestAction.reportActionID]: moneyRequestAction,
             },
+            // rollback chatreport, ioureport, transactions??
         },
     ];
 
