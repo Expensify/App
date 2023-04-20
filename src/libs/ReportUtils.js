@@ -536,7 +536,7 @@ function getDefaultWorkspaceAvatar(workspaceName) {
  */
 function getOldDotDefaultAvatar(login = '') {
     if (login === CONST.EMAIL.CONCIERGE) {
-        return Expensicons.ConciergeAvatar;
+        return CONST.CONCIERGE_ICON_URL;
     }
 
     // There are 8 possible old dot default avatars, so we choose which one this user has based
@@ -643,7 +643,7 @@ function getIcons(report, personalDetails, policies, defaultIcon = null) {
         return [result];
     }
     if (isConciergeChatReport(report)) {
-        result.source = Expensicons.ConciergeAvatar;
+        result.source = CONST.CONCIERGE_ICON_URL;
         return [result];
     }
     if (isArchivedRoom(report)) {
