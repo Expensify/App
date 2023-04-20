@@ -1,4 +1,9 @@
-import React, {useCallback, useEffect, useMemo, forwardRef} from 'react';
+import React, {
+    useCallback,
+    useEffect,
+    useMemo,
+    forwardRef,
+} from 'react';
 import {Pressable} from 'react-native';
 import _ from 'lodash';
 import Accessibility from '../../../libs/Accessibility';

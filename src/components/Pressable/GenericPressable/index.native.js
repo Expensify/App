@@ -1,4 +1,4 @@
-import GenericPressable from './GenericPressable';
+import GenericPressable from './BaseGenericPressable';
 
 export default GenericPressable;
 

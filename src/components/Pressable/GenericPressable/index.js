@@ -1,6 +1,6 @@
 import React, {forwardRef} from 'react';
 import _ from 'lodash';
-import GenericPressable from './GenericPressable';
+import GenericPressable from './BaseGenericPressable';
 import GenericPressablePropTypes from './PropTypes';
 
 const WebGenericPressable = forwardRef((props, ref) => {
