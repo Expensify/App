@@ -671,6 +671,14 @@ const styles = {
         backgroundColor: themeColors.successHover,
     },
 
+    badgeAdHocSuccess: {
+        backgroundColor: themeColors.badgeAdHoc,
+    },
+
+    badgeAdHocSuccessPressed: {
+        backgroundColor: themeColors.badgeAdHocHover,
+    },
+
     badgeDanger: {
         backgroundColor: themeColors.danger,
     },
@@ -3086,6 +3094,10 @@ const styles = {
     validateCodeMessage: {
         width: variables.modalContentMaxWidth,
         textAlign: 'center',
+    },
+
+    whisper: {
+        backgroundColor: themeColors.cardBG,
     },
 
     popoverMaxWidth: {

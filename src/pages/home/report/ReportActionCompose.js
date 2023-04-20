@@ -43,6 +43,7 @@ import toggleReportActionComposeView from '../../../libs/toggleReportActionCompo
 import OfflineIndicator from '../../../components/OfflineIndicator';
 import ExceededCommentLength from '../../../components/ExceededCommentLength';
 import withNavigationFocus from '../../../components/withNavigationFocus';
+import withNavigation from '../../../components/withNavigation';
 import * as EmojiUtils from '../../../libs/EmojiUtils';
 import ReportDropUI from './ReportDropUI';
 import DragAndDrop from '../../../components/DragAndDrop';
@@ -52,6 +53,8 @@ import withKeyboardState, {keyboardStatePropTypes} from '../../../components/wit
 import ArrowKeyFocusManager from '../../../components/ArrowKeyFocusManager';
 import OfflineWithFeedback from '../../../components/OfflineWithFeedback';
 import KeyboardShortcut from '../../../libs/KeyboardShortcut';
+import * as Welcome from '../../../libs/actions/Welcome';
+import Permissions from '../../../libs/Permissions';
 
 const propTypes = {
     /** Beta features list */
@@ -173,10 +176,12 @@ class ReportActionCompose extends React.Component {
         this.setTextInputRef = this.setTextInputRef.bind(this);
         this.getInputPlaceholder = this.getInputPlaceholder.bind(this);
         this.getMoneyRequestOptions = this.getMoneyRequestOptions.bind(this);
+        this.getTaskOption = this.getTaskOption.bind(this);
         this.addAttachment = this.addAttachment.bind(this);
         this.insertSelectedEmoji = this.insertSelectedEmoji.bind(this);
         this.setExceededMaxCommentLength = this.setExceededMaxCommentLength.bind(this);
         this.updateNumberOfLines = this.updateNumberOfLines.bind(this);
+        this.showPopoverMenu = this.showPopoverMenu.bind(this);
         this.comment = props.comment;
 
         // React Native will retain focus on an input for native devices but web/mWeb behave differently so we have some focus management
@@ -231,6 +236,14 @@ class ReportActionCompose extends React.Component {
 
         this.setMaxLines();
         this.updateComment(this.comment);
+
+        // Shows Popover Menu on Workspace Chat at first sign-in
+        if (!this.props.disabled) {
+            Welcome.show({
+                routes: lodashGet(this.props.navigation.getState(), 'routes', []),
+                showPopoverMenu: this.showPopoverMenu,
+            });
+        }
     }
 
     componentDidUpdate(prevProps) {
@@ -389,6 +402,29 @@ class ReportActionCompose extends React.Component {
         if (this.state && this.state.shouldShowSuggestionMenu) {
             this.setState({shouldShowSuggestionMenu: false});
         }
+    }
+
+    /**
+     * Determines if we can show the task option
+     * @param {Array} reportParticipants
+     * @returns {Boolean}
+     */
+    getTaskOption(reportParticipants) {
+        // We only prevent the task option from showing if it's a DM and the other user is an Expensify default email
+        if (!Permissions.canUseTasks(this.props.betas) || (lodashGet(this.props.report, 'participants', []).length === 1 && _.some(reportParticipants, email => _.contains(
+            CONST.EXPENSIFY_EMAILS,
+            email,
+        )))) {
+            return [];
+        }
+
+        return [
+            {
+                icon: Expensicons.Task,
+                text: this.props.translate('newTaskPage.assignTask'),
+                onSelected: () => Navigation.navigate(ROUTES.getNewTaskRoute(this.props.reportID)),
+            },
+        ];
     }
 
     /**
@@ -686,6 +722,15 @@ class ReportActionCompose extends React.Component {
         this.props.onSubmit(comment);
     }
 
+    /**
+     * Used to show Popover menu on Workspace chat at first sign-in
+     * @returns {Boolean}
+     */
+    showPopoverMenu() {
+        this.setMenuVisibility(true);
+        return true;
+    }
+
     render() {
         const reportParticipants = _.without(lodashGet(this.props.report, 'participants', []), this.props.currentUserPersonalDetails.login);
         const participantsWithoutExpensifyEmails = _.difference(reportParticipants, CONST.EXPENSIFY_EMAILS);
@@ -798,7 +843,7 @@ class ReportActionCompose extends React.Component {
                                                     onClose={() => this.setMenuVisibility(false)}
                                                     onItemSelected={() => this.setMenuVisibility(false)}
                                                     anchorPosition={styles.createMenuPositionReportActionCompose}
-                                                    menuItems={[...this.getMoneyRequestOptions(reportParticipants),
+                                                    menuItems={[...this.getMoneyRequestOptions(reportParticipants), ...this.getTaskOption(reportParticipants),
                                                         {
                                                             icon: Expensicons.Paperclip,
                                                             text: this.props.translate('reportActionCompose.addAttachment'),
@@ -954,6 +999,7 @@ ReportActionCompose.defaultProps = defaultProps;
 export default compose(
     withWindowDimensions,
     withDrawerState,
+    withNavigation,
     withNavigationFocus,
     withLocalize,
     withNetwork(),

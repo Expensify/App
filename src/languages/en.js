@@ -121,6 +121,7 @@ export default {
         message: 'Message ',
         leaveRoom: 'Leave room',
         you: 'You',
+        youAfterPreposition: 'you',
         your: 'your',
         conciergeHelp: 'Please reach out to Concierge for help.',
         maxParticipantsReached: ({count}) => `You've selected the maximum number (${count}) of participants.`,
@@ -251,6 +252,7 @@ export default {
         editComment: 'Edit comment',
         deleteComment: 'Delete comment',
         deleteConfirmation: 'Are you sure you want to delete this comment?',
+        onlyVisible: 'Only visible to',
     },
     emojiReactions: {
         addReactionTooltip: 'Add reaction',
@@ -1144,6 +1146,13 @@ export default {
             public: 'Public',
             public_announce: 'Public Announce',
         },
+    },
+    newTaskPage: {
+        assignTask: 'Assign task',
+        title: 'Title',
+        description: 'Description',
+        shareIn: 'Share in',
+        pleaseEnterTaskName: 'Please enter a title',
     },
     statementPage: {
         generatingPDF: 'We\'re generating your PDF right now. Please come back later!',

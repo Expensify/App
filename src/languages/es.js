@@ -120,6 +120,7 @@ export default {
         message: 'Chatear con ',
         leaveRoom: 'Salir de la sala de chat',
         you: 'Tú',
+        youAfterPreposition: 'ti',
         your: 'tu',
         conciergeHelp: 'Por favor, contacta con Concierge para obtener ayuda.',
         maxParticipantsReached: ({count}) => `Has seleccionado el número máximo (${count}) de participantes.`,
@@ -250,6 +251,7 @@ export default {
         editComment: 'Editar comentario',
         deleteComment: 'Eliminar comentario',
         deleteConfirmation: '¿Estás seguro de que quieres eliminar este comentario?',
+        onlyVisible: 'Visible sólo para',
     },
     emojiReactions: {
         addReactionTooltip: 'Añadir una reacción',
@@ -1146,6 +1148,13 @@ export default {
             public_announce: 'Anuncio Público',
         },
     },
+    newTaskPage: {
+        assignTask: 'Asignar tarea',
+        title: 'Título',
+        description: 'Descripción',
+        shareIn: 'Compartir en',
+        pleaseEnterTaskName: 'Por favor introduce un título',
+    },
     statementPage: {
         generatingPDF: 'Estamos generando tu PDF ahora mismo. ¡Por favor, vuelve más tarde!',
     },
@@ -1457,7 +1466,7 @@ export default {
         },
         DC: {
             stateISO: 'DC',
-            stateName: 'District Of Columbia',
+            stateName: 'Distrito de Columbia',
         },
     },
     allCountries: {
