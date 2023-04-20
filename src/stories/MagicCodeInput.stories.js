@@ -22,12 +22,14 @@ AutoFocus.args = {
     label: 'Auto-focused magic code input',
     name: 'AutoFocus',
     autoFocus: true,
+    autoComplete: 'one-time-code',
 };
 
 const SubmitOnComplete = Template.bind({});
 SubmitOnComplete.args = {
     label: 'Submits when the magic code input is complete',
     name: 'SubmitOnComplete',
+    autoComplete: 'one-time-code',
     shouldSubmitOnComplete: true,
     onFulfill: () => console.debug('Submitted!'),
 };
