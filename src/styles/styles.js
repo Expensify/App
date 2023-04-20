@@ -2799,7 +2799,9 @@ const styles = {
 
     keyboardShortcutModalContainer: {
         maxHeight: '100%',
-        flex: '0 0 auto',
+        flexShrink: 0,
+        flexGrow: 0,
+        flexBasis: 'auto',
     },
 
     keyboardShortcutTableWrapper: {
