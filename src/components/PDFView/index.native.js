@@ -152,19 +152,17 @@ class PDFView extends Component {
                     </View>
                 )}
                 {this.state.shouldAttemptPDFLoad && (
-                    <View style={touchableStyles}>
-                        <PDF
-                            trustAllCerts={false}
-                            renderActivityIndicator={() => <FullScreenLoadingIndicator />}
-                            source={{uri: this.props.sourceURL}}
-                            style={pdfStyles}
-                            onError={this.handleFailureToLoadPDF}
-                            password={this.state.password}
-                            onLoadComplete={this.finishPDFLoad}
-                            onPageSingleTap={this.props.onPress}
-                            onScaleChanged={this.props.onScaleChanged}
-                        />
-                    </View>
+                    <PDF
+                        trustAllCerts={false}
+                        renderActivityIndicator={() => <FullScreenLoadingIndicator />}
+                        source={{uri: this.props.sourceURL}}
+                        style={pdfStyles}
+                        onError={this.handleFailureToLoadPDF}
+                        password={this.state.password}
+                        onLoadComplete={this.finishPDFLoad}
+                        onPageSingleTap={this.props.onPress}
+                        onScaleChanged={this.props.onScaleChanged}
+                    />
                 )}
                 {this.state.shouldRequestPassword && (
                     <KeyboardAvoidingView style={styles.flex1}>
