@@ -6,13 +6,13 @@ const pullRequestNumber = process.env.PULL_REQUEST_NUMBER;
 const s3Bucket = {
     production: 'expensify-cash',
     staging: 'staging-expensify-cash',
-    internal: 'ad-hoc-expensify-cash',
+    adhoc: 'ad-hoc-expensify-cash',
 };
 
 const s3Path = {
     production: '/',
     staging: '/',
-    internal: process.env.PULL_REQUEST_NUMBER
+    adhoc: process.env.PULL_REQUEST_NUMBER
         ? `/desktop/${pullRequestNumber}/`
         : '/',
 };
@@ -20,10 +20,10 @@ const s3Path = {
 const macIcon = {
     production: './desktop/icon.png',
     staging: './desktop/icon-stg.png',
-    internal: './desktop/icon-stg.png',
+    adhoc: './desktop/icon-adhoc.png',
 };
 
-const isCorrectElectronEnv = ['production', 'staging', 'internal'].includes(
+const isCorrectElectronEnv = ['production', 'staging', 'adhoc'].includes(
     process.env.ELECTRON_ENV,
 );
 

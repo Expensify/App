@@ -157,7 +157,7 @@ class CalendarPicker extends React.PureComponent {
                                                 StyleUtils.getButtonBackgroundColorStyle(getButtonState(hovered, pressed)),
                                             ]}
                                         >
-                                            <Text style={isDisabled ? styles.calendarButtonDisabled : styles.dayText}>{day}</Text>
+                                            <Text style={isDisabled ? styles.buttonOpacityDisabled : styles.dayText}>{day}</Text>
                                         </View>
                                     )}
                                 </Pressable>
