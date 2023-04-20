@@ -9,50 +9,52 @@ import {
 import _ from 'underscore';
 import lodashGet from 'lodash/get';
 import {withOnyx} from 'react-native-onyx';
-import styles from '../../../../styles/styles';
-import themeColors from '../../../../styles/themes/default';
-import Composer from '../../../../components/Composer';
-import ONYXKEYS from '../../../../ONYXKEYS';
-import Icon from '../../../../components/Icon';
-import * as Expensicons from '../../../../components/Icon/Expensicons';
-import AttachmentPicker from '../../../../components/AttachmentPicker';
-import * as Report from '../../../../libs/actions/Report';
-import ReportTypingIndicator from '../ReportTypingIndicator';
-import AttachmentModal from '../../../../components/AttachmentModal';
-import compose from '../../../../libs/compose';
-import PopoverMenu from '../../../../components/PopoverMenu';
-import withWindowDimensions, {windowDimensionsPropTypes} from '../../../../components/withWindowDimensions';
-import withDrawerState from '../../../../components/withDrawerState';
-import withLocalize, {withLocalizePropTypes} from '../../../../components/withLocalize';
-import willBlurTextInputOnTapOutside from '../../../../libs/willBlurTextInputOnTapOutside';
-import CONST from '../../../../CONST';
-import Navigation from '../../../../libs/Navigation/Navigation';
-import ROUTES from '../../../../ROUTES';
-import reportActionPropTypes from '../reportActionPropTypes';
-import * as ReportUtils from '../../../../libs/ReportUtils';
-import ReportActionComposeFocusManager from '../../../../libs/ReportActionComposeFocusManager';
-import participantPropTypes from '../../../../components/participantPropTypes';
-import ParticipantLocalTime from '../ParticipantLocalTime';
-import withCurrentUserPersonalDetails, {withCurrentUserPersonalDetailsPropTypes, withCurrentUserPersonalDetailsDefaultProps} from '../../../../components/withCurrentUserPersonalDetails';
-import {withNetwork, withPersonalDetails} from '../../../../components/OnyxProvider';
-import * as User from '../../../../libs/actions/User';
-import Tooltip from '../../../../components/Tooltip';
-import EmojiPickerButton from '../../../../components/EmojiPicker/EmojiPickerButton';
-import * as DeviceCapabilities from '../../../../libs/DeviceCapabilities';
-import toggleReportActionComposeView from '../../../../libs/toggleReportActionComposeView';
-import OfflineIndicator from '../../../../components/OfflineIndicator';
-import ExceededCommentLength from '../../../../components/ExceededCommentLength';
-import withNavigationFocus from '../../../../components/withNavigationFocus';
-import * as EmojiUtils from '../../../../libs/EmojiUtils';
-import ReportDropUI from '../ReportDropUI';
-import DragAndDrop from '../../../../components/DragAndDrop';
-import reportPropTypes from '../../../reportPropTypes';
-import EmojiSuggestions from '../../../../components/EmojiSuggestions';
-import withKeyboardState, {keyboardStatePropTypes} from '../../../../components/withKeyboardState';
-import ArrowKeyFocusManager from '../../../../components/ArrowKeyFocusManager';
-import KeyboardShortcut from '../../../../libs/KeyboardShortcut';
-import KeyDownAction from './keyDownAction';
-import OfflineWithFeedback from '../../../../components/OfflineWithFeedback';
+import styles from '../../../styles/styles';
+import themeColors from '../../../styles/themes/default';
+import Composer from '../../../components/Composer';
+import ONYXKEYS from '../../../ONYXKEYS';
+import Icon from '../../../components/Icon';
+import * as Expensicons from '../../../components/Icon/Expensicons';
+import AttachmentPicker from '../../../components/AttachmentPicker';
+import * as Report from '../../../libs/actions/Report';
+import ReportTypingIndicator from './ReportTypingIndicator';
+import AttachmentModal from '../../../components/AttachmentModal';
+import compose from '../../../libs/compose';
+import PopoverMenu from '../../../components/PopoverMenu';
+import withWindowDimensions, {windowDimensionsPropTypes} from '../../../components/withWindowDimensions';
+import withDrawerState from '../../../components/withDrawerState';
+import withLocalize, {withLocalizePropTypes} from '../../../components/withLocalize';
+import willBlurTextInputOnTapOutside from '../../../libs/willBlurTextInputOnTapOutside';
+import CONST from '../../../CONST';
+import Navigation from '../../../libs/Navigation/Navigation';
+import ROUTES from '../../../ROUTES';
+import reportActionPropTypes from './reportActionPropTypes';
+import * as ReportUtils from '../../../libs/ReportUtils';
+import ReportActionComposeFocusManager from '../../../libs/ReportActionComposeFocusManager';
+import participantPropTypes from '../../../components/participantPropTypes';
+import ParticipantLocalTime from './ParticipantLocalTime';
+import withCurrentUserPersonalDetails, {withCurrentUserPersonalDetailsPropTypes, withCurrentUserPersonalDetailsDefaultProps} from '../../../components/withCurrentUserPersonalDetails';
+import {withNetwork, withPersonalDetails} from '../../../components/OnyxProvider';
+import * as User from '../../../libs/actions/User';
+import Tooltip from '../../../components/Tooltip';
+import EmojiPickerButton from '../../../components/EmojiPicker/EmojiPickerButton';
+import * as DeviceCapabilities from '../../../libs/DeviceCapabilities';
+import toggleReportActionComposeView from '../../../libs/toggleReportActionComposeView';
+import OfflineIndicator from '../../../components/OfflineIndicator';
+import ExceededCommentLength from '../../../components/ExceededCommentLength';
+import withNavigationFocus from '../../../components/withNavigationFocus';
+import withNavigation from '../../../components/withNavigation';
+import * as EmojiUtils from '../../../libs/EmojiUtils';
+import ReportDropUI from './ReportDropUI';
+import DragAndDrop from '../../../components/DragAndDrop';
+import reportPropTypes from '../../reportPropTypes';
+import EmojiSuggestions from '../../../components/EmojiSuggestions';
+import withKeyboardState, {keyboardStatePropTypes} from '../../../components/withKeyboardState';
+import ArrowKeyFocusManager from '../../../components/ArrowKeyFocusManager';
+import OfflineWithFeedback from '../../../components/OfflineWithFeedback';
+import KeyboardShortcut from '../../../libs/KeyboardShortcut';
+import * as Welcome from '../../../libs/actions/Welcome';
+import Permissions from '../../../libs/Permissions';
 
 const propTypes = {
     /** Beta features list */
@@ -169,17 +171,17 @@ class ReportActionCompose extends React.Component {
         this.setIsFullComposerAvailable = this.setIsFullComposerAvailable.bind(this);
         this.focus = this.focus.bind(this);
         this.addEmojiToTextBox = this.addEmojiToTextBox.bind(this);
-        this.replaceSelectionWithInput = this.replaceSelectionWithInput.bind(this);
-        this.keydownListener = this.keydownListener.bind(this);
         this.onSelectionChange = this.onSelectionChange.bind(this);
         this.isEmojiCode = this.isEmojiCode.bind(this);
         this.setTextInputRef = this.setTextInputRef.bind(this);
         this.getInputPlaceholder = this.getInputPlaceholder.bind(this);
         this.getMoneyRequestOptions = this.getMoneyRequestOptions.bind(this);
+        this.getTaskOption = this.getTaskOption.bind(this);
         this.addAttachment = this.addAttachment.bind(this);
         this.insertSelectedEmoji = this.insertSelectedEmoji.bind(this);
         this.setExceededMaxCommentLength = this.setExceededMaxCommentLength.bind(this);
         this.updateNumberOfLines = this.updateNumberOfLines.bind(this);
+        this.showPopoverMenu = this.showPopoverMenu.bind(this);
         this.comment = props.comment;
 
         // React Native will retain focus on an input for native devices but web/mWeb behave differently so we have some focus management
@@ -209,13 +211,10 @@ class ReportActionCompose extends React.Component {
             isEmojiPickerLarge: false,
             composerHeight: 0,
             hasExceededMaxCommentLength: false,
-            isEmojiPickerVisible: false,
         };
     }
 
     componentDidMount() {
-        KeyDownAction.listenKeyDown(this.keydownListener);
-
         // This callback is used in the contextMenuActions to manage giving focus back to the compose input.
         // TODO: we should clean up this convoluted code and instead move focus management to something like ReportFooter.js or another higher up component
         ReportActionComposeFocusManager.onComposerFocus(() => {
@@ -237,6 +236,14 @@ class ReportActionCompose extends React.Component {
 
         this.setMaxLines();
         this.updateComment(this.comment);
+
+        // Shows Popover Menu on Workspace Chat at first sign-in
+        if (!this.props.disabled) {
+            Welcome.show({
+                routes: lodashGet(this.props.navigation.getState(), 'routes', []),
+                showPopoverMenu: this.showPopoverMenu,
+            });
+        }
     }
 
     componentDidUpdate(prevProps) {
@@ -271,9 +278,6 @@ class ReportActionCompose extends React.Component {
     }
 
     componentWillUnmount() {
-        if (this.keydownListener) {
-            KeyDownAction.removeListenKeyDown(this.keydownListener);
-        }
         ReportActionComposeFocusManager.clear();
 
         if (this.unsubscribeEscapeKey) {
@@ -401,6 +405,29 @@ class ReportActionCompose extends React.Component {
     }
 
     /**
+     * Determines if we can show the task option
+     * @param {Array} reportParticipants
+     * @returns {Boolean}
+     */
+    getTaskOption(reportParticipants) {
+        // We only prevent the task option from showing if it's a DM and the other user is an Expensify default email
+        if (!Permissions.canUseTasks(this.props.betas) || (lodashGet(this.props.report, 'participants', []).length === 1 && _.some(reportParticipants, email => _.contains(
+            CONST.EXPENSIFY_EMAILS,
+            email,
+        )))) {
+            return [];
+        }
+
+        return [
+            {
+                icon: Expensicons.Task,
+                text: this.props.translate('newTaskPage.assignTask'),
+                onSelected: () => Navigation.navigate(ROUTES.getNewTaskRoute(this.props.reportID)),
+            },
+        ];
+    }
+
+    /**
      * Clean data related to EmojiSuggestions
      */
     resetSuggestedEmojis() {
@@ -479,45 +506,6 @@ class ReportActionCompose extends React.Component {
         return _.size(this.props.reportActions) === 1;
     }
 
-    keydownListener(e) {
-        if (this.state.isFocused || this.state.isEmojiPickerVisible || this.props.modal.isVisible || this.props.isSmallScreenWidth) {
-            return;
-        }
-
-        // If the key pressed is non-character keys like Enter, Shift, ... do not focus
-        if (e.key.length > 1) {
-            return;
-        }
-
-        // If a key is pressed in combination with Meta, Control or Alt do not focus
-        if (e.metaKey || e.ctrlKey || e.altKey) {
-            return;
-        }
-
-        // If we're typing on another input/text area, do not focus
-        if (e.target.nodeName === 'INPUT' || e.target.nodeName === 'TEXTAREA') {
-            return;
-        }
-
-        this.focus();
-        this.replaceSelectionWithInput(e.key);
-    }
-
-    /**
-     * @param {String} text
-     */
-    replaceSelectionWithInput(text) {
-        const newComment = this.comment.slice(0, this.state.selection.start)
-            + text
-            + this.comment.slice(this.state.selection.end, this.comment.length);
-        this.setState(prevState => ({
-            selection: {
-                start: prevState.selection.start + text.length,
-                end: prevState.selection.start + text.length,
-            },
-        }), this.updateComment(newComment));
-    }
-
     /**
      * Callback for the emoji picker to add whatever emoji is chosen into the main input
      *
@@ -525,7 +513,16 @@ class ReportActionCompose extends React.Component {
      */
     addEmojiToTextBox(emoji) {
         const emojiWithSpace = `${emoji} `;
-        this.replaceSelectionWithInput(emojiWithSpace);
+        const newComment = this.comment.slice(0, this.state.selection.start)
+            + emojiWithSpace
+            + this.comment.slice(this.state.selection.end, this.comment.length);
+        this.setState(prevState => ({
+            selection: {
+                start: prevState.selection.start + emojiWithSpace.length,
+                end: prevState.selection.start + emojiWithSpace.length,
+            },
+        }));
+        this.updateComment(newComment);
     }
 
     /**
@@ -725,6 +722,15 @@ class ReportActionCompose extends React.Component {
         this.props.onSubmit(comment);
     }
 
+    /**
+     * Used to show Popover menu on Workspace chat at first sign-in
+     * @returns {Boolean}
+     */
+    showPopoverMenu() {
+        this.setMenuVisibility(true);
+        return true;
+    }
+
     render() {
         const reportParticipants = _.without(lodashGet(this.props.report, 'participants', []), this.props.currentUserPersonalDetails.login);
         const participantsWithoutExpensifyEmails = _.difference(reportParticipants, CONST.EXPENSIFY_EMAILS);
@@ -774,6 +780,7 @@ class ReportActionCompose extends React.Component {
                                                 <View style={[
                                                     styles.dFlex, styles.flexColumn,
                                                     (this.state.isFullComposerAvailable || this.props.isComposerFullSize) ? styles.justifyContentBetween : styles.justifyContentEnd,
+                                                    styles.chatItemAttachBorder,
                                                 ]}
                                                 >
                                                     {this.props.isComposerFullSize && (
@@ -814,22 +821,20 @@ class ReportActionCompose extends React.Component {
                                                         </Tooltip>
                                                     )}
                                                     <Tooltip text={this.props.translate('reportActionCompose.addAction')}>
-                                                        <View style={styles.chatItemAttachBorder}>
-                                                            <TouchableOpacity
-                                                                ref={el => this.actionButton = el}
-                                                                onPress={(e) => {
-                                                                    e.preventDefault();
+                                                        <TouchableOpacity
+                                                            ref={el => this.actionButton = el}
+                                                            onPress={(e) => {
+                                                                e.preventDefault();
 
-                                                                    // Drop focus to avoid blue focus ring.
-                                                                    this.actionButton.blur();
-                                                                    this.setMenuVisibility(true);
-                                                                }}
-                                                                style={styles.composerSizeButton}
-                                                                disabled={isBlockedFromConcierge || this.props.disabled}
-                                                            >
-                                                                <Icon src={Expensicons.Plus} />
-                                                            </TouchableOpacity>
-                                                        </View>
+                                                                // Drop focus to avoid blue focus ring.
+                                                                this.actionButton.blur();
+                                                                this.setMenuVisibility(true);
+                                                            }}
+                                                            style={styles.composerSizeButton}
+                                                            disabled={isBlockedFromConcierge || this.props.disabled}
+                                                        >
+                                                            <Icon src={Expensicons.Plus} />
+                                                        </TouchableOpacity>
                                                     </Tooltip>
                                                 </View>
                                                 <PopoverMenu
@@ -838,7 +843,7 @@ class ReportActionCompose extends React.Component {
                                                     onClose={() => this.setMenuVisibility(false)}
                                                     onItemSelected={() => this.setMenuVisibility(false)}
                                                     anchorPosition={styles.createMenuPositionReportActionCompose}
-                                                    menuItems={[...this.getMoneyRequestOptions(reportParticipants),
+                                                    menuItems={[...this.getMoneyRequestOptions(reportParticipants), ...this.getTaskOption(reportParticipants),
                                                         {
                                                             icon: Expensicons.Paperclip,
                                                             text: this.props.translate('reportActionCompose.addAttachment'),
@@ -921,10 +926,8 @@ class ReportActionCompose extends React.Component {
                                 isDisabled={isBlockedFromConcierge || this.props.disabled}
                                 onModalHide={() => {
                                     this.focus(true);
-                                    this.setState({isEmojiPickerVisible: false});
                                 }}
                                 onEmojiSelected={this.addEmojiToTextBox}
-                                onWillShow={() => this.setState({isEmojiPickerVisible: true})}
                             />
                         )}
                         <View
@@ -996,6 +999,7 @@ ReportActionCompose.defaultProps = defaultProps;
 export default compose(
     withWindowDimensions,
     withDrawerState,
+    withNavigation,
     withNavigationFocus,
     withLocalize,
     withNetwork(),

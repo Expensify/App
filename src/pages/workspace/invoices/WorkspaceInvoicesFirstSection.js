@@ -16,46 +16,39 @@ const propTypes = {
     ...withLocalizePropTypes,
 };
 
-const WorkspaceInvoicesFirstSection = (props) => {
-    const sendInvoiceUrl = encodeURI('reports?param={"createInvoice":true}');
-    const viewAllInvoicesUrl = `reports?policyID=${props.policyID}&from=all&type=invoice&showStates=Open,Processing,Approved,Reimbursed,Archived&isAdvancedFilterMode=true`;
-
-    return (
-        <Section
-            title={props.translate('workspace.invoices.invoiceClientsAndCustomers')}
-            icon={Illustrations.InvoiceBlue}
-            menuItems={[
-                {
-                    title: props.translate('workspace.invoices.sendInvoice'),
-                    onPress: () => Link.openOldDotLink(sendInvoiceUrl),
-                    icon: Expensicons.Send,
-                    shouldShowRightIcon: true,
-                    iconRight: Expensicons.NewWindow,
-                    wrapperStyle: [styles.cardMenuItem],
-                    link: () => Link.buildOldDotURL(sendInvoiceUrl),
-                },
-                {
-                    title: props.translate('workspace.invoices.viewAllInvoices'),
-                    onPress: () => (
-                        Link.openOldDotLink(viewAllInvoicesUrl)
-                    ),
-                    icon: Expensicons.Invoice,
-                    shouldShowRightIcon: true,
-                    iconRight: Expensicons.NewWindow,
-                    wrapperStyle: [styles.cardMenuItem],
-                    link: () => Link.buildOldDotURL(viewAllInvoicesUrl),
-                },
-            ]}
-            containerStyles={[styles.cardSection]}
-        >
-            <View style={[styles.mv3]}>
-                <Text>
-                    {props.translate('workspace.invoices.invoiceFirstSectionCopy')}
-                </Text>
-            </View>
-        </Section>
-    );
-};
+const WorkspaceInvoicesFirstSection = props => (
+    <Section
+        title={props.translate('workspace.invoices.invoiceClientsAndCustomers')}
+        icon={Illustrations.InvoiceBlue}
+        menuItems={[
+            {
+                title: props.translate('workspace.invoices.sendInvoice'),
+                onPress: () => Link.openOldDotLink(encodeURI('reports?param={"createInvoice":true}')),
+                icon: Expensicons.Send,
+                shouldShowRightIcon: true,
+                iconRight: Expensicons.NewWindow,
+                wrapperStyle: [styles.cardMenuItem],
+            },
+            {
+                title: props.translate('workspace.invoices.viewAllInvoices'),
+                onPress: () => (
+                    Link.openOldDotLink(`reports?policyID=${props.policyID}&from=all&type=invoice&showStates=Open,Processing,Approved,Reimbursed,Archived&isAdvancedFilterMode=true`)
+                ),
+                icon: Expensicons.Invoice,
+                shouldShowRightIcon: true,
+                iconRight: Expensicons.NewWindow,
+                wrapperStyle: [styles.cardMenuItem],
+            },
+        ]}
+        containerStyles={[styles.cardSection]}
+    >
+        <View style={[styles.mv3]}>
+            <Text>
+                {props.translate('workspace.invoices.invoiceFirstSectionCopy')}
+            </Text>
+        </View>
+    </Section>
+);
 
 WorkspaceInvoicesFirstSection.propTypes = propTypes;
 WorkspaceInvoicesFirstSection.displayName = 'WorkspaceInvoicesFirstSection';
