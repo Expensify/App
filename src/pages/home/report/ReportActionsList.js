@@ -133,8 +133,8 @@ const ReportActionsList = (props) => {
     // Native mobile does not render updates flatlist the changes even though component did update called.
     // To notify there something changes we can use extraData prop to flatlist
     const extraData = [
-            (!this.props.isDrawerOpen && this.props.isSmallScreenWidth) ? this.props.newMarkerReportActionID : undefined ,
-            ReportUtils.isArchivedRoom(this.props.report)
+            (!props.isDrawerOpen && props.isSmallScreenWidth) ? props.newMarkerReportActionID : undefined ,
+            ReportUtils.isArchivedRoom(props.report)
         ];
     const shouldShowReportRecipientLocalTime = ReportUtils.canShowReportRecipientLocalTime(props.personalDetails, props.report);
     return (
