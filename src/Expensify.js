@@ -222,7 +222,7 @@ function Expensify(props) {
 
             <Button title="Change color theme" onPress={() => Onyx.set(ONYXKEYS.COLOR_THEME, props.colorTheme === 'light' ? 'dark' : 'light')} />
 
-            <Reanimated.View style={[{
+            <Reanimated.View style={{
                 width: 200,
                 height: 200,
                 position: 'absolute',
@@ -230,10 +230,9 @@ function Expensify(props) {
                 top: 100,
                 alignItems: 'center',
                 backgroundColor: theme.appBG,
-            }]}
+            }}
             >
                 <Reanimated.Text style={{textAlign: 'center', color: theme.text}}>Demonstration of dynamic theme from ThemeProvider</Reanimated.Text>
-
             </Reanimated.View>
         </DeeplinkWrapper>
     );
