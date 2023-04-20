@@ -10,6 +10,7 @@ const PLATFORM_OS_MACOS = 'Mac OS';
 const ANDROID_PACKAGE_NAME = 'com.expensify.chat';
 const USA_COUNTRY_NAME = 'United States';
 const CURRENT_YEAR = new Date().getFullYear();
+const PULL_REQUEST_NUMBER = lodashGet(Config, 'PULL_REQUEST_NUMBER', '');
 
 const CONST = {
     ANDROID_PACKAGE_NAME,
@@ -54,6 +55,8 @@ const CONST = {
         MAX_LENGTH: 50,
         RESERVED_FIRST_NAMES: ['Expensify', 'Concierge'],
     },
+
+    PULL_REQUEST_NUMBER,
 
     CALENDAR_PICKER: {
         // Numbers were arbitrarily picked.
@@ -694,6 +697,7 @@ const CONST = {
         DEV: 'development',
         STAGING: 'staging',
         PRODUCTION: 'production',
+        ADHOC: 'adhoc',
     },
 
     // Used to delay the initial fetching of reportActions when the app first inits or reconnects (e.g. returning
