@@ -68,7 +68,6 @@ const EmojiReactionBubble = (props) => {
         >
             <Text style={[
                 styles.emojiReactionBubbleText,
-                styles.userSelectNone,
                 StyleUtils.getEmojiReactionBubbleTextStyle(props.isContextMenu),
             ]}
             >
