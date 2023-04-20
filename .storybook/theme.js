@@ -18,4 +18,6 @@ export default create({
     appBorderColor: colors.greenBorders,
     inputBg: colors.greenHighlightBackground,
     inputBorder: colors.greenBorders,
+    appBorderRadius: 8,
+    inputBorderRadius: 8,
 });
