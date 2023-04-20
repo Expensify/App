@@ -30,7 +30,7 @@ Onyx.connect({
     },
 });
 
-const transactions = {};
+let transactions = {};
 Onyx.connect({
     key: ONYXKEYS.COLLECTION.TRANSACTION,
     waitForCollectionCallback: true,
