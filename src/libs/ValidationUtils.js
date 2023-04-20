@@ -292,6 +292,7 @@ function isValidUSPhone(phoneNumber = '', isCountryCodeOptional) {
     if (isCountryCodeOptional && !phone.startsWith('+')) {
         phone = `+1${phone}`;
     }
+
     const parsedPhoneNumber = parsePhoneNumber(phone);
     return parsedPhoneNumber.possible && parsedPhoneNumber.regionCode === CONST.COUNTRY.US;
 }
