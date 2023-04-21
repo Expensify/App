@@ -4,7 +4,6 @@ import PropTypes from 'prop-types';
 import _ from 'underscore';
 import styles from '../styles/styles';
 import * as ValidationUtils from '../libs/ValidationUtils';
-import getPlatform from '../libs/getPlatform';
 import CONST from '../CONST';
 import Text from './Text';
 import TextInput from './TextInput';
@@ -71,6 +70,7 @@ class MagicCodeInput extends React.PureComponent {
             numbers: props.value ? this.decomposeString(props.value) : Array(CONST.MAGIC_CODE_LENGTH).fill(CONST.MAGIC_CODE_EMPTY_CHAR),
         };
 
+        this.onFocus = this.onFocus.bind(this);
         this.onChangeText = this.onChangeText.bind(this);
         this.onKeyPress = this.onKeyPress.bind(this);
     }
@@ -115,7 +115,21 @@ class MagicCodeInput extends React.PureComponent {
      * @param {Object} event
      * @param {Number} index
      */
-    onFocus(event, index) {
+    onFocus(event) {
+        event.preventDefault();
+        this.setState({
+            input: '',
+        });
+    }
+
+    /**
+     * Callback for the onPress event, updates the indexes
+     * of the currently focused input.
+     *
+     * @param {Object} event
+     * @param {Number} index
+     */
+    onPress(event, index) {
         event.preventDefault();
         this.setState({
             input: '',
@@ -158,12 +172,6 @@ class MagicCodeInput extends React.PureComponent {
         }, () => {
             const finalInput = this.composeToString(this.state.numbers);
             this.props.onChangeText(finalInput);
-
-            // Only focus on web, since focusing on mobile it will cause flickering when
-            // fast typing.
-            if (getPlatform() === CONST.PLATFORM.WEB) {
-                this.inputRefs[this.state.focusedIndex].focus();
-            }
 
             // Blurs the input and removes focus from the last input and, if it should submit
             // on complete, it will call the onFulfill callback.
@@ -232,11 +240,17 @@ class MagicCodeInput extends React.PureComponent {
                 this.inputRefs[this.state.focusedIndex].focus();
             });
         } else if (keyValue === 'ArrowLeft' && !_.isUndefined(this.state.focusedIndex)) {
-            this.inputRefs[Math.max(0, this.state.focusedIndex - 1)].focus();
-            this.setState({input: ''});
+            this.setState(prevState => ({
+                input: '',
+                focusedIndex: Math.max(0, prevState.focusedIndex - 1),
+                editIndex: Math.max(0, prevState.focusedIndex - 1),
+            }), () => this.inputRefs[this.state.focusedIndex].focus());
         } else if (keyValue === 'ArrowRight' && !_.isUndefined(this.state.focusedIndex)) {
-            this.inputRefs[Math.min(this.state.focusedIndex + 1, CONST.MAGIC_CODE_LENGTH - 1)].focus();
-            this.setState({input: ''});
+            this.setState(prevState => ({
+                input: '',
+                focusedIndex: Math.min(prevState.focusedIndex + 1, CONST.MAGIC_CODE_LENGTH - 1),
+                editIndex: Math.min(prevState.focusedIndex + 1, CONST.MAGIC_CODE_LENGTH - 1),
+            }), () => this.inputRefs[this.state.focusedIndex].focus());
         } else if (keyValue === 'Enter') {
             this.setState({input: ''});
             this.props.onFulfill(this.composeToString(this.state.numbers));
@@ -298,19 +312,18 @@ class MagicCodeInput extends React.PureComponent {
                                     autoComplete={index === 0 ? this.props.autoComplete : 'off'}
                                     keyboardType={CONST.KEYBOARD_TYPE.NUMBER_PAD}
                                     onChangeText={(value) => {
-                                        // Do not run when the event comes from an input that
-                                        // is not currently being responsible for the input,
-                                        // this is necessary to avoid calls when the input
-                                        // changes due to delete of characters.
+                                        // Do not run when the event comes from an input that is
+                                        // not currently being responsible for the input, this is
+                                        // necessary to avoid calls when the input changes due to
+                                        // deleted characters. Only happens in mobile.
                                         if (index !== this.state.editIndex) {
                                             return;
                                         }
                                         this.onChangeText(value);
                                     }}
                                     onKeyPress={this.onKeyPress}
-                                    onPress={event => this.onFocus(event, index)}
-                                    onFocus={event => this.onFocus(event, index)}
-                                    onBlur={() => this.setState({focusedIndex: undefined})}
+                                    onPress={event => this.onPress(event, index)}
+                                    onFocus={this.onFocus}
                                 />
                             </View>
                         </View>
