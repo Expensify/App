@@ -10,6 +10,7 @@ const PLATFORM_OS_MACOS = 'Mac OS';
 const ANDROID_PACKAGE_NAME = 'com.expensify.chat';
 const USA_COUNTRY_NAME = 'United States';
 const CURRENT_YEAR = new Date().getFullYear();
+const PULL_REQUEST_NUMBER = lodashGet(Config, 'PULL_REQUEST_NUMBER', '');
 
 const CONST = {
     ANDROID_PACKAGE_NAME,
@@ -54,6 +55,8 @@ const CONST = {
         MAX_LENGTH: 50,
         RESERVED_FIRST_NAMES: ['Expensify', 'Concierge'],
     },
+
+    PULL_REQUEST_NUMBER,
 
     CALENDAR_PICKER: {
         // Numbers were arbitrarily picked.
@@ -301,6 +304,7 @@ const CONST = {
     PDF_VIEWER_URL: '/pdf/web/viewer.html',
     CLOUDFRONT_DOMAIN_REGEX: /^https:\/\/\w+\.cloudfront\.net/i,
     EXPENSIFY_ICON_URL: `${CLOUDFRONT_URL}/images/favicon-2019.png`,
+    CONCIERGE_ICON_URL: `${CLOUDFRONT_URL}/images/icons/concierge_2022.png`,
     UPWORK_URL: 'https://github.com/Expensify/App/issues?q=is%3Aopen+is%3Aissue+label%3A%22Help+Wanted%22',
     GITHUB_URL: 'https://github.com/Expensify/App',
     TERMS_URL: `${USE_EXPENSIFY_URL}/terms`,
@@ -467,6 +471,7 @@ const CONST = {
             CONFIRM: 'confirm',
             CENTERED: 'centered',
             CENTERED_UNSWIPEABLE: 'centered_unswipeable',
+            CENTERED_SMALL: 'centered_small',
             BOTTOM_DOCKED: 'bottom_docked',
             POPOVER: 'popover',
             RIGHT_DOCKED: 'right_docked',
@@ -492,6 +497,7 @@ const CONST = {
         WARM: 'warm',
         REPORT_ACTION_ITEM_LAYOUT_DEBOUNCE_TIME: 1500,
         SHOW_LOADING_SPINNER_DEBOUNCE_TIME: 250,
+        TEST_TOOLS_MODAL_THROTTLE_TIME: 800,
         TOOLTIP_SENSE: 1000,
         TRIE_INITIALIZATION: 'trie_initialization',
         COMMENT_LENGTH_DEBOUNCE_TIME: 500,
@@ -691,6 +697,7 @@ const CONST = {
         DEV: 'development',
         STAGING: 'staging',
         PRODUCTION: 'production',
+        ADHOC: 'adhoc',
     },
 
     // Used to delay the initial fetching of reportActions when the app first inits or reconnects (e.g. returning
@@ -2199,9 +2206,17 @@ const CONST = {
         SAMPLE_INPUT: '123456.789',
         EXPECTED_OUTPUT: 'FCFA 123,457',
     },
+
     PATHS_TO_TREAT_AS_EXTERNAL: [
         'NewExpensify.dmg',
     ],
+
+    // Test tool menu parameters
+    TEST_TOOL: {
+        // Number of concurrent taps to open then the Test modal menu
+        NUMBER_OF_TAPS: 4,
+    },
+
     PAYPAL_SUPPORTED_CURRENCIES: [
         'AUD', 'BRL', 'CAD', 'CZK', 'DKK', 'EUR', 'HKD', 'HUF',
         'ILS', 'JPY', 'MYR', 'MXN', 'TWD', 'NZD', 'NOK', 'PHP',

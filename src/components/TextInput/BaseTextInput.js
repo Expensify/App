@@ -277,7 +277,11 @@ class BaseTextInput extends Component {
                                     )}
                                     <RNTextInput
                                         ref={(ref) => {
-                                            if (typeof this.props.innerRef === 'function') { this.props.innerRef(ref); }
+                                            if (typeof this.props.innerRef === 'function') {
+                                                this.props.innerRef(ref);
+                                            } else if (this.props.innerRef && _.has(this.props.innerRef, 'current')) {
+                                                this.props.innerRef.current = ref;
+                                            }
                                             this.input = ref;
                                         }}
                                         // eslint-disable-next-line

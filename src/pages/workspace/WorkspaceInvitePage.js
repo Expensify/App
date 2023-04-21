@@ -106,8 +106,8 @@ class WorkspaceInvitePage extends React.Component {
 
     componentDidUpdate(prevProps) {
         if (
-            prevProps.preferredLocale !== this.props.preferredLocale
-            && this.state.welcomeNote === Localize.translate(prevProps.preferredLocale, 'workspace.invite.welcomeNote', {workspaceName: this.props.policy.name})
+            (prevProps.preferredLocale !== this.props.preferredLocale || prevProps.policy.name !== this.props.policy.name)
+            && this.state.welcomeNote === Localize.translate(prevProps.preferredLocale, 'workspace.invite.welcomeNote', {workspaceName: prevProps.policy.name})
         ) {
             this.setState({welcomeNote: this.getWelcomeNote()});
         }
