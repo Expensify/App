@@ -61,8 +61,8 @@ const defaultProps = {
 const AttachmentView = (props) => {
     const [loadComplete, setLoadComplete] = useState(false);
     const containerStyles = props.isSmallScreenWidth
-            ? [styles.w100, styles.flex1]
-            : [styles.alignItemsCenter, styles.flex1];
+        ? [styles.w100, styles.flex1]
+        : [styles.alignItemsCenter, styles.flex1];
 
     // Handles case where source is a component (ex: SVG)
     if (_.isFunction(props.source)) {
@@ -108,7 +108,7 @@ const AttachmentView = (props) => {
         <View
             style={styles.defaultAttachmentView}
         >
-            <Pressable onPress={this.props.onPress}>
+            <Pressable onPress={props.onPress}>
                 <View style={styles.mr2}>
                     <Icon src={Expensicons.Paperclip} />
                 </View>

@@ -1,7 +1,6 @@
 import React, {Component} from 'react';
 import {View} from 'react-native';
 import PDF from 'react-native-pdf';
-import _ from 'underscore';
 import KeyboardAvoidingView from '../KeyboardAvoidingView';
 import styles from '../../styles/styles';
 import * as StyleUtils from '../../styles/StyleUtils';
