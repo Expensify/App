@@ -92,7 +92,6 @@ class CalendarPicker extends React.PureComponent {
     render() {
         const monthNames = _.map(moment.localeData(this.props.preferredLocale).months(), Str.recapitalize);
         const daysOfWeek = _.map(moment.localeData(this.props.preferredLocale).weekdays(), day => day.toUpperCase());
-
         const currentMonthView = this.state.currentDateView.getMonth();
         const currentYearView = this.state.currentDateView.getFullYear();
         const calendarDaysMatrix = generateMonthMatrix(currentYearView, currentMonthView);
