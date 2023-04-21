@@ -219,10 +219,11 @@ class AttachmentCarousel extends React.Component {
             return;
         }
 
+        const isZoomed = false;
         const page = entry.index;
         const {source, file} = this.getAttachment(entry.item);
         this.props.onNavigate({source: addEncryptedAuthTokenToURL(source), file});
-        this.setState({page, source});
+        this.setState({page, source, isZoomed});
     }
 
     /**
