@@ -1703,7 +1703,6 @@ function canLeaveRoom(report, isPolicyMember) {
     return true;
 }
 
-
 /**
  * @param {string[]} participants
  * @returns {Boolean}
