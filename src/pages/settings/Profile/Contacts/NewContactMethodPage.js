@@ -89,7 +89,12 @@ class NewContactMethodPage extends Component {
             Navigation.navigate(ROUTES.SETTINGS_CONTACT_METHODS);
             return;
         }
-        User.addNewContactMethodAndNavigate(this.state.login, this.state.password);
+
+        const login = this.state.login.trim();
+        const phoneLogin = LoginUtils.appendCountryCode(LoginUtils.getPhoneNumberWithoutSpecialChars(login));
+        const parsedPhoneNumber = parsePhoneNumber(phoneLogin);
+
+        User.addNewContactMethodAndNavigate(parsedPhoneNumber.possible ? parsedPhoneNumber.number.e164 : login, this.state.password);
     }
 
     render() {
