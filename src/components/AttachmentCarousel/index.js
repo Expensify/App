@@ -148,6 +148,9 @@ class AttachmentCarousel extends React.Component {
         if (isZoomed === this.state.isZoomed) {
             return;
         }
+        if (isZoomed) {
+            this.toggleArrowsVisibility(false);
+        }
         this.setState({isZoomed});
     }
 
