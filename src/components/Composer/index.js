@@ -144,7 +144,7 @@ class Composer extends React.Component {
         this.handleWheel = this.handleWheel.bind(this);
         this.putSelectionInClipboard = this.putSelectionInClipboard.bind(this);
         this.shouldCallUpdateNumberOfLines = this.shouldCallUpdateNumberOfLines.bind(this);
-        this.onSelectionChangeHandle = this.onSelectionChangeHandle.bind(this);
+        this.addCursorPositionToSelectionChange = this.addCursorPositionToSelectionChange.bind(this);
         this.textRef = React.createRef(null);
     }
 
@@ -199,7 +199,7 @@ class Composer extends React.Component {
         this.textInput.removeEventListener('wheel', this.handleWheel);
     }
 
-    onSelectionChangeHandle(event) {
+    addCursorPositionToSelectionChange(event) {
         if (this.props.shouldCalculateCaretPosition) {
             this.setState(
                 {
@@ -438,7 +438,7 @@ class Composer extends React.Component {
                     ]}
                 /* eslint-disable-next-line react/jsx-props-no-spreading */
                     {...propsWithoutStyles}
-                    onSelectionChange={this.onSelectionChangeHandle}
+                    onSelectionChange={this.addCursorPositionToSelectionChange}
                     numberOfLines={this.state.numberOfLines}
                     disabled={this.props.isDisabled}
                 />
