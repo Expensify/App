@@ -267,12 +267,12 @@ const CONST = {
         },
         SHORTCUT_MODAL: {
             descriptionKey: 'openShortcutDialog',
-            shortcutKey: 'I',
+            shortcutKey: 'J',
             modifiers: ['CTRL'],
             trigger: {
-                DEFAULT: {input: 'i', modifierFlags: keyModifierControl},
-                [PLATFORM_OS_MACOS]: {input: 'i', modifierFlags: keyModifierCommand},
-                [PLATFORM_IOS]: {input: 'i', modifierFlags: keyModifierCommand},
+                DEFAULT: {input: 'j', modifierFlags: keyModifierControl},
+                [PLATFORM_OS_MACOS]: {input: 'j', modifierFlags: keyModifierCommand},
+                [PLATFORM_IOS]: {input: 'j', modifierFlags: keyModifierCommand},
             },
         },
         ESCAPE: {
