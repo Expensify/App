@@ -37,6 +37,8 @@ class DeeplinkWrapper extends PureComponent {
 
         this.state = {
             appInstallationCheckStatus: (this.isMacOSWeb() && CONFIG.ENVIRONMENT !== CONST.ENVIRONMENT.DEV)
+
+            //  appInstallationCheckStatus: (this.isMacOSWeb())
                 ? CONST.DESKTOP_DEEPLINK_APP_STATE.CHECKING : CONST.DESKTOP_DEEPLINK_APP_STATE.NOT_INSTALLED,
         };
         this.focused = true;
@@ -44,6 +46,7 @@ class DeeplinkWrapper extends PureComponent {
 
     componentDidMount() {
         if (!this.isMacOSWeb() || CONFIG.ENVIRONMENT === CONST.ENVIRONMENT.DEV) {
+        // if (!this.isMacOSWeb()) {
             return;
         }
 
