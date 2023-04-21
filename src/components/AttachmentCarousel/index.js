@@ -2,7 +2,6 @@ import React from 'react';
 import {View, FlatList, Pressable} from 'react-native';
 import PropTypes from 'prop-types';
 import {withOnyx} from 'react-native-onyx';
-import _ from 'underscore';
 import * as Expensicons from '../Icon/Expensicons';
 import styles from '../../styles/styles';
 import themeColors from '../../styles/themes/default';
@@ -57,9 +56,7 @@ class AttachmentCarousel extends React.Component {
         this.renderCell = this.renderCell.bind(this);
         this.updatePage = this.updatePage.bind(this);
         this.updateZoomState = this.updateZoomState.bind(this);
-
-        // Debounce arrow toggle to prevent multiply action on double-click
-        this.toggleArrowsDebounced = _.debounce(this.toggleArrowsDebounced.bind(this), 300);
+        this.switchArrowsVisibility = this.switchArrowsVisibility.bind(this);
 
         this.state = {
             attachments: [],
@@ -122,9 +119,9 @@ class AttachmentCarousel extends React.Component {
     }
 
     /**
-     * Toggles the visibility of the arrows (debounced)
+     * Switches the visibility of the arrows 
      */
-    toggleArrowsDebounced() {
+     switchArrowsVisibility() {
         // Don't toggle arrows in a zoomed state
         if (this.state.isZoomed) {
             return;
@@ -249,7 +246,7 @@ class AttachmentCarousel extends React.Component {
                 source={authSource}
                 file={item.file}
                 onScaleChanged={this.updateZoomState}
-                onPress={this.toggleArrowsDebounced}
+                onPress={this.switchArrowsVisibility}
             />
         );
     }
