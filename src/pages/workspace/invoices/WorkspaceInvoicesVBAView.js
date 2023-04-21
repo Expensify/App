@@ -17,35 +17,30 @@ const propTypes = {
     ...withLocalizePropTypes,
 };
 
-const WorkspaceInvoicesVBAView = (props) => {
-    const viewUnpaidInvoicesUrl = `reports?policyID=${props.policyID}&from=all&type=invoice&showStates=Processing&isAdvancedFilterMode=true`;
+const WorkspaceInvoicesVBAView = props => (
+    <>
+        <WorkspaceInvoicesFirstSection policyID={props.policyID} />
 
-    return (
-        <>
-            <WorkspaceInvoicesFirstSection policyID={props.policyID} />
-
-            <Section
-                title={props.translate('workspace.invoices.moneyBackInAFlash')}
-                icon={Illustrations.MoneyBadge}
-                menuItems={[
-                    {
-                        title: props.translate('workspace.invoices.viewUnpaidInvoices'),
-                        onPress: () => Link.openOldDotLink(viewUnpaidInvoicesUrl),
-                        icon: Expensicons.Hourglass,
-                        shouldShowRightIcon: true,
-                        iconRight: Expensicons.NewWindow,
-                        wrapperStyle: [styles.cardMenuItem],
-                        link: () => Link.buildOldDotURL(viewUnpaidInvoicesUrl),
-                    },
-                ]}
-            >
-                <View style={[styles.mv3]}>
-                    <Text>{props.translate('workspace.invoices.unlockVBACopy')}</Text>
-                </View>
-            </Section>
-        </>
-    );
-};
+        <Section
+            title={props.translate('workspace.invoices.moneyBackInAFlash')}
+            icon={Illustrations.MoneyBadge}
+            menuItems={[
+                {
+                    title: props.translate('workspace.invoices.viewUnpaidInvoices'),
+                    onPress: () => Link.openOldDotLink(`reports?policyID=${props.policyID}&from=all&type=invoice&showStates=Processing&isAdvancedFilterMode=true`),
+                    icon: Expensicons.Hourglass,
+                    shouldShowRightIcon: true,
+                    iconRight: Expensicons.NewWindow,
+                    wrapperStyle: [styles.cardMenuItem],
+                },
+            ]}
+        >
+            <View style={[styles.mv3]}>
+                <Text>{props.translate('workspace.invoices.unlockVBACopy')}</Text>
+            </View>
+        </Section>
+    </>
+);
 
 WorkspaceInvoicesVBAView.propTypes = propTypes;
 WorkspaceInvoicesVBAView.displayName = 'WorkspaceInvoicesVBAView';
