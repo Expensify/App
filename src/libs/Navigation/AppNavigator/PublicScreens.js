@@ -15,7 +15,7 @@ const RootStack = createStackNavigator();
 const AppleAuthScreen = () => {
     useEffect(() => {
         const clientId = 'com.infinitered.expensify.test';
-        const redirectURI = 'https://exptest.serveo.net/appleauth';
+        const redirectURI = 'https://exptest.ngrok.io/appleauth';
         const scope = 'name email';
         const state = '';
         const script = document.createElement('script');

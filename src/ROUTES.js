@@ -63,7 +63,7 @@ export default {
 
     /** This is a utility route used to go to the user's concierge chat, or the sign-in page if the user's not authenticated */
     CONCIERGE: 'concierge',
-    APPLEOAUTH: 'appleauth',
+    APPLEOAUTH: 'signinwithapple',
     APPLEOAUTHRECEIVER: 'appleauthtoken/:token',
 
     IOU_REQUEST,
