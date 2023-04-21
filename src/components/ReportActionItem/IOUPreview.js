@@ -223,8 +223,7 @@ const IOUPreview = (props) => {
                                     ? props.translate('iou.youowe', {owner: ownerName})
                                     : props.translate('iou.youpaid', {owner: ownerName})}
                             </Text>
-                        )
-                        : (
+                        ) : (
                             <>
                                 <Text>
                                     {props.iouReport.hasOutstandingIOU
