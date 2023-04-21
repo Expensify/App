@@ -60,7 +60,7 @@ const defaultProps = {
 
 const AttachmentView = (props) => {
     const [loadComplete, setLoadComplete] = useState(false);
-    const containerStyles = [styles.flex1];
+    const containerStyles = [styles.flex1, styles.flexRow];
 
     // Handles case where source is a component (ex: SVG)
     if (_.isFunction(props.source)) {
