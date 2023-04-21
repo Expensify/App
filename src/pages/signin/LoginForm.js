@@ -129,7 +129,10 @@ class LoginForm extends React.Component {
      * Clear Login from the state
      */
     clearLogin() {
-        this.setState({login: ''}, this.input.clear);
+        this.setState({
+            login: '',
+            formError: false,
+        }, this.input.clear);
     }
 
     /**
