@@ -266,7 +266,9 @@ class ReportScreen extends React.Component {
                         subtitleKey="notFound.noAccess"
                         shouldShowCloseButton={false}
                         shouldShowBackButton={this.props.isSmallScreenWidth}
-                        onBackButtonPress={Navigation.goBack}
+                        onBackButtonPress={() => {
+                            Navigation.navigate(ROUTES.HOME);
+                        }}
                     >
                         {isLoading ? <ReportHeaderSkeletonView shouldAnimate={shouldAnimate} /> : (
                             <>
