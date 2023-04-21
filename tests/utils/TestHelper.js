@@ -1,3 +1,4 @@
+import _ from 'underscore';
 import Onyx from 'react-native-onyx';
 import Str from 'expensify-common/lib/str';
 import CONST from '../../src/CONST';
@@ -155,6 +156,44 @@ function getGlobalFetchMock() {
 }
 
 /**
+ * Mocks fetch, but requests won't resolve until you call `flush` on the object returned by this function.
+ *
+ * @example
+ *
+ *     beforeAll(() => {
+ *         global.fetch = TestHelper.getOnDemandFetchMock();
+ *     })
+ *
+ *     it("doesn't reply to fetch until you tell it to", () => {
+ *         const myRequest = fetch('something');
+ *
+ *         // Make some assertion that will only be true before your request resolves
+ *
+ *         fetch.flush()
+ *             .then(() => {
+ *                 // Make some assertion that will only be true after your request resolves
+ *             });
+ *     })
+ * @returns {Function}
+ */
+function getOnDemandFetchMock() {
+    let queue = [];
+    const mockFetch = jest.fn().mockImplementation(() => new Promise(resolve => queue.push(resolve)));
+    mockFetch.flush = () => {
+        _.each(queue, resolve => {
+            resolve({
+                ok: true,
+                json: () => Promise.resolve({
+                    jsonCode: 200,
+                }),
+            });
+        });
+        return waitForPromisesToResolve();
+    }
+    return mockFetch;
+}
+
+/**
  * @param {String} login
  * @param {Number} accountID
  * @returns {Promise}
@@ -188,6 +227,7 @@ function buildTestReportComment(actorEmail, created, actorAccountID, actionID = 
 
 export {
     getGlobalFetchMock,
+    getOnDemandFetchMock,
     signInWithTestUser,
     signOutTestUser,
     setPersonalDetails,
