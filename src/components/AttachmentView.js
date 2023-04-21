@@ -103,34 +103,33 @@ const AttachmentView = (props) => {
     }
 
     return (
-        <View
+        <Pressable
             style={styles.defaultAttachmentView}
+            onPress={props.onPress}
         >
-            <Pressable onPress={props.onPress}>
-                <View style={styles.mr2}>
-                    <Icon src={Expensicons.Paperclip} />
-                </View>
+            <View style={styles.mr2}>
+                <Icon src={Expensicons.Paperclip} />
+            </View>
 
-                <Text style={[styles.textStrong, styles.flexShrink1, styles.breakAll, styles.flexWrap, styles.mw100]}>{props.file && props.file.name}</Text>
-                {!props.shouldShowLoadingSpinnerIcon && props.shouldShowDownloadIcon && (
-                    <View style={styles.ml2}>
-                        <Tooltip text={props.translate('common.download')}>
-                            <Icon src={Expensicons.Download} />
-                        </Tooltip>
-                    </View>
-                )}
-                {props.shouldShowLoadingSpinnerIcon && (
-                    <View style={styles.ml2}>
-                        <Tooltip text={props.translate('common.downloading')}>
-                            <ActivityIndicator
-                                size="small"
-                                color={themeColors.textSupporting}
-                            />
-                        </Tooltip>
-                    </View>
-                )}
-            </Pressable>
-        </View>
+            <Text style={[styles.textStrong, styles.flexShrink1, styles.breakAll, styles.flexWrap, styles.mw100]}>{props.file && props.file.name}</Text>
+            {!props.shouldShowLoadingSpinnerIcon && props.shouldShowDownloadIcon && (
+                <View style={styles.ml2}>
+                    <Tooltip text={props.translate('common.download')}>
+                        <Icon src={Expensicons.Download} />
+                    </Tooltip>
+                </View>
+            )}
+            {props.shouldShowLoadingSpinnerIcon && (
+                <View style={styles.ml2}>
+                    <Tooltip text={props.translate('common.downloading')}>
+                        <ActivityIndicator
+                            size="small"
+                            color={themeColors.textSupporting}
+                        />
+                    </Tooltip>
+                </View>
+            )}
+        </Pressable>
     );
 };
 
