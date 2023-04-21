@@ -87,6 +87,13 @@ class LoginForm extends React.Component {
     }
 
     componentDidUpdate(prevProps) {
+        if (prevProps.account.primaryLogin !== this.props.account.primaryLogin && !this.props.account.primaryLogin) {
+            this.setState({
+                formError: false,
+                login: '',
+            });
+        }
+
         if (!prevProps.blurOnSubmit && this.props.blurOnSubmit) {
             this.input.blur();
         }
