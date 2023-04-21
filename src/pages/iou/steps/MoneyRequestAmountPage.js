@@ -32,6 +32,9 @@ const propTypes = {
     /** Previously selected amount to show if the user comes back to this screen */
     selectedAmount: PropTypes.string.isRequired,
 
+    /** Text to display on the button that "saves" the amount */
+    buttonText: PropTypes.string.isRequired,
+
     /* Onyx Props */
 
     /** Holds data related to IOU view state, rather than the underlying IOU data. */
@@ -48,7 +51,7 @@ const defaultProps = {
         selectedCurrencyCode: CONST.CURRENCY.USD,
     },
 };
-class IOUAmountPage extends React.Component {
+class MoneyRequestAmountPage extends React.Component {
     constructor(props) {
         super(props);
 
@@ -56,6 +59,7 @@ class IOUAmountPage extends React.Component {
         this.updateLongPressHandlerState = this.updateLongPressHandlerState.bind(this);
         this.updateAmount = this.updateAmount.bind(this);
         this.stripCommaFromAmount = this.stripCommaFromAmount.bind(this);
+        this.stripSpacesFromAmount = this.stripSpacesFromAmount.bind(this);
         this.focusTextInput = this.focusTextInput.bind(this);
         this.navigateToCurrencySelectionPage = this.navigateToCurrencySelectionPage.bind(this);
         this.amountViewID = 'amountView';
@@ -123,13 +127,16 @@ class IOUAmountPage extends React.Component {
      * @returns {Object}
      */
     getNewState(prevState, newAmount) {
-        if (!this.validateAmount(newAmount)) {
+        // Remove spaces from the newAmount value because Safari on iOS adds spaces when pasting a copied value
+        // More info: https://github.com/Expensify/App/issues/16974
+        const newAmountWithoutSpaces = this.stripSpacesFromAmount(newAmount);
+        if (!this.validateAmount(newAmountWithoutSpaces)) {
             // Use a shallow copy of selection to trigger setSelection
             // More info: https://github.com/Expensify/App/issues/16385
             return {amount: prevState.amount, selection: {...prevState.selection}};
         }
-        const selection = this.getNewSelection(prevState.selection, prevState.amount.length, newAmount.length);
-        return {amount: this.stripCommaFromAmount(newAmount), selection};
+        const selection = this.getNewSelection(prevState.selection, prevState.amount.length, newAmountWithoutSpaces.length);
+        return {amount: this.stripCommaFromAmount(newAmountWithoutSpaces), selection};
     }
 
     /**
@@ -189,6 +196,16 @@ class IOUAmountPage extends React.Component {
      */
     stripCommaFromAmount(amount) {
         return amount.replace(/,/g, '');
+    }
+
+    /**
+     * Strip spaces from the amount
+     *
+     * @param {String} amount
+     * @returns {String}
+     */
+    stripSpacesFromAmount(amount) {
+        return amount.replace(/\s+/g, '');
     }
 
     /**
@@ -336,7 +353,7 @@ class IOUAmountPage extends React.Component {
                         onPress={() => this.props.onStepComplete(this.state.amount)}
                         pressOnEnter
                         isDisabled={!this.state.amount.length || parseFloat(this.state.amount) < 0.01}
-                        text={this.props.translate('common.next')}
+                        text={this.props.buttonText}
                     />
                 </View>
             </>
@@ -344,12 +361,12 @@ class IOUAmountPage extends React.Component {
     }
 }
 
-IOUAmountPage.propTypes = propTypes;
-IOUAmountPage.defaultProps = defaultProps;
+MoneyRequestAmountPage.propTypes = propTypes;
+MoneyRequestAmountPage.defaultProps = defaultProps;
 
 export default compose(
     withLocalize,
     withOnyx({
         iou: {key: ONYXKEYS.IOU},
     }),
-)(IOUAmountPage);
+)(MoneyRequestAmountPage);

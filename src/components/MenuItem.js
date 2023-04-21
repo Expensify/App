@@ -30,7 +30,8 @@ const defaultProps = {
     shouldShowBasicTitle: false,
     shouldShowDescriptionOnTop: false,
     wrapperStyle: [],
-    style: {},
+    style: styles.popoverMenuItem,
+    titleStyle: {},
     success: false,
     icon: undefined,
     iconWidth: undefined,
@@ -59,7 +60,7 @@ const MenuItem = (props) => {
         (props.shouldShowBasicTitle ? undefined : styles.textStrong),
         (props.interactive && props.disabled ? {...styles.disabledText, ...styles.userSelectNone} : undefined),
         styles.pre,
-    ], props.style);
+    ], props.titleStyle);
     const descriptionVerticalMargin = props.shouldShowDescriptionOnTop ? styles.mb1 : styles.mt1;
     const descriptionTextStyle = StyleUtils.combineStyles([
         styles.textLabelSupporting,
@@ -67,7 +68,7 @@ const MenuItem = (props) => {
         styles.breakWord,
         styles.lineHeightNormal,
         props.title ? descriptionVerticalMargin : undefined,
-    ], props.style);
+    ]);
 
     return (
         <Pressable
@@ -83,7 +84,7 @@ const MenuItem = (props) => {
                 props.onPress(e);
             }}
             style={({hovered, pressed}) => ([
-                styles.popoverMenuItem,
+                props.style,
                 StyleUtils.getButtonBackgroundColorStyle(getButtonState(props.focused || hovered, pressed, props.success, props.disabled, props.interactive), true),
                 ..._.isArray(props.wrapperStyle) ? props.wrapperStyle : [props.wrapperStyle],
             ])}

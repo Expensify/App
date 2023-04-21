@@ -292,6 +292,10 @@ const styles = {
         fontSize: variables.fontSizeExtraSmall,
     },
 
+    textNormal: {
+        fontSize: variables.fontSizeNormal,
+    },
+
     textLarge: {
         fontSize: variables.fontSizeLarge,
     },
@@ -474,7 +478,7 @@ const styles = {
         borderWidth: 0,
     },
 
-    buttonSuccessDisabled: {
+    buttonOpacityDisabled: {
         opacity: 0.5,
     },
 
@@ -488,16 +492,12 @@ const styles = {
         borderWidth: 0,
     },
 
-    buttonDangerDisabled: {
-        opacity: 0.5,
-    },
-
     buttonDangerHovered: {
         backgroundColor: themeColors.dangerHover,
         borderWidth: 0,
     },
 
-    buttonDisable: {
+    buttonDisabled: {
         backgroundColor: themeColors.buttonDefaultBG,
         borderWidth: 0,
     },
@@ -671,6 +671,14 @@ const styles = {
         backgroundColor: themeColors.successHover,
     },
 
+    badgeAdHocSuccess: {
+        backgroundColor: themeColors.badgeAdHoc,
+    },
+
+    badgeAdHocSuccessPressed: {
+        backgroundColor: themeColors.badgeAdHocHover,
+    },
+
     badgeDanger: {
         backgroundColor: themeColors.danger,
     },
@@ -785,10 +793,6 @@ const styles = {
 
     calendarDayContainerSelected: {
         backgroundColor: themeColors.buttonDefaultBG,
-    },
-
-    calendarButtonDisabled: {
-        opacity: 0.5,
     },
 
     textInputContainer: {
@@ -1010,9 +1014,49 @@ const styles = {
     },
 
     signInPage: {
-        backgroundColor: themeColors.sidebar,
+        backgroundColor: themeColors.highlightBG,
         minHeight: '100%',
         flex: 1,
+    },
+
+    signInPageHeroCenter: {
+        position: 'absolute',
+        top: 0,
+        left: 0,
+        right: 0,
+        bottom: 0,
+        justifyContent: 'center',
+        alignItems: 'center',
+    },
+
+    signInPageGradient: {
+        height: '100%',
+        width: 540,
+        position: 'absolute',
+        top: 0,
+        left: 0,
+    },
+
+    signInPageGradientMobile: {
+        height: 300,
+        width: 800,
+        position: 'absolute',
+        top: 0,
+        left: 0,
+    },
+
+    signInBackgroundDesktop: {
+        position: 'absolute',
+        bottom: 0,
+        left: 0,
+        minHeight: 700,
+    },
+
+    signInBackgroundMobile: {
+        position: 'absolute',
+        bottom: 0,
+        left: 0,
+        minHeight: 700,
     },
 
     signInPageInner: {
@@ -1033,7 +1077,7 @@ const styles = {
     },
 
     signInPageLeftContainerWide: {
-        maxWidth: 360,
+        maxWidth: variables.sideBarWidth,
     },
 
     signInPageWelcomeFormContainer: {
@@ -2281,6 +2325,19 @@ const styles = {
         lineHeight: undefined,
     }, 0),
 
+    moneyRequestConfirmationAmount: {
+        ...headlineFont,
+        fontSize: variables.fontSizeh1,
+    },
+
+    moneyRequestMenuItem: {
+        flexDirection: 'row',
+        borderRadius: 0,
+        justifyContent: 'space-between',
+        width: '100%',
+        marginBottom: 20,
+    },
+
     iouPreviewBox: {
         backgroundColor: themeColors.cardBG,
         borderRadius: variables.componentBorderRadiusCard,
@@ -2553,6 +2610,7 @@ const styles = {
         width: '100%',
         flexDirection: 'row',
         justifyContent: 'space-between',
+        alignItems: 'center',
         ...spacing.pt2,
     },
 
@@ -2560,10 +2618,6 @@ const styles = {
         borderColor: themeColors.border,
         borderBottomWidth: 1,
         ...spacing.pb2,
-    },
-
-    peopleRowCell: {
-        justifyContent: 'center',
     },
 
     peopleBadge: {
@@ -2746,10 +2800,6 @@ const styles = {
         right: 60,
     },
 
-    googleListView: {
-        transform: [{scale: 0}],
-    },
-
     invert: {
         // It's important to invert the Y AND X axis to prevent a react native issue that can lead to ANRs on android 13
         transform: [{scaleX: -1}, {scaleY: -1}],
@@ -2838,7 +2888,6 @@ const styles = {
         height: variables.sliderKnobSize,
         width: variables.sliderKnobSize,
         borderRadius: variables.sliderKnobSize / 2,
-        top: -variables.sliderBarHeight,
         left: -(variables.sliderKnobSize / 2),
         cursor: 'pointer',
     },
@@ -2848,10 +2897,7 @@ const styles = {
         height: variables.sliderBarHeight,
         borderRadius: variables.sliderBarHeight / 2,
         alignSelf: 'stretch',
-    },
-
-    imageCropRotateButton: {
-        height: variables.iconSizeExtraLarge,
+        justifyContent: 'center',
     },
 
     userSelectText: {
@@ -3023,14 +3069,10 @@ const styles = {
         fontSize: variables.fontSizeXXLarge,
         letterSpacing: 4,
     },
-    footer: {
-        backgroundColor: themeColors.midtone,
-    },
 
     footerWrapper: {
         fontSize: variables.fontSizeNormal,
         paddingTop: 64,
-        paddingHorizontal: 32,
         maxWidth: 1100, // Match footer across all Expensify platforms
     },
 
@@ -3077,10 +3119,27 @@ const styles = {
         top: 60,
         zIndex: 100,
     },
+    loginHeroHeader: {
+        fontFamily: fontFamily.EXP_NEW_KANSAS_MEDIUM,
+        color: themeColors.success,
+        fontWeight: '500',
+        textAlign: 'center',
+    },
+
+    loginHeroBody: {
+        fontFamily: fontFamily.EXP_NEUE,
+        fontSize: variables.fontSizeSignInHeroBody,
+        color: themeColors.textLight,
+        textAlign: 'center',
+    },
 
     validateCodeMessage: {
         width: variables.modalContentMaxWidth,
         textAlign: 'center',
+    },
+
+    whisper: {
+        backgroundColor: themeColors.cardBG,
     },
 };
 
