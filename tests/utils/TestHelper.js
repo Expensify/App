@@ -137,6 +137,13 @@ function signOutTestUser() {
 /**
  * Use for situations where fetch() is required.
  *
+ * It also has some additional methods:
+ *
+ * - pause() – stop resolving promises until you call resume()
+ * - resume() - flush the queue of promises, and start resolving new promises immediately
+ * - fail() - start returning a failure response
+ * - success() - go back to returning a success response
+ *
  * @example
  *
  *     beforeAll(() => {
@@ -146,50 +153,36 @@ function signOutTestUser() {
  * @returns {Function}
  */
 function getGlobalFetchMock() {
-    return jest.fn()
-        .mockResolvedValue({
+    let queue = [];
+    let isPaused = false;
+    let shouldFail = false;
+
+    const getResponse = () => shouldFail
+        ? {ok: false}
+        : {
             ok: true,
             json: () => Promise.resolve({
-                jsonCode: 200,
+                jsonCode: 200
             }),
-        });
-}
+        };
 
-/**
- * Mocks fetch, but requests won't resolve until you call `flush` on the object returned by this function.
- *
- * @example
- *
- *     beforeAll(() => {
- *         global.fetch = TestHelper.getOnDemandFetchMock();
- *     })
- *
- *     it("doesn't reply to fetch until you tell it to", () => {
- *         const myRequest = fetch('something');
- *
- *         // Make some assertion that will only be true before your request resolves
- *
- *         fetch.flush()
- *             .then(() => {
- *                 // Make some assertion that will only be true after your request resolves
- *             });
- *     })
- * @returns {Function}
- */
-function getOnDemandFetchMock() {
-    let queue = [];
-    const mockFetch = jest.fn().mockImplementation(() => new Promise(resolve => queue.push(resolve)));
-    mockFetch.flush = () => {
-        _.each(queue, resolve => {
-            resolve({
-                ok: true,
-                json: () => Promise.resolve({
-                    jsonCode: 200,
-                }),
-            });
+    const mockFetch = jest.fn()
+        .mockImplementation(() => {
+            if (!isPaused) {
+                return Promise.resolve(getResponse());
+            }
+            return new Promise(resolve => queue.push(resolve));
         });
+
+    mockFetch.pause = () => isPaused = true;
+    mockFetch.resume = () => {
+        isPaused = false;
+        _.each(queue, resolve => resolve(getResponse()));
         return waitForPromisesToResolve();
-    }
+    };
+    mockFetch.fail = () => shouldFail = true;
+    mockFetch.succeed = () => shouldFail = false;
+
     return mockFetch;
 }
 
@@ -227,7 +220,6 @@ function buildTestReportComment(actorEmail, created, actorAccountID, actionID = 
 
 export {
     getGlobalFetchMock,
-    getOnDemandFetchMock,
     signInWithTestUser,
     signOutTestUser,
     setPersonalDetails,

@@ -16,12 +16,10 @@ describe('actions/IOU', () => {
         Onyx.init({
             keys: ONYXKEYS,
         });
-        global.fetch = TestHelper.getOnDemandFetchMock();
-        // global.fetch = TestHelper.getGlobalFetchMock();
     });
 
     beforeEach(() => {
-        // jest.resetAllMocks();
+        global.fetch = TestHelper.getGlobalFetchMock();
         return Onyx.clear().then(waitForPromisesToResolve);
     });
 
@@ -31,12 +29,13 @@ describe('actions/IOU', () => {
         it('creates new chat if needed', () => {
             const amount = 100;
             const comment = 'Giv money plz';
-            IOU.requestMoney({}, amount, CONST.CURRENCY.USD, RORY_EMAIL, {login: CARLOS_EMAIL}, comment);
             let chatReportID;
             let iouReportID;
             let createdAction;
             let iouAction;
             let transactionID;
+            fetch.pause();
+            IOU.requestMoney({}, amount, CONST.CURRENCY.USD, RORY_EMAIL, {login: CARLOS_EMAIL}, comment);
             return waitForPromisesToResolve()
                 .then(() => new Promise((resolve) => {
                     const connectionID = Onyx.connect({
@@ -122,7 +121,7 @@ describe('actions/IOU', () => {
                         },
                     });
                 }))
-                .then(fetch.flush)
+                .then(fetch.resume)
                 .then(() => new Promise((resolve) => {
                     const connectionID = Onyx.connect({
                         key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${chatReportID}`,
@@ -130,7 +129,7 @@ describe('actions/IOU', () => {
                         callback: reportActionsForChatReport => {
                             Onyx.disconnect(connectionID);
                             expect(_.size(reportActionsForChatReport)).toBe(2);
-                            _.each(reportActionsForChatReport, reportAction => expect(reportAction.pendingAction).not.toBeTruthy());
+                            _.each(reportActionsForChatReport, reportAction => expect(reportAction.pendingAction).toBeFalsy());
                             resolve();
                         },
                     });
@@ -141,7 +140,7 @@ describe('actions/IOU', () => {
                         waitForCollectionCallback: true,
                         callback: transaction => {
                             Onyx.disconnect(connectionID);
-                            expect(transaction.pendingAction).not.toBeTruthy();
+                            expect(transaction.pendingAction).toBeFalsy();
                             resolve();
                         },
                     });
