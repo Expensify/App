@@ -113,8 +113,19 @@ const EmojiSuggestions = (props) => {
         props.isEmojiPickerLarge,
     );
 
+    const containerRef = React.useRef(null);
+    React.useEffect(() => {
+        const container = containerRef.current;
+        if (!container) {
+            return;
+        }
+        container.onpointerdown = e => e.preventDefault();
+        return () => container.onpointerdown = null;
+    }, []);
+
     return (
         <View
+            ref={containerRef}
             style={[
                 styles.emojiSuggestionsContainer,
                 StyleUtils.getEmojiSuggestionContainerStyle(
