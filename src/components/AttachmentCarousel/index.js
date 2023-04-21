@@ -57,6 +57,8 @@ class AttachmentCarousel extends React.Component {
         this.renderCell = this.renderCell.bind(this);
         this.updatePage = this.updatePage.bind(this);
         this.updateZoomState = this.updateZoomState.bind(this);
+
+        // Debounce arrow toggle to prevent multiply action on double-click and prevent toggle on swipe
         this.toggleArrowsDebounced = _.debounce(this.toggleArrowsDebounced.bind(this), 300);
 
         this.state = {
@@ -356,6 +358,8 @@ class AttachmentCarousel extends React.Component {
                         keyExtractor={item => item.source}
                         viewabilityConfig={this.viewabilityConfig}
                         onViewableItemsChanged={this.updatePage}
+
+                        // Cancel pending arrow toggle action on swipe gesture
                         onScrollBeginDrag={this.toggleArrowsDebounced.cancel}
                     />
                 )}
