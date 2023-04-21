@@ -8,6 +8,7 @@ import * as IOU from '../../src/libs/actions/IOU';
 import * as TestHelper from '../utils/TestHelper';
 import DateUtils from '../../src/libs/DateUtils';
 import * as NumberUtils from '../../src/libs/NumberUtils';
+import * as Localize from '../../src/libs/Localize';
 
 const RORY_EMAIL = 'rory@expensifail.com';
 const CARLOS_EMAIL = 'cmartins@expensifail.com';
@@ -447,7 +448,142 @@ describe('actions/IOU', () => {
         });
 
         it('correctly implements RedBrickRoad error handling', () => {
+            const amount = 100;
+            const comment = 'Giv money plz';
+            let chatReportID;
+            let iouReportID;
+            let createdAction;
+            let iouAction;
+            let transactionID;
+            fetch.pause();
+            IOU.requestMoney({}, amount, CONST.CURRENCY.USD, RORY_EMAIL, {login: CARLOS_EMAIL}, comment);
+            return waitForPromisesToResolve()
+                .then(() => new Promise((resolve) => {
+                    const connectionID = Onyx.connect({
+                        key: ONYXKEYS.COLLECTION.REPORT,
+                        waitForCollectionCallback: true,
+                        callback: (allReports) => {
+                            Onyx.disconnect(connectionID);
 
+                            // TODO: clean this up after https://github.com/Expensify/App/pull/16531 is merged
+                            allReports = _.filter(allReports, report => report !== null);
+
+                            // A chat report and an iou report should be created
+                            const chatReports = _.filter(allReports, report => report.type === CONST.REPORT.TYPE.CHAT);
+                            const iouReports = _.filter(allReports, report => report.type === CONST.REPORT.TYPE.IOU);
+                            expect(_.size(chatReports)).toBe(1);
+                            expect(_.size(iouReports)).toBe(1);
+                            const chatReport = chatReports[0];
+                            chatReportID = chatReport.reportID;
+                            const iouReport = iouReports[0];
+                            iouReportID = iouReport.reportID;
+
+                            // They should be linked together
+                            expect(chatReport.participants).toEqual([CARLOS_EMAIL]);
+                            expect(chatReport.iouReportID).toBe(iouReport.reportID);
+                            expect(chatReport.hasOutstandingIOU).toBe(true);
+
+                            resolve();
+                        },
+                    });
+                }))
+                .then(() => new Promise((resolve) => {
+                    const connectionID = Onyx.connect({
+                        key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${chatReportID}`,
+                        waitForCollectionCallback: true,
+                        callback: (reportActionsForChatReport) => {
+                            Onyx.disconnect(connectionID);
+
+                            // The chat report should have a CREATED action and IOU action
+                            expect(_.size(reportActionsForChatReport)).toBe(2);
+                            const createdActions = _.filter(reportActionsForChatReport, reportAction => reportAction.actionName === CONST.REPORT.ACTIONS.TYPE.CREATED);
+                            const iouActions = _.filter(reportActionsForChatReport, reportAction => reportAction.actionName === CONST.REPORT.ACTIONS.TYPE.IOU);
+                            expect(_.size(createdActions)).toBe(1);
+                            expect(_.size(iouActions)).toBe(1);
+                            createdAction = createdActions[0];
+                            iouAction = iouActions[0];
+
+                            // The CREATED action should not be created after the IOU action
+                            expect(Date.parse(createdAction.created)).toBeLessThanOrEqual(Date.parse(iouAction.created));
+
+                            // The comment should be included in the IOU action
+                            expect(iouAction.originalMessage.comment).toBe(comment);
+
+                            // The amount in the IOU action should be correct
+                            expect(iouAction.originalMessage.amount).toBe(amount);
+
+                            // Both actions should be pending
+                            expect(createdAction.pendingAction).toBe(CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD);
+                            expect(iouAction.pendingAction).toBe(CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD);
+
+                            resolve();
+                        },
+                    });
+                }))
+                .then(() => new Promise((resolve) => {
+                    const connectionID = Onyx.connect({
+                        key: ONYXKEYS.COLLECTION.TRANSACTION,
+                        waitForCollectionCallback: true,
+                        callback: (allTransactions) => {
+                            Onyx.disconnect(connectionID);
+
+                            // TODO: clean this up after https://github.com/Expensify/App/pull/16531 is merged
+                            allTransactions = _.filter(allTransactions, transaction => transaction !== null);
+
+                            // There should be one transaction
+                            expect(_.size(allTransactions)).toBe(1);
+                            const transaction = _.find(allTransactions, transaction => !_.isEmpty(transaction));
+                            transactionID = transaction.transactionID;
+
+                            // Its amount should match the amount of the request
+                            expect(transaction.amount).toBe(amount);
+
+                            // It should be pending
+                            expect(transaction.pendingAction).toBe(CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD);
+
+                            // The transactionID on the iou action should match the one from the transactions collection
+                            expect(iouAction.originalMessage.IOUTransactionID).toBe(transactionID);
+
+                            resolve();
+                        },
+                    });
+                }))
+                .then(() => {
+                    fetch.fail();
+                    return fetch.resume();
+                })
+                .then(() => new Promise((resolve) => {
+                    const connectionID = Onyx.connect({
+                        key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${chatReportID}`,
+                        waitForCollectionCallback: true,
+                        callback: reportActionsForChatReport => {
+                            Onyx.disconnect(connectionID);
+                            expect(_.size(reportActionsForChatReport)).toBe(2);
+                            iouAction = _.find(reportActionsForChatReport, reportAction => reportAction.actionName === CONST.REPORT.ACTIONS.TYPE.IOU);
+                            expect(iouAction.pendingAction).toBeFalsy();
+                            const errorMessage = _.values(iouAction.errors)[0];
+                            expect(errorMessage).toBe(Localize.translateLocal('iou.error.genericCreateFailureMessage'));
+                            resolve();
+                        },
+                    });
+                }))
+                .then(() => new Promise((resolve) => {
+                    const connectionID = Onyx.connect({
+                        key: `${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`,
+                        waitForCollectionCallback: true,
+                        callback: transaction => {
+                            Onyx.disconnect(connectionID);
+                            expect(transaction.pendingAction).toBeFalsy();
+                            expect(transaction.errors).toBeTruthy();
+                            expect(_.values(transaction.errors)[0]).toBe(Localize.translateLocal('iou.error.genericCreateFailureMessage'));
+
+                            // Cleanup
+                            fetch.succeed();
+
+                            resolve();
+                        },
+                    });
+                }));
         });
     });
 });

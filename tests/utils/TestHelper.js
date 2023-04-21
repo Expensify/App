@@ -158,8 +158,12 @@ function getGlobalFetchMock() {
     let shouldFail = false;
 
     const getResponse = () => shouldFail
-        ? {ok: false}
-        : {
+        ? {
+            ok: true,
+            json: () => Promise.resolve({
+                jsonCode: 400,
+            }),
+        } : {
             ok: true,
             json: () => Promise.resolve({
                 jsonCode: 200
