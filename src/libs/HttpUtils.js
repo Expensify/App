@@ -96,7 +96,9 @@ function processHTTPRequest(url, method = 'get', body = null, canCancel = true, 
                 });
             }
             if (response.jsonCode === CONST.JSON_CODE.MANY_WRITES_ERROR) {
-                alert('Too many auth writes', 'The API call did more auth write requests than allowed. Check the APIWriteCommands class in Web-Expensify');
+                const {phpCommandName, authWriteCommandsCount} = response.data;
+                const message = `The API call (${phpCommandName}) did ${authWriteCommandsCount - 1} more Auth write requests than allowed. Check the APIWriteCommands class in Web-Expensify`;
+                alert('Too many auth writes', message);
             }
             return response;
         });
