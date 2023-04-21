@@ -359,7 +359,7 @@ class AttachmentCarousel extends React.Component {
                         onViewableItemsChanged={this.updatePage}
 
                         // Cancel pending arrow toggle action on swipe gesture
-                        onScrollBeginDrag={this.toggleArrowsDebounced.cancel}
+                        onScroll={this.toggleArrowsDebounced.cancel}
                     />
                 )}
 
