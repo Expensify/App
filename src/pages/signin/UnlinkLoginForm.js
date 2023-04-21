@@ -56,17 +56,6 @@ const UnlinkLoginForm = (props) => {
 
     return (
         <>
-            <View style={[styles.mt3, styles.flexRow, styles.alignItemsCenter, styles.justifyContentStart]}>
-                <Avatar
-                    source={ReportUtils.getDefaultAvatar(props.credentials.login)}
-                    imageStyles={[styles.mr2]}
-                />
-                <View style={[styles.flex1]}>
-                    <Text style={[styles.textStrong]}>
-                        {secondaryLogin}
-                    </Text>
-                </View>
-            </View>
             <View style={[styles.mt5]}>
                 <Text>
                     {props.translate('unlinkLoginForm.toValidateLogin', {primaryLogin, secondaryLogin})}

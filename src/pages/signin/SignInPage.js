@@ -139,6 +139,8 @@ class SignInPage extends Component {
             welcomeText = this.props.isSmallScreenWidth
                 ? `${this.props.translate('welcomeText.welcomeBack')} ${this.props.translate('welcomeText.enterPassword')}`
                 : this.props.translate('welcomeText.enterPassword');
+        } else if (showUnlinkLoginForm) {
+            welcomeHeader = this.props.isSmallScreenWidth ? this.props.translate('login.hero.header') : this.props.translate('welcomeText.welcomeBack');
         } else if (!showResendValidationForm) {
             welcomeHeader = this.props.isSmallScreenWidth ? this.props.translate('login.hero.header') : this.props.translate('welcomeText.getStarted');
             welcomeText = this.props.isSmallScreenWidth ? this.props.translate('welcomeText.getStarted') : '';
@@ -149,7 +151,7 @@ class SignInPage extends Component {
                 <SignInPageLayout
                     welcomeHeader={welcomeHeader}
                     welcomeText={welcomeText}
-                    shouldShowWelcomeHeader={(showLoginForm || showPasswordForm || showValidateCodeForm) || !this.props.isSmallScreenWidth}
+                    shouldShowWelcomeHeader={(showLoginForm || showPasswordForm || showValidateCodeForm || showUnlinkLoginForm) || !this.props.isSmallScreenWidth}
                     shouldShowWelcomeText={showLoginForm || showPasswordForm || showValidateCodeForm}
                 >
                     {/* LoginForm and PasswordForm must use the isVisible prop. This keeps them mounted, but visually hidden
