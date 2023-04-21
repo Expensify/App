@@ -56,7 +56,7 @@ class AttachmentCarousel extends React.Component {
         this.renderCell = this.renderCell.bind(this);
         this.updatePage = this.updatePage.bind(this);
         this.updateZoomState = this.updateZoomState.bind(this);
-        this.switchArrowsVisibility = this.switchArrowsVisibility.bind(this);
+        this.toggleArrowsVisibility = this.toggleArrowsVisibility.bind(this);
 
         this.state = {
             attachments: [],
@@ -115,15 +115,13 @@ class AttachmentCarousel extends React.Component {
      * @param {Boolean} shouldShowArrow
      */
     toggleArrowsVisibility(shouldShowArrow) {
-        this.setState({shouldShowArrow});
-    }
 
-    /**
-     * Switches the visibility of the arrows 
-     */
-     switchArrowsVisibility() {
         // Don't toggle arrows in a zoomed state
         if (this.state.isZoomed) {
+            return;
+        }
+        if (_.isBoolean(shouldShowArrow)) {
+            this.setState({shouldShowArrow});
             return;
         }
         this.setState(current => ({shouldShowArrow: !current.shouldShowArrow}));
@@ -246,7 +244,7 @@ class AttachmentCarousel extends React.Component {
                 source={authSource}
                 file={item.file}
                 onScaleChanged={this.updateZoomState}
-                onPress={this.switchArrowsVisibility}
+                onPress={this.toggleArrowsVisibility}
             />
         );
     }
