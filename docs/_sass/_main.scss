@@ -326,7 +326,9 @@ button {
             display: block;
             margin-left: auto;
             margin-right: auto;
-            padding-bottom: 20px;
+            margin-bottom: 20px;
+            margin-top: 20px;
+            border-radius: 10px;
 
             @include maxBreakpoint($breakpoint-tablet) {
                 width: 100%;
