@@ -128,8 +128,9 @@ function getPolicyExpenseReportOptions(report) {
  * @return {String}
  */
 function addSMSDomainIfPhoneNumber(login) {
-    if (parsePhoneNumber(login).possible && !Str.isValidEmail(login)) {
-        return login + CONST.SMS.DOMAIN;
+    const parsedPhoneNumber = parsePhoneNumber(login);
+    if (parsedPhoneNumber.possible && !Str.isValidEmail(login)) {
+        return parsedPhoneNumber.number.e164 + CONST.SMS.DOMAIN;
     }
     return login;
 }

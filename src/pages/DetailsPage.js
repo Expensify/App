@@ -74,8 +74,9 @@ const defaultProps = {
  */
 const getPhoneNumber = (details) => {
     // If the user hasn't set a displayName, it is set to their phone number, so use that
-    if (parsePhoneNumber(details.displayName).possible) {
-        return details.displayName;
+    const parsedPhoneNumber = parsePhoneNumber(details.displayName);
+    if (parsedPhoneNumber.possible) {
+        return parsedPhoneNumber.number.e164;
     }
 
     // If the user has set a displayName, get the phone number from the SMS login

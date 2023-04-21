@@ -145,9 +145,9 @@ class LoginForm extends React.Component {
         }
 
         const phoneLogin = LoginUtils.appendCountryCode(LoginUtils.getPhoneNumberWithoutSpecialChars(login));
-        const isValidPhoneLogin = parsePhoneNumber(phoneLogin).possible;
+        const parsedPhoneNumber = parsePhoneNumber(phoneLogin);
 
-        if (!Str.isValidEmail(login) && !isValidPhoneLogin) {
+        if (!Str.isValidEmail(login) && !parsedPhoneNumber.possible) {
             if (ValidationUtils.isNumericWithSpecialChars(login)) {
                 this.setState({formError: 'common.error.phoneNumber'});
             } else {
@@ -161,7 +161,7 @@ class LoginForm extends React.Component {
         });
 
         // Check if this login has an account associated with it or not
-        Session.beginSignIn(isValidPhoneLogin ? phoneLogin : login);
+        Session.beginSignIn(parsedPhoneNumber.possible ? parsedPhoneNumber.number.e164 : login);
     }
 
     render() {
