@@ -282,7 +282,168 @@ describe('actions/IOU', () => {
         });
 
         it('updates existing IOU report if there is one', () => {
+            const amount = 100;
+            const comment = 'Giv money plz';
+            const chatReportID = 1234;
+            const iouReportID = 5678;
+            let chatReport = {
+                reportID: chatReportID,
+                type: CONST.REPORT.TYPE.CHAT,
+                hasOutstandingIOU: true,
+                iouReportID,
+                participants: [CARLOS_EMAIL],
+            };
+            const createdAction = {
+                reportActionID: NumberUtils.rand64(),
+                actionName: CONST.REPORT.ACTIONS.TYPE.CREATED,
+                created: DateUtils.getDBTime(),
+            };
+            const existingTransaction = {
+                transactionID: NumberUtils.rand64(),
+                amount: 1000,
+                comment: '',
+                created: DateUtils.getDBTime(),
+            };
+            let iouReport = {
+                reportID: iouReportID,
+                chatReportID,
+                type: CONST.REPORT.TYPE.IOU,
+                ownerEmail: RORY_EMAIL,
+                managerEmail: CARLOS_EMAIL,
+                currency: CONST.CURRENCY.USD,
+                total: existingTransaction.amount,
+            };
+            const iouAction = {
+                reportActionID: NumberUtils.rand64(),
+                actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
+                actorEmail: RORY_EMAIL,
+                created: DateUtils.getDBTime(),
+                originalMessage: {
+                    IOUReportID: iouReportID,
+                    IOUTransactionID: existingTransaction.transactionID,
+                    amount: existingTransaction.amount,
+                    currency: CONST.CURRENCY.USD,
+                    type: CONST.IOU.REPORT_ACTION_TYPE.CREATE,
+                    participants: [RORY_EMAIL, CARLOS_EMAIL],
+                },
+            };
+            let newIOUAction;
+            let newTransaction;
+            fetch.pause();
+            return Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${chatReportID}`, chatReport)
+                .then(() => Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${iouReportID}`, iouReport))
+                .then(() => Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${chatReportID}`, {
+                    [createdAction.reportActionID]: createdAction,
+                    [iouAction.reportActionID]: iouAction,
+                }))
+                .then(() => Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION}${existingTransaction.transactionID}`, existingTransaction))
+                .then(() => {
+                    IOU.requestMoney(chatReport, amount, CONST.CURRENCY.USD, RORY_EMAIL, {login: CARLOS_EMAIL}, comment);
+                    return waitForPromisesToResolve();
+                })
+                .then(() => new Promise((resolve) => {
+                    const connectionID = Onyx.connect({
+                        key: ONYXKEYS.COLLECTION.REPORT,
+                        waitForCollectionCallback: true,
+                        callback: (allReports) => {
+                            Onyx.disconnect(connectionID);
 
+                            // TODO: clean this up after https://github.com/Expensify/App/pull/16531 is merged
+                            allReports = _.filter(allReports, report => report !== null);
+
+                            // No new reports should be created
+                            expect(_.size(allReports)).toBe(2);
+                            expect(_.find(allReports, report => report.reportID === chatReportID)).toBeTruthy();
+                            expect(_.find(allReports, report => report.reportID === iouReportID)).toBeTruthy();
+
+                            chatReport = _.find(allReports, report => report.type === CONST.REPORT.TYPE.CHAT);
+                            iouReport = _.find(allReports, report => report.type === CONST.REPORT.TYPE.IOU);
+
+                            // The total on the iou report should be updated
+                            expect(iouReport.total).toBe(1100);
+
+                            resolve();
+                        },
+                    });
+                }))
+                .then(() => new Promise((resolve) => {
+                    const connectionID = Onyx.connect({
+                        key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${chatReportID}`,
+                        waitForCollectionCallback: true,
+                        callback: (reportActionsForChatReport) => {
+                            Onyx.disconnect(connectionID);
+
+                            expect(_.size(reportActionsForChatReport)).toBe(3);
+                            newIOUAction = _.find(reportActionsForChatReport, reportAction => reportAction.reportActionID !== createdAction.reportActionID && reportAction.reportActionID !== iouAction.reportActionID);
+
+                            // The comment should be included in the IOU action
+                            expect(newIOUAction.originalMessage.comment).toBe(comment);
+
+                            // The amount in the IOU action should be correct
+                            expect(newIOUAction.originalMessage.amount).toBe(amount);
+
+                            // The IOU action should be pending
+                            expect(newIOUAction.pendingAction).toBe(CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD);
+
+                            resolve();
+                        },
+                    });
+                }))
+                .then(() => new Promise((resolve) => {
+                    const connectionID = Onyx.connect({
+                        key: ONYXKEYS.COLLECTION.TRANSACTION,
+                        waitForCollectionCallback: true,
+                        callback: (allTransactions) => {
+                            Onyx.disconnect(connectionID);
+
+                            // TODO: clean this up after https://github.com/Expensify/App/pull/16531 is merged
+                            allTransactions = _.filter(allTransactions, transaction => transaction !== null);
+
+                            // There should be two transactions
+                            expect(_.size(allTransactions)).toBe(2);
+
+                            // The amount on the new transaction should be correct
+                            newTransaction = _.find(allTransactions, transaction => transaction.transactionID !== existingTransaction.transactionID);
+                            expect(newTransaction.amount).toBe(amount);
+
+                            // The new transaction should be pending
+                            expect(newTransaction.pendingAction).toBe(CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD);
+
+                            // The transactionID on the iou action should match the one from the transactions collection
+                            expect(newIOUAction.originalMessage.IOUTransactionID).toBe(newTransaction.transactionID);
+
+                            resolve();
+                        },
+                    });
+                }))
+                .then(fetch.resume)
+                .then(() => new Promise((resolve) => {
+                    const connectionID = Onyx.connect({
+                        key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${chatReport.reportID}`,
+                        waitForCollectionCallback: true,
+                        callback: reportActionsForChatReport => {
+                            Onyx.disconnect(connectionID);
+                            expect(_.size(reportActionsForChatReport)).toBe(3);
+                            _.each(reportActionsForChatReport, reportAction => expect(reportAction.pendingAction).toBeFalsy());
+                            resolve();
+                        },
+                    });
+                }))
+                .then(() => new Promise((resolve) => {
+                    const connectionID = Onyx.connect({
+                        key: ONYXKEYS.COLLECTION.TRANSACTION,
+                        waitForCollectionCallback: true,
+                        callback: (allTransactions) => {
+                            Onyx.disconnect(connectionID);
+
+                            // TODO: clean this up after https://github.com/Expensify/App/pull/16531 is merged
+                            allTransactions = _.filter(allTransactions, transaction => transaction !== null);
+
+                            _.each(allTransactions, transaction => expect(transaction.pendingAction).toBeFalsy());
+                            resolve();
+                        },
+                    });
+                }));
         });
 
         it('correctly implements RedBrickRoad error handling', () => {
