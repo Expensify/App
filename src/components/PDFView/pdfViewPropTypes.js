@@ -18,6 +18,9 @@ const propTypes = {
     /** Handles scale changed event in PDF component */
     onScaleChanged: PropTypes.func,
 
+    /** Handles load complete event in PDF component */
+    onLoadComplete: PropTypes.func,
+
     ...windowDimensionsPropTypes,
 };
 
@@ -27,6 +30,7 @@ const defaultProps = {
     onPress: () => {},
     onToggleKeyboard: () => {},
     onScaleChanged: () => {},
+    onLoadComplete: () => {},
 };
 
 export {propTypes, defaultProps};
