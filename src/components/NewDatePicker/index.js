@@ -1,5 +1,5 @@
 import React from 'react';
-import {View, Animated} from 'react-native';
+import {View} from 'react-native';
 import moment from 'moment';
 import TextInput from '../TextInput';
 import CalendarPicker from '../CalendarPicker';
@@ -28,10 +28,7 @@ class NewDatePicker extends React.Component {
         };
 
         this.setDate = this.setDate.bind(this);
-        this.showPicker = this.showPicker.bind(this);
         this.setCurrentSelectedMonth = this.setCurrentSelectedMonth.bind(this);
-
-        this.opacity = new Animated.Value(0);
 
         // We're using uncontrolled input otherwise it wont be possible to
         // raise change events with a date value - each change will produce a date
@@ -39,13 +36,6 @@ class NewDatePicker extends React.Component {
         this.defaultValue = props.defaultValue
             ? moment(props.defaultValue).format(CONST.DATE.MOMENT_FORMAT_STRING)
             : '';
-    }
-
-    componentDidMount() {
-        if (!this.props.autoFocus) {
-            return;
-        }
-        this.showPicker();
     }
 
     /**
@@ -67,17 +57,6 @@ class NewDatePicker extends React.Component {
         });
     }
 
-    /**
-     * Function to animate showing the picker.
-     */
-    showPicker() {
-        Animated.timing(this.opacity, {
-            toValue: 1,
-            duration: 100,
-            useNativeDriver: true,
-        }).start();
-    }
-
     render() {
         return (
             <View style={styles.datePickerRoot}>
@@ -97,8 +76,8 @@ class NewDatePicker extends React.Component {
                         editable={false}
                     />
                 </View>
-                <Animated.View
-                    style={[styles.datePickerPopover, styles.border, {opacity: this.opacity}]}
+                <View
+                    style={[styles.datePickerPopover, styles.border]}
                 >
                     <CalendarPicker
                         minDate={this.props.minDate}
@@ -109,7 +88,7 @@ class NewDatePicker extends React.Component {
                         selectedYear={this.props.selectedYear}
                         onYearPickerOpen={this.setCurrentSelectedMonth}
                     />
-                </Animated.View>
+                </View>
             </View>
         );
     }
