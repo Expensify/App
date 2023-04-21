@@ -10,7 +10,6 @@ const PLATFORM_OS_MACOS = 'Mac OS';
 const ANDROID_PACKAGE_NAME = 'com.expensify.chat';
 const USA_COUNTRY_NAME = 'United States';
 const CURRENT_YEAR = new Date().getFullYear();
-
 const EMOJIS = '[\\p{Extended_Pictographic}\\u200d\\u{1f1e6}-\\u{1f1ff}\\u{1f3fb}-\\u{1f3ff}\\u{e0020}-\\u{e007f}\\u20E3\\uFE0F]|[#*0-9]\\uFE0F?\\u20E3';
 const NEW_LINE_OR_WHITE_SPACE = '[\\n\\s]';
 
@@ -923,7 +922,6 @@ const CONST = {
 
         // eslint-disable-next-line no-misleading-character-class
         EMOJIS: new RegExp(EMOJIS, 'gu'),
-
         TAX_ID: /^\d{9}$/,
         NON_NUMERIC: /\D/g,
 
