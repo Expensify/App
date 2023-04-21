@@ -23,6 +23,7 @@ module.exports = (env = {}) => portfinder.getPortPromise({port: BASE_PORT})
                     '/api': 'http://[::1]:9000',
                     '/staging': 'http://[::1]:9000',
                     '/chat-attachments': 'http://[::1]:9000',
+                    '/appleauth': 'http://localhost:9002',
                 },
             };
 
@@ -42,7 +43,7 @@ module.exports = (env = {}) => portfinder.getPortPromise({port: BASE_PORT})
                 ...proxySettings,
                 historyApiFallback: true,
                 port,
-              allowedHosts: 'all',
+                allowedHosts: 'all',
             },
             plugins: [
                 new DefinePlugin({
