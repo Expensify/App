@@ -1,3 +1,5 @@
+import CONST from '../../CONST';
+import ONYXKEYS from '../../ONYXKEYS';
 import * as API from '../API';
 import * as ReportUtils from '../ReportUtils';
 import * as Report from './Report';
@@ -35,14 +37,30 @@ function assignTask(parentReportActionID, parentReportID, taskReportID, name, de
         Report.openReport(finalParentReportID, [assignee]);
     }
 
-    const optimisticCreatedAction = ReportUtils.buildOptimisticCreatedReportAction(ownerEmail);
-
     const optimisticTaskReport = ReportUtils.buildOptimisticTaskReport(ownerEmail, assignee, finalParentReportID, parentReportActionID, name, description);
+    const optimisticCreatedAction = ReportUtils.buildOptimisticCreatedReportAction(ownerEmail);
 
     // AddCommentReportAction on the parent chat report
     const optimisticAddCommentReportAction = ReportUtils.buildOptimisticAddCommentReportAction(finalParentReportID, optimisticTaskReport.reportID);
 
-    const optimisticData = [optimisticCreatedAction, optimisticTaskReport, optimisticAddCommentReportAction];
+    const optimisticData = [
+        {
+            method: CONST.ONYX.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${finalParentReportID}`,
+            value: optimisticCreatedAction,
+        },
+        {
+            method: CONST.ONYX.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT}${finalParentReportID}`,
+            value: parentReport,
+        },
+        {
+            method: CONST.ONYX.METHOD.SET,
+            key: `${ONYXKEYS.COLLECTION.REPORT}${optimisticTaskReport.reportID}`,
+            value: optimisticTaskReport,
+        },
+        optimisticAddCommentReportAction,
+    ];
 
     const successData = {};
 
