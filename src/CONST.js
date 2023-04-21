@@ -10,6 +10,7 @@ const PLATFORM_OS_MACOS = 'Mac OS';
 const ANDROID_PACKAGE_NAME = 'com.expensify.chat';
 const USA_COUNTRY_NAME = 'United States';
 const CURRENT_YEAR = new Date().getFullYear();
+const PULL_REQUEST_NUMBER = lodashGet(Config, 'PULL_REQUEST_NUMBER', '');
 
 const CONST = {
     ANDROID_PACKAGE_NAME,
@@ -54,6 +55,8 @@ const CONST = {
         MAX_LENGTH: 50,
         RESERVED_FIRST_NAMES: ['Expensify', 'Concierge'],
     },
+
+    PULL_REQUEST_NUMBER,
 
     CALENDAR_PICKER: {
         // Numbers were arbitrarily picked.
@@ -381,6 +384,7 @@ const CONST = {
                     UPDATE_FIELD: 'POLICYCHANGELOG_UPDATE_FIELD',
                     UPDATE_MANUAL_APPROVAL_THRESHOLD: 'POLICYCHANGELOG_UPDATE_MANUAL_APPROVAL_THRESHOLD',
                     UPDATE_MAX_EXPENSE_AMOUNT: 'POLICYCHANGELOG_UPDATE_MAX_EXPENSE_AMOUNT',
+                    UPDATE_MAX_EXPENSE_AMOUNT_NO_RECEIPT: 'POLICYCHANGELOG_UPDATE_MAX_EXPENSE_AMOUNT_NO_RECEIPT',
                     UPDATE_NAME: 'POLICYCHANGELOG_UPDATE_NAME',
                     UPDATE_OWNERSHIP: 'POLICYCHANGELOG_UPDATE_OWNERSHIP',
                     UPDATE_REIMBURSEMENT_CHOICE: 'POLICYCHANGELOG_UPDATE_REIMBURSEMENT_CHOICE',
@@ -694,6 +698,7 @@ const CONST = {
         DEV: 'development',
         STAGING: 'staging',
         PRODUCTION: 'production',
+        ADHOC: 'adhoc',
     },
 
     // Used to delay the initial fetching of reportActions when the app first inits or reconnects (e.g. returning
