@@ -89,6 +89,7 @@ export default {
     lineHeightNormal: getValueUsingPixelRatio(16, 21),
     lineHeightLarge: getValueUsingPixelRatio(18, 24),
     lineHeightXLarge: getValueUsingPixelRatio(20, 24),
+    lineHeightXXLarge: getValueUsingPixelRatio(27, 32),
     inputHeight: getValueUsingPixelRatio(52, 72),
     inputHeightSmall: 28,
     formErrorLineHeight: getValueUsingPixelRatio(18, 23),
