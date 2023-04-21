@@ -18,6 +18,7 @@ import * as StyleUtils from '../../../styles/StyleUtils';
 import {withNetwork} from '../../../components/OnyxProvider';
 import CONST from '../../../CONST';
 import applyStrikethrough from '../../../components/HTMLEngineProvider/applyStrikethrough';
+import getPlatform from '../../../libs/getPlatform';
 
 const propTypes = {
     /** The message fragment needing to be displayed */
@@ -107,6 +108,7 @@ const ReportActionItemFragment = (props) => {
             // we render it as text, not as html.
             // This is done to render emojis with line breaks between them as text.
             const differByLineBreaksOnly = Str.replaceAll(html, '<br />', '\n') === text;
+            const isWeb = [CONST.PLATFORM.WEB, CONST.PLATFORM.DESKTOP].includes(getPlatform());
 
             // Only render HTML if we have html in the fragment
             if (!differByLineBreaksOnly) {
@@ -133,7 +135,7 @@ const ReportActionItemFragment = (props) => {
                     <Text
                         fontSize={variables.fontSizeSmall}
                         color={themeColors.textSupporting}
-                        style={[...props.style, styles.offlineFeedback.edited]}
+                        style={[...props.style, isWeb ? styles.offlineFeedback.edited : {}]}
                     >
                         {` ${props.translate('reportActionCompose.edited')}`}
                     </Text>

@@ -6,6 +6,8 @@ import Text from '../../Text';
 import variables from '../../../styles/variables';
 import themeColors from '../../../styles/themes/default';
 import styles from '../../../styles/styles';
+import CONST from '../../../CONST';
+import getPlatform from '../../../libs/getPlatform';
 
 const propTypes = {
     ...htmlRendererPropTypes,
@@ -15,13 +17,15 @@ const propTypes = {
 const EditedRenderer = (props) => {
     const defaultRendererProps = _.omit(props, ['TDefaultRenderer', 'style', 'tnode']);
     const isPendingDelete = !!props.tnode.attributes.deleted;
+    const isWeb = [CONST.PLATFORM.WEB, CONST.PLATFORM.DESKTOP].includes(getPlatform());
+
     return (
         <Text
             // eslint-disable-next-line react/jsx-props-no-spreading
             {...defaultRendererProps}
             fontSize={variables.fontSizeSmall}
             color={themeColors.textSupporting}
-            style={isPendingDelete ? [styles.offlineFeedback.deleted, styles.offlineFeedback.edited] : {}}
+            style={isPendingDelete && isWeb ? [styles.offlineFeedback.deleted, styles.offlineFeedback.edited] : {}}
         >
             {/* Native devices do not support margin between nested text */}
             <Text style={styles.w1}>{' '}</Text>
