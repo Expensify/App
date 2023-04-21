@@ -4,6 +4,8 @@ on:
   pull_request:
     types: [opened, synchronize]
     branches-ignore: [staging, production]
+    paths:
+      - .github/**
 
 jobs:
   verify:

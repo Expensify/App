@@ -65,7 +65,7 @@ const MenuItem = (props) => {
     const descriptionTextStyle = StyleUtils.combineStyles([
         styles.textLabelSupporting,
         (props.icon ? styles.ml3 : undefined),
-        styles.breakAll,
+        styles.breakWord,
         styles.lineHeightNormal,
         props.title ? descriptionVerticalMargin : undefined,
     ]);
@@ -87,7 +87,6 @@ const MenuItem = (props) => {
                 props.style,
                 StyleUtils.getButtonBackgroundColorStyle(getButtonState(props.focused || hovered, pressed, props.success, props.disabled, props.interactive), true),
                 ..._.isArray(props.wrapperStyle) ? props.wrapperStyle : [props.wrapperStyle],
-                styles.popoverMaxWidth,
             ])}
             disabled={props.disabled}
         >
