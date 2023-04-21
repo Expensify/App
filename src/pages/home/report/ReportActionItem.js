@@ -139,8 +139,8 @@ class ReportActionItem extends Component {
      * @param {Object} [event] - A press event.
      */
     showPopover(event) {
-        // Block menu on the message being Edited
-        if (this.props.draftMessage) {
+        // Block menu on the message being Edited or if the report action item has errors
+        if (this.props.draftMessage || !_.isEmpty(this.props.action.errors)) {
             return;
         }
 
@@ -255,6 +255,7 @@ class ReportActionItem extends Component {
             return <ChronosOOOListActions action={this.props.action} reportID={this.props.report.reportID} />;
         }
 
+        const hasErrors = !_.isEmpty(this.props.action.errors);
         const whisperedTo = lodashGet(this.props.action, 'whisperedTo', []);
         const isWhisper = whisperedTo.length > 0;
         const isMultipleParticipant = whisperedTo.length > 1;
@@ -268,7 +269,7 @@ class ReportActionItem extends Component {
                 onPressIn={() => this.props.isSmallScreenWidth && DeviceCapabilities.canUseTouchScreen() && ControlSelection.block()}
                 onPressOut={() => ControlSelection.unblock()}
                 onSecondaryInteraction={this.showPopover}
-                preventDefaultContentMenu={!this.props.draftMessage}
+                preventDefaultContextMenu={!this.props.draftMessage && !hasErrors}
                 withoutFocusOnSecondaryInteraction
             >
                 <Hoverable>
@@ -343,6 +344,7 @@ class ReportActionItem extends Component {
                                 isVisible={
                                     hovered
                                     && !this.props.draftMessage
+                                    && !hasErrors
                                 }
                                 draftMessage={this.props.draftMessage}
                                 isChronosReport={ReportUtils.chatIncludesChronos(this.props.report)}
