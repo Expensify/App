@@ -38,6 +38,7 @@ function canNavigate(methodName, params = {}) {
     return false;
 }
 
+// Re-exporting the getTopmostReportId here to fill in default value for state. The getTopmostReportId isn't defined in this file to avoid cyclic dependencies.
 const getTopmostReportId = (state = navigationRef.getState()) => originalGetTopmostReportId(state);
 
 /**
@@ -212,9 +213,6 @@ export default {
     resetIsReportScreenReadyPromise,
     isReportScreenReady,
     setIsReportScreenIsReady,
-
-    // Re-exporting the getTopmostReportId here to fill in default value for state. The getTopmostReportId isn't defined in this file to avoid cyclic dependencies.
-    // getTopmostReportId: (state = navigationRef.getState()) => getTopmostReportId(state),
     getTopmostReportId,
     drawerGoBack,
 };
