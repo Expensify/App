@@ -60,6 +60,7 @@ const MenuItem = (props) => {
         (props.shouldShowBasicTitle ? undefined : styles.textStrong),
         (props.interactive && props.disabled ? {...styles.disabledText, ...styles.userSelectNone} : undefined),
         styles.pre,
+        styles.ltr,
     ], props.titleStyle);
     const descriptionVerticalMargin = props.shouldShowDescriptionOnTop ? styles.mb1 : styles.mt1;
     const descriptionTextStyle = StyleUtils.combineStyles([
@@ -145,7 +146,7 @@ const MenuItem = (props) => {
                                     style={titleTextStyle}
                                     numberOfLines={1}
                                 >
-                                    {props.title}
+                                    {StyleUtils.convertToLTR(props.title)}
                                 </Text>
                             )}
                             {Boolean(props.description) && !props.shouldShowDescriptionOnTop && (
