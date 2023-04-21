@@ -32,6 +32,9 @@ const propTypes = {
 
     /** The details about the account that the user is signing in with */
     account: PropTypes.shape({
+        /** The primary login (email) of the current user */
+        primaryLogin: PropTypes.string,
+
         /** An error message to display to the user */
         errors: PropTypes.objectOf(PropTypes.string),
 
@@ -90,10 +93,15 @@ class LoginForm extends React.Component {
         if (!prevProps.blurOnSubmit && this.props.blurOnSubmit) {
             this.input.blur();
         }
-        if (prevProps.isVisible || !this.props.isVisible) {
+
+        if (!prevProps.isVisible && this.props.isVisible) {
+            this.input.focus();
+        }
+
+        if (!prevProps.account.primaryLogin || this.props.account.primaryLogin) {
             return;
         }
-        this.input.focus();
+        this.clearLogin();
     }
 
     /**
