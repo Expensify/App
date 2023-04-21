@@ -116,7 +116,6 @@ class AttachmentCarousel extends React.Component {
      * @param {Boolean} shouldShowArrow
      */
     toggleArrowsVisibility(shouldShowArrow) {
-
         // Don't toggle arrows in a zoomed state
         if (this.state.isZoomed) {
             return;
