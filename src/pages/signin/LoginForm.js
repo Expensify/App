@@ -198,7 +198,7 @@ class LoginForm extends React.Component {
                     <DotIndicatorMessage style={[styles.mv2]} type="success" messages={{0: this.props.closeAccount.success}} />
                 )}
                 { // We need to unmount the submit button when the component is not visible so that the Enter button
-                  // key handler gets unsubscribed and does not conflict with the Password Form
+                    // key handler gets unsubscribed and does not conflict with the Password Form
                     this.props.isVisible && (
                         <View style={[styles.mt5]}>
                             <FormAlertWithSubmitButton
@@ -210,7 +210,12 @@ class LoginForm extends React.Component {
                                 containerStyles={[styles.mh0]}
                             />
                             <View style={{
-                                flexDirection: 'row', backgroundColor: 'red', height: 100, width: 200,
+                                flexDirection: 'row',
+                                backgroundColor: 'red',
+                                height: 100,
+                                width: 200,
+                                alignItems: 'center',
+                                justifyContent: 'space-evenly',
                             }}
                             >
                                 <AppleSignIn />

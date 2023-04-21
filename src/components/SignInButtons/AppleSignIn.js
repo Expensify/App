@@ -1,3 +1,5 @@
+/* eslint-disable rulesdir/prefer-early-return */
+/* eslint-disable rulesdir/display-name-property */
 import React from 'react';
 import {View} from 'react-native';
 
@@ -15,9 +17,24 @@ const AppleSignIn = () => {
     }, []);
 
     return (
-        <View style={{width: 60, height: 60, backgroundColor: 'blue'}}>
-            <div id="appleid-signin" data-mode="logo-only" data-color="white" data-border-radius="50" data-height="40" data-width="40" />
+        <View style={{
+            width: 48, height: 48, padding: 4, backgroundColor: 'blue',
+        }}
+        >
+            <div
+                style={{fontSize: '0'}}
+                id="appleid-signin"
+                data-mode="logo-only"
+                data-color="white"
+                data-border-radius="50"
+                data-border="false"
+                data-border-color="white"
+                data-width="40"
+                data-height="40"
+                data-type="sign in"
+            />
         </View>
+
     );
 };
 
