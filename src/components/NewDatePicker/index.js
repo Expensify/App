@@ -92,7 +92,7 @@ class NewDatePicker extends React.Component {
                         errorText={this.props.errorText}
                         containerStyles={this.props.containerStyles}
                         textInputContainerStyles={[styles.borderColorFocus]}
-                        inputStyle={[styles.cursorDefault, styles.pointerEventsNone]}
+                        inputStyle={[styles.pointerEventsNone]}
                         disabled={this.props.disabled}
                         editable={false}
                     />
