@@ -183,7 +183,7 @@ class ReportActionsView extends React.Component {
             }
         }
 
-        // If the report was previously hidden by the side bar, or the view is expanded from mobile to desktop layout
+        // If the view is expanded from mobile to desktop layout
         // we update the new marker position, mark the report as read, and fetch new report actions
         const didScreenSizeIncrease = prevProps.isSmallScreenWidth && !this.props.isSmallScreenWidth;
         const didReportBecomeVisible = isReportFullyVisible && didScreenSizeIncrease;

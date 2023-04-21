@@ -1,4 +1,5 @@
-import _ from 'lodash';
+import lodashFindLast from 'lodash/findLast';
+import lodashGet from 'lodash/get';
 
 // This function is in a separate file than Navigation.js to avoid cyclic dependency.
 
@@ -7,13 +8,13 @@ import _ from 'lodash';
  * @returns {String | undefined} - It's possible that there is no any report screen
  */
 function getTopmostReportId(state) {
-    const topmostCentralPane = _.findLast(state.routes, route => route.name === 'CentralPaneNavigator');
+    const topmostCentralPane = lodashFindLast(state.routes, route => route.name === 'CentralPaneNavigator');
 
     if (!topmostCentralPane) {
         return;
     }
 
-    const directReportIdParam = _.get(topmostCentralPane, 'params.params.reportID');
+    const directReportIdParam = lodashGet(topmostCentralPane, 'params.params.reportID');
 
     if (!topmostCentralPane.state && !directReportIdParam) {
         return;
@@ -23,12 +24,12 @@ function getTopmostReportId(state) {
         return directReportIdParam;
     }
 
-    const topmostReport = _.findLast(topmostCentralPane.state.routes, route => route.name === 'Report');
+    const topmostReport = lodashFindLast(topmostCentralPane.state.routes, route => route.name === 'Report');
     if (!topmostReport) {
         return;
     }
 
-    const topmostReportId = _.get(topmostReport, 'params.reportID');
+    const topmostReportId = lodashGet(topmostReport, 'params.reportID');
 
     return topmostReportId;
 }
