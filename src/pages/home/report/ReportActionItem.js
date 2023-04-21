@@ -124,7 +124,7 @@ class ReportActionItem extends Component {
      * @param {Object} [event] - A press event.
      */
     showPopover(event) {
-        // Block menu on the message being Edited or if the report item has errors
+        // Block menu on the message being Edited or if the report action item has errors
         if (this.props.draftMessage || !_.isEmpty(this.props.action.errors)) {
             return;
         }
