@@ -266,7 +266,9 @@ class ReportActionItem extends Component {
                     {content}
                 </ReportActionItemDraft>
             );
-        } if (!this.props.displayAsGroup) {
+        }
+
+        if (!this.props.displayAsGroup) {
             return (
                 <ReportActionItemSingle
                     action={this.props.action}
@@ -279,6 +281,7 @@ class ReportActionItem extends Component {
                 </ReportActionItemSingle>
             );
         }
+
         return (
             <ReportActionItemGrouped wrapperStyles={[styles.chatItem, isWhisper ? styles.pt1 : {}]}>
                 {content}
