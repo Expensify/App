@@ -900,7 +900,7 @@ export default {
             CORPORATION: 'Corp',
             PARTNERSHIP: 'Partnership',
             COOPERATIVE: 'Cooperative',
-            SOLE_PROPRIETORSHIP: 'Sole Proprietorship',
+            SOLE_PROPRIETORSHIP: 'Sole proprietorship',
             OTHER: 'Other',
         },
     },
