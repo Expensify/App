@@ -38,7 +38,7 @@ function canNavigate(methodName, params = {}) {
     return false;
 }
 
-const getTopmostReportId = (state = navigationRef.getState()) => originalGetTopmostReportId(state);
+const getTopmostReportId = (state = navigationRef.getState()) => originalGetTopmostReportId(state)
 
 /**
  * @private
