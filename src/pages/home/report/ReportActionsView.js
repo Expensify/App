@@ -9,7 +9,6 @@ import Timing from '../../../libs/actions/Timing';
 import CONST from '../../../CONST';
 import compose from '../../../libs/compose';
 import withWindowDimensions, {windowDimensionsPropTypes} from '../../../components/withWindowDimensions';
-import {withDrawerPropTypes} from '../../../components/withDrawerState';
 import * as ReportScrollManager from '../../../libs/ReportScrollManager';
 import withLocalize, {withLocalizePropTypes} from '../../../components/withLocalize';
 import Performance from '../../../libs/Performance';
@@ -21,6 +20,7 @@ import CopySelectionHelper from '../../../components/CopySelectionHelper';
 import * as ReportActionsUtils from '../../../libs/ReportActionsUtils';
 import * as ReportUtils from '../../../libs/ReportUtils';
 import reportPropTypes from '../../reportPropTypes';
+import withNavigationFocus from '../../../components/withNavigationFocus';
 import getIsReportFullyVisible from '../../../libs/getIsReportFullyVisible';
 
 const propTypes = {
@@ -37,7 +37,6 @@ const propTypes = {
     network: networkPropTypes.isRequired,
 
     ...windowDimensionsPropTypes,
-    ...withDrawerPropTypes,
     ...withLocalizePropTypes,
 };
 
@@ -151,10 +150,6 @@ class ReportActionsView extends React.Component {
             return true;
         }
 
-        if (this.props.isDrawerOpen !== nextProps.isDrawerOpen) {
-            return true;
-        }
-
         if (lodashGet(this.props.report, 'hasOutstandingIOU') !== lodashGet(nextProps.report, 'hasOutstandingIOU')) {
             return true;
         }
@@ -188,11 +183,10 @@ class ReportActionsView extends React.Component {
             }
         }
 
-        // If the report was previously hidden by the side bar, or the view is expanded from mobile to desktop layout
+        // If the view is expanded from mobile to desktop layout
         // we update the new marker position, mark the report as read, and fetch new report actions
-        const didSidebarClose = prevProps.isDrawerOpen && !this.props.isDrawerOpen;
         const didScreenSizeIncrease = prevProps.isSmallScreenWidth && !this.props.isSmallScreenWidth;
-        const didReportBecomeVisible = isReportFullyVisible && (didSidebarClose || didScreenSizeIncrease);
+        const didReportBecomeVisible = isReportFullyVisible && didScreenSizeIncrease;
         if (didReportBecomeVisible) {
             this.setState({
                 newMarkerReportActionID: ReportUtils.isUnread(this.props.report)
@@ -208,14 +202,6 @@ class ReportActionsView extends React.Component {
             this.setState({
                 newMarkerReportActionID: ReportUtils.getNewMarkerReportActionID(this.props.report, this.props.reportActions),
             });
-        }
-
-        // When the user navigates to the LHN the ReportActionsView doesn't unmount and just remains hidden.
-        // The next time we navigate to the same report (e.g. by swiping or tapping the LHN row) we want the new marker to clear.
-        const didSidebarOpen = !prevProps.isDrawerOpen && this.props.isDrawerOpen;
-        const didUserNavigateToSidebarAfterReadingReport = didSidebarOpen && !ReportUtils.isUnread(this.props.report);
-        if (didUserNavigateToSidebarAfterReadingReport) {
-            this.setState({newMarkerReportActionID: ''});
         }
 
         // Checks to see if a report comment has been manually "marked as unread". All other times when the lastReadTime
@@ -254,7 +240,7 @@ class ReportActionsView extends React.Component {
      * @returns {Boolean}
      */
     isReportFullyVisible() {
-        return getIsReportFullyVisible(this.props.isDrawerOpen, this.props.isSmallScreenWidth);
+        return getIsReportFullyVisible(this.props.isFocused);
     }
 
     // If the report is optimistic (AKA not yet created) we don't need to call openReport again
@@ -368,6 +354,7 @@ ReportActionsView.defaultProps = defaultProps;
 export default compose(
     Performance.withRenderTrace({id: '<ReportActionsView> rendering'}),
     withWindowDimensions,
+    withNavigationFocus,
     withLocalize,
     withNetwork(),
 )(ReportActionsView);

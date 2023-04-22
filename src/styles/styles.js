@@ -1166,6 +1166,14 @@ const styles = {
         textDecorationLine: 'none',
     },
 
+    leftPanelContainer: {
+        maxWidth: variables.leftPaneMaxWidth,
+    },
+
+    rightPanelContainer: {
+        width: variables.sideBarWidth,
+    },
+
     onlyEmojisText: {
         fontSize: variables.fontSizeOnlyEmojis,
         lineHeight: variables.fontSizeOnlyEmojisHeight,
@@ -1650,6 +1658,15 @@ const styles = {
         marginTop: 5,
         marginRight: 4,
     },
+
+    navigationModalCard: isSmallScreenWidth => ({
+        position: 'absolute',
+        top: 0,
+        right: 0,
+        width: isSmallScreenWidth ? '100%' : variables.sideBarWidth,
+        backgroundColor: 'transparent',
+        height: '100%',
+    }),
 
     navigationModalOverlay: {
         userSelect: 'none',
@@ -2505,6 +2522,11 @@ const styles = {
 
     cursorPointer: {
         cursor: 'pointer',
+    },
+
+    cardStyleNavigator: {
+        overflow: 'hidden',
+        height: '100%',
     },
 
     fullscreenCard: {

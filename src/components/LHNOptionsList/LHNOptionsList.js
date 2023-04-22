@@ -24,9 +24,6 @@ const propTypes = {
     /** Toggle between compact and default view of the option */
     optionMode: PropTypes.oneOf(_.values(CONST.OPTION_MODE)).isRequired,
 
-    /** Callback to execute when the SectionList lays out */
-    onLayout: PropTypes.func.isRequired,
-
     /** Whether to allow option focus or not */
     shouldDisableFocusOptions: PropTypes.bool,
 };
@@ -99,7 +96,6 @@ class LHNOptionsList extends Component {
                     initialNumToRender={5}
                     maxToRenderPerBatch={5}
                     windowSize={5}
-                    onLayout={this.props.onLayout}
                 />
             </View>
         );

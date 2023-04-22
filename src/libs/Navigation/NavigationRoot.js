@@ -1,4 +1,4 @@
-import React from 'react';
+import React, {useRef} from 'react';
 import PropTypes from 'prop-types';
 import {NavigationContainer, DefaultTheme, getPathFromState} from '@react-navigation/native';
 import {useFlipper} from '@react-navigation/devtools';
@@ -8,7 +8,10 @@ import AppNavigator from './AppNavigator';
 import FullScreenLoadingIndicator from '../../components/FullscreenLoadingIndicator';
 import themeColors from '../../styles/themes/default';
 import styles from '../../styles/styles';
+import withWindowDimensions, {windowDimensionsPropTypes} from '../../components/withWindowDimensions';
 import Log from '../Log';
+import withCurrentReportId from '../../components/withCurrentReportId';
+import compose from '../compose';
 
 // https://reactnavigation.org/docs/themes
 const navigationTheme = {
@@ -20,6 +23,8 @@ const navigationTheme = {
 };
 
 const propTypes = {
+    ...windowDimensionsPropTypes,
+
     /** Whether the current user is logged in with an authToken */
     authenticated: PropTypes.bool.isRequired,
 
@@ -50,14 +55,24 @@ function parseAndLogRoute(state) {
 
 const NavigationRoot = (props) => {
     useFlipper(navigationRef);
+    const navigationStateRef = useRef(undefined);
+
+    const updateSavedNavigationStateAndLogRoute = (state) => {
+        navigationStateRef.current = state;
+        props.updateCurrentReportId(state);
+        parseAndLogRoute(state);
+    };
+
     return (
         <NavigationContainer
+            key={props.isSmallScreenWidth ? 'small' : 'big'}
             fallback={(
                 <FullScreenLoadingIndicator
                     style={styles.navigatorFullScreenLoading}
                 />
             )}
-            onStateChange={parseAndLogRoute}
+            onStateChange={updateSavedNavigationStateAndLogRoute}
+            initialState={navigationStateRef.current}
             onReady={props.onReady}
             theme={navigationTheme}
             ref={navigationRef}
@@ -73,4 +88,4 @@ const NavigationRoot = (props) => {
 
 NavigationRoot.displayName = 'NavigationRoot';
 NavigationRoot.propTypes = propTypes;
-export default NavigationRoot;
+export default compose(withWindowDimensions, withCurrentReportId)(NavigationRoot);

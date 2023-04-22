@@ -149,32 +149,6 @@ function getSafeAreaMargins(insets) {
 }
 
 /**
- * Return navigation menu styles.
- *
- * @param {Boolean} isSmallScreenWidth
- * @returns {Object}
- */
-function getNavigationDrawerStyle(isSmallScreenWidth) {
-    return isSmallScreenWidth
-        ? {
-            width: '100%',
-            height: '100%',
-            borderColor: themeColors.border,
-            backgroundColor: themeColors.appBG,
-        }
-        : {
-            height: '100%',
-            width: variables.sideBarWidth,
-            borderRightColor: themeColors.border,
-            backgroundColor: themeColors.appBG,
-        };
-}
-
-function getNavigationDrawerType(isSmallScreenWidth) {
-    return isSmallScreenWidth ? 'slide' : 'permanent';
-}
-
-/**
  * @param {Boolean} isZoomed
  * @param {Boolean} isDragging
  * @return {Object}
@@ -979,6 +953,14 @@ function getDirectionStyle(direction) {
     return {};
 }
 
+/**
+ * Returns a style object with display flex or none basing on the condition value.
+ *
+ * @param {boolean} condition
+ * @returns {Object}
+ */
+const displayIfTrue = condition => ({display: condition ? 'flex' : 'none'});
+
 export {
     getAvatarSize,
     getAvatarStyle,
@@ -986,8 +968,6 @@ export {
     getErrorPageContainerStyle,
     getSafeAreaPadding,
     getSafeAreaMargins,
-    getNavigationDrawerStyle,
-    getNavigationDrawerType,
     getZoomCursorStyle,
     getZoomSizingStyle,
     getWidthStyle,
@@ -1030,6 +1010,7 @@ export {
     getEmojiReactionBubbleTextStyle,
     getEmojiReactionCounterTextStyle,
     getDirectionStyle,
+    displayIfTrue,
     getFontSizeStyle,
     getSignInWordmarkWidthStyle,
 };

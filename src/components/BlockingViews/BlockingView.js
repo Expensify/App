@@ -50,7 +50,7 @@ const BlockingView = props => (
         {props.shouldShowBackHomeLink
             ? (
                 <TextLink
-                    onPress={() => Navigation.dismissModal(true)}
+                    onPress={Navigation.goBack}
                     style={[styles.link, styles.mt2]}
                 >
                     {props.link}

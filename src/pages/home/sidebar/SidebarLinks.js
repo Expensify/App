@@ -31,6 +31,8 @@ import SidebarUtils from '../../../libs/SidebarUtils';
 import reportPropTypes from '../../reportPropTypes';
 import OfflineWithFeedback from '../../../components/OfflineWithFeedback';
 import LHNSkeletonView from '../../../components/LHNSkeletonView';
+import withNavigationFocus from '../../../components/withNavigationFocus';
+import withCurrentReportId from '../../../components/withCurrentReportId';
 
 const propTypes = {
     /** Toggles the navigation menu open and closed */
@@ -66,9 +68,6 @@ const propTypes = {
     /** Current reportID from the route in react navigation state object */
     reportIDFromRoute: PropTypes.string,
 
-    /** Callback when onLayout of sidebar is called */
-    onLayout: PropTypes.func,
-
     /** Whether we are viewing below the responsive breakpoint */
     isSmallScreenWidth: PropTypes.bool.isRequired,
 
@@ -86,7 +85,6 @@ const defaultProps = {
         avatar: '',
     },
     reportIDFromRoute: '',
-    onLayout: () => {},
     priorityMode: CONST.PRIORITY_MODE.DEFAULT,
 };
 
@@ -97,6 +95,11 @@ class SidebarLinks extends React.Component {
         this.showSearchPage = this.showSearchPage.bind(this);
         this.showSettingsPage = this.showSettingsPage.bind(this);
         this.showReportPage = this.showReportPage.bind(this);
+    }
+
+    componentDidMount() {
+        App.setSidebarLoaded();
+        this.isSidebarLoaded = true;
     }
 
     showSearchPage() {
@@ -132,14 +135,14 @@ class SidebarLinks extends React.Component {
 
     render() {
         const isLoading = _.isEmpty(this.props.personalDetails) || _.isEmpty(this.props.chatReports);
-        const shouldFreeze = this.props.isSmallScreenWidth && !this.props.isDrawerOpen && this.isSidebarLoaded;
+        const shouldFreeze = this.props.isSmallScreenWidth && !this.props.isFocused && this.isSidebarLoaded;
         const optionListItems = SidebarUtils.getOrderedReportIDs(this.props.reportIDFromRoute);
 
         const skeletonPlaceholder = <LHNSkeletonView shouldAnimate={!shouldFreeze} />;
 
         return (
             <View
-                accessibilityElementsHidden={this.props.isSmallScreenWidth && !this.props.isDrawerOpen}
+                accessibilityElementsHidden={!this.props.isFocused}
                 accessibilityLabel={this.props.translate('sidebarScreen.listOfChats')}
                 style={[styles.flex1, styles.h100]}
             >
@@ -197,16 +200,11 @@ class SidebarLinks extends React.Component {
                             ]}
                             data={optionListItems}
                             focusedIndex={_.findIndex(optionListItems, (
-                                option => option.toString() === this.props.reportIDFromRoute
+                                option => option.toString() === this.props.currentReportId
                             ))}
                             onSelectRow={this.showReportPage}
                             shouldDisableFocusOptions={this.props.isSmallScreenWidth}
                             optionMode={this.props.priorityMode === CONST.PRIORITY_MODE.GSD ? CONST.OPTION_MODE.COMPACT : CONST.OPTION_MODE.DEFAULT}
-                            onLayout={() => {
-                                this.props.onLayout();
-                                App.setSidebarLoaded();
-                                this.isSidebarLoaded = true;
-                            }}
                         />
                     )}
                 </Freeze>
@@ -285,7 +283,9 @@ const policySelector = policy => policy && ({
 export default compose(
     withLocalize,
     withCurrentUserPersonalDetails,
+    withNavigationFocus,
     withWindowDimensions,
+    withCurrentReportId,
     withOnyx({
         // Note: It is very important that the keys subscribed to here are the same
         // keys that are subscribed to at the top of SidebarUtils.js. If there was a key missing from here and data was updated

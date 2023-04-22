@@ -1,7 +1,7 @@
 import React from 'react';
 import {withOnyx} from 'react-native-onyx';
 import PropTypes from 'prop-types';
-import {View} from 'react-native';
+import {InteractionManager, View} from 'react-native';
 import lodashGet from 'lodash/get';
 import _ from 'underscore';
 import {Freeze} from 'react-freeze';
@@ -26,7 +26,6 @@ import Visibility from '../../libs/Visibility';
 import networkPropTypes from '../../components/networkPropTypes';
 import withWindowDimensions, {windowDimensionsPropTypes} from '../../components/withWindowDimensions';
 import OfflineWithFeedback from '../../components/OfflineWithFeedback';
-import withDrawerState, {withDrawerPropTypes} from '../../components/withDrawerState';
 import ReportFooter from './report/ReportFooter';
 import Banner from '../../components/Banner';
 import withLocalize from '../../components/withLocalize';
@@ -36,6 +35,7 @@ import ReportHeaderSkeletonView from '../../components/ReportHeaderSkeletonView'
 import withViewportOffsetTop, {viewportOffsetTopPropTypes} from '../../components/withViewportOffsetTop';
 import * as ReportActionsUtils from '../../libs/ReportActionsUtils';
 import personalDetailsPropType from '../personalDetailsPropType';
+import withNavigationFocus from '../../components/withNavigationFocus';
 import getIsReportFullyVisible from '../../libs/getIsReportFullyVisible';
 import EmojiPicker from '../../components/EmojiPicker/EmojiPicker';
 import * as EmojiPickerAction from '../../libs/actions/EmojiPickerAction';
@@ -84,7 +84,6 @@ const propTypes = {
     personalDetails: PropTypes.objectOf(personalDetailsPropType),
 
     ...windowDimensionsPropTypes,
-    ...withDrawerPropTypes,
     ...viewportOffsetTopPropTypes,
 };
 
@@ -128,6 +127,7 @@ class ReportScreen extends React.Component {
         this.state = {
             skeletonViewContainerHeight: reportActionsListViewHeight,
             isBannerVisible: true,
+            animationFinished: false,
         };
     }
 
@@ -135,7 +135,7 @@ class ReportScreen extends React.Component {
         this.unsubscribeVisibilityListener = Visibility.onVisibilityChange(() => {
             // If the report is not fully visible (AKA on small screen devices and LHR is open) or the report is optimistic (AKA not yet created)
             // we don't need to call openReport
-            if (!getIsReportFullyVisible(this.props.isDrawerOpen, this.props.isSmallScreenWidth) || this.props.report.isOptimisticReport) {
+            if (!getIsReportFullyVisible(this.props.isFocused) || this.props.report.isOptimisticReport) {
                 return;
             }
 
@@ -145,6 +145,10 @@ class ReportScreen extends React.Component {
         this.fetchReportIfNeeded();
         toggleReportActionComposeView(true);
         Navigation.setIsReportScreenIsReady();
+
+        InteractionManager.runAfterInteractions(() => {
+            this.setState({animationFinished: true});
+        });
     }
 
     componentDidUpdate(prevProps) {
@@ -233,9 +237,9 @@ class ReportScreen extends React.Component {
             || (ReportUtils.isUserCreatedPolicyRoom(this.props.report) && !Permissions.canUsePolicyRooms(this.props.betas));
 
         // When the ReportScreen is not open/in the viewport, we want to "freeze" it for performance reasons
-        const shouldFreeze = this.props.isSmallScreenWidth && this.props.isDrawerOpen;
+        const shouldFreeze = this.props.isSmallScreenWidth && !this.props.isFocused;
 
-        const isLoading = !reportID || !this.props.isSidebarLoaded || _.isEmpty(this.props.personalDetails);
+        const isLoading = !reportID || !this.props.isSidebarLoaded || _.isEmpty(this.props.personalDetails) || !this.state.animationFinished;
 
         // the moment the ReportScreen becomes unfrozen we want to start the animation of the placeholder skeleton content
         // (which is shown, until all the actual views of the ReportScreen have been rendered)
@@ -313,7 +317,6 @@ class ReportScreen extends React.Component {
                                     reportActions={this.props.reportActions}
                                     report={this.props.report}
                                     isComposerFullSize={this.props.isComposerFullSize}
-                                    isDrawerOpen={this.props.isDrawerOpen}
                                     parentViewHeight={this.state.skeletonViewContainerHeight}
                                 />
                             )}
@@ -359,7 +362,7 @@ export default compose(
     withViewportOffsetTop,
     withLocalize,
     withWindowDimensions,
-    withDrawerState,
+    withNavigationFocus,
     withNetwork(),
     withOnyx({
         isSidebarLoaded: {

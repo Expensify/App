@@ -3,7 +3,6 @@ import React, {useCallback, useEffect, useState} from 'react';
 import Animated, {useSharedValue, useAnimatedStyle, withTiming} from 'react-native-reanimated';
 import _ from 'underscore';
 import InvertedFlatList from '../../../components/InvertedFlatList';
-import withDrawerState, {withDrawerPropTypes} from '../../../components/withDrawerState';
 import compose from '../../../libs/compose';
 import * as ReportScrollManager from '../../../libs/ReportScrollManager';
 import styles from '../../../styles/styles';
@@ -52,7 +51,6 @@ const propTypes = {
     /** Information about the network */
     network: networkPropTypes.isRequired,
 
-    ...withDrawerPropTypes,
     ...windowDimensionsPropTypes,
 };
 
@@ -132,7 +130,7 @@ const ReportActionsList = (props) => {
 
     // Native mobile does not render updates flatlist the changes even though component did update called.
     // To notify there something changes we can use extraData prop to flatlist
-    const extraData = (!props.isDrawerOpen && props.isSmallScreenWidth) ? props.newMarkerReportActionID : undefined;
+    const extraData = props.isSmallScreenWidth ? props.newMarkerReportActionID : undefined;
     const shouldShowReportRecipientLocalTime = ReportUtils.canShowReportRecipientLocalTime(props.personalDetails, props.report);
     return (
         <Animated.View style={[animatedStyles, styles.flex1]}>
@@ -191,7 +189,6 @@ ReportActionsList.defaultProps = defaultProps;
 ReportActionsList.displayName = 'ReportActionsList';
 
 export default compose(
-    withDrawerState,
     withWindowDimensions,
     withLocalize,
     withPersonalDetails(),
