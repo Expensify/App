@@ -173,7 +173,7 @@ class AdditionalDetailsStep extends React.Component {
      */
     activateWallet(values) {
         const personalDetails = {
-            phoneNumber: parsePhoneNumber(values[INPUT_IDS.PHONE_NUMBER], {regionCode: 'US'}).number.significant,
+            phoneNumber: parsePhoneNumber(values[INPUT_IDS.PHONE_NUMBER], {regionCode: CONST.COUNTRY.US}).number.significant,
             legalFirstName: values[INPUT_IDS.LEGAL_FIRST_NAME],
             legalLastName: values[INPUT_IDS.LEGAL_LAST_NAME],
             addressStreet: values[INPUT_IDS.ADDRESS.street],
