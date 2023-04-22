@@ -5,11 +5,7 @@
 # and commit the updated routes file.
 
 declare -r GREEN='\033[0;32m'
-declare -r RED='\033[0;31m'
 declare -r NC='\033[0m'
-
-declare LIB_PATH
-LIB_PATH="$(cd "$(dirname "${BASH_SOURCE[0]}")" && cd ../../ && pwd)/node_modules/diff-so-fancy"
 
 printf '\nRebuilding docs/routes.yml...\n'
 npm run createDocsRoutes
