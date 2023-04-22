@@ -290,7 +290,6 @@ function isValidUSPhone(phoneNumber = '', isCountryCodeOptional) {
     const regionCode = isCountryCodeOptional ? CONST.COUNTRY.US : null;
 
     const parsedPhoneNumber = parsePhoneNumber(phone, {regionCode});
-    console.log(parsedPhoneNumber);
     return parsedPhoneNumber.possible && parsedPhoneNumber.regionCode === CONST.COUNTRY.US;
 }
 
