@@ -252,7 +252,7 @@ function getOptionData(reportID) {
     const hasMultipleParticipants = participantPersonalDetailList.length > 1 || result.isChatRoom || result.isPolicyExpenseChat;
     const subtitle = ReportUtils.getChatRoomSubtitle(report, policies);
 
-    const login = Str.removeSMSDomain(personalDetail.login || '');
+    const login = Str.removeSMSDomain(lodashGet(personalDetail, 'login', ''));
     const formattedLogin = Str.isSMSLogin(login) ? LocalePhoneNumber.formatPhoneNumber(login) : login;
 
     // We only create tooltips for the first 10 users or so since some reports have hundreds of users, causing performance to degrade.

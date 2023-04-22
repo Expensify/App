@@ -33,6 +33,7 @@ import ConfirmModal from '../../components/ConfirmModal';
 import * as ReportUtils from '../../libs/ReportUtils';
 import * as Link from '../../libs/actions/Link';
 import OfflineWithFeedback from '../../components/OfflineWithFeedback';
+import * as ReimbursementAccountProps from '../ReimbursementAccount/reimbursementAccountPropTypes';
 import * as UserUtils from '../../libs/UserUtils';
 import policyMemberPropType from '../policyMemberPropType';
 
@@ -75,6 +76,9 @@ const propTypes = {
     /** List of cards */
     cardList: PropTypes.objectOf(cardPropTypes),
 
+    /** Bank account attached to free plan */
+    reimbursementAccount: ReimbursementAccountProps.reimbursementAccountPropTypes,
+
     /** List of betas available to current user */
     betas: PropTypes.arrayOf(PropTypes.string),
 
@@ -103,6 +107,7 @@ const defaultProps = {
     userWallet: {
         currentBalance: 0,
     },
+    reimbursementAccount: {},
     betas: [],
     walletTerms: {},
     bankAccountList: {},
@@ -158,10 +163,11 @@ class InitialSettingsPage extends React.Component {
             }))
             .value();
 
-        const policyBrickRoadIndicator = _.chain(this.props.policies)
-            .filter(policy => policy && policy.type === CONST.POLICY.TYPE.FREE && policy.role === CONST.POLICY.ROLE.ADMIN)
-            .find(policy => PolicyUtils.hasPolicyError(policy) || PolicyUtils.getPolicyBrickRoadIndicatorStatus(policy, this.props.policyMembers))
-            .value() ? 'error' : null;
+        const policyBrickRoadIndicator = (!_.isEmpty(this.props.reimbursementAccount.errors)
+            || _.chain(this.props.policies)
+                .filter(policy => policy && policy.type === CONST.POLICY.TYPE.FREE && policy.role === CONST.POLICY.ROLE.ADMIN)
+                .some(policy => PolicyUtils.hasPolicyError(policy) || PolicyUtils.getPolicyBrickRoadIndicatorStatus(policy, this.props.policyMembers))
+                .value()) ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : null;
         const profileBrickRoadIndicator = UserUtils.getLoginListBrickRoadIndicator(this.props.loginList);
 
         return ([
@@ -353,6 +359,9 @@ export default compose(
         },
         bankAccountList: {
             key: ONYXKEYS.BANK_ACCOUNT_LIST,
+        },
+        reimbursementAccount: {
+            key: ONYXKEYS.REIMBURSEMENT_ACCOUNT,
         },
         cardList: {
             key: ONYXKEYS.CARD_LIST,

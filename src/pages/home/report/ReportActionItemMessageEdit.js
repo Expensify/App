@@ -28,6 +28,7 @@ import withLocalize, {withLocalizePropTypes} from '../../../components/withLocal
 import withKeyboardState, {keyboardStatePropTypes} from '../../../components/withKeyboardState';
 import ONYXKEYS from '../../../ONYXKEYS';
 import setSelection from '../../../libs/setSelection';
+import * as ComposerUtils from '../../../libs/ComposerUtils';
 
 const propTypes = {
     /** All the data of the action */
@@ -230,13 +231,11 @@ class ReportActionItemMessageEdit extends React.Component {
      * @param {String} emoji
      */
     addEmojiToTextBox(emoji) {
-        const newComment = this.state.draft.slice(0, this.state.selection.start)
-            + emoji + this.state.draft.slice(this.state.selection.end, this.state.draft.length);
         const newSelection = {
             start: this.state.selection.start + emoji.length,
             end: this.state.selection.start + emoji.length,
         };
-        this.updateDraft(newComment, newSelection);
+        this.updateDraft(ComposerUtils.insertText(this.state.draft, this.state.selection, emoji), newSelection);
     }
 
     /**

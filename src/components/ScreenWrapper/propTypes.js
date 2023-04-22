@@ -1,5 +1,6 @@
 import PropTypes from 'prop-types';
 import {windowDimensionsPropTypes} from '../withWindowDimensions';
+import {environmentPropTypes} from '../withEnvironment';
 
 const propTypes = {
     /** Array of additional styles to add */
@@ -17,7 +18,7 @@ const propTypes = {
     /** Whether to include padding top */
     includePaddingTop: PropTypes.bool,
 
-    // Called when navigated Screen's transition is finished. It does not fire when user exit the page.
+    /** Called when navigated Screen's transition is finished. It does not fire when user exit the page. */
     onEntryTransitionEnd: PropTypes.func,
 
     /** The behavior to pass to the KeyboardAvoidingView, requires some trial and error depending on the layout/devices used.
@@ -33,7 +34,12 @@ const propTypes = {
     /** Whether to dismiss keyboard before leaving a screen */
     shouldDismissKeyboardBeforeClose: PropTypes.bool,
 
+    /** Whether to use the maxHeight (true) or use the 100% of the height (false) */
+    shouldEnableMaxHeight: PropTypes.bool,
+
     ...windowDimensionsPropTypes,
+
+    ...environmentPropTypes,
 };
 
 const defaultProps = {
@@ -44,6 +50,7 @@ const defaultProps = {
     onEntryTransitionEnd: () => {},
     modal: {},
     keyboardAvoidingViewBehavior: 'padding',
+    shouldEnableMaxHeight: false,
 };
 
 export {propTypes, defaultProps};
