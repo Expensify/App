@@ -1,46 +1,30 @@
 import React, {useEffect} from 'react';
-import PropTypes from 'prop-types';
 import lodashGet from 'lodash/get';
 import Str from 'expensify-common/lib/str';
 import {SafeAreaView} from 'react-native-safe-area-context';
 import ONYXKEYS from '../../ONYXKEYS';
 import styles from '../../styles/styles';
-import compose from '../../libs/compose';
 import SignInPageLayout from './SignInPageLayout';
 import LoginForm from './LoginForm';
 import PasswordForm from './PasswordForm';
 import ValidateCodeForm from './ValidateCodeForm';
 import ResendValidationForm from './ResendValidationForm';
-import withLocalize, {withLocalizePropTypes} from '../../components/withLocalize';
 import Performance from '../../libs/Performance';
 import * as App from '../../libs/actions/App';
 import * as Localize from '../../libs/Localize';
 import usePermissions from '../../hooks/usePermissions';
 import useOnyx from '../../hooks/useOnyx';
 import useWindowDimensions from '../../hooks/useWindowDimensions';
+import useLocalize from '../../hooks/useLocalize';
 
-const propTypes = {
-    /** The credentials of the person signing in */
-    credentials: PropTypes.shape({
-        login: PropTypes.string,
-        password: PropTypes.string,
-        twoFactorAuthCode: PropTypes.string,
-    }),
-
-    ...withLocalizePropTypes,
-};
-
-const defaultProps = {
-    credentials: {},
-};
-
-const SignInPage = ({translate, formatPhoneNumber}) => {
+const SignInPage = () => {
     useEffect(Performance.measureTTI, []);
     useEffect(() => App.setLocale(Localize.getDevicePreferredLocale()), []);
 
     const account = useOnyx(ONYXKEYS.ACCOUNT, {});
     const credentials = useOnyx(ONYXKEYS.CREDENTIALS, {});
 
+    const {translate, formatPhoneNumber} = useLocalize();
     const {canUsePasswordlessLogins} = usePermissions();
     const {isSmallScreenWidth} = useWindowDimensions();
 
@@ -131,9 +115,6 @@ const SignInPage = ({translate, formatPhoneNumber}) => {
     );
 };
 
-SignInPage.propTypes = propTypes;
-SignInPage.defaultProps = defaultProps;
+SignInPage.displayName = 'SignInPage';
 
-export default compose(
-    withLocalize,
-)(SignInPage);
+export default SignInPage;

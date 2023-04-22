@@ -39,7 +39,7 @@ const WindowDimensionsProvider = ({children}) => {
             isMediumScreenWidth,
             isLargeScreenWidth,
         }}>
-            {this.props.children}
+            {children}
         </WindowDimensionsContext.Provider>
     );
 };
