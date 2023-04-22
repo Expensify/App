@@ -9,6 +9,9 @@ export default {
     pAbsolute: {
         position: 'absolute',
     },
+    t0: {
+        top: 0,
+    },
     tn4: {
         top: -16,
     },

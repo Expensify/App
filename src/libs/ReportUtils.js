@@ -7,7 +7,6 @@ import ExpensiMark from 'expensify-common/lib/ExpensiMark';
 import ONYXKEYS from '../ONYXKEYS';
 import CONST from '../CONST';
 import * as Localize from './Localize';
-import * as LocalePhoneNumber from './LocalePhoneNumber';
 import * as Expensicons from '../components/Icon/Expensicons';
 import hashCode from './hashCode';
 import Navigation from './Navigation/Navigation';
@@ -21,6 +20,7 @@ import linkingConfig from './Navigation/linkingConfig';
 import * as defaultAvatars from '../components/Icon/DefaultAvatars';
 import isReportMessageAttachment from './isReportMessageAttachment';
 import * as defaultWorkspaceAvatars from '../components/Icon/WorkspaceDefaultAvatars';
+import * as LocalePhoneNumber from './LocalePhoneNumber';
 
 let sessionEmail;
 Onyx.connect({
@@ -766,7 +766,7 @@ function getDisplayNameForParticipant(login, shouldUseShortForm = false) {
     const loginWithoutSMSDomain = Str.removeSMSDomain(personalDetails.login);
     let longName = personalDetails.displayName || loginWithoutSMSDomain;
     if (longName === loginWithoutSMSDomain && Str.isSMSLogin(longName)) {
-        longName = LocalePhoneNumber.toLocalPhone(preferredLocale, longName);
+        longName = LocalePhoneNumber.formatPhoneNumber(longName);
     }
     const shortName = personalDetails.firstName || longName;
 
@@ -860,12 +860,7 @@ function getReportName(report, policies = {}) {
     const participantsWithoutCurrentUser = _.without(participants, sessionEmail);
     const isMultipleParticipantReport = participantsWithoutCurrentUser.length > 1;
 
-    const displayNames = [];
-    for (let i = 0; i < participantsWithoutCurrentUser.length; i++) {
-        const login = participantsWithoutCurrentUser[i];
-        displayNames.push(getDisplayNameForParticipant(login, isMultipleParticipantReport));
-    }
-    return displayNames.join(', ');
+    return _.map(participantsWithoutCurrentUser, login => getDisplayNameForParticipant(login, isMultipleParticipantReport)).join(', ');
 }
 
 /**
@@ -931,7 +926,7 @@ function buildOptimisticAddCommentReportAction(text, file) {
     const commentText = getParsedComment(text);
     const isAttachment = _.isEmpty(text) && file !== undefined;
     const attachmentInfo = isAttachment ? file : {};
-    const htmlForNewComment = isAttachment ? 'Uploading Attachment...' : commentText;
+    const htmlForNewComment = isAttachment ? 'Uploading attachment...' : commentText;
 
     // Remove HTML from text when applying optimistic offline comment
     const textForNewComment = isAttachment ? CONST.ATTACHMENT_MESSAGE_TEXT
@@ -1471,7 +1466,8 @@ function shouldReportBeInOptionList(report, reportIDFromRoute, isInGSDMode, curr
 
     // Exclude reports that have no data because there wouldn't be anything to show in the option item.
     // This can happen if data is currently loading from the server or a report is in various stages of being created.
-    if (!report || !report.reportID || !report.participants || (_.isEmpty(report.participants) && !isPublicRoom(report)) || isIOUReport(report)) {
+    // This can also happen for anyone accessing a public room or archived room for which they don't have access to the underlying policy.
+    if (!report || !report.reportID || !report.participants || (_.isEmpty(report.participants) && !isPublicRoom(report) && !isArchivedRoom(report)) || isIOUReport(report)) {
         return false;
     }
 
@@ -1707,6 +1703,32 @@ function canLeaveRoom(report, isPolicyMember) {
     return true;
 }
 
+/**
+ * @param {string[]} participants
+ * @returns {Boolean}
+ */
+function isCurrentUserTheOnlyParticipant(participants) {
+    return participants && participants.length === 1 && participants[0] === sessionEmail;
+}
+
+/**
+ * Returns display names for those that can see the whisper.
+ * However, it returns "you" if the current user is the only one who can see it besides the person that sent it.
+ *
+ * @param {string[]} participants
+ * @returns {string}
+ */
+function getWhisperDisplayNames(participants) {
+    const isWhisperOnlyVisibleToCurrentUSer = isCurrentUserTheOnlyParticipant(participants);
+
+    // When the current user is the only participant, the display name needs to be "you" because that's the only person reading it
+    if (isWhisperOnlyVisibleToCurrentUSer) {
+        return Localize.translateLocal('common.youAfterPreposition');
+    }
+
+    return _.map(participants, login => getDisplayNameForParticipant(login, !isWhisperOnlyVisibleToCurrentUSer)).join(', ');
+}
+
 export {
     getReportParticipantsTitle,
     isReportMessageAttachment,
@@ -1727,6 +1749,7 @@ export {
     isPolicyExpenseChatAdmin,
     isPublicRoom,
     isConciergeChatReport,
+    isCurrentUserTheOnlyParticipant,
     hasAutomatedExpensifyEmails,
     hasExpensifyGuidesEmails,
     hasOutstandingIOU,
@@ -1775,4 +1798,5 @@ export {
     getSmallSizeAvatar,
     getMoneyRequestOptions,
     canRequestMoney,
+    getWhisperDisplayNames,
 };

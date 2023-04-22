@@ -91,7 +91,7 @@ export default {
         genericErrorMessage: 'Ups... algo no ha ido bien y la acción no se ha podido completar. Por favor, inténtalo más tarde.',
         error: {
             invalidAmount: 'Importe no válido',
-            acceptTerms: 'Debes aceptar los Términos de servicio para continuar',
+            acceptTerms: 'Debes aceptar los Términos de Servicio para continuar',
             phoneNumber: `Introduce un teléfono válido, incluyendo el código del país (p. ej. ${CONST.EXAMPLE_PHONE_NUMBER})`,
             fieldRequired: 'Este campo es obligatorio.',
             characterLimit: ({limit}) => `Supera el límite de ${limit} caracteres`,
@@ -120,6 +120,7 @@ export default {
         message: 'Chatear con ',
         leaveRoom: 'Salir de la sala de chat',
         you: 'Tú',
+        youAfterPreposition: 'ti',
         your: 'tu',
         conciergeHelp: 'Por favor, contacta con Concierge para obtener ayuda.',
         maxParticipantsReached: ({count}) => `Has seleccionado el número máximo (${count}) de participantes.`,
@@ -130,6 +131,7 @@ export default {
         yesContinue: 'Sí, Continuar',
         websiteExample: 'p. ej. https://www.expensify.com',
         zipCodeExampleFormat: ({zipSampleFormat}) => (zipSampleFormat ? `p. ej. ${zipSampleFormat}` : ''),
+        description: 'Descripción',
     },
     attachmentPicker: {
         cameraPermissionRequired: 'Permiso para acceder a la cámara',
@@ -179,7 +181,7 @@ export default {
         tfaRequiredTitle: 'Se requiere autenticación\nde dos factores',
         tfaRequiredDescription: 'Por favor, introduce el código de autenticación de dos factores\ndonde estás intentando iniciar sesión.',
     },
-    iOUConfirmationList: {
+    moneyRequestConfirmationList: {
         whoPaid: '¿Quién pago?',
         whoWasThere: '¿Quién asistió?',
         whatsItFor: '¿Para qué es?',
@@ -190,6 +192,7 @@ export default {
     },
     optionsSelector: {
         nameEmailOrPhoneNumber: 'Nombre, email o número de teléfono',
+        findMember: 'Encuentra un miembro',
     },
     videoChatButtonAndMenu: {
         tooltip: 'Iniciar una llamada',
@@ -199,12 +202,20 @@ export default {
     hello: 'Hola',
     phoneCountryCode: '34',
     welcomeText: {
-        welcome: '¡Bienvenido al Nuevo Expensify! Por favor, introduce tu número de teléfono o email para continuar.',
-        welcomeEnterMagicCode: ({login}) => `¡Siempre es genial ver una cara nueva por aquí! Por favor, introduce el código mágico enviado a ${login}`,
+        getStarted: 'Comience a continuación.',
+        welcomeBack: '¡Bienvenido de nuevo!',
+        welcome: '¡Bienvenido!',
         phrase2: 'El dinero habla. Y ahora que chat y pagos están en un mismo lugar, es también fácil.',
         phrase3: 'Tus pagos llegan tan rápido como tus mensajes.',
-        welcomeBack: '¡Bienvenido de nuevo al Nuevo Expensify! Por favor, introduce tu contraseña.',
-        welcomeBackEnterMagicCode: ({login}) => `¡Bienvenido de nuevo! Por favor, introduce el código mágico enviado a ${login}`,
+        enterPassword: 'Por favor, introduce tu contraseña',
+        newFaceEnterMagicCode: ({login}) => `¡Siempre es genial ver una cara nueva por aquí! Por favor ingresa el código mágico enviado a ${login}`,
+        welcomeEnterMagicCode: ({login}) => `Por favor, introduce el código mágico enviado a ${login}`,
+    },
+    login: {
+        hero: {
+            header: 'Divida las facturas, solicite pagos y chatee con sus amigos.',
+            body: 'Bienvenido al futuro de Expensify, tu nuevo lugar de referencia para la colaboración financiera con amigos y compañeros de equipo por igual.',
+        },
     },
     reportActionCompose: {
         addAction: 'Acción',
@@ -240,6 +251,7 @@ export default {
         editComment: 'Editar comentario',
         deleteComment: 'Eliminar comentario',
         deleteConfirmation: '¿Estás seguro de que quieres eliminar este comentario?',
+        onlyVisible: 'Visible sólo para',
     },
     emojiReactions: {
         addReactionTooltip: 'Añadir una reacción',
@@ -438,9 +450,9 @@ export default {
         versionLetter: 'v',
         readTheTermsAndPrivacy: {
             phrase1: 'Leer los',
-            phrase2: 'términos de servicio',
+            phrase2: 'Términos de Servicio',
             phrase3: 'y',
-            phrase4: 'privacidad',
+            phrase4: 'Privacidad',
         },
         help: 'Ayuda',
     },
@@ -473,12 +485,14 @@ export default {
         gotIt: 'Ok, entendido',
     },
     addPayPalMePage: {
-        enterYourUsernameToGetPaidViaPayPal: 'Escribe tu nombre de usuario para que otros puedan pagarte a través de PayPal.',
+        enterYourUsernameToGetPaidViaPayPal: 'Recibe pagos vía PayPal.',
         payPalMe: 'PayPal.me/',
         yourPayPalUsername: 'Tu usuario de PayPal',
         addPayPalAccount: 'Agregar cuenta de PayPal',
         growlMessageOnSave: 'Tu nombre de usuario de PayPal se agregó correctamente',
         formatError: 'Usuario PayPal.me no válido',
+        checkListOf: 'Consulta la lista de ',
+        supportedCurrencies: 'monedas admitidas',
     },
     addDebitCardPage: {
         addADebitCard: 'Agregar una tarjeta de débito',
@@ -586,9 +600,9 @@ export default {
     },
     termsOfUse: {
         phrase1: 'Al iniciar sesión, estás accediendo a los',
-        phrase2: 'términos de servicio',
+        phrase2: 'Términos de Servicio',
         phrase3: 'y',
-        phrase4: 'privacidad',
+        phrase4: 'Privacidad',
         phrase5: 'El envío de dinero es brindado por Expensify Payments LLC (NMLS ID:2017010) de conformidad con sus',
         phrase6: 'licencias',
     },
@@ -755,7 +769,8 @@ export default {
         },
     },
     messages: {
-        errorMessageInvalidPhone: `Por favor, introduce un número de teléfono válido sin paréntesis o guiones. Si reside fuera de Estados Unidos, incluye el prefijo internacional (p. ej. ${CONST.EXAMPLE_PHONE_NUMBER}).`,
+        errorMessageInvalidPhone: `Por favor, introduce un número de teléfono válido sin paréntesis o guiones. Si reside fuera de Estados Unidos, por favor incluye el prefijo internacional (p. ej. ${CONST.EXAMPLE_PHONE_NUMBER}).`,
+        errorMessageInvalidEmail: 'Email inválido',
     },
     onfidoStep: {
         acceptTerms: 'Al continuar con la solicitud para activar su billetera Expensify, confirma que ha leído, comprende y acepta ',
@@ -959,6 +974,7 @@ export default {
             deleteConfirmation: '¿Estás seguro de que quieres eliminar este espacio de trabajo?',
             growlMessageOnDeleteError: 'No se puede eliminar el espacio de trabajo porque tiene informes que están siendo procesados',
             unavailable: 'Espacio de trabajo no disponible',
+            memberNotFound: 'Miembro no encontrado. Para invitar a un nuevo miembro al espacio de trabajo, por favor, utiliza el botón Invitar que está arriba.',
         },
         emptyWorkspace: {
             title: 'Crear un nuevo espacio de trabajo',
@@ -1125,6 +1141,13 @@ export default {
             public: 'Público',
             public_announce: 'Anuncio Público',
         },
+    },
+    newTaskPage: {
+        assignTask: 'Asignar tarea',
+        title: 'Título',
+        description: 'Descripción',
+        shareIn: 'Compartir en',
+        pleaseEnterTaskName: 'Por favor introduce un título',
     },
     statementPage: {
         generatingPDF: 'Estamos generando tu PDF ahora mismo. ¡Por favor, vuelve más tarde!',
@@ -1437,7 +1460,7 @@ export default {
         },
         DC: {
             stateISO: 'DC',
-            stateName: 'District Of Columbia',
+            stateName: 'Distrito de Columbia',
         },
     },
     allCountries: {
