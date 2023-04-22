@@ -70,7 +70,7 @@ const BaseAnchorForAttachmentsOnly = (props) => {
                         report.reportID,
                         action,
                         checkIfContextMenuActive,
-                        ReportUtils.isArchivedRoom(report)
+                        ReportUtils.isArchivedRoom(report),
                     )}
                 >
                     <AttachmentView

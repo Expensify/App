@@ -32,7 +32,7 @@ function showContextMenuForReport(event, anchor, reportID, action, checkIfContex
         '',
         checkIfContextMenuActive,
         checkIfContextMenuActive,
-        isArchivedRoom
+        isArchivedRoom,
     );
 }
 
