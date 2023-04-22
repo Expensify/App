@@ -1,3 +1,5 @@
+import dInlineFlex from './dInlineFlex';
+
 /**
  * Display utilities with Bootstrap inspired naming.
  *
@@ -21,7 +23,5 @@ export default {
         display: 'inline',
     },
 
-    dInlineFlex: {
-        display: 'inline-flex',
-    },
+    dInlineFlex,
 };
