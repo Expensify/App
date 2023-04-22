@@ -19,16 +19,6 @@ function getPhoneNumberWithoutSpecialChars(phone) {
 }
 
 /**
- * Remove +1 and special chars from the phone number
- *
- * @param {String} phone
- * @return {String}
- */
-function getPhoneNumberWithoutUSCountryCodeAndSpecialChars(phone) {
-    return getPhoneNumberWithoutSpecialChars(phone.replace(/^\+1/, ''));
-}
-
-/**
  * Append user country code to the phone number
  *
  * @param {String} phone
@@ -40,6 +30,5 @@ function appendCountryCode(phone) {
 
 export {
     getPhoneNumberWithoutSpecialChars,
-    getPhoneNumberWithoutUSCountryCodeAndSpecialChars,
     appendCountryCode,
 };
