@@ -286,14 +286,11 @@ function validateIdentity(identity) {
  * @returns {Boolean}
  */
 function isValidUSPhone(phoneNumber = '', isCountryCodeOptional) {
-    let phone = phoneNumber || '';
+    const phone = phoneNumber || '';
+    const regionCode = isCountryCodeOptional ? CONST.COUNTRY.US : null;
 
-    // If the country code is not present, we manually add it since the library needs international formatting
-    if (isCountryCodeOptional && !phone.startsWith('+')) {
-        phone = `+1${phone}`;
-    }
-
-    const parsedPhoneNumber = parsePhoneNumber(phone);
+    const parsedPhoneNumber = parsePhoneNumber(phone, {regionCode});
+    console.log(parsedPhoneNumber);
     return parsedPhoneNumber.possible && parsedPhoneNumber.regionCode === CONST.COUNTRY.US;
 }
 
