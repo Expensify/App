@@ -127,4 +127,5 @@ export default {
     signInLogoWidthPill: 132,
     signInLogoWidthLargeScreenPill: 162,
     modalContentMaxWidth: 360,
+    googleEmptyListViewHeight: 14,
 };
