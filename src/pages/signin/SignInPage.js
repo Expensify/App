@@ -1,4 +1,4 @@
-import React, {useEffect, Component} from 'react';
+import React, {useEffect} from 'react';
 import PropTypes from 'prop-types';
 import lodashGet from 'lodash/get';
 import Str from 'expensify-common/lib/str';
@@ -14,10 +14,10 @@ import ResendValidationForm from './ResendValidationForm';
 import withLocalize, {withLocalizePropTypes} from '../../components/withLocalize';
 import Performance from '../../libs/Performance';
 import * as App from '../../libs/actions/App';
-import withWindowDimensions, {windowDimensionsPropTypes} from '../../components/withWindowDimensions';
 import * as Localize from '../../libs/Localize';
 import usePermissions from '../../hooks/usePermissions';
 import useOnyx from '../../hooks/useOnyx';
+import useWindowDimensions from '../../hooks/useWindowDimensions';
 
 const propTypes = {
     /** The credentials of the person signing in */
@@ -28,15 +28,13 @@ const propTypes = {
     }),
 
     ...withLocalizePropTypes,
-
-    ...windowDimensionsPropTypes,
 };
 
 const defaultProps = {
     credentials: {},
 };
 
-const SignInPage = ({translate, formatPhoneNumber, isSmallScreenWidth}) => {
+const SignInPage = ({translate, formatPhoneNumber}) => {
     useEffect(Performance.measureTTI, []);
     useEffect(() => App.setLocale(Localize.getDevicePreferredLocale()), []);
 
@@ -44,6 +42,7 @@ const SignInPage = ({translate, formatPhoneNumber, isSmallScreenWidth}) => {
     const credentials = useOnyx(ONYXKEYS.CREDENTIALS, {});
 
     const {canUsePasswordlessLogins} = usePermissions();
+    const {isSmallScreenWidth} = useWindowDimensions();
 
     // Show the login form if
     // - A login has not been entered yet
@@ -137,5 +136,4 @@ SignInPage.defaultProps = defaultProps;
 
 export default compose(
     withLocalize,
-    withWindowDimensions,
 )(SignInPage);
