@@ -8,12 +8,14 @@ const ENVIRONMENT_URLS = {
     [CONST.ENVIRONMENT.DEV]: CONST.DEV_NEW_EXPENSIFY_URL + CONFIG.DEV_PORT,
     [CONST.ENVIRONMENT.STAGING]: CONST.STAGING_NEW_EXPENSIFY_URL,
     [CONST.ENVIRONMENT.PRODUCTION]: CONST.NEW_EXPENSIFY_URL,
+    [CONST.ENVIRONMENT.ADHOC]: CONST.STAGING_NEW_EXPENSIFY_URL,
 };
 
 const OLDDOT_ENVIRONMENT_URLS = {
     [CONST.ENVIRONMENT.DEV]: CONST.INTERNAL_DEV_EXPENSIFY_URL,
     [CONST.ENVIRONMENT.STAGING]: CONST.STAGING_EXPENSIFY_URL,
     [CONST.ENVIRONMENT.PRODUCTION]: CONST.EXPENSIFY_URL,
+    [CONST.ENVIRONMENT.ADHOC]: CONST.STAGING_EXPENSIFY_URL,
 };
 
 /**
@@ -23,6 +25,15 @@ const OLDDOT_ENVIRONMENT_URLS = {
  */
 function isDevelopment() {
     return lodashGet(Config, 'ENVIRONMENT', CONST.ENVIRONMENT.DEV) === CONST.ENVIRONMENT.DEV;
+}
+
+/**
+ * Are we running an internal test build?
+ *
+ * @return {boolean}
+ */
+function isInternalTestBuild() {
+    return lodashGet(Config, 'ENVIRONMENT', CONST.ENVIRONMENT.DEV) === CONST.ENVIRONMENT.ADHOC && lodashGet(Config, 'PULL_REQUEST_NUMBER', '');
 }
 
 /**
@@ -49,6 +60,7 @@ function getOldDotEnvironmentURL() {
 
 export {
     getEnvironment,
+    isInternalTestBuild,
     isDevelopment,
     getEnvironmentURL,
     getOldDotEnvironmentURL,

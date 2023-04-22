@@ -185,12 +185,15 @@ function updateNewsletterSubscription(isSubscribed) {
  * Delete a specific contact method
  *
  * @param {String} contactMethod - the contact method being deleted
- * @param {Object} oldLoginData
+ * @param {Array} loginList
  */
-function deleteContactMethod(contactMethod, oldLoginData) {
+function deleteContactMethod(contactMethod, loginList) {
+    const oldLoginData = loginList[contactMethod];
+
     // If the contact method failed to be added to the account, then it should only be deleted locally.
     if (lodashGet(oldLoginData, 'errorFields.addedLogin', null)) {
         Onyx.merge(ONYXKEYS.LOGIN_LIST, {[contactMethod]: null});
+        Navigation.navigate(ROUTES.SETTINGS_CONTACT_METHODS);
         return;
     }
 
