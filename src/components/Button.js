@@ -92,7 +92,7 @@ const propTypes = {
     danger: PropTypes.bool,
 
     /** Optional content component to replace all inner contents of button */
-    ContentComponent: PropTypes.func,
+    children: PropTypes.node,
 
     /** Should we remove the right border radius top + bottom? */
     shouldRemoveRightBorderRadius: PropTypes.bool,
@@ -134,7 +134,7 @@ const defaultProps = {
     textStyles: [],
     success: false,
     danger: false,
-    ContentComponent: undefined,
+    children: null,
     shouldRemoveRightBorderRadius: false,
     shouldRemoveLeftBorderRadius: false,
     shouldEnableHapticFeedback: false,
@@ -174,9 +174,8 @@ class Button extends Component {
     }
 
     renderContent() {
-        const ContentComponent = this.props.ContentComponent;
-        if (ContentComponent) {
-            return ContentComponent();
+        if (this.props.children) {
+            return this.props.children;
         }
 
         const textComponent = (
