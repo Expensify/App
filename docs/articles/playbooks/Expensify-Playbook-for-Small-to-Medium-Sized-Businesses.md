@@ -18,6 +18,11 @@ This playbook is built on best practices we’ve developed after processing expe
 ### Step 1: Create your Expensify account
 If you don't already have one, go to [Expensify.com](https://expensify.com) and sign up for an account with your work email address. The account is free so don’t worry about the cost at this stage.
 
+> _Employees really appreciate how easy it is to use, and the fact that the reimbursement drops right into their bank account. Since most employees are submitting expenses from their phones, the ease of use of the app is critical_
+>
+> **Robyn Gresham**  
+> Senior Accounting Systems Manager at SunCommon
+
 ### Step 2: Create a Control Policy
 There are three policy types, but for your small business needs we recommend the *Control Plan* for the following reasons:
 
