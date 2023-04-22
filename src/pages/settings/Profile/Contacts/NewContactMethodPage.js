@@ -83,12 +83,15 @@ class NewContactMethodPage extends Component {
     }
 
     submitForm() {
+        // Trim leading and trailing space from login
+        const login = this.state.login.trim();
+
         // If this login already exists, just go back.
-        if (lodashGet(this.props.loginList, this.state.login)) {
+        if (lodashGet(this.props.loginList, login)) {
             Navigation.navigate(ROUTES.SETTINGS_CONTACT_METHODS);
             return;
         }
-        User.addNewContactMethodAndNavigate(this.state.login, this.state.password);
+        User.addNewContactMethodAndNavigate(login, this.state.password);
     }
 
     render() {
