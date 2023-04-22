@@ -214,6 +214,11 @@ export default {
                             NewChat_Root: ROUTES.NEW_CHAT,
                         },
                     },
+                    NewTask: {
+                        screens: {
+                            NewTask_Root: ROUTES.NEW_TASK_WITH_REPORT_ID,
+                        },
+                    },
                     Search: {
                         screens: {
                             Search_Root: ROUTES.SEARCH,

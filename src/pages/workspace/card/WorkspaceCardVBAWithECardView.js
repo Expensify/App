@@ -13,40 +13,31 @@ const propTypes = {
     ...withLocalizePropTypes,
 };
 
-const MENU_LINKS = {
-    ISSUE_AND_MANAGE_CARDS: 'domain_companycards',
-    RECONCILE_CARDS: encodeURI('domain_companycards?param={"section":"cardReconciliation"}'),
-    SETTLEMENT_FREQUENCY: encodeURI('domain_companycards?param={"section":"configureSettings"}'),
-};
-
 const WorkspaceCardVBAWithECardView = (props) => {
     const menuItems = [
         {
             title: props.translate('workspace.common.issueAndManageCards'),
-            onPress: () => Link.openOldDotLink(MENU_LINKS.ISSUE_AND_MANAGE_CARDS),
+            onPress: () => Link.openOldDotLink('domain_companycards'),
             icon: Expensicons.ExpensifyCard,
             shouldShowRightIcon: true,
             iconRight: Expensicons.NewWindow,
             wrapperStyle: [styles.cardMenuItem],
-            link: () => Link.buildOldDotURL(MENU_LINKS.ISSUE_AND_MANAGE_CARDS),
         },
         {
             title: props.translate('workspace.common.reconcileCards'),
-            onPress: () => Link.openOldDotLink(MENU_LINKS.RECONCILE_CARDS),
+            onPress: () => Link.openOldDotLink(encodeURI('domain_companycards?param={"section":"cardReconciliation"}')),
             icon: Expensicons.ReceiptSearch,
             shouldShowRightIcon: true,
             iconRight: Expensicons.NewWindow,
             wrapperStyle: [styles.cardMenuItem],
-            link: () => Link.buildOldDotURL(MENU_LINKS.RECONCILE_CARDS),
         },
         {
             title: props.translate('workspace.common.settlementFrequency'),
-            onPress: () => Link.openOldDotLink(MENU_LINKS.SETTLEMENT_FREQUENCY),
+            onPress: () => Link.openOldDotLink(encodeURI('domain_companycards?param={"section":"configureSettings"}')),
             icon: Expensicons.Gear,
             shouldShowRightIcon: true,
             iconRight: Expensicons.NewWindow,
             wrapperStyle: [styles.cardMenuItem],
-            link: () => Link.buildOldDotURL(MENU_LINKS.SETTLEMENT_FREQUENCY),
         },
     ];
 
