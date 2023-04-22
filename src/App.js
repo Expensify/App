@@ -14,7 +14,7 @@ import HTMLEngineProvider from './components/HTMLEngineProvider';
 import ComposeProviders from './components/ComposeProviders';
 import SafeArea from './components/SafeArea';
 import * as Environment from './libs/Environment/Environment';
-import {WindowDimensionsProvider} from './components/withWindowDimensions';
+import WindowDimensionsProvider from './providers/WindowDimensionsProvider';
 import {KeyboardStateProvider} from './components/withKeyboardState';
 
 // For easier debugging and development, when we are in web we expose Onyx to the window, so you can more easily set data into Onyx
