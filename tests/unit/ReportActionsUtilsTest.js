@@ -1,3 +1,4 @@
+import _ from 'underscore';
 import CONST from '../../src/CONST';
 import * as ReportActionsUtils from '../../src/libs/ReportActionsUtils';
 
@@ -6,7 +7,15 @@ describe('ReportActionsUtils', () => {
         const cases = [
             [
                 [
-                    // This is the highest created timestamp, so should appear last
+                    // This is the lowest created timestamp, but because it's an optimistic action it should appear last
+                    {
+                        created: '2022-11-09 20:00:00.000',
+                        reportActionID: '395268342',
+                        actionName: CONST.REPORT.ACTIONS.TYPE.ADDCOMMENT,
+                        pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
+                    },
+
+                    // This is the highest created timestamp, so should appear 2nd-to-last
                     {
                         created: '2022-11-09 22:27:01.825',
                         reportActionID: '8401445780099176',
@@ -60,6 +69,12 @@ describe('ReportActionsUtils', () => {
                         created: '2022-11-09 22:27:01.825',
                         reportActionID: '8401445780099176',
                         actionName: CONST.REPORT.ACTIONS.TYPE.ADDCOMMENT,
+                    },
+                    {
+                        created: '2022-11-09 20:00:00.000',
+                        reportActionID: '395268342',
+                        actionName: CONST.REPORT.ACTIONS.TYPE.ADDCOMMENT,
+                        pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
                     },
                 ],
             ],
@@ -124,12 +139,6 @@ describe('ReportActionsUtils', () => {
                     message: [{html: 'Hello world'}],
                 },
                 {
-                    created: '2022-11-12 22:27:01.825',
-                    reportActionID: '6401435781022176',
-                    actionName: CONST.REPORT.ACTIONS.TYPE.CREATED,
-                    message: [{html: 'Hello world'}],
-                },
-                {
                     created: '2022-11-11 22:27:01.825',
                     reportActionID: '2962390724708756',
                     actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
@@ -153,10 +162,16 @@ describe('ReportActionsUtils', () => {
                     actionName: 'REIMBURSED',
                     message: [{html: 'Hello world'}],
                 },
+                {
+                    created: '2022-11-12 22:27:01.825',
+                    reportActionID: '6401435781022176',
+                    actionName: CONST.REPORT.ACTIONS.TYPE.CREATED,
+                    message: [{html: 'Hello world'}],
+                },
             ];
+            const expectedOutput = _.filter(input, reportAction => reportAction.actionName !== 'REIMBURSED');
             const result = ReportActionsUtils.getSortedReportActionsForDisplay(input);
-            input.pop();
-            expect(result).toStrictEqual(input);
+            expect(result).toStrictEqual(expectedOutput);
         });
         it('should filter out closed actions', () => {
             const input = [
@@ -164,12 +179,6 @@ describe('ReportActionsUtils', () => {
                     created: '2022-11-13 22:27:01.825',
                     reportActionID: '8401445780099176',
                     actionName: CONST.REPORT.ACTIONS.TYPE.ADDCOMMENT,
-                    message: [{html: 'Hello world'}],
-                },
-                {
-                    created: '2022-11-12 22:27:01.825',
-                    reportActionID: '6401435781022176',
-                    actionName: CONST.REPORT.ACTIONS.TYPE.CREATED,
                     message: [{html: 'Hello world'}],
                 },
                 {
@@ -190,10 +199,16 @@ describe('ReportActionsUtils', () => {
                     actionName: CONST.REPORT.ACTIONS.TYPE.CLOSED,
                     message: [{html: 'Hello world'}],
                 },
+                {
+                    created: '2022-11-12 22:27:01.825',
+                    reportActionID: '6401435781022176',
+                    actionName: CONST.REPORT.ACTIONS.TYPE.CREATED,
+                    message: [{html: 'Hello world'}],
+                },
             ];
+            const expectedOutput = _.filter(input, reportAction => reportAction.actionName !== CONST.REPORT.ACTIONS.TYPE.CLOSED);
             const result = ReportActionsUtils.getSortedReportActionsForDisplay(input);
-            input.pop();
-            expect(result).toStrictEqual(input);
+            expect(result).toStrictEqual(expectedOutput);
         });
 
         it('should filter out deleted, non-pending comments', () => {

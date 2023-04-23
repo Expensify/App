@@ -41,6 +41,14 @@ function isDeletedAction(reportAction) {
 }
 
 /**
+ * @param reportAction
+ * @returns {boolean}
+ */
+function isCreatedAction(reportAction) {
+    return lodashGet(reportAction, 'actionName') === CONST.REPORT.ACTIONS.TYPE.CREATED;
+}
+
+/**
  * @param {Object} reportAction
  * @returns {Boolean}
  */
@@ -69,9 +77,14 @@ function getSortedReportActions(reportActions, shouldSortInDescendingOrder = fal
     return _.chain(reportActions)
         .compact()
         .sort((first, second) => {
-            // First, ensure that CREATED actions always come first in a report (note: this code assumes that there will only ever be one CREATED action in a report)
-            if (first.actionName === CONST.REPORT.ACTIONS.TYPE.CREATED || second.actionName === CONST.REPORT.ACTIONS.TYPE.CREATED) {
-                return (first.actionName === CONST.REPORT.ACTIONS.TYPE.CREATED ? -1 : 1) * invertedMultiplier;
+            // First, ensure that CREATED actions always come first in a report
+            if ((isCreatedAction(first) && !isCreatedAction(second)) || (!isCreatedAction(first) && isCreatedAction(second))) {
+                return (isCreatedAction(first) ? -1 : 1) * invertedMultiplier;
+            }
+
+            // Then sort optimistic actions to the end
+            if ((isOptimisticAction(first) && !isOptimisticAction(second)) || (!isOptimisticAction(first) && isOptimisticAction(second))) {
+                return (isOptimisticAction(first) ? 1 : -1) * invertedMultiplier;
             }
 
             // Then sort by timestamp
