@@ -128,7 +128,7 @@ export default {
     signInLogoWidthLargeScreenPill: 162,
     modalContentMaxWidth: 360,
 
-    // The height of the empty element is 14px (2px height for borders and 12px height for vertical padding)
+    // The height of the empty list is 14px (2px for borders and 12px for vertical padding)
     // This is calculated based on the values specified in the 'getGoogleListViewStyle' function of the 'StyleUtils' utility
     googleEmptyListViewHeight: 14,
 };
