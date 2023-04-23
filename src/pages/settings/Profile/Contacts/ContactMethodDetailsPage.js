@@ -102,6 +102,7 @@ class ContactMethodDetailsPage extends Component {
         const prevPendingFields = lodashGet(prevProps.loginList, [this.getContactMethod(), 'pendingFields'], {});
 
         // Navigate to methods page on successful magic code verification
+        // validateLogin property of errorFields & prev pendingFields is responsible to decide the status of the magic code verification
         if (!errorFields.validateLogin && prevPendingFields.validateLogin === CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE) {
             Navigation.navigate(ROUTES.SETTINGS_CONTACT_METHODS);
         }
