@@ -41,6 +41,14 @@ function isDeletedAction(reportAction) {
 }
 
 /**
+ * @param {Object} reportAction
+ * @returns {Boolean}
+ */
+function isOptimisticAction(reportAction) {
+    return lodashGet(reportAction, 'pendingAction') === CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD;
+}
+
+/**
  * Sort an array of reportActions by their created timestamp first, and reportActionID second
  * This gives us a stable order even in the case of multiple reportActions created on the same millisecond
  *
