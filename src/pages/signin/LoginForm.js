@@ -213,7 +213,9 @@ class LoginForm extends React.Component {
                                 containerStyles={[styles.mh0]}
                             />
                             <Button
-                                onPress={() => window.open('https://exptest.ngrok.io/signinwithapple')}
+
+                                // onPress={() => window.open('https://exptest.ngrok.io/signinwithapple')}
+                                onPress={Session.beginAppleSignIn}
                                 title="Sign in with Apple"
                             />
                             <GoogleSignInButton clientId="" onCredentialResponse={() => {}} />

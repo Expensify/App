@@ -4,6 +4,7 @@ import ONYXKEYS from '../../../../ONYXKEYS';
 import CONST from '../../../../CONST';
 import * as Localize from '../../../Localize';
 import DateUtils from '../../../DateUtils';
+import Logger from '../../../Log';
 
 const optimisticData = [
     {
@@ -52,33 +53,18 @@ const ONYX_DATA = {
     failureData,
 };
 
-async function beginAppleSignIn() {
+function beginAppleSignIn() {
     // performs login request
 
-    try {
-        console.log('😀starting sign-in');
-        const response = await window.AppleID.auth.signIn();
-
+    Logger.warn('😀starting sign-in');
+    window.AppleID.auth.signIn().then((response) => {
         // handle successful sign-in
         if (response && response.authorization && response.authorization.code) {
-            console.log('😀Sign-in successful! Code:', response.authorization.code);
+            Logger.warn('😀Sign-in successful! Code:', response.authorization.code);
 
             // login the user
-            console.log('😀Making API request', response);
+            Logger.warn('😀Making API request', response);
             const idToken = response.authorization.id_token;
-            const newFailureData = [{
-                onyxMethod: CONST.ONYX.METHOD.MERGE,
-                key: ONYXKEYS.ACCOUNT,
-                value: {
-                    isLoading: false,
-                    errors: {
-                        [DateUtils.getMicroseconds()]: `Got idToken: ${idToken}`,
-                    },
-                },
-            }];
-
-            const result = await API.makeRequestWithSideEffects('AuthenticateApple', {idToken}, {optimisticData, successData, failureData: newFailureData});
-            console.log('😀RESULT: ', result);
         } else if (response && response.error) {
             // If the response is an error, handle the error
             console.error('Sign-in failed:', response.error);
@@ -86,10 +72,7 @@ async function beginAppleSignIn() {
             // If the response is missing required fields, handle the error
             console.error('Sign-in failed: Response is missing required fields');
         }
-    } catch (error) {
-        // handle error
-        console.error('Error signing in:', error);
-    }
+    });
 }
 
 export default beginAppleSignIn;
