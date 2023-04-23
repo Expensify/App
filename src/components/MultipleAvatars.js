@@ -101,10 +101,8 @@ const MultipleAvatars = (props) => {
         avatarContainerStyles = StyleUtils.combineStyles([
             styles.alignItemsCenter,
             styles.flexRow,
-            {
-                width,
-                height,
-            },
+            StyleUtils.getHeight(height),
+            StyleUtils.getWidthStyle(width),
         ]);
     }
 
