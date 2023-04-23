@@ -182,7 +182,7 @@ const MenuItem = (props) => {
                             </View>
                         )}
                         {!_.isEmpty(props.floatRightAvatars) && (
-                            <View style={[styles.justifyContentCenter, (props.brickRoadIndicator ? styles.mr4 : undefined)]}>
+                            <View style={[styles.justifyContentCenter, (props.brickRoadIndicator ? styles.mr2 : undefined)]}>
                                 <MultipleAvatars
                                     isHovered={hovered}
                                     isPressed={pressed}
