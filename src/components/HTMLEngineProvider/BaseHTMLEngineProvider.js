@@ -10,8 +10,7 @@ import htmlRenderers from './HTMLRenderers';
 import * as HTMLEngineUtils from './htmlEngineUtils';
 import styles from '../../styles/styles';
 import fontFamily from '../../styles/fontFamily';
-import getPlatform from '../../libs/getPlatform/index';
-import CONST from '../../CONST';
+import defaultViewProps from './defaultViewProps/defaultViewProps';
 
 const propTypes = {
     /** Whether text elements should be selectable */
@@ -50,14 +49,6 @@ const customHTMLElementModels = {
         tagName: 'strong',
         mixedUAStyles: {whiteSpace: 'pre'},
     }),
-};
-
-// For web platform defaultViewProps should use block display, otherwise immediate
-// children will inherit display:block even when they have display:inline set in CSS.
-const defaultViewProps = {
-    style: [CONST.PLATFORM.WEB, CONST.PLATFORM.DESKTOP].includes(getPlatform())
-        ? [styles.dBlock, styles.userSelectText]
-        : [styles.dFlex, styles.userSelectText],
 };
 
 // We are using the explicit composite architecture for performance gains.
