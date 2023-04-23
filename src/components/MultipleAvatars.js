@@ -150,15 +150,14 @@ const MultipleAvatars = (props) => {
                             <View
                                 style={[styles.justifyContentCenter,
                                     styles.alignItemsCenter,
-                                    {width: oneAvatarSize.width, height: oneAvatarSize.height},
+                                    StyleUtils.getHeight(oneAvatarSize.height),
+                                    StyleUtils.getWidthStyle(oneAvatarSize.width),
                                 ]}
                             >
                                 <Text
                                     style={[
                                         styles.avatarInnerTextSmall,
-                                        {
-                                            fontSize: StyleUtils.getAvatarExtraFontSize(props.size),
-                                        },
+                                        StyleUtils.getAvatarExtraFontSizeStyle(props.size),
                                     ]}
                                 >
                                     {`+${props.icons.length - 4}`}

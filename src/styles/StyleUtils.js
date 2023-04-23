@@ -85,7 +85,7 @@ function getAvatarStyle(size) {
  * @param {String} size
  * @returns {Number}
  */
-function getAvatarExtraFontSize(size) {
+function getAvatarExtraFontSizeStyle(size) {
     const AVATAR_SIZES = {
         [CONST.AVATAR_SIZE.DEFAULT]: variables.fontSizeNormal,
         [CONST.AVATAR_SIZE.SMALL_SUBSCRIPT]: variables.fontSizeExtraSmall,
@@ -97,7 +97,9 @@ function getAvatarExtraFontSize(size) {
         [CONST.AVATAR_SIZE.MEDIUM]: variables.fontSizeMedium,
         [CONST.AVATAR_SIZE.LARGE_BORDERED]: variables.fontSizeXLarge,
     };
-    return AVATAR_SIZES[size];
+    return {
+        fontSize: AVATAR_SIZES[size],
+    };
 }
 
 /**
@@ -1082,7 +1084,7 @@ function getGoolgeListViewStyle(shouldDisplayBorder) {
 export {
     getAvatarSize,
     getAvatarStyle,
-    getAvatarExtraFontSize,
+    getAvatarExtraFontSizeStyle,
     getAvatarBorderWidth,
     getAvatarBorderStyle,
     getErrorPageContainerStyle,

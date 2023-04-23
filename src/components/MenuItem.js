@@ -72,7 +72,7 @@ const MenuItem = (props) => {
         props.title ? descriptionVerticalMargin : undefined,
     ]);
 
-    const fallbackAvatarSize = (props.viewMode === CONST.OPTION_MODE.COMPACT) ? CONST.AVATAR_SIZE.SMALL : CONST.AVATAR_SIZE.DEFAULT;
+    const fallbackAvatarSize = props.viewMode === CONST.OPTION_MODE.COMPACT ? CONST.AVATAR_SIZE.SMALL : CONST.AVATAR_SIZE.DEFAULT;
 
     return (
         <Pressable
