@@ -261,7 +261,7 @@ const AddressSearch = (props) => {
                     styles={{
                         textInputContainer: [styles.flexColumn],
                         listView: [
-                            StyleUtils.getGoolgeListViewStyle(displayListViewBorder),
+                            StyleUtils.getGoogleListViewStyle(displayListViewBorder),
                             styles.overflowAuto,
                             styles.borderLeft,
                             styles.borderRight,
@@ -279,7 +279,6 @@ const AddressSearch = (props) => {
                     onLayout={(event) => {
                         // We use the height of the element to determine if we should hide the border of the listView dropdown
                         // to prevent a lingering border when there are no address suggestions.
-                        // The height of the empty element is 14px (2px height for borders and 12px height for vertical padding)
                         setDisplayListViewBorder(event.nativeEvent.layout.height > variables.googleEmptyListViewHeight);
                     }}
                 />
