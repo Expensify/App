@@ -3099,10 +3099,6 @@ const styles = {
     whisper: {
         backgroundColor: themeColors.cardBG,
     },
-
-    popoverMaxWidth: {
-        maxWidth: 375,
-    },
 };
 
 export default styles;

@@ -91,7 +91,7 @@ export default {
         genericErrorMessage: 'Ups... algo no ha ido bien y la acción no se ha podido completar. Por favor, inténtalo más tarde.',
         error: {
             invalidAmount: 'Importe no válido',
-            acceptTerms: 'Debes aceptar los Términos de servicio para continuar',
+            acceptTerms: 'Debes aceptar los Términos de Servicio para continuar',
             phoneNumber: `Introduce un teléfono válido, incluyendo el código del país (p. ej. ${CONST.EXAMPLE_PHONE_NUMBER})`,
             fieldRequired: 'Este campo es obligatorio.',
             characterLimit: ({limit}) => `Supera el límite de ${limit} caracteres`,
@@ -450,9 +450,9 @@ export default {
         versionLetter: 'v',
         readTheTermsAndPrivacy: {
             phrase1: 'Leer los',
-            phrase2: 'términos de servicio',
+            phrase2: 'Términos de Servicio',
             phrase3: 'y',
-            phrase4: 'privacidad',
+            phrase4: 'Privacidad',
         },
         help: 'Ayuda',
     },
@@ -600,9 +600,9 @@ export default {
     },
     termsOfUse: {
         phrase1: 'Al iniciar sesión, estás accediendo a los',
-        phrase2: 'términos de servicio',
+        phrase2: 'Términos de Servicio',
         phrase3: 'y',
-        phrase4: 'privacidad',
+        phrase4: 'Privacidad',
         phrase5: 'El envío de dinero es brindado por Expensify Payments LLC (NMLS ID:2017010) de conformidad con sus',
         phrase6: 'licencias',
     },
