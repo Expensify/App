@@ -49,8 +49,12 @@ function isOptimisticAction(reportAction) {
 }
 
 /**
- * Sort an array of reportActions by their created timestamp first, and reportActionID second
- * This gives us a stable order even in the case of multiple reportActions created on the same millisecond
+ * Sort an array of reportActions by:
+ *
+ * - CREATED actions always come first in a report
+ * - Then optimistic actions are always considered newer than finalized actions
+ * - then sort by created timestamp
+ * - then sort by reportActionID. This gives us a stable order even in the case of multiple reportActions created on the same millisecond
  *
  * @param {Array} reportActions
  * @param {Boolean} shouldSortInDescendingOrder
@@ -65,14 +69,14 @@ function getSortedReportActions(reportActions, shouldSortInDescendingOrder = fal
     return _.chain(reportActions)
         .compact()
         .sort((first, second) => {
-            // First sort by timestamp
-            if (first.created !== second.created) {
-                return (first.created < second.created ? -1 : 1) * invertedMultiplier;
+            // First, ensure that CREATED actions always come first in a report (note: this code assumes that there will only ever be one CREATED action in a report)
+            if (first.actionName === CONST.REPORT.ACTIONS.TYPE.CREATED || second.actionName === CONST.REPORT.ACTIONS.TYPE.CREATED) {
+                return (first.actionName === CONST.REPORT.ACTIONS.TYPE.CREATED ? -1 : 1) * invertedMultiplier;
             }
 
-            // Then by action type, ensuring that `CREATED` actions always come first if they have the same timestamp as another action type
-            if ((first.actionName === CONST.REPORT.ACTIONS.TYPE.CREATED || second.actionName === CONST.REPORT.ACTIONS.TYPE.CREATED) && first.actionName !== second.actionName) {
-                return ((first.actionName === CONST.REPORT.ACTIONS.TYPE.CREATED) ? -1 : 1) * invertedMultiplier;
+            // Then sort by timestamp
+            if (first.created !== second.created) {
+                return (first.created < second.created ? -1 : 1) * invertedMultiplier;
             }
 
             // Then fallback on reportActionID as the final sorting criteria. It is a random number,
