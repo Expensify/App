@@ -9,7 +9,7 @@ import withLocalize, {withLocalizePropTypes} from '../withLocalize';
 import Growl from '../../libs/Growl';
 import themeColors from '../../styles/themes/default';
 import updateIsFullComposerAvailable from '../../libs/ComposerUtils/updateIsFullComposerAvailable';
-import getNumberOfLines from '../../libs/ComposerUtils/index';
+import * as ComposerUtils from '../../libs/ComposerUtils';
 import * as Browser from '../../libs/Browser';
 import Clipboard from '../../libs/Clipboard';
 import withWindowDimensions, {windowDimensionsPropTypes} from '../withWindowDimensions';
@@ -343,7 +343,7 @@ class Composer extends React.Component {
             const lineHeight = parseInt(computedStyle.lineHeight, 10) || 20;
             const paddingTopAndBottom = parseInt(computedStyle.paddingBottom, 10)
             + parseInt(computedStyle.paddingTop, 10);
-            const computedNumberOfLines = getNumberOfLines(this.props.maxLines, lineHeight, paddingTopAndBottom, this.textInput.scrollHeight);
+            const computedNumberOfLines = ComposerUtils.getNumberOfLines(this.props.maxLines, lineHeight, paddingTopAndBottom, this.textInput.scrollHeight);
             const numberOfLines = computedNumberOfLines === 0 ? this.props.numberOfLines : computedNumberOfLines;
             updateIsFullComposerAvailable(this.props, numberOfLines);
             this.setState({
