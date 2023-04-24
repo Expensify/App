@@ -219,6 +219,7 @@ class BaseTextInput extends Component {
             (this.props.hasError || this.props.errorText) && styles.borderColorDanger,
         ], (finalStyles, s) => ({...finalStyles, ...s}), {});
         const maxHeight = StyleSheet.flatten(this.props.containerStyles).maxHeight;
+        const isMultiline = this.props.multiline || this.props.autoGrowHeight;
 
         return (
             <>
@@ -226,7 +227,7 @@ class BaseTextInput extends Component {
                     <View
                         style={[
                             (this.props.autoGrowHeight && {height: this.state.textInputHeight >= maxHeight ? maxHeight : this.state.textInputHeight}),
-                            !this.props.multiline && styles.componentHeightLarge,
+                            !isMultiline && styles.componentHeightLarge,
                             ...this.props.containerStyles,
                         ]}
                     >
@@ -236,7 +237,7 @@ class BaseTextInput extends Component {
                                 // When autoGrowHeight is true we calculate the width for the textInput, so It will break lines properly
                                 // or if multiline is not supplied we calculate the textinput height, using onLayout.
                                 onLayout={event => (this.props.autoGrowHeight && this.setState({width: event.nativeEvent.layout.width}))
-                                    || (!this.props.multiline && this.setState({height: event.nativeEvent.layout.height}))}
+                                    || (!isMultiline && this.setState({height: event.nativeEvent.layout.height}))}
                                 style={[
                                     textInputContainerStyles,
 
@@ -248,7 +249,7 @@ class BaseTextInput extends Component {
                                     <>
                                         {/* Adding this background to the label only for multiline text input,
                                     to prevent text overlapping with label when scrolling */}
-                                        {this.props.multiline && <View style={styles.textInputLabelBackground} pointerEvents="none" />}
+                                        {isMultiline && <View style={styles.textInputLabelBackground} pointerEvents="none" />}
                                         <TextInputLabel
                                             label={this.props.label}
                                             labelTranslateY={this.state.labelTranslateY}
@@ -260,7 +261,7 @@ class BaseTextInput extends Component {
                                 <View
                                     style={[
                                         styles.textInputAndIconContainer,
-                                        (this.props.multiline && hasLabel) && styles.textInputMultilineContainer,
+                                        (isMultiline && hasLabel) && styles.textInputMultilineContainer,
                                     ]}
                                     pointerEvents="box-none"
                                 >
@@ -298,18 +299,18 @@ class BaseTextInput extends Component {
                                             styles.flex1,
                                             styles.w100,
                                             this.props.inputStyle,
-                                            (!hasLabel || this.props.multiline) && styles.pv0,
+                                            (!hasLabel || isMultiline) && styles.pv0,
                                             this.props.prefixCharacter && StyleUtils.getPaddingLeft(this.state.prefixWidth + styles.pl1.paddingLeft),
                                             this.props.secureTextEntry && styles.secureInput,
 
                                             // Explicitly remove `lineHeight` from single line inputs so that long text doesn't disappear
                                             // once it exceeds the input space (See https://github.com/Expensify/App/issues/13802)
-                                            !this.props.multiline && {height: this.state.height, lineHeight: undefined},
+                                            !isMultiline && {height: this.state.height, lineHeight: undefined},
 
                                             // Stop scrollbar flashing when breaking lines with autoGrowHeight enabled.
                                             this.props.autoGrowHeight && this.state.textInputHeight <= maxHeight ? styles.overflowHidden : styles.overflowAuto,
                                         ]}
-                                        multiline={this.props.multiline || this.props.autoGrowHeight}
+                                        multiline={isMultiline}
                                         maxLength={this.props.maxLength}
                                         onFocus={this.onFocus}
                                         onBlur={this.onBlur}
@@ -324,7 +325,7 @@ class BaseTextInput extends Component {
 
                                         // FormSubmit Enter key handler does not have access to direct props.
                                         // `dataset.submitOnEnter` is used to indicate that pressing Enter on this input should call the submit callback.
-                                        dataSet={{submitOnEnter: this.props.multiline && this.props.submitOnEnter}}
+                                        dataSet={{submitOnEnter: isMultiline && this.props.submitOnEnter}}
 
                                     />
                                     {Boolean(this.props.secureTextEntry) && (
