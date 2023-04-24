@@ -119,6 +119,16 @@ function isIOUReport(report) {
 }
 
 /**
+ * Checks if a report is a task report.
+ *
+ * @param {Object} report
+ * @returns {Boolean}
+ */
+function isTaskReport(report) {
+    return lodashGet(report, 'type') === CONST.REPORT.TYPE.TASK;
+}
+
+/**
  * Given a collection of reports returns them sorted by last read
  *
  * @param {Object} reports
@@ -1784,6 +1794,7 @@ export {
     getDisplayNameForParticipant,
     isExpenseReport,
     isIOUReport,
+    isTaskReport,
     chatIncludesChronos,
     getAvatar,
     isDefaultAvatar,
