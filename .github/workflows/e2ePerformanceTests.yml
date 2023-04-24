@@ -80,12 +80,9 @@ jobs:
     name: Build apk from delta ref
     steps:
       - uses: actions/checkout@93ea575cb5d8a053eaa0ac8fa3b40d7e05a33cc8
-        with:
-          ref: ${{ needs.prepare.outputs.DELTA_REF }}
           
-
       - name: Checkout "delta ref"
-        run: git checkout ${{ needs.prepare.outputs.DELTA_REF }}
+        run: git checkout a888bdbeef8c24ddf3221edc8c19f8f1712c1ba8
         env:
           GITHUB_TOKEN: ${{ github.token }}
 
