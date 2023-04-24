@@ -43,7 +43,7 @@ class IOUTransactions extends Component {
     /**
      * Builds and returns the deletableTransactionIDs array. A transaction must meet multiple requirements in order
      * to be deletable. We must exclude transactions not associated with the iouReportID, actions which have already
-     * been rejected, and those which are not of type 'create'.
+     * been deleted, and those which are not of type 'create'.
      *
      * @returns {Array}
      */
@@ -56,15 +56,15 @@ class IOUTransactions extends Component {
         const actionsForIOUReport = _.filter(this.props.reportActions, action => action.originalMessage
             && action.originalMessage.type && Number(action.originalMessage.IOUReportID) === Number(this.props.iouReportID));
 
-        const rejectedTransactionIDs = _.chain(actionsForIOUReport)
+        const deletedTransactionIDs = _.chain(actionsForIOUReport)
             .filter(action => _.contains([CONST.IOU.REPORT_ACTION_TYPE.CANCEL, CONST.IOU.REPORT_ACTION_TYPE.DECLINE, CONST.IOU.REPORT_ACTION_TYPE.DELETE], action.originalMessage.type))
-            .map(rejectedAction => lodashGet(rejectedAction, 'originalMessage.IOUTransactionID', ''))
+            .map(deletedAction => lodashGet(deletedAction, 'originalMessage.IOUTransactionID', ''))
             .compact()
             .value();
 
         return _.chain(actionsForIOUReport)
             .filter(action => action.originalMessage.type === CONST.IOU.REPORT_ACTION_TYPE.CREATE)
-            .filter(action => !_.contains(rejectedTransactionIDs, action.originalMessage.IOUTransactionID))
+            .filter(action => !_.contains(deletedTransactionIDs, action.originalMessage.IOUTransactionID))
             .filter(action => this.props.userEmail === action.actorEmail)
             .map(action => lodashGet(action, 'originalMessage.IOUTransactionID', ''))
             .compact()
@@ -82,7 +82,7 @@ class IOUTransactions extends Component {
                     }
 
                     const deletableTransactions = this.getDeletableTransactions();
-                    const canBeDelete = _.contains(deletableTransactions,
+                    const canBeDeleted = _.contains(deletableTransactions,
                         reportAction.originalMessage.IOUTransactionID);
                     return (
                         <ReportTransaction
@@ -91,7 +91,7 @@ class IOUTransactions extends Component {
                             reportActions={sortedReportActions}
                             action={reportAction}
                             key={reportAction.reportActionID}
-                            canBeDeleted={canBeDelete}
+                            canBeDeleted={canBeDeleted}
                         />
                     );
                 })}

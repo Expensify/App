@@ -548,7 +548,7 @@ function splitBillAndOpenReport(participants, currentUserLogin, amount, comment,
 /**
  * @param {String} chatReportID
  * @param {String} iouReportID
- * @param {Object} moneyRequestAction - the IOU reportAction we are deleting
+ * @param {Object} moneyRequestAction - the money request reportAction we are deleting
  */
 function deleteMoneyRequest(chatReportID, iouReportID, moneyRequestAction) {
     const chatReport = chatReports[`${ONYXKEYS.COLLECTION.REPORT}${chatReportID}`];
