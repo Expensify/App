@@ -457,6 +457,14 @@ function addPaypalMeAddress(address) {
 function deletePaypalMeAddress() {
     const optimisticData = [
         {
+            onyxMethod: CONST.ONYX.METHOD.MERGE,
+            key: ONYXKEYS.PAYPAL,
+            value: {pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE},
+        }
+    ];
+
+    const successData = [
+        {
             onyxMethod: CONST.ONYX.METHOD.SET,
             key: ONYXKEYS.NVP_PAYPAL_ME_ADDRESS,
             value: '',
@@ -467,7 +475,8 @@ function deletePaypalMeAddress() {
             value: {},
         },
     ];
-    API.write('DeletePaypalMeAddress', {}, {optimisticData});
+
+    API.write('DeletePaypalMeAddress', {}, {optimisticData, successData});
     Growl.show(Localize.translateLocal('paymentsPage.deletePayPalSuccess'), CONST.GROWL.SUCCESS, 3000);
 }
 
