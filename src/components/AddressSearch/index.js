@@ -13,6 +13,7 @@ import * as GooglePlacesUtils from '../../libs/GooglePlacesUtils';
 import CONST from '../../CONST';
 import * as StyleUtils from '../../styles/StyleUtils';
 import resetDisplayListViewBorderOnBlur from './resetDisplayListViewBorderOnBlur';
+import variables from '../styles/variables';
 
 // The error that's being thrown below will be ignored until we fork the
 // react-native-google-places-autocomplete repo and replace the
@@ -265,7 +266,7 @@ const AddressSearch = (props) => {
                     styles={{
                         textInputContainer: [styles.flexColumn],
                         listView: [
-                            StyleUtils.getGoolgeListViewStyle(displayListViewBorder),
+                            StyleUtils.getGoogleListViewStyle(displayListViewBorder),
                             styles.overflowAuto,
                             styles.borderLeft,
                             styles.borderRight,
@@ -283,8 +284,7 @@ const AddressSearch = (props) => {
                     onLayout={(event) => {
                         // We use the height of the element to determine if we should hide the border of the listView dropdown
                         // to prevent a lingering border when there are no address suggestions.
-                        // The height of the empty element is 2px (1px height for each top and bottom borders)
-                        setDisplayListViewBorder(event.nativeEvent.layout.height > 2);
+                        setDisplayListViewBorder(event.nativeEvent.layout.height > variables.googleEmptyListViewHeight);
                     }}
                 />
             </View>
