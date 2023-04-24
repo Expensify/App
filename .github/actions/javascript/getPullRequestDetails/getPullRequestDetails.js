@@ -78,6 +78,7 @@ if (pullRequestNumber) {
         pull_number: pullRequestNumber,
     })
         .then(({data}) => {
+            console.log('pull request data', data);
             outputMergeCommitHash(data);
             outputMergeActor(data);
         })
