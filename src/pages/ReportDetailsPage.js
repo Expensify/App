@@ -63,14 +63,15 @@ class ReportDetailsPage extends Component {
             return [];
         }
 
-        // All nonarchived chats should let you see their members
-        menuItems.push({
-            key: CONST.REPORT_DETAILS_MENU_ITEM.MEMBERS,
-            translationKey: 'common.members',
-            icon: Expensicons.Users,
-            subtitle: lodashGet(this.props.report, 'participants', []).length,
-            action: () => { Navigation.navigate(ROUTES.getReportParticipantsRoute(this.props.report.reportID)); },
-        });
+        if (lodashGet(this.props.report, 'participants', []).length) {
+            menuItems.push({
+                key: CONST.REPORT_DETAILS_MENU_ITEM.MEMBERS,
+                translationKey: 'common.members',
+                icon: Expensicons.Users,
+                subtitle: lodashGet(this.props.report, 'participants', []).length,
+                action: () => { Navigation.navigate(ROUTES.getReportParticipantsRoute(this.props.report.reportID)); },
+            });
+        }
 
         if (ReportUtils.isPolicyExpenseChat(this.props.report) || ReportUtils.isChatRoom(this.props.report)) {
             menuItems.push({
@@ -78,15 +79,6 @@ class ReportDetailsPage extends Component {
                 translationKey: 'common.settings',
                 icon: Expensicons.Gear,
                 action: () => { Navigation.navigate(ROUTES.getReportSettingsRoute(this.props.report.reportID)); },
-            });
-        }
-
-        if (ReportUtils.isUserCreatedPolicyRoom(this.props.report)) {
-            menuItems.push({
-                key: CONST.REPORT_DETAILS_MENU_ITEM.INVITE,
-                translationKey: 'common.invite',
-                icon: Expensicons.Plus,
-                action: () => { /* Placeholder for when inviting other users is built in */ },
             });
         }
 

@@ -75,6 +75,10 @@ const BaseAnchorForCommentsOnly = (props) => {
                         target: props.target,
                     }}
                     href={linkProps.href}
+
+                    // Add testID so it gets selected as an anchor tag by SelectionScraper
+                    testID="a"
+
                     // eslint-disable-next-line react/jsx-props-no-spreading
                     {...rest}
                 >

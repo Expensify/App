@@ -116,7 +116,7 @@ function getAvatarBorderStyle(size, type) {
  * @param {String} [workspaceName]
  * @returns {Object}
  */
-function getDefaultWorspaceAvatarColor(workspaceName) {
+function getDefaultWorkspaceAvatarColor(workspaceName) {
     const colorHash = ReportUtils.hashLogin(workspaceName.trim(), workspaceColorOptions.length);
 
     return workspaceColorOptions[colorHash];
@@ -287,6 +287,26 @@ function getBackgroundColorStyle(backgroundColor) {
 }
 
 /**
+ * Returns the width style for the wordmark logo on the sign in page
+ *
+ * @param {String} environment
+ * @param {Boolean} isSmallScreenWidth
+ * @returns {Object}
+ */
+function getSignInWordmarkWidthStyle(environment, isSmallScreenWidth) {
+    if (environment === CONST.ENVIRONMENT.DEV) {
+        return isSmallScreenWidth ? {width: variables.signInLogoWidthPill} : {width: variables.signInLogoWidthLargeScreenPill};
+    }
+    if (environment === CONST.ENVIRONMENT.STAGING) {
+        return isSmallScreenWidth ? {width: variables.signInLogoWidthPill} : {width: variables.signInLogoWidthLargeScreenPill};
+    }
+    if (environment === CONST.ENVIRONMENT.PRODUCTION) {
+        return isSmallScreenWidth ? {width: variables.signInLogoWidth} : {width: variables.signInLogoWidthLargeScreen};
+    }
+    return isSmallScreenWidth ? {width: variables.signInLogoWidthPill} : {width: variables.signInLogoWidthLargeScreenPill};
+}
+
+/**
  * Converts a color in hexadecimal notation into RGB notation.
  *
  * @param {String} hexadecimal A color in hexadecimal notation.
@@ -323,10 +343,14 @@ function getBackgroundColorWithOpacityStyle(backgroundColor, opacity) {
  * @param {Boolean} success
  * @param {Boolean} error
  * @param {boolean} [isPressed=false]
+ * @param {boolean} [isAdHoc=false]
  * @return {Object}
  */
-function getBadgeColorStyle(success, error, isPressed = false) {
+function getBadgeColorStyle(success, error, isPressed = false, isAdHoc = false) {
     if (success) {
+        if (isAdHoc) {
+            return isPressed ? styles.badgeAdHocSuccessPressed : styles.badgeAdHocSuccess;
+        }
         return isPressed ? styles.badgeSuccessPressed : styles.badgeSuccess;
     }
     if (error) {
@@ -420,15 +444,19 @@ function getModalPaddingStyles({
     modalContainerStyleMarginBottom,
     modalContainerStylePaddingTop,
     modalContainerStylePaddingBottom,
+    insets,
 }) {
+    // use fallback value for safeAreaPaddingBottom to keep padding bottom consistent with padding top.
+    // More info: issue #17376
+    const safeAreaPaddingBottomWithFallback = insets.bottom === 0 ? (modalContainerStylePaddingTop || 0) : safeAreaPaddingBottom;
     return {
         marginTop: (modalContainerStyleMarginTop || 0) + (shouldAddTopSafeAreaMargin ? safeAreaPaddingTop : 0),
-        marginBottom: (modalContainerStyleMarginBottom || 0) + (shouldAddBottomSafeAreaMargin ? safeAreaPaddingBottom : 0),
+        marginBottom: (modalContainerStyleMarginBottom || 0) + (shouldAddBottomSafeAreaMargin ? safeAreaPaddingBottomWithFallback : 0),
         paddingTop: shouldAddTopSafeAreaPadding
             ? (modalContainerStylePaddingTop || 0) + safeAreaPaddingTop
             : modalContainerStylePaddingTop || 0,
         paddingBottom: shouldAddBottomSafeAreaPadding
-            ? (modalContainerStylePaddingBottom || 0) + safeAreaPaddingBottom
+            ? (modalContainerStylePaddingBottom || 0) + safeAreaPaddingBottomWithFallback
             : modalContainerStylePaddingBottom || 0,
         paddingLeft: safeAreaPaddingLeft || 0,
         paddingRight: safeAreaPaddingRight || 0,
@@ -516,7 +544,7 @@ function getReportActionItemStyle(isHovered = false, isLoading = false) {
             // Warning: Setting this to a non-transparent color will cause unread indicator to break on Android
             : colors.transparent,
         opacity: isLoading ? 0.5 : 1,
-        cursor: 'default',
+        cursor: 'initial',
     };
 }
 
@@ -692,6 +720,17 @@ function getMinimumHeight(minHeight) {
 }
 
 /**
+ * Get maximum width as style
+ * @param {Number} maxWidth
+ * @returns {Object}
+ */
+function getMaximumWidth(maxWidth) {
+    return {
+        maxWidth,
+    };
+}
+
+/**
  * Return style for opacity animation.
  *
  * @param {Animated.Value} fadeAnimation
@@ -790,6 +829,18 @@ function getReportWelcomeTopMarginStyle(isSmallScreenWidth) {
 }
 
 /**
+ * Returns fontSize style
+ *
+ * @param {Number} fontSize
+ * @returns {Object}
+ */
+function getFontSizeStyle(fontSize) {
+    return {
+        fontSize,
+    };
+}
+
+/**
  * Gets the correct size for the empty state container based on screen dimensions
  *
  * @param {Boolean} isSmallScreenWidth
@@ -874,42 +925,52 @@ function getEmojiSuggestionContainerStyle(
  */
 const getColoredBackgroundStyle = isColored => ({backgroundColor: isColored ? colors.blueLink : null});
 
-function getEmojiReactionBubbleStyle(isHovered, hasUserReacted, sizeScale = 1) {
-    const sizeStyles = {
-        paddingVertical: styles.emojiReactionBubble.paddingVertical * sizeScale,
-        paddingHorizontal: styles.emojiReactionBubble.paddingHorizontal * sizeScale,
-    };
+function getEmojiReactionBubbleStyle(isHovered, hasUserReacted, isContextMenu = false) {
+    let backgroundColor = themeColors.border;
 
-    if (hasUserReacted) {
-        return {backgroundColor: themeColors.reactionActive, ...sizeStyles};
-    }
     if (isHovered) {
-        return {backgroundColor: themeColors.buttonHoveredBG, ...sizeStyles};
+        backgroundColor = themeColors.buttonHoveredBG;
     }
 
-    return sizeStyles;
-}
-
-function getEmojiReactionTextStyle(sizeScale = 1) {
-    return {
-        fontSize: styles.emojiReactionText.fontSize * sizeScale,
-        lineHeight: styles.emojiReactionText.lineHeight * sizeScale,
-    };
-}
-
-function getEmojiReactionCounterTextStyle(hasUserReacted, sizeScale = 1) {
-    const sizeStyles = {
-        fontSize: styles.reactionCounterText.fontSize * sizeScale,
-    };
-
     if (hasUserReacted) {
+        backgroundColor = themeColors.reactionActive;
+    }
+
+    if (isContextMenu) {
         return {
-            ...sizeStyles,
-            color: themeColors.link,
+            paddingVertical: 3,
+            paddingHorizontal: 12,
+            backgroundColor,
         };
     }
 
-    return sizeStyles;
+    return {
+        paddingVertical: 2,
+        paddingHorizontal: 8,
+        backgroundColor,
+    };
+}
+
+function getEmojiReactionBubbleTextStyle(isContextMenu = false) {
+    if (isContextMenu) {
+        return {
+            fontSize: 17,
+            lineHeight: 28,
+        };
+    }
+
+    return {
+        fontSize: 15,
+        lineHeight: 24,
+    };
+}
+
+function getEmojiReactionCounterTextStyle(hasUserReacted) {
+    if (hasUserReacted) {
+        return {color: themeColors.link};
+    }
+
+    return {color: themeColors.textLight};
 }
 
 /**
@@ -924,6 +985,25 @@ function getDirectionStyle(direction) {
     }
 
     return {};
+}
+
+/**
+ * @param {Boolean} shouldDisplayBorder
+ * @returns {Object}
+ */
+function getGoolgeListViewStyle(shouldDisplayBorder) {
+    if (shouldDisplayBorder) {
+        return {
+            ...styles.borderTopRounded,
+            ...styles.borderBottomRounded,
+            marginTop: 4,
+            paddingVertical: 6,
+        };
+    }
+
+    return {
+        transform: [{scale: 0}],
+    };
 }
 
 export {
@@ -962,6 +1042,7 @@ export {
     hasSafeAreas,
     getHeight,
     getMinimumHeight,
+    getMaximumWidth,
     fade,
     getHorizontalStackedAvatarBorderStyle,
     getReportWelcomeBackgroundImageStyle,
@@ -970,10 +1051,13 @@ export {
     getEmojiSuggestionItemStyle,
     getEmojiSuggestionContainerStyle,
     getColoredBackgroundStyle,
-    getDefaultWorspaceAvatarColor,
+    getDefaultWorkspaceAvatarColor,
     getAvatarBorderRadius,
     getEmojiReactionBubbleStyle,
-    getEmojiReactionTextStyle,
+    getEmojiReactionBubbleTextStyle,
     getEmojiReactionCounterTextStyle,
     getDirectionStyle,
+    getFontSizeStyle,
+    getSignInWordmarkWidthStyle,
+    getGoolgeListViewStyle,
 };

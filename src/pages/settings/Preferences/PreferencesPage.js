@@ -51,7 +51,7 @@ const PreferencesPage = (props) => {
     const languages = props.translate('languagePage.languages');
 
     // Enable additional test features in the staging or dev environments
-    const shouldShowTestToolMenu = _.contains([CONST.ENVIRONMENT.STAGING, CONST.ENVIRONMENT.DEV], props.environment);
+    const shouldShowTestToolMenu = _.contains([CONST.ENVIRONMENT.STAGING, CONST.ENVIRONMENT.ADHOC, CONST.ENVIRONMENT.DEV], props.environment);
 
     return (
         <IllustratedHeaderPageLayout
