@@ -30,6 +30,17 @@ function hasPolicyError(policy) {
 }
 
 /**
+ * Check if the policy has any error fields.
+ *
+ * @param {Object} policy
+ * @param {Object} policy.errorFields
+ * @return {Boolean}
+ */
+function hasPolicyErrorFields(policy) {
+    return _.some(lodashGet(policy, 'errorFields', {}), fieldErrors => !_.isEmpty(fieldErrors));
+}
+
+/**
  * Checks if we have any errors stored within the policy custom units.
  *
  * @param {Object} policy
@@ -88,6 +99,7 @@ function isExpensifyTeam(email) {
 export {
     hasPolicyMemberError,
     hasPolicyError,
+    hasPolicyErrorFields,
     hasCustomUnitsError,
     getPolicyBrickRoadIndicatorStatus,
     shouldShowPolicy,
