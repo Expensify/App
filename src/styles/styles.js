@@ -671,6 +671,14 @@ const styles = {
         backgroundColor: themeColors.successHover,
     },
 
+    badgeAdHocSuccess: {
+        backgroundColor: themeColors.badgeAdHoc,
+    },
+
+    badgeAdHocSuccessPressed: {
+        backgroundColor: themeColors.badgeAdHocHover,
+    },
+
     badgeDanger: {
         backgroundColor: themeColors.danger,
     },
@@ -742,7 +750,8 @@ const styles = {
 
     offlineIndicatorMobile: {
         paddingLeft: 20,
-        paddingBottom: 9,
+        paddingTop: 5,
+        paddingBottom: 5,
     },
 
     offlineIndicatorRow: {
@@ -2882,7 +2891,6 @@ const styles = {
         height: variables.sliderKnobSize,
         width: variables.sliderKnobSize,
         borderRadius: variables.sliderKnobSize / 2,
-        top: -variables.sliderBarHeight,
         left: -(variables.sliderKnobSize / 2),
         cursor: 'pointer',
     },
@@ -2892,10 +2900,7 @@ const styles = {
         height: variables.sliderBarHeight,
         borderRadius: variables.sliderBarHeight / 2,
         alignSelf: 'stretch',
-    },
-
-    imageCropRotateButton: {
-        height: variables.iconSizeExtraLarge,
+        justifyContent: 'center',
     },
 
     userSelectText: {
@@ -3136,8 +3141,8 @@ const styles = {
         textAlign: 'center',
     },
 
-    popoverMaxWidth: {
-        maxWidth: 375,
+    whisper: {
+        backgroundColor: themeColors.cardBG,
     },
 };
 
