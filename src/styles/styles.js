@@ -3139,11 +3139,15 @@ const styles = {
     },
 
     illustratedPageHeader: {
-        height: 220,
-        ...flex.centerContent,
+        height: '36%',
     },
 
-    illustratedPageBottomHalf: (safeAreaPaddingBottomStyle) => [
+    illustratedPageBody: {
+        height: '64%',
+        backgroundColor: themeColors.appBG,
+    },
+
+    illustratedPageScrollView: (safeAreaPaddingBottomStyle) => [
         flex.flex1,
         flex.flexColumn,
         flex.justifyContentBetween,

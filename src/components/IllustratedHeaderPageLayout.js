@@ -33,16 +33,18 @@ const IllustratedHeaderPageLayout = (props) => {
         <ScreenWrapper includeSafeAreaPaddingBottom={false} style={[StyleUtils.getBackgroundColorStyle(props.backgroundColor)]}>
             {({safeAreaPaddingBottomStyle}) => (
                 <>
-                    <HeaderWithCloseButton {...propsToPassToHeader} />
-                    <View
-                        style={[styles.illustratedPageHeader, StyleUtils.getBackgroundColorStyle(props.backgroundColor)]}>
-                        {_.isFunction(props.illustration)
-                            ? props.illustration()
-                            : <Lottie source={props.illustration} style={{width: 250, height: 250}} autoPlay loop />
-                        }
+                    <View style={styles.illustratedPageHeader}>
+                        <HeaderWithCloseButton {...propsToPassToHeader} />
+                        <View
+                            style={[styles.centerContent]}>
+                            {_.isFunction(props.illustration)
+                                ? props.illustration()
+                                : <Lottie source={props.illustration} style={{width: 250, height: 250}} autoPlay loop />
+                            }
+                        </View>
                     </View>
-                    <View style={[styles.flex1, StyleUtils.getBackgroundColorStyle(themeColors.appBG)]}>
-                        <ScrollView contentContainerStyle={styles.illustratedPageBottomHalf(safeAreaPaddingBottomStyle)}>
+                    <View style={[styles.illustratedPageBody]}>
+                        <ScrollView contentContainerStyle={styles.illustratedPageScrollView(safeAreaPaddingBottomStyle)}>
                             {props.children}
                         </ScrollView>
                     </View>
