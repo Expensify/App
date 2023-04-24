@@ -460,7 +460,7 @@ function deletePaypalMeAddress() {
             onyxMethod: CONST.ONYX.METHOD.MERGE,
             key: ONYXKEYS.PAYPAL,
             value: {pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE},
-        }
+        },
     ];
 
     const successData = [
