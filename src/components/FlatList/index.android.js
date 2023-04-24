@@ -1,6 +1,11 @@
-import React, {forwardRef} from 'react';
+import React, {
+    forwardRef,
+    useCallback,
+    useState,
+} from 'react';
 import {FlatList} from 'react-native';
 import PropTypes from 'prop-types';
+import {useFocusEffect} from '@react-navigation/native';
 
 const propTypes = {
     /** Same as for FlatList */
@@ -34,46 +39,32 @@ const defaultProps = {
 // FlatList wrapped with the freeze component will lose its scroll state when frozen (only for Android).
 // CustomFlatList saves the offset and use it for scrollToOffset() when unfrozen.
 function CustomFlatList(props) {
-    const contentOffsetRef = React.useRef(null);
-    const isHidden = React.useRef(false);
-    const [ready, setReady] = React.useState(true);
+    const [scrollPosition, setScrollPosition] = useState({});
 
-    const handleOnScroll = (event) => {
-        props.onScroll(event);
-
-        // The last onScroll event happens after freezing the FlatList and it's called with offset: 0.
-        // Don't save this value because it's incorrect.
-        if (!isHidden.current) {
-            contentOffsetRef.current = event.nativeEvent.contentOffset;
+    const onScreenFocus = useCallback(() => {
+        if (!props.innerRef.current || !scrollPosition.offset) {
+            return;
         }
-    };
-    const handleOnLayout = (event) => {
-        props.onLayout(event);
-
-        if (event.nativeEvent.layout.height === 0) {
-            // If the layout height is equal to 0, we can assume that this flatList is frozen.
-            isHidden.current = true;
-
-            // The maintainVisibleContentPosition prop causes glitches with animations and scrollToOffset.
-            // Use ready state to decide if this prop should be undefined to avoid glitching.
-            setReady(false);
-        } else {
-            isHidden.current = false;
-            if (props.innerRef.current && contentOffsetRef.current) {
-                props.innerRef.current.scrollToOffset({offset: contentOffsetRef.current.y, animated: false});
-                setReady(true);
-            }
+        if (props.innerRef.current && scrollPosition.offset) {
+            props.innerRef.current.scrollToOffset({offset: scrollPosition.offset, animated: false});
         }
-    };
+    }, [scrollPosition.offset, props.innerRef]);
+
+    useFocusEffect(
+        useCallback(() => {
+            onScreenFocus();
+        }, [onScreenFocus]),
+    );
 
     return (
         <FlatList
             // eslint-disable-next-line react/jsx-props-no-spreading
             {...props}
+            onScroll={event => props.onScroll(event)}
+            onMomentumScrollEnd={(event) => {
+                setScrollPosition({offset: event.nativeEvent.contentOffset.y});
+            }}
             ref={props.innerRef}
-            onScroll={handleOnScroll}
-            onLayout={handleOnLayout}
-            maintainVisibleContentPosition={ready ? props.maintainVisibleContentPosition : undefined}
         />
     );
 }
