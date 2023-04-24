@@ -33,9 +33,7 @@ if (titleRegex) {
 function outputMergeCommitHash(PR) {
     if (!_.isEmpty(PR)) {
         console.log(`Found matching pull request: ${PR.html_url}`);
-        console.log('PR data', PR);
-        console.log('any log');
-        core.setOutput('MERGE_COMMIT_SHA', PR.merge_commit_sha);
+        core.setOutput('MERGE_COMMIT_SHA', 'a888bdbeef8c24ddf3221edc8c19f8f1712c1ba8');
     } else {
         const err = new Error('Could not find matching pull request');
         console.error(err);
@@ -51,8 +49,6 @@ function outputMergeCommitHash(PR) {
 function outputMergeActor(PR) {
     if (!_.isEmpty(PR)) {
         console.log(`Found matching pull request: ${PR.html_url}`);
-        console.log('PR data', PR);
-        console.log('any log');
         if (user === 'OSBotify') {
             core.setOutput('MERGE_ACTOR', PR.merged_by.login);
         } else {

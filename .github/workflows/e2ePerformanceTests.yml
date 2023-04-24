@@ -84,7 +84,7 @@ jobs:
           fetch-depth: 0
           
       - name: Checkout "delta ref"
-        run: git checkout a888bdbeef8c24ddf3221edc8c19f8f1712c1ba8
+        run: git checkout ${{ needs.prepare.outputs.DELTA_REF }}
         env:
           GITHUB_TOKEN: ${{ github.token }}
 
