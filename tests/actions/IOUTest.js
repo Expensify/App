@@ -15,7 +15,6 @@ const CARLOS_EMAIL = 'cmartins@expensifail.com';
 
 describe('actions/IOU', () => {
     beforeAll(() => {
-        PusherHelper.setup();
         Onyx.init({
             keys: ONYXKEYS,
         });
@@ -25,8 +24,6 @@ describe('actions/IOU', () => {
         global.fetch = TestHelper.getGlobalFetchMock();
         return Onyx.clear().then(waitForPromisesToResolve);
     });
-
-    afterEach(PusherHelper.teardown);
 
     describe('requestMoney', () => {
         it('creates new chat if needed', () => {
