@@ -233,8 +233,8 @@ class BaseTextInput extends Component {
                         <TouchableWithoutFeedback onPress={this.onPress} focusable={false}>
                             <View
 
-                                // When autoGrowHeight is true calculate textinput width or when multiline
-                                // is not supplied calculate textinput height, using onLayout.
+                                // When autoGrowHeight is true we calculate the width for the textInput, so It will break lines properly
+                                // or if multiline is not supplied we calculate the textinput height, using onLayout.
                                 onLayout={event => (this.props.autoGrowHeight && this.setState({width: event.nativeEvent.layout.width}))
                                     || (!this.props.multiline && this.setState({height: event.nativeEvent.layout.height}))}
                                 style={[
