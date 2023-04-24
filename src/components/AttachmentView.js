@@ -105,7 +105,6 @@ const AttachmentView = (props) => {
     return (
         <View
             style={styles.defaultAttachmentView}
-            onPress={props.onPress}
         >
             <View style={styles.mr2}>
                 <Icon src={Expensicons.Paperclip} />
