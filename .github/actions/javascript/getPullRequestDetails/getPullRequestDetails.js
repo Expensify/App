@@ -33,6 +33,7 @@ if (titleRegex) {
 function outputMergeCommitHash(PR) {
     if (!_.isEmpty(PR)) {
         console.log(`Found matching pull request: ${PR.html_url}`);
+        console.log('PR data', PR);
         core.setOutput('MERGE_COMMIT_SHA', PR.merge_commit_sha);
     } else {
         const err = new Error('Could not find matching pull request');
@@ -78,7 +79,6 @@ if (pullRequestNumber) {
         pull_number: pullRequestNumber,
     })
         .then(({data}) => {
-            console.log('pull request data', data);
             outputMergeCommitHash(data);
             outputMergeActor(data);
         })
