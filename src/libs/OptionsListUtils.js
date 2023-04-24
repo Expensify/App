@@ -8,11 +8,11 @@ import ONYXKEYS from '../ONYXKEYS';
 import CONST from '../CONST';
 import * as ReportUtils from './ReportUtils';
 import * as Localize from './Localize';
-import * as Expensicons from '../components/Icon/Expensicons';
 import Permissions from './Permissions';
 import * as CollectionUtils from './CollectionUtils';
 import Navigation from './Navigation/Navigation';
 import * as LoginUtils from './LoginUtils';
+import * as LocalePhoneNumber from './LocalePhoneNumber';
 
 /**
  * OptionsListUtils is used to build a list options passed to the OptionsList component. Several different UI views can
@@ -162,13 +162,13 @@ function getPersonalDetailsForLogins(logins, personalDetails) {
             if (!personalDetail) {
                 personalDetail = {
                     login,
-                    displayName: Str.removeSMSDomain(login),
+                    displayName: LocalePhoneNumber.formatPhoneNumber(login),
                     avatar: ReportUtils.getDefaultAvatar(login),
                 };
             }
 
             if (login === CONST.EMAIL.CONCIERGE) {
-                personalDetail.avatar = Expensicons.ConciergeAvatar;
+                personalDetail.avatar = CONST.CONCIERGE_ICON_URL;
             }
 
             personalDetailsForLogins[login] = personalDetail;
@@ -190,7 +190,7 @@ function getParticipantsOptions(report, personalDetails) {
         text: details.displayName,
         firstName: lodashGet(details, 'firstName', ''),
         lastName: lodashGet(details, 'lastName', ''),
-        alternateText: Str.isSMSLogin(details.login) ? Str.removeSMSDomain(details.login) : details.login,
+        alternateText: Str.isSMSLogin(details.login) ? LocalePhoneNumber.formatPhoneNumber(details.login) : details.login,
         icons: [{
             source: ReportUtils.getAvatar(details.avatar, details.login),
             name: details.login,
@@ -432,13 +432,13 @@ function createOption(logins, personalDetails, report, reportActions = {}, {
         } else {
             result.alternateText = (showChatPreviewLine && lastMessageText)
                 ? lastMessageText
-                : Str.removeSMSDomain(personalDetail.login);
+                : LocalePhoneNumber.formatPhoneNumber(personalDetail.login);
         }
         reportName = ReportUtils.getReportName(report, policies);
     } else {
         reportName = ReportUtils.getDisplayNameForParticipant(logins[0]);
         result.keyForList = personalDetail.login;
-        result.alternateText = Str.removeSMSDomain(personalDetail.login);
+        result.alternateText = LocalePhoneNumber.formatPhoneNumber(personalDetail.login);
     }
 
     result.isIOUReportOwner = ReportUtils.isIOUOwnedByCurrentUser(result, iouReports);

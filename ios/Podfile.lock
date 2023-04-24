@@ -16,7 +16,7 @@ PODS:
     - Airship/Core
   - Airship/PreferenceCenter (16.11.3):
     - Airship/Core
-  - AirshipFrameworkProxy (2.0.4):
+  - AirshipFrameworkProxy (2.0.5):
     - Airship (= 16.11.3)
     - Airship/MessageCenter (= 16.11.3)
     - Airship/PreferenceCenter (= 16.11.3)
@@ -221,7 +221,7 @@ PODS:
     - libwebp/demux
   - libwebp/webp (1.2.4)
   - lottie-ios (3.5.0)
-  - lottie-react-native (6.0.0-rc.3):
+  - lottie-react-native (6.0.0-rc.5):
     - lottie-ios (~> 3.5.0)
     - RCT-Folly
     - RCTRequired
@@ -833,8 +833,8 @@ PODS:
   - React-jsinspector (0.71.2-alpha.3)
   - React-logger (0.71.2-alpha.3):
     - glog
-  - react-native-airship (15.2.2):
-    - AirshipFrameworkProxy (= 2.0.4)
+  - react-native-airship (15.2.3):
+    - AirshipFrameworkProxy (= 2.0.5)
     - RCT-Folly
     - RCTRequired
     - RCTTypeSafety
@@ -1089,6 +1089,10 @@ PODS:
     - ReactCommon/turbomodule/core
   - RNDeviceInfo (10.6.0):
     - React-Core
+  - RNDevMenu (4.1.1):
+    - React-Core
+    - React-Core/DevSupport
+    - React-RCTNetwork
   - RNFastImage (8.6.3):
     - RCT-Folly
     - RCTRequired
@@ -1304,6 +1308,7 @@ DEPENDENCIES:
   - "RNCPicker (from `../node_modules/@react-native-picker/picker`)"
   - "RNDateTimePicker (from `../node_modules/@react-native-community/datetimepicker`)"
   - RNDeviceInfo (from `../node_modules/react-native-device-info`)
+  - RNDevMenu (from `../node_modules/react-native-dev-menu`)
   - RNFastImage (from `../node_modules/react-native-fast-image`)
   - "RNFBAnalytics (from `../node_modules/@react-native-firebase/analytics`)"
   - "RNFBApp (from `../node_modules/@react-native-firebase/app`)"
@@ -1487,6 +1492,8 @@ EXTERNAL SOURCES:
     :path: "../node_modules/@react-native-community/datetimepicker"
   RNDeviceInfo:
     :path: "../node_modules/react-native-device-info"
+  RNDevMenu:
+    :path: "../node_modules/react-native-dev-menu"
   RNFastImage:
     :path: "../node_modules/react-native-fast-image"
   RNFBAnalytics:
@@ -1516,7 +1523,7 @@ EXTERNAL SOURCES:
 
 SPEC CHECKSUMS:
   Airship: c70eed50e429f97f5adb285423c7291fb7a032ae
-  AirshipFrameworkProxy: 1643271ff2228b245307c721281af986c126967d
+  AirshipFrameworkProxy: 2eefb77bb77b5120b0f48814b0d44439aa3ad415
   boost: 57d2868c099736d80fcd648bf211b4431e51a558
   CocoaAsyncSocket: 065fd1e645c7abab64f7a6a2007a48038fdc6a99
   DoubleConversion: 5189b271737e1565bdce30deb4a08d647e3f5f54
@@ -1549,7 +1556,7 @@ SPEC CHECKSUMS:
   libevent: 4049cae6c81cdb3654a443be001fb9bdceff7913
   libwebp: f62cb61d0a484ba548448a4bd52aabf150ff6eef
   lottie-ios: c55158d67d0629a260625cc2ded2052b829e3c3e
-  lottie-react-native: 1b79f33d48fd1aba6155fb7693649f7d6f32d6f9
+  lottie-react-native: 6f8247a4056c8b47bcb0a543bee2730ba167c921
   nanopb: a0ba3315591a9ae0a16a309ee504766e90db0c96
   Onfido: e3117cd61ac93df6d2c315f4a93c9ad724fd8786
   onfido-react-native-sdk: db95b9b75bae989aa44dfe794974c48e6d176ce1
@@ -1576,7 +1583,7 @@ SPEC CHECKSUMS:
   React-jsiexecutor: 6f986feb67cf66edff7f98090ca797a67d0a44fb
   React-jsinspector: 31517b1de3fadf93ad8558840a8974c7a7160bd3
   React-logger: b90aa6ed0dbc30717dc72d843af3cf4550297b22
-  react-native-airship: fa7228b07a82db0bc891a973b9347cbdc43f185e
+  react-native-airship: 9bdeb8eb93f2f5961fadb9469cf7c278fbca69e9
   react-native-blob-util: 14ee09f33abf13a1afdfbc777bbdca09c816022c
   react-native-cameraroll: 033086140fdab802e97651d100da2440654e8fa2
   react-native-config: 5ce986133b07fc258828b20b9506de0e683efc1c
@@ -1612,6 +1619,7 @@ SPEC CHECKSUMS:
   RNCPicker: d7db5fb87007968ac14bd2266f96be30f8d738d6
   RNDateTimePicker: cf5f81f92f817f4908cfa02ed7944baf94b97f68
   RNDeviceInfo: 475a4c447168d0ad4c807e48ef5e0963a0f4eb1b
+  RNDevMenu: 72807568fe4188bd4c40ce32675d82434b43c45d
   RNFastImage: fdf8c03d43026a4af81e15e483e457d8b60067c6
   RNFBAnalytics: f76bfa164ac235b00505deb9fc1776634056898c
   RNFBApp: 729c0666395b1953198dc4a1ec6deb8fbe1c302e
