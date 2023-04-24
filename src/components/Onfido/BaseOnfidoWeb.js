@@ -105,7 +105,7 @@ class Onfido extends React.Component {
                 Log.hmmm('Onfido user closed the modal');
             },
             language: {
-                locale: this.props.preferredLocale,
+                locale: this.props.preferredLocale === CONST.LOCALES.ES ? CONST.ONFIDO.ES_ES_LOCALE : CONST.LOCALES.EN,
 
                 // Provide a custom phrase for the back button so that the first letter is capitalized,
                 // and translate the phrase while we're at it. See the issue and documentation for more context.
