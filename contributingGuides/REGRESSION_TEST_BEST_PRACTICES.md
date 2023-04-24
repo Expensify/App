@@ -7,6 +7,22 @@ Welcome to the Regression Test Best Practices page! Thanks for taking the time t
 ## Context
 We use a third party to run QA on our new application (the one you're helping build!) to catch bugs. When a bug is found, we then create a job available to our community of open-source contributors, and once the bug is successfully squashed, we want to ensure that the bug never comes back - because after all, the whole point of squashing a bug is to ensure it's dead! Therefore, we need to either create a new test case for our QA team to complete and make sure the bug doesn't come back, or update an existing test case to cover this scenario. Our QA tests are broken into various categories that cover the scenario taking place in the User Experience such as starting a new 1:1 chat, requesting money, or updating profile settings. Then we break down the scenario into _exact_ written steps for the QA team to replicate and ensure they get the correct result. This is where you come in!  
 
+## Determining if we should create a regression test for the bug
+
+Before proposing test steps for a bug, we first need to determine whether or not we should create a test for it. In order to determine this, we look for these common traits:
+- Is it easy to test for this bug?  
+- Is the bug related to an important user flow? (For example, adding a bank account)
+- Is it an impactful bug?
+
+If the answer is yes to all of those questions, you can feel confident that we should create a test for the bug.
+
+If the answer is no to all of those questions, you can feel confident we shouldn't create a test for the bug. 
+
+Once you've come to an answer on determining if we should create a test or not, you'll then post a comment in the GH outlining your recommendation and your reasoning for why (short and sweet is fine!). 
+- Note: If you feel the answer is no to some, but not all, of the questions, trust your gut and proceed to post your recommendation and reasoning for it in the GH.
+
+Once your decision is posted you can either move on to the below steps, or ensure the other items in the checklist are complete and wait to be paid!
+
 ## Formatting of regression test step proposals
 
 #### Location and format of the proposal post

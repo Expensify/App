@@ -6,7 +6,6 @@ import {
 } from 'react-native';
 import PropTypes from 'prop-types';
 import {withOnyx} from 'react-native-onyx';
-import Str from 'expensify-common/lib/str';
 import styles from '../../styles/styles';
 import ONYXKEYS from '../../ONYXKEYS';
 import HeaderWithCloseButton from '../../components/HeaderWithCloseButton';
@@ -289,8 +288,8 @@ class WorkspaceMembersPage extends React.Component {
                             onSelectRow={() => this.toggleUser(item.login, item.pendingAction)}
                             boldStyle
                             option={{
-                                text: Str.removeSMSDomain(item.displayName),
-                                alternateText: Str.removeSMSDomain(item.login),
+                                text: this.props.formatPhoneNumber(item.displayName),
+                                alternateText: this.props.formatPhoneNumber(item.login),
                                 participantsList: [item],
                                 icons: [{
                                     source: ReportUtils.getAvatar(item.avatar, item.login),
@@ -409,7 +408,7 @@ class WorkspaceMembersPage extends React.Component {
                                 <TextInput
                                     value={this.state.searchValue}
                                     onChangeText={this.updateSearchValue}
-                                    placeholder={this.props.translate('optionsSelector.nameEmailOrPhoneNumber')}
+                                    placeholder={this.props.translate('optionsSelector.findMember')}
                                 />
                             </View>
                             {data.length > 0 ? (
@@ -439,7 +438,7 @@ class WorkspaceMembersPage extends React.Component {
                             ) : (
                                 <View style={[styles.ph5]}>
                                     <Text style={[styles.textLabel, styles.colorMuted]}>
-                                        {this.props.translate('common.noResultsFound')}
+                                        {this.props.translate('workspace.common.memberNotFound')}
                                     </Text>
                                 </View>
                             )}
