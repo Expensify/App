@@ -57,7 +57,7 @@ class MoneyRequestDescriptionPage extends Component {
 
     render() {
         return (
-            <ScreenWrapper includeSafeAreaPaddingBottom={false}>
+            <ScreenWrapper includeSafeAreaPaddingBottom={false} shouldEnableMaxHeight>
                 <HeaderWithCloseButton
                     title={this.props.translate('common.description')}
                     shouldShowBackButton
