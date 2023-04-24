@@ -334,6 +334,13 @@ const styles = {
         fontSize: variables.fontSizeXLarge,
     },
 
+    textHeadlineH1: {
+        ...headlineFont,
+        ...whiteSpace.preWrap,
+        color: themeColors.heading,
+        fontSize: variables.fontSizeh1,
+    },
+
     textDecorationNoLine: {
         textDecorationLine: 'none',
     },
