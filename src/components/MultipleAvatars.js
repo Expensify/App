@@ -140,7 +140,6 @@ const MultipleAvatars = (props) => {
 
                                 // Set overlay background color with RGBA value so that the text will not inherit opacity
                                 StyleUtils.getBackgroundColorWithOpacityStyle(themeColors.overlay, variables.overlayOpacity),
-                                styles.horizontalStackedAvatar4Overlay,
                                 StyleUtils.getHorizontalStackedOverlayAvatarStyle(oneAvatarSize, oneAvatarBorderWidth),
                                 (props.icons[3].type === CONST.ICON_TYPE_WORKSPACE ? StyleUtils.getAvatarBorderRadius(props.size, props.icons[3].type) : {}),
                             ]}
