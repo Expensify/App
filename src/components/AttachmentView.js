@@ -53,7 +53,7 @@ const defaultProps = {
     },
     shouldShowDownloadIcon: false,
     shouldShowLoadingSpinnerIcon: false,
-    onPress: () => {},
+    onPress: undefined,
     onScaleChanged: () => {},
     onToggleKeyboard: () => {},
 };
