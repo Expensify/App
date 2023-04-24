@@ -366,7 +366,7 @@ class BaseTextInput extends Component {
 
                     // Add +2 to width so that the first digit of amount do not cut off on mWeb - https://github.com/Expensify/App/issues/8158.
                     <Text
-                        style={[...this.props.inputStyle, autoGrowHeight && {maxWidth: this.state.width}, styles.hiddenElementOutsideOfWindow, styles.visibilityHidden]}
+                        style={[...this.props.inputStyle, autoGrowHeight ? {maxWidth: this.state.width} : {}, styles.hiddenElementOutsideOfWindow, styles.visibilityHidden]}
                         onLayout={e => this.setState({textInputWidth: e.nativeEvent.layout.width + 2, textInputHeight: e.nativeEvent.layout.height})}
                     >
                         {/* We are appending a zero width space (\u200B) here as the browser will remove a trailing newline that doesn't
