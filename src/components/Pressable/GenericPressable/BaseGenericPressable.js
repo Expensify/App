@@ -75,16 +75,24 @@ const GenericPressable = forwardRef((props, ref) => {
             HapticFeedback.longPress();
         }
         onLongPress();
+
+        if (ref.current) {
+            ref.current.blur();
+        }
+
         Accessibility.moveAccessibilityFocus(nextFocusRef);
-    }, [shouldUseHapticsOnLongPress, onLongPress, nextFocusRef]);
+    }, [shouldUseHapticsOnLongPress, onLongPress, nextFocusRef, ref]);
 
     const onPressHandler = useCallback(() => {
         if (shouldUseHapticsOnPress) {
             HapticFeedback.press();
         }
         onPress();
+        if (ref.current) {
+            ref.current.blur();
+        }
         Accessibility.moveAccessibilityFocus(nextFocusRef);
-    }, [shouldUseHapticsOnPress, onPress, nextFocusRef]);
+    }, [shouldUseHapticsOnPress, onPress, nextFocusRef, ref]);
 
     const onKeyPressHandler = useCallback((event) => {
         if (event.key !== 'Enter') {
@@ -140,7 +148,7 @@ const GenericPressable = forwardRef((props, ref) => {
 });
 
 GenericPressable.displayName = 'GenericPressable';
-GenericPressable.propTypes = genericPressablePropTypes.pressablePropTypes;
+GenericPressable.propTypes = genericPressablePropTypes.propTypes;
 GenericPressable.defaultProps = genericPressablePropTypes.defaultProps;
 
 export default GenericPressable;
