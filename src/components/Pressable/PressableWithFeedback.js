@@ -9,7 +9,7 @@ import variables from '../../styles/variables';
 const omitedProps = ['style', 'pressStyle', 'hoverStyle', 'focusStyle', 'wrapperStyle'];
 
 const PressableWithFeedbackPropTypes = {
-    ..._.omit(GenericPressablePropTypes.propTypes, omitedProps),
+    ..._.omit(GenericPressablePropTypes.pressablePropTypes, omitedProps),
     pressDimmingValue: propTypes.number,
     hoverDimmingValue: propTypes.number,
 };

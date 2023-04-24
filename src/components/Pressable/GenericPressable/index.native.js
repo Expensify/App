@@ -1,5 +1,6 @@
 import React, {forwardRef} from 'react';
 import GenericPressable from './BaseGenericPressable';
+import GenericPressablePropTypes from './PropTypes';
 
 const NativeGenericPressable = forwardRef((props, ref) => (
     <GenericPressable
@@ -13,7 +14,7 @@ const NativeGenericPressable = forwardRef((props, ref) => (
     />
 ));
 
-NativeGenericPressable.propTypes = GenericPressable.propTypes;
-NativeGenericPressable.defaultProps = GenericPressable.defaultProps;
+NativeGenericPressable.propTypes = GenericPressablePropTypes.pressablePropTypes;
+NativeGenericPressable.defaultProps = GenericPressablePropTypes.defaultProps;
 
 export default NativeGenericPressable;

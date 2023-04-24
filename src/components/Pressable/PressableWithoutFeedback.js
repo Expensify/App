@@ -20,7 +20,7 @@ const PressableWithoutFeedback = (props) => {
 };
 
 PressableWithoutFeedback.displayName = 'PressableWithoutFeedback';
-PressableWithoutFeedback.propTypes = _.omit(GenericPressableProps.propTypes, omitedProps);
+PressableWithoutFeedback.propTypes = _.omit(GenericPressableProps.pressablePropTypes, omitedProps);
 PressableWithoutFeedback.defaultProps = _.omit(GenericPressableProps.defaultProps, omitedProps);
 
 export default PressableWithoutFeedback;

@@ -18,7 +18,7 @@ const WebGenericPressable = forwardRef((props, ref) => (
     />
 ));
 
-WebGenericPressable.propTypes = GenericPressablePropTypes.propTypes;
+WebGenericPressable.propTypes = GenericPressablePropTypes.pressablePropTypes;
 WebGenericPressable.defaultProps = GenericPressablePropTypes.defaultProps;
 
 export default WebGenericPressable;

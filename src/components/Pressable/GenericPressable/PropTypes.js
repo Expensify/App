@@ -8,7 +8,7 @@ const stylePropTypeWithFunction = PropTypes.oneOfType([
     PropTypes.func,
 ]);
 
-const propTypes = {
+const pressablePropTypes = {
     ...PressableProps,
 
     /**
@@ -116,6 +116,6 @@ const defaultProps = {
 };
 
 export default {
-    propTypes,
+    pressablePropTypes,
     defaultProps,
 };
