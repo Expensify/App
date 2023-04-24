@@ -236,8 +236,16 @@ class BaseTextInput extends Component {
 
                                 // When autoGrowHeight is true we calculate the width for the textInput, so It will break lines properly
                                 // or if multiline is not supplied we calculate the textinput height, using onLayout.
-                                onLayout={event => (this.props.autoGrowHeight && this.setState({width: event.nativeEvent.layout.width}))
-                                    || (!isMultiline && this.setState({height: event.nativeEvent.layout.height}))}
+                                onLayout={(event) => {
+                                    if (!this.props.autoGrowHeight && this.props.multiline) {
+                                        return;
+                                    }
+
+                                    this.setState(prevState => ({
+                                        width: this.props.autoGrowHeight ? event.nativeEvent.layout.width : prevState.width,
+                                        height: !this.props.multiline ? event.nativeEvent.layout.height : prevState.height,
+                                    }));
+                                }}
                                 style={[
                                     textInputContainerStyles,
 
