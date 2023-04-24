@@ -25,10 +25,11 @@ const bigWrapperStyle = [
  * Generate the wrapper styles for the ReportActionContextMenu.
  *
  * @param {Boolean} isMini
+ * @param {Boolean} isSmallScreenWidth
  * @returns {Array}
  */
-function getReportActionContextMenuStyles(isMini) {
-    return isMini ? miniWrapperStyle : bigWrapperStyle;
+function getReportActionContextMenuStyles(isMini, isSmallScreenWidth) {
+    return isMini ? miniWrapperStyle : [...bigWrapperStyle, !isSmallScreenWidth && styles.pv3];
 }
 
 export default getReportActionContextMenuStyles;
