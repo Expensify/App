@@ -476,7 +476,7 @@ class ReportActionCompose extends React.Component {
      * @returns {Boolean}
      */
     isEmojiCode(str, pos) {
-        const leftWords = str.slice(0, pos).split(CONST.REGEX.NEW_LINE_OR_WHITE_SPACE_OR_EMOJIS);
+        const leftWords = str.slice(0, pos).split(CONST.REGEX.NEW_LINE_OR_WHITE_SPACE_OR_EMOJI);
         const leftWord = _.last(leftWords);
 
         return CONST.REGEX.HAS_COLON_ONLY_AT_THE_BEGINNING.test(leftWord) && leftWord.length > 2;
