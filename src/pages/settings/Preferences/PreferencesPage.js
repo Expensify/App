@@ -61,6 +61,7 @@ const PreferencesPage = (props) => {
             onCloseButtonPress={() => Navigation.dismissModal(true)}
             backgroundColor={themeColors.preferencesPageBackground}
             illustration={DollarAnimation}
+            illustrationSize={{width: 300, height: 300}}
         >
             <View style={styles.mb6}>
                 <Text style={[styles.textLabelSupporting, styles.mb2, styles.ml5, styles.mr8]} numberOfLines={1}>

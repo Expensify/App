@@ -10,7 +10,6 @@ import {
 import HeaderWithCloseButton from './HeaderWithCloseButton';
 import ScreenWrapper from './ScreenWrapper';
 import styles from '../styles/styles';
-import themeColors from '../styles/themes/default';
 import * as StyleUtils from '../styles/StyleUtils';
 
 const propTypes = {
@@ -21,6 +20,12 @@ const propTypes = {
 
     /** The illustration to display in the header. Can be either an SVG component or a JSON object representing a Lottie animation. */
     illustration: PropTypes.oneOfType([PropTypes.func, PropTypes.object]).isRequired,
+
+    /** The size of the illustration in the page header. */
+    illustrationSize: PropTypes.shape({
+        width: PropTypes.number,
+        height: PropTypes.number,
+    }).isRequired,
 };
 
 const defaultProps = {
@@ -36,10 +41,10 @@ const IllustratedHeaderPageLayout = (props) => {
                     <View style={styles.illustratedPageHeader}>
                         <HeaderWithCloseButton {...propsToPassToHeader} />
                         <View
-                            style={[styles.centerContent]}>
+                            style={[styles.centerContent, {backgroundColor: '#f00'}]}>
                             {_.isFunction(props.illustration)
                                 ? props.illustration()
-                                : <Lottie source={props.illustration} style={{width: 250, height: 250}} autoPlay loop />
+                                : <Lottie source={props.illustration} style={props.illustrationSize} autoPlay loop />
                             }
                         </View>
                     </View>
