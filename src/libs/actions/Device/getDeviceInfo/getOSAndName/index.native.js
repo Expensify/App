@@ -1,13 +1,11 @@
 import Str from 'expensify-common/lib/str';
-import {
-    getDeviceNameSync, getManufacturerSync, getSystemVersion, isEmulatorSync,
-} from 'react-native-device-info';
+import RNDeviceInfo from 'react-native-device-info';
 
 export default function getOSAndName() {
-    const deviceName = getDeviceNameSync();
-    const prettyName = `${Str.UCFirst((getManufacturerSync() || ''))} ${deviceName}`;
+    const deviceName = RNDeviceInfo.getDeviceNameSync();
+    const prettyName = `${Str.UCFirst((RNDeviceInfo.getManufacturerSync() || ''))} ${deviceName}`;
     return {
-        device_name: isEmulatorSync() ? `Emulator - ${prettyName}` : prettyName,
-        os_version: getSystemVersion(),
+        device_name: RNDeviceInfo.isEmulatorSync() ? `Emulator - ${prettyName}` : prettyName,
+        os_version: RNDeviceInfo.getSystemVersion(),
     };
 }
