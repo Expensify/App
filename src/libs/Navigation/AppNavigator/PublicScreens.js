@@ -1,5 +1,6 @@
-import React, {useEffect} from 'react';
-import {View, Platform} from 'react-native';
+/* eslint-disable react/destructuring-assignment */
+import React, {useEffect, useState} from 'react';
+import {View, Platform, Button} from 'react-native';
 import {createStackNavigator} from '@react-navigation/stack';
 import SignInPage from '../../../pages/signin/SignInPage';
 import SetPasswordPage from '../../../pages/SetPasswordPage';
@@ -9,10 +10,15 @@ import SCREENS from '../../../SCREENS';
 import defaultScreenOptions from './defaultScreenOptions';
 import Text from '../../../components/Text';
 import AppleSignInScript from '../../../pages/signin/AppleSignInScript';
+import FullScreenLoadingIndicator from '../../../components/FullscreenLoadingIndicator';
 
 const RootStack = createStackNavigator();
+function sleep(ms) {
+    return new Promise(resolve => setTimeout(resolve, ms));
+}
 
 const AppleAuthScreen = () => {
+    const [afterSignIn, setAfterSignIn] = useState(false);
     useEffect(() => {
         const clientId = 'com.infinitered.expensify.test';
         const redirectURI = 'https://exptest.ngrok.io/appleauth';
@@ -32,7 +38,10 @@ const AppleAuthScreen = () => {
             console.log('😇calling fn');
             window.AppleID.auth.signIn().then((result) => {
                 console.log('got a result', result);
-                window.open(`new-expensify://signintoken/appleauthtoken/${result.authorization.id_token}`);
+                setAfterSignIn(true);
+                sleep(2000).then(() => {
+                    window.location.replace('new-expensify://deeplink/appleauthtoken/token');
+                });
             });
         };
 
@@ -41,20 +50,27 @@ const AppleAuthScreen = () => {
     return (
         <View style={{flex: 1, justifyContent: 'center', alignItems: 'center'}}>
             {Platform.OS === 'web' && <AppleSignInScript />}
-            <Text>Redirecting you to sign in...</Text>
+            <Text>Redirecting you Apple to sign in...</Text>
+            {!afterSignIn && <Text>Click "Allow pop-ups" to continue.</Text>}
+            {afterSignIn && <FullScreenLoadingIndicator />}
         </View>
     );
 };
 
 const AppleAuthScreenReceiver = ({route}) => {
     const {params: {token}} = route;
+    const [showToken, setShowToken] = useState(false);
     return (
         <View style={{flex: 1, justifyContent: 'center', alignItems: 'center'}}>
+            <Text>User has been signed in.</Text>
+            <Button onPress={() => setShowToken(!showToken)} title="Show Token" />
+            {showToken && (
             <Text>
                 TOKEN:
                 {' '}
                 {token}
             </Text>
+            )}
         </View>
     );
 };
