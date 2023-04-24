@@ -76,27 +76,35 @@ const AttachmentView = (props) => {
         const sourceURL = props.isAuthTokenRequired
             ? addEncryptedAuthTokenToURL(props.source)
             : props.source;
+        const children = (
+            <PDFView
+                onPress={props.onPress}
+                sourceURL={sourceURL}
+                style={styles.imageModalPDF}
+                onToggleKeyboard={props.onToggleKeyboard}
+                onScaleChanged={props.onScaleChanged}
+                onLoadComplete={() => !loadComplete && setLoadComplete(true)}
+            />
+        );
         return (
-            <Pressable onPress={props.onPress} disabled={loadComplete} style={containerStyles}>
-                <PDFView
-                    onPress={props.onPress}
-                    sourceURL={sourceURL}
-                    style={styles.imageModalPDF}
-                    onToggleKeyboard={props.onToggleKeyboard}
-                    onScaleChanged={props.onScaleChanged}
-                    onLoadComplete={() => !loadComplete && setLoadComplete(true)}
-                />
-            </Pressable>
+            props.onPress ? (
+                <Pressable onPress={props.onPress} disabled={loadComplete} style={containerStyles}>
+                    {children}
+                </Pressable>
+            ) : children
         );
     }
 
     // For this check we use both source and file.name since temporary file source is a blob
     // both PDFs and images will appear as images when pasted into the the text field
     if (Str.isImage(props.source) || (props.file && Str.isImage(props.file.name))) {
+        const children = <ImageView url={props.source} isAuthTokenRequired={props.isAuthTokenRequired} />;
         return (
-            <Pressable onPress={props.onPress} style={containerStyles}>
-                <ImageView url={props.source} isAuthTokenRequired={props.isAuthTokenRequired} />
-            </Pressable>
+            props.onPress ? (
+                <Pressable onPress={props.onPress} disabled={loadComplete} style={containerStyles}>
+                    {children}
+                </Pressable>
+            ) : children
         );
     }
 
