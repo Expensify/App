@@ -1,7 +1,7 @@
 import _ from 'underscore';
 import React, {Component} from 'react';
 import {
-    Animated, View, TouchableWithoutFeedback, AppState, Keyboard,
+    Animated, View, TouchableWithoutFeedback, AppState, Keyboard, StyleSheet,
 } from 'react-native';
 import Str from 'expensify-common/lib/str';
 import RNTextInput from '../RNTextInput';
@@ -218,12 +218,15 @@ class BaseTextInput extends Component {
             !this.props.hideFocusedState && this.state.isFocused && styles.borderColorFocus,
             (this.props.hasError || this.props.errorText) && styles.borderColorDanger,
         ], (finalStyles, s) => ({...finalStyles, ...s}), {});
+        const maxHeight = StyleSheet.flatten(this.props.containerStyles).maxHeight;
+        const autoGrowHeight = this.props.autoGrowHeight && this.props.multiline;
 
         return (
             <>
                 <View>
                     <View
                         style={[
+                            (autoGrowHeight && {height: this.state.textInputHeight >= maxHeight ? maxHeight : this.state.textInputHeight}),
                             !this.props.multiline && styles.componentHeightLarge,
                             ...this.props.containerStyles,
                         ]}
@@ -231,8 +234,10 @@ class BaseTextInput extends Component {
                         <TouchableWithoutFeedback onPress={this.onPress} focusable={false}>
                             <View
 
-                                // When multiline is not supplied, calculating textinput height using onLayout
-                                onLayout={event => !this.props.multiline && this.setState({height: event.nativeEvent.layout.height})}
+                                // When autoGrowHeight is true calculate textinput width or when multiline
+                                // is not supplied calculate textinput height, using onLayout.
+                                onLayout={event => (autoGrowHeight && this.setState({width: event.nativeEvent.layout.width}))
+                                    || (!this.props.multiline && this.setState({height: event.nativeEvent.layout.height}))}
                                 style={[
                                     textInputContainerStyles,
 
@@ -301,6 +306,9 @@ class BaseTextInput extends Component {
                                             // Explicitly remove `lineHeight` from single line inputs so that long text doesn't disappear
                                             // once it exceeds the input space (See https://github.com/Expensify/App/issues/13802)
                                             !this.props.multiline && {height: this.state.height, lineHeight: undefined},
+
+                                            // Stop scrollbar flashing when breaking lines with autoGrowHeight enabled.
+                                            autoGrowHeight && this.state.textInputHeight <= maxHeight ? styles.overflowHidden : styles.overflowAuto,
                                         ]}
                                         multiline={this.props.multiline}
                                         maxLength={this.props.maxLength}
@@ -351,17 +359,19 @@ class BaseTextInput extends Component {
                 {/*
                     Text input component doesn't support auto grow by default.
                     We're using a hidden text input to achieve that.
-                    This text view is used to calculate width of the input value given textStyle in this component.
+                    This text view is used to calculate width or height of the input value given textStyle in this component.
                     This Text component is intentionally positioned out of the screen.
                 */}
-                {this.props.autoGrow && (
+                {(this.props.autoGrow || autoGrowHeight) && (
 
                     // Add +2 to width so that the first digit of amount do not cut off on mWeb - https://github.com/Expensify/App/issues/8158.
                     <Text
-                        style={[...this.props.inputStyle, styles.hiddenElementOutsideOfWindow, styles.visibilityHidden]}
-                        onLayout={e => this.setState({textInputWidth: e.nativeEvent.layout.width + 2})}
+                        style={[...this.props.inputStyle, autoGrowHeight && {maxWidth: this.state.width}, styles.hiddenElementOutsideOfWindow, styles.visibilityHidden]}
+                        onLayout={e => this.setState({textInputWidth: e.nativeEvent.layout.width + 2, textInputHeight: e.nativeEvent.layout.height})}
                     >
-                        {this.state.value || this.props.placeholder}
+                        {/* We are appending a zero width space (\u200B) here as the browser will remove a trailing newline that doesn't
+                        have any characters after it. This allows linebreaks to work properly on web when the user presses enter. */}
+                        {`${this.state.value}${autoGrowHeight ? '\u200B' : ''}` || this.props.placeholder}
                     </Text>
                 )}
             </>
