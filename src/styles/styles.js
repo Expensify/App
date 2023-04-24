@@ -1221,7 +1221,6 @@ const styles = {
 
     popoverMenuIcon: {
         width: variables.componentSizeNormal,
-        height: variables.componentSizeNormal,
         justifyContent: 'center',
         alignItems: 'center',
     },
