@@ -17,8 +17,8 @@ import Logo from '../../../../assets/images/new-expensify.svg';
 import pkg from '../../../../package.json';
 import * as Report from '../../../libs/actions/Report';
 import * as Link from '../../../libs/actions/Link';
-import getPlatformSpecificMenuItems from './getPlatformSpecificMenuItems';
 import compose from '../../../libs/compose';
+import * as KeyboardShortcuts from '../../../libs/actions/KeyboardShortcuts';
 import * as Environment from '../../../libs/Environment/Environment';
 
 const propTypes = {
@@ -27,8 +27,6 @@ const propTypes = {
 };
 
 const AboutPage = (props) => {
-    const platformSpecificMenuItems = getPlatformSpecificMenuItems(props.isSmallScreenWidth);
-
     const menuItems = [
         {
             translationKey: 'initialSettingsPage.aboutPage.appDownloadLinks',
@@ -37,7 +35,11 @@ const AboutPage = (props) => {
                 Navigation.navigate(ROUTES.SETTINGS_APP_DOWNLOAD_LINKS);
             },
         },
-        ...platformSpecificMenuItems,
+        {
+            translationKey: 'initialSettingsPage.aboutPage.viewKeyboardShortcuts',
+            icon: Expensicons.Keyboard,
+            action: KeyboardShortcuts.showKeyboardShortcutModal,
+        },
         {
             translationKey: 'initialSettingsPage.aboutPage.viewTheCode',
             icon: Expensicons.Eye,
