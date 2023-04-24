@@ -103,7 +103,7 @@ const AttachmentView = (props) => {
     }
 
     return (
-        <Pressable
+        <View
             style={styles.defaultAttachmentView}
             onPress={props.onPress}
         >
@@ -129,7 +129,7 @@ const AttachmentView = (props) => {
                     </Tooltip>
                 </View>
             )}
-        </Pressable>
+        </View>
     );
 };
 
