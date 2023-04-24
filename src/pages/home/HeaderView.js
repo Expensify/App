@@ -27,7 +27,6 @@ import colors from '../../styles/colors';
 import reportPropTypes from '../reportPropTypes';
 import ONYXKEYS from '../../ONYXKEYS';
 import ThreeDotsMenu from '../../components/ThreeDotsMenu';
-import MenuItemWithTopDescription from '../../components/MenuItemWithTopDescription';
 
 const propTypes = {
     /** Toggles the navigationMenu open and closed */
