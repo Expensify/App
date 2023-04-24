@@ -34,6 +34,7 @@ function outputMergeCommitHash(PR) {
     if (!_.isEmpty(PR)) {
         console.log(`Found matching pull request: ${PR.html_url}`);
         console.log('PR data', PR);
+        console.log('any log');
         core.setOutput('MERGE_COMMIT_SHA', PR.merge_commit_sha);
     } else {
         const err = new Error('Could not find matching pull request');
@@ -51,6 +52,7 @@ function outputMergeActor(PR) {
     if (!_.isEmpty(PR)) {
         console.log(`Found matching pull request: ${PR.html_url}`);
         console.log('PR data', PR);
+        console.log('any log');
         if (user === 'OSBotify') {
             core.setOutput('MERGE_ACTOR', PR.merged_by.login);
         } else {
