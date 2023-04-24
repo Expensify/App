@@ -77,7 +77,7 @@ function requestMoney(report, amount, currency, recipientEmail, participant, com
         iouReport = ReportUtils.buildOptimisticIOUReport(recipientEmail, debtorEmail, amount, chatReport.reportID, currency, preferredLocale);
     }
 
-    const optimisticTransaction = TransactionUtils.buildOptimisticTransaction(amount, currency);
+    const optimisticTransaction = TransactionUtils.buildOptimisticTransaction(amount * 100, currency);
     const optimisticTransactionData = {
         onyxMethod: Onyx.METHOD.MERGE,
         key: `${ONYXKEYS.COLLECTION.TRANSACTION}${optimisticTransaction.transactionID}`,
@@ -762,7 +762,7 @@ function getSendMoneyParams(report, amount, currency, comment, paymentMethodType
     }
     const optimisticIOUReport = ReportUtils.buildOptimisticIOUReport(recipientEmail, managerEmail, amount, chatReport.reportID, currency, preferredLocale, true);
 
-    const optimisticTransaction = TransactionUtils.buildOptimisticTransaction(amount, currency, comment);
+    const optimisticTransaction = TransactionUtils.buildOptimisticTransaction(amount * 100, currency, comment);
     const optimisticTransactionData = {
         onyxMethod: Onyx.METHOD.MERGE,
         key: `${ONYXKEYS.COLLECTION.TRANSACTION}${optimisticTransaction.transactionID}`,

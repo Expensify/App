@@ -29,6 +29,7 @@ describe('actions/IOU', () => {
     describe('requestMoney', () => {
         it('creates new chat if needed', () => {
             const amount = 100;
+            const amountInCents = amount * 100;
             const comment = 'Giv money plz';
             let chatReportID;
             let iouReportID;
@@ -110,7 +111,7 @@ describe('actions/IOU', () => {
                             transactionID = transaction.transactionID;
 
                             // Its amount should match the amount of the request
-                            expect(transaction.amount).toBe(amount);
+                            expect(transaction.amount).toBe(amountInCents);
 
                             // It should be pending
                             expect(transaction.pendingAction).toBe(CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD);
@@ -150,6 +151,7 @@ describe('actions/IOU', () => {
 
         it('updates existing chat report if there is one', () => {
             const amount = 100;
+            const amountInCents = amount * 100;
             const comment = 'Giv money plz';
             let chatReport = {
                 reportID: 1234,
@@ -236,7 +238,7 @@ describe('actions/IOU', () => {
                             transactionID = transaction.transactionID;
 
                             // Its amount should match the amount of the request
-                            expect(transaction.amount).toBe(amount);
+                            expect(transaction.amount).toBe(amountInCents);
 
                             // It should be pending
                             expect(transaction.pendingAction).toBe(CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD);
@@ -276,6 +278,7 @@ describe('actions/IOU', () => {
 
         it('updates existing IOU report if there is one', () => {
             const amount = 100;
+            const amountInCents = amount * 100;
             const comment = 'Giv money plz';
             const chatReportID = 1234;
             const iouReportID = 5678;
@@ -391,7 +394,7 @@ describe('actions/IOU', () => {
 
                             // The amount on the new transaction should be correct
                             newTransaction = _.find(allTransactions, transaction => transaction.transactionID !== existingTransaction.transactionID);
-                            expect(newTransaction.amount).toBe(amount);
+                            expect(newTransaction.amount).toBe(amountInCents);
 
                             // The new transaction should be pending
                             expect(newTransaction.pendingAction).toBe(CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD);
@@ -432,6 +435,7 @@ describe('actions/IOU', () => {
 
         it('correctly implements RedBrickRoad error handling', () => {
             const amount = 100;
+            const amountInCents = amount * 100;
             const comment = 'Giv money plz';
             let chatReportID;
             let iouReportID;
@@ -513,7 +517,7 @@ describe('actions/IOU', () => {
                             transactionID = transaction.transactionID;
 
                             // Its amount should match the amount of the request
-                            expect(transaction.amount).toBe(amount);
+                            expect(transaction.amount).toBe(amountInCents);
 
                             // It should be pending
                             expect(transaction.pendingAction).toBe(CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD);
