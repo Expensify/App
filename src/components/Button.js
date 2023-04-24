@@ -91,7 +91,7 @@ const propTypes = {
     /** Whether we should use the danger theme color */
     danger: PropTypes.bool,
 
-    /** Optional children to replace all inner contents of button */
+    /** Children to replace all inner contents of button */
     children: PropTypes.node,
 
     /** Should we remove the right border radius top + bottom? */
