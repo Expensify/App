@@ -1,4 +1,7 @@
 import Onyx from 'react-native-onyx';
+import lodashFind from 'lodash/find';
+import lodashGet from 'lodash/get';
+import _ from 'underscore';
 import ONYXKEYS from '../../ONYXKEYS';
 import * as MainQueue from '../Network/MainQueue';
 import DateUtils from '../DateUtils';
@@ -6,6 +9,9 @@ import * as Localize from '../Localize';
 import * as PersistedRequests from './PersistedRequests';
 import NetworkConnection from '../NetworkConnection';
 import HttpUtils from '../HttpUtils';
+import navigationRef from '../Navigation/navigationRef';
+import SCREENS from '../../SCREENS';
+import Navigation from '../Navigation/Navigation';
 
 let currentIsOffline;
 let currentShouldForceOffline;
@@ -50,9 +56,24 @@ function clearStorageAndRedirect(errorMessage) {
 }
 
 /**
+ * Reset all current params of the Home route
+ */
+function resetHomeRouteParams() {
+    const routes = lodashGet(navigationRef.current.getState(), 'routes');
+    const homeRoute = lodashFind(routes, route => route.name === SCREENS.HOME);
+
+    const emptyParams = {};
+    _.keys(lodashGet(homeRoute, 'params')).forEach((paramKey) => {
+        emptyParams[paramKey] = null;
+    });
+    Navigation.setParams(emptyParams, homeRoute.key);
+}
+
+/**
  * Cleanup actions resulting in the user being redirected to the Sign-in page
  * - Clears the Onyx store - removing the authToken redirects the user to the Sign-in page
  * - Cancels pending network calls - any lingering requests are discarded to prevent unwanted storage writes
+ * - Clears all current params of the Home route - the login page URL should not contain any parameter
  *
  * Normally this method would live in Session.js, but that would cause a circular dependency with Network.js.
  *
@@ -64,6 +85,7 @@ function redirectToSignIn(errorMessage) {
     PersistedRequests.clear();
     NetworkConnection.clearReconnectionCallbacks();
     clearStorageAndRedirect(errorMessage);
+    resetHomeRouteParams();
 }
 
 export default redirectToSignIn;
