@@ -72,23 +72,16 @@ const SignInPageContent = props => (
                     </View>
                     {props.children}
                 </SignInPageForm>
+                <View style={[styles.mb8, styles.signInPageWelcomeTextContainer, styles.alignSelfCenter]}>
+                    <OfflineIndicator style={[styles.m0, styles.pl0, styles.alignItemsStart]} />
+                </View>
                 {props.isSmallScreenWidth ? (
-                    <>
-                        <View style={[styles.mb8, styles.signInPageWelcomeTextContainer, styles.alignSelfCenter]}>
-                            <OfflineIndicator style={[styles.m0, styles.pl0, styles.alignItemsStart]} />
-                        </View>
-                        <View style={[styles.mt8]}>
-                            <SignInHeroImage />
-                        </View>
-                    </>
+                    <View style={[styles.mt8]}>
+                        <SignInHeroImage />
+                    </View>
                 ) : null}
             </View>
         </View>
-        {!props.isSmallScreenWidth ? (
-            <View style={[styles.mb8, styles.signInPageWelcomeTextContainer, styles.alignSelfCenter]}>
-                <OfflineIndicator style={[styles.m0, styles.pl0, styles.alignItemsStart]} />
-            </View>
-        ) : null}
     </ScrollView>
 );
 

@@ -1,25 +1,25 @@
 PODS:
-  - Airship (16.11.2):
-    - Airship/Automation (= 16.11.2)
-    - Airship/Basement (= 16.11.2)
-    - Airship/Core (= 16.11.2)
-    - Airship/ExtendedActions (= 16.11.2)
-    - Airship/MessageCenter (= 16.11.2)
-  - Airship/Automation (16.11.2):
+  - Airship (16.11.3):
+    - Airship/Automation (= 16.11.3)
+    - Airship/Basement (= 16.11.3)
+    - Airship/Core (= 16.11.3)
+    - Airship/ExtendedActions (= 16.11.3)
+    - Airship/MessageCenter (= 16.11.3)
+  - Airship/Automation (16.11.3):
     - Airship/Core
-  - Airship/Basement (16.11.2)
-  - Airship/Core (16.11.2):
+  - Airship/Basement (16.11.3)
+  - Airship/Core (16.11.3):
     - Airship/Basement
-  - Airship/ExtendedActions (16.11.2):
+  - Airship/ExtendedActions (16.11.3):
     - Airship/Core
-  - Airship/MessageCenter (16.11.2):
+  - Airship/MessageCenter (16.11.3):
     - Airship/Core
-  - Airship/PreferenceCenter (16.11.2):
+  - Airship/PreferenceCenter (16.11.3):
     - Airship/Core
-  - AirshipFrameworkProxy (2.0.1):
-    - Airship (= 16.11.2)
-    - Airship/MessageCenter (= 16.11.2)
-    - Airship/PreferenceCenter (= 16.11.2)
+  - AirshipFrameworkProxy (2.0.5):
+    - Airship (= 16.11.3)
+    - Airship/MessageCenter (= 16.11.3)
+    - Airship/PreferenceCenter (= 16.11.3)
   - boost (1.76.0)
   - CocoaAsyncSocket (7.6.5)
   - DoubleConversion (1.1.6)
@@ -495,8 +495,8 @@ PODS:
   - React-jsinspector (0.71.2-alpha.3)
   - React-logger (0.71.2-alpha.3):
     - glog
-  - react-native-airship (15.2.0):
-    - AirshipFrameworkProxy (= 2.0.1)
+  - react-native-airship (15.2.3):
+    - AirshipFrameworkProxy (= 2.0.5)
     - React-Core
   - react-native-blob-util (0.16.2):
     - React-Core
@@ -513,6 +513,8 @@ PODS:
   - react-native-image-manipulator (1.0.5):
     - React
   - react-native-image-picker (5.1.0):
+    - React-Core
+  - react-native-key-command (1.0.0):
     - React-Core
   - react-native-netinfo (8.3.1):
     - React-Core
@@ -769,6 +771,7 @@ DEPENDENCIES:
   - react-native-flipper (from `../node_modules/react-native-flipper`)
   - "react-native-image-manipulator (from `../node_modules/@oguzhnatly/react-native-image-manipulator`)"
   - react-native-image-picker (from `../node_modules/react-native-image-picker`)
+  - react-native-key-command (from `../node_modules/react-native-key-command`)
   - "react-native-netinfo (from `../node_modules/@react-native-community/netinfo`)"
   - react-native-pdf (from `../node_modules/react-native-pdf`)
   - react-native-performance (from `../node_modules/react-native-performance`)
@@ -921,6 +924,8 @@ EXTERNAL SOURCES:
     :path: "../node_modules/@oguzhnatly/react-native-image-manipulator"
   react-native-image-picker:
     :path: "../node_modules/react-native-image-picker"
+  react-native-key-command:
+    :path: "../node_modules/react-native-key-command"
   react-native-netinfo:
     :path: "../node_modules/@react-native-community/netinfo"
   react-native-pdf:
@@ -1007,9 +1012,9 @@ EXTERNAL SOURCES:
     :path: "../node_modules/react-native/ReactCommon/yoga"
 
 SPEC CHECKSUMS:
-  Airship: 19ead2c0bdc791c1b9d6ebb7940aaac99614414e
-  AirshipFrameworkProxy: 037a0ad6491757c45de2c70a6cc47bae5fcfa32b
-  boost: 57d2868c099736d80fcd648bf211b4431e51a558
+  Airship: c70eed50e429f97f5adb285423c7291fb7a032ae
+  AirshipFrameworkProxy: 2eefb77bb77b5120b0f48814b0d44439aa3ad415
+  boost: a7c83b31436843459a1961bfd74b96033dc77234
   CocoaAsyncSocket: 065fd1e645c7abab64f7a6a2007a48038fdc6a99
   DoubleConversion: 5189b271737e1565bdce30deb4a08d647e3f5f54
   FBLazyVector: ff54429f0110d3c722630a98096ba689c39f6d5f
@@ -1052,7 +1057,7 @@ SPEC CHECKSUMS:
   Permission-LocationWhenInUse: 3ba99e45c852763f730eabecec2870c2382b7bd4
   Plaid: 7d340abeadb46c7aa1a91f896c5b22395a31fcf2
   PromisesObjC: 09985d6d70fbe7878040aa746d78236e6946d2ef
-  RCT-Folly: 424b8c9a7a0b9ab2886ffe9c3b041ef628fd4fb1
+  RCT-Folly: 0080d0a6ebf2577475bda044aa59e2ca1f909cda
   RCTRequired: e9e7b8b45aa9bedb2fdad71740adf07a7265b9be
   RCTTypeSafety: 9ae0e9206625e995f0df4d5b9ddc94411929fb30
   React: a71c8e1380f07e01de721ccd52bcf9c03e81867d
@@ -1066,7 +1071,7 @@ SPEC CHECKSUMS:
   React-jsiexecutor: 6f986feb67cf66edff7f98090ca797a67d0a44fb
   React-jsinspector: 31517b1de3fadf93ad8558840a8974c7a7160bd3
   React-logger: b90aa6ed0dbc30717dc72d843af3cf4550297b22
-  react-native-airship: 8690a133d791068741855d4f20ea83ec4a7761d1
+  react-native-airship: 25045092934bf6eabf483e803af0a6e31826b8b9
   react-native-blob-util: c3b0faecd2919db568e9d552084396f3e50b57c7
   react-native-cameraroll: f3050460fe1708378698c16686bfaa5f34099be2
   react-native-config: 7cd105e71d903104e8919261480858940a6b9c0e
@@ -1074,6 +1079,7 @@ SPEC CHECKSUMS:
   react-native-flipper: dc5290261fbeeb2faec1bdc57ae6dd8d562e1de4
   react-native-image-manipulator: c48f64221cfcd46e9eec53619c4c0374f3328a56
   react-native-image-picker: c33d4e79f0a14a2b66e5065e14946ae63749660b
+  react-native-key-command: 0b3aa7c9f5c052116413e81dce33a3b2153a6c5d
   react-native-netinfo: 1a6035d3b9780221d407c277ebfb5722ace00658
   react-native-pdf: 33c622cbdf776a649929e8b9d1ce2d313347c4fa
   react-native-performance: 224bd53e6a835fda4353302cf891d088a0af7406
@@ -1123,4 +1129,4 @@ SPEC CHECKSUMS:
 
 PODFILE CHECKSUM: cd132e281e9e3d7e6ec2c99c08e6ec32b37886f8
 
-COCOAPODS: 1.12.0
+COCOAPODS: 1.11.3
