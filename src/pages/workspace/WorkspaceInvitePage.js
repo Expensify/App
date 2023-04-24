@@ -345,7 +345,6 @@ class WorkspaceInvitePage extends React.Component {
                                         autoGrowHeight
                                         autoCorrect={false}
                                         textAlignVertical="top"
-                                        multiline
                                         containerStyles={[styles.workspaceInviteWelcome]}
                                         value={this.state.welcomeNote}
                                         onChangeText={text => this.setState({welcomeNote: text})}
