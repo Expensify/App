@@ -343,10 +343,14 @@ function getBackgroundColorWithOpacityStyle(backgroundColor, opacity) {
  * @param {Boolean} success
  * @param {Boolean} error
  * @param {boolean} [isPressed=false]
+ * @param {boolean} [isAdHoc=false]
  * @return {Object}
  */
-function getBadgeColorStyle(success, error, isPressed = false) {
+function getBadgeColorStyle(success, error, isPressed = false, isAdHoc = false) {
     if (success) {
+        if (isAdHoc) {
+            return isPressed ? styles.badgeAdHocSuccessPressed : styles.badgeAdHocSuccess;
+        }
         return isPressed ? styles.badgeSuccessPressed : styles.badgeSuccess;
     }
     if (error) {
@@ -440,15 +444,19 @@ function getModalPaddingStyles({
     modalContainerStyleMarginBottom,
     modalContainerStylePaddingTop,
     modalContainerStylePaddingBottom,
+    insets,
 }) {
+    // use fallback value for safeAreaPaddingBottom to keep padding bottom consistent with padding top.
+    // More info: issue #17376
+    const safeAreaPaddingBottomWithFallback = insets.bottom === 0 ? (modalContainerStylePaddingTop || 0) : safeAreaPaddingBottom;
     return {
         marginTop: (modalContainerStyleMarginTop || 0) + (shouldAddTopSafeAreaMargin ? safeAreaPaddingTop : 0),
-        marginBottom: (modalContainerStyleMarginBottom || 0) + (shouldAddBottomSafeAreaMargin ? safeAreaPaddingBottom : 0),
+        marginBottom: (modalContainerStyleMarginBottom || 0) + (shouldAddBottomSafeAreaMargin ? safeAreaPaddingBottomWithFallback : 0),
         paddingTop: shouldAddTopSafeAreaPadding
             ? (modalContainerStylePaddingTop || 0) + safeAreaPaddingTop
             : modalContainerStylePaddingTop || 0,
         paddingBottom: shouldAddBottomSafeAreaPadding
-            ? (modalContainerStylePaddingBottom || 0) + safeAreaPaddingBottom
+            ? (modalContainerStylePaddingBottom || 0) + safeAreaPaddingBottomWithFallback
             : modalContainerStylePaddingBottom || 0,
         paddingLeft: safeAreaPaddingLeft || 0,
         paddingRight: safeAreaPaddingRight || 0,
@@ -983,7 +991,7 @@ function getDirectionStyle(direction) {
  * @param {Boolean} shouldDisplayBorder
  * @returns {Object}
  */
-function getGoolgeListViewStyle(shouldDisplayBorder) {
+function getGoogleListViewStyle(shouldDisplayBorder) {
     if (shouldDisplayBorder) {
         return {
             ...styles.borderTopRounded,
@@ -1051,5 +1059,5 @@ export {
     getDirectionStyle,
     getFontSizeStyle,
     getSignInWordmarkWidthStyle,
-    getGoolgeListViewStyle,
+    getGoogleListViewStyle,
 };

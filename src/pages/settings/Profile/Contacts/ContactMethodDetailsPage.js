@@ -111,7 +111,7 @@ class ContactMethodDetailsPage extends Component {
      */
     deleteContactMethod() {
         if (!_.isEmpty(lodashGet(this.props.loginList, [this.getContactMethod(), 'errorFields'], {}))) {
-            User.deleteContactMethod(this.getContactMethod());
+            User.deleteContactMethod(this.getContactMethod(), this.props.loginList);
             return;
         }
         this.toggleDeleteModal(true);
@@ -130,7 +130,7 @@ class ContactMethodDetailsPage extends Component {
      */
     confirmDeleteAndHideModal() {
         this.toggleDeleteModal(false);
-        User.deleteContactMethod(this.getContactMethod());
+        User.deleteContactMethod(this.getContactMethod(), this.props.loginList);
     }
 
     /**
