@@ -843,6 +843,7 @@ const styles = {
         paddingTop: 23,
         paddingBottom: 8,
         paddingLeft: 0,
+        paddingRight: 0,
         borderWidth: 0,
     },
 
@@ -2603,7 +2604,7 @@ const styles = {
     },
 
     workspaceInviteWelcome: {
-        minHeight: 115,
+        maxHeight: 115,
     },
 
     peopleRow: {
