@@ -334,9 +334,8 @@ button {
     .article {
         img {
             display: block;
-            margin-left: auto;
-            margin-right: auto;
-            padding-bottom: 20px;
+            margin: 20px auto;
+            border-radius: 10px;
 
             @include maxBreakpoint($breakpoint-tablet) {
                 width: 100%;
@@ -355,6 +354,33 @@ button {
             display: flex;
             justify-content: space-around;
             flex-wrap: wrap;
+        }
+
+        h2,
+        h3 {
+            font-family: "ExpensifyNewKansas", "Helvetica Neue", "Helvetica", Arial, sans-serif;
+        }
+
+        blockquote {
+            margin-top: 20px;
+            margin-bottom: 20px;
+            padding-top: 20px;
+            padding-left: 5%;
+            border-left: 5px solid #1B5744;
+
+            em:before {
+                content: "\“\a";
+                white-space: pre;
+                font-size: 60px;
+                line-height: 1em;
+                color: #03d47c;
+            }
+
+            p:first-child {
+                font-size: large;
+                font-family: "ExpensifyNewKansas", "Helvetica Neue", "Helvetica", Arial, sans-serif;
+                opacity: 0.8;
+            }
         }
     }
 
