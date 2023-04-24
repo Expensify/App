@@ -50,7 +50,7 @@ function outputMergeCommitHash(PR) {
 function outputMergeActor(PR) {
     if (!_.isEmpty(PR)) {
         console.log(`Found matching pull request: ${PR.html_url}`);
-
+        console.log('PR data', PR);
         if (user === 'OSBotify') {
             core.setOutput('MERGE_ACTOR', PR.merged_by.login);
         } else {
