@@ -27,6 +27,7 @@ import withWindowDimensions, {windowDimensionsPropTypes} from '../../../componen
 import withLocalize, {withLocalizePropTypes} from '../../../components/withLocalize';
 import withKeyboardState, {keyboardStatePropTypes} from '../../../components/withKeyboardState';
 import ONYXKEYS from '../../../ONYXKEYS';
+import * as ComposerUtils from '../../../libs/ComposerUtils';
 
 const propTypes = {
     /** All the data of the action */
@@ -99,6 +100,17 @@ class ReportActionItemMessageEdit extends React.Component {
             isFocused: false,
             hasExceededMaxCommentLength: false,
         };
+    }
+
+    componentWillUnmount() {
+        // Skip if this is not the focused message so the other edit composer stays focused.
+        if (!this.state.isFocused) {
+            return;
+        }
+
+        // Show the main composer when the focused message is deleted from another client
+        // to prevent the main composer stays hidden until we swtich to another chat.
+        toggleReportActionComposeView(true, this.props.isSmallScreenWidth);
     }
 
     /**
@@ -218,15 +230,13 @@ class ReportActionItemMessageEdit extends React.Component {
      * @param {String} emoji
      */
     addEmojiToTextBox(emoji) {
-        const newComment = this.state.draft.slice(0, this.state.selection.start)
-            + emoji + this.state.draft.slice(this.state.selection.end, this.state.draft.length);
         this.setState(prevState => ({
             selection: {
                 start: prevState.selection.start + emoji.length,
                 end: prevState.selection.start + emoji.length,
             },
         }));
-        this.updateDraft(newComment);
+        this.updateDraft(ComposerUtils.insertText(this.state.draft, this.state.selection, emoji));
     }
 
     /**
