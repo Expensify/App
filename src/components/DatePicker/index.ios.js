@@ -136,8 +136,8 @@ class DatePicker extends React.Component {
                         themeVariant="dark"
                         onChange={this.updateLocalDate}
                         locale={this.props.preferredLocale}
-                        maximumDate={new Date(CONST.DATE.MAX_DATE)}
-                        minimumDate={new Date(CONST.DATE.MIN_DATE)}
+                        maximumDate={this.props.maxDate}
+                        minimumDate={this.props.minDate}
                     />
                 </Popover>
             </>

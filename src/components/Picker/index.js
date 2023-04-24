@@ -1,5 +1,5 @@
 import React, {forwardRef} from 'react';
-import BasePicker from './Picker';
+import BasePicker from './BasePicker';
 
 const additionalPickerEvents = (onMouseDown, onChange) => ({
     onMouseDown,
@@ -14,6 +14,17 @@ const additionalPickerEvents = (onMouseDown, onChange) => ({
 });
 
 export default forwardRef((props, ref) => (
-    // eslint-disable-next-line react/jsx-props-no-spreading
-    <BasePicker {...props} additionalPickerEvents={additionalPickerEvents} ref={ref} />
+    <BasePicker
+        // eslint-disable-next-line react/jsx-props-no-spreading
+        {...props}
+
+        // Forward the ref to Picker, as we implement imperative methods there
+        ref={ref}
+
+        // On the Web, focusing the inner picker improves the accessibility,
+        // but doesn't open the picker (which we don't want), like it does on
+        // Native.
+        shouldFocusPicker
+        additionalPickerEvents={additionalPickerEvents}
+    />
 ));

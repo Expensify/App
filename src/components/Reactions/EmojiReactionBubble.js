@@ -37,12 +37,8 @@ const propTypes = {
      */
     reactionUsers: PropTypes.arrayOf(PropTypes.string),
 
-    /**
-     * The default size of the reaction bubble is defined
-     * by the styles in styles.js. This scale factor can be used
-     * to make the bubble bigger or smaller.
-     */
-    sizeScale: PropTypes.number,
+    /** Whether it is for context menu so we can modify its style */
+    isContextMenu: PropTypes.bool,
 
     ...withCurrentUserPersonalDetailsPropTypes,
 };
@@ -51,7 +47,7 @@ const defaultProps = {
     count: 0,
     onReactionListOpen: () => {},
     reactionUsers: [],
-    sizeScale: 1,
+    isContextMenu: false,
 
     ...withCurrentUserPersonalDetailsDefaultProps,
 };
@@ -62,7 +58,7 @@ const EmojiReactionBubble = (props) => {
         <Pressable
             style={({hovered, pressed}) => [
                 styles.emojiReactionBubble,
-                StyleUtils.getEmojiReactionBubbleStyle(hovered || pressed, hasUserReacted, props.sizeScale),
+                StyleUtils.getEmojiReactionBubbleStyle(hovered || pressed, hasUserReacted, props.isContextMenu),
             ]}
             onPress={props.onPress}
             onLongPress={props.onReactionListOpen}
@@ -71,8 +67,9 @@ const EmojiReactionBubble = (props) => {
             onMouseDown={e => e.preventDefault()}
         >
             <Text style={[
-                styles.emojiReactionText,
-                StyleUtils.getEmojiReactionTextStyle(props.sizeScale),
+                styles.emojiReactionBubbleText,
+                styles.userSelectNone,
+                StyleUtils.getEmojiReactionBubbleTextStyle(props.isContextMenu),
             ]}
             >
                 {props.emojiCodes.join('')}
@@ -80,7 +77,8 @@ const EmojiReactionBubble = (props) => {
             {props.count > 0 && (
             <Text style={[
                 styles.reactionCounterText,
-                StyleUtils.getEmojiReactionCounterTextStyle(hasUserReacted, props.sizeScale),
+                styles.userSelectNone,
+                StyleUtils.getEmojiReactionCounterTextStyle(hasUserReacted),
             ]}
             >
                 {props.count}

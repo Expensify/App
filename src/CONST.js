@@ -10,6 +10,7 @@ const PLATFORM_OS_MACOS = 'Mac OS';
 const ANDROID_PACKAGE_NAME = 'com.expensify.chat';
 const USA_COUNTRY_NAME = 'United States';
 const CURRENT_YEAR = new Date().getFullYear();
+const PULL_REQUEST_NUMBER = lodashGet(Config, 'PULL_REQUEST_NUMBER', '');
 
 const CONST = {
     ANDROID_PACKAGE_NAME,
@@ -55,6 +56,8 @@ const CONST = {
         RESERVED_FIRST_NAMES: ['Expensify', 'Concierge'],
     },
 
+    PULL_REQUEST_NUMBER,
+
     CALENDAR_PICKER: {
         // Numbers were arbitrarily picked.
         MIN_YEAR: CURRENT_YEAR - 100,
@@ -63,6 +66,7 @@ const CONST = {
 
     DATE_BIRTH: {
         MIN_AGE: 5,
+        MIN_AGE_FOR_PAYMENT: 18,
         MAX_AGE: 150,
     },
 
@@ -190,6 +194,7 @@ const CONST = {
         POLICY_ROOMS: 'policyRooms',
         POLICY_EXPENSE_CHAT: 'policyExpenseChat',
         PASSWORDLESS: 'passwordless',
+        TASKS: 'tasks',
     },
     BUTTON_STATES: {
         DEFAULT: 'default',
@@ -338,46 +343,58 @@ const CONST = {
                 RENAMED: 'RENAMED',
                 CHRONOSOOOLIST: 'CHRONOSOOOLIST',
                 POLICYCHANGELOG: {
-                    UPDATE_NAME: 'POLICYCHANGELOG_UPDATE_NAME',
-                    UPDATE_CURRENCY: 'POLICYCHANGELOG_UPDATE_CURRENCY',
-                    UPDATE_OWNERSHIP: 'POLICYCHANGELOG_UPDATE_OWNERSHIP',
-                    UPDATE_AUTOHARVESTING: 'POLICYCHANGELOG_UPDATE_AUTOHARVESTING',
-                    UPDATE_AUTOREPORTING_FREQUENCY: 'POLICYCHANGELOG_UPDATE_AUTOREPORTING_FREQUENCY',
-                    UPDATE_DEFAULT_TITLE_ENFORCED: 'POLICYCHANGELOG_UPDATE_DEFAULT_TITLE_ENFORCED',
-                    UPDATE_REPORT_FIELD: 'POLICYCHANGELOG_UPDATE_REPORT_FIELD',
-                    ADD_REPORT_FIELD: 'POLICYCHANGELOG_ADD_REPORT_FIELD',
-                    DELETE_REPORT_FIELD: 'POLICYCHANGELOG_DELETE_REPORT_FIELD',
-                    UPDATE_DEFAULT_TITLE: 'POLICYCHANGELOG_UPDATE_DEFAULT_TITLE',
-                    ADD_CATEGORY: 'POLICYCHANGELOG_ADD_CATEGORY',
-                    DELETE_CATEGORY: 'POLICYCHANGELOG_DELETE_CATEGORY',
-                    SET_CATEGORY_NAME: 'POLICYCHANGELOG_SET_CATEGORY_NAME',
-                    UPDATE_CATEGORY: 'POLICYCHANGELOG_UPDATE_CATEGORY',
-                    ADD_TAG: 'POLICYCHANGELOG_ADD_TAG',
-                    UPDATE_TAG: 'POLICYCHANGELOG_UPDATE_TAG',
-                    DELETE_TAG: 'POLICYCHANGELOG_DELETE_TAG',
-                    UPDATE_TAG_NAME: 'POLICYCHANGELOG_UPDATE_TAG_NAME',
-                    UPDATE_TAG_LIST_NAME: 'POLICYCHANGELOG_UPDATE_TAG_LIST_NAME',
-                    IMPORT_TAGS: 'POLICYCHANGELOG_IMPORT_TAGS',
-                    DELETE_ALL_TAGS: 'POLICYCHANGELOG_DELETE_ALL_TAGS',
                     ADD_APPROVER_RULE: 'POLICYCHANGELOG_ADD_APPROVER_RULE',
-                    UPDATE_APPROVER_RULE: 'POLICYCHANGELOG_UPDATE_APPROVER_RULE',
-                    DELETE_APPROVER_RULE: 'POLICYCHANGELOG_DELETE_APPROVER_RULE',
-                    ADD_EMPLOYEE: 'POLICYCHANGELOG_ADD_EMPLOYEE',
-                    DELETE_EMPLOYEE: 'POLICYCHANGELOG_DELETE_EMPLOYEE',
-                    UPDATE_EMPLOYEE: 'POLICYCHANGELOG_UPDATE_EMPLOYEE',
-                    SET_AUTO_JOIN: 'POLICYCHANGELOG_SET_AUTO_JOIN',
-                    ADD_INTEGRATION: 'POLICYCHANGELOG_ADD_INTEGRATION',
-                    DELETE_INTEGRATION: 'POLICYCHANGELOG_DELETE_INTEGRATION',
-                    UPDATE_ACH_ACCOUNT: 'POLICYCHANGELOG_UPDATE_ACH_ACCOUNT',
-                    UPDATE_REIMBURSEMENT_CHOICE: 'POLICYCHANGELOG_UPDATE_REIMBURSEMENT_CHOICE',
-                    SET_AUTOREIMBURSEMENT: 'POLICYCHANGELOG_SET_AUTOREIMBURSEMENT',
+                    ADD_CATEGORY: 'POLICYCHANGELOG_ADD_CATEGORY',
                     ADD_CUSTOM_UNIT: 'POLICYCHANGELOG_ADD_CUSTOM_UNIT',
+                    ADD_CUSTOM_UNIT_RATE: 'POLICYCHANGELOG_ADD_CUSTOM_UNIT_RATE',
+                    ADD_EMPLOYEE: 'POLICYCHANGELOG_ADD_EMPLOYEE',
+                    ADD_INTEGRATION: 'POLICYCHANGELOG_ADD_INTEGRATION',
+                    ADD_REPORT_FIELD: 'POLICYCHANGELOG_ADD_REPORT_FIELD',
+                    ADD_TAG: 'POLICYCHANGELOG_ADD_TAG',
+                    DELETE_ALL_TAGS: 'POLICYCHANGELOG_DELETE_ALL_TAGS',
+                    DELETE_APPROVER_RULE: 'POLICYCHANGELOG_DELETE_APPROVER_RULE',
+                    DELETE_CATEGORY: 'POLICYCHANGELOG_DELETE_CATEGORY',
                     DELETE_CUSTOM_UNIT: 'POLICYCHANGELOG_DELETE_CUSTOM_UNIT',
+                    DELETE_CUSTOM_UNIT_RATE: 'POLICYCHANGELOG_DELETE_CUSTOM_UNIT_RATE',
+                    DELETE_CUSTOM_UNIT_SUB_RATE: 'POLICYCHANGELOG_DELETE_CUSTOM_UNIT_SUB_RATE',
+                    DELETE_EMPLOYEE: 'POLICYCHANGELOG_DELETE_EMPLOYEE',
+                    DELETE_INTEGRATION: 'POLICYCHANGELOG_DELETE_INTEGRATION',
+                    DELETE_REPORT_FIELD: 'POLICYCHANGELOG_DELETE_REPORT_FIELD',
+                    DELETE_TAG: 'POLICYCHANGELOG_DELETE_TAG',
+                    IMPORT_CUSTOM_UNIT_RATES: 'POLICYCHANGELOG_IMPORT_CUSTOM_UNIT_RATES',
+                    IMPORT_TAGS: 'POLICYCHANGELOG_IMPORT_TAGS',
+                    SET_AUTOREIMBURSEMENT: 'POLICYCHANGELOG_SET_AUTOREIMBURSEMENT',
+                    SET_AUTO_JOIN: 'POLICYCHANGELOG_SET_AUTO_JOIN',
+                    SET_CATEGORY_NAME: 'POLICYCHANGELOG_SET_CATEGORY_NAME',
+                    UPDATE_ACH_ACCOUNT: 'POLICYCHANGELOG_UPDATE_ACH_ACCOUNT',
+                    UPDATE_APPROVER_RULE: 'POLICYCHANGELOG_UPDATE_APPROVER_RULE',
+                    UPDATE_AUDIT_RATE: 'POLICYCHANGELOG_UPDATE_AUDIT_RATE',
+                    UPDATE_AUTOHARVESTING: 'POLICYCHANGELOG_UPDATE_AUTOHARVESTING',
+                    UPDATE_AUTOREIMBURSEMENT: 'POLICYCHANGELOG_UPDATE_AUTOREIMBURSEMENT',
+                    UPDATE_AUTOREPORTING_FREQUENCY: 'POLICYCHANGELOG_UPDATE_AUTOREPORTING_FREQUENCY',
+                    UPDATE_CATEGORY: 'POLICYCHANGELOG_UPDATE_CATEGORY',
+                    UPDATE_CURRENCY: 'POLICYCHANGELOG_UPDATE_CURRENCY',
                     UPDATE_CUSTOM_UNIT: 'POLICYCHANGELOG_UPDATE_CUSTOM_UNIT',
                     UPDATE_CUSTOM_UNIT_RATE: 'POLICYCHANGELOG_UPDATE_CUSTOM_UNIT_RATE',
-                    ADD_CUSTOM_UNIT_RATE: 'POLICYCHANGELOG_ADD_CUSTOM_UNIT_RATE',
-                    DELETE_CUSTOM_UNIT_RATE: 'POLICYCHANGELOG_DELETE_CUSTOM_UNIT_RATE',
+                    UPDATE_CUSTOM_UNIT_SUB_RATE: 'POLICYCHANGELOG_UPDATE_CUSTOM_UNIT_SUB_RATE',
+                    UPDATE_DEFAULT_BILLABLE: 'POLICYCHANGELOG_UPDATE_DEFAULT_BILLABLE',
+                    UPDATE_DEFAULT_TITLE: 'POLICYCHANGELOG_UPDATE_DEFAULT_TITLE',
+                    UPDATE_DEFAULT_TITLE_ENFORCED: 'POLICYCHANGELOG_UPDATE_DEFAULT_TITLE_ENFORCED',
+                    UPDATE_DISABLED_FIELDS: 'POLICYCHANGELOG_UPDATE_DISABLED_FIELDS',
+                    UPDATE_EMPLOYEE: 'POLICYCHANGELOG_UPDATE_EMPLOYEE',
                     UPDATE_FIELD: 'POLICYCHANGELOG_UPDATE_FIELD',
+                    UPDATE_MANUAL_APPROVAL_THRESHOLD: 'POLICYCHANGELOG_UPDATE_MANUAL_APPROVAL_THRESHOLD',
+                    UPDATE_MAX_EXPENSE_AMOUNT: 'POLICYCHANGELOG_UPDATE_MAX_EXPENSE_AMOUNT',
+                    UPDATE_MAX_EXPENSE_AMOUNT_NO_RECEIPT: 'POLICYCHANGELOG_UPDATE_MAX_EXPENSE_AMOUNT_NO_RECEIPT',
+                    UPDATE_NAME: 'POLICYCHANGELOG_UPDATE_NAME',
+                    UPDATE_OWNERSHIP: 'POLICYCHANGELOG_UPDATE_OWNERSHIP',
+                    UPDATE_REIMBURSEMENT_CHOICE: 'POLICYCHANGELOG_UPDATE_REIMBURSEMENT_CHOICE',
+                    UPDATE_REPORT_FIELD: 'POLICYCHANGELOG_UPDATE_REPORT_FIELD',
+                    UPDATE_TAG: 'POLICYCHANGELOG_UPDATE_TAG',
+                    UPDATE_TAG_LIST_NAME: 'POLICYCHANGELOG_UPDATE_TAG_LIST_NAME',
+                    UPDATE_TAG_NAME: 'POLICYCHANGELOG_UPDATE_TAG_NAME',
+                    UPDATE_TIME_ENABLED: 'POLICYCHANGELOG_UPDATE_TIME_ENABLED',
+                    UPDATE_TIME_RATE: 'POLICYCHANGELOG_UPDATE_TIME_RATE',
                 },
             },
         },
@@ -396,6 +413,7 @@ const CONST = {
         },
         TYPE: {
             CHAT: 'chat',
+            EXPENSE: 'expense',
             IOU: 'iou',
         },
         CHAT_TYPE: {
@@ -455,6 +473,7 @@ const CONST = {
             CONFIRM: 'confirm',
             CENTERED: 'centered',
             CENTERED_UNSWIPEABLE: 'centered_unswipeable',
+            CENTERED_SMALL: 'centered_small',
             BOTTOM_DOCKED: 'bottom_docked',
             POPOVER: 'popover',
             RIGHT_DOCKED: 'right_docked',
@@ -480,6 +499,7 @@ const CONST = {
         WARM: 'warm',
         REPORT_ACTION_ITEM_LAYOUT_DEBOUNCE_TIME: 1500,
         SHOW_LOADING_SPINNER_DEBOUNCE_TIME: 250,
+        TEST_TOOLS_MODAL_THROTTLE_TIME: 800,
         TOOLTIP_SENSE: 1000,
         TRIE_INITIALIZATION: 'trie_initialization',
         COMMENT_LENGTH_DEBOUNCE_TIME: 500,
@@ -492,6 +512,7 @@ const CONST = {
         SUCCESS: 200,
         NOT_AUTHENTICATED: 407,
         EXP_ERROR: 666,
+        MANY_WRITES_ERROR: 665,
         UNABLE_TO_RETRY: 'unableToRetry',
     },
     HTTP_STATUS: {
@@ -541,22 +562,6 @@ const CONST = {
         COMMAND: {
             RECONNECT_APP: 'ReconnectApp',
         },
-    },
-    NVP: {
-        IS_FIRST_TIME_NEW_EXPENSIFY_USER: 'isFirstTimeNewExpensifyUser',
-        BLOCKED_FROM_CONCIERGE: 'private_blockedFromConcierge',
-        PAYPAL_ME_ADDRESS: 'expensify_payPalMeAddress',
-        PRIORITY_MODE: 'priorityMode',
-        TIMEZONE: 'timeZone',
-        FREE_PLAN_BANK_ACCOUNT_ID: 'expensify_freePlanBankAccountID',
-        ACH_DATA_THROTTLED: 'expensify_ACHData_throttled',
-        FAILED_BANK_ACCOUNT_VALIDATIONS_PREFIX: 'private_failedBankValidations_',
-        PLAID_THROTTLED: 'private_throttledHistory_openPlaidBankAccountSelector',
-        PREFERRED_LOCALE: 'preferredLocale',
-        KYC_MIGRATION: 'expensify_migration_2020_04_28_RunKycVerifications',
-        PREFERRED_EMOJI_SKIN_TONE: 'expensify_preferredEmojiSkinTone',
-        FREQUENTLY_USED_EMOJIS: 'expensify_frequentlyUsedEmojis',
-        PUSH_NOTIFICATIONS_ENABLED: 'pushNotificationsEnabled',
     },
     DEFAULT_TIME_ZONE: {automatic: true, selected: 'America/Los_Angeles'},
     DEFAULT_ACCOUNT_DATA: {errors: null, success: '', isLoading: false},
@@ -694,6 +699,7 @@ const CONST = {
         DEV: 'development',
         STAGING: 'staging',
         PRODUCTION: 'production',
+        ADHOC: 'adhoc',
     },
 
     // Used to delay the initial fetching of reportActions when the app first inits or reconnects (e.g. returning
@@ -818,7 +824,7 @@ const CONST = {
             EXPENSIFY: 'Expensify',
             PAYPAL_ME: 'PayPal.me',
         },
-        IOU_TYPE: {
+        MONEY_REQUEST_TYPE: {
             SEND: 'send',
             SPLIT: 'split',
             REQUEST: 'request',
@@ -841,7 +847,13 @@ const CONST = {
         DURATION_LONG: 3500,
     },
 
-    DEFAULT_LOCALE: 'en',
+    LOCALES: {
+        EN: 'en',
+        ES_ES: 'es-ES',
+        ES: 'es',
+
+        DEFAULT: 'en',
+    },
 
     POLICY: {
         TYPE: {
@@ -1014,7 +1026,6 @@ const CONST = {
     REPORT_DETAILS_MENU_ITEM: {
         MEMBERS: 'member',
         SETTINGS: 'settings',
-        INVITE: 'invite',
         LEAVE_ROOM: 'leaveRoom',
     },
 
@@ -1034,7 +1045,7 @@ const CONST = {
         SUPPORT_URL: `${USE_EXPENSIFY_URL}/support`,
         COMMUNITY_URL: 'https://community.expensify.com/',
         PRIVACY_URL: `${USE_EXPENSIFY_URL}/privacy`,
-        ABOUT_URL: 'https://we.are.expensify.com/',
+        ABOUT_URL: 'https://we.are.expensify.com/how-we-got-here',
         BLOG_URL: 'https://blog.expensify.com/',
         JOBS_URL: 'https://we.are.expensify.com/apply',
         ORG_URL: 'https://expensify.org/',
@@ -2197,6 +2208,23 @@ const CONST = {
         SAMPLE_INPUT: '123456.789',
         EXPECTED_OUTPUT: 'FCFA 123,457',
     },
+
+    PATHS_TO_TREAT_AS_EXTERNAL: [
+        'NewExpensify.dmg',
+    ],
+
+    // Test tool menu parameters
+    TEST_TOOL: {
+        // Number of concurrent taps to open then the Test modal menu
+        NUMBER_OF_TAPS: 4,
+    },
+
+    PAYPAL_SUPPORTED_CURRENCIES: [
+        'AUD', 'BRL', 'CAD', 'CZK', 'DKK', 'EUR', 'HKD', 'HUF',
+        'ILS', 'JPY', 'MYR', 'MXN', 'TWD', 'NZD', 'NOK', 'PHP',
+        'PLN', 'GBP', 'RUB', 'SGD', 'SEK', 'CHF', 'THB', 'USD',
+    ],
+    CONCIERGE_TRAVEL_URL: 'https://community.expensify.com/discussion/7066/introducing-concierge-travel',
 };
 
 export default CONST;

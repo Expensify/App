@@ -7,7 +7,6 @@ import ExpensiMark from 'expensify-common/lib/ExpensiMark';
 import ONYXKEYS from '../ONYXKEYS';
 import CONST from '../CONST';
 import * as Localize from './Localize';
-import * as LocalePhoneNumber from './LocalePhoneNumber';
 import * as Expensicons from '../components/Icon/Expensicons';
 import hashCode from './hashCode';
 import Navigation from './Navigation/Navigation';
@@ -21,6 +20,7 @@ import linkingConfig from './Navigation/linkingConfig';
 import * as defaultAvatars from '../components/Icon/DefaultAvatars';
 import isReportMessageAttachment from './isReportMessageAttachment';
 import * as defaultWorkspaceAvatars from '../components/Icon/WorkspaceDefaultAvatars';
+import * as LocalePhoneNumber from './LocalePhoneNumber';
 
 let sessionEmail;
 Onyx.connect({
@@ -28,7 +28,7 @@ Onyx.connect({
     callback: val => sessionEmail = val ? val.email : null,
 });
 
-let preferredLocale = CONST.DEFAULT_LOCALE;
+let preferredLocale = CONST.LOCALES.DEFAULT;
 Onyx.connect({
     key: ONYXKEYS.NVP_PREFERRED_LOCALE,
     callback: (val) => {
@@ -99,12 +99,23 @@ function getReportParticipantsTitle(logins) {
 }
 
 /**
- * Attempts to find a report in onyx with the provided list of participants
+ * Checks if a report is an Expense report.
+ *
+ * @param {Object} report
+ * @returns {Boolean}
+ */
+function isExpenseReport(report) {
+    return lodashGet(report, 'type') === CONST.REPORT.TYPE.EXPENSE;
+}
+
+/**
+ * Checks if a report is an IOU report.
+ *
  * @param {Object} report
  * @returns {Boolean}
  */
 function isIOUReport(report) {
-    return report && _.has(report, 'total');
+    return lodashGet(report, 'type') === CONST.REPORT.TYPE.IOU;
 }
 
 /**
@@ -453,6 +464,7 @@ function canShowReportRecipientLocalTime(personalDetails, report) {
     const isReportParticipantValidated = lodashGet(reportRecipient, 'validated', false);
     return Boolean(!hasMultipleParticipants
         && !isChatRoom(report)
+        && !isPolicyExpenseChat(report)
         && reportRecipient
         && reportRecipientTimezone
         && reportRecipientTimezone.selected
@@ -754,7 +766,7 @@ function getDisplayNameForParticipant(login, shouldUseShortForm = false) {
     const loginWithoutSMSDomain = Str.removeSMSDomain(personalDetails.login);
     let longName = personalDetails.displayName || loginWithoutSMSDomain;
     if (longName === loginWithoutSMSDomain && Str.isSMSLogin(longName)) {
-        longName = LocalePhoneNumber.toLocalPhone(preferredLocale, longName);
+        longName = LocalePhoneNumber.formatPhoneNumber(longName);
     }
     const shortName = personalDetails.firstName || longName;
 
@@ -848,12 +860,7 @@ function getReportName(report, policies = {}) {
     const participantsWithoutCurrentUser = _.without(participants, sessionEmail);
     const isMultipleParticipantReport = participantsWithoutCurrentUser.length > 1;
 
-    const displayNames = [];
-    for (let i = 0; i < participantsWithoutCurrentUser.length; i++) {
-        const login = participantsWithoutCurrentUser[i];
-        displayNames.push(getDisplayNameForParticipant(login, isMultipleParticipantReport));
-    }
-    return displayNames.join(', ');
+    return _.map(participantsWithoutCurrentUser, login => getDisplayNameForParticipant(login, isMultipleParticipantReport)).join(', ');
 }
 
 /**
@@ -919,7 +926,7 @@ function buildOptimisticAddCommentReportAction(text, file) {
     const commentText = getParsedComment(text);
     const isAttachment = _.isEmpty(text) && file !== undefined;
     const attachmentInfo = isAttachment ? file : {};
-    const htmlForNewComment = isAttachment ? 'Uploading Attachment...' : commentText;
+    const htmlForNewComment = isAttachment ? 'Uploading attachment...' : commentText;
 
     // Remove HTML from text when applying optimistic offline comment
     const textForNewComment = isAttachment ? CONST.ATTACHMENT_MESSAGE_TEXT
@@ -981,6 +988,7 @@ function buildOptimisticIOUReport(ownerEmail, userEmail, total, chatReportID, cu
     return {
         // If we're sending money, hasOutstandingIOU should be false
         hasOutstandingIOU: !isSendingMoney,
+        type: CONST.REPORT.TYPE.IOU,
         cachedTotal: formattedTotal,
         chatReportID,
         currency,
@@ -1075,9 +1083,13 @@ function getIOUReportActionMessage(type, total, participants, comment, currency,
 function buildOptimisticIOUReportAction(type, amount, currency, comment, participants, paymentType = '', iouTransactionID = '', iouReportID = '', isSettlingUp = false) {
     const IOUTransactionID = iouTransactionID || NumberUtils.rand64();
     const IOUReportID = iouReportID || generateReportID();
+    const parser = new ExpensiMark();
+    const commentText = getParsedComment(comment);
+    const textForNewComment = parser.htmlToText(commentText);
+    const textForNewCommentDecoded = Str.htmlDecode(textForNewComment);
     const originalMessage = {
         amount,
-        comment,
+        comment: textForNewComment,
         currency,
         IOUTransactionID,
         IOUReportID,
@@ -1106,7 +1118,7 @@ function buildOptimisticIOUReportAction(type, amount, currency, comment, partici
         avatar: lodashGet(currentUserPersonalDetails, 'avatar', getDefaultAvatar(currentUserEmail)),
         isAttachment: false,
         originalMessage,
-        message: getIOUReportActionMessage(type, amount, participants, comment, currency, paymentType, isSettlingUp),
+        message: getIOUReportActionMessage(type, amount, participants, textForNewCommentDecoded, currency, paymentType, isSettlingUp),
         person: [{
             style: 'strong',
             text: lodashGet(currentUserPersonalDetails, 'displayName', currentUserEmail),
@@ -1146,6 +1158,7 @@ function buildOptimisticChatReport(
 ) {
     const currentTime = DateUtils.getDBTime();
     return {
+        type: CONST.REPORT.TYPE.CHAT,
         chatType,
         hasOutstandingIOU: false,
         isOwnPolicyExpenseChat,
@@ -1423,6 +1436,11 @@ function canSeeDefaultRoom(report, policies, betas) {
         return true;
     }
 
+    // Include any public announce rooms, since they could include people who should have access but we don't know to add to the beta
+    if (report.visibility === CONST.REPORT.VISIBILITY.PUBLIC_ANNOUNCE) {
+        return true;
+    }
+
     // For all other cases, just check that the user belongs to the default rooms beta
     return Permissions.canUseDefaultRooms(betas);
 }
@@ -1448,7 +1466,8 @@ function shouldReportBeInOptionList(report, reportIDFromRoute, isInGSDMode, curr
 
     // Exclude reports that have no data because there wouldn't be anything to show in the option item.
     // This can happen if data is currently loading from the server or a report is in various stages of being created.
-    if (!report || !report.reportID || !report.participants || _.isEmpty(report.participants) || isIOUReport(report)) {
+    // This can also happen for anyone accessing a public room or archived room for which they don't have access to the underlying policy.
+    if (!report || !report.reportID || !report.participants || (_.isEmpty(report.participants) && !isPublicRoom(report) && !isArchivedRoom(report)) || isIOUReport(report)) {
         return false;
     }
 
@@ -1642,14 +1661,14 @@ function getMoneyRequestOptions(report, reportParticipants, betas) {
     // DM chats will have the Split Bill option only when there are at least 3 people in the chat.
     // There is no Split Bill option for Workspace chats
     if (isChatRoom(report) || (hasMultipleParticipants && !isPolicyExpenseChat(report))) {
-        return [CONST.IOU.IOU_TYPE.SPLIT];
+        return [CONST.IOU.MONEY_REQUEST_TYPE.SPLIT];
     }
 
     // DM chats that only have 2 people will see the Send / Request money options.
     // Workspace chats should only see the Request money option, as "easy overages" is not available.
     return [
-        ...(canRequestMoney(report) ? [CONST.IOU.IOU_TYPE.REQUEST] : []),
-        ...(Permissions.canUseIOUSend(betas) && !isPolicyExpenseChat(report) ? [CONST.IOU.IOU_TYPE.SEND] : []),
+        ...(canRequestMoney(report) ? [CONST.IOU.MONEY_REQUEST_TYPE.REQUEST] : []),
+        ...(Permissions.canUseIOUSend(betas) && !isPolicyExpenseChat(report) ? [CONST.IOU.MONEY_REQUEST_TYPE.SEND] : []),
     ];
 }
 
@@ -1684,6 +1703,32 @@ function canLeaveRoom(report, isPolicyMember) {
     return true;
 }
 
+/**
+ * @param {string[]} participants
+ * @returns {Boolean}
+ */
+function isCurrentUserTheOnlyParticipant(participants) {
+    return participants && participants.length === 1 && participants[0] === sessionEmail;
+}
+
+/**
+ * Returns display names for those that can see the whisper.
+ * However, it returns "you" if the current user is the only one who can see it besides the person that sent it.
+ *
+ * @param {string[]} participants
+ * @returns {string}
+ */
+function getWhisperDisplayNames(participants) {
+    const isWhisperOnlyVisibleToCurrentUSer = isCurrentUserTheOnlyParticipant(participants);
+
+    // When the current user is the only participant, the display name needs to be "you" because that's the only person reading it
+    if (isWhisperOnlyVisibleToCurrentUSer) {
+        return Localize.translateLocal('common.youAfterPreposition');
+    }
+
+    return _.map(participants, login => getDisplayNameForParticipant(login, !isWhisperOnlyVisibleToCurrentUSer)).join(', ');
+}
+
 export {
     getReportParticipantsTitle,
     isReportMessageAttachment,
@@ -1704,6 +1749,7 @@ export {
     isPolicyExpenseChatAdmin,
     isPublicRoom,
     isConciergeChatReport,
+    isCurrentUserTheOnlyParticipant,
     hasAutomatedExpensifyEmails,
     hasExpensifyGuidesEmails,
     hasOutstandingIOU,
@@ -1736,6 +1782,7 @@ export {
     getAllPolicyReports,
     getIOUReportActionMessage,
     getDisplayNameForParticipant,
+    isExpenseReport,
     isIOUReport,
     chatIncludesChronos,
     getAvatar,
@@ -1751,4 +1798,5 @@ export {
     getSmallSizeAvatar,
     getMoneyRequestOptions,
     canRequestMoney,
+    getWhisperDisplayNames,
 };

@@ -11,8 +11,6 @@ import ONYXKEYS from '../../../ONYXKEYS';
 import getPreferredEmojiCode from '../getPreferredEmojiCode';
 import Tooltip from '../../Tooltip';
 
-const EMOJI_BUBBLE_SCALE = 1.5;
-
 const baseQuickEmojiReactionsPropTypes = {
     /**
      * Callback to fire when an emoji is selected.
@@ -55,7 +53,7 @@ const BaseQuickEmojiReactions = props => (
             <Tooltip text={`:${emoji.name}:`} key={emoji.name} focusable={false}>
                 <EmojiReactionBubble
                     emojiCodes={[getPreferredEmojiCode(emoji, props.preferredSkinTone)]}
-                    sizeScale={EMOJI_BUBBLE_SCALE}
+                    isContextMenu
                     onPress={() => {
                         props.onEmojiSelected(emoji);
                     }}
@@ -63,8 +61,7 @@ const BaseQuickEmojiReactions = props => (
             </Tooltip>
         ))}
         <AddReactionBubble
-            iconSizeScale={1.2}
-            sizeScale={EMOJI_BUBBLE_SCALE}
+            isContextMenu
             onPressOpenPicker={props.onPressOpenPicker}
             onWillShowPicker={props.onWillShowPicker}
             onSelectEmoji={props.onEmojiSelected}
