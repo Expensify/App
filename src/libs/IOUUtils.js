@@ -111,7 +111,7 @@ function isIOUReportPendingCurrencyConversion(reportActions, iouReport) {
         .value();
 
     // Pending deleted money requests that are in a different currency
-    const pendingCancelledRequestsInDifferentCurrency = _.chain(getIOUReportActions(
+    const pendingDeletedRequestsInDifferentCurrency = _.chain(getIOUReportActions(
         reportActions,
         iouReport,
         CONST.IOU.REPORT_ACTION_TYPE.DELETE,
@@ -121,11 +121,11 @@ function isIOUReportPendingCurrencyConversion(reportActions, iouReport) {
         .sort()
         .value();
 
-    const hasPendingRequests = Boolean(pendingRequestsInDifferentCurrency.length || pendingCancelledRequestsInDifferentCurrency.length);
+    const hasPendingRequests = Boolean(pendingRequestsInDifferentCurrency.length || pendingDeletedRequestsInDifferentCurrency.length);
 
     // If we have pending money requests made offline, check if all of them have been cancelled offline
     // In order to do that, we can grab transactionIDs of all the created and cancelled money requests and check if they're identical
-    if (hasPendingRequests && _.isEqual(pendingRequestsInDifferentCurrency, pendingCancelledRequestsInDifferentCurrency)) {
+    if (hasPendingRequests && _.isEqual(pendingRequestsInDifferentCurrency, pendingDeletedRequestsInDifferentCurrency)) {
         return false;
     }
 
