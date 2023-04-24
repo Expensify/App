@@ -40,6 +40,7 @@ import getIsReportFullyVisible from '../../libs/getIsReportFullyVisible';
 import EmojiPicker from '../../components/EmojiPicker/EmojiPicker';
 import * as EmojiPickerAction from '../../libs/actions/EmojiPickerAction';
 import MenuItemWithTopDescription from '../../components/MenuItemWithTopDescription';
+import TaskHeaderView from './TaskHeaderView';
 
 const propTypes = {
     /** Navigation route context info provided by react navigation */
@@ -293,21 +294,7 @@ class ReportScreen extends React.Component {
                                         shouldShowCloseButton
                                     />
                                 )}
-                                {isTaskReport && (
-                                    <>
-                                        <MenuItemWithTopDescription
-                                            shouldShowHeaderTitle
-                                            title="Upload articles of Incorporation"
-                                            description="Task"
-                                            onPress={() => console.log('ho')}
-                                        />
-                                        <MenuItemWithTopDescription
-                                            title="Please add a PDF file of your articles of incorporation."
-                                            description="Description"
-                                            onPress={() => console.log('ho')}
-                                        />
-                                    </>
-                                )}
+                                {isTaskReport && <TaskHeaderView report={this.props.report} />}
                             </>
                         )}
                         <View
