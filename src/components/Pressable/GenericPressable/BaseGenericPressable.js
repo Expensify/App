@@ -148,7 +148,7 @@ const GenericPressable = forwardRef((props, ref) => {
 });
 
 GenericPressable.displayName = 'GenericPressable';
-GenericPressable.propTypes = genericPressablePropTypes.propTypes;
+GenericPressable.propTypes = genericPressablePropTypes.pressablePropTypes;
 GenericPressable.defaultProps = genericPressablePropTypes.defaultProps;
 
 export default GenericPressable;
