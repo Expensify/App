@@ -442,7 +442,7 @@ class Composer extends React.Component {
                     numberOfLines={this.state.numberOfLines}
                     disabled={this.props.isDisabled}
                 />
-                {calculationCaretPositionElement}
+                {this.props.shouldCalculateCaretPosition && calculationCaretPositionElement}
             </>
         );
     }
