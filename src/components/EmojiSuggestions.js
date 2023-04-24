@@ -11,6 +11,7 @@ import * as EmojiUtils from '../libs/EmojiUtils';
 import Text from './Text';
 import CONST from '../CONST';
 import getStyledTextArray from '../libs/GetStyledTextArray';
+import * as DeviceCapabilities from '../libs/DeviceCapabilities';
 
 const propTypes = {
     /** The index of the highlighted emoji */
@@ -91,6 +92,7 @@ const EmojiSuggestions = (props) => {
                 )}
                 onMouseDown={e => e.preventDefault()}
                 onPress={() => props.onSelect(index)}
+                onLongPress={() => {}}
             >
                 <View style={styles.emojiSuggestionContainer}>
                     <Text style={styles.emojiSuggestionsEmoji}>{EmojiUtils.getEmojiCodeWithSkinColor(item, props.preferredSkinToneIndex)}</Text>
@@ -119,7 +121,12 @@ const EmojiSuggestions = (props) => {
         if (!container) {
             return;
         }
-        container.onpointerdown = e => e.preventDefault();
+        container.onpointerdown = (e) => {
+            if (DeviceCapabilities.hasHoverSupport()) {
+                return;
+            }
+            e.preventDefault();
+        };
         return () => container.onpointerdown = null;
     }, []);
 
