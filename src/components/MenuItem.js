@@ -227,7 +227,6 @@ const MenuItem = (props) => {
 };
 
 MenuItem.propTypes = propTypes;
-MenuItem.defaultProps = defaultProps;
 MenuItem.displayName = 'MenuItem';
 
 const MenuItemWithWindowDimensions = withWindowDimensions(React.forwardRef((props, ref) => (
