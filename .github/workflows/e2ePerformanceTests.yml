@@ -33,7 +33,7 @@ jobs:
 
       - name: Get pull request details
         id: getPullRequestDetails
-        uses: jczekalski/App/.github/actions/javascript/getPullRequestDetails@main
+        uses: jczekalski/App/.github/actions/javascript/getPullRequestDetails@e2e-performance
         with:
           GITHUB_TOKEN: ${{ github.token }}
           PULL_REQUEST_NUMBER: ${{ inputs.PR_NUMBER }}
