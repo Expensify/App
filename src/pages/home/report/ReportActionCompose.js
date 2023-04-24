@@ -53,6 +53,7 @@ import withKeyboardState, {keyboardStatePropTypes} from '../../../components/wit
 import ArrowKeyFocusManager from '../../../components/ArrowKeyFocusManager';
 import OfflineWithFeedback from '../../../components/OfflineWithFeedback';
 import KeyboardShortcut from '../../../libs/KeyboardShortcut';
+import * as ComposerUtils from '../../../libs/ComposerUtils';
 import * as Welcome from '../../../libs/actions/Welcome';
 import Permissions from '../../../libs/Permissions';
 
@@ -512,17 +513,13 @@ class ReportActionCompose extends React.Component {
      * @param {String} emoji
      */
     addEmojiToTextBox(emoji) {
-        const emojiWithSpace = `${emoji} `;
-        const newComment = this.comment.slice(0, this.state.selection.start)
-            + emojiWithSpace
-            + this.comment.slice(this.state.selection.end, this.comment.length);
         this.setState(prevState => ({
             selection: {
-                start: prevState.selection.start + emojiWithSpace.length,
-                end: prevState.selection.start + emojiWithSpace.length,
+                start: prevState.selection.start + emoji.length,
+                end: prevState.selection.start + emoji.length,
             },
         }));
-        this.updateComment(newComment);
+        this.updateComment(ComposerUtils.insertText(this.comment, this.state.selection, emoji));
     }
 
     /**
