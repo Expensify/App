@@ -1,3 +1,4 @@
+import {Freeze} from 'react-freeze';
 import _ from 'underscore';
 import React, {Component} from 'react';
 import {View, FlatList} from 'react-native';
@@ -26,6 +27,15 @@ const propTypes = {
 
     /** Whether to allow option focus or not */
     shouldDisableFocusOptions: PropTypes.bool,
+
+    /** Whether to allow option focus or not */
+    shouldFreeze: PropTypes.bool.isRequired,
+
+    /** Whether to allow option focus or not */
+    isLoading: PropTypes.bool.isRequired,
+
+    /** Whether to allow option focus or not */
+    skeletonPlaceholder: PropTypes.element.isRequired,
 };
 
 const defaultProps = {
@@ -81,23 +91,30 @@ class LHNOptionsList extends Component {
 
     render() {
         return (
-            <View style={[styles.flex1]}>
-                <FlatList
-                    indicatorStyle="white"
-                    keyboardShouldPersistTaps="always"
-                    contentContainerStyle={this.props.contentContainerStyles}
-                    showsVerticalScrollIndicator={false}
-                    data={this.props.data}
-                    keyExtractor={item => item}
-                    stickySectionHeadersEnabled={false}
-                    renderItem={this.renderItem}
-                    getItemLayout={this.getItemLayout}
-                    extraData={this.props.focusedIndex}
-                    initialNumToRender={5}
-                    maxToRenderPerBatch={5}
-                    windowSize={5}
-                />
-            </View>
+            <Freeze
+                freeze={this.props.shouldFreeze}
+                placeholder={this.props.skeletonPlaceholder}
+            >
+                {this.props.isLoading ? this.props.skeletonPlaceholder : (
+                    <View style={[styles.flex1]}>
+                        <FlatList
+                            indicatorStyle="white"
+                            keyboardShouldPersistTaps="always"
+                            contentContainerStyle={this.props.contentContainerStyles}
+                            showsVerticalScrollIndicator={false}
+                            data={this.props.data}
+                            keyExtractor={item => item}
+                            stickySectionHeadersEnabled={false}
+                            renderItem={this.renderItem}
+                            getItemLayout={this.getItemLayout}
+                            extraData={this.props.focusedIndex}
+                            initialNumToRender={5}
+                            maxToRenderPerBatch={5}
+                            windowSize={5}
+                        />
+                    </View>
+                )}
+            </Freeze>
         );
     }
 }

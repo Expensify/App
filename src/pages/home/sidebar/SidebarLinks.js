@@ -1,11 +1,9 @@
-/* eslint-disable rulesdir/onyx-props-must-have-default */
 import lodashGet from 'lodash/get';
 import React from 'react';
 import {View, TouchableOpacity} from 'react-native';
 import _ from 'underscore';
 import PropTypes from 'prop-types';
 import {withOnyx} from 'react-native-onyx';
-import {Freeze} from 'react-freeze';
 import styles from '../../../styles/styles';
 import * as StyleUtils from '../../../styles/StyleUtils';
 import ONYXKEYS from '../../../ONYXKEYS';
@@ -26,7 +24,7 @@ import * as ReportUtils from '../../../libs/ReportUtils';
 import withCurrentUserPersonalDetails from '../../../components/withCurrentUserPersonalDetails';
 import withWindowDimensions from '../../../components/withWindowDimensions';
 import reportActionPropTypes from '../report/reportActionPropTypes';
-import LHNOptionsList from '../../../components/LHNOptionsList/LHNOptionsList';
+import LHNOptionsList from '../../../components/LHNOptionsList';
 import SidebarUtils from '../../../libs/SidebarUtils';
 import reportPropTypes from '../../reportPropTypes';
 import OfflineWithFeedback from '../../../components/OfflineWithFeedback';
@@ -188,26 +186,22 @@ class SidebarLinks extends React.Component {
                         </OfflineWithFeedback>
                     </TouchableOpacity>
                 </View>
-                <Freeze
-                    freeze={shouldFreeze}
-                    placeholder={skeletonPlaceholder}
-                >
-                    {isLoading ? skeletonPlaceholder : (
-                        <LHNOptionsList
-                            contentContainerStyles={[
-                                styles.sidebarListContainer,
-                                {paddingBottom: StyleUtils.getSafeAreaMargins(this.props.insets).marginBottom},
-                            ]}
-                            data={optionListItems}
-                            focusedIndex={_.findIndex(optionListItems, (
-                                option => option.toString() === this.props.currentReportId
-                            ))}
-                            onSelectRow={this.showReportPage}
-                            shouldDisableFocusOptions={this.props.isSmallScreenWidth}
-                            optionMode={this.props.priorityMode === CONST.PRIORITY_MODE.GSD ? CONST.OPTION_MODE.COMPACT : CONST.OPTION_MODE.DEFAULT}
-                        />
-                    )}
-                </Freeze>
+                <LHNOptionsList
+                    contentContainerStyles={[
+                        styles.sidebarListContainer,
+                        {paddingBottom: StyleUtils.getSafeAreaMargins(this.props.insets).marginBottom},
+                    ]}
+                    data={optionListItems}
+                    focusedIndex={_.findIndex(optionListItems, (
+                        option => option.toString() === this.props.currentReportId
+                    ))}
+                    shouldFreeze={shouldFreeze}
+                    skeletonPlaceholder={skeletonPlaceholder}
+                    isLoading={isLoading}
+                    onSelectRow={this.showReportPage}
+                    shouldDisableFocusOptions={this.props.isSmallScreenWidth}
+                    optionMode={this.props.priorityMode === CONST.PRIORITY_MODE.GSD ? CONST.OPTION_MODE.COMPACT : CONST.OPTION_MODE.DEFAULT}
+                />
             </View>
         );
     }
