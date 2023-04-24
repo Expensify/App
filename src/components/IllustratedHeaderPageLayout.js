@@ -30,7 +30,7 @@ const defaultProps = {
 const IllustratedHeaderPageLayout = (props) => {
     const propsToPassToHeader = _.omit(props, 'illustration');
     return (
-        <ScreenWrapper includeSafeAreaPaddingBottom={false}>
+        <ScreenWrapper includeSafeAreaPaddingBottom={false} style={[StyleUtils.getBackgroundColorStyle(props.backgroundColor)]}>
             {({safeAreaPaddingBottomStyle}) => (
                 <>
                     <HeaderWithCloseButton {...propsToPassToHeader} />
@@ -41,9 +41,11 @@ const IllustratedHeaderPageLayout = (props) => {
                             : <Lottie source={props.illustration} style={{width: 250, height: 250}} autoPlay loop />
                         }
                     </View>
-                    <ScrollView contentContainerStyle={styles.illustratedPageBottomHalf(safeAreaPaddingBottomStyle)}>
-                        {props.children}
-                    </ScrollView>
+                    <View style={[styles.flex1, StyleUtils.getBackgroundColorStyle(themeColors.appBG)]}>
+                        <ScrollView contentContainerStyle={styles.illustratedPageBottomHalf(safeAreaPaddingBottomStyle)}>
+                            {props.children}
+                        </ScrollView>
+                    </View>
                 </>
             )}
         </ScreenWrapper>
