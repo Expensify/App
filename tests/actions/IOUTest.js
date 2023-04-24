@@ -90,6 +90,9 @@ describe('actions/IOU', () => {
                             // The amount in the IOU action should be correct
                             expect(iouAction.originalMessage.amount).toBe(amount);
 
+                            // The IOU type should be correct
+                            expect(iouAction.originalMessage.type).toBe(CONST.IOU.REPORT_ACTION_TYPE.CREATE);
+
                             // Both actions should be pending
                             expect(createdAction.pendingAction).toBe(CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD);
                             expect(iouAction.pendingAction).toBe(CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD);
@@ -217,6 +220,9 @@ describe('actions/IOU', () => {
 
                             // The amount in the IOU action should be correct
                             expect(iouAction.originalMessage.amount).toBe(amount);
+
+                            // The IOU action type should be correct
+                            expect(iouAction.originalMessage.type).toBe(CONST.IOU.REPORT_ACTION_TYPE.CREATE);
 
                             // The IOU action should be pending
                             expect(iouAction.pendingAction).toBe(CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD);
@@ -375,6 +381,9 @@ describe('actions/IOU', () => {
                             // The amount in the IOU action should be correct
                             expect(newIOUAction.originalMessage.amount).toBe(amount);
 
+                            // The type of the IOU action should be correct
+                            expect(newIOUAction.originalMessage.type).toBe(CONST.IOU.REPORT_ACTION_TYPE.CREATE);
+
                             // The IOU action should be pending
                             expect(newIOUAction.pendingAction).toBe(CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD);
 
@@ -495,6 +504,9 @@ describe('actions/IOU', () => {
 
                             // The amount in the IOU action should be correct
                             expect(iouAction.originalMessage.amount).toBe(amount);
+
+                            // The type should be correct
+                            expect(iouAction.originalMessage.type).toBe(CONST.IOU.REPORT_ACTION_TYPE.CREATE);
 
                             // Both actions should be pending
                             expect(createdAction.pendingAction).toBe(CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD);
@@ -765,6 +777,7 @@ describe('actions/IOU', () => {
                             expect(carlosIOUAction.pendingAction).toBe(CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD);
                             expect(carlosIOUAction.originalMessage.amount).toBe(amountInCents / 4);
                             expect(carlosIOUAction.originalMessage.comment).toBe(comment);
+                            expect(carlosIOUAction.originalMessage.type).toBe(CONST.IOU.REPORT_ACTION_TYPE.CREATE);
                             expect(Date.parse(carlosCreatedAction.created)).toBeLessThanOrEqual(Date.parse(carlosIOUAction.created));
 
                             // Jules DM should have three reportActions, the existing CREATED action, the existing IOU action, and a new pending IOU action
@@ -777,6 +790,7 @@ describe('actions/IOU', () => {
                             expect(julesIOUAction.pendingAction).toBe(CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD);
                             expect(julesIOUAction.originalMessage.amount).toBe(amountInCents / 4);
                             expect(julesIOUAction.originalMessage.comment).toBe(comment);
+                            expect(julesIOUAction.originalMessage.type).toBe(CONST.IOU.REPORT_ACTION_TYPE.CREATE);
                             expect(Date.parse(julesCreatedAction.created)).toBeLessThanOrEqual(Date.parse(julesIOUAction.created));
 
                             // Vit DM should have two reportActions – a pending CREATED action and a pending IOU action
@@ -787,6 +801,7 @@ describe('actions/IOU', () => {
                             expect(vitIOUAction.pendingAction).toBe(CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD);
                             expect(vitIOUAction.originalMessage.amount).toBe(amountInCents / 4);
                             expect(vitIOUAction.originalMessage.comment).toBe(comment);
+                            expect(vitIOUAction.originalMessage.type).toBe(CONST.IOU.REPORT_ACTION_TYPE.CREATE);
                             expect(Date.parse(vitCreatedAction.created)).toBeLessThanOrEqual(Date.parse(vitIOUAction.created))
 
                             // Group chat should have two reportActions – a pending CREATED action and a pending IOU action w/ type SPLIT
@@ -810,7 +825,7 @@ describe('actions/IOU', () => {
                             Onyx.disconnect(connectionID);
 
                             // There should be 4 transactions – one existing one with Jules and one for each of the three IOU reports
-                            // TODO: I think this is wrong and there should only be 4 transactions
+                            // TODO: I think this might be wrong and there should only be 4 transactions
                             expect(_.size(allTransactions)).toBe(5);
                             expect(allTransactions[`${ONYXKEYS.COLLECTION.TRANSACTION}${julesExistingTransaction.transactionID}`]).toBeTruthy();
 
