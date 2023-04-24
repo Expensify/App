@@ -177,3 +177,12 @@ Follow all the above above steps and processes. When you find a job you'd like t
   - If no proposals have been submitted by other contributors, BugZero (BZ) team member or an internal engineer will assign the issue to you. 
   - If there are existing proposals, BZ will put the issue on hold. Contributor+ (C+) will review the existing proposals.  If a contributor’s proposal is accepted then contributor will be assigned to the issue.  If not the issue will be assigned to the agency-employee. 
 - Once assigned follow the steps [here](https://github.com/Expensify/App/blob/main/contributingGuides/CONTRIBUTING.md#propose-a-solution-for-the-job) to submit your proposal 
+
+#### Guide on Acronyms used within Expensify Communication
+During communication with Expensify, you will come across a variety of acronyms used by our team. While acronyms can be useful, they cease to be the moment they are not known to the receiver. As such, we wanted to create a list here of our most commonly used acronyms and what they're referring to. Lastly, please never hesitate to ask in slack or the GH issue if there are any that are not understood/known!
+- BZ: Bug Zero (Expensify internal team in charge of managing the GH issues related to our open-source project)
+- LHN: Left Hand Navigation (Primary navigation modal in Expensify Chat, docked on the left hand side)
+- OP: Original Post (Most commonly the post in E/App GH issues that reports the bug)
+- GBR: Green Brick Road (UX Design Principle that utlizes green indicators on action items to encourage the user down the optimal path for a given process or task) 
+- VBA: Verified Bank Account (Bank account that has been verified as real and belonging to the correct business/individual)
+- NAB: Not a Blocker (An issue that doesn't block progress, but would be nice to not have)
