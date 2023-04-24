@@ -135,9 +135,7 @@ function signOutTestUser() {
 }
 
 /**
- * Use for situations where fetch() is required.
- *
- * It also has some additional methods:
+ * Use for situations where fetch() is required. This mock is stateful and has some additional methods to control its behavior:
  *
  * - pause() – stop resolving promises until you call resume()
  * - resume() - flush the queue of promises, and start resolving new promises immediately
