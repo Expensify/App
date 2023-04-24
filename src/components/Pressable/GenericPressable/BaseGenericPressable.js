@@ -74,12 +74,11 @@ const GenericPressable = forwardRef((props, ref) => {
         if (shouldUseHapticsOnLongPress) {
             HapticFeedback.longPress();
         }
-        onLongPress();
-
         if (ref.current) {
             ref.current.blur();
         }
 
+        onLongPress();
         Accessibility.moveAccessibilityFocus(nextFocusRef);
     }, [shouldUseHapticsOnLongPress, onLongPress, nextFocusRef, ref]);
 
@@ -87,10 +86,11 @@ const GenericPressable = forwardRef((props, ref) => {
         if (shouldUseHapticsOnPress) {
             HapticFeedback.press();
         }
-        onPress();
         if (ref.current) {
             ref.current.blur();
         }
+        onPress();
+
         Accessibility.moveAccessibilityFocus(nextFocusRef);
     }, [shouldUseHapticsOnPress, onPress, nextFocusRef, ref]);
 

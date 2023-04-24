@@ -5,6 +5,7 @@ import GenericPressable from './GenericPressable';
 import GenericPressablePropTypes from './GenericPressable/PropTypes';
 import OpacityView from '../OpacityView';
 import variables from '../../styles/variables';
+import * as StyleUtils from '../../styles/StyleUtils';
 
 const omitedProps = ['style', 'pressStyle', 'hoverStyle', 'focusStyle', 'wrapperStyle'];
 
@@ -31,10 +32,10 @@ const PressableWithFeedback = forwardRef((props, ref) => {
                     shouldDim={state.pressed || state.hovered}
                     dimmingValue={state.pressed ? props.pressDimmingValue : props.hoverDimmingValue}
                     style={[
-                        props.style,
-                        state.pressed && props.pressStyle,
-                        state.hovered && props.hoverStyle,
-                        state.focused && props.focusStyle,
+                        StyleUtils.parseStyleFromFunction(props.style, state),
+                        state.pressed && StyleUtils.parseStyleFromFunction(props.pressStyle, state),
+                        state.hovered && StyleUtils.parseStyleAsArray(props.hoverStyle, state),
+                        state.focused && StyleUtils.parseStyleAsArray(props.focusStyle, state),
                     ]}
                 >
                     {props.children}
