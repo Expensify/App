@@ -2286,7 +2286,7 @@ const CONST = {
         ALL: 'all',
         ACTIVE: 'active',
         DISABLED: 'disabled',
-    }
+    },
 };
 
 export default CONST;

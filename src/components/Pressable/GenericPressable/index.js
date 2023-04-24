@@ -1,33 +1,22 @@
 import React, {forwardRef} from 'react';
-import _ from 'lodash';
 import GenericPressable from './BaseGenericPressable';
 import GenericPressablePropTypes from './PropTypes';
 
-const WebGenericPressable = forwardRef((props, ref) => {
-    // change all props with accessibility* to aria-*
-    const accessibilityMappedProps = _.mapKeys(props, (value, key) => {
-        if (key === 'nativeID') {
-            return 'id';
-        }
-        if (key === 'accessibilityRole') {
-            return 'role';
-        }
-        if (_.startsWith(key, 'accessibility')) {
-            return `aria-${key.slice(13).toLowerCase()}`;
-        }
-        return key;
-    });
-    if (!props.accessible || !props.focusable) {
-        accessibilityMappedProps.tabIndex = -1;
-    }
-
-    return (
+const WebGenericPressable = forwardRef((props, ref) => (
+    <GenericPressable
         // eslint-disable-next-line react/jsx-props-no-spreading
-        <GenericPressable {...accessibilityMappedProps} ref={ref}>
-            {props.children}
-        </GenericPressable>
-    );
-});
+        {...props}
+        ref={ref}
+
+        // change all props with accessibility* to aria-*
+        tabIndex={(!props.accessible || !props.focusable) ? -1 : 0}
+        role={props.accessibilityRole}
+        id={props.nativeID}
+        aria-label={props.accessibilityLabel}
+        aria-labelledby={props.accessibilityLabelledBy}
+        aria-valuenow={props.accessibilityValue}
+    />
+));
 
 WebGenericPressable.propTypes = GenericPressablePropTypes.propTypes;
 WebGenericPressable.defaultProps = GenericPressablePropTypes.defaultProps;

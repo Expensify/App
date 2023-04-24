@@ -120,10 +120,6 @@ const GenericPressable = forwardRef((props, ref) => {
             ]}
 
             // accessibility props
-            focusable
-            accessible
-            tabIndex={0}
-            accessibilityHint={props.accessibilityHint || props.accessibilityLabel}
             accessibilityState={{
                 disabled: isDisabled,
                 ...props.accessibilityState,
