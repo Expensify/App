@@ -1,16 +1,13 @@
 import PropTypes from 'prop-types';
-import {PressableProps} from 'react-native';
-import * as StyleUtils from '../../../styles/StyleUtils';
+import stylePropType from '../../../styles/stylePropTypes';
 import CONST from '../../../CONST';
 
 const stylePropTypeWithFunction = PropTypes.oneOfType([
-    StyleUtils.stylePropType,
+    stylePropType,
     PropTypes.func,
 ]);
 
 const pressablePropTypes = {
-    ...PressableProps,
-
     /**
      * onPress callback
      */
