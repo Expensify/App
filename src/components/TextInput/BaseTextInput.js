@@ -219,14 +219,13 @@ class BaseTextInput extends Component {
             (this.props.hasError || this.props.errorText) && styles.borderColorDanger,
         ], (finalStyles, s) => ({...finalStyles, ...s}), {});
         const maxHeight = StyleSheet.flatten(this.props.containerStyles).maxHeight;
-        const autoGrowHeight = this.props.autoGrowHeight && this.props.multiline;
 
         return (
             <>
                 <View>
                     <View
                         style={[
-                            (autoGrowHeight && {height: this.state.textInputHeight >= maxHeight ? maxHeight : this.state.textInputHeight}),
+                            (this.props.autoGrowHeight && {height: this.state.textInputHeight >= maxHeight ? maxHeight : this.state.textInputHeight}),
                             !this.props.multiline && styles.componentHeightLarge,
                             ...this.props.containerStyles,
                         ]}
@@ -236,7 +235,7 @@ class BaseTextInput extends Component {
 
                                 // When autoGrowHeight is true calculate textinput width or when multiline
                                 // is not supplied calculate textinput height, using onLayout.
-                                onLayout={event => (autoGrowHeight && this.setState({width: event.nativeEvent.layout.width}))
+                                onLayout={event => (this.props.autoGrowHeight && this.setState({width: event.nativeEvent.layout.width}))
                                     || (!this.props.multiline && this.setState({height: event.nativeEvent.layout.height}))}
                                 style={[
                                     textInputContainerStyles,
@@ -308,9 +307,9 @@ class BaseTextInput extends Component {
                                             !this.props.multiline && {height: this.state.height, lineHeight: undefined},
 
                                             // Stop scrollbar flashing when breaking lines with autoGrowHeight enabled.
-                                            autoGrowHeight && this.state.textInputHeight <= maxHeight ? styles.overflowHidden : styles.overflowAuto,
+                                            this.props.autoGrowHeight && this.state.textInputHeight <= maxHeight ? styles.overflowHidden : styles.overflowAuto,
                                         ]}
-                                        multiline={this.props.multiline}
+                                        multiline={this.props.multiline || this.props.autoGrowHeight}
                                         maxLength={this.props.maxLength}
                                         onFocus={this.onFocus}
                                         onBlur={this.onBlur}
@@ -362,16 +361,16 @@ class BaseTextInput extends Component {
                     This text view is used to calculate width or height of the input value given textStyle in this component.
                     This Text component is intentionally positioned out of the screen.
                 */}
-                {(this.props.autoGrow || autoGrowHeight) && (
+                {(this.props.autoGrow || this.props.autoGrowHeight) && (
 
                     // Add +2 to width so that the first digit of amount do not cut off on mWeb - https://github.com/Expensify/App/issues/8158.
                     <Text
-                        style={[...this.props.inputStyle, autoGrowHeight ? {maxWidth: this.state.width} : {}, styles.hiddenElementOutsideOfWindow, styles.visibilityHidden]}
+                        style={[...this.props.inputStyle, this.props.autoGrowHeight ? {maxWidth: this.state.width} : {}, styles.hiddenElementOutsideOfWindow, styles.visibilityHidden]}
                         onLayout={e => this.setState({textInputWidth: e.nativeEvent.layout.width + 2, textInputHeight: e.nativeEvent.layout.height})}
                     >
                         {/* We are appending a zero width space (\u200B) here as the browser will remove a trailing newline that doesn't
                         have any characters after it. This allows linebreaks to work properly on web when the user presses enter. */}
-                        {`${this.state.value}${autoGrowHeight ? '\u200B' : ''}` || this.props.placeholder}
+                        {`${this.state.value}${this.props.autoGrowHeight ? '\u200B' : ''}` || this.props.placeholder}
                     </Text>
                 )}
             </>
