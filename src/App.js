@@ -27,6 +27,8 @@ LogBox.ignoreLogs([
     // the timer is lost. Currently Expensify is using a 30 minutes interval to refresh personal details.
     // More details here: https://git.io/JJYeb
     'Setting a timer for a long period of time',
+    'Failed prop type: Invalid props.style key `cursor` supplied to `Text`',
+    'Failed prop type: Invalid props.style key `WebkitUserSelect` supplied to `Text`',
 ]);
 
 const fill = {flex: 1};
