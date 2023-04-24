@@ -180,9 +180,6 @@ describe('actions/IOU', () => {
                         callback: (allReports) => {
                             Onyx.disconnect(connectionID);
 
-                            // TODO: clean this up after https://github.com/Expensify/react-native-onyx/pull/245 is merged
-                            allReports = _.filter(allReports, report => report !== null);
-
                             // The same chat report should be reused, and an IOU report should be created
                             expect(_.size(allReports)).toBe(2);
                             expect(_.find(allReports, report => report.type === CONST.REPORT.TYPE.CHAT).reportID).toBe(chatReport.reportID);
@@ -231,9 +228,6 @@ describe('actions/IOU', () => {
                         waitForCollectionCallback: true,
                         callback: (allTransactions) => {
                             Onyx.disconnect(connectionID);
-
-                            // TODO: clean this up after https://github.com/Expensify/react-native-onyx/pull/245 is merged
-                            allTransactions = _.filter(allTransactions, transaction => transaction !== null);
 
                             // There should be one transaction
                             expect(_.size(allTransactions)).toBe(1);
@@ -346,9 +340,6 @@ describe('actions/IOU', () => {
                         callback: (allReports) => {
                             Onyx.disconnect(connectionID);
 
-                            // TODO: clean this up after https://github.com/Expensify/react-native-onyx/pull/245 is merged
-                            allReports = _.filter(allReports, report => report !== null);
-
                             // No new reports should be created
                             expect(_.size(allReports)).toBe(2);
                             expect(_.find(allReports, report => report.reportID === chatReportID)).toBeTruthy();
@@ -394,9 +385,6 @@ describe('actions/IOU', () => {
                         callback: (allTransactions) => {
                             Onyx.disconnect(connectionID);
 
-                            // TODO: clean this up after https://github.com/Expensify/react-native-onyx/pull/245 is merged
-                            allTransactions = _.filter(allTransactions, transaction => transaction !== null);
-
                             // There should be two transactions
                             expect(_.size(allTransactions)).toBe(2);
 
@@ -434,9 +422,6 @@ describe('actions/IOU', () => {
                         callback: (allTransactions) => {
                             Onyx.disconnect(connectionID);
 
-                            // TODO: clean this up after https://github.com/Expensify/react-native-onyx/pull/245 is merged
-                            allTransactions = _.filter(allTransactions, transaction => transaction !== null);
-
                             _.each(allTransactions, transaction => expect(transaction.pendingAction).toBeFalsy());
                             resolve();
                         },
@@ -461,9 +446,6 @@ describe('actions/IOU', () => {
                         waitForCollectionCallback: true,
                         callback: (allReports) => {
                             Onyx.disconnect(connectionID);
-
-                            // TODO: clean this up after https://github.com/Expensify/react-native-onyx/pull/245 is merged
-                            allReports = _.filter(allReports, report => report !== null);
 
                             // A chat report and an iou report should be created
                             const chatReports = _.filter(allReports, report => report.type === CONST.REPORT.TYPE.CHAT);
@@ -523,9 +505,6 @@ describe('actions/IOU', () => {
                         waitForCollectionCallback: true,
                         callback: (allTransactions) => {
                             Onyx.disconnect(connectionID);
-
-                            // TODO: clean this up after https://github.com/Expensify/react-native-onyx/pull/245 is merged
-                            allTransactions = _.filter(allTransactions, transaction => transaction !== null);
 
                             // There should be one transaction
                             expect(_.size(allTransactions)).toBe(1);
