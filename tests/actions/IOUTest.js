@@ -180,7 +180,7 @@ describe('actions/IOU', () => {
                         callback: (allReports) => {
                             Onyx.disconnect(connectionID);
 
-                            // TODO: clean this up after https://github.com/Expensify/App/pull/16531 is merged
+                            // TODO: clean this up after https://github.com/Expensify/react-native-onyx/pull/245 is merged
                             allReports = _.filter(allReports, report => report !== null);
 
                             // The same chat report should be reused, and an IOU report should be created
@@ -232,7 +232,7 @@ describe('actions/IOU', () => {
                         callback: (allTransactions) => {
                             Onyx.disconnect(connectionID);
 
-                            // TODO: clean this up after https://github.com/Expensify/App/pull/16531 is merged
+                            // TODO: clean this up after https://github.com/Expensify/react-native-onyx/pull/245 is merged
                             allTransactions = _.filter(allTransactions, transaction => transaction !== null);
 
                             // There should be one transaction
@@ -346,7 +346,7 @@ describe('actions/IOU', () => {
                         callback: (allReports) => {
                             Onyx.disconnect(connectionID);
 
-                            // TODO: clean this up after https://github.com/Expensify/App/pull/16531 is merged
+                            // TODO: clean this up after https://github.com/Expensify/react-native-onyx/pull/245 is merged
                             allReports = _.filter(allReports, report => report !== null);
 
                             // No new reports should be created
@@ -394,7 +394,7 @@ describe('actions/IOU', () => {
                         callback: (allTransactions) => {
                             Onyx.disconnect(connectionID);
 
-                            // TODO: clean this up after https://github.com/Expensify/App/pull/16531 is merged
+                            // TODO: clean this up after https://github.com/Expensify/react-native-onyx/pull/245 is merged
                             allTransactions = _.filter(allTransactions, transaction => transaction !== null);
 
                             // There should be two transactions
@@ -434,7 +434,7 @@ describe('actions/IOU', () => {
                         callback: (allTransactions) => {
                             Onyx.disconnect(connectionID);
 
-                            // TODO: clean this up after https://github.com/Expensify/App/pull/16531 is merged
+                            // TODO: clean this up after https://github.com/Expensify/react-native-onyx/pull/245 is merged
                             allTransactions = _.filter(allTransactions, transaction => transaction !== null);
 
                             _.each(allTransactions, transaction => expect(transaction.pendingAction).toBeFalsy());
@@ -462,7 +462,7 @@ describe('actions/IOU', () => {
                         callback: (allReports) => {
                             Onyx.disconnect(connectionID);
 
-                            // TODO: clean this up after https://github.com/Expensify/App/pull/16531 is merged
+                            // TODO: clean this up after https://github.com/Expensify/react-native-onyx/pull/245 is merged
                             allReports = _.filter(allReports, report => report !== null);
 
                             // A chat report and an iou report should be created
@@ -524,7 +524,7 @@ describe('actions/IOU', () => {
                         callback: (allTransactions) => {
                             Onyx.disconnect(connectionID);
 
-                            // TODO: clean this up after https://github.com/Expensify/App/pull/16531 is merged
+                            // TODO: clean this up after https://github.com/Expensify/react-native-onyx/pull/245 is merged
                             allTransactions = _.filter(allTransactions, transaction => transaction !== null);
 
                             // There should be one transaction
