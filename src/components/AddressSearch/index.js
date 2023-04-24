@@ -13,7 +13,7 @@ import * as GooglePlacesUtils from '../../libs/GooglePlacesUtils';
 import CONST from '../../CONST';
 import * as StyleUtils from '../../styles/StyleUtils';
 import resetDisplayListViewBorderOnBlur from './resetDisplayListViewBorderOnBlur';
-import variables from '../styles/variables';
+import variables from '../../styles/variables';
 
 // The error that's being thrown below will be ignored until we fork the
 // react-native-google-places-autocomplete repo and replace the
