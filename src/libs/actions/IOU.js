@@ -14,6 +14,7 @@ import * as IOUUtils from '../IOUUtils';
 import * as OptionsListUtils from '../OptionsListUtils';
 import DateUtils from '../DateUtils';
 import TransactionUtils from '../TransactionUtils';
+import * as NumberUtils from '../NumberUtils';
 
 const chatReports = {};
 const iouReports = {};
@@ -400,7 +401,7 @@ function createSplitsAndOnyxData(participants, currentUserLogin, amount, comment
             oneOnOneChatReport.iouReportID = oneOnOneIOUReport.reportID;
         }
 
-        const oneOnOneTransaction = TransactionUtils.buildOptimisticTransaction(amountInCents, currency);
+        const oneOnOneTransaction = TransactionUtils.buildOptimisticTransaction(NumberUtils.roundDownToTwoDecimalPlaces(amountInCents / (participants.length + 1)), currency);
 
         // Note: The created action must be optimistically generated before the IOU action so there's no chance that the created action appears after the IOU action in the chat
         const oneOnOneCreatedReportAction = ReportUtils.buildOptimisticCreatedReportAction(currentUserEmail);

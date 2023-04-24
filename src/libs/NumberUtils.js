@@ -35,7 +35,17 @@ function rand64() {
     return left + middleString + rightString;
 }
 
+/**
+ * Rounds a number down to the nearest hundred's place.
+ *
+ * @param {Number} num
+ * @returns {Number}
+ */
+function roundDownToTwoDecimalPlaces(num) {
+    return Math.floor(num * 100) / 100;
+}
+
 export {
-    // eslint-disable-next-line import/prefer-default-export
     rand64,
+    roundDownToTwoDecimalPlaces,
 };
