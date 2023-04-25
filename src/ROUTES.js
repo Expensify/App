@@ -14,6 +14,8 @@ const IOU_REQUEST_CURRENCY = `${IOU_REQUEST}/currency`;
 const IOU_BILL_CURRENCY = `${IOU_BILL}/currency`;
 const IOU_SEND_CURRENCY = `${IOU_SEND}/currency`;
 const NEW_TASK = 'new/task';
+const NEW_TASK_ASSIGNEE = `${NEW_TASK}/assignee`;
+const NEW_TASK_CHAT = `${NEW_TASK}/chat`;
 const SETTINGS_PERSONAL_DETAILS = 'settings/profile/personal-details';
 const SETTINGS_CONTACT_METHODS = 'settings/profile/contact-methods';
 
@@ -97,6 +99,8 @@ export default {
     TASK_DESCRIPTION: 'r/:reportID/description',
     getTaskReportTitleRoute: reportID => `r/${reportID}/title`,
     getTaskReportDescriptionRoute: reportID => `r/${reportID}/description`,
+    NEW_TASK_ASSIGNEE: `${NEW_TASK_ASSIGNEE}/:reportID?`,
+    NEW_TASK_CHAT: `${NEW_TASK_CHAT}/:reportID?`,
     getTaskDetailsRoute: taskID => `task/details/${taskID}`,
     SEARCH: 'search',
     SET_PASSWORD_WITH_VALIDATE_CODE: 'setpassword/:accountID/:validateCode',
@@ -105,10 +109,7 @@ export default {
     REPORT_PARTICIPANTS: 'r/:reportID/participants',
     getReportParticipantsRoute: reportID => `r/${reportID}/participants`,
     REPORT_PARTICIPANT: 'r/:reportID/participants/details',
-    getReportParticipantRoute: (
-        reportID,
-        login,
-    ) => `r/${reportID}/participants/details?login=${encodeURIComponent(login)}`,
+    getReportParticipantRoute: (reportID, login) => `r/${reportID}/participants/details?login=${encodeURIComponent(login)}`,
     REPORT_WITH_ID_DETAILS: 'r/:reportID/details',
     getReportDetailsRoute: reportID => `r/${reportID}/details`,
     REPORT_SETTINGS: 'r/:reportID/settings',

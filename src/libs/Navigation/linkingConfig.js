@@ -3,14 +3,7 @@ import SCREENS from '../../SCREENS';
 import CONST from '../../CONST';
 
 export default {
-    prefixes: [
-        'new-expensify://',
-        'https://www.expensify.cash',
-        'https://staging.expensify.cash',
-        'http://localhost',
-        CONST.NEW_EXPENSIFY_URL,
-        CONST.STAGING_NEW_EXPENSIFY_URL,
-    ],
+    prefixes: ['new-expensify://', 'https://www.expensify.cash', 'https://staging.expensify.cash', 'http://localhost', CONST.NEW_EXPENSIFY_URL, CONST.STAGING_NEW_EXPENSIFY_URL],
     config: {
         initialRouteName: SCREENS.HOME,
         screens: {
@@ -213,6 +206,8 @@ export default {
             NewTask: {
                 screens: {
                     NewTask_Root: ROUTES.NEW_TASK_WITH_REPORT_ID,
+                    NewTask_AssigneeSelector: ROUTES.NEW_TASK_ASSIGNEE,
+                    NewTask_ChatSelector: ROUTES.NEW_TASK_CHAT,
                 },
             },
             Search: {

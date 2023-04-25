@@ -14,6 +14,7 @@ import Form from '../../components/Form';
 import TextInput from '../../components/TextInput';
 import Permissions from '../../libs/Permissions';
 import Button from '../../components/Button';
+import ROUTES from '../../ROUTES';
 
 const propTypes = {
     /** Beta features list */
@@ -72,7 +73,7 @@ const NewTaskPage = (props) => {
                 enabledWhenOffline
             >
                 <View style={styles.mb5}>
-                    <Button text="Assignee" />
+                    <Button text="Assignee" onPress={() => Navigation.navigate(ROUTES.NEW_TASK_ASSIGNEE)} />
                 </View>
                 <View style={styles.mb5}>
                     <TextInput autoFocus inputID="taskTitle" label={props.translate('newTaskPage.title')} />
