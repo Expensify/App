@@ -35,7 +35,7 @@ jobs:
 
       - name: Get pull request details
         id: getPullRequestDetails
-        uses: jczekalski/App/.github/actions/javascript/getPullRequestDetailsfix/15605-run-e2e-performance-tests-for-unmerged-PRs
+        uses: jczekalski/App/.github/actions/javascript/getPullRequestDetailsfix@15605-run-e2e-performance-tests-for-unmerged-PRs
         with:
           GITHUB_TOKEN: ${{ github.token }}
           PULL_REQUEST_NUMBER: ${{ inputs.PR_NUMBER }}
