@@ -94,6 +94,8 @@ class ScreenWrapper extends React.Component {
     }
 
     render() {
+        const maxHeight = this.props.shouldEnableMaxHeight ? this.props.windowHeight : undefined;
+
         return (
             <SafeAreaConsumer>
                 {({
@@ -120,7 +122,7 @@ class ScreenWrapper extends React.Component {
                             // eslint-disable-next-line react/jsx-props-no-spreading
                             {...(this.props.environment === CONST.ENVIRONMENT.DEV ? this.panResponder.panHandlers : {})}
                         >
-                            <KeyboardAvoidingView style={[styles.w100, styles.h100, {maxHeight: this.props.windowHeight}]} behavior={this.props.keyboardAvoidingViewBehavior}>
+                            <KeyboardAvoidingView style={[styles.w100, styles.h100, {maxHeight}]} behavior={this.props.keyboardAvoidingViewBehavior}>
                                 <HeaderGap />
                                 {(this.props.environment === CONST.ENVIRONMENT.DEV) && <TestToolsModal />}
                                 {(this.props.environment === CONST.ENVIRONMENT.DEV) && <CustomDevMenu />}
