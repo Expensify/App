@@ -45,20 +45,26 @@ const defaultProps = {
 const AssigneeSelectorPage = (props) => {
     const [searchValue, setSearchValue] = useState('');
     const [headerMessage, setHeaderMessage] = useState('');
-    const [recentReports, setRecentReports] = useState([]);
-    const [personalDetails, setPersonalDetails] = useState([]);
-    const [userToInvite, setUserToInvite] = useState(null);
+    const [filteredRecentReports, setFilteredRecentReports] = useState([]);
+    const [filteredPersonalDetails, setFilteredPersonalDetails] = useState([]);
+    const [filteredUserToInvite, setFilteredUserToInvite] = useState(null);
+
+    useEffect(() => {
+        const results = OptionsListUtils.getSearchOptions(props.reports, props.personalDetails, '', props.betas);
+
+        setFilteredUserToInvite(results.userToInvite);
+        setFilteredRecentReports(results.recentReports);
+        setFilteredPersonalDetails(results.personalDetails);
+    }, [props]);
 
     const updateOptions = useCallback(() => {
-        // eslint-disable-next-line no-console
-        console.log(props);
-        const {recentReportsOptions, personalDetailsOptions, userToInviteOptions} = OptionsListUtils.getSearchOptions(props.reports, props.personalDetails, searchValue.trim(), props.betas);
+        const {recentReports, personalDetails, userToInvite} = OptionsListUtils.getSearchOptions(props.reports, props.personalDetails, searchValue.trim(), props.betas);
 
-        setHeaderMessage(OptionsListUtils.getHeaderMessage(recentReportsOptions?.length + personalDetailsOptions?.length !== 0, Boolean(userToInviteOptions), searchValue));
+        setHeaderMessage(OptionsListUtils.getHeaderMessage(recentReports?.length + personalDetails?.length !== 0, Boolean(userToInvite), searchValue));
 
-        setUserToInvite(userToInviteOptions);
-        setRecentReports(recentReportsOptions);
-        setPersonalDetails(personalDetailsOptions);
+        setFilteredUserToInvite(userToInvite);
+        setFilteredRecentReports(recentReports);
+        setFilteredPersonalDetails(personalDetails);
     }, [props, searchValue]);
 
     useEffect(() => {
@@ -84,34 +90,31 @@ const AssigneeSelectorPage = (props) => {
         const sections = [];
         let indexOffset = 0;
 
-        if (recentReports?.length > 0) {
+        if (filteredRecentReports?.length > 0) {
             sections.push({
-                data: recentReports,
+                data: filteredRecentReports,
                 shouldShow: true,
                 indexOffset,
             });
-            indexOffset += recentReports?.length;
+            indexOffset += filteredRecentReports?.length;
         }
 
-        if (personalDetails?.length > 0) {
+        if (filteredPersonalDetails?.length > 0) {
             sections.push({
-                data: personalDetails,
+                data: filteredPersonalDetails,
                 shouldShow: true,
                 indexOffset,
             });
-            indexOffset += recentReports?.length;
+            indexOffset += filteredRecentReports?.length;
         }
 
-        if (userToInvite) {
+        if (filteredUserToInvite) {
             sections.push({
-                data: [userToInvite],
+                data: [filteredUserToInvite],
                 shouldShow: true,
                 indexOffset,
             });
         }
-
-        // eslint-disable-next-line no-console
-        console.log(sections);
 
         return sections;
     };
@@ -123,7 +126,8 @@ const AssigneeSelectorPage = (props) => {
 
         if (option.reportID) {
             setSearchValue('');
-            Navigation.navigate(ROUTES.getReportRoute(option.reportID));
+
+            // Navigation.navigate(ROUTES.getReportRoute(option.reportID));
         } else {
             Report.navigateToAndOpenReport([option.login]);
         }
@@ -134,7 +138,7 @@ const AssigneeSelectorPage = (props) => {
         <ScreenWrapper includeSafeAreaPaddingBottom={false}>
             {({didScreenTransitionEnd, safeAreaPaddingBottomStyle}) => (
                 <>
-                    <HeaderWithCloseButton title={props.translate('common.search')} onCloseButtonPress={() => Navigation.dismissModal(true)} />
+                    <HeaderWithCloseButton title={props.translate('common.search')} onCloseButtonPress={() => Navigation.goBack()} />
                     <View style={[styles.flex1, styles.w100, styles.pRelative]}>
                         <OptionsSelector
                             sections={sections}
