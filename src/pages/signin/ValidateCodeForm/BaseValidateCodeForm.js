@@ -94,6 +94,9 @@ class BaseValidateCodeForm extends React.Component {
         if (prevProps.isVisible && !this.props.isVisible && this.state.validateCode) {
             this.clearValidateCode();
         }
+        if (prevProps.isVisible && this.state.linkSent && this.props.account.message && this.state.validateCode) {
+            this.clearValidateCode();
+        }
         if (!prevProps.credentials.validateCode && this.props.credentials.validateCode) {
             this.setState({validateCode: this.props.credentials.validateCode});
         }
@@ -126,7 +129,7 @@ class BaseValidateCodeForm extends React.Component {
      * Clear Validate Code from the state
      */
     clearValidateCode() {
-        this.setState({validateCode: ''}, this.inputValidateCode.clear);
+        this.setState({validateCode: ''}, () => this.inputValidateCode.clear());
     }
 
     /**
@@ -140,7 +143,7 @@ class BaseValidateCodeForm extends React.Component {
         User.resendValidateCode(this.props.credentials.login, true);
 
         // Give feedback to the user to let them know the email was sent so they don't spam the button.
-        this.setState({validateCode: '', linkSent: true});
+        this.setState({linkSent: true});
     }
 
     /**

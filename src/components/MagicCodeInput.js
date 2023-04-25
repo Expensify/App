@@ -22,12 +22,6 @@ const propTypes = {
     /** Whether we should wait before focusing the TextInput, useful when using transitions  */
     shouldDelayFocus: PropTypes.bool,
 
-    /** A ref to forward the current input */
-    forwardedRef: PropTypes.oneOfType([
-        PropTypes.func,
-        PropTypes.shape({current: PropTypes.instanceOf(React.Component)}),
-    ]),
-
     /** Error text to display */
     errorText: PropTypes.string,
 
@@ -49,7 +43,6 @@ const defaultProps = {
     name: '',
     autoFocus: true,
     shouldDelayFocus: false,
-    forwardedRef: undefined,
     errorText: '',
     shouldSubmitOnComplete: true,
     onChangeText: () => {},
@@ -76,11 +69,6 @@ class MagicCodeInput extends React.PureComponent {
     }
 
     componentDidMount() {
-        if (!this.props.forwardedRef) {
-            return;
-        }
-        this.props.forwardedRef(this.inputRef);
-
         if (!this.props.autoFocus) {
             return;
         }
@@ -257,6 +245,21 @@ class MagicCodeInput extends React.PureComponent {
         }
     }
 
+    focus() {
+        this.setState({focusedIndex: 0});
+        this.inputRefs[0].focus();
+    }
+
+    clear() {
+        this.setState({
+            input: '',
+            focusedIndex: 0,
+            editIndex: 0,
+            numbers: Array(CONST.MAGIC_CODE_LENGTH).fill(CONST.MAGIC_CODE_EMPTY_CHAR),
+        });
+        this.inputRefs[0].focus();
+    }
+
     /**
      * Converts a given string into an array of numbers that must have the same
      * number of elements as the number of inputs.
@@ -340,7 +343,5 @@ class MagicCodeInput extends React.PureComponent {
 MagicCodeInput.propTypes = propTypes;
 MagicCodeInput.defaultProps = defaultProps;
 
-export default React.forwardRef((props, ref) => (
-    // eslint-disable-next-line react/jsx-props-no-spreading
-    <MagicCodeInput {...props} forwardedRef={ref} />
-));
+export default MagicCodeInput;
+
