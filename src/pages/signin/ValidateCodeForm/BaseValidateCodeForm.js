@@ -140,7 +140,7 @@ class BaseValidateCodeForm extends React.Component {
         User.resendValidateCode(this.props.credentials.login, true);
 
         // Give feedback to the user to let them know the email was sent so they don't spam the button.
-        this.setState({linkSent: true});
+        this.setState({validateCode: '', linkSent: true});
     }
 
     /**
