@@ -779,6 +779,7 @@ function getDisplayNameForParticipant(login, shouldUseShortForm = false) {
         longName = LocalePhoneNumber.formatPhoneNumber(longName);
     }
     const shortName = (personalDetails && personalDetails.firstName) || longName;
+
     return shouldUseShortForm ? shortName : longName;
 }
 
