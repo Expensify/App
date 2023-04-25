@@ -390,6 +390,7 @@ const CONST = {
         DROP_NATIVE_ID: 'report-dropzone',
         ACTIVE_DROP_NATIVE_ID: 'report-dropzone',
         MAXIMUM_PARTICIPANTS: 8,
+        ID_DELETED: '-2',
         ACTIONS: {
             LIMIT: 50,
             TYPE: {

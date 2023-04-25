@@ -116,6 +116,9 @@ describe('actions/IOU', () => {
                             const transaction = _.find(allTransactions, transaction => !_.isEmpty(transaction));
                             transactionID = transaction.transactionID;
 
+                            // The transaction should be attached to the IOU report
+                            expect(transaction.reportID).toBe(iouReportID);
+
                             // Its amount should match the amount of the request
                             expect(transaction.amount).toBe(amountInCents);
 
@@ -248,6 +251,9 @@ describe('actions/IOU', () => {
                             expect(_.size(allTransactions)).toBe(1);
                             const transaction = _.find(allTransactions, transaction => !_.isEmpty(transaction));
                             transactionID = transaction.transactionID;
+
+                            // The transaction should be attached to the IOU report
+                            expect(transaction.reportID).toBe(iouReportID);
 
                             // Its amount should match the amount of the request
                             expect(transaction.amount).toBe(amountInCents);
@@ -410,8 +416,12 @@ describe('actions/IOU', () => {
                             // There should be two transactions
                             expect(_.size(allTransactions)).toBe(2);
 
-                            // The amount on the new transaction should be correct
                             newTransaction = _.find(allTransactions, transaction => transaction.transactionID !== existingTransaction.transactionID);
+
+                            // The transaction should be attached to the IOU report
+                            expect(newTransaction.reportID).toBe(iouReportID);
+
+                            // The amount on the new transaction should be correct
                             expect(newTransaction.amount).toBe(amountInCents);
 
                             // The new transaction should be pending
@@ -539,6 +549,9 @@ describe('actions/IOU', () => {
                             expect(_.size(allTransactions)).toBe(1);
                             const transaction = _.find(allTransactions, transaction => !_.isEmpty(transaction));
                             transactionID = transaction.transactionID;
+
+                            // The transaction should be attached to the IOU report
+                            expect(transaction.reportID).toBe(iouReportID);
 
                             // Its amount should match the amount of the request
                             expect(transaction.amount).toBe(amountInCents);
@@ -848,6 +861,10 @@ describe('actions/IOU', () => {
                             carlosTransaction = _.find(allTransactions, transaction => transaction.transactionID === carlosIOUAction.originalMessage.IOUTransactionID);
                             julesTransaction = _.find(allTransactions, transaction => transaction.transactionID === julesIOUAction.originalMessage.IOUTransactionID);
                             vitTransaction = _.find(allTransactions, transaction => transaction.transactionID === vitIOUAction.originalMessage.IOUTransactionID);
+
+                            expect(carlosTransaction.reportID).toBe(carlosIOUReport.reportID);
+                            expect(julesTransaction.reportID).toBe(julesIOUReport.reportID);
+                            expect(vitTransaction.reportID).toBe(vitIOUReport.reportID);
 
                             expect(carlosTransaction.amount).toBe(amountInCents / 4);
                             expect(julesTransaction.amount).toBe(amountInCents / 4);

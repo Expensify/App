@@ -77,7 +77,7 @@ function requestMoney(report, amount, currency, recipientEmail, participant, com
         iouReport = ReportUtils.buildOptimisticIOUReport(recipientEmail, debtorEmail, amount, chatReport.reportID, currency, preferredLocale);
     }
 
-    const optimisticTransaction = TransactionUtils.buildOptimisticTransaction(amount * 100, currency);
+    const optimisticTransaction = TransactionUtils.buildOptimisticTransaction(amount * 100, currency, iouReport.reportID);
     const optimisticTransactionData = {
         onyxMethod: Onyx.METHOD.MERGE,
         key: `${ONYXKEYS.COLLECTION.TRANSACTION}${optimisticTransaction.transactionID}`,
@@ -267,7 +267,9 @@ function createSplitsAndOnyxData(participants, currentUserLogin, amount, comment
     const groupChatReport = existingGroupChatReport || ReportUtils.buildOptimisticChatReport(participantLogins);
 
     const amountInCents = Math.round(amount * 100);
-    const groupTransaction = TransactionUtils.buildOptimisticTransaction(amountInCents, currency);
+
+    // ReportID is -2 (aka "deleted") on the group transaction: https://github.com/Expensify/Auth/blob/3fa2698654cd4fbc30f9de38acfca3fbeb7842e4/auth/command/SplitTransaction.cpp#L24-L27
+    const groupTransaction = TransactionUtils.buildOptimisticTransaction(amountInCents, currency, CONST.REPORT.ID_DELETED);
 
     // Note: The created action must be optimistically generated before the IOU action so there's no chance that the created action appears after the IOU action in the chat
     const groupCreatedReportAction = ReportUtils.buildOptimisticCreatedReportAction(currentUserEmail);
@@ -401,7 +403,11 @@ function createSplitsAndOnyxData(participants, currentUserLogin, amount, comment
             oneOnOneChatReport.iouReportID = oneOnOneIOUReport.reportID;
         }
 
-        const oneOnOneTransaction = TransactionUtils.buildOptimisticTransaction(NumberUtils.roundDownToTwoDecimalPlaces(amountInCents / (participants.length + 1)), currency);
+        const oneOnOneTransaction = TransactionUtils.buildOptimisticTransaction(
+            NumberUtils.roundDownToTwoDecimalPlaces(amountInCents / (participants.length + 1)),
+            currency,
+            oneOnOneIOUReport.reportID
+        );
 
         // Note: The created action must be optimistically generated before the IOU action so there's no chance that the created action appears after the IOU action in the chat
         const oneOnOneCreatedReportAction = ReportUtils.buildOptimisticCreatedReportAction(currentUserEmail);
@@ -762,7 +768,7 @@ function getSendMoneyParams(report, amount, currency, comment, paymentMethodType
     }
     const optimisticIOUReport = ReportUtils.buildOptimisticIOUReport(recipientEmail, managerEmail, amount, chatReport.reportID, currency, preferredLocale, true);
 
-    const optimisticTransaction = TransactionUtils.buildOptimisticTransaction(amount * 100, currency, comment);
+    const optimisticTransaction = TransactionUtils.buildOptimisticTransaction(amount * 100, currency, optimisticIOUReport.reportID, comment);
     const optimisticTransactionData = {
         onyxMethod: Onyx.METHOD.MERGE,
         key: `${ONYXKEYS.COLLECTION.TRANSACTION}${optimisticTransaction.transactionID}`,
@@ -902,7 +908,7 @@ function getSendMoneyParams(report, amount, currency, comment, paymentMethodType
  * @returns {Object}
  */
 function getPayMoneyRequestParams(chatReport, iouReport, recipient, paymentMethodType) {
-    const optimisticTransaction = TransactionUtils.buildOptimisticTransaction(iouReport.total, iouReport.currency);
+    const optimisticTransaction = TransactionUtils.buildOptimisticTransaction(iouReport.total, iouReport.currency, iouReport.reportID);
     const optimisticIOUReportAction = ReportUtils.buildOptimisticIOUReportAction(
         CONST.IOU.REPORT_ACTION_TYPE.PAY,
         iouReport.total,
