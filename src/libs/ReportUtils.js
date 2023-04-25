@@ -771,14 +771,14 @@ function getDisplayNameForParticipant(login, shouldUseShortForm = false) {
     if (!login) {
         return '';
     }
-    const personalDetails = getPersonalDetailsForLogin(login);
 
-    const loginWithoutSMSDomain = Str.removeSMSDomain(personalDetails.login);
-    let longName = personalDetails.displayName || loginWithoutSMSDomain;
+    const loginWithoutSMSDomain = Str.removeSMSDomain(login);
+    const personalDetails = getPersonalDetailsForLogin(login);
+    let longName = (personalDetails && personalDetails.displayName) || loginWithoutSMSDomain;
     if (longName === loginWithoutSMSDomain && Str.isSMSLogin(longName)) {
         longName = LocalePhoneNumber.formatPhoneNumber(longName);
     }
-    const shortName = personalDetails.firstName || longName;
+    const shortName = (personalDetails && personalDetails.firstName) || longName;
 
     return shouldUseShortForm ? shortName : longName;
 }
