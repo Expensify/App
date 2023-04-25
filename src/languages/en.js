@@ -115,7 +115,7 @@ export default {
         bankAccount: 'Bank account',
         join: 'Join',
         decline: 'Decline',
-        transferBalance: 'Transfer Balance',
+        transferBalance: 'Transfer balance',
         cantFindAddress: 'Can\'t find your address? ',
         enterManually: 'Enter it manually',
         message: 'Message ',
@@ -376,10 +376,9 @@ export default {
         helpTextBeforeEmail: 'Add more ways for people to find you, and forward receipts to ',
         helpTextAfterEmail: ' from multiple email addresses.',
         pleaseVerify: 'Please verify this contact method',
-        getInTouch: 'Whenever we need to get in touch with you, we\'ll use this contact method.',
+        getInTouch: "Whenever we need to get in touch with you, we'll use this contact method.",
         enterMagicCode: ({contactMethod}) => `Please enter the magic code sent to ${contactMethod}`,
-        yourDefaultContactMethod:
-            'This is your current default contact method. You will not be able to delete this contact method until you set an alternative default by selecting another contact method and pressing “Set as default”.',
+        yourDefaultContactMethod: 'This is your current default contact method. You will not be able to delete this contact method until you set an alternative default by selecting another contact method and pressing “Set as default”.',
         removeContactMethod: 'Remove contact method',
         removeAreYouSure: 'Are you sure you want to remove this contact method? This action cannot be undone.',
         resendMagicCode: 'Resend magic code',
@@ -460,8 +459,7 @@ export default {
         reasonForLeavingPrompt: 'We’d hate to see you go! Would you kindly tell us why, so we can improve?',
         enterMessageHere: 'Enter message here',
         closeAccountWarning: 'Closing your account cannot be undone.',
-        closeAccountPermanentlyDeleteData:
-            'This will permanently delete all of your unsubmitted expense data and will cancel and decline any outstanding money requests. Are you sure you want to delete the account?',
+        closeAccountPermanentlyDeleteData: 'This will permanently delete all of your unsubmitted expense data and will cancel and decline any outstanding money requests. Are you sure you want to delete the account?',
         enterDefaultContactToConfirm: 'Please type your default contact method to confirm you wish to close your account. Your default contact method is:',
         enterDefaultContact: 'Enter your default contact method',
         defaultContact: 'Default contact method:',
@@ -607,7 +605,7 @@ export default {
         phrase6: 'licenses',
     },
     validateCodeForm: {
-        magicCodeNotReceived: 'Didn\'t receive a magic code?',
+        magicCodeNotReceived: "Didn't receive a magic code?",
         enterAuthenticatorCode: 'Please enter your authenticator code',
         twoFactorCode: 'Two factor code',
         requiredWhen2FAEnabled: 'Required when 2FA is enabled',
@@ -632,8 +630,7 @@ export default {
             incorrect2fa: 'Incorrect two factor authentication code. Please try again.',
             twoFactorAuthenticationEnabled: 'You have 2FA enabled on this account. Please sign in using your email or phone number.',
             invalidLoginOrPassword: 'Invalid login or password. Please try again or reset your password.',
-            unableToResetPassword:
-                'We were unable to change your password. This is likely due to an expired password reset link in an old password reset email. We have emailed you a new link so you can try again. Check your Inbox and your Spam folder; it should arrive in just a few minutes.',
+            unableToResetPassword: 'We were unable to change your password. This is likely due to an expired password reset link in an old password reset email. We have emailed you a new link so you can try again. Check your Inbox and your Spam folder; it should arrive in just a few minutes.',
             noAccess: 'You do not have access to this application. Please add your GitHub username for access.',
             accountLocked: 'Your account has been locked after too many unsuccessful attempts. Please try again after 1 hour.',
             fallback: 'Something went wrong. Please try again later.',
@@ -694,7 +691,7 @@ export default {
         chatYouLookingForCannotBeFound: 'The chat you are looking for cannot be found.',
         getMeOutOfHere: 'Get me out of here',
         iouReportNotFound: 'The payment details you are looking for cannot be found.',
-        notHere: 'Hmm... it\'s not here',
+        notHere: "Hmm... it's not here",
         pageNotFound: 'That page is nowhere to be found.',
         noAccess: 'You don\'t have access to this chat',
         goBackHome: 'Go back to Home page',
@@ -721,8 +718,7 @@ export default {
         toGetStarted: 'Add a bank account and issue corporate cards, reimburse expenses, collect invoice payments, and pay bills, all from one place.',
         plaidBodyCopy: 'Give your employees an easier way to pay - and get paid back - for company expenses.',
         checkHelpLine: 'Your routing number and account number can be found on a check for the account.',
-        validateAccountError:
-            'In order to finish setting up your bank account, you must validate your account. Please check your email to validate your account, and return here to finish up!',
+        validateAccountError: 'In order to finish setting up your bank account, you must validate your account. Please check your email to validate your account, and return here to finish up!',
         hasPhoneLoginError: 'To add a verified bank account please ensure your primary login is a valid email and try again. You can add your phone number as a secondary login.',
         hasBeenThrottledError: 'There was an error adding your bank account. Please wait a few minutes and try again.',
         buttonConfirm: 'Got it',
@@ -857,24 +853,23 @@ export default {
             customerServiceDetails: 'There are no customer service fees.',
             inactivityDetails: 'There is no inactivity fee.',
             sendingFundsTitle: 'Sending funds to another account holder',
-            sendingFundsDetails: 'There is no fee to send funds to another account holder using your balance, ' + 'bank account, or debit card.',
-            electronicFundsStandardDetails:
-                'There is no fee to transfer funds from your Expensify Wallet '
+            sendingFundsDetails: 'There is no fee to send funds to another account holder using your balance, '
+                + 'bank account, or debit card.',
+            electronicFundsStandardDetails: 'There is no fee to transfer funds from your Expensify Wallet '
                 + 'to your bank account using the standard option. This transfer usually completes within 1-3 business'
                 + ' days.',
-            electronicFundsInstantDetails:
-                'There is a fee to transfer funds from your Expensify Wallet to '
+            electronicFundsInstantDetails: 'There is a fee to transfer funds from your Expensify Wallet to '
                 + 'your linked debit card using the instant transfer option. This transfer usually completes within '
                 + 'several minutes. The fee is 1.5% of the transfer amount (with a minimum fee of $0.25).',
-            fdicInsuranceBancorp:
-                'Your funds are eligible for FDIC insurance. Your funds will be held at or '
+            fdicInsuranceBancorp: 'Your funds are eligible for FDIC insurance. Your funds will be held at or '
                 + 'transferred to The Bancorp Bank, an FDIC-insured institution. Once there, your funds are insured up '
                 + 'to $250,000 by the FDIC in the event The Bancorp Bank fails. See',
             fdicInsuranceBancorp2: 'for details.',
             contactExpensifyPayments: 'Contact Expensify Payments by calling +1 833-400-0904, by email at',
             contactExpensifyPayments2: 'or sign in at',
             generalInformation: 'For general information about prepaid accounts, visit',
-            generalInformation2: 'If you have a complaint about a prepaid account, call the Consumer Financial ' + 'Protection Bureau at 1-855-411-2372 or visit',
+            generalInformation2: 'If you have a complaint about a prepaid account, call the Consumer Financial '
+                + 'Protection Bureau at 1-855-411-2372 or visit',
             printerFriendlyView: 'View printer-friendly version',
             automated: 'Automated',
             liveAgent: 'Live Agent',
@@ -935,8 +930,7 @@ export default {
         letsChatText: 'Thanks for doing that. We need your help verifying a few pieces of information, but we can work this out quickly over chat. Ready?',
         letsChatTitle: 'Let\'s chat!',
         enable2FATitle: 'Prevent fraud, enable two-factor authentication!',
-        enable2FAText:
-            'We take your security seriously, so please set up two-factor authentication for your account now. That will allow us to dispute Expensify Card digital transactions, and will reduce your risk for fraud.',
+        enable2FAText: 'We take your security seriously, so please set up two-factor authentication for your account now. That will allow us to dispute Expensify Card digital transactions, and will reduce your risk for fraud.',
         secureYourAccount: 'Secure your account',
     },
     beneficialOwnersStep: {
@@ -1032,7 +1026,7 @@ export default {
             captureNoVBACopyAfterEmail: ' and download the Expensify App to track cash expenses on the go.',
             unlockNoVBACopy: 'Connect a bank account to reimburse your workspace members online.',
             fastReimbursementsVBACopy: 'You\'re all set to reimburse receipts from your bank account!',
-            updateCustomUnitError: 'Your changes couldn\'t be saved. The workspace was modified while you were offline, please try again.',
+            updateCustomUnitError: "Your changes couldn't be saved. The workspace was modified while you were offline, please try again.",
         },
         bills: {
             manageYourBills: 'Manage your bills',
@@ -1088,13 +1082,11 @@ export default {
         },
         bankAccount: {
             continueWithSetup: 'Continue with setup',
-            youreAlmostDone:
-                'You\'re almost done setting up your bank account, which will let you issue corporate cards, reimburse expenses, collect invoices, and pay bills all from the same bank account.',
+            youreAlmostDone: 'You\'re almost done setting up your bank account, which will let you issue corporate cards, reimburse expenses, collect invoices, and pay bills all from the same bank account.',
             streamlinePayments: 'Streamline payments',
             oneMoreThing: 'One more thing!',
             allSet: 'You\'re all set!',
-            accountDescriptionNoCards:
-                'This bank account will be used to reimburse expenses, collect invoices, and pay bills all from the same account.\n\nPlease add a work email address as a secondary login to enable the Expensify Card.',
+            accountDescriptionNoCards: 'This bank account will be used to reimburse expenses, collect invoices, and pay bills all from the same account.\n\nPlease add a work email address as a secondary login to enable the Expensify Card.',
             accountDescriptionWithCards: 'This bank account will be used to issue corporate cards, reimburse expenses, collect invoices, and pay bills all from the same account.',
             addWorkEmail: 'Add work email address',
             letsFinishInChat: 'Let\'s finish in chat!',
