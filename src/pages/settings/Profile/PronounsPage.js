@@ -81,29 +81,32 @@ class PronounsPage extends Component {
     loadPronouns() {
         const currentPronouns = lodashGet(this.props.currentUserPersonalDetails, 'pronouns', '');
 
-        this.pronounsList = _.map(this.props.translate('pronouns'), (value, key) => {
-            const fullPronounKey = `${CONST.PRONOUNS.PREFIX}${key}`;
-            const isCurrentPronouns = fullPronounKey === currentPronouns;
+        this.pronounsList = _.chain(this.props.translate('pronouns'))
+            .map((value, key) => {
+                const fullPronounKey = `${CONST.PRONOUNS.PREFIX}${key}`;
+                const isCurrentPronouns = fullPronounKey === currentPronouns;
 
-            if (isCurrentPronouns) {
-                this.initiallyFocusedOption = {
+                if (isCurrentPronouns) {
+                    this.initiallyFocusedOption = {
+                        text: value,
+                        keyForList: key,
+                    };
+                }
+
+                return {
                     text: value,
+                    value: fullPronounKey,
                     keyForList: key,
+
+                    // Include the green checkmark icon to indicate the currently selected value
+                    customIcon: isCurrentPronouns ? greenCheckmark : undefined,
+
+                    // This property will make the currently selected value have bold text
+                    boldStyle: isCurrentPronouns,
                 };
-            }
-
-            return {
-                text: value,
-                value: fullPronounKey,
-                keyForList: key,
-
-                // Include the green checkmark icon to indicate the currently selected value
-                customIcon: isCurrentPronouns ? greenCheckmark : undefined,
-
-                // This property will make the currently selected value have bold text
-                boldStyle: isCurrentPronouns,
-            };
-        });
+            })
+            .sortBy(pronoun => pronoun.text.toLowerCase())
+            .value();
     }
 
     /**

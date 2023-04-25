@@ -50,7 +50,7 @@ class MoneyRequestDescriptionPage extends Component {
 
     render() {
         return (
-            <ScreenWrapper includeSafeAreaPaddingBottom={false}>
+            <ScreenWrapper includeSafeAreaPaddingBottom={false} shouldEnableMaxHeight>
                 <HeaderWithBackButton
                     title={this.props.translate('common.description')}
                     onBackButtonPress={Navigation.goBack}

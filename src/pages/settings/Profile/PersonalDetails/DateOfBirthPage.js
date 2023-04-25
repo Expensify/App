@@ -117,7 +117,6 @@ class DateOfBirthPage extends Component {
                     enabledWhenOffline
                 >
                     <NewDatePicker
-                        autoFocus
                         inputID="dob"
                         label={this.props.translate('common.date')}
                         defaultValue={privateDetails.dob || ''}

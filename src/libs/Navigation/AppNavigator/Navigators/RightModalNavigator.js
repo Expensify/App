@@ -89,6 +89,11 @@ function RigthModalNavigator() {
                 options={defaultModalScreenOptions}
                 component={ModalStackNavigators.YearPickerStackNavigator}
             />
+            <Stack.Screen
+                name="NewTask"
+                options={defaultModalScreenOptions}
+                component={ModalStackNavigators.NewTaskModalStackNavigator}
+            />
         </Stack.Navigator>
     );
 }

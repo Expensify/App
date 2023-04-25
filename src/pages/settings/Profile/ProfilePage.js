@@ -1,4 +1,3 @@
-import Str from 'expensify-common/lib/str';
 import lodashGet from 'lodash/get';
 import React from 'react';
 import {View} from 'react-native';
@@ -65,7 +64,7 @@ const ProfilePage = (props) => {
         },
         {
             description: props.translate('contacts.contactMethod'),
-            title: Str.removeSMSDomain(lodashGet(currentUserDetails, 'login', '')),
+            title: props.formatPhoneNumber(lodashGet(currentUserDetails, 'login', '')),
             pageRoute: ROUTES.SETTINGS_CONTACT_METHODS,
             brickRoadIndicator: contactMethodBrickRoadIndicator,
         },

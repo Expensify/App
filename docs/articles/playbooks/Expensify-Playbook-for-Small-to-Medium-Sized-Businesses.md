@@ -31,7 +31,7 @@ To create your Control Policy:
 2. Select *Group* and click the button that says *New Policy*
 3. Click *Select* under Control
 
-The Control Plan also gives you access to a dedicated Setup Specialist. You can find yours by looking at your policy's *#admins* room in [new.expensify.com](https://new.expensify.com), and in your company’s policy settings in the *Overview* tab, where you can chat with them and schedule an onboarding call to walk through any setup questions. The Control Plan bundled with the Expensify Card is only *$9 per user per month* (not taking into account cashback your earn) when you commit annually. That’s a 75% discount off the unbundled price point if you choose to use a different Corporate Card (or no) provider.
+The Control Plan also gives you access to a dedicated Setup Specialist. You can find yours by looking at your policy's *#admins* room in [new.expensify.com](https://new.expensify.com), and in your company’s policy settings in the *Overview* tab, where you can chat with them and schedule an onboarding call to walk through any setup questions. The Control Plan bundled with the Expensify Card is only *$9 per user per month* (not taking into account cash back your earn) when you commit annually. That’s a 75% discount off the unbundled price point if you choose to use a different Corporate Card (or no) provider.
 
 ## Step 3: Connect your accounting system
 As a small to medium-sized business, it's important to maintain proper spend management to ensure the success and stability of your organization. This requires paying close attention to your expenses, streamlining your financial processes, and making sure that your financial information is accurate, compliant, and transparent. Include best practices such as:
@@ -173,7 +173,7 @@ As mentioned above, we’ll be able to pull in transactions as they post (daily)
 #### If you don't have a corporate card, use the Expensify Card (US only)
 Expensify provides a corporate card with the following features:
 
-- 2% cashback on all card spend, no strings attached 
+- Up to 2% cash back (up to 4% in your first 3 months!)
 - [SmartLimits](https://community.expensify.com/discussion/4851/deep-dive-what-are-unapproved-expense-limits#latest) to control what each individual cardholder can spend
 - A stable, unbreakable real-time connection (third-party bank feeds can run into connectivity issues)
 - Receipt compliance - informing notifications (eg. add a receipt!) for users *as soon as the card is swiped*

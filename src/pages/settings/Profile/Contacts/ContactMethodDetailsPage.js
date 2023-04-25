@@ -111,7 +111,7 @@ class ContactMethodDetailsPage extends Component {
      */
     deleteContactMethod() {
         if (!_.isEmpty(lodashGet(this.props.loginList, [this.getContactMethod(), 'errorFields'], {}))) {
-            User.deleteContactMethod(this.getContactMethod());
+            User.deleteContactMethod(this.getContactMethod(), this.props.loginList);
             return;
         }
         this.toggleDeleteModal(true);
@@ -130,7 +130,7 @@ class ContactMethodDetailsPage extends Component {
      */
     confirmDeleteAndHideModal() {
         this.toggleDeleteModal(false);
-        User.deleteContactMethod(this.getContactMethod());
+        User.deleteContactMethod(this.getContactMethod(), this.props.loginList);
     }
 
     /**
@@ -156,6 +156,12 @@ class ContactMethodDetailsPage extends Component {
 
     render() {
         const contactMethod = this.getContactMethod();
+
+        // replacing spaces with "hard spaces" to prevent breaking the number
+        const formattedContactMethod = Str.isSMSLogin(contactMethod)
+            ? this.props.formatPhoneNumber(contactMethod).replace(/ /g, '\u00A0')
+            : contactMethod;
+
         const loginData = this.props.loginList[contactMethod];
         if (!contactMethod || !loginData) {
             return <NotFoundPage />;
@@ -169,7 +175,7 @@ class ContactMethodDetailsPage extends Component {
         return (
             <ScreenWrapper>
                 <HeaderWithBackButton
-                    title={Str.removeSMSDomain(contactMethod)}
+                    title={formattedContactMethod}
                     onBackButtonPress={Navigation.goBack}
                 />
                 <ScrollView keyboardShouldPersistTaps="handled">
@@ -189,7 +195,7 @@ class ContactMethodDetailsPage extends Component {
                                 <Icon src={Expensicons.DotIndicator} fill={colors.green} />
                                 <View style={[styles.flex1, styles.ml4]}>
                                     <Text>
-                                        {this.props.translate('contacts.enterMagicCode', {contactMethod})}
+                                        {this.props.translate('contacts.enterMagicCode', {contactMethod: formattedContactMethod})}
                                     </Text>
                                 </View>
                             </View>
