@@ -84,6 +84,9 @@ describe('actions/IOU', () => {
                             // The CREATED action should not be created after the IOU action
                             expect(Date.parse(createdAction.created)).toBeLessThanOrEqual(Date.parse(iouAction.created));
 
+                            // The IOUReportID should be correct
+                            expect(iouAction.originalMessage.IOUReportID).toBe(iouReportID);
+
                             // The comment should be included in the IOU action
                             expect(iouAction.originalMessage.comment).toBe(comment);
 
@@ -214,6 +217,9 @@ describe('actions/IOU', () => {
 
                             // The CREATED action should not be created after the IOU action
                             expect(Date.parse(createdAction.created)).toBeLessThanOrEqual(Date.parse(iouAction.created));
+
+                            // The IOUReportID should be correct
+                            expect(iouAction.originalMessage.IOUReportID).toBe(iouReportID);
 
                             // The comment should be included in the IOU action
                             expect(iouAction.originalMessage.comment).toBe(comment);
@@ -375,6 +381,9 @@ describe('actions/IOU', () => {
                             expect(_.size(reportActionsForChatReport)).toBe(3);
                             newIOUAction = _.find(reportActionsForChatReport, reportAction => reportAction.reportActionID !== createdAction.reportActionID && reportAction.reportActionID !== iouAction.reportActionID);
 
+                            // The IOUReportID should be correct
+                            expect(iouAction.originalMessage.IOUReportID).toBe(iouReportID);
+
                             // The comment should be included in the IOU action
                             expect(newIOUAction.originalMessage.comment).toBe(comment);
 
@@ -498,6 +507,9 @@ describe('actions/IOU', () => {
 
                             // The CREATED action should not be created after the IOU action
                             expect(Date.parse(createdAction.created)).toBeLessThanOrEqual(Date.parse(iouAction.created));
+
+                            // The IOUReportID should be correct
+                            expect(iouAction.originalMessage.IOUReportID).toBe(iouReportID);
 
                             // The comment should be included in the IOU action
                             expect(iouAction.originalMessage.comment).toBe(comment);
@@ -775,6 +787,7 @@ describe('actions/IOU', () => {
                             expect(carlosReportActions[carlosCreatedAction.reportActionID]).toStrictEqual(carlosCreatedAction);
                             carlosIOUAction = _.find(carlosReportActions, reportAction => reportAction.actionName === CONST.REPORT.ACTIONS.TYPE.IOU);
                             expect(carlosIOUAction.pendingAction).toBe(CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD);
+                            expect(carlosIOUAction.originalMessage.IOUReportID).toBe(carlosIOUReport.reportID);
                             expect(carlosIOUAction.originalMessage.amount).toBe(amountInCents / 4);
                             expect(carlosIOUAction.originalMessage.comment).toBe(comment);
                             expect(carlosIOUAction.originalMessage.type).toBe(CONST.IOU.REPORT_ACTION_TYPE.CREATE);
@@ -788,6 +801,7 @@ describe('actions/IOU', () => {
                                 && reportAction.reportActionID !== julesExistingIOUAction.reportActionID
                             ));
                             expect(julesIOUAction.pendingAction).toBe(CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD);
+                            expect(julesIOUAction.originalMessage.IOUReportID).toBe(julesIOUReport.reportID);
                             expect(julesIOUAction.originalMessage.amount).toBe(amountInCents / 4);
                             expect(julesIOUAction.originalMessage.comment).toBe(comment);
                             expect(julesIOUAction.originalMessage.type).toBe(CONST.IOU.REPORT_ACTION_TYPE.CREATE);
@@ -799,6 +813,7 @@ describe('actions/IOU', () => {
                             vitIOUAction = _.find(vitReportActions, reportAction => reportAction.actionName === CONST.REPORT.ACTIONS.TYPE.IOU);
                             expect(vitCreatedAction.pendingAction).toBe(CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD);
                             expect(vitIOUAction.pendingAction).toBe(CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD);
+                            expect(vitIOUAction.originalMessage.IOUReportID).toBe(vitIOUReport.reportID);
                             expect(vitIOUAction.originalMessage.amount).toBe(amountInCents / 4);
                             expect(vitIOUAction.originalMessage.comment).toBe(comment);
                             expect(vitIOUAction.originalMessage.type).toBe(CONST.IOU.REPORT_ACTION_TYPE.CREATE);
@@ -810,6 +825,7 @@ describe('actions/IOU', () => {
                             groupIOUAction = _.find(groupReportActions, reportAction => reportAction.actionName === CONST.REPORT.ACTIONS.TYPE.IOU);
                             expect(groupCreatedAction.pendingAction).toBe(CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD);
                             expect(groupIOUAction.pendingAction).toBe(CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD);
+                            expect(groupIOUAction.originalMessage).not.toHaveProperty('IOUReportID');
                             expect(groupIOUAction.originalMessage.type).toBe(CONST.IOU.REPORT_ACTION_TYPE.SPLIT);
                             expect(Date.parse(groupCreatedAction.created)).toBeLessThanOrEqual(Date.parse(groupIOUAction.created));
 
