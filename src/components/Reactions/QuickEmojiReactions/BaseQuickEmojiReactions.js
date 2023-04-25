@@ -55,7 +55,7 @@ const BaseQuickEmojiReactions = props => (
                     emojiCodes={[getPreferredEmojiCode(emoji, props.preferredSkinTone)]}
                     isContextMenu
                     onPress={() => {
-                        props.onEmojiSelected(emoji);
+                        props.onEmojiSelected(emoji, props.reactions);
                     }}
                 />
             </Tooltip>
@@ -75,6 +75,9 @@ BaseQuickEmojiReactions.defaultProps = defaultProps;
 export default withOnyx({
     preferredSkinTone: {
         key: ONYXKEYS.PREFERRED_EMOJI_SKIN_TONE,
+    },
+    reactions: {
+        key: ({reportID, reportActionID}) => `${ONYXKEYS.COLLECTION.REPORT_ACTIONS_REACTIONS}${reportID}${reportActionID}`,
     },
 })(BaseQuickEmojiReactions);
 

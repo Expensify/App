@@ -55,7 +55,7 @@ const MiniQuickEmojiReactions = (props) => {
         EmojiPickerAction.showEmojiPicker(
             props.onEmojiPickerClosed,
             (emojiCode, emojiObject) => {
-                props.onEmojiSelected(emojiObject);
+                props.onEmojiSelected(emojiObject, props.reactions);
             },
             ref.current,
         );
@@ -105,6 +105,9 @@ export default compose(
     withOnyx({
         preferredSkinTone: {
             key: ONYXKEYS.PREFERRED_EMOJI_SKIN_TONE,
+        },
+        reactions: {
+            key: ({reportID, reportActionID}) => `${ONYXKEYS.COLLECTION.REPORT_ACTIONS_REACTIONS}${reportID}${reportActionID}`,
         },
     }),
 )(MiniQuickEmojiReactions);

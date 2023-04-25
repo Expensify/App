@@ -1440,6 +1440,8 @@ function addEmojiReaction2(reportID, reportActionID, emoji, skinTone = preferred
             },
         },
     ];
+    Onyx.update(optimisticData);
+    return;
     const parameters = {
         reportID,
         skinTone,
@@ -1483,6 +1485,8 @@ function removeEmojiReaction2(reportID, reportActionID, emoji, existingReactions
         },
     ];
 
+    Onyx.update(optimisticData);
+    return;
     const parameters = {
         reportID,
         reportActionID,
