@@ -29,7 +29,9 @@ const bigWrapperStyle = [
  * @returns {Array}
  */
 function getReportActionContextMenuStyles(isMini, isSmallScreenWidth) {
-    return isMini ? miniWrapperStyle : [...bigWrapperStyle, !isSmallScreenWidth && styles.pv3];
+    // For the bottom_docked modal type, we have defined default paddings in getBaseModalStyles file, so there is no need to add vertical padding for small screen width
+    // When popover modal type, then only Need to pass vertical padding.
+    return isMini ? miniWrapperStyle : [...bigWrapperStyle, isSmallScreenWidth ? {} : styles.pv3];
 }
 
 export default getReportActionContextMenuStyles;
