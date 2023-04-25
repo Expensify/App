@@ -20,6 +20,16 @@ class AppleSignInScript extends React.Component {
         };
 
         document.body.appendChild(script);
+        document.addEventListener('AppleIDSignInOnSuccess', (event) => {
+            // Handle successful response.
+            console.log(event.detail.data);
+        });
+
+        // Listen for authorization failures.
+        document.addEventListener('AppleIDSignInOnFailure', (event) => {
+            // Handle error.
+            console.log(event.detail.error);
+        });
 
         this.cleanupScript = () => {
             // Remove the script from the DOM when the component unmounts

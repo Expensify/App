@@ -212,8 +212,9 @@ class LoginForm extends React.Component {
                                 isAlertVisible={!_.isEmpty(serverErrorText)}
                                 containerStyles={[styles.mh0]}
                             />
+                            <div id="appleid-signin" data-color="black" data-border="true" data-type="sign in" />
                             <Button
-                                onPress={() => window.open('https://exptest.ngrok.io/signinwithapple')}
+                                onPress={Session.beginAppleSignIn}
 
                                 // onPress={Session.beginAppleSignIn}
                                 title="Sign in with Apple"
