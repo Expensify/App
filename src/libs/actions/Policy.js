@@ -212,6 +212,11 @@ function removeMembers(members, policyID) {
         key: membersListKey,
         value: _.object(members, Array(members.length).fill({pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE})),
     }];
+    const successData = [{
+        onyxMethod: CONST.ONYX.METHOD.MERGE,
+        key: membersListKey,
+        value: _.object(members, Array(members.length).fill(null)),
+    }];
     const failureData = [{
         onyxMethod: CONST.ONYX.METHOD.MERGE,
         key: membersListKey,
@@ -220,7 +225,7 @@ function removeMembers(members, policyID) {
     API.write('DeleteMembersFromWorkspace', {
         emailList: members.join(','),
         policyID,
-    }, {optimisticData, failureData});
+    }, {optimisticData, successData, failureData});
 }
 
 /**
@@ -619,7 +624,7 @@ function hideWorkspaceAlertMessage(policyID) {
 function updateWorkspaceCustomUnit(policyID, currentCustomUnit, newCustomUnit, lastModified) {
     const optimisticData = [
         {
-            onyxMethod: 'merge',
+            onyxMethod: CONST.ONYX.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
             value: {
                 customUnits: {
@@ -634,7 +639,7 @@ function updateWorkspaceCustomUnit(policyID, currentCustomUnit, newCustomUnit, l
 
     const successData = [
         {
-            onyxMethod: 'merge',
+            onyxMethod: CONST.ONYX.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
             value: {
                 customUnits: {
@@ -649,7 +654,7 @@ function updateWorkspaceCustomUnit(policyID, currentCustomUnit, newCustomUnit, l
 
     const failureData = [
         {
-            onyxMethod: 'merge',
+            onyxMethod: CONST.ONYX.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
             value: {
                 customUnits: {
@@ -657,9 +662,6 @@ function updateWorkspaceCustomUnit(policyID, currentCustomUnit, newCustomUnit, l
                         customUnitID: currentCustomUnit.customUnitID,
                         name: currentCustomUnit.name,
                         attributes: currentCustomUnit.attributes,
-                        errors: {
-                            [DateUtils.getMicroseconds()]: Localize.translateLocal('workspace.reimburse.updateCustomUnitError'),
-                        },
                     },
                 },
             },
@@ -683,7 +685,7 @@ function updateWorkspaceCustomUnit(policyID, currentCustomUnit, newCustomUnit, l
 function updateCustomUnitRate(policyID, currentCustomUnitRate, customUnitID, newCustomUnitRate, lastModified) {
     const optimisticData = [
         {
-            onyxMethod: 'merge',
+            onyxMethod: CONST.ONYX.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
             value: {
                 customUnits: {
@@ -703,7 +705,7 @@ function updateCustomUnitRate(policyID, currentCustomUnitRate, customUnitID, new
 
     const successData = [
         {
-            onyxMethod: 'merge',
+            onyxMethod: CONST.ONYX.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
             value: {
                 customUnits: {
@@ -721,7 +723,7 @@ function updateCustomUnitRate(policyID, currentCustomUnitRate, customUnitID, new
 
     const failureData = [
         {
-            onyxMethod: 'merge',
+            onyxMethod: CONST.ONYX.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
             value: {
                 customUnits: {

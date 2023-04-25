@@ -1,12 +1,12 @@
-import {Linking, InteractionManager} from 'react-native';
+import {InteractionManager} from 'react-native';
 import _ from 'underscore';
 import lodashGet from 'lodash/get';
 import ExpensiMark from 'expensify-common/lib/ExpensiMark';
 import Onyx from 'react-native-onyx';
+import Str from 'expensify-common/lib/str';
 import ONYXKEYS from '../../ONYXKEYS';
 import * as Pusher from '../Pusher/pusher';
 import LocalNotification from '../Notification/LocalNotification';
-import PushNotification from '../Notification/PushNotification';
 import Navigation from '../Navigation/Navigation';
 import * as ActiveClientManager from '../ActiveClientManager';
 import Visibility from '../Visibility';
@@ -62,37 +62,6 @@ const typingWatchTimers = {};
  */
 function getReportChannelName(reportID) {
     return `${CONST.PUSHER.PRIVATE_REPORT_CHANNEL_PREFIX}${reportID}${CONFIG.PUSHER.SUFFIX}`;
-}
-
-/**
- * Setup reportComment push notification callbacks.
- */
-function subscribeToReportCommentPushNotifications() {
-    PushNotification.onReceived(PushNotification.TYPE.REPORT_COMMENT, ({reportID, onyxData}) => {
-        Log.info('[Report] Handled event sent by Airship', false, {reportID});
-        Onyx.update(onyxData);
-    });
-
-    // Open correct report when push notification is clicked
-    PushNotification.onSelected(PushNotification.TYPE.REPORT_COMMENT, ({reportID}) => {
-        if (Navigation.canNavigate('navigate')) {
-            // If a chat is visible other than the one we are trying to navigate to, then we need to navigate back
-            if (Navigation.getActiveRoute().slice(1, 2) === ROUTES.REPORT && !Navigation.isActiveRoute(`r/${reportID}`)) {
-                Navigation.goBack();
-            }
-            Navigation.isDrawerReady()
-                .then(() => {
-                    Navigation.navigate(ROUTES.getReportRoute(reportID));
-                });
-        } else {
-            // Navigation container is not yet ready, use deeplinking to open to correct report instead
-            Navigation.setDidTapNotification();
-            Navigation.isDrawerReady()
-                .then(() => {
-                    Linking.openURL(`${CONST.DEEPLINK_BASE_URL}${ROUTES.getReportRoute(reportID)}`);
-                });
-        }
-    });
 }
 
 /**
@@ -233,9 +202,11 @@ function addActions(reportID, text = '', file) {
 
     const currentTime = DateUtils.getDBTime();
 
+    const lastCommentText = ReportUtils.formatReportLastMessageText(lastAction.message[0].text);
+
     const optimisticReport = {
         lastVisibleActionCreated: currentTime,
-        lastMessageText: ReportUtils.formatReportLastMessageText(lastAction.message[0].text),
+        lastMessageText: Str.htmlDecode(lastCommentText),
         lastActorEmail: currentUserEmail,
         lastReadTime: currentTime,
     };
@@ -554,6 +525,47 @@ function openPaymentDetailsPage(chatReportID, iouReportID) {
 }
 
 /**
+ * Gets transactions and data associated with the linked report (expense or IOU report)
+ *
+ * @param {String} chatReportID
+ * @param {String} linkedReportID
+ */
+function openMoneyRequestsReportPage(chatReportID, linkedReportID) {
+    API.read('OpenMoneyRequestsReportPage', {
+        reportID: chatReportID,
+        linkedReportID,
+    }, {
+        optimisticData: [
+            {
+                onyxMethod: CONST.ONYX.METHOD.MERGE,
+                key: ONYXKEYS.IOU,
+                value: {
+                    loading: true,
+                },
+            },
+        ],
+        successData: [
+            {
+                onyxMethod: CONST.ONYX.METHOD.MERGE,
+                key: ONYXKEYS.IOU,
+                value: {
+                    loading: false,
+                },
+            },
+        ],
+        failureData: [
+            {
+                onyxMethod: CONST.ONYX.METHOD.MERGE,
+                key: ONYXKEYS.IOU,
+                value: {
+                    loading: false,
+                },
+            },
+        ],
+    });
+}
+
+/**
  * Marks the new report actions as read
  *
  * @param {String} reportID
@@ -716,6 +728,7 @@ function deleteReportComment(reportID, reportAction) {
             pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
             previousMessage: reportAction.message,
             message: deletedMessage,
+            errors: null,
         },
     };
 
@@ -810,42 +823,42 @@ const getRemovedMarkdownLinks = (oldComment, newComment) => {
 };
 
 /**
- * Removes the links in a markdown comment.
+ * Removes the links in html of a comment.
  * example:
- *      comment="test [link](https://www.google.com) test",
+ *      html="test <a href="https://www.google.com" target="_blank" rel="noreferrer noopener">https://www.google.com</a> test"
  *      links=["https://www.google.com"]
- * returns: "test link test"
- * @param {String} comment
+ * returns: "test https://www.google.com test"
+ *
+ * @param {String} html
  * @param {Array} links
  * @returns {String}
  */
-const removeLinks = (comment, links) => {
-    let commentCopy = comment.slice();
+const removeLinksFromHtml = (html, links) => {
+    let htmlCopy = html.slice();
     _.forEach(links, (link) => {
-        const regex = new RegExp(`\\[([^\\[\\]]*)\\]\\(${link}\\)`, 'gm');
-        const linkMatch = regex.exec(commentCopy);
-        const linkText = linkMatch && linkMatch[1];
-        commentCopy = commentCopy.replace(`[${linkText}](${link})`, linkText);
+        // We want to match the anchor tag of the link and replace the whole anchor tag with the text of the anchor tag
+        const regex = new RegExp(`<(a)[^><]*href\\s*=\\s*(['"])(${Str.escapeForRegExp(link)})\\2(?:".*?"|'.*?'|[^'"><])*>([\\s\\S]*?)<\\/\\1>(?![^<]*(<\\/pre>|<\\/code>))`, 'gi');
+        htmlCopy = htmlCopy.replace(regex, '$4');
     });
-    return commentCopy;
+    return htmlCopy;
 };
 
 /**
  * This function will handle removing only links that were purposely removed by the user while editing.
+ *
  * @param {String} newCommentText text of the comment after editing.
- * @param {Array} originalHtml original html of the comment before editing
+ * @param {String} originalHtml original html of the comment before editing.
  * @returns {String}
  */
-const handleUserDeletedLinks = (newCommentText, originalHtml) => {
+const handleUserDeletedLinksInHtml = (newCommentText, originalHtml) => {
     const parser = new ExpensiMark();
     if (newCommentText.length >= CONST.MAX_MARKUP_LENGTH) {
         return newCommentText;
     }
-    const htmlWithAutoLinks = parser.replace(newCommentText);
-    const markdownWithAutoLinks = parser.htmlToMarkdown(htmlWithAutoLinks).trim();
     const markdownOriginalComment = parser.htmlToMarkdown(originalHtml).trim();
+    const htmlForNewComment = parser.replace(newCommentText);
     const removedLinks = getRemovedMarkdownLinks(markdownOriginalComment, newCommentText);
-    return removeLinks(markdownWithAutoLinks, removedLinks);
+    return removeLinksFromHtml(htmlForNewComment, removedLinks);
 };
 
 /**
@@ -862,16 +875,13 @@ function editReportComment(reportID, originalReportAction, textForNewComment) {
     // https://github.com/Expensify/App/issues/9090
     // https://github.com/Expensify/App/issues/13221
     const originalCommentHTML = lodashGet(originalReportAction, 'message[0].html');
-    const markdownForNewComment = handleUserDeletedLinks(textForNewComment, originalCommentHTML);
-
-    const autolinkFilter = {filterRules: _.filter(_.pluck(parser.rules, 'name'), name => name !== 'autolink')};
+    const htmlForNewComment = handleUserDeletedLinksInHtml(textForNewComment, originalCommentHTML);
 
     // For comments shorter than 10k chars, convert the comment from MD into HTML because that's how it is stored in the database
     // For longer comments, skip parsing and display plaintext for performance reasons. It takes over 40s to parse a 100k long string!!
-    let htmlForNewComment = markdownForNewComment;
     let parsedOriginalCommentHTML = originalCommentHTML;
-    if (markdownForNewComment.length < CONST.MAX_MARKUP_LENGTH) {
-        htmlForNewComment = parser.replace(markdownForNewComment, autolinkFilter);
+    if (textForNewComment.length < CONST.MAX_MARKUP_LENGTH) {
+        const autolinkFilter = {filterRules: _.filter(_.pluck(parser.rules, 'name'), name => name !== 'autolink')};
         parsedOriginalCommentHTML = parser.replace(parser.htmlToMarkdown(originalCommentHTML).trim(), autolinkFilter);
     }
 
@@ -896,7 +906,7 @@ function editReportComment(reportID, originalReportAction, textForNewComment) {
                 ...originalMessage,
                 isEdited: true,
                 html: htmlForNewComment,
-                text: markdownForNewComment,
+                text: textForNewComment,
             }],
         },
     };
@@ -908,6 +918,20 @@ function editReportComment(reportID, originalReportAction, textForNewComment) {
             value: optimisticReportActions,
         },
     ];
+
+    const lastVisibleAction = ReportActionsUtils.getLastVisibleAction(reportID, optimisticReportActions);
+    if (reportActionID === lastVisibleAction.reportActionID) {
+        const reportComment = parser.htmlToText(htmlForNewComment);
+        const lastMessageText = ReportUtils.formatReportLastMessageText(reportComment);
+        const optimisticReport = {
+            lastMessageText: Str.htmlDecode(lastMessageText),
+        };
+        optimisticData.push({
+            onyxMethod: CONST.ONYX.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
+            value: optimisticReport,
+        });
+    }
 
     const failureData = [
         {
@@ -1161,50 +1185,70 @@ function setIsComposerFullSize(reportID, isComposerFullSize) {
 
 /**
  * @param {String} reportID
- * @param {Object} action
+ * @param {Object} action the associated report action (optional)
+ * @param {Boolean} isRemote whether or not this notification is a remote push notification
+ * @returns {Boolean}
  */
-function showReportActionNotification(reportID, action) {
-    if (ReportActionsUtils.isDeletedAction(action)) {
-        Log.info('[LOCAL_NOTIFICATION] Skipping notification because the action was deleted', false, {reportID, action});
-        return;
+function shouldShowReportActionNotification(reportID, action = null, isRemote = false) {
+    const tag = isRemote ? '[PushNotification]' : '[LocalNotification]';
+
+    // Due to payload size constraints, some push notifications may have their report action stripped
+    // so we must double check that we were provided an action before using it in these checks.
+    if (action && ReportActionsUtils.isDeletedAction(action)) {
+        Log.info(`${tag} Skipping notification because the action was deleted`, false, {reportID, action});
+        return false;
     }
 
     if (!ActiveClientManager.isClientTheLeader()) {
-        Log.info('[LOCAL_NOTIFICATION] Skipping notification because this client is not the leader');
-        return;
+        Log.info(`${tag} Skipping notification because this client is not the leader`);
+        return false;
     }
 
     // We don't want to send a local notification if the user preference is daily or mute
     const notificationPreference = lodashGet(allReports, [reportID, 'notificationPreference'], CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS);
     if (notificationPreference === CONST.REPORT.NOTIFICATION_PREFERENCE.MUTE || notificationPreference === CONST.REPORT.NOTIFICATION_PREFERENCE.DAILY) {
-        Log.info(`[LOCAL_NOTIFICATION] No notification because user preference is to be notified: ${notificationPreference}`);
-        return;
+        Log.info(`${tag} No notification because user preference is to be notified: ${notificationPreference}`);
+        return false;
     }
 
     // If this comment is from the current user we don't want to parrot whatever they wrote back to them.
-    if (action.actorAccountID === currentUserAccountID) {
-        Log.info('[LOCAL_NOTIFICATION] No notification because comment is from the currently logged in user');
-        return;
+    if (action && action.actorAccountID === currentUserAccountID) {
+        Log.info(`${tag} No notification because comment is from the currently logged in user`);
+        return false;
     }
 
     // If we are currently viewing this report do not show a notification.
     if (reportID === Navigation.getReportIDFromRoute() && Visibility.isVisible()) {
-        Log.info('[LOCAL_NOTIFICATION] No notification because it was a comment for the current report', false, {currentReport: Navigation.getReportIDFromRoute(), reportID, action});
-        return;
+        Log.info(`${tag} No notification because it was a comment for the current report`);
+        return false;
     }
 
-    // If the comment came from Concierge let's not show a notification since we already show one for expensify.com
-    if (lodashGet(action, 'actorEmail') === CONST.EMAIL.CONCIERGE) {
-        return;
+    // If this notification was delayed and the user saw the message already, don't show it
+    const report = allReports[reportID];
+    if (action && report && report.lastReadTime >= action.created) {
+        Log.info(`${tag} No notification because the comment was already read`, false, {created: action.created, lastReadTime: report.lastReadTime});
+        return false;
     }
 
     // Don't show a notification if no comment exists
-    if (!_.some(action.message, f => f.type === 'COMMENT')) {
-        Log.info('[LOCAL_NOTIFICATION] No notification because no comments exist for the current action');
+    if (action && !_.some(action.message, f => f.type === 'COMMENT')) {
+        Log.info(`${tag} No notification because no comments exist for the current action`);
+        return false;
+    }
+
+    return true;
+}
+
+/**
+ * @param {String} reportID
+ * @param {Object} action
+ */
+function showReportActionNotification(reportID, action) {
+    if (!shouldShowReportActionNotification(reportID, action)) {
         return;
     }
 
-    Log.info('[LOCAL_NOTIFICATION] Creating notification');
+    Log.info('[LocalNotification] Creating notification');
     LocalNotification.showCommentNotification({
         reportAction: action,
         onClick: () => {
@@ -1422,14 +1466,13 @@ export {
     reconnect,
     updateNotificationPreference,
     subscribeToReportTypingEvents,
-    subscribeToReportCommentPushNotifications,
     unsubscribeFromReportChannel,
     saveReportComment,
     saveReportCommentNumberOfLines,
     broadcastUserIsTyping,
     togglePinnedState,
     editReportComment,
-    handleUserDeletedLinks,
+    handleUserDeletedLinksInHtml,
     saveReportActionDraft,
     saveReportActionDraftNumberOfLines,
     deleteReportComment,
@@ -1445,6 +1488,7 @@ export {
     openReportFromDeepLink,
     navigateToAndOpenReport,
     openPaymentDetailsPage,
+    openMoneyRequestsReportPage,
     updatePolicyRoomName,
     clearPolicyRoomNameErrors,
     clearIOUError,
@@ -1455,4 +1499,5 @@ export {
     toggleEmojiReaction,
     hasAccountIDReacted,
     getCurrentUserAccountID,
+    shouldShowReportActionNotification,
 };

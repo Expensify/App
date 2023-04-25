@@ -20,8 +20,6 @@ import compose from '../../libs/compose';
 import ONYXKEYS from '../../ONYXKEYS';
 import getPreferredEmojiCode from './getPreferredEmojiCode';
 
-const ICON_SIZE_SCALE_FACTOR = 1.3;
-
 const propTypes = {
     ...baseQuickEmojiReactionsPropTypes,
 
@@ -73,8 +71,8 @@ const MiniQuickEmojiReactions = (props) => {
                     onPress={() => props.onEmojiSelected(emoji)}
                 >
                     <Text style={[
-                        styles.emojiReactionText,
-                        StyleUtils.getEmojiReactionTextStyle(ICON_SIZE_SCALE_FACTOR),
+                        styles.miniQuickEmojiReactionText,
+                        styles.userSelectNone,
                     ]}
                     >
                         {getPreferredEmojiCode(emoji, props.preferredSkinTone)}

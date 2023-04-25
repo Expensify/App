@@ -25,8 +25,8 @@ const participantsPersonalDetails = {
         login: 'lagertha@vikings.net',
         pronouns: 'She/her',
     },
-    '+12223334444@expensify.sms': {
-        login: '+12223334444@expensify.sms',
+    '+18332403627@expensify.sms': {
+        login: '+18332403627@expensify.sms',
     },
 };
 const policy = {
@@ -42,7 +42,7 @@ Onyx.init({keys: ONYXKEYS});
 beforeAll(() => waitForPromisesToResolve()
     .then(() => Onyx.set(ONYXKEYS.PERSONAL_DETAILS, participantsPersonalDetails))
     .then(() => Onyx.set(ONYXKEYS.SESSION, {email: currentUserEmail})));
-beforeEach(() => Onyx.set(ONYXKEYS.NVP_PREFERRED_LOCALE, CONST.DEFAULT_LOCALE).then(waitForPromisesToResolve));
+beforeEach(() => Onyx.set(ONYXKEYS.NVP_PREFERRED_LOCALE, CONST.LOCALES.DEFAULT).then(waitForPromisesToResolve));
 
 describe('ReportUtils', () => {
     describe('getDisplayNamesWithTooltips', () => {
@@ -64,8 +64,8 @@ describe('ReportUtils', () => {
                     pronouns: 'She/her',
                 },
                 {
-                    displayName: '2223334444',
-                    tooltip: '+12223334444',
+                    displayName: '(833) 240-3627',
+                    tooltip: '+18332403627',
                     pronouns: undefined,
                 },
             ]);
@@ -89,8 +89,8 @@ describe('ReportUtils', () => {
                     pronouns: 'She/her',
                 },
                 {
-                    displayName: '2223334444',
-                    tooltip: '+12223334444',
+                    displayName: '(833) 240-3627',
+                    tooltip: '+18332403627',
                     pronouns: undefined,
                 },
             ]);
@@ -113,15 +113,15 @@ describe('ReportUtils', () => {
 
             test('SMS', () => {
                 expect(ReportUtils.getReportName({
-                    participants: [currentUserEmail, '+12223334444@expensify.sms'],
-                })).toBe('2223334444');
+                    participants: [currentUserEmail, '+18332403627@expensify.sms'],
+                })).toBe('(833) 240-3627');
             });
         });
 
         test('Group DM', () => {
             expect(ReportUtils.getReportName({
-                participants: [currentUserEmail, 'ragnar@vikings.net', 'floki@vikings.net', 'lagertha@vikings.net', '+12223334444@expensify.sms'],
-            })).toBe('Ragnar, floki@vikings.net, Lagertha, 2223334444');
+                participants: [currentUserEmail, 'ragnar@vikings.net', 'floki@vikings.net', 'lagertha@vikings.net', '+18332403627@expensify.sms'],
+            })).toBe('Ragnar, floki@vikings.net, Lagertha, (833) 240-3627');
         });
 
         describe('Default Policy Room', () => {
@@ -143,7 +143,7 @@ describe('ReportUtils', () => {
 
                 expect(ReportUtils.getReportName(archivedAdminsRoom)).toBe('#admins (archived)');
 
-                return Onyx.set(ONYXKEYS.NVP_PREFERRED_LOCALE, 'es')
+                return Onyx.set(ONYXKEYS.NVP_PREFERRED_LOCALE, CONST.LOCALES.ES)
                     .then(() => expect(ReportUtils.getReportName(archivedAdminsRoom)).toBe('#admins (archivado)'));
             });
         });
@@ -167,7 +167,7 @@ describe('ReportUtils', () => {
 
                 expect(ReportUtils.getReportName(archivedPolicyRoom)).toBe('#VikingsChat (archived)');
 
-                return Onyx.set(ONYXKEYS.NVP_PREFERRED_LOCALE, 'es')
+                return Onyx.set(ONYXKEYS.NVP_PREFERRED_LOCALE, CONST.LOCALES.ES)
                     .then(() => expect(ReportUtils.getReportName(archivedPolicyRoom)).toBe('#VikingsChat (archivado)'));
             });
         });
@@ -211,7 +211,7 @@ describe('ReportUtils', () => {
 
                     expect(ReportUtils.getReportName(memberArchivedPolicyExpenseChat, policies)).toBe('Vikings Policy (archived)');
 
-                    return Onyx.set(ONYXKEYS.NVP_PREFERRED_LOCALE, 'es')
+                    return Onyx.set(ONYXKEYS.NVP_PREFERRED_LOCALE, CONST.LOCALES.ES)
                         .then(() => expect(ReportUtils.getReportName(memberArchivedPolicyExpenseChat, policies)).toBe('Vikings Policy (archivado)'));
                 });
 
@@ -223,7 +223,7 @@ describe('ReportUtils', () => {
 
                     expect(ReportUtils.getReportName(adminArchivedPolicyExpenseChat)).toBe('Ragnar Lothbrok (archived)');
 
-                    return Onyx.set(ONYXKEYS.NVP_PREFERRED_LOCALE, 'es')
+                    return Onyx.set(ONYXKEYS.NVP_PREFERRED_LOCALE, CONST.LOCALES.ES)
                         .then(() => expect(ReportUtils.getReportName(adminArchivedPolicyExpenseChat)).toBe('Ragnar Lothbrok (archivado)'));
                 });
             });

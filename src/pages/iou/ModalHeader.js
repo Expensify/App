@@ -28,7 +28,7 @@ const defaultProps = {
 };
 
 const ModalHeader = props => (
-    <View style={[styles.headerBar]}>
+    <View style={[styles.headerBar, props.shouldShowBackButton && styles.pl2]}>
         <View style={[
             styles.dFlex,
             styles.flexRow,
@@ -40,16 +40,14 @@ const ModalHeader = props => (
         >
             {props.shouldShowBackButton
                     && (
-                    <View style={[styles.mr2]}>
-                        <Tooltip text={props.translate('common.back')}>
-                            <TouchableOpacity
-                                onPress={props.onBackButtonPress}
-                                style={[styles.touchableButtonImage]}
-                            >
-                                <Icon src={Expensicons.BackArrow} />
-                            </TouchableOpacity>
-                        </Tooltip>
-                    </View>
+                    <Tooltip text={props.translate('common.back')}>
+                        <TouchableOpacity
+                            onPress={props.onBackButtonPress}
+                            style={[styles.touchableButtonImage]}
+                        >
+                            <Icon src={Expensicons.BackArrow} />
+                        </TouchableOpacity>
+                    </Tooltip>
                     )}
             <Header title={props.title} />
             <View style={[styles.reportOptions, styles.flexRow, styles.pr5]}>

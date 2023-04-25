@@ -11,12 +11,9 @@ import compose from '../../libs/compose';
 import MenuItem from '../../components/MenuItem';
 import styles from '../../styles/styles';
 import * as Link from '../../libs/actions/Link';
-import PressableWithSecondaryInteraction from '../../components/PressableWithSecondaryInteraction';
-import ControlSelection from '../../libs/ControlSelection';
 import withWindowDimensions, {windowDimensionsPropTypes} from '../../components/withWindowDimensions';
-import * as DeviceCapabilities from '../../libs/DeviceCapabilities';
 import * as ReportActionContextMenu from '../home/report/ContextMenu/ReportActionContextMenu';
-import * as ContextMenuActions from '../home/report/ContextMenu/ContextMenuActions';
+import {CONTEXT_MENU_TYPES} from '../home/report/ContextMenu/ContextMenuActions';
 
 const propTypes = {
     ...withLocalizePropTypes,
@@ -56,21 +53,6 @@ const AppDownloadLinksPage = (props) => {
         },
     ];
 
-    /**
-     * Show the ReportActionContextMenu modal popover.
-     *
-     * @param {Object} [event] - A press event.
-     * @param {String} [selection] - Copied content.
-     */
-    const showPopover = (event, selection) => {
-        ReportActionContextMenu.showContextMenu(
-            ContextMenuActions.CONTEXT_MENU_TYPES.LINK,
-            event,
-            selection,
-            popoverAnchor,
-        );
-    };
-
     return (
         <ScreenWrapper>
             <HeaderWithCloseButton
@@ -81,24 +63,20 @@ const AppDownloadLinksPage = (props) => {
             />
             <ScrollView style={[styles.mt5]}>
                 {_.map(menuItems, item => (
-                    <PressableWithSecondaryInteraction
+                    <MenuItem
                         key={item.translationKey}
-                        onPressIn={() => props.isSmallScreenWidth && DeviceCapabilities.canUseTouchScreen() && ControlSelection.block()}
-                        onPressOut={() => ControlSelection.unblock()}
-                        onSecondaryInteraction={e => showPopover(e, item.link)}
-                        ref={el => popoverAnchor = el}
+                        onPress={() => item.action()}
+                        onSecondaryInteraction={e => ReportActionContextMenu.showContextMenu(CONTEXT_MENU_TYPES.LINK, e, item.link, popoverAnchor)}
                         onKeyDown={(event) => {
                             event.target.blur();
                         }}
-                    >
-                        <MenuItem
-                            title={props.translate(item.translationKey)}
-                            icon={item.icon}
-                            iconRight={item.iconRight}
-                            onPress={() => item.action()}
-                            shouldShowRightIcon
-                        />
-                    </PressableWithSecondaryInteraction>
+                        ref={el => popoverAnchor = el}
+                        title={props.translate(item.translationKey)}
+                        icon={item.icon}
+                        iconRight={item.iconRight}
+                        shouldBlockSelection
+                        shouldShowRightIcon
+                    />
                 ))}
             </ScrollView>
         </ScreenWrapper>
