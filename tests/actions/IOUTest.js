@@ -122,6 +122,9 @@ describe('actions/IOU', () => {
                             // Its amount should match the amount of the request
                             expect(transaction.amount).toBe(amountInCents);
 
+                            // The comment should be correct
+                            expect(transaction.comment.comment).toBe(comment);
+
                             // It should be pending
                             expect(transaction.pendingAction).toBe(CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD);
 
@@ -257,6 +260,9 @@ describe('actions/IOU', () => {
 
                             // Its amount should match the amount of the request
                             expect(transaction.amount).toBe(amountInCents);
+
+                            // The comment should be correct
+                            expect(transaction.comment.comment).toBe(comment);
 
                             // It should be pending
                             expect(transaction.pendingAction).toBe(CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD);
@@ -424,6 +430,9 @@ describe('actions/IOU', () => {
                             // The amount on the new transaction should be correct
                             expect(newTransaction.amount).toBe(amountInCents);
 
+                            // The comment should be correct
+                            expect(newTransaction.comment.comment).toBe(comment);
+
                             // The new transaction should be pending
                             expect(newTransaction.pendingAction).toBe(CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD);
 
@@ -555,6 +564,9 @@ describe('actions/IOU', () => {
 
                             // Its amount should match the amount of the request
                             expect(transaction.amount).toBe(amountInCents);
+
+                            // The comment should be correct
+                            expect(transaction.comment.comment).toBe(comment);
 
                             // It should be pending
                             expect(transaction.pendingAction).toBe(CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD);
@@ -876,6 +888,19 @@ describe('actions/IOU', () => {
                             expect(julesTransaction.amount).toBe(amountInCents / 4);
                             expect(vitTransaction.amount).toBe(amountInCents / 4);
                             expect(groupTransaction.amount).toBe(amountInCents);
+
+                            expect(carlosTransaction.comment.comment).toBe(comment);
+                            expect(julesTransaction.comment.comment).toBe(comment);
+                            expect(vitTransaction.comment.comment).toBe(comment);
+                            expect(groupTransaction.comment.comment).toBe(comment);
+
+                            expect(carlosTransaction.comment.source).toBe(CONST.IOU.MONEY_REQUEST_TYPE.SPLIT);
+                            expect(julesTransaction.comment.source).toBe(CONST.IOU.MONEY_REQUEST_TYPE.SPLIT);
+                            expect(vitTransaction.comment.source).toBe(CONST.IOU.MONEY_REQUEST_TYPE.SPLIT);
+
+                            expect(carlosTransaction.comment.originalTransactionID).toBe(groupTransaction.transactionID);
+                            expect(julesTransaction.comment.originalTransactionID).toBe(groupTransaction.transactionID);
+                            expect(vitTransaction.comment.originalTransactionID).toBe(groupTransaction.transactionID);
 
                             expect(carlosTransaction.pendingAction).toBe(CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD);
                             expect(julesTransaction.pendingAction).toBe(CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD);
