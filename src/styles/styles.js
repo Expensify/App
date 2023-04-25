@@ -671,6 +671,14 @@ const styles = {
         backgroundColor: themeColors.successHover,
     },
 
+    badgeAdHocSuccess: {
+        backgroundColor: themeColors.badgeAdHoc,
+    },
+
+    badgeAdHocSuccessPressed: {
+        backgroundColor: themeColors.badgeAdHocHover,
+    },
+
     badgeDanger: {
         backgroundColor: themeColors.danger,
     },
@@ -742,7 +750,8 @@ const styles = {
 
     offlineIndicatorMobile: {
         paddingLeft: 20,
-        paddingBottom: 9,
+        paddingTop: 5,
+        paddingBottom: 5,
     },
 
     offlineIndicatorRow: {
@@ -2799,7 +2808,9 @@ const styles = {
 
     keyboardShortcutModalContainer: {
         maxHeight: '100%',
-        flex: '0 0 auto',
+        flexShrink: 0,
+        flexGrow: 0,
+        flexBasis: 'auto',
     },
 
     keyboardShortcutTableWrapper: {
@@ -3130,8 +3141,8 @@ const styles = {
         textAlign: 'center',
     },
 
-    popoverMaxWidth: {
-        maxWidth: 375,
+    whisper: {
+        backgroundColor: themeColors.cardBG,
     },
 };
 

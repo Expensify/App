@@ -19,9 +19,6 @@ class CalendarPicker extends React.PureComponent {
     constructor(props) {
         super(props);
 
-        this.monthNames = _.map(moment.localeData(props.preferredLocale).months(), Str.recapitalize);
-        this.daysOfWeek = _.map(moment.localeData(props.preferredLocale).weekdays(), day => day.toUpperCase());
-
         let currentDateView = props.value;
         if (props.selectedYear) {
             currentDateView = moment(currentDateView).set('year', props.selectedYear).toDate();
@@ -93,6 +90,8 @@ class CalendarPicker extends React.PureComponent {
     }
 
     render() {
+        const monthNames = _.map(moment.localeData(this.props.preferredLocale).months(), Str.recapitalize);
+        const daysOfWeek = _.map(moment.localeData(this.props.preferredLocale).weekdays(), day => day.toUpperCase());
         const currentMonthView = this.state.currentDateView.getMonth();
         const currentYearView = this.state.currentDateView.getFullYear();
         const calendarDaysMatrix = generateMonthMatrix(currentYearView, currentMonthView);
@@ -115,7 +114,7 @@ class CalendarPicker extends React.PureComponent {
                             testID="currentMonthText"
                             accessibilityLabel={this.props.translate('common.currentMonth')}
                         >
-                            {this.monthNames[currentMonthView]}
+                            {monthNames[currentMonthView]}
                         </Text>
                         <TouchableOpacity testID="prev-month-arrow" disabled={!hasAvailableDatesPrevMonth} onPress={this.moveToPrevMonth}>
                             <ArrowIcon disabled={!hasAvailableDatesPrevMonth} direction={CONST.DIRECTION.LEFT} />
@@ -126,7 +125,7 @@ class CalendarPicker extends React.PureComponent {
                     </View>
                 </View>
                 <View style={styles.flexRow}>
-                    {_.map(this.daysOfWeek, (dayOfWeek => (
+                    {_.map(daysOfWeek, (dayOfWeek => (
                         <View key={dayOfWeek} style={[styles.calendarDayRoot, styles.flex1, styles.justifyContentCenter, styles.alignItemsCenter]}>
                             <Text style={styles.sidebarLinkTextBold}>{dayOfWeek[0]}</Text>
                         </View>

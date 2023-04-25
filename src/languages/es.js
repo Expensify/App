@@ -91,7 +91,7 @@ export default {
         genericErrorMessage: 'Ups... algo no ha ido bien y la acción no se ha podido completar. Por favor, inténtalo más tarde.',
         error: {
             invalidAmount: 'Importe no válido',
-            acceptTerms: 'Debes aceptar los Términos de servicio para continuar',
+            acceptTerms: 'Debes aceptar los Términos de Servicio para continuar',
             phoneNumber: `Introduce un teléfono válido, incluyendo el código del país (p. ej. ${CONST.EXAMPLE_PHONE_NUMBER})`,
             fieldRequired: 'Este campo es obligatorio.',
             characterLimit: ({limit}) => `Supera el límite de ${limit} caracteres`,
@@ -120,6 +120,7 @@ export default {
         message: 'Chatear con ',
         leaveRoom: 'Salir de la sala de chat',
         you: 'Tú',
+        youAfterPreposition: 'ti',
         your: 'tu',
         conciergeHelp: 'Por favor, contacta con Concierge para obtener ayuda.',
         maxParticipantsReached: ({count}) => `Has seleccionado el número máximo (${count}) de participantes.`,
@@ -250,6 +251,7 @@ export default {
         editComment: 'Editar comentario',
         deleteComment: 'Eliminar comentario',
         deleteConfirmation: '¿Estás seguro de que quieres eliminar este comentario?',
+        onlyVisible: 'Visible sólo para',
     },
     emojiReactions: {
         addReactionTooltip: 'Añadir una reacción',
@@ -448,9 +450,9 @@ export default {
         versionLetter: 'v',
         readTheTermsAndPrivacy: {
             phrase1: 'Leer los',
-            phrase2: 'términos de servicio',
+            phrase2: 'Términos de Servicio',
             phrase3: 'y',
-            phrase4: 'privacidad',
+            phrase4: 'Privacidad',
         },
         help: 'Ayuda',
     },
@@ -598,9 +600,9 @@ export default {
     },
     termsOfUse: {
         phrase1: 'Al iniciar sesión, estás accediendo a los',
-        phrase2: 'términos de servicio',
+        phrase2: 'Términos de Servicio',
         phrase3: 'y',
-        phrase4: 'privacidad',
+        phrase4: 'Privacidad',
         phrase5: 'El envío de dinero es brindado por Expensify Payments LLC (NMLS ID:2017010) de conformidad con sus',
         phrase6: 'licencias',
     },
@@ -1140,6 +1142,13 @@ export default {
             public_announce: 'Anuncio Público',
         },
     },
+    newTaskPage: {
+        assignTask: 'Asignar tarea',
+        title: 'Título',
+        description: 'Descripción',
+        shareIn: 'Compartir en',
+        pleaseEnterTaskName: 'Por favor introduce un título',
+    },
     statementPage: {
         generatingPDF: 'Estamos generando tu PDF ahora mismo. ¡Por favor, vuelve más tarde!',
     },
@@ -1451,7 +1460,7 @@ export default {
         },
         DC: {
             stateISO: 'DC',
-            stateName: 'District Of Columbia',
+            stateName: 'Distrito de Columbia',
         },
     },
     allCountries: {
