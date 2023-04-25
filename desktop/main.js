@@ -241,7 +241,7 @@ const mainWindow = (() => {
     if (__DEV__) {
         console.debug('CONFIG: ', CONFIG);
         app.dock.setIcon(`${__dirname}/../icon-dev.png`);
-        app.setName('New Expensify');
+        app.setName('New Expensify Dev');
     }
 
     app.on('will-finish-launching', () => {
