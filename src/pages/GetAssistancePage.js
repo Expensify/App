@@ -57,6 +57,7 @@ const GetAssistancePage = (props) => {
         shouldShowRightIcon: true,
         iconRight: Expensicons.NewWindow,
         wrapperStyle: [styles.cardMenuItem],
+        link: CONST.NEWHELP_URL,
     }];
 
     // If the user is eligible for calls with their Guide, add the 'Schedule a setup call' item at the second position in the list

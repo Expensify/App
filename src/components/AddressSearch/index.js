@@ -279,6 +279,8 @@ const AddressSearch = (props) => {
                         description: [styles.googleSearchText],
                         separator: [styles.googleSearchSeparator],
                     }}
+                    numberOfLines={2}
+                    isRowScrollable={false}
                     listHoverColor={themeColors.border}
                     listUnderlayColor={themeColors.buttonPressedBG}
                     onLayout={(event) => {
