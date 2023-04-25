@@ -132,6 +132,9 @@ const AssigneeSelectorModal = (props) => {
             // eslint-disable-next-line no-console
             console.log(option);
 
+            // TO-DO: Implement assigning the selected option to a state variable
+            // and navigate back to NewTaskPage
+
             // Navigation.navigate(ROUTES.getReportRoute(option.text));
         } else {
             Report.navigateToAndOpenReport([option.login]);

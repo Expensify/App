@@ -16,6 +16,9 @@ import Permissions from '../../libs/Permissions';
 import Button from '../../components/Button';
 import ROUTES from '../../ROUTES';
 
+// TO-DO: Create Avatar button for Assignee and Room Selectors
+// TO-DO: Call AssignTask with all the appropriate Data
+
 const propTypes = {
     /** Beta features list */
     betas: PropTypes.arrayOf(PropTypes.string),
@@ -29,7 +32,7 @@ const defaultProps = {
 
 // NOTE: This page is going to be updated in https://github.com/Expensify/App/issues/16855, this is just a placeholder for now
 const NewTaskPage = (props) => {
-    const [assignee, setAssignee] = React.useState(null);
+    // const [assignee, setAssignee] = React.useState(null);
 
     /**
      * @param {Object} values - form input values passed by the Form component
@@ -54,6 +57,7 @@ const NewTaskPage = (props) => {
     // On submit, we want to call the assignTask function and wait to validate
     // the response
     function onSubmit(values) {
+        // eslint-disable-next-line no-console
         console.log('submitting new task', values);
     }
 

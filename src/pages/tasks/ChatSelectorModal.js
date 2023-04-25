@@ -21,6 +21,9 @@ import personalDetailsPropType from '../personalDetailsPropType';
 import reportPropTypes from '../reportPropTypes';
 import Performance from '../../libs/Performance';
 
+// TODO: Rename this to ShareDestinationSelectorModal?
+// TODO: Currently just duplicated from AssigneeSelectorModal, implement for ShareDestination
+
 const propTypes = {
     /* Onyx Props */
 
