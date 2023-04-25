@@ -636,6 +636,10 @@ React saves the initial state once and ignores it on the next renders. However, 
 
 The short answer is no. A longer answer is that sometimes we need to check not only that a dependency has changed, but how it has changed in order to run a side effect. For example, a prop had a value of an empty string on a previous render, but now is non-empty. The generally accepted practice is to store the "previous" value in a `ref` so the comparison can be made in a `useEffect()` call.
 
+## Are `useCallback()` and `useMemo()` basically the same thing?
+
+No! Is it easy to confuse `useCallback()` with a memoization helper like `_.memoize()` or `useMemo()`. It is really not the same at all. [`useCallback()` will return a cached function _definition_](https://react.dev/reference/react/useCallback) and will not save us any computational cost of running that function. So, if you are wrapping something in a `useCallback()` and then calling it in the render then it is better to use `useMemo()` to cache the actual **result** of calling that function and use it directly in the render.
+
 ## What is the `exhaustive-deps` lint rule? Can I ignore it?
 
 A `useEffect()` that does not include referenced props or state in its dependency array is [usually a mistake](https://legacy.reactjs.org/docs/hooks-faq.html#is-it-safe-to-omit-functions-from-the-list-of-dependencies) as often we want effects to re-run when those dependencies change. However, there are some cases where we might actually only want to re-run the effect when only some of those dependencies change. We determined the best practice here should be to allow disabling the “next line” with a comment `//eslint-disable-next-line react-hooks/exhaustive-deps` and an additional comment explanation so the next developer can understand why the rule was not used.
