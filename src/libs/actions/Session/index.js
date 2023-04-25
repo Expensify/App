@@ -346,6 +346,12 @@ function signIn(password, validateCode, twoFactorAuthCode, preferredLocale = CON
 }
 
 function signInWithValidateCode(accountID, validateCode, twoFactorAuthCode) {
+
+    // If this is called from the 2fa step, get the validateCode directly from onyx.
+    if (twoFactorAuthCode) {
+        validateCode = credentials.validateCode;
+    }
+
     const optimisticData = [
         {
             onyxMethod: CONST.ONYX.METHOD.MERGE,
