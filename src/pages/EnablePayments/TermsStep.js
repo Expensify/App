@@ -1,7 +1,7 @@
 import React from 'react';
 import {ScrollView} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
-import HeaderWithCloseButton from '../../components/HeaderWithCloseButton';
+import HeaderWithBackButton from '../../components/HeaderWithBackButton';
 import Navigation from '../../libs/Navigation/Navigation';
 import withLocalize, {withLocalizePropTypes} from '../../components/withLocalize';
 import styles from '../../styles/styles';
@@ -63,9 +63,9 @@ class TermsStep extends React.Component {
         const errorMessage = this.state.error ? this.props.translate('common.error.acceptTerms') : (ErrorUtils.getLatestErrorMessage(this.props.walletTerms) || '');
         return (
             <>
-                <HeaderWithCloseButton
+                <HeaderWithBackButton
                     title={this.props.translate('termsStep.headerTitle')}
-                    onCloseButtonPress={() => Navigation.dismissModal()}
+                    onBackButtonPress={Navigation.goBack}
                 />
                 <ScrollView style={styles.flex1} contentContainerStyle={styles.ph5}>
                     <ShortTermsForm />

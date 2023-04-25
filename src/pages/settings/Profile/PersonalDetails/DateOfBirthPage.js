@@ -3,7 +3,7 @@ import PropTypes from 'prop-types';
 import {withOnyx} from 'react-native-onyx';
 import moment from 'moment';
 import ScreenWrapper from '../../../../components/ScreenWrapper';
-import HeaderWithCloseButton from '../../../../components/HeaderWithCloseButton';
+import HeaderWithBackButton from '../../../../components/HeaderWithBackButton';
 import withLocalize, {withLocalizePropTypes} from '../../../../components/withLocalize';
 import ROUTES from '../../../../ROUTES';
 import Form from '../../../../components/Form';
@@ -104,11 +104,9 @@ class DateOfBirthPage extends Component {
 
         return (
             <ScreenWrapper includeSafeAreaPaddingBottom={false}>
-                <HeaderWithCloseButton
+                <HeaderWithBackButton
                     title={this.props.translate('common.dob')}
-                    shouldShowBackButton
-                    onBackButtonPress={() => Navigation.navigate(ROUTES.SETTINGS_PERSONAL_DETAILS)}
-                    onCloseButtonPress={() => Navigation.dismissModal(true)}
+                    onBackButtonPress={Navigation.goBack}
                 />
                 <Form
                     style={[styles.flexGrow1, styles.ph5]}

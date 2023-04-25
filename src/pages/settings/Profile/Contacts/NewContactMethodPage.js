@@ -8,7 +8,7 @@ import lodashGet from 'lodash/get';
 import Str from 'expensify-common/lib/str';
 import Button from '../../../../components/Button';
 import FixedFooter from '../../../../components/FixedFooter';
-import HeaderWithCloseButton from '../../../../components/HeaderWithCloseButton';
+import HeaderWithBackButton from '../../../../components/HeaderWithBackButton';
 import ScreenWrapper from '../../../../components/ScreenWrapper';
 import Text from '../../../../components/Text';
 import TextInput from '../../../../components/TextInput';
@@ -101,11 +101,9 @@ class NewContactMethodPage extends Component {
                     this.loginInputRef.focus();
                 }}
             >
-                <HeaderWithCloseButton
+                <HeaderWithBackButton
                     title={this.props.translate('contacts.newContactMethod')}
-                    shouldShowBackButton
-                    onBackButtonPress={() => Navigation.navigate(ROUTES.SETTINGS_CONTACT_METHODS)}
-                    onCloseButtonPress={() => Navigation.dismissModal(true)}
+                    onBackButtonPress={Navigation.goBack}
                 />
                 <ScrollView>
                     <Text style={[styles.ph5, styles.mb5]}>

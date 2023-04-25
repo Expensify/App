@@ -7,7 +7,7 @@ import ONYXKEYS from '../../ONYXKEYS';
 import OptionsSelector from '../../components/OptionsSelector';
 import Navigation from '../../libs/Navigation/Navigation';
 import ScreenWrapper from '../../components/ScreenWrapper';
-import HeaderWithCloseButton from '../../components/HeaderWithCloseButton';
+import HeaderWithBackButton from '../../components/HeaderWithBackButton';
 import compose from '../../libs/compose';
 import withLocalize, {withLocalizePropTypes} from '../../components/withLocalize';
 import * as IOU from '../../libs/actions/IOU';
@@ -115,9 +115,9 @@ class IOUCurrencySelection extends Component {
             <ScreenWrapper includeSafeAreaPaddingBottom={false}>
                 {({safeAreaPaddingBottomStyle}) => (
                     <>
-                        <HeaderWithCloseButton
+                        <HeaderWithBackButton
                             title={this.props.translate('iOUCurrencySelection.selectCurrency')}
-                            onCloseButtonPress={Navigation.goBack}
+                            onBackButtonPress={Navigation.goBack}
                         />
                         <OptionsSelector
                             sections={this.getSections()}

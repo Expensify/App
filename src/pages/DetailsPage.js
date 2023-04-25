@@ -9,7 +9,7 @@ import styles from '../styles/styles';
 import Text from '../components/Text';
 import ONYXKEYS from '../ONYXKEYS';
 import Avatar from '../components/Avatar';
-import HeaderWithCloseButton from '../components/HeaderWithCloseButton';
+import HeaderWithBackButton from '../components/HeaderWithBackButton';
 import Navigation from '../libs/Navigation/Navigation';
 import ScreenWrapper from '../components/ScreenWrapper';
 import personalDetailsPropType from './personalDetailsPropType';
@@ -97,9 +97,6 @@ class DetailsPage extends React.PureComponent {
 
         const isSMSLogin = Str.isSMSLogin(details.login);
 
-        // If we have a reportID param this means that we
-        // arrived here via the ParticipantsPage and should be allowed to navigate back to it
-        const shouldShowBackButton = Boolean(reportID);
         const shouldShowLocalTime = !ReportUtils.hasAutomatedExpensifyEmails([details.login]) && details.timezone;
         let pronouns = details.pronouns;
 
@@ -111,11 +108,9 @@ class DetailsPage extends React.PureComponent {
         return (
             <ScreenWrapper>
                 <FullPageNotFoundView shouldShow={_.isEmpty(login)}>
-                    <HeaderWithCloseButton
+                    <HeaderWithBackButton
                         title={this.props.translate('common.details')}
-                        shouldShowBackButton={shouldShowBackButton}
-                        onBackButtonPress={() => Navigation.goBack()}
-                        onCloseButtonPress={() => Navigation.dismissModal()}
+                        onBackButtonPress={Navigation.goBack}
                     />
                     <View
                         pointerEvents="box-none"

@@ -3,7 +3,7 @@ import lodashGet from 'lodash/get';
 import React, {Component} from 'react';
 import withCurrentUserPersonalDetails, {withCurrentUserPersonalDetailsPropTypes, withCurrentUserPersonalDetailsDefaultProps} from '../../../components/withCurrentUserPersonalDetails';
 import ScreenWrapper from '../../../components/ScreenWrapper';
-import HeaderWithCloseButton from '../../../components/HeaderWithCloseButton';
+import HeaderWithBackButton from '../../../components/HeaderWithBackButton';
 import withLocalize, {withLocalizePropTypes} from '../../../components/withLocalize';
 import ROUTES from '../../../ROUTES';
 import Text from '../../../components/Text';
@@ -121,11 +121,9 @@ class PronounsPage extends Component {
             <ScreenWrapper includeSafeAreaPaddingBottom={false}>
                 {({safeAreaPaddingBottomStyle}) => (
                     <>
-                        <HeaderWithCloseButton
+                        <HeaderWithBackButton
                             title={this.props.translate('pronounsPage.pronouns')}
-                            shouldShowBackButton
-                            onBackButtonPress={() => Navigation.navigate(ROUTES.SETTINGS_PROFILE)}
-                            onCloseButtonPress={() => Navigation.dismissModal(true)}
+                            onBackButtonPress={Navigation.goBack}
                         />
                         <Text style={styles.ph5}>
                             {this.props.translate('pronounsPage.isShownOnProfile')}

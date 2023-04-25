@@ -3,7 +3,7 @@ import {View, ScrollView} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import PropTypes from 'prop-types';
 import _ from 'underscore';
-import HeaderWithCloseButton from '../../components/HeaderWithCloseButton';
+import HeaderWithBackButton from '../../components/HeaderWithBackButton';
 import Navigation from '../../libs/Navigation/Navigation';
 import ScreenWrapper from '../../components/ScreenWrapper';
 import Text from '../../components/Text';
@@ -146,11 +146,9 @@ class PasswordPage extends Component {
                 this.currentPasswordInputRef.focus();
             }}
             >
-                <HeaderWithCloseButton
+                <HeaderWithBackButton
                     title={this.props.translate('passwordPage.changePassword')}
-                    shouldShowBackButton
-                    onBackButtonPress={() => Navigation.goBack()}
-                    onCloseButtonPress={() => Navigation.dismissModal(true)}
+                    onBackButtonPress={Navigation.goBack}
                 />
                 {!_.isEmpty(this.props.account.success)
                     ? (

@@ -1,7 +1,7 @@
 import _ from 'underscore';
 import React from 'react';
 import {ScrollView} from 'react-native';
-import HeaderWithCloseButton from '../../components/HeaderWithCloseButton';
+import HeaderWithBackButton from '../../components/HeaderWithBackButton';
 import Navigation from '../../libs/Navigation/Navigation';
 import CONST from '../../CONST';
 import * as Expensicons from '../../components/Icon/Expensicons';
@@ -55,11 +55,9 @@ const AppDownloadLinksPage = (props) => {
 
     return (
         <ScreenWrapper>
-            <HeaderWithCloseButton
+            <HeaderWithBackButton
                 title={props.translate('initialSettingsPage.aboutPage.appDownloadLinks')}
-                shouldShowBackButton
-                onBackButtonPress={() => Navigation.goBack()}
-                onCloseButtonPress={() => Navigation.dismissModal(true)}
+                onBackButtonPress={Navigation.goBack}
             />
             <ScrollView style={[styles.mt5]}>
                 {_.map(menuItems, item => (

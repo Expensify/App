@@ -15,7 +15,7 @@ import OnfidoStep from './OnfidoStep';
 import AdditionalDetailsStep from './AdditionalDetailsStep';
 import TermsStep from './TermsStep';
 import ActivateStep from './ActivateStep';
-import HeaderWithCloseButton from '../../components/HeaderWithCloseButton';
+import HeaderWithBackButton from '../../components/HeaderWithBackButton';
 import Navigation from '../../libs/Navigation/Navigation';
 import FailedKYC from './FailedKYC';
 import compose from '../../libs/compose';
@@ -59,9 +59,9 @@ class EnablePaymentsPage extends React.Component {
                     if (this.props.userWallet.errorCode === CONST.WALLET.ERROR.KYC) {
                         return (
                             <>
-                                <HeaderWithCloseButton
+                                <HeaderWithBackButton
                                     title={this.props.translate('additionalDetailsStep.headerTitle')}
-                                    onCloseButtonPress={() => Navigation.dismissModal()}
+                                    onBackButtonPress={Navigation.goBack}
                                 />
                                 <FailedKYC />
                             </>

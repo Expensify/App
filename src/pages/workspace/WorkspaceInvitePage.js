@@ -6,7 +6,7 @@ import _ from 'underscore';
 import lodashGet from 'lodash/get';
 import withLocalize, {withLocalizePropTypes} from '../../components/withLocalize';
 import ScreenWrapper from '../../components/ScreenWrapper';
-import HeaderWithCloseButton from '../../components/HeaderWithCloseButton';
+import HeaderWithBackButton from '../../components/HeaderWithBackButton';
 import Navigation from '../../libs/Navigation/Navigation';
 import styles from '../../styles/styles';
 import compose from '../../libs/compose';
@@ -307,14 +307,12 @@ class WorkspaceInvitePage extends React.Component {
                         onBackButtonPress={() => Navigation.navigate(ROUTES.SETTINGS_WORKSPACES)}
                     >
                         <FormSubmit style={[styles.flex1]} onSubmit={this.inviteUser}>
-                            <HeaderWithCloseButton
+                            <HeaderWithBackButton
                                 title={this.props.translate('workspace.invite.invitePeople')}
                                 subtitle={policyName}
-                                onCloseButtonPress={() => this.clearErrors(true)}
                                 shouldShowGetAssistanceButton
                                 guidesCallTaskID={CONST.GUIDES_CALL_TASK_IDS.WORKSPACE_MEMBERS}
-                                shouldShowBackButton
-                                onBackButtonPress={() => Navigation.goBack()}
+                                onBackButtonPress={Navigation.goBack}
                             />
                             <View style={[styles.flex1]}>
                                 {didScreenTransitionEnd ? (

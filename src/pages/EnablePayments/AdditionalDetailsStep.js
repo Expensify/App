@@ -6,7 +6,7 @@ import {View} from 'react-native';
 import moment from 'moment/moment';
 import IdologyQuestions from './IdologyQuestions';
 import ScreenWrapper from '../../components/ScreenWrapper';
-import HeaderWithCloseButton from '../../components/HeaderWithCloseButton';
+import HeaderWithBackButton from '../../components/HeaderWithBackButton';
 import withLocalize, {withLocalizePropTypes} from '../../components/withLocalize';
 import Navigation from '../../libs/Navigation/Navigation';
 import styles from '../../styles/styles';
@@ -192,10 +192,8 @@ class AdditionalDetailsStep extends React.Component {
         if (!_.isEmpty(this.props.walletAdditionalDetails.questions)) {
             return (
                 <ScreenWrapper style={[styles.flex1]} keyboardAvoidingViewBehavior="height">
-                    <HeaderWithCloseButton
+                    <HeaderWithBackButton
                         title={this.props.translate('additionalDetailsStep.headerTitle')}
-                        onCloseButtonPress={() => Navigation.dismissModal()}
-                        shouldShowBackButton
                         onBackButtonPress={() => Wallet.setAdditionalDetailsQuestions(null)}
                     />
                     <IdologyQuestions
@@ -209,9 +207,9 @@ class AdditionalDetailsStep extends React.Component {
 
         return (
             <>
-                <HeaderWithCloseButton
+                <HeaderWithBackButton
                     title={this.props.translate('additionalDetailsStep.headerTitle')}
-                    onCloseButtonPress={() => Navigation.dismissModal()}
+                    onBackButtonPress={Navigation.goBack}
                 />
                 <View style={[styles.flex1]}>
                     <View style={[styles.ph5]}>

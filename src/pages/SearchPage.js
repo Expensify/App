@@ -11,7 +11,7 @@ import Navigation from '../libs/Navigation/Navigation';
 import ROUTES from '../ROUTES';
 import withWindowDimensions, {windowDimensionsPropTypes} from '../components/withWindowDimensions';
 import * as Report from '../libs/actions/Report';
-import HeaderWithCloseButton from '../components/HeaderWithCloseButton';
+import HeaderWithBackButton from '../components/HeaderWithBackButton';
 import ScreenWrapper from '../components/ScreenWrapper';
 import Timing from '../libs/actions/Timing';
 import CONST from '../CONST';
@@ -173,9 +173,9 @@ class SearchPage extends Component {
             <ScreenWrapper includeSafeAreaPaddingBottom={false}>
                 {({didScreenTransitionEnd, safeAreaPaddingBottomStyle}) => (
                     <>
-                        <HeaderWithCloseButton
+                        <HeaderWithBackButton
                             title={this.props.translate('common.search')}
-                            onCloseButtonPress={() => Navigation.dismissModal(true)}
+                            onBackButtonPress={Navigation.goBack}
                         />
                         <View style={[styles.flex1, styles.w100, styles.pRelative]}>
                             <OptionsSelector

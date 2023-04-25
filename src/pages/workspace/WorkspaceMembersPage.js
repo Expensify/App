@@ -9,7 +9,7 @@ import {withOnyx} from 'react-native-onyx';
 import Str from 'expensify-common/lib/str';
 import styles from '../../styles/styles';
 import ONYXKEYS from '../../ONYXKEYS';
-import HeaderWithCloseButton from '../../components/HeaderWithCloseButton';
+import HeaderWithBackButton from '../../components/HeaderWithBackButton';
 import Navigation from '../../libs/Navigation/Navigation';
 import ScreenWrapper from '../../components/ScreenWrapper';
 import withLocalize, {withLocalizePropTypes} from '../../components/withLocalize';
@@ -366,17 +366,15 @@ class WorkspaceMembersPage extends React.Component {
                         shouldShow={_.isEmpty(this.props.policy)}
                         onBackButtonPress={() => Navigation.navigate(ROUTES.SETTINGS_WORKSPACES)}
                     >
-                        <HeaderWithCloseButton
+                        <HeaderWithBackButton
                             title={this.props.translate('workspace.common.members')}
                             subtitle={policyName}
-                            onCloseButtonPress={() => Navigation.dismissModal()}
                             onBackButtonPress={() => {
                                 this.updateSearchValue('');
                                 Navigation.navigate(ROUTES.getWorkspaceInitialRoute(policyID));
                             }}
                             shouldShowGetAssistanceButton
                             guidesCallTaskID={CONST.GUIDES_CALL_TASK_IDS.WORKSPACE_MEMBERS}
-                            shouldShowBackButton
                         />
                         <ConfirmModal
                             danger

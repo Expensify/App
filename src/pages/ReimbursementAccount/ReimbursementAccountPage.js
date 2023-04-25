@@ -27,7 +27,7 @@ import ValidationStep from './ValidationStep';
 import ACHContractStep from './ACHContractStep';
 import EnableStep from './EnableStep';
 import ROUTES from '../../ROUTES';
-import HeaderWithCloseButton from '../../components/HeaderWithCloseButton';
+import HeaderWithBackButton from '../../components/HeaderWithBackButton';
 import * as ReimbursementAccountProps from './reimbursementAccountPropTypes';
 import reimbursementAccountDraftPropTypes from './ReimbursementAccountDraftPropTypes';
 import withPolicy from '../workspace/withPolicy';
@@ -316,9 +316,9 @@ class ReimbursementAccountPage extends React.Component {
         if (errorComponent) {
             return (
                 <ScreenWrapper>
-                    <HeaderWithCloseButton
+                    <HeaderWithBackButton
                         title={this.props.translate('workspace.common.bankAccount')}
-                        onCloseButtonPress={Navigation.dismissModal}
+                        onBackButtonPress={Navigation.goBack}
                         subtitle={policyName}
                     />
                     {errorComponent}
