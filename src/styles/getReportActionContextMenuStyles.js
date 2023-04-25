@@ -33,8 +33,12 @@ function getReportActionContextMenuStyles(isMini, isSmallScreenWidth) {
         return miniWrapperStyle;
     }
 
-    // Small screens use a bottom-docked modal that already has vertical padding.
-    return [...bigWrapperStyle, isSmallScreenWidth ? {} : styles.pv3];
+    return [
+        ...bigWrapperStyle,
+
+        // Small screens use a bottom-docked modal that already has vertical padding.
+        isSmallScreenWidth ? {} : styles.pv3,
+    ];
 }
 
 export default getReportActionContextMenuStyles;
