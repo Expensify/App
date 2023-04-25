@@ -69,6 +69,17 @@ AutoGrowInput.args = {
     }],
 };
 
+const AutoGrowHeightInput = Template.bind({});
+AutoGrowHeightInput.args = {
+    label: 'Autogrowheight input',
+    name: 'AutoGrowHeight',
+    placeholder: 'My placeholder text',
+    autoGrowHeight: true,
+    textInputContainerStyles: [{
+        maxHeight: 115,
+    }],
+};
+
 const PrefixedInput = Template.bind({});
 PrefixedInput.args = {
     label: 'Prefixed input',
