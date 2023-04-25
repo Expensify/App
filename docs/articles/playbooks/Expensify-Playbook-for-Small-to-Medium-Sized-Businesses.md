@@ -100,6 +100,8 @@ This is essentially like setting a daily or individual expense limitation on any
 *Receipt Required Amount: $75*
 Receipts are important, and in most cases you prefer an itemized receipt. However, Expensify will generate an IRS-compliant electronic receipt (not itemized) for every expense not tied to hotels expense. For this reason, it’s important to enforce a rule where anytime an employee is on the road, and making business-related purchases at hotel (which happens a lot!), they are required to attach a physical receipt. 
 
+![Expense Basics](https://help.expensify.com/assets/images/playbook-expense-basics.png)
+
 At this point, you’ve set enough compliance controls around categorical spend and general expenses for all employees, such that you can put trust in our solution to audit all expenses up front so you don’t have to. Next, let’s dive into how we can comfortably take on more automation, while relying on compliance controls to capture bad behavior (or better yet, instill best practices in our employees).
 
 ### Step 7: Set up scheduled submit
@@ -113,9 +115,9 @@ For an efficient company, we recommend setting up [Scheduled Submit](https://com
 
 Between Expensify's SmartScan technology, automatic categorization, and [DoubleCheck](https://community.expensify.com/discussion/5738/deep-dive-how-does-concierge-receipt-audit-work) features, your employees shouldn't need to do anything more than swipe their Expensify Card or take a photo of  their receipt.
 
-Expenses with violations will stay behind for the employee to fix, while expenses that are “in-policy” will move into an approver’s queue to mitigate any potential for delays. Scheduled Submit will ensure all expenses are submitted automatically for approval. 
+Expenses with violations will stay behind for the employee to fix, while expenses that are “in-policy” will move into an approver’s queue to mitigate any potential for delays. Scheduled Submit will ensure all expenses are submitted automatically for approval.
 
-![Expense Basics](https://help.expensify.com/assets/images/playbook-expense-basics.png)
+![Scheduled submit](https://help.expensify.com/assets/images/playbook-scheduled-submit.png)
 
 > _We spent twice as much time and effort on expenses without getting nearly as accurate of results as with Expensify._
 > 
