@@ -302,20 +302,24 @@ const {firstName, lastName} = state;
 ...
 
 // Bad
-const UserInfo = ({name, email}) => (
-	<View>
-		<Text>Name: {name}</Text>
-		<Text>Email: {email}</Text>
-	</View>
-);
+function UserInfo({name, email}) {
+    return (
+        <View>
+            <Text>Name: {name}</Text>
+            <Text>Email: {email}</Text>
+        </View>
+    );
+}
 
 // Good
-const UserInfo = props => (
-    <View>
-        <Text>Name: {props.name}</Text>
-        <Text>Email: {props.email}</Text>
-    </View>
-);
+function UserInfo(props) {
+    return (
+        <View>
+            <Text>Name: {props.name}</Text>
+            <Text>Email: {props.email}</Text>
+        </View>
+    );
+}
 ```
 
 ## Named vs Default Exports in ES6 - When to use what?
@@ -563,7 +567,7 @@ When writing a function component you must ALWAYS add a `displayName` property a
 
 ```javascript
 
-    const Avatar = (props) => {...};
+    function Avatar(props) {...};
 
     Avatar.propTypes = propTypes;
     Avatar.defaultProps = defaultProps;
@@ -643,6 +647,10 @@ No! Is it easy to confuse `useCallback()` with a memoization helper like `_.memo
 ## What is the `exhaustive-deps` lint rule? Can I ignore it?
 
 A `useEffect()` that does not include referenced props or state in its dependency array is [usually a mistake](https://legacy.reactjs.org/docs/hooks-faq.html#is-it-safe-to-omit-functions-from-the-list-of-dependencies) as often we want effects to re-run when those dependencies change. However, there are some cases where we might actually only want to re-run the effect when only some of those dependencies change. We determined the best practice here should be to allow disabling the “next line” with a comment `//eslint-disable-next-line react-hooks/exhaustive-deps` and an additional comment explanation so the next developer can understand why the rule was not used.
+
+## Should I declare my components with arrow functions (`const`) or the `function` keyword?
+
+There are pros and cons of each, but ultimately we have standardized on using the `function` keyword to align things more with modern React conventions. There are also some minor cognitive overhead benefits in that you don't need to think about adding and removing brackets when encountering an implicit return. The `function` syntax also has the benefit of being able to be hoisted where arrow functions do not.
 
 # Onyx Best Practices
 
