@@ -1,13 +1,13 @@
 import PropTypes from 'prop-types';
-import React, {PureComponent} from 'react';
+import {PureComponent} from 'react';
 import {withOnyx} from 'react-native-onyx';
-import FullScreenLoadingIndicator from '../FullscreenLoadingIndicator';
-import styles from '../../styles/styles';
+import Str from 'expensify-common/lib/str';
 import CONST from '../../CONST';
 import CONFIG from '../../CONFIG';
 import * as Browser from '../../libs/Browser';
 import ONYXKEYS from '../../ONYXKEYS';
 import * as Session from '../../libs/actions/Session';
+import ROUTES from '../../ROUTES';
 
 const propTypes = {
     /** Children to render. */
@@ -38,14 +38,11 @@ const defaultProps = {
 class DeeplinkWrapper extends PureComponent {
     constructor(props) {
         super(props);
-
-        this.state = {
-            isShortLivedAuthTokenLoading: this.isMacOSWeb() && CONFIG.ENVIRONMENT !== CONST.ENVIRONMENT.DEV,
-        };
+        this.shouldNotShowPopup = !this.isMacOSWeb() || CONFIG.ENVIRONMENT === CONST.ENVIRONMENT.DEV;
     }
 
     componentDidMount() {
-        if (!this.isMacOSWeb() || CONFIG.ENVIRONMENT === CONST.ENVIRONMENT.DEV) {
+        if (this.shouldNotShowPopup) {
             return;
         }
 
@@ -54,6 +51,11 @@ class DeeplinkWrapper extends PureComponent {
         // so that the popup window will only open when we know the short-lived authToken is valid.
         Session.removeShortLivedAuthToken();
 
+        // If the current link is transition from oldDot, we should wait for the web navigation to complete
+        const isTransitioning = Str.startsWith(window.location.path, Str.normalizeUrl(ROUTES.TRANSITION));
+        if (isTransitioning) {
+            return;
+        }
         if (!this.props.session.authToken) {
             this.openRouteInDesktopApp();
             return;
@@ -71,9 +73,9 @@ class DeeplinkWrapper extends PureComponent {
     }
 
     openRouteInDesktopApp() {
-        this.setState({
-            isShortLivedAuthTokenLoading: false,
-        });
+        if (this.shouldNotShowPopup) {
+            return;
+        }
 
         const params = new URLSearchParams();
         params.set('exitTo', `${window.location.pathname}${window.location.search}${window.location.hash}`);
@@ -118,9 +120,6 @@ class DeeplinkWrapper extends PureComponent {
     }
 
     render() {
-        if (this.state.isShortLivedAuthTokenLoading) {
-            return <FullScreenLoadingIndicator style={styles.flex1} />;
-        }
         return this.props.children;
     }
 }

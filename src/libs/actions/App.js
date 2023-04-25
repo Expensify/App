@@ -220,14 +220,14 @@ function setUpPoliciesAndNavigate(session) {
     const makeMeAdmin = url.searchParams.get('makeMeAdmin');
     const policyName = url.searchParams.get('policyName');
 
-    // Sign out the current user if we're transitioning from oldDot with a different user
-    const isTransitioningFromOldDot = Str.startsWith(url.pathname, Str.normalizeUrl(ROUTES.TRANSITION_FROM_OLD_DOT));
-    if (isLoggingInAsNewUser && isTransitioningFromOldDot) {
+    // Sign out the current user if we're transitioning with a different user
+    const isTransitioning = Str.startsWith(url.pathname, Str.normalizeUrl(ROUTES.TRANSITION));
+    if (isLoggingInAsNewUser && isTransitioning) {
         Session.signOut();
     }
 
     const shouldCreateFreePolicy = !isLoggingInAsNewUser
-                        && isTransitioningFromOldDot
+                        && isTransitioning
                         && exitTo === ROUTES.WORKSPACE_NEW;
     if (shouldCreateFreePolicy) {
         Policy.createWorkspace(ownerEmail, makeMeAdmin, policyName, true);
@@ -244,6 +244,7 @@ function setUpPoliciesAndNavigate(session) {
                         // We must call dismissModal() to remove the /transition route from history
                         Navigation.dismissModal();
                         Navigation.navigate(exitTo);
+                        Session.getShortLivedAuthToken();
                     });
             });
     }
