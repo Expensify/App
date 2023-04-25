@@ -1,7 +1,6 @@
 import React, {Component} from 'react';
 import {View} from 'react-native';
-import {withOnyx} from 'react-native-onyx';
-import PropTypes from 'prop-types';
+import lodashGet from 'lodash/get';
 import TextInput from '../../components/TextInput';
 import withLocalize, {withLocalizePropTypes} from '../../components/withLocalize';
 import ScreenWrapper from '../../components/ScreenWrapper';
@@ -11,22 +10,11 @@ import ONYXKEYS from '../../ONYXKEYS';
 import styles from '../../styles/styles';
 import Navigation from '../../libs/Navigation/Navigation';
 import compose from '../../libs/compose';
-import * as IOU from '../../libs/actions/IOU';
+import withMoneyRequest, {moneyRequestPropTypes} from './withMoneyRequest';
 
 const propTypes = {
     ...withLocalizePropTypes,
-
-    /** Onyx Props */
-    /** Holds data related to Money Request view state, rather than the underlying Money Request data. */
-    iou: PropTypes.shape({
-        comment: PropTypes.string,
-    }),
-};
-
-const defaultProps = {
-    iou: {
-        comment: '',
-    },
+    ...moneyRequestPropTypes,
 };
 
 class MoneyRequestDescriptionPage extends Component {
@@ -36,12 +24,10 @@ class MoneyRequestDescriptionPage extends Component {
         this.updateComment = this.updateComment.bind(this);
     }
 
-    /**
-     * Closes the modal and clears the description from Onyx.
-     */
-    onCloseButtonPress() {
-        IOU.setMoneyRequestDescription('');
-        Navigation.dismissModal();
+    componentDidMount() {
+        const iouType = lodashGet(this.props.route, 'params.iouType', '');
+        const reportID = lodashGet(this.props.route, 'params.reportID', '');
+        this.props.redirectIfEmpty([this.props.participants, this.props.amount], iouType, reportID);
     }
 
     /**
@@ -51,7 +37,7 @@ class MoneyRequestDescriptionPage extends Component {
      * @param {String} value.moneyRequestComment
      */
     updateComment(value) {
-        IOU.setMoneyRequestDescription(value.moneyRequestComment);
+        this.props.setComment(value.moneyRequestComment);
         Navigation.goBack();
     }
 
@@ -62,7 +48,7 @@ class MoneyRequestDescriptionPage extends Component {
                     title={this.props.translate('common.description')}
                     shouldShowBackButton
                     onBackButtonPress={Navigation.goBack}
-                    onCloseButtonPress={this.onCloseButtonPress}
+                    onCloseButtonPress={Navigation.dismissModal}
                 />
                 <Form
                     style={[styles.flexGrow1, styles.ph5]}
@@ -76,7 +62,7 @@ class MoneyRequestDescriptionPage extends Component {
                         <TextInput
                             inputID="moneyRequestComment"
                             name="moneyRequestComment"
-                            defaultValue={this.props.iou.comment}
+                            defaultValue={this.props.comment}
                             label={this.props.translate('moneyRequestConfirmationList.whatsItFor')}
                         />
                     </View>
@@ -87,11 +73,8 @@ class MoneyRequestDescriptionPage extends Component {
 }
 
 MoneyRequestDescriptionPage.propTypes = propTypes;
-MoneyRequestDescriptionPage.defaultProps = defaultProps;
 
 export default compose(
     withLocalize,
-    withOnyx({
-        iou: {key: ONYXKEYS.IOU},
-    }),
+    withMoneyRequest,
 )(MoneyRequestDescriptionPage);

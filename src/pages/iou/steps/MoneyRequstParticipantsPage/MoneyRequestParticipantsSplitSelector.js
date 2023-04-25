@@ -183,7 +183,7 @@ class MoneyRequestParticipantsSplitSelector extends Component {
                 selectedOption.login === option.login
             ));
         } else {
-            newSelectedOptions = [...this.props.participants, option];
+            newSelectedOptions = [...this.props.participants, {...option, selected: true}];
         }
 
         this.props.onAddParticipants(newSelectedOptions);

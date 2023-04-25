@@ -144,7 +144,7 @@ class MoneyRequestParticipantsSelector extends Component {
      * @param {Object} option
      */
     addSingleParticipant(option) {
-        this.props.onAddParticipants([option]);
+        this.props.onAddParticipants([{...option, selected: true}]);
         this.props.onStepComplete();
     }
 

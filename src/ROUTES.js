@@ -10,9 +10,6 @@ const IOU_REQUEST = 'request/new';
 const IOU_BILL = 'split/new';
 const IOU_SEND = 'send/new';
 const IOU_DETAILS = 'iou/details';
-const IOU_REQUEST_CURRENCY = `${IOU_REQUEST}/currency`;
-const IOU_BILL_CURRENCY = `${IOU_BILL}/currency`;
-const IOU_SEND_CURRENCY = `${IOU_SEND}/currency`;
 const NEW_TASK = 'new/task';
 const SETTINGS_PERSONAL_DETAILS = 'settings/profile/personal-details';
 const SETTINGS_CONTACT_METHODS = 'settings/profile/contact-methods';
@@ -69,22 +66,21 @@ export default {
     IOU_REQUEST,
     IOU_BILL,
     IOU_SEND,
-    IOU_REQUEST_WITH_REPORT_ID: `${IOU_REQUEST}/:reportID?`,
-    IOU_BILL_WITH_REPORT_ID: `${IOU_BILL}/:reportID?`,
-    IOU_SEND_WITH_REPORT_ID: `${IOU_SEND}/:reportID?`,
-    getIouRequestRoute: reportID => `${IOU_REQUEST}/${reportID}`,
-    getIouSplitRoute: reportID => `${IOU_BILL}/${reportID}`,
-    getIOUSendRoute: reportID => `${IOU_SEND}/${reportID}`,
-    IOU_BILL_CURRENCY: `${IOU_BILL_CURRENCY}/:reportID?`,
-    IOU_REQUEST_CURRENCY: `${IOU_REQUEST_CURRENCY}/:reportID?`,
-    MONEY_REQUEST_DESCRIPTION: `${IOU_REQUEST}/description`,
-    IOU_SEND_CURRENCY: `${IOU_SEND_CURRENCY}/:reportID?`,
-    IOU_SEND_ADD_BANK_ACCOUNT: `${IOU_SEND}/add-bank-account`,
-    IOU_SEND_ADD_DEBIT_CARD: `${IOU_SEND}/add-debit-card`,
-    IOU_SEND_ENABLE_PAYMENTS: `${IOU_SEND}/enable-payments`,
-    getIouRequestCurrencyRoute: reportID => `${IOU_REQUEST_CURRENCY}/${reportID}`,
-    getIouBillCurrencyRoute: reportID => `${IOU_BILL_CURRENCY}/${reportID}`,
-    getIouSendCurrencyRoute: reportID => `${IOU_SEND_CURRENCY}/${reportID}`,
+    MONEY_REQUEST: ':iouType/new/:reportID?',
+    MONEY_REQUEST_AMOUNT: ':iouType/new/amount/:reportID?',
+    MONEY_REQUEST_PARTICIPANTS: ':iouType/new/participants/:reportID?',
+    MONEY_REQUEST_CONFIRMATION: ':iouType/new/confirmation/:reportID?',
+    MONEY_REQUEST_CURRENCY: ':iouType/new/currency/:reportID?',
+    MONEY_REQUEST_DESCRIPTION: ':iouType/new/description/:reportID?',
+    IOU_SEND_ADD_BANK_ACCOUNT: 'send/new/add-bank-account',
+    IOU_SEND_ADD_DEBIT_CARD: 'send/new/add-debit-card',
+    IOU_SEND_ENABLE_PAYMENTS: 'send/new/enable-payments',
+    getMoneyRequestRoute: (iouType, reportID = '') => `${iouType}/new/${reportID}`,
+    getMoneyRequestAmountRoute: (iouType, reportID = '') => `${iouType}/new/amount/${reportID}`,
+    getMoneyRequestParticipantsRoute: (iouType, reportID = '') => `${iouType}/new/participants/${reportID}`,
+    getMoneyRequestConfirmationRoute: (iouType, reportID = '') => `${iouType}/new/confirmation/${reportID}`,
+    getMoneyRequestCurrencyRoute: (iouType, reportID = '') => `${iouType}/new/currency/${reportID}`,
+    getMoneyRequestDescriptionRoute: (iouType, reportID = '') => `${iouType}/new/description/${reportID}`,
     IOU_DETAILS,
     IOU_DETAILS_ADD_BANK_ACCOUNT: `${IOU_DETAILS}/add-bank-account`,
     IOU_DETAILS_ADD_DEBIT_CARD: `${IOU_DETAILS}/add-debit-card`,

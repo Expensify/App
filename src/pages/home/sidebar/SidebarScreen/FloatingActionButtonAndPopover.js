@@ -194,21 +194,21 @@ class FloatingActionButtonAndPopover extends React.Component {
                             {
                                 icon: Expensicons.Send,
                                 text: this.props.translate('iou.sendMoney'),
-                                onSelected: () => Navigation.navigate(ROUTES.IOU_SEND),
+                                onSelected: () => Navigation.navigate(ROUTES.getMoneyRequestRoute(CONST.IOU.MONEY_REQUEST_TYPE.SEND)),
                             },
                         ] : []),
                         ...(Permissions.canUseIOU(this.props.betas) ? [
                             {
                                 icon: Expensicons.MoneyCircle,
                                 text: this.props.translate('iou.requestMoney'),
-                                onSelected: () => Navigation.navigate(ROUTES.IOU_REQUEST),
+                                onSelected: () => Navigation.navigate(ROUTES.getMoneyRequestRoute(CONST.IOU.MONEY_REQUEST_TYPE.REQUEST)),
                             },
                         ] : []),
                         ...(Permissions.canUseIOU(this.props.betas) ? [
                             {
                                 icon: Expensicons.Receipt,
                                 text: this.props.translate('iou.splitBill'),
-                                onSelected: () => Navigation.navigate(ROUTES.IOU_BILL),
+                                onSelected: () => Navigation.navigate(ROUTES.getMoneyRequestRoute(CONST.IOU.MONEY_REQUEST_TYPE.SPLIT)),
                             },
                         ] : []),
                         ...(Permissions.canUseTasks(this.props.betas) ? [

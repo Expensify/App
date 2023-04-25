@@ -361,20 +361,20 @@ class ReportActionCompose extends React.Component {
             [CONST.IOU.MONEY_REQUEST_TYPE.SPLIT]: {
                 icon: Expensicons.Receipt,
                 text: this.props.translate('iou.splitBill'),
-                onSelected: () => Navigation.navigate(ROUTES.getIouSplitRoute(this.props.reportID)),
             },
             [CONST.IOU.MONEY_REQUEST_TYPE.REQUEST]: {
                 icon: Expensicons.MoneyCircle,
                 text: this.props.translate('iou.requestMoney'),
-                onSelected: () => Navigation.navigate(ROUTES.getIouRequestRoute(this.props.reportID)),
             },
             [CONST.IOU.MONEY_REQUEST_TYPE.SEND]: {
                 icon: Expensicons.Send,
                 text: this.props.translate('iou.sendMoney'),
-                onSelected: () => Navigation.navigate(ROUTES.getIOUSendRoute(this.props.reportID)),
             },
         };
-        return _.map(ReportUtils.getMoneyRequestOptions(this.props.report, reportParticipants, this.props.betas), option => options[option]);
+        return _.map(ReportUtils.getMoneyRequestOptions(this.props.report, reportParticipants, this.props.betas), option => ({
+            ...options[option],
+            onSelected: () => Navigation.navigate(ROUTES.getMoneyRequestRoute(option, this.props.reportID)),
+        }));
     }
 
     /**

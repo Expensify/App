@@ -283,21 +283,15 @@ class AuthScreens extends React.Component {
                     listeners={modalScreenListeners}
                 />
                 <RootStack.Screen
-                    name="IOU_Request"
+                    name="MoneyRequest"
                     options={modalScreenOptions}
-                    component={ModalStackNavigators.IOURequestModalStackNavigator}
+                    component={ModalStackNavigators.MoneyRequestModalStackNavigator}
                     listeners={modalScreenListeners}
                 />
                 <RootStack.Screen
                     name="NewTask"
                     options={modalScreenOptions}
                     component={ModalStackNavigators.NewTaskModalStackNavigator}
-                    listeners={modalScreenListeners}
-                />
-                <RootStack.Screen
-                    name="IOU_Bill"
-                    options={modalScreenOptions}
-                    component={ModalStackNavigators.IOUBillStackNavigator}
                     listeners={modalScreenListeners}
                 />
                 <RootStack.Screen
@@ -316,12 +310,6 @@ class AuthScreens extends React.Component {
                     name="AddPersonalBankAccount"
                     options={modalScreenOptions}
                     component={ModalStackNavigators.AddPersonalBankAccountModalStackNavigator}
-                    listeners={modalScreenListeners}
-                />
-                <RootStack.Screen
-                    name="IOU_Send"
-                    options={modalScreenOptions}
-                    component={ModalStackNavigators.IOUSendModalStackNavigator}
                     listeners={modalScreenListeners}
                 />
                 <RootStack.Screen

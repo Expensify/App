@@ -628,24 +628,6 @@ function cancelMoneyRequest(chatReportID, iouReportID, type, moneyRequestAction)
 }
 
 /**
- * Sets IOU'S selected currency
- *
- * @param {String} selectedCurrencyCode
- */
-function setIOUSelectedCurrency(selectedCurrencyCode) {
-    Onyx.merge(ONYXKEYS.IOU, {selectedCurrencyCode});
-}
-
-/**
- * Sets Money Request description
- *
- * @param {String} comment
- */
-function setMoneyRequestDescription(comment) {
-    Onyx.merge(ONYXKEYS.IOU, {comment: comment.trim()});
-}
-
-/**
  * @param {Number} amount
  * @param {String} submitterPayPalMeAddress
  * @param {String} currency
@@ -1010,8 +992,6 @@ export {
     sendMoneyViaPaypal,
     payMoneyRequestElsewhere,
     payMoneyRequestViaPaypal,
-    setIOUSelectedCurrency,
-    setMoneyRequestDescription,
     sendMoneyWithWallet,
     payMoneyRequestWithWallet,
 };

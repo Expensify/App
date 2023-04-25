@@ -4,52 +4,58 @@ import {
     InteractionManager,
 } from 'react-native';
 import PropTypes from 'prop-types';
-import {withOnyx} from 'react-native-onyx';
 import lodashGet from 'lodash/get';
 import _ from 'underscore';
-import ONYXKEYS from '../../../ONYXKEYS';
+import {withOnyx} from 'react-native-onyx';
 import styles from '../../../styles/styles';
 import BigNumberPad from '../../../components/BigNumberPad';
 import Navigation from '../../../libs/Navigation/Navigation';
 import ROUTES from '../../../ROUTES';
 import withLocalize, {withLocalizePropTypes} from '../../../components/withLocalize';
 import compose from '../../../libs/compose';
+import * as OptionsListUtils from '../../../libs/OptionsListUtils';
+import * as ReportUtils from '../../../libs/ReportUtils';
+import * as IOUUtils from '../../../libs/IOUUtils';
 import Button from '../../../components/Button';
 import CONST from '../../../CONST';
 import * as DeviceCapabilities from '../../../libs/DeviceCapabilities';
 import TextInputWithCurrencySymbol from '../../../components/TextInputWithCurrencySymbol';
+import ScreenWrapper from '../../../components/ScreenWrapper';
+import FullPageNotFoundView from '../../../components/BlockingViews/FullPageNotFoundView';
+import withMoneyRequest, {moneyRequestPropTypes} from '../withMoneyRequest';
+import withNavigation from '../../../components/withNavigation';
+import ModalHeader from '../ModalHeader';
+import ONYXKEYS from '../../../ONYXKEYS';
+import personalDetailsPropType from '../../personalDetailsPropType';
+import reportPropTypes from '../../reportPropTypes';
 
 const propTypes = {
-    /** Whether or not this IOU has multiple participants */
-    hasMultipleParticipants: PropTypes.bool.isRequired,
-
-    /** The ID of the report this screen should display */
-    reportID: PropTypes.string.isRequired,
-
-    /** Callback to inform parent modal of success */
-    onStepComplete: PropTypes.func.isRequired,
-
-    /** Previously selected amount to show if the user comes back to this screen */
-    selectedAmount: PropTypes.string.isRequired,
-
-    /** Text to display on the button that "saves" the amount */
-    buttonText: PropTypes.string.isRequired,
-
-    /* Onyx Props */
-
-    /** Holds data related to IOU view state, rather than the underlying IOU data. */
-    iou: PropTypes.shape({
-        /** Selected Currency Code of the current IOU */
-        selectedCurrencyCode: PropTypes.string,
+    route: PropTypes.shape({
+        params: PropTypes.shape({
+            iouType: PropTypes.string,
+            reportID: PropTypes.string,
+        }),
     }),
 
+    /** The report on which the request is initiated on */
+    report: reportPropTypes,
+
+    /** Personal details of all users */
+    personalDetails: personalDetailsPropType,
+
     ...withLocalizePropTypes,
+    ...moneyRequestPropTypes,
 };
 
 const defaultProps = {
-    iou: {
-        selectedCurrencyCode: CONST.CURRENCY.USD,
+    route: {
+        params: {
+            iouType: '',
+            reportID: '',
+        },
     },
+    report: {},
+    personalDetails: {},
 };
 class MoneyRequestAmountPage extends React.Component {
     constructor(props) {
@@ -65,23 +71,49 @@ class MoneyRequestAmountPage extends React.Component {
         this.amountViewID = 'amountView';
         this.numPadContainerViewID = 'numPadContainerView';
         this.numPadViewID = 'numPadView';
+        this.iouType = lodashGet(props.route, 'params.iouType', '');
+        this.reportID = lodashGet(props.route, 'params.reportID', '');
+        this.isEditing = lodashGet(props.route, 'path', '').includes('amount');
 
         this.state = {
-            amount: props.selectedAmount,
+            amount: props.amount,
             shouldUpdateSelection: true,
             selection: {
-                start: props.selectedAmount.length,
-                end: props.selectedAmount.length,
+                start: props.amount.length,
+                end: props.amount.length,
             },
         };
     }
 
     componentDidMount() {
+        if (this.isEditing) {
+            this.props.redirectIfEmpty([this.props.participants, this.props.amount], this.iouType, this.reportID);
+        } else {
+            // Set the money request participants based on the report participants
+            const participants = ReportUtils.isPolicyExpenseChat(this.props.report)
+                ? OptionsListUtils.getPolicyExpenseReportOptions(this.props.report)
+                : OptionsListUtils.getParticipantsOptions(this.props.report, this.props.personalDetails);
+            this.props.setParticipants(_.map(participants, participant => ({...participant, selected: true})));
+        }
+
         this.focusTextInput();
 
         // Focus automatically after navigating back from currency selector
         this.unsubscribeNavFocus = this.props.navigation.addListener('focus', () => {
             this.focusTextInput();
+        });
+    }
+
+    componentDidUpdate(prevProps) {
+        if (prevProps.amount === this.props.amount) {
+            return;
+        }
+        this.setState({
+            amount: this.props.amount,
+            selection: {
+                start: this.props.amount.length,
+                end: this.props.amount.length,
+            },
         });
     }
 
@@ -137,6 +169,23 @@ class MoneyRequestAmountPage extends React.Component {
         }
         const selection = this.getNewSelection(prevState.selection, prevState.amount.length, newAmountWithoutSpaces.length);
         return {amount: this.stripCommaFromAmount(newAmountWithoutSpaces), selection};
+    }
+
+    /**
+     * Get page title based on the iou type
+     *
+     * @returns {String}
+     */
+    getTitleForStep() {
+        if (this.isEditing) {
+            return this.props.translate('iou.amount');
+        }
+        const title = {
+            [CONST.IOU.MONEY_REQUEST_TYPE.REQUEST]: this.props.translate('iou.requestMoney'),
+            [CONST.IOU.MONEY_REQUEST_TYPE.SEND]: this.props.translate('iou.sendMoney'),
+            [CONST.IOU.MONEY_REQUEST_TYPE.SPLIT]: this.props.translate('iou.splitBill'),
+        };
+        return title[this.iouType];
     }
 
     /**
@@ -291,72 +340,95 @@ class MoneyRequestAmountPage extends React.Component {
     }
 
     navigateToCurrencySelectionPage() {
-        if (this.props.hasMultipleParticipants) {
-            return Navigation.navigate(ROUTES.getIouBillCurrencyRoute(this.props.reportID));
+        Navigation.navigate(ROUTES.getMoneyRequestCurrencyRoute(this.iouType, this.reportID));
+    }
+
+    navigateToNextPage() {
+        if (this.isEditing) {
+            Navigation.goBack();
+            return;
         }
-        if (this.props.iouType === CONST.IOU.MONEY_REQUEST_TYPE.SEND) {
-            return Navigation.navigate(ROUTES.getIouSendCurrencyRoute(this.props.reportID));
+
+        // If a request is initiated on a report, skip the participants selection step and navigate to the confirmation page.
+        if (this.reportID) {
+            Navigation.navigate(ROUTES.getMoneyRequestConfirmationRoute(this.iouType, this.reportID));
+            return;
         }
-        return Navigation.navigate(ROUTES.getIouRequestCurrencyRoute(this.props.reportID));
+        Navigation.navigate(ROUTES.getMoneyRequestParticipantsRoute(this.iouType));
     }
 
     render() {
         const formattedAmount = this.replaceAllDigits(this.state.amount, this.props.toLocaleDigit);
+        const buttonText = this.isEditing ? this.props.translate('common.save') : this.props.translate('common.next');
 
         return (
-            <>
-                <View
-                    nativeID={this.amountViewID}
-                    onMouseDown={event => this.onMouseDown(event, [this.amountViewID])}
-                    style={[
-                        styles.flex1,
-                        styles.flexRow,
-                        styles.w100,
-                        styles.alignItemsCenter,
-                        styles.justifyContentCenter,
-                    ]}
-                >
-                    <TextInputWithCurrencySymbol
-                        formattedAmount={formattedAmount}
-                        onChangeAmount={this.updateAmount}
-                        onCurrencyButtonPress={this.navigateToCurrencySelectionPage}
-                        placeholder={this.props.numberFormat(0)}
-                        preferredLocale={this.props.preferredLocale}
-                        ref={el => this.textInput = el}
-                        selectedCurrencyCode={this.props.iou.selectedCurrencyCode}
-                        selection={this.state.selection}
-                        onSelectionChange={(e) => {
-                            if (!this.state.shouldUpdateSelection) {
-                                return;
-                            }
-                            this.setState({selection: e.nativeEvent.selection});
-                        }}
-                    />
-                </View>
-                <View
-                    onMouseDown={event => this.onMouseDown(event, [this.numPadContainerViewID, this.numPadViewID])}
-                    style={[styles.w100, styles.justifyContentEnd, styles.pageWrapper]}
-                    nativeID={this.numPadContainerViewID}
-                >
-                    {DeviceCapabilities.canUseTouchScreen()
-                        ? (
-                            <BigNumberPad
-                                nativeID={this.numPadViewID}
-                                numberPressed={this.updateAmountNumberPad}
-                                longPressHandlerStateChanged={this.updateLongPressHandlerState}
+            <FullPageNotFoundView shouldShow={!IOUUtils.isValidType(this.iouType)}>
+                <ScreenWrapper includeSafeAreaPaddingBottom={false}>
+                    {({safeAreaPaddingBottomStyle}) => (
+                        <View style={[styles.flex1, safeAreaPaddingBottomStyle]}>
+                            <ModalHeader
+                                title={this.getTitleForStep()}
+                                shouldShowBackButton={this.isEditing}
+                                onBackButtonPress={Navigation.goBack}
                             />
-                        ) : <View />}
+                            <View
+                                nativeID={this.amountViewID}
+                                onMouseDown={event => this.onMouseDown(event, [this.amountViewID])}
+                                style={[
+                                    styles.flex1,
+                                    styles.flexRow,
+                                    styles.w100,
+                                    styles.alignItemsCenter,
+                                    styles.justifyContentCenter,
+                                ]}
+                            >
+                                <TextInputWithCurrencySymbol
+                                    formattedAmount={formattedAmount}
+                                    onChangeAmount={this.updateAmount}
+                                    onCurrencyButtonPress={this.navigateToCurrencySelectionPage}
+                                    placeholder={this.props.numberFormat(0)}
+                                    preferredLocale={this.props.preferredLocale}
+                                    ref={el => this.textInput = el}
+                                    selectedCurrencyCode={this.props.currency}
+                                    selection={this.state.selection}
+                                    onSelectionChange={(e) => {
+                                        if (!this.state.shouldUpdateSelection) {
+                                            return;
+                                        }
+                                        this.setState({selection: e.nativeEvent.selection});
+                                    }}
+                                />
+                            </View>
+                            <View
+                                onMouseDown={event => this.onMouseDown(event, [this.numPadContainerViewID, this.numPadViewID])}
+                                style={[styles.w100, styles.justifyContentEnd, styles.pageWrapper]}
+                                nativeID={this.numPadContainerViewID}
+                            >
+                                {DeviceCapabilities.canUseTouchScreen()
+                                    ? (
+                                        <BigNumberPad
+                                            nativeID={this.numPadViewID}
+                                            numberPressed={this.updateAmountNumberPad}
+                                            longPressHandlerStateChanged={this.updateLongPressHandlerState}
+                                        />
+                                    ) : <View />}
 
-                    <Button
-                        success
-                        style={[styles.w100, styles.mt5]}
-                        onPress={() => this.props.onStepComplete(this.state.amount)}
-                        pressOnEnter
-                        isDisabled={!this.state.amount.length || parseFloat(this.state.amount) < 0.01}
-                        text={this.props.buttonText}
-                    />
-                </View>
-            </>
+                                <Button
+                                    success
+                                    style={[styles.w100, styles.mt5]}
+                                    onPress={() => {
+                                        this.props.setAmount(this.state.amount);
+                                        this.navigateToNextPage();
+                                    }}
+                                    pressOnEnter
+                                    isDisabled={!this.state.amount.length || parseFloat(this.state.amount) < 0.01}
+                                    text={buttonText}
+                                />
+                            </View>
+                        </View>
+                    )}
+                </ScreenWrapper>
+            </FullPageNotFoundView>
         );
     }
 }
@@ -366,7 +438,14 @@ MoneyRequestAmountPage.defaultProps = defaultProps;
 
 export default compose(
     withLocalize,
+    withNavigation,
+    withMoneyRequest,
     withOnyx({
-        iou: {key: ONYXKEYS.IOU},
+        report: {
+            key: ({route}) => `${ONYXKEYS.COLLECTION.REPORT}${lodashGet(route, 'params.reportID', '')}`,
+        },
+        personalDetails: {
+            key: ONYXKEYS.PERSONAL_DETAILS,
+        },
     }),
 )(MoneyRequestAmountPage);

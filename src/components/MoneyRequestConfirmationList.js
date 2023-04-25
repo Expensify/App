@@ -18,7 +18,7 @@ import withCurrentUserPersonalDetails, {withCurrentUserPersonalDetailsPropTypes,
 import * as IOUUtils from '../libs/IOUUtils';
 import MenuItemWithTopDescription from './MenuItemWithTopDescription';
 import Navigation from '../libs/Navigation/Navigation';
-import optionPropTypes from './optionPropTypes';
+import withMoneyRequest, {moneyRequestPropTypes} from '../pages/iou/withMoneyRequest';
 
 const propTypes = {
     /** Callback to inform parent modal of success */
@@ -30,14 +30,8 @@ const propTypes = {
     /** Should we request a single or multiple participant selection from user */
     hasMultipleParticipants: PropTypes.bool.isRequired,
 
-    /** IOU amount */
-    iouAmount: PropTypes.string.isRequired,
-
     /** IOU type */
     iouType: PropTypes.string,
-
-    /** Selected participants from MoneyRequestModal with login */
-    participants: PropTypes.arrayOf(optionPropTypes).isRequired,
 
     /** Can the participants be modified or not */
     canModifyParticipants: PropTypes.bool,
@@ -50,29 +44,15 @@ const propTypes = {
 
     /* Onyx Props */
 
-    /** Holds data related to IOU view state, rather than the underlying IOU data. */
-    iou: PropTypes.shape({
-
-        /** Whether or not the IOU step is loading (creating the IOU Report) */
-        loading: PropTypes.bool,
-
-        // Selected Currency Code of the current IOU
-        selectedCurrencyCode: PropTypes.string,
-    }),
-
     /** Current user session */
     session: PropTypes.shape({
         email: PropTypes.string.isRequired,
     }),
 
-    /** Callback function to navigate to a provided step in the MoneyRequestModal flow */
-    navigateToStep: PropTypes.func.isRequired,
+    ...moneyRequestPropTypes,
 };
 
 const defaultProps = {
-    iou: {
-        selectedCurrencyCode: CONST.CURRENCY.USD,
-    },
     iouType: CONST.IOU.MONEY_REQUEST_TYPE.REQUEST,
     canModifyParticipants: false,
     session: {
@@ -84,15 +64,6 @@ const defaultProps = {
 class MoneyRequestConfirmationList extends Component {
     constructor(props) {
         super(props);
-
-        const formattedParticipants = _.map(this.getParticipantsWithAmount(props.participants), participant => ({
-            ...participant, selected: true,
-        }));
-
-        this.state = {
-            participants: formattedParticipants,
-        };
-
         this.toggleOption = this.toggleOption.bind(this);
         this.confirm = this.confirm.bind(this);
     }
@@ -105,8 +76,8 @@ class MoneyRequestConfirmationList extends Component {
         return [{
             text: this.props.translate(this.props.hasMultipleParticipants ? 'iou.split' : 'iou.request', {
                 amount: this.props.numberFormat(
-                    this.props.iouAmount,
-                    {style: 'currency', currency: this.props.iou.selectedCurrencyCode},
+                    this.props.amount,
+                    {style: 'currency', currency: this.props.currency},
                 ),
             }),
             value: this.props.hasMultipleParticipants ? CONST.IOU.MONEY_REQUEST_TYPE.SPLIT : CONST.IOU.MONEY_REQUEST_TYPE.REQUEST,
@@ -118,7 +89,7 @@ class MoneyRequestConfirmationList extends Component {
      * @returns {Array}
      */
     getSelectedParticipants() {
-        return _.filter(this.state.participants, participant => participant.selected);
+        return _.filter(this.props.participants, participant => participant.selected);
     }
 
     /**
@@ -126,7 +97,7 @@ class MoneyRequestConfirmationList extends Component {
      * @returns {Array}
      */
     getUnselectedParticipants() {
-        return _.filter(this.state.participants, participant => !participant.selected);
+        return _.filter(this.props.participants, participant => !participant.selected);
     }
 
     /**
@@ -135,25 +106,15 @@ class MoneyRequestConfirmationList extends Component {
      * @returns {Array}
      */
     getParticipantsWithAmount(participants) {
-        const iouAmount = IOUUtils.calculateAmount(participants, this.props.iouAmount, this.props.iou.selectedCurrencyCode);
+        const iouAmount = IOUUtils.calculateAmount(participants, this.props.amount, this.props.currency);
 
         return OptionsListUtils.getIOUConfirmationOptionsFromParticipants(
             participants,
             this.props.numberFormat(iouAmount / 100, {
                 style: 'currency',
-                currency: this.props.iou.selectedCurrencyCode,
+                currency: this.props.currency,
             }),
         );
-    }
-
-    /**
-     * Returns the participants without amount
-     *
-     * @param {Array} participants
-     * @returns {Array}
-     */
-    getParticipantsWithoutAmount(participants) {
-        return _.map(participants, option => _.omit(option, 'descriptiveText'));
     }
 
     /**
@@ -168,15 +129,14 @@ class MoneyRequestConfirmationList extends Component {
             const unselectedParticipants = this.getUnselectedParticipants();
 
             const formattedSelectedParticipants = this.getParticipantsWithAmount(selectedParticipants);
-            const formattedUnselectedParticipants = this.getParticipantsWithoutAmount(unselectedParticipants);
-            const formattedParticipants = _.union(formattedSelectedParticipants, formattedUnselectedParticipants);
+            const formattedParticipants = _.union(formattedSelectedParticipants, unselectedParticipants);
 
-            const myIOUAmount = IOUUtils.calculateAmount(selectedParticipants, this.props.iouAmount, this.props.iou.selectedCurrencyCode, true);
+            const myIOUAmount = IOUUtils.calculateAmount(selectedParticipants, this.props.amount, this.props.currency, true);
             const formattedMyPersonalDetails = OptionsListUtils.getIOUConfirmationOptionsFromMyPersonalDetail(
                 this.props.currentUserPersonalDetails,
                 this.props.numberFormat(myIOUAmount / 100, {
                     style: 'currency',
-                    currency: this.props.iou.selectedCurrencyCode,
+                    currency: this.props.currency,
                 }),
             );
 
@@ -193,7 +153,7 @@ class MoneyRequestConfirmationList extends Component {
                 indexOffset: 1,
             });
         } else {
-            const formattedParticipants = this.getParticipantsWithoutAmount(this.props.participants);
+            const formattedParticipants = this.props.participants;
             sections.push({
                 title: this.props.translate('common.to'),
                 data: formattedParticipants,
@@ -229,15 +189,13 @@ class MoneyRequestConfirmationList extends Component {
             return;
         }
 
-        this.setState((prevState) => {
-            const newParticipants = _.map(prevState.participants, (participant) => {
-                if (participant.login === option.login) {
-                    return {...participant, selected: !participant.selected};
-                }
-                return participant;
-            });
-            return {participants: newParticipants};
+        const newParticipants = _.map(this.props.participants, (participant) => {
+            if (participant.login === option.login) {
+                return {...participant, selected: !participant.selected};
+            }
+            return participant;
         });
+        this.props.setParticipants(newParticipants);
     }
 
     /**
@@ -265,11 +223,11 @@ class MoneyRequestConfirmationList extends Component {
         const selectedParticipants = this.getSelectedParticipants();
         const shouldShowSettlementButton = this.props.iouType === CONST.IOU.MONEY_REQUEST_TYPE.SEND;
         const shouldDisableButton = selectedParticipants.length === 0;
-        const recipient = this.state.participants[0];
+        const recipient = this.props.participants[0] || {};
         const canModifyParticipants = this.props.canModifyParticipants && this.props.hasMultipleParticipants;
-        const formattedAmount = this.props.numberFormat(this.props.iouAmount, {
+        const formattedAmount = this.props.numberFormat(this.props.amount, {
             style: 'currency',
-            currency: this.props.iou.selectedCurrencyCode,
+            currency: this.props.currency,
         });
 
         return (
@@ -296,7 +254,7 @@ class MoneyRequestConfirmationList extends Component {
                             enablePaymentsRoute={ROUTES.IOU_SEND_ENABLE_PAYMENTS}
                             addBankAccountRoute={ROUTES.IOU_SEND_ADD_BANK_ACCOUNT}
                             addDebitCardRoute={ROUTES.IOU_SEND_ADD_DEBIT_CARD}
-                            currency={this.props.iou.selectedCurrencyCode}
+                            currency={this.props.currency}
                         />
                     ) : (
                         <ButtonWithMenu
@@ -311,16 +269,16 @@ class MoneyRequestConfirmationList extends Component {
                     title={formattedAmount}
                     description={this.props.translate('iou.amount')}
                     interactive={false} // This is so the menu item's background doesn't change color on hover
-                    onPress={() => this.props.navigateToStep(0)}
+                    onPress={() => Navigation.navigate(ROUTES.getMoneyRequestAmountRoute(this.props.iouType, this.props.reportID))}
                     style={styles.moneyRequestMenuItem}
                     titleStyle={styles.moneyRequestConfirmationAmount}
                 />
                 <MenuItemWithTopDescription
                     shouldShowRightIcon
-                    title={this.props.iou.comment}
+                    title={this.props.comment}
                     description={this.props.translate('common.description')}
                     interactive={false} // This is so the menu item's background doesn't change color on hover
-                    onPress={() => Navigation.navigate(ROUTES.MONEY_REQUEST_DESCRIPTION)}
+                    onPress={() => Navigation.navigate(ROUTES.getMoneyRequestDescriptionRoute(this.props.iouType, this.props.reportID))}
                     style={styles.moneyRequestMenuItem}
                 />
             </OptionsSelector>
@@ -335,8 +293,8 @@ export default compose(
     withLocalize,
     withWindowDimensions,
     withCurrentUserPersonalDetails,
+    withMoneyRequest,
     withOnyx({
-        iou: {key: ONYXKEYS.IOU},
         session: {
             key: ONYXKEYS.SESSION,
         },

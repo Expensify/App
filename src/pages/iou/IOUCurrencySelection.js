@@ -10,9 +10,9 @@ import ScreenWrapper from '../../components/ScreenWrapper';
 import HeaderWithCloseButton from '../../components/HeaderWithCloseButton';
 import compose from '../../libs/compose';
 import withLocalize, {withLocalizePropTypes} from '../../components/withLocalize';
-import * as IOU from '../../libs/actions/IOU';
 import * as CurrencySymbolUtils from '../../libs/CurrencySymbolUtils';
 import {withNetwork} from '../../components/OnyxProvider';
+import withMoneyRequest from './withMoneyRequest';
 
 /**
  * IOU Currency selection for selecting currency
@@ -105,7 +105,7 @@ class IOUCurrencySelection extends Component {
      * @param {String} option.currencyCode
      */
     confirmCurrencySelection(option) {
-        IOU.setIOUSelectedCurrency(option.currencyCode);
+        this.props.setCurrency(option.currencyCode);
         Navigation.goBack();
     }
 
@@ -140,6 +140,7 @@ IOUCurrencySelection.defaultProps = defaultProps;
 
 export default compose(
     withLocalize,
+    withMoneyRequest,
     withOnyx({
         currencyList: {key: ONYXKEYS.CURRENCY_LIST},
     }),
