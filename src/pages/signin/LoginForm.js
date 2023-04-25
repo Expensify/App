@@ -218,7 +218,7 @@ class LoginForm extends React.Component {
                                 // onPress={Session.beginAppleSignIn}
                                 title="Sign in with Apple"
                             />
-                            <GoogleSignInButton clientId="" onCredentialResponse={() => {}} />
+                            <GoogleSignInButton clientId="807764306985-v0oiotjog2tnvge6kcodr39v23na515c.apps.googleusercontent.com" onCredentialResponse={(stuff) => { console.log('GOOGLE RESPONSE', stuff); }} />
                         </View>
                     )
                 }
