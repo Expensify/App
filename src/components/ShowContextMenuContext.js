@@ -1,6 +1,7 @@
 import React from 'react';
 import * as ReportActionContextMenu from '../pages/home/report/ContextMenu/ReportActionContextMenu';
 import * as ContextMenuActions from '../pages/home/report/ContextMenu/ContextMenuActions';
+import * as DeviceCapabilities from '../libs/DeviceCapabilities';
 
 const ShowContextMenuContext = React.createContext({
     anchor: null,
@@ -22,6 +23,9 @@ ShowContextMenuContext.displayName = 'ShowContextMenuContext';
  * @param {Boolean} [isArchivedRoom=false] - Is the report an archived room
  */
 function showContextMenuForReport(event, anchor, reportID, action, checkIfContextMenuActive, isArchivedRoom = false) {
+    if (!DeviceCapabilities.canUseTouchScreen()) {
+        return;
+    }
     ReportActionContextMenu.showContextMenu(
         ContextMenuActions.CONTEXT_MENU_TYPES.REPORT_ACTION,
         event,

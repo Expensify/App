@@ -1,5 +1,5 @@
-import React, {memo} from 'react';
-import {View, ActivityIndicator} from 'react-native';
+import React, {memo, useState} from 'react';
+import {View, ActivityIndicator, Pressable} from 'react-native';
 import _ from 'underscore';
 import PropTypes from 'prop-types';
 import Str from 'expensify-common/lib/str';
@@ -37,6 +37,9 @@ const propTypes = {
     /** Function for handle on press */
     onPress: PropTypes.func,
 
+    /** Handles scale changed event in PDF component */
+    onScaleChanged: PropTypes.func,
+
     /** Notify parent that the UI should be modified to accommodate keyboard */
     onToggleKeyboard: PropTypes.func,
 
@@ -50,11 +53,15 @@ const defaultProps = {
     },
     shouldShowDownloadIcon: false,
     shouldShowLoadingSpinnerIcon: false,
-    onPress: () => {},
+    onPress: undefined,
+    onScaleChanged: () => {},
     onToggleKeyboard: () => {},
 };
 
 const AttachmentView = (props) => {
+    const [loadComplete, setLoadComplete] = useState(false);
+    const containerStyles = [styles.flex1, styles.flexRow, styles.alignSelfStretch];
+
     // Handles case where source is a component (ex: SVG)
     if (_.isFunction(props.source)) {
         return (
@@ -69,21 +76,35 @@ const AttachmentView = (props) => {
         const sourceURL = props.isAuthTokenRequired
             ? addEncryptedAuthTokenToURL(props.source)
             : props.source;
-        return (
+        const children = (
             <PDFView
                 onPress={props.onPress}
                 sourceURL={sourceURL}
                 style={styles.imageModalPDF}
                 onToggleKeyboard={props.onToggleKeyboard}
+                onScaleChanged={props.onScaleChanged}
+                onLoadComplete={() => !loadComplete && setLoadComplete(true)}
             />
+        );
+        return (
+            props.onPress ? (
+                <Pressable onPress={props.onPress} disabled={loadComplete} style={containerStyles}>
+                    {children}
+                </Pressable>
+            ) : children
         );
     }
 
     // For this check we use both source and file.name since temporary file source is a blob
     // both PDFs and images will appear as images when pasted into the the text field
     if (Str.isImage(props.source) || (props.file && Str.isImage(props.file.name))) {
+        const children = <ImageView url={props.source} isAuthTokenRequired={props.isAuthTokenRequired} />;
         return (
-            <ImageView onPress={props.onPress} url={props.source} isAuthTokenRequired={props.isAuthTokenRequired} />
+            props.onPress ? (
+                <Pressable onPress={props.onPress} disabled={loadComplete} style={containerStyles}>
+                    {children}
+                </Pressable>
+            ) : children
         );
     }
 
