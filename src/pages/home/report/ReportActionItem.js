@@ -82,6 +82,14 @@ const propTypes = {
     /** All of the personalDetails */
     personalDetails: PropTypes.objectOf(personalDetailsPropType),
 
+    reactions: PropTypes.objectOf(PropTypes.shape({
+        emoji: PropTypes.string,
+        users: PropTypes.objectOf(PropTypes.shape({
+            accountID: PropTypes.number,
+            skinTone: PropTypes.string,
+        })),
+    })),
+
     ...windowDimensionsPropTypes,
 };
 
@@ -90,6 +98,7 @@ const defaultProps = {
     hasOutstandingIOU: false,
     preferredSkinTone: CONST.EMOJI_DEFAULT_SKIN_TONE,
     personalDetails: {},
+    reactions: {},
 };
 
 class ReportActionItem extends Component {
@@ -163,7 +172,7 @@ class ReportActionItem extends Component {
     }
 
     toggleReaction(emoji) {
-        Report.toggleEmojiReaction(this.props.report.reportID, this.props.action, emoji);
+        Report.toggleEmojiReaction(this.props.report.reportID, this.props.action, emoji, this.props.reactions);
     }
 
     /**
@@ -378,6 +387,9 @@ export default compose(
     withOnyx({
         preferredSkinTone: {
             key: ONYXKEYS.PREFERRED_EMOJI_SKIN_TONE,
+        },
+        reactions: {
+            key: ({report, action}) => `${ONYXKEYS.COLLECTION.REPORT_ACTIONS_REACTIONS}${report.reportID}${action.reportActionID}`,
         },
     }),
 )(ReportActionItem);

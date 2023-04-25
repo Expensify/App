@@ -1419,23 +1419,97 @@ function removeEmojiReaction(reportID, originalReportAction, emoji) {
 }
 
 /**
+ * Adds a reaction to the report action.
+ * @param {String} reportID
+ * @param {String} reportActionID
+ * @param {{ name: string, code: string, types: string[] }} emoji
+ * @param {number} [skinTone] Optional.
+ */
+function addEmojiReaction2(reportID, reportActionID, emoji, skinTone = preferredSkinTone) {
+    const optimisticData = [
+        {
+            onyxMethod: CONST.ONYX.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS_REACTIONS}${reportID}${reportActionID}`,
+            value: {
+                [emoji.name]: {
+                    emoji: emoji.name,
+                    users: {
+                        [currentUserAccountID]: {accountID: currentUserAccountID, skinTone},
+                    },
+                },
+            },
+        },
+    ];
+    const parameters = {
+        reportID,
+        skinTone,
+        emojiCode: emoji.name,
+        reportActionID,
+    };
+    API.write('AddEmojiReaction2', parameters, {optimisticData});
+}
+
+/**
+ * Removes a reaction to the report action.
+ * @param {String} reportID
+ * @param {String} reportActionID
+ * @param {{ name: string, code: string, types: string[] }} emoji
+ * @param {Object} existingReactions
+ */
+function removeEmojiReaction2(reportID, reportActionID, emoji, existingReactions) {
+    const reactionObject = existingReactions[emoji.name];
+    if (!reactionObject) {
+        return;
+    }
+
+    // Make a copy of the original reaction object so that we don't update anything in existingReactions which could be unexpected
+    let updatedReactionObject = {...reactionObject};
+
+    // Remove the current user from the list of users who have used this emoji
+    updatedReactionObject.users = _.omit(reactionObject.users, currentUserAccountID);
+
+    // If there are no more users, then the entire reactions needs to be set to null so that it can be removed from Onyx
+    if (!_.size(updatedReactionObject.users)) {
+        updatedReactionObject = null;
+    }
+
+    const optimisticData = [
+        {
+            onyxMethod: CONST.ONYX.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS_REACTIONS}${reportID}${reportActionID}`,
+            value: {
+                [emoji.name]: updatedReactionObject,
+            },
+        },
+    ];
+
+    const parameters = {
+        reportID,
+        reportActionID,
+        emojiCode: emoji.name,
+    };
+    API.write('RemoveEmojiReaction2', parameters, {optimisticData});
+}
+
+/**
  * Calls either addEmojiReaction or removeEmojiReaction depending on if the current user has reacted to the report action.
  * @param {String} reportID
  * @param {Object} reportAction
  * @param {Object} emoji
  * @param {number} paramSkinTone
+ * @param {Object} existingReactions
  * @returns {Promise}
  */
-function toggleEmojiReaction(reportID, reportAction, emoji, paramSkinTone = preferredSkinTone) {
+function toggleEmojiReaction(reportID, reportAction, emoji, paramSkinTone = preferredSkinTone, existingReactions) {
     const message = reportAction.message[0];
     const reactionObject = message.reactions && _.find(message.reactions, reaction => reaction.emoji === emoji.name);
     const skinTone = emoji.types === undefined ? null : paramSkinTone; // only use skin tone if emoji supports it
     if (reactionObject) {
         if (hasAccountIDReacted(currentUserAccountID, reactionObject.users, skinTone)) {
-            return removeEmojiReaction(reportID, reportAction, emoji, skinTone);
+            return removeEmojiReaction2(reportID, reportAction.reportActionID, emoji, skinTone, existingReactions);
         }
     }
-    return addEmojiReaction(reportID, reportAction, emoji, skinTone);
+    return addEmojiReaction2(reportID, reportAction.reportActionID, emoji, skinTone);
 }
 
 /**
@@ -1495,7 +1569,9 @@ export {
     subscribeToNewActionEvent,
     showReportActionNotification,
     addEmojiReaction,
+    addEmojiReaction2,
     removeEmojiReaction,
+    removeEmojiReaction2,
     toggleEmojiReaction,
     hasAccountIDReacted,
     getCurrentUserAccountID,
