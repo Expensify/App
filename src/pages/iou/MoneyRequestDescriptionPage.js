@@ -37,7 +37,7 @@ class MoneyRequestDescriptionPage extends Component {
      * @param {String} value.moneyRequestComment
      */
     updateComment(value) {
-        this.props.setComment(value.moneyRequestComment);
+        this.props.setComment(value.moneyRequestComment.trim());
         Navigation.goBack();
     }
 
