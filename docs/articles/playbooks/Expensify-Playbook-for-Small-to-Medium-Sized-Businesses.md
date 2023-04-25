@@ -10,7 +10,7 @@ This guide provides practical tips and recommendations for small businesses with
 ## Who you are
 As a small to medium-sized business owner, your main aim is to achieve success and grow your business. To achieve your goals, it is crucial that you make worthwhile investments in both your workforce and your business processes. This means providing your employees with the resources they need to generate revenue effectively, while also adopting measures to guarantee that expenses are compliant.
 
-![Expense Basics](http://127.0.0.1:4000/assets/images/playbook-expense-basics.png)
+![Expense Basics](http://help.expensify.com/assets/images/playbook-expense-basics.png)
 
 ## Step-by-step instructions for setting up Expensify
 This playbook is built on best practices we’ve developed after processing expenses for tens of thousands of companies around the world. As such, use this playbook as your starting point, knowing that you can customize Expensify to suit your business needs. Every company is different, and your dedicated Setup Specialist is always one chat away with any questions you may have.
