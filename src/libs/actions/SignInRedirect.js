@@ -66,7 +66,7 @@ function resetHomeRouteParams() {
     _.keys(lodashGet(homeRoute, 'params')).forEach((paramKey) => {
         emptyParams[paramKey] = undefined;
     });
-    Navigation.setParams(emptyParams, lodashGet(homeRoute, 'key'));
+    Navigation.setParams(emptyParams, lodashGet(homeRoute, 'key', ''));
 }
 
 /**
