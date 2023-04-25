@@ -131,6 +131,8 @@ describe('actions/IOU', () => {
                             // The transactionID on the iou action should match the one from the transactions collection
                             expect(iouAction.originalMessage.IOUTransactionID).toBe(transactionID);
 
+                            expect(transaction.merchant).toBe(CONST.REPORT.TYPE.IOU);
+
                             resolve();
                         },
                     });
@@ -263,6 +265,8 @@ describe('actions/IOU', () => {
 
                             // The comment should be correct
                             expect(transaction.comment.comment).toBe(comment);
+
+                            expect(transaction.merchant).toBe(CONST.REPORT.TYPE.IOU);
 
                             // It should be pending
                             expect(transaction.pendingAction).toBe(CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD);
@@ -424,16 +428,10 @@ describe('actions/IOU', () => {
 
                             newTransaction = _.find(allTransactions, transaction => transaction.transactionID !== existingTransaction.transactionID);
 
-                            // The transaction should be attached to the IOU report
                             expect(newTransaction.reportID).toBe(iouReportID);
-
-                            // The amount on the new transaction should be correct
                             expect(newTransaction.amount).toBe(amountInCents);
-
-                            // The comment should be correct
                             expect(newTransaction.comment.comment).toBe(comment);
-
-                            // The new transaction should be pending
+                            expect(newTransaction.merchant).toBe(CONST.REPORT.TYPE.IOU);
                             expect(newTransaction.pendingAction).toBe(CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD);
 
                             // The transactionID on the iou action should match the one from the transactions collection
@@ -559,16 +557,10 @@ describe('actions/IOU', () => {
                             const transaction = _.find(allTransactions, transaction => !_.isEmpty(transaction));
                             transactionID = transaction.transactionID;
 
-                            // The transaction should be attached to the IOU report
                             expect(transaction.reportID).toBe(iouReportID);
-
-                            // Its amount should match the amount of the request
                             expect(transaction.amount).toBe(amountInCents);
-
-                            // The comment should be correct
                             expect(transaction.comment.comment).toBe(comment);
-
-                            // It should be pending
+                            expect(transaction.merchant).toBe(CONST.REPORT.TYPE.IOU);
                             expect(transaction.pendingAction).toBe(CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD);
 
                             // The transactionID on the iou action should match the one from the transactions collection
@@ -893,6 +885,11 @@ describe('actions/IOU', () => {
                             expect(julesTransaction.comment.comment).toBe(comment);
                             expect(vitTransaction.comment.comment).toBe(comment);
                             expect(groupTransaction.comment.comment).toBe(comment);
+
+                            expect(carlosTransaction.merchant).toBe(CONST.REPORT.TYPE.IOU);
+                            expect(julesTransaction.merchant).toBe(CONST.REPORT.TYPE.IOU);
+                            expect(vitTransaction.merchant).toBe(CONST.REPORT.TYPE.IOU);
+                            expect(groupTransaction.merchant).toBe(`Split Bill with ${RORY_EMAIL}, ${CARLOS_EMAIL}, ${JULES_EMAIL}, and ${VIT_EMAIL} [${DateUtils.getDBTime().slice(0, 10)}]`);
 
                             expect(carlosTransaction.comment.source).toBe(CONST.IOU.MONEY_REQUEST_TYPE.SPLIT);
                             expect(julesTransaction.comment.source).toBe(CONST.IOU.MONEY_REQUEST_TYPE.SPLIT);

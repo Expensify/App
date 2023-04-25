@@ -13,7 +13,7 @@ import * as NumberUtils from './NumberUtils';
  * @param {String} [originalTransactionID]
  * @returns {Object}
  */
-function buildOptimisticTransaction(amount, currency, reportID, comment = '', source = '', originalTransactionID = '') {
+function buildOptimisticTransaction(amount, currency, reportID, comment = '', source = '', originalTransactionID = '', merchant = CONST.REPORT.TYPE.IOU) {
     // transactionIDs are random, positive, 64-bit numbers.
     // Because JS can only handle 53-bit numbers, transactionIDs are strings in the front-end (just like reportActionID)
     const transactionID = NumberUtils.rand64();
@@ -31,6 +31,7 @@ function buildOptimisticTransaction(amount, currency, reportID, comment = '', so
         amount,
         reportID,
         comment: commentJSON,
+        merchant,
         created: DateUtils.getDBTime(),
         pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
     };
