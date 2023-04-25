@@ -54,45 +54,40 @@ const propTypes = {
     toggleReaction: PropTypes.func.isRequired,
 };
 
-const ReportActionItemReactions = (props) => {
-    const reactionsWithCount = _.omit(props.reactions, reaction => _.size(reaction.users) === 0);
-    console.log(reactionsWithCount)
+const ReportActionItemReactions = props => (
+    <View style={[styles.flexRow, styles.flexWrap, styles.gap1, styles.mt2]}>
+        {_.map(props.reactions, (reaction) => {
+            const reactionCount = _.size(reaction.users);
+            const emoji = _.find(emojis, e => e.name === reaction.emoji);
+            const emojiCodes = getUniqueEmojiCodes(emoji, reaction.users);
 
-    return (
-        <View style={[styles.flexRow, styles.flexWrap, styles.gap1, styles.mt2]}>
-            {_.map(reactionsWithCount, (reaction) => {
-                const reactionCount = _.size(reaction.users);
-                const emoji = _.find(emojis, e => e.name === reaction.emoji);
-                const emojiCodes = getUniqueEmojiCodes(emoji, reaction.users);
+            const onPress = () => {
+                props.toggleReaction(emoji);
+            };
 
-                const onPress = () => {
-                    props.toggleReaction(emoji);
-                };
-
-                return (
-                    <Tooltip
-                        renderTooltipContent={() => (
-                            <ReactionTooltipContent
-                                emojiName={reaction.emoji}
-                                emojiCodes={emojiCodes}
-                                accountIDs={reaction.users}
-                            />
-                        )}
-                        key={reaction.emoji}
-                    >
-                        <EmojiReactionBubble
-                            count={reactionCount}
+            return (
+                <Tooltip
+                    renderTooltipContent={() => (
+                        <ReactionTooltipContent
+                            emojiName={reaction.emoji}
                             emojiCodes={emojiCodes}
-                            onPress={onPress}
-                            reactionUsers={reaction.users}
+                            accountIDs={_.keys(reaction.users)}
                         />
-                    </Tooltip>
-                );
-            })}
-            {reactionsWithCount.length > 0 && <AddReactionBubble onSelectEmoji={props.toggleReaction} />}
-        </View>
-    );
-};
+                    )}
+                    key={reaction.emoji}
+                >
+                    <EmojiReactionBubble
+                        count={reactionCount}
+                        emojiCodes={emojiCodes}
+                        onPress={onPress}
+                        reactionUsers={reaction.users}
+                    />
+                </Tooltip>
+            );
+        })}
+        {_.size(props.reactions) > 0 && <AddReactionBubble onSelectEmoji={props.toggleReaction} />}
+    </View>
+);
 
 ReportActionItemReactions.displayName = 'ReportActionItemReactions';
 ReportActionItemReactions.propTypes = propTypes;
