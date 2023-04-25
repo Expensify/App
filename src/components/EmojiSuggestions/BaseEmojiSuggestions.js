@@ -1,52 +1,16 @@
 import React from 'react';
 import {View, Pressable} from 'react-native';
-import PropTypes from 'prop-types';
 import _ from 'underscore';
 
 // We take FlatList from this package to properly handle the scrolling of EmojiSuggestions in chats since one scroll is nested inside another
 import {FlatList} from 'react-native-gesture-handler';
-import styles from '../styles/styles';
-import * as StyleUtils from '../styles/StyleUtils';
-import * as EmojiUtils from '../libs/EmojiUtils';
-import Text from './Text';
-import CONST from '../CONST';
-import getStyledTextArray from '../libs/GetStyledTextArray';
-import * as DeviceCapabilities from '../libs/DeviceCapabilities';
-
-const propTypes = {
-    /** The index of the highlighted emoji */
-    highlightedEmojiIndex: PropTypes.number,
-
-    /** Array of suggested emoji */
-    emojis: PropTypes.arrayOf(PropTypes.shape({
-        /** The emoji code */
-        code: PropTypes.string,
-
-        /** The name of the emoji */
-        name: PropTypes.string,
-    })).isRequired,
-
-    /** Fired when the user selects an emoji */
-    onSelect: PropTypes.func.isRequired,
-
-    /** Emoji prefix that follows the colon  */
-    prefix: PropTypes.string.isRequired,
-
-    /** Show that we can use large emoji picker.
-     * Depending on available space and whether the input is expanded, we can have a small or large emoji suggester.
-     * When this value is false, the suggester will have a height of 2.5 items. When this value is true, the height can be up to 5 items.  */
-    isEmojiPickerLarge: PropTypes.bool.isRequired,
-
-    /** Show that we should include ReportRecipientLocalTime view height */
-    shouldIncludeReportRecipientLocalTimeHeight: PropTypes.bool.isRequired,
-
-    /** Stores user's preferred skin tone */
-    preferredSkinToneIndex: PropTypes.number.isRequired,
-};
-
-const defaultProps = {
-    highlightedEmojiIndex: 0,
-};
+import styles from '../../styles/styles';
+import * as StyleUtils from '../../styles/StyleUtils';
+import * as EmojiUtils from '../../libs/EmojiUtils';
+import Text from '../Text';
+import CONST from '../../CONST';
+import getStyledTextArray from '../../libs/GetStyledTextArray';
+import {propTypes, defaultProps} from './emojiSuggestionsPropTypes';
 
 /**
  * @param {Number} numRows
@@ -72,7 +36,7 @@ const measureHeightOfEmojiRows = (numRows, isEmojiPickerLarge) => {
  */
 const keyExtractor = (item, index) => `${item.name}+${index}}`;
 
-const EmojiSuggestions = (props) => {
+const BaseEmojiSuggestions = (props) => {
     /**
      * Render a suggestion menu item component.
      * @param {Object} params.item
@@ -115,24 +79,9 @@ const EmojiSuggestions = (props) => {
         props.isEmojiPickerLarge,
     );
 
-    const containerRef = React.useRef(null);
-    React.useEffect(() => {
-        const container = containerRef.current;
-        if (!container) {
-            return;
-        }
-        container.onpointerdown = (e) => {
-            if (DeviceCapabilities.hasHoverSupport()) {
-                return;
-            }
-            e.preventDefault();
-        };
-        return () => container.onpointerdown = null;
-    }, []);
-
     return (
         <View
-            ref={containerRef}
+            ref={props.forwardedRef}
             style={[
                 styles.emojiSuggestionsContainer,
                 StyleUtils.getEmojiSuggestionContainerStyle(
@@ -153,8 +102,11 @@ const EmojiSuggestions = (props) => {
     );
 };
 
-EmojiSuggestions.propTypes = propTypes;
-EmojiSuggestions.defaultProps = defaultProps;
-EmojiSuggestions.displayName = 'EmojiSuggestions';
+BaseEmojiSuggestions.propTypes = propTypes;
+BaseEmojiSuggestions.defaultProps = defaultProps;
+BaseEmojiSuggestions.displayName = 'BaseEmojiSuggestions';
 
-export default EmojiSuggestions;
+export default React.forwardRef((props, ref) => (
+    // eslint-disable-next-line react/jsx-props-no-spreading
+    <BaseEmojiSuggestions {...props} forwardedRef={ref} />
+));
