@@ -60,7 +60,7 @@ function NewContactMethodPage(props) {
     const loginInputRef = useRef(null);
 
     const isFormValid = useMemo(() => {
-        const phoneLogin = LoginUtils.getPhoneNumberWithoutSpecialChars(login.trim());
+        const phoneLogin = LoginUtils.getPhoneNumberWithoutSpecialChars(login);
 
         return (Permissions.canUsePasswordlessLogins(props.betas) || password)
             && (Str.isValidEmail(login) || Str.isValidPhone(phoneLogin));
@@ -99,7 +99,7 @@ function NewContactMethodPage(props) {
                         label={`${props.translate('common.email')}/${props.translate('common.phoneNumber')}`}
                         ref={loginInputRef}
                         value={login}
-                        onChangeText={setLogin}
+                        onChangeText={value => setLogin(value.trim())}
                         autoCapitalize="none"
                         returnKeyType={Permissions.canUsePasswordlessLogins(props.betas) ? 'done' : 'next'}
                     />
