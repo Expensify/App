@@ -194,7 +194,7 @@ function isValidPaypalUsername(paypalUsername) {
 }
 
 /**
- * Validate that a date date meets the minimum age requirement.
+ * Validate that a date meets the minimum age requirement.
  *
  * @param {String} date
  * @returns {Boolean}
