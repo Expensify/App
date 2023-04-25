@@ -1,5 +1,5 @@
 const http = require("http");
-const { parse } = require('querystring');
+const { parse, escape } = require('querystring');
 
 const host = "localhost";
 const port = 9002;
@@ -27,11 +27,11 @@ const requestListener = function(req, res) {
     collectRequestData(req, result => {
         console.log(result);
       token = result.id_token;
-        res.end(`Parsed data belonging to ${result.fname}`);
-    });
-  res.writeHead(302, { Location: `https://exptest.ngrok.io/siwa/${encodeURIComponent(token)}` });
+      // can't test with real token, dot breaks URL parsing in app
+  res.writeHead(302, { Location: `https://exptest.ngrok.io/siwa/exampletoken` });
   // res.writeHead(302, { Location: "" });
   res.end();
+    });
 }
 }
 

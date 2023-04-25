@@ -55,6 +55,7 @@ const AppleAuthScreen = () => {
 const AppleAuthScreenReceiver = ({route}) => {
     const {params: {token}} = route;
     const [showToken, setShowToken] = useState(false);
+    useEffect(() => { window.open('new-expensify://settings'); }, []);
     return (
         <View style={{flex: 1, justifyContent: 'center', alignItems: 'center'}}>
             <Text>User has been signed in.</Text>
@@ -66,6 +67,7 @@ const AppleAuthScreenReceiver = ({route}) => {
                 {token}
             </Text>
             )}
+            <Text>Redirecting you back to the app...</Text>
         </View>
     );
 };
