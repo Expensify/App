@@ -20,24 +20,24 @@ import MenuItemWithTopDescription from '../../components/MenuItemWithTopDescript
 import OptionsSelector from '../../components/OptionsSelector';
 
 const propTypes = {
-
+    /** The report currently being looked at */
+    report: reportPropTypes.isRequired,
 };
 
 const defaultProps = {
-    report: {},
-    participants: [],
+
 };
 
 const TaskHeaderView = props => (
     <>
         <MenuItemWithTopDescription
             shouldShowHeaderTitle
-            title="Upload articles of Incorporation"
+            title={props.report.reportName}
             description="Task"
             onPress={() => console.log('ho')}
         />
         <MenuItemWithTopDescription
-            title="Please add a PDF file of your articles of incorporation."
+            title={lodashGet(props.report, 'description', 'Please add a PDF file of your articles of incorporation.')}
             description="Description"
             onPress={() => console.log('ho')}
         />
