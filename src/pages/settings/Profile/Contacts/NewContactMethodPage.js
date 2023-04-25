@@ -59,6 +59,14 @@ function NewContactMethodPage(props) {
     const [password, setPassword] = useState('');
     const loginInputRef = useRef(null);
 
+    const handleLoginChange = useCallback((value) => {
+        setLogin(value.trim());
+    }, [login]);
+
+    const handlePasswordChange = useCallback((value) => {
+        setPassword(value.trim());
+    }, [password]);
+
     const isFormValid = useMemo(() => {
         const phoneLogin = LoginUtils.getPhoneNumberWithoutSpecialChars(login);
 
@@ -99,7 +107,7 @@ function NewContactMethodPage(props) {
                         label={`${props.translate('common.email')}/${props.translate('common.phoneNumber')}`}
                         ref={loginInputRef}
                         value={login}
-                        onChangeText={value => setLogin(value.trim())}
+                        onChangeText={handleLoginChange}
                         autoCapitalize="none"
                         returnKeyType={Permissions.canUsePasswordlessLogins(props.betas) ? 'done' : 'next'}
                     />
@@ -110,7 +118,7 @@ function NewContactMethodPage(props) {
                             <TextInput
                                 label={props.translate('common.password')}
                                 value={password}
-                                onChangeText={setPassword}
+                                onChangeText={handlePasswordChange}
                                 returnKeyType="done"
                             />
                         </View>
