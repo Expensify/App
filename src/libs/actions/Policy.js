@@ -515,7 +515,7 @@ function hideWorkspaceAlertMessage(policyID) {
 function updateWorkspaceCustomUnit(policyID, currentCustomUnit, newCustomUnit, lastModified) {
     const optimisticData = [
         {
-            onyxMethod: 'merge',
+            onyxMethod: CONST.ONYX.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
             value: {
                 customUnits: {
@@ -530,7 +530,7 @@ function updateWorkspaceCustomUnit(policyID, currentCustomUnit, newCustomUnit, l
 
     const successData = [
         {
-            onyxMethod: 'merge',
+            onyxMethod: CONST.ONYX.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
             value: {
                 customUnits: {
@@ -545,7 +545,7 @@ function updateWorkspaceCustomUnit(policyID, currentCustomUnit, newCustomUnit, l
 
     const failureData = [
         {
-            onyxMethod: 'merge',
+            onyxMethod: CONST.ONYX.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
             value: {
                 customUnits: {
@@ -553,9 +553,6 @@ function updateWorkspaceCustomUnit(policyID, currentCustomUnit, newCustomUnit, l
                         customUnitID: currentCustomUnit.customUnitID,
                         name: currentCustomUnit.name,
                         attributes: currentCustomUnit.attributes,
-                        errors: {
-                            [DateUtils.getMicroseconds()]: Localize.translateLocal('workspace.reimburse.updateCustomUnitError'),
-                        },
                     },
                 },
             },
@@ -579,7 +576,7 @@ function updateWorkspaceCustomUnit(policyID, currentCustomUnit, newCustomUnit, l
 function updateCustomUnitRate(policyID, currentCustomUnitRate, customUnitID, newCustomUnitRate, lastModified) {
     const optimisticData = [
         {
-            onyxMethod: 'merge',
+            onyxMethod: CONST.ONYX.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
             value: {
                 customUnits: {
@@ -599,7 +596,7 @@ function updateCustomUnitRate(policyID, currentCustomUnitRate, customUnitID, new
 
     const successData = [
         {
-            onyxMethod: 'merge',
+            onyxMethod: CONST.ONYX.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
             value: {
                 customUnits: {
@@ -617,7 +614,7 @@ function updateCustomUnitRate(policyID, currentCustomUnitRate, customUnitID, new
 
     const failureData = [
         {
-            onyxMethod: 'merge',
+            onyxMethod: CONST.ONYX.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
             value: {
                 customUnits: {

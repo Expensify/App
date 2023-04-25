@@ -287,6 +287,26 @@ function getBackgroundColorStyle(backgroundColor) {
 }
 
 /**
+ * Returns the width style for the wordmark logo on the sign in page
+ *
+ * @param {String} environment
+ * @param {Boolean} isSmallScreenWidth
+ * @returns {Object}
+ */
+function getSignInWordmarkWidthStyle(environment, isSmallScreenWidth) {
+    if (environment === CONST.ENVIRONMENT.DEV) {
+        return isSmallScreenWidth ? {width: variables.signInLogoWidthPill} : {width: variables.signInLogoWidthLargeScreenPill};
+    }
+    if (environment === CONST.ENVIRONMENT.STAGING) {
+        return isSmallScreenWidth ? {width: variables.signInLogoWidthPill} : {width: variables.signInLogoWidthLargeScreenPill};
+    }
+    if (environment === CONST.ENVIRONMENT.PRODUCTION) {
+        return isSmallScreenWidth ? {width: variables.signInLogoWidth} : {width: variables.signInLogoWidthLargeScreen};
+    }
+    return isSmallScreenWidth ? {width: variables.signInLogoWidthPill} : {width: variables.signInLogoWidthLargeScreenPill};
+}
+
+/**
  * Converts a color in hexadecimal notation into RGB notation.
  *
  * @param {String} hexadecimal A color in hexadecimal notation.
@@ -323,10 +343,14 @@ function getBackgroundColorWithOpacityStyle(backgroundColor, opacity) {
  * @param {Boolean} success
  * @param {Boolean} error
  * @param {boolean} [isPressed=false]
+ * @param {boolean} [isAdHoc=false]
  * @return {Object}
  */
-function getBadgeColorStyle(success, error, isPressed = false) {
+function getBadgeColorStyle(success, error, isPressed = false, isAdHoc = false) {
     if (success) {
+        if (isAdHoc) {
+            return isPressed ? styles.badgeAdHocSuccessPressed : styles.badgeAdHocSuccess;
+        }
         return isPressed ? styles.badgeSuccessPressed : styles.badgeSuccess;
     }
     if (error) {
@@ -420,15 +444,19 @@ function getModalPaddingStyles({
     modalContainerStyleMarginBottom,
     modalContainerStylePaddingTop,
     modalContainerStylePaddingBottom,
+    insets,
 }) {
+    // use fallback value for safeAreaPaddingBottom to keep padding bottom consistent with padding top.
+    // More info: issue #17376
+    const safeAreaPaddingBottomWithFallback = insets.bottom === 0 ? (modalContainerStylePaddingTop || 0) : safeAreaPaddingBottom;
     return {
         marginTop: (modalContainerStyleMarginTop || 0) + (shouldAddTopSafeAreaMargin ? safeAreaPaddingTop : 0),
-        marginBottom: (modalContainerStyleMarginBottom || 0) + (shouldAddBottomSafeAreaMargin ? safeAreaPaddingBottom : 0),
+        marginBottom: (modalContainerStyleMarginBottom || 0) + (shouldAddBottomSafeAreaMargin ? safeAreaPaddingBottomWithFallback : 0),
         paddingTop: shouldAddTopSafeAreaPadding
             ? (modalContainerStylePaddingTop || 0) + safeAreaPaddingTop
             : modalContainerStylePaddingTop || 0,
         paddingBottom: shouldAddBottomSafeAreaPadding
-            ? (modalContainerStylePaddingBottom || 0) + safeAreaPaddingBottom
+            ? (modalContainerStylePaddingBottom || 0) + safeAreaPaddingBottomWithFallback
             : modalContainerStylePaddingBottom || 0,
         paddingLeft: safeAreaPaddingLeft || 0,
         paddingRight: safeAreaPaddingRight || 0,
@@ -692,6 +720,17 @@ function getMinimumHeight(minHeight) {
 }
 
 /**
+ * Get maximum width as style
+ * @param {Number} maxWidth
+ * @returns {Object}
+ */
+function getMaximumWidth(maxWidth) {
+    return {
+        maxWidth,
+    };
+}
+
+/**
  * Return style for opacity animation.
  *
  * @param {Animated.Value} fadeAnimation
@@ -786,6 +825,18 @@ function getReportWelcomeTopMarginStyle(isSmallScreenWidth) {
 
     return {
         marginTop: CONST.EMPTY_STATE_BACKGROUND.WIDE_SCREEN.VIEW_HEIGHT,
+    };
+}
+
+/**
+ * Returns fontSize style
+ *
+ * @param {Number} fontSize
+ * @returns {Object}
+ */
+function getFontSizeStyle(fontSize) {
+    return {
+        fontSize,
     };
 }
 
@@ -936,6 +987,25 @@ function getDirectionStyle(direction) {
     return {};
 }
 
+/**
+ * @param {Boolean} shouldDisplayBorder
+ * @returns {Object}
+ */
+function getGoogleListViewStyle(shouldDisplayBorder) {
+    if (shouldDisplayBorder) {
+        return {
+            ...styles.borderTopRounded,
+            ...styles.borderBottomRounded,
+            marginTop: 4,
+            paddingVertical: 6,
+        };
+    }
+
+    return {
+        transform: [{scale: 0}],
+    };
+}
+
 export {
     getAvatarSize,
     getAvatarStyle,
@@ -972,6 +1042,7 @@ export {
     hasSafeAreas,
     getHeight,
     getMinimumHeight,
+    getMaximumWidth,
     fade,
     getHorizontalStackedAvatarBorderStyle,
     getReportWelcomeBackgroundImageStyle,
@@ -986,4 +1057,7 @@ export {
     getEmojiReactionBubbleTextStyle,
     getEmojiReactionCounterTextStyle,
     getDirectionStyle,
+    getFontSizeStyle,
+    getSignInWordmarkWidthStyle,
+    getGoogleListViewStyle,
 };
