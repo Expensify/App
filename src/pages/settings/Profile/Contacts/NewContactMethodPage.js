@@ -59,8 +59,13 @@ function NewContactMethodPage(props) {
     const [password, setPassword] = useState('');
     const loginInputRef = useRef(null);
 
-    const handleLoginChange = value => setLogin(value.trim());
-    const handlePasswordChange = value => setPassword(value.trim());
+    const handleLoginChange = useCallback((value) => {
+        setLogin(value.trim());
+    }, []);
+
+    const handlePasswordChange = useCallback((value) => {
+        setPassword(value.trim());
+    }, []);
 
     const isFormValid = useMemo(() => {
         const phoneLogin = LoginUtils.getPhoneNumberWithoutSpecialChars(login);
