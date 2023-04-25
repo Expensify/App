@@ -142,7 +142,7 @@ class SidebarLinks extends React.Component {
 
         return (
             <View
-                accessibilityElementsHidden={!this.props.isFocused}
+                isFocused={this.props.isFocused}
                 accessibilityLabel={this.props.translate('sidebarScreen.listOfChats')}
                 style={[styles.flex1, styles.h100]}
             >
