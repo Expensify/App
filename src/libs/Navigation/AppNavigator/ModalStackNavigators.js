@@ -239,14 +239,14 @@ const NewTaskModalStackNavigator = createModalStackNavigator([
     },
     {
         getComponent: () => {
-            const NewTaskAssigneeSelectorPage = require('../../../pages/tasks/AssigneeSelectorPage').default;
+            const NewTaskAssigneeSelectorPage = require('../../../pages/tasks/AssigneeSelectorModal').default;
             return NewTaskAssigneeSelectorPage;
         },
         name: 'NewTask_AssigneeSelector',
     },
     {
         getComponent: () => {
-            const NewTaskChatSelectorPage = require('../../../pages/tasks/ChatSelectorPage').default;
+            const NewTaskChatSelectorPage = require('../../../pages/tasks/ChatSelectorModal').default;
             return NewTaskChatSelectorPage;
         },
         name: 'NewTask_ChatSelector',

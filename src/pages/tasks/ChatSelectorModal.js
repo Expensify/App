@@ -42,7 +42,7 @@ const defaultProps = {
     reports: {},
 };
 
-const AssigneeSelectorPage = (props) => {
+const ChatSelectorModal = (props) => {
     const [searchValue, setSearchValue] = useState('');
     const [headerMessage, setHeaderMessage] = useState('');
     const [filteredRecentReports, setFilteredRecentReports] = useState([]);
@@ -50,7 +50,7 @@ const AssigneeSelectorPage = (props) => {
     const [filteredUserToInvite, setFilteredUserToInvite] = useState(null);
 
     useEffect(() => {
-        const results = OptionsListUtils.getSearchOptions(props.reports, props.personalDetails, '', props.betas);
+        const results = OptionsListUtils.getNewChatOptions(props.reports, props.personalDetails, props.betas, '', [], [], false);
 
         setFilteredUserToInvite(results.userToInvite);
         setFilteredRecentReports(results.recentReports);
@@ -58,7 +58,7 @@ const AssigneeSelectorPage = (props) => {
     }, [props]);
 
     const updateOptions = useCallback(() => {
-        const {recentReports, personalDetails, userToInvite} = OptionsListUtils.getSearchOptions(props.reports, props.personalDetails, searchValue.trim(), props.betas);
+        const {recentReports, personalDetails, userToInvite} = OptionsListUtils.getNewChatOptions(props.reports, props.personalDetails, props.betas, searchValue.trim(), [], [], true);
 
         setHeaderMessage(OptionsListUtils.getHeaderMessage(recentReports?.length + personalDetails?.length !== 0, Boolean(userToInvite), searchValue));
 
@@ -92,6 +92,7 @@ const AssigneeSelectorPage = (props) => {
 
         if (filteredRecentReports?.length > 0) {
             sections.push({
+                title: props.translate('common.recents'),
                 data: filteredRecentReports,
                 shouldShow: true,
                 indexOffset,
@@ -127,7 +128,7 @@ const AssigneeSelectorPage = (props) => {
         if (option.reportID) {
             setSearchValue('');
 
-            // Navigation.navigate(ROUTES.getReportRoute(option.reportID));
+            Navigation.navigate(ROUTES.getReportRoute(option.text));
         } else {
             Report.navigateToAndOpenReport([option.login]);
         }
@@ -164,9 +165,9 @@ const AssigneeSelectorPage = (props) => {
     );
 };
 
-AssigneeSelectorPage.displayName = 'AssigneeSelectorPage';
-AssigneeSelectorPage.propTypes = propTypes;
-AssigneeSelectorPage.defaultProps = defaultProps;
+ChatSelectorModal.displayName = 'ChatSelectorModal';
+ChatSelectorModal.propTypes = propTypes;
+ChatSelectorModal.defaultProps = defaultProps;
 
 export default compose(
     withLocalize,
@@ -181,4 +182,4 @@ export default compose(
             key: ONYXKEYS.BETAS,
         },
     }),
-)(AssigneeSelectorPage);
+)(ChatSelectorModal);
