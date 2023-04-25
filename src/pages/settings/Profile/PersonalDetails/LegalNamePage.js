@@ -1,5 +1,5 @@
 import _ from 'underscore';
-import React from 'react';
+import React, {useCallback} from 'react';
 import PropTypes from 'prop-types';
 import {View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
@@ -37,34 +37,35 @@ const defaultProps = {
     },
 };
 
+const updateLegalName = (values) => {
+    PersonalDetails.updateLegalName(
+        values.legalFirstName.trim(),
+        values.legalLastName.trim(),
+    );
+};
+
 function LegalNamePage(props) {
     const legalFirstName = lodashGet(props.privatePersonalDetails, 'legalFirstName', '');
     const legalLastName = lodashGet(props.privatePersonalDetails, 'legalLastName', '');
+    const translate = props.translate;
 
-    const updateLegalName = (values) => {
-        PersonalDetails.updateLegalName(
-            values.legalFirstName.trim(),
-            values.legalLastName.trim(),
-        );
-    };
-
-    const validate = (values) => {
+    const validate = useCallback((values) => {
         const errors = {};
 
         if (!ValidationUtils.isValidLegalName(values.legalFirstName)) {
-            errors.legalFirstName = props.translate('privatePersonalDetails.error.hasInvalidCharacter');
+            errors.legalFirstName = translate('privatePersonalDetails.error.hasInvalidCharacter');
         } else if (_.isEmpty(values.legalFirstName)) {
-            errors.legalFirstName = props.translate('common.error.fieldRequired');
+            errors.legalFirstName = translate('common.error.fieldRequired');
         }
 
         if (!ValidationUtils.isValidLegalName(values.legalLastName)) {
-            errors.legalLastName = props.translate('privatePersonalDetails.error.hasInvalidCharacter');
+            errors.legalLastName = translate('privatePersonalDetails.error.hasInvalidCharacter');
         } else if (_.isEmpty(values.legalLastName)) {
-            errors.legalLastName = props.translate('common.error.fieldRequired');
+            errors.legalLastName = translate('common.error.fieldRequired');
         }
 
         return errors;
-    };
+    }, [translate]);
 
     return (
         <ScreenWrapper includeSafeAreaPaddingBottom={false}>
