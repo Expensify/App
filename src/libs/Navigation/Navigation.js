@@ -29,6 +29,11 @@ let reportScreenIsReadyPromise = new Promise((resolve) => {
     resolveReportScreenIsReadyPromise = resolve;
 });
 
+let resolveTransitionIsEndPromise;
+const transitionIsEndPromise = new Promise((resolve) => {
+    resolveTransitionIsEndPromise = resolve;
+});
+
 let isLoggedIn = false;
 let pendingRoute = null;
 
@@ -313,6 +318,14 @@ function drawerGoBack(backRoute) {
     navigate(backRoute);
 }
 
+function isTransitionEnd() {
+    return transitionIsEndPromise;
+}
+
+function setIsTransitionEnd() {
+    return resolveTransitionIsEndPromise();
+}
+
 export default {
     canNavigate,
     navigate,
@@ -335,6 +348,8 @@ export default {
     isReportScreenReady,
     setIsReportScreenIsReady,
     drawerGoBack,
+    isTransitionEnd,
+    setIsTransitionEnd,
 };
 
 export {

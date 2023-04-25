@@ -244,7 +244,7 @@ function setUpPoliciesAndNavigate(session) {
                         // We must call dismissModal() to remove the /transition route from history
                         Navigation.dismissModal();
                         Navigation.navigate(exitTo);
-                        Session.getShortLivedAuthToken();
+                        Navigation.setIsTransitionEnd();
                     });
             });
     }

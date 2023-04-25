@@ -51,9 +51,10 @@ class DeeplinkWrapper extends PureComponent {
         // so that the popup window will only open when we know the short-lived authToken is valid.
         Session.removeShortLivedAuthToken();
 
-        // If the current link is transition from oldDot, we should wait for the web navigation to complete
-        const isTransitioning = Str.startsWith(window.location.path, Str.normalizeUrl(ROUTES.TRANSITION));
+        // If the current link is transition from oldDot, we should wait for it to finish, then we will know the final route.
+        const isTransitioning = Str.startsWith(window.location.pathname, Str.normalizeUrl(ROUTES.TRANSITION));
         if (isTransitioning) {
+            Session.getShortLivedAuthTokenAfterTransition();
             return;
         }
         if (!this.props.session.authToken) {

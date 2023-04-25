@@ -958,6 +958,7 @@ function createWorkspace(ownerEmail = '', makeMeAdmin = false, policyName = '', 
                 Navigation.dismissModal(); // Dismiss /transition route for OldDot to NewDot transitions
             }
             Navigation.navigate(ROUTES.getWorkspaceInitialRoute(policyID));
+            Navigation.setIsTransitionEnd();
         });
 }
 

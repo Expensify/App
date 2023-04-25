@@ -637,6 +637,12 @@ function removeShortLivedAuthToken() {
     });
 }
 
+function getShortLivedAuthTokenAfterTransition() {
+    Navigation.isTransitionEnd().then(() => {
+        getShortLivedAuthToken();
+    });
+}
+
 export {
     beginSignIn,
     updatePasswordAndSignin,
@@ -661,4 +667,5 @@ export {
     invalidateAuthToken,
     getShortLivedAuthToken,
     removeShortLivedAuthToken,
+    getShortLivedAuthTokenAfterTransition,
 };
