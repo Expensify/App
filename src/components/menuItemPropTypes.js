@@ -92,6 +92,18 @@ const propTypes = {
 
     /** Prop to represent the size of the avatar images to be shown */
     avatarSize: PropTypes.oneOf(_.values(CONST.AVATAR_SIZE)),
+
+    /** The function that should be called when this component is LongPressed or right-clicked. */
+    onSecondaryInteraction: PropTypes.func,
+
+    /** Flag to indicate whether or not text selection should be disabled from long-pressing the menu item. */
+    shouldBlockSelection: PropTypes.bool,
+
+    /** The ref to the menu item */
+    forwardedRef: PropTypes.oneOfType([
+        PropTypes.func,
+        PropTypes.object,
+    ]),
 };
 
 export default propTypes;

@@ -1066,7 +1066,7 @@ function getDirectionStyle(direction) {
  * @param {Boolean} shouldDisplayBorder
  * @returns {Object}
  */
-function getGoolgeListViewStyle(shouldDisplayBorder) {
+function getGoogleListViewStyle(shouldDisplayBorder) {
     if (shouldDisplayBorder) {
         return {
             ...styles.borderTopRounded,
@@ -1138,5 +1138,5 @@ export {
     getDirectionStyle,
     getFontSizeStyle,
     getSignInWordmarkWidthStyle,
-    getGoolgeListViewStyle,
+    getGoogleListViewStyle,
 };

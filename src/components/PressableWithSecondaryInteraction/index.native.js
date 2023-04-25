@@ -19,6 +19,9 @@ const PressableWithSecondaryInteraction = (props) => {
             ref={props.forwardedRef}
             onPress={props.onPress}
             onLongPress={(e) => {
+                if (!props.onSecondaryInteraction) {
+                    return;
+                }
                 e.preventDefault();
                 HapticFeedback.longPress();
                 props.onSecondaryInteraction(e);
