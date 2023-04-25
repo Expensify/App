@@ -32,7 +32,7 @@ const propTypes = {
     preferredSkinToneIndex: PropTypes.number.isRequired,
 
     /** A ref to forward to the suggestion container */
-    forwardedRef: PropTypes.shape({current: PropTypes.instanceOf(React.Component)}),
+    forwardedRef: PropTypes.object,
 };
 
 const defaultProps = {
