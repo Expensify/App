@@ -241,9 +241,11 @@ class BaseTextInput extends Component {
                                         return;
                                     }
 
+                                    const layout = event.nativeEvent.layout;
+
                                     this.setState(prevState => ({
-                                        width: this.props.autoGrowHeight ? event.nativeEvent.layout.width : prevState.width,
-                                        height: !this.props.multiline ? event.nativeEvent.layout.height : prevState.height,
+                                        width: this.props.autoGrowHeight ? layout.width : prevState.width,
+                                        height: !this.props.multiline ? layout.height : prevState.height,
                                     }));
                                 }}
                                 style={[
