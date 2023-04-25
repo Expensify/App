@@ -64,7 +64,7 @@ const BaseQuickEmojiReactions = props => (
             isContextMenu
             onPressOpenPicker={props.onPressOpenPicker}
             onWillShowPicker={props.onWillShowPicker}
-            onSelectEmoji={props.onEmojiSelected}
+            onSelectEmoji={emoji => props.onEmojiSelected(emoji, props.reactions)}
         />
     </View>
 );

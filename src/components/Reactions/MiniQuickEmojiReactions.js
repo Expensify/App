@@ -68,7 +68,7 @@ const MiniQuickEmojiReactions = (props) => {
                     key={emoji.name}
                     isDelayButtonStateComplete={false}
                     tooltipText={`:${emoji.name}:`}
-                    onPress={() => props.onEmojiSelected(emoji)}
+                    onPress={() => props.onEmojiSelected(emoji, props.reactions)}
                 >
                     <Text style={[
                         styles.miniQuickEmojiReactionText,

@@ -1304,16 +1304,7 @@ function getOptimisticDataForReportActionUpdate(originalReportAction, message, r
  * @returns {boolean}
  */
 function hasAccountIDReacted(accountID, users, skinTone) {
-    return _.find(users, (user) => {
-        let userAccountID;
-        if (typeof user === 'object') {
-            userAccountID = `${user.accountID}`;
-        } else {
-            userAccountID = `${user}`;
-        }
-
-        return userAccountID === `${accountID}` && (skinTone == null ? true : user.skinTone === skinTone);
-    }) !== undefined;
+    return Boolean(users[accountID] && (skinTone == null ? true : users[accountID].skinTone === skinTone));
 }
 
 /**
@@ -1500,17 +1491,15 @@ function removeEmojiReaction2(reportID, reportActionID, emoji, existingReactions
  * @param {String} reportID
  * @param {Object} reportAction
  * @param {Object} emoji
- * @param {number} paramSkinTone
  * @param {Object} existingReactions
  * @returns {Promise}
  */
-function toggleEmojiReaction(reportID, reportAction, emoji, paramSkinTone = preferredSkinTone, existingReactions) {
-    const message = reportAction.message[0];
-    const reactionObject = message.reactions && _.find(message.reactions, reaction => reaction.emoji === emoji.name);
-    const skinTone = emoji.types === undefined ? null : paramSkinTone; // only use skin tone if emoji supports it
+function toggleEmojiReaction(reportID, reportAction, emoji, existingReactions) {
+    const reactionObject = existingReactions[emoji.name];
+    const skinTone = emoji.types === undefined ? null : preferredSkinTone; // only use skin tone if emoji supports it
     if (reactionObject) {
         if (hasAccountIDReacted(currentUserAccountID, reactionObject.users, skinTone)) {
-            return removeEmojiReaction2(reportID, reportAction.reportActionID, emoji, skinTone, existingReactions);
+            return removeEmojiReaction2(reportID, reportAction.reportActionID, emoji, existingReactions);
         }
     }
     return addEmojiReaction2(reportID, reportAction.reportActionID, emoji, skinTone);
