@@ -176,7 +176,7 @@ class MagicCodeInput extends React.PureComponent {
             // Blurs the input and removes focus from the last input and, if it should submit
             // on complete, it will call the onFulfill callback.
             if (this.props.shouldSubmitOnComplete && _.filter(this.state.numbers, n => ValidationUtils.isNumeric(n)).length === CONST.MAGIC_CODE_LENGTH) {
-                this.inputRefs[this.state.focusedIndex].blur();
+                this.inputRefs[this.state.editIndex].blur();
                 this.setState({focusedIndex: undefined}, () => this.props.onFulfill(finalInput));
             }
         });

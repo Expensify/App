@@ -431,14 +431,14 @@ function isValidTaxID(taxID) {
 }
 
 /**
- * Checks if a value is a number.
+ * Checks if a string value is a number.
  *
  * @param {String} value
  * @returns {Boolean}
  */
 function isNumeric(value) {
     if (typeof value !== 'string') { return false; }
-    return !Number.isNaN(value) && !Number.isNaN(parseFloat(value));
+    return /^\d*$/.test(value);
 }
 
 export {
