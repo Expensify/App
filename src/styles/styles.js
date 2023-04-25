@@ -2973,6 +2973,10 @@ const styles = {
         textAlign: 'left',
     },
 
+    cardSectionTitle: {
+        lineHeight: variables.lineHeightXXLarge,
+    },
+
     cardMenuItem: {
         paddingLeft: 8,
         paddingRight: 0,
