@@ -442,6 +442,10 @@ export default {
         paddingBottom: '10%',
     },
 
+    gap1: {
+        gap: 4,
+    },
+
     gap7: {
         gap: 28,
     },
