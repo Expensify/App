@@ -436,9 +436,10 @@ function createOption(logins, personalDetails, report, reportActions = {}, {
         }
         reportName = ReportUtils.getReportName(report, policies);
     } else {
-        reportName = ReportUtils.getDisplayNameForParticipant(logins[0]);
-        result.keyForList = logins[0];
-        result.alternateText = LocalePhoneNumber.formatPhoneNumber(logins[0]);
+        const login = logins[0];
+        reportName = ReportUtils.getDisplayNameForParticipant(login);
+        result.keyForList = login;
+        result.alternateText = LocalePhoneNumber.formatPhoneNumber(login);
     }
 
     result.isIOUReportOwner = ReportUtils.isIOUOwnedByCurrentUser(result, iouReports);
