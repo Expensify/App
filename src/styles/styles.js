@@ -1935,7 +1935,6 @@ const styles = {
         flexDirection: 'row',
         padding: 20,
         alignItems: 'center',
-        alignSelf: 'flex-start',
     },
 
     notFoundSafeArea: {
