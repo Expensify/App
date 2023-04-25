@@ -61,11 +61,11 @@ function NewContactMethodPage(props) {
 
     const handleLoginChange = useCallback((value) => {
         setLogin(value.trim());
-    }, [login]);
+    });
 
     const handlePasswordChange = useCallback((value) => {
         setPassword(value.trim());
-    }, [password]);
+    });
 
     const isFormValid = useMemo(() => {
         const phoneLogin = LoginUtils.getPhoneNumberWithoutSpecialChars(login);
