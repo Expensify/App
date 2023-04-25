@@ -688,6 +688,7 @@ describe('actions/IOU', () => {
             let groupChat;
             let groupCreatedAction;
             let groupIOUAction;
+            let groupTransaction;
 
             return Onyx.mergeCollection(ONYXKEYS.COLLECTION.REPORT, {
                 [`${ONYXKEYS.COLLECTION.REPORT}${carlosChatReport.reportID}`]: carlosChatReport,
@@ -853,26 +854,33 @@ describe('actions/IOU', () => {
                         callback: (allTransactions) => {
                             Onyx.disconnect(connectionID);
 
-                            // There should be 4 transactions – one existing one with Jules and one for each of the three IOU reports
-                            // TODO: I think this might be wrong and there should only be 4 transactions
+                            /* There should be 5 transactions
+                             *   – one existing one with Jules
+                             *   - one for each of the three IOU reports
+                             *   - one on the group chat w/ deleted report
+                             */
                             expect(_.size(allTransactions)).toBe(5);
                             expect(allTransactions[`${ONYXKEYS.COLLECTION.TRANSACTION}${julesExistingTransaction.transactionID}`]).toBeTruthy();
 
                             carlosTransaction = _.find(allTransactions, transaction => transaction.transactionID === carlosIOUAction.originalMessage.IOUTransactionID);
                             julesTransaction = _.find(allTransactions, transaction => transaction.transactionID === julesIOUAction.originalMessage.IOUTransactionID);
                             vitTransaction = _.find(allTransactions, transaction => transaction.transactionID === vitIOUAction.originalMessage.IOUTransactionID);
+                            groupTransaction = _.find(allTransactions, transaction => transaction.reportID === CONST.REPORT.ID_DELETED);
 
                             expect(carlosTransaction.reportID).toBe(carlosIOUReport.reportID);
                             expect(julesTransaction.reportID).toBe(julesIOUReport.reportID);
                             expect(vitTransaction.reportID).toBe(vitIOUReport.reportID);
+                            expect(groupTransaction).toBeTruthy();
 
                             expect(carlosTransaction.amount).toBe(amountInCents / 4);
                             expect(julesTransaction.amount).toBe(amountInCents / 4);
                             expect(vitTransaction.amount).toBe(amountInCents / 4);
+                            expect(groupTransaction.amount).toBe(amountInCents);
 
                             expect(carlosTransaction.pendingAction).toBe(CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD);
                             expect(julesTransaction.pendingAction).toBe(CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD);
                             expect(vitTransaction.pendingAction).toBe(CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD);
+                            expect(groupTransaction.pendingAction).toBe(CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD);
 
                             resolve();
                         },
