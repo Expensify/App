@@ -345,11 +345,13 @@ function signIn(password, validateCode, twoFactorAuthCode, preferredLocale = CON
     API.write('SigninUser', params, {optimisticData, successData, failureData});
 }
 
-function signInWithValidateCode(accountID, validateCode, twoFactorAuthCode) {
-
+function signInWithValidateCode(accountID, code, twoFactorAuthCode) {
     // If this is called from the 2fa step, get the validateCode directly from onyx.
+    let validateCode;
     if (twoFactorAuthCode) {
         validateCode = credentials.validateCode;
+    } else {
+        validateCode = code;
     }
 
     const optimisticData = [
