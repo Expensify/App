@@ -220,7 +220,7 @@ const NewChatModalStackNavigator = createModalStackNavigator([{
 
 const NewTaskModalStackNavigator = createModalStackNavigator([{
     getComponent: () => {
-        const NewTaskPage = require('../../../pages/NewTaskPage').default;
+        const NewTaskPage = require('../../../pages/tasks/NewTaskPage').default;
         return NewTaskPage;
     },
     name: 'NewTask_Root',
