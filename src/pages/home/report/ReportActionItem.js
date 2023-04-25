@@ -237,8 +237,8 @@ class ReportActionItem extends Component {
             );
         }
 
-        const reactions = _.get(this.props, ['action', 'message', 0, 'reactions'], []);
-        const hasReactions = reactions.length > 0;
+        const reactions = _.get(this.props, ['reactions'], {});
+        const hasReactions = _.size(reactions) > 0;
 
         return (
             <>
