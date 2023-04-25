@@ -18,7 +18,6 @@ function sleep(ms) {
 }
 
 const AppleAuthScreen = () => {
-    const [afterSignIn, setAfterSignIn] = useState(false);
     useEffect(() => {
         const clientId = 'com.infinitered.expensify.test';
         const redirectURI = 'https://exptest.ngrok.io/appleauth';
@@ -33,15 +32,13 @@ const AppleAuthScreen = () => {
                 scope,
                 redirectURI,
                 state,
-                usePopup: true,
+                usePopup: false,
             });
             console.log('😇calling fn');
             window.AppleID.auth.signIn().then((result) => {
                 console.log('got a result', result);
-                setAfterSignIn(true);
-                sleep(2000).then(() => {
-                    window.location.replace('new-expensify://deeplink/appleauthtoken/token');
-                });
+
+                // window.location.replace('new-expensify://deeplink/siwa/token');
             });
         };
 
@@ -51,8 +48,6 @@ const AppleAuthScreen = () => {
         <View style={{flex: 1, justifyContent: 'center', alignItems: 'center'}}>
             {Platform.OS === 'web' && <AppleSignInScript />}
             <Text>Redirecting you Apple to sign in...</Text>
-            {!afterSignIn && <Text>Click "Allow pop-ups" to continue.</Text>}
-            {afterSignIn && <FullScreenLoadingIndicator />}
         </View>
     );
 };
