@@ -4,14 +4,14 @@ on:
   workflow_call:
     inputs:
       PR_NUMBER:
-        description: A PR number to run performance tests against. If the PR is already merged, the merge commit will be used. If not, the test merge commit will be used.
+        description: A PR number to run performance tests against. If the PR is already merged, the merge commit will be used. If not, the PR will be merged locally before running the performance tests.
         type: string
         required: true
 
   workflow_dispatch:
     inputs:
       PR_NUMBER:
-        description: A PR number to run performance tests against. If the PR is already merged, the merge commit will be used. If not, the test merge commit will be used.
+        description: A PR number to run performance tests against. If the PR is already merged, the merge commit will be used. If not, the PR will be merged locally before running the performance tests.
         type: string
         required: true
 
@@ -24,6 +24,8 @@ jobs:
       DELTA_REF: ${{ steps.getMergeCommitSha.outputs.MERGE_COMMIT_SHA }}
     steps:
       - uses: actions/checkout@93ea575cb5d8a053eaa0ac8fa3b40d7e05a33cc8
+        with:
+          fetch-depth: 0
 
       - name: Get most recent release version
         id: getMostRecentRelease
@@ -33,20 +35,31 @@ jobs:
 
       - name: Get pull request details
         id: getPullRequestDetails
-        uses: Expensify/App/.github/actions/javascript/getPullRequestDetails@main
+        uses: jczekalski/App/.github/actions/javascript/getPullRequestDetailsfix/15605-run-e2e-performance-tests-for-unmerged-PRs
         with:
           GITHUB_TOKEN: ${{ github.token }}
           PULL_REQUEST_NUMBER: ${{ inputs.PR_NUMBER }}
           user: ${{ github.actor }}
 
-      - name: Get merge commit sha for the pull request
+      - name: Get merge commit sha for the pull request (if merged)
+        if: ${{ fromJSON(steps.getPullRequestDetails.outputs.IS_MERGED) }}
         id: getMergeCommitSha
-        run: echo "MERGE_COMMIT_SHA=${{ steps.getPullRequestDetails.outputs.MERGE_COMMIT_SHA }}" >> "$GITHUB_OUTPUT"
+        run: |
+          echo "MERGE_COMMIT_SHA=${{ steps.getPullRequestDetails.outputs.MERGE_COMMIT_SHA }}" >> "$GITHUB_OUTPUT"
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+
+      - name: Get merge commit sha for the pull request (if not merged)
+        if: ${{ !fromJSON(steps.getPullRequestDetails.outputs.IS_MERGED) }}
+        run: |
+          git checkout main
+          git merge --no-commit ${{ steps.getPullRequestDetails.outputs.HEAD_COMMIT_SHA }}
+          echo "MERGE_COMMIT_SHA=$(git rev-parse HEAD)" >> "$GITHUB_OUTPUT"
         env:
           GITHUB_TOKEN: ${{ github.token }}
 
   buildBaseline:
-    runs-on: ubuntu-20.04-64core
+    runs-on: ubuntu-latest
     needs: [prepare]
     name: Build apk from latest release as a baseline
     steps:
@@ -75,7 +88,7 @@ jobs:
           ARTIFACT_NAME: baseline-apk-${{ needs.prepare.outputs.VERSION }}
 
   buildDelta:
-    runs-on: ubuntu-20.04-64core
+    runs-on: ubuntu-latest
     needs: [prepare]
     name: Build apk from delta ref
     steps:
@@ -94,7 +107,7 @@ jobs:
           ARTIFACT_NAME: delta-apk-${{ needs.prepare.outputs.DELTA_REF }}
 
   runTestsInAWS:
-    runs-on: ubuntu-20.04-64core
+    runs-on: ubuntu-latest
     needs: [prepare, buildBaseline, buildDelta]
     name: Run E2E tests in AWS device farm
     steps:
