@@ -427,7 +427,7 @@ function isConciergeChatReport(report) {
  */
 function chatIncludesConcierge(report) {
     return report.participants
-            && _.contains(report.participants, CONST.EMAIL.CONCIERGE);
+        && _.contains(report.participants, CONST.EMAIL.CONCIERGE);
 }
 
 /**
@@ -745,7 +745,7 @@ function getPersonalDetailsForLogin(login) {
     }
     return (allPersonalDetails && allPersonalDetails[login]) || {
         login,
-        displayName: Str.removeSMSDomain(login),
+        displayName: LocalePhoneNumber.formatPhoneNumber(login),
         avatar: getDefaultAvatar(login),
     };
 }
@@ -763,11 +763,8 @@ function getDisplayNameForParticipant(login, shouldUseShortForm = false) {
     }
     const personalDetails = getPersonalDetailsForLogin(login);
 
-    const loginWithoutSMSDomain = Str.removeSMSDomain(personalDetails.login);
-    let longName = personalDetails.displayName || loginWithoutSMSDomain;
-    if (longName === loginWithoutSMSDomain && Str.isSMSLogin(longName)) {
-        longName = LocalePhoneNumber.formatPhoneNumber(longName);
-    }
+    const longName = personalDetails.displayName;
+
     const shortName = personalDetails.firstName || longName;
 
     return shouldUseShortForm ? shortName : longName;
@@ -1543,13 +1540,13 @@ function getAllPolicyReports(policyID) {
 }
 
 /**
-* Returns true if Chronos is one of the chat participants (1:1)
-* @param {Object} report
-* @returns {Boolean}
-*/
+ * Returns true if Chronos is one of the chat participants (1:1)
+ * @param {Object} report
+ * @returns {Boolean}
+ */
 function chatIncludesChronos(report) {
     return report.participants
-                && _.contains(report.participants, CONST.EMAIL.CHRONOS);
+        && _.contains(report.participants, CONST.EMAIL.CHRONOS);
 }
 
 /**

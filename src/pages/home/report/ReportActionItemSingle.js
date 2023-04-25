@@ -56,7 +56,6 @@ const ReportActionItemSingle = (props) => {
     const {
         avatar,
         displayName,
-        login,
         pendingFields,
     } = props.personalDetails[actorEmail] || {};
     const avatarSource = ReportUtils.getAvatar(avatar, actorEmail);
@@ -67,7 +66,7 @@ const ReportActionItemSingle = (props) => {
     const personArray = displayName
         ? [{
             type: 'TEXT',
-            text: Str.isSMSLogin(login) ? props.formatPhoneNumber(displayName) : displayName,
+            text: displayName,
         }]
         : props.action.person;
 

@@ -54,10 +54,7 @@ class ParticipantLocalTime extends PureComponent {
     }
 
     render() {
-        const reportRecipientDisplayName = this.props.participant.firstName
-            || (Str.isSMSLogin(this.props.participant.login)
-                ? this.props.formatPhoneNumber(this.props.participant.displayName)
-                : this.props.participant.displayName);
+        const reportRecipientDisplayName = this.props.participant.firstName || this.props.participant.displayName;
 
         return (
             <View style={[styles.chatItemComposeSecondaryRow]}>
