@@ -48,6 +48,8 @@ const GenericPressable = forwardRef((props, ref) => {
         keyboardShortcut,
         shouldUseAutoHitSlop,
         enableInScreenReaderStates,
+        onPressIn,
+        onPressOut,
         ...rest
     } = props;
 
@@ -117,6 +119,8 @@ const GenericPressable = forwardRef((props, ref) => {
             onPress={!isDisabled && onPressHandler}
             onLongPress={!isDisabled && onLongPressHandler}
             onKeyPress={!isDisabled && onKeyPressHandler}
+            onPressIn={!isDisabled && onPressIn}
+            onPressOut={!isDisabled && onPressOut}
             style={state => [
                 getCursorStyle(isDisabled, [props.accessibilityRole, props.role].includes('text')),
                 props.style,
