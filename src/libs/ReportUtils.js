@@ -773,7 +773,7 @@ function getDisplayNameForParticipant(login, shouldUseShortForm = false) {
     }
     const personalDetails = getPersonalDetailsForLogin(login);
     if (!personalDetails) {
-        return '';
+        return login;
     }
 
     const loginWithoutSMSDomain = Str.removeSMSDomain(personalDetails.login);
