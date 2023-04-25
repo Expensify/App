@@ -24,6 +24,7 @@ module.exports = (env = {}) => portfinder.getPortPromise({port: BASE_PORT})
                     '/staging': 'http://[::1]:9000',
                     '/chat-attachments': 'http://[::1]:9000',
                     '/appleauth': 'http://localhost:9002',
+                    '/googleauth': 'http://localhost:9002',
                 },
             };
 

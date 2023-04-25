@@ -15,7 +15,8 @@ const GoogleSignInButton = ({clientId, onCredentialResponse}) => {
                 size: 'large',
             });
 
-            window.google.accounts.id.prompt(); // Will prompt only if the user has a single session.
+            // Don't use, this is for One Tap
+            // window.google.accounts.id.prompt(); // Will prompt only if the user has a single session.
         }
     }, []);
 
