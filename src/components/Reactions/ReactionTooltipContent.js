@@ -7,6 +7,7 @@ import {withPersonalDetails} from '../OnyxProvider';
 import * as PersonalDetailsUtils from '../../libs/PersonalDetailsUtils';
 import Text from '../Text';
 import withCurrentUserPersonalDetails, {
+    withCurrentUserPersonalDetailsDefaultProps,
     withCurrentUserPersonalDetailsPropTypes,
 } from '../withCurrentUserPersonalDetails';
 import compose from '../../libs/compose';
@@ -32,7 +33,7 @@ const propTypes = {
 };
 
 const ReactionTooltipContent = (props) => {
-    const users = PersonalDetailsUtils.getPersonalDetailsByIDs(props.accountIDs, true);
+    const users = PersonalDetailsUtils.getPersonalDetailsByIDs(props.accountIDs, props.currentUserPersonalDetails.accountID, true);
     const namesString = _.filter(_.map(users, user => user && user.displayName), n => n).join(', ');
 
     return (
@@ -70,9 +71,10 @@ const ReactionTooltipContent = (props) => {
 };
 
 ReactionTooltipContent.propTypes = propTypes;
-ReactionTooltipContent.defaultProps = withCurrentUserPersonalDetails;
+ReactionTooltipContent.defaultProps = withCurrentUserPersonalDetailsDefaultProps;
 ReactionTooltipContent.displayName = 'ReactionTooltipContent';
 export default React.memo(compose(
     withPersonalDetails(),
+    withCurrentUserPersonalDetails,
     withLocalize,
 )(ReactionTooltipContent));
