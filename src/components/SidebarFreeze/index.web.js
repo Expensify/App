@@ -1,18 +1,3 @@
-import PropTypes from 'prop-types';
+export default ({children}) => children;
 
-const propTypes = {
-    /** Children to wrap in SidebarFreeze. */
-    children: PropTypes.node.isRequired,
-};
-
-function SidebarFreeze(props) {
-    return (
-        <>
-            {props.children}
-        </>
-    );
-}
-
-SidebarFreeze.propTypes = propTypes;
-
-export default SidebarFreeze;
+// Freeze component is causing bug on mWeb by making an impression of slow Sidebar reload.
