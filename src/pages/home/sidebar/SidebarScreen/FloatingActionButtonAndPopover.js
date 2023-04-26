@@ -211,6 +211,13 @@ class FloatingActionButtonAndPopover extends React.Component {
                                 onSelected: () => Navigation.navigate(ROUTES.IOU_BILL),
                             },
                         ] : []),
+                        ...(Permissions.canUseTasks(this.props.betas) ? [
+                            {
+                                icon: Expensicons.Task,
+                                text: this.props.translate('newTaskPage.assignTask'),
+                                onSelected: () => Navigation.navigate(ROUTES.NEW_TASK),
+                            },
+                        ] : []),
                         ...(!this.props.isLoading && !Policy.hasActiveFreePolicy(this.props.allPolicies) ? [
                             {
                                 icon: Expensicons.NewWorkspace,

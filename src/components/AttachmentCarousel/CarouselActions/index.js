@@ -1,22 +1,9 @@
 import React from 'react';
 import PropTypes from 'prop-types';
-import {Pressable} from 'react-native';
 
 const propTypes = {
-    /** Handles onPress events with a callback  */
-    onPress: PropTypes.func.isRequired,
-
     /** Callback to cycle through attachments */
     onCycleThroughAttachments: PropTypes.func.isRequired,
-
-    /** Styles to be assigned to Carousel */
-    styles: PropTypes.arrayOf(PropTypes.shape({})).isRequired,
-
-    /** Children to render */
-    children: PropTypes.oneOfType([
-        PropTypes.func,
-        PropTypes.node,
-    ]).isRequired,
 };
 
 class Carousel extends React.Component {
@@ -51,11 +38,8 @@ class Carousel extends React.Component {
     }
 
     render() {
-        return (
-            <Pressable style={this.props.styles} onPress={this.props.onPress}>
-                {this.props.children}
-            </Pressable>
-        );
+        // This component is only used to listen for keyboard events
+        return null;
     }
 }
 

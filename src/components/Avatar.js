@@ -1,4 +1,4 @@
-import React, {PureComponent} from 'react';
+import React, {useEffect, useRef, useState} from 'react';
 import {View} from 'react-native';
 import PropTypes from 'prop-types';
 import _ from 'underscore';
@@ -60,71 +60,72 @@ const defaultProps = {
     name: '',
 };
 
-class Avatar extends PureComponent {
-    constructor(props) {
-        super(props);
-        this.state = {
-            imageError: false,
-        };
-    }
+function Avatar(props) {
+    const [imageError, setImageError] = useState(false);
+    const prevNetworkStatusRef = useRef(props.network.isOffline);
 
-    componentDidUpdate(prevProps) {
-        const isReconnecting = prevProps.network.isOffline && !this.props.network.isOffline;
-        if (!this.state.imageError || !isReconnecting) {
+    useEffect(() => {
+        const isReconnecting = prevNetworkStatusRef.current && !props.network.isOffline;
+        if (!imageError || !isReconnecting) {
             return;
         }
-        this.setState({imageError: false});
+        setImageError(false);
+
+        // We have not added the imageError as the dependency because effect is concerned with `imageError` only when the network state changes from offline -> online
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [props.network.isOffline]);
+
+    useEffect(() => {
+        // Used to store previous network state to compare on next render
+        prevNetworkStatusRef.current = props.network.isOffline;
+    });
+
+    if (!props.source) {
+        return null;
     }
 
-    render() {
-        if (!this.props.source) {
-            return null;
-        }
+    const isWorkspace = props.type === CONST.ICON_TYPE_WORKSPACE;
+    const iconSize = StyleUtils.getAvatarSize(props.size);
 
-        const isWorkspace = this.props.type === CONST.ICON_TYPE_WORKSPACE;
-        const iconSize = StyleUtils.getAvatarSize(this.props.size);
+    const imageStyle = [
+        StyleUtils.getAvatarStyle(props.size),
+        ...props.imageStyles,
+        StyleUtils.getAvatarBorderRadius(props.size, props.type),
+    ];
 
-        const imageStyle = [
-            StyleUtils.getAvatarStyle(this.props.size),
-            ...this.props.imageStyles,
-            StyleUtils.getAvatarBorderRadius(this.props.size, this.props.type),
-        ];
+    const iconStyle = [
+        StyleUtils.getAvatarStyle(props.size),
+        styles.bgTransparent,
+        ...props.imageStyles,
+    ];
 
-        const iconStyle = [
-            StyleUtils.getAvatarStyle(this.props.size),
-            styles.bgTransparent,
-            ...this.props.imageStyles,
-        ];
+    const iconFillColor = isWorkspace ? StyleUtils.getDefaultWorkspaceAvatarColor(props.name).fill : props.fill;
+    const fallbackAvatar = isWorkspace ? ReportUtils.getDefaultWorkspaceAvatar(props.name) : props.fallbackIcon;
 
-        const iconFillColor = isWorkspace ? StyleUtils.getDefaultWorspaceAvatarColor(this.props.name).fill : this.props.fill;
-        const fallbackAvatar = isWorkspace ? ReportUtils.getDefaultWorkspaceAvatar(this.props.name) : this.props.fallbackIcon;
-
-        return (
-            <View pointerEvents="none" style={this.props.containerStyles}>
-                {_.isFunction(this.props.source) || this.state.imageError
-                    ? (
-                        <View style={iconStyle}>
-                            <Icon
-                                src={this.state.imageError ? fallbackAvatar : this.props.source}
-                                height={iconSize}
-                                width={iconSize}
-                                fill={this.state.imageError ? themeColors.offline : iconFillColor}
-                                additionalStyles={[
-                                    StyleUtils.getAvatarBorderStyle(this.props.size, this.props.type),
-                                    isWorkspace ? StyleUtils.getDefaultWorspaceAvatarColor(this.props.name) : {},
-                                    this.state.imageError ? StyleUtils.getBackgroundColorStyle(themeColors.fallbackIconColor) : {},
-                                ]}
-                            />
-                        </View>
-                    )
-                    : (
-                        <Image source={{uri: this.props.source}} style={imageStyle} onError={() => this.setState({imageError: true})} />
-                    )}
-            </View>
-        );
-    }
+    return (
+        <View pointerEvents="none" style={props.containerStyles}>
+            {_.isFunction(props.source) || imageError
+                ? (
+                    <View style={iconStyle}>
+                        <Icon
+                            src={imageError ? fallbackAvatar : props.source}
+                            height={iconSize}
+                            width={iconSize}
+                            fill={imageError ? themeColors.offline : iconFillColor}
+                            additionalStyles={[
+                                StyleUtils.getAvatarBorderStyle(props.size, props.type),
+                                isWorkspace ? StyleUtils.getDefaultWorkspaceAvatarColor(props.name) : {},
+                                imageError ? StyleUtils.getBackgroundColorStyle(themeColors.fallbackIconColor) : {},
+                            ]}
+                        />
+                    </View>
+                )
+                : (
+                    <Image source={{uri: props.source}} style={imageStyle} onError={() => setImageError(true)} />
+                )}
+        </View>
+    );
 }
-
 Avatar.defaultProps = defaultProps;
 Avatar.propTypes = propTypes;
 export default withNetwork()(Avatar);

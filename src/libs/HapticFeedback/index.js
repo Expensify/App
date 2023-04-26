@@ -2,5 +2,8 @@
  * Web does not support Haptic feedback
  */
 export default {
-    trigger: () => {},
+    press: () => {},
+    longPress: () => {},
+    success: () => {},
+    error: () => {},
 };

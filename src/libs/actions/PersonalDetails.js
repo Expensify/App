@@ -6,8 +6,9 @@ import ONYXKEYS from '../../ONYXKEYS';
 import CONST from '../../CONST';
 import * as API from '../API';
 import * as ReportUtils from '../ReportUtils';
-import Navigation from '../Navigation/Navigation';
+import * as LocalePhoneNumber from '../LocalePhoneNumber';
 import ROUTES from '../../ROUTES';
+import Navigation from '../Navigation/Navigation';
 
 let currentUserEmail = '';
 Onyx.connect({
@@ -29,9 +30,9 @@ Onyx.connect({
  * @returns {String}
  */
 function getDisplayName(login, personalDetail) {
-    // If we have a number like +15857527441@expensify.sms then let's remove @expensify.sms
+    // If we have a number like +15857527441@expensify.sms then let's remove @expensify.sms and format it
     // so that the option looks cleaner in our UI.
-    const userLogin = Str.removeSMSDomain(login);
+    const userLogin = LocalePhoneNumber.formatPhoneNumber(login);
     const userDetails = personalDetail || lodashGet(personalDetails, login);
 
     if (!userDetails) {
@@ -110,7 +111,7 @@ function updatePronouns(pronouns) {
             },
         }],
     });
-    Navigation.navigate(ROUTES.SETTINGS_PROFILE);
+    Navigation.drawerGoBack(ROUTES.SETTINGS_PROFILE);
 }
 
 /**
@@ -134,7 +135,7 @@ function updateDisplayName(firstName, lastName) {
             },
         }],
     });
-    Navigation.navigate(ROUTES.SETTINGS_PROFILE);
+    Navigation.drawerGoBack(ROUTES.SETTINGS_PROFILE);
 }
 
 /**
@@ -152,7 +153,7 @@ function updateLegalName(legalFirstName, legalLastName) {
             },
         }],
     });
-    Navigation.navigate(ROUTES.SETTINGS_PERSONAL_DETAILS);
+    Navigation.drawerGoBack(ROUTES.SETTINGS_PERSONAL_DETAILS);
 }
 
 /**
@@ -168,7 +169,7 @@ function updateDateOfBirth(dob) {
             },
         }],
     });
-    Navigation.navigate(ROUTES.SETTINGS_PERSONAL_DETAILS);
+    Navigation.drawerGoBack(ROUTES.SETTINGS_PERSONAL_DETAILS);
 }
 
 /**
@@ -181,7 +182,7 @@ function updateDateOfBirth(dob) {
  */
 function updateAddress(street, street2, city, state, zip, country) {
     const parameters = {
-        addressStreet: street,
+        homeAddressStreet: street,
         addressStreet2: street2,
         addressCity: city,
         addressState: state,
@@ -209,7 +210,7 @@ function updateAddress(street, street2, city, state, zip, country) {
             },
         }],
     });
-    Navigation.navigate(ROUTES.SETTINGS_PERSONAL_DETAILS);
+    Navigation.drawerGoBack(ROUTES.SETTINGS_PERSONAL_DETAILS);
 }
 
 /**
@@ -259,7 +260,7 @@ function updateSelectedTimezone(selectedTimezone) {
             },
         }],
     });
-    Navigation.navigate(ROUTES.SETTINGS_TIMEZONE);
+    Navigation.drawerGoBack(ROUTES.SETTINGS_TIMEZONE);
 }
 
 /**

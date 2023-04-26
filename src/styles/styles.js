@@ -1,3 +1,4 @@
+import {defaultStyles as defaultPickerStyles} from 'react-native-picker-select/src/styles';
 import fontFamily from './fontFamily';
 import addOutlineWidth from './addOutlineWidth';
 import themeColors from './themes/default';
@@ -291,6 +292,10 @@ const styles = {
         fontSize: variables.fontSizeExtraSmall,
     },
 
+    textNormal: {
+        fontSize: variables.fontSizeNormal,
+    },
+
     textLarge: {
         fontSize: variables.fontSizeLarge,
     },
@@ -473,7 +478,7 @@ const styles = {
         borderWidth: 0,
     },
 
-    buttonSuccessDisabled: {
+    buttonOpacityDisabled: {
         opacity: 0.5,
     },
 
@@ -487,16 +492,12 @@ const styles = {
         borderWidth: 0,
     },
 
-    buttonDangerDisabled: {
-        opacity: 0.5,
-    },
-
     buttonDangerHovered: {
         backgroundColor: themeColors.dangerHover,
         borderWidth: 0,
     },
 
-    buttonDisable: {
+    buttonDisabled: {
         backgroundColor: themeColors.buttonDefaultBG,
         borderWidth: 0,
     },
@@ -605,6 +606,9 @@ const styles = {
         done: {
             color: themeColors.text,
         },
+        doneDepressed: {
+            fontSize: defaultPickerStyles.done.fontSize,
+        },
         modalViewMiddle: {
             backgroundColor: themeColors.border,
             borderTopWidth: 0,
@@ -665,6 +669,14 @@ const styles = {
 
     badgeSuccessPressed: {
         backgroundColor: themeColors.successHover,
+    },
+
+    badgeAdHocSuccess: {
+        backgroundColor: themeColors.badgeAdHoc,
+    },
+
+    badgeAdHocSuccessPressed: {
+        backgroundColor: themeColors.badgeAdHocHover,
     },
 
     badgeDanger: {
@@ -738,7 +750,8 @@ const styles = {
 
     offlineIndicatorMobile: {
         paddingLeft: 20,
-        paddingBottom: 9,
+        paddingTop: 5,
+        paddingBottom: 5,
     },
 
     offlineIndicatorRow: {
@@ -781,10 +794,6 @@ const styles = {
 
     calendarDayContainerSelected: {
         backgroundColor: themeColors.buttonDefaultBG,
-    },
-
-    calendarButtonDisabled: {
-        opacity: 0.5,
     },
 
     textInputContainer: {
@@ -943,6 +952,9 @@ const styles = {
         done: {
             color: themeColors.text,
         },
+        doneDepressed: {
+            fontSize: defaultPickerStyles.done.fontSize,
+        },
         modalViewMiddle: {
             backgroundColor: themeColors.border,
             borderTopWidth: 0,
@@ -1003,9 +1015,49 @@ const styles = {
     },
 
     signInPage: {
-        backgroundColor: themeColors.sidebar,
+        backgroundColor: themeColors.highlightBG,
         minHeight: '100%',
         flex: 1,
+    },
+
+    signInPageHeroCenter: {
+        position: 'absolute',
+        top: 0,
+        left: 0,
+        right: 0,
+        bottom: 0,
+        justifyContent: 'center',
+        alignItems: 'center',
+    },
+
+    signInPageGradient: {
+        height: '100%',
+        width: 540,
+        position: 'absolute',
+        top: 0,
+        left: 0,
+    },
+
+    signInPageGradientMobile: {
+        height: 300,
+        width: 800,
+        position: 'absolute',
+        top: 0,
+        left: 0,
+    },
+
+    signInBackgroundDesktop: {
+        position: 'absolute',
+        bottom: 0,
+        left: 0,
+        minHeight: 700,
+    },
+
+    signInBackgroundMobile: {
+        position: 'absolute',
+        bottom: 0,
+        left: 0,
+        minHeight: 700,
     },
 
     signInPageInner: {
@@ -1026,7 +1078,7 @@ const styles = {
     },
 
     signInPageLeftContainerWide: {
-        maxWidth: 360,
+        maxWidth: variables.sideBarWidth,
     },
 
     signInPageWelcomeFormContainer: {
@@ -1290,8 +1342,8 @@ const styles = {
         // Starting version 6.3.2 @react-navigation/drawer adds "user-select: none;" to its container.
         // We add user-select-auto to the inner component to prevent incorrect triple-click text selection.
         // For further explanation see - https://github.com/Expensify/App/pull/12730/files#r1022883823
-        userSelect: 'auto',
-        WebkitUserSelect: 'auto',
+        userSelect: 'text',
+        WebkitUserSelect: 'text',
     },
 
     appContentHeader: {
@@ -2274,6 +2326,19 @@ const styles = {
         lineHeight: undefined,
     }, 0),
 
+    moneyRequestConfirmationAmount: {
+        ...headlineFont,
+        fontSize: variables.fontSizeh1,
+    },
+
+    moneyRequestMenuItem: {
+        flexDirection: 'row',
+        borderRadius: 0,
+        justifyContent: 'space-between',
+        width: '100%',
+        marginBottom: 20,
+    },
+
     iouPreviewBox: {
         backgroundColor: themeColors.cardBG,
         borderRadius: variables.componentBorderRadiusCard,
@@ -2546,6 +2611,7 @@ const styles = {
         width: '100%',
         flexDirection: 'row',
         justifyContent: 'space-between',
+        alignItems: 'center',
         ...spacing.pt2,
     },
 
@@ -2553,10 +2619,6 @@ const styles = {
         borderColor: themeColors.border,
         borderBottomWidth: 1,
         ...spacing.pb2,
-    },
-
-    peopleRowCell: {
-        justifyContent: 'center',
     },
 
     peopleBadge: {
@@ -2739,10 +2801,6 @@ const styles = {
         right: 60,
     },
 
-    googleListView: {
-        transform: [{scale: 0}],
-    },
-
     invert: {
         // It's important to invert the Y AND X axis to prevent a react native issue that can lead to ANRs on android 13
         transform: [{scaleX: -1}, {scaleY: -1}],
@@ -2750,7 +2808,9 @@ const styles = {
 
     keyboardShortcutModalContainer: {
         maxHeight: '100%',
-        flex: '0 0 auto',
+        flexShrink: 0,
+        flexGrow: 0,
+        flexBasis: 'auto',
     },
 
     keyboardShortcutTableWrapper: {
@@ -2819,13 +2879,18 @@ const styles = {
         cursor: 'move',
     },
 
+    sliderKnobTooltipView: {
+        height: variables.sliderKnobSize,
+        width: variables.sliderKnobSize,
+        borderRadius: variables.sliderKnobSize / 2,
+    },
+
     sliderKnob: {
         backgroundColor: themeColors.success,
         position: 'absolute',
         height: variables.sliderKnobSize,
         width: variables.sliderKnobSize,
         borderRadius: variables.sliderKnobSize / 2,
-        top: -variables.sliderBarHeight,
         left: -(variables.sliderKnobSize / 2),
         cursor: 'pointer',
     },
@@ -2835,10 +2900,7 @@ const styles = {
         height: variables.sliderBarHeight,
         borderRadius: variables.sliderBarHeight / 2,
         alignSelf: 'stretch',
-    },
-
-    imageCropRotateButton: {
-        height: variables.iconSizeExtraLarge,
+        justifyContent: 'center',
     },
 
     userSelectText: {
@@ -2878,7 +2940,6 @@ const styles = {
     },
 
     textPill: {
-        ellipsizeMode: 'end',
         backgroundColor: themeColors.border,
         borderRadius: 10,
         overflow: 'hidden',
@@ -2910,6 +2971,10 @@ const styles = {
         padding: 20,
         width: 'auto',
         textAlign: 'left',
+    },
+
+    cardSectionTitle: {
+        lineHeight: variables.lineHeightXXLarge,
     },
 
     cardMenuItem: {
@@ -2958,32 +3023,27 @@ const styles = {
     },
 
     emojiReactionBubble: {
-        paddingVertical: 2,
-        paddingHorizontal: 8,
         borderRadius: 28,
-        backgroundColor: themeColors.border,
         alignItems: 'center',
         justifyContent: 'center',
         flexDirection: 'row',
         alignSelf: 'flex-start',
-        marginTop: 8,
-        marginRight: 4,
     },
 
-    emojiReactionText: {
-        fontSize: 12,
+    miniQuickEmojiReactionText: {
+        fontSize: 15,
         lineHeight: 20,
         textAlignVertical: 'center',
-        userSelect: 'none',
-        WebkitUserSelect: 'none',
     },
+
+    emojiReactionBubbleText: {
+        textAlignVertical: 'center',
+    },
+
     reactionCounterText: {
-        fontSize: 11,
+        fontSize: 13,
         marginLeft: 4,
         fontWeight: 'bold',
-        color: themeColors.textLight,
-        userSelect: 'none',
-        WebkitUserSelect: 'none',
     },
 
     fontColorReactionLabel: {
@@ -3014,14 +3074,10 @@ const styles = {
         fontSize: variables.fontSizeXXLarge,
         letterSpacing: 4,
     },
-    footer: {
-        backgroundColor: themeColors.midtone,
-    },
 
     footerWrapper: {
         fontSize: variables.fontSizeNormal,
         paddingTop: 64,
-        paddingHorizontal: 32,
         maxWidth: 1100, // Match footer across all Expensify platforms
     },
 
@@ -3068,10 +3124,27 @@ const styles = {
         top: 60,
         zIndex: 100,
     },
+    loginHeroHeader: {
+        fontFamily: fontFamily.EXP_NEW_KANSAS_MEDIUM,
+        color: themeColors.success,
+        fontWeight: '500',
+        textAlign: 'center',
+    },
+
+    loginHeroBody: {
+        fontFamily: fontFamily.EXP_NEUE,
+        fontSize: variables.fontSizeSignInHeroBody,
+        color: themeColors.textLight,
+        textAlign: 'center',
+    },
 
     validateCodeMessage: {
         width: variables.modalContentMaxWidth,
         textAlign: 'center',
+    },
+
+    whisper: {
+        backgroundColor: themeColors.cardBG,
     },
 };
 
