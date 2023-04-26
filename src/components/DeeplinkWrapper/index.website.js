@@ -38,7 +38,7 @@ const defaultProps = {
 class DeeplinkWrapper extends PureComponent {
     constructor(props) {
         super(props);
-        this.hasPopupBeenOpenedBefore = !this.isMacOSWeb() || CONFIG.ENVIRONMENT !== CONST.ENVIRONMENT.DEV;
+        this.hasPopupBeenOpenedBefore = !this.isMacOSWeb() || CONFIG.ENVIRONMENT === CONST.ENVIRONMENT.DEV;
     }
 
     componentDidMount() {
