@@ -3155,7 +3155,6 @@ const styles = {
     illustratedPageScrollView: safeAreaPaddingBottomStyle => [
         flex.flex1,
         flex.flexColumn,
-        flex.justifyContentBetween,
         spacing.pt5,
         safeAreaPaddingBottomStyle,
     ],

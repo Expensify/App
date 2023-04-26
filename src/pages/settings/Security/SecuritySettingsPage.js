@@ -5,10 +5,13 @@ import HeaderWithCloseButton from '../../../components/HeaderWithCloseButton';
 import Navigation from '../../../libs/Navigation/Navigation';
 import ROUTES from '../../../ROUTES';
 import styles from '../../../styles/styles';
+import themeColors from '../../../styles/themes/default';
 import * as Expensicons from '../../../components/Icon/Expensicons';
 import ScreenWrapper from '../../../components/ScreenWrapper';
 import withLocalize, {withLocalizePropTypes} from '../../../components/withLocalize';
 import MenuItem from '../../../components/MenuItem';
+import IllustratedHeaderPageLayout from '../../../components/IllustratedHeaderPageLayout';
+import SafeAnimation from '../../../../assets/animations/Safe.json';
 
 const propTypes = {
     ...withLocalizePropTypes,
@@ -33,34 +36,25 @@ const SecuritySettingsPage = (props) => {
     ];
 
     return (
-        <ScreenWrapper>
-            <HeaderWithCloseButton
-                title={props.translate('initialSettingsPage.security')}
-                shouldShowBackButton
-                onBackButtonPress={() => Navigation.navigate(ROUTES.SETTINGS)}
-                onCloseButtonPress={() => Navigation.dismissModal(true)}
-            />
-            <ScrollView
-                contentContainerStyle={[
-                    styles.flexGrow1,
-                    styles.flexColumn,
-                    styles.justifyContentBetween,
-                ]}
-            >
-                <View style={[styles.flex1]}>
-                    {_.map(menuItems, item => (
-                        <MenuItem
-                            key={item.translationKey}
-                            title={props.translate(item.translationKey)}
-                            icon={item.icon}
-                            iconRight={item.iconRight}
-                            onPress={() => item.action()}
-                            shouldShowRightIcon
-                        />
-                    ))}
-                </View>
-            </ScrollView>
-        </ScreenWrapper>
+        <IllustratedHeaderPageLayout
+            title={props.translate('initialSettingsPage.security')}
+            shouldShowBackButton
+            onBackButtonPress={() => Navigation.navigate(ROUTES.SETTINGS)}
+            onCloseButtonPress={() => Navigation.dismissModal(true)}
+            illustration={SafeAnimation}
+            backgroundColor={themeColors.securitySettingsPageBackgroundColor}
+        >
+            {_.map(menuItems, item => (
+                <MenuItem
+                    key={item.translationKey}
+                    title={props.translate(item.translationKey)}
+                    icon={item.icon}
+                    iconRight={item.iconRight}
+                    onPress={() => item.action()}
+                    shouldShowRightIcon
+                />
+            ))}
+        </IllustratedHeaderPageLayout>
     );
 };
 
