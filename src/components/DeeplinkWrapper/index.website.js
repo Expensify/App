@@ -78,6 +78,10 @@ class DeeplinkWrapper extends PureComponent {
             return;
         }
 
+        // Once the popup has appeared after the page is loaded, it does not need to be displayed again.
+        // e.g. When a user refresh one tab, the popup should not appear again in other tabs.
+        this.shouldNotShowPopup = true;
+
         const params = new URLSearchParams();
         params.set('exitTo', `${window.location.pathname}${window.location.search}${window.location.hash}`);
         const session = this.props.session;
