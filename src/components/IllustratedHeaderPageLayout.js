@@ -11,6 +11,7 @@ import HeaderWithCloseButton from './HeaderWithCloseButton';
 import ScreenWrapper from './ScreenWrapper';
 import styles from '../styles/styles';
 import * as StyleUtils from '../styles/StyleUtils';
+import FixedFooter from './FixedFooter';
 
 const propTypes = {
     ...headerWithCloseButtonPropTypes,
@@ -20,10 +21,14 @@ const propTypes = {
 
     /** The illustration to display in the header. Can be either an SVG component or a JSON object representing a Lottie animation. */
     illustration: PropTypes.oneOfType([PropTypes.func, PropTypes.object]).isRequired,
+
+    /** Content to render in a fixed footer. */
+    footer: PropTypes.element,
 };
 
 const defaultProps = {
     ...headerWithCloseButtonDefaultProps,
+    footer: null,
 };
 
 const IllustratedHeaderPageLayout = (props) => {
@@ -47,6 +52,11 @@ const IllustratedHeaderPageLayout = (props) => {
                         <ScrollView contentContainerStyle={styles.illustratedPageScrollView(safeAreaPaddingBottomStyle)}>
                             {props.children}
                         </ScrollView>
+                        {props.footer && (
+                            <FixedFooter style={[styles.flexGrow0]}>
+                                {props.footer}
+                            </FixedFooter>
+                        )}
                     </View>
                 </>
             )}

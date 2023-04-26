@@ -1,5 +1,5 @@
 import React, {Component} from 'react';
-import {ScrollView} from 'react-native';
+import {View, ScrollView} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import PropTypes from 'prop-types';
 import _ from 'underscore';
@@ -26,6 +26,12 @@ import BlockingView from '../../components/BlockingViews/BlockingView';
 import {withNetwork} from '../../components/OnyxProvider';
 import * as ReimbursementAccountProps from '../ReimbursementAccount/reimbursementAccountPropTypes';
 import * as ReportUtils from '../../libs/ReportUtils';
+import IllustratedHeaderPageLayout from '../../components/IllustratedHeaderPageLayout';
+import WorkspacePlanetAnimation from '../../../assets/animations/WorkspacePlanet.json';
+import Text from '../../components/Text';
+import Icon from '../../components/Icon';
+import * as Illustrations from '../../components/Icon/Illustrations';
+import variables from '../../styles/variables';
 
 const propTypes = {
     /* Onyx Props */
@@ -179,33 +185,53 @@ class WorkspacesListPage extends Component {
 
     render() {
         const workspaces = this.getWorkspaces();
+        // TODO: translations
+        const workspaceFeatures = [
+            {
+                icon: Illustrations.MoneyReceipts,
+                text: 'Track and collect receipts',
+            },
+            {
+                icon: Illustrations.CreditCardsNew,
+                text: 'Company credit cards',
+            },
+            {
+                icon: Illustrations.MoneyWings,
+                text: 'Easy reimbursements',
+            },
+        ];
         return (
-            <ScreenWrapper>
-                <HeaderWithCloseButton
-                    title={this.props.translate('common.workspaces')}
-                    shouldShowBackButton
-                    onBackButtonPress={() => Navigation.navigate(ROUTES.SETTINGS)}
-                    onCloseButtonPress={() => Navigation.dismissModal(true)}
-                />
-                {_.isEmpty(workspaces) ? (
-                    <BlockingView
-                        icon={Expensicons.Building}
-                        title={this.props.translate('workspace.emptyWorkspace.title')}
-                        subtitle={this.props.translate('workspace.emptyWorkspace.subtitle')}
-                    />
-                ) : (
-                    <ScrollView style={styles.flex1}>
-                        {_.map(workspaces, (item, index) => this.getMenuItem(item, index))}
-                    </ScrollView>
-                )}
-                <FixedFooter style={[styles.flexGrow0]}>
+            <IllustratedHeaderPageLayout
+                title={this.props.translate('common.workspaces')}
+                shouldShowBackButton
+                onBackButtonPress={() => Navigation.navigate(ROUTES.SETTINGS)}
+                onCloseButtonPress={() => Navigation.dismissModal(true)}
+                illustration={WorkspacePlanetAnimation}
+                backgroundColor={themeColors.workspaceSettingsPageBackgroundColor}
+                footer={(
                     <Button
                         success
                         text={this.props.translate('workspace.new.newWorkspace')}
                         onPress={() => Policy.createWorkspace()}
                     />
-                </FixedFooter>
-            </ScreenWrapper>
+                )}
+            >
+                {_.isEmpty(workspaces) && (
+                    <View style={[styles.flex1, styles.ph4]}>
+                        <Text style={[styles.textHeadline]}>{this.props.translate('workspace.emptyWorkspace.title')}</Text>
+                        <Text style={[styles.textBody, styles.mt2]}>{this.props.translate('workspace.emptyWorkspace.subtitle')}</Text>
+                        <View style={[styles.flex1, styles.justifyContentStart, styles.mt4]}>
+                            {_.map(workspaceFeatures, ({icon, text}) => (
+                                <View style={[styles.flexRow, styles.alignItemsCenter, styles.mv2]}>
+                                    <Icon src={icon} width={variables.iconSizeSuperLarge} height={variables.iconSizeSuperLarge} />
+                                    <Text style={[styles.h3, styles.pl2]}>{text}</Text>
+                                </View>
+                            ))}
+                        </View>
+                    </View>
+                )}
+                {!_.isEmpty(workspaces) && _.map(workspaces, this.getMenuItem)}
+            </IllustratedHeaderPageLayout>
         );
     }
 }

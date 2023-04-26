@@ -312,6 +312,11 @@ const styles = {
         fontSize: variables.fontSizeXXXLarge,
     },
 
+    textBody: {
+        fontFamily: fontFamily.EXP_NEUE,
+        fontSize: variables.fontSizeNormal,
+    },
+
     textHero: {
         fontSize: variables.fontSizeHero,
         fontFamily: fontFamily.EXP_NEW_KANSAS_MEDIUM,
