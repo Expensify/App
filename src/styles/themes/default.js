@@ -69,6 +69,9 @@ const darkTheme = {
     reactionActive: '#003C73',
     badgeAdHoc: colors.pink600,
     badgeAdHocHover: colors.pink700,
+
+    // Setting page colors
+    initialSettingsPageBackground: colors.green800,
     preferencesPageBackground: colors.ice800,
     workspaceSettingsPageBackgroundColor: colors.pink800,
 };

@@ -33,7 +33,7 @@ const defaultProps = {
 };
 
 const IllustratedHeaderPageLayout = (props) => {
-    const propsToPassToHeader = _.omit(props, 'illustration');
+    const propsToPassToHeader = _.omit(props, ['illustration', 'illustrationSize']);
     return (
         <ScreenWrapper includeSafeAreaPaddingBottom={false} style={[StyleUtils.getBackgroundColorStyle(props.backgroundColor)]}>
             {({safeAreaPaddingBottomStyle}) => (
