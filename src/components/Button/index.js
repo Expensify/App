@@ -1,19 +1,20 @@
 import React, {Component} from 'react';
 import {Pressable, ActivityIndicator, View} from 'react-native';
 import PropTypes from 'prop-types';
-import styles from '../styles/styles';
-import themeColors from '../styles/themes/default';
-import OpacityView from './OpacityView';
-import Text from './Text';
-import KeyboardShortcut from '../libs/KeyboardShortcut';
-import Icon from './Icon';
-import CONST from '../CONST';
-import * as StyleUtils from '../styles/StyleUtils';
-import HapticFeedback from '../libs/HapticFeedback';
-import withNavigationFallback from './withNavigationFallback';
-import compose from '../libs/compose';
-import * as Expensicons from './Icon/Expensicons';
-import withNavigationFocus from './withNavigationFocus';
+import styles from '../../styles/styles';
+import themeColors from '../../styles/themes/default';
+import OpacityView from '../OpacityView';
+import Text from '../Text';
+import KeyboardShortcut from '../../libs/KeyboardShortcut';
+import Icon from '../Icon';
+import CONST from '../../CONST';
+import * as StyleUtils from '../../styles/StyleUtils';
+import HapticFeedback from '../../libs/HapticFeedback';
+import withNavigationFallback from '../withNavigationFallback';
+import compose from '../../libs/compose';
+import * as Expensicons from '../Icon/Expensicons';
+import withNavigationFocus from '../withNavigationFocus';
+import validateSubmitShortcut from './validateSubmitShortcut';
 
 const propTypes = {
     /** The text for the button label */
@@ -91,8 +92,8 @@ const propTypes = {
     /** Whether we should use the danger theme color */
     danger: PropTypes.bool,
 
-    /** Optional content component to replace all inner contents of button */
-    ContentComponent: PropTypes.func,
+    /** Children to replace all inner contents of button */
+    children: PropTypes.node,
 
     /** Should we remove the right border radius top + bottom? */
     shouldRemoveRightBorderRadius: PropTypes.bool,
@@ -134,7 +135,7 @@ const defaultProps = {
     textStyles: [],
     success: false,
     danger: false,
-    ContentComponent: undefined,
+    children: null,
     shouldRemoveRightBorderRadius: false,
     shouldRemoveLeftBorderRadius: false,
     shouldEnableHapticFeedback: false,
@@ -157,10 +158,9 @@ class Button extends Component {
 
         // Setup and attach keypress handler for pressing the button with Enter key
         this.unsubscribe = KeyboardShortcut.subscribe(shortcutConfig.shortcutKey, (e) => {
-            if (!this.props.isFocused || this.props.isDisabled || this.props.isLoading || (e && e.target.nodeName === 'TEXTAREA')) {
+            if (!validateSubmitShortcut(this.props.isFocused, this.props.isDisabled, this.props.isLoading, e)) {
                 return;
             }
-            e.preventDefault();
             this.props.onPress();
         }, shortcutConfig.descriptionKey, shortcutConfig.modifiers, true, false, this.props.enterKeyEventListenerPriority, false);
     }
@@ -174,9 +174,8 @@ class Button extends Component {
     }
 
     renderContent() {
-        const ContentComponent = this.props.ContentComponent;
-        if (ContentComponent) {
-            return <ContentComponent />;
+        if (this.props.children) {
+            return this.props.children;
         }
 
         const textComponent = (
