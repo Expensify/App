@@ -181,12 +181,10 @@ function getNavigationDrawerType(isSmallScreenWidth) {
  */
 function getZoomCursorStyle(isZoomed, isDragging) {
     if (!isZoomed) {
-        return {cursor: 'zoom-in'};
+        return styles.cursorZoomIn;
     }
 
-    return {
-        cursor: isDragging ? 'grabbing' : 'zoom-out',
-    };
+    return isDragging ? styles.cursorGrabbing : styles.cursorZoomOut;
 }
 
 /**
@@ -543,7 +541,7 @@ function getReportActionItemStyle(isHovered = false, isLoading = false) {
             // Warning: Setting this to a non-transparent color will cause unread indicator to break on Android
             : colors.transparent,
         opacity: isLoading ? 0.5 : 1,
-        cursor: 'initial',
+        ...styles.cursorInitial,
     };
 }
 
