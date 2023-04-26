@@ -4,7 +4,7 @@ import * as DeviceCapabilities from '../../libs/DeviceCapabilities';
 import {propTypes, defaultProps} from './emojiSuggestionsPropTypes';
 
 /**
- * On the web platform, when tapping on emoji suggestions, we need to prevent focus shifting to avoid blurring the main input.
+ * On the mobile-web platform, when long-pressing on emoji suggestions, we need to prevent focus shifting to avoid blurring the main input which makes the emoji picker close and adds the emoji to the composer. The desired pattern for all platforms is to do nothing on long-press.
  * On the native platform, tapping on emoji suggestions will not blur the main input.
  */
 
