@@ -84,6 +84,42 @@ const HeaderView = (props) => {
     // these users via alternative means. It is possible to request a call with Concierge so we leave the option for them.
     const shouldShowCallButton = (isConcierge && guideCalendarLink) || !isAutomatedExpensifyAccount || !isChatRoom;
     const shouldShowThreeDotsButton = isTaskReport;
+    const threeDotMenuItems = [];
+
+    if (shouldShowThreeDotsButton) {
+        if (props.report.stateNum === CONST.REPORT.STATE_NUM.OPEN && props.report.statusNum === CONST.REPORT.STATUS.OPEN) {
+            threeDotMenuItems.push({
+                icon: Expensicons.Checkmark,
+                text: props.translate('newTaskPage.markAsComplete'),
+
+                // Implementing in https://github.com/Expensify/App/issues/16858
+                onSelected: () => {},
+            });
+        }
+
+        // Task is marked as completed
+        if (props.report.stateNum === CONST.REPORT.STATE_NUM.SUBMITTED && props.report.statusNum === CONST.REPORT.STATUS.APPROVED) {
+            threeDotMenuItems.push({
+                icon: Expensicons.Checkmark,
+                text: props.translate('newTaskPage.markAsIncomplete'),
+
+                // Implementing in https://github.com/Expensify/App/issues/16858
+                onSelected: () => {},
+            });
+        }
+
+        // Task is not closed
+        if (props.report.stateNum !== CONST.REPORT.STATE_NUM.SUBMITTED && props.report.statusNum !== CONST.REPORT.STATUS.CLOSED) {
+            threeDotMenuItems.push({
+                icon: Expensicons.Trashcan,
+                text: props.translate('common.cancel'),
+
+                // Implementing in https://github.com/Expensify/App/issues/16857
+                onSelected: () => {},
+            });
+        }
+    }
+
     const avatarTooltip = isChatRoom ? undefined : _.pluck(displayNamesWithTooltips, 'tooltip');
     const shouldShowSubscript = isPolicyExpenseChat && !props.report.isOwnPolicyExpenseChat && !ReportUtils.isArchivedRoom(props.report);
     const icons = ReportUtils.getIcons(props.report, props.personalDetails, props.policies);
@@ -175,13 +211,7 @@ const HeaderView = (props) => {
                             {shouldShowThreeDotsButton && (
                                 <ThreeDotsMenu
                                     anchorPosition={styles.threeDotsPopoverOffset}
-                                    menuItems={[
-                                        {
-                                            icon: Expensicons.Trashcan,
-                                            text: props.translate('workspace.common.delete'),
-                                            onSelected: () => console.log('Delete'),
-                                        },
-                                    ]}
+                                    menuItems={threeDotMenuItems}
                                 />
                             )}
                         </View>
