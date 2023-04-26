@@ -58,7 +58,7 @@ const ReportActionItemReactions = (props) => {
     const reactionsWithCount = _.filter(props.reactions, reaction => reaction.users.length > 0);
 
     return (
-        <View style={[styles.flexRow, styles.flexWrap]}>
+        <View style={[styles.flexRow, styles.flexWrap, styles.gap1, styles.mt2]}>
             {_.map(reactionsWithCount, (reaction) => {
                 const reactionCount = reaction.users.length;
                 const reactionUsers = _.map(reaction.users, sender => sender.accountID.toString());

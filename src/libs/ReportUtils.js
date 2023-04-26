@@ -129,6 +129,16 @@ function isTaskReport(report) {
 }
 
 /**
+ * Checks if a report is an IOU or expense report.
+ *
+ * @param {Object} report
+ * @returns {Boolean}
+ */
+function isMoneyRequestReport(report) {
+    return isIOUReport(report) || isExpenseReport(report);
+}
+
+/**
  * Given a collection of reports returns them sorted by last read
  *
  * @param {Object} reports
@@ -771,14 +781,14 @@ function getDisplayNameForParticipant(login, shouldUseShortForm = false) {
     if (!login) {
         return '';
     }
-    const personalDetails = getPersonalDetailsForLogin(login);
 
-    const loginWithoutSMSDomain = Str.removeSMSDomain(personalDetails.login);
-    let longName = personalDetails.displayName || loginWithoutSMSDomain;
+    const loginWithoutSMSDomain = Str.removeSMSDomain(login);
+    const personalDetails = getPersonalDetailsForLogin(login);
+    let longName = (personalDetails && personalDetails.displayName) || loginWithoutSMSDomain;
     if (longName === loginWithoutSMSDomain && Str.isSMSLogin(longName)) {
         longName = LocalePhoneNumber.formatPhoneNumber(longName);
     }
-    const shortName = personalDetails.firstName || longName;
+    const shortName = (personalDetails && personalDetails.firstName) || longName;
 
     return shouldUseShortForm ? shortName : longName;
 }
@@ -1795,6 +1805,7 @@ export {
     isExpenseReport,
     isIOUReport,
     isTaskReport,
+    isMoneyRequestReport,
     chatIncludesChronos,
     getAvatar,
     isDefaultAvatar,
