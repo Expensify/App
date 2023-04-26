@@ -54,7 +54,7 @@ const GenericPressable = forwardRef((props, ref) => {
     } = props;
 
     const isScreenReaderActive = Accessibility.useScreenReaderStatus();
-    const [hitslop, onLayout] = Accessibility.useAutoHitSlop();
+    const [hitSlop, onLayout] = Accessibility.useAutoHitSlop();
 
     const isDisabled = useMemo(() => {
         let shouldBeDisabledByScreenReader = false;
@@ -113,7 +113,7 @@ const GenericPressable = forwardRef((props, ref) => {
 
     return (
         <Pressable
-            hitSlop={shouldUseAutoHitSlop && hitslop}
+            hitSlop={shouldUseAutoHitSlop && hitSlop}
             onLayout={onLayout}
             ref={ref}
             onPress={!isDisabled && onPressHandler}
