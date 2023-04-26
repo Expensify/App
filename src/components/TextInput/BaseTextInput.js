@@ -245,7 +245,7 @@ class BaseTextInput extends Component {
 
                                     this.setState(prevState => ({
                                         width: this.props.autoGrowHeight ? layout.width : prevState.width,
-                                        height: !this.props.multiline ? layout.height : prevState.height,
+                                        height: !isMultiline ? layout.height : prevState.height,
                                     }));
                                 }}
                                 style={[
