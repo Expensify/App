@@ -54,7 +54,7 @@ jobs:
         run: git checkout main
 
       - name: Unmerged PR - Fetch changes from forked repository if necessary
-        if: ${{ !fromJSON(steps.getPullRequestDetails.outputs.IS_MERGED) && steps.getPullRequestDetails.outputs.FORKED_REPO_URL }}
+        if: ${{ !fromJSON(steps.getPullRequestDetails.outputs.IS_MERGED) && steps.getPullRequestDetails.outputs.FORKED_REPO_URL != '' }}
         run: |
           git remote add pr_remote ${{ steps.getPullRequestDetails.outputs.FORKED_REPO_URL }}
           git fetch pr_remote
