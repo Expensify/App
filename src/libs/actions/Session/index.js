@@ -67,7 +67,19 @@ function signOut() {
 }
 
 function signOutAndRedirectToSignIn() {
-    Onyx.set(ONYXKEYS.SESSION, null).then(() => {
+    const clearSessionData = [
+        {
+            onyxMethod: CONST.ONYX.METHOD.SET,
+            key: ONYXKEYS.SESSION,
+            value: null,
+        },
+        {
+            onyxMethod: CONST.ONYX.METHOD.SET,
+            key: ONYXKEYS.CREDENTIALS,
+            value: null,
+        },
+    ];
+    Onyx.update(clearSessionData).then(() => {
         signOut();
         redirectToSignIn();
     });
