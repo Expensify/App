@@ -121,9 +121,9 @@ export default function getTooltipStyles(
     // Determine if we need to shift the tooltip horizontally to prevent it
     // from displaying too near to the edge of the screen.
     const horizontalShift = computeHorizontalShift(windowWidth, xOffset, componentWidth, tooltipWidth, manualShiftHorizontal);
-    const horizontalShiftPointer = horizontalShift > 0 ? Math.max(-horizontalShift, - tooltipWidth / 2 + POINTER_WIDTH / 2 + variables.componentBorderRadiusSmall)
-        : Math.min(-horizontalShift, tooltipWidth / 2 - POINTER_WIDTH / 2 - variables.componentBorderRadiusSmall)
-    
+    const horizontalShiftPointer = horizontalShift > 0 ? Math.max(-horizontalShift, -(tooltipWidth / 2) + (POINTER_WIDTH / 2) + variables.componentBorderRadiusSmall)
+        : Math.min(-horizontalShift, (tooltipWidth / 2) - (POINTER_WIDTH / 2) - variables.componentBorderRadiusSmall);
+
     const tooltipVerticalPadding = spacing.pv1;
     const tooltipFontSize = variables.fontSizeSmall;
 
