@@ -39,7 +39,6 @@ import personalDetailsPropType from '../personalDetailsPropType';
 import getIsReportFullyVisible from '../../libs/getIsReportFullyVisible';
 import EmojiPicker from '../../components/EmojiPicker/EmojiPicker';
 import * as EmojiPickerAction from '../../libs/actions/EmojiPickerAction';
-import MenuItemWithTopDescription from '../../components/MenuItemWithTopDescription';
 import TaskHeaderView from './TaskHeaderView';
 
 const propTypes = {

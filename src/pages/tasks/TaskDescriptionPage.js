@@ -52,9 +52,9 @@ function TaskDescriptionPage(props) {
     }, [props]);
 
     const submit = useCallback(() => {
-        console.log('Update description title');
+        // Functionality will be implemented in https://github.com/Expensify/App/issues/16856
     }, []);
- 
+
     return (
         <ScreenWrapper includeSafeAreaPaddingBottom={false}>
             <HeaderWithCloseButton
