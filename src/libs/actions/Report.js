@@ -1495,7 +1495,7 @@ function removeEmojiReaction2(reportID, reportActionID, emoji, existingReactions
  * @returns {Promise}
  */
 function toggleEmojiReaction(reportID, reportAction, emoji, existingReactions) {
-    const reactionObject = existingReactions[emoji.name];
+    const reactionObject = existingReactions && existingReactions[emoji.name];
     const skinTone = emoji.types === undefined ? null : preferredSkinTone; // only use skin tone if emoji supports it
     if (reactionObject) {
         if (hasAccountIDReacted(currentUserAccountID, reactionObject.users, skinTone)) {
