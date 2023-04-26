@@ -1,4 +1,4 @@
-import React from 'react';
+import React, {useMemo} from 'react';
 import {View} from 'react-native';
 import PropTypes from 'prop-types';
 import _ from 'underscore';
@@ -33,9 +33,11 @@ const propTypes = {
 };
 
 const ReactionTooltipContent = (props) => {
-    const users = PersonalDetailsUtils.getPersonalDetailsByIDs(props.accountIDs, props.currentUserPersonalDetails.accountID, true);
+    const users = useMemo(
+        () => PersonalDetailsUtils.getPersonalDetailsByIDs(props.accountIDs, props.currentUserPersonalDetails.accountID, true),
+        [props.currentUserPersonalDetails.accountID, props.accountIDs],
+    );
     const namesString = _.filter(_.map(users, user => user && user.displayName), n => n).join(', ');
-
     return (
         <View style={[styles.alignItemsCenter, styles.ph2]}>
             <View style={styles.flexRow}>
