@@ -2973,6 +2973,10 @@ const styles = {
         textAlign: 'left',
     },
 
+    cardSectionTitle: {
+        lineHeight: variables.lineHeightXXLarge,
+    },
+
     cardMenuItem: {
         paddingLeft: 8,
         paddingRight: 0,
@@ -3024,8 +3028,6 @@ const styles = {
         justifyContent: 'center',
         flexDirection: 'row',
         alignSelf: 'flex-start',
-        marginTop: 8,
-        marginRight: 4,
     },
 
     miniQuickEmojiReactionText: {
