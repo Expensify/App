@@ -38,11 +38,11 @@ const defaultProps = {
 class DeeplinkWrapper extends PureComponent {
     constructor(props) {
         super(props);
-        this.shouldNotShowPopup = !this.isMacOSWeb() || CONFIG.ENVIRONMENT === CONST.ENVIRONMENT.DEV;
+        this.hasPopupBeenOpenedBefore = !this.isMacOSWeb() || CONFIG.ENVIRONMENT !== CONST.ENVIRONMENT.DEV;
     }
 
     componentDidMount() {
-        if (this.shouldNotShowPopup) {
+        if (this.hasPopupBeenOpenedBefore) {
             return;
         }
 
@@ -51,9 +51,9 @@ class DeeplinkWrapper extends PureComponent {
         // so that the popup window will only open when we know the short-lived authToken is valid.
         Session.removeShortLivedAuthToken();
 
-        // If the current link is transition from oldDot, we should wait for it to finish, then we will know the final route.
-        const isTransitioning = Str.startsWith(window.location.pathname, Str.normalizeUrl(ROUTES.TRANSITION));
-        if (isTransitioning) {
+        // If the current link is transition from oldDot, we should wait for it to finish,
+        // because we should pass the final path to the desktop app instead of the transition path.
+        if (Str.startsWith(window.location.pathname, Str.normalizeUrl(ROUTES.TRANSITION_BETWEEN_APPS))) {
             Session.getShortLivedAuthTokenAfterTransition();
             return;
         }
@@ -74,13 +74,13 @@ class DeeplinkWrapper extends PureComponent {
     }
 
     openRouteInDesktopApp() {
-        if (this.shouldNotShowPopup) {
+        if (this.hasPopupBeenOpenedBefore) {
             return;
         }
 
         // Once the popup has appeared after the page is loaded, it does not need to be displayed again.
         // e.g. When a user refresh one tab, the popup should not appear again in other tabs.
-        this.shouldNotShowPopup = true;
+        this.hasPopupBeenOpenedBefore = true;
 
         const params = new URLSearchParams();
         params.set('exitTo', `${window.location.pathname}${window.location.search}${window.location.hash}`);
