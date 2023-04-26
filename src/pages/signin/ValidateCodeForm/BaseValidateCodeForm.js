@@ -94,7 +94,9 @@ class BaseValidateCodeForm extends React.Component {
         if (prevProps.isVisible && !this.props.isVisible && this.state.validateCode) {
             this.clearValidateCode();
         }
-        if (prevProps.isVisible && this.state.linkSent && this.props.account.message && this.state.validateCode) {
+
+        // Clear the code input if a new magic code was requested
+        if (this.props.isVisible && this.state.linkSent && this.props.account.message && this.state.validateCode) {
             this.clearValidateCode();
         }
         if (!prevProps.credentials.validateCode && this.props.credentials.validateCode) {
@@ -118,6 +120,7 @@ class BaseValidateCodeForm extends React.Component {
         this.setState({
             [key]: text,
             formError: {[key]: ''},
+            linkSent: false,
         });
 
         if (this.props.account.errors) {
