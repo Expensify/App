@@ -320,12 +320,14 @@ export default {
             genericCancelFailureMessage: ({type}) => `Unexpected error ${type === 'decline' ? 'declining' : 'cancelling'} the money request, please try again later`,
         },
     },
-    notificationPreferences: {
+    notificationPreferencesPage: {
         header: 'Notification Preferences',
         label: 'Notify me about new messages',
-        immediately: 'Immediately',
-        daily: 'Daily',
-        mute: 'Mute',
+        notificationPreferences: {
+            immediately: 'Immediately',
+            daily: 'Daily',
+            mute: 'Mute',
+        },
     },
     loginField: {
         numberHasNotBeenValidated: 'The number has not yet been validated. Click the button to resend the validation link via text.',

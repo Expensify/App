@@ -24,26 +24,25 @@ const propTypes = {
 const greenCheckmark = {src: Expensicons.Checkmark, color: themeColors.success};
 
 const NotificationPreferencePage = (props) => {
-    const frequencies = [
-        props.translate('notificationPreferences.immediately'),
-        props.translate('notificationPreferences.daily'),
-        props.translate('notificationPreferences.mute'),
-    ];
-    const notificationPreferenceOptions = _.map(frequencies, frequency => ({
-        text: frequency,
-        keyForList: frequency,
+    const notificationPreferenceOptions = _.map(props.translate('notificationPreferencesPage.notificationPreferences'),
+        (preference, key) => (
+            {
+                value: key,
+                text: preference,
+                keyForList: key,
 
-        // Include the green checkmark icon to indicate the currently selected value
-        customIcon: frequency === props.report.notificationPreference ? greenCheckmark : undefined,
+                // Include the green checkmark icon to indicate the currently selected value
+                customIcon: key === props.report.notificationPreference ? greenCheckmark : null,
 
-        // This property will make the currently selected value have bold text
-        boldStyle: frequency === props.report.notificationPreference,
-    }));
+                // This property will make the currently selected value have bold text
+                boldStyle: key === props.report.notificationPreference,
+            }
+        ));
 
     return (
         <ScreenWrapper includeSafeAreaPaddingBottom={false}>
             <HeaderWithCloseButton
-                title={props.translate('notificationPreferences.header')}
+                title={props.translate('notificationPreferencesPage.header')}
                 shouldShowBackButton
                 onBackButtonPress={() => Navigation.drawerGoBack(ROUTES.getReportSettingsRoute(props.report.reportID))}
                 onCloseButtonPress={() => Navigation.dismissModal(true)}
