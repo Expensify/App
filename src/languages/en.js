@@ -1142,6 +1142,7 @@ export default {
         },
     },
     newTaskPage: {
+        task: 'Task',
         assignTask: 'Assign task',
         title: 'Title',
         description: 'Description',

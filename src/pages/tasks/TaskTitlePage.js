@@ -14,14 +14,29 @@ import TextInput from '../../components/TextInput';
 import styles from '../../styles/styles';
 import Navigation from '../../libs/Navigation/Navigation';
 import * as PersonalDetails from '../../libs/actions/PersonalDetails';
+import reportPropTypes from '../reportPropTypes';
+import {withNetwork} from '../../components/OnyxProvider';
+import compose from '../../libs/compose';
 
 const propTypes = {
+    /** URL Route params */
+    route: PropTypes.shape({
+        /** Params from the URL path */
+        params: PropTypes.shape({
+            /** taskReportID passed via route: /r/:taskReportID/title */
+            taskReportID: PropTypes.string,
+        }),
+    }).isRequired,
+
+    /** The report currently being updated */
+    taskReport: reportPropTypes,
+
     /* Onyx Props */
     ...withLocalizePropTypes,
 };
 
 const defaultProps = {
-    taskTitle: '',
+    taskReport: {},
 };
 
 class TaskTitlePage extends Component {
@@ -67,9 +82,9 @@ class TaskTitlePage extends Component {
         return (
             <ScreenWrapper includeSafeAreaPaddingBottom={false}>
                 <HeaderWithCloseButton
-                    title={this.props.translate('privatePersonalDetails.legalName')}
+                    title={this.props.translate('newTaskPage.task')}
                     shouldShowBackButton
-                    onBackButtonPress={() => Navigation.navigate(ROUTES.SETTINGS_PERSONAL_DETAILS)}
+                    onBackButtonPress={() => Navigation.goBack()}
                     onCloseButtonPress={() => Navigation.dismissModal(true)}
                 />
                 <Form
@@ -84,8 +99,8 @@ class TaskTitlePage extends Component {
                         <TextInput
                             inputID="taskTitle"
                             name="taskTitle"
-                            label={this.props.translate('privatePersonalDetails.legalFirstName')}
-                            defaultValue={privateDetails.legalFirstName || ''}
+                            label={this.props.translate('newTaskPage.title')}
+                            defaultValue={this.props.taskReport.reportName || ''}
                             maxLength={CONST.DISPLAY_NAME.MAX_LENGTH}
                         />
                     </View>
@@ -98,4 +113,12 @@ class TaskTitlePage extends Component {
 TaskTitlePage.propTypes = propTypes;
 TaskTitlePage.defaultProps = defaultProps;
 
-export default withLocalize(TaskTitlePage);
+export default compose(
+    withLocalize,
+    withNetwork(),
+    withOnyx({
+        taskReport: {
+            key: ({route}) => `${ONYXKEYS.COLLECTION.REPORT}${route.params.taskReportID}`,
+        },
+    }),
+)(TaskTitlePage);
