@@ -50,6 +50,7 @@ export default {
 
     yellow200: '#FFED8F',
     yellow400: '#FED607',
+    yellow600: '#D18000',
     yellow700: '#722B03',
     yellow800: '#401102',
 

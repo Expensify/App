@@ -1,9 +1,11 @@
 import _ from 'underscore';
 import React from 'react';
 import {View, ScrollView} from 'react-native';
+import Lottie from 'lottie-react-native';
 import HeaderWithCloseButton from '../../../components/HeaderWithCloseButton';
 import Navigation from '../../../libs/Navigation/Navigation';
 import ROUTES from '../../../ROUTES';
+import themeColors from '../../../styles/themes/default';
 import styles from '../../../styles/styles';
 import Text from '../../../components/Text';
 import TextLink from '../../../components/TextLink';
@@ -22,6 +24,8 @@ import * as ReportActionContextMenu from '../../home/report/ContextMenu/ReportAc
 import {CONTEXT_MENU_TYPES} from '../../home/report/ContextMenu/ContextMenuActions';
 import * as KeyboardShortcuts from '../../../libs/actions/KeyboardShortcuts';
 import * as Environment from '../../../libs/Environment/Environment';
+import IllustratedHeaderPageLayout from '../../../components/IllustratedHeaderPageLayout';
+import LoadingAnimation from '../../../../assets/animations/Loading.json';
 
 const propTypes = {
     ...withLocalizePropTypes,
@@ -69,91 +73,81 @@ const AboutPage = (props) => {
     ];
 
     return (
-        <ScreenWrapper includeSafeAreaPaddingBottom={false}>
-            {({safeAreaPaddingBottomStyle}) => (
-                <>
-                    <HeaderWithCloseButton
-                        title={props.translate('initialSettingsPage.about')}
-                        shouldShowBackButton
-                        onBackButtonPress={() => Navigation.navigate(ROUTES.SETTINGS)}
-                        onCloseButtonPress={() => Navigation.dismissModal(true)}
-                    />
-                    <ScrollView
-                        contentContainerStyle={[
-                            styles.flexGrow1,
-                            styles.flexColumn,
-                            styles.justifyContentBetween,
-                            safeAreaPaddingBottomStyle,
+        <IllustratedHeaderPageLayout
+            title={props.translate('initialSettingsPage.about')}
+            shouldShowBackButton
+            onBackButtonPress={() => Navigation.navigate(ROUTES.SETTINGS)}
+            onCloseButtonPress={() => Navigation.dismissModal(true)}
+            backgroundColor={themeColors.aboutPageBackground}
+            illustration={() => (
+                <View style={[styles.alignItemsCenter]}>
+                    <Lottie source={LoadingAnimation} style={styles.w70} autoPlay loop />
+                    <Text
+                        selectable
+                        style={[
+                            styles.h3,
+                            styles.textWhite,
+                            styles.mb8,
                         ]}
                     >
-                        <View style={[styles.flex1]}>
-                            <View style={styles.pageWrapper}>
-                                <View style={[styles.settingsPageBody, styles.mb6, styles.alignItemsCenter]}>
-                                    <Logo height={80} width={80} />
-                                    <Text
-                                        selectable
-                                        style={[
-                                            styles.textLabel,
-                                            styles.alignSelfCenter,
-                                            styles.mt6,
-                                            styles.mb2,
-                                            styles.colorMuted,
-                                        ]}
-                                    >
-                                        v
-                                        {Environment.isInternalTestBuild() ? `${pkg.version} PR:${CONST.PULL_REQUEST_NUMBER}` : pkg.version}
-                                    </Text>
-                                    <Text style={[styles.baseFontStyle, styles.mv5]}>
-                                        {props.translate('initialSettingsPage.aboutPage.description')}
-                                    </Text>
-                                </View>
-                            </View>
-                            {_.map(menuItems, item => (
-                                <MenuItem
-                                    key={item.translationKey}
-                                    title={props.translate(item.translationKey)}
-                                    icon={item.icon}
-                                    iconRight={item.iconRight}
-                                    onPress={() => item.action()}
-                                    shouldBlockSelection={Boolean(item.link)}
-                                    onSecondaryInteraction={!_.isEmpty(item.link)
-                                        ? e => ReportActionContextMenu.showContextMenu(CONTEXT_MENU_TYPES.LINK, e, item.link, popoverAnchor) : undefined}
-                                    ref={el => popoverAnchor = el}
-                                    shouldShowRightIcon
-                                />
-                            ))}
-                        </View>
-                        <View style={[styles.sidebarFooter]}>
-                            <Text
-                                style={[styles.chatItemMessageHeaderTimestamp]}
-                                numberOfLines={1}
-                            >
-                                {props.translate(
-                                    'initialSettingsPage.readTheTermsAndPrivacy.phrase1',
-                                )}
-                                {' '}
-                                <TextLink style={[styles.textMicroSupporting, styles.link]} href={CONST.TERMS_URL}>
-                                    {props.translate(
-                                        'initialSettingsPage.readTheTermsAndPrivacy.phrase2',
-                                    )}
-                                </TextLink>
-                                {' '}
-                                {props.translate(
-                                    'initialSettingsPage.readTheTermsAndPrivacy.phrase3',
-                                )}
-                                {' '}
-                                <TextLink style={[styles.textMicroSupporting, styles.link]} href={CONST.PRIVACY_URL}>
-                                    {props.translate(
-                                        'initialSettingsPage.readTheTermsAndPrivacy.phrase4',
-                                    )}
-                                </TextLink>
-                                .
-                            </Text>
-                        </View>
-                    </ScrollView>
-                </>
+                        v
+                        {Environment.isInternalTestBuild() ? `${pkg.version} PR:${CONST.PULL_REQUEST_NUMBER}` : pkg.version}
+                    </Text>
+                </View>
             )}
-        </ScreenWrapper>
+            footer={(
+                <View style={[styles.sidebarFooter]}>
+                    <Text
+                        style={[styles.chatItemMessageHeaderTimestamp]}
+                        numberOfLines={1}
+                    >
+                        {props.translate(
+                            'initialSettingsPage.readTheTermsAndPrivacy.phrase1',
+                        )}
+                        {' '}
+                        <TextLink style={[styles.textMicroSupporting, styles.link]} href={CONST.TERMS_URL}>
+                            {props.translate(
+                                'initialSettingsPage.readTheTermsAndPrivacy.phrase2',
+                            )}
+                        </TextLink>
+                        {' '}
+                        {props.translate(
+                            'initialSettingsPage.readTheTermsAndPrivacy.phrase3',
+                        )}
+                        {' '}
+                        <TextLink style={[styles.textMicroSupporting, styles.link]} href={CONST.PRIVACY_URL}>
+                            {props.translate(
+                                'initialSettingsPage.readTheTermsAndPrivacy.phrase4',
+                            )}
+                        </TextLink>
+                        .
+                    </Text>
+                </View>
+            )}
+        >
+            <View style={[styles.flex1]}>
+                <View style={[styles.ph4]}>
+                    <Text style={[styles.textHeadline]}>{`${props.translate('initialSettingsPage.about')} Expensify`}</Text>
+                    <Text style={[styles.mt1, styles.mb5]}>
+                        {props.translate('initialSettingsPage.aboutPage.description')}
+                    </Text>
+                </View>
+                {_.map(menuItems, item => (
+                    <MenuItem
+                        key={item.translationKey}
+                        title={props.translate(item.translationKey)}
+                        icon={item.icon}
+                        iconRight={item.iconRight}
+                        onPress={() => item.action()}
+                        shouldBlockSelection={Boolean(item.link)}
+                        onSecondaryInteraction={!_.isEmpty(item.link)
+                            ? e => ReportActionContextMenu.showContextMenu(CONTEXT_MENU_TYPES.LINK, e, item.link, popoverAnchor) : undefined}
+                        ref={el => popoverAnchor = el}
+                        shouldShowRightIcon
+                    />
+                ))}
+            </View>
+        </IllustratedHeaderPageLayout>
     );
 };
 
