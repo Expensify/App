@@ -148,7 +148,7 @@ As mentioned above, we’ll be able to pull in transactions as they post (daily)
 ### If you don't have a corporate card, use the Expensify Card
 Expensify provides a corporate card with the following features:
 
-- 2% cashback on all card spend
+- Up to 2% cash back (up to 4% in your first 3 months!)
 - [SmartLimits](https://community.expensify.com/discussion/4851/deep-dive-what-are-unapproved-expense-limits#latest)
 - A stable, unbreakable connection (third-party bank feeds can run into connectivity issues)
 
