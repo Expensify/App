@@ -67,8 +67,10 @@ function signOut() {
 }
 
 function signOutAndRedirectToSignIn() {
-    signOut();
-    redirectToSignIn();
+    Onyx.set(ONYXKEYS.SESSION, null).then(() => {
+        signOut();
+        redirectToSignIn();
+    });
     Log.info('Redirecting to Sign In because signOut() was called');
 }
 
