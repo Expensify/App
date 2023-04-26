@@ -35,17 +35,17 @@ const defaultProps = {
     taskReport: {},
 };
 
-function TaskTitlePage(props) {
+function TaskDescriptionPage(props) {
     /**
      * @param {Object} values
-     * @param {String} values.title
+     * @param {String} values.description
      * @returns {Object} - An object containing the errors for each inputID
      */
     function validate(values) {
         const errors = {};
 
-        if (_.isEmpty(values.title)) {
-            errors.title = props.translate('common.error.fieldRequired');
+        if (_.isEmpty(values.description)) {
+            errors.description = props.translate('common.error.fieldRequired');
         }
 
         return errors;
@@ -63,17 +63,17 @@ function TaskTitlePage(props) {
                 style={[styles.flexGrow1, styles.ph5]}
                 formID={ONYXKEYS.FORMS.EDIT_TASK_FORM}
                 validate={values => validate(values)}
-                onSubmit={() => console.log('Update task title')}
+                onSubmit={() => console.log('Update task description')}
                 submitButtonText={props.translate('common.save')}
                 enabledWhenOffline
             >
                 <View style={[styles.mb4]}>
                     <TextInput
-                        inputID="title"
-                        name="title"
+                        inputID="description"
+                        name="description"
                         autoFocus
-                        label={props.translate('newTaskPage.title')}
-                        defaultValue={props.taskReport.reportName || ''}
+                        label={props.translate('newTaskPage.description')}
+                        defaultValue={props.taskReport.description || ''}
                     />
                 </View>
             </Form>
@@ -81,8 +81,8 @@ function TaskTitlePage(props) {
     );
 }
 
-TaskTitlePage.propTypes = propTypes;
-TaskTitlePage.defaultProps = defaultProps;
+TaskDescriptionPage.propTypes = propTypes;
+TaskDescriptionPage.defaultProps = defaultProps;
 
 export default compose(
     withLocalize,
@@ -91,4 +91,4 @@ export default compose(
             key: ({route}) => `${ONYXKEYS.COLLECTION.REPORT}${route.params.taskReportID}`,
         },
     }),
-)(TaskTitlePage);
+)(TaskDescriptionPage);
