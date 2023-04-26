@@ -87,10 +87,10 @@ function subscribeToNetInfo() {
             // TODO: REMOVE - Attempt 1: reduce timeout between reachability checks
 
             // Number of milliseconds between internet reachability checks when the internet was not previously detected
-            // reachabilityShortTimeout: 1000,
+            reachabilityShortTimeout: 1000,
 
             // Number of milliseconds between internet reachability checks when the internet was previously detected
-            // reachabilityLongTimeout: 1000,
+            reachabilityLongTimeout: 1000,
         });
     }
 
