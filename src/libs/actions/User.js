@@ -409,7 +409,6 @@ function validateSecondaryLogin(contactMethod, validateCode) {
         partnerUserID: contactMethod,
         validateCode,
     }, {optimisticData, successData, failureData});
-    Navigation.navigate(ROUTES.SETTINGS_CONTACT_METHODS);
 }
 
 /**

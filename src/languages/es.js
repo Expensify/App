@@ -147,7 +147,7 @@ export default {
         attachmentTooSmall: 'Archivo adjunto demasiado pequeño',
         sizeNotMet: 'El archivo adjunto debe ser mas grande que 240 bytes.',
         wrongFileType: 'El tipo del archivo adjunto es incorrecto',
-        notAllowedExtension: 'Los archivos adjuntos deben ser de uno de los siguientes tipos: ',
+        notAllowedExtension: 'Los archivos adjuntos deben ser de uno de los siguientes tipos:',
     },
     avatarCropModal: {
         title: 'Editar foto',
