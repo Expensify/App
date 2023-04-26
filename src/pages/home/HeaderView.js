@@ -82,7 +82,7 @@ const HeaderView = (props) => {
 
     // We hide the button when we are chatting with an automated Expensify account since it's not possible to contact
     // these users via alternative means. It is possible to request a call with Concierge so we leave the option for them.
-    const shouldShowCallButton = (isConcierge && guideCalendarLink) || !isAutomatedExpensifyAccount || !isChatRoom;
+    const shouldShowCallButton = (isConcierge && guideCalendarLink) || !isAutomatedExpensifyAccount;
     const shouldShowThreeDotsButton = isTaskReport;
     const threeDotMenuItems = [];
 
