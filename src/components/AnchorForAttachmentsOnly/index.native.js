@@ -1,6 +1,6 @@
 import React from 'react';
-import BaseAnchorForAttachmentsOnly from './BaseAnchorForAttachmentsOnly';
 import * as anchorForAttachmentsOnlyPropTypes from './anchorForAttachmentsOnlyPropTypes';
+import BaseAnchorForAttachmentsOnly from './BaseAnchorForAttachmentsOnly';
 import * as StyleUtils from '../../styles/StyleUtils';
 import styles from '../../styles/styles';
 
