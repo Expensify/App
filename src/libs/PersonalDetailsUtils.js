@@ -19,6 +19,12 @@ Onyx.connect({
 function getPersonalDetailsByIDs(accountIDs, shouldChangeUserDisplayName = false) {
     const result = [];
     const currentAccountID = Report.getCurrentUserAccountID();
+
+    // We most likely logged out if there is no accountID for the current user
+    if (!currentAccountID) {
+        return [];
+    }
+
     _.each(personalDetails, (detail) => {
         for (let i = 0; i < accountIDs.length; i++) {
             if (detail.accountID === accountIDs[i]) {
