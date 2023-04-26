@@ -41,7 +41,7 @@ jobs:
           PULL_REQUEST_NUMBER: ${{ inputs.PR_NUMBER }}
           user: ${{ github.actor }}
 
-      - name: Get merge commit sha for the pull request (if merged)
+      - name: Merged PR - Get merge commit sha for the pull request
         if: ${{ fromJSON(steps.getPullRequestDetails.outputs.IS_MERGED) }}
         id: getMergeCommitSha
         run: |
@@ -49,19 +49,20 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ github.token }}
 
-      - name: Fetch changes from forked repository if necessary
-        if: ${{ steps.getPullRequestDetails.outputs.FORKED_REPO_URL }}
+      - name: Unmerged PR - Checkout main
+        if: ${{ !fromJSON(steps.getPullRequestDetails.outputs.IS_MERGED) }}
+        run: git checkout main
+
+      - name: Unmerged PR - Fetch changes from forked repository if necessary
+        if: ${{ !fromJSON(steps.getPullRequestDetails.outputs.IS_MERGED) && steps.getPullRequestDetails.outputs.FORKED_REPO_URL }}
         run: |
           git remote add pr_remote ${{ steps.getPullRequestDetails.outputs.FORKED_REPO_URL }}
           git fetch pr_remote
 
-      - name: Get merge commit sha for the pull request (if not merged)
+      - name: Unmerged PR - Merge pull request locally and get merge commit
         if: ${{ !fromJSON(steps.getPullRequestDetails.outputs.IS_MERGED) }}
         run: |
-          git checkout main
           git merge --no-commit ${{ steps.getPullRequestDetails.outputs.HEAD_COMMIT_SHA }}
-          echo "Main HEAD SHA:"
-          git rev-parse HEAD
           echo "MERGE_COMMIT_SHA=$(git rev-parse HEAD)" >> "$GITHUB_OUTPUT"
         env:
           GITHUB_TOKEN: ${{ github.token }}
