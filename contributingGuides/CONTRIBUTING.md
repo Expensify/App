@@ -81,6 +81,7 @@ Please follow these steps to propose a job:
 4. If there is no existing GitHub issue or Upwork job, check if the issue is happening on prod (as opposed to only happening on dev)
 5. If the issue is just in dev then it means it's a new issue and has not been deployed to production. In this case, you should try to find the offending PR and comment in the issue tied to the PR and ask the assigned users to add the `DeployBlockerCash` label. If you can't find it, follow the reporting instructions in the next item, but note that the issue is a regression only found in dev and not in prod.
 6. If the issue happens in main, staging, or production then report the issue(s) in the #expensify-bugs Slack channel, prefixed with `Bug:` or `Feature Request:`. Please use the templates for bugs and feature requests that are bookmarked in the #expensify-bugs channel. View [this guide](https://github.com/Expensify/App/blob/main/contributingGuides/HOW_TO_CREATE_A_PLAN.md) for help creating a plan when proposing a feature request. 
+  - **Important note/reminder**: never share any information pertaining to a customer of Expensify when describing the bug. This includes, and is not limited to, a customer's name, email, and contact information. 
 7. The Expensify team will review your job proposal in the appropriate slack channel. If you've provided a quality proposal that we choose to implement, a GitHub issue will be created and your Slack handle will be included in the original post after `Issue reported by:`
 8. If an external contributor other than yourself is hired to work on the issue, you will also be hired for the same job in Upwork to receive your payout. No additional work is required. If the issue is fixed internally, a dedicated job will be created to hire and pay you after the issue is fixed. 
 9. Payment will be made 7 days after code is deployed to production if there are no regressions. If a regression is discovered, payment will be issued 7 days after all regressions are fixed. 
@@ -111,7 +112,7 @@ Additionally if you want to discuss an idea with the open source community witho
 3. If you cannot reproduce the problem, pause on this step and add a comment to the issue explaining where you are stuck or that you don't think the issue can be reproduced.
 
 #### Propose a solution for the job
-4. Do not propose solutions to jobs without the `Help Wanted` label applied. Any proposals submitted when that label is not present will not be reviewed.
+4. You can propose solutions on any issue at at any time, but if you propose solutions to jobs before the `Help Wanted` label is applied, you do so at your own risk. Proposals will not be reviewed until the label is added and there is always a chance that we might not add the label or hire an external contributor for the job.
 5. After you reproduce the issue, complete the [proposal template here](./PROPOSAL_TEMPLATE.md) and post it as a comment in the corresponding GitHub issue (linked in the Upwork job).
     - Note: Before submitting a proposal on an issue, be sure to read any other existing proposals. ALL NEW PROPOSALS MUST BE DIFFERENT FROM EXISTING PROPOSALS. The *difference* should be important, meaningful or considerable.
 6. Refrain from leaving additional comments until someone from the Contributor-Plus team and / or someone from Expensify provides feedback on your proposal (do not create a pull request yet).
@@ -177,3 +178,12 @@ Follow all the above above steps and processes. When you find a job you'd like t
   - If no proposals have been submitted by other contributors, BugZero (BZ) team member or an internal engineer will assign the issue to you. 
   - If there are existing proposals, BZ will put the issue on hold. Contributor+ (C+) will review the existing proposals.  If a contributor’s proposal is accepted then contributor will be assigned to the issue.  If not the issue will be assigned to the agency-employee. 
 - Once assigned follow the steps [here](https://github.com/Expensify/App/blob/main/contributingGuides/CONTRIBUTING.md#propose-a-solution-for-the-job) to submit your proposal 
+
+#### Guide on Acronyms used within Expensify Communication
+During communication with Expensify, you will come across a variety of acronyms used by our team. While acronyms can be useful, they cease to be the moment they are not known to the receiver. As such, we wanted to create a list here of our most commonly used acronyms and what they're referring to. Lastly, please never hesitate to ask in slack or the GH issue if there are any that are not understood/known!
+- BZ: Bug Zero (Expensify internal team in charge of managing the GH issues related to our open-source project)
+- LHN: Left Hand Navigation (Primary navigation modal in Expensify Chat, docked on the left hand side)
+- OP: Original Post (Most commonly the post in E/App GH issues that reports the bug)
+- GBR: Green Brick Road (UX Design Principle that utlizes green indicators on action items to encourage the user down the optimal path for a given process or task) 
+- VBA: Verified Bank Account (Bank account that has been verified as real and belonging to the correct business/individual)
+- NAB: Not a Blocker (An issue that doesn't block progress, but would be nice to not have)

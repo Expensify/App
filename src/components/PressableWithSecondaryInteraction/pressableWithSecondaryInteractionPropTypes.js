@@ -27,7 +27,7 @@ const propTypes = {
     ]),
 
     /** Prevent the default ContextMenu on web/Desktop */
-    preventDefaultContentMenu: PropTypes.bool,
+    preventDefaultContextMenu: PropTypes.bool,
 
     /** Use Text instead of Pressable to create inline layout.
      * It has few limitations in comparison to Pressable.
@@ -50,7 +50,7 @@ const defaultProps = {
     forwardedRef: () => {},
     onPressIn: () => {},
     onPressOut: () => {},
-    preventDefaultContentMenu: true,
+    preventDefaultContextMenu: true,
     inline: false,
     withoutFocusOnSecondaryInteraction: false,
 };
