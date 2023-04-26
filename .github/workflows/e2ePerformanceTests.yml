@@ -54,8 +54,6 @@ jobs:
         run: |
           git remote add pr_remote ${{ steps.getPullRequestDetails.outputs.REMOTE_URL }}
           git fetch pr_remote
-          git checkout ${{ steps.getPullRequestDetails.outputs.HEAD_COMMIT_SHA }}
-          git checkout main
           git merge --no-commit ${{ steps.getPullRequestDetails.outputs.HEAD_COMMIT_SHA }}
           echo "MERGE_COMMIT_SHA=$(git rev-parse HEAD)" >> "$GITHUB_OUTPUT"
         env:
