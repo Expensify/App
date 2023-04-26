@@ -83,6 +83,14 @@ function subscribeToNetInfo() {
 
             // If a check is taking longer than this time we're considered offline
             reachabilityRequestTimeout: CONST.NETWORK.MAX_PENDING_TIME_MS,
+
+            // TODO: REMOVE - Attempt 1: reduce timeout between reachability checks
+
+            // Number of milliseconds between internet reachability checks when the internet was not previously detected
+            // reachabilityShortTimeout: 1000,
+
+            // Number of milliseconds between internet reachability checks when the internet was previously detected
+            // reachabilityLongTimeout: 1000,
         });
     }
 
