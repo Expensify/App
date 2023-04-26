@@ -2,7 +2,6 @@ import _ from 'underscore';
 import React from 'react';
 import {createStackNavigator, CardStyleInterpolators} from '@react-navigation/stack';
 import styles from '../../../styles/styles';
-import CONST from '../../../CONST';
 
 const defaultSubRouteOptions = {
     cardStyle: styles.navigationScreenCardStyle,
@@ -200,6 +199,14 @@ const NewChatModalStackNavigator = createModalStackNavigator([{
         return NewChatPage;
     },
     name: 'NewChat_Root',
+}]);
+
+const NewTaskModalStackNavigator = createModalStackNavigator([{
+    getComponent: () => {
+        const NewTaskPage = require('../../../pages/NewTaskPage').default;
+        return NewTaskPage;
+    },
+    name: 'NewTask_Root',
 }]);
 
 const SettingsModalStackNavigator = createModalStackNavigator([
@@ -482,7 +489,7 @@ const SettingsModalStackNavigator = createModalStackNavigator([
             return ReimbursementAccountPage;
         },
         name: 'ReimbursementAccount',
-        initialParams: {stepToOpen: CONST.BANK_ACCOUNT.STEP.BANK_ACCOUNT},
+        initialParams: {stepToOpen: ''},
     },
     {
         getComponent: () => {
@@ -545,6 +552,7 @@ export {
     SearchModalStackNavigator,
     NewGroupModalStackNavigator,
     NewChatModalStackNavigator,
+    NewTaskModalStackNavigator,
     SettingsModalStackNavigator,
     EnablePaymentsStackNavigator,
     AddPersonalBankAccountModalStackNavigator,

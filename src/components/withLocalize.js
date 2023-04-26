@@ -7,12 +7,12 @@ import getComponentDisplayName from '../libs/getComponentDisplayName';
 import ONYXKEYS from '../ONYXKEYS';
 import * as Localize from '../libs/Localize';
 import DateUtils from '../libs/DateUtils';
-import * as LocalePhoneNumber from '../libs/LocalePhoneNumber';
 import * as NumberFormatUtils from '../libs/NumberFormatUtils';
 import * as LocaleDigitUtils from '../libs/LocaleDigitUtils';
 import CONST from '../CONST';
 import compose from '../libs/compose';
 import withCurrentUserPersonalDetails from './withCurrentUserPersonalDetails';
+import * as LocalePhoneNumber from '../libs/LocalePhoneNumber';
 
 const LocaleContext = createContext(null);
 
@@ -29,11 +29,9 @@ const withLocalizePropTypes = {
     /** Formats a datetime to local date and time string */
     datetimeToCalendarTime: PropTypes.func.isRequired,
 
-    /** Returns a locally converted phone number without the country code */
-    toLocalPhone: PropTypes.func.isRequired,
-
-    /** Returns an internationally converted phone number with the country code */
-    fromLocalPhone: PropTypes.func.isRequired,
+    /** Returns a locally converted phone number for numbers from the same region
+     * and an internationally converted phone number with the country code for numbers from other regions */
+    formatPhoneNumber: PropTypes.func.isRequired,
 
     /** Gets the standard digit corresponding to a locale digit */
     fromLocaleDigit: PropTypes.func.isRequired,
@@ -77,8 +75,7 @@ class LocaleContextProvider extends React.Component {
             numberFormat: this.numberFormat.bind(this),
             datetimeToRelative: this.datetimeToRelative.bind(this),
             datetimeToCalendarTime: this.datetimeToCalendarTime.bind(this),
-            fromLocalPhone: this.fromLocalPhone.bind(this),
-            toLocalPhone: this.toLocalPhone.bind(this),
+            formatPhoneNumber: this.formatPhoneNumber.bind(this),
             fromLocaleDigit: this.fromLocaleDigit.bind(this),
             toLocaleDigit: this.toLocaleDigit.bind(this),
             preferredLocale: this.props.preferredLocale,
@@ -126,19 +123,11 @@ class LocaleContextProvider extends React.Component {
     }
 
     /**
-     * @param {Number} number
+     * @param {String} phoneNumber
      * @returns {String}
      */
-    toLocalPhone(number) {
-        return LocalePhoneNumber.toLocalPhone(this.props.preferredLocale, number);
-    }
-
-    /**
-     * @param {Number} number
-     * @returns {String}
-     */
-    fromLocalPhone(number) {
-        return LocalePhoneNumber.fromLocalPhone(this.props.preferredLocale, number);
+    formatPhoneNumber(phoneNumber) {
+        return LocalePhoneNumber.formatPhoneNumber(phoneNumber);
     }
 
     /**

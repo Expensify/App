@@ -921,11 +921,10 @@ function editReportComment(reportID, originalReportAction, textForNewComment) {
 
     const lastVisibleAction = ReportActionsUtils.getLastVisibleAction(reportID, optimisticReportActions);
     if (reportActionID === lastVisibleAction.reportActionID) {
+        const reportComment = parser.htmlToText(htmlForNewComment);
+        const lastMessageText = ReportUtils.formatReportLastMessageText(reportComment);
         const optimisticReport = {
-            lastMessageHtml: lodashGet(lastVisibleAction, 'message[0].html'),
-            lastMessageText: lodashGet(lastVisibleAction, 'message[0].text'),
-            lastVisibleActionCreated: lastVisibleAction.created,
-            lastActorEmail: lastVisibleAction.actorEmail,
+            lastMessageText: Str.htmlDecode(lastMessageText),
         };
         optimisticData.push({
             onyxMethod: CONST.ONYX.METHOD.MERGE,

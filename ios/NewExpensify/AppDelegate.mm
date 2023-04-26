@@ -8,6 +8,7 @@
 
 #import "RCTBootSplash.h"
 #import "RCTStartupTimer.h"
+#import <HardwareShortcuts.h>
 
 @interface AppDelegate () <UNUserNotificationCenterDelegate>
 
@@ -87,6 +88,15 @@
   return [[NSBundle mainBundle] URLForResource:@"main"
                                  withExtension:@"jsbundle"];
 #endif
+}
+
+// This methods is needed to support the hardware keyboard shortcuts
+- (NSArray *)keyCommands {
+  return [HardwareShortcuts sharedInstance].keyCommands;
+}
+
+- (void)handleKeyCommand:(UIKeyCommand *)keyCommand {
+  [[HardwareShortcuts sharedInstance] handleKeyCommand:keyCommand];
 }
 
 @end
