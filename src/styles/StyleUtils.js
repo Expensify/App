@@ -170,14 +170,13 @@ function getZoomCursorStyle(isZoomed, isDragging) {
  * @param {Number} zoomScale
  * @param {Number} containerHeight
  * @param {Number} containerWidth
- * @return {Object}
+ * @param {Boolean} isLoading
+ * @returns {Object | undefined}
  */
-function getZoomSizingStyle(isZoomed, imgWidth, imgHeight, zoomScale, containerHeight, containerWidth) {
-    if (imgWidth === 0 || imgHeight === 0) {
-        return {
-            height: isZoomed ? '250%' : '100%',
-            width: isZoomed ? '250%' : '100%',
-        };
+function getZoomSizingStyle(isZoomed, imgWidth, imgHeight, zoomScale, containerHeight, containerWidth, isLoading) {
+    // Hide image until finished loading to prevent showing preview with wrong dimensions
+    if (isLoading || imgWidth === 0 || imgHeight === 0) {
+        return undefined;
     }
     const top = `${Math.max((containerHeight - imgHeight) / 2, 0)}px`;
     const left = `${Math.max((containerWidth - imgWidth) / 2, 0)}px`;
@@ -973,7 +972,7 @@ const displayIfTrue = condition => ({display: condition ? 'flex' : 'none'});
  * @param {Boolean} shouldDisplayBorder
  * @returns {Object}
  */
-function getGoolgeListViewStyle(shouldDisplayBorder) {
+function getGoogleListViewStyle(shouldDisplayBorder) {
     if (shouldDisplayBorder) {
         return {
             ...styles.borderTopRounded,
@@ -1040,5 +1039,5 @@ export {
     displayIfTrue,
     getFontSizeStyle,
     getSignInWordmarkWidthStyle,
-    getGoolgeListViewStyle,
+    getGoogleListViewStyle,
 };

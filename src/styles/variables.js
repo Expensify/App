@@ -90,6 +90,7 @@ export default {
     lineHeightNormal: getValueUsingPixelRatio(16, 21),
     lineHeightLarge: getValueUsingPixelRatio(18, 24),
     lineHeightXLarge: getValueUsingPixelRatio(20, 24),
+    lineHeightXXLarge: getValueUsingPixelRatio(27, 32),
     inputHeight: getValueUsingPixelRatio(52, 72),
     inputHeightSmall: 28,
     formErrorLineHeight: getValueUsingPixelRatio(18, 23),
@@ -128,4 +129,8 @@ export default {
     signInLogoWidthPill: 132,
     signInLogoWidthLargeScreenPill: 162,
     modalContentMaxWidth: 360,
+
+    // The height of the empty list is 14px (2px for borders and 12px for vertical padding)
+    // This is calculated based on the values specified in the 'getGoogleListViewStyle' function of the 'StyleUtils' utility
+    googleEmptyListViewHeight: 14,
 };
