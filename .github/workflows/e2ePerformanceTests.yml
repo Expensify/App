@@ -56,6 +56,8 @@ jobs:
           git remote add pr_remote ${{ steps.getPullRequestDetails.outputs.HEAD_REPO_URL }}
           git fetch pr_remote
           git merge --no-commit ${{ steps.getPullRequestDetails.outputs.HEAD_COMMIT_SHA }}
+          echo "Main HEAD SHA:"
+          git rev-parse HEAD
           echo "MERGE_COMMIT_SHA=$(git rev-parse HEAD)" >> "$GITHUB_OUTPUT"
         env:
           GITHUB_TOKEN: ${{ github.token }}
