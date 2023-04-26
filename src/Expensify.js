@@ -92,7 +92,10 @@ function Expensify(props) {
     const [isOnyxMigrated, setIsOnyxMigrated] = useState(false);
     const [isSplashShown, setIsSplashShown] = useState(true);
 
-    const isAuthenticated = useMemo(() => Boolean(lodashGet(props.session, 'authToken', null)), [props.session]);
+    const isAuthenticated = useMemo(() => {
+        console.log('props.session', props.session);
+        return Boolean(lodashGet(props.session, 'authToken', null));
+    }, [props.session]);
 
     const initializeClient = () => {
         if (!Visibility.isVisible()) {
