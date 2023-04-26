@@ -54,6 +54,7 @@ function outputMergeActor(PR) {
  * @param {Object} PR
  */
 function outputPullRequestData(PR) {
+    console.log('PR data', JSON.stringify(PR));
     core.setOutput('MERGE_COMMIT_SHA', PR.merge_commit_sha);
     core.setOutput('HEAD_COMMIT_SHA', PR.head.sha);
     core.setOutput('IS_MERGED', PR.merged);
