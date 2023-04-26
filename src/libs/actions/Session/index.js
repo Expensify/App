@@ -348,7 +348,7 @@ function signIn(password, validateCode, twoFactorAuthCode, preferredLocale = CON
 function signInWithValidateCode(accountID, code, twoFactorAuthCode) {
     // If this is called from the 2fa step, get the validateCode directly from onyx
     // instead of the one passed from the component state because the state is changing when this method is called.
-const validateCode = twoFactorAuthCode ? credentials.validateCode : code;
+    const validateCode = twoFactorAuthCode ? credentials.validateCode : code;
 
     const optimisticData = [
         {
