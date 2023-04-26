@@ -32,6 +32,7 @@ import OfflineWithFeedback from '../../../components/OfflineWithFeedback';
 import LHNSkeletonView from '../../../components/LHNSkeletonView';
 import withNavigationFocus from '../../../components/withNavigationFocus';
 import withCurrentReportId from '../../../components/withCurrentReportId';
+import SidebarFreeze from '../../../components/SidebarFreeze';
 
 const propTypes = {
     /** Toggles the navigation menu open and closed */
@@ -187,22 +188,25 @@ class SidebarLinks extends React.Component {
                         </OfflineWithFeedback>
                     </TouchableOpacity>
                 </View>
-                <LHNOptionsList
-                    contentContainerStyles={[
-                        styles.sidebarListContainer,
-                        {paddingBottom: StyleUtils.getSafeAreaMargins(this.props.insets).marginBottom},
-                    ]}
-                    data={optionListItems}
-                    focusedIndex={_.findIndex(optionListItems, (
-                        option => option.toString() === this.props.currentReportId
-                    ))}
+                <SidebarFreeze
                     shouldFreeze={shouldFreeze}
                     skeletonPlaceholder={skeletonPlaceholder}
-                    isLoading={isLoading}
-                    onSelectRow={this.showReportPage}
-                    shouldDisableFocusOptions={this.props.isSmallScreenWidth}
-                    optionMode={this.props.priorityMode === CONST.PRIORITY_MODE.GSD ? CONST.OPTION_MODE.COMPACT : CONST.OPTION_MODE.DEFAULT}
-                />
+                >
+                    <LHNOptionsList
+                        contentContainerStyles={[
+                            styles.sidebarListContainer,
+                            {paddingBottom: StyleUtils.getSafeAreaMargins(this.props.insets).marginBottom},
+                        ]}
+                        data={optionListItems}
+                        focusedIndex={_.findIndex(optionListItems, (
+                            option => option.toString() === this.props.currentReportId
+                        ))}
+                        isLoading={isLoading}
+                        onSelectRow={this.showReportPage}
+                        shouldDisableFocusOptions={this.props.isSmallScreenWidth}
+                        optionMode={this.props.priorityMode === CONST.PRIORITY_MODE.GSD ? CONST.OPTION_MODE.COMPACT : CONST.OPTION_MODE.DEFAULT}
+                    />
+                </SidebarFreeze>
             </View>
         );
     }
