@@ -1,8 +1,8 @@
-import PropTypes from "prop-types";
-import {ThreeDotsMenuItemPropTypes} from "../ThreeDotsMenu";
-import {withLocalizePropTypes} from "../withLocalize";
-import {withDelayToggleButtonStatePropTypes} from "../withDelayToggleButtonState";
-import {keyboardStatePropTypes} from "../withKeyboardState";
+import PropTypes from 'prop-types';
+import {ThreeDotsMenuItemPropTypes} from '../ThreeDotsMenu';
+import {withLocalizePropTypes} from '../withLocalize';
+import {withDelayToggleButtonStatePropTypes} from '../withDelayToggleButtonState';
+import {keyboardStatePropTypes} from '../withKeyboardState';
 
 const propTypes = {
     /** Title of the Header */

@@ -40,12 +40,14 @@ class HeaderWithCloseButton extends Component {
 
     render() {
         return (
-            <View style={[
-                styles.headerBar,
-                this.props.shouldShowBorderBottom && styles.borderBottom,
-                this.props.shouldShowBackButton && styles.pl2,
-                this.props.backgroundColor && StyleUtils.getBackgroundColorStyle(this.props.backgroundColor),
-            ]}>
+            <View
+                style={[
+                    styles.headerBar,
+                    this.props.shouldShowBorderBottom && styles.borderBottom,
+                    this.props.shouldShowBackButton && styles.pl2,
+                    this.props.backgroundColor && StyleUtils.getBackgroundColorStyle(this.props.backgroundColor),
+                ]}
+            >
                 <View style={[
                     styles.dFlex,
                     styles.flexRow,

@@ -3152,7 +3152,7 @@ const styles = {
         backgroundColor: themeColors.appBG,
     },
 
-    illustratedPageScrollView: (safeAreaPaddingBottomStyle) => [
+    illustratedPageScrollView: safeAreaPaddingBottomStyle => [
         flex.flex1,
         flex.flexColumn,
         flex.justifyContentBetween,

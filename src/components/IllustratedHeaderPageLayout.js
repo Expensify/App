@@ -39,13 +39,14 @@ const IllustratedHeaderPageLayout = (props) => {
             {({safeAreaPaddingBottomStyle}) => (
                 <>
                     <View style={styles.illustratedPageHeader}>
+                        {/* eslint-disable-next-line react/jsx-props-no-spreading */}
                         <HeaderWithCloseButton {...propsToPassToHeader} />
                         <View
-                            style={[styles.centerContent, {backgroundColor: '#f00'}]}>
+                            style={[styles.centerContent]}
+                        >
                             {_.isFunction(props.illustration)
                                 ? props.illustration()
-                                : <Lottie source={props.illustration} style={props.illustrationSize} autoPlay loop />
-                            }
+                                : <Lottie source={props.illustration} style={props.illustrationSize} autoPlay loop />}
                         </View>
                     </View>
                     <View style={[styles.illustratedPageBody]}>
@@ -57,7 +58,7 @@ const IllustratedHeaderPageLayout = (props) => {
             )}
         </ScreenWrapper>
     );
-}
+};
 
 IllustratedHeaderPageLayout.propTypes = propTypes;
 IllustratedHeaderPageLayout.defaultProps = defaultProps;
