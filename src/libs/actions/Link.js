@@ -34,33 +34,35 @@ function showGrowlIfOffline() {
 }
 
 /**
- * @param {String} url
+ * @param {String} [url] the url path
+ * @param {String} [shortLivedAuthToken]
+ *
+ * @returns {Promise<string>}
+ */
+function buildOldDotURL(url, shortLivedAuthToken) {
+    const hasHashParams = url.indexOf('#') !== -1;
+    const hasURLParams = url.indexOf('?') !== -1;
+
+    const authTokenParam = shortLivedAuthToken ? `authToken=${shortLivedAuthToken}` : '';
+    const emailParam = `email=${encodeURIComponent(currentUserEmail)}`;
+
+    const params = _.compact([authTokenParam, emailParam]).join('&');
+
+    return Environment.getOldDotEnvironmentURL()
+        .then((environmentURL) => {
+            const oldDotDomain = Url.addTrailingForwardSlash(environmentURL);
+
+            // If the URL contains # or ?, we can assume they don't need to have the `?` token to start listing url parameters.
+            return `${oldDotDomain}${url}${hasHashParams || hasURLParams ? '&' : '?'}${params}`;
+        });
+}
+
+/**
+ * @param {String} url the url path
  */
 function openOldDotLink(url) {
-    /**
-     * @param {String} [shortLivedAuthToken]
-     * @returns {Promise<string>}
-     */
-    function buildOldDotURL(shortLivedAuthToken) {
-        const hasHashParams = url.indexOf('#') !== -1;
-        const hasURLParams = url.indexOf('?') !== -1;
-
-        const authTokenParam = shortLivedAuthToken ? `authToken=${shortLivedAuthToken}` : '';
-        const emailParam = `email=${encodeURIComponent(currentUserEmail)}`;
-
-        const params = _.compact([authTokenParam, emailParam]).join('&');
-
-        return Environment.getOldDotEnvironmentURL()
-            .then((environmentURL) => {
-                const oldDotDomain = Url.addTrailingForwardSlash(environmentURL);
-
-                // If the URL contains # or ?, we can assume they don't need to have the `?` token to start listing url parameters.
-                return `${oldDotDomain}${url}${hasHashParams || hasURLParams ? '&' : '?'}${params}`;
-            });
-    }
-
     if (isNetworkOffline) {
-        buildOldDotURL().then(oldDotURL => Linking.openURL(oldDotURL));
+        buildOldDotURL(url).then(oldDotURL => Linking.openURL(oldDotURL));
         return;
     }
 
@@ -69,11 +71,11 @@ function openOldDotLink(url) {
     API.makeRequestWithSideEffects(
         'OpenOldDotLink', {}, {},
     ).then((response) => {
-        buildOldDotURL(response.shortLivedAuthToken).then((oldDotUrl) => {
+        buildOldDotURL(url, response.shortLivedAuthToken).then((oldDotUrl) => {
             Linking.openURL(oldDotUrl);
         });
     }).catch(() => {
-        buildOldDotURL().then((oldDotUrl) => {
+        buildOldDotURL(url).then((oldDotUrl) => {
             Linking.openURL(oldDotUrl);
         });
     });
@@ -92,6 +94,7 @@ function openExternalLink(url, shouldSkipCustomSafariLogic = false) {
 }
 
 export {
+    buildOldDotURL,
     openOldDotLink,
     openExternalLink,
 };

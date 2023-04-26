@@ -45,7 +45,7 @@ const defaultProps = {
 class BaseReportActionContextMenu extends React.Component {
     constructor(props) {
         super(props);
-        this.wrapperStyle = getReportActionContextMenuStyles(this.props.isMini);
+        this.wrapperStyle = getReportActionContextMenuStyles(this.props.isMini, this.props.isSmallScreenWidth);
 
         this.state = {
             shouldKeepOpen: false,

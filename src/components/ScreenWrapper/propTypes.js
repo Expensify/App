@@ -34,6 +34,9 @@ const propTypes = {
     /** Whether to dismiss keyboard before leaving a screen */
     shouldDismissKeyboardBeforeClose: PropTypes.bool,
 
+    /** Whether to use the maxHeight (true) or use the 100% of the height (false) */
+    shouldEnableMaxHeight: PropTypes.bool,
+
     ...windowDimensionsPropTypes,
 
     ...environmentPropTypes,
@@ -47,6 +50,7 @@ const defaultProps = {
     onEntryTransitionEnd: () => {},
     modal: {},
     keyboardAvoidingViewBehavior: 'padding',
+    shouldEnableMaxHeight: false,
 };
 
 export {propTypes, defaultProps};
