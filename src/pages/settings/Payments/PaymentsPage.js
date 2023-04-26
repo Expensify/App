@@ -1,39 +1,84 @@
+import _ from 'underscore';
 import React from 'react';
 import {
     ActivityIndicator, View, InteractionManager, LayoutAnimation,
 } from 'react-native';
 import {withOnyx} from 'react-native-onyx';
-import _ from 'underscore';
-import PaymentMethodList from '../PaymentMethodList';
-import ROUTES from '../../../../ROUTES';
-import HeaderWithCloseButton from '../../../../components/HeaderWithCloseButton';
-import PasswordPopover from '../../../../components/PasswordPopover';
-import ScreenWrapper from '../../../../components/ScreenWrapper';
-import Navigation from '../../../../libs/Navigation/Navigation';
-import styles from '../../../../styles/styles';
-import withLocalize from '../../../../components/withLocalize';
-import compose from '../../../../libs/compose';
-import * as BankAccounts from '../../../../libs/actions/BankAccounts';
-import Popover from '../../../../components/Popover';
-import MenuItem from '../../../../components/MenuItem';
-import Text from '../../../../components/Text';
-import * as PaymentMethods from '../../../../libs/actions/PaymentMethods';
-import getClickedTargetLocation from '../../../../libs/getClickedTargetLocation';
-import withWindowDimensions from '../../../../components/withWindowDimensions';
-import CurrentWalletBalance from '../../../../components/CurrentWalletBalance';
-import ONYXKEYS from '../../../../ONYXKEYS';
-import Permissions from '../../../../libs/Permissions';
-import AddPaymentMethodMenu from '../../../../components/AddPaymentMethodMenu';
-import CONST from '../../../../CONST';
-import * as Expensicons from '../../../../components/Icon/Expensicons';
-import KYCWall from '../../../../components/KYCWall';
-import {propTypes, defaultProps} from './paymentsPagePropTypes';
-import {withNetwork} from '../../../../components/OnyxProvider';
-import * as PaymentUtils from '../../../../libs/PaymentUtils';
-import OfflineWithFeedback from '../../../../components/OfflineWithFeedback';
-import ConfirmContent from '../../../../components/ConfirmContent';
-import Button from '../../../../components/Button';
-import themeColors from '../../../../styles/themes/default';
+import PropTypes from 'prop-types';
+import PaymentMethodList from './PaymentMethodList';
+import ROUTES from '../../../ROUTES';
+import HeaderWithCloseButton from '../../../components/HeaderWithCloseButton';
+import PasswordPopover from '../../../components/PasswordPopover';
+import ScreenWrapper from '../../../components/ScreenWrapper';
+import Navigation from '../../../libs/Navigation/Navigation';
+import styles from '../../../styles/styles';
+import withLocalize, {withLocalizePropTypes} from '../../../components/withLocalize';
+import compose from '../../../libs/compose';
+import * as BankAccounts from '../../../libs/actions/BankAccounts';
+import Popover from '../../../components/Popover';
+import MenuItem from '../../../components/MenuItem';
+import Text from '../../../components/Text';
+import * as PaymentMethods from '../../../libs/actions/PaymentMethods';
+import getClickedTargetLocation from '../../../libs/getClickedTargetLocation';
+import withWindowDimensions, {windowDimensionsPropTypes} from '../../../components/withWindowDimensions';
+import CurrentWalletBalance from '../../../components/CurrentWalletBalance';
+import ONYXKEYS from '../../../ONYXKEYS';
+import Permissions from '../../../libs/Permissions';
+import AddPaymentMethodMenu from '../../../components/AddPaymentMethodMenu';
+import CONST from '../../../CONST';
+import * as Expensicons from '../../../components/Icon/Expensicons';
+import KYCWall from '../../../components/KYCWall';
+import {withNetwork} from '../../../components/OnyxProvider';
+import * as PaymentUtils from '../../../libs/PaymentUtils';
+import OfflineWithFeedback from '../../../components/OfflineWithFeedback';
+import ConfirmContent from '../../../components/ConfirmContent';
+import Button from '../../../components/Button';
+import themeColors from '../../../styles/themes/default';
+import userWalletPropTypes from '../../EnablePayments/userWalletPropTypes';
+import networkPropTypes from '../../../components/networkPropTypes';
+import bankAccountPropTypes from '../../../components/bankAccountPropTypes';
+import cardPropTypes from '../../../components/cardPropTypes';
+import walletTermsPropTypes from '../../EnablePayments/walletTermsPropTypes';
+import paypalMeDataPropTypes from '../../../components/paypalMeDataPropTypes';
+
+const propTypes = {
+    /** List of betas available to current user */
+    betas: PropTypes.arrayOf(PropTypes.string),
+
+    /** Are we loading payment methods? */
+    isLoadingPaymentMethods: PropTypes.bool,
+
+    /** The user's wallet account */
+    userWallet: userWalletPropTypes,
+
+    /** Information about the network */
+    network: networkPropTypes.isRequired,
+
+    /** List of bank accounts */
+    bankAccountList: PropTypes.objectOf(bankAccountPropTypes),
+
+    /** List of cards */
+    cardList: PropTypes.objectOf(cardPropTypes),
+
+    /** Information about the user accepting the terms for payments */
+    walletTerms: walletTermsPropTypes,
+
+    /** Account details for PayPal.Me */
+    payPalMeData: paypalMeDataPropTypes,
+
+    ...withLocalizePropTypes,
+    ...windowDimensionsPropTypes,
+};
+
+const defaultProps = {
+    betas: [],
+    isLoadingPaymentMethods: true,
+    userWallet: {},
+    bankAccountList: {},
+    cardList: {},
+    walletTerms: {},
+    payPalMeData: {},
+};
 
 class BasePaymentsPage extends React.Component {
     constructor(props) {
@@ -53,7 +98,6 @@ class BasePaymentsPage extends React.Component {
             anchorPositionTop: 0,
             anchorPositionBottom: 0,
             anchorPositionRight: 0,
-            addPaymentMethodButton: null,
             methodID: null,
             showConfirmDeleteContent: false,
         };
@@ -66,7 +110,6 @@ class BasePaymentsPage extends React.Component {
         this.deletePaymentMethod = this.deletePaymentMethod.bind(this);
         this.hidePasswordPrompt = this.hidePasswordPrompt.bind(this);
         this.navigateToTransferBalancePage = this.navigateToTransferBalancePage.bind(this);
-        this.setMenuPosition = this.setMenuPosition.bind(this);
         this.listHeaderComponent = this.listHeaderComponent.bind(this);
 
         this.debounceSetShouldShowLoadingSpinner = _.debounce(this.setShouldShowLoadingSpinner.bind(this), CONST.TIMING.SHOW_LOADING_SPINNER_DEBOUNCE_TIME);
@@ -77,10 +120,6 @@ class BasePaymentsPage extends React.Component {
     }
 
     componentDidUpdate(prevProps) {
-        if (this.shouldListenForResize) {
-            this.setMenuPosition();
-        }
-
         // If the user was previously offline, skip debouncing showing the loader
         if (prevProps.network.isOffline && !this.props.network.isOffline) {
             this.setShouldShowLoadingSpinner();
@@ -123,14 +162,6 @@ class BasePaymentsPage extends React.Component {
         if (shouldShowLoadingSpinner !== this.state.shouldShowLoadingSpinner) {
             this.setState({shouldShowLoadingSpinner: this.props.isLoadingPaymentMethods && !this.props.network.isOffline});
         }
-    }
-
-    setMenuPosition() {
-        if (!this.state.addPaymentMethodButton) {
-            return;
-        }
-        const buttonPosition = getClickedTargetLocation(this.state.addPaymentMethodButton);
-        this.setPositionAddPaymentMenu(buttonPosition);
     }
 
     getSelectedPaymentMethodID() {
@@ -188,9 +219,6 @@ class BasePaymentsPage extends React.Component {
      */
     paymentMethodPressed(nativeEvent, accountType, account, isDefault, methodID) {
         const position = getClickedTargetLocation(nativeEvent.currentTarget);
-        this.setState({
-            addPaymentMethodButton: nativeEvent.currentTarget,
-        });
 
         // The delete/default menu
         if (accountType) {
@@ -444,38 +472,38 @@ class BasePaymentsPage extends React.Component {
                             ]}
                         >
                             {isPopoverBottomMount && (
-                            <MenuItem
-                                title={this.state.formattedSelectedPaymentMethod.title || ''}
-                                icon={this.state.formattedSelectedPaymentMethod.icon}
-                                description={this.state.formattedSelectedPaymentMethod.description}
-                                wrapperStyle={[styles.pv0, styles.ph0, styles.mb4]}
-                                disabled
-                                interactive={false}
-                            />
+                                <MenuItem
+                                    title={this.state.formattedSelectedPaymentMethod.title || ''}
+                                    icon={this.state.formattedSelectedPaymentMethod.icon}
+                                    description={this.state.formattedSelectedPaymentMethod.description}
+                                    wrapperStyle={[styles.pv0, styles.ph0, styles.mb4]}
+                                    disabled
+                                    interactive={false}
+                                />
                             )}
                             {shouldShowMakeDefaultButton && (
-                            <Button
-                                onPress={() => {
-                                    this.setState({
-                                        shouldShowDefaultDeleteMenu: false,
-                                    });
+                                <Button
+                                    onPress={() => {
+                                        this.setState({
+                                            shouldShowDefaultDeleteMenu: false,
+                                        });
 
-                                    // Wait for the previous modal to close, before opening a new one. A modal will be considered completely closed when closing animation is finished.
-                                    // InteractionManager fires after the currently running animation is completed.
-                                    // https://github.com/Expensify/App/issues/7768#issuecomment-1044879541
-                                    InteractionManager.runAfterInteractions(() => {
-                                        if (Permissions.canUsePasswordlessLogins(this.props.betas)) {
-                                            this.makeDefaultPaymentMethod();
-                                        } else {
-                                            this.setState({
-                                                shouldShowPasswordPrompt: true,
-                                                passwordButtonText: this.props.translate('paymentsPage.setDefaultConfirmation'),
-                                            });
-                                        }
-                                    });
-                                }}
-                                text={this.props.translate('paymentsPage.setDefaultConfirmation')}
-                            />
+                                        // Wait for the previous modal to close, before opening a new one. A modal will be considered completely closed when closing animation is finished.
+                                        // InteractionManager fires after the currently running animation is completed.
+                                        // https://github.com/Expensify/App/issues/7768#issuecomment-1044879541
+                                        InteractionManager.runAfterInteractions(() => {
+                                            if (Permissions.canUsePasswordlessLogins(this.props.betas)) {
+                                                this.makeDefaultPaymentMethod();
+                                            } else {
+                                                this.setState({
+                                                    shouldShowPasswordPrompt: true,
+                                                    passwordButtonText: this.props.translate('paymentsPage.setDefaultConfirmation'),
+                                                });
+                                            }
+                                        });
+                                    }}
+                                    text={this.props.translate('paymentsPage.setDefaultConfirmation')}
+                                />
                             )}
                             <Button
                                 onPress={() => {
@@ -537,9 +565,6 @@ export default compose(
     withOnyx({
         betas: {
             key: ONYXKEYS.BETAS,
-        },
-        walletTransfer: {
-            key: ONYXKEYS.WALLET_TRANSFER,
         },
         userWallet: {
             key: ONYXKEYS.USER_WALLET,
