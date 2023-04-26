@@ -31,6 +31,18 @@ Onyx.connect({
     },
 });
 
+let myPersonalDetails = {};
+Onyx.connect({
+    key: ONYXKEYS.PERSONAL_DETAILS,
+    callback: (val) => {
+        if (!val || !currentEmail) {
+            return;
+        }
+
+        myPersonalDetails = val[currentEmail];
+    },
+});
+
 /**
  * Changes a password for a given account
  *
@@ -712,6 +724,14 @@ function setContactMethodAsDefault(newDefaultContactMethod) {
                 },
             },
         },
+        {
+            onyxMethod: CONST.ONYX.METHOD.MERGE,
+            key: ONYXKEYS.PERSONAL_DETAILS,
+            value: {
+                [newDefaultContactMethod]: {...myPersonalDetails},
+                [oldDefaultContactMethod]: null,
+            },
+        },
     ];
     const successData = [{
         onyxMethod: CONST.ONYX.METHOD.MERGE,
@@ -746,6 +766,14 @@ function setContactMethodAsDefault(newDefaultContactMethod) {
                         },
                     },
                 },
+            },
+        },
+        {
+            onyxMethod: CONST.ONYX.METHOD.MERGE,
+            key: ONYXKEYS.PERSONAL_DETAILS,
+            value: {
+                [newDefaultContactMethod]: null,
+                [oldDefaultContactMethod]: {...myPersonalDetails},
             },
         },
     ];
