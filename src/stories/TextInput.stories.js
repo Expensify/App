@@ -129,6 +129,7 @@ export {
     ForceActiveLabel,
     PlaceholderInput,
     AutoGrowInput,
+    AutoGrowHeightInput,
     PrefixedInput,
     MaxLengthInput,
     HintAndErrorInput,
