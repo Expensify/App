@@ -214,6 +214,8 @@ class WorkspaceReimburseView extends React.Component {
     }
 
     render() {
+        const viewAllReceiptsUrl = `expenses?policyIDList=${this.props.policy.id}&billableReimbursable=reimbursable&submitterEmail=%2B%2B`;
+
         return (
             <>
                 <Section
@@ -222,11 +224,12 @@ class WorkspaceReimburseView extends React.Component {
                     menuItems={[
                         {
                             title: this.props.translate('workspace.reimburse.viewAllReceipts'),
-                            onPress: () => Link.openOldDotLink(`expenses?policyIDList=${this.props.policy.id}&billableReimbursable=reimbursable&submitterEmail=%2B%2B`),
+                            onPress: () => Link.openOldDotLink(viewAllReceiptsUrl),
                             icon: Expensicons.Receipt,
                             shouldShowRightIcon: true,
                             iconRight: Expensicons.NewWindow,
                             wrapperStyle: [styles.cardMenuItem],
+                            link: () => Link.buildOldDotURL(viewAllReceiptsUrl),
                         },
                     ]}
                 >
