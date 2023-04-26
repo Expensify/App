@@ -121,7 +121,9 @@ export default function getTooltipStyles(
     // Determine if we need to shift the tooltip horizontally to prevent it
     // from displaying too near to the edge of the screen.
     const horizontalShift = computeHorizontalShift(windowWidth, xOffset, componentWidth, tooltipWidth, manualShiftHorizontal);
-
+    const horizontalShiftPointer = horizontalShift > 0 ? Math.max(-horizontalShift, - tooltipWidth / 2 + POINTER_WIDTH / 2 + variables.componentBorderRadiusSmall)
+        : Math.min(-horizontalShift, tooltipWidth / 2 - POINTER_WIDTH / 2 - variables.componentBorderRadiusSmall)
+    
     const tooltipVerticalPadding = spacing.pv1;
     const tooltipFontSize = variables.fontSizeSmall;
 
@@ -219,7 +221,7 @@ export default function getTooltipStyles(
             //      so the pointer's center lines up with the tooltipWidth's center.
             //   3) Due to the tip start from the left edge of wrapper Tooltip so we have to remove the
             //      horizontalShift which is added to adjust it into the Window
-            left: -horizontalShift + ((tooltipWidth / 2) - (POINTER_WIDTH / 2)),
+            left: horizontalShiftPointer + ((tooltipWidth / 2) - (POINTER_WIDTH / 2)),
 
             opacity,
         },
