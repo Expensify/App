@@ -1,4 +1,4 @@
-import _ from 'lodash';
+import _ from 'underscore';
 import GenericPressable from './GenericPressable';
 import GenericPressableProps from './GenericPressable/PropTypes';
 

@@ -1,5 +1,5 @@
 import React, {forwardRef} from 'react';
-import _ from 'lodash';
+import _ from 'underscore';
 import propTypes from 'prop-types';
 import GenericPressable from './GenericPressable';
 import GenericPressablePropTypes from './GenericPressable/PropTypes';

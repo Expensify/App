@@ -5,7 +5,7 @@ import React, {
     forwardRef,
 } from 'react';
 import {Pressable} from 'react-native';
-import _ from 'lodash';
+import _ from 'underscore';
 import Accessibility from '../../../libs/Accessibility';
 import HapticFeedback from '../../../libs/HapticFeedback';
 import KeyboardShortcut from '../../../libs/KeyboardShortcut';

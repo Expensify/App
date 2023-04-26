@@ -1,6 +1,6 @@
 import {useEffect, useState, useCallback} from 'react';
 import {AccessibilityInfo} from 'react-native';
-import _ from 'lodash';
+import _ from 'underscore';
 import moveAccessibilityFocus from './moveAccessibilityFocus';
 
 const useScreenReaderStatus = () => {
