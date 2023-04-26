@@ -3,7 +3,6 @@ import {
     View,
 } from 'react-native';
 import lodashGet from 'lodash/get';
-import Str from 'expensify-common/lib/str';
 import styles from '../../../styles/styles';
 import withLocalize, {withLocalizePropTypes} from '../../../components/withLocalize';
 import participantPropTypes from '../../../components/participantPropTypes';
