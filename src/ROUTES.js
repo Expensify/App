@@ -93,6 +93,8 @@ export default {
     getIouDetailsRoute: (chatReportID, iouReportID) => `iou/details/${chatReportID}/${iouReportID}`,
     getNewTaskRoute: reportID => `${NEW_TASK}/${reportID}`,
     NEW_TASK_WITH_REPORT_ID: `${NEW_TASK}/:reportID?`,
+    TASK_TITLE: 'r/:reportID/title',
+    getTaskReportTitleRoute: reportID => `r/${reportID}/title`,
     getTaskDetailsRoute: taskID => `task/details/${taskID}`,
     SEARCH: 'search',
     SET_PASSWORD_WITH_VALIDATE_CODE: 'setpassword/:accountID/:validateCode',
