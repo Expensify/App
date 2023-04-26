@@ -12,7 +12,7 @@ import Badge from './Badge';
 import CONST from '../CONST';
 import menuItemPropTypes from './menuItemPropTypes';
 import SelectCircle from './SelectCircle';
-import colors from '../styles/colors';
+import themeColors from '../styles/themes/default';
 import variables from '../styles/variables';
 import MultipleAvatars from './MultipleAvatars';
 import * as defaultWorkspaceAvatars from './Icon/WorkspaceDefaultAvatars';
@@ -204,7 +204,7 @@ const MenuItem = (props) => {
                             <View style={[styles.alignItemsCenter, styles.justifyContentCenter, styles.l4]}>
                                 <Icon
                                     src={Expensicons.DotIndicator}
-                                    fill={props.brickRoadIndicator === 'error' ? colors.red : colors.green}
+                                    fill={props.brickRoadIndicator === 'error' ? themeColors.danger : themeColors.success}
                                     height={variables.iconSizeSmall}
                                     width={variables.iconSizeSmall}
                                 />

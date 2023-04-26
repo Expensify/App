@@ -23,7 +23,6 @@ import * as User from '../../../../libs/actions/User';
 import TextInput from '../../../../components/TextInput';
 import CONST from '../../../../CONST';
 import Icon from '../../../../components/Icon';
-import colors from '../../../../styles/colors';
 import Button from '../../../../components/Button';
 import * as ErrorUtils from '../../../../libs/ErrorUtils';
 import themeColors from '../../../../styles/themes/default';
@@ -205,7 +204,7 @@ class ContactMethodDetailsPage extends Component {
                     {!loginData.validatedDate && !isFailedAddContactMethod && (
                         <View style={[styles.ph5, styles.mt3, styles.mb7]}>
                             <View style={[styles.flexRow, styles.alignItemsCenter, styles.mb1]}>
-                                <Icon src={Expensicons.DotIndicator} fill={colors.green} />
+                                <Icon src={Expensicons.DotIndicator} fill={themeColors.success} />
                                 <View style={[styles.flex1, styles.ml4]}>
                                     <Text>
                                         {this.props.translate('contacts.enterMagicCode', {contactMethod: formattedContactMethod})}
@@ -233,7 +232,7 @@ class ContactMethodDetailsPage extends Component {
                                         {this.props.translate('contacts.resendMagicCode')}
                                     </Text>
                                     {hasMagicCodeBeenSent && (
-                                        <Icon src={Expensicons.Checkmark} fill={colors.green} />
+                                        <Icon src={Expensicons.Checkmark} fill={themeColors.success} />
                                     )}
                                 </View>
                             </OfflineWithFeedback>

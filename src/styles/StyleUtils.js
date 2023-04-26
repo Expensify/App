@@ -496,38 +496,6 @@ function getEmojiPickerStyle(isSmallScreenWidth) {
 }
 
 /**
- * Get the random promo color and image for Login page
- *
- * @return {Object}
- */
-function getLoginPagePromoStyle() {
-    const promos = [
-        {
-            backgroundColor: colors.green,
-            backgroundImageUri: `${CONST.CLOUDFRONT_URL}/images/homepage/brand-stories/freeplan_green.svg`,
-        },
-        {
-            backgroundColor: colors.orange,
-            backgroundImageUri: `${CONST.CLOUDFRONT_URL}/images/homepage/brand-stories/freeplan_orange.svg`,
-        },
-        {
-            backgroundColor: colors.pink,
-            backgroundImageUri: `${CONST.CLOUDFRONT_URL}/images/homepage/brand-stories/freeplan_pink.svg`,
-        },
-        {
-            backgroundColor: colors.blue,
-            backgroundImageUri: `${CONST.CLOUDFRONT_URL}/images/homepage/brand-stories/freeplan_blue.svg`,
-        },
-        {
-            backgroundColor: colors.floralwhite,
-            backgroundImageUri: `${CONST.CLOUDFRONT_URL}/images/homepage/brand-stories/cpa-card.svg`,
-            redirectUri: `${CONST.USE_EXPENSIFY_URL}/accountants`,
-        },
-    ];
-    return promos[_.random(0, 4)];
-}
-
-/**
  * Generate the styles for the ReportActionItem wrapper view.
  *
  * @param {Boolean} [isHovered]
@@ -923,7 +891,7 @@ function getEmojiSuggestionContainerStyle(
  * @param {Boolean} isColored
  * @returns {String | null}
  */
-const getColoredBackgroundStyle = isColored => ({backgroundColor: isColored ? colors.blueLink : null});
+const getColoredBackgroundStyle = isColored => ({backgroundColor: isColored ? themeColors.link : null});
 
 function getEmojiReactionBubbleStyle(isHovered, hasUserReacted, isContextMenu = false) {
     let backgroundColor = themeColors.border;
@@ -1029,7 +997,6 @@ export {
     getModalPaddingStyles,
     getFontFamilyMonospace,
     getEmojiPickerStyle,
-    getLoginPagePromoStyle,
     getReportActionItemStyle,
     getMiniReportActionContextMenuWrapperStyle,
     getKeyboardShortcutsModalWidth,

@@ -4,7 +4,7 @@ import PropTypes from 'prop-types';
 import _, {compose} from 'underscore';
 import lodashGet from 'lodash/get';
 import {View} from 'react-native';
-import colors from '../../styles/colors';
+import themeColors from '../../styles/themes/default';
 import styles from '../../styles/styles';
 import Icon from '../Icon';
 import withLocalize, {withLocalizePropTypes} from '../withLocalize';
@@ -114,7 +114,7 @@ class ExpiredValidateCodeModal extends PureComponent {
                     <Icon
                         width={variables.modalWordmarkWidth}
                         height={variables.modalWordmarkHeight}
-                        fill={colors.green}
+                        fill={themeColors.success}
                         src={Expensicons.ExpensifyWordmark}
                     />
                 </View>

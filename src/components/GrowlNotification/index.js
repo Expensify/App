@@ -5,7 +5,7 @@ import {
 import {
     Directions, FlingGestureHandler, State, TouchableWithoutFeedback,
 } from 'react-native-gesture-handler';
-import colors from '../../styles/colors';
+import themeColors from '../../styles/themes/default';
 import Text from '../Text';
 import Icon from '../Icon';
 import * as Expensicons from '../Icon/Expensicons';
@@ -17,15 +17,15 @@ import * as Growl from '../../libs/Growl';
 const types = {
     [CONST.GROWL.SUCCESS]: {
         icon: Expensicons.Checkmark,
-        iconColor: colors.green,
+        iconColor: themeColors.success,
     },
     [CONST.GROWL.ERROR]: {
         icon: Expensicons.Exclamation,
-        iconColor: colors.red,
+        iconColor: themeColors.danger,
     },
     [CONST.GROWL.WARNING]: {
         icon: Expensicons.Exclamation,
-        iconColor: colors.yellow,
+        iconColor: themeColors.warning,
     },
 };
 

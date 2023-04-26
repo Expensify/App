@@ -5,7 +5,7 @@ import {View} from 'react-native';
 import Icon from './Icon';
 import * as Expensicons from './Icon/Expensicons';
 import Text from './Text';
-import colors from '../styles/colors';
+import themeColors from '../styles/themes/default';
 import styles from '../styles/styles';
 import stylePropTypes from '../styles/stylePropTypes';
 
@@ -37,7 +37,7 @@ const FormHelpMessage = (props) => {
 
     return (
         <View style={[styles.flexRow, styles.alignItemsCenter, styles.mt2, styles.mb1, ...props.style]}>
-            {props.isError && <Icon src={Expensicons.DotIndicator} fill={colors.red} />}
+            {props.isError && <Icon src={Expensicons.DotIndicator} fill={themeColors.danger} />}
             <View style={[styles.flex1, props.isError && styles.ml2]}>
                 {props.children || (
                     <Text style={[props.isError ? styles.formError : styles.formHelp, styles.mb0]}>
