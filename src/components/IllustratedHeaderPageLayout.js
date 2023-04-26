@@ -20,12 +20,6 @@ const propTypes = {
 
     /** The illustration to display in the header. Can be either an SVG component or a JSON object representing a Lottie animation. */
     illustration: PropTypes.oneOfType([PropTypes.func, PropTypes.object]).isRequired,
-
-    /** The size of the illustration in the page header. */
-    illustrationSize: PropTypes.shape({
-        width: PropTypes.number,
-        height: PropTypes.number,
-    }).isRequired,
 };
 
 const defaultProps = {
@@ -33,7 +27,7 @@ const defaultProps = {
 };
 
 const IllustratedHeaderPageLayout = (props) => {
-    const propsToPassToHeader = _.omit(props, ['illustration', 'illustrationSize']);
+    const propsToPassToHeader = _.omit(props, ['illustration']);
     return (
         <ScreenWrapper includeSafeAreaPaddingBottom={false} style={[StyleUtils.getBackgroundColorStyle(props.backgroundColor)]}>
             {({safeAreaPaddingBottomStyle}) => (
@@ -42,11 +36,11 @@ const IllustratedHeaderPageLayout = (props) => {
                         {/* eslint-disable-next-line react/jsx-props-no-spreading */}
                         <HeaderWithCloseButton {...propsToPassToHeader} />
                         <View
-                            style={[styles.centerContent]}
+                            style={[styles.flex1, styles.centerContent]}
                         >
                             {_.isFunction(props.illustration)
                                 ? props.illustration()
-                                : <Lottie source={props.illustration} style={props.illustrationSize} autoPlay loop />}
+                                : <Lottie source={props.illustration} style={styles.w100} autoPlay loop />}
                         </View>
                     </View>
                     <View style={[styles.illustratedPageBody]}>

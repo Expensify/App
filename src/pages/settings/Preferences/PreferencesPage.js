@@ -23,6 +23,7 @@ import MenuItemWithTopDescription from '../../../components/MenuItemWithTopDescr
 import IllustratedHeaderPageLayout from '../../../components/IllustratedHeaderPageLayout';
 import FireworksAnimation from '../../../../assets/animations/Fireworks.json';
 import DollarAnimation from '../../../../assets/animations/Dollar.json';
+import PreferencesDJAnimation from '../../../../assets/animations/PreferencesDJ.json';
 
 const propTypes = {
     /** The chat priority mode */
@@ -60,8 +61,7 @@ const PreferencesPage = (props) => {
             onBackButtonPress={() => Navigation.navigate(ROUTES.SETTINGS)}
             onCloseButtonPress={() => Navigation.dismissModal(true)}
             backgroundColor={themeColors.preferencesPageBackground}
-            illustration={DollarAnimation}
-            illustrationSize={{width: 300, height: 300}}
+            illustration={PreferencesDJAnimation}
         >
             <View style={styles.mb6}>
                 <Text style={[styles.textLabelSupporting, styles.mb2, styles.ml5, styles.mr8]} numberOfLines={1}>

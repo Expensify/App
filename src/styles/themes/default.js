@@ -72,7 +72,7 @@ const darkTheme = {
 
     // Setting page colors
     initialSettingsPageBackground: colors.green800,
-    preferencesPageBackground: colors.ice800,
+    preferencesPageBackground: colors.blue500,
     workspaceSettingsPageBackgroundColor: colors.pink800,
 };
 

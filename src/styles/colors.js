@@ -39,6 +39,7 @@ export default {
     // Brand Colors from Figma
     blue200: '#8DC8FF',
     blue400: '#0185FF',
+    blue500: '#0676DE',
     blue700: '#003C73',
     blue800: '#002140',
 
