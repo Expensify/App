@@ -8,7 +8,7 @@ import * as StyleUtils from '../styles/StyleUtils';
 import * as EmojiUtils from '../libs/EmojiUtils';
 import Text from './Text';
 import getStyledTextArray from '../libs/GetStyledTextArray';
-import AutoCompleteSuggestions from "../pages/home/report/AutoCompleteSuggestions"
+import AutoCompleteSuggestions from '../pages/home/report/AutoCompleteSuggestions';
 
 const propTypes = {
     /** The index of the highlighted emoji */
@@ -77,7 +77,7 @@ const EmojiSuggestions = (props) => {
             </View>
         );
     };
-    
+
     return (
         <AutoCompleteSuggestions
             suggestions={props.emojis}
@@ -88,7 +88,7 @@ const EmojiSuggestions = (props) => {
             isSuggestionPickerLarge={props.isEmojiPickerLarge}
             shouldIncludeReportRecipientLocalTimeHeight={props.shouldIncludeReportRecipientLocalTimeHeight}
         />
-    )
+    );
 };
 
 EmojiSuggestions.propTypes = propTypes;

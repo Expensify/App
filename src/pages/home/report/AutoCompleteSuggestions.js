@@ -1,7 +1,6 @@
 import React from 'react';
 import {View, Pressable} from 'react-native';
 import PropTypes from 'prop-types';
-import _ from 'underscore';
 
 // We take FlatList from this package to properly handle the scrolling of AutoCompleteSuggestions in chats since one scroll is nested inside another
 import {FlatList} from 'react-native-gesture-handler';
@@ -11,11 +10,12 @@ import CONST from '../../../CONST';
 
 const propTypes = {
     /** Array of suggestions */
-    suggestions: PropTypes.array.isRequired,
-    
+    // eslint-disable-next-line react/forbid-prop-types
+    suggestions: PropTypes.arrayOf(PropTypes.object).isRequired,
+
     /** Function used to render each suggestion, returned JSX will be enclosed inside a Pressable component */
     renderSuggestionMenuItem: PropTypes.func.isRequired,
-    
+
     /** Create unique keys for each suggestion item */
     keyExtractor: PropTypes.func.isRequired,
 
@@ -23,7 +23,7 @@ const propTypes = {
     highlightedSuggestionIndex: PropTypes.number.isRequired,
 
     /** Fired when the user selects a suggestion */
-    onSelect: PropTypes.func,
+    onSelect: PropTypes.func.isRequired,
 
     /** Show that we can use large auto-complete suggestion picker.
      * Depending on available space and whether the input is expanded, we can have a small or large mention suggester.
@@ -58,23 +58,20 @@ const AutoCompleteSuggestions = (props) => {
      * @param {Number} params.index
      * @returns {JSX.Element}
      */
-    const renderSuggestionMenuItem = ({item, index}) => {
-        return (
-            <Pressable
-                style={({hovered}) => StyleUtils.getAutoCompleteSuggestionItemStyle(
-                        props.highlightedSuggestionIndex,
-                        CONST.AUTO_COMPLETE_SUGGESTER.ITEM_HEIGHT,
-                        hovered, 
-                        index
-                    )
-                }
-                onMouseDown={e => e.preventDefault()}
-                onPress={() => props.onSelect?.(index)}
-            >
-                {props.renderSuggestionMenuItem(item, index)}
-            </Pressable>
-        );
-    };
+    const renderSuggestionMenuItem = ({item, index}) => (
+        <Pressable
+            style={({hovered}) => StyleUtils.getAutoCompleteSuggestionItemStyle(
+                props.highlightedSuggestionIndex,
+                CONST.AUTO_COMPLETE_SUGGESTER.ITEM_HEIGHT,
+                hovered,
+                index,
+            )}
+            onMouseDown={e => e.preventDefault()}
+            onPress={() => props.onSelect(index)}
+        >
+            {props.renderSuggestionMenuItem(item, index)}
+        </Pressable>
+    );
 
     const rowHeight = measureHeightOfSuggestionRows(
         props.suggestions.length,
