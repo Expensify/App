@@ -49,10 +49,6 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ github.token }}
 
-      - name: Unmerged PR - Checkout main
-        if: ${{ !fromJSON(steps.getPullRequestDetails.outputs.IS_MERGED) }}
-        run: git checkout main
-
       - name: Unmerged PR - Fetch changes from forked repository if necessary
         if: ${{ !fromJSON(steps.getPullRequestDetails.outputs.IS_MERGED) && (steps.getPullRequestDetails.outputs.FORKED_REPO_URL != '') }}
         run: |
@@ -62,6 +58,7 @@ jobs:
       - name: Unmerged PR - Merge pull request locally and get merge commit
         if: ${{ !fromJSON(steps.getPullRequestDetails.outputs.IS_MERGED) }}
         run: |
+          git checkout origin/main
           git merge --no-commit ${{ steps.getPullRequestDetails.outputs.HEAD_COMMIT_SHA }}
           echo "MERGE_COMMIT_SHA=$(git rev-parse HEAD)" >> "$GITHUB_OUTPUT"
         env:
