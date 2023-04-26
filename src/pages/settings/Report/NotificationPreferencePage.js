@@ -17,8 +17,7 @@ import themeColors from '../../../styles/themes/default';
 const propTypes = {
     ...withLocalizePropTypes,
 
-    /* Onyx Props */
-    /** The active report */
+    /** The report for which we are setting notification preferences */
     report: reportPropTypes.isRequired,
 };
 const greenCheckmark = {src: Expensicons.Checkmark, color: themeColors.success};
