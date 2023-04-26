@@ -33,7 +33,6 @@ const getCursorStyle = (isDisabled, isText) => {
 };
 
 const GenericPressable = forwardRef((props, ref) => {
-    // eslint-disable-next-line react/destructuring-assignment
     const {
         children,
         onPress,
@@ -79,8 +78,8 @@ const GenericPressable = forwardRef((props, ref) => {
         if (ref.current) {
             ref.current.blur();
         }
-
         onLongPress();
+
         Accessibility.moveAccessibilityFocus(nextFocusRef);
     }, [shouldUseHapticsOnLongPress, onLongPress, nextFocusRef, ref]);
 
