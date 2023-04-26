@@ -44,6 +44,10 @@ RCT_EXPORT_MODULE();
 
   [_rootView setLoadingView:loadingView];
 
+  if ([_rootView respondsToSelector:@selector(setIsActivityIndicatorViewVisible:)]) {
+    [_rootView setValue:@(YES) forKey:@"isActivityIndicatorViewVisible"];
+  }
+  
   [[NSNotificationCenter defaultCenter] addObserver:self
                                            selector:@selector(onContentDidAppear)
                                                   name:RCTContentDidAppearNotification
