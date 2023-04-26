@@ -60,6 +60,7 @@ function outputForkedRepoUrl(PR) {
     if (PR.head.html_url === GithubUtils.APP_REPO_URL) {
         return;
     }
+    console.log('Output forked repo url', PR.head.repo.clone_url);
     core.setOutput('FORKED_REPO_URL', PR.head.repo.clone_url);
 }
 
