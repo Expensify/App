@@ -108,7 +108,7 @@ function navigateToSidebarOption(index) {
 function areYouOnChatListScreen() {
     const hintText = Localize.translateLocal('sidebarScreen.listOfChats');
     const sidebarLinks = screen.queryAllByLabelText(hintText);
-    return lodashGet(sidebarLinks, [0, 'props', 'isFocused']);
+    return !lodashGet(sidebarLinks, [0, 'props', 'accessibilityElementsHidden']);
 }
 
 const REPORT_ID = '1';
