@@ -777,7 +777,6 @@ class ReportActionCompose extends React.Component {
                                                 <View style={[
                                                     styles.dFlex, styles.flexColumn,
                                                     (this.state.isFullComposerAvailable || this.props.isComposerFullSize) ? styles.justifyContentBetween : styles.justifyContentEnd,
-                                                    styles.chatItemAttachBorder,
                                                 ]}
                                                 >
                                                     {this.props.isComposerFullSize && (
@@ -855,6 +854,7 @@ class ReportActionCompose extends React.Component {
                                             </>
                                         )}
                                     </AttachmentPicker>
+                                    <View style={styles.chatItemSeparator} />
                                     <View style={[styles.textInputComposeSpacing]}>
                                         <DragAndDrop
                                             dropZoneId={CONST.REPORT.DROP_NATIVE_ID}

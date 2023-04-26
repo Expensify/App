@@ -1629,9 +1629,9 @@ const styles = {
         backgroundColor: themeColors.buttonHoveredBG,
     },
 
-    chatItemAttachBorder: {
-        borderRightColor: themeColors.border,
-        borderRightWidth: 1,
+    chatItemSeparator: {
+        backgroundColor: themeColors.border,
+        width: 1,
     },
 
     composerSizeButton: {
