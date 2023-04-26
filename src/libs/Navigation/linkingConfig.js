@@ -260,6 +260,7 @@ export default {
             Task_Details: {
                 screens: {
                     Task_Title: ROUTES.TASK_TITLE,
+                    Task_Description: ROUTES.TASK_DESCRIPTION,
                 },
             },
             AddPersonalBankAccount: {
