@@ -104,7 +104,7 @@ class AuthScreens extends React.Component {
 
     componentDidMount() {
         NetworkConnection.listenForReconnect();
-        NetworkConnection.onReconnect(() => App.reconnectApp());
+        this.cleanupReconnect = NetworkConnection.onReconnect(() => App.reconnectApp());
         PusherConnectionManager.init();
         Pusher.init({
             appKey: CONFIG.PUSHER.APP_KEY,
@@ -154,6 +154,7 @@ class AuthScreens extends React.Component {
         if (this.unsubscribeGroupShortcut) {
             this.unsubscribeGroupShortcut();
         }
+        this.cleanupReconnect();
         Session.cleanupSession();
         clearInterval(this.interval);
         this.interval = null;
