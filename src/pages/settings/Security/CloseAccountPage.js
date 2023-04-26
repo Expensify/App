@@ -6,7 +6,6 @@ import Str from 'expensify-common/lib/str';
 import _ from 'underscore';
 import HeaderWithBackButton from '../../../components/HeaderWithBackButton';
 import Navigation from '../../../libs/Navigation/Navigation';
-import ROUTES from '../../../ROUTES';
 import * as User from '../../../libs/actions/User';
 import compose from '../../../libs/compose';
 import styles from '../../../styles/styles';

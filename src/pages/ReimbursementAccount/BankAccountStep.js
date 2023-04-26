@@ -14,7 +14,6 @@ import styles from '../../styles/styles';
 import TextLink from '../../components/TextLink';
 import Icon from '../../components/Icon';
 import colors from '../../styles/colors';
-import Navigation from '../../libs/Navigation/Navigation';
 import CONST from '../../CONST';
 import withLocalize from '../../components/withLocalize';
 import Text from '../../components/Text';

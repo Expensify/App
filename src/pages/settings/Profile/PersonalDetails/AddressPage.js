@@ -8,7 +8,6 @@ import {withOnyx} from 'react-native-onyx';
 import ScreenWrapper from '../../../../components/ScreenWrapper';
 import HeaderWithBackButton from '../../../../components/HeaderWithBackButton';
 import withLocalize, {withLocalizePropTypes} from '../../../../components/withLocalize';
-import ROUTES from '../../../../ROUTES';
 import Form from '../../../../components/Form';
 import ONYXKEYS from '../../../../ONYXKEYS';
 import CONST from '../../../../CONST';

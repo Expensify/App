@@ -4,7 +4,6 @@ import lodashGet from 'lodash/get';
 import HeaderWithBackButton from '../../components/HeaderWithBackButton';
 import CONST from '../../CONST';
 import * as BankAccounts from '../../libs/actions/BankAccounts';
-import Navigation from '../../libs/Navigation/Navigation';
 import Text from '../../components/Text';
 import TextInput from '../../components/TextInput';
 import styles from '../../styles/styles';

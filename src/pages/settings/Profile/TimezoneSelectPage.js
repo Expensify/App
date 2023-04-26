@@ -6,7 +6,6 @@ import withCurrentUserPersonalDetails, {withCurrentUserPersonalDetailsPropTypes,
 import ScreenWrapper from '../../../components/ScreenWrapper';
 import HeaderWithBackButton from '../../../components/HeaderWithBackButton';
 import withLocalize, {withLocalizePropTypes} from '../../../components/withLocalize';
-import ROUTES from '../../../ROUTES';
 import CONST from '../../../CONST';
 import styles from '../../../styles/styles';
 import Navigation from '../../../libs/Navigation/Navigation';

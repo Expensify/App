@@ -11,7 +11,6 @@ import compose from '../../libs/compose';
 import * as BankAccounts from '../../libs/actions/BankAccounts';
 import * as Report from '../../libs/actions/Report';
 import HeaderWithBackButton from '../../components/HeaderWithBackButton';
-import Navigation from '../../libs/Navigation/Navigation';
 import TextInput from '../../components/TextInput';
 import Text from '../../components/Text';
 import BankAccount from '../../libs/models/BankAccount';

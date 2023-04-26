@@ -14,7 +14,6 @@ import CONST from '../../CONST';
 import FullPageOfflineBlockingView from '../../components/BlockingViews/FullPageOfflineBlockingView';
 import StepPropTypes from './StepPropTypes';
 import HeaderWithBackButton from '../../components/HeaderWithBackButton';
-import Navigation from '../../libs/Navigation/Navigation';
 import ScreenWrapper from '../../components/ScreenWrapper';
 
 const propTypes = {

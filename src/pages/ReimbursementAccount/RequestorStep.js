@@ -7,7 +7,6 @@ import withLocalize from '../../components/withLocalize';
 import HeaderWithBackButton from '../../components/HeaderWithBackButton';
 import CONST from '../../CONST';
 import TextLink from '../../components/TextLink';
-import Navigation from '../../libs/Navigation/Navigation';
 import CheckboxWithLabel from '../../components/CheckboxWithLabel';
 import Text from '../../components/Text';
 import * as BankAccounts from '../../libs/actions/BankAccounts';

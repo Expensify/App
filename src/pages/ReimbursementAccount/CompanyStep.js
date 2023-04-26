@@ -8,7 +8,6 @@ import PropTypes from 'prop-types';
 import HeaderWithBackButton from '../../components/HeaderWithBackButton';
 import CONST from '../../CONST';
 import * as BankAccounts from '../../libs/actions/BankAccounts';
-import Navigation from '../../libs/Navigation/Navigation';
 import Text from '../../components/Text';
 import DatePicker from '../../components/DatePicker';
 import TextInput from '../../components/TextInput';

@@ -36,7 +36,6 @@ class MoneyRequestDescriptionPage extends Component {
         this.updateComment = this.updateComment.bind(this);
     }
 
-
     /**
      * Sets the money request comment by saving it to Onyx.
      *

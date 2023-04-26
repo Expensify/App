@@ -5,7 +5,6 @@ import HeaderWithBackButton from '../../../components/HeaderWithBackButton';
 import ScreenWrapper from '../../../components/ScreenWrapper';
 import withLocalize, {withLocalizePropTypes} from '../../../components/withLocalize';
 import Navigation from '../../../libs/Navigation/Navigation';
-import ROUTES from '../../../ROUTES';
 import OptionsList from '../../../components/OptionsList';
 import styles from '../../../styles/styles';
 import themeColors from '../../../styles/themes/default';

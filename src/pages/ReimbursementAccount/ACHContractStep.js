@@ -12,7 +12,6 @@ import TextLink from '../../components/TextLink';
 import IdentityForm from './IdentityForm';
 import withLocalize from '../../components/withLocalize';
 import * as BankAccounts from '../../libs/actions/BankAccounts';
-import Navigation from '../../libs/Navigation/Navigation';
 import CONST from '../../CONST';
 import * as ValidationUtils from '../../libs/ValidationUtils';
 import ONYXKEYS from '../../ONYXKEYS';
