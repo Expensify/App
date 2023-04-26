@@ -1149,8 +1149,8 @@ export default {
         description: 'Descripción',
         shareIn: 'Compartir en',
         pleaseEnterTaskName: 'Por favor introduce un título',
-        markAsComplete: 'markAsComplete',
-        markAsIncomplete: 'markAsIncomplete',
+        markAsComplete: 'Marcar como completa',
+        markAsIncomplete: 'Marcar como incompleta',
     },
     statementPage: {
         generatingPDF: 'Estamos generando tu PDF ahora mismo. ¡Por favor, vuelve más tarde!',
