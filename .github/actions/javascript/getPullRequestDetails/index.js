@@ -54,9 +54,9 @@ function outputMergeActor(PR) {
  * @param {Object} PR
  */
 function outputForkedRepoUrl(PR) {
-    console.log('PR head url', PR.head.html_url);
+    console.log('PR head url', PR.head.repo.html_url);
     console.log('App repo url', GithubUtils.APP_REPO_URL);
-    console.log('Urls are the same: ', PR.head.html_url === GithubUtils.APP_REPO_URL);
+    console.log('Urls are the same: ', PR.head.repo.html_url === GithubUtils.APP_REPO_URL);
     if (PR.head.html_url === GithubUtils.APP_REPO_URL) {
         return;
     }
