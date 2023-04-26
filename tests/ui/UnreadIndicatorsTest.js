@@ -39,7 +39,7 @@ beforeAll(() => {
     // simulate data arriving we will just set it into Onyx directly with Onyx.merge() or Onyx.set() etc.
     global.fetch = TestHelper.getGlobalFetchMock();
 
-    Linking.setInitialURL('https://new.expensify.com/r');
+    Linking.setInitialURL('https://new.expensify.com/');
     appSetup();
 
     // Connect to Pusher
@@ -105,7 +105,7 @@ function navigateToSidebarOption(index) {
 /**
  * @return {Boolean}
  */
-function isDrawerOpen() {
+function areYouOnChatListScreen() {
     const hintText = Localize.translateLocal('sidebarScreen.listOfChats');
     const sidebarLinks = screen.queryAllByLabelText(hintText);
     return !lodashGet(sidebarLinks, [0, 'props', 'accessibilityElementsHidden']);
@@ -196,7 +196,7 @@ function signInAndGetAppWithUnreadChat() {
         });
 }
 
-xdescribe('Unread Indicators', () => {
+describe('Unread Indicators', () => {
     afterEach(() => {
         jest.clearAllMocks();
         Onyx.clear();
@@ -211,7 +211,7 @@ xdescribe('Unread Indicators', () => {
             const sidebarLinksHintText = Localize.translateLocal('sidebarScreen.listOfChats');
             const sidebarLinks = screen.queryAllByLabelText(sidebarLinksHintText);
             expect(sidebarLinks).toHaveLength(1);
-            expect(isDrawerOpen()).toBe(true);
+            expect(areYouOnChatListScreen()).toBe(true);
 
             // Verify there is only one option in the sidebar
             const optionRowsHintText = Localize.translateLocal('accessibilityHints.navigatesToChat');
@@ -227,7 +227,7 @@ xdescribe('Unread Indicators', () => {
         })
         .then(() => {
             // Verify that the report screen is rendered and the drawer is closed
-            expect(isDrawerOpen()).toBe(false);
+            expect(areYouOnChatListScreen()).toBe(false);
 
             // That the report actions are visible along with the created action
             const welcomeMessageHintText = Localize.translateLocal('accessibilityHints.chatWelcomeMessage');
@@ -255,14 +255,14 @@ xdescribe('Unread Indicators', () => {
         // Navigate to the unread chat from the sidebar
         .then(() => navigateToSidebarOption(0))
         .then(() => {
-            expect(isDrawerOpen()).toBe(false);
+            expect(areYouOnChatListScreen()).toBe(false);
 
             // Then navigate back to the sidebar
             return navigateToSidebar();
         })
         .then(() => {
             // Verify the LHN is now open
-            expect(isDrawerOpen()).toBe(true);
+            expect(areYouOnChatListScreen()).toBe(true);
 
             // Verify that the option row in the LHN is no longer bold (since OpenReport marked it as read)
             const hintText = Localize.translateLocal('accessibilityHints.chatUserDisplayNames');
@@ -277,7 +277,7 @@ xdescribe('Unread Indicators', () => {
             const newMessageLineIndicatorHintText = Localize.translateLocal('accessibilityHints.newMessageLineIndicator');
             const unreadIndicator = screen.queryAllByLabelText(newMessageLineIndicatorHintText);
             expect(unreadIndicator).toHaveLength(0);
-            expect(isDrawerOpen()).toBe(false);
+            expect(areYouOnChatListScreen()).toBe(false);
 
             // Scroll and verify that the new messages badge is also hidden
             scrollUpToRevealNewMessagesBadge();
@@ -343,9 +343,6 @@ xdescribe('Unread Indicators', () => {
         .then(() => {
             // Verify notification was created
             expect(LocalNotification.showCommentNotification).toBeCalled();
-
-            // // Navigate back to the sidebar
-            return navigateToSidebar();
         })
         .then(() => {
             // // Verify the new report option appears in the LHN
@@ -440,7 +437,7 @@ xdescribe('Unread Indicators', () => {
     it('Removes the new line indicator when a new message is created by the current user', () => signInAndGetAppWithUnreadChat()
         .then(() => {
             // Verify we are on the LHN and that the chat shows as unread in the LHN
-            expect(isDrawerOpen()).toBe(true);
+            expect(areYouOnChatListScreen()).toBe(true);
 
             const hintText = Localize.translateLocal('accessibilityHints.chatUserDisplayNames');
             const displayNameTexts = screen.queryAllByLabelText(hintText);
@@ -469,7 +466,7 @@ xdescribe('Unread Indicators', () => {
     it('Keeps the new line indicator when the user moves the App to the background', () => signInAndGetAppWithUnreadChat()
         .then(() => {
             // Verify we are on the LHN and that the chat shows as unread in the LHN
-            expect(isDrawerOpen()).toBe(true);
+            expect(areYouOnChatListScreen()).toBe(true);
 
             const hintText = Localize.translateLocal('accessibilityHints.chatUserDisplayNames');
             const displayNameTexts = screen.queryAllByLabelText(hintText);
