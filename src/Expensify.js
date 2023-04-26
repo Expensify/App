@@ -93,7 +93,7 @@ function Expensify(props) {
     const [isSplashShown, setIsSplashShown] = useState(true);
 
     const isAuthenticated = useMemo(() => {
-        console.log('props.session', props.session);
+        Log.info('Session changed', false, props.session);
         return Boolean(lodashGet(props.session, 'authToken', null));
     }, [props.session]);
 
