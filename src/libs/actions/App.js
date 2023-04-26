@@ -221,7 +221,7 @@ function setUpPoliciesAndNavigate(session) {
     const policyName = url.searchParams.get('policyName');
 
     // Sign out the current user if we're transitioning with a different user
-    const isTransitioning = Str.startsWith(url.pathname, Str.normalizeUrl(ROUTES.TRANSITION));
+    const isTransitioning = Str.startsWith(url.pathname, Str.normalizeUrl(ROUTES.TRANSITION_BETWEEN_APPS));
     if (isLoggingInAsNewUser && isTransitioning) {
         Session.signOut();
     }

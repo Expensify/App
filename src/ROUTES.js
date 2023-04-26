@@ -103,7 +103,7 @@ export default {
     getReportDetailsRoute: reportID => `r/${reportID}/details`,
     REPORT_SETTINGS: 'r/:reportID/settings',
     getReportSettingsRoute: reportID => `r/${reportID}/settings`,
-    TRANSITION: 'transition',
+    TRANSITION_BETWEEN_APPS: 'transition',
     VALIDATE_LOGIN: 'v/:accountID/:validateCode',
     GET_ASSISTANCE: 'get-assistance/:taskID',
     getGetAssistanceRoute: taskID => `get-assistance/${taskID}`,

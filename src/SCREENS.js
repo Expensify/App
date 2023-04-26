@@ -7,5 +7,5 @@ export default {
     LOADING: 'Loading',
     REPORT: 'Report',
     NOT_FOUND: 'not-found',
-    TRANSITION: 'Transition',
+    TRANSITION_BETWEEN_APPS: 'TransitionBetweenApps',
 };
