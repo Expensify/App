@@ -1,23 +1,18 @@
-import React, {Component} from 'react';
+import React from 'react';
 import _ from 'underscore';
-import {View} from 'react-native';
 import ScreenWrapper from '../../../components/ScreenWrapper';
 import HeaderWithCloseButton from '../../../components/HeaderWithCloseButton';
 import withLocalize, {withLocalizePropTypes} from '../../../components/withLocalize';
-import Form from '../../../components/Form';
-import ONYXKEYS from '../../../ONYXKEYS';
-import CONST from '../../../CONST';
-import TextInput from '../../../components/TextInput';
 import styles from '../../../styles/styles';
+import OptionsList from '../../../components/OptionsList';
 import Navigation from '../../../libs/Navigation/Navigation';
 import compose from '../../../libs/compose';
 import withReportOrNotFound from '../../home/report/withReportOrNotFound';
 import reportPropTypes from '../../reportPropTypes';
 import ROUTES from '../../../ROUTES';
 import * as Report from '../../../libs/actions/Report';
-import OptionsSelector from '../../../components/OptionsSelector';
-import * as Expensicons from "../../../components/Icon/Expensicons";
-import themeColors from "../../../styles/themes/default";
+import * as Expensicons from '../../../components/Icon/Expensicons';
+import themeColors from '../../../styles/themes/default';
 
 const propTypes = {
     ...withLocalizePropTypes,
@@ -28,80 +23,51 @@ const propTypes = {
 };
 const greenCheckmark = {src: Expensicons.Checkmark, color: themeColors.success};
 
-class NotificationPreferencePage extends Component {
-    constructor(props) {
-        super(props);
-        this.updateNotificationPreference = this.updateNotificationPreference.bind(this);
-        this.getNotificationPreferenceOptions = this.getNotificationPreferenceOptions.bind(this);
-        this.getPreferenceOption = this.getPreferenceOption.bind(this);
-    }
+const NotificationPreferencePage = (props) => {
+    const frequencies = [
+        props.translate('notificationPreferences.immediately'),
+        props.translate('notificationPreferences.daily'),
+        props.translate('notificationPreferences.mute'),
+    ];
+    const notificationPreferenceOptions = _.map(frequencies, frequency => ({
+        text: frequency,
+        keyForList: frequency,
 
-    getNotificationPreferenceOptions() {
-        const frequencies = [
-            this.props.translate('notificationPreferences.immediately'),
-            this.props.translate('notificationPreferences.daily'),
-            this.props.translate('notificationPreferences.mute'),
-        ];
-        return _.map(frequencies, frequency => this.getPreferenceOption(frequency));
-    }
+        // Include the green checkmark icon to indicate the currently selected value
+        customIcon: frequency === props.report.notificationPreference ? greenCheckmark : undefined,
 
-    /**
-     * Get timezone option object for the list.
-     * @param {String} text
-     * @return {Object} Timezone list option
-     */
-    getPreferenceOption(text) {
-        return {
-            text,
-            keyForList: text,
+        // This property will make the currently selected value have bold text
+        boldStyle: frequency === props.report.notificationPreference,
+    }));
 
-            // Include the green checkmark icon to indicate the currently selected value
-            customIcon: text === this.props.report.notificationPreference ? greenCheckmark : undefined,
+    return (
+        <ScreenWrapper includeSafeAreaPaddingBottom={false}>
+            <HeaderWithCloseButton
+                title={props.translate('notificationPreferences.header')}
+                shouldShowBackButton
+                onBackButtonPress={() => Navigation.drawerGoBack(ROUTES.getReportSettingsRoute(props.report.reportID))}
+                onCloseButtonPress={() => Navigation.dismissModal(true)}
+            />
+            <OptionsList
+                sections={[{data: notificationPreferenceOptions}]}
+                onSelectRow={notificationPreference => Report.updateNotificationPreference(props.reportID, props.report.notificationPreference, notificationPreference)}
+                hideSectionHeaders
+                optionHoveredStyle={
+                    {
+                        ...styles.hoveredComponentBG,
+                        ...styles.mhn5,
+                        ...styles.ph5,
+                    }
+                }
+                shouldHaveOptionSeparator
+                shouldDisableRowInnerPadding
+                contentContainerStyles={[styles.ph5]}
+            />
+        </ScreenWrapper>
+    );
+};
 
-            // This property will make the currently selected value have bold text
-            boldStyle: text === this.props.report.notificationPreference,
-        };
-    }
-
-    /**
-     * Submit form to update room's name
-     * @param {Object} values
-     * @param {String} values.notificationPreference
-     */
-    updateNotificationPreference(values) {
-        Report.updateNotificationPreference(
-            this.props.report.reportID,
-            this.props.report.notificationPreference,
-            values.notificationPreference,
-        );
-        Navigation.drawerGoBack(ROUTES.getReportSettingsRoute(this.props.report.reportID));
-    }
-
-    render() {
-        return (
-            <ScreenWrapper includeSafeAreaPaddingBottom={false}>
-                <HeaderWithCloseButton
-                    title={this.props.translate('notificationPreferences.header')}
-                    shouldShowBackButton
-                    onBackButtonPress={() => Navigation.drawerGoBack(ROUTES.getReportSettingsRoute(this.props.report.reportID))}
-                    onCloseButtonPress={() => Navigation.dismissModal(true)}
-                />
-
-                    <View style={styles.mb4}>
-                        <OptionsSelector
-                            textInputLabel={this.props.translate('notificationPreferences.label')}
-                            value={this.props.report.notificationPreference}
-                            onSelectRow={this.updateNotificationPreference}
-                            optionHoveredStyle={styles.hoveredComponentBG}
-                            sections={[{data: this.getNotificationPreferenceOptions(), indexOffset: 0, isDisabled: false}]}
-                            shouldHaveOptionSeparator
-                        />
-                    </View>
-            </ScreenWrapper>
-        );
-    }
-}
-
+NotificationPreferencePage.displayName = 'NotificationPreferencePage';
 NotificationPreferencePage.propTypes = propTypes;
 
 export default compose(
