@@ -3,11 +3,11 @@
  */
 export default {
     black: '#000000',
+    transparent: 'transparent',
     greenHover: '#00C271',
     greenPressed: '#35DD96',
     redHover: '#DE4822',
     redPressed: '#F57959',
-    transparent: 'transparent',
 
     // Dark Mode Theme Colors
     greenAppBackground: '#061B09',
