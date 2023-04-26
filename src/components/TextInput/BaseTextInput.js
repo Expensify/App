@@ -209,6 +209,7 @@ class BaseTextInput extends Component {
         // eslint-disable-next-line react/forbid-foreign-prop-types
         const inputProps = _.omit(this.props, _.keys(baseTextInputPropTypes.propTypes));
         const hasLabel = Boolean(this.props.label.length);
+        const isEditable = _.isUndefined(this.props.editable) ? !this.props.disabled : this.props.editable;
         const inputHelpText = this.props.errorText || this.props.hint;
         const placeholder = (this.props.prefixCharacter || this.state.isFocused || !hasLabel || (hasLabel && this.props.forceActiveLabel)) ? this.props.placeholder : null;
         const textInputContainerStyles = _.reduce([
@@ -313,7 +314,7 @@ class BaseTextInput extends Component {
                                         keyboardType={getSecureEntryKeyboardType(this.props.keyboardType, this.props.secureTextEntry, this.state.passwordHidden)}
                                         value={this.state.value}
                                         selection={this.state.selection}
-                                        editable={_.isUndefined(this.props.editable) ? !this.props.disabled : this.props.editable}
+                                        editable={isEditable}
 
                                         // FormSubmit Enter key handler does not have access to direct props.
                                         // `dataset.submitOnEnter` is used to indicate that pressing Enter on this input should call the submit callback.
@@ -333,7 +334,7 @@ class BaseTextInput extends Component {
                                         </Checkbox>
                                     )}
                                     {!this.props.secureTextEntry && Boolean(this.props.icon) && (
-                                        <View style={[styles.textInputIconContainer, styles.cursorPointer]}>
+                                        <View style={[styles.textInputIconContainer, isEditable ? styles.cursorPointer : styles.pointerEventsNone]}>
                                             <Icon
                                                 src={this.props.icon}
                                                 fill={themeColors.icon}

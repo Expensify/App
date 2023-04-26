@@ -281,7 +281,8 @@ jobs:
           content_android="${content_android//'%'/'%25'}"
           content_android="${content_android//$'\n'/'%0A'}"
           content_android="${content_android//$'\r'/'%0D'}"
-          echo "android_paths=$content_android" >> "$GITHUB_OUTPUT"
+          android_path=$(echo "$content_android" | jq -r '.html_path')
+          echo "android_path=$android_path" >> "$GITHUB_OUTPUT"
 
       - name: Read JSONs with iOS paths
         id: get_ios_path
@@ -291,7 +292,8 @@ jobs:
           content_ios="${content_ios//'%'/'%25'}"
           content_ios="${content_ios//$'\n'/'%0A'}"
           content_ios="${content_ios//$'\r'/'%0D'}"
-          echo "ios_paths=$content_ios" >> "$GITHUB_OUTPUT"
+          ios_path=$(echo "$content_ios" | jq -r '.html_path')
+          echo "ios_path=$ios_path" >> "$GITHUB_OUTPUT"
 
       # This step removes previous comments with links connected to the PR
       - name: maintain-comment
@@ -313,7 +315,7 @@ jobs:
           DESKTOP: ${{ needs.desktop.result }}
           IOS: ${{ needs.iOS.result }}
           WEB: ${{ needs.web.result }}
-          ANDROID_LINK: ${{fromJson(steps.get_android_path.outputs.android_paths).html_path}}
+          ANDROID_LINK: ${{steps.get_android_path.outputs.android_path}}
           DESKTOP_LINK: https://ad-hoc-expensify-cash.s3.amazonaws.com/desktop/${{ env.PULL_REQUEST_NUMBER }}/NewExpensify.dmg
-          IOS_LINK: ${{ fromJson(steps.get_ios_path.outputs.ios_paths).html_path }}
+          IOS_LINK: ${{steps.get_ios_path.outputs.ios_path}}
           WEB_LINK: https://${{ env.PULL_REQUEST_NUMBER }}.pr-testing.expensify.com
