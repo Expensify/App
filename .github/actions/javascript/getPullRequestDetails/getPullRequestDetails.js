@@ -47,7 +47,7 @@ function outputForkedRepoUrl(PR) {
     if (PR.head.repo.html_url === GithubUtils.APP_REPO_URL) {
         core.setOutput('FORKED_REPO_URL', '');
     } else {
-        core.setOutput('FORKED_REPO_URL', PR.head.repo.clone_url);
+        core.setOutput('FORKED_REPO_GIT_URL', PR.head.repo.git_url);
     }
 }
 
