@@ -49,12 +49,16 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ github.token }}
 
+      - name: Fetch changes from forked repository if necessary
+        if: ${{ steps.getPullRequestDetails.outputs.FORKED_REPO_URL }}
+        run: |
+          git remote add pr_remote ${{ steps.getPullRequestDetails.outputs.FORKED_REPO_URL }}
+          git fetch pr_remote
+
       - name: Get merge commit sha for the pull request (if not merged)
         if: ${{ !fromJSON(steps.getPullRequestDetails.outputs.IS_MERGED) }}
         run: |
           git checkout main
-          git remote add pr_remote ${{ steps.getPullRequestDetails.outputs.HEAD_REPO_URL }}
-          git fetch pr_remote
           git merge --no-commit ${{ steps.getPullRequestDetails.outputs.HEAD_COMMIT_SHA }}
           echo "Main HEAD SHA:"
           git rev-parse HEAD
