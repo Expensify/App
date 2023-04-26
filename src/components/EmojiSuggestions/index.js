@@ -3,6 +3,11 @@ import BaseEmojiSuggestions from './BaseEmojiSuggestions';
 import * as DeviceCapabilities from '../../libs/DeviceCapabilities';
 import {propTypes, defaultProps} from './emojiSuggestionsPropTypes';
 
+/**
+ * On the web platform, when tapping on emoji suggestions, we need to prevent focus shifting to avoid blurring the main input.
+ * On the native platform, tapping on emoji suggestions will not blur the main input.
+ */
+
 const EmojiSuggestions = (props) => {
     const containerRef = React.useRef(null);
     React.useEffect(() => {
