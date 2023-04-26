@@ -1,12 +1,14 @@
 import React from 'react';
+import {Pressable} from 'react-native';
 import PropTypes from 'prop-types';
 import Text from './Text';
 import * as Expensicons from './Icon/Expensicons';
 import Clipboard from '../libs/Clipboard';
+import getButtonState from '../libs/getButtonState';
 import Icon from './Icon';
 import Tooltip from './Tooltip';
 import styles from '../styles/styles';
-import themeColors from '../styles/themes/default';
+import * as StyleUtils from '../styles/StyleUtils';
 import variables from '../styles/variables';
 import withLocalize, {withLocalizePropTypes} from './withLocalize';
 
@@ -58,15 +60,19 @@ class CopyTextToClipboard extends React.Component {
                 style={[styles.flexRow, styles.cursorPointer]}
                 suppressHighlighting
             >
-                <Text style={this.props.textStyles}>{this.props.text}</Text>
+                <Text style={this.props.textStyles}>{`${this.props.text} `}</Text>
                 <Tooltip text={this.props.translate(`reportActionContextMenu.${this.state.showCheckmark ? 'copied' : 'copyToClipboard'}`)}>
-                    <Icon
-                        src={this.state.showCheckmark ? Expensicons.Checkmark : Expensicons.Copy}
-                        fill={this.state.showCheckmark ? themeColors.iconSuccessFill : themeColors.icon}
-                        width={variables.iconSizeSmall}
-                        height={variables.iconSizeSmall}
-                        inline
-                    />
+                    <Pressable onPress={this.copyToClipboard}>
+                        {({hovered, pressed}) => (
+                            <Icon
+                                src={this.state.showCheckmark ? Expensicons.Checkmark : Expensicons.Copy}
+                                fill={StyleUtils.getIconFillColor(getButtonState(hovered, pressed, this.state.showCheckmark))}
+                                width={variables.iconSizeSmall}
+                                height={variables.iconSizeSmall}
+                                inline
+                            />
+                        )}
+                    </Pressable>
                 </Tooltip>
             </Text>
         );
