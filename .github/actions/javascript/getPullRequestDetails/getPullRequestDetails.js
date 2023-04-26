@@ -39,18 +39,6 @@ function outputMergeActor(PR) {
 }
 
 /**
- * Output forked repo URL if PR includes changes from a fork.
- *
- * @param {Object} PR
- */
-function outputForkedRepoUrl(PR) {
-    if (PR.head.html_url === GithubUtils.APP_REPO_URL) {
-        return;
-    }
-    core.setOutput('FORKED_REPO_URL', PR.head.repo.clone_url);
-}
-
-/**
  * Output pull request data.
  *
  * @param {Object} PR
@@ -59,9 +47,9 @@ function outputPullRequestData(PR) {
     console.log('PR data', JSON.stringify(PR));
     core.setOutput('MERGE_COMMIT_SHA', PR.merge_commit_sha);
     core.setOutput('HEAD_COMMIT_SHA', PR.head.sha);
+    core.setOutput('REMOTE_URL', PR.head.repo.clone_url);
     core.setOutput('IS_MERGED', PR.merged);
     outputMergeActor(PR);
-    outputForkedRepoUrl(PR);
 }
 
 /**
