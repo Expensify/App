@@ -71,7 +71,7 @@ const darkTheme = {
     badgeAdHocHover: colors.pink700,
 
     // Setting page colors
-    initialSettingsPageBackground: colors.green800,
+    initialSettingsPageBackground: colors.greenHighlightBackground,
     preferencesPageBackground: colors.blue500,
     securitySettingsPageBackgroundColor: colors.ice500,
     workspaceSettingsPageBackgroundColor: colors.pink800,
