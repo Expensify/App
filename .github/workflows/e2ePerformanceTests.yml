@@ -50,10 +50,10 @@ jobs:
           GITHUB_TOKEN: ${{ github.token }}
 
       - name: Unmerged PR - Merge changes from forked repository and get merge commit
-        if: ${{ !fromJSON(steps.getPullRequestDetails.outputs.IS_MERGED) && (steps.getPullRequestDetails.outputs.FORKED_REPO_GIT_URL != '') }}
+        if: ${{ !fromJSON(steps.getPullRequestDetails.outputs.IS_MERGED) && (steps.getPullRequestDetails.outputs.FORKED_REPO_URL != '') }}
         run: |
           git checkout main
-          git remote add pr_remote ${{ steps.getPullRequestDetails.outputs.FORKED_REPO_GIT_URL }}
+          git remote add pr_remote ${{ steps.getPullRequestDetails.outputs.FORKED_REPO_URL }}
           git fetch pr_remote
           git merge --no-commit ${{ steps.getPullRequestDetails.outputs.HEAD_COMMIT_SHA }}
           echo "MERGE_COMMIT_SHA=$(git rev-parse HEAD)" >> "$GITHUB_OUTPUT"
@@ -61,7 +61,7 @@ jobs:
           GITHUB_TOKEN: ${{ github.token }}
 
       - name: Unmerged PR - Merge changes from main repository and get merge commit
-        if: ${{ !fromJSON(steps.getPullRequestDetails.outputs.IS_MERGED) && (steps.getPullRequestDetails.outputs.FORKED_REPO_GIT_URL == '')  }}
+        if: ${{ !fromJSON(steps.getPullRequestDetails.outputs.IS_MERGED) && (steps.getPullRequestDetails.outputs.FORKED_REPO_URL == '')  }}
         run: |
           git checkout main
           git merge --no-commit ${{ steps.getPullRequestDetails.outputs.HEAD_COMMIT_SHA }}
