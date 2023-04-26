@@ -968,7 +968,7 @@ function saveReportActionDraftNumberOfLines(reportID, reportActionID, numberOfLi
  * @param {String} previousValue
  * @param {String} newValue
  */
-function updateNotificationPreference(reportID, previousValue, newValue) {
+function updateNotificationPreferenceAndNavigate(reportID, previousValue, newValue) {
     const optimisticData = [
         {
             onyxMethod: CONST.ONYX.METHOD.MERGE,
@@ -984,6 +984,7 @@ function updateNotificationPreference(reportID, previousValue, newValue) {
         },
     ];
     API.write('UpdateReportNotificationPreference', {reportID, notificationPreference: newValue}, {optimisticData, failureData});
+    Navigation.navigate(ROUTES.getReportSettingsRoute(reportID));
 }
 
 /**
@@ -1420,7 +1421,7 @@ export {
     addComment,
     addAttachment,
     reconnect,
-    updateNotificationPreference,
+    updateNotificationPreferenceAndNavigate,
     subscribeToReportTypingEvents,
     subscribeToReportCommentPushNotifications,
     unsubscribeFromReportChannel,
