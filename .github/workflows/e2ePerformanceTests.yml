@@ -52,6 +52,8 @@ jobs:
       - name: Get merge commit sha for the pull request (if not merged)
         if: ${{ !fromJSON(steps.getPullRequestDetails.outputs.IS_MERGED) }}
         run: |
+          git remote add pr_remote ${{ steps.getPullRequestDetails.outputs.REMOTE_URL }}
+          git fetch pr_remote
           git checkout ${{ steps.getPullRequestDetails.outputs.HEAD_COMMIT_SHA }}
           git checkout main
           git merge --no-commit ${{ steps.getPullRequestDetails.outputs.HEAD_COMMIT_SHA }}
