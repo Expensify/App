@@ -1,11 +1,24 @@
 /* eslint-disable rulesdir/prefer-early-return */
-/* eslint-disable rulesdir/display-name-property */
+
 import React from 'react';
 import {View} from 'react-native';
+import withLocalize, {withLocalizePropTypes} from '../withLocalize';
+import getUserLanguage from './getUserLanguage';
 
-const AppleSignIn = () => {
+const propTypes = {...withLocalizePropTypes};
+
+const $appleButtonContainerStyle = {
+    width: 40, height: 40, marginRight: 20,
+};
+
+const AppleSignIn = (props) => {
     React.useEffect(() => {
-        if (window.AppleID) {
+        const localeCode = getUserLanguage();
+        const script = document.createElement('script');
+        script.src = `https://appleid.cdn-apple.com/appleauth/static/jsapi/appleid/1//${localeCode}/appleid.auth.js`;
+        script.async = true;
+
+        const handleScriptLoad = () => {
             window.AppleID.auth.init({
                 clientId: 'com.chat.expensify.chat',
                 scope: 'name email',
@@ -13,13 +26,21 @@ const AppleSignIn = () => {
                 state: 'state',
                 usePopup: true,
             });
-        }
+        };
+        script.addEventListener('load', handleScriptLoad);
+        document.body.appendChild(script);
+
+        return () => {
+            script.removeEventListener('load', handleScriptLoad);
+            document.body.removeChild(script);
+        };
     }, []);
 
     return (
-        <View style={{
-            width: 48, height: 48, padding: 4, backgroundColor: 'blue',
-        }}
+        <View
+            style={$appleButtonContainerStyle}
+            accessibilityRole="button"
+            accessibilityLabel={props.translate('common.signInWithApple')}
         >
             <div
                 style={{fontSize: '0'}}
@@ -38,4 +59,7 @@ const AppleSignIn = () => {
     );
 };
 
-export default AppleSignIn;
+AppleSignIn.displayName = 'AppleSignIn';
+AppleSignIn.propTypes = propTypes;
+
+export default withLocalize(AppleSignIn);

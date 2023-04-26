@@ -211,11 +211,9 @@ class LoginForm extends React.Component {
                             />
                             <View style={{
                                 flexDirection: 'row',
-                                backgroundColor: 'red',
-                                height: 100,
-                                width: 200,
-                                alignItems: 'center',
-                                justifyContent: 'space-evenly',
+
+                                width: '100%',
+                                justifyContent: 'center',
                             }}
                             >
                                 <AppleSignIn />

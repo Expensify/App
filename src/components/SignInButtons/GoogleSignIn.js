@@ -1,36 +1,62 @@
+/* eslint-disable rulesdir/prefer-early-return */
 import React from 'react';
 import {View} from 'react-native';
+import withLocalize, {withLocalizePropTypes} from '../withLocalize';
+import getUserLanguage from './getUserLanguage';
 
-const GoogleSignIn = () => {
-    console.log('HELLO FROM GOOGLESIGNIN');
+const propTypes = {
+    ...withLocalizePropTypes,
+};
+
+const $googleContaierStyle = {
+    height: 40, width: 40, alignItems: 'center',
+};
+
+const GoogleSignIn = (props) => {
+    const handleCredentialResponse = (response) => { // handle the response
+    };
 
     React.useEffect(() => {
-        if (window.google) {
-            window.google.accounts.id.initialize({
-                client_id: '921154746561-gpsoaqgqfuqrfsjdf8l7vohfkfj7b9up.apps.googleusercontent.com',
-                callback: handleCredentialResponse,
-            });
-            google.accounts.id.renderButton(
-                document.getElementById('buttonDiv'),
-                {
+        const localeCode = getUserLanguage();
+        const script = document.createElement('script');
+        script.src = `https://accounts.google.com/gsi/client?h1${localeCode}`;
+        script.async = true;
+        function handleScriptLoad() {
+            const google = window.google;
+            if (google) {
+                google.accounts.id.initialize({
+                    client_id: '921154746561-gpsoaqgqfuqrfsjdf8l7vohfkfj7b9up.apps.googleusercontent.com',
+                    callback: handleCredentialResponse,
+                });
+                google.accounts.id.renderButton(document.getElementById('buttonDiv'), {
                     theme: 'outline',
                     size: 'large',
                     type: 'icon',
                     shape: 'circle',
-                }, // customization attributes
-            );
+                });
+            }
         }
+        script.addEventListener('load', handleScriptLoad);
+        document.body.appendChild(script);
+
+        return () => {
+            script.removeEventListener('load', handleScriptLoad);
+            document.body.removeChild(script);
+        };
     }, []);
 
-    const handleCredentialResponse = (response) => {
-        onCredentialResponse(response);
-    };
-
     return (
-        <View style={{height: 60, width: 60, backgroundColor: 'green'}}>
-            <div id="buttonDiv" />
+        <View style={$googleContaierStyle}>
+            <div
+                accessibilityrole="button"
+                accessibilitylabel={props.translate('common.signInWithGoogle')}
+                id="buttonDiv"
+            />
         </View>
     );
 };
 
-export default GoogleSignIn;
+GoogleSignIn.displayName = 'GoogleSignIn';
+GoogleSignIn.propTypes = propTypes;
+
+export default withLocalize(GoogleSignIn);
