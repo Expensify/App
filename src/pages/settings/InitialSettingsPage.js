@@ -11,10 +11,8 @@ import * as Session from '../../libs/actions/Session';
 import ONYXKEYS from '../../ONYXKEYS';
 import Tooltip from '../../components/Tooltip';
 import Avatar from '../../components/Avatar';
-import HeaderWithCloseButton from '../../components/HeaderWithCloseButton';
 import Navigation from '../../libs/Navigation/Navigation';
 import * as Expensicons from '../../components/Icon/Expensicons';
-import ScreenWrapper from '../../components/ScreenWrapper';
 import MenuItem from '../../components/MenuItem';
 import ROUTES from '../../ROUTES';
 import withLocalize, {withLocalizePropTypes} from '../../components/withLocalize';
@@ -287,14 +285,14 @@ class InitialSettingsPage extends React.Component {
                 title={this.props.translate('common.settings')}
                 onCloseButtonPress={() => Navigation.dismissModal(true)}
                 illustration={() => (
-                    <>
+                    <View style={[styles.flex1, styles.avatarSectionWrapper]}>
                         <Pressable style={[styles.mb3]} onPress={this.openProfileSettings}>
                             <Tooltip text={this.props.translate('common.profile')}>
                                 <OfflineWithFeedback pendingAction={lodashGet(this.props.currentUserPersonalDetails, 'pendingFields.avatar', null)}>
                                     <Avatar
-                                        imageStyles={[styles.avatarLarge]}
+                                        imageStyles={[styles.avatarXLarge]}
                                         source={ReportUtils.getAvatar(this.props.currentUserPersonalDetails.avatar, this.props.session.email)}
-                                        size={CONST.AVATAR_SIZE.LARGE}
+                                        size={CONST.AVATAR_SIZE.X_LARGE}
                                     />
                                 </OfflineWithFeedback>
                             </Tooltip>
@@ -316,9 +314,8 @@ class InitialSettingsPage extends React.Component {
                                 {this.props.formatPhoneNumber(this.props.session.email)}
                             </Text>
                         )}
-                    </>
+                    </View>
                 )}
-                illustrationSize={{width: 250, height: 250}}
             >
                 {_.map(this.getDefaultMenuItems(), (item, index) => this.getMenuItem(item, index))}
                 <ConfirmModal

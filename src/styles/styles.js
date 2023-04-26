@@ -1774,6 +1774,11 @@ const styles = {
         backgroundColor: themeColors.appBG,
     },
 
+    avatarXLarge: {
+        width: variables.avatarSizeXLarge,
+        height: variables.avatarSizeXLarge,
+    },
+
     avatarLarge: {
         width: variables.avatarSizeLarge,
         height: variables.avatarSizeLarge,

@@ -36,7 +36,7 @@ const IllustratedHeaderPageLayout = (props) => {
                         {/* eslint-disable-next-line react/jsx-props-no-spreading */}
                         <HeaderWithCloseButton {...propsToPassToHeader} />
                         <View
-                            style={[styles.flex1, styles.centerContent]}
+                            style={[styles.flex1, styles.alignItemsCenter, styles.justifyContentEnd]}
                         >
                             {_.isFunction(props.illustration)
                                 ? props.illustration()

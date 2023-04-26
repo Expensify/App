@@ -1,13 +1,9 @@
 import _ from 'underscore';
 import React from 'react';
-import {View, ScrollView} from 'react-native';
-import HeaderWithCloseButton from '../../../components/HeaderWithCloseButton';
 import Navigation from '../../../libs/Navigation/Navigation';
 import ROUTES from '../../../ROUTES';
-import styles from '../../../styles/styles';
 import themeColors from '../../../styles/themes/default';
 import * as Expensicons from '../../../components/Icon/Expensicons';
-import ScreenWrapper from '../../../components/ScreenWrapper';
 import withLocalize, {withLocalizePropTypes} from '../../../components/withLocalize';
 import MenuItem from '../../../components/MenuItem';
 import IllustratedHeaderPageLayout from '../../../components/IllustratedHeaderPageLayout';
@@ -59,6 +55,6 @@ const SecuritySettingsPage = (props) => {
 };
 
 SecuritySettingsPage.propTypes = propTypes;
-SecuritySettingsPage.displayName = 'SettingSecurityPage';
+SecuritySettingsPage.displayName = 'SecuritySettingsPage';
 
 export default withLocalize(SecuritySettingsPage);

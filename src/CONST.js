@@ -946,6 +946,7 @@ const CONST = {
     ICON_TYPE_WORKSPACE: 'workspace',
 
     AVATAR_SIZE: {
+        X_LARGE: 'x-large',
         LARGE: 'large',
         MEDIUM: 'medium',
         DEFAULT: 'default',
