@@ -323,7 +323,7 @@ export default {
         header: 'Preferencias de Avisos',
         label: 'Avisar sobre nuevos mensajes',
         notificationPreferences: {
-            immediately: 'Inmediatamente',
+            always: 'Inmediatamente',
             daily: 'Cada día',
             mute: 'Nunca',
         },
