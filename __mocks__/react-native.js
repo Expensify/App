@@ -66,6 +66,10 @@ jest.doMock('react-native', () => {
                     dimensions = newDimensions;
                 },
             },
+            InteractionManager: {
+                ...ReactNative.InteractionManager,
+                runAfterInteractions: callback => callback(),
+            },
         },
         ReactNative,
     );

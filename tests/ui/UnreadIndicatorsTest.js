@@ -31,14 +31,6 @@ jest.setTimeout(30000);
 
 jest.mock('../../src/libs/Notification/LocalNotification');
 
-// we need to mock it for the ReportScreen to update its state immediately for tests to pass
-jest.mock('react-native/libraries/Interaction/InteractionManager', () => {
-    const IM = jest.requireActual('react-native/libraries/Interaction/InteractionManager');
-    IM.runAfterInteractions = jest.fn(fn => fn());
-
-    return IM;
-});
-
 beforeAll(() => {
     // In this test, we are generically mocking the responses of all API requests by mocking fetch() and having it
     // return 200. In other tests, we might mock HttpUtils.xhr() with a more specific mock data response (which means
