@@ -57,8 +57,10 @@ function outputForkedRepoUrl(PR) {
     console.log('PR head repo url', PR.head.repo.html_url);
     console.log('App repo url', GithubUtils.APP_REPO_URL);
     if (PR.head.html_url === GithubUtils.APP_REPO_URL) {
+        console.log('FORKED_REPO_URL', 'set empty value');
         core.setOutput('FORKED_REPO_URL', '');
     } else {
+        console.log('FORKED_REPO_URL', `set url ${PR.head.repo.clone_url}`);
         core.setOutput('FORKED_REPO_URL', PR.head.repo.clone_url);
     }
 }
