@@ -462,20 +462,7 @@ function deletePaypalMeAddress() {
         },
     ];
 
-    const successData = [
-        {
-            onyxMethod: CONST.ONYX.METHOD.SET,
-            key: ONYXKEYS.NVP_PAYPAL_ME_ADDRESS,
-            value: '',
-        },
-        {
-            onyxMethod: CONST.ONYX.METHOD.SET,
-            key: ONYXKEYS.PAYPAL,
-            value: {},
-        },
-    ];
-
-    API.write('DeletePaypalMeAddress', {}, {optimisticData, successData});
+    API.write('DeletePaypalMeAddress', {}, {optimisticData});
     Growl.show(Localize.translateLocal('paymentsPage.deletePayPalSuccess'), CONST.GROWL.SUCCESS, 3000);
 }
 
