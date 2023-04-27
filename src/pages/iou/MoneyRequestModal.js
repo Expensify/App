@@ -9,7 +9,6 @@ import {withOnyx} from 'react-native-onyx';
 import MoneyRequestAmountPage from './steps/MoneyRequestAmountPage';
 import MoneyRequestParticipantsPage from './steps/MoneyRequstParticipantsPage/MoneyRequestParticipantsPage';
 import MoneyRequestConfirmPage from './steps/MoneyRequestConfirmPage';
-import ModalHeader from './ModalHeader';
 import styles from '../../styles/styles';
 import * as IOU from '../../libs/actions/IOU';
 import Navigation from '../../libs/Navigation/Navigation';
@@ -29,6 +28,7 @@ import reportPropTypes from '../reportPropTypes';
 import * as ReportUtils from '../../libs/ReportUtils';
 import * as ReportScrollManager from '../../libs/ReportScrollManager';
 import * as DeviceCapabilities from '../../libs/DeviceCapabilities';
+import HeaderWithBackButton from '../../components/HeaderWithBackButton';
 
 /**
  * A modal used for requesting money, splitting bills or sending money.
@@ -358,18 +358,16 @@ const MoneyRequestModal = (props) => {
     const currentStep = steps[currentStepIndex];
     const moneyRequestStepIndex = _.indexOf(steps, Steps.MoneyRequestConfirm);
     const isEditingAmountAfterConfirm = currentStepIndex === 0 && previousStepIndex === _.indexOf(steps, Steps.MoneyRequestConfirm);
+    const navigateBack = isEditingAmountAfterConfirm ? () => navigateToStep(moneyRequestStepIndex) : navigateToPreviousStep
     const reportID = lodashGet(props, 'route.params.reportID', '');
-    const shouldShowBackButton = currentStepIndex > 0 || isEditingAmountAfterConfirm;
     const modalHeader = (
-        <ModalHeader
+        <HeaderWithBackButton
             title={titleForStep}
-            shouldShowBackButton={shouldShowBackButton}
-            onBackButtonPress={isEditingAmountAfterConfirm ? () => navigateToStep(moneyRequestStepIndex) : navigateToPreviousStep}
+            onBackButtonPress={currentStepIndex === 0 ? Navigation.dismissModal : navigateBack}
         />
     );
     const amountButtonText = isEditingAmountAfterConfirm ? props.translate('common.save') : props.translate('common.next');
     const enableMaxHeight = DeviceCapabilities.canUseTouchScreen() && currentStep === Steps.MoneyRequestParticipants;
-
     return (
         <ScreenWrapper includeSafeAreaPaddingBottom={false} shouldEnableMaxHeight={enableMaxHeight}>
             {({didScreenTransitionEnd, safeAreaPaddingBottomStyle}) => (

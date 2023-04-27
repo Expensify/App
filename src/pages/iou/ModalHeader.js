@@ -17,14 +17,14 @@ const propTypes = {
     shouldShowBackButton: PropTypes.bool,
 
     /** Callback to fire on back button press */
-    onBackButtonPress: PropTypes.func,
+    onButtonPress: PropTypes.func,
 
     ...withLocalizePropTypes,
 };
 
 const defaultProps = {
     shouldShowBackButton: true,
-    onBackButtonPress: () => Navigation.goBack(),
+    onButtonPress: () => Navigation.goBack(),
 };
 
 const ModalHeader = props => (
@@ -42,7 +42,7 @@ const ModalHeader = props => (
                     && (
                     <Tooltip text={props.translate('common.back')}>
                         <TouchableOpacity
-                            onPress={props.onBackButtonPress}
+                            onPress={props.onButtonPress}
                             style={[styles.touchableButtonImage]}
                         >
                             <Icon src={Expensicons.BackArrow} />
@@ -50,18 +50,20 @@ const ModalHeader = props => (
                     </Tooltip>
                     )}
             <Header title={props.title} />
-            <View style={[styles.reportOptions, styles.flexRow, styles.pr5]}>
-                <Tooltip text={props.translate('common.close')}>
-                    <TouchableOpacity
-                        onPress={() => Navigation.dismissModal()}
-                        style={[styles.touchableButtonImage]}
-                        accessibilityRole="button"
-                        accessibilityLabel={props.translate('common.close')}
-                    >
-                        <Icon src={Expensicons.Close} />
-                    </TouchableOpacity>
-                </Tooltip>
-            </View>
+            {!props.shouldShowBackButton && (
+                <View style={[styles.reportOptions, styles.flexRow, styles.pr5]}>
+                    <Tooltip text={props.translate('common.close')}>
+                        <TouchableOpacity
+                            onPress={props.onButtonPress}
+                            style={[styles.touchableButtonImage]}
+                            accessibilityRole="button"
+                            accessibilityLabel={props.translate('common.close')}
+                        >
+                            <Icon src={Expensicons.Close} />
+                        </TouchableOpacity>
+                    </Tooltip>
+                </View>
+            )}
         </View>
     </View>
 );
