@@ -1,6 +1,7 @@
 import React from 'react';
 import * as ReportActionContextMenu from '../pages/home/report/ContextMenu/ReportActionContextMenu';
 import * as ContextMenuActions from '../pages/home/report/ContextMenu/ContextMenuActions';
+import * as DeviceCapabilities from '../libs/DeviceCapabilities';
 
 const ShowContextMenuContext = React.createContext({
     anchor: null,
@@ -21,6 +22,10 @@ ShowContextMenuContext.displayName = 'ShowContextMenuContext';
  * @param {Function} checkIfContextMenuActive Callback to update context menu active state
  */
 function showContextMenuForReport(event, anchor, reportID, action, checkIfContextMenuActive) {
+    if (!DeviceCapabilities.canUseTouchScreen()) {
+        return;
+    }
+
     ReportActionContextMenu.showContextMenu(
         ContextMenuActions.CONTEXT_MENU_TYPES.REPORT_ACTION,
         event,

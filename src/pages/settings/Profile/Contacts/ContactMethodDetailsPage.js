@@ -28,6 +28,7 @@ import * as ErrorUtils from '../../../../libs/ErrorUtils';
 import themeColors from '../../../../styles/themes/default';
 import NotFoundPage from '../../../ErrorPage/NotFoundPage';
 import * as ValidationUtils from '../../../../libs/ValidationUtils';
+import ROUTES from '../../../../ROUTES';
 
 const propTypes = {
     /* Onyx Props */
@@ -94,6 +95,17 @@ class ContactMethodDetailsPage extends Component {
             isDeleteModalOpen: false,
             validateCode: '',
         };
+    }
+
+    componentDidUpdate(prevProps) {
+        const errorFields = lodashGet(this.props.loginList, [this.getContactMethod(), 'errorFields'], {});
+        const prevPendingFields = lodashGet(prevProps.loginList, [this.getContactMethod(), 'pendingFields'], {});
+
+        // Navigate to methods page on successful magic code verification
+        // validateLogin property of errorFields & prev pendingFields is responsible to decide the status of the magic code verification
+        if (!errorFields.validateLogin && prevPendingFields.validateLogin === CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE) {
+            Navigation.navigate(ROUTES.SETTINGS_CONTACT_METHODS);
+        }
     }
 
     /**

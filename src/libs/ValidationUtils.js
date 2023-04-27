@@ -1,5 +1,6 @@
 import moment from 'moment';
 import _ from 'underscore';
+import {URL_REGEX_WITH_REQUIRED_PROTOCOL} from 'expensify-common/lib/Url';
 import CONST from '../CONST';
 import * as CardUtils from './CardUtils';
 import * as LoginUtils from './LoginUtils';
@@ -238,7 +239,7 @@ function getAgeRequirementError(date, minimumAge, maximumAge) {
  * @returns {Boolean}
  */
 function isValidWebsite(url) {
-    return CONST.REGEX.WEBSITE.test(url);
+    return new RegExp(`^${URL_REGEX_WITH_REQUIRED_PROTOCOL}$`, 'i').test(url);
 }
 
 /**

@@ -86,6 +86,9 @@ class AttachmentModal extends PureComponent {
             modalType: CONST.MODAL.MODAL_TYPE.CENTERED_UNSWIPEABLE,
             isConfirmButtonDisabled: false,
             confirmButtonFadeAnimation: new Animated.Value(1),
+            file: props.originalFileName ? {
+                name: props.originalFileName,
+            } : undefined,
         };
 
         this.submitAndClose = this.submitAndClose.bind(this);
