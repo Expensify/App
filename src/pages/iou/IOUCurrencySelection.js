@@ -124,7 +124,7 @@ class IOUCurrencySelection extends Component {
                             onSelectRow={this.confirmCurrencySelection}
                             value={this.state.searchValue}
                             onChangeText={this.changeSearchValue}
-                            placeholderText={this.props.translate('common.search')}
+                            textInputLabel={this.props.translate('common.search')}
                             headerMessage={headerMessage}
                             safeAreaPaddingBottomStyle={safeAreaPaddingBottomStyle}
                         />

@@ -279,7 +279,6 @@ class BaseOptionsSelector extends Component {
                 value={this.props.value}
                 label={this.props.textInputLabel}
                 onChangeText={this.props.onChangeText}
-                placeholder={this.props.placeholderText}
                 maxLength={this.props.maxLength}
                 keyboardType={this.props.keyboardType}
                 onBlur={(e) => {
@@ -341,7 +340,7 @@ class BaseOptionsSelector extends Component {
                                 </>
                             ) : (
                                 <>
-                                    <View style={[styles.ph5, styles.pv3]}>
+                                    <View style={[styles.ph5, styles.pb3]}>
                                         {this.props.children}
                                         {this.props.shouldShowTextInput && textInput}
                                     </View>
