@@ -94,7 +94,7 @@ class NewContactMethodPage extends Component {
     render() {
         return (
             <ScreenWrapper
-                onTransitionEnd={() => {
+                onEntryTransitionEnd={() => {
                     if (!this.loginInputRef) {
                         return;
                     }
