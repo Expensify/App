@@ -27,11 +27,6 @@ const propTypes = {
 const RoomNamePage = (props) => {
     const report = props.report;
     const translate = props.translate;
-    const updateRoomName = useCallback((values) => {
-        Report.updatePolicyRoomName(report, RoomNameInputUtils.modifyRoomName(values.roomName));
-        Navigation.drawerGoBack(ROUTES.getReportSettingsRoute(report.reportID));
-    }, [report]);
-
     const validate = useCallback((values) => {
         const errors = {};
         if (_.isEmpty(values.roomName)) {
@@ -51,7 +46,7 @@ const RoomNamePage = (props) => {
             <Form
                 style={[styles.flexGrow1, styles.ph5]}
                 formID={ONYXKEYS.FORMS.ROOM_NAME_FORM}
-                onSubmit={updateRoomName}
+                onSubmit={values => Report.updatePolicyRoomNameAndNavigate(report, RoomNameInputUtils.modifyRoomName(values.roomName))}
                 validate={validate}
                 submitButtonText={translate('common.save')}
                 enabledWhenOffline

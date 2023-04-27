@@ -1095,7 +1095,7 @@ function navigateToConciergeChatAndDeleteReport(reportID) {
  * @param {String} policyRoomReport.reportName
  * @param {String} policyRoomName The updated name for the policy room
  */
-function updatePolicyRoomName(policyRoomReport, policyRoomName) {
+function updatePolicyRoomNameAndNavigate(policyRoomReport, policyRoomName) {
     const reportID = policyRoomReport.reportID;
     const previousName = policyRoomReport.reportName;
     const optimisticData = [
@@ -1136,6 +1136,7 @@ function updatePolicyRoomName(policyRoomReport, policyRoomName) {
         },
     ];
     API.write('UpdatePolicyRoomName', {reportID, policyRoomName}, {optimisticData, successData, failureData});
+    Navigation.drawerGoBack(ROUTES.getReportSettingsRoute(reportID));
 }
 
 /**
@@ -1446,7 +1447,7 @@ export {
     openReportFromDeepLink,
     navigateToAndOpenReport,
     openPaymentDetailsPage,
-    updatePolicyRoomName,
+    updatePolicyRoomNameAndNavigate,
     clearPolicyRoomNameErrors,
     clearIOUError,
     subscribeToNewActionEvent,
