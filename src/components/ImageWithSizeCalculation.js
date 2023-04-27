@@ -1,4 +1,4 @@
-import React, {useCallback, useState} from 'react';
+import React, {useCallback, useRef} from 'react';
 import PropTypes from 'prop-types';
 import {View} from 'react-native';
 import Log from '../libs/Log';
@@ -28,9 +28,7 @@ const defaultProps = {
 };
 
 const ImageWithSizeCalculation = (props) => {
-    const [isLoading, setIsLoading] = useState(false);
-    const onLoadStart = useCallback(() => setIsLoading(true), []);
-    const onLoadEnd = useCallback(() => setIsLoading(false), []);
+    const isLoading = useRef(false);
     const onLoad = useCallback((event) => {
         props.onMeasure({
             width: event.nativeEvent.width,
@@ -54,12 +52,16 @@ const ImageWithSizeCalculation = (props) => {
                 source={{uri: props.url}}
                 isAuthTokenRequired={props.isAuthTokenRequired}
                 resizeMode={Image.resizeMode.contain}
-                onLoadStart={() => onLoadStart}
-                onLoadEnd={() => onLoadEnd}
+                onLoadStart={() => {
+                    isLoading.current = true;
+                }}
+                onLoadEnd={() => {
+                    isLoading.current = false;
+                }}
                 onError={() => Log.hmmm('Unable to fetch image to calculate size', {url: props.url})}
                 onLoad={event => onLoad(event)}
             />
-            {isLoading && (
+            {isLoading.current && (
                 <FullscreenLoadingIndicator
                     style={[styles.opacity1, styles.bgTransparent]}
                 />
