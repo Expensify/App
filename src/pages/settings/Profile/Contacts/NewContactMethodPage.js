@@ -76,13 +76,14 @@ function NewContactMethodPage(props) {
     }, [login, password, props.betas]);
 
     const submitForm = useCallback(() => {
+        const phoneLogin = LoginUtils.appendCountryCode(LoginUtils.getPhoneNumberWithoutSpecialChars(login));
+        const parsedPhoneNumber = parsePhoneNumber(phoneLogin);
+
         // If this login already exists, just go back.
         if (lodashGet(props.loginList, login)) {
             Navigation.navigate(ROUTES.SETTINGS_CONTACT_METHODS);
             return;
         }
-        const phoneLogin = LoginUtils.appendCountryCode(LoginUtils.getPhoneNumberWithoutSpecialChars(login));
-        const parsedPhoneNumber = parsePhoneNumber(phoneLogin);
 
         User.addNewContactMethodAndNavigate(parsedPhoneNumber.possible ? parsedPhoneNumber.number.e164 : login, password);
     }, [login, props.loginList, password]);
