@@ -1469,6 +1469,7 @@ const styles = {
     chatItemComposeBox: {
         backgroundColor: themeColors.componentBG,
         borderWidth: 1,
+        boxSizing: 'border-box',
         borderRadius: variables.componentBorderRadiusRounded,
         minHeight: variables.componentSizeNormal,
     },
