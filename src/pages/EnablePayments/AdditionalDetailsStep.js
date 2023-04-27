@@ -4,7 +4,6 @@ import PropTypes from 'prop-types';
 import {withOnyx} from 'react-native-onyx';
 import {View} from 'react-native';
 import moment from 'moment/moment';
-import {parsePhoneNumber} from 'awesome-phonenumber';
 import IdologyQuestions from './IdologyQuestions';
 import ScreenWrapper from '../../components/ScreenWrapper';
 import HeaderWithCloseButton from '../../components/HeaderWithCloseButton';
@@ -19,6 +18,7 @@ import TextLink from '../../components/TextLink';
 import TextInput from '../../components/TextInput';
 import * as Wallet from '../../libs/actions/Wallet';
 import * as ValidationUtils from '../../libs/ValidationUtils';
+import * as LoginUtils from '../../libs/LoginUtils';
 import * as ErrorUtils from '../../libs/ErrorUtils';
 import AddressForm from '../ReimbursementAccount/AddressForm';
 import DatePicker from '../../components/DatePicker';
@@ -173,7 +173,7 @@ class AdditionalDetailsStep extends React.Component {
      */
     activateWallet(values) {
         const personalDetails = {
-            phoneNumber: parsePhoneNumber(values[INPUT_IDS.PHONE_NUMBER], {regionCode: CONST.COUNTRY.US}).number.significant,
+            phoneNumber: LoginUtils.getPhoneNumberWithoutUSCountryCodeAndSpecialChars(values[INPUT_IDS.PHONE_NUMBER]),
             legalFirstName: values[INPUT_IDS.LEGAL_FIRST_NAME],
             legalLastName: values[INPUT_IDS.LEGAL_LAST_NAME],
             addressStreet: values[INPUT_IDS.ADDRESS.street],
