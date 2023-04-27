@@ -27,6 +27,7 @@ const propTypes = {
 const RoomNamePage = (props) => {
     const report = props.report;
     const translate = props.translate;
+
     const validate = useCallback((values) => {
         const errors = {};
         if (_.isEmpty(values.roomName)) {
@@ -55,6 +56,7 @@ const RoomNamePage = (props) => {
                     <TextInput
                         inputID="roomName"
                         name="name"
+                        autoFocus
                         prefixCharacter={CONST.POLICY.ROOM_PREFIX}
                         label={translate('newRoomPage.roomName')}
                         defaultValue={report.reportName.substring(1)}
