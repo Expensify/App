@@ -119,6 +119,16 @@ function isIOUReport(report) {
 }
 
 /**
+ * Checks if a report is an IOU or expense report.
+ *
+ * @param {Object} report
+ * @returns {Boolean}
+ */
+function isMoneyRequestReport(report) {
+    return isIOUReport(report) || isExpenseReport(report);
+}
+
+/**
  * Given a collection of reports returns them sorted by last read
  *
  * @param {Object} reports
@@ -1781,6 +1791,7 @@ export {
     getDisplayNameForParticipant,
     isExpenseReport,
     isIOUReport,
+    isMoneyRequestReport,
     chatIncludesChronos,
     getAvatar,
     isDefaultAvatar,

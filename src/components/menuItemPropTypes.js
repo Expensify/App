@@ -88,6 +88,18 @@ const propTypes = {
 
     /** Prop to identify if we should load avatars vertically instead of diagonally */
     shouldStackHorizontally: PropTypes.bool,
+
+    /** The function that should be called when this component is LongPressed or right-clicked. */
+    onSecondaryInteraction: PropTypes.func,
+
+    /** Flag to indicate whether or not text selection should be disabled from long-pressing the menu item. */
+    shouldBlockSelection: PropTypes.bool,
+
+    /** The ref to the menu item */
+    forwardedRef: PropTypes.oneOfType([
+        PropTypes.func,
+        PropTypes.object,
+    ]),
 };
 
 export default propTypes;
