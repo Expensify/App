@@ -34,10 +34,12 @@ class PronounsPage extends Component {
         this.loadPronouns = this.loadPronouns.bind(this);
         this.onChangeText = this.onChangeText.bind(this);
         this.getFilteredPronouns = this.getFilteredPronouns.bind(this);
+        this.updatePronouns = this.updatePronouns.bind(this);
+        this.initiallyFocusedOption = {};
 
         this.loadPronouns();
         this.state = {
-            searchValue: '',
+            searchValue: this.initiallyFocusedOption.text || '',
         };
     }
 
@@ -79,29 +81,39 @@ class PronounsPage extends Component {
     loadPronouns() {
         const currentPronouns = lodashGet(this.props.currentUserPersonalDetails, 'pronouns', '');
 
-        this.pronounsList = _.map(this.props.translate('pronouns'), (value, key) => {
-            const fullPronounKey = `${CONST.PRONOUNS.PREFIX}${key}`;
-            const isCurrentPronouns = fullPronounKey === currentPronouns;
+        this.pronounsList = _.chain(this.props.translate('pronouns'))
+            .map((value, key) => {
+                const fullPronounKey = `${CONST.PRONOUNS.PREFIX}${key}`;
+                const isCurrentPronouns = fullPronounKey === currentPronouns;
 
-            return {
-                text: value,
-                value: fullPronounKey,
-                keyForList: key,
+                if (isCurrentPronouns) {
+                    this.initiallyFocusedOption = {
+                        text: value,
+                        keyForList: key,
+                    };
+                }
 
-                // Include the green checkmark icon to indicate the currently selected value
-                customIcon: isCurrentPronouns ? greenCheckmark : undefined,
+                return {
+                    text: value,
+                    value: fullPronounKey,
+                    keyForList: key,
 
-                // This property will make the currently selected value have bold text
-                boldStyle: isCurrentPronouns,
-            };
-        });
+                    // Include the green checkmark icon to indicate the currently selected value
+                    customIcon: isCurrentPronouns ? greenCheckmark : undefined,
+
+                    // This property will make the currently selected value have bold text
+                    boldStyle: isCurrentPronouns,
+                };
+            })
+            .sortBy(pronoun => pronoun.text.toLowerCase())
+            .value();
     }
 
     /**
      * @param {Object} selectedPronouns
      */
     updatePronouns(selectedPronouns) {
-        PersonalDetails.updatePronouns(selectedPronouns.value);
+        PersonalDetails.updatePronouns(selectedPronouns.keyForList === this.initiallyFocusedOption.keyForList ? '' : lodashGet(selectedPronouns, 'value', ''));
     }
 
     render() {
@@ -125,7 +137,7 @@ class PronounsPage extends Component {
                             textInputLabel={this.props.translate('pronounsPage.pronouns')}
                             placeholderText={this.props.translate('pronounsPage.placeholderText')}
                             headerMessage={headerMessage}
-                            sections={[{data: filteredPronounsList}]}
+                            sections={[{data: filteredPronounsList, indexOffset: 0}]}
                             value={this.state.searchValue}
                             onSelectRow={this.updatePronouns}
                             onChangeText={this.onChangeText}
@@ -133,6 +145,7 @@ class PronounsPage extends Component {
                             safeAreaPaddingBottomStyle={safeAreaPaddingBottomStyle}
                             shouldFocusOnSelectRow
                             shouldHaveOptionSeparator
+                            initiallyFocusedOptionKey={this.initiallyFocusedOption.keyForList}
                         />
                     </>
                 )}

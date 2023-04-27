@@ -15,6 +15,7 @@ import {policyPropTypes} from '../pages/workspace/withPolicy';
 import walletTermsPropTypes from '../pages/EnablePayments/walletTermsPropTypes';
 import * as PolicyUtils from '../libs/PolicyUtils';
 import * as PaymentMethods from '../libs/actions/PaymentMethods';
+import * as ReimbursementAccountProps from '../pages/ReimbursementAccount/reimbursementAccountPropTypes';
 import * as ReportUtils from '../libs/ReportUtils';
 import * as UserUtils from '../libs/UserUtils';
 import themeColors from '../styles/themes/default';
@@ -43,6 +44,9 @@ const propTypes = {
     /** The user's wallet (coming from Onyx) */
     userWallet: userWalletPropTypes,
 
+    /** Bank account attached to free plan */
+    reimbursementAccount: ReimbursementAccountProps.reimbursementAccountPropTypes,
+
     /** Information about the user accepting the terms for payments */
     walletTerms: walletTermsPropTypes,
 
@@ -58,6 +62,7 @@ const propTypes = {
 
 const defaultProps = {
     tooltipText: '',
+    reimbursementAccount: {},
     policiesMemberList: {},
     policies: {},
     bankAccountList: {},
@@ -82,6 +87,7 @@ const AvatarWithIndicator = (props) => {
         () => _.some(cleanPolicies, PolicyUtils.hasPolicyError),
         () => _.some(cleanPolicies, PolicyUtils.hasCustomUnitsError),
         () => _.some(cleanPolicyMembers, PolicyUtils.hasPolicyMemberError),
+        () => !_.isEmpty(props.reimbursementAccount.errors),
         () => UserUtils.hasLoginListError(props.loginList),
 
         // Wallet term errors that are not caused by an IOU (we show the red brick indicator for those in the LHN instead)
@@ -125,6 +131,9 @@ export default withOnyx({
     },
     bankAccountList: {
         key: ONYXKEYS.BANK_ACCOUNT_LIST,
+    },
+    reimbursementAccount: {
+        key: ONYXKEYS.REIMBURSEMENT_ACCOUNT,
     },
     cardList: {
         key: ONYXKEYS.CARD_LIST,

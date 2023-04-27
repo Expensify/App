@@ -70,13 +70,20 @@ class YearPickerPage extends React.Component {
      * @param {String} text
      */
     filterYearList(text) {
-        this.setState({
-            inputText: text,
-            yearOptions: _.filter(this.yearList, year => year.text.includes(text.trim())),
+        const searchText = text.replace(CONST.REGEX.NON_NUMERIC, '');
+        this.setState((prevState) => {
+            if (searchText === prevState.inputText) {
+                return {};
+            }
+            return {
+                inputText: searchText,
+                yearOptions: _.filter(this.yearList, year => year.text.includes(searchText)),
+            };
         });
     }
 
     render() {
+        const headerMessage = this.state.inputText.trim() && !this.state.yearOptions.length ? this.props.translate('common.noResultsFound') : '';
         return (
             <ScreenWrapper includeSafeAreaPaddingBottom={false}>
                 <HeaderWithCloseButton
@@ -93,6 +100,7 @@ class YearPickerPage extends React.Component {
                     value={this.state.inputText}
                     sections={[{data: this.state.yearOptions, indexOffset: 0}]}
                     onSelectRow={option => this.updateSelectedYear(option.value)}
+                    headerMessage={headerMessage}
                     initiallyFocusedOptionKey={this.currentYear.toString()}
                     hideSectionHeaders
                     optionHoveredStyle={styles.hoveredComponentBG}

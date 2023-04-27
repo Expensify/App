@@ -66,8 +66,12 @@ class ACHContractStep extends React.Component {
                     }
                 });
 
-                if (values[`beneficialOwner_${ownerKey}_dob`] && !ValidationUtils.meetsAgeRequirements(values[`beneficialOwner_${ownerKey}_dob`])) {
-                    errors[`beneficialOwner_${ownerKey}_dob`] = this.props.translate('bankAccount.error.age');
+                if (values[`beneficialOwner_${ownerKey}_dob`]) {
+                    if (!ValidationUtils.meetsMinimumAgeRequirement(values[`beneficialOwner_${ownerKey}_dob`])) {
+                        errors[`beneficialOwner_${ownerKey}_dob`] = this.props.translate('bankAccount.error.age');
+                    } else if (!ValidationUtils.meetsMaximumAgeRequirement(values[`beneficialOwner_${ownerKey}_dob`])) {
+                        errors[`beneficialOwner_${ownerKey}_dob`] = this.props.translate('bankAccount.error.dob');
+                    }
                 }
 
                 if (values[`beneficialOwner_${ownerKey}_ssnLast4`] && !ValidationUtils.isValidSSNLastFour(values[`beneficialOwner_${ownerKey}_ssnLast4`])) {
@@ -218,7 +222,7 @@ class ACHContractStep extends React.Component {
                                 defaultValue={this.props.getDefaultStateForField('hasOtherBeneficialOwners', false)}
                                 shouldSaveDraft
                             />
-                            {inputValues.hasOtherBeneficialOwners && (
+                            {Boolean(inputValues.hasOtherBeneficialOwners) && (
                                 <View style={[styles.mb2]}>
                                     {_.map(this.state.beneficialOwners, (ownerKey, index) => (
                                         <View key={index} style={[styles.p5, styles.border, styles.mb2]}>

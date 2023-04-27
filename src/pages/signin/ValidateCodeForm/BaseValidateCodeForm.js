@@ -61,7 +61,7 @@ const propTypes = {
 const defaultProps = {
     account: {},
     credentials: {},
-    preferredLocale: CONST.DEFAULT_LOCALE,
+    preferredLocale: CONST.LOCALES.DEFAULT,
 };
 
 class BaseValidateCodeForm extends React.Component {
@@ -189,6 +189,7 @@ class BaseValidateCodeForm extends React.Component {
     }
 
     render() {
+        const hasError = Boolean(this.props.account) && !_.isEmpty(this.props.account.errors);
         return (
             <>
                 {/* At this point, if we know the account requires 2FA we already successfully authenticated */}
@@ -206,6 +207,7 @@ class BaseValidateCodeForm extends React.Component {
                             blurOnSubmit={false}
                             maxLength={CONST.TFA_CODE_LENGTH}
                             errorText={this.state.formError.twoFactorAuthCode ? this.props.translate(this.state.formError.twoFactorAuthCode) : ''}
+                            hasError={hasError}
                         />
                     </View>
                 ) : (
@@ -223,12 +225,13 @@ class BaseValidateCodeForm extends React.Component {
                             blurOnSubmit={false}
                             keyboardType={CONST.KEYBOARD_TYPE.NUMBER_PAD}
                             errorText={this.state.formError.validateCode ? this.props.translate(this.state.formError.validateCode) : ''}
+                            hasError={hasError}
                             autoFocus
                         />
                         <View style={[styles.changeExpensifyLoginLinkContainer]}>
                             {this.state.linkSent ? (
                                 <Text style={[styles.mt2]}>
-                                    {this.props.account.message}
+                                    {this.props.account.message ? this.props.translate(this.props.account.message) : ''}
                                 </Text>
                             ) : (
                                 <TouchableOpacity
@@ -245,7 +248,7 @@ class BaseValidateCodeForm extends React.Component {
                     </View>
                 )}
 
-                {this.props.account && !_.isEmpty(this.props.account.errors) && (
+                {hasError && (
                     <FormHelpMessage message={ErrorUtils.getLatestErrorMessage(this.props.account)} />
                 )}
                 <View>
