@@ -103,7 +103,7 @@ const IOUAction = (props) => {
             />
             {shouldShowIOUPreview && (
                 <IOUPreview
-                    iouReportID={props.action.originalMessage.IOUReportID.toString()}
+                    iouReportID={props.requestReportID}
                     chatReportID={props.chatReportID}
                     action={props.action}
                     contextMenuAnchor={props.contextMenuAnchor}
@@ -134,7 +134,7 @@ export default compose(
             key: ({chatReportID}) => `${ONYXKEYS.COLLECTION.REPORT}${chatReportID}`,
         },
         iouReport: {
-            key: ({action}) => `${ONYXKEYS.COLLECTION.REPORT}${action.originalMessage.IOUReportID}`,
+            key: ({requestReportID}) => `${ONYXKEYS.COLLECTION.REPORT}${requestReportID}`,
         },
         reportActions: {
             key: ({chatReportID}) => `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${chatReportID}`,

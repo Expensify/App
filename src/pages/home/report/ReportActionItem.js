@@ -177,15 +177,15 @@ class ReportActionItem extends Component {
 
             let iouReportID = 0;
             if (this.props.action.originalMessage.IOUReportID) {
-                iouReportID = this.props.action.originalMessage.IOUReportID;
+                iouReportID = this.props.action.originalMessage.IOUReportID.toString();
             } else {
-                iouReportID = 1234576;
+                iouReportID = toString(1234576);
             }
 
             children = (
                 <IOUAction
                     chatReportID={this.props.report.reportID}
-                    iouReportID={iouReportID}
+                    requestReportID={iouReportID}
                     action={this.props.action}
                     isMostRecentIOUReportAction={this.props.isMostRecentIOUReportAction}
                     isHovered={hovered}
