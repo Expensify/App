@@ -91,13 +91,16 @@ class IOUCurrencySelection extends Component {
      * @returns {Object}
      */
     getCurrencyOptions() {
-        return _.map(this.props.currencyList, (currencyInfo, currencyCode) => ({
-            text: `${currencyCode} - ${CurrencySymbolUtils.getLocalizedCurrencySymbol(this.props.preferredLocale, currencyCode)}`,
-            currencyCode,
-            keyForList: currencyCode,
-            customIcon: currencyCode === this.props.iou.selectedCurrencyCode ? greenCheckmark : undefined,
-            boldStyle: currencyCode === this.props.iou.selectedCurrencyCode,
-        }));
+        return _.map(this.props.currencyList, (currencyInfo, currencyCode) => {
+            const isSelectedCurrency = currencyCode === this.props.iou.selectedCurrencyCode;
+            return {
+                text: `${currencyCode} - ${CurrencySymbolUtils.getLocalizedCurrencySymbol(this.props.preferredLocale, currencyCode)}`,
+                currencyCode,
+                keyForList: currencyCode,
+                customIcon: isSelectedCurrency ? greenCheckmark : undefined,
+                boldStyle: isSelectedCurrency,
+            };
+        });
     }
 
     /**
@@ -145,7 +148,7 @@ class IOUCurrencySelection extends Component {
                             placeholderText={this.props.translate('common.search')}
                             headerMessage={headerMessage}
                             safeAreaPaddingBottomStyle={safeAreaPaddingBottomStyle}
-                            initiallyFocusedOptionKey={_.get(_.find(this.state.currencyData, crc => crc.currencyCode === this.props.iou.selectedCurrencyCode), 'keyForList')}
+                            initiallyFocusedOptionKey={_.get(_.find(this.state.currencyData, currency => currency.currencyCode === this.props.iou.selectedCurrencyCode), 'keyForList')}
                         />
                     </>
                 )}
