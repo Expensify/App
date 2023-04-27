@@ -146,7 +146,7 @@ const GenericPressable = forwardRef((props, ref) => {
             // eslint-disable-next-line react/jsx-props-no-spreading
             {...rest}
         >
-            {state => (_.isFunction(props.children) ? props.children({...state, isScreenReaderActive, isDisabled}) : props.children) }
+            {state => (_.isFunction(props.children) ? props.children({...state, isScreenReaderActive, isDisabled}) : props.children)}
         </Pressable>
     );
 });
