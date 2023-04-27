@@ -2239,21 +2239,18 @@ const styles = {
         ...cursor.cursorUnset,
     },
 
-    leftAttachmentArrow: {
+    attachmentArrow: {
         zIndex: 23,
         position: 'absolute',
-        left: 32,
-    },
-
-    rightAttachmentArrow: {
-        zIndex: 23,
-        position: 'absolute',
-        right: 32,
     },
 
     arrowIcon: {
-        height: 52,
-        width: 52,
+        height: 40,
+        width: 40,
+        alignItems: 'center',
+        paddingHorizontal: 0,
+        paddingTop: 0,
+        paddingBottom: 0,
     },
 
     detailsPageSectionVersion: {
@@ -2503,6 +2500,14 @@ const styles = {
     noSelect: {
         boxShadow: 'none',
         outline: 'none',
+    },
+
+    cursorPointer: {
+        cursor: 'pointer',
+    },
+
+    cursorText: {
+        cursor: 'text',
     },
 
     fullscreenCard: {
