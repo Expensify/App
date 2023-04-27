@@ -8,6 +8,7 @@ import {withOnyx} from 'react-native-onyx';
 import {compose} from 'underscore';
 import lodashGet from 'lodash/get';
 import Str from 'expensify-common/lib/str';
+import {parsePhoneNumber} from 'awesome-phonenumber';
 import Button from '../../../../components/Button';
 import FixedFooter from '../../../../components/FixedFooter';
 import HeaderWithCloseButton from '../../../../components/HeaderWithCloseButton';
@@ -68,10 +69,10 @@ function NewContactMethodPage(props) {
     }, []);
 
     const isFormValid = useMemo(() => {
-        const phoneLogin = LoginUtils.getPhoneNumberWithoutSpecialChars(login);
+        const phoneLogin = LoginUtils.appendCountryCode(LoginUtils.getPhoneNumberWithoutSpecialChars(login));
 
         return (Permissions.canUsePasswordlessLogins(props.betas) || password)
-            && (Str.isValidEmail(login) || Str.isValidPhone(phoneLogin));
+            && (Str.isValidEmail(login) || parsePhoneNumber(phoneLogin).possible);
     }, [login, password, props.betas]);
 
     const submitForm = useCallback(() => {
