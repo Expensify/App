@@ -109,6 +109,7 @@ import Podcast from '../../../assets/images/social-podcast.svg';
 import Linkedin from '../../../assets/images/social-linkedin.svg';
 import Instagram from '../../../assets/images/social-instagram.svg';
 import AddReaction from '../../../assets/images/add-reaction.svg';
+import Task from '../../../assets/images/task.svg';
 
 export {
     ActiveRoomAvatar,
@@ -204,6 +205,7 @@ export {
     Send,
     Shield,
     Sync,
+    Task,
     ThreeDots,
     Transfer,
     Trashcan,

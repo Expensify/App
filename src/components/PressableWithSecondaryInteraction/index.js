@@ -50,7 +50,7 @@ class PressableWithSecondaryInteraction extends Component {
         }
 
         e.stopPropagation();
-        if (this.props.preventDefaultContentMenu) {
+        if (this.props.preventDefaultContextMenu) {
             e.preventDefault();
         }
 
