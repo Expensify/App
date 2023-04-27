@@ -23,6 +23,7 @@ import * as ReportUtils from '../../libs/ReportUtils';
 import ROUTES from '../../ROUTES';
 import * as Localize from '../../libs/Localize';
 import Form from '../../components/Form';
+import FullPageNotFoundView from '../../components/BlockingViews/FullPageNotFoundView';
 
 const personalDetailsPropTypes = PropTypes.shape({
     /** The login of the person (either email or phone number) */
@@ -66,7 +67,7 @@ class WorkspaceInviteMessagePage extends React.Component {
     constructor(props) {
         super(props);
 
-        this.onSubmit = this.onSubmit.bind(this);
+        this.sendInvitation = this.sendInvitation.bind(this);
         this.validate = this.validate.bind(this);
         this.openPrivacyURL = this.openPrivacyURL.bind(this);
         this.state = {
@@ -85,7 +86,7 @@ class WorkspaceInviteMessagePage extends React.Component {
         this.setState({welcomeNote: this.getWelcomeNote()});
     }
 
-    onSubmit() {
+    sendInvitation() {
         Policy.addMembersToWorkspace(this.props.invitedMembersDraft, this.state.welcomeNote || this.getWelcomeNote(), this.props.route.params.policyID);
         Policy.setWorkspaceInviteMembersDraft(this.props.route.params.policyID, []);
         Navigation.navigate(ROUTES.getWorkspaceMembersRoute(this.props.route.params.policyID));
@@ -135,6 +136,10 @@ class WorkspaceInviteMessagePage extends React.Component {
 
         return (
             <ScreenWrapper includeSafeAreaPaddingBottom={false}>
+                <FullPageNotFoundView
+                    shouldShow={_.isEmpty(this.props.policy)}
+                    onBackButtonPress={() => Navigation.navigate(ROUTES.SETTINGS_WORKSPACES)}
+                >
                 <HeaderWithCloseButton
                     title={this.props.translate('workspace.inviteMessage.inviteMessageTitle')}
                     subtitle={policyName}
@@ -148,7 +153,7 @@ class WorkspaceInviteMessagePage extends React.Component {
                     style={[styles.flexGrow1, styles.ph5]}
                     formID={ONYXKEYS.FORMS.WORKSPACE_INVITE_MESSAGE_FORM}
                     validate={this.validate}
-                    onSubmit={this.onSubmit}
+                    onSubmit={this.sendInvitation}
                     submitButtonText={this.props.translate('common.invite')}
                     enabledWhenOffline
                     footerContent={
@@ -200,6 +205,7 @@ class WorkspaceInviteMessagePage extends React.Component {
                         />
                     </View>
                 </Form>
+                </FullPageNotFoundView>
             </ScreenWrapper>
         );
     }
