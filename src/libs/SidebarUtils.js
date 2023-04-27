@@ -1,13 +1,16 @@
 import Onyx from 'react-native-onyx';
 import _ from 'underscore';
+import lodashGet from 'lodash/get';
 import lodashOrderBy from 'lodash/orderBy';
 import Str from 'expensify-common/lib/str';
 import ONYXKEYS from '../ONYXKEYS';
 import * as ReportUtils from './ReportUtils';
+import * as ReportActionsUtils from './ReportActionsUtils';
 import * as Localize from './Localize';
 import CONST from '../CONST';
 import * as OptionsListUtils from './OptionsListUtils';
 import * as CollectionUtils from './CollectionUtils';
+import * as LocalePhoneNumber from './LocalePhoneNumber';
 
 // Note: It is very important that the keys subscribed to here are the same
 // keys that are connected to SidebarLinks withOnyx(). If there was a key missing from SidebarLinks and it's data was updated
@@ -51,6 +54,7 @@ Onyx.connect({
     callback: val => betas = val,
 });
 
+const visibleReportActionItems = {};
 const lastReportActions = {};
 const reportActions = {};
 Onyx.connect({
@@ -60,7 +64,16 @@ Onyx.connect({
             return;
         }
         const reportID = CollectionUtils.extractCollectionItemID(key);
-        lastReportActions[reportID] = _.last(_.toArray(actions));
+
+        const actionsArray = _.toArray(actions);
+        lastReportActions[reportID] = _.last(actionsArray);
+
+        // The report is only visible if it is the last action not deleted that
+        // does not match a closed or created state.
+        const reportActionsForDisplay = _.filter(actionsArray, (reportAction, actionKey) => (ReportActionsUtils.shouldReportActionBeVisible(reportAction, actionKey)
+            && (reportAction.actionName !== CONST.REPORT.ACTIONS.TYPE.CREATED)));
+        visibleReportActionItems[reportID] = _.first(ReportActionsUtils.getSortedReportActions(reportActionsForDisplay, true));
+
         reportActions[key] = actions;
     },
 });
@@ -81,7 +94,7 @@ Onyx.connect({
 let preferredLocale;
 Onyx.connect({
     key: ONYXKEYS.NVP_PREFERRED_LOCALE,
-    callback: val => preferredLocale = val || CONST.DEFAULT_LOCALE,
+    callback: val => preferredLocale = val || CONST.LOCALES.DEFAULT,
 });
 
 /**
@@ -239,6 +252,9 @@ function getOptionData(reportID) {
     const hasMultipleParticipants = participantPersonalDetailList.length > 1 || result.isChatRoom || result.isPolicyExpenseChat;
     const subtitle = ReportUtils.getChatRoomSubtitle(report, policies);
 
+    const login = Str.removeSMSDomain(lodashGet(personalDetail, 'login', ''));
+    const formattedLogin = Str.isSMSLogin(login) ? LocalePhoneNumber.formatPhoneNumber(login) : login;
+
     // We only create tooltips for the first 10 users or so since some reports have hundreds of users, causing performance to degrade.
     const displayNamesWithTooltips = ReportUtils.getDisplayNamesWithTooltips((participantPersonalDetailList || []).slice(0, 10), hasMultipleParticipants);
 
@@ -246,10 +262,20 @@ function getOptionData(reportID) {
     if (ReportUtils.isReportMessageAttachment({text: report.lastMessageText, html: report.lastMessageHtml})) {
         lastMessageTextFromReport = `[${Localize.translateLocal('common.attachment')}]`;
     } else {
-        lastMessageTextFromReport = Str.htmlDecode(report ? report.lastMessageText : '');
+        lastMessageTextFromReport = report ? report.lastMessageText || '' : '';
     }
 
-    const lastActorDetails = personalDetails[report.lastActorEmail] || null;
+    // If the last actor's details are not currently saved in Onyx Collection,
+    // then try to get that from the last report action if that action is valid
+    // to get data from.
+    let lastActorDetails = personalDetails[report.lastActorEmail] || null;
+    if (!lastActorDetails && visibleReportActionItems[report.reportID]) {
+        const lastActorDisplayName = lodashGet(visibleReportActionItems[report.reportID], 'person[0].text');
+        lastActorDetails = lastActorDisplayName ? {
+            displayName: lastActorDisplayName,
+            login: report.lastActorEmail,
+        } : null;
+    }
     let lastMessageText = hasMultipleParticipants && lastActorDetails && (lastActorDetails.login !== currentUserLogin.email)
         ? `${lastActorDetails.displayName}: `
         : '';
@@ -265,9 +291,9 @@ function getOptionData(reportID) {
     }
 
     if (result.isChatRoom || result.isPolicyExpenseChat) {
-        result.alternateText = lastMessageText || subtitle;
+        result.alternateText = lastMessageTextFromReport.length > 0 ? lastMessageText : Localize.translate(preferredLocale, 'report.noActivityYet');
     } else {
-        if (hasMultipleParticipants && !lastMessageText) {
+        if (!lastMessageText) {
             // Here we get the beginning of chat history message and append the display name for each user, adding pronouns if there are any.
             // We also add a fullstop after the final name, the word "and" before the final name and commas between all previous names.
             lastMessageText = Localize.translate(preferredLocale, 'reportActionsView.beginningOfChatHistory')
@@ -280,7 +306,7 @@ function getOptionData(reportID) {
                 }).join(' ');
         }
 
-        result.alternateText = lastMessageText || Str.removeSMSDomain(personalDetail.login);
+        result.alternateText = lastMessageText || formattedLogin;
     }
 
     result.isIOUReportOwner = ReportUtils.isIOUOwnedByCurrentUser(result, iouReports);

@@ -29,13 +29,13 @@ const propTypes = {
     forwardedRef: PropTypes.func,
 
     /** Stores user's preferred skin tone */
-    preferredSkinTone: PropTypes.oneOfType([PropTypes.number, PropTypes.string]).isRequired,
+    preferredSkinTone: PropTypes.oneOfType([PropTypes.number, PropTypes.string]),
 
     /** User's frequently used emojis */
     frequentlyUsedEmojis: PropTypes.arrayOf(PropTypes.shape({
         code: PropTypes.string.isRequired,
         keywords: PropTypes.arrayOf(PropTypes.string),
-    })).isRequired,
+    })),
 
     /** Props related to the dimensions of the window */
     ...windowDimensionsPropTypes,
@@ -45,6 +45,8 @@ const propTypes = {
 
 const defaultProps = {
     forwardedRef: () => {},
+    preferredSkinTone: CONST.EMOJI_DEFAULT_SKIN_TONE,
+    frequentlyUsedEmojis: [],
 };
 
 class EmojiPickerMenu extends Component {
@@ -163,6 +165,15 @@ class EmojiPickerMenu extends Component {
                 }
                 const emoji = lodashGet(item, ['types', this.props.preferredSkinTone], item.code);
                 this.addToFrequentAndSelectEmoji(emoji, item);
+                return;
+            }
+
+            // Enable keyboard movement if tab or enter is pressed or if shift is pressed while the input
+            // is not focused, so that the navigation and tab cycling can be done using the keyboard without
+            // interfering with the input behaviour.
+            if (keyBoardEvent.key === 'Tab' || keyBoardEvent.key === 'Enter'
+                || (keyBoardEvent.key === 'Shift' && this.searchInput && !this.searchInput.isFocused())) {
+                this.setState({isUsingKeyboardMovement: true});
                 return;
             }
 
@@ -381,7 +392,7 @@ class EmojiPickerMenu extends Component {
      * @param {String} searchTerm
      */
     filterEmojis(searchTerm) {
-        const normalizedSearchTerm = searchTerm.toLowerCase().trim();
+        const normalizedSearchTerm = searchTerm.toLowerCase().trim().replaceAll(':', '');
         if (this.emojiList) {
             this.emojiList.scrollToOffset({offset: 0, animated: false});
         }
@@ -451,6 +462,8 @@ class EmojiPickerMenu extends Component {
             ? types[this.props.preferredSkinTone]
             : code;
 
+        const isEmojiFocused = index === this.state.highlightedIndex && this.state.isUsingKeyboardMovement;
+
         return (
             <EmojiPickerMenuItem
                 onPress={emoji => this.addToFrequentAndSelectEmoji(emoji, item)}
@@ -462,6 +475,13 @@ class EmojiPickerMenu extends Component {
                     this.setState({highlightedIndex: -1});
                 }}
                 emoji={emojiCode}
+                onFocus={() => this.setState({highlightedIndex: index})}
+                onBlur={() => this.setState(prevState => ({
+                    // Only clear the highlighted index if the highlighted index is the same,
+                    // meaning that the focus changed to an element that is not an emoji item.
+                    highlightedIndex: prevState.highlightedIndex === index ? -1 : prevState.highlightedIndex,
+                }))}
+                isFocused={isEmojiFocused}
                 isHighlighted={index === this.state.highlightedIndex}
                 isUsingKeyboardMovement={this.state.isUsingKeyboardMovement}
             />
@@ -476,7 +496,7 @@ class EmojiPickerMenu extends Component {
                 pointerEvents={this.state.arePointerEventsDisabled ? 'none' : 'auto'}
             >
                 {!this.props.isSmallScreenWidth && (
-                    <View style={[styles.ph4, styles.pb1, styles.pt2]}>
+                    <View style={[styles.ph4, styles.pb2, styles.pt2]}>
                         <TextInput
                             label={this.props.translate('common.search')}
                             onChangeText={this.filterEmojis}
@@ -502,9 +522,8 @@ class EmojiPickerMenu extends Component {
                             style={[
                                 styles.disabledText,
                                 styles.emojiPickerList,
-                                styles.dFlex,
-                                styles.alignItemsCenter,
-                                styles.justifyContentCenter,
+                                styles.textLabel,
+                                styles.colorMuted,
                                 this.isMobileLandscape() && styles.emojiPickerListLandscape,
                             ]}
                         >

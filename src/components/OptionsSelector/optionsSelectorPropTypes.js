@@ -28,10 +28,16 @@ const propTypes = {
     value: PropTypes.string.isRequired,
 
     /** Callback fired when text changes */
-    onChangeText: PropTypes.func.isRequired,
+    onChangeText: PropTypes.func,
+
+    /** Limits the maximum number of characters that can be entered in input field */
+    maxLength: PropTypes.number,
 
     /** Label to display for the text input */
     textInputLabel: PropTypes.string,
+
+    /** Optional keyboard type for the input */
+    keyboardType: PropTypes.string,
 
     /** Optional placeholder text for the selector */
     placeholderText: PropTypes.string,
@@ -78,6 +84,9 @@ const propTypes = {
     /** If true, the text input will be below the options in the selector, not above. */
     shouldTextInputAppearBelowOptions: PropTypes.bool,
 
+    /** If false, the text input will not be shown at all. Defaults to true */
+    shouldShowTextInput: PropTypes.bool,
+
     /** Custom content to display in the footer instead of the default button. */
     footerContent: PropTypes.oneOfType([PropTypes.func, PropTypes.node]),
 
@@ -98,6 +107,7 @@ const defaultProps = {
     onSelectRow: () => {},
     textInputLabel: '',
     placeholderText: '',
+    keyboardType: 'default',
     selectedOptions: [],
     headerMessage: '',
     canSelectMultipleOptions: false,
@@ -117,6 +127,9 @@ const defaultProps = {
     isDisabled: false,
     shouldHaveOptionSeparator: false,
     initiallyFocusedOptionKey: undefined,
+    maxLength: undefined,
+    shouldShowTextInput: true,
+    onChangeText: () => {},
 };
 
 export {propTypes, defaultProps};

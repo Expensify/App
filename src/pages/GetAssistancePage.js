@@ -27,7 +27,19 @@ const propTypes = {
         }),
     }).isRequired,
 
+    /** The details about the account that the user is signing in with */
+    account: PropTypes.shape({
+        /** URL to the assigned guide's appointment booking calendar */
+        guideCalendarLink: PropTypes.string,
+    }),
+
     ...withLocalizePropTypes,
+};
+
+const defaultProps = {
+    account: {
+        guideCalendarLink: null,
+    },
 };
 
 const GetAssistancePage = (props) => {
@@ -45,6 +57,7 @@ const GetAssistancePage = (props) => {
         shouldShowRightIcon: true,
         iconRight: Expensicons.NewWindow,
         wrapperStyle: [styles.cardMenuItem],
+        link: CONST.NEWHELP_URL,
     }];
 
     // If the user is eligible for calls with their Guide, add the 'Schedule a setup call' item at the second position in the list
@@ -84,6 +97,7 @@ const GetAssistancePage = (props) => {
 };
 
 GetAssistancePage.propTypes = propTypes;
+GetAssistancePage.defaultProps = defaultProps;
 GetAssistancePage.displayName = 'GetAssistancePage';
 
 export default compose(

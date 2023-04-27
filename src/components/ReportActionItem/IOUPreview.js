@@ -1,7 +1,7 @@
 import React from 'react';
 import {
     View,
-    TouchableWithoutFeedback,
+    Pressable,
 } from 'react-native';
 import PropTypes from 'prop-types';
 import Str from 'expensify-common/lib/str';
@@ -87,19 +87,24 @@ const propTypes = {
 
         /** This is either the user's full name, or their login if full name is an empty string */
         displayName: PropTypes.string.isRequired,
-    })).isRequired,
+    })),
 
     /** Session info for the currently logged in user. */
     session: PropTypes.shape({
         /** Currently logged in user email */
         email: PropTypes.string,
-    }).isRequired,
+    }),
 
     /** Information about the user accepting the terms for payments */
     walletTerms: walletTermsPropTypes,
 
     /** Pending action, if any */
     pendingAction: PropTypes.oneOf(_.values(CONST.RED_BRICK_ROAD_PENDING_ACTION)),
+
+    /** Whether or not an IOU report contains money requests in a different currency
+     * that are either created or cancelled offline, and thus haven't been converted to the report's currency yet
+    */
+    shouldShowPendingConversionMessage: PropTypes.bool,
 
     ...withLocalizePropTypes,
 };
@@ -108,7 +113,7 @@ const defaultProps = {
     iouReport: {},
     shouldHidePayButton: false,
     onPayButtonPressed: null,
-    onPreviewPressed: () => {},
+    onPreviewPressed: null,
     action: undefined,
     contextMenuAnchor: undefined,
     checkIfContextMenuActive: () => {},
@@ -116,6 +121,11 @@ const defaultProps = {
     walletTerms: {},
     pendingAction: null,
     isHovered: false,
+    personalDetails: {},
+    session: {
+        email: null,
+    },
+    shouldShowPendingConversionMessage: false,
 };
 
 const IOUPreview = (props) => {
@@ -169,88 +179,96 @@ const IOUPreview = (props) => {
         );
     };
 
+    const childContainer = (
+        <View>
+            <OfflineWithFeedback
+                pendingAction={props.pendingAction}
+                errors={props.walletTerms.errors}
+                onClose={() => {
+                    PaymentMethods.clearWalletTermsError();
+                    Report.clearIOUError(props.chatReportID);
+                }}
+                errorRowStyles={[styles.mbn1]}
+                needsOffscreenAlphaCompositing
+            >
+                <View style={[styles.iouPreviewBox, ...props.containerStyles]}>
+                    <View style={[styles.flexRow]}>
+                        <View style={[styles.flex1, styles.flexRow, styles.alignItemsCenter]}>
+                            <Text style={styles.h1}>
+                                {cachedTotal}
+                            </Text>
+                            {!props.iouReport.hasOutstandingIOU && (
+                                <View style={styles.iouPreviewBoxCheckmark}>
+                                    <Icon src={Expensicons.Checkmark} fill={themeColors.iconSuccessFill} />
+                                </View>
+                            )}
+                        </View>
+                        <View style={styles.iouPreviewBoxAvatar}>
+                            <MultipleAvatars
+                                icons={[managerAvatar, ownerAvatar]}
+                                secondAvatarStyle={[
+                                    styles.secondAvatarInline,
+                                    props.isHovered
+                                        ? styles.iouPreviewBoxAvatarHover
+                                        : undefined,
+                                ]}
+                                avatarTooltips={avatarTooltip}
+                            />
+                        </View>
+                    </View>
+                    {isCurrentUserManager
+                        ? (
+                            <Text>
+                                {props.iouReport.hasOutstandingIOU
+                                    ? props.translate('iou.youowe', {owner: ownerName})
+                                    : props.translate('iou.youpaid', {owner: ownerName})}
+                            </Text>
+                        ) : (
+                            <>
+                                <Text>
+                                    {props.iouReport.hasOutstandingIOU
+                                        ? props.translate('iou.owesyou', {manager: managerName})
+                                        : props.translate('iou.paidyou', {manager: managerName})}
+                                </Text>
+                                {props.shouldShowPendingConversionMessage && (
+                                    <Text style={[styles.textLabel, styles.colorMuted]}>
+                                        {props.translate('iou.pendingConversionMessage')}
+                                    </Text>
+                                )}
+                            </>
+                        )}
+                    {(isCurrentUserManager
+                        && !props.shouldHidePayButton
+                        && props.iouReport.stateNum === CONST.REPORT.STATE_NUM.PROCESSING && (
+                            <Button
+                                style={styles.mt4}
+                                onPress={props.onPayButtonPressed}
+                                onPressIn={() => DeviceCapabilities.canUseTouchScreen() && ControlSelection.block()}
+                                onPressOut={() => ControlSelection.unblock()}
+                                onLongPress={showContextMenu}
+                                text={props.translate('iou.pay')}
+                                success
+                                medium
+                            />
+                    ))}
+                </View>
+            </OfflineWithFeedback>
+        </View>
+    );
+
+    if (!props.onPreviewPressed) {
+        return childContainer;
+    }
+
     return (
-        <TouchableWithoutFeedback
+        <Pressable
             onPress={props.onPreviewPressed}
             onPressIn={() => DeviceCapabilities.canUseTouchScreen() && ControlSelection.block()}
             onPressOut={() => ControlSelection.unblock()}
             onLongPress={showContextMenu}
         >
-            <View style={[styles.iouPreviewBox, ...props.containerStyles]}>
-                <OfflineWithFeedback
-                    pendingAction={props.pendingAction}
-                    errors={props.walletTerms.errors}
-                    onClose={() => {
-                        PaymentMethods.clearWalletTermsError();
-                        Report.clearIOUError(props.chatReportID);
-                    }}
-                    errorRowStyles={[styles.mbn1]}
-                >
-                    <View>
-                        <View style={[styles.flexRow]}>
-                            <View style={[styles.flex1, styles.flexRow, styles.alignItemsCenter]}>
-                                <Text style={styles.h1}>
-                                    {cachedTotal}
-                                </Text>
-                                {!props.iouReport.hasOutstandingIOU && (
-                                    <View style={styles.iouPreviewBoxCheckmark}>
-                                        <Icon src={Expensicons.Checkmark} fill={themeColors.iconSuccessFill} />
-                                    </View>
-                                )}
-                            </View>
-                            <View style={styles.iouPreviewBoxAvatar}>
-                                <MultipleAvatars
-                                    icons={[managerAvatar, ownerAvatar]}
-                                    secondAvatarStyle={[
-                                        styles.secondAvatarInline,
-                                        props.isHovered
-                                            ? styles.iouPreviewBoxAvatarHover
-                                            : undefined,
-                                    ]}
-                                    avatarTooltips={avatarTooltip}
-                                />
-                            </View>
-                        </View>
-                        {isCurrentUserManager
-                            ? (
-                                <Text>
-                                    {props.iouReport.hasOutstandingIOU
-                                        ? props.translate('iou.youowe', {owner: ownerName})
-                                        : props.translate('iou.youpaid', {owner: ownerName})}
-                                </Text>
-                            )
-                            : (
-                                <>
-                                    <Text>
-                                        {props.iouReport.hasOutstandingIOU
-                                            ? props.translate('iou.owesyou', {manager: managerName})
-                                            : props.translate('iou.paidyou', {manager: managerName})}
-                                    </Text>
-                                    {props.shouldShowPendingConversionMessage && (
-                                        <Text style={[styles.textLabel, styles.colorMuted]}>
-                                            {props.translate('iou.pendingConversionMessage')}
-                                        </Text>
-                                    )}
-                                </>
-                            )}
-                        {(isCurrentUserManager
-                            && !props.shouldHidePayButton
-                            && props.iouReport.stateNum === CONST.REPORT.STATE_NUM.PROCESSING && (
-                                <Button
-                                    style={styles.mt4}
-                                    onPress={props.onPayButtonPressed}
-                                    onPressIn={() => DeviceCapabilities.canUseTouchScreen() && ControlSelection.block()}
-                                    onPressOut={() => ControlSelection.unblock()}
-                                    onLongPress={showContextMenu}
-                                    text={props.translate('iou.pay')}
-                                    success
-                                    medium
-                                />
-                        ))}
-                    </View>
-                </OfflineWithFeedback>
-            </View>
-        </TouchableWithoutFeedback>
+            {childContainer}
+        </Pressable>
     );
 };
 

@@ -37,12 +37,16 @@ const propTypes = {
 
     /** React-native-reanimated lib handler which executes when the user is panning image */
     panGestureEventHandler: gestureHandlerPropTypes,
+
+    /** Image crop vector mask */
+    maskImage: PropTypes.func,
 };
 
 const defaultProps = {
     imageUri: '',
     containerSize: 0,
     panGestureEventHandler: () => {},
+    maskImage: Expensicons.ImageCropCircleMask,
 };
 
 const ImageCropView = (props) => {
@@ -71,7 +75,7 @@ const ImageCropView = (props) => {
             <Animated.View ref={ControlSelection.blockElement} style={[containerStyle, styles.imageCropContainer]}>
                 <Animated.Image style={[imageStyle, styles.h100, styles.w100]} source={{uri: props.imageUri}} resizeMode="contain" />
                 <View style={[containerStyle, styles.l0, styles.b0, styles.pAbsolute]}>
-                    <Icon src={Expensicons.ImageCropMask} width={props.containerSize} height={props.containerSize} />
+                    <Icon src={props.maskImage} width={props.containerSize} height={props.containerSize} />
                 </View>
             </Animated.View>
         </PanGestureHandler>

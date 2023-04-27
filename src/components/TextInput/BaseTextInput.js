@@ -209,6 +209,7 @@ class BaseTextInput extends Component {
         // eslint-disable-next-line react/forbid-foreign-prop-types
         const inputProps = _.omit(this.props, _.keys(baseTextInputPropTypes.propTypes));
         const hasLabel = Boolean(this.props.label.length);
+        const isEditable = _.isUndefined(this.props.editable) ? !this.props.disabled : this.props.editable;
         const inputHelpText = this.props.errorText || this.props.hint;
         const placeholder = (this.props.prefixCharacter || this.state.isFocused || !hasLabel || (hasLabel && this.props.forceActiveLabel)) ? this.props.placeholder : null;
         const textInputContainerStyles = _.reduce([
@@ -277,7 +278,11 @@ class BaseTextInput extends Component {
                                     )}
                                     <RNTextInput
                                         ref={(ref) => {
-                                            if (typeof this.props.innerRef === 'function') { this.props.innerRef(ref); }
+                                            if (typeof this.props.innerRef === 'function') {
+                                                this.props.innerRef(ref);
+                                            } else if (this.props.innerRef && _.has(this.props.innerRef, 'current')) {
+                                                this.props.innerRef.current = ref;
+                                            }
                                             this.input = ref;
                                         }}
                                         // eslint-disable-next-line
@@ -309,16 +314,16 @@ class BaseTextInput extends Component {
                                         keyboardType={getSecureEntryKeyboardType(this.props.keyboardType, this.props.secureTextEntry, this.state.passwordHidden)}
                                         value={this.state.value}
                                         selection={this.state.selection}
-                                        editable={_.isUndefined(this.props.editable) ? !this.props.disabled : this.props.editable}
+                                        editable={isEditable}
 
                                         // FormSubmit Enter key handler does not have access to direct props.
                                         // `dataset.submitOnEnter` is used to indicate that pressing Enter on this input should call the submit callback.
                                         dataSet={{submitOnEnter: this.props.multiline && this.props.submitOnEnter}}
 
                                     />
-                                    {this.props.secureTextEntry && (
+                                    {Boolean(this.props.secureTextEntry) && (
                                         <Checkbox
-                                            style={styles.secureInputShowPasswordButton}
+                                            style={styles.textInputIconContainer}
                                             onPress={this.togglePasswordVisibility}
                                             onMouseDown={e => e.preventDefault()}
                                         >
@@ -327,6 +332,14 @@ class BaseTextInput extends Component {
                                                 fill={themeColors.icon}
                                             />
                                         </Checkbox>
+                                    )}
+                                    {!this.props.secureTextEntry && Boolean(this.props.icon) && (
+                                        <View style={[styles.textInputIconContainer, isEditable ? styles.cursorPointer : styles.pointerEventsNone]}>
+                                            <Icon
+                                                src={this.props.icon}
+                                                fill={themeColors.icon}
+                                            />
+                                        </View>
                                     )}
                                 </View>
                             </View>

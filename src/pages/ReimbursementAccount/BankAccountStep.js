@@ -44,12 +44,20 @@ const propTypes = {
         /** Is the user account validated? */
         validated: PropTypes.bool,
     }),
+
+    /** If the plaid button has been disabled */
+    isPlaidDisabled: PropTypes.bool,
+
+    /* The workspace name */
+    policyName: PropTypes.string,
 };
 
 const defaultProps = {
     receivedRedirectURI: null,
     plaidLinkOAuthToken: '',
     user: {},
+    isPlaidDisabled: false,
+    policyName: '',
 };
 
 const BankAccountStep = (props) => {
@@ -88,6 +96,7 @@ const BankAccountStep = (props) => {
             <View style={[styles.flex1, styles.justifyContentBetween]}>
                 <HeaderWithCloseButton
                     title={props.translate('workspace.common.bankAccount')}
+                    subtitle={props.policyName}
                     stepCounter={subStep ? {step: 1, total: 5} : undefined}
                     onCloseButtonPress={Navigation.dismissModal}
                     onBackButtonPress={props.onBackButtonPress}
@@ -103,7 +112,7 @@ const BankAccountStep = (props) => {
                         <View style={[styles.mv3]}>
                             <Text>{props.translate('bankAccount.toGetStarted')}</Text>
                         </View>
-                        {plaidDesktopMessage && (
+                        {Boolean(plaidDesktopMessage) && (
                             <View style={[styles.mv3, styles.flexRow, styles.justifyContentBetween]}>
                                 <TextLink href={bankAccountRoute}>
                                     {props.translate(plaidDesktopMessage)}
@@ -121,7 +130,7 @@ const BankAccountStep = (props) => {
                             success
                             large
                         />
-                        {props.error && (
+                        {Boolean(props.error) && (
                             <Text style={[styles.formError, styles.mh5]}>
                                 {props.error}
                             </Text>

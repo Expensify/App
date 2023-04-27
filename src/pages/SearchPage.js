@@ -25,23 +25,24 @@ const propTypes = {
     /* Onyx Props */
 
     /** Beta features list */
-    betas: PropTypes.arrayOf(PropTypes.string).isRequired,
+    betas: PropTypes.arrayOf(PropTypes.string),
 
     /** All of the personal details for everyone */
-    personalDetails: personalDetailsPropType.isRequired,
+    personalDetails: personalDetailsPropType,
 
     /** All reports shared with the user */
-    reports: PropTypes.objectOf(reportPropTypes).isRequired,
-
-    /** Session of currently logged in user */
-    session: PropTypes.shape({
-        email: PropTypes.string.isRequired,
-    }).isRequired,
+    reports: PropTypes.objectOf(reportPropTypes),
 
     /** Window Dimensions Props */
     ...windowDimensionsPropTypes,
 
     ...withLocalizePropTypes,
+};
+
+const defaultProps = {
+    betas: [],
+    personalDetails: {},
+    reports: {},
 };
 
 class SearchPage extends Component {
@@ -69,6 +70,7 @@ class SearchPage extends Component {
 
         this.state = {
             searchValue: '',
+            headerMessage: '',
             recentReports,
             personalDetails,
             userToInvite,
@@ -133,10 +135,18 @@ class SearchPage extends Component {
             this.state.searchValue.trim(),
             this.props.betas,
         );
-        this.setState({
-            userToInvite,
-            recentReports,
-            personalDetails,
+        this.setState((prevState) => {
+            const headerMessage = OptionsListUtils.getHeaderMessage(
+                (recentReports.length + personalDetails.length) !== 0,
+                Boolean(userToInvite),
+                prevState.searchValue,
+            );
+            return ({
+                headerMessage,
+                userToInvite,
+                recentReports,
+                personalDetails,
+            });
         });
     }
 
@@ -163,11 +173,6 @@ class SearchPage extends Component {
 
     render() {
         const sections = this.getSections();
-        const headerMessage = OptionsListUtils.getHeaderMessage(
-            (this.state.recentReports.length + this.state.personalDetails.length) !== 0,
-            Boolean(this.state.userToInvite),
-            this.state.searchValue,
-        );
         return (
             <ScreenWrapper includeSafeAreaPaddingBottom={false}>
                 {({didScreenTransitionEnd, safeAreaPaddingBottomStyle}) => (
@@ -182,7 +187,7 @@ class SearchPage extends Component {
                                 value={this.state.searchValue}
                                 onSelectRow={this.selectReport}
                                 onChangeText={this.onChangeText}
-                                headerMessage={headerMessage}
+                                headerMessage={this.state.headerMessage}
                                 hideSectionHeaders
                                 showTitleTooltip
                                 shouldShowOptions={didScreenTransitionEnd}
@@ -199,6 +204,7 @@ class SearchPage extends Component {
 }
 
 SearchPage.propTypes = propTypes;
+SearchPage.defaultProps = defaultProps;
 
 export default compose(
     withLocalize,
@@ -209,9 +215,6 @@ export default compose(
         },
         personalDetails: {
             key: ONYXKEYS.PERSONAL_DETAILS,
-        },
-        session: {
-            key: ONYXKEYS.SESSION,
         },
         betas: {
             key: ONYXKEYS.BETAS,

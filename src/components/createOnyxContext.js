@@ -9,7 +9,7 @@ const propTypes = {
     children: PropTypes.node.isRequired,
 };
 
-export default (onyxKeyName) => {
+export default (onyxKeyName, defaultValue) => {
     const Context = createContext();
     const Provider = props => (
         <Context.Provider value={props[onyxKeyName]}>
@@ -20,6 +20,7 @@ export default (onyxKeyName) => {
     Provider.propTypes = propTypes;
     Provider.displayName = `${Str.UCFirst(onyxKeyName)}Provider`;
 
+    // eslint-disable-next-line rulesdir/onyx-props-must-have-default
     const ProviderWithOnyx = withOnyx({
         [onyxKeyName]: {
             key: onyxKeyName,
@@ -34,6 +35,10 @@ export default (onyxKeyName) => {
                         ...props,
                         [propName]: transformValue ? transformValue(value, props) : value,
                     };
+
+                    if (propsToPass[propName] === undefined && defaultValue) {
+                        propsToPass[propName] = defaultValue;
+                    }
                     return (
                         // eslint-disable-next-line react/jsx-props-no-spreading
                         <WrappedComponent {...propsToPass} ref={ref} />

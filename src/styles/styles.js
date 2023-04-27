@@ -1,3 +1,4 @@
+import {defaultStyles as defaultPickerStyles} from 'react-native-picker-select/src/styles';
 import fontFamily from './fontFamily';
 import addOutlineWidth from './addOutlineWidth';
 import themeColors from './themes/default';
@@ -19,6 +20,8 @@ import pointerEventsNone from './pointerEventsNone';
 import pointerEventsAuto from './pointerEventsAuto';
 import overflowXHidden from './overflowXHidden';
 import CONST from '../CONST';
+import cursor from './utilities/cursor';
+import userSelect from './utilities/userSelect';
 
 const picker = {
     backgroundColor: themeColors.transparent,
@@ -156,6 +159,8 @@ const styles = {
     ...wordBreak,
     ...whiteSpace,
     ...writingDirection,
+    ...cursor,
+    ...userSelect,
     ...themeColors,
 
     rateCol: {
@@ -275,6 +280,7 @@ const styles = {
         fontWeight: fontWeightBold,
         fontFamily: fontFamily.EXP_NEUE_BOLD,
         fontSize: variables.fontSizeSmall,
+        lineHeight: variables.lineHeightSmall,
     },
 
     textMicroSupporting: {
@@ -288,6 +294,10 @@ const styles = {
         color: themeColors.textSupporting,
         fontFamily: fontFamily.EXP_NEUE,
         fontSize: variables.fontSizeExtraSmall,
+    },
+
+    textNormal: {
+        fontSize: variables.fontSizeNormal,
     },
 
     textLarge: {
@@ -323,6 +333,7 @@ const styles = {
 
     textHeadline: {
         ...headlineFont,
+        ...whiteSpace.preWrap,
         color: themeColors.heading,
         fontSize: variables.fontSizeXLarge,
     },
@@ -471,7 +482,7 @@ const styles = {
         borderWidth: 0,
     },
 
-    buttonSuccessDisabled: {
+    buttonOpacityDisabled: {
         opacity: 0.5,
     },
 
@@ -485,16 +496,12 @@ const styles = {
         borderWidth: 0,
     },
 
-    buttonDangerDisabled: {
-        opacity: 0.5,
-    },
-
     buttonDangerHovered: {
         backgroundColor: themeColors.dangerHover,
         borderWidth: 0,
     },
 
-    buttonDisable: {
+    buttonDisabled: {
         backgroundColor: themeColors.buttonDefaultBG,
         borderWidth: 0,
     },
@@ -603,6 +610,9 @@ const styles = {
         done: {
             color: themeColors.text,
         },
+        doneDepressed: {
+            fontSize: defaultPickerStyles.done.fontSize,
+        },
         modalViewMiddle: {
             backgroundColor: themeColors.border,
             borderTopWidth: 0,
@@ -622,8 +632,8 @@ const styles = {
             appearance: 'none',
             height: 26,
             opacity: 1,
-            cursor: 'pointer',
             backgroundColor,
+            ...cursor.cursorPointer,
         },
         inputAndroid: {
             fontFamily: fontFamily.EXP_NEUE,
@@ -663,6 +673,14 @@ const styles = {
 
     badgeSuccessPressed: {
         backgroundColor: themeColors.successHover,
+    },
+
+    badgeAdHocSuccess: {
+        backgroundColor: themeColors.badgeAdHoc,
+    },
+
+    badgeAdHocSuccessPressed: {
+        backgroundColor: themeColors.badgeAdHocHover,
     },
 
     badgeDanger: {
@@ -736,7 +754,8 @@ const styles = {
 
     offlineIndicatorMobile: {
         paddingLeft: 20,
-        paddingBottom: 9,
+        paddingTop: 5,
+        paddingBottom: 5,
     },
 
     offlineIndicatorRow: {
@@ -750,6 +769,35 @@ const styles = {
 
     componentHeightLarge: {
         height: variables.inputHeight,
+    },
+
+    calendarHeader: {
+        height: 50,
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+        alignItems: 'center',
+        paddingHorizontal: 15,
+        paddingRight: 5,
+    },
+
+    calendarDayRoot: {
+        flex: 1,
+        height: 45,
+        justifyContent: 'center',
+        alignItems: 'center',
+    },
+
+    calendarDayContainer: {
+        width: 30,
+        height: 30,
+        justifyContent: 'center',
+        alignItems: 'center',
+        borderRadius: 15,
+        overflow: 'hidden',
+    },
+
+    calendarDayContainerSelected: {
+        backgroundColor: themeColors.buttonDefaultBG,
     },
 
     textInputContainer: {
@@ -820,7 +868,7 @@ const styles = {
 
     textInputDesktop: addOutlineWidth({}, 0),
 
-    secureInputShowPasswordButton: {
+    textInputIconContainer: {
         paddingHorizontal: 11,
         justifyContent: 'center',
         margin: 1,
@@ -897,7 +945,7 @@ const styles = {
 
         inputWeb: {
             appearance: 'none',
-            cursor: disabled ? 'not-allowed' : 'pointer',
+            ...(disabled ? cursor.cursorDisabled : cursor.cursorPointer),
             ...picker,
             backgroundColor,
         },
@@ -907,6 +955,9 @@ const styles = {
         },
         done: {
             color: themeColors.text,
+        },
+        doneDepressed: {
+            fontSize: defaultPickerStyles.done.fontSize,
         },
         modalViewMiddle: {
             backgroundColor: themeColors.border,
@@ -968,9 +1019,49 @@ const styles = {
     },
 
     signInPage: {
-        backgroundColor: themeColors.sidebar,
+        backgroundColor: themeColors.highlightBG,
         minHeight: '100%',
         flex: 1,
+    },
+
+    signInPageHeroCenter: {
+        position: 'absolute',
+        top: 0,
+        left: 0,
+        right: 0,
+        bottom: 0,
+        justifyContent: 'center',
+        alignItems: 'center',
+    },
+
+    signInPageGradient: {
+        height: '100%',
+        width: 540,
+        position: 'absolute',
+        top: 0,
+        left: 0,
+    },
+
+    signInPageGradientMobile: {
+        height: 300,
+        width: 800,
+        position: 'absolute',
+        top: 0,
+        left: 0,
+    },
+
+    signInBackgroundDesktop: {
+        position: 'absolute',
+        bottom: 0,
+        left: 0,
+        minHeight: 700,
+    },
+
+    signInBackgroundMobile: {
+        position: 'absolute',
+        bottom: 0,
+        left: 0,
+        minHeight: 700,
     },
 
     signInPageInner: {
@@ -991,7 +1082,7 @@ const styles = {
     },
 
     signInPageLeftContainerWide: {
-        maxWidth: 360,
+        maxWidth: variables.sideBarWidth,
     },
 
     signInPageWelcomeFormContainer: {
@@ -1029,49 +1120,18 @@ const styles = {
         width: variables.componentSizeNormal,
     },
 
-    statusIndicator: {
+    statusIndicator: (backgroundColor = themeColors.danger) => ({
         borderColor: themeColors.sidebar,
-        backgroundColor: themeColors.danger,
-        borderRadius: 6,
-        borderWidth: 2,
-        position: 'absolute',
-        right: -1,
-        bottom: -1,
-        height: 12,
-        width: 12,
-        zIndex: 10,
-    },
-
-    statusIndicatorLarge: {
-        borderColor: themeColors.componentBG,
-        backgroundColor: themeColors.danger,
+        backgroundColor,
         borderRadius: 8,
         borderWidth: 2,
         position: 'absolute',
-        right: 4,
-        bottom: 4,
+        right: -2,
+        top: -1,
         height: 16,
         width: 16,
         zIndex: 10,
-    },
-
-    statusIndicatorOnline: {
-        backgroundColor: themeColors.success,
-    },
-
-    avatarWithIndicator: {
-        errorDot: {
-            borderColor: themeColors.sidebar,
-            borderRadius: 6,
-            borderWidth: 2,
-            position: 'absolute',
-            right: -1,
-            bottom: -1,
-            height: 12,
-            width: 12,
-            zIndex: 10,
-        },
-    },
+    }),
 
     floatingActionButtonContainer: {
         position: 'absolute',
@@ -1166,14 +1226,8 @@ const styles = {
 
     popoverMenuIcon: {
         width: variables.componentSizeNormal,
-        height: variables.componentSizeNormal,
         justifyContent: 'center',
         alignItems: 'center',
-    },
-
-    popoverMenuIconEmphasized: {
-        backgroundColor: themeColors.iconSuccessFill,
-        borderRadius: variables.componentSizeLarge / 2,
     },
 
     popoverMenuText: {
@@ -1291,8 +1345,7 @@ const styles = {
         // Starting version 6.3.2 @react-navigation/drawer adds "user-select: none;" to its container.
         // We add user-select-auto to the inner component to prevent incorrect triple-click text selection.
         // For further explanation see - https://github.com/Expensify/App/pull/12730/files#r1022883823
-        userSelect: 'auto',
-        WebkitUserSelect: 'auto',
+        ...userSelect.userSelectText,
     },
 
     appContentHeader: {
@@ -1387,7 +1440,7 @@ const styles = {
         fontFamily: fontFamily.EXP_NEUE,
         lineHeight: variables.lineHeightXLarge,
         maxWidth: '100%',
-        cursor: 'auto',
+        ...cursor.cursorAuto,
         ...whiteSpace.preWrap,
         ...wordBreak.breakWord,
     },
@@ -1610,8 +1663,7 @@ const styles = {
     },
 
     navigationModalOverlay: {
-        userSelect: 'none',
-        WebkitUserSelect: 'none',
+        ...userSelect.userSelectNone,
         position: 'absolute',
         width: '100%',
         height: '100%',
@@ -2126,7 +2178,7 @@ const styles = {
         flexDirection: 'row',
         alignItems: 'center',
         zIndex: 1,
-        cursor: 'default',
+        ...cursor.cursorDefault,
     },
 
     unreadIndicatorLine: {
@@ -2182,9 +2234,9 @@ const styles = {
     attachmentModalArrowsContainer: {
         display: 'flex',
         justifyContent: 'center',
-        cursor: 'unset',
         height: '100%',
         width: '100%',
+        ...cursor.cursorUnset,
     },
 
     leftAttachmentArrow: {
@@ -2274,6 +2326,19 @@ const styles = {
         padding: 0,
         lineHeight: undefined,
     }, 0),
+
+    moneyRequestConfirmationAmount: {
+        ...headlineFont,
+        fontSize: variables.fontSizeh1,
+    },
+
+    moneyRequestMenuItem: {
+        flexDirection: 'row',
+        borderRadius: 0,
+        justifyContent: 'space-between',
+        width: '100%',
+        marginBottom: 20,
+    },
 
     iouPreviewBox: {
         backgroundColor: themeColors.cardBG,
@@ -2435,21 +2500,9 @@ const styles = {
         marginVertical: 4,
     },
 
-    cursorDefault: {
-        cursor: 'default',
-    },
-
-    cursorDisabled: {
-        cursor: 'not-allowed',
-    },
-
     noSelect: {
         boxShadow: 'none',
         outline: 'none',
-    },
-
-    cursorPointer: {
-        cursor: 'pointer',
     },
 
     fullscreenCard: {
@@ -2547,6 +2600,7 @@ const styles = {
         width: '100%',
         flexDirection: 'row',
         justifyContent: 'space-between',
+        alignItems: 'center',
         ...spacing.pt2,
     },
 
@@ -2554,10 +2608,6 @@ const styles = {
         borderColor: themeColors.border,
         borderBottomWidth: 1,
         ...spacing.pb2,
-    },
-
-    peopleRowCell: {
-        justifyContent: 'center',
     },
 
     peopleBadge: {
@@ -2740,10 +2790,6 @@ const styles = {
         right: 60,
     },
 
-    googleListView: {
-        transform: [{scale: 0}],
-    },
-
     invert: {
         // It's important to invert the Y AND X axis to prevent a react native issue that can lead to ANRs on android 13
         transform: [{scaleX: -1}, {scaleY: -1}],
@@ -2751,7 +2797,9 @@ const styles = {
 
     keyboardShortcutModalContainer: {
         maxHeight: '100%',
-        flex: '0 0 auto',
+        flexShrink: 0,
+        flexGrow: 0,
+        flexBasis: 'auto',
     },
 
     keyboardShortcutTableWrapper: {
@@ -2813,12 +2861,17 @@ const styles = {
     },
 
     imageCropContainer: {
-        borderRadius: variables.componentBorderRadiusCard,
         overflow: 'hidden',
         alignItems: 'center',
         justifyContent: 'center',
         backgroundColor: themeColors.imageCropBackgroundColor,
-        cursor: 'move',
+        ...cursor.cursorMove,
+    },
+
+    sliderKnobTooltipView: {
+        height: variables.sliderKnobSize,
+        width: variables.sliderKnobSize,
+        borderRadius: variables.sliderKnobSize / 2,
     },
 
     sliderKnob: {
@@ -2827,9 +2880,8 @@ const styles = {
         height: variables.sliderKnobSize,
         width: variables.sliderKnobSize,
         borderRadius: variables.sliderKnobSize / 2,
-        top: -variables.sliderBarHeight,
         left: -(variables.sliderKnobSize / 2),
-        cursor: 'pointer',
+        ...cursor.cursorPointer,
     },
 
     sliderBar: {
@@ -2837,20 +2889,7 @@ const styles = {
         height: variables.sliderBarHeight,
         borderRadius: variables.sliderBarHeight / 2,
         alignSelf: 'stretch',
-    },
-
-    imageCropRotateButton: {
-        height: variables.iconSizeExtraLarge,
-    },
-
-    userSelectText: {
-        userSelect: 'text',
-        WebkitUserSelect: 'text',
-    },
-
-    userSelectNone: {
-        userSelect: 'none',
-        WebkitUserSelect: 'none',
+        justifyContent: 'center',
     },
 
     screenCenteredContainer: {
@@ -2880,7 +2919,6 @@ const styles = {
     },
 
     textPill: {
-        ellipsizeMode: 'end',
         backgroundColor: themeColors.border,
         borderRadius: 10,
         overflow: 'hidden',
@@ -2888,6 +2926,7 @@ const styles = {
         flexShrink: 0,
         maxWidth: variables.badgeMaxWidth,
         fontSize: variables.fontSizeSmall,
+        ...whiteSpace.pre,
         ...spacing.ph2,
     },
 
@@ -2911,6 +2950,10 @@ const styles = {
         padding: 20,
         width: 'auto',
         textAlign: 'left',
+    },
+
+    cardSectionTitle: {
+        lineHeight: variables.lineHeightXXLarge,
     },
 
     cardMenuItem: {
@@ -2959,32 +3002,27 @@ const styles = {
     },
 
     emojiReactionBubble: {
-        paddingVertical: 2,
-        paddingHorizontal: 8,
         borderRadius: 28,
-        backgroundColor: themeColors.border,
         alignItems: 'center',
         justifyContent: 'center',
         flexDirection: 'row',
         alignSelf: 'flex-start',
-        marginTop: 8,
-        marginRight: 4,
     },
 
-    emojiReactionText: {
-        fontSize: 12,
+    miniQuickEmojiReactionText: {
+        fontSize: 15,
         lineHeight: 20,
         textAlignVertical: 'center',
-        userSelect: 'none',
-        WebkitUserSelect: 'none',
     },
+
+    emojiReactionBubbleText: {
+        textAlignVertical: 'center',
+    },
+
     reactionCounterText: {
-        fontSize: 11,
+        fontSize: 13,
         marginLeft: 4,
         fontWeight: 'bold',
-        color: themeColors.textLight,
-        userSelect: 'none',
-        WebkitUserSelect: 'none',
     },
 
     fontColorReactionLabel: {
@@ -3009,21 +3047,16 @@ const styles = {
         justifyContent: 'space-between',
     },
 
-    magicCodeDigits: {
+    validateCodeDigits: {
         color: themeColors.text,
         fontFamily: fontFamily.EXP_NEUE,
         fontSize: variables.fontSizeXXLarge,
         letterSpacing: 4,
     },
 
-    footer: {
-        backgroundColor: themeColors.midtone,
-    },
-
     footerWrapper: {
         fontSize: variables.fontSizeNormal,
         paddingTop: 64,
-        paddingHorizontal: 32,
         maxWidth: 1100, // Match footer across all Expensify platforms
     },
 
@@ -3052,6 +3085,46 @@ const styles = {
         width: '100%',
     },
 
+    listPickerSeparator: {
+        height: 1,
+        backgroundColor: themeColors.buttonDefaultBG,
+    },
+
+    datePickerRoot: {
+        position: 'relative',
+        zIndex: 99,
+    },
+
+    datePickerPopover: {
+        position: 'absolute',
+        backgroundColor: themeColors.appBG,
+        width: '100%',
+        alignSelf: 'center',
+        top: 60,
+        zIndex: 100,
+    },
+    loginHeroHeader: {
+        fontFamily: fontFamily.EXP_NEW_KANSAS_MEDIUM,
+        color: themeColors.success,
+        fontWeight: '500',
+        textAlign: 'center',
+    },
+
+    loginHeroBody: {
+        fontFamily: fontFamily.EXP_NEUE,
+        fontSize: variables.fontSizeSignInHeroBody,
+        color: themeColors.textLight,
+        textAlign: 'center',
+    },
+
+    validateCodeMessage: {
+        width: variables.modalContentMaxWidth,
+        textAlign: 'center',
+    },
+
+    whisper: {
+        backgroundColor: themeColors.cardBG,
+    },
 };
 
 export default styles;

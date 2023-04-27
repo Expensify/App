@@ -42,10 +42,10 @@ const personalDetailsPropTypes = PropTypes.shape({
 
 const propTypes = {
     /** Beta features list */
-    betas: PropTypes.arrayOf(PropTypes.string).isRequired,
+    betas: PropTypes.arrayOf(PropTypes.string),
 
     /** All of the personal details for everyone */
-    personalDetails: PropTypes.objectOf(personalDetailsPropTypes).isRequired,
+    personalDetails: PropTypes.objectOf(personalDetailsPropTypes),
 
     /** URL Route params */
     route: PropTypes.shape({
@@ -61,7 +61,11 @@ const propTypes = {
     network: networkPropTypes.isRequired,
 };
 
-const defaultProps = policyDefaultProps;
+const defaultProps = {
+    personalDetails: {},
+    betas: [],
+    ...policyDefaultProps,
+};
 
 class WorkspaceInvitePage extends React.Component {
     constructor(props) {
@@ -102,8 +106,8 @@ class WorkspaceInvitePage extends React.Component {
 
     componentDidUpdate(prevProps) {
         if (
-            prevProps.preferredLocale !== this.props.preferredLocale
-            && this.state.welcomeNote === Localize.translate(prevProps.preferredLocale, 'workspace.invite.welcomeNote', {workspaceName: this.props.policy.name})
+            (prevProps.preferredLocale !== this.props.preferredLocale || prevProps.policy.name !== this.props.policy.name)
+            && this.state.welcomeNote === Localize.translate(prevProps.preferredLocale, 'workspace.invite.welcomeNote', {workspaceName: prevProps.policy.name})
         ) {
             this.setState({welcomeNote: this.getWelcomeNote()});
         }
@@ -268,7 +272,7 @@ class WorkspaceInvitePage extends React.Component {
         this.setState({shouldDisableButton: true}, () => {
             const logins = _.map(this.state.selectedOptions, option => option.login);
             const filteredLogins = _.uniq(_.compact(_.map(logins, login => login.toLowerCase().trim())));
-            Policy.addMembersToWorkspace(filteredLogins, this.state.welcomeNote || this.getWelcomeNote(), this.props.route.params.policyID);
+            Policy.addMembersToWorkspace(filteredLogins, this.state.welcomeNote, this.props.route.params.policyID);
             Navigation.goBack();
         });
     }
@@ -296,7 +300,7 @@ class WorkspaceInvitePage extends React.Component {
         const policyName = lodashGet(this.props.policy, 'name');
 
         return (
-            <ScreenWrapper>
+            <ScreenWrapper shouldEnableMaxHeight>
                 {({didScreenTransitionEnd}) => (
                     <FullPageNotFoundView
                         shouldShow={_.isEmpty(this.props.policy)}

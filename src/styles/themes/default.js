@@ -6,6 +6,7 @@ const darkTheme = {
     appBG: colors.greenAppBackground,
     highlightBG: colors.greenHighlightBackground,
     border: colors.greenBorders,
+    borderLighter: colors.greenBordersLighter,
     borderFocus: colors.green,
     icon: colors.greenIcons,
     iconMenu: colors.green,
@@ -29,6 +30,7 @@ const darkTheme = {
     successPressed: colors.greenPressed,
     transparent: colors.transparent,
     midtone: colors.green700,
+    signInPage: colors.green800,
     dark: colors.midnight,
 
     // Additional keys
@@ -38,6 +40,7 @@ const darkTheme = {
     componentBG: colors.greenAppBackground,
     hoverComponentBG: colors.greenHighlightBackground,
     activeComponentBG: colors.greenBorders,
+    signInSidebar: colors.green800,
     sidebar: colors.greenHighlightBackground,
     sidebarHover: colors.greenAppBackground,
     heading: colors.white,
@@ -64,6 +67,8 @@ const darkTheme = {
     imageCropBackgroundColor: colors.greenIcons,
     fallbackIconColor: colors.green700,
     reactionActive: '#003C73',
+    badgeAdHoc: colors.pink600,
+    badgeAdHocHover: colors.pink700,
 };
 
 const oldTheme = {

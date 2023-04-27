@@ -56,7 +56,7 @@ class ParticipantLocalTime extends PureComponent {
     render() {
         const reportRecipientDisplayName = this.props.participant.firstName
             || (Str.isSMSLogin(this.props.participant.login)
-                ? this.props.toLocalPhone(this.props.participant.displayName)
+                ? this.props.formatPhoneNumber(this.props.participant.displayName)
                 : this.props.participant.displayName);
 
         return (
@@ -65,6 +65,7 @@ class ParticipantLocalTime extends PureComponent {
                     style={[
                         styles.chatItemComposeSecondaryRowSubText,
                         styles.chatItemComposeSecondaryRowOffset,
+                        styles.pre,
                     ]}
                     numberOfLines={1}
                 >

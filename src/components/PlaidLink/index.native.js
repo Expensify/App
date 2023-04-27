@@ -25,8 +25,10 @@ const PlaidLink = (props) => {
                 props.onExit();
             },
         });
-    }, []);
 
+    // We generally do not need to include the token as a dependency here as it is only provided once via props and should not change
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, []);
     return null;
 };
 

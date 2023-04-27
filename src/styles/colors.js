@@ -24,6 +24,7 @@ export default {
     greenAppBackground: '#061B09',
     greenHighlightBackground: '#07271F',
     greenBorders: '#1A3D32',
+    greenBordersLighter: '#2B5548',
     greenIcons: '#8B9C8F',
     greenSupportingText: '#AFBBB0',
     white: '#E7ECE9',
@@ -58,6 +59,7 @@ export default {
 
     pink200: '#FBCCFF',
     pink400: '#F68DFE',
+    pink600: '#CF4CD9',
     pink700: '#712A76',
     pink800: '#49225B',
 

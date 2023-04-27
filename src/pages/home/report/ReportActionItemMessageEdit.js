@@ -1,3 +1,4 @@
+/* eslint-disable rulesdir/onyx-props-must-have-default */
 import lodashGet from 'lodash/get';
 import React from 'react';
 import {InteractionManager, Keyboard, View} from 'react-native';
@@ -24,6 +25,7 @@ import CONST from '../../../CONST';
 import withWindowDimensions, {windowDimensionsPropTypes} from '../../../components/withWindowDimensions';
 import withLocalize, {withLocalizePropTypes} from '../../../components/withLocalize';
 import withKeyboardState, {keyboardStatePropTypes} from '../../../components/withKeyboardState';
+import * as ComposerUtils from '../../../libs/ComposerUtils';
 
 const propTypes = {
     /** All the data of the action */
@@ -48,6 +50,9 @@ const propTypes = {
     /** Whether or not the emoji picker is disabled */
     shouldDisableEmojiPicker: PropTypes.bool,
 
+    /** Stores user's preferred skin tone */
+    preferredSkinTone: PropTypes.oneOfType([PropTypes.number, PropTypes.string]),
+
     ...withLocalizePropTypes,
     ...windowDimensionsPropTypes,
     ...keyboardStatePropTypes,
@@ -57,6 +62,7 @@ const defaultProps = {
     forwardedRef: () => {},
     report: {},
     shouldDisableEmojiPicker: false,
+    preferredSkinTone: CONST.EMOJI_DEFAULT_SKIN_TONE,
 };
 
 class ReportActionItemMessageEdit extends React.Component {
@@ -76,7 +82,7 @@ class ReportActionItemMessageEdit extends React.Component {
         this.messageEditInput = 'messageEditInput';
 
         const parser = new ExpensiMark();
-        const draftMessage = parser.htmlToMarkdown(this.props.draftMessage);
+        const draftMessage = parser.htmlToMarkdown(this.props.draftMessage).trim();
 
         this.state = {
             draft: draftMessage,
@@ -87,6 +93,17 @@ class ReportActionItemMessageEdit extends React.Component {
             isFocused: false,
             hasExceededMaxCommentLength: false,
         };
+    }
+
+    componentWillUnmount() {
+        // Skip if this is not the focused message so the other edit composer stays focused.
+        if (!this.state.isFocused) {
+            return;
+        }
+
+        // Show the main composer when the focused message is deleted from another client
+        // to prevent the main composer stays hidden until we swtich to another chat.
+        toggleReportActionComposeView(true, this.props.isSmallScreenWidth);
     }
 
     /**
@@ -114,7 +131,7 @@ class ReportActionItemMessageEdit extends React.Component {
      * @param {String} draft
      */
     updateDraft(draft) {
-        const newDraft = EmojiUtils.replaceEmojis(draft, this.props.isSmallScreenWidth);
+        const newDraft = EmojiUtils.replaceEmojis(draft, this.props.isSmallScreenWidth, this.props.preferredSkinTone);
         this.setState((prevState) => {
             const newState = {draft: newDraft};
             if (draft !== newDraft) {
@@ -198,15 +215,13 @@ class ReportActionItemMessageEdit extends React.Component {
      * @param {String} emoji
      */
     addEmojiToTextBox(emoji) {
-        const newComment = this.state.draft.slice(0, this.state.selection.start)
-            + emoji + this.state.draft.slice(this.state.selection.end, this.state.draft.length);
         this.setState(prevState => ({
             selection: {
                 start: prevState.selection.start + emoji.length,
                 end: prevState.selection.start + emoji.length,
             },
         }));
-        this.updateDraft(newComment);
+        this.updateDraft(ComposerUtils.insertText(this.state.draft, this.state.selection, emoji));
     }
 
     /**

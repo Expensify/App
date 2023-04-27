@@ -86,6 +86,9 @@ class AttachmentModal extends PureComponent {
             modalType: CONST.MODAL.MODAL_TYPE.CENTERED_UNSWIPEABLE,
             isConfirmButtonDisabled: false,
             confirmButtonFadeAnimation: new Animated.Value(1),
+            file: props.originalFileName ? {
+                name: props.originalFileName,
+            } : undefined,
         };
 
         this.submitAndClose = this.submitAndClose.bind(this);
@@ -248,7 +251,6 @@ class AttachmentModal extends PureComponent {
         return (
             <>
                 <Modal
-                    statusBarTranslucent={false}
                     type={this.state.modalType}
                     onSubmit={this.submitAndClose}
                     onClose={() => this.setState({isModalOpen: false})}
@@ -277,7 +279,7 @@ class AttachmentModal extends PureComponent {
                                 source={this.props.source}
                                 onToggleKeyboard={this.updateConfirmButtonVisibility}
                             />
-                        ) : this.state.source && this.state.shouldLoadAttachment && (
+                        ) : Boolean(this.state.source) && this.state.shouldLoadAttachment && (
                             <AttachmentView
                                 source={source}
                                 isAuthTokenRequired={this.props.isAuthTokenRequired}
@@ -287,7 +289,7 @@ class AttachmentModal extends PureComponent {
                         )}
                     </View>
                     {/* If we have an onConfirm method show a confirmation button */}
-                    {this.props.onConfirm && (
+                    {Boolean(this.props.onConfirm) && (
                         <SafeAreaConsumer>
                             {({safeAreaPaddingBottomStyle}) => (
                                 <Animated.View style={[StyleUtils.fade(this.state.confirmButtonFadeAnimation), safeAreaPaddingBottomStyle]}>
