@@ -3047,7 +3047,7 @@ const styles = {
     },
 
     fontColorReactionLabel: {
-        color: '#586A64',
+        color: themeColors.reactionText,
     },
 
     reactionEmojiTitle: {

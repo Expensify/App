@@ -59,13 +59,14 @@ const darkTheme = {
     placeholderText: colors.greenIcons,
     heroCard: colors.blue400,
     uploadPreviewActivityIndicator: colors.greenHighlightBackground,
-    dropUIBG: 'rgba(6,27,9,0.92)',
+    dropUIBG: 'rgba(6,27,9,0.92)', // appBG
     dropTransparentOverlay: 'rgba(255,255,255,0)',
     checkBox: colors.green400,
     pickerOptionsTextColor: colors.white,
     imageCropBackgroundColor: colors.greenIcons,
     fallbackIconColor: colors.green700,
     reactionActive: colors.blue700,
+    reactionText: colors.greenReactionText,
     badgeAdHoc: colors.pink600,
     badgeAdHocHover: colors.pink700,
 };
