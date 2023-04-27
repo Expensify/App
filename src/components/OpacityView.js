@@ -2,6 +2,7 @@ import React from 'react';
 import Animated, {useAnimatedStyle, useSharedValue, withTiming} from 'react-native-reanimated';
 import PropTypes from 'prop-types';
 import * as StyleUtils from '../styles/StyleUtils';
+import variables from '../styles/variables';
 
 const propTypes = {
     /**
@@ -30,7 +31,7 @@ const propTypes = {
 
 const defaultProps = {
     style: [],
-    dimmingValue: 0.5,
+    dimmingValue: variables.hoverDimValue,
 };
 
 const OpacityView = (props) => {
