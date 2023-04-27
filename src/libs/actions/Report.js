@@ -1431,15 +1431,14 @@ function addEmojiReaction2(reportID, reportActionID, emoji, skinTone = preferred
             },
         },
     ];
-    Onyx.update(optimisticData);
-    return;
+
     const parameters = {
         reportID,
         skinTone,
         emojiCode: emoji.name,
         reportActionID,
     };
-    API.write('AddEmojiReaction2', parameters, {optimisticData});
+    API.write('AddEmojiReaction', parameters, {optimisticData});
 }
 
 /**
@@ -1476,14 +1475,12 @@ function removeEmojiReaction2(reportID, reportActionID, emoji, existingReactions
         },
     ];
 
-    Onyx.update(optimisticData);
-    return;
     const parameters = {
         reportID,
         reportActionID,
         emojiCode: emoji.name,
     };
-    API.write('RemoveEmojiReaction2', parameters, {optimisticData});
+    API.write('RemoveEmojiReaction', parameters, {optimisticData});
 }
 
 /**
