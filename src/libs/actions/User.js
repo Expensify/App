@@ -462,7 +462,21 @@ function deletePaypalMeAddress() {
         },
     ];
 
-    API.write('DeletePaypalMeAddress', {}, {optimisticData});
+    // Success data required for Android, more info here https://github.com/Expensify/App/pull/17903#discussion_r1175763081
+    const successData = [
+        {
+            onyxMethod: CONST.ONYX.METHOD.SET,
+            key: ONYXKEYS.NVP_PAYPAL_ME_ADDRESS,
+            value: '',
+        },
+        {
+            onyxMethod: CONST.ONYX.METHOD.SET,
+            key: ONYXKEYS.PAYPAL,
+            value: {},
+        },
+    ];
+
+    API.write('DeletePaypalMeAddress', {}, {optimisticData, successData});
     Growl.show(Localize.translateLocal('paymentsPage.deletePayPalSuccess'), CONST.GROWL.SUCCESS, 3000);
 }
 
