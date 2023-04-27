@@ -2,7 +2,6 @@ import _ from 'underscore';
 import React from 'react';
 import {createStackNavigator, CardStyleInterpolators} from '@react-navigation/stack';
 import styles from '../../../styles/styles';
-import CONST from '../../../CONST';
 
 const defaultSubRouteOptions = {
     cardStyle: styles.navigationScreenCardStyle,
@@ -63,6 +62,13 @@ const IOURequestModalStackNavigator = createModalStackNavigator([{
         return IOUCurrencySelection;
     },
     name: 'IOU_Request_Currency',
+},
+{
+    getComponent: () => {
+        const MoneyRequestDescriptionPage = require('../../../pages/iou/MoneyRequestDescriptionPage').default;
+        return MoneyRequestDescriptionPage;
+    },
+    name: 'Money_Request_Description',
 }]);
 
 const IOUSendModalStackNavigator = createModalStackNavigator([{
@@ -210,6 +216,14 @@ const NewChatModalStackNavigator = createModalStackNavigator([{
     name: 'NewChat_Root',
 }]);
 
+const NewTaskModalStackNavigator = createModalStackNavigator([{
+    getComponent: () => {
+        const NewTaskPage = require('../../../pages/NewTaskPage').default;
+        return NewTaskPage;
+    },
+    name: 'NewTask_Root',
+}]);
+
 const SettingsModalStackNavigator = createModalStackNavigator([
     {
         getComponent: () => {
@@ -304,10 +318,10 @@ const SettingsModalStackNavigator = createModalStackNavigator([
     },
     {
         getComponent: () => {
-            const SettingsAddSecondaryLoginPage = require('../../../pages/settings/Profile/Contacts/AddSecondaryLoginPage').default;
-            return SettingsAddSecondaryLoginPage;
+            const SettingsNewContactMethodPage = require('../../../pages/settings/Profile/Contacts/NewContactMethodPage').default;
+            return SettingsNewContactMethodPage;
         },
-        name: 'Settings_Add_Secondary_Login',
+        name: 'Settings_NewContactMethod',
     },
     {
         getComponent: () => {
@@ -490,7 +504,7 @@ const SettingsModalStackNavigator = createModalStackNavigator([
             return ReimbursementAccountPage;
         },
         name: 'ReimbursementAccount',
-        initialParams: {stepToOpen: CONST.BANK_ACCOUNT.STEP.BANK_ACCOUNT},
+        initialParams: {stepToOpen: ''},
     },
     {
         getComponent: () => {
@@ -553,6 +567,7 @@ export {
     SearchModalStackNavigator,
     NewGroupModalStackNavigator,
     NewChatModalStackNavigator,
+    NewTaskModalStackNavigator,
     SettingsModalStackNavigator,
     EnablePaymentsStackNavigator,
     AddPersonalBankAccountModalStackNavigator,

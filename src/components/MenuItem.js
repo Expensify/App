@@ -1,8 +1,6 @@
 import _ from 'underscore';
 import React from 'react';
-import {
-    View, Pressable,
-} from 'react-native';
+import {View} from 'react-native';
 import Text from './Text';
 import styles from '../styles/styles';
 import * as StyleUtils from '../styles/StyleUtils';
@@ -18,9 +16,14 @@ import colors from '../styles/colors';
 import variables from '../styles/variables';
 import MultipleAvatars from './MultipleAvatars';
 import * as defaultWorkspaceAvatars from './Icon/WorkspaceDefaultAvatars';
+import PressableWithSecondaryInteraction from './PressableWithSecondaryInteraction';
+import withWindowDimensions, {windowDimensionsPropTypes} from './withWindowDimensions';
+import * as DeviceCapabilities from '../libs/DeviceCapabilities';
+import ControlSelection from '../libs/ControlSelection';
 
 const propTypes = {
     ...menuItemPropTypes,
+    ...windowDimensionsPropTypes,
 };
 
 const defaultProps = {
@@ -30,7 +33,8 @@ const defaultProps = {
     shouldShowBasicTitle: false,
     shouldShowDescriptionOnTop: false,
     wrapperStyle: [],
-    style: {},
+    style: styles.popoverMenuItem,
+    titleStyle: {},
     success: false,
     icon: undefined,
     iconWidth: undefined,
@@ -45,11 +49,13 @@ const defaultProps = {
     subtitle: undefined,
     iconType: CONST.ICON_TYPE_ICON,
     onPress: () => {},
+    onSecondaryInteraction: undefined,
     interactive: true,
     fallbackIcon: Expensicons.FallbackAvatar,
     brickRoadIndicator: '',
     floatRightAvatars: [],
     shouldStackHorizontally: false,
+    shouldBlockSelection: false,
 };
 
 const MenuItem = (props) => {
@@ -59,7 +65,9 @@ const MenuItem = (props) => {
         (props.shouldShowBasicTitle ? undefined : styles.textStrong),
         (props.interactive && props.disabled ? {...styles.disabledText, ...styles.userSelectNone} : undefined),
         styles.pre,
-    ], props.style);
+        styles.ltr,
+        (_.contains(props.style, styles.offlineFeedback.deleted) ? styles.offlineFeedback.deleted : undefined),
+    ], props.titleStyle);
     const descriptionVerticalMargin = props.shouldShowDescriptionOnTop ? styles.mb1 : styles.mt1;
     const descriptionTextStyle = StyleUtils.combineStyles([
         styles.textLabelSupporting,
@@ -67,10 +75,10 @@ const MenuItem = (props) => {
         styles.breakWord,
         styles.lineHeightNormal,
         props.title ? descriptionVerticalMargin : undefined,
-    ], props.style);
+    ]);
 
     return (
-        <Pressable
+        <PressableWithSecondaryInteraction
             onPress={(e) => {
                 if (props.disabled) {
                     return;
@@ -82,17 +90,21 @@ const MenuItem = (props) => {
 
                 props.onPress(e);
             }}
+            onPressIn={() => props.shouldBlockSelection && props.isSmallScreenWidth && DeviceCapabilities.canUseTouchScreen() && ControlSelection.block()}
+            onPressOut={ControlSelection.unblock}
+            onSecondaryInteraction={props.onSecondaryInteraction}
             style={({hovered, pressed}) => ([
-                styles.popoverMenuItem,
+                props.style,
                 StyleUtils.getButtonBackgroundColorStyle(getButtonState(props.focused || hovered, pressed, props.success, props.disabled, props.interactive), true),
                 ..._.isArray(props.wrapperStyle) ? props.wrapperStyle : [props.wrapperStyle],
             ])}
             disabled={props.disabled}
+            ref={props.forwardedRef}
         >
             {({hovered, pressed}) => (
                 <>
                     <View style={[styles.flexRow, styles.pointerEventsAuto, styles.flex1, props.disabled && styles.cursorDisabled]}>
-                        {props.icon && (
+                        {Boolean(props.icon) && (
                             <View
                                 style={[
                                     styles.popoverMenuIcon,
@@ -144,7 +156,7 @@ const MenuItem = (props) => {
                                     style={titleTextStyle}
                                     numberOfLines={1}
                                 >
-                                    {props.title}
+                                    {StyleUtils.convertToLTR(props.title)}
                                 </Text>
                             )}
                             {Boolean(props.description) && !props.shouldShowDescriptionOnTop && (
@@ -158,7 +170,7 @@ const MenuItem = (props) => {
                         </View>
                     </View>
                     <View style={[styles.flexRow, styles.menuItemTextContainer, styles.pointerEventsNone]}>
-                        {props.badgeText && (
+                        {Boolean(props.badgeText) && (
                         <Badge
                             text={props.badgeText}
                             badgeStyles={[styles.alignSelfCenter, (props.brickRoadIndicator ? styles.mr2 : undefined),
@@ -189,7 +201,7 @@ const MenuItem = (props) => {
                             </View>
                         )}
                         {Boolean(props.brickRoadIndicator) && (
-                            <View style={[styles.alignItemsCenter, styles.justifyContentCenter, styles.l4]}>
+                            <View style={[styles.alignItemsCenter, styles.justifyContentCenter, styles.l1]}>
                                 <Icon
                                     src={Expensicons.DotIndicator}
                                     fill={props.brickRoadIndicator === 'error' ? colors.red : colors.green}
@@ -210,12 +222,17 @@ const MenuItem = (props) => {
                     </View>
                 </>
             )}
-        </Pressable>
+        </PressableWithSecondaryInteraction>
     );
 };
 
 MenuItem.propTypes = propTypes;
-MenuItem.defaultProps = defaultProps;
 MenuItem.displayName = 'MenuItem';
 
-export default MenuItem;
+const MenuItemWithWindowDimensions = withWindowDimensions(React.forwardRef((props, ref) => (
+    // eslint-disable-next-line react/jsx-props-no-spreading
+    <MenuItem {...props} forwardedRef={ref} />
+)));
+MenuItemWithWindowDimensions.defaultProps = defaultProps;
+
+export default MenuItemWithWindowDimensions;

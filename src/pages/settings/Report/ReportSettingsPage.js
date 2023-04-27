@@ -131,7 +131,7 @@ class ReportSettingsPage extends Component {
                         </OfflineWithFeedback>
                     )}
                     <View style={[styles.ph5]}>
-                        {linkedWorkspace && (
+                        {Boolean(linkedWorkspace) && (
                             <View style={[styles.mt4]}>
                                 <Text style={[styles.textLabelSupporting, styles.lh16, styles.mb1]} numberOfLines={1}>
                                     {this.props.translate('workspace.common.workspace')}
@@ -141,7 +141,7 @@ class ReportSettingsPage extends Component {
                                 </Text>
                             </View>
                         )}
-                        {this.props.report.visibility && (
+                        {Boolean(this.props.report.visibility) && (
                             <View style={[styles.mt4]}>
                                 <Text style={[styles.textLabelSupporting, styles.lh16, styles.mb1]} numberOfLines={1}>
                                     {this.props.translate('newRoomPage.visibility')}
