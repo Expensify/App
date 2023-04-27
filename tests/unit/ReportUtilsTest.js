@@ -180,7 +180,7 @@ describe('ReportUtils', () => {
                         policyID: policy.policyID,
                         isOwnPolicyExpenseChat: true,
                         ownerEmail: 'ragnar@vikings.net',
-                    }, policies)).toBe('Vikings Policy');
+                    })).toBe('Vikings Policy');
                 });
 
                 test('as admin', () => {
@@ -189,7 +189,7 @@ describe('ReportUtils', () => {
                         policyID: policy.policyID,
                         isOwnPolicyExpenseChat: false,
                         ownerEmail: 'ragnar@vikings.net',
-                    }, policies)).toBe('Ragnar Lothbrok');
+                    })).toBe('Ragnar Lothbrok');
                 });
             });
 
@@ -209,10 +209,10 @@ describe('ReportUtils', () => {
                         isOwnPolicyExpenseChat: true,
                     };
 
-                    expect(ReportUtils.getReportName(memberArchivedPolicyExpenseChat, policies)).toBe('Vikings Policy (archived)');
+                    expect(ReportUtils.getReportName(memberArchivedPolicyExpenseChat)).toBe('Vikings Policy (archived)');
 
                     return Onyx.set(ONYXKEYS.NVP_PREFERRED_LOCALE, CONST.LOCALES.ES)
-                        .then(() => expect(ReportUtils.getReportName(memberArchivedPolicyExpenseChat, policies)).toBe('Vikings Policy (archivado)'));
+                        .then(() => expect(ReportUtils.getReportName(memberArchivedPolicyExpenseChat)).toBe('Vikings Policy (archivado)'));
                 });
 
                 test('as admin', () => {

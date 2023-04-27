@@ -78,6 +78,13 @@ Onyx.connect({
     callback: val => doesDomainHaveApprovedAccountant = lodashGet(val, 'doesDomainHaveApprovedAccountant', false),
 });
 
+let allPolicies;
+Onyx.connect({
+    key: ONYXKEYS.COLLECTION.POLICY,
+    waitForCollectionCallback: true,
+    callback: val => allPolicies = val,
+});
+
 function getChatType(report) {
     return report ? report.chatType : '';
 }
@@ -321,21 +328,20 @@ function isArchivedRoom(report) {
  * @param {String} report.policyID
  * @param {String} report.oldPolicyName
  * @param {String} report.policyName
- * @param {Object} policies must have Onyxkey prefix (i.e 'policy_') for keys
  * @returns {String}
  */
-function getPolicyName(report, policies) {
+function getPolicyName(report) {
     // Public rooms send back the policy name with the reportSummary,
     // since they can also be accessed by people who aren't in the workspace
     if (report.policyName) {
         return report.policyName;
     }
 
-    if (_.isEmpty(policies)) {
+    if (_.isEmpty(allPolicies)) {
         return Localize.translateLocal('workspace.common.unavailable');
     }
 
-    const policy = policies[`${ONYXKEYS.COLLECTION.POLICY}${report.policyID}`];
+    const policy = allPolicies[`${ONYXKEYS.COLLECTION.POLICY}${report.policyID}`];
     if (!policy) {
         return report.oldPolicyName || Localize.translateLocal('workspace.common.unavailable');
     }
@@ -367,10 +373,9 @@ function isPolicyExpenseChatAdmin(report, policies) {
 /**
  * Get either the policyName or domainName the chat is tied to
  * @param {Object} report
- * @param {Object} policiesMap must have onyxkey prefix (i.e 'policy_') for keys
  * @returns {String}
  */
-function getChatRoomSubtitle(report, policiesMap) {
+function getChatRoomSubtitle(report) {
     if (!isDefaultRoom(report) && !isUserCreatedPolicyRoom(report) && !isPolicyExpenseChat(report)) {
         return '';
     }
@@ -384,19 +389,18 @@ function getChatRoomSubtitle(report, policiesMap) {
     if (isArchivedRoom(report)) {
         return report.oldPolicyName || '';
     }
-    return getPolicyName(report, policiesMap);
+    return getPolicyName(report);
 }
 
 /**
  * Get welcome message based on room type
  * @param {Object} report
- * @param {Object} policiesMap must have Onyxkey prefix (i.e 'policy_') for keys
  * @returns {Object}
  */
 
-function getRoomWelcomeMessage(report, policiesMap) {
+function getRoomWelcomeMessage(report) {
     const welcomeMessage = {};
-    const workspaceName = getPolicyName(report, policiesMap);
+    const workspaceName = getPolicyName(report);
 
     if (isArchivedRoom(report)) {
         welcomeMessage.phrase1 = Localize.translateLocal('reportActionsView.beginningOfArchivedRoomPartOne');
@@ -811,18 +815,17 @@ function getDisplayNamesWithTooltips(participants, isMultipleParticipantReport) 
  * Get the title for a policy expense chat which depends on the role of the policy member seeing this report
  *
  * @param {Object} report
- * @param {Object} [policies]
  * @returns {String}
  */
-function getPolicyExpenseChatName(report, policies = {}) {
+function getPolicyExpenseChatName(report) {
     const reportOwnerDisplayName = getDisplayNameForParticipant(report.ownerEmail) || report.ownerEmail || report.reportName;
 
     // If the policy expense chat is owned by this user, use the name of the policy as the report name.
     if (report.isOwnPolicyExpenseChat) {
-        return getPolicyName(report, policies);
+        return getPolicyName(report);
     }
 
-    const policyExpenseChatRole = lodashGet(policies, [
+    const policyExpenseChatRole = lodashGet(allPolicies, [
         `${ONYXKEYS.COLLECTION.POLICY}${report.policyID}`, 'role',
     ]) || 'user';
 
@@ -832,7 +835,7 @@ function getPolicyExpenseChatName(report, policies = {}) {
         const lastAction = ReportActionsUtils.getLastVisibleAction(report.reportID);
         const archiveReason = (lastAction && lastAction.originalMessage && lastAction.originalMessage.reason) || CONST.REPORT.ARCHIVE_REASON.DEFAULT;
         if (archiveReason === CONST.REPORT.ARCHIVE_REASON.ACCOUNT_MERGED && policyExpenseChatRole !== CONST.POLICY.ROLE.ADMIN) {
-            return getPolicyName(report, policies);
+            return getPolicyName(report);
         }
     }
 
@@ -844,17 +847,16 @@ function getPolicyExpenseChatName(report, policies = {}) {
  * Get the title for a report.
  *
  * @param {Object} report
- * @param {Object} [policies]
  * @returns {String}
  */
-function getReportName(report, policies = {}) {
+function getReportName(report) {
     let formattedName;
     if (isChatRoom(report)) {
         formattedName = report.reportName;
     }
 
     if (isPolicyExpenseChat(report)) {
-        formattedName = getPolicyExpenseChatName(report, policies);
+        formattedName = getPolicyExpenseChatName(report);
     }
 
     if (isArchivedRoom(report)) {

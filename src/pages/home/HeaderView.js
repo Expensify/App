@@ -71,9 +71,9 @@ const HeaderView = (props) => {
     const displayNamesWithTooltips = ReportUtils.getDisplayNamesWithTooltips(participantPersonalDetails, isMultipleParticipant);
     const isChatRoom = ReportUtils.isChatRoom(props.report);
     const isPolicyExpenseChat = ReportUtils.isPolicyExpenseChat(props.report);
-    const title = ReportUtils.getReportName(props.report, props.policies);
+    const title = ReportUtils.getReportName(props.report);
 
-    const subtitle = ReportUtils.getChatRoomSubtitle(props.report, props.policies);
+    const subtitle = ReportUtils.getChatRoomSubtitle(props.report);
     const isConcierge = participants.length === 1 && _.contains(participants, CONST.EMAIL.CONCIERGE);
     const isAutomatedExpensifyAccount = (participants.length === 1 && ReportUtils.hasAutomatedExpensifyEmails(participants));
     const guideCalendarLink = lodashGet(props.account, 'guideCalendarLink');
