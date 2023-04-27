@@ -993,6 +993,10 @@ function saveReportActionDraftNumberOfLines(reportID, reportActionID, numberOfLi
  * @param {String} newValue
  */
 function updateNotificationPreferenceAndNavigate(reportID, previousValue, newValue) {
+    if (previousValue === newValue) {
+        Navigation.drawerGoBack(ROUTES.getReportSettingsRoute(reportID));
+        return;
+    }
     const optimisticData = [
         {
             onyxMethod: CONST.ONYX.METHOD.MERGE,
