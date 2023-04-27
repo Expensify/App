@@ -13,6 +13,7 @@ const IOU_DETAILS = 'iou/details';
 const IOU_REQUEST_CURRENCY = `${IOU_REQUEST}/currency`;
 const IOU_BILL_CURRENCY = `${IOU_BILL}/currency`;
 const IOU_SEND_CURRENCY = `${IOU_SEND}/currency`;
+const NEW_TASK = 'new/task';
 const SETTINGS_PERSONAL_DETAILS = 'settings/profile/personal-details';
 const SETTINGS_CONTACT_METHODS = 'settings/profile/contact-methods';
 
@@ -55,6 +56,7 @@ export default {
     SETTINGS_NEW_CONTACT_METHOD: `${SETTINGS_CONTACT_METHODS}/new`,
     NEW_GROUP: 'new/group',
     NEW_CHAT: 'new/chat',
+    NEW_TASK,
     REPORT,
     REPORT_WITH_ID: 'r/:reportID',
     getReportRoute: reportID => `r/${reportID}`,
@@ -75,6 +77,7 @@ export default {
     getIOUSendRoute: reportID => `${IOU_SEND}/${reportID}`,
     IOU_BILL_CURRENCY: `${IOU_BILL_CURRENCY}/:reportID?`,
     IOU_REQUEST_CURRENCY: `${IOU_REQUEST_CURRENCY}/:reportID?`,
+    MONEY_REQUEST_DESCRIPTION: `${IOU_REQUEST}/description`,
     IOU_SEND_CURRENCY: `${IOU_SEND_CURRENCY}/:reportID?`,
     IOU_SEND_ADD_BANK_ACCOUNT: `${IOU_SEND}/add-bank-account`,
     IOU_SEND_ADD_DEBIT_CARD: `${IOU_SEND}/add-debit-card`,
@@ -88,6 +91,9 @@ export default {
     IOU_DETAILS_ENABLE_PAYMENTS: `${IOU_DETAILS}/enable-payments`,
     IOU_DETAILS_WITH_IOU_REPORT_ID: `${IOU_DETAILS}/:chatReportID/:iouReportID/`,
     getIouDetailsRoute: (chatReportID, iouReportID) => `iou/details/${chatReportID}/${iouReportID}`,
+    getNewTaskRoute: reportID => `${NEW_TASK}/${reportID}`,
+    NEW_TASK_WITH_REPORT_ID: `${NEW_TASK}/:reportID?`,
+    getTaskDetailsRoute: taskID => `task/details/${taskID}`,
     SEARCH: 'search',
     SET_PASSWORD_WITH_VALIDATE_CODE: 'setpassword/:accountID/:validateCode',
     DETAILS: 'details',

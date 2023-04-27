@@ -24,7 +24,7 @@ Environment.getEnvironment()
                     return;
                 }
 
-                const defaultToggleState = ENV_NAME === CONST.ENVIRONMENT.STAGING;
+                const defaultToggleState = ENV_NAME === CONST.ENVIRONMENT.STAGING || ENV_NAME === CONST.ENVIRONMENT.ADHOC;
                 shouldUseStagingServer = lodashGet(val, 'shouldUseStagingServer', defaultToggleState);
             },
         });

@@ -59,7 +59,7 @@ class BankAccountManualStep extends React.Component {
             lodashGet(this.props.reimbursementAccount, 'achData.bankAccountID') || 0,
             values.accountNumber,
             values.routingNumber,
-            this.props.getDefaultStateForField('plaidMask'),
+            lodashGet(this.props, ['reimbursementAccountDraft', 'plaidMask']),
         );
     }
 

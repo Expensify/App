@@ -76,7 +76,7 @@ function translateLocal(phrase, variables) {
  * @return {String}
  */
 function arrayToString(anArray) {
-    const and = this.translateLocal('common.and');
+    const and = translateLocal('common.and');
     let aString = '';
     if (_.size(anArray) === 1) {
         aString = anArray[0];
