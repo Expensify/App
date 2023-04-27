@@ -269,7 +269,9 @@ class AttachmentModal extends PureComponent {
                         shouldShowBorderBottom
                         shouldShowDownloadButton={this.props.allowDownload}
                         onDownloadButtonPress={() => this.downloadAttachment(source)}
+                        shouldShowCloseButton={!this.props.isSmallScreenWidth}
                         onBackButtonPress={() => this.setState({isModalOpen: false})}
+                        onCloseButtonPress={() => this.setState({isModalOpen: false})}
                     />
                     <View style={styles.imageModalImageCenterContainer}>
                         {this.props.reportID ? (

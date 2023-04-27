@@ -63,6 +63,12 @@ const propTypes = {
     /** The guides call taskID to associate with the get assistance button, if we show it */
     guidesCallTaskID: PropTypes.string,
 
+    /** Whether we should show a close button */
+    shouldShowCloseButton: PropTypes.bool,
+
+    /** Method to trigger when pressing close button of the header */
+    onCloseButtonPress: PropTypes.func,
+
     /** Data to display a step counter in the header */
     stepCounter: PropTypes.shape({
         step: PropTypes.number,
@@ -79,12 +85,14 @@ const defaultProps = {
     subtitle: '',
     onDownloadButtonPress: () => {},
     onBackButtonPress: Navigation.goBack,
+    onCloseButtonPress: Navigation.dismissModal,
     onThreeDotsButtonPress: () => {},
     shouldShowBorderBottom: false,
     shouldShowDownloadButton: false,
     shouldShowGetAssistanceButton: false,
     shouldShowThreeDotsButton: false,
     shouldShowStepCounter: true,
+    shouldShowCloseButton: false,
     guidesCallTaskID: '',
     stepCounter: null,
     threeDotsMenuItems: [],
@@ -116,7 +124,7 @@ class HeaderWithBackButton extends Component {
 
     render() {
         return (
-            <View style={[styles.headerBar, this.props.shouldShowBorderBottom && styles.borderBottom && styles.pl2]}>
+            <View style={[styles.headerBar, this.props.shouldShowBorderBottom && styles.borderBottom, !this.props.shouldShowCloseButton && styles.pl2]}>
                 <View style={[
                     styles.dFlex,
                     styles.flexRow,
@@ -126,19 +134,21 @@ class HeaderWithBackButton extends Component {
                     styles.overflowHidden,
                 ]}
                 >
-                    <Tooltip text={this.props.translate('common.back')}>
-                        <Pressable
-                            onPress={() => {
-                                if (this.props.isKeyboardShown) {
-                                    Keyboard.dismiss();
-                                }
-                                this.props.onBackButtonPress();
-                            }}
-                            style={[styles.touchableButtonImage]}
-                        >
-                            <Icon src={Expensicons.BackArrow} />
-                        </Pressable>
-                    </Tooltip>
+                    {!this.props.shouldShowCloseButton && (
+                        <Tooltip text={this.props.translate('common.back')}>
+                            <Pressable
+                                onPress={() => {
+                                    if (this.props.isKeyboardShown) {
+                                        Keyboard.dismiss();
+                                    }
+                                    this.props.onBackButtonPress();
+                                }}
+                                style={[styles.touchableButtonImage]}
+                            >
+                                <Icon src={Expensicons.BackArrow} />
+                            </Pressable>
+                        </Tooltip>
+                    )}
                     <Header
                         title={this.props.title}
                         subtitle={this.props.stepCounter && this.props.shouldShowStepCounter ? this.props.translate('stepCounter', this.props.stepCounter) : this.props.subtitle}
@@ -186,6 +196,20 @@ class HeaderWithBackButton extends Component {
                                 onIconPress={this.props.onThreeDotsButtonPress}
                                 anchorPosition={this.props.threeDotsAnchorPosition}
                             />
+                        )}
+
+                        {this.props.shouldShowCloseButton
+                        && (
+                        <Tooltip text={this.props.translate('common.close')}>
+                            <Pressable
+                                onPress={this.props.onCloseButtonPress}
+                                style={[styles.touchableButtonImage]}
+                                accessibilityRole="button"
+                                accessibilityLabel={this.props.translate('common.close')}
+                            >
+                                <Icon src={Expensicons.Close} />
+                            </Pressable>
+                        </Tooltip>
                         )}
                     </View>
                 </View>

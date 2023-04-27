@@ -358,7 +358,7 @@ const MoneyRequestModal = (props) => {
     const currentStep = steps[currentStepIndex];
     const moneyRequestStepIndex = _.indexOf(steps, Steps.MoneyRequestConfirm);
     const isEditingAmountAfterConfirm = currentStepIndex === 0 && previousStepIndex === _.indexOf(steps, Steps.MoneyRequestConfirm);
-    const navigateBack = isEditingAmountAfterConfirm ? () => navigateToStep(moneyRequestStepIndex) : navigateToPreviousStep
+    const navigateBack = isEditingAmountAfterConfirm ? () => navigateToStep(moneyRequestStepIndex) : navigateToPreviousStep;
     const reportID = lodashGet(props, 'route.params.reportID', '');
     const modalHeader = (
         <HeaderWithBackButton

@@ -16,7 +16,6 @@ import KeyboardShortcut from '../libs/KeyboardShortcut';
 import * as KeyboardShortcutsActions from '../libs/actions/KeyboardShortcuts';
 import * as ModalActions from '../libs/actions/Modal';
 import ONYXKEYS from '../ONYXKEYS';
-import ModalHeader from '../pages/iou/ModalHeader';
 
 const propTypes = {
     /** prop to set shortcuts modal visibility */
@@ -93,10 +92,10 @@ class KeyboardShortcutsModal extends React.Component {
                 innerContainerStyle={{...styles.keyboardShortcutModalContainer, ...StyleUtils.getKeyboardShortcutsModalWidth(this.props.isSmallScreenWidth)}}
                 onClose={KeyboardShortcutsActions.hideKeyboardShortcutModal}
             >
-                <ModalHeader
+                <HeaderWithBackButton
                     title={this.props.translate('keyboardShortcutModal.title')}
-                    shouldShowBackButton={this.props.isSmallScreenWidth}
-                    onButtonPress={KeyboardShortcutsActions.hideKeyboardShortcutModal}
+                    shouldShowCloseButton
+                    onCloseButtonPress={KeyboardShortcutsActions.hideKeyboardShortcutModal}
                 />
                 <ScrollView style={[styles.p5, styles.pt0]}>
                     <Text style={styles.mb5}>{this.props.translate('keyboardShortcutModal.subtitle')}</Text>
