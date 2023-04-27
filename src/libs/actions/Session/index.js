@@ -26,6 +26,12 @@ Onyx.connect({
     callback: val => credentials = val || {},
 });
 
+let account = {};
+Onyx.connect({
+    key: ONYXKEYS.ACCOUNT,
+    callback: val => account = val || {},
+});
+
 /**
  * Manage push notification subscriptions on sign-in/sign-out.
  *
@@ -506,10 +512,17 @@ function invalidateAuthToken() {
 
 /**
  * Clear the credentials and partial sign in session so the user can taken back to first Login step
+ *
+ * @param {Boolean} [shouldKeepPrimaryLogin]
  */
-function clearSignInData() {
+function clearSignInData(shouldKeepPrimaryLogin = false) {
+    let newAccountData = null;
+    const primaryLogin = account.primaryLogin;
+    if (shouldKeepPrimaryLogin && account.primaryLogin) {
+        newAccountData = {primaryLogin};
+    }
     Onyx.multiSet({
-        [ONYXKEYS.ACCOUNT]: null,
+        [ONYXKEYS.ACCOUNT]: newAccountData,
         [ONYXKEYS.CREDENTIALS]: {},
     });
 }

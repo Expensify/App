@@ -129,7 +129,7 @@ class PasswordForm extends React.Component {
     */
     clearSignInData() {
         this.setState({twoFactorAuthCode: '', formError: {}});
-        Session.clearSignInData();
+        Session.clearSignInData(true);
     }
 
     /**
