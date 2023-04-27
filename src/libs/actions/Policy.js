@@ -250,7 +250,7 @@ function createPolicyExpenseChats(policyID, members, betas) {
     }
 
     _.each(members, (login) => {
-        const oldChat = ReportUtils.getChatByParticipantsAndPolicy([login, sessionEmail], policyID);
+        const oldChat = ReportUtils.getChatByParticipantsAndPolicy([sessionEmail, login], policyID);
 
         // If the chat already exists, we don't want to create a new one - just make sure it's not archived
         if (oldChat) {
@@ -268,7 +268,7 @@ function createPolicyExpenseChats(policyID, members, betas) {
             return;
         }
         const optimisticReport = ReportUtils.buildOptimisticChatReport(
-            [login],
+            [sessionEmail, login],
             undefined,
             CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT,
             policyID,
