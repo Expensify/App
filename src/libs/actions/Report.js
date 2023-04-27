@@ -1122,6 +1122,12 @@ function navigateToConciergeChatAndDeleteReport(reportID) {
 function updatePolicyRoomNameAndNavigate(policyRoomReport, policyRoomName) {
     const reportID = policyRoomReport.reportID;
     const previousName = policyRoomReport.reportName;
+
+    // No change needed, navigate back
+    if (previousName === policyRoomName) {
+        Navigation.drawerGoBack(ROUTES.getReportSettingsRoute(reportID));
+        return;
+    }
     const optimisticData = [
         {
             onyxMethod: CONST.ONYX.METHOD.MERGE,

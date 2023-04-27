@@ -11,6 +11,7 @@ import TextInput from '../../../components/TextInput';
 import styles from '../../../styles/styles';
 import Navigation from '../../../libs/Navigation/Navigation';
 import compose from '../../../libs/compose';
+import * as ValidationUtils from '../../../libs/ValidationUtils'
 import * as RoomNameInputUtils from '../../../libs/RoomNameInputUtils';
 import withReportOrNotFound from '../../home/report/withReportOrNotFound';
 import reportPropTypes from '../../reportPropTypes';
@@ -30,9 +31,26 @@ const RoomNamePage = (props) => {
 
     const validate = useCallback((values) => {
         const errors = {};
-        if (_.isEmpty(values.roomName)) {
-            errors.roomName = translate('common.error.fieldRequired');
+
+        // We should skip validation hence we return an empty errors and we skip Form submission on the onSubmit method
+        if (values.roomName === report.reportName) {
+            return errors;
         }
+
+        if (_.isEmpty(values.roomName)) {
+            // We error if the user doesn't enter a room name or left blank
+            ErrorUtils.addErrorMessage(errors, 'roomName', this.props.translate('newRoomPage.pleaseEnterRoomName'));
+        } else if (!ValidationUtils.isValidRoomName(values.roomName)) {
+            // We error if the room name has invalid characters
+            ErrorUtils.addErrorMessage(errors, 'roomName', this.props.translate('newRoomPage.roomNameInvalidError'));
+        } else if (ValidationUtils.isReservedRoomName(values.roomName)) {
+            // Certain names are reserved for default rooms and should not be used for policy rooms.
+            ErrorUtils.addErrorMessage(errors, 'roomName', this.props.translate('newRoomPage.roomNameReservedError', {reservedName: values.roomName}));
+        } else if (ValidationUtils.isExistingRoomName(values.roomName, this.props.reports, this.props.report.policyID)) {
+            // The room name can't be set to one that already exists on the policy
+            ErrorUtils.addErrorMessage(errors, 'roomName', this.props.translate('newRoomPage.roomAlreadyExistsError'));
+        }
+
         return errors;
     }, [translate]);
 
