@@ -20,6 +20,9 @@ import ControlSelection from '../../../libs/ControlSelection';
 import * as ReportUtils from '../../../libs/ReportUtils';
 import OfflineWithFeedback from '../../../components/OfflineWithFeedback';
 import CONST from '../../../CONST';
+import SubscriptAvatar from '../../../components/SubscriptAvatar';
+import reportPropTypes from '../../reportPropTypes';
+import withPolicy from "../../workspace/withPolicy";
 
 const propTypes = {
     /** All the data of the action */
@@ -35,8 +38,14 @@ const propTypes = {
     /** Children view component for this action item */
     children: PropTypes.node.isRequired,
 
+    /** Report for this action */
+    report: reportPropTypes.isRequired,
+
     /** Show header for action */
     showHeader: PropTypes.bool,
+
+    /** Determines if the avatar is displayed as a subscript (positioned lower than normal) */
+    shouldShowSubscriptAvatar: PropTypes.bool,
 
     ...withLocalizePropTypes,
 };
@@ -45,6 +54,7 @@ const defaultProps = {
     personalDetails: {},
     wrapperStyles: [styles.chatItem],
     showHeader: true,
+    shouldShowSubscriptAvatar: false,
 };
 
 const showUserDetails = (email) => {
@@ -83,10 +93,17 @@ const ReportActionItemSingle = (props) => {
                     <OfflineWithFeedback
                         pendingAction={lodashGet(pendingFields, 'avatar', null)}
                     >
-                        <Avatar
-                            containerStyles={[styles.actionAvatar]}
-                            source={avatarSource}
-                        />
+                        {props.shouldShowSubscriptAvatar ? (
+                            <SubscriptAvatar
+                                mainAvatar={avatarSource}
+                                secondaryAvatar={ReportUtils.getPolicyName(props.report)}
+                            />
+                        ) : (
+                            <Avatar
+                                containerStyles={[styles.actionAvatar]}
+                                source={avatarSource}
+                            />
+                        )}
                     </OfflineWithFeedback>
                 </Tooltip>
             </Pressable>
