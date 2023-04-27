@@ -12,7 +12,7 @@ import styles from '../../../styles/styles';
 import Navigation from '../../../libs/Navigation/Navigation';
 import compose from '../../../libs/compose';
 import * as ErrorUtils from '../../../libs/ErrorUtils';
-import * as ValidationUtils from '../../../libs/ValidationUtils'
+import * as ValidationUtils from '../../../libs/ValidationUtils';
 import withReportOrNotFound from '../../home/report/withReportOrNotFound';
 import reportPropTypes from '../../reportPropTypes';
 import ROUTES from '../../../ROUTES';
