@@ -126,15 +126,12 @@ const AssigneeSelectorModal = (props) => {
         }
 
         if (option.alternateText) {
+            // Clear out the state value, set the assignee and navigate back to the NewTaskPage
             setSearchValue('');
-
-            // eslint-disable-next-line no-console
-            console.log("From the modal", option);
             setAssigneeValue(option.alternateText);
             Navigation.goBack();
-            // Navigation.navigate(ROUTES.getReportRoute(option.text));
         } else {
-            Report.navigateToAndOpenReport([option.login]);
+            return
         }
     };
 

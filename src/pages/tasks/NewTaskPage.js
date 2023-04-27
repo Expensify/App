@@ -98,6 +98,9 @@ const NewTaskPage = (props) => {
                 <View style={styles.mb5}>
                     <TextInput inputID="taskDescription" label={props.translate('newTaskPage.description')} />
                 </View>
+                <View style={styles.mb5}>
+                    <Button text="Share In" onPress={() => Navigation.navigate(ROUTES.NEW_TASK_CHAT)} />
+                </View>
             </Form>
         </ScreenWrapper>
     );

@@ -53,7 +53,7 @@ const ChatSelectorModal = (props) => {
     const [filteredUserToInvite, setFilteredUserToInvite] = useState(null);
 
     useEffect(() => {
-        const results = OptionsListUtils.getNewChatOptions(props.reports, props.personalDetails, props.betas, '', [], [], false);
+        const results = OptionsListUtils.getShareDestinationOptions(props.reports, props.personalDetails, props.betas, '', [], [], true);
 
         setFilteredUserToInvite(results.userToInvite);
         setFilteredRecentReports(results.recentReports);
@@ -61,7 +61,7 @@ const ChatSelectorModal = (props) => {
     }, [props]);
 
     const updateOptions = useCallback(() => {
-        const {recentReports, personalDetails, userToInvite} = OptionsListUtils.getNewChatOptions(props.reports, props.personalDetails, props.betas, searchValue.trim(), [], [], true);
+        const {recentReports, personalDetails, userToInvite} = OptionsListUtils.getShareDestinationOptions(props.reports, props.personalDetails, props.betas, searchValue.trim(), [], [], true);
 
         setHeaderMessage(OptionsListUtils.getHeaderMessage(recentReports?.length + personalDetails?.length !== 0, Boolean(userToInvite), searchValue));
 
@@ -129,9 +129,7 @@ const ChatSelectorModal = (props) => {
         }
 
         if (option.reportID) {
-            setSearchValue('');
-
-            Navigation.navigate(ROUTES.getReportRoute(option.text));
+            console.log(option)
         } else {
             Report.navigateToAndOpenReport([option.login]);
         }

@@ -529,6 +529,7 @@ function getOptions(reports, personalDetails, {
     maxRecentReportsToShow = 0,
     excludeLogins = [],
     includeMultipleParticipantReports = false,
+    includeOnlyMultipleParticipantReports = false,
     includePersonalDetails = false,
     includeRecentReports = false,
 
@@ -647,6 +648,11 @@ function getOptions(reports, personalDetails, {
 
             // Check the report to see if it has a single participant and if the participant is already selected
             if (reportOption.login && _.some(loginOptionsToExclude, option => option.login === reportOption.login)) {
+                continue;
+            }
+
+            // Check the report to see if it has a single participant and if we only want multiple participant reports
+            if (reportOption.login && includeOnlyMultipleParticipantReports) {
                 continue;
             }
 
@@ -833,6 +839,27 @@ function getNewChatOptions(
 }
 
 /**
+ * Build the options for the Share Destination for a Task
+ *
+ *
+ */
+
+function getShareDestinationOptions(reports, personalDetails, betas = [], searchValue = '', selectedOptions = [], excludeLogins = [], includeOwnedWorkspaceChats = true) {
+    return getOptions(reports, personalDetails, {
+        betas,
+        selectedOptions,
+        searchInputValue: searchValue.trim(),
+        includeRecentReports: true,
+        includeMultipleParticipantReports: true,
+        includeOnlyMultipleParticipantReports: true,
+        includePersonalDetails: false,
+        maxRecentReportsToShow: 5,
+        excludeLogins,
+        includeOwnedWorkspaceChats,
+    });
+}
+
+/**
  * Build the options for the Workspace Member Invite view
  *
  * @param {Object} personalDetails
@@ -900,6 +927,7 @@ export {
     isCurrentUser,
     getSearchOptions,
     getNewChatOptions,
+    getShareDestinationOptions,
     getMemberInviteOptions,
     getHeaderMessage,
     getPersonalDetailsForLogins,
