@@ -1,3 +1,4 @@
+import React from 'react';
 import _ from 'underscore';
 import GenericPressable from './GenericPressable';
 import GenericPressableProps from './GenericPressable/PropTypes';
