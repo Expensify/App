@@ -83,13 +83,7 @@ class WorkspaceInviteMessagePage extends React.Component {
         ) {
             return;
         }
-        this.setState({welcomeNote: this.getWelcomeNote()});
-    }
-
-    sendInvitation() {
-        Policy.addMembersToWorkspace(this.props.invitedMembersDraft, this.state.welcomeNote || this.getWelcomeNote(), this.props.route.params.policyID);
-        Policy.setWorkspaceInviteMembersDraft(this.props.route.params.policyID, []);
-        Navigation.navigate(ROUTES.getWorkspaceMembersRoute(this.props.route.params.policyID));
+        this.setState({ welcomeNote: this.getWelcomeNote() });
     }
 
     getAvatars() {
@@ -112,6 +106,12 @@ class WorkspaceInviteMessagePage extends React.Component {
     getAvatarTooltips() {
         const filteredPersonalDetails = _.pick(this.props.personalDetails, this.props.invitedMembersDraft);
         return _.map(filteredPersonalDetails, personalDetail => Str.removeSMSDomain(personalDetail.login));
+    }
+
+    sendInvitation() {
+        Policy.addMembersToWorkspace(this.props.invitedMembersDraft, this.state.welcomeNote || this.getWelcomeNote(), this.props.route.params.policyID);
+        Policy.setWorkspaceInviteMembersDraft(this.props.route.params.policyID, []);
+        Navigation.navigate(ROUTES.getWorkspaceMembersRoute(this.props.route.params.policyID));
     }
 
     /**
@@ -140,71 +140,71 @@ class WorkspaceInviteMessagePage extends React.Component {
                     shouldShow={_.isEmpty(this.props.policy)}
                     onBackButtonPress={() => Navigation.navigate(ROUTES.SETTINGS_WORKSPACES)}
                 >
-                <HeaderWithCloseButton
-                    title={this.props.translate('workspace.inviteMessage.inviteMessageTitle')}
-                    subtitle={policyName}
-                    shouldShowGetAssistanceButton
-                    guidesCallTaskID={CONST.GUIDES_CALL_TASK_IDS.WORKSPACE_MEMBERS}
-                    shouldShowBackButton
-                    onCloseButtonPress={() => Navigation.dismissModal()}
-                    onBackButtonPress={() => Navigation.goBack()}
-                />
-                <Form
-                    style={[styles.flexGrow1, styles.ph5]}
-                    formID={ONYXKEYS.FORMS.WORKSPACE_INVITE_MESSAGE_FORM}
-                    validate={this.validate}
-                    onSubmit={this.sendInvitation}
-                    submitButtonText={this.props.translate('common.invite')}
-                    enabledWhenOffline
-                    footerContent={
-                        (
-                            <Pressable
-                                onPress={this.openPrivacyURL}
-                                accessibilityRole="link"
-                                href={CONST.PRIVACY_URL}
-                                style={[styles.mv2, styles.alignSelfStart]}
-                            >
-                                <View style={[styles.flexRow]}>
-                                    <Text style={[styles.mr1, styles.label, styles.link]}>
-                                        {this.props.translate('common.privacy')}
-                                    </Text>
-                                </View>
-                            </Pressable>
-                        )
-                    }
-                >
-                    <View style={[styles.mv4, styles.justifyContentCenter, styles.alignItemsCenter]}>
-                        <MultipleAvatars
-                            size={CONST.AVATAR_SIZE.LARGE}
-                            icons={this.getAvatars()}
-                            shouldStackHorizontally
-                            secondAvatarStyle={[
-                                styles.secondAvatarInline,
-                            ]}
-                            avatarTooltips={this.getAvatarTooltips()}
-                        />
-                    </View>
-                    <View style={[styles.mb5]}>
-                        <Text>
-                            {this.props.translate('workspace.inviteMessage.inviteMessagePrompt')}
-                        </Text>
-                    </View>
-                    <View style={[styles.mb3]}>
-                        <TextInput
-                            inputID="welcomeMessage"
-                            label={this.props.translate('workspace.inviteMessage.personalMessagePrompt')}
-                            autoCompleteType="off"
-                            autoCorrect={false}
-                            numberOfLines={4}
-                            textAlignVertical="top"
-                            multiline
-                            containerStyles={[styles.workspaceInviteWelcome]}
-                            defaultValue={this.state.welcomeNote}
-                            value={this.state.welcomeNote}
-                            onChangeText={text => this.setState({welcomeNote: text})}
-                        />
-                    </View>
-                </Form>
+                    <HeaderWithCloseButton
+                        title={this.props.translate('workspace.inviteMessage.inviteMessageTitle')}
+                        subtitle={policyName}
+                        shouldShowGetAssistanceButton
+                        guidesCallTaskID={CONST.GUIDES_CALL_TASK_IDS.WORKSPACE_MEMBERS}
+                        shouldShowBackButton
+                        onCloseButtonPress={() => Navigation.dismissModal()}
+                        onBackButtonPress={() => Navigation.goBack()}
+                    />
+                    <Form
+                        style={[styles.flexGrow1, styles.ph5]}
+                        formID={ONYXKEYS.FORMS.WORKSPACE_INVITE_MESSAGE_FORM}
+                        validate={this.validate}
+                        onSubmit={this.sendInvitation}
+                        submitButtonText={this.props.translate('common.invite')}
+                        enabledWhenOffline
+                        footerContent={
+                            (
+                                <Pressable
+                                    onPress={this.openPrivacyURL}
+                                    accessibilityRole="link"
+                                    href={CONST.PRIVACY_URL}
+                                    style={[styles.mv2, styles.alignSelfStart]}
+                                >
+                                    <View style={[styles.flexRow]}>
+                                        <Text style={[styles.mr1, styles.label, styles.link]}>
+                                            {this.props.translate('common.privacy')}
+                                        </Text>
+                                    </View>
+                                </Pressable>
+                            )
+                        }
+                    >
+                        <View style={[styles.mv4, styles.justifyContentCenter, styles.alignItemsCenter]}>
+                            <MultipleAvatars
+                                size={CONST.AVATAR_SIZE.LARGE}
+                                icons={this.getAvatars()}
+                                shouldStackHorizontally
+                                secondAvatarStyle={[
+                                    styles.secondAvatarInline,
+                                ]}
+                                avatarTooltips={this.getAvatarTooltips()}
+                            />
+                        </View>
+                        <View style={[styles.mb5]}>
+                            <Text>
+                                {this.props.translate('workspace.inviteMessage.inviteMessagePrompt')}
+                            </Text>
+                        </View>
+                        <View style={[styles.mb3]}>
+                            <TextInput
+                                inputID="welcomeMessage"
+                                label={this.props.translate('workspace.inviteMessage.personalMessagePrompt')}
+                                autoCompleteType="off"
+                                autoCorrect={false}
+                                numberOfLines={4}
+                                textAlignVertical="top"
+                                multiline
+                                containerStyles={[styles.workspaceInviteWelcome]}
+                                defaultValue={this.state.welcomeNote}
+                                value={this.state.welcomeNote}
+                                onChangeText={text => this.setState({ welcomeNote: text })}
+                            />
+                        </View>
+                    </Form>
                 </FullPageNotFoundView>
             </ScreenWrapper>
         );
