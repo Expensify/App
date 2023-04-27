@@ -41,6 +41,11 @@ const propTypes = {
         twoFactorAuthCode: PropTypes.string,
     }),
 
+    /** Session of current user */
+    session: PropTypes.shape({
+        email: PropTypes.string,
+    }),
+
     ...withLocalizePropTypes,
 
     ...windowDimensionsPropTypes,
@@ -50,6 +55,7 @@ const defaultProps = {
     account: {},
     betas: [],
     credentials: {},
+    session: {},
 };
 
 class SignInPage extends Component {
@@ -63,7 +69,8 @@ class SignInPage extends Component {
         // Show the login form if
         // - A login has not been entered yet
         // - AND a validateCode has not been cached with sign in link
-        const showLoginForm = !this.props.credentials.login && !this.props.credentials.validateCode;
+        const hasCredentialLogin = Boolean(this.props.credentials.login && this.props.session.email);
+        const showLoginForm = !hasCredentialLogin && !this.props.credentials.validateCode;
 
         // Show the old password form if
         // - A login has been entered
@@ -71,7 +78,7 @@ class SignInPage extends Component {
         // - AND a password hasn't been entered yet
         // - AND haven't forgotten password
         // - AND the user is NOT on the passwordless beta
-        const showPasswordForm = Boolean(this.props.credentials.login)
+        const showPasswordForm = hasCredentialLogin
             && this.props.account.validated
             && !this.props.credentials.password
             && !this.props.account.forgotPassword
@@ -80,7 +87,7 @@ class SignInPage extends Component {
         // Show the new magic code / validate code form if
         // - A login has been entered or a validateCode has been cached from sign in link
         // - AND the user is on the 'passwordless' beta
-        const showValidateCodeForm = (this.props.credentials.login
+        const showValidateCodeForm = (hasCredentialLogin
             || this.props.credentials.validateCode)
             && Permissions.canUsePasswordlessLogins(this.props.betas);
 
@@ -88,7 +95,7 @@ class SignInPage extends Component {
         // - A login has been entered
         // - AND is not validated or password is forgotten
         // - AND user is not on 'passwordless' beta
-        const showResendValidationForm = Boolean(this.props.credentials.login)
+        const showResendValidationForm = hasCredentialLogin
             && (!this.props.account.validated || this.props.account.forgotPassword)
             && !Permissions.canUsePasswordlessLogins(this.props.betas);
 
@@ -159,5 +166,6 @@ export default compose(
         account: {key: ONYXKEYS.ACCOUNT},
         betas: {key: ONYXKEYS.BETAS},
         credentials: {key: ONYXKEYS.CREDENTIALS},
+        session: {key: ONYXKEYS.SESSION},
     }),
 )(SignInPage);

@@ -73,11 +73,6 @@ function signOutAndRedirectToSignIn() {
             key: ONYXKEYS.SESSION,
             value: null,
         },
-        {
-            onyxMethod: CONST.ONYX.METHOD.SET,
-            key: ONYXKEYS.CREDENTIALS,
-            value: null,
-        },
     ];
     Onyx.update(clearSessionData).then(() => {
         signOut();
@@ -218,6 +213,13 @@ function beginSignIn(login) {
             key: ONYXKEYS.CREDENTIALS,
             value: {
                 validateCode: null,
+            },
+        },
+        {
+            onyxMethod: CONST.ONYX.METHOD.MERGE,
+            key: ONYXKEYS.SESSION,
+            value: {
+                email: login,
             },
         },
     ];
@@ -523,6 +525,7 @@ function clearSignInData() {
     Onyx.multiSet({
         [ONYXKEYS.ACCOUNT]: null,
         [ONYXKEYS.CREDENTIALS]: {},
+        [ONYXKEYS.SESSION]: null,
     });
 }
 
