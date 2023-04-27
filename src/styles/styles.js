@@ -20,6 +20,8 @@ import pointerEventsNone from './pointerEventsNone';
 import pointerEventsAuto from './pointerEventsAuto';
 import overflowXHidden from './overflowXHidden';
 import CONST from '../CONST';
+import cursor from './utilities/cursor';
+import userSelect from './utilities/userSelect';
 
 const picker = {
     backgroundColor: themeColors.transparent,
@@ -157,6 +159,8 @@ const styles = {
     ...wordBreak,
     ...whiteSpace,
     ...writingDirection,
+    ...cursor,
+    ...userSelect,
     ...themeColors,
 
     rateCol: {
@@ -628,8 +632,8 @@ const styles = {
             appearance: 'none',
             height: 26,
             opacity: 1,
-            cursor: 'pointer',
             backgroundColor,
+            ...cursor.cursorPointer,
         },
         inputAndroid: {
             fontFamily: fontFamily.EXP_NEUE,
@@ -750,7 +754,8 @@ const styles = {
 
     offlineIndicatorMobile: {
         paddingLeft: 20,
-        paddingBottom: 9,
+        paddingTop: 5,
+        paddingBottom: 5,
     },
 
     offlineIndicatorRow: {
@@ -940,7 +945,7 @@ const styles = {
 
         inputWeb: {
             appearance: 'none',
-            cursor: disabled ? 'not-allowed' : 'pointer',
+            ...(disabled ? cursor.cursorDisabled : cursor.cursorPointer),
             ...picker,
             backgroundColor,
         },
@@ -1221,7 +1226,6 @@ const styles = {
 
     popoverMenuIcon: {
         width: variables.componentSizeNormal,
-        height: variables.componentSizeNormal,
         justifyContent: 'center',
         alignItems: 'center',
     },
@@ -1341,8 +1345,7 @@ const styles = {
         // Starting version 6.3.2 @react-navigation/drawer adds "user-select: none;" to its container.
         // We add user-select-auto to the inner component to prevent incorrect triple-click text selection.
         // For further explanation see - https://github.com/Expensify/App/pull/12730/files#r1022883823
-        userSelect: 'text',
-        WebkitUserSelect: 'text',
+        ...userSelect.userSelectText,
     },
 
     appContentHeader: {
@@ -1437,7 +1440,7 @@ const styles = {
         fontFamily: fontFamily.EXP_NEUE,
         lineHeight: variables.lineHeightXLarge,
         maxWidth: '100%',
-        cursor: 'auto',
+        ...cursor.cursorAuto,
         ...whiteSpace.preWrap,
         ...wordBreak.breakWord,
     },
@@ -1660,8 +1663,7 @@ const styles = {
     },
 
     navigationModalOverlay: {
-        userSelect: 'none',
-        WebkitUserSelect: 'none',
+        ...userSelect.userSelectNone,
         position: 'absolute',
         width: '100%',
         height: '100%',
@@ -2176,7 +2178,7 @@ const styles = {
         flexDirection: 'row',
         alignItems: 'center',
         zIndex: 1,
-        cursor: 'default',
+        ...cursor.cursorDefault,
     },
 
     unreadIndicatorLine: {
@@ -2232,9 +2234,9 @@ const styles = {
     attachmentModalArrowsContainer: {
         display: 'flex',
         justifyContent: 'center',
-        cursor: 'unset',
         height: '100%',
         width: '100%',
+        ...cursor.cursorUnset,
     },
 
     leftAttachmentArrow: {
@@ -2498,21 +2500,9 @@ const styles = {
         marginVertical: 4,
     },
 
-    cursorDefault: {
-        cursor: 'default',
-    },
-
-    cursorDisabled: {
-        cursor: 'not-allowed',
-    },
-
     noSelect: {
         boxShadow: 'none',
         outline: 'none',
-    },
-
-    cursorPointer: {
-        cursor: 'pointer',
     },
 
     fullscreenCard: {
@@ -2807,7 +2797,9 @@ const styles = {
 
     keyboardShortcutModalContainer: {
         maxHeight: '100%',
-        flex: '0 0 auto',
+        flexShrink: 0,
+        flexGrow: 0,
+        flexBasis: 'auto',
     },
 
     keyboardShortcutTableWrapper: {
@@ -2873,7 +2865,7 @@ const styles = {
         alignItems: 'center',
         justifyContent: 'center',
         backgroundColor: themeColors.imageCropBackgroundColor,
-        cursor: 'move',
+        ...cursor.cursorMove,
     },
 
     sliderKnobTooltipView: {
@@ -2889,7 +2881,7 @@ const styles = {
         width: variables.sliderKnobSize,
         borderRadius: variables.sliderKnobSize / 2,
         left: -(variables.sliderKnobSize / 2),
-        cursor: 'pointer',
+        ...cursor.cursorPointer,
     },
 
     sliderBar: {
@@ -2898,16 +2890,6 @@ const styles = {
         borderRadius: variables.sliderBarHeight / 2,
         alignSelf: 'stretch',
         justifyContent: 'center',
-    },
-
-    userSelectText: {
-        userSelect: 'text',
-        WebkitUserSelect: 'text',
-    },
-
-    userSelectNone: {
-        userSelect: 'none',
-        WebkitUserSelect: 'none',
     },
 
     screenCenteredContainer: {
@@ -2970,6 +2952,10 @@ const styles = {
         textAlign: 'left',
     },
 
+    cardSectionTitle: {
+        lineHeight: variables.lineHeightXXLarge,
+    },
+
     cardMenuItem: {
         paddingLeft: 8,
         paddingRight: 0,
@@ -3021,8 +3007,6 @@ const styles = {
         justifyContent: 'center',
         flexDirection: 'row',
         alignSelf: 'flex-start',
-        marginTop: 8,
-        marginRight: 4,
     },
 
     miniQuickEmojiReactionText: {
