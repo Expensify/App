@@ -159,6 +159,9 @@ export default {
                     Workspace_Reimburse: {
                         path: ROUTES.WORKSPACE_REIMBURSE,
                     },
+                    Workspace_RateAndUnit: {
+                        path: ROUTES.WORKSPACE_RATE_AND_UNIT,
+                    },
                     Workspace_Bills: {
                         path: ROUTES.WORKSPACE_BILLS,
                     },

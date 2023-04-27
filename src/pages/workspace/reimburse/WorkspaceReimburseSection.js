@@ -73,7 +73,7 @@ class WorkspaceReimburseSection extends React.Component {
         }
 
         // If the reimbursementAccount is loading but not enough time has passed to show a spinner, then render nothing.
-        if (this.props.reimbursementAccount.isLoading && !this.state.shouldShowLoadingSpinner) {
+        /*if (this.props.reimbursementAccount.isLoading && !this.state.shouldShowLoadingSpinner) {
             return null;
         }
 
@@ -83,7 +83,7 @@ class WorkspaceReimburseSection extends React.Component {
                     <ActivityIndicator color={themeColors.spinner} size="large" />
                 </View>
             );
-        }
+        }*/
 
         return (
             <>

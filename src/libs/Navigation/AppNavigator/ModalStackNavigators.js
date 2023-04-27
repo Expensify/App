@@ -443,6 +443,13 @@ const SettingsModalStackNavigator = createModalStackNavigator([
     },
     {
         getComponent: () => {
+            const WorkspaceRateAndUnitPage = require('../../../pages/workspace/reimburse/WorkspaceRateAndUnitPage').default;
+            return WorkspaceRateAndUnitPage;
+        },
+        name: 'Workspace_RateAndUnit',
+    },
+    {
+        getComponent: () => {
             const WorkspaceBillsPage = require('../../../pages/workspace/bills/WorkspaceBillsPage').default;
             return WorkspaceBillsPage;
         },
