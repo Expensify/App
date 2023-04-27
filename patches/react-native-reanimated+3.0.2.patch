@@ -1,26 +1,3 @@
-diff --git a/node_modules/react-native-reanimated/android/src/main/java/com/swmansion/reanimated/ReanimatedPackage.java b/node_modules/react-native-reanimated/android/src/main/java/com/swmansion/reanimated/ReanimatedPackage.java
-index 961b585..9211cc5 100644
---- a/node_modules/react-native-reanimated/android/src/main/java/com/swmansion/reanimated/ReanimatedPackage.java
-+++ b/node_modules/react-native-reanimated/android/src/main/java/com/swmansion/reanimated/ReanimatedPackage.java
-@@ -29,9 +29,6 @@ public class ReanimatedPackage extends TurboReactPackage implements ReactPackage
-     if (name.equals(ReanimatedModule.NAME)) {
-       return new ReanimatedModule(reactContext);
-     }
--    if (name.equals(ReanimatedUIManager.NAME)) {
--      return createUIManager(reactContext);
--    }
-     return null;
-   }
- 
-@@ -39,7 +36,7 @@ public class ReanimatedPackage extends TurboReactPackage implements ReactPackage
-   public ReactModuleInfoProvider getReactModuleInfoProvider() {
-     Class<? extends NativeModule>[] moduleList =
-         new Class[] {
--          ReanimatedModule.class, ReanimatedUIManager.class,
-+          ReanimatedModule.class,
-         };
- 
-     final Map<String, ReactModuleInfo> reactModuleInfoMap = new HashMap<>();
 diff --git a/node_modules/react-native-reanimated/src/reanimated2/initializers.ts b/node_modules/react-native-reanimated/src/reanimated2/initializers.ts
 index 2c82793..74e36b6 100644
 --- a/node_modules/react-native-reanimated/src/reanimated2/initializers.ts
