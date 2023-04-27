@@ -13,6 +13,11 @@ import withLocalize, {withLocalizePropTypes} from '../../components/withLocalize
 import * as IOU from '../../libs/actions/IOU';
 import * as CurrencySymbolUtils from '../../libs/CurrencySymbolUtils';
 import {withNetwork} from '../../components/OnyxProvider';
+import CONST from '../../CONST';
+import themeColors from '../../styles/themes/default';
+import * as Expensicons from '../../components/Icon/Expensicons';
+
+const greenCheckmark = {src: Expensicons.Checkmark, color: themeColors.success};
 
 /**
  * IOU Currency selection for selecting currency
@@ -30,11 +35,22 @@ const propTypes = {
         ISO4217: PropTypes.string,
     })),
 
+    /* Onyx Props */
+
+    /** Holds data related to IOU view state, rather than the underlying IOU data. */
+    iou: PropTypes.shape({
+        /** Selected Currency Code of the current IOU */
+        selectedCurrencyCode: PropTypes.string,
+    }),
+
     ...withLocalizePropTypes,
 };
 
 const defaultProps = {
     currencyList: {},
+    iou: {
+        selectedCurrencyCode: CONST.CURRENCY.USD,
+    },
 };
 
 class IOUCurrencySelection extends Component {
@@ -79,6 +95,8 @@ class IOUCurrencySelection extends Component {
             text: `${currencyCode} - ${CurrencySymbolUtils.getLocalizedCurrencySymbol(this.props.preferredLocale, currencyCode)}`,
             currencyCode,
             keyForList: currencyCode,
+            customIcon: currencyCode === this.props.iou.selectedCurrencyCode ? greenCheckmark : undefined,
+            boldStyle: currencyCode === this.props.iou.selectedCurrencyCode,
         }));
     }
 
@@ -127,6 +145,7 @@ class IOUCurrencySelection extends Component {
                             placeholderText={this.props.translate('common.search')}
                             headerMessage={headerMessage}
                             safeAreaPaddingBottomStyle={safeAreaPaddingBottomStyle}
+                            initiallyFocusedOptionKey={_.get(_.filter(this.state.currencyData, crc => crc.currencyCode === this.props.iou.selectedCurrencyCode)[0], 'keyForList')}
                         />
                     </>
                 )}
@@ -142,6 +161,9 @@ export default compose(
     withLocalize,
     withOnyx({
         currencyList: {key: ONYXKEYS.CURRENCY_LIST},
+        iou: {
+            key: ONYXKEYS.IOU,
+        },
     }),
     withNetwork(),
 )(IOUCurrencySelection);
