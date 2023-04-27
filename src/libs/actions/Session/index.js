@@ -221,7 +221,6 @@ function beginSignIn(login) {
             key: ONYXKEYS.ACCOUNT,
             value: {
                 isLoading: false,
-                primaryLogin: null,
                 errors: {
                     [DateUtils.getMicroseconds()]: Localize.translateLocal('loginForm.cannotGetAccountDetails'),
                 },
