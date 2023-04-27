@@ -538,6 +538,13 @@ function getDefaultWorkspaceAvatar(workspaceName) {
     return !alphaNumeric ? defaultWorkspaceAvatars.WorkspaceBuilding : defaultWorkspaceAvatars[`Workspace${alphaNumeric[0]}`];
 }
 
+function getWorkspaceAvatar(report, policies) {
+    const workspaceName = getPolicyName(report, policies);
+    return lodashGet(policies, [
+        `${ONYXKEYS.COLLECTION.POLICY}${report.policyID}`, 'avatar',
+    ]) || getDefaultWorkspaceAvatar(workspaceName);
+}
+
 /**
  * Helper method to return old dot default avatar associated with login
  *
@@ -1810,4 +1817,5 @@ export {
     getMoneyRequestOptions,
     canRequestMoney,
     getWhisperDisplayNames,
+    getWorkspaceAvatar,
 };

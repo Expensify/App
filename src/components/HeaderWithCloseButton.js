@@ -19,6 +19,7 @@ import withLocalize, {withLocalizePropTypes} from './withLocalize';
 import withKeyboardState, {keyboardStatePropTypes} from './withKeyboardState';
 import AvatarWithDisplayName from './AvatarWithDisplayName';
 import iouReportPropTypes from '../pages/iouReportPropTypes';
+import participantPropTypes from './participantPropTypes';
 
 const propTypes = {
     /** Title of the Header */
@@ -85,6 +86,13 @@ const propTypes = {
 
     report: iouReportPropTypes,
 
+    policies: PropTypes.shape({
+        /** Name of the policy */
+        name: PropTypes.string,
+    }),
+
+    personalDetails: PropTypes.objectOf(participantPropTypes),
+
     ...withLocalizePropTypes,
     ...withDelayToggleButtonStatePropTypes,
     ...keyboardStatePropTypes,
@@ -106,6 +114,8 @@ const defaultProps = {
     shouldShowStepCounter: true,
     shouldShowAvatarWithDisplay: false,
     report: null,
+    policies: {},
+    personalDetails: {},
     guidesCallTaskID: '',
     stepCounter: null,
     threeDotsMenuItems: [],

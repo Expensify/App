@@ -11,6 +11,11 @@ import SettlementButton from './SettlementButton';
 import CONST from '../CONST';
 import Text from './Text';
 import participantPropTypes from './participantPropTypes';
+import Avatar from './Avatar';
+import styles from '../styles/styles';
+import {getDefaultWorkspaceAvatar, getPolicyName} from '../libs/ReportUtils';
+import lodashGet from 'lodash/get';
+import ONYXKEYS from '../ONYXKEYS';
 
 const propTypes = {
     /** The report currently being looked at */
@@ -40,12 +45,15 @@ const MoneyRequestHeader = (props) => {
     });
     const isSettled = /* ReportUtils.isSettled(props.report.reportID); */ false;
     const isAdmin = ReportUtils.isPolicyExpenseChatAdmin(props.report, props.policies);
+    const workspaceName = ReportUtils.getPolicyName(props.report, props.policies);
+    const workspaceAvatar = ReportUtils.getWorkspaceAvatar(props.report, props.policies);
     return (
         <View style={[
+
         ]}
         >
             <HeaderWithCloseButton
-                showAvatarWithDisplay
+                shouldShowAvatarWithDisplay
                 shouldShowThreeDotsButton={!isSettled}
                 threeDotsMenuItems={[{
                     icon: Expensicons.Trashcan,
@@ -53,23 +61,42 @@ const MoneyRequestHeader = (props) => {
                     onSelected: () => {},
                 }]}
                 report={props.report}
+                policies={props.policies}
+                personalDetails={props.personalDetails}
             />
             <Text>To</Text>
-            <View>
-                <AvatarWithDisplayName
-                    avatarSize={CONST.AVATAR_SIZE.DEFAULT}
-                    report={props.report}
-                    personalDetails={props.personalDetails}
-                    policies={props.policies}
-                />
-                {!props.isSingleRequest && (
-                    <Text>{formattedAmount}</Text>
-                )}
-
+            <View style={[
+                styles.flex1,
+                styles.flexRow,
+                styles.alignItemsCenter,
+                styles.justifyContentBetween,
+            ]}
+            >
+                <View style={[
+                    styles.flexRow,
+                    styles.alignItemsCenter,
+                    styles.justifyContentBetween,
+                ]}
+                >
+                    <Avatar
+                        source={workspaceAvatar}
+                    />
+                    <Text
+                        style={[styles.headerText, styles.pre]}
+                        numberOfLines={1}
+                    >
+                        {workspaceName}
+                    </Text>
+                </View>
+                <View>
+                    {!props.isSingleRequest && (
+                        <Text>{formattedAmount}</Text>
+                    )}
+                    {isAdmin && !isSettled && (
+                        <SettlementButton />
+                    )}
+                </View>
             </View>
-            {isAdmin && !isSettled && (
-                <SettlementButton />
-            )}
         </View>
     );
 };
