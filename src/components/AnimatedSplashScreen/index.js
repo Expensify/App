@@ -11,8 +11,6 @@ import BootSplash from '../../libs/BootSplash';
 import Logo from '../../../assets/images/new-expensify-dark.svg';
 import styles from '../../styles/styles';
 
-const SCALE_RATIO = 10;
-
 const propTypes = {
     /** Screen is ready to be animated */
     isReady: PropTypes.bool,
@@ -24,7 +22,7 @@ const defaultProps = {
 
 const AnimatedSplashScreen = (props) => {
     const [isVisible, setIsVisible] = useState(true);
-    const [scale] = useState(() => new Animated.Value(1 / SCALE_RATIO));
+    const [scale] = useState(() => new Animated.Value(1));
     const [opacity] = useState(() => new Animated.Value(1));
 
     useEffect(() => {
@@ -33,15 +31,15 @@ const AnimatedSplashScreen = (props) => {
         }
 
         Animated.timing(scale, {
-            duration: 250,
-            easing: Easing.back(0.85),
-            toValue: 1,
+            duration: 200,
+            easing: Easing.back(2),
+            toValue: 0,
             isInteraction: false,
             useNativeDriver: true,
         }).start();
 
         Animated.timing(opacity, {
-            duration: 300,
+            duration: 250,
             easing: Easing.out(Easing.ease),
             toValue: 0,
             isInteraction: false,
@@ -75,8 +73,8 @@ const AnimatedSplashScreen = (props) => {
             >
                 <Logo
                     viewBox="0 0 100 100"
-                    width={100 * SCALE_RATIO}
-                    height={100 * SCALE_RATIO}
+                    width={100}
+                    height={100}
                 />
             </Animated.View>
         </Animated.View>
