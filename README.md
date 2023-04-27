@@ -77,25 +77,25 @@ For an M1 Mac, read this [SO](https://stackoverflow.com/c/expensify/questions/11
 Creating an `.env` file is not necessary. We advise external contributors against it. It can lead to errors when
 variables referenced here get updated since your local `.env` file is ignored.
 
-- `NEW_EXPENSIFY_URL` - The root URL used for the website
-- `SECURE_EXPENSIFY_URL` - The URL used to hit the Expensify secure API
-- `EXPENSIFY_URL` - The URL used to hit the Expensify API
-- `EXPENSIFY_PARTNER_NAME` - Constant used for the app when authenticating.
-- `EXPENSIFY_PARTNER_PASSWORD` - Another constant used for the app when authenticating. (This is OK to be public)
-- `PUSHER_APP_KEY` - Key used to authenticate with Pusher.com
-- `SECURE_NGROK_URL` - Secure URL used for `ngrok` when testing
-- `NGROK_URL` - URL used for `ngrok` when testing
-- `USE_NGROK` - Flag to turn `ngrok` testing on or off
-- `USE_WDYR` - Flag to turn [`Why Did You Render`](https://github.com/welldone-software/why-did-you-render) testing on or off
-- `USE_WEB_PROXY`⚠️- Used in web/desktop development, it starts a server along the local development server to proxy
-   requests to the backend. External contributors should set this to `true` otherwise they'll have CORS errors.
-   If you don't want to start the proxy server set this explicitly to `false`
-- `CAPTURE_METRICS` (optional) - Set this to `true` to capture performance metrics and see them in Flipper
-   see [PERFORMANCE.md](contributingGuides/PERFORMANCE.md#performance-metrics-opt-in-on-local-release-builds) for more information
-- `ONYX_METRICS` (optional) - Set this to `true` to capture even more performance metrics and see them in Flipper
-   see [React-Native-Onyx#benchmarks](https://github.com/Expensify/react-native-onyx#benchmarks) for more information
-- `E2E_TESTING` (optional) - This needs to be set to `true` when running the e2e tests for performance regression testing. 
-   This happens usually automatically, read [this](tests/e2e/README.md) for more information
+        - `NEW_EXPENSIFY_URL` - The root URL used for the website
+        - `SECURE_EXPENSIFY_URL` - The URL used to hit the Expensify secure API
+        - `EXPENSIFY_URL` - The URL used to hit the Expensify API
+        - `EXPENSIFY_PARTNER_NAME` - Constant used for the app when authenticating.
+        - `EXPENSIFY_PARTNER_PASSWORD` - Another constant used for the app when authenticating. (This is OK to be public)
+        - `PUSHER_APP_KEY` - Key used to authenticate with Pusher.com
+        - `SECURE_NGROK_URL` - Secure URL used for `ngrok` when testing
+        - `NGROK_URL` - URL used for `ngrok` when testing
+        - `USE_NGROK` - Flag to turn `ngrok` testing on or off
+        - `USE_WDYR` - Flag to turn [`Why Did You Render`](https://github.com/welldone-software/why-did-you-render) testing on or off
+        - `USE_WEB_PROXY`⚠️- Used in web/desktop development, it starts a server along the local development server to proxy
+           requests to the backend. External contributors should set this to `true` otherwise they'll have CORS errors.
+           If you don't want to start the proxy server set this explicitly to `false`
+        - `CAPTURE_METRICS` (optional) - Set this to `true` to capture performance metrics and see them in Flipper
+           see [PERFORMANCE.md](contributingGuides/PERFORMANCE.md#performance-metrics-opt-in-on-local-release-builds) for more information
+        - `ONYX_METRICS` (optional) - Set this to `true` to capture even more performance metrics and see them in Flipper
+           see [React-Native-Onyx#benchmarks](https://github.com/Expensify/react-native-onyx#benchmarks) for more information
+        - `E2E_TESTING` (optional) - This needs to be set to `true` when running the e2e tests for performance regression testing. 
+           This happens usually automatically, read [this](tests/e2e/README.md) for more information
 
 ----
 
@@ -325,11 +325,11 @@ This application is built with the following principles.
     - In general, the operations that happen inside an action should be done in parallel and not in sequence (eg. don't use the promise of one Onyx method to trigger a second Onyx method). Onyx is built so that every operation is done in parallel and it doesn't matter what order they finish in. XHRs on the other hand need to be handled in sequence with promise chains in order to access and act upon the response.
     - If an Action needs to access data stored on disk, use a local variable and `Onyx.connect()`
     - Data should be optimistically stored on disk whenever possible without waiting for a server response. Example of creating a new optimistic comment:
-        1. user adds a comment
-        2. comment is shown in the UI (by mocking the expected response from the server)
-        3. comment is created in the server
-        4. server responds
-        5. UI updates with data from the server
+            1. user adds a comment
+            2. comment is shown in the UI (by mocking the expected response from the server)
+            3. comment is created in the server
+            4. server responds
+            5. UI updates with data from the server
 
 1. **Cross Platform 99.9999%**
     1. A feature isn't done until it works on all platforms.  Accordingly, don't even bother writing a platform-specific code block because you're just going to need to undo it.
