@@ -44,7 +44,7 @@ const measureHeightOfSuggestionRows = (numRows, isSuggestionPickerLarge) => {
         return numRows * CONST.AUTO_COMPLETE_SUGGESTER.ITEM_HEIGHT;
     }
     if (numRows > 2) {
-        // on small screens, we display a scrollable window with a height of 2.5 items, indicating that there are more items available beyond what is currently visible
+        // On small screens, we display a scrollable window with a height of 2.5 items, indicating that there are more items available beyond what is currently visible
         return CONST.AUTO_COMPLETE_SUGGESTER.SMALL_CONTAINER_HEIGHT_FACTOR * CONST.AUTO_COMPLETE_SUGGESTER.ITEM_HEIGHT;
     }
     return numRows * CONST.AUTO_COMPLETE_SUGGESTER.ITEM_HEIGHT;

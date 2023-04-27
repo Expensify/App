@@ -177,7 +177,7 @@ const styles = {
         right: 0,
     },
 
-    reportSuggestionContainer: {
+    autoCompleteSuggestionContainer: {
         flexDirection: 'row',
         alignItems: 'center',
     },

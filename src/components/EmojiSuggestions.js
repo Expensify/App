@@ -63,7 +63,7 @@ const EmojiSuggestions = (props) => {
         const styledTextArray = getStyledTextArray(item.name, props.prefix);
 
         return (
-            <View style={styles.reportSuggestionContainer}>
+            <View style={styles.autoCompleteSuggestionContainer}>
                 <Text style={styles.emojiSuggestionsEmoji}>{EmojiUtils.getEmojiCodeWithSkinColor(item, props.preferredSkinToneIndex)}</Text>
                 <Text style={styles.emojiSuggestionsText}>
                     :
