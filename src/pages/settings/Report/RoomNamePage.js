@@ -1,32 +1,40 @@
 import React, {useCallback} from 'react';
 import _ from 'underscore';
+import {withOnyx} from 'react-native-onyx';
+import PropTypes from 'prop-types';
 import {View} from 'react-native';
 import ScreenWrapper from '../../../components/ScreenWrapper';
 import HeaderWithCloseButton from '../../../components/HeaderWithCloseButton';
 import withLocalize, {withLocalizePropTypes} from '../../../components/withLocalize';
 import Form from '../../../components/Form';
 import ONYXKEYS from '../../../ONYXKEYS';
-import CONST from '../../../CONST';
-import TextInput from '../../../components/TextInput';
 import styles from '../../../styles/styles';
 import Navigation from '../../../libs/Navigation/Navigation';
 import compose from '../../../libs/compose';
+import * as ErrorUtils from '../../../libs/ErrorUtils';
 import * as ValidationUtils from '../../../libs/ValidationUtils'
-import * as RoomNameInputUtils from '../../../libs/RoomNameInputUtils';
 import withReportOrNotFound from '../../home/report/withReportOrNotFound';
 import reportPropTypes from '../../reportPropTypes';
 import ROUTES from '../../../ROUTES';
 import * as Report from '../../../libs/actions/Report';
+import RoomNameInput from '../../../components/RoomNameInput';
 
 const propTypes = {
     ...withLocalizePropTypes,
 
     /** The room report for which the name is being edited */
     report: reportPropTypes.isRequired,
+
+    /** All reports shared with the user */
+    reports: PropTypes.objectOf(reportPropTypes),
+};
+const defaultProps = {
+    reports: {},
 };
 
 const RoomNamePage = (props) => {
     const report = props.report;
+    const reports = props.reports;
     const translate = props.translate;
 
     const validate = useCallback((values) => {
@@ -39,20 +47,20 @@ const RoomNamePage = (props) => {
 
         if (_.isEmpty(values.roomName)) {
             // We error if the user doesn't enter a room name or left blank
-            ErrorUtils.addErrorMessage(errors, 'roomName', this.props.translate('newRoomPage.pleaseEnterRoomName'));
+            ErrorUtils.addErrorMessage(errors, 'roomName', translate('newRoomPage.pleaseEnterRoomName'));
         } else if (!ValidationUtils.isValidRoomName(values.roomName)) {
             // We error if the room name has invalid characters
-            ErrorUtils.addErrorMessage(errors, 'roomName', this.props.translate('newRoomPage.roomNameInvalidError'));
+            ErrorUtils.addErrorMessage(errors, 'roomName', translate('newRoomPage.roomNameInvalidError'));
         } else if (ValidationUtils.isReservedRoomName(values.roomName)) {
             // Certain names are reserved for default rooms and should not be used for policy rooms.
-            ErrorUtils.addErrorMessage(errors, 'roomName', this.props.translate('newRoomPage.roomNameReservedError', {reservedName: values.roomName}));
-        } else if (ValidationUtils.isExistingRoomName(values.roomName, this.props.reports, this.props.report.policyID)) {
+            ErrorUtils.addErrorMessage(errors, 'roomName', translate('newRoomPage.roomNameReservedError', {reservedName: values.roomName}));
+        } else if (ValidationUtils.isExistingRoomName(values.roomName, reports, report.policyID)) {
             // The room name can't be set to one that already exists on the policy
-            ErrorUtils.addErrorMessage(errors, 'roomName', this.props.translate('newRoomPage.roomAlreadyExistsError'));
+            ErrorUtils.addErrorMessage(errors, 'roomName', translate('newRoomPage.roomAlreadyExistsError'));
         }
 
         return errors;
-    }, [translate]);
+    }, [report, reports, translate]);
 
     return (
         <ScreenWrapper includeSafeAreaPaddingBottom={false}>
@@ -65,20 +73,16 @@ const RoomNamePage = (props) => {
             <Form
                 style={[styles.flexGrow1, styles.ph5]}
                 formID={ONYXKEYS.FORMS.ROOM_NAME_FORM}
-                onSubmit={values => Report.updatePolicyRoomNameAndNavigate(report, RoomNameInputUtils.modifyRoomName(values.roomName))}
+                onSubmit={values => Report.updatePolicyRoomNameAndNavigate(report, values.roomName)}
                 validate={validate}
                 submitButtonText={translate('common.save')}
                 enabledWhenOffline
             >
                 <View style={styles.mb4}>
-                    <TextInput
+                    <RoomNameInput
                         inputID="roomName"
-                        name="name"
                         autoFocus
-                        prefixCharacter={CONST.POLICY.ROOM_PREFIX}
-                        label={translate('newRoomPage.roomName')}
-                        defaultValue={report.reportName.substring(1)}
-                        maxLength={CONST.REPORT.MAX_ROOM_NAME_LENGTH}
+                        defaultValue={report.reportName}
                     />
                 </View>
             </Form>
@@ -87,9 +91,15 @@ const RoomNamePage = (props) => {
 };
 
 RoomNamePage.propTypes = propTypes;
+RoomNamePage.defaultProps = defaultProps;
 RoomNamePage.displayName = 'RoomNamePage';
 
 export default compose(
     withLocalize,
     withReportOrNotFound,
+    withOnyx({
+        reports: {
+            key: ONYXKEYS.COLLECTION.REPORT,
+        },
+    }),
 )(RoomNamePage);
