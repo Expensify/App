@@ -23,6 +23,9 @@ const propTypes = {
     /** The ID of the associated chatReport */
     chatReportID: PropTypes.string.isRequired,
 
+    /** The ID of the associated request report */
+    requestReportID: PropTypes.string.isRequired,
+
     /** Is this IOUACTION the most recent? */
     isMostRecentIOUReportAction: PropTypes.bool.isRequired,
 

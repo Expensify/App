@@ -174,9 +174,18 @@ class ReportActionItem extends Component {
     renderItemContent(hovered = false) {
         let children;
         if (this.props.action.actionName === CONST.REPORT.ACTIONS.TYPE.IOU) {
+
+            let iouReportID = 0;
+            if (this.props.action.originalMessage.IOUReportID) {
+                iouReportID = this.props.action.originalMessage.IOUReportID;
+            } else {
+                iouReportID = 1234576;
+            }
+
             children = (
                 <IOUAction
                     chatReportID={this.props.report.reportID}
+                    iouReportID={iouReportID}
                     action={this.props.action}
                     isMostRecentIOUReportAction={this.props.isMostRecentIOUReportAction}
                     isHovered={hovered}
