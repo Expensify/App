@@ -126,7 +126,7 @@ const GenericPressable = forwardRef((props, ref) => {
                 isScreenReaderActive && StyleUtils.parseStyleFromFunction(props.screenReaderActiveStyle, state),
                 state.focused && StyleUtils.parseStyleFromFunction(props.focusStyle, state),
                 state.hovered && StyleUtils.parseStyleFromFunction(props.hoverStyle, state),
-                state.pressed && StyleUtils.parseStyleFromFunction(props.pressedStyle, state),
+                state.pressed && StyleUtils.parseStyleFromFunction(props.pressStyle, state),
                 isDisabled && [...StyleUtils.parseStyleFromFunction(props.disabledStyle, state), styles.noSelect],
             ]}
 
