@@ -47,7 +47,10 @@ const propTypes = {
     hideFocusedState: PropTypes.bool,
 
     /** Forward the inner ref */
-    innerRef: PropTypes.func,
+    innerRef: PropTypes.oneOfType([
+        PropTypes.func,
+        PropTypes.object,
+    ]),
 
     /** Maximum characters allowed */
     maxLength: PropTypes.number,
@@ -76,6 +79,9 @@ const propTypes = {
 
     /** Indicate whether pressing Enter on multiline input is allowed to submit the form. */
     submitOnEnter: PropTypes.bool,
+
+    /** Indicate whether input is multiline */
+    multiline: PropTypes.bool,
 
     /** Set the default value to the input if there is a valid saved value */
     shouldUseDefaultValue: PropTypes.bool,
@@ -113,6 +119,7 @@ const defaultProps = {
     submitOnEnter: false,
     icon: null,
     shouldUseDefaultValue: false,
+    multiline: false,
 };
 
 export {propTypes, defaultProps};

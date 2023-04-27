@@ -6,15 +6,7 @@ describe('ReportActionsUtils', () => {
         const cases = [
             [
                 [
-                    // This is the lowest created timestamp, but because it's an optimistic action it should appear last
-                    {
-                        created: '2022-11-09 20:00:00.000',
-                        reportActionID: '395268342',
-                        actionName: CONST.REPORT.ACTIONS.TYPE.ADDCOMMENT,
-                        pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
-                    },
-
-                    // This is the highest created timestamp, so should appear 2nd-to-last
+                    // This is the highest created timestamp, so should appear last
                     {
                         created: '2022-11-09 22:27:01.825',
                         reportActionID: '8401445780099176',
@@ -68,12 +60,6 @@ describe('ReportActionsUtils', () => {
                         created: '2022-11-09 22:27:01.825',
                         reportActionID: '8401445780099176',
                         actionName: CONST.REPORT.ACTIONS.TYPE.ADDCOMMENT,
-                    },
-                    {
-                        created: '2022-11-09 20:00:00.000',
-                        reportActionID: '395268342',
-                        actionName: CONST.REPORT.ACTIONS.TYPE.ADDCOMMENT,
-                        pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
                     },
                 ],
             ],
@@ -157,6 +143,12 @@ describe('ReportActionsUtils', () => {
                 },
                 {
                     created: '2022-11-09 22:27:01.825',
+                    reportActionID: '8049485084562457',
+                    actionName: CONST.REPORT.ACTIONS.TYPE.POLICYCHANGELOG.UPDATE_FIELD,
+                    message: [{html: 'updated the Approval Mode from "Submit and Approve" to "Submit and Close"'}],
+                },
+                {
+                    created: '2022-11-08 22:27:01.825',
                     reportActionID: '1661970171066218',
                     actionName: 'REIMBURSED',
                     message: [{html: 'Hello world'}],

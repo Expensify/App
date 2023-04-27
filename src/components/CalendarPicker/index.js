@@ -2,6 +2,7 @@ import _ from 'underscore';
 import React from 'react';
 import {View, TouchableOpacity, Pressable} from 'react-native';
 import moment from 'moment';
+import Str from 'expensify-common/lib/str';
 import Text from '../Text';
 import ArrowIcon from './ArrowIcon';
 import styles from '../../styles/styles';
@@ -17,9 +18,6 @@ import * as StyleUtils from '../../styles/StyleUtils';
 class CalendarPicker extends React.PureComponent {
     constructor(props) {
         super(props);
-
-        this.monthNames = moment.localeData(props.preferredLocale).months();
-        this.daysOfWeek = moment.localeData(props.preferredLocale).weekdays();
 
         let currentDateView = props.value;
         if (props.selectedYear) {
@@ -92,6 +90,8 @@ class CalendarPicker extends React.PureComponent {
     }
 
     render() {
+        const monthNames = _.map(moment.localeData(this.props.preferredLocale).months(), Str.recapitalize);
+        const daysOfWeek = _.map(moment.localeData(this.props.preferredLocale).weekdays(), day => day.toUpperCase());
         const currentMonthView = this.state.currentDateView.getMonth();
         const currentYearView = this.state.currentDateView.getFullYear();
         const calendarDaysMatrix = generateMonthMatrix(currentYearView, currentMonthView);
@@ -114,7 +114,7 @@ class CalendarPicker extends React.PureComponent {
                             testID="currentMonthText"
                             accessibilityLabel={this.props.translate('common.currentMonth')}
                         >
-                            {this.monthNames[currentMonthView]}
+                            {monthNames[currentMonthView]}
                         </Text>
                         <TouchableOpacity testID="prev-month-arrow" disabled={!hasAvailableDatesPrevMonth} onPress={this.moveToPrevMonth}>
                             <ArrowIcon disabled={!hasAvailableDatesPrevMonth} direction={CONST.DIRECTION.LEFT} />
@@ -125,7 +125,7 @@ class CalendarPicker extends React.PureComponent {
                     </View>
                 </View>
                 <View style={styles.flexRow}>
-                    {_.map(this.daysOfWeek, (dayOfWeek => (
+                    {_.map(daysOfWeek, (dayOfWeek => (
                         <View key={dayOfWeek} style={[styles.calendarDayRoot, styles.flex1, styles.justifyContentCenter, styles.alignItemsCenter]}>
                             <Text style={styles.sidebarLinkTextBold}>{dayOfWeek[0]}</Text>
                         </View>
@@ -156,7 +156,7 @@ class CalendarPicker extends React.PureComponent {
                                                 StyleUtils.getButtonBackgroundColorStyle(getButtonState(hovered, pressed)),
                                             ]}
                                         >
-                                            <Text style={isDisabled ? styles.calendarButtonDisabled : styles.dayText}>{day}</Text>
+                                            <Text style={isDisabled ? styles.buttonOpacityDisabled : styles.dayText}>{day}</Text>
                                         </View>
                                     )}
                                 </Pressable>

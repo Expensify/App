@@ -4,6 +4,7 @@ import ONYXKEYS from '../ONYXKEYS';
 import CONFIG from '../CONFIG';
 import CONST from '../CONST';
 import * as Environment from './Environment/Environment';
+import proxyConfig from '../../config/proxyConfig';
 
 // To avoid rebuilding native apps, native apps use production config for both staging and prod
 // We use the async environment check because it works on all platforms
@@ -17,13 +18,13 @@ Environment.getEnvironment()
         Onyx.connect({
             key: ONYXKEYS.USER,
             callback: (val) => {
-                // Toggling between APIs is not allowed on production
-                if (ENV_NAME === CONST.ENVIRONMENT.PRODUCTION) {
+                // Toggling between APIs is not allowed on production and internal dev environment
+                if (ENV_NAME === CONST.ENVIRONMENT.PRODUCTION || CONFIG.IS_USING_LOCAL_WEB) {
                     shouldUseStagingServer = false;
                     return;
                 }
 
-                const defaultToggleState = ENV_NAME === CONST.ENVIRONMENT.STAGING;
+                const defaultToggleState = ENV_NAME === CONST.ENVIRONMENT.STAGING || ENV_NAME === CONST.ENVIRONMENT.ADHOC;
                 shouldUseStagingServer = lodashGet(val, 'shouldUseStagingServer', defaultToggleState);
             },
         });
@@ -41,6 +42,11 @@ function getApiRoot(request) {
     const shouldUseSecure = lodashGet(request, 'shouldUseSecure', false);
 
     if (shouldUseStagingServer) {
+        if (CONFIG.IS_USING_WEB_PROXY) {
+            return shouldUseSecure
+                ? proxyConfig.STAGING_SECURE
+                : proxyConfig.STAGING;
+        }
         return shouldUseSecure
             ? CONFIG.EXPENSIFY.STAGING_SECURE_API_ROOT
             : CONFIG.EXPENSIFY.STAGING_API_ROOT;

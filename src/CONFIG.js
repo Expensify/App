@@ -64,6 +64,7 @@ export default {
         PARTNER_PASSWORD: lodashGet(Config, 'EXPENSIFY_PARTNER_PASSWORD', 'e21965746fd75f82bb66'),
         EXPENSIFY_CASH_REFERER: 'ecash',
         CONCIERGE_URL_PATHNAME: 'concierge/',
+        DEVPORTAL_URL_PATHNAME: '_devportal/',
         CONCIERGE_URL: `${expensifyURL}concierge/`,
     },
     IS_IN_PRODUCTION: Platform.OS === 'web' ? process.env.NODE_ENV === 'production' : !__DEV__,
@@ -84,4 +85,5 @@ export default {
     DEV_PORT: process.env.PORT || 8080,
     E2E_TESTING: lodashGet(Config, 'E2E_TESTING', 'false') === 'true',
     SEND_CRASH_REPORTS: lodashGet(Config, 'SEND_CRASH_REPORTS', 'false') === 'true',
+    IS_USING_WEB_PROXY: getPlatform() === 'web' && useWebProxy,
 };
