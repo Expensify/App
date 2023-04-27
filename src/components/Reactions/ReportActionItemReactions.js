@@ -56,9 +56,9 @@ const propTypes = {
 
 const ReportActionItemReactions = props => (
     <View style={[styles.flexRow, styles.flexWrap, styles.gap1, styles.mt2]}>
-        {_.map(props.reactions, (reaction) => {
+        {_.map(props.reactions, (reaction, reactionEmoji) => {
             const reactionCount = _.size(reaction.users);
-            const emoji = _.find(emojis, e => e.name === reaction.emoji);
+            const emoji = _.find(emojis, e => e.name === reactionEmoji);
             const emojiCodes = getUniqueEmojiCodes(emoji, reaction.users);
 
             const onPress = () => {
@@ -69,7 +69,7 @@ const ReportActionItemReactions = props => (
                 <Tooltip
                     renderTooltipContent={() => (
                         <ReactionTooltipContent
-                            emojiName={reaction.emoji}
+                            emojiName={reactionEmoji}
                             emojiCodes={emojiCodes}
                             accountIDs={_.keys(reaction.users)}
                         />
@@ -80,7 +80,7 @@ const ReportActionItemReactions = props => (
                         count={reactionCount}
                         emojiCodes={emojiCodes}
                         onPress={onPress}
-                        reactionUsers={reaction.users}
+                        reactionUsers={_.keys(reaction.users)}
                     />
                 </Tooltip>
             );
