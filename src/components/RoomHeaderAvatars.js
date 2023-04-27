@@ -12,10 +12,14 @@ import avatarPropTypes from './avatarPropTypes';
 
 const propTypes = {
     icons: PropTypes.arrayOf(avatarPropTypes),
+
+    /** How large the avatars should be */
+    size: PropTypes.string,
 };
 
 const defaultProps = {
     icons: [],
+    size: CONST.AVATAR_SIZE.LARGE_BORDERED,
 };
 
 const RoomHeaderAvatars = (props) => {
@@ -42,7 +46,7 @@ const RoomHeaderAvatars = (props) => {
         styles.roomHeaderAvatar,
 
         // Due to border-box box-sizing, the Avatars have to be larger when bordered to visually match size with non-bordered Avatars
-        StyleUtils.getAvatarStyle(CONST.AVATAR_SIZE.LARGE_BORDERED),
+        StyleUtils.getAvatarStyle(props.size),
     ];
     return (
         <View pointerEvents="none">
