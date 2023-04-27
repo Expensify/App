@@ -28,6 +28,7 @@ const CONST = {
     ANIMATED_TRANSITION: 300,
     ANIMATED_TRANSITION_FROM_VALUE: 100,
     ANIMATION_IN_TIMING: 100,
+    ARROW_HIDE_DELAY: 3000,
 
     API_ATTACHMENT_VALIDATIONS: {
         // Same as the PHP layer allows
@@ -1728,7 +1729,7 @@ const CONST = {
         GY: {},
         HK: {
             regex: /^999077$|^$/,
-            samples: '999077, empty',
+            samples: '999077',
         },
         HN: {
             regex: /^\d{5}$/,
@@ -1810,7 +1811,7 @@ const CONST = {
         },
         KI: {
             regex: /^KI\d{4}$/,
-            samples: '36524, 49717, 67606, 96469',
+            samples: 'KI0104, KI0109, KI0112, KI0306',
         },
         KM: {},
         KN: {
@@ -1928,7 +1929,7 @@ const CONST = {
         MR: {},
         MS: {
             regex: /^[Mm][Ss][Rr]\s{0,1}\d{4}$/,
-            samples: '97263, 97243, 98210, 97213',
+            samples: 'MSR1110, MSR1230, MSR1250, MSR1330',
         },
         MT: {
             regex: /^[A-Z]{3} [0-9]{4}|[A-Z]{2}[0-9]{2}|[A-Z]{2} [0-9]{2}|[A-Z]{3}[0-9]{4}|[A-Z]{3}[0-9]{2}|[A-Z]{3} [0-9]{2}$/,
@@ -2083,7 +2084,7 @@ const CONST = {
         RW: {},
         SA: {
             regex: /^\d{5}(-{1}\d{4})?$/,
-            samples: '86020-12567, 72375, 70280, 96328',
+            samples: '86020-1256, 72375, 70280, 96328',
         },
         SB: {},
         SC: {},
@@ -2130,10 +2131,7 @@ const CONST = {
             regex: /^[A-Z]{2} ?\d{5}$/,
             samples: 'JQ 80186, CU 46474, DE33738, MS 59107',
         },
-        ST: {
-            regex: /^[A-Z]{2} ?\d{5}$/,
-            samples: '87849, 89861, AG 93268, RC88066',
-        },
+        ST: {},
         SV: {},
         SX: {},
         SY: {},
@@ -2283,6 +2281,11 @@ const CONST = {
         'PLN', 'GBP', 'RUB', 'SGD', 'SEK', 'CHF', 'THB', 'USD',
     ],
     CONCIERGE_TRAVEL_URL: 'https://community.expensify.com/discussion/7066/introducing-concierge-travel',
+    SCREEN_READER_STATES: {
+        ALL: 'all',
+        ACTIVE: 'active',
+        DISABLED: 'disabled',
+    },
 };
 
 export default CONST;
