@@ -92,7 +92,7 @@ const pressablePropTypes = {
 
     /**
      * Specifies the accessibility label for the component
-     * @example 'Press me'
+     * @example 'Search'
      * @example 'Close'
      */
     accessibilityLabel: PropTypes.string.isRequired,
