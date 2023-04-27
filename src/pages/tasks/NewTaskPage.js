@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import {View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import PropTypes from 'prop-types';
@@ -17,9 +17,15 @@ import Button from '../../components/Button';
 import ROUTES from '../../ROUTES';
 
 // TO-DO: Create Avatar button for Assignee and Room Selectors
-// TO-DO: Call AssignTask with all the appropriate Data
+// TO-DO: Call CreateTask with all the appropriate Data
 
 const propTypes = {
+    /** Task Creation Data */
+    task: PropTypes.shape({
+        assignee: PropTypes.string,
+        shareDestination: PropTypes.string,
+    }),
+
     /** Beta features list */
     betas: PropTypes.arrayOf(PropTypes.string),
 
@@ -28,11 +34,18 @@ const propTypes = {
 
 const defaultProps = {
     betas: [],
+    task: {},
 };
 
 // NOTE: This page is going to be updated in https://github.com/Expensify/App/issues/16855, this is just a placeholder for now
 const NewTaskPage = (props) => {
-    // const [assignee, setAssignee] = React.useState(null);
+
+    useEffect(() => {
+        console.log("from the new task page", props.task.assignee);
+
+    }, [props]);
+
+
 
     /**
      * @param {Object} values - form input values passed by the Form component
@@ -98,6 +111,9 @@ export default compose(
     withOnyx({
         betas: {
             key: ONYXKEYS.BETAS,
+        },
+        task: {
+            key: ONYXKEYS.TASK,
         },
     }),
     withLocalize,

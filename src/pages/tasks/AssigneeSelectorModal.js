@@ -9,8 +9,6 @@ import * as OptionsListUtils from '../../libs/OptionsListUtils';
 import ONYXKEYS from '../../ONYXKEYS';
 import styles from '../../styles/styles';
 import Navigation from '../../libs/Navigation/Navigation';
-
-// import ROUTES from '../../ROUTES';
 import * as Report from '../../libs/actions/Report';
 import HeaderWithCloseButton from '../../components/HeaderWithCloseButton';
 import ScreenWrapper from '../../components/ScreenWrapper';
@@ -21,6 +19,7 @@ import compose from '../../libs/compose';
 import personalDetailsPropType from '../personalDetailsPropType';
 import reportPropTypes from '../reportPropTypes';
 import Performance from '../../libs/Performance';
+import {setAssigneeValue} from "../../libs/actions/Task"
 
 const propTypes = {
     /* Onyx Props */
@@ -126,15 +125,13 @@ const AssigneeSelectorModal = (props) => {
             return;
         }
 
-        if (option.reportID) {
+        if (option.alternateText) {
             setSearchValue('');
 
             // eslint-disable-next-line no-console
-            console.log(option);
-
-            // TO-DO: Implement assigning the selected option to a state variable
-            // and navigate back to NewTaskPage
-
+            console.log("From the modal", option);
+            setAssigneeValue(option.alternateText);
+            Navigation.goBack();
             // Navigation.navigate(ROUTES.getReportRoute(option.text));
         } else {
             Report.navigateToAndOpenReport([option.login]);

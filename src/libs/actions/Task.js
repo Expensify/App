@@ -1,3 +1,4 @@
+import Onyx from 'react-native-onyx';
 import CONST from '../../CONST';
 import ONYXKEYS from '../../ONYXKEYS';
 import * as API from '../API';
@@ -170,5 +171,21 @@ function createTaskAndNavigate(parentReportActionID, parentReportID, taskReportI
     Navigation.navigate(ROUTES.getReportRoute(optimisticTaskReport.reportID));
 }
 
+function setAssigneeValue(assignee) {
+    // This is only needed for creation of a new task and so it should only be stored locally
+    Onyx.merge(ONYXKEYS.TASK, {assignee});
+}
+
+function setShareDestinationValue(shareDestinationID) {
+    // This is only needed for creation of a new task and so it should only be stored locally
+    Onyx.merge(ONYXKEYS.TASK, {shareDestinationID});
+}
+
+function clearOutTaskInfo() {
+    Onyx.merge(ONYXKEYS.TASK, null);
+}
+
 // eslint-disable-next-line import/prefer-default-export
-export {createTaskAndNavigate};
+export {
+    createTaskAndNavigate, setAssigneeValue, setShareDestinationValue, clearOutTaskInfo,
+};
