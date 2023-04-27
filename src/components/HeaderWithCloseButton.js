@@ -17,6 +17,8 @@ import ThreeDotsMenu, {ThreeDotsMenuItemPropTypes} from './ThreeDotsMenu';
 import withDelayToggleButtonState, {withDelayToggleButtonStatePropTypes} from './withDelayToggleButtonState';
 import withLocalize, {withLocalizePropTypes} from './withLocalize';
 import withKeyboardState, {keyboardStatePropTypes} from './withKeyboardState';
+import AvatarWithDisplayName from './AvatarWithDisplayName';
+import iouReportPropTypes from '../pages/iouReportPropTypes';
 
 const propTypes = {
     /** Title of the Header */
@@ -78,6 +80,11 @@ const propTypes = {
         total: PropTypes.number,
     }),
 
+    /** Whether we should show an avatar */
+    shouldShowAvatarWithDisplay: PropTypes.bool,
+
+    report: iouReportPropTypes,
+
     ...withLocalizePropTypes,
     ...withDelayToggleButtonStatePropTypes,
     ...keyboardStatePropTypes,
@@ -97,6 +104,8 @@ const defaultProps = {
     shouldShowThreeDotsButton: false,
     shouldShowCloseButton: true,
     shouldShowStepCounter: true,
+    shouldShowAvatarWithDisplay: false,
+    report: null,
     guidesCallTaskID: '',
     stepCounter: null,
     threeDotsMenuItems: [],
@@ -153,10 +162,19 @@ class HeaderWithCloseButton extends Component {
                             </Pressable>
                         </Tooltip>
                     )}
-                    <Header
-                        title={this.props.title}
-                        subtitle={this.props.stepCounter && this.props.shouldShowStepCounter ? this.props.translate('stepCounter', this.props.stepCounter) : this.props.subtitle}
-                    />
+                    {this.props.shouldShowAvatarWithDisplay ? (
+                        <AvatarWithDisplayName
+                            report={this.props.report}
+                            policies={this.props.policies}
+                            personalDetails={this.props.personalDetails}
+                        />
+                    ) : (
+                        <Header
+                            title={this.props.title}
+                            subtitle={this.props.stepCounter && this.props.shouldShowStepCounter ? this.props.translate('stepCounter', this.props.stepCounter) : this.props.subtitle}
+                        />
+                    )}
+
                     <View style={[styles.reportOptions, styles.flexRow, styles.pr5]}>
                         {
                             this.props.shouldShowDownloadButton && (
