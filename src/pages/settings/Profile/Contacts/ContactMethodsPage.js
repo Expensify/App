@@ -61,8 +61,8 @@ const defaultProps = {
 const ContactMethodsPage = (props) => {
     const loginNames = _.keys(props.loginList);
 
-    // Sort the login names by placing the one corresponding to the default contact method as the first item before displaying the contact methods
-    // the default contact method is determined by checking against the session email (the current login)
+    // Sort the login names by placing the one corresponding to the default contact method as the first item before displaying the contact methods.
+    // The default contact method is determined by checking against the session email (the current login).
     const sortedLoginNames = _.sortBy(loginNames, loginName => (props.loginList[loginName].partnerUserID === props.session.email ? 0 : 1));
 
     const loginMenuItems = _.map(sortedLoginNames, (loginName) => {
