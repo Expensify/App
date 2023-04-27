@@ -39,7 +39,7 @@ const pressablePropTypes = {
      * style for when the component is disabled. Can be a function that receives the component's state (active, disabled, hover, focus, pressed, isScreenReaderActive)
      * @default {}
      * @example {backgroundColor: 'red'}
-     * @example state => ({backgroundColor: state.active ? 'red' : 'blue'})
+     * @example state => ({backgroundColor: state.isDisabled ? 'red' : 'blue'})
      */
     disabledStyle: stylePropTypeWithFunction,
 
@@ -47,7 +47,7 @@ const pressablePropTypes = {
      * style for when the component is hovered. Can be a function that receives the component's state (active, disabled, hover, focus, pressed, isScreenReaderActive)
      * @default {}
      * @example {backgroundColor: 'red'}
-     * @example state => ({backgroundColor: state.active ? 'red' : 'blue'})
+     * @example state => ({backgroundColor: state.hover ? 'red' : 'blue'})
      */
     hoverStyle: stylePropTypeWithFunction,
 
@@ -55,7 +55,7 @@ const pressablePropTypes = {
      * style for when the component is focused. Can be a function that receives the component's state (active, disabled, hover, focus, pressed, isScreenReaderActive)
      * @default {}
      * @example {backgroundColor: 'red'}
-     * @example state => ({backgroundColor: state.active ? 'red' : 'blue'})
+     * @example state => ({backgroundColor: state.focused ? 'red' : 'blue'})
      */
     focusStyle: stylePropTypeWithFunction,
 
@@ -63,16 +63,16 @@ const pressablePropTypes = {
      * style for when the component is pressed. Can be a function that receives the component's state (active, disabled, hover, focus, pressed, isScreenReaderActive)
      * @default {}
      * @example {backgroundColor: 'red'}
-     * @example state => ({backgroundColor: state.active ? 'red' : 'blue'})
+     * @example state => ({backgroundColor: state.pressed ? 'red' : 'blue'})
      */
-    pressedStyle: stylePropTypeWithFunction,
+    pressStyle: stylePropTypeWithFunction,
 
     /**
      * style for when the component is active and the screen reader is on.
      * Can be a function that receives the component's state (active, disabled, hover, focus, pressed, isScreenReaderActive)
      * @default {}
      * @example {backgroundColor: 'red'}
-     * @example state => ({backgroundColor: state.active ? 'red' : 'blue'})
+     * @example state => ({backgroundColor: state.isScreenReaderActive ? 'red' : 'blue'})
      */
     screenReaderActiveStyle: stylePropTypeWithFunction,
 
