@@ -5,6 +5,7 @@ import {View} from 'react-native';
 import Str from 'expensify-common/lib/str';
 import {withOnyx} from 'react-native-onyx';
 import PropTypes from 'prop-types';
+import {parsePhoneNumber} from 'awesome-phonenumber';
 import HeaderWithCloseButton from '../../components/HeaderWithCloseButton';
 import CONST from '../../CONST';
 import * as BankAccounts from '../../libs/actions/BankAccounts';
@@ -18,7 +19,6 @@ import TextLink from '../../components/TextLink';
 import StatePicker from '../../components/StatePicker';
 import withLocalize from '../../components/withLocalize';
 import * as ValidationUtils from '../../libs/ValidationUtils';
-import * as LoginUtils from '../../libs/LoginUtils';
 import compose from '../../libs/compose';
 import ONYXKEYS from '../../ONYXKEYS';
 import Picker from '../../components/Picker';
@@ -148,7 +148,7 @@ class CompanyStep extends React.Component {
             // Fields from Company step
             ...values,
             companyTaxID: values.companyTaxID.replace(CONST.REGEX.NON_NUMERIC, ''),
-            companyPhone: LoginUtils.getPhoneNumberWithoutUSCountryCodeAndSpecialChars(values.companyPhone),
+            companyPhone: parsePhoneNumber(values.companyPhone, {regionCode: CONST.COUNTRY.US}).number.significant,
         };
 
         BankAccounts.updateCompanyInformationForBankAccount(bankAccount);

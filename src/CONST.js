@@ -28,6 +28,7 @@ const CONST = {
     ANIMATED_TRANSITION: 300,
     ANIMATED_TRANSITION_FROM_VALUE: 100,
     ANIMATION_IN_TIMING: 100,
+    ARROW_HIDE_DELAY: 3000,
 
     API_ATTACHMENT_VALIDATIONS: {
         // Same as the PHP layer allows
@@ -962,15 +963,10 @@ const CONST = {
     },
     REGEX: {
         SPECIAL_CHARS_WITHOUT_NEWLINE: /((?!\n)[()-\s\t])/g,
-        US_PHONE: /^\+1\d{10}$/,
-        US_PHONE_WITH_OPTIONAL_COUNTRY_CODE: /^(\+1)?\d{10}$/,
         DIGITS_AND_PLUS: /^\+?[0-9]*$/,
-        PHONE_E164_PLUS: /^\+?[1-9]\d{1,14}$/,
-        PHONE_WITH_SPECIAL_CHARS: /^\s*(?:\+?(\d{1,3}))?[-. (]*(\d{3})[-. )]*(\d{3})[-. ]*(\d{4})(?: *x(\d+))?\s*$/,
         ALPHABETIC_CHARS: /[a-zA-Z]+/,
         ALPHABETIC_CHARS_WITH_NUMBER: /^[a-zA-Z0-9 ]*$/,
         POSITIVE_INTEGER: /^\d+$/,
-        NON_ALPHA_NUMERIC: /[^A-Za-z0-9+]/g,
         PO_BOX: /\b[P|p]?(OST|ost)?\.?\s*[O|o|0]?(ffice|FFICE)?\.?\s*[B|b][O|o|0]?[X|x]?\.?\s+[#]?(\d+)\b/,
         ANY_VALUE: /^.+$/,
         ZIP_CODE: /[0-9]{5}(?:[- ][0-9]{4})?/,
@@ -984,8 +980,6 @@ const CONST = {
         PAYPAL_ME_USERNAME: /^[a-zA-Z0-9]+$/,
         ROOM_NAME: /^#[a-z0-9-]{1,80}$/,
 
-        WEBSITE: /^((https?|ftp):\/\/)(([a-z\d]([a-z\d-]*[a-z\d])*)\.)+[a-z]{2,}(:\d+)?(\/[-a-z\d%_.~+]*)*(\?[;&a-z\d%_.~+=-]*)?(#[-a-z\d_]*)?$/i,
-
         // eslint-disable-next-line max-len, no-misleading-character-class
         EMOJIS: /[\p{Extended_Pictographic}\u200d\u{1f1e6}-\u{1f1ff}\u{1f3fb}-\u{1f3ff}\u{e0020}-\u{e007f}\u20E3\uFE0F]|[#*0-9]\uFE0F?\u20E3/gu,
         TAX_ID: /^\d{9}$/,
@@ -994,7 +988,6 @@ const CONST = {
         // Extract attachment's source from the data's html string
         ATTACHMENT_DATA: /(data-expensify-source|data-name)="([^"]+)"/g,
 
-        NON_NUMERIC_WITH_PLUS: /[^0-9+]/g,
         EMOJI_NAME: /:[\w+-]+:/g,
         EMOJI_SUGGESTIONS: /:[a-zA-Z0-9_+-]{1,40}$/,
         AFTER_FIRST_LINE_BREAK: /\n.*/g,
@@ -1730,7 +1723,7 @@ const CONST = {
         GY: {},
         HK: {
             regex: /^999077$|^$/,
-            samples: '999077, empty',
+            samples: '999077',
         },
         HN: {
             regex: /^\d{5}$/,
@@ -1812,7 +1805,7 @@ const CONST = {
         },
         KI: {
             regex: /^KI\d{4}$/,
-            samples: '36524, 49717, 67606, 96469',
+            samples: 'KI0104, KI0109, KI0112, KI0306',
         },
         KM: {},
         KN: {
@@ -1930,7 +1923,7 @@ const CONST = {
         MR: {},
         MS: {
             regex: /^[Mm][Ss][Rr]\s{0,1}\d{4}$/,
-            samples: '97263, 97243, 98210, 97213',
+            samples: 'MSR1110, MSR1230, MSR1250, MSR1330',
         },
         MT: {
             regex: /^[A-Z]{3} [0-9]{4}|[A-Z]{2}[0-9]{2}|[A-Z]{2} [0-9]{2}|[A-Z]{3}[0-9]{4}|[A-Z]{3}[0-9]{2}|[A-Z]{3} [0-9]{2}$/,
@@ -2085,7 +2078,7 @@ const CONST = {
         RW: {},
         SA: {
             regex: /^\d{5}(-{1}\d{4})?$/,
-            samples: '86020-12567, 72375, 70280, 96328',
+            samples: '86020-1256, 72375, 70280, 96328',
         },
         SB: {},
         SC: {},
@@ -2132,10 +2125,7 @@ const CONST = {
             regex: /^[A-Z]{2} ?\d{5}$/,
             samples: 'JQ 80186, CU 46474, DE33738, MS 59107',
         },
-        ST: {
-            regex: /^[A-Z]{2} ?\d{5}$/,
-            samples: '87849, 89861, AG 93268, RC88066',
-        },
+        ST: {},
         SV: {},
         SX: {},
         SY: {},
@@ -2285,6 +2275,11 @@ const CONST = {
         'PLN', 'GBP', 'RUB', 'SGD', 'SEK', 'CHF', 'THB', 'USD',
     ],
     CONCIERGE_TRAVEL_URL: 'https://community.expensify.com/discussion/7066/introducing-concierge-travel',
+    SCREEN_READER_STATES: {
+        ALL: 'all',
+        ACTIVE: 'active',
+        DISABLED: 'disabled',
+    },
 };
 
 export default CONST;
