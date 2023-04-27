@@ -225,7 +225,7 @@ const OptionRowLHN = (props) => {
                                     <Icon src={Expensicons.Pencil} height={16} width={16} />
                                 </View>
                             )}
-                            {shouldShowGreenDotIndicator && <Icon src={Expensicons.DotIndicator} fill={colors.green} />}
+                            {shouldShowGreenDotIndicator && <Icon src={Expensicons.DotIndicator} fill={themeColors.success} />}
                             {optionItem.isPinned && (
                                 <View
                                     style={styles.ml2}
