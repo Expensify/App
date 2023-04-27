@@ -47,7 +47,7 @@ const pressablePropTypes = {
      * style for when the component is hovered. Can be a function that receives the component's state (active, disabled, hover, focus, pressed, isScreenReaderActive)
      * @default {}
      * @example {backgroundColor: 'red'}
-     * @example state => ({backgroundColor: state.hover ? 'red' : 'blue'})
+     * @example state => ({backgroundColor: state.hovered ? 'red' : 'blue'})
      */
     hoverStyle: stylePropTypeWithFunction,
 
@@ -89,7 +89,19 @@ const pressablePropTypes = {
      * Specifies which component should be focused after interacting with this component
      */
     nextFocusRef: PropTypes.func,
+
+    /**
+     * Specifies the accessibility label for the component
+     * @example 'Press me'
+     * @example 'Close'
+     */
     accessibilityLabel: PropTypes.string.isRequired,
+
+    /**
+     * Specifies the accessibility hint for the component
+     * @example 'Double tap to open'
+     */
+    accessibilityHint: PropTypes.string,
 
     /**
      * Specifies if the component should calculate its hitSlop automatically
@@ -105,7 +117,7 @@ const defaultProps = {
     disabledStyle: {},
     hoverStyle: {},
     focusStyle: {},
-    pressedStyle: {},
+    pressStyle: {},
     screenReaderActiveStyle: {},
     enableInScreenReaderStates: CONST.SCREEN_READER_STATES.ALL,
     nextFocusRef: undefined,
