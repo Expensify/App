@@ -3028,8 +3028,6 @@ const styles = {
         justifyContent: 'center',
         flexDirection: 'row',
         alignSelf: 'flex-start',
-        marginTop: 8,
-        marginRight: 4,
     },
 
     miniQuickEmojiReactionText: {
