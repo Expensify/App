@@ -145,7 +145,7 @@ class IOUCurrencySelection extends Component {
                             placeholderText={this.props.translate('common.search')}
                             headerMessage={headerMessage}
                             safeAreaPaddingBottomStyle={safeAreaPaddingBottomStyle}
-                            initiallyFocusedOptionKey={_.get(_.filter(this.state.currencyData, crc => crc.currencyCode === this.props.iou.selectedCurrencyCode)[0], 'keyForList')}
+                            initiallyFocusedOptionKey={_.get(_.find(this.state.currencyData, crc => crc.currencyCode === this.props.iou.selectedCurrencyCode), 'keyForList')}
                         />
                     </>
                 )}
