@@ -88,7 +88,6 @@ function Expensify(props) {
     const [isNavigationReady, setIsNavigationReady] = useState(false);
     const [isOnyxMigrated, setIsOnyxMigrated] = useState(false);
     const [isStaticSplashShown, setIsStaticSplashShown] = useState(true);
-    const [isAnimatedSplashShown, setIsAnimatedSplashShown] = useState(Platform.OS !== 'web');
 
     const isAuthenticated = useMemo(() => Boolean(lodashGet(props.session, 'authToken', null)), [props.session]);
 
@@ -105,10 +104,6 @@ function Expensify(props) {
 
         // Navigate to any pending routes now that the NavigationContainer is ready
         Navigation.setIsNavigationReady();
-    }, []);
-
-    const onSplashAnimationEnd = useCallback(() => {
-        setIsAnimatedSplashShown(false);
     }, []);
 
     useLayoutEffect(() => {
@@ -209,12 +204,7 @@ function Expensify(props) {
                 authenticated={isAuthenticated}
             />
 
-            {isAnimatedSplashShown && (
-                <AnimatedSplashScreen
-                    isReady={!isStaticSplashShown}
-                    onAnimationEnd={onSplashAnimationEnd}
-                />
-            )}
+            <AnimatedSplashScreen isReady={!isStaticSplashShown} />
         </DeeplinkWrapper>
     );
 }
