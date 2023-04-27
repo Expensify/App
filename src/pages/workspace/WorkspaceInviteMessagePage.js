@@ -83,7 +83,7 @@ class WorkspaceInviteMessagePage extends React.Component {
         ) {
             return;
         }
-        this.setState({ welcomeNote: this.getWelcomeNote() });
+        this.setState({welcomeNote: this.getWelcomeNote()});
     }
 
     getAvatars() {
@@ -201,7 +201,7 @@ class WorkspaceInviteMessagePage extends React.Component {
                                 containerStyles={[styles.workspaceInviteWelcome]}
                                 defaultValue={this.state.welcomeNote}
                                 value={this.state.welcomeNote}
-                                onChangeText={text => this.setState({ welcomeNote: text })}
+                                onChangeText={text => this.setState({welcomeNote: text})}
                             />
                         </View>
                     </Form>
