@@ -10,8 +10,6 @@ This guide provides practical tips and recommendations for small businesses with
 ## Who you are
 As a small to medium-sized business owner, your main aim is to achieve success and grow your business. To achieve your goals, it is crucial that you make worthwhile investments in both your workforce and your business processes. This means providing your employees with the resources they need to generate revenue effectively, while also adopting measures to guarantee that expenses are compliant.
 
-![Expense Basics](http://127.0.0.1:4000/assets/images/playbook-expense-basics.png)
-
 ## Step-by-step instructions for setting up Expensify
 This playbook is built on best practices we’ve developed after processing expenses for tens of thousands of companies around the world. As such, use this playbook as your starting point, knowing that you can customize Expensify to suit your business needs. Every company is different, and your dedicated Setup Specialist is always one chat away with any questions you may have.
 
@@ -102,6 +100,8 @@ This is essentially like setting a daily or individual expense limitation on any
 *Receipt Required Amount: $75*
 Receipts are important, and in most cases you prefer an itemized receipt. However, Expensify will generate an IRS-compliant electronic receipt (not itemized) for every expense not tied to hotels expense. For this reason, it’s important to enforce a rule where anytime an employee is on the road, and making business-related purchases at hotel (which happens a lot!), they are required to attach a physical receipt. 
 
+![Expense Basics](https://help.expensify.com/assets/images/playbook-expense-basics.png)
+
 At this point, you’ve set enough compliance controls around categorical spend and general expenses for all employees, such that you can put trust in our solution to audit all expenses up front so you don’t have to. Next, let’s dive into how we can comfortably take on more automation, while relying on compliance controls to capture bad behavior (or better yet, instill best practices in our employees).
 
 ### Step 7: Set up scheduled submit
@@ -115,10 +115,14 @@ For an efficient company, we recommend setting up [Scheduled Submit](https://com
 
 Between Expensify's SmartScan technology, automatic categorization, and [DoubleCheck](https://community.expensify.com/discussion/5738/deep-dive-how-does-concierge-receipt-audit-work) features, your employees shouldn't need to do anything more than swipe their Expensify Card or take a photo of  their receipt.
 
-Expenses with violations will stay behind for the employee to fix, while expenses that are “in-policy” will move into an approver’s queue to mitigate any potential for delays. Scheduled Submit will ensure all expenses are submitted automatically for approval. 
+Expenses with violations will stay behind for the employee to fix, while expenses that are “in-policy” will move into an approver’s queue to mitigate any potential for delays. Scheduled Submit will ensure all expenses are submitted automatically for approval.
 
-*“We spent twice as much time and effort on expenses without getting nearly as accurate of results as with Expensify.”*
-- Kevin Valuska. AP/AR at Road Trippers
+![Scheduled submit](https://help.expensify.com/assets/images/playbook-scheduled-submit.png)
+
+> _We spent twice as much time and effort on expenses without getting nearly as accurate of results as with Expensify._
+> 
+> Kevin Valuska  
+> AP/AR at Road Trippers
 
 ### Step 8: Connect your business bank account (US only)
 If you’re located in the US, you can utilize Expensify’s payment processing and reimbursement features. 
@@ -146,6 +150,8 @@ We recommend you select *Advanced Approval* as your Approval Mode to set up a mi
 
 *Import your employees in bulk via CSV*
 Given the amount of employees you have, it’s best you import employees in bulk via CSV. You can learn more about using a CSV file to bulk upload employees with *Advanced Approval [here](https://community.expensify.com/discussion/5735/deep-dive-the-ins-and-outs-of-advanced-approval)*
+
+![Bulk import your employees](https://help.expensify.com/assets/images/playbook-impoort-employees.png)
 
 *Manually Approve All Reports*
 In most cases, at this stage, approvers prefer to review all expenses for a few reasons. 1) We want to make sure expense coding is accurate, and 2) We want to make sure there are no bad actors before we export transactions to our accounting system. 
@@ -175,6 +181,8 @@ Expensify supports direct card feeds from most financial institutions. Setting u
       - To successfully connect to your bank, we’ll need the *master admin (primary) account* login credentials. 
 3. Next, assign the corporate cards to your employees by selecting the employee’s email address and the corresponding card number from the two drop-down menus under the *Assign a Card* section
 4. Set a transaction start date (this is really important to avoid pulling in multiple outdated historical expenses that you don’t want employees to submit)
+
+![If you have existing corporate cards](https://help.expensify.com/assets/images/playbook-existing-corporate-card.png)
 
 As mentioned above, we’ll be able to pull in transactions as they post (daily) and handle receipt matching for you and your employees. One benefit of the Expensify Card for your company is being able to see transactions at the point of purchase which provides you with real-time compliance. We even send users push notifications to SmartScan their receipt when it’s required and generate IRS-compliant e-receipts as a backup wherever applicable. 
 
@@ -227,6 +235,8 @@ Similarly, you can send bills directly from Expensify as well.
 3. At this point, you can also upload an attachment to further validate the bill if necessary
 4. Click *Submit*, we’ll forward the newly created bill directly to your Supplier.
 
+![Send bills directly from Expensify](https://help.expensify.com/assets/images/playbook-new-bill.png)
+
 Reports, invoices, and bills are largely the same, in theory, just with different rules. As such, creating a customer invoice is just like creating an expense report and even a bill.
 
 1. From the *Reports* tab, select the down arrow next to *New Report* and select *Invoice*.
@@ -248,7 +258,7 @@ We recommend reporting:
 - *Quarterly* - for budget comparison reporting. Pull up your BI tool and compare your active budgets with your spend reporting here in Expensify
 - *Annually* - Run annual spend trend reports with month-over-month spend analysis, and prepare yourself for the upcoming fiscal year.
 
-
+![Expenses!](https://help.expensify.com/assets/images/playbook-expenses.png)
 
 ### Step 14: Set your Subscription Size and Add a Payment card
 Our pricing model is unique in the sense that you are in full control of your billing. Meaning, you have the ability to set a minimum number of employees you know will be active each month and you can choose which level of commitment fits best. We recommend setting your subscription to *Annual* to get an additional 50% off on your monthly Expensify bill. In the end, you've spent enough time getting your company fully set up with Expensify, and you've seen how well it supports you and your employees. Committing annually just makes sense. 
