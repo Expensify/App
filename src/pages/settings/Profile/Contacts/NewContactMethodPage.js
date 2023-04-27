@@ -81,7 +81,10 @@ function NewContactMethodPage(props) {
             Navigation.navigate(ROUTES.SETTINGS_CONTACT_METHODS);
             return;
         }
-        User.addNewContactMethodAndNavigate(login, password);
+        const phoneLogin = LoginUtils.appendCountryCode(LoginUtils.getPhoneNumberWithoutSpecialChars(login));
+        const parsedPhoneNumber = parsePhoneNumber(phoneLogin);
+
+        User.addNewContactMethodAndNavigate(parsedPhoneNumber.possible ? parsedPhoneNumber.number.e164 : login, password);
     }, [login, props.loginList, password]);
 
     return (
