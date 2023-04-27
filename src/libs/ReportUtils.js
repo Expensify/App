@@ -378,7 +378,7 @@ function getChatRoomSubtitle(report, policiesMap) {
         // The domainAll rooms are just #domainName, so we ignore the prefix '#' to get the domainName
         return report.reportName.substring(1);
     }
-    if (isPolicyExpenseChat(report) && report.isOwnPolicyExpenseChat) {
+    if ((isPolicyExpenseChat(report) && report.isOwnPolicyExpenseChat) || isExpenseReport(report)) {
         return Localize.translateLocal('workspace.common.workspace');
     }
     if (isArchivedRoom(report)) {
@@ -676,7 +676,7 @@ function getIcons(report, personalDetails, policies, defaultIcon = null) {
         result.source = Expensicons.ActiveRoomAvatar;
         return [result];
     }
-    if (isPolicyExpenseChat(report)) {
+    if (isPolicyExpenseChat(report) || isExpenseReport(report)) {
         const workspaceName = lodashGet(policies, [
             `${ONYXKEYS.COLLECTION.POLICY}${report.policyID}`, 'name',
         ]);
@@ -686,7 +686,7 @@ function getIcons(report, personalDetails, policies, defaultIcon = null) {
         ]) || getDefaultWorkspaceAvatar(workspaceName);
 
         // Return the workspace avatar if the user is the owner of the policy expense chat
-        if (report.isOwnPolicyExpenseChat) {
+        if (report.isOwnPolicyExpenseChat && !isExpenseReport(report)) {
             result.source = policyExpenseChatAvatarSource;
             result.type = CONST.ICON_TYPE_WORKSPACE;
             result.name = workspaceName;

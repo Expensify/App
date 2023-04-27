@@ -1,7 +1,6 @@
 import React from 'react';
 import {View} from 'react-native';
 import PropTypes from 'prop-types';
-import colors from '../styles/colors';
 import HeaderWithCloseButton from './HeaderWithCloseButton';
 import iouReportPropTypes from '../pages/iouReportPropTypes';
 import withLocalize, {withLocalizePropTypes} from './withLocalize';
@@ -10,6 +9,8 @@ import * as Expensicons from './Icon/Expensicons';
 import AvatarWithDisplayName from './AvatarWithDisplayName';
 import SettlementButton from './SettlementButton';
 import CONST from '../CONST';
+import Text from './Text';
+import participantPropTypes from './participantPropTypes';
 
 const propTypes = {
     /** The report currently being looked at */
@@ -20,6 +21,8 @@ const propTypes = {
         /** Name of the policy */
         name: PropTypes.string,
     }).isRequired,
+
+    personalDetails: PropTypes.objectOf(participantPropTypes),
 
     isTransactionDetail: PropTypes.bool,
 
@@ -38,8 +41,8 @@ const MoneyRequestHeader = (props) => {
     const isSettled = /* ReportUtils.isSettled(props.report.reportID); */ false;
     const isAdmin = ReportUtils.isPolicyExpenseChatAdmin(props.report, props.policies);
     return (
-        <MoneyRequestHeader
-            style={colors.greenHighlightBackground}
+        <View style={[
+        ]}
         >
             <HeaderWithCloseButton
                 showAvatarWithDisplay
@@ -67,7 +70,7 @@ const MoneyRequestHeader = (props) => {
             {isAdmin && !isSettled && (
                 <SettlementButton />
             )}
-        </MoneyRequestHeader>
+        </View>
     );
 };
 

@@ -1,7 +1,7 @@
 import React from 'react';
 import {View} from 'react-native';
 import PropTypes from 'prop-types';
-import {CONST} from 'expensify-common/lib/CONST';
+import CONST from '../CONST';
 import reportPropTypes from '../pages/reportPropTypes';
 import participantPropTypes from './participantPropTypes';
 import withWindowDimensions, {windowDimensionsPropTypes} from './withWindowDimensions';
@@ -12,6 +12,8 @@ import * as ReportUtils from '../libs/ReportUtils';
 import Avatar from './Avatar';
 import DisplayNames from './DisplayNames';
 import compose from '../libs/compose';
+import * as OptionsListUtils from '../libs/OptionsListUtils';
+import Text from './Text';
 
 const propTypes = {
     /* Onyx Props */
@@ -39,14 +41,12 @@ const defaultProps = {
 };
 
 const AvatarWithDisplayName = (props) => {
-    const title = ReportUtils.getReportName(props.report, props.policies);
-
+    const title = ReportUtils.getDisplayNameForParticipant(props.report.ownerEmail, true);
     const subtitle = ReportUtils.getChatRoomSubtitle(props.report, props.policies);
-
-    // We hide the button when we are chatting with an automated Expensify account since it's not possible to contact
-    // these users via alternative means. It is possible to request a call with Concierge, so we leave the option for them.
-    const shouldShowSubscript = props.report.type === CONST.REPORT.TYPE.EXPENSE;
+    const isExpenseReport = ReportUtils.isExpenseReport(props.report);
     const icons = ReportUtils.getIcons(props.report, props.personalDetails, props.policies);
+    const ownerPersonalDetails = OptionsListUtils.getPersonalDetailsForLogins([props.report.ownerEmail], props.personalDetails);
+    const displayNamesWithTooltips = ReportUtils.getDisplayNamesWithTooltips(ownerPersonalDetails, false);
     return (
         <View style={[styles.appContentHeader]} nativeID="drag-area">
             <View style={[styles.appContentHeaderTitle, !props.isSmallScreenWidth && styles.pl5]}>
@@ -59,7 +59,7 @@ const AvatarWithDisplayName = (props) => {
                             styles.justifyContentBetween,
                         ]}
                     >
-                        {shouldShowSubscript ? (
+                        {isExpenseReport ? (
                             <SubscriptAvatar
                                 mainAvatar={icons[0]}
                                 secondaryAvatar={icons[1]}
@@ -74,9 +74,11 @@ const AvatarWithDisplayName = (props) => {
                         <View style={[styles.flex1, styles.flexColumn]}>
                             <DisplayNames
                                 fullTitle={title}
+                                displayNamesWithTooltips={displayNamesWithTooltips}
                                 tooltipEnabled
                                 numberOfLines={1}
                                 textStyles={[styles.headerText, styles.pre]}
+                                shouldUseFullTitle={isExpenseReport}
                             />
                             <Text
                                 style={[
