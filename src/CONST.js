@@ -984,8 +984,6 @@ const CONST = {
         PAYPAL_ME_USERNAME: /^[a-zA-Z0-9]+$/,
         ROOM_NAME: /^#[a-z0-9-]{1,80}$/,
 
-        WEBSITE: /^((https?|ftp):\/\/)(([a-z\d]([a-z\d-]*[a-z\d])*)\.)+[a-z]{2,}(:\d+)?(\/[-a-z\d%_.~+]*)*(\?[;&a-z\d%_.~+=-]*)?(#[-a-z\d_]*)?$/i,
-
         // eslint-disable-next-line max-len, no-misleading-character-class
         EMOJIS: /[\p{Extended_Pictographic}\u200d\u{1f1e6}-\u{1f1ff}\u{1f3fb}-\u{1f3ff}\u{e0020}-\u{e007f}\u20E3\uFE0F]|[#*0-9]\uFE0F?\u20E3/gu,
         TAX_ID: /^\d{9}$/,
@@ -1730,7 +1728,7 @@ const CONST = {
         GY: {},
         HK: {
             regex: /^999077$|^$/,
-            samples: '999077, empty',
+            samples: '999077',
         },
         HN: {
             regex: /^\d{5}$/,
@@ -1812,7 +1810,7 @@ const CONST = {
         },
         KI: {
             regex: /^KI\d{4}$/,
-            samples: '36524, 49717, 67606, 96469',
+            samples: 'KI0104, KI0109, KI0112, KI0306',
         },
         KM: {},
         KN: {
@@ -1930,7 +1928,7 @@ const CONST = {
         MR: {},
         MS: {
             regex: /^[Mm][Ss][Rr]\s{0,1}\d{4}$/,
-            samples: '97263, 97243, 98210, 97213',
+            samples: 'MSR1110, MSR1230, MSR1250, MSR1330',
         },
         MT: {
             regex: /^[A-Z]{3} [0-9]{4}|[A-Z]{2}[0-9]{2}|[A-Z]{2} [0-9]{2}|[A-Z]{3}[0-9]{4}|[A-Z]{3}[0-9]{2}|[A-Z]{3} [0-9]{2}$/,
@@ -2085,7 +2083,7 @@ const CONST = {
         RW: {},
         SA: {
             regex: /^\d{5}(-{1}\d{4})?$/,
-            samples: '86020-12567, 72375, 70280, 96328',
+            samples: '86020-1256, 72375, 70280, 96328',
         },
         SB: {},
         SC: {},
@@ -2132,10 +2130,7 @@ const CONST = {
             regex: /^[A-Z]{2} ?\d{5}$/,
             samples: 'JQ 80186, CU 46474, DE33738, MS 59107',
         },
-        ST: {
-            regex: /^[A-Z]{2} ?\d{5}$/,
-            samples: '87849, 89861, AG 93268, RC88066',
-        },
+        ST: {},
         SV: {},
         SX: {},
         SY: {},
