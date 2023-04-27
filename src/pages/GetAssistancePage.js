@@ -7,7 +7,6 @@ import ScreenWrapper from '../components/ScreenWrapper';
 import withLocalize, {withLocalizePropTypes} from '../components/withLocalize';
 import HeaderWithBackButton from '../components/HeaderWithBackButton';
 import Section from '../components/Section';
-import Navigation from '../libs/Navigation/Navigation';
 import styles from '../styles/styles';
 import Text from '../components/Text';
 import * as Expensicons from '../components/Icon/Expensicons';
@@ -77,7 +76,6 @@ const GetAssistancePage = (props) => {
         <ScreenWrapper>
             <HeaderWithBackButton
                 title={props.translate('getAssistancePage.title')}
-                onBackButtonPress={Navigation.goBack}
             />
             <ScrollView>
                 <Section

@@ -99,7 +99,6 @@ class WalletStatementPage extends React.Component {
                 <HeaderWithBackButton
                     title={Str.recapitalize(title)}
                     shouldShowDownloadButton={!this.props.network.isOffline || this.props.walletStatement.isGenerating}
-                    onBackButtonPress={Navigation.goBack}
                     onDownloadButtonPress={() => this.processDownload(this.yearMonth)}
                 />
                 <FullPageOfflineBlockingView>

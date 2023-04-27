@@ -179,7 +179,6 @@ class SearchPage extends Component {
                     <>
                         <HeaderWithBackButton
                             title={this.props.translate('common.search')}
-                            onBackButtonPress={Navigation.goBack}
                         />
                         <View style={[styles.flex1, styles.w100, styles.pRelative]}>
                             <OptionsSelector

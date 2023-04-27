@@ -7,7 +7,6 @@ import lodashGet from 'lodash/get';
 import styles from '../../styles/styles';
 import withLocalize, {withLocalizePropTypes} from '../../components/withLocalize';
 import HeaderWithBackButton from '../../components/HeaderWithBackButton';
-import Navigation from '../../libs/Navigation/Navigation';
 import Text from '../../components/Text';
 import compose from '../../libs/compose';
 import ONYXKEYS from '../../ONYXKEYS';
@@ -65,7 +64,6 @@ const EnableStep = (props) => {
                 subtitle={props.policyName}
                 shouldShowGetAssistanceButton
                 guidesCallTaskID={CONST.GUIDES_CALL_TASK_IDS.WORKSPACE_BANK_ACCOUNT}
-                onBackButtonPress={Navigation.goBack}
             />
             <ScrollView style={[styles.flex1]}>
                 <Section

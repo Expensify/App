@@ -8,7 +8,6 @@ import HeaderWithBackButton from '../../../components/HeaderWithBackButton';
 import withLocalize, {withLocalizePropTypes} from '../../../components/withLocalize';
 import CONST from '../../../CONST';
 import styles from '../../../styles/styles';
-import Navigation from '../../../libs/Navigation/Navigation';
 import * as PersonalDetails from '../../../libs/actions/PersonalDetails';
 import compose from '../../../libs/compose';
 import OptionsSelector from '../../../components/OptionsSelector';
@@ -125,7 +124,6 @@ class TimezoneSelectPage extends Component {
                     <>
                         <HeaderWithBackButton
                             title={this.props.translate('timezonePage.timezone')}
-                            onBackButtonPress={Navigation.goBack}
                         />
                         <OptionsSelector
                             textInputLabel={this.props.translate('timezonePage.timezone')}

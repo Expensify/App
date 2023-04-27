@@ -8,7 +8,6 @@ import IdologyQuestions from './IdologyQuestions';
 import ScreenWrapper from '../../components/ScreenWrapper';
 import HeaderWithBackButton from '../../components/HeaderWithBackButton';
 import withLocalize, {withLocalizePropTypes} from '../../components/withLocalize';
-import Navigation from '../../libs/Navigation/Navigation';
 import styles from '../../styles/styles';
 import Text from '../../components/Text';
 import CONST from '../../CONST';
@@ -209,7 +208,6 @@ class AdditionalDetailsStep extends React.Component {
             <>
                 <HeaderWithBackButton
                     title={this.props.translate('additionalDetailsStep.headerTitle')}
-                    onBackButtonPress={Navigation.goBack}
                 />
                 <View style={[styles.flex1]}>
                     <View style={[styles.ph5]}>

@@ -13,7 +13,6 @@ import ONYXKEYS from '../../../../ONYXKEYS';
 import CONST from '../../../../CONST';
 import TextInput from '../../../../components/TextInput';
 import styles from '../../../../styles/styles';
-import Navigation from '../../../../libs/Navigation/Navigation';
 import * as PersonalDetails from '../../../../libs/actions/PersonalDetails';
 import * as ValidationUtils from '../../../../libs/ValidationUtils';
 import compose from '../../../../libs/compose';
@@ -151,7 +150,6 @@ class AddressPage extends Component {
             <ScreenWrapper includeSafeAreaPaddingBottom={false}>
                 <HeaderWithBackButton
                     title={this.props.translate('privatePersonalDetails.homeAddress')}
-                    onBackButtonPress={Navigation.goBack}
                 />
                 <Form
                     style={[styles.flexGrow1, styles.ph5]}

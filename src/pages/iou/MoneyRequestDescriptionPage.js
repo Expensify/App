@@ -52,7 +52,6 @@ class MoneyRequestDescriptionPage extends Component {
             <ScreenWrapper includeSafeAreaPaddingBottom={false} shouldEnableMaxHeight>
                 <HeaderWithBackButton
                     title={this.props.translate('common.description')}
-                    onBackButtonPress={Navigation.goBack}
                 />
                 <Form
                     style={[styles.flexGrow1, styles.ph5]}

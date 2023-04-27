@@ -88,7 +88,6 @@ class AddPersonalBankAccountPage extends React.Component {
             <ScreenWrapper includeSafeAreaPaddingBottom={shouldShowSuccess}>
                 <HeaderWithBackButton
                     title={this.props.translate('bankAccount.addBankAccount')}
-                    onBackButtonPress={Navigation.goBack}
                 />
                 {shouldShowSuccess ? (
                     <ConfirmationPage

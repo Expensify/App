@@ -187,7 +187,6 @@ class ContactMethodDetailsPage extends Component {
             <ScreenWrapper>
                 <HeaderWithBackButton
                     title={formattedContactMethod}
-                    onBackButtonPress={Navigation.goBack}
                 />
                 <ScrollView keyboardShouldPersistTaps="handled">
                     <ConfirmModal

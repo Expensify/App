@@ -5,7 +5,6 @@ import {withOnyx} from 'react-native-onyx';
 import PropTypes from 'prop-types';
 import compose from '../../../libs/compose';
 import HeaderWithBackButton from '../../../components/HeaderWithBackButton';
-import Navigation from '../../../libs/Navigation/Navigation';
 import ScreenWrapper from '../../../components/ScreenWrapper';
 import styles from '../../../styles/styles';
 import Text from '../../../components/Text';
@@ -116,7 +115,6 @@ class DebitCardPage extends Component {
             <ScreenWrapper includeSafeAreaPaddingBottom={false}>
                 <HeaderWithBackButton
                     title={this.props.translate('addDebitCardPage.addADebitCard')}
-                    onBackButtonPress={Navigation.goBack}
                 />
                 <Form
                     formID={ONYXKEYS.FORMS.ADD_DEBIT_CARD_FORM}

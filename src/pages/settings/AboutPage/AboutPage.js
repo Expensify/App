@@ -74,7 +74,6 @@ const AboutPage = (props) => {
                 <>
                     <HeaderWithBackButton
                         title={props.translate('initialSettingsPage.about')}
-                        onBackButtonPress={Navigation.goBack}
                     />
                     <ScrollView
                         contentContainerStyle={[

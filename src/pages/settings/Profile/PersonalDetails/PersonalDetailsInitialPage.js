@@ -95,7 +95,6 @@ const PersonalDetailsInitialPage = (props) => {
         <ScreenWrapper>
             <HeaderWithBackButton
                 title={props.translate('privatePersonalDetails.personalDetails')}
-                onBackButtonPress={Navigation.goBack}
             />
             <ScrollView>
                 <View style={styles.flex1}>

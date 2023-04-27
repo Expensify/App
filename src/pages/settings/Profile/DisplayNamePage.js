@@ -12,7 +12,6 @@ import * as ValidationUtils from '../../../libs/ValidationUtils';
 import TextInput from '../../../components/TextInput';
 import Text from '../../../components/Text';
 import styles from '../../../styles/styles';
-import Navigation from '../../../libs/Navigation/Navigation';
 import * as PersonalDetails from '../../../libs/actions/PersonalDetails';
 import compose from '../../../libs/compose';
 import * as ErrorUtils from '../../../libs/ErrorUtils';
@@ -79,7 +78,6 @@ class DisplayNamePage extends Component {
             <ScreenWrapper includeSafeAreaPaddingBottom={false}>
                 <HeaderWithBackButton
                     title={this.props.translate('displayNamePage.headerTitle')}
-                    onBackButtonPress={Navigation.goBack}
                 />
                 <Form
                     style={[styles.flexGrow1, styles.ph5]}

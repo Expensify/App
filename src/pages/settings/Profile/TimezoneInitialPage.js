@@ -45,7 +45,6 @@ const TimezoneInitialPage = (props) => {
         <ScreenWrapper>
             <HeaderWithBackButton
                 title={props.translate('timezonePage.timezone')}
-                onBackButtonPress={Navigation.goBack}
             />
             <View style={styles.flex1}>
                 <View style={[styles.ph5]}>

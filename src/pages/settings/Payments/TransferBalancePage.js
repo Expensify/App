@@ -182,7 +182,6 @@ class TransferBalancePage extends React.Component {
             <ScreenWrapper>
                 <HeaderWithBackButton
                     title={this.props.translate('common.transferBalance')}
-                    onBackButtonPress={Navigation.goBack}
                 />
                 <View style={[styles.flexGrow1, styles.flexShrink1, styles.flexBasisAuto, styles.justifyContentCenter]}>
                     <CurrentWalletBalance balanceStyles={[styles.transferBalanceBalance]} />

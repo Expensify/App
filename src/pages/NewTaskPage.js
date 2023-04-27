@@ -54,7 +54,6 @@ const NewTaskPage = (props) => {
         <ScreenWrapper includeSafeAreaPaddingBottom={false}>
             <HeaderWithBackButton
                 title={props.translate('newTaskPage.assignTask')}
-                onBackButtonPress={Navigation.goBack}
             />
             <Form
                 formID={ONYXKEYS.FORMS.NEW_TASK_FORM}

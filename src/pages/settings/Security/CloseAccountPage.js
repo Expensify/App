@@ -5,7 +5,6 @@ import PropTypes from 'prop-types';
 import Str from 'expensify-common/lib/str';
 import _ from 'underscore';
 import HeaderWithBackButton from '../../../components/HeaderWithBackButton';
-import Navigation from '../../../libs/Navigation/Navigation';
 import * as User from '../../../libs/actions/User';
 import compose from '../../../libs/compose';
 import styles from '../../../styles/styles';
@@ -89,7 +88,6 @@ class CloseAccountPage extends Component {
             <ScreenWrapper includeSafeAreaPaddingBottom={false}>
                 <HeaderWithBackButton
                     title={this.props.translate('closeAccountPage.closeAccount')}
-                    onBackButtonPress={Navigation.goBack}
                 />
                 <Form
                     formID={ONYXKEYS.FORMS.CLOSE_ACCOUNT_FORM}

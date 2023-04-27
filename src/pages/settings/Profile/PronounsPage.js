@@ -7,7 +7,6 @@ import HeaderWithBackButton from '../../../components/HeaderWithBackButton';
 import withLocalize, {withLocalizePropTypes} from '../../../components/withLocalize';
 import Text from '../../../components/Text';
 import styles from '../../../styles/styles';
-import Navigation from '../../../libs/Navigation/Navigation';
 import * as PersonalDetails from '../../../libs/actions/PersonalDetails';
 import compose from '../../../libs/compose';
 import themeColors from '../../../styles/themes/default';
@@ -125,7 +124,6 @@ class PronounsPage extends Component {
                     <>
                         <HeaderWithBackButton
                             title={this.props.translate('pronounsPage.pronouns')}
-                            onBackButtonPress={Navigation.goBack}
                         />
                         <Text style={styles.ph5}>
                             {this.props.translate('pronounsPage.isShownOnProfile')}

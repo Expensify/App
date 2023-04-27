@@ -50,7 +50,6 @@ const AddPayPalMePage = (props) => {
         <ScreenWrapper onEntryTransitionEnd={() => payPalMeInput.current && payPalMeInput.current.focus()}>
             <HeaderWithBackButton
                 title={props.translate('common.payPalMe')}
-                onBackButtonPress={Navigation.goBack}
             />
             <View style={[styles.flex1, styles.p5]}>
                 <View style={[styles.flex1]}>

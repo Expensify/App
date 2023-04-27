@@ -16,7 +16,6 @@ import AdditionalDetailsStep from './AdditionalDetailsStep';
 import TermsStep from './TermsStep';
 import ActivateStep from './ActivateStep';
 import HeaderWithBackButton from '../../components/HeaderWithBackButton';
-import Navigation from '../../libs/Navigation/Navigation';
 import FailedKYC from './FailedKYC';
 import compose from '../../libs/compose';
 import withLocalize, {withLocalizePropTypes} from '../../components/withLocalize';
@@ -61,7 +60,6 @@ class EnablePaymentsPage extends React.Component {
                             <>
                                 <HeaderWithBackButton
                                     title={this.props.translate('additionalDetailsStep.headerTitle')}
-                                    onBackButtonPress={Navigation.goBack}
                                 />
                                 <FailedKYC />
                             </>

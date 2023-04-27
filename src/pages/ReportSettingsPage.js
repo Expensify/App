@@ -8,7 +8,6 @@ import CONST from '../CONST';
 import ONYXKEYS from '../ONYXKEYS';
 import styles from '../styles/styles';
 import compose from '../libs/compose';
-import Navigation from '../libs/Navigation/Navigation';
 import * as Report from '../libs/actions/Report';
 import * as Policy from '../libs/actions/Policy';
 import * as ReportUtils from '../libs/ReportUtils';
@@ -152,7 +151,6 @@ class ReportSettingsPage extends Component {
                 <FullPageNotFoundView shouldShow={_.isEmpty(this.props.report)}>
                     <HeaderWithBackButton
                         title={this.props.translate('common.settings')}
-                        onBackButtonPress={Navigation.goBack}
                     />
                     <Form
                         formID={ONYXKEYS.FORMS.ROOM_SETTINGS_FORM}

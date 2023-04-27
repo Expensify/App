@@ -137,7 +137,6 @@ const WorkspaceInitialPage = (props) => {
                 >
                     <HeaderWithBackButton
                         title={props.translate('workspace.common.workspace')}
-                        onBackButtonPress={Navigation.goBack}
                         shouldShowThreeDotsButton
                         shouldShowGetAssistanceButton
                         guidesCallTaskID={CONST.GUIDES_CALL_TASK_IDS.WORKSPACE_INITIAL}

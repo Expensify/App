@@ -4,7 +4,6 @@ import PropTypes from 'prop-types';
 import HeaderWithBackButton from '../../../components/HeaderWithBackButton';
 import ScreenWrapper from '../../../components/ScreenWrapper';
 import withLocalize, {withLocalizePropTypes} from '../../../components/withLocalize';
-import Navigation from '../../../libs/Navigation/Navigation';
 import OptionsList from '../../../components/OptionsList';
 import styles from '../../../styles/styles';
 import themeColors from '../../../styles/themes/default';
@@ -40,7 +39,6 @@ const LanguagePage = (props) => {
         <ScreenWrapper includeSafeAreaPaddingBottom={false}>
             <HeaderWithBackButton
                 title={props.translate('languagePage.language')}
-                onBackButtonPress={Navigation.goBack}
             />
             <OptionsList
                 sections={[{data: localesToLanguages}]}

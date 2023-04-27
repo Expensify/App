@@ -312,7 +312,6 @@ class WorkspaceInvitePage extends React.Component {
                                 subtitle={policyName}
                                 shouldShowGetAssistanceButton
                                 guidesCallTaskID={CONST.GUIDES_CALL_TASK_IDS.WORKSPACE_MEMBERS}
-                                onBackButtonPress={Navigation.goBack}
                             />
                             <View style={[styles.flex1]}>
                                 {didScreenTransitionEnd ? (

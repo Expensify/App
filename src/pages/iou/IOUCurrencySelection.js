@@ -117,7 +117,6 @@ class IOUCurrencySelection extends Component {
                     <>
                         <HeaderWithBackButton
                             title={this.props.translate('iOUCurrencySelection.selectCurrency')}
-                            onBackButtonPress={Navigation.goBack}
                         />
                         <OptionsSelector
                             sections={this.getSections()}

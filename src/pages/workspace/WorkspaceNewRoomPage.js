@@ -141,7 +141,6 @@ class WorkspaceNewRoomPage extends React.Component {
             <ScreenWrapper includeSafeAreaPaddingBottom={false}>
                 <HeaderWithBackButton
                     title={this.props.translate('newRoomPage.newRoom')}
-                    onBackButtonPress={Navigation.goBack}
                 />
                 <Form
                     formID={ONYXKEYS.FORMS.NEW_ROOM_FORM}

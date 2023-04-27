@@ -3,7 +3,6 @@ import {withOnyx} from 'react-native-onyx';
 import FireworksAnimation from '../../../assets/animations/Fireworks.json';
 import ReviewingBankInfoAnimation from '../../../assets/animations/ReviewingBankInfo.json';
 import HeaderWithBackButton from '../../components/HeaderWithBackButton';
-import Navigation from '../../libs/Navigation/Navigation';
 import withLocalize, {withLocalizePropTypes} from '../../components/withLocalize';
 import userWalletPropTypes from './userWalletPropTypes';
 import CONST from '../../CONST';
@@ -39,7 +38,6 @@ const ActivateStep = (props) => {
         <>
             <HeaderWithBackButton
                 title={props.translate('activateStep.headerTitle')}
-                onBackButtonPress={Navigation.goBack}
             />
             <ConfirmationPage
                 animation={animation}

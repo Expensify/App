@@ -94,7 +94,6 @@ function NewContactMethodPage(props) {
         >
             <HeaderWithBackButton
                 title={props.translate('contacts.newContactMethod')}
-                onBackButtonPress={Navigation.goBack}
             />
             <ScrollView>
                 <Text style={[styles.ph5, styles.mb5]}>

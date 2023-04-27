@@ -87,7 +87,6 @@ const ReportParticipantsPage = (props) => {
                 <FullPageNotFoundView shouldShow={_.isEmpty(props.report)}>
                     <HeaderWithBackButton
                         title={props.translate((ReportUtils.isChatRoom(props.report) || ReportUtils.isPolicyExpenseChat(props.report)) ? 'common.members' : 'common.details')}
-                        onBackButtonPress={Navigation.goBack}
                     />
                     <View
                         pointerEvents="box-none"

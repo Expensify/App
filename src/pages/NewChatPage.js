@@ -11,7 +11,6 @@ import * as Report from '../libs/actions/Report';
 import CONST from '../CONST';
 import withWindowDimensions, {windowDimensionsPropTypes} from '../components/withWindowDimensions';
 import HeaderWithBackButton from '../components/HeaderWithBackButton';
-import Navigation from '../libs/Navigation/Navigation';
 import ScreenWrapper from '../components/ScreenWrapper';
 import FullScreenLoadingIndicator from '../components/FullscreenLoadingIndicator';
 import withLocalize, {withLocalizePropTypes} from '../components/withLocalize';
@@ -240,7 +239,6 @@ class NewChatPage extends Component {
                             title={this.props.isGroupChat
                                 ? this.props.translate('sidebarScreen.newGroup')
                                 : this.props.translate('sidebarScreen.newChat')}
-                            onBackButtonPress={Navigation.goBack}
                         />
                         <View style={[styles.flex1, styles.w100, styles.pRelative, this.state.selectedOptions.length > 0 ? safeAreaPaddingBottomStyle : {}]}>
                             {didScreenTransitionEnd ? (

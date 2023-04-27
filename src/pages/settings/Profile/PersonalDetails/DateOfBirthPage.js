@@ -9,7 +9,6 @@ import Form from '../../../../components/Form';
 import ONYXKEYS from '../../../../ONYXKEYS';
 import * as ValidationUtils from '../../../../libs/ValidationUtils';
 import styles from '../../../../styles/styles';
-import Navigation from '../../../../libs/Navigation/Navigation';
 import * as PersonalDetails from '../../../../libs/actions/PersonalDetails';
 import compose from '../../../../libs/compose';
 import NewDatePicker from '../../../../components/NewDatePicker';
@@ -105,7 +104,6 @@ class DateOfBirthPage extends Component {
             <ScreenWrapper includeSafeAreaPaddingBottom={false}>
                 <HeaderWithBackButton
                     title={this.props.translate('common.dob')}
-                    onBackButtonPress={Navigation.goBack}
                 />
                 <Form
                     style={[styles.flexGrow1, styles.ph5]}

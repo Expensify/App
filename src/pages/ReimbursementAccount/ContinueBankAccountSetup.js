@@ -12,7 +12,6 @@ import CONST from '../../CONST';
 import FullPageNotFoundView from '../../components/BlockingViews/FullPageNotFoundView';
 import HeaderWithBackButton from '../../components/HeaderWithBackButton';
 import MenuItem from '../../components/MenuItem';
-import Navigation from '../../libs/Navigation/Navigation';
 import styles from '../../styles/styles';
 import ScreenWrapper from '../../components/ScreenWrapper';
 import Section from '../../components/Section';
@@ -52,7 +51,6 @@ const ContinueBankAccountSetup = (props) => {
                 <HeaderWithBackButton
                     title={props.translate('workspace.common.bankAccount')}
                     subtitle={props.policyName}
-                    onBackButtonPress={Navigation.goBack}
                     shouldShowGetAssistanceButton
                     guidesCallTaskID={CONST.GUIDES_CALL_TASK_IDS.WORKSPACE_BANK_ACCOUNT}
                 />

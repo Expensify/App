@@ -10,7 +10,6 @@ import Text from '../components/Text';
 import ONYXKEYS from '../ONYXKEYS';
 import Avatar from '../components/Avatar';
 import HeaderWithBackButton from '../components/HeaderWithBackButton';
-import Navigation from '../libs/Navigation/Navigation';
 import ScreenWrapper from '../components/ScreenWrapper';
 import personalDetailsPropType from './personalDetailsPropType';
 import withLocalize, {withLocalizePropTypes} from '../components/withLocalize';
@@ -113,7 +112,6 @@ class DetailsPage extends React.PureComponent {
                 <FullPageNotFoundView shouldShow={_.isEmpty(login)}>
                     <HeaderWithBackButton
                         title={this.props.translate('common.details')}
-                        onBackButtonPress={Navigation.goBack}
                     />
                     <View
                         pointerEvents="box-none"

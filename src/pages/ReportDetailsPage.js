@@ -111,7 +111,6 @@ class ReportDetailsPage extends Component {
                 <FullPageNotFoundView shouldShow={_.isEmpty(this.props.report)}>
                     <HeaderWithBackButton
                         title={this.props.translate('common.details')}
-                        onBackButtonPress={Navigation.goBack}
                     />
                     <ScrollView style={[styles.flex1]}>
                         <View style={[styles.m5]}>
