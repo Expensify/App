@@ -1423,9 +1423,8 @@ function addEmojiReaction2(reportID, reportActionID, emoji, skinTone = preferred
             key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS_REACTIONS}${reportID}${reportActionID}`,
             value: {
                 [emoji.name]: {
-                    emoji: emoji.name,
                     users: {
-                        [currentUserAccountID]: {accountID: currentUserAccountID, skinTone},
+                        [currentUserAccountID]: {skinTone},
                     },
                 },
             },
