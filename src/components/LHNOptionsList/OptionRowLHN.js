@@ -213,6 +213,7 @@ const OptionRowLHN = (props) => {
                             style={[styles.flexRow, styles.alignItemsCenter]}
                             accessible={false}
                         >
+                            {optionItem.hasOutstandingIOU && !optionItem.isIOUReportOwner && <Icon src={Expensicons.DotIndicator} fill={colors.green} />}
                             {optionItem.hasDraftComment && (
                                 <View
                                     style={styles.ml2}
@@ -221,7 +222,6 @@ const OptionRowLHN = (props) => {
                                     <Icon src={Expensicons.Pencil} />
                                 </View>
                             )}
-                            {optionItem.hasOutstandingIOU && !optionItem.isIOUReportOwner && <Icon src={Expensicons.DotIndicator} fill={colors.green} />}
                             {optionItem.isPinned && (
                                 <View
                                     style={styles.ml2}
