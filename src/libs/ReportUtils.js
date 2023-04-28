@@ -669,7 +669,7 @@ function getSmallSizeAvatar(avatarURL, login) {
  * @param {Object} personalDetails
  * @returns {Array<*>}
  */
-function getIcons(report, personalDetails) {
+function getIcons(report, personalDetails, defaultIcon = null) {
     const result = {
         source: '',
         type: CONST.ICON_TYPE_AVATAR,
@@ -677,7 +677,7 @@ function getIcons(report, personalDetails) {
     };
 
     if (_.isEmpty(report)) {
-        result.source = Expensicons.FallbackAvatar;
+        result.source = defaultIcon || Expensicons.FallbackAvatar;
         return [result];
     }
     if (isConciergeChatReport(report)) {
