@@ -137,6 +137,10 @@ const webViewStyles = {
             fontSize: variables.fontSizeLarge,
             marginBottom: 8,
         },
+        'mention-user': {
+            borderRadius: variables.componentBorderRadiusSmall,
+            paddingHorizontal: 2,
+        },
     },
 
     baseFontStyle: {

@@ -69,6 +69,10 @@ const darkTheme = {
     reactionActive: '#003C73',
     badgeAdHoc: colors.pink600,
     badgeAdHocHover: colors.pink700,
+    mentionText: colors.blue200,
+    mentionBG: colors.blue700,
+    ourMentionText: colors.green200,
+    ourMentionBG: colors.green700,
 };
 
 const oldTheme = {
