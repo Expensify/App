@@ -1,4 +1,4 @@
-import React from 'react';
+import React, {useEffect} from 'react';
 import PropTypes from 'prop-types';
 import {ScrollView, View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
@@ -13,6 +13,7 @@ import compose from '../../../../libs/compose';
 import MenuItemWithTopDescription from '../../../../components/MenuItemWithTopDescription';
 import * as PersonalDetails from '../../../../libs/actions/PersonalDetails';
 import ONYXKEYS from '../../../../ONYXKEYS';
+import {withNetwork} from '../../../../components/OnyxProvider';
 
 const propTypes = {
     /* Onyx Props */
@@ -53,7 +54,12 @@ const defaultProps = {
 };
 
 const PersonalDetailsInitialPage = (props) => {
-    PersonalDetails.openPersonalDetailsPage();
+    useEffect(() => {
+        if (props.network.isOffline) {
+            return;
+        }
+        PersonalDetails.openPersonalDetailsPage();
+    }, [props.network.isOffline]);
 
     const privateDetails = props.privatePersonalDetails || {};
     const address = privateDetails.address || {};
@@ -135,4 +141,5 @@ export default compose(
             key: ONYXKEYS.PRIVATE_PERSONAL_DETAILS,
         },
     }),
+    withNetwork(),
 )(PersonalDetailsInitialPage);

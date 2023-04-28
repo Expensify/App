@@ -119,6 +119,16 @@ function isIOUReport(report) {
 }
 
 /**
+ * Checks if a report is an IOU or expense report.
+ *
+ * @param {Object} report
+ * @returns {Boolean}
+ */
+function isMoneyRequestReport(report) {
+    return isIOUReport(report) || isExpenseReport(report);
+}
+
+/**
  * Given a collection of reports returns them sorted by last read
  *
  * @param {Object} reports
@@ -248,6 +258,17 @@ function isPublicRoom(report) {
 }
 
 /**
+ * Whether the provided report is a public announce room
+ * @param {Object} report
+ * @param {String} report.visibility
+ * @returns {Boolean}
+ */
+function isPublicAnnounceRoom(report) {
+    const visibility = lodashGet(report, 'visibility', '');
+    return visibility === CONST.REPORT.VISIBILITY.PUBLIC_ANNOUNCE;
+}
+
+/**
  * Get the policy type from a given report
  * @param {Object} report
  * @param {String} report.policyID
@@ -268,17 +289,43 @@ function hasExpensifyGuidesEmails(emails) {
 }
 
 /**
+ * Only returns true if this is our main 1:1 DM report with Concierge
+ *
+ * @param {Object} report
+ * @returns {Boolean}
+ */
+function isConciergeChatReport(report) {
+    return lodashGet(report, 'participants', []).length === 1
+        && report.participants[0] === CONST.EMAIL.CONCIERGE;
+}
+
+/**
  * @param {Record<String, {lastReadTime, reportID}>|Array<{lastReadTime, reportID}>} reports
  * @param {Boolean} [ignoreDefaultRooms]
  * @param {Object} policies
+ * @param {Boolean} isFirstTimeNewExpensifyUser
  * @param {Boolean} openOnAdminRoom
  * @returns {Object}
  */
-function findLastAccessedReport(reports, ignoreDefaultRooms, policies, openOnAdminRoom = false) {
+function findLastAccessedReport(reports, ignoreDefaultRooms, policies, isFirstTimeNewExpensifyUser, openOnAdminRoom = false) {
+    // If it's the user's first time using New Expensify, then they could either have:
+    //   - just a Concierge report, if so we'll return that
+    //   - their Concierge report, and a separate report that must have deeplinked them to the app before they created their account.
+    // If it's the latter, we'll use the deeplinked report over the Concierge report,
+    // since the Concierge report would be incorrectly selected over the deep-linked report in the logic below.
     let sortedReports = sortReportsByLastRead(reports);
 
+    if (isFirstTimeNewExpensifyUser) {
+        if (sortedReports.length === 1) {
+            return sortedReports[0];
+        }
+        return _.find(sortedReports, report => !isConciergeChatReport(report));
+    }
+
     if (ignoreDefaultRooms) {
-        sortedReports = _.filter(sortedReports, report => !isDefaultRoom(report)
+        // We allow public announce rooms to show as the last accessed report since we bypass the default rooms beta for them.
+        // Check where ReportUtils.findLastAccessedReport is called in MainDrawerNavigator.js for more context.
+        sortedReports = _.filter(sortedReports, report => !isDefaultRoom(report) || isPublicAnnounceRoom(report)
             || getPolicyType(report, policies) === CONST.POLICY.TYPE.FREE
             || hasExpensifyGuidesEmails(lodashGet(report, ['participants'], [])));
     }
@@ -410,17 +457,6 @@ function getRoomWelcomeMessage(report, policiesMap) {
 }
 
 /**
- * Only returns true if this is our main 1:1 DM report with Concierge
- *
- * @param {Object} report
- * @returns {Boolean}
- */
-function isConciergeChatReport(report) {
-    return lodashGet(report, 'participants', []).length === 1
-        && report.participants[0] === CONST.EMAIL.CONCIERGE;
-}
-
-/**
  * Returns true if Concierge is one of the chat participants (1:1 as well as group chats)
  * @param {Object} report
  * @returns {Boolean}
@@ -536,7 +572,7 @@ function getDefaultWorkspaceAvatar(workspaceName) {
  */
 function getOldDotDefaultAvatar(login = '') {
     if (login === CONST.EMAIL.CONCIERGE) {
-        return Expensicons.ConciergeAvatar;
+        return CONST.CONCIERGE_ICON_URL;
     }
 
     // There are 8 possible old dot default avatars, so we choose which one this user has based
@@ -643,7 +679,7 @@ function getIcons(report, personalDetails, policies, defaultIcon = null) {
         return [result];
     }
     if (isConciergeChatReport(report)) {
-        result.source = Expensicons.ConciergeAvatar;
+        result.source = CONST.CONCIERGE_ICON_URL;
         return [result];
     }
     if (isArchivedRoom(report)) {
@@ -761,14 +797,14 @@ function getDisplayNameForParticipant(login, shouldUseShortForm = false) {
     if (!login) {
         return '';
     }
-    const personalDetails = getPersonalDetailsForLogin(login);
 
-    const loginWithoutSMSDomain = Str.removeSMSDomain(personalDetails.login);
-    let longName = personalDetails.displayName || loginWithoutSMSDomain;
+    const loginWithoutSMSDomain = Str.removeSMSDomain(login);
+    const personalDetails = getPersonalDetailsForLogin(login);
+    let longName = (personalDetails && personalDetails.displayName) || loginWithoutSMSDomain;
     if (longName === loginWithoutSMSDomain && Str.isSMSLogin(longName)) {
         longName = LocalePhoneNumber.formatPhoneNumber(longName);
     }
-    const shortName = personalDetails.firstName || longName;
+    const shortName = (personalDetails && personalDetails.firstName) || longName;
 
     return shouldUseShortForm ? shortName : longName;
 }
@@ -860,12 +896,7 @@ function getReportName(report, policies = {}) {
     const participantsWithoutCurrentUser = _.without(participants, sessionEmail);
     const isMultipleParticipantReport = participantsWithoutCurrentUser.length > 1;
 
-    const displayNames = [];
-    for (let i = 0; i < participantsWithoutCurrentUser.length; i++) {
-        const login = participantsWithoutCurrentUser[i];
-        displayNames.push(getDisplayNameForParticipant(login, isMultipleParticipantReport));
-    }
-    return displayNames.join(', ');
+    return _.map(participantsWithoutCurrentUser, login => getDisplayNameForParticipant(login, isMultipleParticipantReport)).join(', ');
 }
 
 /**
@@ -931,7 +962,7 @@ function buildOptimisticAddCommentReportAction(text, file) {
     const commentText = getParsedComment(text);
     const isAttachment = _.isEmpty(text) && file !== undefined;
     const attachmentInfo = isAttachment ? file : {};
-    const htmlForNewComment = isAttachment ? 'Uploading Attachment...' : commentText;
+    const htmlForNewComment = isAttachment ? 'Uploading attachment...' : commentText;
 
     // Remove HTML from text when applying optimistic offline comment
     const textForNewComment = isAttachment ? CONST.ATTACHMENT_MESSAGE_TEXT
@@ -1471,7 +1502,8 @@ function shouldReportBeInOptionList(report, reportIDFromRoute, isInGSDMode, curr
 
     // Exclude reports that have no data because there wouldn't be anything to show in the option item.
     // This can happen if data is currently loading from the server or a report is in various stages of being created.
-    if (!report || !report.reportID || !report.participants || (_.isEmpty(report.participants) && !isPublicRoom(report)) || isIOUReport(report)) {
+    // This can also happen for anyone accessing a public room or archived room for which they don't have access to the underlying policy.
+    if (!report || !report.reportID || !report.participants || (_.isEmpty(report.participants) && !isPublicRoom(report) && !isArchivedRoom(report)) || isIOUReport(report)) {
         return false;
     }
 
@@ -1535,6 +1567,25 @@ function getChatByParticipants(newParticipantList) {
 
         // Only return the room if it has all the participants and is not a policy room
         return !isUserCreatedPolicyRoom(report) && _.isEqual(newParticipantList, _.sortBy(report.participants));
+    });
+}
+
+/**
+ * Attempts to find a report in onyx with the provided list of participants in given policy
+ * @param {Array} newParticipantList
+ * @param {String} policyID
+ * @returns {object|undefined}
+ */
+function getChatByParticipantsAndPolicy(newParticipantList, policyID) {
+    newParticipantList.sort();
+    return _.find(allReports, (report) => {
+        // If the report has been deleted, or there are no participants (like an empty #admins room) then skip it
+        if (!report || !report.participants) {
+            return false;
+        }
+
+        // Only return the room if it has all the participants and is not a policy room
+        return report.policyID === policyID && _.isEqual(newParticipantList, _.sortBy(report.participants));
     });
 }
 
@@ -1701,10 +1752,36 @@ function canLeaveRoom(report, isPolicyMember) {
             || _.isEmpty(report.chatType)) { // DM chats don't have a chatType
             return false;
         }
-    } else if (report.visibility === CONST.REPORT.VISIBILITY.PUBLIC_ANNOUNCE && isPolicyMember) {
+    } else if (isPublicAnnounceRoom(report) && isPolicyMember) {
         return false;
     }
     return true;
+}
+
+/**
+ * @param {string[]} participants
+ * @returns {Boolean}
+ */
+function isCurrentUserTheOnlyParticipant(participants) {
+    return participants && participants.length === 1 && participants[0] === sessionEmail;
+}
+
+/**
+ * Returns display names for those that can see the whisper.
+ * However, it returns "you" if the current user is the only one who can see it besides the person that sent it.
+ *
+ * @param {string[]} participants
+ * @returns {string}
+ */
+function getWhisperDisplayNames(participants) {
+    const isWhisperOnlyVisibleToCurrentUSer = isCurrentUserTheOnlyParticipant(participants);
+
+    // When the current user is the only participant, the display name needs to be "you" because that's the only person reading it
+    if (isWhisperOnlyVisibleToCurrentUSer) {
+        return Localize.translateLocal('common.youAfterPreposition');
+    }
+
+    return _.map(participants, login => getDisplayNameForParticipant(login, !isWhisperOnlyVisibleToCurrentUSer)).join(', ');
 }
 
 export {
@@ -1726,7 +1803,9 @@ export {
     isArchivedRoom,
     isPolicyExpenseChatAdmin,
     isPublicRoom,
+    isPublicAnnounceRoom,
     isConciergeChatReport,
+    isCurrentUserTheOnlyParticipant,
     hasAutomatedExpensifyEmails,
     hasExpensifyGuidesEmails,
     hasOutstandingIOU,
@@ -1756,11 +1835,13 @@ export {
     buildOptimisticAddCommentReportAction,
     shouldReportBeInOptionList,
     getChatByParticipants,
+    getChatByParticipantsAndPolicy,
     getAllPolicyReports,
     getIOUReportActionMessage,
     getDisplayNameForParticipant,
     isExpenseReport,
     isIOUReport,
+    isMoneyRequestReport,
     chatIncludesChronos,
     getAvatar,
     isDefaultAvatar,
@@ -1775,4 +1856,5 @@ export {
     getSmallSizeAvatar,
     getMoneyRequestOptions,
     canRequestMoney,
+    getWhisperDisplayNames,
 };

@@ -1,5 +1,5 @@
 import React from 'react';
-import {View, Animated} from 'react-native';
+import {View} from 'react-native';
 import moment from 'moment';
 import TextInput from '../TextInput';
 import CalendarPicker from '../CalendarPicker';
@@ -23,16 +23,12 @@ class NewDatePicker extends React.Component {
         super(props);
 
         this.state = {
-            isPickerVisible: false,
             selectedMonth: null,
             selectedDate: moment(props.value || props.defaultValue || undefined).toDate(),
         };
 
         this.setDate = this.setDate.bind(this);
-        this.showPicker = this.showPicker.bind(this);
         this.setCurrentSelectedMonth = this.setCurrentSelectedMonth.bind(this);
-
-        this.opacity = new Animated.Value(0);
 
         // We're using uncontrolled input otherwise it wont be possible to
         // raise change events with a date value - each change will produce a date
@@ -40,13 +36,6 @@ class NewDatePicker extends React.Component {
         this.defaultValue = props.defaultValue
             ? moment(props.defaultValue).format(CONST.DATE.MOMENT_FORMAT_STRING)
             : '';
-    }
-
-    componentDidMount() {
-        if (!this.props.autoFocus) {
-            return;
-        }
-        this.showPicker();
     }
 
     /**
@@ -68,55 +57,38 @@ class NewDatePicker extends React.Component {
         });
     }
 
-    /**
-     * Function to animate showing the picker.
-     */
-    showPicker() {
-        this.setState({isPickerVisible: true}, () => {
-            Animated.timing(this.opacity, {
-                toValue: 1,
-                duration: 100,
-                useNativeDriver: true,
-            }).start();
-        });
-    }
-
     render() {
         return (
             <View style={styles.datePickerRoot}>
-                <View style={[this.props.isSmallScreenWidth ? styles.flex2 : {}]}>
+                <View style={[this.props.isSmallScreenWidth ? styles.flex2 : {}, styles.pointerEventsNone]}>
                     <TextInput
                         forceActiveLabel
                         icon={Expensicons.Calendar}
-                        onPress={this.showPicker}
                         label={this.props.label}
                         value={this.props.value || ''}
                         defaultValue={this.defaultValue}
                         placeholder={this.props.placeholder || this.props.translate('common.dateFormat')}
                         errorText={this.props.errorText}
                         containerStyles={this.props.containerStyles}
-                        textInputContainerStyles={this.state.isPickerVisible ? [styles.borderColorFocus] : []}
+                        textInputContainerStyles={[styles.borderColorFocus]}
+                        inputStyle={[styles.pointerEventsNone]}
                         disabled={this.props.disabled}
                         editable={false}
                     />
                 </View>
-                {
-                    this.state.isPickerVisible && (
-                    <Animated.View
-                        style={[styles.datePickerPopover, styles.border, {opacity: this.opacity}]}
-                    >
-                        <CalendarPicker
-                            minDate={this.props.minDate}
-                            maxDate={this.props.maxDate}
-                            value={this.state.selectedDate}
-                            onSelected={this.setDate}
-                            selectedMonth={this.state.selectedMonth}
-                            selectedYear={this.props.selectedYear}
-                            onYearPickerOpen={this.setCurrentSelectedMonth}
-                        />
-                    </Animated.View>
-                    )
-                }
+                <View
+                    style={[styles.datePickerPopover, styles.border]}
+                >
+                    <CalendarPicker
+                        minDate={this.props.minDate}
+                        maxDate={this.props.maxDate}
+                        value={this.state.selectedDate}
+                        onSelected={this.setDate}
+                        selectedMonth={this.state.selectedMonth}
+                        selectedYear={this.props.selectedYear}
+                        onYearPickerOpen={this.setCurrentSelectedMonth}
+                    />
+                </View>
             </View>
         );
     }

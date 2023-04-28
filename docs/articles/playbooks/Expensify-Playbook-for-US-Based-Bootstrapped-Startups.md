@@ -5,7 +5,7 @@ description: Best practices for how to deploy Expensify for your business
 
 This playbook details best practices on how Bootstrapped Startups with less than 5 employees can use Expensify to prioritize product development while capturing business-related receipts for future reimbursement.
 - See our *[Playbook for VC-Backed Startups](https://help.expensify.com/articles/playbooks/Expensify-Playbook-for-US-based-VC-Backed-Startups)* if you have taken venture capital investment and are more concerned with prioritizing top-line revenue growth than achieving near-term profitability
-- See our *Playbook for Small Businesses* if you are more concerned with maintaining profitability than growing top-line revenue. [Coming soon…]
+- See our *[Playbook for Small to Medium-Sized Businesses]([url](https://help.expensify.com/articles/playbooks/Expensify-Playbook-for-Small-to-Medium-Sized-Businesses))* if you are more concerned with maintaining profitability than growing top-line revenue.
 
 # Who you are
 As a bootstrapped startup, you have surrounded yourself with a small handful of people you trust, and are focused on developing your concept to officially launch and possibly take to outside investors. You are likely running your business with your own money, and possibly a small amount of funding from friends and family. You are either paying yourself a little, or not at all, but at this stage, the company isn’t profitable. And for now, you are capturing receipts so that you can reimburse yourself for startup costs when you either take on investment or start to turn a profit.
@@ -58,7 +58,7 @@ Here’s how to set it up:
 Once this is done, you are all set to begin the process of enabling the Expensify Card. Not just for you, but if you have a co-founder, you can also issue them a card.
 
 ## Step 5: Get the Expensify Card
-If you linked your business bank account in the previous step, you are immediately eligible for the Expensify Card. The Expensify Card is included with your Free Plan workspace, it earns you 2% cashback on all expenses, and they are all stored in your team’s workspace. It’s easy to apply and it takes minutes!
+If you linked your business bank account in the previous step, you are immediately eligible for the Expensify Card. The Expensify Card is included with your Free Plan workspace, it earns you up to 2% cash back (up to 4% in your first 3 months!), and they are all stored in your team’s workspace. It’s easy to apply and it takes minutes!
 
 Here’s how to enable the Expensify Card:
 

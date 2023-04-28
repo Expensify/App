@@ -97,6 +97,17 @@ class ContactMethodDetailsPage extends Component {
         };
     }
 
+    componentDidUpdate(prevProps) {
+        const errorFields = lodashGet(this.props.loginList, [this.getContactMethod(), 'errorFields'], {});
+        const prevPendingFields = lodashGet(prevProps.loginList, [this.getContactMethod(), 'pendingFields'], {});
+
+        // Navigate to methods page on successful magic code verification
+        // validateLogin property of errorFields & prev pendingFields is responsible to decide the status of the magic code verification
+        if (!errorFields.validateLogin && prevPendingFields.validateLogin === CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE) {
+            Navigation.navigate(ROUTES.SETTINGS_CONTACT_METHODS);
+        }
+    }
+
     /**
      * Gets the current contact method from the route params
      *
@@ -111,7 +122,7 @@ class ContactMethodDetailsPage extends Component {
      */
     deleteContactMethod() {
         if (!_.isEmpty(lodashGet(this.props.loginList, [this.getContactMethod(), 'errorFields'], {}))) {
-            User.deleteContactMethod(this.getContactMethod());
+            User.deleteContactMethod(this.getContactMethod(), this.props.loginList);
             return;
         }
         this.toggleDeleteModal(true);
@@ -130,7 +141,7 @@ class ContactMethodDetailsPage extends Component {
      */
     confirmDeleteAndHideModal() {
         this.toggleDeleteModal(false);
-        User.deleteContactMethod(this.getContactMethod());
+        User.deleteContactMethod(this.getContactMethod(), this.props.loginList);
     }
 
     /**
