@@ -17,11 +17,12 @@ Onyx.connect({
  * @returns {String}
  */
 function formatPhoneNumber(number) {
-    const parsedPhoneNumber = parsePhoneNumber(Str.removeSMSDomain(number));
+    const numberWithoutSMSDomain = Str.removeSMSDomain(number);
+    const parsedPhoneNumber = parsePhoneNumber(numberWithoutSMSDomain);
 
     // return the string untouched if it's not a phone number
     if (!parsedPhoneNumber.valid) {
-        return number;
+        return numberWithoutSMSDomain;
     }
 
     const regionCode = parsedPhoneNumber.countryCode;
