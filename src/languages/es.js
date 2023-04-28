@@ -7,6 +7,7 @@ export default {
         yes: 'Sí',
         no: 'No',
         ok: 'OK',
+        buttonConfirm: 'Ok, entendido',
         attachment: 'Archivo adjunto',
         to: 'A',
         optional: 'Opcional',
@@ -476,10 +477,15 @@ export default {
             newPassword: 'Su contraseña debe tener al menos 8 caracteres, 1 letra mayúscula, 1 letra minúscula y 1 número.',
         },
     },
+    twoFactorAuth: {
+        headerTitle: '.......',
+        twoFactorAuthEnabled: '.......',
+        disableTwoFactorAuth: '.......',
+        whatIsTwoFactorAuth: '.......',
+    },
     passwordConfirmationScreen: {
         passwordUpdated: 'Contraseña actualizada!',
         allSet: 'Todo está listo. Guarda tu contraseña en un lugar seguro.',
-        gotIt: 'Ok, entendido',
     },
     addPayPalMePage: {
         enterYourUsernameToGetPaidViaPayPal: 'Recibe pagos vía PayPal.',
@@ -720,7 +726,6 @@ export default {
         validateAccountError: 'Para terminar de configurar tu cuenta bancaria, debes validar tu cuenta de Expensify. Por favor, revisa tu correo electrónico para validar tu cuenta y vuelve aquí para continuar.',
         hasPhoneLoginError: 'Para agregar una cuenta bancaria verificada, asegúrate de que tu nombre de usuario principal sea un correo electrónico válido y vuelve a intentarlo. Puedes agregar tu número de teléfono como nombre de usuario secundario.',
         hasBeenThrottledError: 'Se produjo un error al intentar agregar tu cuenta bancaria. Por favor, espera unos minutos e inténtalo de nuevo.',
-        buttonConfirm: 'OK',
         error: {
             noBankAccountAvailable: 'Lo sentimos, no hay ninguna cuenta bancaria disponible',
             noBankAccountSelected: 'Por favor, elige una cuenta bancaria',

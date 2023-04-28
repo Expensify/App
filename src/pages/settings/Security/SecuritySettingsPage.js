@@ -1,6 +1,8 @@
 import _ from 'underscore';
 import React from 'react';
 import {View, ScrollView} from 'react-native';
+import {withOnyx} from 'react-native-onyx';
+import PropTypes from 'prop-types';
 import HeaderWithCloseButton from '../../../components/HeaderWithCloseButton';
 import Navigation from '../../../libs/Navigation/Navigation';
 import ROUTES from '../../../ROUTES';
@@ -9,13 +11,41 @@ import * as Expensicons from '../../../components/Icon/Expensicons';
 import ScreenWrapper from '../../../components/ScreenWrapper';
 import withLocalize, {withLocalizePropTypes} from '../../../components/withLocalize';
 import MenuItem from '../../../components/MenuItem';
+import compose from '../../../libs/compose';
+import ONYXKEYS from '../../../ONYXKEYS';
 
 const propTypes = {
+    /* Onyx Props */
+
+    /** Holds information about the users account that is logging in */
+    account: PropTypes.shape({
+        /** Whether this account has 2-FA enabled or not */
+        requiresTwoFactorAuth: PropTypes.bool,
+    }),
+
     ...withLocalizePropTypes,
+};
+
+const defaultProps = {
+    account: {},
 };
 
 const SecuritySettingsPage = (props) => {
     const menuItems = [
+        {
+            translationKey: 'twoFactorAuth.headerTitle',
+            icon: Expensicons.Lock,
+            action: () => {
+                // TODO: REMOVE
+                Navigation.navigate(ROUTES.SETTINGS_TWO_FACTOR_IS_ENABLED);
+
+                // if (props.account.requiresTwoFactorAuth) {
+                //     Navigation.navigate(ROUTES.SETTINGS_TWO_FACTOR_IS_ENABLED);
+                // } else {
+                //     Navigation.navigate(ROUTES.SETTINGS_TWO_FACTOR_CODES);
+                // }
+            },
+        },
         {
             translationKey: 'passwordPage.changePassword',
             icon: Expensicons.Key,
@@ -65,6 +95,12 @@ const SecuritySettingsPage = (props) => {
 };
 
 SecuritySettingsPage.propTypes = propTypes;
+SecuritySettingsPage.defaultProps = defaultProps;
 SecuritySettingsPage.displayName = 'SettingSecurityPage';
 
-export default withLocalize(SecuritySettingsPage);
+export default compose(
+    withLocalize,
+    withOnyx({
+        account: {key: ONYXKEYS.ACCOUNT},
+    }),
+)(SecuritySettingsPage);

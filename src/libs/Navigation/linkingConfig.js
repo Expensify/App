@@ -148,6 +148,26 @@ export default {
                         path: ROUTES.SETTINGS_PERSONAL_DETAILS_ADDRESS,
                         exact: true,
                     },
+                    Settings_TwoFactorAuthIsEnabled: {
+                        path: ROUTES.SETTINGS_TWO_FACTOR_IS_ENABLED,
+                        exact: true,
+                    },
+                    Settings_TwoFactorAuthDisable: {
+                        path: ROUTES.SETTINGS_TWO_FACTOR_DISABLE,
+                        exact: true,
+                    },
+                    Settings_TwoFactorAuthCodes: {
+                        path: ROUTES.SETTINGS_TWO_FACTOR_CODES,
+                        exact: true,
+                    },
+                    Settings_TwoFactorAuthVerify: {
+                        path: ROUTES.SETTINGS_TWO_FACTOR_VERIFY,
+                        exact: true,
+                    },
+                    Settings_TwoFactorAuthSuccess: {
+                        path: ROUTES.SETTINGS_TWO_FACTOR_SUCCESS,
+                        exact: true,
+                    },
                     Workspace_Initial: {
                         path: ROUTES.WORKSPACE_INITIAL,
                     },
