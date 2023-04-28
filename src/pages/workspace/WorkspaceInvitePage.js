@@ -1,6 +1,6 @@
 import React from 'react';
 import PropTypes from 'prop-types';
-import {Pressable, View} from 'react-native';
+import {View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import _ from 'underscore';
 import lodashGet from 'lodash/get';
@@ -12,7 +12,6 @@ import styles from '../../styles/styles';
 import compose from '../../libs/compose';
 import ONYXKEYS from '../../ONYXKEYS';
 import * as Policy from '../../libs/actions/Policy';
-import TextInput from '../../components/TextInput';
 import FormAlertWithSubmitButton from '../../components/FormAlertWithSubmitButton';
 import FormSubmit from '../../components/FormSubmit';
 import OptionsSelector from '../../components/OptionsSelector';
@@ -20,13 +19,11 @@ import * as OptionsListUtils from '../../libs/OptionsListUtils';
 import CONST from '../../CONST';
 import FullScreenLoadingIndicator from '../../components/FullscreenLoadingIndicator';
 import * as Link from '../../libs/actions/Link';
-import Text from '../../components/Text';
 import withPolicy, {policyPropTypes, policyDefaultProps} from './withPolicy';
 import {withNetwork} from '../../components/OnyxProvider';
 import FullPageNotFoundView from '../../components/BlockingViews/FullPageNotFoundView';
 import networkPropTypes from '../../components/networkPropTypes';
 import ROUTES from '../../ROUTES';
-import * as Localize from '../../libs/Localize';
 
 const personalDetailsPropTypes = PropTypes.shape({
     /** The login of the person (either email or phone number) */
@@ -92,7 +89,6 @@ class WorkspaceInvitePage extends React.Component {
             personalDetails,
             selectedOptions: [],
             userToInvite,
-            welcomeNote: this.getWelcomeNote(),
             shouldDisableButton: false,
         };
     }
@@ -105,13 +101,6 @@ class WorkspaceInvitePage extends React.Component {
     }
 
     componentDidUpdate(prevProps) {
-        if (
-            (prevProps.preferredLocale !== this.props.preferredLocale || prevProps.policy.name !== this.props.policy.name)
-            && this.state.welcomeNote === Localize.translate(prevProps.preferredLocale, 'workspace.invite.welcomeNote', {workspaceName: prevProps.policy.name})
-        ) {
-            this.setState({welcomeNote: this.getWelcomeNote()});
-        }
-
         const isReconnecting = prevProps.network.isOffline && !this.props.network.isOffline;
         if (!isReconnecting) {
             return;
@@ -129,17 +118,6 @@ class WorkspaceInvitePage extends React.Component {
             || !_.isEmpty(policyMemberList[policyMember].errors)
         ));
         return [...CONST.EXPENSIFY_EMAILS, ...usersToExclude];
-    }
-
-    /**
-     * Gets the welcome note default text
-     *
-     * @returns {Object}
-     */
-    getWelcomeNote() {
-        return this.props.translate('workspace.invite.welcomeNote', {
-            workspaceName: this.props.policy.name,
-        });
     }
 
     /**
@@ -271,9 +249,13 @@ class WorkspaceInvitePage extends React.Component {
 
         this.setState({shouldDisableButton: true}, () => {
             const logins = _.map(this.state.selectedOptions, option => option.login);
-            const filteredLogins = _.uniq(_.compact(_.map(logins, login => login.toLowerCase().trim())));
-            Policy.addMembersToWorkspace(filteredLogins, this.state.welcomeNote, this.props.route.params.policyID, this.props.betas);
-            Navigation.goBack();
+            const filteredLogins = _.chain(logins)
+                .map(login => login.toLowerCase().trim())
+                .compact()
+                .uniq()
+                .value();
+            Policy.setWorkspaceInviteMembersDraft(this.props.route.params.policyID, filteredLogins);
+            Navigation.navigate(ROUTES.getWorkspaceInviteMessageRoute(this.props.route.params.policyID));
         });
     }
 
@@ -338,41 +320,16 @@ class WorkspaceInvitePage extends React.Component {
                                 )}
                             </View>
                             <View style={[styles.flexShrink0]}>
-                                <View style={[styles.ph5, styles.pv3]}>
-                                    <TextInput
-                                        label={this.props.translate('workspace.invite.personalMessagePrompt')}
-                                        autoCompleteType="off"
-                                        autoCorrect={false}
-                                        numberOfLines={4}
-                                        textAlignVertical="top"
-                                        multiline
-                                        containerStyles={[styles.workspaceInviteWelcome]}
-                                        value={this.state.welcomeNote}
-                                        onChangeText={text => this.setState({welcomeNote: text})}
-                                    />
-                                </View>
                                 <FormAlertWithSubmitButton
                                     isDisabled={!this.state.selectedOptions.length || this.state.shouldDisableButton}
                                     isAlertVisible={this.getShouldShowAlertPrompt()}
-                                    buttonText={this.props.translate('common.invite')}
+                                    buttonText={this.props.translate('common.next')}
                                     onSubmit={this.inviteUser}
                                     message={this.props.policy.alertMessage}
-                                    containerStyles={[styles.flexReset, styles.mb0, styles.flexGrow0, styles.flexShrink0, styles.flexBasisAuto]}
+                                    containerStyles={[styles.flexReset, styles.flexGrow0, styles.flexShrink0, styles.flexBasisAuto, styles.mb5]}
                                     enabledWhenOffline
                                     disablePressOnEnter
                                 />
-                                <Pressable
-                                    onPress={this.openPrivacyURL}
-                                    accessibilityRole="link"
-                                    href={CONST.PRIVACY_URL}
-                                    style={[styles.mh5, styles.mv2, styles.alignSelfStart]}
-                                >
-                                    <View style={[styles.flexRow]}>
-                                        <Text style={[styles.mr1, styles.label, styles.link]}>
-                                            {this.props.translate('common.privacy')}
-                                        </Text>
-                                    </View>
-                                </Pressable>
                             </View>
                         </FormSubmit>
                     </FullPageNotFoundView>
