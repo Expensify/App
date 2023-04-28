@@ -131,11 +131,7 @@ class WorkspacesListPage extends Component {
                 action: () => Navigation.navigate(ROUTES.getWorkspaceInitialRoute(policy.id)),
                 iconFill: themeColors.textLight,
                 fallbackIcon: Expensicons.FallbackWorkspaceAvatar,
-                brickRoadIndicator:
-                    PolicyUtils.hasPolicyErrorFields(policy)
-                    || reimbursementAccountBrickRoadIndicator
-                    || PolicyUtils.getPolicyBrickRoadIndicatorStatus(policy, this.props.policyMembers)
-                        ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : null,
+                brickRoadIndicator: reimbursementAccountBrickRoadIndicator || PolicyUtils.getPolicyBrickRoadIndicatorStatus(policy, this.props.policyMembers),
                 pendingAction: policy.pendingAction,
                 errors: policy.errors,
                 dismissError: () => dismissWorkspaceError(policy.id, policy.pendingAction),
