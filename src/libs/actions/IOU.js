@@ -655,7 +655,6 @@ function deleteMoneyRequest(chatReportID, iouReportID, moneyRequestAction) {
         transactionID,
         chatReportID,
         reportActionID: optimisticReportAction.reportActionID,
-        comment: '',
         iouReportID: updatedIOUReport.reportID,
     }, {optimisticData, successData, failureData});
 
