@@ -65,14 +65,14 @@ Onyx.connect({
         }
         const reportID = CollectionUtils.extractCollectionItemID(key);
 
-        const actionsArray = _.toArray(actions);
-        lastReportActions[reportID] = _.last(actionsArray);
+        const actionsArray = ReportActionsUtils.getSortedReportActions(_.toArray(actions));
+        lastReportActions[reportID] = _.last(ReportActionsUtils.getSortedReportActions(actionsArray));
 
         // The report is only visible if it is the last action not deleted that
         // does not match a closed or created state.
         const reportActionsForDisplay = _.filter(actionsArray, (reportAction, actionKey) => (ReportActionsUtils.shouldReportActionBeVisible(reportAction, actionKey)
             && (reportAction.actionName !== CONST.REPORT.ACTIONS.TYPE.CREATED)));
-        visibleReportActionItems[reportID] = _.first(ReportActionsUtils.getSortedReportActions(reportActionsForDisplay, true));
+        visibleReportActionItems[reportID] = _.last(reportActionsForDisplay);
 
         reportActions[key] = actions;
     },
@@ -284,6 +284,7 @@ function getOptionData(reportID) {
     if (result.isArchivedRoom) {
         const archiveReason = (lastReportActions[report.reportID] && lastReportActions[report.reportID].originalMessage && lastReportActions[report.reportID].originalMessage.reason)
             || CONST.REPORT.ARCHIVE_REASON.DEFAULT;
+        console.log('archiveReason', ReportUtils.getReportName(report, policies), lastReportActions[report.reportID], report.reportID, archiveReason);
         lastMessageText = Localize.translate(preferredLocale, `reportArchiveReasons.${archiveReason}`, {
             displayName: archiveReason.displayName || report.lastActorEmail,
             policyName: ReportUtils.getPolicyName(report, policies),
