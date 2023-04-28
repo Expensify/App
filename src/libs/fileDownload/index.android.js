@@ -51,17 +51,26 @@ function handleDownload(url, fileName) {
             path: `${path}/${attachmentName}`,
             addAndroidDownloads: {
                 useDownloadManager: true,
-                notification: true,
+                notification: false,
                 path: `${path}/Expensify/${attachmentName}`,
             },
         }).fetch('GET', url);
 
+        let attachmentPath;
+
         // Resolving the fetched attachment
         fetchedAttachment.then((attachment) => {
             if (!attachment || !attachment.info()) {
-                return;
+                return Promise.reject();
             }
-
+            attachmentPath = attachment.path();
+            return RNFetchBlob.MediaCollection.copyToMediaStore({
+                name: attachmentName,
+                parentFolder: 'Expensify',
+                mimeType: null,
+            }, 'Download', attachmentPath);
+        }).then(() => {
+            RNFetchBlob.fs.unlink(attachmentPath);
             FileUtils.showSuccessAlert();
         }).catch(() => {
             FileUtils.showGeneralErrorAlert();
