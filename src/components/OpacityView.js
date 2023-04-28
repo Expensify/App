@@ -1,4 +1,5 @@
 import React from 'react';
+import {View} from 'react-native';
 import Animated, {useAnimatedStyle, useSharedValue, withTiming} from 'react-native-reanimated';
 import PropTypes from 'prop-types';
 import * as StyleUtils from '../styles/StyleUtils';
@@ -49,10 +50,10 @@ const OpacityView = (props) => {
     }, [props.shouldDim, props.dimmingValue, opacity]);
 
     return (
-        <Animated.View
-            style={[opacityStyle, ...StyleUtils.parseStyleAsArray(props.style)]}
-        >
-            {props.children}
+        <Animated.View style={[opacityStyle]}>
+            <View style={StyleUtils.parseStyleAsArray(props.style)}>
+                {props.children}
+            </View>
         </Animated.View>
     );
 };
