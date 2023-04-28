@@ -19,7 +19,6 @@ import withLocalize, {withLocalizePropTypes} from '../withLocalize';
 import Text from '../Text';
 import SubscriptAvatar from '../SubscriptAvatar';
 import CONST from '../../CONST';
-import variables from '../../styles/variables';
 import themeColors from '../../styles/themes/default';
 import SidebarUtils from '../../libs/SidebarUtils';
 import TextPill from '../TextPill';
@@ -205,8 +204,6 @@ const OptionRowLHN = (props) => {
                                         <Icon
                                             src={Expensicons.DotIndicator}
                                             fill={colors.red}
-                                            height={variables.iconSizeSmall}
-                                            width={variables.iconSizeSmall}
                                         />
                                     </View>
                                 )}
@@ -221,7 +218,7 @@ const OptionRowLHN = (props) => {
                                     style={styles.ml2}
                                     accessibilityLabel={props.translate('sidebarScreen.draftedMessage')}
                                 >
-                                    <Icon src={Expensicons.Pencil} height={16} width={16} />
+                                    <Icon src={Expensicons.Pencil} />
                                 </View>
                             )}
                             {optionItem.hasOutstandingIOU && !optionItem.isIOUReportOwner && <Icon src={Expensicons.DotIndicator} fill={colors.green} />}
@@ -230,7 +227,7 @@ const OptionRowLHN = (props) => {
                                     style={styles.ml2}
                                     accessibilityLabel={props.translate('sidebarScreen.chatPinned')}
                                 >
-                                    <Icon src={Expensicons.Pin} height={16} width={16} />
+                                    <Icon src={Expensicons.Pin} />
                                 </View>
                             )}
                         </View>
