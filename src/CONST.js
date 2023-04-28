@@ -841,9 +841,6 @@ const CONST = {
             // eslint-disable-next-line max-len
             USER_CAMERA_CONSENT_DENIED: 'Unexpected result Intent. It might be a result of incorrect integration, make sure you only pass Onfido intent to handleActivityResult. It might be due to unpredictable crash or error. Please report the problem to android-sdk@onfido.com. Intent: null \n resultCode: 0',
         },
-
-        // This is required as the LOCALES has es-ES and we need to map it to es_ES for Onfido
-        ES_ES_LOCALE: 'es_ES',
     },
 
     OS: {
@@ -913,6 +910,7 @@ const CONST = {
         ES: 'es',
 
         DEFAULT: 'en',
+        ES_ES_ONFIDO: 'es_ES',
     },
 
     POLICY: {
