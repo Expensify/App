@@ -67,7 +67,7 @@ function extractFirstAndLastNameFromAvailableDetails({
     if (firstName || lastName) {
         return {firstName: firstName || '', lastName: lastName || ''};
     }
-    if (Str.removeSMSDomain(login) === displayName) {
+    if (login && Str.removeSMSDomain(login) === displayName) {
         return {firstName: '', lastName: ''};
     }
 
