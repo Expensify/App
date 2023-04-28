@@ -40,7 +40,7 @@ Onyx.connect({
  */
 function formatPhoneNumber(number) {
     if (!number) {
-        return number;
+        return '';
     }
 
     const parsedPhoneNumber = parsePhoneNumber(Str.removeSMSDomain(number));
