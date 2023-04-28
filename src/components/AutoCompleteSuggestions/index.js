@@ -21,7 +21,7 @@ const AutoCompleteSuggestions = (props) => {
             if (DeviceCapabilities.hasHoverSupport()) {
                 return;
             }
-            // e.preventDefault();
+            e.preventDefault();
         };
         return () => container.onpointerdown = null;
     }, []);
@@ -33,6 +33,7 @@ const AutoCompleteSuggestions = (props) => {
 };
 
 AutoCompleteSuggestions.propTypes = propTypes;
+
 // AutoCompleteSuggestions.defaultProps = defaultProps;
 AutoCompleteSuggestions.displayName = 'AutoCompleteSuggestions';
 

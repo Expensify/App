@@ -26,4 +26,6 @@ const propTypes = {
     shouldIncludeReportRecipientLocalTimeHeight: PropTypes.bool.isRequired,
 };
 
-export {propTypes};
+const defaultProps = {};
+
+export {propTypes, defaultProps};

@@ -21,7 +21,8 @@ const propTypes = {
         code: PropTypes.string,
 
         /** The name of the emoji */
-        name: PropTypes.string, })).isRequired,
+        name: PropTypes.string,
+    })).isRequired,
 
     /** Fired when the user selects an emoji */
     onSelect: PropTypes.func.isRequired,
@@ -39,9 +40,10 @@ const propTypes = {
     shouldIncludeReportRecipientLocalTimeHeight: PropTypes.bool.isRequired,
 
     /** Stores user's preferred skin tone */
-    preferredSkinToneIndex: PropTypes.number.isRequired, };
+    preferredSkinToneIndex: PropTypes.number.isRequired,
+};
 
-const defaultProps = { highlightedEmojiIndex: 0, };
+const defaultProps = {highlightedEmojiIndex: 0};
 
 /**
  * Create unique keys for each emoji item
