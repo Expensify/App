@@ -54,6 +54,8 @@ describe('ValidationUtils', () => {
             expect(ValidationUtils.isValidWebsite('https://www.expensify.com')).toBe(true);
             expect(ValidationUtils.isValidWebsite('https://expensify.com/inbox/')).toBe(true);
             expect(ValidationUtils.isValidWebsite('https://we.are.expensify.com/how-we-got-here')).toBe(true);
+            expect(ValidationUtils.isValidWebsite('https://blog.google')).toBe(true);
+            expect(ValidationUtils.isValidWebsite('https://blog.google:65535')).toBe(true);
         });
 
         test('Valid URLs with http protocol', () => {
@@ -69,6 +71,8 @@ describe('ValidationUtils', () => {
             expect(ValidationUtils.isValidWebsite('expensify')).toBe(false);
             expect(ValidationUtils.isValidWebsite('expensify.')).toBe(false);
             expect(ValidationUtils.isValidWebsite('192.168.0.1')).toBe(false);
+            expect(ValidationUtils.isValidWebsite('www.googlecom')).toBe(false);
+            expect(ValidationUtils.isValidWebsite('www.google.com:65536')).toBe(false);
         });
 
         test('Invalid URLs without protocols', () => {
