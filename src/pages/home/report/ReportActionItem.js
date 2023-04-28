@@ -17,6 +17,7 @@ import ReportActionItemMessage from './ReportActionItemMessage';
 import UnreadActionIndicator from '../../../components/UnreadActionIndicator';
 import ReportActionItemMessageEdit from './ReportActionItemMessageEdit';
 import ReportActionItemCreated from './ReportActionItemCreated';
+import ReportActionItemThread from './ReportActionItemThread';
 import compose from '../../../libs/compose';
 import withWindowDimensions, {windowDimensionsPropTypes} from '../../../components/withWindowDimensions';
 import ControlSelection from '../../../libs/ControlSelection';
@@ -240,6 +241,7 @@ class ReportActionItem extends Component {
                         toggleReaction={this.toggleReaction}
                     />
                 )}
+                <ReportActionItemThread numberOfReplies={7} mostRecentReply={'1:03pm'} icons={ReportUtils.getIcons(this.props.report, this.props.personalDetails)} />
             </>
         );
     }
