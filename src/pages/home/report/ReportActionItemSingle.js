@@ -64,7 +64,7 @@ const ReportActionItemSingle = (props) => {
     // Since the display name for a report action message is delivered with the report history as an array of fragments
     // we'll need to take the displayName from personal details and have it be in the same format for now. Eventually,
     // we should stop referring to the report history items entirely for this information.
-    const isSMSLogin = login ? Str.isSMSLogin : false;
+    const isSMSLogin = login ? Str.isSMSLogin(login) : false;
     const personArray = displayName
         ? [{
             type: 'TEXT',
