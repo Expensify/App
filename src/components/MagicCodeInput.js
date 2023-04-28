@@ -289,7 +289,7 @@ class MagicCodeInput extends React.PureComponent {
     render() {
         return (
             <>
-                <View style={[styles.flexRow, styles.justifyContentBetween]}>
+                <View style={[styles.magicCodeInputContainer]}>
                     {_.map(this.inputPlaceholderSlots, index => (
                         <View key={index} style={[styles.w15]}>
                             <View

@@ -2309,6 +2309,12 @@ const styles = {
         backgroundColor: themeColors.checkBox,
     },
 
+    magicCodeInputContainer: {
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+        minHeight: 50,
+    },
+
     magicCodeInput: {
         fontSize: variables.fontSizeXLarge,
         color: themeColors.heading,
