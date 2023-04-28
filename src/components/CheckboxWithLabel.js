@@ -117,7 +117,11 @@ class CheckboxWithLabel extends React.Component {
                                 {this.props.label}
                             </Text>
                         )}
-                        {this.LabelComponent && (<this.LabelComponent />)}
+                        {this.LabelComponent && (
+                            <View style={styles.flex1}>
+                                <this.LabelComponent />
+                            </View>
+                        )}
                     </TouchableOpacity>
                 </View>
                 <FormHelpMessage message={this.props.errorText} />
