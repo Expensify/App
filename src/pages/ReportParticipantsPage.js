@@ -57,7 +57,7 @@ const defaultProps = {
 const getAllParticipants = (report, personalDetails) => {
     const {participants} = report;
 
-    return _.chain()
+    return _.chain(participants)
         .compact()
         .map(participants, (login) => {
             const userLogin = Str.removeSMSDomain(login);
