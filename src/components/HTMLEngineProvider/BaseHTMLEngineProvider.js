@@ -48,6 +48,7 @@ const customHTMLElementModels = {
         tagName: 'strong',
         mixedUAStyles: {whiteSpace: 'pre'},
     }),
+    'mention-user': defaultHTMLElementModels.span.extend({tagName: 'mention-user'}),
 };
 
 const defaultViewProps = {style: [styles.alignItemsStart, styles.userSelectText]};
