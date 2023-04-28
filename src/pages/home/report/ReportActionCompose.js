@@ -854,8 +854,7 @@ class ReportActionCompose extends React.Component {
                                             </>
                                         )}
                                     </AttachmentPicker>
-                                    <View style={styles.chatItemSeparator} />
-                                    <View style={[styles.textInputComposeSpacing]}>
+                                    <View style={styles.textInputComposeSpacing}>
                                         <DragAndDrop
                                             dropZoneId={CONST.REPORT.DROP_NATIVE_ID}
                                             activeDropZoneId={CONST.REPORT.ACTIVE_DROP_NATIVE_ID}

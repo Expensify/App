@@ -1469,7 +1469,6 @@ const styles = {
     chatItemComposeBox: {
         backgroundColor: themeColors.componentBG,
         borderWidth: 1,
-        boxSizing: 'border-box',
         borderRadius: variables.componentBorderRadiusRounded,
         minHeight: variables.componentSizeNormal,
     },
@@ -1528,6 +1527,8 @@ const styles = {
     // composer padding should not be modified unless thoroughly tested against the cases in this PR: #12669
     textInputComposeSpacing: {
         paddingVertical: 5,
+        borderLeftWidth: 1,
+        borderColor: themeColors.border,
         ...flex.flexRow,
         flex: 1,
     },
@@ -1628,11 +1629,6 @@ const styles = {
 
     hoveredButton: {
         backgroundColor: themeColors.buttonHoveredBG,
-    },
-
-    chatItemSeparator: {
-        backgroundColor: themeColors.border,
-        width: 1,
     },
 
     composerSizeButton: {
