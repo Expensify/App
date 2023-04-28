@@ -11,6 +11,7 @@ import participantPropTypes from '../../../../components/participantPropTypes';
 import reactionPropTypes from './reactionPropTypes';
 import OptionRow from '../../../../components/OptionRow';
 import variables from '../../../../styles/variables';
+import withWindowDimensions from '../../../../components/withWindowDimensions';
 
 const propTypes = {
 
@@ -102,7 +103,7 @@ const BaseReactionList = (props) => {
                 keyExtractor={keyExtractor}
                 getItemLayout={getItemLayout}
                 contentContainerStyle={styles.pv2}
-                style={styles.reactionListContainer}
+                style={[styles.reactionListContainer, !props.isSmallScreenWidth && styles.reactionListContainerFixedWidth]}
             />
         </>
     );
@@ -112,4 +113,4 @@ BaseReactionList.propTypes = propTypes;
 BaseReactionList.defaultProps = defaultProps;
 BaseReactionList.displayName = 'BaseReactionList';
 
-export default BaseReactionList;
+export default withWindowDimensions(BaseReactionList);

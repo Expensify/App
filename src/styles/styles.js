@@ -3052,6 +3052,10 @@ const styles = {
         ...spacing.pv2,
     },
 
+    reactionListContainerFixedWidth: {
+        maxWidth: variables.popoverWidth,
+    },
+
     validateCodeDigits: {
         color: themeColors.text,
         fontFamily: fontFamily.EXP_NEUE,
