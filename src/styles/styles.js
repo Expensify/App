@@ -2514,14 +2514,6 @@ const styles = {
         outline: 'none',
     },
 
-    cursorPointer: {
-        cursor: 'pointer',
-    },
-
-    cursorText: {
-        cursor: 'text',
-    },
-
     fullscreenCard: {
         position: 'absolute',
         left: 0,
