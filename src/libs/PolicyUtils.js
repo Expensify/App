@@ -16,6 +16,17 @@ function hasPolicyMemberError(policyMemberList) {
 }
 
 /**
+ * Check if the policy has any error fields.
+ *
+ * @param {Object} policy
+ * @param {Object} policy.errorFields
+ * @return {Boolean}
+ */
+function hasPolicyErrorFields(policy) {
+    return _.some(lodashGet(policy, 'errorFields', {}), fieldErrors => !_.isEmpty(fieldErrors));
+}
+
+/**
  * Check if the policy has any errors, and if it doesn't, then check if it has any error fields.
  *
  * @param {Object} policy
@@ -26,18 +37,7 @@ function hasPolicyMemberError(policyMemberList) {
 function hasPolicyError(policy) {
     return !_.isEmpty(lodashGet(policy, 'errors', {}))
         ? true
-        : _.some(lodashGet(policy, 'errorFields', {}), fieldErrors => !_.isEmpty(fieldErrors));
-}
-
-/**
- * Check if the policy has any error fields.
- *
- * @param {Object} policy
- * @param {Object} policy.errorFields
- * @return {Boolean}
- */
-function hasPolicyErrorFields(policy) {
-    return _.some(lodashGet(policy, 'errorFields', {}), fieldErrors => !_.isEmpty(fieldErrors));
+        : hasPolicyErrorFields(policy);
 }
 
 /**
@@ -51,7 +51,7 @@ function hasCustomUnitsError(policy) {
 }
 
 /**
- * Get the brick road indicator status for a policy. The policy has an error status if there is a policy member error or a policy error.
+ * Get the brick road indicator status for a policy. The policy has an error status if there is a policy member error, a custom unit error or a field error.
  *
  * @param {Object} policy
  * @param {String} policy.id
