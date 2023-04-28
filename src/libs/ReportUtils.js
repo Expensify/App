@@ -1385,6 +1385,21 @@ function isUnread(report) {
 }
 
 /**
+ * @param {Object} report
+ * @returns {Boolean}
+ */
+function isUnreadWithMention(report) {
+    if (!report) {
+        return false;
+    }
+
+    // lastMentionedTime and lastReadTime are both datetime strings and can be compared directly
+    const lastMentionedTime = report.lastMentionedTime || '';
+    const lastReadTime = report.lastReadTime || '';
+    return lastReadTime < lastMentionedTime;
+}
+
+/**
  * Determines if a report has an outstanding IOU that doesn't belong to the currently logged in user
  *
  * @param {Object} report
@@ -1826,6 +1841,7 @@ export {
     generateReportID,
     hasReportNameError,
     isUnread,
+    isUnreadWithMention,
     buildOptimisticWorkspaceChats,
     buildOptimisticChatReport,
     buildOptimisticClosedReportAction,
