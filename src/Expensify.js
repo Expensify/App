@@ -2,7 +2,7 @@ import _ from 'underscore';
 import lodashGet from 'lodash/get';
 import PropTypes from 'prop-types';
 import React, {useCallback, useState, useEffect, useRef, useLayoutEffect, useMemo} from 'react';
-import {AppState, Linking, Platform} from 'react-native';
+import {AppState, Linking} from 'react-native';
 import Onyx, {withOnyx} from 'react-native-onyx';
 
 import * as Report from './libs/actions/Report';
