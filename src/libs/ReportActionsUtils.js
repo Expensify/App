@@ -280,6 +280,18 @@ function getReportPreviewAction(reportID) {
     return _.findWhere(allReportActions[reportID], {actionName: CONST.REPORT.ACTIONS.TYPE.REPORTPREVIEW});
 }
 
+function buildOptimisticReportPreview(reportID, payeeAccountID, amount) {
+    return ({
+        reportActionID: NumberUtils.rand64(),
+        reportID: reportID,
+        created: DateUtils.getDBTime(),
+        action: CONST.REPORT.ACTIONS.TYPE.REPORTPREVIEW,
+        pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
+        accountID: payeeAccountID,
+        message: {amount: amount},
+    });
+}
+
 export {
     getSortedReportActions,
     getLastVisibleAction,
@@ -293,4 +305,5 @@ export {
     getLastClosedReportAction,
     getLatestReportActionFromOnyxData,
     getReportPreviewAction,
+    buildOptimisticReportPreview,
 };
