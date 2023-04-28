@@ -1,6 +1,7 @@
-import React, {forwardRef} from 'react';
+import React, {forwardRef, useEffect, useState} from 'react';
 import _ from 'underscore';
 import propTypes from 'prop-types';
+import {InteractionManager} from 'react-native';
 import GenericPressable from './GenericPressable';
 import GenericPressablePropTypes from './GenericPressable/PropTypes';
 import OpacityView from '../OpacityView';
@@ -24,9 +25,34 @@ const PressableWithFeedbackDefaultProps = {
 
 const PressableWithFeedback = forwardRef((props, ref) => {
     const propsWithoutStyling = _.omit(props, omittedProps);
+    const [disabled, setDisabled] = useState(props.disabled);
+
+    useEffect(() => {
+        setDisabled(props.disabled);
+    }, [props.disabled]);
+
     return (
-        // eslint-disable-next-line react/jsx-props-no-spreading
-        <GenericPressable ref={ref} style={props.wrapperStyle} {...propsWithoutStyling}>
+        <GenericPressable
+            ref={ref}
+            style={props.wrapperStyle}
+            // eslint-disable-next-line react/jsx-props-no-spreading
+            {...propsWithoutStyling}
+            disabled={disabled}
+            onPress={(e) => {
+                if (disabled) { return; }
+                setDisabled(true);
+                const onPress = props.onPress(e);
+                InteractionManager.runAfterInteractions(() => {
+                    if (!(onPress instanceof Promise)) {
+                        setDisabled(props.disabled);
+                        return;
+                    }
+                    onPress.then(() => {
+                        setDisabled(props.disabled);
+                    });
+                });
+            }}
+        >
             {state => (
                 <OpacityView
                     shouldDim={state.pressed || state.hovered}
