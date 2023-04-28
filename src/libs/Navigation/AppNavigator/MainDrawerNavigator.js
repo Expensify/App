@@ -9,6 +9,7 @@ import SCREENS from '../../../SCREENS';
 import Permissions from '../../Permissions';
 import Timing from '../../actions/Timing';
 import CONST from '../../../CONST';
+import * as App from '../../actions/App';
 
 // Screens
 import ReportScreen from '../../../pages/home/ReportScreen';
@@ -97,6 +98,10 @@ class MainDrawerNavigator extends Component {
             lodashGet(nextProps, 'route.params.openOnAdminRoom', false),
         );
         if (this.initialParams.reportID === initialNextParams.reportID) {
+            // We need to wait to open the app until this check is made, since there's a race condition that can happen
+            // where OpenApp will get called beforehand, setting isFirstTimeNewExpensifyUser to false and causing us
+            // to miss the deep-linked report in ReportUtils.findLastAccessedReport
+            App.confirmReadyToOpenApp();
             return false;
         }
 
