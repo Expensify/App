@@ -126,10 +126,20 @@ class AuthScreens extends React.Component {
         // the chat switcher, or new group chat
         // based on the key modifiers pressed and the operating system
         this.unsubscribeSearchShortcut = KeyboardShortcut.subscribe(searchShortcutConfig.shortcutKey, () => {
-            Modal.close(() => Navigation.navigate(ROUTES.SEARCH));
+            Modal.close(() => {
+                if (Navigation.isActiveRoute(ROUTES.SEARCH)) {
+                    return;
+                }
+                return Navigation.navigate(ROUTES.SEARCH);
+            });
         }, searchShortcutConfig.descriptionKey, searchShortcutConfig.modifiers, true);
         this.unsubscribeGroupShortcut = KeyboardShortcut.subscribe(groupShortcutConfig.shortcutKey, () => {
-            Modal.close(() => Navigation.navigate(ROUTES.NEW_GROUP));
+            Modal.close(() => {
+                if (Navigation.isActiveRoute(ROUTES.NEW_GROUP)) {
+                    return;
+                }
+                Navigation.navigate(ROUTES.NEW_GROUP);
+            });
         }, groupShortcutConfig.descriptionKey, groupShortcutConfig.modifiers, true);
     }
 
