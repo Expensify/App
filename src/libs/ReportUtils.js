@@ -258,6 +258,17 @@ function isPublicRoom(report) {
 }
 
 /**
+ * Whether the provided report is a public announce room
+ * @param {Object} report
+ * @param {String} report.visibility
+ * @returns {Boolean}
+ */
+function isPublicAnnounceRoom(report) {
+    const visibility = lodashGet(report, 'visibility', '');
+    return visibility === CONST.REPORT.VISIBILITY.PUBLIC_ANNOUNCE;
+}
+
+/**
  * Get the policy type from a given report
  * @param {Object} report
  * @param {String} report.policyID
@@ -288,7 +299,9 @@ function findLastAccessedReport(reports, ignoreDefaultRooms, policies, openOnAdm
     let sortedReports = sortReportsByLastRead(reports);
 
     if (ignoreDefaultRooms) {
-        sortedReports = _.filter(sortedReports, report => !isDefaultRoom(report)
+        // We allow public announce rooms to show as the last accessed report since we bypass the default rooms beta for them.
+        // Check where ReportUtils.findLastAccessedReport is called in MainDrawerNavigator.js for more context.
+        sortedReports = _.filter(sortedReports, report => !isDefaultRoom(report) || isPublicAnnounceRoom(report)
             || getPolicyType(report, policies) === CONST.POLICY.TYPE.FREE
             || hasExpensifyGuidesEmails(lodashGet(report, ['participants'], [])));
     }
@@ -1707,7 +1720,7 @@ function canLeaveRoom(report, isPolicyMember) {
             || _.isEmpty(report.chatType)) { // DM chats don't have a chatType
             return false;
         }
-    } else if (report.visibility === CONST.REPORT.VISIBILITY.PUBLIC_ANNOUNCE && isPolicyMember) {
+    } else if (isPublicAnnounceRoom(report) && isPolicyMember) {
         return false;
     }
     return true;
@@ -1758,6 +1771,7 @@ export {
     isArchivedRoom,
     isPolicyExpenseChatAdmin,
     isPublicRoom,
+    isPublicAnnounceRoom,
     isConciergeChatReport,
     isCurrentUserTheOnlyParticipant,
     hasAutomatedExpensifyEmails,
