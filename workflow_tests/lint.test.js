@@ -58,6 +58,7 @@ describe('test workflow lint', () => {
                     workflowFile: path.join(repoPath, '.github', 'workflows'),
                     mockSteps: testMockSteps,
                     actor,
+                    logFile: utils.getLogFilePath('lint'),
                 });
 
             assertions.assertLintJobExecuted(result);
@@ -83,6 +84,7 @@ describe('test workflow lint', () => {
                         workflowFile: path.join(repoPath, '.github', 'workflows'),
                         mockSteps: testMockSteps,
                         actor: testActor,
+                        logFile: utils.getLogFilePath('lint'),
                     });
 
                 assertions.assertLintJobExecuted(result);
@@ -114,6 +116,7 @@ describe('test workflow lint', () => {
                         workflowFile: path.join(repoPath, '.github', 'workflows'),
                         mockSteps: testMockSteps,
                         actor,
+                        logFile: utils.getLogFilePath('lint'),
                     });
 
                 assertions.assertLintJobExecuted(result);
@@ -139,6 +142,7 @@ describe('test workflow lint', () => {
                             workflowFile: path.join(repoPath, '.github', 'workflows'),
                             mockSteps: testMockSteps,
                             actor: testActor,
+                            logFile: utils.getLogFilePath('lint'),
                         });
 
                     assertions.assertLintJobExecuted(result, false);
@@ -168,6 +172,7 @@ describe('test workflow lint', () => {
                         workflowFile: path.join(repoPath, '.github', 'workflows'),
                         mockSteps: testMockSteps,
                         actor,
+                        logFile: utils.getLogFilePath('lint'),
                     });
 
                 assertions.assertLintJobExecuted(result);

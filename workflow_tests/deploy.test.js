@@ -60,6 +60,7 @@ describe('test workflow deploy', () => {
                     workflowFile: path.join(repoPath, '.github', 'workflows'),
                     mockSteps: testMockSteps,
                     actor: 'OSBotify',
+                    logFile: utils.getLogFilePath('deploy'),
                 });
             assertions.assertValidateJobExecuted(result);
             assertions.assertDeployStagingJobExecuted(result, false);
@@ -92,6 +93,7 @@ describe('test workflow deploy', () => {
                     workflowFile: path.join(repoPath, '.github', 'workflows'),
                     mockSteps: testMockSteps,
                     actor: 'OSBotify',
+                    logFile: utils.getLogFilePath('deploy'),
                 });
             assertions.assertValidateJobExecuted(result);
             assertions.assertDeployStagingJobExecuted(result);
@@ -124,6 +126,7 @@ describe('test workflow deploy', () => {
                     workflowFile: path.join(repoPath, '.github', 'workflows'),
                     mockSteps: testMockSteps,
                     actor: 'OSBotify',
+                    logFile: utils.getLogFilePath('deploy'),
                 });
             assertions.assertValidateJobExecuted(result);
             assertions.assertDeployStagingJobExecuted(result, false);
@@ -157,6 +160,7 @@ describe('test workflow deploy', () => {
                     workflowFile: path.join(repoPath, '.github', 'workflows'),
                     mockSteps: testMockSteps,
                     actor: 'Dummy Author',
+                    logFile: utils.getLogFilePath('deploy'),
                 });
             assertions.assertValidateJobExecuted(result);
             assertions.assertDeployStagingJobExecuted(result, false);
@@ -189,6 +193,7 @@ describe('test workflow deploy', () => {
                     workflowFile: path.join(repoPath, '.github', 'workflows'),
                     mockSteps: testMockSteps,
                     actor: 'Dummy Author',
+                    logFile: utils.getLogFilePath('deploy'),
                 });
             assertions.assertValidateJobExecuted(result);
             assertions.assertDeployStagingJobExecuted(result, false);
@@ -221,6 +226,7 @@ describe('test workflow deploy', () => {
                     workflowFile: path.join(repoPath, '.github', 'workflows'),
                     mockSteps: testMockSteps,
                     actor: 'Dummy Author',
+                    logFile: utils.getLogFilePath('deploy'),
                 });
             assertions.assertValidateJobExecuted(result);
             assertions.assertDeployStagingJobExecuted(result, false);
@@ -254,6 +260,7 @@ describe('test workflow deploy', () => {
                 workflowFile: path.join(repoPath, '.github', 'workflows'),
                 mockSteps: testMockSteps,
                 actor: 'Dummy Author',
+                logFile: utils.getLogFilePath('deploy'),
             });
         assertions.assertValidateJobExecuted(result, false);
         assertions.assertDeployStagingJobExecuted(result, false);
@@ -275,6 +282,7 @@ describe('test workflow deploy', () => {
                 workflowFile: path.join(repoPath, '.github', 'workflows'),
                 mockSteps: testMockSteps,
                 actor: 'Dummy Author',
+                logFile: utils.getLogFilePath('deploy'),
             });
         assertions.assertValidateJobExecuted(result, false);
         assertions.assertDeployStagingJobExecuted(result, false);

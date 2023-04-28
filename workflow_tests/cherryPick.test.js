@@ -66,6 +66,7 @@ describe('test workflow cherryPick', () => {
                         workflowFile: path.join(repoPath, '.github', 'workflows'),
                         mockSteps: testMockSteps,
                         actor,
+                        logFile: utils.getLogFilePath('cherryPick'),
                     });
 
                 assertions.assertValidateActorJobExecuted(result, actor);
@@ -109,6 +110,7 @@ describe('test workflow cherryPick', () => {
                         workflowFile: path.join(repoPath, '.github', 'workflows'),
                         mockSteps: testMockSteps,
                         actor,
+                        logFile: utils.getLogFilePath('cherryPick'),
                     });
 
                 assertions.assertValidateActorJobExecuted(result, actor);
@@ -167,6 +169,7 @@ describe('test workflow cherryPick', () => {
                                         workflowFile: path.join(repoPath, '.github', 'workflows'),
                                         mockSteps: testMockSteps,
                                         actor,
+                                        logFile: utils.getLogFilePath('cherryPick'),
                                     });
 
                                 assertions.assertValidateActorJobExecuted(result, actor);
@@ -217,6 +220,7 @@ describe('test workflow cherryPick', () => {
                                         workflowFile: path.join(repoPath, '.github', 'workflows'),
                                         mockSteps: testMockSteps,
                                         actor,
+                                        logFile: utils.getLogFilePath('cherryPick'),
                                     });
 
                                 assertions.assertValidateActorJobExecuted(result, actor);
@@ -270,6 +274,7 @@ describe('test workflow cherryPick', () => {
                                         workflowFile: path.join(repoPath, '.github', 'workflows'),
                                         mockSteps: testMockSteps,
                                         actor,
+                                        logFile: utils.getLogFilePath('cherryPick'),
                                     });
 
                                 assertions.assertValidateActorJobExecuted(result, actor);
@@ -320,6 +325,7 @@ describe('test workflow cherryPick', () => {
                                         workflowFile: path.join(repoPath, '.github', 'workflows'),
                                         mockSteps: testMockSteps,
                                         actor,
+                                        logFile: utils.getLogFilePath('cherryPick'),
                                     });
 
                                 assertions.assertValidateActorJobExecuted(result, actor);
@@ -376,6 +382,7 @@ describe('test workflow cherryPick', () => {
                                         workflowFile: path.join(repoPath, '.github', 'workflows'),
                                         mockSteps: testMockSteps,
                                         actor,
+                                        logFile: utils.getLogFilePath('cherryPick'),
                                     });
 
                                 assertions.assertValidateActorJobExecuted(result, actor);
@@ -426,6 +433,7 @@ describe('test workflow cherryPick', () => {
                                         workflowFile: path.join(repoPath, '.github', 'workflows'),
                                         mockSteps: testMockSteps,
                                         actor,
+                                        logFile: utils.getLogFilePath('cherryPick'),
                                     });
 
                                 assertions.assertValidateActorJobExecuted(result, actor);
@@ -479,6 +487,7 @@ describe('test workflow cherryPick', () => {
                                         workflowFile: path.join(repoPath, '.github', 'workflows'),
                                         mockSteps: testMockSteps,
                                         actor,
+                                        logFile: utils.getLogFilePath('cherryPick'),
                                     });
 
                                 assertions.assertValidateActorJobExecuted(result, actor);
@@ -529,6 +538,7 @@ describe('test workflow cherryPick', () => {
                                         workflowFile: path.join(repoPath, '.github', 'workflows'),
                                         mockSteps: testMockSteps,
                                         actor,
+                                        logFile: utils.getLogFilePath('cherryPick'),
                                     });
 
                                 assertions.assertValidateActorJobExecuted(result, actor);
@@ -589,6 +599,7 @@ describe('test workflow cherryPick', () => {
                                         workflowFile: path.join(repoPath, '.github', 'workflows'),
                                         mockSteps: testMockSteps,
                                         actor,
+                                        logFile: utils.getLogFilePath('cherryPick'),
                                     });
 
                                 assertions.assertValidateActorJobExecuted(result, actor);
@@ -639,6 +650,7 @@ describe('test workflow cherryPick', () => {
                                         workflowFile: path.join(repoPath, '.github', 'workflows'),
                                         mockSteps: testMockSteps,
                                         actor,
+                                        logFile: utils.getLogFilePath('cherryPick'),
                                     });
 
                                 assertions.assertValidateActorJobExecuted(result, actor);
@@ -692,6 +704,7 @@ describe('test workflow cherryPick', () => {
                                         workflowFile: path.join(repoPath, '.github', 'workflows'),
                                         mockSteps: testMockSteps,
                                         actor,
+                                        logFile: utils.getLogFilePath('cherryPick'),
                                     });
 
                                 assertions.assertValidateActorJobExecuted(result, actor);
@@ -742,6 +755,7 @@ describe('test workflow cherryPick', () => {
                                         workflowFile: path.join(repoPath, '.github', 'workflows'),
                                         mockSteps: testMockSteps,
                                         actor,
+                                        logFile: utils.getLogFilePath('cherryPick'),
                                     });
 
                                 assertions.assertValidateActorJobExecuted(result, actor);
@@ -798,6 +812,7 @@ describe('test workflow cherryPick', () => {
                                         workflowFile: path.join(repoPath, '.github', 'workflows'),
                                         mockSteps: testMockSteps,
                                         actor,
+                                        logFile: utils.getLogFilePath('cherryPick'),
                                     });
 
                                 assertions.assertValidateActorJobExecuted(result, actor);
@@ -848,6 +863,7 @@ describe('test workflow cherryPick', () => {
                                         workflowFile: path.join(repoPath, '.github', 'workflows'),
                                         mockSteps: testMockSteps,
                                         actor,
+                                        logFile: utils.getLogFilePath('cherryPick'),
                                     });
 
                                 assertions.assertValidateActorJobExecuted(result, actor);
@@ -901,6 +917,7 @@ describe('test workflow cherryPick', () => {
                                         workflowFile: path.join(repoPath, '.github', 'workflows'),
                                         mockSteps: testMockSteps,
                                         actor,
+                                        logFile: utils.getLogFilePath('cherryPick'),
                                     });
 
                                 assertions.assertValidateActorJobExecuted(result, actor);
@@ -951,6 +968,7 @@ describe('test workflow cherryPick', () => {
                                         workflowFile: path.join(repoPath, '.github', 'workflows'),
                                         mockSteps: testMockSteps,
                                         actor,
+                                        logFile: utils.getLogFilePath('cherryPick'),
                                     });
 
                                 assertions.assertValidateActorJobExecuted(result, actor);
@@ -1006,6 +1024,7 @@ describe('test workflow cherryPick', () => {
                     workflowFile: path.join(repoPath, '.github', 'workflows'),
                     mockSteps: testMockSteps,
                     actor: 'Dummy Author',
+                    logFile: utils.getLogFilePath('cherryPick'),
                 });
 
             assertions.assertValidateActorJobExecuted(result, 'Dummy Author', false);

@@ -95,6 +95,7 @@ describe('test workflow platformDeploy', () => {
                         workflowFile: path.join(repoPath, '.github', 'workflows'),
                         mockSteps: testMockSteps,
                         actor: 'Dummy Author',
+                        logFile: utils.getLogFilePath('platformDeploy'),
                     });
 
                 assertions.assertVerifyActorJobExecuted(result, 'Dummy Author');
@@ -167,6 +168,7 @@ describe('test workflow platformDeploy', () => {
                         workflowFile: path.join(repoPath, '.github', 'workflows'),
                         mockSteps: testMockSteps,
                         actor: 'OSBotify',
+                        logFile: utils.getLogFilePath('platformDeploy'),
                     });
 
                 assertions.assertVerifyActorJobExecuted(result, 'OSBotify');
@@ -239,6 +241,7 @@ describe('test workflow platformDeploy', () => {
                         workflowFile: path.join(repoPath, '.github', 'workflows'),
                         mockSteps: testMockSteps,
                         actor: 'Dummy Author',
+                        logFile: utils.getLogFilePath('platformDeploy'),
                     });
 
                 assertions.assertVerifyActorJobExecuted(result, 'Dummy Author');

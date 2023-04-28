@@ -70,6 +70,7 @@ describe('test workflow createNewVersion', () => {
                         workflowFile: path.join(repoPath, '.github', 'workflows'),
                         mockSteps: testMockSteps,
                         actor: 'Dummy Author',
+                        logFile: utils.getLogFilePath('createNewVersion'),
                     });
                 assertions.assertValidateActorJobExecuted(result);
                 assertions.assertCreateNewVersionJobExecuted(result);
@@ -101,6 +102,7 @@ describe('test workflow createNewVersion', () => {
                         workflowFile: path.join(repoPath, '.github', 'workflows'),
                         mockSteps: testMockSteps,
                         actor: 'Dummy Author',
+                        logFile: utils.getLogFilePath('createNewVersion'),
                     });
                 assertions.assertValidateActorJobExecuted(result);
                 assertions.assertCreateNewVersionJobExecuted(result);
@@ -132,6 +134,7 @@ describe('test workflow createNewVersion', () => {
                         workflowFile: path.join(repoPath, '.github', 'workflows'),
                         mockSteps: testMockSteps,
                         actor: 'Dummy Author',
+                        logFile: utils.getLogFilePath('createNewVersion'),
                     });
                 assertions.assertValidateActorJobExecuted(result);
                 assertions.assertCreateNewVersionJobExecuted(result, 'BUILD', false);
@@ -172,6 +175,7 @@ describe('test workflow createNewVersion', () => {
                         workflowFile: path.join(repoPath, '.github', 'workflows'),
                         mockSteps: testMockSteps,
                         actor: 'Dummy Author',
+                        logFile: utils.getLogFilePath('createNewVersion'),
                     });
                 assertions.assertValidateActorJobExecuted(result);
                 assertions.assertCreateNewVersionJobExecuted(result, 'BUILD', true, false);
@@ -201,6 +205,7 @@ describe('test workflow createNewVersion', () => {
                     workflowFile: path.join(repoPath, '.github', 'workflows'),
                     mockSteps: testMockSteps,
                     actor: 'Dummy Author',
+                    logFile: utils.getLogFilePath('createNewVersion'),
                 });
             assertions.assertValidateActorJobExecuted(result);
             assertions.assertCreateNewVersionJobExecuted(result, 'MAJOR');

@@ -152,6 +152,14 @@ function deepCopy(originalObject) {
     return JSON.parse(JSON.stringify(originalObject));
 }
 
+function getLogFilePath(workflowName) {
+    const logsDir = path.resolve(__dirname, '..', 'logs');
+    if (!fs.existsSync(logsDir)) {
+        fs.mkdirSync(logsDir);
+    }
+    return path.resolve(logsDir, `${workflowName}.log`);
+}
+
 const FILES_TO_COPY_INTO_TEST_REPO = [
     {
         src: path.resolve(__dirname, '..', '..', '.github', 'actions'),
@@ -173,5 +181,6 @@ module.exports = {
     createStepAssertion,
     setJobRunners,
     deepCopy,
+    getLogFilePath,
     FILES_TO_COPY_INTO_TEST_REPO,
 };

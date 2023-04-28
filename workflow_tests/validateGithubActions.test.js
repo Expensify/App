@@ -58,6 +58,7 @@ describe('test workflow validateGithubActions', () => {
                     workflowFile: path.join(repoPath, '.github', 'workflows'),
                     mockSteps: testMockSteps,
                     actor,
+                    logFile: utils.getLogFilePath('validateGithubActions'),
                 });
 
             assertions.assertVerifyJobExecuted(result);
@@ -87,6 +88,7 @@ describe('test workflow validateGithubActions', () => {
                     workflowFile: path.join(repoPath, '.github', 'workflows'),
                     mockSteps: testMockSteps,
                     actor,
+                    logFile: utils.getLogFilePath('validateGithubActions'),
                 });
 
             assertions.assertVerifyJobExecuted(result);

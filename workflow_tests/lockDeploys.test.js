@@ -75,6 +75,7 @@ describe('test workflow lockDeploys', () => {
                                 workflowFile: path.join(repoPath, '.github', 'workflows'),
                                 mockSteps: testMockSteps,
                                 actor: 'Dummy Author',
+                                logFile: utils.getLogFilePath('lockDeploys'),
                             });
 
                         assertions.assertlockStagingDeploysJobExecuted(result);
@@ -129,6 +130,7 @@ describe('test workflow lockDeploys', () => {
                                 workflowFile: path.join(repoPath, '.github', 'workflows'),
                                 mockSteps: testMockSteps,
                                 actor: 'Dummy Author',
+                                logFile: utils.getLogFilePath('lockDeploys'),
                             });
 
                         assertions.assertlockStagingDeploysJobFailedAfterFirstStep(result);
@@ -175,6 +177,7 @@ describe('test workflow lockDeploys', () => {
                                 workflowFile: path.join(repoPath, '.github', 'workflows'),
                                 mockSteps: testMockSteps,
                                 actor: 'OSBotify',
+                                logFile: utils.getLogFilePath('lockDeploys'),
                             });
 
                         assertions.assertlockStagingDeploysJobExecuted(result, false);
@@ -225,6 +228,7 @@ describe('test workflow lockDeploys', () => {
                                 workflowFile: path.join(repoPath, '.github', 'workflows'),
                                 mockSteps: testMockSteps,
                                 actor: 'Dummy Author',
+                                logFile: utils.getLogFilePath('lockDeploys'),
                             });
 
                         assertions.assertlockStagingDeploysJobExecuted(result, false);
@@ -273,6 +277,7 @@ describe('test workflow lockDeploys', () => {
                                 workflowFile: path.join(repoPath, '.github', 'workflows'),
                                 mockSteps: testMockSteps,
                                 actor: 'OSBotify',
+                                logFile: utils.getLogFilePath('lockDeploys'),
                             });
 
                         assertions.assertlockStagingDeploysJobExecuted(result, false);
@@ -323,6 +328,7 @@ describe('test workflow lockDeploys', () => {
                                 workflowFile: path.join(repoPath, '.github', 'workflows'),
                                 mockSteps: testMockSteps,
                                 actor: 'Dummy Author',
+                                logFile: utils.getLogFilePath('lockDeploys'),
                             });
 
                         assertions.assertlockStagingDeploysJobExecuted(result, false);
@@ -369,6 +375,7 @@ describe('test workflow lockDeploys', () => {
                                 workflowFile: path.join(repoPath, '.github', 'workflows'),
                                 mockSteps: testMockSteps,
                                 actor: 'OSBotify',
+                                logFile: utils.getLogFilePath('lockDeploys'),
                             });
 
                         assertions.assertlockStagingDeploysJobExecuted(result, false);
@@ -419,6 +426,7 @@ describe('test workflow lockDeploys', () => {
                                 workflowFile: path.join(repoPath, '.github', 'workflows'),
                                 mockSteps: testMockSteps,
                                 actor: 'Dummy Author',
+                                logFile: utils.getLogFilePath('lockDeploys'),
                             });
 
                         assertions.assertlockStagingDeploysJobExecuted(result, false);
@@ -467,6 +475,7 @@ describe('test workflow lockDeploys', () => {
                                 workflowFile: path.join(repoPath, '.github', 'workflows'),
                                 mockSteps: testMockSteps,
                                 actor: 'OSBotify',
+                                logFile: utils.getLogFilePath('lockDeploys'),
                             });
 
                         assertions.assertlockStagingDeploysJobExecuted(result, false);

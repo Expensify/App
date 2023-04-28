@@ -59,6 +59,7 @@ describe('test workflow authorChecklist', () => {
                         workflowFile: path.join(repoPath, '.github', 'workflows'),
                         mockSteps: testMockSteps,
                         actor,
+                        logFile: utils.getLogFilePath('authorChecklist'),
                     });
 
                 assertions.assertChecklistJobExecuted(result);
@@ -85,6 +86,7 @@ describe('test workflow authorChecklist', () => {
                         workflowFile: path.join(repoPath, '.github', 'workflows'),
                         mockSteps: testMockSteps,
                         actor,
+                        logFile: utils.getLogFilePath('authorChecklist'),
                     });
 
                 assertions.assertChecklistJobExecuted(result, false);
@@ -117,6 +119,7 @@ describe('test workflow authorChecklist', () => {
                         workflowFile: path.join(repoPath, '.github', 'workflows'),
                         mockSteps: testMockSteps,
                         actor,
+                        logFile: utils.getLogFilePath('authorChecklist'),
                     });
 
                 assertions.assertChecklistJobExecuted(result);
@@ -143,6 +146,7 @@ describe('test workflow authorChecklist', () => {
                         workflowFile: path.join(repoPath, '.github', 'workflows'),
                         mockSteps: testMockSteps,
                         actor,
+                        logFile: utils.getLogFilePath('authorChecklist'),
                     });
 
                 assertions.assertChecklistJobExecuted(result, false);
@@ -175,6 +179,7 @@ describe('test workflow authorChecklist', () => {
                         workflowFile: path.join(repoPath, '.github', 'workflows'),
                         mockSteps: testMockSteps,
                         actor,
+                        logFile: utils.getLogFilePath('authorChecklist'),
                     });
 
                 assertions.assertChecklistJobExecuted(result);
@@ -201,6 +206,7 @@ describe('test workflow authorChecklist', () => {
                         workflowFile: path.join(repoPath, '.github', 'workflows'),
                         mockSteps: testMockSteps,
                         actor,
+                        logFile: utils.getLogFilePath('authorChecklist'),
                     });
 
                 assertions.assertChecklistJobExecuted(result, false);
