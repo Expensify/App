@@ -50,10 +50,9 @@ const ButtonWithDropdown = props => (
             style={[styles.pl0]}
             onPress={props.onDropdownPress}
             shouldRemoveLeftBorderRadius
-            ContentComponent={() => (
-                <Icon src={Expensicons.DownArrow} fill={themeColors.textLight} />
-            )}
-        />
+        >
+            <Icon src={Expensicons.DownArrow} fill={themeColors.textLight} />
+        </Button>
     </View>
 );
 

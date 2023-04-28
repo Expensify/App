@@ -1,4 +1,4 @@
-import {PermissionsAndroid} from 'react-native';
+import {PermissionsAndroid, Platform} from 'react-native';
 import RNFetchBlob from 'react-native-blob-util';
 import * as FileUtils from './FileUtils';
 
@@ -7,6 +7,12 @@ import * as FileUtils from './FileUtils';
  * @returns {Promise<Boolean>}
  */
 function hasAndroidPermission() {
+    // On Android API Level 33 and above, these permissions do nothing and always return 'never_ask_again'
+    // More info here: https://stackoverflow.com/a/74296799
+    if (Platform.Version >= 33) {
+        return Promise.resolve(true);
+    }
+
     // Read and write permission
     const writePromise = PermissionsAndroid.check(PermissionsAndroid.PERMISSIONS.WRITE_EXTERNAL_STORAGE);
     const readPromise = PermissionsAndroid.check(PermissionsAndroid.PERMISSIONS.READ_EXTERNAL_STORAGE);
@@ -45,17 +51,26 @@ function handleDownload(url, fileName) {
             path: `${path}/${attachmentName}`,
             addAndroidDownloads: {
                 useDownloadManager: true,
-                notification: true,
+                notification: false,
                 path: `${path}/Expensify/${attachmentName}`,
             },
         }).fetch('GET', url);
 
+        let attachmentPath;
+
         // Resolving the fetched attachment
         fetchedAttachment.then((attachment) => {
             if (!attachment || !attachment.info()) {
-                return;
+                return Promise.reject();
             }
-
+            attachmentPath = attachment.path();
+            return RNFetchBlob.MediaCollection.copyToMediaStore({
+                name: attachmentName,
+                parentFolder: 'Expensify',
+                mimeType: null,
+            }, 'Download', attachmentPath);
+        }).then(() => {
+            RNFetchBlob.fs.unlink(attachmentPath);
             FileUtils.showSuccessAlert();
         }).catch(() => {
             FileUtils.showGeneralErrorAlert();

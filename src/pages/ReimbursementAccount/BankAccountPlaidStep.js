@@ -45,7 +45,7 @@ class BankAccountPlaidStep extends React.Component {
 
     submit() {
         const selectedPlaidBankAccount = _.findWhere(lodashGet(this.props.plaidData, 'bankAccounts', []), {
-            plaidAccountID: this.props.getDefaultStateForField('plaidAccountID'),
+            plaidAccountID: lodashGet(this.props.reimbursementAccountDraft, 'plaidAccountID', ''),
         });
 
         const bankAccountData = {
@@ -65,10 +65,13 @@ class BankAccountPlaidStep extends React.Component {
 
     render() {
         const bankAccountID = lodashGet(this.props.reimbursementAccount, 'achData.bankAccountID') || 0;
-        const selectedPlaidAccountID = this.props.getDefaultStateForField('plaidAccountID', '');
+        const selectedPlaidAccountID = lodashGet(this.props.reimbursementAccountDraft, 'plaidAccountID', '');
 
         return (
-            <ScreenWrapper includeSafeAreaPaddingBottom={false}>
+            <ScreenWrapper
+                includeSafeAreaPaddingBottom={false}
+                shouldEnablePickerAvoiding={false}
+            >
                 <HeaderWithCloseButton
                     title={this.props.translate('workspace.common.bankAccount')}
                     stepCounter={{step: 1, total: 5}}

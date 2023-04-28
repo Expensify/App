@@ -10,7 +10,6 @@ import {propTypes as modalPropTypes, defaultProps as modalDefaultProps} from './
 import * as Modal from '../../libs/actions/Modal';
 import getModalStyles from '../../styles/getModalStyles';
 import variables from '../../styles/variables';
-import KeyboardAvoidingView from '../KeyboardAvoidingView';
 
 const propTypes = {
     ...modalPropTypes,
@@ -133,7 +132,6 @@ class BaseModal extends PureComponent {
                 animationInTiming={this.props.animationInTiming}
                 animationOutTiming={this.props.animationOutTiming}
                 statusBarTranslucent={this.props.statusBarTranslucent}
-                avoidKeyboard={this.props.avoidKeyboard}
             >
                 <SafeAreaInsetsContext.Consumer>
                     {(insets) => {
@@ -157,8 +155,10 @@ class BaseModal extends PureComponent {
                             modalContainerStyleMarginBottom: modalContainerStyle.marginBottom,
                             modalContainerStylePaddingTop: modalContainerStyle.paddingTop,
                             modalContainerStylePaddingBottom: modalContainerStyle.paddingBottom,
+                            insets,
                         });
-                        const content = (
+
+                        return (
                             <View
                                 style={{
                                     ...styles.defaultModalContainer,
@@ -169,16 +169,6 @@ class BaseModal extends PureComponent {
                             >
                                 {this.props.children}
                             </View>
-                        );
-
-                        return (
-                            <KeyboardAvoidingView
-                                behavior="padding"
-                                style={styles.w100}
-                                shouldApplyToAndroid
-                            >
-                                {content}
-                            </KeyboardAvoidingView>
                         );
                     }}
                 </SafeAreaInsetsContext.Consumer>
