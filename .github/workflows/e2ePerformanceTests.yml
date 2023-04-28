@@ -70,8 +70,8 @@ jobs:
             echo "Merge commit:"
             git rev-parse HEAD
             echo "MERGE_COMMIT_SHA=$(git rev-parse HEAD)" >> "$GITHUB_OUTPUT"
-          env:
-            GITHUB_TOKEN: ${{ github.token }}
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
 
   buildBaseline:
     runs-on: ubuntu-latest
