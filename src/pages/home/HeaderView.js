@@ -36,12 +36,6 @@ const propTypes = {
     /** The report currently being looked at */
     report: reportPropTypes,
 
-    /** The policies which the user has access to and which the report could be tied to */
-    policies: PropTypes.shape({
-        /** Name of the policy */
-        name: PropTypes.string,
-    }),
-
     /** Personal details of all the users */
     personalDetails: PropTypes.objectOf(participantPropTypes),
 
@@ -57,7 +51,6 @@ const propTypes = {
 
 const defaultProps = {
     personalDetails: {},
-    policies: {},
     report: null,
     account: {
         guideCalendarLink: null,
@@ -83,7 +76,7 @@ const HeaderView = (props) => {
     const shouldShowCallButton = (isConcierge && guideCalendarLink) || !isAutomatedExpensifyAccount;
     const avatarTooltip = isChatRoom ? undefined : _.pluck(displayNamesWithTooltips, 'tooltip');
     const shouldShowSubscript = isPolicyExpenseChat && !props.report.isOwnPolicyExpenseChat && !ReportUtils.isArchivedRoom(props.report);
-    const icons = ReportUtils.getIcons(props.report, props.personalDetails, props.policies);
+    const icons = ReportUtils.getIcons(props.report, props.personalDetails);
     const brickRoadIndicator = ReportUtils.hasReportNameError(props.report) ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : '';
     return (
         <View style={[styles.appContentHeader]} nativeID="drag-area">

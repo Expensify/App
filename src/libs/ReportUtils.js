@@ -667,11 +667,9 @@ function getSmallSizeAvatar(avatarURL, login) {
  *
  * @param {Object} report
  * @param {Object} personalDetails
- * @param {Object} policies
- * @param {*} [defaultIcon]
  * @returns {Array<*>}
  */
-function getIcons(report, personalDetails, policies, defaultIcon = null) {
+function getIcons(report, personalDetails) {
     const result = {
         source: '',
         type: CONST.ICON_TYPE_AVATAR,
@@ -679,7 +677,7 @@ function getIcons(report, personalDetails, policies, defaultIcon = null) {
     };
 
     if (_.isEmpty(report)) {
-        result.source = defaultIcon || Expensicons.FallbackAvatar;
+        result.source = Expensicons.FallbackAvatar;
         return [result];
     }
     if (isConciergeChatReport(report)) {
@@ -707,11 +705,11 @@ function getIcons(report, personalDetails, policies, defaultIcon = null) {
         return [result];
     }
     if (isPolicyExpenseChat(report)) {
-        const workspaceName = lodashGet(policies, [
+        const workspaceName = lodashGet(allPolicies, [
             `${ONYXKEYS.COLLECTION.POLICY}${report.policyID}`, 'name',
         ]);
 
-        const policyExpenseChatAvatarSource = lodashGet(policies, [
+        const policyExpenseChatAvatarSource = lodashGet(allPolicies, [
             `${ONYXKEYS.COLLECTION.POLICY}${report.policyID}`, 'avatar',
         ]) || getDefaultWorkspaceAvatar(workspaceName);
 
