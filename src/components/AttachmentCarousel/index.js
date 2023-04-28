@@ -19,6 +19,7 @@ import tryResolveUrlFromApiRoot from '../../libs/tryResolveUrlFromApiRoot';
 import Tooltip from '../Tooltip';
 import withLocalize, {withLocalizePropTypes} from '../withLocalize';
 import compose from '../../libs/compose';
+import withWindowDimensions from '../withWindowDimensions';
 
 const propTypes = {
     /** source is used to determine the starting index in the array of attachments */
@@ -52,6 +53,8 @@ class AttachmentCarousel extends React.Component {
         };
 
         this.cycleThroughAttachments = this.cycleThroughAttachments.bind(this);
+        this.autoHideArrow = this.autoHideArrow.bind(this);
+        this.cancelAutoHideArrow = this.cancelAutoHideArrow.bind(this);
         this.getItemLayout = this.getItemLayout.bind(this);
         this.renderItem = this.renderItem.bind(this);
         this.renderCell = this.renderCell.bind(this);
@@ -70,6 +73,7 @@ class AttachmentCarousel extends React.Component {
 
     componentDidMount() {
         this.makeStateWithReports();
+        this.autoHideArrow();
     }
 
     componentDidUpdate(prevProps) {
@@ -112,6 +116,27 @@ class AttachmentCarousel extends React.Component {
     }
 
     /**
+     * On a touch screen device, automatically hide the arrows
+     * if there is no interaction for 3 seconds.
+     */
+    autoHideArrow() {
+        if (!this.canUseTouchScreen) {
+            return;
+        }
+        this.cancelAutoHideArrow();
+        this.autoHideArrowTimeout = setTimeout(() => {
+            this.toggleArrowsVisibility(false);
+        }, CONST.ARROW_HIDE_DELAY);
+    }
+
+    /**
+     * Cancels the automatic hiding of the arrows.
+     */
+    cancelAutoHideArrow() {
+        clearTimeout(this.autoHideArrowTimeout);
+    }
+
+    /**
      * Toggles the visibility of the arrows
      * @param {Boolean} shouldShowArrow
      */
@@ -120,11 +145,16 @@ class AttachmentCarousel extends React.Component {
         if (this.state.isZoomed) {
             return;
         }
-        if (_.isBoolean(shouldShowArrow)) {
-            this.setState({shouldShowArrow});
-            return;
-        }
-        this.setState(current => ({shouldShowArrow: !current.shouldShowArrow}));
+        this.setState((current) => {
+            const newShouldShowArrow = _.isBoolean(shouldShowArrow) ? shouldShowArrow : !current.shouldShowArrow;
+            return {shouldShowArrow: newShouldShowArrow};
+        }, () => {
+            if (this.state.shouldShowArrow) {
+                this.autoHideArrow();
+            } else {
+                this.cancelAutoHideArrow();
+            }
+        });
     }
 
     /**
@@ -257,35 +287,55 @@ class AttachmentCarousel extends React.Component {
             <View
                 style={[styles.attachmentModalArrowsContainer, styles.flex1]}
                 onLayout={({nativeEvent}) => this.setState({containerWidth: nativeEvent.layout.width + 1})}
-                onMouseEnter={() => this.toggleArrowsVisibility(true)}
-                onMouseLeave={() => this.toggleArrowsVisibility(false)}
+                onMouseEnter={() => !this.canUseTouchScreen && this.toggleArrowsVisibility(true)}
+                onMouseLeave={() => !this.canUseTouchScreen && this.toggleArrowsVisibility(false)}
             >
                 {this.state.shouldShowArrow && (
                     <>
                         {!isBackDisabled && (
-                            <View style={styles.leftAttachmentArrow}>
+                            <View
+                                style={[
+                                    styles.attachmentArrow,
+                                    this.props.isSmallScreenWidth ? styles.l2 : styles.l8,
+                                ]}
+                            >
                                 <Tooltip text={this.props.translate('common.previous')}>
                                     <Button
-                                        medium
+                                        small
                                         innerStyles={[styles.arrowIcon]}
                                         icon={Expensicons.BackArrow}
                                         iconFill={themeColors.text}
                                         iconStyles={[styles.mr0]}
-                                        onPress={() => this.cycleThroughAttachments(-1)}
+                                        onPress={() => {
+                                            this.cycleThroughAttachments(-1);
+                                            this.autoHideArrow();
+                                        }}
+                                        onPressIn={this.cancelAutoHideArrow}
+                                        onPressOut={this.autoHideArrow}
                                     />
                                 </Tooltip>
                             </View>
                         )}
                         {!isForwardDisabled && (
-                            <View style={styles.rightAttachmentArrow}>
+                            <View
+                                style={[
+                                    styles.attachmentArrow,
+                                    this.props.isSmallScreenWidth ? styles.r2 : styles.r8,
+                                ]}
+                            >
                                 <Tooltip text={this.props.translate('common.next')}>
                                     <Button
-                                        medium
+                                        small
                                         innerStyles={[styles.arrowIcon]}
                                         icon={Expensicons.ArrowRight}
                                         iconFill={themeColors.text}
                                         iconStyles={[styles.mr0]}
-                                        onPress={() => this.cycleThroughAttachments(1)}
+                                        onPress={() => {
+                                            this.cycleThroughAttachments(1);
+                                            this.autoHideArrow();
+                                        }}
+                                        onPressIn={this.cancelAutoHideArrow}
+                                        onPressOut={this.autoHideArrow}
                                     />
                                 </Tooltip>
                             </View>
@@ -350,4 +400,5 @@ export default compose(
         },
     }),
     withLocalize,
+    withWindowDimensions,
 )(AttachmentCarousel);
