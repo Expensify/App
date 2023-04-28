@@ -71,8 +71,9 @@ const ReportActionItemReactions = (props) => {
     return (
         <View
             ref={popoverReactionListAnchor}
-            style={[styles.flexRow, styles.flexWrap]}
+            style={[styles.flexRow, styles.flexWrap, styles.gap1, styles.mt2]}
         >
+
             {_.map(reactionsWithCount, (reaction) => {
                 const reactionCount = reaction.users.length;
                 const reactionUsers = _.map(reaction.users, sender => sender.accountID.toString());

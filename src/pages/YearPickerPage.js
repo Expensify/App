@@ -70,9 +70,15 @@ class YearPickerPage extends React.Component {
      * @param {String} text
      */
     filterYearList(text) {
-        this.setState({
-            inputText: text,
-            yearOptions: _.filter(this.yearList, year => year.text.includes(text.trim())),
+        const searchText = text.replace(CONST.REGEX.NON_NUMERIC, '');
+        this.setState((prevState) => {
+            if (searchText === prevState.inputText) {
+                return {};
+            }
+            return {
+                inputText: searchText,
+                yearOptions: _.filter(this.yearList, year => year.text.includes(searchText)),
+            };
         });
     }
 
