@@ -46,6 +46,7 @@ function updateIOUOwnerAndTotal(iouReport, actorEmail, amount, currency, type = 
         return iouReport;
     }
 
+    // Make a copy so we don't mutate the original object
     const iouReportUpdate = {...iouReport};
 
     if (actorEmail === iouReport.ownerEmail) {

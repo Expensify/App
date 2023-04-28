@@ -551,10 +551,11 @@ function splitBillAndOpenReport(participants, currentUserLogin, amount, comment,
  * @param {Object} moneyRequestAction - the money request reportAction we are deleting
  */
 function deleteMoneyRequest(chatReportID, iouReportID, moneyRequestAction) {
-    const chatReport = chatReports[`${ONYXKEYS.COLLECTION.REPORT}${chatReportID}`];
     const iouReport = iouReports[`${ONYXKEYS.COLLECTION.REPORT}${iouReportID}`];
     const transactionID = moneyRequestAction.originalMessage.IOUTransactionID;
-    const transaction = transactions[transactionID];
+
+    // Make a copy of the chat report so we don't mutate the original one when updating its values
+    const chatReport = {...chatReports[`${ONYXKEYS.COLLECTION.REPORT}${chatReportID}`]};
 
     // Get the amount we are deleting
     const amount = moneyRequestAction.originalMessage.amount;
@@ -571,11 +572,6 @@ function deleteMoneyRequest(chatReportID, iouReportID, moneyRequestAction) {
 
     const currentUserEmail = optimisticReportAction.actorEmail;
     const updatedIOUReport = IOUUtils.updateIOUOwnerAndTotal(iouReport, currentUserEmail, amount, moneyRequestAction.originalMessage.currency, CONST.IOU.REPORT_ACTION_TYPE.DELETE);
-
-    // Save original messages before updating the report in case the request fails and we need to rollback
-    const originalLastMessageText = chatReport.lastMessageText;
-    const originalLastMessageHtml = chatReport.lastMessageHtml;
-
     chatReport.lastMessageText = optimisticReportAction.message[0].text;
     chatReport.lastMessageHtml = optimisticReportAction.message[0].html;
     chatReport.hasOutstandingIOU = updatedIOUReport.total !== 0;
@@ -634,8 +630,8 @@ function deleteMoneyRequest(chatReportID, iouReportID, moneyRequestAction) {
             onyxMethod: CONST.ONYX.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT}${chatReportID}`,
             value: {
-                lastMessageText: originalLastMessageText,
-                lastMessageHtml: originalLastMessageHtml,
+                lastMessageText: chatReports[`${ONYXKEYS.COLLECTION.REPORT}${chatReportID}`].lastMessageText,
+                lastMessageHtml: chatReports[`${ONYXKEYS.COLLECTION.REPORT}${chatReportID}`].lastMessageHtml,
                 hasOutstandingIOU: iouReport.total !== 0,
             },
         },
@@ -647,7 +643,7 @@ function deleteMoneyRequest(chatReportID, iouReportID, moneyRequestAction) {
         {
             onyxMethod: CONST.ONYX.METHOD.SET,
             key: `${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`,
-            value: transaction,
+            value: transactions[transactionID],
         },
     ];
 
