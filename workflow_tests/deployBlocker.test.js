@@ -74,7 +74,7 @@ describe('test workflow deployBlocker', () => {
                 };
                 const result = await act
                     .runEvent(event, {
-                        workflowFile: path.join(repoPath, '.github', 'workflows'),
+                        workflowFile: path.join(repoPath, '.github', 'workflows', 'deployBlocker.yml'),
                         mockSteps: testMockSteps,
                         actor,
                         logFile: utils.getLogFilePath('deployBlocker'),
@@ -111,7 +111,7 @@ describe('test workflow deployBlocker', () => {
                     );
                     const result = await act
                         .runEvent(event, {
-                            workflowFile: path.join(repoPath, '.github', 'workflows'),
+                            workflowFile: path.join(repoPath, '.github', 'workflows', 'deployBlocker.yml'),
                             mockSteps: testMockSteps,
                             actor,
                             logFile: utils.getLogFilePath('deployBlocker'),
@@ -142,7 +142,7 @@ describe('test workflow deployBlocker', () => {
                 };
                 const result = await act
                     .runEvent(event, {
-                        workflowFile: path.join(repoPath, '.github', 'workflows'),
+                        workflowFile: path.join(repoPath, '.github', 'workflows', 'deployBlocker.yml'),
                         mockSteps: testMockSteps,
                         actor,
                         logFile: utils.getLogFilePath('deployBlocker'),

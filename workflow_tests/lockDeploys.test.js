@@ -72,7 +72,7 @@ describe('test workflow lockDeploys', () => {
                         };
                         const result = await act
                             .runEvent('issues', {
-                                workflowFile: path.join(repoPath, '.github', 'workflows'),
+                                workflowFile: path.join(repoPath, '.github', 'workflows', 'lockDeploys.yml'),
                                 mockSteps: testMockSteps,
                                 actor: 'Dummy Author',
                                 logFile: utils.getLogFilePath('lockDeploys'),
@@ -127,7 +127,7 @@ describe('test workflow lockDeploys', () => {
                         );
                         const result = await act
                             .runEvent('issues', {
-                                workflowFile: path.join(repoPath, '.github', 'workflows'),
+                                workflowFile: path.join(repoPath, '.github', 'workflows', 'lockDeploys.yml'),
                                 mockSteps: testMockSteps,
                                 actor: 'Dummy Author',
                                 logFile: utils.getLogFilePath('lockDeploys'),
@@ -174,7 +174,7 @@ describe('test workflow lockDeploys', () => {
                         };
                         const result = await act
                             .runEvent('issues', {
-                                workflowFile: path.join(repoPath, '.github', 'workflows'),
+                                workflowFile: path.join(repoPath, '.github', 'workflows', 'lockDeploys.yml'),
                                 mockSteps: testMockSteps,
                                 actor: 'OSBotify',
                                 logFile: utils.getLogFilePath('lockDeploys'),
@@ -225,7 +225,7 @@ describe('test workflow lockDeploys', () => {
                         };
                         const result = await act
                             .runEvent('issues', {
-                                workflowFile: path.join(repoPath, '.github', 'workflows'),
+                                workflowFile: path.join(repoPath, '.github', 'workflows', 'lockDeploys.yml'),
                                 mockSteps: testMockSteps,
                                 actor: 'Dummy Author',
                                 logFile: utils.getLogFilePath('lockDeploys'),
@@ -274,7 +274,7 @@ describe('test workflow lockDeploys', () => {
                         };
                         const result = await act
                             .runEvent('issues', {
-                                workflowFile: path.join(repoPath, '.github', 'workflows'),
+                                workflowFile: path.join(repoPath, '.github', 'workflows', 'lockDeploys.yml'),
                                 mockSteps: testMockSteps,
                                 actor: 'OSBotify',
                                 logFile: utils.getLogFilePath('lockDeploys'),
@@ -325,7 +325,7 @@ describe('test workflow lockDeploys', () => {
                         };
                         const result = await act
                             .runEvent('issues', {
-                                workflowFile: path.join(repoPath, '.github', 'workflows'),
+                                workflowFile: path.join(repoPath, '.github', 'workflows', 'lockDeploys.yml'),
                                 mockSteps: testMockSteps,
                                 actor: 'Dummy Author',
                                 logFile: utils.getLogFilePath('lockDeploys'),
@@ -372,7 +372,7 @@ describe('test workflow lockDeploys', () => {
                         };
                         const result = await act
                             .runEvent('issues', {
-                                workflowFile: path.join(repoPath, '.github', 'workflows'),
+                                workflowFile: path.join(repoPath, '.github', 'workflows', 'lockDeploys.yml'),
                                 mockSteps: testMockSteps,
                                 actor: 'OSBotify',
                                 logFile: utils.getLogFilePath('lockDeploys'),
@@ -423,7 +423,7 @@ describe('test workflow lockDeploys', () => {
                         };
                         const result = await act
                             .runEvent('issues', {
-                                workflowFile: path.join(repoPath, '.github', 'workflows'),
+                                workflowFile: path.join(repoPath, '.github', 'workflows', 'lockDeploys.yml'),
                                 mockSteps: testMockSteps,
                                 actor: 'Dummy Author',
                                 logFile: utils.getLogFilePath('lockDeploys'),
@@ -472,7 +472,7 @@ describe('test workflow lockDeploys', () => {
                         };
                         const result = await act
                             .runEvent('issues', {
-                                workflowFile: path.join(repoPath, '.github', 'workflows'),
+                                workflowFile: path.join(repoPath, '.github', 'workflows', 'lockDeploys.yml'),
                                 mockSteps: testMockSteps,
                                 actor: 'OSBotify',
                                 logFile: utils.getLogFilePath('lockDeploys'),

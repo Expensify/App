@@ -92,7 +92,7 @@ describe('test workflow platformDeploy', () => {
                 };
                 const result = await act
                     .runEvent('push', {
-                        workflowFile: path.join(repoPath, '.github', 'workflows'),
+                        workflowFile: path.join(repoPath, '.github', 'workflows', 'platformDeploy.yml'),
                         mockSteps: testMockSteps,
                         actor: 'Dummy Author',
                         logFile: utils.getLogFilePath('platformDeploy'),
@@ -165,7 +165,7 @@ describe('test workflow platformDeploy', () => {
                 };
                 const result = await act
                     .runEvent('push', {
-                        workflowFile: path.join(repoPath, '.github', 'workflows'),
+                        workflowFile: path.join(repoPath, '.github', 'workflows', 'platformDeploy.yml'),
                         mockSteps: testMockSteps,
                         actor: 'OSBotify',
                         logFile: utils.getLogFilePath('platformDeploy'),
@@ -238,7 +238,7 @@ describe('test workflow platformDeploy', () => {
                 };
                 const result = await act
                     .runEvent('push', {
-                        workflowFile: path.join(repoPath, '.github', 'workflows'),
+                        workflowFile: path.join(repoPath, '.github', 'workflows', 'platformDeploy.yml'),
                         mockSteps: testMockSteps,
                         actor: 'Dummy Author',
                         logFile: utils.getLogFilePath('platformDeploy'),
@@ -253,11 +253,6 @@ describe('test workflow platformDeploy', () => {
                 assertions.assertPostSlackOnSuccessJobExecuted(result, false);
                 assertions.assertPostGithubCommentJobExecuted(result, true, false, false);
             });
-        });
-
-        describe('branch', () => {
-            // changing ref_type does not seem to work as described in documentation
-
         });
     });
 });

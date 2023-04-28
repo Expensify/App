@@ -55,7 +55,7 @@ describe('test workflow verifySignedCommits', () => {
             };
             const result = await act
                 .runEvent(event, {
-                    workflowFile: path.join(repoPath, '.github', 'workflows'),
+                    workflowFile: path.join(repoPath, '.github', 'workflows', 'verifySignedCommits.yml'),
                     mockSteps: testMockSteps,
                     actor,
                     logFile: utils.getLogFilePath('verifySignedCommits'),
@@ -85,7 +85,7 @@ describe('test workflow verifySignedCommits', () => {
             };
             const result = await act
                 .runEvent(event, {
-                    workflowFile: path.join(repoPath, '.github', 'workflows'),
+                    workflowFile: path.join(repoPath, '.github', 'workflows', 'verifySignedCommits.yml'),
                     mockSteps: testMockSteps,
                     actor,
                     logFile: utils.getLogFilePath('verifySignedCommits'),

@@ -79,6 +79,13 @@ const TESTBUILD__ANDROID__CHECKOUT__STEP_MOCK = utils.createMockStep(
     ['ref'],
     [],
 );
+const TESTBUILD__ANDROID__CREATE_ENV_ADHOC__STEP_MOCK = utils.createMockStep(
+    'Create .env.adhoc file based on staging and add PULL_REQUEST_NUMBER env to it',
+    'Creating .env.adhoc file based on staging',
+    'ANDROID',
+    [],
+    [],
+);
 const TESTBUILD__ANDROID__SETUP_NODE__STEP_MOCK = utils.createMockStep(
     'Setup Node',
     'Setup Node',
@@ -130,6 +137,7 @@ const TESTBUILD__ANDROID__UPLOAD_ARTIFACT__STEP_MOCK = utils.createMockStep(
 );
 const TESTBUILD__ANDROID__STEP_MOCKS = [
     TESTBUILD__ANDROID__CHECKOUT__STEP_MOCK,
+    TESTBUILD__ANDROID__CREATE_ENV_ADHOC__STEP_MOCK,
     TESTBUILD__ANDROID__SETUP_NODE__STEP_MOCK,
     TESTBUILD__ANDROID__SETUP_RUBY__STEP_MOCK,
     TESTBUILD__ANDROID__DECRYPT_KEYSTORE__STEP_MOCK,
@@ -145,6 +153,13 @@ const TESTBUILD__IOS__CHECKOUT__STEP_MOCK = utils.createMockStep(
     'Checkout',
     'IOS',
     ['ref'],
+    [],
+);
+const TESTBUILD__IOS__CREATE_ENV_ADHOC__STEP_MOCK = utils.createMockStep(
+    'Create .env.adhoc file based on staging and add PULL_REQUEST_NUMBER env to it',
+    'Creating .env.adhoc file based on staging',
+    'IOS',
+    [],
     [],
 );
 const TESTBUILD__IOS__SETUP_NODE__STEP_MOCK = utils.createMockStep(
@@ -205,6 +220,7 @@ const TESTBUILD__IOS__UPLOAD_ARTIFACT__STEP_MOCK = utils.createMockStep(
 );
 const TESTBUILD__IOS__STEP_MOCKS = [
     TESTBUILD__IOS__CHECKOUT__STEP_MOCK,
+    TESTBUILD__IOS__CREATE_ENV_ADHOC__STEP_MOCK,
     TESTBUILD__IOS__SETUP_NODE__STEP_MOCK,
     TESTBUILD__IOS__SETUP_RUBY__STEP_MOCK,
     TESTBUILD__IOS__INSTALL_COCOAPODS__STEP_MOCK,
@@ -221,6 +237,13 @@ const TESTBUILD__DESKTOP__CHECKOUT__STEP_MOCK = utils.createMockStep(
     'Checkout',
     'DESKTOP',
     ['ref', 'fetch-depth'],
+    [],
+);
+const TESTBUILD__DESKTOP__CREATE_ENV_ADHOC__STEP_MOCK = utils.createMockStep(
+    'Create .env.adhoc file based on staging and add PULL_REQUEST_NUMBER env to it',
+    'Creating .env.adhoc file based on staging',
+    'DESKTOP',
+    [],
     [],
 );
 const TESTBUILD__DESKTOP__SETUP_NODE__STEP_MOCK = utils.createMockStep(
@@ -253,6 +276,7 @@ const TESTBUILD__DESKTOP__BUILD_DESKTOP_APP_FOR_TESTING__STEP_MOCK = utils.creat
 );
 const TESTBUILD__DESKTOP__STEP_MOCKS = [
     TESTBUILD__DESKTOP__CHECKOUT__STEP_MOCK,
+    TESTBUILD__DESKTOP__CREATE_ENV_ADHOC__STEP_MOCK,
     TESTBUILD__DESKTOP__SETUP_NODE__STEP_MOCK,
     TESTBUILD__DESKTOP__DECRYPT_DEVELOPER_ID_CERTIFICATE__STEP_MOCK,
     TESTBUILD__DESKTOP__CONFIGURE_AWS_CREDENTIALS__STEP_MOCK,
@@ -265,6 +289,13 @@ const TESTBUILD__WEB__CHECKOUT__STEP_MOCK = utils.createMockStep(
     'Checkout',
     'WEB',
     ['fetch-depth', 'ref'],
+    [],
+);
+const TESTBUILD__WEB__CREATE_ENV_ADHOC__STEP_MOCK = utils.createMockStep(
+    'Create .env.adhoc file based on staging and add PULL_REQUEST_NUMBER env to it',
+    'Creating .env.adhoc file based on staging',
+    'WEB',
+    [],
     [],
 );
 const TESTBUILD__WEB__SETUP_NODE__STEP_MOCK = utils.createMockStep(
@@ -304,6 +335,7 @@ const TESTBUILD__WEB__DEPLOY_TO_S3_FOR_INTERNAL_TESTING__STEP_MOCK = utils.creat
 );
 const TESTBUILD__WEB__STEP_MOCKS = [
     TESTBUILD__WEB__CHECKOUT__STEP_MOCK,
+    TESTBUILD__WEB__CREATE_ENV_ADHOC__STEP_MOCK,
     TESTBUILD__WEB__SETUP_NODE__STEP_MOCK,
     TESTBUILD__WEB__CONFIGURE_AWS_CREDENTIALS__STEP_MOCK,
     TESTBUILD__WEB__BUILD_WEB_FOR_TESTING__STEP_MOCK,
@@ -332,7 +364,7 @@ const TESTBUILD__POSTGITHUBCOMMENT__READ_JSONS_WITH_ANDROID_PATHS__STEP_MOCK = u
     'POSTGITHUBCOMMENT',
     [],
     [],
-    {android_paths: '{\\"html_path\\": \\"http://dummy.android.link\\"}'},
+    {android_path: 'http://dummy.android.link'},
 );
 const TESTBUILD__POSTGITHUBCOMMENT__READ_JSONS_WITH_IOS_PATHS__STEP_MOCK = utils.createMockStep(
     'Read JSONs with iOS paths',
@@ -340,7 +372,7 @@ const TESTBUILD__POSTGITHUBCOMMENT__READ_JSONS_WITH_IOS_PATHS__STEP_MOCK = utils
     'POSTGITHUBCOMMENT',
     [],
     [],
-    {ios_paths: '{\\"html_path\\": \\"http://dummy.ios.link\\"}'},
+    {ios_path: 'http://dummy.ios.link'},
 );
 const TESTBUILD__POSTGITHUBCOMMENT__MAINTAIN_COMMENT__STEP_MOCK = utils.createMockStep(
     'maintain-comment',

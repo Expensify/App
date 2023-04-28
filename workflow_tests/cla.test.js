@@ -69,7 +69,7 @@ describe('test workflow cla', () => {
                 };
                 const result = await act
                     .runEvent(event, {
-                        workflowFile: path.join(repoPath, '.github', 'workflows'),
+                        workflowFile: path.join(repoPath, '.github', 'workflows', 'cla.yml'),
                         mockSteps: testMockSteps,
                         actor,
                         logFile: utils.getLogFilePath('cla'),
@@ -107,7 +107,7 @@ describe('test workflow cla', () => {
                 };
                 const result = await act
                     .runEvent(event, {
-                        workflowFile: path.join(repoPath, '.github', 'workflows'),
+                        workflowFile: path.join(repoPath, '.github', 'workflows', 'cla.yml'),
                         mockSteps: testMockSteps,
                         actor,
                         logFile: utils.getLogFilePath('cla'),
@@ -145,7 +145,7 @@ describe('test workflow cla', () => {
                 };
                 const result = await act
                     .runEvent(event, {
-                        workflowFile: path.join(repoPath, '.github', 'workflows'),
+                        workflowFile: path.join(repoPath, '.github', 'workflows', 'cla.yml'),
                         mockSteps: testMockSteps,
                         actor,
                         logFile: utils.getLogFilePath('cla'),
@@ -182,7 +182,7 @@ describe('test workflow cla', () => {
                 };
                 const result = await act
                     .runEvent(event, {
-                        workflowFile: path.join(repoPath, '.github', 'workflows'),
+                        workflowFile: path.join(repoPath, '.github', 'workflows', 'cla.yml'),
                         mockSteps: testMockSteps,
                         actor,
                         logFile: utils.getLogFilePath('cla'),
@@ -213,7 +213,7 @@ describe('test workflow cla', () => {
             };
             const result = await act
                 .runEvent(event, {
-                    workflowFile: path.join(repoPath, '.github', 'workflows'),
+                    workflowFile: path.join(repoPath, '.github', 'workflows', 'cla.yml'),
                     mockSteps: testMockSteps,
                     actor,
                     logFile: utils.getLogFilePath('cla'),

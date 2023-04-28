@@ -55,7 +55,7 @@ describe('test workflow lint', () => {
             };
             const result = await act
                 .runEvent(event, {
-                    workflowFile: path.join(repoPath, '.github', 'workflows'),
+                    workflowFile: path.join(repoPath, '.github', 'workflows', 'lint.yml'),
                     mockSteps: testMockSteps,
                     actor,
                     logFile: utils.getLogFilePath('lint'),
@@ -81,7 +81,7 @@ describe('test workflow lint', () => {
                 };
                 const result = await act
                     .runEvent(event, {
-                        workflowFile: path.join(repoPath, '.github', 'workflows'),
+                        workflowFile: path.join(repoPath, '.github', 'workflows', 'lint.yml'),
                         mockSteps: testMockSteps,
                         actor: testActor,
                         logFile: utils.getLogFilePath('lint'),
@@ -113,7 +113,7 @@ describe('test workflow lint', () => {
                 };
                 const result = await act
                     .runEvent(event, {
-                        workflowFile: path.join(repoPath, '.github', 'workflows'),
+                        workflowFile: path.join(repoPath, '.github', 'workflows', 'lint.yml'),
                         mockSteps: testMockSteps,
                         actor,
                         logFile: utils.getLogFilePath('lint'),
@@ -139,7 +139,7 @@ describe('test workflow lint', () => {
                     };
                     const result = await act
                         .runEvent(event, {
-                            workflowFile: path.join(repoPath, '.github', 'workflows'),
+                            workflowFile: path.join(repoPath, '.github', 'workflows', 'lint.yml'),
                             mockSteps: testMockSteps,
                             actor: testActor,
                             logFile: utils.getLogFilePath('lint'),
@@ -169,7 +169,7 @@ describe('test workflow lint', () => {
                 };
                 const result = await act
                     .runEvent(event, {
-                        workflowFile: path.join(repoPath, '.github', 'workflows'),
+                        workflowFile: path.join(repoPath, '.github', 'workflows', 'lint.yml'),
                         mockSteps: testMockSteps,
                         actor,
                         logFile: utils.getLogFilePath('lint'),

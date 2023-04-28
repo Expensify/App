@@ -79,7 +79,7 @@ describe('test workflow testBuild', () => {
             };
             const result = await act
                 .runEvent(event, {
-                    workflowFile: path.join(repoPath, '.github', 'workflows'),
+                    workflowFile: path.join(repoPath, '.github', 'workflows', 'testBuild.yml'),
                     mockSteps: testMockSteps,
                     actor,
                     logFile: utils.getLogFilePath('testBuild'),
@@ -123,7 +123,7 @@ describe('test workflow testBuild', () => {
                 };
                 const result = await act
                     .runEvent(event, {
-                        workflowFile: path.join(repoPath, '.github', 'workflows'),
+                        workflowFile: path.join(repoPath, '.github', 'workflows', 'testBuild.yml'),
                         mockSteps: testMockSteps,
                         actor,
                         logFile: utils.getLogFilePath('testBuild'),
@@ -168,7 +168,7 @@ describe('test workflow testBuild', () => {
                 };
                 const result = await act
                     .runEvent(event, {
-                        workflowFile: path.join(repoPath, '.github', 'workflows'),
+                        workflowFile: path.join(repoPath, '.github', 'workflows', 'testBuild.yml'),
                         mockSteps: testMockSteps,
                         actor,
                         logFile: utils.getLogFilePath('testBuild'),
@@ -213,7 +213,7 @@ describe('test workflow testBuild', () => {
                 };
                 const result = await act
                     .runEvent(event, {
-                        workflowFile: path.join(repoPath, '.github', 'workflows'),
+                        workflowFile: path.join(repoPath, '.github', 'workflows', 'testBuild.yml'),
                         mockSteps: testMockSteps,
                         actor,
                         logFile: utils.getLogFilePath('testBuild'),
@@ -256,7 +256,7 @@ describe('test workflow testBuild', () => {
                     web: mocks.TESTBUILD__WEB__STEP_MOCKS,
                     postGithubComment: mocks.TESTBUILD__POSTGITHUBCOMMENT__STEP_MOCKS,
                 };
-                testMockSteps.android[3] = utils.createMockStep(
+                testMockSteps.android[4] = utils.createMockStep(
                     'Decrypt keystore',
                     'Decrypt keystore',
                     'ANDROID',
@@ -268,7 +268,7 @@ describe('test workflow testBuild', () => {
                 );
                 const result = await act
                     .runEvent(event, {
-                        workflowFile: path.join(repoPath, '.github', 'workflows'),
+                        workflowFile: path.join(repoPath, '.github', 'workflows', 'testBuild.yml'),
                         mockSteps: testMockSteps,
                         actor,
                         logFile: utils.getLogFilePath('testBuild'),
@@ -276,7 +276,7 @@ describe('test workflow testBuild', () => {
 
                 assertions.assertValidateActorJobExecuted(result, actor, '1234');
                 assertions.assertGetBranchRefJobExecuted(result);
-                assertions.assertAndroidJobExecuted(result, 'test-ref', true, 3);
+                assertions.assertAndroidJobExecuted(result, 'test-ref', true, 4);
                 assertions.assertIOSJobExecuted(result, 'test-ref');
                 assertions.assertDesktopJobExecuted(result, 'test-ref');
                 assertions.assertWebJobExecuted(result, 'test-ref');
@@ -311,7 +311,7 @@ describe('test workflow testBuild', () => {
                     web: mocks.TESTBUILD__WEB__STEP_MOCKS,
                     postGithubComment: mocks.TESTBUILD__POSTGITHUBCOMMENT__STEP_MOCKS,
                 };
-                testMockSteps.iOS[3] = utils.createMockStep(
+                testMockSteps.iOS[4] = utils.createMockStep(
                     'Install cocoapods',
                     'Install cocoapods',
                     'IOS',
@@ -323,7 +323,7 @@ describe('test workflow testBuild', () => {
                 );
                 const result = await act
                     .runEvent(event, {
-                        workflowFile: path.join(repoPath, '.github', 'workflows'),
+                        workflowFile: path.join(repoPath, '.github', 'workflows', 'testBuild.yml'),
                         mockSteps: testMockSteps,
                         actor,
                         logFile: utils.getLogFilePath('testBuild'),
@@ -332,7 +332,7 @@ describe('test workflow testBuild', () => {
                 assertions.assertValidateActorJobExecuted(result, actor, '1234');
                 assertions.assertGetBranchRefJobExecuted(result);
                 assertions.assertAndroidJobExecuted(result, 'test-ref');
-                assertions.assertIOSJobExecuted(result, 'test-ref', true, 3);
+                assertions.assertIOSJobExecuted(result, 'test-ref', true, 4);
                 assertions.assertDesktopJobExecuted(result, 'test-ref');
                 assertions.assertWebJobExecuted(result, 'test-ref');
                 assertions.assertPostGithubCommentJobExecuted(result, 'test-ref', '1234', true, 'success', 'failure', 'success', 'success');
@@ -366,7 +366,7 @@ describe('test workflow testBuild', () => {
                     web: mocks.TESTBUILD__WEB__STEP_MOCKS,
                     postGithubComment: mocks.TESTBUILD__POSTGITHUBCOMMENT__STEP_MOCKS,
                 };
-                testMockSteps.desktop[2] = utils.createMockStep(
+                testMockSteps.desktop[3] = utils.createMockStep(
                     'Decrypt Developer ID Certificate',
                     'Decrypt Developer ID Certificate',
                     'DESKTOP',
@@ -378,7 +378,7 @@ describe('test workflow testBuild', () => {
                 );
                 const result = await act
                     .runEvent(event, {
-                        workflowFile: path.join(repoPath, '.github', 'workflows'),
+                        workflowFile: path.join(repoPath, '.github', 'workflows', 'testBuild.yml'),
                         mockSteps: testMockSteps,
                         actor,
                         logFile: utils.getLogFilePath('testBuild'),
@@ -388,7 +388,7 @@ describe('test workflow testBuild', () => {
                 assertions.assertGetBranchRefJobExecuted(result);
                 assertions.assertAndroidJobExecuted(result, 'test-ref');
                 assertions.assertIOSJobExecuted(result, 'test-ref');
-                assertions.assertDesktopJobExecuted(result, 'test-ref', true, 2);
+                assertions.assertDesktopJobExecuted(result, 'test-ref', true, 3);
                 assertions.assertWebJobExecuted(result, 'test-ref');
                 assertions.assertPostGithubCommentJobExecuted(result, 'test-ref', '1234', true, 'success', 'success', 'failure', 'success');
             });
@@ -421,7 +421,7 @@ describe('test workflow testBuild', () => {
                     web: utils.deepCopy(mocks.TESTBUILD__WEB__STEP_MOCKS),
                     postGithubComment: mocks.TESTBUILD__POSTGITHUBCOMMENT__STEP_MOCKS,
                 };
-                testMockSteps.web[2] = utils.createMockStep(
+                testMockSteps.web[3] = utils.createMockStep(
                     'Configure AWS Credentials',
                     'Configure AWS Credentials',
                     'WEB',
@@ -433,7 +433,7 @@ describe('test workflow testBuild', () => {
                 );
                 const result = await act
                     .runEvent(event, {
-                        workflowFile: path.join(repoPath, '.github', 'workflows'),
+                        workflowFile: path.join(repoPath, '.github', 'workflows', 'testBuild.yml'),
                         mockSteps: testMockSteps,
                         actor,
                         logFile: utils.getLogFilePath('testBuild'),
@@ -444,7 +444,7 @@ describe('test workflow testBuild', () => {
                 assertions.assertAndroidJobExecuted(result, 'test-ref');
                 assertions.assertIOSJobExecuted(result, 'test-ref');
                 assertions.assertDesktopJobExecuted(result, 'test-ref');
-                assertions.assertWebJobExecuted(result, 'test-ref', true, 2);
+                assertions.assertWebJobExecuted(result, 'test-ref', true, 3);
                 assertions.assertPostGithubCommentJobExecuted(result, 'test-ref', '1234', true, 'success', 'success', 'success', 'failure');
             });
         });
@@ -488,7 +488,7 @@ describe('test workflow testBuild', () => {
             };
             const result = await act
                 .runEvent(event, {
-                    workflowFile: path.join(repoPath, '.github', 'workflows'),
+                    workflowFile: path.join(repoPath, '.github', 'workflows', 'testBuild.yml'),
                     mockSteps: testMockSteps,
                     actor,
                     logFile: utils.getLogFilePath('testBuild'),
@@ -531,7 +531,7 @@ describe('test workflow testBuild', () => {
                 };
                 const result = await act
                     .runEvent(event, {
-                        workflowFile: path.join(repoPath, '.github', 'workflows'),
+                        workflowFile: path.join(repoPath, '.github', 'workflows', 'testBuild.yml'),
                         mockSteps: testMockSteps,
                         actor,
                         logFile: utils.getLogFilePath('testBuild'),
@@ -575,7 +575,7 @@ describe('test workflow testBuild', () => {
                 };
                 const result = await act
                     .runEvent(event, {
-                        workflowFile: path.join(repoPath, '.github', 'workflows'),
+                        workflowFile: path.join(repoPath, '.github', 'workflows', 'testBuild.yml'),
                         mockSteps: testMockSteps,
                         actor,
                         logFile: utils.getLogFilePath('testBuild'),
@@ -619,7 +619,7 @@ describe('test workflow testBuild', () => {
                 };
                 const result = await act
                     .runEvent(event, {
-                        workflowFile: path.join(repoPath, '.github', 'workflows'),
+                        workflowFile: path.join(repoPath, '.github', 'workflows', 'testBuild.yml'),
                         mockSteps: testMockSteps,
                         actor,
                         logFile: utils.getLogFilePath('testBuild'),
@@ -674,7 +674,7 @@ describe('test workflow testBuild', () => {
             };
             const result = await act
                 .runEvent(event, {
-                    workflowFile: path.join(repoPath, '.github', 'workflows'),
+                    workflowFile: path.join(repoPath, '.github', 'workflows', 'testBuild.yml'),
                     mockSteps: testMockSteps,
                     actor,
                     logFile: utils.getLogFilePath('testBuild'),
@@ -717,7 +717,7 @@ describe('test workflow testBuild', () => {
                 };
                 const result = await act
                     .runEvent(event, {
-                        workflowFile: path.join(repoPath, '.github', 'workflows'),
+                        workflowFile: path.join(repoPath, '.github', 'workflows', 'testBuild.yml'),
                         mockSteps: testMockSteps,
                         actor,
                         logFile: utils.getLogFilePath('testBuild'),
@@ -761,7 +761,7 @@ describe('test workflow testBuild', () => {
                 };
                 const result = await act
                     .runEvent(event, {
-                        workflowFile: path.join(repoPath, '.github', 'workflows'),
+                        workflowFile: path.join(repoPath, '.github', 'workflows', 'testBuild.yml'),
                         mockSteps: testMockSteps,
                         actor,
                         logFile: utils.getLogFilePath('testBuild'),
@@ -805,7 +805,7 @@ describe('test workflow testBuild', () => {
                 };
                 const result = await act
                     .runEvent(event, {
-                        workflowFile: path.join(repoPath, '.github', 'workflows'),
+                        workflowFile: path.join(repoPath, '.github', 'workflows', 'testBuild.yml'),
                         mockSteps: testMockSteps,
                         actor,
                         logFile: utils.getLogFilePath('testBuild'),
@@ -860,7 +860,7 @@ describe('test workflow testBuild', () => {
             };
             const result = await act
                 .runEvent(event, {
-                    workflowFile: path.join(repoPath, '.github', 'workflows'),
+                    workflowFile: path.join(repoPath, '.github', 'workflows', 'testBuild.yml'),
                     mockSteps: testMockSteps,
                     actor,
                     logFile: utils.getLogFilePath('testBuild'),
@@ -903,7 +903,7 @@ describe('test workflow testBuild', () => {
                 };
                 const result = await act
                     .runEvent(event, {
-                        workflowFile: path.join(repoPath, '.github', 'workflows'),
+                        workflowFile: path.join(repoPath, '.github', 'workflows', 'testBuild.yml'),
                         mockSteps: testMockSteps,
                         actor,
                         logFile: utils.getLogFilePath('testBuild'),
@@ -947,7 +947,7 @@ describe('test workflow testBuild', () => {
                 };
                 const result = await act
                     .runEvent(event, {
-                        workflowFile: path.join(repoPath, '.github', 'workflows'),
+                        workflowFile: path.join(repoPath, '.github', 'workflows', 'testBuild.yml'),
                         mockSteps: testMockSteps,
                         actor,
                         logFile: utils.getLogFilePath('testBuild'),
@@ -991,7 +991,7 @@ describe('test workflow testBuild', () => {
                 };
                 const result = await act
                     .runEvent(event, {
-                        workflowFile: path.join(repoPath, '.github', 'workflows'),
+                        workflowFile: path.join(repoPath, '.github', 'workflows', 'testBuild.yml'),
                         mockSteps: testMockSteps,
                         actor,
                         logFile: utils.getLogFilePath('testBuild'),

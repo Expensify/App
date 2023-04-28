@@ -67,7 +67,7 @@ describe('test workflow finishReleaseCycle', () => {
                         };
                         const result = await act
                             .runEvent('issues', {
-                                workflowFile: path.join(repoPath, '.github', 'workflows'),
+                                workflowFile: path.join(repoPath, '.github', 'workflows', 'finishReleaseCycle.yml'),
                                 mockSteps: testMockSteps,
                                 actor: 'Dummy Author',
                                 logFile: utils.getLogFilePath('finishReleaseCycle'),
@@ -119,7 +119,7 @@ describe('test workflow finishReleaseCycle', () => {
                             );
                             const result = await act
                                 .runEvent('issues', {
-                                    workflowFile: path.join(repoPath, '.github', 'workflows'),
+                                    workflowFile: path.join(repoPath, '.github', 'workflows', 'finishReleaseCycle.yml'),
                                     mockSteps: testMockSteps,
                                     actor: 'Dummy Author',
                                     logFile: utils.getLogFilePath('finishReleaseCycle'),
@@ -163,7 +163,7 @@ describe('test workflow finishReleaseCycle', () => {
                         };
                         const result = await act
                             .runEvent('issues', {
-                                workflowFile: path.join(repoPath, '.github', 'workflows'),
+                                workflowFile: path.join(repoPath, '.github', 'workflows', 'finishReleaseCycle.yml'),
                                 mockSteps: testMockSteps,
                                 actor: 'Dummy Author',
                                 logFile: utils.getLogFilePath('finishReleaseCycle'),
@@ -207,7 +207,7 @@ describe('test workflow finishReleaseCycle', () => {
                     };
                     const result = await act
                         .runEvent('issues', {
-                            workflowFile: path.join(repoPath, '.github', 'workflows'),
+                            workflowFile: path.join(repoPath, '.github', 'workflows', 'finishReleaseCycle.yml'),
                             mockSteps: testMockSteps,
                             actor: 'Dummy Author',
                             logFile: utils.getLogFilePath('finishReleaseCycle'),
@@ -253,7 +253,7 @@ describe('test workflow finishReleaseCycle', () => {
                 };
                 const result = await act
                     .runEvent('issues', {
-                        workflowFile: path.join(repoPath, '.github', 'workflows'),
+                        workflowFile: path.join(repoPath, '.github', 'workflows', 'finishReleaseCycle.yml'),
                         mockSteps: testMockSteps,
                         actor: 'Dummy Author',
                         logFile: utils.getLogFilePath('finishReleaseCycle'),

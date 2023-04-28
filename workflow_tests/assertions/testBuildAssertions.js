@@ -72,6 +72,15 @@ const assertAndroidJobExecuted = (workflowResult, ref = '', didExecute = true, f
             [],
         ),
         utils.createStepAssertion(
+            'Create .env.adhoc file based on staging and add PULL_REQUEST_NUMBER env to it',
+            true,
+            null,
+            'ANDROID',
+            'Creating .env.adhoc file based on staging',
+            [],
+            [],
+        ),
+        utils.createStepAssertion(
             'Setup Node',
             true,
             null,
@@ -168,6 +177,15 @@ const assertIOSJobExecuted = (workflowResult, ref = '', didExecute = true, fails
             'IOS',
             'Checkout',
             [{key: 'ref', value: ref}],
+            [],
+        ),
+        utils.createStepAssertion(
+            'Create .env.adhoc file based on staging and add PULL_REQUEST_NUMBER env to it',
+            true,
+            null,
+            'IOS',
+            'Creating .env.adhoc file based on staging',
+            [],
             [],
         ),
         utils.createStepAssertion(
@@ -283,6 +301,15 @@ const assertDesktopJobExecuted = (workflowResult, ref = '', didExecute = true, f
             [],
         ),
         utils.createStepAssertion(
+            'Create .env.adhoc file based on staging and add PULL_REQUEST_NUMBER env to it',
+            true,
+            null,
+            'DESKTOP',
+            'Creating .env.adhoc file based on staging',
+            [],
+            [],
+        ),
+        utils.createStepAssertion(
             'Setup Node',
             true,
             null,
@@ -354,6 +381,15 @@ const assertWebJobExecuted = (workflowResult, ref = '', didExecute = true, fails
             'WEB',
             'Checkout',
             [{key: 'fetch-depth', value: '0'}, {key: 'ref', value: ref}],
+            [],
+        ),
+        utils.createStepAssertion(
+            'Create .env.adhoc file based on staging and add PULL_REQUEST_NUMBER env to it',
+            true,
+            null,
+            'WEB',
+            'Creating .env.adhoc file based on staging',
+            [],
             [],
         ),
         utils.createStepAssertion(
