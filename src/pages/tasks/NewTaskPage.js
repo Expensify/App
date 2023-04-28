@@ -1,7 +1,8 @@
-import React, { useEffect } from 'react';
+import React, {useEffect} from 'react';
 import {View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import PropTypes from 'prop-types';
+import lodashGet from 'lodash/get';
 import withLocalize, {withLocalizePropTypes} from '../../components/withLocalize';
 import compose from '../../libs/compose';
 import HeaderWithCloseButton from '../../components/HeaderWithCloseButton';
@@ -13,10 +14,10 @@ import * as ErrorUtils from '../../libs/ErrorUtils';
 import Form from '../../components/Form';
 import TextInput from '../../components/TextInput';
 import Permissions from '../../libs/Permissions';
-import Button from '../../components/Button';
+import * as ReportUtils from '../../libs/actions/Report';
 import ROUTES from '../../ROUTES';
+import TaskSelectorLink from '../../components/TaskSelectorLink';
 
-// TO-DO: Create Avatar button for Assignee and Room Selectors
 // TO-DO: Call CreateTask with all the appropriate Data
 
 const propTypes = {
@@ -29,23 +30,46 @@ const propTypes = {
     /** Beta features list */
     betas: PropTypes.arrayOf(PropTypes.string),
 
+    /** All of the personal details for everyone */
+    personalDetails: PropTypes.objectOf(
+        PropTypes.shape({
+            /** Display name of the person */
+            displayName: PropTypes.string,
+
+            /** Avatar URL of the person */
+            avatar: PropTypes.string,
+
+            /** Login of the person */
+            login: PropTypes.string,
+        }),
+    ),
+
     ...withLocalizePropTypes,
 };
 
 const defaultProps = {
     betas: [],
     task: {},
+    personalDetails: {},
 };
 
 // NOTE: This page is going to be updated in https://github.com/Expensify/App/issues/16855, this is just a placeholder for now
 const NewTaskPage = (props) => {
+    const [assignee, setAssignee] = React.useState({});
+    const [shareDestination, setShareDestination] = React.useState({});
 
     useEffect(() => {
-        console.log("from the new task page", props.task.assignee);
+        if (props.task.assignee) {
+            const details = lodashGet(props.personalDetails, props.task.assignee);
+            setAssignee({avatar: details.avatar, displayName: details.displayName, login: details.login});
 
-    }, [props]);
-
-
+            // console.log(assignee);
+        }
+        if (props.task.shareDestination) {
+            const details = lodashGet(props.personalDetails, props.task.shareDestination);
+            setShareDestination({avatar: details.avatar, displayName: details.displayName, login: details.login});
+        }
+    }, [props.task, props.personalDetails]);
 
     /**
      * @param {Object} values - form input values passed by the Form component
@@ -90,7 +114,13 @@ const NewTaskPage = (props) => {
                 enabledWhenOffline
             >
                 <View style={styles.mb5}>
-                    <Button text="Assignee" onPress={() => Navigation.navigate(ROUTES.NEW_TASK_ASSIGNEE)} />
+                    <TaskSelectorLink
+                        avatarImage={assignee.avatar}
+                        title={assignee.displayName}
+                        description={assignee.login}
+                        onPress={() => Navigation.navigate(ROUTES.NEW_TASK_ASSIGNEE)}
+                        label="newTaskPage.assignTo"
+                    />
                 </View>
                 <View style={styles.mb5}>
                     <TextInput autoFocus inputID="taskTitle" label={props.translate('newTaskPage.title')} />
@@ -99,7 +129,7 @@ const NewTaskPage = (props) => {
                     <TextInput inputID="taskDescription" label={props.translate('newTaskPage.description')} />
                 </View>
                 <View style={styles.mb5}>
-                    <Button text="Share In" onPress={() => Navigation.navigate(ROUTES.NEW_TASK_CHAT)} />
+                    <TaskSelectorLink onPress={() => Navigation.navigate(ROUTES.NEW_TASK_CHAT)} label="newTaskPage.shareIn" />
                 </View>
             </Form>
         </ScreenWrapper>
@@ -117,6 +147,9 @@ export default compose(
         },
         task: {
             key: ONYXKEYS.TASK,
+        },
+        personalDetails: {
+            key: ONYXKEYS.PERSONAL_DETAILS,
         },
     }),
     withLocalize,

@@ -9,8 +9,6 @@ import * as OptionsListUtils from '../../libs/OptionsListUtils';
 import ONYXKEYS from '../../ONYXKEYS';
 import styles from '../../styles/styles';
 import Navigation from '../../libs/Navigation/Navigation';
-import ROUTES from '../../ROUTES';
-import * as Report from '../../libs/actions/Report';
 import HeaderWithCloseButton from '../../components/HeaderWithCloseButton';
 import ScreenWrapper from '../../components/ScreenWrapper';
 import Timing from '../../libs/actions/Timing';
@@ -20,9 +18,9 @@ import compose from '../../libs/compose';
 import personalDetailsPropType from '../personalDetailsPropType';
 import reportPropTypes from '../reportPropTypes';
 import Performance from '../../libs/Performance';
+import * as TaskUtils from '../../libs/actions/Task';
 
 // TODO: Rename this to ShareDestinationSelectorModal?
-// TODO: Currently just duplicated from AssigneeSelectorModal, implement for ShareDestination
 
 const propTypes = {
     /* Onyx Props */
@@ -61,7 +59,15 @@ const ChatSelectorModal = (props) => {
     }, [props]);
 
     const updateOptions = useCallback(() => {
-        const {recentReports, personalDetails, userToInvite} = OptionsListUtils.getShareDestinationOptions(props.reports, props.personalDetails, props.betas, searchValue.trim(), [], [], true);
+        const {recentReports, personalDetails, userToInvite} = OptionsListUtils.getShareDestinationOptions(
+            props.reports,
+            props.personalDetails,
+            props.betas,
+            searchValue.trim(),
+            [],
+            [],
+            true,
+        );
 
         setHeaderMessage(OptionsListUtils.getHeaderMessage(recentReports?.length + personalDetails?.length !== 0, Boolean(userToInvite), searchValue));
 
@@ -129,9 +135,10 @@ const ChatSelectorModal = (props) => {
         }
 
         if (option.reportID) {
-            console.log(option)
-        } else {
-            Report.navigateToAndOpenReport([option.login]);
+            // Clear out the state value, set the assignee and navigate back to the NewTaskPage
+            setSearchValue('');
+            TaskUtils.setShareDestinationValue(option.reportID);
+            Navigation.goBack();
         }
     };
 

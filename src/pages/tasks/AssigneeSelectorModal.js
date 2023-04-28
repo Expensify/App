@@ -9,7 +9,6 @@ import * as OptionsListUtils from '../../libs/OptionsListUtils';
 import ONYXKEYS from '../../ONYXKEYS';
 import styles from '../../styles/styles';
 import Navigation from '../../libs/Navigation/Navigation';
-import * as Report from '../../libs/actions/Report';
 import HeaderWithCloseButton from '../../components/HeaderWithCloseButton';
 import ScreenWrapper from '../../components/ScreenWrapper';
 import Timing from '../../libs/actions/Timing';
@@ -19,11 +18,9 @@ import compose from '../../libs/compose';
 import personalDetailsPropType from '../personalDetailsPropType';
 import reportPropTypes from '../reportPropTypes';
 import Performance from '../../libs/Performance';
-import {setAssigneeValue} from "../../libs/actions/Task"
+import * as TaskUtils from '../../libs/actions/Task';
 
 const propTypes = {
-    /* Onyx Props */
-
     /** Beta features list */
     betas: PropTypes.arrayOf(PropTypes.string),
 
@@ -128,10 +125,8 @@ const AssigneeSelectorModal = (props) => {
         if (option.alternateText) {
             // Clear out the state value, set the assignee and navigate back to the NewTaskPage
             setSearchValue('');
-            setAssigneeValue(option.alternateText);
+            TaskUtils.setAssigneeValue(option.alternateText);
             Navigation.goBack();
-        } else {
-            return
         }
     };
 
