@@ -70,7 +70,11 @@ const defaultProps = {
 
 const IOUAction = (props) => {
     const launchDetailsModal = () => {
-        Navigation.navigate(ROUTES.getIouDetailsRoute(props.chatReportID, props.action.originalMessage.IOUReportID));
+        if (false){
+            Navigation.navigate(ROUTES.getIouDetailsRoute(props.chatReportID, props.action.originalMessage.IOUReportID));
+        } else {
+            Navigation.navigate(ROUTES.getReportParticipantsRoute(props.chatReportID));
+        }
     };
 
     const shouldShowIOUPreview = Boolean(props.requestReportID);
