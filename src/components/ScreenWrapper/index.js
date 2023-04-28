@@ -3,6 +3,7 @@ import React from 'react';
 import _ from 'underscore';
 import {withOnyx} from 'react-native-onyx';
 import lodashGet from 'lodash/get';
+import {PickerAvoidingView} from 'react-native-picker-select';
 import KeyboardAvoidingView from '../KeyboardAvoidingView';
 import CONST from '../../CONST';
 import KeyboardShortcut from '../../libs/KeyboardShortcut';
@@ -123,21 +124,23 @@ class ScreenWrapper extends React.Component {
                             {...(this.props.environment === CONST.ENVIRONMENT.DEV ? this.panResponder.panHandlers : {})}
                         >
                             <KeyboardAvoidingView style={[styles.w100, styles.h100, {maxHeight}]} behavior={this.props.keyboardAvoidingViewBehavior}>
-                                <HeaderGap />
-                                {(this.props.environment === CONST.ENVIRONMENT.DEV) && <TestToolsModal />}
-                                {(this.props.environment === CONST.ENVIRONMENT.DEV) && <CustomDevMenu />}
-                                {// If props.children is a function, call it to provide the insets to the children.
-                                    _.isFunction(this.props.children)
-                                        ? this.props.children({
-                                            insets,
-                                            safeAreaPaddingBottomStyle,
-                                            didScreenTransitionEnd: this.state.didScreenTransitionEnd,
-                                        })
-                                        : this.props.children
-                                }
-                                {this.props.isSmallScreenWidth && (
-                                    <OfflineIndicator />
-                                )}
+                                <PickerAvoidingView style={styles.flex1} enabled={this.props.shouldEnablePickerAvoiding}>
+                                    <HeaderGap />
+                                    {(this.props.environment === CONST.ENVIRONMENT.DEV) && <TestToolsModal />}
+                                    {(this.props.environment === CONST.ENVIRONMENT.DEV) && <CustomDevMenu />}
+                                    {// If props.children is a function, call it to provide the insets to the children.
+                                        _.isFunction(this.props.children)
+                                            ? this.props.children({
+                                                insets,
+                                                safeAreaPaddingBottomStyle,
+                                                didScreenTransitionEnd: this.state.didScreenTransitionEnd,
+                                            })
+                                            : this.props.children
+                                    }
+                                    {this.props.isSmallScreenWidth && (
+                                        <OfflineIndicator />
+                                    )}
+                                </PickerAvoidingView>
                             </KeyboardAvoidingView>
                         </View>
                     );

@@ -134,6 +134,7 @@ class DetailsPage extends React.PureComponent {
                                         headerTitle={displayName}
                                         source={ReportUtils.getFullSizeAvatar(details.avatar, details.login)}
                                         isAuthTokenRequired
+                                        originalFileName={details.originalFileName}
                                     >
                                         {({show}) => (
                                             <PressableWithoutFocus
