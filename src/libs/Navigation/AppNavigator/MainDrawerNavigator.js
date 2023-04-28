@@ -35,6 +35,8 @@ const propTypes = {
         type: PropTypes.string,
     })),
 
+    isFirstTimeNewExpensifyUser: PropTypes.bool,
+
     route: PropTypes.shape({
         params: PropTypes.shape({
             openOnAdminRoom: PropTypes.bool,
@@ -48,6 +50,7 @@ const defaultProps = {
     reports: {},
     betas: [],
     policies: {},
+    isFirstTimeNewExpensifyUser: false,
 };
 
 /**
@@ -56,11 +59,12 @@ const defaultProps = {
  * @param {Object} reports
  * @param {Boolean} [ignoreDefaultRooms]
  * @param {Object} policies
+ * @param {Boolean} isFirstTimeNewExpensifyUser
  * @param {Boolean} openOnAdminRoom
  * @returns {Object}
  */
-const getInitialReportScreenParams = (reports, ignoreDefaultRooms, policies, openOnAdminRoom) => {
-    const last = ReportUtils.findLastAccessedReport(reports, ignoreDefaultRooms, policies, openOnAdminRoom);
+const getInitialReportScreenParams = (reports, ignoreDefaultRooms, policies, isFirstTimeNewExpensifyUser, openOnAdminRoom) => {
+    const last = ReportUtils.findLastAccessedReport(reports, ignoreDefaultRooms, policies, isFirstTimeNewExpensifyUser, openOnAdminRoom);
 
     // Fallback to empty if for some reason reportID cannot be derived - prevents the app from crashing
     const reportID = lodashGet(last, 'reportID', '');
@@ -75,6 +79,7 @@ class MainDrawerNavigator extends Component {
             props.reports,
             !Permissions.canUseDefaultRooms(props.betas),
             props.policies,
+            props.isFirstTimeNewExpensifyUser,
             lodashGet(props, 'route.params.openOnAdminRoom', false),
         );
 
@@ -88,6 +93,7 @@ class MainDrawerNavigator extends Component {
             nextProps.reports,
             !Permissions.canUseDefaultRooms(nextProps.betas),
             nextProps.policies,
+            nextProps.isFirstTimeNewExpensifyUser,
             lodashGet(nextProps, 'route.params.openOnAdminRoom', false),
         );
         if (this.initialParams.reportID === initialNextParams.reportID) {
@@ -155,5 +161,8 @@ export default withOnyx({
     },
     policies: {
         key: ONYXKEYS.COLLECTION.POLICY,
+    },
+    isFirstTimeNewExpensifyUser: {
+        key: ONYXKEYS.NVP_IS_FIRST_TIME_NEW_EXPENSIFY_USER,
     },
 })(MainDrawerNavigator);

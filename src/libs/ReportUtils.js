@@ -289,14 +289,38 @@ function hasExpensifyGuidesEmails(emails) {
 }
 
 /**
+ * Only returns true if this is our main 1:1 DM report with Concierge
+ *
+ * @param {Object} report
+ * @returns {Boolean}
+ */
+function isConciergeChatReport(report) {
+    return lodashGet(report, 'participants', []).length === 1
+        && report.participants[0] === CONST.EMAIL.CONCIERGE;
+}
+
+/**
  * @param {Record<String, {lastReadTime, reportID}>|Array<{lastReadTime, reportID}>} reports
  * @param {Boolean} [ignoreDefaultRooms]
  * @param {Object} policies
+ * @param {Boolean} isFirstTimeNewExpensifyUser
  * @param {Boolean} openOnAdminRoom
  * @returns {Object}
  */
-function findLastAccessedReport(reports, ignoreDefaultRooms, policies, openOnAdminRoom = false) {
+function findLastAccessedReport(reports, ignoreDefaultRooms, policies, isFirstTimeNewExpensifyUser, openOnAdminRoom = false) {
+    // If it's the user's first time using New Expensify, then they could either have:
+    //   - just a Concierge report, if so we'll return that
+    //   - their Concierge report, and a separate report that must have deeplinked them to the app before they created their account.
+    // If it's the latter, we'll use the deeplinked report over the Concierge report,
+    // since the Concierge report would be incorrectly selected over the deep-linked report in the logic below.
     let sortedReports = sortReportsByLastRead(reports);
+
+    if (isFirstTimeNewExpensifyUser) {
+        if (sortedReports.length === 1) {
+            return sortedReports[0];
+        }
+        return _.find(sortedReports, report => !isConciergeChatReport(report));
+    }
 
     if (ignoreDefaultRooms) {
         // We allow public announce rooms to show as the last accessed report since we bypass the default rooms beta for them.
@@ -430,17 +454,6 @@ function getRoomWelcomeMessage(report, policiesMap) {
     }
 
     return welcomeMessage;
-}
-
-/**
- * Only returns true if this is our main 1:1 DM report with Concierge
- *
- * @param {Object} report
- * @returns {Boolean}
- */
-function isConciergeChatReport(report) {
-    return lodashGet(report, 'participants', []).length === 1
-        && report.participants[0] === CONST.EMAIL.CONCIERGE;
 }
 
 /**
