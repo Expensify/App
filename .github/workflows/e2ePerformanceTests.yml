@@ -21,7 +21,7 @@ jobs:
     name: Prepare to run builds
     outputs:
       VERSION: ${{ steps.getMostRecentRelease.outputs.VERSION }}
-      DELTA_REF: ${{ steps.getMergeCommitSha.outputs.MERGE_COMMIT_SHA }}
+      DELTA_REF: ${{ steps.getMergeCommitShaIfMergedPR.outputs.MERGE_COMMIT_SHA || steps.getMergeCommitShaIfUnmergedPR.outputs.MERGE_COMMIT_SHA }}
     steps:
       - uses: actions/checkout@93ea575cb5d8a053eaa0ac8fa3b40d7e05a33cc8
         with:
@@ -43,35 +43,35 @@ jobs:
 
       - name: Merged PR - Get merge commit sha for the pull request
         if: ${{ fromJSON(steps.getPullRequestDetails.outputs.IS_MERGED) }}
-        id: getMergeCommitSha
+        id: getMergeCommitShaIfMergedPR
         run: |
           echo "MERGE_COMMIT_SHA=${{ steps.getPullRequestDetails.outputs.MERGE_COMMIT_SHA }}" >> "$GITHUB_OUTPUT"
         env:
           GITHUB_TOKEN: ${{ github.token }}
 
-      - name: Unmerged PR - Merge changes from main repository and get merge commit
-        if: ${{ !fromJSON(steps.getPullRequestDetails.outputs.IS_MERGED) && (steps.getPullRequestDetails.outputs.FORKED_REPO_URL == '')  }}
+      - name: Unmerged PR - Checkout main and set dummy git credentials
+        if: ${{ !fromJSON(steps.getPullRequestDetails.outputs.IS_MERGED) }}
         run: |
           git checkout main
-          git merge --no-commit ${{ steps.getPullRequestDetails.outputs.HEAD_COMMIT_SHA }}
-          echo "MERGE_COMMIT_SHA=$(git rev-parse HEAD)" >> "$GITHUB_OUTPUT"
-        env:
-          GITHUB_TOKEN: ${{ github.token }}
-
-      - name: Unmerged PR - Merge changes from forked repository and get merge commit
-        if: ${{ !fromJSON(steps.getPullRequestDetails.outputs.IS_MERGED) && (steps.getPullRequestDetails.outputs.FORKED_REPO_URL != '') }}
-        run: |
-          git checkout main
-          git remote add pr_remote ${{ steps.getPullRequestDetails.outputs.FORKED_REPO_URL }}
-          git fetch pr_remote
-          echo 'set dummy git credentials'
           git config --global user.email "test@test.com"
           git config --global user.name "Test"
-          echo 'merge changes'
-          git merge --no-commit ${{ steps.getPullRequestDetails.outputs.HEAD_COMMIT_SHA }}
-          echo "MERGE_COMMIT_SHA=$(git rev-parse HEAD)" >> "$GITHUB_OUTPUT"
-        env:
-          GITHUB_TOKEN: ${{ github.token }}
+
+      - name: Unmerged PR - Fetch changes from forked repository if necessary
+        if: ${{ !fromJSON(steps.getPullRequestDetails.outputs.IS_MERGED) && (steps.getPullRequestDetails.outputs.FORKED_REPO_URL != '') }}
+        run: |
+          git remote add pr_remote ${{ steps.getPullRequestDetails.outputs.FORKED_REPO_URL }}
+          git fetch pr_remote
+
+      - name: Unmerged PR - Merge pull request locally and get merge commit sha
+        if: ${{ !fromJSON(steps.getPullRequestDetails.outputs.IS_MERGED) }}
+        id: getMergeCommitShaIfUnmergedPR
+        run: |
+            git merge --no-commit ${{ steps.getPullRequestDetails.outputs.HEAD_COMMIT_SHA }}
+            echo "Merge commit:"
+            git rev-parse HEAD
+            echo "MERGE_COMMIT_SHA=$(git rev-parse HEAD)" >> "$GITHUB_OUTPUT"
+          env:
+            GITHUB_TOKEN: ${{ github.token }}
 
   buildBaseline:
     runs-on: ubuntu-latest
@@ -112,7 +112,10 @@ jobs:
           fetch-depth: 0
 
       - name: Checkout "delta ref"
-        run: git checkout ${{ needs.prepare.outputs.DELTA_REF }}
+        run: |
+          echo "Delta ref:"
+          echo ${{ needs.prepare.outputs.DELTA_REF }}
+          git checkout ${{ needs.prepare.outputs.DELTA_REF }}
         env:
           GITHUB_TOKEN: ${{ github.token }}
 
