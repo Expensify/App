@@ -27,13 +27,15 @@ const RoomHeaderAvatars = (props) => {
         return null;
     }
 
+    const sizeWithoutBorder = props.size === CONST.AVATAR_SIZE.LARGE_BORDERED ? CONST.AVATAR_SIZE.LARGE : props.size;
+
     if (props.icons.length === 1) {
         return (
             <Avatar
                 source={props.icons[0].source}
-                imageStyles={[styles.avatarLarge]}
+                imageStyles={[StyleUtils.getAvatarImageStyle(props.size)]}
                 fill={themeColors.iconSuccessFill}
-                size={CONST.AVATAR_SIZE.LARGE}
+                size={sizeWithoutBorder}
                 name={props.icons[0].name}
                 type={props.icons[0].type}
             />
@@ -48,6 +50,7 @@ const RoomHeaderAvatars = (props) => {
         // Due to border-box box-sizing, the Avatars have to be larger when bordered to visually match size with non-bordered Avatars
         StyleUtils.getAvatarStyle(props.size),
     ];
+
     return (
         <View pointerEvents="none">
             <View style={[styles.flexRow, styles.wAuto, styles.ml3]}>
@@ -56,10 +59,10 @@ const RoomHeaderAvatars = (props) => {
                         <Avatar
                             source={icon.source}
                             fill={themeColors.iconSuccessFill}
-                            size={CONST.AVATAR_SIZE.LARGE}
+                            size={sizeWithoutBorder}
                             containerStyles={[
                                 ...iconStyle,
-                                StyleUtils.getAvatarBorderRadius(CONST.AVATAR_SIZE.LARGE_BORDERED, icon.type),
+                                StyleUtils.getAvatarBorderRadius(props.size, icon.type),
                             ]}
                             name={icon.name}
                             type={icon.type}
@@ -71,7 +74,7 @@ const RoomHeaderAvatars = (props) => {
                                         styles.roomHeaderAvatarSize,
                                         styles.roomHeaderAvatar,
                                         ...iconStyle,
-                                        StyleUtils.getAvatarBorderRadius(CONST.AVATAR_SIZE.LARGE_BORDERED, icon.type),
+                                        StyleUtils.getAvatarBorderRadius(props.size, icon.type),
                                         styles.roomHeaderAvatarOverlay,
                                     ]}
                                 />
