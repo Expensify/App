@@ -318,10 +318,18 @@ function drawerGoBack(backRoute) {
     navigate(backRoute);
 }
 
+/**
+ * If the current page is opened from oldDot, we can use this to delay the task until sign-in and navigation end.
+ * @return {Promise}
+ */
 function isTransitionEnd() {
     return transitionIsEndPromise;
 }
 
+/**
+ * Perform a task after sign-in and navigation, e.g. begin the deeplink redirection
+ * @return {*}
+ */
 function setIsTransitionEnd() {
     return resolveTransitionIsEndPromise();
 }
