@@ -272,6 +272,14 @@ function getLatestReportActionFromOnyxData(onyxData) {
     return _.last(sortedReportActions);
 }
 
+/**
+ * @param {*} reportID 
+ * @returns {Object} The report preview action or `null` if one couldn't be found
+ */
+function getReportPreviewAction(reportID) {
+    return _.findWhere(allReportActions[reportID], {actionName: CONST.REPORT.ACTIONS.TYPE.REPORTPREVIEW});
+}
+
 export {
     getSortedReportActions,
     getLastVisibleAction,
@@ -284,4 +292,5 @@ export {
     getSortedReportActionsForDisplay,
     getLastClosedReportAction,
     getLatestReportActionFromOnyxData,
+    getReportPreviewAction,
 };
