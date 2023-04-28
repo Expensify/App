@@ -64,37 +64,39 @@ const MoneyRequestHeader = (props) => {
                 policies={props.policies}
                 personalDetails={props.personalDetails}
             />
-            <Text>To</Text>
-            <View style={[
-                styles.flex1,
-                styles.flexRow,
-                styles.alignItemsCenter,
-                styles.justifyContentBetween,
-            ]}
-            >
+            <View style={[styles.headerBar]}>
+                <Text style={[styles.textLabelSupporting]}>To</Text>
                 <View style={[
+                    styles.flex1,
                     styles.flexRow,
                     styles.alignItemsCenter,
                     styles.justifyContentBetween,
                 ]}
                 >
-                    <Avatar
-                        source={workspaceAvatar}
-                    />
-                    <Text
-                        style={[styles.headerText, styles.pre]}
-                        numberOfLines={1}
+                    <View style={[
+                        styles.flexRow,
+                        styles.alignItemsCenter,
+                        styles.justifyContentBetween,
+                    ]}
                     >
-                        {workspaceName}
-                    </Text>
-                </View>
-                <View>
-                    {!props.isSingleRequest && (
-                        <Text>{formattedAmount}</Text>
-                    )}
-                    {isAdmin && !isSettled && (
-                        <SettlementButton />
-                    )}
+                        <Avatar
+                            source={workspaceAvatar}
+                        />
+                        <Text
+                            style={[styles.headerText, styles.pre]}
+                            numberOfLines={1}
+                        >
+                            {workspaceName}
+                        </Text>
+                    </View>
+                    <View>
+                        {!props.isSingleRequest && (
+                            <Text>{formattedAmount}</Text>
+                        )}
+                        {isAdmin && !isSettled && (
+                            <SettlementButton />
+                        )}
+                    </View>
                 </View>
             </View>
         </View>
