@@ -72,6 +72,7 @@ describe('test workflow cla', () => {
                         workflowFile: path.join(repoPath, '.github', 'workflows'),
                         mockSteps: testMockSteps,
                         actor,
+                        logFile: utils.getLogFilePath('cla'),
                     });
 
                 assertions.assertCLAJobExecuted(result, commentBody, `${repoPath}/remote/origin`, true, false);
@@ -109,6 +110,7 @@ describe('test workflow cla', () => {
                         workflowFile: path.join(repoPath, '.github', 'workflows'),
                         mockSteps: testMockSteps,
                         actor,
+                        logFile: utils.getLogFilePath('cla'),
                     });
 
                 assertions.assertCLAJobExecuted(result, commentBody, `${repoPath}/remote/origin`, true, true);
@@ -146,6 +148,7 @@ describe('test workflow cla', () => {
                         workflowFile: path.join(repoPath, '.github', 'workflows'),
                         mockSteps: testMockSteps,
                         actor,
+                        logFile: utils.getLogFilePath('cla'),
                     });
 
                 assertions.assertCLAJobExecuted(result, commentBody, `${repoPath}/remote/origin`, true, true);
@@ -182,6 +185,7 @@ describe('test workflow cla', () => {
                         workflowFile: path.join(repoPath, '.github', 'workflows'),
                         mockSteps: testMockSteps,
                         actor,
+                        logFile: utils.getLogFilePath('cla'),
                     });
 
                 assertions.assertCLAJobExecuted(result, '', `${repoPath}/remote/origin`, true, true);
@@ -212,6 +216,7 @@ describe('test workflow cla', () => {
                     workflowFile: path.join(repoPath, '.github', 'workflows'),
                     mockSteps: testMockSteps,
                     actor,
+                    logFile: utils.getLogFilePath('cla'),
                 });
 
             assertions.assertCLAJobExecuted(result, '', `${repoPath}/remote/origin`, false);

@@ -98,3 +98,6 @@ tests/e2e/results/
 
 # Mock-github
 /repo/
+
+# Workflow test logs
+/workflow_tests/logs/

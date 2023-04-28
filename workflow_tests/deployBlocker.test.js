@@ -77,6 +77,7 @@ describe('test workflow deployBlocker', () => {
                         workflowFile: path.join(repoPath, '.github', 'workflows'),
                         mockSteps: testMockSteps,
                         actor,
+                        logFile: utils.getLogFilePath('deployBlocker'),
                     });
 
                 assertions.assertDeployBlockerJobExecuted(result, 'Labeled issue title', '1234');
@@ -113,6 +114,7 @@ describe('test workflow deployBlocker', () => {
                             workflowFile: path.join(repoPath, '.github', 'workflows'),
                             mockSteps: testMockSteps,
                             actor,
+                            logFile: utils.getLogFilePath('deployBlocker'),
                         });
 
                     assertions.assertDeployBlockerJobExecuted(result, 'Labeled issue title', '1234', true, false);
@@ -143,6 +145,7 @@ describe('test workflow deployBlocker', () => {
                         workflowFile: path.join(repoPath, '.github', 'workflows'),
                         mockSteps: testMockSteps,
                         actor,
+                        logFile: utils.getLogFilePath('deployBlocker'),
                     });
 
                 assertions.assertDeployBlockerJobExecuted(result, '', '', false);

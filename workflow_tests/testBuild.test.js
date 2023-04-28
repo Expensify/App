@@ -82,6 +82,7 @@ describe('test workflow testBuild', () => {
                     workflowFile: path.join(repoPath, '.github', 'workflows'),
                     mockSteps: testMockSteps,
                     actor,
+                    logFile: utils.getLogFilePath('testBuild'),
                 });
 
             assertions.assertValidateActorJobExecuted(result, actor, '1234');
@@ -125,6 +126,7 @@ describe('test workflow testBuild', () => {
                         workflowFile: path.join(repoPath, '.github', 'workflows'),
                         mockSteps: testMockSteps,
                         actor,
+                        logFile: utils.getLogFilePath('testBuild'),
                     });
 
                 assertions.assertValidateActorJobExecuted(result, actor, '1234');
@@ -169,6 +171,7 @@ describe('test workflow testBuild', () => {
                         workflowFile: path.join(repoPath, '.github', 'workflows'),
                         mockSteps: testMockSteps,
                         actor,
+                        logFile: utils.getLogFilePath('testBuild'),
                     });
 
                 assertions.assertValidateActorJobExecuted(result, actor, '1234');
@@ -213,6 +216,7 @@ describe('test workflow testBuild', () => {
                         workflowFile: path.join(repoPath, '.github', 'workflows'),
                         mockSteps: testMockSteps,
                         actor,
+                        logFile: utils.getLogFilePath('testBuild'),
                     });
 
                 assertions.assertValidateActorJobExecuted(result, actor, '1234');
@@ -267,6 +271,7 @@ describe('test workflow testBuild', () => {
                         workflowFile: path.join(repoPath, '.github', 'workflows'),
                         mockSteps: testMockSteps,
                         actor,
+                        logFile: utils.getLogFilePath('testBuild'),
                     });
 
                 assertions.assertValidateActorJobExecuted(result, actor, '1234');
@@ -321,6 +326,7 @@ describe('test workflow testBuild', () => {
                         workflowFile: path.join(repoPath, '.github', 'workflows'),
                         mockSteps: testMockSteps,
                         actor,
+                        logFile: utils.getLogFilePath('testBuild'),
                     });
 
                 assertions.assertValidateActorJobExecuted(result, actor, '1234');
@@ -375,6 +381,7 @@ describe('test workflow testBuild', () => {
                         workflowFile: path.join(repoPath, '.github', 'workflows'),
                         mockSteps: testMockSteps,
                         actor,
+                        logFile: utils.getLogFilePath('testBuild'),
                     });
 
                 assertions.assertValidateActorJobExecuted(result, actor, '1234');
@@ -429,6 +436,7 @@ describe('test workflow testBuild', () => {
                         workflowFile: path.join(repoPath, '.github', 'workflows'),
                         mockSteps: testMockSteps,
                         actor,
+                        logFile: utils.getLogFilePath('testBuild'),
                     });
 
                 assertions.assertValidateActorJobExecuted(result, actor, '1234');
@@ -483,6 +491,7 @@ describe('test workflow testBuild', () => {
                     workflowFile: path.join(repoPath, '.github', 'workflows'),
                     mockSteps: testMockSteps,
                     actor,
+                    logFile: utils.getLogFilePath('testBuild'),
                 });
 
             assertions.assertValidateActorJobExecuted(result, actor, '1234');
@@ -525,6 +534,7 @@ describe('test workflow testBuild', () => {
                         workflowFile: path.join(repoPath, '.github', 'workflows'),
                         mockSteps: testMockSteps,
                         actor,
+                        logFile: utils.getLogFilePath('testBuild'),
                     });
 
                 assertions.assertValidateActorJobExecuted(result, actor, '1234');
@@ -568,6 +578,7 @@ describe('test workflow testBuild', () => {
                         workflowFile: path.join(repoPath, '.github', 'workflows'),
                         mockSteps: testMockSteps,
                         actor,
+                        logFile: utils.getLogFilePath('testBuild'),
                     });
 
                 assertions.assertValidateActorJobExecuted(result, actor, '1234');
@@ -611,6 +622,7 @@ describe('test workflow testBuild', () => {
                         workflowFile: path.join(repoPath, '.github', 'workflows'),
                         mockSteps: testMockSteps,
                         actor,
+                        logFile: utils.getLogFilePath('testBuild'),
                     });
 
                 assertions.assertValidateActorJobExecuted(result, actor, '1234');
@@ -665,6 +677,7 @@ describe('test workflow testBuild', () => {
                     workflowFile: path.join(repoPath, '.github', 'workflows'),
                     mockSteps: testMockSteps,
                     actor,
+                    logFile: utils.getLogFilePath('testBuild'),
                 });
 
             assertions.assertValidateActorJobExecuted(result, actor, '1234');
@@ -707,6 +720,7 @@ describe('test workflow testBuild', () => {
                         workflowFile: path.join(repoPath, '.github', 'workflows'),
                         mockSteps: testMockSteps,
                         actor,
+                        logFile: utils.getLogFilePath('testBuild'),
                     });
 
                 assertions.assertValidateActorJobExecuted(result, actor, '1234');
@@ -750,6 +764,7 @@ describe('test workflow testBuild', () => {
                         workflowFile: path.join(repoPath, '.github', 'workflows'),
                         mockSteps: testMockSteps,
                         actor,
+                        logFile: utils.getLogFilePath('testBuild'),
                     });
 
                 assertions.assertValidateActorJobExecuted(result, actor, '1234');
@@ -793,6 +808,7 @@ describe('test workflow testBuild', () => {
                         workflowFile: path.join(repoPath, '.github', 'workflows'),
                         mockSteps: testMockSteps,
                         actor,
+                        logFile: utils.getLogFilePath('testBuild'),
                     });
 
                 assertions.assertValidateActorJobExecuted(result, actor, '1234');
@@ -847,6 +863,7 @@ describe('test workflow testBuild', () => {
                     workflowFile: path.join(repoPath, '.github', 'workflows'),
                     mockSteps: testMockSteps,
                     actor,
+                    logFile: utils.getLogFilePath('testBuild'),
                 });
 
             assertions.assertValidateActorJobExecuted(result, actor, '1234');
@@ -889,6 +906,7 @@ describe('test workflow testBuild', () => {
                         workflowFile: path.join(repoPath, '.github', 'workflows'),
                         mockSteps: testMockSteps,
                         actor,
+                        logFile: utils.getLogFilePath('testBuild'),
                     });
 
                 assertions.assertValidateActorJobExecuted(result, actor, '1234');
@@ -932,6 +950,7 @@ describe('test workflow testBuild', () => {
                         workflowFile: path.join(repoPath, '.github', 'workflows'),
                         mockSteps: testMockSteps,
                         actor,
+                        logFile: utils.getLogFilePath('testBuild'),
                     });
 
                 assertions.assertValidateActorJobExecuted(result, actor, '1234');
@@ -975,6 +994,7 @@ describe('test workflow testBuild', () => {
                         workflowFile: path.join(repoPath, '.github', 'workflows'),
                         mockSteps: testMockSteps,
                         actor,
+                        logFile: utils.getLogFilePath('testBuild'),
                     });
 
                 assertions.assertValidateActorJobExecuted(result, actor, '1234');

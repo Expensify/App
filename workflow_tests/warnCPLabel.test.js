@@ -64,6 +64,7 @@ describe('test workflow warnCPLabel', () => {
                     workflowFile: path.join(repoPath, '.github', 'workflows'),
                     mockSteps: testMockSteps,
                     actor,
+                    logFile: utils.getLogFilePath('warnCPLabel'),
                 });
 
             assertions.assertWarnCPLabelJobExecuted(result);
@@ -98,6 +99,7 @@ describe('test workflow warnCPLabel', () => {
                         workflowFile: path.join(repoPath, '.github', 'workflows'),
                         mockSteps: testMockSteps,
                         actor,
+                        logFile: utils.getLogFilePath('warnCPLabel'),
                     });
 
                 assertions.assertWarnCPLabelJobExecuted(result, true, false);
@@ -129,6 +131,7 @@ describe('test workflow warnCPLabel', () => {
                         workflowFile: path.join(repoPath, '.github', 'workflows'),
                         mockSteps: testMockSteps,
                         actor,
+                        logFile: utils.getLogFilePath('warnCPLabel'),
                     });
 
                 assertions.assertWarnCPLabelJobExecuted(result, false);

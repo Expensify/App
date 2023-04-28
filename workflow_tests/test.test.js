@@ -61,6 +61,7 @@ describe('test workflow test', () => {
                     workflowFile: path.join(repoPath, '.github', 'workflows'),
                     mockSteps: testMockSteps,
                     actor,
+                    logFile: utils.getLogFilePath('test'),
                 });
 
             assertions.assertJestJobExecuted(result);
@@ -87,6 +88,7 @@ describe('test workflow test', () => {
                         workflowFile: path.join(repoPath, '.github', 'workflows'),
                         mockSteps: testMockSteps,
                         actor: osbotifyActor,
+                        logFile: utils.getLogFilePath('test'),
                     });
 
                 assertions.assertJestJobExecuted(result, false);
@@ -120,6 +122,7 @@ describe('test workflow test', () => {
                     workflowFile: path.join(repoPath, '.github', 'workflows'),
                     mockSteps: testMockSteps,
                     actor,
+                    logFile: utils.getLogFilePath('test'),
                 });
 
             assertions.assertJestJobExecuted(result);
@@ -146,6 +149,7 @@ describe('test workflow test', () => {
                         workflowFile: path.join(repoPath, '.github', 'workflows'),
                         mockSteps: testMockSteps,
                         actor: osbotifyActor,
+                        logFile: utils.getLogFilePath('test'),
                     });
 
                 assertions.assertJestJobExecuted(result, false);
@@ -177,6 +181,7 @@ describe('test workflow test', () => {
                     workflowFile: path.join(repoPath, '.github', 'workflows'),
                     mockSteps: testMockSteps,
                     actor,
+                    logFile: utils.getLogFilePath('test'),
                 });
 
             assertions.assertJestJobExecuted(result);
@@ -203,6 +208,7 @@ describe('test workflow test', () => {
                         workflowFile: path.join(repoPath, '.github', 'workflows'),
                         mockSteps: testMockSteps,
                         actor: osbotifyActor,
+                        logFile: utils.getLogFilePath('test'),
                     });
 
                 assertions.assertJestJobExecuted(result);

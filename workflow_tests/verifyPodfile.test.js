@@ -64,6 +64,7 @@ describe('test workflow verifyPodfile', () => {
                     workflowFile: path.join(repoPath, '.github', 'workflows'),
                     mockSteps: testMockSteps,
                     actor,
+                    logFile: utils.getLogFilePath('verifyPodfile'),
                 });
 
             assertions.assertVerifyJobExecuted(result);
@@ -93,6 +94,7 @@ describe('test workflow verifyPodfile', () => {
                         workflowFile: path.join(repoPath, '.github', 'workflows'),
                         mockSteps: testMockSteps,
                         actor: osbotifyActor,
+                        logFile: utils.getLogFilePath('verifyPodfile'),
                     });
 
                 assertions.assertVerifyJobExecuted(result, false);
@@ -128,6 +130,7 @@ describe('test workflow verifyPodfile', () => {
                     workflowFile: path.join(repoPath, '.github', 'workflows'),
                     mockSteps: testMockSteps,
                     actor,
+                    logFile: utils.getLogFilePath('verifyPodfile'),
                 });
 
             assertions.assertVerifyJobExecuted(result);
@@ -157,6 +160,7 @@ describe('test workflow verifyPodfile', () => {
                         workflowFile: path.join(repoPath, '.github', 'workflows'),
                         mockSteps: testMockSteps,
                         actor: osbotifyActor,
+                        logFile: utils.getLogFilePath('verifyPodfile'),
                     });
 
                 assertions.assertVerifyJobExecuted(result, false);
