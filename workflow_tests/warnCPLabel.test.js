@@ -61,7 +61,7 @@ describe('test workflow warnCPLabel', () => {
             };
             const result = await act
                 .runEvent(event, {
-                    workflowFile: path.join(repoPath, '.github', 'workflows'),
+                    workflowFile: path.join(repoPath, '.github', 'workflows', 'warnCPLabel.yml'),
                     mockSteps: testMockSteps,
                     actor,
                     logFile: utils.getLogFilePath('warnCPLabel'),
@@ -96,7 +96,7 @@ describe('test workflow warnCPLabel', () => {
                 );
                 const result = await act
                     .runEvent(event, {
-                        workflowFile: path.join(repoPath, '.github', 'workflows'),
+                        workflowFile: path.join(repoPath, '.github', 'workflows', 'warnCPLabel.yml'),
                         mockSteps: testMockSteps,
                         actor,
                         logFile: utils.getLogFilePath('warnCPLabel'),
@@ -128,7 +128,7 @@ describe('test workflow warnCPLabel', () => {
                 };
                 const result = await act
                     .runEvent(event, {
-                        workflowFile: path.join(repoPath, '.github', 'workflows'),
+                        workflowFile: path.join(repoPath, '.github', 'workflows', 'warnCPLabel.yml'),
                         mockSteps: testMockSteps,
                         actor,
                         logFile: utils.getLogFilePath('warnCPLabel'),

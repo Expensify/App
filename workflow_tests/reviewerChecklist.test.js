@@ -52,7 +52,7 @@ describe('test workflow reviewerChecklist', () => {
             };
             const result = await act
                 .runEvent(event, {
-                    workflowFile: path.join(repoPath, '.github', 'workflows'),
+                    workflowFile: path.join(repoPath, '.github', 'workflows', 'reviewerChecklist.yml'),
                     mockSteps: testMockSteps,
                     actor,
                     logFile: utils.getLogFilePath('reviewerChecklist'),
@@ -78,7 +78,7 @@ describe('test workflow reviewerChecklist', () => {
                 };
                 const result = await act
                     .runEvent(event, {
-                        workflowFile: path.join(repoPath, '.github', 'workflows'),
+                        workflowFile: path.join(repoPath, '.github', 'workflows', 'reviewerChecklist.yml'),
                         mockSteps: testMockSteps,
                         actor: osbotifyActor,
                         logFile: utils.getLogFilePath('reviewerChecklist'),

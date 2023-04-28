@@ -71,7 +71,7 @@ describe('test workflow preDeploy', () => {
         // run an event and get the result
         const result = await act
             .runEvent('push', {
-                workflowFile: path.join(repoPath, '.github', 'workflows'),
+                workflowFile: path.join(repoPath, '.github', 'workflows', 'preDeploy.yml'),
                 mockSteps: testMockSteps,
                 actor: 'Dummy Tester',
                 logFile: utils.getLogFilePath('preDeploy'),
@@ -117,7 +117,7 @@ describe('test workflow preDeploy', () => {
         );
         let result = await act
             .runEvent('pull_request', {
-                workflowFile: path.join(repoPath, '.github', 'workflows'),
+                workflowFile: path.join(repoPath, '.github', 'workflows', 'preDeploy.yml'),
                 mockSteps: testMockSteps,
                 actor: 'Dummy Tester',
                 logFile: utils.getLogFilePath('preDeploy'),
@@ -142,7 +142,7 @@ describe('test workflow preDeploy', () => {
         );
         result = await act
             .runEvent('workflow_dispatch', {
-                workflowFile: path.join(repoPath, '.github', 'workflows'),
+                workflowFile: path.join(repoPath, '.github', 'workflows', 'preDeploy.yml'),
                 mockSteps: testMockSteps,
                 actor: 'Dummy Tester',
                 logFile: utils.getLogFilePath('preDeploy'),
@@ -195,7 +195,7 @@ describe('test workflow preDeploy', () => {
             };
             const result = await act
                 .runEvent('push', {
-                    workflowFile: path.join(repoPath, '.github', 'workflows'),
+                    workflowFile: path.join(repoPath, '.github', 'workflows', 'preDeploy.yml'),
                     mockSteps: testMockSteps,
                     actor: 'Dummy Tester',
                     logFile: utils.getLogFilePath('preDeploy'),
@@ -274,7 +274,7 @@ describe('test workflow preDeploy', () => {
             };
             const result = await act
                 .runEvent('push', {
-                    workflowFile: path.join(repoPath, '.github', 'workflows'),
+                    workflowFile: path.join(repoPath, '.github', 'workflows', 'preDeploy.yml'),
                     mockSteps: testMockSteps,
                     actor: 'Dummy Tester',
                     logFile: utils.getLogFilePath('preDeploy'),
@@ -342,7 +342,7 @@ describe('test workflow preDeploy', () => {
             };
             const result = await act
                 .runEvent('push', {
-                    workflowFile: path.join(repoPath, '.github', 'workflows'),
+                    workflowFile: path.join(repoPath, '.github', 'workflows', 'preDeploy.yml'),
                     mockSteps: testMockSteps,
                     actor: 'Dummy Tester',
                     logFile: utils.getLogFilePath('preDeploy'),
@@ -385,7 +385,7 @@ describe('test workflow preDeploy', () => {
             };
             const result = await act
                 .runEvent('push', {
-                    workflowFile: path.join(repoPath, '.github', 'workflows'),
+                    workflowFile: path.join(repoPath, '.github', 'workflows', 'preDeploy.yml'),
                     mockSteps: testMockSteps,
                     actor: 'OSBotify',
                     logFile: utils.getLogFilePath('preDeploy'),
@@ -424,7 +424,7 @@ describe('test workflow preDeploy', () => {
             };
             const result = await act
                 .runEvent('push', {
-                    workflowFile: path.join(repoPath, '.github', 'workflows'),
+                    workflowFile: path.join(repoPath, '.github', 'workflows', 'preDeploy.yml'),
                     mockSteps: testMockSteps,
                     actor: 'Dummy Tester',
                     logFile: utils.getLogFilePath('preDeploy'),
@@ -463,7 +463,7 @@ describe('test workflow preDeploy', () => {
             };
             const result = await act
                 .runEvent('push', {
-                    workflowFile: path.join(repoPath, '.github', 'workflows'),
+                    workflowFile: path.join(repoPath, '.github', 'workflows', 'preDeploy.yml'),
                     mockSteps: testMockSteps,
                     actor: 'Dummy Tester',
                     logFile: utils.getLogFilePath('preDeploy'),
@@ -502,7 +502,7 @@ describe('test workflow preDeploy', () => {
             };
             const result = await act
                 .runEvent('push', {
-                    workflowFile: path.join(repoPath, '.github', 'workflows'),
+                    workflowFile: path.join(repoPath, '.github', 'workflows', 'preDeploy.yml'),
                     mockSteps: testMockSteps,
                     actor: 'Dummy Tester',
                     logFile: utils.getLogFilePath('preDeploy'),
@@ -543,7 +543,7 @@ describe('test workflow preDeploy', () => {
                     };
                     const result = await act
                         .runEvent('push', {
-                            workflowFile: path.join(repoPath, '.github', 'workflows'),
+                            workflowFile: path.join(repoPath, '.github', 'workflows', 'preDeploy.yml'),
                             mockSteps: testMockSteps,
                             actor: 'Dummy Tester',
                             logFile: utils.getLogFilePath('preDeploy'),
@@ -583,7 +583,7 @@ describe('test workflow preDeploy', () => {
                     };
                     const result = await act
                         .runEvent('push', {
-                            workflowFile: path.join(repoPath, '.github', 'workflows'),
+                            workflowFile: path.join(repoPath, '.github', 'workflows', 'preDeploy.yml'),
                             mockSteps: testMockSteps,
                             actor: 'OSBotify',
                             logFile: utils.getLogFilePath('preDeploy'),
@@ -629,7 +629,7 @@ describe('test workflow preDeploy', () => {
                     };
                     const result = await act
                         .runEvent('push', {
-                            workflowFile: path.join(repoPath, '.github', 'workflows'),
+                            workflowFile: path.join(repoPath, '.github', 'workflows', 'preDeploy.yml'),
                             mockSteps: testMockSteps,
                             actor: 'Dummy Tester',
                             logFile: utils.getLogFilePath('preDeploy'),
@@ -672,7 +672,7 @@ describe('test workflow preDeploy', () => {
                     };
                     const result = await act
                         .runEvent('push', {
-                            workflowFile: path.join(repoPath, '.github', 'workflows'),
+                            workflowFile: path.join(repoPath, '.github', 'workflows', 'preDeploy.yml'),
                             mockSteps: testMockSteps,
                             actor: 'OSBotify',
                             logFile: utils.getLogFilePath('preDeploy'),
@@ -720,7 +720,7 @@ describe('test workflow preDeploy', () => {
                     };
                     const result = await act
                         .runEvent('push', {
-                            workflowFile: path.join(repoPath, '.github', 'workflows'),
+                            workflowFile: path.join(repoPath, '.github', 'workflows', 'preDeploy.yml'),
                             mockSteps: testMockSteps,
                             actor: 'Dummy Tester',
                             logFile: utils.getLogFilePath('preDeploy'),
@@ -764,7 +764,7 @@ describe('test workflow preDeploy', () => {
                     };
                     const result = await act
                         .runEvent('push', {
-                            workflowFile: path.join(repoPath, '.github', 'workflows'),
+                            workflowFile: path.join(repoPath, '.github', 'workflows', 'preDeploy.yml'),
                             mockSteps: testMockSteps,
                             actor: 'OSBotify',
                             logFile: utils.getLogFilePath('preDeploy'),
@@ -810,7 +810,7 @@ describe('test workflow preDeploy', () => {
                     };
                     const result = await act
                         .runEvent('push', {
-                            workflowFile: path.join(repoPath, '.github', 'workflows'),
+                            workflowFile: path.join(repoPath, '.github', 'workflows', 'preDeploy.yml'),
                             mockSteps: testMockSteps,
                             actor: 'Dummy Tester',
                             logFile: utils.getLogFilePath('preDeploy'),
@@ -854,7 +854,7 @@ describe('test workflow preDeploy', () => {
                     };
                     const result = await act
                         .runEvent('push', {
-                            workflowFile: path.join(repoPath, '.github', 'workflows'),
+                            workflowFile: path.join(repoPath, '.github', 'workflows', 'preDeploy.yml'),
                             mockSteps: testMockSteps,
                             actor: 'OSBotify',
                             logFile: utils.getLogFilePath('preDeploy'),
@@ -899,7 +899,7 @@ describe('test workflow preDeploy', () => {
             testMockSteps.updateStaging[3].mockWith = 'exit 1';
             const result = await act
                 .runEvent('push', {
-                    workflowFile: path.join(repoPath, '.github', 'workflows'),
+                    workflowFile: path.join(repoPath, '.github', 'workflows', 'preDeploy.yml'),
                     mockSteps: testMockSteps,
                     actor: 'OSBotify',
                     logFile: utils.getLogFilePath('preDeploy'),

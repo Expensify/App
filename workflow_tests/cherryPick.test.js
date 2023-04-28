@@ -63,7 +63,7 @@ describe('test workflow cherryPick', () => {
                 };
                 const result = await act
                     .runEvent(event, {
-                        workflowFile: path.join(repoPath, '.github', 'workflows'),
+                        workflowFile: path.join(repoPath, '.github', 'workflows', 'cherryPick.yml'),
                         mockSteps: testMockSteps,
                         actor,
                         logFile: utils.getLogFilePath('cherryPick'),
@@ -107,7 +107,7 @@ describe('test workflow cherryPick', () => {
                 );
                 const result = await act
                     .runEvent(event, {
-                        workflowFile: path.join(repoPath, '.github', 'workflows'),
+                        workflowFile: path.join(repoPath, '.github', 'workflows', 'cherryPick.yml'),
                         mockSteps: testMockSteps,
                         actor,
                         logFile: utils.getLogFilePath('cherryPick'),
@@ -166,7 +166,7 @@ describe('test workflow cherryPick', () => {
                                 );
                                 const result = await act
                                     .runEvent(event, {
-                                        workflowFile: path.join(repoPath, '.github', 'workflows'),
+                                        workflowFile: path.join(repoPath, '.github', 'workflows', 'cherryPick.yml'),
                                         mockSteps: testMockSteps,
                                         actor,
                                         logFile: utils.getLogFilePath('cherryPick'),
@@ -217,7 +217,7 @@ describe('test workflow cherryPick', () => {
                                 );
                                 const result = await act
                                     .runEvent(event, {
-                                        workflowFile: path.join(repoPath, '.github', 'workflows'),
+                                        workflowFile: path.join(repoPath, '.github', 'workflows', 'cherryPick.yml'),
                                         mockSteps: testMockSteps,
                                         actor,
                                         logFile: utils.getLogFilePath('cherryPick'),
@@ -271,7 +271,7 @@ describe('test workflow cherryPick', () => {
                                 );
                                 const result = await act
                                     .runEvent(event, {
-                                        workflowFile: path.join(repoPath, '.github', 'workflows'),
+                                        workflowFile: path.join(repoPath, '.github', 'workflows', 'cherryPick.yml'),
                                         mockSteps: testMockSteps,
                                         actor,
                                         logFile: utils.getLogFilePath('cherryPick'),
@@ -322,7 +322,7 @@ describe('test workflow cherryPick', () => {
                                 );
                                 const result = await act
                                     .runEvent(event, {
-                                        workflowFile: path.join(repoPath, '.github', 'workflows'),
+                                        workflowFile: path.join(repoPath, '.github', 'workflows', 'cherryPick.yml'),
                                         mockSteps: testMockSteps,
                                         actor,
                                         logFile: utils.getLogFilePath('cherryPick'),
@@ -379,7 +379,7 @@ describe('test workflow cherryPick', () => {
                                 );
                                 const result = await act
                                     .runEvent(event, {
-                                        workflowFile: path.join(repoPath, '.github', 'workflows'),
+                                        workflowFile: path.join(repoPath, '.github', 'workflows', 'cherryPick.yml'),
                                         mockSteps: testMockSteps,
                                         actor,
                                         logFile: utils.getLogFilePath('cherryPick'),
@@ -430,7 +430,7 @@ describe('test workflow cherryPick', () => {
                                 );
                                 const result = await act
                                     .runEvent(event, {
-                                        workflowFile: path.join(repoPath, '.github', 'workflows'),
+                                        workflowFile: path.join(repoPath, '.github', 'workflows', 'cherryPick.yml'),
                                         mockSteps: testMockSteps,
                                         actor,
                                         logFile: utils.getLogFilePath('cherryPick'),
@@ -484,7 +484,7 @@ describe('test workflow cherryPick', () => {
                                 );
                                 const result = await act
                                     .runEvent(event, {
-                                        workflowFile: path.join(repoPath, '.github', 'workflows'),
+                                        workflowFile: path.join(repoPath, '.github', 'workflows', 'cherryPick.yml'),
                                         mockSteps: testMockSteps,
                                         actor,
                                         logFile: utils.getLogFilePath('cherryPick'),
@@ -535,7 +535,7 @@ describe('test workflow cherryPick', () => {
                                 );
                                 const result = await act
                                     .runEvent(event, {
-                                        workflowFile: path.join(repoPath, '.github', 'workflows'),
+                                        workflowFile: path.join(repoPath, '.github', 'workflows', 'cherryPick.yml'),
                                         mockSteps: testMockSteps,
                                         actor,
                                         logFile: utils.getLogFilePath('cherryPick'),
@@ -596,7 +596,7 @@ describe('test workflow cherryPick', () => {
                                 );
                                 const result = await act
                                     .runEvent(event, {
-                                        workflowFile: path.join(repoPath, '.github', 'workflows'),
+                                        workflowFile: path.join(repoPath, '.github', 'workflows', 'cherryPick.yml'),
                                         mockSteps: testMockSteps,
                                         actor,
                                         logFile: utils.getLogFilePath('cherryPick'),
@@ -647,7 +647,7 @@ describe('test workflow cherryPick', () => {
                                 );
                                 const result = await act
                                     .runEvent(event, {
-                                        workflowFile: path.join(repoPath, '.github', 'workflows'),
+                                        workflowFile: path.join(repoPath, '.github', 'workflows', 'cherryPick.yml'),
                                         mockSteps: testMockSteps,
                                         actor,
                                         logFile: utils.getLogFilePath('cherryPick'),
@@ -701,7 +701,7 @@ describe('test workflow cherryPick', () => {
                                 );
                                 const result = await act
                                     .runEvent(event, {
-                                        workflowFile: path.join(repoPath, '.github', 'workflows'),
+                                        workflowFile: path.join(repoPath, '.github', 'workflows', 'cherryPick.yml'),
                                         mockSteps: testMockSteps,
                                         actor,
                                         logFile: utils.getLogFilePath('cherryPick'),
@@ -752,7 +752,7 @@ describe('test workflow cherryPick', () => {
                                 );
                                 const result = await act
                                     .runEvent(event, {
-                                        workflowFile: path.join(repoPath, '.github', 'workflows'),
+                                        workflowFile: path.join(repoPath, '.github', 'workflows', 'cherryPick.yml'),
                                         mockSteps: testMockSteps,
                                         actor,
                                         logFile: utils.getLogFilePath('cherryPick'),
@@ -809,7 +809,7 @@ describe('test workflow cherryPick', () => {
                                 );
                                 const result = await act
                                     .runEvent(event, {
-                                        workflowFile: path.join(repoPath, '.github', 'workflows'),
+                                        workflowFile: path.join(repoPath, '.github', 'workflows', 'cherryPick.yml'),
                                         mockSteps: testMockSteps,
                                         actor,
                                         logFile: utils.getLogFilePath('cherryPick'),
@@ -860,7 +860,7 @@ describe('test workflow cherryPick', () => {
                                 );
                                 const result = await act
                                     .runEvent(event, {
-                                        workflowFile: path.join(repoPath, '.github', 'workflows'),
+                                        workflowFile: path.join(repoPath, '.github', 'workflows', 'cherryPick.yml'),
                                         mockSteps: testMockSteps,
                                         actor,
                                         logFile: utils.getLogFilePath('cherryPick'),
@@ -914,7 +914,7 @@ describe('test workflow cherryPick', () => {
                                 );
                                 const result = await act
                                     .runEvent(event, {
-                                        workflowFile: path.join(repoPath, '.github', 'workflows'),
+                                        workflowFile: path.join(repoPath, '.github', 'workflows', 'cherryPick.yml'),
                                         mockSteps: testMockSteps,
                                         actor,
                                         logFile: utils.getLogFilePath('cherryPick'),
@@ -965,7 +965,7 @@ describe('test workflow cherryPick', () => {
                                 );
                                 const result = await act
                                     .runEvent(event, {
-                                        workflowFile: path.join(repoPath, '.github', 'workflows'),
+                                        workflowFile: path.join(repoPath, '.github', 'workflows', 'cherryPick.yml'),
                                         mockSteps: testMockSteps,
                                         actor,
                                         logFile: utils.getLogFilePath('cherryPick'),
@@ -1021,7 +1021,7 @@ describe('test workflow cherryPick', () => {
             };
             const result = await act
                 .runEvent(event, {
-                    workflowFile: path.join(repoPath, '.github', 'workflows'),
+                    workflowFile: path.join(repoPath, '.github', 'workflows', 'cherryPick.yml'),
                     mockSteps: testMockSteps,
                     actor: 'Dummy Author',
                     logFile: utils.getLogFilePath('cherryPick'),

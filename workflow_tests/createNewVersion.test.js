@@ -67,7 +67,7 @@ describe('test workflow createNewVersion', () => {
                 };
                 const result = await act
                     .runEvent(event, {
-                        workflowFile: path.join(repoPath, '.github', 'workflows'),
+                        workflowFile: path.join(repoPath, '.github', 'workflows', 'createNewVersion.yml'),
                         mockSteps: testMockSteps,
                         actor: 'Dummy Author',
                         logFile: utils.getLogFilePath('createNewVersion'),
@@ -99,7 +99,7 @@ describe('test workflow createNewVersion', () => {
                 };
                 const result = await act
                     .runEvent(event, {
-                        workflowFile: path.join(repoPath, '.github', 'workflows'),
+                        workflowFile: path.join(repoPath, '.github', 'workflows', 'createNewVersion.yml'),
                         mockSteps: testMockSteps,
                         actor: 'Dummy Author',
                         logFile: utils.getLogFilePath('createNewVersion'),
@@ -131,7 +131,7 @@ describe('test workflow createNewVersion', () => {
                 };
                 const result = await act
                     .runEvent(event, {
-                        workflowFile: path.join(repoPath, '.github', 'workflows'),
+                        workflowFile: path.join(repoPath, '.github', 'workflows', 'createNewVersion.yml'),
                         mockSteps: testMockSteps,
                         actor: 'Dummy Author',
                         logFile: utils.getLogFilePath('createNewVersion'),
@@ -172,7 +172,7 @@ describe('test workflow createNewVersion', () => {
                 );
                 const result = await act
                     .runEvent(event, {
-                        workflowFile: path.join(repoPath, '.github', 'workflows'),
+                        workflowFile: path.join(repoPath, '.github', 'workflows', 'createNewVersion.yml'),
                         mockSteps: testMockSteps,
                         actor: 'Dummy Author',
                         logFile: utils.getLogFilePath('createNewVersion'),
@@ -202,7 +202,7 @@ describe('test workflow createNewVersion', () => {
             };
             const result = await act
                 .runEvent(event, {
-                    workflowFile: path.join(repoPath, '.github', 'workflows'),
+                    workflowFile: path.join(repoPath, '.github', 'workflows', 'createNewVersion.yml'),
                     mockSteps: testMockSteps,
                     actor: 'Dummy Author',
                     logFile: utils.getLogFilePath('createNewVersion'),
