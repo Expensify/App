@@ -115,6 +115,7 @@ jobs:
         run: |
           echo "Delta ref:"
           echo ${{ needs.prepare.outputs.DELTA_REF }}
+          git checkout main
           git checkout ${{ needs.prepare.outputs.DELTA_REF }}
         env:
           GITHUB_TOKEN: ${{ github.token }}
