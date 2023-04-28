@@ -70,10 +70,11 @@ const defaultProps = {
 
 const IOUAction = (props) => {
     const launchDetailsModal = () => {
-        if (false){
-            Navigation.navigate(ROUTES.getIouDetailsRoute(props.chatReportID, props.action.originalMessage.IOUReportID));
-        } else {
+        let hasMultipleParticipants = props.chatReport.participants.length > 1;
+        if (hasMultipleParticipants){
             Navigation.navigate(ROUTES.getReportParticipantsRoute(props.chatReportID));
+        } else {
+            Navigation.navigate(ROUTES.getIouDetailsRoute(props.chatReportID, props.action.originalMessage.IOUReportID));
         }
     };
 
