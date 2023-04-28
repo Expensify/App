@@ -641,7 +641,7 @@ function getSmallSizeAvatar(avatarURL, login) {
  * @param {*} [defaultIcon]
  * @returns {Array<*>}
  */
-function getIcons(report, personalDetails, policies, defaultIcon = null) {
+function getIcons(report, personalDetails, policies = {}, defaultIcon = null) {
     const result = {
         source: '',
         type: CONST.ICON_TYPE_AVATAR,
