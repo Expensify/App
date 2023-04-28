@@ -1466,11 +1466,6 @@ const styles = {
         borderColor: themeColors.borderFocus,
     },
 
-    textInputComposeBorder: {
-        borderLeftWidth: 1,
-        borderColor: themeColors.border,
-    },
-
     chatItemComposeBox: {
         backgroundColor: themeColors.componentBG,
         borderWidth: 1,
@@ -1534,6 +1529,11 @@ const styles = {
         paddingVertical: 5,
         ...flex.flexRow,
         flex: 1,
+    },
+
+    textInputComposeBorder: {
+        borderLeftWidth: 1,
+        borderColor: themeColors.border,
     },
 
     chatItemSubmitButton: {
