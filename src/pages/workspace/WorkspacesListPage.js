@@ -203,7 +203,7 @@ class WorkspacesListPage extends Component {
                         accessibilityLabel={this.props.translate('workspace.new.newWorkspace')}
                         success
                         text={this.props.translate('workspace.new.newWorkspace')}
-                        onPress={Policy.createWorkspace}
+                        onPress={() => Policy.createWorkspace()}
                     />
                 </FixedFooter>
             </ScreenWrapper>
