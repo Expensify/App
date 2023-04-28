@@ -74,6 +74,7 @@ class SignInPage extends Component {
         // - AND the login is not the primary login
         // - AND the login is not validated
         const showUnlinkLoginForm = this.props.credentials.login
+            && this.props.account.primaryLogin
             && this.props.account.primaryLogin !== this.props.credentials.login
             && !this.props.account.validated;
 
