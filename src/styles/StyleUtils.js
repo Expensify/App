@@ -223,12 +223,10 @@ function getNavigationDrawerType(isSmallScreenWidth) {
  */
 function getZoomCursorStyle(isZoomed, isDragging) {
     if (!isZoomed) {
-        return {cursor: 'zoom-in'};
+        return styles.cursorZoomIn;
     }
 
-    return {
-        cursor: isDragging ? 'grabbing' : 'zoom-out',
-    };
+    return isDragging ? styles.cursorGrabbing : styles.cursorZoomOut;
 }
 
 /**
@@ -238,14 +236,13 @@ function getZoomCursorStyle(isZoomed, isDragging) {
  * @param {Number} zoomScale
  * @param {Number} containerHeight
  * @param {Number} containerWidth
- * @return {Object}
+ * @param {Boolean} isLoading
+ * @returns {Object | undefined}
  */
-function getZoomSizingStyle(isZoomed, imgWidth, imgHeight, zoomScale, containerHeight, containerWidth) {
-    if (imgWidth === 0 || imgHeight === 0) {
-        return {
-            height: isZoomed ? '250%' : '100%',
-            width: isZoomed ? '250%' : '100%',
-        };
+function getZoomSizingStyle(isZoomed, imgWidth, imgHeight, zoomScale, containerHeight, containerWidth, isLoading) {
+    // Hide image until finished loading to prevent showing preview with wrong dimensions
+    if (isLoading || imgWidth === 0 || imgHeight === 0) {
+        return undefined;
     }
     const top = `${Math.max((containerHeight - imgHeight) / 2, 0)}px`;
     const left = `${Math.max((containerWidth - imgWidth) / 2, 0)}px`;
@@ -586,7 +583,7 @@ function getReportActionItemStyle(isHovered = false, isLoading = false) {
             // Warning: Setting this to a non-transparent color will cause unread indicator to break on Android
             : colors.transparent,
         opacity: isLoading ? 0.5 : 1,
-        cursor: 'initial',
+        ...styles.cursorInitial,
     };
 }
 
@@ -691,6 +688,17 @@ function getThemeBackgroundColor() {
  */
 function parseStyleAsArray(styleParam) {
     return _.isArray(styleParam) ? styleParam : [styleParam];
+}
+
+/**
+ * Parse style function and return Styles object
+ * @param {Object|Object[]|Function} style
+ * @param {Object} state
+ * @returns {Object[]}
+ */
+function parseStyleFromFunction(style, state) {
+    const functionAppliedStyle = _.isFunction(style) ? style(state) : style;
+    return parseStyleAsArray(functionAppliedStyle);
 }
 
 /**
@@ -1113,6 +1121,7 @@ export {
     getPaymentMethodMenuWidth,
     getThemeBackgroundColor,
     parseStyleAsArray,
+    parseStyleFromFunction,
     combineStyles,
     getPaddingLeft,
     convertToLTR,

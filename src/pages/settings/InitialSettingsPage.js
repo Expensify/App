@@ -159,7 +159,7 @@ class InitialSettingsPage extends React.Component {
     getDefaultMenuItems() {
         const policiesAvatars = _.chain(this.props.policies)
             .filter(policy => PolicyUtils.shouldShowPolicy(policy, this.props.network.isOffline))
-            .sortBy(policy => policy.name)
+            .sortBy(policy => policy.name.toLowerCase())
             .map(policy => ({
                 source: policy.avatar || ReportUtils.getDefaultWorkspaceAvatar(policy.name),
                 name: policy.name,

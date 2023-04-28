@@ -246,14 +246,17 @@ class WorkspaceInvitePage extends React.Component {
         if (!this.validate()) {
             return;
         }
-        const logins = _.map(this.state.selectedOptions, option => option.login);
-        const filteredLogins = _.chain(logins)
-            .map(login => login.toLowerCase().trim())
-            .compact()
-            .uniq()
-            .value();
-        Policy.setWorkspaceInviteMembersDraft(this.props.route.params.policyID, filteredLogins);
-        Navigation.navigate(ROUTES.getWorkspaceInviteMessageRoute(this.props.route.params.policyID));
+
+        this.setState({shouldDisableButton: true}, () => {
+            const logins = _.map(this.state.selectedOptions, option => option.login);
+            const filteredLogins = _.chain(logins)
+                .map(login => login.toLowerCase().trim())
+                .compact()
+                .uniq()
+                .value();
+            Policy.setWorkspaceInviteMembersDraft(this.props.route.params.policyID, filteredLogins);
+            Navigation.navigate(ROUTES.getWorkspaceInviteMessageRoute(this.props.route.params.policyID));
+        });
     }
 
     /**
@@ -310,7 +313,7 @@ class WorkspaceInvitePage extends React.Component {
                                         hideSectionHeaders
                                         boldStyle
                                         shouldFocusOnSelectRow
-                                        placeholderText={this.props.translate('optionsSelector.nameEmailOrPhoneNumber')}
+                                        textInputLabel={this.props.translate('optionsSelector.nameEmailOrPhoneNumber')}
                                     />
                                 ) : (
                                     <FullScreenLoadingIndicator />
