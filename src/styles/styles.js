@@ -2312,7 +2312,7 @@ const styles = {
     magicCodeInputContainer: {
         flexDirection: 'row',
         justifyContent: 'space-between',
-        minHeight: 50,
+        minHeight: variables.inputHeight,
     },
 
     magicCodeInput: {
