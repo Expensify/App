@@ -94,6 +94,14 @@ function canUsePasswordlessLogins(betas) {
     return _.contains(betas, CONST.BETAS.PASSWORDLESS) || _.contains(betas, CONST.BETAS.ALL);
 }
 
+/**
+ * @param {Array<String>} betas
+ * @returns {Boolean}
+ */
+function canUseTasks(betas) {
+    return _.contains(betas, CONST.BETAS.TASKS) || _.contains(betas, CONST.BETAS.ALL);
+}
+
 export default {
     canUseChronos,
     canUseIOU,
@@ -105,4 +113,5 @@ export default {
     canUsePolicyRooms,
     canUsePolicyExpenseChat,
     canUsePasswordlessLogins,
+    canUseTasks,
 };

@@ -4,6 +4,7 @@ import PropTypes from 'prop-types';
 import styles from '../styles/styles';
 import * as StyleUtils from '../styles/StyleUtils';
 import Text from './Text';
+import CONST from '../CONST';
 
 const propTypes = {
     /** Is Success type */
@@ -17,6 +18,9 @@ const propTypes = {
 
     /** Text to display in the Badge */
     text: PropTypes.string.isRequired,
+
+    /** Text to display in the Badge */
+    environment: PropTypes.string,
 
     /** Styles for Badge */
     // eslint-disable-next-line react/forbid-prop-types
@@ -32,6 +36,7 @@ const defaultProps = {
     pressable: false,
     badgeStyles: [],
     onPress: undefined,
+    environment: CONST.ENVIRONMENT.DEV,
 };
 
 const Badge = (props) => {
@@ -40,7 +45,7 @@ const Badge = (props) => {
     const wrapperStyles = ({pressed}) => ([
         styles.badge,
         styles.ml2,
-        StyleUtils.getBadgeColorStyle(props.success, props.error, pressed),
+        StyleUtils.getBadgeColorStyle(props.success, props.error, pressed, props.environment === CONST.ENVIRONMENT.ADHOC),
         ...props.badgeStyles,
     ]);
 
