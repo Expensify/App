@@ -4,7 +4,6 @@ import Onyx from 'react-native-onyx';
 import lodashOrderBy from 'lodash/orderBy';
 import lodashGet from 'lodash/get';
 import Str from 'expensify-common/lib/str';
-import {parsePhoneNumber} from 'awesome-phonenumber';
 import ONYXKEYS from '../ONYXKEYS';
 import CONST from '../CONST';
 import * as ReportUtils from './ReportUtils';
@@ -31,6 +30,12 @@ let loginList;
 Onyx.connect({
     key: ONYXKEYS.LOGIN_LIST,
     callback: val => loginList = _.isEmpty(val) ? {} : val,
+});
+
+let countryCodeByIP;
+Onyx.connect({
+    key: ONYXKEYS.COUNTRY_CODE,
+    callback: val => countryCodeByIP = val || 1,
 });
 
 let preferredLocale;
@@ -129,9 +134,9 @@ function getPolicyExpenseReportOptions(report) {
  * @return {String}
  */
 function addSMSDomainIfPhoneNumber(login) {
-    const parsedPhoneNumber = parsePhoneNumber(login);
-    if (parsedPhoneNumber.possible && !Str.isValidEmail(login)) {
-        return parsedPhoneNumber.number.e164 + CONST.SMS.DOMAIN;
+    if (Str.isValidPhone(login) && !Str.isValidEmail(login)) {
+        const smsLogin = login + CONST.SMS.DOMAIN;
+        return smsLogin.includes('+') ? smsLogin : `+${countryCodeByIP}${smsLogin}`;
     }
     return login;
 }
@@ -527,8 +532,8 @@ function getOptions(reports, personalDetails, {
     let recentReportOptions = [];
     let personalDetailsOptions = [];
     const reportMapForLogins = {};
-    const parsedPhoneNumber = parsePhoneNumber(LoginUtils.appendCountryCode(searchInputValue));
-    const searchValue = parsedPhoneNumber.possible ? parsedPhoneNumber.number.e164 : searchInputValue;
+    const isPhoneNumber = CONST.REGEX.PHONE_WITH_SPECIAL_CHARS.test(searchInputValue);
+    const searchValue = isPhoneNumber ? searchInputValue.replace(CONST.REGEX.NON_NUMERIC_WITH_PLUS, '') : searchInputValue;
 
     // Filter out all the reports that shouldn't be displayed
     const filteredReports = _.filter(reports, report => ReportUtils.shouldReportBeInOptionList(
@@ -671,21 +676,25 @@ function getOptions(reports, personalDetails, {
     const noOptions = (recentReportOptions.length + personalDetailsOptions.length) === 0;
     const noOptionsMatchExactly = !_.find(personalDetailsOptions.concat(recentReportOptions), option => option.login === searchValue.toLowerCase());
 
-    if (searchValue && (noOptions || noOptionsMatchExactly)
-        && !isCurrentUser({login: searchValue})
-        && _.every(selectedOptions, option => option.login !== searchValue)
-        && ((Str.isValidEmail(searchValue) && !Str.isDomainEmail(searchValue)) || parsedPhoneNumber.possible)
-        && (!_.find(loginOptionsToExclude, loginOptionToExclude => loginOptionToExclude.login === addSMSDomainIfPhoneNumber(searchValue).toLowerCase()))
-        && (searchValue !== CONST.EMAIL.CHRONOS || Permissions.canUseChronos(betas))
+    // If the phone number doesn't have an international code then let's prefix it with the
+    // current user's international code based on their IP address.
+    const login = LoginUtils.appendCountryCode(searchValue);
+
+    if (login && (noOptions || noOptionsMatchExactly)
+        && !isCurrentUser({login})
+        && _.every(selectedOptions, option => option.login !== login)
+        && ((Str.isValidEmail(login) && !Str.isDomainEmail(login)) || Str.isValidPhone(login))
+        && (!_.find(loginOptionsToExclude, loginOptionToExclude => loginOptionToExclude.login === addSMSDomainIfPhoneNumber(login).toLowerCase()))
+        && (login !== CONST.EMAIL.CHRONOS || Permissions.canUseChronos(betas))
     ) {
-        userToInvite = createOption([searchValue], personalDetails, null, reportActions, {
+        userToInvite = createOption([login], personalDetails, null, reportActions, {
             showChatPreviewLine,
         });
 
         // If user doesn't exist, use a default avatar
         userToInvite.icons = [{
-            source: ReportUtils.getAvatar('', searchValue),
-            name: searchValue,
+            source: ReportUtils.getAvatar('', login),
+            name: login,
             type: CONST.ICON_TYPE_AVATAR,
         }];
     }
@@ -855,7 +864,7 @@ function getHeaderMessage(hasSelectableOptions, hasUserToInvite, searchValue, ma
         return Localize.translate(preferredLocale, 'common.maxParticipantsReached', {count: CONST.REPORT.MAXIMUM_PARTICIPANTS});
     }
 
-    const isValidPhone = parsePhoneNumber(LoginUtils.appendCountryCode(searchValue)).possible;
+    const isValidPhone = Str.isValidPhone(LoginUtils.appendCountryCode(searchValue));
 
     const isValidEmail = Str.isValidEmail(searchValue);
 

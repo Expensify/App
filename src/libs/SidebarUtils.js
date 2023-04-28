@@ -215,6 +215,7 @@ function getOptionData(reportID) {
         phoneNumber: null,
         payPalMeAddress: null,
         isUnread: null,
+        isUnreadWithMention: null,
         hasDraftComment: false,
         keyForList: null,
         searchText: null,
@@ -242,6 +243,7 @@ function getOptionData(reportID) {
     result.ownerEmail = report.ownerEmail;
     result.reportID = report.reportID;
     result.isUnread = ReportUtils.isUnread(report);
+    result.isUnreadWithMention = ReportUtils.isUnreadWithMention(report);
     result.hasDraftComment = report.hasDraft;
     result.isPinned = report.isPinned;
     result.iouReportID = report.iouReportID;

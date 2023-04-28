@@ -2309,6 +2309,18 @@ const styles = {
         backgroundColor: themeColors.checkBox,
     },
 
+    magicCodeInputContainer: {
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+        minHeight: variables.inputHeight,
+    },
+
+    magicCodeInput: {
+        fontSize: variables.fontSizeXLarge,
+        color: themeColors.heading,
+        lineHeight: variables.inputHeight,
+    },
+
     iouAmountText: {
         ...headlineFont,
         fontSize: variables.iouAmountTextSize,
@@ -2500,6 +2512,14 @@ const styles = {
     noSelect: {
         boxShadow: 'none',
         outline: 'none',
+    },
+
+    cursorPointer: {
+        cursor: 'pointer',
+    },
+
+    cursorText: {
+        cursor: 'text',
     },
 
     fullscreenCard: {
