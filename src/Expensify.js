@@ -27,7 +27,7 @@ import Navigation from './libs/Navigation/Navigation';
 import DeeplinkWrapper from './components/DeeplinkWrapper';
 import PopoverReportActionContextMenu from './pages/home/report/ContextMenu/PopoverReportActionContextMenu';
 import * as ReportActionContextMenu from './pages/home/report/ContextMenu/ReportActionContextMenu';
-import AnimatedSplashScreen from './components/AnimatedSplashScreen';
+import SplashScreenHider from './components/SplashScreenHider';
 import KeyboardShortcutsModal from './components/KeyboardShortcutsModal';
 
 // This lib needs to be imported, but it has nothing to export since all it contains is an Onyx connection
@@ -87,9 +87,9 @@ function Expensify(props) {
     const appStateChangeListener = useRef(null);
     const [isNavigationReady, setIsNavigationReady] = useState(false);
     const [isOnyxMigrated, setIsOnyxMigrated] = useState(false);
-    const [isStaticSplashShown, setIsStaticSplashShown] = useState(true);
 
     const isAuthenticated = useMemo(() => Boolean(lodashGet(props.session, 'authToken', null)), [props.session]);
+    const shouldHideSplash = isNavigationReady && (!isAuthenticated || props.isSidebarLoaded);
 
     const initializeClient = () => {
         if (!Visibility.isVisible()) {
@@ -159,18 +159,6 @@ function Expensify(props) {
         // eslint-disable-next-line react-hooks/exhaustive-deps -- we don't want this effect to run again
     }, []);
 
-    useEffect(() => {
-        if (!isNavigationReady || !isStaticSplashShown) {
-            return;
-        }
-
-        const shouldHideSplash = !isAuthenticated || props.isSidebarLoaded;
-
-        if (shouldHideSplash) {
-            BootSplash.hide().then(() => setIsStaticSplashShown(false));
-        }
-    }, [props.isSidebarLoaded, isNavigationReady, isStaticSplashShown, isAuthenticated]);
-
     // Display a blank page until the onyx migration completes
     if (!isOnyxMigrated) {
         return null;
@@ -178,7 +166,7 @@ function Expensify(props) {
 
     return (
         <DeeplinkWrapper>
-            {!isStaticSplashShown && (
+            {shouldHideSplash && (
                 <>
                     <KeyboardShortcutsModal />
                     <GrowlNotification ref={Growl.growlRef} />
@@ -204,7 +192,7 @@ function Expensify(props) {
                 authenticated={isAuthenticated}
             />
 
-            <AnimatedSplashScreen isReady={!isStaticSplashShown} />
+            {shouldHideSplash && <SplashScreenHider />}
         </DeeplinkWrapper>
     );
 }

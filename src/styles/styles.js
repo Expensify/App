@@ -3247,7 +3247,7 @@ const styles = {
         backgroundColor: themeColors.highlightBG,
     },
 
-    animatedSplashScreen: {
+    splashScreenHider: {
         backgroundColor: themeColors.splashBG,
         alignItems: 'center',
         justifyContent: 'center',
