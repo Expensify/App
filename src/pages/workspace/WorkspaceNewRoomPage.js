@@ -138,7 +138,10 @@ class WorkspaceNewRoomPage extends React.Component {
         }));
 
         return (
-            <ScreenWrapper includeSafeAreaPaddingBottom={false}>
+            <ScreenWrapper
+                includeSafeAreaPaddingBottom={false}
+                shouldEnablePickerAvoiding={false}
+            >
                 <HeaderWithCloseButton
                     title={this.props.translate('newRoomPage.newRoom')}
                     onCloseButtonPress={() => Navigation.dismissModal()}
