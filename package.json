@@ -91,7 +91,7 @@
     "react-content-loader": "^6.1.0",
     "react-dom": "18.1.0",
     "react-native": "https://github.com/Expensify/react-native/releases/download/v0.71.2-alpha.3/expensify-react-native-0.71.2-alpha.3.tgz",
-    "react-native-blob-util": "github:j-piasecki/react-native-blob-util#ba67c544a43a7925a060e0598d313a849fa6f612",
+    "react-native-blob-util": "^0.17.3",
     "react-native-collapsible": "^1.6.0",
     "react-native-config": "git+https://github.com/j-piasecki/react-native-config.git#dcb611cb282c99ce81d8f842801e9ebc957db32c",
     "react-native-dev-menu": "^4.1.1",
