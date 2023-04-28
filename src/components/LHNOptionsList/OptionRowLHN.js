@@ -97,6 +97,8 @@ const OptionRowLHN = (props) => {
 
     const avatarTooltips = !optionItem.isChatRoom && !optionItem.isArchivedRoom ? _.pluck(optionItem.displayNamesWithTooltips, 'tooltip') : undefined;
 
+    const hasBrickError = optionItem.brickRoadIndicator === CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR;
+
     return (
         <OfflineWithFeedback
             pendingAction={optionItem.pendingAction}
@@ -200,7 +202,7 @@ const OptionRowLHN = (props) => {
                                         </Text>
                                     </View>
                                 ) : null}
-                                {optionItem.brickRoadIndicator === CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR && (
+                                {hasBrickError && (
                                     <View style={[styles.alignItemsCenter, styles.justifyContentCenter]}>
                                         <Icon
                                             src={Expensicons.DotIndicator}
@@ -224,7 +226,8 @@ const OptionRowLHN = (props) => {
                                     <Icon src={Expensicons.Pencil} height={16} width={16} />
                                 </View>
                             )}
-                            {optionItem.hasOutstandingIOU && !optionItem.isIOUReportOwner && <Icon src={Expensicons.DotIndicator} fill={colors.green} />}
+                            {!hasBrickError
+                                && optionItem.hasOutstandingIOU && !optionItem.isIOUReportOwner && <Icon src={Expensicons.DotIndicator} fill={colors.green} />}
                             {optionItem.isPinned && (
                                 <View
                                     style={styles.ml2}
