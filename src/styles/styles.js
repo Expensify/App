@@ -1466,6 +1466,11 @@ const styles = {
         borderColor: themeColors.borderFocus,
     },
 
+    chatItemComposeBoxBorder: {
+        borderLeftWidth: 1,
+        borderColor: themeColors.border,
+    },
+
     chatItemComposeBox: {
         backgroundColor: themeColors.componentBG,
         borderWidth: 1,
@@ -1527,8 +1532,6 @@ const styles = {
     // composer padding should not be modified unless thoroughly tested against the cases in this PR: #12669
     textInputComposeSpacing: {
         paddingVertical: 5,
-        borderLeftWidth: 1,
-        borderColor: themeColors.border,
         ...flex.flexRow,
         flex: 1,
     },
