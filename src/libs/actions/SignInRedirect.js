@@ -61,7 +61,7 @@ function clearStorageAndRedirect(errorMessage) {
 function resetHomeRouteParams() {
     Navigation.isNavigationReady().then(() => {
         const routes = navigationRef.current && lodashGet(navigationRef.current.getState(), 'routes');
-        const homeRoute = lodashFind(routes, route => route.name === SCREENS.HOME);
+        const homeRoute = _.find(routes, route => route.name === SCREENS.HOME);
 
         const emptyParams = {};
         _.keys(lodashGet(homeRoute, 'params')).forEach((paramKey) => {
