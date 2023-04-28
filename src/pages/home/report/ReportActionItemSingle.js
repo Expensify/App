@@ -95,8 +95,8 @@ const ReportActionItemSingle = (props) => {
                     >
                         {props.shouldShowSubscriptAvatar ? (
                             <SubscriptAvatar
-                                mainAvatar={avatarSource}
-                                secondaryAvatar={ReportUtils.getDefaultWorkspaceAvatar(ReportUtils.getPolicyName(props.report))}
+                                mainAvatar={{source: avatarSource, type: CONST.ICON_TYPE_AVATAR}}
+                                secondaryAvatar={ReportUtils.getIcons(props.report, {})[0]}
                             />
                         ) : (
                             <Avatar
