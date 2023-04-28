@@ -63,8 +63,6 @@ const isReadyToOpenApp = new Promise((resolve) => {
     resolveIsReadyPromise = resolve;
 });
 
-console.log(">>>> initialized");
-
 function confirmReadyToOpenApp() {
     resolveIsReadyPromise();
 }
