@@ -3047,7 +3047,7 @@ const styles = {
     },
 
     fontColorReactionLabel: {
-        color: themeColors.reactionText,
+        color: themeColors.reactionSupportingText,
     },
 
     reactionEmojiTitle: {
@@ -3056,7 +3056,7 @@ const styles = {
     },
 
     textReactionSenders: {
-        color: themeColors.dark,
+        color: themeColors.reactionText,
         ...wordBreak.breakWord,
     },
 

@@ -66,7 +66,8 @@ const darkTheme = {
     imageCropBackgroundColor: colors.greenIcons,
     fallbackIconColor: colors.green700,
     reactionActive: colors.blue700,
-    reactionText: colors.greenReactionText,
+    reactionSupportingText: colors.lightSupportingText,
+    reactionText: colors.green800,
     badgeAdHoc: colors.pink600,
     badgeAdHocHover: colors.pink700,
 };

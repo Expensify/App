@@ -20,7 +20,9 @@ export default {
     greenDefaultButton: '#184E3D',
     greenDefaultButtonHover: '#2C6755',
     greenDefaultButtonPressed: '#467164',
-    greenReactionText: '#586A64',
+
+    // Light Mode Theme Colors
+    lightSupportingText: '#76847E',
 
     // Brand Colors from Figma
     blue100: '#B0D9FF',
