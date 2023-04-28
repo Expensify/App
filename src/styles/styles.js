@@ -1466,7 +1466,7 @@ const styles = {
         borderColor: themeColors.borderFocus,
     },
 
-    chatItemComposeBoxBorder: {
+    textInputComposeBorder: {
         borderLeftWidth: 1,
         borderColor: themeColors.border,
     },
