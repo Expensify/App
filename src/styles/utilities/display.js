@@ -23,5 +23,9 @@ export default {
         display: 'inline',
     },
 
+    dBlock: {
+        display: 'block',
+    },
+
     dInlineFlex,
 };
