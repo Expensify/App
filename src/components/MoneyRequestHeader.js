@@ -6,16 +6,11 @@ import iouReportPropTypes from '../pages/iouReportPropTypes';
 import withLocalize, {withLocalizePropTypes} from './withLocalize';
 import * as ReportUtils from '../libs/ReportUtils';
 import * as Expensicons from './Icon/Expensicons';
-import AvatarWithDisplayName from './AvatarWithDisplayName';
 import SettlementButton from './SettlementButton';
-import CONST from '../CONST';
 import Text from './Text';
 import participantPropTypes from './participantPropTypes';
 import Avatar from './Avatar';
 import styles from '../styles/styles';
-import {getDefaultWorkspaceAvatar, getPolicyName} from '../libs/ReportUtils';
-import lodashGet from 'lodash/get';
-import ONYXKEYS from '../ONYXKEYS';
 
 const propTypes = {
     /** The report currently being looked at */
@@ -27,15 +22,15 @@ const propTypes = {
         name: PropTypes.string,
     }).isRequired,
 
-    personalDetails: PropTypes.objectOf(participantPropTypes),
+    personalDetails: PropTypes.objectOf(participantPropTypes).isRequired,
 
-    isTransactionDetail: PropTypes.bool,
+    isSingleTransactionView: PropTypes.bool,
 
     ...withLocalizePropTypes,
 };
 
 const defaultProps = {
-    isTransactionDetail: false,
+    isSingleTransactionView: false,
 };
 
 const MoneyRequestHeader = (props) => {
@@ -90,7 +85,7 @@ const MoneyRequestHeader = (props) => {
                         </Text>
                     </View>
                     <View>
-                        {!props.isSingleRequest && (
+                        {!props.isSingleTransactionView && (
                             <Text>{formattedAmount}</Text>
                         )}
                         {isAdmin && !isSettled && (

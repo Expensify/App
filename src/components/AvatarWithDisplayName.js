@@ -16,8 +16,6 @@ import * as OptionsListUtils from '../libs/OptionsListUtils';
 import Text from './Text';
 
 const propTypes = {
-    /* Onyx Props */
-
     /** The report currently being looked at */
     report: reportPropTypes,
 
@@ -26,6 +24,9 @@ const propTypes = {
         /** Name of the policy */
         name: PropTypes.string,
     }),
+
+    /** The size of the avatar */
+    size: PropTypes.oneOf(Object.values(CONST.AVATAR_SIZE)),
 
     /** Personal details of all the users */
     personalDetails: PropTypes.objectOf(participantPropTypes),
@@ -38,6 +39,7 @@ const defaultProps = {
     personalDetails: {},
     policies: {},
     report: null,
+    size: CONST.AVATAR_SIZE.DEFAULT,
 };
 
 const AvatarWithDisplayName = (props) => {
@@ -65,10 +67,13 @@ const AvatarWithDisplayName = (props) => {
                                 secondaryAvatar={icons[1]}
                                 mainTooltip={props.report.ownerEmail}
                                 secondaryTooltip={subtitle}
+                                size={props.size}
                             />
                         ) : (
                             <Avatar
-                                source={icons[0]}
+                                size={props.size}
+                                source={icons[0].source}
+                                containerStyles={props.size === CONST.AVATAR_SIZE.SMALL ? styles.emptyAvatarSmall : styles.emptyAvatar}
                             />
                         )}
                         <View style={[styles.flex1, styles.flexColumn]}>

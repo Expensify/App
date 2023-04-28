@@ -719,6 +719,13 @@ function getIcons(report, personalDetails, policies, defaultIcon = null) {
             workspaceIcon,
         ];
     }
+    if (isIOUReport(report)) {
+        return [{
+            source: getAvatar(lodashGet(personalDetails, [report.ownerEmail, 'avatar']), report.ownerEmail),
+            name: report.ownerEmail,
+            type: CONST.ICON_TYPE_AVATAR,
+        }];
+    }
 
     const participantDetails = [];
     const participants = report.participants || [];
