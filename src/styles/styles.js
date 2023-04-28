@@ -3004,7 +3004,6 @@ const styles = {
     },
     reactionListHeaderText: {
         color: themeColors.textSupporting,
-        marginBottom: 4,
         marginLeft: 8,
         alignSelf: 'center',
     },
