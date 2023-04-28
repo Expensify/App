@@ -107,6 +107,7 @@ const ContactMethodsPage = (props) => {
         <ScreenWrapper>
             <HeaderWithBackButton
                 title={props.translate('contacts.contactMethods')}
+                onBackButtonPress={() => Navigation.navigate(ROUTES.SETTINGS_PROFILE)}
             />
             <ScrollView>
                 <View style={[styles.ph5, styles.mv3, styles.flexRow, styles.flexWrap]}>

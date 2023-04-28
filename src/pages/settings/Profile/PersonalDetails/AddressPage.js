@@ -19,6 +19,8 @@ import compose from '../../../../libs/compose';
 import AddressSearch from '../../../../components/AddressSearch';
 import CountryPicker from '../../../../components/CountryPicker';
 import StatePicker from '../../../../components/StatePicker';
+import Navigation from '../../../../libs/Navigation/Navigation';
+import ROUTES from '../../../../ROUTES';
 
 const propTypes = {
     /* Onyx Props */
@@ -150,6 +152,7 @@ class AddressPage extends Component {
             <ScreenWrapper includeSafeAreaPaddingBottom={false}>
                 <HeaderWithBackButton
                     title={this.props.translate('privatePersonalDetails.homeAddress')}
+                    onBackButtonPress={() => Navigation.navigate(ROUTES.SETTINGS_PERSONAL_DETAILS)}
                 />
                 <Form
                     style={[styles.flexGrow1, styles.ph5]}

@@ -19,6 +19,7 @@ import TextInput from '../../components/TextInput';
 import * as Session from '../../libs/actions/Session';
 import * as ErrorUtils from '../../libs/ErrorUtils';
 import ConfirmationPage from '../../components/ConfirmationPage';
+import ROUTES from '../../ROUTES';
 
 const propTypes = {
     /* Onyx Props */
@@ -148,6 +149,7 @@ class PasswordPage extends Component {
             >
                 <HeaderWithBackButton
                     title={this.props.translate('passwordPage.changePassword')}
+                    onBackButtonPress={() => Navigation.navigate(ROUTES.SETTINGS_SECURITY)}
                 />
                 {!_.isEmpty(this.props.account.success)
                     ? (

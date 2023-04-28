@@ -13,6 +13,8 @@ import * as Expensicons from '../../../components/Icon/Expensicons';
 import ONYXKEYS from '../../../ONYXKEYS';
 import * as User from '../../../libs/actions/User';
 import CONST from '../../../CONST';
+import Navigation from '../../../libs/Navigation/Navigation';
+import ROUTES from '../../../ROUTES';
 
 const greenCheckmark = {src: Expensicons.Checkmark, color: themeColors.success};
 
@@ -51,6 +53,7 @@ const PriorityModePage = (props) => {
         <ScreenWrapper includeSafeAreaPaddingBottom={false}>
             <HeaderWithBackButton
                 title={props.translate('priorityModePage.priorityMode')}
+                onBackButtonPress={() => Navigation.navigate(ROUTES.SETTINGS_PREFERENCES)}
             />
             <Text style={[styles.mh5, styles.mv4]}>
                 {props.translate('priorityModePage.explainerText')}

@@ -60,6 +60,7 @@ const ChooseTransferAccountPage = (props) => {
         <ScreenWrapper>
             <HeaderWithBackButton
                 title={props.translate('chooseTransferAccountPage.chooseAccount')}
+                onBackButtonPress={() => Navigation.navigate(ROUTES.SETTINGS_PAYMENTS_TRANSFER_BALANCE)}
             />
             <View style={[styles.mt6, styles.flexShrink1, styles.flexBasisAuto]}>
                 <PaymentMethodList

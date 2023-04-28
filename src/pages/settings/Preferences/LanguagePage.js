@@ -9,6 +9,8 @@ import styles from '../../../styles/styles';
 import themeColors from '../../../styles/themes/default';
 import * as Expensicons from '../../../components/Icon/Expensicons';
 import * as App from '../../../libs/actions/App';
+import Navigation from '../../../libs/Navigation/Navigation';
+import ROUTES from '../../../ROUTES';
 
 const greenCheckmark = {src: Expensicons.Checkmark, color: themeColors.success};
 
@@ -39,6 +41,7 @@ const LanguagePage = (props) => {
         <ScreenWrapper includeSafeAreaPaddingBottom={false}>
             <HeaderWithBackButton
                 title={props.translate('languagePage.language')}
+                onBackButtonPress={() => Navigation.navigate(ROUTES.SETTINGS_PREFERENCES)}
             />
             <OptionsList
                 sections={[{data: localesToLanguages}]}

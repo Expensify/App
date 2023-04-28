@@ -13,6 +13,8 @@ import * as PersonalDetails from '../../../../libs/actions/PersonalDetails';
 import compose from '../../../../libs/compose';
 import NewDatePicker from '../../../../components/NewDatePicker';
 import CONST from '../../../../CONST';
+import Navigation from '../../../../libs/Navigation/Navigation';
+import ROUTES from '../../../../ROUTES';
 
 const propTypes = {
     /* Onyx Props */
@@ -51,6 +53,7 @@ class DateOfBirthPage extends Component {
     }
 
     componentWillUnmount() {
+        console.log('remove listenrer');
         this.props.navigation.removeListener('focus', this.getYearFromRouteParams);
     }
 
@@ -60,6 +63,7 @@ class DateOfBirthPage extends Component {
      */
     getYearFromRouteParams() {
         const {params} = this.props.route;
+        console.log('rer', params);
         if (params && params.year) {
             this.setState({selectedYear: params.year});
         }
@@ -104,6 +108,7 @@ class DateOfBirthPage extends Component {
             <ScreenWrapper includeSafeAreaPaddingBottom={false}>
                 <HeaderWithBackButton
                     title={this.props.translate('common.dob')}
+                    onBackButtonPress={() => Navigation.navigate(ROUTES.SETTINGS_PERSONAL_DETAILS)}
                 />
                 <Form
                     style={[styles.flexGrow1, styles.ph5]}

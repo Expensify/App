@@ -15,6 +15,8 @@ import styles from '../../../styles/styles';
 import * as PersonalDetails from '../../../libs/actions/PersonalDetails';
 import compose from '../../../libs/compose';
 import * as ErrorUtils from '../../../libs/ErrorUtils';
+import ROUTES from '../../../ROUTES';
+import Navigation from '../../../libs/Navigation/Navigation';
 
 const propTypes = {
     ...withLocalizePropTypes,
@@ -78,6 +80,7 @@ class DisplayNamePage extends Component {
             <ScreenWrapper includeSafeAreaPaddingBottom={false}>
                 <HeaderWithBackButton
                     title={this.props.translate('displayNamePage.headerTitle')}
+                    onBackButtonPress={() => Navigation.navigate(ROUTES.SETTINGS_PROFILE)}
                 />
                 <Form
                     style={[styles.flexGrow1, styles.ph5]}

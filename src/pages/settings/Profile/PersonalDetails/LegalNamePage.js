@@ -14,6 +14,8 @@ import TextInput from '../../../../components/TextInput';
 import styles from '../../../../styles/styles';
 import * as PersonalDetails from '../../../../libs/actions/PersonalDetails';
 import compose from '../../../../libs/compose';
+import Navigation from '../../../../libs/Navigation/Navigation';
+import ROUTES from '../../../../ROUTES';
 
 const propTypes = {
     /* Onyx Props */
@@ -86,6 +88,7 @@ class LegalNamePage extends Component {
             <ScreenWrapper includeSafeAreaPaddingBottom={false}>
                 <HeaderWithBackButton
                     title={this.props.translate('privatePersonalDetails.legalName')}
+                    onBackButtonPress={() => Navigation.navigate(ROUTES.SETTINGS_PERSONAL_DETAILS)}
                 />
                 <Form
                     style={[styles.flexGrow1, styles.ph5]}

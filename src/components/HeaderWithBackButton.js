@@ -84,7 +84,7 @@ const defaultProps = {
     title: '',
     subtitle: '',
     onDownloadButtonPress: () => {},
-    onBackButtonPress: Navigation.goBack,
+    onBackButtonPress: console.error('onBackButtonPress is not defined'),
     onCloseButtonPress: Navigation.dismissModal,
     onThreeDotsButtonPress: () => {},
     shouldShowBorderBottom: false,

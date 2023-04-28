@@ -13,6 +13,8 @@ import themeColors from '../../../styles/themes/default';
 import * as Expensicons from '../../../components/Icon/Expensicons';
 import CONST from '../../../CONST';
 import OptionsSelector from '../../../components/OptionsSelector';
+import ROUTES from '../../../ROUTES';
+import Navigation from '../../../libs/Navigation/Navigation';
 
 const greenCheckmark = {src: Expensicons.Checkmark, color: themeColors.success};
 
@@ -124,6 +126,7 @@ class PronounsPage extends Component {
                     <>
                         <HeaderWithBackButton
                             title={this.props.translate('pronounsPage.pronouns')}
+                            onBackButtonPress={() => Navigation.navigate(ROUTES.SETTINGS_PROFILE)}
                         />
                         <Text style={styles.ph5}>
                             {this.props.translate('pronounsPage.isShownOnProfile')}

@@ -18,6 +18,8 @@ import ONYXKEYS from '../../../ONYXKEYS';
 import Form from '../../../components/Form';
 import CONST from '../../../CONST';
 import ConfirmModal from '../../../components/ConfirmModal';
+import Navigation from '../../../libs/Navigation/Navigation';
+import ROUTES from '../../../ROUTES';
 
 const propTypes = {
 
@@ -88,6 +90,7 @@ class CloseAccountPage extends Component {
             <ScreenWrapper includeSafeAreaPaddingBottom={false}>
                 <HeaderWithBackButton
                     title={this.props.translate('closeAccountPage.closeAccount')}
+                    onBackButtonPress={() => Navigation.navigate(ROUTES.SETTINGS_SECURITY)}
                 />
                 <Form
                     formID={ONYXKEYS.FORMS.CLOSE_ACCOUNT_FORM}

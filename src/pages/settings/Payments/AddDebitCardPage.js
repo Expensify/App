@@ -21,6 +21,8 @@ import AddressSearch from '../../../components/AddressSearch';
 import * as ComponentUtils from '../../../libs/ComponentUtils';
 import Form from '../../../components/Form';
 import Permissions from '../../../libs/Permissions';
+import Navigation from '../../../libs/Navigation/Navigation';
+import ROUTES from '../../../ROUTES';
 
 const propTypes = {
     /* Onyx Props */
@@ -115,6 +117,7 @@ class DebitCardPage extends Component {
             <ScreenWrapper includeSafeAreaPaddingBottom={false}>
                 <HeaderWithBackButton
                     title={this.props.translate('addDebitCardPage.addADebitCard')}
+                    onBackButtonPress={() => Navigation.navigate(ROUTES.SETTINGS_PAYMENTS)}
                 />
                 <Form
                     formID={ONYXKEYS.FORMS.ADD_DEBIT_CARD_FORM}

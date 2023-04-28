@@ -13,6 +13,8 @@ import compose from '../../../libs/compose';
 import OptionsSelector from '../../../components/OptionsSelector';
 import themeColors from '../../../styles/themes/default';
 import * as Expensicons from '../../../components/Icon/Expensicons';
+import Navigation from '../../../libs/Navigation/Navigation';
+import ROUTES from '../../../ROUTES';
 
 const greenCheckmark = {src: Expensicons.Checkmark, color: themeColors.success};
 
@@ -124,6 +126,7 @@ class TimezoneSelectPage extends Component {
                     <>
                         <HeaderWithBackButton
                             title={this.props.translate('timezonePage.timezone')}
+                            onBackButtonPress={() => Navigation.navigate(ROUTES.SETTINGS_TIMEZONE)}
                         />
                         <OptionsSelector
                             textInputLabel={this.props.translate('timezonePage.timezone')}
