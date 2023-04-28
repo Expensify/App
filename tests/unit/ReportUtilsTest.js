@@ -33,18 +33,20 @@ const policy = {
     policyID: 1,
     name: 'Vikings Policy',
 };
-const policies = {
-    [`${ONYXKEYS.COLLECTION.POLICY}${policy.policyID}`]: policy,
-};
 
 Onyx.init({keys: ONYXKEYS});
 
-beforeAll(() => waitForPromisesToResolve()
-    .then(() => Onyx.set(ONYXKEYS.PERSONAL_DETAILS, participantsPersonalDetails))
-    .then(() => Onyx.set(ONYXKEYS.SESSION, {email: currentUserEmail})));
-beforeEach(() => Onyx.set(ONYXKEYS.NVP_PREFERRED_LOCALE, CONST.LOCALES.DEFAULT).then(waitForPromisesToResolve));
-
 describe('ReportUtils', () => {
+    beforeAll(() => {
+        Onyx.multiSet({
+            [ONYXKEYS.PERSONAL_DETAILS]: participantsPersonalDetails,
+            [ONYXKEYS.SESSION]: {email: currentUserEmail},
+            [`${ONYXKEYS.COLLECTION.POLICY}${policy.policyID}`]: policy,
+        });
+        return waitForPromisesToResolve();
+    });
+    beforeEach(() => Onyx.set(ONYXKEYS.NVP_PREFERRED_LOCALE, CONST.LOCALES.DEFAULT).then(waitForPromisesToResolve));
+
     describe('getDisplayNamesWithTooltips', () => {
         test('withSingleParticipantReport', () => {
             expect(ReportUtils.getDisplayNamesWithTooltips(participantsPersonalDetails, false)).toStrictEqual([

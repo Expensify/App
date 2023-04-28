@@ -22,7 +22,6 @@ import OfflineWithFeedback from '../../../components/OfflineWithFeedback';
 import CONST from '../../../CONST';
 import SubscriptAvatar from '../../../components/SubscriptAvatar';
 import reportPropTypes from '../../reportPropTypes';
-import withPolicy from "../../workspace/withPolicy";
 
 const propTypes = {
     /** All the data of the action */

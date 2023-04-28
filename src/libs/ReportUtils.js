@@ -374,11 +374,13 @@ function getPolicyName(report) {
         return report.policyName;
     }
 
-    if (_.isEmpty(allPolicies)) {
+    console.log(1, allPolicies, _.size(allPolicies))
+    if (!allPolicies || _.size(allPolicies) === 0) {
         return Localize.translateLocal('workspace.common.unavailable');
     }
 
     const policy = allPolicies[`${ONYXKEYS.COLLECTION.POLICY}${report.policyID}`];
+    console.log(2, policy, `${ONYXKEYS.COLLECTION.POLICY}${report.policyID}`)
     if (!policy) {
         return report.oldPolicyName || Localize.translateLocal('workspace.common.unavailable');
     }
