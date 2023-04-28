@@ -110,12 +110,12 @@ jobs:
       - uses: actions/checkout@93ea575cb5d8a053eaa0ac8fa3b40d7e05a33cc8
         with:
           fetch-depth: 0
+          clean: false
 
       - name: Checkout "delta ref"
         run: |
           echo "Delta ref:"
           echo ${{ needs.prepare.outputs.DELTA_REF }}
-          git checkout main
           git checkout ${{ needs.prepare.outputs.DELTA_REF }}
         env:
           GITHUB_TOKEN: ${{ github.token }}
