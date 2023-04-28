@@ -817,7 +817,7 @@ function getDisplayNameForParticipant(login, shouldUseShortForm = false) {
 function getDisplayNamesWithTooltips(participants, isMultipleParticipantReport) {
     return _.map(participants, (participant) => {
         const displayName = getDisplayNameForParticipant(participant.login, isMultipleParticipantReport);
-        const tooltip = Str.removeSMSDomain(participant.login);
+        const tooltip = participant.login ? Str.removeSMSDomain(participant.login) : '';
 
         let pronouns = participant.pronouns;
         if (pronouns && pronouns.startsWith(CONST.PRONOUNS.PREFIX)) {
