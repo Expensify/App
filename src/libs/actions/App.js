@@ -58,6 +58,15 @@ Onyx.connect({
     callback: val => preferredLocale = val,
 });
 
+let resolveIsReadyPromise;
+const isReadyToOpenApp = new Promise((resolve) => {
+    resolveIsReadyPromise = resolve;
+});
+
+function confirmReadyToOpenApp() {
+    resolveIsReadyPromise();
+}
+
 /**
  * @param {Array} policies
  * @return {Array<String>} array of policy ids
@@ -128,36 +137,38 @@ AppState.addEventListener('change', (nextAppState) => {
  * Fetches data needed for app initialization
  */
 function openApp() {
-    // We need a fresh connection/callback here to make sure that the list of policyIDs that is sent to OpenApp is the most updated list from Onyx
-    const connectionID = Onyx.connect({
-        key: ONYXKEYS.COLLECTION.POLICY,
-        waitForCollectionCallback: true,
-        callback: (policies) => {
-            Onyx.disconnect(connectionID);
-            API.read('OpenApp', {policyIDList: getNonOptimisticPolicyIDs(policies)}, {
-                optimisticData: [
-                    {
-                        onyxMethod: CONST.ONYX.METHOD.MERGE,
-                        key: ONYXKEYS.IS_LOADING_REPORT_DATA,
-                        value: true,
-                    },
-                ],
-                successData: [
-                    {
-                        onyxMethod: CONST.ONYX.METHOD.MERGE,
-                        key: ONYXKEYS.IS_LOADING_REPORT_DATA,
-                        value: false,
-                    },
-                ],
-                failureData: [
-                    {
-                        onyxMethod: CONST.ONYX.METHOD.MERGE,
-                        key: ONYXKEYS.IS_LOADING_REPORT_DATA,
-                        value: false,
-                    },
-                ],
-            });
-        },
+    isReadyToOpenApp.then(() => {
+        // We need a fresh connection/callback here to make sure that the list of policyIDs that is sent to OpenApp is the most updated list from Onyx
+        const connectionID = Onyx.connect({
+            key: ONYXKEYS.COLLECTION.POLICY,
+            waitForCollectionCallback: true,
+            callback: (policies) => {
+                Onyx.disconnect(connectionID);
+                API.read('OpenApp', {policyIDList: getNonOptimisticPolicyIDs(policies)}, {
+                    optimisticData: [
+                        {
+                            onyxMethod: CONST.ONYX.METHOD.MERGE,
+                            key: ONYXKEYS.IS_LOADING_REPORT_DATA,
+                            value: true,
+                        },
+                    ],
+                    successData: [
+                        {
+                            onyxMethod: CONST.ONYX.METHOD.MERGE,
+                            key: ONYXKEYS.IS_LOADING_REPORT_DATA,
+                            value: false,
+                        },
+                    ],
+                    failureData: [
+                        {
+                            onyxMethod: CONST.ONYX.METHOD.MERGE,
+                            key: ONYXKEYS.IS_LOADING_REPORT_DATA,
+                            value: false,
+                        },
+                    ],
+                });
+            },
+        });
     });
 }
 
@@ -294,4 +305,5 @@ export {
     openProfile,
     openApp,
     reconnectApp,
+    confirmReadyToOpenApp,
 };
