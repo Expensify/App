@@ -906,11 +906,11 @@ const CONST = {
 
     LOCALES: {
         EN: 'en',
-        ES_ES: 'es-ES',
         ES: 'es',
+        ES_ES: 'es-ES',
+        ES_ES_ONFIDO: 'es_ES',
 
         DEFAULT: 'en',
-        ES_ES_ONFIDO: 'es_ES',
     },
 
     POLICY: {
