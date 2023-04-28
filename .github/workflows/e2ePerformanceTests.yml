@@ -56,12 +56,11 @@ jobs:
     runs-on: ubuntu-latest
     name: Build apk from delta ref
     outputs:
-      DELTA_REF: ${{ steps.getMergeCommitShaIfMergedPR.outputs.MERGE_COMMIT_SHA || steps.getMergeCommitShaIfUnmergedPR.outputs.MERGE_COMMIT_SHA }}
+      DELTA_REF: ${{ steps.setDeltaRef.outputs.DELTA_REF }}
     steps:
       - uses: actions/checkout@93ea575cb5d8a053eaa0ac8fa3b40d7e05a33cc8
         with:
           fetch-depth: 0
-          clean: false
 
       - name: Get pull request details
         id: getPullRequestDetails
@@ -79,44 +78,44 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ github.token }}
   
-      - name: Unmerged PR - Checkout main and set dummy git credentials
-        if: ${{ !fromJSON(steps.getPullRequestDetails.outputs.IS_MERGED) }}
-        run: |
-          git checkout main
-          git config --global user.email "test@test.com"
-          git config --global user.name "Test"
-  
       - name: Unmerged PR - Fetch changes from forked repository if necessary
         if: ${{ !fromJSON(steps.getPullRequestDetails.outputs.IS_MERGED) && (steps.getPullRequestDetails.outputs.FORKED_REPO_URL != '') }}
         run: |
           git remote add pr_remote ${{ steps.getPullRequestDetails.outputs.FORKED_REPO_URL }}
           git fetch pr_remote
+
+      - name: Unmerged PR - Set dummy git credentials before merging
+        if: ${{ !fromJSON(steps.getPullRequestDetails.outputs.IS_MERGED) }}
+        run: |
+          git config --global user.email "test@test.com"
+          git config --global user.name "Test"
   
       - name: Unmerged PR - Merge pull request locally and get merge commit sha
         if: ${{ !fromJSON(steps.getPullRequestDetails.outputs.IS_MERGED) }}
         id: getMergeCommitShaIfUnmergedPR
         run: |
           git merge --no-commit ${{ steps.getPullRequestDetails.outputs.HEAD_COMMIT_SHA }}
-          echo "Checkout commit after merge:"
           git checkout ${{ steps.getPullRequestDetails.outputs.HEAD_COMMIT_SHA }}
           echo "MERGE_COMMIT_SHA=$(git rev-parse HEAD)" >> "$GITHUB_OUTPUT"
         env:
           GITHUB_TOKEN: ${{ github.token }}
 
-      - name: Checkout "delta ref"
+      - name: Determine "delta ref"
+        id: setDeltaRef
         run: |
           echo "Delta if PR merged ${{ steps.getMergeCommitShaIfMergedPR.outputs.MERGE_COMMIT_SHA}}":
           echo "Delta if PR unmerged ${{ steps.getMergeCommitShaIfUnmergedPR.outputs.MERGE_COMMIT_SHA}}":
-          echo "Delta ref:"
-          echo ${{ steps.getMergeCommitShaIfMergedPR.outputs.MERGE_COMMIT_SHA || steps.getMergeCommitShaIfUnmergedPR.outputs.MERGE_COMMIT_SHA }}
-          git checkout ${{ steps.getMergeCommitShaIfMergedPR.outputs.MERGE_COMMIT_SHA || steps.getMergeCommitShaIfUnmergedPR.outputs.MERGE_COMMIT_SHA }}
+          echo "DELTA_REF=${{ steps.getMergeCommitShaIfMergedPR.outputs.MERGE_COMMIT_SHA || steps.getMergeCommitShaIfUnmergedPR.outputs.MERGE_COMMIT_SHA }}" >> "$GITHUB_OUTPUT"
         env:
           GITHUB_TOKEN: ${{ github.token }}
+
+      - name: Checkout "delta ref"
+        run: git checkout ${{ steps.setDeltaRef.outputs.DELTA_REF }}
 
       - name: Build APK
         uses: Expensify/App/.github/actions/composite/buildAndroidAPK@main
         with:
-          ARTIFACT_NAME: delta-apk-${{ steps.getMergeCommitShaIfMergedPR.outputs.MERGE_COMMIT_SHA || steps.getMergeCommitShaIfUnmergedPR.outputs.MERGE_COMMIT_SHA }}
+          ARTIFACT_NAME: delta-apk-${{ steps.setDeltaRef.outputs.DELTA_REF }}
 
   runTestsInAWS:
     runs-on: ubuntu-latest
