@@ -667,6 +667,7 @@ function getSmallSizeAvatar(avatarURL, login) {
  *
  * @param {Object} report
  * @param {Object} personalDetails
+ * @param {*} [defaultIcon]
  * @returns {Array<*>}
  */
 function getIcons(report, personalDetails, defaultIcon = null) {
