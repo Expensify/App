@@ -1,3 +1,4 @@
+import _ from 'underscore';
 import CONFIG from '../CONFIG';
 import Log from './Log';
 import NetworkConnection from './NetworkConnection';
@@ -12,7 +13,10 @@ const multiEventCallbackMapping = {};
  * @param {Function} callback
  */
 function subscribeToMultiEvent(eventType, callback) {
-
+    if (!multiEventCallbackMapping[eventType]) {
+        multiEventCallbackMapping[eventType] = [];
+    }
+    multiEventCallbackMapping[eventType].push(callback);
 }
 
 /**
@@ -20,7 +24,10 @@ function subscribeToMultiEvent(eventType, callback) {
  * @param {Mixed} data
  */
 function triggerMultiEventHandler(eventType, data) {
-
+    if (!multiEventCallbackMapping[eventType] || multiEventCallbackMapping[eventType].length === 0) {
+        return;
+    }
+    _.each(multiEventCallbackMapping[eventType], callback => callback(data));
 }
 
 /**
