@@ -184,7 +184,7 @@ class Tooltip extends PureComponent {
             <>
                 {this.state.isRendered && (
                     <TooltipRenderedOnPageBody
-                        key={[this.props.text]}
+                        key={[this.props.text, ...this.props.renderTooltipContentKey]}
                         animation={this.animation}
                         windowWidth={this.props.windowWidth}
                         xOffset={this.state.xOffset}
