@@ -22,6 +22,9 @@ function formatPhoneNumber(number) {
 
     // return the string untouched if it's not a phone number
     if (!parsedPhoneNumber.valid) {
+        if (parsedPhoneNumber.number && parsedPhoneNumber.number.international) {
+            return parsedPhoneNumber.number.international;
+        }
         return numberWithoutSMSDomain;
     }
 

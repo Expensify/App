@@ -5,13 +5,15 @@ import waitForPromisesToResolve from '../utils/waitForPromisesToResolve';
 
 const ES_NUMBER = '+34702474537';
 const US_NUMBER = '+18332403627';
+const INVALID_NUMBER = '+4818332403627';
+const EMAIL_LOGIN = 'user@test.com';
 
 describe('LocalePhoneNumber utils', () => {
     beforeAll(() => Onyx.init({
         keys: ONYXKEYS,
     }));
 
-    describe('formatPhoneNumber function - when the current user has a phone number', () => {
+    describe('formatPhoneNumber function', () => {
         beforeEach(() => Onyx.multiSet({
             [ONYXKEYS.SESSION]: {email: 'current@user.com'},
             [ONYXKEYS.COUNTRY_CODE]: 1,
@@ -25,6 +27,14 @@ describe('LocalePhoneNumber utils', () => {
 
         it('should display a number from another region formatted internationally', () => {
             expect(LocalePhoneNumber.formatPhoneNumber(ES_NUMBER)).toBe('+34 702 47 45 37');
+        });
+
+        it('should display a number with a space after the region code if the phone number is not valid', () => {
+            expect(LocalePhoneNumber.formatPhoneNumber(INVALID_NUMBER)).toBe('+48 18332403627');
+        });
+
+        it('should display unchanged text if the string passed to the function is not a phone number', () => {
+            expect(LocalePhoneNumber.formatPhoneNumber(EMAIL_LOGIN)).toBe('user@test.com');
         });
     });
 });
