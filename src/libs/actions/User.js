@@ -486,9 +486,8 @@ function triggerNotifications(onyxUpdates) {
 /**
  * Handles the newest events from Pusher where a single mega multipleEvents contains
  * an array of singular events all in one event
- * @param {String} pusherChannelName
  */
-function subscribeToUserEventsUsingMultipleEventType(pusherChannelName) {
+function subscribeToUserEventsUsingMultipleEventType() {
     // Handles the mega multipleEvents from Pusher which contains an array of single events.
     // Each single event is passed to PusherUtils in order to trigger the callbacks for that event
     PusherUtils.subscribeToPrivateUserChannelEvent(Pusher.TYPE.MULTIPLE_EVENTS, currentUserAccountID, (pushJSON) => {
@@ -511,9 +510,10 @@ function subscribeToUserEventsUsingMultipleEventType(pusherChannelName) {
  * and should not be updated. Once the server is sending all pusher events using the multipleEvents type,
  * then this code can be removed. This will be handled in https://github.com/Expensify/Expensify/issues/279347
  * @deprecated
- * @param {String} pusherChannelName
  */
-function subscribeToUserDeprecatedEvents(pusherChannelName) {
+function subscribeToUserDeprecatedEvents() {
+    const pusherChannelName = `${CONST.PUSHER.PRIVATE_USER_CHANNEL_PREFIX}${currentUserAccountID}${CONFIG.PUSHER.SUFFIX}`;
+
     // Receive any relevant Onyx updates from the server
     PusherUtils.subscribeToPrivateUserChannelEvent(Pusher.TYPE.ONYX_API_UPDATE, currentUserAccountID, (pushJSON) => {
         SequentialQueue.getCurrentRequest().then(() => {
@@ -562,9 +562,8 @@ function subscribeToUserEvents() {
         return;
     }
 
-    const pusherChannelName = `${CONST.PUSHER.PRIVATE_USER_CHANNEL_PREFIX}${currentUserAccountID}${CONFIG.PUSHER.SUFFIX}`;
-    subscribeToUserEventsUsingMultipleEventType(pusherChannelName);
-    subscribeToUserDeprecatedEvents(pusherChannelName);
+    subscribeToUserEventsUsingMultipleEventType();
+    subscribeToUserDeprecatedEvents();
 }
 
 /**
