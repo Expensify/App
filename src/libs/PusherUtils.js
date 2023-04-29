@@ -1,4 +1,3 @@
-import _ from 'underscore';
 import CONFIG from '../CONFIG';
 import Log from './Log';
 import NetworkConnection from './NetworkConnection';
