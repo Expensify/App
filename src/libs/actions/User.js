@@ -513,6 +513,15 @@ function subscribeToUserEventsUsingMultipleEventType() {
     PusherUtils.subscribeToMultiEvent(Pusher.TYPE.MULTIPLE_EVENT_TYPE.SCREEN_SHARE_REQUEST, (pushJSON) => {
         Onyx.merge(ONYXKEYS.SCREEN_SHARE_REQUEST, pushJSON);
     });
+
+    // Handle Expensify Card approval flow updates
+    PusherUtils.subscribeToMultiEvent(Pusher.TYPE.MULTIPLE_EVENT_TYPE.EXPENSIFY_CARD_UPDATE, (pushJSON) => {
+        if (pushJSON.isUsingExpensifyCard) {
+            Onyx.merge(ONYXKEYS.USER, {isUsingExpensifyCard: pushJSON.isUsingExpensifyCard, isCheckingDomain: null});
+        } else {
+            Onyx.merge(ONYXKEYS.USER, {isCheckingDomain: pushJSON.isCheckingDomain});
+        }
+    });
 }
 
 /**
@@ -561,36 +570,11 @@ function subscribeToUserDeprecatedEvents() {
                 {error, pusherChannelName, eventName: Pusher.TYPE.SCREEN_SHARE_REQUEST},
             );
         });
-}
-
-/**
- * Initialize our pusher subscription to listen for user changes
- */
-function subscribeToUserEvents() {
-    // If we don't have the user's accountID yet we can't subscribe so return early
-    if (!currentUserAccountID) {
-        return;
-    }
-
-    subscribeToUserEventsUsingMultipleEventType();
-    subscribeToUserDeprecatedEvents();
-}
-
-/**
- * Subscribes to Expensify Card updates when checking loginList for private domains
- */
-function subscribeToExpensifyCardUpdates() {
-    if (!currentUserAccountID) {
-        return;
-    }
-
-    const pusherChannelName = `${CONST.PUSHER.PRIVATE_USER_CHANNEL_PREFIX}${currentUserAccountID}${CONFIG.PUSHER.SUFFIX}`;
 
     // Handle Expensify Card approval flow updates
     Pusher.subscribe(pusherChannelName, Pusher.TYPE.EXPENSIFY_CARD_UPDATE, (pushJSON) => {
         if (pushJSON.isUsingExpensifyCard) {
             Onyx.merge(ONYXKEYS.USER, {isUsingExpensifyCard: pushJSON.isUsingExpensifyCard, isCheckingDomain: null});
-            Pusher.unsubscribe(pusherChannelName, Pusher.TYPE.EXPENSIFY_CARD_UPDATE);
         } else {
             Onyx.merge(ONYXKEYS.USER, {isCheckingDomain: pushJSON.isCheckingDomain});
         }
@@ -605,6 +589,19 @@ function subscribeToExpensifyCardUpdates() {
                 {error, pusherChannelName, eventName: Pusher.TYPE.EXPENSIFY_CARD_UPDATE},
             );
         });
+}
+
+/**
+ * Initialize our pusher subscription to listen for user changes
+ */
+function subscribeToUserEvents() {
+    // If we don't have the user's accountID yet we can't subscribe so return early
+    if (!currentUserAccountID) {
+        return;
+    }
+
+    subscribeToUserEventsUsingMultipleEventType();
+    subscribeToUserDeprecatedEvents();
 }
 
 /**
@@ -739,7 +736,6 @@ export {
     updatePreferredSkinTone,
     setShouldUseStagingServer,
     clearUserErrorMessage,
-    subscribeToExpensifyCardUpdates,
     updateFrequentlyUsedEmojis,
     joinScreenShare,
     clearScreenShareRequest,
