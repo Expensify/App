@@ -13,10 +13,7 @@ const multiEventCallbackMapping = {};
  * @param {Function} callback
  */
 function subscribeToMultiEvent(eventType, callback) {
-    if (!multiEventCallbackMapping[eventType]) {
-        multiEventCallbackMapping[eventType] = [];
-    }
-    multiEventCallbackMapping[eventType].push(callback);
+    multiEventCallbackMapping[eventType] = callback;
 }
 
 /**
@@ -24,10 +21,10 @@ function subscribeToMultiEvent(eventType, callback) {
  * @param {Mixed} data
  */
 function triggerMultiEventHandler(eventType, data) {
-    if (!multiEventCallbackMapping[eventType] || multiEventCallbackMapping[eventType].length === 0) {
+    if (!multiEventCallbackMapping[eventType]) {
         return;
     }
-    _.each(multiEventCallbackMapping[eventType], callback => callback(data));
+    multiEventCallbackMapping[eventType](data);
 }
 
 /**
