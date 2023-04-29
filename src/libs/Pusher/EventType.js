@@ -12,5 +12,7 @@ export default {
     MULTIPLE_EVENTS: 'multipleEvents',
     MULTIPLE_EVENT_TYPE: {
         ONYX_API_UPDATE: 'onyxApiUpdate',
+        PREFERRED_LOCALE: 'preferredLocale',
+        SCREEN_SHARE_REQUEST: 'screenshareRequest',
     },
 };

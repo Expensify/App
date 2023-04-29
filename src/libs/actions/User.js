@@ -503,6 +503,16 @@ function subscribeToUserEventsUsingMultipleEventType() {
             triggerNotifications(pushJSON);
         });
     });
+
+    // Handles updates to the user's preferred locale
+    PusherUtils.subscribeToMultiEvent(Pusher.TYPE.MULTIPLE_EVENT_TYPE.PREFERRED_LOCALE, (pushJSON) => {
+        Onyx.merge(ONYXKEYS.NVP_PREFERRED_LOCALE, pushJSON.preferredLocale);
+    });
+
+    // Handles screenshare requests sent by GuidesPlus agents
+    PusherUtils.subscribeToMultiEvent(Pusher.TYPE.MULTIPLE_EVENT_TYPE.SCREEN_SHARE_REQUEST, (pushJSON) => {
+        Onyx.merge(ONYXKEYS.SCREEN_SHARE_REQUEST, pushJSON);
+    });
 }
 
 /**
