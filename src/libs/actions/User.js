@@ -484,16 +484,36 @@ function triggerNotifications(onyxUpdates) {
 }
 
 /**
- * Initialize our pusher subscription to listen for user changes
+ * Handles the newest events from Pusher where a single mega multipleEvents contains
+ * an array of singular events all in one event
+ * @param {String} pusherChannelName
  */
-function subscribeToUserEvents() {
-    // If we don't have the user's accountID yet we can't subscribe so return early
-    if (!currentUserAccountID) {
-        return;
-    }
+function subscribeToUserEventsUsingMultipleEventType(pusherChannelName) {
+    // Handles the mega multipleEvents from Pusher which contains an array of single events.
+    // Each single event is passed to PusherUtils in order to trigger the callbacks for that event
+    PusherUtils.subscribeToPrivateUserChannelEvent(Pusher.TYPE.MULTIPLE_EVENTS, currentUserAccountID, (pushJSON) => {
+        _.each(pushJSON.multipleEvents, (multipleEvent) => {
+            PusherUtils.triggerMultiEventHandler(multipleEvent.eventType, multipleEvent.data);
+        });
+    });
 
-    const pusherChannelName = `${CONST.PUSHER.PRIVATE_USER_CHANNEL_PREFIX}${currentUserAccountID}${CONFIG.PUSHER.SUFFIX}`;
+    // Handles Onyx updates coming from Pusher through the mega multipleEvents.
+    PusherUtils.subscribeToMultiEvent(Pusher.TYPE.MULTIPLE_EVENT_TYPE.ONYX_API_UPDATE, (pushJSON) => {
+        SequentialQueue.getCurrentRequest().then(() => {
+            Onyx.update(pushJSON);
+            triggerNotifications(pushJSON);
+        });
+    });
+}
 
+/**
+ * Handles the older Pusher events where each event was pushed separately. This is considered legacy code
+ * and should not be updated. Once the server is sending all pusher events using the multipleEvents type,
+ * then this code can be removed. This will be handled in https://github.com/Expensify/Expensify/issues/279347
+ * @deprecated
+ * @param {String} pusherChannelName
+ */
+function subscribeToUserDeprecatedEvents(pusherChannelName) {
     // Receive any relevant Onyx updates from the server
     PusherUtils.subscribeToPrivateUserChannelEvent(Pusher.TYPE.ONYX_API_UPDATE, currentUserAccountID, (pushJSON) => {
         SequentialQueue.getCurrentRequest().then(() => {
@@ -531,6 +551,20 @@ function subscribeToUserEvents() {
                 {error, pusherChannelName, eventName: Pusher.TYPE.SCREEN_SHARE_REQUEST},
             );
         });
+}
+
+/**
+ * Initialize our pusher subscription to listen for user changes
+ */
+function subscribeToUserEvents() {
+    // If we don't have the user's accountID yet we can't subscribe so return early
+    if (!currentUserAccountID) {
+        return;
+    }
+
+    const pusherChannelName = `${CONST.PUSHER.PRIVATE_USER_CHANNEL_PREFIX}${currentUserAccountID}${CONFIG.PUSHER.SUFFIX}`;
+    subscribeToUserEventsUsingMultipleEventType(pusherChannelName);
+    subscribeToUserDeprecatedEvents(pusherChannelName);
 }
 
 /**
