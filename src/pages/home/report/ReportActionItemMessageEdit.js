@@ -5,6 +5,7 @@ import {InteractionManager, Keyboard, View} from 'react-native';
 import PropTypes from 'prop-types';
 import _ from 'underscore';
 import ExpensiMark from 'expensify-common/lib/ExpensiMark';
+import Str from 'expensify-common/lib/str';
 import reportActionPropTypes from './reportActionPropTypes';
 import styles from '../../../styles/styles';
 import Composer from '../../../components/Composer';
@@ -81,8 +82,13 @@ class ReportActionItemMessageEdit extends React.Component {
         this.emojiButtonID = 'emojiButton';
         this.messageEditInput = 'messageEditInput';
 
-        const parser = new ExpensiMark();
-        const draftMessage = parser.htmlToMarkdown(this.props.draftMessage).trim();
+        let draftMessage;
+        if (this.props.draftMessage === this.props.action.message[0].html) {
+            const parser = new ExpensiMark();
+            draftMessage = parser.htmlToMarkdown(this.props.draftMessage).trim();
+        } else {
+            draftMessage = Str.htmlDecode(this.props.draftMessage);
+        }
 
         this.state = {
             draft: draftMessage,
@@ -147,7 +153,7 @@ class ReportActionItemMessageEdit extends React.Component {
         // This component is rendered only when draft is set to a non-empty string. In order to prevent component
         // unmount when user deletes content of textarea, we set previous message instead of empty string.
         if (newDraft.trim().length > 0) {
-            this.debouncedSaveDraft(newDraft);
+            this.debouncedSaveDraft(_.escape(newDraft));
         } else {
             this.debouncedSaveDraft(this.props.action.message[0].html);
         }
