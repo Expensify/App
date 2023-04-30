@@ -96,6 +96,7 @@ const OptionRowLHN = (props) => {
     const focusedBackgroundColor = styles.sidebarLinkActive.backgroundColor;
 
     const avatarTooltips = !optionItem.isChatRoom && !optionItem.isArchivedRoom ? _.pluck(optionItem.displayNamesWithTooltips, 'tooltip') : undefined;
+    const shouldShowGreenDotIndicator = optionItem.isUnreadWithMention || (optionItem.hasOutstandingIOU && !optionItem.isIOUReportOwner);
 
     return (
         <OfflineWithFeedback
@@ -224,7 +225,7 @@ const OptionRowLHN = (props) => {
                                     <Icon src={Expensicons.Pencil} height={16} width={16} />
                                 </View>
                             )}
-                            {optionItem.hasOutstandingIOU && !optionItem.isIOUReportOwner && <Icon src={Expensicons.DotIndicator} fill={colors.green} />}
+                            {shouldShowGreenDotIndicator && <Icon src={Expensicons.DotIndicator} fill={themeColors.success} />}
                             {optionItem.isPinned && (
                                 <View
                                     style={styles.ml2}

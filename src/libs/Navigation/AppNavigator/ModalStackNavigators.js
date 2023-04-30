@@ -478,6 +478,13 @@ const SettingsModalStackNavigator = createModalStackNavigator([
     },
     {
         getComponent: () => {
+            const WorkspaceInviteMessagePage = require('../../../pages/workspace/WorkspaceInviteMessagePage').default;
+            return WorkspaceInviteMessagePage;
+        },
+        name: 'Workspace_Invite_Message',
+    },
+    {
+        getComponent: () => {
             const WorkspaceNewRoomPage = require('../../../pages/workspace/WorkspaceNewRoomPage').default;
             return WorkspaceNewRoomPage;
         },
