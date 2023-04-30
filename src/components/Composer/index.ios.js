@@ -4,7 +4,6 @@ import PropTypes from 'prop-types';
 import _ from 'underscore';
 import RNTextInput from '../RNTextInput';
 import themeColors from '../../styles/themes/default';
-import CONST from '../../CONST';
 import * as ComposerUtils from '../../libs/ComposerUtils';
 
 const propTypes = {
@@ -105,12 +104,12 @@ class Composer extends React.Component {
             <RNTextInput
                 autoComplete="off"
                 placeholderTextColor={themeColors.placeholderText}
+                maxHeight={this.props.isComposerFullSize ? '100%' : undefined}
                 ref={el => this.textInput = el}
                 onContentSizeChange={e => ComposerUtils.updateNumberOfLines(this.props, e)}
                 rejectResponderTermination={false}
                 textAlignVertical="center"
                 style={this.state.propStyles}
-                numberOfLines={this.props.isComposerFullSize ? CONST.COMPOSER.MAX_LINES : undefined}
                 maximumNumberOfLines={!this.props.isComposerFullSize ? this.props.maxLines : undefined}
                 /* eslint-disable-next-line react/jsx-props-no-spreading */
                 {...propsToPass}

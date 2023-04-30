@@ -15,7 +15,6 @@ import Clipboard from '../../libs/Clipboard';
 import withWindowDimensions, {windowDimensionsPropTypes} from '../withWindowDimensions';
 import compose from '../../libs/compose';
 import styles from '../../styles/styles';
-import CONST from '../../CONST';
 
 const propTypes = {
     /** Maximum number of lines in the text input */
