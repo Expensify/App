@@ -346,10 +346,10 @@ class Composer extends React.Component {
             + parseInt(computedStyle.paddingTop, 10);
 
             const computedNumberOfLines = ComposerUtils.getNumberOfLines(
-                this.props.isComposerFullSize
-                    ? CONST.COMPOSER.MAX_LINES
-                    : this.props.maxLines,
-                lineHeight, paddingTopAndBottom, this.textInput.scrollHeight,
+                this.props.maxLines,
+                lineHeight,
+                paddingTopAndBottom,
+                this.textInput.scrollHeight,
             );
             const numberOfLines = computedNumberOfLines === 0 ? this.props.numberOfLines : computedNumberOfLines;
             updateIsFullComposerAvailable(this.props, numberOfLines);
