@@ -204,6 +204,7 @@ function requestMoney(report, amount, currency, recipientEmail, participant, com
         transactionID: optimisticReportAction.originalMessage.IOUTransactionID,
         reportActionID: optimisticReportAction.reportActionID,
         createdReportActionID: isNewChat ? optimisticCreatedAction.reportActionID : 0,
+        policyID: ReportUtils.isPolicyExpenseChat(report) ? chatReport.policyID : '',
     }, {optimisticData, successData, failureData});
     Navigation.navigate(ROUTES.getReportRoute(chatReport.reportID));
 }
