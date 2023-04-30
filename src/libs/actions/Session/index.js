@@ -92,7 +92,7 @@ function resendValidationLink(login = credentials.login) {
         key: ONYXKEYS.ACCOUNT,
         value: {
             isLoading: false,
-            message: Localize.translateLocal('resendValidationForm.linkHasBeenResent'),
+            message: 'resendValidationForm.linkHasBeenResent',
         },
     }];
     const failureData = [{
@@ -127,7 +127,7 @@ function resendValidateCode(login = credentials.login) {
         key: ONYXKEYS.ACCOUNT,
         value: {
             isLoading: false,
-            message: Localize.translateLocal('validateCodeForm.codeSent'),
+            message: 'validateCodeForm.codeSent',
         },
     }];
     const failureData = [{
@@ -345,7 +345,11 @@ function signIn(password, validateCode, twoFactorAuthCode, preferredLocale = CON
     API.write('SigninUser', params, {optimisticData, successData, failureData});
 }
 
-function signInWithValidateCode(accountID, validateCode, twoFactorAuthCode) {
+function signInWithValidateCode(accountID, code, twoFactorAuthCode) {
+    // If this is called from the 2fa step, get the validateCode directly from onyx
+    // instead of the one passed from the component state because the state is changing when this method is called.
+    const validateCode = twoFactorAuthCode ? credentials.validateCode : code;
+
     const optimisticData = [
         {
             onyxMethod: CONST.ONYX.METHOD.MERGE,
@@ -473,7 +477,7 @@ function resendResetPassword() {
                 key: ONYXKEYS.ACCOUNT,
                 value: {
                     isLoading: false,
-                    message: Localize.translateLocal('resendValidationForm.linkHasBeenResent'),
+                    message: 'resendValidationForm.linkHasBeenResent',
                 },
             },
         ],

@@ -26,8 +26,12 @@ document.addEventListener('DOMContentLoaded', () => {
         passedMiliseconds += 250;
         isRootMounted = root.children.length > 0;
         if (passedMiliseconds >= minMilisecondsToWait && isRootMounted && areFontsReady) {
-            splash.parentNode.removeChild(splash);
             clearInterval(intervalId);
+            splash.style.opacity = 0;
+
+            setTimeout(() => {
+                splash.parentNode.removeChild(splash);
+            }, 250);
         }
     }, 250);
 }, false);

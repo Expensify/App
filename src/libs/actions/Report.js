@@ -3,6 +3,7 @@ import _ from 'underscore';
 import lodashGet from 'lodash/get';
 import ExpensiMark from 'expensify-common/lib/ExpensiMark';
 import Onyx from 'react-native-onyx';
+import Str from 'expensify-common/lib/str';
 import ONYXKEYS from '../../ONYXKEYS';
 import * as Pusher from '../Pusher/pusher';
 import LocalNotification from '../Notification/LocalNotification';
@@ -201,9 +202,11 @@ function addActions(reportID, text = '', file) {
 
     const currentTime = DateUtils.getDBTime();
 
+    const lastCommentText = ReportUtils.formatReportLastMessageText(lastAction.message[0].text);
+
     const optimisticReport = {
         lastVisibleActionCreated: currentTime,
-        lastMessageText: ReportUtils.formatReportLastMessageText(lastAction.message[0].text),
+        lastMessageText: Str.htmlDecode(lastCommentText),
         lastActorEmail: currentUserEmail,
         lastReadTime: currentTime,
     };
@@ -522,6 +525,47 @@ function openPaymentDetailsPage(chatReportID, iouReportID) {
 }
 
 /**
+ * Gets transactions and data associated with the linked report (expense or IOU report)
+ *
+ * @param {String} chatReportID
+ * @param {String} linkedReportID
+ */
+function openMoneyRequestsReportPage(chatReportID, linkedReportID) {
+    API.read('OpenMoneyRequestsReportPage', {
+        reportID: chatReportID,
+        linkedReportID,
+    }, {
+        optimisticData: [
+            {
+                onyxMethod: CONST.ONYX.METHOD.MERGE,
+                key: ONYXKEYS.IOU,
+                value: {
+                    loading: true,
+                },
+            },
+        ],
+        successData: [
+            {
+                onyxMethod: CONST.ONYX.METHOD.MERGE,
+                key: ONYXKEYS.IOU,
+                value: {
+                    loading: false,
+                },
+            },
+        ],
+        failureData: [
+            {
+                onyxMethod: CONST.ONYX.METHOD.MERGE,
+                key: ONYXKEYS.IOU,
+                value: {
+                    loading: false,
+                },
+            },
+        ],
+    });
+}
+
+/**
  * Marks the new report actions as read
  *
  * @param {String} reportID
@@ -684,6 +728,7 @@ function deleteReportComment(reportID, reportAction) {
             pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
             previousMessage: reportAction.message,
             message: deletedMessage,
+            errors: null,
         },
     };
 
@@ -778,42 +823,42 @@ const getRemovedMarkdownLinks = (oldComment, newComment) => {
 };
 
 /**
- * Removes the links in a markdown comment.
+ * Removes the links in html of a comment.
  * example:
- *      comment="test [link](https://www.google.com) test",
+ *      html="test <a href="https://www.google.com" target="_blank" rel="noreferrer noopener">https://www.google.com</a> test"
  *      links=["https://www.google.com"]
- * returns: "test link test"
- * @param {String} comment
+ * returns: "test https://www.google.com test"
+ *
+ * @param {String} html
  * @param {Array} links
  * @returns {String}
  */
-const removeLinks = (comment, links) => {
-    let commentCopy = comment.slice();
+const removeLinksFromHtml = (html, links) => {
+    let htmlCopy = html.slice();
     _.forEach(links, (link) => {
-        const regex = new RegExp(`\\[([^\\[\\]]*)\\]\\(${link}\\)`, 'gm');
-        const linkMatch = regex.exec(commentCopy);
-        const linkText = linkMatch && linkMatch[1];
-        commentCopy = commentCopy.replace(`[${linkText}](${link})`, linkText);
+        // We want to match the anchor tag of the link and replace the whole anchor tag with the text of the anchor tag
+        const regex = new RegExp(`<(a)[^><]*href\\s*=\\s*(['"])(${Str.escapeForRegExp(link)})\\2(?:".*?"|'.*?'|[^'"><])*>([\\s\\S]*?)<\\/\\1>(?![^<]*(<\\/pre>|<\\/code>))`, 'gi');
+        htmlCopy = htmlCopy.replace(regex, '$4');
     });
-    return commentCopy;
+    return htmlCopy;
 };
 
 /**
  * This function will handle removing only links that were purposely removed by the user while editing.
+ *
  * @param {String} newCommentText text of the comment after editing.
- * @param {Array} originalHtml original html of the comment before editing
+ * @param {String} originalHtml original html of the comment before editing.
  * @returns {String}
  */
-const handleUserDeletedLinks = (newCommentText, originalHtml) => {
+const handleUserDeletedLinksInHtml = (newCommentText, originalHtml) => {
     const parser = new ExpensiMark();
     if (newCommentText.length >= CONST.MAX_MARKUP_LENGTH) {
         return newCommentText;
     }
-    const htmlWithAutoLinks = parser.replace(newCommentText);
-    const markdownWithAutoLinks = parser.htmlToMarkdown(htmlWithAutoLinks).trim();
     const markdownOriginalComment = parser.htmlToMarkdown(originalHtml).trim();
+    const htmlForNewComment = parser.replace(newCommentText);
     const removedLinks = getRemovedMarkdownLinks(markdownOriginalComment, newCommentText);
-    return removeLinks(markdownWithAutoLinks, removedLinks);
+    return removeLinksFromHtml(htmlForNewComment, removedLinks);
 };
 
 /**
@@ -830,16 +875,13 @@ function editReportComment(reportID, originalReportAction, textForNewComment) {
     // https://github.com/Expensify/App/issues/9090
     // https://github.com/Expensify/App/issues/13221
     const originalCommentHTML = lodashGet(originalReportAction, 'message[0].html');
-    const markdownForNewComment = handleUserDeletedLinks(textForNewComment, originalCommentHTML);
-
-    const autolinkFilter = {filterRules: _.filter(_.pluck(parser.rules, 'name'), name => name !== 'autolink')};
+    const htmlForNewComment = handleUserDeletedLinksInHtml(textForNewComment, originalCommentHTML);
 
     // For comments shorter than 10k chars, convert the comment from MD into HTML because that's how it is stored in the database
     // For longer comments, skip parsing and display plaintext for performance reasons. It takes over 40s to parse a 100k long string!!
-    let htmlForNewComment = markdownForNewComment;
     let parsedOriginalCommentHTML = originalCommentHTML;
-    if (markdownForNewComment.length < CONST.MAX_MARKUP_LENGTH) {
-        htmlForNewComment = parser.replace(markdownForNewComment, autolinkFilter);
+    if (textForNewComment.length < CONST.MAX_MARKUP_LENGTH) {
+        const autolinkFilter = {filterRules: _.filter(_.pluck(parser.rules, 'name'), name => name !== 'autolink')};
         parsedOriginalCommentHTML = parser.replace(parser.htmlToMarkdown(originalCommentHTML).trim(), autolinkFilter);
     }
 
@@ -864,7 +906,7 @@ function editReportComment(reportID, originalReportAction, textForNewComment) {
                 ...originalMessage,
                 isEdited: true,
                 html: htmlForNewComment,
-                text: markdownForNewComment,
+                text: textForNewComment,
             }],
         },
     };
@@ -876,6 +918,20 @@ function editReportComment(reportID, originalReportAction, textForNewComment) {
             value: optimisticReportActions,
         },
     ];
+
+    const lastVisibleAction = ReportActionsUtils.getLastVisibleAction(reportID, optimisticReportActions);
+    if (reportActionID === lastVisibleAction.reportActionID) {
+        const reportComment = parser.htmlToText(htmlForNewComment);
+        const lastMessageText = ReportUtils.formatReportLastMessageText(reportComment);
+        const optimisticReport = {
+            lastMessageText: Str.htmlDecode(lastMessageText),
+        };
+        optimisticData.push({
+            onyxMethod: CONST.ONYX.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
+            value: optimisticReport,
+        });
+    }
 
     const failureData = [
         {
@@ -1416,7 +1472,7 @@ export {
     broadcastUserIsTyping,
     togglePinnedState,
     editReportComment,
-    handleUserDeletedLinks,
+    handleUserDeletedLinksInHtml,
     saveReportActionDraft,
     saveReportActionDraftNumberOfLines,
     deleteReportComment,
@@ -1432,6 +1488,7 @@ export {
     openReportFromDeepLink,
     navigateToAndOpenReport,
     openPaymentDetailsPage,
+    openMoneyRequestsReportPage,
     updatePolicyRoomName,
     clearPolicyRoomNameErrors,
     clearIOUError,

@@ -4,6 +4,7 @@ import CONST from '../CONST';
 import ONYXKEYS from '../ONYXKEYS';
 import HttpsError from './Errors/HttpsError';
 import * as ApiUtils from './ApiUtils';
+import alert from '../components/Alert';
 
 let shouldFailAllRequests = false;
 let shouldForceOffline = false;
@@ -93,6 +94,11 @@ function processHTTPRequest(url, method = 'get', body = null, canCancel = true, 
                     status: CONST.JSON_CODE.EXP_ERROR,
                     title: CONST.ERROR_TITLE.SOCKET,
                 });
+            }
+            if (response.jsonCode === CONST.JSON_CODE.MANY_WRITES_ERROR) {
+                const {phpCommandName, authWriteCommandsCount} = response.data;
+                const message = `The API call (${phpCommandName}) did ${authWriteCommandsCount - 1} more Auth write requests than allowed. Check the APIWriteCommands class in Web-Expensify`;
+                alert('Too many auth writes', message);
             }
             return response;
         });

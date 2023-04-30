@@ -20,4 +20,6 @@
     display: flex; 
     justify-content: center; 
     align-items: center;
+    transition-duration: 250ms;
+    transition-property: opacity;
 }
