@@ -53,14 +53,9 @@
             outline: 0;
             box-shadow: inset 0px 0px 0px 1px #5AB0FF;
         }
-        @keyframes blink_input_opacity_to_prevent_scrolling_when_focus {
-            0% { opacity: 0; }
-            100% { opacity: 1; }
-        }
         input:focus-visible, input:focus[data-focusvisible-polyfill],
         select:focus-visible, select:focus[data-focusvisible-polyfill]  {
             box-shadow: none;
-            animation: blink_input_opacity_to_prevent_scrolling_when_focus 0.01s;
         }
         ::-ms-reveal {
             display: none;
@@ -81,6 +76,13 @@
             caret-color: #ffffff;
         }
     </style>
+    <!--
+        Note: interactive-widget=resizes-content is ignored on iOS Safari. Working around that has proven to be
+        problematic and causing bugs. At the moment of writing, we don't really need to work around this. If we attempt
+        to do that again, we should do that carefully and minding the potential side effects.
+
+        Some context can be found in https://github.com/Expensify/App/issues/16082
+    -->
     <meta name="viewport" content="width=device-width, user-scalable=no, initial-scale=1, interactive-widget=resizes-content">
     <link rel="shortcut icon" id="favicon" href="/favicon.png">
     <% if (htmlWebpackPlugin.options.usePolyfillIO) { %>
