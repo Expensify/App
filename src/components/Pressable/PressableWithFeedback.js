@@ -39,7 +39,6 @@ const PressableWithFeedback = forwardRef((props, ref) => {
             {...propsWithoutStyling}
             disabled={disabled}
             onPress={(e) => {
-                if (disabled) { return; }
                 setDisabled(true);
                 const onPress = props.onPress(e);
                 InteractionManager.runAfterInteractions(() => {

@@ -260,22 +260,22 @@ class Button extends Component {
                 disabled={this.props.isLoading || this.props.isDisabled}
                 wrapperStyle={[
                     this.props.isDisabled ? {...styles.cursorDisabled, ...styles.noSelect} : {},
-                    (this.props.isDisabled && (this.props.success || this.props.danger)) ? styles.buttonOpacityDisabled : undefined,
-                    (this.props.isDisabled && !this.props.danger && !this.props.success) ? styles.buttonDisabled : undefined,
                     styles.buttonContainer,
                     this.props.shouldRemoveRightBorderRadius ? styles.noRightBorderRadius : undefined,
                     this.props.shouldRemoveLeftBorderRadius ? styles.noLeftBorderRadius : undefined,
                     ...StyleUtils.parseStyleAsArray(this.props.style),
                 ]}
-                style={({isHovered, isDisabled}) => [
+                style={({isHovered}) => [
                     styles.button,
                     this.props.small ? styles.buttonSmall : undefined,
                     this.props.medium ? styles.buttonMedium : undefined,
                     this.props.large ? styles.buttonLarge : undefined,
                     this.props.success ? styles.buttonSuccess : undefined,
                     this.props.danger ? styles.buttonDanger : undefined,
-                    (this.props.success && isHovered && !isDisabled) ? styles.buttonSuccessHovered : undefined,
-                    (this.props.danger && isHovered && !isDisabled) ? styles.buttonDangerHovered : undefined,
+                    (this.props.isDisabled && (this.props.success || this.props.danger)) ? styles.buttonOpacityDisabled : undefined,
+                    (this.props.isDisabled && !this.props.danger && !this.props.success) ? styles.buttonDisabled : undefined,
+                    (this.props.success && isHovered && !this.props.isDisabled) ? styles.buttonSuccessHovered : undefined,
+                    (this.props.danger && isHovered && !this.props.isDisabled) ? styles.buttonDangerHovered : undefined,
                     this.props.shouldRemoveRightBorderRadius ? styles.noRightBorderRadius : undefined,
                     this.props.shouldRemoveLeftBorderRadius ? styles.noLeftBorderRadius : undefined,
                     ...this.props.innerStyles,
