@@ -8,6 +8,9 @@ import CONST from '../../CONST';
 import * as ComposerUtils from '../../libs/ComposerUtils';
 
 const propTypes = {
+    /** Maximum number of lines in the text input */
+    maxLines: PropTypes.number,
+
     /** If the input should clear, it actually gets intercepted instead of .clear() */
     shouldClear: PropTypes.bool,
 
@@ -56,6 +59,7 @@ const defaultProps = {
         end: 0,
     },
     isFullComposerAvailable: false,
+    maxLines: -1,
     setIsFullComposerAvailable: () => {},
     isComposerFullSize: false,
     style: null,
@@ -97,10 +101,11 @@ class Composer extends React.Component {
                 autoComplete="off"
                 placeholderTextColor={themeColors.placeholderText}
                 ref={el => this.textInput = el}
-                maxHeight={this.props.isComposerFullSize ? '100%' : CONST.COMPOSER_MAX_HEIGHT}
                 onContentSizeChange={e => ComposerUtils.updateNumberOfLines(this.props, e)}
                 rejectResponderTermination={false}
                 textAlignVertical="center"
+                numberOfLines={this.props.isComposerFullSize ? CONST.COMPOSER.MAX_LINES : undefined}
+                maximumNumberOfLines={!this.props.isComposerFullSize ? this.props.maxLines : undefined}
                 style={this.state.propStyles}
                 /* eslint-disable-next-line react/jsx-props-no-spreading */
                 {...this.props}
