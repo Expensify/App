@@ -25,6 +25,7 @@ import {withNetwork} from '../../../components/OnyxProvider';
 import networkPropTypes from '../../../components/networkPropTypes';
 import * as User from '../../../libs/actions/User';
 import FormHelpMessage from '../../../components/FormHelpMessage';
+import MagicCodeInput from '../../../components/MagicCodeInput';
 import Terms from '../Terms';
 
 const propTypes = {
@@ -93,6 +94,11 @@ class BaseValidateCodeForm extends React.Component {
         if (prevProps.isVisible && !this.props.isVisible && this.state.validateCode) {
             this.clearValidateCode();
         }
+
+        // Clear the code input if a new magic code was requested
+        if (this.props.isVisible && this.state.linkSent && this.props.account.message && this.state.validateCode) {
+            this.clearValidateCode();
+        }
         if (!prevProps.credentials.validateCode && this.props.credentials.validateCode) {
             this.setState({validateCode: this.props.credentials.validateCode});
         }
@@ -114,6 +120,7 @@ class BaseValidateCodeForm extends React.Component {
         this.setState({
             [key]: text,
             formError: {[key]: ''},
+            linkSent: false,
         });
 
         if (this.props.account.errors) {
@@ -125,7 +132,7 @@ class BaseValidateCodeForm extends React.Component {
      * Clear Validate Code from the state
      */
     clearValidateCode() {
-        this.setState({validateCode: ''}, this.inputValidateCode.clear);
+        this.setState({validateCode: ''}, () => this.inputValidateCode.clear());
     }
 
     /**
@@ -212,7 +219,7 @@ class BaseValidateCodeForm extends React.Component {
                     </View>
                 ) : (
                     <View style={[styles.mv3]}>
-                        <TextInput
+                        <MagicCodeInput
                             autoComplete={this.props.autoComplete}
                             textContentType="oneTimeCode"
                             ref={el => this.inputValidateCode = el}
@@ -221,9 +228,7 @@ class BaseValidateCodeForm extends React.Component {
                             name="validateCode"
                             value={this.state.validateCode}
                             onChangeText={text => this.onTextInput(text, 'validateCode')}
-                            onSubmitEditing={this.validateAndSubmitForm}
-                            blurOnSubmit={false}
-                            keyboardType={CONST.KEYBOARD_TYPE.NUMBER_PAD}
+                            onFulfill={this.validateAndSubmitForm}
                             errorText={this.state.formError.validateCode ? this.props.translate(this.state.formError.validateCode) : ''}
                             hasError={hasError}
                             autoFocus
