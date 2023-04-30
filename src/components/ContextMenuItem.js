@@ -9,7 +9,7 @@ import withDelayToggleButtonState, {withDelayToggleButtonStatePropTypes} from '.
 import BaseMiniContextMenuItem from './BaseMiniContextMenuItem';
 import withWindowDimensions from './withWindowDimensions';
 import compose from '../libs/compose';
-import variables from '../styles/variables';
+import getContextMenuItemStyles from '../styles/getContextMenuItemStyles';
 
 const propTypes = {
     /** Icon Component */
@@ -97,11 +97,7 @@ class ContextMenuItem extends Component {
                         success={this.props.isDelayButtonStateComplete}
                         description={this.props.description}
                         descriptionTextStyle={styles.breakAll}
-                        style={
-                            this.props.windowWidth > variables.mobileResponsiveWidthBreakpoint
-                                ? [styles.popoverMenuItem, styles.contextMenuItemPopoverMaxWidth]
-                                : [styles.popoverMenuItem]
-                            }
+                        style={getContextMenuItemStyles(this.props.windowWidth)}
                     />
                 )
         );
