@@ -885,6 +885,7 @@ const CONST = {
             ELSEWHERE: 'Elsewhere',
             EXPENSIFY: 'Expensify',
             PAYPAL_ME: 'PayPal.me',
+            VBBA: 'ACH',
         },
         MONEY_REQUEST_TYPE: {
             SEND: 'send',
