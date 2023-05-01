@@ -150,7 +150,7 @@ function ReportActionItem(props) {
      * @param {Boolean} hovered whether the ReportActionItem is hovered
      * @returns {Object} child component(s)
      */
-    function renderItemContent(hovered = false) {
+    const renderItemContent = (hovered = false) => {
         let children;
         if (props.action.actionName === CONST.REPORT.ACTIONS.TYPE.IOU) {
             children = (
