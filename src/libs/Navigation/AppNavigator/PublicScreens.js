@@ -1,5 +1,5 @@
 /* eslint-disable react/destructuring-assignment */
-import React, {useEffect, useState} from 'react';
+import React, {useCallback, useEffect, useState} from 'react';
 import {View, Platform, Button} from 'react-native';
 import {createStackNavigator} from '@react-navigation/stack';
 import SignInPage from '../../../pages/signin/SignInPage';
@@ -11,43 +11,52 @@ import defaultScreenOptions from './defaultScreenOptions';
 import Text from '../../../components/Text';
 import AppleSignInScript from '../../../pages/signin/AppleSignInScript';
 import FullScreenLoadingIndicator from '../../../components/FullscreenLoadingIndicator';
+import GoogleSignInButton from '../../signInWithGoogle';
 
 const RootStack = createStackNavigator();
-function sleep(ms) {
-    return new Promise(resolve => setTimeout(resolve, ms));
-}
 
-const AppleAuthScreen = () => {
-    useEffect(() => {
-        const clientId = 'com.infinitered.expensify.test';
-        const redirectURI = 'https://exptest.ngrok.io/appleauth';
-        const scope = 'name email';
-        const state = '';
-        const script = document.createElement('script');
-        script.src = 'https://appleid.cdn-apple.com/appleauth/static/jsapi/appleid/1/en_US/appleid.auth.js';
-        script.async = true;
-        script.onload = () => {
-            window.AppleID.auth.init({
-                clientId,
-                scope,
-                redirectURI,
-                state,
-                usePopup: false,
-            });
-            console.log('😇calling fn');
-            window.AppleID.auth.signIn().then((result) => {
-                console.log('got a result', result);
+const AppleAuthScreen = () => (
+    <View style={{
+        height: '100%', width: '100%', justifyContent: 'center', alignItems: 'center',
+    }}
+    >
+        <AppleSignInScript />
+    </View>
+);
 
-                // window.location.replace('new-expensify://deeplink/siwa/token');
-            });
-        };
+const GoogleAuthScreen = () => {
+    const [expensifyLoginResponse, setExpensifyLoginResponse] = useState(undefined);
+    const onCredentialResponse = useCallback(({credential}) => {
+        console.log('CREDENTIAL', credential);
 
-        document.body.appendChild(script);
+        setExpensifyLoginResponse(true);
+
+        // Expensify API call
+        // Session.beginGoogleSignIn(credential);
+        //
     }, []);
+
+    const webLink = useCallback(() => {
+
+    }, []);
+
+    useEffect(() => {
+        window.open('new-expensify://foo/settings');
+    }, [expensifyLoginResponse]);
+
     return (
         <View style={{flex: 1, justifyContent: 'center', alignItems: 'center'}}>
-            {Platform.OS === 'web' && <AppleSignInScript />}
-            <Text>Redirecting you Apple to sign in...</Text>
+            {expensifyLoginResponse ? (
+                <>
+                    <Text>Click "Open Expensify" to open the desktop app.</Text>
+                    <Text onPress={webLink}>You can also use Expensify in the web browser.</Text>
+                </>
+            ) : (
+                <>
+                    <Text>Click the button below to continue signing in with Google</Text>
+                    <GoogleSignInButton clientId="807764306985-v0oiotjog2tnvge6kcodr39v23na515c.apps.googleusercontent.com" onCredentialResponse={onCredentialResponse} />
+                </>
+            )}
         </View>
     );
 };
@@ -98,6 +107,11 @@ const PublicScreens = () => (
             name="AppleOAuth"
             options={defaultScreenOptions}
             component={AppleAuthScreen}
+        />
+        <RootStack.Screen
+            name="GoogleOAuth"
+            options={defaultScreenOptions}
+            component={GoogleAuthScreen}
         />
         <RootStack.Screen
             name="AppleOAuthReceiver"

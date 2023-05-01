@@ -212,14 +212,13 @@ class LoginForm extends React.Component {
                                 isAlertVisible={!_.isEmpty(serverErrorText)}
                                 containerStyles={[styles.mh0]}
                             />
-                            <div id="appleid-signin" data-color="black" data-border="true" data-type="sign in" />
                             <Button
                                 onPress={Session.beginAppleSignIn}
 
                                 // onPress={Session.beginAppleSignIn}
                                 title="Sign in with Apple"
                             />
-                            <GoogleSignInButton clientId="807764306985-v0oiotjog2tnvge6kcodr39v23na515c.apps.googleusercontent.com" onCredentialResponse={(stuff) => { console.log('GOOGLE RESPONSE', stuff); }} />
+                            <Button onPress={() => { window.open('https://exptest.ngrok.io/signinwithgoogle'); }} title="Sign in with Google" />
                         </View>
                     )
                 }

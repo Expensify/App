@@ -1,7 +1,9 @@
-import React from 'react';
+import React, {useEffect, useState} from 'react';
+import {View} from 'react-native';
 
-class AppleSignInScript extends React.Component {
-    componentDidMount() {
+function AppleSignInScript() {
+    const [forceRender, setForceRender] = useState(undefined);
+    useEffect(() => {
         const clientId = 'com.infinitered.expensify.test';
         const redirectURI = 'https://exptest.ngrok.io/appleauth';
         const scope = 'name email';
@@ -17,10 +19,12 @@ class AppleSignInScript extends React.Component {
                 state,
                 usePopup: true,
             });
+            setForceRender(true);
         };
 
         document.body.appendChild(script);
         document.addEventListener('AppleIDSignInOnSuccess', (event) => {
+            //
             // Handle successful response.
             console.log(event.detail.data);
         });
@@ -30,20 +34,27 @@ class AppleSignInScript extends React.Component {
             // Handle error.
             console.log(event.detail.error);
         });
+    }, []);
 
-        this.cleanupScript = () => {
-            // Remove the script from the DOM when the component unmounts
-            document.body.removeChild(script);
-        };
-    }
+    useEffect(() => { console.log('forceRender:', forceRender); }, [forceRender]);
 
-    componentWillUnmount() {
-        this.cleanupScript();
-    }
+    return (
+        <View style={{width: 40, height: 40, marginRight: 20}}>
+            <div
+                style={{fontSize: '0'}}
+                id="appleid-signin"
+                data-mode="logo-only"
+                data-color="white"
+                data-border-radius="50"
+                data-border="false"
+                data-border-color="white"
+                data-width="40"
+                data-height="40"
+                data-type="sign in"
+            />
 
-    render() {
-        return null;
-    }
+        </View>
+    );
 }
 
 export default AppleSignInScript;
