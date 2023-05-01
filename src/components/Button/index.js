@@ -285,7 +285,7 @@ class Button extends Component {
                 nativeID={this.props.nativeID}
                 accessibilityLabel={this.props.accessibilityLabel}
             >
-                <View>
+                <>
                     {this.renderContent()}
                     {this.props.isLoading && (
                         <ActivityIndicator
@@ -293,7 +293,7 @@ class Button extends Component {
                             style={[styles.pAbsolute, styles.l0, styles.r0]}
                         />
                     )}
-                </View>
+                </>
             </PressableWithFeedback>
         );
     }
