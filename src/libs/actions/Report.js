@@ -389,6 +389,66 @@ function openReport(reportID, participantList = [], newReportObject = {}) {
     API.write('OpenReport', params, onyxData);
 }
 
+function openChildReport(childReportID, parentReportAction, parentReport) {
+    let optimisticReportData = {};
+
+    let routeReportID = childReportID;
+    if (childReportID) {
+        optimisticReportData = {
+            onyxMethod: CONST.ONYX.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT}${childReportID}`,
+            value: {
+                isLoadingReportActions: true,
+                isLoadingMoreReportActions: false,
+                lastReadTime: DateUtils.getDBTime(),
+                reportName: lodashGet(allReports, [childReportID, 'reportName'], CONST.REPORT.DEFAULT_REPORT_NAME),
+            },
+        };
+    } else if (parentReportAction) {
+        const newChat = ReportUtils.buildOptimisticChatReport(parentReport.participants, parentReportAction.message[0].html);
+        routeReportID = newChat.reportID;
+        optimisticReportData = newChat;
+    } else {
+        // throw error
+    }
+
+    const reportSuccessData = {
+        onyxMethod: CONST.ONYX.METHOD.MERGE,
+        key: `${ONYXKEYS.COLLECTION.REPORT}${childReportID}`,
+        value: {
+            isLoadingReportActions: false,
+            pendingFields: {
+                createChat: null,
+            },
+            errorFields: {
+                createChat: null,
+            },
+            isOptimisticReport: false,
+        },
+    };
+
+    const reportFailureData = {
+        onyxMethod: CONST.ONYX.METHOD.MERGE,
+        key: `${ONYXKEYS.COLLECTION.REPORT}${childReportID}`,
+        value: {
+            isLoadingReportActions: false,
+        },
+    };
+    const onyxData = {
+        optimisticData: [optimisticReportData],
+        successData: [reportSuccessData],
+        failureData: [reportFailureData],
+    };
+
+    const params = {
+        reportID,
+        parentReportAction: parentReportAction.reportActionID,
+    };
+
+    // API.write('OpenChildReport', params, onyxData);
+    Navigation.navigate(ROUTES.getReportRoute(routeReportID));
+}
+
 /**
  * This will find an existing chat, or create a new one if none exists, for the given user or set of users. It will then navigate to this chat.
  *
@@ -1485,6 +1545,7 @@ export {
     readNewestAction,
     readOldestAction,
     openReport,
+    openChildReport,
     openReportFromDeepLink,
     navigateToAndOpenReport,
     openPaymentDetailsPage,
