@@ -114,9 +114,9 @@ export default [
         icon: Expensicons.ChatBubble,
         successTextTranslateKey: '',
         successIcon: null,
-        shouldShow: type => type === CONTEXT_MENU_TYPES.REPORT_ACTION,
-        onPress: (closePopover, {reportAction, reportID}) => {
-            // Report.openChildReport(reportID, reportAction.reportActionID);
+        shouldShow: (type, reportAction) => type === CONTEXT_MENU_TYPES.REPORT_ACTION && reportAction.actionName === CONST.REPORT.ACTIONS.TYPE.ADDCOMMENT,
+        onPress: (closePopover, {childReportID, reportAction}) => {
+            Report.openChildReport(childReportID, reportAction);
             if (closePopover) {
                 hideContextMenu(true, ReportActionComposeFocusManager.focus);
             }

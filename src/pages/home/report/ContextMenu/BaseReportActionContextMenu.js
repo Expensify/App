@@ -27,6 +27,8 @@ const propTypes = {
     /** Whether the provided report is an archived room */
     isArchivedRoom: PropTypes.bool,
 
+    childReportID: PropTypes.string,
+
     contentRef: PropTypes.oneOfType([PropTypes.node, PropTypes.object, PropTypes.func]),
 
     ...genericReportActionContextMenuPropTypes,
@@ -74,6 +76,7 @@ class BaseReportActionContextMenu extends React.Component {
                         reportID: this.props.reportID,
                         draftMessage: this.props.draftMessage,
                         selection: this.props.selection,
+                        childReportID: this.props.childReportID,
                         close: () => this.setState({shouldKeepOpen: false}),
                         openContextMenu: () => this.setState({shouldKeepOpen: true}),
                     };

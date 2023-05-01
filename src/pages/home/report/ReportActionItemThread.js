@@ -6,6 +6,7 @@ import lodashGet from 'lodash/get';
 import styles from '../../../styles/styles';
 import ReportActionItemFragment from './ReportActionItemFragment';
 import reportActionPropTypes from './reportActionPropTypes';
+import * as Report from '../../../libs/actions/Report';
 import RoomHeaderAvatars from '../../../components/RoomHeaderAvatars';
 import withLocalize, {withLocalizePropTypes} from '../../../components/withLocalize';
 import CONST from "../../../CONST";
@@ -20,6 +21,8 @@ const propTypes = {
     numberOfReplies: PropTypes.number.isRequired,
 
     mostRecentReply: PropTypes.string.isRequired,
+
+    childReportID: PropTypes.string.isRequired,
 
     /** localization props */
     ...withLocalizePropTypes,
