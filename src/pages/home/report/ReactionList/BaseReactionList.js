@@ -45,6 +45,7 @@ const renderItem = ({item}) => (
     <OptionRow
         item={item}
         boldStyle
+        isDisabled
         style={{maxWidth: variables.mobileResponsiveWidthBreakpoint}}
         option={{
             text: Str.removeSMSDomain(item.displayName),
