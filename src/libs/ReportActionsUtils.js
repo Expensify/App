@@ -10,6 +10,8 @@ import CONST from '../CONST';
 import ONYXKEYS from '../ONYXKEYS';
 import Log from './Log';
 import isReportMessageAttachment from './isReportMessageAttachment';
+import * as NumberUtils from './NumberUtils';
+import DateUtils from './DateUtils';
 
 const allReportActions = {};
 Onyx.connect({

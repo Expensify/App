@@ -10,6 +10,7 @@ import * as Localize from '../Localize';
 import asyncOpenURL from '../asyncOpenURL';
 import * as API from '../API';
 import * as ReportUtils from '../ReportUtils';
+import * as ReportActionsUtils from '../ReportActionsUtils';
 import * as IOUUtils from '../IOUUtils';
 import * as OptionsListUtils from '../OptionsListUtils';
 import DateUtils from '../DateUtils';
@@ -87,6 +88,11 @@ function requestMoney(report, amount, currency, recipientEmail, participant, com
         '',
         iouReport.reportID,
     );
+    
+    let reportPreview = ReportActionsUtils.getReportPreviewAction(chatReport.reportID);
+    if (!reportPreview) {
+        reportPreview = ReportActionsUtils.buildOptimisticReportPreview(chatReport.reportID);
+    }
 
     // First, add data that will be used in all cases
     const optimisticChatReportData = {
@@ -113,6 +119,7 @@ function requestMoney(report, amount, currency, recipientEmail, participant, com
         key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${chatReport.reportID}`,
         value: {
             [optimisticReportAction.reportActionID]: optimisticReportAction,
+            [reportPreview.reportActionID]: reportPreview,
         },
     };
 
@@ -124,6 +131,7 @@ function requestMoney(report, amount, currency, recipientEmail, participant, com
             [optimisticReportAction.reportActionID]: {
                 pendingAction: null,
             },
+            [reportPreview.reportActionID]: reportPreview,
         },
     };
 
