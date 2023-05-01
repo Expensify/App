@@ -64,7 +64,7 @@ function NewContactMethodPage(props) {
             errors.phoneOrEmail = props.translate('contacts.genericFailureMessages.invalidContactMethod');
         }
 
-        if (!_.isEmpty(values.phoneOrEmail) && lodashGet(props.loginList, values.phoneOrEmail)) {
+        if (!_.isEmpty(values.phoneOrEmail) && lodashGet(props.loginList, (values.phoneOrEmail).toLowerCase())) {
             errors.phoneOrEmail = props.translate('contacts.genericFailureMessages.enteredMethodIsAlreadySubmited');
         }
 
