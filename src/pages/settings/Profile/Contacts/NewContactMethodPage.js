@@ -22,6 +22,8 @@ import ROUTES from '../../../../ROUTES';
 import styles from '../../../../styles/styles';
 import * as User from '../../../../libs/actions/User';
 import * as LoginUtils from '../../../../libs/LoginUtils';
+import Form from '../../../../components/Form';
+import _ from 'underscore';
 
 const propTypes = {
     /* Onyx Props */
@@ -54,85 +56,75 @@ const defaultProps = {
     loginList: {},
 };
 
-function NewContactMethodPage(props) {
-    const [login, setLogin] = useState('');
-    const [password, setPassword] = useState('');
-    const loginInputRef = useRef(null);
+function NewContactMethodPage(props) { 
 
-    const handleLoginChange = useCallback((value) => {
-        setLogin(value.trim());
-    }, []);
+    function isFormValid(values) { 
+        const userEmailOrPhone = Str.removeSMSDomain(props.session.email);
+        const phoneLogin = !_.isEmpty(values.phoneOrEmail) ? LoginUtils.getPhoneNumberWithoutSpecialChars(values.phoneOrEmail) : ''
 
-    const handlePasswordChange = useCallback((value) => {
-        setPassword(value.trim());
-    }, []);
+        const errors = {};
 
-    const isFormValid = useMemo(() => {
-        const phoneLogin = LoginUtils.getPhoneNumberWithoutSpecialChars(login);
+        if (_.isEmpty(values.phoneOrEmail)) {
+            errors.phoneOrEmail = props.translate('contacts.genericFailureMessages.contactMethodRequired')
+        }  
 
-        return (Permissions.canUsePasswordlessLogins(props.betas) || password)
-            && (Str.isValidEmail(login) || Str.isValidPhone(phoneLogin));
-    }, [login, password, props.betas]);
+        if(!_.isEmpty(values.phoneOrEmail) && !(Str.isValidPhone(phoneLogin) || Str.isValidEmail(values.phoneOrEmail)) ){
+            errors.phoneOrEmail =  props.translate('contacts.genericFailureMessages.invalidContactMethod')
+        }   
 
-    const submitForm = useCallback(() => {
-        // If this login already exists, just go back.
-        if (lodashGet(props.loginList, login)) {
-            Navigation.navigate(ROUTES.SETTINGS_CONTACT_METHODS);
-            return;
-        }
-        User.addNewContactMethodAndNavigate(login, password);
-    }, [login, props.loginList, password]);
+        if(!_.isEmpty(values.phoneOrEmail) && userEmailOrPhone.toLowerCase() === values.phoneOrEmail.toLowerCase()){
+            errors.phoneOrEmail = props.translate('contacts.genericFailureMessages.enteredMethodIsAlreadySubmited');
+        } 
+
+        if (!Permissions.canUsePasswordlessLogins(props.betas) ||  _.isEmpty(values.password)) {
+            errors.password =  props.translate('contacts.genericFailureMessages.passwordRequired')
+        }  
+
+        return errors;
+    };
+
+    function submitForm(value) {
+        User.addNewContactMethodAndNavigate(value.phoneOrEmail,value.password);
+    } 
 
     return (
-        <ScreenWrapper
-            onTransitionEnd={() => {
-                if (!loginInputRef.current) {
-                    return;
-                }
-                loginInputRef.current.focus();
-            }}
-        >
+        <ScreenWrapper includeSafeAreaPaddingBottom={false}>
             <HeaderWithCloseButton
                 title={props.translate('contacts.newContactMethod')}
                 shouldShowBackButton
                 onBackButtonPress={() => Navigation.navigate(ROUTES.SETTINGS_CONTACT_METHODS)}
                 onCloseButtonPress={() => Navigation.dismissModal(true)}
             />
-            <ScrollView>
-                <Text style={[styles.ph5, styles.mb5]}>
+            <Form
+                formID={ONYXKEYS.FORMS.NEW_CONTACT_FORM}
+                validate={isFormValid}
+                onSubmit={submitForm}
+                submitButtonText={props.translate('common.add')}
+                style={[styles.flexGrow1,styles.mh5]}
+            >
+                <Text style={[ styles.mb5]}>
                     {props.translate('common.pleaseEnterEmailOrPhoneNumber')}
                 </Text>
-                <View style={[styles.ph5, styles.mb6]}>
+                <View style={[styles.mb6]}>
                     <TextInput
                         label={`${props.translate('common.email')}/${props.translate('common.phoneNumber')}`}
-                        ref={loginInputRef}
-                        value={login}
-                        onChangeText={handleLoginChange}
+                        inputID="phoneOrEmail"
                         autoCapitalize="none"
                         returnKeyType={Permissions.canUsePasswordlessLogins(props.betas) ? 'done' : 'next'}
+                        autoFocus
                     />
                 </View>
                 {!Permissions.canUsePasswordlessLogins(props.betas)
                     && (
-                        <View style={[styles.ph5, styles.mb6]}>
+                        <View style={[styles.mb6]}>
                             <TextInput
                                 label={props.translate('common.password')}
-                                value={password}
-                                onChangeText={handlePasswordChange}
+                                inputID="password"
                                 returnKeyType="done"
                             />
                         </View>
                     )}
-            </ScrollView>
-            <FixedFooter style={[styles.flexGrow0]}>
-                <Button
-                    success
-                    isDisabled={!isFormValid}
-                    text={props.translate('common.add')}
-                    onPress={submitForm}
-                    pressOnEnter
-                />
-            </FixedFooter>
+            </Form>
         </ScreenWrapper>
     );
 }
@@ -145,5 +137,8 @@ export default compose(
     withOnyx({
         betas: {key: ONYXKEYS.BETAS},
         loginList: {key: ONYXKEYS.LOGIN_LIST},
+        session: {
+            key: ONYXKEYS.SESSION,
+        },
     }),
 )(NewContactMethodPage);

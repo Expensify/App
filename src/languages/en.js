@@ -391,6 +391,10 @@ export default {
             validateSecondaryLogin: 'Failed to validate contact method with given magic code. Please request a new code and try again.',
             deleteContactMethod: 'Failed to delete contact method. Please reach out to Concierge for help.',
             addContactMethod: 'Failed to add this contact method. Please reach out to Concierge for help.',
+            enteredMethodIsAlreadySubmited: 'The Entered Contact Method is default contact please add another method to continue.',
+            passwordRequired: 'Password is required.',
+            contactMethodRequired: 'Contact method is required.',
+            invalidContactMethod: 'Invalid contact method.'
         },
         newContactMethod: 'New contact method',
     },

@@ -195,6 +195,7 @@ export default {
         ROOM_SETTINGS_FORM: 'roomSettingsForm',
         NEW_TASK_FORM: 'newTaskForm',
         MONEY_REQUEST_DESCRIPTION_FORM: 'moneyRequestDescriptionForm',
+        NEW_CONTACT_FORM: 'newContactMethod'
     },
 
     // Whether we should show the compose input or not
