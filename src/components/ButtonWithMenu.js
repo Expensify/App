@@ -90,6 +90,7 @@ class ButtonWithMenu extends PureComponent {
                                 this.setState({selectedItemIndex: index});
                             },
                         }))}
+                        withoutOverlay
                     />
                 )}
             </View>

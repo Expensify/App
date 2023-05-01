@@ -858,6 +858,7 @@ class ReportActionCompose extends React.Component {
                                                             },
                                                         },
                                                     ]}
+                                                    withoutOverlay
                                                 />
                                             </>
                                         )}

@@ -3,7 +3,6 @@ import React, {Component} from 'react';
 import PropTypes from 'prop-types';
 import {View} from 'react-native';
 import lodashGet from 'lodash/get';
-import PopoverWithoutOverlay from './PopoverWithoutOverlay';
 import Popover from './Popover';
 import {propTypes as popoverPropTypes, defaultProps as defaultPopoverProps} from './Popover/popoverPropTypes';
 import withWindowDimensions, {windowDimensionsPropTypes} from './withWindowDimensions';
@@ -184,16 +183,15 @@ class PopoverWithMeasuredContent extends Component {
             left: adjustedAnchorPosition.left + horizontalShift,
             top: adjustedAnchorPosition.top + verticalShift,
         };
-        const PopoverComponentToUse = this.props.withoutOverlay ? PopoverWithoutOverlay : Popover;
         return this.state.isContentMeasured
             ? (
-                <PopoverComponentToUse
+                <Popover
                     // eslint-disable-next-line react/jsx-props-no-spreading
                     {...this.props}
                     anchorPosition={shifedAnchorPosition}
                 >
                     {this.props.measureContent()}
-                </PopoverComponentToUse>
+                </Popover>
             ) : (
 
                 /*

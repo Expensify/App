@@ -435,6 +435,7 @@ class BasePaymentsPage extends React.Component {
                         top: this.state.anchorPositionTop,
                         right: this.state.anchorPositionRight,
                     }}
+                    withoutOverlay
                 >
                     {!this.state.showConfirmDeleteContent ? (
                         <View

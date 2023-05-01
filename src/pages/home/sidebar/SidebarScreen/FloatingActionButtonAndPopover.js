@@ -229,6 +229,7 @@ class FloatingActionButtonAndPopover extends React.Component {
                             },
                         ] : []),
                     ]}
+                    withoutOverlay
                 />
                 <FloatingActionButton
                     accessibilityLabel={this.props.translate('sidebarScreen.fabNewChat')}

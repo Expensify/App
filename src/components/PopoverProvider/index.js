@@ -11,6 +11,8 @@ const defaultProps = {};
 const PopoverContext = React.createContext({
     onOpen: () => {},
     popover: {},
+    close: () => {},
+    isOpen: false,
 });
 
 const PopoverContextProvider = (props) => {
@@ -31,6 +33,7 @@ const PopoverContextProvider = (props) => {
             if (
                 !activePopoverRef.current
                 || !activePopoverRef.current.ref
+                || !activePopoverRef.current.ref.current
                 || activePopoverRef.current.ref.current.contains(e.target)
             ) {
                 return;
@@ -69,6 +72,13 @@ const PopoverContextProvider = (props) => {
         };
     }, []);
 
+    React.useEffect(() => {
+        document.addEventListener('scroll', closePopover, true);
+        return () => {
+            document.removeEventListener('scroll', closePopover, true);
+        };
+    }, []);
+
     const onOpen = (popoverParams) => {
         if (activePopoverRef.current) {
             closePopover();
@@ -80,6 +90,7 @@ const PopoverContextProvider = (props) => {
         <PopoverContext.Provider
             value={{
                 onOpen,
+                close: closePopover,
                 popover: activePopoverRef.current,
                 isOpen,
             }}

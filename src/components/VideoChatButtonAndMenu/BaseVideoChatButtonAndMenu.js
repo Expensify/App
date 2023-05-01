@@ -130,6 +130,7 @@ class BaseVideoChatButtonAndMenu extends Component {
                         left: this.state.videoChatIconPosition.x - 150,
                         top: this.state.videoChatIconPosition.y + 40,
                     }}
+                    withoutOverlay
                 >
                     <View style={this.props.isSmallScreenWidth ? {} : styles.pv3}>
                         {_.map(this.menuItemData, ({icon, text, onPress}) => (

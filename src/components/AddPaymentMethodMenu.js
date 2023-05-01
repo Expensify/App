@@ -65,6 +65,7 @@ const AddPaymentMethodMenu = props => (
             },
             ] : []),
         ]}
+        withoutOverlay
     />
 );
 
