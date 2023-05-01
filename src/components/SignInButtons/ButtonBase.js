@@ -1,28 +1,26 @@
-import {Pressable} from 'react-native';
-import Icon from '../Icon';
-import * as Expensicons from '../Icon/Expensicons';
-import styles from '../../styles/styles';
+import {Pressable, View} from 'react-native';
+import variables from '../../styles/variables';
 
 // Circular button that will contain a logo, used as base for Google and Apple Sign-In buttons
 
 const ButtonBase = ({onPress, icon}) => (
-    <Pressable onPress={onPress} style={style}>
-        {icon}
-        <Icon src={Expensicons.ImageCropCircleMask} width={40} height={40} additionalStyles={[styles.pAbsolute]} />
-    </Pressable>
+    <Pressable onPress={onPress} style={{margin: 10}}>
+        <View style={style}>
+            {icon}
+        </View>
+    </Pressable >
 );
 
 const style = {
-    background: 'white',
-    height: 40,
-    width: 40,
-    margin: 10,
-    padding: 0,
-    backgroundColor: 'purple',
+    alignItems: 'center',
+    justifyContent: 'center',
+    height: variables.iconSizeExtraLarge,
+    width: variables.iconSizeExtraLarge,
+    borderRadius: 20,
+    backgroundColor: 'white',
+    overflow: 'hidden',
 };
 
-const maskStyle = {
-    ...styles.pAbsolute,
-};
+ButtonBase.displayName = 'ButtonBase';
 
 export default ButtonBase;
