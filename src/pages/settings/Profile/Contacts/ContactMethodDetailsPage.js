@@ -227,14 +227,12 @@ class ContactMethodDetailsPage extends Component {
                                 onClose={() => User.clearContactMethodErrors(contactMethod, 'validateCodeSent')}
                             >
                                 <View
-                                    style={[styles.mt2, styles.dFlex, styles.flexRow]}
+                                    style={[styles.mt2, styles.dFlex, styles.flexColumn]}
                                 >
                                     <Text style={[styles.link, styles.mr1]} onPress={this.resendValidateCode}>
                                         {this.props.translate('contacts.resendMagicCode')}
                                     </Text>
-                                    {hasMagicCodeBeenSent && (
-                                        <Icon src={Expensicons.Checkmark} fill={colors.green} />
-                                    )}
+                                    {hasMagicCodeBeenSent && <DotIndicatorMessage style={[styles.mt4, styles.flex0]} type="success" messages={{ 0: this.props.translate('resendValidationForm.linkHasBeenResent') }} />}
                                 </View>
                             </OfflineWithFeedback>
                             <OfflineWithFeedback
