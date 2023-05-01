@@ -1533,6 +1533,11 @@ const styles = {
         flex: 1,
     },
 
+    textInputComposeBorder: {
+        borderLeftWidth: 1,
+        borderColor: themeColors.border,
+    },
+
     chatItemSubmitButton: {
         alignSelf: 'flex-end',
         borderRadius: variables.componentBorderRadiusRounded,
@@ -1629,11 +1634,6 @@ const styles = {
 
     hoveredButton: {
         backgroundColor: themeColors.buttonHoveredBG,
-    },
-
-    chatItemAttachBorder: {
-        borderRightColor: themeColors.border,
-        borderRightWidth: 1,
     },
 
     composerSizeButton: {
