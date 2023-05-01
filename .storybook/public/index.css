@@ -1,24 +1,28 @@
 .search-field *, .sidebar-item, .search-result-item--label {
-    color: #fff !important;
+    color: #E7ECE9 !important;
 }
 
 .sidebar-subheading *, .search-result-item {
-    color: #fff;
+    color: #E7ECE9;
 }
 
 a.sidebar-item > svg {
     color: #03d47c;
 }
 
+a.sidebar-item[data-selected="true"], a.sidebar-item[data-selected="true"]:focus, a.sidebar-item[data-selected="true"]:hover {
+    background: #1A3D32;
+}
+
 .search-result-item--label span {
-    color: #ffffffaa !important;
+    color: #E7ECE9aa !important;
 }
 
 #panel-tab-content :is(input:checked ~ span:last-of-type, input:not(:checked) ~ span:first-of-type) {
-    background: #ff7101;
-    color: #fff;
+    background: #03D47C;
+    color: #E7ECE9;
 }
 
 .sidebar-container {
-    background: #0b1b34;
+    background: #07271f;
 }

@@ -91,7 +91,7 @@ export default {
         genericErrorMessage: 'Ups... algo no ha ido bien y la acción no se ha podido completar. Por favor, inténtalo más tarde.',
         error: {
             invalidAmount: 'Importe no válido',
-            acceptTerms: 'Debes aceptar los Términos de servicio para continuar',
+            acceptTerms: 'Debes aceptar los Términos de Servicio para continuar',
             phoneNumber: `Introduce un teléfono válido, incluyendo el código del país (p. ej. ${CONST.EXAMPLE_PHONE_NUMBER})`,
             fieldRequired: 'Este campo es obligatorio.',
             characterLimit: ({limit}) => `Supera el límite de ${limit} caracteres`,
@@ -147,7 +147,7 @@ export default {
         attachmentTooSmall: 'Archivo adjunto demasiado pequeño',
         sizeNotMet: 'El archivo adjunto debe ser mas grande que 240 bytes.',
         wrongFileType: 'El tipo del archivo adjunto es incorrecto',
-        notAllowedExtension: 'Los archivos adjuntos deben ser de uno de los siguientes tipos: ',
+        notAllowedExtension: 'Los archivos adjuntos deben ser de uno de los siguientes tipos:',
     },
     avatarCropModal: {
         title: 'Editar foto',
@@ -450,9 +450,9 @@ export default {
         versionLetter: 'v',
         readTheTermsAndPrivacy: {
             phrase1: 'Leer los',
-            phrase2: 'términos de servicio',
+            phrase2: 'Términos de Servicio',
             phrase3: 'y',
-            phrase4: 'privacidad',
+            phrase4: 'Privacidad',
         },
         help: 'Ayuda',
     },
@@ -600,9 +600,9 @@ export default {
     },
     termsOfUse: {
         phrase1: 'Al iniciar sesión, estás accediendo a los',
-        phrase2: 'términos de servicio',
+        phrase2: 'Términos de Servicio',
         phrase3: 'y',
-        phrase4: 'privacidad',
+        phrase4: 'Privacidad',
         phrase5: 'El envío de dinero es brindado por Expensify Payments LLC (NMLS ID:2017010) de conformidad con sus',
         phrase6: 'licencias',
     },
@@ -1056,10 +1056,16 @@ export default {
         },
         invite: {
             invitePeople: 'Invitar nuevos miembros',
-            personalMessagePrompt: 'Agregar un mensaje personal (Opcional)',
+            genericFailureMessage: 'Se produjo un error al invitar al usuario al espacio de trabajo. Vuelva a intentarlo..',
+            pleaseEnterValidLogin: `Asegúrese de que el correo electrónico o el número de teléfono sean válidos (p. ej. ${CONST.EXAMPLE_PHONE_NUMBER}).`,
+        },
+        inviteMessage: {
+            inviteMessageTitle: 'Añadir un mensaje',
+            inviteMessagePrompt: 'Añadir un mensaje para hacer tu invitación destacar',
+            personalMessagePrompt: 'Mensaje',
+            inviteNoMembersError: 'Por favor, selecciona al menos un miembro a invitar',
             genericFailureMessage: 'Se produjo un error al invitar al usuario al espacio de trabajo. Vuelva a intentarlo..',
             welcomeNote: ({workspaceName}) => `¡Has sido invitado a ${workspaceName}! Descargue la aplicación móvil Expensify en use.expensify.com/download para comenzar a rastrear sus gastos.`,
-            pleaseEnterValidLogin: `Asegúrese de que el correo electrónico o el número de teléfono sean válidos (p. ej. ${CONST.EXAMPLE_PHONE_NUMBER}).`,
         },
         editor: {
             nameInputLabel: 'Nombre',

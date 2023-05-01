@@ -25,6 +25,10 @@ const propTypes = {
      *  Search 'switch(behavior)' in ./node_modules/react-native/Libraries/Components/Keyboard/KeyboardAvoidingView.js for more context */
     keyboardAvoidingViewBehavior: PropTypes.oneOf(['padding', 'height', 'position']),
 
+    /** Whether picker modal avoiding should be enabled. Should be enabled when there's a picker at the bottom of a
+     *  scrollable form, gives a subtly better UX if disabled on non-scrollable screens with a submit button */
+    shouldEnablePickerAvoiding: PropTypes.bool,
+
     /** Details about any modals being used */
     modal: PropTypes.shape({
         /** Indicates when an Alert modal is about to be visible */
@@ -33,6 +37,9 @@ const propTypes = {
 
     /** Whether to dismiss keyboard before leaving a screen */
     shouldDismissKeyboardBeforeClose: PropTypes.bool,
+
+    /** Whether to use the maxHeight (true) or use the 100% of the height (false) */
+    shouldEnableMaxHeight: PropTypes.bool,
 
     ...windowDimensionsPropTypes,
 
@@ -47,6 +54,8 @@ const defaultProps = {
     onEntryTransitionEnd: () => {},
     modal: {},
     keyboardAvoidingViewBehavior: 'padding',
+    shouldEnableMaxHeight: false,
+    shouldEnablePickerAvoiding: true,
 };
 
 export {propTypes, defaultProps};

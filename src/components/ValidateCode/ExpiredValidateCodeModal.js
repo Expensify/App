@@ -105,7 +105,7 @@ class ExpiredValidateCodeModal extends PureComponent {
                                 <Text style={styles.validateCodeMessage}>
                                     <br />
                                     <br />
-                                    {codeRequestedMessage}
+                                    {this.props.translate(codeRequestedMessage)}
                                 </Text>
                             )}
                     </View>
