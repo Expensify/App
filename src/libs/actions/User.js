@@ -20,6 +20,7 @@ import * as Report from './Report';
 import * as ReportActionsUtils from '../ReportActionsUtils';
 import DateUtils from '../DateUtils';
 import * as Session from './Session';
+import * as PersonalDetails from './PersonalDetails';
 
 let currentUserAccountID = '';
 let currentEmail = '';
@@ -727,7 +728,14 @@ function setContactMethodAsDefault(newDefaultContactMethod) {
             onyxMethod: CONST.ONYX.METHOD.MERGE,
             key: ONYXKEYS.PERSONAL_DETAILS,
             value: {
-                [newDefaultContactMethod]: {...myPersonalDetails},
+                [newDefaultContactMethod]: {
+                    ...myPersonalDetails,
+                    login: newDefaultContactMethod,
+                    displayName: PersonalDetails.getDisplayName(
+                        newDefaultContactMethod,
+                        myPersonalDetails,
+                    ),
+                },
                 [oldDefaultContactMethod]: null,
             },
         },
