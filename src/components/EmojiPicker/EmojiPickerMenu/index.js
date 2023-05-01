@@ -20,6 +20,7 @@ import EmojiSkinToneList from '../EmojiSkinToneList';
 import * as EmojiUtils from '../../../libs/EmojiUtils';
 import CategoryShortcutBar from '../CategoryShortcutBar';
 import TextInput from '../../TextInput';
+import KeyboardSpacer from '../../KeyboardSpacer';
 
 const propTypes = {
     /** Function to add the selected emoji to the main compose text input */
@@ -434,6 +435,16 @@ class EmojiPickerMenu extends Component {
     }
 
     /**
+     * Return a unique key for each emoji item
+     *
+     * @param {Object} item
+     * @returns {String}
+     */
+    keyExtractor(item) {
+        return (`emoji_picker_${item.code}`);
+    }
+
+    /**
      * Given an emoji item object, render a component based on its type.
      * Items with the code "SPACER" return nothing and are used to fill rows up to 8
      * so that the sticky headers function properly.
@@ -495,21 +506,20 @@ class EmojiPickerMenu extends Component {
                 style={[styles.emojiPickerContainer, StyleUtils.getEmojiPickerStyle(this.props.isSmallScreenWidth)]}
                 pointerEvents={this.state.arePointerEventsDisabled ? 'none' : 'auto'}
             >
-                {!this.props.isSmallScreenWidth && (
-                    <View style={[styles.ph4, styles.pb2, styles.pt2]}>
-                        <TextInput
-                            label={this.props.translate('common.search')}
-                            onChangeText={this.filterEmojis}
-                            defaultValue=""
-                            ref={el => this.searchInput = el}
-                            autoFocus
-                            selectTextOnFocus={this.state.selectTextOnFocus}
-                            onSelectionChange={this.onSelectionChange}
-                            onFocus={() => this.setState({isFocused: true, highlightedIndex: -1, isUsingKeyboardMovement: false})}
-                            onBlur={() => this.setState({isFocused: false})}
-                        />
-                    </View>
-                )}
+                <View style={[styles.ph4, styles.pb1, styles.pt2]}>
+                    <TextInput
+                        label={this.props.translate('common.search')}
+                        onChangeText={this.filterEmojis}
+                        defaultValue=""
+                        ref={el => this.searchInput = el}
+                        autoFocus={!this.props.isSmallScreenWidth}
+                        selectTextOnFocus={this.state.selectTextOnFocus}
+                        onSelectionChange={this.onSelectionChange}
+                        onFocus={() => this.setState({isFocused: true, highlightedIndex: -1, isUsingKeyboardMovement: false})}
+                        onBlur={() => this.setState({isFocused: false})}
+                        autoCorrect={false}
+                    />
+                </View>
                 {!isFiltered && (
                     <CategoryShortcutBar
                         headerEmojis={this.headerEmojis}
@@ -521,7 +531,10 @@ class EmojiPickerMenu extends Component {
                         <Text
                             style={[
                                 styles.disabledText,
-                                styles.emojiPickerList,
+                                styles.emojiPickerListWithPadding,
+                                styles.dFlex,
+                                styles.alignItemsCenter,
+                                styles.justifyContentCenter,
                                 styles.textLabel,
                                 styles.colorMuted,
                                 this.isMobileLandscape() && styles.emojiPickerListLandscape,
@@ -535,10 +548,11 @@ class EmojiPickerMenu extends Component {
                             ref={el => this.emojiList = el}
                             data={this.state.filteredEmojis}
                             renderItem={this.renderItem}
-                            keyExtractor={item => `emoji_picker_${item.code}`}
+                            keyExtractor={this.keyExtractor}
                             numColumns={CONST.EMOJI_NUM_PER_ROW}
                             style={[
                                 styles.emojiPickerList,
+                                StyleUtils.getEmojiPickerListHeight(isFiltered),
                                 this.isMobileLandscape() && styles.emojiPickerListLandscape,
                             ]}
                             extraData={
@@ -553,6 +567,7 @@ class EmojiPickerMenu extends Component {
                     updatePreferredSkinTone={this.updatePreferredSkinTone}
                     preferredSkinTone={this.props.preferredSkinTone}
                 />
+                <KeyboardSpacer />
             </View>
         );
     }
