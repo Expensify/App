@@ -1,15 +1,10 @@
-import React, {
-    useCallback, useMemo, useRef, useState,
-} from 'react';
 import PropTypes from 'prop-types';
 import {View} from 'react-native';
-import {ScrollView} from 'react-native-gesture-handler';
 import {withOnyx} from 'react-native-onyx';
-import {compose} from 'underscore';
+import _ from 'underscore';
 import lodashGet from 'lodash/get';
 import Str from 'expensify-common/lib/str';
-import Button from '../../../../components/Button';
-import FixedFooter from '../../../../components/FixedFooter';
+import compose from '../../../../libs/compose';
 import HeaderWithCloseButton from '../../../../components/HeaderWithCloseButton';
 import ScreenWrapper from '../../../../components/ScreenWrapper';
 import Text from '../../../../components/Text';
@@ -23,7 +18,6 @@ import styles from '../../../../styles/styles';
 import * as User from '../../../../libs/actions/User';
 import * as LoginUtils from '../../../../libs/LoginUtils';
 import Form from '../../../../components/Form';
-import _ from 'underscore';
 
 const propTypes = {
     /* Onyx Props */
@@ -56,36 +50,34 @@ const defaultProps = {
     loginList: {},
 };
 
-function NewContactMethodPage(props) { 
-
-    function isFormValid(values) { 
-        const userEmailOrPhone = Str.removeSMSDomain(props.session.email);
-        const phoneLogin = !_.isEmpty(values.phoneOrEmail) ? LoginUtils.getPhoneNumberWithoutSpecialChars(values.phoneOrEmail) : ''
+function NewContactMethodPage(props) {
+    const isFormValid = function (values) {
+        const phoneLogin = !_.isEmpty(values.phoneOrEmail) ? LoginUtils.getPhoneNumberWithoutSpecialChars(values.phoneOrEmail) : '';
 
         const errors = {};
 
         if (_.isEmpty(values.phoneOrEmail)) {
-            errors.phoneOrEmail = props.translate('contacts.genericFailureMessages.contactMethodRequired')
-        }  
+            errors.phoneOrEmail = props.translate('contacts.genericFailureMessages.contactMethodRequired');
+        }
 
-        if(!_.isEmpty(values.phoneOrEmail) && !(Str.isValidPhone(phoneLogin) || Str.isValidEmail(values.phoneOrEmail)) ){
-            errors.phoneOrEmail =  props.translate('contacts.genericFailureMessages.invalidContactMethod')
-        }   
+        if (!_.isEmpty(values.phoneOrEmail) && !(Str.isValidPhone(phoneLogin) || Str.isValidEmail(values.phoneOrEmail))) {
+            errors.phoneOrEmail = props.translate('contacts.genericFailureMessages.invalidContactMethod');
+        }
 
-        if(!_.isEmpty(values.phoneOrEmail) && userEmailOrPhone.toLowerCase() === values.phoneOrEmail.toLowerCase()){
+        if (!_.isEmpty(values.phoneOrEmail) && lodashGet(props.loginList, values.phoneOrEmail)) {
             errors.phoneOrEmail = props.translate('contacts.genericFailureMessages.enteredMethodIsAlreadySubmited');
-        } 
+        }
 
-        if (!Permissions.canUsePasswordlessLogins(props.betas) ||  _.isEmpty(values.password)) {
-            errors.password =  props.translate('contacts.genericFailureMessages.passwordRequired')
-        }  
+        if (!Permissions.canUsePasswordlessLogins(props.betas) || _.isEmpty(values.password)) {
+            errors.password = props.translate('contacts.genericFailureMessages.passwordRequired');
+        }
 
         return errors;
     };
 
-    function submitForm(value) {
-        User.addNewContactMethodAndNavigate(value.phoneOrEmail,value.password);
-    } 
+    const submitForm = function (value) {
+        User.addNewContactMethodAndNavigate(value.phoneOrEmail, value.password);
+    };
 
     return (
         <ScreenWrapper includeSafeAreaPaddingBottom={false}>
@@ -100,9 +92,9 @@ function NewContactMethodPage(props) {
                 validate={isFormValid}
                 onSubmit={submitForm}
                 submitButtonText={props.translate('common.add')}
-                style={[styles.flexGrow1,styles.mh5]}
+                style={[styles.flexGrow1, styles.mh5]}
             >
-                <Text style={[ styles.mb5]}>
+                <Text style={[styles.mb5]}>
                     {props.translate('common.pleaseEnterEmailOrPhoneNumber')}
                 </Text>
                 <View style={[styles.mb6]}>
