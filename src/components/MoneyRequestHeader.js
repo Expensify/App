@@ -62,6 +62,7 @@ const MoneyRequestHeader = (props) => {
                 policies={props.policies}
                 personalDetails={props.personalDetails}
                 containerStyles={[styles.pt5, styles.pb3]}
+                shouldShowCloseButton={false}
             />
             <View style={[styles.ph5, styles.pb5]}>
                 <Text style={[styles.textLabelSupporting, styles.lh16]}>To</Text>
