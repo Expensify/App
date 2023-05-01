@@ -503,25 +503,6 @@ function subscribeToUserEventsUsingMultipleEventType() {
             triggerNotifications(pushJSON);
         });
     });
-
-    // Handles updates to the user's preferred locale
-    PusherUtils.subscribeToMultiEvent(Pusher.TYPE.MULTIPLE_EVENT_TYPE.PREFERRED_LOCALE, (pushJSON) => {
-        Onyx.merge(ONYXKEYS.NVP_PREFERRED_LOCALE, pushJSON.preferredLocale);
-    });
-
-    // Handles screenshare requests sent by GuidesPlus agents
-    PusherUtils.subscribeToMultiEvent(Pusher.TYPE.MULTIPLE_EVENT_TYPE.SCREEN_SHARE_REQUEST, (pushJSON) => {
-        Onyx.merge(ONYXKEYS.SCREEN_SHARE_REQUEST, pushJSON);
-    });
-
-    // Handle Expensify Card approval flow updates
-    PusherUtils.subscribeToMultiEvent(Pusher.TYPE.MULTIPLE_EVENT_TYPE.EXPENSIFY_CARD_UPDATE, (pushJSON) => {
-        if (pushJSON.isUsingExpensifyCard) {
-            Onyx.merge(ONYXKEYS.USER, {isUsingExpensifyCard: pushJSON.isUsingExpensifyCard, isCheckingDomain: null});
-        } else {
-            Onyx.merge(ONYXKEYS.USER, {isCheckingDomain: pushJSON.isCheckingDomain});
-        }
-    });
 }
 
 /**
