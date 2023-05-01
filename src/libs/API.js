@@ -31,8 +31,8 @@ function write(command, apiCommandParameters = {}, onyxData = {}) {
         appversion: pkg.version,
         apiRequestType: CONST.API_REQUEST_TYPE.WRITE,
 
-        // We send the pusherSocketID with all write requests so that the api can include it in push events to prevent Pusher from sending the events to that client. The push event is sent
-        // back to the requesting client in the response data instead, which prevents a replay effect in the UI. See https://github.com/Expensify/App/issues/12775.
+        // We send the pusherSocketID with all write requests so that the api can include it in push events to prevent Pusher from sending the events to the requesting client. The push event
+        // is sent back to the requesting client in the response data instead, which prevents a replay effect in the UI. See https://github.com/Expensify/App/issues/12775.
         pusherSocketID: Pusher.getPusherSocketID(),
     };
 
