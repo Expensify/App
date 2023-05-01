@@ -1548,7 +1548,12 @@ const styles = {
     },
 
     emojiPickerList: {
-        height: 288,
+        height: CONST.NON_NATIVE_EMOJI_PICKER_LIST_HEIGHT,
+        width: '100%',
+        ...spacing.ph4,
+    },
+    emojiPickerListWithPadding: {
+        height: CONST.NON_NATIVE_EMOJI_PICKER_LIST_HEIGHT + CONST.CATEGORY_SHORTCUT_BAR_HEIGHT,
         width: '100%',
         ...spacing.ph4,
     },
