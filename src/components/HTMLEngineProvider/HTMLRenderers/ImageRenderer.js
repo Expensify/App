@@ -7,6 +7,7 @@ import PressableWithoutFocus from '../../PressableWithoutFocus';
 import CONST from '../../../CONST';
 import {ShowContextMenuContext, showContextMenuForReport} from '../../ShowContextMenuContext';
 import tryResolveUrlFromApiRoot from '../../../libs/tryResolveUrlFromApiRoot';
+import * as ReportUtils from '../../../libs/ReportUtils';
 
 const ImageRenderer = (props) => {
     const htmlAttribs = props.tnode.attributes;
@@ -53,13 +54,13 @@ const ImageRenderer = (props) => {
         <ShowContextMenuContext.Consumer>
             {({
                 anchor,
-                reportID,
+                report,
                 action,
                 checkIfContextMenuActive,
             }) => (
                 <AttachmentModal
                     allowDownload
-                    reportID={reportID}
+                    reportID={report.reportID}
                     source={source}
                     isAuthTokenRequired={isAttachment}
                     originalFileName={originalFileName}
@@ -68,7 +69,7 @@ const ImageRenderer = (props) => {
                         <PressableWithoutFocus
                             styles={[styles.noOutline, styles.alignItemsStart]}
                             onPress={show}
-                            onLongPress={event => showContextMenuForReport(event, anchor, reportID, action, checkIfContextMenuActive)}
+                            onLongPress={event => showContextMenuForReport(event, anchor, report.reportID, action, checkIfContextMenuActive, ReportUtils.isArchivedRoom(report))}
                         >
                             <ThumbnailImage
                                 previewSourceURL={previewSource}
