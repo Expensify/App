@@ -50,6 +50,7 @@ import * as Expensicons from '../../../components/Icon/Expensicons';
 import Text from '../../../components/Text';
 import DisplayNames from '../../../components/DisplayNames';
 import personalDetailsPropType from '../../personalDetailsPropType';
+import ReportPreview from '../../../components/ReportActionItem/ReportPreview';
 
 const propTypes = {
     /** Report for this action */
@@ -184,6 +185,8 @@ class ReportActionItem extends Component {
                     checkIfContextMenuActive={this.checkIfContextMenuActive}
                 />
             );
+        } else if (this.props.action.actionName === CONST.REPORT.ACTIONS.TYPE.REPORTPREVIEW) {
+            children = (<ReportPreview />);
         } else {
             const message = _.last(lodashGet(this.props.action, 'message', [{}]));
             const isAttachment = _.has(this.props.action, 'isAttachment')

@@ -287,10 +287,13 @@ function buildOptimisticReportPreview(reportID, payeeAccountID, amount) {
         reportActionID: NumberUtils.rand64(),
         reportID: reportID,
         created: DateUtils.getDBTime(),
-        action: CONST.REPORT.ACTIONS.TYPE.REPORTPREVIEW,
+        actionName: CONST.REPORT.ACTIONS.TYPE.REPORTPREVIEW,
         pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
         accountID: payeeAccountID,
-        message: {amount: amount},
+        
+        // TODO - the followings are hardcodings for whatever ReportActionItemSingle/ReportActionItemGrouped expect
+        message: [{text: 'This is a report preview.', type: 'COMMENT'}],
+        actorEmail: 'cristi+dev5@expensify.com',
     });
 }
 
