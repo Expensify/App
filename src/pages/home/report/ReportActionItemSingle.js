@@ -89,23 +89,23 @@ const ReportActionItemSingle = (props) => {
                 onPressOut={ControlSelection.unblock}
                 onPress={() => showUserDetails(actorEmail)}
             >
-                <Tooltip text={actorEmail}>
-                    <OfflineWithFeedback
-                        pendingAction={lodashGet(pendingFields, 'avatar', null)}
-                    >
-                        {props.shouldShowSubscriptAvatar ? (
-                            <SubscriptAvatar
-                                mainAvatar={{source: avatarSource, type: CONST.ICON_TYPE_AVATAR}}
-                                secondaryAvatar={ReportUtils.getIcons(props.report, {})[0]}
-                            />
-                        ) : (
+                <OfflineWithFeedback
+                    pendingAction={lodashGet(pendingFields, 'avatar', null)}
+                >
+                    {props.shouldShowSubscriptAvatar ? (
+                        <SubscriptAvatar
+                            mainAvatar={{source: avatarSource, type: CONST.ICON_TYPE_AVATAR}}
+                            secondaryAvatar={ReportUtils.getIcons(props.report, {})[0]}
+                        />
+                    ) : (
+                        <Tooltip text={actorEmail}>
                             <Avatar
                                 containerStyles={[styles.actionAvatar]}
                                 source={avatarSource}
                             />
-                        )}
-                    </OfflineWithFeedback>
-                </Tooltip>
+                        </Tooltip>
+                    )}
+                </OfflineWithFeedback>
             </Pressable>
             <View style={[styles.chatItemRight]}>
                 {props.showHeader ? (
