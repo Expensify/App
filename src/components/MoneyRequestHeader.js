@@ -13,6 +13,8 @@ import Avatar from './Avatar';
 import styles from '../styles/styles';
 import themeColors from '../styles/themes/default';
 import CONST from '../CONST';
+import withWindowDimensions from './withWindowDimensions';
+import compose from '../libs/compose';
 
 const propTypes = {
     /** The report currently being looked at */
@@ -36,7 +38,7 @@ const defaultProps = {
 };
 
 const MoneyRequestHeader = (props) => {
-    const formattedAmount = props.numberFormat(props.report.total, {
+    const formattedAmount = props.numberFormat(props.report.total / 100, {
         style: 'currency',
         currency: props.report.currency,
     });
@@ -58,11 +60,13 @@ const MoneyRequestHeader = (props) => {
                     text: props.translate('common.delete'),
                     onSelected: () => {},
                 }]}
+                threeDotsAnchorPosition={styles.threeDotsPopoverOffsetNoCloseButton}
                 report={props.report}
                 policies={props.policies}
                 personalDetails={props.personalDetails}
                 containerStyles={[styles.pt5, styles.pb3]}
                 shouldShowCloseButton={false}
+                shouldShowBackButton={props.isSmallScreenWidth}
             />
             <View style={[styles.ph5, styles.pb5]}>
                 <Text style={[styles.textLabelSupporting, styles.lh16]}>To</Text>
@@ -101,12 +105,9 @@ const MoneyRequestHeader = (props) => {
                             </Text>
                         </View>
                     </View>
-                    <View style={[]}>
+                    <View>
                         {!props.isSingleTransactionView && (
                             <Text style={[styles.newKansasLarge]}>{formattedAmount}</Text>
-                        )}
-                        {isAdmin && !isSettled && (
-                            <SettlementButton />
                         )}
                     </View>
                 </View>
@@ -119,4 +120,7 @@ MoneyRequestHeader.displayName = 'MoneyRequestHeader';
 MoneyRequestHeader.propTypes = propTypes;
 MoneyRequestHeader.defaultProps = defaultProps;
 
-export default withLocalize(MoneyRequestHeader);
+export default compose(
+    withWindowDimensions,
+    withLocalize,
+)(MoneyRequestHeader);
