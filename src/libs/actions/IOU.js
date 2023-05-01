@@ -14,7 +14,6 @@ import * as IOUUtils from '../IOUUtils';
 import * as OptionsListUtils from '../OptionsListUtils';
 import DateUtils from '../DateUtils';
 import TransactionUtils from '../TransactionUtils';
-import * as NumberUtils from '../NumberUtils';
 import StringUtils from '../StringUtils';
 
 const chatReports = {};
@@ -413,7 +412,7 @@ function createSplitsAndOnyxData(participants, currentUserLogin, amount, comment
         }
 
         const oneOnOneTransaction = TransactionUtils.buildOptimisticTransaction(
-            NumberUtils.roundDownToTwoDecimalPlaces(amountInCents / (participants.length + 1)),
+            splitAmount,
             currency,
             oneOnOneIOUReport.reportID,
             comment,
