@@ -81,6 +81,7 @@ const getHTMLOfSelection = () => {
         }
     }
 
+    // Remove any element that isn't selectable
     div.querySelectorAll(`div[style*="user-select: ${styles.userSelectNone.WebkitUserSelect}"]`).forEach(item => item.remove());
 
     return div.innerHTML;
