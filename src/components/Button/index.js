@@ -265,7 +265,7 @@ class Button extends Component {
                     this.props.shouldRemoveLeftBorderRadius ? styles.noLeftBorderRadius : undefined,
                     ...StyleUtils.parseStyleAsArray(this.props.style),
                 ]}
-                style={({isHovered}) => [
+                style={[
                     styles.button,
                     this.props.small ? styles.buttonSmall : undefined,
                     this.props.medium ? styles.buttonMedium : undefined,
@@ -274,11 +274,13 @@ class Button extends Component {
                     this.props.danger ? styles.buttonDanger : undefined,
                     (this.props.isDisabled && (this.props.success || this.props.danger)) ? styles.buttonOpacityDisabled : undefined,
                     (this.props.isDisabled && !this.props.danger && !this.props.success) ? styles.buttonDisabled : undefined,
-                    (this.props.success && isHovered && !this.props.isDisabled) ? styles.buttonSuccessHovered : undefined,
-                    (this.props.danger && isHovered && !this.props.isDisabled) ? styles.buttonDangerHovered : undefined,
                     this.props.shouldRemoveRightBorderRadius ? styles.noRightBorderRadius : undefined,
                     this.props.shouldRemoveLeftBorderRadius ? styles.noLeftBorderRadius : undefined,
                     ...this.props.innerStyles,
+                ]}
+                hoverStyle={[
+                    (this.props.success && !this.props.isDisabled) ? styles.buttonSuccessHovered : undefined,
+                    (this.props.danger && !this.props.isDisabled) ? styles.buttonDangerHovered : undefined,
                 ]}
                 nativeID={this.props.nativeID}
                 accessibilityLabel={this.props.accessibilityLabel}

@@ -13,13 +13,11 @@ const omittedProps = ['style', 'pressStyle', 'hoverStyle', 'focusStyle', 'wrappe
 const PressableWithFeedbackPropTypes = {
     ..._.omit(GenericPressablePropTypes.pressablePropTypes, omittedProps),
     pressDimmingValue: propTypes.number,
-    hoverDimmingValue: propTypes.number,
 };
 
 const PressableWithFeedbackDefaultProps = {
     ..._.omit(GenericPressablePropTypes.defaultProps, omittedProps),
     pressDimmingValue: variables.pressDimValue,
-    hoverDimmingValue: variables.hoverDimValue,
     wrapperStyle: [],
 };
 
@@ -54,8 +52,8 @@ const PressableWithFeedback = forwardRef((props, ref) => {
         >
             {state => (
                 <OpacityView
-                    shouldDim={state.pressed || state.hovered}
-                    dimmingValue={state.pressed ? props.pressDimmingValue : props.hoverDimmingValue}
+                    shouldDim={state.pressed}
+                    dimmingValue={props.pressDimmingValue}
                     style={[
                         StyleUtils.parseStyleFromFunction(props.style, state),
                         state.pressed && StyleUtils.parseStyleFromFunction(props.pressStyle, state),
