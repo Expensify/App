@@ -1055,10 +1055,16 @@ export default {
         },
         invite: {
             invitePeople: 'Invite new members',
-            personalMessagePrompt: 'Add a personal message (optional)',
             genericFailureMessage: 'An error occurred inviting the user to the workspace, please try again.',
-            welcomeNote: ({workspaceName}) => `You have been invited to ${workspaceName || 'a workspace'}! Download the Expensify mobile app at use.expensify.com/download to start tracking your expenses.`,
             pleaseEnterValidLogin: `Please ensure the email or phone number is valid (e.g. ${CONST.EXAMPLE_PHONE_NUMBER}).`,
+        },
+        inviteMessage: {
+            inviteMessageTitle: 'Add message',
+            inviteMessagePrompt: 'Make your invitation extra special by adding a message below',
+            personalMessagePrompt: 'Message',
+            genericFailureMessage: 'An error occurred inviting the user to the workspace, please try again.',
+            inviteNoMembersError: 'Please select at least one member to invite',
+            welcomeNote: ({workspaceName}) => `You have been invited to ${workspaceName || 'a workspace'}! Download the Expensify mobile app at use.expensify.com/download to start tracking your expenses.`,
         },
         editor: {
             nameInputLabel: 'Name',

@@ -63,12 +63,6 @@ const propTypes = {
     /** Whether the form submit action is dangerous */
     isSubmitActionDangerous: PropTypes.bool,
 
-    /** Whether the ScrollView overflow content is scrollable.
-     *   Set to true to avoid nested Picker components at the bottom of the Form from rendering the popup selector over Picker
-     *   e.g. https://github.com/Expensify/App/issues/13909#issuecomment-1396859008
-     */
-    scrollToOverflowEnabled: PropTypes.bool,
-
     /** Whether ScrollWithContext should be used instead of regular ScrollView.
      *  Set to true when there's a nested Picker component in Form.
      */
@@ -76,6 +70,9 @@ const propTypes = {
 
     /** Container styles */
     style: stylePropTypes,
+
+    /** Custom content to display in the footer after submit button */
+    footerContent: PropTypes.oneOfType([PropTypes.func, PropTypes.node]),
 
     ...withLocalizePropTypes,
 };
@@ -89,8 +86,8 @@ const defaultProps = {
     draftValues: {},
     enabledWhenOffline: false,
     isSubmitActionDangerous: false,
-    scrollToOverflowEnabled: false,
     scrollContextEnabled: false,
+    footerContent: null,
     style: [],
 };
 
@@ -339,6 +336,7 @@ class Form extends React.Component {
                     isLoading={this.props.formState.isLoading}
                     message={_.isEmpty(this.props.formState.errorFields) ? this.getErrorMessage() : null}
                     onSubmit={this.submit}
+                    footerContent={this.props.footerContent}
                     onFixTheErrorsLinkPressed={() => {
                         const errors = !_.isEmpty(this.state.errors) ? this.state.errors : this.props.formState.errorFields;
                         const focusKey = _.find(_.keys(this.inputRefs), key => _.keys(errors).includes(key));
@@ -378,7 +376,6 @@ class Form extends React.Component {
                         style={[styles.w100, styles.flex1]}
                         contentContainerStyle={styles.flexGrow1}
                         keyboardShouldPersistTaps="handled"
-                        scrollToOverflowEnabled={this.props.scrollToOverflowEnabled}
                         ref={this.formRef}
                     >
                         {scrollViewContent(safeAreaPaddingBottomStyle)}
@@ -388,7 +385,6 @@ class Form extends React.Component {
                         style={[styles.w100, styles.flex1]}
                         contentContainerStyle={styles.flexGrow1}
                         keyboardShouldPersistTaps="handled"
-                        scrollToOverflowEnabled={this.props.scrollToOverflowEnabled}
                         ref={this.formRef}
                     >
                         {scrollViewContent(safeAreaPaddingBottomStyle)}
