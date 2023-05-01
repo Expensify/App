@@ -394,7 +394,7 @@ export default {
             enteredMethodIsAlreadySubmited: 'The Entered Contact Method is already exists.',
             passwordRequired: 'Password is required.',
             contactMethodRequired: 'Contact method is required.',
-            invalidContactMethod: 'Invalid contact method.'
+            invalidContactMethod: 'Invalid contact method.',
         },
         newContactMethod: 'New contact method',
     },

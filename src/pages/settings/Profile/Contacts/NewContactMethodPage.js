@@ -51,7 +51,7 @@ const defaultProps = {
 };
 
 function NewContactMethodPage(props) {
-    const isFormValid = function (values) {
+    const isFormValid = (values) => {
         const phoneLogin = !_.isEmpty(values.phoneOrEmail) ? LoginUtils.getPhoneNumberWithoutSpecialChars(values.phoneOrEmail) : '';
 
         const errors = {};
@@ -75,7 +75,7 @@ function NewContactMethodPage(props) {
         return errors;
     };
 
-    const submitForm = function (value) {
+    const submitForm = (value) => {
         User.addNewContactMethodAndNavigate(value.phoneOrEmail, value.password);
     };
 
@@ -129,8 +129,5 @@ export default compose(
     withOnyx({
         betas: {key: ONYXKEYS.BETAS},
         loginList: {key: ONYXKEYS.LOGIN_LIST},
-        session: {
-            key: ONYXKEYS.SESSION,
-        },
     }),
 )(NewContactMethodPage);
