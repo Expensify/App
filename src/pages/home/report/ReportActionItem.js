@@ -221,7 +221,7 @@ function ReportActionItem(props) {
                 )}
             </>
         );
-    }
+    };
 
     if (props.action.actionName === CONST.REPORT.ACTIONS.TYPE.CREATED) {
         return <ReportActionItemCreated reportID={props.report.reportID} />;
