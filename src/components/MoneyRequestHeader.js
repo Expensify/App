@@ -61,17 +61,16 @@ const MoneyRequestHeader = (props) => {
                 report={props.report}
                 policies={props.policies}
                 personalDetails={props.personalDetails}
+                containerStyles={[styles.pt5, styles.pb3]}
             />
-            <View style={[{backgroundColor: themeColors.danger}, styles.ph5, styles.pb5]}>
-                <Text style={[styles.textLabelSupporting, styles.lh16, {backgroundColor: 'cyan'}]}>To</Text>
+            <View style={[styles.ph5, styles.pb5]}>
+                <Text style={[styles.textLabelSupporting, styles.lh16]}>To</Text>
                 <View style={[
                     styles.flex1,
                     styles.flexRow,
                     styles.alignItemsCenter,
                     styles.justifyContentBetween,
                     styles.pv3,
-                    {backgroundColor: 'yellow'},
-
                 ]}
                 >
                     <View style={[

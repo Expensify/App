@@ -93,6 +93,9 @@ const propTypes = {
 
     personalDetails: PropTypes.objectOf(participantPropTypes),
 
+    // eslint-disable-next-line react/forbid-prop-types
+    containerStyles: PropTypes.arrayOf(PropTypes.object),
+
     ...withLocalizePropTypes,
     ...withDelayToggleButtonStatePropTypes,
     ...keyboardStatePropTypes,
@@ -123,6 +126,7 @@ const defaultProps = {
         top: 0,
         left: 0,
     },
+    containerStyles: [],
 };
 
 class HeaderWithCloseButton extends Component {
@@ -147,7 +151,7 @@ class HeaderWithCloseButton extends Component {
 
     render() {
         return (
-            <View style={[styles.headerBar, this.props.shouldShowBorderBottom && styles.borderBottom, this.props.shouldShowBackButton && styles.pl2]}>
+            <View style={[styles.headerBar, this.props.shouldShowBorderBottom && styles.borderBottom, this.props.shouldShowBackButton && styles.pl2, ...this.props.containerStyles]}>
                 <View style={[
                     styles.dFlex,
                     styles.flexRow,
@@ -155,8 +159,6 @@ class HeaderWithCloseButton extends Component {
                     styles.flexGrow1,
                     styles.justifyContentBetween,
                     styles.overflowHidden,
-                    styles.ph5,
-                    {backgroundColor: 'green'},
                 ]}
                 >
                     {this.props.shouldShowBackButton && (

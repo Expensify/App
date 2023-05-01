@@ -1,5 +1,6 @@
 import React from 'react';
 import {View} from 'react-native';
+import _ from 'underscore';
 import PropTypes from 'prop-types';
 import CONST from '../CONST';
 import reportPropTypes from '../pages/reportPropTypes';
@@ -26,7 +27,7 @@ const propTypes = {
     }),
 
     /** The size of the avatar */
-    size: PropTypes.oneOf(Object.values(CONST.AVATAR_SIZE)),
+    size: PropTypes.oneOf(_.values(CONST.AVATAR_SIZE)),
 
     /** Personal details of all the users */
     personalDetails: PropTypes.objectOf(participantPropTypes),
@@ -59,7 +60,6 @@ const AvatarWithDisplayName = (props) => {
                             styles.flexRow,
                             styles.alignItemsCenter,
                             styles.justifyContentBetween,
-                            {backgroundColor: 'orange'},
                         ]}
                     >
                         {isExpenseReport ? (
@@ -79,7 +79,7 @@ const AvatarWithDisplayName = (props) => {
                                 containerStyles={props.size === CONST.AVATAR_SIZE.SMALL ? styles.emptyAvatarSmall : styles.emptyAvatar}
                             />
                         )}
-                        <View style={[styles.flex1, styles.flexColumn, {backgroundColor: 'blue'}]}>
+                        <View style={[styles.flex1, styles.flexColumn]}>
                             <DisplayNames
                                 fullTitle={title}
                                 displayNamesWithTooltips={displayNamesWithTooltips}
@@ -88,17 +88,19 @@ const AvatarWithDisplayName = (props) => {
                                 textStyles={[styles.headerText, styles.pre]}
                                 shouldUseFullTitle={isExpenseReport}
                             />
-                            <Text
-                                style={[
-                                    styles.sidebarLinkText,
-                                    styles.optionAlternateText,
-                                    styles.textLabelSupporting,
-                                    styles.pre,
-                                ]}
-                                numberOfLines={1}
-                            >
-                                {subtitle}
-                            </Text>
+                            {subtitle ? (
+                                <Text
+                                    style={[
+                                        styles.sidebarLinkText,
+                                        styles.optionAlternateText,
+                                        styles.textLabelSupporting,
+                                        styles.pre,
+                                    ]}
+                                    numberOfLines={1}
+                                >
+                                    {subtitle}
+                                </Text>
+                            ) : null }
                         </View>
                     </View>
                 )}
