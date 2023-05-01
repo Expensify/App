@@ -22,6 +22,7 @@ import ROUTES from '../../../../ROUTES';
 import styles from '../../../../styles/styles';
 import * as User from '../../../../libs/actions/User';
 import * as LoginUtils from '../../../../libs/LoginUtils';
+import CONST from '../../../../CONST';
 
 const propTypes = {
     /* Onyx Props */
@@ -106,6 +107,7 @@ function NewContactMethodPage(props) {
                     <TextInput
                         label={`${props.translate('common.email')}/${props.translate('common.phoneNumber')}`}
                         ref={loginInputRef}
+                        keyboardType={CONST.KEYBOARD_TYPE.EMAIL_ADDRESS}
                         value={login}
                         onChangeText={handleLoginChange}
                         autoCapitalize="none"
