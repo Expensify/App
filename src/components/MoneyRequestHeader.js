@@ -6,7 +6,6 @@ import iouReportPropTypes from '../pages/iouReportPropTypes';
 import withLocalize, {withLocalizePropTypes} from './withLocalize';
 import * as ReportUtils from '../libs/ReportUtils';
 import * as Expensicons from './Icon/Expensicons';
-import SettlementButton from './SettlementButton';
 import Text from './Text';
 import participantPropTypes from './participantPropTypes';
 import Avatar from './Avatar';
@@ -43,7 +42,6 @@ const MoneyRequestHeader = (props) => {
         currency: props.report.currency,
     });
     const isSettled = /* ReportUtils.isSettled(props.report.reportID); */ false;
-    const isAdmin = ReportUtils.isPolicyExpenseChatAdmin(props.report, props.policies);
     const workspaceName = ReportUtils.getPolicyName(props.report, props.policies);
     const workspaceAvatar = ReportUtils.getWorkspaceAvatar(props.report, props.policies);
     return (
