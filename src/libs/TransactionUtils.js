@@ -11,6 +11,7 @@ import * as NumberUtils from './NumberUtils';
  * @param {String} [comment]
  * @param {String} [source]
  * @param {String} [originalTransactionID]
+ * @param {String} [merchant]
  * @returns {Object}
  */
 function buildOptimisticTransaction(amount, currency, reportID, comment = '', source = '', originalTransactionID = '', merchant = CONST.REPORT.TYPE.IOU) {

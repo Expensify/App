@@ -113,7 +113,7 @@ describe('actions/IOU', () => {
 
                             // There should be one transaction
                             expect(_.size(allTransactions)).toBe(1);
-                            const transaction = _.find(allTransactions, transaction => !_.isEmpty(transaction));
+                            const transaction = _.find(allTransactions, t => !_.isEmpty(t));
                             transactionID = transaction.transactionID;
 
                             // The transaction should be attached to the IOU report
@@ -142,7 +142,7 @@ describe('actions/IOU', () => {
                     const connectionID = Onyx.connect({
                         key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${chatReportID}`,
                         waitForCollectionCallback: true,
-                        callback: reportActionsForChatReport => {
+                        callback: (reportActionsForChatReport) => {
                             Onyx.disconnect(connectionID);
                             expect(_.size(reportActionsForChatReport)).toBe(2);
                             _.each(reportActionsForChatReport, reportAction => expect(reportAction.pendingAction).toBeFalsy());
@@ -154,7 +154,7 @@ describe('actions/IOU', () => {
                     const connectionID = Onyx.connect({
                         key: `${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`,
                         waitForCollectionCallback: true,
-                        callback: transaction => {
+                        callback: (transaction) => {
                             Onyx.disconnect(connectionID);
                             expect(transaction.pendingAction).toBeFalsy();
                             resolve();
@@ -254,7 +254,7 @@ describe('actions/IOU', () => {
 
                             // There should be one transaction
                             expect(_.size(allTransactions)).toBe(1);
-                            const transaction = _.find(allTransactions, transaction => !_.isEmpty(transaction));
+                            const transaction = _.find(allTransactions, t => !_.isEmpty(t));
                             transactionID = transaction.transactionID;
 
                             // The transaction should be attached to the IOU report
@@ -275,15 +275,15 @@ describe('actions/IOU', () => {
                             expect(iouAction.originalMessage.IOUTransactionID).toBe(transactionID);
 
                             resolve();
-                        }
-                    })
+                        },
+                    });
                 }))
                 .then(fetch.resume)
                 .then(() => new Promise((resolve) => {
                     const connectionID = Onyx.connect({
                         key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${chatReport.reportID}`,
                         waitForCollectionCallback: true,
-                        callback: reportActionsForChatReport => {
+                        callback: (reportActionsForChatReport) => {
                             Onyx.disconnect(connectionID);
                             expect(_.size(reportActionsForChatReport)).toBe(2);
                             _.each(reportActionsForChatReport, reportAction => expect(reportAction.pendingAction).toBeFalsy());
@@ -295,7 +295,7 @@ describe('actions/IOU', () => {
                     const connectionID = Onyx.connect({
                         key: `${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`,
                         waitForCollectionCallback: true,
-                        callback: transaction => {
+                        callback: (transaction) => {
                             Onyx.disconnect(connectionID);
                             expect(transaction.pendingAction).toBeFalsy();
                             resolve();
@@ -395,7 +395,10 @@ describe('actions/IOU', () => {
                             Onyx.disconnect(connectionID);
 
                             expect(_.size(reportActionsForChatReport)).toBe(3);
-                            newIOUAction = _.find(reportActionsForChatReport, reportAction => reportAction.reportActionID !== createdAction.reportActionID && reportAction.reportActionID !== iouAction.reportActionID);
+                            newIOUAction = _.find(reportActionsForChatReport, reportAction => (
+                                reportAction.reportActionID !== createdAction.reportActionID
+                                && reportAction.reportActionID !== iouAction.reportActionID
+                            ));
 
                             // The IOUReportID should be correct
                             expect(iouAction.originalMessage.IOUReportID).toBe(iouReportID);
@@ -446,7 +449,7 @@ describe('actions/IOU', () => {
                     const connectionID = Onyx.connect({
                         key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${chatReport.reportID}`,
                         waitForCollectionCallback: true,
-                        callback: reportActionsForChatReport => {
+                        callback: (reportActionsForChatReport) => {
                             Onyx.disconnect(connectionID);
                             expect(_.size(reportActionsForChatReport)).toBe(3);
                             _.each(reportActionsForChatReport, reportAction => expect(reportAction.pendingAction).toBeFalsy());
@@ -554,7 +557,7 @@ describe('actions/IOU', () => {
 
                             // There should be one transaction
                             expect(_.size(allTransactions)).toBe(1);
-                            const transaction = _.find(allTransactions, transaction => !_.isEmpty(transaction));
+                            const transaction = _.find(allTransactions, t => !_.isEmpty(t));
                             transactionID = transaction.transactionID;
 
                             expect(transaction.reportID).toBe(iouReportID);
@@ -627,12 +630,12 @@ describe('actions/IOU', () => {
                 hasOutstandingIOU: false,
                 participants: [CARLOS_EMAIL],
             };
-            let carlosCreatedAction = {
+            const carlosCreatedAction = {
                 reportActionID: NumberUtils.rand64(),
                 actionName: CONST.REPORT.ACTIONS.TYPE.CREATED,
                 created: DateUtils.getDBTime(),
             };
-            let julesIOUReportID = NumberUtils.rand64();
+            const julesIOUReportID = NumberUtils.rand64();
             let julesChatReport = {
                 reportID: NumberUtils.rand64(),
                 type: CONST.REPORT.TYPE.CHAT,
@@ -640,13 +643,13 @@ describe('actions/IOU', () => {
                 iouReportID: julesIOUReportID,
                 participants: [JULES_EMAIL],
             };
-            let julesCreatedAction = {
+            const julesCreatedAction = {
                 reportActionID: NumberUtils.rand64(),
                 actionName: CONST.REPORT.ACTIONS.TYPE.CREATED,
                 created: DateUtils.getDBTime(),
             };
             jest.advanceTimersByTime(200);
-            let julesExistingTransaction = {
+            const julesExistingTransaction = {
                 transactionID: NumberUtils.rand64(),
                 amount: 1000,
                 comment: 'This is an existing transaction',
@@ -661,7 +664,7 @@ describe('actions/IOU', () => {
                 currency: CONST.CURRENCY.USD,
                 total: julesExistingTransaction.amount,
             };
-            let julesExistingIOUAction = {
+            const julesExistingIOUAction = {
                 reportActionID: NumberUtils.rand64(),
                 actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
                 actorEmail: RORY_EMAIL,
@@ -779,7 +782,7 @@ describe('actions/IOU', () => {
 
                             expect(vitChatReport.hasOutstandingIOU).toBe(true);
                             expect(vitChatReport.iouReportID).toBe(vitIOUReport.reportID);
-                            expect(vitIOUReport.chatReportID).toBe(vitChatReport.reportID)
+                            expect(vitIOUReport.chatReportID).toBe(vitChatReport.reportID);
 
                             resolve();
                         },
@@ -835,7 +838,7 @@ describe('actions/IOU', () => {
                             expect(vitIOUAction.originalMessage.amount).toBe(amountInCents / 4);
                             expect(vitIOUAction.originalMessage.comment).toBe(comment);
                             expect(vitIOUAction.originalMessage.type).toBe(CONST.IOU.REPORT_ACTION_TYPE.CREATE);
-                            expect(Date.parse(vitCreatedAction.created)).toBeLessThanOrEqual(Date.parse(vitIOUAction.created))
+                            expect(Date.parse(vitCreatedAction.created)).toBeLessThanOrEqual(Date.parse(vitIOUAction.created));
 
                             // Group chat should have two reportActions – a pending CREATED action and a pending IOU action w/ type SPLIT
                             expect(_.size(groupReportActions)).toBe(2);
@@ -889,7 +892,8 @@ describe('actions/IOU', () => {
                             expect(carlosTransaction.merchant).toBe(CONST.REPORT.TYPE.IOU);
                             expect(julesTransaction.merchant).toBe(CONST.REPORT.TYPE.IOU);
                             expect(vitTransaction.merchant).toBe(CONST.REPORT.TYPE.IOU);
-                            expect(groupTransaction.merchant).toBe(`Split Bill with ${RORY_EMAIL}, ${CARLOS_EMAIL}, ${JULES_EMAIL}, and ${VIT_EMAIL} [${DateUtils.getDBTime().slice(0, 10)}]`);
+                            expect(groupTransaction.merchant)
+                                .toBe(`Split Bill with ${RORY_EMAIL}, ${CARLOS_EMAIL}, ${JULES_EMAIL}, and ${VIT_EMAIL} [${DateUtils.getDBTime().slice(0, 10)}]`);
 
                             expect(carlosTransaction.comment.source).toBe(CONST.IOU.MONEY_REQUEST_TYPE.SPLIT);
                             expect(julesTransaction.comment.source).toBe(CONST.IOU.MONEY_REQUEST_TYPE.SPLIT);
@@ -906,7 +910,7 @@ describe('actions/IOU', () => {
 
                             resolve();
                         },
-                    })
+                    });
                 }))
                 .then(fetch.resume)
                 .then(() => new Promise((resolve) => {
@@ -915,10 +919,11 @@ describe('actions/IOU', () => {
                         waitForCollectionCallback: true,
                         callback: (allReports) => {
                             Onyx.disconnect(connectionID);
-                            _.each(allReports, report => {
-                                if (report.pendingFields) {
-                                    _.each(report.pendingFields, pendingField => expect(pendingField).toBeFalsy());
+                            _.each(allReports, (report) => {
+                                if (!report.pendingFields) {
+                                    return;
                                 }
+                                _.each(report.pendingFields, pendingField => expect(pendingField).toBeFalsy());
                             });
                             resolve();
                         },

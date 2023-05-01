@@ -151,11 +151,11 @@ function signOutTestUser() {
  * @returns {Function}
  */
 function getGlobalFetchMock() {
-    let queue = [];
+    const queue = [];
     let isPaused = false;
     let shouldFail = false;
 
-    const getResponse = () => shouldFail
+    const getResponse = () => (shouldFail
         ? {
             ok: true,
             json: () => Promise.resolve({
@@ -166,7 +166,7 @@ function getGlobalFetchMock() {
             json: () => Promise.resolve({
                 jsonCode: 200
             }),
-        };
+        });
 
     const mockFetch = jest.fn()
         .mockImplementation(() => {
