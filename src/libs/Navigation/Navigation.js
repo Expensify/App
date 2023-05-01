@@ -12,6 +12,7 @@ import ONYXKEYS from '../../ONYXKEYS';
 import linkingConfig from './linkingConfig';
 import navigationRef from './navigationRef';
 import SCREENS from '../../SCREENS';
+import dismissKeyboardGoingBack from './dismissKeyboardGoingBack';
 
 let resolveNavigationIsReadyPromise;
 const navigationIsReadyPromise = new Promise((resolve) => {
@@ -208,9 +209,23 @@ function dismissModal(shouldOpenDrawer = false) {
  * @returns {String}
  */
 function getActiveRoute() {
-    return navigationRef.current && navigationRef.current.getCurrentRoute().name
-        ? getPathFromState(navigationRef.current.getState(), linkingConfig.config)
-        : '';
+    const currentRouteHasName = navigationRef.current && navigationRef.current.getCurrentRoute().name;
+    if (!currentRouteHasName) {
+        return '';
+    }
+
+    const routeState = navigationRef.current.getState();
+    const currentRoute = routeState.routes[routeState.index];
+
+    if (currentRoute.state) {
+        return getPathFromState(routeState, linkingConfig.config);
+    }
+
+    if (currentRoute.params && currentRoute.params.path) {
+        return currentRoute.params.path;
+    }
+
+    return '';
 }
 
 /**
@@ -296,6 +311,22 @@ function setIsReportScreenIsReady() {
     resolveReportScreenIsReadyPromise();
 }
 
+/**
+ * Navigation function with additional logic to dismiss the opened keyboard
+ *
+ * Navigation events are not fired when we navigate to an existing screen in the navigation stack,
+ * that is why we need to manipulate closing keyboard manually
+ * @param {string} backRoute - Name of the screen to navigate the user to
+ */
+function drawerGoBack(backRoute) {
+    dismissKeyboardGoingBack();
+    if (!backRoute) {
+        goBack();
+        return;
+    }
+    navigate(backRoute);
+}
+
 export default {
     canNavigate,
     navigate,
@@ -317,6 +348,7 @@ export default {
     isDrawerRoute,
     isReportScreenReady,
     setIsReportScreenIsReady,
+    drawerGoBack,
 };
 
 export {

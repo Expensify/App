@@ -3,6 +3,7 @@ import lodashGet from 'lodash/get';
 import React, {Component} from 'react';
 import {View} from 'react-native';
 import PropTypes from 'prop-types';
+import {withOnyx} from 'react-native-onyx';
 import CONST from '../../../CONST';
 import ONYXKEYS from '../../../ONYXKEYS';
 import reportActionPropTypes from './reportActionPropTypes';
@@ -23,7 +24,12 @@ import * as DeviceCapabilities from '../../../libs/DeviceCapabilities';
 import MiniReportActionContextMenu from './ContextMenu/MiniReportActionContextMenu';
 import * as ReportActionContextMenu from './ContextMenu/ReportActionContextMenu';
 import * as ContextMenuActions from './ContextMenu/ContextMenuActions';
-import {withBlockedFromConcierge, withNetwork, withReportActionsDrafts} from '../../../components/OnyxProvider';
+import {
+    withBlockedFromConcierge,
+    withNetwork,
+    withPersonalDetails,
+    withReportActionsDrafts,
+} from '../../../components/OnyxProvider';
 import RenameAction from '../../../components/ReportActionItem/RenameAction';
 import InlineSystemMessage from '../../../components/InlineSystemMessage';
 import styles from '../../../styles/styles';
@@ -39,6 +45,11 @@ import ChronosOOOListActions from '../../../components/ReportActionItem/ChronosO
 import ReportActionItemReactions from '../../../components/Reactions/ReportActionItemReactions';
 import * as Report from '../../../libs/actions/Report';
 import withLocalize from '../../../components/withLocalize';
+import Icon from '../../../components/Icon';
+import * as Expensicons from '../../../components/Icon/Expensicons';
+import Text from '../../../components/Text';
+import DisplayNames from '../../../components/DisplayNames';
+import personalDetailsPropType from '../../personalDetailsPropType';
 
 const propTypes = {
     /** Report for this action */
@@ -65,12 +76,20 @@ const propTypes = {
     /** Draft message - if this is set the comment is in 'edit' mode */
     draftMessage: PropTypes.string,
 
+    /** Stores user's preferred skin tone */
+    preferredSkinTone: PropTypes.oneOfType([PropTypes.number, PropTypes.string]),
+
+    /** All of the personalDetails */
+    personalDetails: PropTypes.objectOf(personalDetailsPropType),
+
     ...windowDimensionsPropTypes,
 };
 
 const defaultProps = {
     draftMessage: '',
     hasOutstandingIOU: false,
+    preferredSkinTone: CONST.EMOJI_DEFAULT_SKIN_TONE,
+    personalDetails: {},
 };
 
 class ReportActionItem extends Component {
@@ -93,7 +112,10 @@ class ReportActionItem extends Component {
             || this.props.hasOutstandingIOU !== nextProps.hasOutstandingIOU
             || this.props.shouldDisplayNewMarker !== nextProps.shouldDisplayNewMarker
             || !_.isEqual(this.props.action, nextProps.action)
-            || this.state.isContextMenuActive !== nextState.isContextMenuActive;
+            || this.state.isContextMenuActive !== nextState.isContextMenuActive
+            || lodashGet(this.props.report, 'statusNum') !== lodashGet(nextProps.report, 'statusNum')
+            || lodashGet(this.props.report, 'stateNum') !== lodashGet(nextProps.report, 'stateNum')
+            || this.props.translate !== nextProps.translate;
     }
 
     componentDidUpdate(prevProps) {
@@ -117,17 +139,14 @@ class ReportActionItem extends Component {
      * @param {Object} [event] - A press event.
      */
     showPopover(event) {
-        // Block menu on the message being Edited
-        if (this.props.draftMessage) {
+        // Block menu on the message being Edited or if the report action item has errors
+        if (this.props.draftMessage || !_.isEmpty(this.props.action.errors)) {
             return;
         }
 
         this.setState({isContextMenuActive: true});
 
-        // Newline characters need to be removed here because getCurrentSelection() returns html mixed with newlines, and when
-        // <br> tags are converted later to markdown, it creates duplicate newline characters. This means that when the content
-        // is pasted, there are extra newlines in the content that we want to avoid.
-        const selection = SelectionScraper.getCurrentSelection().replace(/<br>\n/g, '<br>');
+        const selection = SelectionScraper.getCurrentSelection();
         ReportActionContextMenu.showContextMenu(
             ContextMenuActions.CONTEXT_MENU_TYPES.REPORT_ACTION,
             event,
@@ -196,6 +215,9 @@ class ReportActionItem extends Component {
                                 index={this.props.index}
                                 ref={el => this.textInput = el}
                                 report={this.props.report}
+
+                                // Avoid defining within component due to an existing Onyx bug
+                                preferredSkinTone={this.props.preferredSkinTone}
                                 shouldDisableEmojiPicker={
                                     (ReportUtils.chatIncludesConcierge(this.props.report) && User.isBlockedFromConcierge(this.props.blockedFromConcierge))
                                     || ReportUtils.isArchivedRoom(this.props.report)
@@ -232,6 +254,14 @@ class ReportActionItem extends Component {
         if (this.props.action.actionName === CONST.REPORT.ACTIONS.TYPE.CHRONOSOOOLIST) {
             return <ChronosOOOListActions action={this.props.action} reportID={this.props.report.reportID} />;
         }
+
+        const hasErrors = !_.isEmpty(this.props.action.errors);
+        const whisperedTo = lodashGet(this.props.action, 'whisperedTo', []);
+        const isWhisper = whisperedTo.length > 0;
+        const isMultipleParticipant = whisperedTo.length > 1;
+        const isWhisperOnlyVisibleByUser = isWhisper && ReportUtils.isCurrentUserTheOnlyParticipant(whisperedTo);
+        const whisperedToPersonalDetails = isWhisper ? _.filter(this.props.personalDetails, details => _.includes(whisperedTo, details.login)) : [];
+        const displayNamesWithTooltips = isWhisper ? ReportUtils.getDisplayNamesWithTooltips(whisperedToPersonalDetails, isMultipleParticipant) : [];
         return (
             <PressableWithSecondaryInteraction
                 pointerEvents={this.props.action.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE ? 'none' : 'auto'}
@@ -239,7 +269,7 @@ class ReportActionItem extends Component {
                 onPressIn={() => this.props.isSmallScreenWidth && DeviceCapabilities.canUseTouchScreen() && ControlSelection.block()}
                 onPressOut={() => ControlSelection.unblock()}
                 onSecondaryInteraction={this.showPopover}
-                preventDefaultContentMenu={!this.props.draftMessage}
+                preventDefaultContextMenu={!this.props.draftMessage && !hasErrors}
                 withoutFocusOnSecondaryInteraction
             >
                 <Hoverable>
@@ -251,6 +281,7 @@ class ReportActionItem extends Component {
                             <View
                                 style={StyleUtils.getReportActionItemStyle(
                                     hovered
+                                    || isWhisper
                                     || this.state.isContextMenuActive
                                     || this.props.draftMessage,
                                     (this.props.network.isOffline && this.props.action.isLoading) || this.props.action.error,
@@ -269,14 +300,37 @@ class ReportActionItem extends Component {
                                     errorRowStyles={[styles.ml10, styles.mr2]}
                                     needsOffscreenAlphaCompositing={this.props.action.actionName === CONST.REPORT.ACTIONS.TYPE.IOU}
                                 >
+                                    {isWhisper && (
+                                        <View style={[styles.flexRow, styles.pl5, styles.pt2]}>
+                                            <View style={[styles.pl6, styles.mr3]}>
+                                                <Icon src={Expensicons.Eye} small />
+                                            </View>
+                                            <Text style={[styles.chatItemMessageHeaderTimestamp]}>
+                                                {this.props.translate('reportActionContextMenu.onlyVisible')}
+                                                &nbsp;
+                                            </Text>
+                                            <DisplayNames
+                                                fullTitle={ReportUtils.getWhisperDisplayNames(whisperedTo)}
+                                                displayNamesWithTooltips={displayNamesWithTooltips}
+                                                tooltipEnabled
+                                                numberOfLines={1}
+                                                textStyles={[styles.chatItemMessageHeaderTimestamp]}
+                                                shouldUseFullTitle={isWhisperOnlyVisibleByUser}
+                                            />
+                                        </View>
+                                    )}
                                     {!this.props.displayAsGroup
                                         ? (
-                                            <ReportActionItemSingle action={this.props.action} showHeader={!this.props.draftMessage}>
+                                            <ReportActionItemSingle
+                                                action={this.props.action}
+                                                showHeader={!this.props.draftMessage}
+                                                wrapperStyles={[styles.chatItem, isWhisper ? styles.pt1 : {}]}
+                                            >
                                                 {this.renderItemContent(hovered || this.state.isContextMenuActive)}
                                             </ReportActionItemSingle>
                                         )
                                         : (
-                                            <ReportActionItemGrouped>
+                                            <ReportActionItemGrouped wrapperStyles={[styles.chatItem, isWhisper ? styles.pt1 : {}]}>
                                                 {this.renderItemContent(hovered || this.state.isContextMenuActive)}
                                             </ReportActionItemGrouped>
                                         )}
@@ -290,6 +344,7 @@ class ReportActionItem extends Component {
                                 isVisible={
                                     hovered
                                     && !this.props.draftMessage
+                                    && !hasErrors
                                 }
                                 draftMessage={this.props.draftMessage}
                                 isChronosReport={ReportUtils.chatIncludesChronos(this.props.report)}
@@ -311,12 +366,18 @@ export default compose(
     withWindowDimensions,
     withLocalize,
     withNetwork(),
+    withPersonalDetails(),
     withBlockedFromConcierge({propName: 'blockedFromConcierge'}),
     withReportActionsDrafts({
         propName: 'draftMessage',
         transformValue: (drafts, props) => {
             const draftKey = `${ONYXKEYS.COLLECTION.REPORT_ACTIONS_DRAFTS}${props.report.reportID}_${props.action.reportActionID}`;
             return lodashGet(drafts, draftKey, '');
+        },
+    }),
+    withOnyx({
+        preferredSkinTone: {
+            key: ONYXKEYS.PREFERRED_EMOJI_SKIN_TONE,
         },
     }),
 )(ReportActionItem);

@@ -43,11 +43,11 @@ const Section = (props) => {
             <View style={[styles.pageWrapper, styles.cardSection, ...props.containerStyles]}>
                 <View style={[styles.flexRow, styles.alignItemsCenter, styles.w100]}>
                     <View style={[styles.flexShrink1]}>
-                        <Text style={[styles.textHeadline]}>{props.title}</Text>
+                        <Text style={[styles.textHeadline, styles.cardSectionTitle]}>{props.title}</Text>
                     </View>
                     <View style={[styles.flexGrow1, styles.flexRow, styles.justifyContentEnd]}>
-                        {props.icon && <Icon src={props.icon} height={68} width={68} />}
-                        {IconComponent && <IconComponent />}
+                        {Boolean(props.icon) && <Icon src={props.icon} height={68} width={68} />}
+                        {Boolean(IconComponent) && <IconComponent />}
                     </View>
                 </View>
 
@@ -56,7 +56,7 @@ const Section = (props) => {
                 </View>
 
                 <View style={[styles.w100]}>
-                    {props.menuItems && <MenuItemList menuItems={props.menuItems} />}
+                    {Boolean(props.menuItems) && <MenuItemList menuItems={props.menuItems} />}
                 </View>
             </View>
 
