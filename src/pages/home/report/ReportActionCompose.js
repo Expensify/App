@@ -434,7 +434,10 @@ class ReportActionCompose extends React.Component {
     resetSuggestedEmojis() {
         this.setState({
             suggestedEmojis: [],
+            highlightedEmojiIndex: 0,
+            colonIndex: -1,
             shouldShowSuggestionMenu: false,
+            isEmojiPickerLarge: true,
         });
     }
 
@@ -442,6 +445,10 @@ class ReportActionCompose extends React.Component {
      * Calculates and cares about the content of an Emoji Suggester
      */
     calculateEmojiSuggestion() {
+        if (!this.state.value) {
+            this.resetSuggestedEmojis();
+            return;
+        }
         const leftString = this.state.value.substring(0, this.state.selection.end);
         const colonIndex = leftString.lastIndexOf(':');
         const isCurrentlyShowingEmojiSuggestion = this.isEmojiCode(this.state.value, this.state.selection.end);
@@ -476,7 +483,7 @@ class ReportActionCompose extends React.Component {
      * @returns {Boolean}
      */
     isEmojiCode(str, pos) {
-        const leftWords = str.slice(0, pos).split(CONST.REGEX.NEW_LINE_OR_WHITE_SPACE);
+        const leftWords = str.slice(0, pos).split(CONST.REGEX.NEW_LINE_OR_WHITE_SPACE_OR_EMOJI);
         const leftWord = _.last(leftWords);
 
         return CONST.REGEX.HAS_COLON_ONLY_AT_THE_BEGINNING.test(leftWord) && leftWord.length > 2;
@@ -975,7 +982,7 @@ class ReportActionCompose extends React.Component {
                             comment={this.state.value}
                             updateComment={newComment => this.setState({value: newComment})}
                             colonIndex={this.state.colonIndex}
-                            prefix={this.state.value.slice(this.state.colonIndex + 1).split(' ')[0]}
+                            prefix={this.state.value.slice(this.state.colonIndex + 1, this.state.selection.start)}
                             onSelect={this.insertSelectedEmoji}
                             isComposerFullSize={this.props.isComposerFullSize}
                             preferredSkinToneIndex={this.props.preferredSkinTone}

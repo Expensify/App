@@ -1,18 +1,19 @@
 import _ from 'underscore';
-import React, {useState} from 'react';
+import React, {useRef, useState} from 'react';
 import PropTypes from 'prop-types';
 import {LogBox, ScrollView, View} from 'react-native';
 import {GooglePlacesAutocomplete} from 'react-native-google-places-autocomplete';
 import lodashGet from 'lodash/get';
-import withLocalize, {withLocalizePropTypes} from './withLocalize';
-import styles from '../styles/styles';
-import themeColors from '../styles/themes/default';
-import TextInput from './TextInput';
-import * as ApiUtils from '../libs/ApiUtils';
-import * as GooglePlacesUtils from '../libs/GooglePlacesUtils';
-import CONST from '../CONST';
-import * as StyleUtils from '../styles/StyleUtils';
-import variables from '../styles/variables';
+import withLocalize, {withLocalizePropTypes} from '../withLocalize';
+import styles from '../../styles/styles';
+import themeColors from '../../styles/themes/default';
+import TextInput from '../TextInput';
+import * as ApiUtils from '../../libs/ApiUtils';
+import * as GooglePlacesUtils from '../../libs/GooglePlacesUtils';
+import CONST from '../../CONST';
+import * as StyleUtils from '../../styles/StyleUtils';
+import resetDisplayListViewBorderOnBlur from './resetDisplayListViewBorderOnBlur';
+import variables from '../../styles/variables';
 
 // The error that's being thrown below will be ignored until we fork the
 // react-native-google-places-autocomplete repo and replace the
@@ -92,6 +93,7 @@ const defaultProps = {
 // Reference: https://github.com/FaridSafi/react-native-google-places-autocomplete/issues/609#issuecomment-886133839
 const AddressSearch = (props) => {
     const [displayListViewBorder, setDisplayListViewBorder] = useState(false);
+    const containerRef = useRef();
     const query = {language: props.preferredLocale, types: 'address'};
     if (props.isLimitedToUSA) {
         query.components = 'country:us';
@@ -202,7 +204,7 @@ const AddressSearch = (props) => {
             // here: https://github.com/FaridSafi/react-native-google-places-autocomplete#use-inside-a-scrollview-or-flatlist
             keyboardShouldPersistTaps="always"
         >
-            <View style={styles.w100}>
+            <View style={styles.w100} ref={containerRef}>
                 <GooglePlacesAutocomplete
                     disableScroll
                     fetchDetails
@@ -242,7 +244,10 @@ const AddressSearch = (props) => {
                         defaultValue: props.defaultValue,
                         inputID: props.inputID,
                         shouldSaveDraft: props.shouldSaveDraft,
-                        onBlur: props.onBlur,
+                        onBlur: (event) => {
+                            resetDisplayListViewBorderOnBlur(setDisplayListViewBorder, event, containerRef);
+                            props.onBlur();
+                        },
                         autoComplete: 'off',
                         onInputChange: (text) => {
                             if (props.inputID) {
@@ -274,6 +279,8 @@ const AddressSearch = (props) => {
                         description: [styles.googleSearchText],
                         separator: [styles.googleSearchSeparator],
                     }}
+                    numberOfLines={2}
+                    isRowScrollable={false}
                     listHoverColor={themeColors.border}
                     listUnderlayColor={themeColors.buttonPressedBG}
                     onLayout={(event) => {
