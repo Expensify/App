@@ -39,6 +39,7 @@ import personalDetailsPropType from '../personalDetailsPropType';
 import getIsReportFullyVisible from '../../libs/getIsReportFullyVisible';
 import EmojiPicker from '../../components/EmojiPicker/EmojiPicker';
 import * as EmojiPickerAction from '../../libs/actions/EmojiPickerAction';
+import MoneyRequestHeader from '../../components/MoneyRequestHeader';
 
 const propTypes = {
     /** Navigation route context info provided by react navigation */
@@ -241,6 +242,17 @@ class ReportScreen extends React.Component {
         // (which is shown, until all the actual views of the ReportScreen have been rendered)
         const shouldAnimate = !shouldFreeze;
 
+
+        const moneyRequestHeader = this.props.report.type === 'iou' && this.props.report.reportID === '4571118460201617'
+            ? <MoneyRequestHeader report={this.props.report} policies={this.props.policies} personalDetails={this.props.personalDetails} />
+            : (<HeaderView
+                reportID={reportID}
+                onNavigationMenuButtonClicked={() => Navigation.navigate(ROUTES.HOME)}
+                personalDetails={this.props.personalDetails}
+                report={this.props.report}
+                policies={this.props.policies}
+            />);
+
         return (
             <ScreenWrapper
                 style={screenWrapperStyle}
@@ -273,13 +285,7 @@ class ReportScreen extends React.Component {
                                     errors={addWorkspaceRoomOrChatErrors}
                                     shouldShowErrorMessages={false}
                                 >
-                                    <HeaderView
-                                        reportID={reportID}
-                                        onNavigationMenuButtonClicked={() => Navigation.navigate(ROUTES.HOME)}
-                                        personalDetails={this.props.personalDetails}
-                                        report={this.props.report}
-                                        policies={this.props.policies}
-                                    />
+                                    {moneyRequestHeader}
                                 </OfflineWithFeedback>
                                 {Boolean(this.props.accountManagerReportID) && ReportUtils.isConciergeChatReport(this.props.report) && this.state.isBannerVisible && (
                                     <Banner

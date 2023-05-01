@@ -3103,11 +3103,19 @@ const styles = {
         top: 60,
         zIndex: 100,
     },
+
     loginHeroHeader: {
         fontFamily: fontFamily.EXP_NEW_KANSAS_MEDIUM,
         color: themeColors.success,
         fontWeight: '500',
         textAlign: 'center',
+    },
+
+    newKansasLarge: {
+        fontFamily: fontFamily.EXP_NEW_KANSAS_MEDIUM,
+        fontSize: variables.fontSizeXLarge,
+        fontWeight: '500',
+        lineHeight: 27,
     },
 
     loginHeroBody: {

@@ -11,6 +11,8 @@ import Text from './Text';
 import participantPropTypes from './participantPropTypes';
 import Avatar from './Avatar';
 import styles from '../styles/styles';
+import themeColors from '../styles/themes/default';
+import CONST from '../CONST';
 
 const propTypes = {
     /** The report currently being looked at */
@@ -44,7 +46,8 @@ const MoneyRequestHeader = (props) => {
     const workspaceAvatar = ReportUtils.getWorkspaceAvatar(props.report, props.policies);
     return (
         <View style={[
-
+            {backgroundColor: themeColors.highlightBG},
+            styles.pl0,
         ]}
         >
             <HeaderWithCloseButton
@@ -59,13 +62,16 @@ const MoneyRequestHeader = (props) => {
                 policies={props.policies}
                 personalDetails={props.personalDetails}
             />
-            <View style={[styles.headerBar]}>
-                <Text style={[styles.textLabelSupporting]}>To</Text>
+            <View style={[{backgroundColor: themeColors.danger}, styles.ph5, styles.pb5]}>
+                <Text style={[styles.textLabelSupporting, styles.lh16, {backgroundColor: 'cyan'}]}>To</Text>
                 <View style={[
                     styles.flex1,
                     styles.flexRow,
                     styles.alignItemsCenter,
                     styles.justifyContentBetween,
+                    styles.pv3,
+                    {backgroundColor: 'yellow'},
+
                 ]}
                 >
                     <View style={[
@@ -76,17 +82,28 @@ const MoneyRequestHeader = (props) => {
                     >
                         <Avatar
                             source={workspaceAvatar}
+                            type={CONST.ICON_TYPE_WORKSPACE}
+                            name={workspaceName}
+                            size={CONST.AVATAR_SIZE.HEADER}
                         />
-                        <Text
-                            style={[styles.headerText, styles.pre]}
-                            numberOfLines={1}
-                        >
-                            {workspaceName}
-                        </Text>
+                        <View style={[styles.flexColumn, styles.ml3]}>
+                            <Text
+                                style={[styles.headerText, styles.pre]}
+                                numberOfLines={1}
+                            >
+                                {workspaceName}
+                            </Text>
+                            <Text
+                                style={[styles.textLabelSupporting, styles.lh16, styles.pre]}
+                                numberOfLines={1}
+                            >
+                                Workspace
+                            </Text>
+                        </View>
                     </View>
-                    <View>
+                    <View style={[]}>
                         {!props.isSingleTransactionView && (
-                            <Text>{formattedAmount}</Text>
+                            <Text style={[styles.newKansasLarge]}>{formattedAmount}</Text>
                         )}
                         {isAdmin && !isSettled && (
                             <SettlementButton />

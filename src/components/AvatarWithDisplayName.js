@@ -50,8 +50,8 @@ const AvatarWithDisplayName = (props) => {
     const ownerPersonalDetails = OptionsListUtils.getPersonalDetailsForLogins([props.report.ownerEmail], props.personalDetails);
     const displayNamesWithTooltips = ReportUtils.getDisplayNamesWithTooltips(ownerPersonalDetails, false);
     return (
-        <View style={[styles.appContentHeader]} nativeID="drag-area">
-            <View style={[styles.appContentHeaderTitle, !props.isSmallScreenWidth && styles.pl5]}>
+        <View style={[]} nativeID="drag-area">
+            <View style={[styles.appContentHeaderTitle]}>
                 {Boolean(props.report && title) && (
                     <View
                         style={[
@@ -59,6 +59,7 @@ const AvatarWithDisplayName = (props) => {
                             styles.flexRow,
                             styles.alignItemsCenter,
                             styles.justifyContentBetween,
+                            {backgroundColor: 'orange'},
                         ]}
                     >
                         {isExpenseReport ? (
@@ -73,10 +74,12 @@ const AvatarWithDisplayName = (props) => {
                             <Avatar
                                 size={props.size}
                                 source={icons[0].source}
+                                type={icons[0].type}
+                                name={icons[0].name}
                                 containerStyles={props.size === CONST.AVATAR_SIZE.SMALL ? styles.emptyAvatarSmall : styles.emptyAvatar}
                             />
                         )}
-                        <View style={[styles.flex1, styles.flexColumn]}>
+                        <View style={[styles.flex1, styles.flexColumn, {backgroundColor: 'blue'}]}>
                             <DisplayNames
                                 fullTitle={title}
                                 displayNamesWithTooltips={displayNamesWithTooltips}

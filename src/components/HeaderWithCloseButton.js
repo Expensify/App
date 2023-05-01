@@ -155,6 +155,8 @@ class HeaderWithCloseButton extends Component {
                     styles.flexGrow1,
                     styles.justifyContentBetween,
                     styles.overflowHidden,
+                    styles.ph5,
+                    {backgroundColor: 'green'},
                 ]}
                 >
                     {this.props.shouldShowBackButton && (
@@ -185,7 +187,7 @@ class HeaderWithCloseButton extends Component {
                         />
                     )}
 
-                    <View style={[styles.reportOptions, styles.flexRow, styles.pr5]}>
+                    <View style={[styles.reportOptions, styles.flexRow]}>
                         {
                             this.props.shouldShowDownloadButton && (
                             <Tooltip text={this.props.translate('common.download')}>
