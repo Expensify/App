@@ -184,6 +184,7 @@ class ReportActionCompose extends React.Component {
         this.updateNumberOfLines = this.updateNumberOfLines.bind(this);
         this.showPopoverMenu = this.showPopoverMenu.bind(this);
         this.comment = props.comment;
+        this.setShouldBlockEmojiCalcToFalse = this.setShouldBlockEmojiCalcToFalse.bind(this);
 
         // React Native will retain focus on an input for native devices but web/mWeb behave differently so we have some focus management
         // code that will refocus the compose input after a user closes a modal or some other actions, see usage of ReportActionComposeFocusManager
@@ -402,6 +403,13 @@ class ReportActionCompose extends React.Component {
     setShouldShowSuggestionMenuToFalse() {
         if (this.state && this.state.shouldShowSuggestionMenu) {
             this.setState({shouldShowSuggestionMenu: false});
+        }
+    }
+
+    // eslint-disable-next-line rulesdir/prefer-early-return
+    setShouldBlockEmojiCalcToFalse() {
+        if (this.state && this.state.shouldBlockEmojiCalc) {
+            this.setState({shouldBlockEmojiCalc: false});
         }
     }
 
@@ -779,7 +787,7 @@ class ReportActionCompose extends React.Component {
                         <AttachmentModal
                             headerTitle={this.props.translate('reportActionCompose.sendAttachment')}
                             onConfirm={this.addAttachment}
-                            onModalHide={()=> {this.setState({shouldBlockEmojiCalc: false})}}
+                            onModalHide={this.setShouldBlockEmojiCalcToFalse}
                         >
                             {({displayFileInModal}) => (
                                 <>
@@ -857,8 +865,10 @@ class ReportActionCompose extends React.Component {
                                                             icon: Expensicons.Paperclip,
                                                             text: this.props.translate('reportActionCompose.addAttachment'),
                                                             onSelected: () => {
-                                                                this.willBlurTextInputOnTapOutside && this.setState({shouldBlockEmojiCalc: true});
-                                                                
+                                                                if (this.willBlurTextInputOnTapOutside) {
+                                                                    this.setState({shouldBlockEmojiCalc: true});
+                                                                }
+
                                                                 openPicker({
                                                                     onPicked: displayFileInModal,
                                                                 });
@@ -906,7 +916,7 @@ class ReportActionCompose extends React.Component {
                                                     this.setIsFocused(false);
                                                     this.resetSuggestedEmojis();
                                                 }}
-                                                onClick={() => this.setState({shouldBlockEmojiCalc: false})}
+                                                onClick={this.setShouldBlockEmojiCalcToFalse}
                                                 onPasteFile={displayFileInModal}
                                                 shouldClear={this.state.textInputShouldClear}
                                                 onClear={() => this.setTextInputShouldClear(false)}
