@@ -3,6 +3,7 @@ import React from 'react';
 import PropTypes from 'prop-types';
 import {withOnyx} from 'react-native-onyx';
 import {View} from 'react-native';
+import moment from 'moment/moment';
 import IdologyQuestions from './IdologyQuestions';
 import ScreenWrapper from '../../components/ScreenWrapper';
 import HeaderWithCloseButton from '../../components/HeaderWithCloseButton';
@@ -108,6 +109,9 @@ class AdditionalDetailsStep extends React.Component {
             ssn: 'common.ssnLast4',
             ssnFull9: 'common.ssnFull9',
         };
+
+        this.minDate = moment().subtract(CONST.DATE_BIRTH.MAX_AGE, 'Y').toDate();
+        this.maxDate = moment().subtract(CONST.DATE_BIRTH.MIN_AGE_FOR_PAYMENT, 'Y').toDate();
     }
 
     /**
@@ -125,9 +129,9 @@ class AdditionalDetailsStep extends React.Component {
             errors[INPUT_IDS.LEGAL_LAST_NAME] = this.props.translate(this.errorTranslationKeys.legalLastName);
         }
 
-        if (!ValidationUtils.isValidPastDate(values[INPUT_IDS.DOB])) {
+        if (!ValidationUtils.isValidPastDate(values[INPUT_IDS.DOB]) || !ValidationUtils.meetsMaximumAgeRequirement(values[INPUT_IDS.DOB])) {
             ErrorUtils.addErrorMessage(errors, INPUT_IDS.DOB, this.props.translate(this.errorTranslationKeys.dob));
-        } else if (!ValidationUtils.meetsAgeRequirements(values[INPUT_IDS.DOB])) {
+        } else if (!ValidationUtils.meetsMinimumAgeRequirement(values[INPUT_IDS.DOB])) {
             ErrorUtils.addErrorMessage(errors, INPUT_IDS.DOB, this.props.translate(this.errorTranslationKeys.age));
         }
 
@@ -224,7 +228,6 @@ class AdditionalDetailsStep extends React.Component {
                         validate={this.validate}
                         onSubmit={this.activateWallet}
                         scrollContextEnabled
-                        scrollToOverflowEnabled
                         submitButtonText={this.props.translate('common.saveAndContinue')}
                         style={[styles.mh5, styles.flexGrow1]}
                     >
@@ -262,6 +265,8 @@ class AdditionalDetailsStep extends React.Component {
                             containerStyles={[styles.mt4]}
                             label={this.props.translate(this.fieldNameTranslationKeys.dob)}
                             placeholder={this.props.translate('common.dob')}
+                            minDate={this.minDate}
+                            maxDate={this.maxDate}
                             shouldSaveDraft
                         />
                         <TextInput

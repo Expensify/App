@@ -111,11 +111,8 @@ class ImageView extends PureComponent {
 
             const aspectRatio = Math.min(containerHeight / imageHeight, containerWidth / imageWidth);
 
-            if (imageHeight > imageWidth) {
-                imageHeight *= aspectRatio;
-            } else {
-                imageWidth *= aspectRatio;
-            }
+            imageHeight *= aspectRatio;
+            imageWidth *= aspectRatio;
 
             // Resize the image to max dimensions possible on the Native platforms to prevent crashes on Android. To keep the same behavior, apply to IOS as well.
             const maxDimensionsScale = 11;
@@ -175,7 +172,7 @@ class ImageView extends PureComponent {
                     });
                 }}
             >
-                {this.state.containerHeight && (
+                {Boolean(this.state.containerHeight) && (
                     <ImageZoom
                         ref={el => this.zoom = el}
                         onClick={() => this.props.onPress()}
@@ -221,6 +218,7 @@ class ImageView extends PureComponent {
                                 // due to ImageZoom
                                 shouldShowLoadingIndicator ? styles.opacity0 : styles.opacity1,
                             ]}
+                            disableTransformation
                             source={{uri: this.props.url}}
                             isAuthTokenRequired={this.props.isAuthTokenRequired}
                             resizeMode={Image.resizeMode.contain}
