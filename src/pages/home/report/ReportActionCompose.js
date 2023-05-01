@@ -865,6 +865,8 @@ class ReportActionCompose extends React.Component {
                                                             icon: Expensicons.Paperclip,
                                                             text: this.props.translate('reportActionCompose.addAttachment'),
                                                             onSelected: () => {
+                                                                // Set a flag to block emoji calculation until we're finished using the file picker,
+                                                                // which will stop any flickering as the file picker opens on non-native devices.
                                                                 if (this.willBlurTextInputOnTapOutside) {
                                                                     this.setState({shouldBlockEmojiCalc: true});
                                                                 }
