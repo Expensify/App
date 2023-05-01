@@ -55,13 +55,12 @@ const defaultProps = {
 };
 
 const MultipleAvatars = (props) => {
-    const avatarContainerStyles = props.size === CONST.AVATAR_SIZE.SMALL ? styles.emptyAvatarSmall : styles.emptyAvatar;
+    let avatarContainerStyles = props.size === CONST.AVATAR_SIZE.SMALL ? styles.emptyAvatarSmall : styles.emptyAvatar;
     const singleAvatarStyles = props.size === CONST.AVATAR_SIZE.SMALL ? styles.singleAvatarSmall : styles.singleAvatar;
     const secondAvatarStyles = [
         props.size === CONST.AVATAR_SIZE.SMALL ? styles.secondAvatarSmall : styles.secondAvatar,
         ...props.secondAvatarStyle,
     ];
-    const horizontalStyles = [styles.horizontalStackedAvatar4, styles.horizontalStackedAvatar3, styles.horizontalStackedAvatar2, styles.horizontalStackedAvatar1];
 
     if (!props.icons.length) {
         return null;
@@ -83,21 +82,49 @@ const MultipleAvatars = (props) => {
         );
     }
 
+    const oneAvatarSize = StyleUtils.getAvatarStyle(props.size);
+    const oneAvatarBorderWidth = StyleUtils.getAvatarBorderWidth(props.size);
+    const overlapSize = oneAvatarSize.width / 3;
+
+    if (props.shouldStackHorizontally) {
+        let width;
+
+        // Height of one avatar + border space
+        const height = oneAvatarSize.height + (2 * oneAvatarBorderWidth);
+        if (props.icons.length > 4) {
+            // Width of overlapping avatars + border space
+            width = (oneAvatarSize.width * 3) + (oneAvatarBorderWidth * 8);
+        } else {
+            // one avatar width + overlaping avatar sizes + border space
+            width = oneAvatarSize.width + (overlapSize * 2 * (props.icons.length - 1)) + (oneAvatarBorderWidth * (props.icons.length * 2));
+        }
+        avatarContainerStyles = StyleUtils.combineStyles([
+            styles.alignItemsCenter,
+            styles.flexRow,
+            StyleUtils.getHeight(height),
+            StyleUtils.getWidthStyle(width),
+        ]);
+    }
+
     return (
         <View style={avatarContainerStyles}>
             {props.shouldStackHorizontally ? (
                 <>
                     {
-                        _.map([...props.icons].splice(0, 4).reverse(), (icon, index) => (
+                        _.map([...props.icons].splice(0, 4), (icon, index) => (
                             <View
                                 key={`stackedAvatars-${index}`}
-                                style={[styles.horizontalStackedAvatar, StyleUtils.getHorizontalStackedAvatarBorderStyle(props.isHovered, props.isPressed), horizontalStyles[index],
-                                    StyleUtils.getAvatarBorderRadius(props.size, icon.type)]}
+                                style={[styles.justifyContentCenter,
+                                    styles.alignItemsCenter,
+                                    StyleUtils.getHorizontalStackedAvatarBorderStyle(props.isHovered, props.isPressed),
+                                    StyleUtils.getHorizontalStackedAvatarStyle(index, overlapSize, oneAvatarBorderWidth, oneAvatarSize.width),
+                                    (icon.type === CONST.ICON_TYPE_WORKSPACE ? StyleUtils.getAvatarBorderRadius(props.size, icon.type) : {}),
+                                ]}
                             >
                                 <Avatar
                                     source={icon.source || props.fallbackIcon}
                                     fill={themeColors.iconSuccessFill}
-                                    size={CONST.AVATAR_SIZE.SMALLER}
+                                    size={props.size}
                                     name={icon.name}
                                     type={icon.type}
                                 />
@@ -113,13 +140,26 @@ const MultipleAvatars = (props) => {
 
                                 // Set overlay background color with RGBA value so that the text will not inherit opacity
                                 StyleUtils.getBackgroundColorWithOpacityStyle(themeColors.overlay, variables.overlayOpacity),
-                                styles.horizontalStackedAvatar4Overlay,
-                                StyleUtils.getAvatarBorderRadius(props.size, props.icons[3].type),
+                                StyleUtils.getHorizontalStackedOverlayAvatarStyle(oneAvatarSize, oneAvatarBorderWidth),
+                                (props.icons[3].type === CONST.ICON_TYPE_WORKSPACE ? StyleUtils.getAvatarBorderRadius(props.size, props.icons[3].type) : {}),
                             ]}
                         >
-                            <Text style={styles.avatarInnerTextSmall}>
-                                {`+${props.icons.length - 4}`}
-                            </Text>
+                            <View
+                                style={[styles.justifyContentCenter,
+                                    styles.alignItemsCenter,
+                                    StyleUtils.getHeight(oneAvatarSize.height),
+                                    StyleUtils.getWidthStyle(oneAvatarSize.width),
+                                ]}
+                            >
+                                <Text
+                                    style={[
+                                        styles.avatarInnerTextSmall,
+                                        StyleUtils.getAvatarExtraFontSizeStyle(props.size),
+                                    ]}
+                                >
+                                    {`+${props.icons.length - 4}`}
+                                </Text>
+                            </View>
                         </View>
                     )}
                 </>

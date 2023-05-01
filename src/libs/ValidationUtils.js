@@ -442,6 +442,17 @@ function isValidTaxID(taxID) {
     return taxID && CONST.REGEX.TAX_ID.test(taxID.replace(CONST.REGEX.NON_NUMERIC, ''));
 }
 
+/**
+ * Checks if a string value is a number.
+ *
+ * @param {String} value
+ * @returns {Boolean}
+ */
+function isNumeric(value) {
+    if (typeof value !== 'string') { return false; }
+    return /^\d*$/.test(value);
+}
+
 export {
     meetsMinimumAgeRequirement,
     meetsMaximumAgeRequirement,
@@ -474,4 +485,5 @@ export {
     isValidDisplayName,
     isValidLegalName,
     doesContainReservedWord,
+    isNumeric,
 };
