@@ -512,8 +512,6 @@ function subscribeToUserEventsUsingMultipleEventType() {
  * @deprecated
  */
 function subscribeToUserDeprecatedEvents() {
-    const pusherChannelName = `${CONST.PUSHER.PRIVATE_USER_CHANNEL_PREFIX}${currentUserAccountID}${CONFIG.PUSHER.SUFFIX}`;
-
     // Receive any relevant Onyx updates from the server
     PusherUtils.subscribeToPrivateUserChannelEvent(Pusher.TYPE.ONYX_API_UPDATE, currentUserAccountID, (pushJSON) => {
         SequentialQueue.getCurrentRequest().then(() => {
@@ -521,55 +519,6 @@ function subscribeToUserDeprecatedEvents() {
             triggerNotifications(pushJSON);
         });
     });
-
-    // Live-update an user's preferred locale
-    Pusher.subscribe(pusherChannelName, Pusher.TYPE.PREFERRED_LOCALE, (pushJSON) => {
-        Onyx.merge(ONYXKEYS.NVP_PREFERRED_LOCALE, pushJSON.preferredLocale);
-    },
-    () => {
-        NetworkConnection.triggerReconnectionCallbacks('pusher re-subscribed to private user channel');
-    })
-        .catch((error) => {
-            Log.hmmm(
-                '[User] Failed to subscribe to Pusher channel',
-                false,
-                {error, pusherChannelName, eventName: Pusher.TYPE.PREFERRED_LOCALE},
-            );
-        });
-
-    // Subscribe to screen share requests sent by GuidesPlus agents
-    Pusher.subscribe(pusherChannelName, Pusher.TYPE.SCREEN_SHARE_REQUEST, (pushJSON) => {
-        Onyx.merge(ONYXKEYS.SCREEN_SHARE_REQUEST, pushJSON);
-    },
-    () => {
-        NetworkConnection.triggerReconnectionCallbacks('pusher re-subscribed to private user channel');
-    })
-        .catch((error) => {
-            Log.hmmm(
-                '[User] Failed to subscribe to Pusher channel',
-                false,
-                {error, pusherChannelName, eventName: Pusher.TYPE.SCREEN_SHARE_REQUEST},
-            );
-        });
-
-    // Handle Expensify Card approval flow updates
-    Pusher.subscribe(pusherChannelName, Pusher.TYPE.EXPENSIFY_CARD_UPDATE, (pushJSON) => {
-        if (pushJSON.isUsingExpensifyCard) {
-            Onyx.merge(ONYXKEYS.USER, {isUsingExpensifyCard: pushJSON.isUsingExpensifyCard, isCheckingDomain: null});
-        } else {
-            Onyx.merge(ONYXKEYS.USER, {isCheckingDomain: pushJSON.isCheckingDomain});
-        }
-    },
-    () => {
-        NetworkConnection.triggerReconnectionCallbacks('pusher re-subscribed to private user channel');
-    })
-        .catch((error) => {
-            Log.info(
-                '[User] Failed to subscribe to Pusher channel',
-                false,
-                {error, pusherChannelName, eventName: Pusher.TYPE.EXPENSIFY_CARD_UPDATE},
-            );
-        });
 }
 
 /**
