@@ -96,6 +96,8 @@ const ReportActionItemSingle = (props) => {
                         <SubscriptAvatar
                             mainAvatar={{source: avatarSource, type: CONST.ICON_TYPE_AVATAR}}
                             secondaryAvatar={ReportUtils.getIcons(props.report, {})[0]}
+                            mainTooltip={props.report.ownerEmail}
+                            secondaryTooltip={ReportUtils.getReportName(props.report)}
                         />
                     ) : (
                         <Tooltip text={actorEmail}>
