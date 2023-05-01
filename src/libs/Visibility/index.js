@@ -10,7 +10,7 @@ function isVisible() {
 }
 
 /**
- * Detects whether the app is focus or not.
+ * Whether the app is focused.
  *
  * @returns {Boolean}
  */
