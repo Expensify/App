@@ -104,6 +104,7 @@ function getReportParticipantsTitle(logins) {
  * @param {Object} report
  * @returns {Boolean}
  */
+// eslint-disable-next-line no-unused-vars
 function isExpenseReport(report) {
     return lodashGet(report, 'type') === CONST.REPORT.TYPE.EXPENSE;
 }

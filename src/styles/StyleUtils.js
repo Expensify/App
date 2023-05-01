@@ -36,6 +36,7 @@ const avatarBorderSizes = {
     [CONST.AVATAR_SIZE.SUBSCRIPT]: variables.componentBorderRadiusSmall,
     [CONST.AVATAR_SIZE.SMALLER]: variables.componentBorderRadiusMedium,
     [CONST.AVATAR_SIZE.SMALL]: variables.componentBorderRadiusMedium,
+    [CONST.AVATAR_SIZE.HEADER]: variables.componentBorderRadiusMedium,
     [CONST.AVATAR_SIZE.DEFAULT]: variables.componentBorderRadiusNormal,
     [CONST.AVATAR_SIZE.MEDIUM]: variables.componentBorderRadiusLarge,
     [CONST.AVATAR_SIZE.LARGE]: variables.componentBorderRadiusLarge,
@@ -52,6 +53,7 @@ const avatarSizes = {
     [CONST.AVATAR_SIZE.LARGE]: variables.avatarSizeLarge,
     [CONST.AVATAR_SIZE.MEDIUM]: variables.avatarSizeMedium,
     [CONST.AVATAR_SIZE.LARGE_BORDERED]: variables.avatarSizeLargeBordered,
+    [CONST.AVATAR_SIZE.HEADER]: variables.avatarSizeHeader,
 };
 
 /**

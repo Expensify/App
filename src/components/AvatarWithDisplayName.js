@@ -1,5 +1,6 @@
 import React from 'react';
 import {View} from 'react-native';
+import _ from 'underscore';
 import PropTypes from 'prop-types';
 import CONST from '../CONST';
 import reportPropTypes from '../pages/reportPropTypes';
@@ -26,7 +27,7 @@ const propTypes = {
     }),
 
     /** The size of the avatar */
-    size: PropTypes.oneOf(Object.values(CONST.AVATAR_SIZE)),
+    size: PropTypes.oneOf(_.values(CONST.AVATAR_SIZE)),
 
     /** Personal details of all the users */
     personalDetails: PropTypes.objectOf(participantPropTypes),
@@ -50,8 +51,8 @@ const AvatarWithDisplayName = (props) => {
     const ownerPersonalDetails = OptionsListUtils.getPersonalDetailsForLogins([props.report.ownerEmail], props.personalDetails);
     const displayNamesWithTooltips = ReportUtils.getDisplayNamesWithTooltips(ownerPersonalDetails, false);
     return (
-        <View style={[styles.appContentHeader]} nativeID="drag-area">
-            <View style={[styles.appContentHeaderTitle, !props.isSmallScreenWidth && styles.pl5]}>
+        <View style={[]} nativeID="drag-area">
+            <View style={[styles.appContentHeaderTitle]}>
                 {Boolean(props.report && title) && (
                     <View
                         style={[
@@ -73,6 +74,8 @@ const AvatarWithDisplayName = (props) => {
                             <Avatar
                                 size={props.size}
                                 source={icons[0].source}
+                                type={icons[0].type}
+                                name={icons[0].name}
                                 containerStyles={props.size === CONST.AVATAR_SIZE.SMALL ? styles.emptyAvatarSmall : styles.emptyAvatar}
                             />
                         )}
@@ -85,17 +88,19 @@ const AvatarWithDisplayName = (props) => {
                                 textStyles={[styles.headerText, styles.pre]}
                                 shouldUseFullTitle={isExpenseReport}
                             />
-                            <Text
-                                style={[
-                                    styles.sidebarLinkText,
-                                    styles.optionAlternateText,
-                                    styles.textLabelSupporting,
-                                    styles.pre,
-                                ]}
-                                numberOfLines={1}
-                            >
-                                {subtitle}
-                            </Text>
+                            {subtitle ? (
+                                <Text
+                                    style={[
+                                        styles.sidebarLinkText,
+                                        styles.optionAlternateText,
+                                        styles.textLabelSupporting,
+                                        styles.pre,
+                                    ]}
+                                    numberOfLines={1}
+                                >
+                                    {subtitle}
+                                </Text>
+                            ) : null }
                         </View>
                     </View>
                 )}
