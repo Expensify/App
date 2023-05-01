@@ -1,8 +1,8 @@
 import React, {useCallback} from 'react';
-import _ from 'underscore';
 import {withOnyx} from 'react-native-onyx';
 import PropTypes from 'prop-types';
 import {View} from 'react-native';
+import CONST from '../../../CONST';
 import ScreenWrapper from '../../../components/ScreenWrapper';
 import HeaderWithCloseButton from '../../../components/HeaderWithCloseButton';
 import withLocalize, {withLocalizePropTypes} from '../../../components/withLocalize';
@@ -45,7 +45,7 @@ const RoomNamePage = (props) => {
             return errors;
         }
 
-        if (_.isEmpty(values.roomName)) {
+        if (!values.roomName || values.roomName === CONST.POLICY.ROOM_PREFIX) {
             // We error if the user doesn't enter a room name or left blank
             ErrorUtils.addErrorMessage(errors, 'roomName', translate('newRoomPage.pleaseEnterRoomName'));
         } else if (!ValidationUtils.isValidRoomName(values.roomName)) {
