@@ -14,9 +14,9 @@ import * as ErrorUtils from '../../libs/ErrorUtils';
 import Form from '../../components/Form';
 import TextInput from '../../components/TextInput';
 import Permissions from '../../libs/Permissions';
-import * as ReportUtils from '../../libs/actions/Report';
 import ROUTES from '../../ROUTES';
 import TaskSelectorLink from '../../components/TaskSelectorLink';
+import reportPropTypes from '../reportPropTypes';
 
 // TO-DO: Call CreateTask with all the appropriate Data
 
@@ -26,6 +26,9 @@ const propTypes = {
         assignee: PropTypes.string,
         shareDestination: PropTypes.string,
     }),
+
+    /** The parent report of the new task */
+    report: reportPropTypes,
 
     /** Beta features list */
     betas: PropTypes.arrayOf(PropTypes.string),
@@ -49,9 +52,25 @@ const propTypes = {
 
 const defaultProps = {
     betas: [],
+    report: {},
     task: {},
     personalDetails: {},
 };
+
+/**
+ * Get the currently viewed report ID as number
+ *
+ * @param {Object} route
+ * @param {Object} route.params
+ * @param {String} route.params.reportID
+ * @returns {String}
+ */
+function getReportID(route) {
+    if (!route.params || !route.params.reportID) {
+        return;
+    }
+    return route.params.reportID.toString();
+}
 
 // NOTE: This page is going to be updated in https://github.com/Expensify/App/issues/16855, this is just a placeholder for now
 const NewTaskPage = (props) => {
@@ -59,6 +78,7 @@ const NewTaskPage = (props) => {
     const [shareDestination, setShareDestination] = React.useState({});
 
     useEffect(() => {
+        console.log(props);
         if (props.task.assignee) {
             const details = lodashGet(props.personalDetails, props.task.assignee);
             setAssignee({avatar: details.avatar, displayName: details.displayName, login: details.login});
@@ -115,10 +135,10 @@ const NewTaskPage = (props) => {
             >
                 <View style={styles.mb5}>
                     <TaskSelectorLink
-                        avatarImage={assignee.avatar}
-                        title={assignee.displayName}
-                        description={assignee.login}
-                        onPress={() => Navigation.navigate(ROUTES.NEW_TASK_ASSIGNEE)}
+                        icons={[assignee.avatar]}
+                        text={assignee.displayName}
+                        alternateText={assignee.login}
+                        onPress={() => Navigation.navigate(ROUTES.getNewTaskAssigneeRoute(getReportID(props.route)))}
                         label="newTaskPage.assignTo"
                     />
                 </View>
@@ -147,6 +167,9 @@ export default compose(
         },
         task: {
             key: ONYXKEYS.TASK,
+        },
+        report: {
+            key: ({route}) => `${ONYXKEYS.COLLECTION.REPORT}${getReportID(route)}`,
         },
         personalDetails: {
             key: ONYXKEYS.PERSONAL_DETAILS,

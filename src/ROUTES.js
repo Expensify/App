@@ -16,6 +16,7 @@ const IOU_SEND_CURRENCY = `${IOU_SEND}/currency`;
 const NEW_TASK = 'new/task';
 const NEW_TASK_ASSIGNEE = `${NEW_TASK}/assignee`;
 const NEW_TASK_CHAT = `${NEW_TASK}/chat`;
+const NEW_TASK_DETAILS = `${NEW_TASK}/details`;
 const SETTINGS_PERSONAL_DETAILS = 'settings/profile/personal-details';
 const SETTINGS_CONTACT_METHODS = 'settings/profile/contact-methods';
 
@@ -99,7 +100,11 @@ export default {
     TASK_DESCRIPTION: 'r/:reportID/description',
     getTaskReportTitleRoute: reportID => `r/${reportID}/title`,
     getTaskReportDescriptionRoute: reportID => `r/${reportID}/description`,
+    getNewTaskAssigneeRoute: reportID => `${NEW_TASK_ASSIGNEE}/${reportID}`,
     NEW_TASK_ASSIGNEE: `${NEW_TASK_ASSIGNEE}/:reportID?`,
+    getNewTaskChatRoute: reportID => `${NEW_TASK_CHAT}/${reportID}`,
+    NEW_TASK_DETAILS: `${NEW_TASK_DETAILS}/:reportID?`,
+    getNewTaskDetailsRoute: reportID => `${NEW_TASK_DETAILS}/${reportID}`,
     NEW_TASK_CHAT: `${NEW_TASK_CHAT}/:reportID?`,
     getTaskDetailsRoute: taskID => `task/details/${taskID}`,
     SEARCH: 'search',

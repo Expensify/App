@@ -208,6 +208,7 @@ export default {
                     NewTask_Root: ROUTES.NEW_TASK_WITH_REPORT_ID,
                     NewTask_AssigneeSelector: ROUTES.NEW_TASK_ASSIGNEE,
                     NewTask_ChatSelector: ROUTES.NEW_TASK_CHAT,
+                    NewTask_Details: ROUTES.NEW_TASK_DETAILS,
                 },
             },
             Search: {

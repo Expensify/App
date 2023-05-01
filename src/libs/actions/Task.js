@@ -132,7 +132,14 @@ function createTaskAndNavigate(parentReportActionID, parentReportID, taskReportI
         optimisticAddCommentReportAction,
     ];
 
-    const successData = {};
+    // Clear out local task data when the task is successfully created
+    const successData = [
+        {
+            method: CONST.ONYX.METHOD.MERGE,
+            keys: `${ONYXKEYS.TASK}`,
+            value: null,
+        },
+    ];
 
     // TODO: Confirm if the first object clears  both the CreatedAction and the CommentReportAction
     const failureData = [
@@ -171,6 +178,11 @@ function createTaskAndNavigate(parentReportActionID, parentReportID, taskReportI
     Navigation.navigate(ROUTES.getReportRoute(optimisticTaskReport.reportID));
 }
 
+function setDetailsValue(name, description) {
+    // This is only needed for creation of a new task and so it should only be stored locally
+    Onyx.merge(ONYXKEYS.TASK, {name, description});
+}
+
 function setAssigneeValue(assignee) {
     // This is only needed for creation of a new task and so it should only be stored locally
     Onyx.merge(ONYXKEYS.TASK, {assignee});
@@ -187,5 +199,5 @@ function clearOutTaskInfo() {
 
 // eslint-disable-next-line import/prefer-default-export
 export {
-    createTaskAndNavigate, setAssigneeValue, setShareDestinationValue, clearOutTaskInfo,
+    createTaskAndNavigate, setDetailsValue, setAssigneeValue, setShareDestinationValue, clearOutTaskInfo,
 };

@@ -238,6 +238,13 @@ const NewTaskModalStackNavigator = createModalStackNavigator([{
         return NewTaskChatSelectorPage;
     },
     name: 'NewTask_ChatSelector',
+},
+{
+    getComponent: () => {
+        const NewTaskDetailsPage = require('../../../pages/tasks/NewTaskDetailsPage').default;
+        return NewTaskDetailsPage;
+    },
+    name: 'NewTask_Details',
 }]);
 
 const SettingsModalStackNavigator = createModalStackNavigator([
