@@ -232,7 +232,13 @@ class ContactMethodDetailsPage extends Component {
                                     <Text style={[styles.link, styles.mr1]} onPress={this.resendValidateCode}>
                                         {this.props.translate('contacts.resendMagicCode')}
                                     </Text>
-                                    {hasMagicCodeBeenSent && <DotIndicatorMessage style={[styles.mt4, styles.flex0]} type="success" messages={{ 0: this.props.translate('resendValidationForm.linkHasBeenResent') }} />}
+                                    {hasMagicCodeBeenSent && (
+                                        <DotIndicatorMessage
+                                            type="success"
+                                            style={[styles.mt4, styles.flex0]}
+                                            messages={{0: this.props.translate('resendValidationForm.linkHasBeenResent')}}
+                                        />
+                                    )}
                                 </View>
                             </OfflineWithFeedback>
                             <OfflineWithFeedback
