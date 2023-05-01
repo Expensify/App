@@ -68,7 +68,7 @@ const GenericPressable = forwardRef((props, ref) => {
         return props.disabled || shouldBeDisabledByScreenReader;
     }, [isScreenReaderActive, enableInScreenReaderStates, props.disabled]);
 
-    const onLongPressHandler = useCallback(() => {
+    const onLongPressHandler = useCallback((event) => {
         if (isDisabled) {
             return;
         }
@@ -81,12 +81,12 @@ const GenericPressable = forwardRef((props, ref) => {
         if (ref && ref.current) {
             ref.current.blur();
         }
-        onLongPress();
+        onLongPress(event);
 
         Accessibility.moveAccessibilityFocus(nextFocusRef);
     }, [shouldUseHapticsOnLongPress, onLongPress, nextFocusRef, ref, isDisabled]);
 
-    const onPressHandler = useCallback(() => {
+    const onPressHandler = useCallback((event) => {
         if (isDisabled) {
             return;
         }
@@ -96,7 +96,7 @@ const GenericPressable = forwardRef((props, ref) => {
         if (ref && ref.current) {
             ref.current.blur();
         }
-        onPress();
+        onPress(event);
 
         Accessibility.moveAccessibilityFocus(nextFocusRef);
     }, [shouldUseHapticsOnPress, onPress, nextFocusRef, ref, isDisabled]);
@@ -105,7 +105,7 @@ const GenericPressable = forwardRef((props, ref) => {
         if (event.key !== 'Enter') {
             return;
         }
-        onPressHandler();
+        onPressHandler(event);
     }, [onPressHandler]);
 
     useEffect(() => {
