@@ -449,6 +449,10 @@ class ReportActionCompose extends React.Component {
             this.resetSuggestedEmojis();
             return;
         }
+        if (this.state.shouldBlockEmojiCalc) {
+            this.setState({shouldBlockEmojiCalc: false});
+            return;
+        }
         const leftString = this.state.value.substring(0, this.state.selection.end);
         const colonIndex = leftString.lastIndexOf(':');
         const isCurrentlyShowingEmojiSuggestion = this.isEmojiCode(this.state.value, this.state.selection.end);
@@ -775,6 +779,7 @@ class ReportActionCompose extends React.Component {
                         <AttachmentModal
                             headerTitle={this.props.translate('reportActionCompose.sendAttachment')}
                             onConfirm={this.addAttachment}
+                            onModalHide={()=> {this.setState({shouldBlockEmojiCalc: false})}}
                         >
                             {({displayFileInModal}) => (
                                 <>
@@ -852,6 +857,8 @@ class ReportActionCompose extends React.Component {
                                                             icon: Expensicons.Paperclip,
                                                             text: this.props.translate('reportActionCompose.addAttachment'),
                                                             onSelected: () => {
+                                                                this.willBlurTextInputOnTapOutside && this.setState({shouldBlockEmojiCalc: true});
+                                                                
                                                                 openPicker({
                                                                     onPicked: displayFileInModal,
                                                                 });
@@ -899,6 +906,7 @@ class ReportActionCompose extends React.Component {
                                                     this.setIsFocused(false);
                                                     this.resetSuggestedEmojis();
                                                 }}
+                                                onClick={() => this.setState({shouldBlockEmojiCalc: false})}
                                                 onPasteFile={displayFileInModal}
                                                 shouldClear={this.state.textInputShouldClear}
                                                 onClear={() => this.setTextInputShouldClear(false)}
