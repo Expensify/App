@@ -190,7 +190,7 @@ function getParticipantsOptions(report, personalDetails) {
         text: details.displayName,
         firstName: lodashGet(details, 'firstName', ''),
         lastName: lodashGet(details, 'lastName', ''),
-        alternateText: Str.isSMSLogin(details.login) ? LocalePhoneNumber.formatPhoneNumber(details.login) : details.login,
+        alternateText: Str.isSMSLogin(details.login || '') ? LocalePhoneNumber.formatPhoneNumber(details.login) : details.login,
         icons: [{
             source: ReportUtils.getAvatar(details.avatar, details.login),
             name: details.login,
