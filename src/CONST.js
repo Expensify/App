@@ -675,6 +675,9 @@ const CONST = {
         EMAIL: 'email',
     },
 
+    MAGIC_CODE_LENGTH: 6,
+    MAGIC_CODE_EMPTY_CHAR: ' ',
+
     KEYBOARD_TYPE: {
         PHONE_PAD: 'phone-pad',
         NUMBER_PAD: 'number-pad',
@@ -908,8 +911,9 @@ const CONST = {
 
     LOCALES: {
         EN: 'en',
-        ES_ES: 'es-ES',
         ES: 'es',
+        ES_ES: 'es-ES',
+        ES_ES_ONFIDO: 'es_ES',
 
         DEFAULT: 'en',
     },
