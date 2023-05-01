@@ -581,7 +581,7 @@ describe('actions/IOU', () => {
                     const connectionID = Onyx.connect({
                         key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${chatReportID}`,
                         waitForCollectionCallback: true,
-                        callback: reportActionsForChatReport => {
+                        callback: (reportActionsForChatReport) => {
                             Onyx.disconnect(connectionID);
                             expect(_.size(reportActionsForChatReport)).toBe(2);
                             iouAction = _.find(reportActionsForChatReport, reportAction => reportAction.actionName === CONST.REPORT.ACTIONS.TYPE.IOU);
@@ -596,7 +596,7 @@ describe('actions/IOU', () => {
                     const connectionID = Onyx.connect({
                         key: `${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`,
                         waitForCollectionCallback: true,
-                        callback: transaction => {
+                        callback: (transaction) => {
                             Onyx.disconnect(connectionID);
                             expect(transaction.pendingAction).toBeFalsy();
                             expect(transaction.errors).toBeTruthy();

@@ -158,14 +158,10 @@ function getGlobalFetchMock() {
     const getResponse = () => (shouldFail
         ? {
             ok: true,
-            json: () => Promise.resolve({
-                jsonCode: 400,
-            }),
+            json: () => Promise.resolve({jsonCode: 400}),
         } : {
             ok: true,
-            json: () => Promise.resolve({
-                jsonCode: 200
-            }),
+            json: () => Promise.resolve({jsonCode: 200}),
         });
 
     const mockFetch = jest.fn()
