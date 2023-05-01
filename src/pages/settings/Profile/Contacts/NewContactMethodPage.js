@@ -1,4 +1,6 @@
-import React, {Component} from 'react';
+import React, {
+    useCallback, useMemo, useRef, useState,
+} from 'react';
 import PropTypes from 'prop-types';
 import {View} from 'react-native';
 import {ScrollView} from 'react-native-gesture-handler';
@@ -52,102 +54,87 @@ const defaultProps = {
     loginList: {},
 };
 
-class NewContactMethodPage extends Component {
-    constructor(props) {
-        super(props);
+function NewContactMethodPage(props) {
+    const [login, setLogin] = useState('');
+    const [password, setPassword] = useState('');
+    const loginInputRef = useRef(null);
 
-        this.state = {
-            login: '',
-            password: '',
-        };
-        this.onLoginChange = this.onLoginChange.bind(this);
-        this.validateForm = this.validateForm.bind(this);
-        this.submitForm = this.submitForm.bind(this);
-    }
+    const handleLoginChange = useCallback((value) => {
+        setLogin(value.trim());
+    }, []);
 
-    onLoginChange(login) {
-        this.setState({login});
-    }
+    const handlePasswordChange = useCallback((value) => {
+        setPassword(value.trim());
+    }, []);
 
-    /**
-    * Determine whether the form is valid
-    *
-    * @returns {Boolean}
-    */
-    validateForm() {
-        const login = this.state.login.trim();
+    const isFormValid = useMemo(() => {
         const phoneLogin = LoginUtils.getPhoneNumberWithoutSpecialChars(login);
 
-        return (Permissions.canUsePasswordlessLogins(this.props.betas) || this.state.password)
+        return (Permissions.canUsePasswordlessLogins(props.betas) || password)
             && (Str.isValidEmail(login) || Str.isValidPhone(phoneLogin));
-    }
+    }, [login, password, props.betas]);
 
-    submitForm() {
-        // Trim leading and trailing space from login
-        const login = this.state.login.trim();
-
+    const submitForm = useCallback(() => {
         // If this login already exists, just go back.
-        if (lodashGet(this.props.loginList, login)) {
+        if (lodashGet(props.loginList, login)) {
             Navigation.navigate(ROUTES.SETTINGS_CONTACT_METHODS);
             return;
         }
-        User.addNewContactMethodAndNavigate(login, this.state.password);
-    }
+        User.addNewContactMethodAndNavigate(login, password);
+    }, [login, props.loginList, password]);
 
-    render() {
-        return (
-            <ScreenWrapper
-                onTransitionEnd={() => {
-                    if (!this.loginInputRef) {
-                        return;
-                    }
-                    this.loginInputRef.focus();
-                }}
-            >
-                <HeaderWithCloseButton
-                    title={this.props.translate('contacts.newContactMethod')}
-                    shouldShowBackButton
-                    onBackButtonPress={() => Navigation.navigate(ROUTES.SETTINGS_CONTACT_METHODS)}
-                    onCloseButtonPress={() => Navigation.dismissModal(true)}
-                />
-                <ScrollView>
-                    <Text style={[styles.ph5, styles.mb5]}>
-                        {this.props.translate('common.pleaseEnterEmailOrPhoneNumber')}
-                    </Text>
-                    <View style={[styles.ph5, styles.mb6]}>
-                        <TextInput
-                            label={`${this.props.translate('common.email')}/${this.props.translate('common.phoneNumber')}`}
-                            ref={el => this.loginInputRef = el}
-                            value={this.state.login}
-                            onChangeText={this.onLoginChange}
-                            autoCapitalize="none"
-                            returnKeyType={Permissions.canUsePasswordlessLogins(this.props.betas) ? 'done' : 'next'}
-                        />
-                    </View>
-                    {!Permissions.canUsePasswordlessLogins(this.props.betas)
-                        && (
-                            <View style={[styles.ph5, styles.mb6]}>
-                                <TextInput
-                                    label={this.props.translate('common.password')}
-                                    value={this.state.password}
-                                    onChangeText={password => this.setState({password})}
-                                    returnKeyType="done"
-                                />
-                            </View>
-                        )}
-                </ScrollView>
-                <FixedFooter style={[styles.flexGrow0]}>
-                    <Button
-                        success
-                        isDisabled={!this.validateForm()}
-                        text={this.props.translate('common.add')}
-                        onPress={this.submitForm}
-                        pressOnEnter
+    return (
+        <ScreenWrapper
+            onTransitionEnd={() => {
+                if (!loginInputRef.current) {
+                    return;
+                }
+                loginInputRef.current.focus();
+            }}
+        >
+            <HeaderWithCloseButton
+                title={props.translate('contacts.newContactMethod')}
+                shouldShowBackButton
+                onBackButtonPress={() => Navigation.navigate(ROUTES.SETTINGS_CONTACT_METHODS)}
+                onCloseButtonPress={() => Navigation.dismissModal(true)}
+            />
+            <ScrollView>
+                <Text style={[styles.ph5, styles.mb5]}>
+                    {props.translate('common.pleaseEnterEmailOrPhoneNumber')}
+                </Text>
+                <View style={[styles.ph5, styles.mb6]}>
+                    <TextInput
+                        label={`${props.translate('common.email')}/${props.translate('common.phoneNumber')}`}
+                        ref={loginInputRef}
+                        value={login}
+                        onChangeText={handleLoginChange}
+                        autoCapitalize="none"
+                        returnKeyType={Permissions.canUsePasswordlessLogins(props.betas) ? 'done' : 'next'}
                     />
-                </FixedFooter>
-            </ScreenWrapper>
-        );
-    }
+                </View>
+                {!Permissions.canUsePasswordlessLogins(props.betas)
+                    && (
+                        <View style={[styles.ph5, styles.mb6]}>
+                            <TextInput
+                                label={props.translate('common.password')}
+                                value={password}
+                                onChangeText={handlePasswordChange}
+                                returnKeyType="done"
+                            />
+                        </View>
+                    )}
+            </ScrollView>
+            <FixedFooter style={[styles.flexGrow0]}>
+                <Button
+                    success
+                    isDisabled={!isFormValid}
+                    text={props.translate('common.add')}
+                    onPress={submitForm}
+                    pressOnEnter
+                />
+            </FixedFooter>
+        </ScreenWrapper>
+    );
 }
 
 NewContactMethodPage.propTypes = propTypes;
