@@ -79,7 +79,7 @@ export default {
     sideBarWidth: 375,
     pdfPageMaxWidth: 992,
     tooltipzIndex: 10050,
-    gutterWidth: 16,
+    gutterWidth: 12,
     popoverMenuShadow: '0px 4px 12px 0px rgba(0, 0, 0, 0.06)',
     optionRowHeight: 64,
     optionRowHeightCompact: 52,
@@ -132,4 +132,6 @@ export default {
     // The height of the empty list is 14px (2px for borders and 12px for vertical padding)
     // This is calculated based on the values specified in the 'getGoogleListViewStyle' function of the 'StyleUtils' utility
     googleEmptyListViewHeight: 14,
+    hoverDimValue: 0.5,
+    pressDimValue: 0.2,
 };

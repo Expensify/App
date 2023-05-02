@@ -28,6 +28,7 @@ const CONST = {
     ANIMATED_TRANSITION: 300,
     ANIMATED_TRANSITION_FROM_VALUE: 100,
     ANIMATION_IN_TIMING: 100,
+    ARROW_HIDE_DELAY: 3000,
 
     API_ATTACHMENT_VALIDATIONS: {
         // Same as the PHP layer allows
@@ -674,6 +675,9 @@ const CONST = {
         EMAIL: 'email',
     },
 
+    MAGIC_CODE_LENGTH: 6,
+    MAGIC_CODE_EMPTY_CHAR: ' ',
+
     KEYBOARD_TYPE: {
         PHONE_PAD: 'phone-pad',
         NUMBER_PAD: 'number-pad',
@@ -907,8 +911,9 @@ const CONST = {
 
     LOCALES: {
         EN: 'en',
-        ES_ES: 'es-ES',
         ES: 'es',
+        ES_ES: 'es-ES',
+        ES_ES_ONFIDO: 'es_ES',
 
         DEFAULT: 'en',
     },
@@ -2280,6 +2285,11 @@ const CONST = {
         'PLN', 'GBP', 'RUB', 'SGD', 'SEK', 'CHF', 'THB', 'USD',
     ],
     CONCIERGE_TRAVEL_URL: 'https://community.expensify.com/discussion/7066/introducing-concierge-travel',
+    SCREEN_READER_STATES: {
+        ALL: 'all',
+        ACTIVE: 'active',
+        DISABLED: 'disabled',
+    },
 };
 
 export default CONST;

@@ -194,7 +194,7 @@ class AttachmentPicker extends Component {
                     switch (response.errorCode) {
                         case 'permission':
                             this.showPermissionsAlert();
-                            break;
+                            return resolve();
                         default:
                             this.showGeneralAlert();
                             break;
