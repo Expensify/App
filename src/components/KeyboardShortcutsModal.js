@@ -40,11 +40,17 @@ class KeyboardShortcutsModal extends React.Component {
             KeyboardShortcutsActions.showKeyboardShortcutModal();
         }, openShortcutModalConfig.descriptionKey, openShortcutModalConfig.modifiers, true);
 
-        const closeShortcutModalConfig = CONST.KEYBOARD_SHORTCUTS.ESCAPE;
-        this.unsubscribeEscapeModal = KeyboardShortcut.subscribe(closeShortcutModalConfig.shortcutKey, () => {
+        const closeShortcutEscapeModalConfig = CONST.KEYBOARD_SHORTCUTS.ESCAPE;
+        this.unsubscribeEscapeModal = KeyboardShortcut.subscribe(closeShortcutEscapeModalConfig.shortcutKey, () => {
             ModalActions.close();
             KeyboardShortcutsActions.hideKeyboardShortcutModal();
-        }, closeShortcutModalConfig.descriptionKey, closeShortcutModalConfig.modifiers, true, true);
+        }, closeShortcutEscapeModalConfig.descriptionKey, closeShortcutEscapeModalConfig.modifiers, true, true);
+
+        const closeShortcutEnterModalConfig = CONST.KEYBOARD_SHORTCUTS.ENTER;
+        this.unsubscribeEscapeModal = KeyboardShortcut.subscribe(closeShortcutEnterModalConfig.shortcutKey, () => {
+            ModalActions.close();
+            KeyboardShortcutsActions.hideKeyboardShortcutModal();
+        }, closeShortcutEnterModalConfig.descriptionKey, closeShortcutEnterModalConfig.modifiers, true, () => !this.props.isShortcutsModalOpen, 0);
     }
 
     componentWillUnmount() {
