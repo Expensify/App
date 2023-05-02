@@ -183,14 +183,13 @@ function Expensify(props) {
             return;
         }
 
-        const shouldHideSplash = !isAuthenticated || props.isSidebarLoaded;
+        const shouldHideSplash = !isAuthenticated || props.isSidebarLoaded || !props.isCheckingPublicRoom;
 
         if (shouldHideSplash) {
             BootSplash.hide();
-
             setIsSplashShown(false);
         }
-    }, [props.isSidebarLoaded, isNavigationReady, isSplashShown, isAuthenticated]);
+    }, [props.isSidebarLoaded, props.isCheckingPublicRoom, isNavigationReady, isSplashShown, isAuthenticated]);
 
     // Display a blank page until the onyx migration completes
     if (!isOnyxMigrated) {
