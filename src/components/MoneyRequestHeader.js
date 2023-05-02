@@ -14,6 +14,8 @@ import themeColors from '../styles/themes/default';
 import CONST from '../CONST';
 import withWindowDimensions from './withWindowDimensions';
 import compose from '../libs/compose';
+import Navigation from '../libs/Navigation/Navigation';
+import ROUTES from '../ROUTES';
 
 const propTypes = {
     /** The report currently being looked at */
@@ -65,6 +67,7 @@ const MoneyRequestHeader = (props) => {
                 containerStyles={[styles.pt5, styles.pb3]}
                 shouldShowCloseButton={false}
                 shouldShowBackButton={props.isSmallScreenWidth}
+                onBackButtonPress={() => Navigation.navigate(ROUTES.HOME)}
             />
             <View style={[styles.ph5, styles.pb5]}>
                 <Text style={[styles.textLabelSupporting, styles.lh16]}>To</Text>
