@@ -463,7 +463,6 @@ describe('actions/IOU', () => {
                         waitForCollectionCallback: true,
                         callback: (allTransactions) => {
                             Onyx.disconnect(connectionID);
-
                             _.each(allTransactions, transaction => expect(transaction.pendingAction).toBeFalsy());
                             resolve();
                         },

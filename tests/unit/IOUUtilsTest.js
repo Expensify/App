@@ -24,7 +24,7 @@ function createIOUReportAction(type, amount, currency, isOffline = false, IOUTra
         iouReport.reportID,
     );
 
-    // Default is to create requests offline, if this is specified then we need to remove the pendingAction
+    // Default is to create requests online, if `isOffline` is specified then we need to remove the pendingAction
     moneyRequestAction.pendingAction = isOffline ? CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD : null;
 
     reportActions.push(moneyRequestAction);
@@ -62,8 +62,8 @@ describe('IOUUtils', () => {
                 CONST.LOCALES.EN,
             );
 
-            // The starting point of all tests is the IOUReport containing a single non-pending transaction in USD
-            // All requests in the tests are assumed to be offline, unless isOnline is specified
+            // The starting point of all tests is the IOUReport containing a single pending transaction in USD
+            // All requests in the tests are assumed to be online, unless isOffline is specified
             createIOUReportAction('create', amount, currency);
         });
 
