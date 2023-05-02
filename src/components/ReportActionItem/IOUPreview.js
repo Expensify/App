@@ -206,7 +206,7 @@ const IOUPreview = (props) => {
                             <Text style={styles.h1}>
                                 {cachedTotal}
                             </Text>
-                            {!props.iouReport.hasOutstandingIOU && (
+                            {!props.iouReport.hasOutstandingIOU && !isGroupSplit && (
                                 <View style={styles.iouPreviewBoxCheckmark}>
                                     <Icon src={Expensicons.Checkmark} fill={themeColors.iconSuccessFill} />
                                 </View>
