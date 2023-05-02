@@ -135,6 +135,7 @@ const GenericPressable = forwardRef((props, ref) => {
                 state.pressed && StyleUtils.parseStyleFromFunction(props.pressStyle, state),
                 isDisabled && [...StyleUtils.parseStyleFromFunction(props.disabledStyle, state), styles.noSelect],
             ]}
+            disabled={isDisabled}
 
             // accessibility props
             accessibilityState={{
