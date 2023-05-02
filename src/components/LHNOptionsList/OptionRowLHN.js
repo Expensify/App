@@ -95,7 +95,8 @@ const OptionRowLHN = (props) => {
     const focusedBackgroundColor = styles.sidebarLinkActive.backgroundColor;
 
     const avatarTooltips = !optionItem.isChatRoom && !optionItem.isArchivedRoom ? _.pluck(optionItem.displayNamesWithTooltips, 'tooltip') : undefined;
-    const shouldShowGreenDotIndicator = optionItem.isUnreadWithMention || (optionItem.hasOutstandingIOU && !optionItem.isIOUReportOwner);
+    const hasBrickError = optionItem.brickRoadIndicator === CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR;
+    const shouldShowGreenDotIndicator = !hasBrickError && (optionItem.isUnreadWithMention || (optionItem.hasOutstandingIOU && !optionItem.isIOUReportOwner));
 
     return (
         <OfflineWithFeedback
@@ -200,7 +201,7 @@ const OptionRowLHN = (props) => {
                                         </Text>
                                     </View>
                                 ) : null}
-                                {optionItem.brickRoadIndicator === CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR && (
+                                {hasBrickError && (
                                     <View style={[styles.alignItemsCenter, styles.justifyContentCenter]}>
                                         <Icon
                                             src={Expensicons.DotIndicator}
@@ -214,7 +215,7 @@ const OptionRowLHN = (props) => {
                             style={[styles.flexRow, styles.alignItemsCenter]}
                             accessible={false}
                         >
-                            {shouldShowGreenDotIndicator && <Icon src={Expensicons.DotIndicator} fill={themeColors.success} />}
+                            {shouldShowGreenDotIndicator && <Icon src={Expensicons.DotIndicator} fill={themeColors.green} />}
                             {optionItem.hasDraftComment && (
                                 <View
                                     style={styles.ml2}
@@ -223,7 +224,7 @@ const OptionRowLHN = (props) => {
                                     <Icon src={Expensicons.Pencil} />
                                 </View>
                             )}
-                            {optionItem.isPinned && (
+                            {!shouldShowGreenDotIndicator && optionItem.isPinned && (
                                 <View
                                     style={styles.ml2}
                                     accessibilityLabel={props.translate('sidebarScreen.chatPinned')}

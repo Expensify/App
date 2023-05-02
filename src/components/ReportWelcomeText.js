@@ -38,12 +38,6 @@ const propTypes = {
     /** All of the personal details for everyone */
     personalDetails: PropTypes.objectOf(personalDetailsPropTypes),
 
-    /** The policies which the user has access to and which the report could be tied to */
-    policies: PropTypes.shape({
-        /** The policy name */
-        name: PropTypes.string,
-    }),
-
     /** List of betas available to current user */
     betas: PropTypes.arrayOf(PropTypes.string),
 
@@ -52,7 +46,6 @@ const propTypes = {
 
 const defaultProps = {
     report: {},
-    policies: {},
     personalDetails: {},
     betas: [],
 };
@@ -67,7 +60,7 @@ const ReportWelcomeText = (props) => {
         OptionsListUtils.getPersonalDetailsForLogins(participants, props.personalDetails),
         isMultipleParticipant,
     );
-    const roomWelcomeMessage = ReportUtils.getRoomWelcomeMessage(props.report, props.policies);
+    const roomWelcomeMessage = ReportUtils.getRoomWelcomeMessage(props.report);
     const moneyRequestOptions = ReportUtils.getMoneyRequestOptions(props.report, participants, props.betas);
     return (
         <>
@@ -90,7 +83,7 @@ const ReportWelcomeText = (props) => {
                             {props.translate('reportActionsView.beginningOfChatHistoryPolicyExpenseChatPartTwo')}
                         </Text>
                         <Text style={[styles.textStrong]}>
-                            {ReportUtils.getPolicyName(props.report, props.policies)}
+                            {ReportUtils.getPolicyName(props.report)}
                         </Text>
                         <Text>
                             {props.translate('reportActionsView.beginningOfChatHistoryPolicyExpenseChatPartThree')}
@@ -103,7 +96,7 @@ const ReportWelcomeText = (props) => {
                             {roomWelcomeMessage.phrase1}
                         </Text>
                         <Text style={[styles.textStrong]} onPress={() => Navigation.navigate(ROUTES.getReportDetailsRoute(props.report.reportID))}>
-                            {ReportUtils.getReportName(props.report, props.policies)}
+                            {ReportUtils.getReportName(props.report)}
                         </Text>
                         <Text>
                             {roomWelcomeMessage.phrase2}
@@ -155,9 +148,6 @@ export default compose(
         },
         personalDetails: {
             key: ONYXKEYS.PERSONAL_DETAILS,
-        },
-        policies: {
-            key: ONYXKEYS.COLLECTION.POLICY,
         },
     }),
 )(ReportWelcomeText);
