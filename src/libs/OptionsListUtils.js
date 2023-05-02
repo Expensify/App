@@ -902,4 +902,5 @@ export {
     getAllReportErrors,
     getPolicyExpenseReportOptions,
     getParticipantsOptions,
+    uniqFast,
 };

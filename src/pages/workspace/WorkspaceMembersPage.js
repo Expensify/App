@@ -14,6 +14,7 @@ import ScreenWrapper from '../../components/ScreenWrapper';
 import withLocalize, {withLocalizePropTypes} from '../../components/withLocalize';
 import compose from '../../libs/compose';
 import * as Policy from '../../libs/actions/Policy';
+import * as OptionsListUtils from '../../libs/OptionsListUtils';
 import Button from '../../components/Button';
 import Checkbox from '../../components/Checkbox';
 import Text from '../../components/Text';
@@ -34,6 +35,7 @@ import TextInput from '../../components/TextInput';
 import KeyboardDismissingFlatList from '../../components/KeyboardDismissingFlatList';
 import withCurrentUserPersonalDetails from '../../components/withCurrentUserPersonalDetails';
 import * as PolicyUtils from '../../libs/PolicyUtils';
+import Str from 'expensify-common/lib/str';
 
 const propTypes = {
     /** The personal details of the person who is logged in */
@@ -86,6 +88,7 @@ class WorkspaceMembersPage extends React.Component {
         this.removeUser = this.removeUser.bind(this);
         this.askForConfirmationToRemove = this.askForConfirmationToRemove.bind(this);
         this.hideConfirmModal = this.hideConfirmModal.bind(this);
+        this.getMemberOptions = this.getMemberOptions.bind(this);
     }
 
     componentDidMount() {
@@ -115,6 +118,50 @@ class WorkspaceMembersPage extends React.Component {
          */
         const clientMemberEmails = _.keys(_.pick(this.props.policyMemberList, member => _.isEmpty(member.errors)));
         Policy.openWorkspaceMembersPage(this.props.route.params.policyID, clientMemberEmails);
+    }
+
+    /**
+     * This function will iterate through the details of each policy member to check if the
+     * search string matches with any detail and return that filter.
+     * @param {Array} policyMembersPersonalDetails - This is the list of policy members
+     * @param {*} searchValue - This is the string that the user has entered
+     * @returns {Array} - The list of policy members that have anything similar to the searchValue
+     */
+    getMemberOptions(policyMembersPersonalDetails, searchValue) {
+        // If no search value, we return all members.
+        if (_.isEmpty(searchValue)) {
+            return policyMembersPersonalDetails;
+        }
+
+        // We will filter through each policy member details to determine if they should be shown
+        return _.filter(policyMembersPersonalDetails, (member) => {
+            // Get all the search separated terms entered by the user
+            const searchWords = _.compact(OptionsListUtils.uniqFast([
+                searchValue,
+                ..._.map(searchValue.replace(/,/g, ' ').split(' '), word => word.trim()),
+            ]));
+
+            let memberDetails = '';
+            if (member.login) {
+                memberDetails += ` ${member.login.toLowerCase()}`;
+            }
+            if (member.firstName) {
+                memberDetails += ` ${member.firstName.toLowerCase()}`;
+            }
+            if (member.lastName) {
+                memberDetails += ` ${member.lastName.toLowerCase()}`;
+            }
+            if (member.displayName) {
+                memberDetails += ` ${member.displayName.toLowerCase()}`;
+            }
+            if (member.phoneNumber) {
+                memberDetails += ` ${member.phoneNumber.toLowerCase()}`;
+            }
+            return _.some(searchWords, (word) => {
+                const matchRegex = new RegExp(Str.escapeForRegExp(word), 'i');
+                return matchRegex.test(memberDetails);
+            });
+        });
     }
 
     /**
@@ -249,15 +296,6 @@ class WorkspaceMembersPage extends React.Component {
     }
 
     /**
-     * @param {String} [value = '']
-     * @param {String} keyword
-     * @returns {Boolean}
-     */
-    isKeywordMatch(value = '', keyword) {
-        return value.trim().toLowerCase().includes(keyword);
-    }
-
-    /**
      * Do not move this or make it an anonymous function it is a method
      * so it will not be recreated each time we render an item
      *
@@ -327,12 +365,7 @@ class WorkspaceMembersPage extends React.Component {
             });
         });
         data = _.sortBy(data, value => value.displayName.toLowerCase());
-        const searchValue = this.state.searchValue.trim().toLowerCase();
-        data = _.filter(data, member => this.isKeywordMatch(member.displayName, searchValue)
-            || this.isKeywordMatch(member.login, searchValue)
-            || this.isKeywordMatch(member.phoneNumber, searchValue)
-            || this.isKeywordMatch(member.firstName, searchValue)
-            || this.isKeywordMatch(member.lastName, searchValue));
+        data = this.getMemberOptions(data, this.state.searchValue.trim().toLowerCase());
 
         data = _.reject(data, (member) => {
             // If this policy is owned by Expensify then show all support (expensify.com or team.expensify.com) emails
