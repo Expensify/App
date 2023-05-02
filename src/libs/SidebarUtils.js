@@ -114,7 +114,7 @@ function getOrderedReportIDs(reportIDFromRoute) {
         // However, this code needs to be very performant to handle thousands of reports, so in the interest of speed, we're just going to disable this lint rule and add
         // the reportDisplayName property to the report object directly.
         // eslint-disable-next-line no-param-reassign
-        report.displayName = ReportUtils.getReportName(report, policies);
+        report.displayName = ReportUtils.getReportName(report);
 
         // eslint-disable-next-line no-param-reassign
         report.iouReportAmount = ReportUtils.getIOUTotal(report, iouReports);
@@ -252,7 +252,7 @@ function getOptionData(reportID) {
     result.hasOutstandingIOU = report.hasOutstandingIOU;
 
     const hasMultipleParticipants = participantPersonalDetailList.length > 1 || result.isChatRoom || result.isPolicyExpenseChat;
-    const subtitle = ReportUtils.getChatRoomSubtitle(report, policies);
+    const subtitle = ReportUtils.getChatRoomSubtitle(report);
 
     const login = Str.removeSMSDomain(lodashGet(personalDetail, 'login', ''));
     const formattedLogin = Str.isSMSLogin(login) ? LocalePhoneNumber.formatPhoneNumber(login) : login;
@@ -288,7 +288,7 @@ function getOptionData(reportID) {
             || CONST.REPORT.ARCHIVE_REASON.DEFAULT;
         lastMessageText = Localize.translate(preferredLocale, `reportArchiveReasons.${archiveReason}`, {
             displayName: archiveReason.displayName || report.lastActorEmail,
-            policyName: ReportUtils.getPolicyName(report, policies),
+            policyName: ReportUtils.getPolicyName(report),
         });
     }
 
@@ -320,7 +320,7 @@ function getOptionData(reportID) {
         result.payPalMeAddress = personalDetail.payPalMeAddress;
     }
 
-    const reportName = ReportUtils.getReportName(report, policies);
+    const reportName = ReportUtils.getReportName(report);
     result.text = reportName;
     result.subtitle = subtitle;
     result.participantsList = participantPersonalDetailList;
