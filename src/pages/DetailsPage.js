@@ -78,7 +78,7 @@ const getPhoneNumber = (details) => {
     }
 
     // If the user has set a displayName, get the phone number from the SMS login
-    return Str.removeSMSDomain(details.login);
+    return details.login ? Str.removeSMSDomain(details.login) : '';
 };
 
 class DetailsPage extends React.PureComponent {
@@ -95,7 +95,7 @@ class DetailsPage extends React.PureComponent {
             };
         }
 
-        const isSMSLogin = Str.isSMSLogin(details.login);
+        const isSMSLogin = details.login ? Str.isSMSLogin(details.login) : false;
 
         // If we have a reportID param this means that we
         // arrived here via the ParticipantsPage and should be allowed to navigate back to it
