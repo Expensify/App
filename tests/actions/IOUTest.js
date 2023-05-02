@@ -872,7 +872,7 @@ describe('actions/IOU', () => {
                             carlosTransaction = _.find(allTransactions, transaction => transaction.transactionID === carlosIOUAction.originalMessage.IOUTransactionID);
                             julesTransaction = _.find(allTransactions, transaction => transaction.transactionID === julesIOUAction.originalMessage.IOUTransactionID);
                             vitTransaction = _.find(allTransactions, transaction => transaction.transactionID === vitIOUAction.originalMessage.IOUTransactionID);
-                            groupTransaction = _.find(allTransactions, transaction => transaction.reportID === CONST.REPORT.ID_DELETED);
+                            groupTransaction = _.find(allTransactions, transaction => transaction.reportID === CONST.REPORT.SPLIT_REPORTID);
 
                             expect(carlosTransaction.reportID).toBe(carlosIOUReport.reportID);
                             expect(julesTransaction.reportID).toBe(julesIOUReport.reportID);

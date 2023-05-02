@@ -272,7 +272,7 @@ function createSplitsAndOnyxData(participants, currentUserLogin, amount, comment
     const groupTransaction = TransactionUtils.buildOptimisticTransaction(
         amountInCents,
         currency,
-        CONST.REPORT.ID_DELETED,
+        CONST.REPORT.SPLIT_REPORTID,
         comment,
         '',
         '',
