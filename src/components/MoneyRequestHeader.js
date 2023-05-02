@@ -16,6 +16,8 @@ import withWindowDimensions from './withWindowDimensions';
 import compose from '../libs/compose';
 import Navigation from '../libs/Navigation/Navigation';
 import ROUTES from '../ROUTES';
+import Icon from './Icon';
+import lodashGet from 'lodash/get';
 
 const propTypes = {
     /** The report currently being looked at */
@@ -27,8 +29,10 @@ const propTypes = {
         name: PropTypes.string,
     }).isRequired,
 
+    /** Personal details so we can get the ones for the report participants */
     personalDetails: PropTypes.objectOf(participantPropTypes).isRequired,
 
+    /** Whether we're viewing a report with a single transaction in it */
     isSingleTransactionView: PropTypes.bool,
 
     ...withLocalizePropTypes,
@@ -44,8 +48,9 @@ const MoneyRequestHeader = (props) => {
         currency: props.report.currency,
     });
     const isSettled = /* ReportUtils.isSettled(props.report.reportID); */ false;
-    const workspaceName = ReportUtils.getPolicyName(props.report, props.policies);
-    const workspaceAvatar = ReportUtils.getWorkspaceAvatar(props.report, props.policies);
+    const isExpenseReport = ReportUtils.isExpenseReport(props.report);
+    const payeeName = isExpenseReport ? ReportUtils.getPolicyName(props.report, props.policies) : ReportUtils.getDisplayNameForParticipant(props.report.managerEmail);
+    const payeeAvatar = isExpenseReport ? ReportUtils.getWorkspaceAvatar(props.report, props.policies) : ReportUtils.getAvatar(lodashGet(props.personalDetails, [props.report.managerEmail, 'avatar']), props.personalDetails);
     return (
         <View style={[
             {backgroundColor: themeColors.highlightBG},
@@ -86,9 +91,9 @@ const MoneyRequestHeader = (props) => {
                     ]}
                     >
                         <Avatar
-                            source={workspaceAvatar}
-                            type={CONST.ICON_TYPE_WORKSPACE}
-                            name={workspaceName}
+                            source={payeeAvatar}
+                            type={isExpenseReport ? CONST.ICON_TYPE_WORKSPACE : CONST.ICON_TYPE_AVATAR}
+                            name={payeeName}
                             size={CONST.AVATAR_SIZE.HEADER}
                         />
                         <View style={[styles.flexColumn, styles.ml3]}>
@@ -96,19 +101,26 @@ const MoneyRequestHeader = (props) => {
                                 style={[styles.headerText, styles.pre]}
                                 numberOfLines={1}
                             >
-                                {workspaceName}
+                                {payeeName}
                             </Text>
-                            <Text
-                                style={[styles.textLabelSupporting, styles.lh16, styles.pre]}
-                                numberOfLines={1}
-                            >
-                                Workspace
-                            </Text>
+                            {isExpenseReport && (
+                                <Text
+                                    style={[styles.textLabelSupporting, styles.lh16, styles.pre]}
+                                    numberOfLines={1}
+                                >
+                                    {props.translate('workspace.common.workspace')}
+                                </Text>
+                            )}
                         </View>
                     </View>
-                    <View>
+                    <View style={[styles.flexRow]}>
                         {!props.isSingleTransactionView && (
                             <Text style={[styles.newKansasLarge]}>{formattedAmount}</Text>
+                        )}
+                        {isSettled && (
+                            <View style={styles.moneyRequestHeaderCheckmark}>
+                                <Icon src={Expensicons.Checkmark} fill={themeColors.iconSuccessFill} />
+                            </View>
                         )}
                     </View>
                 </View>

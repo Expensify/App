@@ -104,7 +104,6 @@ function getReportParticipantsTitle(logins) {
  * @param {Object} report
  * @returns {Boolean}
  */
-// eslint-disable-next-line no-unused-vars
 function isExpenseReport(report) {
     return lodashGet(report, 'type') === CONST.REPORT.TYPE.EXPENSE;
 }
@@ -689,9 +688,7 @@ function getIcons(report, personalDetails, policies, defaultIcon = null) {
             `${ONYXKEYS.COLLECTION.POLICY}${report.policyID}`, 'name',
         ]);
 
-        const policyExpenseChatAvatarSource = lodashGet(policies, [
-            `${ONYXKEYS.COLLECTION.POLICY}${report.policyID}`, 'avatar',
-        ]) || getDefaultWorkspaceAvatar(workspaceName);
+        const policyExpenseChatAvatarSource = getWorkspaceAvatar(report, policies);
 
         // Return the workspace avatar if the user is the owner of the policy expense chat
         if (report.isOwnPolicyExpenseChat && !isExpenseReport(report)) {

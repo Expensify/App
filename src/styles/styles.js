@@ -3117,10 +3117,14 @@ const styles = {
     },
 
     newKansasLarge: {
-        fontFamily: fontFamily.EXP_NEW_KANSAS_MEDIUM,
+        ...headlineFont,
         fontSize: variables.fontSizeXLarge,
-        fontWeight: '500',
         lineHeight: 27,
+    },
+
+    moneyRequestHeaderCheckmark: {
+        marginLeft: 5,
+        alignSelf: 'center',
     },
 
     loginHeroBody: {

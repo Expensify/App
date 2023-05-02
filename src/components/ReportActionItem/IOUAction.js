@@ -67,7 +67,7 @@ const defaultProps = {
 
 const IOUAction = (props) => {
     const launchDetailsModal = () => {
-        Navigation.navigate(ROUTES.getReportRoute(props.action.originalMessage.IOUReportID));
+        Navigation.navigate(ROUTES.getIouDetailsRoute(props.chatReportID, props.action.originalMessage.IOUReportID));
     };
 
     const shouldShowIOUPreview = (

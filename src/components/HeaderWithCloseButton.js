@@ -84,15 +84,19 @@ const propTypes = {
     /** Whether we should show an avatar */
     shouldShowAvatarWithDisplay: PropTypes.bool,
 
+    /** Report, if we're showing the details for one and using AvatarWithDisplay */
     report: iouReportPropTypes,
 
+    /** Policies, if we're showing the details for a report and need info about it for AvatarWithDisplay */
     policies: PropTypes.shape({
         /** Name of the policy */
         name: PropTypes.string,
     }),
 
+    /** Policies, if we're showing the details for a report and need participant details for AvatarWithDisplay */
     personalDetails: PropTypes.objectOf(participantPropTypes),
 
+    /** Additional styles to render on the container of this component */
     // eslint-disable-next-line react/forbid-prop-types
     containerStyles: PropTypes.arrayOf(PropTypes.object),
 

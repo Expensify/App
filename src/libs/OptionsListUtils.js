@@ -110,9 +110,7 @@ function getPolicyExpenseReportOptions(report) {
     }
     const filteredPolicyExpenseReports = _.filter(policyExpenseReports, policyExpenseReport => policyExpenseReport.policyID === report.policyID);
     return _.map(filteredPolicyExpenseReports, (expenseReport) => {
-        const policyExpenseChatAvatarSource = lodashGet(policies, [
-            `${ONYXKEYS.COLLECTION.POLICY}${expenseReport.policyID}`, 'avatar',
-        ]) || ReportUtils.getDefaultWorkspaceAvatar(expenseReport.displayName);
+        const policyExpenseChatAvatarSource = ReportUtils.getWorkspaceAvatar(expenseReport, policies);
         return {
             ...expenseReport,
             keyForList: expenseReport.policyID,

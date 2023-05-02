@@ -51,7 +51,7 @@ const AvatarWithDisplayName = (props) => {
     const ownerPersonalDetails = OptionsListUtils.getPersonalDetailsForLogins([props.report.ownerEmail], props.personalDetails);
     const displayNamesWithTooltips = ReportUtils.getDisplayNamesWithTooltips(ownerPersonalDetails, false);
     return (
-        <View style={[]} nativeID="drag-area">
+        <View>
             <View style={[styles.appContentHeaderTitle]}>
                 {Boolean(props.report && title) && (
                     <View
