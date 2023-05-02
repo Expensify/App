@@ -106,6 +106,7 @@ function NewContactMethodPage(props) {
                 <View style={[styles.ph5, styles.mb6]}>
                     <TextInput
                         label={`${props.translate('common.email')}/${props.translate('common.phoneNumber')}`}
+                        keyboardType={CONST.KEYBOARD_TYPE.EMAIL_ADDRESS}
                         ref={el => loginInputRef.current = el}
                         value={login}
                         onChangeText={handleLoginChange}
