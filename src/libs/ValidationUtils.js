@@ -1,6 +1,7 @@
 import moment from 'moment';
 import _ from 'underscore';
 import {URL_REGEX_WITH_REQUIRED_PROTOCOL} from 'expensify-common/lib/Url';
+import {parsePhoneNumber} from 'awesome-phonenumber';
 import CONST from '../CONST';
 import * as CardUtils from './CardUtils';
 import * as LoginUtils from './LoginUtils';
@@ -297,12 +298,11 @@ function validateIdentity(identity) {
  * @returns {Boolean}
  */
 function isValidUSPhone(phoneNumber = '', isCountryCodeOptional) {
-    // Remove non alphanumeric characters from the phone number
-    const sanitizedPhone = (phoneNumber || '').replace(CONST.REGEX.NON_ALPHA_NUMERIC, '');
-    const isUsPhone = isCountryCodeOptional
-        ? CONST.REGEX.US_PHONE_WITH_OPTIONAL_COUNTRY_CODE.test(sanitizedPhone) : CONST.REGEX.US_PHONE.test(sanitizedPhone);
+    const phone = phoneNumber || '';
+    const regionCode = isCountryCodeOptional ? CONST.COUNTRY.US : null;
 
-    return CONST.REGEX.PHONE_E164_PLUS.test(sanitizedPhone) && isUsPhone;
+    const parsedPhoneNumber = parsePhoneNumber(phone, {regionCode});
+    return parsedPhoneNumber.possible && parsedPhoneNumber.regionCode === CONST.COUNTRY.US;
 }
 
 /**
