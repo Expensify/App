@@ -2088,6 +2088,46 @@ const styles = {
         width: '100%',
     },
 
+    twoFactorAuthSection: {
+        backgroundColor: themeColors.appBG,
+        padding: 0,
+    },
+
+    twoFactorAuthCodesBox: {
+        backgroundColor: themeColors.highlightBG,
+        paddingVertical: 24,
+        paddingHorizontal: 48,
+        borderRadius: 16,
+        marginTop: 16,
+    },
+
+    twoFactorAuthCodesContainer: {
+        flexDirection: 'row',
+        flexWrap: 'wrap',
+    },
+
+    twoFactorAuthCode: {
+        fontFamily: fontFamily.MONOSPACE,
+        width: '50%',
+        marginBottom: 8,
+        textAlign: 'center',
+    },
+
+    twoFactorAuthCodesButtonsContainer: {
+        flexDirection: 'row',
+        width: '100%',
+        justifyContent: 'space-evenly',
+        marginTop: 8,
+    },
+
+    twoFactorAuthFooter: {
+        marginTop: 'auto',
+    },
+
+    twoFactorAuthSecretKeyContainer: {
+
+    },
+
     roomHeaderAvatarSize: {
         height: variables.componentSizeLarge,
         width: variables.componentSizeLarge,

@@ -199,6 +199,7 @@ export default {
         NEW_TASK_FORM: 'newTaskForm',
         EDIT_TASK_FORM: 'editTaskForm',
         MONEY_REQUEST_DESCRIPTION_FORM: 'moneyRequestDescriptionForm',
+        VERIFY_TWO_FACTOR_AUTH_FORM: 'verifyTwoFactorAuthForm',
     },
 
     // Whether we should show the compose input or not

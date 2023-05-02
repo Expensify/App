@@ -486,6 +486,14 @@ export default {
         disableTwoFactorAuthConfirmation: 'Two-factor authentication keeps your account more secure. Are you sure you want to disable it?',
         disabled: 'Two-factor authentication is now disabled',
         noAuthenticatorApp: 'You’ll no longer require an authenticator app to log into Expensify.',
+        stepCodes: 'Step 1: Recovery codes',
+        keepCodesSafe: 'Keep these recovery codes safe!',
+        codesLoseAccess: 'If you lose access to your authenticator app and don’t have these codes, you will lose access to your account. \n\nNote: Setting up two factor authentication will log you out of all other active sessions.',
+        stepVerify: 'Step 2: Verify',
+        scanCode: 'Scan the QR code using your',
+        authenticatorApp: 'authenticator app',
+        addKey: 'Or add this secret key to your authenticator app:',
+        enterCode: 'Then enter the six digit code generated from your authenticator app.',
 
     },
     passwordConfirmationScreen: {

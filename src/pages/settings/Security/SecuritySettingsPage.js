@@ -37,7 +37,7 @@ const SecuritySettingsPage = (props) => {
             icon: Expensicons.Lock,
             action: () => {
                 // TODO: REMOVE
-                Navigation.navigate(ROUTES.SETTINGS_TWO_FACTOR_IS_ENABLED);
+                Navigation.navigate(ROUTES.SETTINGS_TWO_FACTOR_CODES);
 
                 // if (props.account.requiresTwoFactorAuth) {
                 //     Navigation.navigate(ROUTES.SETTINGS_TWO_FACTOR_IS_ENABLED);
