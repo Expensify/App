@@ -620,7 +620,7 @@ describe('actions/IOU', () => {
              *   - Rory and Vit have never chatted together before
              *   - There is no existing group chat with the four of them
              */
-            const amount = 400;
+            const amount = 4;
             const amountInCents = amount * 100;
             const comment = 'Yes, I am splitting a bill for $4 USD';
             let carlosChatReport = {
