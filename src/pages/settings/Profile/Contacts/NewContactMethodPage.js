@@ -1,3 +1,4 @@
+import React from 'react';
 import PropTypes from 'prop-types';
 import {View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
@@ -88,7 +89,7 @@ function NewContactMethodPage(props) {
                 onCloseButtonPress={() => Navigation.dismissModal(true)}
             />
             <Form
-                formID={ONYXKEYS.FORMS.NEW_CONTACT_FORM}
+                formID={ONYXKEYS.FORMS.NEW_CONTACT_METHOD_FORM}
                 validate={isFormValid}
                 onSubmit={submitForm}
                 submitButtonText={props.translate('common.add')}
