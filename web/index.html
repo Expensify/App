@@ -76,13 +76,6 @@
             caret-color: #ffffff;
         }
     </style>
-    <!--
-        Note: interactive-widget=resizes-content is ignored on iOS Safari. Working around that has proven to be
-        problematic and causing bugs. At the moment of writing, we don't really need to work around this. If we attempt
-        to do that again, we should do that carefully and minding the potential side effects.
-
-        Some context can be found in https://github.com/Expensify/App/issues/16082
-    -->
     <meta name="viewport" content="width=device-width, user-scalable=no, initial-scale=1, interactive-widget=resizes-content">
     <link rel="shortcut icon" id="favicon" href="/favicon.png">
     <% if (htmlWebpackPlugin.options.usePolyfillIO) { %>
