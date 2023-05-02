@@ -81,6 +81,48 @@ function getAvatarStyle(size) {
 }
 
 /**
+ * Get Font size of '+1' text on avatar overlay
+ * @param {String} size
+ * @returns {Number}
+ */
+function getAvatarExtraFontSizeStyle(size) {
+    const AVATAR_SIZES = {
+        [CONST.AVATAR_SIZE.DEFAULT]: variables.fontSizeNormal,
+        [CONST.AVATAR_SIZE.SMALL_SUBSCRIPT]: variables.fontSizeExtraSmall,
+        [CONST.AVATAR_SIZE.MID_SUBSCRIPT]: variables.fontSizeExtraSmall,
+        [CONST.AVATAR_SIZE.SUBSCRIPT]: variables.fontSizeExtraSmall,
+        [CONST.AVATAR_SIZE.SMALL]: variables.fontSizeSmall,
+        [CONST.AVATAR_SIZE.SMALLER]: variables.fontSizeExtraSmall,
+        [CONST.AVATAR_SIZE.LARGE]: variables.fontSizeXLarge,
+        [CONST.AVATAR_SIZE.MEDIUM]: variables.fontSizeMedium,
+        [CONST.AVATAR_SIZE.LARGE_BORDERED]: variables.fontSizeXLarge,
+    };
+    return {
+        fontSize: AVATAR_SIZES[size],
+    };
+}
+
+/**
+ * Get Bordersize of Avatar based on avatar size
+ * @param {String} size
+ * @returns {Number}
+ */
+function getAvatarBorderWidth(size) {
+    const AVATAR_SIZES = {
+        [CONST.AVATAR_SIZE.DEFAULT]: 3,
+        [CONST.AVATAR_SIZE.SMALL_SUBSCRIPT]: 2,
+        [CONST.AVATAR_SIZE.MID_SUBSCRIPT]: 2,
+        [CONST.AVATAR_SIZE.SUBSCRIPT]: 2,
+        [CONST.AVATAR_SIZE.SMALL]: 3,
+        [CONST.AVATAR_SIZE.SMALLER]: 2,
+        [CONST.AVATAR_SIZE.LARGE]: 4,
+        [CONST.AVATAR_SIZE.MEDIUM]: 3,
+        [CONST.AVATAR_SIZE.LARGE_BORDERED]: 4,
+    };
+    return AVATAR_SIZES[size];
+}
+
+/**
 * Return the border radius for an avatar
 *
 * @param {String} size
@@ -181,12 +223,10 @@ function getNavigationDrawerType(isSmallScreenWidth) {
  */
 function getZoomCursorStyle(isZoomed, isDragging) {
     if (!isZoomed) {
-        return {cursor: 'zoom-in'};
+        return styles.cursorZoomIn;
     }
 
-    return {
-        cursor: isDragging ? 'grabbing' : 'zoom-out',
-    };
+    return isDragging ? styles.cursorGrabbing : styles.cursorZoomOut;
 }
 
 /**
@@ -543,7 +583,7 @@ function getReportActionItemStyle(isHovered = false, isLoading = false) {
             // Warning: Setting this to a non-transparent color will cause unread indicator to break on Android
             : colors.transparent,
         opacity: isLoading ? 0.5 : 1,
-        cursor: 'initial',
+        ...styles.cursorInitial,
     };
 }
 
@@ -648,6 +688,17 @@ function getThemeBackgroundColor() {
  */
 function parseStyleAsArray(styleParam) {
     return _.isArray(styleParam) ? styleParam : [styleParam];
+}
+
+/**
+ * Parse style function and return Styles object
+ * @param {Object|Object[]|Function} style
+ * @param {Object} state
+ * @returns {Object[]}
+ */
+function parseStyleFromFunction(style, state) {
+    const functionAppliedStyle = _.isFunction(style) ? style(state) : style;
+    return parseStyleAsArray(functionAppliedStyle);
 }
 
 /**
@@ -773,6 +824,39 @@ function getHorizontalStackedAvatarBorderStyle(isHovered, isPressed) {
     return {
         backgroundColor,
         borderColor: backgroundColor,
+    };
+}
+
+/**
+ * Get computed avatar styles based on position and border size
+ * @param {Number} index
+ * @param {Number} overlapSize
+ * @param {Number} borderWidth
+ * @param {Number} borderRadius
+ * @returns {Object}
+ */
+function getHorizontalStackedAvatarStyle(index, overlapSize, borderWidth, borderRadius) {
+    return {
+        left: -(overlapSize * index),
+        borderRadius,
+        borderWidth,
+        zIndex: index + 2,
+    };
+}
+
+/**
+ * Get computed avatar styles of '+1' overlay based on size
+ * @param {Object} oneAvatarSize
+ * @param {Numer} oneAvatarBorderWidth
+ * @returns {Object}
+ */
+function getHorizontalStackedOverlayAvatarStyle(oneAvatarSize, oneAvatarBorderWidth) {
+    return {
+        borderWidth: oneAvatarBorderWidth,
+        borderRadius: oneAvatarSize.width,
+        left: -((oneAvatarSize.width * 2) + (oneAvatarBorderWidth * 2)),
+        zIndex: 6,
+        borderStyle: 'solid',
     };
 }
 
@@ -1008,6 +1092,8 @@ function getGoogleListViewStyle(shouldDisplayBorder) {
 export {
     getAvatarSize,
     getAvatarStyle,
+    getAvatarExtraFontSizeStyle,
+    getAvatarBorderWidth,
     getAvatarBorderStyle,
     getErrorPageContainerStyle,
     getSafeAreaPadding,
@@ -1035,6 +1121,7 @@ export {
     getPaymentMethodMenuWidth,
     getThemeBackgroundColor,
     parseStyleAsArray,
+    parseStyleFromFunction,
     combineStyles,
     getPaddingLeft,
     convertToLTR,
@@ -1044,6 +1131,8 @@ export {
     getMaximumWidth,
     fade,
     getHorizontalStackedAvatarBorderStyle,
+    getHorizontalStackedAvatarStyle,
+    getHorizontalStackedOverlayAvatarStyle,
     getReportWelcomeBackgroundImageStyle,
     getReportWelcomeTopMarginStyle,
     getReportWelcomeContainerStyle,
