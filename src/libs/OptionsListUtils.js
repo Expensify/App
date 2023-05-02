@@ -902,5 +902,5 @@ export {
     getAllReportErrors,
     getPolicyExpenseReportOptions,
     getParticipantsOptions,
-    uniqFast,
+    isSearchStringMatch,
 };

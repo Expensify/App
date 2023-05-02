@@ -135,12 +135,6 @@ class WorkspaceMembersPage extends React.Component {
 
         // We will filter through each policy member details to determine if they should be shown
         return _.filter(policyMembersPersonalDetails, (member) => {
-            // Get all the search separated terms entered by the user
-            const searchWords = _.compact(OptionsListUtils.uniqFast([
-                searchValue,
-                ..._.map(searchValue.replace(/,/g, ' ').split(' '), word => word.trim()),
-            ]));
-
             let memberDetails = '';
             if (member.login) {
                 memberDetails += ` ${member.login.toLowerCase()}`;
@@ -157,10 +151,7 @@ class WorkspaceMembersPage extends React.Component {
             if (member.phoneNumber) {
                 memberDetails += ` ${member.phoneNumber.toLowerCase()}`;
             }
-            return _.some(searchWords, (word) => {
-                const matchRegex = new RegExp(Str.escapeForRegExp(word), 'i');
-                return matchRegex.test(memberDetails);
-            });
+            return OptionsListUtils.isSearchStringMatch(searchValue, memberDetails);
         });
     }
 
