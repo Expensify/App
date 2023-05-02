@@ -63,12 +63,6 @@ const propTypes = {
     /** Whether the form submit action is dangerous */
     isSubmitActionDangerous: PropTypes.bool,
 
-    /** Whether the ScrollView overflow content is scrollable.
-     *   Set to true to avoid nested Picker components at the bottom of the Form from rendering the popup selector over Picker
-     *   e.g. https://github.com/Expensify/App/issues/13909#issuecomment-1396859008
-     */
-    scrollToOverflowEnabled: PropTypes.bool,
-
     /** Whether ScrollWithContext should be used instead of regular ScrollView.
      *  Set to true when there's a nested Picker component in Form.
      */
@@ -89,7 +83,6 @@ const defaultProps = {
     draftValues: {},
     enabledWhenOffline: false,
     isSubmitActionDangerous: false,
-    scrollToOverflowEnabled: false,
     scrollContextEnabled: false,
     style: [],
 };
@@ -378,7 +371,6 @@ class Form extends React.Component {
                         style={[styles.w100, styles.flex1]}
                         contentContainerStyle={styles.flexGrow1}
                         keyboardShouldPersistTaps="handled"
-                        scrollToOverflowEnabled={this.props.scrollToOverflowEnabled}
                         ref={this.formRef}
                     >
                         {scrollViewContent(safeAreaPaddingBottomStyle)}
@@ -388,7 +380,6 @@ class Form extends React.Component {
                         style={[styles.w100, styles.flex1]}
                         contentContainerStyle={styles.flexGrow1}
                         keyboardShouldPersistTaps="handled"
-                        scrollToOverflowEnabled={this.props.scrollToOverflowEnabled}
                         ref={this.formRef}
                     >
                         {scrollViewContent(safeAreaPaddingBottomStyle)}

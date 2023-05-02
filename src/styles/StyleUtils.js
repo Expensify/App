@@ -649,6 +649,17 @@ function parseStyleAsArray(styleParam) {
 }
 
 /**
+ * Parse style function and return Styles object
+ * @param {Object|Object[]|Function} style
+ * @param {Object} state
+ * @returns {Object[]}
+ */
+function parseStyleFromFunction(style, state) {
+    const functionAppliedStyle = _.isFunction(style) ? style(state) : style;
+    return parseStyleAsArray(functionAppliedStyle);
+}
+
+/**
  * Receives any number of object or array style objects and returns them all as an array
  * @param {Object|Object[]} allStyles
  * @return {Object[]}
@@ -1033,6 +1044,7 @@ export {
     getPaymentMethodMenuWidth,
     getThemeBackgroundColor,
     parseStyleAsArray,
+    parseStyleFromFunction,
     combineStyles,
     getPaddingLeft,
     convertToLTR,
