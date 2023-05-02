@@ -14,7 +14,6 @@ import * as Expensicons from './Icon/Expensicons';
 import * as StyleUtils from '../styles/StyleUtils';
 import DotIndicatorMessage from './DotIndicatorMessage';
 import shouldRenderOffscreen from '../libs/shouldRenderOffscreen';
-import * as PolicyUtils from '../libs/PolicyUtils';
 
 /**
  * This component should be used when we are using the offline pattern B (offline with feedback).
@@ -89,7 +88,7 @@ const OfflineWithFeedback = (props) => {
     const isAddError = hasErrors && props.pendingAction === 'add';
     const needsOpacity = (isOfflinePendingAction && !isUpdateOrDeleteError) || isAddError;
     const needsStrikeThrough = props.network.isOffline && props.pendingAction === 'delete';
-    const hideChildren = PolicyUtils.shoulHideChildren(props.errors, props.pendingAction, props.network.isOffline);
+    const hideChildren = !props.network.isOffline && props.pendingAction === 'delete' && !hasErrors;
     let children = props.children;
 
     // Apply strikethrough to children if needed, but skip it if we are not going to render them
