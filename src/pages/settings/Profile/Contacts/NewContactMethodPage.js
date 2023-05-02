@@ -80,7 +80,7 @@ function NewContactMethodPage(props) {
     };
 
     const submitForm = (value) => {
-        User.addNewContactMethodAndNavigate(value.phoneOrEmail, value.password);
+        User.addNewContactMethodAndNavigate(value.phoneOrEmail.trim(), value.password);
     };
 
     return (

@@ -152,6 +152,9 @@ export default {
     // Stores draft information about the active reimbursement account being set up
     REIMBURSEMENT_ACCOUNT_DRAFT: 'reimbursementAccountDraft',
 
+    // Stores draft information about the active reimbursement account being set up
+    NEW_CONTACT_METHOD_FORM_DRAFT: 'newContactMethodFormDraft',
+
     // Store preferred skintone for emoji
     PREFERRED_EMOJI_SKIN_TONE: 'preferredEmojiSkinTone',
 

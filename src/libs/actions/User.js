@@ -295,7 +295,13 @@ function addNewContactMethodAndNavigate(contactMethod, password) {
                 },
             },
         },
-    }];
+    },
+    {
+        onyxMethod: CONST.ONYX.METHOD.SET,
+        key: ONYXKEYS.NEW_CONTACT_METHOD_FORM_DRAFT,
+        value: null,
+    },
+    ];
     const failureData = [{
         onyxMethod: CONST.ONYX.METHOD.MERGE,
         key: ONYXKEYS.LOGIN_LIST,
