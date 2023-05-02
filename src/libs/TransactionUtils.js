@@ -15,7 +15,7 @@ import * as NumberUtils from './NumberUtils';
  * @returns {Object}
  */
 function buildOptimisticTransaction(amount, currency, reportID, comment = '', source = '', originalTransactionID = '', merchant = CONST.REPORT.TYPE.IOU) {
-    // transactionIDs are random, positive, 64-bit numberic strings.
+    // transactionIDs are random, positive, 64-bit numeric strings.
     // Because JS can only handle 53-bit numbers, transactionIDs are strings in the front-end (just like reportActionID)
     const transactionID = NumberUtils.rand64();
 
