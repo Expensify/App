@@ -193,7 +193,7 @@ class ReportActionItem extends Component {
                 <ShowContextMenuContext.Provider
                     value={{
                         anchor: this.popoverAnchor,
-                        reportID: this.props.report.reportID,
+                        report: this.props.report,
                         action: this.props.action,
                         checkIfContextMenuActive: this.checkIfContextMenuActive,
                     }}
