@@ -2990,6 +2990,7 @@ const styles = {
         fontSize: 13,
         marginLeft: 4,
         fontWeight: 'bold',
+        fontVariant: ['tabular-nums'],
     },
 
     fontColorReactionLabel: {
