@@ -5,7 +5,6 @@ import {InteractionManager, Keyboard, View} from 'react-native';
 import PropTypes from 'prop-types';
 import _ from 'underscore';
 import ExpensiMark from 'expensify-common/lib/ExpensiMark';
-import {withOnyx} from 'react-native-onyx';
 import reportActionPropTypes from './reportActionPropTypes';
 import styles from '../../../styles/styles';
 import Composer from '../../../components/Composer';
@@ -26,7 +25,7 @@ import CONST from '../../../CONST';
 import withWindowDimensions, {windowDimensionsPropTypes} from '../../../components/withWindowDimensions';
 import withLocalize, {withLocalizePropTypes} from '../../../components/withLocalize';
 import withKeyboardState, {keyboardStatePropTypes} from '../../../components/withKeyboardState';
-import ONYXKEYS from '../../../ONYXKEYS';
+import * as ComposerUtils from '../../../libs/ComposerUtils';
 
 const propTypes = {
     /** All the data of the action */
@@ -34,9 +33,6 @@ const propTypes = {
 
     /** Draft message */
     draftMessage: PropTypes.string.isRequired,
-
-    /** Number of lines for the draft message */
-    numberOfLines: PropTypes.number,
 
     /** ReportID that holds the comment we're editing */
     reportID: PropTypes.string.isRequired,
@@ -66,7 +62,6 @@ const defaultProps = {
     forwardedRef: () => {},
     report: {},
     shouldDisableEmojiPicker: false,
-    numberOfLines: 1,
     preferredSkinTone: CONST.EMOJI_DEFAULT_SKIN_TONE,
 };
 
@@ -81,7 +76,6 @@ class ReportActionItemMessageEdit extends React.Component {
         this.onSelectionChange = this.onSelectionChange.bind(this);
         this.addEmojiToTextBox = this.addEmojiToTextBox.bind(this);
         this.setExceededMaxCommentLength = this.setExceededMaxCommentLength.bind(this);
-        this.updateNumberOfLines = this.updateNumberOfLines.bind(this);
         this.saveButtonID = 'saveButton';
         this.cancelButtonID = 'cancelButton';
         this.emojiButtonID = 'emojiButton';
@@ -99,6 +93,17 @@ class ReportActionItemMessageEdit extends React.Component {
             isFocused: false,
             hasExceededMaxCommentLength: false,
         };
+    }
+
+    componentWillUnmount() {
+        // Skip if this is not the focused message so the other edit composer stays focused.
+        if (!this.state.isFocused) {
+            return;
+        }
+
+        // Show the main composer when the focused message is deleted from another client
+        // to prevent the main composer stays hidden until we swtich to another chat.
+        toggleReportActionComposeView(true, this.props.isSmallScreenWidth);
     }
 
     /**
@@ -146,14 +151,6 @@ class ReportActionItemMessageEdit extends React.Component {
         } else {
             this.debouncedSaveDraft(this.props.action.message[0].html);
         }
-    }
-
-    /**
-     * Update the number of lines for a draft in Onyx
-     * @param {Number} numberOfLines
-     */
-    updateNumberOfLines(numberOfLines) {
-        Report.saveReportActionDraftNumberOfLines(this.props.reportID, this.props.action.reportActionID, numberOfLines);
     }
 
     /**
@@ -218,15 +215,13 @@ class ReportActionItemMessageEdit extends React.Component {
      * @param {String} emoji
      */
     addEmojiToTextBox(emoji) {
-        const newComment = this.state.draft.slice(0, this.state.selection.start)
-            + emoji + this.state.draft.slice(this.state.selection.end, this.state.draft.length);
         this.setState(prevState => ({
             selection: {
                 start: prevState.selection.start + emoji.length,
                 end: prevState.selection.start + emoji.length,
             },
         }));
-        this.updateDraft(newComment);
+        this.updateDraft(ComposerUtils.insertText(this.state.draft, this.state.selection, emoji));
     }
 
     /**
@@ -293,8 +288,6 @@ class ReportActionItemMessageEdit extends React.Component {
                         }}
                         selection={this.state.selection}
                         onSelectionChange={this.onSelectionChange}
-                        numberOfLines={this.props.numberOfLines}
-                        onNumberOfLinesChange={this.updateNumberOfLines}
                     />
                     <View style={styles.editChatItemEmojiWrapper}>
                         <EmojiPickerButton
@@ -336,12 +329,6 @@ export default compose(
     withLocalize,
     withWindowDimensions,
     withKeyboardState,
-    withOnyx({
-        numberOfLines: {
-            key: ({reportID, action}) => `${ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT_NUMBER_OF_LINES}${reportID}_${action.reportActionID}`,
-            initWithStoredValues: false,
-        },
-    }),
 )(React.forwardRef((props, ref) => (
     /* eslint-disable-next-line react/jsx-props-no-spreading */
     <ReportActionItemMessageEdit {...props} forwardedRef={ref} />

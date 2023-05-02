@@ -212,6 +212,11 @@ function removeMembers(members, policyID) {
         key: membersListKey,
         value: _.object(members, Array(members.length).fill({pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE})),
     }];
+    const successData = [{
+        onyxMethod: CONST.ONYX.METHOD.MERGE,
+        key: membersListKey,
+        value: _.object(members, Array(members.length).fill(null)),
+    }];
     const failureData = [{
         onyxMethod: CONST.ONYX.METHOD.MERGE,
         key: membersListKey,
@@ -220,7 +225,7 @@ function removeMembers(members, policyID) {
     API.write('DeleteMembersFromWorkspace', {
         emailList: members.join(','),
         policyID,
-    }, {optimisticData, failureData});
+    }, {optimisticData, successData, failureData});
 }
 
 /**
@@ -235,7 +240,8 @@ function createPolicyExpenseChats(policyID, members, betas) {
     const workspaceMembersChats = {
         onyxSuccessData: [],
         onyxOptimisticData: [],
-        optimisticReportIDs: {},
+        onyxFailureData: [],
+        reportCreationData: {},
     };
 
     // If the user is not in the beta, we don't want to create any chats
@@ -244,8 +250,25 @@ function createPolicyExpenseChats(policyID, members, betas) {
     }
 
     _.each(members, (login) => {
+        const oldChat = ReportUtils.getChatByParticipantsAndPolicy([sessionEmail, login], policyID);
+
+        // If the chat already exists, we don't want to create a new one - just make sure it's not archived
+        if (oldChat) {
+            workspaceMembersChats.reportCreationData[login] = {
+                reportID: oldChat.reportID,
+            };
+            workspaceMembersChats.onyxOptimisticData.push({
+                onyxMethod: CONST.ONYX.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.REPORT}${oldChat.reportID}`,
+                value: {
+                    stateNum: CONST.REPORT.STATE_NUM.OPEN,
+                    statusNum: CONST.REPORT.STATUS.OPEN,
+                },
+            });
+            return;
+        }
         const optimisticReport = ReportUtils.buildOptimisticChatReport(
-            [login],
+            [sessionEmail, login],
             undefined,
             CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT,
             policyID,
@@ -253,7 +276,11 @@ function createPolicyExpenseChats(policyID, members, betas) {
         );
         const optimisticCreatedAction = ReportUtils.buildOptimisticCreatedReportAction(optimisticReport.ownerEmail);
 
-        workspaceMembersChats.optimisticReportIDs[login] = optimisticReport.reportID;
+        workspaceMembersChats.reportCreationData[login] = {
+            reportID: optimisticReport.reportID,
+            reportActionID: optimisticCreatedAction.reportActionID,
+        };
+
         workspaceMembersChats.onyxOptimisticData.push({
             onyxMethod: CONST.ONYX.METHOD.SET,
             key: `${ONYXKEYS.COLLECTION.REPORT}${optimisticReport.reportID}`,
@@ -270,11 +297,11 @@ function createPolicyExpenseChats(policyID, members, betas) {
             key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${optimisticReport.reportID}`,
             value: {[optimisticCreatedAction.reportActionID]: optimisticCreatedAction},
         });
+
         workspaceMembersChats.onyxSuccessData.push({
             onyxMethod: CONST.ONYX.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT}${optimisticReport.reportID}`,
             value: {
-                isLoadingReportActions: false,
                 pendingFields: {
                     createChat: null,
                 },
@@ -288,6 +315,14 @@ function createPolicyExpenseChats(policyID, members, betas) {
             onyxMethod: CONST.ONYX.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${optimisticReport.reportID}`,
             value: {[optimisticCreatedAction.reportActionID]: {pendingAction: null}},
+        });
+
+        workspaceMembersChats.onyxFailureData.push({
+            onyxMethod: CONST.ONYX.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT}${optimisticReport.reportID}`,
+            value: {
+                isLoadingReportActions: false,
+            },
         });
     });
     return workspaceMembersChats;
@@ -344,6 +379,7 @@ function addMembersToWorkspace(memberLogins, welcomeNote, policyID, betas) {
                 },
             })),
         },
+        ...membersChats.onyxFailureData,
     ];
 
     API.write('AddMembersToWorkspace', {
@@ -352,7 +388,7 @@ function addMembersToWorkspace(memberLogins, welcomeNote, policyID, betas) {
         // Escape HTML special chars to enable them to appear in the invite email
         welcomeNote: _.escape(welcomeNote),
         policyID,
-        optimisticReportIDs: JSON.stringify(membersChats.optimisticReportIDs),
+        reportCreationData: JSON.stringify(membersChats.reportCreationData),
     }, {optimisticData, successData, failureData});
 }
 
@@ -588,7 +624,7 @@ function hideWorkspaceAlertMessage(policyID) {
 function updateWorkspaceCustomUnit(policyID, currentCustomUnit, newCustomUnit, lastModified) {
     const optimisticData = [
         {
-            onyxMethod: 'merge',
+            onyxMethod: CONST.ONYX.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
             value: {
                 customUnits: {
@@ -603,7 +639,7 @@ function updateWorkspaceCustomUnit(policyID, currentCustomUnit, newCustomUnit, l
 
     const successData = [
         {
-            onyxMethod: 'merge',
+            onyxMethod: CONST.ONYX.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
             value: {
                 customUnits: {
@@ -618,7 +654,7 @@ function updateWorkspaceCustomUnit(policyID, currentCustomUnit, newCustomUnit, l
 
     const failureData = [
         {
-            onyxMethod: 'merge',
+            onyxMethod: CONST.ONYX.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
             value: {
                 customUnits: {
@@ -626,9 +662,6 @@ function updateWorkspaceCustomUnit(policyID, currentCustomUnit, newCustomUnit, l
                         customUnitID: currentCustomUnit.customUnitID,
                         name: currentCustomUnit.name,
                         attributes: currentCustomUnit.attributes,
-                        errors: {
-                            [DateUtils.getMicroseconds()]: Localize.translateLocal('workspace.reimburse.updateCustomUnitError'),
-                        },
                     },
                 },
             },
@@ -652,7 +685,7 @@ function updateWorkspaceCustomUnit(policyID, currentCustomUnit, newCustomUnit, l
 function updateCustomUnitRate(policyID, currentCustomUnitRate, customUnitID, newCustomUnitRate, lastModified) {
     const optimisticData = [
         {
-            onyxMethod: 'merge',
+            onyxMethod: CONST.ONYX.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
             value: {
                 customUnits: {
@@ -672,7 +705,7 @@ function updateCustomUnitRate(policyID, currentCustomUnitRate, customUnitID, new
 
     const successData = [
         {
-            onyxMethod: 'merge',
+            onyxMethod: CONST.ONYX.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
             value: {
                 customUnits: {
@@ -690,7 +723,7 @@ function updateCustomUnitRate(policyID, currentCustomUnitRate, customUnitID, new
 
     const failureData = [
         {
-            onyxMethod: 'merge',
+            onyxMethod: CONST.ONYX.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
             value: {
                 customUnits: {

@@ -233,7 +233,7 @@ class NewChatPage extends Component {
             maxParticipantsReached,
         );
         return (
-            <ScreenWrapper includeSafeAreaPaddingBottom={false}>
+            <ScreenWrapper includeSafeAreaPaddingBottom={false} shouldEnableMaxHeight>
                 {({didScreenTransitionEnd, safeAreaPaddingBottomStyle}) => (
                     <>
                         <HeaderWithCloseButton
@@ -257,7 +257,7 @@ class NewChatPage extends Component {
                                     shouldShowConfirmButton={this.props.isGroupChat}
                                     confirmButtonText={this.props.translate('newChatPage.createGroup')}
                                     onConfirmSelection={this.createGroup}
-                                    placeholderText={this.props.translate('optionsSelector.nameEmailOrPhoneNumber')}
+                                    textInputLabel={this.props.translate('optionsSelector.nameEmailOrPhoneNumber')}
                                     safeAreaPaddingBottomStyle={safeAreaPaddingBottomStyle}
                                 />
                             ) : (

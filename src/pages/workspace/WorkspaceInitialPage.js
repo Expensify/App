@@ -26,6 +26,7 @@ import CONST from '../../CONST';
 import * as ReimbursementAccount from '../../libs/actions/ReimbursementAccount';
 import ONYXKEYS from '../../ONYXKEYS';
 import OfflineWithFeedback from '../../components/OfflineWithFeedback';
+import * as ReimbursementAccountProps from '../ReimbursementAccount/reimbursementAccountPropTypes';
 import * as ReportUtils from '../../libs/ReportUtils';
 
 const propTypes = {
@@ -35,11 +36,14 @@ const propTypes = {
     /** All reports shared with the user (coming from Onyx) */
     reports: PropTypes.objectOf(reportPropTypes),
 
+    /** Bank account attached to free plan */
+    reimbursementAccount: ReimbursementAccountProps.reimbursementAccountPropTypes,
 };
 
 const defaultProps = {
     reports: {},
     ...policyDefaultProps,
+    reimbursementAccount: {},
 };
 
 /**
@@ -120,6 +124,7 @@ const WorkspaceInitialPage = (props) => {
             translationKey: 'workspace.common.bankAccount',
             icon: Expensicons.Bank,
             action: () => ReimbursementAccount.navigateToBankAccountRoute(policy.id),
+            brickRoadIndicator: !_.isEmpty(props.reimbursementAccount.errors) ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : '',
         },
     ];
 
@@ -249,6 +254,9 @@ export default compose(
     withOnyx({
         reports: {
             key: ONYXKEYS.COLLECTION.REPORT,
+        },
+        reimbursementAccount: {
+            key: ONYXKEYS.REIMBURSEMENT_ACCOUNT,
         },
     }),
 )(WorkspaceInitialPage);

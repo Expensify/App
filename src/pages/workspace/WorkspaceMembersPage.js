@@ -6,7 +6,6 @@ import {
 } from 'react-native';
 import PropTypes from 'prop-types';
 import {withOnyx} from 'react-native-onyx';
-import Str from 'expensify-common/lib/str';
 import styles from '../../styles/styles';
 import ONYXKEYS from '../../ONYXKEYS';
 import HeaderWithCloseButton from '../../components/HeaderWithCloseButton';
@@ -281,7 +280,6 @@ class WorkspaceMembersPage extends React.Component {
                     activeOpacity={0.7}
                 >
                     <Checkbox
-                        style={[styles.peopleRowCell]}
                         isChecked={_.contains(this.state.selectedEmployees, item.login)}
                         onPress={() => this.toggleUser(item.login, item.pendingAction)}
                     />
@@ -290,8 +288,8 @@ class WorkspaceMembersPage extends React.Component {
                             onSelectRow={() => this.toggleUser(item.login, item.pendingAction)}
                             boldStyle
                             option={{
-                                text: Str.removeSMSDomain(item.displayName),
-                                alternateText: Str.removeSMSDomain(item.login),
+                                text: this.props.formatPhoneNumber(item.displayName),
+                                alternateText: this.props.formatPhoneNumber(item.login),
                                 participantsList: [item],
                                 icons: [{
                                     source: ReportUtils.getAvatar(item.avatar, item.login),
@@ -303,12 +301,10 @@ class WorkspaceMembersPage extends React.Component {
                         />
                     </View>
                     {(this.props.session.email === item.login || item.role === 'admin') && (
-                        <View style={styles.peopleRowCell}>
-                            <View style={[styles.badge, styles.peopleBadge]}>
-                                <Text style={[styles.peopleBadgeText]}>
-                                    {this.props.translate('common.admin')}
-                                </Text>
-                            </View>
+                        <View style={[styles.badge, styles.peopleBadge]}>
+                            <Text style={[styles.peopleBadgeText]}>
+                                {this.props.translate('common.admin')}
+                            </Text>
                         </View>
                     )}
                 </TouchableOpacity>
@@ -412,20 +408,18 @@ class WorkspaceMembersPage extends React.Component {
                                 <TextInput
                                     value={this.state.searchValue}
                                     onChangeText={this.updateSearchValue}
-                                    placeholder={this.props.translate('optionsSelector.nameEmailOrPhoneNumber')}
+                                    placeholder={this.props.translate('optionsSelector.findMember')}
                                 />
                             </View>
                             {data.length > 0 ? (
                                 <View style={[styles.w100, styles.mt4, styles.flex1]}>
                                     <View style={[styles.peopleRow, styles.ph5, styles.pb3]}>
-                                        <View style={[styles.peopleRowCell]}>
-                                            <Checkbox
-                                                isChecked={!_.isEmpty(removableMembers)
-                                                    && _.every(_.keys(removableMembers), memberEmail => _.contains(this.state.selectedEmployees, memberEmail))}
-                                                onPress={() => this.toggleAllUsers(removableMembers)}
-                                            />
-                                        </View>
-                                        <View style={[styles.peopleRowCell, styles.flex1]}>
+                                        <Checkbox
+                                            isChecked={!_.isEmpty(removableMembers)
+                                                && _.every(_.keys(removableMembers), memberEmail => _.contains(this.state.selectedEmployees, memberEmail))}
+                                            onPress={() => this.toggleAllUsers(removableMembers)}
+                                        />
+                                        <View style={[styles.flex1]}>
                                             <Text style={[styles.textStrong, styles.ph5]}>
                                                 {this.props.translate('workspace.people.selectAll')}
                                             </Text>
@@ -444,7 +438,7 @@ class WorkspaceMembersPage extends React.Component {
                             ) : (
                                 <View style={[styles.ph5]}>
                                     <Text style={[styles.textLabel, styles.colorMuted]}>
-                                        {this.props.translate('common.noResultsFound')}
+                                        {this.props.translate('workspace.common.memberNotFound')}
                                     </Text>
                                 </View>
                             )}

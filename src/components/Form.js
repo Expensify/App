@@ -63,12 +63,6 @@ const propTypes = {
     /** Whether the form submit action is dangerous */
     isSubmitActionDangerous: PropTypes.bool,
 
-    /** Whether the ScrollView overflow content is scrollable.
-     *   Set to true to avoid nested Picker components at the bottom of the Form from rendering the popup selector over Picker
-     *   e.g. https://github.com/Expensify/App/issues/13909#issuecomment-1396859008
-     */
-    scrollToOverflowEnabled: PropTypes.bool,
-
     /** Whether ScrollWithContext should be used instead of regular ScrollView.
      *  Set to true when there's a nested Picker component in Form.
      */
@@ -89,7 +83,6 @@ const defaultProps = {
     draftValues: {},
     enabledWhenOffline: false,
     isSubmitActionDangerous: false,
-    scrollToOverflowEnabled: false,
     scrollContextEnabled: false,
     style: [],
 };
@@ -172,14 +165,23 @@ class Form extends React.Component {
      * @returns {Object} - An object containing the errors for each inputID, e.g. {inputID1: error1, inputID2: error2}
      */
     validate(values) {
+        const trimmedStringValues = {};
+        _.each(values, (inputValue, inputID) => {
+            if (_.isString(inputValue)) {
+                (trimmedStringValues[inputID] = inputValue.trim());
+            } else {
+                trimmedStringValues[inputID] = inputValue;
+            }
+        });
+
         FormActions.setErrors(this.props.formID, null);
         FormActions.setErrorFields(this.props.formID, null);
 
         // Run any validations passed as a prop
-        const validationErrors = this.props.validate(values);
+        const validationErrors = this.props.validate(trimmedStringValues);
 
         // Validate the input for html tags. It should supercede any other error
-        _.each(values, (inputValue, inputID) => {
+        _.each(trimmedStringValues, (inputValue, inputID) => {
             // Return early if there is no value OR the value is not a string OR there are no HTML characters
             if (!inputValue || !_.isString(inputValue) || inputValue.search(CONST.VALIDATE_FOR_HTML_TAG_REGEX) === -1) {
                 return;
@@ -369,7 +371,6 @@ class Form extends React.Component {
                         style={[styles.w100, styles.flex1]}
                         contentContainerStyle={styles.flexGrow1}
                         keyboardShouldPersistTaps="handled"
-                        scrollToOverflowEnabled={this.props.scrollToOverflowEnabled}
                         ref={this.formRef}
                     >
                         {scrollViewContent(safeAreaPaddingBottomStyle)}
@@ -379,7 +380,6 @@ class Form extends React.Component {
                         style={[styles.w100, styles.flex1]}
                         contentContainerStyle={styles.flexGrow1}
                         keyboardShouldPersistTaps="handled"
-                        scrollToOverflowEnabled={this.props.scrollToOverflowEnabled}
                         ref={this.formRef}
                     >
                         {scrollViewContent(safeAreaPaddingBottomStyle)}
