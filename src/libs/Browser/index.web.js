@@ -51,6 +51,11 @@ function isMobileSafari() {
     return /iP(ad|od|hone)/i.test(userAgent) && /WebKit/i.test(userAgent) && !(/(CriOS|FxiOS|OPiOS|mercury)/i.test(userAgent));
 }
 
+/**
+ * The session information needs to be passed to the Desktop app, and the only way to do that is by using query params. There is no other way to transfer the data.
+ * @param {String} shortLivedAuthToken
+ * @param {String} email
+ */
 function openRouteInDesktopApp(shortLivedAuthToken = '', email = '') {
     const params = new URLSearchParams();
     params.set('exitTo', `${window.location.pathname}${window.location.search}${window.location.hash}`);
