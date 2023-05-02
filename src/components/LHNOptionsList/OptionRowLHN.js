@@ -96,9 +96,8 @@ const OptionRowLHN = (props) => {
     const focusedBackgroundColor = styles.sidebarLinkActive.backgroundColor;
 
     const avatarTooltips = !optionItem.isChatRoom && !optionItem.isArchivedRoom ? _.pluck(optionItem.displayNamesWithTooltips, 'tooltip') : undefined;
-    const shouldShowGreenDotIndicator = optionItem.isUnreadWithMention || (optionItem.hasOutstandingIOU && !optionItem.isIOUReportOwner);
-
     const hasBrickError = optionItem.brickRoadIndicator === CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR;
+    const shouldShowGreenDotIndicator = !hasBrickError && (optionItem.isUnreadWithMention || (optionItem.hasOutstandingIOU && !optionItem.isIOUReportOwner));
 
     return (
         <OfflineWithFeedback
@@ -219,8 +218,7 @@ const OptionRowLHN = (props) => {
                             style={[styles.flexRow, styles.alignItemsCenter]}
                             accessible={false}
                         >
-                            {!hasBrickError
-                                && shouldShowGreenDotIndicator && (
+                            {shouldShowGreenDotIndicator && (
                                 <Icon
                                     height={variables.iconSizeNormal}
                                     width={variables.iconSizeNormal}
@@ -236,7 +234,7 @@ const OptionRowLHN = (props) => {
                                     <Icon src={Expensicons.Pencil} height={16} width={16} />
                                 </View>
                             )}
-                            {optionItem.isPinned && (
+                            {!shouldShowGreenDotIndicator && optionItem.isPinned && (
                                 <View
                                     style={styles.ml2}
                                     accessibilityLabel={props.translate('sidebarScreen.chatPinned')}
