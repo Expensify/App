@@ -4,7 +4,6 @@ import {View, ScrollView, Pressable} from 'react-native';
 import PropTypes from 'prop-types';
 import _ from 'underscore';
 import {withOnyx} from 'react-native-onyx';
-import Str from 'expensify-common/lib/str';
 import {withNetwork} from '../../components/OnyxProvider';
 import styles from '../../styles/styles';
 import Text from '../../components/Text';
@@ -34,6 +33,7 @@ import ConfirmModal from '../../components/ConfirmModal';
 import * as ReportUtils from '../../libs/ReportUtils';
 import * as Link from '../../libs/actions/Link';
 import OfflineWithFeedback from '../../components/OfflineWithFeedback';
+import * as ReimbursementAccountProps from '../ReimbursementAccount/reimbursementAccountPropTypes';
 import * as UserUtils from '../../libs/UserUtils';
 import policyMemberPropType from '../policyMemberPropType';
 import * as ReportActionContextMenu from '../home/report/ContextMenu/ReportActionContextMenu';
@@ -78,6 +78,9 @@ const propTypes = {
     /** List of cards */
     cardList: PropTypes.objectOf(cardPropTypes),
 
+    /** Bank account attached to free plan */
+    reimbursementAccount: ReimbursementAccountProps.reimbursementAccountPropTypes,
+
     /** List of betas available to current user */
     betas: PropTypes.arrayOf(PropTypes.string),
 
@@ -106,6 +109,7 @@ const defaultProps = {
     userWallet: {
         currentBalance: 0,
     },
+    reimbursementAccount: {},
     betas: [],
     walletTerms: {},
     bankAccountList: {},
@@ -155,7 +159,7 @@ class InitialSettingsPage extends React.Component {
     getDefaultMenuItems() {
         const policiesAvatars = _.chain(this.props.policies)
             .filter(policy => PolicyUtils.shouldShowPolicy(policy, this.props.network.isOffline))
-            .sortBy(policy => policy.name)
+            .sortBy(policy => policy.name.toLowerCase())
             .map(policy => ({
                 source: policy.avatar || ReportUtils.getDefaultWorkspaceAvatar(policy.name),
                 name: policy.name,
@@ -163,10 +167,11 @@ class InitialSettingsPage extends React.Component {
             }))
             .value();
 
-        const policyBrickRoadIndicator = _.chain(this.props.policies)
-            .filter(policy => policy && policy.type === CONST.POLICY.TYPE.FREE && policy.role === CONST.POLICY.ROLE.ADMIN)
-            .find(policy => PolicyUtils.hasPolicyError(policy) || PolicyUtils.getPolicyBrickRoadIndicatorStatus(policy, this.props.policyMembers))
-            .value() ? 'error' : null;
+        const policyBrickRoadIndicator = (!_.isEmpty(this.props.reimbursementAccount.errors)
+            || _.chain(this.props.policies)
+                .filter(policy => policy && policy.type === CONST.POLICY.TYPE.FREE && policy.role === CONST.POLICY.ROLE.ADMIN)
+                .some(policy => PolicyUtils.hasPolicyError(policy) || PolicyUtils.getPolicyBrickRoadIndicatorStatus(policy, this.props.policyMembers))
+                .value()) ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : null;
         const profileBrickRoadIndicator = UserUtils.getLoginListBrickRoadIndicator(this.props.loginList);
 
         return ([
@@ -176,6 +181,7 @@ class InitialSettingsPage extends React.Component {
                 action: () => { Navigation.navigate(ROUTES.SETTINGS_WORKSPACES); },
                 floatRightAvatars: policiesAvatars,
                 shouldStackHorizontally: true,
+                avatarSize: CONST.AVATAR_SIZE.SMALLER,
                 brickRoadIndicator: policyBrickRoadIndicator,
             },
             {
@@ -241,6 +247,7 @@ class InitialSettingsPage extends React.Component {
                 brickRoadIndicator={item.brickRoadIndicator}
                 floatRightAvatars={item.floatRightAvatars}
                 shouldStackHorizontally={item.shouldStackHorizontally}
+                avatarSize={item.avatarSize}
                 ref={this.popoverAnchor}
                 shouldBlockSelection={Boolean(item.link)}
                 onSecondaryInteraction={!_.isEmpty(item.link) ? e => ReportActionContextMenu.showContextMenu(CONTEXT_MENU_TYPES.LINK, e, item.link, this.popoverAnchor.current) : undefined}
@@ -304,7 +311,7 @@ class InitialSettingsPage extends React.Component {
                                             <Text style={[styles.textHeadline, styles.pre]} numberOfLines={1}>
                                                 {this.props.currentUserPersonalDetails.displayName
                                                     ? this.props.currentUserPersonalDetails.displayName
-                                                    : Str.removeSMSDomain(this.props.session.email)}
+                                                    : this.props.formatPhoneNumber(this.props.session.email)}
                                             </Text>
                                         </Tooltip>
                                     </Pressable>
@@ -313,7 +320,7 @@ class InitialSettingsPage extends React.Component {
                                             style={[styles.textLabelSupporting, styles.mt1]}
                                             numberOfLines={1}
                                         >
-                                            {Str.removeSMSDomain(this.props.session.email)}
+                                            {this.props.formatPhoneNumber(this.props.session.email)}
                                         </Text>
                                     )}
                                 </View>
@@ -362,6 +369,9 @@ export default compose(
         },
         bankAccountList: {
             key: ONYXKEYS.BANK_ACCOUNT_LIST,
+        },
+        reimbursementAccount: {
+            key: ONYXKEYS.REIMBURSEMENT_ACCOUNT,
         },
         cardList: {
             key: ONYXKEYS.CARD_LIST,

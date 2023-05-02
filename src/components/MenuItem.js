@@ -55,6 +55,7 @@ const defaultProps = {
     brickRoadIndicator: '',
     floatRightAvatars: [],
     shouldStackHorizontally: false,
+    avatarSize: undefined,
     shouldBlockSelection: false,
 };
 
@@ -65,15 +66,19 @@ const MenuItem = (props) => {
         (props.shouldShowBasicTitle ? undefined : styles.textStrong),
         (props.interactive && props.disabled ? {...styles.disabledText, ...styles.userSelectNone} : undefined),
         styles.pre,
+        styles.ltr,
+        (_.contains(props.style, styles.offlineFeedback.deleted) ? styles.offlineFeedback.deleted : undefined),
     ], props.titleStyle);
     const descriptionVerticalMargin = props.shouldShowDescriptionOnTop ? styles.mb1 : styles.mt1;
     const descriptionTextStyle = StyleUtils.combineStyles([
         styles.textLabelSupporting,
         (props.icon ? styles.ml3 : undefined),
-        styles.breakAll,
+        styles.breakWord,
         styles.lineHeightNormal,
         props.title ? descriptionVerticalMargin : undefined,
     ]);
+
+    const fallbackAvatarSize = props.viewMode === CONST.OPTION_MODE.COMPACT ? CONST.AVATAR_SIZE.SMALL : CONST.AVATAR_SIZE.DEFAULT;
 
     return (
         <PressableWithSecondaryInteraction
@@ -95,7 +100,6 @@ const MenuItem = (props) => {
                 props.style,
                 StyleUtils.getButtonBackgroundColorStyle(getButtonState(props.focused || hovered, pressed, props.success, props.disabled, props.interactive), true),
                 ..._.isArray(props.wrapperStyle) ? props.wrapperStyle : [props.wrapperStyle],
-                styles.popoverMaxWidth,
             ])}
             disabled={props.disabled}
             ref={props.forwardedRef}
@@ -155,7 +159,7 @@ const MenuItem = (props) => {
                                     style={titleTextStyle}
                                     numberOfLines={1}
                                 >
-                                    {props.title}
+                                    {StyleUtils.convertToLTR(props.title)}
                                 </Text>
                             )}
                             {Boolean(props.description) && !props.shouldShowDescriptionOnTop && (
@@ -188,19 +192,19 @@ const MenuItem = (props) => {
                             </View>
                         )}
                         {!_.isEmpty(props.floatRightAvatars) && (
-                            <View style={[styles.justifyContentCenter, (props.brickRoadIndicator ? styles.mr4 : styles.mr3)]}>
+                            <View style={[styles.justifyContentCenter, (props.brickRoadIndicator ? styles.mr2 : undefined)]}>
                                 <MultipleAvatars
                                     isHovered={hovered}
                                     isPressed={pressed}
                                     icons={props.floatRightAvatars}
-                                    size={props.viewMode === CONST.OPTION_MODE.COMPACT ? CONST.AVATAR_SIZE.SMALL : CONST.AVATAR_SIZE.DEFAULT}
+                                    size={props.avatarSize || fallbackAvatarSize}
                                     fallbackIcon={defaultWorkspaceAvatars.WorkspaceBuilding}
                                     shouldStackHorizontally={props.shouldStackHorizontally}
                                 />
                             </View>
                         )}
                         {Boolean(props.brickRoadIndicator) && (
-                            <View style={[styles.alignItemsCenter, styles.justifyContentCenter, styles.l4]}>
+                            <View style={[styles.alignItemsCenter, styles.justifyContentCenter, styles.l1]}>
                                 <Icon
                                     src={Expensicons.DotIndicator}
                                     fill={props.brickRoadIndicator === 'error' ? colors.red : colors.green}
@@ -226,9 +230,12 @@ const MenuItem = (props) => {
 };
 
 MenuItem.propTypes = propTypes;
-MenuItem.defaultProps = defaultProps;
 MenuItem.displayName = 'MenuItem';
-export default withWindowDimensions(React.forwardRef((props, ref) => (
+
+const MenuItemWithWindowDimensions = withWindowDimensions(React.forwardRef((props, ref) => (
     // eslint-disable-next-line react/jsx-props-no-spreading
     <MenuItem {...props} forwardedRef={ref} />
 )));
+MenuItemWithWindowDimensions.defaultProps = defaultProps;
+
+export default MenuItemWithWindowDimensions;

@@ -91,6 +91,7 @@ class MoneyRequestConfirmationList extends Component {
 
         this.state = {
             participants: formattedParticipants,
+            didConfirm: false,
         };
 
         this.toggleOption = this.toggleOption.bind(this);
@@ -135,9 +136,11 @@ class MoneyRequestConfirmationList extends Component {
      * @returns {Array}
      */
     getParticipantsWithAmount(participants) {
+        const iouAmount = IOUUtils.calculateAmount(participants, this.props.iouAmount, this.props.iou.selectedCurrencyCode);
+
         return OptionsListUtils.getIOUConfirmationOptionsFromParticipants(
             participants,
-            this.props.numberFormat(IOUUtils.calculateAmount(participants, this.props.iouAmount) / 100, {
+            this.props.numberFormat(iouAmount / 100, {
                 style: 'currency',
                 currency: this.props.iou.selectedCurrencyCode,
             }),
@@ -169,9 +172,10 @@ class MoneyRequestConfirmationList extends Component {
             const formattedUnselectedParticipants = this.getParticipantsWithoutAmount(unselectedParticipants);
             const formattedParticipants = _.union(formattedSelectedParticipants, formattedUnselectedParticipants);
 
+            const myIOUAmount = IOUUtils.calculateAmount(selectedParticipants, this.props.iouAmount, this.props.iou.selectedCurrencyCode, true);
             const formattedMyPersonalDetails = OptionsListUtils.getIOUConfirmationOptionsFromMyPersonalDetail(
                 this.props.currentUserPersonalDetails,
-                this.props.numberFormat(IOUUtils.calculateAmount(selectedParticipants, this.props.iouAmount, true) / 100, {
+                this.props.numberFormat(myIOUAmount / 100, {
                     style: 'currency',
                     currency: this.props.iou.selectedCurrencyCode,
                 }),
@@ -241,6 +245,8 @@ class MoneyRequestConfirmationList extends Component {
      * @param {String} paymentMethod
      */
     confirm(paymentMethod) {
+        this.setState({didConfirm: true});
+
         const selectedParticipants = this.getSelectedParticipants();
         if (_.isEmpty(selectedParticipants)) {
             return;
@@ -311,6 +317,7 @@ class MoneyRequestConfirmationList extends Component {
                     onPress={() => this.props.navigateToStep(0)}
                     style={styles.moneyRequestMenuItem}
                     titleStyle={styles.moneyRequestConfirmationAmount}
+                    disabled={this.state.didConfirm}
                 />
                 <MenuItemWithTopDescription
                     shouldShowRightIcon
@@ -319,6 +326,7 @@ class MoneyRequestConfirmationList extends Component {
                     interactive={false} // This is so the menu item's background doesn't change color on hover
                     onPress={() => Navigation.navigate(ROUTES.MONEY_REQUEST_DESCRIPTION)}
                     style={styles.moneyRequestMenuItem}
+                    disabled={this.state.didConfirm}
                 />
             </OptionsSelector>
         );

@@ -97,6 +97,17 @@ class ContactMethodDetailsPage extends Component {
         };
     }
 
+    componentDidUpdate(prevProps) {
+        const errorFields = lodashGet(this.props.loginList, [this.getContactMethod(), 'errorFields'], {});
+        const prevPendingFields = lodashGet(prevProps.loginList, [this.getContactMethod(), 'pendingFields'], {});
+
+        // Navigate to methods page on successful magic code verification
+        // validateLogin property of errorFields & prev pendingFields is responsible to decide the status of the magic code verification
+        if (!errorFields.validateLogin && prevPendingFields.validateLogin === CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE) {
+            Navigation.navigate(ROUTES.SETTINGS_CONTACT_METHODS);
+        }
+    }
+
     /**
      * Gets the current contact method from the route params
      *
@@ -111,7 +122,7 @@ class ContactMethodDetailsPage extends Component {
      */
     deleteContactMethod() {
         if (!_.isEmpty(lodashGet(this.props.loginList, [this.getContactMethod(), 'errorFields'], {}))) {
-            User.deleteContactMethod(this.getContactMethod());
+            User.deleteContactMethod(this.getContactMethod(), this.props.loginList);
             return;
         }
         this.toggleDeleteModal(true);
@@ -130,7 +141,7 @@ class ContactMethodDetailsPage extends Component {
      */
     confirmDeleteAndHideModal() {
         this.toggleDeleteModal(false);
-        User.deleteContactMethod(this.getContactMethod());
+        User.deleteContactMethod(this.getContactMethod(), this.props.loginList);
     }
 
     /**
@@ -156,6 +167,12 @@ class ContactMethodDetailsPage extends Component {
 
     render() {
         const contactMethod = this.getContactMethod();
+
+        // replacing spaces with "hard spaces" to prevent breaking the number
+        const formattedContactMethod = Str.isSMSLogin(contactMethod)
+            ? this.props.formatPhoneNumber(contactMethod).replace(/ /g, '\u00A0')
+            : contactMethod;
+
         const loginData = this.props.loginList[contactMethod];
         if (!contactMethod || !loginData) {
             return <NotFoundPage />;
@@ -169,7 +186,7 @@ class ContactMethodDetailsPage extends Component {
         return (
             <ScreenWrapper>
                 <HeaderWithCloseButton
-                    title={Str.removeSMSDomain(contactMethod)}
+                    title={formattedContactMethod}
                     shouldShowBackButton
                     onBackButtonPress={() => Navigation.navigate(ROUTES.SETTINGS_CONTACT_METHODS)}
                     onCloseButtonPress={() => Navigation.dismissModal(true)}
@@ -184,14 +201,14 @@ class ContactMethodDetailsPage extends Component {
                         isVisible={this.state.isDeleteModalOpen}
                         danger
                     />
-                    {isFailedAddContactMethod && <DotIndicatorMessage style={[styles.mh5]} messages={ErrorUtils.getLatestErrorField(loginData, 'addedLogin')} type="error" />}
+                    {isFailedAddContactMethod && <DotIndicatorMessage style={[styles.mh5, styles.mv3]} messages={ErrorUtils.getLatestErrorField(loginData, 'addedLogin')} type="error" />}
                     {!loginData.validatedDate && !isFailedAddContactMethod && (
                         <View style={[styles.ph5, styles.mt3, styles.mb7]}>
                             <View style={[styles.flexRow, styles.alignItemsCenter, styles.mb1]}>
                                 <Icon src={Expensicons.DotIndicator} fill={colors.green} />
                                 <View style={[styles.flex1, styles.ml4]}>
                                     <Text>
-                                        {this.props.translate('contacts.enterMagicCode', {contactMethod})}
+                                        {this.props.translate('contacts.enterMagicCode', {contactMethod: formattedContactMethod})}
                                     </Text>
                                 </View>
                             </View>

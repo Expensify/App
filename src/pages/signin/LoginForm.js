@@ -166,6 +166,7 @@ class LoginForm extends React.Component {
     render() {
         const formErrorText = this.state.formError ? this.props.translate(this.state.formError) : '';
         const serverErrorText = ErrorUtils.getLatestErrorMessage(this.props.account);
+        const hasError = !_.isEmpty(serverErrorText);
         return (
             <>
                 <View accessibilityLabel={this.props.translate('loginForm.loginForm')} style={[styles.mt3]}>
@@ -183,6 +184,7 @@ class LoginForm extends React.Component {
                         autoCorrect={false}
                         keyboardType={CONST.KEYBOARD_TYPE.EMAIL_ADDRESS}
                         errorText={formErrorText}
+                        hasError={hasError}
                     />
                 </View>
                 {!_.isEmpty(this.props.account.success) && (
