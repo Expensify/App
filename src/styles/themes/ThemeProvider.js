@@ -49,9 +49,9 @@ function ThemeProvider(props) {
 
     // Animating the color values based on the current theme
     useEffect(() => {
-        if (lightMode && themeAnimation.value === 1) {
+        if (lightMode && themeAnimation.value > 0) {
             themeAnimation.value = withSpring(0);
-        } else if (!lightMode && themeAnimation.value === 0) { themeAnimation.value = withSpring(1); }
+        } else if (!lightMode && themeAnimation.value < 1) { themeAnimation.value = withSpring(1); }
     }, [lightMode, themeAnimation]);
 
     return (
