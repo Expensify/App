@@ -370,7 +370,7 @@ class WorkspaceMembersPage extends React.Component {
                             subtitle={policyName}
                             onBackButtonPress={() => {
                                 this.updateSearchValue('');
-                                Navigation.navigate(ROUTES.getWorkspaceInitialRoute(policyID));
+                                Navigation.goBack(ROUTES.getWorkspaceInitialRoute(policyID));
                             }}
                             shouldShowGetAssistanceButton
                             guidesCallTaskID={CONST.GUIDES_CALL_TASK_IDS.WORKSPACE_MEMBERS}

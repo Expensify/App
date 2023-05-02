@@ -183,6 +183,7 @@ class WorkspacesListPage extends Component {
             <ScreenWrapper>
                 <HeaderWithBackButton
                     title={this.props.translate('common.workspaces')}
+                    onBackButtonPress={() => Navigation.goBack(ROUTES.SETTINGS)}
                 />
                 {_.isEmpty(workspaces) ? (
                     <BlockingView

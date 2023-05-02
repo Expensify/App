@@ -116,7 +116,7 @@ class WorkspacePageWithSections extends React.Component {
                         subtitle={policyName}
                         shouldShowGetAssistanceButton
                         guidesCallTaskID={this.props.guidesCallTaskID}
-                        onBackButtonPress={() => Navigation.navigate(ROUTES.getWorkspaceInitialRoute(policyID))}
+                        onBackButtonPress={() => Navigation.goBack(ROUTES.getWorkspaceInitialRoute(policyID))}
                     />
                     {this.props.shouldUseScrollView
                         ? (
