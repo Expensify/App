@@ -1816,15 +1816,21 @@ const styles = {
     },
 
     emptyAvatar: {
-        marginRight: variables.avatarChatSpacing,
         height: variables.avatarSizeNormal,
         width: variables.avatarSizeNormal,
     },
 
     emptyAvatarSmall: {
-        marginRight: variables.avatarChatSpacing - 4,
         height: variables.avatarSizeSmall,
         width: variables.avatarSizeSmall,
+    },
+
+    emptyAvatarMargin: {
+        marginRight: variables.avatarChatSpacing,
+    },
+
+    emptyAvatarMarginSmall: {
+        marginRight: variables.avatarChatSpacing - 4,
     },
 
     modalViewContainer: {
