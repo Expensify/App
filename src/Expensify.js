@@ -5,7 +5,7 @@ import React, {
     useCallback, useState, useEffect, useRef, useLayoutEffect, useMemo, useContext,
 } from 'react';
 import {
-    AppState, Linking, Button, View,
+    AppState, Linking, Button,
 } from 'react-native';
 import Onyx, {withOnyx} from 'react-native-onyx';
 import Reanimated from 'react-native-reanimated';
@@ -220,7 +220,13 @@ function Expensify(props) {
                 authenticated={isAuthenticated}
             />
 
-            <Button title="Change color theme" onPress={() => Onyx.set(ONYXKEYS.COLOR_THEME, props.colorTheme === 'light' ? 'dark' : 'light')} />
+            <Button
+                title="Change color theme"
+                onPress={() => {
+                    // eslint-disable-next-line rulesdir/prefer-actions-set-data
+                    Onyx.set(ONYXKEYS.COLOR_THEME, props.colorTheme === 'light' ? 'dark' : 'light');
+                }}
+            />
 
             <Reanimated.View style={{
                 width: 200,
