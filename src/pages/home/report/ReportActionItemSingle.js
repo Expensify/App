@@ -98,6 +98,7 @@ const ReportActionItemSingle = (props) => {
                             secondaryAvatar={ReportUtils.getIcons(props.report, {})[0]}
                             mainTooltip={actorEmail}
                             secondaryTooltip={ReportUtils.getReportName(props.report)}
+                            noMargin
                         />
                     ) : (
                         <Tooltip text={actorEmail}>
