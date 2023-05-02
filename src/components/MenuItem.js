@@ -34,6 +34,7 @@ const defaultProps = {
     wrapperStyle: [],
     style: styles.popoverMenuItem,
     titleStyle: {},
+    descriptionTextStyle: styles.breakWord,
     success: false,
     icon: undefined,
     iconWidth: undefined,
@@ -72,9 +73,9 @@ const MenuItem = (props) => {
     const descriptionTextStyle = StyleUtils.combineStyles([
         styles.textLabelSupporting,
         (props.icon ? styles.ml3 : undefined),
-        styles.breakWord,
         styles.lineHeightNormal,
         props.title ? descriptionVerticalMargin : undefined,
+        props.descriptionTextStyle,
     ]);
 
     const fallbackAvatarSize = props.viewMode === CONST.OPTION_MODE.COMPACT ? CONST.AVATAR_SIZE.SMALL : CONST.AVATAR_SIZE.DEFAULT;
