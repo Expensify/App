@@ -1,12 +1,22 @@
-import _, { compose } from 'underscore';
+import _, {compose} from 'underscore';
 import React from 'react';
+import {View, Pressable} from 'react-native';
 import PropTypes from 'prop-types';
-import IOUQuote from './IOUQuote';
+import Text from '../Text';
+import Icon from '../Icon';
+import * as Expensicons from '../Icon/Expensicons';
+import styles from '../../styles/styles';
+import themeColors from '../../styles/themes/default';
 import reportActionPropTypes from '../../pages/home/report/reportActionPropTypes';
+import withLocalize, {withLocalizePropTypes} from '../withLocalize';
+import ControlSelection from '../../libs/ControlSelection';
+import * as DeviceCapabilities from '../../libs/DeviceCapabilities';
+import {showContextMenuForReport} from '../ShowContextMenuContext';
+import * as StyleUtils from '../../styles/StyleUtils';
+import getButtonState from '../../libs/getButtonState';
 import Navigation from '../../libs/Navigation/Navigation';
 import ROUTES from '../../ROUTES';
-import withLocalize from '../withLocalize';
-import { withOnyx } from 'react-native-onyx';
+import {withOnyx} from 'react-native-onyx';
 import ONYXKEYS from '../../ONYXKEYS';
 
 const propTypes = {
@@ -47,6 +57,8 @@ const propTypes = {
         /** Does the iouReport have an outstanding IOU? */
         hasOutstandingIOU: PropTypes.bool,
     }),
+
+    ...withLocalizePropTypes,
 };
 
 const defaultProps = {
@@ -60,7 +72,7 @@ const ReportPreview = (props) => {
     if (props.iouReport.total === 0) {
         return null;
     }
-    
+
     const launchDetailsModal = () => {
         Navigation.navigate(ROUTES.getIouDetailsRoute(props.chatReportID, props.action.originalMessage.IOUReportID));
     };
@@ -72,18 +84,44 @@ const ReportPreview = (props) => {
         ) : '';
 
     return (
-        <>
-            <IOUQuote
-                action={props.action}
-                iouReportID={props.action.originalMessage.IOUReportID.toString()}
-                chatReportID={props.chatReportID}
-                contextMenuAnchor={props.contextMenuAnchor}
-                shouldAllowViewDetails={Boolean(props.action.originalMessage.IOUReportID)}
-                onViewDetailsPressed={launchDetailsModal}
-                checkIfContextMenuActive={props.checkIfContextMenuActive}
-                isHovered={props.isHovered}
-            />
-        </>
+        <View style={[styles.chatItemMessage]}>
+            {_.map(props.action.message, (fragment, index) => (
+                <Pressable
+                    key={`reportPreview-${props.action.reportActionID}-${index}`}
+                    onPress={launchDetailsModal}
+                    onPressIn={() => DeviceCapabilities.canUseTouchScreen() && ControlSelection.block()}
+                    onPressOut={() => ControlSelection.unblock()}
+                    onLongPress={event => showContextMenuForReport(
+                        event,
+                        props.contextMenuAnchor,
+                        props.chatReportID,
+                        props.action,
+                        props.checkIfContextMenuActive,
+                    )}
+                    style={[styles.flexRow, styles.justifyContentBetween,
+                    props.shouldAllowViewDetails
+                        ? undefined
+                        : styles.cursorDefault,
+                    ]}
+                    focusable={props.shouldAllowViewDetails}
+                >
+                    <Text style={[styles.flex1, styles.mr2]}>
+                        <Text style={props.shouldAllowViewDetails && styles.chatItemMessageLink}>
+                            {/* Get first word of IOU message */}
+                            {fragment.text.split(' ')[0]}
+                        </Text>
+                        <Text style={[styles.chatItemMessage, props.shouldAllowViewDetails
+                            ? styles.cursorPointer
+                            : styles.cursorDefault]}
+                        >
+                            {/* Get remainder of IOU message */}
+                            {fragment.text.substring(fragment.text.indexOf(' '))}
+                        </Text>
+                    </Text>
+                    <Icon src={Expensicons.ArrowRight} fill={props.shouldAllowViewDetails ? StyleUtils.getIconFillColor(getButtonState(props.isHovered)) : themeColors.transparent} />
+                </Pressable>
+            ))}
+        </View>
     );
 };
 
