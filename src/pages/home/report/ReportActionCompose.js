@@ -184,6 +184,7 @@ class ReportActionCompose extends React.Component {
         this.updateNumberOfLines = this.updateNumberOfLines.bind(this);
         this.showPopoverMenu = this.showPopoverMenu.bind(this);
         this.comment = props.comment;
+        this.setShouldBlockEmojiCalcToFalse = this.setShouldBlockEmojiCalcToFalse.bind(this);
 
         // React Native will retain focus on an input for native devices but web/mWeb behave differently so we have some focus management
         // code that will refocus the compose input after a user closes a modal or some other actions, see usage of ReportActionComposeFocusManager
@@ -405,6 +406,13 @@ class ReportActionCompose extends React.Component {
         }
     }
 
+    // eslint-disable-next-line rulesdir/prefer-early-return
+    setShouldBlockEmojiCalcToFalse() {
+        if (this.state && this.state.shouldBlockEmojiCalc) {
+            this.setState({shouldBlockEmojiCalc: false});
+        }
+    }
+
     /**
      * Determines if we can show the task option
      * @param {Array} reportParticipants
@@ -447,6 +455,10 @@ class ReportActionCompose extends React.Component {
     calculateEmojiSuggestion() {
         if (!this.state.value) {
             this.resetSuggestedEmojis();
+            return;
+        }
+        if (this.state.shouldBlockEmojiCalc) {
+            this.setState({shouldBlockEmojiCalc: false});
             return;
         }
         const leftString = this.state.value.substring(0, this.state.selection.end);
@@ -775,6 +787,7 @@ class ReportActionCompose extends React.Component {
                         <AttachmentModal
                             headerTitle={this.props.translate('reportActionCompose.sendAttachment')}
                             onConfirm={this.addAttachment}
+                            onModalHide={this.setShouldBlockEmojiCalcToFalse}
                         >
                             {({displayFileInModal}) => (
                                 <>
@@ -851,6 +864,12 @@ class ReportActionCompose extends React.Component {
                                                             icon: Expensicons.Paperclip,
                                                             text: this.props.translate('reportActionCompose.addAttachment'),
                                                             onSelected: () => {
+                                                                // Set a flag to block emoji calculation until we're finished using the file picker,
+                                                                // which will stop any flickering as the file picker opens on non-native devices.
+                                                                if (this.willBlurTextInputOnTapOutside) {
+                                                                    this.setState({shouldBlockEmojiCalc: true});
+                                                                }
+
                                                                 openPicker({
                                                                     onPicked: displayFileInModal,
                                                                 });
@@ -898,6 +917,7 @@ class ReportActionCompose extends React.Component {
                                                     this.setIsFocused(false);
                                                     this.resetSuggestedEmojis();
                                                 }}
+                                                onClick={this.setShouldBlockEmojiCalcToFalse}
                                                 onPasteFile={displayFileInModal}
                                                 shouldClear={this.state.textInputShouldClear}
                                                 onClear={() => this.setTextInputShouldClear(false)}
