@@ -35,7 +35,6 @@ import TextInput from '../../components/TextInput';
 import KeyboardDismissingFlatList from '../../components/KeyboardDismissingFlatList';
 import withCurrentUserPersonalDetails from '../../components/withCurrentUserPersonalDetails';
 import * as PolicyUtils from '../../libs/PolicyUtils';
-import Str from 'expensify-common/lib/str';
 
 const propTypes = {
     /** The personal details of the person who is logged in */
