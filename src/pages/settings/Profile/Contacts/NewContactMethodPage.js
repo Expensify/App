@@ -53,6 +53,8 @@ const defaultProps = {
 };
 
 function NewContactMethodPage(props) {
+    const formRef = React.useRef(null);
+
     const isFormValid = (values) => {
         const phoneLogin = !_.isEmpty(values.phoneOrEmail) ? LoginUtils.getPhoneNumberWithoutSpecialChars(values.phoneOrEmail) : '';
 
@@ -82,7 +84,18 @@ function NewContactMethodPage(props) {
     };
 
     return (
-        <ScreenWrapper includeSafeAreaPaddingBottom={false}>
+        <ScreenWrapper
+            onEntryTransitionEnd={() => {
+                const form = formRef.current;
+                if (!form) {
+                    return;
+                }
+
+                form.focus();
+            }}
+
+            includeSafeAreaPaddingBottom={false}
+        >
             <HeaderWithCloseButton
                 title={props.translate('contacts.newContactMethod')}
                 shouldShowBackButton
@@ -105,7 +118,7 @@ function NewContactMethodPage(props) {
                         inputID="phoneOrEmail"
                         autoCapitalize="none"
                         returnKeyType={Permissions.canUsePasswordlessLogins(props.betas) ? 'done' : 'next'}
-                        autoFocus
+                        innerRef={formRef}
                         shouldSaveDraft
                     />
                 </View>
