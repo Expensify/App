@@ -188,6 +188,7 @@ class ReportActionItem extends Component {
         } else if (this.props.action.actionName === CONST.REPORT.ACTIONS.TYPE.REPORTPREVIEW) {
             children = (
                 <ReportPreview
+                    iouReportID={this.props.action.originalMessage.IOUReportID}
                     chatReportID={this.props.report.reportID}
                     action={this.props.action}
                     isHovered={hovered}
