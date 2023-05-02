@@ -1440,12 +1440,29 @@ function toggleEmojiReaction(reportID, reportAction, emoji, paramSkinTone = pref
 
 /**
  * @param {String|null} url
+ * @param {Boolean} isAuthenticated
+ * @param {Boolean} isOffline
  */
-function openReportFromDeepLink(url) {
+function openReportFromDeepLink(url, isAuthenticated, isOffline) {
+    const route = ReportUtils.getRouteFromLink(url);
+    const reportID = ReportUtils.getReportIDFromLink(url);
+
+    if (reportID && !isAuthenticated) {
+        // Check if it's a public room to open it as an anonymous user
+        openReport(reportID);
+
+        // Show the sign-in page if the app is offline
+        if (isOffline) {
+            Onyx.set(ONYXKEYS.IS_CHECKING_PUBLIC_ROOM, false);
+        }
+    } else {
+        // If we're not opening a public room (no reportID) or the user is authenticated, we unblock the UI (hide splash screen)
+        Onyx.set(ONYXKEYS.IS_CHECKING_PUBLIC_ROOM, false);
+    }
+
+    // Navigate to the report after sign-in/sign-up.
     InteractionManager.runAfterInteractions(() => {
         Navigation.isReportScreenReady().then(() => {
-            const route = ReportUtils.getRouteFromLink(url);
-            const reportID = ReportUtils.getReportIDFromLink(url);
             if (reportID) {
                 Navigation.navigate(ROUTES.getReportRoute(reportID));
             }
