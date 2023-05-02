@@ -136,7 +136,7 @@ const IOUPreview = (props) => {
     if (props.iouReport.total === 0) {
         return null;
     }
-
+    const isGroupSplit = true; // topdo
     const sessionEmail = lodashGet(props.session, 'email', null);
     const managerEmail = props.iouReport.managerEmail || '';
     const ownerEmail = props.iouReport.ownerEmail || '';
@@ -156,11 +156,20 @@ const IOUPreview = (props) => {
         type: CONST.ICON_TYPE_AVATAR,
         name: ownerEmail,
     };
-    const cachedTotal = props.iouReport.total && props.iouReport.currency
-        ? props.numberFormat(
-            Math.abs(props.iouReport.total) / 100,
-            {style: 'currency', currency: props.iouReport.currency},
-        ) : '';
+
+    let cachedTotal;
+    if (isGroupSplit) {
+        cachedTotal = props.numberFormat(
+            Math.abs(props.action.originalMessage.amount) / 100,
+            {style: 'currency', currency: props.action.originalMessage.currency});
+    } else {
+        cachedTotal = props.iouReport.total && props.iouReport.currency
+            ? props.numberFormat(
+                Math.abs(props.iouReport.total) / 100,
+                {style: 'currency', currency: props.iouReport.currency},
+            ) : '';
+    }
+
     const avatarTooltip = [Str.removeSMSDomain(managerEmail), Str.removeSMSDomain(ownerEmail)];
 
     const showContextMenu = (event) => {
