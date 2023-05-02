@@ -278,7 +278,6 @@ class ReportScreen extends React.Component {
                                         onNavigationMenuButtonClicked={() => Navigation.navigate(ROUTES.HOME)}
                                         personalDetails={this.props.personalDetails}
                                         report={this.props.report}
-                                        policies={this.props.policies}
                                     />
                                 </OfflineWithFeedback>
                                 {Boolean(this.props.accountManagerReportID) && ReportUtils.isConciergeChatReport(this.props.report) && this.state.isBannerVisible && (

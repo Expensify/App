@@ -8,7 +8,6 @@ import {withOnyx} from 'react-native-onyx';
 import {compose} from 'underscore';
 import lodashGet from 'lodash/get';
 import Str from 'expensify-common/lib/str';
-import {parsePhoneNumber} from 'awesome-phonenumber';
 import Button from '../../../../components/Button';
 import FixedFooter from '../../../../components/FixedFooter';
 import HeaderWithCloseButton from '../../../../components/HeaderWithCloseButton';
@@ -69,10 +68,10 @@ function NewContactMethodPage(props) {
     }, []);
 
     const isFormValid = useMemo(() => {
-        const phoneLogin = LoginUtils.appendCountryCode(LoginUtils.getPhoneNumberWithoutSpecialChars(login));
+        const phoneLogin = LoginUtils.getPhoneNumberWithoutSpecialChars(login);
 
         return (Permissions.canUsePasswordlessLogins(props.betas) || password)
-            && (Str.isValidEmail(login) || parsePhoneNumber(phoneLogin).possible);
+            && (Str.isValidEmail(login) || Str.isValidPhone(phoneLogin));
     }, [login, password, props.betas]);
 
     const submitForm = useCallback(() => {
@@ -86,7 +85,7 @@ function NewContactMethodPage(props) {
 
     return (
         <ScreenWrapper
-            onTransitionEnd={() => {
+            onEntryTransitionEnd={() => {
                 if (!loginInputRef.current) {
                     return;
                 }
@@ -106,7 +105,7 @@ function NewContactMethodPage(props) {
                 <View style={[styles.ph5, styles.mb6]}>
                     <TextInput
                         label={`${props.translate('common.email')}/${props.translate('common.phoneNumber')}`}
-                        ref={loginInputRef}
+                        ref={el => loginInputRef.current = el}
                         value={login}
                         onChangeText={handleLoginChange}
                         autoCapitalize="none"

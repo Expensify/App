@@ -97,6 +97,7 @@ describe('NetworkTests', () => {
                     }));
 
                 // This should first trigger re-authentication and then a Failed to fetch
+                App.confirmReadyToOpenApp();
                 App.openApp();
                 return waitForPromisesToResolve()
                     .then(() => Onyx.set(ONYXKEYS.NETWORK, {isOffline: false}))
