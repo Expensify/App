@@ -1,5 +1,5 @@
 import _ from 'underscore';
-import React, {useCallback} from 'react';
+import React, {useCallback, useRef} from 'react';
 import PropTypes from 'prop-types';
 import {View} from 'react-native';
 import ScreenWrapper from '../../components/ScreenWrapper';
@@ -55,8 +55,13 @@ function TaskDescriptionPage(props) {
         // Functionality will be implemented in https://github.com/Expensify/App/issues/16856
     }, []);
 
+    const inputRef = useRef(null);
+
     return (
-        <ScreenWrapper includeSafeAreaPaddingBottom={false}>
+        <ScreenWrapper
+            includeSafeAreaPaddingBottom={false}
+            onEntryTransitionEnd={() => inputRef.current && inputRef.current.focus()}
+        >
             <HeaderWithCloseButton
                 title={props.translate('newTaskPage.task')}
                 shouldShowBackButton
@@ -78,6 +83,7 @@ function TaskDescriptionPage(props) {
                         autoFocus
                         label={props.translate('newTaskPage.description')}
                         defaultValue={props.report.description || ''}
+                        ref={inputRef}
                     />
                 </View>
             </Form>

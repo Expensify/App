@@ -1,5 +1,5 @@
 import _ from 'underscore';
-import React, {useCallback} from 'react';
+import React, {useCallback, useRef} from 'react';
 import PropTypes from 'prop-types';
 import {View} from 'react-native';
 import ScreenWrapper from '../../components/ScreenWrapper';
@@ -55,8 +55,13 @@ function TaskTitlePage(props) {
         // Functionality will be implemented in https://github.com/Expensify/App/issues/16856
     }, []);
 
+    const inputRef = useRef(null);
+
     return (
-        <ScreenWrapper includeSafeAreaPaddingBottom={false}>
+        <ScreenWrapper
+            includeSafeAreaPaddingBottom={false}
+            onEntryTransitionEnd={() => inputRef.current && inputRef.current.focus()}
+        >
             <HeaderWithCloseButton
                 title={props.translate('newTaskPage.task')}
                 shouldShowBackButton
@@ -78,6 +83,7 @@ function TaskTitlePage(props) {
                         autoFocus
                         label={props.translate('newTaskPage.title')}
                         defaultValue={props.report.reportName || ''}
+                        ref={inputRef}
                     />
                 </View>
             </Form>
