@@ -186,7 +186,16 @@ class ReportActionItem extends Component {
                 />
             );
         } else if (this.props.action.actionName === CONST.REPORT.ACTIONS.TYPE.REPORTPREVIEW) {
-            children = (<ReportPreview />);
+            children = (
+                <ReportPreview
+                    chatReportID={this.props.report.reportID}
+                    action={this.props.action}
+                    isMostRecentIOUReportAction={this.props.isMostRecentIOUReportAction}
+                    isHovered={hovered}
+                    contextMenuAnchor={this.popoverAnchor}
+                    checkIfContextMenuActive={this.checkIfContextMenuActive}
+                />
+            );
         } else {
             const message = _.last(lodashGet(this.props.action, 'message', [{}]));
             const isAttachment = _.has(this.props.action, 'isAttachment')

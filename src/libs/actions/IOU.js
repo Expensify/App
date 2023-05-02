@@ -92,7 +92,7 @@ function requestMoney(report, amount, currency, recipientEmail, participant, com
     let reportPreview = ReportActionsUtils.getReportPreviewAction(chatReport.reportID);
     console.log(reportPreview);
     if (!reportPreview) {
-        reportPreview = ReportActionsUtils.buildOptimisticReportPreview(chatReport.reportID);
+        reportPreview = ReportActionsUtils.buildOptimisticReportPreview(chatReport.reportID, iouReport.reportID);
     }
 
     // First, add data that will be used in all cases

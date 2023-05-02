@@ -295,7 +295,7 @@ function getReportPreviewAction(reportID) {
     return _.findWhere(allReportActions[reportID], {actionName: CONST.REPORT.ACTIONS.TYPE.REPORTPREVIEW});
 }
 
-function buildOptimisticReportPreview(reportID, payeeAccountID, amount) {
+function buildOptimisticReportPreview(reportID, iouReportID, payeeAccountID, amount) {
     const textComment = `Duraflame owes you ${amount}`;
     return ({
         reportActionID: NumberUtils.rand64(),
@@ -310,6 +310,9 @@ function buildOptimisticReportPreview(reportID, payeeAccountID, amount) {
             isEdited: false,
             type: CONST.REPORT.MESSAGE.TYPE.COMMENT
         }],
+        originalMessage: {
+            IOUReportID: iouReportID,
+        },
         actorEmail: currentUserEmail,
     });
 }
