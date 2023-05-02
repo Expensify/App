@@ -7,6 +7,7 @@ import PopoverWithMeasuredContent from '../PopoverWithMeasuredContent';
 import withWindowDimensions, {windowDimensionsPropTypes} from '../withWindowDimensions';
 import withViewportOffsetTop, {viewportOffsetTopPropTypes} from '../withViewportOffsetTop';
 import compose from '../../libs/compose';
+import * as Browser from '../../libs/Browser';
 
 const DEFAULT_ANCHOR_ORIGIN = {
     horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.RIGHT,
@@ -185,7 +186,8 @@ class EmojiPicker extends React.Component {
                 }}
                 anchorOrigin={this.state.emojiPopoverAnchorOrigin}
                 measureContent={this.measureContent}
-                outerStyle={{maxHeight: this.props.windowHeight, marginTop: this.props.viewportOffsetTop}}
+                outerStyle={Browser.isMobile() && {maxHeight: this.props.windowHeight, marginTop: this.props.viewportOffsetTop}}
+                useAvoidingView
             >
                 <EmojiPickerMenu
                     onEmojiSelected={this.selectEmoji}

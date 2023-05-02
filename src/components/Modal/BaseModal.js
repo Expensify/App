@@ -1,5 +1,5 @@
 import React, {PureComponent} from 'react';
-import {StatusBar, View} from 'react-native';
+import {KeyboardAvoidingView, StatusBar, View} from 'react-native';
 import PropTypes from 'prop-types';
 import ReactNativeModal from 'react-native-modal';
 import {SafeAreaInsetsContext} from 'react-native-safe-area-context';
@@ -158,7 +158,7 @@ class BaseModal extends PureComponent {
                             insets,
                         });
 
-                        return (
+                        const content = (
                             <View
                                 style={{
                                     ...styles.defaultModalContainer,
@@ -170,6 +170,17 @@ class BaseModal extends PureComponent {
                                 {this.props.children}
                             </View>
                         );
+                        if (this.props.useAvoidingView) {
+                            return (
+                                <KeyboardAvoidingView
+                                    behavior="padding"
+                                    style={styles.w100}
+                                >
+                                    {content}
+                                </KeyboardAvoidingView>
+                            );
+                        }
+                        return content;
                     }}
                 </SafeAreaInsetsContext.Consumer>
             </ReactNativeModal>
