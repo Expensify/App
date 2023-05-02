@@ -4,7 +4,8 @@ import CONST from '../../CONST';
 
 const propTypes = {
     /** An initial value of date */
-    value: PropTypes.objectOf(Date),
+    // value: PropTypes.objectOf(Date),
+    value: PropTypes.string,
 
     /** A minimum date (oldest) allowed to select */
     minDate: PropTypes.objectOf(Date),

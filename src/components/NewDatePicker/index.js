@@ -24,7 +24,7 @@ class NewDatePicker extends React.Component {
 
         this.state = {
             selectedMonth: null,
-            selectedDate: moment(props.value || props.defaultValue || undefined).toDate(),
+            selectedDate: props.value || props.defaultValue || undefined,
         };
 
         this.setDate = this.setDate.bind(this);
@@ -51,7 +51,7 @@ class NewDatePicker extends React.Component {
      */
     setDate(selectedDate) {
         this.setState({selectedDate}, () => {
-            this.props.onInputChange(moment(selectedDate).format(CONST.DATE.MOMENT_FORMAT_STRING));
+            this.props.onInputChange(selectedDate);
         });
     }
 
