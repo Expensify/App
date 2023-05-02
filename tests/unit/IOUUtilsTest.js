@@ -24,7 +24,7 @@ function createIOUReportAction(type, amount, currency, isOffline = false, IOUTra
         iouReport.reportID,
     );
 
-    // Default is to create requests online, if `isOffline` is specified then we need to remove the pendingAction
+    // Default is to create requests online, if `isOffline` is not specified then we need to remove the pendingAction
     if (!isOffline) {
         moneyRequestAction.pendingAction = null;
     }
