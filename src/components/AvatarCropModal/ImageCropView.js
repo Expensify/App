@@ -52,17 +52,24 @@ const defaultProps = {
 const ImageCropView = (props) => {
     const containerStyle = StyleUtils.getWidthAndHeightStyle(props.containerSize, props.containerSize);
 
+    const originalImageHeight = props.originalImageHeight;
+    const originalImageWidth = props.originalImageWidth;
+    const rotation = props.rotation;
+    const translateX = props.translateX;
+    const translateY = props.translateY;
+    const scale = props.scale;
+
     // A reanimated memoized style, which updates when the image's size or scale changes.
     const imageStyle = useAnimatedStyle(() => {
-        const height = props.originalImageHeight.value;
-        const width = props.originalImageWidth.value;
+        const height = originalImageHeight.value;
+        const width = originalImageWidth.value;
         const aspectRatio = height > width ? height / width : width / height;
-        const rotate = interpolate(props.rotation.value, [0, 360], [0, 360]);
+        const rotate = interpolate(rotation.value, [0, 360], [0, 360]);
         return {
             transform: [
-                {translateX: props.translateX.value},
-                {translateY: props.translateY.value},
-                {scale: props.scale.value * aspectRatio},
+                {translateX: translateX.value},
+                {translateY: translateY.value},
+                {scale: scale.value * aspectRatio},
                 {rotate: `${rotate}deg`},
             ],
         };
