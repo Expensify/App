@@ -568,9 +568,9 @@ function getDefaultWorkspaceAvatar(workspaceName) {
     return !alphaNumeric ? defaultWorkspaceAvatars.WorkspaceBuilding : defaultWorkspaceAvatars[`Workspace${alphaNumeric[0]}`];
 }
 
-function getWorkspaceAvatar(report, policies) {
-    const workspaceName = getPolicyName(report, policies);
-    return lodashGet(policies, [
+function getWorkspaceAvatar(report) {
+    const workspaceName = getPolicyName(report, allPolicies);
+    return lodashGet(allPolicies, [
         `${ONYXKEYS.COLLECTION.POLICY}${report.policyID}`, 'avatar',
     ]) || getDefaultWorkspaceAvatar(workspaceName);
 }
@@ -717,7 +717,7 @@ function getIcons(report, personalDetails, defaultIcon = null) {
             `${ONYXKEYS.COLLECTION.POLICY}${report.policyID}`, 'name',
         ]);
 
-        const policyExpenseChatAvatarSource = getWorkspaceAvatar(report, allPolicies);
+        const policyExpenseChatAvatarSource = getWorkspaceAvatar(report);
 
         // Return the workspace avatar if the user is the owner of the policy expense chat
         if (report.isOwnPolicyExpenseChat && !isExpenseReport(report)) {

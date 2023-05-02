@@ -110,7 +110,7 @@ function getPolicyExpenseReportOptions(report) {
     }
     const filteredPolicyExpenseReports = _.filter(policyExpenseReports, policyExpenseReport => policyExpenseReport.policyID === report.policyID);
     return _.map(filteredPolicyExpenseReports, (expenseReport) => {
-        const policyExpenseChatAvatarSource = ReportUtils.getWorkspaceAvatar(expenseReport, policies);
+        const policyExpenseChatAvatarSource = ReportUtils.getWorkspaceAvatar(expenseReport);
         return {
             ...expenseReport,
             keyForList: expenseReport.policyID,

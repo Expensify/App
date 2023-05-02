@@ -50,7 +50,7 @@ const MoneyRequestHeader = (props) => {
     const isSettled = /* ReportUtils.isSettled(props.report.reportID); */ false;
     const isExpenseReport = ReportUtils.isExpenseReport(props.report);
     const payeeName = isExpenseReport ? ReportUtils.getPolicyName(props.report, props.policies) : ReportUtils.getDisplayNameForParticipant(props.report.managerEmail);
-    const payeeAvatar = isExpenseReport ? ReportUtils.getWorkspaceAvatar(props.report, props.policies) : ReportUtils.getAvatar(lodashGet(props.personalDetails, [props.report.managerEmail, 'avatar']), props.personalDetails);
+    const payeeAvatar = isExpenseReport ? ReportUtils.getWorkspaceAvatar(props.report) : ReportUtils.getAvatar(lodashGet(props.personalDetails, [props.report.managerEmail, 'avatar']), props.personalDetails);
     return (
         <View style={[
             {backgroundColor: themeColors.highlightBG},
