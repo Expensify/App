@@ -78,6 +78,9 @@ const propTypes = {
     /** Props to detect online status */
     network: networkPropTypes.isRequired,
 
+    /** Whether the app is waiting for the server's response to determine if a room is public */
+    isCheckingPublicRoom: PropTypes.bool,
+
     ...withLocalizePropTypes,
 };
 
@@ -89,6 +92,7 @@ const defaultProps = {
     updateAvailable: false,
     isSidebarLoaded: false,
     screenShareRequest: null,
+    isCheckingPublicRoom: true,
 };
 
 function Expensify(props) {
@@ -218,10 +222,12 @@ function Expensify(props) {
                 </>
             )}
 
-            <NavigationRoot
-                onReady={setNavigationReady}
-                authenticated={isAuthenticated}
-            />
+            {!props.isCheckingPublicRoom && (
+                <NavigationRoot
+                    onReady={setNavigationReady}
+                    authenticated={isAuthenticated}
+                />
+            )}
         </DeeplinkWrapper>
     );
 }
@@ -231,6 +237,10 @@ Expensify.defaultProps = defaultProps;
 export default compose(
     withLocalize,
     withOnyx({
+        isCheckingPublicRoom: {
+            key: ONYXKEYS.IS_CHECKING_PUBLIC_ROOM,
+            initWithStoredValues: false,
+        },
         session: {
             key: ONYXKEYS.SESSION,
         },
