@@ -170,7 +170,7 @@ class BaseModal extends PureComponent {
                                 {this.props.children}
                             </View>
                         );
-                        if (this.props.useAvoidingView) {
+                        if (this.props.enableKeyboardAvoiding) {
                             return (
                                 <KeyboardAvoidingView
                                     behavior="padding"

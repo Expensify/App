@@ -187,7 +187,7 @@ class EmojiPicker extends React.Component {
                 anchorOrigin={this.state.emojiPopoverAnchorOrigin}
                 measureContent={this.measureContent}
                 outerStyle={Browser.isMobile() && {maxHeight: this.props.windowHeight, marginTop: this.props.viewportOffsetTop}}
-                useAvoidingView
+                enableKeyboardAvoiding
             >
                 <EmojiPickerMenu
                     onEmojiSelected={this.selectEmoji}
