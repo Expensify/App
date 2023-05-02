@@ -20,4 +20,12 @@ export default {
     dInline: {
         display: 'inline',
     },
+
+    dInlineFlex: {
+        display: 'inline-flex',
+    },
+
+    dBlock: {
+        display: 'block',
+    },
 };

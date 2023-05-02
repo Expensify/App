@@ -68,7 +68,7 @@ More details about the Jekyll project structure can be found [here](https://jeky
 
 ## Add content
 
-Copy the [template](https://github.com/Expensify/App/blob/main/docs/TEMPLATE.md) file into the correct subdirectory of `/articles`. For example, if the article belongs in the `Send money` hub, then copy the template into `articles/send-money` directory. Next, rename the copy with the name of the article title, i.e. [The-Free-Plan.md](https://github.com/Expensify/App/blob/main/docs/articles/send-money/The-Free-Plan.md) (you can use dashes for spaces in the file name if it's needed) and put the new file inside of the respective hub folder or sub-folder. The title will be rendered automatically according to the filename (the dashes will be removed in the generated site page).
+Copy the [template](https://github.com/Expensify/App/blob/main/docs/TEMPLATE.md) file into the correct subdirectory of `/articles`. For example, if the article belongs in the `Send money` hub and `Workspaces` section, then copy the template into `articles/send-money/workspaces` directory. Next, rename the copy with the name of the article title, i.e. [The-Free-Plan.md](https://github.com/Expensify/App/blob/main/docs/articles/send-money/The-Free-Plan.md) (you can use dashes for spaces in the file name if it's needed) and put the new file inside of the respective hub folder or sub-folder. The title will be rendered automatically according to the filename (the dashes will be removed in the generated site page).
 
 The sections of the article will be filled and nested automatically in the LHN, just ensure to use the [heading markdown tags](https://www.markdownguide.org/cheat-sheet/) correctly.
 
@@ -88,7 +88,9 @@ Just update the content for each variable accordingly or remove it if the inform
 
 ## Add the new page to routes.yml
 
-Next, add the article to `_data/routes.yml`. Note that hubs contain one or more articles, which may or may not be grouped into sections with other related articles.
+Next, run the command `npm run createDocsRoutes` to add the article to `_data/routes.yml`. Note that hubs contain one or more articles, which may or may not be grouped into sections with other related articles. All articles grouped under a section will be under the same subfolder in the hub folder.
+
+If you have added a new hub, make sure to update the `_routes.yml` with the folder name, title, icon and description of the hub.
 
 # How the site is deployed
 This site is hosted on GitHub Pages. GitHub Pages has a built-in Jekyll integration, and we have it configured such that whenever code is merged to main, GitHub will automatically build the Jekyll site housed in the `/docs` directory and deploy it straight to production. The help site is publicly discoverable at https://help.expensify.com/
