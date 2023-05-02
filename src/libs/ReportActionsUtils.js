@@ -32,6 +32,19 @@ Onyx.connect({
     callback: val => isNetworkOffline = lodashGet(val, 'isOffline', false),
 });
 
+let currentUserEmail;
+Onyx.connect({
+    key: ONYXKEYS.SESSION,
+    callback: (val) => {
+        // When signed out, val is undefined
+        if (!val) {
+            return;
+        }
+
+        currentUserEmail = val.email;
+    },
+});
+
 /**
  * @param {Object} reportAction
  * @returns {Boolean}
@@ -293,7 +306,7 @@ function buildOptimisticReportPreview(reportID, payeeAccountID, amount) {
         
         // TODO - the followings are hardcodings for whatever ReportActionItemSingle/ReportActionItemGrouped expect
         message: [{text: 'This is a report preview.', type: 'COMMENT'}],
-        actorEmail: 'cristi+dev5@expensify.com',
+        actorEmail: currentUserEmail,
     });
 }
 
