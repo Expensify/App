@@ -600,14 +600,13 @@ describe('actions/IOU', () => {
                             expect(transaction.pendingAction).toBeFalsy();
                             expect(transaction.errors).toBeTruthy();
                             expect(_.values(transaction.errors)[0]).toBe(Localize.translateLocal('iou.error.genericCreateFailureMessage'));
-
-                            // Cleanup
-                            fetch.succeed();
-
                             resolve();
                         },
                     });
-                }));
+                }))
+
+                // Cleanup
+                .then(fetch.succeed);
         });
     });
 
