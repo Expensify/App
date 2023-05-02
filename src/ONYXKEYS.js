@@ -205,4 +205,6 @@ export default {
 
     // Whether the auth token is valid
     IS_TOKEN_VALID: 'isTokenValid',
+
+    IS_CHECKING_PUBLIC_ROOM: 'isCheckingPublicRoom',
 };
