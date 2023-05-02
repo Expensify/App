@@ -365,7 +365,7 @@ function createSplitsAndOnyxData(participants, currentUserLogin, amount, comment
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.TRANSACTION}${groupTransaction.transactionID}`,
             value: {
-                pendingFields: null,
+                pendingAction: null,
                 errors: {
                     [DateUtils.getMicroseconds()]: Localize.translateLocal('iou.error.genericCreateFailureMessage'),
                 },
@@ -515,7 +515,7 @@ function createSplitsAndOnyxData(participants, currentUserLogin, amount, comment
                 onyxMethod: Onyx.METHOD.MERGE,
                 key: `${ONYXKEYS.COLLECTION.TRANSACTION}${oneOnOneTransaction.transactionID}`,
                 value: {
-                    pendingFields: null,
+                    pendingAction: null,
                     errors: {
                         [DateUtils.getMicroseconds()]: Localize.translateLocal('iou.error.genericCreateFailureMessage'),
                     },
