@@ -1,24 +1,13 @@
-import {Pressable, View} from 'react-native';
-import variables from '../../styles/variables';
-
-// Circular button that will contain a logo, used as base for Google and Apple Sign-In buttons
+import {Pressable} from 'react-native';
 
 const ButtonBase = ({onPress, icon}) => (
-    <Pressable onPress={onPress} style={{margin: 10}}>
-        <View style={style}>
-            {icon}
-        </View>
-    </Pressable >
+    <Pressable onPress={onPress} style={style}>
+        {icon}
+    </Pressable>
 );
 
 const style = {
-    alignItems: 'center',
-    justifyContent: 'center',
-    height: variables.iconSizeExtraLarge,
-    width: variables.iconSizeExtraLarge,
-    borderRadius: 20,
-    backgroundColor: 'white',
-    overflow: 'hidden',
+    margin: 10,
 };
 
 ButtonBase.displayName = 'ButtonBase';
