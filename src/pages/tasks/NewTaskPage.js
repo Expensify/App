@@ -60,7 +60,7 @@ const defaultProps = {
 };
 
 /**
- * Get the currently viewed report ID as number
+ * Get the parent report ID as number
  *
  * @param {Object} route
  * @param {Object} route.params
@@ -126,32 +126,37 @@ const NewTaskPage = (props) => {
     }
     return (
         <ScreenWrapper includeSafeAreaPaddingBottom={false}>
-            <HeaderWithCloseButton title={props.translate('newTaskPage.assignTask')} onCloseButtonPress={() => Navigation.dismissModal()} />
+            <HeaderWithCloseButton
+                title={props.translate('newTaskPage.confirmTask')}
+                onCloseButtonPress={() => Navigation.dismissModal()}
+                shouldShowBackButton
+                onBackButtonPress={() => Navigation.goBack()}
+            />
             <Form
                 formID={ONYXKEYS.FORMS.NEW_TASK_FORM}
-                submitButtonText={props.translate('newTaskPage.assignTask')}
+                submitButtonText={props.translate('newTaskPage.confirmTask')}
                 style={[styles.mh5, styles.mt5, styles.flexGrow1]}
                 validate={values => validate(values)}
                 onSubmit={values => onSubmit(values)}
                 enabledWhenOffline
             >
                 <View style={styles.mb5}>
+                    <TextInput value={props.task.name} autoFocus inputID="taskTitle" label={props.translate('newTaskPage.title')} />
+                </View>
+                <View style={styles.mb5}>
+                    <TextInput value={props.task.description} inputID="taskDescription" label={props.translate('newTaskPage.description')} />
+                </View>
+                <View style={styles.mb5}>
                     <TaskSelectorLink
                         icons={[assignee.avatar]}
                         text={assignee.displayName}
                         alternateText={assignee.login}
                         onPress={() => Navigation.navigate(ROUTES.getNewTaskAssigneeRoute(getReportID(props.route)))}
-                        label="newTaskPage.assignTo"
+                        label="newTaskPage.assignee"
                     />
                 </View>
                 <View style={styles.mb5}>
-                    <TextInput autoFocus inputID="taskTitle" label={props.translate('newTaskPage.title')} />
-                </View>
-                <View style={styles.mb5}>
-                    <TextInput inputID="taskDescription" label={props.translate('newTaskPage.description')} />
-                </View>
-                <View style={styles.mb5}>
-                    <TaskSelectorLink onPress={() => Navigation.navigate(ROUTES.NEW_TASK_CHAT)} label="newTaskPage.shareIn" />
+                    <TaskSelectorLink onPress={() => Navigation.navigate(ROUTES.NEW_TASK_CHAT)} label="newTaskPage.shareSomewhere" />
                 </View>
             </Form>
         </ScreenWrapper>

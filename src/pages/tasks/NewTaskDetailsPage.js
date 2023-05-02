@@ -29,6 +29,21 @@ const defaultProps = {
     betas: [],
 };
 
+/**
+ * Get the parent report ID as number
+ *
+ * @param {Object} route
+ * @param {Object} route.params
+ * @param {String} route.params.reportID
+ * @returns {String}
+ */
+function getReportID(route) {
+    if (!route.params || !route.params.reportID) {
+        return;
+    }
+    return route.params.reportID.toString();
+}
+
 // NOTE: This page is going to be updated in https://github.com/Expensify/App/issues/16855, this is just a placeholder for now
 const NewTaskPage = (props) => {
     /**
@@ -50,7 +65,7 @@ const NewTaskPage = (props) => {
     // the response
     function onSubmit(values) {
         TaskUtils.setDetailsValue(values.taskTitle, values.taskDescription);
-        Navigation.navigate(ROUTES.getNewTaskRoute());
+        Navigation.navigate(ROUTES.getNewTaskRoute(getReportID(props.route)));
     }
 
     if (!Permissions.canUseTasks(props.betas)) {
@@ -59,10 +74,15 @@ const NewTaskPage = (props) => {
     }
     return (
         <ScreenWrapper includeSafeAreaPaddingBottom={false}>
-            <HeaderWithCloseButton title={props.translate('newTaskPage.assignTask')} onCloseButtonPress={() => Navigation.dismissModal()} />
+            <HeaderWithCloseButton
+                title={props.translate('newTaskPage.assignTask')}
+                onCloseButtonPress={() => Navigation.dismissModal()}
+                shouldShowBackButton
+                onBackButtonPress={() => Navigation.goBack()}
+            />
             <Form
                 formID={ONYXKEYS.FORMS.NEW_TASK_FORM}
-                submitButtonText={props.translate('newTaskPage.assignTask')}
+                submitButtonText={props.translate('common.next')}
                 style={[styles.mh5, styles.mt5, styles.flexGrow1]}
                 validate={values => validate(values)}
                 onSubmit={values => onSubmit(values)}
