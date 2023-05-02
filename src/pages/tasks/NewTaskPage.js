@@ -25,6 +25,8 @@ const propTypes = {
     task: PropTypes.shape({
         assignee: PropTypes.string,
         shareDestination: PropTypes.string,
+        title: PropTypes.string,
+        description: PropTypes.string,
     }),
 
     /** The parent report of the new task */

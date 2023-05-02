@@ -209,6 +209,8 @@ export default {
                     NewTask_AssigneeSelector: ROUTES.NEW_TASK_ASSIGNEE,
                     NewTask_ChatSelector: ROUTES.NEW_TASK_CHAT,
                     NewTask_Details: ROUTES.NEW_TASK_DETAILS,
+                    NewTask_Title: ROUTES.NEW_TASK_TITLE,
+                    NewTask_Description: ROUTES.NEW_TASK_DESCRIPTION,
                 },
             },
             Search: {

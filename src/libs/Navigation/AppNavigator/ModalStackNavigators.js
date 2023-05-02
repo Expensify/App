@@ -245,6 +245,20 @@ const NewTaskModalStackNavigator = createModalStackNavigator([{
         return NewTaskDetailsPage;
     },
     name: 'NewTask_Details',
+},
+{
+    getComponent: () => {
+        const NewTaskTitlePage = require('../../../pages/tasks/NewTaskTitlePage').default;
+        return NewTaskTitlePage;
+    },
+    name: 'NewTask_Title',
+},
+{
+    getComponent: () => {
+        const NewTaskDescriptionPage = require('../../../pages/tasks/NewTaskDescriptionPage').default;
+        return NewTaskDescriptionPage;
+    },
+    name: 'NewTask_Description',
 }]);
 
 const SettingsModalStackNavigator = createModalStackNavigator([

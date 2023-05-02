@@ -14,9 +14,6 @@ const IOU_REQUEST_CURRENCY = `${IOU_REQUEST}/currency`;
 const IOU_BILL_CURRENCY = `${IOU_BILL}/currency`;
 const IOU_SEND_CURRENCY = `${IOU_SEND}/currency`;
 const NEW_TASK = 'new/task';
-const NEW_TASK_ASSIGNEE = `${NEW_TASK}/assignee`;
-const NEW_TASK_CHAT = `${NEW_TASK}/chat`;
-const NEW_TASK_DETAILS = `${NEW_TASK}/details`;
 const SETTINGS_PERSONAL_DETAILS = 'settings/profile/personal-details';
 const SETTINGS_CONTACT_METHODS = 'settings/profile/contact-methods';
 
@@ -100,12 +97,16 @@ export default {
     TASK_DESCRIPTION: 'r/:reportID/description',
     getTaskReportTitleRoute: reportID => `r/${reportID}/title`,
     getTaskReportDescriptionRoute: reportID => `r/${reportID}/description`,
-    getNewTaskAssigneeRoute: reportID => `${NEW_TASK_ASSIGNEE}/${reportID}`,
-    NEW_TASK_ASSIGNEE: `${NEW_TASK_ASSIGNEE}/:reportID?`,
-    getNewTaskChatRoute: reportID => `${NEW_TASK_CHAT}/${reportID}`,
-    NEW_TASK_DETAILS: `${NEW_TASK_DETAILS}/:reportID?`,
-    getNewTaskDetailsRoute: reportID => `${NEW_TASK_DETAILS}/${reportID}`,
-    NEW_TASK_CHAT: `${NEW_TASK_CHAT}/:reportID?`,
+    getNewTaskAssigneeRoute: reportID => `${NEW_TASK}/assignee/${reportID}`,
+    NEW_TASK_ASSIGNEE: `${NEW_TASK}/assignee/:reportID?`,
+    getNewTaskChatRoute: reportID => `${NEW_TASK}/chat/${reportID}`,
+    NEW_TASK_CHAT: `${NEW_TASK}/chat/:reportID?`,
+    getNewTaskDetailsRoute: reportID => `${NEW_TASK}/details/${reportID}`,
+    NEW_TASK_DETAILS: `${NEW_TASK}/details/:reportID?`,
+    getNewTaskTitleRoute: reportID => `${NEW_TASK}/title/${reportID}`,
+    NEW_TASK_TITLE: `${NEW_TASK}/title/:reportID?`,
+    getNewTaskDescriptionRoute: reportID => `${NEW_TASK}/description/${reportID}`,
+    NEW_TASK_DESCRIPTION: `${NEW_TASK}/description/:reportID?`,
     getTaskDetailsRoute: taskID => `task/details/${taskID}`,
     SEARCH: 'search',
     SET_PASSWORD_WITH_VALIDATE_CODE: 'setpassword/:accountID/:validateCode',

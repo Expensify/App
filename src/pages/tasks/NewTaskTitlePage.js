@@ -16,8 +16,6 @@ import Permissions from '../../libs/Permissions';
 import ROUTES from '../../ROUTES';
 import * as TaskUtils from '../../libs/actions/Task';
 
-// TO-DO: Call CreateTask with all the appropriate Data
-
 const propTypes = {
     /** Beta features list */
     betas: PropTypes.arrayOf(PropTypes.string),
@@ -30,7 +28,7 @@ const defaultProps = {
 };
 
 // NOTE: This page is going to be updated in https://github.com/Expensify/App/issues/16855, this is just a placeholder for now
-const NewTaskPage = (props) => {
+const NewTaskTitlePage = (props) => {
     /**
      * @param {Object} values - form input values passed by the Form component
      * @returns {Boolean}
@@ -49,7 +47,7 @@ const NewTaskPage = (props) => {
     // On submit, we want to call the assignTask function and wait to validate
     // the response
     function onSubmit(values) {
-        TaskUtils.setDetailsValue(values.taskTitle, values.taskDescription);
+        TaskUtils.setTitleValue(values.taskTitle);
         Navigation.navigate(ROUTES.getNewTaskRoute());
     }
 
@@ -71,17 +69,14 @@ const NewTaskPage = (props) => {
                 <View style={styles.mb5}>
                     <TextInput autoFocus inputID="taskTitle" label={props.translate('newTaskPage.title')} />
                 </View>
-                <View style={styles.mb5}>
-                    <TextInput inputID="taskDescription" label={props.translate('newTaskPage.description')} />
-                </View>
             </Form>
         </ScreenWrapper>
     );
 };
 
-NewTaskPage.displayName = 'NewTaskPage';
-NewTaskPage.propTypes = propTypes;
-NewTaskPage.defaultProps = defaultProps;
+NewTaskTitlePage.displayName = 'NewTaskTitlePage';
+NewTaskTitlePage.propTypes = propTypes;
+NewTaskTitlePage.defaultProps = defaultProps;
 
 export default compose(
     withOnyx({
@@ -90,4 +85,4 @@ export default compose(
         },
     }),
     withLocalize,
-)(NewTaskPage);
+)(NewTaskTitlePage);

@@ -431,7 +431,7 @@ class ReportActionCompose extends React.Component {
             {
                 icon: Expensicons.Task,
                 text: this.props.translate('newTaskPage.assignTask'),
-                onSelected: () => Navigation.navigate(ROUTES.getNewTaskRoute(this.props.reportID)),
+                onSelected: () => Navigation.navigate(ROUTES.getNewTaskDetailsRoute(this.props.reportID)),
             },
         ];
     }

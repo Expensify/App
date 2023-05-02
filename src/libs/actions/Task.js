@@ -183,6 +183,14 @@ function setDetailsValue(name, description) {
     Onyx.merge(ONYXKEYS.TASK, {name, description});
 }
 
+function setTitleValue(name) {
+    Onyx.merge(ONYXKEYS.TASK, {name});
+}
+
+function setDescriptionValue(description) {
+    Onyx.merge(ONYXKEYS.TASK, {description});
+}
+
 function setAssigneeValue(assignee) {
     // This is only needed for creation of a new task and so it should only be stored locally
     Onyx.merge(ONYXKEYS.TASK, {assignee});
@@ -199,5 +207,5 @@ function clearOutTaskInfo() {
 
 // eslint-disable-next-line import/prefer-default-export
 export {
-    createTaskAndNavigate, setDetailsValue, setAssigneeValue, setShareDestinationValue, clearOutTaskInfo,
+    createTaskAndNavigate, setTitleValue, setDescriptionValue, setDetailsValue, setAssigneeValue, setShareDestinationValue, clearOutTaskInfo,
 };

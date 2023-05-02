@@ -9,14 +9,11 @@ import Navigation from '../../libs/Navigation/Navigation';
 import ScreenWrapper from '../../components/ScreenWrapper';
 import styles from '../../styles/styles';
 import ONYXKEYS from '../../ONYXKEYS';
-import * as ErrorUtils from '../../libs/ErrorUtils';
 import Form from '../../components/Form';
 import TextInput from '../../components/TextInput';
 import Permissions from '../../libs/Permissions';
 import ROUTES from '../../ROUTES';
 import * as TaskUtils from '../../libs/actions/Task';
-
-// TO-DO: Call CreateTask with all the appropriate Data
 
 const propTypes = {
     /** Beta features list */
@@ -29,27 +26,11 @@ const defaultProps = {
     betas: [],
 };
 
-// NOTE: This page is going to be updated in https://github.com/Expensify/App/issues/16855, this is just a placeholder for now
-const NewTaskPage = (props) => {
-    /**
-     * @param {Object} values - form input values passed by the Form component
-     * @returns {Boolean}
-     */
-    function validate(values) {
-        const errors = {};
-
-        if (!values.taskTitle) {
-            // We error if the user doesn't enter a task name
-            ErrorUtils.addErrorMessage(errors, 'taskTitle', props.translate('newTaskPage.pleaseEnterTaskName'));
-        }
-
-        return errors;
-    }
-
+const NewTaskDescriptionPage = (props) => {
     // On submit, we want to call the assignTask function and wait to validate
     // the response
     function onSubmit(values) {
-        TaskUtils.setDetailsValue(values.taskTitle, values.taskDescription);
+        TaskUtils.setDescriptionValue(values.taskDescription);
         Navigation.navigate(ROUTES.getNewTaskRoute());
     }
 
@@ -64,13 +45,9 @@ const NewTaskPage = (props) => {
                 formID={ONYXKEYS.FORMS.NEW_TASK_FORM}
                 submitButtonText={props.translate('newTaskPage.assignTask')}
                 style={[styles.mh5, styles.mt5, styles.flexGrow1]}
-                validate={values => validate(values)}
                 onSubmit={values => onSubmit(values)}
                 enabledWhenOffline
             >
-                <View style={styles.mb5}>
-                    <TextInput autoFocus inputID="taskTitle" label={props.translate('newTaskPage.title')} />
-                </View>
                 <View style={styles.mb5}>
                     <TextInput inputID="taskDescription" label={props.translate('newTaskPage.description')} />
                 </View>
@@ -79,9 +56,9 @@ const NewTaskPage = (props) => {
     );
 };
 
-NewTaskPage.displayName = 'NewTaskPage';
-NewTaskPage.propTypes = propTypes;
-NewTaskPage.defaultProps = defaultProps;
+NewTaskDescriptionPage.displayName = 'NewTaskDescriptionPage';
+NewTaskDescriptionPage.propTypes = propTypes;
+NewTaskDescriptionPage.defaultProps = defaultProps;
 
 export default compose(
     withOnyx({
@@ -90,4 +67,4 @@ export default compose(
         },
     }),
     withLocalize,
-)(NewTaskPage);
+)(NewTaskDescriptionPage);
