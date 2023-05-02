@@ -51,7 +51,7 @@ const SubscriptAvatar = (props) => {
 
     // Some views like the chat view require that there be no margins
     if (props.noMargin) {
-        marginStyle = null;
+        marginStyle = {};
     }
     return (
         <View style={[containerStyle, marginStyle]}>
