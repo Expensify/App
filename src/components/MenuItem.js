@@ -13,7 +13,6 @@ import CONST from '../CONST';
 import menuItemPropTypes from './menuItemPropTypes';
 import SelectCircle from './SelectCircle';
 import colors from '../styles/colors';
-import variables from '../styles/variables';
 import MultipleAvatars from './MultipleAvatars';
 import * as defaultWorkspaceAvatars from './Icon/WorkspaceDefaultAvatars';
 import PressableWithSecondaryInteraction from './PressableWithSecondaryInteraction';
@@ -55,6 +54,7 @@ const defaultProps = {
     brickRoadIndicator: '',
     floatRightAvatars: [],
     shouldStackHorizontally: false,
+    avatarSize: undefined,
     shouldBlockSelection: false,
 };
 
@@ -76,6 +76,8 @@ const MenuItem = (props) => {
         styles.lineHeightNormal,
         props.title ? descriptionVerticalMargin : undefined,
     ]);
+
+    const fallbackAvatarSize = props.viewMode === CONST.OPTION_MODE.COMPACT ? CONST.AVATAR_SIZE.SMALL : CONST.AVATAR_SIZE.DEFAULT;
 
     return (
         <PressableWithSecondaryInteraction
@@ -189,12 +191,12 @@ const MenuItem = (props) => {
                             </View>
                         )}
                         {!_.isEmpty(props.floatRightAvatars) && (
-                            <View style={[styles.justifyContentCenter, (props.brickRoadIndicator ? styles.mr4 : styles.mr3)]}>
+                            <View style={[styles.justifyContentCenter, (props.brickRoadIndicator ? styles.mr2 : undefined)]}>
                                 <MultipleAvatars
                                     isHovered={hovered}
                                     isPressed={pressed}
                                     icons={props.floatRightAvatars}
-                                    size={props.viewMode === CONST.OPTION_MODE.COMPACT ? CONST.AVATAR_SIZE.SMALL : CONST.AVATAR_SIZE.DEFAULT}
+                                    size={props.avatarSize || fallbackAvatarSize}
                                     fallbackIcon={defaultWorkspaceAvatars.WorkspaceBuilding}
                                     shouldStackHorizontally={props.shouldStackHorizontally}
                                 />
@@ -205,8 +207,6 @@ const MenuItem = (props) => {
                                 <Icon
                                     src={Expensicons.DotIndicator}
                                     fill={props.brickRoadIndicator === 'error' ? colors.red : colors.green}
-                                    height={variables.iconSizeSmall}
-                                    width={variables.iconSizeSmall}
                                 />
                             </View>
                         )}
