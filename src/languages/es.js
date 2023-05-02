@@ -1163,6 +1163,7 @@ export default {
         markAsComplete: 'Marcar como completa',
         markAsIncomplete: 'Marcar como incompleta',
         pleaseEnterTaskAssignee: 'Por favor, asigna una persona a esta tarea',
+        pleaseEnterTaskDestination: 'Por favor, selecciona un destino de tarea',
     },
     statementPage: {
         generatingPDF: 'Estamos generando tu PDF ahora mismo. ¡Por favor, vuelve más tarde!',

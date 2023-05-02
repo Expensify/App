@@ -12,7 +12,6 @@ import styles from '../../styles/styles';
 import ONYXKEYS from '../../ONYXKEYS';
 import * as ErrorUtils from '../../libs/ErrorUtils';
 import Form from '../../components/Form';
-import Text from '../../components/Text';
 import Permissions from '../../libs/Permissions';
 import ROUTES from '../../ROUTES';
 import TaskSelectorLink from '../../components/TaskSelectorLink';
@@ -130,14 +129,14 @@ const NewTaskPage = (props) => {
     function validate(values) {
         const errors = {};
 
-        if (!values.taskTitle) {
+        if (!values.title) {
             // We error if the user doesn't enter a task name
             ErrorUtils.addErrorMessage(errors, 'taskTitle', props.translate('newTaskPage.pleaseEnterTaskName'));
         }
 
-        if (!values.taskAssignee) {
+        if (!values.shareDestination) {
             // We error if the user doesn't enter a task assignee
-            ErrorUtils.addErrorMessage(errors, 'taskAssignee', props.translate('newTaskPage.pleaseEnterTaskAssignee'));
+            ErrorUtils.addErrorMessage(errors, 'shareDestination', props.translate('newTaskPage.pleaseEnterTaskDestination'));
         }
 
         return errors;
@@ -166,17 +165,19 @@ const NewTaskPage = (props) => {
                 formID={ONYXKEYS.FORMS.NEW_TASK_FORM}
                 submitButtonText={props.translate('newTaskPage.confirmTask')}
                 style={[styles.mh5, styles.mt5, styles.flexGrow1]}
-                validate={values => validate(values)}
-                onSubmit={values => onSubmit(values)}
+                validate={() => validate(props.task)}
+                onSubmit={() => onSubmit(props.task)}
                 enabledWhenOffline
             >
                 <View style={styles.mb5}>
-                    {/* <TextInput value={props.task.name} autoFocus inputID="taskTitle" label={props.translate('newTaskPage.title')} /> */}
-                    <Text>{props.task.name}</Text>
+                    <TaskSelectorLink text={props.task.name} onPress={() => Navigation.navigate(ROUTES.getNewTaskTitleRoute(getReportID(props.route)))} label="newTaskPage.title" />
                 </View>
                 <View style={styles.mb5}>
-                    {/* <TextInput value={props.task.description} inputID="taskDescription" label={props.translate('newTaskPage.description')} /> */}
-                    <Text>{props.task.description}</Text>
+                    <TaskSelectorLink
+                        text={props.task.description}
+                        onPress={() => Navigation.navigate(ROUTES.getNewTaskDescriptionRoute(getReportID(props.route)))}
+                        label="newTaskPage.description"
+                    />
                 </View>
                 <View style={styles.mb5}>
                     <TaskSelectorLink
@@ -193,7 +194,8 @@ const NewTaskPage = (props) => {
                         text={shareDestination.displayName}
                         alternateText={shareDestination.subtitle}
                         onPress={() => Navigation.navigate(ROUTES.getNewTaskChatRoute(getReportID(props.route)))}
-                        label="newTaskPage.assignee"
+                        label="newTaskPage.shareSomewhere"
+                        isShareDestination
                     />
                 </View>
             </Form>

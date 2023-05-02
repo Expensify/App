@@ -30,7 +30,7 @@ const propTypes = {
     label: PropTypes.string.isRequired,
 
     /** Whether it is a share location */
-    isShareLocation: PropTypes.bool,
+    isShareDestination: PropTypes.bool,
 
     ...withLocalizePropTypes,
 };
@@ -39,18 +39,19 @@ const defaultProps = {
     icons: [],
     text: '',
     alternateText: '',
-    isShareLocation: false,
+    isShareDestination: false,
 };
 
 // eslint-disable-next-line react/destructuring-assignment
 const TaskSelectorLink = (props) => {
-    // console.log('props', !_.isEmpty(props.icons), props.icons);
+    console.log(props.icons);
     const displayNameStyle = StyleUtils.combineStyles(styles.optionDisplayName, styles.pre);
     const alternateTextStyle = StyleUtils.combineStyles(styles.sidebarLinkText, styles.optionAlternateText, styles.textLabelSupporting, styles.pre);
+    const linkBottomMargin = props.icons.length !== 0 ? styles.mb6 : styles.mb2;
     return (
-        <TouchableOpacity style={[styles.flexRow, styles.taskSelectorLink, styles.mb8]} onPress={props.onPress}>
+        <TouchableOpacity style={[styles.flexRow, styles.taskSelectorLink, linkBottomMargin]} onPress={props.onPress}>
             <View style={[styles.flexRow, styles.containerWithSpaceBetween, styles.alignItemsCenter]}>
-                {props.icons || props.text ? (
+                {props.icons.length !== 0 || props.text !== '' ? (
                     <View style={[styles.flexColumn, styles.justify, styles.alignItemsStart]}>
                         <Text style={[styles.label, styles.textWhite, styles.mb2]}>{props.translate(props.label)}</Text>
                         <View style={[styles.flexRow, styles.justifyContentCenter]}>
@@ -63,7 +64,7 @@ const TaskSelectorLink = (props) => {
                                         tooltipEnabled={false}
                                         numberOfLines={1}
                                         textStyles={displayNameStyle}
-                                        shouldUseFullTitle={props.isShareLocation}
+                                        shouldUseFullTitle={props.isShareDestination}
                                     />
                                     {props.alternateText ? (
                                         <Text style={alternateTextStyle} numberOfLines={1}>
@@ -76,7 +77,7 @@ const TaskSelectorLink = (props) => {
                     </View>
                 ) : (
                     <View>
-                        <Text style={[styles.optionAlternateText, styles.textWhite]}>{props.translate(props.label)}</Text>
+                        <Text style={[styles.textWhite, styles.textNormal]}>{props.translate(props.label)}</Text>
                     </View>
                 )}
                 <Icon src={Expensicons.ArrowRight} fill={themeColors.textLight} width={variables.iconSizeSmall} height={variables.iconSizeSmall} inline />

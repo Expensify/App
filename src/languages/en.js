@@ -1162,6 +1162,7 @@ export default {
         markAsComplete: 'Mark as complete',
         markAsIncomplete: 'Mark as incomplete',
         pleaseEnterTaskAssignee: 'Please select an assignee',
+        pleaseEnterTaskDestination: 'Please select a share destination',
     },
     statementPage: {
         generatingPDF: 'We\'re generating your PDF right now. Please come back later!',
