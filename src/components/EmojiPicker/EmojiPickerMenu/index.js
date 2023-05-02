@@ -20,7 +20,6 @@ import EmojiSkinToneList from '../EmojiSkinToneList';
 import * as EmojiUtils from '../../../libs/EmojiUtils';
 import CategoryShortcutBar from '../CategoryShortcutBar';
 import TextInput from '../../TextInput';
-import KeyboardSpacer from '../../KeyboardSpacer';
 
 const propTypes = {
     /** Function to add the selected emoji to the main compose text input */
@@ -567,7 +566,6 @@ class EmojiPickerMenu extends Component {
                     updatePreferredSkinTone={this.updatePreferredSkinTone}
                     preferredSkinTone={this.props.preferredSkinTone}
                 />
-                <KeyboardSpacer />
             </View>
         );
     }
