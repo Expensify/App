@@ -28,22 +28,15 @@ const propTypes = {
     /** Personal details of all the users */
     personalDetails: PropTypes.objectOf(participantPropTypes),
 
-    /** The policies which the user has access to and which the report could be tied to */
-    policies: PropTypes.shape({
-        /** Name of the policy */
-        name: PropTypes.string,
-    }),
-
     ...windowDimensionsPropTypes,
 };
 const defaultProps = {
     report: {},
     personalDetails: {},
-    policies: {},
 };
 
 const ReportActionItemCreated = (props) => {
-    const icons = ReportUtils.getIcons(props.report, props.personalDetails, props.policies);
+    const icons = ReportUtils.getIcons(props.report, props.personalDetails);
     return (
         <OfflineWithFeedback
             pendingAction={lodashGet(props.report, 'pendingFields.addWorkspaceRoom') || lodashGet(props.report, 'pendingFields.createChat')}
@@ -91,9 +84,6 @@ export default compose(
         },
         personalDetails: {
             key: ONYXKEYS.PERSONAL_DETAILS,
-        },
-        policies: {
-            key: ONYXKEYS.COLLECTION.POLICY,
         },
     }),
 )(ReportActionItemCreated);

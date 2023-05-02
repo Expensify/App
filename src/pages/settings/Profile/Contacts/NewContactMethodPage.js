@@ -1,4 +1,4 @@
-import React from 'react';
+import React, {useRef} from 'react';
 import PropTypes from 'prop-types';
 import {View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
@@ -53,7 +53,7 @@ const defaultProps = {
 };
 
 function NewContactMethodPage(props) {
-    const formRef = React.useRef(null);
+    const loginInputRef = useRef(null);
 
     const isFormValid = (values) => {
         const phoneLogin = !_.isEmpty(values.phoneOrEmail) ? LoginUtils.getPhoneNumberWithoutSpecialChars(values.phoneOrEmail) : '';
@@ -86,12 +86,11 @@ function NewContactMethodPage(props) {
     return (
         <ScreenWrapper
             onEntryTransitionEnd={() => {
-                const form = formRef.current;
-                if (!form) {
+                if (!loginInputRef.current) {
                     return;
                 }
 
-                form.focus();
+                loginInputRef.current.focus();
             }}
 
             includeSafeAreaPaddingBottom={false}
@@ -115,10 +114,10 @@ function NewContactMethodPage(props) {
                 <View style={[styles.mb6]}>
                     <TextInput
                         label={`${props.translate('common.email')}/${props.translate('common.phoneNumber')}`}
+                        ref={el => loginInputRef.current = el}
                         inputID="phoneOrEmail"
                         autoCapitalize="none"
                         returnKeyType={Permissions.canUsePasswordlessLogins(props.betas) ? 'done' : 'next'}
-                        innerRef={formRef}
                         shouldSaveDraft
                     />
                 </View>
