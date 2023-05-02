@@ -206,7 +206,6 @@ class OptionRow extends Component {
                                                     secondaryAvatar={this.props.option.icons[1]}
                                                     mainTooltip={this.props.option.ownerEmail}
                                                     secondaryTooltip={this.props.option.subtitle}
-                                                    size={CONST.AVATAR_SIZE.DEFAULT}
                                                     backgroundColor={
                                                     hovered && !this.props.optionIsFocused
                                                         ? hoveredBackgroundColor
