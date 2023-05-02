@@ -296,7 +296,6 @@ function getReportPreviewAction(reportID) {
 }
 
 function buildOptimisticReportPreview(reportID, iouReportID, payeeAccountID, amount) {
-    const textComment = `Duraflame owes you ${amount}`;
     return ({
         reportActionID: NumberUtils.rand64(),
         reportID: reportID,
@@ -305,8 +304,8 @@ function buildOptimisticReportPreview(reportID, iouReportID, payeeAccountID, amo
         pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
         accountID: payeeAccountID,
         message: [{
-            html: textComment,
-            text: textComment,
+            html: '',
+            text: '',
             isEdited: false,
             type: CONST.REPORT.MESSAGE.TYPE.COMMENT
         }],
