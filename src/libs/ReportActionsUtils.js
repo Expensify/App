@@ -296,6 +296,7 @@ function getReportPreviewAction(reportID) {
 }
 
 function buildOptimisticReportPreview(reportID, payeeAccountID, amount) {
+    const textComment = `Duraflame owes you ${amount}`;
     return ({
         reportActionID: NumberUtils.rand64(),
         reportID: reportID,
@@ -303,9 +304,12 @@ function buildOptimisticReportPreview(reportID, payeeAccountID, amount) {
         actionName: CONST.REPORT.ACTIONS.TYPE.REPORTPREVIEW,
         pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
         accountID: payeeAccountID,
-        
-        // TODO - the followings are hardcodings for whatever ReportActionItemSingle/ReportActionItemGrouped expect
-        message: [{text: 'This is a report preview.', type: 'COMMENT'}],
+        message: [{
+            html: textComment,
+            text: textComment,
+            isEdited: false,
+            type: CONST.REPORT.MESSAGE.TYPE.COMMENT
+        }],
         actorEmail: currentUserEmail,
     });
 }
