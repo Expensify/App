@@ -156,6 +156,9 @@ function Expensify(props) {
 
         appStateChangeListener.current = AppState.addEventListener('change', initializeClient);
 
+        // If the app is opened from a deep link, get the reportID (if exists) from the deep link and navigate to the chat report
+        Linking.getInitialURL().then(url => Report.openReportFromDeepLink(url));
+
         // Open chat report from a deep link (only mobile native)
         Linking.addEventListener('url', state => Report.openReportFromDeepLink(state.url));
 
@@ -177,9 +180,6 @@ function Expensify(props) {
             BootSplash.hide();
 
             setIsSplashShown(false);
-
-            // If the app is opened from a deep link, get the reportID (if exists) from the deep link and navigate to the chat report
-            Linking.getInitialURL().then(url => Report.openReportFromDeepLink(url));
         }
     }, [props.isSidebarLoaded, isNavigationReady, isSplashShown, isAuthenticated]);
 

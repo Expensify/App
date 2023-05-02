@@ -642,7 +642,7 @@ function setIOUSelectedCurrency(selectedCurrencyCode) {
  * @param {String} comment
  */
 function setMoneyRequestDescription(comment) {
-    Onyx.merge(ONYXKEYS.IOU, {comment});
+    Onyx.merge(ONYXKEYS.IOU, {comment: comment.trim()});
 }
 
 /**

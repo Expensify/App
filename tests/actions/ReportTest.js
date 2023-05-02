@@ -235,7 +235,7 @@ describe('actions/Report', () => {
             })
             .then(() => TestHelper.setPersonalDetails(USER_1_LOGIN, USER_1_ACCOUNT_ID))
             .then(() => {
-                // When a Pusher event is handled for a new report comment
+                // When a Pusher event is handled for a new report comment that includes a mention of the current user
                 reportActionCreatedDate = DateUtils.getDBTime();
                 channel.emit(Pusher.TYPE.ONYX_API_UPDATE, [
                     {
@@ -247,6 +247,7 @@ describe('actions/Report', () => {
                             lastMessageText: 'Comment 1',
                             lastActorEmail: USER_2_LOGIN,
                             lastVisibleActionCreated: reportActionCreatedDate,
+                            lastMentionedTime: reportActionCreatedDate,
                             lastReadTime: DateUtils.subtractMillisecondsFromDateTime(reportActionCreatedDate, 1),
                         },
                     },
@@ -275,6 +276,9 @@ describe('actions/Report', () => {
                 // Then the report will be unread
                 expect(ReportUtils.isUnread(report)).toBe(true);
 
+                // And show a green dot for unread mentions in the LHN
+                expect(ReportUtils.isUnreadWithMention(report)).toBe(true);
+
                 // When the user visits the report
                 jest.advanceTimersByTime(10);
                 currentTime = DateUtils.getDBTime();
@@ -286,14 +290,18 @@ describe('actions/Report', () => {
                 expect(ReportUtils.isUnread(report)).toBe(false);
                 expect(moment.utc(report.lastReadTime).valueOf()).toBeGreaterThanOrEqual(moment.utc(currentTime).valueOf());
 
+                // And no longer show the green dot for unread mentions in the LHN
+                expect(ReportUtils.isUnreadWithMention(report)).toBe(false);
+
                 // When the user manually marks a message as "unread"
                 jest.advanceTimersByTime(10);
                 Report.markCommentAsUnread(REPORT_ID, reportActionCreatedDate);
                 return waitForPromisesToResolve();
             })
             .then(() => {
-                // Then the report will be unread
+                // Then the report will be unread and show the green dot for unread mentions in LHN
                 expect(ReportUtils.isUnread(report)).toBe(true);
+                expect(ReportUtils.isUnreadWithMention(report)).toBe(true);
                 expect(report.lastReadTime).toBe(DateUtils.subtractMillisecondsFromDateTime(reportActionCreatedDate, 1));
 
                 // When a new comment is added by the current user
@@ -303,8 +311,9 @@ describe('actions/Report', () => {
                 return waitForPromisesToResolve();
             })
             .then(() => {
-                // The report will be read and the lastReadTime updated
+                // The report will be read, the green dot for unread mentions will go away, and the lastReadTime updated
                 expect(ReportUtils.isUnread(report)).toBe(false);
+                expect(ReportUtils.isUnreadWithMention(report)).toBe(false);
                 expect(moment.utc(report.lastReadTime).valueOf()).toBeGreaterThanOrEqual(moment.utc(currentTime).valueOf());
                 expect(report.lastMessageText).toBe('Current User Comment 1');
 
