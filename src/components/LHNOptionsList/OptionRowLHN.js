@@ -215,7 +215,7 @@ const OptionRowLHN = (props) => {
                             style={[styles.flexRow, styles.alignItemsCenter]}
                             accessible={false}
                         >
-                            {shouldShowGreenDotIndicator && <Icon src={Expensicons.DotIndicator} fill={themeColors.green} />}
+                            {shouldShowGreenDotIndicator && <Icon src={Expensicons.DotIndicator} fill={colors.green} />}
                             {optionItem.hasDraftComment && (
                                 <View
                                     style={styles.ml2}
