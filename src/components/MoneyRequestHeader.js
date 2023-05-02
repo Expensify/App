@@ -1,6 +1,7 @@
 import React from 'react';
 import {View} from 'react-native';
 import PropTypes from 'prop-types';
+import lodashGet from 'lodash/get';
 import HeaderWithCloseButton from './HeaderWithCloseButton';
 import iouReportPropTypes from '../pages/iouReportPropTypes';
 import withLocalize, {withLocalizePropTypes} from './withLocalize';
@@ -17,7 +18,6 @@ import compose from '../libs/compose';
 import Navigation from '../libs/Navigation/Navigation';
 import ROUTES from '../ROUTES';
 import Icon from './Icon';
-import lodashGet from 'lodash/get';
 
 const propTypes = {
     /** The report currently being looked at */
@@ -49,8 +49,12 @@ const MoneyRequestHeader = (props) => {
     });
     const isSettled = /* ReportUtils.isSettled(props.report.reportID); */ false;
     const isExpenseReport = ReportUtils.isExpenseReport(props.report);
-    const payeeName = isExpenseReport ? ReportUtils.getPolicyName(props.report, props.policies) : ReportUtils.getDisplayNameForParticipant(props.report.managerEmail);
-    const payeeAvatar = isExpenseReport ? ReportUtils.getWorkspaceAvatar(props.report) : ReportUtils.getAvatar(lodashGet(props.personalDetails, [props.report.managerEmail, 'avatar']), props.personalDetails);
+    const payeeName = isExpenseReport
+        ? ReportUtils.getPolicyName(props.report, props.policies)
+        : ReportUtils.getDisplayNameForParticipant(props.report.managerEmail);
+    const payeeAvatar = isExpenseReport
+        ? ReportUtils.getWorkspaceAvatar(props.report)
+        : ReportUtils.getAvatar(lodashGet(props.personalDetails, [props.report.managerEmail, 'avatar']), props.personalDetails);
     return (
         <View style={[
             {backgroundColor: themeColors.highlightBG},
