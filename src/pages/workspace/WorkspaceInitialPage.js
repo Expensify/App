@@ -148,6 +148,7 @@ const WorkspaceInitialPage = (props) => {
                             },
                         ]}
                         threeDotsAnchorPosition={styles.threeDotsPopoverOffset}
+                        onBackButtonPress={() => Navigation.goBack(ROUTES.SETTINGS_WORKSPACES)}
                     />
                     <ScrollView
                         contentContainerStyle={[

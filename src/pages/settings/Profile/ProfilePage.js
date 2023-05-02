@@ -84,7 +84,7 @@ const ProfilePage = (props) => {
         <ScreenWrapper includeSafeAreaPaddingBottom={false}>
             <HeaderWithBackButton
                 title={props.translate('common.profile')}
-                onBackButtonPress={() => Navigation.navigate(ROUTES.SETTINGS)}
+                onBackButtonPress={() => Navigation.goBack(ROUTES.SETTINGS)}
             />
             <ScrollView>
                 <OfflineWithFeedback

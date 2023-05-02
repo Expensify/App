@@ -126,7 +126,7 @@ class TimezoneSelectPage extends Component {
                     <>
                         <HeaderWithBackButton
                             title={this.props.translate('timezonePage.timezone')}
-                            onBackButtonPress={() => Navigation.navigate(ROUTES.SETTINGS_TIMEZONE)}
+                            onBackButtonPress={() => Navigation.goBack(ROUTES.SETTINGS_TIMEZONE)}
                         />
                         <OptionsSelector
                             textInputLabel={this.props.translate('timezonePage.timezone')}

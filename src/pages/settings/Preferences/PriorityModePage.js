@@ -53,7 +53,7 @@ const PriorityModePage = (props) => {
         <ScreenWrapper includeSafeAreaPaddingBottom={false}>
             <HeaderWithBackButton
                 title={props.translate('priorityModePage.priorityMode')}
-                onBackButtonPress={() => Navigation.navigate(ROUTES.SETTINGS_PREFERENCES)}
+                onBackButtonPress={() => Navigation.goBack(ROUTES.SETTINGS_PREFERENCES)}
             />
             <Text style={[styles.mh5, styles.mv4]}>
                 {props.translate('priorityModePage.explainerText')}

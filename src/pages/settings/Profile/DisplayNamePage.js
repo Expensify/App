@@ -80,7 +80,7 @@ class DisplayNamePage extends Component {
             <ScreenWrapper includeSafeAreaPaddingBottom={false}>
                 <HeaderWithBackButton
                     title={this.props.translate('displayNamePage.headerTitle')}
-                    onBackButtonPress={() => Navigation.navigate(ROUTES.SETTINGS_PROFILE)}
+                    onBackButtonPress={() => Navigation.goBack(ROUTES.SETTINGS_PROFILE)}
                 />
                 <Form
                     style={[styles.flexGrow1, styles.ph5]}

@@ -7,7 +7,7 @@ import NAVIGATORS from '../../NAVIGATORS';
 import linkingConfig from './linkingConfig';
 import getTopmostReportId from './getTopmostReportId';
 
-export default function linkTo(navigation, path) {
+export default function linkTo(navigation, path, type) {
     const normalizedPath = !path.startsWith('/') ? `/${path}` : path;
     if (navigation === undefined) {
         throw new Error("Couldn't find a navigation object. Is your component inside a screen in a navigator?");
@@ -48,7 +48,7 @@ export default function linkTo(navigation, path) {
 
         // If this action is navigating to the RightModalNavigator and the last route on the root navigator is also RightModalNavigator
         // then we want to replace the current RHP state with new one
-        } else if (action.payload.name === NAVIGATORS.RIGHT_MODAL_NAVIGATOR && _.last(root.getState().routes).name === NAVIGATORS.RIGHT_MODAL_NAVIGATOR) {
+        } else if (type === 'REPLACE') {
             action.type = 'REPLACE';
 
         // If this action is navigating to the RightModalNavigator and the last route on the root navigator is not RightModalNavigator then push

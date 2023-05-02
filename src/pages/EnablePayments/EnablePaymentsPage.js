@@ -19,6 +19,8 @@ import HeaderWithBackButton from '../../components/HeaderWithBackButton';
 import FailedKYC from './FailedKYC';
 import compose from '../../libs/compose';
 import withLocalize, {withLocalizePropTypes} from '../../components/withLocalize';
+import Navigation from '../../libs/Navigation/Navigation';
+import ROUTES from '../../ROUTES';
 
 const propTypes = {
     /** Information about the network from Onyx */
@@ -60,6 +62,7 @@ class EnablePaymentsPage extends React.Component {
                             <>
                                 <HeaderWithBackButton
                                     title={this.props.translate('additionalDetailsStep.headerTitle')}
+                                    onBackButtonPress={() => Navigation.goBack(ROUTES.SETTINGS_PAYMENTS)}
                                 />
                                 <FailedKYC />
                             </>

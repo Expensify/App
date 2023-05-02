@@ -108,7 +108,7 @@ class DateOfBirthPage extends Component {
             <ScreenWrapper includeSafeAreaPaddingBottom={false}>
                 <HeaderWithBackButton
                     title={this.props.translate('common.dob')}
-                    onBackButtonPress={() => Navigation.navigate(ROUTES.SETTINGS_PERSONAL_DETAILS)}
+                    onBackButtonPress={() => Navigation.goBack(ROUTES.SETTINGS_PERSONAL_DETAILS)}
                 />
                 <Form
                     style={[styles.flexGrow1, styles.ph5]}

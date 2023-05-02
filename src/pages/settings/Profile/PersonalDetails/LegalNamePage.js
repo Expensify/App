@@ -88,7 +88,7 @@ class LegalNamePage extends Component {
             <ScreenWrapper includeSafeAreaPaddingBottom={false}>
                 <HeaderWithBackButton
                     title={this.props.translate('privatePersonalDetails.legalName')}
-                    onBackButtonPress={() => Navigation.navigate(ROUTES.SETTINGS_PERSONAL_DETAILS)}
+                    onBackButtonPress={() => Navigation.goBack(ROUTES.SETTINGS_PERSONAL_DETAILS)}
                 />
                 <Form
                     style={[styles.flexGrow1, styles.ph5]}

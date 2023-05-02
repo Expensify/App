@@ -36,7 +36,7 @@ const SecuritySettingsPage = (props) => {
         <ScreenWrapper>
             <HeaderWithBackButton
                 title={props.translate('initialSettingsPage.security')}
-                onBackButtonPress={() => Navigation.navigate(ROUTES.SETTINGS)}
+                onBackButtonPress={() => Navigation.goBack(ROUTES.SETTINGS)}
             />
             <ScrollView
                 contentContainerStyle={[

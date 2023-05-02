@@ -53,7 +53,7 @@ const PreferencesPage = (props) => {
         <ScreenWrapper includeSafeAreaPaddingBottom={false}>
             <HeaderWithBackButton
                 title={props.translate('common.preferences')}
-                onBackButtonPress={() => Navigation.navigate(ROUTES.SETTINGS)}
+                onBackButtonPress={() => Navigation.goBack(ROUTES.SETTINGS)}
             />
             <ScrollView style={[styles.flex1, styles.mt3]}>
                 <View style={styles.mb6}>

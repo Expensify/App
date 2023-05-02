@@ -372,6 +372,7 @@ class ReimbursementAccountPage extends React.Component {
                     <HeaderWithBackButton
                         title={this.props.translate('workspace.common.bankAccount')}
                         subtitle={policyName}
+                        onBackButtonPress={() => Navigation.goBack(ROUTES.SETTINGS_WORKSPACES)}
                     />
                     {errorComponent}
                 </ScreenWrapper>

@@ -285,7 +285,6 @@ class InitialSettingsPage extends React.Component {
                     <>
                         <HeaderWithBackButton
                             title={this.props.translate('common.settings')}
-                            onBackButtonPress={() => Navigation.goBack()}
                         />
                         <ScrollView contentContainerStyle={safeAreaPaddingBottomStyle} style={[styles.settingsPageBackground]}>
                             <View style={styles.w100}>

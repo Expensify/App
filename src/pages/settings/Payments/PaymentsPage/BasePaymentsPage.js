@@ -393,7 +393,7 @@ class BasePaymentsPage extends React.Component {
             <ScreenWrapper>
                 <HeaderWithBackButton
                     title={this.props.translate('common.payments')}
-                    onBackButtonPress={() => Navigation.navigate(ROUTES.SETTINGS)}
+                    onBackButtonPress={() => Navigation.goBack(ROUTES.SETTINGS)}
                 />
                 <View style={[styles.flex1, styles.mb4]}>
                     <OfflineWithFeedback

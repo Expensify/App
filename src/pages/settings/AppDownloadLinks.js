@@ -13,6 +13,8 @@ import * as Link from '../../libs/actions/Link';
 import withWindowDimensions, {windowDimensionsPropTypes} from '../../components/withWindowDimensions';
 import * as ReportActionContextMenu from '../home/report/ContextMenu/ReportActionContextMenu';
 import {CONTEXT_MENU_TYPES} from '../home/report/ContextMenu/ContextMenuActions';
+import ROUTES from '../../ROUTES';
+import Navigation from '../../libs/Navigation/Navigation';
 
 const propTypes = {
     ...withLocalizePropTypes,
@@ -56,6 +58,7 @@ const AppDownloadLinksPage = (props) => {
         <ScreenWrapper>
             <HeaderWithBackButton
                 title={props.translate('initialSettingsPage.aboutPage.appDownloadLinks')}
+                onBackButtonPress={() => Navigation.goBack(ROUTES.SETTINGS_ABOUT)}
             />
             <ScrollView style={[styles.mt5]}>
                 {_.map(menuItems, item => (

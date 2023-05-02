@@ -149,7 +149,7 @@ class PasswordPage extends Component {
             >
                 <HeaderWithBackButton
                     title={this.props.translate('passwordPage.changePassword')}
-                    onBackButtonPress={() => Navigation.navigate(ROUTES.SETTINGS_SECURITY)}
+                    onBackButtonPress={() => Navigation.goBack(ROUTES.SETTINGS_SECURITY)}
                 />
                 {!_.isEmpty(this.props.account.success)
                     ? (

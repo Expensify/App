@@ -184,6 +184,7 @@ class IOUDetailsModal extends Component {
                     >
                         <HeaderWithBackButton
                             title={this.props.translate('common.details')}
+                            onBackButtonPress={() => Navigation.goBack(ROUTES.IOU_REQUEST)}
                         />
                         {this.props.iou.loading ? <View style={styles.flex1}><FullScreenLoadingIndicator /></View> : (
                             <View style={[styles.flex1, styles.justifyContentBetween]}>

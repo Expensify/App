@@ -16,6 +16,8 @@ import * as Link from '../libs/actions/Link';
 import CONST from '../CONST';
 import compose from '../libs/compose';
 import ONYXKEYS from '../ONYXKEYS';
+import Navigation from '../libs/Navigation/Navigation';
+import ROUTES from '../ROUTES';
 
 const propTypes = {
     /** Route object from navigation */
@@ -76,6 +78,7 @@ const GetAssistancePage = (props) => {
         <ScreenWrapper>
             <HeaderWithBackButton
                 title={props.translate('getAssistancePage.title')}
+                onBackButtonPress={() => Navigation.goBack(ROUTES.SETTINGS_WORKSPACES)}
             />
             <ScrollView>
                 <Section

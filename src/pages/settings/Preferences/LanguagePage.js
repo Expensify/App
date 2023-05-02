@@ -41,7 +41,7 @@ const LanguagePage = (props) => {
         <ScreenWrapper includeSafeAreaPaddingBottom={false}>
             <HeaderWithBackButton
                 title={props.translate('languagePage.language')}
-                onBackButtonPress={() => Navigation.navigate(ROUTES.SETTINGS_PREFERENCES)}
+                onBackButtonPress={() => Navigation.goBack(ROUTES.SETTINGS_PREFERENCES)}
             />
             <OptionsList
                 sections={[{data: localesToLanguages}]}

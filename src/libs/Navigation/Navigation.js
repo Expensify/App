@@ -41,27 +41,30 @@ function canNavigate(methodName, params = {}) {
 // Re-exporting the getTopmostReportId here to fill in default value for state. The getTopmostReportId isn't defined in this file to avoid cyclic dependencies.
 const getTopmostReportId = (state = navigationRef.getState()) => originalGetTopmostReportId(state);
 
-/**
- * @private
- * @param {Boolean} shouldOpenDrawer
- */
-function goBack() {
-    if (!canNavigate('goBack')) {
-        return;
+const getActiveRouteIndex = function (route, index) {
+    if (route.routes) {
+        const childActiveRoute = route.routes[route.index || 0];
+        return getActiveRouteIndex(childActiveRoute, route.index || 0);
     }
 
-    if (!navigationRef.current.canGoBack()) {
-        Log.hmmm('[Navigation] Unable to go back');
-        return;
+    if (route.state && route.state.routes) {
+        const childActiveRoute = route.state.routes[route.state.index || 0];
+        return getActiveRouteIndex(childActiveRoute, route.state.index || 0);
     }
-    navigationRef.current.goBack();
-}
+
+    if (route.name === NAVIGATORS.RIGHT_MODAL_NAVIGATOR) {
+        return 0;
+    }
+
+    return index;
+};
 
 /**
  * Main navigation method for redirecting to a route.
  * @param {String} route
+ * @param {String} type
  */
-function navigate(route = ROUTES.HOME) {
+function navigate(route = ROUTES.HOME, type) {
     if (!canNavigate('navigate', {route})) {
         // Store intended route if the navigator is not yet available,
         // we will try again after the NavigationContainer is ready
@@ -75,7 +78,29 @@ function navigate(route = ROUTES.HOME) {
     // More info: https://github.com/Expensify/App/issues/13146
     DomUtils.blurActiveElement();
 
-    linkTo(navigationRef.current, route);
+    linkTo(navigationRef.current, route, type);
+}
+
+/**
+ * @private
+ * @param {String} fallback
+ */
+function goBack(fallback = ROUTES.HOME) {
+    if (!canNavigate('goBack')) {
+        return;
+    }
+
+    if (!navigationRef.current.canGoBack()) {
+        Log.hmmm('[Navigation] Unable to go back');
+        return;
+    }
+
+    if (!getActiveRouteIndex(navigationRef.current.getState()) && fallback) {
+        navigate(fallback, 'REPLACE');
+        return;
+    }
+
+    navigationRef.current.goBack();
 }
 
 /**

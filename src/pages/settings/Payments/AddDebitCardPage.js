@@ -117,7 +117,7 @@ class DebitCardPage extends Component {
             <ScreenWrapper includeSafeAreaPaddingBottom={false}>
                 <HeaderWithBackButton
                     title={this.props.translate('addDebitCardPage.addADebitCard')}
-                    onBackButtonPress={() => Navigation.navigate(ROUTES.SETTINGS_PAYMENTS)}
+                    onBackButtonPress={() => Navigation.goBack(ROUTES.SETTINGS_PAYMENTS)}
                 />
                 <Form
                     formID={ONYXKEYS.FORMS.ADD_DEBIT_CARD_FORM}

@@ -26,6 +26,8 @@ import * as Report from '../libs/actions/Report';
 import OfflineWithFeedback from '../components/OfflineWithFeedback';
 import AutoUpdateTime from '../components/AutoUpdateTime';
 import FullPageNotFoundView from '../components/BlockingViews/FullPageNotFoundView';
+import Navigation from '../libs/Navigation/Navigation';
+import ROUTES from '../ROUTES';
 
 const matchType = PropTypes.shape({
     params: PropTypes.shape({
@@ -112,6 +114,7 @@ class DetailsPage extends React.PureComponent {
                 <FullPageNotFoundView shouldShow={_.isEmpty(login)}>
                     <HeaderWithBackButton
                         title={this.props.translate('common.details')}
+                        onBackButtonPress={() => Navigation.goBack(ROUTES.HOME)}
                     />
                     <View
                         pointerEvents="box-none"

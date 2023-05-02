@@ -13,6 +13,7 @@ import withLocalize, {withLocalizePropTypes} from '../../components/withLocalize
 import * as IOU from '../../libs/actions/IOU';
 import * as CurrencySymbolUtils from '../../libs/CurrencySymbolUtils';
 import {withNetwork} from '../../components/OnyxProvider';
+import ROUTES from '../../ROUTES';
 
 /**
  * IOU Currency selection for selecting currency
@@ -117,6 +118,7 @@ class IOUCurrencySelection extends Component {
                     <>
                         <HeaderWithBackButton
                             title={this.props.translate('iOUCurrencySelection.selectCurrency')}
+                            onBackButtonPress={() => Navigation.goBack(ROUTES.IOU_SEND_CURRENCY)}
                         />
                         <OptionsSelector
                             sections={this.getSections()}
