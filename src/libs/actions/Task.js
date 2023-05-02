@@ -196,16 +196,21 @@ function setAssigneeValue(assignee) {
     Onyx.merge(ONYXKEYS.TASK, {assignee});
 }
 
-function setShareDestinationValue(shareDestinationID) {
+function setShareDestinationValue(shareDestination) {
     // This is only needed for creation of a new task and so it should only be stored locally
-    Onyx.merge(ONYXKEYS.TASK, {shareDestinationID});
+    Onyx.merge(ONYXKEYS.TASK, {shareDestination});
 }
 
 function clearOutTaskInfo() {
-    Onyx.merge(ONYXKEYS.TASK, null);
+    Onyx.set(ONYXKEYS.TASK, null);
+}
+
+function clearOutTaskInfoAndNavigate(reportID) {
+    clearOutTaskInfo();
+    Navigation.navigate(ROUTES.getNewTaskDetailsRoute(reportID || 'global_create'));
 }
 
 // eslint-disable-next-line import/prefer-default-export
 export {
-    createTaskAndNavigate, setTitleValue, setDescriptionValue, setDetailsValue, setAssigneeValue, setShareDestinationValue, clearOutTaskInfo,
+    createTaskAndNavigate, setTitleValue, setDescriptionValue, setDetailsValue, setAssigneeValue, setShareDestinationValue, clearOutTaskInfo, clearOutTaskInfoAndNavigate,
 };

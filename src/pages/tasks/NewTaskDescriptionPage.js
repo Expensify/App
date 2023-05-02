@@ -40,7 +40,12 @@ const NewTaskDescriptionPage = (props) => {
     }
     return (
         <ScreenWrapper includeSafeAreaPaddingBottom={false}>
-            <HeaderWithCloseButton title={props.translate('newTaskPage.assignTask')} onCloseButtonPress={() => Navigation.dismissModal()} />
+            <HeaderWithCloseButton
+                title={props.translate('newTaskPage.assignTask')}
+                onCloseButtonPress={() => Navigation.dismissModal()}
+                shouldShowBackButton
+                onBackButtonPress={() => Navigation.goBack()}
+            />
             <Form
                 formID={ONYXKEYS.FORMS.NEW_TASK_FORM}
                 submitButtonText={props.translate('newTaskPage.assignTask')}

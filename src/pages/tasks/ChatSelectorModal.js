@@ -147,7 +147,12 @@ const ChatSelectorModal = (props) => {
         <ScreenWrapper includeSafeAreaPaddingBottom={false}>
             {({didScreenTransitionEnd, safeAreaPaddingBottomStyle}) => (
                 <>
-                    <HeaderWithCloseButton title={props.translate('common.search')} onCloseButtonPress={() => Navigation.goBack()} />
+                    <HeaderWithCloseButton
+                        title={props.translate('common.search')}
+                        onCloseButtonPress={() => Navigation.goBack()}
+                        shouldShowBackButton
+                        onBackButtonPress={() => Navigation.goBack()}
+                    />
                     <View style={[styles.flex1, styles.w100, styles.pRelative]}>
                         <OptionsSelector
                             sections={sections}
