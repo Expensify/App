@@ -18,6 +18,7 @@ import ROUTES from '../../../../ROUTES';
 import styles from '../../../../styles/styles';
 import * as User from '../../../../libs/actions/User';
 import * as LoginUtils from '../../../../libs/LoginUtils';
+import * as ErrorUtils from '../../../../libs/ErrorUtils';
 import Form from '../../../../components/Form';
 
 const propTypes = {
@@ -58,18 +59,18 @@ function NewContactMethodPage(props) {
         const errors = {};
 
         if (_.isEmpty(values.phoneOrEmail)) {
-            errors.phoneOrEmail = props.translate('contacts.genericFailureMessages.contactMethodRequired');
+            ErrorUtils.addErrorMessage(errors, 'phoneOrEmail', props.translate('contacts.genericFailureMessages.contactMethodRequired'));
         }
 
         if (!_.isEmpty(values.phoneOrEmail) && !(Str.isValidPhone(phoneLogin) || Str.isValidEmail(values.phoneOrEmail))) {
-            errors.phoneOrEmail = props.translate('contacts.genericFailureMessages.invalidContactMethod');
+            ErrorUtils.addErrorMessage(errors, 'phoneOrEmail', props.translate('contacts.genericFailureMessages.invalidContactMethod'));
         }
 
         if (!_.isEmpty(values.phoneOrEmail) && lodashGet(props.loginList, (values.phoneOrEmail).toLowerCase())) {
-            errors.phoneOrEmail = props.translate('contacts.genericFailureMessages.enteredMethodIsAlreadySubmited');
+            ErrorUtils.addErrorMessage(errors, 'phoneOrEmail', props.translate('contacts.genericFailureMessages.enteredMethodIsAlreadySubmited'));
         }
 
-        if (!Permissions.canUsePasswordlessLogins(props.betas) || _.isEmpty(values.password)) {
+        if (!Permissions.canUsePasswordlessLogins(props.betas) && _.isEmpty(values.password)) {
             errors.password = props.translate('contacts.genericFailureMessages.passwordRequired');
         }
 
@@ -105,6 +106,7 @@ function NewContactMethodPage(props) {
                         autoCapitalize="none"
                         returnKeyType={Permissions.canUsePasswordlessLogins(props.betas) ? 'done' : 'next'}
                         autoFocus
+                        shouldSaveDraft
                     />
                 </View>
                 {!Permissions.canUsePasswordlessLogins(props.betas)
