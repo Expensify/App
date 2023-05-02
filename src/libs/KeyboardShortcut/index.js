@@ -1,9 +1,13 @@
 import _ from 'underscore';
 import lodashGet from 'lodash/get';
 import Str from 'expensify-common/lib/str';
+import * as KeyCommand from 'react-native-key-command';
+import bindHandlerToKeydownEvent from './bindHandlerToKeydownEvent';
 import getOperatingSystem from '../getOperatingSystem';
 import CONST from '../../CONST';
 import * as Browser from '../Browser';
+
+const operatingSystem = getOperatingSystem();
 
 // Handlers for the various keyboard listeners we set up
 const eventHandlers = {};
@@ -19,29 +23,6 @@ function getDocumentedShortcuts() {
 }
 
 /**
- * Gets modifiers from a keyboard event.
- *
- * @param {Event} event
- * @returns {Array<String>}
- */
-function getKeyEventModifiers(event) {
-    const modifiers = [];
-    if (event.shiftKey) {
-        modifiers.push('SHIFT');
-    }
-    if (event.ctrlKey) {
-        modifiers.push('CONTROL');
-    }
-    if (event.altKey) {
-        modifiers.push('ALT');
-    }
-    if (event.metaKey) {
-        modifiers.push('META');
-    }
-    return modifiers;
-}
-
-/**
  * Generates the normalized display name for keyboard shortcuts.
  *
  * @param {String} key
@@ -49,7 +30,23 @@ function getKeyEventModifiers(event) {
  * @returns {String}
  */
 function getDisplayName(key, modifiers) {
-    let displayName = [key.toUpperCase()];
+    let displayName = (() => {
+        // Type of key is string and the type of KeyCommand.constants.* is number | string. Use _.isEqual to match different types.
+        if (_.isEqual(key.toLowerCase(), lodashGet(KeyCommand, 'constants.keyInputEnter', 'keyInputEnter').toString().toLowerCase())) {
+            return ['ENTER'];
+        }
+        if (_.isEqual(key.toLowerCase(), lodashGet(KeyCommand, 'constants.keyInputEscape', 'keyInputEscape').toString().toLowerCase())) {
+            return ['ESCAPE'];
+        }
+        if (_.isEqual(key.toLowerCase(), lodashGet(KeyCommand, 'constants.keyInputUpArrow', 'keyInputUpArrow').toString().toLowerCase())) {
+            return ['ARROWUP'];
+        }
+        if (_.isEqual(key.toLowerCase(), lodashGet(KeyCommand, 'constants.keyInputDownArrow', 'keyInputDownArrow').toString().toLowerCase())) {
+            return ['ARROWDOWN'];
+        }
+        return [key.toUpperCase()];
+    })();
+
     if (_.isString(modifiers)) {
         displayName.unshift(modifiers);
     } else if (_.isArray(modifiers)) {
@@ -60,6 +57,20 @@ function getDisplayName(key, modifiers) {
 
     return displayName.join(' + ');
 }
+
+_.each(CONST.KEYBOARD_SHORTCUTS, (shortcut) => {
+    const shortcutTrigger = lodashGet(shortcut, ['trigger', operatingSystem], lodashGet(shortcut, 'trigger.DEFAULT'));
+
+    // If there is no trigger for the current OS nor a default trigger, then we don't need to do anything
+    if (!shortcutTrigger) {
+        return;
+    }
+
+    KeyCommand.addListener(
+        shortcutTrigger,
+        (keycommandEvent, event) => bindHandlerToKeydownEvent(getDisplayName, eventHandlers, keycommandEvent, event),
+    );
+});
 
 /**
  * Check if the Enter key was pressed during IME confirmation (i.e. while the text is being composed).
@@ -91,46 +102,11 @@ function bindHandlerToKeydownEvent(event) {
         return;
     }
 
-    const eventModifiers = getKeyEventModifiers(event);
-    const displayName = getDisplayName(event.key, eventModifiers);
-
-    // Loop over all the callbacks
-    _.every(eventHandlers[displayName], (callback) => {
-        // Early return for excludedNodes
-        if (_.contains(callback.excludedNodes, event.target.nodeName)) {
-            return true;
-        }
-
-        // If configured to do so, prevent input text control to trigger this event
-        if (!callback.captureOnInputs && (
-            event.target.nodeName === 'INPUT'
-            || event.target.nodeName === 'TEXTAREA'
-            || event.target.contentEditable === 'true'
-        )) {
-            return true;
-        }
-
-        // Determine if the event should bubble before executing the callback (which may have side-effects)
-        let shouldBubble = callback.shouldBubble || false;
-        if (_.isFunction(callback.shouldBubble)) {
-            shouldBubble = callback.shouldBubble();
-        }
-
-        if (_.isFunction(callback.callback)) {
-            callback.callback(event);
-        }
-        if (callback.shouldPreventDefault) {
-            event.preventDefault();
-        }
-
-        // If the event should not bubble, short-circuit the loop
-        return shouldBubble;
-    });
-}
-
-// Make sure we don't add multiple listeners
-document.removeEventListener('keydown', bindHandlerToKeydownEvent, {capture: true});
-document.addEventListener('keydown', bindHandlerToKeydownEvent, {capture: true});
+    KeyCommand.addListener(
+        shortcutTrigger,
+        (keycommandEvent, event) => bindHandlerToKeydownEvent(getDisplayName, eventHandlers, keycommandEvent, event),
+    );
+});
 
 /**
  * Unsubscribes a keyboard event handler.
@@ -150,7 +126,6 @@ function unsubscribe(displayName, callbackID) {
  * @returns {Array}
  */
 function getPlatformEquivalentForKeys(keys) {
-    const operatingSystem = getOperatingSystem();
     return _.map(keys, (key) => {
         if (!_.has(CONST.PLATFORM_SPECIFIC_KEYS, key)) {
             return key;
