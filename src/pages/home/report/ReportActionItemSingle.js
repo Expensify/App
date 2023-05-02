@@ -19,6 +19,8 @@ import ControlSelection from '../../../libs/ControlSelection';
 import * as ReportUtils from '../../../libs/ReportUtils';
 import OfflineWithFeedback from '../../../components/OfflineWithFeedback';
 import CONST from '../../../CONST';
+import SubscriptAvatar from '../../../components/SubscriptAvatar';
+import reportPropTypes from '../../reportPropTypes';
 
 const propTypes = {
     /** All the data of the action */
@@ -34,8 +36,14 @@ const propTypes = {
     /** Children view component for this action item */
     children: PropTypes.node.isRequired,
 
+    /** Report for this action */
+    report: reportPropTypes.isRequired,
+
     /** Show header for action */
     showHeader: PropTypes.bool,
+
+    /** Determines if the avatar is displayed as a subscript (positioned lower than normal) */
+    shouldShowSubscriptAvatar: PropTypes.bool,
 
     ...withLocalizePropTypes,
 };
@@ -44,6 +52,7 @@ const defaultProps = {
     personalDetails: {},
     wrapperStyles: [styles.chatItem],
     showHeader: true,
+    shouldShowSubscriptAvatar: false,
 };
 
 const showUserDetails = (email) => {
@@ -77,16 +86,25 @@ const ReportActionItemSingle = (props) => {
                 onPressOut={ControlSelection.unblock}
                 onPress={() => showUserDetails(actorEmail)}
             >
-                <Tooltip text={actorEmail}>
-                    <OfflineWithFeedback
-                        pendingAction={lodashGet(pendingFields, 'avatar', null)}
-                    >
-                        <Avatar
-                            containerStyles={[styles.actionAvatar]}
-                            source={avatarSource}
+                <OfflineWithFeedback
+                    pendingAction={lodashGet(pendingFields, 'avatar', null)}
+                >
+                    {props.shouldShowSubscriptAvatar ? (
+                        <SubscriptAvatar
+                            mainAvatar={{source: avatarSource, type: CONST.ICON_TYPE_AVATAR}}
+                            secondaryAvatar={ReportUtils.getIcons(props.report, {})[0]}
+                            mainTooltip={props.report.ownerEmail}
+                            secondaryTooltip={ReportUtils.getReportName(props.report)}
                         />
-                    </OfflineWithFeedback>
-                </Tooltip>
+                    ) : (
+                        <Tooltip text={actorEmail}>
+                            <Avatar
+                                containerStyles={[styles.actionAvatar]}
+                                source={avatarSource}
+                            />
+                        </Tooltip>
+                    )}
+                </OfflineWithFeedback>
             </Pressable>
             <View style={[styles.chatItemRight]}>
                 {props.showHeader ? (
