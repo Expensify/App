@@ -5,7 +5,6 @@ import * as KeyCommand from 'react-native-key-command';
 import bindHandlerToKeydownEvent from './bindHandlerToKeydownEvent';
 import getOperatingSystem from '../getOperatingSystem';
 import CONST from '../../CONST';
-import * as Browser from '../Browser';
 
 const operatingSystem = getOperatingSystem();
 
