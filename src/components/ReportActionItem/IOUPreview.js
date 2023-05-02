@@ -161,10 +161,14 @@ const IOUPreview = (props) => {
     };
 
     let cachedTotal;
-    if (isGroupSplit) {
-        cachedTotal = props.numberFormat(
-            Math.abs(props.action.originalMessage.amount) / 100,
-            {style: 'currency', currency: props.action.originalMessage.currency});
+    if (props.isBillSplit) {
+        if (props.action && props.action.originalMessage && props.action.originalMessage.currency) {
+            cachedTotal = props.numberFormat(
+                Math.abs(props.action.originalMessage.amount) / 100,
+                {style: 'currency', currency: props.action.originalMessage.currency});
+        } else {
+            cachedTotal = props.numberFormat(Math.abs(props.action.originalMessage.amount) / 100);
+        }
     } else {
         cachedTotal = props.iouReport.total && props.iouReport.currency
             ? props.numberFormat(
