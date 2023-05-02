@@ -284,6 +284,7 @@ class Button extends Component {
                 ]}
                 nativeID={this.props.nativeID}
                 accessibilityLabel={this.props.accessibilityLabel}
+                hoverDimmingValue={1}
             >
                 <>
                     {this.renderContent()}
