@@ -26,11 +26,6 @@ const propTypes = {
 const defaultProps = {
     contextMenuAnchor: undefined,
     checkIfContextMenuActive: () => {},
-    chatReport: {
-        participants: [],
-    },
-    iouReport: {},
-    reportActions: {},
     isHovered: false,
 };
 
