@@ -6,6 +6,7 @@ import Navigation, {navigationRef} from './Navigation';
 import linkingConfig from './linkingConfig';
 import AppNavigator from './AppNavigator';
 import FullScreenLoadingIndicator from '../../components/FullscreenLoadingIndicator';
+import themeColors from '../../styles/themes/default';
 import styles from '../../styles/styles';
 import Log from '../Log';
 
@@ -14,8 +15,7 @@ const navigationTheme = {
     ...DefaultTheme,
     colors: {
         ...DefaultTheme.colors,
-
-        // background: themeColors.appBG,
+        background: themeColors.appBG,
     },
 };
 
@@ -50,7 +50,6 @@ function parseAndLogRoute(state) {
 
 const NavigationRoot = (props) => {
     useFlipper(navigationRef);
-
     return (
         <NavigationContainer
             fallback={(
