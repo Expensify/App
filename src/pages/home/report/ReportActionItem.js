@@ -190,7 +190,6 @@ class ReportActionItem extends Component {
                 <ReportPreview
                     chatReportID={this.props.report.reportID}
                     action={this.props.action}
-                    isMostRecentIOUReportAction={this.props.isMostRecentIOUReportAction}
                     isHovered={hovered}
                     contextMenuAnchor={this.popoverAnchor}
                     checkIfContextMenuActive={this.checkIfContextMenuActive}
