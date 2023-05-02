@@ -80,7 +80,6 @@ function TaskDescriptionPage(props) {
                     <TextInput
                         inputID="description"
                         name="description"
-                        autoFocus
                         label={props.translate('newTaskPage.description')}
                         defaultValue={props.report.description || ''}
                         ref={inputRef}

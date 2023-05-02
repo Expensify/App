@@ -80,10 +80,9 @@ function TaskTitlePage(props) {
                     <TextInput
                         inputID="title"
                         name="title"
-                        autoFocus
                         label={props.translate('newTaskPage.title')}
                         defaultValue={props.report.reportName || ''}
-                        ref={inputRef}
+                        ref={el => inputRef.current = el}
                     />
                 </View>
             </Form>
