@@ -79,6 +79,9 @@ const propTypes = {
         hasOutstandingIOU: PropTypes.bool,
     }),
 
+    /** True if this is this IOU is a split instead of a 1:1 request */
+    isBillSplit: PropTypes.bool,
+
     /** True if the IOU Preview card is hovered */
     isHovered: PropTypes.bool,
 

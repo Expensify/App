@@ -69,8 +69,8 @@ const defaultProps = {
 };
 
 const IOUAction = (props) => {
+    const hasMultipleParticipants = props.chatReport.participants.length > 1;
     const onIOUPreviewPressed = () => {
-        let hasMultipleParticipants = props.chatReport.participants.length > 1;
         if (hasMultipleParticipants){
             Navigation.navigate(ROUTES.getReportParticipantsRoute(props.chatReportID));
         } else {
@@ -107,6 +107,7 @@ const IOUAction = (props) => {
                 <IOUPreview
                     iouReportID={props.requestReportID}
                     chatReportID={props.chatReportID}
+                    isBillSplit={hasMultipleParticipants}
                     action={props.action}
                     contextMenuAnchor={props.contextMenuAnchor}
                     checkIfContextMenuActive={props.checkIfContextMenuActive}
