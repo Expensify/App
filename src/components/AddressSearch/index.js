@@ -94,11 +94,11 @@ const defaultProps = {
 const AddressSearch = (props) => {
     const [displayListViewBorder, setDisplayListViewBorder] = useState(false);
     const containerRef = useRef();
-
-    // To avoid regeneration of query object on each re-renders
-    const query = useMemo(() => (
-        {language: props.preferredLocale, types: 'address', ...(props.isLimitedToUSA && {components: 'country:us'})}
-    ), [props.preferredLocale, props.isLimitedToUSA]);
+    const query = useMemo(() => ({
+        language: props.preferredLocale,
+        types: 'address',
+        components: props.isLimitedToUSA ? 'country:us' : undefined,
+    }), [props.preferredLocale, props.isLimitedToUSA]);
 
     const saveLocationDetails = (autocompleteData, details) => {
         const addressComponents = details.address_components;
