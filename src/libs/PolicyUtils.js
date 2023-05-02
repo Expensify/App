@@ -96,19 +96,6 @@ function isExpensifyTeam(email) {
     return emailDomain === CONST.EXPENSIFY_PARTNER_NAME || emailDomain === CONST.EMAIL.GUIDES_DOMAIN;
 }
 
-/**
- * Check if the policy member should be hidden
- * If online and no errors and pending deletion then hide the member
- * @param {Object} errors
- * @param {String} pendingAction
- * @param {Boolean} isOffline
- * @returns {boolean}
- */
-function shoulHideChildren(errors, pendingAction, isOffline) {
-    const hasErrors = !_.isEmpty(errors);
-    return !isOffline && pendingAction === 'delete' && !hasErrors;
-}
-
 export {
     hasPolicyMemberError,
     hasPolicyError,
@@ -117,5 +104,4 @@ export {
     getPolicyBrickRoadIndicatorStatus,
     shouldShowPolicy,
     isExpensifyTeam,
-    shoulHideChildren,
 };
