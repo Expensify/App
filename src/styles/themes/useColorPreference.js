@@ -3,8 +3,8 @@ import {Appearance} from 'react-native';
 import Onyx from 'react-native-onyx';
 import ONYXKEYS from '../../ONYXKEYS';
 
-function useIsLightMode() {
-    const [colorTheme, setColorTheme] = useState();
+function useColorPreference() {
+    const [colorPreference, setColorPreference] = useState('light');
     const [systemColorTheme, setSystemColorTheme] = useState();
 
     useEffect(() => {
@@ -17,14 +17,14 @@ function useIsLightMode() {
         const connectionId = Onyx.connect({
             key: ONYXKEYS.COLOR_THEME,
             callback: newColorTheme => (newColorTheme === 'system'
-                ? setColorTheme(systemColorTheme) : setColorTheme(newColorTheme))
+                ? setColorPreference(systemColorTheme) : setColorPreference(newColorTheme))
             ,
         });
 
         return () => Onyx.disconnect(connectionId);
     }, [systemColorTheme]);
 
-    return (colorTheme || 'light') === 'light';
+    return colorPreference;
 }
 
-export default useIsLightMode;
+export default useColorPreference;

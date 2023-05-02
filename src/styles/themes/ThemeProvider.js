@@ -5,7 +5,7 @@ import {
 } from 'react-native-reanimated';
 import PropTypes from 'prop-types';
 import ThemeContext from './ThemeContext';
-import useIsLightMode from './useIsLightMode';
+import useColorPreference from './useColorPreference';
 
 // Going to eventually import the light theme here too
 import darkTheme from './default';
@@ -23,7 +23,7 @@ const propTypes = {
 };
 
 function ThemeProvider(props) {
-    const lightMode = useIsLightMode();
+    const colorPreference = useColorPreference();
     const themeAnimation = useSharedValue(0);
 
     const appBG = useAnimatedThemeColor(themeAnimation, lightTheme.appBG, darkTheme.appBG);
@@ -41,7 +41,7 @@ function ThemeProvider(props) {
 
     // Setting the correct theme initially
     useEffect(() => {
-        if (lightMode) {
+        if (colorPreference === 'light') {
             themeAnimation.value = 0;
         } else { themeAnimation.value = 1; }
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -49,10 +49,10 @@ function ThemeProvider(props) {
 
     // Animating the color values based on the current theme
     useEffect(() => {
-        if (lightMode && themeAnimation.value > 0) {
+        if (colorPreference === 'light' && themeAnimation.value > 0) {
             themeAnimation.value = withSpring(0);
-        } else if (!lightMode && themeAnimation.value < 1) { themeAnimation.value = withSpring(1); }
-    }, [lightMode, themeAnimation]);
+        } else if (colorPreference === 'dark' && themeAnimation.value < 1) { themeAnimation.value = withSpring(1); }
+    }, [colorPreference, themeAnimation]);
 
     return (
         <ThemeContext.Provider value={theme}>
