@@ -57,7 +57,11 @@ class MoneyRequestDescriptionPage extends Component {
 
     render() {
         return (
-            <ScreenWrapper includeSafeAreaPaddingBottom={false} shouldEnableMaxHeight>
+            <ScreenWrapper
+                includeSafeAreaPaddingBottom={false}
+                shouldEnableMaxHeight
+                onEntryTransitionEnd={() => this.descriptionInputRef && this.descriptionInputRef.focus()}
+            >
                 <HeaderWithCloseButton
                     title={this.props.translate('common.description')}
                     shouldShowBackButton
@@ -78,6 +82,7 @@ class MoneyRequestDescriptionPage extends Component {
                             name="moneyRequestComment"
                             defaultValue={this.props.iou.comment}
                             label={this.props.translate('moneyRequestConfirmationList.whatsItFor')}
+                            ref={el => this.descriptionInputRef = el}
                         />
                     </View>
                 </Form>

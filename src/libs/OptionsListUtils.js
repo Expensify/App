@@ -188,7 +188,7 @@ function getParticipantsOptions(report, personalDetails) {
         text: details.displayName,
         firstName: lodashGet(details, 'firstName', ''),
         lastName: lodashGet(details, 'lastName', ''),
-        alternateText: Str.isSMSLogin(details.login) ? LocalePhoneNumber.formatPhoneNumber(details.login) : details.login,
+        alternateText: Str.isSMSLogin(details.login || '') ? LocalePhoneNumber.formatPhoneNumber(details.login) : details.login,
         icons: [{
             source: ReportUtils.getAvatar(details.avatar, details.login),
             name: details.login,
@@ -279,7 +279,7 @@ function getSearchText(report, reportName, personalDetailList, isChatRoomOrPolic
         Array.prototype.push.apply(searchTerms, reportName.split(/[,\s]/));
 
         if (isChatRoomOrPolicyExpenseChat) {
-            const chatRoomSubtitle = ReportUtils.getChatRoomSubtitle(report, policies);
+            const chatRoomSubtitle = ReportUtils.getChatRoomSubtitle(report);
 
             Array.prototype.push.apply(searchTerms, chatRoomSubtitle.split(/[,\s]/));
         } else {
@@ -399,7 +399,7 @@ function createOption(logins, personalDetails, report, reportActions = {}, {
         result.hasOutstandingIOU = report.hasOutstandingIOU;
 
         hasMultipleParticipants = personalDetailList.length > 1 || result.isChatRoom || result.isPolicyExpenseChat;
-        subtitle = ReportUtils.getChatRoomSubtitle(report, policies);
+        subtitle = ReportUtils.getChatRoomSubtitle(report);
 
         let lastMessageTextFromReport = '';
         if (ReportUtils.isReportMessageAttachment({text: report.lastMessageText, html: report.lastMessageHtml})) {
@@ -419,7 +419,7 @@ function createOption(logins, personalDetails, report, reportActions = {}, {
                 || CONST.REPORT.ARCHIVE_REASON.DEFAULT;
             lastMessageText = Localize.translate(preferredLocale, `reportArchiveReasons.${archiveReason}`, {
                 displayName: archiveReason.displayName || report.lastActorEmail,
-                policyName: ReportUtils.getPolicyName(report, policies),
+                policyName: ReportUtils.getPolicyName(report),
             });
         }
 
@@ -432,7 +432,7 @@ function createOption(logins, personalDetails, report, reportActions = {}, {
                 ? lastMessageText
                 : LocalePhoneNumber.formatPhoneNumber(personalDetail.login);
         }
-        reportName = ReportUtils.getReportName(report, policies);
+        reportName = ReportUtils.getReportName(report);
     } else {
         const login = logins[0];
         reportName = ReportUtils.getDisplayNameForParticipant(login);
@@ -451,7 +451,7 @@ function createOption(logins, personalDetails, report, reportActions = {}, {
 
     result.text = reportName;
     result.searchText = getSearchText(report, reportName, personalDetailList, result.isChatRoom || result.isPolicyExpenseChat);
-    result.icons = ReportUtils.getIcons(report, personalDetails, policies, ReportUtils.getAvatar(personalDetail.avatar, personalDetail.login));
+    result.icons = ReportUtils.getIcons(report, personalDetails, ReportUtils.getAvatar(personalDetail.avatar, personalDetail.login));
     result.subtitle = subtitle;
 
     return result;
