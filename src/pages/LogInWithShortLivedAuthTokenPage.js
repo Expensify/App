@@ -44,15 +44,12 @@ const propTypes = {
     }),
 
     /** Props to detect online status */
-    network: networkPropTypes,
+    network: networkPropTypes.isRequired,
 };
 
 const defaultProps = {
     account: {
         isLoading: false,
-    },
-    network: {
-        isOffline: false,
     },
 };
 

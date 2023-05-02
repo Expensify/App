@@ -29,11 +29,6 @@ let reportScreenIsReadyPromise = new Promise((resolve) => {
     resolveReportScreenIsReadyPromise = resolve;
 });
 
-let resolveTransitionIsEndPromise;
-const transitionIsEndPromise = new Promise((resolve) => {
-    resolveTransitionIsEndPromise = resolve;
-});
-
 let isLoggedIn = false;
 let pendingRoute = null;
 
@@ -318,22 +313,6 @@ function drawerGoBack(backRoute) {
     navigate(backRoute);
 }
 
-/**
- * If the current page is opened from oldDot, we can use this to delay the task until sign-in and navigation end.
- * @return {Promise}
- */
-function isTransitionEnd() {
-    return transitionIsEndPromise;
-}
-
-/**
- * Perform a task after sign-in and navigation, e.g. begin the deeplink redirection
- * @return {*}
- */
-function setIsTransitionEnd() {
-    return resolveTransitionIsEndPromise();
-}
-
 export default {
     canNavigate,
     navigate,
@@ -356,8 +335,6 @@ export default {
     isReportScreenReady,
     setIsReportScreenIsReady,
     drawerGoBack,
-    isTransitionEnd,
-    setIsTransitionEnd,
 };
 
 export {

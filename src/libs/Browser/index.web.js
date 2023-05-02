@@ -74,10 +74,7 @@ function openRouteInDesktopApp(shortLivedAuthToken = '', email = '') {
         // we need to give Safari some time to open the pop-up window.
         // After that we can just remove the iframe.
         setTimeout(() => {
-            if (!iframe.parentNode) {
-                return;
-            }
-            iframe.parentNode.removeChild(iframe);
+            document.body.removeChild(iframe);
         }, 0);
     } else {
         window.location.href = expensifyDeeplinkUrl;

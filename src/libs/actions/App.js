@@ -186,6 +186,23 @@ function reconnectApp() {
 }
 
 /**
+ * This promise is used so that deeplink component know when a transition is end.
+ * This is necessary because we want to begin deeplink redirection after the transition is end.
+ */
+let resolveTransitionIsEndPromise;
+const transitionIsEndPromise = new Promise((resolve) => {
+    resolveTransitionIsEndPromise = resolve;
+});
+
+function waitForTransitionEnd() {
+    return transitionIsEndPromise;
+}
+
+function endTransition() {
+    return resolveTransitionIsEndPromise();
+}
+
+/**
  * This action runs when the Navigator is ready and the current route changes
  *
  * currentPath should be the path as reported by the NavigationContainer
@@ -231,7 +248,7 @@ function setUpPoliciesAndNavigate(session) {
                         && isTransitioning
                         && exitTo === ROUTES.WORKSPACE_NEW;
     if (shouldCreateFreePolicy) {
-        Policy.createWorkspace(ownerEmail, makeMeAdmin, policyName, true);
+        Policy.createWorkspace(ownerEmail, makeMeAdmin, policyName, true).then(endTransition);
         return;
     }
     if (!isLoggingInAsNewUser && exitTo) {
@@ -245,8 +262,7 @@ function setUpPoliciesAndNavigate(session) {
                         // We must call dismissModal() to remove the /transition route from history
                         Navigation.dismissModal();
                         Navigation.navigate(exitTo);
-                        Navigation.setIsTransitionEnd();
-                    });
+                    }).then(endTransition);
             });
     }
 }
@@ -303,9 +319,7 @@ function beginDeepLinkRedirect() {
 }
 
 function beginDeepLinkRedirectAfterTransition() {
-    Navigation.isTransitionEnd().then(() => {
-        beginDeepLinkRedirect();
-    });
+    waitForTransitionEnd().then(beginDeepLinkRedirect);
 }
 
 export {

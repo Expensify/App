@@ -18,9 +18,10 @@ class DeeplinkWrapper extends PureComponent {
             return;
         }
 
-        // If the current page is opened from oldDot, there maybe non-idempotent operations (e.g. create a new workspace) during the transition period,
-        // which obviously should not be executed again in the desktop app.
-        // We only need to begin the deeplink redirect after sign-in and navigation are completed.
+        // If the current url path is /transition..., meaning it was opened from oldDot, during this transition period:
+        // 1. The user session may not exist, because sign-in has not been completed yet.
+        // 2. There may be non-idempotent operations (e.g. create a new workspace), which obviously should not be executed again in the desktop app.
+        // So we need to wait until after sign-in and navigation are complete before starting the deeplink redirect.
         if (Str.startsWith(window.location.pathname, Str.normalizeUrl(ROUTES.TRANSITION_BETWEEN_APPS))) {
             App.beginDeepLinkRedirectAfterTransition();
             return;

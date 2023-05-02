@@ -952,13 +952,12 @@ function createWorkspace(ownerEmail = '', makeMeAdmin = false, policyName = '', 
         ],
     });
 
-    Navigation.isNavigationReady()
+    return Navigation.isNavigationReady()
         .then(() => {
             if (transitionFromOldDot) {
                 Navigation.dismissModal(); // Dismiss /transition route for OldDot to NewDot transitions
             }
             Navigation.navigate(ROUTES.getWorkspaceInitialRoute(policyID));
-            Navigation.setIsTransitionEnd();
         });
 }
 
