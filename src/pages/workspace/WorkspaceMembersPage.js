@@ -320,6 +320,9 @@ class WorkspaceMembersPage extends React.Component {
         const removableMembers = {};
         let data = [];
         _.each(policyMemberList, (policyMember, email) => {
+            if (PolicyUtils.shoulHideChildren(policyMember.errors, policyMember.pendingAction, this.props.network.isOffline)) {
+                return;
+            }
             const details = lodashGet(this.props.personalDetails, email, {displayName: email, login: email});
             data.push({
                 ...policyMember,
