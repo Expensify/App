@@ -2,9 +2,9 @@ import Onyx from 'react-native-onyx';
 import waitForPromisesToResolve from '../utils/waitForPromisesToResolve';
 import CONST from '../../src/CONST';
 import ONYXKEYS from '../../src/ONYXKEYS';
-import StringUtils from '../../src/libs/StringUtils';
+import * as Localize from '../../src/libs/Localize';
 
-describe('StringUtils', () => {
+describe('localize', () => {
     beforeAll(() => {
         Onyx.init({
             keys: {NVP_PREFERRED_LOCALE: ONYXKEYS.NVP_PREFERRED_LOCALE},
@@ -15,7 +15,7 @@ describe('StringUtils', () => {
 
     afterEach(() => Onyx.clear());
 
-    describe('arrayToSpokenList', () => {
+    describe('arrayToString', () => {
         test.each([
             [[], {
                 [CONST.LOCALES.DEFAULT]: '',
@@ -41,9 +41,9 @@ describe('StringUtils', () => {
             [CONST.LOCALES.DEFAULT]: expectedOutput,
             [CONST.LOCALES.ES]: expectedOutputES,
         }) => {
-            expect(StringUtils.arrayToSpokenList(input)).toBe(expectedOutput);
+            expect(Localize.arrayToString(input)).toBe(expectedOutput);
             return Onyx.set(ONYXKEYS.NVP_PREFERRED_LOCALE, CONST.LOCALES.ES)
-                .then(() => expect(StringUtils.arrayToSpokenList(input)).toBe(expectedOutputES));
+                .then(() => expect(Localize.arrayToString(input)).toBe(expectedOutputES));
         });
     });
 });

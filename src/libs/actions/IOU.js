@@ -14,7 +14,6 @@ import * as IOUUtils from '../IOUUtils';
 import * as OptionsListUtils from '../OptionsListUtils';
 import DateUtils from '../DateUtils';
 import TransactionUtils from '../TransactionUtils';
-import StringUtils from '../StringUtils';
 
 const chatReports = {};
 const iouReports = {};
@@ -269,6 +268,7 @@ function createSplitsAndOnyxData(participants, currentUserLogin, amount, comment
     const amountInCents = Math.round(amount * 100);
 
     // ReportID is -2 (aka "deleted") on the group transaction: https://github.com/Expensify/Auth/blob/3fa2698654cd4fbc30f9de38acfca3fbeb7842e4/auth/command/SplitTransaction.cpp#L24-L27
+    const formattedParticipants = Localize.arrayToString([currentUserLogin, ..._.map(participants, participant => participant.login)]);
     const groupTransaction = TransactionUtils.buildOptimisticTransaction(
         amountInCents,
         currency,
@@ -276,7 +276,7 @@ function createSplitsAndOnyxData(participants, currentUserLogin, amount, comment
         comment,
         '',
         '',
-        `Split Bill with ${StringUtils.arrayToSpokenList([currentUserLogin, ..._.map(participants, participant => participant.login)])} [${DateUtils.getDBTime().slice(0, 10)}]`,
+        `${Localize.translateLocal('iou.splitBill')} ${Localize.translateLocal('common.with')} ${formattedParticipants} [${DateUtils.getDBTime().slice(0, 10)}]`,
     );
 
     // Note: The created action must be optimistically generated before the IOU action so there's no chance that the created action appears after the IOU action in the chat

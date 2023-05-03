@@ -12,6 +12,19 @@ import BaseLocaleListener from './LocaleListener/BaseLocaleListener';
 // Listener when an update in Onyx happens so we use the updated locale when translating/localizing items.
 LocaleListener.connect();
 
+const CONJUNCTION_LIST_FORMATS_FOR_LOCALES = _.reduce(CONST.LOCALES, (memo, locale) => {
+    // This is not a supported locale, so we'll use ES_ES instead
+    if (locale === CONST.LOCALES.ES_ES_ONFIDO) {
+        // eslint-disable-next-line no-param-reassign
+        memo[locale] = new Intl.ListFormat(CONST.LOCALES.ES_ES, {style: 'long', type: 'conjunction'});
+        return memo;
+    }
+
+    // eslint-disable-next-line no-param-reassign
+    memo[locale] = new Intl.ListFormat(locale, {style: 'long', type: 'conjunction'});
+    return memo;
+}, {});
+
 /**
  * Return translated string for given locale and phrase
  *
@@ -76,16 +89,8 @@ function translateLocal(phrase, variables) {
  * @return {String}
  */
 function arrayToString(anArray) {
-    const and = translateLocal('common.and');
-    let aString = '';
-    if (_.size(anArray) === 1) {
-        aString = anArray[0];
-    } else if (_.size(anArray) === 2) {
-        aString = anArray.join(` ${and} `);
-    } else if (_.size(anArray) > 2) {
-        aString = `${anArray.slice(0, -1).join(', ')} ${and} ${anArray.slice(-1)}`;
-    }
-    return aString;
+    const listFormat = CONJUNCTION_LIST_FORMATS_FOR_LOCALES[BaseLocaleListener.getPreferredLocale()];
+    return listFormat.format(anArray);
 }
 
 /**
