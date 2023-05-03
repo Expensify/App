@@ -110,7 +110,7 @@ const propTypes = {
     /** Id to use for this button */
     nativeID: PropTypes.string,
 
-    /**  accessibility label for the component */
+    /** Accessibility label for the component */
     accessibilityLabel: PropTypes.string,
 };
 
