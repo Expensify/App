@@ -1055,13 +1055,16 @@ function buildOptimisticExpenseReport(chatReportID, policyID, total, currency, l
     const policyName = getPolicyName(allReports[`${ONYXKEYS.COLLECTION.REPORT}${chatReportID}`]);
     const formattedTotal = NumberFormatUtils.format(locale, total / 100, {style: 'currency', currency});
 
+    // The expense report is always created with the policy's output currency
+    const outputCurrency = lodashGet(allPolicies, [`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, 'outputCurrency'], CONST.CURRENCY.USD);
+
     return {
-        hasOutstandingIOU: true,
-        type: CONST.REPORT.TYPE.EXPENSE,
-        chatReportID,
-        currency,
-        policyID,
         reportID: generateReportID(),
+        chatReportID,
+        policyID,
+        type: CONST.REPORT.TYPE.EXPENSE,
+        hasOutstandingIOU: true,
+        currency: outputCurrency,
         reportName: `${policyName} owes ${formattedTotal}`,
         state: CONST.REPORT.STATE.SUBMITTED,
         stateNum: CONST.REPORT.STATE_NUM.PROCESSING,
