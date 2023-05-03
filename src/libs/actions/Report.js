@@ -395,41 +395,52 @@ function openReport(reportID, participantList = [], newReportObject = {}, parent
  * This will find an existing chat, or create a new one if none exists, for the given user or set of users. It will then navigate to this chat.
  *
  * @param {Array} userLogins list of user logins.
- * @param {String} reportID The reportID we are trying to open
- * @param {Object} parentReportAction the parent comment of a thread. This will not be passed for normal chats.
- *
  */
-function navigateToAndOpenReport(userLogins, reportID = '0', parentReportAction = {}) {
-    let chatReportID = reportID;
+function navigateToAndOpenReport(userLogins) {
+    const formattedUserLogins = _.map(userLogins, login => OptionsListUtils.addSMSDomainIfPhoneNumber(login).toLowerCase());
     let newChat = {};
-    if (!reportID) {
-        const formattedUserLogins = _.map(userLogins, login => OptionsListUtils.addSMSDomainIfPhoneNumber(login).toLowerCase());
-        const chat = ReportUtils.getChatByParticipants(formattedUserLogins);
-        if (!chat) {
-            if (parentReportAction) {
-                newChat = ReportUtils.buildOptimisticChatReport(
-                    formattedUserLogins,
-                    lodashGet(parentReportAction,
-                        ['message', 0, 'text']),
-                    '',
-                    CONST.POLICY.OWNER_EMAIL_FAKE,
-                    CONST.POLICY.OWNER_EMAIL_FAKE,
-                    false,
-                    '',
-                    undefined,
-                    CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS,
-                    parentReportAction.reportActionID,
-                );
-            } else {
-                newChat = ReportUtils.buildOptimisticChatReport(formattedUserLogins);
-            }
-        }
-        chatReportID = chat ? chat.reportID : newChat.reportID;
+    const chat = ReportUtils.getChatByParticipants(formattedUserLogins);
+    if (!chat) {
+        newChat = ReportUtils.buildOptimisticChatReport(formattedUserLogins);
     }
+    const reportID = chat ? chat.reportID : newChat.reportID;
 
     // We want to pass newChat here because if anything is passed in that param (even an existing chat), we will try to create a chat on the server
-    openReport(chatReportID, newChat.participants, newChat);
+    openReport(reportID, newChat.participants, newChat);
     Navigation.navigate(ROUTES.getReportRoute(reportID));
+}
+
+/**
+ * This will navigate to an existing thread, or create a new one if necessary
+ *
+ * @param {String} reportID The reportID we are trying to open
+ * @param {Array} participants list of user logins.
+ * @param {Object} parentReportAction the parent comment of a thread
+ *
+ */
+function navigateToAndOpenChildReport(reportID = '0', participants = [], parentReportAction = {}) {
+    if (reportID !== '0') {
+        openReport(reportID);
+        Navigation.navigate(ROUTES.getReportRoute(reportID));
+    } else {
+        const formattedUserLogins = _.map(participants, login => OptionsListUtils.addSMSDomainIfPhoneNumber(login).toLowerCase());
+        const newChat = ReportUtils.buildOptimisticChatReport(
+            formattedUserLogins,
+            lodashGet(parentReportAction,
+                ['message', 0, 'text']),
+            '',
+            CONST.POLICY.OWNER_EMAIL_FAKE,
+            CONST.POLICY.OWNER_EMAIL_FAKE,
+            false,
+            '',
+            undefined,
+            CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS,
+            parentReportAction.reportActionID,
+        );
+
+        openReport(reportID, newChat.participants, newChat);
+        Navigation.navigate(ROUTES.getReportRoute(reportID));
+    }
 }
 
 /**
@@ -1511,6 +1522,7 @@ export {
     openReport,
     openReportFromDeepLink,
     navigateToAndOpenReport,
+    navigateToAndOpenChildReport,
     openPaymentDetailsPage,
     openMoneyRequestsReportPage,
     updatePolicyRoomName,
