@@ -41,24 +41,27 @@ class KeyboardShortcutsModal extends React.Component {
         }, openShortcutModalConfig.descriptionKey, openShortcutModalConfig.modifiers, true);
 
         const closeShortcutEscapeModalConfig = CONST.KEYBOARD_SHORTCUTS.ESCAPE;
-        this.unsubscribeEscapeModal = KeyboardShortcut.subscribe(closeShortcutEscapeModalConfig.shortcutKey, () => {
+        this.unsubscribeCloseEscapeModal = KeyboardShortcut.subscribe(closeShortcutEscapeModalConfig.shortcutKey, () => {
             ModalActions.close();
             KeyboardShortcutsActions.hideKeyboardShortcutModal();
         }, closeShortcutEscapeModalConfig.descriptionKey, closeShortcutEscapeModalConfig.modifiers, true, true);
 
         const closeShortcutEnterModalConfig = CONST.KEYBOARD_SHORTCUTS.ENTER;
-        this.unsubscribeEscapeModal = KeyboardShortcut.subscribe(closeShortcutEnterModalConfig.shortcutKey, () => {
+        this.unsubscribeCloseEnterModal = KeyboardShortcut.subscribe(closeShortcutEnterModalConfig.shortcutKey, () => {
             ModalActions.close();
             KeyboardShortcutsActions.hideKeyboardShortcutModal();
-        }, closeShortcutEnterModalConfig.descriptionKey, closeShortcutEnterModalConfig.modifiers, true, () => !this.props.isShortcutsModalOpen, 0);
+        }, closeShortcutEnterModalConfig.descriptionKey, closeShortcutEnterModalConfig.modifiers, true, () => !this.props.isShortcutsModalOpen);
     }
 
     componentWillUnmount() {
         if (this.unsubscribeShortcutModal) {
             this.unsubscribeShortcutModal();
         }
-        if (this.unsubscribeEscapeModal) {
-            this.unsubscribeEscapeModal();
+        if (this.unsubscribeCloseEscapeModal) {
+            this.unsubscribeCloseEscapeModal();
+        }
+        if (this.unsubscribeCloseEnterModal) {
+            this.unsubscribeCloseEnterModal();
         }
     }
 
