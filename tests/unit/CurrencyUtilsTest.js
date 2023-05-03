@@ -17,12 +17,6 @@ import currencyList from './currencyList.json';
 const currencyCodeList = _.keys(currencyList);
 const AVAILABLE_LOCALES = [CONST.LOCALES.EN, CONST.LOCALES.ES];
 
-// Contains item [isLeft, locale, currencyCode]
-const symbolPositions = [
-    [true, CONST.LOCALES.EN, 'USD'],
-    [false, CONST.LOCALES.ES, 'USD'],
-];
-
 describe('CurrencyUtils', () => {
     beforeAll(() => {
         Onyx.init({
@@ -55,7 +49,10 @@ describe('CurrencyUtils', () => {
     });
 
     describe('isCurrencySymbolLTR', () => {
-        test.each(symbolPositions)('Returns %s for preferredLocale %s and currencyCode %s', (isLeft, locale, currencyCode) => (
+        test.each([
+            [true, CONST.LOCALES.EN, 'USD'],
+            [false, CONST.LOCALES.ES, 'USD'],
+        ])('Returns %s for preferredLocale %s and currencyCode %s', (isLeft, locale, currencyCode) => (
             Onyx.set(ONYXKEYS.NVP_PREFERRED_LOCALE, locale)
                 .then(() => {
                     const isSymbolLeft = CurrencyUtils.isCurrencySymbolLTR(currencyCode);
@@ -92,14 +89,38 @@ describe('CurrencyUtils', () => {
 
     describe('convertToSmallestUnit', () => {
         test.each([
-            [[CONST.CURRENCY.USD, 25], 2500],
-            [[CONST.CURRENCY.USD, 25.5], 2550],
-            [[CONST.CURRENCY.USD, 25.50], 2550],
-            [['JPY', 25], 25],
-            [['JPY', 2500], 2500],
-            [['JPY', 25.5], 25],
-        ])('Correctly converts %s to amount in smallest units', ([currency, amount], expectedResult) => {
+            [CONST.CURRENCY.USD, 25, 2500],
+            [CONST.CURRENCY.USD, 25.5, 2550],
+            [CONST.CURRENCY.USD, 25.50, 2550],
+            ['JPY', 25, 25],
+            ['JPY', 2500, 2500],
+            ['JPY', 25.5, 25],
+        ])('Correctly converts %s to amount in smallest units', (currency, amount, expectedResult) => {
             expect(CurrencyUtils.convertToSmallestUnit(currency, amount)).toBe(expectedResult);
         });
+    });
+
+    describe('convertToDisplayString', () => {
+        test.each([
+            [CONST.CURRENCY.USD, 25, '$0.25'],
+            [CONST.CURRENCY.USD, 2500, '$25.00'],
+            [CONST.CURRENCY.USD, 150, '$1.50'],
+            [CONST.CURRENCY.USD, 250000, '$2,500.00'],
+            ['JPY', 25, '¥25'],
+            ['JPY', 2500, '¥2,500'],
+            ['JPY', 25.5, '¥25'],
+        ])('Correctly displays %s', (currency, amount, expectedResult) => {
+            expect(CurrencyUtils.convertToDisplayString(currency, amount)).toBe(expectedResult);
+        });
+
+        test.each([
+            ['EUR', 25, '0,25\xa0€'],
+            ['EUR', 2500, '25,00\xa0€'],
+            ['EUR', 250000, '2500,00\xa0€'],
+            ['EUR', 250000000, '2.500.000,00\xa0€'],
+        ])('Correctly displays %s in ES locale', (currency, amount, expectedResult) => (
+            Onyx.set(ONYXKEYS.NVP_PREFERRED_LOCALE, CONST.LOCALES.ES)
+                .then(() => expect(CurrencyUtils.convertToDisplayString(currency, amount)).toBe(expectedResult))
+        ));
     });
 });

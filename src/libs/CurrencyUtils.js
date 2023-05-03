@@ -89,10 +89,27 @@ function convertToSmallestUnit(currency, amountAsFloat) {
     return Math.trunc(amountAsFloat * currencyUnit);
 }
 
+/**
+ * Given an amount in the smallest units of a currency, convert it to a string for display in the UI.
+ *
+ * @param {String} currency
+ * @param {Number} amountInSmallestUnit – should be an integer. Anything after a decimal place will be dropped.
+ * @returns {String}
+ */
+function convertToDisplayString(currency, amountInSmallestUnit) {
+    const currencyUnit = getCurrencyUnit(currency);
+    const convertedAmount = Math.trunc(amountInSmallestUnit) / currencyUnit;
+    return NumberFormatUtils.format(BaseLocaleListener.getPreferredLocale(), convertedAmount, {
+        style: 'currency',
+        currency,
+    });
+}
+
 export {
     getCurrencyDecimals,
     getCurrencyUnit,
     getLocalizedCurrencySymbol,
     isCurrencySymbolLTR,
     convertToSmallestUnit,
+    convertToDisplayString,
 };
