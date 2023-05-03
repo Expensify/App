@@ -36,6 +36,8 @@ const propTypes = {
         type: PropTypes.string,
     })),
 
+    /** The reportID from url which user accesses to */
+    reportScreenReportID: PropTypes.string,
     isFirstTimeNewExpensifyUser: PropTypes.bool,
 
     route: PropTypes.shape({
@@ -51,6 +53,7 @@ const defaultProps = {
     reports: {},
     betas: [],
     policies: {},
+    reportScreenReportID: '',
     isFirstTimeNewExpensifyUser: false,
 };
 
@@ -111,6 +114,13 @@ class MainDrawerNavigator extends Component {
         if (!this.initialParams.reportID) {
             const state = this.props.navigation.getState();
             const reportScreenKey = lodashGet(state, 'routes[0].state.routes[0].key', '');
+
+            // If this onyx key exists then it means we stashed the url from a deep link
+            // so we want to override the reportID that is being loaded by default to the one the user was attempting to load initially.
+            const reportScreenReportID = this.props.reportScreenReportID;
+            if (!_.isEmpty(reportScreenReportID)) {
+                initialNextParams.reportID = reportScreenReportID;
+            }
             Navigation.setParams(initialNextParams, reportScreenKey);
         }
         this.initialParams = initialNextParams;
@@ -166,6 +176,9 @@ export default withOnyx({
     },
     policies: {
         key: ONYXKEYS.COLLECTION.POLICY,
+    },
+    reportScreenReportID: {
+        key: ONYXKEYS.REPORT_SCREEN_REPORT_ID,
     },
     isFirstTimeNewExpensifyUser: {
         key: ONYXKEYS.NVP_IS_FIRST_TIME_NEW_EXPENSIFY_USER,

@@ -205,4 +205,7 @@ export default {
 
     // Whether the auth token is valid
     IS_TOKEN_VALID: 'isTokenValid',
+
+    // The link which user accesses to
+    REPORT_SCREEN_REPORT_ID: 'reportScreenReportID',
 };
