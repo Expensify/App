@@ -80,7 +80,7 @@ class WorkspaceRateAndUnitPage extends React.Component {
     }
 
     getNumericValue(value) {
-        const numValue = parseFloat(value.toString().replace(this.props.toLocaleDigit('.'), '.'));
+        const numValue = parseFloat(value.toString().replace(',', '.'));
         if (Number.isNaN(numValue)) {
             return NaN;
         }
@@ -121,20 +121,15 @@ class WorkspaceRateAndUnitPage extends React.Component {
         this.saveUnitAndRate(values.unit, values.rate);
         
         Keyboard.dismiss();
-        Navigation.navigate(ROUTES.getWorkspaceInitialRoute(this.props.policy.id));
+        Navigation.navigate(ROUTES.getWorkspaceReimburseRoute(this.props.policy.id));
     }
 
     validate(values) {
         const errors = {};
         
-        const errorUnit = false;
-        const errorRate = false;
-        if (errorUnit) {
-            errors.unit = this.props.translate('workspace.editor.nameIsRequiredError');
-        }
-        
-        if (errorRate) {
-            errors.rate = this.props.translate('workspace.editor.nameIsRequiredError');
+        const decimalNumberRegex = new RegExp(/^\d+((,|\.)\d+)?$/);
+        if(!decimalNumberRegex.test(values.rate)){
+            errors.rate = this.props.translate('workspace.reimburse.invalidRateError');
         }
 
         return errors;
@@ -146,8 +141,9 @@ class WorkspaceRateAndUnitPage extends React.Component {
                 shouldUseScrollView
                 headerText={this.props.translate('workspace.reimburse.trackDistance')}
                 route={this.props.route}
-                guidesCallTaskID={CONST.GUIDES_CALL_TASK_IDS.WORKSPACE_RATE_AND_UNIT}
+                guidesCallTaskID={CONST.GUIDES_CALL_TASK_IDS.WORKSPACE_REIMBURSE}
                 shouldSkipVBBACall
+                backButtonRoute = {ROUTES.getWorkspaceReimburseRoute(this.props.policy.id)}
             >
                 {() => (
                     <Form

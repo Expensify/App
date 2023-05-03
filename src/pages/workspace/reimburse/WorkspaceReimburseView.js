@@ -4,8 +4,9 @@ import {withOnyx} from 'react-native-onyx';
 import PropTypes from 'prop-types';
 import lodashGet from 'lodash/get';
 import _ from 'underscore';
-import MenuItem from '../../../components/MenuItem';
+import MenuItemWithTopDescription from '../../../components/MenuItemWithTopDescription';
 import TextInput from '../../../components/TextInput';
+
 import Picker from '../../../components/Picker';
 import Text from '../../../components/Text';
 import styles from '../../../styles/styles';
@@ -72,29 +73,25 @@ const defaultProps = {
 class WorkspaceReimburseView extends React.Component {
     constructor(props) {
         super(props);
+        this.getCurrentRatePerUnitLabel = this.getCurrentRatePerUnitLabel.bind(this);
+        this.state = {
+            currentRatePerUnit : this.getCurrentRatePerUnitLabel(),
+        };
     }
 
     componentDidMount() {
         this.fetchData();
     }
+    
+    
 
     componentDidUpdate(prevProps) {
+        
+        
         if (prevProps.policy.customUnits !== this.props.policy.customUnits) {
-            const distanceCustomUnit = _.chain(lodashGet(this.props, 'policy.customUnits', []))
-                .values()
-                .findWhere({name: CONST.CUSTOM_UNITS.NAME_DISTANCE})
-                .value();
-            const customUnitRate = _.find(lodashGet(distanceCustomUnit, 'rates', {}), rate => rate.name === 'Default Rate');
-            this.setState({
-                unitID: lodashGet(distanceCustomUnit, 'customUnitID', ''),
-                unitName: lodashGet(distanceCustomUnit, 'name', ''),
-                unitValue: lodashGet(distanceCustomUnit, 'attributes.unit', 'mi'),
-                unitRateID: lodashGet(customUnitRate, 'customUnitRateID'),
-                unitRateValue: this.getUnitRateValue(customUnitRate),
-            });
-            this.updatedValue = this.getUnitRateValue(customUnitRate);
+            this.state.currentRatePerUnit = this.getCurrentRatePerUnitLabel()
         }
-
+        
         const reconnecting = prevProps.network.isOffline && !this.props.network.isOffline;
         if (!reconnecting) {
             return;
@@ -102,16 +99,26 @@ class WorkspaceReimburseView extends React.Component {
 
         this.fetchData();
     }
+    getCurrentRatePerUnitLabel() {
+        const distanceCustomUnit = _.find(lodashGet(this.props, 'policy.customUnits', {}), unit => unit.name === 'Distance');
+        const customUnitRate = _.find(lodashGet(distanceCustomUnit, 'rates', {}), rate => rate.name === 'Default Rate');
+        const currentUnit = this.getUnitLabel(lodashGet(distanceCustomUnit, 'attributes.unit', 'mi'));
+        const currentRate = this.getRateLabel(customUnitRate);
+        const perWord = this.props.translate('workspace.reimburse.per');
+        return `${currentRate} ${perWord} ${currentUnit}`.trim();
+        
+    }
 
-    getUnitRateValue(customUnitRate) {
+    getRateLabel(customUnitRate) {
         return this.getRateDisplayValue(lodashGet(customUnitRate, 'rate', 0) / CONST.POLICY.CUSTOM_UNIT_RATE_BASE_OFFSET);
     }
 
-    getUnitItems() {
-        return [
-            {label: this.props.translate('workspace.reimburse.kilometers'), value: 'km'},
-            {label: this.props.translate('workspace.reimburse.miles'), value: 'mi'},
-        ];
+    getUnitLabel(value) {
+        if(value=='km')
+            return this.props.translate('workspace.reimburse.kilometers').toLowerCase();
+        else if (value='mi')
+            return this.props.translate('workspace.reimburse.miles').toLowerCase();
+        else return '';
     }
 
     getRateDisplayValue(value) {
@@ -131,34 +138,8 @@ class WorkspaceReimburseView extends React.Component {
         return numValue.toFixed(3);
     }
 
-    setRate(inputValue) {
-        const value = inputValue.replace(/[^0-9.,]/g, '');
-
-        /*const decimalSeparator = this.props.toLocaleDigit('.');
-        const rateValueRegex = RegExp(String.raw`^\d{1,8}([${getPermittedDecimalSeparator(decimalSeparator)}]\d{0,3})?$`, 'i');
-        const isInvalidRateValue = value !== '' && !rateValueRegex.test(value);
-
-        if (!isInvalidRateValue) {
-            this.updatedValue = this.getRateDisplayValue(value);
-        }
-     */
-        const numValue = this.getNumericValue(value);
-
-        if (_.isNaN(numValue)) {
-            if (value === '') {
-                this.setState({unitRateValue: value});
-            }
-            return;
-        }
-    }
-
-    setUnit(value) {
-        if (value === this.state.unitValue) {
-            return;
-        }
-        
-        this.state.unitValue = value;
-    }
+    
+    
 
     fetchData() {
         // Instead of setting the reimbursement account loading within the optimistic data of the API command, use a separate action so that the Onyx value is updated right away.
@@ -175,12 +156,7 @@ class WorkspaceReimburseView extends React.Component {
 
     render() {
         const viewAllReceiptsUrl = `expenses?policyIDList=${this.props.policy.id}&billableReimbursable=reimbursable&submitterEmail=%2B%2B`;
-        const item = {
-            translationKey: 'workspace.reimburse.trackDistance',
-            icon: Expensicons.Gear,
-            action: () => Navigation.navigate(ROUTES.getWorkspaceRateAndUnitRoute(this.props.policy.id)),
-            
-        };
+        
         return (
             <>
                 <Section
@@ -210,18 +186,21 @@ class WorkspaceReimburseView extends React.Component {
                     </View>
                 </Section>
 
-                
-                <MenuItem
-                    key={item.translationKey}
+                <Section
                     title={this.props.translate('workspace.reimburse.trackDistance')}
-                    
-                    iconRight={item.iconRight}
-                    onPress={() => item.action()}
-                    shouldShowRightIcon
-                    
-                />
+                    icon={Illustrations.TrackShoe} >
+                    <View style={[styles.mv3]}>
+                        <Text>{this.props.translate('workspace.reimburse.trackDistanceCopy')}</Text>
+                    </View>
+                    <MenuItemWithTopDescription
+                        title={this.state.currentRatePerUnit}
+                        description={this.props.translate('workspace.reimburse.trackDistanceRate')}
+                        shouldShowRightIcon
+                        onPress={() => Navigation.navigate(ROUTES.getWorkspaceRateAndUnitRoute(this.props.policy.id))}
+                    />
+                 
                
-                    
+                </Section>   
                 
                 <WorkspaceReimburseSection
                     policy={this.props.policy}
