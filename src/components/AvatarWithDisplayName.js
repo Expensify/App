@@ -88,7 +88,7 @@ const AvatarWithDisplayName = (props) => {
                                 textStyles={[styles.headerText, styles.pre]}
                                 shouldUseFullTitle={isExpenseReport}
                             />
-                            {subtitle ? (
+                            {subtitle && (
                                 <Text
                                     style={[
                                         styles.sidebarLinkText,
@@ -100,7 +100,7 @@ const AvatarWithDisplayName = (props) => {
                                 >
                                     {subtitle}
                                 </Text>
-                            ) : null }
+                            )}
                         </View>
                     </View>
                 )}
