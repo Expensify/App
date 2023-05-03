@@ -311,8 +311,9 @@ function addComment(reportID, text) {
  * @param {String} reportID
  * @param {Array} participantList The list of users that are included in a new chat, not including the user creating it
  * @param {Object} newReportObject The optimistic report object created when making a new chat, saved as optimistic data
+ * @param {String} parentReportActionID The parent report action that a thread was created from (only passed for new threads)
  */
-function openReport(reportID, participantList = [], newReportObject = {}) {
+function openReport(reportID, participantList = [], newReportObject = {}, parentReportActionID = '0') {
     const optimisticReportData = {
         onyxMethod: CONST.ONYX.METHOD.MERGE,
         key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
@@ -354,6 +355,7 @@ function openReport(reportID, participantList = [], newReportObject = {}) {
     const params = {
         reportID,
         emailList: participantList ? participantList.join(',') : '',
+        parentReportActionID,
     };
 
     // If we are creating a new report, we need to add the optimistic report data and a report action
