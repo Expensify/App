@@ -1,48 +1,39 @@
 import Onyx from 'react-native-onyx';
 import ONYXKEYS from '../../ONYXKEYS';
+import CONST from '../../CONST';
 import * as ReportActionUtils from '../ReportActionsUtils';
 
 /**
  * @param {String} reportID
- * @param {String} reportActionID
+ * @param {Object} reportAction
  */
-function deleteOptimisticReportAction(reportID, reportActionID) {
-    Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`, {
-        [reportActionID]: null,
-    });
-    const linkedTransactionID = ReportActionUtils.getLinkedTransactionID(reportID, reportActionID);
-    if (linkedTransactionID) {
-        Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION}${linkedTransactionID}`, null);
+function clearReportActionErrors(reportID, reportAction) {
+    if (reportAction.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD) {
+        // Delete the optimistic action
+        Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`, {
+            [reportAction.reportActionID]: null,
+        });
+
+        // If the optimistic action was a CREATED action, delete the report too
+        if (reportAction.actionName === CONST.REPORT.ACTIONS.TYPE.CREATED) {
+            Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, null);
+        }
+
+        // If there's a linked transaction, delete that too
+        const linkedTransactionID = ReportActionUtils.getLinkedTransactionID(reportID, reportAction.reportActionID);
+        if (linkedTransactionID) {
+            Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION}${linkedTransactionID}`, null);
+        }
     }
-}
 
-/**
- * @param {String} reportID
- * @param {String} reportActionID
- */
-function clearReportActionErrors(reportID, reportActionID) {
     Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`, {
-        [reportActionID]: {
-            errors: null,
-        },
-    });
-}
-
-/**
- * This method clears the errors for a chat where send money action was done
- * @param {String} chatReportID
- * @param {String} reportActionID
- */
-function clearSendMoneyErrors(chatReportID, reportActionID) {
-    Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${chatReportID}`, {
-        [reportActionID]: {
+        [reportAction.reportActionID]: {
             errors: null,
         },
     });
 }
 
 export {
+    // eslint-disable-next-line import/prefer-default-export
     clearReportActionErrors,
-    deleteOptimisticReportAction,
-    clearSendMoneyErrors,
 };
