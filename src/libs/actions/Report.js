@@ -311,6 +311,7 @@ function addComment(reportID, text) {
  * @param {String} reportID
  * @param {Array} participantList The list of users that are included in a new chat, not including the user creating it
  * @param {Object} newReportObject The optimistic report object created when making a new chat, saved as optimistic data
+ * @param {String} parentReportActionID The report action that a thread was created off of (only passed for threads)
  */
 function openReport(reportID, participantList = [], newReportObject = {}) {
     const optimisticReportData = {
@@ -387,80 +388,6 @@ function openReport(reportID, participantList = [], newReportObject = {}) {
     }
 
     API.write('OpenReport', params, onyxData);
-}
-
-function openChildReport(childReportID, parentReportAction) {
-    const successData = [];
-
-    let routeReportID = childReportID;
-    if (childReportID) {
-        successData.push(
-            {
-                onyxMethod: CONST.ONYX.METHOD.MERGE,
-                key: `${ONYXKEYS.COLLECTION.REPORT}${childReportID}`,
-                value: {
-                    isLoadingReportActions: true,
-                    isLoadingMoreReportActions: false,
-                    lastReadTime: DateUtils.getDBTime(),
-                    reportName: lodashGet(allReports, [childReportID, 'reportName'], CONST.REPORT.DEFAULT_REPORT_NAME),
-                },
-            },
-        );
-    } else if (parentReportAction) {
-        const newChat = ReportUtils.buildOptimisticChatReport([currentUserEmail, parentReportAction.actorEmail], parentReportAction.message[0].html);
-        routeReportID = newChat.reportID;
-        successData.push(
-            {
-                onyxMethod: CONST.ONYX.METHOD.MERGE,
-                key: `${ONYXKEYS.COLLECTION.REPORT}${newChat.reportID}`,
-                value: newChat,
-            },
-        );
-        const parentReportActionID = parentReportAction.reportActionID;
-        successData.push(
-            {
-                onyxMethod: CONST.ONYX.METHOD.MERGE,
-                key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${newChat.reportID}`,
-                value: {parentReportActionID: parentReportAction},
-            },
-        );
-    } else {
-        // throw error
-    }
-
-    const reportSuccessData = {
-        onyxMethod: CONST.ONYX.METHOD.MERGE,
-        key: `${ONYXKEYS.COLLECTION.REPORT}${childReportID}`,
-        value: {
-            isLoadingReportActions: false,
-            pendingFields: {
-                createChat: null,
-            },
-            errorFields: {
-                createChat: null,
-            },
-            isOptimisticReport: false,
-        },
-    };
-
-    const reportFailureData = {
-        onyxMethod: CONST.ONYX.METHOD.MERGE,
-        key: `${ONYXKEYS.COLLECTION.REPORT}${childReportID}`,
-        value: {
-            isLoadingReportActions: false,
-        },
-    };
-    const onyxData = {
-        optimisticData: successData,
-    };
-
-    const params = {
-        childReportID,
-        parentReportAction: parentReportAction.reportActionID,
-    };
-
-    API.write('OpenChildReport', params, onyxData);
-    Navigation.navigate(ROUTES.getReportRoute(routeReportID));
 }
 
 /**
