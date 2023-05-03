@@ -52,7 +52,7 @@ class ArrowKeyFocusManager extends Component {
             }
 
             this.props.onFocusedIndexChanged(newFocusedIndex);
-        }, arrowUpConfig.descriptionKey, arrowUpConfig.modifiers, true, false, 0, true, [this.props.shouldExcludeTextAreaNodes && 'TEXTAREA']);
+        }, arrowUpConfig.descriptionKey, arrowUpConfig.modifiers, true, false, 1, true, [this.props.shouldExcludeTextAreaNodes && 'TEXTAREA']);
 
         this.unsubscribeArrowDownKey = KeyboardShortcut.subscribe(arrowDownConfig.shortcutKey, () => {
             if (this.props.maxIndex < 0) {
@@ -70,7 +70,7 @@ class ArrowKeyFocusManager extends Component {
             }
 
             this.props.onFocusedIndexChanged(newFocusedIndex);
-        }, arrowDownConfig.descriptionKey, arrowDownConfig.modifiers, true, false, 0, true, [this.props.shouldExcludeTextAreaNodes && 'TEXTAREA']);
+        }, arrowDownConfig.descriptionKey, arrowDownConfig.modifiers, true, false, 1, true, [this.props.shouldExcludeTextAreaNodes && 'TEXTAREA']);
     }
 
     componentWillUnmount() {

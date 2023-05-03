@@ -40,6 +40,11 @@ class KeyboardShortcutsModal extends React.Component {
             KeyboardShortcutsActions.showKeyboardShortcutModal();
         }, openShortcutModalConfig.descriptionKey, openShortcutModalConfig.modifiers, true);
 
+        /**
+         * Allow closing the modal with the both Enter and Escape keys
+         * Both callbacks have the lowest priority (0) to ensure that they are called before any other callbacks
+         * and configured so that event propagation is stopped after the callback is called (only when the modal is open)
+         */
         const closeShortcutEscapeModalConfig = CONST.KEYBOARD_SHORTCUTS.ESCAPE;
         this.unsubscribeCloseEscapeModal = KeyboardShortcut.subscribe(closeShortcutEscapeModalConfig.shortcutKey, () => {
             ModalActions.close();
@@ -51,6 +56,17 @@ class KeyboardShortcutsModal extends React.Component {
             ModalActions.close();
             KeyboardShortcutsActions.hideKeyboardShortcutModal();
         }, closeShortcutEnterModalConfig.descriptionKey, closeShortcutEnterModalConfig.modifiers, true, () => !this.props.isShortcutsModalOpen);
+
+        /**
+         * Intercept arrow up and down keys to prevent scrolling ArrowKeyFocusManager while this modal is open
+         */
+        const arrowUpConfig = CONST.KEYBOARD_SHORTCUTS.ARROW_UP;
+        this.unsubscribeArrowUpKey = KeyboardShortcut.subscribe(arrowUpConfig.shortcutKey, () => {
+        }, arrowUpConfig.descriptionKey, arrowUpConfig.modifiers, true, () => !this.props.isShortcutsModalOpen);
+
+        const arrowDownConfig = CONST.KEYBOARD_SHORTCUTS.ARROW_DOWN;
+        this.unsubscribeArrowDownKey = KeyboardShortcut.subscribe(arrowDownConfig.shortcutKey, () => {
+        }, arrowDownConfig.descriptionKey, arrowDownConfig.modifiers, true, () => !this.props.isShortcutsModalOpen);
     }
 
     componentWillUnmount() {
@@ -62,6 +78,12 @@ class KeyboardShortcutsModal extends React.Component {
         }
         if (this.unsubscribeCloseEnterModal) {
             this.unsubscribeCloseEnterModal();
+        }
+        if (this.unsubscribeArrowUpKey) {
+            this.unsubscribeArrowUpKey();
+        }
+        if (this.unsubscribeArrowDownKey) {
+            this.unsubscribeArrowDownKey();
         }
     }
 
