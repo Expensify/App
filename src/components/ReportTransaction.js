@@ -30,7 +30,7 @@ const propTypes = {
     /** Type of the reject transaction button */
     rejectButtonType: PropTypes.oneOf([CONST.IOU.REPORT_ACTION_TYPE.DECLINE, CONST.IOU.REPORT_ACTION_TYPE.CANCEL]).isRequired,
 
-    /** Indicates whether the pressing reject button we should hide the details sidebar */
+    /** Indicates whether pressing the reject button should hide the details sidebar */
     shouldCloseOnReject: PropTypes.bool,
 
     ...withLocalizePropTypes,
