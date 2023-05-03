@@ -395,18 +395,40 @@ function openReport(reportID, participantList = [], newReportObject = {}, parent
  * This will find an existing chat, or create a new one if none exists, for the given user or set of users. It will then navigate to this chat.
  *
  * @param {Array} userLogins list of user logins.
+ * @param {String} reportID The reportID we are trying to open
+ * @param {Object} parentReportAction the parent comment of a thread. This will not be passed for normal chats.
+ *
  */
-function navigateToAndOpenReport(userLogins) {
-    const formattedUserLogins = _.map(userLogins, login => OptionsListUtils.addSMSDomainIfPhoneNumber(login).toLowerCase());
+function navigateToAndOpenReport(userLogins, reportID = '0', parentReportAction = {}) {
+    let chatReportID = reportID;
     let newChat = {};
-    const chat = ReportUtils.getChatByParticipants(formattedUserLogins);
-    if (!chat) {
-        newChat = ReportUtils.buildOptimisticChatReport(formattedUserLogins);
+    if (!reportID) {
+        const formattedUserLogins = _.map(userLogins, login => OptionsListUtils.addSMSDomainIfPhoneNumber(login).toLowerCase());
+        const chat = ReportUtils.getChatByParticipants(formattedUserLogins);
+        if (!chat) {
+            if (parentReportAction) {
+                newChat = ReportUtils.buildOptimisticChatReport(
+                    formattedUserLogins,
+                    lodashGet(parentReportAction,
+                        ['message', 0, 'text']),
+                    '',
+                    CONST.POLICY.OWNER_EMAIL_FAKE,
+                    CONST.POLICY.OWNER_EMAIL_FAKE,
+                    false,
+                    '',
+                    undefined,
+                    CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS,
+                    parentReportAction.reportActionID,
+                );
+            } else {
+                newChat = ReportUtils.buildOptimisticChatReport(formattedUserLogins);
+            }
+        }
+        chatReportID = chat ? chat.reportID : newChat.reportID;
     }
-    const reportID = chat ? chat.reportID : newChat.reportID;
 
     // We want to pass newChat here because if anything is passed in that param (even an existing chat), we will try to create a chat on the server
-    openReport(reportID, newChat.participants, newChat);
+    openReport(chatReportID, newChat.participants, newChat);
     Navigation.navigate(ROUTES.getReportRoute(reportID));
 }
 
