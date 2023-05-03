@@ -86,13 +86,6 @@ const propTypes = {
     /** True if the IOU Preview card is hovered */
     isHovered: PropTypes.bool,
 
-    /** All of the personal details for everyone */
-    personalDetails: PropTypes.objectOf(PropTypes.shape({
-
-        /** This is either the user's full name, or their login if full name is an empty string */
-        displayName: PropTypes.string.isRequired,
-    })),
-
     /** Session info for the currently logged in user. */
     session: PropTypes.shape({
         /** Currently logged in user email */
@@ -125,7 +118,6 @@ const defaultProps = {
     walletTerms: {},
     pendingAction: null,
     isHovered: false,
-    personalDetails: {},
     session: {
         email: null,
     },
@@ -165,8 +157,6 @@ const IOUPreview = (props) => {
                 {style: 'currency', currency: props.iouReport.currency},
             ) : '';
     }
-
-    const avatarTooltip = [Str.removeSMSDomain(managerEmail), Str.removeSMSDomain(ownerEmail)];
 
     const showContextMenu = (event) => {
         // Use action and shouldHidePayButton props to check if we are in IOUDetailsModal,
