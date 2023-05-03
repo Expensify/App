@@ -127,6 +127,16 @@ function isIOUReport(report) {
 }
 
 /**
+ * Checks if a report is a task report.
+ *
+ * @param {Object} report
+ * @returns {Boolean}
+ */
+function isTaskReport(report) {
+    return lodashGet(report, 'type') === CONST.REPORT.TYPE.TASK;
+}
+
+/**
  * Checks if a report is an IOU or expense report.
  *
  * @param {Object} report
@@ -469,7 +479,7 @@ function getRoomWelcomeMessage(report) {
  */
 function chatIncludesConcierge(report) {
     return report.participants
-            && _.contains(report.participants, CONST.EMAIL.CONCIERGE);
+        && _.contains(report.participants, CONST.EMAIL.CONCIERGE);
 }
 
 /**
@@ -601,7 +611,7 @@ function getOldDotDefaultAvatar(login = '') {
  * @returns {Boolean}
  */
 function isDefaultAvatar(avatarURL) {
-    if (_.isString(avatarURL) && (avatarURL.includes('images/avatars/avatar_') || avatarURL.includes('images/avatars/user/default'))) {
+    if (_.isString(avatarURL) && (avatarURL.includes('images/avatars/default-avatar_') || avatarURL.includes('images/avatars/user/default'))) {
         return true;
     }
 
@@ -800,7 +810,7 @@ function getPersonalDetailsForLogin(login) {
     }
     return (allPersonalDetails && allPersonalDetails[login]) || {
         login,
-        displayName: Str.removeSMSDomain(login),
+        displayName: LocalePhoneNumber.formatPhoneNumber(login),
         avatar: getDefaultAvatar(login),
     };
 }
@@ -817,13 +827,11 @@ function getDisplayNameForParticipant(login, shouldUseShortForm = false) {
         return '';
     }
 
-    const loginWithoutSMSDomain = Str.removeSMSDomain(login);
     const personalDetails = getPersonalDetailsForLogin(login);
-    let longName = (personalDetails && personalDetails.displayName) || loginWithoutSMSDomain;
-    if (longName === loginWithoutSMSDomain && Str.isSMSLogin(longName)) {
-        longName = LocalePhoneNumber.formatPhoneNumber(longName);
-    }
-    const shortName = (personalDetails && personalDetails.firstName) || longName;
+
+    const longName = personalDetails.displayName;
+
+    const shortName = personalDetails.firstName || longName;
 
     return shouldUseShortForm ? shortName : longName;
 }
@@ -1886,6 +1894,7 @@ export {
     getDisplayNameForParticipant,
     isExpenseReport,
     isIOUReport,
+    isTaskReport,
     isMoneyRequestReport,
     chatIncludesChronos,
     getAvatar,
