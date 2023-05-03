@@ -74,9 +74,9 @@ function isCurrencySymbolLTR(currencyCode) {
 
 /**
  * Takes an amount as a floating point number and converts it to an integer amount.
- * For example, given [25, USD], will return 2500.
- * Given [25.50, USD] will return 2550.
- * Given [2500, JPY], will return 2500.
+ * For example, given [25, USD], return 2500.
+ * Given [25.50, USD] return 2550.
+ * Given [2500, JPY], return 2500.
  *
  * @note we do not currently support any currencies with more than two decimal places. Sorry Tunisia :(
  *
@@ -87,6 +87,23 @@ function isCurrencySymbolLTR(currencyCode) {
 function convertToSmallestUnit(currency, amountAsFloat) {
     const currencyUnit = getCurrencyUnit(currency);
     return Math.trunc(amountAsFloat * currencyUnit);
+}
+
+/**
+ * Takes an amount as an interget and converts it to a floating point amount.
+ * For example, give [25, USD], return 0.25
+ * Given [2550, USD], return 25.50
+ * Given [2500, JPY], return 2500
+ *
+ * @note we do not currency support any currencies with more than two decimal places.
+ *
+ * @param {String} currency
+ * @param {Number} amountAsInt
+ * @returns {Number}
+ */
+function convertToWholeUnit(currency, amountAsInt) {
+    const currencyUnit = getCurrencyUnit(currency);
+    return Math.trunc(amountAsInt) / currencyUnit;
 }
 
 /**
@@ -111,5 +128,6 @@ export {
     getLocalizedCurrencySymbol,
     isCurrencySymbolLTR,
     convertToSmallestUnit,
+    convertToWholeUnit,
     convertToDisplayString,
 };

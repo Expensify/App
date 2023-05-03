@@ -100,6 +100,18 @@ describe('CurrencyUtils', () => {
         });
     });
 
+    describe('convertToWholeUnit', () => {
+        test.each([
+            [CONST.CURRENCY.USD, 2500, 25],
+            [CONST.CURRENCY.USD, 2550, 25.5],
+            ['JPY', 25, 25],
+            ['JPY', 2500, 2500],
+            ['JPY', 25.5, 25],
+        ])('Correctly converts %s to amount in whole units', (currency, amount, expectedResult) => {
+            expect(CurrencyUtils.convertToWholeUnit(currency, amount)).toBe(expectedResult);
+        });
+    });
+
     describe('convertToDisplayString', () => {
         test.each([
             [CONST.CURRENCY.USD, 25, '$0.25'],
