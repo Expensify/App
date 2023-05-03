@@ -26,8 +26,14 @@ const symbolPositions = [
 describe('CurrencyUtils', () => {
     beforeAll(() => {
         Onyx.init({
-            keys: {NVP_PREFERRED_LOCALE: ONYXKEYS.NVP_PREFERRED_LOCALE},
-            initialKeyStates: {[ONYXKEYS.NVP_PREFERRED_LOCALE]: CONST.LOCALES.DEFAULT},
+            keys: {
+                NVP_PREFERRED_LOCALE: ONYXKEYS.NVP_PREFERRED_LOCALE,
+                CURRENCY_LIST: ONYXKEYS.CURRENCY_LIST,
+            },
+            initialKeyStates: {
+                [ONYXKEYS.NVP_PREFERRED_LOCALE]: CONST.LOCALES.DEFAULT,
+                [ONYXKEYS.CURRENCY_LIST]: currencyList,
+            },
         });
         LocaleListener.connect();
         return waitForPromisesToResolve();
@@ -56,5 +62,31 @@ describe('CurrencyUtils', () => {
                     expect(isSymbolLeft).toBe(isLeft);
                 })
         ));
+    });
+
+    describe('getCurrencyDecimals', () => {
+        test('Currency decimals smaller than or equal 2', () => {
+            expect(CurrencyUtils.getCurrencyDecimals('JPY')).toBe(0);
+            expect(CurrencyUtils.getCurrencyDecimals('USD')).toBe(2);
+        });
+
+        test('Currency decimals larger than 2 should return 2', () => {
+            // Actual: 3
+            expect(CurrencyUtils.getCurrencyDecimals('LYD')).toBe(2);
+
+            // Actual: 4
+            expect(CurrencyUtils.getCurrencyDecimals('UYW')).toBe(2);
+        });
+    });
+
+    describe('getCurrencyUnit', () => {
+        test('Currency with decimals smaller than or equal 2', () => {
+            expect(CurrencyUtils.getCurrencyUnit('JPY')).toBe(1);
+            expect(CurrencyUtils.getCurrencyUnit('USD')).toBe(100);
+        });
+
+        test('Currency with decimals larger than 2 should be floor to 2', () => {
+            expect(CurrencyUtils.getCurrencyUnit('LYD')).toBe(100);
+        });
     });
 });

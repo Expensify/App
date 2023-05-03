@@ -142,34 +142,6 @@ describe('IOUUtils', () => {
         });
     });
 
-    describe('getCurrencyDecimals', () => {
-        beforeAll(() => initCurrencyList());
-        test('Currency decimals smaller than or equal 2', () => {
-            expect(IOUUtils.getCurrencyDecimals('JPY')).toBe(0);
-            expect(IOUUtils.getCurrencyDecimals('USD')).toBe(2);
-        });
-
-        test('Currency decimals larger than 2 should return 2', () => {
-            // Actual: 3
-            expect(IOUUtils.getCurrencyDecimals('LYD')).toBe(2);
-
-            // Actual: 4
-            expect(IOUUtils.getCurrencyDecimals('UYW')).toBe(2);
-        });
-    });
-
-    describe('getCurrencyUnit', () => {
-        beforeAll(() => initCurrencyList());
-        test('Currency with decimals smaller than or equal 2', () => {
-            expect(IOUUtils.getCurrencyUnit('JPY')).toBe(1);
-            expect(IOUUtils.getCurrencyUnit('USD')).toBe(100);
-        });
-
-        test('Currency with decimals larger than 2 should be floor to 2', () => {
-            expect(IOUUtils.getCurrencyUnit('LYD')).toBe(100);
-        });
-    });
-
     describe('calculateAmount', () => {
         beforeAll(() => initCurrencyList());
         test('103 JPY split among 3 participants including the default user should be [35, 34, 34]', () => {

@@ -1,44 +1,6 @@
 import _ from 'underscore';
-import Onyx from 'react-native-onyx';
-import lodashGet from 'lodash/get';
 import CONST from '../CONST';
-import ONYXKEYS from '../ONYXKEYS';
-
-let currencyList = {};
-Onyx.connect({
-    key: ONYXKEYS.CURRENCY_LIST,
-    callback: (val) => {
-        if (_.isEmpty(val)) {
-            return;
-        }
-
-        currencyList = val;
-    },
-});
-
-/**
- * Returns the number of digits after the decimal separator for a specific currency.
- * For currencies that have decimal places > 2, floor to 2 instead:
- * https://github.com/Expensify/App/issues/15878#issuecomment-1496291464
- *
- * @param {String} currency - IOU currency
- * @returns {Number}
- */
-function getCurrencyDecimals(currency = CONST.CURRENCY.USD) {
-    const decimals = lodashGet(currencyList, [currency, 'decimals']);
-    return _.isUndefined(decimals) ? 2 : Math.min(decimals, 2);
-}
-
-/**
- * Returns the currency's minor unit quantity
- * e.g. Cent in USD
- *
- * @param {String} currency - IOU currency
- * @returns {Number}
- */
-function getCurrencyUnit(currency = CONST.CURRENCY.USD) {
-    return 10 ** getCurrencyDecimals(currency);
-}
+import * as CurrencyUtils from './CurrencyUtils';
 
 /**
  * Calculates the amount per user given a list of participants
@@ -55,7 +17,7 @@ function calculateAmount(participants, total, currency, isDefaultUser = false) {
     // numbers cannot be represented with perfect accuracy.
     // Currencies that do not have minor units (i.e. no decimal place) are also supported.
     // https://github.com/Expensify/App/issues/15878
-    const currencyUnit = getCurrencyUnit(currency);
+    const currencyUnit = CurrencyUtils.getCurrencyUnit(currency);
     const iouAmount = Math.round(parseFloat(total * currencyUnit));
 
     const totalParticipants = participants.length + 1;
@@ -183,6 +145,4 @@ export {
     updateIOUOwnerAndTotal,
     getIOUReportActions,
     isIOUReportPendingCurrencyConversion,
-    getCurrencyUnit,
-    getCurrencyDecimals,
 };

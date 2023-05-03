@@ -1,6 +1,46 @@
 import _ from 'underscore';
+import lodashGet from 'lodash/get';
+import Onyx from 'react-native-onyx';
+import ONYXKEYS from '../ONYXKEYS';
+import CONST from '../CONST';
 import BaseLocaleListener from './Localize/LocaleListener/BaseLocaleListener';
 import * as NumberFormatUtils from './NumberFormatUtils';
+
+let currencyList = {};
+Onyx.connect({
+    key: ONYXKEYS.CURRENCY_LIST,
+    callback: (val) => {
+        if (_.isEmpty(val)) {
+            return;
+        }
+
+        currencyList = val;
+    },
+});
+
+/**
+ * Returns the number of digits after the decimal separator for a specific currency.
+ * For currencies that have decimal places > 2, floor to 2 instead:
+ * https://github.com/Expensify/App/issues/15878#issuecomment-1496291464
+ *
+ * @param {String} currency - IOU currency
+ * @returns {Number}
+ */
+function getCurrencyDecimals(currency = CONST.CURRENCY.USD) {
+    const decimals = lodashGet(currencyList, [currency, 'decimals']);
+    return _.isUndefined(decimals) ? 2 : Math.min(decimals, 2);
+}
+
+/**
+ * Returns the currency's minor unit quantity
+ * e.g. Cent in USD
+ *
+ * @param {String} currency - IOU currency
+ * @returns {Number}
+ */
+function getCurrencyUnit(currency = CONST.CURRENCY.USD) {
+    return 10 ** getCurrencyDecimals(currency);
+}
 
 /**
  * Get localized currency symbol for currency(ISO 4217) Code
@@ -33,6 +73,8 @@ function isCurrencySymbolLTR(currencyCode) {
 }
 
 export {
+    getCurrencyDecimals,
+    getCurrencyUnit,
     getLocalizedCurrencySymbol,
     isCurrencySymbolLTR,
 };
