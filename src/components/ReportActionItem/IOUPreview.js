@@ -143,7 +143,8 @@ const IOUPreview = (props) => {
     const sessionEmail = lodashGet(props.session, 'email', null);
     const managerEmail = props.iouReport.managerEmail || '';
     const ownerEmail = props.iouReport.ownerEmail || '';
-    const participantAvatars = OptionsListUtils.getAvatarsForLogins(props.isBillSplit ? props.action.originalMessage.participants : [managerEmail, ownerEmail]);
+    const participantEmails = props.isBillSplit ? props.action.originalMessage.participants : [managerEmail, ownerEmail];
+    const participantAvatars = OptionsListUtils.getAvatarsForLogins(participantEmails);
 
     // Pay button should only be visible to the manager of the report.
     const isCurrentUserManager = managerEmail === sessionEmail;
@@ -219,7 +220,7 @@ const IOUPreview = (props) => {
                                         ? styles.iouPreviewBoxAvatarHover
                                         : undefined,
                                 ]}
-                                avatarTooltips={avatarTooltip}
+                                avatarTooltips={participantEmails}
                             />
                         </View>
                     </View>
