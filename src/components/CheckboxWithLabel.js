@@ -89,7 +89,7 @@ class CheckboxWithLabel extends React.Component {
     render() {
         return (
             <View style={this.props.style}>
-                <View style={[styles.flexRow, styles.alignItemsCenter]}>
+                <View style={[styles.flexRow, styles.alignItemsCenter, styles.breakAll]}>
                     <Checkbox
                         isChecked={this.isChecked}
                         onPress={this.toggleCheckbox}
@@ -117,11 +117,7 @@ class CheckboxWithLabel extends React.Component {
                                 {this.props.label}
                             </Text>
                         )}
-                        {this.LabelComponent && (
-                            <View style={styles.flex1}>
-                                <this.LabelComponent />
-                            </View>
-                        )}
+                        {this.LabelComponent && (<this.LabelComponent />)}
                     </TouchableOpacity>
                 </View>
                 <FormHelpMessage message={this.props.errorText} />
