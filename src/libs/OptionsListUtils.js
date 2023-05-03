@@ -529,7 +529,6 @@ function getOptions(reports, personalDetails, {
     maxRecentReportsToShow = 0,
     excludeLogins = [],
     includeMultipleParticipantReports = false,
-    includeOnlyMultipleParticipantReports = false,
     includePersonalDetails = false,
     includeRecentReports = false,
 
@@ -648,11 +647,6 @@ function getOptions(reports, personalDetails, {
 
             // Check the report to see if it has a single participant and if the participant is already selected
             if (reportOption.login && _.some(loginOptionsToExclude, option => option.login === reportOption.login)) {
-                continue;
-            }
-
-            // Check the report to see if it has a single participant and if we only want multiple participant reports
-            if (reportOption.login && includeOnlyMultipleParticipantReports) {
                 continue;
             }
 
@@ -840,7 +834,15 @@ function getNewChatOptions(
 
 /**
  * Build the options for the Share Destination for a Task
- *
+ * *
+ * @param {Object} reports
+ * @param {Object} personalDetails
+ * @param {Array<String>} [betas]
+ * @param {String} [searchValue]
+ * @param {Array} [selectedOptions]
+ * @param {Array} [excludeLogins]
+ * @param {Boolean} [includeOwnedWorkspaceChats]
+ * @returns {Object}
  *
  */
 
@@ -851,8 +853,7 @@ function getShareDestinationOptions(reports, personalDetails, betas = [], search
         searchInputValue: searchValue.trim(),
         includeRecentReports: true,
         includeMultipleParticipantReports: true,
-        includeOnlyMultipleParticipantReports: true,
-        includePersonalDetails: false,
+        includePersonalDetails: true,
         excludeLogins,
         includeOwnedWorkspaceChats,
     });

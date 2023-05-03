@@ -101,7 +101,6 @@ const ChatSelectorModal = (props) => {
 
         if (filteredRecentReports?.length > 0) {
             sections.push({
-                title: props.translate('common.recents'),
                 data: filteredRecentReports,
                 shouldShow: true,
                 indexOffset,
