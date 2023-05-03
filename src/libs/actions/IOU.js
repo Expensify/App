@@ -63,16 +63,16 @@ function requestMoney(report, amount, currency, recipientEmail, participant, com
         chatReport = ReportUtils.buildOptimisticChatReport([debtorEmail]);
         isNewChat = true;
     }
-    let iouReport;
+    let moneyRequestReport;
     if (chatReport.iouReportID) {
-        iouReport = IOUUtils.updateIOUOwnerAndTotal(
+        moneyRequestReport = IOUUtils.updateIOUOwnerAndTotal(
             iouReports[`${ONYXKEYS.COLLECTION.REPORT}${chatReport.iouReportID}`],
             recipientEmail,
             amount,
             currency,
         );
     } else {
-        iouReport = ReportUtils.buildOptimisticIOUReport(recipientEmail, debtorEmail, amount, chatReport.reportID, currency, preferredLocale);
+        moneyRequestReport = ReportUtils.buildOptimisticIOUReport(recipientEmail, debtorEmail, amount, chatReport.reportID, currency, preferredLocale);
     }
 
     // Note: The created action must be optimistically generated before the IOU action so there's no chance that the created action appears after the IOU action in the chat
@@ -85,7 +85,7 @@ function requestMoney(report, amount, currency, recipientEmail, participant, com
         [participant],
         '',
         '',
-        iouReport.reportID,
+        moneyRequestReport.reportID,
     );
 
     // First, add data that will be used in all cases
@@ -97,15 +97,15 @@ function requestMoney(report, amount, currency, recipientEmail, participant, com
             lastReadTime: DateUtils.getDBTime(),
             lastMessageText: optimisticReportAction.message[0].text,
             lastMessageHtml: optimisticReportAction.message[0].html,
-            hasOutstandingIOU: iouReport.total !== 0,
-            iouReportID: iouReport.reportID,
+            hasOutstandingIOU: moneyRequestReport.total !== 0,
+            iouReportID: moneyRequestReport.reportID,
         },
     };
 
     const optimisticIOUReportData = {
         onyxMethod: chatReport.hasOutstandingIOU ? CONST.ONYX.METHOD.MERGE : CONST.ONYX.METHOD.SET,
-        key: `${ONYXKEYS.COLLECTION.REPORT}${iouReport.reportID}`,
-        value: iouReport,
+        key: `${ONYXKEYS.COLLECTION.REPORT}${moneyRequestReport.reportID}`,
+        value: moneyRequestReport,
     };
 
     const optimisticReportActionsData = {
@@ -199,7 +199,7 @@ function requestMoney(report, amount, currency, recipientEmail, participant, com
         amount,
         currency,
         comment: parsedComment,
-        iouReportID: iouReport.reportID,
+        iouReportID: moneyRequestReport.reportID,
         chatReportID: chatReport.reportID,
         transactionID: optimisticReportAction.originalMessage.IOUTransactionID,
         reportActionID: optimisticReportAction.reportActionID,
