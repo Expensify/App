@@ -1570,7 +1570,6 @@ const styles = {
     },
 
     emojiSkinToneTitle: {
-        backgroundColor: themeColors.componentBG,
         width: '100%',
         ...spacing.pv1,
         fontFamily: fontFamily.EXP_NEUE_BOLD,
