@@ -1067,6 +1067,8 @@ function buildOptimisticExpenseReport(chatReportID, policyID, payeeEmail, total,
         ownerEmail: payeeEmail,
         hasOutstandingIOU: true,
         currency: outputCurrency,
+
+        // We don't translate reportName because the server response is always in English
         reportName: `${policyName} owes ${formattedTotal}`,
         state: CONST.REPORT.STATE.SUBMITTED,
         stateNum: CONST.REPORT.STATE_NUM.PROCESSING,
