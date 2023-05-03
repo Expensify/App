@@ -8,7 +8,7 @@ const useScreenReaderStatus = () => {
     useEffect(() => {
         const subscription = AccessibilityInfo.addEventListener('screenReaderChanged', setIsScreenReaderEnabled);
 
-        return subscription.remove;
+        return subscription && subscription.remove;
     }, []);
 
     return isScreenReaderEnabled;
