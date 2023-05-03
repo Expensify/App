@@ -28,8 +28,7 @@ describe('actions/IOU', () => {
 
     describe('requestMoney', () => {
         it('creates new chat if needed', () => {
-            const amount = 100;
-            const amountInCents = amount * 100;
+            const amount = 10000;
             const comment = 'Giv money plz';
             let chatReportID;
             let iouReportID;
@@ -120,7 +119,7 @@ describe('actions/IOU', () => {
                             expect(transaction.reportID).toBe(iouReportID);
 
                             // Its amount should match the amount of the request
-                            expect(transaction.amount).toBe(amountInCents);
+                            expect(transaction.amount).toBe(amount);
 
                             // The comment should be correct
                             expect(transaction.comment.comment).toBe(comment);
@@ -164,8 +163,7 @@ describe('actions/IOU', () => {
         });
 
         it('updates existing chat report if there is one', () => {
-            const amount = 100;
-            const amountInCents = amount * 100;
+            const amount = 10000;
             const comment = 'Giv money plz';
             let chatReport = {
                 reportID: 1234,
@@ -261,7 +259,7 @@ describe('actions/IOU', () => {
                             expect(transaction.reportID).toBe(iouReportID);
 
                             // Its amount should match the amount of the request
-                            expect(transaction.amount).toBe(amountInCents);
+                            expect(transaction.amount).toBe(amount);
 
                             // The comment should be correct
                             expect(transaction.comment.comment).toBe(comment);
@@ -305,8 +303,7 @@ describe('actions/IOU', () => {
         });
 
         it('updates existing IOU report if there is one', () => {
-            const amount = 100;
-            const amountInCents = amount * 100;
+            const amount = 10000;
             const comment = 'Giv money plz';
             const chatReportID = 1234;
             const iouReportID = 5678;
@@ -381,7 +378,7 @@ describe('actions/IOU', () => {
                             iouReport = _.find(allReports, report => report.type === CONST.REPORT.TYPE.IOU);
 
                             // The total on the iou report should be updated
-                            expect(iouReport.total).toBe(1100);
+                            expect(iouReport.total).toBe(11000);
 
                             resolve();
                         },
@@ -432,7 +429,7 @@ describe('actions/IOU', () => {
                             newTransaction = _.find(allTransactions, transaction => transaction.transactionID !== existingTransaction.transactionID);
 
                             expect(newTransaction.reportID).toBe(iouReportID);
-                            expect(newTransaction.amount).toBe(amountInCents);
+                            expect(newTransaction.amount).toBe(amount);
                             expect(newTransaction.comment.comment).toBe(comment);
                             expect(newTransaction.merchant).toBe(CONST.REPORT.TYPE.IOU);
                             expect(newTransaction.pendingAction).toBe(CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD);
@@ -471,8 +468,7 @@ describe('actions/IOU', () => {
         });
 
         it('correctly implements RedBrickRoad error handling', () => {
-            const amount = 100;
-            const amountInCents = amount * 100;
+            const amount = 10000;
             const comment = 'Giv money plz';
             let chatReportID;
             let iouReportID;
@@ -560,7 +556,7 @@ describe('actions/IOU', () => {
                             transactionID = transaction.transactionID;
 
                             expect(transaction.reportID).toBe(iouReportID);
-                            expect(transaction.amount).toBe(amountInCents);
+                            expect(transaction.amount).toBe(amount);
                             expect(transaction.comment.comment).toBe(comment);
                             expect(transaction.merchant).toBe(CONST.REPORT.TYPE.IOU);
                             expect(transaction.pendingAction).toBe(CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD);
@@ -619,8 +615,7 @@ describe('actions/IOU', () => {
              *   - Rory and Vit have never chatted together before
              *   - There is no existing group chat with the four of them
              */
-            const amount = 4;
-            const amountInCents = amount * 100;
+            const amount = 400;
             const comment = 'Yes, I am splitting a bill for $4 USD';
             let carlosChatReport = {
                 reportID: NumberUtils.rand64(),
@@ -734,7 +729,7 @@ describe('actions/IOU', () => {
                             // 2. The IOU report with Rory + Carlos (new)
                             carlosIOUReport = _.find(allReports, report => report.type === CONST.REPORT.TYPE.IOU && report.managerEmail === CARLOS_EMAIL);
                             expect(_.isEmpty(carlosIOUReport)).toBe(false);
-                            expect(carlosIOUReport.total).toBe(amountInCents / 4);
+                            expect(carlosIOUReport.total).toBe(amount / 4);
 
                             // 3. The chat report with Rory + Jules
                             julesChatReport = _.find(allReports, report => report.reportID === julesChatReport.reportID);
@@ -745,7 +740,7 @@ describe('actions/IOU', () => {
                             julesIOUReport = _.find(allReports, report => report.reportID === julesIOUReport.reportID);
                             expect(_.isEmpty(julesIOUReport)).toBe(false);
                             expect(julesChatReport.pendingFields).toBeFalsy();
-                            expect(julesIOUReport.total).toBe(julesExistingTransaction.amount + (amountInCents / 4));
+                            expect(julesIOUReport.total).toBe(julesExistingTransaction.amount + (amount / 4));
 
                             // 5. The chat report with Rory + Vit (new)
                             vitChatReport = _.find(allReports, report => report.type === CONST.REPORT.TYPE.CHAT && _.isEqual(report.participants, [VIT_EMAIL]));
@@ -755,7 +750,7 @@ describe('actions/IOU', () => {
                             // 6. The IOU report with Rory + Vit (new)
                             vitIOUReport = _.find(allReports, report => report.type === CONST.REPORT.TYPE.IOU && report.managerEmail === VIT_EMAIL);
                             expect(_.isEmpty(vitIOUReport)).toBe(false);
-                            expect(vitIOUReport.total).toBe(amountInCents / 4);
+                            expect(vitIOUReport.total).toBe(amount / 4);
 
                             // 7. The group chat with everyone
                             groupChat = _.find(allReports, report => report.type === CONST.REPORT.TYPE.CHAT && _.isEqual(report.participants, [CARLOS_EMAIL, JULES_EMAIL, VIT_EMAIL]));
@@ -800,7 +795,7 @@ describe('actions/IOU', () => {
                             carlosIOUAction = _.find(carlosReportActions, reportAction => reportAction.actionName === CONST.REPORT.ACTIONS.TYPE.IOU);
                             expect(carlosIOUAction.pendingAction).toBe(CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD);
                             expect(carlosIOUAction.originalMessage.IOUReportID).toBe(carlosIOUReport.reportID);
-                            expect(carlosIOUAction.originalMessage.amount).toBe(amountInCents / 4);
+                            expect(carlosIOUAction.originalMessage.amount).toBe(amount / 4);
                             expect(carlosIOUAction.originalMessage.comment).toBe(comment);
                             expect(carlosIOUAction.originalMessage.type).toBe(CONST.IOU.REPORT_ACTION_TYPE.CREATE);
                             expect(Date.parse(carlosCreatedAction.created)).toBeLessThanOrEqual(Date.parse(carlosIOUAction.created));
@@ -814,7 +809,7 @@ describe('actions/IOU', () => {
                             ));
                             expect(julesIOUAction.pendingAction).toBe(CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD);
                             expect(julesIOUAction.originalMessage.IOUReportID).toBe(julesIOUReport.reportID);
-                            expect(julesIOUAction.originalMessage.amount).toBe(amountInCents / 4);
+                            expect(julesIOUAction.originalMessage.amount).toBe(amount / 4);
                             expect(julesIOUAction.originalMessage.comment).toBe(comment);
                             expect(julesIOUAction.originalMessage.type).toBe(CONST.IOU.REPORT_ACTION_TYPE.CREATE);
                             expect(Date.parse(julesCreatedAction.created)).toBeLessThanOrEqual(Date.parse(julesIOUAction.created));
@@ -826,7 +821,7 @@ describe('actions/IOU', () => {
                             expect(vitCreatedAction.pendingAction).toBe(CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD);
                             expect(vitIOUAction.pendingAction).toBe(CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD);
                             expect(vitIOUAction.originalMessage.IOUReportID).toBe(vitIOUReport.reportID);
-                            expect(vitIOUAction.originalMessage.amount).toBe(amountInCents / 4);
+                            expect(vitIOUAction.originalMessage.amount).toBe(amount / 4);
                             expect(vitIOUAction.originalMessage.comment).toBe(comment);
                             expect(vitIOUAction.originalMessage.type).toBe(CONST.IOU.REPORT_ACTION_TYPE.CREATE);
                             expect(Date.parse(vitCreatedAction.created)).toBeLessThanOrEqual(Date.parse(vitIOUAction.created));
@@ -870,10 +865,10 @@ describe('actions/IOU', () => {
                             expect(vitTransaction.reportID).toBe(vitIOUReport.reportID);
                             expect(groupTransaction).toBeTruthy();
 
-                            expect(carlosTransaction.amount).toBe(amountInCents / 4);
-                            expect(julesTransaction.amount).toBe(amountInCents / 4);
-                            expect(vitTransaction.amount).toBe(amountInCents / 4);
-                            expect(groupTransaction.amount).toBe(amountInCents);
+                            expect(carlosTransaction.amount).toBe(amount / 4);
+                            expect(julesTransaction.amount).toBe(amount / 4);
+                            expect(vitTransaction.amount).toBe(amount / 4);
+                            expect(groupTransaction.amount).toBe(amount);
 
                             expect(carlosTransaction.comment.comment).toBe(comment);
                             expect(julesTransaction.comment.comment).toBe(comment);
