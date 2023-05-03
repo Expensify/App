@@ -10,6 +10,7 @@ import htmlRenderers from './HTMLRenderers';
 import * as HTMLEngineUtils from './htmlEngineUtils';
 import styles from '../../styles/styles';
 import fontFamily from '../../styles/fontFamily';
+import defaultViewProps from './defaultViewProps';
 
 const propTypes = {
     /** Whether text elements should be selectable */
@@ -49,8 +50,6 @@ const customHTMLElementModels = {
         mixedUAStyles: {whiteSpace: 'pre'},
     }),
 };
-
-const defaultViewProps = {style: [styles.alignItemsStart, styles.userSelectText]};
 
 // We are using the explicit composite architecture for performance gains.
 // Configuration for RenderHTML is handled in a top-level component providing

@@ -13,7 +13,7 @@
         {% if hub.href == activeHub %}
             <li>
                 <div class="icon-with-link selected">
-                    <i class="fa-solid fa-angle-down icon"></i>
+                    <img src="/assets/images/down.svg" class="base-icon"></img>
                     <span>{{ hub.title }}</span>
                 </div>
                 <ul class="nested-treeview">
@@ -23,7 +23,8 @@
                             <a href="#{{ section.href }}" class="link">{{ section.title }}</a>
                             <ul>
                                 {% for article in section.articles %}
-                                    {% include lhn-article-link.html hub=hub.href href=article.href title=article.title %}
+                                    {% assign article_href = section.href | append: '/' | append: article.href %}
+                                    {% include lhn-article-link.html hub=hub.href href=article_href title=article.title %}
                                 {% endfor %}
                             </ul>
                         </li>
@@ -38,7 +39,7 @@
         {% else %}
             <li>
                 <a href="/hubs/{{ hub.href }}" class="icon-with-link link">
-                    <i class="fa-solid fa-angle-right icon"></i>
+                    <img src="/assets/images/arrow-right.svg" class="base-icon"></img>
                     {{ hub.title }}
                 </a>
             </li>

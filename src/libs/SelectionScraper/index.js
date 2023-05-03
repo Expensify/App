@@ -2,6 +2,7 @@ import render from 'dom-serializer';
 import {parseDocument} from 'htmlparser2';
 import _ from 'underscore';
 import Str from 'expensify-common/lib/str';
+import styles from '../../styles/styles';
 
 const elementsWillBeSkipped = ['html', 'body'];
 const tagAttribute = 'data-testid';
@@ -43,7 +44,8 @@ const getHTMLOfSelection = () => {
 
         // If clonedSelection has no text content this data has no meaning to us.
         if (clonedSelection.textContent) {
-            let node = null;
+            let parent;
+            let child = clonedSelection;
 
             // If selection starts and ends within same text node we use its parentNode. This is because we can't
             // use closest function on a [Text](https://developer.mozilla.org/en-US/docs/Web/API/Text) node.
@@ -61,21 +63,26 @@ const getHTMLOfSelection = () => {
             //     </div>
             // and finally commonAncestorContainer.parentNode.closest('data-testid') is targeted dom.
             if (range.commonAncestorContainer instanceof HTMLElement) {
-                node = range.commonAncestorContainer.closest(`[${tagAttribute}]`);
+                parent = range.commonAncestorContainer.closest(`[${tagAttribute}]`);
             } else {
-                node = range.commonAncestorContainer.parentNode.closest(`[${tagAttribute}]`);
+                parent = range.commonAncestorContainer.parentNode.closest(`[${tagAttribute}]`);
             }
 
-            // This means "range.commonAncestorContainer" is a text node. We simply get its parent node.
-            if (!node) {
-                node = range.commonAncestorContainer.parentNode;
+            // Keep traversing up to clone all parents with 'data-testid' attribute.
+            while (parent) {
+                const cloned = parent.cloneNode();
+                cloned.appendChild(child);
+                child = cloned;
+
+                parent = parent.parentNode.closest(`[${tagAttribute}]`);
             }
 
-            node = node.cloneNode();
-            node.appendChild(clonedSelection);
-            div.appendChild(node);
+            div.appendChild(child);
         }
     }
+
+    // Remove any element that isn't selectable to prevent copying unnecessary text/items
+    div.querySelectorAll(`div[style*="user-select: ${styles.userSelectNone.WebkitUserSelect}"]`).forEach(item => item.remove());
 
     return div.innerHTML;
 };

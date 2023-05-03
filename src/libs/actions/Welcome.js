@@ -7,6 +7,7 @@ import ROUTES from '../../ROUTES';
 import * as Policy from './Policy';
 import ONYXKEYS from '../../ONYXKEYS';
 import SCREENS from '../../SCREENS';
+import CONST from '../../CONST';
 
 let resolveIsReadyPromise;
 let isReadyPromise = new Promise((resolve) => {
@@ -36,7 +37,11 @@ Onyx.connect({
     key: ONYXKEYS.NVP_IS_FIRST_TIME_NEW_EXPENSIFY_USER,
     initWithStoredValues: false,
     callback: (val) => {
-        isFirstTimeNewExpensifyUser = val;
+        // If isFirstTimeNewExpensifyUser was true do not update it to false. We update it to false inside the Welcome.show logic
+        // More context here https://github.com/Expensify/App/pull/16962#discussion_r1167351359
+        if (!isFirstTimeNewExpensifyUser) {
+            isFirstTimeNewExpensifyUser = val;
+        }
         checkOnReady();
     },
 });
@@ -96,9 +101,10 @@ Onyx.connect({
  *
  * @param {Object} params
  * @param {Object} params.routes
- * @param {Function} params.showCreateMenu
+ * @param {Function} [params.showCreateMenu]
+ * @param {Function} [params.showPopoverMenu]
  */
-function show({routes, showCreateMenu}) {
+function show({routes, showCreateMenu = () => {}, showPopoverMenu = () => {}}) {
     isReadyPromise.then(() => {
         if (!isFirstTimeNewExpensifyUser) {
             return;
@@ -113,9 +119,21 @@ function show({routes, showCreateMenu}) {
         const isDisplayingWorkspaceRoute = isWorkspaceRoute || exitingToWorkspaceRoute;
 
         // We want to display the Workspace chat first since that means a user is already in a Workspace and doesn't need to create another one
-        const workspaceChatReport = _.find(allReports, report => ReportUtils.isPolicyExpenseChat(report) && report.ownerEmail === email);
+        const workspaceChatReport = _.find(
+            allReports,
+            report => ReportUtils.isPolicyExpenseChat(report) && report.ownerEmail === email && report.statusNum !== CONST.REPORT.STATUS.CLOSED,
+        );
         if (workspaceChatReport && !isDisplayingWorkspaceRoute) {
+            // This key is only updated when we call ReconnectApp, setting it to false now allows the user to navigate normally instead of always redirecting to the workspace chat
+            Onyx.set(ONYXKEYS.NVP_IS_FIRST_TIME_NEW_EXPENSIFY_USER, false);
             Navigation.navigate(ROUTES.getReportRoute(workspaceChatReport.reportID));
+
+            // If showPopoverMenu exists and returns true then it opened the Popover Menu successfully, and we can update isFirstTimeNewExpensifyUser
+            // so the Welcome logic doesn't run again
+            if (showPopoverMenu()) {
+                isFirstTimeNewExpensifyUser = false;
+            }
+
             return;
         }
 
@@ -124,6 +142,9 @@ function show({routes, showCreateMenu}) {
         if (!Policy.isAdminOfFreePolicy(allPolicies) && !isDisplayingWorkspaceRoute) {
             showCreateMenu();
         }
+
+        // Update isFirstTimeNewExpensifyUser so the Welcome logic doesn't run again
+        isFirstTimeNewExpensifyUser = false;
     });
 }
 

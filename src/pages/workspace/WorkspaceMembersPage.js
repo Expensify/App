@@ -6,7 +6,6 @@ import {
 } from 'react-native';
 import PropTypes from 'prop-types';
 import {withOnyx} from 'react-native-onyx';
-import Str from 'expensify-common/lib/str';
 import styles from '../../styles/styles';
 import ONYXKEYS from '../../ONYXKEYS';
 import HeaderWithCloseButton from '../../components/HeaderWithCloseButton';
@@ -15,6 +14,7 @@ import ScreenWrapper from '../../components/ScreenWrapper';
 import withLocalize, {withLocalizePropTypes} from '../../components/withLocalize';
 import compose from '../../libs/compose';
 import * as Policy from '../../libs/actions/Policy';
+import * as OptionsListUtils from '../../libs/OptionsListUtils';
 import Button from '../../components/Button';
 import Checkbox from '../../components/Checkbox';
 import Text from '../../components/Text';
@@ -116,6 +116,41 @@ class WorkspaceMembersPage extends React.Component {
          */
         const clientMemberEmails = _.keys(_.pick(this.props.policyMemberList, member => _.isEmpty(member.errors)));
         Policy.openWorkspaceMembersPage(this.props.route.params.policyID, clientMemberEmails);
+    }
+
+    /**
+     * This function will iterate through the details of each policy member to check if the
+     * search string matches with any detail and return that filter.
+     * @param {Array} policyMembersPersonalDetails - This is the list of policy members
+     * @param {*} searchValue - This is the string that the user has entered
+     * @returns {Array} - The list of policy members that have anything similar to the searchValue
+     */
+    getMemberOptions(policyMembersPersonalDetails, searchValue) {
+        // If no search value, we return all members.
+        if (_.isEmpty(searchValue)) {
+            return policyMembersPersonalDetails;
+        }
+
+        // We will filter through each policy member details to determine if they should be shown
+        return _.filter(policyMembersPersonalDetails, (member) => {
+            let memberDetails = '';
+            if (member.login) {
+                memberDetails += ` ${member.login.toLowerCase()}`;
+            }
+            if (member.firstName) {
+                memberDetails += ` ${member.firstName.toLowerCase()}`;
+            }
+            if (member.lastName) {
+                memberDetails += ` ${member.lastName.toLowerCase()}`;
+            }
+            if (member.displayName) {
+                memberDetails += ` ${member.displayName.toLowerCase()}`;
+            }
+            if (member.phoneNumber) {
+                memberDetails += ` ${member.phoneNumber.toLowerCase()}`;
+            }
+            return OptionsListUtils.isSearchStringMatch(searchValue, memberDetails);
+        });
     }
 
     /**
@@ -250,12 +285,12 @@ class WorkspaceMembersPage extends React.Component {
     }
 
     /**
-     * @param {String} [value = '']
-     * @param {String} keyword
+     * Check if the policy member is deleted from the workspace
+     * @param {Object} policyMember
      * @returns {Boolean}
      */
-    isKeywordMatch(value = '', keyword) {
-        return value.trim().toLowerCase().includes(keyword);
+    isDeletedPolicyMember(policyMember) {
+        return !this.props.network.isOffline && policyMember.pendingAction === 'delete' && _.isEmpty(policyMember.errors);
     }
 
     /**
@@ -281,7 +316,6 @@ class WorkspaceMembersPage extends React.Component {
                     activeOpacity={0.7}
                 >
                     <Checkbox
-                        style={[styles.peopleRowCell]}
                         isChecked={_.contains(this.state.selectedEmployees, item.login)}
                         onPress={() => this.toggleUser(item.login, item.pendingAction)}
                     />
@@ -290,8 +324,8 @@ class WorkspaceMembersPage extends React.Component {
                             onSelectRow={() => this.toggleUser(item.login, item.pendingAction)}
                             boldStyle
                             option={{
-                                text: Str.removeSMSDomain(item.displayName),
-                                alternateText: Str.removeSMSDomain(item.login),
+                                text: this.props.formatPhoneNumber(item.displayName),
+                                alternateText: this.props.formatPhoneNumber(item.login),
                                 participantsList: [item],
                                 icons: [{
                                     source: ReportUtils.getAvatar(item.avatar, item.login),
@@ -303,12 +337,10 @@ class WorkspaceMembersPage extends React.Component {
                         />
                     </View>
                     {(this.props.session.email === item.login || item.role === 'admin') && (
-                        <View style={styles.peopleRowCell}>
-                            <View style={[styles.badge, styles.peopleBadge]}>
-                                <Text style={[styles.peopleBadgeText]}>
-                                    {this.props.translate('common.admin')}
-                                </Text>
-                            </View>
+                        <View style={[styles.badge, styles.peopleBadge]}>
+                            <Text style={[styles.peopleBadgeText]}>
+                                {this.props.translate('common.admin')}
+                            </Text>
                         </View>
                     )}
                 </TouchableOpacity>
@@ -324,6 +356,9 @@ class WorkspaceMembersPage extends React.Component {
         const removableMembers = {};
         let data = [];
         _.each(policyMemberList, (policyMember, email) => {
+            if (this.isDeletedPolicyMember(policyMember)) {
+                return;
+            }
             const details = lodashGet(this.props.personalDetails, email, {displayName: email, login: email});
             data.push({
                 ...policyMember,
@@ -331,12 +366,7 @@ class WorkspaceMembersPage extends React.Component {
             });
         });
         data = _.sortBy(data, value => value.displayName.toLowerCase());
-        const searchValue = this.state.searchValue.trim().toLowerCase();
-        data = _.filter(data, member => this.isKeywordMatch(member.displayName, searchValue)
-            || this.isKeywordMatch(member.login, searchValue)
-            || this.isKeywordMatch(member.phoneNumber, searchValue)
-            || this.isKeywordMatch(member.firstName, searchValue)
-            || this.isKeywordMatch(member.lastName, searchValue));
+        data = this.getMemberOptions(data, this.state.searchValue.trim().toLowerCase());
 
         data = _.reject(data, (member) => {
             // If this policy is owned by Expensify then show all support (expensify.com or team.expensify.com) emails
@@ -412,20 +442,18 @@ class WorkspaceMembersPage extends React.Component {
                                 <TextInput
                                     value={this.state.searchValue}
                                     onChangeText={this.updateSearchValue}
-                                    placeholder={this.props.translate('optionsSelector.nameEmailOrPhoneNumber')}
+                                    placeholder={this.props.translate('optionsSelector.findMember')}
                                 />
                             </View>
                             {data.length > 0 ? (
                                 <View style={[styles.w100, styles.mt4, styles.flex1]}>
                                     <View style={[styles.peopleRow, styles.ph5, styles.pb3]}>
-                                        <View style={[styles.peopleRowCell]}>
-                                            <Checkbox
-                                                isChecked={!_.isEmpty(removableMembers)
-                                                    && _.every(_.keys(removableMembers), memberEmail => _.contains(this.state.selectedEmployees, memberEmail))}
-                                                onPress={() => this.toggleAllUsers(removableMembers)}
-                                            />
-                                        </View>
-                                        <View style={[styles.peopleRowCell, styles.flex1]}>
+                                        <Checkbox
+                                            isChecked={!_.isEmpty(removableMembers)
+                                                && _.every(_.keys(removableMembers), memberEmail => _.contains(this.state.selectedEmployees, memberEmail))}
+                                            onPress={() => this.toggleAllUsers(removableMembers)}
+                                        />
+                                        <View style={[styles.flex1]}>
                                             <Text style={[styles.textStrong, styles.ph5]}>
                                                 {this.props.translate('workspace.people.selectAll')}
                                             </Text>
@@ -444,7 +472,7 @@ class WorkspaceMembersPage extends React.Component {
                             ) : (
                                 <View style={[styles.ph5]}>
                                     <Text style={[styles.textLabel, styles.colorMuted]}>
-                                        {this.props.translate('common.noResultsFound')}
+                                        {this.props.translate('workspace.common.memberNotFound')}
                                     </Text>
                                 </View>
                             )}
