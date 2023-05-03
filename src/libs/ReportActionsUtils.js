@@ -299,5 +299,5 @@ export {
     getSortedReportActionsForDisplay,
     getLastClosedReportAction,
     getLatestReportActionFromOnyxData,
-    getLinkedTransactionID,g
+    getLinkedTransactionID,
 };
