@@ -131,7 +131,7 @@ function requestMoney(report, amount, currency, recipientEmail, participant, com
         onyxMethod: CONST.ONYX.METHOD.MERGE,
         key: `${ONYXKEYS.COLLECTION.REPORT}${chatReport.reportID}`,
         value: {
-            hasOutstandingIOU: chatReport.hasOutstandingIOU,
+            pendingFields: {createChat: null},
         },
     };
 
@@ -140,11 +140,7 @@ function requestMoney(report, amount, currency, recipientEmail, participant, com
         key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${chatReport.reportID}`,
         value: {
             [optimisticReportAction.reportActionID]: {
-                ...optimisticReportAction,
                 pendingAction: null,
-                errors: {
-                    [DateUtils.getMicroseconds()]: Localize.translateLocal('iou.error.genericCreateFailureMessage'),
-                },
             },
         },
     };
@@ -746,9 +742,7 @@ function getSendMoneyParams(report, amount, currency, comment, paymentMethodType
             key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${chatReport.reportID}`,
             value: {
                 [optimisticIOUReportAction.reportActionID]: {
-                    errors: {
-                        [DateUtils.getMicroseconds()]: Localize.translateLocal('iou.error.other'),
-                    },
+                    pendingAction: null,
                 },
             },
         },
