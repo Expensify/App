@@ -201,13 +201,19 @@ function setShareDestinationValue(shareDestination) {
     Onyx.merge(ONYXKEYS.TASK, {shareDestination});
 }
 
+function setParentReportID(parentReportID) {
+    // This is only needed for creation of a new task and so it should only be stored locally
+    Onyx.merge(ONYXKEYS.TASK, {parentReportID});
+}
+
 function clearOutTaskInfo() {
     Onyx.set(ONYXKEYS.TASK, null);
 }
 
 function clearOutTaskInfoAndNavigate(reportID) {
     clearOutTaskInfo();
-    Navigation.navigate(ROUTES.getNewTaskDetailsRoute(reportID || 'global_create'));
+    setParentReportID(reportID);
+    Navigation.navigate(ROUTES.NEW_TASK_DETAILS);
 }
 
 // eslint-disable-next-line import/prefer-default-export

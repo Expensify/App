@@ -10,15 +10,13 @@ import Navigation from '../../libs/Navigation/Navigation';
 import ScreenWrapper from '../../components/ScreenWrapper';
 import styles from '../../styles/styles';
 import ONYXKEYS from '../../ONYXKEYS';
-import * as ErrorUtils from '../../libs/ErrorUtils';
-import Form from '../../components/Form';
 import Permissions from '../../libs/Permissions';
 import ROUTES from '../../ROUTES';
 import TaskSelectorLink from '../../components/TaskSelectorLink';
 import reportPropTypes from '../reportPropTypes';
 import * as ReportUtils from '../../libs/ReportUtils';
-
-// TO-DO: Call CreateTask with all the appropriate Data
+import * as TaskUtils from '../../libs/actions/Task';
+import FormAlertWithSubmitButton from '../../components/FormAlertWithSubmitButton';
 
 const propTypes = {
     /** Task Creation Data */
@@ -27,6 +25,7 @@ const propTypes = {
         shareDestination: PropTypes.string,
         title: PropTypes.string,
         description: PropTypes.string,
+        parentReportID: PropTypes.string,
     }),
 
     /** Beta features list */
@@ -58,21 +57,6 @@ const defaultProps = {
     personalDetails: {},
     reports: {},
 };
-
-/**
- * Get the parent report ID as number
- *
- * @param {Object} route
- * @param {Object} route.params
- * @param {String} route.params.reportID
- * @returns {String}
- */
-function getReportID(route) {
-    if (!route.params || !route.params.reportID) {
-        return;
-    }
-    return route.params.reportID.toString();
-}
 
 /**
  * Get the assignee data
@@ -109,50 +93,39 @@ function constructShareDestination(reportID, reports, personalDetails, policies)
 const NewTaskPage = (props) => {
     const [assignee, setAssignee] = React.useState({});
     const [shareDestination, setShareDestination] = React.useState({});
+    const [submitError, setSubmitError] = React.useState(false);
 
     useEffect(() => {
+        setSubmitError(false);
         if (props.task.assignee) {
             const assigneeDetails = lodashGet(props.personalDetails, props.task.assignee);
             const displayDetails = constructAssignee(assigneeDetails);
             setAssignee(displayDetails);
         }
+        if (props.task.parentReportID) {
+            TaskUtils.setShareDestinationValue(props.task.parentReportID);
+        }
         if (props.task.shareDestination) {
             const displayDetails = constructShareDestination(props.task.shareDestination, props.reports, props.personalDetails, props.policies);
             setShareDestination(displayDetails);
         }
-    }, [props.task]);
-
-    /**
-     * @param {Object} values - form input values passed by the Form component
-     * @returns {Boolean}
-     */
-    function validate(values) {
-        const errors = {};
-
-        if (!values.title) {
-            // We error if the user doesn't enter a task name
-            ErrorUtils.addErrorMessage(errors, 'taskTitle', props.translate('newTaskPage.pleaseEnterTaskName'));
-        }
-
-        if (!values.shareDestination) {
-            // We error if the user doesn't enter a task assignee
-            ErrorUtils.addErrorMessage(errors, 'shareDestination', props.translate('newTaskPage.pleaseEnterTaskDestination'));
-        }
-
-        return errors;
-    }
+    }, [props]);
 
     // On submit, we want to call the assignTask function and wait to validate
     // the response
-    function onSubmit(values) {
-        // eslint-disable-next-line no-console
-        console.log('submitting new task', values);
+    function onSubmit() {
+        if (!props.task.name || !props.task.shareDestination) {
+            setSubmitError(true);
+            return;
+        }
+        console.log('Task Creation Data', props.task);
     }
 
     if (!Permissions.canUseTasks(props.betas)) {
         Navigation.dismissModal();
         return null;
     }
+
     return (
         <ScreenWrapper includeSafeAreaPaddingBottom={false}>
             <HeaderWithCloseButton
@@ -161,44 +134,43 @@ const NewTaskPage = (props) => {
                 shouldShowBackButton
                 onBackButtonPress={() => Navigation.goBack()}
             />
-            <Form
-                formID={ONYXKEYS.FORMS.NEW_TASK_FORM}
-                submitButtonText={props.translate('newTaskPage.confirmTask')}
-                style={[styles.mh5, styles.mt5, styles.flexGrow1]}
-                validate={() => validate(props.task)}
-                onSubmit={() => onSubmit(props.task)}
-                enabledWhenOffline
-            >
-                <View style={styles.mb5}>
-                    <TaskSelectorLink text={props.task.name} onPress={() => Navigation.navigate(ROUTES.getNewTaskTitleRoute(getReportID(props.route)))} label="newTaskPage.title" />
+            <View style={[styles.mt5, styles.ph5, styles.containerWithSpaceBetween]}>
+                <View>
+                    <View style={styles.mb5}>
+                        <TaskSelectorLink text={props.task.name} onPress={() => Navigation.navigate(ROUTES.NEW_TASK_TITLE)} label="newTaskPage.title" />
+                    </View>
+                    <View style={styles.mb5}>
+                        <TaskSelectorLink text={props.task.description} onPress={() => Navigation.navigate(ROUTES.NEW_TASK_DESCRIPTION)} label="newTaskPage.description" />
+                    </View>
+                    <View style={styles.mb5}>
+                        <TaskSelectorLink
+                            icons={assignee.icons}
+                            text={assignee.displayName}
+                            alternateText={assignee.subtitle}
+                            onPress={() => Navigation.navigate(ROUTES.NEW_TASK_ASSIGNEE)}
+                            label="newTaskPage.assignee"
+                        />
+                    </View>
+                    <View style={styles.mb5}>
+                        <TaskSelectorLink
+                            icons={shareDestination.icons}
+                            text={shareDestination.displayName}
+                            alternateText={shareDestination.subtitle}
+                            onPress={() => Navigation.navigate(ROUTES.NEW_TASK_CHAT)}
+                            label="newTaskPage.shareSomewhere"
+                            isShareDestination
+                            disabled={Boolean(props.task.parentReportID)}
+                        />
+                    </View>
                 </View>
-                <View style={styles.mb5}>
-                    <TaskSelectorLink
-                        text={props.task.description}
-                        onPress={() => Navigation.navigate(ROUTES.getNewTaskDescriptionRoute(getReportID(props.route)))}
-                        label="newTaskPage.description"
-                    />
-                </View>
-                <View style={styles.mb5}>
-                    <TaskSelectorLink
-                        icons={assignee.icons}
-                        text={assignee.displayName}
-                        alternateText={assignee.subtitle}
-                        onPress={() => Navigation.navigate(ROUTES.getNewTaskAssigneeRoute(getReportID(props.route)))}
-                        label="newTaskPage.assignee"
-                    />
-                </View>
-                <View style={styles.mb5}>
-                    <TaskSelectorLink
-                        icons={shareDestination.icons}
-                        text={shareDestination.displayName}
-                        alternateText={shareDestination.subtitle}
-                        onPress={() => Navigation.navigate(ROUTES.getNewTaskChatRoute(getReportID(props.route)))}
-                        label="newTaskPage.shareSomewhere"
-                        isShareDestination
-                    />
-                </View>
-            </Form>
+                <FormAlertWithSubmitButton
+                    isAlertVisible={submitError}
+                    message={props.translate('newTaskPage.confirmError')}
+                    onSubmit={() => onSubmit()}
+                    buttonText={props.translate('newTaskPage.confirmTask')}
+                    containerStyles={[styles.mh0, styles.mt5, styles.flex1]}
+                />
+            </View>
         </ScreenWrapper>
     );
 };

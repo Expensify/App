@@ -1156,6 +1156,7 @@ export default {
         assignTask: 'Asignar tarea',
         assignee: 'cesionario',
         confirmTask: 'Confirmar tarea',
+        confirmError: 'Por favor introduce un título y selecciona un destino de tarea',
         title: 'Título de la tarea',
         description: 'Descripción (opcional)',
         shareSomewhere: 'Compartir en algún lugar',

@@ -27,11 +27,19 @@ const defaultProps = {
 };
 
 const NewTaskDescriptionPage = (props) => {
+    /**
+     * @param {Object} values - form input values passed by the Form component
+     * @returns {Boolean}
+     */
+    function validate() {
+        return {};
+    }
+
     // On submit, we want to call the assignTask function and wait to validate
     // the response
     function onSubmit(values) {
         TaskUtils.setDescriptionValue(values.taskDescription);
-        Navigation.navigate(ROUTES.getNewTaskRoute());
+        Navigation.navigate(ROUTES.NEW_TASK);
     }
 
     if (!Permissions.canUseTasks(props.betas)) {
@@ -51,6 +59,7 @@ const NewTaskDescriptionPage = (props) => {
                 submitButtonText={props.translate('newTaskPage.assignTask')}
                 style={[styles.mh5, styles.mt5, styles.flexGrow1]}
                 onSubmit={values => onSubmit(values)}
+                validate={() => validate()}
                 enabledWhenOffline
             >
                 <View style={styles.mb5}>

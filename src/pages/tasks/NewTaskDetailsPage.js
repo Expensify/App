@@ -16,8 +16,6 @@ import Permissions from '../../libs/Permissions';
 import ROUTES from '../../ROUTES';
 import * as TaskUtils from '../../libs/actions/Task';
 
-// TO-DO: Call CreateTask with all the appropriate Data
-
 const propTypes = {
     /** Beta features list */
     betas: PropTypes.arrayOf(PropTypes.string),
@@ -28,21 +26,6 @@ const propTypes = {
 const defaultProps = {
     betas: [],
 };
-
-/**
- * Get the parent report ID as number
- *
- * @param {Object} route
- * @param {Object} route.params
- * @param {String} route.params.reportID
- * @returns {String}
- */
-function getReportID(route) {
-    if (!route.params || !route.params.reportID) {
-        return;
-    }
-    return route.params.reportID.toString();
-}
 
 // NOTE: This page is going to be updated in https://github.com/Expensify/App/issues/16855, this is just a placeholder for now
 const NewTaskPage = (props) => {
@@ -65,7 +48,7 @@ const NewTaskPage = (props) => {
     // the response
     function onSubmit(values) {
         TaskUtils.setDetailsValue(values.taskTitle, values.taskDescription);
-        Navigation.navigate(ROUTES.getNewTaskRoute(getReportID(props.route)));
+        Navigation.navigate(ROUTES.NEW_TASK);
     }
 
     if (!Permissions.canUseTasks(props.betas)) {

@@ -32,6 +32,9 @@ const propTypes = {
     /** Whether it is a share location */
     isShareDestination: PropTypes.bool,
 
+    /** Whether the Touchable should be disabled */
+    disabled: PropTypes.bool,
+
     ...withLocalizePropTypes,
 };
 
@@ -40,16 +43,18 @@ const defaultProps = {
     text: '',
     alternateText: '',
     isShareDestination: false,
+    disabled: false,
 };
 
 // eslint-disable-next-line react/destructuring-assignment
 const TaskSelectorLink = (props) => {
-    console.log(props.icons);
+    // eslint-disable-next-line no-console
+    // console.log(props);
     const displayNameStyle = StyleUtils.combineStyles(styles.optionDisplayName, styles.pre);
     const alternateTextStyle = StyleUtils.combineStyles(styles.sidebarLinkText, styles.optionAlternateText, styles.textLabelSupporting, styles.pre);
     const linkBottomMargin = props.icons.length !== 0 ? styles.mb6 : styles.mb2;
     return (
-        <TouchableOpacity style={[styles.flexRow, styles.taskSelectorLink, linkBottomMargin]} onPress={props.onPress}>
+        <TouchableOpacity style={[styles.flexRow, styles.taskSelectorLink, linkBottomMargin]} onPress={props.onPress} disabled={props.disabled}>
             <View style={[styles.flexRow, styles.containerWithSpaceBetween, styles.alignItemsCenter]}>
                 {props.icons.length !== 0 || props.text !== '' ? (
                     <View style={[styles.flexColumn, styles.justify, styles.alignItemsStart]}>
@@ -80,7 +85,7 @@ const TaskSelectorLink = (props) => {
                         <Text style={[styles.textWhite, styles.textNormal]}>{props.translate(props.label)}</Text>
                     </View>
                 )}
-                <Icon src={Expensicons.ArrowRight} fill={themeColors.textLight} width={variables.iconSizeSmall} height={variables.iconSizeSmall} inline />
+                {props.disabled ? null : <Icon src={Expensicons.ArrowRight} fill={themeColors.textLight} width={variables.iconSizeSmall} height={variables.iconSizeSmall} inline />}
             </View>
         </TouchableOpacity>
     );
