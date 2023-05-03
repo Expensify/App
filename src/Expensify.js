@@ -2,13 +2,12 @@ import _ from 'underscore';
 import lodashGet from 'lodash/get';
 import PropTypes from 'prop-types';
 import React, {
-    useCallback, useState, useEffect, useRef, useLayoutEffect, useMemo, useContext,
+    useCallback, useState, useEffect, useRef, useLayoutEffect, useMemo,
 } from 'react';
 import {
-    AppState, Linking, Button,
+    AppState, Linking,
 } from 'react-native';
 import Onyx, {withOnyx} from 'react-native-onyx';
-import Reanimated from 'react-native-reanimated';
 import * as Report from './libs/actions/Report';
 import BootSplash from './libs/BootSplash';
 import * as ActiveClientManager from './libs/ActiveClientManager';
@@ -36,7 +35,6 @@ import KeyboardShortcutsModal from './components/KeyboardShortcutsModal';
 // This lib needs to be imported, but it has nothing to export since all it contains is an Onyx connection
 // eslint-disable-next-line no-unused-vars
 import UnreadIndicatorUpdater from './libs/UnreadIndicatorUpdater';
-import ThemeContext from './styles/themes/ThemeContext';
 
 Onyx.registerLogger(({level, message}) => {
     if (level === 'alert') {
@@ -76,8 +74,6 @@ const propTypes = {
         roomName: PropTypes.string,
     }),
 
-    colorTheme: PropTypes.string,
-
     ...withLocalizePropTypes,
 };
 
@@ -89,7 +85,6 @@ const defaultProps = {
     updateAvailable: false,
     isSidebarLoaded: false,
     screenShareRequest: null,
-    colorTheme: 'light',
 };
 
 function Expensify(props) {
@@ -183,8 +178,6 @@ function Expensify(props) {
         }
     }, [props.isSidebarLoaded, isNavigationReady, isSplashShown, isAuthenticated]);
 
-    const theme = useContext(ThemeContext);
-
     // Display a blank page until the onyx migration completes
     if (!isOnyxMigrated) {
         return null;
@@ -220,26 +213,28 @@ function Expensify(props) {
                 authenticated={isAuthenticated}
             />
 
-            <Button
-                title="Change color theme"
-                onPress={() => {
-                    // eslint-disable-next-line rulesdir/prefer-actions-set-data
-                    Onyx.set(ONYXKEYS.COLOR_THEME, props.colorTheme === 'light' ? 'dark' : 'light');
-                }}
-            />
+            {/* <View style={StyleSheet.absoluteFill}>
+                <Button
+                    title="Change color theme"
+                    onPress={() => {
+                        // eslint-disable-next-line rulesdir/prefer-actions-set-data
+                        Onyx.set(ONYXKEYS.COLOR_THEME, props.colorTheme === 'light' ? 'dark' : 'light');
+                    }}
+                />
 
-            <Reanimated.View style={{
-                width: 200,
-                height: 200,
-                position: 'absolute',
-                left: 100,
-                top: 100,
-                alignItems: 'center',
-                backgroundColor: theme.appBG,
-            }}
-            >
-                <Reanimated.Text style={{textAlign: 'center', color: theme.text}}>Demonstration of dynamic theme from ThemeProvider</Reanimated.Text>
-            </Reanimated.View>
+                <Reanimated.View style={{
+                    width: 200,
+                    height: 200,
+                    position: 'absolute',
+                    left: 100,
+                    top: 100,
+                    alignItems: 'center',
+                    backgroundColor: theme.appBG,
+                }}
+                >
+                    <Reanimated.Text style={{textAlign: 'center', color: theme.text}}>Demonstration of dynamic theme from ThemeProvider</Reanimated.Text>
+                </Reanimated.View>
+            </View> */}
         </DeeplinkWrapper>
     );
 }
@@ -261,9 +256,6 @@ export default compose(
         },
         screenShareRequest: {
             key: ONYXKEYS.SCREEN_SHARE_REQUEST,
-        },
-        colorTheme: {
-            key: ONYXKEYS.COLOR_THEME,
         },
     }),
 )(Expensify);

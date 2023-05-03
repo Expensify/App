@@ -6,7 +6,7 @@ import lodashGet from 'lodash/get';
 import _ from 'underscore';
 import {Freeze} from 'react-freeze';
 import {PortalHost} from '@gorhom/portal';
-import styles from '../../styles/styles';
+import Reanimated from 'react-native-reanimated';
 import ScreenWrapper from '../../components/ScreenWrapper';
 import HeaderView from './HeaderView';
 import Navigation from '../../libs/Navigation/Navigation';
@@ -39,6 +39,7 @@ import personalDetailsPropType from '../personalDetailsPropType';
 import getIsReportFullyVisible from '../../libs/getIsReportFullyVisible';
 import EmojiPicker from '../../components/EmojiPicker/EmojiPicker';
 import * as EmojiPickerAction from '../../libs/actions/EmojiPickerAction';
+import StylesContext from '../../styles/StylesContext';
 
 const propTypes = {
     /** Navigation route context info provided by react navigation */
@@ -222,7 +223,10 @@ class ReportScreen extends React.Component {
         const reportID = getReportID(this.props.route);
         const addWorkspaceRoomOrChatPendingAction = lodashGet(this.props.report, 'pendingFields.addWorkspaceRoom') || lodashGet(this.props.report, 'pendingFields.createChat');
         const addWorkspaceRoomOrChatErrors = lodashGet(this.props.report, 'errorFields.addWorkspaceRoom') || lodashGet(this.props.report, 'errorFields.createChat');
-        const screenWrapperStyle = [styles.appContent, styles.flex1, {marginTop: this.props.viewportOffsetTop}];
+
+        const styles = this.context;
+
+        const screenWrapperStyle = [styles.flex1, {marginTop: this.props.viewportOffsetTop}];
 
         // There are no reportActions at all to display and we are still in the process of loading the next set of actions.
         const isLoadingInitialReportActions = _.isEmpty(this.props.reportActions) && this.props.report.isLoadingReportActions;
@@ -242,45 +246,46 @@ class ReportScreen extends React.Component {
         const shouldAnimate = !shouldFreeze;
 
         return (
-            <ScreenWrapper
-                style={screenWrapperStyle}
-            >
-                <Freeze
-                    freeze={shouldFreeze}
-                    placeholder={(
-                        <>
-                            <ReportHeaderSkeletonView shouldAnimate={shouldAnimate} />
-                            <View style={[styles.flex1, styles.justifyContentEnd, styles.overflowHidden]}>
-                                <ReportActionsSkeletonView shouldAnimate={shouldAnimate} containerHeight={this.state.skeletonViewContainerHeight} />
-                                <ReportFooter shouldDisableCompose isOffline={this.props.network.isOffline} />
-                            </View>
-                        </>
-                    )}
+            <Reanimated.View style={styles.appContent}>
+                <ScreenWrapper
+                    style={screenWrapperStyle}
                 >
-                    <FullPageNotFoundView
-                        shouldShow={(!this.props.report.reportID && !this.props.report.isLoadingReportActions && !isLoading) || shouldHideReport}
-                        subtitleKey="notFound.noAccess"
-                        shouldShowCloseButton={false}
-                        shouldShowBackButton={this.props.isSmallScreenWidth}
-                        onBackButtonPress={() => {
-                            Navigation.navigate(ROUTES.HOME);
-                        }}
-                    >
-                        {isLoading ? <ReportHeaderSkeletonView shouldAnimate={shouldAnimate} /> : (
+                    <Freeze
+                        freeze={shouldFreeze}
+                        placeholder={(
                             <>
-                                <OfflineWithFeedback
-                                    pendingAction={addWorkspaceRoomOrChatPendingAction}
-                                    errors={addWorkspaceRoomOrChatErrors}
-                                    shouldShowErrorMessages={false}
-                                >
-                                    <HeaderView
-                                        reportID={reportID}
-                                        onNavigationMenuButtonClicked={() => Navigation.navigate(ROUTES.HOME)}
-                                        personalDetails={this.props.personalDetails}
-                                        report={this.props.report}
-                                    />
-                                </OfflineWithFeedback>
-                                {Boolean(this.props.accountManagerReportID) && ReportUtils.isConciergeChatReport(this.props.report) && this.state.isBannerVisible && (
+                                <ReportHeaderSkeletonView shouldAnimate={shouldAnimate} />
+                                <View style={[styles.flex1, styles.justifyContentEnd, styles.overflowHidden]}>
+                                    <ReportActionsSkeletonView shouldAnimate={shouldAnimate} containerHeight={this.state.skeletonViewContainerHeight} />
+                                    <ReportFooter shouldDisableCompose isOffline={this.props.network.isOffline} />
+                                </View>
+                            </>
+                    )}
+                    >
+                        <FullPageNotFoundView
+                            shouldShow={(!this.props.report.reportID && !this.props.report.isLoadingReportActions && !isLoading) || shouldHideReport}
+                            subtitleKey="notFound.noAccess"
+                            shouldShowCloseButton={false}
+                            shouldShowBackButton={this.props.isSmallScreenWidth}
+                            onBackButtonPress={() => {
+                                Navigation.navigate(ROUTES.HOME);
+                            }}
+                        >
+                            {isLoading ? <ReportHeaderSkeletonView shouldAnimate={shouldAnimate} /> : (
+                                <>
+                                    <OfflineWithFeedback
+                                        pendingAction={addWorkspaceRoomOrChatPendingAction}
+                                        errors={addWorkspaceRoomOrChatErrors}
+                                        shouldShowErrorMessages={false}
+                                    >
+                                        <HeaderView
+                                            reportID={reportID}
+                                            onNavigationMenuButtonClicked={() => Navigation.navigate(ROUTES.HOME)}
+                                            personalDetails={this.props.personalDetails}
+                                            report={this.props.report}
+                                        />
+                                    </OfflineWithFeedback>
+                                    {Boolean(this.props.accountManagerReportID) && ReportUtils.isConciergeChatReport(this.props.report) && this.state.isBannerVisible && (
                                     <Banner
                                         containerStyles={[styles.mh4, styles.mt4, styles.p4, styles.bgDark]}
                                         textStyles={[styles.colorReversed]}
@@ -289,25 +294,25 @@ class ReportScreen extends React.Component {
                                         onPress={this.chatWithAccountManager}
                                         shouldShowCloseButton
                                     />
-                                )}
-                            </>
-                        )}
-                        <View
-                            nativeID={CONST.REPORT.DROP_NATIVE_ID}
-                            style={[styles.flex1, styles.justifyContentEnd, styles.overflowHidden]}
-                            onLayout={(event) => {
-                                const skeletonViewContainerHeight = event.nativeEvent.layout.height;
+                                    )}
+                                </>
+                            )}
+                            <View
+                                nativeID={CONST.REPORT.DROP_NATIVE_ID}
+                                style={[styles.flex1, styles.justifyContentEnd, styles.overflowHidden]}
+                                onLayout={(event) => {
+                                    const skeletonViewContainerHeight = event.nativeEvent.layout.height;
 
-                                // The height can be 0 if the component unmounts - we are not interested in this value and want to know how much space it
-                                // takes up so we can set the skeleton view container height.
-                                if (skeletonViewContainerHeight === 0) {
-                                    return;
-                                }
-                                reportActionsListViewHeight = skeletonViewContainerHeight;
-                                this.setState({skeletonViewContainerHeight});
-                            }}
-                        >
-                            {(this.isReportReadyForDisplay() && !isLoadingInitialReportActions && !isLoading) && (
+                                    // The height can be 0 if the component unmounts - we are not interested in this value and want to know how much space it
+                                    // takes up so we can set the skeleton view container height.
+                                    if (skeletonViewContainerHeight === 0) {
+                                        return;
+                                    }
+                                    reportActionsListViewHeight = skeletonViewContainerHeight;
+                                    this.setState({skeletonViewContainerHeight});
+                                }}
+                            >
+                                {(this.isReportReadyForDisplay() && !isLoadingInitialReportActions && !isLoading) && (
                                 <ReportActionsView
                                     reportActions={this.props.reportActions}
                                     report={this.props.report}
@@ -315,44 +320,47 @@ class ReportScreen extends React.Component {
                                     isDrawerOpen={this.props.isDrawerOpen}
                                     parentViewHeight={this.state.skeletonViewContainerHeight}
                                 />
-                            )}
+                                )}
 
-                            {/* Note: The report should be allowed to mount even if the initial report actions are not loaded. If we prevent rendering the report while they are loading then
+                                {/* Note: The report should be allowed to mount even if the initial report actions are not loaded. If we prevent rendering the report while they are loading then
                             we'll unnecessarily unmount the ReportActionsView which will clear the new marker lines initial state. */}
-                            {(!this.isReportReadyForDisplay() || isLoadingInitialReportActions || isLoading) && (
+                                {(!this.isReportReadyForDisplay() || isLoadingInitialReportActions || isLoading) && (
                                 <ReportActionsSkeletonView containerHeight={this.state.skeletonViewContainerHeight} />
-                            )}
+                                )}
 
-                            {this.isReportReadyForDisplay() && (
-                                <>
-                                    <ReportFooter
-                                        errors={addWorkspaceRoomOrChatErrors}
-                                        pendingAction={addWorkspaceRoomOrChatPendingAction}
-                                        isOffline={this.props.network.isOffline}
-                                        reportActions={this.props.reportActions}
-                                        report={this.props.report}
-                                        isComposerFullSize={this.props.isComposerFullSize}
-                                        onSubmitComment={this.onSubmitComment}
-                                    />
-                                </>
-                            )}
+                                {this.isReportReadyForDisplay() && (
+                                    <>
+                                        <ReportFooter
+                                            errors={addWorkspaceRoomOrChatErrors}
+                                            pendingAction={addWorkspaceRoomOrChatPendingAction}
+                                            isOffline={this.props.network.isOffline}
+                                            reportActions={this.props.reportActions}
+                                            report={this.props.report}
+                                            isComposerFullSize={this.props.isComposerFullSize}
+                                            onSubmitComment={this.onSubmitComment}
+                                        />
+                                    </>
+                                )}
 
-                            {!this.isReportReadyForDisplay() && (
+                                {!this.isReportReadyForDisplay() && (
                                 <ReportFooter shouldDisableCompose isOffline={this.props.network.isOffline} />
-                            )}
+                                )}
 
-                            <EmojiPicker ref={EmojiPickerAction.emojiPickerRef} />
-                            <PortalHost name={CONST.REPORT.DROP_HOST_NAME} />
-                        </View>
-                    </FullPageNotFoundView>
-                </Freeze>
-            </ScreenWrapper>
+                                <EmojiPicker ref={EmojiPickerAction.emojiPickerRef} />
+                                <PortalHost name={CONST.REPORT.DROP_HOST_NAME} />
+                            </View>
+                        </FullPageNotFoundView>
+                    </Freeze>
+                </ScreenWrapper>
+
+            </Reanimated.View>
         );
     }
 }
 
 ReportScreen.propTypes = propTypes;
 ReportScreen.defaultProps = defaultProps;
+ReportScreen.contextType = StylesContext;
 
 export default compose(
     withViewportOffsetTop,
