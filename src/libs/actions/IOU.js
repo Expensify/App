@@ -80,7 +80,7 @@ function requestMoney(report, amount, currency, payeeEmail, participant, comment
         }
     } else {
         moneyRequestReport = isPolicyExpenseChat
-            ? ReportUtils.buildOptimisticExpenseReport()
+            ? ReportUtils.buildOptimisticExpenseReport(chatReport.reportID, chatReport.policyID, amount, currency)
             : ReportUtils.buildOptimisticIOUReport(payeeEmail, payerEmail, amount, chatReport.reportID, currency, preferredLocale);
     }
 

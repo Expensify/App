@@ -1041,6 +1041,30 @@ function buildOptimisticIOUReport(ownerEmail, userEmail, total, chatReportID, cu
 }
 
 /**
+ * Builds an optimistic Expense report with a randomly generated reportID
+ *
+ * @param {String} chatReportID - Report ID of the PolicyExpenseChat where the Expense Report is
+ * @param {String} policyID - The policy ID of the PolicyExpenseChat
+ * @param {Number} total - amount in cents
+ * @param {String} currency
+ *
+ * @returns {Object}
+ */
+function buildOptimisticExpenseReport(chatReportID, policyID, total, currency) {
+    return {
+        hasOutstandingIOU: true,
+        type: CONST.REPORT.TYPE.EXPENSE,
+        chatReportID,
+        currency,
+        policyID,
+        reportID: generateReportID(),
+        state: CONST.REPORT.STATE.SUBMITTED,
+        stateNum: CONST.REPORT.STATE_NUM.PROCESSING,
+        total,
+    };
+}
+
+/**
  * @param {String} type - IOUReportAction type. Can be oneOf(create, decline, cancel, pay, split)
  * @param {Number} total - IOU total in cents
  * @param {Array} participants - List of logins for the IOU participants, excluding the current user login
@@ -1844,6 +1868,7 @@ export {
     buildOptimisticClosedReportAction,
     buildOptimisticCreatedReportAction,
     buildOptimisticIOUReport,
+    buildOptimisticExpenseReport,
     buildOptimisticIOUReportAction,
     buildOptimisticAddCommentReportAction,
     shouldReportBeInOptionList,
