@@ -40,6 +40,8 @@ const defaultProps = {
 };
 
 function WorkspaceSettingsPage(props) {
+    const nameIsRequiredError = props.translate('workspace.editor.nameIsRequiredError');
+
     /**
      * @returns {Object[]}
      */
@@ -66,11 +68,11 @@ function WorkspaceSettingsPage(props) {
         const name = values.name.trim();
 
         if (!name || !name.length) {
-            errors.name = props.translate('workspace.editor.nameIsRequiredError');
+            errors.name = nameIsRequiredError;
         }
 
         return errors;
-    }, [props]);
+    }, [nameIsRequiredError]);
 
     const policyName = lodashGet(props.policy, 'name', '');
 
