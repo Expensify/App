@@ -78,7 +78,6 @@ const IOUAction = (props) => {
         }
     };
 
-
     let shouldShowPendingConversionMessage = false;
     if (
         !_.isEmpty(props.iouReport)
@@ -97,7 +96,6 @@ const IOUAction = (props) => {
                 action={props.action}
                 chatReportID={props.chatReportID}
                 contextMenuAnchor={props.contextMenuAnchor}
-                shouldAllowViewDetails={Boolean(props.action.originalMessage.IOUReportID)}
                 onViewDetailsPressed={onIOUPreviewPressed}
                 checkIfContextMenuActive={props.checkIfContextMenuActive}
                 isHovered={props.isHovered}
