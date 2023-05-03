@@ -165,7 +165,7 @@ class HeaderWithCloseButton extends Component {
                     styles.overflowHidden,
                 ]}
                 >
-                    <View style={[styles.flexRow, styles.alignItemsCenter]}>
+                    <View style={[styles.flexRow, styles.flex1]}>
                         {this.props.shouldShowBackButton && (
                             <Tooltip text={this.props.translate('common.back')}>
                                 <Pressable
