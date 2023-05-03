@@ -66,6 +66,7 @@ class BaseReportActionContextMenu extends React.Component {
             <View
                 ref={this.props.contentRef}
                 style={this.wrapperStyle}
+                nativeID="no-drag-area"
             >
                 {_.map(_.filter(ContextMenuActions, shouldShowFilter), (contextAction) => {
                     const closePopup = !this.props.isMini;
