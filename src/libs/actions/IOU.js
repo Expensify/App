@@ -78,7 +78,7 @@ function requestMoney(report, amount, currency, recipientEmail, participant, com
 
     const optimisticTransaction = TransactionUtils.buildOptimisticTransaction(amount * 100, currency, iouReport.reportID, comment);
     const optimisticTransactionData = {
-        onyxMethod: Onyx.METHOD.MERGE,
+        onyxMethod: Onyx.METHOD.SET,
         key: `${ONYXKEYS.COLLECTION.TRANSACTION}${optimisticTransaction.transactionID}`,
         value: optimisticTransaction,
     };
@@ -781,7 +781,7 @@ function getSendMoneyParams(report, amount, currency, comment, paymentMethodType
 
     const optimisticTransaction = TransactionUtils.buildOptimisticTransaction(amount * 100, currency, optimisticIOUReport.reportID, comment);
     const optimisticTransactionData = {
-        onyxMethod: Onyx.METHOD.MERGE,
+        onyxMethod: Onyx.METHOD.SET,
         key: `${ONYXKEYS.COLLECTION.TRANSACTION}${optimisticTransaction.transactionID}`,
         value: optimisticTransaction,
     };
@@ -966,7 +966,7 @@ function getPayMoneyRequestParams(chatReport, iouReport, recipient, paymentMetho
             },
         },
         {
-            onyxMethod: Onyx.METHOD.MERGE,
+            onyxMethod: Onyx.METHOD.SET,
             key: `${ONYXKEYS.COLLECTION.TRANSACTION}${optimisticTransaction.transactionID}`,
             value: optimisticTransaction,
         },
