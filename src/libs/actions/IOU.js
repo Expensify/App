@@ -48,35 +48,44 @@ Onyx.connect({
  * @param {Object} report
  * @param {Number} amount
  * @param {String} currency
- * @param {String} recipientEmail
+ * @param {String} payeeEmail
  * @param {Object} participant
  * @param {String} comment
  */
-function requestMoney(report, amount, currency, recipientEmail, participant, comment) {
-    const debtorEmail = OptionsListUtils.addSMSDomainIfPhoneNumber(participant.login);
+function requestMoney(report, amount, currency, payeeEmail, participant, comment) {
+    const payerEmail = OptionsListUtils.addSMSDomainIfPhoneNumber(participant.login);
     let chatReport = lodashGet(report, 'reportID', null) ? report : null;
+    const isPolicyExpenseChat = ReportUtils.isPolicyExpenseChat(chatReport);
+
     let isNewChat = false;
     if (!chatReport) {
-        chatReport = ReportUtils.getChatByParticipants([debtorEmail]);
+        chatReport = ReportUtils.getChatByParticipants([payerEmail]);
     }
     if (!chatReport) {
-        chatReport = ReportUtils.buildOptimisticChatReport([debtorEmail]);
+        chatReport = ReportUtils.buildOptimisticChatReport([payerEmail]);
         isNewChat = true;
     }
     let moneyRequestReport;
     if (chatReport.iouReportID) {
-        moneyRequestReport = IOUUtils.updateIOUOwnerAndTotal(
-            iouReports[`${ONYXKEYS.COLLECTION.REPORT}${chatReport.iouReportID}`],
-            recipientEmail,
-            amount,
-            currency,
-        );
+        if (isPolicyExpenseChat) {
+            moneyRequestReport = {...iouReports[`${ONYXKEYS.COLLECTION.REPORT}${chatReport.iouReportID}`]};
+            moneyRequestReport.total += amount;
+        } else {
+            moneyRequestReport = IOUUtils.updateIOUOwnerAndTotal(
+                iouReports[`${ONYXKEYS.COLLECTION.REPORT}${chatReport.iouReportID}`],
+                payeeEmail,
+                amount,
+                currency,
+            );
+        }
     } else {
-        moneyRequestReport = ReportUtils.buildOptimisticIOUReport(recipientEmail, debtorEmail, amount, chatReport.reportID, currency, preferredLocale);
+        moneyRequestReport = isPolicyExpenseChat
+            ? ReportUtils.buildOptimisticExpenseReport()
+            : ReportUtils.buildOptimisticIOUReport(payeeEmail, payerEmail, amount, chatReport.reportID, currency, preferredLocale);
     }
 
     // Note: The created action must be optimistically generated before the IOU action so there's no chance that the created action appears after the IOU action in the chat
-    const optimisticCreatedAction = ReportUtils.buildOptimisticCreatedReportAction(recipientEmail);
+    const optimisticCreatedAction = ReportUtils.buildOptimisticCreatedReportAction(payeeEmail);
     const optimisticReportAction = ReportUtils.buildOptimisticIOUReportAction(
         CONST.IOU.REPORT_ACTION_TYPE.CREATE,
         amount,
@@ -195,7 +204,7 @@ function requestMoney(report, amount, currency, recipientEmail, participant, com
 
     const parsedComment = ReportUtils.getParsedComment(comment);
     API.write('RequestMoney', {
-        debtorEmail,
+        debtorEmail: payerEmail,
         amount,
         currency,
         comment: parsedComment,
