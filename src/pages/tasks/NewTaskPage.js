@@ -94,6 +94,7 @@ const NewTaskPage = (props) => {
     const [assignee, setAssignee] = React.useState({});
     const [shareDestination, setShareDestination] = React.useState({});
     const [submitError, setSubmitError] = React.useState(false);
+    const [parentReport, setParentReport] = React.useState({});
 
     useEffect(() => {
         setSubmitError(false);
@@ -103,6 +104,7 @@ const NewTaskPage = (props) => {
             setAssignee(displayDetails);
         }
         if (props.task.parentReportID) {
+            setParentReport(lodashGet(props.reports, `report_${props.task.parentReportID}`, {}));
             TaskUtils.setShareDestinationValue(props.task.parentReportID);
         }
         if (props.task.shareDestination) {
@@ -118,7 +120,12 @@ const NewTaskPage = (props) => {
             setSubmitError(true);
             return;
         }
-        console.log('Task Creation Data', props.task);
+
+        // parentReportID, name, description, assignee, assigneeChatReportID, ownerEmail;
+
+        TaskUtils.createTaskAndNavigate(parentReport.reportID, props.task.name, props.task.description, props.task.assignee, props.task.shareDestination);
+
+        // console.log('Task Creation Data', parentReport);
     }
 
     if (!Permissions.canUseTasks(props.betas)) {

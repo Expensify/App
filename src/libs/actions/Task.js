@@ -7,6 +7,26 @@ import * as Report from './Report';
 import Navigation from '../Navigation/Navigation';
 import ROUTES from '../../ROUTES';
 
+let currentUserEmail;
+Onyx.connect({
+    key: ONYXKEYS.SESSION,
+    callback: (val) => {
+        // When signed out, val is undefined
+        if (!val) {
+            return;
+        }
+
+        currentUserEmail = val.email;
+    },
+});
+
+/**
+ * Clears out the task info from the store
+ */
+function clearOutTaskInfo() {
+    Onyx.set(ONYXKEYS.TASK, null);
+}
+
 /**
  * Assign a task to a user
  * Function name is createTask for consistency with the rest of the actions
@@ -17,63 +37,10 @@ import ROUTES from '../../ROUTES';
  * @param {String} name
  * @param {String} description
  * @param {String} assignee
- * @param {String} ownerEmail
  *
  */
 
-function createTaskAndNavigate(parentReportActionID, parentReportID, taskReportID, name, description, assignee, assigneeChatReportID, ownerEmail) {
-    /**
-     *
-     * This flow can be pretty confusing just because there is so much going on - throwing down some thoughts to see if we can simplify this flow a bit
-
-        // Is there an assignee?
-        YES - Let's check if we need to message the assignee separately (Is task shared in a group chat / room / DM the assignee)
-        NO - Great, no need to create a seperate chat report
-
-        // Is the task shared somewhere?
-        YES - Cool, the place where the task is shared will always exist
-        NO - By default, the parentReportID will be the chat between the assignee and creator.
-
-        Task must have either an assignee OR a place where it is shared.
-        Doesn't need both - but needs one or the other.
-        If the task only has an assignee, we infer that it is shared in the DM.
-
-        // Do we need to message the assignee separately?
-        YES - Grab the chat between assignee and creator (if needed create optimistically) and then send them the task
-        NO - Nice
-
-        // ALWAYS
-        We will always send a message to the parent chat report
-     *
-    */
-    // let parentReport;
-
-    // // If there isn't a parentReportId provided and assignee is given, we need to optimistically create a new parent chat report
-    // // between the task creator and the assignee.
-    // if (!parentReportID && assignee) {
-    //     parentReport = ReportUtils.getChatByParticipants([assignee]);
-    //     if (!parentReport) {
-    //         parentReport = ReportUtils.buildOptimisticChatReport([assignee]);
-    //     }
-    // }
-
-    // // If parentReport is defined, use its reportID, otherwise, use the provided parentReportID
-    // const finalParentReportID = parentReport ? parentReport.reportID : parentReportID;
-
-    // // Open the parent report if assignee is given
-    // if (assignee) {
-    //     Report.openReport(finalParentReportID, [assignee]);
-    // }
-
-    // // Create the task report
-    // const optimisticTaskReport = ReportUtils.buildOptimisticTaskReport(ownerEmail, assignee, finalParentReportID, parentReportActionID, name, description);
-
-    // // Create the CreatedReportAction on the parent chat report
-    // const optimisticCreatedAction = ReportUtils.buildOptimisticCreatedReportAction(ownerEmail);
-
-    // // AddCommentReportAction on the parent chat report
-    // const optimisticAddCommentReportAction = ReportUtils.buildOptimisticAddCommentReportAction(finalParentReportID, optimisticTaskReport.reportID);
-
+function createTaskAndNavigate(parentReportActionID, parentReportID, name, description, assignee, assigneeChatReportID) {
     let parentReport;
     let sharedReportID = parentReportID;
 
@@ -100,10 +67,10 @@ function createTaskAndNavigate(parentReportActionID, parentReportID, taskReportI
 
     // 3. ALWAYS: Send a message to the parent chat report
     // Create the task report
-    const optimisticTaskReport = ReportUtils.buildOptimisticTaskReport(ownerEmail, assignee, finalParentReportID, parentReportActionID, name, description);
+    const optimisticTaskReport = ReportUtils.buildOptimisticTaskReport(currentUserEmail, assignee, finalParentReportID, parentReportActionID, name, description);
 
     // Create the CreatedReportAction on the parent chat report
-    const optimisticCreatedAction = ReportUtils.buildOptimisticCreatedReportAction(ownerEmail);
+    const optimisticCreatedAction = ReportUtils.buildOptimisticCreatedReportAction(assignee);
 
     // AddCommentReportAction on the parent chat report
     const optimisticAddCommentReportAction = ReportUtils.buildOptimisticAddCommentReportAction(finalParentReportID, optimisticTaskReport.reportID);
@@ -141,7 +108,6 @@ function createTaskAndNavigate(parentReportActionID, parentReportID, taskReportI
         },
     ];
 
-    // TODO: Confirm if the first object clears  both the CreatedAction and the CommentReportAction
     const failureData = [
         {
             method: CONST.ONYX.METHOD.MERGE,
@@ -163,9 +129,9 @@ function createTaskAndNavigate(parentReportActionID, parentReportID, taskReportI
     API.write(
         'CreateTask',
         {
-            parentReportActionID,
+            parentReportActionID: optimisticCreatedAction.reportActionID,
             parentReportID: finalParentReportID,
-            taskReportID,
+            taskReportID: optimisticTaskReport.reportID,
             name,
             description,
             assignee,
@@ -174,8 +140,10 @@ function createTaskAndNavigate(parentReportActionID, parentReportID, taskReportI
         {optimisticData, successData, failureData},
     );
 
-    // Navigate to the newly created task
-    Navigation.navigate(ROUTES.getReportRoute(optimisticTaskReport.reportID));
+    clearOutTaskInfo();
+
+    // TODO: Navigate to the newly created task
+    Navigation.navigate(ROUTES.getReportRoute(parentReportID));
 }
 
 function setDetailsValue(name, description) {
@@ -204,10 +172,6 @@ function setShareDestinationValue(shareDestination) {
 function setParentReportID(parentReportID) {
     // This is only needed for creation of a new task and so it should only be stored locally
     Onyx.merge(ONYXKEYS.TASK, {parentReportID});
-}
-
-function clearOutTaskInfo() {
-    Onyx.set(ONYXKEYS.TASK, null);
 }
 
 function clearOutTaskInfoAndNavigate(reportID) {
