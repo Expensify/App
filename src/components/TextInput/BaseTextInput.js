@@ -320,7 +320,7 @@ class BaseTextInput extends Component {
                                             !isMultiline && {height: this.state.height, lineHeight: undefined},
 
                                             // Stop scrollbar flashing when breaking lines with autoGrowHeight enabled.
-                                            this.props.autoGrowHeight && this.state.textInputHeight <= maxHeight ? [styles.overflowHidden, {scrollPaddingTop: '100px'}] : styles.overflowAuto,
+                                            this.props.autoGrowHeight && StyleUtils.getAutoGrowHeightInputStyle(this.state.textInputHeight, maxHeight),
                                         ]}
                                         multiline={isMultiline}
                                         maxLength={this.props.maxLength}
