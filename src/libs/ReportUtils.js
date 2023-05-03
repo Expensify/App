@@ -1045,13 +1045,14 @@ function buildOptimisticIOUReport(ownerEmail, userEmail, total, chatReportID, cu
  *
  * @param {String} chatReportID - Report ID of the PolicyExpenseChat where the Expense Report is
  * @param {String} policyID - The policy ID of the PolicyExpenseChat
+ * @param {String} payeeEmail - Email of the employee (payee)
  * @param {Number} total - amount in cents
  * @param {String} currency
  * @param {String} locale - The user's preferred locale
  *
  * @returns {Object}
  */
-function buildOptimisticExpenseReport(chatReportID, policyID, total, currency, locale) {
+function buildOptimisticExpenseReport(chatReportID, policyID, payeeEmail, total, currency, locale) {
     const policyName = getPolicyName(allReports[`${ONYXKEYS.COLLECTION.REPORT}${chatReportID}`]);
     const formattedTotal = NumberFormatUtils.format(locale, total / 100, {style: 'currency', currency});
 
@@ -1063,6 +1064,7 @@ function buildOptimisticExpenseReport(chatReportID, policyID, total, currency, l
         chatReportID,
         policyID,
         type: CONST.REPORT.TYPE.EXPENSE,
+        ownerEmail: payeeEmail,
         hasOutstandingIOU: true,
         currency: outputCurrency,
         reportName: `${policyName} owes ${formattedTotal}`,
