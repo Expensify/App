@@ -25,6 +25,7 @@ import ROUTES from '../../../ROUTES';
 import FormAlertWithSubmitButton from '../../../components/FormAlertWithSubmitButton';
 import {withNetwork} from '../../../components/OnyxProvider';
 import ConfirmationPage from '../../../components/ConfirmationPage';
+import * as CurrencyUtils from '../../../libs/CurrencyUtils';
 
 const propTypes = {
     /** User's wallet information */
@@ -71,9 +72,9 @@ class TransferBalancePage extends React.Component {
                 title: this.props.translate('transferAmountPage.instant'),
                 description: this.props.translate('transferAmountPage.instantSummary', {
                     rate: this.props.numberFormat(CONST.WALLET.TRANSFER_METHOD_TYPE_FEE.INSTANT.RATE),
-                    minAmount: this.props.numberFormat(
-                        CONST.WALLET.TRANSFER_METHOD_TYPE_FEE.INSTANT.MINIMUM_FEE / 100,
-                        {style: 'currency', currency: 'USD'},
+                    minAmount: CurrencyUtils.convertToDisplayString(
+                        CONST.CURRENCY.USD,
+                        CONST.WALLET.TRANSFER_METHOD_TYPE_FEE.INSTANT.MINIMUM_FEE
                     ),
                 }),
                 icon: Expensicons.Bolt,
@@ -187,7 +188,7 @@ class TransferBalancePage extends React.Component {
                     onCloseButtonPress={() => Navigation.dismissModal(true)}
                 />
                 <View style={[styles.flexGrow1, styles.flexShrink1, styles.flexBasisAuto, styles.justifyContentCenter]}>
-                    <CurrentWalletBalance balanceStyles={[styles.transferBalanceBalance]} />
+                    <CurrentWalletBalance balanceStyles={[styles.transferBalanceBalance]}/>
                 </View>
                 <ScrollView style={styles.flexGrow0} contentContainerStyle={styles.pv5}>
                     <View style={styles.ph5}>
@@ -242,10 +243,7 @@ class TransferBalancePage extends React.Component {
                         <Text
                             style={[styles.justifyContentStart]}
                         >
-                            {this.props.numberFormat(
-                                calculatedFee / 100,
-                                {style: 'currency', currency: 'USD'},
-                            )}
+                            {CurrencyUtils.convertToDisplayString(CONST.CURRENCY.USD, calculatedFee)}
                         </Text>
                     </View>
                 </ScrollView>
@@ -255,10 +253,8 @@ class TransferBalancePage extends React.Component {
                             'transferAmountPage.transfer',
                             {
                                 amount: isTransferable
-                                    ? this.props.numberFormat(
-                                        transferAmount / 100,
-                                        {style: 'currency', currency: 'USD'},
-                                    ) : '',
+                                    ? CurrencyUtils.convertToDisplayString(CONST.CURRENCY.USD, transferAmount)
+                                    : '',
                             },
                         )}
                         isLoading={this.props.walletTransfer.loading}
