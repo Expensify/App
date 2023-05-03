@@ -120,6 +120,7 @@ function NewContactMethodPage(props) {
                 onSubmit={submitForm}
                 submitButtonText={props.translate('common.add')}
                 style={[styles.flexGrow1, styles.mh5]}
+                enabledWhenOffline
             >
                 <Text style={[styles.mb5]}>
                     {props.translate('common.pleaseEnterEmailOrPhoneNumber')}

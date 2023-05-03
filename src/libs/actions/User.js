@@ -284,6 +284,10 @@ function addNewContactMethodAndNavigate(contactMethod, password) {
                 },
             },
         },
+    }, {
+        onyxMethod: CONST.ONYX.METHOD.SET,
+        key: ONYXKEYS.NEW_CONTACT_METHOD_FORM_DRAFT,
+        value: null,
     }];
     const successData = [{
         onyxMethod: CONST.ONYX.METHOD.MERGE,
