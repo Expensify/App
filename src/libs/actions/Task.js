@@ -49,7 +49,8 @@ function createTaskAndNavigate(parentReportID, name, description, assignee) {
     const optimisticTaskReport = ReportUtils.buildOptimisticTaskReport(currentUserEmail, assignee, parentReportID, optimisticCreatedAction.reportActionID, name, description);
 
     // AddCommentReportAction on the parent chat report
-    const optimisticAddCommentReportAction = ReportUtils.buildOptimisticAddCommentReportAction(parentReportID, optimisticTaskReport.reportID);
+    const AddCommentText = ` created a task: ${name}`;
+    const optimisticAddCommentReportAction = ReportUtils.buildOptimisticAddCommentReportAction(AddCommentText);
 
     // Open the parent report if assignee is given
     if (assignee) {
