@@ -87,7 +87,6 @@ class WorkspaceMembersPage extends React.Component {
         this.removeUser = this.removeUser.bind(this);
         this.askForConfirmationToRemove = this.askForConfirmationToRemove.bind(this);
         this.hideConfirmModal = this.hideConfirmModal.bind(this);
-        this.getMemberOptions = this.getMemberOptions.bind(this);
     }
 
     componentDidMount() {
