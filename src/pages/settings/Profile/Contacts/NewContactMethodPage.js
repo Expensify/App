@@ -54,28 +54,28 @@ const defaultProps = {
     loginList: {},
 };
 
-const getPhoneLogin = (phoneOrEmail) => {
-    if (_.isEmpty(phoneOrEmail)) {
-        return '';
-    }
-
-    return LoginUtils.appendCountryCode(LoginUtils.getPhoneNumberWithoutSpecialChars(phoneOrEmail));
-};
-
-const validateNumber = (values) => {
-    const parsedPhoneNumber = parsePhoneNumber(values);
-
-    if (parsedPhoneNumber.possible) {
-        return parsedPhoneNumber.number.e164;
-    }
-
-    return '';
-};
-
 function NewContactMethodPage(props) {
     const loginInputRef = useRef(null);
 
-    const isFormValid = (values) => {
+    const getPhoneLogin = (phoneOrEmail) => {
+        if (_.isEmpty(phoneOrEmail)) {
+            return '';
+        }
+
+        return LoginUtils.appendCountryCode(LoginUtils.getPhoneNumberWithoutSpecialChars(phoneOrEmail));
+    };
+
+    const validateNumber = (values) => {
+        const parsedPhoneNumber = parsePhoneNumber(values);
+
+        if (parsedPhoneNumber.possible) {
+            return parsedPhoneNumber.number.e164;
+        }
+
+        return '';
+    };
+
+    const validate = (values) => {
         const phoneLogin = getPhoneLogin(values.phoneOrEmail);
         const validateIfnumber = validateNumber(phoneLogin);
         const errors = {};
@@ -99,7 +99,7 @@ function NewContactMethodPage(props) {
         return errors;
     };
 
-    const submitForm = (values) => {
+    const addNewContactMethod = (values) => {
         const phoneLogin = getPhoneLogin(values.phoneOrEmail);
         const validateIfnumber = validateNumber(phoneLogin);
         const submitDetail = (validateIfnumber || values.phoneOrEmail).trim();
@@ -127,8 +127,8 @@ function NewContactMethodPage(props) {
             />
             <Form
                 formID={ONYXKEYS.FORMS.NEW_CONTACT_METHOD_FORM}
-                validate={isFormValid}
-                onSubmit={submitForm}
+                validate={validate}
+                onSubmit={addNewContactMethod}
                 submitButtonText={props.translate('common.add')}
                 style={[styles.flexGrow1, styles.mh5]}
                 enabledWhenOffline
