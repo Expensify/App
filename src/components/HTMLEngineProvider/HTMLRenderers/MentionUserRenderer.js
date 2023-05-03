@@ -5,12 +5,11 @@ import {
 } from 'react-native-render-html';
 import Navigation from '../../../libs/Navigation/Navigation';
 import ROUTES from '../../../ROUTES';
-import themeColors from '../../../styles/themes/default';
 import Text from '../../Text';
 import Tooltip from '../../Tooltip';
 import htmlRendererPropTypes from './htmlRendererPropTypes';
 import withCurrentUserPersonalDetails from '../../withCurrentUserPersonalDetails';
-import styles from '../../../styles/styles';
+import * as StyleUtils from '../../../styles/StyleUtils';
 
 const showUserDetails = email => Navigation.navigate(ROUTES.getDetailsRoute(email));
 
@@ -21,15 +20,14 @@ const MentionUserRenderer = (props) => {
     const loginWhithoutLeadingAt = props.tnode.data.slice(1);
 
     const isOurMention = loginWhithoutLeadingAt === props.currentUserPersonalDetails.login;
-    const backgroundColor = isOurMention ? themeColors.ourMentionBG : themeColors.mentionBG;
 
     return (
-        <Tooltip containerStyles={[styles.dInline]} text={loginWhithoutLeadingAt}>
+        <Tooltip absolute text={loginWhithoutLeadingAt}>
             <Text
                 // eslint-disable-next-line react/jsx-props-no-spreading
                 {...defaultRendererProps}
-                color={themeColors.textSupporting}
-                style={[props.style, {backgroundColor}]}
+                color={StyleUtils.getUserMentionTextColor(isOurMention)}
+                style={StyleUtils.getUserMentionStyle(isOurMention)}
                 onPress={() => showUserDetails(loginWhithoutLeadingAt)}
             >
                 <TNodeChildrenRenderer tnode={props.tnode} />
