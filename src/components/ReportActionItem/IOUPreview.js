@@ -143,22 +143,13 @@ const IOUPreview = (props) => {
     const sessionEmail = lodashGet(props.session, 'email', null);
     const managerEmail = props.iouReport.managerEmail || '';
     const ownerEmail = props.iouReport.ownerEmail || '';
+    const participantAvatars = OptionsListUtils.getAvatarsForLogins(props.isBillSplit ? props.action.originalMessage.participants : [managerEmail, ownerEmail]);
 
     // Pay button should only be visible to the manager of the report.
     const isCurrentUserManager = managerEmail === sessionEmail;
 
     const managerName = ReportUtils.getDisplayNameForParticipant(managerEmail, true);
     const ownerName = ReportUtils.getDisplayNameForParticipant(ownerEmail, true);
-    const managerAvatar = {
-        source: ReportUtils.getAvatar(lodashGet(props.personalDetails, [managerEmail, 'avatar']), managerEmail),
-        type: CONST.ICON_TYPE_AVATAR,
-        name: managerEmail,
-    };
-    const ownerAvatar = {
-        source: ReportUtils.getAvatar(lodashGet(props.personalDetails, [ownerEmail, 'avatar']), ownerEmail),
-        type: CONST.ICON_TYPE_AVATAR,
-        name: ownerEmail,
-    };
 
     let cachedTotal;
     if (props.isBillSplit) {
@@ -224,10 +215,7 @@ const IOUPreview = (props) => {
                         </View>
                         <View style={styles.iouPreviewBoxAvatar}>
                             <MultipleAvatars
-                                icons={props.isBillSplit ?
-                                    OptionsListUtils.getAvatarsForLogins(props.action.originalMessage.participants) :
-                                    [managerAvatar, ownerAvatar]
-                                }
+                                icons={participantAvatars}
                                 secondAvatarStyle={[
                                     styles.secondAvatarInline,
                                     props.isHovered
