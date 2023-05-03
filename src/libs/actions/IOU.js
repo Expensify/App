@@ -167,12 +167,16 @@ function requestMoney(report, amount, currency, recipientEmail, participant, com
                 errorFields: null,
             },
         };
-        chatReportFailureData.value.pendingFields = null;
+        chatReportFailureData.value.pendingFields = {createChat: null};
+        delete chatReportFailureData.value.hasOutstandingIOU;
 
         // Then add an optimistic created action
         optimisticReportActionsData.value[optimisticCreatedAction.reportActionID] = optimisticCreatedAction;
         reportActionsSuccessData.value[optimisticCreatedAction.reportActionID] = {pendingAction: null};
         reportActionsFailureData.value[optimisticCreatedAction.reportActionID] = {pendingAction: null};
+
+        // If we're going to fail to create the report itself, let's not have redundant error messages for the IOU
+        reportActionsFailureData.value[optimisticReportAction.reportActionID] = {pendingAction: null};
     }
 
     const optimisticData = [
