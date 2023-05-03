@@ -776,6 +776,9 @@ function getSendMoneyParams(report, amount, currency, comment, paymentMethodType
 
         // Add an optimistic created action to the optimistic reportActions data
         optimisticReportActionsData.value[optimisticCreatedAction.reportActionID] = optimisticCreatedAction;
+
+        // If we're going to fail to create the report itself, let's not have redundant error messages for the IOU
+        failureData[0].value[optimisticIOUReportAction.reportActionID] = {pendingAction: null};
     }
 
     const optimisticData = [
