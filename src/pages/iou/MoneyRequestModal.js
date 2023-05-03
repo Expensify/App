@@ -122,7 +122,7 @@ const MoneyRequestModal = (props) => {
             ? OptionsListUtils.getPolicyExpenseReportOptions(props.report)
             : OptionsListUtils.getParticipantsOptions(props.report, props.personalDetails),
     );
-    const [amount, setAmount] = useState('');
+    const [amount, setAmount] = useState(0);
 
     useEffect(() => {
         PersonalDetails.openMoneyRequestModalPage();
@@ -266,8 +266,6 @@ const MoneyRequestModal = (props) => {
      * @param {String} paymentMethodType
      */
     const sendMoney = useCallback((paymentMethodType) => {
-        // TODO: convert correctly
-        const amountInDollars = Math.round(amount * 100);
         const currency = props.iou.selectedCurrencyCode;
         const trimmedComment = props.iou.comment.trim();
         const participant = selectedOptions[0];
@@ -275,7 +273,7 @@ const MoneyRequestModal = (props) => {
         if (paymentMethodType === CONST.IOU.PAYMENT_TYPE.ELSEWHERE) {
             IOU.sendMoneyElsewhere(
                 props.report,
-                amountInDollars,
+                amount,
                 currency,
                 trimmedComment,
                 props.currentUserPersonalDetails.login,
@@ -287,7 +285,7 @@ const MoneyRequestModal = (props) => {
         if (paymentMethodType === CONST.IOU.PAYMENT_TYPE.PAYPAL_ME) {
             IOU.sendMoneyViaPaypal(
                 props.report,
-                amountInDollars,
+                amount,
                 currency,
                 trimmedComment,
                 props.currentUserPersonalDetails.login,
@@ -299,7 +297,7 @@ const MoneyRequestModal = (props) => {
         if (paymentMethodType === CONST.IOU.PAYMENT_TYPE.EXPENSIFY) {
             IOU.sendMoneyWithWallet(
                 props.report,
-                amountInDollars,
+                amount,
                 currency,
                 trimmedComment,
                 props.currentUserPersonalDetails.login,
@@ -314,12 +312,11 @@ const MoneyRequestModal = (props) => {
     const createTransaction = useCallback((selectedParticipants) => {
         const reportID = lodashGet(props.route, 'params.reportID', '');
         const trimmedComment = props.iou.comment.trim();
-        const amountInSmallestCurrencyUnit = CurrencyUtils.convertToSmallestUnit(props.iou.selectedCurrencyCode, Number.parseFloat(amount));
 
         // IOUs created from a group report will have a reportID param in the route.
         // Since the user is already viewing the report, we don't need to navigate them to the report
         if (props.hasMultipleParticipants && CONST.REGEX.NUMBER.test(reportID)) {
-            IOU.splitBill(selectedParticipants, props.currentUserPersonalDetails.login, amountInSmallestCurrencyUnit, trimmedComment, props.iou.selectedCurrencyCode, reportID);
+            IOU.splitBill(selectedParticipants, props.currentUserPersonalDetails.login, amount, trimmedComment, props.iou.selectedCurrencyCode, reportID);
             return;
         }
 
@@ -328,10 +325,9 @@ const MoneyRequestModal = (props) => {
             IOU.splitBillAndOpenReport(
                 selectedParticipants,
                 props.currentUserPersonalDetails.login,
-                amountInSmallestCurrencyUnit,
+                amount,
                 trimmedComment,
                 props.iou.selectedCurrencyCode,
-                props.preferredLocale,
             );
             return;
         }
@@ -342,7 +338,7 @@ const MoneyRequestModal = (props) => {
         }
         IOU.requestMoney(
             props.report,
-            amountInSmallestCurrencyUnit,
+            amount,
             props.iou.selectedCurrencyCode,
             props.currentUserPersonalDetails.login,
             selectedParticipants[0],
@@ -381,12 +377,13 @@ const MoneyRequestModal = (props) => {
                                         {modalHeader}
                                         <MoneyRequestAmountPage
                                             onStepComplete={(value) => {
-                                                setAmount(value);
+                                                const amountInSmallestCurrencyUnits = CurrencyUtils.convertToSmallestUnit(props.iou.selectedCurrencyCode, Number.parseFloat(value));
+                                                setAmount(amountInSmallestCurrencyUnits);
                                                 navigateToNextStep();
                                             }}
                                             reportID={reportID}
                                             hasMultipleParticipants={props.hasMultipleParticipants}
-                                            selectedAmount={amount}
+                                            selectedAmount={CurrencyUtils.convertToWholeUnit(props.iou.selectedCurrencyCode, amount)}
                                             navigation={props.navigation}
                                             iouType={props.iouType}
                                             buttonText={amountButtonText}
