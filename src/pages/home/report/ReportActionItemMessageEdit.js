@@ -243,7 +243,7 @@ class ReportActionItemMessageEdit extends React.Component {
         if (!e || this.props.isSmallScreenWidth || this.props.isKeyboardShown) {
             return;
         }
-        if (e.key === 'Enter' && !e.shiftKey) {
+        if (e.key === CONST.KEYBOARD_SHORTCUTS.ENTER.shortcutKey && !e.shiftKey) {
             e.preventDefault();
             this.publishDraft();
         } else if (e.key === 'Escape') {

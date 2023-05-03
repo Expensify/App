@@ -1149,11 +1149,14 @@ export default {
         },
     },
     newTaskPage: {
+        task: 'Tarea',
         assignTask: 'Asignar tarea',
         title: 'Título',
         description: 'Descripción',
         shareIn: 'Compartir en',
         pleaseEnterTaskName: 'Por favor introduce un título',
+        markAsComplete: 'Marcar como completa',
+        markAsIncomplete: 'Marcar como incompleta',
     },
     statementPage: {
         generatingPDF: 'Estamos generando tu PDF ahora mismo. ¡Por favor, vuelve más tarde!',

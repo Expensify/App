@@ -279,18 +279,6 @@ class ReportActionItem extends Component {
                 <Hoverable>
                     {hovered => (
                         <View accessibilityLabel={this.props.translate('accessibilityHints.chatMessage')}>
-                            <MiniReportActionContextMenu
-                                reportID={this.props.report.reportID}
-                                reportAction={this.props.action}
-                                isArchivedRoom={ReportUtils.isArchivedRoom(this.props.report)}
-                                displayAsGroup={this.props.displayAsGroup}
-                                isVisible={
-                                    hovered
-                                    && !this.props.draftMessage
-                                }
-                                draftMessage={this.props.draftMessage}
-                                isChronosReport={ReportUtils.chatIncludesChronos(this.props.report)}
-                            />
                             {this.props.shouldDisplayNewMarker && (
                                 <UnreadActionIndicator reportActionID={this.props.action.reportActionID} />
                             )}
@@ -354,6 +342,19 @@ class ReportActionItem extends Component {
                                         )}
                                 </OfflineWithFeedback>
                             </View>
+                            <MiniReportActionContextMenu
+                                reportID={this.props.report.reportID}
+                                reportAction={this.props.action}
+                                isArchivedRoom={ReportUtils.isArchivedRoom(this.props.report)}
+                                displayAsGroup={this.props.displayAsGroup}
+                                isVisible={
+                                    hovered
+                                    && !this.props.draftMessage
+                                    && !hasErrors
+                                }
+                                draftMessage={this.props.draftMessage}
+                                isChronosReport={ReportUtils.chatIncludesChronos(this.props.report)}
+                            />
                         </View>
                     )}
                 </Hoverable>
