@@ -1,5 +1,6 @@
 import _ from 'underscore';
 import getKeyEventModifiers from '../getKeyEventModifiers';
+import isEnterWhileComposition from '../isEnterWhileComposition';
 
 /**
  * Checks if an event for that key is configured and if so, runs it.
@@ -10,7 +11,7 @@ import getKeyEventModifiers from '../getKeyEventModifiers';
  * @private
  */
 function bindHandlerToKeydownEvent(getDisplayName, eventHandlers, keycommandEvent, event) {
-    if (!(event instanceof KeyboardEvent)) {
+    if (!(event instanceof KeyboardEvent) || isEnterWhileComposition(event)) {
         return;
     }
 
