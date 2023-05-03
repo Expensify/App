@@ -208,6 +208,9 @@ const IOUPreview = (props) => {
                 needsOffscreenAlphaCompositing
             >
                 <View style={[styles.iouPreviewBox, ...props.containerStyles]}>
+                    <Text>
+                        {isGroupSplit ? props.translate('iou.split') : props.translate('iou.cash')}
+                    </Text>
                     <View style={[styles.flexRow]}>
                         <View style={[styles.flex1, styles.flexRow, styles.alignItemsCenter]}>
                             <Text style={styles.h1}>
