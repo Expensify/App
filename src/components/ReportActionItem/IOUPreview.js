@@ -148,9 +148,6 @@ const IOUPreview = (props) => {
     // Pay button should only be visible to the manager of the report.
     const isCurrentUserManager = managerEmail === sessionEmail;
 
-    const managerName = ReportUtils.getDisplayNameForParticipant(managerEmail, true);
-    const ownerName = ReportUtils.getDisplayNameForParticipant(ownerEmail, true);
-
     let cachedTotal;
     if (props.isBillSplit) {
         if (props.action && props.action.originalMessage && props.action.originalMessage.currency) {
@@ -226,27 +223,13 @@ const IOUPreview = (props) => {
                             />
                         </View>
                     </View>
-                    {isCurrentUserManager
-                        ? (
-                            <Text>
-                                {props.iouReport.hasOutstandingIOU
-                                    ? props.translate('iou.youowe', {owner: ownerName})
-                                    : props.translate('iou.youpaid', {owner: ownerName})}
-                            </Text>
-                        ) : (
-                            <>
-                                <Text>
-                                    {props.iouReport.hasOutstandingIOU
-                                        ? props.translate('iou.owesyou', {manager: managerName})
-                                        : props.translate('iou.paidyou', {manager: managerName})}
-                                </Text>
-                                {props.shouldShowPendingConversionMessage && (
-                                    <Text style={[styles.textLabel, styles.colorMuted]}>
-                                        {props.translate('iou.pendingConversionMessage')}
-                                    </Text>
-                                )}
-                            </>
-                        )}
+
+                    {!isCurrentUserManager && true && (
+                        <Text style={[styles.textLabel, styles.colorMuted]}>
+                            {props.translate('iou.pendingConversionMessage')}
+                        </Text>
+                    )}
+
                     {(isCurrentUserManager
                         && !props.shouldHidePayButton
                         && props.iouReport.stateNum === CONST.REPORT.STATE_NUM.PROCESSING && (
