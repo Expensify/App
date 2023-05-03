@@ -18,7 +18,6 @@ import * as StyleUtils from '../../../styles/StyleUtils';
 import {withNetwork} from '../../../components/OnyxProvider';
 import CONST from '../../../CONST';
 import applyStrikethrough from '../../../components/HTMLEngineProvider/applyStrikethrough';
-import editedLabelStyles from '../../../styles/editedLabelStyles';
 
 const propTypes = {
     /** The message fragment needing to be displayed */
@@ -134,10 +133,8 @@ const ReportActionItemFragment = (props) => {
                     <Text
                         fontSize={variables.fontSizeSmall}
                         color={themeColors.textSupporting}
-                        style={[styles.alignItemsBaseline, editedLabelStyles]}
                     >
-                        <Text style={[styles.w1, styles.userSelectNone]}>{' '}</Text>
-                        {props.translate('reportActionCompose.edited')}
+                        {` ${props.translate('reportActionCompose.edited')}`}
                     </Text>
                     )}
                 </Text>
