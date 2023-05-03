@@ -54,26 +54,26 @@ const defaultProps = {
     loginList: {},
 };
 
+const getPhoneLogin = (phoneOrEmail) => {
+    if (_.isEmpty(phoneOrEmail)) {
+        return '';
+    }
+
+    return LoginUtils.appendCountryCode(LoginUtils.getPhoneNumberWithoutSpecialChars(phoneOrEmail));
+};
+
+const validateNumber = (values) => {
+    const parsedPhoneNumber = parsePhoneNumber(values);
+
+    if (parsedPhoneNumber.possible) {
+        return parsedPhoneNumber.number.e164;
+    }
+
+    return '';
+};
+
 function NewContactMethodPage(props) {
     const loginInputRef = useRef(null);
-
-    const getPhoneLogin = (phoneOrEmail) => {
-        if (_.isEmpty(phoneOrEmail)) {
-            return '';
-        }
-
-        return LoginUtils.appendCountryCode(LoginUtils.getPhoneNumberWithoutSpecialChars(phoneOrEmail));
-    };
-
-    const validateNumber = (values) => {
-        const parsedPhoneNumber = parsePhoneNumber(values);
-
-        if (parsedPhoneNumber.possible) {
-            return parsedPhoneNumber.number.e164;
-        }
-
-        return '';
-    };
 
     const isFormValid = (values) => {
         const phoneLogin = getPhoneLogin(values.phoneOrEmail);
@@ -144,7 +144,6 @@ function NewContactMethodPage(props) {
                         inputID="phoneOrEmail"
                         autoCapitalize="none"
                         returnKeyType={Permissions.canUsePasswordlessLogins(props.betas) ? 'done' : 'next'}
-                        shouldSaveDraft
                     />
                 </View>
                 {!Permissions.canUsePasswordlessLogins(props.betas)

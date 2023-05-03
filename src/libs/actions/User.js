@@ -284,13 +284,7 @@ function addNewContactMethodAndNavigate(contactMethod, password) {
                 },
             },
         },
-    },
-    {
-        onyxMethod: CONST.ONYX.METHOD.SET,
-        key: ONYXKEYS.NEW_CONTACT_METHOD_FORM_DRAFT,
-        value: null,
-    },
-    ];
+    }];
     const successData = [{
         onyxMethod: CONST.ONYX.METHOD.MERGE,
         key: ONYXKEYS.LOGIN_LIST,
@@ -301,13 +295,7 @@ function addNewContactMethodAndNavigate(contactMethod, password) {
                 },
             },
         },
-    },
-    {
-        onyxMethod: CONST.ONYX.METHOD.SET,
-        key: ONYXKEYS.NEW_CONTACT_METHOD_FORM_DRAFT,
-        value: null,
-    },
-    ];
+    }];
     const failureData = [{
         onyxMethod: CONST.ONYX.METHOD.MERGE,
         key: ONYXKEYS.LOGIN_LIST,
@@ -323,10 +311,6 @@ function addNewContactMethodAndNavigate(contactMethod, password) {
                 },
             },
         },
-    }, {
-        onyxMethod: CONST.ONYX.METHOD.SET,
-        key: ONYXKEYS.NEW_CONTACT_METHOD_FORM_DRAFT,
-        value: null,
     }];
 
     API.write('AddNewContactMethod', {partnerUserID: contactMethod, password}, {optimisticData, successData, failureData});
