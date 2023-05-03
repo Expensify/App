@@ -4,7 +4,6 @@ import {
     Pressable,
 } from 'react-native';
 import PropTypes from 'prop-types';
-import Str from 'expensify-common/lib/str';
 import {withOnyx} from 'react-native-onyx';
 import lodashGet from 'lodash/get';
 import _ from 'underscore';
@@ -26,7 +25,6 @@ import ControlSelection from '../../libs/ControlSelection';
 import * as DeviceCapabilities from '../../libs/DeviceCapabilities';
 import reportActionPropTypes from '../../pages/home/report/reportActionPropTypes';
 import {showContextMenuForReport} from '../ShowContextMenuContext';
-import * as ReportUtils from '../../libs/ReportUtils';
 import * as OptionsListUtils from '../../libs/OptionsListUtils';
 import Button from '../Button';
 
@@ -81,7 +79,7 @@ const propTypes = {
     }),
 
     /** True if this is this IOU is a split instead of a 1:1 request */
-    isBillSplit: PropTypes.bool,
+    isBillSplit: PropTypes.bool.isRequired,
 
     /** True if the IOU Preview card is hovered */
     isHovered: PropTypes.bool,
@@ -146,7 +144,8 @@ const IOUPreview = (props) => {
         if (props.action && props.action.originalMessage && props.action.originalMessage.currency) {
             cachedTotal = props.numberFormat(
                 Math.abs(props.action.originalMessage.amount) / 100,
-                {style: 'currency', currency: props.action.originalMessage.currency});
+                {style: 'currency', currency: props.action.originalMessage.currency},
+            );
         } else {
             cachedTotal = props.numberFormat(Math.abs(props.action.originalMessage.amount) / 100);
         }
@@ -265,9 +264,6 @@ IOUPreview.displayName = 'IOUPreview';
 export default compose(
     withLocalize,
     withOnyx({
-        personalDetails: {
-            key: ONYXKEYS.PERSONAL_DETAILS,
-        },
         iouReport: {
             key: ({iouReportID}) => `${ONYXKEYS.COLLECTION.REPORT}${iouReportID}`,
         },

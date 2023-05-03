@@ -6,7 +6,6 @@ import Text from '../Text';
 import Icon from '../Icon';
 import * as Expensicons from '../Icon/Expensicons';
 import styles from '../../styles/styles';
-import themeColors from '../../styles/themes/default';
 import reportActionPropTypes from '../../pages/home/report/reportActionPropTypes';
 import withLocalize, {withLocalizePropTypes} from '../withLocalize';
 import ControlSelection from '../../libs/ControlSelection';
@@ -60,7 +59,7 @@ const IOUQuote = props => (
                     props.checkIfContextMenuActive,
                 )}
                 style={[styles.flexRow, styles.justifyContentBetween]}
-                focusable={true}
+                focusable
             >
                 <Text style={[styles.flex1, styles.mr2]}>
                     <Text style={styles.chatItemMessageLink}>

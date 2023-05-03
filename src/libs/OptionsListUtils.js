@@ -139,13 +139,13 @@ function addSMSDomainIfPhoneNumber(login) {
 /**
  * Returns avatar data for a list of user logins
  *
- * @param {Array<String>} logins 
- * @param {Object} personalDetails 
+ * @param {Array<String>} logins
+ * @param {Object} personalDetails
  * @returns {Object}
  */
 function getAvatarsForLogins(logins, personalDetails) {
     return _.map(logins, (login) => {
-        const userPersonalDetail = lodashGet(personalDetails, login, {login: login, avatar: ''});
+        const userPersonalDetail = lodashGet(personalDetails, login, {login, avatar: ''});
         return {
             source: ReportUtils.getAvatar(userPersonalDetail.avatar, userPersonalDetail.login),
             type: CONST.ICON_TYPE_AVATAR,

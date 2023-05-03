@@ -71,7 +71,7 @@ const defaultProps = {
 const IOUAction = (props) => {
     const hasMultipleParticipants = props.chatReport.participants.length > 1;
     const onIOUPreviewPressed = () => {
-        if (hasMultipleParticipants){
+        if (hasMultipleParticipants) {
             Navigation.navigate(ROUTES.getReportParticipantsRoute(props.chatReportID));
         } else {
             Navigation.navigate(ROUTES.getIouDetailsRoute(props.chatReportID, props.action.originalMessage.IOUReportID));
