@@ -53,14 +53,9 @@
             outline: 0;
             box-shadow: inset 0px 0px 0px 1px #5AB0FF;
         }
-        @keyframes blink_input_opacity_to_prevent_scrolling_when_focus {
-            0% { opacity: 0; }
-            100% { opacity: 1; }
-        }
         input:focus-visible, input:focus[data-focusvisible-polyfill],
         select:focus-visible, select:focus[data-focusvisible-polyfill]  {
             box-shadow: none;
-            animation: blink_input_opacity_to_prevent_scrolling_when_focus 0.01s;
         }
         ::-ms-reveal {
             display: none;
