@@ -1,5 +1,6 @@
 import Onyx from 'react-native-onyx';
 import ONYXKEYS from '../../ONYXKEYS';
+import * as ReportActionUtils from '../ReportActionsUtils';
 
 /**
  * @param {String} reportID
@@ -9,6 +10,10 @@ function deleteOptimisticReportAction(reportID, reportActionID) {
     Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`, {
         [reportActionID]: null,
     });
+    const linkedTransactionID = ReportActionUtils.getLinkedTransactionID(reportID, reportActionID);
+    if (linkedTransactionID) {
+        Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION}${linkedTransactionID}`, null);
+    }
 }
 
 /**

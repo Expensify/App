@@ -580,7 +580,7 @@ describe('actions/IOU', () => {
                             Onyx.disconnect(connectionID);
                             expect(_.size(reportActionsForChatReport)).toBe(2);
                             iouAction = _.find(reportActionsForChatReport, reportAction => reportAction.actionName === CONST.REPORT.ACTIONS.TYPE.IOU);
-                            expect(iouAction.pendingAction).toBeFalsy();
+                            expect(iouAction.pendingAction).toBe(CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD);
                             const errorMessage = _.values(iouAction.errors)[0];
                             expect(errorMessage).toBe(Localize.translateLocal('iou.error.genericCreateFailureMessage'));
                             resolve();
@@ -593,7 +593,7 @@ describe('actions/IOU', () => {
                         waitForCollectionCallback: true,
                         callback: (transaction) => {
                             Onyx.disconnect(connectionID);
-                            expect(transaction.pendingAction).toBeFalsy();
+                            expect(transaction.pendingAction).toBe(CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD);
                             expect(transaction.errors).toBeTruthy();
                             expect(_.values(transaction.errors)[0]).toBe(Localize.translateLocal('iou.error.genericCreateFailureMessage'));
                             resolve();

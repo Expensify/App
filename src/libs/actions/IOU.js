@@ -81,7 +81,6 @@ function requestMoney(report, amount, currency, recipientEmail, participant, com
         onyxMethod: Onyx.METHOD.MERGE,
         key: `${ONYXKEYS.COLLECTION.TRANSACTION}${optimisticTransaction.transactionID}`,
         value: {
-            pendingAction: null,
             errors: {
                 [DateUtils.getMicroseconds()]: Localize.translateLocal('iou.error.genericCreateFailureMessage'),
             },
@@ -154,7 +153,6 @@ function requestMoney(report, amount, currency, recipientEmail, participant, com
         value: {
             [optimisticReportAction.reportActionID]: {
                 ...optimisticReportAction,
-                pendingAction: null,
                 errors: {
                     [DateUtils.getMicroseconds()]: Localize.translateLocal('iou.error.genericCreateFailureMessage'),
                 },
@@ -185,7 +183,6 @@ function requestMoney(report, amount, currency, recipientEmail, participant, com
         // Then add an optimistic created action
         optimisticReportActionsData.value[optimisticCreatedAction.reportActionID] = optimisticCreatedAction;
         reportActionsSuccessData.value[optimisticCreatedAction.reportActionID] = {pendingAction: null};
-        reportActionsFailureData.value[optimisticCreatedAction.reportActionID] = {pendingAction: null};
     }
 
     const optimisticData = [

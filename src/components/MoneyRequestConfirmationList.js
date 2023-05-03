@@ -303,7 +303,7 @@ class MoneyRequestConfirmationList extends Component {
                     description={this.props.translate('iou.amount')}
                     interactive={false} // This is so the menu item's background doesn't change color on hover
                     onPress={() => this.props.navigateToStep(0)}
-                    style={styles.moneyRequestMenuItem}
+                    style={[styles.moneyRequestMenuItem, styles.mb5]}
                     titleStyle={styles.moneyRequestConfirmationAmount}
                     disabled={this.state.didConfirm}
                 />
