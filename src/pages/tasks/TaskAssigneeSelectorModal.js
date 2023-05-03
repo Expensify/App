@@ -39,7 +39,7 @@ const defaultProps = {
     reports: {},
 };
 
-const AssigneeSelectorModal = (props) => {
+const TaskAssigneeSelectorModal = (props) => {
     const [searchValue, setSearchValue] = useState('');
     const [headerMessage, setHeaderMessage] = useState('');
     const [filteredRecentReports, setFilteredRecentReports] = useState([]);
@@ -166,9 +166,9 @@ const AssigneeSelectorModal = (props) => {
     );
 };
 
-AssigneeSelectorModal.displayName = 'AssigneeSelectorModal';
-AssigneeSelectorModal.propTypes = propTypes;
-AssigneeSelectorModal.defaultProps = defaultProps;
+TaskAssigneeSelectorModal.displayName = 'TaskAssigneeSelectorModal';
+TaskAssigneeSelectorModal.propTypes = propTypes;
+TaskAssigneeSelectorModal.defaultProps = defaultProps;
 
 export default compose(
     withLocalize,
@@ -183,4 +183,4 @@ export default compose(
             key: ONYXKEYS.BETAS,
         },
     }),
-)(AssigneeSelectorModal);
+)(TaskAssigneeSelectorModal);

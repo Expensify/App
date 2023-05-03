@@ -98,7 +98,7 @@ export default {
     getTaskReportTitleRoute: reportID => `r/${reportID}/title`,
     getTaskReportDescriptionRoute: reportID => `r/${reportID}/description`,
     NEW_TASK_ASSIGNEE: `${NEW_TASK}/assignee`,
-    NEW_TASK_CHAT: `${NEW_TASK}/chat`,
+    NEW_TASK_SHARE_DESTINATION: `${NEW_TASK}/share-destination`,
     NEW_TASK_DETAILS: `${NEW_TASK}/details`,
     NEW_TASK_TITLE: `${NEW_TASK}/title`,
     NEW_TASK_DESCRIPTION: `${NEW_TASK}/description`,

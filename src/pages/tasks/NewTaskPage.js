@@ -163,7 +163,7 @@ const NewTaskPage = (props) => {
                             icons={shareDestination.icons}
                             text={shareDestination.displayName}
                             alternateText={shareDestination.subtitle}
-                            onPress={() => Navigation.navigate(ROUTES.NEW_TASK_CHAT)}
+                            onPress={() => Navigation.navigate(ROUTES.NEW_TASK_SHARE_DESTINATION)}
                             label="newTaskPage.shareSomewhere"
                             isShareDestination
                             disabled={Boolean(props.task.parentReportID)}

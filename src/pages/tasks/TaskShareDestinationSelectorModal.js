@@ -43,7 +43,7 @@ const defaultProps = {
     reports: {},
 };
 
-const ChatSelectorModal = (props) => {
+const TaskShareDestinationSelectorModal = (props) => {
     const [searchValue, setSearchValue] = useState('');
     const [headerMessage, setHeaderMessage] = useState('');
     const [filteredRecentReports, setFilteredRecentReports] = useState([]);
@@ -177,9 +177,9 @@ const ChatSelectorModal = (props) => {
     );
 };
 
-ChatSelectorModal.displayName = 'ChatSelectorModal';
-ChatSelectorModal.propTypes = propTypes;
-ChatSelectorModal.defaultProps = defaultProps;
+TaskShareDestinationSelectorModal.displayName = 'TaskShareDestinationSelectorModal';
+TaskShareDestinationSelectorModal.propTypes = propTypes;
+TaskShareDestinationSelectorModal.defaultProps = defaultProps;
 
 export default compose(
     withLocalize,
@@ -194,4 +194,4 @@ export default compose(
             key: ONYXKEYS.BETAS,
         },
     }),
-)(ChatSelectorModal);
+)(TaskShareDestinationSelectorModal);
