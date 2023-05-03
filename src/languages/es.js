@@ -316,7 +316,7 @@ export default {
         settleExpensify: 'Pagar con Expensify',
         settleElsewhere: 'Voy a pagar de otra forma',
         settlePaypalMe: 'Pagar con PayPal.me',
-        request: ({amount}) => `Solicitar ${amount}`,
+        requestAmount: ({amount}) => `Solicitar ${amount}`,
         splitAmount: ({amount}) => `Dividir ${amount}`,
         noReimbursableExpenses: 'El monto de este informe es inválido',
         pendingConversionMessage: 'El total se actualizará cuando estés online',
