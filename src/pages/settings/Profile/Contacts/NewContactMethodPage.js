@@ -6,6 +6,7 @@ import _ from 'underscore';
 import lodashGet from 'lodash/get';
 import Str from 'expensify-common/lib/str';
 import compose from '../../../../libs/compose';
+import {parsePhoneNumber} from 'awesome-phonenumber';
 import HeaderWithCloseButton from '../../../../components/HeaderWithCloseButton';
 import ScreenWrapper from '../../../../components/ScreenWrapper';
 import Text from '../../../../components/Text';
@@ -57,7 +58,7 @@ function NewContactMethodPage(props) {
     const loginInputRef = useRef(null);
 
     const isFormValid = (values) => {
-        const phoneLogin = !_.isEmpty(values.phoneOrEmail) ? LoginUtils.getPhoneNumberWithoutSpecialChars(values.phoneOrEmail) : '';
+        const phoneLogin = !_.isEmpty(values.phoneOrEmail) ? LoginUtils.appendCountryCode(LoginUtils.getPhoneNumberWithoutSpecialChars(values.phoneOrEmail)) : '';
 
         const errors = {};
 
@@ -65,7 +66,7 @@ function NewContactMethodPage(props) {
             ErrorUtils.addErrorMessage(errors, 'phoneOrEmail', props.translate('contacts.genericFailureMessages.contactMethodRequired'));
         }
 
-        if (!_.isEmpty(values.phoneOrEmail) && !(Str.isValidPhone(phoneLogin) || Str.isValidEmail(values.phoneOrEmail))) {
+        if (!_.isEmpty(values.phoneOrEmail) && !(parsePhoneNumber(phoneLogin).possible || Str.isValidEmail(values.phoneOrEmail))) {
             ErrorUtils.addErrorMessage(errors, 'phoneOrEmail', props.translate('contacts.genericFailureMessages.invalidContactMethod'));
         }
 
@@ -80,8 +81,12 @@ function NewContactMethodPage(props) {
         return errors;
     };
 
-    const submitForm = (value) => {
-        User.addNewContactMethodAndNavigate(value.phoneOrEmail.trim(), value.password);
+    const submitForm = (values) => {
+        const phoneLogin = !_.isEmpty(values.phoneOrEmail) ? LoginUtils.appendCountryCode(LoginUtils.getPhoneNumberWithoutSpecialChars(values.phoneOrEmail)) : '';
+        const parsedPhoneNumber = parsePhoneNumber(phoneLogin);
+        const userLogin = parsedPhoneNumber.possible ? parsedPhoneNumber.number.e164 : values.phoneOrEmail;
+
+        User.addNewContactMethodAndNavigate(userLogin.trim(), values.password);
     };
 
     return (
