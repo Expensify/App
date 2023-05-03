@@ -141,7 +141,14 @@ function addSMSDomainIfPhoneNumber(login) {
     return login;
 }
 
-function getAvatarsForParticipants(logins, personalDetails) {
+/**
+ * Collect avatar data for a list of user logins
+ *
+ * @param {Array<String>} logins 
+ * @param {Object} personalDetails 
+ * @returns {Object}
+ */
+function getAvatarsForLogins(logins, personalDetails) {
     return _.map(logins, (login) => {
         const userPersonalDetail = lodashGet(personalDetails, login, {login: login, avatar: ''});
         return {
@@ -901,7 +908,7 @@ function getHeaderMessage(hasSelectableOptions, hasUserToInvite, searchValue, ma
 
 export {
     addSMSDomainIfPhoneNumber,
-    getAvatarsForParticipants,
+    getAvatarsForLogins,
     isCurrentUser,
     getSearchOptions,
     getNewChatOptions,
