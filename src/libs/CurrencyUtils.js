@@ -72,9 +72,27 @@ function isCurrencySymbolLTR(currencyCode) {
     return parts[0].type === 'currency';
 }
 
+/**
+ * Takes an amount as a floating point number and converts it to an integer amount.
+ * For example, given [25, USD], will return 2500.
+ * Given [25.50, USD] will return 2550.
+ * Given [2500, JPY], will return 2500.
+ *
+ * @note we do not currently support any currencies with more than two decimal places. Sorry Tunisia :(
+ *
+ * @param {String} currency
+ * @param {Number} amountAsFloat
+ * @returns {Number}
+ */
+function convertToSmallestUnit(currency, amountAsFloat) {
+    const currencyUnit = getCurrencyUnit(currency);
+    return Math.trunc(amountAsFloat * currencyUnit);
+}
+
 export {
     getCurrencyDecimals,
     getCurrencyUnit,
     getLocalizedCurrencySymbol,
     isCurrencySymbolLTR,
+    convertToSmallestUnit,
 };

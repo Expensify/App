@@ -89,4 +89,17 @@ describe('CurrencyUtils', () => {
             expect(CurrencyUtils.getCurrencyUnit('LYD')).toBe(100);
         });
     });
+
+    describe('convertToSmallestUnit', () => {
+        test.each([
+            [[CONST.CURRENCY.USD, 25], 2500],
+            [[CONST.CURRENCY.USD, 25.5], 2550],
+            [[CONST.CURRENCY.USD, 25.50], 2550],
+            [['JPY', 25], 25],
+            [['JPY', 2500], 2500],
+            [['JPY', 25.5], 25],
+        ])('Correctly converts %s to amount in smallest units', ([currency, amount], expectedResult) => {
+            expect(CurrencyUtils.convertToSmallestUnit(currency, amount)).toBe(expectedResult);
+        });
+    });
 });
