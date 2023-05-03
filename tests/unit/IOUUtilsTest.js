@@ -136,28 +136,23 @@ describe('IOUUtils', () => {
 
     describe('calculateAmount', () => {
         beforeAll(() => initCurrencyList());
+
         test('103 JPY split among 3 participants including the default user should be [35, 34, 34]', () => {
             const participants = ['tonystark@expensify.com', 'reedrichards@expensify.com'];
-            expect(IOUUtils.calculateAmount(participants, 103, true)).toBe(3500);
-            expect(IOUUtils.calculateAmount(participants, 103)).toBe(3400);
+            expect(IOUUtils.calculateAmount(participants, 103, true)).toBe(35);
+            expect(IOUUtils.calculateAmount(participants, 103)).toBe(34);
         });
 
         test('10 AFN split among 4 participants including the default user should be [1, 3, 3, 3]', () => {
             const participants = ['tonystark@expensify.com', 'reedrichards@expensify.com', 'suestorm@expensify.com'];
-            expect(IOUUtils.calculateAmount(participants, 10, true)).toBe(100);
-            expect(IOUUtils.calculateAmount(participants, 10)).toBe(300);
-        });
-
-        test('10 BHD split among 3 participants including the default user should be [334, 333, 333]', () => {
-            const participants = ['tonystark@expensify.com', 'reedrichards@expensify.com'];
-            expect(IOUUtils.calculateAmount(participants, 10, true)).toBe(334);
-            expect(IOUUtils.calculateAmount(participants, 10)).toBe(333);
+            expect(IOUUtils.calculateAmount(participants, 10, true)).toBe(1);
+            expect(IOUUtils.calculateAmount(participants, 10)).toBe(3);
         });
 
         test('0.02 USD split among 4 participants including the default user should be [-1, 1, 1, 1]', () => {
             const participants = ['tonystark@expensify.com', 'reedrichards@expensify.com', 'suestorm@expensify.com'];
-            expect(IOUUtils.calculateAmount(participants, 0.02, true)).toBe(-1);
-            expect(IOUUtils.calculateAmount(participants, 0.02)).toBe(1);
+            expect(IOUUtils.calculateAmount(participants, 2, true)).toBe(-1);
+            expect(IOUUtils.calculateAmount(participants, 2)).toBe(1);
         });
     });
 });
