@@ -8,6 +8,7 @@
   "private": true,
   "scripts": {
     "postinstall": "npx patch-package && cd desktop && npm install",
+    "prepare": "husky install",
     "clean": "npx react-native clean-project-auto",
     "android": "scripts/set-pusher-suffix.sh && npx react-native run-android --port=8083",
     "ios": "scripts/set-pusher-suffix.sh && npx react-native run-ios --port=8082",
@@ -41,6 +42,9 @@
     "symbolicate:android": "npx metro-symbolicate android/app/build/generated/sourcemaps/react/release/index.android.bundle.map",
     "symbolicate:ios": "npx metro-symbolicate main.jsbundle.map",
     "test:e2e": "node tests/e2e/testRunner.js --development"
+  },
+  "lint-staged": {
+    "*.js": "eslint --fix"
   },
   "dependencies": {
     "@expensify/react-native-web": "0.18.15",
@@ -185,10 +189,12 @@
     "flipper-plugin-bridgespy-client": "^0.1.9",
     "html-inline-script-webpack-plugin": "^3.1.0",
     "html-webpack-plugin": "^5.5.0",
+    "husky": "^8.0.3",
     "jest": "29.4.1",
     "jest-circus": "29.4.1",
     "jest-cli": "29.4.1",
     "jest-environment-jsdom": "^29.4.1",
+    "lint-staged": "^13.2.2",
     "metro-react-native-babel-preset": "^0.73.3",
     "mock-fs": "^4.13.0",
     "portfinder": "^1.0.28",
