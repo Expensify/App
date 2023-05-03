@@ -57,8 +57,16 @@ const defaultProps = {
 function NewContactMethodPage(props) {
     const loginInputRef = useRef(null);
 
+    const getPhoneLogin = (phoneOrEmail) => {
+        if (_.isEmpty(phoneOrEmail)) {
+            return '';
+        }
+
+        return LoginUtils.appendCountryCode(LoginUtils.getPhoneNumberWithoutSpecialChars(phoneOrEmail));
+    };
+
     const isFormValid = (values) => {
-        const phoneLogin = !_.isEmpty(values.phoneOrEmail) ? LoginUtils.appendCountryCode(LoginUtils.getPhoneNumberWithoutSpecialChars(values.phoneOrEmail)) : '';
+        const phoneLogin = getPhoneLogin(values.phoneOrEmail);
 
         const errors = {};
 
@@ -82,13 +90,12 @@ function NewContactMethodPage(props) {
     };
 
     const submitForm = (values) => {
-        const phoneLogin = !_.isEmpty(values.phoneOrEmail) ? LoginUtils.appendCountryCode(LoginUtils.getPhoneNumberWithoutSpecialChars(values.phoneOrEmail)) : '';
+        const phoneLogin = getPhoneLogin(values.phoneOrEmail);
         const parsedPhoneNumber = parsePhoneNumber(phoneLogin);
         const userLogin = parsedPhoneNumber.possible ? parsedPhoneNumber.number.e164 : values.phoneOrEmail;
 
         User.addNewContactMethodAndNavigate(userLogin.trim(), values.password);
     };
-
     return (
         <ScreenWrapper
             onEntryTransitionEnd={() => {

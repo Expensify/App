@@ -317,6 +317,10 @@ function addNewContactMethodAndNavigate(contactMethod, password) {
                 },
             },
         },
+    }, {
+        onyxMethod: CONST.ONYX.METHOD.SET,
+        key: ONYXKEYS.NEW_CONTACT_METHOD_FORM_DRAFT,
+        value: null,
     }];
 
     API.write('AddNewContactMethod', {partnerUserID: contactMethod, password}, {optimisticData, successData, failureData});
