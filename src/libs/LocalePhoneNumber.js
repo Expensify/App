@@ -39,6 +39,10 @@ Onyx.connect({
  * @returns {String}
  */
 function formatPhoneNumber(number) {
+    if (!number) {
+        return '';
+    }
+
     const parsedPhoneNumber = parsePhoneNumber(Str.removeSMSDomain(number));
 
     // return the string untouched if it's not a phone number

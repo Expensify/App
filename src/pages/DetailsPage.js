@@ -5,6 +5,7 @@ import _ from 'underscore';
 import {withOnyx} from 'react-native-onyx';
 import Str from 'expensify-common/lib/str';
 import lodashGet from 'lodash/get';
+import {parsePhoneNumber} from 'awesome-phonenumber';
 import styles from '../styles/styles';
 import Text from '../components/Text';
 import ONYXKEYS from '../ONYXKEYS';
@@ -73,12 +74,13 @@ const defaultProps = {
  */
 const getPhoneNumber = (details) => {
     // If the user hasn't set a displayName, it is set to their phone number, so use that
-    if (Str.isValidPhone(details.displayName)) {
-        return details.displayName;
+    const parsedPhoneNumber = parsePhoneNumber(details.displayName);
+    if (parsedPhoneNumber.possible) {
+        return parsedPhoneNumber.number.e164;
     }
 
     // If the user has set a displayName, get the phone number from the SMS login
-    return Str.removeSMSDomain(details.login);
+    return details.login ? Str.removeSMSDomain(details.login) : '';
 };
 
 class DetailsPage extends React.PureComponent {
@@ -95,7 +97,7 @@ class DetailsPage extends React.PureComponent {
             };
         }
 
-        const isSMSLogin = Str.isSMSLogin(details.login);
+        const isSMSLogin = details.login ? Str.isSMSLogin(details.login) : false;
 
         // If we have a reportID param this means that we
         // arrived here via the ParticipantsPage and should be allowed to navigate back to it

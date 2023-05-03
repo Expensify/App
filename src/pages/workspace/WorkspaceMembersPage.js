@@ -258,6 +258,15 @@ class WorkspaceMembersPage extends React.Component {
     }
 
     /**
+     * Check if the policy member is deleted from the workspace
+     * @param {Object} policyMember
+     * @returns {Boolean}
+     */
+    isDeletedPolicyMember(policyMember) {
+        return !this.props.network.isOffline && policyMember.pendingAction === 'delete' && _.isEmpty(policyMember.errors);
+    }
+
+    /**
      * Do not move this or make it an anonymous function it is a method
      * so it will not be recreated each time we render an item
      *
@@ -320,6 +329,9 @@ class WorkspaceMembersPage extends React.Component {
         const removableMembers = {};
         let data = [];
         _.each(policyMemberList, (policyMember, email) => {
+            if (this.isDeletedPolicyMember(policyMember)) {
+                return;
+            }
             const details = lodashGet(this.props.personalDetails, email, {displayName: email, login: email});
             data.push({
                 ...policyMember,

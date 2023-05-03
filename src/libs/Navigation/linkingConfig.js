@@ -174,6 +174,9 @@ export default {
                     Workspace_Invite: {
                         path: ROUTES.WORKSPACE_INVITE,
                     },
+                    Workspace_Invite_Message: {
+                        path: ROUTES.WORKSPACE_INVITE_MESSAGE,
+                    },
                     Workspace_NewRoom: {
                         path: ROUTES.WORKSPACE_NEW_ROOM,
                     },

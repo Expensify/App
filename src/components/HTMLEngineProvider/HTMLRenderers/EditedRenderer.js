@@ -6,7 +6,7 @@ import Text from '../../Text';
 import variables from '../../../styles/variables';
 import themeColors from '../../../styles/themes/default';
 import styles from '../../../styles/styles';
-import { View } from 'react-native';
+import editedLabelStyles from '../../../styles/editedLabelStyles';
 
 const propTypes = {
     ...htmlRendererPropTypes,
@@ -18,19 +18,17 @@ const EditedRenderer = (props) => {
     const isPendingDelete = !!props.tnode.attributes.deleted;
 
     return (
-        <View>
-            <Text
-                // eslint-disable-next-line react/jsx-props-no-spreading
-                {...defaultRendererProps}
-                fontSize={variables.fontSizeSmall}
-                color={themeColors.textSupporting}
-                style={[isPendingDelete && styles.offlineFeedback.deleted]}
-            >
-                {/* Native devices do not support margin between nested text */}
-                <Text style={styles.w1}>{' '}</Text>
-                {props.translate('reportActionCompose.edited')}
-            </Text>
-        </View>
+        <Text
+            // eslint-disable-next-line react/jsx-props-no-spreading
+            {...defaultRendererProps}
+            fontSize={variables.fontSizeSmall}
+            color={themeColors.textSupporting}
+            style={[styles.alignItemsBaseline, editedLabelStyles]}
+        >
+            {/* Native devices do not support margin between nested text */}
+            <Text style={[styles.w1, styles.userSelectNone]}>{' '}</Text>
+            {props.translate('reportActionCompose.edited')}
+        </Text>
     );
 };
 
