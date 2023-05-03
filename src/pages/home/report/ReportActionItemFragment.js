@@ -127,14 +127,14 @@ const ReportActionItemFragment = (props) => {
                 <Text
                     family="EMOJI_TEXT_FONT"
                     selectable={!DeviceCapabilities.canUseTouchScreen() || !props.isSmallScreenWidth}
-                    style={[EmojiUtils.containsOnlyEmojis(text) ? styles.onlyEmojisText : undefined, styles.ltr, styles.dFlex, styles.flexRow, styles.alignItemsBaseline, ...props.style]}
+                    style={[EmojiUtils.containsOnlyEmojis(text) ? styles.onlyEmojisText : undefined, styles.ltr, ...props.style]}
                 >
                     {StyleUtils.convertToLTR(Str.htmlDecode(text))}
                     {Boolean(props.fragment.isEdited) && (
                     <Text
                         fontSize={variables.fontSizeSmall}
                         color={themeColors.textSupporting}
-                        style={[...props.style, editedLabelStyles]}
+                        style={[editedLabelStyles, ...props.style]}
                     >
                         <Text style={[styles.w1, styles.userSelectNone]}>{' '}</Text>
                         {props.translate('reportActionCompose.edited')}
