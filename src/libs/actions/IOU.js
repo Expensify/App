@@ -76,7 +76,7 @@ function requestMoney(report, amount, currency, recipientEmail, participant, com
         iouReport = ReportUtils.buildOptimisticIOUReport(recipientEmail, debtorEmail, amount, chatReport.reportID, currency);
     }
 
-    const optimisticTransaction = TransactionUtils.buildOptimisticTransaction(amount * 100, currency, iouReport.reportID, comment);
+    const optimisticTransaction = TransactionUtils.buildOptimisticTransaction(amount, currency, iouReport.reportID, comment);
     const optimisticTransactionData = {
         onyxMethod: Onyx.METHOD.SET,
         key: `${ONYXKEYS.COLLECTION.TRANSACTION}${optimisticTransaction.transactionID}`,
