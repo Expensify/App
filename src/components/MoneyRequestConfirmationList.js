@@ -104,7 +104,7 @@ class MoneyRequestConfirmationList extends Component {
      */
     getSplitOrRequestOptions() {
         return [{
-            text: this.props.translate(this.props.hasMultipleParticipants ? 'iou.splitAmount' : 'iou.request', {
+            text: this.props.translate(this.props.hasMultipleParticipants ? 'iou.splitAmount' : 'iou.requestAmount', {
                 amount: this.props.numberFormat(
                     this.props.iouAmount,
                     {style: 'currency', currency: this.props.iou.selectedCurrencyCode},
