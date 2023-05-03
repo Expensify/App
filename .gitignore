@@ -38,7 +38,9 @@ android/app/src/main/java/com/expensify/chat/generated/
 .cxx/
 
 # Vscode
-.vscode
+.vscode/*
+!.vscode/extensions.json
+!.vscode/settings.json
 
 # node.js
 #
