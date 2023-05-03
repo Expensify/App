@@ -81,7 +81,6 @@ const MoneyRequestHeader = (props) => {
             <View style={[styles.ph5, styles.pb5]}>
                 <Text style={[styles.textLabelSupporting, styles.lh16]}>{props.translate('common.to')}</Text>
                 <View style={[
-                    styles.flex1,
                     styles.flexRow,
                     styles.alignItemsCenter,
                     styles.justifyContentBetween,
