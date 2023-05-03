@@ -334,7 +334,7 @@ class BaseOptionsSelector extends Component {
                                     <View style={[styles.flexGrow0, styles.flexShrink1, styles.flexBasisAuto, styles.w100, styles.flexRow]}>
                                         {optionsList}
                                     </View>
-                                    <View style={this.props.shouldUseStyleForChildren && [styles.ph5, styles.pv5, styles.flexGrow1, styles.flexShrink0]}>
+                                    <View style={this.props.shouldUseStyleForChildren ? [styles.ph5, styles.pv5, styles.flexGrow1, styles.flexShrink0] : []}>
                                         {this.props.children}
                                         {this.props.shouldShowTextInput && textInput}
                                     </View>
