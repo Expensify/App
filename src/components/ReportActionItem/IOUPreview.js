@@ -230,6 +230,8 @@ const IOUPreview = (props) => {
                         </Text>
                     )}
 
+                    <Text>{lodashGet(props.action, 'originalMessage.comment', '')}</Text>
+
                     {(isCurrentUserManager
                         && !props.shouldHidePayButton
                         && props.iouReport.stateNum === CONST.REPORT.STATE_NUM.PROCESSING && (
