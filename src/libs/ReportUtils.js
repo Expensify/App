@@ -592,7 +592,7 @@ function getOldDotDefaultAvatar(login = '') {
  * @returns {Boolean}
  */
 function isDefaultAvatar(avatarURL) {
-    if (_.isString(avatarURL) && (avatarURL.includes('images/avatars/avatar_') || avatarURL.includes('images/avatars/user/default'))) {
+    if (_.isString(avatarURL) && (avatarURL.includes('images/avatars/default-avatar_') || avatarURL.includes('images/avatars/user/default'))) {
         return true;
     }
 
