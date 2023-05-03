@@ -199,14 +199,33 @@ class Composer extends React.Component {
         this.textInput.removeEventListener('wheel', this.handleWheel);
     }
 
+    // get characters from the cursor to the next space or new line
+    getNextChars(str, cursorPos) {
+        // Get the substring starting from the cursor position
+        const substr = str.substring(cursorPos);
+
+        // Find the index of the next space or new line character
+        const spaceIndex = substr.search(/[ \n]/);
+
+        if (spaceIndex === -1) {
+            return substr;
+        }
+
+        // If there is a space or new line, return the substring up to the space or new line
+        return substr.substring(0, spaceIndex);
+    }
+
     addCursorPositionToSelectionChange(event) {
         if (this.props.shouldCalculateCaretPosition) {
+            const newValueBeforeCaret = event.target.value.slice(
+                0,
+                event.nativeEvent.selection.start,
+            );
+
             this.setState(
                 {
-                    valueBeforeCaret: event.target.value.slice(
-                        0,
-                        event.nativeEvent.selection.start,
-                    ),
+                    valueBeforeCaret: newValueBeforeCaret,
+                    caretContent: this.getNextChars(this.props.value, event.nativeEvent.selection.start),
                 },
 
                 () => {
@@ -215,7 +234,9 @@ class Composer extends React.Component {
                             selection: {
                                 start: event.nativeEvent.selection.start,
                                 end: event.nativeEvent.selection.end,
-                                positionX: this.textRef.current.offsetLeft,
+
+                                // 4 is a width of the space which we added manually
+                                positionX: this.textRef.current.offsetLeft - 4,
                                 positionY: this.textRef.current.offsetTop,
                             },
                         },
@@ -399,8 +420,7 @@ class Composer extends React.Component {
         const propsWithoutStyles = _.omit(this.props, 'style');
 
         // This code creates a hidden text component that helps track the caret position in the visible input.
-
-        const calculationCaretPositionElement = (
+        const renderElementForCaretPosition = (
             <View
                 style={{
                     position: 'absolute',
@@ -411,10 +431,13 @@ class Composer extends React.Component {
             >
                 <Text
                     multiline
-                    style={[styles.textInputCompose, {width: this.state.width}]}
+                    style={[
+                        propStyles,
+                        this.state.numberOfLines < this.props.maxLines ? styles.overflowHidden : {},
+                        {maxWidth: this.state.width}]}
                 >
-                    {this.state.valueBeforeCaret}
-                    <Text ref={this.textRef} />
+                    {`${this.state.valueBeforeCaret} `}
+                    <Text numberOfLines={1} ref={this.textRef} style={{backgroundColor: 'green'}}>{`${this.state.caretContent}`}</Text>
                 </Text>
             </View>
         );
@@ -442,7 +465,7 @@ class Composer extends React.Component {
                     numberOfLines={this.state.numberOfLines}
                     disabled={this.props.isDisabled}
                 />
-                {this.props.shouldCalculateCaretPosition && calculationCaretPositionElement}
+                {this.props.shouldCalculateCaretPosition && renderElementForCaretPosition}
             </>
         );
     }
