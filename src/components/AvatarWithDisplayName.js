@@ -56,7 +56,6 @@ const AvatarWithDisplayName = (props) => {
                 {Boolean(props.report && title) && (
                     <View
                         style={[
-                            styles.flex1,
                             styles.flexRow,
                             styles.alignItemsCenter,
                             styles.justifyContentBetween,
