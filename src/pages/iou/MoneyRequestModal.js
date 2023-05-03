@@ -29,6 +29,7 @@ import reportPropTypes from '../reportPropTypes';
 import * as ReportUtils from '../../libs/ReportUtils';
 import * as ReportScrollManager from '../../libs/ReportScrollManager';
 import * as DeviceCapabilities from '../../libs/DeviceCapabilities';
+import * as CurrencyUtils from '../../libs/CurrencyUtils';
 
 /**
  * A modal used for requesting money, splitting bills or sending money.
@@ -265,6 +266,7 @@ const MoneyRequestModal = (props) => {
      * @param {String} paymentMethodType
      */
     const sendMoney = useCallback((paymentMethodType) => {
+        // TODO: convert correctly
         const amountInDollars = Math.round(amount * 100);
         const currency = props.iou.selectedCurrencyCode;
         const trimmedComment = props.iou.comment.trim();
@@ -330,6 +332,7 @@ const MoneyRequestModal = (props) => {
 
         // If the request is created from the global create menu, we also navigate the user to the group report
         if (props.hasMultipleParticipants) {
+            // TODO: convert amount
             IOU.splitBillAndOpenReport(
                 selectedParticipants,
                 props.currentUserPersonalDetails.login,
@@ -347,7 +350,7 @@ const MoneyRequestModal = (props) => {
         }
         IOU.requestMoney(
             props.report,
-            Math.round(amount * 100),
+            CurrencyUtils.convertToSmallestUnit(props.iou.selectedCurrencyCode, Number.parseFloat(amount)),
             props.iou.selectedCurrencyCode,
             props.currentUserPersonalDetails.login,
             selectedParticipants[0],

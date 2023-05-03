@@ -55,14 +55,7 @@ describe('IOUUtils', () => {
             const amount = 1000;
             const currency = 'USD';
 
-            iouReport = ReportUtils.buildOptimisticIOUReport(
-                ownerEmail,
-                managerEmail,
-                amount,
-                chatReportID,
-                currency,
-                CONST.LOCALES.EN,
-            );
+            iouReport = ReportUtils.buildOptimisticIOUReport(ownerEmail, managerEmail, amount, chatReportID, currency);
 
             // The starting point of all tests is the IOUReport containing a single non-pending transaction in USD
             // All requests in the tests are assumed to be online, unless isOffline is specified
