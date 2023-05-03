@@ -30,7 +30,7 @@
     "android-build-e2e": "bundle exec fastlane android build_e2e",
     "test": "TZ=utc jest",
     "lint": "eslint . --max-warnings=0",
-    "lint-changed": "eslint --fix \"$(git diff --name-only main -- \"*.js\")\"",
+    "lint-changed": "eslint --fix $(git diff --name-only main -- \"*.js\")",
     "lint-watch": "npx eslint-watch --watch --changed",
     "shellcheck": "./scripts/shellCheck.sh",
     "print-version": "echo $npm_package_version",
