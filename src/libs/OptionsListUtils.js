@@ -853,7 +853,6 @@ function getShareDestinationOptions(reports, personalDetails, betas = [], search
         includeMultipleParticipantReports: true,
         includeOnlyMultipleParticipantReports: true,
         includePersonalDetails: false,
-        maxRecentReportsToShow: 5,
         excludeLogins,
         includeOwnedWorkspaceChats,
     });
