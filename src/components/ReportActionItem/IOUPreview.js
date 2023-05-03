@@ -224,7 +224,7 @@ const IOUPreview = (props) => {
                         </View>
                     </View>
 
-                    {!isCurrentUserManager && true && (
+                    {!isCurrentUserManager && props.shouldShowPendingConversionMessage && (
                         <Text style={[styles.textLabel, styles.colorMuted]}>
                             {props.translate('iou.pendingConversionMessage')}
                         </Text>
