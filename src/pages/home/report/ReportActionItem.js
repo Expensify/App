@@ -179,11 +179,10 @@ class ReportActionItem extends Component {
         let children;
         if (this.props.action.actionName === CONST.REPORT.ACTIONS.TYPE.IOU) {
 
-            let iouReportID = 0;
+            // Only 1:1 requests require an iouReport. For splits we rely on reportAction data. 
+            let iouReportID = '0';
             if (this.props.action.originalMessage.IOUReportID) {
                 iouReportID = this.props.action.originalMessage.IOUReportID.toString();
-            } else {
-                iouReportID = toString(1234576);
             }
 
             children = (
