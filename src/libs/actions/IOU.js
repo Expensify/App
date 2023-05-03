@@ -31,18 +31,6 @@ Onyx.connect({
     },
 });
 
-let preferredLocale = CONST.LOCALES.DEFAULT;
-Onyx.connect({
-    key: ONYXKEYS.NVP_PREFERRED_LOCALE,
-    callback: (val) => {
-        if (!val) {
-            return;
-        }
-
-        preferredLocale = val;
-    },
-});
-
 /**
  * Request money from another user
  *
@@ -249,15 +237,14 @@ function requestMoney(report, amount, currency, recipientEmail, participant, com
  *  ]
  * @param {Array} participants
  * @param {String} currentUserLogin
- * @param {Number} amount
+ * @param {Number} amount - always in the smallest unit of the currency
  * @param {String} comment
  * @param {String} currency
- * @param {String} locale
  * @param {String} existingGroupChatReportID
  *
  * @return {Object}
  */
-function createSplitsAndOnyxData(participants, currentUserLogin, amount, comment, currency, locale, existingGroupChatReportID = '') {
+function createSplitsAndOnyxData(participants, currentUserLogin, amount, comment, currency, existingGroupChatReportID = '') {
     const currentUserEmail = OptionsListUtils.addSMSDomainIfPhoneNumber(currentUserLogin);
     const participantLogins = _.map(participants, participant => OptionsListUtils.addSMSDomainIfPhoneNumber(participant.login).toLowerCase());
     const existingGroupChatReport = existingGroupChatReportID
@@ -265,12 +252,10 @@ function createSplitsAndOnyxData(participants, currentUserLogin, amount, comment
         : ReportUtils.getChatByParticipants(participantLogins);
     const groupChatReport = existingGroupChatReport || ReportUtils.buildOptimisticChatReport(participantLogins);
 
-    const amountInCents = Math.round(amount * 100);
-
     // ReportID is -2 (aka "deleted") on the group transaction: https://github.com/Expensify/Auth/blob/3fa2698654cd4fbc30f9de38acfca3fbeb7842e4/auth/command/SplitTransaction.cpp#L24-L27
     const formattedParticipants = Localize.arrayToString([currentUserLogin, ..._.map(participants, participant => participant.login)]);
     const groupTransaction = TransactionUtils.buildOptimisticTransaction(
-        amountInCents,
+        amount,
         currency,
         CONST.REPORT.SPLIT_REPORTID,
         comment,
@@ -283,7 +268,7 @@ function createSplitsAndOnyxData(participants, currentUserLogin, amount, comment
     const groupCreatedReportAction = ReportUtils.buildOptimisticCreatedReportAction(currentUserEmail);
     const groupIOUReportAction = ReportUtils.buildOptimisticIOUReportAction(
         CONST.IOU.REPORT_ACTION_TYPE.SPLIT,
-        amountInCents,
+        amount,
         currency,
         comment,
         participants,
@@ -374,8 +359,8 @@ function createSplitsAndOnyxData(participants, currentUserLogin, amount, comment
     ];
 
     // Loop through participants creating individual chats, iouReports and reportActionIDs as needed
-    const splitAmount = IOUUtils.calculateAmount(participants, amount, currency, false);
-    const splits = [{email: currentUserEmail, amount: IOUUtils.calculateAmount(participants, amount, currency, true)}];
+    const splitAmount = IOUUtils.calculateAmount(participants, amount, false);
+    const splits = [{email: currentUserEmail, amount: IOUUtils.calculateAmount(participants, amount, true)}];
 
     const hasMultipleParticipants = participants.length > 1;
     _.each(participants, (participant) => {
@@ -568,19 +553,18 @@ function createSplitsAndOnyxData(participants, currentUserLogin, amount, comment
 /**
  * @param {Array} participants
  * @param {String} currentUserLogin
- * @param {Number} amount
+ * @param {Number} amount - always in smallest currency unit
  * @param {String} comment
  * @param {String} currency
- * @param {String} locale
  * @param {String} existingGroupChatReportID
  */
-function splitBill(participants, currentUserLogin, amount, comment, currency, locale, existingGroupChatReportID = '') {
-    const {groupData, splits, onyxData} = createSplitsAndOnyxData(participants, currentUserLogin, amount, comment, currency, locale, existingGroupChatReportID);
+function splitBill(participants, currentUserLogin, amount, comment, currency, existingGroupChatReportID = '') {
+    const {groupData, splits, onyxData} = createSplitsAndOnyxData(participants, currentUserLogin, amount, comment, currency, existingGroupChatReportID);
     const parsedComment = ReportUtils.getParsedComment(comment);
 
     API.write('SplitBill', {
         reportID: groupData.chatReportID,
-        amount: Math.round(amount * 100),
+        amount,
         splits: JSON.stringify(splits),
         currency,
         comment: parsedComment,
@@ -595,18 +579,17 @@ function splitBill(participants, currentUserLogin, amount, comment, currency, lo
 /**
  * @param {Array} participants
  * @param {String} currentUserLogin
- * @param {Number} amount
+ * @param {Number} amount - always in smallest currency unit
  * @param {String} comment
  * @param {String} currency
- * @param {String} locale
  */
-function splitBillAndOpenReport(participants, currentUserLogin, amount, comment, currency, locale) {
-    const {groupData, splits, onyxData} = createSplitsAndOnyxData(participants, currentUserLogin, amount, comment, currency, locale);
+function splitBillAndOpenReport(participants, currentUserLogin, amount, comment, currency) {
+    const {groupData, splits, onyxData} = createSplitsAndOnyxData(participants, currentUserLogin, amount, comment, currency);
     const parsedComment = ReportUtils.getParsedComment(comment);
 
     API.write('SplitBillAndOpenReport', {
         reportID: groupData.chatReportID,
-        amount: Math.round(amount * 100),
+        amount,
         splits: JSON.stringify(splits),
         currency,
         comment: parsedComment,

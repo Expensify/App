@@ -1,5 +1,4 @@
 import Onyx from 'react-native-onyx';
-import CONST from '../../src/CONST';
 import * as IOUUtils from '../../src/libs/IOUUtils';
 import * as ReportUtils from '../../src/libs/ReportUtils';
 import * as NumberUtils from '../../src/libs/NumberUtils';
@@ -139,26 +138,26 @@ describe('IOUUtils', () => {
         beforeAll(() => initCurrencyList());
         test('103 JPY split among 3 participants including the default user should be [35, 34, 34]', () => {
             const participants = ['tonystark@expensify.com', 'reedrichards@expensify.com'];
-            expect(IOUUtils.calculateAmount(participants, 103, 'JPY', true)).toBe(3500);
-            expect(IOUUtils.calculateAmount(participants, 103, 'JPY')).toBe(3400);
+            expect(IOUUtils.calculateAmount(participants, 103, true)).toBe(3500);
+            expect(IOUUtils.calculateAmount(participants, 103)).toBe(3400);
         });
 
         test('10 AFN split among 4 participants including the default user should be [1, 3, 3, 3]', () => {
             const participants = ['tonystark@expensify.com', 'reedrichards@expensify.com', 'suestorm@expensify.com'];
-            expect(IOUUtils.calculateAmount(participants, 10, 'AFN', true)).toBe(100);
-            expect(IOUUtils.calculateAmount(participants, 10, 'AFN')).toBe(300);
+            expect(IOUUtils.calculateAmount(participants, 10, true)).toBe(100);
+            expect(IOUUtils.calculateAmount(participants, 10)).toBe(300);
         });
 
         test('10 BHD split among 3 participants including the default user should be [334, 333, 333]', () => {
             const participants = ['tonystark@expensify.com', 'reedrichards@expensify.com'];
-            expect(IOUUtils.calculateAmount(participants, 10, 'BHD', true)).toBe(334);
-            expect(IOUUtils.calculateAmount(participants, 10, 'BHD')).toBe(333);
+            expect(IOUUtils.calculateAmount(participants, 10, true)).toBe(334);
+            expect(IOUUtils.calculateAmount(participants, 10)).toBe(333);
         });
 
         test('0.02 USD split among 4 participants including the default user should be [-1, 1, 1, 1]', () => {
             const participants = ['tonystark@expensify.com', 'reedrichards@expensify.com', 'suestorm@expensify.com'];
-            expect(IOUUtils.calculateAmount(participants, 0.02, 'USD', true)).toBe(-1);
-            expect(IOUUtils.calculateAmount(participants, 0.02, 'USD')).toBe(1);
+            expect(IOUUtils.calculateAmount(participants, 0.02, true)).toBe(-1);
+            expect(IOUUtils.calculateAmount(participants, 0.02)).toBe(1);
         });
     });
 });

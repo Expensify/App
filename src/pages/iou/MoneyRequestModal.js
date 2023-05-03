@@ -314,29 +314,21 @@ const MoneyRequestModal = (props) => {
     const createTransaction = useCallback((selectedParticipants) => {
         const reportID = lodashGet(props.route, 'params.reportID', '');
         const trimmedComment = props.iou.comment.trim();
+        const amountInSmallestCurrencyUnit = CurrencyUtils.convertToSmallestUnit(props.iou.selectedCurrencyCode, Number.parseFloat(amount));
 
         // IOUs created from a group report will have a reportID param in the route.
         // Since the user is already viewing the report, we don't need to navigate them to the report
         if (props.hasMultipleParticipants && CONST.REGEX.NUMBER.test(reportID)) {
-            IOU.splitBill(
-                selectedParticipants,
-                props.currentUserPersonalDetails.login,
-                amount,
-                trimmedComment,
-                props.iou.selectedCurrencyCode,
-                props.preferredLocale,
-                reportID,
-            );
+            IOU.splitBill(selectedParticipants, props.currentUserPersonalDetails.login, amountInSmallestCurrencyUnit, trimmedComment, props.iou.selectedCurrencyCode, reportID);
             return;
         }
 
         // If the request is created from the global create menu, we also navigate the user to the group report
         if (props.hasMultipleParticipants) {
-            // TODO: convert amount
             IOU.splitBillAndOpenReport(
                 selectedParticipants,
                 props.currentUserPersonalDetails.login,
-                amount,
+                amountInSmallestCurrencyUnit,
                 trimmedComment,
                 props.iou.selectedCurrencyCode,
                 props.preferredLocale,
@@ -350,7 +342,7 @@ const MoneyRequestModal = (props) => {
         }
         IOU.requestMoney(
             props.report,
-            CurrencyUtils.convertToSmallestUnit(props.iou.selectedCurrencyCode, Number.parseFloat(amount)),
+            amountInSmallestCurrencyUnit,
             props.iou.selectedCurrencyCode,
             props.currentUserPersonalDetails.login,
             selectedParticipants[0],

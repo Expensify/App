@@ -713,14 +713,7 @@ describe('actions/IOU', () => {
                 .then(() => {
                     // When we split a bill offline
                     fetch.pause();
-                    IOU.splitBill(
-                        _.map([CARLOS_EMAIL, JULES_EMAIL, VIT_EMAIL], email => ({login: email})),
-                        RORY_EMAIL,
-                        amount,
-                        comment,
-                        CONST.CURRENCY.USD,
-                        CONST.LOCALES.DEFAULT,
-                    );
+                    IOU.splitBill(_.map([CARLOS_EMAIL, JULES_EMAIL, VIT_EMAIL], email => ({login: email})), RORY_EMAIL, amount, comment, CONST.CURRENCY.USD);
                     return waitForPromisesToResolve();
                 })
                 .then(() => new Promise((resolve) => {
