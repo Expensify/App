@@ -152,7 +152,6 @@ function requestMoney(report, amount, currency, recipientEmail, participant, com
         key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${chatReport.reportID}`,
         value: {
             [optimisticReportAction.reportActionID]: {
-                ...optimisticReportAction,
                 errors: {
                     [DateUtils.getMicroseconds()]: Localize.translateLocal('iou.error.genericCreateFailureMessage'),
                 },
@@ -178,7 +177,11 @@ function requestMoney(report, amount, currency, recipientEmail, participant, com
                 errorFields: null,
             },
         };
-        chatReportFailureData.value.pendingFields = null;
+        chatReportFailureData.value.errorFields = {
+            createChat: {
+                [DateUtils.getMicroseconds()]: Localize.translateLocal('report.genericCreateReportFailureMessage'),
+            },
+        };
 
         // Then add an optimistic created action
         optimisticReportActionsData.value[optimisticCreatedAction.reportActionID] = optimisticCreatedAction;

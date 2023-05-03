@@ -9,6 +9,7 @@ import DateUtils from '../../src/libs/DateUtils';
 import * as NumberUtils from '../../src/libs/NumberUtils';
 import * as Localize from '../../src/libs/Localize';
 import * as ReportActions from '../../src/libs/actions/ReportActions';
+import * as Report from '../../src/libs/actions/Report';
 
 const CARLOS_EMAIL = 'cmartins@expensifail.com';
 const JULES_EMAIL = 'jules@expensifail.com';
@@ -630,6 +631,51 @@ describe('actions/IOU', () => {
                         callback: (transaction) => {
                             Onyx.disconnect(connectionID);
                             expect(transaction).toBeFalsy();
+                            resolve();
+                        },
+                    });
+                }))
+
+                // If a user clears the errors on the CREATED action (which, technically are just errors on the report)
+                .then(() => new Promise((resolve) => {
+                    Report.deleteReport(chatReportID);
+                    resolve();
+                }))
+
+                // Then the report should be deleted
+                .then(() => new Promise((resolve) => {
+                    const connectionID = Onyx.connect({
+                        key: ONYXKEYS.COLLECTION.REPORT,
+                        waitForCollectionCallback: true,
+                        callback: (allReports) => {
+                            Onyx.disconnect(connectionID);
+                            _.each(allReports, report => expect(report).toBeFalsy());
+                            resolve();
+                        },
+                    });
+                }))
+
+                // All reportActions should also be deleted
+                .then(() => new Promise((resolve) => {
+                    const connectionID = Onyx.connect({
+                        key: ONYXKEYS.COLLECTION.REPORT_ACTIONS,
+                        waitForCollectionCallback: true,
+                        callback: (allReportActions) => {
+                            Onyx.disconnect(connectionID);
+                            _.each(allReportActions, reportAction => expect(reportAction).toBeFalsy());
+                            resolve();
+                        },
+                    });
+                }))
+
+                // All transactions should also be deleted
+                .then(() => new Promise((resolve) => {
+                    const connectionID = Onyx.connect({
+                        key: ONYXKEYS.COLLECTION.TRANSACTION,
+                        waitForCollectionCallback: true,
+                        callback: (allTransactions) => {
+                            Onyx.disconnect(connectionID);
+                            _.each(allTransactions, transaction => expect(transaction).toBeFalsy());
                             resolve();
                         },
                     });

@@ -14,16 +14,13 @@ function clearReportActionErrors(reportID, reportAction) {
             [reportAction.reportActionID]: null,
         });
 
-        // If the optimistic action was a CREATED action, delete the report too
-        if (reportAction.actionName === CONST.REPORT.ACTIONS.TYPE.CREATED) {
-            Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, null);
-        }
-
         // If there's a linked transaction, delete that too
         const linkedTransactionID = ReportActionUtils.getLinkedTransactionID(reportID, reportAction.reportActionID);
         if (linkedTransactionID) {
             Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION}${linkedTransactionID}`, null);
         }
+
+        return;
     }
 
     Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`, {
