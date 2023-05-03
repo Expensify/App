@@ -139,7 +139,6 @@ const IOUPreview = (props) => {
     if (props.iouReport.total === 0) {
         return null;
     }
-    const isGroupSplit = true; // topdo
     const sessionEmail = lodashGet(props.session, 'email', null);
     const managerEmail = props.iouReport.managerEmail || '';
     const ownerEmail = props.iouReport.ownerEmail || '';
@@ -209,14 +208,14 @@ const IOUPreview = (props) => {
             >
                 <View style={[styles.iouPreviewBox, ...props.containerStyles]}>
                     <Text>
-                        {isGroupSplit ? props.translate('iou.split') : props.translate('iou.cash')}
+                        {props.isBillSplit ? props.translate('iou.split') : props.translate('iou.cash')}
                     </Text>
                     <View style={[styles.flexRow]}>
                         <View style={[styles.flex1, styles.flexRow, styles.alignItemsCenter]}>
                             <Text style={styles.h1}>
                                 {cachedTotal}
                             </Text>
-                            {!props.iouReport.hasOutstandingIOU && !isGroupSplit && (
+                            {!props.iouReport.hasOutstandingIOU && !props.isBillSplit && (
                                 <View style={styles.iouPreviewBoxCheckmark}>
                                     <Icon src={Expensicons.Checkmark} fill={themeColors.iconSuccessFill} />
                                 </View>
