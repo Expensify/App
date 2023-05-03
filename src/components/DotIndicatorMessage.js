@@ -6,7 +6,6 @@ import styles from '../styles/styles';
 import Icon from './Icon';
 import * as Expensicons from './Icon/Expensicons';
 import colors from '../styles/colors';
-import variables from '../styles/variables';
 import Text from './Text';
 
 const propTypes = {
@@ -54,7 +53,7 @@ const DotIndicatorMessage = (props) => {
     return (
         <View style={[styles.dotIndicatorMessage, ...props.style]}>
             <View style={styles.offlineFeedback.errorDot}>
-                <Icon src={Expensicons.DotIndicator} fill={props.type === 'error' ? colors.red : colors.green} height={variables.iconSizeSmall} width={variables.iconSizeSmall} />
+                <Icon src={Expensicons.DotIndicator} fill={props.type === 'error' ? colors.red : colors.green} />
             </View>
             <View style={styles.offlineFeedback.textContainer}>
                 {_.map(sortedMessages, (message, i) => (

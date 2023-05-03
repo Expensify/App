@@ -500,7 +500,7 @@ PODS:
     - React-Core
   - react-native-blob-util (0.17.3):
     - React-Core
-  - react-native-cameraroll (5.3.1):
+  - react-native-cameraroll (5.4.0):
     - React-Core
   - react-native-config (1.4.6):
     - react-native-config/App (= 1.4.6)
@@ -1073,7 +1073,7 @@ SPEC CHECKSUMS:
   React-logger: b90aa6ed0dbc30717dc72d843af3cf4550297b22
   react-native-airship: 25045092934bf6eabf483e803af0a6e31826b8b9
   react-native-blob-util: 99f4d79189252f597fe0d810c57a3733b1b1dea6
-  react-native-cameraroll: f3050460fe1708378698c16686bfaa5f34099be2
+  react-native-cameraroll: 8ffb0af7a5e5de225fd667610e2979fc1f0c2151
   react-native-config: 7cd105e71d903104e8919261480858940a6b9c0e
   react-native-document-picker: f68191637788994baed5f57d12994aa32cf8bf88
   react-native-flipper: dc5290261fbeeb2faec1bdc57ae6dd8d562e1de4
