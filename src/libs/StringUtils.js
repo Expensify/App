@@ -1,4 +1,17 @@
-import _ from 'underscore';
+import Onyx from 'react-native-onyx';
+import ONYXKEYS from '../ONYXKEYS';
+import CONST from '../CONST';
+
+let formatter = new Intl.ListFormat(CONST.LOCALES.DEFAULT, {style: 'long', type: 'conjunction'});
+Onyx.connect({
+    key: ONYXKEYS.NVP_PREFERRED_LOCALE,
+    callback: (locale) => {
+        if (!locale) {
+            return;
+        }
+        formatter = new Intl.ListFormat(locale, {style: 'long', type: 'conjunction'});
+    },
+});
 
 /**
  * Converts an array of strings to a spoken list, like:
@@ -9,23 +22,7 @@ import _ from 'underscore';
  * @returns {String}
  */
 function arrayToSpokenList(arr) {
-    if (_.isEmpty(arr)) {
-        return '';
-    }
-
-    if (arr.length === 1) {
-        return arr[0];
-    }
-
-    if (arr.length === 2) {
-        return `${arr[0]} and ${arr[1]}`;
-    }
-
-    let result = arr[0];
-    for (let i = 1; i < arr.length - 1; i++) {
-        result += `, ${arr[i]}`;
-    }
-    return `${result}, and ${arr[arr.length - 1]}`;
+    return formatter.format(arr);
 }
 
 export default {
