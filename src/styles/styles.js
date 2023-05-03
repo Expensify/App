@@ -2310,7 +2310,8 @@ const styles = {
         borderRadius: 0,
         justifyContent: 'space-between',
         width: '100%',
-        marginBottom: 20,
+        paddingHorizontal: 20,
+        paddingVertical: 12,
     },
 
     iouPreviewBox: {
