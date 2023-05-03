@@ -33,7 +33,7 @@ const defaultProps = {
 };
 
 const CurrentWalletBalance = (props) => {
-    const formattedBalance = CurrencyUtils.convertToDisplayString(CONST.CURRENCY.USD, props.userWallet.currentBalance);
+    const formattedBalance = CurrencyUtils.convertToDisplayString(props.userWallet.currentBalance);
     return (
         <Text
             style={[styles.pv5, styles.alignSelfCenter, styles.textHeadline, styles.textXXXLarge, ...props.balanceStyles]}

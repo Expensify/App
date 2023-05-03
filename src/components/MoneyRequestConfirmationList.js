@@ -107,7 +107,7 @@ class MoneyRequestConfirmationList extends Component {
         return [{
             text: this.props.translate(
                 this.props.hasMultipleParticipants ? 'iou.split' : 'iou.request',
-                {amount: CurrencyUtils.convertToDisplayString(this.props.iou.selectedCurrencyCode, this.props.iouAmount)},
+                {amount: CurrencyUtils.convertToDisplayString(this.props.iouAmount, this.props.iou.selectedCurrencyCode)},
             ),
             value: this.props.hasMultipleParticipants ? CONST.IOU.MONEY_REQUEST_TYPE.SPLIT : CONST.IOU.MONEY_REQUEST_TYPE.REQUEST,
         }];
@@ -138,7 +138,7 @@ class MoneyRequestConfirmationList extends Component {
         const iouAmount = IOUUtils.calculateAmount(participants, this.props.iouAmount);
         return OptionsListUtils.getIOUConfirmationOptionsFromParticipants(
             participants,
-            CurrencyUtils.convertToDisplayString(this.props.iou.selectedCurrencyCode, iouAmount),
+            CurrencyUtils.convertToDisplayString(iouAmount, this.props.iou.selectedCurrencyCode),
         );
     }
 
@@ -170,7 +170,7 @@ class MoneyRequestConfirmationList extends Component {
             const myIOUAmount = IOUUtils.calculateAmount(selectedParticipants, this.props.iouAmount, true);
             const formattedMyPersonalDetails = OptionsListUtils.getIOUConfirmationOptionsFromMyPersonalDetail(
                 this.props.currentUserPersonalDetails,
-                CurrencyUtils.convertToDisplayString(this.props.iou.selectedCurrencyCode, myIOUAmount),
+                CurrencyUtils.convertToDisplayString(myIOUAmount, this.props.iou.selectedCurrencyCode),
             );
 
             sections.push({
@@ -262,7 +262,7 @@ class MoneyRequestConfirmationList extends Component {
         const shouldDisableButton = selectedParticipants.length === 0;
         const recipient = this.state.participants[0];
         const canModifyParticipants = this.props.canModifyParticipants && this.props.hasMultipleParticipants;
-        const formattedAmount = CurrencyUtils.convertToDisplayString(this.props.iou.selectedCurrencyCode, this.props.iouAmount);
+        const formattedAmount = CurrencyUtils.convertToDisplayString(this.props.iouAmount, this.props.iou.selectedCurrencyCode);
 
         return (
             <OptionsSelector

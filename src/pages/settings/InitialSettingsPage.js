@@ -147,7 +147,7 @@ class InitialSettingsPage extends React.Component {
      */
     getWalletBalance(isPaymentItem) {
         return (isPaymentItem && Permissions.canUseWallet(this.props.betas))
-            ? CurrencyUtils.convertToDisplayString(CONST.CURRENCY.USD, this.props.userWallet.currentBalance)
+            ? CurrencyUtils.convertToDisplayString(this.props.userWallet.currentBalance)
             : undefined;
     }
 

@@ -109,11 +109,11 @@ function convertToWholeUnit(currency, amountAsInt) {
 /**
  * Given an amount in the smallest units of a currency, convert it to a string for display in the UI.
  *
- * @param {String} currency
  * @param {Number} amountInSmallestUnit – should be an integer. Anything after a decimal place will be dropped.
+ * @param {String} currency
  * @returns {String}
  */
-function convertToDisplayString(currency, amountInSmallestUnit) {
+function convertToDisplayString(amountInSmallestUnit, currency = CONST.CURRENCY.USD) {
     const currencyUnit = getCurrencyUnit(currency);
     const convertedAmount = Math.trunc(amountInSmallestUnit) / currencyUnit;
     return NumberFormatUtils.format(BaseLocaleListener.getPreferredLocale(), convertedAmount, {

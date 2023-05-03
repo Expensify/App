@@ -72,10 +72,7 @@ class TransferBalancePage extends React.Component {
                 title: this.props.translate('transferAmountPage.instant'),
                 description: this.props.translate('transferAmountPage.instantSummary', {
                     rate: this.props.numberFormat(CONST.WALLET.TRANSFER_METHOD_TYPE_FEE.INSTANT.RATE),
-                    minAmount: CurrencyUtils.convertToDisplayString(
-                        CONST.CURRENCY.USD,
-                        CONST.WALLET.TRANSFER_METHOD_TYPE_FEE.INSTANT.MINIMUM_FEE
-                    ),
+                    minAmount: CurrencyUtils.convertToDisplayString(CONST.WALLET.TRANSFER_METHOD_TYPE_FEE.INSTANT.MINIMUM_FEE),
                 }),
                 icon: Expensicons.Bolt,
                 type: CONST.PAYMENT_METHODS.DEBIT_CARD,
@@ -243,7 +240,7 @@ class TransferBalancePage extends React.Component {
                         <Text
                             style={[styles.justifyContentStart]}
                         >
-                            {CurrencyUtils.convertToDisplayString(CONST.CURRENCY.USD, calculatedFee)}
+                            {CurrencyUtils.convertToDisplayString(calculatedFee)}
                         </Text>
                     </View>
                 </ScrollView>
@@ -253,7 +250,7 @@ class TransferBalancePage extends React.Component {
                             'transferAmountPage.transfer',
                             {
                                 amount: isTransferable
-                                    ? CurrencyUtils.convertToDisplayString(CONST.CURRENCY.USD, transferAmount)
+                                    ? CurrencyUtils.convertToDisplayString(transferAmount)
                                     : '',
                             },
                         )}

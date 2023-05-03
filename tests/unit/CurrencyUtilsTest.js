@@ -122,7 +122,7 @@ describe('CurrencyUtils', () => {
             ['JPY', 2500, '¥2,500'],
             ['JPY', 25.5, '¥25'],
         ])('Correctly displays %s', (currency, amount, expectedResult) => {
-            expect(CurrencyUtils.convertToDisplayString(currency, amount)).toBe(expectedResult);
+            expect(CurrencyUtils.convertToDisplayString(amount, currency)).toBe(expectedResult);
         });
 
         test.each([
@@ -132,7 +132,7 @@ describe('CurrencyUtils', () => {
             ['EUR', 250000000, '2.500.000,00\xa0€'],
         ])('Correctly displays %s in ES locale', (currency, amount, expectedResult) => (
             Onyx.set(ONYXKEYS.NVP_PREFERRED_LOCALE, CONST.LOCALES.ES)
-                .then(() => expect(CurrencyUtils.convertToDisplayString(currency, amount)).toBe(expectedResult))
+                .then(() => expect(CurrencyUtils.convertToDisplayString(amount, currency)).toBe(expectedResult))
         ));
     });
 });

@@ -1016,7 +1016,7 @@ function buildOptimisticAddCommentReportAction(text, file) {
  * @returns {Object}
  */
 function buildOptimisticIOUReport(ownerEmail, userEmail, total, chatReportID, currency, isSendingMoney = false) {
-    const formattedTotal = CurrencyUtils.convertToDisplayString(currency, total);
+    const formattedTotal = CurrencyUtils.convertToDisplayString(total, currency);
     return {
         // If we're sending money, hasOutstandingIOU should be false
         hasOutstandingIOU: !isSendingMoney,

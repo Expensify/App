@@ -158,7 +158,7 @@ const IOUPreview = (props) => {
         name: ownerEmail,
     };
     const cachedTotal = props.iouReport.total && props.iouReport.currency
-        ? CurrencyUtils.convertToDisplayString(props.iouReport.currency, props.iouReport.total)
+        ? CurrencyUtils.convertToDisplayString(props.iouReport.total, props.iouReport.currency)
         : '';
     const avatarTooltip = [Str.removeSMSDomain(managerEmail), Str.removeSMSDomain(ownerEmail)];
 
