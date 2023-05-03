@@ -1,14 +1,15 @@
 import _ from 'underscore';
+import BaseLocaleListener from './Localize/LocaleListener/BaseLocaleListener';
 import * as NumberFormatUtils from './NumberFormatUtils';
 
 /**
  * Get localized currency symbol for currency(ISO 4217) Code
- * @param {String} preferredLocale
+ *
  * @param {String} currencyCode
  * @returns {String}
  */
-function getLocalizedCurrencySymbol(preferredLocale, currencyCode) {
-    const parts = NumberFormatUtils.formatToParts(preferredLocale, 0, {
+function getLocalizedCurrencySymbol(currencyCode) {
+    const parts = NumberFormatUtils.formatToParts(BaseLocaleListener.getPreferredLocale(), 0, {
         style: 'currency',
         currency: currencyCode,
     });
@@ -17,12 +18,12 @@ function getLocalizedCurrencySymbol(preferredLocale, currencyCode) {
 
 /**
  * Whether the currency symbol is left-to-right.
- * @param {String} preferredLocale
+ *
  * @param {String} currencyCode
  * @returns {Boolean}
  */
-function isCurrencySymbolLTR(preferredLocale, currencyCode) {
-    const parts = NumberFormatUtils.formatToParts(preferredLocale, 0, {
+function isCurrencySymbolLTR(currencyCode) {
+    const parts = NumberFormatUtils.formatToParts(BaseLocaleListener.getPreferredLocale(), 0, {
         style: 'currency',
         currency: currencyCode,
     });

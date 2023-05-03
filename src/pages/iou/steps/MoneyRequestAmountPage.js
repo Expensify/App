@@ -321,7 +321,6 @@ class MoneyRequestAmountPage extends React.Component {
                         onChangeAmount={this.updateAmount}
                         onCurrencyButtonPress={this.navigateToCurrencySelectionPage}
                         placeholder={this.props.numberFormat(0)}
-                        preferredLocale={this.props.preferredLocale}
                         ref={el => this.textInput = el}
                         selectedCurrencyCode={this.props.iou.selectedCurrencyCode}
                         selection={this.state.selection}
