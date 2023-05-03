@@ -80,6 +80,7 @@ const AnchorRenderer = (props) => {
     if (isAttachment) {
         return (
             <AnchorForAttachmentsOnly
+                style={styles.alignItemsStart}
                 source={tryResolveUrlFromApiRoot(attrHref)}
                 displayName={displayName}
             />

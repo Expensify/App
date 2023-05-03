@@ -5,6 +5,7 @@ import {InteractionManager, Keyboard, View} from 'react-native';
 import PropTypes from 'prop-types';
 import _ from 'underscore';
 import ExpensiMark from 'expensify-common/lib/ExpensiMark';
+import Str from 'expensify-common/lib/str';
 import reportActionPropTypes from './reportActionPropTypes';
 import styles from '../../../styles/styles';
 import Composer from '../../../components/Composer';
@@ -81,8 +82,15 @@ class ReportActionItemMessageEdit extends React.Component {
         this.emojiButtonID = 'emojiButton';
         this.messageEditInput = 'messageEditInput';
 
-        const parser = new ExpensiMark();
-        const draftMessage = parser.htmlToMarkdown(this.props.draftMessage).trim();
+        let draftMessage;
+        if (this.props.draftMessage === this.props.action.message[0].html) {
+            // We only convert the report action message to markdown if the draft message is unchanged.
+            const parser = new ExpensiMark();
+            draftMessage = parser.htmlToMarkdown(this.props.draftMessage).trim();
+        } else {
+            // We need to decode saved draft message because it's escaped before saving.
+            draftMessage = Str.htmlDecode(this.props.draftMessage);
+        }
 
         this.state = {
             draft: draftMessage,
@@ -147,7 +155,8 @@ class ReportActionItemMessageEdit extends React.Component {
         // This component is rendered only when draft is set to a non-empty string. In order to prevent component
         // unmount when user deletes content of textarea, we set previous message instead of empty string.
         if (newDraft.trim().length > 0) {
-            this.debouncedSaveDraft(newDraft);
+            // We want to escape the draft message to differentiate the HTML from the report action and the HTML the user drafted.
+            this.debouncedSaveDraft(_.escape(newDraft));
         } else {
             this.debouncedSaveDraft(this.props.action.message[0].html);
         }

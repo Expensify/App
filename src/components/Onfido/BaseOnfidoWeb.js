@@ -105,7 +105,8 @@ class Onfido extends React.Component {
                 Log.hmmm('Onfido user closed the modal');
             },
             language: {
-                locale: this.props.preferredLocale,
+                // We need to use ES_ES as locale key because the key `ES` is not a valid config key for Onfido
+                locale: this.props.preferredLocale === CONST.LOCALES.ES ? CONST.LOCALES.ES_ES_ONFIDO : this.props.preferredLocale,
 
                 // Provide a custom phrase for the back button so that the first letter is capitalized,
                 // and translate the phrase while we're at it. See the issue and documentation for more context.
