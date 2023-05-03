@@ -800,6 +800,11 @@ const styles = {
         backgroundColor: themeColors.buttonDefaultBG,
     },
 
+    autoGrowHeightInputContainer: (textInputHeight, maxHeight) => ({
+        height: textInputHeight >= maxHeight ? maxHeight : textInputHeight,
+        minHeight: variables.componentSizeLarge,
+    }),
+
     textInputContainer: {
         flex: 1,
         justifyContent: 'center',
