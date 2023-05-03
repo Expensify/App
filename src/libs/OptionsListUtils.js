@@ -142,7 +142,7 @@ function addSMSDomainIfPhoneNumber(login) {
 }
 
 /**
- * Collect avatar data for a list of user logins
+ * Returns avatar data for a list of user logins
  *
  * @param {Array<String>} logins 
  * @param {Object} personalDetails 

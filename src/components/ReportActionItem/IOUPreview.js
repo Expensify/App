@@ -27,6 +27,7 @@ import * as DeviceCapabilities from '../../libs/DeviceCapabilities';
 import reportActionPropTypes from '../../pages/home/report/reportActionPropTypes';
 import {showContextMenuForReport} from '../ShowContextMenuContext';
 import * as ReportUtils from '../../libs/ReportUtils';
+import * as OptionsListUtils from '../../libs/OptionsListUtils';
 import Button from '../Button';
 
 const propTypes = {
@@ -223,7 +224,10 @@ const IOUPreview = (props) => {
                         </View>
                         <View style={styles.iouPreviewBoxAvatar}>
                             <MultipleAvatars
-                                icons={[managerAvatar, ownerAvatar]}
+                                icons={props.isBillSplit ?
+                                    OptionsListUtils.getAvatarsForLogins(props.action.originalMessage.participants) :
+                                    [managerAvatar, ownerAvatar]
+                                }
                                 secondAvatarStyle={[
                                     styles.secondAvatarInline,
                                     props.isHovered
