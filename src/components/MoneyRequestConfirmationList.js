@@ -324,7 +324,7 @@ class MoneyRequestConfirmationList extends Component {
                     title={this.props.iou.comment}
                     description={this.props.translate('common.description')}
                     onPress={() => Navigation.navigate(ROUTES.MONEY_REQUEST_DESCRIPTION)}
-                    style={styles.moneyRequestMenuItem}
+                    style={[styles.moneyRequestMenuItem, styles.mb2]}
                     disabled={this.state.didConfirm}
                 />
             </OptionsSelector>
