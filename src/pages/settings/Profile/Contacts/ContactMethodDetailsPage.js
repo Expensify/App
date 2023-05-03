@@ -235,7 +235,7 @@ class ContactMethodDetailsPage extends Component {
                                     {hasMagicCodeBeenSent && (
                                         <DotIndicatorMessage
                                             type="success"
-                                            style={[styles.mt4, styles.flex0]}
+                                            style={[styles.mt6, styles.flex0]}
                                             messages={{0: this.props.translate('resendValidationForm.linkHasBeenResent')}}
                                         />
                                     )}
