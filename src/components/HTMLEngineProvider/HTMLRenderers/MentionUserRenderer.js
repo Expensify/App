@@ -9,6 +9,7 @@ import Text from '../../Text';
 import Tooltip from '../../Tooltip';
 import htmlRendererPropTypes from './htmlRendererPropTypes';
 import withCurrentUserPersonalDetails from '../../withCurrentUserPersonalDetails';
+import personalDetailsPropType from '../../../pages/personalDetailsPropType';
 import * as StyleUtils from '../../../styles/StyleUtils';
 
 /**
@@ -41,7 +42,7 @@ const MentionUserRenderer = (props) => {
     );
 };
 
-MentionUserRenderer.propTypes = htmlRendererPropTypes;
+MentionUserRenderer.propTypes = {...htmlRendererPropTypes, currentUserPersonalDetails: personalDetailsPropType.isRequired};
 MentionUserRenderer.displayName = 'MentionUserRenderer';
 
 export default withCurrentUserPersonalDetails(MentionUserRenderer);
