@@ -12,10 +12,11 @@ import * as StyleUtils from '../styles/StyleUtils';
 import DisplayNames from './DisplayNames';
 import MultipleAvatars from './MultipleAvatars';
 import CONST from '../CONST';
+import avatarPropTypes from './avatarPropTypes';
 
 const propTypes = {
-    /** The images to display */
-    icons: PropTypes.arrayOf(PropTypes.string),
+    /** Array of avatar URLs or icons */
+    icons: PropTypes.arrayOf(avatarPropTypes),
 
     /** The title to display */
     text: PropTypes.string,
@@ -46,10 +47,7 @@ const defaultProps = {
     disabled: false,
 };
 
-// eslint-disable-next-line react/destructuring-assignment
 const TaskSelectorLink = (props) => {
-    // eslint-disable-next-line no-console
-    // console.log(props);
     const displayNameStyle = StyleUtils.combineStyles(styles.optionDisplayName, styles.pre);
     const alternateTextStyle = StyleUtils.combineStyles(styles.sidebarLinkText, styles.optionAlternateText, styles.textLabelSupporting, styles.pre);
     const linkBottomMargin = props.icons.length !== 0 ? styles.mb6 : styles.mb2;

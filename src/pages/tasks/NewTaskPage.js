@@ -113,7 +113,7 @@ const NewTaskPage = (props) => {
         }
     }, [props]);
 
-    // On submit, we want to call the assignTask function and wait to validate
+    // On submit, we want to call the createTask function and wait to validate
     // the response
     function onSubmit() {
         if (!props.task.name || !props.task.shareDestination) {
@@ -121,11 +121,7 @@ const NewTaskPage = (props) => {
             return;
         }
 
-        // parentReportID, name, description, assignee, assigneeChatReportID, ownerEmail;
-
-        TaskUtils.createTaskAndNavigate(parentReport.reportID, props.task.name, props.task.description, props.task.assignee, props.task.shareDestination);
-
-        // console.log('Task Creation Data', parentReport);
+        TaskUtils.createTaskAndNavigate(parentReport.reportID, props.task.name, props.task.description, props.task.assignee);
     }
 
     if (!Permissions.canUseTasks(props.betas)) {
