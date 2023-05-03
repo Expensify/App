@@ -11,6 +11,11 @@ import htmlRendererPropTypes from './htmlRendererPropTypes';
 import withCurrentUserPersonalDetails from '../../withCurrentUserPersonalDetails';
 import * as StyleUtils from '../../../styles/StyleUtils';
 
+/**
+ * navigates to user details screen based on email
+ * @param {String} email
+ * @returns {void}
+ * */
 const showUserDetails = email => Navigation.navigate(ROUTES.getDetailsRoute(email));
 
 const MentionUserRenderer = (props) => {
