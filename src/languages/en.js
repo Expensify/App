@@ -322,7 +322,6 @@ export default {
         owesyou: ({manager}) => `${manager} owes you`,
         paidyou: ({manager}) => `${manager} paid you`,
         split: ({amount}) => `Split ${amount}`,
-        send: ({amount}) => `Send ${amount}`,
         noReimbursableExpenses: 'This report has an invalid amount',
         pendingConversionMessage: 'Total will update when you\'re back online',
         error: {
