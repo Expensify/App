@@ -9,6 +9,9 @@ function isMobile() {
 function isMobileSafari() {
     return false;
 }
+function isMobileChrome() {
+    return false;
+}
 
 function openRouteInDesktopApp() {
 
@@ -18,5 +21,6 @@ export {
     getBrowser,
     isMobile,
     isMobileSafari,
+    isMobileChrome,
     openRouteInDesktopApp,
 };

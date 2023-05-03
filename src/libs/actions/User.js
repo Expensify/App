@@ -111,7 +111,7 @@ function requestContactMethodValidateCode(contactMethod) {
         key: ONYXKEYS.LOGIN_LIST,
         value: {
             [contactMethod]: {
-                validateCodeSent: true,
+                validateCodeSent: false,
                 errorFields: {
                     validateCodeSent: null,
                 },
@@ -126,6 +126,7 @@ function requestContactMethodValidateCode(contactMethod) {
         key: ONYXKEYS.LOGIN_LIST,
         value: {
             [contactMethod]: {
+                validateCodeSent: true,
                 pendingFields: {
                     validateCodeSent: null,
                 },

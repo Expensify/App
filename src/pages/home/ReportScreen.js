@@ -39,6 +39,7 @@ import personalDetailsPropType from '../personalDetailsPropType';
 import getIsReportFullyVisible from '../../libs/getIsReportFullyVisible';
 import EmojiPicker from '../../components/EmojiPicker/EmojiPicker';
 import * as EmojiPickerAction from '../../libs/actions/EmojiPickerAction';
+import TaskHeaderView from './TaskHeaderView';
 
 const propTypes = {
     /** Navigation route context info provided by react navigation */
@@ -223,6 +224,7 @@ class ReportScreen extends React.Component {
         const addWorkspaceRoomOrChatPendingAction = lodashGet(this.props.report, 'pendingFields.addWorkspaceRoom') || lodashGet(this.props.report, 'pendingFields.createChat');
         const addWorkspaceRoomOrChatErrors = lodashGet(this.props.report, 'errorFields.addWorkspaceRoom') || lodashGet(this.props.report, 'errorFields.createChat');
         const screenWrapperStyle = [styles.appContent, styles.flex1, {marginTop: this.props.viewportOffsetTop}];
+        const isTaskReport = ReportUtils.isTaskReport(this.props.report);
 
         // There are no reportActions at all to display and we are still in the process of loading the next set of actions.
         const isLoadingInitialReportActions = _.isEmpty(this.props.reportActions) && this.props.report.isLoadingReportActions;
@@ -290,6 +292,7 @@ class ReportScreen extends React.Component {
                                         shouldShowCloseButton
                                     />
                                 )}
+                                {isTaskReport && <TaskHeaderView report={this.props.report} />}
                             </>
                         )}
                         <View

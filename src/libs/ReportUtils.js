@@ -126,6 +126,16 @@ function isIOUReport(report) {
 }
 
 /**
+ * Checks if a report is a task report.
+ *
+ * @param {Object} report
+ * @returns {Boolean}
+ */
+function isTaskReport(report) {
+    return lodashGet(report, 'type') === CONST.REPORT.TYPE.TASK;
+}
+
+/**
  * Checks if a report is an IOU or expense report.
  *
  * @param {Object} report
@@ -1851,6 +1861,7 @@ export {
     getDisplayNameForParticipant,
     isExpenseReport,
     isIOUReport,
+    isTaskReport,
     isMoneyRequestReport,
     chatIncludesChronos,
     getAvatar,
