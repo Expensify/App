@@ -47,7 +47,7 @@ const MoneyRequestHeader = (props) => {
         style: 'currency',
         currency: props.report.currency,
     });
-    const isSettled = /* ReportUtils.isSettled(props.report.reportID); */ false;
+    const isSettled = false; // TODO: use ReportUtils.isSettled(props.report.reportID) once that method is added
     const isExpenseReport = ReportUtils.isExpenseReport(props.report);
     const payeeName = isExpenseReport
         ? ReportUtils.getPolicyName(props.report, props.policies)
