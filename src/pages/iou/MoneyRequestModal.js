@@ -344,7 +344,7 @@ const MoneyRequestModal = (props) => {
             selectedParticipants[0],
             trimmedComment,
         );
-    }, [amount, props.iou.comment, props.currentUserPersonalDetails.login, props.hasMultipleParticipants, props.iou.selectedCurrencyCode, props.preferredLocale, props.report, props.route]);
+    }, [amount, props.iou.comment, props.currentUserPersonalDetails.login, props.hasMultipleParticipants, props.iou.selectedCurrencyCode, props.report, props.route]);
 
     const currentStep = steps[currentStepIndex];
     const moneyRequestStepIndex = _.indexOf(steps, Steps.MoneyRequestConfirm);
