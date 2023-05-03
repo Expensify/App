@@ -65,9 +65,19 @@ function NewContactMethodPage(props) {
         return LoginUtils.appendCountryCode(LoginUtils.getPhoneNumberWithoutSpecialChars(phoneOrEmail));
     };
 
+    const validateNumber = (values) => {
+        const parsedPhoneNumber = parsePhoneNumber(values);
+
+        if (parsedPhoneNumber.possible) {
+            return parsedPhoneNumber.number.e164;
+        }
+
+        return '';
+    };
+
     const isFormValid = (values) => {
         const phoneLogin = getPhoneLogin(values.phoneOrEmail);
-
+        const validateIfnumber = validateNumber(phoneLogin);
         const errors = {};
 
         if (_.isEmpty(values.phoneOrEmail)) {
@@ -78,7 +88,7 @@ function NewContactMethodPage(props) {
             ErrorUtils.addErrorMessage(errors, 'phoneOrEmail', props.translate('contacts.genericFailureMessages.invalidContactMethod'));
         }
 
-        if (!_.isEmpty(values.phoneOrEmail) && lodashGet(props.loginList, (values.phoneOrEmail).toLowerCase())) {
+        if (!_.isEmpty(values.phoneOrEmail) && lodashGet(props.loginList, validateIfnumber || (values.phoneOrEmail).toLowerCase())) {
             ErrorUtils.addErrorMessage(errors, 'phoneOrEmail', props.translate('contacts.genericFailureMessages.enteredMethodIsAlreadySubmited'));
         }
 
@@ -91,11 +101,12 @@ function NewContactMethodPage(props) {
 
     const submitForm = (values) => {
         const phoneLogin = getPhoneLogin(values.phoneOrEmail);
-        const parsedPhoneNumber = parsePhoneNumber(phoneLogin);
-        const userLogin = parsedPhoneNumber.possible ? parsedPhoneNumber.number.e164 : values.phoneOrEmail;
+        const validateIfnumber = validateNumber(phoneLogin);
+        const submitDetail = (validateIfnumber || values.phoneOrEmail).trim();
 
-        User.addNewContactMethodAndNavigate(userLogin.trim(), values.password);
+        User.addNewContactMethodAndNavigate(submitDetail, values.password);
     };
+
     return (
         <ScreenWrapper
             onEntryTransitionEnd={() => {
