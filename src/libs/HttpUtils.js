@@ -97,7 +97,8 @@ function processHTTPRequest(url, method = 'get', body = null, canCancel = true, 
             }
             if (response.jsonCode === CONST.JSON_CODE.MANY_WRITES_ERROR) {
                 const {phpCommandName, authWriteCommands} = response.data;
-                const message = `The API call (${phpCommandName}) did more Auth write requests than allowed. Commands: ${authWriteCommands.join(', ')}. Check the APIWriteCommands class in Web-Expensify`;
+                // eslint-disable-next-line max-len
+                const message = `The API call (${phpCommandName}) did more Auth write requests than allowed. Count ${authWriteCommands.length}, commands: ${authWriteCommands.join(', ')}. Check the APIWriteCommands class in Web-Expensify`;
                 alert('Too many auth writes', message);
             }
             return response;
