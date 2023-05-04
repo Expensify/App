@@ -97,7 +97,7 @@ class KeyboardShortcutsModal extends React.Component {
      * Unsubscribe all shortcuts that were subscribed when the modal opened
      */
     unsubscribeOpenModalShortcuts() {
-        this.subscribedOpenModalShortcuts.forEach(unsubscribe => unsubscribe());
+        _.each(this.subscribedOpenModalShortcuts, unsubscribe);
         this.subscribedOpenModalShortcuts = [];
     }
 
