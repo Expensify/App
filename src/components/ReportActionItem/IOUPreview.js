@@ -144,7 +144,7 @@ const IOUPreview = (props) => {
 
     // Get request formatting options, as long as currency is provided
     const requestAmount = props.isBillSplit ? props.action.originalMessage.amount : props.iouReport.total;
-    const requestCurrency = props.isBillSplit ? lodashGet(props.action, 'originalMessage.currency', undefined) : props.iouReport.currency;    
+    const requestCurrency = props.isBillSplit ? lodashGet(props.action, 'originalMessage.currency', undefined) : props.iouReport.currency;
     const amountFormatOptions = requestCurrency ? {style: 'currency', currency: requestCurrency} : {};
 
     const showContextMenu = (event) => {
