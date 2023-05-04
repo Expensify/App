@@ -3004,6 +3004,35 @@ const styles = {
         alignSelf: 'flex-start',
     },
 
+    emojiReactionListHeader: {
+        marginTop: 8,
+        paddingBottom: 20,
+        borderBottomColor: themeColors.border,
+        borderBottomWidth: 1,
+        marginHorizontal: 20,
+    },
+    emojiReactionListHeaderBubble: {
+        paddingVertical: 2,
+        paddingHorizontal: 8,
+        borderRadius: 28,
+        backgroundColor: themeColors.border,
+        alignItems: 'center',
+        justifyContent: 'center',
+        flexDirection: 'row',
+        alignSelf: 'flex-start',
+        marginRight: 4,
+    },
+    reactionListItem: {
+        flexDirection: 'row',
+        paddingVertical: 12,
+        paddingHorizontal: 20,
+    },
+    reactionListHeaderText: {
+        color: themeColors.textSupporting,
+        marginLeft: 8,
+        alignSelf: 'center',
+    },
+
     miniQuickEmojiReactionText: {
         fontSize: 15,
         lineHeight: 20,
@@ -3040,6 +3069,15 @@ const styles = {
         paddingHorizontal: 25,
         paddingVertical: 12,
         justifyContent: 'space-between',
+    },
+
+    reactionListContainer: {
+        maxHeight: variables.listItemHeightNormal * 5.75,
+        ...spacing.pv2,
+    },
+
+    reactionListContainerFixedWidth: {
+        maxWidth: variables.popoverWidth,
     },
 
     validateCodeDigits: {
