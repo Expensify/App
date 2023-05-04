@@ -155,6 +155,7 @@ function WorkspaceSettingsPage(props) {
 
 WorkspaceSettingsPage.propTypes = propTypes;
 WorkspaceSettingsPage.defaultProps = defaultProps;
+WorkspaceSettingsPage.displayName = 'WorkspaceSettingsPage';
 
 export default compose(
     withPolicy,
