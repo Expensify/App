@@ -611,7 +611,13 @@ function getOldDotDefaultAvatar(login = '') {
  * @returns {Boolean}
  */
 function isDefaultAvatar(avatarURL) {
-    if (_.isString(avatarURL) && (avatarURL.includes('images/avatars/default-avatar_') || avatarURL.includes('images/avatars/user/default'))) {
+    if (_.isString(avatarURL)
+        && (
+            avatarURL.includes('images/avatars/avatar_')
+            || avatarURL.includes('images/avatars/default-avatar_')
+            || avatarURL.includes('images/avatars/user/default')
+        )
+    ) {
         return true;
     }
 
@@ -826,7 +832,6 @@ function getDisplayNameForParticipant(login, shouldUseShortForm = false) {
     if (!login) {
         return '';
     }
-
     const personalDetails = getPersonalDetailsForLogin(login);
 
     const longName = personalDetails.displayName;
@@ -1088,18 +1093,18 @@ function getIOUReportActionMessage(type, total, participants, comment, currency,
     let iouMessage;
     switch (type) {
         case CONST.IOU.REPORT_ACTION_TYPE.CREATE:
-            iouMessage = `Requested ${amount}${comment && ` for ${comment}`}`;
+            iouMessage = `requested ${amount}${comment && ` for ${comment}`}`;
             break;
         case CONST.IOU.REPORT_ACTION_TYPE.SPLIT:
-            iouMessage = `Split ${amount}${comment && ` for ${comment}`}`;
+            iouMessage = `split ${amount}${comment && ` for ${comment}`}`;
             break;
         case CONST.IOU.REPORT_ACTION_TYPE.DELETE:
             iouMessage = `deleted the ${amount} request${comment && ` for ${comment}`}`;
             break;
         case CONST.IOU.REPORT_ACTION_TYPE.PAY:
             iouMessage = isSettlingUp
-                ? `Settled up ${amount}${paymentMethodMessage}`
-                : `Sent ${amount}${comment && ` for ${comment}`}${paymentMethodMessage}`;
+                ? `settled up ${amount}${paymentMethodMessage}`
+                : `sent ${amount}${comment && ` for ${comment}`}${paymentMethodMessage}`;
             break;
         default:
             break;
@@ -1622,7 +1627,7 @@ function getChatByParticipants(newParticipantList) {
 }
 
 /**
- * Attempts to find a report in onyx with the provided list of participants in given policy
+* Attempts to find a report in onyx with the provided list of participants in given policy
  * @param {Array} newParticipantList
  * @param {String} policyID
  * @returns {object|undefined}
@@ -1649,13 +1654,13 @@ function getAllPolicyReports(policyID) {
 }
 
 /**
-* Returns true if Chronos is one of the chat participants (1:1)
-* @param {Object} report
-* @returns {Boolean}
-*/
+ * Returns true if Chronos is one of the chat participants (1:1)
+ * @param {Object} report
+ * @returns {Boolean}
+ */
 function chatIncludesChronos(report) {
     return report.participants
-                && _.contains(report.participants, CONST.EMAIL.CHRONOS);
+        && _.contains(report.participants, CONST.EMAIL.CHRONOS);
 }
 
 /**
