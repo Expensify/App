@@ -34,8 +34,9 @@ const defaultProps = {
 
 class KeyboardShortcutsModal extends React.Component {
     componentDidMount() {
-        const openShortcutModalConfig = CONST.KEYBOARD_SHORTCUTS.SHORTCUT_MODAL;
         this.subscribedOpenModalShortcuts = [];
+
+        const openShortcutModalConfig = CONST.KEYBOARD_SHORTCUTS.SHORTCUT_MODAL;
         this.unsubscribeShortcutModal = KeyboardShortcut.subscribe(openShortcutModalConfig.shortcutKey, () => {
             ModalActions.close();
             KeyboardShortcutsActions.showKeyboardShortcutModal();
@@ -43,13 +44,13 @@ class KeyboardShortcutsModal extends React.Component {
 
         if (this.props.isShortcutsModalOpen) {
             // The modal started open, which can happen if you reload the page when the modal is open.
-            this.subscribeOpenModalKeyboardShortcuts();
+            this.subscribeOpenModalShortcuts();
         }
     }
 
     componentDidUpdate(prevProps) {
         if (!prevProps.isShortcutsModalOpen && this.props.isShortcutsModalOpen) {
-            this.subscribeOpenModalKeyboardShortcuts();
+            this.subscribeOpenModalShortcuts();
         } else if (prevProps.isShortcutsModalOpen && !this.props.isShortcutsModalOpen) {
             // Modal is closing, remove keyboard shortcuts
             this.unsubscribeOpenModalShortcuts();
@@ -66,7 +67,7 @@ class KeyboardShortcutsModal extends React.Component {
     /*
      * Subscribe shortcuts that only are used when the modal is open
      */
-    subscribeOpenModalKeyboardShortcuts() {
+    subscribeOpenModalShortcuts() {
         // Allow closing the modal with the both Enter and Escape keys
         // Both callbacks have the lowest priority (0) to ensure that they are called before any other callbacks
         // and configured so that event propagation is stopped after the callback is called (only when the modal is open)
