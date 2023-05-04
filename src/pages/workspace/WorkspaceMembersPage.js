@@ -353,6 +353,8 @@ class WorkspaceMembersPage extends React.Component {
 
     render() {
         const policyMemberList = lodashGet(this.props, 'policyMemberList', {});
+        const policyOwner = lodashGet(this.props.policy, 'owner');
+        const currentUserLogin = lodashGet(this.props.currentUserPersonalDetails, 'login');
         const removableMembers = {};
         let data = [];
         _.each(policyMemberList, (policyMember, email) => {
@@ -368,15 +370,19 @@ class WorkspaceMembersPage extends React.Component {
         data = _.sortBy(data, value => value.displayName.toLowerCase());
         data = this.getMemberOptions(data, this.state.searchValue.trim().toLowerCase());
 
-        data = !_.isEmpty(this.props.policy) && !_.isEmpty(this.props.currentUserPersonalDetails) && _.reject(data, (member) => {
+        data = _.reject(data, (member) => {
+            if (!policyOwner || !currentUserLogin) {
+                return;
+            }
+
             // If this policy is owned by Expensify then show all support (expensify.com or team.expensify.com) emails
-            if (PolicyUtils.isExpensifyTeam(lodashGet(this.props.policy, 'owner'))) {
+            if (PolicyUtils.isExpensifyTeam(policyOwner)) {
                 return;
             }
 
             // We don't want to show guides as policy members unless the user is not a guide. Some customers get confused when they
             // see random people added to their policy, but guides having access to the policies help set them up.
-            const isCurrentUserExpensifyTeam = PolicyUtils.isExpensifyTeam(this.props.currentUserPersonalDetails.login);
+            const isCurrentUserExpensifyTeam = PolicyUtils.isExpensifyTeam(currentUserLogin);
             return !isCurrentUserExpensifyTeam && PolicyUtils.isExpensifyTeam(member.login);
         });
 
