@@ -368,7 +368,7 @@ class WorkspaceMembersPage extends React.Component {
         data = _.sortBy(data, value => value.displayName.toLowerCase());
         data = this.getMemberOptions(data, this.state.searchValue.trim().toLowerCase());
 
-        data = _.reject(data, (member) => {
+        data = !_.isEmpty(this.props.policy) && !_.isEmpty(this.props.currentUserPersonalDetails) && _.reject(data, (member) => {
             // If this policy is owned by Expensify then show all support (expensify.com or team.expensify.com) emails
             if (PolicyUtils.isExpensifyTeam(lodashGet(this.props.policy, 'owner'))) {
                 return;
