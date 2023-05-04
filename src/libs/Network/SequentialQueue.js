@@ -54,7 +54,7 @@ function process() {
 }
 
 function flush() {
-    if (isSequentialQueueRunning) {
+    if (isSequentialQueueRunning || _.isEmpty(PersistedRequests.getAll())) {
         return;
     }
 
