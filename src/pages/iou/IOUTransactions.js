@@ -93,6 +93,7 @@ class IOUTransactions extends Component {
                             key={reportAction.reportActionID}
                             canBeRejected={canBeRejected}
                             rejectButtonType={isCurrentUserTransactionCreator ? CONST.IOU.REPORT_ACTION_TYPE.CANCEL : CONST.IOU.REPORT_ACTION_TYPE.DECLINE}
+                            shouldCloseOnReject={rejectableTransactions.length === 1}
                         />
                     );
                 })}
