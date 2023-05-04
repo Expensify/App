@@ -2256,6 +2256,14 @@ const CONST = {
 
     GENERIC_ZIP_CODE_REGEX: /^(?:(?![\s-])[\w -]{0,9}[\w])?$/,
 
+    INTL_POLYFILLS: {
+        GET_CANONICAL_LOCALES: 'intl-getcanonicallocales',
+        LOCALE: 'intl-locale',
+        PLURAL_RULES: 'intl-pluralrules',
+        NUMBER_FORMAT: 'intl-numberformat',
+        LIST_FORMAT: 'intl-listformat',
+    },
+
     // Values for checking if polyfill is required on a platform
     POLYFILL_TEST: {
         STYLE: 'currency',
