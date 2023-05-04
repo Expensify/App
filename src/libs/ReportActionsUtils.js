@@ -228,7 +228,7 @@ function shouldReportActionBeVisible(reportAction, key) {
     }
 
     // All other actions are displayed except deleted, non-pending actions
-    const isDeleted = isDeletedAction(reportAction); // && !reportAction.actionName === CONST.REPORT.ACTIONS.TYPE.REPORTPREVIEW;
+    const isDeleted = isDeletedAction(reportAction);
     const isPending = !_.isEmpty(reportAction.pendingAction);
     return !isDeleted || isPending;
 }

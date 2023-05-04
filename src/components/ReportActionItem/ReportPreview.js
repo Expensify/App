@@ -1,4 +1,5 @@
 import _, {compose} from 'underscore';
+import lodashGet from 'lodash/get';
 import React from 'react';
 import {View, Pressable} from 'react-native';
 import PropTypes from 'prop-types';
@@ -17,6 +18,8 @@ import Navigation from '../../libs/Navigation/Navigation';
 import ROUTES from '../../ROUTES';
 import {withOnyx} from 'react-native-onyx';
 import ONYXKEYS from '../../ONYXKEYS';
+import Button from '../Button';
+import CONST from '../../CONST';
 
 const propTypes = {
     /** All the data of the action */
@@ -72,6 +75,11 @@ const ReportPreview = (props) => {
         return null;
     }
 
+    const sessionEmail = lodashGet(props.session, 'email', null);
+    const managerEmail = props.iouReport.managerEmail || '';
+    // Pay button should only be visible to the manager of the report.
+    const isCurrentUserManager = managerEmail === sessionEmail;
+
     const launchDetailsModal = () => {
         Navigation.navigate(ROUTES.getIouDetailsRoute(props.chatReportID, props.action.originalMessage.IOUReportID));
     };
@@ -82,8 +90,8 @@ const ReportPreview = (props) => {
             {style: 'currency', currency: props.iouReport.currency},
         ) : '';
     
-    const text = props.iouReport.hasOutstandingIOU ? `${props.report.displayName} owes ${cachedTotal}` : `Settled up ${cachedTotal}`;
-
+    const text = props.iouReport.hasOutstandingIOU ? `${props.chatReport.displayName} owes ${cachedTotal}` : `Settled up ${cachedTotal}`;
+    
     return (
         <View style={[styles.chatItemMessage]}>
             <Pressable
@@ -100,9 +108,29 @@ const ReportPreview = (props) => {
                 style={[styles.flexRow, styles.justifyContentBetween]}
                 focusable
             >
-                <Text style={[styles.flex1, styles.mr2, styles.chatItemMessage, styles.cursorPointer]}>
-                    {text}
-                </Text>
+                <View>
+                    <Text style={[styles.flex1, styles.mr2, styles.chatItemMessage, styles.cursorPointer]}>
+                        {text}
+                    </Text>
+                    {(isCurrentUserManager && props.iouReport.stateNum === CONST.REPORT.STATE_NUM.PROCESSING && (
+                        <Button
+                            style={styles.mt4}
+                            onPress={() => { }}
+                            onPressIn={() => DeviceCapabilities.canUseTouchScreen() && ControlSelection.block()}
+                            onPressOut={() => ControlSelection.unblock()}
+                            onLongPress={event => showContextMenuForReport(
+                                event,
+                                props.contextMenuAnchor,
+                                props.chatReportID,
+                                props.action,
+                                props.checkIfContextMenuActive,
+                            )}
+                            text={props.translate('iou.pay')}
+                            success
+                            medium
+                        />
+                    ))}
+                </View>
                 <Icon src={Expensicons.ArrowRight} fill={StyleUtils.getIconFillColor(getButtonState(props.isHovered))} />
             </Pressable>
         </View>
@@ -116,11 +144,12 @@ ReportPreview.displayName = 'ReportPreview';
 export default compose(
     withLocalize,
     withOnyx({
-        report: {
+        chatReport: {
             key: ({chatReportID}) => `${ONYXKEYS.COLLECTION.REPORT}${chatReportID}`,
         },
         iouReport: {
             key: ({iouReportID}) => `${ONYXKEYS.COLLECTION.REPORT}${iouReportID}`,
         },
+        session: {key: ONYXKEYS.SESSION},
     }),
 )(ReportPreview);
