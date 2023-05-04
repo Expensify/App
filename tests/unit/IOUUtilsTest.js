@@ -38,8 +38,8 @@ function deleteMoneyRequest(moneyRequestAction, isOffline = false) {
         CONST.IOU.REPORT_ACTION_TYPE.DELETE,
         moneyRequestAction.originalMessage.amount,
         moneyRequestAction.originalMessage.currency,
-        moneyRequestAction.originalMessage.IOUTransactionID,
         isOffline,
+        moneyRequestAction.originalMessage.IOUTransactionID,
     );
 }
 
