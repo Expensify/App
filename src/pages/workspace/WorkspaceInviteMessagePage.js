@@ -42,6 +42,9 @@ const propTypes = {
     /** All of the personal details for everyone */
     personalDetails: PropTypes.objectOf(personalDetailsPropTypes),
 
+    /** Beta features list */
+    betas: PropTypes.arrayOf(PropTypes.string),
+
     invitedMembersDraft: PropTypes.arrayOf(PropTypes.string),
 
     /** URL Route params */
@@ -60,6 +63,7 @@ const propTypes = {
 const defaultProps = {
     ...policyDefaultProps,
     personalDetails: {},
+    betas: [],
     invitedMembersDraft: [],
 };
 
@@ -109,7 +113,7 @@ class WorkspaceInviteMessagePage extends React.Component {
     }
 
     sendInvitation() {
-        Policy.addMembersToWorkspace(this.props.invitedMembersDraft, this.state.welcomeNote || this.getWelcomeNote(), this.props.route.params.policyID);
+        Policy.addMembersToWorkspace(this.props.invitedMembersDraft, this.state.welcomeNote || this.getWelcomeNote(), this.props.route.params.policyID, this.props.betas);
         Policy.setWorkspaceInviteMembersDraft(this.props.route.params.policyID, []);
         Navigation.navigate(ROUTES.getWorkspaceMembersRoute(this.props.route.params.policyID));
     }
@@ -220,6 +224,9 @@ export default compose(
     withOnyx({
         personalDetails: {
             key: ONYXKEYS.PERSONAL_DETAILS,
+        },
+        betas: {
+            key: ONYXKEYS.BETAS,
         },
         invitedMembersDraft: {
             key: ({route}) => `${ONYXKEYS.COLLECTION.WORKSPACE_INVITE_MEMBERS_DRAFT}${route.params.policyID.toString()}`,
