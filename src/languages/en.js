@@ -317,8 +317,8 @@ export default {
         settleExpensify: 'Pay with Expensify',
         settleElsewhere: 'I\'ll settle up elsewhere',
         settlePaypalMe: 'Pay with PayPal.me',
-        requestAmount: ({amount}) => `Request ${amount}`,
-        splitAmount: ({amount}) => `Split ${amount}`,
+        requestAmount: ({amount}) => `request ${amount}`,
+        splitAmount: ({amount}) => `split ${amount}`,
         noReimbursableExpenses: 'This report has an invalid amount',
         pendingConversionMessage: 'Total will update when you\'re back online',
         error: {
