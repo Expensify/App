@@ -2,7 +2,6 @@ import React from 'react';
 import {View} from 'react-native';
 import PropTypes from 'prop-types';
 import _ from 'underscore';
-
 import styles from '../styles/styles';
 import * as StyleUtils from '../styles/StyleUtils';
 import * as EmojiUtils from '../libs/EmojiUtils';
@@ -18,16 +17,20 @@ const propTypes = {
     /** Array of suggested emoji */
     emojis: PropTypes.arrayOf(PropTypes.shape({
         /** The emoji code */
-        code: PropTypes.string,
+        code: PropTypes.string.isRequired,
 
         /** The name of the emoji */
-        name: PropTypes.string,
+        name: PropTypes.string.isRequired,
+
+        /** Array of different skin tone variants.
+         * If provided, it will be indexed with props.preferredSkinToneIndex */
+        types: PropTypes.arrayOf(PropTypes.string.isRequired),
     })).isRequired,
 
     /** Fired when the user selects an emoji */
     onSelect: PropTypes.func.isRequired,
 
-    /** Emoji prefix that follows the colon  */
+    /** Emoji prefix that follows the colon */
     prefix: PropTypes.string.isRequired,
 
     /** Show that we can use large emoji picker. Depending on available space

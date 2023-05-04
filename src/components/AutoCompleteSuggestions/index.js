@@ -5,7 +5,7 @@ import {propTypes} from './autoCompleteSuggestionsPropTypes';
 
 /**
  * On the mobile-web platform, when long-pressing on auto-complete suggestions,
- * we need to prevent focus shifting to avoid blurring the main input which makes the suggestions picker close and firing the onSelect callback.
+ * we need to prevent focus shifting to avoid blurring the main input (which makes the suggestions picker close and fires the onSelect callback).
  * The desired pattern for all platforms is to do nothing on long-press.
  * On the native platform, tapping on auto-complete suggestions will not blur the main input.
  */
@@ -33,8 +33,6 @@ const AutoCompleteSuggestions = (props) => {
 };
 
 AutoCompleteSuggestions.propTypes = propTypes;
-
-// AutoCompleteSuggestions.defaultProps = defaultProps;
 AutoCompleteSuggestions.displayName = 'AutoCompleteSuggestions';
 
 export default AutoCompleteSuggestions;

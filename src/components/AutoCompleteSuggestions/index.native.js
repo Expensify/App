@@ -8,8 +8,6 @@ const AutoCompleteSuggestions = props => (
 );
 
 AutoCompleteSuggestions.propTypes = propTypes;
-
-// AutoCompleteSuggestions.defaultProps = defaultProps;
 AutoCompleteSuggestions.displayName = 'AutoCompleteSuggestions';
 
 export default AutoCompleteSuggestions;
