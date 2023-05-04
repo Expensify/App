@@ -253,7 +253,6 @@ export default {
         deleteComment: 'Delete comment',
         deleteConfirmation: 'Are you sure you want to delete this comment?',
         onlyVisible: 'Only visible to',
-        replyInThread: 'Reply in thread',
     },
     emojiReactions: {
         addReactionTooltip: 'Add reaction',

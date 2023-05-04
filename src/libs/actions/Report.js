@@ -1486,7 +1486,6 @@ export {
     readNewestAction,
     readOldestAction,
     openReport,
-    openChildReport,
     openReportFromDeepLink,
     navigateToAndOpenReport,
     openPaymentDetailsPage,
