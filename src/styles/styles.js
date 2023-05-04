@@ -338,6 +338,13 @@ const styles = {
         fontSize: variables.fontSizeXLarge,
     },
 
+    textHeadlineH1: {
+        ...headlineFont,
+        ...whiteSpace.preWrap,
+        color: themeColors.heading,
+        fontSize: variables.fontSizeh1,
+    },
+
     textDecorationNoLine: {
         textDecorationLine: 'none',
     },
@@ -1533,6 +1540,11 @@ const styles = {
         flex: 1,
     },
 
+    textInputComposeBorder: {
+        borderLeftWidth: 1,
+        borderColor: themeColors.border,
+    },
+
     chatItemSubmitButton: {
         alignSelf: 'flex-end',
         borderRadius: variables.componentBorderRadiusRounded,
@@ -1631,11 +1643,6 @@ const styles = {
         backgroundColor: themeColors.buttonHoveredBG,
     },
 
-    chatItemAttachBorder: {
-        borderRightColor: themeColors.border,
-        borderRightWidth: 1,
-    },
-
     composerSizeButton: {
         alignSelf: 'center',
         height: 32,
@@ -1694,14 +1701,6 @@ const styles = {
         width: 24,
         backgroundColor: themeColors.icon,
         borderRadius: 24,
-    },
-
-    horizontalStackedAvatar: {
-        height: 28,
-        width: 28,
-        backgroundColor: themeColors.appBG,
-        paddingTop: 2,
-        alignItems: 'center',
     },
 
     singleSubscript: {
@@ -1824,49 +1823,21 @@ const styles = {
     },
 
     emptyAvatar: {
-        marginRight: variables.avatarChatSpacing,
         height: variables.avatarSizeNormal,
         width: variables.avatarSizeNormal,
     },
 
     emptyAvatarSmall: {
-        marginRight: variables.avatarChatSpacing - 4,
         height: variables.avatarSizeSmall,
         width: variables.avatarSizeSmall,
     },
 
-    horizontalStackedAvatar1: {
-        left: -19,
-        top: -79,
-        zIndex: 2,
+    emptyAvatarMargin: {
+        marginRight: variables.avatarChatSpacing,
     },
 
-    horizontalStackedAvatar2: {
-        left: 1,
-        top: -51,
-        zIndex: 3,
-    },
-
-    horizontalStackedAvatar3: {
-        left: 21,
-        top: -23,
-        zIndex: 4,
-    },
-
-    horizontalStackedAvatar4: {
-        top: 5,
-        left: 41,
-        zIndex: 5,
-    },
-
-    horizontalStackedAvatar4Overlay: {
-        top: -107,
-        left: 41,
-        height: 28,
-        width: 28,
-        borderWidth: 2,
-        borderStyle: 'solid',
-        zIndex: 6,
+    emptyAvatarMarginSmall: {
+        marginRight: variables.avatarChatSpacing - 4,
     },
 
     modalViewContainer: {
@@ -2239,21 +2210,18 @@ const styles = {
         ...cursor.cursorUnset,
     },
 
-    leftAttachmentArrow: {
+    attachmentArrow: {
         zIndex: 23,
         position: 'absolute',
-        left: 32,
-    },
-
-    rightAttachmentArrow: {
-        zIndex: 23,
-        position: 'absolute',
-        right: 32,
     },
 
     arrowIcon: {
-        height: 52,
-        width: 52,
+        height: 40,
+        width: 40,
+        alignItems: 'center',
+        paddingHorizontal: 0,
+        paddingTop: 0,
+        paddingBottom: 0,
     },
 
     detailsPageSectionVersion: {
@@ -2310,6 +2278,18 @@ const styles = {
 
     checkedContainer: {
         backgroundColor: themeColors.checkBox,
+    },
+
+    magicCodeInputContainer: {
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+        minHeight: variables.inputHeight,
+    },
+
+    magicCodeInput: {
+        fontSize: variables.fontSizeXLarge,
+        color: themeColors.heading,
+        lineHeight: variables.inputHeight,
     },
 
     iouAmountText: {
@@ -3023,6 +3003,7 @@ const styles = {
         fontSize: 13,
         marginLeft: 4,
         fontWeight: 'bold',
+        fontVariant: ['tabular-nums'],
     },
 
     fontColorReactionLabel: {
@@ -3124,6 +3105,9 @@ const styles = {
 
     whisper: {
         backgroundColor: themeColors.cardBG,
+    },
+    contextMenuItemPopoverMaxWidth: {
+        maxWidth: 375,
     },
 };
 

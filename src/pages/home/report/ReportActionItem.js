@@ -71,6 +71,9 @@ const propTypes = {
     /** Should we display the new marker on top of the comment? */
     shouldDisplayNewMarker: PropTypes.bool.isRequired,
 
+    /** Determines if the avatar is displayed as a subscript (positioned lower than normal) */
+    shouldShowSubscriptAvatar: PropTypes.bool,
+
     /** Position index of the report action in the overall report FlatList view */
     index: PropTypes.number.isRequired,
 
@@ -91,6 +94,7 @@ const defaultProps = {
     hasOutstandingIOU: false,
     preferredSkinTone: CONST.EMOJI_DEFAULT_SKIN_TONE,
     personalDetails: {},
+    shouldShowSubscriptAvatar: false,
 };
 
 class ReportActionItem extends Component {
@@ -195,7 +199,7 @@ class ReportActionItem extends Component {
                 <ShowContextMenuContext.Provider
                     value={{
                         anchor: this.popoverAnchor,
-                        reportID: this.props.report.reportID,
+                        report: this.props.report,
                         action: this.props.action,
                         checkIfContextMenuActive: this.checkIfContextMenuActive,
                     }}
@@ -328,6 +332,8 @@ class ReportActionItem extends Component {
                                                 action={this.props.action}
                                                 showHeader={!this.props.draftMessage}
                                                 wrapperStyles={[styles.chatItem, isWhisper ? styles.pt1 : {}]}
+                                                shouldShowSubscriptAvatar={this.props.shouldShowSubscriptAvatar}
+                                                report={this.props.report}
                                             >
                                                 {this.renderItemContent(hovered || this.state.isContextMenuActive)}
                                             </ReportActionItemSingle>
