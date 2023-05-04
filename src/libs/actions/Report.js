@@ -373,7 +373,7 @@ function openReport(reportID, participantList = [], newReportObject = {}, parent
         };
 
         // Add a created action, unless we are creating a thread
-        if (parentReportActionID !== '0') {
+        if (parentReportActionID === '0') {
             const optimisticCreatedAction = ReportUtils.buildOptimisticCreatedReportAction(newReportObject.ownerEmail);
             onyxData.optimisticData.push({
                 onyxMethod: CONST.ONYX.METHOD.SET,
@@ -444,7 +444,7 @@ function navigateToAndOpenChildReport(childReportID = '0', parentReportAction = 
             parentReportID,
         );
 
-        openReport(newChat.reportID, newChat.participants, newChat);
+        openReport(newChat.reportID, newChat.participants, newChat, parentReportAction.reportActionID);
         Navigation.navigate(ROUTES.getReportRoute(newChat.reportID));
     }
 }
