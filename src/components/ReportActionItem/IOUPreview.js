@@ -139,23 +139,10 @@ const IOUPreview = (props) => {
     // Pay button should only be visible to the manager of the report.
     const isCurrentUserManager = managerEmail === sessionEmail;
 
-    let cachedTotal;
-    if (props.isBillSplit) {
-        if (props.action && props.action.originalMessage && props.action.originalMessage.currency) {
-            cachedTotal = props.numberFormat(
-                Math.abs(props.action.originalMessage.amount) / 100,
-                {style: 'currency', currency: props.action.originalMessage.currency},
-            );
-        } else {
-            cachedTotal = props.numberFormat(Math.abs(props.action.originalMessage.amount) / 100);
-        }
-    } else {
-        cachedTotal = props.iouReport.total && props.iouReport.currency
-            ? props.numberFormat(
-                Math.abs(props.iouReport.total) / 100,
-                {style: 'currency', currency: props.iouReport.currency},
-            ) : '';
-    }
+    // Get request formatting options, as long as currency is provided
+    const requestAmount = props.isBillSplit ? props.action.originalMessage.amount : props.iouReport.total;
+    const requestCurrency = props.isBillSplit ? lodashGet(props.action, 'originalMessage.currency', undefined) : props.iouReport.currency;    
+    const amountFormatOptions = requestCurrency ? {style: 'currency', currency: requestCurrency} : {};
 
     const showContextMenu = (event) => {
         // Use action and shouldHidePayButton props to check if we are in IOUDetailsModal,
@@ -192,7 +179,7 @@ const IOUPreview = (props) => {
                     <View style={[styles.flexRow]}>
                         <View style={[styles.flex1, styles.flexRow, styles.alignItemsCenter]}>
                             <Text style={styles.h1}>
-                                {cachedTotal}
+                                {props.numberFormat(Math.abs(requestAmount) / 100, amountFormatOptions)}
                             </Text>
                             {!props.iouReport.hasOutstandingIOU && !props.isBillSplit && (
                                 <View style={styles.iouPreviewBoxCheckmark}>
