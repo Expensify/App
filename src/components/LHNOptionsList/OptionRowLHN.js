@@ -19,7 +19,6 @@ import withLocalize, {withLocalizePropTypes} from '../withLocalize';
 import Text from '../Text';
 import SubscriptAvatar from '../SubscriptAvatar';
 import CONST from '../../CONST';
-import variables from '../../styles/variables';
 import themeColors from '../../styles/themes/default';
 import SidebarUtils from '../../libs/SidebarUtils';
 import TextPill from '../TextPill';
@@ -96,7 +95,8 @@ const OptionRowLHN = (props) => {
     const focusedBackgroundColor = styles.sidebarLinkActive.backgroundColor;
 
     const avatarTooltips = !optionItem.isChatRoom && !optionItem.isArchivedRoom ? _.pluck(optionItem.displayNamesWithTooltips, 'tooltip') : undefined;
-    const shouldShowGreenDotIndicator = optionItem.isUnreadWithMention || (optionItem.hasOutstandingIOU && !optionItem.isIOUReportOwner);
+    const hasBrickError = optionItem.brickRoadIndicator === CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR;
+    const shouldShowGreenDotIndicator = !hasBrickError && (optionItem.isUnreadWithMention || (optionItem.hasOutstandingIOU && !optionItem.isIOUReportOwner));
 
     return (
         <OfflineWithFeedback
@@ -201,13 +201,11 @@ const OptionRowLHN = (props) => {
                                         </Text>
                                     </View>
                                 ) : null}
-                                {optionItem.brickRoadIndicator === CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR && (
+                                {hasBrickError && (
                                     <View style={[styles.alignItemsCenter, styles.justifyContentCenter]}>
                                         <Icon
                                             src={Expensicons.DotIndicator}
                                             fill={colors.red}
-                                            height={variables.iconSizeSmall}
-                                            width={variables.iconSizeSmall}
                                         />
                                     </View>
                                 )}
@@ -217,21 +215,21 @@ const OptionRowLHN = (props) => {
                             style={[styles.flexRow, styles.alignItemsCenter]}
                             accessible={false}
                         >
+                            {shouldShowGreenDotIndicator && <Icon src={Expensicons.DotIndicator} fill={themeColors.success} />}
                             {optionItem.hasDraftComment && (
                                 <View
                                     style={styles.ml2}
                                     accessibilityLabel={props.translate('sidebarScreen.draftedMessage')}
                                 >
-                                    <Icon src={Expensicons.Pencil} height={16} width={16} />
+                                    <Icon src={Expensicons.Pencil} />
                                 </View>
                             )}
-                            {shouldShowGreenDotIndicator && <Icon src={Expensicons.DotIndicator} fill={themeColors.success} />}
-                            {optionItem.isPinned && (
+                            {!shouldShowGreenDotIndicator && optionItem.isPinned && (
                                 <View
                                     style={styles.ml2}
                                     accessibilityLabel={props.translate('sidebarScreen.chatPinned')}
                                 >
-                                    <Icon src={Expensicons.Pin} height={16} width={16} />
+                                    <Icon src={Expensicons.Pin} />
                                 </View>
                             )}
                         </View>

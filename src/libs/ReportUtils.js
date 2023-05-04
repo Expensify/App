@@ -78,6 +78,13 @@ Onyx.connect({
     callback: val => doesDomainHaveApprovedAccountant = lodashGet(val, 'doesDomainHaveApprovedAccountant', false),
 });
 
+let allPolicies;
+Onyx.connect({
+    key: ONYXKEYS.COLLECTION.POLICY,
+    waitForCollectionCallback: true,
+    callback: val => allPolicies = val,
+});
+
 function getChatType(report) {
     return report ? report.chatType : '';
 }
@@ -116,6 +123,16 @@ function isExpenseReport(report) {
  */
 function isIOUReport(report) {
     return lodashGet(report, 'type') === CONST.REPORT.TYPE.IOU;
+}
+
+/**
+ * Checks if a report is a task report.
+ *
+ * @param {Object} report
+ * @returns {Boolean}
+ */
+function isTaskReport(report) {
+    return lodashGet(report, 'type') === CONST.REPORT.TYPE.TASK;
 }
 
 /**
@@ -358,21 +375,20 @@ function isArchivedRoom(report) {
  * @param {String} report.policyID
  * @param {String} report.oldPolicyName
  * @param {String} report.policyName
- * @param {Object} policies must have Onyxkey prefix (i.e 'policy_') for keys
  * @returns {String}
  */
-function getPolicyName(report, policies) {
+function getPolicyName(report) {
     // Public rooms send back the policy name with the reportSummary,
     // since they can also be accessed by people who aren't in the workspace
     if (report.policyName) {
         return report.policyName;
     }
 
-    if (_.isEmpty(policies)) {
+    if (!allPolicies || _.size(allPolicies) === 0) {
         return Localize.translateLocal('workspace.common.unavailable');
     }
 
-    const policy = policies[`${ONYXKEYS.COLLECTION.POLICY}${report.policyID}`];
+    const policy = allPolicies[`${ONYXKEYS.COLLECTION.POLICY}${report.policyID}`];
     if (!policy) {
         return report.oldPolicyName || Localize.translateLocal('workspace.common.unavailable');
     }
@@ -404,10 +420,9 @@ function isPolicyExpenseChatAdmin(report, policies) {
 /**
  * Get either the policyName or domainName the chat is tied to
  * @param {Object} report
- * @param {Object} policiesMap must have onyxkey prefix (i.e 'policy_') for keys
  * @returns {String}
  */
-function getChatRoomSubtitle(report, policiesMap) {
+function getChatRoomSubtitle(report) {
     if (!isDefaultRoom(report) && !isUserCreatedPolicyRoom(report) && !isPolicyExpenseChat(report)) {
         return '';
     }
@@ -421,19 +436,18 @@ function getChatRoomSubtitle(report, policiesMap) {
     if (isArchivedRoom(report)) {
         return report.oldPolicyName || '';
     }
-    return getPolicyName(report, policiesMap);
+    return getPolicyName(report);
 }
 
 /**
  * Get welcome message based on room type
  * @param {Object} report
- * @param {Object} policiesMap must have Onyxkey prefix (i.e 'policy_') for keys
  * @returns {Object}
  */
 
-function getRoomWelcomeMessage(report, policiesMap) {
+function getRoomWelcomeMessage(report) {
     const welcomeMessage = {};
-    const workspaceName = getPolicyName(report, policiesMap);
+    const workspaceName = getPolicyName(report);
 
     if (isArchivedRoom(report)) {
         welcomeMessage.phrase1 = Localize.translateLocal('reportActionsView.beginningOfArchivedRoomPartOne');
@@ -463,7 +477,7 @@ function getRoomWelcomeMessage(report, policiesMap) {
  */
 function chatIncludesConcierge(report) {
     return report.participants
-            && _.contains(report.participants, CONST.EMAIL.CONCIERGE);
+        && _.contains(report.participants, CONST.EMAIL.CONCIERGE);
 }
 
 /**
@@ -588,7 +602,13 @@ function getOldDotDefaultAvatar(login = '') {
  * @returns {Boolean}
  */
 function isDefaultAvatar(avatarURL) {
-    if (_.isString(avatarURL) && (avatarURL.includes('images/avatars/avatar_') || avatarURL.includes('images/avatars/user/default'))) {
+    if (_.isString(avatarURL)
+        && (
+            avatarURL.includes('images/avatars/avatar_')
+            || avatarURL.includes('images/avatars/default-avatar_')
+            || avatarURL.includes('images/avatars/user/default')
+        )
+    ) {
         return true;
     }
 
@@ -663,11 +683,10 @@ function getSmallSizeAvatar(avatarURL, login) {
  *
  * @param {Object} report
  * @param {Object} personalDetails
- * @param {Object} policies
  * @param {*} [defaultIcon]
  * @returns {Array<*>}
  */
-function getIcons(report, personalDetails, policies, defaultIcon = null) {
+function getIcons(report, personalDetails, defaultIcon = null) {
     const result = {
         source: '',
         type: CONST.ICON_TYPE_AVATAR,
@@ -703,11 +722,11 @@ function getIcons(report, personalDetails, policies, defaultIcon = null) {
         return [result];
     }
     if (isPolicyExpenseChat(report)) {
-        const workspaceName = lodashGet(policies, [
+        const workspaceName = lodashGet(allPolicies, [
             `${ONYXKEYS.COLLECTION.POLICY}${report.policyID}`, 'name',
         ]);
 
-        const policyExpenseChatAvatarSource = lodashGet(policies, [
+        const policyExpenseChatAvatarSource = lodashGet(allPolicies, [
             `${ONYXKEYS.COLLECTION.POLICY}${report.policyID}`, 'avatar',
         ]) || getDefaultWorkspaceAvatar(workspaceName);
 
@@ -781,7 +800,7 @@ function getPersonalDetailsForLogin(login) {
     }
     return (allPersonalDetails && allPersonalDetails[login]) || {
         login,
-        displayName: Str.removeSMSDomain(login),
+        displayName: LocalePhoneNumber.formatPhoneNumber(login),
         avatar: getDefaultAvatar(login),
     };
 }
@@ -797,14 +816,11 @@ function getDisplayNameForParticipant(login, shouldUseShortForm = false) {
     if (!login) {
         return '';
     }
-
-    const loginWithoutSMSDomain = Str.removeSMSDomain(login);
     const personalDetails = getPersonalDetailsForLogin(login);
-    let longName = (personalDetails && personalDetails.displayName) || loginWithoutSMSDomain;
-    if (longName === loginWithoutSMSDomain && Str.isSMSLogin(longName)) {
-        longName = LocalePhoneNumber.formatPhoneNumber(longName);
-    }
-    const shortName = (personalDetails && personalDetails.firstName) || longName;
+
+    const longName = personalDetails.displayName;
+
+    const shortName = personalDetails.firstName || longName;
 
     return shouldUseShortForm ? shortName : longName;
 }
@@ -837,18 +853,17 @@ function getDisplayNamesWithTooltips(participants, isMultipleParticipantReport) 
  * Get the title for a policy expense chat which depends on the role of the policy member seeing this report
  *
  * @param {Object} report
- * @param {Object} [policies]
  * @returns {String}
  */
-function getPolicyExpenseChatName(report, policies = {}) {
+function getPolicyExpenseChatName(report) {
     const reportOwnerDisplayName = getDisplayNameForParticipant(report.ownerEmail) || report.ownerEmail || report.reportName;
 
     // If the policy expense chat is owned by this user, use the name of the policy as the report name.
     if (report.isOwnPolicyExpenseChat) {
-        return getPolicyName(report, policies);
+        return getPolicyName(report);
     }
 
-    const policyExpenseChatRole = lodashGet(policies, [
+    const policyExpenseChatRole = lodashGet(allPolicies, [
         `${ONYXKEYS.COLLECTION.POLICY}${report.policyID}`, 'role',
     ]) || 'user';
 
@@ -858,7 +873,7 @@ function getPolicyExpenseChatName(report, policies = {}) {
         const lastAction = ReportActionsUtils.getLastVisibleAction(report.reportID);
         const archiveReason = (lastAction && lastAction.originalMessage && lastAction.originalMessage.reason) || CONST.REPORT.ARCHIVE_REASON.DEFAULT;
         if (archiveReason === CONST.REPORT.ARCHIVE_REASON.ACCOUNT_MERGED && policyExpenseChatRole !== CONST.POLICY.ROLE.ADMIN) {
-            return getPolicyName(report, policies);
+            return getPolicyName(report);
         }
     }
 
@@ -870,17 +885,16 @@ function getPolicyExpenseChatName(report, policies = {}) {
  * Get the title for a report.
  *
  * @param {Object} report
- * @param {Object} [policies]
  * @returns {String}
  */
-function getReportName(report, policies = {}) {
+function getReportName(report) {
     let formattedName;
     if (isChatRoom(report)) {
         formattedName = report.reportName;
     }
 
     if (isPolicyExpenseChat(report)) {
-        formattedName = getPolicyExpenseChatName(report, policies);
+        formattedName = getPolicyExpenseChatName(report);
     }
 
     if (isArchivedRoom(report)) {
@@ -1051,10 +1065,6 @@ function buildOptimisticIOUReport(ownerEmail, userEmail, total, chatReportID, cu
  */
 function getIOUReportActionMessage(type, total, participants, comment, currency, paymentType = '', isSettlingUp = false) {
     const amount = NumberFormatUtils.format(preferredLocale, total / 100, {style: 'currency', currency});
-    const displayNames = _.map(participants, participant => getDisplayNameForParticipant(participant.login, true));
-    const who = displayNames.length < 3
-        ? displayNames.join(' and ')
-        : `${displayNames.slice(0, -1).join(', ')}, and ${_.last(displayNames)}`;
     let paymentMethodMessage;
     switch (paymentType) {
         case CONST.IOU.PAYMENT_TYPE.EXPENSIFY:
@@ -1073,10 +1083,10 @@ function getIOUReportActionMessage(type, total, participants, comment, currency,
     let iouMessage;
     switch (type) {
         case CONST.IOU.REPORT_ACTION_TYPE.CREATE:
-            iouMessage = `Requested ${amount} from ${who}${comment && ` for ${comment}`}`;
+            iouMessage = `Requested ${amount}${comment && ` for ${comment}`}`;
             break;
         case CONST.IOU.REPORT_ACTION_TYPE.SPLIT:
-            iouMessage = `Split ${amount} with ${who}${comment && ` for ${comment}`}`;
+            iouMessage = `Split ${amount}${comment && ` for ${comment}`}`;
             break;
         case CONST.IOU.REPORT_ACTION_TYPE.CANCEL:
             iouMessage = `Cancelled the ${amount} request${comment && ` for ${comment}`}`;
@@ -1086,7 +1096,7 @@ function getIOUReportActionMessage(type, total, participants, comment, currency,
             break;
         case CONST.IOU.REPORT_ACTION_TYPE.PAY:
             iouMessage = isSettlingUp
-                ? `Settled up${paymentMethodMessage}`
+                ? `Settled up ${amount}${paymentMethodMessage}`
                 : `Sent ${amount}${comment && ` for ${comment}`}${paymentMethodMessage}`;
             break;
         default:
@@ -1613,13 +1623,13 @@ function getAllPolicyReports(policyID) {
 }
 
 /**
-* Returns true if Chronos is one of the chat participants (1:1)
-* @param {Object} report
-* @returns {Boolean}
-*/
+ * Returns true if Chronos is one of the chat participants (1:1)
+ * @param {Object} report
+ * @returns {Boolean}
+ */
 function chatIncludesChronos(report) {
     return report.participants
-                && _.contains(report.participants, CONST.EMAIL.CHRONOS);
+        && _.contains(report.participants, CONST.EMAIL.CHRONOS);
 }
 
 /**
@@ -1857,6 +1867,7 @@ export {
     getDisplayNameForParticipant,
     isExpenseReport,
     isIOUReport,
+    isTaskReport,
     isMoneyRequestReport,
     chatIncludesChronos,
     getAvatar,
