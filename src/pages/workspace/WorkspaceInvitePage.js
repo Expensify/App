@@ -89,7 +89,6 @@ class WorkspaceInvitePage extends React.Component {
             personalDetails,
             selectedOptions: [],
             userToInvite,
-            shouldDisableButton: false,
         };
     }
 
@@ -247,16 +246,14 @@ class WorkspaceInvitePage extends React.Component {
             return;
         }
 
-        this.setState({shouldDisableButton: true}, () => {
-            const logins = _.map(this.state.selectedOptions, option => option.login);
-            const filteredLogins = _.chain(logins)
-                .map(login => login.toLowerCase().trim())
-                .compact()
-                .uniq()
-                .value();
-            Policy.setWorkspaceInviteMembersDraft(this.props.route.params.policyID, filteredLogins);
-            Navigation.navigate(ROUTES.getWorkspaceInviteMessageRoute(this.props.route.params.policyID));
-        });
+        const logins = _.map(this.state.selectedOptions, option => option.login);
+        const filteredLogins = _.chain(logins)
+            .map(login => login.toLowerCase().trim())
+            .compact()
+            .uniq()
+            .value();
+        Policy.setWorkspaceInviteMembersDraft(this.props.route.params.policyID, filteredLogins);
+        Navigation.navigate(ROUTES.getWorkspaceInviteMessageRoute(this.props.route.params.policyID));
     }
 
     /**
@@ -321,7 +318,7 @@ class WorkspaceInvitePage extends React.Component {
                             </View>
                             <View style={[styles.flexShrink0]}>
                                 <FormAlertWithSubmitButton
-                                    isDisabled={!this.state.selectedOptions.length || this.state.shouldDisableButton}
+                                    isDisabled={!this.state.selectedOptions.length}
                                     isAlertVisible={this.getShouldShowAlertPrompt()}
                                     buttonText={this.props.translate('common.next')}
                                     onSubmit={this.inviteUser}

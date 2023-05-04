@@ -12,6 +12,13 @@ function isVisible() {
 }
 
 /**
+ * @returns {Boolean}
+ */
+function hasFocus() {
+    return true;
+}
+
+/**
  * Adds event listener for changes in visibility state
  *
  * @param {Function} callback
@@ -32,4 +39,5 @@ function onVisibilityChange(callback) {
 export default {
     isVisible,
     onVisibilityChange,
+    hasFocus,
 };
