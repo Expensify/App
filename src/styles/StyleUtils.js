@@ -1024,7 +1024,6 @@ function getUserMentionStyle(isOurMention) {
     return {
         backgroundColor,
         borderRadius: variables.componentBorderRadiusSmall,
-        paddingHorizontal: 2,
     };
 }
 
@@ -1033,8 +1032,13 @@ function getUserMentionStyle(isOurMention) {
  * @param {Boolean} isOurMention
  * @returns {Object}
  */
-function getUserMentionTextColor(isOurMention) {
-    return isOurMention ? themeColors.ourMentionText : themeColors.mentionText;
+function getUserMentionTextStyle(isOurMention) {
+    return {
+        color: isOurMention ? themeColors.ourMentionText : themeColors.mentionText,
+
+        // font size is set to 13 to be in line with the font size used for code fragments so workaround will look better
+        fontSize: 13,
+    };
 }
 
 export {
@@ -1093,5 +1097,5 @@ export {
     getSignInWordmarkWidthStyle,
     getGoogleListViewStyle,
     getUserMentionStyle,
-    getUserMentionTextColor,
+    getUserMentionTextStyle,
 };
