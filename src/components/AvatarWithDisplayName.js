@@ -87,7 +87,7 @@ const AvatarWithDisplayName = (props) => {
                                 textStyles={[styles.headerText, styles.pre]}
                                 shouldUseFullTitle={isExpenseReport}
                             />
-                            {subtitle && (
+                            {!_.isEmpty(subtitle) && (
                                 <Text
                                     style={[
                                         styles.sidebarLinkText,
