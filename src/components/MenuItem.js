@@ -31,6 +31,7 @@ const defaultProps = {
     shouldShowSelectedState: false,
     shouldShowBasicTitle: false,
     shouldShowDescriptionOnTop: false,
+    shouldShowHeaderTitle: false,
     wrapperStyle: [],
     style: styles.popoverMenuItem,
     titleStyle: {},
@@ -67,6 +68,7 @@ const MenuItem = (props) => {
         (props.interactive && props.disabled ? {...styles.disabledText, ...styles.userSelectNone} : undefined),
         styles.pre,
         styles.ltr,
+        (props.shouldShowHeaderTitle ? styles.textHeadlineH1 : undefined),
         (_.contains(props.style, styles.offlineFeedback.deleted) ? styles.offlineFeedback.deleted : undefined),
     ], props.titleStyle);
     const descriptionVerticalMargin = props.shouldShowDescriptionOnTop ? styles.mb1 : styles.mt1;

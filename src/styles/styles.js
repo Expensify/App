@@ -169,7 +169,7 @@ const styles = {
         flexBasis: '48%',
     },
 
-    emojiSuggestionsContainer: {
+    autoCompleteSuggestionsContainer: {
         backgroundColor: themeColors.appBG,
         borderRadius: 8,
         borderWidth: 1,
@@ -180,7 +180,8 @@ const styles = {
         left: 0,
         right: 0,
     },
-    emojiSuggestionContainer: {
+
+    autoCompleteSuggestionContainer: {
         flexDirection: 'row',
         alignItems: 'center',
     },
@@ -336,6 +337,13 @@ const styles = {
         ...whiteSpace.preWrap,
         color: themeColors.heading,
         fontSize: variables.fontSizeXLarge,
+    },
+
+    textHeadlineH1: {
+        ...headlineFont,
+        ...whiteSpace.preWrap,
+        color: themeColors.heading,
+        fontSize: variables.fontSizeh1,
     },
 
     textDecorationNoLine: {
@@ -1491,6 +1499,19 @@ const styles = {
         flex: 1,
     },
 
+    chatItemDraft: {
+        display: 'flex',
+        flexDirection: 'row',
+        paddingTop: 8,
+        paddingBottom: 8,
+        paddingLeft: 20,
+        paddingRight: 20,
+    },
+
+    chatItemReactionsDraftRight: {
+        marginLeft: 52,
+    },
+
     // Be extremely careful when editing the compose styles, as it is easy to introduce regressions.
     // Make sure you run the following tests against any changes: #12669
     textInputCompose: addOutlineWidth({
@@ -1523,7 +1544,7 @@ const styles = {
 
     editInputComposeSpacing: {
         backgroundColor: themeColors.transparent,
-        marginVertical: 6,
+        marginVertical: 8,
     },
 
     // composer padding should not be modified unless thoroughly tested against the cases in this PR: #12669
@@ -2310,7 +2331,8 @@ const styles = {
         borderRadius: 0,
         justifyContent: 'space-between',
         width: '100%',
-        marginBottom: 20,
+        paddingHorizontal: 20,
+        paddingVertical: 12,
     },
 
     iouPreviewBox: {
