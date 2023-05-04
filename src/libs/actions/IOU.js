@@ -549,8 +549,9 @@ function splitBillAndOpenReport(participants, currentUserLogin, amount, comment,
  * @param {String} chatReportID
  * @param {String} iouReportID
  * @param {Object} moneyRequestAction - the money request reportAction we are deleting
+ * @param {Boolean} shouldCloseOnDelete
  */
-function deleteMoneyRequest(chatReportID, iouReportID, moneyRequestAction) {
+function deleteMoneyRequest(chatReportID, iouReportID, moneyRequestAction, shouldCloseOnDelete) {
     const iouReport = iouReports[`${ONYXKEYS.COLLECTION.REPORT}${iouReportID}`];
     const transactionID = moneyRequestAction.originalMessage.IOUTransactionID;
 
@@ -654,7 +655,9 @@ function deleteMoneyRequest(chatReportID, iouReportID, moneyRequestAction) {
         iouReportID: updatedIOUReport.reportID,
     }, {optimisticData, successData, failureData});
 
-    Navigation.navigate(ROUTES.getReportRoute(chatReportID));
+    if (shouldCloseOnDelete) {
+        Navigation.navigate(ROUTES.getReportRoute(chatReportID));
+    }
 }
 
 /**

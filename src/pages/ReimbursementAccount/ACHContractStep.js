@@ -39,7 +39,11 @@ class ACHContractStep extends React.Component {
         this.state = {
 
             // Array of strings containing the keys to render associated Identity Forms
-            beneficialOwners: props.getDefaultStateForField('beneficialOwners', []),
+            beneficialOwners: lodashGet(
+                this.props.reimbursementAccountDraft,
+                'beneficialOwners',
+                lodashGet(this.props.reimbursementAccount, 'achData.beneficialOwners', []),
+            ),
         };
     }
 

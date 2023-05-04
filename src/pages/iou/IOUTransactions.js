@@ -92,6 +92,7 @@ class IOUTransactions extends Component {
                             action={reportAction}
                             key={reportAction.reportActionID}
                             canBeDeleted={canBeDeleted}
+                            shouldCloseOnDelete={deletableTransactions.length === 1}
                         />
                     );
                 })}

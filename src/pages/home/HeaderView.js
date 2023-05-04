@@ -22,10 +22,10 @@ import CONST from '../../CONST';
 import * as ReportUtils from '../../libs/ReportUtils';
 import Text from '../../components/Text';
 import Tooltip from '../../components/Tooltip';
-import variables from '../../styles/variables';
 import colors from '../../styles/colors';
 import reportPropTypes from '../reportPropTypes';
 import ONYXKEYS from '../../ONYXKEYS';
+import ThreeDotsMenu from '../../components/ThreeDotsMenu';
 
 const propTypes = {
     /** Toggles the navigationMenu open and closed */
@@ -64,6 +64,7 @@ const HeaderView = (props) => {
     const displayNamesWithTooltips = ReportUtils.getDisplayNamesWithTooltips(participantPersonalDetails, isMultipleParticipant);
     const isChatRoom = ReportUtils.isChatRoom(props.report);
     const isPolicyExpenseChat = ReportUtils.isPolicyExpenseChat(props.report);
+    const isTaskReport = ReportUtils.isTaskReport(props.report);
     const title = ReportUtils.getReportName(props.report);
 
     const subtitle = ReportUtils.getChatRoomSubtitle(props.report);
@@ -74,6 +75,43 @@ const HeaderView = (props) => {
     // We hide the button when we are chatting with an automated Expensify account since it's not possible to contact
     // these users via alternative means. It is possible to request a call with Concierge so we leave the option for them.
     const shouldShowCallButton = (isConcierge && guideCalendarLink) || !isAutomatedExpensifyAccount;
+    const shouldShowThreeDotsButton = isTaskReport;
+    const threeDotMenuItems = [];
+
+    if (shouldShowThreeDotsButton) {
+        if (props.report.stateNum === CONST.REPORT.STATE_NUM.OPEN && props.report.statusNum === CONST.REPORT.STATUS.OPEN) {
+            threeDotMenuItems.push({
+                icon: Expensicons.Checkmark,
+                text: props.translate('newTaskPage.markAsComplete'),
+
+                // Implementing in https://github.com/Expensify/App/issues/16858
+                onSelected: () => {},
+            });
+        }
+
+        // Task is marked as completed
+        if (props.report.stateNum === CONST.REPORT.STATE_NUM.SUBMITTED && props.report.statusNum === CONST.REPORT.STATUS.APPROVED) {
+            threeDotMenuItems.push({
+                icon: Expensicons.Checkmark,
+                text: props.translate('newTaskPage.markAsIncomplete'),
+
+                // Implementing in https://github.com/Expensify/App/issues/16858
+                onSelected: () => {},
+            });
+        }
+
+        // Task is not closed
+        if (props.report.stateNum !== CONST.REPORT.STATE_NUM.SUBMITTED && props.report.statusNum !== CONST.REPORT.STATUS.CLOSED) {
+            threeDotMenuItems.push({
+                icon: Expensicons.Trashcan,
+                text: props.translate('common.cancel'),
+
+                // Implementing in https://github.com/Expensify/App/issues/16857
+                onSelected: () => {},
+            });
+        }
+    }
+
     const avatarTooltip = isChatRoom ? undefined : _.pluck(displayNamesWithTooltips, 'tooltip');
     const shouldShowSubscript = isPolicyExpenseChat && !props.report.isOwnPolicyExpenseChat && !ReportUtils.isArchivedRoom(props.report);
     const icons = ReportUtils.getIcons(props.report, props.personalDetails);
@@ -146,8 +184,6 @@ const HeaderView = (props) => {
                                     <Icon
                                         src={Expensicons.DotIndicator}
                                         fill={colors.red}
-                                        height={variables.iconSizeSmall}
-                                        width={variables.iconSizeSmall}
                                     />
                                 </View>
                             )}
@@ -162,6 +198,12 @@ const HeaderView = (props) => {
                                     <Icon src={Expensicons.Pin} fill={props.report.isPinned ? themeColors.heading : themeColors.icon} />
                                 </Pressable>
                             </Tooltip>
+                            {shouldShowThreeDotsButton && (
+                                <ThreeDotsMenu
+                                    anchorPosition={styles.threeDotsPopoverOffset}
+                                    menuItems={threeDotMenuItems}
+                                />
+                            )}
                         </View>
                     </View>
                 )}

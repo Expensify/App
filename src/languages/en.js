@@ -1148,11 +1148,14 @@ export default {
         },
     },
     newTaskPage: {
+        task: 'Task',
         assignTask: 'Assign task',
         title: 'Title',
         description: 'Description',
         shareIn: 'Share in',
         pleaseEnterTaskName: 'Please enter a title',
+        markAsComplete: 'Mark as complete',
+        markAsIncomplete: 'Mark as incomplete',
     },
     statementPage: {
         generatingPDF: 'We\'re generating your PDF right now. Please come back later!',

@@ -27,11 +27,15 @@ const propTypes = {
     /** Can this transaction be deleted? */
     canBeDeleted: PropTypes.bool,
 
+    /** Indicates whether pressing the delete button should hide the details sidebar */
+    shouldCloseOnDelete: PropTypes.bool,
+
     ...withLocalizePropTypes,
 };
 
 const defaultProps = {
     canBeDeleted: false,
+    shouldCloseOnDelete: false,
 };
 
 class ReportTransaction extends Component {
@@ -46,6 +50,7 @@ class ReportTransaction extends Component {
             this.props.chatReportID,
             this.props.iouReportID,
             this.props.action,
+            this.props.shouldCloseOnDelete,
         );
     }
 
