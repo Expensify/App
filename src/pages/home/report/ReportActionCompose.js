@@ -152,8 +152,8 @@ const defaultProps = {
 const getMaxArrowIndex = (numRows, isEmojiPickerLarge) => {
     // EmojiRowCount is number of emoji suggestions. For small screen we can fit 3 items and for large we show up to 5 items
     const emojiRowCount = isEmojiPickerLarge
-        ? Math.max(numRows, CONST.EMOJI_SUGGESTER.MAX_AMOUNT_OF_ITEMS)
-        : Math.max(numRows, CONST.EMOJI_SUGGESTER.MIN_AMOUNT_OF_ITEMS);
+        ? Math.max(numRows, CONST.AUTO_COMPLETE_SUGGESTER.MAX_AMOUNT_OF_ITEMS)
+        : Math.max(numRows, CONST.AUTO_COMPLETE_SUGGESTER.MIN_AMOUNT_OF_ITEMS);
 
     // -1 because we start at 0
     return emojiRowCount - 1;
@@ -184,6 +184,7 @@ class ReportActionCompose extends React.Component {
         this.updateNumberOfLines = this.updateNumberOfLines.bind(this);
         this.showPopoverMenu = this.showPopoverMenu.bind(this);
         this.comment = props.comment;
+        this.setShouldBlockEmojiCalcToFalse = this.setShouldBlockEmojiCalcToFalse.bind(this);
 
         // React Native will retain focus on an input for native devices but web/mWeb behave differently so we have some focus management
         // code that will refocus the compose input after a user closes a modal or some other actions, see usage of ReportActionComposeFocusManager
@@ -233,7 +234,7 @@ class ReportActionCompose extends React.Component {
             }
 
             this.updateComment('', true);
-        }, shortcutConfig.descriptionKey, shortcutConfig.modifiers, true);
+        }, shortcutConfig.descriptionKey, shortcutConfig.modifiers, true, true);
 
         this.setMaxLines();
         this.updateComment(this.comment);
@@ -405,6 +406,13 @@ class ReportActionCompose extends React.Component {
         }
     }
 
+    // eslint-disable-next-line rulesdir/prefer-early-return
+    setShouldBlockEmojiCalcToFalse() {
+        if (this.state && this.state.shouldBlockEmojiCalc) {
+            this.setState({shouldBlockEmojiCalc: false});
+        }
+    }
+
     /**
      * Determines if we can show the task option
      * @param {Array} reportParticipants
@@ -434,7 +442,10 @@ class ReportActionCompose extends React.Component {
     resetSuggestedEmojis() {
         this.setState({
             suggestedEmojis: [],
+            highlightedEmojiIndex: 0,
+            colonIndex: -1,
             shouldShowSuggestionMenu: false,
+            isEmojiPickerLarge: true,
         });
     }
 
@@ -442,6 +453,14 @@ class ReportActionCompose extends React.Component {
      * Calculates and cares about the content of an Emoji Suggester
      */
     calculateEmojiSuggestion() {
+        if (!this.state.value) {
+            this.resetSuggestedEmojis();
+            return;
+        }
+        if (this.state.shouldBlockEmojiCalc) {
+            this.setState({shouldBlockEmojiCalc: false});
+            return;
+        }
         const leftString = this.state.value.substring(0, this.state.selection.end);
         const colonIndex = leftString.lastIndexOf(':');
         const isCurrentlyShowingEmojiSuggestion = this.isEmojiCode(this.state.value, this.state.selection.end);
@@ -476,7 +495,7 @@ class ReportActionCompose extends React.Component {
      * @returns {Boolean}
      */
     isEmojiCode(str, pos) {
-        const leftWords = str.slice(0, pos).split(CONST.REGEX.NEW_LINE_OR_WHITE_SPACE);
+        const leftWords = str.slice(0, pos).split(CONST.REGEX.NEW_LINE_OR_WHITE_SPACE_OR_EMOJI);
         const leftWord = _.last(leftWords);
 
         return CONST.REGEX.HAS_COLON_ONLY_AT_THE_BEGINNING.test(leftWord) && leftWord.length > 2;
@@ -623,8 +642,7 @@ class ReportActionCompose extends React.Component {
      * @param {Object} e
      */
     triggerHotkeyActions(e) {
-        // Do not trigger actions for mobileWeb or native clients that have the keyboard open because for those devices, we want the return key to insert newlines rather than submit the form
-        if (!e || this.props.isSmallScreenWidth || this.props.isKeyboardShown) {
+        if (!e || ComposerUtils.canSkipTriggerHotkeys(this.props.isSmallScreenWidth, this.props.isKeyboardShown)) {
             return;
         }
 
@@ -768,6 +786,7 @@ class ReportActionCompose extends React.Component {
                         <AttachmentModal
                             headerTitle={this.props.translate('reportActionCompose.sendAttachment')}
                             onConfirm={this.addAttachment}
+                            onModalHide={this.setShouldBlockEmojiCalcToFalse}
                         >
                             {({displayFileInModal}) => (
                                 <>
@@ -777,7 +796,6 @@ class ReportActionCompose extends React.Component {
                                                 <View style={[
                                                     styles.dFlex, styles.flexColumn,
                                                     (this.state.isFullComposerAvailable || this.props.isComposerFullSize) ? styles.justifyContentBetween : styles.justifyContentEnd,
-                                                    styles.chatItemAttachBorder,
                                                 ]}
                                                 >
                                                     {this.props.isComposerFullSize && (
@@ -845,6 +863,12 @@ class ReportActionCompose extends React.Component {
                                                             icon: Expensicons.Paperclip,
                                                             text: this.props.translate('reportActionCompose.addAttachment'),
                                                             onSelected: () => {
+                                                                // Set a flag to block emoji calculation until we're finished using the file picker,
+                                                                // which will stop any flickering as the file picker opens on non-native devices.
+                                                                if (this.willBlurTextInputOnTapOutside) {
+                                                                    this.setState({shouldBlockEmojiCalc: true});
+                                                                }
+
                                                                 openPicker({
                                                                     onPicked: displayFileInModal,
                                                                 });
@@ -855,7 +879,7 @@ class ReportActionCompose extends React.Component {
                                             </>
                                         )}
                                     </AttachmentPicker>
-                                    <View style={[styles.textInputComposeSpacing]}>
+                                    <View style={[styles.textInputComposeSpacing, styles.textInputComposeBorder]}>
                                         <DragAndDrop
                                             dropZoneId={CONST.REPORT.DROP_NATIVE_ID}
                                             activeDropZoneId={CONST.REPORT.ACTIVE_DROP_NATIVE_ID}
@@ -892,6 +916,7 @@ class ReportActionCompose extends React.Component {
                                                     this.setIsFocused(false);
                                                     this.resetSuggestedEmojis();
                                                 }}
+                                                onClick={this.setShouldBlockEmojiCalcToFalse}
                                                 onPasteFile={displayFileInModal}
                                                 shouldClear={this.state.textInputShouldClear}
                                                 onClear={() => this.setTextInputShouldClear(false)}
@@ -976,7 +1001,7 @@ class ReportActionCompose extends React.Component {
                             comment={this.state.value}
                             updateComment={newComment => this.setState({value: newComment})}
                             colonIndex={this.state.colonIndex}
-                            prefix={this.state.value.slice(this.state.colonIndex + 1).split(' ')[0]}
+                            prefix={this.state.value.slice(this.state.colonIndex + 1, this.state.selection.start)}
                             onSelect={this.insertSelectedEmoji}
                             isComposerFullSize={this.props.isComposerFullSize}
                             preferredSkinToneIndex={this.props.preferredSkinTone}

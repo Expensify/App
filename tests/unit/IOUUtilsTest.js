@@ -30,9 +30,9 @@ function createIOUReportAction(type, amount, currency, {IOUTransactionID, isOnli
     return moneyRequestAction;
 }
 
-function cancelMoneyRequest(moneyRequestAction, {isOnline} = {}) {
+function deleteMoneyRequest(moneyRequestAction, {isOnline} = {}) {
     createIOUReportAction(
-        'cancel',
+        CONST.IOU.REPORT_ACTION_TYPE.DELETE,
         moneyRequestAction.originalMessage.amount,
         moneyRequestAction.originalMessage.currency,
         {
@@ -81,66 +81,66 @@ describe('isIOUReportPendingCurrencyConversion', () => {
         expect(IOUUtils.isIOUReportPendingCurrencyConversion(reportActions, iouReport)).toBe(true);
     });
 
-    test('IOUReport is not pending conversion when all requests made offline have been cancelled', () => {
+    test('IOUReport is not pending conversion when all requests made offline have been deleted', () => {
         // Create two requests offline
         const moneyRequestA = createIOUReportAction('create', 1000, 'AED');
         const moneyRequestB = createIOUReportAction('create', 1000, 'AED');
 
-        // Cancel both requests
-        cancelMoneyRequest(moneyRequestA);
-        cancelMoneyRequest(moneyRequestB);
+        // Delete both requests
+        deleteMoneyRequest(moneyRequestA);
+        deleteMoneyRequest(moneyRequestB);
 
-        // Both requests made offline have been cancelled, total won't update so no need to show a pending conversion message
+        // Both requests made offline have been deleted, total won't update so no need to show a pending conversion message
         expect(IOUUtils.isIOUReportPendingCurrencyConversion(reportActions, iouReport)).toBe(false);
     });
 
-    test('Cancelling a request made online shows the preview', () => {
+    test('Deleting a request made online shows the preview', () => {
         // Request money online in AED
         const moneyRequest = createIOUReportAction('create', 1000, 'AED', {isOnline: true});
 
-        // Cancel it offline
-        cancelMoneyRequest(moneyRequest);
+        // Delete it offline
+        deleteMoneyRequest(moneyRequest);
 
         // We don't know what the total is because we need to subtract the converted amount of the offline request from the total
         expect(IOUUtils.isIOUReportPendingCurrencyConversion(reportActions, iouReport)).toBe(true);
     });
 
-    test('Cancelling a request made offline while there\'s a previous one made online will not show the pending conversion message', () => {
+    test('Deleting a request made offline while there\'s a previous one made online will not show the pending conversion message', () => {
         // Request money online in AED
         createIOUReportAction('create', 1000, 'AED', {isOnline: true});
 
         // Another request offline
         const moneyRequestOffline = createIOUReportAction('create', 1000, 'AED');
 
-        // Cancel the request made offline
-        cancelMoneyRequest(moneyRequestOffline);
+        // Delete the request made offline
+        deleteMoneyRequest(moneyRequestOffline);
 
         expect(IOUUtils.isIOUReportPendingCurrencyConversion(reportActions, iouReport)).toBe(false);
     });
 
-    test('Cancelling a request made online while we have one made offline will show the pending conversion message', () => {
+    test('Deleting a request made online while we have one made offline will show the pending conversion message', () => {
         // Request money online in AED
         const moneyRequestOnline = createIOUReportAction('create', 1000, 'AED', {isOnline: true});
 
         // Requet money again but offline
         createIOUReportAction('create', 1000, 'AED');
 
-        // Cancel the request made online
-        cancelMoneyRequest(moneyRequestOnline);
+        // Delete the request made online
+        deleteMoneyRequest(moneyRequestOnline);
 
         // We don't know what the total is because we need to subtract the converted amount of the offline request from the total
         expect(IOUUtils.isIOUReportPendingCurrencyConversion(reportActions, iouReport)).toBe(true);
     });
 
-    test('Cancelling a request offline in the report\'s currency when we have requests in a different currency does not show the pending conversion message', () => {
+    test('Deleting a request offline in the report\'s currency when we have requests in a different currency does not show the pending conversion message', () => {
         // Request money in the report's curreny (USD)
         const onlineMoneyRequestInUSD = createIOUReportAction('create', 1000, 'USD', {isOnline: true});
 
         // Request money online in a different currency
         createIOUReportAction('create', 2000, 'AED', {isOnline: true});
 
-        // Cancel the USD request offline
-        cancelMoneyRequest(onlineMoneyRequestInUSD);
+        // Delete the USD request offline
+        deleteMoneyRequest(onlineMoneyRequestInUSD);
 
         expect(IOUUtils.isIOUReportPendingCurrencyConversion(reportActions, iouReport)).toBe(false);
     });

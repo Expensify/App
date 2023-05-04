@@ -17,6 +17,7 @@ import withWindowDimensions, {windowDimensionsPropTypes} from '../withWindowDime
 import compose from '../../libs/compose';
 import styles from '../../styles/styles';
 import Text from '../Text';
+import isEnterWhileComposition from '../../libs/KeyboardShortcut/isEnterWhileComposition';
 
 const propTypes = {
     /** Maximum number of lines in the text input */
@@ -139,6 +140,7 @@ class Composer extends React.Component {
         };
 
         this.paste = this.paste.bind(this);
+        this.handleKeyPress = this.handleKeyPress.bind(this);
         this.handlePaste = this.handlePaste.bind(this);
         this.handlePastedHTML = this.handlePastedHTML.bind(this);
         this.handleWheel = this.handleWheel.bind(this);
@@ -248,6 +250,14 @@ class Composer extends React.Component {
         }
 
         this.props.onSelectionChange(event);
+    }
+
+    // Prevent onKeyPress from being triggered if the Enter key is pressed while text is being composed
+    handleKeyPress(e) {
+        if (!this.props.onKeyPress || isEnterWhileComposition(e)) {
+            return;
+        }
+        this.props.onKeyPress(e);
     }
 
     /**
@@ -464,6 +474,7 @@ class Composer extends React.Component {
                     onSelectionChange={this.addCursorPositionToSelectionChange}
                     numberOfLines={this.state.numberOfLines}
                     disabled={this.props.isDisabled}
+                    onKeyPress={this.handleKeyPress}
                 />
                 {this.props.shouldCalculateCaretPosition && renderElementForCaretPosition}
             </>
