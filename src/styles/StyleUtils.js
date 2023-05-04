@@ -54,14 +54,6 @@ const avatarSizes = {
     [CONST.AVATAR_SIZE.LARGE_BORDERED]: variables.avatarSizeLargeBordered,
 };
 
-const avatarImageSizes = {
-    [CONST.AVATAR_SIZE.SMALL]: styles.avatarSmall,
-    [CONST.AVATAR_SIZE.DEFAULT]: styles.avatarNormal,
-    [CONST.AVATAR_SIZE.MEDIUM]: styles.avatarNormal,
-    [CONST.AVATAR_SIZE.LARGE]: styles.avatarLarge,
-    [CONST.AVATAR_SIZE.LARGE_BORDERED]: styles.avatarLarge,
-};
-
 /**
  * Return the style size from an avatar size constant
  *
@@ -158,10 +150,6 @@ function getAvatarBorderStyle(size, type) {
         overflow: 'hidden',
         ...getAvatarBorderRadius(size, type),
     };
-}
-
-function getAvatarImageStyle(size) {
-    return avatarImageSizes[size];
 }
 
 /**
@@ -1107,7 +1095,6 @@ export {
     getAvatarExtraFontSizeStyle,
     getAvatarBorderWidth,
     getAvatarBorderStyle,
-    getAvatarImageStyle,
     getErrorPageContainerStyle,
     getSafeAreaPadding,
     getSafeAreaMargins,
