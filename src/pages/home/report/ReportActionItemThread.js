@@ -7,11 +7,11 @@ import styles from '../../../styles/styles';
 import ReportActionItemFragment from './ReportActionItemFragment';
 import reportActionPropTypes from './reportActionPropTypes';
 import * as Report from '../../../libs/actions/Report';
-import RoomHeaderAvatars from '../../../components/RoomHeaderAvatars';
 import withLocalize, {withLocalizePropTypes} from '../../../components/withLocalize';
 import CONST from "../../../CONST";
 import avatarPropTypes from "../../../components/avatarPropTypes";
 import themeColors from "../../../styles/themes/default";
+import MultipleAvatars from '../../../components/MultipleAvatars';
 
 const propTypes = {
     // childReportID: PropTypes.number.isRequired,
@@ -36,10 +36,17 @@ const ReportActionItemThread = props => (
                 return '';
             }}
         >
-            <View style={{flexDirection: 'row'}}>
-                <RoomHeaderAvatars size={CONST.AVATAR_SIZE.SMALL} icons={props.icons} />
-                <Text style={{color: themeColors.text, marginTop: 12, marginLeft: 36}}>{`${props.numberOfReplies} Replies`}</Text>
-                <Text style={{color: themeColors.text, marginTop: 12, marginLeft: 4}}>{`Last reply at ${props.mostRecentReply}`}</Text>
+            <View style={[{flexDirection: 'row'}, styles.alignItemsCenter, styles.mt2]}>
+                <MultipleAvatars
+                    size={CONST.AVATAR_SIZE.SMALLER}
+                    icons={props.icons}
+                    shouldStackHorizontally
+                    avatarTooltips={_.map(props.icons, icon => icon.name)}
+                />
+                <View style={[styles.flexRow, styles.lhPercent, styles.alignItemsEnd]}>
+                    <Text style={[styles.link, styles.ml2, styles.h4]}>{`${props.numberOfReplies} Replies`}</Text>
+                    <Text style={[styles.ml2, styles.textMicroSupporting]}>{`Last reply at ${props.mostRecentReply}`}</Text>
+                </View>
             </View>
 
         </Pressable>
