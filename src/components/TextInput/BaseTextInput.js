@@ -380,9 +380,7 @@ class BaseTextInput extends Component {
                         style={[...this.props.inputStyle, this.props.autoGrowHeight ? {maxWidth: this.state.width} : {}, styles.hiddenElementOutsideOfWindow, styles.visibilityHidden]}
                         onLayout={e => this.setState({textInputWidth: e.nativeEvent.layout.width + 2, textInputHeight: e.nativeEvent.layout.height})}
                     >
-                        {/* We are appending a zero width space (\u200B) here as the browser will remove a trailing newline that doesn't
-                        have any characters after it. This allows linebreaks to work properly on web when the user presses enter. */}
-                        {`${this.state.value}${this.props.autoGrowHeight && (this.state.value.slice(-1) === '\n') ? '\u200B' : ''}` || this.props.placeholder}
+                        {this.state.value || this.props.placeholder}
                     </Text>
                 )}
             </>
