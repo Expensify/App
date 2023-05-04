@@ -813,6 +813,7 @@ const styles = {
         borderBottomWidth: 2,
         borderColor: themeColors.border,
         overflow: 'hidden',
+        scrollPaddingTop: '100%',
     },
 
     textInputLabel: {
