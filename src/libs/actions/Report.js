@@ -20,6 +20,7 @@ import DateUtils from '../DateUtils';
 import * as ReportActionsUtils from '../ReportActionsUtils';
 import * as OptionsListUtils from '../OptionsListUtils';
 import * as Localize from '../Localize';
+import * as CollectionUtils from '../CollectionUtils';
 
 let currentUserEmail;
 let currentUserAccountID;
@@ -50,10 +51,16 @@ Onyx.connect({
     },
 });
 
-let allReportActions;
+const allReportActions = {};
 Onyx.connect({
     key: ONYXKEYS.COLLECTION.REPORT_ACTIONS,
-    callback: val => allReportActions = val,
+    callback: (actions, key) => {
+        if (!key || !actions) {
+            return;
+        }
+        const reportID = CollectionUtils.extractCollectionItemID(key);
+        allReportActions[reportID] = actions;
+    },
 });
 
 const allReports = {};

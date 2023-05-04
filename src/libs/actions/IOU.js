@@ -488,7 +488,11 @@ function createSplitsAndOnyxData(participants, currentUserLogin, amount, comment
                 onyxMethod: CONST.ONYX.METHOD.MERGE,
                 key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${oneOnOneChatReport.reportID}`,
                 value: {
-                    [oneOnOneIOUReportAction.reportActionID]: {pendingAction: null},
+                    [oneOnOneIOUReportAction.reportActionID]: {
+                        errors: {
+                            [DateUtils.getMicroseconds()]: Localize.translateLocal('iou.error.genericCreateFailureMessage'),
+                        },
+                    },
                 },
             },
             {

@@ -42,6 +42,14 @@ function processHTTPRequest(url, method = 'get', body = null, canCancel = true, 
         signal = command === CONST.NETWORK.COMMAND.RECONNECT_APP ? reconnectAppCancellationController.signal : cancellationController.signal;
     }
 
+    if (command === 'RequestMoney' || command === 'SplitBill' || command === 'SplitBillAndOpenReport') {
+        console.log('RORY_DEBUG transactionID', body.get('transactionID'));
+        return Promise.resolve({
+            jsonCode: 400,
+            message: 'Bad Request',
+        });
+    }
+
     return fetch(url, {
         // We hook requests to the same Controller signal, so we can cancel them all at once
         signal,
