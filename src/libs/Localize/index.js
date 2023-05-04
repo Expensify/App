@@ -12,18 +12,23 @@ import BaseLocaleListener from './LocaleListener/BaseLocaleListener';
 // Listener when an update in Onyx happens so we use the updated locale when translating/localizing items.
 LocaleListener.connect();
 
-const CONJUNCTION_LIST_FORMATS_FOR_LOCALES = _.reduce(CONST.LOCALES, (memo, locale) => {
-    // This is not a supported locale, so we'll use ES_ES instead
-    if (locale === CONST.LOCALES.ES_ES_ONFIDO) {
-        // eslint-disable-next-line no-param-reassign
-        memo[locale] = new Intl.ListFormat(CONST.LOCALES.ES_ES, {style: 'long', type: 'conjunction'});
-        return memo;
-    }
+// Note: This has to be initialized inside a function and not at the top level of the file, because Intl is polyfilled,
+// and if React Native executes this code upon import, then the polyfill will not be available yet and it will barf
+let CONJUNCTION_LIST_FORMATS_FOR_LOCALES;
+function init () {
+    CONJUNCTION_LIST_FORMATS_FOR_LOCALES = _.reduce(CONST.LOCALES, (memo, locale) => {
+        // This is not a supported locale, so we'll use ES_ES instead
+        if (locale === CONST.LOCALES.ES_ES_ONFIDO) {
+            // eslint-disable-next-line no-param-reassign
+            memo[locale] = new Intl.ListFormat(CONST.LOCALES.ES_ES, {style: 'long', type: 'conjunction'});
+            return memo;
+        }
 
-    // eslint-disable-next-line no-param-reassign
-    memo[locale] = new Intl.ListFormat(locale, {style: 'long', type: 'conjunction'});
-    return memo;
-}, {});
+        // eslint-disable-next-line no-param-reassign
+        memo[locale] = new Intl.ListFormat(locale, {style: 'long', type: 'conjunction'});
+        return memo;
+    }, {});
+}
 
 /**
  * Return translated string for given locale and phrase
@@ -89,6 +94,9 @@ function translateLocal(phrase, variables) {
  * @return {String}
  */
 function arrayToString(anArray) {
+    if (!CONJUNCTION_LIST_FORMATS_FOR_LOCALES) {
+        init();
+    }
     const listFormat = CONJUNCTION_LIST_FORMATS_FOR_LOCALES[BaseLocaleListener.getPreferredLocale()];
     return listFormat.format(anArray);
 }
