@@ -539,7 +539,6 @@ const WalletStatementStackNavigator = createModalStackNavigator([{
     name: 'WalletStatement_Root',
 }]);
 
-
 export {
     IOUBillStackNavigator,
     IOURequestModalStackNavigator,

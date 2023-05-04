@@ -41,6 +41,12 @@ function canNavigate(methodName, params = {}) {
 // Re-exporting the getTopmostReportId here to fill in default value for state. The getTopmostReportId isn't defined in this file to avoid cyclic dependencies.
 const getTopmostReportId = (state = navigationRef.getState()) => originalGetTopmostReportId(state);
 
+/**
+ * Method for finding on which index in stack we are.
+ * @param {Object} route
+ * @param {Number} index
+ * @returns {Number}
+ */
 const getActiveRouteIndex = function (route, index) {
     if (route.routes) {
         const childActiveRoute = route.routes[route.index || 0];
@@ -62,7 +68,7 @@ const getActiveRouteIndex = function (route, index) {
 /**
  * Main navigation method for redirecting to a route.
  * @param {String} route
- * @param {String} type
+ * @param {String} type - Type of action to perform. Currently UP is supported.
  */
 function navigate(route = ROUTES.HOME, type) {
     if (!canNavigate('navigate', {route})) {
@@ -82,8 +88,8 @@ function navigate(route = ROUTES.HOME, type) {
 }
 
 /**
- * @param {String} fallbackRoute
- * @param {Bool} shouldEnforceFallback
+ * @param {String} fallbackRoute - Fallback route if pop/goBack action should, but is not possible within RHP
+ * @param {Bool} shouldEnforceFallback - Enforces navigation to fallback route
  */
 function goBack(fallbackRoute = ROUTES.HOME, shouldEnforceFallback = false) {
     if (!canNavigate('goBack')) {
@@ -96,7 +102,7 @@ function goBack(fallbackRoute = ROUTES.HOME, shouldEnforceFallback = false) {
     }
 
     if (shouldEnforceFallback || (!getActiveRouteIndex(navigationRef.current.getState()) && fallbackRoute)) {
-        navigate(fallbackRoute, 'REPLACE');
+        navigate(fallbackRoute, 'UP');
         return;
     }
 

@@ -21,7 +21,6 @@ import * as ErrorUtils from '../../libs/ErrorUtils';
 import * as ValidationUtils from '../../libs/ValidationUtils';
 import Form from '../../components/Form';
 import shouldDelayFocus from '../../libs/shouldDelayFocus';
-import ROUTES from '../../ROUTES';
 
 const propTypes = {
     /** All reports shared with the user */

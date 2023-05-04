@@ -40,7 +40,7 @@ export default function linkTo(navigation, path, type) {
 
         // If this action is navigating to the RightModalNavigator and the last route on the root navigator is also RightModalNavigator
         // then we want to replace the current RHP state with new one
-        } else if (type === 'REPLACE') {
+        } else if (type === 'UP') {
             action.type = 'REPLACE';
 
         // If this action is navigating to the RightModalNavigator and the last route on the root navigator is not RightModalNavigator then push
