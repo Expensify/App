@@ -314,7 +314,7 @@ function getAutoGrowHeightInputStyle(textInputHeight, maxHeight) {
 
     return {
         ...styles.overflowHidden,
-        scrollPaddingTop: '100px',
+        height: maxHeight,
     };
 }
 
