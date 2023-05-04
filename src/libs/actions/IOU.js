@@ -43,18 +43,6 @@ Onyx.connect({
     },
 });
 
-let preferredLocale = CONST.LOCALES.DEFAULT;
-Onyx.connect({
-    key: ONYXKEYS.NVP_PREFERRED_LOCALE,
-    callback: (val) => {
-        if (!val) {
-            return;
-        }
-
-        preferredLocale = val;
-    },
-});
-
 /**
  * Request money from another user
  *

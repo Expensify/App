@@ -2,6 +2,7 @@ import Onyx from 'react-native-onyx';
 import * as IOUUtils from '../../src/libs/IOUUtils';
 import * as ReportUtils from '../../src/libs/ReportUtils';
 import * as NumberUtils from '../../src/libs/NumberUtils';
+import CONST from '../../src/CONST';
 import ONYXKEYS from '../../src/ONYXKEYS';
 import waitForPromisesToResolve from '../utils/waitForPromisesToResolve';
 import currencyList from './currencyList.json';
@@ -38,7 +39,7 @@ function deleteMoneyRequest(moneyRequestAction, isOffline = false) {
         moneyRequestAction.originalMessage.amount,
         moneyRequestAction.originalMessage.currency,
         moneyRequestAction.originalMessage.IOUTransactionID,
-        isOffline
+        isOffline,
     );
 }
 
