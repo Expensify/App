@@ -60,7 +60,7 @@ const TaskSelectorLink = (props) => {
                         <View style={[styles.flexRow, styles.justifyContentCenter]}>
                             <View style={[styles.flexRow, styles.alignItemsCenter]}>
                                 <MultipleAvatars icons={props.icons} size={CONST.AVATAR_SIZE.DEFAULT} secondAvatarStyle={[StyleUtils.getBackgroundAndBorderStyle(themeColors.appBG)]} />
-                                <View style={[styles.flex1]}>
+                                <View style={[styles.flexColumn]}>
                                     <DisplayNames
                                         accessibilityLabel={props.translate('accessibilityHints.chatUserDisplayNames')}
                                         fullTitle={props.text}
@@ -79,9 +79,7 @@ const TaskSelectorLink = (props) => {
                         </View>
                     </View>
                 ) : (
-                    <View>
-                        <Text style={[styles.textWhite, styles.textNormal]}>{props.translate(props.label)}</Text>
-                    </View>
+                    <Text style={[styles.textWhite, styles.textNormal]}>{props.translate(props.label)}</Text>
                 )}
                 {props.disabled ? null : <Icon src={Expensicons.ArrowRight} fill={themeColors.textLight} width={variables.iconSizeSmall} height={variables.iconSizeSmall} inline />}
             </View>

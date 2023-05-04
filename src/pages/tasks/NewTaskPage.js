@@ -116,12 +116,12 @@ const NewTaskPage = (props) => {
     // On submit, we want to call the createTask function and wait to validate
     // the response
     function onSubmit() {
-        if (!props.task.name || !props.task.shareDestination) {
+        if (!props.task.title || !props.task.shareDestination) {
             setSubmitError(true);
             return;
         }
 
-        TaskUtils.createTaskAndNavigate(parentReport.reportID, props.task.name, props.task.description, props.task.assignee);
+        TaskUtils.createTaskAndNavigate(parentReport.reportID, props.task.title, props.task.description, props.task.assignee);
     }
 
     if (!Permissions.canUseTasks(props.betas)) {
@@ -140,7 +140,7 @@ const NewTaskPage = (props) => {
             <View style={[styles.mt5, styles.ph5, styles.containerWithSpaceBetween]}>
                 <View>
                     <View style={styles.mb5}>
-                        <TaskSelectorLink text={props.task.name} onPress={() => Navigation.navigate(ROUTES.NEW_TASK_TITLE)} label="newTaskPage.title" />
+                        <TaskSelectorLink text={props.task.title} onPress={() => Navigation.navigate(ROUTES.NEW_TASK_TITLE)} label="newTaskPage.title" />
                     </View>
                     <View style={styles.mb5}>
                         <TaskSelectorLink text={props.task.description} onPress={() => Navigation.navigate(ROUTES.NEW_TASK_DESCRIPTION)} label="newTaskPage.description" />

@@ -29,7 +29,7 @@ function clearOutTaskInfo() {
 
 /**
  * Assign a task to a user
- * Function name is createTask for consistency with the rest of the actions
+ * Function title is createTask for consistency with the rest of the actions
  * and also because we can create a task without assigning it to anyone
  * @param {String} parentReportID
  * @param {String} name
@@ -38,18 +38,21 @@ function clearOutTaskInfo() {
  *
  */
 
-function createTaskAndNavigate(parentReportID, name, description, assignee) {
+function createTaskAndNavigate(parentReportID, title, description, assignee) {
     // See if there's already a chat report with the assignee
     const assigneeChatReportID = ReportUtils.getChatByParticipants([assignee]).reportID;
 
-    // Create the CreatedReportAction on the parent chat report
+    // Optimistically created Action on the parent
     const optimisticCreatedAction = ReportUtils.buildOptimisticCreatedReportAction(parentReportID);
 
     // Create the task report
     const optimisticTaskReport = ReportUtils.buildOptimisticTaskReport(currentUserEmail, assignee, parentReportID, optimisticCreatedAction.reportActionID, name, description);
 
+    // Create the CreatedReportAction on the task
+    const optimisticTaskCreatedAction = ReportUtils.buildOptimisticCreatedReportAction(optimisticTaskReport.reportID);
+
     // AddCommentReportAction on the parent chat report
-    const AddCommentText = ` created a task: ${name}`;
+    const AddCommentText = ` created a task: ${title}`;
     const optimisticAddCommentReportAction = ReportUtils.buildOptimisticAddCommentReportAction(AddCommentText);
 
     // Open the parent report if assignee is given
@@ -59,42 +62,34 @@ function createTaskAndNavigate(parentReportID, name, description, assignee) {
 
     const optimisticData = [
         {
-            method: CONST.ONYX.METHOD.MERGE,
+            onyxMethod: CONST.ONYX.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${parentReportID}`,
-            value: {[optimisticCreatedAction.reportActionID]: optimisticCreatedAction},
+            value: {[optimisticAddCommentReportAction.reportActionID]: optimisticAddCommentReportAction},
         },
-
-        // {
-        //     method: CONST.ONYX.METHOD.MERGE,
-        //     key: `${ONYXKEYS.COLLECTION.REPORT}${parentReportID}`,
-        //     value: parentReport,
-        // },
         {
-            method: CONST.ONYX.METHOD.SET,
+            onyxMethod: CONST.ONYX.METHOD.SET,
             key: `${ONYXKEYS.COLLECTION.REPORT}${optimisticTaskReport.reportID}`,
             value: optimisticTaskReport,
         },
-        optimisticAddCommentReportAction,
+        {
+            onyxMethod: CONST.ONYX.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${optimisticTaskReport.reportID}`,
+            value: {[optimisticTaskCreatedAction.reportActionID]: optimisticTaskCreatedAction},
+        },
     ];
 
     const successData = [];
 
     const failureData = [
         {
-            method: CONST.ONYX.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${parentReportID}`,
-            value: {[optimisticCreatedAction.reportActionID]: {pendingAction: null}},
-        },
-
-        // {
-        //     method: CONST.ONYX.METHOD.MERGE,
-        //     key: `${ONYXKEYS.COLLECTION.REPORT}${parentReportID}`,
-        //     value: null,
-        // },
-        {
-            method: CONST.ONYX.METHOD.MERGE,
+            onyxMethod: CONST.ONYX.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT}${optimisticTaskReport.reportID}`,
             value: null,
+        },
+        {
+            onyxMethod: CONST.ONYX.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${parentReportID}`,
+            value: {[optimisticCreatedAction.reportActionID]: {pendingAction: null}},
         },
     ];
 
@@ -104,7 +99,7 @@ function createTaskAndNavigate(parentReportID, name, description, assignee) {
             parentReportActionID: optimisticCreatedAction.reportActionID,
             parentReportID,
             taskReportID: optimisticTaskReport.reportID,
-            name,
+            name: title,
             description,
             assignee,
             assigneeChatReportID,
@@ -115,23 +110,25 @@ function createTaskAndNavigate(parentReportID, name, description, assignee) {
     clearOutTaskInfo();
 
     // TODO: Navigate to the newly created task
-    Navigation.navigate(ROUTES.getReportRoute(parentReportID));
+    Navigation.navigate(ROUTES.getReportRoute(optimisticTaskReport.reportID));
 }
 
-function setDetailsValue(name, description) {
+function setDetailsValue(title, description) {
     // This is only needed for creation of a new task and so it should only be stored locally
-    Onyx.merge(ONYXKEYS.TASK, {name, description});
+    Onyx.merge(ONYXKEYS.TASK, {title, description});
 }
 
-function setTitleValue(name) {
-    Onyx.merge(ONYXKEYS.TASK, {name});
+function setTitleValue(title) {
+    Onyx.merge(ONYXKEYS.TASK, {title});
 }
 
 function setDescriptionValue(description) {
     Onyx.merge(ONYXKEYS.TASK, {description});
 }
 
-function setAssigneeValue(assignee) {
+function setAssigneeValue(assignee, shareDestination) {
+    console.log('openReport', Report.openReport(shareDestination, [assignee]));
+
     // This is only needed for creation of a new task and so it should only be stored locally
     Onyx.merge(ONYXKEYS.TASK, {assignee});
 }

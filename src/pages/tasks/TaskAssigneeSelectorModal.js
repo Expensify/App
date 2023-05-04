@@ -30,6 +30,11 @@ const propTypes = {
     /** All reports shared with the user */
     reports: PropTypes.objectOf(reportPropTypes),
 
+    /** Share Destination of the Task */
+    task: PropTypes.shape({
+        shareDestination: PropTypes.string,
+    }),
+
     ...withLocalizePropTypes,
 };
 
@@ -37,6 +42,7 @@ const defaultProps = {
     betas: [],
     personalDetails: {},
     reports: {},
+    task: {},
 };
 
 const TaskAssigneeSelectorModal = (props) => {
@@ -181,6 +187,9 @@ export default compose(
         },
         betas: {
             key: ONYXKEYS.BETAS,
+        },
+        task: {
+            key: ONYXKEYS.TASK,
         },
     }),
 )(TaskAssigneeSelectorModal);
