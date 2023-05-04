@@ -165,6 +165,8 @@ class MoneyRequestParticipantsSelector extends Component {
             Boolean(this.state.userToInvite),
             this.state.searchTerm,
         );
+        const isOptionsDataReady = !this.props.isLoadingReportData && OptionsListUtils.isPersonalDetailsReady(this.props.personalDetails);
+
         return (
             <OptionsSelector
                 sections={this.getSections()}
@@ -175,7 +177,7 @@ class MoneyRequestParticipantsSelector extends Component {
                 placeholderText={this.props.translate('optionsSelector.nameEmailOrPhoneNumber')}
                 boldStyle
                 safeAreaPaddingBottomStyle={this.props.safeAreaPaddingBottomStyle}
-                shouldShowOptions={!this.props.isLoadingReportData}
+                shouldShowOptions={isOptionsDataReady}
             />
         );
     }

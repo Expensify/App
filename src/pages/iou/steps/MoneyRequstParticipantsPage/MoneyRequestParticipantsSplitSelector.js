@@ -230,6 +230,8 @@ class MoneyRequestParticipantsSplitSelector extends Component {
             this.state.searchTerm,
             maxParticipantsReached,
         );
+        const isOptionsDataReady = !this.props.isLoadingReportData && OptionsListUtils.isPersonalDetailsReady(this.props.personalDetails);
+
         return (
             <View style={[styles.flex1, styles.w100, (this.props.participants.length > 0 ? this.props.safeAreaPaddingBottomStyle : {})]}>
                 <Text style={[styles.textLabelSupporting, styles.pt3, styles.ph5]}>
@@ -249,7 +251,7 @@ class MoneyRequestParticipantsSplitSelector extends Component {
                     onConfirmSelection={this.finalizeParticipants}
                     placeholderText={this.props.translate('optionsSelector.nameEmailOrPhoneNumber')}
                     safeAreaPaddingBottomStyle={this.props.safeAreaPaddingBottomStyle}
-                    shouldShowOptions={!this.props.isLoadingReportData}
+                    shouldShowOptions={isOptionsDataReady}
                 />
             </View>
         );

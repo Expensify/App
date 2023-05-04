@@ -243,6 +243,8 @@ class NewChatPage extends Component {
             this.state.searchTerm,
             maxParticipantsReached,
         );
+        const isOptionsDataReady = !this.props.isLoadingReportData && OptionsListUtils.isPersonalDetailsReady(this.props.personalDetails);
+
         return (
             <ScreenWrapper includeSafeAreaPaddingBottom={false} shouldEnableMaxHeight>
                 {({didScreenTransitionEnd, safeAreaPaddingBottomStyle}) => (
@@ -266,7 +268,7 @@ class NewChatPage extends Component {
                                     boldStyle
                                     shouldFocusOnSelectRow={this.props.isGroupChat}
                                     shouldShowConfirmButton={this.props.isGroupChat}
-                                    shouldShowOptions={!this.props.isLoadingReportData}
+                                    shouldShowOptions={isOptionsDataReady}
                                     confirmButtonText={this.props.translate('newChatPage.createGroup')}
                                     onConfirmSelection={this.createGroup}
                                     placeholderText={this.props.translate('optionsSelector.nameEmailOrPhoneNumber')}

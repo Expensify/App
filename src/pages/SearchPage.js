@@ -185,6 +185,8 @@ class SearchPage extends Component {
 
     render() {
         const sections = this.getSections();
+        const isOptionsDataReady = !this.props.isLoadingReportData && OptionsListUtils.isPersonalDetailsReady(this.props.personalDetails);
+
         return (
             <ScreenWrapper includeSafeAreaPaddingBottom={false}>
                 {({didScreenTransitionEnd, safeAreaPaddingBottomStyle}) => (
@@ -203,7 +205,7 @@ class SearchPage extends Component {
                                     headerMessage={this.state.headerMessage}
                                     hideSectionHeaders
                                     showTitleTooltip
-                                    shouldShowOptions={!this.props.isLoadingReportData}
+                                    shouldShowOptions={isOptionsDataReady}
                                     placeholderText={this.props.translate('optionsSelector.nameEmailOrPhoneNumber')}
                                     onLayout={this.searchRendered}
                                     safeAreaPaddingBottomStyle={safeAreaPaddingBottomStyle}

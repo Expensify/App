@@ -177,6 +177,15 @@ function getPersonalDetailsForLogins(logins, personalDetails) {
 }
 
 /**
+ * Return true if personal details data is ready, i.e. report list options can be created.
+ * @param {Object} personalDetails
+ * @returns {boolean}
+ */
+function isPersonalDetailsReady(personalDetails) {
+    return !_.isEmpty(personalDetails) && !_.some(_.keys(personalDetails), key => !personalDetails[key].login);
+}
+
+/**
  * Get the participant options for a report.
  * @param {Object} report
  * @param {Array<Object>} personalDetails
@@ -529,9 +538,7 @@ function getOptions(reports, personalDetails, {
     forcePolicyNamePreview = false,
     includeOwnedWorkspaceChats = false,
 }) {
-    const personalDetailsReady = !_.isEmpty(personalDetails) && !_.some(_.keys(personalDetails), key => !personalDetails[key].login);
-
-    if (!personalDetailsReady) {
+    if (!isPersonalDetailsReady(personalDetails)) {
         return {
             recentReports: [],
             personalDetails: [],
@@ -901,6 +908,7 @@ function getHeaderMessage(hasSelectableOptions, hasUserToInvite, searchValue, ma
 export {
     addSMSDomainIfPhoneNumber,
     isCurrentUser,
+    isPersonalDetailsReady,
     getSearchOptions,
     getNewChatOptions,
     getMemberInviteOptions,
