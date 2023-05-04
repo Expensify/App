@@ -44,8 +44,4 @@ function isInsideComment(tnode) {
     return false;
 }
 
-export {
-    computeEmbeddedMaxWidth,
-    isInsideComment,
-    isCommentTag,
-};
+export {computeEmbeddedMaxWidth, isInsideComment, isCommentTag};

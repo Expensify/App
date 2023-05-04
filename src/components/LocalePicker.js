@@ -27,13 +27,10 @@ const defaultProps = {
 };
 
 const LocalePicker = (props) => {
-    const localesToLanguages = _.map(
-        props.translate('languagePage.languages'),
-        (language, key) => ({
-            value: key,
-            label: language.label,
-        }),
-    );
+    const localesToLanguages = _.map(props.translate('languagePage.languages'), (language, key) => ({
+        value: key,
+        label: language.label,
+    }));
     return (
         <Picker
             label={props.size === 'normal' ? props.translate('languagePage.language') : null}

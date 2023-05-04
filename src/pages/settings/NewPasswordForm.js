@@ -2,9 +2,7 @@ import React from 'react';
 import PropTypes from 'prop-types';
 import {View} from 'react-native';
 import Text from '../../components/Text';
-import withLocalize, {
-    withLocalizePropTypes,
-} from '../../components/withLocalize';
+import withLocalize, {withLocalizePropTypes} from '../../components/withLocalize';
 import CONST from '../../CONST';
 import styles from '../../styles/styles';
 import TextInput from '../../components/TextInput';
@@ -33,7 +31,7 @@ class NewPasswordForm extends React.Component {
     }
 
     componentDidUpdate(prevProps) {
-        const passwordChanged = (this.props.password !== prevProps.password);
+        const passwordChanged = this.props.password !== prevProps.password;
         if (passwordChanged) {
             this.props.updateIsFormValid(this.isValidForm());
         }
@@ -55,7 +53,7 @@ class NewPasswordForm extends React.Component {
     /**
      * checks if the password invalid
      * @returns {Boolean}
-    */
+     */
     isInvalidPassword() {
         return this.state.passwordHintError && this.props.password && !this.isValidPassword();
     }
@@ -74,18 +72,10 @@ class NewPasswordForm extends React.Component {
                     autoComplete={ComponentUtils.NEW_PASSWORD_AUTOCOMPLETE_TYPE}
                     textContentType="newPassword"
                     value={this.props.password}
-                    onChangeText={password => this.props.updatePassword(password)}
+                    onChangeText={(password) => this.props.updatePassword(password)}
                     onBlur={() => this.onBlurNewPassword()}
                 />
-                <Text
-                    style={[
-                        styles.formHelp,
-                        styles.mt1,
-                        this.isInvalidPassword() && styles.formError,
-                    ]}
-                >
-                    {this.props.translate('setPasswordPage.newPasswordPrompt')}
-                </Text>
+                <Text style={[styles.formHelp, styles.mt1, this.isInvalidPassword() && styles.formError]}>{this.props.translate('setPasswordPage.newPasswordPrompt')}</Text>
             </View>
         );
     }

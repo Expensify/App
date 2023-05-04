@@ -1,11 +1,6 @@
 import React from 'react';
 import PropTypes from 'prop-types';
-import {
-    View,
-    TouchableOpacity,
-    InteractionManager,
-    LayoutAnimation,
-} from 'react-native';
+import {View, TouchableOpacity, InteractionManager, LayoutAnimation} from 'react-native';
 import _ from 'underscore';
 import lodashGet from 'lodash/get';
 import {withOnyx} from 'react-native-onyx';
@@ -113,10 +108,12 @@ const propTypes = {
     preferredSkinTone: PropTypes.oneOfType([PropTypes.number, PropTypes.string]),
 
     /** User's frequently used emojis */
-    frequentlyUsedEmojis: PropTypes.arrayOf(PropTypes.shape({
-        code: PropTypes.string.isRequired,
-        keywords: PropTypes.arrayOf(PropTypes.string),
-    })),
+    frequentlyUsedEmojis: PropTypes.arrayOf(
+        PropTypes.shape({
+            code: PropTypes.string.isRequired,
+            keywords: PropTypes.arrayOf(PropTypes.string),
+        }),
+    ),
 
     /** The type of action that's pending  */
     pendingAction: PropTypes.oneOf(['add', 'update', 'delete']),
@@ -144,16 +141,14 @@ const defaultProps = {
 };
 
 /**
-  * Return the max available index for arrow manager.
+ * Return the max available index for arrow manager.
  * @param {Number} numRows
  * @param {Boolean} isEmojiPickerLarge
  * @returns {Number}
  */
 const getMaxArrowIndex = (numRows, isEmojiPickerLarge) => {
     // EmojiRowCount is number of emoji suggestions. For small screen we can fit 3 items and for large we show up to 5 items
-    const emojiRowCount = isEmojiPickerLarge
-        ? Math.max(numRows, CONST.EMOJI_SUGGESTER.MAX_AMOUNT_OF_ITEMS)
-        : Math.max(numRows, CONST.EMOJI_SUGGESTER.MIN_AMOUNT_OF_ITEMS);
+    const emojiRowCount = isEmojiPickerLarge ? Math.max(numRows, CONST.EMOJI_SUGGESTER.MAX_AMOUNT_OF_ITEMS) : Math.max(numRows, CONST.EMOJI_SUGGESTER.MIN_AMOUNT_OF_ITEMS);
 
     // -1 because we start at 0
     return emojiRowCount - 1;
@@ -228,13 +223,20 @@ class ReportActionCompose extends React.Component {
         });
 
         const shortcutConfig = CONST.KEYBOARD_SHORTCUTS.ESCAPE;
-        this.unsubscribeEscapeKey = KeyboardShortcut.subscribe(shortcutConfig.shortcutKey, () => {
-            if (!this.state.isFocused || this.comment.length === 0) {
-                return;
-            }
+        this.unsubscribeEscapeKey = KeyboardShortcut.subscribe(
+            shortcutConfig.shortcutKey,
+            () => {
+                if (!this.state.isFocused || this.comment.length === 0) {
+                    return;
+                }
 
-            this.updateComment('', true);
-        }, shortcutConfig.descriptionKey, shortcutConfig.modifiers, true, true);
+                this.updateComment('', true);
+            },
+            shortcutConfig.descriptionKey,
+            shortcutConfig.modifiers,
+            true,
+            true,
+        );
 
         this.setMaxLines();
         this.updateComment(this.comment);
@@ -257,8 +259,7 @@ class ReportActionCompose extends React.Component {
         // We want to focus or refocus the input when a modal has been closed and the underlying screen is focused.
         // We avoid doing this on native platforms since the software keyboard popping
         // open creates a jarring and broken UX.
-        if (this.willBlurTextInputOnTapOutside && this.props.isFocused
-            && prevProps.modal.isVisible && !this.props.modal.isVisible) {
+        if (this.willBlurTextInputOnTapOutside && this.props.isFocused && prevProps.modal.isVisible && !this.props.modal.isVisible) {
             this.focus();
         }
 
@@ -375,7 +376,7 @@ class ReportActionCompose extends React.Component {
                 onSelected: () => Navigation.navigate(ROUTES.getIOUSendRoute(this.props.reportID)),
             },
         };
-        return _.map(ReportUtils.getMoneyRequestOptions(this.props.report, reportParticipants, this.props.betas), option => options[option]);
+        return _.map(ReportUtils.getMoneyRequestOptions(this.props.report, reportParticipants, this.props.betas), (option) => options[option]);
     }
 
     /**
@@ -420,10 +421,10 @@ class ReportActionCompose extends React.Component {
      */
     getTaskOption(reportParticipants) {
         // We only prevent the task option from showing if it's a DM and the other user is an Expensify default email
-        if (!Permissions.canUseTasks(this.props.betas) || (lodashGet(this.props.report, 'participants', []).length === 1 && _.some(reportParticipants, email => _.contains(
-            CONST.EXPENSIFY_EMAILS,
-            email,
-        )))) {
+        if (
+            !Permissions.canUseTasks(this.props.betas) ||
+            (lodashGet(this.props.report, 'participants', []).length === 1 && _.some(reportParticipants, (email) => _.contains(CONST.EXPENSIFY_EMAILS, email)))
+        ) {
             return [];
         }
 
@@ -512,7 +513,7 @@ class ReportActionCompose extends React.Component {
         const commentAfterColonWithEmojiNameRemoved = this.state.value.slice(this.state.selection.end).replace(CONST.REGEX.EMOJI_REPLACER, CONST.SPACE);
 
         this.updateComment(`${commentBeforeColon}${emojiCode} ${commentAfterColonWithEmojiNameRemoved}`, true);
-        this.setState(prevState => ({
+        this.setState((prevState) => ({
             selection: {
                 start: prevState.colonIndex + emojiCode.length + CONST.SPACE_LENGTH,
                 end: prevState.colonIndex + emojiCode.length + CONST.SPACE_LENGTH,
@@ -532,7 +533,7 @@ class ReportActionCompose extends React.Component {
      * @param {String} emoji
      */
     addEmojiToTextBox(emoji) {
-        this.setState(prevState => ({
+        this.setState((prevState) => ({
             selection: {
                 start: prevState.selection.start + emoji.length,
                 end: prevState.selection.start + emoji.length,
@@ -666,14 +667,14 @@ class ReportActionCompose extends React.Component {
 
         // Trigger the edit box for last sent message if ArrowUp is pressed and the comment is empty and Chronos is not in the participants
         if (
-            e.key === CONST.KEYBOARD_SHORTCUTS.ARROW_UP.shortcutKey && this.textInput.selectionStart === 0 && this.state.isCommentEmpty && !ReportUtils.chatIncludesChronos(this.props.report)
+            e.key === CONST.KEYBOARD_SHORTCUTS.ARROW_UP.shortcutKey &&
+            this.textInput.selectionStart === 0 &&
+            this.state.isCommentEmpty &&
+            !ReportUtils.chatIncludesChronos(this.props.report)
         ) {
             e.preventDefault();
 
-            const lastReportAction = _.find(
-                this.props.reportActions,
-                action => ReportUtils.canEditReportAction(action),
-            );
+            const lastReportAction = _.find(this.props.reportActions, (action) => ReportUtils.canEditReportAction(action));
 
             if (lastReportAction !== -1 && lastReportAction) {
                 Report.saveReportActionDraft(this.props.reportID, lastReportAction.reportActionID, _.last(lastReportAction.message).html);
@@ -752,8 +753,7 @@ class ReportActionCompose extends React.Component {
         const participantsWithoutExpensifyEmails = _.difference(reportParticipants, CONST.EXPENSIFY_EMAILS);
         const reportRecipient = this.props.personalDetails[participantsWithoutExpensifyEmails[0]];
 
-        const shouldShowReportRecipientLocalTime = ReportUtils.canShowReportRecipientLocalTime(this.props.personalDetails, this.props.report)
-            && !this.props.isComposerFullSize;
+        const shouldShowReportRecipientLocalTime = ReportUtils.canShowReportRecipientLocalTime(this.props.personalDetails, this.props.report) && !this.props.isComposerFullSize;
 
         // Prevents focusing and showing the keyboard while the drawer is covering the chat.
         const isComposeDisabled = this.props.isDrawerOpen && this.props.isSmallScreenWidth;
@@ -763,10 +763,11 @@ class ReportActionCompose extends React.Component {
         const hasExceededMaxCommentLength = this.state.hasExceededMaxCommentLength;
 
         return (
-            <View style={[
-                shouldShowReportRecipientLocalTime && !lodashGet(this.props.network, 'isOffline') && styles.chatItemComposeWithFirstRow,
-                this.props.isComposerFullSize && styles.chatItemFullComposeRow,
-            ]}
+            <View
+                style={[
+                    shouldShowReportRecipientLocalTime && !lodashGet(this.props.network, 'isOffline') && styles.chatItemComposeWithFirstRow,
+                    this.props.isComposerFullSize && styles.chatItemFullComposeRow,
+                ]}
             >
                 <OfflineWithFeedback
                     pendingAction={this.props.pendingAction}
@@ -774,15 +775,14 @@ class ReportActionCompose extends React.Component {
                     contentContainerStyle={this.props.isComposerFullSize ? styles.flex1 : {}}
                 >
                     {shouldShowReportRecipientLocalTime && <ParticipantLocalTime participant={reportRecipient} />}
-                    <View style={[
-                        shouldUseFocusedColor
-                            ? styles.chatItemComposeBoxFocusedColor
-                            : styles.chatItemComposeBoxColor,
-                        styles.flexRow,
-                        styles.chatItemComposeBox,
-                        this.props.isComposerFullSize && styles.chatItemFullComposeBox,
-                        hasExceededMaxCommentLength && styles.borderColorDanger,
-                    ]}
+                    <View
+                        style={[
+                            shouldUseFocusedColor ? styles.chatItemComposeBoxFocusedColor : styles.chatItemComposeBoxColor,
+                            styles.flexRow,
+                            styles.chatItemComposeBox,
+                            this.props.isComposerFullSize && styles.chatItemFullComposeBox,
+                            hasExceededMaxCommentLength && styles.borderColorDanger,
+                        ]}
                     >
                         <AttachmentModal
                             headerTitle={this.props.translate('reportActionCompose.sendAttachment')}
@@ -794,10 +794,12 @@ class ReportActionCompose extends React.Component {
                                     <AttachmentPicker>
                                         {({openPicker}) => (
                                             <>
-                                                <View style={[
-                                                    styles.dFlex, styles.flexColumn,
-                                                    (this.state.isFullComposerAvailable || this.props.isComposerFullSize) ? styles.justifyContentBetween : styles.justifyContentEnd,
-                                                ]}
+                                                <View
+                                                    style={[
+                                                        styles.dFlex,
+                                                        styles.flexColumn,
+                                                        this.state.isFullComposerAvailable || this.props.isComposerFullSize ? styles.justifyContentBetween : styles.justifyContentEnd,
+                                                    ]}
                                                 >
                                                     {this.props.isComposerFullSize && (
                                                         <Tooltip text={this.props.translate('reportActionCompose.collapse')}>
@@ -807,18 +809,16 @@ class ReportActionCompose extends React.Component {
                                                                     this.setShouldShowSuggestionMenuToFalse();
                                                                     Report.setIsComposerFullSize(this.props.reportID, false);
                                                                 }}
-
                                                                 // Keep focus on the composer when Collapse button is clicked.
-                                                                onMouseDown={e => e.preventDefault()}
+                                                                onMouseDown={(e) => e.preventDefault()}
                                                                 style={styles.composerSizeButton}
                                                                 disabled={isBlockedFromConcierge || this.props.disabled}
                                                             >
                                                                 <Icon src={Expensicons.Collapse} />
                                                             </TouchableOpacity>
                                                         </Tooltip>
-
                                                     )}
-                                                    {(!this.props.isComposerFullSize && this.state.isFullComposerAvailable) && (
+                                                    {!this.props.isComposerFullSize && this.state.isFullComposerAvailable && (
                                                         <Tooltip text={this.props.translate('reportActionCompose.expand')}>
                                                             <TouchableOpacity
                                                                 onPress={(e) => {
@@ -826,9 +826,8 @@ class ReportActionCompose extends React.Component {
                                                                     this.setShouldShowSuggestionMenuToFalse();
                                                                     Report.setIsComposerFullSize(this.props.reportID, true);
                                                                 }}
-
                                                                 // Keep focus on the composer when Expand button is clicked.
-                                                                onMouseDown={e => e.preventDefault()}
+                                                                onMouseDown={(e) => e.preventDefault()}
                                                                 style={styles.composerSizeButton}
                                                                 disabled={isBlockedFromConcierge || this.props.disabled}
                                                             >
@@ -838,7 +837,7 @@ class ReportActionCompose extends React.Component {
                                                     )}
                                                     <Tooltip text={this.props.translate('reportActionCompose.addAction')}>
                                                         <TouchableOpacity
-                                                            ref={el => this.actionButton = el}
+                                                            ref={(el) => (this.actionButton = el)}
                                                             onPress={(e) => {
                                                                 e.preventDefault();
 
@@ -859,7 +858,9 @@ class ReportActionCompose extends React.Component {
                                                     onClose={() => this.setMenuVisibility(false)}
                                                     onItemSelected={() => this.setMenuVisibility(false)}
                                                     anchorPosition={styles.createMenuPositionReportActionCompose}
-                                                    menuItems={[...this.getMoneyRequestOptions(reportParticipants), ...this.getTaskOption(reportParticipants),
+                                                    menuItems={[
+                                                        ...this.getMoneyRequestOptions(reportParticipants),
+                                                        ...this.getTaskOption(reportParticipants),
                                                         {
                                                             icon: Expensicons.Paperclip,
                                                             text: this.props.translate('reportActionCompose.addAttachment'),
@@ -908,7 +909,7 @@ class ReportActionCompose extends React.Component {
                                                 textAlignVertical="top"
                                                 placeholder={inputPlaceholder}
                                                 placeholderTextColor={themeColors.placeholderText}
-                                                onChangeText={comment => this.updateComment(comment, true)}
+                                                onChangeText={(comment) => this.updateComment(comment, true)}
                                                 onKeyPress={this.triggerHotkeyActions}
                                                 style={[styles.textInputCompose, this.props.isComposerFullSize ? styles.textInputFullCompose : styles.flex4]}
                                                 maxLines={this.state.maxLines}
@@ -955,35 +956,43 @@ class ReportActionCompose extends React.Component {
                         )}
                         <View
                             style={[styles.justifyContentEnd]}
-
                             // Keep focus on the composer when Send message is clicked.
-                            onMouseDown={e => e.preventDefault()}
+                            onMouseDown={(e) => e.preventDefault()}
                         >
                             <Tooltip text={this.props.translate('common.send')}>
                                 <TouchableOpacity
-                                    style={[styles.chatItemSubmitButton,
-                                        (this.state.isCommentEmpty || hasExceededMaxCommentLength) ? undefined : styles.buttonSuccess,
-                                    ]}
+                                    style={[styles.chatItemSubmitButton, this.state.isCommentEmpty || hasExceededMaxCommentLength ? undefined : styles.buttonSuccess]}
                                     onPress={this.submitForm}
                                     disabled={this.state.isCommentEmpty || isBlockedFromConcierge || this.props.disabled || hasExceededMaxCommentLength}
                                     hitSlop={{
-                                        top: 3, right: 3, bottom: 3, left: 3,
+                                        top: 3,
+                                        right: 3,
+                                        bottom: 3,
+                                        left: 3,
                                     }}
                                 >
-                                    <Icon src={Expensicons.Send} fill={(this.state.isCommentEmpty || hasExceededMaxCommentLength) ? themeColors.icon : themeColors.textLight} />
+                                    <Icon
+                                        src={Expensicons.Send}
+                                        fill={this.state.isCommentEmpty || hasExceededMaxCommentLength ? themeColors.icon : themeColors.textLight}
+                                    />
                                 </TouchableOpacity>
                             </Tooltip>
                         </View>
                     </View>
-                    <View style={[
-                        styles.flexRow,
-                        styles.justifyContentBetween,
-                        styles.alignItemsCenter,
-                        (!this.props.isSmallScreenWidth || (this.props.isSmallScreenWidth && !this.props.network.isOffline)) && styles.chatItemComposeSecondaryRow]}
+                    <View
+                        style={[
+                            styles.flexRow,
+                            styles.justifyContentBetween,
+                            styles.alignItemsCenter,
+                            (!this.props.isSmallScreenWidth || (this.props.isSmallScreenWidth && !this.props.network.isOffline)) && styles.chatItemComposeSecondaryRow,
+                        ]}
                     >
                         {!this.props.isSmallScreenWidth && <OfflineIndicator containerStyles={[styles.chatItemComposeSecondaryRow]} />}
                         <ReportTypingIndicator reportID={this.props.reportID} />
-                        <ExceededCommentLength comment={this.comment} onExceededMaxCommentLength={this.setExceededMaxCommentLength} />
+                        <ExceededCommentLength
+                            comment={this.comment}
+                            onExceededMaxCommentLength={this.setExceededMaxCommentLength}
+                        />
                     </View>
                 </OfflineWithFeedback>
                 {this.state.isDraggingOver && <ReportDropUI />}
@@ -992,14 +1001,14 @@ class ReportActionCompose extends React.Component {
                         focusedIndex={this.state.highlightedEmojiIndex}
                         maxIndex={getMaxArrowIndex(this.state.suggestedEmojis.length, this.state.isEmojiPickerLarge)}
                         shouldExcludeTextAreaNodes={false}
-                        onFocusedIndexChanged={index => this.setState({highlightedEmojiIndex: index})}
+                        onFocusedIndexChanged={(index) => this.setState({highlightedEmojiIndex: index})}
                     >
                         <EmojiSuggestions
                             onClose={() => this.setState({suggestedEmojis: []})}
                             highlightedEmojiIndex={this.state.highlightedEmojiIndex}
                             emojis={this.state.suggestedEmojis}
                             comment={this.state.value}
-                            updateComment={newComment => this.setState({value: newComment})}
+                            updateComment={(newComment) => this.setState({value: newComment})}
                             colonIndex={this.state.colonIndex}
                             prefix={this.state.value.slice(this.state.colonIndex + 1, this.state.selection.start)}
                             onSelect={this.insertSelectedEmoji}

@@ -18,7 +18,7 @@ const removeEvent = (reportID, reportActionID, eventID, events) => {
                 [reportActionID]: {
                     pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
                     originalMessage: {
-                        events: _.reject(events, event => event.id === eventID),
+                        events: _.reject(events, (event) => event.id === eventID),
                     },
                 },
             },
@@ -50,10 +50,14 @@ const removeEvent = (reportID, reportActionID, eventID, events) => {
         },
     ];
 
-    API.write('Chronos_RemoveOOOEvent', {
-        googleEventID: eventID,
-        reportActionID,
-    }, {optimisticData, successData, failureData});
+    API.write(
+        'Chronos_RemoveOOOEvent',
+        {
+            googleEventID: eventID,
+            reportActionID,
+        },
+        {optimisticData, successData, failureData},
+    );
 };
 
 export {

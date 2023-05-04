@@ -12,8 +12,4 @@ function insertText(text, selection, textToInsert) {
     return text.slice(0, selection.start) + textToInsert + text.slice(selection.end, text.length);
 }
 
-export {
-    getNumberOfLines,
-    updateNumberOfLines,
-    insertText,
-};
+export {getNumberOfLines, updateNumberOfLines, insertText};

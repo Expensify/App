@@ -23,12 +23,15 @@ const EmojiSuggestions = (props) => {
             }
             e.preventDefault();
         };
-        return () => container.onpointerdown = null;
+        return () => (container.onpointerdown = null);
     }, []);
 
     return (
         // eslint-disable-next-line react/jsx-props-no-spreading
-        <BaseEmojiSuggestions {...props} ref={containerRef} />
+        <BaseEmojiSuggestions
+            {...props}
+            ref={containerRef}
+        />
     );
 };
 

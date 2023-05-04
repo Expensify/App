@@ -21,9 +21,5 @@ function oldCurrencyData() {
  * @returns {Boolean}
  */
 export default function shouldPolyfill() {
-    return (
-        typeof Intl === 'undefined'
-        || !('NumberFormat' in Intl)
-        || oldCurrencyData()
-    );
+    return typeof Intl === 'undefined' || !('NumberFormat' in Intl) || oldCurrencyData();
 }

@@ -74,6 +74,4 @@ Default.args = {
 };
 
 export default story;
-export {
-    Default,
-};
+export {Default};

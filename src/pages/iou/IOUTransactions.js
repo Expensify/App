@@ -53,19 +53,21 @@ class IOUTransactions extends Component {
         }
 
         // iouReportIDs should be strings, but we still have places that send them as ints so we convert them both to Numbers for comparison
-        const actionsForIOUReport = _.filter(this.props.reportActions, action => action.originalMessage
-            && action.originalMessage.type && Number(action.originalMessage.IOUReportID) === Number(this.props.iouReportID));
+        const actionsForIOUReport = _.filter(
+            this.props.reportActions,
+            (action) => action.originalMessage && action.originalMessage.type && Number(action.originalMessage.IOUReportID) === Number(this.props.iouReportID),
+        );
 
         const rejectedTransactionIDs = _.chain(actionsForIOUReport)
-            .filter(action => _.contains(['cancel', 'decline'], action.originalMessage.type))
-            .map(rejectedAction => lodashGet(rejectedAction, 'originalMessage.IOUTransactionID', ''))
+            .filter((action) => _.contains(['cancel', 'decline'], action.originalMessage.type))
+            .map((rejectedAction) => lodashGet(rejectedAction, 'originalMessage.IOUTransactionID', ''))
             .compact()
             .value();
 
         return _.chain(actionsForIOUReport)
-            .filter(action => action.originalMessage.type === 'create')
-            .filter(action => !_.contains(rejectedTransactionIDs, action.originalMessage.IOUTransactionID))
-            .map(action => lodashGet(action, 'originalMessage.IOUTransactionID', ''))
+            .filter((action) => action.originalMessage.type === 'create')
+            .filter((action) => !_.contains(rejectedTransactionIDs, action.originalMessage.IOUTransactionID))
+            .map((action) => lodashGet(action, 'originalMessage.IOUTransactionID', ''))
             .compact()
             .value();
     }
@@ -81,8 +83,7 @@ class IOUTransactions extends Component {
                     }
 
                     const rejectableTransactions = this.getRejectableTransactions();
-                    const canBeRejected = _.contains(rejectableTransactions,
-                        reportAction.originalMessage.IOUTransactionID);
+                    const canBeRejected = _.contains(rejectableTransactions, reportAction.originalMessage.IOUTransactionID);
                     const isCurrentUserTransactionCreator = this.props.userEmail === reportAction.actorEmail;
                     return (
                         <ReportTransaction

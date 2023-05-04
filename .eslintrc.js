@@ -9,15 +9,7 @@ module.exports = {
     settings: {
         'import/resolver': {
             node: {
-                extensions: [
-                    '.js',
-                    '.website.js',
-                    '.desktop.js',
-                    '.native.js',
-                    '.ios.js',
-                    '.android.js',
-                    '.config.js',
-                ],
+                extensions: ['.js', '.website.js', '.desktop.js', '.native.js', '.ios.js', '.android.js', '.config.js'],
             },
         },
     },

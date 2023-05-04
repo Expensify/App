@@ -124,13 +124,7 @@ class TooltipRenderedOnPageBody extends React.PureComponent {
     }
 
     render() {
-        const {
-            animationStyle,
-            tooltipWrapperStyle,
-            tooltipTextStyle,
-            pointerWrapperStyle,
-            pointerStyle,
-        } = getTooltipStyles(
+        const {animationStyle, tooltipWrapperStyle, tooltipTextStyle, pointerWrapperStyle, pointerStyle} = getTooltipStyles(
             this.props.animation,
             this.props.windowWidth,
             this.props.xOffset,
@@ -158,15 +152,17 @@ class TooltipRenderedOnPageBody extends React.PureComponent {
 
         let content;
         if (this.props.renderTooltipContent) {
-            content = (
-                <View ref={contentRef}>
-                    {this.props.renderTooltipContent()}
-                </View>
-            );
+            content = <View ref={contentRef}>{this.props.renderTooltipContent()}</View>;
         } else {
             content = (
-                <Text numberOfLines={this.props.numberOfLines} style={tooltipTextStyle}>
-                    <Text style={tooltipTextStyle} ref={contentRef}>
+                <Text
+                    numberOfLines={this.props.numberOfLines}
+                    style={tooltipTextStyle}
+                >
+                    <Text
+                        style={tooltipTextStyle}
+                        ref={contentRef}
+                    >
                         {this.props.text}
                     </Text>
                 </Text>
