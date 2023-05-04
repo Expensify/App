@@ -1071,7 +1071,7 @@ function buildOptimisticIOUReport(ownerEmail, userEmail, total, chatReportID, cu
  * @param {String} chatReportID - Report ID of the PolicyExpenseChat where the Expense Report is
  * @param {String} policyID - The policy ID of the PolicyExpenseChat
  * @param {String} payeeEmail - Email of the employee (payee)
- * @param {Number} total - amount in cents
+ * @param {Number} total - Amount in cents
  * @param {String} currency
  * @param {String} locale - The user's preferred locale
  *
