@@ -4,6 +4,11 @@ import PropTypes from 'prop-types';
 import moment from 'moment';
 import _ from 'underscore';
 import lodashGet from 'lodash/get';
+<<<<<<< HEAD
+=======
+import Str from 'expensify-common/lib/str';
+import getNavigationModalCardStyle from '../../../styles/getNavigationModalCardStyles';
+>>>>>>> main
 import withWindowDimensions, {windowDimensionsPropTypes} from '../../../components/withWindowDimensions';
 import CONST from '../../../CONST';
 import compose from '../../compose';
@@ -125,10 +130,20 @@ class AuthScreens extends React.Component {
         // the chat switcher, or new group chat
         // based on the key modifiers pressed and the operating system
         this.unsubscribeSearchShortcut = KeyboardShortcut.subscribe(searchShortcutConfig.shortcutKey, () => {
-            Modal.close(() => Navigation.navigate(ROUTES.SEARCH));
+            Modal.close(() => {
+                if (Navigation.isActiveRoute(ROUTES.SEARCH)) {
+                    return;
+                }
+                return Navigation.navigate(ROUTES.SEARCH);
+            });
         }, searchShortcutConfig.descriptionKey, searchShortcutConfig.modifiers, true);
         this.unsubscribeGroupShortcut = KeyboardShortcut.subscribe(groupShortcutConfig.shortcutKey, () => {
-            Modal.close(() => Navigation.navigate(ROUTES.NEW_GROUP));
+            Modal.close(() => {
+                if (Navigation.isActiveRoute(ROUTES.NEW_GROUP)) {
+                    return;
+                }
+                Navigation.navigate(ROUTES.NEW_GROUP);
+            });
         }, groupShortcutConfig.descriptionKey, groupShortcutConfig.modifiers, true);
     }
 
@@ -199,6 +214,7 @@ class AuthScreens extends React.Component {
                         cardStyleInterpolator: props => modalCardStyleInterpolator(this.props.isSmallScreenWidth, false, props),
                     }}
                     component={CentralPaneNavigator}
+                    initialParams={{openOnAdminRoom: Str.toBool(openOnAdminRoom) || undefined}}
                 />
                 <RootStack.Screen
                     name="ValidateLogin"

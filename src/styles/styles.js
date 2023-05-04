@@ -20,6 +20,8 @@ import pointerEventsNone from './pointerEventsNone';
 import pointerEventsAuto from './pointerEventsAuto';
 import overflowXHidden from './overflowXHidden';
 import CONST from '../CONST';
+import cursor from './utilities/cursor';
+import userSelect from './utilities/userSelect';
 
 const picker = {
     backgroundColor: themeColors.transparent,
@@ -157,6 +159,8 @@ const styles = {
     ...wordBreak,
     ...whiteSpace,
     ...writingDirection,
+    ...cursor,
+    ...userSelect,
     ...themeColors,
 
     rateCol: {
@@ -332,6 +336,13 @@ const styles = {
         ...whiteSpace.preWrap,
         color: themeColors.heading,
         fontSize: variables.fontSizeXLarge,
+    },
+
+    textHeadlineH1: {
+        ...headlineFont,
+        ...whiteSpace.preWrap,
+        color: themeColors.heading,
+        fontSize: variables.fontSizeh1,
     },
 
     textDecorationNoLine: {
@@ -628,8 +639,8 @@ const styles = {
             appearance: 'none',
             height: 26,
             opacity: 1,
-            cursor: 'pointer',
             backgroundColor,
+            ...cursor.cursorPointer,
         },
         inputAndroid: {
             fontFamily: fontFamily.EXP_NEUE,
@@ -941,7 +952,7 @@ const styles = {
 
         inputWeb: {
             appearance: 'none',
-            cursor: disabled ? 'not-allowed' : 'pointer',
+            ...(disabled ? cursor.cursorDisabled : cursor.cursorPointer),
             ...picker,
             backgroundColor,
         },
@@ -1349,8 +1360,7 @@ const styles = {
         // Starting version 6.3.2 @react-navigation/drawer adds "user-select: none;" to its container.
         // We add user-select-auto to the inner component to prevent incorrect triple-click text selection.
         // For further explanation see - https://github.com/Expensify/App/pull/12730/files#r1022883823
-        userSelect: 'text',
-        WebkitUserSelect: 'text',
+        ...userSelect.userSelectText,
     },
 
     appContentHeader: {
@@ -1445,7 +1455,7 @@ const styles = {
         fontFamily: fontFamily.EXP_NEUE,
         lineHeight: variables.lineHeightXLarge,
         maxWidth: '100%',
-        cursor: 'auto',
+        ...cursor.cursorAuto,
         ...whiteSpace.preWrap,
         ...wordBreak.breakWord,
     },
@@ -1496,6 +1506,19 @@ const styles = {
         flex: 1,
     },
 
+    chatItemDraft: {
+        display: 'flex',
+        flexDirection: 'row',
+        paddingTop: 8,
+        paddingBottom: 8,
+        paddingLeft: 20,
+        paddingRight: 20,
+    },
+
+    chatItemReactionsDraftRight: {
+        marginLeft: 52,
+    },
+
     // Be extremely careful when editing the compose styles, as it is easy to introduce regressions.
     // Make sure you run the following tests against any changes: #12669
     textInputCompose: addOutlineWidth({
@@ -1528,7 +1551,7 @@ const styles = {
 
     editInputComposeSpacing: {
         backgroundColor: themeColors.transparent,
-        marginVertical: 6,
+        marginVertical: 8,
     },
 
     // composer padding should not be modified unless thoroughly tested against the cases in this PR: #12669
@@ -1536,6 +1559,11 @@ const styles = {
         paddingVertical: 5,
         ...flex.flexRow,
         flex: 1,
+    },
+
+    textInputComposeBorder: {
+        borderLeftWidth: 1,
+        borderColor: themeColors.border,
     },
 
     chatItemSubmitButton: {
@@ -1636,11 +1664,6 @@ const styles = {
         backgroundColor: themeColors.buttonHoveredBG,
     },
 
-    chatItemAttachBorder: {
-        borderRightColor: themeColors.border,
-        borderRightWidth: 1,
-    },
-
     composerSizeButton: {
         alignSelf: 'center',
         height: 32,
@@ -1677,8 +1700,7 @@ const styles = {
     }),
 
     navigationModalOverlay: {
-        userSelect: 'none',
-        WebkitUserSelect: 'none',
+        ...userSelect.userSelectNone,
         position: 'absolute',
         width: '100%',
         height: '100%',
@@ -1709,14 +1731,6 @@ const styles = {
         width: 24,
         backgroundColor: themeColors.icon,
         borderRadius: 24,
-    },
-
-    horizontalStackedAvatar: {
-        height: 28,
-        width: 28,
-        backgroundColor: themeColors.appBG,
-        paddingTop: 2,
-        alignItems: 'center',
     },
 
     singleSubscript: {
@@ -1839,49 +1853,21 @@ const styles = {
     },
 
     emptyAvatar: {
-        marginRight: variables.avatarChatSpacing,
         height: variables.avatarSizeNormal,
         width: variables.avatarSizeNormal,
     },
 
     emptyAvatarSmall: {
-        marginRight: variables.avatarChatSpacing - 4,
         height: variables.avatarSizeSmall,
         width: variables.avatarSizeSmall,
     },
 
-    horizontalStackedAvatar1: {
-        left: -19,
-        top: -79,
-        zIndex: 2,
+    emptyAvatarMargin: {
+        marginRight: variables.avatarChatSpacing,
     },
 
-    horizontalStackedAvatar2: {
-        left: 1,
-        top: -51,
-        zIndex: 3,
-    },
-
-    horizontalStackedAvatar3: {
-        left: 21,
-        top: -23,
-        zIndex: 4,
-    },
-
-    horizontalStackedAvatar4: {
-        top: 5,
-        left: 41,
-        zIndex: 5,
-    },
-
-    horizontalStackedAvatar4Overlay: {
-        top: -107,
-        left: 41,
-        height: 28,
-        width: 28,
-        borderWidth: 2,
-        borderStyle: 'solid',
-        zIndex: 6,
+    emptyAvatarMarginSmall: {
+        marginRight: variables.avatarChatSpacing - 4,
     },
 
     modalViewContainer: {
@@ -2193,7 +2179,7 @@ const styles = {
         flexDirection: 'row',
         alignItems: 'center',
         zIndex: 1,
-        cursor: 'default',
+        ...cursor.cursorDefault,
     },
 
     unreadIndicatorLine: {
@@ -2249,26 +2235,23 @@ const styles = {
     attachmentModalArrowsContainer: {
         display: 'flex',
         justifyContent: 'center',
-        cursor: 'unset',
         height: '100%',
         width: '100%',
+        ...cursor.cursorUnset,
     },
 
-    leftAttachmentArrow: {
+    attachmentArrow: {
         zIndex: 23,
         position: 'absolute',
-        left: 32,
-    },
-
-    rightAttachmentArrow: {
-        zIndex: 23,
-        position: 'absolute',
-        right: 32,
     },
 
     arrowIcon: {
-        height: 52,
-        width: 52,
+        height: 40,
+        width: 40,
+        alignItems: 'center',
+        paddingHorizontal: 0,
+        paddingTop: 0,
+        paddingBottom: 0,
     },
 
     detailsPageSectionVersion: {
@@ -2325,6 +2308,18 @@ const styles = {
 
     checkedContainer: {
         backgroundColor: themeColors.checkBox,
+    },
+
+    magicCodeInputContainer: {
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+        minHeight: variables.inputHeight,
+    },
+
+    magicCodeInput: {
+        fontSize: variables.fontSizeXLarge,
+        color: themeColors.heading,
+        lineHeight: variables.inputHeight,
     },
 
     iouAmountText: {
@@ -2513,14 +2508,6 @@ const styles = {
         borderLeftWidth: 4,
         paddingLeft: 12,
         marginVertical: 4,
-    },
-
-    cursorDefault: {
-        cursor: 'default',
-    },
-
-    cursorDisabled: {
-        cursor: 'not-allowed',
     },
 
     noSelect: {
@@ -2897,7 +2884,7 @@ const styles = {
         alignItems: 'center',
         justifyContent: 'center',
         backgroundColor: themeColors.imageCropBackgroundColor,
-        cursor: 'move',
+        ...cursor.cursorMove,
     },
 
     sliderKnobTooltipView: {
@@ -2913,7 +2900,7 @@ const styles = {
         width: variables.sliderKnobSize,
         borderRadius: variables.sliderKnobSize / 2,
         left: -(variables.sliderKnobSize / 2),
-        cursor: 'pointer',
+        ...cursor.cursorPointer,
     },
 
     sliderBar: {
@@ -2922,16 +2909,6 @@ const styles = {
         borderRadius: variables.sliderBarHeight / 2,
         alignSelf: 'stretch',
         justifyContent: 'center',
-    },
-
-    userSelectText: {
-        userSelect: 'text',
-        WebkitUserSelect: 'text',
-    },
-
-    userSelectNone: {
-        userSelect: 'none',
-        WebkitUserSelect: 'none',
     },
 
     screenCenteredContainer: {
@@ -3065,6 +3042,7 @@ const styles = {
         fontSize: 13,
         marginLeft: 4,
         fontWeight: 'bold',
+        fontVariant: ['tabular-nums'],
     },
 
     fontColorReactionLabel: {
@@ -3166,6 +3144,9 @@ const styles = {
 
     whisper: {
         backgroundColor: themeColors.cardBG,
+    },
+    contextMenuItemPopoverMaxWidth: {
+        maxWidth: 375,
     },
 };
 

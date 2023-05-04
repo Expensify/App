@@ -161,7 +161,7 @@ class MoneyRequestParticipantsSelector extends Component {
                 onSelectRow={this.addSingleParticipant}
                 onChangeText={this.updateOptionsWithSearchTerm}
                 headerMessage={headerMessage}
-                placeholderText={this.props.translate('optionsSelector.nameEmailOrPhoneNumber')}
+                textInputLabel={this.props.translate('optionsSelector.nameEmailOrPhoneNumber')}
                 boldStyle
                 safeAreaPaddingBottomStyle={this.props.safeAreaPaddingBottomStyle}
             />
