@@ -159,7 +159,7 @@ class InitialSettingsPage extends React.Component {
     getDefaultMenuItems() {
         const policiesAvatars = _.chain(this.props.policies)
             .filter(policy => PolicyUtils.shouldShowPolicy(policy, this.props.network.isOffline))
-            .sortBy(policy => policy.name)
+            .sortBy(policy => policy.name.toLowerCase())
             .map(policy => ({
                 source: policy.avatar || ReportUtils.getDefaultWorkspaceAvatar(policy.name),
                 name: policy.name,
@@ -181,6 +181,7 @@ class InitialSettingsPage extends React.Component {
                 action: () => { Navigation.navigate(ROUTES.SETTINGS_WORKSPACES); },
                 floatRightAvatars: policiesAvatars,
                 shouldStackHorizontally: true,
+                avatarSize: CONST.AVATAR_SIZE.SMALLER,
                 brickRoadIndicator: policyBrickRoadIndicator,
             },
             {
@@ -246,6 +247,7 @@ class InitialSettingsPage extends React.Component {
                 brickRoadIndicator={item.brickRoadIndicator}
                 floatRightAvatars={item.floatRightAvatars}
                 shouldStackHorizontally={item.shouldStackHorizontally}
+                avatarSize={item.avatarSize}
                 ref={this.popoverAnchor}
                 shouldBlockSelection={Boolean(item.link)}
                 onSecondaryInteraction={!_.isEmpty(item.link) ? e => ReportActionContextMenu.showContextMenu(CONTEXT_MENU_TYPES.LINK, e, item.link, this.popoverAnchor.current) : undefined}

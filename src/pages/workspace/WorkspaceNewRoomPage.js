@@ -138,7 +138,10 @@ class WorkspaceNewRoomPage extends React.Component {
         }));
 
         return (
-            <ScreenWrapper includeSafeAreaPaddingBottom={false}>
+            <ScreenWrapper
+                includeSafeAreaPaddingBottom={false}
+                shouldEnablePickerAvoiding={false}
+            >
                 <HeaderWithBackButton
                     title={this.props.translate('newRoomPage.newRoom')}
                 />

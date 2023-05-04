@@ -137,7 +137,7 @@ class WorkspacesListPage extends Component {
                 dismissError: () => dismissWorkspaceError(policy.id, policy.pendingAction),
                 disabled: policy.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
             }))
-            .sortBy(policy => policy.title)
+            .sortBy(policy => policy.title.toLowerCase())
             .value();
     }
 

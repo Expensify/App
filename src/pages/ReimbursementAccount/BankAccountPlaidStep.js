@@ -67,7 +67,10 @@ class BankAccountPlaidStep extends React.Component {
         const selectedPlaidAccountID = lodashGet(this.props.reimbursementAccountDraft, 'plaidAccountID', '');
 
         return (
-            <ScreenWrapper includeSafeAreaPaddingBottom={false}>
+            <ScreenWrapper
+                includeSafeAreaPaddingBottom={false}
+                shouldEnablePickerAvoiding={false}
+            >
                 <HeaderWithBackButton
                     title={this.props.translate('workspace.common.bankAccount')}
                     stepCounter={{step: 1, total: 5}}

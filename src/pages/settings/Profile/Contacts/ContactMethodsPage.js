@@ -59,7 +59,14 @@ const defaultProps = {
 };
 
 const ContactMethodsPage = (props) => {
-    const loginMenuItems = _.map(props.loginList, (login, loginName) => {
+    const loginNames = _.keys(props.loginList);
+
+    // Sort the login names by placing the one corresponding to the default contact method as the first item before displaying the contact methods.
+    // The default contact method is determined by checking against the session email (the current login).
+    const sortedLoginNames = _.sortBy(loginNames, loginName => (props.loginList[loginName].partnerUserID === props.session.email ? 0 : 1));
+
+    const loginMenuItems = _.map(sortedLoginNames, (loginName) => {
+        const login = props.loginList[loginName];
         const pendingAction = lodashGet(login, 'pendingFields.deletedLogin') || lodashGet(login, 'pendingFields.addedLogin');
         if (!login.partnerUserID && _.isEmpty(pendingAction)) {
             return null;

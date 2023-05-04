@@ -70,6 +70,7 @@ class BaseOptionsSelector extends Component {
             enterConfig.modifiers,
             true,
             () => !this.state.allOptions[this.state.focusedIndex],
+            1,
         );
 
         const CTRLEnterConfig = CONST.KEYBOARD_SHORTCUTS.CTRL_ENTER;
@@ -341,7 +342,7 @@ class BaseOptionsSelector extends Component {
                                 </>
                             ) : (
                                 <>
-                                    <View style={[styles.ph5, styles.pv3]}>
+                                    <View style={[styles.ph5, styles.pb3]}>
                                         {this.props.children}
                                         {this.props.shouldShowTextInput && textInput}
                                     </View>
@@ -359,7 +360,7 @@ class BaseOptionsSelector extends Component {
                                 text={defaultConfirmButtonText}
                                 onPress={this.props.onConfirmSelection}
                                 pressOnEnter
-                                enterKeyEventListenerPriority={1}
+                                enterKeyEventListenerPriority={2}
                             />
                         )}
                         {this.props.footerContent}

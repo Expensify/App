@@ -128,7 +128,7 @@ class PronounsPage extends Component {
                             title={this.props.translate('pronounsPage.pronouns')}
                             onBackButtonPress={() => Navigation.goBack(ROUTES.SETTINGS_PROFILE)}
                         />
-                        <Text style={styles.ph5}>
+                        <Text style={[styles.ph5, styles.mb3]}>
                             {this.props.translate('pronounsPage.isShownOnProfile')}
                         </Text>
                         <OptionsSelector

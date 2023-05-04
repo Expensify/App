@@ -16,6 +16,17 @@ function hasPolicyMemberError(policyMemberList) {
 }
 
 /**
+ * Check if the policy has any error fields.
+ *
+ * @param {Object} policy
+ * @param {Object} policy.errorFields
+ * @return {Boolean}
+ */
+function hasPolicyErrorFields(policy) {
+    return _.some(lodashGet(policy, 'errorFields', {}), fieldErrors => !_.isEmpty(fieldErrors));
+}
+
+/**
  * Check if the policy has any errors, and if it doesn't, then check if it has any error fields.
  *
  * @param {Object} policy
@@ -26,7 +37,7 @@ function hasPolicyMemberError(policyMemberList) {
 function hasPolicyError(policy) {
     return !_.isEmpty(lodashGet(policy, 'errors', {}))
         ? true
-        : _.some(lodashGet(policy, 'errorFields', {}), fieldErrors => !_.isEmpty(fieldErrors));
+        : hasPolicyErrorFields(policy);
 }
 
 /**
@@ -40,7 +51,7 @@ function hasCustomUnitsError(policy) {
 }
 
 /**
- * Get the brick road indicator status for a policy. The policy has an error status if there is a policy member error or a policy error.
+ * Get the brick road indicator status for a policy. The policy has an error status if there is a policy member error, a custom unit error or a field error.
  *
  * @param {Object} policy
  * @param {String} policy.id
@@ -49,7 +60,7 @@ function hasCustomUnitsError(policy) {
  */
 function getPolicyBrickRoadIndicatorStatus(policy, policyMembers) {
     const policyMemberList = lodashGet(policyMembers, `${ONYXKEYS.COLLECTION.POLICY_MEMBER_LIST}${policy.id}`, {});
-    if (hasPolicyMemberError(policyMemberList) || hasCustomUnitsError(policy)) {
+    if (hasPolicyMemberError(policyMemberList) || hasCustomUnitsError(policy) || hasPolicyErrorFields(policy)) {
         return CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR;
     }
     return '';
@@ -88,6 +99,7 @@ function isExpensifyTeam(email) {
 export {
     hasPolicyMemberError,
     hasPolicyError,
+    hasPolicyErrorFields,
     hasCustomUnitsError,
     getPolicyBrickRoadIndicatorStatus,
     shouldShowPolicy,

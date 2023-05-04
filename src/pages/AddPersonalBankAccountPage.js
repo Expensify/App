@@ -85,7 +85,10 @@ class AddPersonalBankAccountPage extends React.Component {
         const shouldShowSuccess = lodashGet(this.props, 'personalBankAccount.shouldShowSuccess', false);
 
         return (
-            <ScreenWrapper includeSafeAreaPaddingBottom={shouldShowSuccess}>
+            <ScreenWrapper
+                includeSafeAreaPaddingBottom={shouldShowSuccess}
+                shouldEnablePickerAvoiding={false}
+            >
                 <HeaderWithBackButton
                     title={this.props.translate('bankAccount.addBankAccount')}
                     onBackButtonPress={() => Navigation.goBack(ROUTES.SETTINGS_PAYMENTS)}

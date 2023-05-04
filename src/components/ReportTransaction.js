@@ -30,11 +30,15 @@ const propTypes = {
     /** Type of the reject transaction button */
     rejectButtonType: PropTypes.oneOf([CONST.IOU.REPORT_ACTION_TYPE.DECLINE, CONST.IOU.REPORT_ACTION_TYPE.CANCEL]).isRequired,
 
+    /** Indicates whether pressing the reject button should hide the details sidebar */
+    shouldCloseOnReject: PropTypes.bool,
+
     ...withLocalizePropTypes,
 };
 
 const defaultProps = {
     canBeRejected: false,
+    shouldCloseOnReject: false,
 };
 
 class ReportTransaction extends Component {
@@ -50,6 +54,7 @@ class ReportTransaction extends Component {
             this.props.iouReportID,
             this.props.rejectButtonType,
             this.props.action,
+            this.props.shouldCloseOnReject,
         );
     }
 

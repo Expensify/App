@@ -14,6 +14,11 @@ import * as IOU from '../../libs/actions/IOU';
 import * as CurrencySymbolUtils from '../../libs/CurrencySymbolUtils';
 import {withNetwork} from '../../components/OnyxProvider';
 import ROUTES from '../../ROUTES';
+import CONST from '../../CONST';
+import themeColors from '../../styles/themes/default';
+import * as Expensicons from '../../components/Icon/Expensicons';
+
+const greenCheckmark = {src: Expensicons.Checkmark, color: themeColors.success};
 
 /**
  * IOU Currency selection for selecting currency
@@ -31,11 +36,22 @@ const propTypes = {
         ISO4217: PropTypes.string,
     })),
 
+    /* Onyx Props */
+
+    /** Holds data related to IOU view state, rather than the underlying IOU data. */
+    iou: PropTypes.shape({
+        /** Selected Currency Code of the current IOU */
+        selectedCurrencyCode: PropTypes.string,
+    }),
+
     ...withLocalizePropTypes,
 };
 
 const defaultProps = {
     currencyList: {},
+    iou: {
+        selectedCurrencyCode: CONST.CURRENCY.USD,
+    },
 };
 
 class IOUCurrencySelection extends Component {
@@ -76,11 +92,16 @@ class IOUCurrencySelection extends Component {
      * @returns {Object}
      */
     getCurrencyOptions() {
-        return _.map(this.props.currencyList, (currencyInfo, currencyCode) => ({
-            text: `${currencyCode} - ${CurrencySymbolUtils.getLocalizedCurrencySymbol(this.props.preferredLocale, currencyCode)}`,
-            currencyCode,
-            keyForList: currencyCode,
-        }));
+        return _.map(this.props.currencyList, (currencyInfo, currencyCode) => {
+            const isSelectedCurrency = currencyCode === this.props.iou.selectedCurrencyCode;
+            return {
+                text: `${currencyCode} - ${CurrencySymbolUtils.getLocalizedCurrencySymbol(this.props.preferredLocale, currencyCode)}`,
+                currencyCode,
+                keyForList: currencyCode,
+                customIcon: isSelectedCurrency ? greenCheckmark : undefined,
+                boldStyle: isSelectedCurrency,
+            };
+        });
     }
 
     /**
@@ -125,9 +146,10 @@ class IOUCurrencySelection extends Component {
                             onSelectRow={this.confirmCurrencySelection}
                             value={this.state.searchValue}
                             onChangeText={this.changeSearchValue}
-                            placeholderText={this.props.translate('common.search')}
+                            textInputLabel={this.props.translate('common.search')}
                             headerMessage={headerMessage}
                             safeAreaPaddingBottomStyle={safeAreaPaddingBottomStyle}
+                            initiallyFocusedOptionKey={_.get(_.find(this.state.currencyData, currency => currency.currencyCode === this.props.iou.selectedCurrencyCode), 'keyForList')}
                         />
                     </>
                 )}
@@ -143,6 +165,9 @@ export default compose(
     withLocalize,
     withOnyx({
         currencyList: {key: ONYXKEYS.CURRENCY_LIST},
+        iou: {
+            key: ONYXKEYS.IOU,
+        },
     }),
     withNetwork(),
 )(IOUCurrencySelection);
