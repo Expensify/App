@@ -32,7 +32,7 @@ function hasOldCurrencyData() {
  *
  * @param {String} locale
  */
-export default function intlPolyfill(locale) {
+function intlPolyfill(locale) {
     if (shouldPolyfillGetCanonicalLocales() && !polyfills[CONST.INTL_POLYFILLS.GET_CANONICAL_LOCALES]) {
         require('@formatjs/intl-getcanonicallocales/polyfill');
         polyfills[CONST.INTL_POLYFILLS.GET_CANONICAL_LOCALES] = true;
@@ -62,5 +62,12 @@ export default function intlPolyfill(locale) {
     }
 }
 
-intlPolyfill(CONST.LOCALES.DEFAULT);
-BaseLocaleListener.connect(intlPolyfill);
+export default function init() {
+    intlPolyfill(CONST.LOCALES.DEFAULT);
+    BaseLocaleListener.connect((locale) => {
+        if (!locale) {
+            return;
+        }
+        intlPolyfill(locale);
+    });
+}
