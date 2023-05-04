@@ -53,16 +53,16 @@ class KeyboardShortcutsModal extends React.Component {
         this.unsubscribeCloseEnterModal = KeyboardShortcut.subscribe(closeShortcutEnterModalConfig.shortcutKey, () => {
             ModalActions.close();
             KeyboardShortcutsActions.hideKeyboardShortcutModal();
-        }, closeShortcutEnterModalConfig.descriptionKey, closeShortcutEnterModalConfig.modifiers, true, () => !this.props.isShortcutsModalOpen);
+        }, closeShortcutEnterModalConfig.descriptionKey, closeShortcutEnterModalConfig.modifiers, true, () => !this.props.isShortcutsModalOpen, 0, true, ['TEXTAREA']);
 
         // Intercept arrow up and down keys to prevent scrolling ArrowKeyFocusManager while this modal is open
         const arrowUpConfig = CONST.KEYBOARD_SHORTCUTS.ARROW_UP;
         this.unsubscribeArrowUpKey = KeyboardShortcut.subscribe(arrowUpConfig.shortcutKey, () => {
-        }, arrowUpConfig.descriptionKey, arrowUpConfig.modifiers, true, () => !this.props.isShortcutsModalOpen);
+        }, arrowUpConfig.descriptionKey, arrowUpConfig.modifiers, true, () => !this.props.isShortcutsModalOpen, 0, true, ['TEXTAREA']);
 
         const arrowDownConfig = CONST.KEYBOARD_SHORTCUTS.ARROW_DOWN;
         this.unsubscribeArrowDownKey = KeyboardShortcut.subscribe(arrowDownConfig.shortcutKey, () => {
-        }, arrowDownConfig.descriptionKey, arrowDownConfig.modifiers, true, () => !this.props.isShortcutsModalOpen);
+        }, arrowDownConfig.descriptionKey, arrowDownConfig.modifiers, true, () => !this.props.isShortcutsModalOpen, 0, true, ['TEXTAREA']);
     }
 
     componentWillUnmount() {
