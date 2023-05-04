@@ -1024,8 +1024,8 @@ export default {
             unlockNoVBACopy: 'Connect a bank account to reimburse your workspace members online.',
             fastReimbursementsVBACopy: 'You\'re all set to reimburse receipts from your bank account!',
             updateCustomUnitError: "Your changes couldn't be saved. The workspace was modified while you were offline, please try again.",
-            invalidRateError: "Please enter a valid rate",
-            per: "per",
+            invalidRateError: 'Please enter a valid rate',
+            per: 'per',
         },
         bills: {
             manageYourBills: 'Manage your bills',

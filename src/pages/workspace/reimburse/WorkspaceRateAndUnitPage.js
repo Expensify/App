@@ -1,6 +1,5 @@
 import React from 'react';
 import {Keyboard, View} from 'react-native';
-import {withOnyx} from 'react-native-onyx';
 import PropTypes from 'prop-types';
 import _ from 'underscore';
 import lodashGet from 'lodash/get';
@@ -10,8 +9,6 @@ import withLocalize, {withLocalizePropTypes} from '../../../components/withLocal
 import styles from '../../../styles/styles';
 import compose from '../../../libs/compose';
 import * as Policy from '../../../libs/actions/Policy';
-import * as Expensicons from '../../../components/Icon/Expensicons';
-import AvatarWithImagePicker from '../../../components/AvatarWithImagePicker';
 import CONST from '../../../CONST';
 import Picker from '../../../components/Picker';
 import TextInput from '../../../components/TextInput';
@@ -20,23 +17,15 @@ import withPolicy, {policyPropTypes, policyDefaultProps} from '../withPolicy';
 import {withNetwork} from '../../../components/OnyxProvider';
 import OfflineWithFeedback from '../../../components/OfflineWithFeedback';
 import Form from '../../../components/Form';
-import * as ReportUtils from '../../../libs/ReportUtils';
-import Avatar from '../../../components/Avatar';
 import Navigation from '../../../libs/Navigation/Navigation';
 import ROUTES from '../../../ROUTES';
 
 const propTypes = {
-    // The currency list constant object from Onyx
-    currencyList: PropTypes.objectOf(PropTypes.shape({
-        // Symbol for the currency
-        symbol: PropTypes.string,
-    })),
     ...policyPropTypes,
     ...withLocalizePropTypes,
 };
 
 const defaultProps = {
-    currencyList: {},
     ...policyDefaultProps,
 };
 
@@ -59,7 +48,6 @@ class WorkspaceRateAndUnitPage extends React.Component {
         this.validate = this.validate.bind(this);
     }
 
-    
     getUnitRateValue(customUnitRate) {
         return this.getRateDisplayValue(lodashGet(customUnitRate, 'rate', 0) / CONST.POLICY.CUSTOM_UNIT_RATE_BASE_OFFSET);
     }
@@ -87,48 +75,39 @@ class WorkspaceRateAndUnitPage extends React.Component {
 
         return numValue.toFixed(3);
     }
-    saveUnitAndRate(unit, rate){
-        
-        
-        
+
+    saveUnitAndRate(unit, rate) {
         const distanceCustomUnit = _.find(lodashGet(this.props, 'policy.customUnits', {}), u => u.name === 'Distance');
-        if (!distanceCustomUnit) {
-            Log.warn('Policy has no customUnits, returning early.', {
-                policyID: this.props.policy.id,
-            });
+        if (!distanceCustomUnit)
             return;
-        }
-        
-        //rate part
+
+        // rate part
         const rateNumValue = this.getNumericValue(rate);
         const currentCustomUnitRate = lodashGet(distanceCustomUnit, ['rates', this.state.unitRateID], {});      
-        
-        //unit part
+
+        // unit part
         const newCustomUnit = {
             customUnitID: this.state.unitID,
             name: this.state.unitName,
-            attributes: {unit: unit},
+            attributes: {unit},
             rates: {
                 ...currentCustomUnitRate,
                 rate: rateNumValue * CONST.POLICY.CUSTOM_UNIT_RATE_BASE_OFFSET,
             },
         };
-        
         Policy.updateWorkspaceCustomUnitAndRate(this.props.policy.id, distanceCustomUnit, newCustomUnit, this.props.policy.lastModified);
     }
 
     submit(values) {
         this.saveUnitAndRate(values.unit, values.rate);
-        
         Keyboard.dismiss();
         Navigation.navigate(ROUTES.getWorkspaceReimburseRoute(this.props.policy.id));
     }
 
     validate(values) {
         const errors = {};
-        
         const decimalNumberRegex = new RegExp(/^\d+((,|\.)\d+)?$/);
-        if(!decimalNumberRegex.test(values.rate)){
+        if (!decimalNumberRegex.test(values.rate)) {
             errors.rate = this.props.translate('workspace.reimburse.invalidRateError');
         }
 
@@ -143,7 +122,7 @@ class WorkspaceRateAndUnitPage extends React.Component {
                 route={this.props.route}
                 guidesCallTaskID={CONST.GUIDES_CALL_TASK_IDS.WORKSPACE_REIMBURSE}
                 shouldSkipVBBACall
-                backButtonRoute = {ROUTES.getWorkspaceReimburseRoute(this.props.policy.id)}
+                backButtonRoute={ROUTES.getWorkspaceReimburseRoute(this.props.policy.id)}
             >
                 {() => (
                     <Form
@@ -155,19 +134,15 @@ class WorkspaceRateAndUnitPage extends React.Component {
                         onSubmit={this.submit}
                         enabledWhenOffline
                     >
-                       
-                            
                         <OfflineWithFeedback
                             pendingAction={lodashGet(this.props.policy, 'pendingFields.generalSettings')}
                         >
                             <TextInput
                                 inputID="rate"
-                                
                                 containerStyles={[styles.mt4]}
                                 defaultValue={this.state.unitRateValue}
                                 label={this.props.translate('workspace.reimburse.trackDistanceRate')}
                                 placeholder={this.state.outputCurrency}
-                                
                                 autoCompleteType="off"
                                 autoCorrect={false}
                                 keyboardType={CONST.KEYBOARD_TYPE.DECIMAL_PAD}
@@ -185,8 +160,7 @@ class WorkspaceRateAndUnitPage extends React.Component {
                         </OfflineWithFeedback>
                     </Form>
                 )}
-            </WorkspacePageWithSections>   
-            
+            </WorkspacePageWithSections>
         );
     }
 }

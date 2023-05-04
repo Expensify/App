@@ -510,8 +510,6 @@ function hideWorkspaceAlertMessage(policyID) {
  * @param {String} policyID
  * @param {Object} currentCustomUnit
  * @param {Object} newCustomUnit
- * @param {Object} currentCustomUnitRate
- * @param {Object} newCustomUnitRate
  * @param {Number} lastModified
  */
 function updateWorkspaceCustomUnitAndRate(policyID, currentCustomUnit, newCustomUnit, lastModified) {
@@ -523,7 +521,7 @@ function updateWorkspaceCustomUnitAndRate(policyID, currentCustomUnit, newCustom
                 customUnits: {
                     [newCustomUnit.customUnitID]: {
                         ...newCustomUnit,
-                        rates:{
+                        rates: {
                             [newCustomUnit.rates.customUnitRateID]: {
                                 ...newCustomUnit.rates,
                                 errors: null,
@@ -531,7 +529,7 @@ function updateWorkspaceCustomUnitAndRate(policyID, currentCustomUnit, newCustom
                             },
                         },
                         pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
-                    },  
+                    },
                 },
             },
         },
@@ -586,7 +584,6 @@ function updateWorkspaceCustomUnitAndRate(policyID, currentCustomUnit, newCustom
         customUnitRate: JSON.stringify(newCustomUnit.rates),
     }, {optimisticData, successData, failureData});
 }
-
 
 /**
  * Removes an error after trying to delete a member

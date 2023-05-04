@@ -55,8 +55,8 @@ const propTypes = {
 
     /** The guides call task ID to associate with the workspace page being shown */
     guidesCallTaskID: PropTypes.string,
-    
-    /** The route where we navigate when the user press the back button*/
+
+    /** The route where we navigate when the user press the back button */
     backButtonRoute: PropTypes.string,
 
     /** Policy values needed in the component */
@@ -82,8 +82,6 @@ const defaultProps = {
 };
 
 class WorkspacePageWithSections extends React.Component {
-    
-    
     componentDidMount() {
         this.fetchData();
     }
@@ -110,7 +108,7 @@ class WorkspacePageWithSections extends React.Component {
         const isUsingECard = lodashGet(this.props.user, 'isUsingExpensifyCard', false);
         const policyID = lodashGet(this.props.route, 'params.policyID');
         const policyName = lodashGet(this.props.policy, 'name');
-        const backButtonRoute = this.props.backButtonRoute == "" ? ROUTES.getWorkspaceInitialRoute(policyID) : this.props.backButtonRoute;
+        const backButtonRoute = this.props.backButtonRoute === '' ? ROUTES.getWorkspaceInitialRoute(policyID) : this.props.backButtonRoute;
 
         return (
             <ScreenWrapper includeSafeAreaPaddingBottom={false}>

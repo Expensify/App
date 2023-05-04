@@ -1025,9 +1025,8 @@ export default {
             unlockNoVBACopy: 'Conecta una cuenta bancaria para reembolsar online a los miembros de tu espacio de trabajo.',
             fastReimbursementsVBACopy: '¡Todo listo para reembolsar recibos desde tu cuenta bancaria!',
             updateCustomUnitError: 'Los cambios no han podido ser guardados. El espacio de trabajo ha sido modificado mientras estabas desconectado. Por favor, inténtalo de nuevo.',
-            invalidRateError: "Por favor ingrese una tarifa válida",
-            per: "por",
-            
+            invalidRateError: 'Por favor ingrese una tarifa válida',
+            per: 'por',
         },
         bills: {
             manageYourBills: 'Gestiona tus facturas',

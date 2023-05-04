@@ -1,16 +1,12 @@
 import React from 'react';
-import {View, Button} from 'react-native';
+import {View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import PropTypes from 'prop-types';
 import lodashGet from 'lodash/get';
 import _ from 'underscore';
 import MenuItemWithTopDescription from '../../../components/MenuItemWithTopDescription';
-import TextInput from '../../../components/TextInput';
-
-import Picker from '../../../components/Picker';
 import Text from '../../../components/Text';
 import styles from '../../../styles/styles';
-import themeColors from '../../../styles/themes/default';
 import withLocalize, {withLocalizePropTypes} from '../../../components/withLocalize';
 import * as Expensicons from '../../../components/Icon/Expensicons';
 import * as Illustrations from '../../../components/Icon/Illustrations';
@@ -24,11 +20,8 @@ import CONST from '../../../CONST';
 import ROUTES from '../../../ROUTES';
 import ONYXKEYS from '../../../ONYXKEYS';
 import * as ReimbursementAccountProps from '../../ReimbursementAccount/reimbursementAccountPropTypes';
-import getPermittedDecimalSeparator from '../../../libs/getPermittedDecimalSeparator';
 import {withNetwork} from '../../../components/OnyxProvider';
-import OfflineWithFeedback from '../../../components/OfflineWithFeedback';
 import networkPropTypes from '../../../components/networkPropTypes';
-import Log from '../../../libs/Log';
 import WorkspaceReimburseSection from './WorkspaceReimburseSection';
 import * as BankAccounts from '../../../libs/actions/BankAccounts';
 
@@ -75,23 +68,19 @@ class WorkspaceReimburseView extends React.Component {
         super(props);
         this.getCurrentRatePerUnitLabel = this.getCurrentRatePerUnitLabel.bind(this);
         this.state = {
-            currentRatePerUnit : this.getCurrentRatePerUnitLabel(),
+            currentRatePerUnit: this.getCurrentRatePerUnitLabel(),
         };
     }
 
     componentDidMount() {
         this.fetchData();
     }
-    
-    
 
     componentDidUpdate(prevProps) {
-        
-        
         if (prevProps.policy.customUnits !== this.props.policy.customUnits) {
-            this.state.currentRatePerUnit = this.getCurrentRatePerUnitLabel()
+            this.state.currentRatePerUnit = this.getCurrentRatePerUnitLabel();
         }
-        
+
         const reconnecting = prevProps.network.isOffline && !this.props.network.isOffline;
         if (!reconnecting) {
             return;
@@ -106,7 +95,6 @@ class WorkspaceReimburseView extends React.Component {
         const currentRate = this.getRateLabel(customUnitRate);
         const perWord = this.props.translate('workspace.reimburse.per');
         return `${currentRate} ${perWord} ${currentUnit}`.trim();
-        
     }
 
     getRateLabel(customUnitRate) {
@@ -114,11 +102,14 @@ class WorkspaceReimburseView extends React.Component {
     }
 
     getUnitLabel(value) {
-        if(value=='km')
+        if (value==='km') {
             return this.props.translate('workspace.reimburse.kilometers').toLowerCase();
-        else if (value='mi')
+        }
+        if (value==='mi') {
             return this.props.translate('workspace.reimburse.miles').toLowerCase();
-        else return '';
+        }
+        return '';
+
     }
 
     getRateDisplayValue(value) {
@@ -134,12 +125,8 @@ class WorkspaceReimburseView extends React.Component {
         if (Number.isNaN(numValue)) {
             return NaN;
         }
-
         return numValue.toFixed(3);
     }
-
-    
-    
 
     fetchData() {
         // Instead of setting the reimbursement account loading within the optimistic data of the API command, use a separate action so that the Onyx value is updated right away.
@@ -149,14 +136,8 @@ class WorkspaceReimburseView extends React.Component {
         Policy.openWorkspaceReimburseView(this.props.policy.id);
     }
 
-   
-
-    
-    
-
     render() {
         const viewAllReceiptsUrl = `expenses?policyIDList=${this.props.policy.id}&billableReimbursable=reimbursable&submitterEmail=%2B%2B`;
-        
         return (
             <>
                 <Section
@@ -188,7 +169,8 @@ class WorkspaceReimburseView extends React.Component {
 
                 <Section
                     title={this.props.translate('workspace.reimburse.trackDistance')}
-                    icon={Illustrations.TrackShoe} >
+                    icon={Illustrations.TrackShoe}
+                >
                     <View style={[styles.mv3]}>
                         <Text>{this.props.translate('workspace.reimburse.trackDistanceCopy')}</Text>
                     </View>
@@ -198,16 +180,14 @@ class WorkspaceReimburseView extends React.Component {
                         shouldShowRightIcon
                         onPress={() => Navigation.navigate(ROUTES.getWorkspaceRateAndUnitRoute(this.props.policy.id))}
                     />
-                 
-               
-                </Section>   
-                
+                </Section>
+
                 <WorkspaceReimburseSection
                     policy={this.props.policy}
                     reimbursementAccount={this.props.reimbursementAccount}
                     network={this.props.network}
                     translate={this.props.translate}
-                    style={{marginTop:10}}
+                    style={{marginTop: 10}}
                 />
             </>
         );
