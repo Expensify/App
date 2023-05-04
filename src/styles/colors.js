@@ -37,7 +37,7 @@ export default {
     midnight: '#002140',
 
     // Brand Colors from Figma
-    blue100: '#BOD9FF',
+    blue100: '#B0D9FF',
     blue200: '#8DC8FF',
     blue400: '#0185FF',
     blue600: '#0164BF',
