@@ -363,9 +363,7 @@ function createSplitsAndOnyxData(participants, currentUserLogin, amount, comment
             value: {
                 errorFields: {
                     createChat: {
-                        errors: {
-                            [DateUtils.getMicroseconds()]: Localize.translateLocal('report.genericCreateReportFailureMessage'),
-                        },
+                        [DateUtils.getMicroseconds()]: Localize.translateLocal('report.genericCreateReportFailureMessage'),
                     },
                 },
             },
@@ -513,9 +511,7 @@ function createSplitsAndOnyxData(participants, currentUserLogin, amount, comment
                     iouReportID: existingOneOnOneChatReport ? existingOneOnOneChatReport.iouReportID : null,
                     errorFields: {
                         createChat: {
-                            errors: {
-                                [DateUtils.getMicroseconds()]: Localize.translateLocal('report.genericCreateReportFailureMessage'),
-                            },
+                            [DateUtils.getMicroseconds()]: Localize.translateLocal('report.genericCreateReportFailureMessage'),
                         },
                     },
                 },
@@ -886,9 +882,7 @@ function getSendMoneyParams(report, amount, currency, comment, paymentMethodType
             value: {
                 errorFields: {
                     createChat: {
-                        errors: {
-                            [DateUtils.getMicroseconds()]: Localize.translateLocal('report.genericCreateReportFailureMessage'),
-                        },
+                        [DateUtils.getMicroseconds()]: Localize.translateLocal('report.genericCreateReportFailureMessage'),
                     },
                 },
             },
