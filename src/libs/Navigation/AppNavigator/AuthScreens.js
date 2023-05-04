@@ -32,6 +32,7 @@ import CentralPaneNavigator from './Navigators/CentralPaneNavigator';
 import NAVIGATORS from '../../../NAVIGATORS';
 import FullScreenNavigator from './Navigators/FullScreenNavigator';
 import styles from '../../../styles/styles';
+import getCurrentUrl from '../currentUrl';
 
 let currentUserEmail;
 Onyx.connect({
@@ -172,6 +173,8 @@ class AuthScreens extends React.Component {
             ...commonScreenOptions,
             cardStyle: styles.navigationModalCard(this.props.isSmallScreenWidth),
         };
+        const url = getCurrentUrl();
+        const openOnAdminRoom = url ? new URL(url).searchParams.get('openOnAdminRoom') : '';
 
         return (
             <RootStack.Navigator
