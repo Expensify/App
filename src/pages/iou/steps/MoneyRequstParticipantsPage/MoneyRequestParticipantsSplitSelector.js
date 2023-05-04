@@ -249,7 +249,7 @@ class MoneyRequestParticipantsSplitSelector extends Component {
                     shouldShowConfirmButton
                     confirmButtonText={this.props.translate('common.next')}
                     onConfirmSelection={this.finalizeParticipants}
-                    placeholderText={this.props.translate('optionsSelector.nameEmailOrPhoneNumber')}
+                    textInputLabel={this.props.translate('optionsSelector.nameEmailOrPhoneNumber')}
                     safeAreaPaddingBottomStyle={this.props.safeAreaPaddingBottomStyle}
                     shouldShowOptions={isOptionsDataReady}
                 />

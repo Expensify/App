@@ -20,7 +20,6 @@ import compose from '../libs/compose';
 import personalDetailsPropType from './personalDetailsPropType';
 import reportPropTypes from './reportPropTypes';
 import Performance from '../libs/Performance';
-import FullScreenLoadingIndicator from '../components/FullscreenLoadingIndicator';
 
 const propTypes = {
     /* Onyx Props */
@@ -196,23 +195,19 @@ class SearchPage extends Component {
                             onCloseButtonPress={() => Navigation.dismissModal(true)}
                         />
                         <View style={[styles.flex1, styles.w100, styles.pRelative]}>
-                            {didScreenTransitionEnd ? (
-                                <OptionsSelector
-                                    sections={sections}
-                                    value={this.state.searchValue}
-                                    onSelectRow={this.selectReport}
-                                    onChangeText={this.onChangeText}
-                                    headerMessage={this.state.headerMessage}
-                                    hideSectionHeaders
-                                    showTitleTooltip
-                                    shouldShowOptions={isOptionsDataReady}
-                                    placeholderText={this.props.translate('optionsSelector.nameEmailOrPhoneNumber')}
-                                    onLayout={this.searchRendered}
-                                    safeAreaPaddingBottomStyle={safeAreaPaddingBottomStyle}
-                                />
-                            ) : (
-                                <FullScreenLoadingIndicator />
-                            )}
+                            <OptionsSelector
+                                sections={sections}
+                                value={this.state.searchValue}
+                                onSelectRow={this.selectReport}
+                                onChangeText={this.onChangeText}
+                                headerMessage={this.state.headerMessage}
+                                hideSectionHeaders
+                                showTitleTooltip
+                                shouldShowOptions={didScreenTransitionEnd && isOptionsDataReady}
+                                textInputLabel={this.props.translate('optionsSelector.nameEmailOrPhoneNumber')}
+                                onLayout={this.searchRendered}
+                                safeAreaPaddingBottomStyle={safeAreaPaddingBottomStyle}
+                            />
                         </View>
                     </>
                 )}
