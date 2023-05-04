@@ -36,7 +36,7 @@ const ReportActionItemThread = props => (
                 return '';
             }}
         >
-            <View style={[{flexDirection: 'row'}, styles.alignItemsCenter, styles.mt2]}>
+            <View style={[styles.flexRow, styles.alignItemsCenter, styles.mt2]}>
                 <MultipleAvatars
                     size={CONST.AVATAR_SIZE.SMALLER}
                     icons={props.icons}
@@ -44,8 +44,8 @@ const ReportActionItemThread = props => (
                     avatarTooltips={_.map(props.icons, icon => icon.name)}
                 />
                 <View style={[styles.flexRow, styles.lhPercent, styles.alignItemsEnd]}>
-                    <Text style={[styles.link, styles.ml2, styles.h4]}>{`${props.numberOfReplies} Replies`}</Text>
-                    <Text style={[styles.ml2, styles.textMicroSupporting]}>{`Last reply at ${props.mostRecentReply}`}</Text>
+                    <Text style={[styles.link, styles.ml2, styles.h4]}>{`${props.numberOfReplies} ${props.translate('threads.replies')}`}</Text>
+                    <Text style={[styles.ml2, styles.textMicroSupporting]}>{`${props.translate('threads.lastReplyAt')} ${props.mostRecentReply}`}</Text>
                 </View>
             </View>
 

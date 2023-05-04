@@ -1274,4 +1274,8 @@ export default {
         chatUserDisplayNames: 'Chat user display names',
         scrollToNewestMessages: 'Scroll to newest messages',
     },
+    threads: {
+        lastReplyAt: 'Last Reply at',
+        replies: 'Replies',
+    },
 };
