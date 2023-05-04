@@ -294,7 +294,7 @@ export default {
         newChat: 'Nuevo chat',
         newGroup: 'Nuevo grupo',
         newRoom: 'Nueva sala de chat',
-        headerChat: 'Chats',
+        headerChat: 'Expensify',
         buttonSearch: 'Buscar',
         buttonMySettings: 'Mi configuración',
         fabNewChat: 'Nuevo chat',
