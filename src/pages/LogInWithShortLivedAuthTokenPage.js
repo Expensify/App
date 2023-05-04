@@ -16,8 +16,6 @@ import withLocalize, {withLocalizePropTypes} from '../components/withLocalize';
 import compose from '../libs/compose';
 import TextLink from '../components/TextLink';
 import ONYXKEYS from '../ONYXKEYS';
-import networkPropTypes from '../components/networkPropTypes';
-import ROUTES from '../ROUTES';
 
 const propTypes = {
     /** The parameters needed to authenticate with a short lived token are in the URL */
@@ -42,9 +40,6 @@ const propTypes = {
         /** Whether a sign is loading */
         isLoading: PropTypes.bool,
     }),
-
-    /** Props to detect online status */
-    network: networkPropTypes.isRequired,
 };
 
 const defaultProps = {
@@ -72,11 +67,6 @@ class LogInWithShortLivedAuthTokenPage extends Component {
     }
 
     render() {
-        // redirect the user to the login page if there is a sudden disconnection
-        if (this.props.network.isOffline) {
-            Navigation.navigate(ROUTES.HOME);
-            return;
-        }
         if (this.props.account.isLoading) {
             return <FullScreenLoadingIndicator />;
         }
@@ -123,6 +113,5 @@ export default compose(
     withLocalize,
     withOnyx({
         account: {key: ONYXKEYS.ACCOUNT},
-        network: {key: ONYXKEYS.NETWORK},
     }),
 )(LogInWithShortLivedAuthTokenPage);
