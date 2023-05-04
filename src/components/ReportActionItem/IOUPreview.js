@@ -133,6 +133,9 @@ const IOUPreview = (props) => {
     const sessionEmail = lodashGet(props.session, 'email', null);
     const managerEmail = props.iouReport.managerEmail || '';
     const ownerEmail = props.iouReport.ownerEmail || '';
+
+    // When displaying within a IOUDetailsModal we cannot guarentee that participants are included in the originalMessage data
+    // Because an IOUPreview of type split can never be rendered within the IOUDetailsModal, manually building the email array is only needed for non-billSplit ious
     const participantEmails = props.isBillSplit ? props.action.originalMessage.participants : [managerEmail, ownerEmail];
     const participantAvatars = OptionsListUtils.getAvatarsForLogins(participantEmails);
 
