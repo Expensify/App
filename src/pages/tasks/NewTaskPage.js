@@ -108,6 +108,7 @@ const NewTaskPage = (props) => {
             TaskUtils.setShareDestinationValue(props.task.parentReportID);
         }
         if (props.task.shareDestination) {
+            setParentReport(lodashGet(props.reports, `report_${props.task.shareDestination}`, {}));
             const displayDetails = constructShareDestination(props.task.shareDestination, props.reports, props.personalDetails, props.policies);
             setShareDestination(displayDetails);
         }

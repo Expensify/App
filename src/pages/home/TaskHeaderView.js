@@ -15,7 +15,7 @@ function TaskHeaderView(props) {
         <>
             <MenuItemWithTopDescription
                 shouldShowHeaderTitle
-                title={props.report.reportName}
+                title={props.report.reportTitle}
                 description="Task"
                 onPress={() => Navigation.navigate(ROUTES.getTaskReportTitleRoute(props.report.reportID))}
             />
