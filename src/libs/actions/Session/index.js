@@ -187,6 +187,8 @@ function beginSignIn(login) {
             value: {
                 ...CONST.DEFAULT_ACCOUNT_DATA,
                 isLoading: true,
+                errors: null,
+                message: null,
             },
         },
     ];
