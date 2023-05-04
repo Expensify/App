@@ -85,7 +85,6 @@ const inputPlaceholderSlots = Array.from(Array(CONST.MAGIC_CODE_LENGTH).keys());
 
 function MagicCodeInput(props) {
     const inputRefs = useRef([]);
-
     const [input, setInput] = useState('');
     const [focusedIndex, setFocusedIndex] = useState(0);
     const [editIndex, setEditIndex] = useState(0);
@@ -93,13 +92,13 @@ function MagicCodeInput(props) {
     useImperativeHandle(props.innerRef, () => ({
         focus() {
             setFocusedIndex(0);
-            inputRefs[0].focus();
+            inputRefs.current[0].focus();
         },
         clear() {
             setInput('');
             setFocusedIndex(0);
             setEditIndex(0);
-            inputRefs[0].focus();
+            inputRefs.current[0].focus();
             props.onChangeText('');
         },
     }));
@@ -111,7 +110,7 @@ function MagicCodeInput(props) {
         if (!props.shouldSubmitOnComplete || _.filter(numbers, n => ValidationUtils.isNumeric(n)).length !== CONST.MAGIC_CODE_LENGTH) {
             return;
         }
-        inputRefs[editIndex].blur();
+        inputRefs.current[editIndex].blur();
         setFocusedIndex(undefined);
         props.onFulfill(props.value);
 
@@ -126,10 +125,10 @@ function MagicCodeInput(props) {
 
         let focusTimeout = null;
         if (props.shouldDelayFocus) {
-            focusTimeout = setTimeout(() => inputRefs[0].focus(), CONST.ANIMATED_TRANSITION);
+            focusTimeout = setTimeout(() => inputRefs.current[0].focus(), CONST.ANIMATED_TRANSITION);
         }
 
-        inputRefs[0].focus();
+        inputRefs.current[0].focus();
 
         return () => {
             if (!focusTimeout) {
@@ -249,20 +248,20 @@ function MagicCodeInput(props) {
             props.onChangeText(composeToString(numbers));
 
             if (!_.isUndefined(newFocusedIndex)) {
-                inputRefs[newFocusedIndex].focus();
+                inputRefs.current[newFocusedIndex].focus();
             }
         } if (keyValue === 'ArrowLeft' && !_.isUndefined(focusedIndex)) {
             const newFocusedIndex = Math.max(0, focusedIndex - 1);
             setInput('');
             setFocusedIndex(newFocusedIndex);
             setEditIndex(newFocusedIndex);
-            inputRefs[newFocusedIndex].focus();
+            inputRefs.current[newFocusedIndex].focus();
         } else if (keyValue === 'ArrowRight' && !_.isUndefined(focusedIndex)) {
             const newFocusedIndex = Math.min(focusedIndex + 1, CONST.MAGIC_CODE_LENGTH - 1);
             setInput('');
             setFocusedIndex(newFocusedIndex);
             setEditIndex(newFocusedIndex);
-            inputRefs[newFocusedIndex].focus();
+            inputRefs.current[newFocusedIndex].focus();
         } else if (keyValue === 'Enter') {
             setInput('');
             props.onFulfill(props.value);
@@ -286,7 +285,7 @@ function MagicCodeInput(props) {
                         </View>
                         <View style={[StyleSheet.absoluteFillObject, styles.w100, styles.opacity0]}>
                             <TextInput
-                                ref={ref => inputRefs[index] = ref}
+                                ref={ref => inputRefs.current[index] = ref}
                                 autoFocus={index === 0 && props.autoFocus}
                                 inputMode="numeric"
                                 textContentType="oneTimeCode"
