@@ -286,52 +286,54 @@ class WorkspaceInvitePage extends React.Component {
 
         return (
             <ScreenWrapper shouldEnableMaxHeight>
-                <FullPageNotFoundView
-                    shouldShow={_.isEmpty(this.props.policy)}
-                    onBackButtonPress={() => Navigation.navigate(ROUTES.SETTINGS_WORKSPACES)}
-                >
-                    <FormSubmit style={[styles.flex1]} onSubmit={this.inviteUser}>
-                        <HeaderWithCloseButton
-                            title={this.props.translate('workspace.invite.invitePeople')}
-                            subtitle={policyName}
-                            onCloseButtonPress={() => this.clearErrors(true)}
-                            shouldShowGetAssistanceButton
-                            guidesCallTaskID={CONST.GUIDES_CALL_TASK_IDS.WORKSPACE_MEMBERS}
-                            shouldShowBackButton
-                            onBackButtonPress={() => Navigation.goBack()}
-                        />
-                        <View style={[styles.flex1]}>
-                            <OptionsSelector
-                                autoFocus={false}
-                                canSelectMultipleOptions
-                                sections={sections}
-                                selectedOptions={this.state.selectedOptions}
-                                value={this.state.searchTerm}
-                                shouldShowOptions={OptionsListUtils.isPersonalDetailsReady(this.props.personalDetails)}
-                                onSelectRow={this.toggleOption}
-                                onChangeText={this.updateOptionsWithSearchTerm}
-                                onConfirmSelection={this.inviteUser}
-                                headerMessage={headerMessage}
-                                hideSectionHeaders
-                                boldStyle
-                                shouldFocusOnSelectRow
-                                textInputLabel={this.props.translate('optionsSelector.nameEmailOrPhoneNumber')}
+                {({didScreenTransitionEnd}) => (
+                    <FullPageNotFoundView
+                        shouldShow={_.isEmpty(this.props.policy)}
+                        onBackButtonPress={() => Navigation.navigate(ROUTES.SETTINGS_WORKSPACES)}
+                    >
+                        <FormSubmit style={[styles.flex1]} onSubmit={this.inviteUser}>
+                            <HeaderWithCloseButton
+                                title={this.props.translate('workspace.invite.invitePeople')}
+                                subtitle={policyName}
+                                onCloseButtonPress={() => this.clearErrors(true)}
+                                shouldShowGetAssistanceButton
+                                guidesCallTaskID={CONST.GUIDES_CALL_TASK_IDS.WORKSPACE_MEMBERS}
+                                shouldShowBackButton
+                                onBackButtonPress={() => Navigation.goBack()}
                             />
-                        </View>
-                        <View style={[styles.flexShrink0]}>
-                            <FormAlertWithSubmitButton
-                                isDisabled={!this.state.selectedOptions.length || this.state.shouldDisableButton}
-                                isAlertVisible={this.getShouldShowAlertPrompt()}
-                                buttonText={this.props.translate('common.next')}
-                                onSubmit={this.inviteUser}
-                                message={this.props.policy.alertMessage}
-                                containerStyles={[styles.flexReset, styles.flexGrow0, styles.flexShrink0, styles.flexBasisAuto, styles.mb5]}
-                                enabledWhenOffline
-                                disablePressOnEnter
-                            />
-                        </View>
-                    </FormSubmit>
-                </FullPageNotFoundView>
+                            <View style={[styles.flex1]}>
+                                <OptionsSelector
+                                    autoFocus={false}
+                                    canSelectMultipleOptions
+                                    sections={sections}
+                                    selectedOptions={this.state.selectedOptions}
+                                    value={this.state.searchTerm}
+                                    shouldShowOptions={didScreenTransitionEnd && OptionsListUtils.isPersonalDetailsReady(this.props.personalDetails)}
+                                    onSelectRow={this.toggleOption}
+                                    onChangeText={this.updateOptionsWithSearchTerm}
+                                    onConfirmSelection={this.inviteUser}
+                                    headerMessage={headerMessage}
+                                    hideSectionHeaders
+                                    boldStyle
+                                    shouldFocusOnSelectRow
+                                    textInputLabel={this.props.translate('optionsSelector.nameEmailOrPhoneNumber')}
+                                />
+                            </View>
+                            <View style={[styles.flexShrink0]}>
+                                <FormAlertWithSubmitButton
+                                    isDisabled={!this.state.selectedOptions.length || this.state.shouldDisableButton}
+                                    isAlertVisible={this.getShouldShowAlertPrompt()}
+                                    buttonText={this.props.translate('common.next')}
+                                    onSubmit={this.inviteUser}
+                                    message={this.props.policy.alertMessage}
+                                    containerStyles={[styles.flexReset, styles.flexGrow0, styles.flexShrink0, styles.flexBasisAuto, styles.mb5]}
+                                    enabledWhenOffline
+                                    disablePressOnEnter
+                                />
+                            </View>
+                        </FormSubmit>
+                    </FullPageNotFoundView>
+                )}
             </ScreenWrapper>
         );
     }
