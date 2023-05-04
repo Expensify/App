@@ -57,7 +57,7 @@ const SignInPageLayout = (props) => {
         scrollViewRef.current.scrollTo({y: 0, animated});
     };
 
-    useEffect(scrollPageToTop, [props.shouldShowWelcomeHeader, props.shouldShowWelcomeText]);
+    useEffect(scrollPageToTop, [props.welcomeHeader, props.welcomeText]);
 
     return (
         <View style={containerStyles}>
