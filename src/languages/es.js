@@ -328,7 +328,7 @@ export default {
             invalidSplit: 'La suma de las partes no equivale al monto total',
             other: 'Error inesperado, por favor inténtalo más tarde',
             genericCreateFailureMessage: 'Error inesperado solicitando dinero, Por favor, inténtalo más tarde',
-            genericCancelFailureMessage: ({type}) => `Error inesperado al ${type === 'decline' ? 'rechazar' : 'cancelar'} la solicitud de dinero. Por favor, inténtalo más tarde`,
+            genericDeleteFailureMessage: 'Error inesperado eliminando la solicitud de dinero. Por favor, inténtalo más tarde',
         },
     },
     notificationPreferences: {
@@ -1149,11 +1149,14 @@ export default {
         },
     },
     newTaskPage: {
+        task: 'Tarea',
         assignTask: 'Asignar tarea',
         title: 'Título',
         description: 'Descripción',
         shareIn: 'Compartir en',
         pleaseEnterTaskName: 'Por favor introduce un título',
+        markAsComplete: 'Marcar como completa',
+        markAsIncomplete: 'Marcar como incompleta',
     },
     statementPage: {
         generatingPDF: 'Estamos generando tu PDF ahora mismo. ¡Por favor, vuelve más tarde!',

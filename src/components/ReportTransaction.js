@@ -24,32 +24,33 @@ const propTypes = {
     /** The report action which we are displaying */
     action: PropTypes.shape(reportActionPropTypes).isRequired,
 
-    /** Can this transaction be rejected? */
-    canBeRejected: PropTypes.bool,
+    /** Can this transaction be deleted? */
+    canBeDeleted: PropTypes.bool,
 
-    /** Type of the reject transaction button */
-    rejectButtonType: PropTypes.oneOf([CONST.IOU.REPORT_ACTION_TYPE.DECLINE, CONST.IOU.REPORT_ACTION_TYPE.CANCEL]).isRequired,
+    /** Indicates whether pressing the delete button should hide the details sidebar */
+    shouldCloseOnDelete: PropTypes.bool,
 
     ...withLocalizePropTypes,
 };
 
 const defaultProps = {
-    canBeRejected: false,
+    canBeDeleted: false,
+    shouldCloseOnDelete: false,
 };
 
 class ReportTransaction extends Component {
     constructor(props) {
         super(props);
 
-        this.cancelMoneyRequest = this.cancelMoneyRequest.bind(this);
+        this.deleteMoneyRequest = this.deleteMoneyRequest.bind(this);
     }
 
-    cancelMoneyRequest() {
-        IOU.cancelMoneyRequest(
+    deleteMoneyRequest() {
+        IOU.deleteMoneyRequest(
             this.props.chatReportID,
             this.props.iouReportID,
-            this.props.rejectButtonType,
             this.props.action,
+            this.props.shouldCloseOnDelete,
         );
     }
 
@@ -79,13 +80,13 @@ class ReportTransaction extends Component {
                             {this.props.action.message[0].text}
                         </Text>
                     </ReportActionItemSingle>
-                    {this.props.canBeRejected && (
+                    {this.props.canBeDeleted && (
                         <View style={[styles.flexRow, styles.justifyContentStart]}>
                             <Button
                                 small
-                                text={this.props.translate(`common.${this.props.rejectButtonType}`)}
+                                text={this.props.translate('common.delete')}
                                 style={[styles.mb3, styles.chatItemComposeSecondaryRowOffset]}
-                                onPress={this.cancelMoneyRequest}
+                                onPress={this.deleteMoneyRequest}
                             />
                         </View>
                     )}

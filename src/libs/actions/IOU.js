@@ -30,6 +30,18 @@ Onyx.connect({
     },
 });
 
+let transactions = {};
+Onyx.connect({
+    key: ONYXKEYS.COLLECTION.TRANSACTION,
+    waitForCollectionCallback: true,
+    callback: (val) => {
+        if (!val) {
+            return;
+        }
+        transactions = val;
+    },
+});
+
 let preferredLocale = CONST.LOCALES.DEFAULT;
 Onyx.connect({
     key: ONYXKEYS.NVP_PREFERRED_LOCALE,
@@ -543,23 +555,22 @@ function splitBillAndOpenReport(participants, currentUserLogin, amount, comment,
 }
 
 /**
- * Cancels or declines a transaction in iouReport.
- * Declining and cancelling transactions are done via the same Auth command.
- *
  * @param {String} chatReportID
  * @param {String} iouReportID
- * @param {String} type - cancel|decline
- * @param {Object} moneyRequestAction - the create IOU reportAction we are cancelling
+ * @param {Object} moneyRequestAction - the money request reportAction we are deleting
+ * @param {Boolean} shouldCloseOnDelete
  */
-function cancelMoneyRequest(chatReportID, iouReportID, type, moneyRequestAction) {
-    const chatReport = chatReports[`${ONYXKEYS.COLLECTION.REPORT}${chatReportID}`];
+function deleteMoneyRequest(chatReportID, iouReportID, moneyRequestAction, shouldCloseOnDelete) {
     const iouReport = iouReports[`${ONYXKEYS.COLLECTION.REPORT}${iouReportID}`];
     const transactionID = moneyRequestAction.originalMessage.IOUTransactionID;
 
-    // Get the amount we are cancelling
+    // Make a copy of the chat report so we don't mutate the original one when updating its values
+    const chatReport = {...chatReports[`${ONYXKEYS.COLLECTION.REPORT}${chatReportID}`]};
+
+    // Get the amount we are deleting
     const amount = moneyRequestAction.originalMessage.amount;
     const optimisticReportAction = ReportUtils.buildOptimisticIOUReportAction(
-        type,
+        CONST.IOU.REPORT_ACTION_TYPE.DELETE,
         amount,
         moneyRequestAction.originalMessage.currency,
         Str.htmlDecode(moneyRequestAction.originalMessage.comment),
@@ -570,8 +581,7 @@ function cancelMoneyRequest(chatReportID, iouReportID, type, moneyRequestAction)
     );
 
     const currentUserEmail = optimisticReportAction.actorEmail;
-    const updatedIOUReport = IOUUtils.updateIOUOwnerAndTotal(iouReport, currentUserEmail, amount, moneyRequestAction.originalMessage.currency, type);
-
+    const updatedIOUReport = IOUUtils.updateIOUOwnerAndTotal(iouReport, currentUserEmail, amount, moneyRequestAction.originalMessage.currency, CONST.IOU.REPORT_ACTION_TYPE.DELETE);
     chatReport.lastMessageText = optimisticReportAction.message[0].text;
     chatReport.lastMessageHtml = optimisticReportAction.message[0].html;
     chatReport.hasOutstandingIOU = updatedIOUReport.total !== 0;
@@ -597,6 +607,11 @@ function cancelMoneyRequest(chatReportID, iouReportID, type, moneyRequestAction)
             key: `${ONYXKEYS.COLLECTION.REPORT}${iouReportID}`,
             value: updatedIOUReport,
         },
+        {
+            onyxMethod: CONST.ONYX.METHOD.SET,
+            key: `${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`,
+            value: null,
+        },
     ];
     const successData = [
         {
@@ -615,25 +630,43 @@ function cancelMoneyRequest(chatReportID, iouReportID, type, moneyRequestAction)
             key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${chatReportID}`,
             value: {
                 [optimisticReportAction.reportActionID]: {
-                    pendingAction: null,
                     errors: {
-                        [DateUtils.getMicroseconds()]: Localize.translateLocal('iou.error.genericCancelFailureMessage', {type}),
+                        [DateUtils.getMicroseconds()]: Localize.translateLocal('iou.error.genericDeleteFailureMessage'),
                     },
                 },
             },
         },
+        {
+            onyxMethod: CONST.ONYX.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT}${chatReportID}`,
+            value: {
+                lastMessageText: chatReports[`${ONYXKEYS.COLLECTION.REPORT}${chatReportID}`].lastMessageText,
+                lastMessageHtml: chatReports[`${ONYXKEYS.COLLECTION.REPORT}${chatReportID}`].lastMessageHtml,
+                hasOutstandingIOU: iouReport.total !== 0,
+            },
+        },
+        {
+            onyxMethod: CONST.ONYX.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT}${iouReportID}`,
+            value: iouReport,
+        },
+        {
+            onyxMethod: CONST.ONYX.METHOD.SET,
+            key: `${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`,
+            value: transactions[transactionID],
+        },
     ];
 
-    API.write('CancelMoneyRequest', {
+    API.write('DeleteMoneyRequest', {
         transactionID,
-        iouReportID: updatedIOUReport.reportID,
-        comment: '',
-        cancelMoneyRequestReportActionID: optimisticReportAction.reportActionID,
         chatReportID,
-        debtorEmail: chatReport.participants[0],
+        reportActionID: optimisticReportAction.reportActionID,
+        iouReportID: updatedIOUReport.reportID,
     }, {optimisticData, successData, failureData});
 
-    Navigation.navigate(ROUTES.getReportRoute(chatReportID));
+    if (shouldCloseOnDelete) {
+        Navigation.navigate(ROUTES.getReportRoute(chatReportID));
+    }
 }
 
 /**
@@ -1011,7 +1044,7 @@ function payMoneyRequestViaPaypal(chatReport, iouReport, recipient) {
 }
 
 export {
-    cancelMoneyRequest,
+    deleteMoneyRequest,
     splitBill,
     splitBillAndOpenReport,
     requestMoney,
