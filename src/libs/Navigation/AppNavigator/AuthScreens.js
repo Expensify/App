@@ -4,11 +4,7 @@ import PropTypes from 'prop-types';
 import moment from 'moment';
 import _ from 'underscore';
 import lodashGet from 'lodash/get';
-<<<<<<< HEAD
-=======
 import Str from 'expensify-common/lib/str';
-import getNavigationModalCardStyle from '../../../styles/getNavigationModalCardStyles';
->>>>>>> main
 import withWindowDimensions, {windowDimensionsPropTypes} from '../../../components/withWindowDimensions';
 import CONST from '../../../CONST';
 import compose from '../../compose';
@@ -215,7 +211,6 @@ class AuthScreens extends React.Component {
                         cardStyleInterpolator: props => modalCardStyleInterpolator(this.props.isSmallScreenWidth, false, props),
                     }}
                     component={CentralPaneNavigator}
-                    initialParams={{openOnAdminRoom: Str.toBool(openOnAdminRoom) || undefined}}
                 />
                 <RootStack.Screen
                     name="ValidateLogin"
