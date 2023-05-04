@@ -17,7 +17,6 @@ import FormSubmit from '../../components/FormSubmit';
 import OptionsSelector from '../../components/OptionsSelector';
 import * as OptionsListUtils from '../../libs/OptionsListUtils';
 import CONST from '../../CONST';
-import FullScreenLoadingIndicator from '../../components/FullscreenLoadingIndicator';
 import * as Link from '../../libs/actions/Link';
 import withPolicy, {policyPropTypes, policyDefaultProps} from './withPolicy';
 import {withNetwork} from '../../components/OnyxProvider';
@@ -101,6 +100,10 @@ class WorkspaceInvitePage extends React.Component {
     }
 
     componentDidUpdate(prevProps) {
+        if (!_.isEqual(prevProps.personalDetails, this.props.personalDetails)) {
+            this.updateOptionsWithSearchTerm(this.props.searchTerm);
+        }
+
         const isReconnecting = prevProps.network.isOffline && !this.props.network.isOffline;
         if (!isReconnecting) {
             return;
@@ -283,57 +286,52 @@ class WorkspaceInvitePage extends React.Component {
 
         return (
             <ScreenWrapper shouldEnableMaxHeight>
-                {({didScreenTransitionEnd}) => (
-                    <FullPageNotFoundView
-                        shouldShow={_.isEmpty(this.props.policy)}
-                        onBackButtonPress={() => Navigation.navigate(ROUTES.SETTINGS_WORKSPACES)}
-                    >
-                        <FormSubmit style={[styles.flex1]} onSubmit={this.inviteUser}>
-                            <HeaderWithCloseButton
-                                title={this.props.translate('workspace.invite.invitePeople')}
-                                subtitle={policyName}
-                                onCloseButtonPress={() => this.clearErrors(true)}
-                                shouldShowGetAssistanceButton
-                                guidesCallTaskID={CONST.GUIDES_CALL_TASK_IDS.WORKSPACE_MEMBERS}
-                                shouldShowBackButton
-                                onBackButtonPress={() => Navigation.goBack()}
+                <FullPageNotFoundView
+                    shouldShow={_.isEmpty(this.props.policy)}
+                    onBackButtonPress={() => Navigation.navigate(ROUTES.SETTINGS_WORKSPACES)}
+                >
+                    <FormSubmit style={[styles.flex1]} onSubmit={this.inviteUser}>
+                        <HeaderWithCloseButton
+                            title={this.props.translate('workspace.invite.invitePeople')}
+                            subtitle={policyName}
+                            onCloseButtonPress={() => this.clearErrors(true)}
+                            shouldShowGetAssistanceButton
+                            guidesCallTaskID={CONST.GUIDES_CALL_TASK_IDS.WORKSPACE_MEMBERS}
+                            shouldShowBackButton
+                            onBackButtonPress={() => Navigation.goBack()}
+                        />
+                        <View style={[styles.flex1]}>
+                            <OptionsSelector
+                                autoFocus={false}
+                                canSelectMultipleOptions
+                                sections={sections}
+                                selectedOptions={this.state.selectedOptions}
+                                value={this.state.searchTerm}
+                                shouldShowOptions={OptionsListUtils.isPersonalDetailsReady(this.props.personalDetails)}
+                                onSelectRow={this.toggleOption}
+                                onChangeText={this.updateOptionsWithSearchTerm}
+                                onConfirmSelection={this.inviteUser}
+                                headerMessage={headerMessage}
+                                hideSectionHeaders
+                                boldStyle
+                                shouldFocusOnSelectRow
+                                textInputLabel={this.props.translate('optionsSelector.nameEmailOrPhoneNumber')}
                             />
-                            <View style={[styles.flex1]}>
-                                {didScreenTransitionEnd ? (
-                                    <OptionsSelector
-                                        autoFocus={false}
-                                        canSelectMultipleOptions
-                                        sections={sections}
-                                        selectedOptions={this.state.selectedOptions}
-                                        value={this.state.searchTerm}
-                                        onSelectRow={this.toggleOption}
-                                        onChangeText={this.updateOptionsWithSearchTerm}
-                                        onConfirmSelection={this.inviteUser}
-                                        headerMessage={headerMessage}
-                                        hideSectionHeaders
-                                        boldStyle
-                                        shouldFocusOnSelectRow
-                                        textInputLabel={this.props.translate('optionsSelector.nameEmailOrPhoneNumber')}
-                                    />
-                                ) : (
-                                    <FullScreenLoadingIndicator />
-                                )}
-                            </View>
-                            <View style={[styles.flexShrink0]}>
-                                <FormAlertWithSubmitButton
-                                    isDisabled={!this.state.selectedOptions.length || this.state.shouldDisableButton}
-                                    isAlertVisible={this.getShouldShowAlertPrompt()}
-                                    buttonText={this.props.translate('common.next')}
-                                    onSubmit={this.inviteUser}
-                                    message={this.props.policy.alertMessage}
-                                    containerStyles={[styles.flexReset, styles.flexGrow0, styles.flexShrink0, styles.flexBasisAuto, styles.mb5]}
-                                    enabledWhenOffline
-                                    disablePressOnEnter
-                                />
-                            </View>
-                        </FormSubmit>
-                    </FullPageNotFoundView>
-                )}
+                        </View>
+                        <View style={[styles.flexShrink0]}>
+                            <FormAlertWithSubmitButton
+                                isDisabled={!this.state.selectedOptions.length || this.state.shouldDisableButton}
+                                isAlertVisible={this.getShouldShowAlertPrompt()}
+                                buttonText={this.props.translate('common.next')}
+                                onSubmit={this.inviteUser}
+                                message={this.props.policy.alertMessage}
+                                containerStyles={[styles.flexReset, styles.flexGrow0, styles.flexShrink0, styles.flexBasisAuto, styles.mb5]}
+                                enabledWhenOffline
+                                disablePressOnEnter
+                            />
+                        </View>
+                    </FormSubmit>
+                </FullPageNotFoundView>
             </ScreenWrapper>
         );
     }
