@@ -229,7 +229,6 @@ class BaseTextInput extends Component {
                         style={[
                             this.props.autoGrowHeight && styles.autoGrowHeightInputContainer(this.state.textInputHeight, maxHeight),
                             !isMultiline && styles.componentHeightLarge,
-                            this.props.autoGrowHeight && {minHeight: variables.componentSizeLarge},
                             ...this.props.containerStyles,
                         ]}
                     >
