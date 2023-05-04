@@ -26,9 +26,7 @@ const propTypes = {
 const NewPasswordForm = (props) => {
     const [passwordHintError, setPasswordHintError] = useState(false);
 
-    const isValidPassword = () => {
-        props.password.match(CONST.PASSWORD_COMPLEXITY_REGEX_STRING);
-    };
+    const isValidPassword = () => props.password.match(CONST.PASSWORD_COMPLEXITY_REGEX_STRING);
 
     const onBlurNewPassword = () => {
         if (passwordHintError) {
@@ -45,12 +43,9 @@ const NewPasswordForm = (props) => {
     */
     const isInvalidPassword = () => passwordHintError && props.password && !isValidPassword();
 
-    const isValidForm = () => {
-        isValidPassword();
-    };
-
     useEffect(() => {
-        props.updateIsFormValid(isValidForm());
+        props.updateIsFormValid(isValidPassword());
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [props.password]);
 
     return (
