@@ -81,6 +81,48 @@ function getAvatarStyle(size) {
 }
 
 /**
+ * Get Font size of '+1' text on avatar overlay
+ * @param {String} size
+ * @returns {Number}
+ */
+function getAvatarExtraFontSizeStyle(size) {
+    const AVATAR_SIZES = {
+        [CONST.AVATAR_SIZE.DEFAULT]: variables.fontSizeNormal,
+        [CONST.AVATAR_SIZE.SMALL_SUBSCRIPT]: variables.fontSizeExtraSmall,
+        [CONST.AVATAR_SIZE.MID_SUBSCRIPT]: variables.fontSizeExtraSmall,
+        [CONST.AVATAR_SIZE.SUBSCRIPT]: variables.fontSizeExtraSmall,
+        [CONST.AVATAR_SIZE.SMALL]: variables.fontSizeSmall,
+        [CONST.AVATAR_SIZE.SMALLER]: variables.fontSizeExtraSmall,
+        [CONST.AVATAR_SIZE.LARGE]: variables.fontSizeXLarge,
+        [CONST.AVATAR_SIZE.MEDIUM]: variables.fontSizeMedium,
+        [CONST.AVATAR_SIZE.LARGE_BORDERED]: variables.fontSizeXLarge,
+    };
+    return {
+        fontSize: AVATAR_SIZES[size],
+    };
+}
+
+/**
+ * Get Bordersize of Avatar based on avatar size
+ * @param {String} size
+ * @returns {Number}
+ */
+function getAvatarBorderWidth(size) {
+    const AVATAR_SIZES = {
+        [CONST.AVATAR_SIZE.DEFAULT]: 3,
+        [CONST.AVATAR_SIZE.SMALL_SUBSCRIPT]: 2,
+        [CONST.AVATAR_SIZE.MID_SUBSCRIPT]: 2,
+        [CONST.AVATAR_SIZE.SUBSCRIPT]: 2,
+        [CONST.AVATAR_SIZE.SMALL]: 3,
+        [CONST.AVATAR_SIZE.SMALLER]: 2,
+        [CONST.AVATAR_SIZE.LARGE]: 4,
+        [CONST.AVATAR_SIZE.MEDIUM]: 3,
+        [CONST.AVATAR_SIZE.LARGE_BORDERED]: 4,
+    };
+    return AVATAR_SIZES[size];
+}
+
+/**
 * Return the border radius for an avatar
 *
 * @param {String} size
@@ -786,6 +828,39 @@ function getHorizontalStackedAvatarBorderStyle(isHovered, isPressed) {
 }
 
 /**
+ * Get computed avatar styles based on position and border size
+ * @param {Number} index
+ * @param {Number} overlapSize
+ * @param {Number} borderWidth
+ * @param {Number} borderRadius
+ * @returns {Object}
+ */
+function getHorizontalStackedAvatarStyle(index, overlapSize, borderWidth, borderRadius) {
+    return {
+        left: -(overlapSize * index),
+        borderRadius,
+        borderWidth,
+        zIndex: index + 2,
+    };
+}
+
+/**
+ * Get computed avatar styles of '+1' overlay based on size
+ * @param {Object} oneAvatarSize
+ * @param {Numer} oneAvatarBorderWidth
+ * @returns {Object}
+ */
+function getHorizontalStackedOverlayAvatarStyle(oneAvatarSize, oneAvatarBorderWidth) {
+    return {
+        borderWidth: oneAvatarBorderWidth,
+        borderRadius: oneAvatarSize.width,
+        left: -((oneAvatarSize.width * 2) + (oneAvatarBorderWidth * 2)),
+        zIndex: 6,
+        borderStyle: 'solid',
+    };
+}
+
+/**
  * @param {Number} safeAreaPaddingBottom
  * @returns {Object}
  */
@@ -871,7 +946,7 @@ function getReportWelcomeContainerStyle(isSmallScreenWidth) {
 }
 
 /**
- * Gets styles for Emoji Suggestion row
+ * Gets styles for AutoCompleteSuggestion row
  *
  * @param {Number} highlightedEmojiIndex
  * @param {Number} rowHeight
@@ -879,7 +954,7 @@ function getReportWelcomeContainerStyle(isSmallScreenWidth) {
  * @param {Number} currentEmojiIndex
  * @returns {Object}
  */
-function getEmojiSuggestionItemStyle(
+function getAutoCompleteSuggestionItemStyle(
     highlightedEmojiIndex,
     rowHeight,
     hovered,
@@ -905,18 +980,18 @@ function getEmojiSuggestionItemStyle(
 }
 
 /**
- * Gets the correct position for emoji suggestion container
+ * Gets the correct position for auto complete suggestion container
  *
  * @param {Number} itemsHeight
  * @param {Boolean} shouldIncludeReportRecipientLocalTimeHeight
  * @returns {Object}
  */
-function getEmojiSuggestionContainerStyle(
+function getAutoCompleteSuggestionContainerStyle(
     itemsHeight,
     shouldIncludeReportRecipientLocalTimeHeight,
 ) {
     const optionalPadding = shouldIncludeReportRecipientLocalTimeHeight ? CONST.RECIPIENT_LOCAL_TIME_HEIGHT : 0;
-    const padding = CONST.EMOJI_SUGGESTER.SUGGESTER_PADDING - optionalPadding;
+    const padding = CONST.AUTO_COMPLETE_SUGGESTER.SUGGESTER_PADDING - optionalPadding;
 
     // The suggester is positioned absolutely within the component that includes the input and RecipientLocalTime view (for non-expanded mode only). To position it correctly,
     // we need to shift it by the suggester's height plus its padding and, if applicable, the height of the RecipientLocalTime view.
@@ -1017,6 +1092,8 @@ function getGoogleListViewStyle(shouldDisplayBorder) {
 export {
     getAvatarSize,
     getAvatarStyle,
+    getAvatarExtraFontSizeStyle,
+    getAvatarBorderWidth,
     getAvatarBorderStyle,
     getErrorPageContainerStyle,
     getSafeAreaPadding,
@@ -1054,11 +1131,13 @@ export {
     getMaximumWidth,
     fade,
     getHorizontalStackedAvatarBorderStyle,
+    getHorizontalStackedAvatarStyle,
+    getHorizontalStackedOverlayAvatarStyle,
     getReportWelcomeBackgroundImageStyle,
     getReportWelcomeTopMarginStyle,
     getReportWelcomeContainerStyle,
-    getEmojiSuggestionItemStyle,
-    getEmojiSuggestionContainerStyle,
+    getAutoCompleteSuggestionItemStyle,
+    getAutoCompleteSuggestionContainerStyle,
     getColoredBackgroundStyle,
     getDefaultWorkspaceAvatarColor,
     getAvatarBorderRadius,

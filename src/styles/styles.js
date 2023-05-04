@@ -169,7 +169,7 @@ const styles = {
         flexBasis: '48%',
     },
 
-    emojiSuggestionsContainer: {
+    autoCompleteSuggestionsContainer: {
         backgroundColor: themeColors.appBG,
         borderRadius: 8,
         borderWidth: 1,
@@ -180,7 +180,8 @@ const styles = {
         left: 0,
         right: 0,
     },
-    emojiSuggestionContainer: {
+
+    autoCompleteSuggestionContainer: {
         flexDirection: 'row',
         alignItems: 'center',
     },
@@ -336,6 +337,13 @@ const styles = {
         ...whiteSpace.preWrap,
         color: themeColors.heading,
         fontSize: variables.fontSizeXLarge,
+    },
+
+    textHeadlineH1: {
+        ...headlineFont,
+        ...whiteSpace.preWrap,
+        color: themeColors.heading,
+        fontSize: variables.fontSizeh1,
     },
 
     textDecorationNoLine: {
@@ -1491,6 +1499,19 @@ const styles = {
         flex: 1,
     },
 
+    chatItemDraft: {
+        display: 'flex',
+        flexDirection: 'row',
+        paddingTop: 8,
+        paddingBottom: 8,
+        paddingLeft: 20,
+        paddingRight: 20,
+    },
+
+    chatItemReactionsDraftRight: {
+        marginLeft: 52,
+    },
+
     // Be extremely careful when editing the compose styles, as it is easy to introduce regressions.
     // Make sure you run the following tests against any changes: #12669
     textInputCompose: addOutlineWidth({
@@ -1523,7 +1544,7 @@ const styles = {
 
     editInputComposeSpacing: {
         backgroundColor: themeColors.transparent,
-        marginVertical: 6,
+        marginVertical: 8,
     },
 
     // composer padding should not be modified unless thoroughly tested against the cases in this PR: #12669
@@ -1531,6 +1552,11 @@ const styles = {
         paddingVertical: 5,
         ...flex.flexRow,
         flex: 1,
+    },
+
+    textInputComposeBorder: {
+        borderLeftWidth: 1,
+        borderColor: themeColors.border,
     },
 
     chatItemSubmitButton: {
@@ -1631,11 +1657,6 @@ const styles = {
         backgroundColor: themeColors.buttonHoveredBG,
     },
 
-    chatItemAttachBorder: {
-        borderRightColor: themeColors.border,
-        borderRightWidth: 1,
-    },
-
     composerSizeButton: {
         alignSelf: 'center',
         height: 32,
@@ -1694,14 +1715,6 @@ const styles = {
         width: 24,
         backgroundColor: themeColors.icon,
         borderRadius: 24,
-    },
-
-    horizontalStackedAvatar: {
-        height: 28,
-        width: 28,
-        backgroundColor: themeColors.appBG,
-        paddingTop: 2,
-        alignItems: 'center',
     },
 
     singleSubscript: {
@@ -1824,49 +1837,21 @@ const styles = {
     },
 
     emptyAvatar: {
-        marginRight: variables.avatarChatSpacing,
         height: variables.avatarSizeNormal,
         width: variables.avatarSizeNormal,
     },
 
     emptyAvatarSmall: {
-        marginRight: variables.avatarChatSpacing - 4,
         height: variables.avatarSizeSmall,
         width: variables.avatarSizeSmall,
     },
 
-    horizontalStackedAvatar1: {
-        left: -19,
-        top: -79,
-        zIndex: 2,
+    emptyAvatarMargin: {
+        marginRight: variables.avatarChatSpacing,
     },
 
-    horizontalStackedAvatar2: {
-        left: 1,
-        top: -51,
-        zIndex: 3,
-    },
-
-    horizontalStackedAvatar3: {
-        left: 21,
-        top: -23,
-        zIndex: 4,
-    },
-
-    horizontalStackedAvatar4: {
-        top: 5,
-        left: 41,
-        zIndex: 5,
-    },
-
-    horizontalStackedAvatar4Overlay: {
-        top: -107,
-        left: 41,
-        height: 28,
-        width: 28,
-        borderWidth: 2,
-        borderStyle: 'solid',
-        zIndex: 6,
+    emptyAvatarMarginSmall: {
+        marginRight: variables.avatarChatSpacing - 4,
     },
 
     modalViewContainer: {
@@ -2309,6 +2294,18 @@ const styles = {
         backgroundColor: themeColors.checkBox,
     },
 
+    magicCodeInputContainer: {
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+        minHeight: variables.inputHeight,
+    },
+
+    magicCodeInput: {
+        fontSize: variables.fontSizeXLarge,
+        color: themeColors.heading,
+        lineHeight: variables.inputHeight,
+    },
+
     iouAmountText: {
         ...headlineFont,
         fontSize: variables.iouAmountTextSize,
@@ -2334,7 +2331,8 @@ const styles = {
         borderRadius: 0,
         justifyContent: 'space-between',
         width: '100%',
-        marginBottom: 20,
+        paddingHorizontal: 20,
+        paddingVertical: 12,
     },
 
     iouPreviewBox: {
@@ -2500,14 +2498,6 @@ const styles = {
     noSelect: {
         boxShadow: 'none',
         outline: 'none',
-    },
-
-    cursorPointer: {
-        cursor: 'pointer',
-    },
-
-    cursorText: {
-        cursor: 'text',
     },
 
     fullscreenCard: {
@@ -3028,6 +3018,7 @@ const styles = {
         fontSize: 13,
         marginLeft: 4,
         fontWeight: 'bold',
+        fontVariant: ['tabular-nums'],
     },
 
     fontColorReactionLabel: {
@@ -3129,6 +3120,9 @@ const styles = {
 
     whisper: {
         backgroundColor: themeColors.cardBG,
+    },
+    contextMenuItemPopoverMaxWidth: {
+        maxWidth: 375,
     },
 };
 

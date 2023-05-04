@@ -51,6 +51,7 @@ import Text from '../../../components/Text';
 import DisplayNames from '../../../components/DisplayNames';
 import personalDetailsPropType from '../../personalDetailsPropType';
 import ReportPreview from '../../../components/ReportActionItem/ReportPreview';
+import ReportActionItemDraft from './ReportActionItemDraft';
 
 const propTypes = {
     /** Report for this action */
@@ -70,6 +71,9 @@ const propTypes = {
 
     /** Should we display the new marker on top of the comment? */
     shouldDisplayNewMarker: PropTypes.bool.isRequired,
+
+    /** Determines if the avatar is displayed as a subscript (positioned lower than normal) */
+    shouldShowSubscriptAvatar: PropTypes.bool,
 
     /** Position index of the report action in the overall report FlatList view */
     index: PropTypes.number.isRequired,
@@ -91,6 +95,7 @@ const defaultProps = {
     hasOutstandingIOU: false,
     preferredSkinTone: CONST.EMOJI_DEFAULT_SKIN_TONE,
     personalDetails: {},
+    shouldShowSubscriptAvatar: false,
 };
 
 class ReportActionItem extends Component {
@@ -205,7 +210,7 @@ class ReportActionItem extends Component {
                 <ShowContextMenuContext.Provider
                     value={{
                         anchor: this.popoverAnchor,
-                        reportID: this.props.report.reportID,
+                        report: this.props.report,
                         action: this.props.action,
                         checkIfContextMenuActive: this.checkIfContextMenuActive,
                     }}
@@ -247,12 +252,52 @@ class ReportActionItem extends Component {
             <>
                 {children}
                 {hasReactions && (
-                    <ReportActionItemReactions
-                        reactions={reactions}
-                        toggleReaction={this.toggleReaction}
-                    />
+                    <View style={this.props.draftMessage ? styles.chatItemReactionsDraftRight : {}}>
+                        <ReportActionItemReactions
+                            reactions={reactions}
+                            toggleReaction={this.toggleReaction}
+                        />
+                    </View>
                 )}
             </>
+        );
+    }
+
+    /**
+     * Get ReportActionItem with a proper wrapper
+     * @param {Boolean} hovered whether the ReportActionItem is hovered
+     * @param {Boolean} isWhisper whether the ReportActionItem is a whisper
+     * @returns {Object} report action item
+     */
+    renderReportActionItem(hovered, isWhisper) {
+        const content = this.renderItemContent(hovered || this.state.isContextMenuActive);
+
+        if (this.props.draftMessage) {
+            return (
+                <ReportActionItemDraft>
+                    {content}
+                </ReportActionItemDraft>
+            );
+        }
+
+        if (!this.props.displayAsGroup) {
+            return (
+                <ReportActionItemSingle
+                    action={this.props.action}
+                    showHeader={!this.props.draftMessage}
+                    wrapperStyles={[styles.chatItem, isWhisper ? styles.pt1 : {}]}
+                    shouldShowSubscriptAvatar={this.props.shouldShowSubscriptAvatar}
+                    report={this.props.report}
+                >
+                    {content}
+                </ReportActionItemSingle>
+            );
+        }
+
+        return (
+            <ReportActionItemGrouped wrapperStyles={[styles.chatItem, isWhisper ? styles.pt1 : {}]}>
+                {content}
+            </ReportActionItemGrouped>
         );
     }
 
@@ -331,21 +376,7 @@ class ReportActionItem extends Component {
                                             />
                                         </View>
                                     )}
-                                    {!this.props.displayAsGroup
-                                        ? (
-                                            <ReportActionItemSingle
-                                                action={this.props.action}
-                                                showHeader={!this.props.draftMessage}
-                                                wrapperStyles={[styles.chatItem, isWhisper ? styles.pt1 : {}]}
-                                            >
-                                                {this.renderItemContent(hovered || this.state.isContextMenuActive)}
-                                            </ReportActionItemSingle>
-                                        )
-                                        : (
-                                            <ReportActionItemGrouped wrapperStyles={[styles.chatItem, isWhisper ? styles.pt1 : {}]}>
-                                                {this.renderItemContent(hovered || this.state.isContextMenuActive)}
-                                            </ReportActionItemGrouped>
-                                        )}
+                                    {this.renderReportActionItem(hovered, isWhisper)}
                                 </OfflineWithFeedback>
                             </View>
                             <MiniReportActionContextMenu
