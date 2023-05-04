@@ -498,6 +498,13 @@ const SettingsModalStackNavigator = createModalStackNavigator([
         },
         name: 'GetAssistance',
     },
+    {
+        getComponent: () => {
+            const YearPickerPage = require('../../../pages/YearPickerPage').default;
+            return YearPickerPage;
+        },
+        name: 'YearPicker_Root',
+    },
 ]);
 
 const EnablePaymentsStackNavigator = createModalStackNavigator([{
@@ -532,13 +539,6 @@ const WalletStatementStackNavigator = createModalStackNavigator([{
     name: 'WalletStatement_Root',
 }]);
 
-const YearPickerStackNavigator = createModalStackNavigator([{
-    getComponent: () => {
-        const YearPickerPage = require('../../../pages/YearPickerPage').default;
-        return YearPickerPage;
-    },
-    name: 'YearPicker_Root',
-}]);
 
 export {
     IOUBillStackNavigator,
@@ -558,5 +558,4 @@ export {
     AddPersonalBankAccountModalStackNavigator,
     ReimbursementAccountModalStackNavigator,
     WalletStatementStackNavigator,
-    YearPickerStackNavigator,
 };
