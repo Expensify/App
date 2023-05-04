@@ -109,6 +109,20 @@ export default [
         getDescription: () => {},
     },
     {
+        textTranslateKey: 'reportActionContextMenu.replyInThread',
+        icon: Expensicons.ChatBubble,
+        successTextTranslateKey: '',
+        successIcon: null,
+        shouldShow: (type, reportAction) => type === CONTEXT_MENU_TYPES.REPORT_ACTION && reportAction.actionName === CONST.REPORT.ACTIONS.TYPE.ADDCOMMENT,
+        onPress: (closePopover, {childReportID, reportAction, reportID}) => {
+            Report.navigateToAndOpenChildReport(childReportID, reportAction, reportID);
+            if (closePopover) {
+                hideContextMenu(true, ReportActionComposeFocusManager.focus);
+            }
+        },
+        getDescription: () => {},
+    },
+    {
         textTranslateKey: 'reportActionContextMenu.copyURLToClipboard',
         icon: Expensicons.Copy,
         successTextTranslateKey: 'reportActionContextMenu.copied',
