@@ -6,6 +6,7 @@ import ONYXKEYS from '../../ONYXKEYS';
 import CONST from '../../CONST';
 import * as API from '../API';
 import * as ReportUtils from '../ReportUtils';
+import * as LocalePhoneNumber from '../LocalePhoneNumber';
 import ROUTES from '../../ROUTES';
 import Navigation from '../Navigation/Navigation';
 
@@ -29,9 +30,9 @@ Onyx.connect({
  * @returns {String}
  */
 function getDisplayName(login, personalDetail) {
-    // If we have a number like +15857527441@expensify.sms then let's remove @expensify.sms
+    // If we have a number like +15857527441@expensify.sms then let's remove @expensify.sms and format it
     // so that the option looks cleaner in our UI.
-    const userLogin = Str.removeSMSDomain(login);
+    const userLogin = LocalePhoneNumber.formatPhoneNumber(login);
     const userDetails = personalDetail || lodashGet(personalDetails, login);
 
     if (!userDetails) {
@@ -66,7 +67,7 @@ function extractFirstAndLastNameFromAvailableDetails({
     if (firstName || lastName) {
         return {firstName: firstName || '', lastName: lastName || ''};
     }
-    if (Str.removeSMSDomain(login) === displayName) {
+    if (login && Str.removeSMSDomain(login) === displayName) {
         return {firstName: '', lastName: ''};
     }
 
@@ -183,7 +184,7 @@ function updateAddress(street, street2, city, state, zip, country) {
     const parameters = {
         homeAddressStreet: street,
         addressStreet2: street2,
-        addressCity: city,
+        homeAddressCity: city,
         addressState: state,
         addressZipCode: zip,
         addressCountry: country,
@@ -289,11 +290,13 @@ function updateAvatar(file) {
             [currentUserEmail]: {
                 avatar: file.uri,
                 avatarThumbnail: file.uri,
+                originalFileName: file.name,
                 errorFields: {
                     avatar: null,
                 },
                 pendingFields: {
                     avatar: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
+                    originalFileName: null,
                 },
             },
         },

@@ -311,8 +311,8 @@ function createSplitsAndOnyxData(participants, currentUserLogin, amount, comment
     ];
 
     // Loop through participants creating individual chats, iouReports and reportActionIDs as needed
-    const splitAmount = IOUUtils.calculateAmount(participants, amount);
-    const splits = [{email: currentUserEmail, amount: IOUUtils.calculateAmount(participants, amount, true)}];
+    const splitAmount = IOUUtils.calculateAmount(participants, amount, currency, false);
+    const splits = [{email: currentUserEmail, amount: IOUUtils.calculateAmount(participants, amount, currency, true)}];
 
     const hasMultipleParticipants = participants.length > 1;
     _.each(participants, (participant) => {
@@ -541,8 +541,9 @@ function splitBillAndOpenReport(participants, currentUserLogin, amount, comment,
  * @param {String} iouReportID
  * @param {String} type - cancel|decline
  * @param {Object} moneyRequestAction - the create IOU reportAction we are cancelling
+ * @param {Boolean} shouldCloseOnReject
  */
-function cancelMoneyRequest(chatReportID, iouReportID, type, moneyRequestAction) {
+function cancelMoneyRequest(chatReportID, iouReportID, type, moneyRequestAction, shouldCloseOnReject) {
     const chatReport = chatReports[`${ONYXKEYS.COLLECTION.REPORT}${chatReportID}`];
     const iouReport = iouReports[`${ONYXKEYS.COLLECTION.REPORT}${iouReportID}`];
     const transactionID = moneyRequestAction.originalMessage.IOUTransactionID;
@@ -624,7 +625,9 @@ function cancelMoneyRequest(chatReportID, iouReportID, type, moneyRequestAction)
         debtorEmail: chatReport.participants[0],
     }, {optimisticData, successData, failureData});
 
-    Navigation.navigate(ROUTES.getReportRoute(chatReportID));
+    if (shouldCloseOnReject) {
+        Navigation.navigate(ROUTES.getReportRoute(chatReportID));
+    }
 }
 
 /**
@@ -642,7 +645,7 @@ function setIOUSelectedCurrency(selectedCurrencyCode) {
  * @param {String} comment
  */
 function setMoneyRequestDescription(comment) {
-    Onyx.merge(ONYXKEYS.IOU, {comment});
+    Onyx.merge(ONYXKEYS.IOU, {comment: comment.trim()});
 }
 
 /**

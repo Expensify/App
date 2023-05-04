@@ -111,7 +111,7 @@ function requestContactMethodValidateCode(contactMethod) {
         key: ONYXKEYS.LOGIN_LIST,
         value: {
             [contactMethod]: {
-                validateCodeSent: true,
+                validateCodeSent: false,
                 errorFields: {
                     validateCodeSent: null,
                 },
@@ -126,6 +126,7 @@ function requestContactMethodValidateCode(contactMethod) {
         key: ONYXKEYS.LOGIN_LIST,
         value: {
             [contactMethod]: {
+                validateCodeSent: true,
                 pendingFields: {
                     validateCodeSent: null,
                 },
@@ -185,12 +186,15 @@ function updateNewsletterSubscription(isSubscribed) {
  * Delete a specific contact method
  *
  * @param {String} contactMethod - the contact method being deleted
- * @param {Object} oldLoginData
+ * @param {Array} loginList
  */
-function deleteContactMethod(contactMethod, oldLoginData) {
+function deleteContactMethod(contactMethod, loginList) {
+    const oldLoginData = loginList[contactMethod];
+
     // If the contact method failed to be added to the account, then it should only be deleted locally.
     if (lodashGet(oldLoginData, 'errorFields.addedLogin', null)) {
         Onyx.merge(ONYXKEYS.LOGIN_LIST, {[contactMethod]: null});
+        Navigation.navigate(ROUTES.SETTINGS_CONTACT_METHODS);
         return;
     }
 
@@ -392,7 +396,6 @@ function validateSecondaryLogin(contactMethod, validateCode) {
         partnerUserID: contactMethod,
         validateCode,
     }, {optimisticData, successData, failureData});
-    Navigation.navigate(ROUTES.SETTINGS_CONTACT_METHODS);
 }
 
 /**
@@ -454,6 +457,15 @@ function addPaypalMeAddress(address) {
 function deletePaypalMeAddress() {
     const optimisticData = [
         {
+            onyxMethod: CONST.ONYX.METHOD.MERGE,
+            key: ONYXKEYS.PAYPAL,
+            value: {pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE},
+        },
+    ];
+
+    // Success data required for Android, more info here https://github.com/Expensify/App/pull/17903#discussion_r1175763081
+    const successData = [
+        {
             onyxMethod: CONST.ONYX.METHOD.SET,
             key: ONYXKEYS.NVP_PAYPAL_ME_ADDRESS,
             value: '',
@@ -464,7 +476,8 @@ function deletePaypalMeAddress() {
             value: {},
         },
     ];
-    API.write('DeletePaypalMeAddress', {}, {optimisticData});
+
+    API.write('DeletePaypalMeAddress', {}, {optimisticData, successData});
     Growl.show(Localize.translateLocal('paymentsPage.deletePayPalSuccess'), CONST.GROWL.SUCCESS, 3000);
 }
 

@@ -9,12 +9,13 @@ import withLocalize, {withLocalizePropTypes} from '../withLocalize';
 import Growl from '../../libs/Growl';
 import themeColors from '../../styles/themes/default';
 import updateIsFullComposerAvailable from '../../libs/ComposerUtils/updateIsFullComposerAvailable';
-import getNumberOfLines from '../../libs/ComposerUtils/index';
+import * as ComposerUtils from '../../libs/ComposerUtils';
 import * as Browser from '../../libs/Browser';
 import Clipboard from '../../libs/Clipboard';
 import withWindowDimensions, {windowDimensionsPropTypes} from '../withWindowDimensions';
 import compose from '../../libs/compose';
 import styles from '../../styles/styles';
+import isEnterWhileComposition from '../../libs/KeyboardShortcut/isEnterWhileComposition';
 
 const propTypes = {
     /** Maximum number of lines in the text input */
@@ -132,6 +133,7 @@ class Composer extends React.Component {
         };
 
         this.paste = this.paste.bind(this);
+        this.handleKeyPress = this.handleKeyPress.bind(this);
         this.handlePaste = this.handlePaste.bind(this);
         this.handlePastedHTML = this.handlePastedHTML.bind(this);
         this.handleWheel = this.handleWheel.bind(this);
@@ -188,6 +190,14 @@ class Composer extends React.Component {
 
         this.textInput.removeEventListener('paste', this.handlePaste);
         this.textInput.removeEventListener('wheel', this.handleWheel);
+    }
+
+    // Prevent onKeyPress from being triggered if the Enter key is pressed while text is being composed
+    handleKeyPress(e) {
+        if (!this.props.onKeyPress || isEnterWhileComposition(e)) {
+            return;
+        }
+        this.props.onKeyPress(e);
     }
 
     /**
@@ -343,7 +353,7 @@ class Composer extends React.Component {
             const lineHeight = parseInt(computedStyle.lineHeight, 10) || 20;
             const paddingTopAndBottom = parseInt(computedStyle.paddingBottom, 10)
             + parseInt(computedStyle.paddingTop, 10);
-            const computedNumberOfLines = getNumberOfLines(this.props.maxLines, lineHeight, paddingTopAndBottom, this.textInput.scrollHeight);
+            const computedNumberOfLines = ComposerUtils.getNumberOfLines(this.props.maxLines, lineHeight, paddingTopAndBottom, this.textInput.scrollHeight);
             const numberOfLines = computedNumberOfLines === 0 ? this.props.numberOfLines : computedNumberOfLines;
             updateIsFullComposerAvailable(this.props, numberOfLines);
             this.setState({
@@ -379,6 +389,7 @@ class Composer extends React.Component {
                 {...propsWithoutStyles}
                 numberOfLines={this.state.numberOfLines}
                 disabled={this.props.isDisabled}
+                onKeyPress={this.handleKeyPress}
             />
         );
     }

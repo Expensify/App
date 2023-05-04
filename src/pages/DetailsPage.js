@@ -5,6 +5,7 @@ import _ from 'underscore';
 import {withOnyx} from 'react-native-onyx';
 import Str from 'expensify-common/lib/str';
 import lodashGet from 'lodash/get';
+import {parsePhoneNumber} from 'awesome-phonenumber';
 import styles from '../styles/styles';
 import Text from '../components/Text';
 import ONYXKEYS from '../ONYXKEYS';
@@ -73,12 +74,13 @@ const defaultProps = {
  */
 const getPhoneNumber = (details) => {
     // If the user hasn't set a displayName, it is set to their phone number, so use that
-    if (Str.isValidPhone(details.displayName)) {
-        return details.displayName;
+    const parsedPhoneNumber = parsePhoneNumber(details.displayName);
+    if (parsedPhoneNumber.possible) {
+        return parsedPhoneNumber.number.e164;
     }
 
     // If the user has set a displayName, get the phone number from the SMS login
-    return Str.removeSMSDomain(details.login);
+    return details.login ? Str.removeSMSDomain(details.login) : '';
 };
 
 class DetailsPage extends React.PureComponent {
@@ -95,7 +97,7 @@ class DetailsPage extends React.PureComponent {
             };
         }
 
-        const isSMSLogin = Str.isSMSLogin(details.login);
+        const isSMSLogin = details.login ? Str.isSMSLogin(details.login) : false;
 
         // If we have a reportID param this means that we
         // arrived here via the ParticipantsPage and should be allowed to navigate back to it
@@ -107,6 +109,9 @@ class DetailsPage extends React.PureComponent {
             const localeKey = pronouns.replace(CONST.PRONOUNS.PREFIX, '');
             pronouns = this.props.translate(`pronouns.${localeKey}`);
         }
+
+        const phoneNumber = getPhoneNumber(details);
+        const phoneOrEmail = isSMSLogin ? getPhoneNumber(details) : details.login;
 
         return (
             <ScreenWrapper>
@@ -127,9 +132,10 @@ class DetailsPage extends React.PureComponent {
                             <ScrollView>
                                 <View style={styles.avatarSectionWrapper}>
                                     <AttachmentModal
-                                        headerTitle={isSMSLogin ? this.props.toLocalPhone(details.displayName) : details.displayName}
+                                        headerTitle={details.displayName}
                                         source={ReportUtils.getFullSizeAvatar(details.avatar, details.login)}
                                         isAuthTokenRequired
+                                        originalFileName={details.originalFileName}
                                     >
                                         {({show}) => (
                                             <PressableWithoutFocus
@@ -151,7 +157,7 @@ class DetailsPage extends React.PureComponent {
                                     </AttachmentModal>
                                     {Boolean(details.displayName) && (
                                         <Text style={[styles.textHeadline, styles.mb6, styles.pre]} numberOfLines={1}>
-                                            {isSMSLogin ? this.props.toLocalPhone(details.displayName) : details.displayName}
+                                            {details.displayName}
                                         </Text>
                                     )}
                                     {details.login ? (
@@ -161,11 +167,13 @@ class DetailsPage extends React.PureComponent {
                                                     ? 'common.phoneNumber'
                                                     : 'common.email')}
                                             </Text>
-                                            <CommunicationsLink value={isSMSLogin ? getPhoneNumber(details) : details.login}>
-                                                <Tooltip text={isSMSLogin ? getPhoneNumber(details) : details.login}>
+                                            <CommunicationsLink
+                                                value={phoneOrEmail}
+                                            >
+                                                <Tooltip text={phoneOrEmail}>
                                                     <Text numberOfLines={1}>
                                                         {isSMSLogin
-                                                            ? this.props.toLocalPhone(getPhoneNumber(details))
+                                                            ? this.props.formatPhoneNumber(phoneNumber)
                                                             : details.login}
                                                     </Text>
                                                 </Tooltip>

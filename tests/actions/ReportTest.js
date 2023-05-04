@@ -235,7 +235,7 @@ describe('actions/Report', () => {
             })
             .then(() => TestHelper.setPersonalDetails(USER_1_LOGIN, USER_1_ACCOUNT_ID))
             .then(() => {
-                // When a Pusher event is handled for a new report comment
+                // When a Pusher event is handled for a new report comment that includes a mention of the current user
                 reportActionCreatedDate = DateUtils.getDBTime();
                 channel.emit(Pusher.TYPE.ONYX_API_UPDATE, [
                     {
@@ -247,6 +247,7 @@ describe('actions/Report', () => {
                             lastMessageText: 'Comment 1',
                             lastActorEmail: USER_2_LOGIN,
                             lastVisibleActionCreated: reportActionCreatedDate,
+                            lastMentionedTime: reportActionCreatedDate,
                             lastReadTime: DateUtils.subtractMillisecondsFromDateTime(reportActionCreatedDate, 1),
                         },
                     },
@@ -275,6 +276,9 @@ describe('actions/Report', () => {
                 // Then the report will be unread
                 expect(ReportUtils.isUnread(report)).toBe(true);
 
+                // And show a green dot for unread mentions in the LHN
+                expect(ReportUtils.isUnreadWithMention(report)).toBe(true);
+
                 // When the user visits the report
                 jest.advanceTimersByTime(10);
                 currentTime = DateUtils.getDBTime();
@@ -286,14 +290,18 @@ describe('actions/Report', () => {
                 expect(ReportUtils.isUnread(report)).toBe(false);
                 expect(moment.utc(report.lastReadTime).valueOf()).toBeGreaterThanOrEqual(moment.utc(currentTime).valueOf());
 
+                // And no longer show the green dot for unread mentions in the LHN
+                expect(ReportUtils.isUnreadWithMention(report)).toBe(false);
+
                 // When the user manually marks a message as "unread"
                 jest.advanceTimersByTime(10);
                 Report.markCommentAsUnread(REPORT_ID, reportActionCreatedDate);
                 return waitForPromisesToResolve();
             })
             .then(() => {
-                // Then the report will be unread
+                // Then the report will be unread and show the green dot for unread mentions in LHN
                 expect(ReportUtils.isUnread(report)).toBe(true);
+                expect(ReportUtils.isUnreadWithMention(report)).toBe(true);
                 expect(report.lastReadTime).toBe(DateUtils.subtractMillisecondsFromDateTime(reportActionCreatedDate, 1));
 
                 // When a new comment is added by the current user
@@ -303,8 +311,9 @@ describe('actions/Report', () => {
                 return waitForPromisesToResolve();
             })
             .then(() => {
-                // The report will be read and the lastReadTime updated
+                // The report will be read, the green dot for unread mentions will go away, and the lastReadTime updated
                 expect(ReportUtils.isUnread(report)).toBe(false);
+                expect(ReportUtils.isUnreadWithMention(report)).toBe(false);
                 expect(moment.utc(report.lastReadTime).valueOf()).toBeGreaterThanOrEqual(moment.utc(currentTime).valueOf());
                 expect(report.lastMessageText).toBe('Current User Comment 1');
 
@@ -430,41 +439,74 @@ describe('actions/Report', () => {
         // We should generate link
         let originalCommentHTML = 'Original Comment';
         let afterEditCommentText = 'Original Comment www.google.com';
-        let newCommentMarkdown = Report.handleUserDeletedLinks(afterEditCommentText, originalCommentHTML);
-        let expectedOutput = 'Original Comment [www.google.com](https://www.google.com)';
-        expect(newCommentMarkdown).toBe(expectedOutput);
+        let newCommentHTML = Report.handleUserDeletedLinksInHtml(afterEditCommentText, originalCommentHTML);
+        let expectedOutput = 'Original Comment <a href="https://www.google.com" target="_blank" rel="noreferrer noopener">www.google.com</a>';
+        expect(newCommentHTML).toBe(expectedOutput);
 
         // User deletes www.google.com link from comment but keeps link text
         // We should not generate link
         originalCommentHTML = 'Comment <a href="https://www.google.com" target="_blank">www.google.com</a>';
         afterEditCommentText = 'Comment www.google.com';
-        newCommentMarkdown = Report.handleUserDeletedLinks(afterEditCommentText, originalCommentHTML);
+        newCommentHTML = Report.handleUserDeletedLinksInHtml(afterEditCommentText, originalCommentHTML);
         expectedOutput = 'Comment www.google.com';
-        expect(newCommentMarkdown).toBe(expectedOutput);
+        expect(newCommentHTML).toBe(expectedOutput);
 
         // User Delete only () part of link but leaves the []
         // We should not generate link
         originalCommentHTML = 'Comment <a href="https://www.google.com" target="_blank">www.google.com</a>';
         afterEditCommentText = 'Comment [www.google.com]';
-        newCommentMarkdown = Report.handleUserDeletedLinks(afterEditCommentText, originalCommentHTML);
+        newCommentHTML = Report.handleUserDeletedLinksInHtml(afterEditCommentText, originalCommentHTML);
         expectedOutput = 'Comment [www.google.com]';
-        expect(newCommentMarkdown).toBe(expectedOutput);
+        expect(newCommentHTML).toBe(expectedOutput);
 
         // User Generates multiple links in one edit
         // We should generate both links
         originalCommentHTML = 'Comment';
         afterEditCommentText = 'Comment www.google.com www.facebook.com';
-        newCommentMarkdown = Report.handleUserDeletedLinks(afterEditCommentText, originalCommentHTML);
-        expectedOutput = 'Comment [www.google.com](https://www.google.com) [www.facebook.com](https://www.facebook.com)';
-        expect(newCommentMarkdown).toBe(expectedOutput);
+        newCommentHTML = Report.handleUserDeletedLinksInHtml(afterEditCommentText, originalCommentHTML);
+        expectedOutput = 'Comment <a href="https://www.google.com" target="_blank" rel="noreferrer noopener">www.google.com</a> '
+            + '<a href="https://www.facebook.com" target="_blank" rel="noreferrer noopener">www.facebook.com</a>';
+        expect(newCommentHTML).toBe(expectedOutput);
 
         // Comment has two links but user deletes only one of them
         // Should not generate link again for the deleted one
         originalCommentHTML = 'Comment <a href="https://www.google.com" target="_blank">www.google.com</a>  <a href="https://www.facebook.com" target="_blank">www.facebook.com</a>';
         afterEditCommentText = 'Comment www.google.com  [www.facebook.com](https://www.facebook.com)';
-        newCommentMarkdown = Report.handleUserDeletedLinks(afterEditCommentText, originalCommentHTML);
-        expectedOutput = 'Comment www.google.com  [www.facebook.com](https://www.facebook.com)';
-        expect(newCommentMarkdown).toBe(expectedOutput);
+        newCommentHTML = Report.handleUserDeletedLinksInHtml(afterEditCommentText, originalCommentHTML);
+        expectedOutput = 'Comment www.google.com  <a href="https://www.facebook.com" target="_blank" rel="noreferrer noopener">www.facebook.com</a>';
+        expect(newCommentHTML).toBe(expectedOutput);
+
+        // User edits and replaces comment with a link containing underscores
+        // We should generate link
+        originalCommentHTML = 'Comment';
+        afterEditCommentText = 'https://www.facebook.com/hashtag/__main/?__eep__=6';
+        newCommentHTML = Report.handleUserDeletedLinksInHtml(afterEditCommentText, originalCommentHTML);
+        expectedOutput = '<a href="https://www.facebook.com/hashtag/__main/?__eep__=6" target="_blank" rel="noreferrer noopener">https://www.facebook.com/hashtag/__main/?__eep__=6</a>';
+        expect(newCommentHTML).toBe(expectedOutput);
+
+        // User edits and deletes the link containing underscores
+        // We should not generate link
+        originalCommentHTML = '<a href="https://www.facebook.com/hashtag/__main/?__eep__=6" target="_blank" rel="noreferrer noopener">https://www.facebook.com/hashtag/__main/?__eep__=6</a>';
+        afterEditCommentText = 'https://www.facebook.com/hashtag/__main/?__eep__=6';
+        newCommentHTML = Report.handleUserDeletedLinksInHtml(afterEditCommentText, originalCommentHTML);
+        expectedOutput = 'https://www.facebook.com/hashtag/__main/?__eep__=6';
+        expect(newCommentHTML).toBe(expectedOutput);
+
+        // User edits and replaces comment with a link containing asterisks
+        // We should generate link
+        originalCommentHTML = 'Comment';
+        afterEditCommentText = 'http://example.com/foo/*/bar/*/test.txt';
+        newCommentHTML = Report.handleUserDeletedLinksInHtml(afterEditCommentText, originalCommentHTML);
+        expectedOutput = '<a href="http://example.com/foo/*/bar/*/test.txt" target="_blank" rel="noreferrer noopener">http://example.com/foo/*/bar/*/test.txt</a>';
+        expect(newCommentHTML).toBe(expectedOutput);
+
+        // User edits and deletes the link containing asterisks
+        // We should not generate link
+        originalCommentHTML = '<a href="http://example.com/foo/*/bar/*/test.txt" target="_blank" rel="noreferrer noopener">http://example.com/foo/*/bar/*/test.txt</a>';
+        afterEditCommentText = 'http://example.com/foo/*/bar/*/test.txt';
+        newCommentHTML = Report.handleUserDeletedLinksInHtml(afterEditCommentText, originalCommentHTML);
+        expectedOutput = 'http://example.com/foo/*/bar/*/test.txt';
+        expect(newCommentHTML).toBe(expectedOutput);
     });
 
     it('should show a notification for report action updates with shouldNotify', () => {
