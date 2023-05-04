@@ -260,6 +260,12 @@ export default {
                     IOU_Details_Add_Debit_Card: ROUTES.IOU_DETAILS_ADD_DEBIT_CARD,
                 },
             },
+            Task_Details: {
+                screens: {
+                    Task_Title: ROUTES.TASK_TITLE,
+                    Task_Description: ROUTES.TASK_DESCRIPTION,
+                },
+            },
             AddPersonalBankAccount: {
                 screens: {
                     AddPersonalBankAccount_Root: ROUTES.BANK_ACCOUNT_PERSONAL,

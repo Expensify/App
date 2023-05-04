@@ -14,6 +14,7 @@ import ScreenWrapper from '../../components/ScreenWrapper';
 import withLocalize, {withLocalizePropTypes} from '../../components/withLocalize';
 import compose from '../../libs/compose';
 import * as Policy from '../../libs/actions/Policy';
+import * as OptionsListUtils from '../../libs/OptionsListUtils';
 import Button from '../../components/Button';
 import Checkbox from '../../components/Checkbox';
 import Text from '../../components/Text';
@@ -115,6 +116,41 @@ class WorkspaceMembersPage extends React.Component {
          */
         const clientMemberEmails = _.keys(_.pick(this.props.policyMemberList, member => _.isEmpty(member.errors)));
         Policy.openWorkspaceMembersPage(this.props.route.params.policyID, clientMemberEmails);
+    }
+
+    /**
+     * This function will iterate through the details of each policy member to check if the
+     * search string matches with any detail and return that filter.
+     * @param {Array} policyMembersPersonalDetails - This is the list of policy members
+     * @param {*} searchValue - This is the string that the user has entered
+     * @returns {Array} - The list of policy members that have anything similar to the searchValue
+     */
+    getMemberOptions(policyMembersPersonalDetails, searchValue) {
+        // If no search value, we return all members.
+        if (_.isEmpty(searchValue)) {
+            return policyMembersPersonalDetails;
+        }
+
+        // We will filter through each policy member details to determine if they should be shown
+        return _.filter(policyMembersPersonalDetails, (member) => {
+            let memberDetails = '';
+            if (member.login) {
+                memberDetails += ` ${member.login.toLowerCase()}`;
+            }
+            if (member.firstName) {
+                memberDetails += ` ${member.firstName.toLowerCase()}`;
+            }
+            if (member.lastName) {
+                memberDetails += ` ${member.lastName.toLowerCase()}`;
+            }
+            if (member.displayName) {
+                memberDetails += ` ${member.displayName.toLowerCase()}`;
+            }
+            if (member.phoneNumber) {
+                memberDetails += ` ${member.phoneNumber.toLowerCase()}`;
+            }
+            return OptionsListUtils.isSearchStringMatch(searchValue, memberDetails);
+        });
     }
 
     /**
@@ -249,15 +285,6 @@ class WorkspaceMembersPage extends React.Component {
     }
 
     /**
-     * @param {String} [value = '']
-     * @param {String} keyword
-     * @returns {Boolean}
-     */
-    isKeywordMatch(value = '', keyword) {
-        return value.trim().toLowerCase().includes(keyword);
-    }
-
-    /**
      * Check if the policy member is deleted from the workspace
      * @param {Object} policyMember
      * @returns {Boolean}
@@ -339,12 +366,7 @@ class WorkspaceMembersPage extends React.Component {
             });
         });
         data = _.sortBy(data, value => value.displayName.toLowerCase());
-        const searchValue = this.state.searchValue.trim().toLowerCase();
-        data = _.filter(data, member => this.isKeywordMatch(member.displayName, searchValue)
-            || this.isKeywordMatch(member.login, searchValue)
-            || this.isKeywordMatch(member.phoneNumber, searchValue)
-            || this.isKeywordMatch(member.firstName, searchValue)
-            || this.isKeywordMatch(member.lastName, searchValue));
+        data = this.getMemberOptions(data, this.state.searchValue.trim().toLowerCase());
 
         data = _.reject(data, (member) => {
             // If this policy is owned by Expensify then show all support (expensify.com or team.expensify.com) emails

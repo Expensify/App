@@ -893,4 +893,5 @@ export {
     getAllReportErrors,
     getPolicyExpenseReportOptions,
     getParticipantsOptions,
+    isSearchStringMatch,
 };
