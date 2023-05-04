@@ -106,6 +106,7 @@ const AddressForm = props => (
                 errorText={props.errors.street ? props.translate('bankAccount.error.addressStreet') : ''}
                 hint={props.translate('common.noPO')}
                 renamedInputKeys={props.inputKeys}
+                maxInputLength={CONST.FORM_CHARACTER_LIMIT}
             />
         </View>
         <TextInput
@@ -139,7 +140,7 @@ const AddressForm = props => (
             onChangeText={value => props.onFieldChange({zipCode: value})}
             errorText={props.errors.zipCode ? props.translate('bankAccount.error.zipCode') : ''}
             maxLength={CONST.BANK_ACCOUNT.MAX_LENGTH.ZIP_CODE}
-            hint={props.translate('common.zipCodeExample')}
+            hint={props.translate('common.zipCodeExampleFormat', {zipSampleFormat: CONST.COUNTRY_ZIP_REGEX_DATA.US.samples})}
         />
     </>
 );

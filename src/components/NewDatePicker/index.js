@@ -1,5 +1,5 @@
 import React from 'react';
-import {View, Animated} from 'react-native';
+import {View} from 'react-native';
 import moment from 'moment';
 import TextInput from '../TextInput';
 import CalendarPicker from '../CalendarPicker';
@@ -7,7 +7,6 @@ import CONST from '../../CONST';
 import styles from '../../styles/styles';
 import * as Expensicons from '../Icon/Expensicons';
 import {propTypes as datePickerPropTypes, defaultProps as defaultDatePickerProps} from './datePickerPropTypes';
-import KeyboardShortcut from '../../libs/KeyboardShortcut';
 import withLocalize, {withLocalizePropTypes} from '../withLocalize';
 
 const propTypes = {
@@ -24,17 +23,12 @@ class NewDatePicker extends React.Component {
         super(props);
 
         this.state = {
-            isPickerVisible: false,
             selectedMonth: null,
             selectedDate: moment(props.value || props.defaultValue || undefined).toDate(),
         };
 
         this.setDate = this.setDate.bind(this);
-        this.showPicker = this.showPicker.bind(this);
-        this.hidePicker = this.hidePicker.bind(this);
         this.setCurrentSelectedMonth = this.setCurrentSelectedMonth.bind(this);
-
-        this.opacity = new Animated.Value(0);
 
         // We're using uncontrolled input otherwise it wont be possible to
         // raise change events with a date value - each change will produce a date
@@ -42,29 +36,6 @@ class NewDatePicker extends React.Component {
         this.defaultValue = props.defaultValue
             ? moment(props.defaultValue).format(CONST.DATE.MOMENT_FORMAT_STRING)
             : '';
-    }
-
-    componentDidMount() {
-        if (this.props.autoFocus) {
-            this.showPicker();
-            this.textInputRef.focus();
-        }
-
-        const shortcutConfig = CONST.KEYBOARD_SHORTCUTS.ESCAPE;
-        this.unsubscribeEscapeKey = KeyboardShortcut.subscribe(shortcutConfig.shortcutKey, () => {
-            if (!this.state.isPickerVisible) {
-                return;
-            }
-            this.hidePicker();
-            this.textInputRef.blur();
-        }, shortcutConfig.descriptionKey, shortcutConfig.modifiers, true, () => !this.state.isPickerVisible);
-    }
-
-    componentWillUnmount() {
-        if (!this.unsubscribeEscapeKey) {
-            return;
-        }
-        this.unsubscribeEscapeKey();
     }
 
     /**
@@ -83,90 +54,41 @@ class NewDatePicker extends React.Component {
     setDate(selectedDate) {
         this.setState({selectedDate}, () => {
             this.props.onInputChange(moment(selectedDate).format(CONST.DATE.MOMENT_FORMAT_STRING));
-            this.hidePicker();
-            this.textInputRef.blur();
-        });
-    }
-
-    /**
-     * Function to animate showing the picker.
-     */
-    showPicker() {
-        this.setState({isPickerVisible: true}, () => {
-            Animated.timing(this.opacity, {
-                toValue: 1,
-                duration: 100,
-                useNativeDriver: true,
-            }).start();
-        });
-    }
-
-    /**
-     * Function to animate and hide the picker.
-     */
-    hidePicker() {
-        Animated.timing(this.opacity, {
-            toValue: 0,
-            duration: 100,
-            useNativeDriver: true,
-        }).start((animationResult) => {
-            if (!animationResult.finished) {
-                return;
-            }
-            this.setState({isPickerVisible: false}, this.props.onHidePicker);
         });
     }
 
     render() {
         return (
-            <View
-                ref={ref => this.wrapperRef = ref}
-                onBlur={(event) => {
-                    if (this.wrapperRef && event.relatedTarget && this.wrapperRef.contains(event.relatedTarget)) {
-                        return;
-                    }
-                    this.hidePicker();
-                }}
-                style={styles.datePickerRoot}
-            >
-                <View style={[this.props.isSmallScreenWidth ? styles.flex2 : {}]}>
+            <View style={styles.datePickerRoot}>
+                <View style={[this.props.isSmallScreenWidth ? styles.flex2 : {}, styles.pointerEventsNone]}>
                     <TextInput
                         forceActiveLabel
-                        ref={el => this.textInputRef = el}
                         icon={Expensicons.Calendar}
-                        onPress={this.showPicker}
                         label={this.props.label}
                         value={this.props.value || ''}
                         defaultValue={this.defaultValue}
                         placeholder={this.props.placeholder || this.props.translate('common.dateFormat')}
                         errorText={this.props.errorText}
                         containerStyles={this.props.containerStyles}
-                        textInputContainerStyles={this.state.isPickerVisible ? [styles.borderColorFocus] : []}
+                        textInputContainerStyles={[styles.borderColorFocus]}
+                        inputStyle={[styles.pointerEventsNone]}
                         disabled={this.props.disabled}
                         editable={false}
                     />
                 </View>
-                {
-                    this.state.isPickerVisible && (
-                    <Animated.View
-                        onMouseDown={(e) => {
-                            // To prevent focus stealing
-                            e.preventDefault();
-                        }}
-                        style={[styles.datePickerPopover, styles.border, {opacity: this.opacity}]}
-                    >
-                        <CalendarPicker
-                            minDate={this.props.minDate}
-                            maxDate={this.props.maxDate}
-                            value={this.state.selectedDate}
-                            onSelected={this.setDate}
-                            selectedMonth={this.state.selectedMonth}
-                            selectedYear={this.props.selectedYear}
-                            onYearPickerOpen={this.setCurrentSelectedMonth}
-                        />
-                    </Animated.View>
-                    )
-                }
+                <View
+                    style={[styles.datePickerPopover, styles.border]}
+                >
+                    <CalendarPicker
+                        minDate={this.props.minDate}
+                        maxDate={this.props.maxDate}
+                        value={this.state.selectedDate}
+                        onSelected={this.setDate}
+                        selectedMonth={this.state.selectedMonth}
+                        selectedYear={this.props.selectedYear}
+                        onYearPickerOpen={this.setCurrentSelectedMonth}
+                    />
+                </View>
             </View>
         );
     }

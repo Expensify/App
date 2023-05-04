@@ -22,6 +22,7 @@ import reportActionPropTypes from './report/reportActionPropTypes';
 import toggleReportActionComposeView from '../../libs/toggleReportActionComposeView';
 import {withNetwork} from '../../components/OnyxProvider';
 import compose from '../../libs/compose';
+import Visibility from '../../libs/Visibility';
 import networkPropTypes from '../../components/networkPropTypes';
 import withWindowDimensions, {windowDimensionsPropTypes} from '../../components/withWindowDimensions';
 import OfflineWithFeedback from '../../components/OfflineWithFeedback';
@@ -35,8 +36,10 @@ import ReportHeaderSkeletonView from '../../components/ReportHeaderSkeletonView'
 import withViewportOffsetTop, {viewportOffsetTopPropTypes} from '../../components/withViewportOffsetTop';
 import * as ReportActionsUtils from '../../libs/ReportActionsUtils';
 import personalDetailsPropType from '../personalDetailsPropType';
+import getIsReportFullyVisible from '../../libs/getIsReportFullyVisible';
 import EmojiPicker from '../../components/EmojiPicker/EmojiPicker';
 import * as EmojiPickerAction from '../../libs/actions/EmojiPickerAction';
+import TaskHeaderView from './TaskHeaderView';
 
 const propTypes = {
     /** Navigation route context info provided by react navigation */
@@ -130,6 +133,16 @@ class ReportScreen extends React.Component {
     }
 
     componentDidMount() {
+        this.unsubscribeVisibilityListener = Visibility.onVisibilityChange(() => {
+            // If the report is not fully visible (AKA on small screen devices and LHR is open) or the report is optimistic (AKA not yet created)
+            // we don't need to call openReport
+            if (!getIsReportFullyVisible(this.props.isDrawerOpen, this.props.isSmallScreenWidth) || this.props.report.isOptimisticReport) {
+                return;
+            }
+
+            Report.openReport(this.props.report.reportID);
+        });
+
         this.fetchReportIfNeeded();
         toggleReportActionComposeView(true);
         Navigation.setIsReportScreenIsReady();
@@ -151,6 +164,9 @@ class ReportScreen extends React.Component {
     }
 
     componentWillUnmount() {
+        if (this.unsubscribeVisibilityListener) {
+            this.unsubscribeVisibilityListener();
+        }
         Navigation.resetIsReportScreenReadyPromise();
     }
 
@@ -208,6 +224,7 @@ class ReportScreen extends React.Component {
         const addWorkspaceRoomOrChatPendingAction = lodashGet(this.props.report, 'pendingFields.addWorkspaceRoom') || lodashGet(this.props.report, 'pendingFields.createChat');
         const addWorkspaceRoomOrChatErrors = lodashGet(this.props.report, 'errorFields.addWorkspaceRoom') || lodashGet(this.props.report, 'errorFields.createChat');
         const screenWrapperStyle = [styles.appContent, styles.flex1, {marginTop: this.props.viewportOffsetTop}];
+        const isTaskReport = ReportUtils.isTaskReport(this.props.report);
 
         // There are no reportActions at all to display and we are still in the process of loading the next set of actions.
         const isLoadingInitialReportActions = _.isEmpty(this.props.reportActions) && this.props.report.isLoadingReportActions;
@@ -263,10 +280,9 @@ class ReportScreen extends React.Component {
                                         onNavigationMenuButtonClicked={() => Navigation.navigate(ROUTES.HOME)}
                                         personalDetails={this.props.personalDetails}
                                         report={this.props.report}
-                                        policies={this.props.policies}
                                     />
                                 </OfflineWithFeedback>
-                                {this.props.accountManagerReportID && ReportUtils.isConciergeChatReport(this.props.report) && this.state.isBannerVisible && (
+                                {Boolean(this.props.accountManagerReportID) && ReportUtils.isConciergeChatReport(this.props.report) && this.state.isBannerVisible && (
                                     <Banner
                                         containerStyles={[styles.mh4, styles.mt4, styles.p4, styles.bgDark]}
                                         textStyles={[styles.colorReversed]}
@@ -276,6 +292,7 @@ class ReportScreen extends React.Component {
                                         shouldShowCloseButton
                                     />
                                 )}
+                                {isTaskReport && <TaskHeaderView report={this.props.report} />}
                             </>
                         )}
                         <View
@@ -320,9 +337,14 @@ class ReportScreen extends React.Component {
                                         isComposerFullSize={this.props.isComposerFullSize}
                                         onSubmitComment={this.onSubmitComment}
                                     />
-                                    <EmojiPicker ref={EmojiPickerAction.emojiPickerRef} />
                                 </>
                             )}
+
+                            {!this.isReportReadyForDisplay() && (
+                                <ReportFooter shouldDisableCompose isOffline={this.props.network.isOffline} />
+                            )}
+
+                            <EmojiPicker ref={EmojiPickerAction.emojiPickerRef} />
                             <PortalHost name={CONST.REPORT.DROP_HOST_NAME} />
                         </View>
                     </FullPageNotFoundView>

@@ -1,53 +1,47 @@
-import lodashGet from 'lodash/get';
-import lodashTrim from 'lodash/trim';
-import lodashIncludes from 'lodash/includes';
-import lodashStartsWith from 'lodash/startsWith';
+import Onyx from 'react-native-onyx';
 import Str from 'expensify-common/lib/str';
-import translations from '../languages/translations';
+import {parsePhoneNumber} from 'awesome-phonenumber';
+import ONYXKEYS from '../ONYXKEYS';
+
+let countryCodeByIP;
+Onyx.connect({
+    key: ONYXKEYS.COUNTRY_CODE,
+    callback: val => countryCodeByIP = val || 1,
+});
 
 /**
- * Returns a locally converted phone number without the country code
+ * Returns a locally converted phone number for numbers from the same region
+ * and an internationally converted phone number with the country code for numbers from other regions
  *
- * @param {String} locale eg 'en', 'es-ES'
  * @param {String} number
  * @returns {String}
  */
-function toLocalPhone(locale, number) {
-    const numString = lodashTrim(number);
-    const withoutPlusNum = lodashIncludes(numString, '+') ? Str.cutBefore(numString, '+') : numString;
-    const country = lodashGet(translations, [locale, 'phoneCountryCode']);
-
-    if (country) {
-        if (lodashStartsWith(withoutPlusNum, country)) {
-            return Str.cutBefore(withoutPlusNum, country);
-        }
-        return numString;
+function formatPhoneNumber(number) {
+    if (!number) {
+        return '';
     }
-    return number;
-}
 
-/**
- * Returns an internationally converted phone number with the country code
- *
- * @param {String} locale eg 'en', 'es-ES'
- * @param {String} number
- * @returns {String}
- */
-function fromLocalPhone(locale, number) {
-    const numString = lodashTrim(number);
-    const withoutPlusNum = lodashIncludes(numString, '+') ? Str.cutBefore(numString, '+') : numString;
-    const country = lodashGet(translations, [locale, 'phoneCountryCode']);
+    const numberWithoutSMSDomain = Str.removeSMSDomain(number);
+    const parsedPhoneNumber = parsePhoneNumber(numberWithoutSMSDomain);
 
-    if (country) {
-        if (lodashStartsWith(withoutPlusNum, country)) {
-            return `+${withoutPlusNum}`;
+    // return the string untouched if it's not a phone number
+    if (!parsedPhoneNumber.valid) {
+        if (parsedPhoneNumber.number && parsedPhoneNumber.number.international) {
+            return parsedPhoneNumber.number.international;
         }
-        return `+${country}${withoutPlusNum}`;
+        return numberWithoutSMSDomain;
     }
-    return number;
+
+    const regionCode = parsedPhoneNumber.countryCode;
+
+    if (regionCode === countryCodeByIP) {
+        return parsedPhoneNumber.number.national;
+    }
+
+    return parsedPhoneNumber.number.international;
 }
 
 export {
-    toLocalPhone,
-    fromLocalPhone,
+    // eslint-disable-next-line import/prefer-default-export
+    formatPhoneNumber,
 };

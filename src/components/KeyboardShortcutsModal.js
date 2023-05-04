@@ -1,6 +1,6 @@
 import React from 'react';
 import PropTypes from 'prop-types';
-import {View} from 'react-native';
+import {View, ScrollView} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import _ from 'underscore';
 import HeaderWithCloseButton from './HeaderWithCloseButton';
@@ -34,18 +34,53 @@ const defaultProps = {
 
 class KeyboardShortcutsModal extends React.Component {
     componentDidMount() {
-        const shortcutConfig = CONST.KEYBOARD_SHORTCUTS.SHORTCUT_MODAL;
-        this.unsubscribeShortcutModal = KeyboardShortcut.subscribe(shortcutConfig.shortcutKey, () => {
+        const openShortcutModalConfig = CONST.KEYBOARD_SHORTCUTS.SHORTCUT_MODAL;
+        this.unsubscribeShortcutModal = KeyboardShortcut.subscribe(openShortcutModalConfig.shortcutKey, () => {
             ModalActions.close();
             KeyboardShortcutsActions.showKeyboardShortcutModal();
-        }, shortcutConfig.descriptionKey, shortcutConfig.modifiers, true);
+        }, openShortcutModalConfig.descriptionKey, openShortcutModalConfig.modifiers, true);
+
+        // Allow closing the modal with the both Enter and Escape keys
+        // Both callbacks have the lowest priority (0) to ensure that they are called before any other callbacks
+        // and configured so that event propagation is stopped after the callback is called (only when the modal is open)
+        const closeShortcutEscapeModalConfig = CONST.KEYBOARD_SHORTCUTS.ESCAPE;
+        this.unsubscribeCloseEscapeModal = KeyboardShortcut.subscribe(closeShortcutEscapeModalConfig.shortcutKey, () => {
+            ModalActions.close();
+            KeyboardShortcutsActions.hideKeyboardShortcutModal();
+        }, closeShortcutEscapeModalConfig.descriptionKey, closeShortcutEscapeModalConfig.modifiers, true, true);
+
+        const closeShortcutEnterModalConfig = CONST.KEYBOARD_SHORTCUTS.ENTER;
+        this.unsubscribeCloseEnterModal = KeyboardShortcut.subscribe(closeShortcutEnterModalConfig.shortcutKey, () => {
+            ModalActions.close();
+            KeyboardShortcutsActions.hideKeyboardShortcutModal();
+        }, closeShortcutEnterModalConfig.descriptionKey, closeShortcutEnterModalConfig.modifiers, true, () => !this.props.isShortcutsModalOpen);
+
+        // Intercept arrow up and down keys to prevent scrolling ArrowKeyFocusManager while this modal is open
+        const arrowUpConfig = CONST.KEYBOARD_SHORTCUTS.ARROW_UP;
+        this.unsubscribeArrowUpKey = KeyboardShortcut.subscribe(arrowUpConfig.shortcutKey, () => {
+        }, arrowUpConfig.descriptionKey, arrowUpConfig.modifiers, true, () => !this.props.isShortcutsModalOpen);
+
+        const arrowDownConfig = CONST.KEYBOARD_SHORTCUTS.ARROW_DOWN;
+        this.unsubscribeArrowDownKey = KeyboardShortcut.subscribe(arrowDownConfig.shortcutKey, () => {
+        }, arrowDownConfig.descriptionKey, arrowDownConfig.modifiers, true, () => !this.props.isShortcutsModalOpen);
     }
 
     componentWillUnmount() {
-        if (!this.unsubscribeShortcutModal) {
-            return;
+        if (this.unsubscribeShortcutModal) {
+            this.unsubscribeShortcutModal();
         }
-        this.unsubscribeShortcutModal();
+        if (this.unsubscribeCloseEscapeModal) {
+            this.unsubscribeCloseEscapeModal();
+        }
+        if (this.unsubscribeCloseEnterModal) {
+            this.unsubscribeCloseEnterModal();
+        }
+        if (this.unsubscribeArrowUpKey) {
+            this.unsubscribeArrowUpKey();
+        }
+        if (this.unsubscribeArrowDownKey) {
+            this.unsubscribeArrowDownKey();
+        }
     }
 
     /**
@@ -85,7 +120,7 @@ class KeyboardShortcutsModal extends React.Component {
                 onClose={KeyboardShortcutsActions.hideKeyboardShortcutModal}
             >
                 <HeaderWithCloseButton title={this.props.translate('keyboardShortcutModal.title')} onCloseButtonPress={KeyboardShortcutsActions.hideKeyboardShortcutModal} />
-                <View style={[styles.p5, styles.pt0]}>
+                <ScrollView style={[styles.p5, styles.pt0]}>
                     <Text style={styles.mb5}>{this.props.translate('keyboardShortcutModal.subtitle')}</Text>
                     <View style={[styles.keyboardShortcutTableWrapper]}>
                         <View style={[styles.alignItemsCenter, styles.keyboardShortcutTableContainer]}>
@@ -95,7 +130,7 @@ class KeyboardShortcutsModal extends React.Component {
                             })}
                         </View>
                     </View>
-                </View>
+                </ScrollView>
             </Modal>
         );
     }

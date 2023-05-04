@@ -33,7 +33,7 @@ export default {
     // Credentials to authenticate the user
     CREDENTIALS: 'credentials',
 
-    // Contains loading data for the IOU feature (IOUModal, IOUDetail, & IOUPreview Components)
+    // Contains loading data for the IOU feature (MoneyRequestModal, IOUDetail, & IOUPreview Components)
     IOU: 'iou',
 
     // Keeps track if there is modal currently visible or not
@@ -105,16 +105,18 @@ export default {
 
     // Collection Keys
     COLLECTION: {
+        DOWNLOAD: 'download_',
+        POLICY: 'policy_',
+        POLICY_MEMBER_LIST: 'policyMemberList_',
+        WORKSPACE_INVITE_MEMBERS_DRAFT: 'workspaceInviteMembersDraft_',
         REPORT: 'report_',
         REPORT_ACTIONS: 'reportActions_',
+        REPORT_ACTIONS_DRAFTS: 'reportActionsDrafts_',
         REPORT_DRAFT_COMMENT: 'reportDraftComment_',
         REPORT_DRAFT_COMMENT_NUMBER_OF_LINES: 'reportDraftCommentNumberOfLines_',
-        REPORT_ACTIONS_DRAFTS: 'reportActionsDrafts_',
-        REPORT_USER_IS_TYPING: 'reportUserIsTyping_',
-        POLICY: 'policy_',
         REPORT_IS_COMPOSER_FULL_SIZE: 'reportIsComposerFullSize_',
-        POLICY_MEMBER_LIST: 'policyMemberList_',
-        DOWNLOAD: 'download_',
+        REPORT_USER_IS_TYPING: 'reportUserIsTyping_',
+        TRANSACTION: 'transactions_',
     },
 
     // Indicates which locale should be used
@@ -171,6 +173,9 @@ export default {
     // Is Keyboard shortcuts modal open?
     IS_SHORTCUTS_MODAL_OPEN: 'isShortcutsModalOpen',
 
+    // Is the test tools modal open?
+    IS_TEST_TOOLS_MODAL_OPEN: 'isTestToolsModalOpen',
+
     // Stores information about active wallet transfer amount, selectedAccountID, status, etc
     WALLET_TRANSFER: 'walletTransfer',
 
@@ -186,10 +191,14 @@ export default {
         PROFILE_SETTINGS_FORM: 'profileSettingsForm',
         DISPLAY_NAME_FORM: 'displayNameForm',
         LEGAL_NAME_FORM: 'legalNameForm',
+        WORKSPACE_INVITE_MESSAGE_FORM: 'workspaceInviteMessageForm',
         DATE_OF_BIRTH_FORM: 'dateOfBirthForm',
         HOME_ADDRESS_FORM: 'homeAddressForm',
         NEW_ROOM_FORM: 'newRoomForm',
         ROOM_SETTINGS_FORM: 'roomSettingsForm',
+        NEW_TASK_FORM: 'newTaskForm',
+        EDIT_TASK_FORM: 'editTaskForm',
+        MONEY_REQUEST_DESCRIPTION_FORM: 'moneyRequestDescriptionForm',
     },
 
     // Whether we should show the compose input or not

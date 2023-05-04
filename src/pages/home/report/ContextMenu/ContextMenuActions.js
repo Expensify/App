@@ -14,7 +14,6 @@ import CONST from '../../../../CONST';
 import getAttachmentDetails from '../../../../libs/fileDownload/getAttachmentDetails';
 import fileDownload from '../../../../libs/fileDownload';
 import addEncryptedAuthTokenToURL from '../../../../libs/addEncryptedAuthTokenToURL';
-import * as ContextMenuUtils from './ContextMenuUtils';
 import * as Environment from '../../../../libs/Environment/Environment';
 import Permissions from '../../../../libs/Permissions';
 import QuickEmojiReactions from '../../../../components/Reactions/QuickEmojiReactions';
@@ -40,7 +39,7 @@ const CONTEXT_MENU_TYPES = {
 export default [
     {
         shouldKeepOpen: true,
-        shouldShow: (type, reportAction) => type === CONTEXT_MENU_TYPES.REPORT_ACTION && _.has(reportAction, 'message') && reportAction.actionName !== CONST.REPORT.ACTIONS.TYPE.IOU,
+        shouldShow: (type, reportAction) => type === CONTEXT_MENU_TYPES.REPORT_ACTION && _.has(reportAction, 'message'),
         renderContent: (closePopover, {
             reportID, reportAction, close: closeManually, openContextMenu,
         }) => {
@@ -111,7 +110,7 @@ export default [
     },
     {
         textTranslateKey: 'reportActionContextMenu.copyURLToClipboard',
-        icon: Expensicons.Clipboard,
+        icon: Expensicons.Copy,
         successTextTranslateKey: 'reportActionContextMenu.copied',
         successIcon: Expensicons.Checkmark,
         shouldShow: type => type === CONTEXT_MENU_TYPES.LINK,
@@ -119,11 +118,11 @@ export default [
             Clipboard.setString(selection);
             hideContextMenu(true, ReportActionComposeFocusManager.focus);
         },
-        getDescription: ContextMenuUtils.getPopoverDescription,
+        getDescription: selection => selection,
     },
     {
         textTranslateKey: 'reportActionContextMenu.copyEmailToClipboard',
-        icon: Expensicons.Clipboard,
+        icon: Expensicons.Copy,
         successTextTranslateKey: 'reportActionContextMenu.copied',
         successIcon: Expensicons.Checkmark,
         shouldShow: type => type === CONTEXT_MENU_TYPES.EMAIL,
@@ -135,7 +134,7 @@ export default [
     },
     {
         textTranslateKey: 'reportActionContextMenu.copyToClipboard',
-        icon: Expensicons.Clipboard,
+        icon: Expensicons.Copy,
         successTextTranslateKey: 'reportActionContextMenu.copied',
         successIcon: Expensicons.Checkmark,
         shouldShow: (type, reportAction) => (type === CONTEXT_MENU_TYPES.REPORT_ACTION

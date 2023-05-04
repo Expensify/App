@@ -2,7 +2,9 @@
 import _ from 'underscore';
 import Onyx from 'react-native-onyx';
 import lodashOrderBy from 'lodash/orderBy';
+import lodashGet from 'lodash/get';
 import Str from 'expensify-common/lib/str';
+import {parsePhoneNumber} from 'awesome-phonenumber';
 import ONYXKEYS from '../ONYXKEYS';
 import CONST from '../CONST';
 import * as ReportUtils from './ReportUtils';
@@ -11,6 +13,7 @@ import Permissions from './Permissions';
 import * as CollectionUtils from './CollectionUtils';
 import Navigation from './Navigation/Navigation';
 import * as LoginUtils from './LoginUtils';
+import * as LocalePhoneNumber from './LocalePhoneNumber';
 
 /**
  * OptionsListUtils is used to build a list options passed to the OptionsList component. Several different UI views can
@@ -30,16 +33,10 @@ Onyx.connect({
     callback: val => loginList = _.isEmpty(val) ? {} : val,
 });
 
-let countryCodeByIP;
-Onyx.connect({
-    key: ONYXKEYS.COUNTRY_CODE,
-    callback: val => countryCodeByIP = val || 1,
-});
-
 let preferredLocale;
 Onyx.connect({
     key: ONYXKEYS.NVP_PREFERRED_LOCALE,
-    callback: val => preferredLocale = val || CONST.DEFAULT_LOCALE,
+    callback: val => preferredLocale = val || CONST.LOCALES.DEFAULT,
 });
 
 const policies = {};
@@ -54,14 +51,23 @@ Onyx.connect({
     },
 });
 
+const expenseReports = {};
 const iouReports = {};
 Onyx.connect({
     key: ONYXKEYS.COLLECTION.REPORT,
-    callback: (iouReport, key) => {
-        if (!iouReport || !key || !iouReport.ownerEmail || !ReportUtils.isIOUReport(iouReport)) {
+    callback: (report, key) => {
+        if (!report || !key || !report.ownerEmail) {
             return;
         }
-        iouReports[key] = iouReport;
+
+        if (ReportUtils.isExpenseReport(report)) {
+            expenseReports[key] = report;
+            return;
+        }
+
+        if (ReportUtils.isIOUReport(report)) {
+            iouReports[key] = report;
+        }
     },
 });
 
@@ -77,6 +83,45 @@ Onyx.connect({
     },
 });
 
+const policyExpenseReports = {};
+Onyx.connect({
+    key: ONYXKEYS.COLLECTION.REPORT,
+    callback: (report, key) => {
+        if (!ReportUtils.isPolicyExpenseChat(report)) {
+            return;
+        }
+        policyExpenseReports[key] = report;
+    },
+});
+
+/**
+ * Get the options for a policy expense report.
+ * @param {Object} report
+ * @returns {Array}
+ */
+function getPolicyExpenseReportOptions(report) {
+    if (!ReportUtils.isPolicyExpenseChat(report)) {
+        return [];
+    }
+    const filteredPolicyExpenseReports = _.filter(policyExpenseReports, policyExpenseReport => policyExpenseReport.policyID === report.policyID);
+    return _.map(filteredPolicyExpenseReports, (expenseReport) => {
+        const policyExpenseChatAvatarSource = lodashGet(policies, [
+            `${ONYXKEYS.COLLECTION.POLICY}${expenseReport.policyID}`, 'avatar',
+        ]) || ReportUtils.getDefaultWorkspaceAvatar(expenseReport.displayName);
+        return {
+            ...expenseReport,
+            keyForList: expenseReport.policyID,
+            text: expenseReport.displayName,
+            alternateText: Localize.translateLocal('workspace.common.workspace'),
+            icons: [{
+                source: policyExpenseChatAvatarSource,
+                name: expenseReport.displayName,
+                type: CONST.ICON_TYPE_WORKSPACE,
+            }],
+        };
+    });
+}
+
 /**
  * Adds expensify SMS domain (@expensify.sms) if login is a phone number and if it's not included yet
  *
@@ -84,9 +129,9 @@ Onyx.connect({
  * @return {String}
  */
 function addSMSDomainIfPhoneNumber(login) {
-    if (Str.isValidPhone(login) && !Str.isValidEmail(login)) {
-        const smsLogin = login + CONST.SMS.DOMAIN;
-        return smsLogin.includes('+') ? smsLogin : `+${countryCodeByIP}${smsLogin}`;
+    const parsedPhoneNumber = parsePhoneNumber(login);
+    if (parsedPhoneNumber.possible && !Str.isValidEmail(login)) {
+        return parsedPhoneNumber.number.e164 + CONST.SMS.DOMAIN;
     }
     return login;
 }
@@ -112,7 +157,7 @@ function getPersonalDetailsForLogins(logins, personalDetails) {
             if (!personalDetail) {
                 personalDetail = {
                     login,
-                    displayName: Str.removeSMSDomain(login),
+                    displayName: LocalePhoneNumber.formatPhoneNumber(login),
                     avatar: ReportUtils.getDefaultAvatar(login),
                 };
             }
@@ -124,6 +169,31 @@ function getPersonalDetailsForLogins(logins, personalDetails) {
             personalDetailsForLogins[login] = personalDetail;
         });
     return personalDetailsForLogins;
+}
+
+/**
+ * Get the participant options for a report.
+ * @param {Object} report
+ * @param {Array<Object>} personalDetails
+ * @returns {Array}
+ */
+function getParticipantsOptions(report, personalDetails) {
+    const participants = lodashGet(report, 'participants', []);
+    return _.map(getPersonalDetailsForLogins(participants, personalDetails), details => ({
+        keyForList: details.login,
+        login: details.login,
+        text: details.displayName,
+        firstName: lodashGet(details, 'firstName', ''),
+        lastName: lodashGet(details, 'lastName', ''),
+        alternateText: Str.isSMSLogin(details.login || '') ? LocalePhoneNumber.formatPhoneNumber(details.login) : details.login,
+        icons: [{
+            source: ReportUtils.getAvatar(details.avatar, details.login),
+            name: details.login,
+            type: CONST.ICON_TYPE_AVATAR,
+        }],
+        payPalMeAddress: lodashGet(details, 'payPalMeAddress', ''),
+        phoneNumber: lodashGet(details, 'phoneNumber', ''),
+    }));
 }
 
 /**
@@ -206,7 +276,7 @@ function getSearchText(report, reportName, personalDetailList, isChatRoomOrPolic
         Array.prototype.push.apply(searchTerms, reportName.split(/[,\s]/));
 
         if (isChatRoomOrPolicyExpenseChat) {
-            const chatRoomSubtitle = ReportUtils.getChatRoomSubtitle(report, policies);
+            const chatRoomSubtitle = ReportUtils.getChatRoomSubtitle(report);
 
             Array.prototype.push.apply(searchTerms, chatRoomSubtitle.split(/[,\s]/));
         } else {
@@ -326,7 +396,7 @@ function createOption(logins, personalDetails, report, reportActions = {}, {
         result.hasOutstandingIOU = report.hasOutstandingIOU;
 
         hasMultipleParticipants = personalDetailList.length > 1 || result.isChatRoom || result.isPolicyExpenseChat;
-        subtitle = ReportUtils.getChatRoomSubtitle(report, policies);
+        subtitle = ReportUtils.getChatRoomSubtitle(report);
 
         let lastMessageTextFromReport = '';
         if (ReportUtils.isReportMessageAttachment({text: report.lastMessageText, html: report.lastMessageHtml})) {
@@ -346,7 +416,7 @@ function createOption(logins, personalDetails, report, reportActions = {}, {
                 || CONST.REPORT.ARCHIVE_REASON.DEFAULT;
             lastMessageText = Localize.translate(preferredLocale, `reportArchiveReasons.${archiveReason}`, {
                 displayName: archiveReason.displayName || report.lastActorEmail,
-                policyName: ReportUtils.getPolicyName(report, policies),
+                policyName: ReportUtils.getPolicyName(report),
             });
         }
 
@@ -357,13 +427,14 @@ function createOption(logins, personalDetails, report, reportActions = {}, {
         } else {
             result.alternateText = (showChatPreviewLine && lastMessageText)
                 ? lastMessageText
-                : Str.removeSMSDomain(personalDetail.login);
+                : LocalePhoneNumber.formatPhoneNumber(personalDetail.login);
         }
-        reportName = ReportUtils.getReportName(report, policies);
+        reportName = ReportUtils.getReportName(report);
     } else {
-        reportName = ReportUtils.getDisplayNameForParticipant(logins[0]);
-        result.keyForList = personalDetail.login;
-        result.alternateText = Str.removeSMSDomain(personalDetail.login);
+        const login = logins[0];
+        reportName = ReportUtils.getDisplayNameForParticipant(login);
+        result.keyForList = login;
+        result.alternateText = LocalePhoneNumber.formatPhoneNumber(login);
     }
 
     result.isIOUReportOwner = ReportUtils.isIOUOwnedByCurrentUser(result, iouReports);
@@ -377,7 +448,7 @@ function createOption(logins, personalDetails, report, reportActions = {}, {
 
     result.text = reportName;
     result.searchText = getSearchText(report, reportName, personalDetailList, result.isChatRoom || result.isPolicyExpenseChat);
-    result.icons = ReportUtils.getIcons(report, personalDetails, policies, ReportUtils.getAvatar(personalDetail.avatar, personalDetail.login));
+    result.icons = ReportUtils.getIcons(report, personalDetails, ReportUtils.getAvatar(personalDetail.avatar, personalDetail.login));
     result.subtitle = subtitle;
 
     return result;
@@ -451,12 +522,13 @@ function getOptions(reports, personalDetails, {
     showChatPreviewLine = false,
     sortPersonalDetailsByAlphaAsc = true,
     forcePolicyNamePreview = false,
+    includeOwnedWorkspaceChats = false,
 }) {
     let recentReportOptions = [];
     let personalDetailsOptions = [];
     const reportMapForLogins = {};
-    const isPhoneNumber = CONST.REGEX.PHONE_WITH_SPECIAL_CHARS.test(searchInputValue);
-    const searchValue = isPhoneNumber ? searchInputValue.replace(CONST.REGEX.NON_NUMERIC_WITH_PLUS, '') : searchInputValue;
+    const parsedPhoneNumber = parsePhoneNumber(LoginUtils.appendCountryCode(searchInputValue));
+    const searchValue = parsedPhoneNumber.possible ? parsedPhoneNumber.number.e164 : searchInputValue;
 
     // Filter out all the reports that shouldn't be displayed
     const filteredReports = _.filter(reports, report => ReportUtils.shouldReportBeInOptionList(
@@ -490,6 +562,10 @@ function getOptions(reports, personalDetails, {
         const isChatRoom = ReportUtils.isChatRoom(report);
         const isPolicyExpenseChat = ReportUtils.isPolicyExpenseChat(report);
         const logins = report.participants || [];
+
+        if (isPolicyExpenseChat && report.isOwnPolicyExpenseChat && !includeOwnedWorkspaceChats) {
+            return;
+        }
 
         // Save the report in the map if this is a single participant so we can associate the reportID with the
         // personal detail option later. Individuals should not be associated with single participant
@@ -536,15 +612,20 @@ function getOptions(reports, personalDetails, {
 
     if (includeRecentReports) {
         for (let i = 0; i < allReportOptions.length; i++) {
+            const reportOption = allReportOptions[i];
+            const isCurrentUserOwnedPolicyExpenseChatThatShouldShow = (reportOption.isPolicyExpenseChat
+                && (reportOption.ownerEmail === currentUserLogin)
+                && includeOwnedWorkspaceChats
+                && !reportOption.isArchivedRoom
+            );
+
             // Stop adding options to the recentReports array when we reach the maxRecentReportsToShow value
-            if (recentReportOptions.length > 0 && recentReportOptions.length === maxRecentReportsToShow) {
+            if (!isCurrentUserOwnedPolicyExpenseChatThatShouldShow && recentReportOptions.length > 0 && recentReportOptions.length === maxRecentReportsToShow) {
                 break;
             }
 
-            const reportOption = allReportOptions[i];
-
             // Skip if we aren't including multiple participant reports and this report has multiple participants
-            if (!includeMultipleParticipantReports && !reportOption.login) {
+            if (!isCurrentUserOwnedPolicyExpenseChatThatShouldShow && !includeMultipleParticipantReports && !reportOption.login) {
                 continue;
             }
 
@@ -590,25 +671,21 @@ function getOptions(reports, personalDetails, {
     const noOptions = (recentReportOptions.length + personalDetailsOptions.length) === 0;
     const noOptionsMatchExactly = !_.find(personalDetailsOptions.concat(recentReportOptions), option => option.login === searchValue.toLowerCase());
 
-    // If the phone number doesn't have an international code then let's prefix it with the
-    // current user's international code based on their IP address.
-    const login = LoginUtils.appendCountryCode(searchValue);
-
-    if (login && (noOptions || noOptionsMatchExactly)
-        && !isCurrentUser({login})
-        && _.every(selectedOptions, option => option.login !== login)
-        && ((Str.isValidEmail(login) && !Str.isDomainEmail(login)) || Str.isValidPhone(login))
-        && (!_.find(loginOptionsToExclude, loginOptionToExclude => loginOptionToExclude.login === addSMSDomainIfPhoneNumber(login).toLowerCase()))
-        && (login !== CONST.EMAIL.CHRONOS || Permissions.canUseChronos(betas))
+    if (searchValue && (noOptions || noOptionsMatchExactly)
+        && !isCurrentUser({login: searchValue})
+        && _.every(selectedOptions, option => option.login !== searchValue)
+        && ((Str.isValidEmail(searchValue) && !Str.isDomainEmail(searchValue)) || parsedPhoneNumber.possible)
+        && (!_.find(loginOptionsToExclude, loginOptionToExclude => loginOptionToExclude.login === addSMSDomainIfPhoneNumber(searchValue).toLowerCase()))
+        && (searchValue !== CONST.EMAIL.CHRONOS || Permissions.canUseChronos(betas))
     ) {
-        userToInvite = createOption([login], personalDetails, null, reportActions, {
+        userToInvite = createOption([searchValue], personalDetails, null, reportActions, {
             showChatPreviewLine,
         });
 
         // If user doesn't exist, use a default avatar
         userToInvite.icons = [{
-            source: ReportUtils.getAvatar('', login),
-            name: login,
+            source: ReportUtils.getAvatar('', searchValue),
+            name: searchValue,
             type: CONST.ICON_TYPE_AVATAR,
         }];
     }
@@ -666,6 +743,7 @@ function getSearchOptions(
         showChatPreviewLine: true,
         includePersonalDetails: true,
         forcePolicyNamePreview: true,
+        includeOwnedWorkspaceChats: true,
     });
 }
 
@@ -710,10 +788,11 @@ function getIOUConfirmationOptionsFromParticipants(
  *
  * @param {Object} reports
  * @param {Object} personalDetails
- * @param {Array<String>} betas
- * @param {String} searchValue
- * @param {Array} selectedOptions
- * @param {Array} excludeLogins
+ * @param {Array<String>} [betas]
+ * @param {String} [searchValue]
+ * @param {Array} [selectedOptions]
+ * @param {Array} [excludeLogins]
+ * @param {Boolean} [includeOwnedWorkspaceChats]
  * @returns {Object}
  */
 function getNewChatOptions(
@@ -723,16 +802,17 @@ function getNewChatOptions(
     searchValue = '',
     selectedOptions = [],
     excludeLogins = [],
+    includeOwnedWorkspaceChats = false,
 ) {
     return getOptions(reports, personalDetails, {
         betas,
         searchInputValue: searchValue.trim(),
         selectedOptions,
-        excludeChatRooms: true,
         includeRecentReports: true,
         includePersonalDetails: true,
         maxRecentReportsToShow: 5,
         excludeLogins,
+        includeOwnedWorkspaceChats,
     });
 }
 
@@ -775,7 +855,9 @@ function getHeaderMessage(hasSelectableOptions, hasUserToInvite, searchValue, ma
         return Localize.translate(preferredLocale, 'common.maxParticipantsReached', {count: CONST.REPORT.MAXIMUM_PARTICIPANTS});
     }
 
-    const isValidPhone = Str.isValidPhone(LoginUtils.appendCountryCode(searchValue));
+    const isValidPhone = parsePhoneNumber(LoginUtils.appendCountryCode(searchValue)).possible;
+
+    const isValidEmail = Str.isValidEmail(searchValue);
 
     if (searchValue && CONST.REGEX.DIGITS_AND_PLUS.test(searchValue) && !isValidPhone) {
         return Localize.translate(preferredLocale, 'messages.errorMessageInvalidPhone');
@@ -786,6 +868,9 @@ function getHeaderMessage(hasSelectableOptions, hasUserToInvite, searchValue, ma
     if (searchValue && !hasSelectableOptions && !hasUserToInvite) {
         if (/^\d+$/.test(searchValue) && !isValidPhone) {
             return Localize.translate(preferredLocale, 'messages.errorMessageInvalidPhone');
+        }
+        if (/@/.test(searchValue) && !isValidEmail) {
+            return Localize.translate(preferredLocale, 'messages.errorMessageInvalidEmail');
         }
 
         return Localize.translate(preferredLocale, 'common.noResultsFound');
@@ -806,4 +891,7 @@ export {
     getIOUConfirmationOptionsFromParticipants,
     getSearchText,
     getAllReportErrors,
+    getPolicyExpenseReportOptions,
+    getParticipantsOptions,
+    isSearchStringMatch,
 };

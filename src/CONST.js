@@ -1,5 +1,6 @@
 import lodashGet from 'lodash/get';
 import Config from 'react-native-config';
+import * as KeyCommand from 'react-native-key-command';
 import * as Url from './libs/Url';
 
 const CLOUDFRONT_DOMAIN = 'cloudfront.net';
@@ -7,15 +8,27 @@ const CLOUDFRONT_URL = `https://d2k5nsl2zxldvw.${CLOUDFRONT_DOMAIN}`;
 const ACTIVE_EXPENSIFY_URL = Url.addTrailingForwardSlash(lodashGet(Config, 'NEW_EXPENSIFY_URL', 'https://new.expensify.com'));
 const USE_EXPENSIFY_URL = 'https://use.expensify.com';
 const PLATFORM_OS_MACOS = 'Mac OS';
+const PLATFORM_IOS = 'iOS';
 const ANDROID_PACKAGE_NAME = 'com.expensify.chat';
 const USA_COUNTRY_NAME = 'United States';
 const CURRENT_YEAR = new Date().getFullYear();
+const PULL_REQUEST_NUMBER = lodashGet(Config, 'PULL_REQUEST_NUMBER', '');
+
+const keyModifierControl = lodashGet(KeyCommand, 'constants.keyModifierControl', 'keyModifierControl');
+const keyModifierCommand = lodashGet(KeyCommand, 'constants.keyModifierCommand', 'keyModifierCommand');
+const keyModifierShiftControl = lodashGet(KeyCommand, 'constants.keyModifierShiftControl', 'keyModifierShiftControl');
+const keyModifierShiftCommand = lodashGet(KeyCommand, 'constants.keyModifierShiftCommand', 'keyModifierShiftCommand');
+const keyInputEscape = lodashGet(KeyCommand, 'constants.keyInputEscape', 'keyInputEscape');
+const keyInputEnter = lodashGet(KeyCommand, 'constants.keyInputEnter', 'keyInputEnter');
+const keyInputUpArrow = lodashGet(KeyCommand, 'constants.keyInputUpArrow', 'keyInputUpArrow');
+const keyInputDownArrow = lodashGet(KeyCommand, 'constants.keyInputDownArrow', 'keyInputDownArrow');
 
 const CONST = {
     ANDROID_PACKAGE_NAME,
     ANIMATED_TRANSITION: 300,
     ANIMATED_TRANSITION_FROM_VALUE: 100,
     ANIMATION_IN_TIMING: 100,
+    ARROW_HIDE_DELAY: 3000,
 
     API_ATTACHMENT_VALIDATIONS: {
         // Same as the PHP layer allows
@@ -55,6 +68,8 @@ const CONST = {
         RESERVED_FIRST_NAMES: ['Expensify', 'Concierge'],
     },
 
+    PULL_REQUEST_NUMBER,
+
     CALENDAR_PICKER: {
         // Numbers were arbitrarily picked.
         MIN_YEAR: CURRENT_YEAR - 100,
@@ -63,6 +78,7 @@ const CONST = {
 
     DATE_BIRTH: {
         MIN_AGE: 5,
+        MIN_AGE_FOR_PAYMENT: 18,
         MAX_AGE: 150,
     },
 
@@ -190,6 +206,7 @@ const CONST = {
         POLICY_ROOMS: 'policyRooms',
         POLICY_EXPENSE_CHAT: 'policyExpenseChat',
         PASSWORDLESS: 'passwordless',
+        TASKS: 'tasks',
     },
     BUTTON_STATES: {
         DEFAULT: 'default',
@@ -222,6 +239,7 @@ const CONST = {
         CTRL: {
             DEFAULT: 'control',
             [PLATFORM_OS_MACOS]: 'meta',
+            [PLATFORM_IOS]: 'meta',
         },
         SHIFT: {
             DEFAULT: 'shift',
@@ -232,46 +250,91 @@ const CONST = {
             descriptionKey: 'search',
             shortcutKey: 'K',
             modifiers: ['CTRL'],
+            trigger: {
+                DEFAULT: {input: 'k', modifierFlags: keyModifierControl},
+                [PLATFORM_OS_MACOS]: {input: 'k', modifierFlags: keyModifierCommand},
+                [PLATFORM_IOS]: {input: 'k', modifierFlags: keyModifierCommand},
+            },
         },
         NEW_GROUP: {
             descriptionKey: 'newGroup',
             shortcutKey: 'K',
             modifiers: ['CTRL', 'SHIFT'],
+            trigger: {
+                DEFAULT: {input: 'k', modifierFlags: keyModifierShiftControl},
+                [PLATFORM_OS_MACOS]: {input: 'k', modifierFlags: keyModifierShiftCommand},
+                [PLATFORM_IOS]: {input: 'k', modifierFlags: keyModifierShiftCommand},
+            },
         },
         SHORTCUT_MODAL: {
             descriptionKey: 'openShortcutDialog',
-            shortcutKey: 'I',
+            shortcutKey: 'J',
             modifiers: ['CTRL'],
+            trigger: {
+                DEFAULT: {input: 'j', modifierFlags: keyModifierControl},
+                [PLATFORM_OS_MACOS]: {input: 'j', modifierFlags: keyModifierCommand},
+                [PLATFORM_IOS]: {input: 'j', modifierFlags: keyModifierCommand},
+            },
         },
         ESCAPE: {
             descriptionKey: 'escape',
             shortcutKey: 'Escape',
             modifiers: [],
+            trigger: {
+                DEFAULT: {input: keyInputEscape},
+                [PLATFORM_OS_MACOS]: {input: keyInputEscape},
+                [PLATFORM_IOS]: {input: keyInputEscape},
+            },
         },
         ENTER: {
             descriptionKey: null,
             shortcutKey: 'Enter',
             modifiers: [],
+            trigger: {
+                DEFAULT: {input: keyInputEnter},
+                [PLATFORM_OS_MACOS]: {input: keyInputEnter},
+                [PLATFORM_IOS]: {input: keyInputEnter},
+            },
         },
         CTRL_ENTER: {
             descriptionKey: null,
             shortcutKey: 'Enter',
             modifiers: ['CTRL'],
+            trigger: {
+                DEFAULT: {input: keyInputEnter, modifierFlags: keyModifierControl},
+                [PLATFORM_OS_MACOS]: {input: keyInputEnter, modifierFlags: keyModifierCommand},
+                [PLATFORM_IOS]: {input: keyInputEnter, modifierFlags: keyModifierCommand},
+            },
         },
         COPY: {
             descriptionKey: 'copy',
             shortcutKey: 'C',
             modifiers: ['CTRL'],
+            trigger: {
+                DEFAULT: {input: 'c', modifierFlags: keyModifierControl},
+                [PLATFORM_OS_MACOS]: {input: 'c', modifierFlags: keyModifierCommand},
+                [PLATFORM_IOS]: {input: 'c', modifierFlags: keyModifierCommand},
+            },
         },
         ARROW_UP: {
             descriptionKey: null,
             shortcutKey: 'ArrowUp',
             modifiers: [],
+            trigger: {
+                DEFAULT: {input: keyInputUpArrow},
+                [PLATFORM_OS_MACOS]: {input: keyInputUpArrow},
+                [PLATFORM_IOS]: {input: keyInputUpArrow},
+            },
         },
         ARROW_DOWN: {
             descriptionKey: null,
             shortcutKey: 'ArrowDown',
             modifiers: [],
+            trigger: {
+                DEFAULT: {input: keyInputDownArrow},
+                [PLATFORM_OS_MACOS]: {input: keyInputDownArrow},
+                [PLATFORM_IOS]: {input: keyInputDownArrow},
+            },
         },
         TAB: {
             descriptionKey: null,
@@ -338,46 +401,59 @@ const CONST = {
                 RENAMED: 'RENAMED',
                 CHRONOSOOOLIST: 'CHRONOSOOOLIST',
                 POLICYCHANGELOG: {
-                    UPDATE_NAME: 'POLICYCHANGELOG_UPDATE_NAME',
-                    UPDATE_CURRENCY: 'POLICYCHANGELOG_UPDATE_CURRENCY',
-                    UPDATE_OWNERSHIP: 'POLICYCHANGELOG_UPDATE_OWNERSHIP',
-                    UPDATE_AUTOHARVESTING: 'POLICYCHANGELOG_UPDATE_AUTOHARVESTING',
-                    UPDATE_AUTOREPORTING_FREQUENCY: 'POLICYCHANGELOG_UPDATE_AUTOREPORTING_FREQUENCY',
-                    UPDATE_DEFAULT_TITLE_ENFORCED: 'POLICYCHANGELOG_UPDATE_DEFAULT_TITLE_ENFORCED',
-                    UPDATE_REPORT_FIELD: 'POLICYCHANGELOG_UPDATE_REPORT_FIELD',
-                    ADD_REPORT_FIELD: 'POLICYCHANGELOG_ADD_REPORT_FIELD',
-                    DELETE_REPORT_FIELD: 'POLICYCHANGELOG_DELETE_REPORT_FIELD',
-                    UPDATE_DEFAULT_TITLE: 'POLICYCHANGELOG_UPDATE_DEFAULT_TITLE',
-                    ADD_CATEGORY: 'POLICYCHANGELOG_ADD_CATEGORY',
-                    DELETE_CATEGORY: 'POLICYCHANGELOG_DELETE_CATEGORY',
-                    SET_CATEGORY_NAME: 'POLICYCHANGELOG_SET_CATEGORY_NAME',
-                    UPDATE_CATEGORY: 'POLICYCHANGELOG_UPDATE_CATEGORY',
-                    ADD_TAG: 'POLICYCHANGELOG_ADD_TAG',
-                    UPDATE_TAG: 'POLICYCHANGELOG_UPDATE_TAG',
-                    DELETE_TAG: 'POLICYCHANGELOG_DELETE_TAG',
-                    UPDATE_TAG_NAME: 'POLICYCHANGELOG_UPDATE_TAG_NAME',
-                    UPDATE_TAG_LIST_NAME: 'POLICYCHANGELOG_UPDATE_TAG_LIST_NAME',
-                    IMPORT_TAGS: 'POLICYCHANGELOG_IMPORT_TAGS',
-                    DELETE_ALL_TAGS: 'POLICYCHANGELOG_DELETE_ALL_TAGS',
                     ADD_APPROVER_RULE: 'POLICYCHANGELOG_ADD_APPROVER_RULE',
-                    UPDATE_APPROVER_RULE: 'POLICYCHANGELOG_UPDATE_APPROVER_RULE',
-                    DELETE_APPROVER_RULE: 'POLICYCHANGELOG_DELETE_APPROVER_RULE',
-                    ADD_EMPLOYEE: 'POLICYCHANGELOG_ADD_EMPLOYEE',
-                    DELETE_EMPLOYEE: 'POLICYCHANGELOG_DELETE_EMPLOYEE',
-                    UPDATE_EMPLOYEE: 'POLICYCHANGELOG_UPDATE_EMPLOYEE',
-                    SET_AUTO_JOIN: 'POLICYCHANGELOG_SET_AUTO_JOIN',
-                    ADD_INTEGRATION: 'POLICYCHANGELOG_ADD_INTEGRATION',
-                    DELETE_INTEGRATION: 'POLICYCHANGELOG_DELETE_INTEGRATION',
-                    UPDATE_ACH_ACCOUNT: 'POLICYCHANGELOG_UPDATE_ACH_ACCOUNT',
-                    UPDATE_REIMBURSEMENT_CHOICE: 'POLICYCHANGELOG_UPDATE_REIMBURSEMENT_CHOICE',
-                    SET_AUTOREIMBURSEMENT: 'POLICYCHANGELOG_SET_AUTOREIMBURSEMENT',
+                    ADD_CATEGORY: 'POLICYCHANGELOG_ADD_CATEGORY',
                     ADD_CUSTOM_UNIT: 'POLICYCHANGELOG_ADD_CUSTOM_UNIT',
+                    ADD_CUSTOM_UNIT_RATE: 'POLICYCHANGELOG_ADD_CUSTOM_UNIT_RATE',
+                    ADD_EMPLOYEE: 'POLICYCHANGELOG_ADD_EMPLOYEE',
+                    ADD_INTEGRATION: 'POLICYCHANGELOG_ADD_INTEGRATION',
+                    ADD_REPORT_FIELD: 'POLICYCHANGELOG_ADD_REPORT_FIELD',
+                    ADD_TAG: 'POLICYCHANGELOG_ADD_TAG',
+                    DELETE_ALL_TAGS: 'POLICYCHANGELOG_DELETE_ALL_TAGS',
+                    DELETE_APPROVER_RULE: 'POLICYCHANGELOG_DELETE_APPROVER_RULE',
+                    DELETE_CATEGORY: 'POLICYCHANGELOG_DELETE_CATEGORY',
                     DELETE_CUSTOM_UNIT: 'POLICYCHANGELOG_DELETE_CUSTOM_UNIT',
+                    DELETE_CUSTOM_UNIT_RATE: 'POLICYCHANGELOG_DELETE_CUSTOM_UNIT_RATE',
+                    DELETE_CUSTOM_UNIT_SUB_RATE: 'POLICYCHANGELOG_DELETE_CUSTOM_UNIT_SUB_RATE',
+                    DELETE_EMPLOYEE: 'POLICYCHANGELOG_DELETE_EMPLOYEE',
+                    DELETE_INTEGRATION: 'POLICYCHANGELOG_DELETE_INTEGRATION',
+                    DELETE_REPORT_FIELD: 'POLICYCHANGELOG_DELETE_REPORT_FIELD',
+                    DELETE_TAG: 'POLICYCHANGELOG_DELETE_TAG',
+                    IMPORT_CUSTOM_UNIT_RATES: 'POLICYCHANGELOG_IMPORT_CUSTOM_UNIT_RATES',
+                    IMPORT_TAGS: 'POLICYCHANGELOG_IMPORT_TAGS',
+                    SET_AUTOREIMBURSEMENT: 'POLICYCHANGELOG_SET_AUTOREIMBURSEMENT',
+                    SET_AUTO_JOIN: 'POLICYCHANGELOG_SET_AUTO_JOIN',
+                    SET_CATEGORY_NAME: 'POLICYCHANGELOG_SET_CATEGORY_NAME',
+                    UPDATE_ACH_ACCOUNT: 'POLICYCHANGELOG_UPDATE_ACH_ACCOUNT',
+                    UPDATE_APPROVER_RULE: 'POLICYCHANGELOG_UPDATE_APPROVER_RULE',
+                    UPDATE_AUDIT_RATE: 'POLICYCHANGELOG_UPDATE_AUDIT_RATE',
+                    UPDATE_AUTOHARVESTING: 'POLICYCHANGELOG_UPDATE_AUTOHARVESTING',
+                    UPDATE_AUTOREIMBURSEMENT: 'POLICYCHANGELOG_UPDATE_AUTOREIMBURSEMENT',
+                    UPDATE_AUTOREPORTING_FREQUENCY: 'POLICYCHANGELOG_UPDATE_AUTOREPORTING_FREQUENCY',
+                    UPDATE_CATEGORY: 'POLICYCHANGELOG_UPDATE_CATEGORY',
+                    UPDATE_CURRENCY: 'POLICYCHANGELOG_UPDATE_CURRENCY',
                     UPDATE_CUSTOM_UNIT: 'POLICYCHANGELOG_UPDATE_CUSTOM_UNIT',
                     UPDATE_CUSTOM_UNIT_RATE: 'POLICYCHANGELOG_UPDATE_CUSTOM_UNIT_RATE',
-                    ADD_CUSTOM_UNIT_RATE: 'POLICYCHANGELOG_ADD_CUSTOM_UNIT_RATE',
-                    DELETE_CUSTOM_UNIT_RATE: 'POLICYCHANGELOG_DELETE_CUSTOM_UNIT_RATE',
+                    UPDATE_CUSTOM_UNIT_SUB_RATE: 'POLICYCHANGELOG_UPDATE_CUSTOM_UNIT_SUB_RATE',
+                    UPDATE_DEFAULT_BILLABLE: 'POLICYCHANGELOG_UPDATE_DEFAULT_BILLABLE',
+                    UPDATE_DEFAULT_REIMBURSABLE: 'POLICYCHANGELOG_UPDATE_DEFAULT_REIMBURSABLE',
+                    UPDATE_DEFAULT_TITLE: 'POLICYCHANGELOG_UPDATE_DEFAULT_TITLE',
+                    UPDATE_DEFAULT_TITLE_ENFORCED: 'POLICYCHANGELOG_UPDATE_DEFAULT_TITLE_ENFORCED',
+                    UPDATE_DISABLED_FIELDS: 'POLICYCHANGELOG_UPDATE_DISABLED_FIELDS',
+                    UPDATE_EMPLOYEE: 'POLICYCHANGELOG_UPDATE_EMPLOYEE',
                     UPDATE_FIELD: 'POLICYCHANGELOG_UPDATE_FIELD',
+                    UPDATE_MANUAL_APPROVAL_THRESHOLD: 'POLICYCHANGELOG_UPDATE_MANUAL_APPROVAL_THRESHOLD',
+                    UPDATE_MAX_EXPENSE_AMOUNT: 'POLICYCHANGELOG_UPDATE_MAX_EXPENSE_AMOUNT',
+                    UPDATE_MAX_EXPENSE_AMOUNT_NO_RECEIPT: 'POLICYCHANGELOG_UPDATE_MAX_EXPENSE_AMOUNT_NO_RECEIPT',
+                    UPDATE_NAME: 'POLICYCHANGELOG_UPDATE_NAME',
+                    UPDATE_OWNERSHIP: 'POLICYCHANGELOG_UPDATE_OWNERSHIP',
+                    UPDATE_REIMBURSEMENT_CHOICE: 'POLICYCHANGELOG_UPDATE_REIMBURSEMENT_CHOICE',
+                    UPDATE_REPORT_FIELD: 'POLICYCHANGELOG_UPDATE_REPORT_FIELD',
+                    UPDATE_TAG: 'POLICYCHANGELOG_UPDATE_TAG',
+                    UPDATE_TAG_LIST_NAME: 'POLICYCHANGELOG_UPDATE_TAG_LIST_NAME',
+                    UPDATE_TAG_NAME: 'POLICYCHANGELOG_UPDATE_TAG_NAME',
+                    UPDATE_TIME_ENABLED: 'POLICYCHANGELOG_UPDATE_TIME_ENABLED',
+                    UPDATE_TIME_RATE: 'POLICYCHANGELOG_UPDATE_TIME_RATE',
                 },
             },
         },
@@ -396,7 +472,9 @@ const CONST = {
         },
         TYPE: {
             CHAT: 'chat',
+            EXPENSE: 'expense',
             IOU: 'iou',
+            TASK: 'task',
         },
         CHAT_TYPE: {
             POLICY_ANNOUNCE: 'policyAnnounce',
@@ -455,6 +533,7 @@ const CONST = {
             CONFIRM: 'confirm',
             CENTERED: 'centered',
             CENTERED_UNSWIPEABLE: 'centered_unswipeable',
+            CENTERED_SMALL: 'centered_small',
             BOTTOM_DOCKED: 'bottom_docked',
             POPOVER: 'popover',
             RIGHT_DOCKED: 'right_docked',
@@ -480,6 +559,7 @@ const CONST = {
         WARM: 'warm',
         REPORT_ACTION_ITEM_LAYOUT_DEBOUNCE_TIME: 1500,
         SHOW_LOADING_SPINNER_DEBOUNCE_TIME: 250,
+        TEST_TOOLS_MODAL_THROTTLE_TIME: 800,
         TOOLTIP_SENSE: 1000,
         TRIE_INITIALIZATION: 'trie_initialization',
         COMMENT_LENGTH_DEBOUNCE_TIME: 500,
@@ -492,6 +572,7 @@ const CONST = {
         SUCCESS: 200,
         NOT_AUTHENTICATED: 407,
         EXP_ERROR: 666,
+        MANY_WRITES_ERROR: 665,
         UNABLE_TO_RETRY: 'unableToRetry',
     },
     HTTP_STATUS: {
@@ -541,22 +622,6 @@ const CONST = {
         COMMAND: {
             RECONNECT_APP: 'ReconnectApp',
         },
-    },
-    NVP: {
-        IS_FIRST_TIME_NEW_EXPENSIFY_USER: 'isFirstTimeNewExpensifyUser',
-        BLOCKED_FROM_CONCIERGE: 'private_blockedFromConcierge',
-        PAYPAL_ME_ADDRESS: 'expensify_payPalMeAddress',
-        PRIORITY_MODE: 'priorityMode',
-        TIMEZONE: 'timeZone',
-        FREE_PLAN_BANK_ACCOUNT_ID: 'expensify_freePlanBankAccountID',
-        ACH_DATA_THROTTLED: 'expensify_ACHData_throttled',
-        FAILED_BANK_ACCOUNT_VALIDATIONS_PREFIX: 'private_failedBankValidations_',
-        PLAID_THROTTLED: 'private_throttledHistory_openPlaidBankAccountSelector',
-        PREFERRED_LOCALE: 'preferredLocale',
-        KYC_MIGRATION: 'expensify_migration_2020_04_28_RunKycVerifications',
-        PREFERRED_EMOJI_SKIN_TONE: 'expensify_preferredEmojiSkinTone',
-        FREQUENTLY_USED_EMOJIS: 'expensify_frequentlyUsedEmojis',
-        PUSH_NOTIFICATIONS_ENABLED: 'pushNotificationsEnabled',
     },
     DEFAULT_TIME_ZONE: {automatic: true, selected: 'America/Los_Angeles'},
     DEFAULT_ACCOUNT_DATA: {errors: null, success: '', isLoading: false},
@@ -611,6 +676,9 @@ const CONST = {
         EMAIL: 'email',
     },
 
+    MAGIC_CODE_LENGTH: 6,
+    MAGIC_CODE_EMPTY_CHAR: ' ',
+
     KEYBOARD_TYPE: {
         PHONE_PAD: 'phone-pad',
         NUMBER_PAD: 'number-pad',
@@ -652,7 +720,7 @@ const CONST = {
     EMOJI_PICKER_ITEM_HEIGHT: 32,
     EMOJI_PICKER_HEADER_HEIGHT: 32,
     RECIPIENT_LOCAL_TIME_HEIGHT: 25,
-    EMOJI_SUGGESTER: {
+    AUTO_COMPLETE_SUGGESTER: {
         SUGGESTER_PADDING: 6,
         ITEM_HEIGHT: 36,
         SMALL_CONTAINER_HEIGHT_FACTOR: 2.5,
@@ -694,6 +762,7 @@ const CONST = {
         DEV: 'development',
         STAGING: 'staging',
         PRODUCTION: 'production',
+        ADHOC: 'adhoc',
     },
 
     // Used to delay the initial fetching of reportActions when the app first inits or reconnects (e.g. returning
@@ -784,7 +853,7 @@ const CONST = {
         WINDOWS: 'Windows',
         MAC_OS: PLATFORM_OS_MACOS,
         ANDROID: 'Android',
-        IOS: 'iOS',
+        IOS: PLATFORM_IOS,
         LINUX: 'Linux',
         NATIVE: 'Native',
     },
@@ -818,7 +887,7 @@ const CONST = {
             EXPENSIFY: 'Expensify',
             PAYPAL_ME: 'PayPal.me',
         },
-        IOU_TYPE: {
+        MONEY_REQUEST_TYPE: {
             SEND: 'send',
             SPLIT: 'split',
             REQUEST: 'request',
@@ -829,6 +898,7 @@ const CONST = {
             SPLIT: 'split',
             DECLINE: 'decline',
             CANCEL: 'cancel',
+            DELETE: 'delete',
         },
         AMOUNT_MAX_LENGTH: 10,
     },
@@ -841,7 +911,14 @@ const CONST = {
         DURATION_LONG: 3500,
     },
 
-    DEFAULT_LOCALE: 'en',
+    LOCALES: {
+        EN: 'en',
+        ES: 'es',
+        ES_ES: 'es-ES',
+        ES_ES_ONFIDO: 'es_ES',
+
+        DEFAULT: 'en',
+    },
 
     POLICY: {
         TYPE: {
@@ -892,15 +969,10 @@ const CONST = {
     },
     REGEX: {
         SPECIAL_CHARS_WITHOUT_NEWLINE: /((?!\n)[()-\s\t])/g,
-        US_PHONE: /^\+1\d{10}$/,
-        US_PHONE_WITH_OPTIONAL_COUNTRY_CODE: /^(\+1)?\d{10}$/,
         DIGITS_AND_PLUS: /^\+?[0-9]*$/,
-        PHONE_E164_PLUS: /^\+?[1-9]\d{1,14}$/,
-        PHONE_WITH_SPECIAL_CHARS: /^\s*(?:\+?(\d{1,3}))?[-. (]*(\d{3})[-. )]*(\d{3})[-. ]*(\d{4})(?: *x(\d+))?\s*$/,
         ALPHABETIC_CHARS: /[a-zA-Z]+/,
         ALPHABETIC_CHARS_WITH_NUMBER: /^[a-zA-Z0-9 ]*$/,
         POSITIVE_INTEGER: /^\d+$/,
-        NON_ALPHA_NUMERIC: /[^A-Za-z0-9+]/g,
         PO_BOX: /\b[P|p]?(OST|ost)?\.?\s*[O|o|0]?(ffice|FFICE)?\.?\s*[B|b][O|o|0]?[X|x]?\.?\s+[#]?(\d+)\b/,
         ANY_VALUE: /^.+$/,
         ZIP_CODE: /[0-9]{5}(?:[- ][0-9]{4})?/,
@@ -914,8 +986,6 @@ const CONST = {
         PAYPAL_ME_USERNAME: /^[a-zA-Z0-9]+$/,
         ROOM_NAME: /^#[a-z0-9-]{1,80}$/,
 
-        WEBSITE: /^((https?|ftp):\/\/)(([a-z\d]([a-z\d-]*[a-z\d])*)\.)+[a-z]{2,}(:\d+)?(\/[-a-z\d%_.~+]*)*(\?[;&a-z\d%_.~+=-]*)?(#[-a-z\d_]*)?$/i,
-
         // eslint-disable-next-line max-len, no-misleading-character-class
         EMOJIS: /[\p{Extended_Pictographic}\u200d\u{1f1e6}-\u{1f1ff}\u{1f3fb}-\u{1f3ff}\u{e0020}-\u{e007f}\u20E3\uFE0F]|[#*0-9]\uFE0F?\u20E3/gu,
         TAX_ID: /^\d{9}$/,
@@ -924,14 +994,15 @@ const CONST = {
         // Extract attachment's source from the data's html string
         ATTACHMENT_DATA: /(data-expensify-source|data-name)="([^"]+)"/g,
 
-        NON_NUMERIC_WITH_PLUS: /[^0-9+]/g,
         EMOJI_NAME: /:[\w+-]+:/g,
         EMOJI_SUGGESTIONS: /:[a-zA-Z0-9_+-]{1,40}$/,
         AFTER_FIRST_LINE_BREAK: /\n.*/g,
         CODE_2FA: /^\d{6}$/,
         ATTACHMENT_ID: /chat-attachments\/(\d+)/,
         HAS_COLON_ONLY_AT_THE_BEGINNING: /^:[^:]+$/,
-        NEW_LINE_OR_WHITE_SPACE: /[\n\s]/g,
+
+        // eslint-disable-next-line no-misleading-character-class
+        NEW_LINE_OR_WHITE_SPACE_OR_EMOJI: /[\n\s\p{Extended_Pictographic}\u200d\u{1f1e6}-\u{1f1ff}\u{1f3fb}-\u{1f3ff}\u{e0020}-\u{e007f}\u20E3\uFE0F]|[#*0-9]\uFE0F?\u20E3/gu,
 
         // Define the regular expression pattern to match a string starting with a colon and ending with a space or newline character
         EMOJI_REPLACER: /^:[^\n\r]+?(?=$|\s)/,
@@ -1014,7 +1085,6 @@ const CONST = {
     REPORT_DETAILS_MENU_ITEM: {
         MEMBERS: 'member',
         SETTINGS: 'settings',
-        INVITE: 'invite',
         LEAVE_ROOM: 'leaveRoom',
     },
 
@@ -1034,7 +1104,7 @@ const CONST = {
         SUPPORT_URL: `${USE_EXPENSIFY_URL}/support`,
         COMMUNITY_URL: 'https://community.expensify.com/',
         PRIVACY_URL: `${USE_EXPENSIFY_URL}/privacy`,
-        ABOUT_URL: 'https://we.are.expensify.com/',
+        ABOUT_URL: 'https://we.are.expensify.com/how-we-got-here',
         BLOG_URL: 'https://blog.expensify.com/',
         JOBS_URL: 'https://we.are.expensify.com/apply',
         ORG_URL: 'https://expensify.org/',
@@ -1659,7 +1729,7 @@ const CONST = {
         GY: {},
         HK: {
             regex: /^999077$|^$/,
-            samples: '999077, empty',
+            samples: '999077',
         },
         HN: {
             regex: /^\d{5}$/,
@@ -1741,7 +1811,7 @@ const CONST = {
         },
         KI: {
             regex: /^KI\d{4}$/,
-            samples: '36524, 49717, 67606, 96469',
+            samples: 'KI0104, KI0109, KI0112, KI0306',
         },
         KM: {},
         KN: {
@@ -1859,7 +1929,7 @@ const CONST = {
         MR: {},
         MS: {
             regex: /^[Mm][Ss][Rr]\s{0,1}\d{4}$/,
-            samples: '97263, 97243, 98210, 97213',
+            samples: 'MSR1110, MSR1230, MSR1250, MSR1330',
         },
         MT: {
             regex: /^[A-Z]{3} [0-9]{4}|[A-Z]{2}[0-9]{2}|[A-Z]{2} [0-9]{2}|[A-Z]{3}[0-9]{4}|[A-Z]{3}[0-9]{2}|[A-Z]{3} [0-9]{2}$/,
@@ -2014,7 +2084,7 @@ const CONST = {
         RW: {},
         SA: {
             regex: /^\d{5}(-{1}\d{4})?$/,
-            samples: '86020-12567, 72375, 70280, 96328',
+            samples: '86020-1256, 72375, 70280, 96328',
         },
         SB: {},
         SC: {},
@@ -2061,10 +2131,7 @@ const CONST = {
             regex: /^[A-Z]{2} ?\d{5}$/,
             samples: 'JQ 80186, CU 46474, DE33738, MS 59107',
         },
-        ST: {
-            regex: /^[A-Z]{2} ?\d{5}$/,
-            samples: '87849, 89861, AG 93268, RC88066',
-        },
+        ST: {},
         SV: {},
         SX: {},
         SY: {},
@@ -2196,6 +2263,28 @@ const CONST = {
         FORMAT: 'symbol',
         SAMPLE_INPUT: '123456.789',
         EXPECTED_OUTPUT: 'FCFA 123,457',
+    },
+
+    PATHS_TO_TREAT_AS_EXTERNAL: [
+        'NewExpensify.dmg',
+    ],
+
+    // Test tool menu parameters
+    TEST_TOOL: {
+        // Number of concurrent taps to open then the Test modal menu
+        NUMBER_OF_TAPS: 4,
+    },
+
+    PAYPAL_SUPPORTED_CURRENCIES: [
+        'AUD', 'BRL', 'CAD', 'CZK', 'DKK', 'EUR', 'HKD', 'HUF',
+        'ILS', 'JPY', 'MYR', 'MXN', 'TWD', 'NZD', 'NOK', 'PHP',
+        'PLN', 'GBP', 'RUB', 'SGD', 'SEK', 'CHF', 'THB', 'USD',
+    ],
+    CONCIERGE_TRAVEL_URL: 'https://community.expensify.com/discussion/7066/introducing-concierge-travel',
+    SCREEN_READER_STATES: {
+        ALL: 'all',
+        ACTIVE: 'active',
+        DISABLED: 'disabled',
     },
 };
 
