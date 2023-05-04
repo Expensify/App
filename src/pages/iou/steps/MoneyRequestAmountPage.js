@@ -354,6 +354,7 @@ class MoneyRequestAmountPage extends React.Component {
                         pressOnEnter
                         isDisabled={!this.state.amount.length || parseFloat(this.state.amount) < 0.01}
                         text={this.props.buttonText}
+                        enterKeyEventListenerPriority={1}
                     />
                 </View>
             </>

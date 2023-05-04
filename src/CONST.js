@@ -475,6 +475,7 @@ const CONST = {
             CHAT: 'chat',
             EXPENSE: 'expense',
             IOU: 'iou',
+            TASK: 'task',
         },
         CHAT_TYPE: {
             POLICY_ANNOUNCE: 'policyAnnounce',
@@ -720,7 +721,7 @@ const CONST = {
     EMOJI_PICKER_ITEM_HEIGHT: 32,
     EMOJI_PICKER_HEADER_HEIGHT: 32,
     RECIPIENT_LOCAL_TIME_HEIGHT: 25,
-    EMOJI_SUGGESTER: {
+    AUTO_COMPLETE_SUGGESTER: {
         SUGGESTER_PADDING: 6,
         ITEM_HEIGHT: 36,
         SMALL_CONTAINER_HEIGHT_FACTOR: 2.5,
