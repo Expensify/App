@@ -474,6 +474,7 @@ const CONST = {
             CHAT: 'chat',
             EXPENSE: 'expense',
             IOU: 'iou',
+            TASK: 'task',
         },
         CHAT_TYPE: {
             POLICY_ANNOUNCE: 'policyAnnounce',

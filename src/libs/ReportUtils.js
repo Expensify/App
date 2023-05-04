@@ -126,6 +126,16 @@ function isIOUReport(report) {
 }
 
 /**
+ * Checks if a report is a task report.
+ *
+ * @param {Object} report
+ * @returns {Boolean}
+ */
+function isTaskReport(report) {
+    return lodashGet(report, 'type') === CONST.REPORT.TYPE.TASK;
+}
+
+/**
  * Checks if a report is an IOU or expense report.
  *
  * @param {Object} report
@@ -592,7 +602,13 @@ function getOldDotDefaultAvatar(login = '') {
  * @returns {Boolean}
  */
 function isDefaultAvatar(avatarURL) {
-    if (_.isString(avatarURL) && (avatarURL.includes('images/avatars/avatar_') || avatarURL.includes('images/avatars/user/default'))) {
+    if (_.isString(avatarURL)
+        && (
+            avatarURL.includes('images/avatars/avatar_')
+            || avatarURL.includes('images/avatars/default-avatar_')
+            || avatarURL.includes('images/avatars/user/default')
+        )
+    ) {
         return true;
     }
 
@@ -1851,6 +1867,7 @@ export {
     getDisplayNameForParticipant,
     isExpenseReport,
     isIOUReport,
+    isTaskReport,
     isMoneyRequestReport,
     chatIncludesChronos,
     getAvatar,
