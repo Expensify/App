@@ -1,8 +1,9 @@
 import _ from 'underscore';
-import React, {Component} from 'react';
+import React, {useCallback} from 'react';
 import PropTypes from 'prop-types';
 import {View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
+import lodashGet from 'lodash/get';
 import ScreenWrapper from '../../../../components/ScreenWrapper';
 import HeaderWithCloseButton from '../../../../components/HeaderWithCloseButton';
 import withLocalize, {withLocalizePropTypes} from '../../../../components/withLocalize';
@@ -36,92 +37,73 @@ const defaultProps = {
     },
 };
 
-class LegalNamePage extends Component {
-    constructor(props) {
-        super(props);
+const updateLegalName = (values) => {
+    PersonalDetails.updateLegalName(
+        values.legalFirstName.trim(),
+        values.legalLastName.trim(),
+    );
+};
 
-        this.validate = this.validate.bind(this);
-        this.updateLegalName = this.updateLegalName.bind(this);
-    }
+function LegalNamePage(props) {
+    const legalFirstName = lodashGet(props.privatePersonalDetails, 'legalFirstName', '');
+    const legalLastName = lodashGet(props.privatePersonalDetails, 'legalLastName', '');
+    const translate = props.translate;
 
-    /**
-     * Submit form to update user's legal first and last name
-     * @param {Object} values
-     * @param {String} values.legalFirstName
-     * @param {String} values.legalLastName
-     */
-    updateLegalName(values) {
-        PersonalDetails.updateLegalName(
-            values.legalFirstName.trim(),
-            values.legalLastName.trim(),
-        );
-    }
-
-    /**
-     * @param {Object} values
-     * @param {String} values.legalFirstName
-     * @param {String} values.legalLastName
-     * @returns {Object} - An object containing the errors for each inputID
-     */
-    validate(values) {
+    const validate = useCallback((values) => {
         const errors = {};
 
         if (!ValidationUtils.isValidLegalName(values.legalFirstName)) {
-            errors.legalFirstName = this.props.translate('privatePersonalDetails.error.hasInvalidCharacter');
+            errors.legalFirstName = translate('privatePersonalDetails.error.hasInvalidCharacter');
         } else if (_.isEmpty(values.legalFirstName)) {
-            errors.legalFirstName = this.props.translate('common.error.fieldRequired');
+            errors.legalFirstName = translate('common.error.fieldRequired');
         }
 
         if (!ValidationUtils.isValidLegalName(values.legalLastName)) {
-            errors.legalLastName = this.props.translate('privatePersonalDetails.error.hasInvalidCharacter');
+            errors.legalLastName = translate('privatePersonalDetails.error.hasInvalidCharacter');
         } else if (_.isEmpty(values.legalLastName)) {
-            errors.legalLastName = this.props.translate('common.error.fieldRequired');
+            errors.legalLastName = translate('common.error.fieldRequired');
         }
 
         return errors;
-    }
+    }, [translate]);
 
-    render() {
-        const privateDetails = this.props.privatePersonalDetails || {};
-
-        return (
-            <ScreenWrapper includeSafeAreaPaddingBottom={false}>
-                <HeaderWithCloseButton
-                    title={this.props.translate('privatePersonalDetails.legalName')}
-                    shouldShowBackButton
-                    onBackButtonPress={() => Navigation.navigate(ROUTES.SETTINGS_PERSONAL_DETAILS)}
-                    onCloseButtonPress={() => Navigation.dismissModal(true)}
-                />
-                <Form
-                    style={[styles.flexGrow1, styles.ph5]}
-                    formID={ONYXKEYS.FORMS.LEGAL_NAME_FORM}
-                    validate={this.validate}
-                    onSubmit={this.updateLegalName}
-                    submitButtonText={this.props.translate('common.save')}
-                    enabledWhenOffline
-                >
-                    <View style={[styles.mb4]}>
-                        <TextInput
-                            inputID="legalFirstName"
-                            name="lfname"
-                            label={this.props.translate('privatePersonalDetails.legalFirstName')}
-                            defaultValue={privateDetails.legalFirstName || ''}
-                            maxLength={CONST.DISPLAY_NAME.MAX_LENGTH}
-                        />
-                    </View>
-                    <View>
-                        <TextInput
-                            inputID="legalLastName"
-                            name="llname"
-                            label={this.props.translate('privatePersonalDetails.legalLastName')}
-                            defaultValue={privateDetails.legalLastName || ''}
-                            maxLength={CONST.DISPLAY_NAME.MAX_LENGTH}
-                        />
-                    </View>
-                </Form>
-            </ScreenWrapper>
-        );
-    }
+    return (
+        <ScreenWrapper includeSafeAreaPaddingBottom={false}>
+            <HeaderWithCloseButton
+                title={props.translate('privatePersonalDetails.legalName')}
+                shouldShowBackButton
+                onBackButtonPress={() => Navigation.navigate(ROUTES.SETTINGS_PERSONAL_DETAILS)}
+                onCloseButtonPress={() => Navigation.dismissModal(true)}
+            />
+            <Form
+                style={[styles.flexGrow1, styles.ph5]}
+                formID={ONYXKEYS.FORMS.LEGAL_NAME_FORM}
+                validate={validate}
+                onSubmit={updateLegalName}
+                submitButtonText={props.translate('common.save')}
+                enabledWhenOffline
+            >
+                <View style={[styles.mb4]}>
+                    <TextInput
+                        inputID="legalFirstName"
+                        name="lfname"
+                        label={props.translate('privatePersonalDetails.legalFirstName')}
+                        defaultValue={legalFirstName}
+                        maxLength={CONST.DISPLAY_NAME.MAX_LENGTH}
+                    />
+                </View>
+                <View>
+                    <TextInput
+                        inputID="legalLastName"
+                        name="llname"
+                        label={props.translate('privatePersonalDetails.legalLastName')}
+                        defaultValue={legalLastName}
+                        maxLength={CONST.DISPLAY_NAME.MAX_LENGTH}
+                    />
+                </View>
+            </Form>
+        </ScreenWrapper>
+    );
 }
 
 LegalNamePage.propTypes = propTypes;

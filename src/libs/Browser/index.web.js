@@ -50,8 +50,19 @@ function isMobileSafari() {
     return /iP(ad|od|hone)/i.test(userAgent) && /WebKit/i.test(userAgent) && !(/(CriOS|FxiOS|OPiOS|mercury)/i.test(userAgent));
 }
 
+/**
+ * Checks if requesting user agent is Chrome browser on a mobile device
+ *
+ * @returns {Boolean}
+ */
+function isMobileChrome() {
+    const userAgent = navigator.userAgent;
+    return /Android/i.test(userAgent) && /chrome|chromium|crios/i.test(userAgent);
+}
+
 export {
     getBrowser,
     isMobile,
     isMobileSafari,
+    isMobileChrome,
 };
