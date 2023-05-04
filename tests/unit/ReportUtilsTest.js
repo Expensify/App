@@ -18,6 +18,7 @@ const participantsPersonalDetails = {
     },
     'floki@vikings.net': {
         login: 'floki@vikings.net',
+        displayName: 'floki@vikings.net',
     },
     'lagertha@vikings.net': {
         displayName: 'Lagertha Lothbrok',
@@ -27,6 +28,7 @@ const participantsPersonalDetails = {
     },
     '+18332403627@expensify.sms': {
         login: '+18332403627@expensify.sms',
+        displayName: '(833) 240-3627',
     },
 };
 const policy = {
@@ -41,6 +43,7 @@ describe('ReportUtils', () => {
         Onyx.multiSet({
             [ONYXKEYS.PERSONAL_DETAILS]: participantsPersonalDetails,
             [ONYXKEYS.SESSION]: {email: currentUserEmail},
+            [ONYXKEYS.COUNTRY_CODE]: 1,
             [`${ONYXKEYS.COLLECTION.POLICY}${policy.policyID}`]: policy,
         });
         return waitForPromisesToResolve();
