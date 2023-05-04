@@ -82,7 +82,7 @@ const ReportPreview = (props) => {
             {style: 'currency', currency: props.iouReport.currency},
         ) : '';
     
-    const text = props.iouReport.hasOutstandingIOU ? `${props.chatReport.displayName} owes ${cachedTotal}` : `Settled up ${cachedTotal}`;
+    const text = props.iouReport.hasOutstandingIOU ? `${props.report.displayName} owes ${cachedTotal}` : `Settled up ${cachedTotal}`;
 
     return (
         <View style={[styles.chatItemMessage]}>
@@ -116,7 +116,7 @@ ReportPreview.displayName = 'ReportPreview';
 export default compose(
     withLocalize,
     withOnyx({
-        chatReport: {
+        report: {
             key: ({chatReportID}) => `${ONYXKEYS.COLLECTION.REPORT}${chatReportID}`,
         },
         iouReport: {

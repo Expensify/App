@@ -81,6 +81,10 @@ function getSortedReportActions(reportActions, shouldSortInDescendingOrder = fal
             if ((first.actionName === CONST.REPORT.ACTIONS.TYPE.CREATED || second.actionName === CONST.REPORT.ACTIONS.TYPE.CREATED) && first.actionName !== second.actionName) {
                 return ((first.actionName === CONST.REPORT.ACTIONS.TYPE.CREATED) ? -1 : 1) * invertedMultiplier;
             }
+            // Ensure that `REPORTPREVIEW` actions always come after if they have the same timestamp as another action type
+            if ((first.actionName === CONST.REPORT.ACTIONS.TYPE.REPORTPREVIEW || second.actionName === CONST.REPORT.ACTIONS.TYPE.REPORTPREVIEW) && first.actionName !== second.actionName) {
+                return ((first.actionName === CONST.REPORT.ACTIONS.TYPE.REPORTPREVIEW) ? 1 : -1) * invertedMultiplier;
+            }
 
             // Then fallback on reportActionID as the final sorting criteria. It is a random number,
             // but using this will ensure that the order of reportActions with the same created time and action type
@@ -224,7 +228,7 @@ function shouldReportActionBeVisible(reportAction, key) {
     }
 
     // All other actions are displayed except deleted, non-pending actions
-    const isDeleted = isDeletedAction(reportAction);
+    const isDeleted = isDeletedAction(reportAction); // && !reportAction.actionName === CONST.REPORT.ACTIONS.TYPE.REPORTPREVIEW;
     const isPending = !_.isEmpty(reportAction.pendingAction);
     return !isDeleted || isPending;
 }
