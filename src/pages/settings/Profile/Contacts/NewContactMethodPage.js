@@ -8,6 +8,7 @@ import {withOnyx} from 'react-native-onyx';
 import {compose} from 'underscore';
 import lodashGet from 'lodash/get';
 import Str from 'expensify-common/lib/str';
+import {parsePhoneNumber} from 'awesome-phonenumber';
 import Button from '../../../../components/Button';
 import FixedFooter from '../../../../components/FixedFooter';
 import HeaderWithCloseButton from '../../../../components/HeaderWithCloseButton';
@@ -69,19 +70,24 @@ function NewContactMethodPage(props) {
     }, []);
 
     const isFormValid = useMemo(() => {
-        const phoneLogin = LoginUtils.getPhoneNumberWithoutSpecialChars(login);
+        const phoneLogin = LoginUtils.appendCountryCode(LoginUtils.getPhoneNumberWithoutSpecialChars(login));
 
         return (Permissions.canUsePasswordlessLogins(props.betas) || password)
-            && (Str.isValidEmail(login) || Str.isValidPhone(phoneLogin));
+            && (Str.isValidEmail(login) || parsePhoneNumber(phoneLogin).possible);
     }, [login, password, props.betas]);
 
     const submitForm = useCallback(() => {
+        const phoneLogin = LoginUtils.appendCountryCode(LoginUtils.getPhoneNumberWithoutSpecialChars(login));
+        const parsedPhoneNumber = parsePhoneNumber(phoneLogin);
+        const userLogin = parsedPhoneNumber.possible ? parsedPhoneNumber.number.e164 : login;
+
         // If this login already exists, just go back.
-        if (lodashGet(props.loginList, login)) {
+        if (lodashGet(props.loginList, userLogin)) {
             Navigation.navigate(ROUTES.SETTINGS_CONTACT_METHODS);
             return;
         }
-        User.addNewContactMethodAndNavigate(login, password);
+
+        User.addNewContactMethodAndNavigate(userLogin, password);
     }, [login, props.loginList, password]);
 
     return (

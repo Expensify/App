@@ -58,7 +58,7 @@ function WorkspaceSettingsPage(props) {
             return;
         }
         const outputCurrency = values.currency;
-        Policy.updateGeneralSettings(props.policy.id, values.name, outputCurrency);
+        Policy.updateGeneralSettings(props.policy.id, values.name.trim(), outputCurrency);
         Keyboard.dismiss();
         Navigation.navigate(ROUTES.getWorkspaceInitialRoute(props.policy.id));
     }, [props.policy.id, props.policy.isPolicyUpdating]);
