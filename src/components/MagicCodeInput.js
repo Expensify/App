@@ -89,7 +89,6 @@ function MagicCodeInput(props) {
     const [input, setInput] = useState('');
     const [focusedIndex, setFocusedIndex] = useState(0);
     const [editIndex, setEditIndex] = useState(0);
-    const [numbers, setNumbers] = useState(() => (props.value ? decomposeString(props.value) : Array(CONST.MAGIC_CODE_LENGTH).fill(CONST.MAGIC_CODE_EMPTY_CHAR)));
 
     useImperativeHandle(props.innerRef, () => ({
         focus() {
@@ -100,11 +99,25 @@ function MagicCodeInput(props) {
             setInput('');
             setFocusedIndex(0);
             setEditIndex(0);
-            setNumbers(Array(CONST.MAGIC_CODE_LENGTH).fill(CONST.MAGIC_CODE_EMPTY_CHAR));
             inputRefs[0].focus();
             props.onChangeText('');
         },
     }));
+
+    useEffect(() => {
+        // Blurs the input and removes focus from the last input and, if it should submit
+        // on complete, it will call the onFulfill callback.
+        const numbers = decomposeString(props.value);
+        if (!props.shouldSubmitOnComplete || _.filter(numbers, n => ValidationUtils.isNumeric(n)).length !== CONST.MAGIC_CODE_LENGTH) {
+            return;
+        }
+        inputRefs[editIndex].blur();
+        setFocusedIndex(undefined);
+        props.onFulfill(props.value);
+
+        // We have not added the editIndex as the dependency because we don't want to run this logic after focusing on an input to edit it after the user has completed the code.
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [props.value, props.shouldSubmitOnComplete, props.onFulfill]);
 
     useEffect(() => {
         if (!props.autoFocus) {
@@ -125,10 +138,6 @@ function MagicCodeInput(props) {
             clearTimeout(focusTimeout);
         };
     }, [props.autoFocus, props.shouldDelayFocus]);
-
-    useEffect(() => {
-        setNumbers(decomposeString(props.value));
-    }, [props.value]);
 
     /**
      * Focuses on the input when it is pressed.
@@ -174,25 +183,18 @@ function MagicCodeInput(props) {
         const numbersArr = value.trim().split('').slice(0, CONST.MAGIC_CODE_LENGTH - editIndex);
         const updatedFocusedIndex = Math.min(editIndex + (numbersArr.length - 1) + 1, CONST.MAGIC_CODE_LENGTH - 1);
 
-        const newNumbers = [
+        let numbers = decomposeString(props.value);
+        numbers = [
             ...numbers.slice(0, editIndex),
             ...numbersArr,
             ...numbers.slice(numbersArr.length + editIndex, CONST.MAGIC_CODE_LENGTH),
         ];
-        setNumbers(newNumbers);
+
         setFocusedIndex(updatedFocusedIndex);
         setInput(value);
 
-        const finalInput = composeToString(newNumbers);
+        const finalInput = composeToString(numbers);
         props.onChangeText(finalInput);
-
-        // Blurs the input and removes focus from the last input and, if it should submit
-        // on complete, it will call the onFulfill callback.
-        if (props.shouldSubmitOnComplete && _.filter(newNumbers, n => ValidationUtils.isNumeric(n)).length === CONST.MAGIC_CODE_LENGTH) {
-            inputRefs[editIndex].blur();
-            setFocusedIndex(undefined);
-            props.onFulfill(finalInput);
-        }
     };
 
     /**
@@ -205,29 +207,31 @@ function MagicCodeInput(props) {
      */
     const onKeyPress = ({nativeEvent: {key: keyValue}}) => {
         if (keyValue === 'Backspace') {
+            let numbers = decomposeString(props.value);
+
             // If the currently focused index already has a value, it will delete
             // that value but maintain the focus on the same input.
             if (numbers[focusedIndex] !== CONST.MAGIC_CODE_EMPTY_CHAR) {
                 setInput('');
-                setNumbers([
+                numbers = [
                     ...numbers.slice(0, focusedIndex),
                     CONST.MAGIC_CODE_EMPTY_CHAR,
                     ...numbers.slice(focusedIndex + 1, CONST.MAGIC_CODE_LENGTH),
-                ]);
+                ];
                 setEditIndex(focusedIndex);
+                props.onChangeText(composeToString(numbers));
                 return;
             }
 
             const hasInputs = _.filter(numbers, n => ValidationUtils.isNumeric(n)).length !== 0;
-            let newNumbers = numbers;
 
             // Fill the array with empty characters if there are no inputs.
             if (focusedIndex === 0 && !hasInputs) {
-                newNumbers = Array(CONST.MAGIC_CODE_LENGTH).fill(CONST.MAGIC_CODE_EMPTY_CHAR);
+                numbers = Array(CONST.MAGIC_CODE_LENGTH).fill(CONST.MAGIC_CODE_EMPTY_CHAR);
 
             // Deletes the value of the previous input and focuses on it.
             } else if (focusedIndex !== 0) {
-                newNumbers = [
+                numbers = [
                     ...numbers.slice(0, Math.max(0, focusedIndex - 1)),
                     CONST.MAGIC_CODE_EMPTY_CHAR,
                     ...numbers.slice(focusedIndex, CONST.MAGIC_CODE_LENGTH),
@@ -240,9 +244,9 @@ function MagicCodeInput(props) {
             // event that will be triggered, this is a workaround for mobile that
             // triggers the change text on the event after the key press.
             setInput('');
-            setNumbers(newNumbers);
             setFocusedIndex(newFocusedIndex);
             setEditIndex(newFocusedIndex);
+            props.onChangeText(composeToString(numbers));
 
             if (!_.isUndefined(newFocusedIndex)) {
                 inputRefs[newFocusedIndex].focus();
@@ -261,7 +265,7 @@ function MagicCodeInput(props) {
             inputRefs[newFocusedIndex].focus();
         } else if (keyValue === 'Enter') {
             setInput('');
-            props.onFulfill(composeToString(numbers));
+            props.onFulfill(props.value);
         }
     };
 
@@ -277,7 +281,7 @@ function MagicCodeInput(props) {
                             ]}
                         >
                             <Text style={[styles.magicCodeInput, styles.textAlignCenter]}>
-                                {numbers[index] || ''}
+                                {decomposeString(props.value)[index] || ''}
                             </Text>
                         </View>
                         <View style={[StyleSheet.absoluteFillObject, styles.w100, styles.opacity0]}>
