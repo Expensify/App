@@ -328,7 +328,7 @@ export default {
             invalidSplit: 'La suma de las partes no equivale al monto total',
             other: 'Error inesperado, por favor inténtalo más tarde',
             genericCreateFailureMessage: 'Error inesperado solicitando dinero, Por favor, inténtalo más tarde',
-            genericCancelFailureMessage: ({type}) => `Error inesperado al ${type === 'decline' ? 'rechazar' : 'cancelar'} la solicitud de dinero. Por favor, inténtalo más tarde`,
+            genericDeleteFailureMessage: 'Error inesperado eliminando la solicitud de dinero. Por favor, inténtalo más tarde',
         },
     },
     notificationPreferences: {
