@@ -843,7 +843,6 @@ function getMemberInviteOptions(
     return getOptions([], personalDetails, {
         betas,
         searchInputValue: searchValue.trim(),
-        excludeDefaultRooms: true,
         includePersonalDetails: true,
         excludeLogins,
         sortPersonalDetailsByAlphaAsc: false,
