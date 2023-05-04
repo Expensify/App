@@ -81,15 +81,15 @@ const decomposeString = (value) => {
  */
 const composeToString = value => _.map(value, v => ((v === undefined || v === '') ? CONST.MAGIC_CODE_EMPTY_CHAR : v)).join('');
 
+const inputPlaceholderSlots = Array.from(Array(CONST.MAGIC_CODE_LENGTH).keys());
+
 function MagicCodeInput(props) {
-    const inputPlaceholderSlots = Array.from(Array(CONST.MAGIC_CODE_LENGTH).keys());
-    const inputRefs = useRef({});
-    const focusTimeout = useRef();
+    const inputRefs = useRef([]);
 
     const [input, setInput] = useState('');
     const [focusedIndex, setFocusedIndex] = useState(0);
     const [editIndex, setEditIndex] = useState(0);
-    const [numbers, setNumbers] = useState(props.value ? decomposeString(props.value) : Array(CONST.MAGIC_CODE_LENGTH).fill(CONST.MAGIC_CODE_EMPTY_CHAR));
+    const [numbers, setNumbers] = useState(() => (props.value ? decomposeString(props.value) : Array(CONST.MAGIC_CODE_LENGTH).fill(CONST.MAGIC_CODE_EMPTY_CHAR)));
 
     useImperativeHandle(props.innerRef, () => ({
         focus() {
@@ -102,6 +102,7 @@ function MagicCodeInput(props) {
             setEditIndex(0);
             setNumbers(Array(CONST.MAGIC_CODE_LENGTH).fill(CONST.MAGIC_CODE_EMPTY_CHAR));
             inputRefs[0].focus();
+            props.onChangeText('');
         },
     }));
 
@@ -110,17 +111,18 @@ function MagicCodeInput(props) {
             return;
         }
 
+        let focusTimeout = null;
         if (props.shouldDelayFocus) {
-            focusTimeout.current = setTimeout(() => inputRefs[0].focus(), CONST.ANIMATED_TRANSITION);
+            focusTimeout = setTimeout(() => inputRefs[0].focus(), CONST.ANIMATED_TRANSITION);
         }
 
         inputRefs[0].focus();
 
         return () => {
-            if (!focusTimeout.current) {
+            if (!focusTimeout) {
                 return;
             }
-            clearTimeout(focusTimeout.current);
+            clearTimeout(focusTimeout);
         };
     }, [props.autoFocus, props.shouldDelayFocus]);
 
