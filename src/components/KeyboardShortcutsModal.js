@@ -35,56 +35,24 @@ const defaultProps = {
 class KeyboardShortcutsModal extends React.Component {
     componentDidMount() {
         const openShortcutModalConfig = CONST.KEYBOARD_SHORTCUTS.SHORTCUT_MODAL;
+        this.subscribedOpenModalShortcuts = [];
         this.unsubscribeShortcutModal = KeyboardShortcut.subscribe(openShortcutModalConfig.shortcutKey, () => {
             ModalActions.close();
             KeyboardShortcutsActions.showKeyboardShortcutModal();
         }, openShortcutModalConfig.descriptionKey, openShortcutModalConfig.modifiers, true);
+
+        if (this.props.isShortcutsModalOpen) {
+            // The modal started open, which can happen if you reload the page when the modal is open.
+            this.subscribeOpenModalKeyboardShortcuts();
+        }
     }
 
     componentDidUpdate(prevProps) {
         if (!prevProps.isShortcutsModalOpen && this.props.isShortcutsModalOpen) {
-            // Modal is opening, add keyboard shortcuts
-            // Allow closing the modal with the both Enter and Escape keys
-            // Both callbacks have the lowest priority (0) to ensure that they are called before any other callbacks
-            // and configured so that event propagation is stopped after the callback is called (only when the modal is open)
-            const closeShortcutEscapeModalConfig = CONST.KEYBOARD_SHORTCUTS.ESCAPE;
-            this.unsubscribeCloseEscapeModal = KeyboardShortcut.subscribe(closeShortcutEscapeModalConfig.shortcutKey, () => {
-                ModalActions.close();
-                KeyboardShortcutsActions.hideKeyboardShortcutModal();
-            }, closeShortcutEscapeModalConfig.descriptionKey, closeShortcutEscapeModalConfig.modifiers, true, true);
-
-            const closeShortcutEnterModalConfig = CONST.KEYBOARD_SHORTCUTS.ENTER;
-            this.unsubscribeCloseEnterModal = KeyboardShortcut.subscribe(closeShortcutEnterModalConfig.shortcutKey, () => {
-                ModalActions.close();
-                KeyboardShortcutsActions.hideKeyboardShortcutModal();
-            }, closeShortcutEnterModalConfig.descriptionKey, closeShortcutEnterModalConfig.modifiers, true);
-
-            // Intercept arrow up and down keys to prevent scrolling ArrowKeyFocusManager while this modal is open
-            const arrowUpConfig = CONST.KEYBOARD_SHORTCUTS.ARROW_UP;
-            this.unsubscribeArrowUpKey = KeyboardShortcut.subscribe(arrowUpConfig.shortcutKey, () => {
-            }, arrowUpConfig.descriptionKey, arrowUpConfig.modifiers, true);
-
-            const arrowDownConfig = CONST.KEYBOARD_SHORTCUTS.ARROW_DOWN;
-            this.unsubscribeArrowDownKey = KeyboardShortcut.subscribe(arrowDownConfig.shortcutKey, () => {
-            }, arrowDownConfig.descriptionKey, arrowDownConfig.modifiers, true);
+            this.subscribeOpenModalKeyboardShortcuts();
         } else if (prevProps.isShortcutsModalOpen && !this.props.isShortcutsModalOpen) {
             // Modal is closing, remove keyboard shortcuts
-            if (this.unsubscribeCloseEscapeModal) {
-                this.unsubscribeCloseEscapeModal();
-                this.unsubscribeCloseEscapeModal = undefined;
-            }
-            if (this.unsubscribeCloseEnterModal) {
-                this.unsubscribeCloseEnterModal();
-                this.unsubscribeCloseEnterModal = undefined;
-            }
-            if (this.unsubscribeArrowUpKey) {
-                this.unsubscribeArrowUpKey();
-                this.unsubscribeArrowUpKey = undefined;
-            }
-            if (this.unsubscribeArrowDownKey) {
-                this.unsubscribeArrowDownKey();
-                this.unsubscribeArrowDownKey = undefined;
-            }
+            this.unsubscribeOpenModalShortcuts();
         }
     }
 
@@ -92,18 +60,44 @@ class KeyboardShortcutsModal extends React.Component {
         if (this.unsubscribeShortcutModal) {
             this.unsubscribeShortcutModal();
         }
-        if (this.unsubscribeCloseEscapeModal) {
-            this.unsubscribeCloseEscapeModal();
-        }
-        if (this.unsubscribeCloseEnterModal) {
-            this.unsubscribeCloseEnterModal();
-        }
-        if (this.unsubscribeArrowUpKey) {
-            this.unsubscribeArrowUpKey();
-        }
-        if (this.unsubscribeArrowDownKey) {
-            this.unsubscribeArrowDownKey();
-        }
+        this.unsubscribeOpenModalShortcuts();
+    }
+
+    /*
+     * Subscribe shortcuts that only are used when the modal is open
+     */
+    subscribeOpenModalKeyboardShortcuts() {
+        // Allow closing the modal with the both Enter and Escape keys
+        // Both callbacks have the lowest priority (0) to ensure that they are called before any other callbacks
+        // and configured so that event propagation is stopped after the callback is called (only when the modal is open)
+        const closeShortcutEscapeModalConfig = CONST.KEYBOARD_SHORTCUTS.ESCAPE;
+        this.subscribedOpenModalShortcuts.push(KeyboardShortcut.subscribe(closeShortcutEscapeModalConfig.shortcutKey, () => {
+            ModalActions.close();
+            KeyboardShortcutsActions.hideKeyboardShortcutModal();
+        }, closeShortcutEscapeModalConfig.descriptionKey, closeShortcutEscapeModalConfig.modifiers, true, true));
+
+        const closeShortcutEnterModalConfig = CONST.KEYBOARD_SHORTCUTS.ENTER;
+        this.subscribedOpenModalShortcuts.push(KeyboardShortcut.subscribe(closeShortcutEnterModalConfig.shortcutKey, () => {
+            ModalActions.close();
+            KeyboardShortcutsActions.hideKeyboardShortcutModal();
+        }, closeShortcutEnterModalConfig.descriptionKey, closeShortcutEnterModalConfig.modifiers, true));
+
+        // Intercept arrow up and down keys to prevent scrolling ArrowKeyFocusManager while this modal is open
+        const arrowUpConfig = CONST.KEYBOARD_SHORTCUTS.ARROW_UP;
+        this.subscribedOpenModalShortcuts.push(KeyboardShortcut.subscribe(arrowUpConfig.shortcutKey, () => {
+        }, arrowUpConfig.descriptionKey, arrowUpConfig.modifiers, true));
+
+        const arrowDownConfig = CONST.KEYBOARD_SHORTCUTS.ARROW_DOWN;
+        this.subscribedOpenModalShortcuts.push(KeyboardShortcut.subscribe(arrowDownConfig.shortcutKey, () => {
+        }, arrowDownConfig.descriptionKey, arrowDownConfig.modifiers, true));
+    }
+
+    /*
+     * Unsubscribe all shortcuts that were subscribed when the modal opened
+     */
+    unsubscribeOpenModalShortcuts() {
+        this.subscribedOpenModalShortcuts.forEach(unsubscribe => unsubscribe());
+        this.subscribedOpenModalShortcuts = [];
     }
 
     /**
