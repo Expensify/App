@@ -32,12 +32,6 @@ const propTypes = {
     /** Stores user's preferred skin tone */
     preferredSkinTone: PropTypes.oneOfType([PropTypes.number, PropTypes.string]),
 
-    /** User's frequently used emojis */
-    frequentlyUsedEmojis: PropTypes.arrayOf(PropTypes.shape({
-        code: PropTypes.string.isRequired,
-        keywords: PropTypes.arrayOf(PropTypes.string),
-    })),
-
     /** Props related to the dimensions of the window */
     ...windowDimensionsPropTypes,
 
@@ -47,7 +41,6 @@ const propTypes = {
 const defaultProps = {
     forwardedRef: () => {},
     preferredSkinTone: CONST.EMOJI_DEFAULT_SKIN_TONE,
-    frequentlyUsedEmojis: [],
 };
 
 class EmojiPickerMenu extends Component {
@@ -64,8 +57,8 @@ class EmojiPickerMenu extends Component {
         // since Windows doesn't support them
         const flagHeaderIndex = _.findIndex(emojis, emoji => emoji.header && emoji.code === 'flags');
         this.emojis = getOperatingSystem() === CONST.OS.WINDOWS
-            ? EmojiUtils.mergeEmojisWithFrequentlyUsedEmojis(emojis.slice(0, flagHeaderIndex), this.props.frequentlyUsedEmojis)
-            : EmojiUtils.mergeEmojisWithFrequentlyUsedEmojis(emojis, this.props.frequentlyUsedEmojis);
+            ? EmojiUtils.mergeEmojisWithFrequentlyUsedEmojis(emojis.slice(0, flagHeaderIndex))
+            : EmojiUtils.mergeEmojisWithFrequentlyUsedEmojis(emojis);
 
         // Get the header emojis along with the code, index and icon.
         // index is the actual header index starting at the first emoji and counting each one
@@ -234,7 +227,7 @@ class EmojiPickerMenu extends Component {
      * @param {Object} emojiObject
      */
     addToFrequentAndSelectEmoji(emoji, emojiObject) {
-        EmojiUtils.addToFrequentlyUsedEmojis(this.props.frequentlyUsedEmojis, emojiObject);
+        EmojiUtils.addToFrequentlyUsedEmojis(emojiObject);
         this.props.onEmojiSelected(emoji, emojiObject);
     }
 
@@ -568,9 +561,6 @@ export default compose(
     withOnyx({
         preferredSkinTone: {
             key: ONYXKEYS.PREFERRED_EMOJI_SKIN_TONE,
-        },
-        frequentlyUsedEmojis: {
-            key: ONYXKEYS.FREQUENTLY_USED_EMOJIS,
         },
     }),
 )(React.forwardRef((props, ref) => (
