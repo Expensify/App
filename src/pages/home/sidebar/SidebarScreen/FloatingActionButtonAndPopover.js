@@ -21,6 +21,7 @@ import withNavigation from '../../../../components/withNavigation';
 import * as Welcome from '../../../../libs/actions/Welcome';
 import withNavigationFocus from '../../../../components/withNavigationFocus';
 import withDrawerState from '../../../../components/withDrawerState';
+import * as App from '../../../../libs/actions/App';
 
 /**
  * @param {Object} [policy]
@@ -225,7 +226,7 @@ class FloatingActionButtonAndPopover extends React.Component {
                                 iconHeight: 40,
                                 text: this.props.translate('workspace.new.newWorkspace'),
                                 description: this.props.translate('workspace.new.getTheExpensifyCardAndMore'),
-                                onSelected: () => Policy.createWorkspace(),
+                                onSelected: () => App.createWorkspaceAndNavigateToIt(),
                             },
                         ] : []),
                     ]}

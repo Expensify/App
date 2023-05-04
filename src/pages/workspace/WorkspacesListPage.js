@@ -26,6 +26,7 @@ import BlockingView from '../../components/BlockingViews/BlockingView';
 import {withNetwork} from '../../components/OnyxProvider';
 import * as ReimbursementAccountProps from '../ReimbursementAccount/reimbursementAccountPropTypes';
 import * as ReportUtils from '../../libs/ReportUtils';
+import * as App from '../../libs/actions/App';
 
 const propTypes = {
     /* Onyx Props */
@@ -202,7 +203,7 @@ class WorkspacesListPage extends Component {
                     <Button
                         success
                         text={this.props.translate('workspace.new.newWorkspace')}
-                        onPress={() => Policy.createWorkspace()}
+                        onPress={() => App.createWorkspaceAndNavigateToIt()}
                     />
                 </FixedFooter>
             </ScreenWrapper>
