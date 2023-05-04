@@ -169,7 +169,7 @@ const styles = {
         flexBasis: '48%',
     },
 
-    emojiSuggestionsContainer: {
+    autoCompleteSuggestionsContainer: {
         backgroundColor: themeColors.appBG,
         borderRadius: 8,
         borderWidth: 1,
@@ -180,7 +180,8 @@ const styles = {
         left: 0,
         right: 0,
     },
-    emojiSuggestionContainer: {
+
+    autoCompleteSuggestionContainer: {
         flexDirection: 'row',
         alignItems: 'center',
     },
