@@ -1,7 +1,8 @@
 import React, {Component} from 'react';
-import {TouchableOpacity, Animated} from 'react-native';
+import {Animated} from 'react-native';
 import PropTypes from 'prop-types';
 import styles from '../styles/styles';
+import * as Pressables from './Pressable';
 
 const propTypes = {
     /** Whether the switch is toggled to the on position */
@@ -11,6 +12,7 @@ const propTypes = {
     onToggle: PropTypes.func.isRequired,
 };
 
+const PressableWithFeedback = Pressables.PressableWithFeedback;
 class Switch extends Component {
     constructor(props) {
         super(props);
@@ -40,13 +42,15 @@ class Switch extends Component {
     render() {
         const switchTransform = {transform: [{translateX: this.offsetX}]};
         return (
-            <TouchableOpacity
+            <PressableWithFeedback
                 style={[styles.switchTrack, !this.props.isOn && styles.switchInactive]}
-                activeOpacity={0.8}
                 onPress={() => this.props.onToggle(!this.props.isOn)}
+                accessibilityRole="switch"
+                accessibilityState={{checked: this.props.isOn}}
+                aria-checked={this.props.isOn}
             >
                 <Animated.View style={[styles.switchThumb, switchTransform]} />
-            </TouchableOpacity>
+            </PressableWithFeedback>
         );
     }
 }
