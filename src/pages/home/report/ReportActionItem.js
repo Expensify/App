@@ -178,11 +178,8 @@ class ReportActionItem extends Component {
     renderItemContent(hovered = false) {
         let children;
         if (this.props.action.actionName === CONST.REPORT.ACTIONS.TYPE.IOU) {
-            // Only 1:1 requests require an iouReport. For splits we rely on reportAction data.
-            let iouReportID = '0';
-            if (this.props.action.originalMessage.IOUReportID) {
-                iouReportID = this.props.action.originalMessage.IOUReportID.toString();
-            }
+            // There is no single iouReport for bill splits, so only 1:1 requests require an iouReportID
+            let iouReportID = this.props.action.originalMessage.IOUReportID ? this.props.action.originalMessage.IOUReportID.toString() : '0';
 
             children = (
                 <IOUAction
