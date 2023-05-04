@@ -1185,7 +1185,8 @@ function buildOptimisticChatReport(
     oldPolicyName = '',
     visibility = undefined,
     notificationPreference = CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS,
-    parentReportAction,
+    parentReportActionID,
+    parentReportID,
 ) {
     const currentTime = DateUtils.getDBTime();
     return {
@@ -1202,6 +1203,8 @@ function buildOptimisticChatReport(
         notificationPreference,
         oldPolicyName,
         ownerEmail: ownerEmail || CONST.REPORT.OWNER_EMAIL_FAKE,
+        parentReportActionID,
+        parentReportID,
         participants: participantList,
         policyID,
         reportID: generateReportID(),

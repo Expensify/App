@@ -39,6 +39,7 @@ class PopoverReportActionContextMenu extends React.Component {
             },
             isArchivedRoom: false,
             isChronosReport: false,
+            childReportID: '0',
         };
         this.onPopoverShow = () => {};
         this.onPopoverHide = () => {};
@@ -138,6 +139,7 @@ class PopoverReportActionContextMenu extends React.Component {
         onHide = () => {},
         isArchivedRoom,
         isChronosReport,
+        childReportID,
     ) {
         const nativeEvent = event.nativeEvent || {};
         this.contextMenuAnchor = contextMenuAnchor;
@@ -168,6 +170,7 @@ class PopoverReportActionContextMenu extends React.Component {
                 reportActionDraftMessage: draftMessage,
                 isArchivedRoom,
                 isChronosReport,
+                childReportID,
             });
         });
     }
@@ -273,6 +276,7 @@ class PopoverReportActionContextMenu extends React.Component {
             shouldSetModalVisibilityForDeleteConfirmation: true,
             isArchivedRoom: false,
             isChronosReport: false,
+            childReportID: '0',
         });
     }
 
@@ -319,6 +323,7 @@ class PopoverReportActionContextMenu extends React.Component {
                         draftMessage={this.state.reportActionDraftMessage}
                         isArchivedRoom={this.state.isArchivedRoom}
                         isChronosReport={this.state.isChronosReport}
+                        childReportID={this.state.childReportID}
                         anchor={this.contextMenuTargetNode}
                         contentRef={this.contentRef}
                     />

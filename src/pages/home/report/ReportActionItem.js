@@ -163,6 +163,7 @@ class ReportActionItem extends Component {
             this.checkIfContextMenuActive,
             ReportUtils.isArchivedRoom(this.props.report),
             ReportUtils.chatIncludesChronos(this.props.report),
+            this.props.action.childReportID,
         );
     }
 
@@ -290,6 +291,7 @@ class ReportActionItem extends Component {
                                 }
                                 draftMessage={this.props.draftMessage}
                                 isChronosReport={ReportUtils.chatIncludesChronos(this.props.report)}
+                                childReportActionID={this.props.action.childReportActionID}
                             />
                             {this.props.shouldDisplayNewMarker && (
                                 <UnreadActionIndicator reportActionID={this.props.action.reportActionID} />

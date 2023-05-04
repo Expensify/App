@@ -355,7 +355,7 @@ function openReport(reportID, participantList = [], newReportObject = {}, parent
     const params = {
         reportID,
         emailList: participantList ? participantList.join(',') : '',
-        parentReportActionID,
+        parentReportActionID: parentReportActionID === '0' ? null : parentReportActionID,
     };
 
     // If we are creating a new report, we need to add the optimistic report data and a report action
@@ -372,20 +372,23 @@ function openReport(reportID, participantList = [], newReportObject = {}, parent
             isOptimisticReport: true,
         };
 
-        const optimisticCreatedAction = ReportUtils.buildOptimisticCreatedReportAction(newReportObject.ownerEmail);
-        onyxData.optimisticData.push({
-            onyxMethod: CONST.ONYX.METHOD.SET,
-            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`,
-            value: {[optimisticCreatedAction.reportActionID]: optimisticCreatedAction},
-        });
-        onyxData.successData.push({
-            onyxMethod: CONST.ONYX.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`,
-            value: {[optimisticCreatedAction.reportActionID]: {pendingAction: null}},
-        });
+        // Add a created action, unless we are creating a thread
+        if (parentReportActionID !== '0') {
+            const optimisticCreatedAction = ReportUtils.buildOptimisticCreatedReportAction(newReportObject.ownerEmail);
+            onyxData.optimisticData.push({
+                onyxMethod: CONST.ONYX.METHOD.SET,
+                key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`,
+                value: {[optimisticCreatedAction.reportActionID]: optimisticCreatedAction},
+            });
+            onyxData.successData.push({
+                onyxMethod: CONST.ONYX.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`,
+                value: {[optimisticCreatedAction.reportActionID]: {pendingAction: null}},
+            });
 
-        // Add the createdReportActionID parameter to the API call
-        params.createdReportActionID = optimisticCreatedAction.reportActionID;
+            // Add the createdReportActionID parameter to the API call
+            params.createdReportActionID = optimisticCreatedAction.reportActionID;
+        }
     }
 
     API.write('OpenReport', params, onyxData);
@@ -413,21 +416,23 @@ function navigateToAndOpenReport(userLogins) {
 /**
  * This will navigate to an existing thread, or create a new one if necessary
  *
- * @param {String} reportID The reportID we are trying to open
- * @param {Array} participants list of user logins.
+ * @param {String} childReportID The reportID we are trying to open
  * @param {Object} parentReportAction the parent comment of a thread
+ * @param {String} parentReportID The reportID of the parent
  *
  */
-function navigateToAndOpenChildReport(reportID = '0', participants = [], parentReportAction = {}) {
-    if (reportID !== '0') {
-        openReport(reportID);
-        Navigation.navigate(ROUTES.getReportRoute(reportID));
+function navigateToAndOpenChildReport(childReportID = '0', parentReportAction = {}, parentReportID = '0') {
+    if (childReportID !== '0') {
+        openReport(childReportID);
+        Navigation.navigate(ROUTES.getReportRoute(childReportID));
     } else {
+        const participants = _.uniq([currentUserEmail, parentReportAction.actorEmail]);
         const formattedUserLogins = _.map(participants, login => OptionsListUtils.addSMSDomainIfPhoneNumber(login).toLowerCase());
+        const name = lodashGet(parentReportAction, ['message', 0, 'text']);
+        debugger;
         const newChat = ReportUtils.buildOptimisticChatReport(
             formattedUserLogins,
-            lodashGet(parentReportAction,
-                ['message', 0, 'text']),
+            lodashGet(parentReportAction, ['message', 0, 'text']),
             '',
             CONST.POLICY.OWNER_EMAIL_FAKE,
             CONST.POLICY.OWNER_EMAIL_FAKE,
@@ -436,10 +441,11 @@ function navigateToAndOpenChildReport(reportID = '0', participants = [], parentR
             undefined,
             CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS,
             parentReportAction.reportActionID,
+            parentReportID,
         );
 
-        openReport(reportID, newChat.participants, newChat);
-        Navigation.navigate(ROUTES.getReportRoute(reportID));
+        openReport(newChat.reportID, newChat.participants, newChat);
+        Navigation.navigate(ROUTES.getReportRoute(newChat.reportID));
     }
 }
 
