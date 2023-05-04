@@ -284,7 +284,6 @@ function getOptionData(reportID) {
     if (result.isArchivedRoom) {
         const archiveReason = (lastReportActions[report.reportID] && lastReportActions[report.reportID].originalMessage && lastReportActions[report.reportID].originalMessage.reason)
             || CONST.REPORT.ARCHIVE_REASON.DEFAULT;
-        console.log('archiveReason', ReportUtils.getReportName(report, policies), lastReportActions[report.reportID], report.reportID, archiveReason);
         lastMessageText = Localize.translate(preferredLocale, `reportArchiveReasons.${archiveReason}`, {
             displayName: archiveReason.displayName || report.lastActorEmail,
             policyName: ReportUtils.getPolicyName(report, policies),
