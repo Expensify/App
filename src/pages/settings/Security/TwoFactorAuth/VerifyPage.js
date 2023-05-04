@@ -11,7 +11,6 @@ import compose from '../../../../libs/compose';
 import ROUTES from '../../../../ROUTES';
 import FullPageOfflineBlockingView from '../../../../components/BlockingViews/FullPageOfflineBlockingView';
 import styles from '../../../../styles/styles';
-import FixedFooter from '../../../../components/FixedFooter';
 import Button from '../../../../components/Button';
 import Text from '../../../../components/Text';
 import ONYXKEYS from '../../../../ONYXKEYS';
@@ -47,18 +46,18 @@ class VerifyPage extends Component {
         super(props);
 
         this.copySecret = this.copySecret.bind(this);
-        this.validateCode = this.validateCode.bind(this);
+        this.validate = this.validate.bind(this);
+        this.hasOnlyDigits = this.hasOnlyDigits.bind(this);
+        this.submitIfHasSixDigits = this.submitIfHasSixDigits.bind(this);
+        this.submit = this.submit.bind(this);
 
         // TODO: REMOVE!
         this.fakeSecretKey = 'ABCD EFHH KJSD IWIQ';
     }
 
-    componentDidMount() {
-        Log.info('account =====', false, this.props.account);
-    }
-
     componentDidUpdate(prevProps) {
-        Log.info('account =====', false, this.props.account);
+        Log.info('Prev account', false, prevProps.account);
+        Log.info('Current account', false, this.props.account);
 
         if (!this.props.account.requiresTwoFactorAuth) {
             return;
@@ -73,9 +72,35 @@ class VerifyPage extends Component {
         Clipboard.setString(this.props.account.twoFactorAuthSecretKey);
     }
 
-    validateCode(code) {
-        // TODO: Should be 6 digits and all numbers
-        console.log({code});
+    hasOnlyDigits(value) {
+        return /^\d+$/.test(value);
+    }
+
+    validate(value) {
+        const code = value.verifyTwoFactorAuth;
+        const errors = {};
+
+        if (code.length !== 6) {
+            errors.verifyTwoFactorAuth = this.props.translate('twoFactorAuth.errors.sixDigits');
+        }
+
+        if (!this.hasOnlyDigits(code)) {
+            errors.verifyTwoFactorAuth = this.props.translate('twoFactorAuth.errors.onlyDigits');
+        }
+
+        return errors;
+    }
+
+    submitIfHasSixDigits(value) {
+        if (value.length !== 6 || !this.hasOnlyDigits(value)) {
+            return;
+        }
+
+        this.submit({verifyTwoFactorAuth: value});
+    }
+
+    submit(values) {
+        Session.validateTwoFactorAuth(values.verifyTwoFactorAuth);
     }
 
     render() {
@@ -89,7 +114,7 @@ class VerifyPage extends Component {
                 />
 
                 <FullPageOfflineBlockingView>
-                    <View style={[styles.ph5]}>
+                    <View style={[styles.ph5, styles.mt5]}>
                         <Text>
                             {this.props.translate('twoFactorAuth.scanCode')}
                             <TextLink href="https://community.expensify.com/discussion/7736/faq-troubleshooting-two-factor-authentication-issues/p1?new=1">
@@ -128,32 +153,24 @@ class VerifyPage extends Component {
                         <Text style={[styles.mt5]}>
                             {this.props.translate('twoFactorAuth.enterCode')}
                         </Text>
-
-                        <Text style={[styles.mt5]}>
-                            {/* TODO: NUMBER KEYBOARD */}
-                            <Form
-                                formID={ONYXKEYS.FORMS.VERIFY_TWO_FACTOR_AUTH_FORM}
-                                submitButtonText={this.props.translate('common.verify')}
-                                validate={this.validateCode}
-                                onSubmit={() => Session.validateTwoFactorAuth()}
-                            >
-                                <TextInput
-                                    inputID="verifyTwoFactorAuth"
-                                    keyboardType={CONST.KEYBOARD_TYPE.NUMBER_PAD}
-                                    label={this.props.translate('newTaskPage.title')}
-                                />
-                            </Form>
-                        </Text>
-
                     </View>
 
-                    <FixedFooter style={[styles.twoFactorAuthFooter]}>
-                        <Button
-                            success
-                            text={this.props.translate('common.next')}
-                            onPress={() => Navigation.navigate(ROUTES.SETTINGS_TWO_FACTOR_VERIFY)}
+                    <Form
+                        formID={ONYXKEYS.FORMS.VERIFY_TWO_FACTOR_AUTH_FORM}
+                        submitButtonText={this.props.translate('common.verify')}
+                        isSubmitButtonVisible={false}
+                        validate={this.validate}
+                        onSubmit={this.submit}
+                        draftValues={{verifyTwoFactorAuth: ''}}
+                        style={[styles.mt5, styles.mh5]}
+                    >
+                        <TextInput
+                            inputID="verifyTwoFactorAuth"
+                            keyboardType={CONST.KEYBOARD_TYPE.NUMBER_PAD}
+                            label={this.props.translate('common.twoFactorCode')}
+                            onValueChange={this.submitIfHasSixDigits}
                         />
-                    </FixedFooter>
+                    </Form>
                 </FullPageOfflineBlockingView>
             </ScreenWrapper>
         );

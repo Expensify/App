@@ -25,6 +25,7 @@ export default {
         zoom: 'Zoom',
         password: 'Password',
         magicCode: 'Magic code',
+        twoFactorCode: 'Two factor code',
         workspaces: 'Workspaces',
         profile: 'Profile',
         payments: 'Payments',
@@ -494,6 +495,13 @@ export default {
         authenticatorApp: 'authenticator app',
         addKey: 'Or add this secret key to your authenticator app:',
         enterCode: 'Then enter the six digit code generated from your authenticator app.',
+        stepSuccess: 'Step 3: Finished',
+        enabled: 'Two-factor authentication is now enabled!',
+        congrats: 'Congrats, now you’ve got that extra security.',
+        errors: {
+            sixDigits: 'Code must have exactly 6 digits',
+            onlyDigits: 'Code must have only numbers',
+        },
 
     },
     passwordConfirmationScreen: {
@@ -625,7 +633,6 @@ export default {
     validateCodeForm: {
         magicCodeNotReceived: "Didn't receive a magic code?",
         enterAuthenticatorCode: 'Please enter your authenticator code',
-        twoFactorCode: 'Two factor code',
         requiredWhen2FAEnabled: 'Required when 2FA is enabled',
         codeSent: 'Magic code sent!',
         error: {
@@ -640,7 +647,6 @@ export default {
         pleaseFillTwoFactorAuth: 'Please enter your two factor code',
         enterYourTwoFactorAuthenticationCodeToContinue: 'Enter your two factor authentication code to continue',
         forgot: 'Forgot?',
-        twoFactorCode: 'Two factor code',
         requiredWhen2FAEnabled: 'Required when 2FA is enabled',
         error: {
             incorrectPassword: 'Incorrect password. Please try again.',
