@@ -82,10 +82,10 @@ function navigate(route = ROUTES.HOME, type) {
 }
 
 /**
- * @private
- * @param {String} fallback
+ * @param {String} fallbackRoute
+ * @param {Bool} shouldEnforceFallback
  */
-function goBack(fallback = ROUTES.HOME) {
+function goBack(fallbackRoute = ROUTES.HOME, shouldEnforceFallback = false) {
     if (!canNavigate('goBack')) {
         return;
     }
@@ -95,8 +95,8 @@ function goBack(fallback = ROUTES.HOME) {
         return;
     }
 
-    if (!getActiveRouteIndex(navigationRef.current.getState()) && fallback) {
-        navigate(fallback, 'REPLACE');
+    if (shouldEnforceFallback || (!getActiveRouteIndex(navigationRef.current.getState()) && fallbackRoute)) {
+        navigate(fallbackRoute, 'REPLACE');
         return;
     }
 

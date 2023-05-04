@@ -49,6 +49,7 @@ class DateOfBirthPage extends Component {
     }
 
     componentDidMount() {
+        this.getYearFromRouteParams()
         this.props.navigation.addListener('focus', this.getYearFromRouteParams);
     }
 

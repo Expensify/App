@@ -61,7 +61,7 @@ class YearPickerPage extends React.Component {
      */
     updateSelectedYear(selectedYear) {
         // We have to navigate using concatenation here as it is not possible to pass a function as a route param
-        Navigation.navigate(`${ROUTES.SETTINGS_PERSONAL_DETAILS_DATE_OF_BIRTH}?year=${selectedYear}`);
+        Navigation.goBack(`${ROUTES.SETTINGS_PERSONAL_DETAILS_DATE_OF_BIRTH}?year=${selectedYear}`, true);
     }
 
     /**
@@ -88,7 +88,7 @@ class YearPickerPage extends React.Component {
             <ScreenWrapper includeSafeAreaPaddingBottom={false}>
                 <HeaderWithBackButton
                     title={this.props.translate('yearPickerPage.year')}
-                    onBackButtonPress={() => Navigation.navigate(`${this.props.route.params.backTo}?year=${this.currentYear}` || ROUTES.HOME)}
+                    onBackButtonPress={() => Navigation.goBack(`${this.props.route.params.backTo}?year=${this.currentYear}` || ROUTES.HOME)}
                 />
                 <OptionsSelector
                     textInputLabel={this.props.translate('yearPickerPage.selectYear')}
