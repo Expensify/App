@@ -430,7 +430,7 @@ function getChatRoomSubtitle(report) {
         // The domainAll rooms are just #domainName, so we ignore the prefix '#' to get the domainName
         return report.reportName.substring(1);
     }
-    if (isPolicyExpenseChat(report) && report.isOwnPolicyExpenseChat) {
+    if ((isPolicyExpenseChat(report) && report.isOwnPolicyExpenseChat) || isExpenseReport(report)) {
         return Localize.translateLocal('workspace.common.workspace');
     }
     if (isArchivedRoom(report)) {
@@ -578,6 +578,13 @@ function getDefaultWorkspaceAvatar(workspaceName) {
     return !alphaNumeric ? defaultWorkspaceAvatars.WorkspaceBuilding : defaultWorkspaceAvatars[`Workspace${alphaNumeric[0]}`];
 }
 
+function getWorkspaceAvatar(report) {
+    const workspaceName = getPolicyName(report, allPolicies);
+    return lodashGet(allPolicies, [
+        `${ONYXKEYS.COLLECTION.POLICY}${report.policyID}`, 'avatar',
+    ]) || getDefaultWorkspaceAvatar(workspaceName);
+}
+
 /**
  * Helper method to return old dot default avatar associated with login
  *
@@ -721,17 +728,15 @@ function getIcons(report, personalDetails, defaultIcon = null) {
         result.source = Expensicons.ActiveRoomAvatar;
         return [result];
     }
-    if (isPolicyExpenseChat(report)) {
+    if (isPolicyExpenseChat(report) || isExpenseReport(report)) {
         const workspaceName = lodashGet(allPolicies, [
             `${ONYXKEYS.COLLECTION.POLICY}${report.policyID}`, 'name',
         ]);
 
-        const policyExpenseChatAvatarSource = lodashGet(allPolicies, [
-            `${ONYXKEYS.COLLECTION.POLICY}${report.policyID}`, 'avatar',
-        ]) || getDefaultWorkspaceAvatar(workspaceName);
+        const policyExpenseChatAvatarSource = getWorkspaceAvatar(report);
 
         // Return the workspace avatar if the user is the owner of the policy expense chat
-        if (report.isOwnPolicyExpenseChat) {
+        if (report.isOwnPolicyExpenseChat && !isExpenseReport(report)) {
             result.source = policyExpenseChatAvatarSource;
             result.type = CONST.ICON_TYPE_WORKSPACE;
             result.name = workspaceName;
@@ -756,6 +761,13 @@ function getIcons(report, personalDetails, defaultIcon = null) {
             adminIcon,
             workspaceIcon,
         ];
+    }
+    if (isIOUReport(report)) {
+        return [{
+            source: getAvatar(lodashGet(personalDetails, [report.ownerEmail, 'avatar']), report.ownerEmail),
+            name: report.ownerEmail,
+            type: CONST.ICON_TYPE_AVATAR,
+        }];
     }
 
     const participantDetails = [];
@@ -1881,4 +1893,5 @@ export {
     getMoneyRequestOptions,
     canRequestMoney,
     getWhisperDisplayNames,
+    getWorkspaceAvatar,
 };

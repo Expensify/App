@@ -2785,6 +2785,11 @@ const styles = {
         right: 60,
     },
 
+    threeDotsPopoverOffsetNoCloseButton: {
+        top: 50,
+        right: 10,
+    },
+
     invert: {
         // It's important to invert the Y AND X axis to prevent a react native issue that can lead to ANRs on android 13
         transform: [{scaleX: -1}, {scaleY: -1}],
@@ -3136,11 +3141,23 @@ const styles = {
         top: 60,
         zIndex: 100,
     },
+
     loginHeroHeader: {
         fontFamily: fontFamily.EXP_NEW_KANSAS_MEDIUM,
         color: themeColors.success,
         fontWeight: '500',
         textAlign: 'center',
+    },
+
+    newKansasLarge: {
+        ...headlineFont,
+        fontSize: variables.fontSizeXLarge,
+        lineHeight: 27,
+    },
+
+    moneyRequestHeaderCheckmark: {
+        marginLeft: 5,
+        alignSelf: 'center',
     },
 
     loginHeroBody: {
