@@ -54,7 +54,6 @@ class DateOfBirthPage extends Component {
     }
 
     componentWillUnmount() {
-        console.log('remove listenrer');
         this.props.navigation.removeListener('focus', this.getYearFromRouteParams);
     }
 
@@ -64,7 +63,6 @@ class DateOfBirthPage extends Component {
      */
     getYearFromRouteParams() {
         const {params} = this.props.route;
-        console.log('rer', params);
         if (params && params.year) {
             this.setState({selectedYear: params.year});
         }

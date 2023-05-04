@@ -30,14 +30,6 @@ export default function linkTo(navigation, path, type) {
         root = current;
     }
 
-    // If the action can be simple push one route, do it instead of dispatching action for the root.
-    // const oneRouteDiffAction = getOneRouteDiffAction(navigationRef.getRootState(), state);
-    // console.log('gerere', oneRouteDiffAction);
-    // if (oneRouteDiffAction) {
-    //     navigationRef.current.dispatch(oneRouteDiffAction);
-    //     return;
-    // }
-
     const action = getActionFromState(state, linkingConfig.config);
 
     // If action type is different than NAVIGATE we can't change it to the PUSH safely
