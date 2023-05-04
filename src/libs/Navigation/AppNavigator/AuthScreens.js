@@ -32,7 +32,6 @@ import CentralPaneNavigator from './Navigators/CentralPaneNavigator';
 import NAVIGATORS from '../../../NAVIGATORS';
 import FullScreenNavigator from './Navigators/FullScreenNavigator';
 import styles from '../../../styles/styles';
-import getCurrentUrl from '../currentUrl';
 
 let currentUserEmail;
 Onyx.connect({
@@ -173,8 +172,6 @@ class AuthScreens extends React.Component {
             ...commonScreenOptions,
             cardStyle: styles.navigationModalCard(this.props.isSmallScreenWidth),
         };
-        const url = getCurrentUrl();
-        const openOnAdminRoom = url ? new URL(url).searchParams.get('openOnAdminRoom') : '';
 
         return (
             <RootStack.Navigator
@@ -213,7 +210,6 @@ class AuthScreens extends React.Component {
                         cardStyleInterpolator: props => modalCardStyleInterpolator(this.props.isSmallScreenWidth, false, props),
                     }}
                     component={CentralPaneNavigator}
-                    initialParams={{openOnAdminRoom: Str.toBool(openOnAdminRoom) || undefined}}
                 />
                 <RootStack.Screen
                     name="ValidateLogin"
