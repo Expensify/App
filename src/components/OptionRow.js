@@ -24,7 +24,6 @@ import SubscriptAvatar from './SubscriptAvatar';
 import OfflineWithFeedback from './OfflineWithFeedback';
 import CONST from '../CONST';
 import * as ReportUtils from '../libs/ReportUtils';
-import variables from '../styles/variables';
 
 const propTypes = {
     /** Style for hovered state */
@@ -207,7 +206,6 @@ class OptionRow extends Component {
                                                     secondaryAvatar={this.props.option.icons[1]}
                                                     mainTooltip={this.props.option.ownerEmail}
                                                     secondaryTooltip={this.props.option.subtitle}
-                                                    size={CONST.AVATAR_SIZE.DEFAULT}
                                                     backgroundColor={
                                                     hovered && !this.props.optionIsFocused
                                                         ? hoveredBackgroundColor
@@ -263,15 +261,13 @@ class OptionRow extends Component {
                                         <Icon
                                             src={Expensicons.DotIndicator}
                                             fill={themeColors.danger}
-                                            height={variables.iconSizeSmall}
-                                            width={variables.iconSizeSmall}
                                         />
                                     </View>
                                     )}
                                     {this.props.showSelectedState && <SelectCircle isChecked={this.props.isSelected} />}
                                 </View>
                             </View>
-                            {this.props.option.customIcon && (
+                            {Boolean(this.props.option.customIcon) && (
                                 <View
                                     style={[styles.flexRow, styles.alignItemsCenter]}
                                     accessible={false}
@@ -279,8 +275,6 @@ class OptionRow extends Component {
                                     <View>
                                         <Icon
                                             src={lodashGet(this.props.option, 'customIcon.src', '')}
-                                            height={16}
-                                            width={16}
                                             fill={lodashGet(this.props.option, 'customIcon.color')}
                                         />
                                     </View>

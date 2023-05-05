@@ -70,6 +70,7 @@ class BaseOptionsSelector extends Component {
             enterConfig.modifiers,
             true,
             () => !this.state.allOptions[this.state.focusedIndex],
+            1,
         );
 
         const CTRLEnterConfig = CONST.KEYBOARD_SHORTCUTS.CTRL_ENTER;
@@ -93,16 +94,18 @@ class BaseOptionsSelector extends Component {
             true,
         );
 
-        this.scrollToIndex(this.state.focusedIndex, false);
+        this.scrollToIndex(this.props.selectedOptions.length ? 0 : this.state.focusedIndex, false);
 
         if (!this.props.autoFocus) {
             return;
         }
 
-        if (this.props.shouldDelayFocus) {
-            this.focusTimeout = setTimeout(() => this.textInput.focus(), CONST.ANIMATED_TRANSITION);
-        } else {
-            this.textInput.focus();
+        if (this.props.shouldShowTextInput) {
+            if (this.props.shouldDelayFocus) {
+                this.focusTimeout = setTimeout(() => this.textInput.focus(), CONST.ANIMATED_TRANSITION);
+            } else {
+                this.textInput.focus();
+            }
         }
     }
 
@@ -151,6 +154,9 @@ class BaseOptionsSelector extends Component {
      * @returns {Number}
      */
     getInitiallyFocusedIndex(allOptions) {
+        if (this.props.selectedOptions.length > 0) {
+            return this.props.selectedOptions.length;
+        }
         const defaultIndex = this.props.shouldTextInputAppearBelowOptions ? allOptions.length : 0;
         if (_.isUndefined(this.props.initiallyFocusedOptionKey)) {
             return defaultIndex;
@@ -238,7 +244,7 @@ class BaseOptionsSelector extends Component {
      */
     selectRow(option, ref) {
         return new Promise((resolve) => {
-            if (this.props.shouldFocusOnSelectRow) {
+            if (this.props.shouldShowTextInput && this.props.shouldFocusOnSelectRow) {
                 if (this.relatedTarget && ref === this.relatedTarget) {
                     this.textInput.focus();
                     this.relatedTarget = null;
@@ -303,7 +309,9 @@ class BaseOptionsSelector extends Component {
                 isDisabled={this.props.isDisabled}
                 shouldHaveOptionSeparator={this.props.shouldHaveOptionSeparator}
                 onLayout={() => {
-                    this.scrollToIndex(this.state.focusedIndex, false);
+                    if (this.props.selectedOptions.length === 0) {
+                        this.scrollToIndex(this.state.focusedIndex, false);
+                    }
 
                     if (this.props.onLayout) {
                         this.props.onLayout();
@@ -327,14 +335,16 @@ class BaseOptionsSelector extends Component {
                                     <View style={[styles.flexGrow0, styles.flexShrink1, styles.flexBasisAuto, styles.w100, styles.flexRow]}>
                                         {optionsList}
                                     </View>
-                                    <View style={[styles.ph5, styles.pv5, styles.flexGrow1, styles.flexShrink0]}>
-                                        {textInput}
+                                    <View style={this.props.shouldUseStyleForChildren ? [styles.ph5, styles.pv5, styles.flexGrow1, styles.flexShrink0] : []}>
+                                        {this.props.children}
+                                        {this.props.shouldShowTextInput && textInput}
                                     </View>
                                 </>
                             ) : (
                                 <>
-                                    <View style={[styles.ph5, styles.pv3]}>
-                                        {textInput}
+                                    <View style={this.props.shouldUseStyleForChildren ? [styles.ph5, styles.pb3] : []}>
+                                        {this.props.children}
+                                        {this.props.shouldShowTextInput && textInput}
                                     </View>
                                     {optionsList}
                                 </>
@@ -350,7 +360,7 @@ class BaseOptionsSelector extends Component {
                                 text={defaultConfirmButtonText}
                                 onPress={this.props.onConfirmSelection}
                                 pressOnEnter
-                                enterKeyEventListenerPriority={1}
+                                enterKeyEventListenerPriority={2}
                             />
                         )}
                         {this.props.footerContent}

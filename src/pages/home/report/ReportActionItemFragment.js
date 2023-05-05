@@ -129,7 +129,7 @@ const ReportActionItemFragment = (props) => {
                     style={[EmojiUtils.containsOnlyEmojis(text) ? styles.onlyEmojisText : undefined, styles.ltr, ...props.style]}
                 >
                     {StyleUtils.convertToLTR(Str.htmlDecode(text))}
-                    {props.fragment.isEdited && (
+                    {Boolean(props.fragment.isEdited) && (
                     <Text
                         fontSize={variables.fontSizeSmall}
                         color={themeColors.textSupporting}
@@ -166,7 +166,7 @@ const ReportActionItemFragment = (props) => {
         case 'OLD_MESSAGE':
             return <Text>OLD_MESSAGE</Text>;
         default:
-            return <Text>fragment.text</Text>;
+            return <Text>props.fragment.text</Text>;
     }
 };
 

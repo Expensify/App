@@ -126,7 +126,6 @@ class DebitCardPage extends Component {
                     onSubmit={PaymentMethods.addPaymentCard}
                     submitButtonText={this.props.translate('common.save')}
                     scrollContextEnabled
-                    scrollToOverflowEnabled
                     style={[styles.mh5, styles.flexGrow1]}
                 >
                     <TextInput
@@ -163,6 +162,7 @@ class DebitCardPage extends Component {
                             inputID="addressStreet"
                             label={this.props.translate('addDebitCardPage.billingAddress')}
                             containerStyles={[styles.mt4]}
+                            maxInputLength={CONST.FORM_CHARACTER_LIMIT}
                         />
                     </View>
                     <TextInput
@@ -170,7 +170,7 @@ class DebitCardPage extends Component {
                         label={this.props.translate('common.zip')}
                         keyboardType={CONST.KEYBOARD_TYPE.NUMBER_PAD}
                         maxLength={CONST.BANK_ACCOUNT.MAX_LENGTH.ZIP_CODE}
-                        hint={this.props.translate('common.zipCodeExample')}
+                        hint={this.props.translate('common.zipCodeExampleFormat', {zipSampleFormat: CONST.COUNTRY_ZIP_REGEX_DATA.US.samples})}
                         containerStyles={[styles.mt4]}
                     />
                     <View style={styles.mt4}>

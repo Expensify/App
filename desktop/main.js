@@ -79,7 +79,7 @@ let downloadedVersion;
 // Note that we have to subscribe to this separately and cannot use Localize.translateLocal,
 // because the only way code can be shared between the main and renderer processes at runtime is via the context bridge
 // So we track preferredLocale separately via ELECTRON_EVENTS.LOCALE_UPDATED
-let preferredLocale = CONST.DEFAULT_LOCALE;
+let preferredLocale = CONST.LOCALES.DEFAULT;
 
 const appProtocol = CONST.DEEPLINK_BASE_URL.replace('://', '');
 
@@ -241,7 +241,7 @@ const mainWindow = (() => {
     if (__DEV__) {
         console.debug('CONFIG: ', CONFIG);
         app.dock.setIcon(`${__dirname}/../icon-dev.png`);
-        app.setName('New Expensify');
+        app.setName('New Expensify Dev');
     }
 
     app.on('will-finish-launching', () => {

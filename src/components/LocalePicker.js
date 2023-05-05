@@ -22,7 +22,7 @@ const propTypes = {
 };
 
 const defaultProps = {
-    preferredLocale: CONST.DEFAULT_LOCALE,
+    preferredLocale: CONST.LOCALES.DEFAULT,
     size: 'normal',
 };
 
@@ -48,7 +48,7 @@ const LocalePicker = (props) => {
             size={props.size}
             value={props.preferredLocale}
             containerStyles={props.size === 'small' ? [styles.pickerContainerSmall] : []}
-            backgroundColor={themeColors.midtone}
+            backgroundColor={themeColors.signInPage}
         />
     );
 };

@@ -1,5 +1,7 @@
 import moment from 'moment';
 import _ from 'underscore';
+import {URL_REGEX_WITH_REQUIRED_PROTOCOL} from 'expensify-common/lib/Url';
+import {parsePhoneNumber} from 'awesome-phonenumber';
 import {Buffer} from 'buffer';
 import CONST from '../CONST';
 import * as CardUtils from './CardUtils';
@@ -195,16 +197,27 @@ function isValidPaypalUsername(paypalUsername) {
 }
 
 /**
- * Validate that "date" is between 18 and 150 years in the past
+ * Validate that a date meets the minimum age requirement.
  *
  * @param {String} date
  * @returns {Boolean}
  */
-function meetsAgeRequirements(date) {
-    const eighteenYearsAgo = moment().subtract(18, 'years');
-    const oneHundredFiftyYearsAgo = moment().subtract(150, 'years');
+function meetsMinimumAgeRequirement(date) {
     const testDate = moment(date);
-    return testDate.isValid() && testDate.isBetween(oneHundredFiftyYearsAgo, eighteenYearsAgo);
+    const minDate = moment().subtract(CONST.DATE_BIRTH.MIN_AGE_FOR_PAYMENT, 'years');
+    return testDate.isValid() && testDate.isSameOrBefore(minDate, 'day');
+}
+
+/**
+ * Validate that a date meets the maximum age requirement.
+ *
+ * @param {String} date
+ * @returns {Boolean}
+ */
+function meetsMaximumAgeRequirement(date) {
+    const testDate = moment(date);
+    const maxDate = moment().subtract(CONST.DATE_BIRTH.MAX_AGE, 'years');
+    return testDate.isValid() && testDate.isSameOrAfter(maxDate, 'day');
 }
 
 /**
@@ -222,7 +235,7 @@ function getAgeRequirementError(date, minimumAge, maximumAge) {
     if (!testDate.isValid()) {
         return Localize.translateLocal('common.error.dateInvalid');
     }
-    if (testDate.isBetween(longAgoDate, recentDate, undefined, [])) {
+    if (testDate.isBetween(longAgoDate, recentDate, undefined, '[]')) {
         return '';
     }
     if (testDate.isSameOrAfter(recentDate)) {
@@ -239,7 +252,7 @@ function getAgeRequirementError(date, minimumAge, maximumAge) {
  * @returns {Boolean}
  */
 function isValidWebsite(url) {
-    return CONST.REGEX.WEBSITE.test(url);
+    return new RegExp(`^${URL_REGEX_WITH_REQUIRED_PROTOCOL}$`, 'i').test(url);
 }
 
 /**
@@ -267,9 +280,9 @@ function validateIdentity(identity) {
     }
 
     // dob field has multiple validations/errors, we are handling it temporarily like this.
-    if (!isValidDate(identity.dob)) {
+    if (!isValidDate(identity.dob) || !meetsMaximumAgeRequirement(identity.dob)) {
         errors.dob = true;
-    } else if (!meetsAgeRequirements(identity.dob)) {
+    } else if (!meetsMinimumAgeRequirement(identity.dob)) {
         errors.dobAge = true;
     }
 
@@ -286,12 +299,11 @@ function validateIdentity(identity) {
  * @returns {Boolean}
  */
 function isValidUSPhone(phoneNumber = '', isCountryCodeOptional) {
-    // Remove non alphanumeric characters from the phone number
-    const sanitizedPhone = (phoneNumber || '').replace(CONST.REGEX.NON_ALPHA_NUMERIC, '');
-    const isUsPhone = isCountryCodeOptional
-        ? CONST.REGEX.US_PHONE_WITH_OPTIONAL_COUNTRY_CODE.test(sanitizedPhone) : CONST.REGEX.US_PHONE.test(sanitizedPhone);
+    const phone = phoneNumber || '';
+    const regionCode = isCountryCodeOptional ? CONST.COUNTRY.US : null;
 
-    return CONST.REGEX.PHONE_E164_PLUS.test(sanitizedPhone) && isUsPhone;
+    const parsedPhoneNumber = parsePhoneNumber(phone, {regionCode});
+    return parsedPhoneNumber.possible && parsedPhoneNumber.regionCode === CONST.COUNTRY.US;
 }
 
 /**
@@ -442,8 +454,20 @@ function getTextByteLength(text) {
     return encodedText.byteLength;
 }
 
+/**
+ * Checks if a string value is a number.
+ *
+ * @param {String} value
+ * @returns {Boolean}
+ */
+function isNumeric(value) {
+    if (typeof value !== 'string') { return false; }
+    return /^\d*$/.test(value);
+}
+
 export {
-    meetsAgeRequirements,
+    meetsMinimumAgeRequirement,
+    meetsMaximumAgeRequirement,
     getAgeRequirementError,
     isValidAddress,
     isValidDate,
@@ -474,4 +498,5 @@ export {
     isValidLegalName,
     doesContainReservedWord,
     getTextByteLength,
+    isNumeric,
 };

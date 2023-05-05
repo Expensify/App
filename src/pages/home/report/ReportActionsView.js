@@ -21,6 +21,8 @@ import CopySelectionHelper from '../../../components/CopySelectionHelper';
 import * as ReportActionsUtils from '../../../libs/ReportActionsUtils';
 import * as ReportUtils from '../../../libs/ReportUtils';
 import reportPropTypes from '../../reportPropTypes';
+import * as ReactionList from './ReactionList/ReactionList';
+import PopoverReactionList from './ReactionList/PopoverReactionList';
 import getIsReportFullyVisible from '../../../libs/getIsReportFullyVisible';
 
 const propTypes = {
@@ -160,6 +162,13 @@ class ReportActionsView extends React.Component {
         }
 
         if (this.props.isComposerFullSize !== nextProps.isComposerFullSize) {
+            return true;
+        }
+
+        if (
+            lodashGet(this.props.report, 'statusNum') !== lodashGet(nextProps.report, 'statusNum')
+            || lodashGet(this.props.report, 'stateNum') !== lodashGet(nextProps.report, 'stateNum')
+        ) {
             return true;
         }
 
@@ -349,6 +358,7 @@ class ReportActionsView extends React.Component {
                     loadMoreChats={this.loadMoreChats}
                     newMarkerReportActionID={this.state.newMarkerReportActionID}
                 />
+                <PopoverReactionList ref={ReactionList.reactionListRef} />
                 <CopySelectionHelper />
             </>
         );

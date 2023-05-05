@@ -15,9 +15,10 @@ import * as Authentication from '../../Authentication';
 import * as Welcome from '../Welcome';
 import * as API from '../../API';
 import * as NetworkStore from '../../Network/NetworkStore';
-import * as Report from '../Report';
 import DateUtils from '../../DateUtils';
 import Navigation from '../../Navigation/Navigation';
+import subscribeToReportCommentPushNotifications from '../../Notification/PushNotification/subscribeToReportCommentPushNotifications';
+import ROUTES from '../../../ROUTES';
 
 let credentials = {};
 Onyx.connect({
@@ -39,7 +40,7 @@ Onyx.connect({
 
             // Prevent issue where report linking fails after users switch accounts without closing the app
             PushNotification.init();
-            Report.subscribeToReportCommentPushNotifications();
+            subscribeToReportCommentPushNotifications();
         } else {
             PushNotification.deregister();
             PushNotification.clearNotifications();
@@ -78,7 +79,7 @@ function signOutAndRedirectToSignIn() {
  */
 function resendValidationLink(login = credentials.login) {
     const optimisticData = [{
-        onyxMethod: CONST.ONYX.METHOD.MERGE,
+        onyxMethod: Onyx.METHOD.MERGE,
         key: ONYXKEYS.ACCOUNT,
         value: {
             isLoading: true,
@@ -87,15 +88,15 @@ function resendValidationLink(login = credentials.login) {
         },
     }];
     const successData = [{
-        onyxMethod: CONST.ONYX.METHOD.MERGE,
+        onyxMethod: Onyx.METHOD.MERGE,
         key: ONYXKEYS.ACCOUNT,
         value: {
             isLoading: false,
-            message: Localize.translateLocal('resendValidationForm.linkHasBeenResent'),
+            message: 'resendValidationForm.linkHasBeenResent',
         },
     }];
     const failureData = [{
-        onyxMethod: CONST.ONYX.METHOD.MERGE,
+        onyxMethod: Onyx.METHOD.MERGE,
         key: ONYXKEYS.ACCOUNT,
         value: {
             isLoading: false,
@@ -113,7 +114,7 @@ function resendValidationLink(login = credentials.login) {
  */
 function resendValidateCode(login = credentials.login) {
     const optimisticData = [{
-        onyxMethod: CONST.ONYX.METHOD.MERGE,
+        onyxMethod: Onyx.METHOD.MERGE,
         key: ONYXKEYS.ACCOUNT,
         value: {
             isLoading: true,
@@ -122,15 +123,15 @@ function resendValidateCode(login = credentials.login) {
         },
     }];
     const successData = [{
-        onyxMethod: CONST.ONYX.METHOD.MERGE,
+        onyxMethod: Onyx.METHOD.MERGE,
         key: ONYXKEYS.ACCOUNT,
         value: {
             isLoading: false,
-            message: Localize.translateLocal('validateCodeForm.codeSent'),
+            message: 'validateCodeForm.codeSent',
         },
     }];
     const failureData = [{
-        onyxMethod: CONST.ONYX.METHOD.MERGE,
+        onyxMethod: Onyx.METHOD.MERGE,
         key: ONYXKEYS.ACCOUNT,
         value: {
             isLoading: false,
@@ -147,7 +148,7 @@ function resendValidateCode(login = credentials.login) {
  */
 function resendLinkWithValidateCode(login = credentials.login) {
     const optimisticData = [{
-        onyxMethod: CONST.ONYX.METHOD.MERGE,
+        onyxMethod: Onyx.METHOD.MERGE,
         key: ONYXKEYS.ACCOUNT,
         value: {
             isLoading: true,
@@ -155,7 +156,7 @@ function resendLinkWithValidateCode(login = credentials.login) {
         },
     }];
     const successData = [{
-        onyxMethod: CONST.ONYX.METHOD.MERGE,
+        onyxMethod: Onyx.METHOD.MERGE,
         key: ONYXKEYS.ACCOUNT,
         value: {
             isLoading: false,
@@ -163,7 +164,7 @@ function resendLinkWithValidateCode(login = credentials.login) {
         },
     }];
     const failureData = [{
-        onyxMethod: CONST.ONYX.METHOD.MERGE,
+        onyxMethod: Onyx.METHOD.MERGE,
         key: ONYXKEYS.ACCOUNT,
         value: {
             isLoading: false,
@@ -181,7 +182,7 @@ function resendLinkWithValidateCode(login = credentials.login) {
 function beginSignIn(login) {
     const optimisticData = [
         {
-            onyxMethod: CONST.ONYX.METHOD.MERGE,
+            onyxMethod: Onyx.METHOD.MERGE,
             key: ONYXKEYS.ACCOUNT,
             value: {
                 ...CONST.DEFAULT_ACCOUNT_DATA,
@@ -192,14 +193,14 @@ function beginSignIn(login) {
 
     const successData = [
         {
-            onyxMethod: CONST.ONYX.METHOD.MERGE,
+            onyxMethod: Onyx.METHOD.MERGE,
             key: ONYXKEYS.ACCOUNT,
             value: {
                 isLoading: false,
             },
         },
         {
-            onyxMethod: CONST.ONYX.METHOD.MERGE,
+            onyxMethod: Onyx.METHOD.MERGE,
             key: ONYXKEYS.CREDENTIALS,
             value: {
                 validateCode: null,
@@ -209,7 +210,7 @@ function beginSignIn(login) {
 
     const failureData = [
         {
-            onyxMethod: CONST.ONYX.METHOD.MERGE,
+            onyxMethod: Onyx.METHOD.MERGE,
             key: ONYXKEYS.ACCOUNT,
             value: {
                 isLoading: false,
@@ -233,7 +234,7 @@ function beginSignIn(login) {
 function signInWithShortLivedAuthToken(email, authToken) {
     const optimisticData = [
         {
-            onyxMethod: CONST.ONYX.METHOD.MERGE,
+            onyxMethod: Onyx.METHOD.MERGE,
             key: ONYXKEYS.ACCOUNT,
             value: {
                 ...CONST.DEFAULT_ACCOUNT_DATA,
@@ -241,7 +242,7 @@ function signInWithShortLivedAuthToken(email, authToken) {
             },
         },
         {
-            onyxMethod: CONST.ONYX.METHOD.MERGE,
+            onyxMethod: Onyx.METHOD.MERGE,
             key: ONYXKEYS.IS_TOKEN_VALID,
             value: true,
         },
@@ -249,7 +250,7 @@ function signInWithShortLivedAuthToken(email, authToken) {
 
     const successData = [
         {
-            onyxMethod: CONST.ONYX.METHOD.MERGE,
+            onyxMethod: Onyx.METHOD.MERGE,
             key: ONYXKEYS.ACCOUNT,
             value: {
                 isLoading: false,
@@ -259,14 +260,14 @@ function signInWithShortLivedAuthToken(email, authToken) {
 
     const failureData = [
         {
-            onyxMethod: CONST.ONYX.METHOD.MERGE,
+            onyxMethod: Onyx.METHOD.MERGE,
             key: ONYXKEYS.ACCOUNT,
             value: {
                 isLoading: false,
             },
         },
         {
-            onyxMethod: CONST.ONYX.METHOD.MERGE,
+            onyxMethod: Onyx.METHOD.MERGE,
             key: ONYXKEYS.IS_TOKEN_VALID,
             value: false,
         },
@@ -300,10 +301,10 @@ function signInWithShortLivedAuthToken(email, authToken) {
  * @param {String} [twoFactorAuthCode]
  * @param {String} [preferredLocale] Indicates which language to use when the user lands in the app
  */
-function signIn(password, validateCode, twoFactorAuthCode, preferredLocale = CONST.DEFAULT_LOCALE) {
+function signIn(password, validateCode, twoFactorAuthCode, preferredLocale = CONST.LOCALES.DEFAULT) {
     const optimisticData = [
         {
-            onyxMethod: CONST.ONYX.METHOD.MERGE,
+            onyxMethod: Onyx.METHOD.MERGE,
             key: ONYXKEYS.ACCOUNT,
             value: {
                 ...CONST.DEFAULT_ACCOUNT_DATA,
@@ -314,7 +315,7 @@ function signIn(password, validateCode, twoFactorAuthCode, preferredLocale = CON
 
     const successData = [
         {
-            onyxMethod: CONST.ONYX.METHOD.MERGE,
+            onyxMethod: Onyx.METHOD.MERGE,
             key: ONYXKEYS.ACCOUNT,
             value: {
                 isLoading: false,
@@ -324,7 +325,7 @@ function signIn(password, validateCode, twoFactorAuthCode, preferredLocale = CON
 
     const failureData = [
         {
-            onyxMethod: CONST.ONYX.METHOD.MERGE,
+            onyxMethod: Onyx.METHOD.MERGE,
             key: ONYXKEYS.ACCOUNT,
             value: {
                 isLoading: false,
@@ -344,10 +345,14 @@ function signIn(password, validateCode, twoFactorAuthCode, preferredLocale = CON
     API.write('SigninUser', params, {optimisticData, successData, failureData});
 }
 
-function signInWithValidateCode(accountID, validateCode, twoFactorAuthCode) {
+function signInWithValidateCode(accountID, code, twoFactorAuthCode) {
+    // If this is called from the 2fa step, get the validateCode directly from onyx
+    // instead of the one passed from the component state because the state is changing when this method is called.
+    const validateCode = twoFactorAuthCode ? credentials.validateCode : code;
+
     const optimisticData = [
         {
-            onyxMethod: CONST.ONYX.METHOD.MERGE,
+            onyxMethod: Onyx.METHOD.MERGE,
             key: ONYXKEYS.ACCOUNT,
             value: {
                 ...CONST.DEFAULT_ACCOUNT_DATA,
@@ -355,7 +360,7 @@ function signInWithValidateCode(accountID, validateCode, twoFactorAuthCode) {
             },
         },
         {
-            onyxMethod: CONST.ONYX.METHOD.MERGE,
+            onyxMethod: Onyx.METHOD.MERGE,
             key: ONYXKEYS.SESSION,
             value: {autoAuthState: CONST.AUTO_AUTH_STATE.SIGNING_IN},
         },
@@ -363,12 +368,12 @@ function signInWithValidateCode(accountID, validateCode, twoFactorAuthCode) {
 
     const successData = [
         {
-            onyxMethod: CONST.ONYX.METHOD.MERGE,
+            onyxMethod: Onyx.METHOD.MERGE,
             key: ONYXKEYS.ACCOUNT,
             value: {isLoading: false},
         },
         {
-            onyxMethod: CONST.ONYX.METHOD.MERGE,
+            onyxMethod: Onyx.METHOD.MERGE,
             key: ONYXKEYS.CREDENTIALS,
             value: {
                 accountID,
@@ -376,7 +381,7 @@ function signInWithValidateCode(accountID, validateCode, twoFactorAuthCode) {
             },
         },
         {
-            onyxMethod: CONST.ONYX.METHOD.MERGE,
+            onyxMethod: Onyx.METHOD.MERGE,
             key: ONYXKEYS.SESSION,
             value: {autoAuthState: CONST.AUTO_AUTH_STATE.JUST_SIGNED_IN},
         },
@@ -384,12 +389,12 @@ function signInWithValidateCode(accountID, validateCode, twoFactorAuthCode) {
 
     const failureData = [
         {
-            onyxMethod: CONST.ONYX.METHOD.MERGE,
+            onyxMethod: Onyx.METHOD.MERGE,
             key: ONYXKEYS.ACCOUNT,
             value: {isLoading: false},
         },
         {
-            onyxMethod: CONST.ONYX.METHOD.MERGE,
+            onyxMethod: Onyx.METHOD.MERGE,
             key: ONYXKEYS.SESSION,
             value: {autoAuthState: CONST.AUTO_AUTH_STATE.FAILED},
         },
@@ -400,6 +405,11 @@ function signInWithValidateCode(accountID, validateCode, twoFactorAuthCode) {
         validateCode,
         twoFactorAuthCode,
     }, {optimisticData, successData, failureData});
+}
+
+function signInWithValidateCodeAndNavigate(accountID, validateCode, twoFactorAuthCode) {
+    signInWithValidateCode(accountID, validateCode, twoFactorAuthCode);
+    Navigation.navigate(ROUTES.HOME);
 }
 
 /**
@@ -432,7 +442,7 @@ function resetPassword() {
     {
         optimisticData: [
             {
-                onyxMethod: CONST.ONYX.METHOD.MERGE,
+                onyxMethod: Onyx.METHOD.MERGE,
                 key: ONYXKEYS.ACCOUNT,
                 value: {
                     errors: null,
@@ -451,7 +461,7 @@ function resendResetPassword() {
     {
         optimisticData: [
             {
-                onyxMethod: CONST.ONYX.METHOD.MERGE,
+                onyxMethod: Onyx.METHOD.MERGE,
                 key: ONYXKEYS.ACCOUNT,
                 value: {
                     isLoading: true,
@@ -463,17 +473,17 @@ function resendResetPassword() {
         ],
         successData: [
             {
-                onyxMethod: CONST.ONYX.METHOD.MERGE,
+                onyxMethod: Onyx.METHOD.MERGE,
                 key: ONYXKEYS.ACCOUNT,
                 value: {
                     isLoading: false,
-                    message: Localize.translateLocal('resendValidationForm.linkHasBeenResent'),
+                    message: 'resendValidationForm.linkHasBeenResent',
                 },
             },
         ],
         failureData: [
             {
-                onyxMethod: CONST.ONYX.METHOD.MERGE,
+                onyxMethod: Onyx.METHOD.MERGE,
                 key: ONYXKEYS.ACCOUNT,
                 value: {
                     isLoading: false,
@@ -529,7 +539,7 @@ function clearAccountMessages() {
 function updatePasswordAndSignin(accountID, validateCode, password) {
     const optimisticData = [
         {
-            onyxMethod: CONST.ONYX.METHOD.MERGE,
+            onyxMethod: Onyx.METHOD.MERGE,
             key: ONYXKEYS.ACCOUNT,
             value: {
                 isLoading: true,
@@ -537,7 +547,7 @@ function updatePasswordAndSignin(accountID, validateCode, password) {
             },
         },
         {
-            onyxMethod: CONST.ONYX.METHOD.MERGE,
+            onyxMethod: Onyx.METHOD.MERGE,
             key: ONYXKEYS.SESSION,
             value: {
                 errors: null,
@@ -547,7 +557,7 @@ function updatePasswordAndSignin(accountID, validateCode, password) {
 
     const successData = [
         {
-            onyxMethod: CONST.ONYX.METHOD.MERGE,
+            onyxMethod: Onyx.METHOD.MERGE,
             key: ONYXKEYS.ACCOUNT,
             value: {
                 isLoading: false,
@@ -555,7 +565,7 @@ function updatePasswordAndSignin(accountID, validateCode, password) {
             },
         },
         {
-            onyxMethod: CONST.ONYX.METHOD.MERGE,
+            onyxMethod: Onyx.METHOD.MERGE,
             key: ONYXKEYS.SESSION,
             value: {
                 errors: null,
@@ -565,7 +575,7 @@ function updatePasswordAndSignin(accountID, validateCode, password) {
 
     const failureData = [
         {
-            onyxMethod: CONST.ONYX.METHOD.MERGE,
+            onyxMethod: Onyx.METHOD.MERGE,
             key: ONYXKEYS.ACCOUNT,
             value: {
                 isLoading: false,
@@ -641,6 +651,7 @@ export {
     updatePasswordAndSignin,
     signIn,
     signInWithValidateCode,
+    signInWithValidateCodeAndNavigate,
     initAutoAuthState,
     signInWithShortLivedAuthToken,
     cleanupSession,

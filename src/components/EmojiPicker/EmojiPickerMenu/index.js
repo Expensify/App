@@ -20,6 +20,7 @@ import EmojiSkinToneList from '../EmojiSkinToneList';
 import * as EmojiUtils from '../../../libs/EmojiUtils';
 import CategoryShortcutBar from '../CategoryShortcutBar';
 import TextInput from '../../TextInput';
+import isEnterWhileComposition from '../../../libs/KeyboardShortcut/isEnterWhileComposition';
 
 const propTypes = {
     /** Function to add the selected emoji to the main compose text input */
@@ -158,7 +159,7 @@ class EmojiPickerMenu extends Component {
             }
 
             // Select the currently highlighted emoji if enter is pressed
-            if (keyBoardEvent.key === 'Enter' && this.state.highlightedIndex !== -1) {
+            if (!isEnterWhileComposition(keyBoardEvent) && keyBoardEvent.key === CONST.KEYBOARD_SHORTCUTS.ENTER.shortcutKey && this.state.highlightedIndex !== -1) {
                 const item = this.state.filteredEmojis[this.state.highlightedIndex];
                 if (!item) {
                     return;
@@ -168,9 +169,11 @@ class EmojiPickerMenu extends Component {
                 return;
             }
 
-            // Return if the key is related to any tab cycling event so that the default logic
-            // can be executed.
-            if (keyBoardEvent.key === 'Tab' || keyBoardEvent.key === 'Shift' || keyBoardEvent.key === 'Enter') {
+            // Enable keyboard movement if tab or enter is pressed or if shift is pressed while the input
+            // is not focused, so that the navigation and tab cycling can be done using the keyboard without
+            // interfering with the input behaviour.
+            if (keyBoardEvent.key === 'Tab' || keyBoardEvent.key === 'Enter'
+                || (keyBoardEvent.key === 'Shift' && this.searchInput && !this.searchInput.isFocused())) {
                 this.setState({isUsingKeyboardMovement: true});
                 return;
             }
@@ -494,7 +497,7 @@ class EmojiPickerMenu extends Component {
                 pointerEvents={this.state.arePointerEventsDisabled ? 'none' : 'auto'}
             >
                 {!this.props.isSmallScreenWidth && (
-                    <View style={[styles.ph4, styles.pb1, styles.pt2]}>
+                    <View style={[styles.ph4, styles.pb2, styles.pt2]}>
                         <TextInput
                             label={this.props.translate('common.search')}
                             onChangeText={this.filterEmojis}
@@ -520,10 +523,8 @@ class EmojiPickerMenu extends Component {
                             style={[
                                 styles.disabledText,
                                 styles.emojiPickerList,
-                                styles.dFlex,
-                                styles.alignItemsCenter,
-                                styles.justifyContentCenter,
-                                styles.flexGrow1,
+                                styles.textLabel,
+                                styles.colorMuted,
                                 this.isMobileLandscape() && styles.emojiPickerListLandscape,
                             ]}
                         >

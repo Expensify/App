@@ -1,6 +1,7 @@
 import _ from 'underscore';
 import lodashGet from 'lodash/get';
 import Str from 'expensify-common/lib/str';
+import * as RNLocalize from 'react-native-localize';
 import Log from '../Log';
 import Config from '../../CONFIG';
 import translations from '../../languages/translations';
@@ -11,6 +12,24 @@ import BaseLocaleListener from './LocaleListener/BaseLocaleListener';
 // Listener when an update in Onyx happens so we use the updated locale when translating/localizing items.
 LocaleListener.connect();
 
+// Note: This has to be initialized inside a function and not at the top level of the file, because Intl is polyfilled,
+// and if React Native executes this code upon import, then the polyfill will not be available yet and it will barf
+let CONJUNCTION_LIST_FORMATS_FOR_LOCALES;
+function init() {
+    CONJUNCTION_LIST_FORMATS_FOR_LOCALES = _.reduce(CONST.LOCALES, (memo, locale) => {
+        // This is not a supported locale, so we'll use ES_ES instead
+        if (locale === CONST.LOCALES.ES_ES_ONFIDO) {
+            // eslint-disable-next-line no-param-reassign
+            memo[locale] = new Intl.ListFormat(CONST.LOCALES.ES_ES, {style: 'long', type: 'conjunction'});
+            return memo;
+        }
+
+        // eslint-disable-next-line no-param-reassign
+        memo[locale] = new Intl.ListFormat(locale, {style: 'long', type: 'conjunction'});
+        return memo;
+    }, {});
+}
+
 /**
  * Return translated string for given locale and phrase
  *
@@ -19,7 +38,7 @@ LocaleListener.connect();
  * @param {Object} [phraseParameters] Parameters to supply if the phrase is a template literal.
  * @returns {String}
  */
-function translate(desiredLanguage = CONST.DEFAULT_LOCALE, phraseKey, phraseParameters = {}) {
+function translate(desiredLanguage = CONST.LOCALES.DEFAULT, phraseKey, phraseParameters = {}) {
     const languageAbbreviation = desiredLanguage.substring(0, 2);
     let translatedPhrase;
 
@@ -36,12 +55,12 @@ function translate(desiredLanguage = CONST.DEFAULT_LOCALE, phraseKey, phrasePara
     if (translatedPhrase) {
         return Str.result(translatedPhrase, phraseParameters);
     }
-    if (languageAbbreviation !== 'en') {
+    if (languageAbbreviation !== CONST.LOCALES.DEFAULT) {
         Log.alert(`${phraseKey} was not found in the ${languageAbbreviation} locale`);
     }
 
     // Phrase is not translated, search it in default language (en)
-    const defaultLanguageDictionary = lodashGet(translations, 'en', {});
+    const defaultLanguageDictionary = lodashGet(translations, CONST.LOCALES.DEFAULT, {});
     translatedPhrase = lodashGet(defaultLanguageDictionary, phraseKey);
     if (translatedPhrase) {
         return Str.result(translatedPhrase, phraseParameters);
@@ -75,20 +94,27 @@ function translateLocal(phrase, variables) {
  * @return {String}
  */
 function arrayToString(anArray) {
-    const and = this.translateLocal('common.and');
-    let aString = '';
-    if (_.size(anArray) === 1) {
-        aString = anArray[0];
-    } else if (_.size(anArray) === 2) {
-        aString = anArray.join(` ${and} `);
-    } else if (_.size(anArray) > 2) {
-        aString = `${anArray.slice(0, -1).join(', ')} ${and} ${anArray.slice(-1)}`;
+    if (!CONJUNCTION_LIST_FORMATS_FOR_LOCALES) {
+        init();
     }
-    return aString;
+    const listFormat = CONJUNCTION_LIST_FORMATS_FOR_LOCALES[BaseLocaleListener.getPreferredLocale()];
+    return listFormat.format(anArray);
+}
+
+/**
+ * Returns the user device's preferred language.
+ *
+ * @return {String}
+ */
+function getDevicePreferredLocale() {
+    return lodashGet(
+        RNLocalize.findBestAvailableLanguage([CONST.LOCALES.EN, CONST.LOCALES.ES]), 'languageTag', CONST.LOCALES.DEFAULT,
+    );
 }
 
 export {
     translate,
     translateLocal,
     arrayToString,
+    getDevicePreferredLocale,
 };

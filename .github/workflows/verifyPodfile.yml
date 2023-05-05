@@ -4,6 +4,10 @@ on:
   pull_request:
     types: [opened, synchronize]
     branches-ignore: [staging, production]
+    paths:
+      - ios/**
+      - "package.json"
+      - "package-lock.json"
 
 jobs:
   verify:

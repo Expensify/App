@@ -1,4 +1,5 @@
 import PropTypes from 'prop-types';
+import _ from 'underscore';
 import CONST from '../CONST';
 import stylePropTypes from '../styles/stylePropTypes';
 import avatarPropTypes from './avatarPropTypes';
@@ -13,6 +14,9 @@ const propTypes = {
 
     /** Used to apply offline styles to child text components */
     style: stylePropTypes,
+
+    /** Used to apply styles specifically to the title */
+    titleStyle: stylePropTypes,
 
     /** Function to fire when component is pressed */
     onPress: PropTypes.func,
@@ -85,6 +89,21 @@ const propTypes = {
 
     /** Prop to identify if we should load avatars vertically instead of diagonally */
     shouldStackHorizontally: PropTypes.bool,
+
+    /** Prop to represent the size of the avatar images to be shown */
+    avatarSize: PropTypes.oneOf(_.values(CONST.AVATAR_SIZE)),
+
+    /** The function that should be called when this component is LongPressed or right-clicked. */
+    onSecondaryInteraction: PropTypes.func,
+
+    /** Flag to indicate whether or not text selection should be disabled from long-pressing the menu item. */
+    shouldBlockSelection: PropTypes.bool,
+
+    /** The ref to the menu item */
+    forwardedRef: PropTypes.oneOfType([
+        PropTypes.func,
+        PropTypes.object,
+    ]),
 };
 
 export default propTypes;
