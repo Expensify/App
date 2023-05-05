@@ -51,6 +51,7 @@ import Text from '../../../components/Text';
 import DisplayNames from '../../../components/DisplayNames';
 import personalDetailsPropType from '../../personalDetailsPropType';
 import ReportActionItemDraft from './ReportActionItemDraft';
+import ReportActionItemParentAction from './ReportActionItemParentAction';
 
 const propTypes = {
     /** Report for this action */
@@ -291,6 +292,9 @@ class ReportActionItem extends Component {
 
     render() {
         if (this.props.action.actionName === CONST.REPORT.ACTIONS.TYPE.CREATED) {
+            if (ReportUtils.isThread(this.props.report)) {
+                return <ReportActionItemParentAction reportID={this.props.report.reportID} parentReportAction={this.props.report.parentReportActionID} />;
+            }
             return <ReportActionItemCreated reportID={this.props.report.reportID} />;
         }
         if (this.props.action.actionName === CONST.REPORT.ACTIONS.TYPE.RENAMED) {

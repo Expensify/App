@@ -26,6 +26,7 @@ import colors from '../../styles/colors';
 import reportPropTypes from '../reportPropTypes';
 import ONYXKEYS from '../../ONYXKEYS';
 import ThreeDotsMenu from '../../components/ThreeDotsMenu';
+import reportActionPropTypes from './report/reportActionPropTypes';
 
 const propTypes = {
     /** Toggles the navigationMenu open and closed */
@@ -38,6 +39,12 @@ const propTypes = {
 
     /** Personal details of all the users */
     personalDetails: PropTypes.objectOf(participantPropTypes),
+
+    /** If the report is a thread, connect to the parent report */
+    parentReport: reportPropTypes,
+
+    // eslint-disable-next-line react/no-unused-prop-types
+    parentReportAction: (PropTypes.shape(reportActionPropTypes)),
 
     /** The details about the account that the user is signing in with */
     account: PropTypes.shape({
@@ -52,6 +59,8 @@ const propTypes = {
 const defaultProps = {
     personalDetails: {},
     report: null,
+    parentReport: null,
+    parentReportAction: null,
     account: {
         guideCalendarLink: null,
     },
@@ -114,7 +123,15 @@ const HeaderView = (props) => {
 
     const avatarTooltip = isChatRoom ? undefined : _.pluck(displayNamesWithTooltips, 'tooltip');
     const shouldShowSubscript = isPolicyExpenseChat && !props.report.isOwnPolicyExpenseChat && !ReportUtils.isArchivedRoom(props.report);
-    const icons = ReportUtils.getIcons(props.report, props.personalDetails);
+    let icons;
+    if (ReportUtils.isThread(props.report)) {
+        // const parentReportDetails = OptionsListUtils.getPersonalDetailsForLogins(props.parentReportAction.person, props.personalDetails);
+        // eslint-disable-next-line no-console
+        console.log('>>>>>>>>>> PARENT', props, props.parentReport);
+        icons = ReportUtils.getIcons(props.parentReport, props.personalDetails);
+    } else {
+        icons = ReportUtils.getIcons(props.report, props.personalDetails);
+    }
     const brickRoadIndicator = ReportUtils.hasReportNameError(props.report) ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : '';
     return (
         <View style={[styles.appContentHeader]} nativeID="drag-area">
@@ -222,6 +239,12 @@ export default compose(
         account: {
             key: ONYXKEYS.ACCOUNT,
             selector: account => account && ({guideCalendarLink: account.guideCalendarLink}),
+        },
+        parentReport: {
+            key: ({report}) => `${ONYXKEYS.COLLECTION.REPORT}${report.parentReportID}`,
+        },
+        parentReportAction: {
+            Key: ({report}) => `${ONYXKEYS.COLLECTION.REPORT}${report.parentReportActionID}`,
         },
     }),
 )(HeaderView);

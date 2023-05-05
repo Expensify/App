@@ -420,11 +420,38 @@ function isPolicyExpenseChatAdmin(report, policies) {
 }
 
 /**
+ * Returns true if report has a parent and is therefore a Thread.
+ *
+ * @param {Object} report
+ * @returns {Boolean}
+ */
+function isThread(report) {
+    // eslint-disable-next-line no-console
+    console.log('>>> is thread ? ', report, ' ', report.parentReportActionID, ': ');
+    if (!report.parentReportActionID) {
+        // eslint-disable-next-line no-console
+        console.log('>>> FALSE');
+        return false;
+    }
+    // eslint-disable-next-line no-console
+    console.log('>>> TRUE');
+    return true;
+}
+
+/**
  * Get either the policyName or domainName the chat is tied to
  * @param {Object} report
  * @returns {String}
  */
 function getChatRoomSubtitle(report) {
+    if (isThread(report)) {
+        if (isPolicyExpenseChat(report)) {
+            // eslint-disable-next-line no-console
+            console.log('$$$$', report);
+            return ` Thread Subtitle Test Header ${report.reportName}`;
+        }
+        return 'Thread Subtitle Test';
+    }
     if (!isDefaultRoom(report) && !isUserCreatedPolicyRoom(report) && !isPolicyExpenseChat(report)) {
         return '';
     }
@@ -705,6 +732,29 @@ function getIcons(report, personalDetails, defaultIcon = null) {
     if (_.isEmpty(report)) {
         result.source = defaultIcon || Expensicons.FallbackAvatar;
         return [result];
+    }
+    if (isThread(report)) {
+        // eslint-disable-next-line no-console
+        console.log('>>>>>>> ', report, personalDetails);
+        if (isPolicyExpenseChat(report)) {
+            const workspaceName = lodashGet(allPolicies, [
+                `${ONYXKEYS.COLLECTION.POLICY}${report.policyID}`, 'name',
+            ]);
+
+            const policyExpenseChatAvatarSource = getWorkspaceAvatar(report);
+            const workspaceIcon = {
+                source: policyExpenseChatAvatarSource,
+                type: CONST.ICON_TYPE_WORKSPACE,
+                name: workspaceName,
+            };
+            return [workspaceIcon];
+        }
+        const parentIcon = {
+            source: Expensicons.Apple,
+            name: report.ownerEmail,
+            type: CONST.ICON_TYPE_AVATAR,
+        };
+        return [parentIcon];
     }
     if (isConciergeChatReport(report)) {
         result.source = CONST.CONCIERGE_ICON_URL;
@@ -1192,6 +1242,8 @@ function buildOptimisticIOUReportAction(type, amount, currency, comment, partici
  * @param {String} oldPolicyName
  * @param {String} visibility
  * @param {String} notificationPreference
+ * @param {String} parentReportActionID
+ * @param {String} parentReportID
  * @returns {Object}
  */
 function buildOptimisticChatReport(
@@ -1892,4 +1944,5 @@ export {
     canRequestMoney,
     getWhisperDisplayNames,
     getWorkspaceAvatar,
+    isThread,
 };
