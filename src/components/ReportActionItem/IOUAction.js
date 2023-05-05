@@ -78,6 +78,8 @@ const IOUAction = (props) => {
         }
     };
 
+    const shouldShowIOUPreview = props.isMostRecentIOUReportAction || props.action.originalMessage.type === 'pay';
+
     let shouldShowPendingConversionMessage = false;
     if (
         !_.isEmpty(props.iouReport)
@@ -100,24 +102,26 @@ const IOUAction = (props) => {
                 checkIfContextMenuActive={props.checkIfContextMenuActive}
                 isHovered={props.isHovered}
             />
-            <IOUPreview
-                iouReportID={props.requestReportID}
-                chatReportID={props.chatReportID}
-                isBillSplit={hasMultipleParticipants}
-                action={props.action}
-                contextMenuAnchor={props.contextMenuAnchor}
-                checkIfContextMenuActive={props.checkIfContextMenuActive}
-                shouldShowPendingConversionMessage={shouldShowPendingConversionMessage}
-                onPayButtonPressed={onIOUPreviewPressed}
-                onPreviewPressed={onIOUPreviewPressed}
-                containerStyles={[
-                    styles.cursorPointer,
-                    props.isHovered
-                        ? styles.iouPreviewBoxHover
-                        : undefined,
-                ]}
-                isHovered={props.isHovered}
-            />
+            {shouldShowIOUPreview && (
+                <IOUPreview
+                    iouReportID={props.requestReportID}
+                    chatReportID={props.chatReportID}
+                    isBillSplit={hasMultipleParticipants}
+                    action={props.action}
+                    contextMenuAnchor={props.contextMenuAnchor}
+                    checkIfContextMenuActive={props.checkIfContextMenuActive}
+                    shouldShowPendingConversionMessage={shouldShowPendingConversionMessage}
+                    onPayButtonPressed={onIOUPreviewPressed}
+                    onPreviewPressed={onIOUPreviewPressed}
+                    containerStyles={[
+                        styles.cursorPointer,
+                        props.isHovered
+                            ? styles.iouPreviewBoxHover
+                            : undefined,
+                    ]}
+                    isHovered={props.isHovered}
+                />
+            )}
         </>
     );
 };
