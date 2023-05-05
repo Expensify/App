@@ -13,16 +13,11 @@ const propTypes = {
 
     /** Should we show the environment badge (dev/stg)?  */
     shouldShowEnvironmentBadge: PropTypes.bool,
-
-    /** Additional text styles */
-    // eslint-disable-next-line react/forbid-prop-types
-    textStyles: PropTypes.arrayOf(PropTypes.object),
 };
 
 const defaultProps = {
     shouldShowEnvironmentBadge: false,
     subtitle: '',
-    textStyles: [],
 };
 const ImageHeader = props => (
     <View style={[styles.flex1, styles.flexRow]}>
