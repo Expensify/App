@@ -255,7 +255,13 @@ class Form extends React.Component {
 
             // We clone the child passing down all form props
             const inputID = child.props.inputID;
-            const defaultValue = this.props.draftValues[inputID] || child.props.defaultValue;
+            let defaultValue;
+
+            if (!_.isUndefined(this.props.draftValues[inputID])) {
+                defaultValue = this.props.draftValues[inputID];
+            } else if (!_.isUndefined(child.props.defaultValue)) {
+                defaultValue = child.props.defaultValue;
+            }
 
             // We want to initialize the input value if it's undefined
             if (_.isUndefined(this.state.inputValues[inputID])) {

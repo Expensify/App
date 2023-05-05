@@ -1,6 +1,7 @@
 import React from 'react';
 import PropTypes from 'prop-types';
 import {View, TouchableOpacity} from 'react-native';
+import _ from 'lodash';
 import styles from '../styles/styles';
 import Checkbox from './Checkbox';
 import Text from './Text';
@@ -75,7 +76,14 @@ class CheckboxWithLabel extends React.Component {
     constructor(props) {
         super(props);
 
-        this.isChecked = props.value || props.defaultValue || props.isChecked;
+        if (!_.isUndefined(props.value)) {
+            this.isChecked = props.value;
+        } else if (!_.isUndefined(props.defaultValue)) {
+            this.isChecked = props.defaultValue;
+        } else {
+            this.isChecked = props.isChecked;
+        }
+
         this.LabelComponent = props.LabelComponent;
 
         this.toggleCheckbox = this.toggleCheckbox.bind(this);
