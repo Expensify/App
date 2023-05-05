@@ -90,7 +90,7 @@ function convertToSmallestUnit(currency, amountAsFloat) {
 }
 
 /**
- * Takes an amount as an interget and converts it to a floating point amount.
+ * Takes an amount as an integer and converts it to a floating point amount.
  * For example, give [25, USD], return 0.25
  * Given [2550, USD], return 25.50
  * Given [2500, JPY], return 2500
