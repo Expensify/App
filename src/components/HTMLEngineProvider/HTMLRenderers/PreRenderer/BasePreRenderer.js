@@ -33,6 +33,7 @@ const BasePreRenderer = forwardRef((props, ref) => {
             ref={ref}
             horizontal
             style={styles.mv2}
+            bounces={false}
         >
             <ShowContextMenuContext.Consumer>
                 {({
