@@ -1,3 +1,4 @@
+import Abracadabra from '../../../assets/images/product-illustrations/abracadabra.svg';
 import BankArrowPink from '../../../assets/images/product-illustrations/bank-arrow--pink.svg';
 import BankMouseGreen from '../../../assets/images/product-illustrations/bank-mouse--green.svg';
 import BankUserGreen from '../../../assets/images/product-illustrations/bank-user--green.svg';
@@ -9,14 +10,17 @@ import JewelBoxBlue from '../../../assets/images/product-illustrations/jewel-box
 import JewelBoxGreen from '../../../assets/images/product-illustrations/jewel-box--green.svg';
 import JewelBoxPink from '../../../assets/images/product-illustrations/jewel-box--pink.svg';
 import JewelBoxYellow from '../../../assets/images/product-illustrations/jewel-box--yellow.svg';
+import MagicCode from '../../../assets/images/product-illustrations/magic-code.svg';
 import MoneyEnvelopeBlue from '../../../assets/images/product-illustrations/money-envelope--blue.svg';
 import MoneyMousePink from '../../../assets/images/product-illustrations/money-mouse--pink.svg';
 import ReceiptsSearchYellow from '../../../assets/images/product-illustrations/receipts-search--yellow.svg';
 import ReceiptYellow from '../../../assets/images/product-illustrations/receipt--yellow.svg';
 import RocketBlue from '../../../assets/images/product-illustrations/rocket--blue.svg';
 import RocketOrange from '../../../assets/images/product-illustrations/rocket--orange.svg';
+import SafeBlue from '../../../assets/images/product-illustrations/safe.svg';
 import TadaYellow from '../../../assets/images/product-illustrations/tada--yellow.svg';
 import TadaBlue from '../../../assets/images/product-illustrations/tada--blue.svg';
+import ToddBehindCloud from '../../../assets/images/product-illustrations/todd-behind-cloud.svg';
 import GpsTrackOrange from '../../../assets/images/product-illustrations/gps-track--orange.svg';
 import ShieldYellow from '../../../assets/images/simple-illustrations/simple-illustration__shield.svg';
 import MoneyReceipts from '../../../assets/images/simple-illustrations/simple-illustration__money-receipts.svg';
@@ -35,8 +39,10 @@ import ConciergeNew from '../../../assets/images/simple-illustrations/simple-ill
 import MoneyBadge from '../../../assets/images/simple-illustrations/simple-illustration__moneybadge.svg';
 import TreasureChest from '../../../assets/images/simple-illustrations/simple-illustration__treasurechest.svg';
 import ThumbsUpStars from '../../../assets/images/simple-illustrations/simple-illustration__thumbsupstars.svg';
+import Hands from '../../../assets/images/product-illustrations/home-illustration-hands.svg';
 
 export {
+    Abracadabra,
     BankArrowPink,
     BankMouseGreen,
     BankUserGreen,
@@ -48,14 +54,17 @@ export {
     JewelBoxGreen,
     JewelBoxPink,
     JewelBoxYellow,
+    MagicCode,
     MoneyEnvelopeBlue,
     MoneyMousePink,
     ReceiptsSearchYellow,
     ReceiptYellow,
     RocketBlue,
     RocketOrange,
+    SafeBlue,
     TadaYellow,
     TadaBlue,
+    ToddBehindCloud,
     GpsTrackOrange,
     ShieldYellow,
     MoneyReceipts,
@@ -74,4 +83,5 @@ export {
     MoneyBadge,
     TreasureChest,
     ThumbsUpStars,
+    Hands,
 };

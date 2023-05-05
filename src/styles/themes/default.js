@@ -6,6 +6,7 @@ const darkTheme = {
     appBG: colors.greenAppBackground,
     highlightBG: colors.greenHighlightBackground,
     border: colors.greenBorders,
+    borderLighter: colors.greenBordersLighter,
     borderFocus: colors.green,
     icon: colors.greenIcons,
     iconMenu: colors.green,
@@ -28,6 +29,9 @@ const darkTheme = {
     successHover: colors.greenHover,
     successPressed: colors.greenPressed,
     transparent: colors.transparent,
+    midtone: colors.green700,
+    signInPage: colors.green800,
+    dark: colors.midnight,
 
     // Additional keys
     overlay: colors.greenHighlightBackground,
@@ -36,6 +40,7 @@ const darkTheme = {
     componentBG: colors.greenAppBackground,
     hoverComponentBG: colors.greenHighlightBackground,
     activeComponentBG: colors.greenBorders,
+    signInSidebar: colors.green800,
     sidebar: colors.greenHighlightBackground,
     sidebarHover: colors.greenAppBackground,
     heading: colors.white,
@@ -58,8 +63,12 @@ const darkTheme = {
     dropUIBG: 'rgba(6,27,9,0.92)',
     dropTransparentOverlay: 'rgba(255,255,255,0)',
     checkBox: colors.green,
-    pickerOptionsTextColor: colors.midnight,
+    pickerOptionsTextColor: colors.white,
     imageCropBackgroundColor: colors.greenIcons,
+    fallbackIconColor: colors.green700,
+    reactionActive: '#003C73',
+    badgeAdHoc: colors.pink600,
+    badgeAdHocHover: colors.pink700,
 };
 
 const oldTheme = {

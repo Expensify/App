@@ -66,6 +66,12 @@ class BaseDrawerNavigator extends Component {
         });
     }
 
+    componentWillUnmount() {
+        // When logging into NewDot first, then navigating from OldDot to NewDot with a different account, this component will be remounted.
+        // We need to reset the isDrawerReady promise so that we can delay the call to dismissModal until the drawer is really ready.
+        Navigation.resetDrawerIsReadyPromise();
+    }
+
     render() {
         const content = (
             <Drawer.Navigator

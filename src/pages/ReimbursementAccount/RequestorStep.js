@@ -1,6 +1,5 @@
 import React from 'react';
 import {View} from 'react-native';
-import moment from 'moment';
 import PropTypes from 'prop-types';
 import lodashGet from 'lodash/get';
 import styles from '../../styles/styles';
@@ -54,8 +53,12 @@ class RequestorStep extends React.Component {
             errors.dob = this.props.translate('bankAccount.error.dob');
         }
 
-        if (values.dob && !ValidationUtils.meetsAgeRequirements(values.dob)) {
-            errors.dob = this.props.translate('bankAccount.error.age');
+        if (values.dob) {
+            if (!ValidationUtils.meetsMinimumAgeRequirement(values.dob)) {
+                errors.dob = this.props.translate('bankAccount.error.age');
+            } else if (!ValidationUtils.meetsMaximumAgeRequirement(values.dob)) {
+                errors.dob = this.props.translate('bankAccount.error.dob');
+            }
         }
 
         if (!ValidationUtils.isRequiredFulfilled(values.ssnLast4) || !ValidationUtils.isValidSSNLastFour(values.ssnLast4)) {
@@ -93,7 +96,6 @@ class RequestorStep extends React.Component {
         const payload = {
             bankAccountID: lodashGet(this.props.reimbursementAccount, 'achData.bankAccountID') || 0,
             ...values,
-            dob: moment(values.dob).format(CONST.DATE.MOMENT_FORMAT_STRING),
         };
 
         BankAccounts.updatePersonalInformationForBankAccount(payload);

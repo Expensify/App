@@ -30,8 +30,8 @@ At this time, we are not hiring contractors in Crimea, North Korea, Russia, Iran
 ## Slack channels
 All contributors should be a member of **two** Slack channels:
 
-1. #expensify-open-source -- used to ask **general questions**, facilitate **discussions**, and make **feature requests**.
-2. #expensify-bugs -- used to discuss or report **bugs** specifically.
+1. [#expensify-open-source](https://expensify.slack.com/archives/C01GTK53T8Q) -- used to ask **general questions**, facilitate **discussions**, and make **feature requests**.
+2. [#expensify-bugs](https://expensify.slack.com/archives/C049HHMV9SM) -- used to discuss or report **bugs** specifically.
 
 Before requesting an invite to Slack please ensure your Upwork account is active, since we only pay via Upwork (see [below](https://github.com/Expensify/App/blob/main/contributingGuides/CONTRIBUTING.md#payment-for-contributions)). To request an invite to these two Slack channels, email contributors@expensify.com with the subject `Slack Channel Invites`. We'll send you an invite! 
 
@@ -47,7 +47,7 @@ We hire and pay external contributors via Upwork.com. If you'd like to be paid f
 
 Payment for your contributions will be made no less than 7 days after the pull request is deployed to production to allow for regression testing. If a regression occurs, payment will be issued 7 days after all regressions are fixed. If you have not received payment after 8 days of the PR being deployed to production and there being no regressions, please email contributors@expensify.com referencing the GH issue and your GH handle. 
 
-New contributors are limited to working on one job at a time, however experienced contributors may work on numerous jobs simultaneously. 
+New contributors are limited to working on one job at a time, however experienced contributors may work on numerous jobs simultaneously.
 
 Please be aware that compensation for any support in solving an issue is provided **entirely at Expensify’s discretion**. Personal time or resources applied towards investigating a proposal **will not guarantee compensation**. Compensation is only guaranteed to those who **[propose a solution and get hired for that job](https://github.com/Expensify/App/blob/main/contributingGuides/CONTRIBUTING.md#propose-a-solution-for-the-job)**. We understand there may be cases where a selected proposal may take inspiration from a previous proposal. Unfortunately, it’s not possible for us to evaluate every individual case and we have no process that can efficiently do so. Issues with higher rewards come with higher risk factors so try to keep things civil and make the best proposal you can. Once again, **any information provided may not necessarily lead to you getting hired for that issue or compensated in any way.**
 
@@ -59,7 +59,7 @@ Please be aware that compensation for any support in solving an issue is provide
 - Merged PR within 9 business days - 50% **penalty**  
 - No PR within 12 business days - **Contract terminated**  
 
-If the PR causes a regression within 7 days of being deployed to production, contributors are not eligible for the 50% bonus. 
+If the PR causes a regression at any point within the regression period (starting when the code is merged and ending 7 days after being deployed to production), contributors are not eligible for the 50% bonus. 
 
 ## Finding Jobs
 A job could be fixing a bug or working on a new feature. There are two ways you can find a job that you can contribute to:
@@ -68,9 +68,9 @@ A job could be fixing a bug or working on a new feature. There are two ways you 
 This is the most common scenario for contributors. The Expensify team posts new jobs to the Upwork job list [here](https://www.upwork.com/ab/jobs/search/?q=Expensify%20React%20Native&sort=recency&user_location_match=2) (you must be signed in to Upwork to view jobs). Each job in Upwork has a corresponding GitHub issue, which will include instructions to follow. You can also view all open jobs in the Expensify/App GH repository by searching for GH issues with the [`Help Wanted` label](https://github.com/Expensify/App/issues?q=is%3Aopen+is%3Aissue+label%3A%22Help+Wanted%22). Lastly, you can follow the [@ExpensifyOSS](https://twitter.com/ExpensifyOSS) Twitter account to see a live feed of jobs that are posted.
 
 #### Proposing a job that Expensify hasn't posted
-It’s possible that you found a new bug or new feature that we haven’t posted as a job to the [GitHub repository](https://github.com/Expensify/App/issues?q=is%3Aissue). This is an opportunity to propose a job. If it's a valid job proposal that we choose to implement by deploying it to production — either internally or via an external contributor — then we will compensate you $250 for identifying and proposing the bug or feature. If the bug or feature is fixed by a PR that is not associated with your proposal, then you will not be eligible for the corresponding compensation unless you can find the PR that fixed it and prove your proposal came first.
+It’s possible that you found a new bug that we haven’t posted as a job to the [GitHub repository](https://github.com/Expensify/App/issues?q=is%3Aissue). This is an opportunity to propose a job. If it's a valid job proposal that we choose to implement by deploying it to production — either internally or via an external contributor — then we will compensate you $250 for identifying and proposing the bug (we do not compensate for reporting new feature requests). If the bug is fixed by a PR that is not associated with your bug report, then you will not be eligible for the corresponding compensation unless you can find the PR that fixed it and prove your bug report came first.
 - Note: If you get assigned the job you proposed **and** you complete the job, this $250 for identifying the improvement is *in addition to* the reward you will be paid for completing the job.
-- Note about proposed bugs or features: Expensify has the right not to pay the $250 reward if the suggested bug has already been reported or the feature request is already planned. Following, if more than one contributor proposes the same bug, the contributor who posted it first is the one who is eligible for the bonus.
+- Note about proposed bugs: Expensify has the right not to pay the $250 reward if the suggested bug has already been reported. Following, if more than one contributor proposes the same bug, the contributor who posted it first in the [#expensify-bugs](https://expensify.slack.com/archives/C049HHMV9SM) Slack channel is the one who is eligible for the bonus.
 - Note: whilst you may optionally propose a solution for that job on Slack, solutions are ultimately reviewed in GitHub. The onus is on you to propose the solution on GitHub, and/or ensure the issue creator will include a link to your proposal.
 
 Please follow these steps to propose a job:
@@ -81,6 +81,7 @@ Please follow these steps to propose a job:
 4. If there is no existing GitHub issue or Upwork job, check if the issue is happening on prod (as opposed to only happening on dev)
 5. If the issue is just in dev then it means it's a new issue and has not been deployed to production. In this case, you should try to find the offending PR and comment in the issue tied to the PR and ask the assigned users to add the `DeployBlockerCash` label. If you can't find it, follow the reporting instructions in the next item, but note that the issue is a regression only found in dev and not in prod.
 6. If the issue happens in main, staging, or production then report the issue(s) in the #expensify-bugs Slack channel, prefixed with `Bug:` or `Feature Request:`. Please use the templates for bugs and feature requests that are bookmarked in the #expensify-bugs channel. View [this guide](https://github.com/Expensify/App/blob/main/contributingGuides/HOW_TO_CREATE_A_PLAN.md) for help creating a plan when proposing a feature request. 
+  - **Important note/reminder**: never share any information pertaining to a customer of Expensify when describing the bug. This includes, and is not limited to, a customer's name, email, and contact information. 
 7. The Expensify team will review your job proposal in the appropriate slack channel. If you've provided a quality proposal that we choose to implement, a GitHub issue will be created and your Slack handle will be included in the original post after `Issue reported by:`
 8. If an external contributor other than yourself is hired to work on the issue, you will also be hired for the same job in Upwork to receive your payout. No additional work is required. If the issue is fixed internally, a dedicated job will be created to hire and pay you after the issue is fixed. 
 9. Payment will be made 7 days after code is deployed to production if there are no regressions. If a regression is discovered, payment will be issued 7 days after all regressions are fixed. 
@@ -111,9 +112,10 @@ Additionally if you want to discuss an idea with the open source community witho
 3. If you cannot reproduce the problem, pause on this step and add a comment to the issue explaining where you are stuck or that you don't think the issue can be reproduced.
 
 #### Propose a solution for the job
-4. After you reproduce the issue, complete the [proposal template here](./PROPOSAL_TEMPLATE.md) and post it as a comment in the corresponding GitHub issue (linked in the Upwork job).
+4. You can propose solutions on any issue at at any time, but if you propose solutions to jobs before the `Help Wanted` label is applied, you do so at your own risk. Proposals will not be reviewed until the label is added and there is always a chance that we might not add the label or hire an external contributor for the job.
+5. After you reproduce the issue, complete the [proposal template here](./PROPOSAL_TEMPLATE.md) and post it as a comment in the corresponding GitHub issue (linked in the Upwork job).
     - Note: Before submitting a proposal on an issue, be sure to read any other existing proposals. ALL NEW PROPOSALS MUST BE DIFFERENT FROM EXISTING PROPOSALS. The *difference* should be important, meaningful or considerable.
-5. Refrain from leaving additional comments until someone from the Contributor-Plus team and / or someone from Expensify provides feedback on your proposal (do not create a pull request yet).
+6. Refrain from leaving additional comments until someone from the Contributor-Plus team and / or someone from Expensify provides feedback on your proposal (do not create a pull request yet).
     - Do not leave more than one proposal.
     - Do not make extensive changes to your current proposal until after it has been reviewed.
     - If you want to make an entirely new proposal or update an existing proposal, please go back and edit your original proposal, then post a new comment to the issue in this format to alert everyone that it has been updated:
@@ -121,12 +123,12 @@ Additionally if you want to discuss an idea with the open source community witho
     ## Proposal
     [Updated](link to proposal)
     ```
-6. If your proposal is accepted by the Expensify engineer assigned to the issue, Expensify will hire you on Upwork and assign the GitHub issue to you.
-7. Once hired, post a comment in the Github issue stating when you expect to have your PR ready for review.
+7. If your proposal is accepted by the Expensify engineer assigned to the issue, Expensify will hire you on Upwork and assign the GitHub issue to you.
+8. Once hired, post a comment in the Github issue stating when you expect to have your PR ready for review.
 
 #### Begin coding your solution in a pull request
-7. When you are ready to start, fork the repository and create a new branch.
-8. Before you begin writing any code, please be aware that we require all commits to be [signed](https://docs.github.com/en/github/authenticating-to-github/signing-commits). The easiest way to do that is to [generate a new GPG key](https://docs.github.com/en/github/authenticating-to-github/generating-a-new-gpg-key) and [add it to your GitHub account](https://docs.github.com/en/github/authenticating-to-github/adding-a-new-gpg-key-to-your-github-account). Once you've done that, you can automatically sign all your commits by adding the following to your `.gitconfig`:
+9. When you are ready to start, fork the repository and create a new branch.
+10. Before you begin writing any code, please be aware that we require all commits to be [signed](https://docs.github.com/en/github/authenticating-to-github/signing-commits). The easiest way to do that is to [generate a new GPG key](https://docs.github.com/en/github/authenticating-to-github/generating-a-new-gpg-key) and [add it to your GitHub account](https://docs.github.com/en/github/authenticating-to-github/adding-a-new-gpg-key-to-your-github-account). Once you've done that, you can automatically sign all your commits by adding the following to your `.gitconfig`:
     ```
     [commit]
         gpgsign = true
@@ -137,28 +139,28 @@ Additionally if you want to discuss an idea with the open source community witho
     [gpg]
         program = gpg
     ```
-9. [Open a pull request](https://docs.github.com/en/free-pro-team@latest/github/collaborating-with-issues-and-pull-requests/creating-a-pull-request-from-a-fork), and make sure to fill in the required fields.
-10. An Expensify engineer and a member from the Contributor-Plus team will be assigned to your pull request automatically to review.
-11. Daily updates on weekdays are highly recommended. If you know you won’t be able to provide updates for > 1 week, please comment on the PR or issue how long you plan to be out so that we may plan accordingly. We understand everyone needs a little vacation here and there. Any issue that doesn't receive an update for 1 full week may be considered abandoned and the original contract terminated.
+11. [Open a pull request](https://docs.github.com/en/free-pro-team@latest/github/collaborating-with-issues-and-pull-requests/creating-a-pull-request-from-a-fork), and make sure to fill in the required fields.
+12. An Expensify engineer and a member from the Contributor-Plus team will be assigned to your pull request automatically to review.
+13. Daily updates on weekdays are highly recommended. If you know you won’t be able to provide updates for > 1 week, please comment on the PR or issue how long you plan to be out so that we may plan accordingly. We understand everyone needs a little vacation here and there. Any issue that doesn't receive an update for 1 full week may be considered abandoned and the original contract terminated.
 
 #### Submit your pull request for final review
-12. When you are ready to submit your pull request for final review, make sure the following checks pass:
+14. When you are ready to submit your pull request for final review, make sure the following checks pass:
 	1. CLA - You must sign our [Contributor License Agreement](https://github.com/Expensify/App/blob/main/contributingGuides/CLA.md) by following the CLA bot instructions that will be posted on your PR
 	2. Tests - All tests must pass before a merge of a pull request
 	3. Lint - All code must pass lint checks before a merge of a pull request
-13. Please never force push when a PR review has already started (because this messes with the PR review history)
-14. Please pay attention to the pull request template, especially to how we link PRs with issues they fix. Make sure you don't use GitHub keywords such as `fixes` in your PR description, as this can break our current automated steps for issue management. Follow the PR template format carefully.
-15. Upon submission of a PR, please include a numbered list of explicit testing steps for each platform (Web, Desktop, iOS, Android, and Mobile Web) to confirm the fix works as expected and there are no regressions.
-16. Please add a screenshot of the app running on each platform (Web, Desktop, iOS, Android, Mobile Web).
+15. Please never force push when a PR review has already started (because this messes with the PR review history)
+16. Please pay attention to the pull request template, especially to how we link PRs with issues they fix. Make sure you don't use GitHub keywords such as `fixes` in your PR description, as this can break our current automated steps for issue management. Follow the PR template format carefully.
+17. Upon submission of a PR, please include a numbered list of explicit testing steps for each platform (Web, Desktop, iOS, Android, and Mobile Web) to confirm the fix works as expected and there are no regressions.
+18. Please add a screenshot of the app running on each platform (Web, Desktop, iOS, Android, Mobile Web).
 
 #### Completing the final checklist
-17. Once your PR has been deployed to production, a checklist will automatically be commented in the GH issue. You're required to complete the steps that have your name mentioned before payment will be issued.
-18. The items requiring your completion consist of: 
+19. Once your PR has been deployed to production, a checklist will automatically be commented in the GH issue. You're required to complete the steps that have your name mentioned before payment will be issued.
+20. The items requiring your completion consist of: 
     1. Proposing steps to take for a regression test to ensure the bug doesn't occur again (For information on how to successfully complete this, head [here](https://github.com/Expensify/App/blob/main/contributingGuides/REGRESSION_TEST_BEST_PRACTICES.md)).
     2. Identifying and noting the offending PR that caused the bug (if any).
     3. Commenting on the offending PR to note the bug it caused and why (if applicable).
     4. Starting a conversation on if any additional steps should be taken to prevent further bugs similar to the one fixed from occurring again. 
-20. Once the above items have been successfully completed, then payments will begin to be issued. 
+21. Once the above items have been successfully completed, then payments will begin to be issued. 
 
 #### Timeline expectations and asking for help along the way
 - If you have made a change to your pull request and are ready for another review, leave a comment that says "Updated" on the pull request  itself.
@@ -169,3 +171,19 @@ Additionally if you want to discuss an idea with the open source community witho
 #### Important note about JavaScript Style
 - Read our official [JavaScript and React style guide](https://github.com/Expensify/App/blob/main/contributingGuides/STYLE.md). Please refer to our Style Guide before asking for a review.
 - We have nothing against Prettier or any other automatic style fixers, but we generally don't use them here at Expensify. Do not use Prettier. The style changes these tools enforce don't always align with the ones we recommend and require in our eslint configs and can result in unnecessary changes for our reviewers. Ignoring this advice will ultimately make your changes take longer to review as we will ask you to undo any style changes that are not related to the important changes you are making.
+
+#### For external agencies that Expensify partners with
+Follow all the above above steps and processes. When you find a job you'd like to work on:
+- Post “I’m from [agency], I’d like to work on this job”
+  - If no proposals have been submitted by other contributors, BugZero (BZ) team member or an internal engineer will assign the issue to you. 
+  - If there are existing proposals, BZ will put the issue on hold. Contributor+ (C+) will review the existing proposals.  If a contributor’s proposal is accepted then contributor will be assigned to the issue.  If not the issue will be assigned to the agency-employee. 
+- Once assigned follow the steps [here](https://github.com/Expensify/App/blob/main/contributingGuides/CONTRIBUTING.md#propose-a-solution-for-the-job) to submit your proposal 
+
+#### Guide on Acronyms used within Expensify Communication
+During communication with Expensify, you will come across a variety of acronyms used by our team. While acronyms can be useful, they cease to be the moment they are not known to the receiver. As such, we wanted to create a list here of our most commonly used acronyms and what they're referring to. Lastly, please never hesitate to ask in slack or the GH issue if there are any that are not understood/known!
+- BZ: Bug Zero (Expensify internal team in charge of managing the GH issues related to our open-source project)
+- LHN: Left Hand Navigation (Primary navigation modal in Expensify Chat, docked on the left hand side)
+- OP: Original Post (Most commonly the post in E/App GH issues that reports the bug)
+- GBR: Green Brick Road (UX Design Principle that utlizes green indicators on action items to encourage the user down the optimal path for a given process or task) 
+- VBA: Verified Bank Account (Bank account that has been verified as real and belonging to the correct business/individual)
+- NAB: Not a Blocker (An issue that doesn't block progress, but would be nice to not have)

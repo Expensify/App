@@ -16,6 +16,9 @@ import * as Welcome from '../Welcome';
 import * as API from '../../API';
 import * as NetworkStore from '../../Network/NetworkStore';
 import DateUtils from '../../DateUtils';
+import Navigation from '../../Navigation/Navigation';
+import subscribeToReportCommentPushNotifications from '../../Notification/PushNotification/subscribeToReportCommentPushNotifications';
+import ROUTES from '../../../ROUTES';
 
 let credentials = {};
 Onyx.connect({
@@ -29,23 +32,19 @@ Onyx.connect({
  * On Android, AuthScreens unmounts when the app is closed with the back button so we manage the
  * push subscription when the session changes here.
  */
-let previousAccountID;
 Onyx.connect({
-    key: ONYXKEYS.SESSION,
-    callback: (session) => {
-        const accountID = lodashGet(session, 'accountID');
-        if (previousAccountID === accountID) {
-            return;
-        }
+    key: ONYXKEYS.NVP_PRIVATE_PUSH_NOTIFICATION_ID,
+    callback: (notificationID) => {
+        if (notificationID) {
+            PushNotification.register(notificationID);
 
-        if (accountID) {
-            PushNotification.register(accountID);
+            // Prevent issue where report linking fails after users switch accounts without closing the app
+            PushNotification.init();
+            subscribeToReportCommentPushNotifications();
         } else {
             PushNotification.deregister();
             PushNotification.clearNotifications();
         }
-
-        previousAccountID = accountID;
     },
 });
 
@@ -80,7 +79,7 @@ function signOutAndRedirectToSignIn() {
  */
 function resendValidationLink(login = credentials.login) {
     const optimisticData = [{
-        onyxMethod: CONST.ONYX.METHOD.MERGE,
+        onyxMethod: Onyx.METHOD.MERGE,
         key: ONYXKEYS.ACCOUNT,
         value: {
             isLoading: true,
@@ -89,15 +88,15 @@ function resendValidationLink(login = credentials.login) {
         },
     }];
     const successData = [{
-        onyxMethod: CONST.ONYX.METHOD.MERGE,
+        onyxMethod: Onyx.METHOD.MERGE,
         key: ONYXKEYS.ACCOUNT,
         value: {
             isLoading: false,
-            message: Localize.translateLocal('resendValidationForm.linkHasBeenResent'),
+            message: 'resendValidationForm.linkHasBeenResent',
         },
     }];
     const failureData = [{
-        onyxMethod: CONST.ONYX.METHOD.MERGE,
+        onyxMethod: Onyx.METHOD.MERGE,
         key: ONYXKEYS.ACCOUNT,
         value: {
             isLoading: false,
@@ -109,6 +108,73 @@ function resendValidationLink(login = credentials.login) {
 }
 
 /**
+ * Request a new validate / magic code for user to sign in via passwordless flow
+ *
+ * @param {String} [login]
+ */
+function resendValidateCode(login = credentials.login) {
+    const optimisticData = [{
+        onyxMethod: Onyx.METHOD.MERGE,
+        key: ONYXKEYS.ACCOUNT,
+        value: {
+            isLoading: true,
+            errors: null,
+            message: null,
+        },
+    }];
+    const successData = [{
+        onyxMethod: Onyx.METHOD.MERGE,
+        key: ONYXKEYS.ACCOUNT,
+        value: {
+            isLoading: false,
+            message: 'validateCodeForm.codeSent',
+        },
+    }];
+    const failureData = [{
+        onyxMethod: Onyx.METHOD.MERGE,
+        key: ONYXKEYS.ACCOUNT,
+        value: {
+            isLoading: false,
+            message: null,
+        },
+    }];
+    API.write('RequestNewValidateCode', {email: login}, {optimisticData, successData, failureData});
+}
+
+/**
+ * Request a new validate / magic code for user to sign in automatically with the link
+ *
+ * @param {String} [login]
+ */
+function resendLinkWithValidateCode(login = credentials.login) {
+    const optimisticData = [{
+        onyxMethod: Onyx.METHOD.MERGE,
+        key: ONYXKEYS.ACCOUNT,
+        value: {
+            isLoading: true,
+            message: null,
+        },
+    }];
+    const successData = [{
+        onyxMethod: Onyx.METHOD.MERGE,
+        key: ONYXKEYS.ACCOUNT,
+        value: {
+            isLoading: false,
+            message: Localize.translateLocal('validateCodeModal.successfulNewCodeRequest'),
+        },
+    }];
+    const failureData = [{
+        onyxMethod: Onyx.METHOD.MERGE,
+        key: ONYXKEYS.ACCOUNT,
+        value: {
+            isLoading: false,
+            message: null,
+        },
+    }];
+    API.write('RequestNewValidateCode', {email: login}, {optimisticData, successData, failureData});
+}
+
+/**
  * Checks the API to see if an account exists for the given login
  *
  * @param {String} login
@@ -116,28 +182,36 @@ function resendValidationLink(login = credentials.login) {
 function beginSignIn(login) {
     const optimisticData = [
         {
-            onyxMethod: CONST.ONYX.METHOD.MERGE,
+            onyxMethod: Onyx.METHOD.MERGE,
             key: ONYXKEYS.ACCOUNT,
             value: {
                 ...CONST.DEFAULT_ACCOUNT_DATA,
                 isLoading: true,
+                message: null,
             },
         },
     ];
 
     const successData = [
         {
-            onyxMethod: CONST.ONYX.METHOD.MERGE,
+            onyxMethod: Onyx.METHOD.MERGE,
             key: ONYXKEYS.ACCOUNT,
             value: {
                 isLoading: false,
+            },
+        },
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: ONYXKEYS.CREDENTIALS,
+            value: {
+                validateCode: null,
             },
         },
     ];
 
     const failureData = [
         {
-            onyxMethod: CONST.ONYX.METHOD.MERGE,
+            onyxMethod: Onyx.METHOD.MERGE,
             key: ONYXKEYS.ACCOUNT,
             value: {
                 isLoading: false,
@@ -161,18 +235,23 @@ function beginSignIn(login) {
 function signInWithShortLivedAuthToken(email, authToken) {
     const optimisticData = [
         {
-            onyxMethod: CONST.ONYX.METHOD.MERGE,
+            onyxMethod: Onyx.METHOD.MERGE,
             key: ONYXKEYS.ACCOUNT,
             value: {
                 ...CONST.DEFAULT_ACCOUNT_DATA,
                 isLoading: true,
             },
         },
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: ONYXKEYS.IS_TOKEN_VALID,
+            value: true,
+        },
     ];
 
     const successData = [
         {
-            onyxMethod: CONST.ONYX.METHOD.MERGE,
+            onyxMethod: Onyx.METHOD.MERGE,
             key: ONYXKEYS.ACCOUNT,
             value: {
                 isLoading: false,
@@ -182,18 +261,35 @@ function signInWithShortLivedAuthToken(email, authToken) {
 
     const failureData = [
         {
-            onyxMethod: CONST.ONYX.METHOD.MERGE,
+            onyxMethod: Onyx.METHOD.MERGE,
             key: ONYXKEYS.ACCOUNT,
             value: {
                 isLoading: false,
             },
         },
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: ONYXKEYS.IS_TOKEN_VALID,
+            value: false,
+        },
     ];
 
-    // If the user is transitioning to newDot from a different account on oldDot the credentials may be tied to
-    // the old account. If so, should not pass the auto-generated login as it is not tied to the account being signed in
+    // If the user is signing in with a different account from the current app, should not pass the auto-generated login as it may be tied to the old account.
+    // scene 1: the user is transitioning to newDot from a different account on oldDot.
+    // scene 2: the user is transitioning to desktop app from a different account on web app.
     const oldPartnerUserID = credentials.login === email ? credentials.autoGeneratedLogin : '';
-    API.write('SignInWithShortLivedAuthToken', {authToken, oldPartnerUserID}, {optimisticData, successData, failureData});
+    // eslint-disable-next-line rulesdir/no-api-side-effects-method
+    API.makeRequestWithSideEffects(
+        'SignInWithShortLivedAuthToken',
+        {authToken, oldPartnerUserID},
+        {optimisticData, successData, failureData},
+        null,
+    ).then((response) => {
+        if (response) {
+            return;
+        }
+        Navigation.navigate();
+    });
 }
 
 /**
@@ -204,11 +300,12 @@ function signInWithShortLivedAuthToken(email, authToken) {
  * @param {String} password This will be removed after passwordless beta ends
  * @param {String} [validateCode] Code for passwordless login
  * @param {String} [twoFactorAuthCode]
+ * @param {String} [preferredLocale] Indicates which language to use when the user lands in the app
  */
-function signIn(password, validateCode, twoFactorAuthCode) {
+function signIn(password, validateCode, twoFactorAuthCode, preferredLocale = CONST.LOCALES.DEFAULT) {
     const optimisticData = [
         {
-            onyxMethod: CONST.ONYX.METHOD.MERGE,
+            onyxMethod: Onyx.METHOD.MERGE,
             key: ONYXKEYS.ACCOUNT,
             value: {
                 ...CONST.DEFAULT_ACCOUNT_DATA,
@@ -219,7 +316,7 @@ function signIn(password, validateCode, twoFactorAuthCode) {
 
     const successData = [
         {
-            onyxMethod: CONST.ONYX.METHOD.MERGE,
+            onyxMethod: Onyx.METHOD.MERGE,
             key: ONYXKEYS.ACCOUNT,
             value: {
                 isLoading: false,
@@ -229,7 +326,7 @@ function signIn(password, validateCode, twoFactorAuthCode) {
 
     const failureData = [
         {
-            onyxMethod: CONST.ONYX.METHOD.MERGE,
+            onyxMethod: Onyx.METHOD.MERGE,
             key: ONYXKEYS.ACCOUNT,
             value: {
                 isLoading: false,
@@ -237,8 +334,9 @@ function signIn(password, validateCode, twoFactorAuthCode) {
         },
     ];
 
+    const params = {twoFactorAuthCode, email: credentials.login, preferredLocale};
+
     // Conditionally pass a password or validateCode to command since we temporarily allow both flows
-    const params = {email: credentials.login, twoFactorAuthCode};
     if (validateCode) {
         params.validateCode = validateCode;
     } else {
@@ -246,6 +344,93 @@ function signIn(password, validateCode, twoFactorAuthCode) {
     }
 
     API.write('SigninUser', params, {optimisticData, successData, failureData});
+}
+
+function signInWithValidateCode(accountID, code, twoFactorAuthCode) {
+    // If this is called from the 2fa step, get the validateCode directly from onyx
+    // instead of the one passed from the component state because the state is changing when this method is called.
+    const validateCode = twoFactorAuthCode ? credentials.validateCode : code;
+
+    const optimisticData = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: ONYXKEYS.ACCOUNT,
+            value: {
+                ...CONST.DEFAULT_ACCOUNT_DATA,
+                isLoading: true,
+            },
+        },
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: ONYXKEYS.SESSION,
+            value: {autoAuthState: CONST.AUTO_AUTH_STATE.SIGNING_IN},
+        },
+    ];
+
+    const successData = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: ONYXKEYS.ACCOUNT,
+            value: {isLoading: false},
+        },
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: ONYXKEYS.CREDENTIALS,
+            value: {
+                accountID,
+                validateCode,
+            },
+        },
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: ONYXKEYS.SESSION,
+            value: {autoAuthState: CONST.AUTO_AUTH_STATE.JUST_SIGNED_IN},
+        },
+    ];
+
+    const failureData = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: ONYXKEYS.ACCOUNT,
+            value: {isLoading: false},
+        },
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: ONYXKEYS.SESSION,
+            value: {autoAuthState: CONST.AUTO_AUTH_STATE.FAILED},
+        },
+    ];
+
+    API.write('SigninUserWithLink', {
+        accountID,
+        validateCode,
+        twoFactorAuthCode,
+    }, {optimisticData, successData, failureData});
+}
+
+function signInWithValidateCodeAndNavigate(accountID, validateCode, twoFactorAuthCode) {
+    signInWithValidateCode(accountID, validateCode, twoFactorAuthCode);
+    Navigation.navigate(ROUTES.HOME);
+}
+
+/**
+ * Initializes the state of the automatic authentication when the user clicks on a magic link.
+ *
+ * This method is called in componentDidMount event of the lifecycle.
+ * When the user gets authenticated, the component is unmounted and then remounted
+ * when AppNavigator switches from PublicScreens to AuthScreens.
+ * That's the reason why autoAuthState initialization is skipped while the last state is SIGNING_IN.
+ *
+ * @param {string} cachedAutoAuthState
+ */
+function initAutoAuthState(cachedAutoAuthState) {
+    Onyx.merge(
+        ONYXKEYS.SESSION,
+        {
+            autoAuthState: cachedAutoAuthState === CONST.AUTO_AUTH_STATE.SIGNING_IN
+                ? CONST.AUTO_AUTH_STATE.JUST_SIGNED_IN : CONST.AUTO_AUTH_STATE.NOT_STARTED,
+        },
+    );
 }
 
 /**
@@ -258,7 +443,7 @@ function resetPassword() {
     {
         optimisticData: [
             {
-                onyxMethod: CONST.ONYX.METHOD.MERGE,
+                onyxMethod: Onyx.METHOD.MERGE,
                 key: ONYXKEYS.ACCOUNT,
                 value: {
                     errors: null,
@@ -277,7 +462,7 @@ function resendResetPassword() {
     {
         optimisticData: [
             {
-                onyxMethod: CONST.ONYX.METHOD.MERGE,
+                onyxMethod: Onyx.METHOD.MERGE,
                 key: ONYXKEYS.ACCOUNT,
                 value: {
                     isLoading: true,
@@ -289,17 +474,17 @@ function resendResetPassword() {
         ],
         successData: [
             {
-                onyxMethod: CONST.ONYX.METHOD.MERGE,
+                onyxMethod: Onyx.METHOD.MERGE,
                 key: ONYXKEYS.ACCOUNT,
                 value: {
                     isLoading: false,
-                    message: Localize.translateLocal('resendValidationForm.linkHasBeenResent'),
+                    message: 'resendValidationForm.linkHasBeenResent',
                 },
             },
         ],
         failureData: [
             {
-                onyxMethod: CONST.ONYX.METHOD.MERGE,
+                onyxMethod: Onyx.METHOD.MERGE,
                 key: ONYXKEYS.ACCOUNT,
                 value: {
                     isLoading: false,
@@ -355,7 +540,7 @@ function clearAccountMessages() {
 function updatePasswordAndSignin(accountID, validateCode, password) {
     const optimisticData = [
         {
-            onyxMethod: CONST.ONYX.METHOD.MERGE,
+            onyxMethod: Onyx.METHOD.MERGE,
             key: ONYXKEYS.ACCOUNT,
             value: {
                 isLoading: true,
@@ -363,7 +548,7 @@ function updatePasswordAndSignin(accountID, validateCode, password) {
             },
         },
         {
-            onyxMethod: CONST.ONYX.METHOD.MERGE,
+            onyxMethod: Onyx.METHOD.MERGE,
             key: ONYXKEYS.SESSION,
             value: {
                 errors: null,
@@ -373,7 +558,7 @@ function updatePasswordAndSignin(accountID, validateCode, password) {
 
     const successData = [
         {
-            onyxMethod: CONST.ONYX.METHOD.MERGE,
+            onyxMethod: Onyx.METHOD.MERGE,
             key: ONYXKEYS.ACCOUNT,
             value: {
                 isLoading: false,
@@ -381,7 +566,7 @@ function updatePasswordAndSignin(accountID, validateCode, password) {
             },
         },
         {
-            onyxMethod: CONST.ONYX.METHOD.MERGE,
+            onyxMethod: Onyx.METHOD.MERGE,
             key: ONYXKEYS.SESSION,
             value: {
                 errors: null,
@@ -391,7 +576,7 @@ function updatePasswordAndSignin(accountID, validateCode, password) {
 
     const failureData = [
         {
-            onyxMethod: CONST.ONYX.METHOD.MERGE,
+            onyxMethod: Onyx.METHOD.MERGE,
             key: ONYXKEYS.ACCOUNT,
             value: {
                 isLoading: false,
@@ -462,17 +647,91 @@ function authenticatePusher(socketID, channelName, callback) {
     });
 }
 
+/**
+ * Request a new validation link / magic code to unlink an unvalidated secondary login from a primary login
+ */
+function requestUnlinkValidationLink() {
+    const optimisticData = [{
+        onyxMethod: CONST.ONYX.METHOD.MERGE,
+        key: ONYXKEYS.ACCOUNT,
+        value: {
+            isLoading: true,
+            errors: null,
+            message: null,
+        },
+    }];
+    const successData = [{
+        onyxMethod: CONST.ONYX.METHOD.MERGE,
+        key: ONYXKEYS.ACCOUNT,
+        value: {
+            isLoading: false,
+            message: Localize.translateLocal('unlinkLoginForm.linkSent'),
+        },
+    }];
+    const failureData = [{
+        onyxMethod: CONST.ONYX.METHOD.MERGE,
+        key: ONYXKEYS.ACCOUNT,
+        value: {
+            isLoading: false,
+        },
+    }];
+
+    API.write('RequestUnlinkValidationLink', {email: credentials.login}, {optimisticData, successData, failureData});
+}
+
+function unlinkLogin(accountID, validateCode) {
+    const optimisticData = [{
+        onyxMethod: CONST.ONYX.METHOD.MERGE,
+        key: ONYXKEYS.ACCOUNT,
+        value: {
+            ...CONST.DEFAULT_ACCOUNT_DATA,
+            isLoading: true,
+        },
+    }];
+    const successData = [{
+        onyxMethod: CONST.ONYX.METHOD.MERGE,
+        key: ONYXKEYS.ACCOUNT,
+        value: {
+            isLoading: false,
+            message: Localize.translateLocal('unlinkLoginForm.succesfullyUnlinkedLogin'),
+        },
+    },
+    {
+        onyxMethod: CONST.ONYX.METHOD.MERGE,
+        key: ONYXKEYS.CREDENTIALS,
+        value: {
+            login: '',
+        },
+    }];
+    const failureData = [{
+        onyxMethod: CONST.ONYX.METHOD.MERGE,
+        key: ONYXKEYS.ACCOUNT,
+        value: {
+            isLoading: false,
+        },
+    }];
+
+    API.write('UnlinkLogin', {accountID, validateCode}, {optimisticData, successData, failureData});
+}
+
 export {
     beginSignIn,
     updatePasswordAndSignin,
     signIn,
+    signInWithValidateCode,
+    signInWithValidateCodeAndNavigate,
+    initAutoAuthState,
     signInWithShortLivedAuthToken,
     cleanupSession,
     signOut,
     signOutAndRedirectToSignIn,
     resendValidationLink,
+    resendValidateCode,
+    resendLinkWithValidateCode,
     resetPassword,
     resendResetPassword,
+    requestUnlinkValidationLink,
+    unlinkLogin,
     clearSignInData,
     clearAccountMessages,
     authenticatePusher,

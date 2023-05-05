@@ -24,7 +24,6 @@ import SubscriptAvatar from './SubscriptAvatar';
 import OfflineWithFeedback from './OfflineWithFeedback';
 import CONST from '../CONST';
 import * as ReportUtils from '../libs/ReportUtils';
-import variables from '../styles/variables';
 
 const propTypes = {
     /** Style for hovered state */
@@ -93,6 +92,7 @@ class OptionRow extends Component {
         return this.state.isDisabled !== nextState.isDisabled
             || this.props.isDisabled !== nextProps.isDisabled
             || this.props.isSelected !== nextProps.isSelected
+            || this.props.shouldHaveOptionSeparator !== nextProps.shouldHaveOptionSeparator
             || this.props.showSelectedState !== nextProps.showSelectedState
             || this.props.showTitleTooltip !== nextProps.showTitleTooltip
             || !_.isEqual(this.props.option.icons, nextProps.option.icons)
@@ -100,7 +100,12 @@ class OptionRow extends Component {
             || this.props.option.text !== nextProps.option.text
             || this.props.option.alternateText !== nextProps.option.alternateText
             || this.props.option.descriptiveText !== nextProps.option.descriptiveText
-            || this.props.option.brickRoadIndicator !== nextProps.option.brickRoadIndicator;
+            || this.props.option.brickRoadIndicator !== nextProps.option.brickRoadIndicator
+            || this.props.option.shouldShowSubscript !== nextProps.option.shouldShowSubscript
+            || this.props.option.ownerEmail !== nextProps.option.ownerEmail
+            || this.props.option.subtitle !== nextProps.option.subtitle
+            || this.props.option.pendingAction !== nextProps.option.pendingAction
+            || this.props.option.customIcon !== nextProps.option.customIcon;
     }
 
     componentDidUpdate(prevProps) {
@@ -118,8 +123,9 @@ class OptionRow extends Component {
             : styles.sidebarLinkText;
         const textUnreadStyle = (this.props.boldStyle || this.props.option.boldStyle)
             ? [textStyle, styles.sidebarLinkTextBold] : [textStyle];
-        const displayNameStyle = StyleUtils.combineStyles(styles.optionDisplayName, textUnreadStyle, this.props.style);
-        const alternateTextStyle = StyleUtils.combineStyles(textStyle, styles.optionAlternateText, styles.textLabelSupporting, this.props.style);
+        const displayNameStyle = StyleUtils.combineStyles(styles.optionDisplayName, textUnreadStyle, this.props.style, styles.pre);
+        const alternateTextStyle = StyleUtils.combineStyles(textStyle, styles.optionAlternateText, styles.textLabelSupporting, this.props.style,
+            lodashGet(this.props.option, 'alternateTextMaxLines', 1) === 1 ? styles.pre : styles.preWrap);
         const contentContainerStyles = [styles.flex1];
         const sidebarInnerRowStyle = StyleSheet.flatten([
             styles.chatLinkRowPressable,
@@ -200,7 +206,6 @@ class OptionRow extends Component {
                                                     secondaryAvatar={this.props.option.icons[1]}
                                                     mainTooltip={this.props.option.ownerEmail}
                                                     secondaryTooltip={this.props.option.subtitle}
-                                                    size={CONST.AVATAR_SIZE.DEFAULT}
                                                     backgroundColor={
                                                     hovered && !this.props.optionIsFocused
                                                         ? hoveredBackgroundColor
@@ -227,7 +232,7 @@ class OptionRow extends Component {
                                     }
                                     <View style={contentContainerStyles}>
                                         <DisplayNames
-                                            accessibilityLabel="Chat user display names"
+                                            accessibilityLabel={this.props.translate('accessibilityHints.chatUserDisplayNames')}
                                             fullTitle={this.props.option.text}
                                             displayNamesWithTooltips={displayNamesWithTooltips}
                                             tooltipEnabled={this.props.showTitleTooltip}
@@ -238,7 +243,7 @@ class OptionRow extends Component {
                                         {this.props.option.alternateText ? (
                                             <Text
                                                 style={alternateTextStyle}
-                                                numberOfLines={1}
+                                                numberOfLines={lodashGet(this.props.option, 'alternateTextMaxLines', 1)}
                                             >
                                                 {this.props.option.alternateText}
                                             </Text>
@@ -256,15 +261,13 @@ class OptionRow extends Component {
                                         <Icon
                                             src={Expensicons.DotIndicator}
                                             fill={themeColors.danger}
-                                            height={variables.iconSizeSmall}
-                                            width={variables.iconSizeSmall}
                                         />
                                     </View>
                                     )}
                                     {this.props.showSelectedState && <SelectCircle isChecked={this.props.isSelected} />}
                                 </View>
                             </View>
-                            {this.props.option.customIcon && (
+                            {Boolean(this.props.option.customIcon) && (
                                 <View
                                     style={[styles.flexRow, styles.alignItemsCenter]}
                                     accessible={false}
@@ -272,8 +275,6 @@ class OptionRow extends Component {
                                     <View>
                                         <Icon
                                             src={lodashGet(this.props.option, 'customIcon.src', '')}
-                                            height={16}
-                                            width={16}
                                             fill={lodashGet(this.props.option, 'customIcon.color')}
                                         />
                                     </View>

@@ -15,6 +15,7 @@ import styles from '../styles/styles';
 import DisplayNames from '../components/DisplayNames';
 import * as OptionsListUtils from '../libs/OptionsListUtils';
 import * as ReportUtils from '../libs/ReportUtils';
+import * as Policy from '../libs/actions/Policy';
 import participantPropTypes from '../components/participantPropTypes';
 import * as Expensicons from '../components/Icon/Expensicons';
 import ROUTES from '../ROUTES';
@@ -22,16 +23,11 @@ import MenuItem from '../components/MenuItem';
 import Text from '../components/Text';
 import CONST from '../CONST';
 import reportPropTypes from './reportPropTypes';
-import withReportOrNavigateHome from './home/report/withReportOrNavigateHome';
+import withReportOrNotFound from './home/report/withReportOrNotFound';
 import FullPageNotFoundView from '../components/BlockingViews/FullPageNotFoundView';
 
 const propTypes = {
     ...withLocalizePropTypes,
-
-    /** Whether or not to show the Compose Input */
-    session: PropTypes.shape({
-        accountID: PropTypes.number,
-    }).isRequired,
 
     /** The report currently being looked at */
     report: reportPropTypes.isRequired,
@@ -40,7 +36,7 @@ const propTypes = {
     policies: PropTypes.shape({
         /** Name of the policy */
         name: PropTypes.string,
-    }).isRequired,
+    }),
 
     /** Route params */
     route: PropTypes.shape({
@@ -51,7 +47,12 @@ const propTypes = {
     }).isRequired,
 
     /** Personal details of all the users */
-    personalDetails: PropTypes.objectOf(participantPropTypes).isRequired,
+    personalDetails: PropTypes.objectOf(participantPropTypes),
+};
+
+const defaultProps = {
+    policies: {},
+    personalDetails: {},
 };
 
 class ReportDetailsPage extends Component {
@@ -62,14 +63,15 @@ class ReportDetailsPage extends Component {
             return [];
         }
 
-        // All nonarchived chats should let you see their members
-        menuItems.push({
-            key: CONST.REPORT_DETAILS_MENU_ITEM.MEMBERS,
-            translationKey: 'common.members',
-            icon: Expensicons.Users,
-            subtitle: lodashGet(this.props.report, 'participants', []).length,
-            action: () => { Navigation.navigate(ROUTES.getReportParticipantsRoute(this.props.report.reportID)); },
-        });
+        if (lodashGet(this.props.report, 'participants', []).length) {
+            menuItems.push({
+                key: CONST.REPORT_DETAILS_MENU_ITEM.MEMBERS,
+                translationKey: 'common.members',
+                icon: Expensicons.Users,
+                subtitle: lodashGet(this.props.report, 'participants', []).length,
+                action: () => { Navigation.navigate(ROUTES.getReportParticipantsRoute(this.props.report.reportID)); },
+            });
+        }
 
         if (ReportUtils.isPolicyExpenseChat(this.props.report) || ReportUtils.isChatRoom(this.props.report)) {
             menuItems.push({
@@ -80,27 +82,23 @@ class ReportDetailsPage extends Component {
             });
         }
 
-        if (ReportUtils.isUserCreatedPolicyRoom(this.props.report)) {
+        const policy = this.props.policies[`${ONYXKEYS.COLLECTION.POLICY}${this.props.report.policyID}`];
+        if (ReportUtils.isUserCreatedPolicyRoom(this.props.report) || ReportUtils.canLeaveRoom(this.props.report, !_.isEmpty(policy))) {
             menuItems.push({
-                key: CONST.REPORT_DETAILS_MENU_ITEM.INVITE,
-                translationKey: 'common.invite',
-                icon: Expensicons.Plus,
-                action: () => { /* Placeholder for when inviting other users is built in */ },
-            },
-            {
                 key: CONST.REPORT_DETAILS_MENU_ITEM.LEAVE_ROOM,
                 translationKey: 'common.leaveRoom',
                 icon: Expensicons.Exit,
-                action: () => { /* Placeholder for when leaving rooms is built in */ },
+                action: () => Policy.leaveRoom(this.props.report.reportID),
             });
         }
+
         return menuItems;
     }
 
     render() {
         const isPolicyExpenseChat = ReportUtils.isPolicyExpenseChat(this.props.report);
         const isChatRoom = ReportUtils.isChatRoom(this.props.report);
-        const chatRoomSubtitle = ReportUtils.getChatRoomSubtitle(this.props.report, this.props.policies);
+        const chatRoomSubtitle = ReportUtils.getChatRoomSubtitle(this.props.report);
         const participants = lodashGet(this.props.report, 'participants', []);
         const isMultipleParticipant = participants.length > 1;
         const displayNamesWithTooltips = ReportUtils.getDisplayNamesWithTooltips(
@@ -129,11 +127,11 @@ class ReportDetailsPage extends Component {
                                 <View style={[styles.reportDetailsRoomInfo, styles.mw100]}>
                                     <View style={[styles.alignSelfCenter, styles.w100]}>
                                         <DisplayNames
-                                            fullTitle={ReportUtils.getReportName(this.props.report, this.props.policies)}
+                                            fullTitle={ReportUtils.getReportName(this.props.report)}
                                             displayNamesWithTooltips={displayNamesWithTooltips}
                                             tooltipEnabled
                                             numberOfLines={1}
-                                            textStyles={[styles.textHeadline, styles.mb2, styles.textAlignCenter]}
+                                            textStyles={[styles.textHeadline, styles.mb2, styles.textAlignCenter, styles.pre]}
                                             shouldUseFullTitle={isChatRoom || isPolicyExpenseChat}
                                         />
                                     </View>
@@ -143,6 +141,7 @@ class ReportDetailsPage extends Component {
                                             styles.optionAlternateText,
                                             styles.textLabelSupporting,
                                             styles.mb2,
+                                            styles.pre,
                                         ]}
                                         numberOfLines={1}
                                     >
@@ -178,19 +177,16 @@ class ReportDetailsPage extends Component {
 }
 
 ReportDetailsPage.propTypes = propTypes;
-
+ReportDetailsPage.defaultProps = defaultProps;
 export default compose(
     withLocalize,
-    withReportOrNavigateHome,
+    withReportOrNotFound,
     withOnyx({
         personalDetails: {
             key: ONYXKEYS.PERSONAL_DETAILS,
         },
         policies: {
             key: ONYXKEYS.COLLECTION.POLICY,
-        },
-        session: {
-            key: ONYXKEYS.SESSION,
         },
     }),
 )(ReportDetailsPage);

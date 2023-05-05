@@ -8,7 +8,6 @@ import AppNavigator from './AppNavigator';
 import FullScreenLoadingIndicator from '../../components/FullscreenLoadingIndicator';
 import themeColors from '../../styles/themes/default';
 import styles from '../../styles/styles';
-import DomUtils from '../DomUtils';
 import Log from '../Log';
 
 // https://reactnavigation.org/docs/themes
@@ -45,12 +44,6 @@ function parseAndLogRoute(state) {
     } else {
         Log.info('Navigating to route', false, {path: currentPath});
     }
-
-    // Clicking a button that does navigation will stay active even if it's out of view
-    // and it's tooltip will stay visible.
-    // We blur the element manually to fix that (especially for Safari).
-    // More info: https://github.com/Expensify/App/issues/13146
-    DomUtils.blurActiveElement();
 
     Navigation.setIsNavigationReady();
 }

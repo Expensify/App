@@ -63,7 +63,7 @@ class FloatingMessageCounter extends PureComponent {
     render() {
         return (
             <FloatingMessageCounterContainer
-                accessibilityHint="Scroll to newest messages"
+                accessibilityHint={this.props.translate('accessibilityHints.scrollToNewestMessages')}
                 containerStyles={[styles.floatingMessageCounterTransformation(this.translateY)]}
             >
                 <View style={styles.floatingMessageCounter}>
@@ -77,22 +77,21 @@ class FloatingMessageCounter extends PureComponent {
                             success
                             small
                             onPress={this.props.onClick}
-                            ContentComponent={() => (
-                                <View style={[styles.flexRow, styles.alignItemsCenter]}>
-                                    <Icon small src={Expensicons.DownArrow} fill={themeColors.textLight} />
-                                    <Text
-                                        selectable={false}
-                                        style={[
-                                            styles.ml2,
-                                            styles.buttonSmallText,
-                                            styles.textWhite,
-                                        ]}
-                                    >
-                                        {this.props.translate('newMessages')}
-                                    </Text>
-                                </View>
-                            )}
-                        />
+                        >
+                            <View style={[styles.flexRow, styles.alignItemsCenter]}>
+                                <Icon small src={Expensicons.DownArrow} fill={themeColors.textLight} />
+                                <Text
+                                    selectable={false}
+                                    style={[
+                                        styles.ml2,
+                                        styles.buttonSmallText,
+                                        styles.textWhite,
+                                    ]}
+                                >
+                                    {this.props.translate('newMessages')}
+                                </Text>
+                            </View>
+                        </Button>
                     </View>
                 </View>
             </FloatingMessageCounterContainer>

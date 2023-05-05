@@ -25,6 +25,7 @@ import ROUTES from '../../../ROUTES';
 import FormAlertWithSubmitButton from '../../../components/FormAlertWithSubmitButton';
 import {withNetwork} from '../../../components/OnyxProvider';
 import ConfirmationPage from '../../../components/ConfirmationPage';
+import * as CurrencyUtils from '../../../libs/CurrencyUtils';
 
 const propTypes = {
     /** User's wallet information */
@@ -71,10 +72,7 @@ class TransferBalancePage extends React.Component {
                 title: this.props.translate('transferAmountPage.instant'),
                 description: this.props.translate('transferAmountPage.instantSummary', {
                     rate: this.props.numberFormat(CONST.WALLET.TRANSFER_METHOD_TYPE_FEE.INSTANT.RATE),
-                    minAmount: this.props.numberFormat(
-                        CONST.WALLET.TRANSFER_METHOD_TYPE_FEE.INSTANT.MINIMUM_FEE / 100,
-                        {style: 'currency', currency: 'USD'},
-                    ),
+                    minAmount: CurrencyUtils.convertToDisplayString(CONST.WALLET.TRANSFER_METHOD_TYPE_FEE.INSTANT.MINIMUM_FEE),
                 }),
                 icon: Expensicons.Bolt,
                 type: CONST.PAYMENT_METHODS.DEBIT_CARD,
@@ -176,7 +174,7 @@ class TransferBalancePage extends React.Component {
         const transferAmount = this.props.userWallet.currentBalance - calculatedFee;
         const isTransferable = transferAmount > 0;
         const isButtonDisabled = !isTransferable || !selectedAccount;
-        const error = this.props.walletTransfer.error;
+        const errorMessage = !_.isEmpty(this.props.walletTransfer.errors) ? _.chain(this.props.walletTransfer.errors).values().first().value() : '';
 
         return (
             <ScreenWrapper>
@@ -242,10 +240,7 @@ class TransferBalancePage extends React.Component {
                         <Text
                             style={[styles.justifyContentStart]}
                         >
-                            {this.props.numberFormat(
-                                calculatedFee / 100,
-                                {style: 'currency', currency: 'USD'},
-                            )}
+                            {CurrencyUtils.convertToDisplayString(calculatedFee)}
                         </Text>
                     </View>
                 </ScrollView>
@@ -255,17 +250,15 @@ class TransferBalancePage extends React.Component {
                             'transferAmountPage.transfer',
                             {
                                 amount: isTransferable
-                                    ? this.props.numberFormat(
-                                        transferAmount / 100,
-                                        {style: 'currency', currency: 'USD'},
-                                    ) : '',
+                                    ? CurrencyUtils.convertToDisplayString(transferAmount)
+                                    : '',
                             },
                         )}
                         isLoading={this.props.walletTransfer.loading}
                         onSubmit={() => PaymentMethods.transferWalletBalance(selectedAccount)}
                         isDisabled={isButtonDisabled || this.props.network.isOffline}
-                        message={error}
-                        isAlertVisible={!_.isEmpty(error)}
+                        message={errorMessage}
+                        isAlertVisible={!_.isEmpty(errorMessage)}
                     />
                 </View>
             </ScreenWrapper>

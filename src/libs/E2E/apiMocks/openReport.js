@@ -22,7 +22,7 @@ export default () => ({
                 isPinned: false,
                 lastReadTimestamp: 1671470568415,
                 lastReadCreated: '1980-01-01 00:00:00.000',
-                lastActionCreated: '2022-08-01 20:49:11',
+                lastVisibleActionCreated: '2022-08-01 20:49:11',
                 lastMessageTimestamp: 1659386951000,
                 lastMessageText: 'Say hello\ud83d\ude10',
                 lastActorEmail: 'fake3@gmail.com',

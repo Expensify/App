@@ -13,6 +13,7 @@ import Icon from './Icon';
 import * as Expensicons from './Icon/Expensicons';
 import * as StyleUtils from '../styles/StyleUtils';
 import DotIndicatorMessage from './DotIndicatorMessage';
+import shouldRenderOffscreen from '../libs/shouldRenderOffscreen';
 
 /**
  * This component should be used when we are using the offline pattern B (offline with feedback).
@@ -72,7 +73,7 @@ function applyStrikeThrough(children) {
         if (!React.isValidElement(child)) {
             return child;
         }
-        const props = {style: StyleUtils.combineStyles(child.props.style, styles.offlineFeedback.deleted)};
+        const props = {style: StyleUtils.combineStyles(child.props.style, styles.offlineFeedback.deleted, styles.userSelectNone)};
         if (child.props.children) {
             props.children = applyStrikeThrough(child.props.children);
         }
@@ -97,7 +98,14 @@ const OfflineWithFeedback = (props) => {
     return (
         <View style={props.style}>
             {!hideChildren && (
-                <View style={[needsOpacity ? styles.offlineFeedback.pending : {}, props.contentContainerStyle]}>
+                <View
+                    style={[needsOpacity ? styles.offlineFeedback.pending : {}, props.contentContainerStyle]}
+                    needsOffscreenAlphaCompositing={
+                        shouldRenderOffscreen
+                            ? (needsOpacity && props.needsOffscreenAlphaCompositing)
+                            : undefined
+                    }
+                >
                     {children}
                 </View>
             )}

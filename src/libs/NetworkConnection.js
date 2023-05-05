@@ -78,7 +78,7 @@ function subscribeToNetInfo() {
             // By default, NetInfo uses `/` for `reachabilityUrl`
             // When App is served locally (or from Electron) this address is always reachable - even offline
             // Using the API url ensures reachability is tested over internet
-            reachabilityUrl: `${CONFIG.EXPENSIFY.URL_API_ROOT}api`,
+            reachabilityUrl: `${CONFIG.EXPENSIFY.DEFAULT_API_ROOT}api`,
             reachabilityTest: response => Promise.resolve(response.status === 200),
 
             // If a check is taking longer than this time we're considered offline

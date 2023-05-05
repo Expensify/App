@@ -24,6 +24,9 @@ import Button from '../../components/Button';
 import FixedFooter from '../../components/FixedFooter';
 import BlockingView from '../../components/BlockingViews/BlockingView';
 import {withNetwork} from '../../components/OnyxProvider';
+import * as ReimbursementAccountProps from '../ReimbursementAccount/reimbursementAccountPropTypes';
+import * as ReportUtils from '../../libs/ReportUtils';
+import * as CurrencyUtils from '../../libs/CurrencyUtils';
 
 const propTypes = {
     /* Onyx Props */
@@ -46,6 +49,9 @@ const propTypes = {
         pendingAction: PropTypes.oneOf(_.values(CONST.RED_BRICK_ROAD_PENDING_ACTION)),
     })),
 
+    /** Bank account attached to free plan */
+    reimbursementAccount: ReimbursementAccountProps.reimbursementAccountPropTypes,
+
     /** List of policy members */
     policyMembers: PropTypes.objectOf(policyMemberPropType),
 
@@ -64,6 +70,7 @@ const propTypes = {
 const defaultProps = {
     policies: {},
     policyMembers: {},
+    reimbursementAccount: {},
     userWallet: {
         currentBalance: 0,
     },
@@ -104,10 +111,8 @@ class WorkspacesListPage extends Component {
      */
     getWalletBalance(isPaymentItem) {
         return (isPaymentItem && Permissions.canUseWallet(this.props.betas))
-            ? this.props.numberFormat(
-                this.props.userWallet.currentBalance / 100, // Divide by 100 because balance is in cents
-                {style: 'currency', currency: 'USD'},
-            ) : undefined;
+            ? CurrencyUtils.convertToDisplayString(this.props.userWallet.currentBalance)
+            : undefined;
     }
 
     /**
@@ -115,23 +120,23 @@ class WorkspacesListPage extends Component {
      * @returns {Array} the menu item list
      */
     getWorkspaces() {
+        const reimbursementAccountBrickRoadIndicator = !_.isEmpty(this.props.reimbursementAccount.errors) ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : '';
         return _.chain(this.props.policies)
             .filter(policy => PolicyUtils.shouldShowPolicy(policy, this.props.network.isOffline))
             .map(policy => ({
                 title: policy.name,
-                icon: policy.avatar ? policy.avatar : Expensicons.Building,
+                icon: policy.avatar ? policy.avatar : ReportUtils.getDefaultWorkspaceAvatar(policy.name),
                 iconType: policy.avatar ? CONST.ICON_TYPE_AVATAR : CONST.ICON_TYPE_ICON,
                 action: () => Navigation.navigate(ROUTES.getWorkspaceInitialRoute(policy.id)),
-                iconStyles: policy.avatar ? [] : [styles.popoverMenuIconEmphasized],
                 iconFill: themeColors.textLight,
                 fallbackIcon: Expensicons.FallbackWorkspaceAvatar,
-                brickRoadIndicator: PolicyUtils.getPolicyBrickRoadIndicatorStatus(policy, this.props.policyMembers),
+                brickRoadIndicator: reimbursementAccountBrickRoadIndicator || PolicyUtils.getPolicyBrickRoadIndicatorStatus(policy, this.props.policyMembers),
                 pendingAction: policy.pendingAction,
                 errors: policy.errors,
                 dismissError: () => dismissWorkspaceError(policy.id, policy.pendingAction),
                 disabled: policy.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
             }))
-            .sortBy(policy => policy.title)
+            .sortBy(policy => policy.title.toLowerCase())
             .value();
     }
 
@@ -157,7 +162,7 @@ class WorkspacesListPage extends Component {
                 <MenuItem
                     title={keyTitle}
                     icon={item.icon}
-                    iconType={item.iconType}
+                    iconType={CONST.ICON_TYPE_WORKSPACE}
                     onPress={item.action}
                     iconStyles={item.iconStyles}
                     iconFill={item.iconFill}
@@ -216,6 +221,9 @@ export default compose(
         },
         policyMembers: {
             key: ONYXKEYS.COLLECTION.POLICY_MEMBER_LIST,
+        },
+        reimbursementAccount: {
+            key: ONYXKEYS.REIMBURSEMENT_ACCOUNT,
         },
         userWallet: {
             key: ONYXKEYS.USER_WALLET,

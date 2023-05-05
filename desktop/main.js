@@ -12,10 +12,11 @@ const serve = require('electron-serve');
 const contextMenu = require('electron-context-menu');
 const {autoUpdater} = require('electron-updater');
 const log = require('electron-log');
+const {machineId} = require('node-machine-id');
 const ELECTRON_EVENTS = require('./ELECTRON_EVENTS');
 const checkForUpdates = require('../src/libs/checkForUpdates');
 const CONFIG = require('../src/CONFIG').default;
-const CONST = require('../src/CONST');
+const CONST = require('../src/CONST').default;
 const Localize = require('../src/libs/Localize');
 
 const port = process.env.PORT || 8080;
@@ -78,7 +79,9 @@ let downloadedVersion;
 // Note that we have to subscribe to this separately and cannot use Localize.translateLocal,
 // because the only way code can be shared between the main and renderer processes at runtime is via the context bridge
 // So we track preferredLocale separately via ELECTRON_EVENTS.LOCALE_UPDATED
-let preferredLocale = CONST.DEFAULT_LOCALE;
+let preferredLocale = CONST.LOCALES.DEFAULT;
+
+const appProtocol = CONST.DEEPLINK_BASE_URL.replace('://', '');
 
 const quitAndInstallWithUpdate = () => {
     if (!downloadedVersion) {
@@ -238,14 +241,14 @@ const mainWindow = (() => {
     if (__DEV__) {
         console.debug('CONFIG: ', CONFIG);
         app.dock.setIcon(`${__dirname}/../icon-dev.png`);
-        app.setName('New Expensify');
+        app.setName('New Expensify Dev');
     }
 
     app.on('will-finish-launching', () => {
         app.on('open-url', (event, url) => {
             event.preventDefault();
             const urlObject = new URL(url);
-            deeplinkUrl = `${APP_DOMAIN}${urlObject.pathname}`;
+            deeplinkUrl = `${APP_DOMAIN}${urlObject.pathname}${urlObject.search}${urlObject.hash}`;
 
             if (browserWindow) {
                 browserWindow.loadURL(deeplinkUrl);
@@ -267,7 +270,7 @@ const mainWindow = (() => {
              * when the app is bundled electron-builder will take care of it.
              */
             if (__DEV__) {
-                app.setAsDefaultProtocolClient('new-expensify');
+                app.setAsDefaultProtocolClient(appProtocol);
             }
 
             browserWindow = new BrowserWindow({
@@ -281,6 +284,8 @@ const mainWindow = (() => {
                 },
                 titleBarStyle: 'hidden',
             });
+
+            ipcMain.handle(ELECTRON_EVENTS.REQUEST_DEVICE_ID, () => machineId());
 
             /*
              * The default origin of our Electron app is app://- instead of https://new.expensify.com or https://staging.new.expensify.com
@@ -403,7 +408,14 @@ const mainWindow = (() => {
                 browserWindow.webContents.send(ELECTRON_EVENTS.BLUR);
             });
 
-            app.on('before-quit', () => quitting = true);
+            app.on('before-quit', () => {
+                // Adding __DEV__ check because we want links to be handled by dev app only while it's running
+                // https://github.com/Expensify/App/issues/15965#issuecomment-1483182952
+                if (__DEV__) {
+                    app.removeAsDefaultProtocolClient(appProtocol);
+                }
+                quitting = true;
+            });
             app.on('activate', () => {
                 if (expectedUpdateVersion && app.getVersion() !== expectedUpdateVersion) {
                     return;

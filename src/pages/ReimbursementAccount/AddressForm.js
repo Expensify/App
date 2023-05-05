@@ -106,30 +106,28 @@ const AddressForm = props => (
                 errorText={props.errors.street ? props.translate('bankAccount.error.addressStreet') : ''}
                 hint={props.translate('common.noPO')}
                 renamedInputKeys={props.inputKeys}
+                maxInputLength={CONST.FORM_CHARACTER_LIMIT}
             />
         </View>
-        <View style={[styles.flexRow, styles.mt4]}>
-            <View style={[styles.flex2, styles.mr2]}>
-                <TextInput
-                    inputID={props.inputKeys.city}
-                    shouldSaveDraft={props.shouldSaveDraft}
-                    label={props.translate('common.city')}
-                    value={props.values.city}
-                    defaultValue={props.defaultValues.city}
-                    onChangeText={value => props.onFieldChange({city: value})}
-                    errorText={props.errors.city ? props.translate('bankAccount.error.addressCity') : ''}
-                />
-            </View>
-            <View style={[styles.flex1]}>
-                <StatePicker
-                    inputID={props.inputKeys.state}
-                    shouldSaveDraft={props.shouldSaveDraft}
-                    value={props.values.state}
-                    defaultValue={props.defaultValues.state}
-                    onInputChange={value => props.onFieldChange({state: value})}
-                    errorText={props.errors.state ? props.translate('bankAccount.error.addressState') : ''}
-                />
-            </View>
+        <TextInput
+            inputID={props.inputKeys.city}
+            shouldSaveDraft={props.shouldSaveDraft}
+            label={props.translate('common.city')}
+            value={props.values.city}
+            defaultValue={props.defaultValues.city}
+            onChangeText={value => props.onFieldChange({city: value})}
+            errorText={props.errors.city ? props.translate('bankAccount.error.addressCity') : ''}
+            containerStyles={[styles.mt4]}
+        />
+        <View style={styles.mt4}>
+            <StatePicker
+                inputID={props.inputKeys.state}
+                shouldSaveDraft={props.shouldSaveDraft}
+                value={props.values.state}
+                defaultValue={props.defaultValues.state}
+                onInputChange={value => props.onFieldChange({state: value})}
+                errorText={props.errors.state ? props.translate('bankAccount.error.addressState') : ''}
+            />
         </View>
         <TextInput
             inputID={props.inputKeys.zipCode}
@@ -142,7 +140,7 @@ const AddressForm = props => (
             onChangeText={value => props.onFieldChange({zipCode: value})}
             errorText={props.errors.zipCode ? props.translate('bankAccount.error.zipCode') : ''}
             maxLength={CONST.BANK_ACCOUNT.MAX_LENGTH.ZIP_CODE}
-            hint={props.translate('common.zipCodeExample')}
+            hint={props.translate('common.zipCodeExampleFormat', {zipSampleFormat: CONST.COUNTRY_ZIP_REGEX_DATA.US.samples})}
         />
     </>
 );

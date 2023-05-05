@@ -1,13 +1,16 @@
 import Onyx from 'react-native-onyx';
 import _ from 'underscore';
+import lodashGet from 'lodash/get';
 import lodashOrderBy from 'lodash/orderBy';
 import Str from 'expensify-common/lib/str';
 import ONYXKEYS from '../ONYXKEYS';
 import * as ReportUtils from './ReportUtils';
+import * as ReportActionsUtils from './ReportActionsUtils';
 import * as Localize from './Localize';
 import CONST from '../CONST';
 import * as OptionsListUtils from './OptionsListUtils';
 import * as CollectionUtils from './CollectionUtils';
+import * as LocalePhoneNumber from './LocalePhoneNumber';
 
 // Note: It is very important that the keys subscribed to here are the same
 // keys that are connected to SidebarLinks withOnyx(). If there was a key missing from SidebarLinks and it's data was updated
@@ -51,6 +54,7 @@ Onyx.connect({
     callback: val => betas = val,
 });
 
+const visibleReportActionItems = {};
 const lastReportActions = {};
 const reportActions = {};
 Onyx.connect({
@@ -60,7 +64,16 @@ Onyx.connect({
             return;
         }
         const reportID = CollectionUtils.extractCollectionItemID(key);
-        lastReportActions[reportID] = _.last(_.toArray(actions));
+
+        const actionsArray = _.toArray(actions);
+        lastReportActions[reportID] = _.last(actionsArray);
+
+        // The report is only visible if it is the last action not deleted that
+        // does not match a closed or created state.
+        const reportActionsForDisplay = _.filter(actionsArray, (reportAction, actionKey) => (ReportActionsUtils.shouldReportActionBeVisible(reportAction, actionKey)
+            && (reportAction.actionName !== CONST.REPORT.ACTIONS.TYPE.CREATED)));
+        visibleReportActionItems[reportID] = _.first(ReportActionsUtils.getSortedReportActions(reportActionsForDisplay, true));
+
         reportActions[key] = actions;
     },
 });
@@ -81,7 +94,7 @@ Onyx.connect({
 let preferredLocale;
 Onyx.connect({
     key: ONYXKEYS.NVP_PREFERRED_LOCALE,
-    callback: val => preferredLocale = val || CONST.DEFAULT_LOCALE,
+    callback: val => preferredLocale = val || CONST.LOCALES.DEFAULT,
 });
 
 /**
@@ -101,7 +114,7 @@ function getOrderedReportIDs(reportIDFromRoute) {
         // However, this code needs to be very performant to handle thousands of reports, so in the interest of speed, we're just going to disable this lint rule and add
         // the reportDisplayName property to the report object directly.
         // eslint-disable-next-line no-param-reassign
-        report.displayName = ReportUtils.getReportName(report, policies);
+        report.displayName = ReportUtils.getReportName(report);
 
         // eslint-disable-next-line no-param-reassign
         report.iouReportAmount = ReportUtils.getIOUTotal(report, iouReports);
@@ -112,10 +125,10 @@ function getOrderedReportIDs(reportIDFromRoute) {
     // 2. Outstanding IOUs - Always sorted by iouReportAmount with the largest amounts at the top of the group
     // 3. Drafts - Always sorted by reportDisplayName
     // 4. Non-archived reports
-    //      - Sorted by lastActionCreated in default (most recent) view mode
+    //      - Sorted by lastVisibleActionCreated in default (most recent) view mode
     //      - Sorted by reportDisplayName in GSD (focus) view mode
     // 5. Archived reports
-    //      - Sorted by lastActionCreated in default (most recent) view mode
+    //      - Sorted by lastVisibleActionCreated in default (most recent) view mode
     //      - Sorted by reportDisplayName in GSD (focus) view mode
     let pinnedReports = [];
     let outstandingIOUReports = [];
@@ -129,7 +142,7 @@ function getOrderedReportIDs(reportIDFromRoute) {
             return;
         }
 
-        if (report.hasOutstandingIOU && !report.isIOUReportOwner) {
+        if (report.hasOutstandingIOU && !ReportUtils.isIOUOwnedByCurrentUser(report, iouReports)) {
             outstandingIOUReports.push(report);
             return;
         }
@@ -152,9 +165,9 @@ function getOrderedReportIDs(reportIDFromRoute) {
     outstandingIOUReports = lodashOrderBy(outstandingIOUReports, ['iouReportAmount', report => report.displayName.toLowerCase()], ['desc', 'asc']);
     draftReports = _.sortBy(draftReports, report => report.displayName.toLowerCase());
     nonArchivedReports = isInDefaultMode
-        ? lodashOrderBy(nonArchivedReports, ['lastActionCreated', report => report.displayName.toLowerCase()], ['desc', 'asc'])
+        ? lodashOrderBy(nonArchivedReports, ['lastVisibleActionCreated', report => report.displayName.toLowerCase()], ['desc', 'asc'])
         : lodashOrderBy(nonArchivedReports, [report => report.displayName.toLowerCase()], ['asc']);
-    archivedReports = _.sortBy(archivedReports, report => (isInDefaultMode ? report.lastActionCreated : report.displayName.toLowerCase()));
+    archivedReports = _.sortBy(archivedReports, report => (isInDefaultMode ? report.lastVisibleActionCreated : report.displayName.toLowerCase()));
 
     // For archived reports ensure that most recent reports are at the top by reversing the order of the arrays because underscore will only sort them in ascending order
     if (isInDefaultMode) {
@@ -202,6 +215,7 @@ function getOptionData(reportID) {
         phoneNumber: null,
         payPalMeAddress: null,
         isUnread: null,
+        isUnreadWithMention: null,
         hasDraftComment: false,
         keyForList: null,
         searchText: null,
@@ -229,6 +243,7 @@ function getOptionData(reportID) {
     result.ownerEmail = report.ownerEmail;
     result.reportID = report.reportID;
     result.isUnread = ReportUtils.isUnread(report);
+    result.isUnreadWithMention = ReportUtils.isUnreadWithMention(report);
     result.hasDraftComment = report.hasDraft;
     result.isPinned = report.isPinned;
     result.iouReportID = report.iouReportID;
@@ -237,7 +252,10 @@ function getOptionData(reportID) {
     result.hasOutstandingIOU = report.hasOutstandingIOU;
 
     const hasMultipleParticipants = participantPersonalDetailList.length > 1 || result.isChatRoom || result.isPolicyExpenseChat;
-    const subtitle = ReportUtils.getChatRoomSubtitle(report, policies);
+    const subtitle = ReportUtils.getChatRoomSubtitle(report);
+
+    const login = Str.removeSMSDomain(lodashGet(personalDetail, 'login', ''));
+    const formattedLogin = Str.isSMSLogin(login) ? LocalePhoneNumber.formatPhoneNumber(login) : login;
 
     // We only create tooltips for the first 10 users or so since some reports have hundreds of users, causing performance to degrade.
     const displayNamesWithTooltips = ReportUtils.getDisplayNamesWithTooltips((participantPersonalDetailList || []).slice(0, 10), hasMultipleParticipants);
@@ -246,10 +264,20 @@ function getOptionData(reportID) {
     if (ReportUtils.isReportMessageAttachment({text: report.lastMessageText, html: report.lastMessageHtml})) {
         lastMessageTextFromReport = `[${Localize.translateLocal('common.attachment')}]`;
     } else {
-        lastMessageTextFromReport = Str.htmlDecode(report ? report.lastMessageText : '');
+        lastMessageTextFromReport = report ? report.lastMessageText || '' : '';
     }
 
-    const lastActorDetails = personalDetails[report.lastActorEmail] || null;
+    // If the last actor's details are not currently saved in Onyx Collection,
+    // then try to get that from the last report action if that action is valid
+    // to get data from.
+    let lastActorDetails = personalDetails[report.lastActorEmail] || null;
+    if (!lastActorDetails && visibleReportActionItems[report.reportID]) {
+        const lastActorDisplayName = lodashGet(visibleReportActionItems[report.reportID], 'person[0].text');
+        lastActorDetails = lastActorDisplayName ? {
+            displayName: lastActorDisplayName,
+            login: report.lastActorEmail,
+        } : null;
+    }
     let lastMessageText = hasMultipleParticipants && lastActorDetails && (lastActorDetails.login !== currentUserLogin.email)
         ? `${lastActorDetails.displayName}: `
         : '';
@@ -260,14 +288,14 @@ function getOptionData(reportID) {
             || CONST.REPORT.ARCHIVE_REASON.DEFAULT;
         lastMessageText = Localize.translate(preferredLocale, `reportArchiveReasons.${archiveReason}`, {
             displayName: archiveReason.displayName || report.lastActorEmail,
-            policyName: ReportUtils.getPolicyName(report, policies),
+            policyName: ReportUtils.getPolicyName(report),
         });
     }
 
     if (result.isChatRoom || result.isPolicyExpenseChat) {
-        result.alternateText = lastMessageText || subtitle;
+        result.alternateText = lastMessageTextFromReport.length > 0 ? lastMessageText : Localize.translate(preferredLocale, 'report.noActivityYet');
     } else {
-        if (hasMultipleParticipants && !lastMessageText) {
+        if (!lastMessageText) {
             // Here we get the beginning of chat history message and append the display name for each user, adding pronouns if there are any.
             // We also add a fullstop after the final name, the word "and" before the final name and commas between all previous names.
             lastMessageText = Localize.translate(preferredLocale, 'reportActionsView.beginningOfChatHistory')
@@ -280,10 +308,10 @@ function getOptionData(reportID) {
                 }).join(' ');
         }
 
-        result.alternateText = lastMessageText || Str.removeSMSDomain(personalDetail.login);
+        result.alternateText = lastMessageText || formattedLogin;
     }
 
-    result.isIOUReportOwner = ReportUtils.isIOUOwnedByCurrentUser(result, currentUserLogin, iouReports);
+    result.isIOUReportOwner = ReportUtils.isIOUOwnedByCurrentUser(result, iouReports);
     result.iouReportAmount = ReportUtils.getIOUTotal(result, iouReports);
 
     if (!hasMultipleParticipants) {
@@ -292,7 +320,7 @@ function getOptionData(reportID) {
         result.payPalMeAddress = personalDetail.payPalMeAddress;
     }
 
-    const reportName = ReportUtils.getReportName(report, policies);
+    const reportName = ReportUtils.getReportName(report);
     result.text = reportName;
     result.subtitle = subtitle;
     result.participantsList = participantPersonalDetailList;

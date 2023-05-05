@@ -8,11 +8,11 @@ import _ from 'underscore';
 import CONST from '../CONST';
 import Modal from './Modal';
 import AttachmentView from './AttachmentView';
+import AttachmentCarousel from './AttachmentCarousel';
 import styles from '../styles/styles';
 import * as StyleUtils from '../styles/StyleUtils';
 import * as FileUtils from '../libs/fileDownload/FileUtils';
 import themeColors from '../styles/themes/default';
-import addEncryptedAuthTokenToURL from '../libs/addEncryptedAuthTokenToURL';
 import compose from '../libs/compose';
 import withWindowDimensions, {windowDimensionsPropTypes} from './withWindowDimensions';
 import Button from './Button';
@@ -53,6 +53,9 @@ const propTypes = {
     /** Title shown in the header of the modal */
     headerTitle: PropTypes.string,
 
+    /** The ID of the report that has this attachment */
+    reportID: PropTypes.string,
+
     ...withLocalizePropTypes,
 
     ...windowDimensionsPropTypes,
@@ -61,10 +64,11 @@ const propTypes = {
 const defaultProps = {
     source: '',
     onConfirm: null,
-    originalFileName: null,
+    originalFileName: '',
     isAuthTokenRequired: false,
     allowDownload: false,
     headerTitle: null,
+    reportID: '',
     onModalHide: () => {},
 };
 
@@ -74,20 +78,33 @@ class AttachmentModal extends PureComponent {
 
         this.state = {
             isModalOpen: false,
+            shouldLoadAttachment: false,
             isAttachmentInvalid: false,
             attachmentInvalidReasonTitle: null,
             attachmentInvalidReason: null,
-            file: null,
             source: props.source,
             modalType: CONST.MODAL.MODAL_TYPE.CENTERED_UNSWIPEABLE,
             isConfirmButtonDisabled: false,
             confirmButtonFadeAnimation: new Animated.Value(1),
+            file: props.originalFileName ? {
+                name: props.originalFileName,
+            } : undefined,
         };
 
         this.submitAndClose = this.submitAndClose.bind(this);
         this.closeConfirmModal = this.closeConfirmModal.bind(this);
+        this.onNavigate = this.onNavigate.bind(this);
         this.validateAndDisplayFileToUpload = this.validateAndDisplayFileToUpload.bind(this);
         this.updateConfirmButtonVisibility = this.updateConfirmButtonVisibility.bind(this);
+    }
+
+    /**
+     * Helps to navigate between next/previous attachments
+     * by setting sourceURL and file in state
+     * @param {Object} attachmentData
+     */
+    onNavigate(attachmentData) {
+        this.setState(attachmentData);
     }
 
     /**
@@ -115,7 +132,8 @@ class AttachmentModal extends PureComponent {
      * @param {String} sourceURL
      */
     downloadAttachment(sourceURL) {
-        fileDownload(this.props.isAuthTokenRequired ? addEncryptedAuthTokenToURL(sourceURL) : sourceURL, this.props.originalFileName);
+        const originalFileName = lodashGet(this.state, 'file.name') || this.props.originalFileName;
+        fileDownload(sourceURL, originalFileName);
 
         // At ios, if the keyboard is open while opening the attachment, then after downloading
         // the attachment keyboard will show up. So, to fix it we need to dismiss the keyboard.
@@ -229,19 +247,20 @@ class AttachmentModal extends PureComponent {
     }
 
     render() {
-        // If source is a URL, add auth token to get access
         const source = this.state.source;
-
         return (
             <>
                 <Modal
-                    statusBarTranslucent={false}
                     type={this.state.modalType}
                     onSubmit={this.submitAndClose}
                     onClose={() => this.setState({isModalOpen: false})}
                     isVisible={this.state.isModalOpen}
                     backgroundColor={themeColors.componentBG}
-                    onModalHide={this.props.onModalHide}
+                    onModalShow={() => this.setState({shouldLoadAttachment: true})}
+                    onModalHide={(e) => {
+                        this.props.onModalHide(e);
+                        this.setState({shouldLoadAttachment: false});
+                    }}
                     propagateSwipe
                 >
                     {this.props.isSmallScreenWidth && <HeaderGap />}
@@ -253,7 +272,14 @@ class AttachmentModal extends PureComponent {
                         onCloseButtonPress={() => this.setState({isModalOpen: false})}
                     />
                     <View style={styles.imageModalImageCenterContainer}>
-                        {this.state.source && (
+                        {this.props.reportID ? (
+                            <AttachmentCarousel
+                                reportID={this.props.reportID}
+                                onNavigate={this.onNavigate}
+                                source={this.props.source}
+                                onToggleKeyboard={this.updateConfirmButtonVisibility}
+                            />
+                        ) : Boolean(this.state.source) && this.state.shouldLoadAttachment && (
                             <AttachmentView
                                 source={source}
                                 isAuthTokenRequired={this.props.isAuthTokenRequired}
@@ -262,9 +288,8 @@ class AttachmentModal extends PureComponent {
                             />
                         )}
                     </View>
-
                     {/* If we have an onConfirm method show a confirmation button */}
-                    {this.props.onConfirm && (
+                    {Boolean(this.props.onConfirm) && (
                         <SafeAreaConsumer>
                             {({safeAreaPaddingBottomStyle}) => (
                                 <Animated.View style={[StyleUtils.fade(this.state.confirmButtonFadeAnimation), safeAreaPaddingBottomStyle]}>

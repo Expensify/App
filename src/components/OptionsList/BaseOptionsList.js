@@ -104,7 +104,6 @@ class BaseOptionsList extends Component {
      * @returns {Array<Object>}
      */
     buildFlatSectionArray() {
-        const optionHeight = variables.optionRowHeight;
         let offset = 0;
 
         // Start with just an empty list header
@@ -121,8 +120,12 @@ class BaseOptionsList extends Component {
 
             // Add section items
             for (let i = 0; i < section.data.length; i++) {
-                flatArray.push({length: optionHeight, offset});
-                offset += optionHeight;
+                let fullOptionHeight = variables.optionRowHeight;
+                if (i > 0 && this.props.shouldHaveOptionSeparator) {
+                    fullOptionHeight += variables.borderTopWidth;
+                }
+                flatArray.push({length: fullOptionHeight, offset});
+                offset += fullOptionHeight;
             }
 
             // Add the section footer
@@ -192,8 +195,8 @@ class BaseOptionsList extends Component {
                 // We do this so that we can reference the height in `getItemLayout` –
                 // we need to know the heights of all list items up-front in order to synchronously compute the layout of any given list item.
                 // So be aware that if you adjust the content of the section header (for example, change the font size), you may need to adjust this explicit height as well.
-                <View style={styles.optionsListSectionHeader}>
-                    <Text style={[styles.p5, styles.textLabelSupporting]}>
+                <View style={[styles.optionsListSectionHeader, styles.justifyContentCenter]}>
+                    <Text style={[styles.ph5, styles.textLabelSupporting]}>
                         {title}
                     </Text>
                 </View>

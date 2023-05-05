@@ -47,8 +47,8 @@ class BankAccountManualStep extends React.Component {
         if (!routingNumber || !CONST.BANK_ACCOUNT.REGEX.SWIFT_BIC.test(routingNumber) || !ValidationUtils.isValidRoutingNumber(routingNumber)) {
             errorFields.routingNumber = this.props.translate('bankAccount.error.routingNumber');
         }
-        if (!values.acceptedTerms) {
-            errorFields.acceptedTerms = this.props.translate('common.error.acceptedTerms');
+        if (!values.acceptTerms) {
+            errorFields.acceptTerms = this.props.translate('common.error.acceptTerms');
         }
 
         return errorFields;
@@ -59,7 +59,7 @@ class BankAccountManualStep extends React.Component {
             lodashGet(this.props.reimbursementAccount, 'achData.bankAccountID') || 0,
             values.accountNumber,
             values.routingNumber,
-            this.props.getDefaultStateForField('plaidMask'),
+            lodashGet(this.props, ['reimbursementAccountDraft', 'plaidMask']),
         );
     }
 
@@ -101,6 +101,7 @@ class BankAccountManualStep extends React.Component {
                         keyboardType={CONST.KEYBOARD_TYPE.NUMBER_PAD}
                         disabled={shouldDisableInputs}
                         shouldSaveDraft
+                        shouldUseDefaultValue={shouldDisableInputs}
                     />
                     <TextInput
                         inputID="accountNumber"
@@ -110,10 +111,11 @@ class BankAccountManualStep extends React.Component {
                         keyboardType={CONST.KEYBOARD_TYPE.NUMBER_PAD}
                         disabled={shouldDisableInputs}
                         shouldSaveDraft
+                        shouldUseDefaultValue={shouldDisableInputs}
                     />
                     <CheckboxWithLabel
                         style={styles.mt4}
-                        inputID="acceptedTerms"
+                        inputID="acceptTerms"
                         LabelComponent={() => (
                             <Text>
                                 {this.props.translate('common.iAcceptThe')}
@@ -123,7 +125,7 @@ class BankAccountManualStep extends React.Component {
                                     // to call the onPress in the TextLink before the input blur is fired and shift the link element
                                     onMouseDown={e => e.preventDefault()}
                                 >
-                                    {`Expensify ${this.props.translate('common.termsOfService')}`}
+                                    {this.props.translate('common.expensifyTermsOfService')}
                                 </TextLink>
                             </Text>
                         )}

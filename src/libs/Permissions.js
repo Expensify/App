@@ -47,14 +47,6 @@ function canUseDefaultRooms(betas) {
  * @param {Array<String>} betas
  * @returns {Boolean}
  */
-function canUseInternationalization(betas) {
-    return _.contains(betas, CONST.BETAS.INTERNATIONALIZATION) || canUseAllBetas(betas);
-}
-
-/**
- * @param {Array<String>} betas
- * @returns {Boolean}
- */
 function canUseIOUSend(betas) {
     return _.contains(betas, CONST.BETAS.IOU_SEND) || canUseAllBetas(betas);
 }
@@ -102,16 +94,24 @@ function canUsePasswordlessLogins(betas) {
     return _.contains(betas, CONST.BETAS.PASSWORDLESS) || _.contains(betas, CONST.BETAS.ALL);
 }
 
+/**
+ * @param {Array<String>} betas
+ * @returns {Boolean}
+ */
+function canUseTasks(betas) {
+    return _.contains(betas, CONST.BETAS.TASKS) || _.contains(betas, CONST.BETAS.ALL);
+}
+
 export default {
     canUseChronos,
     canUseIOU,
     canUsePayWithExpensify,
     canUseDefaultRooms,
-    canUseInternationalization,
     canUseIOUSend,
     canUseWallet,
     canUseCommentLinking,
     canUsePolicyRooms,
     canUsePolicyExpenseChat,
     canUsePasswordlessLogins,
+    canUseTasks,
 };

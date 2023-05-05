@@ -1,8 +1,6 @@
 import _ from 'underscore';
 import React from 'react';
-import {
-    View, Pressable,
-} from 'react-native';
+import {View} from 'react-native';
 import Text from './Text';
 import styles from '../styles/styles';
 import * as StyleUtils from '../styles/StyleUtils';
@@ -15,11 +13,16 @@ import CONST from '../CONST';
 import menuItemPropTypes from './menuItemPropTypes';
 import SelectCircle from './SelectCircle';
 import colors from '../styles/colors';
-import variables from '../styles/variables';
 import MultipleAvatars from './MultipleAvatars';
+import * as defaultWorkspaceAvatars from './Icon/WorkspaceDefaultAvatars';
+import PressableWithSecondaryInteraction from './PressableWithSecondaryInteraction';
+import withWindowDimensions, {windowDimensionsPropTypes} from './withWindowDimensions';
+import * as DeviceCapabilities from '../libs/DeviceCapabilities';
+import ControlSelection from '../libs/ControlSelection';
 
 const propTypes = {
     ...menuItemPropTypes,
+    ...windowDimensionsPropTypes,
 };
 
 const defaultProps = {
@@ -28,8 +31,11 @@ const defaultProps = {
     shouldShowSelectedState: false,
     shouldShowBasicTitle: false,
     shouldShowDescriptionOnTop: false,
+    shouldShowHeaderTitle: false,
     wrapperStyle: [],
-    style: {},
+    style: styles.popoverMenuItem,
+    titleStyle: {},
+    descriptionTextStyle: styles.breakWord,
     success: false,
     icon: undefined,
     iconWidth: undefined,
@@ -42,26 +48,42 @@ const defaultProps = {
     disabled: false,
     isSelected: false,
     subtitle: undefined,
-    iconType: 'icon',
+    iconType: CONST.ICON_TYPE_ICON,
     onPress: () => {},
+    onSecondaryInteraction: undefined,
     interactive: true,
     fallbackIcon: Expensicons.FallbackAvatar,
     brickRoadIndicator: '',
     floatRightAvatars: [],
     shouldStackHorizontally: false,
+    avatarSize: undefined,
+    shouldBlockSelection: false,
 };
 
 const MenuItem = (props) => {
     const titleTextStyle = StyleUtils.combineStyles([
         styles.popoverMenuText,
-        styles.ml3,
+        (props.icon ? styles.ml3 : undefined),
         (props.shouldShowBasicTitle ? undefined : styles.textStrong),
         (props.interactive && props.disabled ? {...styles.disabledText, ...styles.userSelectNone} : undefined),
-    ], props.style);
-    const descriptionTextStyle = StyleUtils.combineStyles([styles.textLabelSupporting, styles.ml3, styles.breakAll, styles.lineHeightNormal], props.style);
+        styles.pre,
+        styles.ltr,
+        (props.shouldShowHeaderTitle ? styles.textHeadlineH1 : undefined),
+        (_.contains(props.style, styles.offlineFeedback.deleted) ? styles.offlineFeedback.deleted : undefined),
+    ], props.titleStyle);
+    const descriptionVerticalMargin = props.shouldShowDescriptionOnTop ? styles.mb1 : styles.mt1;
+    const descriptionTextStyle = StyleUtils.combineStyles([
+        styles.textLabelSupporting,
+        (props.icon ? styles.ml3 : undefined),
+        styles.lineHeightNormal,
+        props.title ? descriptionVerticalMargin : undefined,
+        props.descriptionTextStyle,
+    ]);
+
+    const fallbackAvatarSize = props.viewMode === CONST.OPTION_MODE.COMPACT ? CONST.AVATAR_SIZE.SMALL : CONST.AVATAR_SIZE.DEFAULT;
 
     return (
-        <Pressable
+        <PressableWithSecondaryInteraction
             onPress={(e) => {
                 if (props.disabled) {
                     return;
@@ -73,49 +95,59 @@ const MenuItem = (props) => {
 
                 props.onPress(e);
             }}
+            onPressIn={() => props.shouldBlockSelection && props.isSmallScreenWidth && DeviceCapabilities.canUseTouchScreen() && ControlSelection.block()}
+            onPressOut={ControlSelection.unblock}
+            onSecondaryInteraction={props.onSecondaryInteraction}
             style={({hovered, pressed}) => ([
-                styles.popoverMenuItem,
+                props.style,
                 StyleUtils.getButtonBackgroundColorStyle(getButtonState(props.focused || hovered, pressed, props.success, props.disabled, props.interactive), true),
                 ..._.isArray(props.wrapperStyle) ? props.wrapperStyle : [props.wrapperStyle],
             ])}
             disabled={props.disabled}
+            ref={props.forwardedRef}
         >
             {({hovered, pressed}) => (
                 <>
                     <View style={[styles.flexRow, styles.pointerEventsAuto, styles.flex1, props.disabled && styles.cursorDisabled]}>
-                        {(props.icon && props.iconType === CONST.ICON_TYPE_ICON) && (
+                        {Boolean(props.icon) && (
                             <View
                                 style={[
                                     styles.popoverMenuIcon,
                                     ...props.iconStyles,
                                 ]}
                             >
-                                <Icon
-                                    src={props.icon}
-                                    width={props.iconWidth}
-                                    height={props.iconHeight}
-                                    fill={props.iconFill || StyleUtils.getIconFillColor(
-                                        getButtonState(props.focused || hovered, pressed, props.success, props.disabled, props.interactive),
-                                        true,
-                                    )}
-                                />
+                                {(props.iconType === CONST.ICON_TYPE_ICON) && (
+                                    <Icon
+                                        src={props.icon}
+                                        width={props.iconWidth}
+                                        height={props.iconHeight}
+                                        fill={props.iconFill || StyleUtils.getIconFillColor(
+                                            getButtonState(props.focused || hovered, pressed, props.success, props.disabled, props.interactive),
+                                            true,
+                                        )}
+                                    />
+                                )}
+                                {(props.iconType === CONST.ICON_TYPE_WORKSPACE) && (
+
+                                    <Avatar
+                                        imageStyles={[styles.alignSelfCenter]}
+                                        size={CONST.AVATAR_SIZE.DEFAULT}
+                                        source={props.icon}
+                                        fallbackIcon={props.fallbackIcon}
+                                        name={props.title}
+                                        type={CONST.ICON_TYPE_WORKSPACE}
+                                    />
+                                )}
+                                {(props.iconType === CONST.ICON_TYPE_AVATAR) && (
+                                    <Avatar
+                                        imageStyles={[styles.avatarNormal, styles.alignSelfCenter]}
+                                        source={props.icon}
+                                        fallbackIcon={props.fallbackIcon}
+                                    />
+                                )}
                             </View>
                         )}
-                        {(props.icon && props.iconType === CONST.ICON_TYPE_AVATAR) && (
-                            <View
-                                style={[
-                                    styles.popoverMenuIcon,
-                                    ...props.iconStyles,
-                                ]}
-                            >
-                                <Avatar
-                                    imageStyles={[styles.avatarNormal, styles.alignSelfCenter]}
-                                    source={props.icon}
-                                    fallbackIcon={props.fallbackIcon}
-                                />
-                            </View>
-                        )}
-                        <View style={[styles.justifyContentCenter, styles.menuItemTextContainer, styles.flex1, styles.gap1]}>
+                        <View style={[styles.justifyContentCenter, styles.menuItemTextContainer, styles.flex1]}>
                             {Boolean(props.description) && props.shouldShowDescriptionOnTop && (
                                 <Text
                                     style={descriptionTextStyle}
@@ -129,7 +161,7 @@ const MenuItem = (props) => {
                                     style={titleTextStyle}
                                     numberOfLines={1}
                                 >
-                                    {props.title}
+                                    {StyleUtils.convertToLTR(props.title)}
                                 </Text>
                             )}
                             {Boolean(props.description) && !props.shouldShowDescriptionOnTop && (
@@ -143,7 +175,7 @@ const MenuItem = (props) => {
                         </View>
                     </View>
                     <View style={[styles.flexRow, styles.menuItemTextContainer, styles.pointerEventsNone]}>
-                        {props.badgeText && (
+                        {Boolean(props.badgeText) && (
                         <Badge
                             text={props.badgeText}
                             badgeStyles={[styles.alignSelfCenter, (props.brickRoadIndicator ? styles.mr2 : undefined),
@@ -162,24 +194,22 @@ const MenuItem = (props) => {
                             </View>
                         )}
                         {!_.isEmpty(props.floatRightAvatars) && (
-                            <View style={[styles.justifyContentCenter, (props.brickRoadIndicator ? styles.mr4 : styles.mr3)]}>
+                            <View style={[styles.justifyContentCenter, (props.brickRoadIndicator ? styles.mr2 : undefined)]}>
                                 <MultipleAvatars
                                     isHovered={hovered}
                                     isPressed={pressed}
                                     icons={props.floatRightAvatars}
-                                    size={props.viewMode === CONST.OPTION_MODE.COMPACT ? CONST.AVATAR_SIZE.SMALL : CONST.AVATAR_SIZE.DEFAULT}
-                                    fallbackIcon={Expensicons.Workspace}
+                                    size={props.avatarSize || fallbackAvatarSize}
+                                    fallbackIcon={defaultWorkspaceAvatars.WorkspaceBuilding}
                                     shouldStackHorizontally={props.shouldStackHorizontally}
                                 />
                             </View>
                         )}
                         {Boolean(props.brickRoadIndicator) && (
-                            <View style={[styles.alignItemsCenter, styles.justifyContentCenter, styles.l4]}>
+                            <View style={[styles.alignItemsCenter, styles.justifyContentCenter, styles.l1]}>
                                 <Icon
                                     src={Expensicons.DotIndicator}
                                     fill={props.brickRoadIndicator === 'error' ? colors.red : colors.green}
-                                    height={variables.iconSizeSmall}
-                                    width={variables.iconSizeSmall}
                                 />
                             </View>
                         )}
@@ -195,12 +225,17 @@ const MenuItem = (props) => {
                     </View>
                 </>
             )}
-        </Pressable>
+        </PressableWithSecondaryInteraction>
     );
 };
 
 MenuItem.propTypes = propTypes;
-MenuItem.defaultProps = defaultProps;
 MenuItem.displayName = 'MenuItem';
 
-export default MenuItem;
+const MenuItemWithWindowDimensions = withWindowDimensions(React.forwardRef((props, ref) => (
+    // eslint-disable-next-line react/jsx-props-no-spreading
+    <MenuItem {...props} forwardedRef={ref} />
+)));
+MenuItemWithWindowDimensions.defaultProps = defaultProps;
+
+export default MenuItemWithWindowDimensions;

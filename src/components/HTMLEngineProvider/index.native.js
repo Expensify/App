@@ -3,7 +3,7 @@ import BaseHTMLEngineProvider from './BaseHTMLEngineProvider';
 import {propTypes, defaultProps} from './htmlEnginePropTypes';
 
 const HTMLEngineProvider = props => (
-    <BaseHTMLEngineProvider debug={props.debug}>
+    <BaseHTMLEngineProvider debug={props.debug} enableExperimentalBRCollapsing>
         {props.children}
     </BaseHTMLEngineProvider>
 );

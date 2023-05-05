@@ -1,3 +1,4 @@
+import _ from 'underscore';
 import React from 'react';
 import PropTypes from 'prop-types';
 import {withOnyx} from 'react-native-onyx';
@@ -30,6 +31,9 @@ const propTypes = {
     /** When the button is opened via an IOU, ID for the chatReport that the IOU is linked to */
     chatReportID: PropTypes.string,
 
+    /** List of betas available to current user */
+    betas: PropTypes.arrayOf(PropTypes.string),
+
     ...withLocalizePropTypes,
 };
 
@@ -37,6 +41,7 @@ const defaultProps = {
     currency: CONST.CURRENCY.USD,
     shouldShowPaypal: false,
     chatReportID: '',
+    betas: [],
 };
 
 class SettlementButton extends React.Component {
@@ -55,7 +60,7 @@ class SettlementButton extends React.Component {
             });
         }
 
-        if (this.props.shouldShowPaypal) {
+        if (this.props.shouldShowPaypal && _.includes(CONST.PAYPAL_SUPPORTED_CURRENCIES, this.props.currency)) {
             buttonOptions.push({
                 text: this.props.translate('iou.settlePaypalMe'),
                 icon: Expensicons.PayPal,

@@ -15,6 +15,7 @@ import Navigation from '../libs/Navigation/Navigation';
 import ROUTES from '../ROUTES';
 import Tooltip from './Tooltip';
 import reportPropTypes from '../pages/reportPropTypes';
+import CONST from '../CONST';
 
 const personalDetailsPropTypes = PropTypes.shape({
     /** The login of the person (either email or phone number) */
@@ -35,20 +36,18 @@ const propTypes = {
     /* Onyx Props */
 
     /** All of the personal details for everyone */
-    personalDetails: PropTypes.objectOf(personalDetailsPropTypes).isRequired,
+    personalDetails: PropTypes.objectOf(personalDetailsPropTypes),
 
-    /** The policies which the user has access to and which the report could be tied to */
-    policies: PropTypes.shape({
-        /** The policy name */
-        name: PropTypes.string,
-    }),
+    /** List of betas available to current user */
+    betas: PropTypes.arrayOf(PropTypes.string),
 
     ...withLocalizePropTypes,
 };
 
 const defaultProps = {
     report: {},
-    policies: {},
+    personalDetails: {},
+    betas: [],
 };
 
 const ReportWelcomeText = (props) => {
@@ -61,7 +60,8 @@ const ReportWelcomeText = (props) => {
         OptionsListUtils.getPersonalDetailsForLogins(participants, props.personalDetails),
         isMultipleParticipant,
     );
-    const roomWelcomeMessage = ReportUtils.getRoomWelcomeMessage(props.report, props.policies);
+    const roomWelcomeMessage = ReportUtils.getRoomWelcomeMessage(props.report);
+    const moneyRequestOptions = ReportUtils.getMoneyRequestOptions(props.report, participants, props.betas);
     return (
         <>
             <View>
@@ -83,7 +83,7 @@ const ReportWelcomeText = (props) => {
                             {props.translate('reportActionsView.beginningOfChatHistoryPolicyExpenseChatPartTwo')}
                         </Text>
                         <Text style={[styles.textStrong]}>
-                            {ReportUtils.getPolicyName(props.report, props.policies)}
+                            {ReportUtils.getPolicyName(props.report)}
                         </Text>
                         <Text>
                             {props.translate('reportActionsView.beginningOfChatHistoryPolicyExpenseChatPartThree')}
@@ -96,7 +96,7 @@ const ReportWelcomeText = (props) => {
                             {roomWelcomeMessage.phrase1}
                         </Text>
                         <Text style={[styles.textStrong]} onPress={() => Navigation.navigate(ROUTES.getReportDetailsRoute(props.report.reportID))}>
-                            {ReportUtils.getReportName(props.report, props.policies)}
+                            {ReportUtils.getReportName(props.report)}
                         </Text>
                         <Text>
                             {roomWelcomeMessage.phrase2}
@@ -123,10 +123,12 @@ const ReportWelcomeText = (props) => {
                                 {(index < displayNamesWithTooltips.length - 2) && <Text>, </Text>}
                             </Text>
                         ))}
-                        <Text>
-                            {/* Need to confirm copy for the below with marketing, and then add to translations. */}
-                            {props.translate('reportActionsView.usePlusButton')}
-                        </Text>
+                    </Text>
+                )}
+                {(moneyRequestOptions.includes(CONST.IOU.MONEY_REQUEST_TYPE.SEND) || moneyRequestOptions.includes(CONST.IOU.MONEY_REQUEST_TYPE.REQUEST)) && (
+                    <Text>
+                        {/* Need to confirm copy for the below with marketing, and then add to translations. */}
+                        {props.translate('reportActionsView.usePlusButton')}
                     </Text>
                 )}
             </Text>
@@ -141,11 +143,11 @@ ReportWelcomeText.displayName = 'ReportWelcomeText';
 export default compose(
     withLocalize,
     withOnyx({
+        betas: {
+            key: ONYXKEYS.BETAS,
+        },
         personalDetails: {
             key: ONYXKEYS.PERSONAL_DETAILS,
-        },
-        policies: {
-            key: ONYXKEYS.COLLECTION.POLICY,
         },
     }),
 )(ReportWelcomeText);

@@ -3,7 +3,8 @@ import React from 'react';
 import PropTypes from 'prop-types';
 import {withOnyx} from 'react-native-onyx';
 import {View} from 'react-native';
-import moment from 'moment';
+import moment from 'moment/moment';
+import {parsePhoneNumber} from 'awesome-phonenumber';
 import IdologyQuestions from './IdologyQuestions';
 import ScreenWrapper from '../../components/ScreenWrapper';
 import HeaderWithCloseButton from '../../components/HeaderWithCloseButton';
@@ -18,7 +19,7 @@ import TextLink from '../../components/TextLink';
 import TextInput from '../../components/TextInput';
 import * as Wallet from '../../libs/actions/Wallet';
 import * as ValidationUtils from '../../libs/ValidationUtils';
-import * as LoginUtils from '../../libs/LoginUtils';
+import * as ErrorUtils from '../../libs/ErrorUtils';
 import AddressForm from '../ReimbursementAccount/AddressForm';
 import DatePicker from '../../components/DatePicker';
 import Form from '../../components/Form';
@@ -108,6 +109,9 @@ class AdditionalDetailsStep extends React.Component {
             ssn: 'common.ssnLast4',
             ssnFull9: 'common.ssnFull9',
         };
+
+        this.minDate = moment().subtract(CONST.DATE_BIRTH.MAX_AGE, 'Y').toDate();
+        this.maxDate = moment().subtract(CONST.DATE_BIRTH.MIN_AGE_FOR_PAYMENT, 'Y').toDate();
     }
 
     /**
@@ -125,12 +129,10 @@ class AdditionalDetailsStep extends React.Component {
             errors[INPUT_IDS.LEGAL_LAST_NAME] = this.props.translate(this.errorTranslationKeys.legalLastName);
         }
 
-        if (!ValidationUtils.isValidPastDate(values[INPUT_IDS.DOB])) {
-            errors[INPUT_IDS.DOB] = this.props.translate(this.errorTranslationKeys.dob);
-        }
-
-        if (!ValidationUtils.meetsAgeRequirements(values[INPUT_IDS.DOB])) {
-            errors[INPUT_IDS.DOB] = this.props.translate(this.errorTranslationKeys.age);
+        if (!ValidationUtils.isValidPastDate(values[INPUT_IDS.DOB]) || !ValidationUtils.meetsMaximumAgeRequirement(values[INPUT_IDS.DOB])) {
+            ErrorUtils.addErrorMessage(errors, INPUT_IDS.DOB, this.props.translate(this.errorTranslationKeys.dob));
+        } else if (!ValidationUtils.meetsMinimumAgeRequirement(values[INPUT_IDS.DOB])) {
+            ErrorUtils.addErrorMessage(errors, INPUT_IDS.DOB, this.props.translate(this.errorTranslationKeys.age));
         }
 
         if (!ValidationUtils.isValidAddress(values[INPUT_IDS.ADDRESS.street]) || _.isEmpty(values[INPUT_IDS.ADDRESS.street])) {
@@ -171,14 +173,14 @@ class AdditionalDetailsStep extends React.Component {
      */
     activateWallet(values) {
         const personalDetails = {
-            phoneNumber: LoginUtils.getPhoneNumberWithoutUSCountryCodeAndSpecialChars(values[INPUT_IDS.PHONE_NUMBER]),
+            phoneNumber: parsePhoneNumber(values[INPUT_IDS.PHONE_NUMBER], {regionCode: CONST.COUNTRY.US}).number.significant,
             legalFirstName: values[INPUT_IDS.LEGAL_FIRST_NAME],
             legalLastName: values[INPUT_IDS.LEGAL_LAST_NAME],
             addressStreet: values[INPUT_IDS.ADDRESS.street],
             addressCity: values[INPUT_IDS.ADDRESS.city],
             addressState: values[INPUT_IDS.ADDRESS.state],
             addressZip: values[INPUT_IDS.ADDRESS.zipCode],
-            dob: moment(values[INPUT_IDS.DOB]).format(CONST.DATE.MOMENT_FORMAT_STRING),
+            dob: values[INPUT_IDS.DOB],
             ssn: values[INPUT_IDS.SSN],
         };
 
@@ -226,7 +228,6 @@ class AdditionalDetailsStep extends React.Component {
                         validate={this.validate}
                         onSubmit={this.activateWallet}
                         scrollContextEnabled
-                        scrollToOverflowEnabled
                         submitButtonText={this.props.translate('common.saveAndContinue')}
                         style={[styles.mh5, styles.flexGrow1]}
                     >
@@ -264,6 +265,8 @@ class AdditionalDetailsStep extends React.Component {
                             containerStyles={[styles.mt4]}
                             label={this.props.translate(this.fieldNameTranslationKeys.dob)}
                             placeholder={this.props.translate('common.dob')}
+                            minDate={this.minDate}
+                            maxDate={this.maxDate}
                             shouldSaveDraft
                         />
                         <TextInput

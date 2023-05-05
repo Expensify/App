@@ -36,6 +36,7 @@ class CopySelectionHelper extends React.Component {
             Clipboard.setString(parser.htmlToMarkdown(selection));
             return;
         }
+
         Clipboard.setHtml(selection, Str.htmlDecode(parser.htmlToText(selection)));
     }
 

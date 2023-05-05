@@ -5,6 +5,7 @@ import Str from 'expensify-common/lib/str';
 import CONST from '../CONST';
 import * as User from './actions/User';
 import emojisTrie from './EmojiTrie';
+import FrequentlyUsed from '../../assets/images/history.svg';
 
 /**
  * Get the unicode code of an emoji in base 16.
@@ -82,17 +83,17 @@ function containsOnlyEmojis(message) {
 }
 
 /**
- * Get the header indices based on the max emojis per row
+ * Get the header emojis with their code, icon and index
  * @param {Object[]} emojis
- * @returns {Number[]}
+ * @returns {Object[]}
  */
-function getDynamicHeaderIndices(emojis) {
+function getHeaderEmojis(emojis) {
     const headerIndices = [];
     _.each(emojis, (emoji, index) => {
         if (!emoji.header) {
             return;
         }
-        headerIndices.push(Math.floor(index / CONST.EMOJI_NUM_PER_ROW));
+        headerIndices.push({code: emoji.code, index, icon: emoji.icon});
     });
     return headerIndices;
 }
@@ -149,6 +150,7 @@ function mergeEmojisWithFrequentlyUsedEmojis(emojis, frequentlyUsedEmojis = []) 
     let allEmojis = [{
         header: true,
         code: 'frequentlyUsed',
+        icon: FrequentlyUsed,
     }];
 
     allEmojis = allEmojis.concat(frequentlyUsedEmojis, emojis);
@@ -184,10 +186,27 @@ function addToFrequentlyUsedEmojis(frequentlyUsedEmojis, newEmoji) {
 }
 
 /**
+ * Given an emoji item object, return an emoji code based on its type.
+ *
+ * @param {Object} item
+ * @param {Number} preferredSkinToneIndex
+ * @returns {String}
+ */
+const getEmojiCodeWithSkinColor = (item, preferredSkinToneIndex) => {
+    const {code, types} = item;
+    if (types && types[preferredSkinToneIndex]) {
+        return types[preferredSkinToneIndex];
+    }
+
+    return code;
+};
+
+/**
  * Replace any emoji name in a text with the emoji icon.
  * If we're on mobile, we also add a space after the emoji granted there's no text after it.
  * @param {String} text
  * @param {Boolean} addSpaceAfterEmoji
+ * @param {Number} preferredSkinTone
  * @returns {Object} results
  * @returns {String} results.newText
  * @returns {Object} results.lastReplacedSelection
@@ -195,7 +214,7 @@ function addToFrequentlyUsedEmojis(frequentlyUsedEmojis, newEmoji) {
  * @returns {Number} results.lastReplacedSelection.end
  * @returns {Number} results.lastReplacedSelection.newSelectionEnd
  */
-function replaceEmojis(text, addSpaceAfterEmoji = false) {
+function replaceEmojis(text, addSpaceAfterEmoji = false, preferredSkinTone = CONST.EMOJI_DEFAULT_SKIN_TONE) {
     let newText = text;
     const emojiData = text.match(CONST.REGEX.EMOJI_NAME);
 
@@ -212,9 +231,9 @@ function replaceEmojis(text, addSpaceAfterEmoji = false) {
         const match = emojiData[i];
         const checkEmoji = emojisTrie.search(match.slice(1, -1));
         if (checkEmoji && checkEmoji.metaData.code) {
-            let emojiCode = checkEmoji.metaData.code;
+            let emojiReplacement = getEmojiCodeWithSkinColor(checkEmoji.metaData, preferredSkinTone);
             if (addSpaceAfterEmoji) {
-                emojiCode += ' ';
+                emojiReplacement += ' ';
             }
 
             lastReplacedSelection.start = newText.indexOf(match);
@@ -222,7 +241,7 @@ function replaceEmojis(text, addSpaceAfterEmoji = false) {
             lastReplacedSelection.newSelectionEnd = lastReplacedSelection.start + emojiCode.length;
 
             newText = newText.substr(0, lastReplacedSelection.start)
-                + emojiCode
+                + emojiReplacement
                 + newText.substr(lastReplacedSelection.end);
         }
     }
@@ -245,7 +264,7 @@ function suggestEmojis(text, limit = 5) {
                 if (matching.length === limit) {
                     return matching;
                 }
-                matching.push({code: nodes[j].metaData.code, name: nodes[j].name});
+                matching.push({code: nodes[j].metaData.code, name: nodes[j].name, types: nodes[j].metaData.types});
             }
             const suggestions = nodes[j].metaData.suggestions;
             for (let i = 0; i < suggestions.length; i++) {
@@ -263,11 +282,12 @@ function suggestEmojis(text, limit = 5) {
 }
 
 export {
-    getDynamicHeaderIndices,
+    getHeaderEmojis,
     mergeEmojisWithFrequentlyUsedEmojis,
     addToFrequentlyUsedEmojis,
     containsOnlyEmojis,
     replaceEmojis,
     suggestEmojis,
     trimEmojiUnicode,
+    getEmojiCodeWithSkinColor,
 };

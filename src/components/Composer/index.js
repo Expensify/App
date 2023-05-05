@@ -9,9 +9,13 @@ import withLocalize, {withLocalizePropTypes} from '../withLocalize';
 import Growl from '../../libs/Growl';
 import themeColors from '../../styles/themes/default';
 import updateIsFullComposerAvailable from '../../libs/ComposerUtils/updateIsFullComposerAvailable';
-import getNumberOfLines from '../../libs/ComposerUtils/index';
+import * as ComposerUtils from '../../libs/ComposerUtils';
 import * as Browser from '../../libs/Browser';
 import Clipboard from '../../libs/Clipboard';
+import withWindowDimensions, {windowDimensionsPropTypes} from '../withWindowDimensions';
+import compose from '../../libs/compose';
+import styles from '../../styles/styles';
+import isEnterWhileComposition from '../../libs/KeyboardShortcut/isEnterWhileComposition';
 
 const propTypes = {
     /** Maximum number of lines in the text input */
@@ -19,6 +23,12 @@ const propTypes = {
 
     /** The default value of the comment box */
     defaultValue: PropTypes.string,
+
+    /** Number of lines for the comment */
+    numberOfLines: PropTypes.number,
+
+    /** Callback method to update number of lines for the comment */
+    onNumberOfLinesChange: PropTypes.func,
 
     /** Callback method to handle pasting a file */
     onPasteFile: PropTypes.func,
@@ -59,10 +69,14 @@ const propTypes = {
     onChangeText: PropTypes.func,
 
     ...withLocalizePropTypes,
+
+    ...windowDimensionsPropTypes,
 };
 
 const defaultProps = {
     defaultValue: '',
+    numberOfLines: undefined,
+    onNumberOfLinesChange: () => {},
     maxLines: -1,
     onPasteFile: () => {},
     shouldClear: false,
@@ -97,11 +111,12 @@ class Composer extends React.Component {
         super(props);
 
         this.state = {
-            numberOfLines: 1,
-            value: this.props.defaultValue,
+            numberOfLines: props.numberOfLines,
+            value: props.defaultValue,
         };
 
         this.paste = this.paste.bind(this);
+        this.handleKeyPress = this.handleKeyPress.bind(this);
         this.handlePaste = this.handlePaste.bind(this);
         this.handlePastedHTML = this.handlePastedHTML.bind(this);
         this.handleWheel = this.handleWheel.bind(this);
@@ -152,7 +167,9 @@ class Composer extends React.Component {
         }
 
         if (prevProps.defaultValue !== this.props.defaultValue
-            || prevProps.isComposerFullSize !== this.props.isComposerFullSize) {
+            || prevProps.isComposerFullSize !== this.props.isComposerFullSize
+            || prevProps.windowWidth !== this.props.windowWidth
+            || prevProps.numberOfLines !== this.props.numberOfLines) {
             this.updateNumberOfLines();
         }
     }
@@ -164,6 +181,14 @@ class Composer extends React.Component {
 
         this.textInput.removeEventListener('paste', this.handlePaste);
         this.textInput.removeEventListener('wheel', this.handleWheel);
+    }
+
+    // Prevent onKeyPress from being triggered if the Enter key is pressed while text is being composed
+    handleKeyPress(e) {
+        if (!this.props.onKeyPress || isEnterWhileComposition(e)) {
+            return;
+        }
+        this.props.onKeyPress(e);
     }
 
     /**
@@ -297,7 +322,7 @@ class Composer extends React.Component {
             return;
         }
 
-        const plainText = event.clipboardData.getData('text/plain').replace(/\n\n/g, '\n');
+        const plainText = event.clipboardData.getData('text/plain');
 
         this.paste(Str.htmlDecode(plainText));
     }
@@ -326,9 +351,7 @@ class Composer extends React.Component {
         // the only stuff put into the clipboard is what the user selected.
         const selectedText = event.target.value.substring(this.state.selection.start, this.state.selection.end);
 
-        // The plaintext portion that is put into the clipboard needs to have the newlines duplicated. This is because
-        // the paste functionality is stripping all duplicate newlines to try and provide consistent behavior.
-        Clipboard.setHtml(selectedText, selectedText.replace(/\n/g, '\n\n'));
+        Clipboard.setHtml(selectedText, selectedText);
     }
 
     /**
@@ -347,11 +370,13 @@ class Composer extends React.Component {
             const lineHeight = parseInt(computedStyle.lineHeight, 10) || 20;
             const paddingTopAndBottom = parseInt(computedStyle.paddingBottom, 10)
             + parseInt(computedStyle.paddingTop, 10);
-            const numberOfLines = getNumberOfLines(this.props.maxLines, lineHeight, paddingTopAndBottom, this.textInput.scrollHeight);
+            const computedNumberOfLines = ComposerUtils.getNumberOfLines(this.props.maxLines, lineHeight, paddingTopAndBottom, this.textInput.scrollHeight);
+            const numberOfLines = computedNumberOfLines === 0 ? this.props.numberOfLines : computedNumberOfLines;
             updateIsFullComposerAvailable(this.props, numberOfLines);
             this.setState({
                 numberOfLines,
             });
+            this.props.onNumberOfLinesChange(numberOfLines);
         });
     }
 
@@ -402,12 +427,20 @@ class Composer extends React.Component {
                 autoCorrect={!Browser.isMobileSafari()}
                 placeholderTextColor={themeColors.placeholderText}
                 ref={el => this.textInput = el}
-                onChange={this.updateNumberOfLines}
-                numberOfLines={this.state.numberOfLines}
-                style={propStyles}
+                onChange={this.shouldCallUpdateNumberOfLines}
+                onSelectionChange={this.onSelectionChange}
+                style={[
+                    propStyles,
+
+                    // We are hiding the scrollbar to prevent it from reducing the text input width,
+                    // so we can get the correct scroll height while calculating the number of lines.
+                    this.state.numberOfLines < this.props.maxLines ? styles.overflowHidden : {},
+                ]}
                 /* eslint-disable-next-line react/jsx-props-no-spreading */
-                {...propsWithoutStylesAndDefault}
+                {...propsWithoutStyles}
+                numberOfLines={this.state.numberOfLines}
                 disabled={this.props.isDisabled}
+                onKeyPress={this.handleKeyPress}
                 value={this.state.value}
                 onChangeText={this.onChangeText}
             />
@@ -418,7 +451,10 @@ class Composer extends React.Component {
 Composer.propTypes = propTypes;
 Composer.defaultProps = defaultProps;
 
-export default withLocalize(React.forwardRef((props, ref) => (
+export default compose(
+    withLocalize,
+    withWindowDimensions,
+)(React.forwardRef((props, ref) => (
     /* eslint-disable-next-line react/jsx-props-no-spreading */
     <Composer {...props} forwardedRef={ref} />
 )));

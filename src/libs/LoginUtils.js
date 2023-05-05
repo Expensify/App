@@ -1,4 +1,12 @@
+import Onyx from 'react-native-onyx';
 import CONST from '../CONST';
+import ONYXKEYS from '../ONYXKEYS';
+
+let countryCodeByIP;
+Onyx.connect({
+    key: ONYXKEYS.COUNTRY_CODE,
+    callback: val => countryCodeByIP = val || 1,
+});
 
 /**
  * Remove the special chars from the phone number
@@ -11,16 +19,16 @@ function getPhoneNumberWithoutSpecialChars(phone) {
 }
 
 /**
- * Remove +1 and special chars from the phone number
+ * Append user country code to the phone number
  *
  * @param {String} phone
  * @return {String}
  */
-function getPhoneNumberWithoutUSCountryCodeAndSpecialChars(phone) {
-    return getPhoneNumberWithoutSpecialChars(phone.replace(/^\+1/, ''));
+function appendCountryCode(phone) {
+    return phone.startsWith('+') ? phone : `+${countryCodeByIP}${phone}`;
 }
 
 export {
     getPhoneNumberWithoutSpecialChars,
-    getPhoneNumberWithoutUSCountryCodeAndSpecialChars,
+    appendCountryCode,
 };

@@ -2,6 +2,16 @@
 @import 'colors';
 @import 'fonts';
 
+$color-appBG: $color-green-appBG;
+$color-highlightBG: $color-green-highlightBG;
+$color-borders: $color-green-borders;
+$color-icons: $color-green-icons;
+$color-text: $color-white;
+$color-link: $color-blue300;
+$color-link-hovered: $color-blue200;
+$color-success: $color-green400;
+$color-text-supporting: $color-light-gray-green;
+
 * {
     margin: 0;
     padding: 0;
@@ -16,7 +26,7 @@ html {
     line-height: 1;
 
     @include maxBreakpoint($breakpoint-tablet) {
-        scroll-padding-top: 80px;        
+        scroll-padding-top: 80px;
     }
 }
 
@@ -63,11 +73,11 @@ html,
 body {
     height: 100%;
     min-height: 100%;
-    background: $color-darker-green;
+    background: $color-appBG;
 }
 
 hr {
-    background: $color-light-blue;
+    background: $color-borders;
     border: none;
     display: inline-block;
     width: 24px;
@@ -84,7 +94,7 @@ em {
 }
 
 a {
-    color: $color-light-blue;
+    color: $color-link;
     text-decoration: none;
 
     img {
@@ -98,7 +108,7 @@ h3,
 h4,
 h5,
 h6 {
-    color: $color-white;
+    color: $color-text;
     font-weight: bold;
     padding-bottom: 12px;
 }
@@ -134,7 +144,7 @@ textarea {
     font-weight: 400;
     font-family: "ExpensifyNeue", "Helvetica Neue", "Helvetica", Arial, sans-serif;
     font-size: 16px;
-    color: $color-white;
+    color: $color-text;
 }
 
 button {
@@ -145,15 +155,15 @@ button {
     font-weight: bold;
 
     &.success {
-        background-color: $color-green;
-        color: $color-white;
+        background-color: $color-success;
+        color: $color-text;
         width: 100%;
         border-radius: 100px;
         padding-left: 20px;
         padding-right: 20px;
 
         &:hover {
-            background-color: desaturate($color-green, 15%);
+            background-color: desaturate($color-success, 15%);
             cursor: pointer;
         }
 
@@ -174,9 +184,9 @@ button {
 
 #lhn {
     position: fixed;
-    background-color: $color-darker-green;
+    background-color: $color-highlightBG;
     box-sizing: border-box;
-    border-right-color: $color-dark-green;
+    border-right-color: $color-borders;
     border-right-width: 1px;
     border-style: solid;
     width: 100%;
@@ -269,12 +279,13 @@ button {
         display: grid;
         grid-template-columns: 40px auto;
         cursor: pointer;
+        align-items: center;
     }
 
     .selected {
         cursor: auto;
         font-weight: bold;
-        color: $color-white;
+        color: $color-text;
     }
 
     .hide {
@@ -286,10 +297,9 @@ button {
 #content-area {
     display: flex;
     flex-direction: column;
-    background-color: $color-super-dark-green;
     min-height: 100vh;
     margin-left: 0;
-    padding: 80px 24px 24px 24px;
+    padding: 80px 24px 0px 24px;
 
     @include breakpoint($breakpoint-tablet) {
         margin-left: 320px;
@@ -298,7 +308,7 @@ button {
     @include breakpoint($breakpoint-desktop) {
         /* Same as the width of the lhn */
         margin-left: 420px;
-        padding: 52px 68px;
+        padding: 52px 68px 0 68px;
         box-sizing: border-box;
     }
 
@@ -306,7 +316,7 @@ button {
         margin-left: 420px;
         /* On wide screens, the padding needs to be equal to
         the view width, minus the content size, minus the lhn size, divided by two. */
-        padding: 52px calc((100vw - 1000px - 420px)/2);
+        padding: 52px calc((100vw - 1000px - 420px)/2) 0 calc((100vw - 1000px - 420px)/2);
     }
 
     ul,
@@ -324,9 +334,8 @@ button {
     .article {
         img {
             display: block;
-            margin-left: auto;
-            margin-right: auto;
-            padding-bottom: 20px;
+            margin: 20px auto;
+            border-radius: 10px;
 
             @include maxBreakpoint($breakpoint-tablet) {
                 width: 100%;
@@ -345,6 +354,33 @@ button {
             display: flex;
             justify-content: space-around;
             flex-wrap: wrap;
+        }
+
+        h2,
+        h3 {
+            font-family: "ExpensifyNewKansas", "Helvetica Neue", "Helvetica", Arial, sans-serif;
+        }
+
+        blockquote {
+            margin-top: 20px;
+            margin-bottom: 20px;
+            padding-top: 20px;
+            padding-left: 5%;
+            border-left: 5px solid #1B5744;
+
+            em:before {
+                content: "\“\a";
+                white-space: pre;
+                font-size: 60px;
+                line-height: 1em;
+                color: #03d47c;
+            }
+
+            p:first-child {
+                font-size: large;
+                font-family: "ExpensifyNewKansas", "Helvetica Neue", "Helvetica", Arial, sans-serif;
+                opacity: 0.8;
+            }
         }
     }
 
@@ -385,7 +421,7 @@ button {
 
     .selected-article {
         font-weight: bold;
-        color: $color-white;
+        color: $color-text;
     }
 
     .home-link {
@@ -412,11 +448,11 @@ button {
     padding: 28px;
     font-weight: 700;
     cursor: pointer;
-    color: $color-white;
-    background-color: $color-darker-green;
+    color: $color-text;
+    background-color: $color-highlightBG;
 
     &:hover {
-        background-color: darken($color-darker-green, 1%);
+        background-color: darken($color-highlightBG, 1%);
     }
 
     .row {
@@ -485,14 +521,9 @@ button {
     }
 }
 
-.icon {
-    color: $color-gray-green;
-    font-size: larger;
-    display: inline;
-
-    &.fa-angle-right {
-        padding-left: 4px;
-    }
+.base-icon {
+    width: 20px;
+    height: 20px;
 }
 
 .homepage {
@@ -596,5 +627,105 @@ button {
 .disable-scrollbar {
     @media screen and (max-width: $breakpoint-tablet) {
         overflow: hidden;
+    }
+}
+
+.page-footer {
+    font-size: 15px;
+
+    @include maxBreakpoint($breakpoint-desktop) {
+        background: url('/assets/images/expensify-footer-logo--vertical.svg') no-repeat right 120px;
+        background-size: 111px 618px;
+        margin-right: -25px;
+    }
+
+    h3 {
+        color: $color-success;
+        font-size: 17px;
+        font-weight: 700;
+        margin-bottom: 16px;
+    }
+
+    ul {
+        margin: 0px !important;
+        padding: 0;
+
+        li {
+            list-style-type: none !important;
+            margin: 0 0 8px;
+
+            a {
+                color: $color-text;
+                display: block;
+                padding: 4px 0;
+                word-break: break-word;
+
+                &:hover {
+                    color: $color-success;
+                }
+            }
+        }
+    }
+
+    &__social-icons {
+        padding-bottom: 20px;
+
+        a {
+            color: $color-text;
+            display: inline-block;
+
+            &:hover {
+                color: $color-success;
+            }
+        }
+    }
+
+    &__fine-print {
+        color: $color-text-supporting;
+        font-size: 10px;
+
+        a {
+            color: $color-link;
+        }
+    }
+
+    // Big logo at the bottom
+    &__logo {
+        margin-top: 40px;
+
+        img {
+            display: block;
+        }
+
+        @include maxBreakpoint($breakpoint-desktop) {
+            display: none;
+        }
+    }
+
+    &__wrapper {
+        margin: 0 auto;
+        max-width: 1000px;
+        padding: 64px 0 0;
+
+        @include maxBreakpoint($breakpoint-tablet) {
+            padding: 64px 0px 20px;
+        }
+    }
+
+    .columns {
+        @include breakpoint($breakpoint-desktop) {
+            display: flex;
+            margin-left: (-1 * 16px);
+            margin-right: (-1 * 16px);
+        }
+    }
+
+    .column {
+        margin-bottom: 40px;
+
+        @include breakpoint($breakpoint-desktop) {
+            padding: 16px;
+            width: 25%;
+        }
     }
 }

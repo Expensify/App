@@ -4,12 +4,12 @@ import lodashGet from 'lodash/get';
 import {withOnyx} from 'react-native-onyx';
 import _ from 'underscore';
 
-import FullScreenLoadingIndicator from '../../../components/FullscreenLoadingIndicator';
 import ONYXKEYS from '../../../ONYXKEYS';
 import SCREENS from '../../../SCREENS';
 import Permissions from '../../Permissions';
 import Timing from '../../actions/Timing';
 import CONST from '../../../CONST';
+import * as App from '../../actions/App';
 
 // Screens
 import ReportScreen from '../../../pages/home/ReportScreen';
@@ -17,6 +17,8 @@ import SidebarScreen from '../../../pages/home/sidebar/SidebarScreen';
 import BaseDrawerNavigator from './BaseDrawerNavigator';
 import * as ReportUtils from '../../ReportUtils';
 import reportPropTypes from '../../../pages/reportPropTypes';
+import Navigation from '../Navigation';
+import {withNavigationPropTypes} from '../../../components/withNavigation';
 
 const propTypes = {
     /** Available reports that would be displayed in this navigator */
@@ -34,30 +36,36 @@ const propTypes = {
         type: PropTypes.string,
     })),
 
+    isFirstTimeNewExpensifyUser: PropTypes.bool,
+
     route: PropTypes.shape({
         params: PropTypes.shape({
             openOnAdminRoom: PropTypes.bool,
         }),
     }).isRequired,
+
+    ...withNavigationPropTypes,
 };
 
 const defaultProps = {
     reports: {},
     betas: [],
     policies: {},
+    isFirstTimeNewExpensifyUser: false,
 };
 
 /**
  * Get the most recently accessed report for the user
  *
  * @param {Object} reports
- * @param {Boolean} [ignoreDefaultRooms]
+ * @param {Boolean} [ignoreDomainRooms]
  * @param {Object} policies
+ * @param {Boolean} isFirstTimeNewExpensifyUser
  * @param {Boolean} openOnAdminRoom
  * @returns {Object}
  */
-const getInitialReportScreenParams = (reports, ignoreDefaultRooms, policies, openOnAdminRoom) => {
-    const last = ReportUtils.findLastAccessedReport(reports, ignoreDefaultRooms, policies, openOnAdminRoom);
+const getInitialReportScreenParams = (reports, ignoreDomainRooms, policies, isFirstTimeNewExpensifyUser, openOnAdminRoom) => {
+    const last = ReportUtils.findLastAccessedReport(reports, ignoreDomainRooms, policies, isFirstTimeNewExpensifyUser, openOnAdminRoom);
 
     // Fallback to empty if for some reason reportID cannot be derived - prevents the app from crashing
     const reportID = lodashGet(last, 'reportID', '');
@@ -72,6 +80,7 @@ class MainDrawerNavigator extends Component {
             props.reports,
             !Permissions.canUseDefaultRooms(props.betas),
             props.policies,
+            props.isFirstTimeNewExpensifyUser,
             lodashGet(props, 'route.params.openOnAdminRoom', false),
         );
 
@@ -85,12 +94,25 @@ class MainDrawerNavigator extends Component {
             nextProps.reports,
             !Permissions.canUseDefaultRooms(nextProps.betas),
             nextProps.policies,
+            nextProps.isFirstTimeNewExpensifyUser,
             lodashGet(nextProps, 'route.params.openOnAdminRoom', false),
         );
         if (this.initialParams.reportID === initialNextParams.reportID) {
+            // We need to wait to open the app until this check is made, since there's a race condition that can happen
+            // where OpenApp will get called beforehand, setting isFirstTimeNewExpensifyUser to false and causing us
+            // to miss the deep-linked report in ReportUtils.findLastAccessedReport
+            App.confirmReadyToOpenApp();
             return false;
         }
 
+        // Update the report screen initial params after the reports are available
+        // to show the correct report instead of the "no access" report.
+        // https://github.com/Expensify/App/issues/12698#issuecomment-1352632883
+        if (!this.initialParams.reportID) {
+            const state = this.props.navigation.getState();
+            const reportScreenKey = lodashGet(state, 'routes[0].state.routes[0].key', '');
+            Navigation.setParams(initialNextParams, reportScreenKey);
+        }
         this.initialParams = initialNextParams;
         return true;
     }
@@ -105,14 +127,6 @@ class MainDrawerNavigator extends Component {
     }
 
     render() {
-        // Wait until reports are fetched and there is a reportID in initialParams
-        if (!this.initialParams.reportID) {
-            return <FullScreenLoadingIndicator />;
-        }
-
-        // After the app initializes and reports are available the home navigation is mounted
-        // This way routing information is updated (if needed) based on the initial report ID resolved.
-        // This is usually needed after login/create account and re-launches
         return (
             <BaseDrawerNavigator
                 drawerContent={({navigation, state}) => {
@@ -152,5 +166,8 @@ export default withOnyx({
     },
     policies: {
         key: ONYXKEYS.COLLECTION.POLICY,
+    },
+    isFirstTimeNewExpensifyUser: {
+        key: ONYXKEYS.NVP_IS_FIRST_TIME_NEW_EXPENSIFY_USER,
     },
 })(MainDrawerNavigator);

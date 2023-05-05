@@ -1,8 +1,7 @@
-import _ from 'underscore';
 import React, {Component} from 'react';
 import PropTypes from 'prop-types';
-import {View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
+import moment from 'moment';
 import ScreenWrapper from '../../../../components/ScreenWrapper';
 import HeaderWithCloseButton from '../../../../components/HeaderWithCloseButton';
 import withLocalize, {withLocalizePropTypes} from '../../../../components/withLocalize';
@@ -14,7 +13,8 @@ import styles from '../../../../styles/styles';
 import Navigation from '../../../../libs/Navigation/Navigation';
 import * as PersonalDetails from '../../../../libs/actions/PersonalDetails';
 import compose from '../../../../libs/compose';
-import DatePicker from '../../../../components/DatePicker';
+import NewDatePicker from '../../../../components/NewDatePicker';
+import CONST from '../../../../CONST';
 
 const propTypes = {
     /* Onyx Props */
@@ -39,6 +39,32 @@ class DateOfBirthPage extends Component {
 
         this.validate = this.validate.bind(this);
         this.updateDateOfBirth = this.updateDateOfBirth.bind(this);
+        this.getYearFromRouteParams = this.getYearFromRouteParams.bind(this);
+        this.minDate = moment().subtract(CONST.DATE_BIRTH.MAX_AGE, 'Y').toDate();
+        this.maxDate = moment().subtract(CONST.DATE_BIRTH.MIN_AGE, 'Y').toDate();
+
+        this.state = {
+            selectedYear: '',
+        };
+    }
+
+    componentDidMount() {
+        this.props.navigation.addListener('focus', this.getYearFromRouteParams);
+    }
+
+    componentWillUnmount() {
+        this.props.navigation.removeListener('focus', this.getYearFromRouteParams);
+    }
+
+    /**
+     * Function to be called to read year from params - necessary to read passed year from the Year picker which is a separate screen
+     * It allows to display selected year in the calendar picker without overwriting this value in Onyx
+     */
+    getYearFromRouteParams() {
+        const {params} = this.props.route;
+        if (params && params.year) {
+            this.setState({selectedYear: params.year});
+        }
     }
 
     /**
@@ -48,7 +74,7 @@ class DateOfBirthPage extends Component {
      */
     updateDateOfBirth(values) {
         PersonalDetails.updateDateOfBirth(
-            values.dob.trim(),
+            values.dob,
         );
     }
 
@@ -59,10 +85,10 @@ class DateOfBirthPage extends Component {
      */
     validate(values) {
         const errors = {};
-        const minimumAge = 5;
-        const maximumAge = 150;
+        const minimumAge = CONST.DATE_BIRTH.MIN_AGE;
+        const maximumAge = CONST.DATE_BIRTH.MAX_AGE;
 
-        if (_.isEmpty(values.dob)) {
+        if (!values.dob || !ValidationUtils.isValidDate(values.dob)) {
             errors.dob = this.props.translate('common.error.fieldRequired');
         }
         const dateError = ValidationUtils.getAgeRequirementError(values.dob, minimumAge, maximumAge);
@@ -79,6 +105,7 @@ class DateOfBirthPage extends Component {
         return (
             <ScreenWrapper includeSafeAreaPaddingBottom={false}>
                 <HeaderWithCloseButton
+                    title={this.props.translate('common.dob')}
                     shouldShowBackButton
                     onBackButtonPress={() => Navigation.navigate(ROUTES.SETTINGS_PERSONAL_DETAILS)}
                     onCloseButtonPress={() => Navigation.dismissModal(true)}
@@ -91,14 +118,14 @@ class DateOfBirthPage extends Component {
                     submitButtonText={this.props.translate('common.save')}
                     enabledWhenOffline
                 >
-                    <View>
-                        <DatePicker
-                            inputID="dob"
-                            label={this.props.translate('common.date')}
-                            defaultValue={privateDetails.dob || ''}
-                            shouldSaveDraft
-                        />
-                    </View>
+                    <NewDatePicker
+                        inputID="dob"
+                        label={this.props.translate('common.date')}
+                        defaultValue={privateDetails.dob || ''}
+                        minDate={this.minDate}
+                        maxDate={this.maxDate}
+                        selectedYear={this.state.selectedYear}
+                    />
                 </Form>
             </ScreenWrapper>
         );

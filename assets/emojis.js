@@ -1,4 +1,11 @@
-import CONST from '../src/CONST';
+import Smiley from './images/emoji.svg';
+import AnimalsAndNature from './images/emojiCategoryIcons/plant.svg';
+import FoodAndDrink from './images/emojiCategoryIcons/hamburger.svg';
+import TravelAndPlaces from './images/emojiCategoryIcons/plane.svg';
+import Activities from './images/emojiCategoryIcons/soccer-ball.svg';
+import Objects from './images/emojiCategoryIcons/light-bulb.svg';
+import Symbols from './images/emojiCategoryIcons/peace-sign.svg';
+import Flags from './images/emojiCategoryIcons/flag.svg';
 
 /*
  * This list is generated from the code here https://github.com/github/gemoji/blob/master/db/emoji.json
@@ -48,7 +55,7 @@ import CONST from '../src/CONST';
 // BEFORE YOU EDIT THIS, PLEASE SEE WARNINGS IN EmojiPickerMenu.js
 const skinTones = [{
     code: '🖐',
-    skinTone: CONST.DEFAULT_SKIN_TONE,
+    skinTone: -1,
 }, {
     code: '🖐🏻',
     skinTone: 4,
@@ -70,6 +77,7 @@ const emojis = [
     {
         code: 'smileysAndEmotion',
         header: true,
+        icon: Smiley,
     },
     {
         name: 'grinning',
@@ -1729,10 +1737,6 @@ const emojis = [
         ],
     },
     {
-        code: 'peopleAndBody',
-        header: true,
-    },
-    {
         name: 'wave',
         code: '👋',
         keywords: [
@@ -1938,6 +1942,7 @@ const emojis = [
             'call_me_hand',
             'call',
             'hand',
+            'shaka',
         ],
         types: [
             '🤙🏿',
@@ -6971,6 +6976,7 @@ const emojis = [
     {
         code: 'animalsAndNature',
         header: true,
+        icon: AnimalsAndNature,
     },
     {
         name: 'monkey_face',
@@ -8144,6 +8150,7 @@ const emojis = [
     {
         code: 'foodAndDrink',
         header: true,
+        icon: FoodAndDrink,
     },
     {
         name: 'grapes',
@@ -9321,6 +9328,7 @@ const emojis = [
     {
         code: 'travelAndPlaces',
         header: true,
+        icon: TravelAndPlaces,
     },
     {
         name: 'earth_africa',
@@ -11440,6 +11448,7 @@ const emojis = [
     {
         code: 'activities',
         header: true,
+        icon: Activities,
     },
     {
         name: 'jack_o_lantern',
@@ -12277,6 +12286,7 @@ const emojis = [
     {
         code: 'objects',
         header: true,
+        icon: Objects,
     },
     {
         name: 'eyeglasses',
@@ -14606,6 +14616,7 @@ const emojis = [
     {
         code: 'symbols',
         header: true,
+        icon: Symbols,
     },
     {
         name: 'atm',
@@ -16596,6 +16607,7 @@ const emojis = [
     {
         code: 'flags',
         header: true,
+        icon: Flags,
     },
     {
         name: 'checkered_flag',

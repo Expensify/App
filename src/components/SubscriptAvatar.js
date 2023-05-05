@@ -8,13 +8,14 @@ import themeColors from '../styles/themes/default';
 import Avatar from './Avatar';
 import CONST from '../CONST';
 import * as StyleUtils from '../styles/StyleUtils';
+import avatarPropTypes from './avatarPropTypes';
 
 const propTypes = {
     /** Avatar URL or icon */
-    mainAvatar: PropTypes.oneOfType([PropTypes.string, PropTypes.func]).isRequired,
+    mainAvatar: avatarPropTypes,
 
     /** Subscript avatar URL or icon */
-    secondaryAvatar: PropTypes.oneOfType([PropTypes.string, PropTypes.func]).isRequired,
+    secondaryAvatar: avatarPropTypes,
 
     /** Tooltip for the main avatar */
     mainTooltip: PropTypes.string,
@@ -27,6 +28,9 @@ const propTypes = {
 
     /** Background color used for subscript avatar border */
     backgroundColor: PropTypes.string,
+
+    /** Removes margin from around the avatar, used for the chat view */
+    noMargin: PropTypes.bool,
 };
 
 const defaultProps = {
@@ -34,30 +38,50 @@ const defaultProps = {
     secondaryTooltip: '',
     size: CONST.AVATAR_SIZE.DEFAULT,
     backgroundColor: themeColors.componentBG,
+    mainAvatar: {},
+    secondaryAvatar: {},
+    noMargin: false,
 };
 
-const SubscriptAvatar = props => (
-    <View style={props.size === CONST.AVATAR_SIZE.SMALL ? styles.emptyAvatarSmall : styles.emptyAvatar}>
-        <Tooltip text={props.mainTooltip}>
-            <Avatar
-                source={props.mainAvatar}
-                size={props.size === CONST.AVATAR_SIZE.SMALL ? CONST.AVATAR_SIZE.SMALL : CONST.AVATAR_SIZE.DEFAULT}
-            />
-        </Tooltip>
-        <View style={[
-            props.size === CONST.AVATAR_SIZE.SMALL ? styles.secondAvatarSubscriptCompact : styles.secondAvatarSubscript,
-            StyleUtils.getBackgroundAndBorderStyle(props.backgroundColor)]}
-        >
-            <Tooltip text={props.secondaryTooltip}>
+const SubscriptAvatar = (props) => {
+    const containerStyle = props.size === CONST.AVATAR_SIZE.SMALL ? styles.emptyAvatarSmall : styles.emptyAvatar;
+
+    // Default the margin style to what is normal for small or normal sized avatars
+    let marginStyle = props.size === CONST.AVATAR_SIZE.SMALL ? styles.emptyAvatarMargin : styles.emptyAvatarMarginSmall;
+
+    // Some views like the chat view require that there be no margins
+    if (props.noMargin) {
+        marginStyle = {};
+    }
+    return (
+        <View style={[containerStyle, marginStyle]}>
+            <Tooltip text={props.mainTooltip}>
                 <Avatar
-                    source={props.secondaryAvatar}
-                    size={props.size === CONST.AVATAR_SIZE.SMALL ? CONST.AVATAR_SIZE.SMALL_SUBSCRIPT : CONST.AVATAR_SIZE.SUBSCRIPT}
-                    fill={themeColors.iconSuccessFill}
+                    source={props.mainAvatar.source}
+                    size={props.size === CONST.AVATAR_SIZE.SMALL ? CONST.AVATAR_SIZE.SMALL : CONST.AVATAR_SIZE.DEFAULT}
+                    name={props.mainAvatar.name}
+                    type={props.mainAvatar.type}
                 />
             </Tooltip>
+            <View style={[
+                props.size === CONST.AVATAR_SIZE.SMALL ? styles.secondAvatarSubscriptCompact : styles.secondAvatarSubscript,
+                StyleUtils.getBackgroundAndBorderStyle(props.backgroundColor),
+                StyleUtils.getAvatarBorderStyle(props.size, props.secondaryAvatar.type),
+            ]}
+            >
+                <Tooltip text={props.secondaryTooltip}>
+                    <Avatar
+                        source={props.secondaryAvatar.source}
+                        size={props.size === CONST.AVATAR_SIZE.SMALL ? CONST.AVATAR_SIZE.SMALL_SUBSCRIPT : CONST.AVATAR_SIZE.SUBSCRIPT}
+                        fill={themeColors.iconSuccessFill}
+                        name={props.secondaryAvatar.name}
+                        type={props.secondaryAvatar.type}
+                    />
+                </Tooltip>
+            </View>
         </View>
-    </View>
-);
+    );
+};
 
 SubscriptAvatar.displayName = 'SubscriptAvatar';
 SubscriptAvatar.propTypes = propTypes;

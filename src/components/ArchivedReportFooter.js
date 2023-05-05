@@ -10,6 +10,7 @@ import personalDetailsPropType from '../pages/personalDetailsPropType';
 import ONYXKEYS from '../ONYXKEYS';
 import * as ReportUtils from '../libs/ReportUtils';
 import reportPropTypes from '../pages/reportPropTypes';
+import * as ReportActionsUtils from '../libs/ReportActionsUtils';
 import styles from '../styles/styles';
 
 const propTypes = {
@@ -32,13 +33,7 @@ const propTypes = {
     report: reportPropTypes.isRequired,
 
     /** Personal details of all users */
-    personalDetails: PropTypes.objectOf(personalDetailsPropType).isRequired,
-
-    /** The list of policies the user has access to. */
-    policies: PropTypes.objectOf(PropTypes.shape({
-        /** The name of the policy */
-        name: PropTypes.string,
-    })).isRequired,
+    personalDetails: PropTypes.objectOf(personalDetailsPropType),
 
     ...withLocalizePropTypes,
 };
@@ -49,6 +44,7 @@ const defaultProps = {
             reason: CONST.REPORT.ARCHIVE_REASON.DEFAULT,
         },
     },
+    personalDetails: {},
 };
 
 const ArchivedReportFooter = (props) => {
@@ -69,7 +65,7 @@ const ArchivedReportFooter = (props) => {
             text={props.translate(`reportArchiveReasons.${archiveReason}`, {
                 displayName: `<strong>${displayName}</strong>`,
                 oldDisplayName: `<strong>${oldDisplayName}</strong>`,
-                policyName: `<strong>${ReportUtils.getPolicyName(props.report, props.policies)}</strong>`,
+                policyName: `<strong>${ReportUtils.getPolicyName(props.report)}</strong>`,
             })}
             shouldRenderHTML={archiveReason !== CONST.REPORT.ARCHIVE_REASON.DEFAULT}
             shouldShowIcon
@@ -87,8 +83,10 @@ export default compose(
         personalDetails: {
             key: ONYXKEYS.PERSONAL_DETAILS,
         },
-        policies: {
-            key: ONYXKEYS.COLLECTION.POLICY,
+        reportClosedAction: {
+            key: ({report}) => `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.reportID}`,
+            canEvict: false,
+            selector: ReportActionsUtils.getLastClosedReportAction,
         },
     }),
 )(ArchivedReportFooter);

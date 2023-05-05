@@ -1,12 +1,15 @@
 import lodashGet from 'lodash/get';
 import _ from 'underscore';
 import lodashMerge from 'lodash/merge';
+import lodashFindLast from 'lodash/findLast';
 import ExpensiMark from 'expensify-common/lib/ExpensiMark';
 import Onyx from 'react-native-onyx';
 import moment from 'moment';
 import * as CollectionUtils from './CollectionUtils';
 import CONST from '../CONST';
 import ONYXKEYS from '../ONYXKEYS';
+import Log from './Log';
+import isReportMessageAttachment from './isReportMessageAttachment';
 
 const allReportActions = {};
 Onyx.connect({
@@ -73,43 +76,19 @@ function getSortedReportActions(reportActions, shouldSortInDescendingOrder = fal
 }
 
 /**
- * Filter out any reportActions which should not be displayed.
- *
- * @param {Array} reportActions
- * @returns {Array}
- */
-function filterReportActionsForDisplay(reportActions) {
-    return _.filter(reportActions, (reportAction) => {
-        // Filter out any unsupported reportAction types
-        if (!_.has(CONST.REPORT.ACTIONS.TYPE, reportAction.actionName)) {
-            return false;
-        }
-
-        // Ignore closed action here since we're already displaying a footer that explains why the report was closed
-        if (reportAction.actionName === CONST.REPORT.ACTIONS.TYPE.CLOSED) {
-            return false;
-        }
-
-        // All other actions are displayed except deleted, non-pending actions
-        const isDeleted = isDeletedAction(reportAction);
-        const isPending = !_.isEmpty(reportAction.pendingAction);
-        return !isDeleted || isPending;
-    });
-}
-
-/**
- * Finds most recent IOU report action number.
+ * Finds most recent IOU request action ID.
  *
  * @param {Array} reportActions
  * @returns {String}
  */
-function getMostRecentIOUReportActionID(reportActions) {
-    const iouActions = _.where(reportActions, {actionName: CONST.REPORT.ACTIONS.TYPE.IOU});
-    if (_.isEmpty(iouActions)) {
+function getMostRecentIOURequestActionID(reportActions) {
+    const iouRequestActions = _.filter(reportActions, action => lodashGet(action, 'originalMessage.type') === CONST.IOU.REPORT_ACTION_TYPE.CREATE);
+
+    if (_.isEmpty(iouRequestActions)) {
         return null;
     }
 
-    const sortedReportActions = getSortedReportActions(iouActions);
+    const sortedReportActions = getSortedReportActions(iouRequestActions);
     return _.last(sortedReportActions).reportActionID;
 }
 
@@ -155,6 +134,11 @@ function isConsecutiveActionMadeByPreviousActor(reportActions, actionIndex) {
 function getLastVisibleAction(reportID, actionsToMerge = {}) {
     const actions = _.toArray(lodashMerge({}, allReportActions[reportID], actionsToMerge));
     const visibleActions = _.filter(actions, action => (!isDeletedAction(action)));
+
+    if (_.isEmpty(visibleActions)) {
+        return {};
+    }
+
     return _.max(visibleActions, action => moment.utc(action.created).valueOf());
 }
 
@@ -165,8 +149,13 @@ function getLastVisibleAction(reportID, actionsToMerge = {}) {
  */
 function getLastVisibleMessageText(reportID, actionsToMerge = {}) {
     const lastVisibleAction = getLastVisibleAction(reportID, actionsToMerge);
-    const htmlText = lodashGet(lastVisibleAction, 'message[0].html', '');
+    const message = lodashGet(lastVisibleAction, ['message', 0], {});
 
+    if (isReportMessageAttachment(message)) {
+        return CONST.ATTACHMENT_MESSAGE_TEXT;
+    }
+
+    const htmlText = lodashGet(lastVisibleAction, 'message[0].html', '');
     const parser = new ExpensiMark();
     const messageText = parser.htmlToText(htmlText);
     return String(messageText)
@@ -174,12 +163,141 @@ function getLastVisibleMessageText(reportID, actionsToMerge = {}) {
         .substring(0, CONST.REPORT.LAST_MESSAGE_TEXT_MAX_LENGTH);
 }
 
+/**
+ * Checks if a reportAction is deprecated.
+ *
+ * @param {Object} reportAction
+ * @param {String} key
+ * @returns {Boolean}
+ */
+function isReportActionDeprecated(reportAction, key) {
+    if (!reportAction) {
+        return true;
+    }
+
+    // HACK ALERT: We're temporarily filtering out any reportActions keyed by sequenceNumber
+    // to prevent bugs during the migration from sequenceNumber -> reportActionID
+    if (String(reportAction.sequenceNumber) === key) {
+        Log.info('Front-end filtered out reportAction keyed by sequenceNumber!', false, reportAction);
+        return true;
+    }
+
+    return false;
+}
+
+/**
+ * Checks if a reportAction is fit for display, meaning that it's not deprecated, is of a valid
+ * and supported type, it's not deleted and also not closed.
+ *
+ * @param {Object} reportAction
+ * @param {String} key
+ * @returns {Boolean}
+ */
+function shouldReportActionBeVisible(reportAction, key) {
+    if (isReportActionDeprecated(reportAction, key)) {
+        return false;
+    }
+
+    // Filter out any unsupported reportAction types
+    if (!_.has(CONST.REPORT.ACTIONS.TYPE, reportAction.actionName) && !_.contains(_.values(CONST.REPORT.ACTIONS.TYPE.POLICYCHANGELOG), reportAction.actionName)) {
+        return false;
+    }
+
+    // Ignore closed action here since we're already displaying a footer that explains why the report was closed
+    if (reportAction.actionName === CONST.REPORT.ACTIONS.TYPE.CLOSED) {
+        return false;
+    }
+
+    // All other actions are displayed except deleted, non-pending actions
+    const isDeleted = isDeletedAction(reportAction);
+    const isPending = !_.isEmpty(reportAction.pendingAction);
+    return !isDeleted || isPending;
+}
+
+/**
+ * A helper method to filter out report actions keyed by sequenceNumbers.
+ *
+ * @param {Object} reportActions
+ * @returns {Array}
+ */
+function filterOutDeprecatedReportActions(reportActions) {
+    return _.filter(reportActions, (reportAction, key) => !isReportActionDeprecated(reportAction, key));
+}
+
+/**
+ * This method returns the report actions that are ready for display in the ReportActionsView.
+ * The report actions need to be sorted by created timestamp first, and reportActionID second
+ * to ensure they will always be displayed in the same order (in case multiple actions have the same timestamp).
+ * This is all handled with getSortedReportActions() which is used by several other methods to keep the code DRY.
+ *
+ * @param {Object} reportActions
+ * @returns {Array}
+ */
+function getSortedReportActionsForDisplay(reportActions) {
+    const filteredReportActions = _.filter(reportActions, (reportAction, key) => shouldReportActionBeVisible(reportAction, key));
+    return getSortedReportActions(filteredReportActions, true);
+}
+
+/**
+ * In some cases, there can be multiple closed report actions in a chat report.
+ * This method returns the last closed report action so we can always show the correct archived report reason.
+ * Additionally, archived #admins and #announce do not have the closed report action so we will return null if none is found.
+ *
+ * @param {Object} reportActions
+ * @returns {Object|null}
+ */
+function getLastClosedReportAction(reportActions) {
+    // If closed report action is not present, return early
+    if (!_.some(reportActions, action => action.actionName === CONST.REPORT.ACTIONS.TYPE.CLOSED)) {
+        return null;
+    }
+    const filteredReportActions = filterOutDeprecatedReportActions(reportActions);
+    const sortedReportActions = getSortedReportActions(filteredReportActions);
+    return lodashFindLast(sortedReportActions, action => action.actionName === CONST.REPORT.ACTIONS.TYPE.CLOSED);
+}
+
+/**
+ * @param {Array} onyxData
+ * @returns {Object} The latest report action in the `onyxData` or `null` if one couldn't be found
+ */
+function getLatestReportActionFromOnyxData(onyxData) {
+    const reportActionUpdate = _.find(onyxData, onyxUpdate => onyxUpdate.key.startsWith(ONYXKEYS.COLLECTION.REPORT_ACTIONS));
+
+    if (!reportActionUpdate) {
+        return null;
+    }
+
+    const reportActions = _.values(reportActionUpdate.value);
+    const sortedReportActions = getSortedReportActions(reportActions);
+    return _.last(sortedReportActions);
+}
+
+/**
+ * Find the transaction associated with this reportAction, if one exists.
+ *
+ * @param {String} reportID
+ * @param {String} reportActionID
+ * @returns {String|null}
+ */
+function getLinkedTransactionID(reportID, reportActionID) {
+    const reportAction = lodashGet(allReportActions, [reportID, reportActionID]);
+    if (!reportAction || reportAction.actionName !== CONST.REPORT.ACTIONS.TYPE.IOU) {
+        return null;
+    }
+    return reportAction.originalMessage.IOUTransactionID;
+}
+
 export {
     getSortedReportActions,
-    filterReportActionsForDisplay,
     getLastVisibleAction,
     getLastVisibleMessageText,
-    getMostRecentIOUReportActionID,
+    getMostRecentIOURequestActionID,
     isDeletedAction,
+    shouldReportActionBeVisible,
+    isReportActionDeprecated,
     isConsecutiveActionMadeByPreviousActor,
+    getSortedReportActionsForDisplay,
+    getLastClosedReportAction,
+    getLatestReportActionFromOnyxData,
+    getLinkedTransactionID,
 };

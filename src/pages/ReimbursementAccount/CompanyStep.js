@@ -3,8 +3,9 @@ import lodashGet from 'lodash/get';
 import React from 'react';
 import {View} from 'react-native';
 import Str from 'expensify-common/lib/str';
-import moment from 'moment';
 import {withOnyx} from 'react-native-onyx';
+import PropTypes from 'prop-types';
+import {parsePhoneNumber} from 'awesome-phonenumber';
 import HeaderWithCloseButton from '../../components/HeaderWithCloseButton';
 import CONST from '../../CONST';
 import * as BankAccounts from '../../libs/actions/BankAccounts';
@@ -18,7 +19,6 @@ import TextLink from '../../components/TextLink';
 import StatePicker from '../../components/StatePicker';
 import withLocalize from '../../components/withLocalize';
 import * as ValidationUtils from '../../libs/ValidationUtils';
-import * as LoginUtils from '../../libs/LoginUtils';
 import compose from '../../libs/compose';
 import ONYXKEYS from '../../ONYXKEYS';
 import Picker from '../../components/Picker';
@@ -29,6 +29,25 @@ import StepPropTypes from './StepPropTypes';
 
 const propTypes = {
     ...StepPropTypes,
+
+    /** Session info for the currently logged in user. */
+    session: PropTypes.shape({
+        /** Currently logged in user email */
+        email: PropTypes.string,
+    }),
+
+    /** Object with various information about the user */
+    user: PropTypes.shape({
+        /** Whether or not the user is on a public domain email account or not */
+        isFromPublicDomain: PropTypes.bool,
+    }),
+};
+
+const defaultProps = {
+    session: {
+        email: null,
+    },
+    user: {},
 };
 
 class CompanyStep extends React.Component {
@@ -128,9 +147,8 @@ class CompanyStep extends React.Component {
 
             // Fields from Company step
             ...values,
-            incorporationDate: moment(values.incorporationDate).format(CONST.DATE.MOMENT_FORMAT_STRING),
             companyTaxID: values.companyTaxID.replace(CONST.REGEX.NON_NUMERIC, ''),
-            companyPhone: LoginUtils.getPhoneNumberWithoutUSCountryCodeAndSpecialChars(values.companyPhone),
+            companyPhone: parsePhoneNumber(values.companyPhone, {regionCode: CONST.COUNTRY.US}).number.significant,
         };
 
         BankAccounts.updateCompanyInformationForBankAccount(bankAccount);
@@ -157,7 +175,6 @@ class CompanyStep extends React.Component {
                     validate={this.validate}
                     onSubmit={this.submit}
                     scrollContextEnabled
-                    scrollToOverflowEnabled
                     submitButtonText={this.props.translate('common.saveAndContinue')}
                     style={[styles.ph5, styles.flexGrow1]}
                 >
@@ -169,6 +186,7 @@ class CompanyStep extends React.Component {
                         disabled={shouldDisableCompanyName}
                         defaultValue={this.props.getDefaultStateForField('companyName')}
                         shouldSaveDraft
+                        shouldUseDefaultValue={shouldDisableCompanyName}
                     />
                     <AddressForm
                         translate={this.props.translate}
@@ -200,6 +218,7 @@ class CompanyStep extends React.Component {
                         defaultValue={this.props.getDefaultStateForField('website', this.defaultWebsite)}
                         shouldSaveDraft
                         hint={this.props.translate('common.websiteExample')}
+                        keyboardType={CONST.KEYBOARD_TYPE.URL}
                     />
                     <TextInput
                         inputID="companyTaxID"
@@ -210,6 +229,7 @@ class CompanyStep extends React.Component {
                         placeholder={this.props.translate('companyStep.taxIDNumberPlaceholder')}
                         defaultValue={this.props.getDefaultStateForField('companyTaxID')}
                         shouldSaveDraft
+                        shouldUseDefaultValue={shouldDisableCompanyTaxID}
                     />
                     <View style={styles.mt4}>
                         <Picker
@@ -262,6 +282,7 @@ class CompanyStep extends React.Component {
 }
 
 CompanyStep.propTypes = propTypes;
+CompanyStep.defaultProps = defaultProps;
 
 export default compose(
     withLocalize,

@@ -199,21 +199,21 @@ class BasePaymentsPage extends React.Component {
                 formattedSelectedPaymentMethod = {
                     title: 'PayPal.me',
                     icon: account.icon,
-                    description: account.username,
+                    description: PaymentUtils.getPaymentMethodDescription(accountType, account),
                     type: CONST.PAYMENT_METHODS.PAYPAL,
                 };
             } else if (accountType === CONST.PAYMENT_METHODS.BANK_ACCOUNT) {
                 formattedSelectedPaymentMethod = {
                     title: account.addressName,
                     icon: account.icon,
-                    description: `${this.props.translate('paymentMethodList.accountLastFour')} ${account.accountNumber.slice(-4)}`,
+                    description: PaymentUtils.getPaymentMethodDescription(accountType, account),
                     type: CONST.PAYMENT_METHODS.BANK_ACCOUNT,
                 };
             } else if (accountType === CONST.PAYMENT_METHODS.DEBIT_CARD) {
                 formattedSelectedPaymentMethod = {
                     title: account.addressName,
                     icon: account.icon,
-                    description: `${this.props.translate('paymentMethodList.cardLastFour')} ${account.cardNumber.slice(-4)}`,
+                    description: PaymentUtils.getPaymentMethodDescription(accountType, account),
                     type: CONST.PAYMENT_METHODS.DEBIT_CARD,
                 };
             }
@@ -299,7 +299,7 @@ class BasePaymentsPage extends React.Component {
         LayoutAnimation.configureNext(LayoutAnimation.create(50, LayoutAnimation.Types.easeInEaseOut, LayoutAnimation.Properties.opacity));
     }
 
-    makeDefaultPaymentMethod(password) {
+    makeDefaultPaymentMethod(password = '') {
         // Find the previous default payment method so we can revert if the MakeDefaultPaymentMethod command errors
         const paymentMethods = PaymentUtils.formatPaymentMethods(
             this.props.bankAccountList,
@@ -351,28 +351,30 @@ class BasePaymentsPage extends React.Component {
                             )}
                         </View>
                         {this.props.userWallet.currentBalance > 0 && (
-                            <KYCWall
-                                onSuccessfulKYC={this.navigateToTransferBalancePage}
-                                enablePaymentsRoute={ROUTES.SETTINGS_ENABLE_PAYMENTS}
-                                addBankAccountRoute={ROUTES.SETTINGS_ADD_BANK_ACCOUNT}
-                                addDebitCardRoute={ROUTES.SETTINGS_ADD_DEBIT_CARD}
-                                popoverPlacement="bottom"
-                            >
-                                {triggerKYCFlow => (
-                                    <MenuItem
-                                        title={this.props.translate('common.transferBalance')}
-                                        icon={Expensicons.Transfer}
-                                        onPress={triggerKYCFlow}
-                                        shouldShowRightIcon
-                                        disabled={this.props.network.isOffline}
-                                    />
-                                )}
-                            </KYCWall>
+                            <View style={styles.mb3}>
+                                <KYCWall
+                                    onSuccessfulKYC={this.navigateToTransferBalancePage}
+                                    enablePaymentsRoute={ROUTES.SETTINGS_ENABLE_PAYMENTS}
+                                    addBankAccountRoute={ROUTES.SETTINGS_ADD_BANK_ACCOUNT}
+                                    addDebitCardRoute={ROUTES.SETTINGS_ADD_DEBIT_CARD}
+                                    popoverPlacement="bottom"
+                                >
+                                    {triggerKYCFlow => (
+                                        <MenuItem
+                                            title={this.props.translate('common.transferBalance')}
+                                            icon={Expensicons.Transfer}
+                                            onPress={triggerKYCFlow}
+                                            shouldShowRightIcon
+                                            disabled={this.props.network.isOffline}
+                                        />
+                                    )}
+                                </KYCWall>
+                            </View>
                         )}
                     </>
                 )}
                 <Text
-                    style={[styles.ph5, styles.mt6, styles.textLabelSupporting, styles.mb1]}
+                    style={[styles.ph5, styles.textLabelSupporting, styles.mb1]}
                 >
                     {this.props.translate('paymentsPage.paymentMethodsTitle')}
                 </Text>
@@ -464,10 +466,14 @@ class BasePaymentsPage extends React.Component {
                                     // InteractionManager fires after the currently running animation is completed.
                                     // https://github.com/Expensify/App/issues/7768#issuecomment-1044879541
                                     InteractionManager.runAfterInteractions(() => {
-                                        this.setState({
-                                            shouldShowPasswordPrompt: true,
-                                            passwordButtonText: this.props.translate('paymentsPage.setDefaultConfirmation'),
-                                        });
+                                        if (Permissions.canUsePasswordlessLogins(this.props.betas)) {
+                                            this.makeDefaultPaymentMethod();
+                                        } else {
+                                            this.setState({
+                                                shouldShowPasswordPrompt: true,
+                                                passwordButtonText: this.props.translate('paymentsPage.setDefaultConfirmation'),
+                                            });
+                                        }
                                     });
                                 }}
                                 text={this.props.translate('paymentsPage.setDefaultConfirmation')}

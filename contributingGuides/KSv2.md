@@ -16,7 +16,7 @@ To help surface the issues and PRs that need the most `#urgency`, we've built a 
 
 <img src="https://user-images.githubusercontent.com/6829422/213875977-8ff4cf19-7690-4203-ae13-a8da259be7d0.png" />
 
-Once you have the extension installed, you can access it by going to https://github.com/Expensify/Expensify#k2 or clicking on the K2 tab at the top of a repo (between pull requests and GH actions). You'll have to create a Personal Access Token in GitHub ([here](https://github.com/settings/tokens)) and enter that in the K2 dashboard the first time you open it, so that your K2 extension can automatically pull data about your GitHub account.
+Once you have the extension installed, you can access it by going to https://github.com/Expensify/App#k2 or clicking on the K2 tab at the top of a repo (between pull requests and GH actions). You'll have to create a Personal Access Token in GitHub ([here](https://github.com/settings/tokens)) and enter that in the K2 dashboard the first time you open it, so that your K2 extension can automatically pull data about your GitHub account.
 
 ### Pull Requests for review
 

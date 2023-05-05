@@ -24,18 +24,13 @@ const propTypes = {
     isGroupChat: PropTypes.bool,
 
     /** Beta features list */
-    betas: PropTypes.arrayOf(PropTypes.string).isRequired,
+    betas: PropTypes.arrayOf(PropTypes.string),
 
     /** All of the personal details for everyone */
-    personalDetails: personalDetailsPropType.isRequired,
+    personalDetails: personalDetailsPropType,
 
     /** All reports shared with the user */
-    reports: PropTypes.objectOf(reportPropTypes).isRequired,
-
-    /** Session of currently logged in user */
-    session: PropTypes.shape({
-        email: PropTypes.string.isRequired,
-    }).isRequired,
+    reports: PropTypes.objectOf(reportPropTypes),
 
     ...windowDimensionsPropTypes,
 
@@ -44,6 +39,9 @@ const propTypes = {
 
 const defaultProps = {
     isGroupChat: false,
+    betas: [],
+    personalDetails: {},
+    reports: {},
 };
 
 class NewChatPage extends Component {
@@ -235,7 +233,7 @@ class NewChatPage extends Component {
             maxParticipantsReached,
         );
         return (
-            <ScreenWrapper includeSafeAreaPaddingBottom={false}>
+            <ScreenWrapper includeSafeAreaPaddingBottom={false} shouldEnableMaxHeight>
                 {({didScreenTransitionEnd, safeAreaPaddingBottomStyle}) => (
                     <>
                         <HeaderWithCloseButton
@@ -259,7 +257,8 @@ class NewChatPage extends Component {
                                     shouldShowConfirmButton={this.props.isGroupChat}
                                     confirmButtonText={this.props.translate('newChatPage.createGroup')}
                                     onConfirmSelection={this.createGroup}
-                                    placeholderText={this.props.translate('optionsSelector.nameEmailOrPhoneNumber')}
+                                    textInputLabel={this.props.translate('optionsSelector.nameEmailOrPhoneNumber')}
+                                    safeAreaPaddingBottomStyle={safeAreaPaddingBottomStyle}
                                 />
                             ) : (
                                 <FullScreenLoadingIndicator />
@@ -284,9 +283,6 @@ export default compose(
         },
         personalDetails: {
             key: ONYXKEYS.PERSONAL_DETAILS,
-        },
-        session: {
-            key: ONYXKEYS.SESSION,
         },
         betas: {
             key: ONYXKEYS.BETAS,

@@ -1,17 +1,14 @@
 import lodashGet from 'lodash/get';
-import lodashMerge from 'lodash/merge';
 import Onyx from 'react-native-onyx';
 import Str from 'expensify-common/lib/str';
+import _ from 'underscore';
 import ONYXKEYS from '../../ONYXKEYS';
 import CONST from '../../CONST';
 import * as API from '../API';
-import * as DeprecatedAPI from '../deprecatedAPI';
-import NameValuePair from './NameValuePair';
 import * as ReportUtils from '../ReportUtils';
-import Growl from '../Growl';
-import * as Localize from '../Localize';
-import Navigation from '../Navigation/Navigation';
+import * as LocalePhoneNumber from '../LocalePhoneNumber';
 import ROUTES from '../../ROUTES';
+import Navigation from '../Navigation/Navigation';
 
 let currentUserEmail = '';
 Onyx.connect({
@@ -33,9 +30,9 @@ Onyx.connect({
  * @returns {String}
  */
 function getDisplayName(login, personalDetail) {
-    // If we have a number like +15857527441@expensify.sms then let's remove @expensify.sms
+    // If we have a number like +15857527441@expensify.sms then let's remove @expensify.sms and format it
     // so that the option looks cleaner in our UI.
-    const userLogin = Str.removeSMSDomain(login);
+    const userLogin = LocalePhoneNumber.formatPhoneNumber(login);
     const userDetails = personalDetail || lodashGet(personalDetails, login);
 
     if (!userDetails) {
@@ -70,7 +67,7 @@ function extractFirstAndLastNameFromAvailableDetails({
     if (firstName || lastName) {
         return {firstName: firstName || '', lastName: lastName || ''};
     }
-    if (Str.removeSMSDomain(login) === displayName) {
+    if (login && Str.removeSMSDomain(login) === displayName) {
         return {firstName: '', lastName: ''};
     }
 
@@ -87,48 +84,16 @@ function extractFirstAndLastNameFromAvailableDetails({
 }
 
 /**
- * Merges partial details object into the local store.
- *
- * @param {Object} details
- * @private
+ * Convert country names obtained from the backend to their respective ISO codes
+ * This is for backward compatibility of stored data before E/App#15507
+ * @param {String} countryName
+ * @returns {String}
  */
-function mergeLocalPersonalDetails(details) {
-    // We are merging the partial details provided to this method with the existing details we have for the user so
-    // that we don't overwrite any values that may exist in storage.
-    const mergedDetails = lodashMerge(personalDetails[currentUserEmail], details);
-
-    // displayName is a generated field so we'll use the firstName and lastName + login to update it.
-    mergedDetails.displayName = getDisplayName(currentUserEmail, mergedDetails);
-
-    Onyx.merge(ONYXKEYS.PERSONAL_DETAILS, {[currentUserEmail]: mergedDetails});
-}
-
-/**
- * Sets the personal details object for the current user
- *
- * @param {Object} details
- * @param {boolean} shouldGrowl
- */
-function setPersonalDetails(details, shouldGrowl) {
-    DeprecatedAPI.PersonalDetails_Update({details: JSON.stringify(details)})
-        .then((response) => {
-            if (response.jsonCode === 200) {
-                if (details.timezone) {
-                    NameValuePair.set(CONST.NVP.TIMEZONE, details.timezone);
-                }
-                mergeLocalPersonalDetails(details);
-
-                if (shouldGrowl) {
-                    Growl.show(Localize.translateLocal('profilePage.growlMessageOnSave'), CONST.GROWL.SUCCESS, 3000);
-                }
-            } else if (response.jsonCode === 400) {
-                Growl.error(Localize.translateLocal('personalDetails.error.firstNameLength'), 3000);
-            } else if (response.jsonCode === 401) {
-                Growl.error(Localize.translateLocal('personalDetails.error.lastNameLength'), 3000);
-            } else {
-                console.debug('Error while setting personal details', response);
-            }
-        });
+function getCountryISO(countryName) {
+    if (_.isEmpty(countryName) || countryName.length === 2) {
+        return countryName;
+    }
+    return _.findKey(CONST.ALL_COUNTRIES, country => country === countryName) || '';
 }
 
 /**
@@ -137,7 +102,7 @@ function setPersonalDetails(details, shouldGrowl) {
 function updatePronouns(pronouns) {
     API.write('UpdatePronouns', {pronouns}, {
         optimisticData: [{
-            onyxMethod: CONST.ONYX.METHOD.MERGE,
+            onyxMethod: Onyx.METHOD.MERGE,
             key: ONYXKEYS.PERSONAL_DETAILS,
             value: {
                 [currentUserEmail]: {
@@ -146,7 +111,7 @@ function updatePronouns(pronouns) {
             },
         }],
     });
-    Navigation.navigate(ROUTES.SETTINGS_PROFILE);
+    Navigation.drawerGoBack(ROUTES.SETTINGS_PROFILE);
 }
 
 /**
@@ -156,7 +121,7 @@ function updatePronouns(pronouns) {
 function updateDisplayName(firstName, lastName) {
     API.write('UpdateDisplayName', {firstName, lastName}, {
         optimisticData: [{
-            onyxMethod: CONST.ONYX.METHOD.MERGE,
+            onyxMethod: Onyx.METHOD.MERGE,
             key: ONYXKEYS.PERSONAL_DETAILS,
             value: {
                 [currentUserEmail]: {
@@ -170,7 +135,7 @@ function updateDisplayName(firstName, lastName) {
             },
         }],
     });
-    Navigation.navigate(ROUTES.SETTINGS_PROFILE);
+    Navigation.drawerGoBack(ROUTES.SETTINGS_PROFILE);
 }
 
 /**
@@ -180,7 +145,7 @@ function updateDisplayName(firstName, lastName) {
 function updateLegalName(legalFirstName, legalLastName) {
     API.write('UpdateLegalName', {legalFirstName, legalLastName}, {
         optimisticData: [{
-            onyxMethod: CONST.ONYX.METHOD.MERGE,
+            onyxMethod: Onyx.METHOD.MERGE,
             key: ONYXKEYS.PRIVATE_PERSONAL_DETAILS,
             value: {
                 legalFirstName,
@@ -188,7 +153,7 @@ function updateLegalName(legalFirstName, legalLastName) {
             },
         }],
     });
-    Navigation.navigate(ROUTES.SETTINGS_PERSONAL_DETAILS);
+    Navigation.drawerGoBack(ROUTES.SETTINGS_PERSONAL_DETAILS);
 }
 
 /**
@@ -197,14 +162,14 @@ function updateLegalName(legalFirstName, legalLastName) {
 function updateDateOfBirth(dob) {
     API.write('UpdateDateOfBirth', {dob}, {
         optimisticData: [{
-            onyxMethod: CONST.ONYX.METHOD.MERGE,
+            onyxMethod: Onyx.METHOD.MERGE,
             key: ONYXKEYS.PRIVATE_PERSONAL_DETAILS,
             value: {
                 dob,
             },
         }],
     });
-    Navigation.navigate(ROUTES.SETTINGS_PERSONAL_DETAILS);
+    Navigation.drawerGoBack(ROUTES.SETTINGS_PERSONAL_DETAILS);
 }
 
 /**
@@ -216,16 +181,23 @@ function updateDateOfBirth(dob) {
  * @param {String} country
  */
 function updateAddress(street, street2, city, state, zip, country) {
-    API.write('UpdateHomeAddress', {
-        addressStreet: street,
+    const parameters = {
+        homeAddressStreet: street,
         addressStreet2: street2,
-        addressCity: city,
+        homeAddressCity: city,
         addressState: state,
         addressZipCode: zip,
         addressCountry: country,
-    }, {
+    };
+
+    // State names for the United States are in the form of two-letter ISO codes
+    // State names for other countries except US have full names, so we provide two different params to be handled by server
+    if (country !== CONST.COUNTRY.US) {
+        parameters.addressStateLong = state;
+    }
+    API.write('UpdateHomeAddress', parameters, {
         optimisticData: [{
-            onyxMethod: CONST.ONYX.METHOD.MERGE,
+            onyxMethod: Onyx.METHOD.MERGE,
             key: ONYXKEYS.PRIVATE_PERSONAL_DETAILS,
             value: {
                 address: {
@@ -238,7 +210,7 @@ function updateAddress(street, street2, city, state, zip, country) {
             },
         }],
     });
-    Navigation.navigate(ROUTES.SETTINGS_PERSONAL_DETAILS);
+    Navigation.drawerGoBack(ROUTES.SETTINGS_PERSONAL_DETAILS);
 }
 
 /**
@@ -254,7 +226,7 @@ function updateAutomaticTimezone(timezone) {
         timezone: JSON.stringify(timezone),
     }, {
         optimisticData: [{
-            onyxMethod: CONST.ONYX.METHOD.MERGE,
+            onyxMethod: Onyx.METHOD.MERGE,
             key: ONYXKEYS.PERSONAL_DETAILS,
             value: {
                 [currentUserEmail]: {
@@ -279,7 +251,7 @@ function updateSelectedTimezone(selectedTimezone) {
         timezone: JSON.stringify(timezone),
     }, {
         optimisticData: [{
-            onyxMethod: CONST.ONYX.METHOD.MERGE,
+            onyxMethod: Onyx.METHOD.MERGE,
             key: ONYXKEYS.PERSONAL_DETAILS,
             value: {
                 [currentUserEmail]: {
@@ -288,13 +260,13 @@ function updateSelectedTimezone(selectedTimezone) {
             },
         }],
     });
-    Navigation.navigate(ROUTES.SETTINGS_TIMEZONE);
+    Navigation.drawerGoBack(ROUTES.SETTINGS_TIMEZONE);
 }
 
 /**
  * Fetches the local currency based on location and sets currency code/symbol to Onyx
  */
-function openIOUModalPage() {
+function openMoneyRequestModalPage() {
     API.read('OpenIOUModalPage');
 }
 
@@ -312,23 +284,25 @@ function openPersonalDetailsPage() {
  */
 function updateAvatar(file) {
     const optimisticData = [{
-        onyxMethod: CONST.ONYX.METHOD.MERGE,
+        onyxMethod: Onyx.METHOD.MERGE,
         key: ONYXKEYS.PERSONAL_DETAILS,
         value: {
             [currentUserEmail]: {
                 avatar: file.uri,
                 avatarThumbnail: file.uri,
+                originalFileName: file.name,
                 errorFields: {
                     avatar: null,
                 },
                 pendingFields: {
                     avatar: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
+                    originalFileName: null,
                 },
             },
         },
     }];
     const successData = [{
-        onyxMethod: CONST.ONYX.METHOD.MERGE,
+        onyxMethod: Onyx.METHOD.MERGE,
         key: ONYXKEYS.PERSONAL_DETAILS,
         value: {
             [currentUserEmail]: {
@@ -339,7 +313,7 @@ function updateAvatar(file) {
         },
     }];
     const failureData = [{
-        onyxMethod: CONST.ONYX.METHOD.MERGE,
+        onyxMethod: Onyx.METHOD.MERGE,
         key: ONYXKEYS.PERSONAL_DETAILS,
         value: {
             [currentUserEmail]: {
@@ -364,7 +338,7 @@ function deleteAvatar() {
 
     API.write('DeleteUserAvatar', {}, {
         optimisticData: [{
-            onyxMethod: CONST.ONYX.METHOD.MERGE,
+            onyxMethod: Onyx.METHOD.MERGE,
             key: ONYXKEYS.PERSONAL_DETAILS,
             value: {
                 [currentUserEmail]: {
@@ -373,7 +347,7 @@ function deleteAvatar() {
             },
         }],
         failureData: [{
-            onyxMethod: CONST.ONYX.METHOD.MERGE,
+            onyxMethod: Onyx.METHOD.MERGE,
             key: ONYXKEYS.PERSONAL_DETAILS,
             value: {
                 [currentUserEmail]: {
@@ -402,10 +376,9 @@ function clearAvatarErrors() {
 
 export {
     getDisplayName,
-    setPersonalDetails,
     updateAvatar,
     deleteAvatar,
-    openIOUModalPage,
+    openMoneyRequestModalPage,
     openPersonalDetailsPage,
     extractFirstAndLastNameFromAvailableDetails,
     updateDisplayName,
@@ -416,4 +389,5 @@ export {
     clearAvatarErrors,
     updateAutomaticTimezone,
     updateSelectedTimezone,
+    getCountryISO,
 };

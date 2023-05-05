@@ -15,6 +15,9 @@ export default {
     // which tab is the leader, and which ones are the followers
     ACTIVE_CLIENTS: 'activeClients',
 
+    // A unique ID for the device
+    DEVICE_ID: 'deviceID',
+
     // Boolean flag set whenever the sidebar has loaded
     IS_SIDEBAR_LOADED: 'isSidebarLoaded',
 
@@ -27,7 +30,7 @@ export default {
     // Credentials to authenticate the user
     CREDENTIALS: 'credentials',
 
-    // Contains loading data for the IOU feature (IOUModal, IOUDetail, & IOUPreview Components)
+    // Contains loading data for the IOU feature (MoneyRequestModal, IOUDetail, & IOUPreview Components)
     IOU: 'iou',
 
     // Keeps track if there is modal currently visible or not
@@ -79,6 +82,12 @@ export default {
     // Contains the users's block expiration (if they have one)
     NVP_BLOCKED_FROM_CONCIERGE: 'private_blockedFromConcierge',
 
+    // A unique identifier that each user has that's used to send notifications
+    NVP_PRIVATE_PUSH_NOTIFICATION_ID: 'private_pushNotificationID',
+
+    // Does this user have push notifications enabled for this device?
+    PUSH_NOTIFICATIONS_ENABLED: 'pushNotificationsEnabled',
+
     // Plaid data (access tokens, bank accounts ...)
     PLAID_DATA: 'plaidData',
 
@@ -93,15 +102,18 @@ export default {
 
     // Collection Keys
     COLLECTION: {
+        DOWNLOAD: 'download_',
+        POLICY: 'policy_',
+        POLICY_MEMBER_LIST: 'policyMemberList_',
+        WORKSPACE_INVITE_MEMBERS_DRAFT: 'workspaceInviteMembersDraft_',
         REPORT: 'report_',
         REPORT_ACTIONS: 'reportActions_',
-        REPORT_DRAFT_COMMENT: 'reportDraftComment_',
         REPORT_ACTIONS_DRAFTS: 'reportActionsDrafts_',
-        REPORT_USER_IS_TYPING: 'reportUserIsTyping_',
-        POLICY: 'policy_',
+        REPORT_DRAFT_COMMENT: 'reportDraftComment_',
+        REPORT_DRAFT_COMMENT_NUMBER_OF_LINES: 'reportDraftCommentNumberOfLines_',
         REPORT_IS_COMPOSER_FULL_SIZE: 'reportIsComposerFullSize_',
-        POLICY_MEMBER_LIST: 'policyMemberList_',
-        DOWNLOAD: 'download_',
+        REPORT_USER_IS_TYPING: 'reportUserIsTyping_',
+        TRANSACTION: 'transactions_',
     },
 
     // Indicates which locale should be used
@@ -152,14 +164,14 @@ export default {
     // Set when we are loading payment methods
     IS_LOADING_PAYMENT_METHODS: 'isLoadingPaymentMethods',
 
-    // The number of minutes a user has to wait for a call.
-    INBOX_CALL_USER_WAIT_TIME: 'inboxCallUserWaitTime',
-
     // Is report data loading?
     IS_LOADING_REPORT_DATA: 'isLoadingReportData',
 
     // Is Keyboard shortcuts modal open?
     IS_SHORTCUTS_MODAL_OPEN: 'isShortcutsModalOpen',
+
+    // Is the test tools modal open?
+    IS_TEST_TOOLS_MODAL_OPEN: 'isTestToolsModalOpen',
 
     // Stores information about active wallet transfer amount, selectedAccountID, status, etc
     WALLET_TRANSFER: 'walletTransfer',
@@ -170,17 +182,20 @@ export default {
     // List of Form ids
     FORMS: {
         ADD_DEBIT_CARD_FORM: 'addDebitCardForm',
-        REQUEST_CALL_FORM: 'requestCallForm',
         REIMBURSEMENT_ACCOUNT_FORM: 'reimbursementAccount',
         WORKSPACE_SETTINGS_FORM: 'workspaceSettingsForm',
         CLOSE_ACCOUNT_FORM: 'closeAccount',
         PROFILE_SETTINGS_FORM: 'profileSettingsForm',
         DISPLAY_NAME_FORM: 'displayNameForm',
         LEGAL_NAME_FORM: 'legalNameForm',
+        WORKSPACE_INVITE_MESSAGE_FORM: 'workspaceInviteMessageForm',
         DATE_OF_BIRTH_FORM: 'dateOfBirthForm',
         HOME_ADDRESS_FORM: 'homeAddressForm',
         NEW_ROOM_FORM: 'newRoomForm',
         ROOM_SETTINGS_FORM: 'roomSettingsForm',
+        NEW_TASK_FORM: 'newTaskForm',
+        EDIT_TASK_FORM: 'editTaskForm',
+        MONEY_REQUEST_DESCRIPTION_FORM: 'moneyRequestDescriptionForm',
     },
 
     // Whether we should show the compose input or not
@@ -188,4 +203,7 @@ export default {
 
     // Is app in beta version
     IS_BETA: 'isBeta',
+
+    // Whether the auth token is valid
+    IS_TOKEN_VALID: 'isTokenValid',
 };

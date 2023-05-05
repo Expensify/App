@@ -8,6 +8,7 @@ import TextInput from '../../../components/TextInput';
 import Picker from '../../../components/Picker';
 import Text from '../../../components/Text';
 import styles from '../../../styles/styles';
+import themeColors from '../../../styles/themes/default';
 import withLocalize, {withLocalizePropTypes} from '../../../components/withLocalize';
 import * as Expensicons from '../../../components/Icon/Expensicons';
 import * as Illustrations from '../../../components/Icon/Illustrations';
@@ -213,6 +214,8 @@ class WorkspaceReimburseView extends React.Component {
     }
 
     render() {
+        const viewAllReceiptsUrl = `expenses?policyIDList=${this.props.policy.id}&billableReimbursable=reimbursable&submitterEmail=%2B%2B`;
+
         return (
             <>
                 <Section
@@ -221,11 +224,12 @@ class WorkspaceReimburseView extends React.Component {
                     menuItems={[
                         {
                             title: this.props.translate('workspace.reimburse.viewAllReceipts'),
-                            onPress: () => Link.openOldDotLink(`expenses?policyIDList=${this.props.policy.id}&billableReimbursable=reimbursable&submitterEmail=%2B%2B`),
+                            onPress: () => Link.openOldDotLink(viewAllReceiptsUrl),
                             icon: Expensicons.Receipt,
                             shouldShowRightIcon: true,
                             iconRight: Expensicons.NewWindow,
                             wrapperStyle: [styles.cardMenuItem],
+                            link: () => Link.buildOldDotURL(viewAllReceiptsUrl),
                         },
                     ]}
                 >
@@ -277,6 +281,7 @@ class WorkspaceReimburseView extends React.Component {
                                     items={this.getUnitItems()}
                                     value={this.state.unitValue}
                                     onInputChange={value => this.setUnit(value)}
+                                    backgroundColor={themeColors.cardBG}
                                 />
                             </View>
                         </View>

@@ -27,6 +27,7 @@ export default {
             // Main Routes
             SetPassword: ROUTES.SET_PASSWORD_WITH_VALIDATE_CODE,
             ValidateLogin: ROUTES.VALIDATE_LOGIN,
+            UnlinkLogin: ROUTES.UNLINK_LOGIN,
             [SCREENS.TRANSITION_FROM_OLD_DOT]: ROUTES.TRANSITION_FROM_OLD_DOT,
             Concierge: ROUTES.CONCIERGE,
 
@@ -120,8 +121,16 @@ export default {
                         path: ROUTES.SETTINGS_APP_DOWNLOAD_LINKS,
                         exact: true,
                     },
-                    Settings_Add_Secondary_Login: {
-                        path: ROUTES.SETTINGS_ADD_LOGIN,
+                    Settings_ContactMethods: {
+                        path: ROUTES.SETTINGS_CONTACT_METHODS,
+                        exact: true,
+                    },
+                    Settings_ContactMethodDetails: {
+                        path: ROUTES.SETTINGS_CONTACT_METHOD_DETAILS,
+                    },
+                    Settings_NewContactMethod: {
+                        path: ROUTES.SETTINGS_NEW_CONTACT_METHOD,
+                        exact: true,
                     },
                     Settings_PersonalDetails_Initial: {
                         path: ROUTES.SETTINGS_PERSONAL_DETAILS,
@@ -166,6 +175,9 @@ export default {
                     Workspace_Invite: {
                         path: ROUTES.WORKSPACE_INVITE,
                     },
+                    Workspace_Invite_Message: {
+                        path: ROUTES.WORKSPACE_INVITE_MESSAGE,
+                    },
                     Workspace_NewRoom: {
                         path: ROUTES.WORKSPACE_NEW_ROOM,
                     },
@@ -198,6 +210,11 @@ export default {
                     NewChat_Root: ROUTES.NEW_CHAT,
                 },
             },
+            NewTask: {
+                screens: {
+                    NewTask_Root: ROUTES.NEW_TASK_WITH_REPORT_ID,
+                },
+            },
             Search: {
                 screens: {
                     Search_Root: ROUTES.SEARCH,
@@ -218,6 +235,7 @@ export default {
                 screens: {
                     IOU_Request_Root: ROUTES.IOU_REQUEST_WITH_REPORT_ID,
                     IOU_Request_Currency: ROUTES.IOU_REQUEST_CURRENCY,
+                    Money_Request_Description: ROUTES.MONEY_REQUEST_DESCRIPTION,
                 },
             },
             IOU_Bill: {
@@ -243,6 +261,12 @@ export default {
                     IOU_Details_Add_Debit_Card: ROUTES.IOU_DETAILS_ADD_DEBIT_CARD,
                 },
             },
+            Task_Details: {
+                screens: {
+                    Task_Title: ROUTES.TASK_TITLE,
+                    Task_Description: ROUTES.TASK_DESCRIPTION,
+                },
+            },
             AddPersonalBankAccount: {
                 screens: {
                     AddPersonalBankAccount_Root: ROUTES.BANK_ACCOUNT_PERSONAL,
@@ -253,14 +277,14 @@ export default {
                     EnablePayments_Root: ROUTES.ENABLE_PAYMENTS,
                 },
             },
-            RequestCall: {
-                screens: {
-                    RequestCall_Root: ROUTES.REQUEST_CALL,
-                },
-            },
             Wallet_Statement: {
                 screens: {
                     WalletStatement_Root: ROUTES.WALLET_STATEMENT_WITH_DATE,
+                },
+            },
+            Select_Year: {
+                screens: {
+                    YearPicker_Root: ROUTES.SELECT_YEAR,
                 },
             },
             [SCREENS.NOT_FOUND]: '*',

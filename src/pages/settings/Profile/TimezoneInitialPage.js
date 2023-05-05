@@ -54,7 +54,7 @@ const TimezoneInitialPage = (props) => {
                     <Text style={[styles.mb5]}>
                         {props.translate('timezonePage.isShownOnProfile')}
                     </Text>
-                    <View style={[styles.flexRow, styles.mb5, styles.alignItemsCenter, styles.justifyContentBetween]}>
+                    <View style={[styles.flexRow, styles.mb5, styles.mr2, styles.alignItemsCenter, styles.justifyContentBetween]}>
                         <Text>
                             {props.translate('timezonePage.getLocationAutomatically')}
                         </Text>
@@ -68,7 +68,6 @@ const TimezoneInitialPage = (props) => {
                     title={timezone.selected}
                     description={props.translate('timezonePage.timezone')}
                     shouldShowRightIcon
-                    wrapperStyle={[styles.ph2, styles.mb3]}
                     disabled={timezone.automatic}
                     onPress={() => Navigation.navigate(ROUTES.SETTINGS_TIMEZONE_SELECT)}
                 />

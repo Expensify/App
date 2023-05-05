@@ -1,5 +1,5 @@
 import React from 'react';
-import {Pressable, ImageBackground, View} from 'react-native';
+import {Pressable, View, Image} from 'react-native';
 import lodashGet from 'lodash/get';
 import {withOnyx} from 'react-native-onyx';
 import PropTypes from 'prop-types';
@@ -16,6 +16,7 @@ import EmptyStateBackgroundImage from '../../../../assets/images/empty-state_bac
 import * as StyleUtils from '../../../styles/StyleUtils';
 import withWindowDimensions, {windowDimensionsPropTypes} from '../../../components/withWindowDimensions';
 import compose from '../../../libs/compose';
+import withLocalize from '../../../components/withLocalize';
 
 const propTypes = {
     /** The id of the report */
@@ -27,23 +28,15 @@ const propTypes = {
     /** Personal details of all the users */
     personalDetails: PropTypes.objectOf(participantPropTypes),
 
-    /** The policies which the user has access to and which the report could be tied to */
-    policies: PropTypes.shape({
-        /** Name of the policy */
-        name: PropTypes.string,
-    }),
-
     ...windowDimensionsPropTypes,
 };
 const defaultProps = {
     report: {},
     personalDetails: {},
-    policies: {},
 };
 
 const ReportActionItemCreated = (props) => {
-    const icons = ReportUtils.getIcons(props.report, props.personalDetails, props.policies);
-
+    const icons = ReportUtils.getIcons(props.report, props.personalDetails);
     return (
         <OfflineWithFeedback
             pendingAction={lodashGet(props.report, 'pendingFields.addWorkspaceRoom') || lodashGet(props.report, 'pendingFields.createChat')}
@@ -52,15 +45,14 @@ const ReportActionItemCreated = (props) => {
             onClose={() => Report.navigateToConciergeChatAndDeleteReport(props.report.reportID)}
         >
             <View style={StyleUtils.getReportWelcomeContainerStyle(props.isSmallScreenWidth)}>
-                <View pointerEvents="none" style={StyleUtils.getReportWelcomeBackgroundImageViewStyle(props.isSmallScreenWidth)}>
-                    <ImageBackground
-                        source={EmptyStateBackgroundImage}
-                        style={StyleUtils.getReportWelcomeBackgroundImageStyle(props.isSmallScreenWidth)}
-                    />
-                </View>
+                <Image
+                    pointerEvents="none"
+                    source={EmptyStateBackgroundImage}
+                    style={StyleUtils.getReportWelcomeBackgroundImageStyle(props.isSmallScreenWidth)}
+                />
                 <View
-                    accessibilityLabel="Chat welcome message"
-                    style={styles.p5}
+                    accessibilityLabel={props.translate('accessibilityHints.chatWelcomeMessage')}
+                    style={[styles.p5, StyleUtils.getReportWelcomeTopMarginStyle(props.isSmallScreenWidth)]}
                 >
                     <Pressable
                         onPress={() => ReportUtils.navigateToDetailsPage(props.report)}
@@ -85,15 +77,13 @@ ReportActionItemCreated.displayName = 'ReportActionItemCreated';
 
 export default compose(
     withWindowDimensions,
+    withLocalize,
     withOnyx({
         report: {
             key: ({reportID}) => `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
         },
         personalDetails: {
             key: ONYXKEYS.PERSONAL_DETAILS,
-        },
-        policies: {
-            key: ONYXKEYS.COLLECTION.POLICY,
         },
     }),
 )(ReportActionItemCreated);

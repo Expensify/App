@@ -10,16 +10,22 @@ import htmlRenderers from './HTMLRenderers';
 import * as HTMLEngineUtils from './htmlEngineUtils';
 import styles from '../../styles/styles';
 import fontFamily from '../../styles/fontFamily';
+import defaultViewProps from './defaultViewProps';
 
 const propTypes = {
     /** Whether text elements should be selectable */
     textSelectable: PropTypes.bool,
+
+    /** Handle line breaks according to the HTML standard (default on web)  */
+    enableExperimentalBRCollapsing: PropTypes.bool,
+
     children: PropTypes.node,
 };
 
 const defaultProps = {
     textSelectable: false,
     children: null,
+    enableExperimentalBRCollapsing: false,
 };
 
 // Declare nonstandard tags and their content model here
@@ -39,9 +45,11 @@ const customHTMLElementModels = {
         tagName: 'email-comment',
         mixedUAStyles: {whiteSpace: 'normal'},
     }),
+    strong: defaultHTMLElementModels.span.extend({
+        tagName: 'strong',
+        mixedUAStyles: {whiteSpace: 'pre'},
+    }),
 };
-
-const defaultViewProps = {style: [styles.alignItemsStart, styles.userSelectText]};
 
 // We are using the explicit composite architecture for performance gains.
 // Configuration for RenderHTML is handled in a top-level component providing
@@ -70,6 +78,7 @@ const BaseHTMLEngineProvider = (props) => {
                 defaultViewProps={defaultViewProps}
                 renderers={htmlRenderers}
                 computeEmbeddedMaxWidth={HTMLEngineUtils.computeEmbeddedMaxWidth}
+                enableExperimentalBRCollapsing={props.enableExperimentalBRCollapsing}
             >
                 {props.children}
             </RenderHTMLConfigProvider>

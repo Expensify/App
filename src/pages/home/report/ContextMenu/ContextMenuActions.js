@@ -1,3 +1,4 @@
+import React from 'react';
 import _ from 'underscore';
 import ExpensiMark from 'expensify-common/lib/ExpensiMark';
 import Str from 'expensify-common/lib/str';
@@ -13,9 +14,10 @@ import CONST from '../../../../CONST';
 import getAttachmentDetails from '../../../../libs/fileDownload/getAttachmentDetails';
 import fileDownload from '../../../../libs/fileDownload';
 import addEncryptedAuthTokenToURL from '../../../../libs/addEncryptedAuthTokenToURL';
-import * as ContextMenuUtils from './ContextMenuUtils';
 import * as Environment from '../../../../libs/Environment/Environment';
 import Permissions from '../../../../libs/Permissions';
+import QuickEmojiReactions from '../../../../components/Reactions/QuickEmojiReactions';
+import MiniQuickEmojiReactions from '../../../../components/Reactions/MiniQuickEmojiReactions';
 
 /**
  * Gets the HTML version of the message in an action.
@@ -35,6 +37,50 @@ const CONTEXT_MENU_TYPES = {
 
 // A list of all the context actions in this menu.
 export default [
+    {
+        shouldKeepOpen: true,
+        shouldShow: (type, reportAction) => type === CONTEXT_MENU_TYPES.REPORT_ACTION && _.has(reportAction, 'message'),
+        renderContent: (closePopover, {
+            reportID, reportAction, close: closeManually, openContextMenu,
+        }) => {
+            const isMini = !closePopover;
+
+            const closeContextMenu = (onHideCallback) => {
+                if (isMini) {
+                    closeManually();
+                    if (onHideCallback) {
+                        onHideCallback();
+                    }
+                } else {
+                    hideContextMenu(false, onHideCallback);
+                }
+            };
+
+            const onEmojiSelected = (emoji) => {
+                Report.toggleEmojiReaction(reportID, reportAction, emoji);
+                closeContextMenu();
+            };
+
+            if (isMini) {
+                return (
+                    <MiniQuickEmojiReactions
+                        key="MiniQuickEmojiReactions"
+                        onEmojiSelected={onEmojiSelected}
+                        onPressOpenPicker={openContextMenu}
+                        onEmojiPickerClosed={closeContextMenu}
+                    />
+                );
+            }
+
+            return (
+                <QuickEmojiReactions
+                    key="BaseQuickEmojiReactions"
+                    closeContextMenu={closeContextMenu}
+                    onEmojiSelected={onEmojiSelected}
+                />
+            );
+        },
+    },
     {
         textTranslateKey: 'common.download',
         icon: Expensicons.Download,
@@ -64,7 +110,7 @@ export default [
     },
     {
         textTranslateKey: 'reportActionContextMenu.copyURLToClipboard',
-        icon: Expensicons.Clipboard,
+        icon: Expensicons.Copy,
         successTextTranslateKey: 'reportActionContextMenu.copied',
         successIcon: Expensicons.Checkmark,
         shouldShow: type => type === CONTEXT_MENU_TYPES.LINK,
@@ -72,11 +118,11 @@ export default [
             Clipboard.setString(selection);
             hideContextMenu(true, ReportActionComposeFocusManager.focus);
         },
-        getDescription: ContextMenuUtils.getPopoverDescription,
+        getDescription: selection => selection,
     },
     {
         textTranslateKey: 'reportActionContextMenu.copyEmailToClipboard',
-        icon: Expensicons.Clipboard,
+        icon: Expensicons.Copy,
         successTextTranslateKey: 'reportActionContextMenu.copied',
         successIcon: Expensicons.Checkmark,
         shouldShow: type => type === CONTEXT_MENU_TYPES.EMAIL,
@@ -88,7 +134,7 @@ export default [
     },
     {
         textTranslateKey: 'reportActionContextMenu.copyToClipboard',
-        icon: Expensicons.Clipboard,
+        icon: Expensicons.Copy,
         successTextTranslateKey: 'reportActionContextMenu.copied',
         successIcon: Expensicons.Checkmark,
         shouldShow: (type, reportAction) => (type === CONTEXT_MENU_TYPES.REPORT_ACTION
@@ -112,11 +158,7 @@ export default [
                     if (!Clipboard.canSetHtml()) {
                         Clipboard.setString(parser.htmlToMarkdown(content));
                     } else {
-                        // Thanks to how browsers work, when text is highlighted and CTRL+c is pressed, browsers end up doubling the amount of newlines. Since the code in this file is
-                        // triggered from a context menu and not CTRL+c, the newlines need to be doubled so that the content that goes into the clipboard is consistent with CTRL+c behavior.
-                        // The extra newlines are stripped when the contents are pasted into the compose input, but if the contents are pasted outside of the comment composer, it will
-                        // contain extra newlines and that's OK because it is consistent with CTRL+c behavior.
-                        const plainText = Str.htmlDecode(parser.htmlToText(content)).replace(/\n/g, '\n\n');
+                        const plainText = Str.htmlDecode(parser.htmlToText(content));
                         Clipboard.setHtml(content, plainText);
                     }
                 }
@@ -165,7 +207,6 @@ export default [
             }
         },
         getDescription: () => {},
-        autoReset: false,
     },
 
     {

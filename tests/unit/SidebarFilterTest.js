@@ -5,6 +5,7 @@ import * as LHNTestUtils from '../utils/LHNTestUtils';
 import waitForPromisesToResolve from '../utils/waitForPromisesToResolve';
 import CONST from '../../src/CONST';
 import DateUtils from '../../src/libs/DateUtils';
+import * as Localize from '../../src/libs/Localize';
 
 // Be sure to include the mocked permissions library or else the beta tests won't work
 jest.mock('../../src/libs/Permissions');
@@ -53,7 +54,8 @@ describe('Sidebar', () => {
 
                 // Then no reports are rendered in the LHN
                 .then(() => {
-                    const optionRows = screen.queryAllByAccessibilityHint('Navigates to a chat');
+                    const hintText = Localize.translateLocal('accessibilityHints.navigatesToChat');
+                    const optionRows = screen.queryAllByAccessibilityHint(hintText);
                     expect(optionRows).toHaveLength(0);
                 });
         });
@@ -79,7 +81,8 @@ describe('Sidebar', () => {
 
                 // Then no reports are rendered in the LHN
                 .then(() => {
-                    const optionRows = screen.queryAllByAccessibilityHint('Navigates to a chat');
+                    const hintText = Localize.translateLocal('accessibilityHints.navigatesToChat');
+                    const optionRows = screen.queryAllByAccessibilityHint(hintText);
                     expect(optionRows).toHaveLength(0);
                 })
 
@@ -90,7 +93,8 @@ describe('Sidebar', () => {
 
                 // Then there is one report rendered in the LHN
                 .then(() => {
-                    const optionRows = screen.queryAllByAccessibilityHint('Navigates to a chat');
+                    const hintText = Localize.translateLocal('accessibilityHints.navigatesToChat');
+                    const optionRows = screen.queryAllByAccessibilityHint(hintText);
                     expect(optionRows).toHaveLength(1);
                 });
         });
@@ -116,7 +120,8 @@ describe('Sidebar', () => {
 
                 // Then no reports are rendered in the LHN
                 .then(() => {
-                    const optionRows = screen.queryAllByAccessibilityHint('Navigates to a chat');
+                    const hintText = Localize.translateLocal('accessibilityHints.navigatesToChat');
+                    const optionRows = screen.queryAllByAccessibilityHint(hintText);
                     expect(optionRows).toHaveLength(0);
                 })
 
@@ -127,7 +132,8 @@ describe('Sidebar', () => {
 
                 // Then there is one report rendered in the LHN
                 .then(() => {
-                    const optionRows = screen.queryAllByAccessibilityHint('Navigates to a chat');
+                    const hintText = Localize.translateLocal('accessibilityHints.navigatesToChat');
+                    const optionRows = screen.queryAllByAccessibilityHint(hintText);
                     expect(optionRows).toHaveLength(1);
                 });
         });
@@ -161,10 +167,11 @@ describe('Sidebar', () => {
                     [`${ONYXKEYS.COLLECTION.REPORT}${report3.reportID}`]: report3,
                 }))
 
-                // Then no reports are rendered in the LHN
+                // Then all non-domain rooms are rendered in the LHN
                 .then(() => {
-                    const optionRows = screen.queryAllByAccessibilityHint('Navigates to a chat');
-                    expect(optionRows).toHaveLength(0);
+                    const hintText = Localize.translateLocal('accessibilityHints.navigatesToChat');
+                    const optionRows = screen.queryAllByAccessibilityHint(hintText);
+                    expect(optionRows).toHaveLength(2);
                 })
 
                 // When the user is added to the default policy rooms beta and the sidebar re-renders
@@ -174,7 +181,8 @@ describe('Sidebar', () => {
 
                 // Then all three reports are showing in the LHN
                 .then(() => {
-                    const optionRows = screen.queryAllByAccessibilityHint('Navigates to a chat');
+                    const hintText = Localize.translateLocal('accessibilityHints.navigatesToChat');
+                    const optionRows = screen.queryAllByAccessibilityHint(hintText);
                     expect(optionRows).toHaveLength(3);
                 });
         });
@@ -206,17 +214,19 @@ describe('Sidebar', () => {
 
                 // Then the report is rendered in the LHN
                 .then(() => {
-                    const optionRows = screen.queryAllByAccessibilityHint('Navigates to a chat');
+                    const hintText = Localize.translateLocal('accessibilityHints.navigatesToChat');
+                    const optionRows = screen.queryAllByAccessibilityHint(hintText);
                     expect(optionRows).toHaveLength(1);
                 })
 
                 // When the policy is a paid policy
                 .then(() => Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policy.policyID}`, {type: CONST.POLICY.TYPE.CORPORATE}))
 
-                // Then the report is not rendered in the LHN
+                // Then the report is still rendered in the LHN
                 .then(() => {
-                    const optionRows = screen.queryAllByAccessibilityHint('Navigates to a chat');
-                    expect(optionRows).toHaveLength(0);
+                    const hintText = Localize.translateLocal('accessibilityHints.navigatesToChat');
+                    const optionRows = screen.queryAllByAccessibilityHint(hintText);
+                    expect(optionRows).toHaveLength(1);
                 });
         });
 
@@ -295,13 +305,16 @@ describe('Sidebar', () => {
                         .then(() => {
                             if (booleansWhichRemovesActiveReport.indexOf(JSON.stringify(boolArr)) > -1) {
                                 // Only one report visible
-                                expect(screen.queryAllByAccessibilityHint('Navigates to a chat')).toHaveLength(1);
-                                expect(screen.queryAllByLabelText('Chat user display names')).toHaveLength(1);
-                                const displayNames = screen.queryAllByLabelText('Chat user display names');
+                                const displayNamesHintText = Localize.translateLocal('accessibilityHints.chatUserDisplayNames');
+                                const displayNames = screen.queryAllByLabelText(displayNamesHintText);
+                                const navigatesToChatHintText = Localize.translateLocal('accessibilityHints.navigatesToChat');
+                                expect(screen.queryAllByAccessibilityHint(navigatesToChatHintText)).toHaveLength(1);
+                                expect(displayNames).toHaveLength(1);
                                 expect(lodashGet(displayNames, [0, 'props', 'children'])).toBe('Three, Four');
                             } else {
                                 // Both reports visible
-                                expect(screen.queryAllByAccessibilityHint('Navigates to a chat')).toHaveLength(2);
+                                const navigatesToChatHintText = Localize.translateLocal('accessibilityHints.navigatesToChat');
+                                expect(screen.queryAllByAccessibilityHint(navigatesToChatHintText)).toHaveLength(2);
                             }
                         });
                 });
@@ -331,7 +344,8 @@ describe('Sidebar', () => {
 
                 // Then the reports 1 and 2 are shown and 3 is not
                 .then(() => {
-                    const displayNames = screen.queryAllByLabelText('Chat user display names');
+                    const hintText = Localize.translateLocal('accessibilityHints.chatUserDisplayNames');
+                    const displayNames = screen.queryAllByLabelText(hintText);
                     expect(displayNames).toHaveLength(2);
                     expect(lodashGet(displayNames, [0, 'props', 'children'])).toBe('One, Two');
                     expect(lodashGet(displayNames, [1, 'props', 'children'])).toBe('Three, Four');
@@ -340,12 +354,13 @@ describe('Sidebar', () => {
                 // When report3 becomes unread
                 .then(() => {
                     jest.advanceTimersByTime(10);
-                    return Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${report3.reportID}`, {lastActionCreated: DateUtils.getDBTime()});
+                    return Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${report3.reportID}`, {lastVisibleActionCreated: DateUtils.getDBTime()});
                 })
 
                 // Then all three chats are showing
                 .then(() => {
-                    expect(screen.queryAllByAccessibilityHint('Navigates to a chat')).toHaveLength(3);
+                    const navigatesToChatHintText = Localize.translateLocal('accessibilityHints.navigatesToChat');
+                    expect(screen.queryAllByAccessibilityHint(navigatesToChatHintText)).toHaveLength(3);
                 })
 
                 // When report 1 becomes read (it's the active report)
@@ -353,7 +368,8 @@ describe('Sidebar', () => {
 
                 // Then all three chats are still showing
                 .then(() => {
-                    expect(screen.queryAllByAccessibilityHint('Navigates to a chat')).toHaveLength(3);
+                    const navigatesToChatHintText = Localize.translateLocal('accessibilityHints.navigatesToChat');
+                    expect(screen.queryAllByAccessibilityHint(navigatesToChatHintText)).toHaveLength(3);
                 })
 
                 // When report 2 becomes the active report
@@ -364,7 +380,8 @@ describe('Sidebar', () => {
 
                 // Then report 1 should now disappear
                 .then(() => {
-                    expect(screen.queryAllByAccessibilityHint('Navigates to a chat')).toHaveLength(2);
+                    const navigatesToChatHintText = Localize.translateLocal('accessibilityHints.navigatesToChat');
+                    expect(screen.queryAllByAccessibilityHint(navigatesToChatHintText)).toHaveLength(2);
                     expect(screen.queryAllByText(/One, Two/)).toHaveLength(0);
                 });
         });
@@ -393,7 +410,8 @@ describe('Sidebar', () => {
 
                 // Then both reports are visible
                 .then(() => {
-                    const displayNames = screen.queryAllByLabelText('Chat user display names');
+                    const hintText = Localize.translateLocal('accessibilityHints.chatUserDisplayNames');
+                    const displayNames = screen.queryAllByLabelText(hintText);
                     expect(displayNames).toHaveLength(2);
                     expect(lodashGet(displayNames, [0, 'props', 'children'])).toBe('Three, Four');
                     expect(lodashGet(displayNames, [1, 'props', 'children'])).toBe('One, Two');
@@ -421,11 +439,18 @@ describe('Sidebar', () => {
             };
             LHNTestUtils.getDefaultRenderedSidebarLinks();
 
+            const betas = [
+                CONST.BETAS.DEFAULT_ROOMS,
+                CONST.BETAS.POLICY_ROOMS,
+                CONST.BETAS.POLICY_EXPENSE_CHAT,
+            ];
+
             return waitForPromisesToResolve()
 
                 // When Onyx is updated to contain that data and the sidebar re-renders
                 .then(() => Onyx.multiSet({
                     [ONYXKEYS.NVP_PRIORITY_MODE]: CONST.PRIORITY_MODE.GSD,
+                    [ONYXKEYS.BETAS]: betas,
                     [ONYXKEYS.PERSONAL_DETAILS]: LHNTestUtils.fakePersonalDetails,
                     [`${ONYXKEYS.COLLECTION.REPORT}${archivedReport.reportID}`]: archivedReport,
                     [`${ONYXKEYS.COLLECTION.REPORT}${archivedPolicyRoomReport.reportID}`]: archivedPolicyRoomReport,
@@ -434,7 +459,8 @@ describe('Sidebar', () => {
 
                 // Then neither reports are visible
                 .then(() => {
-                    const displayNames = screen.queryAllByLabelText('Chat user display names');
+                    const hintText = Localize.translateLocal('accessibilityHints.chatUserDisplayNames');
+                    const displayNames = screen.queryAllByLabelText(hintText);
                     expect(displayNames).toHaveLength(0);
                 })
 
@@ -442,19 +468,20 @@ describe('Sidebar', () => {
                 .then(() => {
                     jest.advanceTimersByTime(10);
                     return Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${archivedReport.reportID}`, {
-                        lastActionCreated: DateUtils.getDBTime(),
+                        lastVisibleActionCreated: DateUtils.getDBTime(),
                     });
                 })
                 .then(() => Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${archivedPolicyRoomReport.reportID}`, {
-                    lastActionCreated: DateUtils.getDBTime(),
+                    lastVisibleActionCreated: DateUtils.getDBTime(),
                 }))
                 .then(() => Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${archivedUserCreatedPolicyRoomReport.reportID}`, {
-                    lastActionCreated: DateUtils.getDBTime(),
+                    lastVisibleActionCreated: DateUtils.getDBTime(),
                 }))
 
                 // Then they are all visible
                 .then(() => {
-                    const displayNames = screen.queryAllByLabelText('Chat user display names');
+                    const hintText = Localize.translateLocal('accessibilityHints.chatUserDisplayNames');
+                    const displayNames = screen.queryAllByLabelText(hintText);
                     expect(displayNames).toHaveLength(3);
                 });
         });
@@ -471,11 +498,18 @@ describe('Sidebar', () => {
             };
             LHNTestUtils.getDefaultRenderedSidebarLinks();
 
+            const betas = [
+                CONST.BETAS.DEFAULT_ROOMS,
+                CONST.BETAS.POLICY_ROOMS,
+                CONST.BETAS.POLICY_EXPENSE_CHAT,
+            ];
+
             return waitForPromisesToResolve()
 
                 // When Onyx is updated to contain that data and the sidebar re-renders
                 .then(() => Onyx.multiSet({
                     [ONYXKEYS.NVP_PRIORITY_MODE]: CONST.PRIORITY_MODE.GSD,
+                    [ONYXKEYS.BETAS]: betas,
                     [ONYXKEYS.PERSONAL_DETAILS]: LHNTestUtils.fakePersonalDetails,
                     [`${ONYXKEYS.COLLECTION.REPORT}${policyRoomReport.reportID}`]: policyRoomReport,
                     [`${ONYXKEYS.COLLECTION.REPORT}${userCreatedPolicyRoomReport.reportID}`]: userCreatedPolicyRoomReport,
@@ -483,7 +517,8 @@ describe('Sidebar', () => {
 
                 // Then neither reports are visible
                 .then(() => {
-                    const displayNames = screen.queryAllByLabelText('Chat user display names');
+                    const hintText = Localize.translateLocal('accessibilityHints.chatUserDisplayNames');
+                    const displayNames = screen.queryAllByLabelText(hintText);
                     expect(displayNames).toHaveLength(0);
                 })
 
@@ -491,16 +526,17 @@ describe('Sidebar', () => {
                 .then(() => {
                     jest.advanceTimersByTime(10);
                     return Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${policyRoomReport.reportID}`, {
-                        lastActionCreated: DateUtils.getDBTime(),
+                        lastVisibleActionCreated: DateUtils.getDBTime(),
                     });
                 })
                 .then(() => Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${userCreatedPolicyRoomReport.reportID}`, {
-                    lastActionCreated: DateUtils.getDBTime(),
+                    lastVisibleActionCreated: DateUtils.getDBTime(),
                 }))
 
                 // Then both rooms are visible
                 .then(() => {
-                    const displayNames = screen.queryAllByLabelText('Chat user display names');
+                    const hintText = Localize.translateLocal('accessibilityHints.chatUserDisplayNames');
+                    const displayNames = screen.queryAllByLabelText(hintText);
                     expect(displayNames).toHaveLength(2);
                 });
         });
@@ -581,13 +617,16 @@ describe('Sidebar', () => {
                     .then(() => {
                         if (booleansWhichRemovesActiveReport.indexOf(JSON.stringify(boolArr)) > -1) {
                             // Only one report visible
-                            expect(screen.queryAllByAccessibilityHint('Navigates to a chat')).toHaveLength(1);
-                            expect(screen.queryAllByLabelText('Chat user display names')).toHaveLength(1);
-                            const displayNames = screen.queryAllByLabelText('Chat user display names');
+                            const displayNamesHintText = Localize.translateLocal('accessibilityHints.chatUserDisplayNames');
+                            const displayNames = screen.queryAllByLabelText(displayNamesHintText);
+                            const navigatesToChatHintText = Localize.translateLocal('accessibilityHints.navigatesToChat');
+                            expect(screen.queryAllByAccessibilityHint(navigatesToChatHintText)).toHaveLength(1);
+                            expect(displayNames).toHaveLength(1);
                             expect(lodashGet(displayNames, [0, 'props', 'children'])).toBe('Three, Four');
                         } else {
                             // Both reports visible
-                            expect(screen.queryAllByAccessibilityHint('Navigates to a chat')).toHaveLength(2);
+                            const navigatesToChatHintText = Localize.translateLocal('accessibilityHints.navigatesToChat');
+                            expect(screen.queryAllByAccessibilityHint(navigatesToChatHintText)).toHaveLength(2);
                         }
                     });
             });
@@ -602,7 +641,7 @@ describe('Sidebar', () => {
                 // Given an archived report with no comments
                 const report = {
                     ...LHNTestUtils.getFakeReport(),
-                    lastActionCreated: '2022-11-22 03:48:27.267',
+                    lastVisibleActionCreated: '2022-11-22 03:48:27.267',
                     statusNum: CONST.REPORT.STATUS.CLOSED,
                     stateNum: CONST.REPORT.STATE_NUM.SUBMITTED,
                 };
@@ -626,18 +665,20 @@ describe('Sidebar', () => {
 
                     // Then the report is rendered in the LHN
                     .then(() => {
-                        const optionRows = screen.queryAllByAccessibilityHint('Navigates to a chat');
+                        const hintText = Localize.translateLocal('accessibilityHints.navigatesToChat');
+                        const optionRows = screen.queryAllByAccessibilityHint(hintText);
                         expect(optionRows).toHaveLength(1);
                     })
 
                     // When the report has comments
                     .then(() => Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`, {
-                        lastActionCreated: DateUtils.getDBTime(),
+                        lastVisibleActionCreated: DateUtils.getDBTime(),
                     }))
 
                     // Then the report is rendered in the LHN
                     .then(() => {
-                        const optionRows = screen.queryAllByAccessibilityHint('Navigates to a chat');
+                        const hintText = Localize.translateLocal('accessibilityHints.navigatesToChat');
+                        const optionRows = screen.queryAllByAccessibilityHint(hintText);
                         expect(optionRows).toHaveLength(1);
                     });
             });
@@ -673,19 +714,21 @@ describe('Sidebar', () => {
 
                     // Then the report is not rendered in the LHN
                     .then(() => {
-                        const optionRows = screen.queryAllByAccessibilityHint('Navigates to a chat');
+                        const hintText = Localize.translateLocal('accessibilityHints.navigatesToChat');
+                        const optionRows = screen.queryAllByAccessibilityHint(hintText);
                         expect(optionRows).toHaveLength(0);
                     })
 
                     // When the report has a new comment and is now unread
                     .then(() => {
                         jest.advanceTimersByTime(10);
-                        return Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`, {lastActionCreated: DateUtils.getDBTime()});
+                        return Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`, {lastVisibleActionCreated: DateUtils.getDBTime()});
                     })
 
                     // Then the report is rendered in the LHN
                     .then(() => {
-                        const optionRows = screen.queryAllByAccessibilityHint('Navigates to a chat');
+                        const hintText = Localize.translateLocal('accessibilityHints.navigatesToChat');
+                        const optionRows = screen.queryAllByAccessibilityHint(hintText);
                         expect(optionRows).toHaveLength(1);
                     });
             });
@@ -720,7 +763,8 @@ describe('Sidebar', () => {
 
                     // Then the report is not rendered in the LHN
                     .then(() => {
-                        const optionRows = screen.queryAllByAccessibilityHint('Navigates to a chat');
+                        const hintText = Localize.translateLocal('accessibilityHints.navigatesToChat');
+                        const optionRows = screen.queryAllByAccessibilityHint(hintText);
                         expect(optionRows).toHaveLength(0);
                     })
 
@@ -729,7 +773,8 @@ describe('Sidebar', () => {
 
                     // Then the report is rendered in the LHN
                     .then(() => {
-                        const optionRows = screen.queryAllByAccessibilityHint('Navigates to a chat');
+                        const hintText = Localize.translateLocal('accessibilityHints.navigatesToChat');
+                        const optionRows = screen.queryAllByAccessibilityHint(hintText);
                         expect(optionRows).toHaveLength(1);
                     });
             });
@@ -763,7 +808,8 @@ describe('Sidebar', () => {
 
                     // Then the report is not rendered in the LHN
                     .then(() => {
-                        const optionRows = screen.queryAllByAccessibilityHint('Navigates to a chat');
+                        const hintText = Localize.translateLocal('accessibilityHints.navigatesToChat');
+                        const optionRows = screen.queryAllByAccessibilityHint(hintText);
                         expect(optionRows).toHaveLength(0);
                     })
 
@@ -775,7 +821,8 @@ describe('Sidebar', () => {
 
                     // Then the report is rendered in the LHN
                     .then(() => {
-                        const optionRows = screen.queryAllByAccessibilityHint('Navigates to a chat');
+                        const hintText = Localize.translateLocal('accessibilityHints.navigatesToChat');
+                        const optionRows = screen.queryAllByAccessibilityHint(hintText);
                         expect(optionRows).toHaveLength(1);
                     });
             });

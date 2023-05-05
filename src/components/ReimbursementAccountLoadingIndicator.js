@@ -1,8 +1,9 @@
 import React from 'react';
-import {Image, StyleSheet, View} from 'react-native';
+import {StyleSheet, View} from 'react-native';
 import PropTypes from 'prop-types';
+import Lottie from 'lottie-react-native';
+import ReviewingBankInfoAnimation from '../../assets/animations/ReviewingBankInfo.json';
 import styles from '../styles/styles';
-import CONST from '../CONST';
 import withLocalize, {withLocalizePropTypes} from './withLocalize';
 import Text from './Text';
 import HeaderWithCloseButton from './HeaderWithCloseButton';
@@ -33,11 +34,11 @@ const ReimbursementAccountLoadingIndicator = props => (
         <FullPageOfflineBlockingView>
             {props.isSubmittingVerificationsData ? (
                 <View style={[styles.pageWrapper]}>
-                    <Image
-                        source={{uri: `${CONST.CLOUDFRONT_URL}/images/animations/animation_accountreview.gif`}}
-                        style={[
-                            styles.loadingVBAAnimation,
-                        ]}
+                    <Lottie
+                        source={ReviewingBankInfoAnimation}
+                        autoPlay
+                        loop
+                        style={styles.loadingVBAAnimation}
                     />
                     <View style={[styles.ph6]}>
                         <Text style={[styles.textAlignCenter]}>

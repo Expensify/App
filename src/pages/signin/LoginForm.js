@@ -4,6 +4,7 @@ import {withOnyx} from 'react-native-onyx';
 import PropTypes from 'prop-types';
 import _ from 'underscore';
 import Str from 'expensify-common/lib/str';
+import {parsePhoneNumber} from 'awesome-phonenumber';
 import styles from '../../styles/styles';
 import Text from '../../components/Text';
 import * as Session from '../../libs/actions/Session';
@@ -17,7 +18,6 @@ import * as ValidationUtils from '../../libs/ValidationUtils';
 import * as LoginUtils from '../../libs/LoginUtils';
 import withToggleVisibilityView, {toggleVisibilityViewPropTypes} from '../../components/withToggleVisibilityView';
 import FormAlertWithSubmitButton from '../../components/FormAlertWithSubmitButton';
-import OfflineIndicator from '../../components/OfflineIndicator';
 import {withNetwork} from '../../components/OnyxProvider';
 import networkPropTypes from '../../components/networkPropTypes';
 import * as ErrorUtils from '../../libs/ErrorUtils';
@@ -144,10 +144,10 @@ class LoginForm extends React.Component {
             return;
         }
 
-        const phoneLogin = LoginUtils.getPhoneNumberWithoutSpecialChars(login);
-        const isValidPhoneLogin = Str.isValidPhone(phoneLogin);
+        const phoneLogin = LoginUtils.appendCountryCode(LoginUtils.getPhoneNumberWithoutSpecialChars(login));
+        const parsedPhoneNumber = parsePhoneNumber(phoneLogin);
 
-        if (!Str.isValidEmail(login) && !isValidPhoneLogin) {
+        if (!Str.isValidEmail(login) && !parsedPhoneNumber.possible) {
             if (ValidationUtils.isNumericWithSpecialChars(login)) {
                 this.setState({formError: 'common.error.phoneNumber'});
             } else {
@@ -161,15 +161,16 @@ class LoginForm extends React.Component {
         });
 
         // Check if this login has an account associated with it or not
-        Session.beginSignIn(isValidPhoneLogin ? phoneLogin : login);
+        Session.beginSignIn(parsedPhoneNumber.possible ? parsedPhoneNumber.number.e164 : login);
     }
 
     render() {
         const formErrorText = this.state.formError ? this.props.translate(this.state.formError) : '';
         const serverErrorText = ErrorUtils.getLatestErrorMessage(this.props.account);
+        const hasError = !_.isEmpty(serverErrorText);
         return (
             <>
-                <View accessibilityLabel="Login form" style={[styles.mt3]}>
+                <View accessibilityLabel={this.props.translate('loginForm.loginForm')} style={[styles.mt3]}>
                     <TextInput
                         ref={el => this.input = el}
                         label={this.props.translate('loginForm.phoneOrEmail')}
@@ -184,6 +185,7 @@ class LoginForm extends React.Component {
                         autoCorrect={false}
                         keyboardType={CONST.KEYBOARD_TYPE.EMAIL_ADDRESS}
                         errorText={formErrorText}
+                        hasError={hasError}
                     />
                 </View>
                 {!_.isEmpty(this.props.account.success) && (
@@ -191,10 +193,10 @@ class LoginForm extends React.Component {
                         {this.props.account.success}
                     </Text>
                 )}
-                {!_.isEmpty(this.props.closeAccount.success) && (
+                {!_.isEmpty(this.props.closeAccount.success || this.props.account.message) && (
 
                     // DotIndicatorMessage mostly expects onyxData errors, so we need to mock an object so that the messages looks similar to prop.account.errors
-                    <DotIndicatorMessage style={[styles.mv2]} type="success" messages={{0: this.props.closeAccount.success}} />
+                    <DotIndicatorMessage style={[styles.mv2]} type="success" messages={{0: this.props.closeAccount.success || this.props.account.message}} />
                 )}
                 { // We need to unmount the submit button when the component is not visible so that the Enter button
                   // key handler gets unsubscribed and does not conflict with the Password Form
@@ -211,7 +213,6 @@ class LoginForm extends React.Component {
                         </View>
                     )
                 }
-                <OfflineIndicator containerStyles={[styles.mv1]} />
             </>
         );
     }

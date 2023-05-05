@@ -10,10 +10,11 @@ import themeColors from '../styles/themes/default';
 import * as StyleUtils from '../styles/StyleUtils';
 import CONST from '../CONST';
 import variables from '../styles/variables';
+import avatarPropTypes from './avatarPropTypes';
 
 const propTypes = {
     /** Array of avatar URLs or icons */
-    icons: PropTypes.arrayOf(PropTypes.oneOfType([PropTypes.string, PropTypes.func])),
+    icons: PropTypes.arrayOf(avatarPropTypes),
 
     /** Set the size of avatars */
     size: PropTypes.oneOf(_.values(CONST.AVATAR_SIZE)),
@@ -54,13 +55,14 @@ const defaultProps = {
 };
 
 const MultipleAvatars = (props) => {
-    const avatarContainerStyles = props.size === CONST.AVATAR_SIZE.SMALL ? styles.emptyAvatarSmall : styles.emptyAvatar;
+    let avatarContainerStyles = props.size === CONST.AVATAR_SIZE.SMALL
+        ? [styles.emptyAvatarSmall, styles.emptyAvatarMarginSmall]
+        : [styles.emptyAvatar, styles.emptyAvatarMargin];
     const singleAvatarStyles = props.size === CONST.AVATAR_SIZE.SMALL ? styles.singleAvatarSmall : styles.singleAvatar;
     const secondAvatarStyles = [
         props.size === CONST.AVATAR_SIZE.SMALL ? styles.secondAvatarSmall : styles.secondAvatar,
         ...props.secondAvatarStyle,
     ];
-    const horizontalStyles = [styles.horizontalStackedAvatar4, styles.horizontalStackedAvatar3, styles.horizontalStackedAvatar2, styles.horizontalStackedAvatar1];
 
     if (!props.icons.length) {
         return null;
@@ -71,13 +73,39 @@ const MultipleAvatars = (props) => {
             <View style={avatarContainerStyles}>
                 <Tooltip text={props.avatarTooltips[0]}>
                     <Avatar
-                        source={props.icons[0]}
+                        source={props.icons[0].source}
                         size={props.size}
                         fill={themeColors.iconSuccessFill}
+                        name={props.icons[0].name}
+                        type={props.icons[0].type}
                     />
                 </Tooltip>
             </View>
         );
+    }
+
+    const oneAvatarSize = StyleUtils.getAvatarStyle(props.size);
+    const oneAvatarBorderWidth = StyleUtils.getAvatarBorderWidth(props.size);
+    const overlapSize = oneAvatarSize.width / 3;
+
+    if (props.shouldStackHorizontally) {
+        let width;
+
+        // Height of one avatar + border space
+        const height = oneAvatarSize.height + (2 * oneAvatarBorderWidth);
+        if (props.icons.length > 4) {
+            // Width of overlapping avatars + border space
+            width = (oneAvatarSize.width * 3) + (oneAvatarBorderWidth * 8);
+        } else {
+            // one avatar width + overlaping avatar sizes + border space
+            width = oneAvatarSize.width + (overlapSize * 2 * (props.icons.length - 1)) + (oneAvatarBorderWidth * (props.icons.length * 2));
+        }
+        avatarContainerStyles = StyleUtils.combineStyles([
+            styles.alignItemsCenter,
+            styles.flexRow,
+            StyleUtils.getHeight(height),
+            StyleUtils.getWidthStyle(width),
+        ]);
     }
 
     return (
@@ -85,15 +113,22 @@ const MultipleAvatars = (props) => {
             {props.shouldStackHorizontally ? (
                 <>
                     {
-                        _.map([...props.icons].splice(0, 4).reverse(), (icon, index) => (
+                        _.map([...props.icons].splice(0, 4), (icon, index) => (
                             <View
                                 key={`stackedAvatars-${index}`}
-                                style={[styles.horizontalStackedAvatar, StyleUtils.getHorizontalStackedAvatarBorderStyle(props.isHovered, props.isPressed), horizontalStyles[index]]}
+                                style={[styles.justifyContentCenter,
+                                    styles.alignItemsCenter,
+                                    StyleUtils.getHorizontalStackedAvatarBorderStyle(props.isHovered, props.isPressed),
+                                    StyleUtils.getHorizontalStackedAvatarStyle(index, overlapSize, oneAvatarBorderWidth, oneAvatarSize.width),
+                                    (icon.type === CONST.ICON_TYPE_WORKSPACE ? StyleUtils.getAvatarBorderRadius(props.size, icon.type) : {}),
+                                ]}
                             >
                                 <Avatar
-                                    source={icon || props.fallbackIcon}
+                                    source={icon.source || props.fallbackIcon}
                                     fill={themeColors.iconSuccessFill}
-                                    size={CONST.AVATAR_SIZE.SMALLER}
+                                    size={props.size}
+                                    name={icon.name}
+                                    type={icon.type}
                                 />
                             </View>
                         ))
@@ -107,12 +142,26 @@ const MultipleAvatars = (props) => {
 
                                 // Set overlay background color with RGBA value so that the text will not inherit opacity
                                 StyleUtils.getBackgroundColorWithOpacityStyle(themeColors.overlay, variables.overlayOpacity),
-                                styles.horizontalStackedAvatar4Overlay,
+                                StyleUtils.getHorizontalStackedOverlayAvatarStyle(oneAvatarSize, oneAvatarBorderWidth),
+                                (props.icons[3].type === CONST.ICON_TYPE_WORKSPACE ? StyleUtils.getAvatarBorderRadius(props.size, props.icons[3].type) : {}),
                             ]}
                         >
-                            <Text style={styles.avatarInnerTextSmall}>
-                                {`+${props.icons.length - 4}`}
-                            </Text>
+                            <View
+                                style={[styles.justifyContentCenter,
+                                    styles.alignItemsCenter,
+                                    StyleUtils.getHeight(oneAvatarSize.height),
+                                    StyleUtils.getWidthStyle(oneAvatarSize.width),
+                                ]}
+                            >
+                                <Text
+                                    style={[
+                                        styles.avatarInnerTextSmall,
+                                        StyleUtils.getAvatarExtraFontSizeStyle(props.size),
+                                    ]}
+                                >
+                                    {`+${props.icons.length - 4}`}
+                                </Text>
+                            </View>
                         </View>
                     )}
                 </>
@@ -124,11 +173,13 @@ const MultipleAvatars = (props) => {
                         {/* View is necessary for tooltip to show for multiple avatars in LHN */}
                         <View>
                             <Avatar
-                                source={props.icons[0] || props.fallbackIcon}
+                                source={props.icons[0].source || props.fallbackIcon}
                                 fill={themeColors.iconSuccessFill}
                                 size={props.isFocusMode ? CONST.AVATAR_SIZE.MID_SUBSCRIPT : CONST.AVATAR_SIZE.SMALLER}
 
                                 imageStyles={[singleAvatarStyles]}
+                                name={props.icons[0].name}
+                                type={props.icons[0].type}
                             />
                         </View>
                     </Tooltip>
@@ -139,11 +190,13 @@ const MultipleAvatars = (props) => {
                             <Tooltip text={props.avatarTooltips[1]} absolute>
                                 <View>
                                     <Avatar
-                                        source={props.icons[1] || props.fallbackIcon}
+                                        source={props.icons[1].source || props.fallbackIcon}
                                         fill={themeColors.iconSuccessFill}
                                         size={props.isFocusMode ? CONST.AVATAR_SIZE.MID_SUBSCRIPT : CONST.AVATAR_SIZE.SMALLER}
 
                                         imageStyles={[singleAvatarStyles]}
+                                        name={props.icons[1].name}
+                                        type={props.icons[1].type}
                                     />
                                 </View>
                             </Tooltip>

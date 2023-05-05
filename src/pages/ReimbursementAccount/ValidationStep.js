@@ -27,7 +27,9 @@ import Section from '../../components/Section';
 import CONST from '../../CONST';
 import Button from '../../components/Button';
 import MenuItem from '../../components/MenuItem';
+import WorkspaceResetBankAccountModal from '../workspace/WorkspaceResetBankAccountModal';
 import Enable2FAPrompt from './Enable2FAPrompt';
+import ScreenWrapper from '../../components/ScreenWrapper';
 
 const propTypes = {
     ...withLocalizePropTypes,
@@ -128,7 +130,7 @@ class ValidationStep extends React.Component {
         const requiresTwoFactorAuth = lodashGet(this.props, 'account.requiresTwoFactorAuth');
 
         return (
-            <View style={[styles.flex1, styles.justifyContentBetween]}>
+            <ScreenWrapper style={[styles.flex1, styles.justifyContentBetween]} includeSafeAreaPaddingBottom={false}>
                 <HeaderWithCloseButton
                     title={isVerifying ? this.props.translate('validationStep.headerTitle') : this.props.translate('workspace.common.testTransactions')}
                     stepCounter={{step: 5, total: 5}}
@@ -226,12 +228,17 @@ class ValidationStep extends React.Component {
                                 wrapperStyle={[styles.cardMenuItem, styles.mv3]}
                             />
                         </Section>
+                        {this.props.reimbursementAccount.shouldShowResetModal && (
+                            <WorkspaceResetBankAccountModal
+                                reimbursementAccount={this.props.reimbursementAccount}
+                            />
+                        )}
                         {!requiresTwoFactorAuth && (
                             <Enable2FAPrompt />
                         )}
                     </ScrollView>
                 )}
-            </View>
+            </ScreenWrapper>
         );
     }
 }

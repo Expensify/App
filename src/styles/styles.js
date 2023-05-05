@@ -1,3 +1,4 @@
+import {defaultStyles as defaultPickerStyles} from 'react-native-picker-select/src/styles';
 import fontFamily from './fontFamily';
 import addOutlineWidth from './addOutlineWidth';
 import themeColors from './themes/default';
@@ -19,6 +20,8 @@ import pointerEventsNone from './pointerEventsNone';
 import pointerEventsAuto from './pointerEventsAuto';
 import overflowXHidden from './overflowXHidden';
 import CONST from '../CONST';
+import cursor from './utilities/cursor';
+import userSelect from './utilities/userSelect';
 
 const picker = {
     backgroundColor: themeColors.transparent,
@@ -156,12 +159,42 @@ const styles = {
     ...wordBreak,
     ...whiteSpace,
     ...writingDirection,
+    ...cursor,
+    ...userSelect,
     ...themeColors,
 
     rateCol: {
         margin: 0,
         padding: 0,
         flexBasis: '48%',
+    },
+
+    autoCompleteSuggestionsContainer: {
+        backgroundColor: themeColors.appBG,
+        borderRadius: 8,
+        borderWidth: 1,
+        borderColor: themeColors.border,
+        justifyContent: 'center',
+        boxShadow: variables.popoverMenuShadow,
+        position: 'absolute',
+        left: 0,
+        right: 0,
+    },
+
+    autoCompleteSuggestionContainer: {
+        flexDirection: 'row',
+        alignItems: 'center',
+    },
+
+    emojiSuggestionsEmoji: {
+        fontFamily: fontFamily.EMOJI_TEXT_FONT,
+        fontSize: variables.fontSizeMedium,
+        width: 51,
+        textAlign: 'center',
+    },
+    emojiSuggestionsText: {
+        fontFamily: fontFamily.EMOJI_TEXT_FONT,
+        fontSize: variables.fontSizeMedium,
     },
 
     unitCol: {
@@ -248,6 +281,7 @@ const styles = {
         fontWeight: fontWeightBold,
         fontFamily: fontFamily.EXP_NEUE_BOLD,
         fontSize: variables.fontSizeSmall,
+        lineHeight: variables.lineHeightSmall,
     },
 
     textMicroSupporting: {
@@ -261,6 +295,10 @@ const styles = {
         color: themeColors.textSupporting,
         fontFamily: fontFamily.EXP_NEUE,
         fontSize: variables.fontSizeExtraSmall,
+    },
+
+    textNormal: {
+        fontSize: variables.fontSizeNormal,
     },
 
     textLarge: {
@@ -296,8 +334,16 @@ const styles = {
 
     textHeadline: {
         ...headlineFont,
+        ...whiteSpace.preWrap,
         color: themeColors.heading,
         fontSize: variables.fontSizeXLarge,
+    },
+
+    textHeadlineH1: {
+        ...headlineFont,
+        ...whiteSpace.preWrap,
+        color: themeColors.heading,
+        fontSize: variables.fontSizeh1,
     },
 
     textDecorationNoLine: {
@@ -444,7 +490,7 @@ const styles = {
         borderWidth: 0,
     },
 
-    buttonSuccessDisabled: {
+    buttonOpacityDisabled: {
         opacity: 0.5,
     },
 
@@ -458,16 +504,12 @@ const styles = {
         borderWidth: 0,
     },
 
-    buttonDangerDisabled: {
-        opacity: 0.5,
-    },
-
     buttonDangerHovered: {
         backgroundColor: themeColors.dangerHover,
         borderWidth: 0,
     },
 
-    buttonDisable: {
+    buttonDisabled: {
         backgroundColor: themeColors.buttonDefaultBG,
         borderWidth: 0,
     },
@@ -559,7 +601,7 @@ const styles = {
         height: 140,
     },
 
-    pickerSmall: {
+    pickerSmall: (backgroundColor = themeColors.highlightBG) => ({
         inputIOS: {
             fontFamily: fontFamily.EXP_NEUE,
             fontSize: variables.fontSizeSmall,
@@ -567,12 +609,24 @@ const styles = {
             paddingRight: 17,
             paddingTop: 6,
             paddingBottom: 6,
-            borderRadius: variables.componentBorderRadius,
             borderWidth: 0,
             color: themeColors.text,
             height: 26,
             opacity: 1,
             backgroundColor: 'transparent',
+        },
+        done: {
+            color: themeColors.text,
+        },
+        doneDepressed: {
+            fontSize: defaultPickerStyles.done.fontSize,
+        },
+        modalViewMiddle: {
+            backgroundColor: themeColors.border,
+            borderTopWidth: 0,
+        },
+        modalViewBottom: {
+            backgroundColor: themeColors.highlightBG,
         },
         inputWeb: {
             fontFamily: fontFamily.EXP_NEUE,
@@ -582,13 +636,12 @@ const styles = {
             paddingTop: 6,
             paddingBottom: 6,
             borderWidth: 0,
-            borderRadius: variables.componentBorderRadius,
             color: themeColors.text,
             appearance: 'none',
             height: 26,
             opacity: 1,
-            cursor: 'pointer',
-            backgroundColor: 'transparent',
+            backgroundColor,
+            ...cursor.cursorPointer,
         },
         inputAndroid: {
             fontFamily: fontFamily.EXP_NEUE,
@@ -598,10 +651,10 @@ const styles = {
             paddingTop: 6,
             paddingBottom: 6,
             borderWidth: 0,
-            borderRadius: variables.componentBorderRadius,
             color: themeColors.text,
             height: 26,
             opacity: 1,
+            backgroundColor: 'transparent',
         },
         iconContainer: {
             top: 7,
@@ -611,7 +664,7 @@ const styles = {
             width: variables.iconSizeExtraSmall,
             height: variables.iconSizeExtraSmall,
         },
-    },
+    }),
 
     badge: {
         backgroundColor: themeColors.border,
@@ -628,6 +681,14 @@ const styles = {
 
     badgeSuccessPressed: {
         backgroundColor: themeColors.successHover,
+    },
+
+    badgeAdHocSuccess: {
+        backgroundColor: themeColors.badgeAdHoc,
+    },
+
+    badgeAdHocSuccessPressed: {
+        backgroundColor: themeColors.badgeAdHocHover,
     },
 
     badgeDanger: {
@@ -701,7 +762,8 @@ const styles = {
 
     offlineIndicatorMobile: {
         paddingLeft: 20,
-        paddingBottom: 9,
+        paddingTop: 5,
+        paddingBottom: 5,
     },
 
     offlineIndicatorRow: {
@@ -715,6 +777,35 @@ const styles = {
 
     componentHeightLarge: {
         height: variables.inputHeight,
+    },
+
+    calendarHeader: {
+        height: 50,
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+        alignItems: 'center',
+        paddingHorizontal: 15,
+        paddingRight: 5,
+    },
+
+    calendarDayRoot: {
+        flex: 1,
+        height: 45,
+        justifyContent: 'center',
+        alignItems: 'center',
+    },
+
+    calendarDayContainer: {
+        width: 30,
+        height: 30,
+        justifyContent: 'center',
+        alignItems: 'center',
+        borderRadius: 15,
+        overflow: 'hidden',
+    },
+
+    calendarDayContainerSelected: {
+        backgroundColor: themeColors.buttonDefaultBG,
     },
 
     textInputContainer: {
@@ -741,7 +832,7 @@ const styles = {
         position: 'absolute',
         top: 0,
         width: '100%',
-        height: 25,
+        height: 23,
         backgroundColor: themeColors.componentBG,
     },
 
@@ -760,7 +851,7 @@ const styles = {
     baseTextInput: {
         fontFamily: fontFamily.EXP_NEUE,
         fontSize: variables.fontSizeNormal,
-        lineHeight: variables.lineHeightNormal,
+        lineHeight: variables.lineHeightXLarge,
         color: themeColors.text,
         paddingTop: 23,
         paddingBottom: 8,
@@ -785,7 +876,7 @@ const styles = {
 
     textInputDesktop: addOutlineWidth({}, 0),
 
-    secureInputShowPasswordButton: {
+    textInputIconContainer: {
         paddingHorizontal: 11,
         justifyContent: 'center',
         margin: 1,
@@ -812,13 +903,19 @@ const styles = {
         textAlignVertical: 'center',
     },
 
-    textInputPrefix: {
+    textInputPrefixWrapper: {
         position: 'absolute',
         left: 0,
         top: 0,
-        height: '100%',
+        height: variables.inputHeight,
+        display: 'flex',
+        flexDirection: 'row',
+        alignItems: 'center',
         paddingTop: 23,
         paddingBottom: 8,
+    },
+
+    textInputPrefix: {
         color: themeColors.text,
         fontFamily: fontFamily.EXP_NEUE,
         fontSize: variables.fontSizeNormal,
@@ -833,6 +930,7 @@ const styles = {
         justifyContent: 'center',
         backgroundColor: 'transparent',
         height: variables.inputHeight,
+        overflow: 'hidden',
     },
 
     pickerContainerSmall: {
@@ -843,23 +941,38 @@ const styles = {
         position: 'absolute',
         left: 0,
         top: 6,
+        zIndex: 1,
     },
 
-    picker: (disabled = false) => ({
+    picker: (disabled = false, backgroundColor = themeColors.appBG) => ({
         iconContainer: {
             top: Math.round(variables.inputHeight * 0.5) - 11,
             right: 0,
-            zIndex: -1,
+            ...pointerEventsNone,
         },
 
         inputWeb: {
             appearance: 'none',
-            cursor: disabled ? 'not-allowed' : 'pointer',
+            ...(disabled ? cursor.cursorDisabled : cursor.cursorPointer),
             ...picker,
+            backgroundColor,
         },
 
         inputIOS: {
             ...picker,
+        },
+        done: {
+            color: themeColors.text,
+        },
+        doneDepressed: {
+            fontSize: defaultPickerStyles.done.fontSize,
+        },
+        modalViewMiddle: {
+            backgroundColor: themeColors.border,
+            borderTopWidth: 0,
+        },
+        modalViewBottom: {
+            backgroundColor: themeColors.highlightBG,
         },
 
         inputAndroid: {
@@ -914,9 +1027,49 @@ const styles = {
     },
 
     signInPage: {
-        backgroundColor: themeColors.sidebar,
+        backgroundColor: themeColors.highlightBG,
         minHeight: '100%',
         flex: 1,
+    },
+
+    signInPageHeroCenter: {
+        position: 'absolute',
+        top: 0,
+        left: 0,
+        right: 0,
+        bottom: 0,
+        justifyContent: 'center',
+        alignItems: 'center',
+    },
+
+    signInPageGradient: {
+        height: '100%',
+        width: 540,
+        position: 'absolute',
+        top: 0,
+        left: 0,
+    },
+
+    signInPageGradientMobile: {
+        height: 300,
+        width: 800,
+        position: 'absolute',
+        top: 0,
+        left: 0,
+    },
+
+    signInBackgroundDesktop: {
+        position: 'absolute',
+        bottom: 0,
+        left: 0,
+        minHeight: 700,
+    },
+
+    signInBackgroundMobile: {
+        position: 'absolute',
+        bottom: 0,
+        left: 0,
+        minHeight: 700,
     },
 
     signInPageInner: {
@@ -937,7 +1090,7 @@ const styles = {
     },
 
     signInPageLeftContainerWide: {
-        maxWidth: 360,
+        maxWidth: variables.sideBarWidth,
     },
 
     signInPageWelcomeFormContainer: {
@@ -975,49 +1128,18 @@ const styles = {
         width: variables.componentSizeNormal,
     },
 
-    statusIndicator: {
+    statusIndicator: (backgroundColor = themeColors.danger) => ({
         borderColor: themeColors.sidebar,
-        backgroundColor: themeColors.danger,
-        borderRadius: 6,
-        borderWidth: 2,
-        position: 'absolute',
-        right: -1,
-        bottom: -1,
-        height: 12,
-        width: 12,
-        zIndex: 10,
-    },
-
-    statusIndicatorLarge: {
-        borderColor: themeColors.componentBG,
-        backgroundColor: themeColors.danger,
+        backgroundColor,
         borderRadius: 8,
         borderWidth: 2,
         position: 'absolute',
-        right: 4,
-        bottom: 4,
+        right: -2,
+        top: -1,
         height: 16,
         width: 16,
         zIndex: 10,
-    },
-
-    statusIndicatorOnline: {
-        backgroundColor: themeColors.success,
-    },
-
-    avatarWithIndicator: {
-        errorDot: {
-            borderColor: themeColors.sidebar,
-            borderRadius: 6,
-            borderWidth: 2,
-            position: 'absolute',
-            right: -1,
-            bottom: -1,
-            height: 12,
-            width: 12,
-            zIndex: 10,
-        },
-    },
+    }),
 
     floatingActionButtonContainer: {
         position: 'absolute',
@@ -1112,14 +1234,8 @@ const styles = {
 
     popoverMenuIcon: {
         width: variables.componentSizeNormal,
-        height: variables.componentSizeNormal,
         justifyContent: 'center',
         alignItems: 'center',
-    },
-
-    popoverMenuIconEmphasized: {
-        backgroundColor: themeColors.iconSuccessFill,
-        borderRadius: variables.componentSizeLarge / 2,
     },
 
     popoverMenuText: {
@@ -1192,7 +1308,7 @@ const styles = {
         minWidth: 'auto',
         flexBasis: 'auto',
         flexGrow: 0,
-        flexShrink: 0,
+        flexShrink: 1,
     },
 
     displayNameTooltipEllipsis: {
@@ -1203,7 +1319,7 @@ const styles = {
     },
 
     optionAlternateText: {
-        height: variables.alternateTextHeight,
+        minHeight: variables.alternateTextHeight,
         lineHeight: variables.lineHeightXLarge,
     },
 
@@ -1215,7 +1331,7 @@ const styles = {
     },
 
     optionRow: {
-        height: variables.optionRowHeight,
+        minHeight: variables.optionRowHeight,
         paddingTop: 12,
         paddingBottom: 12,
     },
@@ -1237,8 +1353,7 @@ const styles = {
         // Starting version 6.3.2 @react-navigation/drawer adds "user-select: none;" to its container.
         // We add user-select-auto to the inner component to prevent incorrect triple-click text selection.
         // For further explanation see - https://github.com/Expensify/App/pull/12730/files#r1022883823
-        userSelect: 'auto',
-        WebkitUserSelect: 'auto',
+        ...userSelect.userSelectText,
     },
 
     appContentHeader: {
@@ -1333,7 +1448,7 @@ const styles = {
         fontFamily: fontFamily.EXP_NEUE,
         lineHeight: variables.lineHeightXLarge,
         maxWidth: '100%',
-        cursor: 'auto',
+        ...cursor.cursorAuto,
         ...whiteSpace.preWrap,
         ...wordBreak.breakWord,
     },
@@ -1370,7 +1485,6 @@ const styles = {
 
     chatItemFullComposeBox: {
         ...flex.flex1,
-        ...spacing.mt4,
         ...sizing.h100,
     },
 
@@ -1383,8 +1497,19 @@ const styles = {
 
     chatFooterFullCompose: {
         flex: 1,
-        flexShrink: 1,
-        flexBasis: '100%',
+    },
+
+    chatItemDraft: {
+        display: 'flex',
+        flexDirection: 'row',
+        paddingTop: 8,
+        paddingBottom: 8,
+        paddingLeft: 20,
+        paddingRight: 20,
+    },
+
+    chatItemReactionsDraftRight: {
+        marginLeft: 52,
     },
 
     // Be extremely careful when editing the compose styles, as it is easy to introduce regressions.
@@ -1419,7 +1544,7 @@ const styles = {
 
     editInputComposeSpacing: {
         backgroundColor: themeColors.transparent,
-        marginVertical: 6,
+        marginVertical: 8,
     },
 
     // composer padding should not be modified unless thoroughly tested against the cases in this PR: #12669
@@ -1427,6 +1552,11 @@ const styles = {
         paddingVertical: 5,
         ...flex.flexRow,
         flex: 1,
+    },
+
+    textInputComposeBorder: {
+        borderLeftWidth: 1,
+        borderColor: themeColors.border,
     },
 
     chatItemSubmitButton: {
@@ -1458,13 +1588,6 @@ const styles = {
         height: CONST.EMOJI_PICKER_HEADER_HEIGHT,
         justifyContent: 'center',
         width: '100%',
-    },
-
-    emojiHeaderStyle: {
-        fontFamily: fontFamily.EXP_NEUE_BOLD,
-        fontWeight: fontWeightBold,
-        color: themeColors.heading,
-        fontSize: variables.fontSizeSmall,
     },
 
     emojiSkinToneTitle: {
@@ -1508,6 +1631,14 @@ const styles = {
         borderRadius: variables.buttonBorderRadius,
     },
 
+    categoryShortcutButton: {
+        flex: 1,
+        borderRadius: 8,
+        height: CONST.EMOJI_PICKER_ITEM_HEIGHT,
+        alignItems: 'center',
+        justifyContent: 'center',
+    },
+
     chatItemEmojiButton: {
         alignSelf: 'flex-end',
         borderRadius: variables.buttonBorderRadius,
@@ -1519,15 +1650,11 @@ const styles = {
 
     editChatItemEmojiWrapper: {
         marginRight: 3,
+        alignSelf: 'flex-end',
     },
 
     hoveredButton: {
         backgroundColor: themeColors.buttonHoveredBG,
-    },
-
-    chatItemAttachBorder: {
-        borderRightColor: themeColors.border,
-        borderRightWidth: 1,
     },
 
     composerSizeButton: {
@@ -1557,6 +1684,7 @@ const styles = {
     },
 
     navigationModalOverlay: {
+        ...userSelect.userSelectNone,
         position: 'absolute',
         width: '100%',
         height: '100%',
@@ -1587,15 +1715,6 @@ const styles = {
         width: 24,
         backgroundColor: themeColors.icon,
         borderRadius: 24,
-    },
-
-    horizontalStackedAvatar: {
-        height: 28,
-        width: 28,
-        backgroundColor: themeColors.appBG,
-        borderRadius: 33,
-        paddingTop: 2,
-        alignItems: 'center',
     },
 
     singleSubscript: {
@@ -1718,50 +1837,21 @@ const styles = {
     },
 
     emptyAvatar: {
-        marginRight: variables.avatarChatSpacing,
         height: variables.avatarSizeNormal,
         width: variables.avatarSizeNormal,
     },
 
     emptyAvatarSmall: {
-        marginRight: variables.avatarChatSpacing - 4,
         height: variables.avatarSizeSmall,
         width: variables.avatarSizeSmall,
     },
 
-    horizontalStackedAvatar1: {
-        left: -19,
-        top: -79,
-        zIndex: 2,
+    emptyAvatarMargin: {
+        marginRight: variables.avatarChatSpacing,
     },
 
-    horizontalStackedAvatar2: {
-        left: 1,
-        top: -51,
-        zIndex: 3,
-    },
-
-    horizontalStackedAvatar3: {
-        left: 21,
-        top: -23,
-        zIndex: 4,
-    },
-
-    horizontalStackedAvatar4: {
-        top: 5,
-        left: 41,
-        zIndex: 5,
-    },
-
-    horizontalStackedAvatar4Overlay: {
-        top: -107,
-        left: 41,
-        height: 28,
-        width: 28,
-        borderWidth: 2,
-        borderStyle: 'solid',
-        borderRadius: 24,
-        zIndex: 6,
+    emptyAvatarMarginSmall: {
+        marginRight: variables.avatarChatSpacing - 4,
     },
 
     modalViewContainer: {
@@ -1770,7 +1860,7 @@ const styles = {
     },
 
     borderTop: {
-        borderTopWidth: 1,
+        borderTopWidth: variables.borderTopWidth,
         borderColor: themeColors.border,
     },
 
@@ -2073,7 +2163,7 @@ const styles = {
         flexDirection: 'row',
         alignItems: 'center',
         zIndex: 1,
-        cursor: 'default',
+        ...cursor.cursorDefault,
     },
 
     unreadIndicatorLine: {
@@ -2124,6 +2214,28 @@ const styles = {
 
     detailsPageSectionContainer: {
         alignSelf: 'flex-start',
+    },
+
+    attachmentModalArrowsContainer: {
+        display: 'flex',
+        justifyContent: 'center',
+        height: '100%',
+        width: '100%',
+        ...cursor.cursorUnset,
+    },
+
+    attachmentArrow: {
+        zIndex: 23,
+        position: 'absolute',
+    },
+
+    arrowIcon: {
+        height: 40,
+        width: 40,
+        alignItems: 'center',
+        paddingHorizontal: 0,
+        paddingTop: 0,
+        paddingBottom: 0,
     },
 
     detailsPageSectionVersion: {
@@ -2182,6 +2294,18 @@ const styles = {
         backgroundColor: themeColors.checkBox,
     },
 
+    magicCodeInputContainer: {
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+        minHeight: variables.inputHeight,
+    },
+
+    magicCodeInput: {
+        fontSize: variables.fontSizeXLarge,
+        color: themeColors.heading,
+        lineHeight: variables.inputHeight,
+    },
+
     iouAmountText: {
         ...headlineFont,
         fontSize: variables.iouAmountTextSize,
@@ -2196,6 +2320,20 @@ const styles = {
         padding: 0,
         lineHeight: undefined,
     }, 0),
+
+    moneyRequestConfirmationAmount: {
+        ...headlineFont,
+        fontSize: variables.fontSizeh1,
+    },
+
+    moneyRequestMenuItem: {
+        flexDirection: 'row',
+        borderRadius: 0,
+        justifyContent: 'space-between',
+        width: '100%',
+        paddingHorizontal: 20,
+        paddingVertical: 12,
+    },
 
     iouPreviewBox: {
         backgroundColor: themeColors.cardBG,
@@ -2357,21 +2495,9 @@ const styles = {
         marginVertical: 4,
     },
 
-    cursorDefault: {
-        cursor: 'default',
-    },
-
-    cursorDisabled: {
-        cursor: 'not-allowed',
-    },
-
     noSelect: {
         boxShadow: 'none',
         outline: 'none',
-    },
-
-    cursorPointer: {
-        cursor: 'pointer',
     },
 
     fullscreenCard: {
@@ -2469,6 +2595,7 @@ const styles = {
         width: '100%',
         flexDirection: 'row',
         justifyContent: 'space-between',
+        alignItems: 'center',
         ...spacing.pt2,
     },
 
@@ -2476,10 +2603,6 @@ const styles = {
         borderColor: themeColors.border,
         borderBottomWidth: 1,
         ...spacing.pb2,
-    },
-
-    peopleRowCell: {
-        justifyContent: 'center',
     },
 
     peopleBadge: {
@@ -2662,8 +2785,9 @@ const styles = {
         right: 60,
     },
 
-    googleListView: {
-        transform: [{scale: 0}],
+    threeDotsPopoverOffsetNoCloseButton: {
+        top: 50,
+        right: 10,
     },
 
     invert: {
@@ -2673,7 +2797,9 @@ const styles = {
 
     keyboardShortcutModalContainer: {
         maxHeight: '100%',
-        flex: '0 0 auto',
+        flexShrink: 0,
+        flexGrow: 0,
+        flexBasis: 'auto',
     },
 
     keyboardShortcutTableWrapper: {
@@ -2735,12 +2861,17 @@ const styles = {
     },
 
     imageCropContainer: {
-        borderRadius: variables.componentBorderRadiusCard,
         overflow: 'hidden',
         alignItems: 'center',
         justifyContent: 'center',
         backgroundColor: themeColors.imageCropBackgroundColor,
-        cursor: 'move',
+        ...cursor.cursorMove,
+    },
+
+    sliderKnobTooltipView: {
+        height: variables.sliderKnobSize,
+        width: variables.sliderKnobSize,
+        borderRadius: variables.sliderKnobSize / 2,
     },
 
     sliderKnob: {
@@ -2749,9 +2880,8 @@ const styles = {
         height: variables.sliderKnobSize,
         width: variables.sliderKnobSize,
         borderRadius: variables.sliderKnobSize / 2,
-        top: -variables.sliderBarHeight,
         left: -(variables.sliderKnobSize / 2),
-        cursor: 'pointer',
+        ...cursor.cursorPointer,
     },
 
     sliderBar: {
@@ -2759,20 +2889,7 @@ const styles = {
         height: variables.sliderBarHeight,
         borderRadius: variables.sliderBarHeight / 2,
         alignSelf: 'stretch',
-    },
-
-    imageCropRotateButton: {
-        height: variables.iconSizeExtraLarge,
-    },
-
-    userSelectText: {
-        userSelect: 'text',
-        WebkitUserSelect: 'text',
-    },
-
-    userSelectNone: {
-        userSelect: 'none',
-        WebkitUserSelect: 'none',
+        justifyContent: 'center',
     },
 
     screenCenteredContainer: {
@@ -2802,13 +2919,14 @@ const styles = {
     },
 
     textPill: {
-        ellipsizeMode: 'end',
         backgroundColor: themeColors.border,
         borderRadius: 10,
         overflow: 'hidden',
         paddingVertical: 2,
-        flexShrink: 1,
+        flexShrink: 0,
+        maxWidth: variables.badgeMaxWidth,
         fontSize: variables.fontSizeSmall,
+        ...whiteSpace.pre,
         ...spacing.ph2,
     },
 
@@ -2832,6 +2950,10 @@ const styles = {
         padding: 20,
         width: 'auto',
         textAlign: 'left',
+    },
+
+    cardSectionTitle: {
+        lineHeight: variables.lineHeightXXLarge,
     },
 
     cardMenuItem: {
@@ -2877,6 +2999,184 @@ const styles = {
     deeplinkWrapperFooter: {
         paddingTop: 80,
         paddingBottom: 45,
+    },
+
+    emojiReactionBubble: {
+        borderRadius: 28,
+        alignItems: 'center',
+        justifyContent: 'center',
+        flexDirection: 'row',
+        alignSelf: 'flex-start',
+    },
+
+    emojiReactionListHeader: {
+        marginTop: 8,
+        paddingBottom: 20,
+        borderBottomColor: themeColors.border,
+        borderBottomWidth: 1,
+        marginHorizontal: 20,
+    },
+    emojiReactionListHeaderBubble: {
+        paddingVertical: 2,
+        paddingHorizontal: 8,
+        borderRadius: 28,
+        backgroundColor: themeColors.border,
+        alignItems: 'center',
+        justifyContent: 'center',
+        flexDirection: 'row',
+        alignSelf: 'flex-start',
+        marginRight: 4,
+    },
+    reactionListItem: {
+        flexDirection: 'row',
+        paddingVertical: 12,
+        paddingHorizontal: 20,
+    },
+    reactionListHeaderText: {
+        color: themeColors.textSupporting,
+        marginLeft: 8,
+        alignSelf: 'center',
+    },
+
+    miniQuickEmojiReactionText: {
+        fontSize: 15,
+        lineHeight: 20,
+        textAlignVertical: 'center',
+    },
+
+    emojiReactionBubbleText: {
+        textAlignVertical: 'center',
+    },
+
+    reactionCounterText: {
+        fontSize: 13,
+        marginLeft: 4,
+        fontWeight: 'bold',
+    },
+
+    fontColorReactionLabel: {
+        color: '#586A64',
+    },
+
+    reactionEmojiTitle: {
+        fontSize: variables.iconSizeLarge,
+        lineHeight: variables.iconSizeXLarge,
+    },
+
+    textReactionSenders: {
+        color: themeColors.dark,
+        ...wordBreak.breakWord,
+    },
+
+    quickReactionsContainer: {
+        gap: 12,
+        flexDirection: 'row',
+        paddingHorizontal: 25,
+        paddingVertical: 12,
+        justifyContent: 'space-between',
+    },
+
+    reactionListContainer: {
+        maxHeight: variables.listItemHeightNormal * 5.75,
+        ...spacing.pv2,
+    },
+
+    reactionListContainerFixedWidth: {
+        maxWidth: variables.popoverWidth,
+    },
+
+    validateCodeDigits: {
+        color: themeColors.text,
+        fontFamily: fontFamily.EXP_NEUE,
+        fontSize: variables.fontSizeXXLarge,
+        letterSpacing: 4,
+    },
+
+    footerWrapper: {
+        fontSize: variables.fontSizeNormal,
+        paddingTop: 64,
+        maxWidth: 1100, // Match footer across all Expensify platforms
+    },
+
+    footerColumnsContainer: {
+        flex: 1,
+        flexWrap: 'wrap',
+        marginBottom: 40,
+        marginHorizontal: -16,
+    },
+
+    footerTitle: {
+        fontSize: variables.fontSizeLarge,
+        color: themeColors.success,
+        marginBottom: 16,
+    },
+
+    footerRow: {
+        paddingVertical: 4,
+        marginBottom: 8,
+        color: themeColors.textLight,
+        fontSize: variables.fontSizeMedium,
+    },
+
+    footerBottomLogo: {
+        marginTop: 40,
+        width: '100%',
+    },
+
+    listPickerSeparator: {
+        height: 1,
+        backgroundColor: themeColors.buttonDefaultBG,
+    },
+
+    datePickerRoot: {
+        position: 'relative',
+        zIndex: 99,
+    },
+
+    datePickerPopover: {
+        position: 'absolute',
+        backgroundColor: themeColors.appBG,
+        width: '100%',
+        alignSelf: 'center',
+        top: 60,
+        zIndex: 100,
+    },
+
+    loginHeroHeader: {
+        fontFamily: fontFamily.EXP_NEW_KANSAS_MEDIUM,
+        color: themeColors.success,
+        fontWeight: '500',
+        textAlign: 'center',
+    },
+
+    newKansasLarge: {
+        ...headlineFont,
+        fontSize: variables.fontSizeXLarge,
+        lineHeight: 27,
+    },
+
+    moneyRequestHeaderCheckmark: {
+        marginLeft: 5,
+        alignSelf: 'center',
+    },
+
+    loginHeroBody: {
+        fontFamily: fontFamily.EXP_NEUE,
+        fontSize: variables.fontSizeSignInHeroBody,
+        color: themeColors.textLight,
+        textAlign: 'center',
+    },
+
+    validateCodeMessage: {
+        width: variables.modalContentMaxWidth,
+        textAlign: 'center',
+    },
+
+    whisper: {
+        backgroundColor: themeColors.cardBG,
+    },
+    contextMenuItemPopoverMaxWidth: {
+        maxWidth: 375,
     },
 };
 

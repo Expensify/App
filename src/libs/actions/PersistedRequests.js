@@ -1,9 +1,9 @@
 import Onyx from 'react-native-onyx';
 import _ from 'underscore';
+import CONST from '../../CONST';
 import ONYXKEYS from '../../ONYXKEYS';
-import RetryCounter from '../RetryCounter';
+import HttpUtils from '../HttpUtils';
 
-const persistedRequestsRetryCounter = new RetryCounter();
 let persistedRequests = [];
 
 Onyx.connect({
@@ -13,14 +13,18 @@ Onyx.connect({
 
 function clear() {
     Onyx.set(ONYXKEYS.PERSISTED_REQUESTS, []);
-    persistedRequestsRetryCounter.clear();
 }
 
 /**
  * @param {Array} requestsToPersist
  */
 function save(requestsToPersist) {
-    persistedRequests = persistedRequests.concat(requestsToPersist);
+    HttpUtils.cancelPendingReconnectAppRequest();
+    persistedRequests = _.chain(persistedRequests)
+        .concat(requestsToPersist)
+        .partition(request => request.command !== CONST.NETWORK.COMMAND.RECONNECT_APP)
+        .flatten()
+        .value();
     Onyx.set(ONYXKEYS.PERSISTED_REQUESTS, persistedRequests);
 }
 
@@ -28,7 +32,6 @@ function save(requestsToPersist) {
  * @param {Object} requestToRemove
  */
 function remove(requestToRemove) {
-    persistedRequestsRetryCounter.remove(requestToRemove);
     persistedRequests = _.reject(persistedRequests, persistedRequest => _.isEqual(persistedRequest, requestToRemove));
     Onyx.set(ONYXKEYS.PERSISTED_REQUESTS, persistedRequests);
 }
@@ -40,18 +43,9 @@ function getAll() {
     return persistedRequests;
 }
 
-/**
- * @param {Object} request
- * @returns {Number}
- */
-function incrementRetries(request) {
-    return persistedRequestsRetryCounter.incrementRetries(request);
-}
-
 export {
     clear,
     save,
     getAll,
     remove,
-    incrementRetries,
 };

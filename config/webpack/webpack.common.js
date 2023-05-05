@@ -29,6 +29,7 @@ const envToLogoSuffixMap = {
     production: '',
     staging: '-stg',
     dev: '-dev',
+    adhoc: '-adhoc',
 };
 
 function mapEnvToLogoSuffix(envFile) {
@@ -120,7 +121,7 @@ const webpackConfig = ({envFile = '.env', platform = 'web'}) => ({
             // React Native JavaScript environment requires the global __DEV__ variable to be accessible.
             // react-native-render-html uses variable to log exclusively during development.
             // See https://reactnative.dev/docs/javascript-environment
-            __DEV__: /staging|prod/.test(envFile) === false,
+            __DEV__: /staging|prod|adhoc/.test(envFile) === false,
         }),
 
         // This allows us to interactively inspect JS bundle contents
@@ -210,6 +211,7 @@ const webpackConfig = ({envFile = '.env', platform = 'web'}) => ({
             'react-native$': '@expensify/react-native-web',
             'react-native-web': '@expensify/react-native-web',
             'react-content-loader/native': 'react-content-loader',
+            'lottie-react-native': 'react-native-web-lottie',
         },
 
         // React Native libraries may have web-specific module implementations that appear with the extension `.web.js`
