@@ -1,4 +1,6 @@
 import _ from 'underscore';
+import lodashSumBy from 'lodash/sumBy';
+import lodashMaxBy from 'lodash/maxBy';
 import lodashOrderBy from 'lodash/orderBy';
 import moment from 'moment';
 import Str from 'expensify-common/lib/str';
@@ -169,26 +171,35 @@ function mergeEmojisWithFrequentlyUsedEmojis(emojis) {
  * @param {Object|Object[]} newEmoji
  */
 function addToFrequentlyUsedEmojis(newEmoji) {
-    let frequentEmojiList = [...frequentlyUsedEmojis];
-
     const currentTimestamp = moment().unix();
-    _.each(newEmoji, (emoji) => {
-        let currentEmojiCount = 1;
-        const emojiIndex = _.findIndex(frequentEmojiList, e => e.code === emoji.code);
-        if (emojiIndex >= 0) {
-            currentEmojiCount = frequentEmojiList[emojiIndex].count + 1;
-            frequentEmojiList.splice(emojiIndex, 1);
-        }
-        const updatedEmoji = {...emoji, ...{count: currentEmojiCount, lastUpdatedAt: currentTimestamp}};
-        frequentEmojiList.push(updatedEmoji);
-    });
-
     const maxFrequentEmojiCount = (CONST.EMOJI_FREQUENT_ROW_COUNT * CONST.EMOJI_NUM_PER_ROW);
 
+    // Get unique emojis array with counts for every emoji, these emojis are usually extracted from copy/pasted comments
+    const uniqueEmojisWithCounts = _.chain([].concat(newEmoji))
+        .groupBy('name')
+        .map(values => ({
+            ...values[0],
+            count: values.length,
+            lastUpdatedAt: currentTimestamp,
+        }))
+        .value();
+
+    // Concat uniqueEmojisWithCounts with the frequentlyUsedEmojis where we sum the count and update the lastUpdatedAt
+    const mergedEmojisWithFrequent = _.chain(uniqueEmojisWithCounts)
+        .concat(frequentlyUsedEmojis)
+        .groupBy('name')
+        .map(groupedEmojiList => ({
+            ...groupedEmojiList[0],
+            count: lodashSumBy(groupedEmojiList, 'count'),
+            lastUpdatedAt: lodashMaxBy(groupedEmojiList, 'lastUpdatedAt').lastUpdatedAt,
+        }))
+        .value();
+
     // Sort the list and take the first maxFrequentEmojiCount items
-    frequentEmojiList = lodashOrderBy(frequentEmojiList, ['count', 'lastUpdatedAt'], ['desc', 'desc']);
-    frequentEmojiList = frequentEmojiList.slice(0, maxFrequentEmojiCount);
-    User.updateFrequentlyUsedEmojis(frequentEmojiList);
+    const frequentEmojiListOrdered = lodashOrderBy(mergedEmojisWithFrequent, ['count', 'lastUpdatedAt'], ['desc', 'desc'])
+        .slice(0, maxFrequentEmojiCount);
+
+    User.updateFrequentlyUsedEmojis(frequentEmojiListOrdered);
 }
 
 /**
@@ -210,6 +221,9 @@ const getEmojiCodeWithSkinColor = (item, preferredSkinToneIndex) => {
 /**
  * Replace any emoji name in a text with the emoji icon.
  * If we're on mobile, we also add a space after the emoji granted there's no text after it.
+ *
+ * All replaced emojis will be added to the frequently used emojis list.
+ *
  * @param {String} text
  * @param {Boolean} isSmallScreenWidth
  * @param {Number} preferredSkinTone
@@ -223,10 +237,15 @@ function replaceEmojis(text, isSmallScreenWidth = false, preferredSkinTone = CON
     }
     const emojis = [];
     for (let i = 0; i < emojiData.length; i++) {
-        const checkEmoji = emojisTrie.search(emojiData[i].slice(1, -1));
+        const name = emojiData[i].slice(1, -1);
+        const checkEmoji = emojisTrie.search(name);
         if (checkEmoji && checkEmoji.metaData.code) {
             let emojiReplacement = getEmojiCodeWithSkinColor(checkEmoji.metaData, preferredSkinTone);
-            emojis.push({code: emojiReplacement});
+            emojis.push({
+                name,
+                code: checkEmoji.metaData.code,
+                types: checkEmoji.metaData.types,
+            });
 
             // If this is the last emoji in the message and it's the end of the message so far,
             // add a space after it so the user can keep typing easily.
@@ -238,7 +257,9 @@ function replaceEmojis(text, isSmallScreenWidth = false, preferredSkinTone = CON
     }
 
     // Add all replaced emojis to the frequently used emojis list
-    addToFrequentlyUsedEmojis(emojis);
+    if (!_.isEmpty(emojis)) {
+        addToFrequentlyUsedEmojis(emojis);
+    }
     return newText;
 }
 
