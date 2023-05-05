@@ -1067,13 +1067,6 @@ const CONST = {
         // Since size cant be null, we have to define some initial value.
         INITIAL_SIZE: 1, // 1 was chosen because there is a very low probability that initialized component will have such size.
     },
-
-    ONYX: {
-        METHOD: {
-            MERGE: 'merge',
-            SET: 'set',
-        },
-    },
     MICROSECONDS_PER_MS: 1000,
     RED_BRICK_ROAD_PENDING_ACTION: {
         ADD: 'add',
