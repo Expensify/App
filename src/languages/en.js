@@ -133,6 +133,7 @@ export default {
         websiteExample: 'e.g. https://www.expensify.com',
         zipCodeExampleFormat: ({zipSampleFormat}) => (zipSampleFormat ? `e.g. ${zipSampleFormat}` : ''),
         description: 'Description',
+        with: 'with',
     },
     attachmentPicker: {
         cameraPermissionRequired: 'Camera access',
@@ -329,7 +330,7 @@ export default {
             invalidSplit: 'Split amounts do not equal total amount',
             other: 'Unexpected error, please try again later',
             genericCreateFailureMessage: 'Unexpected error requesting money, please try again later',
-            genericCancelFailureMessage: ({type}) => `Unexpected error ${type === 'decline' ? 'declining' : 'cancelling'} the money request, please try again later`,
+            genericDeleteFailureMessage: 'Unexpected error deleting the money request, please try again later',
         },
     },
     notificationPreferences: {
@@ -1225,6 +1226,7 @@ export default {
         },
     },
     report: {
+        genericCreateReportFailureMessage: 'Unexpected error creating this chat, please try again later',
         genericAddCommentFailureMessage: 'Unexpected error while posting the comment, please try again later',
         noActivityYet: 'No activity yet',
     },

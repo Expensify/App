@@ -235,7 +235,6 @@ class ReportActionItem extends Component {
 
         const reactions = _.get(this.props, ['action', 'message', 0, 'reactions'], []);
         const hasReactions = reactions.length > 0;
-
         return (
             <>
                 {children}
@@ -333,13 +332,7 @@ class ReportActionItem extends Component {
                                 )}
                             >
                                 <OfflineWithFeedback
-                                    onClose={() => {
-                                        if (this.props.action.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD) {
-                                            ReportActions.deleteOptimisticReportAction(this.props.report.reportID, this.props.action.reportActionID);
-                                        } else {
-                                            ReportActions.clearReportActionErrors(this.props.report.reportID, this.props.action.reportActionID);
-                                        }
-                                    }}
+                                    onClose={() => ReportActions.clearReportActionErrors(this.props.report.reportID, this.props.action)}
                                     pendingAction={this.props.draftMessage ? null : this.props.action.pendingAction}
                                     errors={this.props.action.errors}
                                     errorRowStyles={[styles.ml10, styles.mr2]}
