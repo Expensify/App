@@ -896,6 +896,22 @@ function getPolicyExpenseChatName(report) {
 }
 
 /**
+ * Get the title for a IOU or expense chat which will be showing the payer and the amount
+ *
+ * @param {Object} report
+ * @returns  {String}
+ */
+function getMoneyRequestReportName(report) {
+    const formattedAmount = NumberFormatUtils.format(preferredLocale, report.total / 100, {
+        style: 'currency',
+        currency: report.currency,
+    });
+
+    return Localize.translateLocal('iou.payerowe',
+        {payer: isExpenseReport(report) ? getPolicyName(report) : getDisplayNameForParticipant(report.managerEmail), amount: formattedAmount});
+}
+
+/**
  * Get the title for a report.
  *
  * @param {Object} report
@@ -909,6 +925,10 @@ function getReportName(report) {
 
     if (isPolicyExpenseChat(report)) {
         formattedName = getPolicyExpenseChatName(report);
+    }
+
+    if (isMoneyRequestReport(report)) {
+        formattedName = getMoneyRequestReportName(report);
     }
 
     if (isArchivedRoom(report)) {
