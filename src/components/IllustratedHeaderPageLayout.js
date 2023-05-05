@@ -1,7 +1,8 @@
 import _ from 'underscore';
-import React, {useEffect} from 'react';
+import React, {useEffect, useMemo} from 'react';
 import PropTypes from 'prop-types';
 import {ScrollView, View} from 'react-native';
+import Animated, {useSharedValue, useAnimatedProps, interpolateColor, withTiming, useAnimatedReaction} from 'react-native-reanimated';
 import Lottie from 'lottie-react-native';
 import {
     propTypes as headerWithCloseButtonPropTypes,
@@ -33,11 +34,22 @@ const defaultProps = {
 };
 
 const IllustratedHeaderPageLayout = (props) => {
-    useEffect(() => {
-        const initialStatusBarColor = StatusBar.getBackgroundColor();
-        StatusBar.setBackgroundColor(props.backgroundColor);
-        return () => StatusBar.setBackgroundColor(initialStatusBarColor);
-    }, [props.backgroundColor]);
+    // const initialStatusBarColor = useMemo(() => StatusBar.getBackgroundColor(), []);
+    // const statusBarBackgroundColorAnimationProgress = useSharedValue(0);
+    // useEffect(() => {
+    //     statusBarBackgroundColorAnimationProgress.value = withTiming(1, {duration: 1000});
+    //     return () => StatusBar.setBackgroundColor(initialStatusBarColor);
+    // }, [props.backgroundColor]);
+    //
+    // useAnimatedProps(() => {
+    //     const currentStatusBarBackgroundColor = interpolateColor(
+    //         statusBarBackgroundColorAnimationProgress.value,
+    //         [0, 1],
+    //         [initialStatusBarColor, props.backgroundColor],
+    //     );
+    //     StatusBar.setBackgroundColor(currentStatusBarBackgroundColor);
+    //     return {};
+    // }, [props.backgroundColor]);
 
     const propsToPassToHeader = _.omit(props, ['illustration']);
     return (
@@ -48,7 +60,7 @@ const IllustratedHeaderPageLayout = (props) => {
         >
             {({safeAreaPaddingBottomStyle}) => (
                 <>
-                    <View style={styles.illustratedPageHeader}>
+                    <Animated.View style={styles.illustratedPageHeader}>
                         {/* eslint-disable-next-line react/jsx-props-no-spreading */}
                         <HeaderWithCloseButton {...propsToPassToHeader} />
                         <View
@@ -58,7 +70,7 @@ const IllustratedHeaderPageLayout = (props) => {
                                 ? props.illustration()
                                 : <Lottie source={props.illustration} style={styles.w100} autoPlay loop />}
                         </View>
-                    </View>
+                    </Animated.View>
                     <View style={[styles.illustratedPageBody]}>
                         <ScrollView contentContainerStyle={styles.illustratedPageScrollView(safeAreaPaddingBottomStyle)}>
                             {props.children}
