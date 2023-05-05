@@ -351,28 +351,30 @@ class BasePaymentsPage extends React.Component {
                             )}
                         </View>
                         {this.props.userWallet.currentBalance > 0 && (
-                            <KYCWall
-                                onSuccessfulKYC={this.navigateToTransferBalancePage}
-                                enablePaymentsRoute={ROUTES.SETTINGS_ENABLE_PAYMENTS}
-                                addBankAccountRoute={ROUTES.SETTINGS_ADD_BANK_ACCOUNT}
-                                addDebitCardRoute={ROUTES.SETTINGS_ADD_DEBIT_CARD}
-                                popoverPlacement="bottom"
-                            >
-                                {triggerKYCFlow => (
-                                    <MenuItem
-                                        title={this.props.translate('common.transferBalance')}
-                                        icon={Expensicons.Transfer}
-                                        onPress={triggerKYCFlow}
-                                        shouldShowRightIcon
-                                        disabled={this.props.network.isOffline}
-                                    />
-                                )}
-                            </KYCWall>
+                            <View style={styles.mb3}>
+                                <KYCWall
+                                    onSuccessfulKYC={this.navigateToTransferBalancePage}
+                                    enablePaymentsRoute={ROUTES.SETTINGS_ENABLE_PAYMENTS}
+                                    addBankAccountRoute={ROUTES.SETTINGS_ADD_BANK_ACCOUNT}
+                                    addDebitCardRoute={ROUTES.SETTINGS_ADD_DEBIT_CARD}
+                                    popoverPlacement="bottom"
+                                >
+                                    {triggerKYCFlow => (
+                                        <MenuItem
+                                            title={this.props.translate('common.transferBalance')}
+                                            icon={Expensicons.Transfer}
+                                            onPress={triggerKYCFlow}
+                                            shouldShowRightIcon
+                                            disabled={this.props.network.isOffline}
+                                        />
+                                    )}
+                                </KYCWall>
+                            </View>
                         )}
                     </>
                 )}
                 <Text
-                    style={[styles.ph5, styles.mt6, styles.textLabelSupporting, styles.mb1]}
+                    style={[styles.ph5, styles.textLabelSupporting, styles.mb1]}
                 >
                     {this.props.translate('paymentsPage.paymentMethodsTitle')}
                 </Text>

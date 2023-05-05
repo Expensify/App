@@ -27,6 +27,7 @@ import reportActionPropTypes from '../../pages/home/report/reportActionPropTypes
 import {showContextMenuForReport} from '../ShowContextMenuContext';
 import * as OptionsListUtils from '../../libs/OptionsListUtils';
 import Button from '../Button';
+import * as CurrencyUtils from '../../libs/CurrencyUtils';
 
 const propTypes = {
     /** Additional logic for displaying the pay button */
@@ -144,8 +145,7 @@ const IOUPreview = (props) => {
 
     // Get request formatting options, as long as currency is provided
     const requestAmount = props.isBillSplit ? props.action.originalMessage.amount : props.iouReport.total;
-    const requestCurrency = props.isBillSplit ? lodashGet(props.action, 'originalMessage.currency', undefined) : props.iouReport.currency;
-    const amountFormatOptions = requestCurrency ? {style: 'currency', currency: requestCurrency} : {};
+    const requestCurrency = props.isBillSplit ? lodashGet(props.action, 'originalMessage.currency', CONST.CURRENCY.USD) : props.iouReport.currency;
 
     const showContextMenu = (event) => {
         // Use action and shouldHidePayButton props to check if we are in IOUDetailsModal,
@@ -182,7 +182,7 @@ const IOUPreview = (props) => {
                     <View style={[styles.flexRow]}>
                         <View style={[styles.flex1, styles.flexRow, styles.alignItemsCenter]}>
                             <Text style={styles.h1}>
-                                {props.numberFormat(Math.abs(requestAmount) / 100, amountFormatOptions)}
+                                {CurrencyUtils.convertToDisplayString(requestAmount, requestCurrency)}
                             </Text>
                             {!props.iouReport.hasOutstandingIOU && !props.isBillSplit && (
                                 <View style={styles.iouPreviewBoxCheckmark}>
