@@ -18,7 +18,6 @@ function createIOUReportAction(type, amount, currency, isOffline = false, IOUTra
         amount,
         currency,
         'Test comment',
-        [managerEmail],
         IOUTransactionID,
         '',
         iouReport.reportID,
