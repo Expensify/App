@@ -1,5 +1,5 @@
 import _ from 'underscore';
-import React from 'react';
+import React, {useEffect} from 'react';
 import PropTypes from 'prop-types';
 import {ScrollView, View} from 'react-native';
 import Lottie from 'lottie-react-native';
@@ -12,6 +12,7 @@ import ScreenWrapper from './ScreenWrapper';
 import styles from '../styles/styles';
 import * as StyleUtils from '../styles/StyleUtils';
 import FixedFooter from './FixedFooter';
+import StatusBar from '../libs/StatusBar';
 
 const propTypes = {
     ...headerWithCloseButtonPropTypes,
@@ -32,6 +33,12 @@ const defaultProps = {
 };
 
 const IllustratedHeaderPageLayout = (props) => {
+    useEffect(() => {
+        const initialStatusBarColor = StatusBar.getBackgroundColor();
+        StatusBar.setBackgroundColor(props.backgroundColor);
+        return () => StatusBar.setBackgroundColor(initialStatusBarColor);
+    }, [props.backgroundColor]);
+
     const propsToPassToHeader = _.omit(props, ['illustration']);
     return (
         <ScreenWrapper
