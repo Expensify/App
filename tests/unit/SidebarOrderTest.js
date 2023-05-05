@@ -520,6 +520,10 @@ describe('Sidebar', () => {
                     expect(lodashGet(displayNames, [0, 'props', 'children'])).toBe('Five, Six');
                     expect(lodashGet(displayNames, [1, 'props', 'children'])).toBe('Three, Four');
                     expect(lodashGet(displayNames, [2, 'props', 'children'])).toBe('Report (archived)');
+
+                    const hintMessagePreviewText = Localize.translateLocal('accessibilityHints.lastChatMessagePreview');
+                    const messagePreviewTexts = screen.queryAllByLabelText(hintMessagePreviewText);
+                    expect(lodashGet(messagePreviewTexts, [2, 'props', 'children'])).toBe('This chat room has been archived.');
                 });
         });
     });
@@ -608,6 +612,10 @@ describe('Sidebar', () => {
                     expect(lodashGet(displayNames, [0, 'props', 'children'])).toBe('Five, Six');
                     expect(lodashGet(displayNames, [1, 'props', 'children'])).toBe('Three, Four');
                     expect(lodashGet(displayNames, [2, 'props', 'children'])).toBe('Report (archived)');
+
+                    const hintMessagePreviewText = Localize.translateLocal('accessibilityHints.lastChatMessagePreview');
+                    const messagePreviewTexts = screen.queryAllByLabelText(hintMessagePreviewText);
+                    expect(lodashGet(messagePreviewTexts, [2, 'props', 'children'])).toBe('This chat room has been archived.');
                 });
         });
 
