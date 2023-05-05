@@ -53,39 +53,41 @@ const defaultProps = {
     checkIfContextMenuActive: () => {},
 };
 
-const IOUQuote = props => (
-    <View style={[styles.chatItemMessage]}>
-        {_.map(props.action.message, (fragment, index) => (
-            <Pressable
-                key={`iouQuote-${props.action.reportActionID}-${index}`}
-                onPress={props.onViewDetailsPressed}
-                onPressIn={() => DeviceCapabilities.canUseTouchScreen() && ControlSelection.block()}
-                onPressOut={() => ControlSelection.unblock()}
-                onLongPress={event => showContextMenuForReport(
-                    event,
-                    props.contextMenuAnchor,
-                    props.chatReportID,
-                    props.action,
-                    props.checkIfContextMenuActive,
-                )}
-                style={[styles.flexRow, styles.justifyContentBetween]}
-                focusable
-            >
-                <Text style={[styles.flex1, styles.mr2]}>
-                    <Text style={styles.chatItemMessageLink}>
-                        {/* Get first word of IOU message */}
-                        {fragment.text.split(' ')[0]}
+const IOUQuote = (props) => {
+    return (
+        <View style={[styles.chatItemMessage, styles.mt4]}>
+            {_.map(props.action.message, (fragment, index) => (
+                <Pressable
+                    key={`iouQuote-${props.action.reportActionID}-${index}`}
+                    onPress={props.onViewDetailsPressed}
+                    onPressIn={() => DeviceCapabilities.canUseTouchScreen() && ControlSelection.block()}
+                    onPressOut={() => ControlSelection.unblock()}
+                    onLongPress={event => showContextMenuForReport(
+                        event,
+                        props.contextMenuAnchor,
+                        props.chatReportID,
+                        props.action,
+                        props.checkIfContextMenuActive,
+                    )}
+                    style={[styles.flexRow, styles.justifyContentBetween]}
+                    focusable
+                >
+                     <Text style={[styles.flex1, styles.mr2]}>
+                        <Text style={styles.chatItemMessageLink}>
+                            {/* Get first word of IOU message */}
+                            {fragment.text.split(' ')[0]}
+                        </Text>
+                        <Text style={[styles.chatItemMessage, styles.cursorPointer]}>
+                            {/* Get remainder of IOU message */}
+                            {fragment.text.substring(fragment.text.indexOf(' '))}
+                        </Text>
                     </Text>
-                    <Text style={[styles.chatItemMessage, styles.cursorPointer]}>
-                        {/* Get remainder of IOU message */}
-                        {fragment.text.substring(fragment.text.indexOf(' '))}
-                    </Text>
-                </Text>
-                <Icon src={Expensicons.ArrowRight} fill={StyleUtils.getIconFillColor(getButtonState(props.isHovered))} />
-            </Pressable>
-        ))}
-    </View>
-);
+                    <Icon src={Expensicons.ArrowRight} fill={StyleUtils.getIconFillColor(getButtonState(props.isHovered))} />
+                </Pressable>
+            ))}
+        </View>
+    )
+};
 
 IOUQuote.propTypes = propTypes;
 IOUQuote.defaultProps = defaultProps;
