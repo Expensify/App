@@ -11,6 +11,7 @@ import * as ReportUtils from '../../ReportUtils';
 import reportPropTypes from '../../../pages/reportPropTypes';
 import FullScreenLoadingIndicator from '../../../components/FullscreenLoadingIndicator';
 import {withNavigationPropTypes} from '../../../components/withNavigation';
+import * as App from '../../actions/App';
 
 const propTypes = {
     /** Available reports that would be displayed in this navigator */
@@ -82,15 +83,20 @@ class ReportScreenWrapper extends Component {
             // in that case the reportID is undefined
             if (reportID) {
                 this.props.navigation.setParams({reportID: String(reportID)});
+            } else {
+                App.confirmReadyToOpenApp();
             }
         }
     }
 
     shouldComponentUpdate(nextProps) {
         // Don't update if there is a reportID in the params already
-        if (lodashGet(this.props.route, 'params.reportID', null)) { return false; }
+        if (lodashGet(this.props.route, 'params.reportID', null)) {
+            App.confirmReadyToOpenApp();
+            return false;
+        }
 
-        // If the reports weren't fully loaded in the contructor
+        // If the reports weren't fully loaded in the constructor,
         // try to get and set reportID again
         const reportID = getLastAccessedReportID(
             nextProps.reports,
