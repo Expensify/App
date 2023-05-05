@@ -44,7 +44,7 @@ const propTypes = {
     parentReport: reportPropTypes,
 
     // eslint-disable-next-line react/no-unused-prop-types
-    parentReportAction: (PropTypes.shape(reportActionPropTypes)),
+    parentReportAction: PropTypes.shape(reportActionPropTypes),
 
     /** The details about the account that the user is signing in with */
     account: PropTypes.shape({
@@ -127,7 +127,7 @@ const HeaderView = (props) => {
     if (ReportUtils.isThread(props.report)) {
         // const parentReportDetails = OptionsListUtils.getPersonalDetailsForLogins(props.parentReportAction.person, props.personalDetails);
         // eslint-disable-next-line no-console
-        console.log('>>>>>>>>>> PARENT', props, props.parentReport);
+        console.log('>>>>>>>>>> PARENT', props, props.parentReport, props.parentReportAction);
         icons = ReportUtils.getIcons(props.parentReport, props.personalDetails);
     } else {
         icons = ReportUtils.getIcons(props.report, props.personalDetails);
@@ -244,7 +244,7 @@ export default compose(
             key: ({report}) => `${ONYXKEYS.COLLECTION.REPORT}${report.parentReportID}`,
         },
         parentReportAction: {
-            Key: ({report}) => `${ONYXKEYS.COLLECTION.REPORT}${report.parentReportActionID}`,
+            key: ({report}) => `${ONYXKEYS.COLLECTION.REPORT}${report.parentReportActionID}`,
         },
     }),
 )(HeaderView);
