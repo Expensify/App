@@ -29,11 +29,8 @@ function createTaskAndNavigate(currentUserEmail, parentReportID, title, descript
     // Grab the assigneeChatReportID if there is an assignee
     const assigneeChatReportID = ReportUtils.getChatByParticipants([assignee]).reportID;
 
-    // Optimistically created Action on the parent
-    const optimisticCreatedAction = ReportUtils.buildOptimisticCreatedReportAction(parentReportID);
-
     // Create the task report
-    const optimisticTaskReport = ReportUtils.buildOptimisticTaskReport(currentUserEmail, assignee, parentReportID, optimisticCreatedAction.reportActionID, title, description);
+    const optimisticTaskReport = ReportUtils.buildOptimisticTaskReport(currentUserEmail, assignee, parentReportID, title, description);
 
     // Create the CreatedReportAction on the task
     const optimisticTaskCreatedAction = ReportUtils.buildOptimisticCreatedReportAction(optimisticTaskReport.reportID);
@@ -73,7 +70,6 @@ function createTaskAndNavigate(currentUserEmail, parentReportID, title, descript
     API.write(
         'CreateTask',
         {
-            // parentReportActionID: optimisticCreatedAction.reportActionID,
             parentReportActionID: '',
             parentReportID,
             taskReportID: optimisticTaskReport.reportID,

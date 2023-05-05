@@ -75,7 +75,7 @@ const NewTaskPage = (props) => {
                     <TextInput autoFocus inputID="taskTitle" label={props.translate('newTaskPage.title')} />
                 </View>
                 <View style={styles.mb5}>
-                    <TextInput inputID="taskDescription" label={props.translate('newTaskPage.description')} />
+                    <TextInput inputID="taskDescription" label={props.translate('newTaskPage.descriptionOptional')} />
                 </View>
             </Form>
         </ScreenWrapper>

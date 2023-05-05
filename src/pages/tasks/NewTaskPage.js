@@ -95,7 +95,6 @@ function constructShareDestination(reportID, reports, personalDetails, policies)
     };
 }
 
-// NOTE: This page is going to be updated in https://github.com/Expensify/App/issues/16855, this is just a placeholder for now
 const NewTaskPage = (props) => {
     const [assignee, setAssignee] = React.useState({});
     const [shareDestination, setShareDestination] = React.useState({});
