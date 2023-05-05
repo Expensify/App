@@ -1024,6 +1024,7 @@ function getUserMentionStyle(isOurMention) {
     return {
         backgroundColor,
         borderRadius: variables.componentBorderRadiusSmall,
+        paddingHorizontal: 2,
     };
 }
 
@@ -1037,7 +1038,7 @@ function getUserMentionTextStyle(isOurMention) {
         color: isOurMention ? themeColors.ourMentionText : themeColors.mentionText,
 
         // font size is set to 13 to be in line with the font size used for code fragments so workaround will look better
-        fontSize: 13,
+        fontSize: variables.fontSizeLabel,
     };
 }
 
