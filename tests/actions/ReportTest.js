@@ -6,12 +6,10 @@ import {
     beforeEach, beforeAll, afterEach, describe, it, expect,
 } from '@jest/globals';
 import ONYXKEYS from '../../src/ONYXKEYS';
-import * as Pusher from '../../src/libs/Pusher/pusher';
-import PusherConnectionManager from '../../src/libs/PusherConnectionManager';
-import CONFIG from '../../src/CONFIG';
 import CONST from '../../src/CONST';
 import * as Report from '../../src/libs/actions/Report';
 import waitForPromisesToResolve from '../utils/waitForPromisesToResolve';
+import PusherHelper from '../utils/PusherHelper';
 import * as TestHelper from '../utils/TestHelper';
 import Log from '../../src/libs/Log';
 import * as PersistedRequests from '../../src/libs/actions/PersistedRequests';
@@ -30,21 +28,7 @@ jest.mock('../../src/libs/actions/Report', () => {
 
 describe('actions/Report', () => {
     beforeAll(() => {
-        // When using the Pusher mock the act of calling Pusher.isSubscribed will create a
-        // channel already in a subscribed state. These methods are normally used to prevent
-        // duplicated subscriptions, but we don't need them for this test so forcing them to
-        // return false will make the testing less complex.
-        Pusher.isSubscribed = jest.fn().mockReturnValue(false);
-        Pusher.isAlreadySubscribing = jest.fn().mockReturnValue(false);
-
-        // Connect to Pusher
-        PusherConnectionManager.init();
-        Pusher.init({
-            appKey: CONFIG.PUSHER.APP_KEY,
-            cluster: CONFIG.PUSHER.CLUSTER,
-            authEndpoint: `${CONFIG.EXPENSIFY.DEFAULT_API_ROOT}api?command=AuthenticatePusher`,
-        });
-
+        PusherHelper.setup();
         Onyx.init({
             keys: ONYXKEYS,
             registerStorageEventListener: () => {},
@@ -53,11 +37,7 @@ describe('actions/Report', () => {
 
     beforeEach(() => Onyx.clear().then(waitForPromisesToResolve));
 
-    afterEach(() => {
-        // Unsubscribe from account channel after each test since we subscribe in the function
-        // subscribeToUserEvents and we don't want duplicate event subscriptions.
-        Pusher.unsubscribe(`${CONST.PUSHER.PRIVATE_USER_CHANNEL_PREFIX}1${CONFIG.PUSHER.SUFFIX}`);
-    });
+    afterEach(PusherHelper.teardown);
 
     it('should store a new report action in Onyx when onyxApiUpdate event is handled via Pusher', () => {
         global.fetch = TestHelper.getGlobalFetchMock();
@@ -106,8 +86,7 @@ describe('actions/Report', () => {
 
                 // We subscribed to the Pusher channel above and now we need to simulate a reportComment action
                 // Pusher event so we can verify that action was handled correctly and merged into the reportActions.
-                const channel = Pusher.getChannel(`${CONST.PUSHER.PRIVATE_USER_CHANNEL_PREFIX}1${CONFIG.PUSHER.SUFFIX}`);
-                channel.emit(Pusher.TYPE.ONYX_API_UPDATE, [
+                PusherHelper.emitOnyxUpdate([
                     {
                         onyxMethod: CONST.ONYX.METHOD.MERGE,
                         key: `${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`,
@@ -225,7 +204,6 @@ describe('actions/Report', () => {
         const USER_1_ACCOUNT_ID = 1;
         const USER_2_LOGIN = 'different-user@test.com';
         const USER_2_ACCOUNT_ID = 2;
-        const channel = Pusher.getChannel(`${CONST.PUSHER.PRIVATE_USER_CHANNEL_PREFIX}${USER_1_ACCOUNT_ID}${CONFIG.PUSHER.SUFFIX}`);
         return Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`, {reportName: 'Test', reportID: REPORT_ID})
             .then(() => TestHelper.signInWithTestUser(USER_1_ACCOUNT_ID, USER_1_LOGIN))
             .then(() => {
@@ -237,7 +215,7 @@ describe('actions/Report', () => {
             .then(() => {
                 // When a Pusher event is handled for a new report comment that includes a mention of the current user
                 reportActionCreatedDate = DateUtils.getDBTime();
-                channel.emit(Pusher.TYPE.ONYX_API_UPDATE, [
+                PusherHelper.emitOnyxUpdate([
                     {
                         onyxMethod: CONST.ONYX.METHOD.MERGE,
                         key: `${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`,
@@ -382,7 +360,7 @@ describe('actions/Report', () => {
                 optimisticReportActions.value[400].created = reportActionCreatedDate;
 
                 // When we emit the events for these pending created actions to update them to not pending
-                channel.emit(Pusher.TYPE.ONYX_API_UPDATE, [
+                PusherHelper.emitOnyxUpdate([
                     {
                         onyxMethod: CONST.ONYX.METHOD.MERGE,
                         key: `${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`,
@@ -522,8 +500,7 @@ describe('actions/Report', () => {
             })
             .then(() => {
                 // Simulate a Pusher Onyx update with a report action with shouldNotify
-                const channel = Pusher.getChannel(`${CONST.PUSHER.PRIVATE_USER_CHANNEL_PREFIX}${TEST_USER_ACCOUNT_ID}${CONFIG.PUSHER.SUFFIX}`);
-                channel.emit(Pusher.TYPE.ONYX_API_UPDATE, [
+                PusherHelper.emitOnyxUpdate([
                     {
                         onyxMethod: CONST.ONYX.METHOD.MERGE,
                         key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${REPORT_ID}`,

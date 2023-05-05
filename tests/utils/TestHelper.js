@@ -1,3 +1,4 @@
+import _ from 'underscore';
 import Onyx from 'react-native-onyx';
 import Str from 'expensify-common/lib/str';
 import CONST from '../../src/CONST';
@@ -134,7 +135,12 @@ function signOutTestUser() {
 }
 
 /**
- * Use for situations where fetch() is required.
+ * Use for situations where fetch() is required. This mock is stateful and has some additional methods to control its behavior:
+ *
+ * - pause() – stop resolving promises until you call resume()
+ * - resume() - flush the queue of promises, and start resolving new promises immediately
+ * - fail() - start returning a failure response
+ * - success() - go back to returning a success response
  *
  * @example
  *
@@ -145,13 +151,37 @@ function signOutTestUser() {
  * @returns {Function}
  */
 function getGlobalFetchMock() {
-    return jest.fn()
-        .mockResolvedValue({
+    const queue = [];
+    let isPaused = false;
+    let shouldFail = false;
+
+    const getResponse = () => (shouldFail
+        ? {
             ok: true,
-            json: () => Promise.resolve({
-                jsonCode: 200,
-            }),
+            json: () => Promise.resolve({jsonCode: 400}),
+        } : {
+            ok: true,
+            json: () => Promise.resolve({jsonCode: 200}),
         });
+
+    const mockFetch = jest.fn()
+        .mockImplementation(() => {
+            if (!isPaused) {
+                return Promise.resolve(getResponse());
+            }
+            return new Promise(resolve => queue.push(resolve));
+        });
+
+    mockFetch.pause = () => isPaused = true;
+    mockFetch.resume = () => {
+        isPaused = false;
+        _.each(queue, resolve => resolve(getResponse()));
+        return waitForPromisesToResolve();
+    };
+    mockFetch.fail = () => shouldFail = true;
+    mockFetch.succeed = () => shouldFail = false;
+
+    return mockFetch;
 }
 
 /**

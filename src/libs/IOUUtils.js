@@ -1,75 +1,24 @@
 import _ from 'underscore';
-import Onyx from 'react-native-onyx';
-import lodashGet from 'lodash/get';
 import CONST from '../CONST';
-import ONYXKEYS from '../ONYXKEYS';
-
-let currencyList = {};
-Onyx.connect({
-    key: ONYXKEYS.CURRENCY_LIST,
-    callback: (val) => {
-        if (_.isEmpty(val)) {
-            return;
-        }
-
-        currencyList = val;
-    },
-});
-
-/**
- * Returns the number of digits after the decimal separator for a specific currency.
- * For currencies that have decimal places > 2, floor to 2 instead:
- * https://github.com/Expensify/App/issues/15878#issuecomment-1496291464
- *
- * @param {String} currency - IOU currency
- * @returns {Number}
- */
-function getCurrencyDecimals(currency = CONST.CURRENCY.USD) {
-    const decimals = lodashGet(currencyList, [currency, 'decimals']);
-    return _.isUndefined(decimals) ? 2 : Math.min(decimals, 2);
-}
-
-/**
- * Returns the currency's minor unit quantity
- * e.g. Cent in USD
- *
- * @param {String} currency - IOU currency
- * @returns {Number}
- */
-function getCurrencyUnit(currency = CONST.CURRENCY.USD) {
-    return 10 ** getCurrencyDecimals(currency);
-}
 
 /**
  * Calculates the amount per user given a list of participants
+ *
  * @param {Array} participants - List of logins for the participants in the chat. It should not include the current user's login.
- * @param {Number} total - IOU total amount
- * @param {String} currency - IOU currency
+ * @param {Number} total - IOU total amount in the smallest units of the currency
  * @param {Boolean} isDefaultUser - Whether we are calculating the amount for the current user
  * @returns {Number}
  */
-function calculateAmount(participants, total, currency, isDefaultUser = false) {
-    // Convert to cents before working with iouAmount to avoid
-    // javascript subtraction with decimal problem -- when dealing with decimals,
-    // because they are encoded as IEEE 754 floating point numbers, some of the decimal
-    // numbers cannot be represented with perfect accuracy.
-    // Currencies that do not have minor units (i.e. no decimal place) are also supported.
-    // https://github.com/Expensify/App/issues/15878
-    const currencyUnit = getCurrencyUnit(currency);
-    const iouAmount = Math.round(parseFloat(total * currencyUnit));
-
+function calculateAmount(participants, total, isDefaultUser = false) {
     const totalParticipants = participants.length + 1;
-    const amountPerPerson = Math.round(iouAmount / totalParticipants);
-
+    const amountPerPerson = Math.round(total / totalParticipants);
     let finalAmount = amountPerPerson;
-
     if (isDefaultUser) {
         const sumAmount = amountPerPerson * totalParticipants;
-        const difference = iouAmount - sumAmount;
-        finalAmount = iouAmount !== sumAmount ? (amountPerPerson + difference) : amountPerPerson;
+        const difference = total - sumAmount;
+        finalAmount = total !== sumAmount ? (amountPerPerson + difference) : amountPerPerson;
     }
-
-    return (finalAmount * 100) / currencyUnit;
+    return finalAmount;
 }
 
 /**
@@ -184,6 +133,4 @@ export {
     updateIOUOwnerAndTotal,
     getIOUReportActions,
     isIOUReportPendingCurrencyConversion,
-    getCurrencyUnit,
-    getCurrencyDecimals,
 };

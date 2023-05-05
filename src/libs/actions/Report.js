@@ -20,6 +20,7 @@ import DateUtils from '../DateUtils';
 import * as ReportActionsUtils from '../ReportActionsUtils';
 import * as OptionsListUtils from '../OptionsListUtils';
 import * as Localize from '../Localize';
+import * as CollectionUtils from '../CollectionUtils';
 
 let currentUserEmail;
 let currentUserAccountID;
@@ -47,6 +48,18 @@ Onyx.connect({
         } else {
             preferredSkinTone = -1;
         }
+    },
+});
+
+const allReportActions = {};
+Onyx.connect({
+    key: ONYXKEYS.COLLECTION.REPORT_ACTIONS,
+    callback: (actions, key) => {
+        if (!key || !actions) {
+            return;
+        }
+        const reportID = CollectionUtils.extractCollectionItemID(key);
+        allReportActions[reportID] = actions;
     },
 });
 
@@ -1104,12 +1117,39 @@ function addPolicyReport(policy, reportName, visibility) {
 }
 
 /**
+ * Deletes a report, along with its reportActions, any linked reports, and any linked IOU report.
+ *
+ * @param {String} reportID
+ */
+function deleteReport(reportID) {
+    const report = allReports[reportID];
+    const onyxData = {
+        [`${ONYXKEYS.COLLECTION.REPORT}${reportID}`]: null,
+        [`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`]: null,
+    };
+
+    // Delete linked transactions
+    const reportActionsForReport = allReportActions[reportID];
+    _.chain(reportActionsForReport)
+        .filter(reportAction => reportAction.actionName === CONST.REPORT.ACTIONS.TYPE.IOU)
+        .map(reportAction => reportAction.originalMessage.IOUTransactionID)
+        .uniq()
+        .each(transactionID => onyxData[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`] = null);
+
+    Onyx.multiSet(onyxData);
+
+    // Delete linked IOU report
+    if (report && report.iouReportID) {
+        deleteReport(report.iouReportID);
+    }
+}
+
+/**
  * @param {String} reportID The reportID of the policy report (workspace room)
  */
 function navigateToConciergeChatAndDeleteReport(reportID) {
     navigateToConciergeChat();
-    Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, null);
-    Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`, null);
+    deleteReport(reportID);
 }
 
 /**
@@ -1479,6 +1519,7 @@ export {
     navigateToConciergeChat,
     setReportWithDraft,
     addPolicyReport,
+    deleteReport,
     navigateToConciergeChatAndDeleteReport,
     setIsComposerFullSize,
     markCommentAsUnread,
