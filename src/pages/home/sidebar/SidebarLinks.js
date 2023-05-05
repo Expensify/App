@@ -156,7 +156,7 @@ class SidebarLinks extends React.Component {
                     nativeID="drag-area"
                 >
                     <ImageHeader
-                        accessibilityLabel={this.props.translate('sidebarScreen.headerChat')}
+                        accessibilityLabel={"Expensify"}
                         accessibilityRole="text"
                         shouldShowEnvironmentBadge
                     >
