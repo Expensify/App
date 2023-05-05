@@ -10,7 +10,7 @@ const propTypes = {
     /** Title of the Header */
     title: PropTypes.string,
 
-    /** Things to be rendered inside the header*/
+    /** Things to be rendered inside the header */
     children: PropTypes.node,
 
     /** Subtitle of the header */
