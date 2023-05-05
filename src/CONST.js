@@ -23,6 +23,9 @@ const keyInputEnter = lodashGet(KeyCommand, 'constants.keyInputEnter', 'keyInput
 const keyInputUpArrow = lodashGet(KeyCommand, 'constants.keyInputUpArrow', 'keyInputUpArrow');
 const keyInputDownArrow = lodashGet(KeyCommand, 'constants.keyInputDownArrow', 'keyInputDownArrow');
 
+// describes if a shortcut key can cause navigation
+const KEYBOARD_SHORTCUT_NAVIGATION_TYPE = 'NAVIGATION_SHORTCUT'
+
 const CONST = {
     ANDROID_PACKAGE_NAME,
     ANIMATED_TRANSITION: 300,
@@ -254,6 +257,7 @@ const CONST = {
                 [PLATFORM_OS_MACOS]: {input: 'k', modifierFlags: keyModifierCommand},
                 [PLATFORM_IOS]: {input: 'k', modifierFlags: keyModifierCommand},
             },
+            type: KEYBOARD_SHORTCUT_NAVIGATION_TYPE,
         },
         NEW_GROUP: {
             descriptionKey: 'newGroup',
@@ -264,6 +268,7 @@ const CONST = {
                 [PLATFORM_OS_MACOS]: {input: 'k', modifierFlags: keyModifierShiftCommand},
                 [PLATFORM_IOS]: {input: 'k', modifierFlags: keyModifierShiftCommand},
             },
+            type: KEYBOARD_SHORTCUT_NAVIGATION_TYPE,
         },
         SHORTCUT_MODAL: {
             descriptionKey: 'openShortcutDialog',
@@ -274,6 +279,7 @@ const CONST = {
                 [PLATFORM_OS_MACOS]: {input: 'j', modifierFlags: keyModifierCommand},
                 [PLATFORM_IOS]: {input: 'j', modifierFlags: keyModifierCommand},
             },
+            type: '',
         },
         ESCAPE: {
             descriptionKey: 'escape',
@@ -284,6 +290,7 @@ const CONST = {
                 [PLATFORM_OS_MACOS]: {input: keyInputEscape},
                 [PLATFORM_IOS]: {input: keyInputEscape},
             },
+            type: '',
         },
         ENTER: {
             descriptionKey: null,
@@ -294,6 +301,7 @@ const CONST = {
                 [PLATFORM_OS_MACOS]: {input: keyInputEnter},
                 [PLATFORM_IOS]: {input: keyInputEnter},
             },
+            type: '',
         },
         CTRL_ENTER: {
             descriptionKey: null,
@@ -304,6 +312,7 @@ const CONST = {
                 [PLATFORM_OS_MACOS]: {input: keyInputEnter, modifierFlags: keyModifierCommand},
                 [PLATFORM_IOS]: {input: keyInputEnter, modifierFlags: keyModifierCommand},
             },
+            type: '',
         },
         COPY: {
             descriptionKey: 'copy',
@@ -314,6 +323,7 @@ const CONST = {
                 [PLATFORM_OS_MACOS]: {input: 'c', modifierFlags: keyModifierCommand},
                 [PLATFORM_IOS]: {input: 'c', modifierFlags: keyModifierCommand},
             },
+            type: '',
         },
         ARROW_UP: {
             descriptionKey: null,
@@ -324,6 +334,7 @@ const CONST = {
                 [PLATFORM_OS_MACOS]: {input: keyInputUpArrow},
                 [PLATFORM_IOS]: {input: keyInputUpArrow},
             },
+            type: '',
         },
         ARROW_DOWN: {
             descriptionKey: null,
@@ -334,12 +345,17 @@ const CONST = {
                 [PLATFORM_OS_MACOS]: {input: keyInputDownArrow},
                 [PLATFORM_IOS]: {input: keyInputDownArrow},
             },
+            type: '',
         },
         TAB: {
             descriptionKey: null,
             shortcutKey: 'Tab',
             modifiers: [],
+            type: '',
         },
+    },
+    KEYBOARD_SHORTCUTS_TYPES: {
+        NAVIGATION_SHORTCUT: KEYBOARD_SHORTCUT_NAVIGATION_TYPE,
     },
     KEYBOARD_SHORTCUT_KEY_DISPLAY_NAME: {
         CONTROL: 'CTRL',

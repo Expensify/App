@@ -22,6 +22,8 @@ import getBankIcon from './Icon/BankIcons';
 import Icon from './Icon';
 import FullPageOfflineBlockingView from './BlockingViews/FullPageOfflineBlockingView';
 import {withNetwork} from './OnyxProvider';
+import CONST from '../CONST';
+import KeyboardShortcut from '../libs/KeyboardShortcut';
 
 const propTypes = {
     /** Contains plaid data */
@@ -74,6 +76,7 @@ class AddPlaidBankAccount extends React.Component {
         super(props);
 
         this.getPlaidLinkToken = this.getPlaidLinkToken.bind(this);
+        this.subscribedKeyboardShortcuts = []
     }
 
     componentDidMount() {
@@ -86,12 +89,55 @@ class AddPlaidBankAccount extends React.Component {
     }
 
     componentDidUpdate(prevProps) {
+        // block keyboard shortcuts that can navigate when plaid modal is shown
+        if (lodashGet(this.props.plaidData, 'bankAccounts', []).length > 0) {
+            this.unblockKeyboardShortcuts()
+        } else {
+            this.blockKeyboardShortcuts()
+        }
+
         if (!prevProps.network.isOffline || this.props.network.isOffline || this.isAuthenticatedWithPlaid()) {
             return;
         }
 
         // If we are coming back from offline and we haven't authenticated with Plaid yet, we need to re-run our call to kick off Plaid
         BankAccounts.openPlaidBankLogin(this.props.allowDebit, this.props.bankAccountID);
+    }
+
+    componentWillUnmount() {
+        this.unblockKeyboardShortcuts()
+    }
+
+    /**
+     * Blocks the keyboard shortcuts that can navigate
+     */
+    blockKeyboardShortcuts() {
+        // return early if shortcuts already blocked
+        if (this.subscribedKeyboardShortcuts.length > 0) return
+
+        // find and block the shortcuts
+        const shortcutsToBlock = Object.values(CONST.KEYBOARD_SHORTCUTS).filter(x => x.type === CONST.KEYBOARD_SHORTCUTS_TYPES.NAVIGATION_SHORTCUT)
+        const unsubscribeCallbacks = shortcutsToBlock.map(shortcut => {
+            return KeyboardShortcut.subscribe(
+                shortcut.shortcutKey,
+                () => {}, // do nothing
+                shortcut.descriptionKey,
+                shortcut.modifiers,
+                false,
+                false, // stop bubbling
+            )
+        })
+        this.subscribedKeyboardShortcuts = unsubscribeCallbacks
+    }
+
+    /**
+     * Unblocks the keyboard shortcuts that can navigate
+     */
+    unblockKeyboardShortcuts() {
+        if (this.subscribedKeyboardShortcuts.length > 0) {
+            _.each(this.subscribedKeyboardShortcuts, unsubscribe => unsubscribe());
+            this.subscribedKeyboardShortcuts = []
+        }
     }
 
     /**
