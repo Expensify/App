@@ -3,6 +3,8 @@ import {ThreeDotsMenuItemPropTypes} from '../ThreeDotsMenu';
 import {withLocalizePropTypes} from '../withLocalize';
 import {withDelayToggleButtonStatePropTypes} from '../withDelayToggleButtonState';
 import {keyboardStatePropTypes} from '../withKeyboardState';
+import iouReportPropTypes from '../../pages/iouReportPropTypes';
+import participantPropTypes from '../participantPropTypes';
 
 const propTypes = {
     /** Title of the Header */
@@ -66,6 +68,25 @@ const propTypes = {
 
     /** The background color to apply in the header */
     backgroundColor: PropTypes.string,
+
+    /** Whether we should show an avatar */
+    shouldShowAvatarWithDisplay: PropTypes.bool,
+
+    /** Report, if we're showing the details for one and using AvatarWithDisplay */
+    report: iouReportPropTypes,
+
+    /** Policies, if we're showing the details for a report and need info about it for AvatarWithDisplay */
+    policies: PropTypes.shape({
+        /** Name of the policy */
+        name: PropTypes.string,
+    }),
+
+    /** Policies, if we're showing the details for a report and need participant details for AvatarWithDisplay */
+    personalDetails: PropTypes.objectOf(participantPropTypes),
+
+    /** Additional styles to render on the container of this component */
+    // eslint-disable-next-line react/forbid-prop-types
+    containerStyles: PropTypes.arrayOf(PropTypes.object),
 
     ...withLocalizePropTypes,
     ...withDelayToggleButtonStatePropTypes,

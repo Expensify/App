@@ -34,7 +34,11 @@ const defaultProps = {
 const IllustratedHeaderPageLayout = (props) => {
     const propsToPassToHeader = _.omit(props, ['illustration']);
     return (
-        <ScreenWrapper includeSafeAreaPaddingBottom={false} style={[StyleUtils.getBackgroundColorStyle(props.backgroundColor)]}>
+        <ScreenWrapper
+            includeSafeAreaPaddingBottom={false}
+            style={[StyleUtils.getBackgroundColorStyle(props.backgroundColor)]}
+            shouldEnablePickerAvoiding={false}
+        >
             {({safeAreaPaddingBottomStyle}) => (
                 <>
                     <View style={styles.illustratedPageHeader}>

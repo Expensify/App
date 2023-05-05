@@ -201,7 +201,7 @@ class ContactMethodDetailsPage extends Component {
                         isVisible={this.state.isDeleteModalOpen}
                         danger
                     />
-                    {isFailedAddContactMethod && <DotIndicatorMessage style={[styles.mh5]} messages={ErrorUtils.getLatestErrorField(loginData, 'addedLogin')} type="error" />}
+                    {isFailedAddContactMethod && <DotIndicatorMessage style={[styles.mh5, styles.mv3]} messages={ErrorUtils.getLatestErrorField(loginData, 'addedLogin')} type="error" />}
                     {!loginData.validatedDate && !isFailedAddContactMethod && (
                         <View style={[styles.ph5, styles.mt3, styles.mb7]}>
                             <View style={[styles.flexRow, styles.alignItemsCenter, styles.mb1]}>
@@ -227,13 +227,17 @@ class ContactMethodDetailsPage extends Component {
                                 onClose={() => User.clearContactMethodErrors(contactMethod, 'validateCodeSent')}
                             >
                                 <View
-                                    style={[styles.mt2, styles.dFlex, styles.flexRow]}
+                                    style={[styles.mt2, styles.dFlex, styles.flexColumn]}
                                 >
                                     <Text style={[styles.link, styles.mr1]} onPress={this.resendValidateCode}>
                                         {this.props.translate('contacts.resendMagicCode')}
                                     </Text>
                                     {hasMagicCodeBeenSent && (
-                                        <Icon src={Expensicons.Checkmark} fill={colors.green} />
+                                        <DotIndicatorMessage
+                                            type="success"
+                                            style={[styles.mt6, styles.flex0]}
+                                            messages={{0: this.props.translate('resendValidationForm.linkHasBeenResent')}}
+                                        />
                                     )}
                                 </View>
                             </OfflineWithFeedback>

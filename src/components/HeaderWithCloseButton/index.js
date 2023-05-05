@@ -46,6 +46,7 @@ class HeaderWithCloseButton extends Component {
                     this.props.shouldShowBorderBottom && styles.borderBottom,
                     this.props.shouldShowBackButton && styles.pl2,
                     this.props.backgroundColor && StyleUtils.getBackgroundColorStyle(this.props.backgroundColor),
+                    ...this.props.containerStyles
                 ]}
             >
                 <View style={[
@@ -72,10 +73,19 @@ class HeaderWithCloseButton extends Component {
                             </Pressable>
                         </Tooltip>
                     )}
-                    <Header
-                        title={this.props.title}
-                        subtitle={this.props.stepCounter && this.props.shouldShowStepCounter ? this.props.translate('stepCounter', this.props.stepCounter) : this.props.subtitle}
-                    />
+                    {this.props.shouldShowAvatarWithDisplay && (
+                        <AvatarWithDisplayName
+                            report={this.props.report}
+                            policies={this.props.policies}
+                            personalDetails={this.props.personalDetails}
+                        />
+                    )}
+                    {!this.props.shouldShowAvatarWithDisplay && (
+                        <Header
+                            title={this.props.title}
+                            subtitle={this.props.stepCounter && this.props.shouldShowStepCounter ? this.props.translate('stepCounter', this.props.stepCounter) : this.props.subtitle}
+                        />
+                    )}
                     <View style={[styles.reportOptions, styles.flexRow, styles.pr5]}>
                         {
                             this.props.shouldShowDownloadButton && (

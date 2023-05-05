@@ -53,6 +53,7 @@ const defaultProps = {
     preventDefaultContextMenu: true,
     inline: false,
     withoutFocusOnSecondaryInteraction: false,
+    enableLongPressWithHover: false,
 };
 
 export {propTypes, defaultProps};

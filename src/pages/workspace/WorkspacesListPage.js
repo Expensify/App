@@ -1,11 +1,9 @@
 import React, {Component} from 'react';
-import {View, ScrollView} from 'react-native';
+import {View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import PropTypes from 'prop-types';
 import _ from 'underscore';
-import HeaderWithCloseButton from '../../components/HeaderWithCloseButton';
 import Navigation from '../../libs/Navigation/Navigation';
-import ScreenWrapper from '../../components/ScreenWrapper';
 import ROUTES from '../../ROUTES';
 import ONYXKEYS from '../../ONYXKEYS';
 import CONST from '../../CONST';
@@ -21,8 +19,6 @@ import * as Policy from '../../libs/actions/Policy';
 import policyMemberPropType from '../policyMemberPropType';
 import Permissions from '../../libs/Permissions';
 import Button from '../../components/Button';
-import FixedFooter from '../../components/FixedFooter';
-import BlockingView from '../../components/BlockingViews/BlockingView';
 import {withNetwork} from '../../components/OnyxProvider';
 import * as ReimbursementAccountProps from '../ReimbursementAccount/reimbursementAccountPropTypes';
 import * as ReportUtils from '../../libs/ReportUtils';
@@ -32,6 +28,7 @@ import Text from '../../components/Text';
 import Icon from '../../components/Icon';
 import * as Illustrations from '../../components/Icon/Illustrations';
 import variables from '../../styles/variables';
+import * as CurrencyUtils from '../../libs/CurrencyUtils';
 
 const propTypes = {
     /* Onyx Props */
@@ -116,10 +113,8 @@ class WorkspacesListPage extends Component {
      */
     getWalletBalance(isPaymentItem) {
         return (isPaymentItem && Permissions.canUseWallet(this.props.betas))
-            ? this.props.numberFormat(
-                this.props.userWallet.currentBalance / 100, // Divide by 100 because balance is in cents
-                {style: 'currency', currency: 'USD'},
-            ) : undefined;
+            ? CurrencyUtils.convertToDisplayString(this.props.userWallet.currentBalance)
+            : undefined;
     }
 
     /**
@@ -143,7 +138,7 @@ class WorkspacesListPage extends Component {
                 dismissError: () => dismissWorkspaceError(policy.id, policy.pendingAction),
                 disabled: policy.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
             }))
-            .sortBy(policy => policy.title)
+            .sortBy(policy => policy.title.toLowerCase())
             .value();
     }
 
