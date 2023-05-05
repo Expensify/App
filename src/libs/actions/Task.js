@@ -25,15 +25,18 @@ function clearOutTaskInfo() {
  *
  */
 
-function createTaskAndNavigate(currentUserEmail, parentReportID, title, description, assignee) {
+function createTaskAndNavigate(currentUserEmail, parentReportID, title, description, assignee = '') {
     // Create the task report
     const optimisticTaskReport = ReportUtils.buildOptimisticTaskReport(currentUserEmail, assignee, parentReportID, title, description);
 
     // Grab the assigneeChatReportID if there is an assignee and if it's not the same as the parentReportID
     // then we create an optimistic add comment report action on the assignee's chat to notify them of the task
-    const assigneeChatReportID = ReportUtils.getChatByParticipants([assignee]).reportID;
+    let assigneeChatReportID;
+    if (assignee) {
+        assigneeChatReportID = ReportUtils.getChatByParticipants([assignee]).reportID;
+    }
     let optimisticAssigneeAddComment;
-    if (assigneeChatReportID !== parentReportID) {
+    if (assigneeChatReportID && assigneeChatReportID !== parentReportID) {
         console.log('creating assignee comment');
         optimisticAssigneeAddComment = ReportUtils.buildOptimisticAddCommentReportAction(
             parentReportID,
@@ -107,7 +110,7 @@ function createTaskAndNavigate(currentUserEmail, parentReportID, title, descript
         {
             parentReportActionID: optimisticAddCommentReport.reportActionID,
             parentReportID,
-            taskReportID: optimisticTaskReport.reportID,
+            taskReportID: optimisticTaskReport.taskReportID,
             reportName: optimisticTaskReport.reportName,
             title: optimisticTaskReport.reportName,
             description: optimisticTaskReport.description,
