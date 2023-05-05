@@ -66,7 +66,7 @@ const defaultProps = {
     },
 };
 
-const reportActionsSelector = (reportActions, props) => reportActions[props.report.parentReportActionID];
+// const reportActionsSelector = (reportActions, props) => reportActions[props.report.parentReportActionID];
 
 const HeaderView = (props) => {
     const participants = lodashGet(props.report, 'participants', []);
@@ -248,7 +248,8 @@ export default compose(
         parentReportAction: {
             key: ({report}) => `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.parentReportID}`,
             canEvict: false,
-            selector: (reportActions, {report}) => reportActions[report.parentReportActionID],
+            // eslint-disable-next-line no-console
+            selector: (reportActions, props) => { console.log('>>> SELECTOR PROPS: ', props); return reportActions[props.report.parentReportActionID]; },
         },
     }),
 )(HeaderView);
