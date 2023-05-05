@@ -28,6 +28,7 @@ import reportActionPropTypes from '../../pages/home/report/reportActionPropTypes
 import {showContextMenuForReport} from '../ShowContextMenuContext';
 import * as ReportUtils from '../../libs/ReportUtils';
 import Button from '../Button';
+import * as CurrencyUtils from '../../libs/CurrencyUtils';
 
 const propTypes = {
     /** Additional logic for displaying the pay button */
@@ -157,10 +158,8 @@ const IOUPreview = (props) => {
         name: ownerEmail,
     };
     const cachedTotal = props.iouReport.total && props.iouReport.currency
-        ? props.numberFormat(
-            Math.abs(props.iouReport.total) / 100,
-            {style: 'currency', currency: props.iouReport.currency},
-        ) : '';
+        ? CurrencyUtils.convertToDisplayString(props.iouReport.total, props.iouReport.currency)
+        : '';
     const avatarTooltip = [Str.removeSMSDomain(managerEmail), Str.removeSMSDomain(ownerEmail)];
 
     const showContextMenu = (event) => {

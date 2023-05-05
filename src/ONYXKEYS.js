@@ -24,6 +24,9 @@ export default {
     // Note: These are Persisted Requests - not all requests in the main queue as the key name might lead one to believe
     PERSISTED_REQUESTS: 'networkRequestQueue',
 
+    // Onyx updates from a response, or success or failure data from a request.
+    QUEUED_ONYX_UPDATES: 'queuedOnyxUpdates',
+
     // Stores current date
     CURRENT_DATE: 'currentDate',
 

@@ -30,7 +30,7 @@ const propTypes = {
     onStepComplete: PropTypes.func.isRequired,
 
     /** Previously selected amount to show if the user comes back to this screen */
-    selectedAmount: PropTypes.string.isRequired,
+    selectedAmount: PropTypes.number.isRequired,
 
     /** Text to display on the button that "saves" the amount */
     buttonText: PropTypes.string.isRequired,
@@ -66,12 +66,13 @@ class MoneyRequestAmountPage extends React.Component {
         this.numPadContainerViewID = 'numPadContainerView';
         this.numPadViewID = 'numPadView';
 
+        const selectedAmountAsString = props.selectedAmount ? props.selectedAmount.toString() : '';
         this.state = {
-            amount: props.selectedAmount,
+            amount: selectedAmountAsString,
             shouldUpdateSelection: true,
             selection: {
-                start: props.selectedAmount.length,
-                end: props.selectedAmount.length,
+                start: selectedAmountAsString.length,
+                end: selectedAmountAsString.length,
             },
         };
     }
@@ -321,7 +322,6 @@ class MoneyRequestAmountPage extends React.Component {
                         onChangeAmount={this.updateAmount}
                         onCurrencyButtonPress={this.navigateToCurrencySelectionPage}
                         placeholder={this.props.numberFormat(0)}
-                        preferredLocale={this.props.preferredLocale}
                         ref={el => this.textInput = el}
                         selectedCurrencyCode={this.props.iou.selectedCurrencyCode}
                         selection={this.state.selection}
