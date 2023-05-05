@@ -78,7 +78,7 @@ const AvatarWithDisplayName = (props) => {
                                 containerStyles={props.size === CONST.AVATAR_SIZE.SMALL ? styles.emptyAvatarSmall : styles.emptyAvatar}
                             />
                         )}
-                        <View style={[styles.flex1, styles.flexColumn]}>
+                        <View style={[styles.flex1, styles.flexColumn, styles.ml3]}>
                             <DisplayNames
                                 fullTitle={title}
                                 displayNamesWithTooltips={displayNamesWithTooltips}
