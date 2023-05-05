@@ -1,6 +1,6 @@
 import React from 'react';
 import {View, TouchableOpacity} from 'react-native';
-import PropTypes, {string} from 'prop-types';
+import PropTypes from 'prop-types';
 import styles from '../styles/styles';
 import Icon from './Icon';
 import * as Expensicons from './Icon/Expensicons';
