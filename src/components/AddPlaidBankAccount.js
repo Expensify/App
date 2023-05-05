@@ -137,22 +137,20 @@ class AddPlaidBankAccount extends React.Component {
         // return early if shortcuts already blocked
         if (this.subscribedKeyboardShortcuts.length > 0) {
             return;
-        } 
+        }
 
         // find and block the shortcuts
         const shortcutsToBlock = _.filter(CONST.KEYBOARD_SHORTCUTS, (x) => x.type === CONST.KEYBOARD_SHORTCUTS_TYPES.NAVIGATION_SHORTCUT);
         const unsubscribeCallbacks = _.map(
             shortcutsToBlock,
-            (shortcut) => {
-                return KeyboardShortcut.subscribe(
-                    shortcut.shortcutKey,
-                    () => {}, // do nothing
-                    shortcut.descriptionKey,
-                    shortcut.modifiers,
-                    false,
-                    false, // stop bubbling
-                );
-            }
+            (shortcut) => KeyboardShortcut.subscribe(
+                shortcut.shortcutKey,
+                () => {}, // do nothing
+                shortcut.descriptionKey,
+                shortcut.modifiers,
+                false,
+                false, // stop bubbling
+            ),
         );
         this.subscribedKeyboardShortcuts = unsubscribeCallbacks;
     }
@@ -161,10 +159,8 @@ class AddPlaidBankAccount extends React.Component {
      * Unblocks the keyboard shortcuts that can navigate
      */
     unblockKeyboardShortcuts() {
-        if (this.subscribedKeyboardShortcuts.length > 0) {
-            _.each(this.subscribedKeyboardShortcuts, unsubscribe => unsubscribe());
-            this.subscribedKeyboardShortcuts = [];
-        }
+        _.each(this.subscribedKeyboardShortcuts, unsubscribe => unsubscribe());
+        this.subscribedKeyboardShortcuts = [];
     }
 
     render() {
