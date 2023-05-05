@@ -289,7 +289,7 @@ class ReportActionItemMessageEdit extends React.Component {
                             styles.flex1,
                             styles.chatItemComposeBox,
                             hasExceededMaxCommentLength && styles.borderColorDanger,
-                        ]}focus
+                        ]}
                     >
                         <View style={styles.textInputComposeSpacing}>
                             <Composer
