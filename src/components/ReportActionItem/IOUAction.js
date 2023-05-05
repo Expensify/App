@@ -92,14 +92,6 @@ const IOUAction = (props) => {
 
     return (
         <>
-            <IOUQuote
-                action={props.action}
-                chatReportID={props.chatReportID}
-                contextMenuAnchor={props.contextMenuAnchor}
-                onViewDetailsPressed={onIOUPreviewPressed}
-                checkIfContextMenuActive={props.checkIfContextMenuActive}
-                isHovered={props.isHovered}
-            />
             <IOUPreview
                 iouReportID={props.requestReportID}
                 chatReportID={props.chatReportID}
@@ -118,6 +110,17 @@ const IOUAction = (props) => {
                 ]}
                 isHovered={props.isHovered}
             />
+            {props.isMostRecentIOUReportAction && !hasMultipleParticipants && (
+                <IOUQuote
+                    action={props.action}
+                    chatReportID={props.chatReportID}
+                    iouReportID={props.requestReportID}
+                    contextMenuAnchor={props.contextMenuAnchor}
+                    onViewDetailsPressed={onIOUPreviewPressed}
+                    checkIfContextMenuActive={props.checkIfContextMenuActive}
+                    isHovered={props.isHovered}
+                />
+            )}
         </>
     );
 };
