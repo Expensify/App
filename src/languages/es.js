@@ -323,6 +323,7 @@ export default {
         paidyou: ({manager}) => `${manager} te pagó`,
         split: ({amount}) => `Dividir ${amount}`,
         send: ({amount}) => `Enviar ${amount}`,
+        payerowe: ({payer, amount}) => `${payer} debe ${amount}`,
         noReimbursableExpenses: 'El monto de este informe es inválido',
         pendingConversionMessage: 'El total se actualizará cuando estés online',
         error: {
