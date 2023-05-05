@@ -115,6 +115,7 @@ const defaultProps = {
         left: 0,
     },
     backgroundColor: undefined,
+    containerStyles: [],
 };
 
 export {

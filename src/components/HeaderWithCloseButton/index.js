@@ -17,6 +17,7 @@ import ThreeDotsMenu from '../ThreeDotsMenu';
 import withDelayToggleButtonState from '../withDelayToggleButtonState';
 import withLocalize from '../withLocalize';
 import withKeyboardState from '../withKeyboardState';
+import AvatarWithDisplayName from '../AvatarWithDisplayName';
 
 class HeaderWithCloseButton extends Component {
     constructor(props) {
@@ -46,7 +47,7 @@ class HeaderWithCloseButton extends Component {
                     this.props.shouldShowBorderBottom && styles.borderBottom,
                     this.props.shouldShowBackButton && styles.pl2,
                     this.props.backgroundColor && StyleUtils.getBackgroundColorStyle(this.props.backgroundColor),
-                    ...this.props.containerStyles
+                    ...this.props.containerStyles,
                 ]}
             >
                 <View style={[
