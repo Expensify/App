@@ -5,7 +5,6 @@ import * as ReportUtils from '../ReportUtils';
 import * as Report from './Report';
 import Navigation from '../Navigation/Navigation';
 import ROUTES from '../../ROUTES';
-import * as Environment from '../Environment/Environment';
 
 /**
  * Clears out the task info from the store
@@ -26,25 +25,26 @@ function clearOutTaskInfo() {
  */
 
 function createTaskAndNavigate(currentUserEmail, parentReportID, title, description, assignee) {
-    // Grab the assigneeChatReportID if there is an assignee
-    const assigneeChatReportID = ReportUtils.getChatByParticipants([assignee]).reportID;
-
     // Create the task report
     const optimisticTaskReport = ReportUtils.buildOptimisticTaskReport(currentUserEmail, assignee, parentReportID, title, description);
+
+    // Grab the assigneeChatReportID if there is an assignee and if it's not the same as the parentReportID
+    // then we create an optimistic add comment report action on the assignee's chat to notify them of the task
+    const assigneeChatReportID = ReportUtils.getChatByParticipants([assignee]).reportID;
+    let optimisticAssigneeAddComment;
+    if (assigneeChatReportID !== parentReportID) {
+        optimisticAssigneeAddComment = ReportUtils.buildOptimisticAddCommentReportAction(
+            parentReportID,
+            `${currentUserEmail} has[created a task for you](tbd/r/${optimisticTaskReport.reportID}): ${title}`,
+        );
+        optimisticAssigneeAddComment.reportAction.message[0].taskReportID = optimisticTaskReport.reportID;
+    }
 
     // Create the CreatedReportAction on the task
     const optimisticTaskCreatedAction = ReportUtils.buildOptimisticCreatedReportAction(optimisticTaskReport.reportID);
 
-    function getEnvironmentURL() {
-        return Environment.getEnvironmentURL().then((environmentURL) => {
-            const text = `${environmentURL}/r/${optimisticTaskReport.reportID}`;
-            return text;
-        });
-    }
-
-    getEnvironmentURL().then((text) => {
-        Report.addComment(parentReportID, `[Created a task](${text}): ${title}`);
-    });
+    const optimisticAddCommentReport = ReportUtils.buildOptimisticAddCommentReportAction(parentReportID, `[Created a task](tbd/r/${optimisticTaskReport.reportID}): ${title}`);
+    optimisticAddCommentReport.reportAction.message[0].taskReportID = optimisticTaskReport.reportID;
 
     const optimisticData = [
         {
@@ -57,7 +57,20 @@ function createTaskAndNavigate(currentUserEmail, parentReportID, title, descript
             key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${optimisticTaskReport.reportID}`,
             value: {[optimisticTaskCreatedAction.reportActionID]: optimisticTaskCreatedAction},
         },
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${parentReportID}`,
+            value: optimisticAddCommentReport,
+        },
     ];
+
+    if (optimisticAssigneeAddComment) {
+        optimisticData.push({
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${assigneeChatReportID}`,
+            value: {[optimisticAssigneeAddComment.reportActionID]: optimisticAssigneeAddComment},
+        });
+    }
 
     const successData = [];
 
@@ -72,16 +85,29 @@ function createTaskAndNavigate(currentUserEmail, parentReportID, title, descript
             key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${optimisticTaskReport.reportID}`,
             value: {[optimisticTaskCreatedAction.reportActionID]: {pendingAction: null}},
         },
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${parentReportID}`,
+            value: {[optimisticAddCommentReport.reportActionID]: {pendingAction: null}},
+        },
     ];
+
+    if (optimisticAssigneeAddComment) {
+        failureData.push({
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${assigneeChatReportID}`,
+            value: {[optimisticAssigneeAddComment.reportActionID]: {pendingAction: null}},
+        });
+    }
 
     API.write(
         'CreateTask',
         {
-            parentReportActionID: '',
+            parentReportActionID: optimisticAddCommentReport.reportActionID,
             parentReportID,
             taskReportID: optimisticTaskReport.reportID,
-            title,
-            description,
+            reportName: optimisticTaskReport.reportName,
+            description: optimisticTaskReport.description,
             assignee,
             assigneeChatReportID,
         },

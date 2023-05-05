@@ -1398,8 +1398,8 @@ function buildOptimisticWorkspaceChats(policyID, policyName) {
 
 function buildOptimisticTaskReport(ownerEmail, assignee = null, parentReportID, title, description) {
     return {
-        reportID: generateReportID(),
-        reportTitle: title,
+        taskReportID: generateReportID(),
+        reportName: title,
         description,
         ownerEmail,
         assignee,

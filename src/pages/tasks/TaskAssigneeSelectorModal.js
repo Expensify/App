@@ -30,6 +30,12 @@ const propTypes = {
     /** All reports shared with the user */
     reports: PropTypes.objectOf(reportPropTypes),
 
+    /** Grab the Share destination of the Task */
+    task: PropTypes.shape({
+        /** Share destination of the Task */
+        shareDestination: PropTypes.string,
+    }),
+
     ...withLocalizePropTypes,
 };
 
@@ -37,6 +43,7 @@ const defaultProps = {
     betas: [],
     personalDetails: {},
     reports: {},
+    task: {shareDestination: ''},
 };
 
 const TaskAssigneeSelectorModal = (props) => {
@@ -119,7 +126,7 @@ const TaskAssigneeSelectorModal = (props) => {
         if (option.alternateText) {
             // Clear out the state value, set the assignee and navigate back to the NewTaskPage
             setSearchValue('');
-            TaskUtils.setAssigneeValue(option.alternateText);
+            TaskUtils.setAssigneeValue(option.alternateText, props.task.shareDestination);
             Navigation.goBack();
         }
     };
@@ -175,6 +182,9 @@ export default compose(
         },
         betas: {
             key: ONYXKEYS.BETAS,
+        },
+        task: {
+            key: ONYXKEYS.TASK,
         },
     }),
 )(TaskAssigneeSelectorModal);
