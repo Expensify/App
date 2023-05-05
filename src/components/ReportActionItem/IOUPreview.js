@@ -82,6 +82,9 @@ const propTypes = {
     /** True if this is this IOU is a split instead of a 1:1 request */
     isBillSplit: PropTypes.bool.isRequired,
 
+    /** True if the IOU Preview is rendered within a single IOUAction */
+    isIOUAction: PropTypes.bool,
+
     /** True if the IOU Preview card is hovered */
     isHovered: PropTypes.bool,
 
@@ -144,8 +147,8 @@ const IOUPreview = (props) => {
     const isCurrentUserManager = managerEmail === sessionEmail;
 
     // If props.action is undefined then we are displaying within IOUDetailsModal and should use the full report amount 
-    const requestAmount = lodashGet(props.action, 'originalMessage.amount', props.iouReport.total);
-    const requestCurrency = props.isBillSplit ? lodashGet(props.action, 'originalMessage.currency', CONST.CURRENCY.USD) : props.iouReport.currency;
+    const requestAmount = props.isIOUAction ? lodashGet(props.action, 'originalMessage.amount', 0) : props.iouReport.total;
+    const requestCurrency = props.isIOUAction ? lodashGet(props.action, 'originalMessage.currency', CONST.CURRENCY.USD) : props.iouReport.currency;
 
     const showContextMenu = (event) => {
         // Use action and shouldHidePayButton props to check if we are in IOUDetailsModal,
