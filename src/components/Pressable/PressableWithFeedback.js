@@ -29,7 +29,7 @@ const PressableWithFeedback = forwardRef((props, ref) => {
         <GenericPressable ref={ref} style={props.wrapperStyle} {...propsWithoutStyling}>
             {state => (
                 <OpacityView
-                    shouldDim={state.pressed || state.hovered}
+                    shouldDim={state.pressed || state.hovered || false}
                     dimmingValue={state.pressed ? props.pressDimmingValue : props.hoverDimmingValue}
                     style={[
                         StyleUtils.parseStyleFromFunction(props.style, state),

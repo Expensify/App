@@ -10,6 +10,9 @@ const propTypes = {
 
     /** Callback to fire when the switch is toggled */
     onToggle: PropTypes.func.isRequired,
+
+    /** Accessibility label for the switch */
+    accessibilityLabel: PropTypes.string.isRequired,
 };
 
 const PressableWithFeedback = Pressables.PressableWithFeedback;
@@ -48,6 +51,7 @@ class Switch extends Component {
                 accessibilityRole="switch"
                 accessibilityState={{checked: this.props.isOn}}
                 aria-checked={this.props.isOn}
+                accessibilityLabel={this.props.accessibilityLabel}
             >
                 <Animated.View style={[styles.switchThumb, switchTransform]} />
             </PressableWithFeedback>

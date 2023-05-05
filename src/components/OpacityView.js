@@ -21,7 +21,7 @@ const propTypes = {
      * @default []
      */
     // eslint-disable-next-line react/forbid-prop-types
-    style: PropTypes.arrayOf(PropTypes.object),
+    style: PropTypes.oneOfType([PropTypes.object, PropTypes.array]),
 
     /**
      * The value to use for the opacity when the view is dimmed
