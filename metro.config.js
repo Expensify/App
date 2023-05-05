@@ -3,7 +3,7 @@
  * https://github.com/facebook/react-native
  */
 
-const {getDefaultConfig} = require('metro-config');
+const {getDefaultConfig} = require('@react-native/metro-config');
 const _ = require('underscore');
 require('dotenv').config();
 
@@ -15,7 +15,7 @@ module.exports = (() => {
         console.warn('⚠️ Using mock API');
     }
 
-    return getDefaultConfig()
+    return getDefaultConfig(__dirname)
         .then((config) => {
             return {
                 resolver: {
