@@ -2415,6 +2415,18 @@ const styles = {
         paddingRight: 5,
     },
 
+    mentionFirstWordStyle: {
+        paddingLeft: 2,
+        borderTopRightRadius: 4,
+        borderBottomRightRadius: 4,
+    },
+
+    mentionLastWordStyle: {
+        paddingRight: 2,
+        borderTopLeftRadius: 4,
+        borderBottomLeftRadius: 4,
+    },
+
     fullScreenLoading: {
         backgroundColor: themeColors.componentBG,
         opacity: 0.8,

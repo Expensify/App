@@ -16,6 +16,8 @@ const InlineCodeBlock = (props) => {
                     props.boxModelStyle,
                     styles.codeWordStyle,
                 ]}
+                codeFirstWordStyle={props.codeFirstWordStyle}
+                codeLastWordStyle={props.codeLastWordStyle}
             >
                 {props.defaultRendererProps.tnode.data}
             </WrappedText>
