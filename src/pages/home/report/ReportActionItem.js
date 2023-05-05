@@ -307,7 +307,7 @@ function ReportActionItem(props) {
                             style={StyleUtils.getReportActionItemStyle(
                                 hovered
                                 || isWhisper
-                                || state.isContextMenuActive
+                                || isContextMenuActive
                                 || props.draftMessage,
                                 (props.network.isOffline && props.action.isLoading) || props.action.error,
                             )}
