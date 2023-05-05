@@ -19,7 +19,7 @@ const propTypes = {
 };
 
 /**
- * navigates to user details screen based on email
+ * Navigates to user details screen based on email
  * @param {String} email
  * @returns {void}
  * */
