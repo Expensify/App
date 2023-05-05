@@ -43,6 +43,12 @@ function getDisplayName(key, modifiers) {
         if (_.isEqual(key.toLowerCase(), lodashGet(KeyCommand, 'constants.keyInputDownArrow', 'keyInputDownArrow').toString().toLowerCase())) {
             return ['ARROWDOWN'];
         }
+        if (_.isEqual(key.toLowerCase(), lodashGet(KeyCommand, 'constants.keyInputLeftArrow', 'keyInputLeftArrow').toString().toLowerCase())) {
+            return ['ARROWLEFT'];
+        }
+        if (_.isEqual(key.toLowerCase(), lodashGet(KeyCommand, 'constants.keyInputRightArrow', 'keyInputRightArrow').toString().toLowerCase())) {
+            return ['ARROWRIGHT'];
+        }
         return [key.toUpperCase()];
     })();
 

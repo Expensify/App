@@ -219,7 +219,7 @@ class AttachmentCarousel extends React.Component {
         const nextIndex = this.state.page - deltaSlide;
         const nextItem = this.state.attachments[nextIndex];
 
-        if (!nextItem) {
+        if (!nextItem || !this.scrollRef.current) {
             return;
         }
 
