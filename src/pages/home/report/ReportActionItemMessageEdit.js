@@ -361,7 +361,6 @@ class ReportActionItemMessageEdit extends React.Component {
             </>
         );
     }
-    }
 }
 
 ReportActionItemMessageEdit.propTypes = propTypes;
