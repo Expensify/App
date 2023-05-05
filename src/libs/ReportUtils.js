@@ -318,13 +318,13 @@ function isConciergeChatReport(report) {
 
 /**
  * @param {Record<String, {lastReadTime, reportID}>|Array<{lastReadTime, reportID}>} reports
- * @param {Boolean} [ignoreDefaultRooms]
+ * @param {Boolean} [ignoreDomainRooms]
  * @param {Object} policies
  * @param {Boolean} isFirstTimeNewExpensifyUser
  * @param {Boolean} openOnAdminRoom
  * @returns {Object}
  */
-function findLastAccessedReport(reports, ignoreDefaultRooms, policies, isFirstTimeNewExpensifyUser, openOnAdminRoom = false) {
+function findLastAccessedReport(reports, ignoreDomainRooms, policies, isFirstTimeNewExpensifyUser, openOnAdminRoom = false) {
     // If it's the user's first time using New Expensify, then they could either have:
     //   - just a Concierge report, if so we'll return that
     //   - their Concierge report, and a separate report that must have deeplinked them to the app before they created their account.
@@ -339,16 +339,17 @@ function findLastAccessedReport(reports, ignoreDefaultRooms, policies, isFirstTi
         return _.find(sortedReports, report => !isConciergeChatReport(report));
     }
 
-    if (ignoreDefaultRooms) {
-        // We allow public announce rooms to show as the last accessed report since we bypass the default rooms beta for them.
+    if (ignoreDomainRooms) {
+        // We allow public announce rooms, admins, and announce rooms through since we bypass the default rooms beta for them.
         // Check where ReportUtils.findLastAccessedReport is called in MainDrawerNavigator.js for more context.
-        sortedReports = _.filter(sortedReports, report => !isDefaultRoom(report) || isPublicAnnounceRoom(report)
+        // Domain rooms are now the only type of default room that are on the defaultRooms beta.
+        sortedReports = _.filter(sortedReports, report => !isDomainRoom(report)
             || getPolicyType(report, policies) === CONST.POLICY.TYPE.FREE
             || hasExpensifyGuidesEmails(lodashGet(report, ['participants'], [])));
     }
 
     let adminReport;
-    if (!ignoreDefaultRooms && openOnAdminRoom) {
+    if (openOnAdminRoom) {
         adminReport = _.find(sortedReports, (report) => {
             const chatType = getChatType(report);
             return chatType === CONST.REPORT.CHAT_TYPE.POLICY_ADMINS;
@@ -1506,8 +1507,8 @@ function canSeeDefaultRoom(report, policies, betas) {
         return true;
     }
 
-    // Include any public announce rooms, since they could include people who should have access but we don't know to add to the beta
-    if (report.visibility === CONST.REPORT.VISIBILITY.PUBLIC_ANNOUNCE) {
+    // Include any admins and announce rooms, since only non partner-managed domain rooms are on the beta now.
+    if (isAdminRoom(report) || isAnnounceRoom(report)) {
         return true;
     }
 
