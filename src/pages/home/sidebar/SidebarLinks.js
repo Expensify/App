@@ -31,6 +31,8 @@ import SidebarUtils from '../../../libs/SidebarUtils';
 import reportPropTypes from '../../reportPropTypes';
 import OfflineWithFeedback from '../../../components/OfflineWithFeedback';
 import LHNSkeletonView from '../../../components/LHNSkeletonView';
+import LogoWordmark from '../../../../assets/images/expensify-wordmark.svg';
+import defaultTheme from '../../../styles/themes/default';
 
 const propTypes = {
     /** Toggles the navigation menu open and closed */
@@ -159,6 +161,7 @@ class SidebarLinks extends React.Component {
                         accessibilityRole="text"
                         shouldShowEnvironmentBadge
                         textStyles={[styles.textHeadline]}
+                        children={<LogoWordmark width={108} fill={defaultTheme.textLight} />}
                     />
                     <Tooltip text={this.props.translate('common.search')}>
                         <TouchableOpacity
