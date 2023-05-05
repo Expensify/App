@@ -1109,34 +1109,6 @@ function getGoogleListViewStyle(shouldDisplayBorder) {
     };
 }
 
-/**
- * Returns style object for the user mention component based on whether the mention is ours or not.
- * @param {Boolean} isOurMention
- * @returns {Object}
- */
-function getUserMentionStyle(isOurMention) {
-    const backgroundColor = isOurMention ? themeColors.ourMentionBG : themeColors.mentionBG;
-    return {
-        backgroundColor,
-        borderRadius: variables.componentBorderRadiusSmall,
-        paddingHorizontal: 2,
-    };
-}
-
-/**
- * Returns text color for the user mention text based on whether the mention is ours or not.
- * @param {Boolean} isOurMention
- * @returns {Object}
- */
-function getUserMentionTextStyle(isOurMention) {
-    return {
-        color: isOurMention ? themeColors.ourMentionText : themeColors.mentionText,
-
-        // font size is set to 13 to be in line with the font size used for code fragments so workaround will look better
-        fontSize: variables.fontSizeLabel,
-    };
-}
-
 export {
     getAvatarSize,
     getAvatarStyle,
@@ -1197,6 +1169,4 @@ export {
     getFontSizeStyle,
     getSignInWordmarkWidthStyle,
     getGoogleListViewStyle,
-    getUserMentionStyle,
-    getUserMentionTextStyle,
 };

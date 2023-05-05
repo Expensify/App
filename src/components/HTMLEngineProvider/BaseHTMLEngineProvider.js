@@ -49,7 +49,6 @@ const customHTMLElementModels = {
         tagName: 'strong',
         mixedUAStyles: {whiteSpace: 'pre'},
     }),
-    'mention-user': defaultHTMLElementModels.span.extend({tagName: 'mention-user'}),
 };
 
 // We are using the explicit composite architecture for performance gains.
