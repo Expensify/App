@@ -56,9 +56,14 @@ Onyx.connect({
 function requestMoney(report, amount, currency, payeeEmail, participant, comment) {
     const payerEmail = OptionsListUtils.addSMSDomainIfPhoneNumber(participant.login);
     let chatReport = lodashGet(report, 'reportID', null) ? report : null;
-    const isPolicyExpenseChat = ReportUtils.isPolicyExpenseChat(chatReport);
-
+    const isPolicyExpenseChat = participant.isPolicyExpenseChat || participant.isOwnPolicyExpenseChat;
     let isNewChat = false;
+
+    // If this is a policyExpenseChat, the chatReport must exist and we can get it from Onyx
+    if (!chatReport && isPolicyExpenseChat) {
+        chatReport = chatReports[`${ONYXKEYS.COLLECTION.REPORT}${participant.reportID}`];
+    }
+
     if (!chatReport) {
         chatReport = ReportUtils.getChatByParticipants([payerEmail]);
     }
