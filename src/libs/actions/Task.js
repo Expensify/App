@@ -152,6 +152,26 @@ function createTaskAndNavigate(currentUserEmail, parentReportID, title, descript
 }
 
 /**
+ * @function editTask
+ * @param {string} taskId
+ * @param {string} title
+ * @param {string} description
+ * @param {string} assignee
+ * @returns {object} action
+ *
+ */
+
+function editTaskAndNavigate(taskId, title, description, assignee) {
+    API.write('EditTask', {
+        taskID: taskId,
+        title,
+        description,
+        assignee,
+    });
+    Navigation.navigate(ROUTES.getTaskDetailsRoute(taskId));
+}
+
+/**
  * Sets the title and description values for the task
  * @param {string} title
   @param {string} description
@@ -233,4 +253,14 @@ function clearOutTaskInfoAndNavigate(reportID) {
     Navigation.navigate(ROUTES.NEW_TASK_DETAILS);
 }
 
-export {createTaskAndNavigate, setTitleValue, setDescriptionValue, setDetailsValue, setAssigneeValue, setShareDestinationValue, clearOutTaskInfo, clearOutTaskInfoAndNavigate};
+export {
+    createTaskAndNavigate,
+    editTaskAndNavigate,
+    setTitleValue,
+    setDescriptionValue,
+    setDetailsValue,
+    setAssigneeValue,
+    setShareDestinationValue,
+    clearOutTaskInfo,
+    clearOutTaskInfoAndNavigate,
+};
