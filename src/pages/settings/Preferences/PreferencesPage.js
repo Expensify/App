@@ -1,10 +1,9 @@
 import _ from 'underscore';
 import lodashGet from 'lodash/get';
 import React from 'react';
-import {View, ScrollView} from 'react-native';
+import {View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import PropTypes from 'prop-types';
-import HeaderWithCloseButton from '../../../components/HeaderWithCloseButton';
 import Navigation from '../../../libs/Navigation/Navigation';
 import ROUTES from '../../../ROUTES';
 import ONYXKEYS from '../../../ONYXKEYS';
@@ -13,7 +12,6 @@ import themeColors from '../../../styles/themes/default';
 import Text from '../../../components/Text';
 import CONST from '../../../CONST';
 import * as User from '../../../libs/actions/User';
-import ScreenWrapper from '../../../components/ScreenWrapper';
 import Switch from '../../../components/Switch';
 import withLocalize, {withLocalizePropTypes} from '../../../components/withLocalize';
 import compose from '../../../libs/compose';
@@ -21,8 +19,6 @@ import withEnvironment, {environmentPropTypes} from '../../../components/withEnv
 import TestToolMenu from '../../../components/TestToolMenu';
 import MenuItemWithTopDescription from '../../../components/MenuItemWithTopDescription';
 import IllustratedHeaderPageLayout from '../../../components/IllustratedHeaderPageLayout';
-import FireworksAnimation from '../../../../assets/animations/Fireworks.json';
-import DollarAnimation from '../../../../assets/animations/Dollar.json';
 import PreferencesDJAnimation from '../../../../assets/animations/PreferencesDJ.json';
 
 const propTypes = {

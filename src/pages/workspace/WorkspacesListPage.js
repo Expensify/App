@@ -180,6 +180,7 @@ class WorkspacesListPage extends Component {
 
     render() {
         const workspaces = this.getWorkspaces();
+
         // TODO: translations
         const workspaceFeatures = [
             {
