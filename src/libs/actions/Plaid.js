@@ -1,7 +1,7 @@
+import Onyx from 'react-native-onyx';
 import getPlaidLinkTokenParameters from '../getPlaidLinkTokenParameters';
 import ONYXKEYS from '../../ONYXKEYS';
 import * as API from '../API';
-import CONST from '../../CONST';
 import * as PlaidDataProps from '../../pages/ReimbursementAccount/plaidDataPropTypes';
 
 /**
@@ -14,15 +14,15 @@ function openPlaidBankLogin(allowDebit, bankAccountID) {
     params.allowDebit = allowDebit;
     params.bankAccountID = bankAccountID;
     const optimisticData = [{
-        onyxMethod: CONST.ONYX.METHOD.SET,
+        onyxMethod: Onyx.METHOD.SET,
         key: ONYXKEYS.PLAID_DATA,
         value: {...PlaidDataProps.plaidDataDefaultProps, isLoading: true},
     }, {
-        onyxMethod: CONST.ONYX.METHOD.SET,
+        onyxMethod: Onyx.METHOD.SET,
         key: ONYXKEYS.PLAID_LINK_TOKEN,
         value: '',
     }, {
-        onyxMethod: CONST.ONYX.METHOD.MERGE,
+        onyxMethod: Onyx.METHOD.MERGE,
         key: ONYXKEYS.REIMBURSEMENT_ACCOUNT_DRAFT,
         value: {
             plaidAccountID: '',
@@ -44,7 +44,7 @@ function openPlaidBankAccountSelector(publicToken, bankName, allowDebit) {
         bank: bankName,
     }, {
         optimisticData: [{
-            onyxMethod: CONST.ONYX.METHOD.MERGE,
+            onyxMethod: Onyx.METHOD.MERGE,
             key: ONYXKEYS.PLAID_DATA,
             value: {
                 isLoading: true,
@@ -53,7 +53,7 @@ function openPlaidBankAccountSelector(publicToken, bankName, allowDebit) {
             },
         }],
         successData: [{
-            onyxMethod: CONST.ONYX.METHOD.MERGE,
+            onyxMethod: Onyx.METHOD.MERGE,
             key: ONYXKEYS.PLAID_DATA,
             value: {
                 isLoading: false,
@@ -61,7 +61,7 @@ function openPlaidBankAccountSelector(publicToken, bankName, allowDebit) {
             },
         }],
         failureData: [{
-            onyxMethod: CONST.ONYX.METHOD.MERGE,
+            onyxMethod: Onyx.METHOD.MERGE,
             key: ONYXKEYS.PLAID_DATA,
             value: {
                 isLoading: false,
