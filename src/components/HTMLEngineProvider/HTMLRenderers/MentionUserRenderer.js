@@ -11,6 +11,13 @@ import * as StyleUtils from '../../../styles/StyleUtils';
 import InlineCodeBlock from '../../InlineCodeBlock';
 import styles from '../../../styles/styles';
 
+const propTypes = {
+    ...htmlRendererPropTypes,
+
+    /* stores info about currently logged in user */
+    currentUserPersonalDetails: personalDetailsPropType.isRequired,
+};
+
 /**
  * navigates to user details screen based on email
  * @param {String} email
@@ -44,7 +51,7 @@ const MentionUserRenderer = (props) => {
     );
 };
 
-MentionUserRenderer.propTypes = {...htmlRendererPropTypes, currentUserPersonalDetails: personalDetailsPropType.isRequired};
+MentionUserRenderer.propTypes = propTypes;
 MentionUserRenderer.displayName = 'MentionUserRenderer';
 
 export default withCurrentUserPersonalDetails(MentionUserRenderer);
