@@ -183,14 +183,6 @@ class Composer extends React.Component {
         this.textInput.removeEventListener('wheel', this.handleWheel);
     }
 
-    // Prevent onKeyPress from being triggered if the Enter key is pressed while text is being composed
-    handleKeyPress(e) {
-        if (!this.props.onKeyPress || isEnterWhileComposition(e)) {
-            return;
-        }
-        this.props.onKeyPress(e);
-    }
-
     /**
      * Handler for when the text of the text input changes.
      * Will also propagate change to parent component, via
@@ -201,6 +193,7 @@ class Composer extends React.Component {
     onChangeText(text) {
         this.setState({value: text});
         this.props.onChangeText(text);
+        this.updateNumberOfLines();
     }
 
     /**
@@ -224,6 +217,14 @@ class Composer extends React.Component {
      */
     setSelection(start, end) {
         this.textInput.setSelectionRange(start, end);
+    }
+
+    // Prevent onKeyPress from being triggered if the Enter key is pressed while text is being composed
+    handleKeyPress(e) {
+        if (!this.props.onKeyPress || isEnterWhileComposition(e)) {
+            return;
+        }
+        this.props.onKeyPress(e);
     }
 
     /**
