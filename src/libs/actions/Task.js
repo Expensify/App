@@ -17,6 +17,7 @@ function clearOutTaskInfo() {
  * Assign a task to a user
  * Function title is createTask for consistency with the rest of the actions
  * and also because we can create a task without assigning it to anyone
+ * @param {String} currentUserEmail
  * @param {String} parentReportID
  * @param {String} title
  * @param {String} description
@@ -33,20 +34,19 @@ function createTaskAndNavigate(currentUserEmail, parentReportID, title, descript
     const assigneeChatReportID = ReportUtils.getChatByParticipants([assignee]).reportID;
     let optimisticAssigneeAddComment;
     if (assigneeChatReportID !== parentReportID) {
+        console.log('creating assignee comment');
         optimisticAssigneeAddComment = ReportUtils.buildOptimisticAddCommentReportAction(
             parentReportID,
             `${currentUserEmail} has[created a task for you](tbd/r/${optimisticTaskReport.reportID}): ${title}`,
         );
-
-        // optimisticAssigneeAddComment.reportAction.message[0].taskReportID = optimisticTaskReport.reportID;
+        optimisticAssigneeAddComment.reportAction.message[0].taskReportID = optimisticTaskReport.reportID;
     }
 
     // Create the CreatedReportAction on the task
     const optimisticTaskCreatedAction = ReportUtils.buildOptimisticCreatedReportAction(optimisticTaskReport.reportID);
 
     const optimisticAddCommentReport = ReportUtils.buildOptimisticAddCommentReportAction(parentReportID, `[Created a task](tbd/r/${optimisticTaskReport.reportID}): ${title}`);
-
-    // optimisticAddCommentReport.reportAction.message[0].taskReportID = optimisticTaskReport.reportID;
+    optimisticAddCommentReport.reportAction.message[0].taskReportID = optimisticTaskReport.reportID;
 
     const optimisticData = [
         {
@@ -109,6 +109,7 @@ function createTaskAndNavigate(currentUserEmail, parentReportID, title, descript
             parentReportID,
             taskReportID: optimisticTaskReport.reportID,
             reportName: optimisticTaskReport.reportName,
+            title: optimisticTaskReport.reportName,
             description: optimisticTaskReport.description,
             assignee,
             assigneeChatReportID,
@@ -118,26 +119,52 @@ function createTaskAndNavigate(currentUserEmail, parentReportID, title, descript
 
     clearOutTaskInfo();
 
-    Navigation.navigate(ROUTES.getReportRoute(optimisticTaskReport.reportID));
+    Navigation.navigate(ROUTES.getReportRoute(optimisticTaskReport.taskReportID));
 }
+
+/**
+ * Sets the title and description values for the task
+ * @param {string} title
+  @param {string} description
+ */
 
 function setDetailsValue(title, description) {
     // This is only needed for creation of a new task and so it should only be stored locally
     Onyx.merge(ONYXKEYS.TASK, {title, description});
 }
 
+/**
+ * Sets the title value for the task
+ * @param {string} title
+ */
 function setTitleValue(title) {
     Onyx.merge(ONYXKEYS.TASK, {title});
 }
 
+/**
+ * Sets the description value for the task
+ * @param {string} description
+ */
 function setDescriptionValue(description) {
     Onyx.merge(ONYXKEYS.TASK, {description});
 }
 
+/**
+ * Sets the shareDestination value for the task
+ * @param {string} shareDestination
+ */
 function setShareDestinationValue(shareDestination) {
     // This is only needed for creation of a new task and so it should only be stored locally
     Onyx.merge(ONYXKEYS.TASK, {shareDestination});
 }
+
+/**
+ * Sets the assignee value for the task and checks for an existing chat with the assignee
+ * If there is no existing chat, it creates an optimistic chat report
+ * It also sets the shareDestination as that chat report if a share destination isn't already set
+ * @param {string} assignee
+ * @param {string} shareDestination
+ */
 
 function setAssigneeValue(assignee, shareDestination) {
     let newChat = {};
@@ -157,11 +184,20 @@ function setAssigneeValue(assignee, shareDestination) {
     Onyx.merge(ONYXKEYS.TASK, {assignee});
 }
 
+/**
+ * Sets the parentReportID value for the task
+ * @param {string} parentReportID
+ */
+
 function setParentReportID(parentReportID) {
     // This is only needed for creation of a new task and so it should only be stored locally
     Onyx.merge(ONYXKEYS.TASK, {parentReportID});
 }
 
+/**
+ * Clears out the task info from the store and navigates to the NewTaskDetails page
+ * @param {string} reportID
+ */
 function clearOutTaskInfoAndNavigate(reportID) {
     clearOutTaskInfo();
     setParentReportID(reportID);
