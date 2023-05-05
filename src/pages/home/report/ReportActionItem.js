@@ -52,7 +52,6 @@ import * as Expensicons from '../../../components/Icon/Expensicons';
 import Text from '../../../components/Text';
 import DisplayNames from '../../../components/DisplayNames';
 import personalDetailsPropType from '../../personalDetailsPropType';
-import usePreviousValue from '../../../components/usePreviousValue';
 import ReportActionItemDraft from './ReportActionItemDraft';
 
 const propTypes = {
@@ -98,12 +97,12 @@ const defaultProps = {
 
 function ReportActionItem(props) {
     const [isContextMenuActive, setIsContextMenuActive] = useState(ReportActionContextMenu.isActiveReportAction(props.action.reportActionID));
-    const previousDraftMessage = usePreviousValue(props.draftMessage);
     const textInputRef = useRef();
     const popoverAnchorRef = useRef();
 
+    const isDraftEmpty = !props.draftMessage;
     useEffect(() => {
-        if (previousDraftMessage || !props.draftMessage) {
+        if (isDraftEmpty) {
             return;
         }
 
@@ -111,7 +110,7 @@ function ReportActionItem(props) {
         // There is an animation when the comment is hidden and the edit form is shown, and there can be bugs on different mobile platforms
         // if the input is given focus in the middle of that animation which can prevent the keyboard from opening.
         focusTextInputAfterAnimation(textInputRef.current, 100);
-    }, [props.draftMessage, previousDraftMessage]);
+    }, [isDraftEmpty]);
 
     const toggleContextMenuFromActiveReportAction = useCallback(() => {
         setIsContextMenuActive(ReportActionContextMenu.isActiveReportAction(props.action.reportActionID));
