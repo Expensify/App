@@ -1406,7 +1406,6 @@ function buildOptimisticTaskReport(ownerEmail, assignee = null, parentReportID, 
         type: CONST.REPORT.TYPE.TASK,
         parentReportID,
         parentReportActionID,
-        state: CONST.REPORT.STATE.OPEN,
         stateNum: CONST.REPORT.STATE_NUM.OPEN,
         statusNum: CONST.REPORT.STATUS.OPEN,
     };
