@@ -426,15 +426,9 @@ function isPolicyExpenseChatAdmin(report, policies) {
  * @returns {Boolean}
  */
 function isThread(report) {
-    // eslint-disable-next-line no-console
-    console.log('>>> is thread ? ', report, ' ', report.parentReportActionID, ': ');
     if (!report.parentReportActionID) {
-        // eslint-disable-next-line no-console
-        console.log('>>> FALSE');
         return false;
     }
-    // eslint-disable-next-line no-console
-    console.log('>>> TRUE');
     return true;
 }
 
@@ -734,8 +728,6 @@ function getIcons(report, personalDetails, defaultIcon = null) {
         return [result];
     }
     if (isThread(report)) {
-        // eslint-disable-next-line no-console
-        console.log('>>>>>>> ', report, personalDetails);
         if (isPolicyExpenseChat(report)) {
             const workspaceName = lodashGet(allPolicies, [
                 `${ONYXKEYS.COLLECTION.POLICY}${report.policyID}`, 'name',

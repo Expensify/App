@@ -43,7 +43,7 @@ const propTypes = {
     /** If the report is a thread, connect to the parent report */
     parentReport: reportPropTypes,
 
-    // eslint-disable-next-line react/no-unused-prop-types
+    // // eslint-disable-next-line react/no-unused-prop-types
     parentReportAction: PropTypes.shape(reportActionPropTypes),
 
     /** The details about the account that the user is signing in with */
@@ -65,6 +65,8 @@ const defaultProps = {
         guideCalendarLink: null,
     },
 };
+
+const reportActionsSelector = (reportActions, props) => reportActions[props.report.parentReportActionID];
 
 const HeaderView = (props) => {
     const participants = lodashGet(props.report, 'participants', []);
@@ -127,7 +129,7 @@ const HeaderView = (props) => {
     if (ReportUtils.isThread(props.report)) {
         // const parentReportDetails = OptionsListUtils.getPersonalDetailsForLogins(props.parentReportAction.person, props.personalDetails);
         // eslint-disable-next-line no-console
-        console.log('>>>>>>>>>> PARENT', props, props.parentReport, props.parentReportAction);
+        console.log('>>>>>>>>>> PARENT', props.parentReport, ' action: ', props.parentReportAction);
         icons = ReportUtils.getIcons(props.parentReport, props.personalDetails);
     } else {
         icons = ReportUtils.getIcons(props.report, props.personalDetails);
@@ -244,7 +246,9 @@ export default compose(
             key: ({report}) => `${ONYXKEYS.COLLECTION.REPORT}${report.parentReportID}`,
         },
         parentReportAction: {
-            key: ({report}) => `${ONYXKEYS.COLLECTION.REPORT}${report.parentReportActionID}`,
+            key: ({report}) => `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.parentReportID}`,
+            canEvict: false,
+            selector: (reportActions, {report}) => reportActions[report.parentReportActionID],
         },
     }),
 )(HeaderView);
