@@ -46,14 +46,22 @@ const TaskAssigneeSelectorModal = (props) => {
     const [filteredPersonalDetails, setFilteredPersonalDetails] = useState([]);
 
     useEffect(() => {
-        const results = OptionsListUtils.getNewChatOptions(props.reports, props.personalDetails, props.betas, '', [], [], false);
+        const results = OptionsListUtils.getNewChatOptions(props.reports, props.personalDetails, props.betas, '', [], CONST.EXPENSIFY_EMAILS, false);
 
         setFilteredRecentReports(results.recentReports);
         setFilteredPersonalDetails(results.personalDetails);
     }, [props]);
 
     const updateOptions = useCallback(() => {
-        const {recentReports, personalDetails, userToInvite} = OptionsListUtils.getNewChatOptions(props.reports, props.personalDetails, props.betas, searchValue.trim(), [], [], false);
+        const {recentReports, personalDetails, userToInvite} = OptionsListUtils.getNewChatOptions(
+            props.reports,
+            props.personalDetails,
+            props.betas,
+            searchValue.trim(),
+            [],
+            CONST.EXPENSIFY_EMAILS,
+            false,
+        );
 
         setHeaderMessage(OptionsListUtils.getHeaderMessage(recentReports?.length + personalDetails?.length !== 0, Boolean(userToInvite), searchValue));
 
@@ -122,7 +130,7 @@ const TaskAssigneeSelectorModal = (props) => {
             {({didScreenTransitionEnd, safeAreaPaddingBottomStyle}) => (
                 <>
                     <HeaderWithCloseButton
-                        title={props.translate('common.search')}
+                        title={props.translate('newTaskPage.assignee')}
                         onCloseButtonPress={() => Navigation.goBack()}
                         shouldShowBackButton
                         onBackButtonPress={() => Navigation.goBack()}

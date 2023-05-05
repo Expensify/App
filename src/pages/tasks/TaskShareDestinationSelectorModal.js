@@ -51,7 +51,7 @@ const TaskShareDestinationSelectorModal = (props) => {
     const [filteredUserToInvite, setFilteredUserToInvite] = useState(null);
 
     useEffect(() => {
-        const results = OptionsListUtils.getShareDestinationOptions(props.reports, props.personalDetails, props.betas, '', [], [], true);
+        const results = OptionsListUtils.getShareDestinationOptions(props.reports, props.personalDetails, props.betas, '', [], CONST.EXPENSIFY_EMAILS, true);
 
         setFilteredUserToInvite(results.userToInvite);
         setFilteredRecentReports(results.recentReports);
@@ -65,7 +65,7 @@ const TaskShareDestinationSelectorModal = (props) => {
             props.betas,
             searchValue.trim(),
             [],
-            [],
+            CONST.EXPENSIFY_EMAILS,
             true,
         );
 
@@ -147,7 +147,7 @@ const TaskShareDestinationSelectorModal = (props) => {
             {({didScreenTransitionEnd, safeAreaPaddingBottomStyle}) => (
                 <>
                     <HeaderWithCloseButton
-                        title={props.translate('common.search')}
+                        title={props.translate('newTaskPage.shareSomewhere')}
                         onCloseButtonPress={() => Navigation.goBack()}
                         shouldShowBackButton
                         onBackButtonPress={() => Navigation.goBack()}
