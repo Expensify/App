@@ -72,7 +72,7 @@ class HeaderWithCloseButton extends Component {
                                 style={[styles.touchableButtonImage]}
                             >
                                 {({hovered, pressed}) => (
-                                    <Icon src={Expensicons.BackArrow} fill={StyleUtils.getTransparentIconFillColor(themeColors.heading, hovered, pressed)} />
+                                    <Icon src={Expensicons.BackArrow} fill={themeColors.heading} opacity={StyleUtils.getIconOpacityForState(hovered, pressed)} />
                                 )}
                             </Pressable>
                         </Tooltip>
@@ -141,7 +141,7 @@ class HeaderWithCloseButton extends Component {
                                 accessibilityLabel={this.props.translate('common.close')}
                             >
                                 {({hovered, pressed}) => (
-                                    <Icon src={Expensicons.Close} fill={StyleUtils.getTransparentIconFillColor(themeColors.heading, hovered, pressed)} />
+                                    <Icon src={Expensicons.Close} fill={themeColors.heading} opacity={StyleUtils.getIconOpacityForState(hovered, pressed)} />
                                 )}
                             </Pressable>
                         </Tooltip>

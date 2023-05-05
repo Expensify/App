@@ -465,24 +465,20 @@ function getIconFillColor(buttonState = CONST.BUTTON_STATES.DEFAULT, isMenuIcon 
 }
 
 /**
- * @param {String} baseColor
  * @param {Boolean} isHovered
  * @param {Boolean} isPressed
- * @returns {String}
+ * @returns {Number}
  */
-function getTransparentIconFillColor(baseColor, isHovered = false, isPressed = false) {
+function getIconOpacityForState(isHovered = false, isPressed = false) {
     if (isPressed) {
-        // 70% opacity
-        return `${baseColor}B3`;
+        return 0.7;
     }
 
     if (isHovered) {
-        // 60% opacity
-        return `${baseColor}99`;
+        return 0.85;
     }
 
-    // 50% opacity
-    return `${baseColor}80`;
+    return 1;
 }
 
 /**
@@ -1181,7 +1177,7 @@ export {
     getBadgeColorStyle,
     getButtonBackgroundColorStyle,
     getIconFillColor,
-    getTransparentIconFillColor,
+    getIconOpacityForState,
     getAnimatedFABStyle,
     getWidthAndHeightStyle,
     getModalPaddingStyles,

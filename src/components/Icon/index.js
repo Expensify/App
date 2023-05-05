@@ -20,6 +20,9 @@ const propTypes = {
     /** The fill color for the icon. Can be hex, rgb, rgba, or valid react-native named color such as 'red' or 'blue'. */
     fill: PropTypes.string,
 
+    /** The opacity to apply to the fill color. Opacity in fill color via hex or rgba is not yet supported. */
+    opacity: PropTypes.number,
+
     /** Is small icon */
     small: PropTypes.bool,
 
@@ -34,6 +37,7 @@ const defaultProps = {
     width: variables.iconSizeNormal,
     height: variables.iconSizeNormal,
     fill: themeColors.icon,
+    opacity: 1,
     small: false,
     inline: false,
     additionalStyles: [],
@@ -60,6 +64,7 @@ class Icon extends PureComponent {
                             width={width}
                             height={height}
                             fill={this.props.fill}
+                            opacity={this.props.opacity}
                         />
                     </View>
                 </View>
@@ -75,6 +80,7 @@ class Icon extends PureComponent {
                     width={width}
                     height={height}
                     fill={this.props.fill}
+                    opacity={this.props.opacity}
                 />
             </View>
         );
