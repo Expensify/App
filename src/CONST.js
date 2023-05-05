@@ -279,7 +279,6 @@ const CONST = {
                 [PLATFORM_OS_MACOS]: {input: 'j', modifierFlags: keyModifierCommand},
                 [PLATFORM_IOS]: {input: 'j', modifierFlags: keyModifierCommand},
             },
-            type: '',
         },
         ESCAPE: {
             descriptionKey: 'escape',
@@ -290,7 +289,6 @@ const CONST = {
                 [PLATFORM_OS_MACOS]: {input: keyInputEscape},
                 [PLATFORM_IOS]: {input: keyInputEscape},
             },
-            type: '',
         },
         ENTER: {
             descriptionKey: null,
@@ -301,7 +299,6 @@ const CONST = {
                 [PLATFORM_OS_MACOS]: {input: keyInputEnter},
                 [PLATFORM_IOS]: {input: keyInputEnter},
             },
-            type: '',
         },
         CTRL_ENTER: {
             descriptionKey: null,
@@ -312,7 +309,6 @@ const CONST = {
                 [PLATFORM_OS_MACOS]: {input: keyInputEnter, modifierFlags: keyModifierCommand},
                 [PLATFORM_IOS]: {input: keyInputEnter, modifierFlags: keyModifierCommand},
             },
-            type: '',
         },
         COPY: {
             descriptionKey: 'copy',
@@ -323,7 +319,6 @@ const CONST = {
                 [PLATFORM_OS_MACOS]: {input: 'c', modifierFlags: keyModifierCommand},
                 [PLATFORM_IOS]: {input: 'c', modifierFlags: keyModifierCommand},
             },
-            type: '',
         },
         ARROW_UP: {
             descriptionKey: null,
@@ -334,7 +329,6 @@ const CONST = {
                 [PLATFORM_OS_MACOS]: {input: keyInputUpArrow},
                 [PLATFORM_IOS]: {input: keyInputUpArrow},
             },
-            type: '',
         },
         ARROW_DOWN: {
             descriptionKey: null,
@@ -345,13 +339,11 @@ const CONST = {
                 [PLATFORM_OS_MACOS]: {input: keyInputDownArrow},
                 [PLATFORM_IOS]: {input: keyInputDownArrow},
             },
-            type: '',
         },
         TAB: {
             descriptionKey: null,
             shortcutKey: 'Tab',
             modifiers: [],
-            type: '',
         },
     },
     KEYBOARD_SHORTCUTS_TYPES: {
