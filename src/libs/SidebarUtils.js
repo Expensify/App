@@ -192,7 +192,9 @@ function getOrderedReportIDs(reportIDFromRoute) {
  * @returns {Object}
  */
 function getOptionData(reportID) {
-    const report = chatReports[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`];
+    const reportKey = `${ONYXKEYS.COLLECTION.REPORT}${reportID}`;
+    const report = chatReports[reportKey]
+        || iouReports[reportKey];
 
     // When a user signs out, Onyx is cleared. Due to the lazy rendering with a virtual list, it's possible for
     // this method to be called after the Onyx data has been cleared out. In that case, it's fine to do
@@ -229,6 +231,7 @@ function getOptionData(reportID) {
         isArchivedRoom: false,
         shouldShowSubscript: false,
         isPolicyExpenseChat: false,
+        isMoneyRequestReport: false,
     };
 
     const participantPersonalDetailList = _.values(OptionsListUtils.getPersonalDetailsForLogins(report.participants, personalDetails));
@@ -237,7 +240,8 @@ function getOptionData(reportID) {
     result.isChatRoom = ReportUtils.isChatRoom(report);
     result.isArchivedRoom = ReportUtils.isArchivedRoom(report);
     result.isPolicyExpenseChat = ReportUtils.isPolicyExpenseChat(report);
-    result.shouldShowSubscript = result.isPolicyExpenseChat && !report.isOwnPolicyExpenseChat && !result.isArchivedRoom;
+    result.isMoneyRequestReport = ReportUtils.isMoneyRequestReport(report);
+    result.shouldShowSubscript = (result.isPolicyExpenseChat && !report.isOwnPolicyExpenseChat && !result.isArchivedRoom) || ReportUtils.isIOUReport(report);
     result.pendingAction = report.pendingFields ? (report.pendingFields.addWorkspaceRoom || report.pendingFields.createChat) : null;
     result.allReportErrors = OptionsListUtils.getAllReportErrors(report, reportActions);
     result.brickRoadIndicator = !_.isEmpty(result.allReportErrors) ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : '';
