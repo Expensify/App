@@ -1157,7 +1157,7 @@ export default {
         assigneeError: 'There was an error assigning this task, please try another assignee',
         confirmTask: 'Confirm task',
         confirmError: 'Please enter a title and select a share destination',
-        title: 'Task title',
+        title: 'Title',
         description: 'Description',
         descriptionOptional: 'Description (optional)',
         shareSomewhere: 'Share somewhere',

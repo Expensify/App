@@ -1,6 +1,6 @@
 import React from 'react';
 import {View, TouchableOpacity} from 'react-native';
-import PropTypes from 'prop-types';
+import PropTypes, {string} from 'prop-types';
 import styles from '../styles/styles';
 import Icon from './Icon';
 import * as Expensicons from './Icon/Expensicons';
@@ -48,6 +48,7 @@ const defaultProps = {
 };
 
 const TaskSelectorLink = (props) => {
+    const shortenedText = props.text.length > 35 ? `${props.text.substring(0, 35)}...` : props.text;
     const displayNameStyle = StyleUtils.combineStyles(styles.optionDisplayName, styles.pre);
     const alternateTextStyle = StyleUtils.combineStyles(styles.sidebarLinkText, styles.optionAlternateText, styles.textLabelSupporting, styles.pre);
     const linkBottomMargin = props.icons.length !== 0 ? styles.mb6 : styles.mb2;
@@ -63,7 +64,7 @@ const TaskSelectorLink = (props) => {
                                 <View style={[styles.flexColumn]}>
                                     <DisplayNames
                                         accessibilityLabel={props.translate('accessibilityHints.chatUserDisplayNames')}
-                                        fullTitle={props.text}
+                                        fullTitle={shortenedText}
                                         tooltipEnabled={false}
                                         numberOfLines={1}
                                         textStyles={displayNameStyle}
@@ -71,7 +72,7 @@ const TaskSelectorLink = (props) => {
                                     />
                                     {props.alternateText ? (
                                         <Text style={alternateTextStyle} numberOfLines={1}>
-                                            {props.alternateText}
+                                            {String.sub.tr(props.alternateText)}
                                         </Text>
                                     ) : null}
                                 </View>

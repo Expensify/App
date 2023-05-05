@@ -1158,7 +1158,7 @@ export default {
         assigneeError: 'Hubo un error al asignar esta tarea, intente con otro cesionario',
         confirmTask: 'Confirmar tarea',
         confirmError: 'Por favor introduce un título y selecciona un destino de tarea',
-        title: 'Título de la tarea',
+        title: 'Título',
         description: 'Descripción',
         descriptionOptional: 'Descripción (opcional)',
         shareSomewhere: 'Compartir en algún lugar',
