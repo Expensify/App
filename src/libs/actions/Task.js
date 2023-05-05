@@ -118,7 +118,7 @@ function createTaskAndNavigate(currentUserEmail, parentReportID, title, descript
 
     clearOutTaskInfo();
 
-    Navigation.navigate(ROUTES.getReportRoute(optimisticTaskReport.taskReportID));
+    Navigation.navigate(ROUTES.getReportRoute(optimisticTaskReport.reportID));
 }
 
 /**

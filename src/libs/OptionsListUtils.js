@@ -849,8 +849,8 @@ function getNewChatOptions(
 function getShareDestinationOptions(reports, personalDetails, betas = [], searchValue = '', selectedOptions = [], excludeLogins = [], includeOwnedWorkspaceChats = true) {
     return getOptions(reports, personalDetails, {
         betas,
-        selectedOptions,
         searchInputValue: searchValue.trim(),
+        selectedOptions,
         includeRecentReports: true,
         includeMultipleParticipantReports: true,
         includePersonalDetails: true,

@@ -51,12 +51,14 @@ const TaskAssigneeSelectorModal = (props) => {
     const [headerMessage, setHeaderMessage] = useState('');
     const [filteredRecentReports, setFilteredRecentReports] = useState([]);
     const [filteredPersonalDetails, setFilteredPersonalDetails] = useState([]);
+    const [filteredUserToInvite, setFilteredUserToInvite] = useState(null);
 
     useEffect(() => {
         const results = OptionsListUtils.getNewChatOptions(props.reports, props.personalDetails, props.betas, '', [], CONST.EXPENSIFY_EMAILS, false);
 
         setFilteredRecentReports(results.recentReports);
         setFilteredPersonalDetails(results.personalDetails);
+        setFilteredUserToInvite(results.userToInvite);
     }, [props]);
 
     const updateOptions = useCallback(() => {
@@ -72,6 +74,7 @@ const TaskAssigneeSelectorModal = (props) => {
 
         setHeaderMessage(OptionsListUtils.getHeaderMessage(recentReports?.length + personalDetails?.length !== 0, Boolean(userToInvite), searchValue));
 
+        setFilteredUserToInvite(userToInvite);
         setFilteredRecentReports(recentReports);
         setFilteredPersonalDetails(personalDetails);
     }, [props, searchValue]);
@@ -114,6 +117,14 @@ const TaskAssigneeSelectorModal = (props) => {
             indexOffset,
         });
         indexOffset += filteredRecentReports?.length;
+
+        if (filteredUserToInvite) {
+            sections.push({
+                data: [filteredUserToInvite],
+                shouldShow: filteredUserToInvite?.length > 0,
+                indexOffset,
+            });
+        }
 
         return sections;
     };
