@@ -37,7 +37,6 @@ function createTaskAndNavigate(currentUserEmail, parentReportID, title, descript
     }
     let optimisticAssigneeAddComment;
     if (assigneeChatReportID && assigneeChatReportID !== parentReportID) {
-        console.log('creating assignee comment');
         optimisticAssigneeAddComment = ReportUtils.buildOptimisticAddCommentReportAction(`${currentUserEmail} has[created a task for you](tbd/r/${optimisticTaskReport.reportID}): ${title}`);
         optimisticAssigneeAddComment.reportAction.message[0].taskReportID = optimisticTaskReport.reportID;
     }
@@ -55,7 +54,7 @@ function createTaskAndNavigate(currentUserEmail, parentReportID, title, descript
             value: optimisticTaskReport,
         },
         {
-            onyxMethod: Onyx.METHOD.MERGE,
+            onyxMethod: Onyx.METHOD.SET,
             key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${optimisticTaskReport.reportID}`,
             value: {[optimisticTaskCreatedAction.reportActionID]: optimisticTaskCreatedAction},
         },
@@ -70,7 +69,7 @@ function createTaskAndNavigate(currentUserEmail, parentReportID, title, descript
         optimisticData.push({
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${assigneeChatReportID}`,
-            value: {[optimisticAssigneeAddComment.reportActionID]: optimisticAssigneeAddComment},
+            value: optimisticAssigneeAddComment,
         });
     }
 

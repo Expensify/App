@@ -1398,7 +1398,7 @@ function buildOptimisticWorkspaceChats(policyID, policyName) {
 
 function buildOptimisticTaskReport(ownerEmail, assignee = null, parentReportID, title, description) {
     return {
-        taskReportID: generateReportID(),
+        reportID: generateReportID(),
         reportName: title,
         description,
         ownerEmail,

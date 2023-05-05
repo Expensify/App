@@ -105,6 +105,9 @@ const NewTaskPage = (props) => {
 
     useEffect(() => {
         setSubmitError(false);
+
+        // If we have an assignee, we want to set the assignee data
+        // If there's an issue with the assignee chosen, we want to notify the user
         if (props.task.assignee) {
             const assigneeDetails = lodashGet(props.personalDetails, props.task.assignee);
             if (!assigneeDetails) {
@@ -121,6 +124,9 @@ const NewTaskPage = (props) => {
         if (props.task.parentReportID) {
             TaskUtils.setShareDestinationValue(props.task.parentReportID);
         }
+
+        // If we have a share destination, we want to set the parent report and
+        // the share destination data
         if (props.task.shareDestination) {
             setParentReport(lodashGet(props.reports, `report_${props.task.shareDestination}`, {}));
             const displayDetails = constructShareDestination(props.task.shareDestination, props.reports, props.personalDetails, props.policies);
