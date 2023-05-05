@@ -140,10 +140,10 @@ class AddPlaidBankAccount extends React.Component {
         }
 
         // find and block the shortcuts
-        const shortcutsToBlock = _.filter(CONST.KEYBOARD_SHORTCUTS, (x) => x.type === CONST.KEYBOARD_SHORTCUTS_TYPES.NAVIGATION_SHORTCUT);
+        const shortcutsToBlock = _.filter(CONST.KEYBOARD_SHORTCUTS, x => x.type === CONST.KEYBOARD_SHORTCUTS_TYPES.NAVIGATION_SHORTCUT);
         const unsubscribeCallbacks = _.map(
             shortcutsToBlock,
-            (shortcut) => KeyboardShortcut.subscribe(
+            shortcut => KeyboardShortcut.subscribe(
                 shortcut.shortcutKey,
                 () => {}, // do nothing
                 shortcut.descriptionKey,
