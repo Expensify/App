@@ -98,7 +98,7 @@ class ReportDetailsPage extends Component {
     render() {
         const isPolicyExpenseChat = ReportUtils.isPolicyExpenseChat(this.props.report);
         const isChatRoom = ReportUtils.isChatRoom(this.props.report);
-        const chatRoomSubtitle = ReportUtils.getChatRoomSubtitle(this.props.report, this.props.policies);
+        const chatRoomSubtitle = ReportUtils.getChatRoomSubtitle(this.props.report);
         const participants = lodashGet(this.props.report, 'participants', []);
         const isMultipleParticipant = participants.length > 1;
         const displayNamesWithTooltips = ReportUtils.getDisplayNamesWithTooltips(
@@ -127,7 +127,7 @@ class ReportDetailsPage extends Component {
                                 <View style={[styles.reportDetailsRoomInfo, styles.mw100]}>
                                     <View style={[styles.alignSelfCenter, styles.w100]}>
                                         <DisplayNames
-                                            fullTitle={ReportUtils.getReportName(this.props.report, this.props.policies)}
+                                            fullTitle={ReportUtils.getReportName(this.props.report)}
                                             displayNamesWithTooltips={displayNamesWithTooltips}
                                             tooltipEnabled
                                             numberOfLines={1}

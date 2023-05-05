@@ -75,6 +75,7 @@ class ButtonWithMenu extends PureComponent {
                         text={selectedItem.text}
                         onPress={event => this.props.onPress(event, this.props.options[0].value)}
                         pressOnEnter
+                        enterKeyEventListenerPriority={1}
                     />
                 )}
                 {this.props.options.length > 1 && (
