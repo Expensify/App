@@ -2,7 +2,6 @@ import React, {Component} from 'react';
 import PropTypes from 'prop-types';
 import {View} from 'react-native';
 import styles from '../styles/styles';
-import CONST from '../CONST';
 import * as IOU from '../libs/actions/IOU';
 import * as ReportActions from '../libs/actions/ReportActions';
 import reportActionPropTypes from '../pages/home/report/reportActionPropTypes';
@@ -57,16 +56,7 @@ class ReportTransaction extends Component {
     render() {
         return (
             <OfflineWithFeedback
-                onClose={() => {
-                    if (this.props.action.actionName === CONST.REPORT.ACTIONS.TYPE.IOU) {
-                        ReportActions.clearSendMoneyErrors(this.props.chatReportID, this.props.action.reportActionID);
-                    }
-                    if (this.props.action.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD) {
-                        ReportActions.deleteOptimisticReportAction(this.props.chatReportID, this.props.action.reportActionID);
-                    } else {
-                        ReportActions.clearReportActionErrors(this.props.chatReportID, this.props.action.reportActionID);
-                    }
-                }}
+                onClose={() => ReportActions.clearReportActionErrors(this.props.chatReportID, this.props.action)}
                 pendingAction={this.props.action.pendingAction}
                 errors={this.props.action.errors}
                 errorRowStyles={[styles.ml10, styles.mr2]}
