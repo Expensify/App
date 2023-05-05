@@ -109,7 +109,7 @@ describe('actions/Report', () => {
                 const channel = Pusher.getChannel(`${CONST.PUSHER.PRIVATE_USER_CHANNEL_PREFIX}1${CONFIG.PUSHER.SUFFIX}`);
                 channel.emit(Pusher.TYPE.ONYX_API_UPDATE, [
                     {
-                        onyxMethod: CONST.ONYX.METHOD.MERGE,
+                        onyxMethod: Onyx.METHOD.MERGE,
                         key: `${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`,
                         value: {
                             reportID: REPORT_ID,
@@ -120,7 +120,7 @@ describe('actions/Report', () => {
                         },
                     },
                     {
-                        onyxMethod: CONST.ONYX.METHOD.MERGE,
+                        onyxMethod: Onyx.METHOD.MERGE,
                         key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${REPORT_ID}`,
                         value: {
                             [reportActionID]: {pendingAction: null},
@@ -239,7 +239,7 @@ describe('actions/Report', () => {
                 reportActionCreatedDate = DateUtils.getDBTime();
                 channel.emit(Pusher.TYPE.ONYX_API_UPDATE, [
                     {
-                        onyxMethod: CONST.ONYX.METHOD.MERGE,
+                        onyxMethod: Onyx.METHOD.MERGE,
                         key: `${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`,
                         value: {
                             reportID: REPORT_ID,
@@ -252,7 +252,7 @@ describe('actions/Report', () => {
                         },
                     },
                     {
-                        onyxMethod: CONST.ONYX.METHOD.MERGE,
+                        onyxMethod: Onyx.METHOD.MERGE,
                         key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${REPORT_ID}`,
                         value: {
                             1: {
@@ -354,7 +354,7 @@ describe('actions/Report', () => {
 
                 jest.advanceTimersByTime(10);
                 const optimisticReportActions = {
-                    onyxMethod: CONST.ONYX.METHOD.MERGE,
+                    onyxMethod: Onyx.METHOD.MERGE,
                     key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${REPORT_ID}`,
                     value: {
                         200: {
@@ -384,7 +384,7 @@ describe('actions/Report', () => {
                 // When we emit the events for these pending created actions to update them to not pending
                 channel.emit(Pusher.TYPE.ONYX_API_UPDATE, [
                     {
-                        onyxMethod: CONST.ONYX.METHOD.MERGE,
+                        onyxMethod: Onyx.METHOD.MERGE,
                         key: `${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`,
                         value: {
                             reportID: REPORT_ID,
@@ -525,7 +525,7 @@ describe('actions/Report', () => {
                 const channel = Pusher.getChannel(`${CONST.PUSHER.PRIVATE_USER_CHANNEL_PREFIX}${TEST_USER_ACCOUNT_ID}${CONFIG.PUSHER.SUFFIX}`);
                 channel.emit(Pusher.TYPE.ONYX_API_UPDATE, [
                     {
-                        onyxMethod: CONST.ONYX.METHOD.MERGE,
+                        onyxMethod: Onyx.METHOD.MERGE,
                         key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${REPORT_ID}`,
                         value: {
                             1: REPORT_ACTION,
