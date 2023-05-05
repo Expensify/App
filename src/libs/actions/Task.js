@@ -49,7 +49,7 @@ function createTaskAndNavigate(currentUserEmail, parentReportID, title, descript
             value: optimisticTaskReport,
         },
         {
-            onyxMethod: CONST.ONYX.METHOD.MERGE,
+            onyxMethod: Onyx.merge,
             key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${optimisticTaskReport.reportID}`,
             value: {[optimisticTaskCreatedAction.reportActionID]: optimisticTaskCreatedAction},
         },
@@ -59,12 +59,12 @@ function createTaskAndNavigate(currentUserEmail, parentReportID, title, descript
 
     const failureData = [
         {
-            onyxMethod: CONST.ONYX.METHOD.MERGE,
+            onyxMethod: Onyx.merge,
             key: `${ONYXKEYS.COLLECTION.REPORT}${optimisticTaskReport.reportID}`,
             value: null,
         },
         {
-            onyxMethod: CONST.ONYX.METHOD.MERGE,
+            onyxMethod: Onyx.merge,
             key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${optimisticTaskReport.reportID}`,
             value: {[optimisticTaskCreatedAction.reportActionID]: {pendingAction: null}},
         },
