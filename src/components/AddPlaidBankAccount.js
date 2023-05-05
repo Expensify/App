@@ -76,7 +76,7 @@ class AddPlaidBankAccount extends React.Component {
         super(props);
 
         this.getPlaidLinkToken = this.getPlaidLinkToken.bind(this);
-        this.subscribedKeyboardShortcuts = []
+        this.subscribedKeyboardShortcuts = [];
     }
 
     componentDidMount() {
@@ -91,9 +91,9 @@ class AddPlaidBankAccount extends React.Component {
     componentDidUpdate(prevProps) {
         // block keyboard shortcuts that can navigate when plaid modal is shown
         if (lodashGet(this.props.plaidData, 'bankAccounts', []).length > 0) {
-            this.unblockKeyboardShortcuts()
+            this.unblockKeyboardShortcuts();
         } else {
-            this.blockKeyboardShortcuts()
+            this.blockKeyboardShortcuts();
         }
 
         if (!prevProps.network.isOffline || this.props.network.isOffline || this.isAuthenticatedWithPlaid()) {
@@ -105,39 +105,7 @@ class AddPlaidBankAccount extends React.Component {
     }
 
     componentWillUnmount() {
-        this.unblockKeyboardShortcuts()
-    }
-
-    /**
-     * Blocks the keyboard shortcuts that can navigate
-     */
-    blockKeyboardShortcuts() {
-        // return early if shortcuts already blocked
-        if (this.subscribedKeyboardShortcuts.length > 0) return
-
-        // find and block the shortcuts
-        const shortcutsToBlock = Object.values(CONST.KEYBOARD_SHORTCUTS).filter(x => x.type === CONST.KEYBOARD_SHORTCUTS_TYPES.NAVIGATION_SHORTCUT)
-        const unsubscribeCallbacks = shortcutsToBlock.map(shortcut => {
-            return KeyboardShortcut.subscribe(
-                shortcut.shortcutKey,
-                () => {}, // do nothing
-                shortcut.descriptionKey,
-                shortcut.modifiers,
-                false,
-                false, // stop bubbling
-            )
-        })
-        this.subscribedKeyboardShortcuts = unsubscribeCallbacks
-    }
-
-    /**
-     * Unblocks the keyboard shortcuts that can navigate
-     */
-    unblockKeyboardShortcuts() {
-        if (this.subscribedKeyboardShortcuts.length > 0) {
-            _.each(this.subscribedKeyboardShortcuts, unsubscribe => unsubscribe());
-            this.subscribedKeyboardShortcuts = []
-        }
+        this.unblockKeyboardShortcuts();
     }
 
     /**
@@ -160,6 +128,43 @@ class AddPlaidBankAccount extends React.Component {
         return ((this.props.receivedRedirectURI && this.props.plaidLinkOAuthToken)
                 || !_.isEmpty(lodashGet(this.props.plaidData, 'bankAccounts'))
                 || !_.isEmpty(lodashGet(this.props.plaidData, 'errors')));
+    }
+
+    /**
+     * Blocks the keyboard shortcuts that can navigate
+     */
+    blockKeyboardShortcuts() {
+        // return early if shortcuts already blocked
+        if (this.subscribedKeyboardShortcuts.length > 0) {
+            return;
+        } 
+
+        // find and block the shortcuts
+        const shortcutsToBlock = _.filter(CONST.KEYBOARD_SHORTCUTS, (x) => x.type === CONST.KEYBOARD_SHORTCUTS_TYPES.NAVIGATION_SHORTCUT);
+        const unsubscribeCallbacks = _.map(
+            shortcutsToBlock,
+            (shortcut) => {
+                return KeyboardShortcut.subscribe(
+                    shortcut.shortcutKey,
+                    () => {}, // do nothing
+                    shortcut.descriptionKey,
+                    shortcut.modifiers,
+                    false,
+                    false, // stop bubbling
+                );
+            }
+        );
+        this.subscribedKeyboardShortcuts = unsubscribeCallbacks;
+    }
+
+    /**
+     * Unblocks the keyboard shortcuts that can navigate
+     */
+    unblockKeyboardShortcuts() {
+        if (this.subscribedKeyboardShortcuts.length > 0) {
+            _.each(this.subscribedKeyboardShortcuts, unsubscribe => unsubscribe());
+            this.subscribedKeyboardShortcuts = [];
+        }
     }
 
     render() {

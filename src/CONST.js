@@ -24,7 +24,7 @@ const keyInputUpArrow = lodashGet(KeyCommand, 'constants.keyInputUpArrow', 'keyI
 const keyInputDownArrow = lodashGet(KeyCommand, 'constants.keyInputDownArrow', 'keyInputDownArrow');
 
 // describes if a shortcut key can cause navigation
-const KEYBOARD_SHORTCUT_NAVIGATION_TYPE = 'NAVIGATION_SHORTCUT'
+const KEYBOARD_SHORTCUT_NAVIGATION_TYPE = 'NAVIGATION_SHORTCUT';
 
 const CONST = {
     ANDROID_PACKAGE_NAME,
