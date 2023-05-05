@@ -389,11 +389,12 @@ class Composer extends React.Component {
      * @param {Boolean} [delay=false] Whether to delay the focus
      */
     focus(onDone, delay) {
+        // On web we need to run any effects before the focus
+        if (onDone) {
+            onDone();
+        }
         setTimeout(() => {
             this.textInput.focusInput();
-            if (onDone) {
-                onDone();
-            }
         }, delay ? 100 : 0);
     }
 
