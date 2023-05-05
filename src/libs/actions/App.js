@@ -97,7 +97,7 @@ function setLocale(locale) {
     // Optimistically change preferred locale
     const optimisticData = [
         {
-            onyxMethod: CONST.ONYX.METHOD.MERGE,
+            onyxMethod: Onyx.METHOD.MERGE,
             key: ONYXKEYS.NVP_PREFERRED_LOCALE,
             value: locale,
         },
@@ -148,21 +148,21 @@ function openApp() {
                 API.read('OpenApp', {policyIDList: getNonOptimisticPolicyIDs(policies)}, {
                     optimisticData: [
                         {
-                            onyxMethod: CONST.ONYX.METHOD.MERGE,
+                            onyxMethod: Onyx.METHOD.MERGE,
                             key: ONYXKEYS.IS_LOADING_REPORT_DATA,
                             value: true,
                         },
                     ],
                     successData: [
                         {
-                            onyxMethod: CONST.ONYX.METHOD.MERGE,
+                            onyxMethod: Onyx.METHOD.MERGE,
                             key: ONYXKEYS.IS_LOADING_REPORT_DATA,
                             value: false,
                         },
                     ],
                     failureData: [
                         {
-                            onyxMethod: CONST.ONYX.METHOD.MERGE,
+                            onyxMethod: Onyx.METHOD.MERGE,
                             key: ONYXKEYS.IS_LOADING_REPORT_DATA,
                             value: false,
                         },
@@ -179,17 +179,17 @@ function openApp() {
 function reconnectApp() {
     API.write(CONST.NETWORK.COMMAND.RECONNECT_APP, {policyIDList: getNonOptimisticPolicyIDs(allPolicies)}, {
         optimisticData: [{
-            onyxMethod: CONST.ONYX.METHOD.MERGE,
+            onyxMethod: Onyx.METHOD.MERGE,
             key: ONYXKEYS.IS_LOADING_REPORT_DATA,
             value: true,
         }],
         successData: [{
-            onyxMethod: CONST.ONYX.METHOD.MERGE,
+            onyxMethod: Onyx.METHOD.MERGE,
             key: ONYXKEYS.IS_LOADING_REPORT_DATA,
             value: false,
         }],
         failureData: [{
-            onyxMethod: CONST.ONYX.METHOD.MERGE,
+            onyxMethod: Onyx.METHOD.MERGE,
             key: ONYXKEYS.IS_LOADING_REPORT_DATA,
             value: false,
         }],
@@ -313,7 +313,7 @@ function openProfile() {
         timezone: JSON.stringify(newTimezoneData),
     }, {
         optimisticData: [{
-            onyxMethod: CONST.ONYX.METHOD.MERGE,
+            onyxMethod: Onyx.METHOD.MERGE,
             key: ONYXKEYS.PERSONAL_DETAILS,
             value: {
                 [currentUserEmail]: {
@@ -322,7 +322,7 @@ function openProfile() {
             },
         }],
         failureData: [{
-            onyxMethod: CONST.ONYX.METHOD.MERGE,
+            onyxMethod: Onyx.METHOD.MERGE,
             key: ONYXKEYS.PERSONAL_DETAILS,
             value: {
                 [currentUserEmail]: {

@@ -117,6 +117,7 @@ export default {
     VALIDATE_LOGIN: 'v/:accountID/:validateCode',
     GET_ASSISTANCE: 'get-assistance/:taskID',
     getGetAssistanceRoute: taskID => `get-assistance/${taskID}`,
+    UNLINK_LOGIN: 'u/:accountID/:validateCode',
 
     // This is a special validation URL that will take the user to /workspace/new after validation. This is used
     // when linking users from e.com in order to share a session in this app.
