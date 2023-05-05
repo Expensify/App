@@ -95,7 +95,7 @@ function convertToSmallestUnit(currency, amountAsFloat) {
  * Given [2550, USD], return 25.50
  * Given [2500, JPY], return 2500
  *
- * @note we do not currency support any currencies with more than two decimal places.
+ * @note we do not support any currencies with more than two decimal places.
  *
  * @param {String} currency
  * @param {Number} amountAsInt
