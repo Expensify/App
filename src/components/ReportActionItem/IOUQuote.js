@@ -54,6 +54,9 @@ const defaultProps = {
 };
 
 const IOUQuote = (props) => {
+
+    const reportCurrency = CurrencyUtils.convertToDisplayString(props.iouReport.total, props.iouReport.currency);
+
     return (
         <View style={[styles.chatItemMessage, styles.mt4]}>
             {_.map(props.action.message, (fragment, index) => (
@@ -72,14 +75,9 @@ const IOUQuote = (props) => {
                     style={[styles.flexRow, styles.justifyContentBetween]}
                     focusable
                 >
-                     <Text style={[styles.flex1, styles.mr2]}>
-                        <Text style={styles.chatItemMessageLink}>
-                            {/* Get first word of IOU message */}
-                            {fragment.text.split(' ')[0]}
-                        </Text>
+                    <Text style={[styles.flex1, styles.mr2]}>
                         <Text style={[styles.chatItemMessage, styles.cursorPointer]}>
-                            {/* Get remainder of IOU message */}
-                            {fragment.text.substring(fragment.text.indexOf(' '))}
+                            {'Duraflame owes ' + reportCurrency}
                         </Text>
                     </Text>
                     <Icon src={Expensicons.ArrowRight} fill={StyleUtils.getIconFillColor(getButtonState(props.isHovered))} />
