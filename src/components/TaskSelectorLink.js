@@ -72,7 +72,7 @@ const TaskSelectorLink = (props) => {
                                     />
                                     {props.alternateText ? (
                                         <Text style={alternateTextStyle} numberOfLines={1}>
-                                            {String.sub.tr(props.alternateText)}
+                                            {props.alternateText}
                                         </Text>
                                     ) : null}
                                 </View>

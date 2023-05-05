@@ -44,12 +44,10 @@ const TaskAssigneeSelectorModal = (props) => {
     const [headerMessage, setHeaderMessage] = useState('');
     const [filteredRecentReports, setFilteredRecentReports] = useState([]);
     const [filteredPersonalDetails, setFilteredPersonalDetails] = useState([]);
-    const [filteredUserToInvite, setFilteredUserToInvite] = useState(null);
 
     useEffect(() => {
         const results = OptionsListUtils.getNewChatOptions(props.reports, props.personalDetails, props.betas, '', [], [], false);
 
-        setFilteredUserToInvite(results.userToInvite);
         setFilteredRecentReports(results.recentReports);
         setFilteredPersonalDetails(results.personalDetails);
     }, [props]);
@@ -59,7 +57,6 @@ const TaskAssigneeSelectorModal = (props) => {
 
         setHeaderMessage(OptionsListUtils.getHeaderMessage(recentReports?.length + personalDetails?.length !== 0, Boolean(userToInvite), searchValue));
 
-        setFilteredUserToInvite(userToInvite);
         setFilteredRecentReports(recentReports);
         setFilteredPersonalDetails(personalDetails);
     }, [props, searchValue]);
@@ -87,32 +84,21 @@ const TaskAssigneeSelectorModal = (props) => {
         const sections = [];
         let indexOffset = 0;
 
-        if (filteredRecentReports?.length > 0) {
-            sections.push({
-                title: props.translate('common.recents'),
-                data: filteredRecentReports,
-                shouldShow: true,
-                indexOffset,
-            });
-            indexOffset += filteredRecentReports?.length;
-        }
+        sections.push({
+            title: props.translate('common.recents'),
+            data: filteredRecentReports,
+            shouldShow: filteredRecentReports?.length > 0,
+            indexOffset,
+        });
+        indexOffset += filteredRecentReports?.length;
 
-        if (filteredPersonalDetails?.length > 0) {
-            sections.push({
-                data: filteredPersonalDetails,
-                shouldShow: true,
-                indexOffset,
-            });
-            indexOffset += filteredRecentReports?.length;
-        }
-
-        if (filteredUserToInvite) {
-            sections.push({
-                data: [filteredUserToInvite],
-                shouldShow: true,
-                indexOffset,
-            });
-        }
+        sections.push({
+            title: props.translate('common.contacts'),
+            data: filteredPersonalDetails,
+            shouldShow: filteredPersonalDetails?.length > 0,
+            indexOffset,
+        });
+        indexOffset += filteredRecentReports?.length;
 
         return sections;
     };
