@@ -12,7 +12,6 @@ import ROUTES from '../ROUTES';
 const propTypes = {
     /** The accountID and validateCode are passed via the URL */
     route: validateLinkPropTypes,
-
 };
 
 const defaultProps = {
