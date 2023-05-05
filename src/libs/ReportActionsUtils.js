@@ -82,7 +82,8 @@ function getSortedReportActions(reportActions, shouldSortInDescendingOrder = fal
  * @returns {String}
  */
 function getMostRecentIOURequestActionID(reportActions) {
-    const iouRequestActions = _.filter(reportActions, action => lodashGet(action, 'originalMessage.type') === CONST.IOU.REPORT_ACTION_TYPE.CREATE);
+    const iouRequestTypes = [CONST.IOU.REPORT_ACTION_TYPE.CREATE, CONST.IOU.REPORT_ACTION_TYPE.SPLIT];
+    const iouRequestActions = _.filter(reportActions, action => iouRequestTypes.includes(lodashGet(action, 'originalMessage.type')));
 
     if (_.isEmpty(iouRequestActions)) {
         return null;

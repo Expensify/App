@@ -78,6 +78,9 @@ const IOUAction = (props) => {
         }
     };
 
+    // REMEMBER TO DELETE ALL THIS OLD USELESS LOGIC !!!!!!!!!!!!!!!!!!!! 
+    const shouldShowIOUPreview = props.isMostRecentIOUReportAction || props.action.originalMessage.type === 'pay';
+
     let shouldShowPendingConversionMessage = false;
     if (
         !_.isEmpty(props.iouReport)
