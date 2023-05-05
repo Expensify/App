@@ -308,6 +308,7 @@ export default {
     iou: {
         amount: 'Amount',
         cash: 'Cash',
+        split: 'Split',
         participants: 'Participants',
         splitBill: 'Split bill',
         requestMoney: 'Request money',
@@ -317,13 +318,8 @@ export default {
         settleExpensify: 'Pay with Expensify',
         settleElsewhere: 'I\'ll settle up elsewhere',
         settlePaypalMe: 'Pay with PayPal.me',
-        request: ({amount}) => `Request ${amount}`,
-        youowe: ({owner}) => `You owe ${owner}`,
-        youpaid: ({owner}) => `You paid ${owner}`,
-        owesyou: ({manager}) => `${manager} owes you`,
-        paidyou: ({manager}) => `${manager} paid you`,
-        split: ({amount}) => `Split ${amount}`,
-        send: ({amount}) => `Send ${amount}`,
+        requestAmount: ({amount}) => `request ${amount}`,
+        splitAmount: ({amount}) => `split ${amount}`,
         noReimbursableExpenses: 'This report has an invalid amount',
         pendingConversionMessage: 'Total will update when you\'re back online',
         error: {

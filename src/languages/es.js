@@ -307,6 +307,7 @@ export default {
     iou: {
         amount: 'Importe',
         cash: 'Efectivo',
+        split: 'Dividir',
         participants: 'Participantes',
         splitBill: 'Dividir factura',
         requestMoney: 'Pedir dinero',
@@ -316,13 +317,8 @@ export default {
         settleExpensify: 'Pagar con Expensify',
         settleElsewhere: 'Voy a pagar de otra forma',
         settlePaypalMe: 'Pagar con PayPal.me',
-        request: ({amount}) => `Solicitar ${amount}`,
-        youowe: ({owner}) => `Le debes a ${owner}`,
-        youpaid: ({owner}) => `Le pagaste a ${owner}`,
-        owesyou: ({manager}) => `${manager} te debe`,
-        paidyou: ({manager}) => `${manager} te pagó`,
-        split: ({amount}) => `Dividir ${amount}`,
-        send: ({amount}) => `Enviar ${amount}`,
+        requestAmount: ({amount}) => `solicitar ${amount}`,
+        splitAmount: ({amount}) => `dividir ${amount}`,
         noReimbursableExpenses: 'El monto de este informe es inválido',
         pendingConversionMessage: 'El total se actualizará cuando estés online',
         error: {
