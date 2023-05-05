@@ -71,8 +71,9 @@ const defaultProps = {
  * @returns {Object}
  */
 function constructAssignee(details) {
+    const source = ReportUtils.getAvatar(lodashGet(details, 'avatar', ''), lodashGet(details, 'login', ''));
     return {
-        icons: [{source: ReportUtils.getAvatar(lodashGet(details, 'avatar', ''), lodashGet(details, 'login', '')), type: 'avatar', name: details.login}],
+        icons: [{source, type: 'avatar', name: details.login}],
         displayName: details.displayName,
         subtitle: details.login,
     };
@@ -99,17 +100,25 @@ const NewTaskPage = (props) => {
     const [assignee, setAssignee] = React.useState({});
     const [shareDestination, setShareDestination] = React.useState({});
     const [submitError, setSubmitError] = React.useState(false);
+    const [errorMessage, setErrorMessage] = React.useState(props.translate('newTaskPage.confirmError'));
     const [parentReport, setParentReport] = React.useState({});
 
     useEffect(() => {
         setSubmitError(false);
         if (props.task.assignee) {
             const assigneeDetails = lodashGet(props.personalDetails, props.task.assignee);
+            if (!assigneeDetails) {
+                setSubmitError(true);
+                return setErrorMessage(props.translate('newTaskPage.assigneeError'));
+            }
             const displayDetails = constructAssignee(assigneeDetails);
             setAssignee(displayDetails);
         }
+
+        // We only set the parentReportID if we are creating a task from a report
+        // this allows us to go ahead and set that report as the share destination
+        // and disable the share destination selector
         if (props.task.parentReportID) {
-            setParentReport(lodashGet(props.reports, `report_${props.task.parentReportID}`, {}));
             TaskUtils.setShareDestinationValue(props.task.parentReportID);
         }
         if (props.task.shareDestination) {
@@ -174,7 +183,7 @@ const NewTaskPage = (props) => {
                 </View>
                 <FormAlertWithSubmitButton
                     isAlertVisible={submitError}
-                    message={props.translate('newTaskPage.confirmError')}
+                    message={errorMessage}
                     onSubmit={() => onSubmit()}
                     buttonText={props.translate('newTaskPage.confirmTask')}
                     containerStyles={[styles.mh0, styles.mt5, styles.flex1]}

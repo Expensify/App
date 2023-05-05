@@ -1154,6 +1154,7 @@ export default {
         task: 'Task',
         assignTask: 'Assign task',
         assignee: 'Assignee',
+        assigneeError: 'There was an error assigning this task, please try another assignee',
         confirmTask: 'Confirm task',
         confirmError: 'Please enter a title and select a share destination',
         title: 'Task title',
