@@ -165,37 +165,35 @@ class HeaderWithCloseButton extends Component {
                     styles.overflowHidden,
                 ]}
                 >
-                    <View style={[styles.flexRow, styles.flex1]}>
-                        {this.props.shouldShowBackButton && (
-                            <Tooltip text={this.props.translate('common.back')}>
-                                <Pressable
-                                    onPress={() => {
-                                        if (this.props.isKeyboardShown) {
-                                            Keyboard.dismiss();
-                                        }
-                                        this.props.onBackButtonPress();
-                                    }}
-                                    style={[styles.touchableButtonImage]}
-                                >
-                                    <Icon src={Expensicons.BackArrow} />
-                                </Pressable>
-                            </Tooltip>
-                        )}
-                        {this.props.shouldShowAvatarWithDisplay && (
-                            <AvatarWithDisplayName
-                                report={this.props.report}
-                                policies={this.props.policies}
-                                personalDetails={this.props.personalDetails}
-                            />
-                        )}
-                    </View>
+                    {this.props.shouldShowBackButton && (
+                        <Tooltip text={this.props.translate('common.back')}>
+                            <Pressable
+                                onPress={() => {
+                                    if (this.props.isKeyboardShown) {
+                                        Keyboard.dismiss();
+                                    }
+                                    this.props.onBackButtonPress();
+                                }}
+                                style={[styles.touchableButtonImage]}
+                            >
+                                <Icon src={Expensicons.BackArrow} />
+                            </Pressable>
+                        </Tooltip>
+                    )}
+                    {this.props.shouldShowAvatarWithDisplay && (
+                        <AvatarWithDisplayName
+                            report={this.props.report}
+                            policies={this.props.policies}
+                            personalDetails={this.props.personalDetails}
+                        />
+                    )}
                     {!this.props.shouldShowAvatarWithDisplay && (
                         <Header
                             title={this.props.title}
                             subtitle={this.props.stepCounter && this.props.shouldShowStepCounter ? this.props.translate('stepCounter', this.props.stepCounter) : this.props.subtitle}
                         />
                     )}
-                    <View style={[styles.reportOptions, styles.flexRow]}>
+                    <View style={[styles.reportOptions, styles.flexRow, styles.pr5]}>
                         {
                             this.props.shouldShowDownloadButton && (
                             <Tooltip text={this.props.translate('common.download')}>
