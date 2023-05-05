@@ -143,8 +143,8 @@ const IOUPreview = (props) => {
     // Pay button should only be visible to the manager of the report.
     const isCurrentUserManager = managerEmail === sessionEmail;
 
-    // Get request formatting options, as long as currency is provided
-    const requestAmount = props.isBillSplit ? props.action.originalMessage.amount : props.iouReport.total;
+    // If props.action is undefined then we are displaying within IOUDetailsModal and should use the full report amount 
+    const requestAmount = lodashGet(props.action, 'originalMessage.amount', props.iouReport.total);
     const requestCurrency = props.isBillSplit ? lodashGet(props.action, 'originalMessage.currency', CONST.CURRENCY.USD) : props.iouReport.currency;
 
     const showContextMenu = (event) => {
