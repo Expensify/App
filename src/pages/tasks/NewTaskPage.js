@@ -45,6 +45,11 @@ const propTypes = {
         }),
     ),
 
+    /** Current user session */
+    session: PropTypes.shape({
+        email: PropTypes.string.isRequired,
+    }),
+
     /** All reports shared with the user */
     reports: PropTypes.objectOf(reportPropTypes),
 
@@ -56,6 +61,7 @@ const defaultProps = {
     task: {},
     personalDetails: {},
     reports: {},
+    session: {},
 };
 
 /**
@@ -122,7 +128,7 @@ const NewTaskPage = (props) => {
             return;
         }
 
-        TaskUtils.createTaskAndNavigate(parentReport.reportID, props.task.title, props.task.description, props.task.assignee);
+        TaskUtils.createTaskAndNavigate(props.session.email, parentReport.reportID, props.task.title, props.task.description, props.task.assignee);
     }
 
     if (!Permissions.canUseTasks(props.betas)) {
@@ -196,6 +202,9 @@ export default compose(
         },
         personalDetails: {
             key: ONYXKEYS.PERSONAL_DETAILS,
+        },
+        session: {
+            key: ONYXKEYS.SESSION,
         },
     }),
     withLocalize,

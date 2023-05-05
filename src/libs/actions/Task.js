@@ -7,19 +7,6 @@ import * as Report from './Report';
 import Navigation from '../Navigation/Navigation';
 import ROUTES from '../../ROUTES';
 
-let currentUserEmail;
-Onyx.connect({
-    key: ONYXKEYS.SESSION,
-    callback: (val) => {
-        // When signed out, val is undefined
-        if (!val) {
-            return;
-        }
-
-        currentUserEmail = val.email;
-    },
-});
-
 /**
  * Clears out the task info from the store
  */
@@ -38,7 +25,7 @@ function clearOutTaskInfo() {
  *
  */
 
-function createTaskAndNavigate(parentReportID, title, description, assignee) {
+function createTaskAndNavigate(currentUserEmail, parentReportID, title, description, assignee) {
     // Grab the assigneeChatReportID if there is an assignee
     const assigneeChatReportID = ReportUtils.getChatByParticipants([assignee]).reportID;
 
