@@ -140,16 +140,6 @@ class ReportActionItemMessageEdit extends React.Component {
     }
 
     /**
-     * Updates the composer when the comment length is exceeded
-     * Shows red borders and prevents the comment from being sent
-     *
-     * @param {Boolean} hasExceededMaxCommentLength
-     */
-    setExceededMaxCommentLength(hasExceededMaxCommentLength) {
-        this.setState({hasExceededMaxCommentLength});
-    }
-
-    /**
      * Update the value of the draft in Onyx
      *
      * @param {String} draft
@@ -257,6 +247,7 @@ class ReportActionItemMessageEdit extends React.Component {
         this.selection = newSelection;
         this.nextSelectionAfterEmojiInsertion = newSelection;
         this.updateDraft(newText);
+
         // TODO: this.updateDraft(ComposerUtils.insertText(this.state.draft, this.state.selection, emoji));
     }
 
@@ -401,7 +392,7 @@ class ReportActionItemMessageEdit extends React.Component {
                     </View>
 
                 </View>
-                <ExceededCommentLength commentLength={this.state.exceededCommentLength || 0} />
+                <ExceededCommentLength comment={this.draft} onExceededMaxCommentLength={console.log} />
             </>
         );
     }
