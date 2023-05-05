@@ -78,7 +78,7 @@ function updateLastAccessedWorkspace(policyID) {
 function deleteWorkspace(policyID, reports, policyName) {
     const optimisticData = [
         {
-            onyxMethod: CONST.ONYX.METHOD.MERGE,
+            onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
             value: {
                 pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
@@ -86,7 +86,7 @@ function deleteWorkspace(policyID, reports, policyName) {
             },
         },
         ..._.map(reports, ({reportID}) => ({
-            onyxMethod: CONST.ONYX.METHOD.MERGE,
+            onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
             value: {
                 stateNum: CONST.REPORT.STATE_NUM.SUBMITTED,
@@ -106,7 +106,7 @@ function deleteWorkspace(policyID, reports, policyName) {
             const optimisticReportActions = {};
             optimisticReportActions[optimisticClosedReportAction.reportActionID] = optimisticClosedReportAction;
             return {
-                onyxMethod: CONST.ONYX.METHOD.MERGE,
+                onyxMethod: Onyx.METHOD.MERGE,
                 key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`,
                 value: optimisticReportActions,
             };
@@ -118,7 +118,7 @@ function deleteWorkspace(policyID, reports, policyName) {
         ..._.map(reports, ({
             reportID, stateNum, statusNum, hasDraft, oldPolicyName,
         }) => ({
-            onyxMethod: CONST.ONYX.METHOD.MERGE,
+            onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
             value: {
                 stateNum,
@@ -208,17 +208,17 @@ function removeMembers(members, policyID) {
     }
     const membersListKey = `${ONYXKEYS.COLLECTION.POLICY_MEMBER_LIST}${policyID}`;
     const optimisticData = [{
-        onyxMethod: CONST.ONYX.METHOD.MERGE,
+        onyxMethod: Onyx.METHOD.MERGE,
         key: membersListKey,
         value: _.object(members, Array(members.length).fill({pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE})),
     }];
     const successData = [{
-        onyxMethod: CONST.ONYX.METHOD.MERGE,
+        onyxMethod: Onyx.METHOD.MERGE,
         key: membersListKey,
         value: _.object(members, Array(members.length).fill(null)),
     }];
     const failureData = [{
-        onyxMethod: CONST.ONYX.METHOD.MERGE,
+        onyxMethod: Onyx.METHOD.MERGE,
         key: membersListKey,
         value: _.object(members, Array(members.length).fill({errors: {[DateUtils.getMicroseconds()]: Localize.translateLocal('workspace.people.error.genericRemove')}})),
     }];
@@ -258,7 +258,7 @@ function createPolicyExpenseChats(policyID, members, betas) {
                 reportID: oldChat.reportID,
             };
             workspaceMembersChats.onyxOptimisticData.push({
-                onyxMethod: CONST.ONYX.METHOD.MERGE,
+                onyxMethod: Onyx.METHOD.MERGE,
                 key: `${ONYXKEYS.COLLECTION.REPORT}${oldChat.reportID}`,
                 value: {
                     stateNum: CONST.REPORT.STATE_NUM.OPEN,
@@ -282,7 +282,7 @@ function createPolicyExpenseChats(policyID, members, betas) {
         };
 
         workspaceMembersChats.onyxOptimisticData.push({
-            onyxMethod: CONST.ONYX.METHOD.SET,
+            onyxMethod: Onyx.METHOD.SET,
             key: `${ONYXKEYS.COLLECTION.REPORT}${optimisticReport.reportID}`,
             value: {
                 ...optimisticReport,
@@ -293,13 +293,13 @@ function createPolicyExpenseChats(policyID, members, betas) {
             },
         });
         workspaceMembersChats.onyxOptimisticData.push({
-            onyxMethod: CONST.ONYX.METHOD.SET,
+            onyxMethod: Onyx.METHOD.SET,
             key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${optimisticReport.reportID}`,
             value: {[optimisticCreatedAction.reportActionID]: optimisticCreatedAction},
         });
 
         workspaceMembersChats.onyxSuccessData.push({
-            onyxMethod: CONST.ONYX.METHOD.MERGE,
+            onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT}${optimisticReport.reportID}`,
             value: {
                 pendingFields: {
@@ -312,13 +312,13 @@ function createPolicyExpenseChats(policyID, members, betas) {
             },
         });
         workspaceMembersChats.onyxSuccessData.push({
-            onyxMethod: CONST.ONYX.METHOD.MERGE,
+            onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${optimisticReport.reportID}`,
             value: {[optimisticCreatedAction.reportActionID]: {pendingAction: null}},
         });
 
         workspaceMembersChats.onyxFailureData.push({
-            onyxMethod: CONST.ONYX.METHOD.MERGE,
+            onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT}${optimisticReport.reportID}`,
             value: {
                 isLoadingReportActions: false,
@@ -345,7 +345,7 @@ function addMembersToWorkspace(memberLogins, welcomeNote, policyID, betas) {
 
     const optimisticData = [
         {
-            onyxMethod: CONST.ONYX.METHOD.MERGE,
+            onyxMethod: Onyx.METHOD.MERGE,
             key: membersListKey,
 
             // Convert to object with each key containing {pendingAction: ‘add’}
@@ -356,7 +356,7 @@ function addMembersToWorkspace(memberLogins, welcomeNote, policyID, betas) {
 
     const successData = [
         {
-            onyxMethod: CONST.ONYX.METHOD.MERGE,
+            onyxMethod: Onyx.METHOD.MERGE,
             key: membersListKey,
 
             // Convert to object with each key clearing pendingAction. We don’t
@@ -368,7 +368,7 @@ function addMembersToWorkspace(memberLogins, welcomeNote, policyID, betas) {
 
     const failureData = [
         {
-            onyxMethod: CONST.ONYX.METHOD.MERGE,
+            onyxMethod: Onyx.METHOD.MERGE,
             key: membersListKey,
 
             // Convert to object with each key containing the error. We don’t
@@ -400,7 +400,7 @@ function addMembersToWorkspace(memberLogins, welcomeNote, policyID, betas) {
  */
 function updateWorkspaceAvatar(policyID, file) {
     const optimisticData = [{
-        onyxMethod: CONST.ONYX.METHOD.MERGE,
+        onyxMethod: Onyx.METHOD.MERGE,
         key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
         value: {
             avatar: file.uri,
@@ -413,7 +413,7 @@ function updateWorkspaceAvatar(policyID, file) {
         },
     }];
     const successData = [{
-        onyxMethod: CONST.ONYX.METHOD.MERGE,
+        onyxMethod: Onyx.METHOD.MERGE,
         key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
         value: {
             pendingFields: {
@@ -422,7 +422,7 @@ function updateWorkspaceAvatar(policyID, file) {
         },
     }];
     const failureData = [{
-        onyxMethod: CONST.ONYX.METHOD.MERGE,
+        onyxMethod: Onyx.METHOD.MERGE,
         key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
         value: {
             avatar: allPolicies[`${ONYXKEYS.COLLECTION.POLICY}${policyID}`].avatar,
@@ -442,7 +442,7 @@ function updateWorkspaceAvatar(policyID, file) {
 function deleteWorkspaceAvatar(policyID) {
     const optimisticData = [
         {
-            onyxMethod: CONST.ONYX.METHOD.MERGE,
+            onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
             value: {
                 pendingFields: {
@@ -457,7 +457,7 @@ function deleteWorkspaceAvatar(policyID) {
     ];
     const successData = [
         {
-            onyxMethod: CONST.ONYX.METHOD.MERGE,
+            onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
             value: {
                 pendingFields: {
@@ -468,7 +468,7 @@ function deleteWorkspaceAvatar(policyID) {
     ];
     const failureData = [
         {
-            onyxMethod: CONST.ONYX.METHOD.MERGE,
+            onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
             value: {
                 pendingFields: {
@@ -511,7 +511,7 @@ function clearAvatarErrors(policyID) {
 function updateGeneralSettings(policyID, name, currency) {
     const optimisticData = [
         {
-            onyxMethod: CONST.ONYX.METHOD.MERGE,
+            onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
             value: {
                 pendingFields: {
@@ -529,7 +529,7 @@ function updateGeneralSettings(policyID, name, currency) {
     ];
     const successData = [
         {
-            onyxMethod: CONST.ONYX.METHOD.MERGE,
+            onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
             value: {
                 pendingFields: {
@@ -540,7 +540,7 @@ function updateGeneralSettings(policyID, name, currency) {
     ];
     const failureData = [
         {
-            onyxMethod: CONST.ONYX.METHOD.MERGE,
+            onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
             value: {
                 pendingFields: {
@@ -624,7 +624,7 @@ function hideWorkspaceAlertMessage(policyID) {
 function updateWorkspaceCustomUnit(policyID, currentCustomUnit, newCustomUnit, lastModified) {
     const optimisticData = [
         {
-            onyxMethod: CONST.ONYX.METHOD.MERGE,
+            onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
             value: {
                 customUnits: {
@@ -639,7 +639,7 @@ function updateWorkspaceCustomUnit(policyID, currentCustomUnit, newCustomUnit, l
 
     const successData = [
         {
-            onyxMethod: CONST.ONYX.METHOD.MERGE,
+            onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
             value: {
                 customUnits: {
@@ -654,7 +654,7 @@ function updateWorkspaceCustomUnit(policyID, currentCustomUnit, newCustomUnit, l
 
     const failureData = [
         {
-            onyxMethod: CONST.ONYX.METHOD.MERGE,
+            onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
             value: {
                 customUnits: {
@@ -685,7 +685,7 @@ function updateWorkspaceCustomUnit(policyID, currentCustomUnit, newCustomUnit, l
 function updateCustomUnitRate(policyID, currentCustomUnitRate, customUnitID, newCustomUnitRate, lastModified) {
     const optimisticData = [
         {
-            onyxMethod: CONST.ONYX.METHOD.MERGE,
+            onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
             value: {
                 customUnits: {
@@ -705,7 +705,7 @@ function updateCustomUnitRate(policyID, currentCustomUnitRate, customUnitID, new
 
     const successData = [
         {
-            onyxMethod: CONST.ONYX.METHOD.MERGE,
+            onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
             value: {
                 customUnits: {
@@ -723,7 +723,7 @@ function updateCustomUnitRate(policyID, currentCustomUnitRate, customUnitID, new
 
     const failureData = [
         {
-            onyxMethod: CONST.ONYX.METHOD.MERGE,
+            onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
             value: {
                 customUnits: {
@@ -887,7 +887,7 @@ function createWorkspace(ownerEmail = '', makeMeAdmin = false, policyName = '', 
     {
         optimisticData: [
             {
-                onyxMethod: CONST.ONYX.METHOD.SET,
+                onyxMethod: Onyx.METHOD.SET,
                 key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
                 value: {
                     id: policyID,
@@ -900,7 +900,7 @@ function createWorkspace(ownerEmail = '', makeMeAdmin = false, policyName = '', 
                 },
             },
             {
-                onyxMethod: CONST.ONYX.METHOD.SET,
+                onyxMethod: Onyx.METHOD.SET,
                 key: `${ONYXKEYS.COLLECTION.POLICY_MEMBER_LIST}${policyID}`,
                 value: {
                     [sessionEmail]: {
@@ -910,7 +910,7 @@ function createWorkspace(ownerEmail = '', makeMeAdmin = false, policyName = '', 
                 },
             },
             {
-                onyxMethod: CONST.ONYX.METHOD.SET,
+                onyxMethod: Onyx.METHOD.SET,
                 key: `${ONYXKEYS.COLLECTION.REPORT}${announceChatReportID}`,
                 value: {
                     pendingFields: {
@@ -920,12 +920,12 @@ function createWorkspace(ownerEmail = '', makeMeAdmin = false, policyName = '', 
                 },
             },
             {
-                onyxMethod: CONST.ONYX.METHOD.SET,
+                onyxMethod: Onyx.METHOD.SET,
                 key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${announceChatReportID}`,
                 value: announceReportActionData,
             },
             {
-                onyxMethod: CONST.ONYX.METHOD.SET,
+                onyxMethod: Onyx.METHOD.SET,
                 key: `${ONYXKEYS.COLLECTION.REPORT}${adminsChatReportID}`,
                 value: {
                     pendingFields: {
@@ -935,12 +935,12 @@ function createWorkspace(ownerEmail = '', makeMeAdmin = false, policyName = '', 
                 },
             },
             {
-                onyxMethod: CONST.ONYX.METHOD.SET,
+                onyxMethod: Onyx.METHOD.SET,
                 key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${adminsChatReportID}`,
                 value: adminsReportActionData,
             },
             {
-                onyxMethod: CONST.ONYX.METHOD.SET,
+                onyxMethod: Onyx.METHOD.SET,
                 key: `${ONYXKEYS.COLLECTION.REPORT}${expenseChatReportID}`,
                 value: {
                     pendingFields: {
@@ -950,19 +950,19 @@ function createWorkspace(ownerEmail = '', makeMeAdmin = false, policyName = '', 
                 },
             },
             {
-                onyxMethod: CONST.ONYX.METHOD.SET,
+                onyxMethod: Onyx.METHOD.SET,
                 key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${expenseChatReportID}`,
                 value: expenseReportActionData,
             },
         ],
         successData: [
             {
-                onyxMethod: CONST.ONYX.METHOD.MERGE,
+                onyxMethod: Onyx.METHOD.MERGE,
                 key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
                 value: {pendingAction: null},
             },
             {
-                onyxMethod: CONST.ONYX.METHOD.MERGE,
+                onyxMethod: Onyx.METHOD.MERGE,
                 key: `${ONYXKEYS.COLLECTION.REPORT}${announceChatReportID}`,
                 value: {
                     pendingFields: {
@@ -972,7 +972,7 @@ function createWorkspace(ownerEmail = '', makeMeAdmin = false, policyName = '', 
                 },
             },
             {
-                onyxMethod: CONST.ONYX.METHOD.MERGE,
+                onyxMethod: Onyx.METHOD.MERGE,
                 key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${announceChatReportID}`,
                 value: {
                     [_.keys(announceChatData)[0]]: {
@@ -981,7 +981,7 @@ function createWorkspace(ownerEmail = '', makeMeAdmin = false, policyName = '', 
                 },
             },
             {
-                onyxMethod: CONST.ONYX.METHOD.MERGE,
+                onyxMethod: Onyx.METHOD.MERGE,
                 key: `${ONYXKEYS.COLLECTION.REPORT}${adminsChatReportID}`,
                 value: {
                     pendingFields: {
@@ -991,7 +991,7 @@ function createWorkspace(ownerEmail = '', makeMeAdmin = false, policyName = '', 
                 },
             },
             {
-                onyxMethod: CONST.ONYX.METHOD.MERGE,
+                onyxMethod: Onyx.METHOD.MERGE,
                 key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${adminsChatReportID}`,
                 value: {
                     [_.keys(adminsChatData)[0]]: {
@@ -1000,7 +1000,7 @@ function createWorkspace(ownerEmail = '', makeMeAdmin = false, policyName = '', 
                 },
             },
             {
-                onyxMethod: CONST.ONYX.METHOD.MERGE,
+                onyxMethod: Onyx.METHOD.MERGE,
                 key: `${ONYXKEYS.COLLECTION.REPORT}${expenseChatReportID}`,
                 value: {
                     pendingFields: {
@@ -1010,7 +1010,7 @@ function createWorkspace(ownerEmail = '', makeMeAdmin = false, policyName = '', 
                 },
             },
             {
-                onyxMethod: CONST.ONYX.METHOD.MERGE,
+                onyxMethod: Onyx.METHOD.MERGE,
                 key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${expenseChatReportID}`,
                 value: {
                     [_.keys(expenseChatData)[0]]: {
@@ -1021,37 +1021,37 @@ function createWorkspace(ownerEmail = '', makeMeAdmin = false, policyName = '', 
         ],
         failureData: [
             {
-                onyxMethod: CONST.ONYX.METHOD.SET,
+                onyxMethod: Onyx.METHOD.SET,
                 key: `${ONYXKEYS.COLLECTION.POLICY_MEMBER_LIST}${policyID}`,
                 value: null,
             },
             {
-                onyxMethod: CONST.ONYX.METHOD.SET,
+                onyxMethod: Onyx.METHOD.SET,
                 key: `${ONYXKEYS.COLLECTION.REPORT}${announceChatReportID}`,
                 value: null,
             },
             {
-                onyxMethod: CONST.ONYX.METHOD.SET,
+                onyxMethod: Onyx.METHOD.SET,
                 key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${announceChatReportID}`,
                 value: null,
             },
             {
-                onyxMethod: CONST.ONYX.METHOD.SET,
+                onyxMethod: Onyx.METHOD.SET,
                 key: `${ONYXKEYS.COLLECTION.REPORT}${adminsChatReportID}`,
                 value: null,
             },
             {
-                onyxMethod: CONST.ONYX.METHOD.SET,
+                onyxMethod: Onyx.METHOD.SET,
                 key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${adminsChatReportID}`,
                 value: null,
             },
             {
-                onyxMethod: CONST.ONYX.METHOD.SET,
+                onyxMethod: Onyx.METHOD.SET,
                 key: `${ONYXKEYS.COLLECTION.REPORT}${expenseChatReportID}`,
                 value: null,
             },
             {
-                onyxMethod: CONST.ONYX.METHOD.SET,
+                onyxMethod: Onyx.METHOD.SET,
                 key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${expenseChatReportID}`,
                 value: null,
             },
@@ -1079,7 +1079,7 @@ function openWorkspaceReimburseView(policyID) {
     const onyxData = {
         successData: [
             {
-                onyxMethod: CONST.ONYX.METHOD.MERGE,
+                onyxMethod: Onyx.METHOD.MERGE,
                 key: ONYXKEYS.REIMBURSEMENT_ACCOUNT,
                 value: {
                     isLoading: false,
@@ -1088,7 +1088,7 @@ function openWorkspaceReimburseView(policyID) {
         ],
         failureData: [
             {
-                onyxMethod: CONST.ONYX.METHOD.MERGE,
+                onyxMethod: Onyx.METHOD.MERGE,
                 key: ONYXKEYS.REIMBURSEMENT_ACCOUNT,
                 value: {
                     isLoading: false,
@@ -1138,7 +1138,7 @@ function leaveRoom(reportID) {
     }, {
         optimisticData: [
             {
-                onyxMethod: CONST.ONYX.METHOD.SET,
+                onyxMethod: Onyx.METHOD.SET,
                 key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
                 value: {
                     stateNum: CONST.REPORT.STATE_NUM.SUBMITTED,
@@ -1148,7 +1148,7 @@ function leaveRoom(reportID) {
         ],
         failureData: [
             {
-                onyxMethod: CONST.ONYX.METHOD.SET,
+                onyxMethod: Onyx.METHOD.SET,
                 key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
                 value: {
                     stateNum: CONST.REPORT.STATE_NUM.OPEN,
