@@ -14,7 +14,7 @@ import styles from '../../../styles/styles';
 const propTypes = {
     ...htmlRendererPropTypes,
 
-    /* stores info about currently logged in user */
+    /* Stores info about currently logged in user */
     currentUserPersonalDetails: personalDetailsPropType.isRequired,
 };
 
