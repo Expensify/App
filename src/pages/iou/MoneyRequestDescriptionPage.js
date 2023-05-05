@@ -37,6 +37,14 @@ class MoneyRequestDescriptionPage extends Component {
     }
 
     /**
+     * Goes back and clears the description from Onyx.
+     */
+    onBackButtonPress() {
+        IOU.setMoneyRequestDescription('');
+        Navigation.goBack();
+    }
+
+    /**
      * Sets the money request comment by saving it to Onyx.
      *
      * @param {Object} value
@@ -56,6 +64,7 @@ class MoneyRequestDescriptionPage extends Component {
             >
                 <HeaderWithBackButton
                     title={this.props.translate('common.description')}
+                    onBackButtonPress={this.onBackButtonPress}
                 />
                 <Form
                     style={[styles.flexGrow1, styles.ph5]}

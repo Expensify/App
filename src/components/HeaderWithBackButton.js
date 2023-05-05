@@ -28,6 +28,9 @@ const propTypes = {
     /** Method to trigger when pressing download button of the header */
     onDownloadButtonPress: PropTypes.func,
 
+    /** Method to trigger when pressing close button of the header */
+    onCloseButtonPress: PropTypes.func,
+
     /** Method to trigger when pressing back button of the header */
     onBackButtonPress: PropTypes.func,
 
@@ -57,17 +60,14 @@ const propTypes = {
         left: PropTypes.number,
     }),
 
+    /** Whether we should show a close button */
+    shouldShowCloseButton: PropTypes.bool,
+
     /** Whether we should show the step counter */
     shouldShowStepCounter: PropTypes.bool,
 
     /** The guides call taskID to associate with the get assistance button, if we show it */
     guidesCallTaskID: PropTypes.string,
-
-    /** Whether we should show a close button */
-    shouldShowCloseButton: PropTypes.bool,
-
-    /** Method to trigger when pressing close button of the header */
-    onCloseButtonPress: PropTypes.func,
 
     /** Data to display a step counter in the header */
     stepCounter: PropTypes.shape({
