@@ -1,10 +1,8 @@
 import React from 'react';
-import {withOnyx} from 'react-native-onyx';
 import HeaderWithCloseButton from '../../../../components/HeaderWithCloseButton';
 import Navigation from '../../../../libs/Navigation/Navigation';
 import ScreenWrapper from '../../../../components/ScreenWrapper';
 import withLocalize, {withLocalizePropTypes} from '../../../../components/withLocalize';
-import compose from '../../../../libs/compose';
 import ROUTES from '../../../../ROUTES';
 import FullPageOfflineBlockingView from '../../../../components/BlockingViews/FullPageOfflineBlockingView';
 import * as Illustrations from '../../../../components/Icon/Illustrations';
@@ -17,8 +15,7 @@ const propTypes = {
     ...withLocalizePropTypes,
 };
 
-const defaultProps = {
-};
+const defaultProps = {};
 
 function SuccessPage(props) {
     return (
@@ -55,8 +52,4 @@ function SuccessPage(props) {
 SuccessPage.propTypes = propTypes;
 SuccessPage.defaultProps = defaultProps;
 
-export default compose(
-    withLocalize,
-    withOnyx({
-    }),
-)(SuccessPage);
+export default withLocalize(SuccessPage);

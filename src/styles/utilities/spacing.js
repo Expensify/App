@@ -181,6 +181,10 @@ export default {
         marginTop: 32,
     },
 
+    mt11: {
+        marginTop: 44,
+    },
+
     mb0: {
         marginBottom: 0,
     },

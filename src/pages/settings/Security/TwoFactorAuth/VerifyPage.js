@@ -3,6 +3,7 @@ import {withOnyx} from 'react-native-onyx';
 import {View} from 'react-native';
 import PropTypes from 'prop-types';
 import QRCode from 'react-qr-code';
+import _ from 'underscore';
 import HeaderWithCloseButton from '../../../../components/HeaderWithCloseButton';
 import Navigation from '../../../../libs/Navigation/Navigation';
 import ScreenWrapper from '../../../../components/ScreenWrapper';
@@ -20,16 +21,25 @@ import Form from '../../../../components/Form';
 import * as Session from '../../../../libs/actions/Session';
 import TextInput from '../../../../components/TextInput';
 import CONST from '../../../../CONST';
-import Log from '../../../../libs/Log';
+import themeColors from '../../../../styles/themes/default';
+import FixedFooter from '../../../../components/FixedFooter';
 
 const propTypes = {
-    /** Holds information about the users account that is logging in */
     account: PropTypes.shape({
         /** Whether this account has 2-FA enabled or not */
         requiresTwoFactorAuth: PropTypes.bool,
 
         /** Secret key to enable 2-FA within the authenticator app */
         twoFactorAuthSecretKey: PropTypes.string,
+
+        /** User primary login to attach to the authenticator QRCode */
+        primaryLogin: PropTypes.string,
+
+        /** User is submitting the authentication code */
+        isLoading: PropTypes.bool,
+
+        /** Server-side errors in the submitted authentication code */
+        errors: PropTypes.objectOf(PropTypes.string),
     }),
     ...withLocalizePropTypes,
 };
@@ -38,6 +48,9 @@ const defaultProps = {
     account: {
         requiresTwoFactorAuth: false,
         twoFactorAuthSecretKey: '',
+        primaryLogin: '',
+        isLoading: false,
+        errors: {},
     },
 };
 
@@ -46,19 +59,15 @@ class VerifyPage extends Component {
         super(props);
 
         this.copySecret = this.copySecret.bind(this);
+        this.authCodeIsValid = this.authCodeIsValid.bind(this);
         this.validate = this.validate.bind(this);
-        this.hasOnlyDigits = this.hasOnlyDigits.bind(this);
         this.submitIfHasSixDigits = this.submitIfHasSixDigits.bind(this);
         this.submit = this.submit.bind(this);
-
-        // TODO: REMOVE!
-        this.fakeSecretKey = 'ABCD EFHH KJSD IWIQ';
+        this.splitSecretInChunks = this.splitSecretInChunks.bind(this);
+        this.buildAuthenticatorUrl = this.buildAuthenticatorUrl.bind(this);
     }
 
     componentDidUpdate(prevProps) {
-        Log.info('Prev account', false, prevProps.account);
-        Log.info('Current account', false, this.props.account);
-
         if (!this.props.account.requiresTwoFactorAuth) {
             return;
         }
@@ -72,27 +81,35 @@ class VerifyPage extends Component {
         Clipboard.setString(this.props.account.twoFactorAuthSecretKey);
     }
 
-    hasOnlyDigits(value) {
-        return /^\d+$/.test(value);
+    /**
+     * Checks if the auth code has exactly 6 digits
+     *
+     * @param {String} authCode
+     * @returns {boolean}
+     */
+    authCodeIsValid(authCode) {
+        const hasOnlyDigits = /^\d+$/.test(authCode);
+        return authCode.length === 6 && hasOnlyDigits;
     }
 
     validate(value) {
         const code = value.verifyTwoFactorAuth;
         const errors = {};
 
-        if (code.length !== 6) {
+        if (!this.authCodeIsValid(code) || !_.isEmpty(this.props.account.errors)) {
             errors.verifyTwoFactorAuth = this.props.translate('twoFactorAuth.errors.sixDigits');
-        }
-
-        if (!this.hasOnlyDigits(code)) {
-            errors.verifyTwoFactorAuth = this.props.translate('twoFactorAuth.errors.onlyDigits');
         }
 
         return errors;
     }
 
+    /**
+     * Submits the form only if the two-factor code is valid
+     *
+     * @param {String} value
+     */
     submitIfHasSixDigits(value) {
-        if (value.length !== 6 || !this.hasOnlyDigits(value)) {
+        if (!this.authCodeIsValid(value)) {
             return;
         }
 
@@ -101,6 +118,30 @@ class VerifyPage extends Component {
 
     submit(values) {
         Session.validateTwoFactorAuth(values.verifyTwoFactorAuth);
+    }
+
+    /**
+     * Splits the two-factor auth secret key in 4 chunks
+     *
+     * @param {String} secret
+     * @returns {*|string}
+     */
+    splitSecretInChunks(secret) {
+        if (secret.length !== 16) {
+            return secret;
+        }
+
+        return `${secret.slice(0, 4)} ${secret.slice(4, 8)} ${secret.slice(8, 12)} ${secret.slice(12, secret.length)}`;
+    }
+
+    /**
+     * Builds the URL string to generate the QRCode, using the otpauth:// protocol,
+     * so it can be detected by authenticator apps
+     *
+     * @returns {string}
+     */
+    buildAuthenticatorUrl() {
+        return `otpauth://totp/Expensify:${this.props.account.primaryLogin}?secret=${this.props.account.twoFactorAuthSecretKey}&issuer=Expensify`;
     }
 
     render() {
@@ -114,7 +155,7 @@ class VerifyPage extends Component {
                 />
 
                 <FullPageOfflineBlockingView>
-                    <View style={[styles.ph5, styles.mt5]}>
+                    <View style={[styles.ph5, styles.mt3]}>
                         <Text>
                             {this.props.translate('twoFactorAuth.scanCode')}
                             <TextLink href="https://community.expensify.com/discussion/7736/faq-troubleshooting-two-factor-authentication-issues/p1?new=1">
@@ -126,12 +167,11 @@ class VerifyPage extends Component {
 
                         <View style={[styles.alignItemsCenter, styles.mt5]}>
                             <QRCode
-                                size={128}
                                 level="Q"
-                                style={{borderRadius: 5}}
-                                value={this.props.account.twoFactorAuthSecretKey || this.fakeSecretKey}
-                                bgColor="#061B09"
-                                fgColor="#AFBBB0"
+                                size={128}
+                                value={this.buildAuthenticatorUrl()}
+                                bgColor={themeColors.appBG}
+                                fgColor={themeColors.textSupporting}
                             />
                         </View>
 
@@ -139,10 +179,12 @@ class VerifyPage extends Component {
                             {this.props.translate('twoFactorAuth.addKey')}
                         </Text>
 
-                        <View style={[styles.mt5, styles.flexRow, styles.alignItemsCenter, styles.justifyContentBetween]}>
-                            <Text>
-                                {this.props.account.twoFactorAuthSecretKey || this.fakeSecretKey}
-                            </Text>
+                        <View style={[styles.mt11, styles.flexRow, styles.alignItemsCenter, styles.justifyContentBetween]}>
+                            {Boolean(this.props.account.twoFactorAuthSecretKey) && (
+                                <Text>
+                                    {this.splitSecretInChunks(this.props.account.twoFactorAuthSecretKey)}
+                                </Text>
+                            )}
                             <Button medium onPress={this.copySecret}>
                                 <Text>
                                     Copy
@@ -150,7 +192,7 @@ class VerifyPage extends Component {
                             </Button>
                         </View>
 
-                        <Text style={[styles.mt5]}>
+                        <Text style={[styles.mt11]}>
                             {this.props.translate('twoFactorAuth.enterCode')}
                         </Text>
                     </View>
@@ -162,7 +204,7 @@ class VerifyPage extends Component {
                         validate={this.validate}
                         onSubmit={this.submit}
                         draftValues={{verifyTwoFactorAuth: ''}}
-                        style={[styles.mt5, styles.mh5]}
+                        style={[styles.mt3, styles.mh5]}
                     >
                         <TextInput
                             inputID="verifyTwoFactorAuth"
@@ -171,6 +213,16 @@ class VerifyPage extends Component {
                             onValueChange={this.submitIfHasSixDigits}
                         />
                     </Form>
+
+                    <FixedFooter style={[styles.twoFactorAuthFooter]}>
+                        {/* TODO: Button is disabled but has no disabled styles? */}
+                        <Button
+                            success
+                            text={this.props.translate('common.next')}
+                            isDisabled
+                            isLoading={this.props.account.isLoading}
+                        />
+                    </FixedFooter>
                 </FullPageOfflineBlockingView>
             </ScreenWrapper>
         );

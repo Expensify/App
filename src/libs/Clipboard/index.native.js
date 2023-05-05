@@ -9,8 +9,11 @@ const setString = (text) => {
     Clipboard.setString(text);
 };
 
+const getString = () => Clipboard.getString();
+
 export default {
     setString,
+    getString,
 
     // We don't want to set HTML on native platforms so noop them.
     canSetHtml: () => false,

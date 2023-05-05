@@ -500,7 +500,6 @@ export default {
         congrats: 'Congrats, now you’ve got that extra security.',
         errors: {
             sixDigits: 'Code must have exactly 6 digits',
-            onlyDigits: 'Code must have only numbers',
         },
 
     },

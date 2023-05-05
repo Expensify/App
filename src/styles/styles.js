@@ -2094,38 +2094,42 @@ const styles = {
     },
 
     twoFactorAuthCodesBox: {
+        alignItems: 'center',
+        justifyContent: 'center',
         backgroundColor: themeColors.highlightBG,
-        paddingVertical: 24,
-        paddingHorizontal: 48,
+        paddingVertical: 28,
+        paddingHorizontal: 60,
         borderRadius: 16,
-        marginTop: 16,
+        marginTop: 32,
     },
 
     twoFactorAuthCodesContainer: {
+        alignItems: 'center',
+        justifyContent: 'center',
         flexDirection: 'row',
         flexWrap: 'wrap',
+        gap: 12,
     },
 
     twoFactorAuthCode: {
         fontFamily: fontFamily.MONOSPACE,
-        width: '50%',
-        marginBottom: 8,
+        width: 100,
         textAlign: 'center',
     },
 
     twoFactorAuthCodesButtonsContainer: {
         flexDirection: 'row',
-        width: '100%',
-        justifyContent: 'space-evenly',
-        marginTop: 8,
+        justifyContent: 'center',
+        gap: 12,
+        marginTop: 20,
+    },
+
+    twoFactorAuthCodesButton: {
+        minWidth: 100,
     },
 
     twoFactorAuthFooter: {
         marginTop: 'auto',
-    },
-
-    twoFactorAuthSecretKeyContainer: {
-
     },
 
     roomHeaderAvatarSize: {

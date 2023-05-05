@@ -1,11 +1,9 @@
 import React, {Component} from 'react';
 import {Text, View} from 'react-native';
-import {withOnyx} from 'react-native-onyx';
 import HeaderWithCloseButton from '../../../../components/HeaderWithCloseButton';
 import Navigation from '../../../../libs/Navigation/Navigation';
 import ScreenWrapper from '../../../../components/ScreenWrapper';
 import withLocalize, {withLocalizePropTypes} from '../../../../components/withLocalize';
-import compose from '../../../../libs/compose';
 import ROUTES from '../../../../ROUTES';
 import Section from '../../../../components/Section';
 import * as Illustrations from '../../../../components/Icon/Illustrations';
@@ -18,10 +16,9 @@ const propTypes = {
     ...withLocalizePropTypes,
 };
 
-const defaultProps = {
-};
+const defaultProps = {};
 
-class PasswordPage extends Component {
+class IsEnabledPage extends Component {
     constructor(props) {
         super(props);
 
@@ -67,7 +64,7 @@ class PasswordPage extends Component {
                         iconFill: themeColors.danger,
                         wrapperStyle: [styles.cardMenuItem],
                     }]}
-                    containerStyles={[styles.cardSection]}
+                    containerStyles={[styles.twoFactorAuthSection]}
                 >
                     <View style={[styles.mv3]}>
                         <Text style={[styles.textLabel]}>
@@ -93,11 +90,7 @@ class PasswordPage extends Component {
     }
 }
 
-PasswordPage.propTypes = propTypes;
-PasswordPage.defaultProps = defaultProps;
+IsEnabledPage.propTypes = propTypes;
+IsEnabledPage.defaultProps = defaultProps;
 
-export default compose(
-    withLocalize,
-    withOnyx({
-    }),
-)(PasswordPage);
+export default withLocalize(IsEnabledPage);
