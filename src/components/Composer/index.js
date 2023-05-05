@@ -437,7 +437,7 @@ class Composer extends React.Component {
                     this.state.numberOfLines < this.props.maxLines ? styles.overflowHidden : {},
                 ]}
                 /* eslint-disable-next-line react/jsx-props-no-spreading */
-                {...propsWithoutStyles}
+                {...propsWithoutStylesAndDefault}
                 numberOfLines={this.state.numberOfLines}
                 disabled={this.props.isDisabled}
                 onKeyPress={this.handleKeyPress}

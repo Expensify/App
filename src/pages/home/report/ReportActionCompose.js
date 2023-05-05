@@ -3,7 +3,6 @@ import PropTypes from 'prop-types';
 import {
     View,
     TouchableOpacity,
-    InteractionManager,
     LayoutAnimation,
 } from 'react-native';
 import _ from 'underscore';
@@ -56,6 +55,7 @@ import KeyboardShortcut from '../../../libs/KeyboardShortcut';
 import * as ComposerUtils from '../../../libs/ComposerUtils';
 import * as Welcome from '../../../libs/actions/Welcome';
 import Permissions from '../../../libs/Permissions';
+import reportPropTypes from '../../reportPropTypes';
 
 const propTypes = {
     /** Beta features list */
@@ -179,7 +179,6 @@ class ReportActionCompose extends React.PureComponent {
         this.getTaskOption = this.getTaskOption.bind(this);
         this.addAttachment = this.addAttachment.bind(this);
         this.insertSelectedEmoji = this.insertSelectedEmoji.bind(this);
-        this.setExceededMaxCommentLength = this.setExceededMaxCommentLength.bind(this);
         this.updateNumberOfLines = this.updateNumberOfLines.bind(this);
         this.showPopoverMenu = this.showPopoverMenu.bind(this);
         this.focusInputAndSetSelection = this.focusInputAndSetSelection.bind(this);
@@ -218,7 +217,6 @@ class ReportActionCompose extends React.PureComponent {
             shouldShowSuggestionMenu: false,
             isEmojiPickerLarge: false,
             composerHeight: 0,
-            hasExceededMaxCommentLength: false,
 
             // If this is undefined it means we haven't exceeded the max comment length.
             // If it is a number it means we have exceeded the max comment length and the number is the total length.
@@ -390,16 +388,6 @@ class ReportActionCompose extends React.PureComponent {
     }
 
     /**
-     * Updates the composer when the comment length is exceeded
-     * Shows red borders and prevents the comment from being sent
-     *
-     * @param {Boolean} hasExceededMaxCommentLength
-     */
-    setExceededMaxCommentLength(hasExceededMaxCommentLength) {
-        this.setState({hasExceededMaxCommentLength});
-    }
-
-    /**
      * Set the maximum number of lines for the composer
      */
     setMaxLines() {
@@ -552,6 +540,7 @@ class ReportActionCompose extends React.PureComponent {
         this.selection = newSelection;
         this.nextSelectionAfterEmojiInsertion = newSelection;
         this.updateComment(newText, true);
+
         // TODO: this.updateComment(ComposerUtils.insertText(this.comment, this.state.selection, emoji));
     }
 
