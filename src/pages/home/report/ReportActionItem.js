@@ -50,6 +50,7 @@ import * as Expensicons from '../../../components/Icon/Expensicons';
 import Text from '../../../components/Text';
 import DisplayNames from '../../../components/DisplayNames';
 import personalDetailsPropType from '../../personalDetailsPropType';
+import ReportActionItemDraft from './ReportActionItemDraft';
 
 const propTypes = {
     /** Report for this action */
@@ -235,17 +236,56 @@ class ReportActionItem extends Component {
 
         const reactions = _.get(this.props, ['action', 'message', 0, 'reactions'], []);
         const hasReactions = reactions.length > 0;
-
         return (
             <>
                 {children}
                 {hasReactions && (
-                    <ReportActionItemReactions
-                        reactions={reactions}
-                        toggleReaction={this.toggleReaction}
-                    />
+                    <View style={this.props.draftMessage ? styles.chatItemReactionsDraftRight : {}}>
+                        <ReportActionItemReactions
+                            reactions={reactions}
+                            toggleReaction={this.toggleReaction}
+                        />
+                    </View>
                 )}
             </>
+        );
+    }
+
+    /**
+     * Get ReportActionItem with a proper wrapper
+     * @param {Boolean} hovered whether the ReportActionItem is hovered
+     * @param {Boolean} isWhisper whether the ReportActionItem is a whisper
+     * @returns {Object} report action item
+     */
+    renderReportActionItem(hovered, isWhisper) {
+        const content = this.renderItemContent(hovered || this.state.isContextMenuActive);
+
+        if (this.props.draftMessage) {
+            return (
+                <ReportActionItemDraft>
+                    {content}
+                </ReportActionItemDraft>
+            );
+        }
+
+        if (!this.props.displayAsGroup) {
+            return (
+                <ReportActionItemSingle
+                    action={this.props.action}
+                    showHeader={!this.props.draftMessage}
+                    wrapperStyles={[styles.chatItem, isWhisper ? styles.pt1 : {}]}
+                    shouldShowSubscriptAvatar={this.props.shouldShowSubscriptAvatar}
+                    report={this.props.report}
+                >
+                    {content}
+                </ReportActionItemSingle>
+            );
+        }
+
+        return (
+            <ReportActionItemGrouped wrapperStyles={[styles.chatItem, isWhisper ? styles.pt1 : {}]}>
+                {content}
+            </ReportActionItemGrouped>
         );
     }
 
@@ -280,19 +320,6 @@ class ReportActionItem extends Component {
                 <Hoverable>
                     {hovered => (
                         <View accessibilityLabel={this.props.translate('accessibilityHints.chatMessage')}>
-                            <MiniReportActionContextMenu
-                                reportID={this.props.report.reportID}
-                                reportAction={this.props.action}
-                                isArchivedRoom={ReportUtils.isArchivedRoom(this.props.report)}
-                                displayAsGroup={this.props.displayAsGroup}
-                                isVisible={
-                                    hovered
-                                    && !this.props.draftMessage
-                                }
-                                draftMessage={this.props.draftMessage}
-                                isChronosReport={ReportUtils.chatIncludesChronos(this.props.report)}
-                                childReportActionID={this.props.action.childReportActionID}
-                            />
                             {this.props.shouldDisplayNewMarker && (
                                 <UnreadActionIndicator reportActionID={this.props.action.reportActionID} />
                             )}
@@ -306,13 +333,7 @@ class ReportActionItem extends Component {
                                 )}
                             >
                                 <OfflineWithFeedback
-                                    onClose={() => {
-                                        if (this.props.action.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD) {
-                                            ReportActions.deleteOptimisticReportAction(this.props.report.reportID, this.props.action.reportActionID);
-                                        } else {
-                                            ReportActions.clearReportActionErrors(this.props.report.reportID, this.props.action.reportActionID);
-                                        }
-                                    }}
+                                    onClose={() => ReportActions.clearReportActionErrors(this.props.report.reportID, this.props.action)}
                                     pendingAction={this.props.draftMessage ? null : this.props.action.pendingAction}
                                     errors={this.props.action.errors}
                                     errorRowStyles={[styles.ml10, styles.mr2]}
@@ -337,25 +358,23 @@ class ReportActionItem extends Component {
                                             />
                                         </View>
                                     )}
-                                    {!this.props.displayAsGroup
-                                        ? (
-                                            <ReportActionItemSingle
-                                                action={this.props.action}
-                                                showHeader={!this.props.draftMessage}
-                                                wrapperStyles={[styles.chatItem, isWhisper ? styles.pt1 : {}]}
-                                                shouldShowSubscriptAvatar={this.props.shouldShowSubscriptAvatar}
-                                                report={this.props.report}
-                                            >
-                                                {this.renderItemContent(hovered || this.state.isContextMenuActive)}
-                                            </ReportActionItemSingle>
-                                        )
-                                        : (
-                                            <ReportActionItemGrouped wrapperStyles={[styles.chatItem, isWhisper ? styles.pt1 : {}]}>
-                                                {this.renderItemContent(hovered || this.state.isContextMenuActive)}
-                                            </ReportActionItemGrouped>
-                                        )}
+                                    {this.renderReportActionItem(hovered, isWhisper)}
                                 </OfflineWithFeedback>
                             </View>
+                            <MiniReportActionContextMenu
+                                reportID={this.props.report.reportID}
+                                reportAction={this.props.action}
+                                isArchivedRoom={ReportUtils.isArchivedRoom(this.props.report)}
+                                displayAsGroup={this.props.displayAsGroup}
+                                isVisible={
+                                    hovered
+                                    && !this.props.draftMessage
+                                    && !hasErrors
+                                }
+                                draftMessage={this.props.draftMessage}
+                                isChronosReport={ReportUtils.chatIncludesChronos(this.props.report)}
+                                childReportActionID={this.props.action.childReportActionID}
+                            />
                         </View>
                     )}
                 </Hoverable>
