@@ -1,5 +1,5 @@
 import _ from 'underscore';
-import React, {useRef, useState} from 'react';
+import React, {useMemo, useRef, useState} from 'react';
 import PropTypes from 'prop-types';
 import {LogBox, ScrollView, View} from 'react-native';
 import {GooglePlacesAutocomplete} from 'react-native-google-places-autocomplete';
@@ -94,10 +94,11 @@ const defaultProps = {
 const AddressSearch = (props) => {
     const [displayListViewBorder, setDisplayListViewBorder] = useState(false);
     const containerRef = useRef();
-    const query = {language: props.preferredLocale, types: 'address'};
-    if (props.isLimitedToUSA) {
-        query.components = 'country:us';
-    }
+    const query = useMemo(() => ({
+        language: props.preferredLocale,
+        types: 'address',
+        components: props.isLimitedToUSA ? 'country:us' : undefined,
+    }), [props.preferredLocale, props.isLimitedToUSA]);
 
     const saveLocationDetails = (autocompleteData, details) => {
         const addressComponents = details.address_components;

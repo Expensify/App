@@ -53,6 +53,7 @@ import Text from '../../../components/Text';
 import DisplayNames from '../../../components/DisplayNames';
 import personalDetailsPropType from '../../personalDetailsPropType';
 import usePreviousValue from '../../../components/usePreviousValue';
+import ReportActionItemDraft from './ReportActionItemDraft';
 
 const propTypes = {
     /** Report for this action */
@@ -69,6 +70,9 @@ const propTypes = {
 
     /** Should we display the new marker on top of the comment? */
     shouldDisplayNewMarker: PropTypes.bool.isRequired,
+
+    /** Determines if the avatar is displayed as a subscript (positioned lower than normal) */
+    shouldShowSubscriptAvatar: PropTypes.bool,
 
     /** Position index of the report action in the overall report FlatList view */
     index: PropTypes.number.isRequired,
@@ -89,6 +93,7 @@ const defaultProps = {
     draftMessage: '',
     preferredSkinTone: CONST.EMOJI_DEFAULT_SKIN_TONE,
     personalDetails: {},
+    shouldShowSubscriptAvatar: false,
 };
 
 function ReportActionItem(props) {
@@ -153,9 +158,13 @@ function ReportActionItem(props) {
     const renderItemContent = (hovered = false) => {
         let children;
         if (props.action.actionName === CONST.REPORT.ACTIONS.TYPE.IOU) {
+            // There is no single iouReport for bill splits, so only 1:1 requests require an iouReportID
+            const iouReportID = props.action.originalMessage.IOUReportID ? props.action.originalMessage.IOUReportID.toString() : '0';
+
             children = (
                 <IOUAction
                     chatReportID={props.report.reportID}
+                    requestReportID={iouReportID}
                     action={props.action}
                     isMostRecentIOUReportAction={props.isMostRecentIOUReportAction}
                     isHovered={hovered}
@@ -209,17 +218,56 @@ function ReportActionItem(props) {
 
         const reactions = _.get(props, ['action', 'message', 0, 'reactions'], []);
         const hasReactions = reactions.length > 0;
-
         return (
             <>
                 {children}
                 {hasReactions && (
-                    <ReportActionItemReactions
-                        reactions={reactions}
-                        toggleReaction={toggleReaction}
-                    />
+                    <View style={props.draftMessage ? styles.chatItemReactionsDraftRight : {}}>
+                        <ReportActionItemReactions
+                            reactions={reactions}
+                            toggleReaction={toggleReaction}
+                        />
+                    </View>
                 )}
             </>
+        );
+    };
+
+    /**
+     * Get ReportActionItem with a proper wrapper
+     * @param {Boolean} hovered whether the ReportActionItem is hovered
+     * @param {Boolean} isWhisper whether the ReportActionItem is a whisper
+     * @returns {Object} report action item
+     */
+    const renderReportActionItem = (hovered, isWhisper) => {
+        const content = renderItemContent(hovered || isContextMenuActive);
+
+        if (props.draftMessage) {
+            return (
+                <ReportActionItemDraft>
+                    {content}
+                </ReportActionItemDraft>
+            );
+        }
+
+        if (!props.displayAsGroup) {
+            return (
+                <ReportActionItemSingle
+                    action={props.action}
+                    showHeader={!props.draftMessage}
+                    wrapperStyles={[styles.chatItem, isWhisper ? styles.pt1 : {}]}
+                    shouldShowSubscriptAvatar={props.shouldShowSubscriptAvatar}
+                    report={props.report}
+                >
+                    {content}
+                </ReportActionItemSingle>
+            );
+        }
+
+        return (
+            <ReportActionItemGrouped wrapperStyles={[styles.chatItem, isWhisper ? styles.pt1 : {}]}>
+                {content}
+            </ReportActionItemGrouped>
         );
     };
 
@@ -260,19 +308,13 @@ function ReportActionItem(props) {
                             style={StyleUtils.getReportActionItemStyle(
                                 hovered
                                 || isWhisper
-                                || isContextMenuActive
+                                || state.isContextMenuActive
                                 || props.draftMessage,
                                 (props.network.isOffline && props.action.isLoading) || props.action.error,
                             )}
                         >
                             <OfflineWithFeedback
-                                onClose={() => {
-                                    if (props.action.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD) {
-                                        ReportActions.deleteOptimisticReportAction(props.report.reportID, props.action.reportActionID);
-                                    } else {
-                                        ReportActions.clearReportActionErrors(props.report.reportID, props.action.reportActionID);
-                                    }
-                                }}
+                                onClose={() => ReportActions.clearReportActionErrors(props.report.reportID, props.action)}
                                 pendingAction={props.draftMessage ? null : props.action.pendingAction}
                                 errors={props.action.errors}
                                 errorRowStyles={[styles.ml10, styles.mr2]}
@@ -297,21 +339,7 @@ function ReportActionItem(props) {
                                         />
                                     </View>
                                 )}
-                                {!props.displayAsGroup
-                                    ? (
-                                        <ReportActionItemSingle
-                                            action={props.action}
-                                            showHeader={!props.draftMessage}
-                                            wrapperStyles={[styles.chatItem, isWhisper ? styles.pt1 : {}]}
-                                        >
-                                            {renderItemContent(hovered || isContextMenuActive)}
-                                        </ReportActionItemSingle>
-                                    )
-                                    : (
-                                        <ReportActionItemGrouped wrapperStyles={[styles.chatItem, isWhisper ? styles.pt1 : {}]}>
-                                            {renderItemContent(hovered || isContextMenuActive)}
-                                        </ReportActionItemGrouped>
-                                    )}
+                                {renderReportActionItem(hovered, isWhisper)}
                             </OfflineWithFeedback>
                         </View>
                         <MiniReportActionContextMenu
