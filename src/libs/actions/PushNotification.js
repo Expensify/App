@@ -1,5 +1,4 @@
 import Onyx from 'react-native-onyx';
-import CONST from '../../CONST';
 import ONYXKEYS from '../../ONYXKEYS';
 import * as API from '../API';
 import * as Device from './Device';
@@ -21,14 +20,14 @@ function setPushNotificationOptInStatus(isOptingIn) {
             const commandName = isOptingIn ? 'OptInToPushNotifications' : 'OptOutOfPushNotifications';
             const optimisticData = [
                 {
-                    onyxMethod: CONST.ONYX.METHOD.MERGE,
+                    onyxMethod: Onyx.METHOD.MERGE,
                     key: ONYXKEYS.PUSH_NOTIFICATIONS_ENABLED,
                     value: isOptingIn,
                 },
             ];
             const failureData = [
                 {
-                    onyxMethod: CONST.ONYX.METHOD.MERGE,
+                    onyxMethod: Onyx.METHOD.MERGE,
                     key: ONYXKEYS.PUSH_NOTIFICATIONS_ENABLED,
                     value: isUserOptedInToPushNotifications,
                 },

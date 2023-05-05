@@ -297,7 +297,7 @@ describe('Unread Indicators', () => {
             const channel = Pusher.getChannel(`${CONST.PUSHER.PRIVATE_USER_CHANNEL_PREFIX}${USER_A_ACCOUNT_ID}${CONFIG.PUSHER.SUFFIX}`);
             channel.emit(Pusher.TYPE.ONYX_API_UPDATE, [
                 {
-                    onyxMethod: CONST.ONYX.METHOD.MERGE,
+                    onyxMethod: Onyx.METHOD.MERGE,
                     key: `${ONYXKEYS.COLLECTION.REPORT}${NEW_REPORT_ID}`,
                     value: {
                         reportID: NEW_REPORT_ID,
@@ -309,7 +309,7 @@ describe('Unread Indicators', () => {
                     },
                 },
                 {
-                    onyxMethod: CONST.ONYX.METHOD.MERGE,
+                    onyxMethod: Onyx.METHOD.MERGE,
                     key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${NEW_REPORT_ID}`,
                     value: {
                         [createdReportActionID]: {
@@ -331,7 +331,7 @@ describe('Unread Indicators', () => {
                     shouldNotify: true,
                 },
                 {
-                    onyxMethod: CONST.ONYX.METHOD.MERGE,
+                    onyxMethod: Onyx.METHOD.MERGE,
                     key: ONYXKEYS.PERSONAL_DETAILS,
                     value: {
                         [USER_C_EMAIL]: TestHelper.buildPersonalDetails(USER_C_EMAIL, USER_C_ACCOUNT_ID, 'C'),
