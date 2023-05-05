@@ -1,17 +1,23 @@
 import React from 'react';
 import {View, Pressable} from 'react-native';
 import PropTypes from 'prop-types';
+import {withOnyx} from 'react-native-onyx';
 import _ from 'underscore';
+import lodashGet from 'lodash/get';
 import Text from '../Text';
 import Icon from '../Icon';
 import * as Expensicons from '../Icon/Expensicons';
 import styles from '../../styles/styles';
 import reportActionPropTypes from '../../pages/home/report/reportActionPropTypes';
 import withLocalize, {withLocalizePropTypes} from '../withLocalize';
+import compose from '../../libs/compose';
+import CONST from '../../CONST';
+import ONYXKEYS from '../../ONYXKEYS';
 import ControlSelection from '../../libs/ControlSelection';
 import * as DeviceCapabilities from '../../libs/DeviceCapabilities';
 import {showContextMenuForReport} from '../ShowContextMenuContext';
 import * as StyleUtils from '../../styles/StyleUtils';
+import * as CurrencyUtils from '../../libs/CurrencyUtils';
 import getButtonState from '../../libs/getButtonState';
 
 const propTypes = {
@@ -20,6 +26,10 @@ const propTypes = {
 
     /** The associated chatReport */
     chatReportID: PropTypes.string.isRequired,
+
+    /** The active IOUReport, used for Onyx subscription */
+    // eslint-disable-next-line react/no-unused-prop-types
+    iouReportID: PropTypes.string.isRequired,
 
     /** Popover context menu anchor, used for showing context menu */
     contextMenuAnchor: PropTypes.shape({current: PropTypes.elementType}),
@@ -81,4 +91,11 @@ IOUQuote.propTypes = propTypes;
 IOUQuote.defaultProps = defaultProps;
 IOUQuote.displayName = 'IOUQuote';
 
-export default withLocalize(IOUQuote);
+export default compose(
+    withLocalize,
+    withOnyx({
+        iouReport: {
+            key: ({iouReportID}) => `${ONYXKEYS.COLLECTION.REPORT}${iouReportID}`,
+        },
+    }),
+)(IOUQuote);
