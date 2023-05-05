@@ -133,6 +133,7 @@ export default {
         websiteExample: 'e.g. https://www.expensify.com',
         zipCodeExampleFormat: ({zipSampleFormat}) => (zipSampleFormat ? `e.g. ${zipSampleFormat}` : ''),
         description: 'Description',
+        with: 'with',
     },
     attachmentPicker: {
         cameraPermissionRequired: 'Camera access',
@@ -1225,6 +1226,7 @@ export default {
         },
     },
     report: {
+        genericCreateReportFailureMessage: 'Unexpected error creating this chat, please try again later',
         genericAddCommentFailureMessage: 'Unexpected error while posting the comment, please try again later',
         noActivityYet: 'No activity yet',
     },
