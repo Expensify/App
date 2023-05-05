@@ -14,7 +14,7 @@ import compose from '../../../libs/compose';
 import Navigation from '../../../libs/Navigation/Navigation';
 import ROUTES from '../../../ROUTES';
 import Icon from '../../../components/Icon';
-import Header from '../../../components/Header';
+import ImageHeader from '../../../components/ImageHeader';
 import * as Expensicons from '../../../components/Icon/Expensicons';
 import AvatarWithIndicator from '../../../components/AvatarWithIndicator';
 import Tooltip from '../../../components/Tooltip';
@@ -155,14 +155,13 @@ class SidebarLinks extends React.Component {
                     ]}
                     nativeID="drag-area"
                 >
-                    <Header
-                        title={this.props.translate('sidebarScreen.headerChat')}
+                    <ImageHeader
                         accessibilityLabel={this.props.translate('sidebarScreen.headerChat')}
                         accessibilityRole="text"
                         shouldShowEnvironmentBadge
-                        textStyles={[styles.textHeadline]}
-                        children={<LogoWordmark width={108} fill={defaultTheme.textLight} />}
-                    />
+                    >
+                        <LogoWordmark width={108} fill={defaultTheme.textLight} />
+                    </ImageHeader>
                     <Tooltip text={this.props.translate('common.search')}>
                         <TouchableOpacity
                             accessibilityLabel={this.props.translate('sidebarScreen.buttonSearch')}

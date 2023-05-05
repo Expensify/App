@@ -3,12 +3,10 @@ import {View} from 'react-native';
 import PropTypes from 'prop-types';
 import _ from 'underscore';
 import styles from '../styles/styles';
-import Text from './Text';
 import EnvironmentBadge from './EnvironmentBadge';
 
 const propTypes = {
-    /** Title of the Header */
-    title: PropTypes.string.isRequired,
+    children: PropTypes.node.isRequired,
 
     /** Subtitle of the header */
     subtitle: PropTypes.oneOfType([PropTypes.string, PropTypes.element]),
@@ -26,12 +24,10 @@ const defaultProps = {
     subtitle: '',
     textStyles: [],
 };
-const Header = props => (
+const ImageHeader = props => (
     <View style={[styles.flex1, styles.flexRow]}>
         <View style={styles.mw100}>
-            <Text numberOfLines={2} style={[styles.headerText, styles.textLarge, ...props.textStyles]}>
-                {props.title}
-            </Text>
+            {props.children}
             {/* If there's no subtitle then display a fragment to avoid an empty space which moves the main title */}
             {_.isString(props.subtitle)
                 ? Boolean(props.subtitle) && <Text style={[styles.mutedTextLabel, styles.pre]} numberOfLines={1}>{props.subtitle}</Text>
@@ -43,7 +39,7 @@ const Header = props => (
     </View>
 );
 
-Header.displayName = 'Header';
-Header.propTypes = propTypes;
-Header.defaultProps = defaultProps;
-export default Header;
+ImageHeader.displayName = 'ImageHeader';
+ImageHeader.propTypes = propTypes;
+ImageHeader.defaultProps = defaultProps;
+export default ImageHeader;
