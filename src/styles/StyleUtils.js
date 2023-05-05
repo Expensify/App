@@ -8,6 +8,7 @@ import positioning from './utilities/positioning';
 import styles from './styles';
 import * as ReportUtils from '../libs/ReportUtils';
 import getSafeAreaPaddingTop from '../libs/getSafeAreaPaddingTop';
+import button from '../components/Button';
 
 const workspaceColorOptions = [
     {backgroundColor: colors.blue200, fill: colors.blue700},
@@ -461,6 +462,27 @@ function getIconFillColor(buttonState = CONST.BUTTON_STATES.DEFAULT, isMenuIcon 
             }
             return themeColors.icon;
     }
+}
+
+/**
+ * @param {String} baseColor
+ * @param {Boolean} isHovered
+ * @param {Boolean} isPressed
+ * @returns {String}
+ */
+function getTransparentIconFillColor(baseColor, isHovered = false, isPressed = false) {
+    if (isPressed) {
+        // 70% opacity
+        return `${baseColor}B3`;
+    }
+
+    if (isHovered) {
+        // 60% opacity
+        return `${baseColor}99`;
+    }
+
+    // 50% opacity
+    return `${baseColor}80`;
 }
 
 /**
@@ -1159,6 +1181,7 @@ export {
     getBadgeColorStyle,
     getButtonBackgroundColorStyle,
     getIconFillColor,
+    getTransparentIconFillColor,
     getAnimatedFABStyle,
     getWidthAndHeightStyle,
     getModalPaddingStyles,

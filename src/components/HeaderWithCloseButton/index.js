@@ -4,6 +4,7 @@ import {
 } from 'react-native';
 import {propTypes, defaultProps} from './headerWithCloseButtonPropTypes';
 import styles from '../../styles/styles';
+import themeColors from '../../styles/themes/default';
 import Header from '../Header';
 import Navigation from '../../libs/Navigation/Navigation';
 import ROUTES from '../../ROUTES';
@@ -70,7 +71,9 @@ class HeaderWithCloseButton extends Component {
                                 }}
                                 style={[styles.touchableButtonImage]}
                             >
-                                <Icon src={Expensicons.BackArrow} />
+                                {({hovered, pressed}) => (
+                                    <Icon src={Expensicons.BackArrow} fill={StyleUtils.getTransparentIconFillColor(themeColors.heading, hovered, pressed)} />
+                                )}
                             </Pressable>
                         </Tooltip>
                     )}
@@ -88,40 +91,36 @@ class HeaderWithCloseButton extends Component {
                         />
                     )}
                     <View style={[styles.reportOptions, styles.flexRow, styles.pr5]}>
-                        {
-                            this.props.shouldShowDownloadButton && (
-                            <Tooltip text={this.props.translate('common.download')}>
+                        {this.props.shouldShowDownloadButton && (
+                                <Tooltip text={this.props.translate('common.download')}>
+                                    <Pressable
+                                        onPress={(e) => {
+                                            // Blur the pressable in case this button triggers a Growl notification
+                                            // We do not want to overlap Growl with the Tooltip (#15271)
+                                            e.currentTarget.blur();
+                                            this.triggerButtonCompleteAndDownload();
+                                        }}
+                                        style={[styles.touchableButtonImage]}
+                                    >
+                                        <Icon
+                                            src={Expensicons.Download}
+                                            fill={StyleUtils.getIconFillColor(getButtonState(false, false, this.props.isDelayButtonStateComplete))}
+                                        />
+                                    </Pressable>
+                                </Tooltip>
+                        )}
 
+                        {this.props.shouldShowGetAssistanceButton && (
+                            <Tooltip text={this.props.translate('getAssistancePage.questionMarkButtonTooltip')}>
                                 <Pressable
-                                    onPress={(e) => {
-                                        // Blur the pressable in case this button triggers a Growl notification
-                                        // We do not want to overlap Growl with the Tooltip (#15271)
-                                        e.currentTarget.blur();
-                                        this.triggerButtonCompleteAndDownload();
-                                    }}
+                                    onPress={() => Navigation.navigate(ROUTES.getGetAssistanceRoute(this.props.guidesCallTaskID))}
                                     style={[styles.touchableButtonImage]}
+                                    accessibilityRole="button"
+                                    accessibilityLabel={this.props.translate('getAssistancePage.questionMarkButtonTooltip')}
                                 >
-                                    <Icon
-                                        src={Expensicons.Download}
-                                        fill={StyleUtils.getIconFillColor(getButtonState(false, false, this.props.isDelayButtonStateComplete))}
-                                    />
+                                    <Icon src={Expensicons.QuestionMark} />
                                 </Pressable>
                             </Tooltip>
-                            )
-                        }
-
-                        {this.props.shouldShowGetAssistanceButton
-                        && (
-                        <Tooltip text={this.props.translate('getAssistancePage.questionMarkButtonTooltip')}>
-                            <Pressable
-                                onPress={() => Navigation.navigate(ROUTES.getGetAssistanceRoute(this.props.guidesCallTaskID))}
-                                style={[styles.touchableButtonImage]}
-                                accessibilityRole="button"
-                                accessibilityLabel={this.props.translate('getAssistancePage.questionMarkButtonTooltip')}
-                            >
-                                <Icon src={Expensicons.QuestionMark} />
-                            </Pressable>
-                        </Tooltip>
                         )}
 
                         {this.props.shouldShowThreeDotsButton && (
@@ -141,7 +140,9 @@ class HeaderWithCloseButton extends Component {
                                 accessibilityRole="button"
                                 accessibilityLabel={this.props.translate('common.close')}
                             >
-                                <Icon src={Expensicons.Close} />
+                                {({hovered, pressed}) => (
+                                    <Icon src={Expensicons.Close} fill={StyleUtils.getTransparentIconFillColor(themeColors.heading, hovered, pressed)} />
+                                )}
                             </Pressable>
                         </Tooltip>
                         )}
