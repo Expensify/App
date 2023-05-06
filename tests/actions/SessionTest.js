@@ -75,6 +75,7 @@ describe('Session', () => {
                     }));
 
                 // When we attempt to fetch the initial app data via the API
+                App.confirmReadyToOpenApp();
                 App.openApp();
                 return waitForPromisesToResolve();
             })

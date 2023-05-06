@@ -25,10 +25,20 @@ const bigWrapperStyle = [
  * Generate the wrapper styles for the ReportActionContextMenu.
  *
  * @param {Boolean} isMini
+ * @param {Boolean} isSmallScreenWidth
  * @returns {Array}
  */
-function getReportActionContextMenuStyles(isMini) {
-    return isMini ? miniWrapperStyle : bigWrapperStyle;
+function getReportActionContextMenuStyles(isMini, isSmallScreenWidth) {
+    if (isMini) {
+        return miniWrapperStyle;
+    }
+
+    return [
+        ...bigWrapperStyle,
+
+        // Small screens use a bottom-docked modal that already has vertical padding.
+        isSmallScreenWidth ? {} : styles.pv3,
+    ];
 }
 
 export default getReportActionContextMenuStyles;
