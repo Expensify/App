@@ -193,8 +193,8 @@ describe('EmojiTest', () => {
                     const newEmoji = [smileEmoji];
                     EmojiUtils.addToFrequentlyUsedEmojis(newEmoji);
 
-                    const expectedSmileEmoj = {...smileEmoji, count: 1, lastUpdatedAt: currentTime};
-                    const expectedFrequentlyEmojisList = [...frequentlyEmojisList, expectedSmileEmoj];
+                    const expectedSmileEmoji = {...smileEmoji, count: 1, lastUpdatedAt: currentTime};
+                    const expectedFrequentlyEmojisList = [...frequentlyEmojisList, expectedSmileEmoji];
                     expect(spy).toBeCalledWith(expectedFrequentlyEmojisList);
                 });
         });
