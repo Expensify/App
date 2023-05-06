@@ -420,6 +420,19 @@ function isPolicyExpenseChatAdmin(report, policies) {
 }
 
 /**
+ * Returns true if report has a parent and is therefore a Thread.
+ *
+ * @param {Object} report
+ * @returns {Boolean}
+ */
+function isThread(report) {
+    if (!report.parentReportID) {
+        return false;
+    }
+    return true;
+}
+
+/**
  * Get either the policyName or domainName the chat is tied to
  * @param {Object} report
  * @returns {String}
@@ -1192,6 +1205,8 @@ function buildOptimisticIOUReportAction(type, amount, currency, comment, partici
  * @param {String} oldPolicyName
  * @param {String} visibility
  * @param {String} notificationPreference
+ * @param {String} parentReportActionID
+ * @param {String} parentReportID
  * @returns {Object}
  */
 function buildOptimisticChatReport(
@@ -1892,4 +1907,5 @@ export {
     canRequestMoney,
     getWhisperDisplayNames,
     getWorkspaceAvatar,
+    isThread,
 };
