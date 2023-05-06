@@ -35,7 +35,7 @@ const propTypes = {
 
     parentReportActions: PropTypes.objectOf(PropTypes.shape(reportActionPropTypes)),
 
-    parentReportAction: PropTypes.shape(reportActionPropTypes),
+    // parentReportAction: PropTypes.shape(reportActionPropTypes),
 
     /** Personal details of all the users */
     personalDetails: PropTypes.objectOf(participantPropTypes),
@@ -45,8 +45,9 @@ const propTypes = {
 const defaultProps = {
     report: {},
     personalDetails: {},
-    parentReportActions: [],
-    parentReportAction: {},
+    parentReportActions: {},
+
+    // parentReportAction: {},
     parentReport: {},
 };
 
@@ -86,15 +87,22 @@ const ReportActionItemParentAction = (props) => {
                         </View>
                     </View>
                 </View>
-                { (props.parentReport && props.parentReportActions && props.parentReportAction) ?
+                { console.log('>>>>', props, 'for ', props.parentReportID, ' id: ', props.parentReportActionID, props.parentReportActions)}
+                { (props.parentReport && props.parentReportActions && props.parentReportActionID && props.parentReportActions[`${props.parentReportActionID}`]) ?
                     (<ReportActionItem
                         report={props.report}
-                        action={props.parentReportAction}
+                        action={props.parentReportActions[`${props.parentReportActionID}`]}
                         displayAsGroup={false}
                         isMostRecentIOUReportAction={false}
                         shouldDisplayNewMarker={false}
                         index={0}
-                    />) : null
+                    />) : (
+                        <View>
+                        <Text style={[styles.textHero, styles.fontColorReactionLabel]}>
+                            {`ReportName: ${props.report.reportName} The parent report is: ${props.parentReportID} and the action is: ${props.parentReportActionID}!`}
+                        </Text>
+                    </View>
+                    )
                 }
             </View>
         </OfflineWithFeedback>
@@ -119,11 +127,12 @@ export default compose(
             key: ({parentReportID}) => `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${parentReportID}`,
             canEvict: false,
         },
-        parentReportAction: {
-            key: ({parentReportID}) => `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${parentReportID}`,
-            canEvict: false,
-            selector: (reportActions, props) => {console.log('SELECTOR PROPS', reportActions, props); return lodashGet(reportActions, '2998605018361368979', {});}
-        },
+
+        // parentReportAction: {
+        //     key: ({parentReportID}) => `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${parentReportID}`,
+        //     canEvict: false,
+        //     selector: (reportActions, props) => {console.log('SELECTOR PROPS', reportActions, props); return lodashGet(reportActions, '2998605018361368979', {});}
+        // },
         personalDetails: {
             key: ONYXKEYS.PERSONAL_DETAILS,
         },
