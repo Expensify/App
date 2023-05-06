@@ -170,6 +170,7 @@ describe('EmojiTest', () => {
         });
 
         it('should put a less frequent and recent used emoji behind', () => {
+            // Given an existing frequently used emojis list with count > 1
             const frequentlyEmojisList = [
                 {
                     code: '👋', name: 'wave', count: 2, lastUpdatedAt: 4,
@@ -188,11 +189,13 @@ describe('EmojiTest', () => {
 
             return waitForPromisesToResolve()
                 .then(() => {
+                    // When add a new emoji
                     const currentTime = moment().unix();
                     const smileEmoji = {code: '😄', name: 'smile'};
                     const newEmoji = [smileEmoji];
                     EmojiUtils.addToFrequentlyUsedEmojis(newEmoji);
 
+                    // Then the new emoji should be at the last item of the list
                     const expectedSmileEmoji = {...smileEmoji, count: 1, lastUpdatedAt: currentTime};
                     const expectedFrequentlyEmojisList = [...frequentlyEmojisList, expectedSmileEmoji];
                     expect(spy).toBeCalledWith(expectedFrequentlyEmojisList);
@@ -200,6 +203,7 @@ describe('EmojiTest', () => {
         });
 
         it('should put more frequent and recent used emoji to the front', () => {
+            // Given an existing frequently used emojis list
             const smileEmoji = {code: '😄', name: 'smile'};
             const frequentlyEmojisList = [
                 {
@@ -220,10 +224,12 @@ describe('EmojiTest', () => {
 
             return waitForPromisesToResolve()
                 .then(() => {
+                    // When add an emoji that exists in the list
                     const currentTime = moment().unix();
                     const newEmoji = [smileEmoji];
                     EmojiUtils.addToFrequentlyUsedEmojis(newEmoji);
 
+                    // Then the count should be increased and put into the very front of the other emoji within the same count
                     const expectedFrequentlyEmojisList = [
                         frequentlyEmojisList[0],
                         {...smileEmoji, count: 2, lastUpdatedAt: currentTime},
@@ -234,6 +240,7 @@ describe('EmojiTest', () => {
         });
 
         it('should sorted descending by count and lastUpdatedAt for multiple emoji added', () => {
+            // Given an existing frequently used emojis list
             const smileEmoji = {code: '😄', name: 'smile'};
             const zzzEmoji = {code: '💤', name: 'zzz'};
             const impEmoji = {code: '👿', name: 'imp'};
@@ -254,10 +261,12 @@ describe('EmojiTest', () => {
 
             return waitForPromisesToResolve()
                 .then(() => {
+                    // When add multiple emojis that either exist or not exist in the list
                     const currentTime = moment().unix();
                     const newEmoji = [smileEmoji, zzzEmoji, impEmoji];
                     EmojiUtils.addToFrequentlyUsedEmojis(newEmoji);
 
+                    // Then the count should be increased for existing emoji and sorted descending by count and lastUpdatedAt
                     const expectedFrequentlyEmojisList = [
                         {...zzzEmoji, count: 3, lastUpdatedAt: currentTime},
                         frequentlyEmojisList[0],
@@ -271,12 +280,11 @@ describe('EmojiTest', () => {
         });
 
         it('if the list is full, should replaced n least used emoji from the list with the n new emoji', () => {
+            // Given an existing full (24 items) frequently used emojis list
             const smileEmoji = {code: '😄', name: 'smile'};
             const zzzEmoji = {code: '💤', name: 'zzz'};
             const impEmoji = {code: '👿', name: 'imp'};
             const bookEmoji = {code: '📚', name: 'books'};
-
-            // Given the existing full (24 items) frequently used emojis list
             const frequentlyEmojisList = [
                 {
                     code: '😠', name: 'angry', count: 3, lastUpdatedAt: 24,
