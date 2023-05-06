@@ -2,6 +2,8 @@ import _ from 'underscore';
 import lodashSumBy from 'lodash/sumBy';
 import lodashMaxBy from 'lodash/maxBy';
 import lodashOrderBy from 'lodash/orderBy';
+import lodashIntersectionBy from 'lodash/intersectionBy';
+import lodashDifferenceBy from 'lodash/differenceBy';
 import moment from 'moment';
 import Str from 'expensify-common/lib/str';
 import Onyx from 'react-native-onyx';
@@ -172,10 +174,9 @@ function mergeEmojisWithFrequentlyUsedEmojis(emojis) {
  */
 function addToFrequentlyUsedEmojis(newEmoji) {
     const currentTimestamp = moment().unix();
-    const maxFrequentEmojiCount = (CONST.EMOJI_FREQUENT_ROW_COUNT * CONST.EMOJI_NUM_PER_ROW);
 
     // Get unique emojis array with counts for every emoji, these emojis are usually extracted from copy/pasted comments
-    const uniqueEmojisWithCounts = _.chain([].concat(newEmoji))
+    const uniqueEmojisWithCount = _.chain([].concat(newEmoji))
         .groupBy('name')
         .map(values => ({
             ...values[0],
@@ -184,8 +185,8 @@ function addToFrequentlyUsedEmojis(newEmoji) {
         }))
         .value();
 
-    // Concat uniqueEmojisWithCounts with the frequentlyUsedEmojis where we sum the count and update the lastUpdatedAt
-    const mergedEmojisWithFrequent = _.chain(uniqueEmojisWithCounts)
+    // Concat uniqueEmojisWithCount with the frequentlyUsedEmojis just to sum the count and update the lastUpdatedAt
+    const mergedEmojisWithFrequent = _.chain(uniqueEmojisWithCount)
         .concat(frequentlyUsedEmojis)
         .groupBy('name')
         .map(groupedEmojiList => ({
@@ -195,11 +196,20 @@ function addToFrequentlyUsedEmojis(newEmoji) {
         }))
         .value();
 
-    // Sort the list and take the first maxFrequentEmojiCount items
-    const frequentEmojiListOrdered = lodashOrderBy(mergedEmojisWithFrequent, ['count', 'lastUpdatedAt'], ['desc', 'desc'])
-        .slice(0, maxFrequentEmojiCount);
+    const maxFrequentEmojiCount = (CONST.EMOJI_FREQUENT_ROW_COUNT * CONST.EMOJI_NUM_PER_ROW) - uniqueEmojisWithCount.length;
 
-    User.updateFrequentlyUsedEmojis(frequentEmojiListOrdered);
+    // After we get the new count and lastUpdatedAt, take out the updated unique emojis from mergedEmojisWithFrequent
+    const emojisWithNewCount = lodashIntersectionBy(mergedEmojisWithFrequent, uniqueEmojisWithCount, 'name');
+    const frequentEmojisList = lodashDifferenceBy(mergedEmojisWithFrequent, emojisWithNewCount, 'name');
+
+    // Take the first maxFrequentEmojiCount items, push back the emojisWithNewCount, and sort the list by count and lastUpdatedAt
+    const frequentEmojisListOrdered = lodashOrderBy(
+        [...frequentEmojisList.slice(0, maxFrequentEmojiCount), ...emojisWithNewCount],
+        ['count', 'lastUpdatedAt'],
+        ['desc', 'desc'],
+    );
+
+    User.updateFrequentlyUsedEmojis(frequentEmojisListOrdered);
 }
 
 /**
