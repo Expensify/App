@@ -28,10 +28,14 @@ const requestListener = function(req, res) {
         console.log(result);
       token = result.id_token;
       // can't test with real token, dot breaks URL parsing in app
-  res.writeHead(302, { Location: `https://exptest.ngrok.io/siwa/exampletoken` });
+  res.writeHead(302, { Location: `http://127.0.0.1:8080` });
   // res.writeHead(302, { Location: "" });
   res.end();
     });
+    } else {
+  res.writeHead(302, { Location: `http://127.0.0.1:8080` });
+  // res.writeHead(302, { Location: "" });
+  res.end();
 }
 }
 
