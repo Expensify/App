@@ -51,5 +51,5 @@ export default (onyxKeyName, defaultValue) => {
         return Consumer;
     };
 
-    return [withOnyxKey, ProviderWithOnyx];
+    return [withOnyxKey, ProviderWithOnyx, Context];
 };

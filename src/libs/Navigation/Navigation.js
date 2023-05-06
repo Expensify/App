@@ -209,9 +209,23 @@ function dismissModal(shouldOpenDrawer = false) {
  * @returns {String}
  */
 function getActiveRoute() {
-    return navigationRef.current && navigationRef.current.getCurrentRoute().name
-        ? getPathFromState(navigationRef.current.getState(), linkingConfig.config)
-        : '';
+    const currentRouteHasName = navigationRef.current && navigationRef.current.getCurrentRoute().name;
+    if (!currentRouteHasName) {
+        return '';
+    }
+
+    const routeState = navigationRef.current.getState();
+    const currentRoute = routeState.routes[routeState.index];
+
+    if (currentRoute.state) {
+        return getPathFromState(routeState, linkingConfig.config);
+    }
+
+    if (currentRoute.params && currentRoute.params.path) {
+        return currentRoute.params.path;
+    }
+
+    return '';
 }
 
 /**

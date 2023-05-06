@@ -191,7 +191,7 @@ class SearchPage extends Component {
                                 hideSectionHeaders
                                 showTitleTooltip
                                 shouldShowOptions={didScreenTransitionEnd}
-                                placeholderText={this.props.translate('optionsSelector.nameEmailOrPhoneNumber')}
+                                textInputLabel={this.props.translate('optionsSelector.nameEmailOrPhoneNumber')}
                                 onLayout={this.searchRendered}
                                 safeAreaPaddingBottomStyle={safeAreaPaddingBottomStyle}
                             />

@@ -13,6 +13,7 @@ import * as Download from '../../libs/actions/Download';
 import fileDownload from '../../libs/fileDownload';
 import addEncryptedAuthTokenToURL from '../../libs/addEncryptedAuthTokenToURL';
 import {ShowContextMenuContext, showContextMenuForReport} from '../ShowContextMenuContext';
+import * as ReportUtils from '../../libs/ReportUtils';
 
 const propTypes = {
     /** Press in handler for the link */
@@ -48,7 +49,7 @@ const BaseAnchorForAttachmentsOnly = (props) => {
         <ShowContextMenuContext.Consumer>
             {({
                 anchor,
-                reportID,
+                report,
                 action,
                 checkIfContextMenuActive,
             }) => (
@@ -66,9 +67,10 @@ const BaseAnchorForAttachmentsOnly = (props) => {
                     onLongPress={event => showContextMenuForReport(
                         event,
                         anchor,
-                        reportID,
+                        report.reportID,
                         action,
                         checkIfContextMenuActive,
+                        ReportUtils.isArchivedRoom(report),
                     )}
                 >
                     <AttachmentView

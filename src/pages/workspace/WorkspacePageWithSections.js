@@ -111,7 +111,10 @@ class WorkspacePageWithSections extends React.Component {
         const backButtonRoute = this.props.backButtonRoute === '' ? ROUTES.getWorkspaceInitialRoute(policyID) : this.props.backButtonRoute;
 
         return (
-            <ScreenWrapper includeSafeAreaPaddingBottom={false}>
+            <ScreenWrapper
+                includeSafeAreaPaddingBottom={false}
+                shouldEnablePickerAvoiding={false}
+            >
                 <FullPageNotFoundView
                     shouldShow={_.isEmpty(this.props.policy)}
                     onBackButtonPress={() => Navigation.navigate(ROUTES.SETTINGS_WORKSPACES)}
