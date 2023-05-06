@@ -184,7 +184,7 @@ const HeaderView = (props) => {
                                     textStyles={[styles.headerText, styles.pre]}
                                     shouldUseFullTitle={isChatRoom || isPolicyExpenseChat}
                                 />
-                                {(isChatRoom || isPolicyExpenseChat) && (
+                                {((isChatRoom || isPolicyExpenseChat || ReportUtils.isThread(props.report)) && !_.isEmpty(subtitle)) && (
                                     <Text
                                         style={[
                                             styles.sidebarLinkText,
@@ -242,14 +242,26 @@ export default compose(
             key: ONYXKEYS.ACCOUNT,
             selector: account => account && ({guideCalendarLink: account.guideCalendarLink}),
         },
-        parentReport: {
-            key: ({report}) => `${ONYXKEYS.COLLECTION.REPORT}${report.parentReportID}`,
-        },
-        parentReportAction: {
-            key: ({report}) => `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.parentReportID}`,
-            canEvict: false,
+
+        report: {
             // eslint-disable-next-line no-console
-            selector: (reportActions, props) => { console.log('>>> SELECTOR PROPS: ', props); return reportActions[props.report.parentReportActionID]; },
+            key: ({report}) => { console.log('SELECTOR report', report); return `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.reportID}`; },
+            canEvict: false,
+            selector: (reports, props) => {
+                // eslint-disable-next-line no-console
+                console.log('SELECTOR PROPS', props);
+                return props && props.report && reports[props.report.parentReportActionID];
+            },
         },
+
+        // parentReport: {
+        //     key: ({report}) => `${ONYXKEYS.COLLECTION.REPORT}${report.parentReportID}`,
+        // },
+        // parentReportAction: {
+        //     key: ({report}) => `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.parentReportID}`,
+        //     canEvict: false,
+        //     // eslint-disable-next-line no-console
+        //     selector: (reportActions, props) => { console.log('>>> SELECTOR PROPS: ', props); return reportActions[props.report.parentReportActionID]; },
+        // },
     }),
 )(HeaderView);

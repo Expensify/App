@@ -18,13 +18,25 @@ import * as StyleUtils from '../../../styles/StyleUtils';
 import withWindowDimensions, {windowDimensionsPropTypes} from '../../../components/withWindowDimensions';
 import compose from '../../../libs/compose';
 import withLocalize from '../../../components/withLocalize';
+import ReportActionItem from './ReportActionItemSingle';
+import reportActionPropTypes from './reportActionPropTypes';
 
 const propTypes = {
     /** The id of the report */
     reportID: PropTypes.string.isRequired,
 
+    /** The id of the report */
+    parentReportID: PropTypes.string.isRequired,
+
+    /** The id of the report */
+    // eslint-disable-next-line react/no-unused-prop-types
+    parentReportActionID: PropTypes.string.isRequired,
+
     /** The report currently being looked at */
     report: reportPropTypes,
+
+    // eslint-disable-next-line react/no-unused-prop-types
+    parentReportAction: PropTypes.shape(reportActionPropTypes),
 
     /** Personal details of all the users */
     personalDetails: PropTypes.objectOf(participantPropTypes),
@@ -33,11 +45,12 @@ const propTypes = {
 };
 const defaultProps = {
     report: {},
+    parentReportAction: {},
     personalDetails: {},
 };
 
 const ReportActionItemParentAction = (props) => {
-    // const icons = ReportUtils.getIcons(props.report, props.personalDetails);
+    const icons = ReportUtils.getIcons(props.report, props.personalDetails);
     // eslint-disable-next-line no-console
     console.log(props, props.personalDetails);
     return (
@@ -57,18 +70,19 @@ const ReportActionItemParentAction = (props) => {
                     accessibilityLabel={props.translate('accessibilityHints.chatWelcomeMessage')}
                     style={[styles.p5, StyleUtils.getReportWelcomeTopMarginStyle(props.isSmallScreenWidth)]}
                 >
-                    {/* <Pressable
+                    <Pressable
                         onPress={() => ReportUtils.navigateToDetailsPage(props.report)}
                         style={[styles.ph5, styles.pb3, styles.alignSelfStart]}
                     >
                         <RoomHeaderAvatars
                             icons={icons}
                         />
-                    </Pressable> */}
+                    </Pressable>
                     <View style={[styles.ph5, styles.link]}>
                         <ReportWelcomeText report={props.report} />
                     </View>
                 </View>
+                <ReportActionItem report={props.parentReportID} action={props.parentReportAction} displayAsGroup={false} />
             </View>
         </OfflineWithFeedback>
     );
@@ -83,10 +97,19 @@ export default compose(
     withLocalize,
     withOnyx({
         report: {
-            key: ({reportID}) => `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
+            key: ({parentReportID}) => `${ONYXKEYS.COLLECTION.REPORT}${parentReportID}`,
         },
         personalDetails: {
             key: ONYXKEYS.PERSONAL_DETAILS,
         },
+        parentReportAction: {
+            key: ({parentReportID}) => `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${parentReportID}`,
+            selector: (reportActions, props) => {
+                // eslint-disable-next-line no-console
+                console.log('>>>> SELECTOR PROPS', props);
+                return props && props.parentReportActiontID && reportActions[props.parentReportActiontID];
+            },
+        },
+
     }),
 )(ReportActionItemParentAction);
