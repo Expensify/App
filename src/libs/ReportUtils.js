@@ -438,6 +438,12 @@ function isThread(report) {
  * @returns {String}
  */
 function getChatRoomSubtitle(report) {
+    if (isThread(report)) {
+        if (isPolicyExpenseChat(report)) {
+            return 'workspace Thread subtitle';
+        }
+        return 'DM thread subtitle';
+    }
     if (!isDefaultRoom(report) && !isUserCreatedPolicyRoom(report) && !isPolicyExpenseChat(report)) {
         return '';
     }
@@ -916,7 +922,7 @@ function getPolicyExpenseChatName(report) {
  */
 function getReportName(report) {
     let formattedName;
-    if (isChatRoom(report)) {
+    if (isChatRoom(report) || isThread(report)) {
         formattedName = report.reportName;
     }
 

@@ -171,7 +171,7 @@ const OptionRowLHN = (props) => {
                                             accessibilityLabel={props.translate('accessibilityHints.chatUserDisplayNames')}
                                             fullTitle={optionItem.text}
                                             displayNamesWithTooltips={optionItem.displayNamesWithTooltips}
-                                            tooltipEnabled
+                                            tooltipEnabled={!optionItem.isThread}
                                             numberOfLines={1}
                                             textStyles={displayNameStyle}
                                             shouldUseFullTitle={optionItem.isChatRoom || optionItem.isPolicyExpenseChat}

@@ -233,6 +233,7 @@ function getOptionData(reportID) {
     const participantPersonalDetailList = _.values(OptionsListUtils.getPersonalDetailsForLogins(report.participants, personalDetails));
     const personalDetail = participantPersonalDetailList[0] || {};
 
+    result.isThread = ReportUtils.isThread(report);
     result.isChatRoom = ReportUtils.isChatRoom(report);
     result.isArchivedRoom = ReportUtils.isArchivedRoom(report);
     result.isPolicyExpenseChat = ReportUtils.isPolicyExpenseChat(report);
