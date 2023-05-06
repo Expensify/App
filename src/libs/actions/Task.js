@@ -89,7 +89,7 @@ function createTaskAndNavigate(currentUserEmail, parentReportID, title, descript
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${parentReportID}`,
-            value: {[optimisticAddCommentReport.reportActionID]: {pendingAction: null}},
+            value: {[optimisticAddCommentReport.reportAction.reportActionID]: {pendingAction: null}},
         },
     ];
 
@@ -97,21 +97,23 @@ function createTaskAndNavigate(currentUserEmail, parentReportID, title, descript
         failureData.push({
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${assigneeChatReportID}`,
-            value: {[optimisticAssigneeAddComment.reportActionID]: {pendingAction: null}},
+            value: {[optimisticAssigneeAddComment.reportAction.reportActionID]: {pendingAction: null}},
         });
     }
 
     API.write(
         'CreateTask',
         {
-            parentReportActionID: optimisticAddCommentReport.reportActionID,
+            parentReportActionID: optimisticAddCommentReport.reportAction.reportActionID,
             parentReportID,
-            taskReportID: optimisticTaskReport.taskReportID,
+            taskReportID: optimisticTaskReport.reportID,
+            createdTaskReportActionId: optimisticTaskCreatedAction.reportActionID,
             reportName: optimisticTaskReport.reportName,
             title: optimisticTaskReport.reportName,
             description: optimisticTaskReport.description,
             assignee,
             assigneeChatReportID,
+            assigneeChatReportActionID: optimisticAssigneeAddComment ? optimisticAssigneeAddComment.reportAction.reportActionID : null,
         },
         {optimisticData, successData, failureData},
     );
