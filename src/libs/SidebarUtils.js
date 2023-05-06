@@ -322,7 +322,12 @@ function getOptionData(reportID) {
     }
 
     const reportName = ReportUtils.getReportName(report);
-    result.text = reportName;
+    // eslint-disable-next-line no-unused-expressions, no-undef, no-console, max-len
+    const parentReportAction = (ReportUtils.isThread(report) && report.parentReportActionID && report.parentReportID) ? reportActions[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}4444742227669619`]['2969097651817343818'] : {};
+    const parentReportActionMessage = lodashGet(parentReportAction, ['message', 0, 'text']);
+    // eslint-disable-next-line no-console
+    console.log('rip ', parentReportAction, parentReportActionMessage, lastMessageText);
+    result.text = ReportUtils.isThread(report) ? parentReportActionMessage : reportName;
     result.subtitle = subtitle;
     result.participantsList = participantPersonalDetailList;
 
