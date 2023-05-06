@@ -73,7 +73,6 @@ const MoneyRequestHeader = (props) => {
                 report={props.report}
                 policies={props.policies}
                 personalDetails={props.personalDetails}
-                containerStyles={[styles.pt5, styles.pb3, styles.pr1]}
                 shouldShowCloseButton={false}
                 shouldShowBackButton={props.isSmallScreenWidth}
                 onBackButtonPress={() => Navigation.navigate(ROUTES.HOME)}

@@ -135,6 +135,24 @@ function addSMSDomainIfPhoneNumber(login) {
 }
 
 /**
+ * Returns avatar data for a list of user logins
+ *
+ * @param {Array<String>} logins
+ * @param {Object} personalDetails
+ * @returns {Object}
+ */
+function getAvatarsForLogins(logins, personalDetails) {
+    return _.map(logins, (login) => {
+        const userPersonalDetail = lodashGet(personalDetails, login, {login, avatar: ''});
+        return {
+            source: ReportUtils.getAvatar(userPersonalDetail.avatar, userPersonalDetail.login),
+            type: CONST.ICON_TYPE_AVATAR,
+            name: userPersonalDetail.login,
+        };
+    });
+}
+
+/**
  * Returns the personal details for an array of logins
  *
  * @param {Array} logins
@@ -409,7 +427,7 @@ function createOption(logins, personalDetails, report, reportActions = {}, {
             : '';
         lastMessageText += report ? lastMessageTextFromReport : '';
 
-        if (result.isPolicyExpenseChat && result.isArchivedRoom) {
+        if (result.isArchivedRoom) {
             const archiveReason = (lastReportActions[report.reportID] && lastReportActions[report.reportID].originalMessage && lastReportActions[report.reportID].originalMessage.reason)
                 || CONST.REPORT.ARCHIVE_REASON.DEFAULT;
             lastMessageText = Localize.translate(preferredLocale, `reportArchiveReasons.${archiveReason}`, {
@@ -878,6 +896,7 @@ function getHeaderMessage(hasSelectableOptions, hasUserToInvite, searchValue, ma
 
 export {
     addSMSDomainIfPhoneNumber,
+    getAvatarsForLogins,
     isCurrentUser,
     getSearchOptions,
     getNewChatOptions,

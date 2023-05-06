@@ -808,6 +808,11 @@ const styles = {
         backgroundColor: themeColors.buttonDefaultBG,
     },
 
+    autoGrowHeightInputContainer: (textInputHeight, maxHeight) => ({
+        height: textInputHeight >= maxHeight ? maxHeight : textInputHeight,
+        minHeight: variables.componentSizeLarge,
+    }),
+
     textInputContainer: {
         flex: 1,
         justifyContent: 'center',
@@ -816,6 +821,7 @@ const styles = {
         borderBottomWidth: 2,
         borderColor: themeColors.border,
         overflow: 'hidden',
+        scrollPaddingTop: '100%',
     },
 
     textInputLabel: {
@@ -856,6 +862,7 @@ const styles = {
         paddingTop: 23,
         paddingBottom: 8,
         paddingLeft: 0,
+        paddingRight: 0,
         borderWidth: 0,
     },
 
@@ -2588,7 +2595,7 @@ const styles = {
     },
 
     workspaceInviteWelcome: {
-        minHeight: 115,
+        maxHeight: 115,
     },
 
     peopleRow: {
