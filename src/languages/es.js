@@ -1015,7 +1015,7 @@ export default {
             captureReceipts: 'Captura recibos',
             fastReimbursementsHappyMembers: '¡Reembolsos rápidos = miembros felices!',
             kilometers: 'Kilómetros',
-            kilometers: 'kilómetro',
+            kilometer: 'kilómetro',
             miles: 'Millas',
             mile: 'milla',
             viewAllReceipts: 'Ver todos los recibos',
