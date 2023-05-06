@@ -103,7 +103,7 @@ class BaseVideoChatButtonAndMenu extends Component {
                     <Tooltip text={this.props.translate('videoChatButtonAndMenu.tooltip')}>
                         <Pressable
                             ref={el => this.videoChatButton = el}
-                            onPress={() => {
+                            onPress={(ev) => {
                                 // Drop focus to avoid blue focus ring.
                                 this.videoChatButton.blur();
 
@@ -112,7 +112,9 @@ class BaseVideoChatButtonAndMenu extends Component {
                                     Linking.openURL(this.props.guideCalendarLink);
                                     return;
                                 }
-                                this.setMenuVisibility(true);
+                                if (ev.nativeEvent.closedPopoverId !== CONST.POPOVERS.VIDEO_CHAT) {
+                                    this.setMenuVisibility(!this.state.isVideoChatMenuActive);
+                                }
                             }}
                             style={[styles.touchableButtonImage]}
                         >
@@ -131,6 +133,7 @@ class BaseVideoChatButtonAndMenu extends Component {
                         top: this.state.videoChatIconPosition.y + 40,
                     }}
                     withoutOverlay
+                    popoverId={CONST.POPOVERS.VIDEO_CHAT}
                 >
                     <View style={this.props.isSmallScreenWidth ? {} : styles.pv3}>
                         {_.map(this.menuItemData, ({icon, text, onPress}) => (

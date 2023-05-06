@@ -843,7 +843,9 @@ class ReportActionCompose extends React.Component {
 
                                                                 // Drop focus to avoid blue focus ring.
                                                                 this.actionButton.blur();
-                                                                this.setMenuVisibility(true);
+                                                                if (e.nativeEvent.closedPopoverId !== CONST.POPOVERS.ATTACHMENT) {
+                                                                    this.setMenuVisibility(!this.state.isMenuVisible);
+                                                                }
                                                             }}
                                                             style={styles.composerSizeButton}
                                                             disabled={isBlockedFromConcierge || this.props.disabled}
@@ -876,6 +878,7 @@ class ReportActionCompose extends React.Component {
                                                         },
                                                     ]}
                                                     withoutOverlay
+                                                    popoverId={CONST.POPOVERS.ATTACHMENT}
                                                 />
                                             </>
                                         )}

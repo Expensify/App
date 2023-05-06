@@ -11,7 +11,12 @@ import withWindowDimensions from '../withWindowDimensions';
 
 const Popover = (props) => {
     const ref = React.useRef(null);
-    const {onOpen, isOpen, close} = React.useContext(PopoverContext);
+    const {
+        onOpen,
+        isOpen,
+        activePopoverId,
+        close,
+    } = React.useContext(PopoverContext);
     const {
         modalStyle,
         modalContainerStyle,
@@ -37,15 +42,16 @@ const Popover = (props) => {
             onOpen({
                 ref,
                 close: props.onClose,
+                popoverId: props.popoverId,
             });
         } else {
             props.onModalHide();
-            if (isOpen) {
-                close();
+            if (isOpen && activePopoverId === props.popoverId) {
+                close(props.popoverId);
             }
         }
         Modal.willAlertModalBecomeVisible(props.isVisible);
-        Modal.setCloseModal(props.isVisible ? props.onClose : null);
+        Modal.setCloseModal(props.isVisible ? () => props.onClose(props.popoverId) : null);
     }, [props.isVisible]);
 
     return props.isVisible ? (

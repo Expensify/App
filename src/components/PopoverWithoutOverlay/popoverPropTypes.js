@@ -6,6 +6,8 @@ import CONST from '../../CONST';
 const propTypes = {
     ...(_.omit(modalPropTypes, ['type', 'popoverAnchorPosition'])),
 
+    popoverId: PropTypes.string.isRequired,
+
     /** The anchor position of the popover */
     anchorPosition: PropTypes.shape({
         top: PropTypes.number,

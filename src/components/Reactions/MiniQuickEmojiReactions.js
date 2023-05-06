@@ -81,7 +81,17 @@ const MiniQuickEmojiReactions = (props) => {
             ))}
             <BaseMiniContextMenuItem
                 ref={ref}
-                onPress={openEmojiPicker}
+                onPress={(ev) => {
+                    if (ev.nativeEvent.closedPopoverId === CONST.POPOVERS.EMOJI_PICKER) {
+                        return;
+                    }
+
+                    if (!EmojiPickerAction.emojiPickerRef.current.state.isEmojiPickerVisible) {
+                        openEmojiPicker();
+                    } else {
+                        EmojiPickerAction.emojiPickerRef.current.hideEmojiPicker();
+                    }
+                }}
                 isDelayButtonStateComplete={false}
                 tooltipText={props.translate('emojiReactions.addReactionTooltip')}
             >

@@ -30,6 +30,7 @@ const propTypes = {
         iconHeight: PropTypes.number,
         iconDescription: PropTypes.string,
     })).isRequired,
+    popoverId: PropTypes.string.isRequired,
 };
 
 const defaultProps = {
@@ -62,8 +63,11 @@ class ButtonWithMenu extends PureComponent {
                         isLoading={this.props.isLoading}
                         isDisabled={this.props.isDisabled}
                         onButtonPress={event => this.props.onPress(event, selectedItem.value)}
-                        onDropdownPress={() => {
-                            this.setMenuVisibility(true);
+                        onDropdownPress={(e) => {
+                            if (e.nativeEvent.closedPopoverId === this.props.popoverId) {
+                                return;
+                            }
+                            this.setMenuVisibility(!this.state.isMenuVisible);
                         }}
                     />
                 ) : (
@@ -92,6 +96,7 @@ class ButtonWithMenu extends PureComponent {
                             },
                         }))}
                         withoutOverlay
+                        popoverId={this.props.popoverId}
                     />
                 )}
             </View>

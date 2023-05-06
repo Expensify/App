@@ -1,4 +1,4 @@
-import React from 'react';
+import React, {useRef} from 'react';
 import {Pressable} from 'react-native';
 import PropTypes from 'prop-types';
 import styles from '../../styles/styles';
@@ -9,6 +9,7 @@ import Tooltip from '../Tooltip';
 import Icon from '../Icon';
 import withLocalize, {withLocalizePropTypes} from '../withLocalize';
 import * as EmojiPickerAction from '../../libs/actions/EmojiPickerAction';
+import CONST from '../../CONST';
 
 const propTypes = {
     /** Flag to disable the emoji picker button */
@@ -26,17 +27,27 @@ const defaultProps = {
 };
 
 const EmojiPickerButton = (props) => {
-    let emojiPopoverAnchor = null;
+    const emojiPopoverAnchor = useRef(null);
     return (
         <Tooltip containerStyles={[styles.alignSelfEnd]} text={props.translate('reportActionCompose.emoji')}>
             <Pressable
-                ref={el => emojiPopoverAnchor = el}
+                ref={emojiPopoverAnchor}
                 style={({hovered, pressed}) => ([
                     styles.chatItemEmojiButton,
                     StyleUtils.getButtonBackgroundColorStyle(getButtonState(hovered, pressed)),
                 ])}
                 disabled={props.isDisabled}
-                onPress={() => EmojiPickerAction.showEmojiPicker(props.onModalHide, props.onEmojiSelected, emojiPopoverAnchor)}
+                onPress={(ev) => {
+                    if (ev.nativeEvent.closedPopoverId === CONST.POPOVERS.EMOJI_PICKER) {
+                        return;
+                    }
+
+                    if (!EmojiPickerAction.emojiPickerRef.current.state.isEmojiPickerVisible) {
+                        EmojiPickerAction.showEmojiPicker(props.onModalHide, props.onEmojiSelected, emojiPopoverAnchor.current);
+                    } else {
+                        EmojiPickerAction.emojiPickerRef.current.hideEmojiPicker();
+                    }
+                }}
                 nativeID={props.nativeID}
             >
                 {({hovered, pressed}) => (

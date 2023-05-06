@@ -230,12 +230,23 @@ class FloatingActionButtonAndPopover extends React.Component {
                         ] : []),
                     ]}
                     withoutOverlay
+                    popoverId={CONST.POPOVERS.LHN_FLOATING_ACTION_BUTTON}
                 />
                 <FloatingActionButton
                     accessibilityLabel={this.props.translate('sidebarScreen.fabNewChat')}
                     accessibilityRole="button"
                     isActive={this.state.isCreateMenuActive}
-                    onPress={this.showCreateMenu}
+                    onPress={(e) => {
+                        if (e.nativeEvent.closedPopoverId === CONST.POPOVERS.LHN_FLOATING_ACTION_BUTTON) {
+                            return;
+                        }
+
+                        if (this.state.isCreateMenuActive) {
+                            this.hideCreateMenu();
+                        } else {
+                            this.showCreateMenu();
+                        }
+                    }}
                 />
             </View>
         );

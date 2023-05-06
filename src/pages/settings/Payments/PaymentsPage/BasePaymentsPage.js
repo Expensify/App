@@ -228,10 +228,11 @@ class BasePaymentsPage extends React.Component {
             this.setPositionAddPaymentMenu(position);
             return;
         }
-        this.setState({
-            shouldShowAddPaymentMenu: true,
-        });
-
+        if (nativeEvent.closedPopoverId !== CONST.POPOVERS.ADD_PAYMENT_METHOD) {
+            this.setState(prev => ({
+                shouldShowAddPaymentMenu: !prev.shouldShowAddPaymentMenu,
+            }));
+        }
         this.setPositionAddPaymentMenu(position);
     }
 
@@ -438,6 +439,7 @@ class BasePaymentsPage extends React.Component {
                         right: this.state.anchorPositionRight,
                     }}
                     withoutOverlay
+                    popoverId={CONST.POPOVERS.DELETE_PAYMENT_METHOD}
                 >
                     {!this.state.showConfirmDeleteContent ? (
                         <View

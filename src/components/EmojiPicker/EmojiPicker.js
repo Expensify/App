@@ -176,6 +176,8 @@ class EmojiPicker extends React.Component {
                 }}
                 anchorOrigin={this.state.emojiPopoverAnchorOrigin}
                 measureContent={this.measureContent}
+                withoutOverlay
+                popoverId={CONST.POPOVERS.EMOJI_PICKER}
             >
                 <EmojiPickerMenu
                     onEmojiSelected={this.selectEmoji}

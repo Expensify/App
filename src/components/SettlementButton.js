@@ -100,6 +100,7 @@ class SettlementButton extends React.Component {
                             this.props.onPress(iouPaymentType);
                         }}
                         options={this.getButtonOptionsFromProps()}
+                        popoverId={CONST.POPOVERS.SETTLEMENT}
                     />
                 )}
             </KYCWall>

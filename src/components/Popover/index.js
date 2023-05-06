@@ -28,7 +28,7 @@ const Popover = (props) => {
 
     if (props.withoutOverlay && !props.isSmallScreenWidth) {
         // eslint-disable-next-line react/jsx-props-no-spreading
-        return <PopoverWithoutOverlay {...props} />;
+        return createPortal(<PopoverWithoutOverlay {...props} />, document.body);
     }
 
     return (

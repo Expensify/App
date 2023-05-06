@@ -255,7 +255,13 @@ class AvatarWithImagePicker extends React.Component {
         return (
             <View style={[styles.alignItemsCenter, ...additionalStyles]}>
                 <Pressable
-                    onPress={() => this.setState({isMenuVisible: true})}
+                    onPress={(e) => {
+                        if (e.nativeEvent.closedPopoverId === CONST.POPOVERS.IMAGE_PICKER) {
+                            return;
+                        }
+
+                        this.setState(prev => ({isMenuVisible: !prev.isMenuVisible}));
+                    }}
                 >
                     <View style={[styles.pRelative, styles.avatarLarge]}>
                         <Tooltip text={this.props.translate('avatarWithImagePicker.editImage')}>
@@ -294,6 +300,7 @@ class AvatarWithImagePicker extends React.Component {
                                         menuItems={this.createMenuItems(openPicker)}
                                         anchorPosition={this.props.anchorPosition}
                                         withoutOverlay
+                                        popoverId={CONST.POPOVERS.IMAGE_PICKER}
                                     />
                                 </>
                             )}

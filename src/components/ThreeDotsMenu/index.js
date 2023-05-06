@@ -10,6 +10,7 @@ import withLocalize, {withLocalizePropTypes} from '../withLocalize';
 import Tooltip from '../Tooltip';
 import * as Expensicons from '../Icon/Expensicons';
 import ThreeDotsMenuItemPropTypes from './ThreeDotsMenuItemPropTypes';
+import CONST from '../../CONST';
 
 const propTypes = {
     ...withLocalizePropTypes,
@@ -98,7 +99,7 @@ class ThreeDotsMenu extends Component {
                     anchorPosition={this.props.anchorPosition}
                     onItemSelected={this.hidePopoverMenu}
                     menuItems={this.props.menuItems}
-                    withoutOverlay
+                    popoverId={CONST.POPOVERS.THREE_DOTS}
                 />
             </>
         );

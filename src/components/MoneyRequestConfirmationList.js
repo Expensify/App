@@ -295,6 +295,7 @@ class MoneyRequestConfirmationList extends Component {
                             isDisabled={shouldDisableButton}
                             onPress={(_event, value) => this.confirm(value)}
                             options={this.getSplitOrRequestOptions()}
+                            popoverId={CONST.POPOVERS.MONEY_REQUEST_CONFIRMATION}
                         />
                     )}
             >

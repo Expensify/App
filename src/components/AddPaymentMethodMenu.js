@@ -66,6 +66,7 @@ const AddPaymentMethodMenu = props => (
             ] : []),
         ]}
         withoutOverlay
+        popoverId={CONST.POPOVERS.ADD_PAYMENT_METHOD}
     />
 );
 

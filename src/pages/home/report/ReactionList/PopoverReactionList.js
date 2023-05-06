@@ -6,6 +6,7 @@ import withLocalize, {withLocalizePropTypes} from '../../../../components/withLo
 import PopoverWithMeasuredContent from '../../../../components/PopoverWithMeasuredContent';
 
 import BaseReactionList from './BaseReactionList';
+import CONST from '../../../../CONST';
 
 const propTypes = {
     ...withLocalizePropTypes,
@@ -190,6 +191,8 @@ class PopoverReactionList extends React.Component {
                     measureContent={this.measureContent}
                     shouldSetModalVisibility={false}
                     fullscreen
+                    withoutOverlay
+                    popoverId={CONST.POPOVERS.EMOJI_REACTION_LIST}
                 >
                     <BaseReactionList
                         type={this.state.type}

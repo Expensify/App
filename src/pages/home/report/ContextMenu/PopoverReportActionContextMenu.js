@@ -311,6 +311,7 @@ class PopoverReportActionContextMenu extends React.Component {
                     shouldSetModalVisibility={false}
                     fullscreen
                     withoutOverlay
+                    popoverId={CONST.POPOVERS.CONTEXT_MENU}
                 >
                     <BaseReportActionContextMenu
                         isVisible
