@@ -179,7 +179,7 @@ class WorkspaceReimburseView extends React.Component {
                         description={this.props.translate('workspace.reimburse.trackDistanceRate')}
                         shouldShowRightIcon
                         onPress={() => Navigation.navigate(ROUTES.getWorkspaceRateAndUnitRoute(this.props.policy.id))}
-                        wrapperStyle={{marginLeft:-20, marginRight:-20, width:'auto'}}
+                        wrapperStyle={{marginLeft: -20, marginRight: -20, width: 'auto'}}
                     />
                 </Section>
 

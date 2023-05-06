@@ -3,7 +3,6 @@ import {Keyboard, View} from 'react-native';
 import _ from 'underscore';
 import lodashGet from 'lodash/get';
 import ONYXKEYS from '../../../ONYXKEYS';
-import themeColors from '../../../styles/themes/default';
 import withLocalize, {withLocalizePropTypes} from '../../../components/withLocalize';
 import styles from '../../../styles/styles';
 import compose from '../../../libs/compose';
@@ -81,7 +80,7 @@ class WorkspaceRateAndUnitPage extends React.Component {
         }
 
         const rateNumValue = this.getNumericValue(rate);
-        const currentCustomUnitRate = lodashGet(distanceCustomUnit, ['rates', this.state.unitRateID], {});      
+        const currentCustomUnitRate = lodashGet(distanceCustomUnit, ['rates', this.state.unitRateID], {});
 
         const newCustomUnit = {
             customUnitID: this.state.unitID,
