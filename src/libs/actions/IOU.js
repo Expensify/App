@@ -59,7 +59,8 @@ function requestMoney(report, amount, currency, payeeEmail, participant, comment
     const isPolicyExpenseChat = participant.isPolicyExpenseChat || participant.isOwnPolicyExpenseChat;
     let isNewChat = false;
 
-    // If this is a policyExpenseChat, the chatReport must exist and we can get it from Onyx
+    // If this is a policyExpenseChat, the chatReport must exist and we can get it from Onyx.
+    // report is null if the flow is initiated from the global create menu. However, participant always stores the reportID if it exists, which is the case for policyExpenseChats
     if (!chatReport && isPolicyExpenseChat) {
         chatReport = chatReports[`${ONYXKEYS.COLLECTION.REPORT}${participant.reportID}`];
     }
