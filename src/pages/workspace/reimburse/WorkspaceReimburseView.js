@@ -88,6 +88,7 @@ class WorkspaceReimburseView extends React.Component {
 
         this.fetchData();
     }
+
     getCurrentRatePerUnitLabel() {
         const distanceCustomUnit = _.find(lodashGet(this.props, 'policy.customUnits', {}), unit => unit.name === 'Distance');
         const customUnitRate = _.find(lodashGet(distanceCustomUnit, 'rates', {}), rate => rate.name === 'Default Rate');
@@ -102,14 +103,13 @@ class WorkspaceReimburseView extends React.Component {
     }
 
     getUnitLabel(value) {
-        if (value==='km') {
-            return this.props.translate('workspace.reimburse.kilometers').toLowerCase();
+        if (value === 'km') {
+            return this.props.translate('workspace.reimburse.kilometer');
         }
-        if (value==='mi') {
-            return this.props.translate('workspace.reimburse.miles').toLowerCase();
+        if (value === 'mi') {
+            return this.props.translate('workspace.reimburse.mile');
         }
         return '';
-
     }
 
     getRateDisplayValue(value) {
@@ -179,6 +179,7 @@ class WorkspaceReimburseView extends React.Component {
                         description={this.props.translate('workspace.reimburse.trackDistanceRate')}
                         shouldShowRightIcon
                         onPress={() => Navigation.navigate(ROUTES.getWorkspaceRateAndUnitRoute(this.props.policy.id))}
+                        wrapperStyle={{marginLeft:-20, marginRight:-20, width:'auto'}}
                     />
                 </Section>
 
@@ -187,7 +188,7 @@ class WorkspaceReimburseView extends React.Component {
                     reimbursementAccount={this.props.reimbursementAccount}
                     network={this.props.network}
                     translate={this.props.translate}
-                    style={{marginTop: 10}}
+                    style={styles.mt2}
                 />
             </>
         );

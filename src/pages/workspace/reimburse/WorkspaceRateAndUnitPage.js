@@ -1,6 +1,5 @@
 import React from 'react';
 import {Keyboard, View} from 'react-native';
-import PropTypes from 'prop-types';
 import _ from 'underscore';
 import lodashGet from 'lodash/get';
 import ONYXKEYS from '../../../ONYXKEYS';
@@ -72,20 +71,18 @@ class WorkspaceRateAndUnitPage extends React.Component {
         if (Number.isNaN(numValue)) {
             return NaN;
         }
-
         return numValue.toFixed(3);
     }
 
     saveUnitAndRate(unit, rate) {
         const distanceCustomUnit = _.find(lodashGet(this.props, 'policy.customUnits', {}), u => u.name === 'Distance');
-        if (!distanceCustomUnit)
+        if (!distanceCustomUnit) {
             return;
+        }
 
-        // rate part
         const rateNumValue = this.getNumericValue(rate);
         const currentCustomUnitRate = lodashGet(distanceCustomUnit, ['rates', this.state.unitRateID], {});      
 
-        // unit part
         const newCustomUnit = {
             customUnitID: this.state.unitID,
             name: this.state.unitName,
@@ -154,7 +151,6 @@ class WorkspaceRateAndUnitPage extends React.Component {
                                     defaultValue={this.state.unitValue}
                                     label={this.props.translate('workspace.reimburse.trackDistanceUnit')}
                                     items={this.getUnitItems()}
-                                    backgroundColor={themeColors.cardBG}
                                 />
                             </View>
                         </OfflineWithFeedback>
