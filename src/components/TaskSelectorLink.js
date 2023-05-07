@@ -58,7 +58,11 @@ const TaskSelectorLink = (props) => {
     );
     const linkBottomMargin = props.icons.length !== 0 ? styles.mb6 : styles.mb2;
     return (
-        <TouchableOpacity style={[styles.flexRow, styles.taskSelectorLink, linkBottomMargin]} onPress={props.onPress} disabled={props.disabled}>
+        <TouchableOpacity
+            style={[styles.flexRow, styles.taskSelectorLink, linkBottomMargin]}
+            onPress={props.onPress}
+            disabled={props.disabled}
+        >
             <View style={[styles.flexRow, styles.containerWithSpaceBetween, styles.alignItemsCenter]}>
                 {props.icons.length !== 0 || props.text !== '' ? (
                     <View style={[styles.flexColumn, styles.justify, styles.alignItemsStart]}>
