@@ -71,7 +71,11 @@ const NewTaskDescriptionPage = (props) => {
                 enabledWhenOffline
             >
                 <View style={styles.mb5}>
-                    <TextInput inputID="taskDescription" label={props.translate('newTaskPage.description')} />
+                    <TextInput
+                        defaultValue={props.task.description}
+                        inputID="taskDescription"
+                        label={props.translate('newTaskPage.description')}
+                    />
                 </View>
             </Form>
         </ScreenWrapper>
