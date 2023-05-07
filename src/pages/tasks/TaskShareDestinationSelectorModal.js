@@ -20,8 +20,6 @@ import reportPropTypes from '../reportPropTypes';
 import Performance from '../../libs/Performance';
 import * as TaskUtils from '../../libs/actions/Task';
 
-// TODO: Rename this to ShareDestinationSelectorModal?
-
 const propTypes = {
     /* Onyx Props */
 
