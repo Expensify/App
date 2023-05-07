@@ -204,7 +204,6 @@ function clearOutTaskInfoAndNavigate(reportID) {
     Navigation.navigate(ROUTES.NEW_TASK_DETAILS);
 }
 
-// eslint-disable-next-line import/prefer-default-export
 export {
     createTaskAndNavigate, setTitleValue, setDescriptionValue, setDetailsValue, setAssigneeValue, setShareDestinationValue, clearOutTaskInfo, clearOutTaskInfoAndNavigate,
 };
