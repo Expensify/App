@@ -7,6 +7,7 @@ import PropTypes from 'prop-types';
 import {withOnyx} from 'react-native-onyx';
 import lodashGet from 'lodash/get';
 import _ from 'underscore';
+import Str from 'expensify-common/lib/str';
 import compose from '../../libs/compose';
 import styles from '../../styles/styles';
 import ONYXKEYS from '../../ONYXKEYS';
@@ -218,7 +219,7 @@ const IOUPreview = (props) => {
                         </Text>
                     )}
 
-                    <Text>{lodashGet(props.action, 'originalMessage.comment', '')}</Text>
+                    <Text>{Str.htmlDecode(lodashGet(props.action, 'originalMessage.comment', ''))}</Text>
 
                     {(isCurrentUserManager
                         && !props.shouldHidePayButton
