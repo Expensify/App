@@ -63,6 +63,17 @@ Onyx.connect({
     },
 });
 
+let currentReportData = {};
+Onyx.connect({
+    key: ONYXKEYS.COLLECTION.REPORT,
+    callback: (val) => {
+        if (!val) {
+            return;
+        }
+        currentReportData = val;
+    },
+});
+
 const allReports = {};
 let conciergeChatReportID;
 const typingWatchTimers = {};
@@ -326,6 +337,8 @@ function addComment(reportID, text) {
  * @param {Object} newReportObject The optimistic report object created when making a new chat, saved as optimistic data
  */
 function openReport(reportID, participantList = [], newReportObject = {}) {
+    const currentLastReadTime = currentReportData.lastReadTime;
+    console.log(`~~Monil clrt ${currentLastReadTime}`);
     const optimisticReportData = {
         onyxMethod: Onyx.METHOD.MERGE,
         key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
@@ -397,6 +410,9 @@ function openReport(reportID, participantList = [], newReportObject = {}) {
 
         // Add the createdReportActionID parameter to the API call
         params.createdReportActionID = optimisticCreatedAction.reportActionID;
+    }
+    if (currentLastReadTime) {
+        params.currentLastReadTime = currentLastReadTime;
     }
 
     API.write('OpenReport', params, onyxData);
