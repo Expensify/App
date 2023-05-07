@@ -26,6 +26,7 @@ import colors from '../../styles/colors';
 import reportPropTypes from '../reportPropTypes';
 import ONYXKEYS from '../../ONYXKEYS';
 import ThreeDotsMenu from '../../components/ThreeDotsMenu';
+import reportActionPropTypes from './report/reportActionPropTypes';
 
 const propTypes = {
     /** Toggles the navigationMenu open and closed */
@@ -45,12 +46,15 @@ const propTypes = {
         guideCalendarLink: PropTypes.string,
     }),
 
+    parentReportActions: PropTypes.objectOf(PropTypes.shape(reportActionPropTypes)),
+
     ...windowDimensionsPropTypes,
     ...withLocalizePropTypes,
 };
 
 const defaultProps = {
     personalDetails: {},
+    parentReportActions: {},
     report: null,
     account: {
         guideCalendarLink: null,
@@ -58,6 +62,9 @@ const defaultProps = {
 };
 
 const HeaderView = (props) => {
+    const parentReportAction = props.parentReportActions['5067383038721755115'];
+    // eslint-disable-next-line no-console
+    console.log('parent header', props.parentReportActions, parentReportAction);
     const participants = lodashGet(props.report, 'participants', []);
     const participantPersonalDetails = OptionsListUtils.getPersonalDetailsForLogins(participants, props.personalDetails);
     const isMultipleParticipant = participants.length > 1;
@@ -65,7 +72,7 @@ const HeaderView = (props) => {
     const isChatRoom = ReportUtils.isChatRoom(props.report);
     const isPolicyExpenseChat = ReportUtils.isPolicyExpenseChat(props.report);
     const isTaskReport = ReportUtils.isTaskReport(props.report);
-    const title = ReportUtils.getReportName(props.report);
+    const title = ReportUtils.isThread(props.report) ? lodashGet(parentReportAction, ['message', 0, 'text'], '[Thread Title Error]') : ReportUtils.getReportName(props.report);
 
     const subtitle = ReportUtils.getChatRoomSubtitle(props.report);
     const isConcierge = participants.length === 1 && _.contains(participants, CONST.EMAIL.CONCIERGE);
@@ -163,9 +170,9 @@ const HeaderView = (props) => {
                                     tooltipEnabled
                                     numberOfLines={1}
                                     textStyles={[styles.headerText, styles.pre]}
-                                    shouldUseFullTitle={isChatRoom || isPolicyExpenseChat}
+                                    shouldUseFullTitle={isChatRoom || isPolicyExpenseChat || ReportUtils.isThread(props.report)}
                                 />
-                                {(isChatRoom || isPolicyExpenseChat) && (
+                                {(isChatRoom || isPolicyExpenseChat || ReportUtils.isThread(props.report)) && (
                                     <Text
                                         style={[
                                             styles.sidebarLinkText,
@@ -222,6 +229,10 @@ export default compose(
         account: {
             key: ONYXKEYS.ACCOUNT,
             selector: account => account && ({guideCalendarLink: account.guideCalendarLink}),
+        },
+        parentReportActions: {
+            key: ({report}) => `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${lodashGet(report, 'parentReportID')}`,
+            canEvict: false,
         },
     }),
 )(HeaderView);
