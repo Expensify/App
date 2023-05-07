@@ -1389,7 +1389,7 @@ function buildOptimisticWorkspaceChats(policyID, policyName) {
  *
  * @param {String} ownerEmail - Email of the person generating the Task.
  * @param {String} assignee - Email of the other person participating in the Task.
- * @param {String} chatReportID - Report ID of the chat where the Task is.
+ * @param {String} parentReportID - Report ID of the chat where the Task is.
  * @param {String} title - Task title.
  * @param {String} description - Task description.
  *
