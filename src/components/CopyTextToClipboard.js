@@ -33,32 +33,31 @@ const CopyTextToClipboard = (props) => {
 
     useEffect(() => {
         // Clear the interval when the component unmounts so that if the user navigates
-        // away quickly, then setState() won't try to update a component that's been unmounted
+        // away quickly the App won't try to update an unmounted component state
         clearInterval(showCheckmarkInterval);
     }, []); // TODO: Check for unmount only
 
     const copyToClipboard = () => {
-        Clipboard.setString(this.props.text);
+        Clipboard.setString(props.text);
         setShowCheckmark(true);
         setShowCheckmarkInterval(
             setTimeout(() => setShowCheckmark(false), 2000),
         );
     }
 
-
     return (
         <Text
-            onPress={this.copyToClipboard}
+            onPress={copyToClipboard}
             style={[styles.flexRow, styles.cursorPointer]}
             suppressHighlighting
         >
-            <Text style={this.props.textStyles}>{`${this.props.text} `}</Text>
-            <Tooltip text={this.props.translate(`reportActionContextMenu.${this.state.showCheckmark ? 'copied' : 'copyToClipboard'}`)}>
-                <Pressable onPress={this.copyToClipboard}>
+            <Text style={props.textStyles}>{`${props.text} `}</Text>
+            <Tooltip text={props.translate(`reportActionContextMenu.${showCheckmark ? 'copied' : 'copyToClipboard'}`)}>
+                <Pressable onPress={copyToClipboard}>
                     {({hovered, pressed}) => (
                         <Icon
-                            src={this.state.showCheckmark ? Expensicons.Checkmark : Expensicons.Copy}
-                            fill={StyleUtils.getIconFillColor(getButtonState(hovered, pressed, this.state.showCheckmark))}
+                            src={showCheckmark ? Expensicons.Checkmark : Expensicons.Copy}
+                            fill={StyleUtils.getIconFillColor(getButtonState(hovered, pressed, showCheckmark))}
                             width={variables.iconSizeSmall}
                             height={variables.iconSizeSmall}
                             inline
