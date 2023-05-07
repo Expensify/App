@@ -14,7 +14,7 @@ import Navigation from '../Navigation/Navigation';
 
 let currentIsOffline;
 let currentShouldForceOffline;
-let currentIsLoggedIn;
+let currentShouldLogout;
 Onyx.connect({
     key: ONYXKEYS.NETWORK,
     callback: (network) => {
@@ -100,11 +100,11 @@ function signOutAndRedirectToSignIn() {
 Onyx.connect({
     key: ONYXKEYS.SESSION,
     callback: (session) => {
-        const isLoggedIn = !!_.get(session, 'authToken');
-        if (currentIsLoggedIn && !isLoggedIn) {
+        const shouldLogout = _.get(session, 'isLoggingOut');
+        if (!currentShouldLogout && shouldLogout) {
             signOutAndRedirectToSignIn();
         }
-        currentIsLoggedIn = isLoggedIn;
+        currentShouldLogout = shouldLogout;
     },
 });
 

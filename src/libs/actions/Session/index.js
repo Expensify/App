@@ -68,14 +68,16 @@ function signOut() {
 function signOutAndRedirectToSignIn() {
     const clearSessionData = [
         {
-            onyxMethod: CONST.ONYX.METHOD.SET,
+            onyxMethod: Onyx.METHOD.SET,
             key: ONYXKEYS.SESSION,
-            value: null,
+            value: {
+                isLoggingOut: true,
+                email: '',
+            },
         },
     ];
-    Onyx.update(clearSessionData).then(() => {
-        signOut();
-    });
+    Onyx.update(clearSessionData);
+    signOut();
     Log.info('Redirecting to Sign In because signOut() was called');
 }
 
@@ -215,7 +217,7 @@ function beginSignIn(login) {
             },
         },
         {
-            onyxMethod: CONST.ONYX.METHOD.MERGE,
+            onyxMethod: Onyx.METHOD.MERGE,
             key: ONYXKEYS.SESSION,
             value: {
                 email: login,
