@@ -600,6 +600,7 @@ function openMoneyRequestsReportPage(chatReportID, linkedReportID) {
  * @param {String} reportID
  */
 function readNewestAction(reportID) {
+    console.log(`~~Monil marking comment as read ${reportID}`);
     API.write('ReadNewestAction',
         {
             reportID,

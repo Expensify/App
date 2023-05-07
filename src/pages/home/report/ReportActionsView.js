@@ -242,6 +242,7 @@ class ReportActionsView extends React.Component {
         const wasNewMessageReceived = (this.props.reportActions.length > prevProps.reportActions.length);
         if (wasNewMessageReceived) {
             console.log(`~~Monil new message received ${this.props.report.lastMessageText}`);
+            Report.readNewestAction(this.props.report.reportID);
         }
     }
 
