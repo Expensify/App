@@ -91,6 +91,9 @@ export default compose(
         betas: {
             key: ONYXKEYS.BETAS,
         },
+        task: {
+            key: ONYXKEYS.TASK,
+        },
     }),
     withLocalize,
 )(NewTaskDescriptionPage);

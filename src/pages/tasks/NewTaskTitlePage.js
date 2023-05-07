@@ -72,7 +72,12 @@ const NewTaskTitlePage = (props) => {
                 enabledWhenOffline
             >
                 <View style={styles.mb5}>
-                    <TextInput autoFocus inputID="taskTitle" label={props.translate('newTaskPage.title')} />
+                    <TextInput
+                        defaultValue={props.task.title}
+                        autoFocus
+                        inputID="taskTitle"
+                        label={props.translate('newTaskPage.title')}
+                    />
                 </View>
             </Form>
         </ScreenWrapper>

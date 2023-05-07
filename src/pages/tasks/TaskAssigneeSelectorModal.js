@@ -1,5 +1,7 @@
 /* eslint-disable es/no-optional-chaining */
-import React, {useState, useEffect, useCallback} from 'react';
+import React, {
+    useState, useEffect, useCallback, useMemo,
+} from 'react';
 import _ from 'underscore';
 import {View} from 'react-native';
 import PropTypes from 'prop-types';
@@ -109,10 +111,10 @@ const TaskAssigneeSelectorModal = (props) => {
     };
 
     const sections = useMemo(() => {
-        const sections = [];
+        const sectionsList = [];
         let indexOffset = 0;
 
-        sections.push({
+        sectionsList.push({
             title: props.translate('common.recents'),
             data: filteredRecentReports,
             shouldShow: filteredRecentReports?.length > 0,
@@ -120,7 +122,7 @@ const TaskAssigneeSelectorModal = (props) => {
         });
         indexOffset += filteredRecentReports?.length;
 
-        sections.push({
+        sectionsList.push({
             title: props.translate('common.contacts'),
             data: filteredPersonalDetails,
             shouldShow: filteredPersonalDetails?.length > 0,
@@ -129,15 +131,15 @@ const TaskAssigneeSelectorModal = (props) => {
         indexOffset += filteredRecentReports?.length;
 
         if (filteredUserToInvite) {
-            sections.push({
+            sectionsList.push({
                 data: [filteredUserToInvite],
                 shouldShow: filteredUserToInvite?.length > 0,
                 indexOffset,
             });
         }
 
-        return sections;
-    };
+        return sectionsList;
+    }, [filteredPersonalDetails, filteredRecentReports, filteredUserToInvite, props]);
 
     const selectReport = (option) => {
         if (!option) {
@@ -152,7 +154,6 @@ const TaskAssigneeSelectorModal = (props) => {
         }
     };
 
-    const sections = getSections();
     return (
         <ScreenWrapper includeSafeAreaPaddingBottom={false}>
             {({didScreenTransitionEnd, safeAreaPaddingBottomStyle}) => (
@@ -170,8 +171,6 @@ const TaskAssigneeSelectorModal = (props) => {
                             onSelectRow={selectReport}
                             onChangeText={onChangeText}
                             headerMessage={headerMessage}
-                            hideSection
-                            Headers
                             showTitleTooltip
                             shouldShowOptions={didScreenTransitionEnd}
                             placeholderText={props.translate('optionsSelector.nameEmailOrPhoneNumber')}

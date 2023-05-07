@@ -84,15 +84,14 @@ function constructAssignee(details) {
  * @param {Object} reportID
  * @param {Object} reports
  * @param {Object} personalDetails
- * @param {Object} policies
  * @returns {Object}
  * */
-function constructShareDestination(reportID, reports, personalDetails, policies) {
+function constructShareDestination(reportID, reports, personalDetails) {
     const report = lodashGet(reports, `report_${reportID}`, {});
     return {
-        icons: ReportUtils.getIcons(report, personalDetails, policies),
-        displayName: ReportUtils.getReportName(report, policies),
-        subtitle: ReportUtils.getChatRoomSubtitle(report, policies),
+        icons: ReportUtils.getIcons(report, personalDetails),
+        displayName: ReportUtils.getReportName(report),
+        subtitle: ReportUtils.getChatRoomSubtitle(report),
     };
 }
 
@@ -129,7 +128,11 @@ const NewTaskPage = (props) => {
         // the share destination data
         if (props.task.shareDestination) {
             setParentReport(lodashGet(props.reports, `report_${props.task.shareDestination}`, {}));
-            const displayDetails = constructShareDestination(props.task.shareDestination, props.reports, props.personalDetails, props.policies);
+            const displayDetails = constructShareDestination(
+                props.task.shareDestination,
+                props.reports,
+                props.personalDetails,
+            );
             setShareDestination(displayDetails);
         }
     }, [props]);
@@ -142,7 +145,13 @@ const NewTaskPage = (props) => {
             return;
         }
 
-        TaskUtils.createTaskAndNavigate(props.session.email, parentReport.reportID, props.task.title, props.task.description, props.task.assignee);
+        TaskUtils.createTaskAndNavigate(
+            props.session.email,
+            parentReport.reportID,
+            props.task.title,
+            props.task.description,
+            props.task.assignee,
+        );
     }
 
     if (!Permissions.canUseTasks(props.betas)) {
@@ -161,10 +170,18 @@ const NewTaskPage = (props) => {
             <View style={[styles.mt5, styles.ph5, styles.containerWithSpaceBetween]}>
                 <View>
                     <View style={styles.mb5}>
-                        <TaskSelectorLink text={props.task.title} onPress={() => Navigation.navigate(ROUTES.NEW_TASK_TITLE)} label="newTaskPage.title" />
+                        <TaskSelectorLink
+                            text={props.task.title}
+                            onPress={() => Navigation.navigate(ROUTES.NEW_TASK_TITLE)}
+                            label="newTaskPage.title"
+                        />
                     </View>
                     <View style={styles.mb5}>
-                        <TaskSelectorLink text={props.task.description} onPress={() => Navigation.navigate(ROUTES.NEW_TASK_DESCRIPTION)} label="newTaskPage.description" />
+                        <TaskSelectorLink
+                            text={props.task.description}
+                            onPress={() => Navigation.navigate(ROUTES.NEW_TASK_DESCRIPTION)}
+                            label="newTaskPage.description"
+                        />
                     </View>
                     <View style={styles.mb5}>
                         <TaskSelectorLink
