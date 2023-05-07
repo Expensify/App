@@ -39,21 +39,21 @@ function openPaymentsPage() {
     const onyxData = {
         optimisticData: [
             {
-                onyxMethod: CONST.ONYX.METHOD.MERGE,
+                onyxMethod: Onyx.METHOD.MERGE,
                 key: ONYXKEYS.IS_LOADING_PAYMENT_METHODS,
                 value: true,
             },
         ],
         successData: [
             {
-                onyxMethod: CONST.ONYX.METHOD.MERGE,
+                onyxMethod: Onyx.METHOD.MERGE,
                 key: ONYXKEYS.IS_LOADING_PAYMENT_METHODS,
                 value: false,
             },
         ],
         failureData: [
             {
-                onyxMethod: CONST.ONYX.METHOD.MERGE,
+                onyxMethod: Onyx.METHOD.MERGE,
                 key: ONYXKEYS.IS_LOADING_PAYMENT_METHODS,
                 value: false,
             },
@@ -76,7 +76,7 @@ function openPaymentsPage() {
 function getMakeDefaultPaymentOnyxData(bankAccountID, fundID, previousPaymentMethod, currentPaymentMethod, isOptimisticData = true) {
     const onyxData = [
         {
-            onyxMethod: CONST.ONYX.METHOD.MERGE,
+            onyxMethod: Onyx.METHOD.MERGE,
             key: ONYXKEYS.USER_WALLET,
             value: {
                 walletLinkedAccountID: bankAccountID || fundID,
@@ -92,7 +92,7 @@ function getMakeDefaultPaymentOnyxData(bankAccountID, fundID, previousPaymentMet
 
     if (previousPaymentMethod) {
         onyxData.push({
-            onyxMethod: CONST.ONYX.METHOD.MERGE,
+            onyxMethod: Onyx.METHOD.MERGE,
             key: previousPaymentMethod.accountType === CONST.PAYMENT_METHODS.BANK_ACCOUNT ? ONYXKEYS.BANK_ACCOUNT_LIST : ONYXKEYS.CARD_LIST,
             value: {
                 [previousPaymentMethod.methodID]: {
@@ -104,7 +104,7 @@ function getMakeDefaultPaymentOnyxData(bankAccountID, fundID, previousPaymentMet
 
     if (currentPaymentMethod) {
         onyxData.push({
-            onyxMethod: CONST.ONYX.METHOD.MERGE,
+            onyxMethod: Onyx.METHOD.MERGE,
             key: currentPaymentMethod.accountType === CONST.PAYMENT_METHODS.BANK_ACCOUNT ? ONYXKEYS.BANK_ACCOUNT_LIST : ONYXKEYS.CARD_LIST,
             value: {
                 [currentPaymentMethod.methodID]: {
@@ -159,17 +159,17 @@ function addPaymentCard(params) {
         password: params.password,
     }, {
         optimisticData: [{
-            onyxMethod: CONST.ONYX.METHOD.MERGE,
+            onyxMethod: Onyx.METHOD.MERGE,
             key: ONYXKEYS.FORMS.ADD_DEBIT_CARD_FORM,
             value: {isLoading: true},
         }],
         successData: [{
-            onyxMethod: CONST.ONYX.METHOD.MERGE,
+            onyxMethod: Onyx.METHOD.MERGE,
             key: ONYXKEYS.FORMS.ADD_DEBIT_CARD_FORM,
             value: {isLoading: false},
         }],
         failureData: [{
-            onyxMethod: CONST.ONYX.METHOD.MERGE,
+            onyxMethod: Onyx.METHOD.MERGE,
             key: ONYXKEYS.FORMS.ADD_DEBIT_CARD_FORM,
             value: {isLoading: false},
         }],
@@ -322,7 +322,7 @@ function deletePaymentCard(fundID) {
     }, {
         optimisticData: [
             {
-                onyxMethod: CONST.ONYX.METHOD.MERGE,
+                onyxMethod: Onyx.METHOD.MERGE,
                 key: `${ONYXKEYS.CARD_LIST}`,
                 value: {[fundID]: {pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE}},
             },

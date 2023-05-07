@@ -1,4 +1,5 @@
 import Onyx from 'react-native-onyx';
+import lodashGet from 'lodash/get';
 import _ from 'underscore';
 import ONYXKEYS from '../../ONYXKEYS';
 import * as MainQueue from '../Network/MainQueue';
@@ -7,6 +8,9 @@ import * as Localize from '../Localize';
 import * as PersistedRequests from './PersistedRequests';
 import NetworkConnection from '../NetworkConnection';
 import HttpUtils from '../HttpUtils';
+import navigationRef from '../Navigation/navigationRef';
+import SCREENS from '../../SCREENS';
+import Navigation from '../Navigation/Navigation';
 
 let currentIsOffline;
 let currentShouldForceOffline;
@@ -52,9 +56,27 @@ function clearStorageAndRedirect(errorMessage) {
 }
 
 /**
+ * Reset all current params of the Home route
+ */
+function resetHomeRouteParams() {
+    Navigation.isNavigationReady().then(() => {
+        const routes = navigationRef.current && lodashGet(navigationRef.current.getState(), 'routes');
+        const homeRoute = _.find(routes, route => route.name === SCREENS.HOME);
+
+        const emptyParams = {};
+        _.keys(lodashGet(homeRoute, 'params')).forEach((paramKey) => {
+            emptyParams[paramKey] = undefined;
+        });
+
+        Navigation.setParams(emptyParams, lodashGet(homeRoute, 'key', ''));
+    });
+}
+
+/**
  * Cleanup actions resulting in the user being redirected to the Sign-in page
  * - Clears the Onyx store - removing the authToken redirects the user to the Sign-in page
  * - Cancels pending network calls - any lingering requests are discarded to prevent unwanted storage writes
+ * - Clears all current params of the Home route - the login page URL should not contain any parameter
  *
  * Normally this method would live in Session.js, but that would cause a circular dependency with Network.js.
  *
@@ -66,6 +88,7 @@ function redirectToSignIn(errorMessage) {
     PersistedRequests.clear();
     NetworkConnection.clearReconnectionCallbacks();
     clearStorageAndRedirect(errorMessage);
+    resetHomeRouteParams();
 }
 
 function signOutAndRedirectToSignIn() {
