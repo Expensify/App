@@ -85,6 +85,13 @@ const propTypes = {
     /** True if the IOU Preview card is hovered */
     isHovered: PropTypes.bool,
 
+    /** All of the personal details for everyone */
+    personalDetails: PropTypes.objectOf(PropTypes.shape({
+
+        /** This is either the user's full name, or their login if full name is an empty string */
+        displayName: PropTypes.string.isRequired,
+    })),
+
     /** Session info for the currently logged in user. */
     session: PropTypes.shape({
         /** Currently logged in user email */
@@ -117,6 +124,7 @@ const defaultProps = {
     walletTerms: {},
     pendingAction: null,
     isHovered: false,
+    personalDetails: {},
     session: {
         email: null,
     },
@@ -138,7 +146,7 @@ const IOUPreview = (props) => {
     // When displaying within a IOUDetailsModal we cannot guarentee that participants are included in the originalMessage data
     // Because an IOUPreview of type split can never be rendered within the IOUDetailsModal, manually building the email array is only needed for non-billSplit ious
     const participantEmails = props.isBillSplit ? props.action.originalMessage.participants : [managerEmail, ownerEmail];
-    const participantAvatars = OptionsListUtils.getAvatarsForLogins(participantEmails);
+    const participantAvatars = OptionsListUtils.getAvatarsForLogins(participantEmails, props.personalDetails);
 
     // Pay button should only be visible to the manager of the report.
     const isCurrentUserManager = managerEmail === sessionEmail;
@@ -254,6 +262,9 @@ IOUPreview.displayName = 'IOUPreview';
 export default compose(
     withLocalize,
     withOnyx({
+        personalDetails: {
+            key: ONYXKEYS.PERSONAL_DETAILS,
+        },
         iouReport: {
             key: ({iouReportID}) => `${ONYXKEYS.COLLECTION.REPORT}${iouReportID}`,
         },
