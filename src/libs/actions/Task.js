@@ -205,5 +205,12 @@ function clearOutTaskInfoAndNavigate(reportID) {
 }
 
 export {
-    createTaskAndNavigate, setTitleValue, setDescriptionValue, setDetailsValue, setAssigneeValue, setShareDestinationValue, clearOutTaskInfo, clearOutTaskInfoAndNavigate,
+    createTaskAndNavigate,
+    setTitleValue,
+    setDescriptionValue,
+    setDetailsValue,
+    setAssigneeValue,
+    setShareDestinationValue,
+    clearOutTaskInfo,
+    clearOutTaskInfoAndNavigate,
 };
