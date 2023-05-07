@@ -31,10 +31,7 @@ function createTaskAndNavigate(currentUserEmail, parentReportID, title, descript
 
     // Grab the assigneeChatReportID if there is an assignee and if it's not the same as the parentReportID
     // then we create an optimistic add comment report action on the assignee's chat to notify them of the task
-    let assigneeChatReportID;
-    if (assignee) {
-        assigneeChatReportID = ReportUtils.getChatByParticipants([assignee]).reportID;
-    }
+    const assigneeChatReportID = lodashGet(ReportUtils.getChatByParticipants([assignee]), 'reportID');
     let optimisticAssigneeAddComment;
     if (assigneeChatReportID && assigneeChatReportID !== parentReportID) {
         optimisticAssigneeAddComment = ReportUtils.buildOptimisticAddCommentReportAction(`${currentUserEmail} has[created a task for you](tbd/r/${optimisticTaskReport.reportID}): ${title}`);
