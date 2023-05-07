@@ -43,7 +43,9 @@ const defaultProps = {
     betas: [],
     personalDetails: {},
     reports: {},
-    task: {shareDestination: ''},
+    task: {
+        shareDestination: '',
+    },
 };
 
 const TaskAssigneeSelectorModal = (props) => {
@@ -54,7 +56,15 @@ const TaskAssigneeSelectorModal = (props) => {
     const [filteredUserToInvite, setFilteredUserToInvite] = useState(null);
 
     useEffect(() => {
-        const results = OptionsListUtils.getNewChatOptions(props.reports, props.personalDetails, props.betas, '', [], CONST.EXPENSIFY_EMAILS, false);
+        const results = OptionsListUtils.getNewChatOptions(
+            props.reports,
+            props.personalDetails,
+            props.betas,
+            '',
+            [],
+            CONST.EXPENSIFY_EMAILS,
+            false,
+        );
 
         setFilteredRecentReports(results.recentReports);
         setFilteredPersonalDetails(results.personalDetails);
@@ -98,7 +108,7 @@ const TaskAssigneeSelectorModal = (props) => {
         debouncedUpdateOptions();
     };
 
-    const getSections = () => {
+    const sections = useMemo(() => {
         const sections = [];
         let indexOffset = 0;
 
