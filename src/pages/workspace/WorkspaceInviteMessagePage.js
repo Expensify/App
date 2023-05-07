@@ -19,7 +19,7 @@ import CONST from '../../CONST';
 import * as Link from '../../libs/actions/Link';
 import Text from '../../components/Text';
 import withPolicy, {policyPropTypes, policyDefaultProps} from './withPolicy';
-import * as ReportUtils from '../../libs/ReportUtils';
+import * as OptionsListUtils from '../../libs/OptionsListUtils';
 import ROUTES from '../../ROUTES';
 import * as Localize from '../../libs/Localize';
 import Form from '../../components/Form';
@@ -42,6 +42,9 @@ const propTypes = {
     /** All of the personal details for everyone */
     personalDetails: PropTypes.objectOf(personalDetailsPropTypes),
 
+    /** Beta features list */
+    betas: PropTypes.arrayOf(PropTypes.string),
+
     invitedMembersDraft: PropTypes.arrayOf(PropTypes.string),
 
     /** URL Route params */
@@ -60,6 +63,7 @@ const propTypes = {
 const defaultProps = {
     ...policyDefaultProps,
     personalDetails: {},
+    betas: [],
     invitedMembersDraft: [],
 };
 
@@ -86,17 +90,6 @@ class WorkspaceInviteMessagePage extends React.Component {
         this.setState({welcomeNote: this.getWelcomeNote()});
     }
 
-    getAvatars() {
-        return _.map(this.props.invitedMembersDraft, (memberlogin) => {
-            const userPersonalDetail = lodashGet(this.props.personalDetails, memberlogin, {login: memberlogin, avatar: ''});
-            return {
-                source: ReportUtils.getAvatar(userPersonalDetail.avatar, userPersonalDetail.login),
-                type: CONST.ICON_TYPE_AVATAR,
-                name: userPersonalDetail.login,
-            };
-        });
-    }
-
     getWelcomeNote() {
         return this.props.translate('workspace.inviteMessage.welcomeNote', {
             workspaceName: this.props.policy.name,
@@ -109,7 +102,7 @@ class WorkspaceInviteMessagePage extends React.Component {
     }
 
     sendInvitation() {
-        Policy.addMembersToWorkspace(this.props.invitedMembersDraft, this.state.welcomeNote || this.getWelcomeNote(), this.props.route.params.policyID);
+        Policy.addMembersToWorkspace(this.props.invitedMembersDraft, this.state.welcomeNote || this.getWelcomeNote(), this.props.route.params.policyID, this.props.betas);
         Policy.setWorkspaceInviteMembersDraft(this.props.route.params.policyID, []);
         Navigation.navigate(ROUTES.getWorkspaceMembersRoute(this.props.route.params.policyID));
     }
@@ -176,7 +169,7 @@ class WorkspaceInviteMessagePage extends React.Component {
                         <View style={[styles.mv4, styles.justifyContentCenter, styles.alignItemsCenter]}>
                             <MultipleAvatars
                                 size={CONST.AVATAR_SIZE.LARGE}
-                                icons={this.getAvatars()}
+                                icons={OptionsListUtils.getAvatarsForLogins(this.props.invitedMembersDraft)}
                                 shouldStackHorizontally
                                 secondAvatarStyle={[
                                     styles.secondAvatarInline,
@@ -195,9 +188,8 @@ class WorkspaceInviteMessagePage extends React.Component {
                                 label={this.props.translate('workspace.inviteMessage.personalMessagePrompt')}
                                 autoCompleteType="off"
                                 autoCorrect={false}
-                                numberOfLines={4}
+                                autoGrowHeight
                                 textAlignVertical="top"
-                                multiline
                                 containerStyles={[styles.workspaceInviteWelcome]}
                                 defaultValue={this.state.welcomeNote}
                                 value={this.state.welcomeNote}
@@ -220,6 +212,9 @@ export default compose(
     withOnyx({
         personalDetails: {
             key: ONYXKEYS.PERSONAL_DETAILS,
+        },
+        betas: {
+            key: ONYXKEYS.BETAS,
         },
         invitedMembersDraft: {
             key: ({route}) => `${ONYXKEYS.COLLECTION.WORKSPACE_INVITE_MEMBERS_DRAFT}${route.params.policyID.toString()}`,
