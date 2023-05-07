@@ -66,7 +66,9 @@ const TaskSelectorLink = (props) => {
             <View style={[styles.flexRow, styles.containerWithSpaceBetween, styles.alignItemsCenter]}>
                 {props.icons.length !== 0 || props.text !== '' ? (
                     <View style={[styles.flexColumn, styles.justify, styles.alignItemsStart]}>
-                        <Text style={[styles.label, styles.textWhite, styles.mb2]}>{props.translate(props.label)}</Text>
+                        <Text style={[styles.label, styles.textWhite, styles.mb2]}>
+                            {props.translate(props.label)}
+                        </Text>
                         <View style={[styles.flexRow, styles.justifyContentCenter]}>
                             <View style={[styles.flexRow, styles.alignItemsCenter]}>
                                 <MultipleAvatars icons={props.icons} size={CONST.AVATAR_SIZE.DEFAULT} secondAvatarStyle={[StyleUtils.getBackgroundAndBorderStyle(themeColors.appBG)]} />
