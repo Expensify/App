@@ -18,6 +18,11 @@ import * as TaskUtils from '../../libs/actions/Task';
 const propTypes = {
     /** Beta features list */
     betas: PropTypes.arrayOf(PropTypes.string),
+    /** Grab the Share description of the Task */
+    task: PropTypes.shape({
+        /** Description of the Task */
+        description: PropTypes.string,
+    }),
 
     ...withLocalizePropTypes,
 };
