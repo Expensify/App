@@ -29,6 +29,9 @@ const propTypes = {
 
 const defaultProps = {
     betas: [],
+    task: {
+        description: '',
+    },
 };
 
 const NewTaskDescriptionPage = (props) => {
