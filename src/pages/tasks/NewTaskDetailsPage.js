@@ -27,7 +27,6 @@ const defaultProps = {
     betas: [],
 };
 
-// NOTE: This page is going to be updated in https://github.com/Expensify/App/issues/16855, this is just a placeholder for now
 const NewTaskPage = (props) => {
     /**
      * @param {Object} values - form input values passed by the Form component
@@ -72,7 +71,7 @@ const NewTaskPage = (props) => {
                 enabledWhenOffline
             >
                 <View style={styles.mb5}>
-                    <TextInput autoFocus inputID="taskTitle" label={props.translate('newTaskPage.title')} />
+                    <TextInput inputID="taskTitle" label={props.translate('newTaskPage.title')} />
                 </View>
                 <View style={styles.mb5}>
                     <TextInput inputID="taskDescription" label={props.translate('newTaskPage.descriptionOptional')} />
