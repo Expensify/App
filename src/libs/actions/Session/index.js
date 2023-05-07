@@ -2,7 +2,6 @@ import Onyx from 'react-native-onyx';
 import _ from 'underscore';
 import lodashGet from 'lodash/get';
 import ONYXKEYS from '../../../ONYXKEYS';
-import redirectToSignIn from '../SignInRedirect';
 import CONFIG from '../../../CONFIG';
 import Log from '../../Log';
 import PushNotification from '../../Notification/PushNotification';
@@ -76,7 +75,6 @@ function signOutAndRedirectToSignIn() {
     ];
     Onyx.update(clearSessionData).then(() => {
         signOut();
-        redirectToSignIn();
     });
     Log.info('Redirecting to Sign In because signOut() was called');
 }

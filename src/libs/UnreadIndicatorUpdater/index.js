@@ -4,11 +4,20 @@ import ONYXKEYS from '../../ONYXKEYS';
 import updateUnread from './updateUnread/index';
 import * as ReportUtils from '../ReportUtils';
 
+let isLoggedIn;
+
+Onyx.connect({
+    key: ONYXKEYS.SESSION,
+    callback: (session) => {
+        isLoggedIn = !!_.get(session, 'authToken', null);
+    },
+});
+
 Onyx.connect({
     key: ONYXKEYS.COLLECTION.REPORT,
     waitForCollectionCallback: true,
     callback: (reportsFromOnyx) => {
         const unreadReports = _.filter(reportsFromOnyx, ReportUtils.isUnread);
-        updateUnread(_.size(unreadReports));
+        updateUnread(isLoggedIn ? _.size(unreadReports) : 0);
     },
 });

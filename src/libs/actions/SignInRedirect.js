@@ -1,4 +1,5 @@
 import Onyx from 'react-native-onyx';
+import _ from 'underscore';
 import ONYXKEYS from '../../ONYXKEYS';
 import * as MainQueue from '../Network/MainQueue';
 import DateUtils from '../DateUtils';
@@ -9,6 +10,7 @@ import HttpUtils from '../HttpUtils';
 
 let currentIsOffline;
 let currentShouldForceOffline;
+let currentIsLoggedIn;
 Onyx.connect({
     key: ONYXKEYS.NETWORK,
     callback: (network) => {
@@ -65,5 +67,22 @@ function redirectToSignIn(errorMessage) {
     NetworkConnection.clearReconnectionCallbacks();
     clearStorageAndRedirect(errorMessage);
 }
+
+function signOutAndRedirectToSignIn() {
+    Promise.all(_.values(Onyx.pendingUpdatePromise)).then(() => {
+        redirectToSignIn();
+    });
+}
+
+Onyx.connect({
+    key: ONYXKEYS.SESSION,
+    callback: (session) => {
+        const isLoggedIn = !!_.get(session, 'authToken');
+        if (currentIsLoggedIn && !isLoggedIn) {
+            signOutAndRedirectToSignIn();
+        }
+        currentIsLoggedIn = isLoggedIn;
+    },
+});
 
 export default redirectToSignIn;
