@@ -37,7 +37,7 @@ const defaultProps = {
 const NewTaskDescriptionPage = (props) => {
     /**
      * @param {Object} values - form input values passed by the Form component
-     * @returns {Boolean}
+     * @returns {Object}
      */
     function validate() {
         return {};
