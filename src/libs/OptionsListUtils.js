@@ -851,6 +851,7 @@ function getShareDestinationOptions(reports, personalDetails, betas = [], search
         betas,
         searchInputValue: searchValue.trim(),
         selectedOptions,
+        maxRecentReportsToShow: 5,
         includeRecentReports: true,
         includeMultipleParticipantReports: true,
         includePersonalDetails: true,
