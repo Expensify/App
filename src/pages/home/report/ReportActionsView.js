@@ -238,6 +238,11 @@ class ReportActionsView extends React.Component {
             Report.subscribeToReportTypingEvents(this.props.report.reportID);
             this.didSubscribeToReportTypingEvents = true;
         }
+
+        const wasNewMessageReceived = (this.props.reportActions.length > prevProps.reportActions.length);
+        if (wasNewMessageReceived) {
+            console.log(`~~Monil new message received ${this.props.report.lastMessageText}`);
+        }
     }
 
     componentWillUnmount() {
