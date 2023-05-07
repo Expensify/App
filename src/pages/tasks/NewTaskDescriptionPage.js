@@ -45,10 +45,10 @@ const NewTaskDescriptionPage = (props) => {
 
     // On submit, we want to call the assignTask function and wait to validate
     // the response
-    function onSubmit(values) {
+    const onSubmit = (values) => {
         TaskUtils.setDescriptionValue(values.taskDescription);
         Navigation.navigate(ROUTES.NEW_TASK);
-    }
+    };
 
     if (!Permissions.canUseTasks(props.betas)) {
         Navigation.dismissModal();
