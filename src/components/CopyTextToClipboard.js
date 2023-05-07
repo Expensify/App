@@ -43,7 +43,7 @@ const CopyTextToClipboard = (props) => {
         setShowCheckmarkInterval(
             setTimeout(() => setShowCheckmark(false), 2000),
         );
-    }
+    };
 
     return (
         <Text
@@ -67,7 +67,7 @@ const CopyTextToClipboard = (props) => {
             </Tooltip>
         </Text>
     );
-}
+};
 
 CopyTextToClipboard.propTypes = propTypes;
 CopyTextToClipboard.defaultProps = defaultProps;
