@@ -2,7 +2,6 @@
 import React, {
     useState, useEffect, useCallback, useMemo,
 } from 'react';
-import _ from 'underscore';
 import {View} from 'react-native';
 import PropTypes from 'prop-types';
 import {withOnyx} from 'react-native-onyx';
@@ -103,11 +102,9 @@ const TaskAssigneeSelectorModal = (props) => {
         };
     }, [updateOptions]);
 
-    const debouncedUpdateOptions = _.debounce(updateOptions, 75);
-
     const onChangeText = (newSearchTerm = '') => {
         setSearchValue(newSearchTerm);
-        debouncedUpdateOptions();
+        updateOptions();
     };
 
     const sections = useMemo(() => {

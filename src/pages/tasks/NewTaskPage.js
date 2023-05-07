@@ -208,6 +208,7 @@ const NewTaskPage = (props) => {
                     isAlertVisible={submitError}
                     message={errorMessage}
                     onSubmit={() => onSubmit()}
+                    enabledWhenOffline
                     buttonText={props.translate('newTaskPage.confirmTask')}
                     containerStyles={[styles.mh0, styles.mt5, styles.flex1]}
                 />

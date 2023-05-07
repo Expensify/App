@@ -1,6 +1,5 @@
 /* eslint-disable es/no-optional-chaining */
 import React, {useState, useEffect, useCallback} from 'react';
-import _ from 'underscore';
 import {View} from 'react-native';
 import PropTypes from 'prop-types';
 import {withOnyx} from 'react-native-onyx';
@@ -86,11 +85,9 @@ const TaskShareDestinationSelectorModal = (props) => {
         };
     }, [updateOptions]);
 
-    const debouncedUpdateOptions = _.debounce(updateOptions, 75);
-
     const onChangeText = (newSearchTerm = '') => {
         setSearchValue(newSearchTerm);
-        debouncedUpdateOptions();
+        updateOptions();
     };
 
     const getSections = () => {
