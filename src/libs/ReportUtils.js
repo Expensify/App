@@ -733,6 +733,42 @@ function getIcons(report, personalDetails, defaultIcon = null) {
         result.source = Expensicons.DeletedRoomAvatar;
         return [result];
     }
+    if (isThread(report)) {
+        if (isPolicyExpenseChat(report) || isExpenseReport(report)) {
+            const workspaceName = lodashGet(allPolicies, [
+                `${ONYXKEYS.COLLECTION.POLICY}${report.policyID}`, 'name',
+            ]);
+
+            const policyExpenseChatAvatarSource = getWorkspaceAvatar(report);
+
+            // Return the workspace avatar if the user is the owner of the policy expense chat
+            if (report.isOwnPolicyExpenseChat && !isExpenseReport(report)) {
+                result.source = policyExpenseChatAvatarSource;
+                result.type = CONST.ICON_TYPE_WORKSPACE;
+                result.name = workspaceName;
+                return [result];
+            }
+
+            const adminIcon = {
+                source: getAvatar(lodashGet(personalDetails, [report.ownerEmail, 'avatar']), report.ownerEmail),
+                name: report.ownerEmail,
+                type: CONST.ICON_TYPE_AVATAR,
+            };
+
+            const workspaceIcon = {
+                source: policyExpenseChatAvatarSource,
+                type: CONST.ICON_TYPE_WORKSPACE,
+                name: workspaceName,
+            };
+
+            // If the user is an admin, return avatar source of the other participant of the report
+            // (their workspace chat) and the avatar source of the workspace
+            return [
+                adminIcon,
+                workspaceIcon,
+            ];
+        }
+    }
     if (isDomainRoom(report)) {
         result.source = Expensicons.DomainRoomAvatar;
         return [result];

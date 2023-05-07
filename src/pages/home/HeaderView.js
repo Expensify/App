@@ -37,6 +37,8 @@ const propTypes = {
     /** The report currently being looked at */
     report: reportPropTypes,
 
+    parentReport: reportPropTypes,
+
     /** Personal details of all the users */
     personalDetails: PropTypes.objectOf(participantPropTypes),
 
@@ -55,6 +57,7 @@ const propTypes = {
 const defaultProps = {
     personalDetails: {},
     parentReportActions: {},
+    parentReport: null,
     report: null,
     account: {
         guideCalendarLink: null,
@@ -63,16 +66,19 @@ const defaultProps = {
 
 const HeaderView = (props) => {
     const parentReportAction = props.parentReportActions['5067383038721755115'];
-    // eslint-disable-next-line no-console
-    console.log('parent header', props.parentReportActions, parentReportAction);
+    if (parentReportAction) {
+        // eslint-disable-next-line no-console
+        console.log('parent header', props.parentReportActions, parentReportAction);
+    }
     const participants = lodashGet(props.report, 'participants', []);
     const participantPersonalDetails = OptionsListUtils.getPersonalDetailsForLogins(participants, props.personalDetails);
     const isMultipleParticipant = participants.length > 1;
     const displayNamesWithTooltips = ReportUtils.getDisplayNamesWithTooltips(participantPersonalDetails, isMultipleParticipant);
+    const isThread = ReportUtils.isThread(props.report);
     const isChatRoom = ReportUtils.isChatRoom(props.report);
     const isPolicyExpenseChat = ReportUtils.isPolicyExpenseChat(props.report);
     const isTaskReport = ReportUtils.isTaskReport(props.report);
-    const title = ReportUtils.isThread(props.report) ? lodashGet(parentReportAction, ['message', 0, 'text'], '[Thread Title Error]') : ReportUtils.getReportName(props.report);
+    const title = isThread ? lodashGet(parentReportAction, ['message', 0, 'text'], '[Thread Title Error]') : ReportUtils.getReportName(props.report);
 
     const subtitle = ReportUtils.getChatRoomSubtitle(props.report);
     const isConcierge = participants.length === 1 && _.contains(participants, CONST.EMAIL.CONCIERGE);
@@ -121,7 +127,7 @@ const HeaderView = (props) => {
 
     const avatarTooltip = isChatRoom ? undefined : _.pluck(displayNamesWithTooltips, 'tooltip');
     const shouldShowSubscript = isPolicyExpenseChat && !props.report.isOwnPolicyExpenseChat && !ReportUtils.isArchivedRoom(props.report);
-    const icons = ReportUtils.getIcons(props.report, props.personalDetails);
+    const icons = ReportUtils.getIcons(isThread ? props.parentReport : props.report, props.personalDetails);
     const brickRoadIndicator = ReportUtils.hasReportNameError(props.report) ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : '';
     return (
         <View style={[styles.appContentHeader]} nativeID="drag-area">
@@ -170,9 +176,9 @@ const HeaderView = (props) => {
                                     tooltipEnabled
                                     numberOfLines={1}
                                     textStyles={[styles.headerText, styles.pre]}
-                                    shouldUseFullTitle={isChatRoom || isPolicyExpenseChat || ReportUtils.isThread(props.report)}
+                                    shouldUseFullTitle={isChatRoom || isPolicyExpenseChat || isThread}
                                 />
-                                {(isChatRoom || isPolicyExpenseChat || ReportUtils.isThread(props.report)) && (
+                                {(isChatRoom || isPolicyExpenseChat || isThread) && (
                                     <Text
                                         style={[
                                             styles.sidebarLinkText,
@@ -229,6 +235,9 @@ export default compose(
         account: {
             key: ONYXKEYS.ACCOUNT,
             selector: account => account && ({guideCalendarLink: account.guideCalendarLink}),
+        },
+        parentReport: {
+            key: ({report}) => `${ONYXKEYS.COLLECTION.REPORT}${lodashGet(report, 'parentReportID')}`,
         },
         parentReportActions: {
             key: ({report}) => `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${lodashGet(report, 'parentReportID')}`,

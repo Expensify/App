@@ -268,6 +268,9 @@ function getOptionData(reportID) {
         lastMessageTextFromReport = report ? report.lastMessageText || '' : '';
     }
 
+    // eslint-disable-next-line no-console
+    console.log('lastMessageTextFromReport: ', lastMessageTextFromReport);
+
     // If the last actor's details are not currently saved in Onyx Collection,
     // then try to get that from the last report action if that action is valid
     // to get data from.
