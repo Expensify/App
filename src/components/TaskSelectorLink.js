@@ -99,7 +99,15 @@ const TaskSelectorLink = (props) => {
                         {props.translate(props.label)}
                     </Text>
                 )}
-                {props.disabled ? null : <Icon src={Expensicons.ArrowRight} fill={themeColors.textLight} width={variables.iconSizeSmall} height={variables.iconSizeSmall} inline />}
+                {props.disabled ? null : (
+                    <Icon
+                        src={Expensicons.ArrowRight}
+                        fill={themeColors.textLight}
+                        width={variables.iconSizeSmall}
+                        height={variables.iconSizeSmall}
+                        inline
+                    />
+                )}
             </View>
         </TouchableOpacity>
     );
