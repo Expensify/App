@@ -27,56 +27,47 @@ const defaultProps = {
     textStyles: [],
 };
 
-class CopyTextToClipboard extends React.Component {
-    constructor(props) {
-        super(props);
+const CopyTextToClipboard = (props) => {
+    const [showCheckmark, setShowCheckmark] = useState(false);
+    const [showCheckmarkInterval, setShowCheckmarkInterval] = useState(null);
 
-        this.copyToClipboard = this.copyToClipboard.bind(this);
-
-        this.state = {
-            showCheckmark: false,
-        };
-    }
-
-    componentWillUnmount() {
+    useEffect(() => {
         // Clear the interval when the component unmounts so that if the user navigates
         // away quickly, then setState() won't try to update a component that's been unmounted
-        clearInterval(this.showCheckmarkInterval);
-    }
+        clearInterval(showCheckmarkInterval);
+    }, []); // TODO: Check for unmount only
 
-    copyToClipboard() {
+    const copyToClipboard = () => {
         Clipboard.setString(this.props.text);
-        this.setState({showCheckmark: true}, () => {
-            this.showCheckmarkInterval = setTimeout(() => {
-                this.setState({showCheckmark: false});
-            }, 2000);
-        });
-    }
-
-    render() {
-        return (
-            <Text
-                onPress={this.copyToClipboard}
-                style={[styles.flexRow, styles.cursorPointer]}
-                suppressHighlighting
-            >
-                <Text style={this.props.textStyles}>{`${this.props.text} `}</Text>
-                <Tooltip text={this.props.translate(`reportActionContextMenu.${this.state.showCheckmark ? 'copied' : 'copyToClipboard'}`)}>
-                    <Pressable onPress={this.copyToClipboard}>
-                        {({hovered, pressed}) => (
-                            <Icon
-                                src={this.state.showCheckmark ? Expensicons.Checkmark : Expensicons.Copy}
-                                fill={StyleUtils.getIconFillColor(getButtonState(hovered, pressed, this.state.showCheckmark))}
-                                width={variables.iconSizeSmall}
-                                height={variables.iconSizeSmall}
-                                inline
-                            />
-                        )}
-                    </Pressable>
-                </Tooltip>
-            </Text>
+        setShowCheckmark(true);
+        setShowCheckmarkInterval(
+            setTimeout(() => setShowCheckmark(false), 2000),
         );
     }
+
+
+    return (
+        <Text
+            onPress={this.copyToClipboard}
+            style={[styles.flexRow, styles.cursorPointer]}
+            suppressHighlighting
+        >
+            <Text style={this.props.textStyles}>{`${this.props.text} `}</Text>
+            <Tooltip text={this.props.translate(`reportActionContextMenu.${this.state.showCheckmark ? 'copied' : 'copyToClipboard'}`)}>
+                <Pressable onPress={this.copyToClipboard}>
+                    {({hovered, pressed}) => (
+                        <Icon
+                            src={this.state.showCheckmark ? Expensicons.Checkmark : Expensicons.Copy}
+                            fill={StyleUtils.getIconFillColor(getButtonState(hovered, pressed, this.state.showCheckmark))}
+                            width={variables.iconSizeSmall}
+                            height={variables.iconSizeSmall}
+                            inline
+                        />
+                    )}
+                </Pressable>
+            </Tooltip>
+        </Text>
+    );
 }
 
 CopyTextToClipboard.propTypes = propTypes;
