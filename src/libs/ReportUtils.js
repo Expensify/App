@@ -896,6 +896,22 @@ function getPolicyExpenseChatName(report) {
 }
 
 /**
+ * Get the title for a IOU or expense chat which will be showing the payer and the amount
+ *
+ * @param {Object} report
+ * @returns  {String}
+ */
+function getMoneyRequestReportName(report) {
+    const formattedAmount = NumberFormatUtils.format(preferredLocale, report.total / 100, {
+        style: 'currency',
+        currency: report.currency,
+    });
+
+    return Localize.translateLocal('iou.payerOwe',
+        {payer: isExpenseReport(report) ? getPolicyName(report) : getDisplayNameForParticipant(report.managerEmail), amount: formattedAmount});
+}
+
+/**
  * Get the title for a report.
  *
  * @param {Object} report
@@ -909,6 +925,10 @@ function getReportName(report) {
 
     if (isPolicyExpenseChat(report)) {
         formattedName = getPolicyExpenseChatName(report);
+    }
+
+    if (isMoneyRequestReport(report)) {
+        formattedName = getMoneyRequestReportName(report);
     }
 
     if (isArchivedRoom(report)) {
@@ -1531,7 +1551,7 @@ function shouldReportBeInOptionList(report, reportIDFromRoute, isInGSDMode, curr
     // Exclude reports that have no data because there wouldn't be anything to show in the option item.
     // This can happen if data is currently loading from the server or a report is in various stages of being created.
     // This can also happen for anyone accessing a public room or archived room for which they don't have access to the underlying policy.
-    if (!report || !report.reportID || !report.participants || (_.isEmpty(report.participants) && !isPublicRoom(report) && !isArchivedRoom(report)) || isIOUReport(report)) {
+    if (!report || !report.reportID || (_.isEmpty(report.participants) && !isPublicRoom(report) && !isArchivedRoom(report))) {
         return false;
     }
 
