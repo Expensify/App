@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import {Pressable} from 'react-native';
 import PropTypes from 'prop-types';
 import Text from './Text';
@@ -69,6 +69,7 @@ const CopyTextToClipboard = (props) => {
     );
 };
 
+CopyTextToClipboard.displayName = 'CopyTextToClipboard';
 CopyTextToClipboard.propTypes = propTypes;
 CopyTextToClipboard.defaultProps = defaultProps;
 
