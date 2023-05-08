@@ -1,0 +1,2 @@
+// The GH actions don't seem to complie and verify themselves well when Prettier is applied to them
+/.github
