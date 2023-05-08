@@ -4,7 +4,6 @@ import {
     Pressable,
 } from 'react-native';
 import PropTypes from 'prop-types';
-import Str from 'expensify-common/lib/str';
 import {withOnyx} from 'react-native-onyx';
 import lodashGet from 'lodash/get';
 import _ from 'underscore';
@@ -26,7 +25,7 @@ import ControlSelection from '../../libs/ControlSelection';
 import * as DeviceCapabilities from '../../libs/DeviceCapabilities';
 import reportActionPropTypes from '../../pages/home/report/reportActionPropTypes';
 import {showContextMenuForReport} from '../ShowContextMenuContext';
-import * as ReportUtils from '../../libs/ReportUtils';
+import * as OptionsListUtils from '../../libs/OptionsListUtils';
 import Button from '../Button';
 import * as CurrencyUtils from '../../libs/CurrencyUtils';
 
@@ -80,15 +79,11 @@ const propTypes = {
         hasOutstandingIOU: PropTypes.bool,
     }),
 
+    /** True if this is this IOU is a split instead of a 1:1 request */
+    isBillSplit: PropTypes.bool.isRequired,
+
     /** True if the IOU Preview card is hovered */
     isHovered: PropTypes.bool,
-
-    /** All of the personal details for everyone */
-    personalDetails: PropTypes.objectOf(PropTypes.shape({
-
-        /** This is either the user's full name, or their login if full name is an empty string */
-        displayName: PropTypes.string.isRequired,
-    })),
 
     /** Session info for the currently logged in user. */
     session: PropTypes.shape({
@@ -122,7 +117,6 @@ const defaultProps = {
     walletTerms: {},
     pendingAction: null,
     isHovered: false,
-    personalDetails: {},
     session: {
         email: null,
     },
@@ -137,30 +131,21 @@ const IOUPreview = (props) => {
     if (props.iouReport.total === 0) {
         return null;
     }
-
     const sessionEmail = lodashGet(props.session, 'email', null);
     const managerEmail = props.iouReport.managerEmail || '';
     const ownerEmail = props.iouReport.ownerEmail || '';
 
+    // When displaying within a IOUDetailsModal we cannot guarentee that participants are included in the originalMessage data
+    // Because an IOUPreview of type split can never be rendered within the IOUDetailsModal, manually building the email array is only needed for non-billSplit ious
+    const participantEmails = props.isBillSplit ? props.action.originalMessage.participants : [managerEmail, ownerEmail];
+    const participantAvatars = OptionsListUtils.getAvatarsForLogins(participantEmails);
+
     // Pay button should only be visible to the manager of the report.
     const isCurrentUserManager = managerEmail === sessionEmail;
 
-    const managerName = ReportUtils.getDisplayNameForParticipant(managerEmail, true);
-    const ownerName = ReportUtils.getDisplayNameForParticipant(ownerEmail, true);
-    const managerAvatar = {
-        source: ReportUtils.getAvatar(lodashGet(props.personalDetails, [managerEmail, 'avatar']), managerEmail),
-        type: CONST.ICON_TYPE_AVATAR,
-        name: managerEmail,
-    };
-    const ownerAvatar = {
-        source: ReportUtils.getAvatar(lodashGet(props.personalDetails, [ownerEmail, 'avatar']), ownerEmail),
-        type: CONST.ICON_TYPE_AVATAR,
-        name: ownerEmail,
-    };
-    const cachedTotal = props.iouReport.total && props.iouReport.currency
-        ? CurrencyUtils.convertToDisplayString(props.iouReport.total, props.iouReport.currency)
-        : '';
-    const avatarTooltip = [Str.removeSMSDomain(managerEmail), Str.removeSMSDomain(ownerEmail)];
+    // Get request formatting options, as long as currency is provided
+    const requestAmount = props.isBillSplit ? props.action.originalMessage.amount : props.iouReport.total;
+    const requestCurrency = props.isBillSplit ? lodashGet(props.action, 'originalMessage.currency', CONST.CURRENCY.USD) : props.iouReport.currency;
 
     const showContextMenu = (event) => {
         // Use action and shouldHidePayButton props to check if we are in IOUDetailsModal,
@@ -191,12 +176,15 @@ const IOUPreview = (props) => {
                 needsOffscreenAlphaCompositing
             >
                 <View style={[styles.iouPreviewBox, ...props.containerStyles]}>
+                    <Text>
+                        {props.isBillSplit ? props.translate('iou.split') : props.translate('iou.cash')}
+                    </Text>
                     <View style={[styles.flexRow]}>
                         <View style={[styles.flex1, styles.flexRow, styles.alignItemsCenter]}>
                             <Text style={styles.h1}>
-                                {cachedTotal}
+                                {CurrencyUtils.convertToDisplayString(requestAmount, requestCurrency)}
                             </Text>
-                            {!props.iouReport.hasOutstandingIOU && (
+                            {!props.iouReport.hasOutstandingIOU && !props.isBillSplit && (
                                 <View style={styles.iouPreviewBoxCheckmark}>
                                     <Icon src={Expensicons.Checkmark} fill={themeColors.iconSuccessFill} />
                                 </View>
@@ -204,38 +192,26 @@ const IOUPreview = (props) => {
                         </View>
                         <View style={styles.iouPreviewBoxAvatar}>
                             <MultipleAvatars
-                                icons={[managerAvatar, ownerAvatar]}
+                                icons={participantAvatars}
                                 secondAvatarStyle={[
                                     styles.secondAvatarInline,
                                     props.isHovered
                                         ? styles.iouPreviewBoxAvatarHover
                                         : undefined,
                                 ]}
-                                avatarTooltips={avatarTooltip}
+                                avatarTooltips={participantEmails}
                             />
                         </View>
                     </View>
-                    {isCurrentUserManager
-                        ? (
-                            <Text>
-                                {props.iouReport.hasOutstandingIOU
-                                    ? props.translate('iou.youowe', {owner: ownerName})
-                                    : props.translate('iou.youpaid', {owner: ownerName})}
-                            </Text>
-                        ) : (
-                            <>
-                                <Text>
-                                    {props.iouReport.hasOutstandingIOU
-                                        ? props.translate('iou.owesyou', {manager: managerName})
-                                        : props.translate('iou.paidyou', {manager: managerName})}
-                                </Text>
-                                {props.shouldShowPendingConversionMessage && (
-                                    <Text style={[styles.textLabel, styles.colorMuted]}>
-                                        {props.translate('iou.pendingConversionMessage')}
-                                    </Text>
-                                )}
-                            </>
-                        )}
+
+                    {!isCurrentUserManager && props.shouldShowPendingConversionMessage && (
+                        <Text style={[styles.textLabel, styles.colorMuted]}>
+                            {props.translate('iou.pendingConversionMessage')}
+                        </Text>
+                    )}
+
+                    <Text>{lodashGet(props.action, 'originalMessage.comment', '')}</Text>
+
                     {(isCurrentUserManager
                         && !props.shouldHidePayButton
                         && props.iouReport.stateNum === CONST.REPORT.STATE_NUM.PROCESSING && (
@@ -278,9 +254,6 @@ IOUPreview.displayName = 'IOUPreview';
 export default compose(
     withLocalize,
     withOnyx({
-        personalDetails: {
-            key: ONYXKEYS.PERSONAL_DETAILS,
-        },
         iouReport: {
             key: ({iouReportID}) => `${ONYXKEYS.COLLECTION.REPORT}${iouReportID}`,
         },
