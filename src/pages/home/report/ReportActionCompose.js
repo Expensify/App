@@ -277,7 +277,7 @@ class ReportActionCompose extends React.PureComponent {
 
         // Value state does not have the same value as comment props when the comment gets changed from another tab.
         // In this case, we should synchronize the value between tabs.
-        const shouldSyncComment = prevProps.comment !== this.props.comment && this.state.value !== this.props.comment;
+        const shouldSyncComment = prevProps.comment !== this.props.comment && this.comment !== this.props.comment;
 
         // As the report IDs change, make sure to update the composer comment as we need to make sure
         // we do not show incorrect data in there (ie. draft of message from other report).
@@ -452,7 +452,7 @@ class ReportActionCompose extends React.PureComponent {
      * Calculates and cares about the content of an Emoji Suggester
      */
     calculateEmojiSuggestion() {
-        if (!this.state.value) {
+        if (!this.comment) {
             this.resetSuggestedEmojis();
             return;
         }
@@ -460,9 +460,9 @@ class ReportActionCompose extends React.PureComponent {
             this.setState({shouldBlockEmojiCalc: false});
             return;
         }
-        const leftString = this.state.value.substring(0, this.state.selection.end);
+        const leftString = this.comment.substring(0, this.selection.end);
         const colonIndex = leftString.lastIndexOf(':');
-        const isCurrentlyShowingEmojiSuggestion = this.isEmojiCode(this.state.value, this.state.selection.end);
+        const isCurrentlyShowingEmojiSuggestion = this.isEmojiCode(this.comment, this.selection.end);
 
         // the larger composerHeight the less space for EmojiPicker, Pixel 2 has pretty small screen and this value equal 5.3
         const hasEnoughSpaceForLargeSuggestion = this.props.windowHeight / this.state.composerHeight >= 6.8;
@@ -505,19 +505,27 @@ class ReportActionCompose extends React.PureComponent {
      * @param {Number} highlightedEmojiIndex
      */
     insertSelectedEmoji(highlightedEmojiIndex) {
-        const commentBeforeColon = this.state.value.slice(0, this.state.colonIndex);
+        const commentBeforeColon = this.comment.slice(0, this.state.colonIndex);
         const emojiObject = this.state.suggestedEmojis[highlightedEmojiIndex];
         const emojiCode = emojiObject.types && emojiObject.types[this.props.preferredSkinTone] ? emojiObject.types[this.props.preferredSkinTone] : emojiObject.code;
-        const commentAfterColonWithEmojiNameRemoved = this.state.value.slice(this.state.selection.end).replace(CONST.REGEX.EMOJI_REPLACER, CONST.SPACE);
+        const commentAfterColonWithEmojiNameRemoved = this.comment.slice(this.selection.end).replace(CONST.REGEX.EMOJI_REPLACER, CONST.SPACE);
 
-        this.updateComment(`${commentBeforeColon}${emojiCode} ${commentAfterColonWithEmojiNameRemoved}`, true);
-        this.setState(prevState => ({
-            selection: {
+        this.setState((prevState) => {
+            this.selection = {
                 start: prevState.colonIndex + emojiCode.length + CONST.SPACE_LENGTH,
                 end: prevState.colonIndex + emojiCode.length + CONST.SPACE_LENGTH,
-            },
-            suggestedEmojis: [],
-        }));
+            };
+
+            return {
+                suggestedEmojis: [],
+            };
+        }, () => {
+            const newComment = `${commentBeforeColon}${emojiCode} ${commentAfterColonWithEmojiNameRemoved}`;
+            this.textInput.setText(newComment, () => {
+                this.textInput.setSelection(this.selection.end, this.selection.end);
+            });
+            this.updateComment(newComment, true);
+        });
         EmojiUtils.addToFrequentlyUsedEmojis(this.props.frequentlyUsedEmojis, emojiObject);
     }
 
@@ -993,10 +1001,9 @@ class ReportActionCompose extends React.PureComponent {
                             onClose={() => this.setState({suggestedEmojis: []})}
                             highlightedEmojiIndex={this.state.highlightedEmojiIndex}
                             emojis={this.state.suggestedEmojis}
-                            comment={this.state.value}
-                            updateComment={newComment => this.setState({value: newComment})}
+                            comment={this.comment}
                             colonIndex={this.state.colonIndex}
-                            prefix={this.state.value.slice(this.state.colonIndex + 1, this.state.selection.start)}
+                            prefix={this.comment.slice(this.state.colonIndex + 1, this.selection.start)}
                             onSelect={this.insertSelectedEmoji}
                             isComposerFullSize={this.props.isComposerFullSize}
                             preferredSkinToneIndex={this.props.preferredSkinTone}
