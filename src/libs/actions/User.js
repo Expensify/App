@@ -715,14 +715,14 @@ function setContactMethodAsDefault(newDefaultContactMethod) {
     const oldDefaultContactMethod = currentEmail;
     const optimisticData = [
         {
-            onyxMethod: CONST.ONYX.METHOD.MERGE,
+            onyxMethod: Onyx.METHOD.MERGE,
             key: ONYXKEYS.SESSION,
             value: {
                 email: newDefaultContactMethod,
             },
         },
         {
-            onyxMethod: CONST.ONYX.METHOD.MERGE,
+            onyxMethod: Onyx.METHOD.MERGE,
             key: ONYXKEYS.LOGIN_LIST,
             value: {
                 [newDefaultContactMethod]: {
@@ -736,7 +736,7 @@ function setContactMethodAsDefault(newDefaultContactMethod) {
             },
         },
         {
-            onyxMethod: CONST.ONYX.METHOD.MERGE,
+            onyxMethod: Onyx.METHOD.MERGE,
             key: ONYXKEYS.PERSONAL_DETAILS,
             value: {
                 [newDefaultContactMethod]: {
@@ -752,7 +752,7 @@ function setContactMethodAsDefault(newDefaultContactMethod) {
         },
     ];
     const successData = [{
-        onyxMethod: CONST.ONYX.METHOD.MERGE,
+        onyxMethod: Onyx.METHOD.MERGE,
         key: ONYXKEYS.LOGIN_LIST,
         value: {
             [newDefaultContactMethod]: {
@@ -764,14 +764,14 @@ function setContactMethodAsDefault(newDefaultContactMethod) {
     }];
     const failureData = [
         {
-            onyxMethod: CONST.ONYX.METHOD.MERGE,
+            onyxMethod: Onyx.METHOD.MERGE,
             key: ONYXKEYS.SESSION,
             value: {
                 email: oldDefaultContactMethod,
             },
         },
         {
-            onyxMethod: CONST.ONYX.METHOD.MERGE,
+            onyxMethod: Onyx.METHOD.MERGE,
             key: ONYXKEYS.LOGIN_LIST,
             value: {
                 [newDefaultContactMethod]: {
@@ -787,7 +787,7 @@ function setContactMethodAsDefault(newDefaultContactMethod) {
             },
         },
         {
-            onyxMethod: CONST.ONYX.METHOD.MERGE,
+            onyxMethod: Onyx.METHOD.MERGE,
             key: ONYXKEYS.PERSONAL_DETAILS,
             value: {
                 [newDefaultContactMethod]: null,
