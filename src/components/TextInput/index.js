@@ -22,6 +22,7 @@ class TextInput extends React.Component {
             <BaseTextInput
                 // eslint-disable-next-line react/jsx-props-no-spreading
                 {...this.props}
+                shouldWaitWidthCalculation
                 innerRef={(el) => {
                     this.textInput = el;
                     if (!this.props.innerRef) {
