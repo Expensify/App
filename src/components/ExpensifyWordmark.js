@@ -10,7 +10,6 @@ import withEnvironment, {environmentPropTypes} from './withEnvironment';
 import withWindowDimensions, {windowDimensionsPropTypes} from './withWindowDimensions';
 import compose from '../libs/compose';
 import themeColors from '../styles/themes/default';
-import styles from '../styles/styles';
 import * as StyleUtils from '../styles/StyleUtils';
 import variables from '../styles/variables';
 
@@ -19,12 +18,11 @@ const propTypes = {
     ...windowDimensionsPropTypes,
 
     /** The styles to apply for the View wrapping the svg */
-    containerStyles: PropTypes.array,
+    containerStyles: PropTypes.arrayOf(PropTypes.object),
 
     /** Fill color of the svg */
     color: PropTypes.string,
 };
-
 
 const defaultProps = {
     containerStyles: [],
