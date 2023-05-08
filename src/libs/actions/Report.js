@@ -1461,13 +1461,12 @@ function getCurrentUserAccountID() {
 }
 
 /**
- * Set the reportID from url which user accesses to
+ * Set the route from the deep link which the user use to open the app
  * @param {String} url
  */
-function setReportScreenReportID(url) {
+function setReportScreenRoute(url) {
     const route = ReportUtils.getRouteFromLink(url);
-    const reportID = ROUTES.parseReportRouteParams(route).reportID;
-    Onyx.merge(ONYXKEYS.REPORT_SCREEN_REPORT_ID, reportID);
+    Onyx.merge(ONYXKEYS.REPORT_SCREEN_ROUTE, route);
 }
 
 export {
@@ -1510,5 +1509,5 @@ export {
     hasAccountIDReacted,
     getCurrentUserAccountID,
     shouldShowReportActionNotification,
-    setReportScreenReportID,
+    setReportScreenRoute,
 };

@@ -19,6 +19,7 @@ import * as ReportUtils from '../../ReportUtils';
 import reportPropTypes from '../../../pages/reportPropTypes';
 import Navigation from '../Navigation';
 import {withNavigationPropTypes} from '../../../components/withNavigation';
+import ROUTES from '../../../ROUTES';
 
 const propTypes = {
     /** Available reports that would be displayed in this navigator */
@@ -36,8 +37,8 @@ const propTypes = {
         type: PropTypes.string,
     })),
 
-    /** The reportID from url which user accesses to */
-    reportScreenReportID: PropTypes.string,
+    /** The route from the deep link which the user use to open the app */
+    reportScreenRoute: PropTypes.string,
     isFirstTimeNewExpensifyUser: PropTypes.bool,
 
     route: PropTypes.shape({
@@ -53,7 +54,7 @@ const defaultProps = {
     reports: {},
     betas: [],
     policies: {},
-    reportScreenReportID: '',
+    reportScreenRoute: '',
     isFirstTimeNewExpensifyUser: false,
 };
 
@@ -117,9 +118,13 @@ class MainDrawerNavigator extends Component {
 
             // If this onyx key exists then it means we stashed the url from a deep link
             // so we want to override the reportID that is being loaded by default to the one the user was attempting to load initially.
-            const reportScreenReportID = this.props.reportScreenReportID;
-            if (!_.isEmpty(reportScreenReportID)) {
-                initialNextParams.reportID = reportScreenReportID;
+            const reportScreenRoute = this.props.reportScreenRoute;
+            if (!_.isEmpty(reportScreenRoute)) {
+                const {reportID, isSubReportPageRoute} = ROUTES.parseReportRouteParams(reportScreenRoute);
+                initialNextParams.reportID = reportID;
+                if (isSubReportPageRoute) {
+                    Navigation.navigate(reportScreenRoute);
+                }
             }
             Navigation.setParams(initialNextParams, reportScreenKey);
         }
@@ -177,8 +182,8 @@ export default withOnyx({
     policies: {
         key: ONYXKEYS.COLLECTION.POLICY,
     },
-    reportScreenReportID: {
-        key: ONYXKEYS.REPORT_SCREEN_REPORT_ID,
+    reportScreenRoute: {
+        key: ONYXKEYS.REPORT_SCREEN_ROUTE,
     },
     isFirstTimeNewExpensifyUser: {
         key: ONYXKEYS.NVP_IS_FIRST_TIME_NEW_EXPENSIFY_USER,

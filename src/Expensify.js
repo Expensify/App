@@ -152,13 +152,13 @@ function Expensify(props) {
 
         // If the app is opened from a deep link, get the reportID (if exists) from the deep link and navigate to the chat report
         Linking.getInitialURL().then((url) => {
-            Report.setReportScreenReportID(url);
+            Report.setReportScreenRoute(url);
             Report.openReportFromDeepLink(url);
         });
 
         // Open chat report from a deep link (only mobile native)
         Linking.addEventListener('url', (state) => {
-            Report.setReportScreenReportID(state.url);
+            Report.setReportScreenRoute(state.url);
             Report.openReportFromDeepLink(state.url);
         });
 

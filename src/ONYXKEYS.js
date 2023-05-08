@@ -206,6 +206,6 @@ export default {
     // Whether the auth token is valid
     IS_TOKEN_VALID: 'isTokenValid',
 
-    // The link which user accesses to
-    REPORT_SCREEN_REPORT_ID: 'reportScreenReportID',
+    // The route from the deep link which the user use to open the app
+    REPORT_SCREEN_ROUTE: 'reportScreenRoute',
 };
