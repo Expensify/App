@@ -18,7 +18,7 @@ export default {
         overflow: 'scroll',
     },
 
-    overflowScrollBehaviorNone: {
+    overscrollBehaviorNone: {
         overscrollBehavior: 'none',
     },
 
