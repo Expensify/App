@@ -12,6 +12,7 @@ import CONST from "../../../CONST";
 import avatarPropTypes from "../../../components/avatarPropTypes";
 import themeColors from "../../../styles/themes/default";
 import MultipleAvatars from '../../../components/MultipleAvatars';
+import ReportActionItemDate from './ReportActionItemDate';
 
 const propTypes = {
     // childReportID: PropTypes.number.isRequired,
@@ -44,8 +45,8 @@ const ReportActionItemThread = props => (
                     avatarTooltips={_.map(props.icons, icon => icon.name)}
                 />
                 <View style={[styles.flexRow, styles.lhPercent, styles.alignItemsEnd]}>
-                    <Text style={[styles.link, styles.ml2, styles.h4]}>{`${props.numberOfReplies} ${props.translate('threads.replies')}`}</Text>
-                    <Text style={[styles.ml2, styles.textMicroSupporting]}>{`${props.translate('threads.lastReplyAt')} ${props.mostRecentReply}`}</Text>
+                    <Text style={[styles.link, styles.ml2, styles.h4]}>{`${props.numberOfReplies} ${props.numberOfReplies === 1 ? props.translate('threads.reply') : props.translate('threads.replies')}`}</Text>
+                    <Text style={[styles.ml2, styles.textMicroSupporting]}>{`${props.translate('threads.lastReply')} ${props.datetimeToCalendarTime(props.mostRecentReply)}`}</Text>
                 </View>
             </View>
 

@@ -236,6 +236,9 @@ class ReportActionItem extends Component {
 
         const reactions = _.get(this.props, ['action', 'message', 0, 'reactions'], []);
         const hasReactions = reactions.length > 0;
+        const shouldDisplayThreadReplies = lodashGet(this.props.action, 'childReportID', 0) !== 0 && lodashGet(this.props.action, 'childCommenterCount', 1) > 0;
+        // eslint-disable-next-line no-console
+        console.log('action: ', this.props.action, !_.isEmpty(0));
 
         return (
             <>
@@ -246,7 +249,14 @@ class ReportActionItem extends Component {
                         toggleReaction={this.toggleReaction}
                     />
                 )}
-                <ReportActionItemThread numberOfReplies={7} mostRecentReply={'1:03pm'} icons={ReportUtils.getIcons(this.props.report, this.props.personalDetails)} />
+                {shouldDisplayThreadReplies && (
+                    <ReportActionItemThread
+                        childReportID={`${lodashGet(this.props.action, 'childReportID')}`}
+                        numberOfReplies={lodashGet(this.props.action, 'childVisibleActionCount', 1)}
+                        mostRecentReply={`${lodashGet(this.props.action, 'childLastVisibleActionCreated')}`}
+                        icons={ReportUtils.getIcons(this.props.report, this.props.personalDetails)}
+                    />
+                )}
             </>
         );
     }

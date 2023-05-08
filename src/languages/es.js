@@ -1736,7 +1736,8 @@ export default {
         scrollToNewestMessages: 'Desplázate a los mensajes más recientes',
     },
     threads: {
-        lastReplyAt: 'Última respuesta a las',
+        lastReply: 'Última respuesta',
         replies: 'Respuestas',
+        reply: 'Respuesta',
     },
 };

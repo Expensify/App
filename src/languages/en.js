@@ -1275,7 +1275,8 @@ export default {
         scrollToNewestMessages: 'Scroll to newest messages',
     },
     threads: {
-        lastReplyAt: 'Last Reply at',
+        lastReply: 'Last Reply',
         replies: 'Replies',
+        reply: 'Reply',
     },
 };
