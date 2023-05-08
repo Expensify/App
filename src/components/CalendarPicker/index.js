@@ -64,11 +64,10 @@ class CalendarPicker extends React.PureComponent {
         // If the selectedYear prop has changed, update the currentDateView state with the new year value
         this.setState((prev) => {
             const newMomentDate = moment(prev.currentDateView).set('year', this.props.selectedYear);
-            const clampedDate = this.clampDate(newMomentDate.toDate());
 
             return {
                 selectedYear: this.props.selectedYear,
-                currentDateView: clampedDate,
+                currentDateView: this.clampDate(newMomentDate.toDate()),
             };
         }, () => {
             this.props.onSelected(this.getSelectedDateString());
@@ -95,50 +94,10 @@ class CalendarPicker extends React.PureComponent {
     onDayPressed(day) {
         this.setState((prev) => {
             const momentDate = moment(prev.currentDateView).date(day);
-            const clampedDate = this.clampDate(momentDate.toDate());
-            return {
-                selectedDay: `${day < 10 ? `0${day}` : day}`,
-                currentDateView: clampedDate,
-            };
-        }, () => {
-            this.props.onSelected(this.getSelectedDateString());
-        });
-    }
-
-    getSelectedDateString() {
-        return `${this.state.selectedYear}-${this.state.selectedMonth}-${this.state.selectedDay}`;
-    }
-
-    moveToPrevMonth() {
-        this.setState((prev) => {
-            const momentDate = moment(prev.currentDateView).subtract(1, 'M');
-            const clampedDate = this.clampDate(momentDate.toDate());
-
-            const month = clampedDate.getMonth() + 1;
-            const year = clampedDate.getFullYear(); // year might have changed too
 
             return {
-                selectedMonth: `${month < 10 ? `0${month}` : month}`,
-                selectedYear: `${year}`,
-                currentDateView: clampedDate,
-            };
-        }, () => {
-            this.props.onSelected(this.getSelectedDateString());
-        });
-    }
-
-    moveToNextMonth() {
-        this.setState((prev) => {
-            const momentDate = moment(prev.currentDateView).add(1, 'M');
-            const clampedDate = this.clampDate(momentDate.toDate());
-
-            const month = clampedDate.getMonth() + 1;
-            const year = clampedDate.getFullYear(); // year might have changed too
-
-            return {
-                selectedMonth: `${month < 10 ? `0${month}` : month}`,
-                selectedYear: `${year}`,
-                currentDateView: clampedDate,
+                selectedDay: this.getNumberStringWithLeadingZero(day),
+                currentDateView: this.clampDate(momentDate.toDate()),
             };
         }, () => {
             this.props.onSelected(this.getSelectedDateString());
@@ -146,8 +105,73 @@ class CalendarPicker extends React.PureComponent {
     }
 
     /**
-     * @param {Date} date
-     * @returns {Date}
+     * Gets the date string build from state values of selected year, month and day.
+     * @returns {string} - Date string in the 'YYYY-MM-DD' format.
+     */
+    getSelectedDateString() {
+        // can't use moment.format() here method because it won't allow incorrect dates
+        return `${this.state.selectedYear}-${this.state.selectedMonth}-${this.state.selectedDay}`;
+    }
+
+    /**
+     * Returns the string converted from the given number. If the number is lower than 10,
+     * it will add zero at the beginning of the string.
+     * @param {Number} number - The number to be converted.
+     * @returns {string} - Converted string with prefixed by zero if necessary.
+     */
+    getNumberStringWithLeadingZero(number) {
+        return `${number < 10 ? `0${number}` : number}`;
+    }
+
+    /**
+     * Gives the new version of the state object,
+     * changing both selected month and year based on the given moment date.
+     * @param {Object} momentDate - Moment date object.
+     * @returns {{currentDateView: Date, selectedMonth: string, selectedYear: string}} - The new version of the state.
+     */
+    getMonthState(momentDate) {
+        const clampedDate = this.clampDate(momentDate.toDate());
+
+        const month = clampedDate.getMonth() + 1;
+        const year = clampedDate.getFullYear(); // year might have changed too
+
+        return {
+            selectedMonth: this.getNumberStringWithLeadingZero(month),
+            selectedYear: `${year}`,
+            currentDateView: clampedDate,
+        };
+    }
+
+    /**
+     * Handles the user pressing the previous month arrow of the calendar picker.
+     */
+    moveToPrevMonth() {
+        this.setState((prev) => {
+            const momentDate = moment(prev.currentDateView).subtract(1, 'M');
+
+            return this.getMonthState(momentDate);
+        }, () => {
+            this.props.onSelected(this.getSelectedDateString());
+        });
+    }
+
+    /**
+     * Handles the user pressing the next month arro of the calendar picker.
+     */
+    moveToNextMonth() {
+        this.setState((prev) => {
+            const momentDate = moment(prev.currentDateView).add(1, 'M');
+
+            return this.getMonthState(momentDate);
+        }, () => {
+            this.props.onSelected(this.getSelectedDateString());
+        });
+    }
+
+    /**
+     * Checks whether the given date is in the min/max date range and returns the limit value if not.
+     * @param {Date} date - The date object to check.
+     * @returns {Date} - The date that is within the min/max date range.
      */
     clampDate(date) {
         if (this.props.maxDate < date) {
