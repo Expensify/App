@@ -24,6 +24,7 @@ import reportPropTypes from '../../reportPropTypes';
 import * as ReactionList from './ReactionList/ReactionList';
 import PopoverReactionList from './ReactionList/PopoverReactionList';
 import getIsReportFullyVisible from '../../../libs/getIsReportFullyVisible';
+import {getSortedReportActions} from "../../../libs/ReportActionsUtils";
 
 const propTypes = {
     /** The report currently being looked at */
@@ -81,42 +82,62 @@ class ReportActionsView extends React.Component {
             // e.g. they could have read these messages on another device and only just become active here
             const hasUnreadActions = ReportUtils.isUnread(this.props.report);
             if (!hasUnreadActions) {
-                this.setState({newMarkerReportActionID: ''});
+                console.log(`~~Monil clearing`);
+                // this.setState({newMarkerReportActionID: ''});
             }
         });
 
         if (this.isReportFullyVisible()) {
             this.openReportIfNecessary();
         }
+    }
+
+    unreadLogic(reportActions) {
+        if (!reportActions) {
+            return;
+        }
+        const currentUserAccountID = Report.getCurrentUserAccountID();
+        const isFromCurrentUser = false;
+        const lastReadTime = this.props.report.lastReadTime;
+
+        const sortedReportActions = ReportActionsUtils.getSortedReportActions(reportActions, true);
+        const unreadReportAction = _.find(sortedReportActions, (reportAction) => {
+            return reportAction.actorAccountID !== currentUserAccountID && reportAction.created > lastReadTime;
+        });
+        if (!unreadReportAction) {
+            return;
+        }
+        console.log(`~~Monil nra ${JSON.stringify(unreadReportAction)}`);
+        const newActionID = unreadReportAction.reportActionID;
 
         // This callback is triggered when a new action arrives via Pusher and the event is emitted from Report.js. This allows us to maintain
         // a single source of truth for the "new action" event instead of trying to derive that a new action has appeared from looking at props.
-        this.unsubscribeFromNewActionEvent = Report.subscribeToNewActionEvent(this.props.report.reportID, (isFromCurrentUser, newActionID) => {
-            const isNewMarkerReportActionIDSet = !_.isEmpty(this.state.newMarkerReportActionID);
+        const isNewMarkerReportActionIDSet = !_.isEmpty(this.state.newMarkerReportActionID);
 
-            // If a new comment is added and it's from the current user scroll to the bottom otherwise leave the user positioned where
-            // they are now in the list.
-            if (isFromCurrentUser) {
-                ReportScrollManager.scrollToBottom();
+        // If a new comment is added and it's from the current user scroll to the bottom otherwise leave the user positioned where
+        // they are now in the list.
+        if (isFromCurrentUser) {
+            ReportScrollManager.scrollToBottom();
 
-                // If the current user sends a new message in the chat we clear the new marker since they have "read" the report
+            // If the current user sends a new message in the chat we clear the new marker since they have "read" the report
+            console.log(`~~Monil 11`);
+            this.setState({newMarkerReportActionID: ''});
+        } else if (this.isReportFullyVisible()) {
+            console.log(`~~Monil 12`);
+            // We use the scroll position to determine whether the report should be marked as read and the new line indicator reset.
+            // If the user is scrolled up and no new line marker is set we will set it otherwise we will do nothing so the new marker
+            // stays in it's previous position.
+            if (this.currentScrollOffset === 0) {
+                Report.readNewestAction(this.props.report.reportID);
                 this.setState({newMarkerReportActionID: ''});
-            } else if (this.isReportFullyVisible()) {
-                // We use the scroll position to determine whether the report should be marked as read and the new line indicator reset.
-                // If the user is scrolled up and no new line marker is set we will set it otherwise we will do nothing so the new marker
-                // stays in it's previous position.
-                if (this.currentScrollOffset === 0) {
-                    Report.readNewestAction(this.props.report.reportID);
-                    this.setState({newMarkerReportActionID: ''});
-                } else if (!isNewMarkerReportActionIDSet) {
-                    this.setState({newMarkerReportActionID: newActionID});
-                }
             } else if (!isNewMarkerReportActionIDSet) {
-                // The report is not in view and we received a comment from another user while the new marker is not set
-                // so we will set the new marker now.
                 this.setState({newMarkerReportActionID: newActionID});
             }
-        });
+        } else if (!isNewMarkerReportActionIDSet) {
+            // The report is not in view and we received a comment from another user while the new marker is not set
+            // so we will set the new marker now.
+            this.setState({newMarkerReportActionID: newActionID});
+        }
     }
 
     shouldComponentUpdate(nextProps, nextState) {
@@ -175,7 +196,7 @@ class ReportActionsView extends React.Component {
         return !_.isEqual(lodashGet(this.props.report, 'icons', []), lodashGet(nextProps.report, 'icons', []));
     }
 
-    componentDidUpdate(prevProps) {
+    componentDidUpdate(prevProps, prevState) {
         const isReportFullyVisible = this.isReportFullyVisible();
 
         // When returning from offline to online state we want to trigger a request to OpenReport which
@@ -239,9 +260,27 @@ class ReportActionsView extends React.Component {
             this.didSubscribeToReportTypingEvents = true;
         }
 
+        // Check if we receive a new reportAction, either on an active chat or an inactive chat
+        // The find out the reportActions that arrived latest (i.e. we didn't had in our Onyx data)
+        // And the determine if and where to set the newMarker based on those newly received reportActions
+        // Finally ask the server to mark the report as read
+        console.log(this.props.report.reportID);
+        console.log(prevProps.report.reportID);
+        console.log(this.props.reportActions);
+        console.log(prevProps.reportActions);
         const wasNewMessageReceived = (this.props.reportActions.length > prevProps.reportActions.length);
         if (wasNewMessageReceived) {
-            console.log(`~~Monil new message received ${this.props.report.lastMessageText}`);
+            const newReportAction = _.filter(this.props.reportActions, obj => !_.findWhere(prevProps.reportActions, {reportActionID: obj.reportActionID}));
+            console.log(`~~Monil new message received ${this.props.report.lastMessageText} marker prevState ${JSON.stringify(prevState)}`);
+            this.unreadLogic(newReportAction);
+            // if (_.isEmpty(prevState.newMarkerReportActionID)) {
+            //     console.log(`~~Monil setting new marker`);
+            //     this.setState({
+            //         newMarkerReportActionID: ReportUtils.getNewMarkerReportActionID(this.props.report, this.props.reportActions),
+            //     }, () => {
+            //         console.log(`~~Monil's state ${JSON.stringify(this.state)}`);
+            //     });
+            // }
             Report.readNewestAction(this.props.report.reportID);
         }
     }
