@@ -391,6 +391,7 @@ const CONST = {
         DROP_NATIVE_ID: 'report-dropzone',
         ACTIVE_DROP_NATIVE_ID: 'report-dropzone',
         MAXIMUM_PARTICIPANTS: 8,
+        SPLIT_REPORTID: '-2',
         ACTIONS: {
             LIMIT: 50,
             TYPE: {
@@ -720,7 +721,7 @@ const CONST = {
     EMOJI_PICKER_ITEM_HEIGHT: 32,
     EMOJI_PICKER_HEADER_HEIGHT: 32,
     RECIPIENT_LOCAL_TIME_HEIGHT: 25,
-    EMOJI_SUGGESTER: {
+    AUTO_COMPLETE_SUGGESTER: {
         SUGGESTER_PADDING: 6,
         ITEM_HEIGHT: 36,
         SMALL_CONTAINER_HEIGHT_FACTOR: 2.5,
@@ -898,6 +899,7 @@ const CONST = {
             SPLIT: 'split',
             DECLINE: 'decline',
             CANCEL: 'cancel',
+            DELETE: 'delete',
         },
         AMOUNT_MAX_LENGTH: 10,
     },
@@ -961,6 +963,7 @@ const CONST = {
         SMALL_SUBSCRIPT: 'small-subscript',
         MID_SUBSCRIPT: 'mid-subscript',
         LARGE_BORDERED: 'large-bordered',
+        HEADER: 'header',
     },
     OPTION_MODE: {
         COMPACT: 'compact',
@@ -1063,13 +1066,6 @@ const CONST = {
         // This const defines the initial container size, before layout measurement.
         // Since size cant be null, we have to define some initial value.
         INITIAL_SIZE: 1, // 1 was chosen because there is a very low probability that initialized component will have such size.
-    },
-
-    ONYX: {
-        METHOD: {
-            MERGE: 'merge',
-            SET: 'set',
-        },
     },
     MICROSECONDS_PER_MS: 1000,
     RED_BRICK_ROAD_PENDING_ACTION: {

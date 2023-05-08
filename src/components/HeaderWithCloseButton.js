@@ -17,6 +17,9 @@ import ThreeDotsMenu, {ThreeDotsMenuItemPropTypes} from './ThreeDotsMenu';
 import withDelayToggleButtonState, {withDelayToggleButtonStatePropTypes} from './withDelayToggleButtonState';
 import withLocalize, {withLocalizePropTypes} from './withLocalize';
 import withKeyboardState, {keyboardStatePropTypes} from './withKeyboardState';
+import AvatarWithDisplayName from './AvatarWithDisplayName';
+import iouReportPropTypes from '../pages/iouReportPropTypes';
+import participantPropTypes from './participantPropTypes';
 
 const propTypes = {
     /** Title of the Header */
@@ -78,6 +81,21 @@ const propTypes = {
         total: PropTypes.number,
     }),
 
+    /** Whether we should show an avatar */
+    shouldShowAvatarWithDisplay: PropTypes.bool,
+
+    /** Report, if we're showing the details for one and using AvatarWithDisplay */
+    report: iouReportPropTypes,
+
+    /** Policies, if we're showing the details for a report and need info about it for AvatarWithDisplay */
+    policies: PropTypes.shape({
+        /** Name of the policy */
+        name: PropTypes.string,
+    }),
+
+    /** Policies, if we're showing the details for a report and need participant details for AvatarWithDisplay */
+    personalDetails: PropTypes.objectOf(participantPropTypes),
+
     ...withLocalizePropTypes,
     ...withDelayToggleButtonStatePropTypes,
     ...keyboardStatePropTypes,
@@ -97,6 +115,10 @@ const defaultProps = {
     shouldShowThreeDotsButton: false,
     shouldShowCloseButton: true,
     shouldShowStepCounter: true,
+    shouldShowAvatarWithDisplay: false,
+    report: null,
+    policies: {},
+    personalDetails: {},
     guidesCallTaskID: '',
     stepCounter: null,
     threeDotsMenuItems: [],
@@ -139,24 +161,33 @@ class HeaderWithCloseButton extends Component {
                 ]}
                 >
                     {this.props.shouldShowBackButton && (
-                        <Tooltip text={this.props.translate('common.back')}>
-                            <Pressable
-                                onPress={() => {
-                                    if (this.props.isKeyboardShown) {
-                                        Keyboard.dismiss();
-                                    }
-                                    this.props.onBackButtonPress();
-                                }}
-                                style={[styles.touchableButtonImage]}
-                            >
-                                <Icon src={Expensicons.BackArrow} />
-                            </Pressable>
-                        </Tooltip>
+                    <Tooltip text={this.props.translate('common.back')}>
+                        <Pressable
+                            onPress={() => {
+                                if (this.props.isKeyboardShown) {
+                                    Keyboard.dismiss();
+                                }
+                                this.props.onBackButtonPress();
+                            }}
+                            style={[styles.touchableButtonImage]}
+                        >
+                            <Icon src={Expensicons.BackArrow} />
+                        </Pressable>
+                    </Tooltip>
                     )}
-                    <Header
-                        title={this.props.title}
-                        subtitle={this.props.stepCounter && this.props.shouldShowStepCounter ? this.props.translate('stepCounter', this.props.stepCounter) : this.props.subtitle}
-                    />
+                    {this.props.shouldShowAvatarWithDisplay && (
+                        <AvatarWithDisplayName
+                            report={this.props.report}
+                            policies={this.props.policies}
+                            personalDetails={this.props.personalDetails}
+                        />
+                    )}
+                    {!this.props.shouldShowAvatarWithDisplay && (
+                        <Header
+                            title={this.props.title}
+                            subtitle={this.props.stepCounter && this.props.shouldShowStepCounter ? this.props.translate('stepCounter', this.props.stepCounter) : this.props.subtitle}
+                        />
+                    )}
                     <View style={[styles.reportOptions, styles.flexRow, styles.pr5]}>
                         {
                             this.props.shouldShowDownloadButton && (
