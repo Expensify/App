@@ -133,6 +133,7 @@ export default {
         websiteExample: 'e.g. https://www.expensify.com',
         zipCodeExampleFormat: ({zipSampleFormat}) => (zipSampleFormat ? `e.g. ${zipSampleFormat}` : ''),
         description: 'Description',
+        with: 'with',
     },
     attachmentPicker: {
         cameraPermissionRequired: 'Camera access',
@@ -307,6 +308,7 @@ export default {
     iou: {
         amount: 'Amount',
         cash: 'Cash',
+        split: 'Split',
         participants: 'Participants',
         splitBill: 'Split bill',
         requestMoney: 'Request money',
@@ -316,20 +318,15 @@ export default {
         settleExpensify: 'Pay with Expensify',
         settleElsewhere: 'I\'ll settle up elsewhere',
         settlePaypalMe: 'Pay with PayPal.me',
-        request: ({amount}) => `Request ${amount}`,
-        youowe: ({owner}) => `You owe ${owner}`,
-        youpaid: ({owner}) => `You paid ${owner}`,
-        owesyou: ({manager}) => `${manager} owes you`,
-        paidyou: ({manager}) => `${manager} paid you`,
-        split: ({amount}) => `Split ${amount}`,
-        send: ({amount}) => `Send ${amount}`,
+        requestAmount: ({amount}) => `request ${amount}`,
+        splitAmount: ({amount}) => `split ${amount}`,
         noReimbursableExpenses: 'This report has an invalid amount',
         pendingConversionMessage: 'Total will update when you\'re back online',
         error: {
             invalidSplit: 'Split amounts do not equal total amount',
             other: 'Unexpected error, please try again later',
             genericCreateFailureMessage: 'Unexpected error requesting money, please try again later',
-            genericCancelFailureMessage: ({type}) => `Unexpected error ${type === 'decline' ? 'declining' : 'cancelling'} the money request, please try again later`,
+            genericDeleteFailureMessage: 'Unexpected error deleting the money request, please try again later',
         },
     },
     notificationPreferences: {
@@ -672,7 +669,13 @@ export default {
         linkHasBeenResent: 'Link has been re-sent',
         weSentYouMagicSignInLink: ({login, loginType}) => `I've sent a magic sign-in link to ${login}. Please check your ${loginType} to sign in.`,
         resendLink: 'Resend link',
-        validationCodeFailedMessage: 'It looks like there was an error with your validation link or it has expired.',
+    },
+    unlinkLoginForm: {
+        toValidateLogin: ({primaryLogin, secondaryLogin}) => `To validate ${secondaryLogin}, please resend the magic code from the Account Settings of ${primaryLogin}.`,
+        noLongerHaveAccess: ({primaryLogin}) => `If you no longer have access to ${primaryLogin}, please unlink your accounts.`,
+        unlink: 'Unlink',
+        linkSent: 'Link sent!',
+        succesfullyUnlinkedLogin: 'Secondary login successfully unlinked!',
     },
     detailsPage: {
         localTime: 'Local time',
@@ -1225,6 +1228,7 @@ export default {
         },
     },
     report: {
+        genericCreateReportFailureMessage: 'Unexpected error creating this chat, please try again later',
         genericAddCommentFailureMessage: 'Unexpected error while posting the comment, please try again later',
         noActivityYet: 'No activity yet',
     },
