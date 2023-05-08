@@ -8,7 +8,6 @@ import positioning from './utilities/positioning';
 import styles from './styles';
 import * as ReportUtils from '../libs/ReportUtils';
 import getSafeAreaPaddingTop from '../libs/getSafeAreaPaddingTop';
-import button from '../components/Button';
 
 const workspaceColorOptions = [
     {backgroundColor: colors.blue200, fill: colors.blue700},

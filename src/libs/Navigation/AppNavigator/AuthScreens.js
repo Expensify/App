@@ -1,4 +1,6 @@
-import React, {useEffect, useMemo, useRef, useCallback} from 'react';
+import React, {
+    useEffect, useMemo, useRef, useCallback,
+} from 'react';
 import Onyx, {withOnyx} from 'react-native-onyx';
 import {getFocusedRouteNameFromRoute} from '@react-navigation/native';
 import PropTypes from 'prop-types';
@@ -6,7 +8,9 @@ import moment from 'moment';
 import _ from 'underscore';
 import lodashGet from 'lodash/get';
 import Str from 'expensify-common/lib/str';
-import {interpolateColor, useAnimatedProps, useSharedValue, withTiming, withSpring} from 'react-native-reanimated';
+import {
+    interpolateColor, useAnimatedProps, useSharedValue, withSpring,
+} from 'react-native-reanimated';
 import getNavigationModalCardStyle from '../../../styles/getNavigationModalCardStyles';
 import withWindowDimensions, {windowDimensionsPropTypes} from '../../../components/withWindowDimensions';
 import CONST from '../../../CONST';
@@ -199,6 +203,8 @@ const AuthScreens = (props) => {
             statusBarBackgroundColorAnimationProgress.value = 0;
             statusBarBackgroundColorAnimationProgress.value = withSpring(1);
         }
+
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 
     const url = getCurrentUrl();

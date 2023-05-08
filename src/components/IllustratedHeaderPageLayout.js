@@ -41,7 +41,7 @@ const IllustratedHeaderPageLayout = (props) => {
         >
             {({safeAreaPaddingBottomStyle}) => (
                 <>
-                    <Animated.View style={styles.illustratedPageHeader}>
+                    <View style={styles.illustratedPageHeader}>
                         {/* eslint-disable-next-line react/jsx-props-no-spreading */}
                         <HeaderWithCloseButton {...propsToPassToHeader} />
                         <View
@@ -51,7 +51,7 @@ const IllustratedHeaderPageLayout = (props) => {
                                 ? props.illustration()
                                 : <Lottie source={props.illustration} style={styles.w100} autoPlay loop />}
                         </View>
-                    </Animated.View>
+                    </View>
                     <View style={[styles.illustratedPageBody]}>
                         <ScrollView contentContainerStyle={styles.illustratedPageScrollView(safeAreaPaddingBottomStyle)}>
                             {props.children}
