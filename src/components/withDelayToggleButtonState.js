@@ -41,16 +41,10 @@ export default function (WrappedComponent) {
                 return;
             }
 
-            // Don't restart timer
-            if (this.resetButtonStateCompleteTimer) {
-                return;
-            }
-
             this.resetButtonStateCompleteTimer = setTimeout(() => {
                 this.setState({
                     isDelayButtonStateComplete: false,
                 });
-                this.resetButtonStateCompleteTimer = null;
             }, 1800);
         }
 
