@@ -25,7 +25,7 @@ class BaseTextInput extends Component {
         super(props);
 
         const value = props.value || props.defaultValue || '';
-        const activeLabel = props.forceActiveLabel || value.length > 0 || props.prefixCharacter;
+        const activeLabel = props.forceActiveLabel || value.length > 0 || Boolean(props.prefixCharacter);
 
         this.state = {
             isFocused: false,
@@ -247,6 +247,7 @@ class BaseTextInput extends Component {
                                     to prevent text overlapping with label when scrolling */}
                                         {this.props.multiline && <View style={styles.textInputLabelBackground} pointerEvents="none" />}
                                         <TextInputLabel
+                                            isLabelActive={this.isLabelActive}
                                             label={this.props.label}
                                             labelTranslateY={this.state.labelTranslateY}
                                             labelScale={this.state.labelScale}

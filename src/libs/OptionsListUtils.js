@@ -833,6 +833,34 @@ function getNewChatOptions(
 }
 
 /**
+ * Build the options for the Share Destination for a Task
+ * *
+ * @param {Object} reports
+ * @param {Object} personalDetails
+ * @param {Array<String>} [betas]
+ * @param {String} [searchValue]
+ * @param {Array} [selectedOptions]
+ * @param {Array} [excludeLogins]
+ * @param {Boolean} [includeOwnedWorkspaceChats]
+ * @returns {Object}
+ *
+ */
+
+function getShareDestinationOptions(reports, personalDetails, betas = [], searchValue = '', selectedOptions = [], excludeLogins = [], includeOwnedWorkspaceChats = true) {
+    return getOptions(reports, personalDetails, {
+        betas,
+        searchInputValue: searchValue.trim(),
+        selectedOptions,
+        maxRecentReportsToShow: 5,
+        includeRecentReports: true,
+        includeMultipleParticipantReports: true,
+        includePersonalDetails: true,
+        excludeLogins,
+        includeOwnedWorkspaceChats,
+    });
+}
+
+/**
  * Build the options for the Workspace Member Invite view
  *
  * @param {Object} personalDetails
@@ -900,6 +928,7 @@ export {
     isCurrentUser,
     getSearchOptions,
     getNewChatOptions,
+    getShareDestinationOptions,
     getMemberInviteOptions,
     getHeaderMessage,
     getPersonalDetailsForLogins,
