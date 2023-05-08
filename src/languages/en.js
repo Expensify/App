@@ -858,7 +858,7 @@ export default {
             customerServiceDetails: 'There are no customer service fees.',
             inactivityDetails: 'There is no inactivity fee.',
             sendingFundsTitle: 'Sending funds to another account holder',
-            sendingFundsDetails: 'There is no fee to send funds to another account holder using your balance, ' + 'bank account, or debit card.',
+            sendingFundsDetails: 'There is no fee to send funds to another account holder using your balance, bank account, or debit card.',
             electronicFundsStandardDetails:
                 'There is no fee to transfer funds from your Expensify Wallet ' +
                 'to your bank account using the standard option. This transfer usually completes within 1-3 business' +
@@ -875,7 +875,7 @@ export default {
             contactExpensifyPayments: 'Contact Expensify Payments by calling +1 833-400-0904, by email at',
             contactExpensifyPayments2: 'or sign in at',
             generalInformation: 'For general information about prepaid accounts, visit',
-            generalInformation2: 'If you have a complaint about a prepaid account, call the Consumer Financial ' + 'Protection Bureau at 1-855-411-2372 or visit',
+            generalInformation2: 'If you have a complaint about a prepaid account, call the Consumer Financial Protection Bureau at 1-855-411-2372 or visit',
             printerFriendlyView: 'View printer-friendly version',
             automated: 'Automated',
             liveAgent: 'Live Agent',

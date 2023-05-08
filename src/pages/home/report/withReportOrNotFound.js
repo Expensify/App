@@ -45,8 +45,8 @@ export default function (WrappedComponent) {
     WithReportOrNotFound.displayName = `withReportOrNotFound(${getComponentDisplayName(WrappedComponent)})`;
     // eslint-disable-next-line rulesdir/no-negated-variables
     const withReportOrNotFound = React.forwardRef((props, ref) => (
-        // eslint-disable-next-line react/jsx-props-no-spreading
         <WithReportOrNotFound
+            // eslint-disable-next-line react/jsx-props-no-spreading
             {...props}
             forwardedRef={ref}
         />

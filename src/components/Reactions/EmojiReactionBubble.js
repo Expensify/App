@@ -70,8 +70,8 @@ EmojiReactionBubble.displayName = 'EmojiReactionBubble';
 
 export default withWindowDimensions(
     React.forwardRef((props, ref) => (
-        /* eslint-disable-next-line react/jsx-props-no-spreading */
         <EmojiReactionBubble
+            // eslint-disable-next-line react/jsx-props-no-spreading
             {...props}
             forwardedRef={ref}
         />

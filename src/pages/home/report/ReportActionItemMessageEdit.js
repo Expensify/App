@@ -373,8 +373,8 @@ export default compose(
     withKeyboardState,
 )(
     React.forwardRef((props, ref) => (
-        /* eslint-disable-next-line react/jsx-props-no-spreading */
         <ReportActionItemMessageEdit
+            // eslint-disable-next-line react/jsx-props-no-spreading
             {...props}
             forwardedRef={ref}
         />

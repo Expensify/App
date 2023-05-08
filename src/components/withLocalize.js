@@ -161,10 +161,11 @@ Provider.displayName = 'withOnyx(LocaleContextProvider)';
 export default function withLocalize(WrappedComponent) {
     const WithLocalize = forwardRef((props, ref) => (
         <LocaleContext.Consumer>
-            {/* eslint-disable-next-line react/jsx-props-no-spreading */}
             {(translateUtils) => (
                 <WrappedComponent
+                    // eslint-disable-next-line react/jsx-props-no-spreading
                     {...translateUtils}
+                    // eslint-disable-next-line react/jsx-props-no-spreading
                     {...props}
                     ref={ref}
                 />

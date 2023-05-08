@@ -85,8 +85,8 @@ TextInputWithCurrencySymbol.defaultProps = defaultProps;
 TextInputWithCurrencySymbol.displayName = 'TextInputWithCurrencySymbol';
 
 export default React.forwardRef((props, ref) => (
-    // eslint-disable-next-line react/jsx-props-no-spreading
     <TextInputWithCurrencySymbol
+        // eslint-disable-next-line react/jsx-props-no-spreading
         {...props}
         forwardedRef={ref}
     />

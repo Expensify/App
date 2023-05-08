@@ -2110,7 +2110,7 @@ export default () => ({
                     visibility: null,
                     isOwnPolicyExpenseChat: false,
                     lastMessageHtml:
-                        "\ud83d\udc4b Welcome to Expensify! I'm Concierge. Is there anything I can help with? Click the + icon on the homescreen to explore the features you" + ' can use.',
+                        "\ud83d\udc4b Welcome to Expensify! I'm Concierge. Is there anything I can help with? Click the + icon on the homescreen to explore the features you can use.",
                     hasOutstandingIOU: false,
                 },
                 report_7658708888047100: {
