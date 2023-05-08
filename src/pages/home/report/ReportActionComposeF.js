@@ -186,6 +186,7 @@ function ReportActionCompose(props) {
     const [value, setValue] = useState(props.comment);
 
     // If we are on a small width device then don't show last 3 items from conciergePlaceholderOptions
+    // TODO-S: never reset? better to useRef ?
     const [conciergePlaceholderRandomIndex] = useState(_.random(props.translate('reportActionCompose.conciergePlaceholderOptions').length - (props.isSmallScreenWidth ? 4 : 1)));
     const [suggestedEmojis, setSuggestedEmojis] = useState([]);
     const [highlightedEmojiIndex, setHighlightedEmojiIndex] = useState(0);
@@ -201,9 +202,7 @@ function ReportActionCompose(props) {
      */
     const [hasExceededMaxCommentLength, setExceededMaxCommentLength] = useState(false);
 
-    // TODO_S: not sure if useState is a good solutions here
-    // previously unsubscribeEscapeKey was written directly into this
-    // like unsubscribeEscapeKey = KeyboardShortcut.subscribe...
+    // TODO_S: double check useRefs
     const unsubscribeEscapeKey = useRef(null);
     const comment = useRef(props.comment);
     const textInput = useRef(null);
@@ -212,10 +211,10 @@ function ReportActionCompose(props) {
 
     /**
      * Focus the composer text input
-     * @param {Boolean} [shouldelay=false] Impose delay before focusing the composer
+     * @param {Boolean} [shouldDelay=false] Impose delay before focusing the composer
      * @memberof ReportActionCompose
      */
-    const focus = useCallback((shouldelay = false) => {
+    const focus = useCallback((shouldDelay = false) => {
         // There could be other animations running while we trigger manual focus.
         // This prevents focus from making those animations janky.
         InteractionManager.runAfterInteractions(() => {
@@ -223,7 +222,7 @@ function ReportActionCompose(props) {
                 return;
             }
 
-            if (!shouldelay) {
+            if (!shouldDelay) {
                 textInput.current.focus();
             } else {
                 // Keyboard is not opened after Emoji Picker is closed
@@ -241,6 +240,8 @@ function ReportActionCompose(props) {
      *
      * @param {String} comment
      */
+    // move out of component
+    // TODO-S: move out of component
     const debouncedSaveReportComment = useCallback(_.debounce(
         reportComment => Report.saveReportComment(props.reportID, reportComment || ''),
         1000,
@@ -252,6 +253,7 @@ function ReportActionCompose(props) {
      * Broadcast that the user is typing. We debounce this method in the constructor to limit how often we publish
      * client events.
      */
+    // TODO-S: move out of component
     const debouncedBroadcastUserIsTyping = useCallback(_.debounce(
         () => Report.broadcastUserIsTyping(props.reportID),
         100,
@@ -272,6 +274,7 @@ function ReportActionCompose(props) {
         setIsCommentEmpty(!!newComment.match(/^(\s)*$/));
         setValue(newComment);
         if (commentValue !== newComment) {
+            // TODO-S: prevState.value.slice(prevState.selection.end).length; ??
             const remainder = value.slice(selection.end).length;
             setSelection({
                 start: newComment.length - remainder,
@@ -418,6 +421,7 @@ function ReportActionCompose(props) {
      * @param {Number} pos
      * @returns {Boolean}
      */
+    // TODO-S: move out of component?
     const isEmojiCode = useCallback((str, pos) => {
         const leftWords = str.slice(0, pos).split(CONST.REGEX.NEW_LINE_OR_WHITE_SPACE_OR_EMOJI);
         const leftWord = _.last(leftWords);
@@ -428,36 +432,40 @@ function ReportActionCompose(props) {
     /**
      * Calculates and cares about the content of an Emoji Suggester
      */
-    const calculateEmojiSuggestion = useCallback(() => {
+    const calculateEmojiSuggestion = useCallback(_.debounce(
+        () => {
         // TODO-S: think maybe rewrite state to compose solution
         // to avoid 5 set states
-        if (!value) {
-            resetSuggestedEmojis();
-            return;
-        }
-        if (shouldBlockEmojiCalc) {
-            setShouldBlockEmojiCalc(false);
-            return;
-        }
-        const leftString = value.substring(0, selection.end);
-        setColonIndex(leftString.lastIndexOf(':'));
-        const isCurrentlyShowingEmojiSuggestion = isEmojiCode(value, selection.end);
+            if (!value) {
+                resetSuggestedEmojis();
+                return;
+            }
+            if (shouldBlockEmojiCalc) {
+                setShouldBlockEmojiCalc(false);
+                return;
+            }
+            const leftString = value.substring(0, selection.end);
+            setColonIndex(leftString.lastIndexOf(':'));
+            const isCurrentlyShowingEmojiSuggestion = isEmojiCode(value, selection.end);
 
-        // the larger composerHeight the less space for EmojiPicker, Pixel 2 has pretty small screen and this value equal 5.3
-        const hasEnoughSpaceForLargeSuggestion = props.windowHeight / composerHeight >= 6.8;
-        setIsEmojiPickerLarge(!props.isSmallScreenWidth || (props.isSmallScreenWidth && hasEnoughSpaceForLargeSuggestion));
+            // the larger composerHeight the less space for EmojiPicker, Pixel 2 has pretty small screen and this value equal 5.3
+            const hasEnoughSpaceForLargeSuggestion = props.windowHeight / composerHeight >= 6.8;
+            setIsEmojiPickerLarge(!props.isSmallScreenWidth || (props.isSmallScreenWidth && hasEnoughSpaceForLargeSuggestion));
 
-        const newSuggestedEmojis = EmojiUtils.suggestEmojis(leftString);
+            const newSuggestedEmojis = EmojiUtils.suggestEmojis(leftString);
 
-        if (newSuggestedEmojis.length && isCurrentlyShowingEmojiSuggestion) {
-            setSuggestedEmojis(newSuggestedEmojis);
-            setShouldShowSuggestionMenu(!_.isEmpty(newSuggestedEmojis));
-        }
+            if (newSuggestedEmojis.length && isCurrentlyShowingEmojiSuggestion) {
+                setSuggestedEmojis(newSuggestedEmojis);
+                setShouldShowSuggestionMenu(!_.isEmpty(newSuggestedEmojis));
+            }
 
-        LayoutAnimation.configureNext(LayoutAnimation.create(50, LayoutAnimation.Types.easeInEaseOut, LayoutAnimation.Properties.opacity));
+            LayoutAnimation.configureNext(LayoutAnimation.create(50, LayoutAnimation.Types.easeInEaseOut, LayoutAnimation.Properties.opacity));
 
-        setHighlightedEmojiIndex(0);
-    }, [composerHeight, isEmojiCode, value, selection, props.windowHeight, props.isSmallScreenWidth, resetSuggestedEmojis, shouldBlockEmojiCalc]);
+            setHighlightedEmojiIndex(0);
+        },
+        10,
+        false,
+    ), [composerHeight, isEmojiCode, value, selection, props.windowHeight, props.isSmallScreenWidth, resetSuggestedEmojis, shouldBlockEmojiCalc]);
 
     const onSelectionChange = useCallback((e) => {
         setSelection(e.nativeEvent.selection);
@@ -572,6 +580,7 @@ function ReportActionCompose(props) {
         const emojiCode = emojiObject.types && emojiObject.types[props.preferredSkinTone] ? emojiObject.types[props.preferredSkinTone] : emojiObject.code;
         const commentAfterColonWithEmojiNameRemoved = value.slice(selection.end).replace(CONST.REGEX.EMOJI_REPLACER, CONST.SPACE);
 
+        // TODO-S: check if prevState.colonIndex to coloIndex works correct
         updateComment(`${commentBeforeColon}${emojiCode} ${commentAfterColonWithEmojiNameRemoved}`, true);
         setSelection({
             start: colonIndex + emojiCode.length + CONST.SPACE_LENGTH,
@@ -582,7 +591,7 @@ function ReportActionCompose(props) {
         EmojiUtils.addToFrequentlyUsedEmojis(props.frequentlyUsedEmojis, emojiObject);
     }, [colonIndex, props.frequentlyUsedEmojis, suggestedEmojis, value, props.preferredSkinTone, selection, updateComment]);
 
-    const isEmptyChat = useCallback(() => _.size(props.reportActions) === 1, []);
+    const isEmptyChat = useCallback(() => _.size(props.reportActions) === 1, [props.reportActions]);
 
     /**
      * Callback for the emoji picker to add whatever emoji is chosen into the main input
@@ -696,7 +705,8 @@ function ReportActionCompose(props) {
                 Report.saveReportActionDraft(props.reportID, lastReportAction.reportActionID, _.last(lastReportAction.message).html);
             }
         }
-    }, []);
+    }, [isCommentEmpty, props.isSmallScreenWidth, props.report, props.reportActions, props.reportID, resetSuggestedEmojis,
+        submitForm, suggestedEmojis.length, props.isKeyboardShown, highlightedEmojiIndex, insertSelectedEmoji]);
 
     /**
      * @param {Object} file
@@ -721,6 +731,8 @@ function ReportActionCompose(props) {
     // Prevents focusing and showing the keyboard while the drawer is covering the chat.
     const isComposeDisabled = props.isDrawerOpen && props.isSmallScreenWidth;
     const isBlockedFromConcierge = ReportUtils.chatIncludesConcierge(props.report) && User.isBlockedFromConcierge(props.blockedFromConcierge);
+
+    // TODO-S: move to component prop without extra const?
     const inputPlaceholder = getInputPlaceholder();
     const shouldUseFocusedColor = !isBlockedFromConcierge && !props.disabled && (isFocused || isDraggingOver);
 
@@ -939,7 +951,7 @@ function ReportActionCompose(props) {
                 >
                     {!props.isSmallScreenWidth && <OfflineIndicator containerStyles={[styles.chatItemComposeSecondaryRow]} />}
                     <ReportTypingIndicator reportID={props.reportID} />
-                    <ExceededCommentLength comment={comment} onExceededMaxCommentLength={setExceededMaxCommentLength} />
+                    <ExceededCommentLength comment={comment.current} onExceededMaxCommentLength={setExceededMaxCommentLength} />
                 </View>
             </OfflineWithFeedback>
             {isDraggingOver && <ReportDropUI />}
