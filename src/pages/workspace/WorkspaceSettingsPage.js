@@ -42,7 +42,7 @@ const defaultProps = {
 function WorkspaceSettingsPage(props) {
     const nameIsRequiredError = props.translate('workspace.editor.nameIsRequiredError');
 
-    const getCurrencyItems = useMemo(() => {
+    const currencyItems = useMemo(() => {
         const currencyListKeys = _.keys(props.currencyList);
         return _.map(currencyListKeys, currencyCode => ({
             value: currencyCode,
@@ -133,7 +133,7 @@ function WorkspaceSettingsPage(props) {
                             <Picker
                                 inputID="currency"
                                 label={props.translate('workspace.editor.currencyInputLabel')}
-                                items={getCurrencyItems}
+                                items={currencyItems}
                                 isDisabled={hasVBA}
                                 defaultValue={props.policy.outputCurrency}
                                 hintText={
