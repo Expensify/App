@@ -51,6 +51,7 @@ import Text from '../../../components/Text';
 import DisplayNames from '../../../components/DisplayNames';
 import personalDetailsPropType from '../../personalDetailsPropType';
 import ReportActionItemDraft from './ReportActionItemDraft';
+import TaskPreview from '../../../components/ReportActionItem/TaskPreview';
 
 const propTypes = {
     /** Report for this action */
@@ -192,6 +193,10 @@ class ReportActionItem extends Component {
                     contextMenuAnchor={this.popoverAnchor}
                     checkIfContextMenuActive={this.checkIfContextMenuActive}
                 />
+            );
+        } else if (this.props.action.actionName === CONST.REPORT.ACTIONS.TYPE.ADDCOMMENT && this.props.action.originalMessage.taskReportID) {
+            children = (
+                <TaskPreview />
             );
         } else {
             const message = _.last(lodashGet(this.props.action, 'message', [{}]));

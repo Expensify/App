@@ -22,6 +22,9 @@ export default {
     originalMessage: PropTypes.shape({
         // The ID of the iou transaction
         IOUTransactionID: PropTypes.string,
+
+        // The ID of the task report
+        taskReportID: PropTypes.number,
     }),
 
     /** Whether we have received a response back from the server */
