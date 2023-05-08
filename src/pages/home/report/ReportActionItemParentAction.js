@@ -9,6 +9,7 @@ import ReportWelcomeText from '../../../components/ReportWelcomeText';
 import participantPropTypes from '../../../components/participantPropTypes';
 import * as ReportUtils from '../../../libs/ReportUtils';
 import styles from '../../../styles/styles';
+import themeColors from '../../../styles/themes/default';
 import OfflineWithFeedback from '../../../components/OfflineWithFeedback';
 import * as Report from '../../../libs/actions/Report';
 import reportPropTypes from '../../reportPropTypes';
@@ -52,9 +53,6 @@ const defaultProps = {
 };
 
 const ReportActionItemParentAction = (props) => {
-    const icons = ReportUtils.getIcons(props.report, props.personalDetails);
-    //     const icons = ReportUtils.buildAvatarArray(parentReportAction.childOldestFourEmails || [parentReportAction.actorEmail] , props.personalDetails);
-
     // const parentReportActionID = '7267239632810500313';
     // let parentReportAction = props.parentReportActions['7267239632810500313'];
     const parentReportAction = ReportUtils.findMatchingValueDEVTESTING(props.parentReportActions, `${props.report.parentReportActionID}`);
@@ -66,31 +64,7 @@ const ReportActionItemParentAction = (props) => {
             onClose={() => Report.navigateToConciergeChatAndDeleteReport(props.report.reportID)}
         >
             <View style={StyleUtils.getReportWelcomeContainerStyle(props.isSmallScreenWidth)}>
-                <Image
-                    pointerEvents="none"
-                    source={EmptyStateBackgroundImage}
-                    style={StyleUtils.getReportWelcomeBackgroundImageStyle(props.isSmallScreenWidth)}
-                />
-                <View
-                    accessibilityLabel={props.translate('accessibilityHints.chatWelcomeMessage')}
-                    style={[styles.p5, StyleUtils.getReportWelcomeTopMarginStyle(props.isSmallScreenWidth)]}
-                >
-                    <Pressable
-                        onPress={() => ReportUtils.navigateToDetailsPage(props.report)}
-                        style={[styles.ph5, styles.pb3, styles.alignSelfStart]}
-                    >
-                        <RoomHeaderAvatars
-                            icons={icons}
-                        />
-                    </Pressable>
-                    <View style={[styles.ph5]}>
-                        <View>
-                            <Text style={[styles.textHero, {color: 'white'}]}>
-                                This is a thread!
-                            </Text>
-                        </View>
-                    </View>
-                </View>
+                <View style={[styles.p5, StyleUtils.getReportWelcomeTopMarginStyle(props.isSmallScreenWidth)]}/>
                 { (parentReportAction) ?
                     (<ReportActionItem
                         report={props.report}
@@ -102,12 +76,13 @@ const ReportActionItemParentAction = (props) => {
                     />) : (
                         <View>
                         <Text style={[styles.textHero, styles.fontColorReactionLabel]}>
-                            {`ReportName: ${props.report.reportName} The parent report is: ${props.parentReportID} and the action is: ${props.parentReportActionID}!`}
+                            {`Error Displaying ReportName: ${props.report.reportName} The parent report is: ${props.parentReportID} and the action is: ${props.parentReportActionID}!`}
                         </Text>
-                    </View>
+                        </View>
                     )
                 }
             </View>
+            <View style={[styles.threadDividerLine]} />
         </OfflineWithFeedback>
     );
 };
@@ -130,12 +105,6 @@ export default compose(
             key: ({parentReportID}) => `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${parentReportID}`,
             canEvict: false,
         },
-
-        // parentReportAction: {
-        //     key: ({parentReportID}) => `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${parentReportID}`,
-        //     canEvict: false,
-        //     selector: (reportActions, props) => {console.log('SELECTOR PROPS', reportActions, props); return lodashGet(reportActions, '2998605018361368979', {});}
-        // },
         personalDetails: {
             key: ONYXKEYS.PERSONAL_DETAILS,
         },
