@@ -1,4 +1,4 @@
-import React, {useEffect, useMemo, useRef} from 'react';
+import React, {useEffect, useMemo, useRef, useCallback} from 'react';
 import Onyx, {withOnyx} from 'react-native-onyx';
 import {getFocusedRouteNameFromRoute} from '@react-navigation/native';
 import PropTypes from 'prop-types';
@@ -6,6 +6,7 @@ import moment from 'moment';
 import _ from 'underscore';
 import lodashGet from 'lodash/get';
 import Str from 'expensify-common/lib/str';
+import {interpolateColor, useAnimatedProps, useSharedValue, withTiming, withSpring} from 'react-native-reanimated';
 import getNavigationModalCardStyle from '../../../styles/getNavigationModalCardStyles';
 import withWindowDimensions, {windowDimensionsPropTypes} from '../../../components/withWindowDimensions';
 import CONST from '../../../CONST';
@@ -35,6 +36,7 @@ import defaultScreenOptions from './defaultScreenOptions';
 import * as App from '../../actions/App';
 import * as Download from '../../actions/Download';
 import * as Session from '../../actions/Session';
+import StatusBar from '../../StatusBar';
 
 let currentUserEmail;
 Onyx.connect({
@@ -109,7 +111,8 @@ const commonModalScreenOptions = {
 };
 
 const AuthScreens = (props) => {
-    let focusedScreenName = useRef('');
+    const prevStatusBarBackgroundColor = useRef(themeColors.appBG);
+    const statusBarBackgroundColor = useRef(themeColors.appBG);
 
     useTiming(CONST.TIMING.HOMEPAGE_INITIAL_RENDER);
 
@@ -174,6 +177,30 @@ const AuthScreens = (props) => {
         isModal: true,
     }), [props.isSmallScreenWidth]);
 
+    const statusBarBackgroundColorAnimationProgress = useSharedValue(0);
+
+    useAnimatedProps(() => {
+        const currentStatusBarBackgroundColor = interpolateColor(
+            statusBarBackgroundColorAnimationProgress.value,
+            [0, 1],
+            [prevStatusBarBackgroundColor.current, statusBarBackgroundColor.current],
+        );
+        StatusBar.setBackgroundColor(currentStatusBarBackgroundColor);
+        return {};
+    }, []);
+
+    const animateStatusBarBackgroundColorChange = useCallback((e) => {
+        const focusedScreenName = getFocusedRouteNameFromRoute(_.last(lodashGet(e, 'data.state.routes', [{}])));
+        const focusedScreenBackgroundColor = themeColors.PAGE_BACKGROUND_COLORS[focusedScreenName] || themeColors.appBG;
+
+        prevStatusBarBackgroundColor.current = statusBarBackgroundColor.current;
+        statusBarBackgroundColor.current = focusedScreenBackgroundColor;
+        if (focusedScreenBackgroundColor !== prevStatusBarBackgroundColor.current) {
+            statusBarBackgroundColorAnimationProgress.value = 0;
+            statusBarBackgroundColorAnimationProgress.value = withSpring(1);
+        }
+    }, []);
+
     const url = getCurrentUrl();
     const openOnAdminRoom = url ? new URL(url).searchParams.get('openOnAdminRoom') : '';
 
@@ -187,14 +214,7 @@ const AuthScreens = (props) => {
             // eslint-disable-next-line react/jsx-props-no-multi-spaces
             keyboardHandlingEnabled={false}
             screenListeners={{
-                state: (e) => {
-                    const prevFocusedScreeName = focusedScreenName;
-                    focusedScreenName = getFocusedRouteNameFromRoute(_.last(lodashGet(e, 'data.state.routes', [{}])));
-                    if (focusedScreenName !== prevFocusedScreeName) {
-                        const screenBackgroundColor = themeColors.PAGE_BACKGROUND_COLORS[focusedScreenName] || themeColors.appBG;
-                        console.log('RORY_DEBUG background color should change to:', screenBackgroundColor);
-                    }
-                },
+                state: animateStatusBarBackgroundColorChange,
             }}
         >
             {/* The MainDrawerNavigator contains the SidebarScreen and ReportScreen */}

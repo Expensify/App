@@ -1,8 +1,7 @@
 import _ from 'underscore';
-import React, {useEffect, useMemo} from 'react';
+import React from 'react';
 import PropTypes from 'prop-types';
 import {ScrollView, View} from 'react-native';
-import Animated, {useSharedValue, useAnimatedProps, interpolateColor, withTiming, useAnimatedReaction} from 'react-native-reanimated';
 import Lottie from 'lottie-react-native';
 import {
     propTypes as headerWithCloseButtonPropTypes,
@@ -13,7 +12,6 @@ import ScreenWrapper from './ScreenWrapper';
 import styles from '../styles/styles';
 import * as StyleUtils from '../styles/StyleUtils';
 import FixedFooter from './FixedFooter';
-import StatusBar from '../libs/StatusBar';
 
 const propTypes = {
     ...headerWithCloseButtonPropTypes,
@@ -34,24 +32,7 @@ const defaultProps = {
 };
 
 const IllustratedHeaderPageLayout = (props) => {
-    // const initialStatusBarColor = useMemo(() => StatusBar.getBackgroundColor(), []);
-    // const statusBarBackgroundColorAnimationProgress = useSharedValue(0);
-    // useEffect(() => {
-    //     statusBarBackgroundColorAnimationProgress.value = withTiming(1, {duration: 1000});
-    //     return () => StatusBar.setBackgroundColor(initialStatusBarColor);
-    // }, [props.backgroundColor]);
-    //
-    // useAnimatedProps(() => {
-    //     const currentStatusBarBackgroundColor = interpolateColor(
-    //         statusBarBackgroundColorAnimationProgress.value,
-    //         [0, 1],
-    //         [initialStatusBarColor, props.backgroundColor],
-    //     );
-    //     StatusBar.setBackgroundColor(currentStatusBarBackgroundColor);
-    //     return {};
-    // }, [props.backgroundColor]);
-
-    const propsToPassToHeader = _.omit(props, ['illustration']);
+    const propsToPassToHeader = _.omit(props, ['illustration', 'footer']);
     return (
         <ScreenWrapper
             includeSafeAreaPaddingBottom={false}

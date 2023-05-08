@@ -99,22 +99,22 @@ class HeaderWithCloseButton extends Component {
                     )}
                     <View style={[styles.reportOptions, styles.flexRow, styles.pr5]}>
                         {this.props.shouldShowDownloadButton && (
-                                <Tooltip text={this.props.translate('common.download')}>
-                                    <Pressable
-                                        onPress={(e) => {
-                                            // Blur the pressable in case this button triggers a Growl notification
-                                            // We do not want to overlap Growl with the Tooltip (#15271)
-                                            e.currentTarget.blur();
-                                            this.triggerButtonCompleteAndDownload();
-                                        }}
-                                        style={[styles.touchableButtonImage]}
-                                    >
-                                        <Icon
-                                            src={Expensicons.Download}
-                                            fill={StyleUtils.getIconFillColor(getButtonState(false, false, this.props.isDelayButtonStateComplete))}
-                                        />
-                                    </Pressable>
-                                </Tooltip>
+                        <Tooltip text={this.props.translate('common.download')}>
+                            <Pressable
+                                onPress={(e) => {
+                                    // Blur the pressable in case this button triggers a Growl notification
+                                    // We do not want to overlap Growl with the Tooltip (#15271)
+                                    e.currentTarget.blur();
+                                    this.triggerButtonCompleteAndDownload();
+                                }}
+                                style={[styles.touchableButtonImage]}
+                            >
+                                <Icon
+                                    src={Expensicons.Download}
+                                    fill={StyleUtils.getIconFillColor(getButtonState(false, false, this.props.isDelayButtonStateComplete))}
+                                />
+                            </Pressable>
+                        </Tooltip>
                         )}
 
                         {this.props.shouldShowGetAssistanceButton && (
