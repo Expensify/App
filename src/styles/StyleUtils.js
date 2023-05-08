@@ -311,10 +311,14 @@ function getWidthStyle(width) {
  */
 function getAutoGrowHeightInputStyle(textInputHeight, maxHeight) {
     if (textInputHeight > maxHeight) {
-        return styles.overflowAuto;
+        return {
+            ...styles.pr0,
+            ...styles.overflowAuto,
+        };
     }
 
     return {
+        ...styles.pr0,
         ...styles.overflowHidden,
         height: maxHeight,
     };
