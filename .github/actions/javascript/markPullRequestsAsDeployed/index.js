@@ -1,6 +1,12 @@
 /**
  * NOTE: This is a compiled file. DO NOT directly edit this file.
  */
+/**
+ * NOTE: This is a compiled file. DO NOT directly edit this file.
+ */
+/**
+ * NOTE: This is a compiled file. DO NOT directly edit this file.
+ */
 module.exports =
 /******/ (() => { // webpackBootstrap
 /******/ 	var __webpack_modules__ = ({
@@ -44,7 +50,7 @@ const desktopResult = getDeployTableMessage(core.getInput('DESKTOP', {required: 
 const iOSResult = getDeployTableMessage(core.getInput('IOS', {required: true}));
 const webResult = getDeployTableMessage(core.getInput('WEB', {required: true}));
 
-const workflowURL = `${process.env.GITHUB_SERVER_URL}/${process.env.GITHUB_REPOSITORY}` + `/actions/runs/${process.env.GITHUB_RUN_ID}`;
+const workflowURL = `${process.env.GITHUB_SERVER_URL}/${process.env.GITHUB_REPOSITORY}/actions/runs/${process.env.GITHUB_RUN_ID}`;
 
 /**
  * @param {String} deployer
