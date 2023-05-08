@@ -200,10 +200,10 @@ function requestMoney(report, amount, currency, recipientEmail, participant, com
         // Then add an optimistic created action
         optimisticReportActionsData.value[optimisticCreatedAction.reportActionID] = optimisticCreatedAction;
         reportActionsSuccessData.value[optimisticCreatedAction.reportActionID] = {pendingAction: null};
-        reportActionsFailureData.value[optimisticCreatedAction.reportActionID] = {pendingAction: null};
 
-        // If we're going to fail to create the report itself, let's not have redundant error messages for the IOU
-        reportActionsFailureData.value[optimisticReportAction.reportActionID] = {pendingAction: null};
+        // Failure data should feature red brick road
+        reportActionsFailureData.value[optimisticCreatedAction.reportActionID] = {pendingAction: null};
+        reportActionsFailureData.value[optimisticReportAction.reportActionID] = {pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD};
     }
 
     const optimisticData = [
