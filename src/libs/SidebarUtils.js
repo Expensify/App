@@ -65,14 +65,14 @@ Onyx.connect({
         }
         const reportID = CollectionUtils.extractCollectionItemID(key);
 
-        const actionsArray = _.toArray(actions);
+        const actionsArray = ReportActionsUtils.getSortedReportActions(_.toArray(actions));
         lastReportActions[reportID] = _.last(actionsArray);
 
         // The report is only visible if it is the last action not deleted that
         // does not match a closed or created state.
         const reportActionsForDisplay = _.filter(actionsArray, (reportAction, actionKey) => (ReportActionsUtils.shouldReportActionBeVisible(reportAction, actionKey)
             && (reportAction.actionName !== CONST.REPORT.ACTIONS.TYPE.CREATED)));
-        visibleReportActionItems[reportID] = _.first(ReportActionsUtils.getSortedReportActions(reportActionsForDisplay, true));
+        visibleReportActionItems[reportID] = _.last(reportActionsForDisplay);
 
         reportActions[key] = actions;
     },
@@ -114,7 +114,7 @@ function getOrderedReportIDs(reportIDFromRoute) {
         // However, this code needs to be very performant to handle thousands of reports, so in the interest of speed, we're just going to disable this lint rule and add
         // the reportDisplayName property to the report object directly.
         // eslint-disable-next-line no-param-reassign
-        report.displayName = ReportUtils.getReportName(report, policies);
+        report.displayName = ReportUtils.getReportName(report);
 
         // eslint-disable-next-line no-param-reassign
         report.iouReportAmount = ReportUtils.getIOUTotal(report, iouReports);
@@ -252,7 +252,7 @@ function getOptionData(reportID) {
     result.hasOutstandingIOU = report.hasOutstandingIOU;
 
     const hasMultipleParticipants = participantPersonalDetailList.length > 1 || result.isChatRoom || result.isPolicyExpenseChat;
-    const subtitle = ReportUtils.getChatRoomSubtitle(report, policies);
+    const subtitle = ReportUtils.getChatRoomSubtitle(report);
 
     const login = Str.removeSMSDomain(lodashGet(personalDetail, 'login', ''));
     const formattedLogin = Str.isSMSLogin(login) ? LocalePhoneNumber.formatPhoneNumber(login) : login;
@@ -283,16 +283,16 @@ function getOptionData(reportID) {
         : '';
     lastMessageText += report ? lastMessageTextFromReport : '';
 
-    if (result.isPolicyExpenseChat && result.isArchivedRoom) {
+    if (result.isArchivedRoom) {
         const archiveReason = (lastReportActions[report.reportID] && lastReportActions[report.reportID].originalMessage && lastReportActions[report.reportID].originalMessage.reason)
             || CONST.REPORT.ARCHIVE_REASON.DEFAULT;
         lastMessageText = Localize.translate(preferredLocale, `reportArchiveReasons.${archiveReason}`, {
             displayName: archiveReason.displayName || report.lastActorEmail,
-            policyName: ReportUtils.getPolicyName(report, policies),
+            policyName: ReportUtils.getPolicyName(report),
         });
     }
 
-    if (result.isChatRoom || result.isPolicyExpenseChat) {
+    if ((result.isChatRoom || result.isPolicyExpenseChat) && !result.isArchivedRoom) {
         result.alternateText = lastMessageTextFromReport.length > 0 ? lastMessageText : Localize.translate(preferredLocale, 'report.noActivityYet');
     } else {
         if (!lastMessageText) {
@@ -320,7 +320,7 @@ function getOptionData(reportID) {
         result.payPalMeAddress = personalDetail.payPalMeAddress;
     }
 
-    const reportName = ReportUtils.getReportName(report, policies);
+    const reportName = ReportUtils.getReportName(report);
     result.text = reportName;
     result.subtitle = subtitle;
     result.participantsList = participantPersonalDetailList;

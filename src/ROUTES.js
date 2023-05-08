@@ -93,6 +93,10 @@ export default {
     getIouDetailsRoute: (chatReportID, iouReportID) => `iou/details/${chatReportID}/${iouReportID}`,
     getNewTaskRoute: reportID => `${NEW_TASK}/${reportID}`,
     NEW_TASK_WITH_REPORT_ID: `${NEW_TASK}/:reportID?`,
+    TASK_TITLE: 'r/:reportID/title',
+    TASK_DESCRIPTION: 'r/:reportID/description',
+    getTaskReportTitleRoute: reportID => `r/${reportID}/title`,
+    getTaskReportDescriptionRoute: reportID => `r/${reportID}/description`,
     getTaskDetailsRoute: taskID => `task/details/${taskID}`,
     SEARCH: 'search',
     SET_PASSWORD_WITH_VALIDATE_CODE: 'setpassword/:accountID/:validateCode',
@@ -113,6 +117,7 @@ export default {
     VALIDATE_LOGIN: 'v/:accountID/:validateCode',
     GET_ASSISTANCE: 'get-assistance/:taskID',
     getGetAssistanceRoute: taskID => `get-assistance/${taskID}`,
+    UNLINK_LOGIN: 'u/:accountID/:validateCode',
 
     // This is a special validation URL that will take the user to /workspace/new after validation. This is used
     // when linking users from e.com in order to share a session in this app.

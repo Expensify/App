@@ -106,6 +106,7 @@ const AddressForm = props => (
                 errorText={props.errors.street ? props.translate('bankAccount.error.addressStreet') : ''}
                 hint={props.translate('common.noPO')}
                 renamedInputKeys={props.inputKeys}
+                maxInputLength={CONST.FORM_CHARACTER_LIMIT}
             />
         </View>
         <TextInput
