@@ -721,54 +721,6 @@ function getSmallSizeAvatar(avatarURL, login) {
 /**
  * Returns the appropriate icons for the given chat report using the stored personalDetails.
  * The Avatar sources can be URLs or Icon components according to the chat type.
-//  *
-//  * @param {Object} report
-//  * @param {Object} personalDetails
-//  * @param {Object} parentReportAction
-//  * @returns {Array<*>}
-//  */
-// function getThreadIcons(report, parentReport, parentReportAction) {
-//     return [];
-
-//     // console.log()
-//     // const parentReport = lodashGet(allReports, [
-//     //     `${ONYXKEYS.COLLECTION.REPORT}${report.parentReportID}`, {}
-//     // ]);
-// }
-
-function buildAvatarArray(participants, personalDetails) {
-    const participantDetails = [];
-    const participantsList = participants || [];
-
-    for (let i = 0; i < participantsList.length; i++) {
-        const login = participantsList[i];
-        const avatarSource = getAvatar(lodashGet(personalDetails, [login, 'avatar'], ''), login);
-        participantDetails.push([
-            login,
-            lodashGet(personalDetails, [login, 'firstName'], ''),
-            avatarSource,
-        ]);
-    }
-
-    // Sort all logins by first name (which is the second element in the array)
-    const sortedParticipantDetails = participantDetails.sort((a, b) => a[1] - b[1]);
-
-    // Now that things are sorted, gather only the avatars (third element in the array) and return those
-    const avatars = [];
-    for (let i = 0; i < sortedParticipantDetails.length; i++) {
-        const userIcon = {
-            source: sortedParticipantDetails[i][2],
-            type: CONST.ICON_TYPE_AVATAR,
-            name: sortedParticipantDetails[i][0],
-        };
-        avatars.push(userIcon);
-    }
-    return avatars;
-}
-
-/**
- * Returns the appropriate icons for the given chat report using the stored personalDetails.
- * The Avatar sources can be URLs or Icon components according to the chat type.
  *
  * @param {Object} report
  * @param {Object} personalDetails
@@ -808,17 +760,6 @@ function getIcons(report, personalDetails, defaultIcon = null) {
             result.name = getPolicyName(parentReport);
             return [result];
         }
-        // eslint-disable-next-line no-console
-        console.log('>>>>', parentReport, parentReportActionTEST);
-
-        // if (lodashGet(parentReportActionTEST, 'childOldestFourEmails', '')) {
-        //     const avatars = _.isArray(parentReportActionTEST.childOldestFourEmails)
-        //         ? buildAvatarArray(parentReportActionTEST.childOldestFourEmails, personalDetails)
-        //         : buildAvatarArray([parentReportActionTEST.childOldestFourEmails], personalDetails);
-        //     return avatars;
-        // }
-
-        // const avatars = buildAvatarArray(report.participants, personalDetails);
 
         const actorEmail = lodashGet(parentReportActionTEST, 'actorEmail', '');
         result.source = parentReportActionTEST ? getAvatar(lodashGet(personalDetails, [actorEmail, 'avatar']), actorEmail) : '';
@@ -884,8 +825,32 @@ function getIcons(report, personalDetails, defaultIcon = null) {
         }];
     }
 
-    const avatars = buildAvatarArray(report.participants, personalDetails);
+    const participantDetails = [];
+    const participantsList = report.participants || [];
 
+    for (let i = 0; i < participantsList.length; i++) {
+        const login = participantsList[i];
+        const avatarSource = getAvatar(lodashGet(personalDetails, [login, 'avatar'], ''), login);
+        participantDetails.push([
+            login,
+            lodashGet(personalDetails, [login, 'firstName'], ''),
+            avatarSource,
+        ]);
+    }
+
+    // Sort all logins by first name (which is the second element in the array)
+    const sortedParticipantDetails = participantDetails.sort((a, b) => a[1] - b[1]);
+
+    // Now that things are sorted, gather only the avatars (third element in the array) and return those
+    const avatars = [];
+    for (let i = 0; i < sortedParticipantDetails.length; i++) {
+        const userIcon = {
+            source: sortedParticipantDetails[i][2],
+            type: CONST.ICON_TYPE_AVATAR,
+            name: sortedParticipantDetails[i][0],
+        };
+        avatars.push(userIcon);
+    }
     return avatars;
 }
 
@@ -1983,5 +1948,4 @@ export {
     getWorkspaceAvatar,
     isThread,
     findMatchingValueDEVTESTING,
-    buildAvatarArray,
 };
