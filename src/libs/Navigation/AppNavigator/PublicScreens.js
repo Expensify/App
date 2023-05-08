@@ -10,8 +10,7 @@ import SCREENS from '../../../SCREENS';
 import defaultScreenOptions from './defaultScreenOptions';
 import Text from '../../../components/Text';
 import AppleSignInScript from '../../../pages/signin/AppleSignInScript';
-import FullScreenLoadingIndicator from '../../../components/FullscreenLoadingIndicator';
-import GoogleSignInButton from '../../signInWithGoogle';
+import GoogleSignIn from '../../../components/SignInButtons/GoogleSignIn';
 
 const RootStack = createStackNavigator();
 
@@ -25,38 +24,9 @@ const AppleAuthScreen = () => (
 );
 
 const GoogleAuthScreen = () => {
-    const [expensifyLoginResponse, setExpensifyLoginResponse] = useState(undefined);
-    const onCredentialResponse = useCallback(({credential}) => {
-        console.log('CREDENTIAL', credential);
-
-        setExpensifyLoginResponse(true);
-
-        // Expensify API call
-        // Session.beginGoogleSignIn(credential);
-        //
-    }, []);
-
-    const webLink = useCallback(() => {
-
-    }, []);
-
-    useEffect(() => {
-        window.open('new-expensify://foo/settings');
-    }, [expensifyLoginResponse]);
-
     return (
         <View style={{flex: 1, justifyContent: 'center', alignItems: 'center'}}>
-            {expensifyLoginResponse ? (
-                <>
-                    <Text>Click "Open Expensify" to open the desktop app.</Text>
-                    <Text onPress={webLink}>You can also use Expensify in the web browser.</Text>
-                </>
-            ) : (
-                <>
-                    <Text>Click the button below to continue signing in with Google</Text>
-                    <GoogleSignInButton clientId="807764306985-v0oiotjog2tnvge6kcodr39v23na515c.apps.googleusercontent.com" onCredentialResponse={onCredentialResponse} />
-                </>
-            )}
+            <GoogleSignIn />
         </View>
     );
 };
