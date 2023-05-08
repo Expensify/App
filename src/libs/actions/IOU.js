@@ -423,7 +423,8 @@ function createSplitsAndOnyxData(participants, currentUserLogin, amount, comment
         );
 
         // Note: The created action must be optimistically generated before the IOU action so there's no chance that the created action appears after the IOU action in the chat
-        const oneOnOneCreatedReportAction = ReportUtils.buildOptimisticCreatedReportAction(currentUserEmail);
+        const oneOnOneCreatedChatReportAction = ReportUtils.buildOptimisticCreatedReportAction(currentUserEmail);
+        const oneOnOneCreatedIOUReportAction = ReportUtils.buildOptimisticCreatedReportAction(currentUserEmail);
         const oneOnOneIOUReportAction = ReportUtils.buildOptimisticIOUReportAction(
             CONST.IOU.REPORT_ACTION_TYPE.CREATE,
             splitAmount,
@@ -435,8 +436,8 @@ function createSplitsAndOnyxData(participants, currentUserLogin, amount, comment
             oneOnOneIOUReport.reportID,
         );
 
-        oneOnOneChatReport.lastMessageText = oneOnOneIOUReportAction.message[0].text;
-        oneOnOneChatReport.lastMessageHtml = oneOnOneIOUReportAction.message[0].html;
+        oneOnOneIOUReport.lastMessageText = oneOnOneIOUReportAction.message[0].text;
+        oneOnOneIOUReport.lastMessageHtml = oneOnOneIOUReportAction.message[0].html;
 
         if (!existingOneOnOneChatReport) {
             oneOnOneChatReport.pendingFields = {
@@ -456,7 +457,17 @@ function createSplitsAndOnyxData(participants, currentUserLogin, amount, comment
                 value: {
                     ...(existingOneOnOneChatReport
                         ? {}
-                        : {[oneOnOneCreatedReportAction.reportActionID]: oneOnOneCreatedReportAction}
+                        : {[oneOnOneCreatedChatReportAction.reportActionID]: oneOnOneCreatedChatReportAction}
+                    ),
+                },
+            },
+            {
+                onyxMethod: existingIOUReport ? Onyx.METHOD.MERGE : Onyx.METHOD.SET,
+                key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${oneOnOneIOUReport.reportID}`,
+                value: {
+                    ...(existingIOUReport
+                        ? {}
+                        : {[oneOnOneCreatedIOUReportAction.reportActionID]: oneOnOneCreatedIOUReportAction}
                     ),
                     [oneOnOneIOUReportAction.reportActionID]: oneOnOneIOUReportAction,
                 },
@@ -475,7 +486,17 @@ function createSplitsAndOnyxData(participants, currentUserLogin, amount, comment
                 value: {
                     ...(existingOneOnOneChatReport
                         ? {}
-                        : {[oneOnOneCreatedReportAction.reportActionID]: {pendingAction: null}}
+                        : {[oneOnOneCreatedChatReportAction.reportActionID]: {pendingAction: null}}
+                    ),
+                },
+            },
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${oneOnOneIOUReport.reportID}`,
+                value: {
+                    ...(existingIOUReport
+                        ? {}
+                        : {[oneOnOneCreatedIOUReportAction.reportActionID]: {pendingAction: null}}
                     ),
                     [oneOnOneIOUReportAction.reportActionID]: {pendingAction: null},
                 },
@@ -498,7 +519,7 @@ function createSplitsAndOnyxData(participants, currentUserLogin, amount, comment
         failureData.push(
             {
                 onyxMethod: Onyx.METHOD.MERGE,
-                key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${oneOnOneChatReport.reportID}`,
+                key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${oneOnOneIOUReport.reportID}`,
                 value: {
                     [oneOnOneIOUReportAction.reportActionID]: {
                         errors: {
@@ -559,8 +580,8 @@ function createSplitsAndOnyxData(participants, currentUserLogin, amount, comment
             reportActionID: oneOnOneIOUReportAction.reportActionID,
         };
 
-        if (!_.isEmpty(oneOnOneCreatedReportAction)) {
-            splitData.createdReportActionID = oneOnOneCreatedReportAction.reportActionID;
+        if (!_.isEmpty(oneOnOneCreatedChatReportAction)) {
+            splitData.createdReportActionID = oneOnOneCreatedChatReportAction.reportActionID;
         }
 
         splits.push(splitData);
@@ -644,9 +665,6 @@ function deleteMoneyRequest(chatReportID, iouReportID, moneyRequestAction, shoul
     const iouReport = iouReports[`${ONYXKEYS.COLLECTION.REPORT}${iouReportID}`];
     const transactionID = moneyRequestAction.originalMessage.IOUTransactionID;
 
-    // Make a copy of the chat report so we don't mutate the original one when updating its values
-    const chatReport = {...chatReports[`${ONYXKEYS.COLLECTION.REPORT}${chatReportID}`]};
-
     // Get the amount we are deleting
     const amount = moneyRequestAction.originalMessage.amount;
     const optimisticReportAction = ReportUtils.buildOptimisticIOUReportAction(
@@ -662,25 +680,20 @@ function deleteMoneyRequest(chatReportID, iouReportID, moneyRequestAction, shoul
 
     const currentUserEmail = optimisticReportAction.actorEmail;
     const updatedIOUReport = IOUUtils.updateIOUOwnerAndTotal(iouReport, currentUserEmail, amount, moneyRequestAction.originalMessage.currency, CONST.IOU.REPORT_ACTION_TYPE.DELETE);
-    chatReport.lastMessageText = optimisticReportAction.message[0].text;
-    chatReport.lastMessageHtml = optimisticReportAction.message[0].html;
-    chatReport.hasOutstandingIOU = updatedIOUReport.total !== 0;
+    updatedIOUReport.lastMessageText = optimisticReportAction.message[0].text;
+    updatedIOUReport.lastMessageHtml = optimisticReportAction.message[0].html;
+    updatedIOUReport.hasOutstandingIOU = updatedIOUReport.total !== 0;
 
     const optimisticData = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${chatReportID}`,
+            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${iouReportID}`,
             value: {
                 [optimisticReportAction.reportActionID]: {
                     ...optimisticReportAction,
                     pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
                 },
             },
-        },
-        {
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.REPORT}${chatReportID}`,
-            value: chatReport,
         },
         {
             onyxMethod: Onyx.METHOD.MERGE,
@@ -696,7 +709,7 @@ function deleteMoneyRequest(chatReportID, iouReportID, moneyRequestAction, shoul
     const successData = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${chatReportID}`,
+            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${iouReportID}`,
             value: {
                 [optimisticReportAction.reportActionID]: {
                     pendingAction: null,
@@ -707,22 +720,13 @@ function deleteMoneyRequest(chatReportID, iouReportID, moneyRequestAction, shoul
     const failureData = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${chatReportID}`,
+            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${iouReportID}`,
             value: {
                 [optimisticReportAction.reportActionID]: {
                     errors: {
                         [DateUtils.getMicroseconds()]: Localize.translateLocal('iou.error.genericDeleteFailureMessage'),
                     },
                 },
-            },
-        },
-        {
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.REPORT}${chatReportID}`,
-            value: {
-                lastMessageText: chatReports[`${ONYXKEYS.COLLECTION.REPORT}${chatReportID}`].lastMessageText,
-                lastMessageHtml: chatReports[`${ONYXKEYS.COLLECTION.REPORT}${chatReportID}`].lastMessageHtml,
-                hasOutstandingIOU: iouReport.total !== 0,
             },
         },
         {
@@ -745,7 +749,7 @@ function deleteMoneyRequest(chatReportID, iouReportID, moneyRequestAction, shoul
     }, {optimisticData, successData, failureData});
 
     if (shouldCloseOnDelete) {
-        Navigation.navigate(ROUTES.getReportRoute(chatReportID));
+        Navigation.navigate(ROUTES.getReportRoute(iouReportID));
     }
 }
 
