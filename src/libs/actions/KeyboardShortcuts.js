@@ -5,12 +5,16 @@ let isShortcutsModalOpen;
 Onyx.connect({
     key: ONYXKEYS.IS_SHORTCUTS_MODAL_OPEN,
     callback: flag => isShortcutsModalOpen = flag,
+    initWithStoredValues: false,
 });
 
 /**
  * Set keyboard shortcuts flag to show modal
  */
 function showKeyboardShortcutModal() {
+    if (isShortcutsModalOpen) {
+        return;
+    }
     Onyx.set(ONYXKEYS.IS_SHORTCUTS_MODAL_OPEN, true);
 }
 
