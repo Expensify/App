@@ -7,16 +7,26 @@ import {StackView} from '@react-navigation/stack';
 import ClickAwayHandler from './ClickAwayHandler';
 
 const propTypes = {
+    /** Children of the navigator. */
     children: PropTypes.node.isRequired,
+
+    /** Screen listeners for the navigator. */
+    screenListeners: PropTypes.objectOf(PropTypes.func),
+};
+
+const defaultProps = {
+    screenListeners: {},
 };
 
 // eslint-disable-next-line react/destructuring-assignment
 const CustomRootStackNavigator = ({
     children,
+    screenListeners,
     ...rest
 }) => {
     const {state, navigation, descriptors} = useNavigationBuilder(StackRouter, {
         children,
+        screenListeners,
     });
     const topScreen = _.last(_.values(descriptors));
     const isDisplayingModal = Boolean(topScreen.options.isModal);
@@ -41,6 +51,7 @@ const CustomRootStackNavigator = ({
 };
 
 CustomRootStackNavigator.propTypes = propTypes;
+CustomRootStackNavigator.defaultProps = defaultProps;
 CustomRootStackNavigator.displayName = 'CustomRootStackNavigator';
 
 export default createNavigatorFactory(CustomRootStackNavigator);

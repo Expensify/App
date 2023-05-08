@@ -1,5 +1,6 @@
 import React from 'react';
 import Onyx, {withOnyx} from 'react-native-onyx';
+import {getFocusedRouteNameFromRoute} from '@react-navigation/native';
 import PropTypes from 'prop-types';
 import moment from 'moment';
 import _ from 'underscore';
@@ -25,6 +26,7 @@ import modalCardStyleInterpolator from './modalCardStyleInterpolator';
 import createCustomModalStackNavigator from './createCustomModalStackNavigator';
 import NotFoundPage from '../../../pages/ErrorPage/NotFoundPage';
 import getCurrentUrl from '../currentUrl';
+import themeColors from '../../../styles/themes/default';
 
 // Modal Stack Navigators
 import * as ModalStackNavigators from './ModalStackNavigators';
@@ -99,6 +101,8 @@ const defaultProps = {
 class AuthScreens extends React.Component {
     constructor(props) {
         super(props);
+
+        this.focusedScreenName = '';
 
         Timing.start(CONST.TIMING.HOMEPAGE_INITIAL_RENDER);
     }
@@ -192,6 +196,16 @@ class AuthScreens extends React.Component {
                 // a header will briefly open and close the keyboard and crash Android.
                 // eslint-disable-next-line react/jsx-props-no-multi-spaces
                 keyboardHandlingEnabled={false}
+                screenListeners={{
+                    state: (e) => {
+                        const prevFocusedScreeName = this.focusedScreenName;
+                        this.focusedScreenName = getFocusedRouteNameFromRoute(_.last(lodashGet(e, 'data.state.routes', [{}])));
+                        if (this.focusedScreenName !== prevFocusedScreeName) {
+                            const screenBackgroundColor = themeColors.PAGE_BACKGROUND_COLORS[this.focusedScreenName] || themeColors.appBG;
+                            console.log('RORY_DEBUG background color should change to:', screenBackgroundColor);
+                        }
+                    },
+                }}
             >
                 {/* The MainDrawerNavigator contains the SidebarScreen and ReportScreen */}
                 <RootStack.Screen

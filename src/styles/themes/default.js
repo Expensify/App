@@ -1,5 +1,6 @@
 /* eslint-disable no-unused-vars */
 import colors from '../colors';
+import SCREENS from '../../SCREENS';
 
 const darkTheme = {
     // Figma keys
@@ -75,6 +76,13 @@ const darkTheme = {
     ourMentionBG: colors.green600,
 
     // Setting page colors
+    PAGE_BACKGROUND_COLORS: {
+        [SCREENS.SETTINGS.ROOT]: colors.greenHighlightBackground,
+        [SCREENS.SETTINGS.ABOUT]: colors.yellow600,
+        [SCREENS.SETTINGS.PREFERENCES]: colors.blue500,
+        [SCREENS.SETTINGS.SECURITY]: colors.ice500,
+        [SCREENS.SETTINGS.WORKSPACES]: colors.pink800,
+    },
     aboutPageBackground: colors.yellow600,
     initialSettingsPageBackground: colors.greenHighlightBackground,
     preferencesPageBackground: colors.blue500,

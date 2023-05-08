@@ -1,6 +1,7 @@
 import _ from 'underscore';
 import React from 'react';
 import {createStackNavigator, CardStyleInterpolators} from '@react-navigation/stack';
+import SCREENS from '../../../SCREENS';
 import styles from '../../../styles/styles';
 
 const defaultSubRouteOptions = {
@@ -232,14 +233,14 @@ const SettingsModalStackNavigator = createModalStackNavigator([
             const SettingsInitialPage = require('../../../pages/settings/InitialSettingsPage').default;
             return SettingsInitialPage;
         },
-        name: 'Settings_Root',
+        name: SCREENS.SETTINGS.ROOT,
     },
     {
         getComponent: () => {
             const SettingsWorkspacesPage = require('../../../pages/workspace/WorkspacesListPage').default;
             return SettingsWorkspacesPage;
         },
-        name: 'Settings_Workspaces',
+        name: SCREENS.SETTINGS.WORKSPACES,
     },
     {
         getComponent: () => {
@@ -330,7 +331,7 @@ const SettingsModalStackNavigator = createModalStackNavigator([
             const SettingsPreferencesPage = require('../../../pages/settings/Preferences/PreferencesPage').default;
             return SettingsPreferencesPage;
         },
-        name: 'Settings_Preferences',
+        name: SCREENS.SETTINGS.PREFERENCES,
     },
     {
         getComponent: () => {
@@ -372,7 +373,7 @@ const SettingsModalStackNavigator = createModalStackNavigator([
             const SettingsAboutPage = require('../../../pages/settings/AboutPage/AboutPage').default;
             return SettingsAboutPage;
         },
-        name: 'Settings_About',
+        name: SCREENS.SETTINGS.ABOUT,
     },
     {
         getComponent: () => {

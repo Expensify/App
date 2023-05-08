@@ -34,14 +34,14 @@ export default {
             // Modal Screens
             Settings: {
                 screens: {
-                    Settings_Root: {
+                    [SCREENS.SETTINGS.ROOT]: {
                         path: ROUTES.SETTINGS,
                     },
-                    Settings_Workspaces: {
+                    [SCREENS.SETTINGS.WORKSPACES]: {
                         path: ROUTES.SETTINGS_WORKSPACES,
                         exact: true,
                     },
-                    Settings_Preferences: {
+                    [SCREENS.SETTINGS.PREFERENCES]: {
                         path: ROUTES.SETTINGS_PREFERENCES,
                         exact: true,
                     },
@@ -61,7 +61,7 @@ export default {
                         path: ROUTES.SETTINGS_PASSWORD,
                         exact: true,
                     },
-                    Settings_Security: {
+                    [SCREENS.SETTINGS.SECURITY]: {
                         path: ROUTES.SETTINGS_SECURITY,
                         exact: true,
                     },
@@ -113,7 +113,7 @@ export default {
                         path: ROUTES.SETTINGS_TIMEZONE_SELECT,
                         exact: true,
                     },
-                    Settings_About: {
+                    [SCREENS.SETTINGS.ABOUT]: {
                         path: ROUTES.SETTINGS_ABOUT,
                         exact: true,
                     },
