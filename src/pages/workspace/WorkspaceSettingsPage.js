@@ -1,4 +1,4 @@
-import React, {useCallback} from 'react';
+import React, {useCallback, useMemo} from 'react';
 import {Keyboard, View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import PropTypes from 'prop-types';
@@ -42,16 +42,13 @@ const defaultProps = {
 function WorkspaceSettingsPage(props) {
     const nameIsRequiredError = props.translate('workspace.editor.nameIsRequiredError');
 
-    /**
-     * @returns {Object[]}
-     */
-    function getCurrencyItems() {
+    const getCurrencyItems = useMemo(() => {
         const currencyListKeys = _.keys(props.currencyList);
         return _.map(currencyListKeys, currencyCode => ({
             value: currencyCode,
             label: `${currencyCode} - ${props.currencyList[currencyCode].symbol}`,
         }));
-    }
+    }, [props.currencyList]);
 
     const submit = useCallback((values) => {
         if (props.policy.isPolicyUpdating) {
@@ -136,7 +133,7 @@ function WorkspaceSettingsPage(props) {
                             <Picker
                                 inputID="currency"
                                 label={props.translate('workspace.editor.currencyInputLabel')}
-                                items={getCurrencyItems()}
+                                items={getCurrencyItems}
                                 isDisabled={hasVBA}
                                 defaultValue={props.policy.outputCurrency}
                                 hintText={
