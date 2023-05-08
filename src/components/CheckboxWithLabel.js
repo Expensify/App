@@ -1,7 +1,7 @@
 import React from 'react';
 import PropTypes from 'prop-types';
 import {View, TouchableOpacity} from 'react-native';
-import _ from 'lodash';
+import _ from 'underscore';
 import styles from '../styles/styles';
 import Checkbox from './Checkbox';
 import Text from './Text';
@@ -76,13 +76,10 @@ class CheckboxWithLabel extends React.Component {
     constructor(props) {
         super(props);
 
-        if (!_.isUndefined(props.value)) {
-            this.isChecked = props.value;
-        } else if (!_.isUndefined(props.defaultValue)) {
-            this.isChecked = props.defaultValue;
-        } else {
-            this.isChecked = props.isChecked;
-        }
+        // We need to pick the first value that is strictly a boolean
+        // https://github.com/Expensify/App/issues/16885#issuecomment-1520846065
+
+        this.isChecked = _.find([props.value, props.defaultValue, props.isChecked], value => _.isBoolean(value));
 
         this.LabelComponent = props.LabelComponent;
 

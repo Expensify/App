@@ -257,10 +257,13 @@ class Form extends React.Component {
             const inputID = child.props.inputID;
             let defaultValue;
 
-            if (!_.isUndefined(this.props.draftValues[inputID])) {
+            // We need to make sure that checkboxes have correct
+            // value assigned from the list of draft values
+            // https://github.com/Expensify/App/issues/16885#issuecomment-1520846065
+            if (_.isBoolean(this.props.draftValues[inputID])) {
                 defaultValue = this.props.draftValues[inputID];
-            } else if (!_.isUndefined(child.props.defaultValue)) {
-                defaultValue = child.props.defaultValue;
+            } else {
+                defaultValue = this.props.draftValues[inputID] || child.props.defaultValue;
             }
 
             // We want to initialize the input value if it's undefined
