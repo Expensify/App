@@ -14,6 +14,7 @@ import SignInHeroImage from '../SignInHeroImage';
 import * as StyleUtils from '../../../styles/StyleUtils';
 import variables from '../../../styles/variables';
 import withEnvironment, {environmentPropTypes} from '../../../components/withEnvironment';
+import CONST from '../../../CONST';
 
 const propTypes = {
     /** The children to show inside the layout */
