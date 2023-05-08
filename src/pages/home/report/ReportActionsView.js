@@ -25,6 +25,7 @@ import * as ReactionList from './ReactionList/ReactionList';
 import PopoverReactionList from './ReactionList/PopoverReactionList';
 import getIsReportFullyVisible from '../../../libs/getIsReportFullyVisible';
 import {getSortedReportActions} from "../../../libs/ReportActionsUtils";
+import {getReportActionsFromOnyx} from "../../../libs/actions/Report";
 
 const propTypes = {
     /** The report currently being looked at */
@@ -57,6 +58,7 @@ class ReportActionsView extends React.Component {
         this.unsubscribeVisibilityListener = null;
         this.hasCachedActions = _.size(props.reportActions) > 0;
 
+        console.log(`~~Monil constructor`);
         this.state = {
             isFloatingMessageCounterVisible: false,
             newMarkerReportActionID: ReportUtils.getNewMarkerReportActionID(this.props.report, props.reportActions),
@@ -97,7 +99,6 @@ class ReportActionsView extends React.Component {
             return;
         }
         const currentUserAccountID = Report.getCurrentUserAccountID();
-        const isFromCurrentUser = false;
         const lastReadTime = this.props.report.lastReadTime;
 
         const sortedReportActions = ReportActionsUtils.getSortedReportActions(reportActions, true);
@@ -107,37 +108,28 @@ class ReportActionsView extends React.Component {
         if (!unreadReportAction) {
             return;
         }
-        console.log(`~~Monil nra ${JSON.stringify(unreadReportAction)}`);
         const newActionID = unreadReportAction.reportActionID;
+        console.log(`~~Monil nra ${JSON.stringify(unreadReportAction)} na ${newActionID}`);
 
         // This callback is triggered when a new action arrives via Pusher and the event is emitted from Report.js. This allows us to maintain
         // a single source of truth for the "new action" event instead of trying to derive that a new action has appeared from looking at props.
         const isNewMarkerReportActionIDSet = !_.isEmpty(this.state.newMarkerReportActionID);
+        console.log(`~~Monil state ${this.state.newMarkerReportActionID}`);
+        if (!isNewMarkerReportActionIDSet) {
+            console.log(`~~Monil 11`);
+            this.setState({newMarkerReportActionID: newActionID}, () => {
+                console.log(`~~Monil after setting ${JSON.stringify(this.state)}`);
+            });
+        }
 
         // If a new comment is added and it's from the current user scroll to the bottom otherwise leave the user positioned where
         // they are now in the list.
-        if (isFromCurrentUser) {
-            ReportScrollManager.scrollToBottom();
-
-            // If the current user sends a new message in the chat we clear the new marker since they have "read" the report
-            console.log(`~~Monil 11`);
-            this.setState({newMarkerReportActionID: ''});
-        } else if (this.isReportFullyVisible()) {
-            console.log(`~~Monil 12`);
-            // We use the scroll position to determine whether the report should be marked as read and the new line indicator reset.
-            // If the user is scrolled up and no new line marker is set we will set it otherwise we will do nothing so the new marker
-            // stays in it's previous position.
-            if (this.currentScrollOffset === 0) {
-                Report.readNewestAction(this.props.report.reportID);
-                this.setState({newMarkerReportActionID: ''});
-            } else if (!isNewMarkerReportActionIDSet) {
-                this.setState({newMarkerReportActionID: newActionID});
-            }
-        } else if (!isNewMarkerReportActionIDSet) {
-            // The report is not in view and we received a comment from another user while the new marker is not set
-            // so we will set the new marker now.
-            this.setState({newMarkerReportActionID: newActionID});
-        }
+        // if (isFromCurrentUser) {
+        //     ReportScrollManager.scrollToBottom();
+        //
+        //     // If the current user sends a new message in the chat we clear the new marker since they have "read" the report
+        //     this.setState({newMarkerReportActionID: ''});
+        // }
     }
 
     shouldComponentUpdate(nextProps, nextState) {
@@ -246,7 +238,8 @@ class ReportActionsView extends React.Component {
         const didManuallyMarkReportAsUnread = (prevProps.report.lastReadTime !== this.props.report.lastReadTime)
             && ReportUtils.isUnread(this.props.report);
         if (didManuallyMarkReportAsUnread) {
-            this.setState({newMarkerReportActionID: ReportUtils.getNewMarkerReportActionID(this.props.report, this.props.reportActions)});
+            console.log(`~~Monil possibly wrong logic!`);
+            // this.setState({newMarkerReportActionID: ReportUtils.getNewMarkerReportActionID(this.props.report, this.props.reportActions)});
         }
 
         // Ensures subscription event succeeds when the report/workspace room is created optimistically.
@@ -264,10 +257,10 @@ class ReportActionsView extends React.Component {
         // The find out the reportActions that arrived latest (i.e. we didn't had in our Onyx data)
         // And the determine if and where to set the newMarker based on those newly received reportActions
         // Finally ask the server to mark the report as read
-        console.log(this.props.report.reportID);
-        console.log(prevProps.report.reportID);
-        console.log(this.props.reportActions);
-        console.log(prevProps.reportActions);
+        // console.log(this.props.report.reportID);
+        // console.log(prevProps.report.reportID);
+        // console.log(this.props.reportActions);
+        // console.log(prevProps.reportActions);
         const wasNewMessageReceived = (this.props.reportActions.length > prevProps.reportActions.length);
         if (wasNewMessageReceived) {
             const newReportAction = _.filter(this.props.reportActions, obj => !_.findWhere(prevProps.reportActions, {reportActionID: obj.reportActionID}));
