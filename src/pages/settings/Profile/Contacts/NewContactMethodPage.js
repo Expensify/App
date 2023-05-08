@@ -69,7 +69,7 @@ function NewContactMethodPage(props) {
         const parsedPhoneNumber = parsePhoneNumber(values);
 
         if (parsedPhoneNumber.possible) {
-            return parsedPhoneNumber.number.e164;
+            return parsedPhoneNumber.number.e164 + CONST.SMS.DOMAIN;
         }
 
         return '';
@@ -78,6 +78,7 @@ function NewContactMethodPage(props) {
     const validate = (values) => {
         const phoneLogin = getPhoneLogin(values.phoneOrEmail);
         const validateIfnumber = validateNumber(phoneLogin);
+
         const errors = {};
 
         if (_.isEmpty(values.phoneOrEmail)) {

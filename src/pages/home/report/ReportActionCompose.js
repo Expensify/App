@@ -56,6 +56,7 @@ import KeyboardShortcut from '../../../libs/KeyboardShortcut';
 import * as ComposerUtils from '../../../libs/ComposerUtils';
 import * as Welcome from '../../../libs/actions/Welcome';
 import Permissions from '../../../libs/Permissions';
+import * as TaskUtils from '../../../libs/actions/Task';
 
 const propTypes = {
     /** Beta features list */
@@ -152,8 +153,8 @@ const defaultProps = {
 const getMaxArrowIndex = (numRows, isEmojiPickerLarge) => {
     // EmojiRowCount is number of emoji suggestions. For small screen we can fit 3 items and for large we show up to 5 items
     const emojiRowCount = isEmojiPickerLarge
-        ? Math.max(numRows, CONST.EMOJI_SUGGESTER.MAX_AMOUNT_OF_ITEMS)
-        : Math.max(numRows, CONST.EMOJI_SUGGESTER.MIN_AMOUNT_OF_ITEMS);
+        ? Math.max(numRows, CONST.AUTO_COMPLETE_SUGGESTER.MAX_AMOUNT_OF_ITEMS)
+        : Math.max(numRows, CONST.AUTO_COMPLETE_SUGGESTER.MIN_AMOUNT_OF_ITEMS);
 
     // -1 because we start at 0
     return emojiRowCount - 1;
@@ -431,7 +432,7 @@ class ReportActionCompose extends React.Component {
             {
                 icon: Expensicons.Task,
                 text: this.props.translate('newTaskPage.assignTask'),
-                onSelected: () => Navigation.navigate(ROUTES.getNewTaskRoute(this.props.reportID)),
+                onSelected: () => TaskUtils.clearOutTaskInfoAndNavigate(this.props.reportID),
             },
         ];
     }
@@ -642,8 +643,7 @@ class ReportActionCompose extends React.Component {
      * @param {Object} e
      */
     triggerHotkeyActions(e) {
-        // Do not trigger actions for mobileWeb or native clients that have the keyboard open because for those devices, we want the return key to insert newlines rather than submit the form
-        if (!e || this.props.isSmallScreenWidth || this.props.isKeyboardShown) {
+        if (!e || ComposerUtils.canSkipTriggerHotkeys(this.props.isSmallScreenWidth, this.props.isKeyboardShown)) {
             return;
         }
 

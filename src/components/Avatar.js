@@ -1,4 +1,4 @@
-import React, {useEffect, useRef, useState} from 'react';
+import React, {useState} from 'react';
 import {View} from 'react-native';
 import PropTypes from 'prop-types';
 import _ from 'underscore';
@@ -9,10 +9,9 @@ import CONST from '../CONST';
 import * as StyleUtils from '../styles/StyleUtils';
 import * as Expensicons from './Icon/Expensicons';
 import Image from './Image';
-import {withNetwork} from './OnyxProvider';
-import networkPropTypes from './networkPropTypes';
 import styles from '../styles/styles';
 import * as ReportUtils from '../libs/ReportUtils';
+import useOnNetworkReconnect from './hooks/useOnNetworkReconnect';
 
 const propTypes = {
     /** Source for the avatar. Can be a URL or an icon. */
@@ -44,9 +43,6 @@ const propTypes = {
 
     /** Owner of the avatar, typically a login email or workspace name */
     name: PropTypes.string,
-
-    /** Props to detect online status */
-    network: networkPropTypes.isRequired,
 };
 
 const defaultProps = {
@@ -62,23 +58,8 @@ const defaultProps = {
 
 function Avatar(props) {
     const [imageError, setImageError] = useState(false);
-    const prevNetworkStatusRef = useRef(props.network.isOffline);
 
-    useEffect(() => {
-        const isReconnecting = prevNetworkStatusRef.current && !props.network.isOffline;
-        if (!imageError || !isReconnecting) {
-            return;
-        }
-        setImageError(false);
-
-        // We have not added the imageError as the dependency because effect is concerned with `imageError` only when the network state changes from offline -> online
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [props.network.isOffline]);
-
-    useEffect(() => {
-        // Used to store previous network state to compare on next render
-        prevNetworkStatusRef.current = props.network.isOffline;
-    });
+    useOnNetworkReconnect(() => setImageError(false));
 
     if (!props.source) {
         return null;
@@ -128,4 +109,4 @@ function Avatar(props) {
 }
 Avatar.defaultProps = defaultProps;
 Avatar.propTypes = propTypes;
-export default withNetwork()(Avatar);
+export default Avatar;
