@@ -14,7 +14,6 @@ import compose from '../../../libs/compose';
 import Navigation from '../../../libs/Navigation/Navigation';
 import ROUTES from '../../../ROUTES';
 import Icon from '../../../components/Icon';
-import ImageHeader from '../../../components/ImageHeader';
 import * as Expensicons from '../../../components/Icon/Expensicons';
 import AvatarWithIndicator from '../../../components/AvatarWithIndicator';
 import Tooltip from '../../../components/Tooltip';
@@ -31,7 +30,7 @@ import SidebarUtils from '../../../libs/SidebarUtils';
 import reportPropTypes from '../../reportPropTypes';
 import OfflineWithFeedback from '../../../components/OfflineWithFeedback';
 import LHNSkeletonView from '../../../components/LHNSkeletonView';
-import LogoWordmark from '../../../../assets/images/expensify-wordmark.svg';
+import ExpensifyWordmark from '../../../components/ExpensifyWordmark';
 import defaultTheme from '../../../styles/themes/default';
 
 const propTypes = {
@@ -155,13 +154,11 @@ class SidebarLinks extends React.Component {
                     ]}
                     nativeID="drag-area"
                 >
-                    <ImageHeader
-                        accessibilityLabel={"Expensify"}
-                        accessibilityRole="text"
-                        shouldShowEnvironmentBadge
-                    >
-                        <LogoWordmark width={108} fill={defaultTheme.textLight} />
-                    </ImageHeader>
+                    <View>
+                        <ExpensifyWordmark
+                            color={defaultTheme.textLight}
+                        />
+                    </View>
                     <Tooltip text={this.props.translate('common.search')}>
                         <TouchableOpacity
                             accessibilityLabel={this.props.translate('sidebarScreen.buttonSearch')}
