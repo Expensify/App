@@ -809,8 +809,17 @@ function getIcons(report, personalDetails, defaultIcon = null) {
             return [result];
         }
         // eslint-disable-next-line no-console
-        // console.log('>>>>', parentReport, parentReportActions);
-        // const avatars = buildAvatarArray(parentReport.participants, personalDetails);
+        console.log('>>>>', parentReport, parentReportActionTEST);
+
+        // if (lodashGet(parentReportActionTEST, 'childOldestFourEmails', '')) {
+        //     const avatars = _.isArray(parentReportActionTEST.childOldestFourEmails)
+        //         ? buildAvatarArray(parentReportActionTEST.childOldestFourEmails, personalDetails)
+        //         : buildAvatarArray([parentReportActionTEST.childOldestFourEmails], personalDetails);
+        //     return avatars;
+        // }
+
+        // const avatars = buildAvatarArray(report.participants, personalDetails);
+
         const actorEmail = lodashGet(parentReportActionTEST, 'actorEmail', '');
         result.source = parentReportActionTEST ? getAvatar(lodashGet(personalDetails, [actorEmail, 'avatar']), actorEmail) : '';
         result.type = CONST.ICON_TYPE_AVATAR;
