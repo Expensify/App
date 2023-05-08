@@ -36,7 +36,6 @@ const defaultProps = {
     },
 };
 
-
 const NewTaskTitlePage = (props) => {
     /**
      * @param {Object} values - form input values passed by the Form component

@@ -1,6 +1,6 @@
 import Onyx from 'react-native-onyx';
-import ONYXKEYS from '../../ONYXKEYS';
 import lodashGet from 'lodash/get';
+import ONYXKEYS from '../../ONYXKEYS';
 import * as API from '../API';
 import * as ReportUtils from '../ReportUtils';
 import * as Report from './Report';
