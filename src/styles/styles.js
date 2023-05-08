@@ -821,7 +821,6 @@ const styles = {
         borderBottomWidth: 2,
         borderColor: themeColors.border,
         overflow: 'hidden',
-        scrollPaddingTop: '100%',
     },
 
     textInputLabel: {
@@ -862,7 +861,6 @@ const styles = {
         paddingTop: 23,
         paddingBottom: 8,
         paddingLeft: 0,
-        paddingRight: 0,
         borderWidth: 0,
     },
 
@@ -2438,7 +2436,7 @@ const styles = {
 
     hiddenElementOutsideOfWindow: {
         position: 'absolute',
-        top: 0,
+        top: -10000,
         left: 0,
         opacity: 0,
     },
