@@ -1,5 +1,5 @@
 import React, {
-    useCallback, useEffect, useRef, useState,
+    useCallback, useEffect, useMemo, useRef, useState,
 } from 'react';
 import PropTypes from 'prop-types';
 import {
@@ -163,6 +163,34 @@ const getMaxArrowIndex = (numRows, isEmojiPickerLarge) => {
 
 const willBlurTextInputOnTapOutside = willBlurTextInputOnTapOutsideFunc();
 
+/**
+ * Save draft report comment. Debounced to happen at most once per second.
+ * @param {String} reportID
+ * @param {String} comment
+ */
+const debouncedSaveReportComment = _.debounce((reportID, comment) => {
+    Report.saveReportComment(reportID, comment || '');
+}, 1000);
+
+/**
+ * Broadcast that the user is typing. Debounced to limit how often we publish client events.
+ * @param {String} reportID
+ */
+const debouncedBroadcastUserIsTyping = _.debounce((reportID) => {
+    Report.broadcastUserIsTyping(reportID);
+}, 100);
+
+/**
+     * Check if this piece of string looks like an emoji
+     * @param {String} str
+     * @param {Number} pos
+     * @returns {Boolean}
+     */
+const isEmojiCode = (str, pos) => {
+    const leftWords = str.slice(0, pos).split(CONST.REGEX.NEW_LINE_OR_WHITE_SPACE_OR_EMOJI);
+    const leftWord = _.last(leftWords);
+    return CONST.REGEX.HAS_COLON_ONLY_AT_THE_BEGINNING.test(leftWord) && leftWord.length > 2;
+};
 function ReportActionCompose(props) {
     /**
      * Updates the Highlight state of the composer
@@ -185,9 +213,6 @@ function ReportActionCompose(props) {
     const [maxLines, setMaxLines] = useState(props.isSmallScreenWidth ? CONST.COMPOSER.MAX_LINES_SMALL_SCREEN : CONST.COMPOSER.MAX_LINES);
     const [value, setValue] = useState(props.comment);
 
-    // If we are on a small width device then don't show last 3 items from conciergePlaceholderOptions
-    // TODO-S: never reset? better to useRef ?
-    const [conciergePlaceholderRandomIndex] = useState(_.random(props.translate('reportActionCompose.conciergePlaceholderOptions').length - (props.isSmallScreenWidth ? 4 : 1)));
     const [suggestedEmojis, setSuggestedEmojis] = useState([]);
     const [highlightedEmojiIndex, setHighlightedEmojiIndex] = useState(0);
     const [colonIndex, setColonIndex] = useState(-1);
@@ -209,6 +234,25 @@ function ReportActionCompose(props) {
     const actionButton = useRef(null);
     const prevPropsRef = useRef();
 
+    // If we are on a small width device then don't show last 3 items from conciergePlaceholderOptions
+    const conciergePlaceholderRandomIndex = useMemo(
+        () => _.random(props.translate('reportActionCompose.conciergePlaceholderOptions').length - (props.isSmallScreenWidth ? 4 : 1)),
+        [props.isSmallScreenWidth, props.translate],
+    );
+
+    // Placeholder to display in the chat input.
+    const inputPlaceholder = useMemo(() => {
+        if (ReportUtils.chatIncludesConcierge(props.report)) {
+            if (User.isBlockedFromConcierge(props.blockedFromConcierge)) {
+                return props.translate('reportActionCompose.blockedFromConcierge');
+            }
+
+            return props.translate('reportActionCompose.conciergePlaceholderOptions')[conciergePlaceholderRandomIndex];
+        }
+
+        return props.translate('reportActionCompose.writeSomething');
+    }, [props.translate, props.report, props.blockedFromConcierge, conciergePlaceholderRandomIndex]);
+
     /**
      * Focus the composer text input
      * @param {Boolean} [shouldDelay=false] Impose delay before focusing the composer
@@ -218,7 +262,7 @@ function ReportActionCompose(props) {
         // There could be other animations running while we trigger manual focus.
         // This prevents focus from making those animations janky.
         InteractionManager.runAfterInteractions(() => {
-            if (!textInput) {
+            if (!textInput.current) {
                 return;
             }
 
@@ -235,33 +279,6 @@ function ReportActionCompose(props) {
     }, []);
 
     /**
-     * Save our report comment in Onyx. We debounce this method in the constructor so that it's not called too often
-     * to update Onyx and re-render this component.
-     *
-     * @param {String} comment
-     */
-    // move out of component
-    // TODO-S: move out of component
-    const debouncedSaveReportComment = useCallback(_.debounce(
-        reportComment => Report.saveReportComment(props.reportID, reportComment || ''),
-        1000,
-        false,
-    ),
-    [props.reportID]);
-
-    /**
-     * Broadcast that the user is typing. We debounce this method in the constructor to limit how often we publish
-     * client events.
-     */
-    // TODO-S: move out of component
-    const debouncedBroadcastUserIsTyping = useCallback(_.debounce(
-        () => Report.broadcastUserIsTyping(props.reportID),
-        100,
-        true,
-    ),
-    [props.reportID]);
-
-    /**
      * Update the value of the comment in Onyx
      *
      * @param {String} comment
@@ -270,11 +287,9 @@ function ReportActionCompose(props) {
     const updateComment = useCallback((commentValue, shouldDebounceSaveComment) => {
         const newComment = EmojiUtils.replaceEmojis(commentValue, props.isSmallScreenWidth, props.preferredSkinTone);
 
-        // TODO-S: prevState check again
         setIsCommentEmpty(!!newComment.match(/^(\s)*$/));
         setValue(newComment);
         if (commentValue !== newComment) {
-            // TODO-S: prevState.value.slice(prevState.selection.end).length; ??
             const remainder = value.slice(selection.end).length;
             setSelection({
                 start: newComment.length - remainder,
@@ -294,14 +309,14 @@ function ReportActionCompose(props) {
 
         comment.current = newComment;
         if (shouldDebounceSaveComment) {
-            debouncedSaveReportComment(newComment);
+            debouncedSaveReportComment(props.reportID, newComment);
         } else {
             Report.saveReportComment(props.reportID, newComment || '');
         }
         if (newComment) {
-            debouncedBroadcastUserIsTyping();
+            debouncedBroadcastUserIsTyping(props.reportID);
         }
-    }, [props.isSmallScreenWidth, props.preferredSkinTone, props.reportID, selection.end, value, debouncedSaveReportComment, debouncedBroadcastUserIsTyping]);
+    }, [props.isSmallScreenWidth, props.preferredSkinTone, props.reportID, selection.end, value]);
 
     /**
      * Set the maximum number of lines for the composer
@@ -353,19 +368,20 @@ function ReportActionCompose(props) {
                 showPopoverMenu,
             });
         }
+
         return () => {
             ReportActionComposeFocusManager.clear();
 
             if (unsubscribeEscapeKey) {
-                unsubscribeEscapeKey();
+                unsubscribeEscapeKey.current();
             }
         };
     }, []);
 
+    // TODO: still under discussion - might use another approach to migrate ComponentDidUpdate
     useEffect(() => {
         const prevProps = prevPropsRef.current;
 
-        // TODO-S: check if prevprops exist?
         if (prevProps) {
             const sidebarOpened = !prevProps.isDrawerOpen && props.isDrawerOpen;
             if (sidebarOpened) {
@@ -416,26 +432,10 @@ function ReportActionCompose(props) {
     }, []);
 
     /**
-     * Check if this piece of string looks like an emoji
-     * @param {String} str
-     * @param {Number} pos
-     * @returns {Boolean}
-     */
-    // TODO-S: move out of component?
-    const isEmojiCode = useCallback((str, pos) => {
-        const leftWords = str.slice(0, pos).split(CONST.REGEX.NEW_LINE_OR_WHITE_SPACE_OR_EMOJI);
-        const leftWord = _.last(leftWords);
-
-        return CONST.REGEX.HAS_COLON_ONLY_AT_THE_BEGINNING.test(leftWord) && leftWord.length > 2;
-    }, []);
-
-    /**
      * Calculates and cares about the content of an Emoji Suggester
      */
-    const calculateEmojiSuggestion = useCallback(_.debounce(
-        () => {
-        // TODO-S: think maybe rewrite state to compose solution
-        // to avoid 5 set states
+    const calculateEmojiSuggestion = useCallback(
+        (selectionEnd) => {
             if (!value) {
                 resetSuggestedEmojis();
                 return;
@@ -444,32 +444,37 @@ function ReportActionCompose(props) {
                 setShouldBlockEmojiCalc(false);
                 return;
             }
-            const leftString = value.substring(0, selection.end);
-            setColonIndex(leftString.lastIndexOf(':'));
-            const isCurrentlyShowingEmojiSuggestion = isEmojiCode(value, selection.end);
-
-            // the larger composerHeight the less space for EmojiPicker, Pixel 2 has pretty small screen and this value equal 5.3
-            const hasEnoughSpaceForLargeSuggestion = props.windowHeight / composerHeight >= 6.8;
-            setIsEmojiPickerLarge(!props.isSmallScreenWidth || (props.isSmallScreenWidth && hasEnoughSpaceForLargeSuggestion));
-
+            const leftString = value.substring(0, selectionEnd);
+            const isCurrentlyShowingEmojiSuggestion = isEmojiCode(value, selectionEnd);
             const newSuggestedEmojis = EmojiUtils.suggestEmojis(leftString);
 
             if (newSuggestedEmojis.length && isCurrentlyShowingEmojiSuggestion) {
                 setSuggestedEmojis(newSuggestedEmojis);
                 setShouldShowSuggestionMenu(!_.isEmpty(newSuggestedEmojis));
+            } else {
+                setSuggestedEmojis([]);
+                setShouldShowSuggestionMenu(false);
             }
 
             LayoutAnimation.configureNext(LayoutAnimation.create(50, LayoutAnimation.Types.easeInEaseOut, LayoutAnimation.Properties.opacity));
 
+            // the larger composerHeight the less space for EmojiPicker, Pixel 2 has pretty small screen and this value equal 5.3
+            const hasEnoughSpaceForLargeSuggestion = props.windowHeight / composerHeight >= 6.8;
+            setIsEmojiPickerLarge(!props.isSmallScreenWidth || (props.isSmallScreenWidth && hasEnoughSpaceForLargeSuggestion));
+            setColonIndex(leftString.lastIndexOf(':'));
             setHighlightedEmojiIndex(0);
-        },
-        10,
-        false,
-    ), [composerHeight, isEmojiCode, value, selection, props.windowHeight, props.isSmallScreenWidth, resetSuggestedEmojis, shouldBlockEmojiCalc]);
+        }, [composerHeight, value, props.windowHeight, props.isSmallScreenWidth, resetSuggestedEmojis, shouldBlockEmojiCalc],
+    );
 
     const onSelectionChange = useCallback((e) => {
         setSelection(e.nativeEvent.selection);
-        calculateEmojiSuggestion();
+
+        /**
+         * we pass here e.nativeEvent.selection.end directly to calculateEmojiSuggestion
+         * because in other case calculateEmojiSuggestion will have an old calculation value
+         * of suggestion instead of current one
+         */
+        calculateEmojiSuggestion(e.nativeEvent.selection.end);
     }, [calculateEmojiSuggestion]);
 
     /**
@@ -482,24 +487,6 @@ function ReportActionCompose(props) {
         ReportActionComposeFocusManager.composerRef.current = el;
         textInput.current = el;
     }, []);
-
-    /**
-     * Get the placeholder to display in the chat input.
-     *
-     * @return {String}
-     */
-    const getInputPlaceholder = useCallback(() => {
-        if (ReportUtils.chatIncludesConcierge(props.report)) {
-            if (User.isBlockedFromConcierge(props.blockedFromConcierge)) {
-                return props.translate('reportActionCompose.blockedFromConcierge');
-            }
-
-            return props.translate('reportActionCompose.conciergePlaceholderOptions')[conciergePlaceholderRandomIndex];
-        }
-
-        // TODO-S: check dependency array for props (do we need it at all?)
-        return props.translate('reportActionCompose.writeSomething');
-    }, [props, conciergePlaceholderRandomIndex]);
 
     /**
      * Returns the list of IOU Options
@@ -526,11 +513,10 @@ function ReportActionCompose(props) {
             },
         };
 
-        // TODO-S: check for props in dependency array
+        // TODO: check for props in dependency array
         return _.map(ReportUtils.getMoneyRequestOptions(props.report, reportParticipants, props.betas), option => options[option]);
     }, [props]);
 
-    // TODO-S: check if eslint rule still valid
     // eslint-disable-next-line rulesdir/prefer-early-return
     const updateShouldShowSuggestionMenuToFalse = useCallback(() => {
         if (shouldShowSuggestionMenu) {
@@ -567,7 +553,7 @@ function ReportActionCompose(props) {
             },
         ];
 
-        // TODO-S: check for props in dependency array
+        // TODO: check for props in dependency array
     }, [props]);
 
     /**
@@ -580,7 +566,7 @@ function ReportActionCompose(props) {
         const emojiCode = emojiObject.types && emojiObject.types[props.preferredSkinTone] ? emojiObject.types[props.preferredSkinTone] : emojiObject.code;
         const commentAfterColonWithEmojiNameRemoved = value.slice(selection.end).replace(CONST.REGEX.EMOJI_REPLACER, CONST.SPACE);
 
-        // TODO-S: check if prevState.colonIndex to coloIndex works correct
+        // TODO: check if prevState.colonIndex to coloIndex works correct
         updateComment(`${commentBeforeColon}${emojiCode} ${commentAfterColonWithEmojiNameRemoved}`, true);
         setSelection({
             start: colonIndex + emojiCode.length + CONST.SPACE_LENGTH,
@@ -604,8 +590,6 @@ function ReportActionCompose(props) {
             end: selection.start + emoji.length,
         });
 
-        // TODO-S: pay attention here to selection passing (maybe need to
-        // create selection above and pass same value to setState above and selection below?)
         updateComment(ComposerUtils.insertText(comment.current, selection, emoji));
     }, [selection, updateComment]);
 
@@ -659,8 +643,8 @@ function ReportActionCompose(props) {
 
         props.onSubmit(newComment);
 
-        // TODO-S: check props dependency
-    }, [prepareCommentAndResetComposer, debouncedSaveReportComment, props]);
+        // TODO: check props dependency
+    }, [prepareCommentAndResetComposer, props]);
 
     /**
      * Listens for keyboard shortcuts and applies the action
@@ -719,7 +703,7 @@ function ReportActionCompose(props) {
         const newComment = prepareCommentAndResetComposer();
         Report.addAttachment(props.reportID, file, newComment);
         setTextInputShouldClear(false);
-    }, [props.reportID, debouncedSaveReportComment, prepareCommentAndResetComposer]);
+    }, [props.reportID, prepareCommentAndResetComposer]);
 
     const reportParticipants = _.without(lodashGet(props.report, 'participants', []), props.currentUserPersonalDetails.login);
     const participantsWithoutExpensifyEmails = _.difference(reportParticipants, CONST.EXPENSIFY_EMAILS);
@@ -732,8 +716,6 @@ function ReportActionCompose(props) {
     const isComposeDisabled = props.isDrawerOpen && props.isSmallScreenWidth;
     const isBlockedFromConcierge = ReportUtils.chatIncludesConcierge(props.report) && User.isBlockedFromConcierge(props.blockedFromConcierge);
 
-    // TODO-S: move to component prop without extra const?
-    const inputPlaceholder = getInputPlaceholder();
     const shouldUseFocusedColor = !isBlockedFromConcierge && !props.disabled && (isFocused || isDraggingOver);
 
     return (
