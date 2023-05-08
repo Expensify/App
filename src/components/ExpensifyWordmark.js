@@ -1,5 +1,6 @@
 import React from 'react';
 import {View} from 'react-native';
+import PropTypes from 'prop-types';
 import ProductionLogo from '../../assets/images/expensify-wordmark.svg';
 import DevLogo from '../../assets/images/expensify-logo--dev.svg';
 import StagingLogo from '../../assets/images/expensify-logo--staging.svg';
@@ -16,6 +17,18 @@ import variables from '../styles/variables';
 const propTypes = {
     ...environmentPropTypes,
     ...windowDimensionsPropTypes,
+
+    /** The styles to apply for the View wrapping the svg */
+    containerStyles: PropTypes.array,
+
+    /** Fill color of the svg */
+    color: PropTypes.string,
+};
+
+
+const defaultProps = {
+    containerStyles: [],
+    color: themeColors.success,
 };
 
 const logoComponents = {
@@ -32,10 +45,10 @@ const ExpensifyWordmark = (props) => {
             <View style={[
                 StyleUtils.getSignInWordmarkWidthStyle(props.environment, props.isSmallScreenWidth),
                 StyleUtils.getHeight(props.isSmallScreenWidth ? variables.signInLogoHeightSmallScreen : variables.signInLogoHeight),
-                (props.isSmallScreenWidth && (props.environment === CONST.ENVIRONMENT.DEV || props.environment === CONST.ENVIRONMENT.STAGING)) ? styles.ml3 : {},
+                ...props.containerStyles,
             ]}
             >
-                <LogoComponent fill={themeColors.success} />
+                <LogoComponent fill={props.color} />
             </View>
         </>
     );
