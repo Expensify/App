@@ -108,7 +108,6 @@ class CodesPage extends Component {
                     </Section>
 
                     <FixedFooter style={[styles.twoFactorAuthFooter]}>
-                        {/* TODO: Button is disabled but has no disabled styles? */}
                         <Button
                             success
                             text={this.props.translate('common.next')}
