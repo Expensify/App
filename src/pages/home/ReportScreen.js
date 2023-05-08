@@ -158,11 +158,12 @@ class ReportScreen extends React.Component {
             this.setState({animationFinished: true});
         });
 
-        this.transitionEndListener = this.props.navigation.addListener('transitionEnd', (e) => {
+        // ReportScreen is nested inside another navigator, so we need to listen to the parent navigator's events
+        this.transitionEndListener = this.props.navigation.getParent().addListener('transitionEnd', (e) => {
             this.setState({screenDisappeared: e.data.closing});
         });
 
-        this.gestureStartListener = this.props.navigation.addListener('gestureStart', () => {
+        this.gestureStartListener = this.props.navigation.getParent().addListener('gestureStart', () => {
             this.setState({screenDisappeared: false});
         });
     }
