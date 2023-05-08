@@ -188,8 +188,9 @@ class WorkspaceInviteMessagePage extends React.Component {
                                 label={this.props.translate('workspace.inviteMessage.personalMessagePrompt')}
                                 autoCompleteType="off"
                                 autoCorrect={false}
-                                autoGrowHeight
+                                numberOfLines={4}
                                 textAlignVertical="top"
+                                multiline
                                 containerStyles={[styles.workspaceInviteWelcome]}
                                 defaultValue={this.state.welcomeNote}
                                 value={this.state.welcomeNote}

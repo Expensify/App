@@ -303,24 +303,6 @@ function getWidthStyle(width) {
 }
 
 /**
- * Returns auto grow height text input style
- *
- * @param {Number} textInputHeight
- * @param {Number} maxHeight
- * @returns {Object}
- */
-function getAutoGrowHeightInputStyle(textInputHeight, maxHeight) {
-    if (textInputHeight > maxHeight) {
-        return styles.overflowAuto;
-    }
-
-    return {
-        ...styles.overflowHidden,
-        height: maxHeight,
-    };
-}
-
-/**
  * Returns a style with backgroundColor and borderColor set to the same color
  *
  * @param {String} backgroundColor
@@ -1123,7 +1105,6 @@ export {
     getZoomCursorStyle,
     getZoomSizingStyle,
     getWidthStyle,
-    getAutoGrowHeightInputStyle,
     getBackgroundAndBorderStyle,
     getBackgroundColorStyle,
     getBackgroundColorWithOpacityStyle,
