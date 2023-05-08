@@ -70,6 +70,7 @@ const PreferencesPage = (props) => {
                         </View>
                         <View style={[styles.flex1, styles.alignItemsEnd]}>
                             <Switch
+                                accessibilityLabel={props.translate('preferencesPage.receiveRelevantFeatureUpdatesAndExpensifyNews')}
                                 isOn={lodashGet(props.user, 'isSubscribedToNewsletter', true)}
                                 onToggle={User.updateNewsletterSubscription}
                             />

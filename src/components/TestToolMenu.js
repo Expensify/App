@@ -48,6 +48,7 @@ const TestToolMenu = props => (
         {!CONFIG.IS_USING_LOCAL_WEB && (
             <TestToolRow title="Use Staging Server">
                 <Switch
+                    accessibilityLabel="Use Staging Server"
                     isOn={lodashGet(props, 'user.shouldUseStagingServer', ApiUtils.isUsingStagingApi())}
                     onToggle={() => User.setShouldUseStagingServer(
                         !lodashGet(props, 'user.shouldUseStagingServer', ApiUtils.isUsingStagingApi()),
@@ -59,6 +60,7 @@ const TestToolMenu = props => (
         {/* When toggled the app will be forced offline. */}
         <TestToolRow title="Force offline">
             <Switch
+                accessibilityLabel="Force offline"
                 isOn={Boolean(props.network.shouldForceOffline)}
                 onToggle={() => Network.setShouldForceOffline(!props.network.shouldForceOffline)}
             />
@@ -67,6 +69,7 @@ const TestToolMenu = props => (
         {/* When toggled all network requests will fail. */}
         <TestToolRow title="Simulate failing network requests">
             <Switch
+                accessibilityLabel="Simulate failing network requests"
                 isOn={Boolean(props.network.shouldFailAllRequests)}
                 onToggle={() => Network.setShouldFailAllRequests(!props.network.shouldFailAllRequests)}
             />
