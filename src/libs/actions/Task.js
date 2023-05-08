@@ -151,9 +151,11 @@ function createTaskAndNavigate(currentUserEmail, parentReportID, title, descript
     Navigation.navigate(ROUTES.getReportRoute(optimisticTaskReport.reportID));
 }
 
+// import ReportUtils from '../ReportUtils';
+
 /**
  * @function editTask
- * @param {string} taskId
+ * @param {object} report
  * @param {string} title
  * @param {string} description
  * @param {string} assignee
@@ -161,14 +163,40 @@ function createTaskAndNavigate(currentUserEmail, parentReportID, title, descript
  *
  */
 
-function editTaskAndNavigate(taskId, title, description, assignee) {
+function editTaskAndNavigate(report, title, description, assignee) {
+    /**
+     * Anything about a task can be edited, except where the task is 'shared in'.
+     *
+     * The EditTask action will live in src/libs/actions/Task.js
+     * The action is the only action that exists purely on the task report itself.
+     * This is because we don't need to notify the parent chat report that the task was edited.
+     * The previous EditTask reportAction details will be stored on the task report itself as a way to audit previous changes.
+     * Each edit will create a new EditTaskReportAction instead of having an array that is updated to contain each edit.
+     *
+     * The message of the reportAction would look like this:
+     * {"title":"Previous Task Title","description":"Previous description", "assignee": 31231313}
+     *
+     * The action will call the 'EditTask' API endpoint and
+     * Optimistically: Add the EditTask reportAction on the task report, and make those edits on the task report
+     * Success: None
+     * Failure: Remove the EditTask reportAction on the task report, and remove the edits on the task report
+     *
+     * When updating the assignee, similar to when the task is created we need to create an ADD_COMMENT reportAction in the DM between the assignee and the task creator
+     */
+    // Create report action on the Task Report to store the previous details of the task
+    // Not sure if we need to generate a new reportAction for each edit.
+    // const editTaskReportAction = ReportUtils.buildOptimisticReportAction(report, 'EditTask', {
+
+    const optimisticData = [];
+    const successData = [];
+    const failureData = [];
     API.write('EditTask', {
-        taskID: taskId,
+        taskID: report.taskReportID,
         title,
         description,
         assignee,
-    });
-    Navigation.navigate(ROUTES.getTaskDetailsRoute(taskId));
+    }, [optimisticData, successData, failureData]);
+    Navigation.navigate(ROUTES.getTaskDetailsRoute(report.taskReportID));
 }
 
 /**
