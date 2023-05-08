@@ -21,8 +21,16 @@ export {
     requestResetFreePlanBankAccount,
     cancelResetFreePlanBankAccount,
 } from './ReimbursementAccount';
-export {openPlaidBankAccountSelector, openPlaidBankLogin} from './Plaid';
-export {openOnfidoFlow, answerQuestionsForWallet, verifyIdentity, acceptWalletTerms} from './Wallet';
+export {
+    openPlaidBankAccountSelector,
+    openPlaidBankLogin,
+} from './Plaid';
+export {
+    openOnfidoFlow,
+    answerQuestionsForWallet,
+    verifyIdentity,
+    acceptWalletTerms,
+} from './Wallet';
 
 function clearPlaid() {
     Onyx.set(ONYXKEYS.PLAID_LINK_TOKEN, '');
@@ -56,7 +64,7 @@ function getVBBADataForOnyx() {
     return {
         optimisticData: [
             {
-                onyxMethod: CONST.ONYX.METHOD.MERGE,
+                onyxMethod: Onyx.METHOD.MERGE,
                 key: ONYXKEYS.REIMBURSEMENT_ACCOUNT,
                 value: {
                     isLoading: true,
@@ -66,7 +74,7 @@ function getVBBADataForOnyx() {
         ],
         successData: [
             {
-                onyxMethod: CONST.ONYX.METHOD.MERGE,
+                onyxMethod: Onyx.METHOD.MERGE,
                 key: ONYXKEYS.REIMBURSEMENT_ACCOUNT,
                 value: {
                     isLoading: false,
@@ -76,7 +84,7 @@ function getVBBADataForOnyx() {
         ],
         failureData: [
             {
-                onyxMethod: CONST.ONYX.METHOD.MERGE,
+                onyxMethod: Onyx.METHOD.MERGE,
                 key: ONYXKEYS.REIMBURSEMENT_ACCOUNT,
                 value: {
                     isLoading: false,
@@ -133,7 +141,7 @@ function addPersonalBankAccount(account) {
     const onyxData = {
         optimisticData: [
             {
-                onyxMethod: CONST.ONYX.METHOD.MERGE,
+                onyxMethod: Onyx.METHOD.MERGE,
                 key: ONYXKEYS.PERSONAL_BANK_ACCOUNT,
                 value: {
                     isLoading: true,
@@ -144,7 +152,7 @@ function addPersonalBankAccount(account) {
         ],
         successData: [
             {
-                onyxMethod: CONST.ONYX.METHOD.MERGE,
+                onyxMethod: Onyx.METHOD.MERGE,
                 key: ONYXKEYS.PERSONAL_BANK_ACCOUNT,
                 value: {
                     isLoading: false,
@@ -155,7 +163,7 @@ function addPersonalBankAccount(account) {
         ],
         failureData: [
             {
-                onyxMethod: CONST.ONYX.METHOD.MERGE,
+                onyxMethod: Onyx.METHOD.MERGE,
                 key: ONYXKEYS.PERSONAL_BANK_ACCOUNT,
                 value: {
                     isLoading: false,
@@ -171,52 +179,48 @@ function addPersonalBankAccount(account) {
 }
 
 function deletePaymentBankAccount(bankAccountID) {
-    API.write(
-        'DeletePaymentBankAccount',
-        {
-            bankAccountID,
-        },
-        {
-            optimisticData: [
-                {
-                    onyxMethod: CONST.ONYX.METHOD.MERGE,
-                    key: `${ONYXKEYS.BANK_ACCOUNT_LIST}`,
-                    value: {[bankAccountID]: {pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE}},
-                },
-            ],
+    API.write('DeletePaymentBankAccount', {
+        bankAccountID,
+    }, {
+        optimisticData: [
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.BANK_ACCOUNT_LIST}`,
+                value: {[bankAccountID]: {pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE}},
+            },
+        ],
 
-            // Sometimes pusher updates aren't received when we close the App while still offline,
-            // so we are setting the bankAccount to null here to ensure that it gets cleared out once we come back online.
-            successData: [
-                {
-                    onyxMethod: CONST.ONYX.METHOD.MERGE,
-                    key: `${ONYXKEYS.BANK_ACCOUNT_LIST}`,
-                    value: {[bankAccountID]: null},
-                },
-            ],
-        },
-    );
+        // Sometimes pusher updates aren't received when we close the App while still offline,
+        // so we are setting the bankAccount to null here to ensure that it gets cleared out once we come back online.
+        successData: [
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.BANK_ACCOUNT_LIST}`,
+                value: {[bankAccountID]: null},
+            },
+        ],
+    });
 }
 
 /**
- * Update the user's personal information on the bank account in database.
- *
- * This action is called by the requestor step in the Verified Bank Account flow
- *
- * @param {Object} params
- *
- * @param {String} [params.dob]
- * @param {String} [params.firstName]
- * @param {String} [params.lastName]
- * @param {String} [params.requestorAddressStreet]
- * @param {String} [params.requestorAddressCity]
- * @param {String} [params.requestorAddressState]
- * @param {String} [params.requestorAddressZipCode]
- * @param {String} [params.ssnLast4]
- * @param {String} [params.isControllingOfficer]
- * @param {Object} [params.onfidoData]
- * @param {Boolean} [params.isOnfidoSetupComplete]
- */
+* Update the user's personal information on the bank account in database.
+*
+* This action is called by the requestor step in the Verified Bank Account flow
+*
+* @param {Object} params
+*
+* @param {String} [params.dob]
+* @param {String} [params.firstName]
+* @param {String} [params.lastName]
+* @param {String} [params.requestorAddressStreet]
+* @param {String} [params.requestorAddressCity]
+* @param {String} [params.requestorAddressState]
+* @param {String} [params.requestorAddressZipCode]
+* @param {String} [params.ssnLast4]
+* @param {String} [params.isControllingOfficer]
+* @param {Object} [params.onfidoData]
+* @param {Boolean} [params.isOnfidoSetupComplete]
+*/
 function updatePersonalInformationForBankAccount(params) {
     API.write('UpdatePersonalInformationForBankAccount', params, getVBBADataForOnyx());
 }
@@ -226,50 +230,40 @@ function updatePersonalInformationForBankAccount(params) {
  * @param {String} validateCode
  */
 function validateBankAccount(bankAccountID, validateCode) {
-    API.write(
-        'ValidateBankAccountWithTransactions',
-        {
-            bankAccountID,
-            validateCode,
-        },
-        {
-            optimisticData: [
-                {
-                    onyxMethod: CONST.ONYX.METHOD.MERGE,
-                    key: ONYXKEYS.REIMBURSEMENT_ACCOUNT,
-                    value: {
-                        isLoading: true,
-                        errors: null,
-                    },
-                },
-            ],
-            successData: [
-                {
-                    onyxMethod: CONST.ONYX.METHOD.MERGE,
-                    key: ONYXKEYS.REIMBURSEMENT_ACCOUNT,
-                    value: {
-                        isLoading: false,
-                    },
-                },
-            ],
-            failureData: [
-                {
-                    onyxMethod: CONST.ONYX.METHOD.MERGE,
-                    key: ONYXKEYS.REIMBURSEMENT_ACCOUNT,
-                    value: {
-                        isLoading: false,
-                    },
-                },
-            ],
-        },
-    );
+    API.write('ValidateBankAccountWithTransactions', {
+        bankAccountID,
+        validateCode,
+    }, {
+        optimisticData: [{
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: ONYXKEYS.REIMBURSEMENT_ACCOUNT,
+            value: {
+                isLoading: true,
+                errors: null,
+            },
+        }],
+        successData: [{
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: ONYXKEYS.REIMBURSEMENT_ACCOUNT,
+            value: {
+                isLoading: false,
+            },
+        }],
+        failureData: [{
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: ONYXKEYS.REIMBURSEMENT_ACCOUNT,
+            value: {
+                isLoading: false,
+            },
+        }],
+    });
 }
 
 function openReimbursementAccountPage(stepToOpen, subStep, localCurrentStep) {
     const onyxData = {
         optimisticData: [
             {
-                onyxMethod: CONST.ONYX.METHOD.MERGE,
+                onyxMethod: Onyx.METHOD.MERGE,
                 key: ONYXKEYS.REIMBURSEMENT_ACCOUNT,
                 value: {
                     isLoading: true,
@@ -278,7 +272,7 @@ function openReimbursementAccountPage(stepToOpen, subStep, localCurrentStep) {
         ],
         successData: [
             {
-                onyxMethod: CONST.ONYX.METHOD.MERGE,
+                onyxMethod: Onyx.METHOD.MERGE,
                 key: ONYXKEYS.REIMBURSEMENT_ACCOUNT,
                 value: {
                     isLoading: false,
@@ -287,7 +281,7 @@ function openReimbursementAccountPage(stepToOpen, subStep, localCurrentStep) {
         ],
         failureData: [
             {
-                onyxMethod: CONST.ONYX.METHOD.MERGE,
+                onyxMethod: Onyx.METHOD.MERGE,
                 key: ONYXKEYS.REIMBURSEMENT_ACCOUNT,
                 value: {
                     isLoading: false,
@@ -363,16 +357,12 @@ function updateBeneficialOwnersForBankAccount(params) {
  *
  */
 function connectBankAccountManually(bankAccountID, accountNumber, routingNumber, plaidMask) {
-    API.write(
-        'ConnectBankAccountManually',
-        {
-            bankAccountID,
-            accountNumber,
-            routingNumber,
-            plaidMask,
-        },
-        getVBBADataForOnyx(),
-    );
+    API.write('ConnectBankAccountManually', {
+        bankAccountID,
+        accountNumber,
+        routingNumber,
+        plaidMask,
+    }, getVBBADataForOnyx());
 }
 
 /**
@@ -382,14 +372,10 @@ function connectBankAccountManually(bankAccountID, accountNumber, routingNumber,
  * @param {Object} onfidoData
  */
 function verifyIdentityForBankAccount(bankAccountID, onfidoData) {
-    API.write(
-        'VerifyIdentityForBankAccount',
-        {
-            bankAccountID,
-            onfidoData: JSON.stringify(onfidoData),
-        },
-        getVBBADataForOnyx(),
-    );
+    API.write('VerifyIdentityForBankAccount', {
+        bankAccountID,
+        onfidoData: JSON.stringify(onfidoData),
+    }, getVBBADataForOnyx());
 }
 
 function openWorkspaceView() {
