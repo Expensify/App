@@ -212,14 +212,15 @@ class BaseTextInput extends Component {
         const isEditable = _.isUndefined(this.props.editable) ? !this.props.disabled : this.props.editable;
         const inputHelpText = this.props.errorText || this.props.hint;
         const placeholder = (this.props.prefixCharacter || this.state.isFocused || !hasLabel || (hasLabel && this.props.forceActiveLabel)) ? this.props.placeholder : null;
+        const maxHeight = StyleSheet.flatten(this.props.containerStyles).maxHeight;
         const textInputContainerStyles = _.reduce([
             styles.textInputContainer,
             ...this.props.textInputContainerStyles,
             this.props.autoGrow && StyleUtils.getWidthStyle(this.state.textInputWidth),
             !this.props.hideFocusedState && this.state.isFocused && styles.borderColorFocus,
             (this.props.hasError || this.props.errorText) && styles.borderColorDanger,
+            this.props.autoGrowHeight && ({scrollPaddingTop: 2 * maxHeight}),
         ], (finalStyles, s) => ({...finalStyles, ...s}), {});
-        const maxHeight = StyleSheet.flatten(this.props.containerStyles).maxHeight;
         const isMultiline = this.props.multiline || this.props.autoGrowHeight;
 
         return (
