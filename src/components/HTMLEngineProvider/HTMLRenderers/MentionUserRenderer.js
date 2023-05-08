@@ -30,7 +30,6 @@ const showUserDetails = email => Navigation.navigate(ROUTES.getDetailsRoute(emai
 
 const MentionUserRenderer = (props) => {
     const defaultRendererProps = _.omit(props, ['TDefaultRenderer', 'style']);
-    const Renderer = props.TDefaultRenderer;
     // We need to remove the leading @ from data as it is not part of the login
     const loginWhithoutLeadingAt = props.tnode.data.slice(1);
 
