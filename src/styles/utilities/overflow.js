@@ -18,5 +18,9 @@ export default {
         overflow: 'scroll',
     },
 
+    overflowScrollBehaviorNone: {
+        overscrollBehavior: 'none'
+    },
+
     overflowAuto,
 };
