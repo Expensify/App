@@ -24,6 +24,9 @@ export default {
     // Note: These are Persisted Requests - not all requests in the main queue as the key name might lead one to believe
     PERSISTED_REQUESTS: 'networkRequestQueue',
 
+    // Onyx updates from a response, or success or failure data from a request.
+    QUEUED_ONYX_UPDATES: 'queuedOnyxUpdates',
+
     // Stores current date
     CURRENT_DATE: 'currentDate',
 
@@ -194,6 +197,7 @@ export default {
         NEW_ROOM_FORM: 'newRoomForm',
         ROOM_SETTINGS_FORM: 'roomSettingsForm',
         NEW_TASK_FORM: 'newTaskForm',
+        EDIT_TASK_FORM: 'editTaskForm',
         MONEY_REQUEST_DESCRIPTION_FORM: 'moneyRequestDescriptionForm',
     },
 

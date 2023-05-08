@@ -3,7 +3,6 @@ import React from 'react';
 import {View, Pressable} from 'react-native';
 import PropTypes from 'prop-types';
 import _ from 'underscore';
-import Str from 'expensify-common/lib/str';
 import reportActionPropTypes from './reportActionPropTypes';
 import ReportActionItemFragment from './ReportActionItemFragment';
 import styles from '../../../styles/styles';
@@ -65,7 +64,6 @@ const ReportActionItemSingle = (props) => {
     const {
         avatar,
         displayName,
-        login,
         pendingFields,
     } = props.personalDetails[actorEmail] || {};
     const avatarSource = ReportUtils.getAvatar(avatar, actorEmail);
@@ -73,11 +71,10 @@ const ReportActionItemSingle = (props) => {
     // Since the display name for a report action message is delivered with the report history as an array of fragments
     // we'll need to take the displayName from personal details and have it be in the same format for now. Eventually,
     // we should stop referring to the report history items entirely for this information.
-    const isSMSLogin = login ? Str.isSMSLogin(login) : false;
     const personArray = displayName
         ? [{
             type: 'TEXT',
-            text: isSMSLogin ? props.formatPhoneNumber(displayName) : displayName,
+            text: displayName,
         }]
         : props.action.person;
 

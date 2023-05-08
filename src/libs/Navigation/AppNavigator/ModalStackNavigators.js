@@ -152,6 +152,23 @@ const ReportDetailsModalStackNavigator = createModalStackNavigator([{
     name: 'Report_Details_Root',
 }]);
 
+const TaskModalStackNavigator = createModalStackNavigator([
+    {
+        getComponent: () => {
+            const TaskTitlePage = require('../../../pages/tasks/TaskTitlePage').default;
+            return TaskTitlePage;
+        },
+        name: 'Task_Title',
+    },
+    {
+        getComponent: () => {
+            const TaskDescriptionPage = require('../../../pages/tasks/TaskDescriptionPage').default;
+            return TaskDescriptionPage;
+        },
+        name: 'Task_Description',
+    },
+]);
+
 const ReportSettingsModalStackNavigator = createModalStackNavigator([{
     getComponent: () => {
         const ReportSettingsPage = require('../../../pages/ReportSettingsPage').default;
@@ -554,6 +571,7 @@ export {
     IOUDetailsModalStackNavigator,
     DetailsModalStackNavigator,
     ReportDetailsModalStackNavigator,
+    TaskModalStackNavigator,
     ReportSettingsModalStackNavigator,
     ReportParticipantsModalStackNavigator,
     SearchModalStackNavigator,
