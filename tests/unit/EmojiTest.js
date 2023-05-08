@@ -7,6 +7,7 @@ import ONYXKEYS from '../../src/ONYXKEYS';
 import * as User from '../../src/libs/actions/User';
 import waitForPromisesToResolve from '../utils/waitForPromisesToResolve';
 import * as TestHelper from '../utils/TestHelper';
+import CONST from '../../src/CONST';
 
 describe('EmojiTest', () => {
     it('matches all the emojis in the list', () => {
@@ -279,7 +280,7 @@ describe('EmojiTest', () => {
                 });
         });
 
-        it('if the list is full, should replaced n least used emoji from the list with the n new emoji', () => {
+        it('make sure the most recent new emoji is added to the list even it is full with count > 1', () => {
             // Given an existing full (24 items) frequently used emojis list
             const smileEmoji = {code: '😄', name: 'smile'};
             const zzzEmoji = {code: '💤', name: 'zzz'};
@@ -357,20 +358,21 @@ describe('EmojiTest', () => {
                 },
                 {...bookEmoji, count: 3, lastUpdatedAt: 1},
             ];
+            expect(frequentlyEmojisList.length).toBe(CONST.EMOJI_FREQUENT_ROW_COUNT * CONST.EMOJI_NUM_PER_ROW);
             Onyx.merge(ONYXKEYS.FREQUENTLY_USED_EMOJIS, frequentlyEmojisList);
 
             return waitForPromisesToResolve()
                 .then(() => {
-                    // When add n (3) new emojis
+                    // When add new emojis
                     const currentTime = moment().unix();
-                    const newEmoji = [bookEmoji, smileEmoji, zzzEmoji, impEmoji];
+                    const newEmoji = [bookEmoji, smileEmoji, zzzEmoji, impEmoji, smileEmoji];
                     EmojiUtils.addToFrequentlyUsedEmojis(newEmoji);
 
-                    // Then n least used emojis from the list should be replaced
+                    // Then the last emojis from the list should be replaced with the most recent new emoji (smile)
                     const expectedFrequentlyEmojisList = [
                         {...bookEmoji, count: 4, lastUpdatedAt: currentTime},
-                        ...frequentlyEmojisList.slice(0, (-1 - (newEmoji.length - 1))),
-                        ..._.map(newEmoji.slice(1), e => ({...e, count: 1, lastUpdatedAt: currentTime})),
+                        ...frequentlyEmojisList.slice(0, -2),
+                        {...smileEmoji, count: 1, lastUpdatedAt: currentTime},
                     ];
                     expect(spy).toBeCalledWith(expectedFrequentlyEmojisList);
                 });
