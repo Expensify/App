@@ -111,7 +111,6 @@ class DetailsPage extends React.PureComponent {
         }
 
         const phoneNumber = getPhoneNumber(details);
-        const displayName = isSMSLogin ? this.props.formatPhoneNumber(phoneNumber) : details.displayName;
         const phoneOrEmail = isSMSLogin ? getPhoneNumber(details) : details.login;
 
         return (
@@ -133,7 +132,7 @@ class DetailsPage extends React.PureComponent {
                             <ScrollView>
                                 <View style={styles.avatarSectionWrapper}>
                                     <AttachmentModal
-                                        headerTitle={displayName}
+                                        headerTitle={details.displayName}
                                         source={ReportUtils.getFullSizeAvatar(details.avatar, details.login)}
                                         isAuthTokenRequired
                                         originalFileName={details.originalFileName}
@@ -158,7 +157,7 @@ class DetailsPage extends React.PureComponent {
                                     </AttachmentModal>
                                     {Boolean(details.displayName) && (
                                         <Text style={[styles.textHeadline, styles.mb6, styles.pre]} numberOfLines={1}>
-                                            {displayName}
+                                            {details.displayName}
                                         </Text>
                                     )}
                                     {details.login ? (
@@ -195,7 +194,7 @@ class DetailsPage extends React.PureComponent {
                                 </View>
                                 {details.login !== this.props.session.email && (
                                     <MenuItem
-                                        title={`${this.props.translate('common.message')}${displayName}`}
+                                        title={`${this.props.translate('common.message')}${details.displayName}`}
                                         icon={Expensicons.ChatBubble}
                                         onPress={() => Report.navigateToAndOpenReport([details.login])}
                                         wrapperStyle={styles.breakAll}
