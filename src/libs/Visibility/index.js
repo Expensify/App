@@ -6,7 +6,16 @@ import {AppState} from 'react-native';
  * @returns {Boolean}
  */
 function isVisible() {
-    return document.visibilityState === 'visible' && document.hasFocus();
+    return document.visibilityState === 'visible';
+}
+
+/**
+ * Whether the app is focused.
+ *
+ * @returns {Boolean}
+ */
+function hasFocus() {
+    return document.hasFocus();
 }
 
 /**
@@ -25,5 +34,6 @@ function onVisibilityChange(callback) {
 
 export default {
     isVisible,
+    hasFocus,
     onVisibilityChange,
 };

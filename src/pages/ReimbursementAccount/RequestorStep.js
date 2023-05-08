@@ -53,8 +53,12 @@ class RequestorStep extends React.Component {
             errors.dob = this.props.translate('bankAccount.error.dob');
         }
 
-        if (values.dob && !ValidationUtils.meetsAgeRequirements(values.dob)) {
-            errors.dob = this.props.translate('bankAccount.error.age');
+        if (values.dob) {
+            if (!ValidationUtils.meetsMinimumAgeRequirement(values.dob)) {
+                errors.dob = this.props.translate('bankAccount.error.age');
+            } else if (!ValidationUtils.meetsMaximumAgeRequirement(values.dob)) {
+                errors.dob = this.props.translate('bankAccount.error.dob');
+            }
         }
 
         if (!ValidationUtils.isRequiredFulfilled(values.ssnLast4) || !ValidationUtils.isValidSSNLastFour(values.ssnLast4)) {

@@ -36,6 +36,9 @@ import OfflineWithFeedback from '../../components/OfflineWithFeedback';
 import * as ReimbursementAccountProps from '../ReimbursementAccount/reimbursementAccountPropTypes';
 import * as UserUtils from '../../libs/UserUtils';
 import policyMemberPropType from '../policyMemberPropType';
+import * as ReportActionContextMenu from '../home/report/ContextMenu/ReportActionContextMenu';
+import {CONTEXT_MENU_TYPES} from '../home/report/ContextMenu/ContextMenuActions';
+import * as CurrencyUtils from '../../libs/CurrencyUtils';
 
 const propTypes = {
     /* Onyx Props */
@@ -121,6 +124,8 @@ class InitialSettingsPage extends React.Component {
     constructor(props) {
         super(props);
 
+        this.popoverAnchor = React.createRef();
+
         this.getWalletBalance = this.getWalletBalance.bind(this);
         this.getDefaultMenuItems = this.getDefaultMenuItems.bind(this);
         this.getMenuItem = this.getMenuItem.bind(this);
@@ -142,10 +147,8 @@ class InitialSettingsPage extends React.Component {
      */
     getWalletBalance(isPaymentItem) {
         return (isPaymentItem && Permissions.canUseWallet(this.props.betas))
-            ? this.props.numberFormat(
-                this.props.userWallet.currentBalance / 100, // Divide by 100 because balance is in cents
-                {style: 'currency', currency: 'USD'},
-            ) : undefined;
+            ? CurrencyUtils.convertToDisplayString(this.props.userWallet.currentBalance)
+            : undefined;
     }
 
     /**
@@ -155,7 +158,7 @@ class InitialSettingsPage extends React.Component {
     getDefaultMenuItems() {
         const policiesAvatars = _.chain(this.props.policies)
             .filter(policy => PolicyUtils.shouldShowPolicy(policy, this.props.network.isOffline))
-            .sortBy(policy => policy.name)
+            .sortBy(policy => policy.name.toLowerCase())
             .map(policy => ({
                 source: policy.avatar || ReportUtils.getDefaultWorkspaceAvatar(policy.name),
                 name: policy.name,
@@ -177,6 +180,7 @@ class InitialSettingsPage extends React.Component {
                 action: () => { Navigation.navigate(ROUTES.SETTINGS_WORKSPACES); },
                 floatRightAvatars: policiesAvatars,
                 shouldStackHorizontally: true,
+                avatarSize: CONST.AVATAR_SIZE.SMALLER,
                 brickRoadIndicator: policyBrickRoadIndicator,
             },
             {
@@ -208,6 +212,7 @@ class InitialSettingsPage extends React.Component {
                 action: () => { Link.openExternalLink(CONST.NEWHELP_URL); },
                 shouldShowRightIcon: true,
                 iconRight: Expensicons.NewWindow,
+                link: CONST.NEWHELP_URL,
             },
             {
                 translationKey: 'initialSettingsPage.about',
@@ -241,6 +246,10 @@ class InitialSettingsPage extends React.Component {
                 brickRoadIndicator={item.brickRoadIndicator}
                 floatRightAvatars={item.floatRightAvatars}
                 shouldStackHorizontally={item.shouldStackHorizontally}
+                avatarSize={item.avatarSize}
+                ref={this.popoverAnchor}
+                shouldBlockSelection={Boolean(item.link)}
+                onSecondaryInteraction={!_.isEmpty(item.link) ? e => ReportActionContextMenu.showContextMenu(CONTEXT_MENU_TYPES.LINK, e, item.link, this.popoverAnchor.current) : undefined}
             />
         );
     }

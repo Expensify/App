@@ -131,15 +131,17 @@ class BaseVideoChatButtonAndMenu extends Component {
                         top: this.state.videoChatIconPosition.y + 40,
                     }}
                 >
-                    {_.map(this.menuItemData, ({icon, text, onPress}) => (
-                        <MenuItem
-                            wrapperStyle={styles.mr3}
-                            key={text}
-                            icon={icon}
-                            title={text}
-                            onPress={onPress}
-                        />
-                    ))}
+                    <View style={this.props.isSmallScreenWidth ? {} : styles.pv3}>
+                        {_.map(this.menuItemData, ({icon, text, onPress}) => (
+                            <MenuItem
+                                wrapperStyle={styles.mr3}
+                                key={text}
+                                icon={icon}
+                                title={text}
+                                onPress={onPress}
+                            />
+                        ))}
+                    </View>
                 </Popover>
             </>
         );

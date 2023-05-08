@@ -5,6 +5,7 @@ import {GestureHandlerRootView} from 'react-native-gesture-handler';
 import {SafeAreaProvider} from 'react-native-safe-area-context';
 import Onyx from 'react-native-onyx';
 import {PortalProvider} from '@gorhom/portal';
+import {PickerStateProvider} from 'react-native-picker-select';
 import CustomStatusBar from './components/CustomStatusBar';
 import ErrorBoundary from './components/ErrorBoundary';
 import Expensify from './Expensify';
@@ -43,6 +44,7 @@ const App = () => (
                 HTMLEngineProvider,
                 WindowDimensionsProvider,
                 KeyboardStateProvider,
+                PickerStateProvider,
             ]}
         >
             <CustomStatusBar />
