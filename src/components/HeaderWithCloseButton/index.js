@@ -2,7 +2,7 @@ import React, {Component} from 'react';
 import {
     View, Keyboard, Pressable,
 } from 'react-native';
-import {propTypes, defaultProps} from './headerWithCloseButtonPropTypes';
+import {propTypes as headerWithCloseButtonPropTypes, defaultProps} from './headerWithCloseButtonPropTypes';
 import styles from '../../styles/styles';
 import themeColors from '../../styles/themes/default';
 import Header from '../Header';
@@ -15,10 +15,17 @@ import getButtonState from '../../libs/getButtonState';
 import * as StyleUtils from '../../styles/StyleUtils';
 import compose from '../../libs/compose';
 import ThreeDotsMenu from '../ThreeDotsMenu';
-import withDelayToggleButtonState from '../withDelayToggleButtonState';
-import withLocalize from '../withLocalize';
-import withKeyboardState from '../withKeyboardState';
+import withDelayToggleButtonState, {withDelayToggleButtonStatePropTypes} from '../withDelayToggleButtonState';
+import withLocalize, {withLocalizePropTypes} from '../withLocalize';
+import withKeyboardState, {keyboardStatePropTypes} from '../withKeyboardState';
 import AvatarWithDisplayName from '../AvatarWithDisplayName';
+
+const propTypes = {
+    ...headerWithCloseButtonPropTypes,
+    ...withLocalizePropTypes,
+    ...withDelayToggleButtonStatePropTypes,
+    ...keyboardStatePropTypes,
+};
 
 class HeaderWithCloseButton extends Component {
     constructor(props) {

@@ -1,8 +1,5 @@
 import PropTypes from 'prop-types';
 import {ThreeDotsMenuItemPropTypes} from '../ThreeDotsMenu';
-import {withLocalizePropTypes} from '../withLocalize';
-import {withDelayToggleButtonStatePropTypes} from '../withDelayToggleButtonState';
-import {keyboardStatePropTypes} from '../withKeyboardState';
 import iouReportPropTypes from '../../pages/iouReportPropTypes';
 import participantPropTypes from '../participantPropTypes';
 
@@ -87,10 +84,6 @@ const propTypes = {
     /** Additional styles to render on the container of this component */
     // eslint-disable-next-line react/forbid-prop-types
     containerStyles: PropTypes.arrayOf(PropTypes.object),
-
-    ...withLocalizePropTypes,
-    ...withDelayToggleButtonStatePropTypes,
-    ...keyboardStatePropTypes,
 };
 
 const defaultProps = {
