@@ -1,5 +1,4 @@
 import _ from 'underscore';
-import lodashOrderBy from 'lodash/orderBy';
 import moment from 'moment';
 import Str from 'expensify-common/lib/str';
 import Onyx from 'react-native-onyx';
@@ -187,8 +186,8 @@ function addToFrequentlyUsedEmojis(newEmoji) {
         frequentEmojiList = frequentEmojiList.slice(0, maxFrequentEmojiCount);
         frequentEmojiList.push(updatedEmoji);
 
-        // Sort the list after adding a new emoji to the frequent used emojis list
-        frequentEmojiList = lodashOrderBy(frequentEmojiList, ['count', 'lastUpdatedAt'], ['desc', 'desc']);
+        // Sort the list by count and lastUpdatedAt in descending order
+        frequentEmojiList.sort((a, b) => b.count - a.count || b.lastUpdatedAt - a.lastUpdatedAt);
     });
 
     User.updateFrequentlyUsedEmojis(frequentEmojiList);
