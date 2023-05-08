@@ -60,7 +60,7 @@ const defaultProps = {
 // On every tooltip hover, we update the position in state which will result in re-rendering.
 // We also update the state on layout changes which will be triggered often.
 // There will be n number of tooltip components in the page.
-// It's good to memorize this one.
+// It's good to memoize this one.
 const TooltipRenderedOnPageBody = (props) => {
     // The width of tooltip's inner content. Has to be undefined in the beginning
     // as a width of 0 will cause the content to be rendered of a width of 0,
