@@ -80,6 +80,8 @@ class AddPlaidBankAccount extends React.Component {
     }
 
     componentDidMount() {
+        this.subscribeToNavigationShortcuts();
+
         // If we're coming from Plaid OAuth flow then we need to reuse the existing plaidLinkToken
         if (this.isAuthenticatedWithPlaid()) {
             return;
@@ -89,13 +91,6 @@ class AddPlaidBankAccount extends React.Component {
     }
 
     componentDidUpdate(prevProps) {
-        // block keyboard shortcuts that can navigate when plaid modal is shown
-        if (lodashGet(this.props.plaidData, 'bankAccounts', []).length > 0) {
-            this.unblockKeyboardShortcuts();
-        } else {
-            this.blockKeyboardShortcuts();
-        }
-
         if (!prevProps.network.isOffline || this.props.network.isOffline || this.isAuthenticatedWithPlaid()) {
             return;
         }
@@ -105,7 +100,7 @@ class AddPlaidBankAccount extends React.Component {
     }
 
     componentWillUnmount() {
-        this.unblockKeyboardShortcuts();
+        this.unsubscribeToNavigationShortcuts();
     }
 
     /**
@@ -133,7 +128,7 @@ class AddPlaidBankAccount extends React.Component {
     /**
      * Blocks the keyboard shortcuts that can navigate
      */
-    blockKeyboardShortcuts() {
+    subscribeToNavigationShortcuts() {
         // return early if shortcuts already blocked
         if (this.subscribedKeyboardShortcuts.length > 0) {
             return;
@@ -149,7 +144,8 @@ class AddPlaidBankAccount extends React.Component {
                 shortcut.descriptionKey,
                 shortcut.modifiers,
                 false,
-                false, // stop bubbling
+                // stop bubbling when there are bank accounts
+                () => lodashGet(this.props.plaidData, 'bankAccounts', []).length > 0,
             ),
         );
         this.subscribedKeyboardShortcuts = unsubscribeCallbacks;
@@ -158,7 +154,7 @@ class AddPlaidBankAccount extends React.Component {
     /**
      * Unblocks the keyboard shortcuts that can navigate
      */
-    unblockKeyboardShortcuts() {
+    unsubscribeToNavigationShortcuts() {
         _.each(this.subscribedKeyboardShortcuts, unsubscribe => unsubscribe());
         this.subscribedKeyboardShortcuts = [];
     }
