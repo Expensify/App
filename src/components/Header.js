@@ -4,7 +4,6 @@ import PropTypes from 'prop-types';
 import _ from 'underscore';
 import styles from '../styles/styles';
 import Text from './Text';
-import EnvironmentBadge from './EnvironmentBadge';
 
 const propTypes = {
     /** Title of the Header */
