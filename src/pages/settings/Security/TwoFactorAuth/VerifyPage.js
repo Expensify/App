@@ -3,7 +3,6 @@ import {withOnyx} from 'react-native-onyx';
 import {View} from 'react-native';
 import PropTypes from 'prop-types';
 import QRCode from 'react-qr-code';
-import _ from 'underscore';
 import HeaderWithCloseButton from '../../../../components/HeaderWithCloseButton';
 import Navigation from '../../../../libs/Navigation/Navigation';
 import ScreenWrapper from '../../../../components/ScreenWrapper';
@@ -17,12 +16,9 @@ import Text from '../../../../components/Text';
 import ONYXKEYS from '../../../../ONYXKEYS';
 import TextLink from '../../../../components/TextLink';
 import Clipboard from '../../../../libs/Clipboard';
-import Form from '../../../../components/Form';
-import * as Session from '../../../../libs/actions/Session';
-import TextInput from '../../../../components/TextInput';
-import CONST from '../../../../CONST';
 import themeColors from '../../../../styles/themes/default';
 import FixedFooter from '../../../../components/FixedFooter';
+import TwoFactorAuthForm from './TwoFactorAuthForm';
 
 const propTypes = {
     account: PropTypes.shape({
@@ -59,10 +55,6 @@ class VerifyPage extends Component {
         super(props);
 
         this.copySecret = this.copySecret.bind(this);
-        this.authCodeIsValid = this.authCodeIsValid.bind(this);
-        this.validate = this.validate.bind(this);
-        this.submitIfHasSixDigits = this.submitIfHasSixDigits.bind(this);
-        this.submit = this.submit.bind(this);
         this.splitSecretInChunks = this.splitSecretInChunks.bind(this);
         this.buildAuthenticatorUrl = this.buildAuthenticatorUrl.bind(this);
     }
@@ -79,45 +71,6 @@ class VerifyPage extends Component {
 
     copySecret() {
         Clipboard.setString(this.props.account.twoFactorAuthSecretKey);
-    }
-
-    /**
-     * Checks if the auth code has exactly 6 digits
-     *
-     * @param {String} authCode
-     * @returns {boolean}
-     */
-    authCodeIsValid(authCode) {
-        const hasOnlyDigits = /^\d+$/.test(authCode);
-        return authCode.length === 6 && hasOnlyDigits;
-    }
-
-    validate(value) {
-        const code = value.verifyTwoFactorAuth;
-        const errors = {};
-
-        if (!this.authCodeIsValid(code) || !_.isEmpty(this.props.account.errors)) {
-            errors.verifyTwoFactorAuth = this.props.translate('twoFactorAuth.errors.sixDigits');
-        }
-
-        return errors;
-    }
-
-    /**
-     * Submits the form only if the two-factor code is valid
-     *
-     * @param {String} value
-     */
-    submitIfHasSixDigits(value) {
-        if (!this.authCodeIsValid(value)) {
-            return;
-        }
-
-        this.submit({verifyTwoFactorAuth: value});
-    }
-
-    submit(values) {
-        Session.validateTwoFactorAuth(values.verifyTwoFactorAuth);
     }
 
     /**
@@ -167,7 +120,7 @@ class VerifyPage extends Component {
 
                         <View style={[styles.alignItemsCenter, styles.mt5]}>
                             <QRCode
-                                level="Q"
+                                level="L"
                                 size={128}
                                 value={this.buildAuthenticatorUrl()}
                                 bgColor={themeColors.appBG}
@@ -197,22 +150,9 @@ class VerifyPage extends Component {
                         </Text>
                     </View>
 
-                    <Form
-                        formID={ONYXKEYS.FORMS.VERIFY_TWO_FACTOR_AUTH_FORM}
-                        submitButtonText={this.props.translate('common.verify')}
-                        isSubmitButtonVisible={false}
-                        validate={this.validate}
-                        onSubmit={this.submit}
-                        draftValues={{verifyTwoFactorAuth: ''}}
-                        style={[styles.mt3, styles.mh5]}
-                    >
-                        <TextInput
-                            inputID="verifyTwoFactorAuth"
-                            keyboardType={CONST.KEYBOARD_TYPE.NUMBER_PAD}
-                            label={this.props.translate('common.twoFactorCode')}
-                            onValueChange={this.submitIfHasSixDigits}
-                        />
-                    </Form>
+                    <View style={[styles.mt3, styles.mh5]}>
+                        <TwoFactorAuthForm />
+                    </View>
 
                     <FixedFooter style={[styles.twoFactorAuthFooter]}>
                         <Button

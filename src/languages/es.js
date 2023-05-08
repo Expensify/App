@@ -501,6 +501,12 @@ export default {
             sixDigits: 'El código debe tener exactamente 6 dígitos',
         },
     },
+    twoFactorAuthForm: {
+        error: {
+            pleaseFillTwoFactorAuth: 'Por favor, introduce tu código 2 factores',
+            incorrect2fa: 'Código de autenticación de 2 factores incorrecto. Por favor, inténtalo de nuevo',
+        },
+    },
     passwordConfirmationScreen: {
         passwordUpdated: 'Contraseña actualizada!',
         allSet: 'Todo está listo. Guarda tu contraseña en un lugar seguro.',

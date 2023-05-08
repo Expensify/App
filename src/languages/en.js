@@ -498,8 +498,12 @@ export default {
         stepSuccess: 'Step 3: Finished',
         enabled: 'Two-factor authentication is now enabled!',
         congrats: 'Congrats, now you’ve got that extra security.',
-        errors: {
-            sixDigits: 'Code must have exactly 6 digits',
+
+    },
+    twoFactorAuthForm: {
+        error: {
+            pleaseFillTwoFactorAuth: 'Please enter your two factor code',
+            incorrect2fa: 'Incorrect two factor authentication code. Please try again.',
         },
     },
     passwordConfirmationScreen: {
