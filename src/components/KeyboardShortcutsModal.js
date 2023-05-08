@@ -161,6 +161,9 @@ export default compose(
     withWindowDimensions,
     withLocalize,
     withOnyx({
-        isShortcutsModalOpen: {key: ONYXKEYS.IS_SHORTCUTS_MODAL_OPEN},
+        isShortcutsModalOpen: {
+            key: ONYXKEYS.IS_SHORTCUTS_MODAL_OPEN,
+            initWithStoredValues: false,
+        },
     }),
 )(KeyboardShortcutsModal);
