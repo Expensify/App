@@ -151,19 +151,19 @@ class HeaderWithCloseButton extends Component {
             <View style={[styles.headerBar, this.props.shouldShowBorderBottom && styles.borderBottom, this.props.shouldShowBackButton && styles.pl2]}>
                 <View style={[styles.dFlex, styles.flexRow, styles.alignItemsCenter, styles.flexGrow1, styles.justifyContentBetween, styles.overflowHidden]}>
                     {this.props.shouldShowBackButton && (
-                    <Tooltip text={this.props.translate('common.back')}>
-                        <Pressable
-                            onPress={() => {
-                                if (this.props.isKeyboardShown) {
-                                    Keyboard.dismiss();
-                                }
-                                this.props.onBackButtonPress();
-                            }}
-                            style={[styles.touchableButtonImage]}
-                        >
-                            <Icon src={Expensicons.BackArrow} />
-                        </Pressable>
-                    </Tooltip>
+                        <Tooltip text={this.props.translate('common.back')}>
+                            <Pressable
+                                onPress={() => {
+                                    if (this.props.isKeyboardShown) {
+                                        Keyboard.dismiss();
+                                    }
+                                    this.props.onBackButtonPress();
+                                }}
+                                style={[styles.touchableButtonImage]}
+                            >
+                                <Icon src={Expensicons.BackArrow} />
+                            </Pressable>
+                        </Tooltip>
                     )}
                     {this.props.shouldShowAvatarWithDisplay && (
                         <AvatarWithDisplayName
