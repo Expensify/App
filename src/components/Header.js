@@ -13,16 +13,12 @@ const propTypes = {
     /** Subtitle of the header */
     subtitle: PropTypes.oneOfType([PropTypes.string, PropTypes.element]),
 
-    /** Should we show the environment badge (dev/stg)?  */
-    shouldShowEnvironmentBadge: PropTypes.bool,
-
     /** Additional text styles */
     // eslint-disable-next-line react/forbid-prop-types
     textStyles: PropTypes.arrayOf(PropTypes.object),
 };
 
 const defaultProps = {
-    shouldShowEnvironmentBadge: false,
     subtitle: '',
     textStyles: [],
 };
@@ -37,9 +33,6 @@ const Header = props => (
                 ? Boolean(props.subtitle) && <Text style={[styles.mutedTextLabel, styles.pre]} numberOfLines={1}>{props.subtitle}</Text>
                 : props.subtitle}
         </View>
-        {props.shouldShowEnvironmentBadge && (
-            <EnvironmentBadge />
-        )}
     </View>
 );
 
