@@ -95,6 +95,10 @@ class SidebarLinks extends React.Component {
         this.showSearchPage = this.showSearchPage.bind(this);
         this.showSettingsPage = this.showSettingsPage.bind(this);
         this.showReportPage = this.showReportPage.bind(this);
+
+        if (this.props.isSmallScreenWidth) {
+            App.confirmReadyToOpenApp();
+        }
     }
 
     componentDidMount() {
