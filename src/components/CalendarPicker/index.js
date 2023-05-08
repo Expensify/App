@@ -109,7 +109,7 @@ class CalendarPicker extends React.PureComponent {
      * @returns {string} - Date string in the 'YYYY-MM-DD' format.
      */
     getSelectedDateString() {
-        // can't use moment.format() here method because it won't allow incorrect dates
+        // can't use moment.format() method here because it won't allow incorrect dates
         return `${this.state.selectedYear}-${this.state.selectedMonth}-${this.state.selectedDay}`;
     }
 
@@ -117,7 +117,7 @@ class CalendarPicker extends React.PureComponent {
      * Returns the string converted from the given number. If the number is lower than 10,
      * it will add zero at the beginning of the string.
      * @param {Number} number - The number to be converted.
-     * @returns {string} - Converted string with prefixed by zero if necessary.
+     * @returns {string} - Converted string prefixed by zero if necessary.
      */
     getNumberStringWithLeadingZero(number) {
         return `${number < 10 ? `0${number}` : number}`;
