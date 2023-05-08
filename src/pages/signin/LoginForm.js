@@ -24,7 +24,8 @@ import DotIndicatorMessage from '../../components/DotIndicatorMessage';
 import * as CloseAccount from '../../libs/actions/CloseAccount';
 import AppleSignInScript from './AppleSignInScript';
 import CONST from '../../CONST';
-import GoogleSignInButton from '../../libs/signInWithGoogle';
+import AppleSignIn from '../../components/SignInButtons/AppleSignIn';
+import GoogleSignIn from '../../components/SignInButtons/GoogleSignIn';
 
 const propTypes = {
     /** Should we dismiss the keyboard when transitioning away from the page? */
@@ -212,13 +213,16 @@ class LoginForm extends React.Component {
                                 isAlertVisible={!_.isEmpty(serverErrorText)}
                                 containerStyles={[styles.mh0]}
                             />
-                            <Button
-                                onPress={Session.beginAppleSignIn}
+                            <View style={{
+                                flexDirection: 'row',
 
-                                // onPress={Session.beginAppleSignIn}
-                                title="Sign in with Apple"
-                            />
-                            <Button onPress={() => { window.open('https://exptest.ngrok.io/signinwithgoogle'); }} title="Sign in with Google" />
+                                width: '100%',
+                                justifyContent: 'center',
+                            }}
+                            >
+                                <AppleSignIn />
+                                <GoogleSignIn />
+                            </View>
                         </View>
                     )
                 }
