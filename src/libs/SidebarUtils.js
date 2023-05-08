@@ -261,6 +261,13 @@ function getOptionData(reportID) {
     // We only create tooltips for the first 10 users or so since some reports have hundreds of users, causing performance to degrade.
     const displayNamesWithTooltips = ReportUtils.getDisplayNamesWithTooltips((participantPersonalDetailList || []).slice(0, 10), hasMultipleParticipants);
 
+    const parentReportAction = (ReportUtils.isThread(report)
+                                    && report.parentReportActionID
+                                    && report.parentReportID
+                                    && reportActions[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.parentReportID}`])
+        ? ReportUtils.findMatchingValueDEVTESTING(reportActions[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.parentReportID}`], `${report.parentReportActionID}`)
+        : {};
+
     let lastMessageTextFromReport = '';
     if (ReportUtils.isReportMessageAttachment({text: report.lastMessageText, html: report.lastMessageHtml})) {
         lastMessageTextFromReport = `[${Localize.translateLocal('common.attachment')}]`;
@@ -326,7 +333,9 @@ function getOptionData(reportID) {
 
     const reportName = ReportUtils.getReportName(report);
     // eslint-disable-next-line no-unused-expressions, no-undef, no-console, max-len
-    const parentReportAction = (ReportUtils.isThread(report) && report.parentReportActionID && report.parentReportID) ? reportActions[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}4444742227669619`]['2969097651817343818'] : {};
+
+    // const parentReportID = '2443650236419026';
+    // const parentReportActionID = '7267239632810500313';
     const parentReportActionMessage = lodashGet(parentReportAction, ['message', 0, 'text']);
     // eslint-disable-next-line no-console
     console.log('rip ', parentReportAction, parentReportActionMessage, lastMessageText);

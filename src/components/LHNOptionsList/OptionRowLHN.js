@@ -176,7 +176,7 @@ const OptionRowLHN = (props) => {
                                             textStyles={displayNameStyle}
                                             shouldUseFullTitle={optionItem.isChatRoom || optionItem.isPolicyExpenseChat}
                                         />
-                                        {optionItem.isChatRoom && (
+                                        {optionItem.isChatRoom && !optionItem.isThread && (
                                             <TextPill
                                                 style={textPillStyle}
                                                 accessibilityLabel={props.translate('accessibilityHints.workspaceName')}
@@ -190,7 +190,7 @@ const OptionRowLHN = (props) => {
                                             numberOfLines={1}
                                             accessibilityLabel={props.translate('accessibilityHints.lastChatMessagePreview')}
                                         >
-                                            {optionItem.alternateText}
+                                            {(optionItem.isThread && optionItem.subtitle) ? optionItem.subtitle : optionItem.alternateText}
                                         </Text>
                                     ) : null}
                                 </View>

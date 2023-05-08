@@ -90,6 +90,14 @@ function getChatType(report) {
     return report ? report.chatType : '';
 }
 
+function findMatchingValueDEVTESTING(objList, parentID) {
+    if (!objList) {
+        return {};
+    }
+    const matchingKey = _.find(_.keys(objList), key => key.includes(`${parentID.substring(0, 8)}`));
+    return matchingKey ? objList[matchingKey] : null;
+}
+
 /**
  * Returns the concatenated title for the PrimaryLogins of a report
  *
@@ -439,10 +447,15 @@ function isThread(report) {
  */
 function getChatRoomSubtitle(report) {
     if (isThread(report)) {
-        if (isPolicyExpenseChat(report)) {
-            return 'workspace Thread subtitle';
+        const parentReport = lodashGet(allReports, [
+            `${ONYXKEYS.COLLECTION.REPORT}${report.parentReportID}`]);
+        const chatType = getChatType(report);
+        if (chatType) {
+            const workspaceName = getPolicyName(parentReport);
+            const roomName = (parentReport.displayName === workspaceName) ? '' : parentReport.displayName;
+            return roomName ? `${workspaceName} • ${roomName}` : `${workspaceName}`;
         }
-        return 'DM thread subtitle';
+        return '';
     }
     if (!isDefaultRoom(report) && !isUserCreatedPolicyRoom(report) && !isPolicyExpenseChat(report)) {
         return '';
@@ -708,6 +721,54 @@ function getSmallSizeAvatar(avatarURL, login) {
 /**
  * Returns the appropriate icons for the given chat report using the stored personalDetails.
  * The Avatar sources can be URLs or Icon components according to the chat type.
+//  *
+//  * @param {Object} report
+//  * @param {Object} personalDetails
+//  * @param {Object} parentReportAction
+//  * @returns {Array<*>}
+//  */
+// function getThreadIcons(report, parentReport, parentReportAction) {
+//     return [];
+
+//     // console.log()
+//     // const parentReport = lodashGet(allReports, [
+//     //     `${ONYXKEYS.COLLECTION.REPORT}${report.parentReportID}`, {}
+//     // ]);
+// }
+
+function buildAvatarArray(participants, personalDetails) {
+    const participantDetails = [];
+    const participantsList = participants || [];
+
+    for (let i = 0; i < participantsList.length; i++) {
+        const login = participantsList[i];
+        const avatarSource = getAvatar(lodashGet(personalDetails, [login, 'avatar'], ''), login);
+        participantDetails.push([
+            login,
+            lodashGet(personalDetails, [login, 'firstName'], ''),
+            avatarSource,
+        ]);
+    }
+
+    // Sort all logins by first name (which is the second element in the array)
+    const sortedParticipantDetails = participantDetails.sort((a, b) => a[1] - b[1]);
+
+    // Now that things are sorted, gather only the avatars (third element in the array) and return those
+    const avatars = [];
+    for (let i = 0; i < sortedParticipantDetails.length; i++) {
+        const userIcon = {
+            source: sortedParticipantDetails[i][2],
+            type: CONST.ICON_TYPE_AVATAR,
+            name: sortedParticipantDetails[i][0],
+        };
+        avatars.push(userIcon);
+    }
+    return avatars;
+}
+
+/**
+ * Returns the appropriate icons for the given chat report using the stored personalDetails.
+ * The Avatar sources can be URLs or Icon components according to the chat type.
  *
  * @param {Object} report
  * @param {Object} personalDetails
@@ -734,40 +795,27 @@ function getIcons(report, personalDetails, defaultIcon = null) {
         return [result];
     }
     if (isThread(report)) {
-        if (isPolicyExpenseChat(report) || isExpenseReport(report)) {
-            const workspaceName = lodashGet(allPolicies, [
-                `${ONYXKEYS.COLLECTION.POLICY}${report.policyID}`, 'name',
-            ]);
+        const parentReport = lodashGet(allReports, [
+            `${ONYXKEYS.COLLECTION.REPORT}${report.parentReportID}`,
+        ]);
 
-            const policyExpenseChatAvatarSource = getWorkspaceAvatar(report);
+        const parentReportActions = ReportActionsUtils.getReportActions(report.parentReportID);
+        const parentReportActionTEST = findMatchingValueDEVTESTING(parentReportActions, `${report.parentReportActionID}`);
 
-            // Return the workspace avatar if the user is the owner of the policy expense chat
-            if (report.isOwnPolicyExpenseChat && !isExpenseReport(report)) {
-                result.source = policyExpenseChatAvatarSource;
-                result.type = CONST.ICON_TYPE_WORKSPACE;
-                result.name = workspaceName;
-                return [result];
-            }
-
-            const adminIcon = {
-                source: getAvatar(lodashGet(personalDetails, [report.ownerEmail, 'avatar']), report.ownerEmail),
-                name: report.ownerEmail,
-                type: CONST.ICON_TYPE_AVATAR,
-            };
-
-            const workspaceIcon = {
-                source: policyExpenseChatAvatarSource,
-                type: CONST.ICON_TYPE_WORKSPACE,
-                name: workspaceName,
-            };
-
-            // If the user is an admin, return avatar source of the other participant of the report
-            // (their workspace chat) and the avatar source of the workspace
-            return [
-                adminIcon,
-                workspaceIcon,
-            ];
+        if (getChatType(parentReport)) {
+            result.source = getWorkspaceAvatar(parentReport);
+            result.type = CONST.ICON_TYPE_WORKSPACE;
+            result.name = getPolicyName(parentReport);
+            return [result];
         }
+        // eslint-disable-next-line no-console
+        // console.log('>>>>', parentReport, parentReportActions);
+        // const avatars = buildAvatarArray(parentReport.participants, personalDetails);
+        const actorEmail = lodashGet(parentReportActionTEST, 'actorEmail', '');
+        result.source = parentReportActionTEST ? getAvatar(lodashGet(personalDetails, [actorEmail, 'avatar']), actorEmail) : '';
+        result.type = CONST.ICON_TYPE_AVATAR;
+        result.name = actorEmail;
+        return [result];
     }
     if (isDomainRoom(report)) {
         result.source = Expensicons.DomainRoomAvatar;
@@ -827,32 +875,7 @@ function getIcons(report, personalDetails, defaultIcon = null) {
         }];
     }
 
-    const participantDetails = [];
-    const participants = report.participants || [];
-
-    for (let i = 0; i < participants.length; i++) {
-        const login = participants[i];
-        const avatarSource = getAvatar(lodashGet(personalDetails, [login, 'avatar'], ''), login);
-        participantDetails.push([
-            login,
-            lodashGet(personalDetails, [login, 'firstName'], ''),
-            avatarSource,
-        ]);
-    }
-
-    // Sort all logins by first name (which is the second element in the array)
-    const sortedParticipantDetails = participantDetails.sort((a, b) => a[1] - b[1]);
-
-    // Now that things are sorted, gather only the avatars (third element in the array) and return those
-    const avatars = [];
-    for (let i = 0; i < sortedParticipantDetails.length; i++) {
-        const userIcon = {
-            source: sortedParticipantDetails[i][2],
-            type: CONST.ICON_TYPE_AVATAR,
-            name: sortedParticipantDetails[i][0],
-        };
-        avatars.push(userIcon);
-    }
+    const avatars = buildAvatarArray(report.participants, personalDetails);
 
     return avatars;
 }
@@ -1950,4 +1973,6 @@ export {
     getWhisperDisplayNames,
     getWorkspaceAvatar,
     isThread,
+    findMatchingValueDEVTESTING,
+    buildAvatarArray,
 };

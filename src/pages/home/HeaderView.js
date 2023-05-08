@@ -37,6 +37,7 @@ const propTypes = {
     /** The report currently being looked at */
     report: reportPropTypes,
 
+    // eslint-disable-next-line react/no-unused-prop-types
     parentReport: reportPropTypes,
 
     /** Personal details of all the users */
@@ -65,7 +66,10 @@ const defaultProps = {
 };
 
 const HeaderView = (props) => {
-    const parentReportAction = props.parentReportActions['5067383038721755115'];
+    let parentReportAction = props.parentReportActions['7267239632810500313'];
+    parentReportAction = ReportUtils.findMatchingValueDEVTESTING(props.parentReportActions, `${props.report.parentReportActionID}`);
+    // eslint-disable-next-line no-console
+    console.log('header', parentReportAction);
     if (parentReportAction) {
         // eslint-disable-next-line no-console
         console.log('parent header', props.parentReportActions, parentReportAction);
@@ -127,7 +131,7 @@ const HeaderView = (props) => {
 
     const avatarTooltip = isChatRoom ? undefined : _.pluck(displayNamesWithTooltips, 'tooltip');
     const shouldShowSubscript = isPolicyExpenseChat && !props.report.isOwnPolicyExpenseChat && !ReportUtils.isArchivedRoom(props.report);
-    const icons = ReportUtils.getIcons(isThread ? props.parentReport : props.report, props.personalDetails);
+    const icons = ReportUtils.getIcons(isThread ? props.report : props.report, props.personalDetails);
     const brickRoadIndicator = ReportUtils.hasReportNameError(props.report) ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : '';
     return (
         <View style={[styles.appContentHeader]} nativeID="drag-area">
@@ -178,7 +182,7 @@ const HeaderView = (props) => {
                                     textStyles={[styles.headerText, styles.pre]}
                                     shouldUseFullTitle={isChatRoom || isPolicyExpenseChat || isThread}
                                 />
-                                {(isChatRoom || isPolicyExpenseChat || isThread) && (
+                                {((isChatRoom || isPolicyExpenseChat || isThread) && !_.isEmpty(subtitle)) && (
                                     <Text
                                         style={[
                                             styles.sidebarLinkText,

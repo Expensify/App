@@ -41,6 +41,29 @@ function isDeletedAction(reportAction) {
 }
 
 /**
+ * @param {String} parentReportID
+ * @param {String} parentReportActionID
+ * @returns {Object}
+ */
+function getParentReportAction(parentReportID, parentReportActionID) {
+    // A deleted comment has either an empty array or an object with html field with empty string as value
+    // eslint-disable-next-line no-console
+    const reportAction = lodashGet(allReportActions, [parentReportID, parentReportActionID]);
+    return reportAction;
+}
+
+/**
+ * @param {String} reportID
+ * @returns {Object}
+ */
+function getReportActions(reportID) {
+    // A deleted comment has either an empty array or an object with html field with empty string as value
+    // eslint-disable-next-line no-console
+    const reportAction = lodashGet(allReportActions, [reportID]);
+    return reportAction;
+}
+
+/**
  * Sort an array of reportActions by their created timestamp first, and reportActionID second
  * This gives us a stable order even in the case of multiple reportActions created on the same millisecond
  *
@@ -301,4 +324,6 @@ export {
     getLastClosedReportAction,
     getLatestReportActionFromOnyxData,
     getLinkedTransactionID,
+    getParentReportAction,
+    getReportActions,
 };

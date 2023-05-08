@@ -53,7 +53,11 @@ const defaultProps = {
 
 const ReportActionItemParentAction = (props) => {
     const icons = ReportUtils.getIcons(props.report, props.personalDetails);
-    console.log('RESULTING ReportActionItemParentAction PROPS: ', props);
+    //     const icons = ReportUtils.buildAvatarArray(parentReportAction.childOldestFourEmails || [parentReportAction.actorEmail] , props.personalDetails);
+
+    // const parentReportActionID = '7267239632810500313';
+    // let parentReportAction = props.parentReportActions['7267239632810500313'];
+    const parentReportAction = ReportUtils.findMatchingValueDEVTESTING(props.parentReportActions, `${props.report.parentReportActionID}`);
     return (
         <OfflineWithFeedback
             pendingAction={lodashGet(props.report, 'pendingFields.addWorkspaceRoom') || lodashGet(props.report, 'pendingFields.createChat')}
@@ -81,17 +85,16 @@ const ReportActionItemParentAction = (props) => {
                     </Pressable>
                     <View style={[styles.ph5]}>
                         <View>
-                            <Text style={[styles.textHero, styles.fontColorReactionLabel]}>
+                            <Text style={[styles.textHero, {color: 'white'}]}>
                                 This is a thread!
                             </Text>
                         </View>
                     </View>
                 </View>
-                { console.log('>>>>', props, 'for ', props.parentReportID, ' id: ', props.parentReportActionID, props.parentReportActions)}
-                { (props.parentReport && props.parentReportActions && props.parentReportActionID && props.parentReportActions[`${props.parentReportActionID}`]) ?
+                { (parentReportAction) ?
                     (<ReportActionItem
                         report={props.report}
-                        action={props.parentReportActions[`${props.parentReportActionID}`]}
+                        action={parentReportAction} // {props.parentReportActions[`${props.parentReportActionID}`]}
                         displayAsGroup={false}
                         isMostRecentIOUReportAction={false}
                         shouldDisplayNewMarker={false}
