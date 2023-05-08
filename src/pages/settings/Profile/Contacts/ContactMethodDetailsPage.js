@@ -29,13 +29,9 @@ import * as ErrorUtils from '../../../../libs/ErrorUtils';
 import themeColors from '../../../../styles/themes/default';
 import NotFoundPage from '../../../ErrorPage/NotFoundPage';
 import * as ValidationUtils from '../../../../libs/ValidationUtils';
-import Permissions from '../../../../libs/Permissions';
 
 const propTypes = {
     /* Onyx Props */
-
-    /** List of betas available to current user */
-    betas: PropTypes.arrayOf(PropTypes.string),
 
     /** Login list for the user that is signed in */
     loginList: PropTypes.shape({
@@ -80,7 +76,6 @@ const propTypes = {
 };
 
 const defaultProps = {
-    betas: [],
     loginList: {},
     session: {
         email: null,
@@ -233,11 +228,9 @@ class ContactMethodDetailsPage extends Component {
         // 1. This contact method is not already their default
         // 2. This contact method is validated
         // 3. Default contact method switching is allowed by their domain security group (if this exists)
-        // 4. The user is on the passwordless beta
         const canChangeDefaultContactMethod = !isDefaultContactMethod
             && loginData.validatedDate
-            && this.getCanChangeDefaultContactMethod()
-            && Permissions.canUsePasswordlessLogins(this.props.betas);
+            && this.getCanChangeDefaultContactMethod();
 
         return (
             <ScreenWrapper>
@@ -366,9 +359,6 @@ ContactMethodDetailsPage.defaultProps = defaultProps;
 export default compose(
     withLocalize,
     withOnyx({
-        betas: {
-            key: ONYXKEYS.BETAS,
-        },
         loginList: {
             key: ONYXKEYS.LOGIN_LIST,
         },
