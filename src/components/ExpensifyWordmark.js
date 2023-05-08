@@ -18,7 +18,7 @@ const propTypes = {
     ...windowDimensionsPropTypes,
 
     /** The styles to apply for the View wrapping the svg */
-    containerStyles: PropTypes.arrayOf(PropTypes.object),
+    containerStyles: PropTypes.arrayOf(PropTypes.objectOf(PropTypes.string)),
 
     /** Fill color of the svg */
     color: PropTypes.string,
