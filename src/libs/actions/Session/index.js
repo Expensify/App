@@ -18,8 +18,10 @@ import DateUtils from '../../DateUtils';
 import Navigation from '../../Navigation/Navigation';
 import subscribeToReportCommentPushNotifications from '../../Notification/PushNotification/subscribeToReportCommentPushNotifications';
 import ROUTES from '../../../ROUTES';
+import * as SignInRedirect from '../SignInRedirect';
 
 let credentials = {};
+
 Onyx.connect({
     key: ONYXKEYS.CREDENTIALS,
     callback: val => credentials = val || {},
@@ -76,7 +78,7 @@ function signOutAndRedirectToSignIn() {
             },
         },
     ];
-    Onyx.update(clearSessionData);
+    SignInRedirect.assignResetSessionPromise(Onyx.update(clearSessionData));
     signOut();
     Log.info('Redirecting to Sign In because signOut() was called');
 }

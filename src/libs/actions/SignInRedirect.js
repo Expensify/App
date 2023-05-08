@@ -15,6 +15,8 @@ import Navigation from '../Navigation/Navigation';
 let currentIsOffline;
 let currentShouldForceOffline;
 let currentShouldLogout;
+let resetSessionPromise = Promise.resolve();
+
 Onyx.connect({
     key: ONYXKEYS.NETWORK,
     callback: (network) => {
@@ -91,8 +93,11 @@ function redirectToSignIn(errorMessage) {
     resetHomeRouteParams();
 }
 
+/**
+ * Wait for the session update to be successful and then delete the data
+ */
 function signOutAndRedirectToSignIn() {
-    Promise.all(_.values(Onyx.pendingUpdatePromise)).then(() => {
+    resetSessionPromise.then(() => {
         redirectToSignIn();
     });
 }
@@ -108,4 +113,16 @@ Onyx.connect({
     },
 });
 
+/**
+ * Assign session promise
+ * @param {Promise} promise
+ */
+function assignResetSessionPromise(promise) {
+    resetSessionPromise = promise;
+}
+
 export default redirectToSignIn;
+
+export {
+    assignResetSessionPromise,
+};
