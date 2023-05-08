@@ -96,9 +96,10 @@ export default function withWindowDimensions(WrappedComponent) {
     const WithWindowDimensions = forwardRef((props, ref) => (
         <WindowDimensionsContext.Consumer>
             {(windowDimensionsProps) => (
-                // eslint-disable-next-line react/jsx-props-no-spreading
                 <WrappedComponent
+                    // eslint-disable-next-line react/jsx-props-no-spreading
                     {...windowDimensionsProps}
+                    // eslint-disable-next-line react/jsx-props-no-spreading
                     {...props}
                     ref={ref}
                 />

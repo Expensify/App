@@ -11,15 +11,14 @@ const story = {
     component: Tooltip,
 };
 
-// eslint-disable-next-line react/jsx-props-no-spreading
 const Template = (args) => (
     <div
         style={{
             width: 100,
         }}
     >
-        {/* eslint-disable-next-line react/jsx-props-no-spreading */}
         <Tooltip
+            // eslint-disable-next-line react/jsx-props-no-spreading
             {...args}
             maxWidth={args.maxWidth || undefined}
         >

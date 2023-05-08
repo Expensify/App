@@ -27,8 +27,8 @@ const AutoCompleteSuggestions = (props) => {
     }, []);
 
     return (
-        // eslint-disable-next-line react/jsx-props-no-spreading
         <BaseAutoCompleteSuggestions
+            // eslint-disable-next-line react/jsx-props-no-spreading
             {...props}
             ref={containerRef}
         />

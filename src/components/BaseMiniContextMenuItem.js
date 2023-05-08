@@ -71,9 +71,9 @@ BaseMiniContextMenuItem.propTypes = propTypes;
 BaseMiniContextMenuItem.defaultProps = defaultProps;
 BaseMiniContextMenuItem.displayName = 'BaseMiniContextMenuItem';
 
-// eslint-disable-next-line react/jsx-props-no-spreading
 export default React.forwardRef((props, ref) => (
     <BaseMiniContextMenuItem
+        // eslint-disable-next-line react/jsx-props-no-spreading
         {...props}
         innerRef={ref}
     />

@@ -33,8 +33,8 @@ export default function (WrappedComponent) {
         isVisible: false,
     };
     return React.forwardRef((props, ref) => (
-        // eslint-disable-next-line react/jsx-props-no-spreading
         <WithToggleVisibilityView
+            // eslint-disable-next-line react/jsx-props-no-spreading
             {...props}
             forwardedRef={ref}
         />

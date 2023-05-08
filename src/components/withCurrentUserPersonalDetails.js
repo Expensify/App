@@ -52,8 +52,8 @@ export default function (WrappedComponent) {
     WithCurrentUserPersonalDetails.defaultProps = defaultProps;
 
     const withCurrentUserPersonalDetails = React.forwardRef((props, ref) => (
-        // eslint-disable-next-line react/jsx-props-no-spreading
         <WithCurrentUserPersonalDetails
+            // eslint-disable-next-line react/jsx-props-no-spreading
             {...props}
             forwardedRef={ref}
         />

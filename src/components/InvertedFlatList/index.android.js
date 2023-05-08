@@ -4,8 +4,8 @@ import BaseInvertedFlatList from './BaseInvertedFlatList';
 import styles from '../../styles/styles';
 
 const InvertedCell = (props) => (
-    // eslint-disable-next-line react/jsx-props-no-spreading
     <View
+        // eslint-disable-next-line react/jsx-props-no-spreading
         {...props}
         style={styles.invert}
     />

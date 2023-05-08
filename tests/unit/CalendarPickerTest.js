@@ -13,9 +13,9 @@ jest.mock('@react-navigation/native', () => ({
 
 // eslint-disable-next-line arrow-body-style
 const MockedCalendarPicker = (props) => {
-    // eslint-disable-next-line react/jsx-props-no-spreading
     return (
         <CalendarPicker
+            // eslint-disable-next-line react/jsx-props-no-spreading
             {...props}
             translate={() => ''}
             preferredLocale={CONST.LOCALES.EN}

@@ -74,8 +74,8 @@ export default function (WrappedComponent) {
     };
 
     return React.forwardRef((props, ref) => (
-        // eslint-disable-next-line react/jsx-props-no-spreading
         <WithDelayToggleButtonState
+            // eslint-disable-next-line react/jsx-props-no-spreading
             {...props}
             forwardedRef={ref}
         />

@@ -242,8 +242,8 @@ BaseOptionsList.propTypes = propTypes;
 BaseOptionsList.defaultProps = defaultProps;
 
 export default forwardRef((props, ref) => (
-    // eslint-disable-next-line react/jsx-props-no-spreading
     <BaseOptionsList
+        // eslint-disable-next-line react/jsx-props-no-spreading
         {...props}
         innerRef={ref}
     />

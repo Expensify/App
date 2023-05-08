@@ -291,8 +291,8 @@ AddressSearch.displayName = 'AddressSearch';
 
 export default withLocalize(
     React.forwardRef((props, ref) => (
-        // eslint-disable-next-line react/jsx-props-no-spreading
         <AddressSearch
+            // eslint-disable-next-line react/jsx-props-no-spreading
             {...props}
             innerRef={ref}
         />

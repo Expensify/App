@@ -53,9 +53,10 @@ export default function withKeyboardState(WrappedComponent) {
     const WithKeyboardState = forwardRef((props, ref) => (
         <KeyboardStateContext.Consumer>
             {(keyboardStateProps) => (
-                // eslint-disable-next-line react/jsx-props-no-spreading
                 <WrappedComponent
+                    // eslint-disable-next-line react/jsx-props-no-spreading
                     {...keyboardStateProps}
+                    // eslint-disable-next-line react/jsx-props-no-spreading
                     {...props}
                     ref={ref}
                 />

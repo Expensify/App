@@ -41,8 +41,8 @@ PressableWithSecondaryInteraction.defaultProps = pressableWithSecondaryInteracti
 PressableWithSecondaryInteraction.displayName = 'PressableWithSecondaryInteraction';
 
 export default forwardRef((props, ref) => (
-    // eslint-disable-next-line react/jsx-props-no-spreading
     <PressableWithSecondaryInteraction
+        // eslint-disable-next-line react/jsx-props-no-spreading
         {...props}
         forwardedRef={ref}
     />

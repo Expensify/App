@@ -19,9 +19,9 @@ const defaultProps = {
 const TextPill = (props) => {
     const propsStyle = StyleUtils.parseStyleAsArray(props.style);
 
-    // eslint-disable-next-line react/jsx-props-no-spreading
     return (
         <Text
+            // eslint-disable-next-line react/jsx-props-no-spreading
             {...props}
             style={[styles.textPill, ...propsStyle]}
             numberOfLines={1}

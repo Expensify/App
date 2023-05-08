@@ -554,8 +554,8 @@ export default compose(
     }),
 )(
     React.forwardRef((props, ref) => (
-        // eslint-disable-next-line react/jsx-props-no-spreading
         <EmojiPickerMenu
+            // eslint-disable-next-line react/jsx-props-no-spreading
             {...props}
             forwardedRef={ref}
         />
