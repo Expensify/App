@@ -1,4 +1,4 @@
-import React from 'react';
+import React, {useEffect, useMemo, useRef} from 'react';
 import Onyx, {withOnyx} from 'react-native-onyx';
 import {getFocusedRouteNameFromRoute} from '@react-navigation/native';
 import PropTypes from 'prop-types';
@@ -15,7 +15,6 @@ import * as Pusher from '../../Pusher/pusher';
 import PusherConnectionManager from '../../PusherConnectionManager';
 import ROUTES from '../../../ROUTES';
 import ONYXKEYS from '../../../ONYXKEYS';
-import Timing from '../../actions/Timing';
 import NetworkConnection from '../../NetworkConnection';
 import CONFIG from '../../../CONFIG';
 import KeyboardShortcut from '../../KeyboardShortcut';
@@ -27,6 +26,7 @@ import createCustomModalStackNavigator from './createCustomModalStackNavigator';
 import NotFoundPage from '../../../pages/ErrorPage/NotFoundPage';
 import getCurrentUrl from '../currentUrl';
 import themeColors from '../../../styles/themes/default';
+import useTiming from '../../../hooks/useTiming';
 
 // Modal Stack Navigators
 import * as ModalStackNavigators from './ModalStackNavigators';
@@ -98,18 +98,25 @@ const defaultProps = {
     },
 };
 
-class AuthScreens extends React.Component {
-    constructor(props) {
-        super(props);
+const commonModalScreenOptions = {
+    headerShown: false,
+    gestureDirection: 'horizontal',
+    animationEnabled: true,
 
-        this.focusedScreenName = '';
+    // This option is required to make previous screen visible underneath the modal screen
+    // https://reactnavigation.org/docs/6.x/stack-navigator#transparent-modals
+    presentation: 'transparentModal',
+};
 
-        Timing.start(CONST.TIMING.HOMEPAGE_INITIAL_RENDER);
-    }
+const AuthScreens = (props) => {
+    let focusedScreenName = useRef('');
 
-    componentDidMount() {
+    useTiming(CONST.TIMING.HOMEPAGE_INITIAL_RENDER);
+
+    useEffect(() => {
         NetworkConnection.listenForReconnect();
         NetworkConnection.onReconnect(() => App.reconnectApp());
+
         PusherConnectionManager.init();
         Pusher.init({
             appKey: CONFIG.PUSHER.APP_KEY,
@@ -120,17 +127,21 @@ class AuthScreens extends React.Component {
         });
 
         App.openApp();
-        App.setUpPoliciesAndNavigate(this.props.session);
+        App.setUpPoliciesAndNavigate(props.session);
+
         Download.clearDownloads();
-        Timing.end(CONST.TIMING.HOMEPAGE_INITIAL_RENDER);
 
+        return Session.cleanupSession;
+
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, []);
+
+    // Listen for the key K being pressed so that focus can be given to
+    // the chat switcher, or new group chat
+    // based on the key modifiers pressed and the operating system
+    useEffect(() => {
         const searchShortcutConfig = CONST.KEYBOARD_SHORTCUTS.SEARCH;
-        const groupShortcutConfig = CONST.KEYBOARD_SHORTCUTS.NEW_GROUP;
-
-        // Listen for the key K being pressed so that focus can be given to
-        // the chat switcher, or new group chat
-        // based on the key modifiers pressed and the operating system
-        this.unsubscribeSearchShortcut = KeyboardShortcut.subscribe(searchShortcutConfig.shortcutKey, () => {
+        return KeyboardShortcut.subscribe(searchShortcutConfig.shortcutKey, () => {
             Modal.close(() => {
                 if (Navigation.isActiveRoute(ROUTES.SEARCH)) {
                     return;
@@ -138,7 +149,11 @@ class AuthScreens extends React.Component {
                 return Navigation.navigate(ROUTES.SEARCH);
             });
         }, searchShortcutConfig.descriptionKey, searchShortcutConfig.modifiers, true);
-        this.unsubscribeGroupShortcut = KeyboardShortcut.subscribe(groupShortcutConfig.shortcutKey, () => {
+    }, []);
+
+    useEffect(() => {
+        const groupShortcutConfig = CONST.KEYBOARD_SHORTCUTS.NEW_GROUP;
+        return KeyboardShortcut.subscribe(groupShortcutConfig.shortcutKey, () => {
             Modal.close(() => {
                 if (Navigation.isActiveRoute(ROUTES.NEW_GROUP)) {
                     return;
@@ -146,245 +161,222 @@ class AuthScreens extends React.Component {
                 Navigation.navigate(ROUTES.NEW_GROUP);
             });
         }, groupShortcutConfig.descriptionKey, groupShortcutConfig.modifiers, true);
-    }
+    }, []);
 
-    shouldComponentUpdate(nextProps) {
-        return nextProps.isSmallScreenWidth !== this.props.isSmallScreenWidth;
-    }
+    const modalScreenOptions = useMemo(() => ({
+        ...commonModalScreenOptions,
+        cardStyle: getNavigationModalCardStyle(props.isSmallScreenWidth),
+        modalCardStyleInterpolator: cardProps => modalCardStyleInterpolator(props.isSmallScreenWidth, false, cardProps),
+        cardOverlayEnabled: true,
 
-    componentWillUnmount() {
-        if (this.unsubscribeSearchShortcut) {
-            this.unsubscribeSearchShortcut();
-        }
-        if (this.unsubscribeGroupShortcut) {
-            this.unsubscribeGroupShortcut();
-        }
-        Session.cleanupSession();
-        clearInterval(this.interval);
-        this.interval = null;
-    }
+        // This is a custom prop we are passing to custom navigator so that we will know to add a Pressable overlay
+        // when displaying a modal. This allows us to dismiss by clicking outside on web / large screens.
+        isModal: true,
+    }), [props.isSmallScreenWidth]);
 
-    render() {
-        const commonModalScreenOptions = {
-            headerShown: false,
-            gestureDirection: 'horizontal',
-            animationEnabled: true,
+    const url = getCurrentUrl();
+    const openOnAdminRoom = url ? new URL(url).searchParams.get('openOnAdminRoom') : '';
 
-            // This option is required to make previous screen visible underneath the modal screen
-            // https://reactnavigation.org/docs/6.x/stack-navigator#transparent-modals
-            presentation: 'transparentModal',
-        };
-        const modalScreenOptions = {
-            ...commonModalScreenOptions,
-            cardStyle: getNavigationModalCardStyle(this.props.isSmallScreenWidth),
-            cardStyleInterpolator: props => modalCardStyleInterpolator(this.props.isSmallScreenWidth, false, props),
-            cardOverlayEnabled: true,
+    return (
+        <RootStack.Navigator
+            mode="modal"
 
-            // This is a custom prop we are passing to custom navigator so that we will know to add a Pressable overlay
-            // when displaying a modal. This allows us to dismiss by clicking outside on web / large screens.
-            isModal: true,
-        };
-        const url = getCurrentUrl();
-        const openOnAdminRoom = url ? new URL(url).searchParams.get('openOnAdminRoom') : '';
+            // We are disabling the default keyboard handling here since the automatic behavior is to close a
+            // keyboard that's open when swiping to dismiss a modal. In those cases, pressing the back button on
+            // a header will briefly open and close the keyboard and crash Android.
+            // eslint-disable-next-line react/jsx-props-no-multi-spaces
+            keyboardHandlingEnabled={false}
+            screenListeners={{
+                state: (e) => {
+                    const prevFocusedScreeName = focusedScreenName;
+                    focusedScreenName = getFocusedRouteNameFromRoute(_.last(lodashGet(e, 'data.state.routes', [{}])));
+                    if (focusedScreenName !== prevFocusedScreeName) {
+                        const screenBackgroundColor = themeColors.PAGE_BACKGROUND_COLORS[focusedScreenName] || themeColors.appBG;
+                        console.log('RORY_DEBUG background color should change to:', screenBackgroundColor);
+                    }
+                },
+            }}
+        >
+            {/* The MainDrawerNavigator contains the SidebarScreen and ReportScreen */}
+            <RootStack.Screen
+                name={SCREENS.HOME}
+                options={{
+                    headerShown: false,
+                    title: 'New Expensify',
 
-        return (
-            <RootStack.Navigator
-                mode="modal"
-
-                // We are disabling the default keyboard handling here since the automatic behavior is to close a
-                // keyboard that's open when swiping to dismiss a modal. In those cases, pressing the back button on
-                // a header will briefly open and close the keyboard and crash Android.
-                // eslint-disable-next-line react/jsx-props-no-multi-spaces
-                keyboardHandlingEnabled={false}
-                screenListeners={{
-                    state: (e) => {
-                        const prevFocusedScreeName = this.focusedScreenName;
-                        this.focusedScreenName = getFocusedRouteNameFromRoute(_.last(lodashGet(e, 'data.state.routes', [{}])));
-                        if (this.focusedScreenName !== prevFocusedScreeName) {
-                            const screenBackgroundColor = themeColors.PAGE_BACKGROUND_COLORS[this.focusedScreenName] || themeColors.appBG;
-                            console.log('RORY_DEBUG background color should change to:', screenBackgroundColor);
-                        }
+                    // prevent unnecessary scrolling
+                    cardStyle: {
+                        overflow: 'hidden',
+                        height: '100%',
                     },
                 }}
-            >
-                {/* The MainDrawerNavigator contains the SidebarScreen and ReportScreen */}
-                <RootStack.Screen
-                    name={SCREENS.HOME}
-                    options={{
-                        headerShown: false,
-                        title: 'New Expensify',
+                getComponent={() => {
+                    const MainDrawerNavigator = require('./MainDrawerNavigator').default;
+                    return MainDrawerNavigator;
+                }}
+                initialParams={{openOnAdminRoom: Str.toBool(openOnAdminRoom) || undefined}}
+            />
+            <RootStack.Screen
+                name="ValidateLogin"
+                options={{
+                    headerShown: false,
+                    title: 'New Expensify',
+                }}
+                getComponent={() => {
+                    const ValidateLoginPage = require('../../../pages/ValidateLoginPage').default;
+                    return ValidateLoginPage;
+                }}
+            />
+            <RootStack.Screen
+                name={SCREENS.TRANSITION_FROM_OLD_DOT}
+                options={defaultScreenOptions}
+                getComponent={() => {
+                    const LogOutPreviousUserPage = require('../../../pages/LogOutPreviousUserPage').default;
+                    return LogOutPreviousUserPage;
+                }}
+            />
+            <RootStack.Screen
+                name="Concierge"
+                options={defaultScreenOptions}
+                getComponent={() => {
+                    const ConciergePage = require('../../../pages/ConciergePage').default;
+                    return ConciergePage;
+                }}
+            />
 
-                        // prevent unnecessary scrolling
-                        cardStyle: {
-                            overflow: 'hidden',
-                            height: '100%',
-                        },
-                    }}
-                    getComponent={() => {
-                        const MainDrawerNavigator = require('./MainDrawerNavigator').default;
-                        return MainDrawerNavigator;
-                    }}
-                    initialParams={{openOnAdminRoom: Str.toBool(openOnAdminRoom) || undefined}}
-                />
-                <RootStack.Screen
-                    name="ValidateLogin"
-                    options={{
-                        headerShown: false,
-                        title: 'New Expensify',
-                    }}
-                    getComponent={() => {
-                        const ValidateLoginPage = require('../../../pages/ValidateLoginPage').default;
-                        return ValidateLoginPage;
-                    }}
-                />
-                <RootStack.Screen
-                    name={SCREENS.TRANSITION_FROM_OLD_DOT}
-                    options={defaultScreenOptions}
-                    getComponent={() => {
-                        const LogOutPreviousUserPage = require('../../../pages/LogOutPreviousUserPage').default;
-                        return LogOutPreviousUserPage;
-                    }}
-                />
-                <RootStack.Screen
-                    name="Concierge"
-                    options={defaultScreenOptions}
-                    getComponent={() => {
-                        const ConciergePage = require('../../../pages/ConciergePage').default;
-                        return ConciergePage;
-                    }}
-                />
-
-                {/* These are the various modal routes */}
-                {/* Note: Each modal must have it's own stack navigator since we want to be able to navigate to any
+            {/* These are the various modal routes */}
+            {/* Note: Each modal must have it's own stack navigator since we want to be able to navigate to any
                 modal subscreens e.g. `/settings/profile` and this will allow us to navigate while inside the modal. We
                 are also using a custom navigator on web so even if a modal does not have any subscreens it still must
                 use a navigator */}
-                <RootStack.Screen
-                    name="Settings"
-                    options={modalScreenOptions}
-                    component={ModalStackNavigators.SettingsModalStackNavigator}
-                    listeners={modalScreenListeners}
-                />
-                <RootStack.Screen
-                    name="NewChat"
-                    options={modalScreenOptions}
-                    component={ModalStackNavigators.NewChatModalStackNavigator}
-                    listeners={modalScreenListeners}
-                />
-                <RootStack.Screen
-                    name="NewGroup"
-                    options={modalScreenOptions}
-                    component={ModalStackNavigators.NewGroupModalStackNavigator}
-                    listeners={modalScreenListeners}
-                />
-                <RootStack.Screen
-                    name="Search"
-                    options={modalScreenOptions}
-                    component={ModalStackNavigators.SearchModalStackNavigator}
-                    listeners={modalScreenListeners}
-                />
-                <RootStack.Screen
-                    name="Details"
-                    options={modalScreenOptions}
-                    component={ModalStackNavigators.DetailsModalStackNavigator}
-                    listeners={modalScreenListeners}
-                />
-                <RootStack.Screen
-                    name="Report_Details"
-                    options={modalScreenOptions}
-                    component={ModalStackNavigators.ReportDetailsModalStackNavigator}
-                    listeners={modalScreenListeners}
-                />
-                <RootStack.Screen
-                    name="Report_Settings"
-                    options={modalScreenOptions}
-                    component={ModalStackNavigators.ReportSettingsModalStackNavigator}
-                    listeners={modalScreenListeners}
-                />
-                <RootStack.Screen
-                    name="Participants"
-                    options={modalScreenOptions}
-                    component={ModalStackNavigators.ReportParticipantsModalStackNavigator}
-                    listeners={modalScreenListeners}
-                />
-                <RootStack.Screen
-                    name="IOU_Request"
-                    options={modalScreenOptions}
-                    component={ModalStackNavigators.IOURequestModalStackNavigator}
-                    listeners={modalScreenListeners}
-                />
-                <RootStack.Screen
-                    name="NewTask"
-                    options={modalScreenOptions}
-                    component={ModalStackNavigators.NewTaskModalStackNavigator}
-                    listeners={modalScreenListeners}
-                />
-                <RootStack.Screen
-                    name="Task_Details"
-                    options={modalScreenOptions}
-                    component={ModalStackNavigators.TaskModalStackNavigator}
-                    listeners={modalScreenListeners}
-                />
-                <RootStack.Screen
-                    name="IOU_Bill"
-                    options={modalScreenOptions}
-                    component={ModalStackNavigators.IOUBillStackNavigator}
-                    listeners={modalScreenListeners}
-                />
-                <RootStack.Screen
-                    name="EnablePayments"
-                    options={modalScreenOptions}
-                    component={ModalStackNavigators.EnablePaymentsStackNavigator}
-                    listeners={modalScreenListeners}
-                />
-                <RootStack.Screen
-                    name="IOU_Details"
-                    options={modalScreenOptions}
-                    component={ModalStackNavigators.IOUDetailsModalStackNavigator}
-                    listeners={modalScreenListeners}
-                />
-                <RootStack.Screen
-                    name="AddPersonalBankAccount"
-                    options={modalScreenOptions}
-                    component={ModalStackNavigators.AddPersonalBankAccountModalStackNavigator}
-                    listeners={modalScreenListeners}
-                />
-                <RootStack.Screen
-                    name="IOU_Send"
-                    options={modalScreenOptions}
-                    component={ModalStackNavigators.IOUSendModalStackNavigator}
-                    listeners={modalScreenListeners}
-                />
-                <RootStack.Screen
-                    name="Wallet_Statement"
-                    options={modalScreenOptions}
-                    component={ModalStackNavigators.WalletStatementStackNavigator}
-                    listeners={modalScreenListeners}
-                />
-                <RootStack.Screen
-                    name="Select_Year"
-                    options={modalScreenOptions}
-                    component={ModalStackNavigators.YearPickerStackNavigator}
-                    listeners={modalScreenListeners}
-                />
-                <RootStack.Screen
-                    name={SCREENS.NOT_FOUND}
-                    options={{headerShown: false}}
-                    component={NotFoundPage}
-                    listeners={modalScreenListeners}
-                />
-            </RootStack.Navigator>
-        );
-    }
-}
+            <RootStack.Screen
+                name="Settings"
+                options={modalScreenOptions}
+                component={ModalStackNavigators.SettingsModalStackNavigator}
+                listeners={modalScreenListeners}
+            />
+            <RootStack.Screen
+                name="NewChat"
+                options={modalScreenOptions}
+                component={ModalStackNavigators.NewChatModalStackNavigator}
+                listeners={modalScreenListeners}
+            />
+            <RootStack.Screen
+                name="NewGroup"
+                options={modalScreenOptions}
+                component={ModalStackNavigators.NewGroupModalStackNavigator}
+                listeners={modalScreenListeners}
+            />
+            <RootStack.Screen
+                name="Search"
+                options={modalScreenOptions}
+                component={ModalStackNavigators.SearchModalStackNavigator}
+                listeners={modalScreenListeners}
+            />
+            <RootStack.Screen
+                name="Details"
+                options={modalScreenOptions}
+                component={ModalStackNavigators.DetailsModalStackNavigator}
+                listeners={modalScreenListeners}
+            />
+            <RootStack.Screen
+                name="Report_Details"
+                options={modalScreenOptions}
+                component={ModalStackNavigators.ReportDetailsModalStackNavigator}
+                listeners={modalScreenListeners}
+            />
+            <RootStack.Screen
+                name="Report_Settings"
+                options={modalScreenOptions}
+                component={ModalStackNavigators.ReportSettingsModalStackNavigator}
+                listeners={modalScreenListeners}
+            />
+            <RootStack.Screen
+                name="Participants"
+                options={modalScreenOptions}
+                component={ModalStackNavigators.ReportParticipantsModalStackNavigator}
+                listeners={modalScreenListeners}
+            />
+            <RootStack.Screen
+                name="IOU_Request"
+                options={modalScreenOptions}
+                component={ModalStackNavigators.IOURequestModalStackNavigator}
+                listeners={modalScreenListeners}
+            />
+            <RootStack.Screen
+                name="NewTask"
+                options={modalScreenOptions}
+                component={ModalStackNavigators.NewTaskModalStackNavigator}
+                listeners={modalScreenListeners}
+            />
+            <RootStack.Screen
+                name="Task_Details"
+                options={modalScreenOptions}
+                component={ModalStackNavigators.TaskModalStackNavigator}
+                listeners={modalScreenListeners}
+            />
+            <RootStack.Screen
+                name="IOU_Bill"
+                options={modalScreenOptions}
+                component={ModalStackNavigators.IOUBillStackNavigator}
+                listeners={modalScreenListeners}
+            />
+            <RootStack.Screen
+                name="EnablePayments"
+                options={modalScreenOptions}
+                component={ModalStackNavigators.EnablePaymentsStackNavigator}
+                listeners={modalScreenListeners}
+            />
+            <RootStack.Screen
+                name="IOU_Details"
+                options={modalScreenOptions}
+                component={ModalStackNavigators.IOUDetailsModalStackNavigator}
+                listeners={modalScreenListeners}
+            />
+            <RootStack.Screen
+                name="AddPersonalBankAccount"
+                options={modalScreenOptions}
+                component={ModalStackNavigators.AddPersonalBankAccountModalStackNavigator}
+                listeners={modalScreenListeners}
+            />
+            <RootStack.Screen
+                name="IOU_Send"
+                options={modalScreenOptions}
+                component={ModalStackNavigators.IOUSendModalStackNavigator}
+                listeners={modalScreenListeners}
+            />
+            <RootStack.Screen
+                name="Wallet_Statement"
+                options={modalScreenOptions}
+                component={ModalStackNavigators.WalletStatementStackNavigator}
+                listeners={modalScreenListeners}
+            />
+            <RootStack.Screen
+                name="Select_Year"
+                options={modalScreenOptions}
+                component={ModalStackNavigators.YearPickerStackNavigator}
+                listeners={modalScreenListeners}
+            />
+            <RootStack.Screen
+                name={SCREENS.NOT_FOUND}
+                options={{headerShown: false}}
+                component={NotFoundPage}
+                listeners={modalScreenListeners}
+            />
+        </RootStack.Navigator>
+    );
+};
 
 AuthScreens.propTypes = propTypes;
 AuthScreens.defaultProps = defaultProps;
-export default compose(
-    withWindowDimensions,
-    withOnyx({
-        session: {
-            key: ONYXKEYS.SESSION,
-        },
-    }),
-)(AuthScreens);
+export default React.memo(
+    compose(
+        withWindowDimensions,
+        withOnyx({
+            session: {
+                key: ONYXKEYS.SESSION,
+            },
+        }),
+    )(AuthScreens),
+    (prevProps, nextProps) => prevProps.isSmallScreenWidth === nextProps.isSmallScreenWidth,
+);
