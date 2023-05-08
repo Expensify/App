@@ -501,7 +501,6 @@ export default {
         errors: {
             sixDigits: 'Code must have exactly 6 digits',
         },
-
     },
     passwordConfirmationScreen: {
         passwordUpdated: 'Password updated!',
