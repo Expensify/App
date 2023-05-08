@@ -1,4 +1,4 @@
-import React from 'react';
+import React, {useRef} from 'react';
 import {View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import PropTypes from 'prop-types';
@@ -28,6 +28,8 @@ const defaultProps = {
 };
 
 const NewTaskPage = (props) => {
+    const inputRef = useRef();
+
     /**
      * @param {Object} values - form input values passed by the Form component
      * @returns {Boolean}
@@ -55,7 +57,10 @@ const NewTaskPage = (props) => {
         return null;
     }
     return (
-        <ScreenWrapper includeSafeAreaPaddingBottom={false}>
+        <ScreenWrapper
+            onEntryTransitionEnd={() => inputRef.current && inputRef.current.focus()}
+            includeSafeAreaPaddingBottom={false}
+        >
             <HeaderWithCloseButton
                 title={props.translate('newTaskPage.assignTask')}
                 onCloseButtonPress={() => Navigation.dismissModal()}
@@ -71,10 +76,17 @@ const NewTaskPage = (props) => {
                 enabledWhenOffline
             >
                 <View style={styles.mb5}>
-                    <TextInput inputID="taskTitle" label={props.translate('newTaskPage.title')} />
+                    <TextInput
+                        ref={el => inputRef.current = el}
+                        inputID="taskTitle"
+                        label={props.translate('newTaskPage.title')}
+                    />
                 </View>
                 <View style={styles.mb5}>
-                    <TextInput inputID="taskDescription" label={props.translate('newTaskPage.descriptionOptional')} />
+                    <TextInput
+                        inputID="taskDescription"
+                        label={props.translate('newTaskPage.descriptionOptional')}
+                    />
                 </View>
             </Form>
         </ScreenWrapper>

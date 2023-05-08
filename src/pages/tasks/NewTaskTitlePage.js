@@ -19,7 +19,7 @@ import * as TaskUtils from '../../libs/actions/Task';
 const propTypes = {
     /** Beta features list */
     betas: PropTypes.arrayOf(PropTypes.string),
-    
+
     /** Grab the Share title of the Task */
     task: PropTypes.shape({
         /** Title of the Task */
@@ -36,7 +36,7 @@ const defaultProps = {
     },
 };
 
-// NOTE: This page is going to be updated in https://github.com/Expensify/App/issues/16855, this is just a placeholder for now
+
 const NewTaskTitlePage = (props) => {
     /**
      * @param {Object} values - form input values passed by the Form component
