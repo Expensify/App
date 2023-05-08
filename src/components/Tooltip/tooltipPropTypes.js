@@ -40,7 +40,7 @@ const propTypes = {
     renderTooltipContent: PropTypes.func,
 
     /** Unique key of renderTooltipContent to rerender the tooltip when one of the key changes */
-    renderTooltipContentKey: PropTypes.arrayOf(PropTypes.any),
+    renderTooltipContentKey: PropTypes.arrayOf(PropTypes.string),
 };
 
 const defaultProps = {
