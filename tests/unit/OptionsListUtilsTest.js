@@ -651,7 +651,7 @@ describe('OptionsListUtils', () => {
         results = OptionsListUtils.getShareDestinationOptions(REPORTS_WITH_WORKSPACE_ROOMS, PERSONAL_DETAILS, [], '');
 
         // Then we should expect the DMS, the group chats and the workspace room to show
-        // We should expect 5 recent reports to show because we're grabbing DM chats and group chats
+        // We should expect 5 recent reports to show because we've limited the number of recent reports to 5
         expect(results.recentReports.length).toBe(5);
 
         // When we search for a workspace room
