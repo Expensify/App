@@ -121,7 +121,9 @@ class MainDrawerNavigator extends Component {
             const reportScreenRoute = this.props.reportScreenRoute;
             if (!_.isEmpty(reportScreenRoute)) {
                 const {reportID, isSubReportPageRoute} = ROUTES.parseReportRouteParams(reportScreenRoute);
-                initialNextParams.reportID = reportID;
+                if (!_.isEmpty(reportID)) {
+                    initialNextParams.reportID = reportID;
+                }
                 if (isSubReportPageRoute) {
                     Navigation.navigate(reportScreenRoute);
                 }
