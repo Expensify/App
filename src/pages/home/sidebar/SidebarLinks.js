@@ -118,7 +118,7 @@ class SidebarLinks extends React.Component {
             this.setState({screenDisappeared: e.data.closing});
         });
 
-        this.gestureStartListener = this.props.navigation.addListener('gestureStart', (e) => {
+        this.gestureStartListener = this.props.navigation.addListener('gestureStart', () => {
             this.setState({screenDisappeared: false});
         });
     }
