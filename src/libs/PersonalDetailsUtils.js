@@ -21,14 +21,15 @@ function getPersonalDetailsByIDs(accountIDs, shouldChangeUserDisplayName = false
     const currentAccountID = Report.getCurrentUserAccountID();
     _.each(personalDetails, (detail) => {
         for (let i = 0; i < accountIDs.length; i++) {
+            const currentIndex = result.length;
             if (detail.accountID === accountIDs[i]) {
                 if (shouldChangeUserDisplayName && currentAccountID.toString() === detail.accountID) {
-                    result[i] = {
+                    result[currentIndex] = {
                         ...detail,
                         displayName: Localize.translateLocal('common.you'),
                     };
                 } else {
-                    result[i] = detail;
+                    result[currentIndex] = detail;
                 }
                 break;
             }

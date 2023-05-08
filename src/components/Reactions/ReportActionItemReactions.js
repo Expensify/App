@@ -89,7 +89,7 @@ const ReportActionItemReactions = (props) => {
                     ReactionList.showReactionList(
                         event,
                         popoverReactionListAnchor.current,
-                        _.compact(users),
+                        users,
                         reaction.emoji,
                         emojiCodes,
                         reactionCount,
