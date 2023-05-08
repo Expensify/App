@@ -27,5 +27,5 @@ const TextFileLink = (props) => {
 
 TextFileLink.defaultProps = defaultProps;
 TextFileLink.propTypes = propTypes;
-TextFileLink.displayName = 'TextLink';
+TextFileLink.displayName = 'TextFileLink';
 export default TextFileLink;

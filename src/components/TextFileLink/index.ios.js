@@ -1,6 +1,7 @@
 import {Share} from 'react-native';
 import PropTypes from 'prop-types';
 import RNFetchBlob from 'react-native-blob-util';
+import * as FileUtils from '../../libs/fileDownload/FileUtils';
 
 const propTypes = {
     fileName: PropTypes.string,
@@ -21,9 +22,16 @@ const TextFileLink = (props) => {
 
         RNFetchBlob.fs.writeFile(path, props.textContent, 'utf8')
             .then(() => {
-                Share.share({url: path, title: props.fileName}).then(() => {
-                    RNFetchBlob.fs.unlink(path);
-                });
+                Share.share({url: path, title: props.fileName})
+                    .then(() => {
+                        FileUtils.showSuccessAlert();
+                    })
+                    .catch(() => {
+                        FileUtils.showGeneralErrorAlert();
+                    })
+                    .finally(() => {
+                        RNFetchBlob.fs.unlink(path);
+                    });
             });
     };
 
@@ -32,5 +40,5 @@ const TextFileLink = (props) => {
 
 TextFileLink.defaultProps = defaultProps;
 TextFileLink.propTypes = propTypes;
-TextFileLink.displayName = 'TextLink';
+TextFileLink.displayName = 'TextFileLink';
 export default TextFileLink;
