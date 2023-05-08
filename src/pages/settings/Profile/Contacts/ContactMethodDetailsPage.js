@@ -97,6 +97,17 @@ class ContactMethodDetailsPage extends Component {
         };
     }
 
+    componentDidUpdate(prevProps) {
+        const errorFields = lodashGet(this.props.loginList, [this.getContactMethod(), 'errorFields'], {});
+        const prevPendingFields = lodashGet(prevProps.loginList, [this.getContactMethod(), 'pendingFields'], {});
+
+        // Navigate to methods page on successful magic code verification
+        // validateLogin property of errorFields & prev pendingFields is responsible to decide the status of the magic code verification
+        if (!errorFields.validateLogin && prevPendingFields.validateLogin === CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE) {
+            Navigation.navigate(ROUTES.SETTINGS_CONTACT_METHODS);
+        }
+    }
+
     /**
      * Gets the current contact method from the route params
      *
@@ -190,7 +201,7 @@ class ContactMethodDetailsPage extends Component {
                         isVisible={this.state.isDeleteModalOpen}
                         danger
                     />
-                    {isFailedAddContactMethod && <DotIndicatorMessage style={[styles.mh5]} messages={ErrorUtils.getLatestErrorField(loginData, 'addedLogin')} type="error" />}
+                    {isFailedAddContactMethod && <DotIndicatorMessage style={[styles.mh5, styles.mv3]} messages={ErrorUtils.getLatestErrorField(loginData, 'addedLogin')} type="error" />}
                     {!loginData.validatedDate && !isFailedAddContactMethod && (
                         <View style={[styles.ph5, styles.mt3, styles.mb7]}>
                             <View style={[styles.flexRow, styles.alignItemsCenter, styles.mb1]}>
@@ -216,13 +227,17 @@ class ContactMethodDetailsPage extends Component {
                                 onClose={() => User.clearContactMethodErrors(contactMethod, 'validateCodeSent')}
                             >
                                 <View
-                                    style={[styles.mt2, styles.dFlex, styles.flexRow]}
+                                    style={[styles.mt2, styles.dFlex, styles.flexColumn]}
                                 >
                                     <Text style={[styles.link, styles.mr1]} onPress={this.resendValidateCode}>
                                         {this.props.translate('contacts.resendMagicCode')}
                                     </Text>
                                     {hasMagicCodeBeenSent && (
-                                        <Icon src={Expensicons.Checkmark} fill={colors.green} />
+                                        <DotIndicatorMessage
+                                            type="success"
+                                            style={[styles.mt6, styles.flex0]}
+                                            messages={{0: this.props.translate('resendValidationForm.linkHasBeenResent')}}
+                                        />
                                     )}
                                 </View>
                             </OfflineWithFeedback>

@@ -27,6 +27,7 @@ export default {
             // Main Routes
             SetPassword: ROUTES.SET_PASSWORD_WITH_VALIDATE_CODE,
             ValidateLogin: ROUTES.VALIDATE_LOGIN,
+            UnlinkLogin: ROUTES.UNLINK_LOGIN,
             [SCREENS.TRANSITION_FROM_OLD_DOT]: ROUTES.TRANSITION_FROM_OLD_DOT,
             Concierge: ROUTES.CONCIERGE,
 
@@ -174,6 +175,9 @@ export default {
                     Workspace_Invite: {
                         path: ROUTES.WORKSPACE_INVITE,
                     },
+                    Workspace_Invite_Message: {
+                        path: ROUTES.WORKSPACE_INVITE_MESSAGE,
+                    },
                     Workspace_NewRoom: {
                         path: ROUTES.WORKSPACE_NEW_ROOM,
                     },
@@ -209,6 +213,11 @@ export default {
             NewTask: {
                 screens: {
                     NewTask_Root: ROUTES.NEW_TASK_WITH_REPORT_ID,
+                    NewTask_TaskAssigneeSelector: ROUTES.NEW_TASK_ASSIGNEE,
+                    NewTask_TaskShareDestinationSelector: ROUTES.NEW_TASK_SHARE_DESTINATION,
+                    NewTask_Details: ROUTES.NEW_TASK_DETAILS,
+                    NewTask_Title: ROUTES.NEW_TASK_TITLE,
+                    NewTask_Description: ROUTES.NEW_TASK_DESCRIPTION,
                 },
             },
             Search: {
@@ -255,6 +264,12 @@ export default {
                     IOU_Details_Enable_Payments: ROUTES.IOU_DETAILS_ENABLE_PAYMENTS,
                     IOU_Details_Add_Bank_Account: ROUTES.IOU_DETAILS_ADD_BANK_ACCOUNT,
                     IOU_Details_Add_Debit_Card: ROUTES.IOU_DETAILS_ADD_DEBIT_CARD,
+                },
+            },
+            Task_Details: {
+                screens: {
+                    Task_Title: ROUTES.TASK_TITLE,
+                    Task_Description: ROUTES.TASK_DESCRIPTION,
                 },
             },
             AddPersonalBankAccount: {
