@@ -24,8 +24,6 @@ import reportPropTypes from '../../reportPropTypes';
 import * as ReactionList from './ReactionList/ReactionList';
 import PopoverReactionList from './ReactionList/PopoverReactionList';
 import getIsReportFullyVisible from '../../../libs/getIsReportFullyVisible';
-import {getSortedReportActions} from "../../../libs/ReportActionsUtils";
-import {getReportActionsFromOnyx} from "../../../libs/actions/Report";
 
 const propTypes = {
     /** The report currently being looked at */
@@ -58,7 +56,8 @@ class ReportActionsView extends React.Component {
         this.unsubscribeVisibilityListener = null;
         this.hasCachedActions = _.size(props.reportActions) > 0;
 
-        console.log(`~~Monil constructor`);
+        console.log(`~~Monil In constructor`);
+        console.log(this.props.reportActions);
         this.state = {
             isFloatingMessageCounterVisible: false,
             newMarkerReportActionID: ReportUtils.getNewMarkerReportActionID(this.props.report, props.reportActions),

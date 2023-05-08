@@ -1517,6 +1517,16 @@ function getCurrentUserAccountID() {
     return currentUserAccountID;
 }
 
+
+/**
+ * @param {String|null} reportID
+ */
+function getAllReportActions(reportID) {
+    if (reportID) {
+        return allReportActions[reportID];
+    }
+    return allReportActions;
+}
 export {
     addComment,
     addAttachment,
@@ -1558,4 +1568,5 @@ export {
     hasAccountIDReacted,
     getCurrentUserAccountID,
     shouldShowReportActionNotification,
+    getAllReportActions,
 };
