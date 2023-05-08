@@ -13,7 +13,6 @@ import CONST from '../CONST';
 import menuItemPropTypes from './menuItemPropTypes';
 import SelectCircle from './SelectCircle';
 import colors from '../styles/colors';
-import variables from '../styles/variables';
 import MultipleAvatars from './MultipleAvatars';
 import * as defaultWorkspaceAvatars from './Icon/WorkspaceDefaultAvatars';
 import PressableWithSecondaryInteraction from './PressableWithSecondaryInteraction';
@@ -32,9 +31,11 @@ const defaultProps = {
     shouldShowSelectedState: false,
     shouldShowBasicTitle: false,
     shouldShowDescriptionOnTop: false,
+    shouldShowHeaderTitle: false,
     wrapperStyle: [],
     style: styles.popoverMenuItem,
     titleStyle: {},
+    descriptionTextStyle: styles.breakWord,
     success: false,
     icon: undefined,
     iconWidth: undefined,
@@ -67,15 +68,16 @@ const MenuItem = (props) => {
         (props.interactive && props.disabled ? {...styles.disabledText, ...styles.userSelectNone} : undefined),
         styles.pre,
         styles.ltr,
+        (props.shouldShowHeaderTitle ? styles.textHeadlineH1 : undefined),
         (_.contains(props.style, styles.offlineFeedback.deleted) ? styles.offlineFeedback.deleted : undefined),
     ], props.titleStyle);
     const descriptionVerticalMargin = props.shouldShowDescriptionOnTop ? styles.mb1 : styles.mt1;
     const descriptionTextStyle = StyleUtils.combineStyles([
         styles.textLabelSupporting,
         (props.icon ? styles.ml3 : undefined),
-        styles.breakWord,
         styles.lineHeightNormal,
         props.title ? descriptionVerticalMargin : undefined,
+        props.descriptionTextStyle,
     ]);
 
     const fallbackAvatarSize = props.viewMode === CONST.OPTION_MODE.COMPACT ? CONST.AVATAR_SIZE.SMALL : CONST.AVATAR_SIZE.DEFAULT;
@@ -208,8 +210,6 @@ const MenuItem = (props) => {
                                 <Icon
                                     src={Expensicons.DotIndicator}
                                     fill={props.brickRoadIndicator === 'error' ? colors.red : colors.green}
-                                    height={variables.iconSizeSmall}
-                                    width={variables.iconSizeSmall}
                                 />
                             </View>
                         )}
