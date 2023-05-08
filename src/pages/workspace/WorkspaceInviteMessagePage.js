@@ -169,7 +169,7 @@ class WorkspaceInviteMessagePage extends React.Component {
                         <View style={[styles.mv4, styles.justifyContentCenter, styles.alignItemsCenter]}>
                             <MultipleAvatars
                                 size={CONST.AVATAR_SIZE.LARGE}
-                                icons={OptionsListUtils.getAvatarsForLogins(this.props.invitedMembersDraft)}
+                                icons={OptionsListUtils.getAvatarsForLogins(this.props.invitedMembersDraft, this.props.personalDetails)}
                                 shouldStackHorizontally
                                 secondAvatarStyle={[
                                     styles.secondAvatarInline,
