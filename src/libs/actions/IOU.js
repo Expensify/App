@@ -119,8 +119,6 @@ function requestMoney(report, amount, currency, recipientEmail, participant, com
         value: {
             ...chatReport,
             lastReadTime: DateUtils.getDBTime(),
-            lastMessageText: optimisticReportAction.message[0].text,
-            lastMessageHtml: optimisticReportAction.message[0].html,
             hasOutstandingIOU: iouReport.total !== 0,
             iouReportID: iouReport.reportID,
         },
@@ -129,12 +127,16 @@ function requestMoney(report, amount, currency, recipientEmail, participant, com
     const optimisticIOUReportData = {
         onyxMethod: chatReport.hasOutstandingIOU ? Onyx.METHOD.MERGE : Onyx.METHOD.SET,
         key: `${ONYXKEYS.COLLECTION.REPORT}${iouReport.reportID}`,
-        value: iouReport,
+        value: {
+            ...iouReport,
+            lastMessageText: optimisticReportAction.message[0].text,
+            lastMessageHtml: optimisticReportAction.message[0].html,
+        },
     };
 
     const optimisticReportActionsData = {
         onyxMethod: Onyx.METHOD.MERGE,
-        key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${chatReport.reportID}`,
+        key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${iouReport.reportID}`,
         value: {
             [optimisticReportAction.reportActionID]: optimisticReportAction,
         },
@@ -143,7 +145,7 @@ function requestMoney(report, amount, currency, recipientEmail, participant, com
     let chatReportSuccessData = {};
     const reportActionsSuccessData = {
         onyxMethod: Onyx.METHOD.MERGE,
-        key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${chatReport.reportID}`,
+        key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${iouReport.reportID}`,
         value: {
             [optimisticReportAction.reportActionID]: {
                 pendingAction: null,
@@ -161,7 +163,7 @@ function requestMoney(report, amount, currency, recipientEmail, participant, com
 
     const reportActionsFailureData = {
         onyxMethod: Onyx.METHOD.MERGE,
-        key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${chatReport.reportID}`,
+        key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${iouReport.reportID}`,
         value: {
             [optimisticReportAction.reportActionID]: {
                 errors: {
@@ -841,18 +843,20 @@ function getSendMoneyParams(report, amount, currency, comment, paymentMethodType
             ...chatReport,
             lastReadTime: DateUtils.getDBTime(),
             lastVisibleActionCreated: optimisticIOUReportAction.created,
-            lastMessageText: optimisticIOUReportAction.message[0].text,
-            lastMessageHtml: optimisticIOUReportAction.message[0].html,
         },
     };
     const optimisticIOUReportData = {
         onyxMethod: Onyx.METHOD.SET,
         key: `${ONYXKEYS.COLLECTION.REPORT}${optimisticIOUReport.reportID}`,
-        value: optimisticIOUReport,
+        value: {
+            ...optimisticIOUReport,
+            lastMessageText: optimisticIOUReportAction.message[0].text,
+            lastMessageHtml: optimisticIOUReportAction.message[0].html,
+        },
     };
     const optimisticReportActionsData = {
         onyxMethod: Onyx.METHOD.MERGE,
-        key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${chatReport.reportID}`,
+        key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${optimisticIOUReport.reportID}`,
         value: {
             [optimisticIOUReportAction.reportActionID]: {
                 ...optimisticIOUReportAction,
@@ -864,7 +868,7 @@ function getSendMoneyParams(report, amount, currency, comment, paymentMethodType
     const successData = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${chatReport.reportID}`,
+            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${optimisticIOUReport.reportID}`,
             value: {
                 [optimisticIOUReportAction.reportActionID]: {
                     pendingAction: null,
@@ -881,7 +885,7 @@ function getSendMoneyParams(report, amount, currency, comment, paymentMethodType
     const failureData = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${chatReport.reportID}`,
+            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${optimisticIOUReport.reportID}`,
             value: {
                 [optimisticIOUReportAction.reportActionID]: {
                     errors: {
@@ -985,15 +989,13 @@ function getPayMoneyRequestParams(chatReport, iouReport, recipient, paymentMetho
                 ...chatReport,
                 lastReadTime: DateUtils.getDBTime(),
                 lastVisibleActionCreated: optimisticIOUReportAction.created,
-                lastMessageText: optimisticIOUReportAction.message[0].text,
-                lastMessageHtml: optimisticIOUReportAction.message[0].html,
                 hasOutstandingIOU: false,
                 iouReportID: null,
             },
         },
         {
             onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${chatReport.reportID}`,
+            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${iouReport.reportID}`,
             value: {
                 [optimisticIOUReportAction.reportActionID]: {
                     ...optimisticIOUReportAction,
@@ -1006,6 +1008,8 @@ function getPayMoneyRequestParams(chatReport, iouReport, recipient, paymentMetho
             key: `${ONYXKEYS.COLLECTION.REPORT}${iouReport.reportID}`,
             value: {
                 ...iouReport,
+                lastMessageText: optimisticIOUReportAction.message[0].text,
+                lastMessageHtml: optimisticIOUReportAction.message[0].html,
                 hasOutstandingIOU: false,
                 stateNum: CONST.REPORT.STATE_NUM.SUBMITTED,
             },
@@ -1020,7 +1024,7 @@ function getPayMoneyRequestParams(chatReport, iouReport, recipient, paymentMetho
     const successData = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${chatReport.reportID}`,
+            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${iouReport.reportID}`,
             value: {
                 [optimisticIOUReportAction.reportActionID]: {
                     pendingAction: null,
@@ -1046,7 +1050,7 @@ function getPayMoneyRequestParams(chatReport, iouReport, recipient, paymentMetho
     const failureData = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${chatReport.reportID}`,
+            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${iouReport.reportID}`,
             value: {
                 [optimisticIOUReportAction.reportActionID]: {
                     pendingAction: null,
