@@ -39,9 +39,10 @@ class CopyTextToClipboard extends React.Component {
     }
 
     copyToClipboard() {
-        if (!this.props.isDelayButtonStateComplete) {
-            Clipboard.setString(this.props.text);
+        if (this.props.isDelayButtonStateComplete) {
+            return;
         }
+        Clipboard.setString(this.props.text);
         this.props.toggleDelayButtonState(true);
     }
 
