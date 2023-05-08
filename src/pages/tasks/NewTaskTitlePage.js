@@ -19,12 +19,21 @@ import * as TaskUtils from '../../libs/actions/Task';
 const propTypes = {
     /** Beta features list */
     betas: PropTypes.arrayOf(PropTypes.string),
+    
+    /** Grab the Share title of the Task */
+    task: PropTypes.shape({
+        /** Title of the Task */
+        title: PropTypes.string,
+    }),
 
     ...withLocalizePropTypes,
 };
 
 const defaultProps = {
     betas: [],
+    task: {
+        title: '',
+    },
 };
 
 // NOTE: This page is going to be updated in https://github.com/Expensify/App/issues/16855, this is just a placeholder for now
@@ -92,6 +101,9 @@ export default compose(
     withOnyx({
         betas: {
             key: ONYXKEYS.BETAS,
+        },
+        task: {
+            key: ONYXKEYS.TASK,
         },
     }),
     withLocalize,

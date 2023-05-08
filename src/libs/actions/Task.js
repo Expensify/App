@@ -63,7 +63,7 @@ function createTaskAndNavigate(currentUserEmail, parentReportID, title, descript
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${parentReportID}`,
-            value: optimisticAddCommentReport,
+            value: {[optimisticAddCommentReport.reportAction.reportActionID]: optimisticAddCommentReport.reportAction},
         },
     ];
 
