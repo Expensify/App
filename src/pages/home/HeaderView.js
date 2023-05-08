@@ -66,14 +66,8 @@ const defaultProps = {
 };
 
 const HeaderView = (props) => {
-    let parentReportAction = props.parentReportActions['7267239632810500313'];
-    parentReportAction = ReportUtils.findMatchingValueDEVTESTING(props.parentReportActions, `${props.report.parentReportActionID}`);
-    // eslint-disable-next-line no-console
-    console.log('header', parentReportAction);
-    if (parentReportAction) {
-        // eslint-disable-next-line no-console
-        console.log('parent header', props.parentReportActions, parentReportAction);
-    }
+    // TO DO: Replace with subscribing to specific action rather than all.
+    const parentReportAction = ReportUtils.findMatchingValueDEVTESTING(props.parentReportActions, `${props.report.parentReportActionID}`);
     const participants = lodashGet(props.report, 'participants', []);
     const participantPersonalDetails = OptionsListUtils.getPersonalDetailsForLogins(participants, props.personalDetails);
     const isMultipleParticipant = participants.length > 1;

@@ -828,10 +828,10 @@ function getIcons(report, personalDetails, defaultIcon = null) {
     }
 
     const participantDetails = [];
-    const participantsList = report.participants || [];
+    const participants = report.participants || [];
 
-    for (let i = 0; i < participantsList.length; i++) {
-        const login = participantsList[i];
+    for (let i = 0; i < participants.length; i++) {
+        const login = participants[i];
         const avatarSource = getAvatar(lodashGet(personalDetails, [login, 'avatar'], ''), login);
         participantDetails.push([
             login,
@@ -853,6 +853,7 @@ function getIcons(report, personalDetails, defaultIcon = null) {
         };
         avatars.push(userIcon);
     }
+
     return avatars;
 }
 

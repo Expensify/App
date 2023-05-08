@@ -275,9 +275,6 @@ function getOptionData(reportID) {
         lastMessageTextFromReport = report ? report.lastMessageText || '' : '';
     }
 
-    // eslint-disable-next-line no-console
-    console.log('lastMessageTextFromReport: ', lastMessageTextFromReport);
-
     // If the last actor's details are not currently saved in Onyx Collection,
     // then try to get that from the last report action if that action is valid
     // to get data from.
@@ -332,13 +329,9 @@ function getOptionData(reportID) {
     }
 
     const reportName = ReportUtils.getReportName(report);
-    // eslint-disable-next-line no-unused-expressions, no-undef, no-console, max-len
 
-    // const parentReportID = '2443650236419026';
-    // const parentReportActionID = '7267239632810500313';
     const parentReportActionMessage = lodashGet(parentReportAction, ['message', 0, 'text']);
-    // eslint-disable-next-line no-console
-    console.log('rip ', parentReportAction, parentReportActionMessage, lastMessageText);
+
     result.text = ReportUtils.isThread(report) ? parentReportActionMessage : reportName;
     result.subtitle = subtitle;
     result.participantsList = participantPersonalDetailList;

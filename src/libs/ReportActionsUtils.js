@@ -46,8 +46,6 @@ function isDeletedAction(reportAction) {
  * @returns {Object}
  */
 function getParentReportAction(parentReportID, parentReportActionID) {
-    // A deleted comment has either an empty array or an object with html field with empty string as value
-    // eslint-disable-next-line no-console
     const reportAction = lodashGet(allReportActions, [parentReportID, parentReportActionID]);
     return reportAction;
 }
@@ -57,8 +55,6 @@ function getParentReportAction(parentReportID, parentReportActionID) {
  * @returns {Object}
  */
 function getReportActions(reportID) {
-    // A deleted comment has either an empty array or an object with html field with empty string as value
-    // eslint-disable-next-line no-console
     const reportAction = lodashGet(allReportActions, [reportID]);
     return reportAction;
 }
