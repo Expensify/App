@@ -57,21 +57,21 @@ function updatePassword(oldPassword, password) {
     }, {
         optimisticData: [
             {
-                onyxMethod: CONST.ONYX.METHOD.MERGE,
+                onyxMethod: Onyx.METHOD.MERGE,
                 key: ONYXKEYS.ACCOUNT,
                 value: {...CONST.DEFAULT_ACCOUNT_DATA, isLoading: true},
             },
         ],
         successData: [
             {
-                onyxMethod: CONST.ONYX.METHOD.MERGE,
+                onyxMethod: Onyx.METHOD.MERGE,
                 key: ONYXKEYS.ACCOUNT,
                 value: {isLoading: false},
             },
         ],
         failureData: [
             {
-                onyxMethod: CONST.ONYX.METHOD.MERGE,
+                onyxMethod: Onyx.METHOD.MERGE,
                 key: ONYXKEYS.ACCOUNT,
                 value: {isLoading: false},
             },
@@ -90,14 +90,14 @@ function closeAccount(message) {
     API.write('CloseAccount', {message}, {
         optimisticData: [
             {
-                onyxMethod: CONST.ONYX.METHOD.MERGE,
+                onyxMethod: Onyx.METHOD.MERGE,
                 key: ONYXKEYS.FORMS.CLOSE_ACCOUNT_FORM,
                 value: {isLoading: true},
             },
         ],
         failureData: [
             {
-                onyxMethod: CONST.ONYX.METHOD.MERGE,
+                onyxMethod: Onyx.METHOD.MERGE,
                 key: ONYXKEYS.FORMS.CLOSE_ACCOUNT_FORM,
                 value: {isLoading: false},
             },
@@ -122,11 +122,11 @@ function resendValidateCode(login) {
  */
 function requestContactMethodValidateCode(contactMethod) {
     const optimisticData = [{
-        onyxMethod: CONST.ONYX.METHOD.MERGE,
+        onyxMethod: Onyx.METHOD.MERGE,
         key: ONYXKEYS.LOGIN_LIST,
         value: {
             [contactMethod]: {
-                validateCodeSent: true,
+                validateCodeSent: false,
                 errorFields: {
                     validateCodeSent: null,
                 },
@@ -137,10 +137,11 @@ function requestContactMethodValidateCode(contactMethod) {
         },
     }];
     const successData = [{
-        onyxMethod: CONST.ONYX.METHOD.MERGE,
+        onyxMethod: Onyx.METHOD.MERGE,
         key: ONYXKEYS.LOGIN_LIST,
         value: {
             [contactMethod]: {
+                validateCodeSent: true,
                 pendingFields: {
                     validateCodeSent: null,
                 },
@@ -148,7 +149,7 @@ function requestContactMethodValidateCode(contactMethod) {
         },
     }];
     const failureData = [{
-        onyxMethod: CONST.ONYX.METHOD.MERGE,
+        onyxMethod: Onyx.METHOD.MERGE,
         key: ONYXKEYS.LOGIN_LIST,
         value: {
             [contactMethod]: {
@@ -181,14 +182,14 @@ function updateNewsletterSubscription(isSubscribed) {
     }, {
         optimisticData: [
             {
-                onyxMethod: CONST.ONYX.METHOD.MERGE,
+                onyxMethod: Onyx.METHOD.MERGE,
                 key: ONYXKEYS.USER,
                 value: {isSubscribedToNewsletter: isSubscribed},
             },
         ],
         failureData: [
             {
-                onyxMethod: CONST.ONYX.METHOD.MERGE,
+                onyxMethod: Onyx.METHOD.MERGE,
                 key: ONYXKEYS.USER,
                 value: {isSubscribedToNewsletter: !isSubscribed},
             },
@@ -213,7 +214,7 @@ function deleteContactMethod(contactMethod, loginList) {
     }
 
     const optimisticData = [{
-        onyxMethod: CONST.ONYX.METHOD.MERGE,
+        onyxMethod: Onyx.METHOD.MERGE,
         key: ONYXKEYS.LOGIN_LIST,
         value: {
             [contactMethod]: {
@@ -228,14 +229,14 @@ function deleteContactMethod(contactMethod, loginList) {
         },
     }];
     const successData = [{
-        onyxMethod: CONST.ONYX.METHOD.MERGE,
+        onyxMethod: Onyx.METHOD.MERGE,
         key: ONYXKEYS.LOGIN_LIST,
         value: {
             [contactMethod]: null,
         },
     }];
     const failureData = [{
-        onyxMethod: CONST.ONYX.METHOD.MERGE,
+        onyxMethod: Onyx.METHOD.MERGE,
         key: ONYXKEYS.LOGIN_LIST,
         value: {
             [contactMethod]: {
@@ -285,7 +286,7 @@ function clearContactMethodErrors(contactMethod, fieldName) {
  */
 function addNewContactMethodAndNavigate(contactMethod, password) {
     const optimisticData = [{
-        onyxMethod: CONST.ONYX.METHOD.MERGE,
+        onyxMethod: Onyx.METHOD.MERGE,
         key: ONYXKEYS.LOGIN_LIST,
         value: {
             [contactMethod]: {
@@ -301,7 +302,7 @@ function addNewContactMethodAndNavigate(contactMethod, password) {
         },
     }];
     const successData = [{
-        onyxMethod: CONST.ONYX.METHOD.MERGE,
+        onyxMethod: Onyx.METHOD.MERGE,
         key: ONYXKEYS.LOGIN_LIST,
         value: {
             [contactMethod]: {
@@ -312,7 +313,7 @@ function addNewContactMethodAndNavigate(contactMethod, password) {
         },
     }];
     const failureData = [{
-        onyxMethod: CONST.ONYX.METHOD.MERGE,
+        onyxMethod: Onyx.METHOD.MERGE,
         key: ONYXKEYS.LOGIN_LIST,
         value: {
             [contactMethod]: {
@@ -343,7 +344,7 @@ function validateLogin(accountID, validateCode) {
 
     const optimisticData = [
         {
-            onyxMethod: CONST.ONYX.METHOD.MERGE,
+            onyxMethod: Onyx.METHOD.MERGE,
             key: ONYXKEYS.ACCOUNT,
             value: {
                 isLoading: false,
@@ -365,7 +366,7 @@ function validateLogin(accountID, validateCode) {
  */
 function validateSecondaryLogin(contactMethod, validateCode) {
     const optimisticData = [{
-        onyxMethod: CONST.ONYX.METHOD.MERGE,
+        onyxMethod: Onyx.METHOD.MERGE,
         key: ONYXKEYS.LOGIN_LIST,
         value: {
             [contactMethod]: {
@@ -379,7 +380,7 @@ function validateSecondaryLogin(contactMethod, validateCode) {
         },
     }];
     const successData = [{
-        onyxMethod: CONST.ONYX.METHOD.MERGE,
+        onyxMethod: Onyx.METHOD.MERGE,
         key: ONYXKEYS.LOGIN_LIST,
         value: {
             [contactMethod]: {
@@ -390,7 +391,7 @@ function validateSecondaryLogin(contactMethod, validateCode) {
         },
     }];
     const failureData = [{
-        onyxMethod: CONST.ONYX.METHOD.MERGE,
+        onyxMethod: Onyx.METHOD.MERGE,
         key: ONYXKEYS.LOGIN_LIST,
         value: {
             [contactMethod]: {
@@ -439,12 +440,12 @@ function isBlockedFromConcierge(blockedFromConciergeNVP) {
 function addPaypalMeAddress(address) {
     const optimisticData = [
         {
-            onyxMethod: CONST.ONYX.METHOD.MERGE,
+            onyxMethod: Onyx.METHOD.MERGE,
             key: ONYXKEYS.NVP_PAYPAL_ME_ADDRESS,
             value: address,
         },
         {
-            onyxMethod: CONST.ONYX.METHOD.MERGE,
+            onyxMethod: Onyx.METHOD.MERGE,
             key: ONYXKEYS.PAYPAL,
             value: {
                 title: 'PayPal.me',
@@ -471,17 +472,27 @@ function addPaypalMeAddress(address) {
 function deletePaypalMeAddress() {
     const optimisticData = [
         {
-            onyxMethod: CONST.ONYX.METHOD.SET,
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: ONYXKEYS.PAYPAL,
+            value: {pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE},
+        },
+    ];
+
+    // Success data required for Android, more info here https://github.com/Expensify/App/pull/17903#discussion_r1175763081
+    const successData = [
+        {
+            onyxMethod: Onyx.METHOD.SET,
             key: ONYXKEYS.NVP_PAYPAL_ME_ADDRESS,
             value: '',
         },
         {
-            onyxMethod: CONST.ONYX.METHOD.SET,
+            onyxMethod: Onyx.METHOD.SET,
             key: ONYXKEYS.PAYPAL,
             value: {},
         },
     ];
-    API.write('DeletePaypalMeAddress', {}, {optimisticData});
+
+    API.write('DeletePaypalMeAddress', {}, {optimisticData, successData});
     Growl.show(Localize.translateLocal('paymentsPage.deletePayPalSuccess'), CONST.GROWL.SUCCESS, 3000);
 }
 
@@ -586,7 +597,7 @@ function subscribeToExpensifyCardUpdates() {
 function updatePreferredSkinTone(skinTone) {
     const optimisticData = [
         {
-            onyxMethod: CONST.ONYX.METHOD.SET,
+            onyxMethod: Onyx.METHOD.SET,
             key: ONYXKEYS.PREFERRED_EMOJI_SKIN_TONE,
             value: skinTone,
         },
@@ -603,7 +614,7 @@ function updatePreferredSkinTone(skinTone) {
 function updateFrequentlyUsedEmojis(frequentlyUsedEmojis) {
     const optimisticData = [
         {
-            onyxMethod: CONST.ONYX.METHOD.SET,
+            onyxMethod: Onyx.METHOD.SET,
             key: ONYXKEYS.FREQUENTLY_USED_EMOJIS,
             value: frequentlyUsedEmojis,
         },
@@ -620,7 +631,7 @@ function updateFrequentlyUsedEmojis(frequentlyUsedEmojis) {
 function updateChatPriorityMode(mode) {
     const optimisticData = [
         {
-            onyxMethod: CONST.ONYX.METHOD.MERGE,
+            onyxMethod: Onyx.METHOD.MERGE,
             key: ONYXKEYS.NVP_PRIORITY_MODE,
             value: mode,
         },
@@ -667,7 +678,7 @@ function generateStatementPDF(period) {
     API.read('GetStatementPDF', {period}, {
         optimisticData: [
             {
-                onyxMethod: CONST.ONYX.METHOD.MERGE,
+                onyxMethod: Onyx.METHOD.MERGE,
                 key: ONYXKEYS.WALLET_STATEMENT,
                 value: {
                     isGenerating: true,
@@ -676,7 +687,7 @@ function generateStatementPDF(period) {
         ],
         successData: [
             {
-                onyxMethod: CONST.ONYX.METHOD.MERGE,
+                onyxMethod: Onyx.METHOD.MERGE,
                 key: ONYXKEYS.WALLET_STATEMENT,
                 value: {
                     isGenerating: false,
@@ -685,7 +696,7 @@ function generateStatementPDF(period) {
         ],
         failureData: [
             {
-                onyxMethod: CONST.ONYX.METHOD.MERGE,
+                onyxMethod: Onyx.METHOD.MERGE,
                 key: ONYXKEYS.WALLET_STATEMENT,
                 value: {
                     isGenerating: false,
