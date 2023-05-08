@@ -144,8 +144,7 @@ class AddPlaidBankAccount extends React.Component {
                 shortcut.descriptionKey,
                 shortcut.modifiers,
                 false,
-                // stop bubbling when there are bank accounts
-                () => lodashGet(this.props.plaidData, 'bankAccounts', []).length > 0,
+                () => lodashGet(this.props.plaidData, 'bankAccounts', []).length > 0, // stop bubbling when there are bank accounts
             ),
         );
         this.subscribedKeyboardShortcuts = unsubscribeCallbacks;
