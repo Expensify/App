@@ -547,7 +547,7 @@ class ReportActionCompose extends React.Component {
                 this.props.personalDetails,
                 this.props.betas, prefix,
             );
-            const suggestions = _.filter([...options.recentReports, options.userToInvite], (x) => !!x);
+            const suggestions = _.filter([...options.recentReports, options.userToInvite], x => !!x);
 
             nextState.suggestedMentions = suggestions;
             nextState.shouldShowMentionSuggestionMenu = !_.isEmpty(suggestions);
