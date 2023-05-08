@@ -1,0 +1,19 @@
+diff --git a/node_modules/lottie-react-native/src/android/gradle-maven-push.gradle b/node_modules/lottie-react-native/src/android/gradle-maven-push.gradle
+index 6c97bcf..166e73b 100644
+--- a/node_modules/lottie-react-native/src/android/gradle-maven-push.gradle
++++ b/node_modules/lottie-react-native/src/android/gradle-maven-push.gradle
+@@ -105,12 +105,12 @@ afterEvaluate { project ->
+   }
+ 
+   task androidJavadocsJar(type: Jar, dependsOn: androidJavadocs) {
+-    classifier = 'javadoc'
++    archiveClassifier = 'javadoc'
+     from androidJavadocs.destinationDir
+   }
+ 
+   task androidSourcesJar(type: Jar) {
+-    classifier = 'sources'
++    archiveClassifier = 'sources'
+     from android.sourceSets.main.java.sourceFiles
+   }
+ 
