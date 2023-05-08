@@ -22,7 +22,6 @@ import networkPropTypes from '../../components/networkPropTypes';
 import * as ErrorUtils from '../../libs/ErrorUtils';
 import DotIndicatorMessage from '../../components/DotIndicatorMessage';
 import * as CloseAccount from '../../libs/actions/CloseAccount';
-import AppleSignInScript from './AppleSignInScript';
 import CONST from '../../CONST';
 import AppleSignIn from '../../components/SignInButtons/AppleSignIn';
 import GoogleSignIn from '../../components/SignInButtons/GoogleSignIn';
@@ -172,7 +171,6 @@ class LoginForm extends React.Component {
         const hasError = !_.isEmpty(serverErrorText);
         return (
             <>
-                {Platform.OS === 'web' && <AppleSignInScript />}
                 <View accessibilityLabel={this.props.translate('loginForm.loginForm')} style={[styles.mt3]}>
                     <TextInput
                         ref={el => this.input = el}
