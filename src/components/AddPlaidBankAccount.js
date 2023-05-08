@@ -131,7 +131,7 @@ class AddPlaidBankAccount extends React.Component {
     subscribeToNavigationShortcuts() {
         // find and block the shortcuts
         const shortcutsToBlock = _.filter(CONST.KEYBOARD_SHORTCUTS, x => x.type === CONST.KEYBOARD_SHORTCUTS_TYPES.NAVIGATION_SHORTCUT);
-        const unsubscribeCallbacks = _.map(
+        this.subscribedKeyboardShortcuts = _.map(
             shortcutsToBlock,
             shortcut => KeyboardShortcut.subscribe(
                 shortcut.shortcutKey,
@@ -142,7 +142,6 @@ class AddPlaidBankAccount extends React.Component {
                 () => lodashGet(this.props.plaidData, 'bankAccounts', []).length > 0, // start bubbling when there are bank accounts
             ),
         );
-        this.subscribedKeyboardShortcuts = unsubscribeCallbacks;
     }
 
     /**
