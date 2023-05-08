@@ -547,7 +547,7 @@ class ReportActionCompose extends React.Component {
                 this.props.personalDetails,
                 this.props.betas, prefix,
             );
-            const suggestions = _.filter([...options.recentReports, options.userToInvite], x => !!x);
+            const suggestions = _.filter([...options.recentReports, options.userToInvite], (x) => !!x);
 
             nextState.suggestedMentions = suggestions;
             nextState.shouldShowMentionSuggestionMenu = !_.isEmpty(suggestions);
@@ -602,7 +602,7 @@ class ReportActionCompose extends React.Component {
     insertSelectedMention(highlightedMentionIndex) {
         const commentBeforeAtSign = this.state.value.slice(0, this.state.atSignIndex);
         const mentionObject = this.state.suggestedMentions[highlightedMentionIndex];
-        const mentionCode = `@${mentionObject.alternateText}`; // TODO: @expensify.sms
+        const mentionCode = `@${mentionObject.alternateText}`;
         const commentAfterAtSignWithMentionRemoved = this.state.value.slice(this.state.atSignIndex).replace(CONST.REGEX.MENTION_REPLACER, '');
 
         this.updateComment(`${commentBeforeAtSign}${mentionCode} ${commentAfterAtSignWithMentionRemoved}`, true);
