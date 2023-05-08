@@ -8,6 +8,10 @@ export default {
         height: '100%',
     },
 
+    w15: {
+        width: '15%',
+    },
+
     w20: {
         width: '20%',
     },
@@ -28,6 +32,10 @@ export default {
         minWidth: '25%',
     },
 
+    mnw120: {
+        minWidth: 120,
+    },
+
     w50: {
         width: '50%',
     },
@@ -46,10 +54,6 @@ export default {
 
     mw100: {
         maxWidth: '100%',
-    },
-
-    w1: {
-        width: 4,
     },
 
     wAuto: {

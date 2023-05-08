@@ -20,6 +20,7 @@ import DateUtils from '../DateUtils';
 import * as ReportActionsUtils from '../ReportActionsUtils';
 import * as OptionsListUtils from '../OptionsListUtils';
 import * as Localize from '../Localize';
+import * as CollectionUtils from '../CollectionUtils';
 
 let currentUserEmail;
 let currentUserAccountID;
@@ -47,6 +48,18 @@ Onyx.connect({
         } else {
             preferredSkinTone = -1;
         }
+    },
+});
+
+const allReportActions = {};
+Onyx.connect({
+    key: ONYXKEYS.COLLECTION.REPORT_ACTIONS,
+    callback: (actions, key) => {
+        if (!key || !actions) {
+            return;
+        }
+        const reportID = CollectionUtils.extractCollectionItemID(key);
+        allReportActions[reportID] = actions;
     },
 });
 
@@ -230,12 +243,12 @@ function addActions(reportID, text = '', file) {
 
     const optimisticData = [
         {
-            onyxMethod: CONST.ONYX.METHOD.MERGE,
+            onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
             value: optimisticReport,
         },
         {
-            onyxMethod: CONST.ONYX.METHOD.MERGE,
+            onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`,
             value: optimisticReportActions,
         },
@@ -243,7 +256,7 @@ function addActions(reportID, text = '', file) {
 
     const successData = [
         {
-            onyxMethod: CONST.ONYX.METHOD.MERGE,
+            onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`,
             value: _.mapObject(optimisticReportActions, () => ({pendingAction: null})),
         },
@@ -251,7 +264,7 @@ function addActions(reportID, text = '', file) {
 
     const failureData = [
         {
-            onyxMethod: CONST.ONYX.METHOD.MERGE,
+            onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`,
             value: _.mapObject(optimisticReportActions, action => ({...action, errors: {[DateUtils.getMicroseconds()]: Localize.translateLocal('report.genericAddCommentFailureMessage')}})),
         },
@@ -262,7 +275,7 @@ function addActions(reportID, text = '', file) {
         const timezone = DateUtils.getCurrentTimezone();
         parameters.timezone = JSON.stringify(timezone);
         optimisticData.push({
-            onyxMethod: CONST.ONYX.METHOD.MERGE,
+            onyxMethod: Onyx.METHOD.MERGE,
             key: ONYXKEYS.PERSONAL_DETAILS,
             value: {[currentUserEmail]: {timezone}},
         });
@@ -314,7 +327,7 @@ function addComment(reportID, text) {
  */
 function openReport(reportID, participantList = [], newReportObject = {}) {
     const optimisticReportData = {
-        onyxMethod: CONST.ONYX.METHOD.MERGE,
+        onyxMethod: Onyx.METHOD.MERGE,
         key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
         value: {
             isLoadingReportActions: true,
@@ -324,7 +337,7 @@ function openReport(reportID, participantList = [], newReportObject = {}) {
         },
     };
     const reportSuccessData = {
-        onyxMethod: CONST.ONYX.METHOD.MERGE,
+        onyxMethod: Onyx.METHOD.MERGE,
         key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
         value: {
             isLoadingReportActions: false,
@@ -338,7 +351,7 @@ function openReport(reportID, participantList = [], newReportObject = {}) {
         },
     };
     const reportFailureData = {
-        onyxMethod: CONST.ONYX.METHOD.MERGE,
+        onyxMethod: Onyx.METHOD.MERGE,
         key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
         value: {
             isLoadingReportActions: false,
@@ -360,7 +373,7 @@ function openReport(reportID, participantList = [], newReportObject = {}) {
     if (!_.isEmpty(newReportObject)) {
         // Change the method to set for new reports because it doesn't exist yet, is faster,
         // and we need the data to be available when we navigate to the chat page
-        optimisticReportData.onyxMethod = CONST.ONYX.METHOD.SET;
+        optimisticReportData.onyxMethod = Onyx.METHOD.SET;
         optimisticReportData.value = {
             ...optimisticReportData.value,
             ...newReportObject,
@@ -372,12 +385,12 @@ function openReport(reportID, participantList = [], newReportObject = {}) {
 
         const optimisticCreatedAction = ReportUtils.buildOptimisticCreatedReportAction(newReportObject.ownerEmail);
         onyxData.optimisticData.push({
-            onyxMethod: CONST.ONYX.METHOD.SET,
+            onyxMethod: Onyx.METHOD.SET,
             key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`,
             value: {[optimisticCreatedAction.reportActionID]: optimisticCreatedAction},
         });
         onyxData.successData.push({
-            onyxMethod: CONST.ONYX.METHOD.MERGE,
+            onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`,
             value: {[optimisticCreatedAction.reportActionID]: {pendingAction: null}},
         });
@@ -420,7 +433,7 @@ function reconnect(reportID) {
         },
         {
             optimisticData: [{
-                onyxMethod: CONST.ONYX.METHOD.MERGE,
+                onyxMethod: Onyx.METHOD.MERGE,
                 key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
                 value: {
                     isLoadingReportActions: true,
@@ -429,14 +442,14 @@ function reconnect(reportID) {
                 },
             }],
             successData: [{
-                onyxMethod: CONST.ONYX.METHOD.MERGE,
+                onyxMethod: Onyx.METHOD.MERGE,
                 key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
                 value: {
                     isLoadingReportActions: false,
                 },
             }],
             failureData: [{
-                onyxMethod: CONST.ONYX.METHOD.MERGE,
+                onyxMethod: Onyx.METHOD.MERGE,
                 key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
                 value: {
                     isLoadingReportActions: false,
@@ -460,21 +473,21 @@ function readOldestAction(reportID, reportActionID) {
         },
         {
             optimisticData: [{
-                onyxMethod: CONST.ONYX.METHOD.MERGE,
+                onyxMethod: Onyx.METHOD.MERGE,
                 key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
                 value: {
                     isLoadingMoreReportActions: true,
                 },
             }],
             successData: [{
-                onyxMethod: CONST.ONYX.METHOD.MERGE,
+                onyxMethod: Onyx.METHOD.MERGE,
                 key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
                 value: {
                     isLoadingMoreReportActions: false,
                 },
             }],
             failureData: [{
-                onyxMethod: CONST.ONYX.METHOD.MERGE,
+                onyxMethod: Onyx.METHOD.MERGE,
                 key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
                 value: {
                     isLoadingMoreReportActions: false,
@@ -496,7 +509,7 @@ function openPaymentDetailsPage(chatReportID, iouReportID) {
     }, {
         optimisticData: [
             {
-                onyxMethod: CONST.ONYX.METHOD.MERGE,
+                onyxMethod: Onyx.METHOD.MERGE,
                 key: ONYXKEYS.IOU,
                 value: {
                     loading: true,
@@ -505,7 +518,7 @@ function openPaymentDetailsPage(chatReportID, iouReportID) {
         ],
         successData: [
             {
-                onyxMethod: CONST.ONYX.METHOD.MERGE,
+                onyxMethod: Onyx.METHOD.MERGE,
                 key: ONYXKEYS.IOU,
                 value: {
                     loading: false,
@@ -514,7 +527,7 @@ function openPaymentDetailsPage(chatReportID, iouReportID) {
         ],
         failureData: [
             {
-                onyxMethod: CONST.ONYX.METHOD.MERGE,
+                onyxMethod: Onyx.METHOD.MERGE,
                 key: ONYXKEYS.IOU,
                 value: {
                     loading: false,
@@ -537,7 +550,7 @@ function openMoneyRequestsReportPage(chatReportID, linkedReportID) {
     }, {
         optimisticData: [
             {
-                onyxMethod: CONST.ONYX.METHOD.MERGE,
+                onyxMethod: Onyx.METHOD.MERGE,
                 key: ONYXKEYS.IOU,
                 value: {
                     loading: true,
@@ -546,7 +559,7 @@ function openMoneyRequestsReportPage(chatReportID, linkedReportID) {
         ],
         successData: [
             {
-                onyxMethod: CONST.ONYX.METHOD.MERGE,
+                onyxMethod: Onyx.METHOD.MERGE,
                 key: ONYXKEYS.IOU,
                 value: {
                     loading: false,
@@ -555,7 +568,7 @@ function openMoneyRequestsReportPage(chatReportID, linkedReportID) {
         ],
         failureData: [
             {
-                onyxMethod: CONST.ONYX.METHOD.MERGE,
+                onyxMethod: Onyx.METHOD.MERGE,
                 key: ONYXKEYS.IOU,
                 value: {
                     loading: false,
@@ -577,7 +590,7 @@ function readNewestAction(reportID) {
         },
         {
             optimisticData: [{
-                onyxMethod: CONST.ONYX.METHOD.MERGE,
+                onyxMethod: Onyx.METHOD.MERGE,
                 key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
                 value: {
                     lastReadTime: DateUtils.getDBTime(),
@@ -604,7 +617,7 @@ function markCommentAsUnread(reportID, reportActionCreated) {
         },
         {
             optimisticData: [{
-                onyxMethod: CONST.ONYX.METHOD.MERGE,
+                onyxMethod: Onyx.METHOD.MERGE,
                 key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
                 value: {
                     lastReadTime,
@@ -624,7 +637,7 @@ function togglePinnedState(report) {
     // Optimistically pin/unpin the report before we send out the command
     const optimisticData = [
         {
-            onyxMethod: CONST.ONYX.METHOD.MERGE,
+            onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`,
             value: {isPinned: pinnedValue},
         },
@@ -751,7 +764,7 @@ function deleteReportComment(reportID, reportAction) {
     // and and remove the pendingAction so the strike-through clears
     const failureData = [
         {
-            onyxMethod: CONST.ONYX.METHOD.MERGE,
+            onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`,
             value: {
                 [reportActionID]: {
@@ -765,7 +778,7 @@ function deleteReportComment(reportID, reportAction) {
 
     const successData = [
         {
-            onyxMethod: CONST.ONYX.METHOD.MERGE,
+            onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`,
             value: {
                 [reportActionID]: {
@@ -778,12 +791,12 @@ function deleteReportComment(reportID, reportAction) {
 
     const optimisticData = [
         {
-            onyxMethod: CONST.ONYX.METHOD.MERGE,
+            onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`,
             value: optimisticReportActions,
         },
         {
-            onyxMethod: CONST.ONYX.METHOD.MERGE,
+            onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
             value: optimisticReport,
         },
@@ -823,42 +836,42 @@ const getRemovedMarkdownLinks = (oldComment, newComment) => {
 };
 
 /**
- * Removes the links in a markdown comment.
+ * Removes the links in html of a comment.
  * example:
- *      comment="test [link](https://www.google.com) test",
+ *      html="test <a href="https://www.google.com" target="_blank" rel="noreferrer noopener">https://www.google.com</a> test"
  *      links=["https://www.google.com"]
- * returns: "test link test"
- * @param {String} comment
+ * returns: "test https://www.google.com test"
+ *
+ * @param {String} html
  * @param {Array} links
  * @returns {String}
  */
-const removeLinks = (comment, links) => {
-    let commentCopy = comment.slice();
+const removeLinksFromHtml = (html, links) => {
+    let htmlCopy = html.slice();
     _.forEach(links, (link) => {
-        const regex = new RegExp(`\\[([^\\[\\]]*)\\]\\(${link}\\)`, 'gm');
-        const linkMatch = regex.exec(commentCopy);
-        const linkText = linkMatch && linkMatch[1];
-        commentCopy = commentCopy.replace(`[${linkText}](${link})`, linkText);
+        // We want to match the anchor tag of the link and replace the whole anchor tag with the text of the anchor tag
+        const regex = new RegExp(`<(a)[^><]*href\\s*=\\s*(['"])(${Str.escapeForRegExp(link)})\\2(?:".*?"|'.*?'|[^'"><])*>([\\s\\S]*?)<\\/\\1>(?![^<]*(<\\/pre>|<\\/code>))`, 'gi');
+        htmlCopy = htmlCopy.replace(regex, '$4');
     });
-    return commentCopy;
+    return htmlCopy;
 };
 
 /**
  * This function will handle removing only links that were purposely removed by the user while editing.
+ *
  * @param {String} newCommentText text of the comment after editing.
- * @param {Array} originalHtml original html of the comment before editing
+ * @param {String} originalHtml original html of the comment before editing.
  * @returns {String}
  */
-const handleUserDeletedLinks = (newCommentText, originalHtml) => {
+const handleUserDeletedLinksInHtml = (newCommentText, originalHtml) => {
     const parser = new ExpensiMark();
     if (newCommentText.length >= CONST.MAX_MARKUP_LENGTH) {
         return newCommentText;
     }
-    const htmlWithAutoLinks = parser.replace(newCommentText);
-    const markdownWithAutoLinks = parser.htmlToMarkdown(htmlWithAutoLinks).trim();
     const markdownOriginalComment = parser.htmlToMarkdown(originalHtml).trim();
+    const htmlForNewComment = parser.replace(newCommentText);
     const removedLinks = getRemovedMarkdownLinks(markdownOriginalComment, newCommentText);
-    return removeLinks(markdownWithAutoLinks, removedLinks);
+    return removeLinksFromHtml(htmlForNewComment, removedLinks);
 };
 
 /**
@@ -875,16 +888,13 @@ function editReportComment(reportID, originalReportAction, textForNewComment) {
     // https://github.com/Expensify/App/issues/9090
     // https://github.com/Expensify/App/issues/13221
     const originalCommentHTML = lodashGet(originalReportAction, 'message[0].html');
-    const markdownForNewComment = handleUserDeletedLinks(textForNewComment, originalCommentHTML);
-
-    const autolinkFilter = {filterRules: _.filter(_.pluck(parser.rules, 'name'), name => name !== 'autolink')};
+    const htmlForNewComment = handleUserDeletedLinksInHtml(textForNewComment, originalCommentHTML);
 
     // For comments shorter than 10k chars, convert the comment from MD into HTML because that's how it is stored in the database
     // For longer comments, skip parsing and display plaintext for performance reasons. It takes over 40s to parse a 100k long string!!
-    let htmlForNewComment = markdownForNewComment;
     let parsedOriginalCommentHTML = originalCommentHTML;
-    if (markdownForNewComment.length < CONST.MAX_MARKUP_LENGTH) {
-        htmlForNewComment = parser.replace(markdownForNewComment, autolinkFilter);
+    if (textForNewComment.length < CONST.MAX_MARKUP_LENGTH) {
+        const autolinkFilter = {filterRules: _.filter(_.pluck(parser.rules, 'name'), name => name !== 'autolink')};
         parsedOriginalCommentHTML = parser.replace(parser.htmlToMarkdown(originalCommentHTML).trim(), autolinkFilter);
     }
 
@@ -909,14 +919,14 @@ function editReportComment(reportID, originalReportAction, textForNewComment) {
                 ...originalMessage,
                 isEdited: true,
                 html: htmlForNewComment,
-                text: markdownForNewComment,
+                text: textForNewComment,
             }],
         },
     };
 
     const optimisticData = [
         {
-            onyxMethod: CONST.ONYX.METHOD.MERGE,
+            onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`,
             value: optimisticReportActions,
         },
@@ -924,14 +934,13 @@ function editReportComment(reportID, originalReportAction, textForNewComment) {
 
     const lastVisibleAction = ReportActionsUtils.getLastVisibleAction(reportID, optimisticReportActions);
     if (reportActionID === lastVisibleAction.reportActionID) {
+        const reportComment = parser.htmlToText(htmlForNewComment);
+        const lastMessageText = ReportUtils.formatReportLastMessageText(reportComment);
         const optimisticReport = {
-            lastMessageHtml: lodashGet(lastVisibleAction, 'message[0].html'),
-            lastMessageText: lodashGet(lastVisibleAction, 'message[0].text'),
-            lastVisibleActionCreated: lastVisibleAction.created,
-            lastActorEmail: lastVisibleAction.actorEmail,
+            lastMessageText: Str.htmlDecode(lastMessageText),
         };
         optimisticData.push({
-            onyxMethod: CONST.ONYX.METHOD.MERGE,
+            onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
             value: optimisticReport,
         });
@@ -939,7 +948,7 @@ function editReportComment(reportID, originalReportAction, textForNewComment) {
 
     const failureData = [
         {
-            onyxMethod: CONST.ONYX.METHOD.MERGE,
+            onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`,
             value: {
                 [reportActionID]: {
@@ -952,7 +961,7 @@ function editReportComment(reportID, originalReportAction, textForNewComment) {
 
     const successData = [
         {
-            onyxMethod: CONST.ONYX.METHOD.MERGE,
+            onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`,
             value: {
                 [reportActionID]: {
@@ -999,14 +1008,14 @@ function saveReportActionDraftNumberOfLines(reportID, reportActionID, numberOfLi
 function updateNotificationPreference(reportID, previousValue, newValue) {
     const optimisticData = [
         {
-            onyxMethod: CONST.ONYX.METHOD.MERGE,
+            onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
             value: {notificationPreference: newValue},
         },
     ];
     const failureData = [
         {
-            onyxMethod: CONST.ONYX.METHOD.MERGE,
+            onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
             value: {notificationPreference: previousValue},
         },
@@ -1057,7 +1066,7 @@ function addPolicyReport(policy, reportName, visibility) {
     // Therefore, Onyx.set is used instead of Onyx.merge.
     const optimisticData = [
         {
-            onyxMethod: CONST.ONYX.METHOD.SET,
+            onyxMethod: Onyx.METHOD.SET,
             key: `${ONYXKEYS.COLLECTION.REPORT}${policyReport.reportID}`,
             value: {
                 pendingFields: {
@@ -1067,14 +1076,14 @@ function addPolicyReport(policy, reportName, visibility) {
             },
         },
         {
-            onyxMethod: CONST.ONYX.METHOD.SET,
+            onyxMethod: Onyx.METHOD.SET,
             key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${policyReport.reportID}`,
             value: {[createdReportAction.reportActionID]: createdReportAction},
         },
     ];
     const successData = [
         {
-            onyxMethod: CONST.ONYX.METHOD.MERGE,
+            onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT}${policyReport.reportID}`,
             value: {
                 pendingFields: {
@@ -1083,7 +1092,7 @@ function addPolicyReport(policy, reportName, visibility) {
             },
         },
         {
-            onyxMethod: CONST.ONYX.METHOD.MERGE,
+            onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${policyReport.reportID}`,
             value: {
                 [createdReportAction.reportActionID]: {
@@ -1108,12 +1117,39 @@ function addPolicyReport(policy, reportName, visibility) {
 }
 
 /**
+ * Deletes a report, along with its reportActions, any linked reports, and any linked IOU report.
+ *
+ * @param {String} reportID
+ */
+function deleteReport(reportID) {
+    const report = allReports[reportID];
+    const onyxData = {
+        [`${ONYXKEYS.COLLECTION.REPORT}${reportID}`]: null,
+        [`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`]: null,
+    };
+
+    // Delete linked transactions
+    const reportActionsForReport = allReportActions[reportID];
+    _.chain(reportActionsForReport)
+        .filter(reportAction => reportAction.actionName === CONST.REPORT.ACTIONS.TYPE.IOU)
+        .map(reportAction => reportAction.originalMessage.IOUTransactionID)
+        .uniq()
+        .each(transactionID => onyxData[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`] = null);
+
+    Onyx.multiSet(onyxData);
+
+    // Delete linked IOU report
+    if (report && report.iouReportID) {
+        deleteReport(report.iouReportID);
+    }
+}
+
+/**
  * @param {String} reportID The reportID of the policy report (workspace room)
  */
 function navigateToConciergeChatAndDeleteReport(reportID) {
     navigateToConciergeChat();
-    Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, null);
-    Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`, null);
+    deleteReport(reportID);
 }
 
 /**
@@ -1127,7 +1163,7 @@ function updatePolicyRoomName(policyRoomReport, policyRoomName) {
     const previousName = policyRoomReport.reportName;
     const optimisticData = [
         {
-            onyxMethod: CONST.ONYX.METHOD.MERGE,
+            onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
             value: {
                 reportName: policyRoomName,
@@ -1143,7 +1179,7 @@ function updatePolicyRoomName(policyRoomReport, policyRoomName) {
     const successData = [
         {
 
-            onyxMethod: CONST.ONYX.METHOD.MERGE,
+            onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
             value: {
                 pendingFields: {
@@ -1155,7 +1191,7 @@ function updatePolicyRoomName(policyRoomReport, policyRoomName) {
     const failureData = [
         {
 
-            onyxMethod: CONST.ONYX.METHOD.MERGE,
+            onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
             value: {
                 reportName: previousName,
@@ -1222,7 +1258,7 @@ function shouldShowReportActionNotification(reportID, action = null, isRemote = 
     }
 
     // If we are currently viewing this report do not show a notification.
-    if (reportID === Navigation.getReportIDFromRoute() && Visibility.isVisible()) {
+    if (reportID === Navigation.getReportIDFromRoute() && Visibility.isVisible() && Visibility.hasFocus()) {
         Log.info(`${tag} No notification because it was a comment for the current report`);
         return false;
     }
@@ -1289,7 +1325,7 @@ function getOptimisticDataForReportActionUpdate(originalReportAction, message, r
 
     return [
         {
-            onyxMethod: CONST.ONYX.METHOD.MERGE,
+            onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`,
             value: {
                 [reportActionID]: {
@@ -1476,13 +1512,14 @@ export {
     broadcastUserIsTyping,
     togglePinnedState,
     editReportComment,
-    handleUserDeletedLinks,
+    handleUserDeletedLinksInHtml,
     saveReportActionDraft,
     saveReportActionDraftNumberOfLines,
     deleteReportComment,
     navigateToConciergeChat,
     setReportWithDraft,
     addPolicyReport,
+    deleteReport,
     navigateToConciergeChatAndDeleteReport,
     setIsComposerFullSize,
     markCommentAsUnread,

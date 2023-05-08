@@ -82,7 +82,8 @@ function getSortedReportActions(reportActions, shouldSortInDescendingOrder = fal
  * @returns {String}
  */
 function getMostRecentIOURequestActionID(reportActions) {
-    const iouRequestActions = _.filter(reportActions, action => lodashGet(action, 'originalMessage.type') === CONST.IOU.REPORT_ACTION_TYPE.CREATE);
+    const iouRequestTypes = [CONST.IOU.REPORT_ACTION_TYPE.CREATE, CONST.IOU.REPORT_ACTION_TYPE.SPLIT];
+    const iouRequestActions = _.filter(reportActions, action => iouRequestTypes.includes(lodashGet(action, 'originalMessage.type')));
 
     if (_.isEmpty(iouRequestActions)) {
         return null;
@@ -134,6 +135,11 @@ function isConsecutiveActionMadeByPreviousActor(reportActions, actionIndex) {
 function getLastVisibleAction(reportID, actionsToMerge = {}) {
     const actions = _.toArray(lodashMerge({}, allReportActions[reportID], actionsToMerge));
     const visibleActions = _.filter(actions, action => (!isDeletedAction(action)));
+
+    if (_.isEmpty(visibleActions)) {
+        return {};
+    }
+
     return _.max(visibleActions, action => moment.utc(action.created).valueOf());
 }
 
@@ -144,7 +150,8 @@ function getLastVisibleAction(reportID, actionsToMerge = {}) {
  */
 function getLastVisibleMessageText(reportID, actionsToMerge = {}) {
     const lastVisibleAction = getLastVisibleAction(reportID, actionsToMerge);
-    const message = lodashGet(lastVisibleAction, ['message', 0]);
+    const message = lodashGet(lastVisibleAction, ['message', 0], {});
+
     if (isReportMessageAttachment(message)) {
         return CONST.ATTACHMENT_MESSAGE_TEXT;
     }
@@ -266,6 +273,21 @@ function getLatestReportActionFromOnyxData(onyxData) {
     return _.last(sortedReportActions);
 }
 
+/**
+ * Find the transaction associated with this reportAction, if one exists.
+ *
+ * @param {String} reportID
+ * @param {String} reportActionID
+ * @returns {String|null}
+ */
+function getLinkedTransactionID(reportID, reportActionID) {
+    const reportAction = lodashGet(allReportActions, [reportID, reportActionID]);
+    if (!reportAction || reportAction.actionName !== CONST.REPORT.ACTIONS.TYPE.IOU) {
+        return null;
+    }
+    return reportAction.originalMessage.IOUTransactionID;
+}
+
 export {
     getSortedReportActions,
     getLastVisibleAction,
@@ -278,4 +300,5 @@ export {
     getSortedReportActionsForDisplay,
     getLastClosedReportAction,
     getLatestReportActionFromOnyxData,
+    getLinkedTransactionID,
 };

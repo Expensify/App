@@ -6,6 +6,7 @@ import ONYXKEYS from '../../ONYXKEYS';
 import CONST from '../../CONST';
 import * as API from '../API';
 import * as ReportUtils from '../ReportUtils';
+import * as LocalePhoneNumber from '../LocalePhoneNumber';
 import ROUTES from '../../ROUTES';
 import Navigation from '../Navigation/Navigation';
 
@@ -29,9 +30,9 @@ Onyx.connect({
  * @returns {String}
  */
 function getDisplayName(login, personalDetail) {
-    // If we have a number like +15857527441@expensify.sms then let's remove @expensify.sms
+    // If we have a number like +15857527441@expensify.sms then let's remove @expensify.sms and format it
     // so that the option looks cleaner in our UI.
-    const userLogin = Str.removeSMSDomain(login);
+    const userLogin = LocalePhoneNumber.formatPhoneNumber(login);
     const userDetails = personalDetail || lodashGet(personalDetails, login);
 
     if (!userDetails) {
@@ -66,7 +67,7 @@ function extractFirstAndLastNameFromAvailableDetails({
     if (firstName || lastName) {
         return {firstName: firstName || '', lastName: lastName || ''};
     }
-    if (Str.removeSMSDomain(login) === displayName) {
+    if (login && Str.removeSMSDomain(login) === displayName) {
         return {firstName: '', lastName: ''};
     }
 
@@ -101,7 +102,7 @@ function getCountryISO(countryName) {
 function updatePronouns(pronouns) {
     API.write('UpdatePronouns', {pronouns}, {
         optimisticData: [{
-            onyxMethod: CONST.ONYX.METHOD.MERGE,
+            onyxMethod: Onyx.METHOD.MERGE,
             key: ONYXKEYS.PERSONAL_DETAILS,
             value: {
                 [currentUserEmail]: {
@@ -120,7 +121,7 @@ function updatePronouns(pronouns) {
 function updateDisplayName(firstName, lastName) {
     API.write('UpdateDisplayName', {firstName, lastName}, {
         optimisticData: [{
-            onyxMethod: CONST.ONYX.METHOD.MERGE,
+            onyxMethod: Onyx.METHOD.MERGE,
             key: ONYXKEYS.PERSONAL_DETAILS,
             value: {
                 [currentUserEmail]: {
@@ -144,7 +145,7 @@ function updateDisplayName(firstName, lastName) {
 function updateLegalName(legalFirstName, legalLastName) {
     API.write('UpdateLegalName', {legalFirstName, legalLastName}, {
         optimisticData: [{
-            onyxMethod: CONST.ONYX.METHOD.MERGE,
+            onyxMethod: Onyx.METHOD.MERGE,
             key: ONYXKEYS.PRIVATE_PERSONAL_DETAILS,
             value: {
                 legalFirstName,
@@ -161,7 +162,7 @@ function updateLegalName(legalFirstName, legalLastName) {
 function updateDateOfBirth(dob) {
     API.write('UpdateDateOfBirth', {dob}, {
         optimisticData: [{
-            onyxMethod: CONST.ONYX.METHOD.MERGE,
+            onyxMethod: Onyx.METHOD.MERGE,
             key: ONYXKEYS.PRIVATE_PERSONAL_DETAILS,
             value: {
                 dob,
@@ -183,7 +184,7 @@ function updateAddress(street, street2, city, state, zip, country) {
     const parameters = {
         homeAddressStreet: street,
         addressStreet2: street2,
-        addressCity: city,
+        homeAddressCity: city,
         addressState: state,
         addressZipCode: zip,
         addressCountry: country,
@@ -196,7 +197,7 @@ function updateAddress(street, street2, city, state, zip, country) {
     }
     API.write('UpdateHomeAddress', parameters, {
         optimisticData: [{
-            onyxMethod: CONST.ONYX.METHOD.MERGE,
+            onyxMethod: Onyx.METHOD.MERGE,
             key: ONYXKEYS.PRIVATE_PERSONAL_DETAILS,
             value: {
                 address: {
@@ -225,7 +226,7 @@ function updateAutomaticTimezone(timezone) {
         timezone: JSON.stringify(timezone),
     }, {
         optimisticData: [{
-            onyxMethod: CONST.ONYX.METHOD.MERGE,
+            onyxMethod: Onyx.METHOD.MERGE,
             key: ONYXKEYS.PERSONAL_DETAILS,
             value: {
                 [currentUserEmail]: {
@@ -250,7 +251,7 @@ function updateSelectedTimezone(selectedTimezone) {
         timezone: JSON.stringify(timezone),
     }, {
         optimisticData: [{
-            onyxMethod: CONST.ONYX.METHOD.MERGE,
+            onyxMethod: Onyx.METHOD.MERGE,
             key: ONYXKEYS.PERSONAL_DETAILS,
             value: {
                 [currentUserEmail]: {
@@ -283,23 +284,25 @@ function openPersonalDetailsPage() {
  */
 function updateAvatar(file) {
     const optimisticData = [{
-        onyxMethod: CONST.ONYX.METHOD.MERGE,
+        onyxMethod: Onyx.METHOD.MERGE,
         key: ONYXKEYS.PERSONAL_DETAILS,
         value: {
             [currentUserEmail]: {
                 avatar: file.uri,
                 avatarThumbnail: file.uri,
+                originalFileName: file.name,
                 errorFields: {
                     avatar: null,
                 },
                 pendingFields: {
                     avatar: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
+                    originalFileName: null,
                 },
             },
         },
     }];
     const successData = [{
-        onyxMethod: CONST.ONYX.METHOD.MERGE,
+        onyxMethod: Onyx.METHOD.MERGE,
         key: ONYXKEYS.PERSONAL_DETAILS,
         value: {
             [currentUserEmail]: {
@@ -310,7 +313,7 @@ function updateAvatar(file) {
         },
     }];
     const failureData = [{
-        onyxMethod: CONST.ONYX.METHOD.MERGE,
+        onyxMethod: Onyx.METHOD.MERGE,
         key: ONYXKEYS.PERSONAL_DETAILS,
         value: {
             [currentUserEmail]: {
@@ -335,7 +338,7 @@ function deleteAvatar() {
 
     API.write('DeleteUserAvatar', {}, {
         optimisticData: [{
-            onyxMethod: CONST.ONYX.METHOD.MERGE,
+            onyxMethod: Onyx.METHOD.MERGE,
             key: ONYXKEYS.PERSONAL_DETAILS,
             value: {
                 [currentUserEmail]: {
@@ -344,7 +347,7 @@ function deleteAvatar() {
             },
         }],
         failureData: [{
-            onyxMethod: CONST.ONYX.METHOD.MERGE,
+            onyxMethod: Onyx.METHOD.MERGE,
             key: ONYXKEYS.PERSONAL_DETAILS,
             value: {
                 [currentUserEmail]: {

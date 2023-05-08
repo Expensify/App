@@ -31,7 +31,7 @@ class PressableWithSecondaryInteraction extends Component {
      * @param {Event} e - the secondary interaction event
      */
     executeSecondaryInteraction(e) {
-        if (DeviceCapabilities.hasHoverSupport()) {
+        if (DeviceCapabilities.hasHoverSupport() && !this.props.enableLongPressWithHover) {
             return;
         }
         if (this.props.withoutFocusOnSecondaryInteraction && this.pressableRef) {
@@ -50,7 +50,7 @@ class PressableWithSecondaryInteraction extends Component {
         }
 
         e.stopPropagation();
-        if (this.props.preventDefaultContentMenu) {
+        if (this.props.preventDefaultContextMenu) {
             e.preventDefault();
         }
 

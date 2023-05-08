@@ -155,6 +155,7 @@ class BaseModal extends PureComponent {
                             modalContainerStyleMarginBottom: modalContainerStyle.marginBottom,
                             modalContainerStylePaddingTop: modalContainerStyle.paddingTop,
                             modalContainerStylePaddingBottom: modalContainerStyle.paddingBottom,
+                            insets,
                         });
 
                         return (
@@ -165,6 +166,7 @@ class BaseModal extends PureComponent {
                                     ...modalPaddingStyles,
                                 }}
                                 ref={this.props.forwardedRef}
+                                nativeID="no-drag-area"
                             >
                                 {this.props.children}
                             </View>

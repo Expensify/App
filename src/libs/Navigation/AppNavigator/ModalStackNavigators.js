@@ -2,7 +2,6 @@ import _ from 'underscore';
 import React from 'react';
 import {createStackNavigator, CardStyleInterpolators} from '@react-navigation/stack';
 import styles from '../../../styles/styles';
-import CONST from '../../../CONST';
 
 const defaultSubRouteOptions = {
     cardStyle: styles.navigationScreenCardStyle,
@@ -153,6 +152,23 @@ const ReportDetailsModalStackNavigator = createModalStackNavigator([{
     name: 'Report_Details_Root',
 }]);
 
+const TaskModalStackNavigator = createModalStackNavigator([
+    {
+        getComponent: () => {
+            const TaskTitlePage = require('../../../pages/tasks/TaskTitlePage').default;
+            return TaskTitlePage;
+        },
+        name: 'Task_Title',
+    },
+    {
+        getComponent: () => {
+            const TaskDescriptionPage = require('../../../pages/tasks/TaskDescriptionPage').default;
+            return TaskDescriptionPage;
+        },
+        name: 'Task_Description',
+    },
+]);
+
 const ReportSettingsModalStackNavigator = createModalStackNavigator([{
     getComponent: () => {
         const ReportSettingsPage = require('../../../pages/ReportSettingsPage').default;
@@ -200,6 +216,14 @@ const NewChatModalStackNavigator = createModalStackNavigator([{
         return NewChatPage;
     },
     name: 'NewChat_Root',
+}]);
+
+const NewTaskModalStackNavigator = createModalStackNavigator([{
+    getComponent: () => {
+        const NewTaskPage = require('../../../pages/NewTaskPage').default;
+        return NewTaskPage;
+    },
+    name: 'NewTask_Root',
 }]);
 
 const SettingsModalStackNavigator = createModalStackNavigator([
@@ -471,6 +495,13 @@ const SettingsModalStackNavigator = createModalStackNavigator([
     },
     {
         getComponent: () => {
+            const WorkspaceInviteMessagePage = require('../../../pages/workspace/WorkspaceInviteMessagePage').default;
+            return WorkspaceInviteMessagePage;
+        },
+        name: 'Workspace_Invite_Message',
+    },
+    {
+        getComponent: () => {
             const WorkspaceNewRoomPage = require('../../../pages/workspace/WorkspaceNewRoomPage').default;
             return WorkspaceNewRoomPage;
         },
@@ -482,7 +513,7 @@ const SettingsModalStackNavigator = createModalStackNavigator([
             return ReimbursementAccountPage;
         },
         name: 'ReimbursementAccount',
-        initialParams: {stepToOpen: CONST.BANK_ACCOUNT.STEP.BANK_ACCOUNT},
+        initialParams: {stepToOpen: ''},
     },
     {
         getComponent: () => {
@@ -540,11 +571,13 @@ export {
     IOUDetailsModalStackNavigator,
     DetailsModalStackNavigator,
     ReportDetailsModalStackNavigator,
+    TaskModalStackNavigator,
     ReportSettingsModalStackNavigator,
     ReportParticipantsModalStackNavigator,
     SearchModalStackNavigator,
     NewGroupModalStackNavigator,
     NewChatModalStackNavigator,
+    NewTaskModalStackNavigator,
     SettingsModalStackNavigator,
     EnablePaymentsStackNavigator,
     AddPersonalBankAccountModalStackNavigator,
