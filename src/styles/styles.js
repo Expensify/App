@@ -3194,6 +3194,10 @@ const styles = {
     contextMenuItemPopoverMaxWidth: {
         maxWidth: 375,
     },
+    taskCheckbox: {
+        height: 16,
+        width: 16,
+    },
 };
 
 export default styles;

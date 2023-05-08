@@ -194,9 +194,12 @@ class ReportActionItem extends Component {
                     checkIfContextMenuActive={this.checkIfContextMenuActive}
                 />
             );
-        } else if (this.props.action.actionName === CONST.REPORT.ACTIONS.TYPE.ADDCOMMENT && this.props.action.originalMessage.taskReportID) {
+        } else if (this.props.action.actionName === CONST.REPORT.ACTIONS.TYPE.ADDCOMMENT && _.has(this.props.action.originalMessage, 'taskReportID')) {
             children = (
-                <TaskPreview />
+                <TaskPreview
+                    taskReportID={this.props.action.originalMessage.taskReportID.toString()}
+                    isHovered={hovered}
+                />
             );
         } else {
             const message = _.last(lodashGet(this.props.action, 'message', [{}]));
