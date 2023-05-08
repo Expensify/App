@@ -40,6 +40,7 @@ import getIsReportFullyVisible from '../../libs/getIsReportFullyVisible';
 import EmojiPicker from '../../components/EmojiPicker/EmojiPicker';
 import * as EmojiPickerAction from '../../libs/actions/EmojiPickerAction';
 import TaskHeaderView from './TaskHeaderView';
+import withNavigation, {withNavigationPropTypes} from '../../components/withNavigation';
 
 const propTypes = {
     /** Navigation route context info provided by react navigation */
@@ -86,6 +87,7 @@ const propTypes = {
 
     ...windowDimensionsPropTypes,
     ...viewportOffsetTopPropTypes,
+    ...withNavigationPropTypes,
 };
 
 const defaultProps = {
@@ -118,6 +120,10 @@ function getReportID(route) {
 let reportActionsListViewHeight = 0;
 
 class ReportScreen extends React.Component {
+    transitionEndListener = null;
+
+    gestureStartListener = null;
+
     constructor(props) {
         super(props);
 
@@ -129,6 +135,7 @@ class ReportScreen extends React.Component {
             skeletonViewContainerHeight: reportActionsListViewHeight,
             isBannerVisible: true,
             animationFinished: false,
+            screenDisappeared: false,
         };
     }
 
@@ -149,6 +156,14 @@ class ReportScreen extends React.Component {
 
         InteractionManager.runAfterInteractions(() => {
             this.setState({animationFinished: true});
+        });
+
+        this.transitionEndListener = this.props.navigation.addListener('transitionEnd', (e) => {
+            this.setState({screenDisappeared: e.data.closing});
+        });
+
+        this.gestureStartListener = this.props.navigation.addListener('gestureStart', (e) => {
+            this.setState({screenDisappeared: false});
         });
     }
 
@@ -172,6 +187,8 @@ class ReportScreen extends React.Component {
             this.unsubscribeVisibilityListener();
         }
         Navigation.resetIsReportScreenReadyPromise();
+        this.transitionEndListener();
+        this.gestureStartListener();
     }
 
     /**
@@ -239,7 +256,8 @@ class ReportScreen extends React.Component {
             || (ReportUtils.isUserCreatedPolicyRoom(this.props.report) && !Permissions.canUsePolicyRooms(this.props.betas));
 
         // When the ReportScreen is not open/in the viewport, we want to "freeze" it for performance reasons
-        const shouldFreeze = this.props.isSmallScreenWidth && !this.props.isFocused;
+        const isVisible = this.props.isFocused || !this.state.screenDisappeared;
+        const shouldFreeze = this.props.isSmallScreenWidth && !isVisible;
 
         const isLoading = !reportID || !this.props.isSidebarLoaded || _.isEmpty(this.props.personalDetails) || !this.state.animationFinished;
 
@@ -365,6 +383,7 @@ export default compose(
     withLocalize,
     withWindowDimensions,
     withNavigationFocus,
+    withNavigation,
     withNetwork(),
     withOnyx({
         isSidebarLoaded: {

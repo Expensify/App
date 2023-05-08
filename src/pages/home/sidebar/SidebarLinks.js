@@ -33,6 +33,7 @@ import OfflineWithFeedback from '../../../components/OfflineWithFeedback';
 import LHNSkeletonView from '../../../components/LHNSkeletonView';
 import withNavigationFocus from '../../../components/withNavigationFocus';
 import withCurrentReportId from '../../../components/withCurrentReportId';
+import withNavigation, {withNavigationPropTypes} from '../../../components/withNavigation';
 
 const propTypes = {
     /** Toggles the navigation menu open and closed */
@@ -75,6 +76,7 @@ const propTypes = {
     priorityMode: PropTypes.string,
 
     ...withLocalizePropTypes,
+    ...withNavigationPropTypes,
 };
 
 const defaultProps = {
@@ -89,6 +91,10 @@ const defaultProps = {
 };
 
 class SidebarLinks extends React.Component {
+    transitionEndListener = null;
+
+    gestureStartListener = null;
+
     constructor(props) {
         super(props);
 
@@ -99,11 +105,27 @@ class SidebarLinks extends React.Component {
         if (this.props.isSmallScreenWidth) {
             App.confirmReadyToOpenApp();
         }
+
+        this.state = {
+            screenDisappeared: false,
+        };
     }
 
     componentDidMount() {
         App.setSidebarLoaded();
         this.isSidebarLoaded = true;
+        this.transitionEndListener = this.props.navigation.addListener('transitionEnd', (e) => {
+            this.setState({screenDisappeared: e.data.closing});
+        });
+
+        this.gestureStartListener = this.props.navigation.addListener('gestureStart', (e) => {
+            this.setState({screenDisappeared: false});
+        });
+    }
+
+    componentWillUnmount() {
+        this.transitionEndListener();
+        this.gestureStartListener();
     }
 
     showSearchPage() {
@@ -139,7 +161,8 @@ class SidebarLinks extends React.Component {
 
     render() {
         const isLoading = _.isEmpty(this.props.personalDetails) || _.isEmpty(this.props.chatReports);
-        const shouldFreeze = this.props.isSmallScreenWidth && !this.props.isFocused && this.isSidebarLoaded;
+        const isVisible = this.props.isFocused || !this.state.screenDisappeared;
+        const shouldFreeze = this.props.isSmallScreenWidth && this.isSidebarLoaded && !isVisible;
         const optionListItems = SidebarUtils.getOrderedReportIDs(this.props.reportIDFromRoute);
 
         const skeletonPlaceholder = <LHNSkeletonView shouldAnimate={!shouldFreeze} />;
@@ -291,6 +314,7 @@ export default compose(
     withNavigationFocus,
     withWindowDimensions,
     withCurrentReportId,
+    withNavigation,
     withOnyx({
         // Note: It is very important that the keys subscribed to here are the same
         // keys that are subscribed to at the top of SidebarUtils.js. If there was a key missing from here and data was updated
