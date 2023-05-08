@@ -73,7 +73,7 @@ const ImageCropView = (props) => {
                 {rotate: `${rotate}deg`},
             ],
         };
-    }, [props.originalImageHeight, props.originalImageWidth]);
+    }, [originalImageHeight, originalImageWidth, rotation, translateX, translateY, scale]);
 
     // We're preventing text selection with ControlSelection.blockElement to prevent safari
     // default behaviour of cursor - I-beam cursor on drag. See https://github.com/Expensify/App/issues/13688

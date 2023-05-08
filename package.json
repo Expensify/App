@@ -128,6 +128,7 @@
     "react-web-config": "^1.0.0",
     "save": "^2.4.0",
     "semver": "^7.3.8",
+    "setimmediate": "^1.0.5",
     "shim-keyboard-event-key": "^1.0.3",
     "underscore": "^1.13.1"
   },
