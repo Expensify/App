@@ -79,7 +79,7 @@ function NewContactMethodPage(props) {
     const submitForm = useCallback(() => {
         const phoneLogin = LoginUtils.appendCountryCode(LoginUtils.getPhoneNumberWithoutSpecialChars(login));
         const parsedPhoneNumber = parsePhoneNumber(phoneLogin);
-        const userLogin = parsedPhoneNumber.possible ? parsedPhoneNumber.number.e164 : login;
+        const userLogin = parsedPhoneNumber.possible ? `${parsedPhoneNumber.number.e164}${CONST.SMS.DOMAIN}` : login;
 
         // If this login already exists, just go back.
         if (lodashGet(props.loginList, userLogin)) {

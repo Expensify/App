@@ -134,21 +134,54 @@ export default function getTooltipStyles(
     // We get wrapper width based on the tooltip's inner text width so the wrapper is just big enough to fit text and prevent white space.
     // If the text width is less than the maximum available width, add horizontal padding.
     // Note: tooltipContentWidth ignores the fractions (OffsetWidth) so add 1px to fit the text properly.
-    const wrapperWidth = tooltipContentWidth && (tooltipContentWidth < maxWidth
-        ? tooltipContentWidth + (spacing.ph2.paddingHorizontal * 2) + 1
-        : maxWidth);
+    const wrapperWidth = tooltipContentWidth && (tooltipContentWidth + (spacing.ph2.paddingHorizontal * 2) + 1);
 
     // Hide the tooltip entirely if it's position hasn't finished measuring yet. This prevents UI jank where the tooltip flashes in the top left corner of the screen.
     const opacity = (xOffset === 0 && yOffset === 0) ? 0 : 1;
+
+    const isTooltipSizeReady = tooltipWidth !== 0 && tooltipHeight !== 0;
+    const scale = !isTooltipSizeReady ? 1 : currentSize;
+    let wrapperTop = 0;
+    let wrapperLeft = 0;
+
+    if (isTooltipSizeReady) {
+        // Because it uses fixed positioning, the top-left corner of the tooltip is aligned
+        // with the top-left corner of the window by default.
+        // we will use yOffset to position the tooltip relative to the Wrapped Component
+        // So we need to shift the tooltip vertically and horizontally to position it correctly.
+        //
+        // First, we'll position it vertically.
+        // To shift the tooltip down, we'll give `top` a positive value.
+        // To shift the tooltip up, we'll give `top` a negative value.
+        wrapperTop = shouldShowBelow
+
+            // We need to shift the tooltip down below the component. So shift the tooltip down (+) by...
+            ? (yOffset + componentHeight + POINTER_HEIGHT + manualShiftVertical)
+
+            // We need to shift the tooltip up above the component. So shift the tooltip up (-) by...
+            : ((yOffset - (tooltipHeight + POINTER_HEIGHT)) + manualShiftVertical);
+
+        // Next, we'll position it horizontally.
+        // we will use xOffset to position the tooltip relative to the Wrapped Component
+        // To shift the tooltip right, we'll give `left` a positive value.
+        // To shift the tooltip left, we'll give `left` a negative value.
+        //
+        // So we'll:
+        //   1) Shift the tooltip right (+) to the center of the component,
+        //      so the left edge lines up with the component center.
+        //   2) Shift it left (-) to by half the tooltip's width,
+        //      so the tooltip's center lines up with the center of the wrapped component.
+        //   3) Add the horizontal shift (left or right) computed above to keep it out of the gutters.
+        //   4) Lastly, add the manual horizontal shift passed in as a parameter.
+        wrapperLeft = xOffset + ((componentWidth / 2) - (tooltipWidth / 2)) + horizontalShift + manualShiftHorizontal;
+    }
 
     return {
         animationStyle: {
             // remember Transform causes a new Local cordinate system
             // https://drafts.csswg.org/css-transforms-1/#transform-rendering
             // so Position fixed children will be relative to this new Local cordinate system
-            transform: [{
-                scale: currentSize,
-            }],
+            transform: [{scale}],
         },
         tooltipWrapperStyle: {
             position: 'fixed',
@@ -158,41 +191,13 @@ export default function getTooltipStyles(
             ...spacing.ph2,
             zIndex: variables.tooltipzIndex,
             width: wrapperWidth,
+            maxWidth,
+            top: wrapperTop,
+            left: wrapperLeft,
+            opacity,
 
             // We are adding this to prevent the tooltip text from being selected and copied on CTRL + A.
             ...styles.userSelectNone,
-
-            // Because it uses fixed positioning, the top-left corner of the tooltip is aligned
-            // with the top-left corner of the window by default.
-            // we will use yOffset to position the tooltip relative to the Wrapped Component
-            // So we need to shift the tooltip vertically and horizontally to position it correctly.
-            //
-            // First, we'll position it vertically.
-            // To shift the tooltip down, we'll give `top` a positive value.
-            // To shift the tooltip up, we'll give `top` a negative value.
-            top: shouldShowBelow
-
-                // We need to shift the tooltip down below the component. So shift the tooltip down (+) by...
-                ? (yOffset + componentHeight + POINTER_HEIGHT + manualShiftVertical)
-
-                // We need to shift the tooltip up above the component. So shift the tooltip up (-) by...
-                : ((yOffset - (tooltipHeight + POINTER_HEIGHT)) + manualShiftVertical),
-
-            // Next, we'll position it horizontally.
-            // we will use xOffset to position the tooltip relative to the Wrapped Component
-            // To shift the tooltip right, we'll give `left` a positive value.
-            // To shift the tooltip left, we'll give `left` a negative value.
-            //
-            // So we'll:
-            //   1) Shift the tooltip right (+) to the center of the component,
-            //      so the left edge lines up with the component center.
-            //   2) Shift it left (-) to by half the tooltip's width,
-            //      so the tooltip's center lines up with the center of the wrapped component.
-            //   3) Add the horizontal shift (left or right) computed above to keep it out of the gutters.
-            //   4) Lastly, add the manual horizontal shift passed in as a parameter.
-            left: xOffset + ((componentWidth / 2) - (tooltipWidth / 2)) + horizontalShift + manualShiftHorizontal,
-
-            opacity,
         },
         tooltipTextStyle: {
             color: themeColors.textReversed,
@@ -200,10 +205,6 @@ export default function getTooltipStyles(
             fontSize: tooltipFontSize,
             overflow: 'hidden',
             lineHeight: variables.lineHeightSmall,
-
-            // To measure tooltip text width correctly we render it freely i.e. text should not wrap to parent's boundaries.
-            // More info: https://github.com/Expensify/App/issues/15949#issuecomment-1483011998
-            ...(tooltipContentWidth ? {} : styles.pre),
         },
         pointerWrapperStyle: {
             position: 'fixed',
