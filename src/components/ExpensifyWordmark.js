@@ -12,13 +12,14 @@ import compose from '../libs/compose';
 import themeColors from '../styles/themes/default';
 import * as StyleUtils from '../styles/StyleUtils';
 import variables from '../styles/variables';
+import stylePropTypes from '../styles/stylePropTypes';
 
 const propTypes = {
     ...environmentPropTypes,
     ...windowDimensionsPropTypes,
 
     /** The styles to apply for the View wrapping the svg */
-    containerStyles: PropTypes.arrayOf(PropTypes.object),
+    containerStyles: stylePropTypes,
 
     /** Fill color of the svg */
     color: PropTypes.string,
