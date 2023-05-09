@@ -23,9 +23,6 @@ const TextFileLink = (props) => {
         RNFetchBlob.fs.writeFile(path, props.textContent, 'utf8')
             .then(() => {
                 Share.share({url: path, title: props.fileName})
-                    .then(() => {
-                        FileUtils.showSuccessAlert();
-                    })
                     .catch(() => {
                         FileUtils.showGeneralErrorAlert();
                     })

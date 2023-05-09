@@ -105,6 +105,7 @@ class VerifyPage extends Component {
                     subtitle={this.props.translate('twoFactorAuth.stepVerify')}
                     shouldShowBackButton
                     onBackButtonPress={() => Navigation.navigate(ROUTES.SETTINGS_TWO_FACTOR_CODES)}
+                    onCloseButtonPress={() => Navigation.dismissModal(true)}
                 />
 
                 <FullPageOfflineBlockingView>

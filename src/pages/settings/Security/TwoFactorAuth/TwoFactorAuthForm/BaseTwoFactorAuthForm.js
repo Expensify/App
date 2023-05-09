@@ -93,6 +93,7 @@ class BaseValidateCodeForm extends React.Component {
                         ? this.props.translate(this.state.formError.twoFactorAuthCode)
                         : ErrorUtils.getLatestErrorMessage(this.props.account)
                 }
+                autoFocus
             />
         );
     }

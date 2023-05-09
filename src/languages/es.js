@@ -497,9 +497,6 @@ export default {
         stepSuccess: 'Paso 3: Terminado',
         enabled: '¡La autenticación de dos factores ahora está habilitada!',
         congrats: 'Felicidades, ahora tienes esa seguridad adicional.',
-        errors: {
-            sixDigits: 'El código debe tener exactamente 6 dígitos',
-        },
     },
     twoFactorAuthForm: {
         error: {
