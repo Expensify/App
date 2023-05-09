@@ -36,7 +36,7 @@ function createTaskAndNavigate(currentUserEmail, parentReportID, title, descript
     let optimisticAssigneeAddComment;
     if (assigneeChatReportID && assigneeChatReportID !== parentReportID) {
         optimisticAssigneeAddComment = ReportUtils.buildOptimisticAddCommentReportAction(
-            `${currentUserEmail} has[created a task for you](tbd/r/${optimisticTaskReport.reportID}): ${title}`,
+            `Assigned a task to you: ${title}`,
         );
         optimisticAssigneeAddComment.reportAction.message[0].taskReportID = optimisticTaskReport.reportID;
     }
@@ -45,7 +45,7 @@ function createTaskAndNavigate(currentUserEmail, parentReportID, title, descript
     const optimisticTaskCreatedAction = ReportUtils.buildOptimisticCreatedReportAction(optimisticTaskReport.reportID);
 
     const optimisticAddCommentReport = ReportUtils.buildOptimisticAddCommentReportAction(
-        `[Created a task](tbd/r/${optimisticTaskReport.reportID}): ${title}`,
+        `Created a task: ${title}`,
     );
     optimisticAddCommentReport.reportAction.message[0].taskReportID = optimisticTaskReport.reportID;
 
