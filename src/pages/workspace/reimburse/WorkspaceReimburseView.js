@@ -78,7 +78,6 @@ class WorkspaceReimburseView extends React.Component {
             unitValue: lodashGet(distanceCustomUnit, 'attributes.unit', 'mi'),
             unitRateID: lodashGet(customUnitRate, 'customUnitRateID', ''),
             unitRateValue: this.getUnitRateValue(customUnitRate),
-            outputCurrency: lodashGet(props, 'policy.outputCurrency', ''),
         };
 
         this.debounceUpdateOnCursorMove = this.debounceUpdateOnCursorMove.bind(this);
@@ -215,6 +214,7 @@ class WorkspaceReimburseView extends React.Component {
 
     render() {
         const viewAllReceiptsUrl = `expenses?policyIDList=${this.props.policy.id}&billableReimbursable=reimbursable&submitterEmail=%2B%2B`;
+        const outputCurrency = lodashGet(this.props, 'policy.outputCurrency', CONST.CURRENCY.USD);
 
         return (
             <>
@@ -265,7 +265,7 @@ class WorkspaceReimburseView extends React.Component {
                             <View style={[styles.rateCol]}>
                                 <TextInput
                                     label={this.props.translate('workspace.reimburse.trackDistanceRate')}
-                                    placeholder={this.state.outputCurrency}
+                                    placeholder={outputCurrency}
                                     onChangeText={value => this.setRate(value)}
                                     value={this.state.unitRateValue}
                                     autoCompleteType="off"

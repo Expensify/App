@@ -105,9 +105,7 @@ function getPolicyExpenseReportOptions(report) {
     }
     const filteredPolicyExpenseReports = _.filter(policyExpenseReports, policyExpenseReport => policyExpenseReport.policyID === report.policyID);
     return _.map(filteredPolicyExpenseReports, (expenseReport) => {
-        const policyExpenseChatAvatarSource = lodashGet(policies, [
-            `${ONYXKEYS.COLLECTION.POLICY}${expenseReport.policyID}`, 'avatar',
-        ]) || ReportUtils.getDefaultWorkspaceAvatar(expenseReport.displayName);
+        const policyExpenseChatAvatarSource = ReportUtils.getWorkspaceAvatar(expenseReport);
         return {
             ...expenseReport,
             keyForList: expenseReport.policyID,
@@ -134,6 +132,24 @@ function addSMSDomainIfPhoneNumber(login) {
         return parsedPhoneNumber.number.e164 + CONST.SMS.DOMAIN;
     }
     return login;
+}
+
+/**
+ * Returns avatar data for a list of user logins
+ *
+ * @param {Array<String>} logins
+ * @param {Object} personalDetails
+ * @returns {Object}
+ */
+function getAvatarsForLogins(logins, personalDetails) {
+    return _.map(logins, (login) => {
+        const userPersonalDetail = lodashGet(personalDetails, login, {login, avatar: ''});
+        return {
+            source: ReportUtils.getAvatar(userPersonalDetail.avatar, userPersonalDetail.login),
+            type: CONST.ICON_TYPE_AVATAR,
+            name: userPersonalDetail.login,
+        };
+    });
 }
 
 /**
@@ -411,7 +427,7 @@ function createOption(logins, personalDetails, report, reportActions = {}, {
             : '';
         lastMessageText += report ? lastMessageTextFromReport : '';
 
-        if (result.isPolicyExpenseChat && result.isArchivedRoom) {
+        if (result.isArchivedRoom) {
             const archiveReason = (lastReportActions[report.reportID] && lastReportActions[report.reportID].originalMessage && lastReportActions[report.reportID].originalMessage.reason)
                 || CONST.REPORT.ARCHIVE_REASON.DEFAULT;
             lastMessageText = Localize.translate(preferredLocale, `reportArchiveReasons.${archiveReason}`, {
@@ -817,6 +833,34 @@ function getNewChatOptions(
 }
 
 /**
+ * Build the options for the Share Destination for a Task
+ * *
+ * @param {Object} reports
+ * @param {Object} personalDetails
+ * @param {Array<String>} [betas]
+ * @param {String} [searchValue]
+ * @param {Array} [selectedOptions]
+ * @param {Array} [excludeLogins]
+ * @param {Boolean} [includeOwnedWorkspaceChats]
+ * @returns {Object}
+ *
+ */
+
+function getShareDestinationOptions(reports, personalDetails, betas = [], searchValue = '', selectedOptions = [], excludeLogins = [], includeOwnedWorkspaceChats = true) {
+    return getOptions(reports, personalDetails, {
+        betas,
+        searchInputValue: searchValue.trim(),
+        selectedOptions,
+        maxRecentReportsToShow: 5,
+        includeRecentReports: true,
+        includeMultipleParticipantReports: true,
+        includePersonalDetails: true,
+        excludeLogins,
+        includeOwnedWorkspaceChats,
+    });
+}
+
+/**
  * Build the options for the Workspace Member Invite view
  *
  * @param {Object} personalDetails
@@ -834,7 +878,6 @@ function getMemberInviteOptions(
     return getOptions([], personalDetails, {
         betas,
         searchInputValue: searchValue.trim(),
-        excludeDefaultRooms: true,
         includePersonalDetails: true,
         excludeLogins,
         sortPersonalDetailsByAlphaAsc: false,
@@ -881,9 +924,11 @@ function getHeaderMessage(hasSelectableOptions, hasUserToInvite, searchValue, ma
 
 export {
     addSMSDomainIfPhoneNumber,
+    getAvatarsForLogins,
     isCurrentUser,
     getSearchOptions,
     getNewChatOptions,
+    getShareDestinationOptions,
     getMemberInviteOptions,
     getHeaderMessage,
     getPersonalDetailsForLogins,

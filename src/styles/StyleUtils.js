@@ -36,6 +36,7 @@ const avatarBorderSizes = {
     [CONST.AVATAR_SIZE.SUBSCRIPT]: variables.componentBorderRadiusSmall,
     [CONST.AVATAR_SIZE.SMALLER]: variables.componentBorderRadiusMedium,
     [CONST.AVATAR_SIZE.SMALL]: variables.componentBorderRadiusMedium,
+    [CONST.AVATAR_SIZE.HEADER]: variables.componentBorderRadiusMedium,
     [CONST.AVATAR_SIZE.DEFAULT]: variables.componentBorderRadiusNormal,
     [CONST.AVATAR_SIZE.MEDIUM]: variables.componentBorderRadiusLarge,
     [CONST.AVATAR_SIZE.LARGE]: variables.componentBorderRadiusLarge,
@@ -52,6 +53,7 @@ const avatarSizes = {
     [CONST.AVATAR_SIZE.LARGE]: variables.avatarSizeLarge,
     [CONST.AVATAR_SIZE.MEDIUM]: variables.avatarSizeMedium,
     [CONST.AVATAR_SIZE.LARGE_BORDERED]: variables.avatarSizeLargeBordered,
+    [CONST.AVATAR_SIZE.HEADER]: variables.avatarSizeHeader,
 };
 
 /**
@@ -297,6 +299,28 @@ function getZoomSizingStyle(isZoomed, imgWidth, imgHeight, zoomScale, containerH
 function getWidthStyle(width) {
     return {
         width,
+    };
+}
+
+/**
+ * Returns auto grow height text input style
+ *
+ * @param {Number} textInputHeight
+ * @param {Number} maxHeight
+ * @returns {Object}
+ */
+function getAutoGrowHeightInputStyle(textInputHeight, maxHeight) {
+    if (textInputHeight > maxHeight) {
+        return {
+            ...styles.pr0,
+            ...styles.overflowAuto,
+        };
+    }
+
+    return {
+        ...styles.pr0,
+        ...styles.overflowHidden,
+        height: maxHeight,
     };
 }
 
@@ -1089,6 +1113,29 @@ function getGoogleListViewStyle(shouldDisplayBorder) {
     };
 }
 
+/**
+ * Returns style object for the user mention component based on whether the mention is ours or not.
+ * @param {Boolean} isOurMention
+ * @returns {Object}
+ */
+function getMentionStyle(isOurMention) {
+    const backgroundColor = isOurMention ? themeColors.ourMentionBG : themeColors.mentionBG;
+    return {
+        backgroundColor,
+        borderRadius: variables.componentBorderRadiusSmall,
+        paddingHorizontal: 2,
+    };
+}
+
+/**
+ * Returns text color for the user mention text based on whether the mention is ours or not.
+ * @param {Boolean} isOurMention
+ * @returns {Object}
+ */
+function getMentionTextColor(isOurMention) {
+    return isOurMention ? themeColors.ourMentionText : themeColors.mentionText;
+}
+
 export {
     getAvatarSize,
     getAvatarStyle,
@@ -1103,6 +1150,7 @@ export {
     getZoomCursorStyle,
     getZoomSizingStyle,
     getWidthStyle,
+    getAutoGrowHeightInputStyle,
     getBackgroundAndBorderStyle,
     getBackgroundColorStyle,
     getBackgroundColorWithOpacityStyle,
@@ -1148,4 +1196,6 @@ export {
     getFontSizeStyle,
     getSignInWordmarkWidthStyle,
     getGoogleListViewStyle,
+    getMentionStyle,
+    getMentionTextColor,
 };

@@ -101,7 +101,8 @@ function getSortedReportActions(reportActions, shouldSortInDescendingOrder = fal
  * @returns {String}
  */
 function getMostRecentIOURequestActionID(reportActions) {
-    const iouRequestActions = _.filter(reportActions, action => lodashGet(action, 'originalMessage.type') === CONST.IOU.REPORT_ACTION_TYPE.CREATE);
+    const iouRequestTypes = [CONST.IOU.REPORT_ACTION_TYPE.CREATE, CONST.IOU.REPORT_ACTION_TYPE.SPLIT];
+    const iouRequestActions = _.filter(reportActions, action => iouRequestTypes.includes(lodashGet(action, 'originalMessage.type')));
 
     if (_.isEmpty(iouRequestActions)) {
         return null;
@@ -292,6 +293,21 @@ function getLatestReportActionFromOnyxData(onyxData) {
 }
 
 /**
+ * Find the transaction associated with this reportAction, if one exists.
+ *
+ * @param {String} reportID
+ * @param {String} reportActionID
+ * @returns {String|null}
+ */
+function getLinkedTransactionID(reportID, reportActionID) {
+    const reportAction = lodashGet(allReportActions, [reportID, reportActionID]);
+    if (!reportAction || reportAction.actionName !== CONST.REPORT.ACTIONS.TYPE.IOU) {
+        return null;
+    }
+    return reportAction.originalMessage.IOUTransactionID;
+}
+
+/**
  * @param {*} chatReportID 
  * @param {*} iouReportID
  * @returns {Object} The report preview action or `null` if one couldn't be found
@@ -303,7 +319,7 @@ function getReportPreviewAction(chatReportID, iouReportID) {
     });
 }
 
-function buildOptimisticReportPreview(reportID, iouReportID, payeeAccountID, amount) {
+function buildOptimisticReportPreview(reportID, iouReportID, payeeAccountID) {
     return ({
         reportActionID: NumberUtils.rand64(),
         reportID: reportID,
@@ -336,6 +352,7 @@ export {
     getSortedReportActionsForDisplay,
     getLastClosedReportAction,
     getLatestReportActionFromOnyxData,
+    getLinkedTransactionID,
     getReportPreviewAction,
     buildOptimisticReportPreview,
 };

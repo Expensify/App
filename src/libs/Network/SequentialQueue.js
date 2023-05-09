@@ -7,6 +7,7 @@ import * as ActiveClientManager from '../ActiveClientManager';
 import * as Request from '../Request';
 import * as RequestThrottle from '../RequestThrottle';
 import CONST from '../../CONST';
+import * as QueuedOnyxUpdates from '../actions/QueuedOnyxUpdates';
 
 let resolveIsReadyPromise;
 let isReadyPromise = new Promise((resolve) => {
@@ -53,7 +54,7 @@ function process() {
 }
 
 function flush() {
-    if (isSequentialQueueRunning) {
+    if (isSequentialQueueRunning || _.isEmpty(PersistedRequests.getAll())) {
         return;
     }
 
@@ -80,6 +81,7 @@ function flush() {
                     isSequentialQueueRunning = false;
                     resolveIsReadyPromise();
                     currentRequest = null;
+                    Onyx.update(QueuedOnyxUpdates.getQueuedUpdates()).then(QueuedOnyxUpdates.clear);
                 });
         },
     });
