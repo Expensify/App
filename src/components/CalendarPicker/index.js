@@ -34,7 +34,6 @@ class CalendarPicker extends React.PureComponent {
             currentDateView = props.minDate;
         }
 
-
         this.state = {
             currentDateView,
             selectedYear: currentSelection.get('year').toString(),
