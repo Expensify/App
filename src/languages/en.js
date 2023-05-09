@@ -1189,6 +1189,9 @@ export default {
         pleaseEnterTaskAssignee: 'Please select an assignee',
         pleaseEnterTaskDestination: 'Please select a share destination',
     },
+    taskReport: {
+        to: 'To',
+    },
     statementPage: {
         generatingPDF: "We're generating your PDF right now. Please come back later!",
     },
