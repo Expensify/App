@@ -182,7 +182,7 @@ const TaskModalStackNavigator = createModalStackNavigator([
             const TaskAssigneeSelectorPage = require('../../../pages/tasks/TaskAssigneeSelectorModal').default;
             return TaskAssigneeSelectorPage;
         },
-        name: 'Task_Assignee_Selector',
+        name: 'Task_Assignee',
     },
 ]);
 

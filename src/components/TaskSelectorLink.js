@@ -36,6 +36,9 @@ const propTypes = {
     /** Whether the Touchable should be disabled */
     disabled: PropTypes.bool,
 
+    /** Whether we're creating a new task or editing */
+    isNewTask: PropTypes.bool,
+
     ...withLocalizePropTypes,
 };
 
@@ -45,6 +48,7 @@ const defaultProps = {
     alternateText: '',
     isShareDestination: false,
     disabled: false,
+    isNewTask: true,
 };
 
 const TaskSelectorLink = (props) => {
@@ -93,7 +97,7 @@ const TaskSelectorLink = (props) => {
                 ) : (
                     <Text style={[styles.textWhite, styles.textNormal]}>{props.translate(props.label)}</Text>
                 )}
-                {props.disabled ? null : (
+                {props.disabled || !props.isNewTask ? null : (
                     <Icon
                         src={Expensicons.ArrowRight}
                         fill={themeColors.textLight}

@@ -156,6 +156,7 @@ function createTaskAndNavigate(currentUserEmail, parentReportID, title, descript
 /**
  * @function editTask
  * @param {object} report
+ * @param {string} ownerEmail
  * @param {string} title
  * @param {string} description
  * @param {string} assignee
@@ -163,40 +164,65 @@ function createTaskAndNavigate(currentUserEmail, parentReportID, title, descript
  *
  */
 
-function editTaskAndNavigate(report, title, description, assignee) {
-    /**
-     * Anything about a task can be edited, except where the task is 'shared in'.
-     *
-     * The EditTask action will live in src/libs/actions/Task.js
-     * The action is the only action that exists purely on the task report itself.
-     * This is because we don't need to notify the parent chat report that the task was edited.
-     * The previous EditTask reportAction details will be stored on the task report itself as a way to audit previous changes.
-     * Each edit will create a new EditTaskReportAction instead of having an array that is updated to contain each edit.
-     *
-     * The message of the reportAction would look like this:
-     * {"title":"Previous Task Title","description":"Previous description", "assignee": 31231313}
-     *
-     * The action will call the 'EditTask' API endpoint and
-     * Optimistically: Add the EditTask reportAction on the task report, and make those edits on the task report
-     * Success: None
-     * Failure: Remove the EditTask reportAction on the task report, and remove the edits on the task report
-     *
-     * When updating the assignee, similar to when the task is created we need to create an ADD_COMMENT reportAction in the DM between the assignee and the task creator
-     */
-    // Create report action on the Task Report to store the previous details of the task
-    // Not sure if we need to generate a new reportAction for each edit.
-    // const editTaskReportAction = ReportUtils.buildOptimisticReportAction(report, 'EditTask', {
+function editTaskAndNavigate(report, ownerEmail, title, description, assignee) {
+    console.log('parameters', report, ownerEmail, title, description, assignee);
 
-    const optimisticData = [];
+    const editTaskReportAction = ReportUtils.buildOptimisticEditedTaskReportAction(ownerEmail);
+
+    const optimisticData = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.reportID}`,
+            value: {[editTaskReportAction.reportActionID]: editTaskReportAction},
+        },
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`,
+            value: {
+                ...report,
+                reportName: title || report.reportName,
+                description: description || report.description,
+                assignee: assignee || report.assignee,
+            },
+        },
+    ];
     const successData = [];
-    const failureData = [];
+    const failureData = [
+        // {
+        //     onyxMethod: Onyx.METHOD.MERGE,
+        //     key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.reportID}`,
+        //     value: {[editTaskReportAction.reportActionID]: {pendingAction: null}},
+        // },
+        // {
+        //     onyxMethod: Onyx.METHOD.MERGE,
+        //     key: `${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`,
+        //     value: {reportName: report.reportName, description: report.description, assignee: report.assignee},
+        // },
+    ];
+
+    console.log(optimisticData);
+
     API.write('EditTask', {
-        taskID: report.taskReportID,
+        taskID: report.reportID,
         title,
         description,
         assignee,
     }, [optimisticData, successData, failureData]);
-    Navigation.navigate(ROUTES.getTaskDetailsRoute(report.taskReportID));
+
+    // Clear out the edited task info from the store,
+    clearOutTaskInfo();
+    Navigation.navigate(ROUTES.getReportRoute(report.reportID));
+}
+
+/**
+ * Sets the task editing property in the store to true
+ * Also sets the data for the report being edited
+ *
+ * @params {Object} report
+ */
+
+function beginEditingTask(report) {
+    Onyx.merge(ONYXKEYS.TASK, {isEditing: true, report});
 }
 
 /**
@@ -281,14 +307,48 @@ function clearOutTaskInfoAndNavigate(reportID) {
     Navigation.navigate(ROUTES.NEW_TASK_DETAILS);
 }
 
+/**
+ * Get the assignee data
+ *
+ * @param {Object} details
+ * @returns {Object}
+ */
+function constructAssignee(details) {
+    const source = ReportUtils.getAvatar(lodashGet(details, 'avatar', ''), lodashGet(details, 'login', ''));
+    return {
+        icons: [{source, type: 'avatar', name: details.login}],
+        displayName: details.displayName,
+        subtitle: details.login,
+    };
+}
+
+/**
+ * Get the share destination data
+ * @param {Object} reportID
+ * @param {Object} reports
+ * @param {Object} personalDetails
+ * @returns {Object}
+ * */
+function constructShareDestination(reportID, reports, personalDetails) {
+    const report = lodashGet(reports, `report_${reportID}`, {});
+    return {
+        icons: ReportUtils.getIcons(report, personalDetails),
+        displayName: ReportUtils.getReportName(report),
+        subtitle: ReportUtils.getChatRoomSubtitle(report),
+    };
+}
+
 export {
     createTaskAndNavigate,
     editTaskAndNavigate,
     setTitleValue,
     setDescriptionValue,
+    beginEditingTask,
     setDetailsValue,
     setAssigneeValue,
     setShareDestinationValue,
     clearOutTaskInfo,
     clearOutTaskInfoAndNavigate,
+    constructAssignee,
+    constructShareDestination,
 };
