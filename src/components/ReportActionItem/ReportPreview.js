@@ -72,15 +72,15 @@ const defaultProps = {
     checkIfContextMenuActive: () => {},
 };
 
-const IOUQuote = (props) => {
+const ReportPreview = (props) => {
     const reportAmount = CurrencyUtils.convertToDisplayString(props.iouReport.total, props.iouReport.currency);
     const managerEmail = props.iouReport.managerEmail || '';
     const managerName = ReportUtils.getDisplayNameForParticipant(managerEmail, true);
     return (
         <View style={[styles.chatItemMessage, styles.mt4]}>
-            {_.map(props.action.message, (fragment, index) => (
+            {_.map(props.action.message, (index) => (
                 <Pressable
-                    key={`iouQuote-${props.action.reportActionID}-${index}`}
+                    key={`ReportPreview-${props.action.reportActionID}-${index}`}
                     onPress={props.onViewDetailsPressed}
                     onPressIn={() => DeviceCapabilities.canUseTouchScreen() && ControlSelection.block()}
                     onPressOut={() => ControlSelection.unblock()}
@@ -117,9 +117,9 @@ const IOUQuote = (props) => {
     );
 };
 
-IOUQuote.propTypes = propTypes;
-IOUQuote.defaultProps = defaultProps;
-IOUQuote.displayName = 'IOUQuote';
+ReportPreview.propTypes = propTypes;
+ReportPreview.defaultProps = defaultProps;
+ReportPreview.displayName = 'ReportPreview';
 
 export default compose(
     withLocalize,
@@ -128,4 +128,4 @@ export default compose(
             key: ({iouReportID}) => `${ONYXKEYS.COLLECTION.REPORT}${iouReportID}`,
         },
     }),
-)(IOUQuote);
+)(ReportPreview);

@@ -6,7 +6,7 @@ import ONYXKEYS from '../../ONYXKEYS';
 import CONST from '../../CONST';
 import {withNetwork} from '../OnyxProvider';
 import compose from '../../libs/compose';
-import IOUQuote from './IOUQuote';
+import ReportPreview from './IOUReportPreview';
 import reportActionPropTypes from '../../pages/home/report/reportActionPropTypes';
 import networkPropTypes from '../networkPropTypes';
 import iouReportPropTypes from '../../pages/iouReportPropTypes';
@@ -112,7 +112,7 @@ const IOUAction = (props) => {
                 isHovered={props.isHovered}
             />
             {props.isMostRecentIOUReportAction && !hasMultipleParticipants && (
-                <IOUQuote
+                <ReportPreview
                     action={props.action}
                     chatReportID={props.chatReportID}
                     iouReportID={props.requestReportID}
