@@ -62,28 +62,11 @@ class AttachmentCarousel extends React.Component {
         this.updateZoomState = this.updateZoomState.bind(this);
         this.toggleArrowsVisibility = this.toggleArrowsVisibility.bind(this);
 
-        this.state = {
-            attachments: [],
-            source: this.props.source,
-            shouldShowArrow: this.canUseTouchScreen,
-            containerWidth: 0,
-            isZoomed: false,
-        };
+        this.state = this.makeInitialState();
     }
 
     componentDidMount() {
-        this.makeStateWithReports();
         this.autoHideArrow();
-    }
-
-    componentDidUpdate(prevProps) {
-        const previousReportActionsCount = _.size(prevProps.reportActions);
-        const currentReportActionsCount = _.size(this.props.reportActions);
-        if (previousReportActionsCount === currentReportActionsCount) {
-            return;
-        }
-
-        this.makeStateWithReports();
     }
 
     /**
@@ -173,9 +156,10 @@ class AttachmentCarousel extends React.Component {
     }
 
     /**
-     * Map report actions to attachment items
+     * Map report actions to attachment items and sets the initial carousel state
+     * @returns {{page: Number, attachments: Array, shouldShowArrow: Boolean, containerWidth: Number, isZoomed: Boolean}}
      */
-    makeStateWithReports() {
+    makeInitialState() {
         let page = 0;
         const actions = ReportActionsUtils.getSortedReportActions(_.values(this.props.reportActions), true);
 
@@ -197,7 +181,7 @@ class AttachmentCarousel extends React.Component {
                 // Update the image URL so the images can be accessed depending on the config environment.
                 // Eg: while using Ngrok the image path is from an Ngrok URL and not an Expensify URL.
                 const source = tryResolveUrlFromApiRoot(originalSource);
-                if (source === this.state.source) {
+                if (source === this.props.source) {
                     page = attachments.length;
                 }
 
@@ -205,10 +189,13 @@ class AttachmentCarousel extends React.Component {
             }
         });
 
-        this.setState({
+        return {
             page,
             attachments,
-        });
+            shouldShowArrow: this.canUseTouchScreen,
+            containerWidth: 0,
+            isZoomed: false,
+        };
     }
 
     /**
@@ -243,7 +230,7 @@ class AttachmentCarousel extends React.Component {
         const page = entry.index;
         const {source, file} = this.getAttachment(entry.item);
         this.props.onNavigate({source: addEncryptedAuthTokenToURL(source), file});
-        this.setState({page, source, isZoomed: false});
+        this.setState({page, isZoomed: false});
     }
 
     /**
