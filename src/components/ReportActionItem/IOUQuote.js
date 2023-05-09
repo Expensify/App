@@ -3,7 +3,6 @@ import {View, Pressable} from 'react-native';
 import PropTypes from 'prop-types';
 import {withOnyx} from 'react-native-onyx';
 import _ from 'underscore';
-import lodashGet from 'lodash/get';
 import Text from '../Text';
 import Icon from '../Icon';
 import * as Expensicons from '../Icon/Expensicons';
@@ -11,7 +10,6 @@ import styles from '../../styles/styles';
 import reportActionPropTypes from '../../pages/home/report/reportActionPropTypes';
 import withLocalize, {withLocalizePropTypes} from '../withLocalize';
 import compose from '../../libs/compose';
-import CONST from '../../CONST';
 import ONYXKEYS from '../../ONYXKEYS';
 import ControlSelection from '../../libs/ControlSelection';
 import * as DeviceCapabilities from '../../libs/DeviceCapabilities';
@@ -31,6 +29,24 @@ const propTypes = {
     // eslint-disable-next-line react/no-unused-prop-types
     iouReportID: PropTypes.string.isRequired,
 
+    /** Active IOU Report for current report */
+    iouReport: PropTypes.shape({
+        /** Email address of the manager in this iou report */
+        managerEmail: PropTypes.string,
+
+        /** Email address of the creator of this iou report */
+        ownerEmail: PropTypes.string,
+
+        /** Outstanding amount in cents of this transaction */
+        total: PropTypes.number,
+
+        /** Currency of outstanding amount of this transaction */
+        currency: PropTypes.string,
+
+        /** Does the iouReport have an outstanding IOU? */
+        hasOutstandingIOU: PropTypes.bool,
+    }),
+
     /** Popover context menu anchor, used for showing context menu */
     contextMenuAnchor: PropTypes.shape({current: PropTypes.elementType}),
 
@@ -49,12 +65,12 @@ const propTypes = {
 const defaultProps = {
     contextMenuAnchor: null,
     isHovered: false,
+    iouReport: {},
     onViewDetailsPressed: () => {},
     checkIfContextMenuActive: () => {},
 };
 
 const IOUQuote = (props) => {
-
     const reportCurrency = CurrencyUtils.convertToDisplayString(props.iouReport.total, props.iouReport.currency);
 
     return (
@@ -84,7 +100,7 @@ const IOUQuote = (props) => {
                 </Pressable>
             ))}
         </View>
-    )
+    );
 };
 
 IOUQuote.propTypes = propTypes;

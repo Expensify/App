@@ -127,6 +127,7 @@ const defaultProps = {
     containerStyles: [],
     walletTerms: {},
     pendingAction: null,
+    isIOUAction: true,
     isHovered: false,
     personalDetails: {},
     session: {
@@ -155,7 +156,7 @@ const IOUPreview = (props) => {
     // Pay button should only be visible to the manager of the report.
     const isCurrentUserManager = managerEmail === sessionEmail;
 
-    // If props.action is undefined then we are displaying within IOUDetailsModal and should use the full report amount 
+    // If props.action is undefined then we are displaying within IOUDetailsModal and should use the full report amount
     const requestAmount = props.isIOUAction ? lodashGet(props.action, 'originalMessage.amount', 0) : props.iouReport.total;
     const requestCurrency = props.isIOUAction ? lodashGet(props.action, 'originalMessage.currency', CONST.CURRENCY.USD) : props.iouReport.currency;
 
