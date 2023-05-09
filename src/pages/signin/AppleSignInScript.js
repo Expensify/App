@@ -12,14 +12,16 @@ const config = {
 };
 
 function AppleSignInScript({style = {}}) {
-    return <View style={{
-                                flexDirection: 'row',
-
-                                width: '100%',
-                                justifyContent: 'center',
-                            }}
-                            >
-    <AppleSignIn/></View>;
+  return (
+    <View
+      style={{
+        flexDirection: 'row',
+        width: '100%',
+        justifyContent: 'center',
+      }}>
+      <AppleSignIn />
+    </View>
+  );
 }
 
 export default AppleSignInScript;

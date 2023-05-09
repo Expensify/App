@@ -1,7 +1,6 @@
-/* eslint-disable rulesdir/prefer-early-return */
-
 import React from 'react';
 import {View} from 'react-native';
+import {useIsFocused} from '@react-navigation/native';
 import withLocalize, {withLocalizePropTypes} from '../withLocalize';
 import getUserLanguage from './getUserLanguage';
 
@@ -11,37 +10,22 @@ const $appleButtonContainerStyle = {
     width: 40, height: 40, marginRight: 20,
 };
 
-const AppleSignIn = (props) => {
-    React.useEffect(() => {
-        const localeCode = getUserLanguage();
-        const script = document.createElement('script');
-        script.src = `https://appleid.cdn-apple.com/appleauth/static/jsapi/appleid/1//${localeCode}/appleid.auth.js`;
-        script.async = true;
+const config = {
+    clientId: 'com.infinitered.expensify.test',
+    scope: 'name email',
+    redirectURI: 'https://exptest.ngrok.io/appleauth',
+    state: '',
+    nonce: '',
+    usePopup: true,
+};
 
-        const handleScriptLoad = () => {
-            window.AppleID.auth.init({
-                clientId: 'com.chat.expensify.chat',
-                scope: 'name email',
-                redirectURI: 'https://www.expensify.com/partners/apple/loginCallback',
-                state: 'state',
-                usePopup: true,
-            });
-        };
-        script.addEventListener('load', handleScriptLoad);
-        document.body.appendChild(script);
-
-        return () => {
-            script.removeEventListener('load', handleScriptLoad);
-            document.body.removeChild(script);
-        };
-    }, []);
-
-    return (
-        <View
-            style={$appleButtonContainerStyle}
-            accessibilityRole="button"
-            accessibilityLabel={props.translate('common.signInWithApple')}
-        >
+// Apple script may fail to render button if there are multiple of these divs
+// present in the app, as its logic is based on div id. So we'll only mount the
+// div when it should be visible.
+const SingletonAppleDiv = () => {
+    const isFocused = useIsFocused();
+    return isFocused
+        ? (
             <div
                 style={{fontSize: '0'}}
                 id="appleid-signin"
@@ -54,6 +38,47 @@ const AppleSignIn = (props) => {
                 data-height="40"
                 data-type="sign in"
             />
+        ) : null;
+};
+
+const listenerHandler = event => console.log(event.detail);
+
+const AppleSignIn = (props) => {
+    React.useEffect(() => {
+        const localeCode = getUserLanguage();
+        const script = document.createElement('script');
+        script.src = `https://appleid.cdn-apple.com/appleauth/static/jsapi/appleid/1//${localeCode}/appleid.auth.js`;
+        script.async = true;
+
+        const handleScriptLoad = () => {
+            window.AppleID.auth.init(config);
+        };
+        script.addEventListener('load', handleScriptLoad);
+        document.body.appendChild(script);
+
+        return () => {
+            script.removeEventListener('load', handleScriptLoad);
+            document.body.removeChild(script);
+        };
+    }, []);
+
+    // result listeners
+    React.useEffect(() => {
+        document.addEventListener('AppleIDSignInOnSuccess', listenerHandler);
+        document.addEventListener('AppleIDSignInOnFailure', listenerHandler);
+        return () => {
+            document.removeEventListener('AppleIDSignInOnSuccess', listenerHandler);
+            document.removeEventListener('AppleIDSignInOnFailure', listenerHandler);
+        };
+    }, []);
+
+    return (
+        <View
+            style={$appleButtonContainerStyle}
+            accessibilityRole="button"
+            accessibilityLabel={props.translate('common.signInWithApple')}
+        >
+            <SingletonAppleDiv />
         </View>
 
     );
