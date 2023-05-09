@@ -113,7 +113,7 @@ export default [
         icon: Expensicons.ChatBubble,
         successTextTranslateKey: '',
         successIcon: null,
-        shouldShow: (type, reportAction) => type === CONTEXT_MENU_TYPES.REPORT_ACTION && reportAction.actionName === CONST.REPORT.ACTIONS.TYPE.ADDCOMMENT,
+        shouldShow: (type, reportAction) => Environment.isDevelopment() && type === CONTEXT_MENU_TYPES.REPORT_ACTION && reportAction.actionName === CONST.REPORT.ACTIONS.TYPE.ADDCOMMENT,
         onPress: (closePopover, {childReportID, reportAction, reportID}) => {
             Report.navigateToAndOpenChildReport(childReportID, reportAction, reportID);
             if (closePopover) {

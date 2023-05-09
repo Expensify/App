@@ -301,8 +301,8 @@ class ReportActionItem extends Component {
                 return (
                     <ReportActionItemParentAction
                         reportID={this.props.report.reportID}
-                        parentReportID={this.props.report.parentReportID}
-                        parentReportActionID={this.props.report.parentReportActionID}
+                        parentReportID={`${this.props.report.parentReportID}`}
+                        parentReportActionID={`${this.props.report.parentReportActionID}`}
                     />
                 );
             }

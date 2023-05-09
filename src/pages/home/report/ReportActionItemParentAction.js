@@ -21,9 +21,9 @@ const propTypes = {
     /** The id of the report */
     reportID: PropTypes.string.isRequired,
 
-    parentReportID: PropTypes.number.isRequired,
+    parentReportID: PropTypes.string.isRequired,
 
-    parentReportActionID: PropTypes.number.isRequired,
+    parentReportActionID: PropTypes.string.isRequired,
 
     /** The report currently being looked at */
     report: reportPropTypes,
