@@ -73,7 +73,7 @@ class ImageWithSizeCalculation extends PureComponent {
                     style={[styles.w100, styles.h100]}
                     source={{uri: this.props.url}}
                     isAuthTokenRequired={this.props.isAuthTokenRequired}
-                    resizeMode={Image.resizeMode.contain}
+                    resizeMode={Image.resizeMode.cover}
                     onLoadStart={this.imageLoadingStart}
                     onLoadEnd={this.imageLoadingEnd}
                     onError={this.onError}

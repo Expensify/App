@@ -10,13 +10,30 @@ const reactionListRef = React.createRef();
  * @param {Array} users - array of users id
  * @param {String} emojiName - the emoji codes to display near the bubble.
  * @param {String} emojiCodes - the emoji codes to display in the bubble.
+ * @param {Number} emojiCount - count of emoji
  * @param {Boolean} hasUserReacted - show if user has reacted
  */
-function showReactionList(event, reactionListPopoverAnchor, users, emojiName, emojiCodes, hasUserReacted) {
+function showReactionList(
+    event,
+    reactionListPopoverAnchor,
+    users,
+    emojiName,
+    emojiCodes,
+    emojiCount,
+    hasUserReacted,
+) {
     if (!reactionListRef.current) {
         return;
     }
-    reactionListRef.current.showReactionList(event, reactionListPopoverAnchor, users, emojiName, emojiCodes, hasUserReacted);
+    reactionListRef.current.showReactionList(
+        event,
+        reactionListPopoverAnchor,
+        users,
+        emojiName,
+        emojiCodes,
+        emojiCount,
+        hasUserReacted,
+    );
 }
 
 /**
@@ -31,4 +48,8 @@ function hideReactionList(onHideCallback = () => {}) {
     reactionListRef.current.hideReactionList(onHideCallback);
 }
 
-export {reactionListRef, showReactionList, hideReactionList};
+export {
+    reactionListRef,
+    showReactionList,
+    hideReactionList,
+};

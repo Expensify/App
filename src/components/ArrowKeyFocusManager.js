@@ -5,7 +5,10 @@ import KeyboardShortcut from '../libs/KeyboardShortcut';
 
 const propTypes = {
     /** Children to render. */
-    children: PropTypes.oneOfType([PropTypes.func, PropTypes.node]).isRequired,
+    children: PropTypes.oneOfType([
+        PropTypes.func,
+        PropTypes.node,
+    ]).isRequired,
 
     /** Array of disabled indexes. */
     disabledIndexes: PropTypes.arrayOf(PropTypes.number),
@@ -33,63 +36,41 @@ class ArrowKeyFocusManager extends Component {
         const arrowUpConfig = CONST.KEYBOARD_SHORTCUTS.ARROW_UP;
         const arrowDownConfig = CONST.KEYBOARD_SHORTCUTS.ARROW_DOWN;
 
-        this.unsubscribeArrowUpKey = KeyboardShortcut.subscribe(
-            arrowUpConfig.shortcutKey,
-            () => {
-                if (this.props.maxIndex < 0) {
-                    return;
+        this.unsubscribeArrowUpKey = KeyboardShortcut.subscribe(arrowUpConfig.shortcutKey, () => {
+            if (this.props.maxIndex < 0) {
+                return;
+            }
+
+            const currentFocusedIndex = this.props.focusedIndex > 0 ? this.props.focusedIndex - 1 : this.props.maxIndex;
+            let newFocusedIndex = currentFocusedIndex;
+
+            while (this.props.disabledIndexes.includes(newFocusedIndex)) {
+                newFocusedIndex = newFocusedIndex > 0 ? newFocusedIndex - 1 : this.props.maxIndex;
+                if (newFocusedIndex === currentFocusedIndex) { // all indexes are disabled
+                    return; // no-op
                 }
+            }
 
-                const currentFocusedIndex = this.props.focusedIndex > 0 ? this.props.focusedIndex - 1 : this.props.maxIndex;
-                let newFocusedIndex = currentFocusedIndex;
+            this.props.onFocusedIndexChanged(newFocusedIndex);
+        }, arrowUpConfig.descriptionKey, arrowUpConfig.modifiers, true, false, 0, true, [this.props.shouldExcludeTextAreaNodes && 'TEXTAREA']);
 
-                while (this.props.disabledIndexes.includes(newFocusedIndex)) {
-                    newFocusedIndex = newFocusedIndex > 0 ? newFocusedIndex - 1 : this.props.maxIndex;
-                    if (newFocusedIndex === currentFocusedIndex) {
-                        // all indexes are disabled
-                        return; // no-op
-                    }
+        this.unsubscribeArrowDownKey = KeyboardShortcut.subscribe(arrowDownConfig.shortcutKey, () => {
+            if (this.props.maxIndex < 0) {
+                return;
+            }
+
+            const currentFocusedIndex = this.props.focusedIndex < this.props.maxIndex ? this.props.focusedIndex + 1 : 0;
+            let newFocusedIndex = currentFocusedIndex;
+
+            while (this.props.disabledIndexes.includes(newFocusedIndex)) {
+                newFocusedIndex = newFocusedIndex < this.props.maxIndex ? newFocusedIndex + 1 : 0;
+                if (newFocusedIndex === currentFocusedIndex) { // all indexes are disabled
+                    return; // no-op
                 }
+            }
 
-                this.props.onFocusedIndexChanged(newFocusedIndex);
-            },
-            arrowUpConfig.descriptionKey,
-            arrowUpConfig.modifiers,
-            true,
-            false,
-            1,
-            true,
-            [this.props.shouldExcludeTextAreaNodes && 'TEXTAREA'],
-        );
-
-        this.unsubscribeArrowDownKey = KeyboardShortcut.subscribe(
-            arrowDownConfig.shortcutKey,
-            () => {
-                if (this.props.maxIndex < 0) {
-                    return;
-                }
-
-                const currentFocusedIndex = this.props.focusedIndex < this.props.maxIndex ? this.props.focusedIndex + 1 : 0;
-                let newFocusedIndex = currentFocusedIndex;
-
-                while (this.props.disabledIndexes.includes(newFocusedIndex)) {
-                    newFocusedIndex = newFocusedIndex < this.props.maxIndex ? newFocusedIndex + 1 : 0;
-                    if (newFocusedIndex === currentFocusedIndex) {
-                        // all indexes are disabled
-                        return; // no-op
-                    }
-                }
-
-                this.props.onFocusedIndexChanged(newFocusedIndex);
-            },
-            arrowDownConfig.descriptionKey,
-            arrowDownConfig.modifiers,
-            true,
-            false,
-            1,
-            true,
-            [this.props.shouldExcludeTextAreaNodes && 'TEXTAREA'],
-        );
+            this.props.onFocusedIndexChanged(newFocusedIndex);
+        }, arrowDownConfig.descriptionKey, arrowDownConfig.modifiers, true, false, 0, true, [this.props.shouldExcludeTextAreaNodes && 'TEXTAREA']);
     }
 
     componentWillUnmount() {
