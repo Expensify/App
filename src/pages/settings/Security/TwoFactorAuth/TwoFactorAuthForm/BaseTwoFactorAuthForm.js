@@ -28,7 +28,7 @@ const defaultProps = {
     account: {},
 };
 
-class BaseValidateCodeForm extends React.Component {
+class BaseTwoFactorAuthForm extends React.Component {
     constructor(props) {
         super(props);
 
@@ -101,12 +101,12 @@ class BaseValidateCodeForm extends React.Component {
     }
 }
 
-BaseValidateCodeForm.propTypes = propTypes;
-BaseValidateCodeForm.defaultProps = defaultProps;
+BaseTwoFactorAuthForm.propTypes = propTypes;
+BaseTwoFactorAuthForm.defaultProps = defaultProps;
 
 export default compose(
     withLocalize,
     withOnyx({
         account: {key: ONYXKEYS.ACCOUNT},
     }),
-)(BaseValidateCodeForm);
+)(BaseTwoFactorAuthForm);
