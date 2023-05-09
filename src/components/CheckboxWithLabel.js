@@ -93,7 +93,7 @@ class CheckboxWithLabel extends React.Component {
     render() {
         return (
             <View style={this.props.style}>
-                <View style={[styles.flexRow, styles.alignItemsCenter]}>
+                <View style={[styles.flexRow, styles.alignItemsCenter, styles.breakWord]}>
                     <Checkbox
                         isChecked={this.isChecked}
                         onPress={this.toggleCheckbox}
