@@ -25,6 +25,8 @@ import reportPropTypes from './reportPropTypes';
 import withReportOrNotFound from './home/report/withReportOrNotFound';
 import Form from '../components/Form';
 import FullPageNotFoundView from '../components/BlockingViews/FullPageNotFoundView';
+import MenuItemWithTopDescription from "../components/MenuItemWithTopDescription";
+import ROUTES from "../ROUTES";
 
 const propTypes = {
     /** Route params */
@@ -145,7 +147,7 @@ class ReportSettingsPage extends Component {
     render() {
         const shouldShowRoomName = !ReportUtils.isPolicyExpenseChat(this.props.report);
         const linkedWorkspace = _.find(this.props.policies, policy => policy && policy.id === this.props.report.policyID);
-        const shouldDisableRename = this.shouldDisableRename(linkedWorkspace);
+        const shouldDisableRenameOrWelcomeMessage = this.shouldDisableRename(linkedWorkspace);
 
         return (
             <ScreenWrapper>
@@ -161,9 +163,9 @@ class ReportSettingsPage extends Component {
                         submitButtonText={this.props.translate('common.save')}
                         style={[styles.mh5, styles.mt5, styles.flexGrow1]}
                         validate={this.validate}
-                        onSubmit={values => !shouldDisableRename && this.updatePolicyRoomName(values)}
+                        onSubmit={values => !shouldDisableRenameOrWelcomeMessage && this.updatePolicyRoomName(values)}
                         scrollContextEnabled
-                        isSubmitButtonVisible={shouldShowRoomName && !shouldDisableRename}
+                        isSubmitButtonVisible={shouldShowRoomName && !shouldDisableRenameOrWelcomeMessage}
                         enabledWhenOffline
                     >
                         <View>
@@ -195,7 +197,7 @@ class ReportSettingsPage extends Component {
                                 >
                                     <View style={[styles.flexRow]}>
                                         <View style={[styles.flex3]}>
-                                            {shouldDisableRename ? (
+                                            {shouldDisableRenameOrWelcomeMessage ? (
                                                 <View>
                                                     <Text style={[styles.textLabelSupporting, styles.lh16, styles.mb1]} numberOfLines={1}>
                                                         {this.props.translate('newRoomPage.roomName')}
@@ -215,6 +217,14 @@ class ReportSettingsPage extends Component {
                                     </View>
                                 </OfflineWithFeedback>
                             </View>
+                        )}
+                        {!shouldDisableRenameOrWelcomeMessage && (
+                            <MenuItemWithTopDescription
+                                shouldShowRightIcon
+                                title={priorityModes[props.priorityMode].label}
+                                description={props.translate('priorityModePage.priorityMode')}
+                                onPress={() => Navigation.navigate(ROUTES.SETTINGS_PRIORITY_MODE)}
+                            />
                         )}
                         {Boolean(linkedWorkspace) && (
                             <View style={[styles.mt4]}>
