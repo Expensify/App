@@ -677,6 +677,7 @@ export default {
         linkSent: 'Link sent!',
         succesfullyUnlinkedLogin: 'Secondary login successfully unlinked!',
     },
+    //TODO: Add welcome form messages here
     detailsPage: {
         localTime: 'Local time',
     },

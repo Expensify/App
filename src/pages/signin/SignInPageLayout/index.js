@@ -125,7 +125,7 @@ const SignInPageLayout = (props) => {
 SignInPageLayout.propTypes = propTypes;
 SignInPageLayout.displayName = 'SignInPageLayout';
 
-export default compose(
+export defapult compose(
     withWindowDimensions,
     withSafeAreaInsets,
 )(SignInPageLayout);

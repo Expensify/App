@@ -111,6 +111,9 @@ class SignInPage extends Component {
             && !showUnlinkLoginForm
             && !Permissions.canUsePasswordlessLogins(this.props.betas);
 
+        //TODO: create showWelcomeForm here
+        // If the user hasn't been validated and this is their first time signing in, showWelcomeForm
+
         let welcomeHeader = '';
         let welcomeText = '';
         if (showValidateCodeForm) {
@@ -129,6 +132,9 @@ class SignInPage extends Component {
                         ? `${this.props.translate('welcomeText.welcomeBack')} ${this.props.translate('welcomeText.welcomeEnterMagicCode', {login: userLoginToDisplay})}`
                         : this.props.translate('welcomeText.welcomeEnterMagicCode', {login: userLoginToDisplay});
                 } else {
+                    //TODO: Change the messages displayed to new (i.e. unvalidated user)
+                    //TODO: The welcomeHeader should be the same "Welcome"
+                    //TODO: userLoginToDisplay is the user's email
                     welcomeHeader = this.props.isSmallScreenWidth ? '' : this.props.translate('welcomeText.welcome');
                     welcomeText = this.props.isSmallScreenWidth
                         ? `${this.props.translate('welcomeText.welcome')} ${this.props.translate('welcomeText.newFaceEnterMagicCode', {login: userLoginToDisplay})}`
@@ -158,6 +164,7 @@ class SignInPage extends Component {
                     {/* LoginForm and PasswordForm must use the isVisible prop. This keeps them mounted, but visually hidden
                     so that password managers can access the values. Conditionally rendering these components will break this feature. */}
                     <LoginForm isVisible={showLoginForm} blurOnSubmit={this.props.account.validated === false} />
+                    {/* TODO: add Welcome Form here (nested ternary operator is not allowed ) */}
                     {showValidateCodeForm ? (
                         <ValidateCodeForm isVisible={showValidateCodeForm} />
                     ) : (

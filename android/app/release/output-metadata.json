@@ -1,0 +1,20 @@
+{
+  "version": 3,
+  "artifactType": {
+    "type": "APK",
+    "kind": "Directory"
+  },
+  "applicationId": "com.expensify.chat",
+  "variantName": "release",
+  "elements": [
+    {
+      "type": "SINGLE",
+      "filters": [],
+      "attributes": [],
+      "versionCode": 1001028401,
+      "versionName": "1.2.84-1",
+      "outputFile": "app-release.apk"
+    }
+  ],
+  "elementType": "File"
+}
