@@ -314,6 +314,7 @@ export default {
         sendMoney: 'Enviar dinero',
         pay: 'Pagar',
         viewDetails: 'Ver detalles',
+        settled: 'Acreditado',
         settleExpensify: 'Pagar con Expensify',
         settleElsewhere: 'Voy a pagar de otra forma',
         settlePaypalMe: 'Pagar con PayPal.me',

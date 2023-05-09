@@ -315,6 +315,7 @@ export default {
         sendMoney: 'Send money',
         pay: 'Pay',
         viewDetails: 'View details',
+        settled: 'Settled',
         settleExpensify: 'Pay with Expensify',
         settleElsewhere: 'I\'ll settle up elsewhere',
         settlePaypalMe: 'Pay with PayPal.me',
