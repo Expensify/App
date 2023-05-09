@@ -78,58 +78,51 @@ const AboutPage = (props) => {
             backgroundColor={themeColors.aboutPageBackground}
             illustration={() => (
                 <View style={[styles.alignItemsCenter]}>
-                    <Lottie source={LoadingAnimation} style={styles.w70} autoPlay loop />
+                    <Lottie
+                        source={LoadingAnimation}
+                        style={styles.w70}
+                        autoPlay
+                        loop
+                    />
                     <Text
                         selectable
-                        style={[
-                            styles.h3,
-                            styles.textWhite,
-                            styles.mb8,
-                        ]}
+                        style={[styles.h3, styles.textWhite, styles.mb8]}
                     >
-                        v
-                        {Environment.isInternalTestBuild() ? `${pkg.version} PR:${CONST.PULL_REQUEST_NUMBER}` : pkg.version}
+                        v{Environment.isInternalTestBuild() ? `${pkg.version} PR:${CONST.PULL_REQUEST_NUMBER}` : pkg.version}
                     </Text>
                 </View>
             )}
-            footer={(
+            footer={
                 <View style={[styles.sidebarFooter]}>
                     <Text
                         style={[styles.chatItemMessageHeaderTimestamp]}
                         numberOfLines={1}
                     >
-                        {props.translate(
-                            'initialSettingsPage.readTheTermsAndPrivacy.phrase1',
-                        )}
-                        {' '}
-                        <TextLink style={[styles.textMicroSupporting, styles.link]} href={CONST.TERMS_URL}>
-                            {props.translate(
-                                'initialSettingsPage.readTheTermsAndPrivacy.phrase2',
-                            )}
-                        </TextLink>
-                        {' '}
-                        {props.translate(
-                            'initialSettingsPage.readTheTermsAndPrivacy.phrase3',
-                        )}
-                        {' '}
-                        <TextLink style={[styles.textMicroSupporting, styles.link]} href={CONST.PRIVACY_URL}>
-                            {props.translate(
-                                'initialSettingsPage.readTheTermsAndPrivacy.phrase4',
-                            )}
+                        {props.translate('initialSettingsPage.readTheTermsAndPrivacy.phrase1')}{' '}
+                        <TextLink
+                            style={[styles.textMicroSupporting, styles.link]}
+                            href={CONST.TERMS_URL}
+                        >
+                            {props.translate('initialSettingsPage.readTheTermsAndPrivacy.phrase2')}
+                        </TextLink>{' '}
+                        {props.translate('initialSettingsPage.readTheTermsAndPrivacy.phrase3')}{' '}
+                        <TextLink
+                            style={[styles.textMicroSupporting, styles.link]}
+                            href={CONST.PRIVACY_URL}
+                        >
+                            {props.translate('initialSettingsPage.readTheTermsAndPrivacy.phrase4')}
                         </TextLink>
                         .
                     </Text>
                 </View>
-            )}
+            }
         >
             <View style={[styles.flex1]}>
                 <View style={[styles.ph4]}>
                     <Text style={[styles.textHeadline]}>{`${props.translate('initialSettingsPage.about')} Expensify`}</Text>
-                    <Text style={[styles.mt1, styles.mb5]}>
-                        {props.translate('initialSettingsPage.aboutPage.description')}
-                    </Text>
+                    <Text style={[styles.mt1, styles.mb5]}>{props.translate('initialSettingsPage.aboutPage.description')}</Text>
                 </View>
-                {_.map(menuItems, item => (
+                {_.map(menuItems, (item) => (
                     <MenuItem
                         key={item.translationKey}
                         title={props.translate(item.translationKey)}
@@ -137,9 +130,8 @@ const AboutPage = (props) => {
                         iconRight={item.iconRight}
                         onPress={() => item.action()}
                         shouldBlockSelection={Boolean(item.link)}
-                        onSecondaryInteraction={!_.isEmpty(item.link)
-                            ? e => ReportActionContextMenu.showContextMenu(CONTEXT_MENU_TYPES.LINK, e, item.link, popoverAnchor) : undefined}
-                        ref={el => popoverAnchor = el}
+                        onSecondaryInteraction={!_.isEmpty(item.link) ? (e) => ReportActionContextMenu.showContextMenu(CONTEXT_MENU_TYPES.LINK, e, item.link, popoverAnchor) : undefined}
+                        ref={(el) => (popoverAnchor = el)}
                         shouldShowRightIcon
                     />
                 ))}

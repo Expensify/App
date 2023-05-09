@@ -19,11 +19,7 @@ const defaultProps = {
 };
 
 // eslint-disable-next-line react/destructuring-assignment
-const CustomRootStackNavigator = ({
-    children,
-    screenListeners,
-    ...rest
-}) => {
+const CustomRootStackNavigator = ({children, screenListeners, ...rest}) => {
     const {state, navigation, descriptors} = useNavigationBuilder(StackRouter, {
         children,
         screenListeners,

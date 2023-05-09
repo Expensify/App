@@ -1,7 +1,5 @@
 import React, {Component} from 'react';
-import {
-    View, Keyboard, Pressable,
-} from 'react-native';
+import {View, Keyboard, Pressable} from 'react-native';
 import {propTypes as headerWithCloseButtonPropTypes, defaultProps} from './headerWithCloseButtonPropTypes';
 import styles from '../../styles/styles';
 import themeColors from '../../styles/themes/default';
@@ -58,15 +56,7 @@ class HeaderWithCloseButton extends Component {
                     ...this.props.containerStyles,
                 ]}
             >
-                <View style={[
-                    styles.dFlex,
-                    styles.flexRow,
-                    styles.alignItemsCenter,
-                    styles.flexGrow1,
-                    styles.justifyContentBetween,
-                    styles.overflowHidden,
-                ]}
-                >
+                <View style={[styles.dFlex, styles.flexRow, styles.alignItemsCenter, styles.flexGrow1, styles.justifyContentBetween, styles.overflowHidden]}>
                     {this.props.shouldShowBackButton && (
                         <Tooltip text={this.props.translate('common.back')}>
                             <Pressable
@@ -79,7 +69,11 @@ class HeaderWithCloseButton extends Component {
                                 style={[styles.touchableButtonImage]}
                             >
                                 {({hovered, pressed}) => (
-                                    <Icon src={Expensicons.BackArrow} fill={themeColors.heading} opacity={StyleUtils.getIconOpacityForState(hovered, pressed)} />
+                                    <Icon
+                                        src={Expensicons.BackArrow}
+                                        fill={themeColors.heading}
+                                        opacity={StyleUtils.getIconOpacityForState(hovered, pressed)}
+                                    />
                                 )}
                             </Pressable>
                         </Tooltip>
@@ -99,22 +93,22 @@ class HeaderWithCloseButton extends Component {
                     )}
                     <View style={[styles.reportOptions, styles.flexRow, styles.pr5]}>
                         {this.props.shouldShowDownloadButton && (
-                        <Tooltip text={this.props.translate('common.download')}>
-                            <Pressable
-                                onPress={(e) => {
-                                    // Blur the pressable in case this button triggers a Growl notification
-                                    // We do not want to overlap Growl with the Tooltip (#15271)
-                                    e.currentTarget.blur();
-                                    this.triggerButtonCompleteAndDownload();
-                                }}
-                                style={[styles.touchableButtonImage]}
-                            >
-                                <Icon
-                                    src={Expensicons.Download}
-                                    fill={StyleUtils.getIconFillColor(getButtonState(false, false, this.props.isDelayButtonStateComplete))}
-                                />
-                            </Pressable>
-                        </Tooltip>
+                            <Tooltip text={this.props.translate('common.download')}>
+                                <Pressable
+                                    onPress={(e) => {
+                                        // Blur the pressable in case this button triggers a Growl notification
+                                        // We do not want to overlap Growl with the Tooltip (#15271)
+                                        e.currentTarget.blur();
+                                        this.triggerButtonCompleteAndDownload();
+                                    }}
+                                    style={[styles.touchableButtonImage]}
+                                >
+                                    <Icon
+                                        src={Expensicons.Download}
+                                        fill={StyleUtils.getIconFillColor(getButtonState(false, false, this.props.isDelayButtonStateComplete))}
+                                    />
+                                </Pressable>
+                            </Tooltip>
                         )}
 
                         {this.props.shouldShowGetAssistanceButton && (
@@ -138,20 +132,23 @@ class HeaderWithCloseButton extends Component {
                             />
                         )}
 
-                        {this.props.shouldShowCloseButton
-                        && (
-                        <Tooltip text={this.props.translate('common.close')}>
-                            <Pressable
-                                onPress={this.props.onCloseButtonPress}
-                                style={[styles.touchableButtonImage]}
-                                accessibilityRole="button"
-                                accessibilityLabel={this.props.translate('common.close')}
-                            >
-                                {({hovered, pressed}) => (
-                                    <Icon src={Expensicons.Close} fill={themeColors.heading} opacity={StyleUtils.getIconOpacityForState(hovered, pressed)} />
-                                )}
-                            </Pressable>
-                        </Tooltip>
+                        {this.props.shouldShowCloseButton && (
+                            <Tooltip text={this.props.translate('common.close')}>
+                                <Pressable
+                                    onPress={this.props.onCloseButtonPress}
+                                    style={[styles.touchableButtonImage]}
+                                    accessibilityRole="button"
+                                    accessibilityLabel={this.props.translate('common.close')}
+                                >
+                                    {({hovered, pressed}) => (
+                                        <Icon
+                                            src={Expensicons.Close}
+                                            fill={themeColors.heading}
+                                            opacity={StyleUtils.getIconOpacityForState(hovered, pressed)}
+                                        />
+                                    )}
+                                </Pressable>
+                            </Tooltip>
                         )}
                     </View>
                 </View>
@@ -163,8 +160,4 @@ class HeaderWithCloseButton extends Component {
 HeaderWithCloseButton.propTypes = propTypes;
 HeaderWithCloseButton.defaultProps = defaultProps;
 
-export default compose(
-    withLocalize,
-    withDelayToggleButtonState,
-    withKeyboardState,
-)(HeaderWithCloseButton);
+export default compose(withLocalize, withDelayToggleButtonState, withKeyboardState)(HeaderWithCloseButton);

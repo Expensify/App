@@ -91,7 +91,7 @@ function WorkspaceSettingsPage(props) {
             backgroundColor={themeColors.workspaceSettingsPageBackgroundColor}
             illustration={FireworksAnimation}
         >
-            {hasVBA => (
+            {(hasVBA) => (
                 <Form
                     formID={ONYXKEYS.FORMS.WORKSPACE_SETTINGS_FORM}
                     submitButtonText={this.props.translate('workspace.editor.save')}
@@ -126,14 +126,12 @@ function WorkspaceSettingsPage(props) {
                             style={[styles.mb3]}
                             anchorPosition={{top: 172, right: 18}}
                             isUsingDefaultAvatar={!lodashGet(this.props.policy, 'avatar', null)}
-                            onImageSelected={file => Policy.updateWorkspaceAvatar(lodashGet(this.props.policy, 'id', ''), file)}
+                            onImageSelected={(file) => Policy.updateWorkspaceAvatar(lodashGet(this.props.policy, 'id', ''), file)}
                             onImageRemoved={() => Policy.deleteWorkspaceAvatar(lodashGet(this.props.policy, 'id', ''))}
                             editorMaskImage={Expensicons.ImageCropSquareMask}
                         />
                     </OfflineWithFeedback>
-                    <OfflineWithFeedback
-                        pendingAction={lodashGet(this.props.policy, 'pendingFields.generalSettings')}
-                    >
+                    <OfflineWithFeedback pendingAction={lodashGet(this.props.policy, 'pendingFields.generalSettings')}>
                         <TextInput
                             inputID="name"
                             label={this.props.translate('workspace.editor.nameInputLabel')}
@@ -148,11 +146,7 @@ function WorkspaceSettingsPage(props) {
                                 items={this.getCurrencyItems()}
                                 isDisabled={hasVBA}
                                 defaultValue={this.props.policy.outputCurrency}
-                                hintText={
-                                    hasVBA
-                                        ? this.props.translate('workspace.editor.currencyInputDisabledText')
-                                        : this.props.translate('workspace.editor.currencyInputHelpText')
-                                }
+                                hintText={hasVBA ? this.props.translate('workspace.editor.currencyInputDisabledText') : this.props.translate('workspace.editor.currencyInputHelpText')}
                             />
                         </View>
                     </OfflineWithFeedback>

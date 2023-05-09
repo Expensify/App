@@ -3206,12 +3206,7 @@ const styles = {
         backgroundColor: themeColors.appBG,
     },
 
-    illustratedPageScrollView: safeAreaPaddingBottomStyle => [
-        flex.flex1,
-        flex.flexColumn,
-        spacing.pt5,
-        safeAreaPaddingBottomStyle,
-    ],
+    illustratedPageScrollView: (safeAreaPaddingBottomStyle) => [flex.flex1, flex.flexColumn, spacing.pt5, safeAreaPaddingBottomStyle],
 
     whisper: {
         backgroundColor: themeColors.cardBG,

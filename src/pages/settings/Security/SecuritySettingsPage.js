@@ -40,7 +40,7 @@ const SecuritySettingsPage = (props) => {
             illustration={SafeAnimation}
             backgroundColor={themeColors.securitySettingsPageBackgroundColor}
         >
-            {_.map(menuItems, item => (
+            {_.map(menuItems, (item) => (
                 <MenuItem
                     key={item.translationKey}
                     title={props.translate(item.translationKey)}

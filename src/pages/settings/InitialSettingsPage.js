@@ -310,7 +310,10 @@ class InitialSettingsPage extends React.Component {
                 onCloseButtonPress={() => Navigation.dismissModal(true)}
                 illustration={() => (
                     <View style={[styles.flex1, styles.avatarSectionWrapper]}>
-                        <Pressable style={[styles.mb3]} onPress={this.openProfileSettings}>
+                        <Pressable
+                            style={[styles.mb3]}
+                            onPress={this.openProfileSettings}
+                        >
                             <Tooltip text={this.props.translate('common.profile')}>
                                 <OfflineWithFeedback pendingAction={lodashGet(this.props.currentUserPersonalDetails, 'pendingFields.avatar', null)}>
                                     <Avatar
@@ -321,9 +324,15 @@ class InitialSettingsPage extends React.Component {
                                 </OfflineWithFeedback>
                             </Tooltip>
                         </Pressable>
-                        <Pressable style={[styles.mt1, styles.mw100]} onPress={this.openProfileSettings}>
+                        <Pressable
+                            style={[styles.mt1, styles.mw100]}
+                            onPress={this.openProfileSettings}
+                        >
                             <Tooltip text={this.props.translate('common.profile')}>
-                                <Text style={[styles.textHeadline]} numberOfLines={1}>
+                                <Text
+                                    style={[styles.textHeadline]}
+                                    numberOfLines={1}
+                                >
                                     {this.props.currentUserPersonalDetails.displayName
                                         ? this.props.currentUserPersonalDetails.displayName
                                         : this.props.formatPhoneNumber(this.props.session.email)}

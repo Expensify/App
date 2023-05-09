@@ -111,7 +111,4 @@ const defaultProps = {
     containerStyles: [],
 };
 
-export {
-    propTypes,
-    defaultProps,
-};
+export {propTypes, defaultProps};

@@ -1,6 +1,4 @@
-import React, {
-    useEffect, useMemo, useRef, useCallback,
-} from 'react';
+import React, {useEffect, useMemo, useRef, useCallback} from 'react';
 import Onyx, {withOnyx} from 'react-native-onyx';
 import {getFocusedRouteNameFromRoute} from '@react-navigation/native';
 import PropTypes from 'prop-types';
@@ -8,9 +6,7 @@ import moment from 'moment';
 import _ from 'underscore';
 import lodashGet from 'lodash/get';
 import Str from 'expensify-common/lib/str';
-import {
-    interpolateColor, useAnimatedProps, useSharedValue, withSpring,
-} from 'react-native-reanimated';
+import {interpolateColor, useAnimatedProps, useSharedValue, withSpring} from 'react-native-reanimated';
 import getNavigationModalCardStyle from '../../../styles/getNavigationModalCardStyles';
 import withWindowDimensions, {windowDimensionsPropTypes} from '../../../components/withWindowDimensions';
 import CONST from '../../../CONST';
@@ -148,38 +144,53 @@ const AuthScreens = (props) => {
     // based on the key modifiers pressed and the operating system
     useEffect(() => {
         const searchShortcutConfig = CONST.KEYBOARD_SHORTCUTS.SEARCH;
-        return KeyboardShortcut.subscribe(searchShortcutConfig.shortcutKey, () => {
-            Modal.close(() => {
-                if (Navigation.isActiveRoute(ROUTES.SEARCH)) {
-                    return;
-                }
-                return Navigation.navigate(ROUTES.SEARCH);
-            });
-        }, searchShortcutConfig.descriptionKey, searchShortcutConfig.modifiers, true);
+        return KeyboardShortcut.subscribe(
+            searchShortcutConfig.shortcutKey,
+            () => {
+                Modal.close(() => {
+                    if (Navigation.isActiveRoute(ROUTES.SEARCH)) {
+                        return;
+                    }
+                    return Navigation.navigate(ROUTES.SEARCH);
+                });
+            },
+            searchShortcutConfig.descriptionKey,
+            searchShortcutConfig.modifiers,
+            true,
+        );
     }, []);
 
     useEffect(() => {
         const groupShortcutConfig = CONST.KEYBOARD_SHORTCUTS.NEW_GROUP;
-        return KeyboardShortcut.subscribe(groupShortcutConfig.shortcutKey, () => {
-            Modal.close(() => {
-                if (Navigation.isActiveRoute(ROUTES.NEW_GROUP)) {
-                    return;
-                }
-                Navigation.navigate(ROUTES.NEW_GROUP);
-            });
-        }, groupShortcutConfig.descriptionKey, groupShortcutConfig.modifiers, true);
+        return KeyboardShortcut.subscribe(
+            groupShortcutConfig.shortcutKey,
+            () => {
+                Modal.close(() => {
+                    if (Navigation.isActiveRoute(ROUTES.NEW_GROUP)) {
+                        return;
+                    }
+                    Navigation.navigate(ROUTES.NEW_GROUP);
+                });
+            },
+            groupShortcutConfig.descriptionKey,
+            groupShortcutConfig.modifiers,
+            true,
+        );
     }, []);
 
-    const modalScreenOptions = useMemo(() => ({
-        ...commonModalScreenOptions,
-        cardStyle: getNavigationModalCardStyle(props.isSmallScreenWidth),
-        modalCardStyleInterpolator: cardProps => modalCardStyleInterpolator(props.isSmallScreenWidth, false, cardProps),
-        cardOverlayEnabled: true,
+    const modalScreenOptions = useMemo(
+        () => ({
+            ...commonModalScreenOptions,
+            cardStyle: getNavigationModalCardStyle(props.isSmallScreenWidth),
+            modalCardStyleInterpolator: (cardProps) => modalCardStyleInterpolator(props.isSmallScreenWidth, false, cardProps),
+            cardOverlayEnabled: true,
 
-        // This is a custom prop we are passing to custom navigator so that we will know to add a Pressable overlay
-        // when displaying a modal. This allows us to dismiss by clicking outside on web / large screens.
-        isModal: true,
-    }), [props.isSmallScreenWidth]);
+            // This is a custom prop we are passing to custom navigator so that we will know to add a Pressable overlay
+            // when displaying a modal. This allows us to dismiss by clicking outside on web / large screens.
+            isModal: true,
+        }),
+        [props.isSmallScreenWidth],
+    );
 
     const statusBarBackgroundColorAnimationProgress = useSharedValue(0);
 
@@ -213,7 +224,6 @@ const AuthScreens = (props) => {
     return (
         <RootStack.Navigator
             mode="modal"
-
             // We are disabling the default keyboard handling here since the automatic behavior is to close a
             // keyboard that's open when swiping to dismiss a modal. In those cases, pressing the back button on
             // a header will briefly open and close the keyboard and crash Android.

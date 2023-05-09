@@ -204,13 +204,13 @@ class WorkspacesListPage extends Component {
                 onCloseButtonPress={() => Navigation.dismissModal(true)}
                 illustration={WorkspacePlanetAnimation}
                 backgroundColor={themeColors.workspaceSettingsPageBackgroundColor}
-                footer={(
+                footer={
                     <Button
                         success
                         text={this.props.translate('workspace.new.newWorkspace')}
                         onPress={() => Policy.createWorkspace()}
                     />
-                )}
+                }
             >
                 {_.isEmpty(workspaces) && (
                     <View style={[styles.flex1, styles.ph4]}>
@@ -219,7 +219,11 @@ class WorkspacesListPage extends Component {
                         <View style={[styles.flex1, styles.justifyContentStart, styles.mt4]}>
                             {_.map(workspaceFeatures, ({icon, text}) => (
                                 <View style={[styles.flexRow, styles.alignItemsCenter, styles.mv2]}>
-                                    <Icon src={icon} width={variables.iconSizeSuperLarge} height={variables.iconSizeSuperLarge} />
+                                    <Icon
+                                        src={icon}
+                                        width={variables.iconSizeSuperLarge}
+                                        height={variables.iconSizeSuperLarge}
+                                    />
                                     <Text style={[styles.h3, styles.pl2]}>{text}</Text>
                                 </View>
                             ))}
