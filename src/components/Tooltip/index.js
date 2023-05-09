@@ -196,6 +196,10 @@ class Tooltip extends PureComponent {
                         maxWidth={this.props.maxWidth}
                         numberOfLines={this.props.numberOfLines}
                         renderTooltipContent={this.props.renderTooltipContent}
+
+                        // We pass a key, so whenever the content changes this component will completely remount with a fresh state.
+                        // This prevents flickering/moving while remaining performant.
+                        key={[this.props.text, ...this.props.renderTooltipContentKey]}
                     />
                 )}
                 <Hoverable

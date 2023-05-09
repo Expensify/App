@@ -442,7 +442,7 @@ class WorkspaceMembersPage extends React.Component {
                                 <TextInput
                                     value={this.state.searchValue}
                                     onChangeText={this.updateSearchValue}
-                                    placeholder={this.props.translate('optionsSelector.findMember')}
+                                    label={this.props.translate('optionsSelector.findMember')}
                                 />
                             </View>
                             {data.length > 0 ? (

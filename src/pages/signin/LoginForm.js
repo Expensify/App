@@ -193,10 +193,10 @@ class LoginForm extends React.Component {
                         {this.props.account.success}
                     </Text>
                 )}
-                {!_.isEmpty(this.props.closeAccount.success) && (
+                {!_.isEmpty(this.props.closeAccount.success || this.props.account.message) && (
 
                     // DotIndicatorMessage mostly expects onyxData errors, so we need to mock an object so that the messages looks similar to prop.account.errors
-                    <DotIndicatorMessage style={[styles.mv2]} type="success" messages={{0: this.props.closeAccount.success}} />
+                    <DotIndicatorMessage style={[styles.mv2]} type="success" messages={{0: this.props.closeAccount.success || this.props.account.message}} />
                 )}
                 { // We need to unmount the submit button when the component is not visible so that the Enter button
                   // key handler gets unsubscribed and does not conflict with the Password Form

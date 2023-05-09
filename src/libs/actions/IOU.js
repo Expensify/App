@@ -189,6 +189,8 @@ function requestMoney(report, amount, currency, recipientEmail, participant, com
                 errorFields: null,
             },
         };
+        chatReportFailureData.value.pendingFields = {createChat: null};
+        delete chatReportFailureData.value.hasOutstandingIOU;
         chatReportFailureData.value.errorFields = {
             createChat: {
                 [DateUtils.getMicroseconds()]: Localize.translateLocal('report.genericCreateReportFailureMessage'),
@@ -198,6 +200,10 @@ function requestMoney(report, amount, currency, recipientEmail, participant, com
         // Then add an optimistic created action
         optimisticReportActionsData.value[optimisticCreatedAction.reportActionID] = optimisticCreatedAction;
         reportActionsSuccessData.value[optimisticCreatedAction.reportActionID] = {pendingAction: null};
+
+        // Failure data should feature red brick road
+        reportActionsFailureData.value[optimisticCreatedAction.reportActionID] = {pendingAction: null};
+        reportActionsFailureData.value[optimisticReportAction.reportActionID] = {pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD};
     }
 
     const optimisticData = [
@@ -927,6 +933,9 @@ function getSendMoneyParams(report, amount, currency, comment, paymentMethodType
 
         // Add an optimistic created action to the optimistic reportActions data
         optimisticReportActionsData.value[optimisticCreatedAction.reportActionID] = optimisticCreatedAction;
+
+        // If we're going to fail to create the report itself, let's not have redundant error messages for the IOU
+        failureData[0].value[optimisticIOUReportAction.reportActionID] = {pendingAction: null};
     }
 
     const optimisticData = [
