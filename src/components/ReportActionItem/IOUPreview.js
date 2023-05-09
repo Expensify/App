@@ -29,6 +29,8 @@ import {showContextMenuForReport} from '../ShowContextMenuContext';
 import * as OptionsListUtils from '../../libs/OptionsListUtils';
 import Button from '../Button';
 import * as CurrencyUtils from '../../libs/CurrencyUtils';
+import * as StyleUtils from '../../styles/StyleUtils';
+import getButtonState from '../../libs/getButtonState';
 
 const propTypes = {
     /** Additional logic for displaying the pay button */
@@ -191,7 +193,7 @@ const IOUPreview = (props) => {
                                 {props.isBillSplit ? props.translate('iou.split') : props.translate('iou.cash')}
                             </Text>
                         </View>
-                        <Icon src={Expensicons.ArrowRight} />
+                        <Icon src={Expensicons.ArrowRight} fill={StyleUtils.getIconFillColor(getButtonState(props.isHovered))} />
                     </View>
                     <View style={[styles.flexRow]}>
                         <View style={[styles.flex1, styles.flexRow, styles.alignItemsCenter]}>
