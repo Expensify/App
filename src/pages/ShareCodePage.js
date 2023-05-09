@@ -5,7 +5,7 @@ import ScreenWrapper from '../components/ScreenWrapper';
 import HeaderWithCloseButton from '../components/HeaderWithCloseButton';
 import Navigation from '../libs/Navigation/Navigation';
 import withLocalize, {withLocalizePropTypes} from '../components/withLocalize';
-import QRCode from '../components/QRCode';
+import QRShare from '../components/QRShare';
 
 const propTypes = {
     /** Navigation route context info provided by react navigation */
@@ -35,7 +35,7 @@ class ShareCodePage extends React.Component {
                 />
 
                 <View>
-                    <QRCode />
+                    <QRShare />
                 </View>
 
                 <View />
