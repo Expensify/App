@@ -232,7 +232,6 @@ function ReportActionCompose(props) {
     const comment = useRef(props.comment);
     const textInput = useRef(null);
     const actionButton = useRef(null);
-    const prevPropsRef = useRef();
 
     // If we are on a small width device then don't show last 3 items from conciergePlaceholderOptions
     const conciergePlaceholderRandomIndex = useMemo(
@@ -378,47 +377,33 @@ function ReportActionCompose(props) {
         };
     }, []);
 
-    // TODO: still under discussion - might use another approach to migrate ComponentDidUpdate
+    // eslint-disable-next-line rulesdir/prefer-early-return
     useEffect(() => {
-        const prevProps = prevPropsRef.current;
+        if (props.isDrawerOpen) {
+            toggleReportActionComposeView(true);
+        }
+    }, [props.isDrawerOpen]);
 
-        if (prevProps) {
-            const sidebarOpened = !prevProps.isDrawerOpen && props.isDrawerOpen;
-            if (sidebarOpened) {
-                toggleReportActionComposeView(true);
-            }
+    useEffect(() => {
+        updateMaxLines();
+    }, [props.isComposerFullSize]);
 
-            // We want to focus or refocus the input when a modal has been closed and the underlying screen is focused.
-            // We avoid doing this on native platforms since the software keyboard popping
-            // open creates a jarring and broken UX.
-            if (willBlurTextInputOnTapOutside && props.isFocused
-          && prevProps && prevProps.modal.isVisible && !props.modal.isVisible) {
-                focus();
-            }
+    // eslint-disable-next-line rulesdir/prefer-early-return
+    useEffect(() => {
+        // We want to focus or refocus the input when a modal has been closed and the underlying screen is focused.
+        // We avoid doing this on native platforms since the software keyboard popping
+        // open creates a jarring and broken UX.
+        if (willBlurTextInputOnTapOutside && props.isFocused && !props.modal.isVisible) {
+            focus();
+        }
+    }, [props.isFocused, props.modal.isVisible]);
 
-            if (props.isComposerFullSize !== prevProps.isComposerFullSize) {
-                updateMaxLines();
-            }
-
-            // Value state does not have the same value as comment props when the comment gets changed from another tab.
-            // In this case, we should synchronize the value between tabs.
-            const shouldSyncComment = prevProps.comment !== props.comment && value !== props.comment;
-
-            if (props.report.reportID === prevProps.report.reportID && !shouldSyncComment) {
-                return;
-            }
-
+    // eslint-disable-next-line rulesdir/prefer-early-return
+    useEffect(() => {
+        if (value !== props.comment) {
             updateComment(comment.current);
         }
-        prevPropsRef.current = {
-            isDrawerOpen: props.isDrawerOpen,
-            isFocused: props.isFocused,
-            modal: props.modal,
-            isComposerFullSize: props.isComposerFullSize,
-            comment: props.comment,
-            report: props.report,
-        };
-    }, [props.isDrawerOpen, props.isFocused, props.modal, props.isComposerFullSize, props.comment, props.report, focus, updateMaxLines, value, updateComment]);
+    }, [props.report.reportID]);
 
     /**
      * Clean data related to EmojiSuggestions
@@ -494,6 +479,7 @@ function ReportActionCompose(props) {
      * @param {Array} reportParticipants
      * @returns {Array<object>}
      */
+    // TODO: rewrite to useMemo
     const getMoneyRequestOptions = useCallback((reportParticipants) => {
         const options = {
             [CONST.IOU.MONEY_REQUEST_TYPE.SPLIT]: {
@@ -536,6 +522,7 @@ function ReportActionCompose(props) {
      * @param {Array} reportParticipants
      * @returns {Boolean}
      */
+    // TODO: rewrite to useMemo
     const getTaskOption = useCallback((reportParticipants) => {
         // We only prevent the task option from showing if it's a DM and the other user is an Expensify default email
         if (!Permissions.canUseTasks(props.betas) || (lodashGet(props.report, 'participants', []).length === 1 && _.some(reportParticipants, email => _.contains(
@@ -705,6 +692,7 @@ function ReportActionCompose(props) {
         setTextInputShouldClear(false);
     }, [props.reportID, prepareCommentAndResetComposer]);
 
+    // TODO: wrap things below in useMemo
     const reportParticipants = _.without(lodashGet(props.report, 'participants', []), props.currentUserPersonalDetails.login);
     const participantsWithoutExpensifyEmails = _.difference(reportParticipants, CONST.EXPENSIFY_EMAILS);
     const reportRecipient = props.personalDetails[participantsWithoutExpensifyEmails[0]];
