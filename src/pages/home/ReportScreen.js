@@ -289,6 +289,7 @@ class ReportScreen extends React.Component {
                                             report={this.props.report}
                                             policies={this.props.policies}
                                             personalDetails={this.props.personalDetails}
+                                            isSingleTransactionView={ReportUtils.isMoneyRequestThreadReport(this.props.report)}
                                         />
                                     ) : (
                                         <HeaderView

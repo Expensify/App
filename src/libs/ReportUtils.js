@@ -1809,6 +1809,17 @@ function getWhisperDisplayNames(participants) {
     return _.map(participants, (login) => getDisplayNameForParticipant(login, !isWhisperOnlyVisibleToCurrentUSer)).join(', ');
 }
 
+function isMoneyRequestThreadReport(reportID) {
+    const parentReportID = allReports[reportID].parentReportID;
+
+    // No parentReportID - can't possibly be a thread
+    if (parentReportID) {
+        return false;
+    }
+
+    return isMoneyRequestReport(allReports[parentReportID]);
+}
+
 export {
     getReportParticipantsTitle,
     isReportMessageAttachment,
@@ -1886,4 +1897,5 @@ export {
     canRequestMoney,
     getWhisperDisplayNames,
     getWorkspaceAvatar,
+    isMoneyRequestThreadReport,
 };
