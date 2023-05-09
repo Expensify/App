@@ -369,6 +369,11 @@ function createSplitsAndOnyxData(participants, currentUserLogin, amount, comment
             oneOnOneChatReport.iouReportID = oneOnOneIOUReport.reportID;
         }
 
+        let reportPreview = ReportActionsUtils.getReportPreviewAction(oneOnOneChatReport.reportID);
+        if (!reportPreview) {
+            reportPreview = ReportActionsUtils.buildOptimisticReportPreview(oneOnOneChatReport.reportID, oneOnOneIOUReport.reportID);
+        }
+
         // Note: The created action must be optimistically generated before the IOU action so there's no chance that the created action appears after the IOU action in the chat
         const oneOnOneCreatedReportAction = ReportUtils.buildOptimisticCreatedReportAction(currentUserEmail);
         const oneOnOneIOUReportAction = ReportUtils.buildOptimisticIOUReportAction(
@@ -475,6 +480,7 @@ function createSplitsAndOnyxData(participants, currentUserLogin, amount, comment
             chatReportID: oneOnOneChatReport.reportID,
             transactionID: oneOnOneIOUReportAction.originalMessage.IOUTransactionID,
             reportActionID: oneOnOneIOUReportAction.reportActionID,
+            reportPreviewReportActionID: reportPreview.reportActionID,
         };
 
         if (!_.isEmpty(oneOnOneCreatedReportAction)) {
