@@ -23,6 +23,7 @@ const includeModules = [
     'react-native-flipper',
     'react-native-google-places-autocomplete',
     '@react-navigation/drawer',
+    'react-native-qrcode-svg',
 ].join('|');
 
 const envToLogoSuffixMap = {
