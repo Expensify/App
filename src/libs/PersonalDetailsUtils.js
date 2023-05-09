@@ -18,19 +18,14 @@ Onyx.connect({
  */
 function getPersonalDetailsByIDs(accountIDs, currentUserAccountID, shouldChangeUserDisplayName = false) {
     const result = [];
-    _.each(personalDetails, (detail) => {
-        for (let i = 0; i < accountIDs.length; i++) {
-            if (detail.accountID === accountIDs[i]) {
-                if (shouldChangeUserDisplayName && currentUserAccountID.toString() === detail.accountID) {
-                    result[i] = {
-                        ...detail,
-                        displayName: Localize.translateLocal('common.you'),
-                    };
-                } else {
-                    result[i] = detail;
-                }
-                break;
-            }
+    _.each(_.filter(personalDetails, detail => accountIDs.includes(detail.accountID)), (detail) => {
+        if (shouldChangeUserDisplayName && currentUserAccountID.toString() === detail.accountID) {
+            result.push({
+                ...detail,
+                displayName: Localize.translateLocal('common.you'),
+            });
+        } else {
+            result.push(detail);
         }
     });
     return result;
