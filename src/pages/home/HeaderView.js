@@ -192,6 +192,8 @@ const HeaderView = (props) => {
                             {shouldShowCallButton && <VideoChatButtonAndMenu isConcierge={isConcierge} guideCalendarLink={guideCalendarLink} />}
                             <Tooltip text={props.report.isPinned ? props.translate('common.unPin') : props.translate('common.pin')}>
                                 <Pressable
+
+                                    // keep focus on composer input when pin button is clicked
                                     onMouseDown={e => e.preventDefault()}
                                     onPress={() => Report.togglePinnedState(props.report)}
                                     style={[styles.touchableButtonImage]}
