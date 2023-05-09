@@ -21,6 +21,7 @@ import withNavigation from '../../../../components/withNavigation';
 import * as Welcome from '../../../../libs/actions/Welcome';
 import withNavigationFocus from '../../../../components/withNavigationFocus';
 import withDrawerState from '../../../../components/withDrawerState';
+import * as TaskUtils from '../../../../libs/actions/Task';
 import * as App from '../../../../libs/actions/App';
 
 /**
@@ -216,7 +217,7 @@ class FloatingActionButtonAndPopover extends React.Component {
                             {
                                 icon: Expensicons.Task,
                                 text: this.props.translate('newTaskPage.assignTask'),
-                                onSelected: () => Navigation.navigate(ROUTES.NEW_TASK),
+                                onSelected: () => TaskUtils.clearOutTaskInfoAndNavigate(),
                             },
                         ] : []),
                         ...(!this.props.isLoading && !Policy.hasActiveFreePolicy(this.props.allPolicies) ? [

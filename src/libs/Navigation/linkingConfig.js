@@ -213,6 +213,11 @@ export default {
             NewTask: {
                 screens: {
                     NewTask_Root: ROUTES.NEW_TASK_WITH_REPORT_ID,
+                    NewTask_TaskAssigneeSelector: ROUTES.NEW_TASK_ASSIGNEE,
+                    NewTask_TaskShareDestinationSelector: ROUTES.NEW_TASK_SHARE_DESTINATION,
+                    NewTask_Details: ROUTES.NEW_TASK_DETAILS,
+                    NewTask_Title: ROUTES.NEW_TASK_TITLE,
+                    NewTask_Description: ROUTES.NEW_TASK_DESCRIPTION,
                 },
             },
             Search: {

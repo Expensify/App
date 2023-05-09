@@ -808,6 +808,11 @@ const styles = {
         backgroundColor: themeColors.buttonDefaultBG,
     },
 
+    autoGrowHeightInputContainer: (textInputHeight, maxHeight) => ({
+        height: textInputHeight >= maxHeight ? maxHeight : textInputHeight,
+        minHeight: variables.componentSizeLarge,
+    }),
+
     textInputContainer: {
         flex: 1,
         justifyContent: 'center',
@@ -1667,6 +1672,15 @@ const styles = {
         backgroundColor: themeColors.transparent,
     },
 
+    taskSelectorLink: {
+        alignSelf: 'center',
+        height: 42,
+        width: '100%',
+        padding: 6,
+        margin: 3,
+        backgroundColor: themeColors.transparent,
+    },
+
     chatItemAttachmentPlaceholder: {
         backgroundColor: themeColors.sidebar,
         borderColor: themeColors.border,
@@ -2431,7 +2445,7 @@ const styles = {
 
     hiddenElementOutsideOfWindow: {
         position: 'absolute',
-        top: 0,
+        top: -10000,
         left: 0,
         opacity: 0,
     },
@@ -2588,7 +2602,7 @@ const styles = {
     },
 
     workspaceInviteWelcome: {
-        minHeight: 115,
+        maxHeight: 115,
     },
 
     peopleRow: {

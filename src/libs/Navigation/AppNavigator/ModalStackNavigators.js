@@ -218,13 +218,50 @@ const NewChatModalStackNavigator = createModalStackNavigator([{
     name: 'NewChat_Root',
 }]);
 
-const NewTaskModalStackNavigator = createModalStackNavigator([{
-    getComponent: () => {
-        const NewTaskPage = require('../../../pages/NewTaskPage').default;
-        return NewTaskPage;
+const NewTaskModalStackNavigator = createModalStackNavigator([
+    {
+        getComponent: () => {
+            const NewTaskPage = require('../../../pages/tasks/NewTaskPage').default;
+            return NewTaskPage;
+        },
+        name: 'NewTask_Root',
     },
-    name: 'NewTask_Root',
-}]);
+    {
+        getComponent: () => {
+            const NewTaskAssigneeSelectorPage = require('../../../pages/tasks/TaskAssigneeSelectorModal').default;
+            return NewTaskAssigneeSelectorPage;
+        },
+        name: 'NewTask_TaskAssigneeSelector',
+    },
+    {
+        getComponent: () => {
+            const NewTaskTaskShareDestinationPage = require('../../../pages/tasks/TaskShareDestinationSelectorModal').default;
+            return NewTaskTaskShareDestinationPage;
+        },
+        name: 'NewTask_TaskShareDestinationSelector',
+    },
+    {
+        getComponent: () => {
+            const NewTaskDetailsPage = require('../../../pages/tasks/NewTaskDetailsPage').default;
+            return NewTaskDetailsPage;
+        },
+        name: 'NewTask_Details',
+    },
+    {
+        getComponent: () => {
+            const NewTaskTitlePage = require('../../../pages/tasks/NewTaskTitlePage').default;
+            return NewTaskTitlePage;
+        },
+        name: 'NewTask_Title',
+    },
+    {
+        getComponent: () => {
+            const NewTaskDescriptionPage = require('../../../pages/tasks/NewTaskDescriptionPage').default;
+            return NewTaskDescriptionPage;
+        },
+        name: 'NewTask_Description',
+    },
+]);
 
 const SettingsModalStackNavigator = createModalStackNavigator([
     {
