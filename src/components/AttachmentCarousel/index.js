@@ -1,5 +1,5 @@
 import React from 'react';
-import {View, FlatList} from 'react-native';
+import {View, FlatList, useWindowDimensions} from 'react-native';
 import PropTypes from 'prop-types';
 import {withOnyx} from 'react-native-onyx';
 import _ from 'underscore';
@@ -252,7 +252,8 @@ class AttachmentCarousel extends React.Component {
      * @returns {JSX.Element}
      */
     renderCell(props) {
-        const style = [props.style, styles.h100, {width: this.state.containerWidth}];
+        // We are isolating the method this function uses to update the width of the container to make it respond faster
+        const style = [props.style, styles.h100, {width: useWindowDimensions().width}];
 
         // eslint-disable-next-line react/jsx-props-no-spreading
         return <View {...props} style={style} />;
