@@ -150,6 +150,13 @@ const ReportDetailsModalStackNavigator = createModalStackNavigator([{
         return ReportDetailsPage;
     },
     name: 'Report_Details_Root',
+},
+{
+    getComponent: () => {
+        const ShareCodePage = require('../../../pages/ShareCodePage').default;
+        return ShareCodePage;
+    },
+    name: 'Report_Details_Share_Code',
 }]);
 
 const TaskModalStackNavigator = createModalStackNavigator([
@@ -284,6 +291,13 @@ const SettingsModalStackNavigator = createModalStackNavigator([
             return SettingsProfilePage;
         },
         name: 'Settings_Profile',
+    },
+    {
+        getComponent: () => {
+            const ShareCodePage = require('../../../pages/ShareCodePage').default;
+            return ShareCodePage;
+        },
+        name: 'Settings_Profile_Share_Code',
     },
     {
         getComponent: () => {

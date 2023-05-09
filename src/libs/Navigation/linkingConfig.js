@@ -97,6 +97,10 @@ export default {
                         path: ROUTES.SETTINGS_PROFILE,
                         exact: true,
                     },
+                    Settings_Profile_Share_Code: {
+                        path: ROUTES.SETTINGS_PROFILE_SHARE_CODE,
+                        exact: true,
+                    },
                     Settings_Pronouns: {
                         path: ROUTES.SETTINGS_PRONOUNS,
                         exact: true,
@@ -193,6 +197,7 @@ export default {
             Report_Details: {
                 screens: {
                     Report_Details_Root: ROUTES.REPORT_WITH_ID_DETAILS,
+                    Report_Details_Share_Code: ROUTES.REPORT_WITH_ID_DETAILS_SHARE_CODE,
                 },
             },
             Report_Settings: {
