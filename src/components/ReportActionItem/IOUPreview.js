@@ -185,9 +185,14 @@ const IOUPreview = (props) => {
                 needsOffscreenAlphaCompositing
             >
                 <View style={[styles.iouPreviewBox, ...props.containerStyles]}>
-                    <Text>
-                        {props.isBillSplit ? props.translate('iou.split') : props.translate('iou.cash')}
-                    </Text>
+                    <View style={[styles.flexRow]}>
+                        <View style={[styles.flex1]}>
+                            <Text>
+                                {props.isBillSplit ? props.translate('iou.split') : props.translate('iou.cash')}
+                            </Text>
+                        </View>
+                        <Icon src={Expensicons.ArrowRight} />
+                    </View>
                     <View style={[styles.flexRow]}>
                         <View style={[styles.flex1, styles.flexRow, styles.alignItemsCenter]}>
                             <Text style={styles.textHeadline}>
