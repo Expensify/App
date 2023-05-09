@@ -118,24 +118,24 @@ class BankAccountPlaidStep extends React.Component {
                     />
                     {Boolean(selectedPlaidAccountID) && !_.isEmpty(lodashGet(this.props.plaidData, 'bankAccounts')) &&
                     <CheckboxWithLabel
-                    style={styles.mt4}
-                    inputID="acceptTerms"
-                    LabelComponent={() => (
-                        <Text>
-                            {this.props.translate('common.iAcceptThe')}
-                            <TextLink
-                                href="https://use.expensify.com/terms"
+                        style={styles.mt4}
+                        inputID="acceptTerms"
+                        LabelComponent={() => (
+                            <Text>
+                                {this.props.translate('common.iAcceptThe')}
+                                <TextLink
+                                    href="https://use.expensify.com/terms"
 
-                                // to call the onPress in the TextLink before the input blur is fired and shift the link element
-                                onMouseDown={e => e.preventDefault()}
-                            >
-                                {this.props.translate('common.expensifyTermsOfService')}
-                            </TextLink>
-                        </Text>
-                    )}
-                    defaultValue={this.props.getDefaultStateForField('acceptTerms', false)}
-                    shouldSaveDraft
-                />}
+                                    // to call the onPress in the TextLink before the input blur is fired and shift the link element
+                                    onMouseDown={e => e.preventDefault()}
+                                >
+                                    {this.props.translate('common.expensifyTermsOfService')}
+                                </TextLink>
+                            </Text>
+                        )}
+                        defaultValue={this.props.getDefaultStateForField('acceptTerms', false)}
+                        shouldSaveDraft
+                    />}
                 </Form>
             </ScreenWrapper>
         );
