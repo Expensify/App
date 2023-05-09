@@ -135,7 +135,8 @@ class BankAccountPlaidStep extends React.Component {
                             )}
                             defaultValue={this.props.getDefaultStateForField('acceptTerms', false)}
                             shouldSaveDraft
-                        />}
+                        />
+                    }
                 </Form>
             </ScreenWrapper>
         );
