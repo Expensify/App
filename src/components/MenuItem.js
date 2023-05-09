@@ -227,8 +227,8 @@ MenuItem.displayName = 'MenuItem';
 
 const MenuItemWithWindowDimensions = withWindowDimensions(
     React.forwardRef((props, ref) => (
-        // eslint-disable-next-line react/jsx-props-no-spreading
         <MenuItem
+            // eslint-disable-next-line react/jsx-props-no-spreading
             {...props}
             forwardedRef={ref}
         />
