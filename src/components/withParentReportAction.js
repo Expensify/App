@@ -1,7 +1,6 @@
 import React from 'react';
 import PropTypes from 'prop-types';
 import {withOnyx} from 'react-native-onyx';
-import _ from 'underscore';
 import lodashGet from 'lodash/get';
 import getComponentDisplayName from '../libs/getComponentDisplayName';
 import ONYXKEYS from '../ONYXKEYS';
@@ -37,7 +36,7 @@ export default function (WrappedComponent) {
 
     const WithParentReportAction = (props) => {
         const parentReportActionID = props.report ? `${lodashGet(props.report, 'parentReportActionID', '')}` : '';
-        const parentReportAction = parentReportActionID ? lodashGet(props.parentReportActions, 'parentReportActionID', {}) : {};
+        const parentReportAction = parentReportActionID ? lodashGet(props.parentReportActions, parentReportActionID, {}) : {};
 
         return (
             <WrappedComponent
