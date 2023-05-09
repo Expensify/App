@@ -73,9 +73,8 @@ const defaultProps = {
 
 const IOUQuote = (props) => {
     const reportAmount = CurrencyUtils.convertToDisplayString(props.iouReport.total, props.iouReport.currency);
-    const isCurrentUserManager = true;
-    const ownerEmail = props.iouReport.ownerEmail || '';
-    const ownerName = ReportUtils.getDisplayNameForParticipant(ownerEmail, true);
+    const managerEmail = props.iouReport.managerEmail || '';
+    const managerName = ReportUtils.getDisplayNameForParticipant(managerEmail, true);
     return (
         <View style={[styles.chatItemMessage, styles.mt4]}>
             {_.map(props.action.message, (fragment, index) => (
@@ -94,16 +93,11 @@ const IOUQuote = (props) => {
                     style={[styles.flexRow, styles.justifyContentBetween]}
                     focusable
                 >
-                    {isCurrentUserManager
-                        ? (
-                            <Text style={[styles.chatItemMessage, styles.cursorPointer]}>
-                                {props.translate('iou.managerOwes', {owner: ownerName, amount: reportAmount})}
-                            </Text>
-                        ) : (
-                            <Text style={[styles.chatItemMessage, styles.cursorPointer]}>
-                                {props.translate('iou.managerOwes', {owner: ownerName, amount: reportAmount})}
-                            </Text>
-                        )}
+                    <View style={[styles.flexRow]}>
+                        <Text style={[styles.chatItemMessage, styles.cursorPointer]}>
+                            {props.translate('iou.managerOwes', {owner: managerName, amount: reportAmount})}
+                        </Text>
+                    </View>
                     <Icon src={Expensicons.ArrowRight} fill={StyleUtils.getIconFillColor(getButtonState(props.isHovered))} />
                 </Pressable>
             ))}
