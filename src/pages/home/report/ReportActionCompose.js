@@ -186,7 +186,6 @@ class ReportActionCompose extends React.Component {
         this.showPopoverMenu = this.showPopoverMenu.bind(this);
         this.comment = props.comment;
         this.setShouldBlockEmojiCalcToFalse = this.setShouldBlockEmojiCalcToFalse.bind(this);
-        this.setIsAttachmentPreviewActiveToFalse = this.setIsAttachmentPreviewActiveToFalse.bind(this);
         this.attachmentPreviewClosed = this.attachmentPreviewClosed.bind(this);
 
         // React Native will retain focus on an input for native devices but web/mWeb behave differently so we have some focus management
@@ -414,13 +413,6 @@ class ReportActionCompose extends React.Component {
     setShouldBlockEmojiCalcToFalse() {
         if (this.state && this.state.shouldBlockEmojiCalc) {
             this.setState({shouldBlockEmojiCalc: false});
-        }
-    }
-
-    // eslint-disable-next-line rulesdir/prefer-early-return
-    setIsAttachmentPreviewActiveToFalse() {
-        if (this.state && this.state.isAttachmentPreviewActive) {
-            this.setState({isAttachmentPreviewActive: false});
         }
     }
 
@@ -762,7 +754,7 @@ class ReportActionCompose extends React.Component {
      */
     attachmentPreviewClosed() {
         this.setShouldBlockEmojiCalcToFalse();
-        this.setIsAttachmentPreviewActiveToFalse();
+        this.setState({isAttachmentPreviewActive: false});
     }
 
     render() {
