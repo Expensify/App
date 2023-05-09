@@ -104,6 +104,7 @@ const ReportActionItemReactions = (props) => {
                                 emojiName={reaction.emoji}
                                 emojiCodes={emojiCodes}
                                 accountIDs={reactionUsers}
+                                currentUserPersonalDetails={props.currentUserPersonalDetails}
                             />
                         )}
                         renderTooltipContentKey={[...reactionUsers, ...emojiCodes]}
@@ -131,4 +132,3 @@ ReportActionItemReactions.displayName = 'ReportActionItemReactions';
 ReportActionItemReactions.propTypes = propTypes;
 ReportActionItemReactions.defaultProps = defaultProps;
 export default withCurrentUserPersonalDetails(ReportActionItemReactions);
-

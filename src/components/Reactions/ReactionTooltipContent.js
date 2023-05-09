@@ -5,11 +5,10 @@ import _ from 'underscore';
 import styles from '../../styles/styles';
 import * as PersonalDetailsUtils from '../../libs/PersonalDetailsUtils';
 import Text from '../Text';
-import withCurrentUserPersonalDetails, {
+import {
     withCurrentUserPersonalDetailsDefaultProps,
     withCurrentUserPersonalDetailsPropTypes,
 } from '../withCurrentUserPersonalDetails';
-import compose from '../../libs/compose';
 import withLocalize from '../withLocalize';
 
 const propTypes = {
@@ -78,7 +77,4 @@ const ReactionTooltipContent = (props) => {
 ReactionTooltipContent.propTypes = propTypes;
 ReactionTooltipContent.defaultProps = defaultProps;
 ReactionTooltipContent.displayName = 'ReactionTooltipContent';
-export default React.memo(compose(
-    withCurrentUserPersonalDetails,
-    withLocalize,
-)(ReactionTooltipContent));
+export default React.memo(withLocalize(ReactionTooltipContent));
