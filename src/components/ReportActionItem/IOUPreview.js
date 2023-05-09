@@ -160,7 +160,7 @@ const IOUPreview = (props) => {
     const requestCurrency = props.isBillSplit ? lodashGet(props.action, 'originalMessage.currency', CONST.CURRENCY.USD) : props.iouReport.currency;
 
     const getSettledMessage = () => {
-        switch (props.action.originalMessage.paymentType) {
+        switch (lodashGet(props.action, 'originalMessage.paymentType', '')) {
             case CONST.IOU.PAYMENT_TYPE.PAYPAL_ME:
                 return props.translate('iou.settledPaypalMe');
             case CONST.IOU.PAYMENT_TYPE.ELSEWHERE:
@@ -206,7 +206,7 @@ const IOUPreview = (props) => {
                             <Text>
                                 {props.isBillSplit ? props.translate('iou.split') : props.translate('iou.cash')}
                             </Text>
-                            {(props.action.originalMessage.type === 'pay' || !ReportUtils.isPolicyExpenseChat(props.report)) && (
+                            {(lodashGet(props.action, 'originalMessage.type', '') === 'pay' || !ReportUtils.isPolicyExpenseChat(props.report)) && (
                                 <>
                                     <Icon src={Expensicons.DotIndicator} width={4} height={4} additionalStyles={[styles.mr1, styles.ml1]} />
                                     <Text>
