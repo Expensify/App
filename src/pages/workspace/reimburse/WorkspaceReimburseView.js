@@ -102,7 +102,7 @@ class WorkspaceReimburseView extends React.Component {
     }
 
     getUnitLabel(value) {
-        return this.props.translate('workspace.reimburse.${value}');
+        return this.props.translate(`workspace.reimburse.${value}`);
     }
 
     getRateDisplayValue(value) {

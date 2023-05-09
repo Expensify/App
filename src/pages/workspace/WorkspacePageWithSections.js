@@ -108,7 +108,6 @@ class WorkspacePageWithSections extends React.Component {
         const isUsingECard = lodashGet(this.props.user, 'isUsingExpensifyCard', false);
         const policyID = lodashGet(this.props.route, 'params.policyID');
         const policyName = lodashGet(this.props.policy, 'name');
-        
 
         return (
             <ScreenWrapper
