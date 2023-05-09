@@ -131,13 +131,11 @@ class CalendarPicker extends React.PureComponent {
      */
     getMonthState(momentDate) {
         const clampedDate = this.clampDate(momentDate.toDate());
-
         const month = clampedDate.getMonth() + 1;
-        const year = clampedDate.getFullYear(); // year might have changed too
 
         return {
             selectedMonth: this.getNumberStringWithLeadingZero(month),
-            selectedYear: `${year}`,
+            selectedYear: clampedDate.getFullYear().toString(), // year might have changed too
             currentDateView: clampedDate,
         };
     }
