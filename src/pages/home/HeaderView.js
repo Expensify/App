@@ -37,9 +37,6 @@ const propTypes = {
     /** The report currently being looked at */
     report: reportPropTypes,
 
-    // eslint-disable-next-line react/no-unused-prop-types
-    parentReport: reportPropTypes,
-
     /** Personal details of all the users */
     personalDetails: PropTypes.objectOf(participantPropTypes),
 
@@ -58,7 +55,6 @@ const propTypes = {
 const defaultProps = {
     personalDetails: {},
     parentReportActions: {},
-    parentReport: null,
     report: null,
     account: {
         guideCalendarLink: null,
@@ -67,7 +63,7 @@ const defaultProps = {
 
 const HeaderView = (props) => {
     // TO DO: Replace with subscribing to specific action rather than all.
-    const parentReportAction = ReportUtils.findMatchingValueDEVTESTING(props.parentReportActions, `${props.report.parentReportActionID}`);
+    const parentReportAction = ReportUtils.getParentReportAction_DEV(props.parentReportActions, `${props.report.parentReportActionID}`);
     const participants = lodashGet(props.report, 'participants', []);
     const participantPersonalDetails = OptionsListUtils.getPersonalDetailsForLogins(participants, props.personalDetails);
     const isMultipleParticipant = participants.length > 1;
@@ -76,8 +72,7 @@ const HeaderView = (props) => {
     const isChatRoom = ReportUtils.isChatRoom(props.report);
     const isPolicyExpenseChat = ReportUtils.isPolicyExpenseChat(props.report);
     const isTaskReport = ReportUtils.isTaskReport(props.report);
-    const title = isThread ? lodashGet(parentReportAction, ['message', 0, 'text'], '[Thread Title Error]') : ReportUtils.getReportName(props.report);
-
+    const title = isThread ? lodashGet(parentReportAction, ['message', 0, 'text'], '') : ReportUtils.getReportName(props.report);
     const subtitle = ReportUtils.getChatRoomSubtitle(props.report);
     const isConcierge = participants.length === 1 && _.contains(participants, CONST.EMAIL.CONCIERGE);
     const isAutomatedExpensifyAccount = (participants.length === 1 && ReportUtils.hasAutomatedExpensifyEmails(participants));
@@ -233,9 +228,6 @@ export default compose(
         account: {
             key: ONYXKEYS.ACCOUNT,
             selector: account => account && ({guideCalendarLink: account.guideCalendarLink}),
-        },
-        parentReport: {
-            key: ({report}) => `${ONYXKEYS.COLLECTION.REPORT}${lodashGet(report, 'parentReportID')}`,
         },
         parentReportActions: {
             key: ({report}) => `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${lodashGet(report, 'parentReportID')}`,

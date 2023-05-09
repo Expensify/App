@@ -90,7 +90,7 @@ function getChatType(report) {
     return report ? report.chatType : '';
 }
 
-function findMatchingValueDEVTESTING(objList, parentID) {
+function getParentReportAction_DEV(objList, parentID) {
     if (!objList) {
         return {};
     }
@@ -434,7 +434,7 @@ function isPolicyExpenseChatAdmin(report, policies) {
  * @returns {Boolean}
  */
 function isThread(report) {
-    if (!report.parentReportID) {
+    if (!report || !report.parentReportID || !report.parentReportActionID) {
         return false;
     }
     return true;
@@ -447,15 +447,13 @@ function isThread(report) {
  */
 function getChatRoomSubtitle(report) {
     if (isThread(report)) {
-        const parentReport = lodashGet(allReports, [
-            `${ONYXKEYS.COLLECTION.REPORT}${report.parentReportID}`]);
-        const chatType = getChatType(report);
-        if (chatType) {
-            const workspaceName = getPolicyName(parentReport);
-            const roomName = (parentReport.displayName === workspaceName) ? '' : parentReport.displayName;
-            return roomName ? `${workspaceName} • ${roomName}` : `${workspaceName}`;
+        if (!getChatType(report)) {
+            return '';
         }
-        return '';
+        const parentReport = lodashGet(allReports, [`${ONYXKEYS.COLLECTION.REPORT}${report.parentReportID}`]);
+        const workspaceName = getPolicyName(parentReport);
+        const roomName = (parentReport.displayName === workspaceName) ? '' : parentReport.displayName;
+        return roomName ? `${workspaceName} • ${roomName}` : `${workspaceName}`;
     }
     if (!isDefaultRoom(report) && !isUserCreatedPolicyRoom(report) && !isPolicyExpenseChat(report)) {
         return '';
@@ -752,7 +750,7 @@ function getIcons(report, personalDetails, defaultIcon = null) {
         ]);
 
         const parentReportActions = ReportActionsUtils.getReportActions(report.parentReportID);
-        const parentReportActionTEST = findMatchingValueDEVTESTING(parentReportActions, `${report.parentReportActionID}`);
+        const parentReportActionTEST = getParentReportAction_DEV(parentReportActions, `${report.parentReportActionID}`);
 
         if (getChatType(parentReport)) {
             result.source = getWorkspaceAvatar(parentReport);
@@ -1977,5 +1975,5 @@ export {
     getWhisperDisplayNames,
     getWorkspaceAvatar,
     isThread,
-    findMatchingValueDEVTESTING,
+    getParentReportAction_DEV,
 };
