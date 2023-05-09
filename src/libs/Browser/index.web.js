@@ -14,7 +14,7 @@ function getBrowser() {
         return 'IE';
     }
 
-    if (match[1] && (match[1].toLowerCase() === 'chrome')) {
+    if (match[1] && match[1].toLowerCase() === 'chrome') {
         temp = userAgent.match(/\b(OPR)/);
         if (temp !== null) {
             return 'Opera';
@@ -47,11 +47,17 @@ function isMobile() {
  */
 function isMobileSafari() {
     const userAgent = navigator.userAgent;
-    return /iP(ad|od|hone)/i.test(userAgent) && /WebKit/i.test(userAgent) && !(/(CriOS|FxiOS|OPiOS|mercury)/i.test(userAgent));
+    return /iP(ad|od|hone)/i.test(userAgent) && /WebKit/i.test(userAgent) && !/(CriOS|FxiOS|OPiOS|mercury)/i.test(userAgent);
 }
 
-export {
-    getBrowser,
-    isMobile,
-    isMobileSafari,
-};
+/**
+ * Checks if requesting user agent is Chrome browser on a mobile device
+ *
+ * @returns {Boolean}
+ */
+function isMobileChrome() {
+    const userAgent = navigator.userAgent;
+    return /Android/i.test(userAgent) && /chrome|chromium|crios/i.test(userAgent);
+}
+
+export {getBrowser, isMobile, isMobileSafari, isMobileChrome};

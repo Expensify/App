@@ -54,18 +54,13 @@ const defaultProps = {
     contentStyles: [],
 };
 
-const ConfirmContent = props => (
+const ConfirmContent = (props) => (
     <View style={[styles.m5, ...props.contentStyles]}>
         <View style={[styles.flexRow, styles.mb4]}>
             <Header title={props.title} />
         </View>
 
-        {_.isString(props.prompt)
-            ? (
-                <Text>
-                    {props.prompt}
-                </Text>
-            ) : props.prompt}
+        {_.isString(props.prompt) ? <Text>{props.prompt}</Text> : props.prompt}
 
         <Button
             success={props.success}

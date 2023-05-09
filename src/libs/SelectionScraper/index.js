@@ -2,7 +2,6 @@ import render from 'dom-serializer';
 import {parseDocument} from 'htmlparser2';
 import _ from 'underscore';
 import Str from 'expensify-common/lib/str';
-import styles from '../../styles/styles';
 
 const elementsWillBeSkipped = ['html', 'body'];
 const tagAttribute = 'data-testid';
@@ -81,9 +80,6 @@ const getHTMLOfSelection = () => {
         }
     }
 
-    // Remove any element that isn't selectable to prevent copying unnecessary text/items
-    div.querySelectorAll(`div[style*="user-select: ${styles.userSelectNone.WebkitUserSelect}"]`).forEach(item => item.remove());
-
     return div.innerHTML;
 };
 
@@ -121,7 +117,7 @@ const replaceNodes = (dom) => {
     }
 
     if (dom.children) {
-        domChildren = _.map(dom.children, c => replaceNodes(c));
+        domChildren = _.map(dom.children, (c) => replaceNodes(c));
     }
 
     return {

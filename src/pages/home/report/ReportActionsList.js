@@ -93,10 +93,8 @@ const ReportActionsList = (props) => {
      * @return {Number}
      */
     const calculateInitialNumToRender = useCallback(() => {
-        const minimumReportActionHeight = styles.chatItem.paddingTop + styles.chatItem.paddingBottom
-            + variables.fontSizeNormalHeight;
-        const availableHeight = windowHeight
-            - (CONST.CHAT_FOOTER_MIN_HEIGHT + variables.contentHeaderHeight);
+        const minimumReportActionHeight = styles.chatItem.paddingTop + styles.chatItem.paddingBottom + variables.fontSizeNormalHeight;
+        const availableHeight = windowHeight - (CONST.CHAT_FOOTER_MIN_HEIGHT + variables.contentHeaderHeight);
         return Math.ceil(availableHeight / minimumReportActionHeight);
     }, [windowHeight]);
 
@@ -111,32 +109,29 @@ const ReportActionsList = (props) => {
      * @param {Number} args.index
      * @returns {React.Component}
      */
-    const renderItem = useCallback(({
-        item: reportAction,
-        index,
-    }) => {
-        // When the new indicator should not be displayed we explicitly set it to null
-        const shouldDisplayNewMarker = reportAction.reportActionID === newMarkerReportActionID;
-        return (
-            <ReportActionItem
-                report={report}
-                action={reportAction}
-                displayAsGroup={ReportActionsUtils.isConsecutiveActionMadeByPreviousActor(sortedReportActions, index)}
-                shouldDisplayNewMarker={shouldDisplayNewMarker}
-                shouldShowSubscriptAvatar={ReportUtils.isPolicyExpenseChat(report) && reportAction.actionName === CONST.REPORT.ACTIONS.TYPE.IOU}
-                isMostRecentIOUReportAction={reportAction.reportActionID === mostRecentIOUReportActionID}
-                hasOutstandingIOU={hasOutstandingIOU}
-                index={index}
-            />
-        );
-    }, [report, hasOutstandingIOU, newMarkerReportActionID, sortedReportActions, mostRecentIOUReportActionID]);
+    const renderItem = useCallback(
+        ({item: reportAction, index}) => {
+            // When the new indicator should not be displayed we explicitly set it to null
+            const shouldDisplayNewMarker = reportAction.reportActionID === newMarkerReportActionID;
+            return (
+                <ReportActionItem
+                    report={report}
+                    action={reportAction}
+                    displayAsGroup={ReportActionsUtils.isConsecutiveActionMadeByPreviousActor(sortedReportActions, index)}
+                    shouldDisplayNewMarker={shouldDisplayNewMarker}
+                    shouldShowSubscriptAvatar={ReportUtils.isPolicyExpenseChat(report) && reportAction.actionName === CONST.REPORT.ACTIONS.TYPE.IOU}
+                    isMostRecentIOUReportAction={reportAction.reportActionID === mostRecentIOUReportActionID}
+                    hasOutstandingIOU={hasOutstandingIOU}
+                    index={index}
+                />
+            );
+        },
+        [report, hasOutstandingIOU, newMarkerReportActionID, sortedReportActions, mostRecentIOUReportActionID],
+    );
 
     // Native mobile does not render updates flatlist the changes even though component did update called.
     // To notify there something changes we can use extraData prop to flatlist
-    const extraData = [
-        (!props.isDrawerOpen && props.isSmallScreenWidth) ? props.newMarkerReportActionID : undefined,
-        ReportUtils.isArchivedRoom(props.report),
-    ];
+    const extraData = [!props.isDrawerOpen && props.isSmallScreenWidth ? props.newMarkerReportActionID : undefined, ReportUtils.isArchivedRoom(props.report)];
     const shouldShowReportRecipientLocalTime = ReportUtils.canShowReportRecipientLocalTime(props.personalDetails, props.report);
     return (
         <Animated.View style={[animatedStyles, styles.flex1]}>
@@ -145,10 +140,7 @@ const ReportActionsList = (props) => {
                 ref={ReportScrollManager.flatListRef}
                 data={props.sortedReportActions}
                 renderItem={renderItem}
-                contentContainerStyle={[
-                    styles.chatContentScrollView,
-                    shouldShowReportRecipientLocalTime && styles.pt0,
-                ]}
+                contentContainerStyle={[styles.chatContentScrollView, shouldShowReportRecipientLocalTime && styles.pt0]}
                 keyExtractor={keyExtractor}
                 initialRowHeight={32}
                 initialNumToRender={calculateInitialNumToRender()}
@@ -156,11 +148,7 @@ const ReportActionsList = (props) => {
                 onEndReachedThreshold={0.75}
                 ListFooterComponent={() => {
                     if (props.report.isLoadingMoreReportActions) {
-                        return (
-                            <ReportActionsSkeletonView
-                                containerHeight={CONST.CHAT_SKELETON_VIEW.AVERAGE_ROW_HEIGHT * 3}
-                            />
-                        );
+                        return <ReportActionsSkeletonView containerHeight={CONST.CHAT_SKELETON_VIEW.AVERAGE_ROW_HEIGHT * 3} />;
                     }
 
                     // Make sure the oldest report action loaded is not the first. This is so we do not show the
@@ -194,10 +182,4 @@ ReportActionsList.propTypes = propTypes;
 ReportActionsList.defaultProps = defaultProps;
 ReportActionsList.displayName = 'ReportActionsList';
 
-export default compose(
-    withDrawerState,
-    withWindowDimensions,
-    withLocalize,
-    withPersonalDetails(),
-    withNetwork(),
-)(ReportActionsList);
+export default compose(withDrawerState, withWindowDimensions, withLocalize, withPersonalDetails(), withNetwork())(ReportActionsList);
