@@ -23,6 +23,7 @@ import ROUTES from '../../../../ROUTES';
 import styles from '../../../../styles/styles';
 import * as User from '../../../../libs/actions/User';
 import * as LoginUtils from '../../../../libs/LoginUtils';
+import * as OptionsListUtils from '../../../../libs/OptionsListUtils';
 import CONST from '../../../../CONST';
 
 const propTypes = {
@@ -79,7 +80,7 @@ function NewContactMethodPage(props) {
     const submitForm = useCallback(() => {
         const phoneLogin = LoginUtils.appendCountryCode(LoginUtils.getPhoneNumberWithoutSpecialChars(login));
         const parsedPhoneNumber = parsePhoneNumber(phoneLogin);
-        const userLogin = parsedPhoneNumber.possible ? parsedPhoneNumber.number.e164 : login;
+        const userLogin = parsedPhoneNumber.possible ? `${parsedPhoneNumber.number.e164}${CONST.SMS.DOMAIN}` : login;
 
         // If this login already exists, just go back.
         if (lodashGet(props.loginList, userLogin)) {
@@ -87,7 +88,7 @@ function NewContactMethodPage(props) {
             return;
         }
 
-        User.addNewContactMethodAndNavigate(userLogin, password);
+        User.addNewContactMethodAndNavigate(OptionsListUtils.addSMSDomainIfPhoneNumber(userLogin), password);
     }, [login, props.loginList, password]);
 
     return (

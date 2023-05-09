@@ -56,6 +56,7 @@ import KeyboardShortcut from '../../../libs/KeyboardShortcut';
 import * as ComposerUtils from '../../../libs/ComposerUtils';
 import * as Welcome from '../../../libs/actions/Welcome';
 import Permissions from '../../../libs/Permissions';
+import * as TaskUtils from '../../../libs/actions/Task';
 
 const propTypes = {
     /** Beta features list */
@@ -185,6 +186,7 @@ class ReportActionCompose extends React.Component {
         this.showPopoverMenu = this.showPopoverMenu.bind(this);
         this.comment = props.comment;
         this.setShouldBlockEmojiCalcToFalse = this.setShouldBlockEmojiCalcToFalse.bind(this);
+        this.attachmentPreviewClosed = this.attachmentPreviewClosed.bind(this);
 
         // React Native will retain focus on an input for native devices but web/mWeb behave differently so we have some focus management
         // code that will refocus the compose input after a user closes a modal or some other actions, see usage of ReportActionComposeFocusManager
@@ -213,6 +215,7 @@ class ReportActionCompose extends React.Component {
             isEmojiPickerLarge: false,
             composerHeight: 0,
             hasExceededMaxCommentLength: false,
+            isAttachmentPreviewActive: false,
         };
     }
 
@@ -431,7 +434,7 @@ class ReportActionCompose extends React.Component {
             {
                 icon: Expensicons.Task,
                 text: this.props.translate('newTaskPage.assignTask'),
-                onSelected: () => Navigation.navigate(ROUTES.getNewTaskRoute(this.props.reportID)),
+                onSelected: () => TaskUtils.clearOutTaskInfoAndNavigate(this.props.reportID),
             },
         ];
     }
@@ -746,6 +749,14 @@ class ReportActionCompose extends React.Component {
         return true;
     }
 
+    /**
+     * Event handler to update the state after the attachment preview is closed.
+     */
+    attachmentPreviewClosed() {
+        this.setShouldBlockEmojiCalcToFalse();
+        this.setState({isAttachmentPreviewActive: false});
+    }
+
     render() {
         const reportParticipants = _.without(lodashGet(this.props.report, 'participants', []), this.props.currentUserPersonalDetails.login);
         const participantsWithoutExpensifyEmails = _.difference(reportParticipants, CONST.EXPENSIFY_EMAILS);
@@ -786,7 +797,7 @@ class ReportActionCompose extends React.Component {
                         <AttachmentModal
                             headerTitle={this.props.translate('reportActionCompose.sendAttachment')}
                             onConfirm={this.addAttachment}
-                            onModalHide={this.setShouldBlockEmojiCalcToFalse}
+                            onModalHide={this.attachmentPreviewClosed}
                         >
                             {({displayFileInModal}) => (
                                 <>
@@ -891,12 +902,16 @@ class ReportActionCompose extends React.Component {
                                             }}
                                             onDrop={(e) => {
                                                 e.preventDefault();
+                                                if (this.state.isAttachmentPreviewActive) {
+                                                    this.setState({isDraggingOver: false});
+                                                    return;
+                                                }
 
                                                 const file = lodashGet(e, ['dataTransfer', 'files', 0]);
 
                                                 displayFileInModal(file);
 
-                                                this.setState({isDraggingOver: false});
+                                                this.setState({isAttachmentPreviewActive: true, isDraggingOver: false});
                                             }}
                                             disabled={this.props.disabled}
                                         >

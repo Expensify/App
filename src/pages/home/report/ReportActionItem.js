@@ -179,9 +179,13 @@ class ReportActionItem extends Component {
     renderItemContent(hovered = false) {
         let children;
         if (this.props.action.actionName === CONST.REPORT.ACTIONS.TYPE.IOU) {
+            // There is no single iouReport for bill splits, so only 1:1 requests require an iouReportID
+            const iouReportID = this.props.action.originalMessage.IOUReportID ? this.props.action.originalMessage.IOUReportID.toString() : '0';
+
             children = (
                 <IOUAction
                     chatReportID={this.props.report.reportID}
+                    requestReportID={iouReportID}
                     action={this.props.action}
                     isMostRecentIOUReportAction={this.props.isMostRecentIOUReportAction}
                     isHovered={hovered}
