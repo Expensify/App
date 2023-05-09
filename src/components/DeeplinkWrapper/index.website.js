@@ -87,7 +87,7 @@ class DeeplinkWrapper extends PureComponent {
         // This check is necessary for Safari, otherwise, if the user
         // does NOT have the Expensify desktop app installed, it's gonna
         // show an error in the page saying that the address is invalid
-        if (CONST.BROWSER.SAFARI === Browser.getBrowser()) {
+        if (CONST.BROWSER.SAFARI === Browser.getBrowser() || CONST.BROWSER.FIREFOX === Browser.getBrowser()) {
             const iframe = document.createElement('iframe');
             iframe.style.display = 'none';
             document.body.appendChild(iframe);
