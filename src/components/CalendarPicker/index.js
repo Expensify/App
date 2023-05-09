@@ -19,7 +19,9 @@ class CalendarPicker extends React.PureComponent {
     constructor(props) {
         super(props);
 
-        let currentDateView = moment(props.value).toDate();
+        const currentSelection = moment(props.value);
+        let currentDateView = currentSelection.toDate();
+
         if (props.selectedYear) {
             currentDateView = moment(currentDateView).set('year', props.selectedYear).toDate();
         }
@@ -32,14 +34,12 @@ class CalendarPicker extends React.PureComponent {
             currentDateView = props.minDate;
         }
 
-        const currentSelection = moment(props.value).format(CONST.DATE.MOMENT_FORMAT_STRING);
-        const selectionParts = currentSelection.split('-');
 
         this.state = {
             currentDateView,
-            selectedYear: selectionParts[0],
-            selectedMonth: selectionParts[1],
-            selectedDay: selectionParts[2],
+            selectedYear: currentSelection.get('year').toString(),
+            selectedMonth: this.getNumberStringWithLeadingZero(currentSelection.get('month') + 1),
+            selectedDay: this.getNumberStringWithLeadingZero(currentSelection.get('day')),
         };
 
         this.moveToPrevMonth = this.moveToPrevMonth.bind(this);
