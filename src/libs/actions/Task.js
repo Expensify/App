@@ -186,12 +186,12 @@ function editTaskAndNavigate(report, ownerEmail, title, description, assignee) {
 
     const optimisticData = [
         {
-            onyxMethod: Onyx.METHOD.MERGE,
+            onyxMethod: Onyx.METHOD.SET,
             key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.reportID}`,
             value: {[editTaskReportAction.reportActionID]: editTaskReportAction},
         },
         {
-            onyxMethod: Onyx.METHOD.MERGE,
+            onyxMethod: Onyx.METHOD.SET,
             key: `${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`,
             value: {
                 ...report,
