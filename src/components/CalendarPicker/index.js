@@ -156,7 +156,7 @@ class CalendarPicker extends React.PureComponent {
     }
 
     /**
-     * Handles the user pressing the next month arro of the calendar picker.
+     * Handles the user pressing the next month arrow of the calendar picker.
      */
     moveToNextMonth() {
         this.setState((prev) => {
