@@ -108,7 +108,7 @@ class WorkspacePageWithSections extends React.Component {
         const isUsingECard = lodashGet(this.props.user, 'isUsingExpensifyCard', false);
         const policyID = lodashGet(this.props.route, 'params.policyID');
         const policyName = lodashGet(this.props.policy, 'name');
-        const backButtonRoute = this.props.backButtonRoute === '' ? ROUTES.getWorkspaceInitialRoute(policyID) : this.props.backButtonRoute;
+        
 
         return (
             <ScreenWrapper
@@ -125,7 +125,7 @@ class WorkspacePageWithSections extends React.Component {
                         shouldShowGetAssistanceButton
                         guidesCallTaskID={this.props.guidesCallTaskID}
                         shouldShowBackButton
-                        onBackButtonPress={() => Navigation.navigate(backButtonRoute)}
+                        onBackButtonPress={() => Navigation.navigate(this.props.backButtonRoute || ROUTES.getWorkspaceInitialRoute(policyID))}
                         onCloseButtonPress={() => Navigation.dismissModal()}
                     />
                     {this.props.shouldUseScrollView

@@ -66,7 +66,6 @@ const defaultProps = {
 class WorkspaceReimburseView extends React.Component {
     constructor(props) {
         super(props);
-        this.getCurrentRatePerUnitLabel = this.getCurrentRatePerUnitLabel.bind(this);
         this.state = {
             currentRatePerUnit: this.getCurrentRatePerUnitLabel(),
         };
@@ -78,7 +77,7 @@ class WorkspaceReimburseView extends React.Component {
 
     componentDidUpdate(prevProps) {
         if (prevProps.policy.customUnits !== this.props.policy.customUnits) {
-            this.state.currentRatePerUnit = this.getCurrentRatePerUnitLabel();
+            this.setState({currentRatePerUnit: this.getCurrentRatePerUnitLabel()});
         }
 
         const reconnecting = prevProps.network.isOffline && !this.props.network.isOffline;
@@ -103,13 +102,7 @@ class WorkspaceReimburseView extends React.Component {
     }
 
     getUnitLabel(value) {
-        if (value === 'km') {
-            return this.props.translate('workspace.reimburse.kilometer');
-        }
-        if (value === 'mi') {
-            return this.props.translate('workspace.reimburse.mile');
-        }
-        return '';
+        return this.props.translate('workspace.reimburse.${value}');
     }
 
     getRateDisplayValue(value) {
@@ -179,7 +172,7 @@ class WorkspaceReimburseView extends React.Component {
                         description={this.props.translate('workspace.reimburse.trackDistanceRate')}
                         shouldShowRightIcon
                         onPress={() => Navigation.navigate(ROUTES.getWorkspaceRateAndUnitRoute(this.props.policy.id))}
-                        wrapperStyle={{marginLeft: -20, marginRight: -20, width: 'auto'}}
+                        wrapperStyle={styles.menuItemInsideSection}
                     />
                 </Section>
 

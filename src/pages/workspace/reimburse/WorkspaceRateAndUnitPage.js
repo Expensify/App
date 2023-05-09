@@ -102,7 +102,7 @@ class WorkspaceRateAndUnitPage extends React.Component {
 
     validate(values) {
         const errors = {};
-        const decimalNumberRegex = new RegExp(/^\d+((,|\.)\d+)?$/);
+        const decimalNumberRegex = new RegExp(CONST.REGEX.DECIMAL_NUMBER);
         if (!decimalNumberRegex.test(values.rate)) {
             errors.rate = this.props.translate('workspace.reimburse.invalidRateError');
         }

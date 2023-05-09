@@ -3185,6 +3185,11 @@ const styles = {
     contextMenuItemPopoverMaxWidth: {
         maxWidth: 375,
     },
+    menuItemInsideSection: {
+        marginLeft: -20,
+        marginRight: -20,
+        width: 'auto',
+    },
 };
 
 export default styles;
