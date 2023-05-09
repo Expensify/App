@@ -22,6 +22,7 @@ import isReportMessageAttachment from './isReportMessageAttachment';
 import * as defaultWorkspaceAvatars from '../components/Icon/WorkspaceDefaultAvatars';
 import * as LocalePhoneNumber from './LocalePhoneNumber';
 import * as CurrencyUtils from './CurrencyUtils';
+import Log from './Log';
 
 let sessionEmail;
 Onyx.connect({
@@ -1809,11 +1810,20 @@ function getWhisperDisplayNames(participants) {
     return _.map(participants, (login) => getDisplayNameForParticipant(login, !isWhisperOnlyVisibleToCurrentUSer)).join(', ');
 }
 
+/**
+ * @param {string} reportID
+ * @returns {boolean}
+ */
 function isMoneyRequestThreadReport(reportID) {
     const parentReportID = allReports[reportID].parentReportID;
 
-    // No parentReportID - can't possibly be a thread
+    // No parentReportID - this can't possibly be a thread
     if (parentReportID) {
+        return false;
+    }
+
+    if (allReports[parentReportID]) {
+        Log.alert('Tried to access a parent report for a thread, but the parent report does not exist');
         return false;
     }
 
