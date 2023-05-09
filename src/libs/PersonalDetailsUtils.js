@@ -19,7 +19,7 @@ Onyx.connect({
 function getPersonalDetailsByIDs(accountIDs, shouldChangeUserDisplayName = false) {
     const result = [];
     const currentAccountID = Report.getCurrentUserAccountID();
-    _.filter(personalDetails, detail => accountIDs.includes(detail.accountID)).forEach((detail) => {
+    _.each(_.filter(personalDetails, detail => accountIDs.includes(detail.accountID)), (detail) => {
         if (shouldChangeUserDisplayName && currentAccountID.toString() === detail.accountID) {
             result.push({
                 ...detail,
