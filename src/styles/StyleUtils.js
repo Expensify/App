@@ -311,10 +311,14 @@ function getWidthStyle(width) {
  */
 function getAutoGrowHeightInputStyle(textInputHeight, maxHeight) {
     if (textInputHeight > maxHeight) {
-        return styles.overflowAuto;
+        return {
+            ...styles.pr0,
+            ...styles.overflowAuto,
+        };
     }
 
     return {
+        ...styles.pr0,
         ...styles.overflowHidden,
         height: maxHeight,
     };
@@ -1109,6 +1113,29 @@ function getGoogleListViewStyle(shouldDisplayBorder) {
     };
 }
 
+/**
+ * Returns style object for the user mention component based on whether the mention is ours or not.
+ * @param {Boolean} isOurMention
+ * @returns {Object}
+ */
+function getMentionStyle(isOurMention) {
+    const backgroundColor = isOurMention ? themeColors.ourMentionBG : themeColors.mentionBG;
+    return {
+        backgroundColor,
+        borderRadius: variables.componentBorderRadiusSmall,
+        paddingHorizontal: 2,
+    };
+}
+
+/**
+ * Returns text color for the user mention text based on whether the mention is ours or not.
+ * @param {Boolean} isOurMention
+ * @returns {Object}
+ */
+function getMentionTextColor(isOurMention) {
+    return isOurMention ? themeColors.ourMentionText : themeColors.mentionText;
+}
+
 export {
     getAvatarSize,
     getAvatarStyle,
@@ -1169,4 +1196,6 @@ export {
     getFontSizeStyle,
     getSignInWordmarkWidthStyle,
     getGoogleListViewStyle,
+    getMentionStyle,
+    getMentionTextColor,
 };

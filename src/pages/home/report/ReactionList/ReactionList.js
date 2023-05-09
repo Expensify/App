@@ -10,7 +10,7 @@ const reactionListRef = React.createRef();
  * @param {Array} users - array of users id
  * @param {String} emojiName - the emoji codes to display near the bubble.
  * @param {String} emojiCodes - the emoji codes to display in the bubble.
- * @param {Number} emojiCount - Count of emoji
+ * @param {Number} emojiCount - count of emoji
  * @param {Boolean} hasUserReacted - show if user has reacted
 //  * @param {String} reportActionID
 //  * @param {String} reportID
@@ -22,7 +22,7 @@ function showReactionList(
     users,
     emojiName,
     emojiCodes,
-    reactionCount,
+    emojiCount,
     hasUserReacted,
 
     // reportActionID,
@@ -32,7 +32,6 @@ function showReactionList(
         return;
     }
 
-    const emojiCount = reactionCount;
     console.log('SHOww');
     console.log('users', users);
     console.log('emojiName', emojiName);
