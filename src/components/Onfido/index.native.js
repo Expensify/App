@@ -12,6 +12,7 @@ import onfidoPropTypes from './onfidoPropTypes';
 import CONST from '../../CONST';
 import withLocalize, {withLocalizePropTypes} from '../withLocalize';
 import Log from '../../libs/Log';
+import FullscreenLoadingIndicator from '../FullscreenLoadingIndicator';
 
 const propTypes = {
     ...withLocalizePropTypes,
@@ -88,7 +89,7 @@ class Onfido extends React.Component {
     }
 
     render() {
-        return null;
+        return <FullscreenLoadingIndicator />;
     }
 }
 

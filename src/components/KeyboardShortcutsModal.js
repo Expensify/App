@@ -38,6 +38,10 @@ class KeyboardShortcutsModal extends React.Component {
 
         const openShortcutModalConfig = CONST.KEYBOARD_SHORTCUTS.SHORTCUT_MODAL;
         this.unsubscribeShortcutModal = KeyboardShortcut.subscribe(openShortcutModalConfig.shortcutKey, () => {
+            if (this.props.isShortcutsModalOpen) {
+                return;
+            }
+
             ModalActions.close();
             KeyboardShortcutsActions.showKeyboardShortcutModal();
         }, openShortcutModalConfig.descriptionKey, openShortcutModalConfig.modifiers, true);
@@ -161,6 +165,9 @@ export default compose(
     withWindowDimensions,
     withLocalize,
     withOnyx({
-        isShortcutsModalOpen: {key: ONYXKEYS.IS_SHORTCUTS_MODAL_OPEN},
+        isShortcutsModalOpen: {
+            key: ONYXKEYS.IS_SHORTCUTS_MODAL_OPEN,
+            initWithStoredValues: false,
+        },
     }),
 )(KeyboardShortcutsModal);
