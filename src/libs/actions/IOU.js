@@ -101,7 +101,7 @@ function requestMoney(report, amount, currency, recipientEmail, participant, com
         iouReport.reportID,
     );
     
-    let reportPreview = ReportActionsUtils.getReportPreviewAction(chatReport.reportID);
+    let reportPreview = ReportActionsUtils.getReportPreviewAction(chatReport.reportID, iouReport.reportID);
     if (!reportPreview) {
         reportPreview = ReportActionsUtils.buildOptimisticReportPreview(chatReport.reportID, iouReport.reportID);
     }
@@ -369,7 +369,7 @@ function createSplitsAndOnyxData(participants, currentUserLogin, amount, comment
             oneOnOneChatReport.iouReportID = oneOnOneIOUReport.reportID;
         }
 
-        let reportPreview = ReportActionsUtils.getReportPreviewAction(oneOnOneChatReport.reportID);
+        let reportPreview = ReportActionsUtils.getReportPreviewAction(oneOnOneChatReport.reportID, oneOnOneIOUReport.reportID);
         if (!reportPreview) {
             reportPreview = ReportActionsUtils.buildOptimisticReportPreview(oneOnOneChatReport.reportID, oneOnOneIOUReport.reportID);
         }

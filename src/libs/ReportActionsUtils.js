@@ -292,11 +292,15 @@ function getLatestReportActionFromOnyxData(onyxData) {
 }
 
 /**
- * @param {*} reportID 
+ * @param {*} chatReportID 
+ * @param {*} iouReportID
  * @returns {Object} The report preview action or `null` if one couldn't be found
  */
-function getReportPreviewAction(reportID) {
-    return _.findWhere(allReportActions[reportID], {actionName: CONST.REPORT.ACTIONS.TYPE.REPORTPREVIEW});
+function getReportPreviewAction(chatReportID, iouReportID) {
+    return _.find(allReportActions[chatReportID], (reportAction) => {
+        return reportAction.actionName === CONST.REPORT.ACTIONS.TYPE.REPORTPREVIEW
+            && lodashGet(reportAction, 'originalMessage.IOUReportID') == iouReportID;
+    });
 }
 
 function buildOptimisticReportPreview(reportID, iouReportID, payeeAccountID, amount) {
