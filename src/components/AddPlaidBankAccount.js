@@ -22,6 +22,8 @@ import getBankIcon from './Icon/BankIcons';
 import Icon from './Icon';
 import FullPageOfflineBlockingView from './BlockingViews/FullPageOfflineBlockingView';
 import {withNetwork} from './OnyxProvider';
+import CONST from '../CONST';
+import KeyboardShortcut from '../libs/KeyboardShortcut';
 
 const propTypes = {
     /** Contains plaid data */
@@ -74,9 +76,12 @@ class AddPlaidBankAccount extends React.Component {
         super(props);
 
         this.getPlaidLinkToken = this.getPlaidLinkToken.bind(this);
+        this.subscribedKeyboardShortcuts = [];
     }
 
     componentDidMount() {
+        this.subscribeToNavigationShortcuts();
+
         // If we're coming from Plaid OAuth flow then we need to reuse the existing plaidLinkToken
         if (this.isAuthenticatedWithPlaid()) {
             return;
@@ -92,6 +97,10 @@ class AddPlaidBankAccount extends React.Component {
 
         // If we are coming back from offline and we haven't authenticated with Plaid yet, we need to re-run our call to kick off Plaid
         BankAccounts.openPlaidBankLogin(this.props.allowDebit, this.props.bankAccountID);
+    }
+
+    componentWillUnmount() {
+        this.unsubscribeToNavigationShortcuts();
     }
 
     /**
@@ -114,6 +123,33 @@ class AddPlaidBankAccount extends React.Component {
         return ((this.props.receivedRedirectURI && this.props.plaidLinkOAuthToken)
                 || !_.isEmpty(lodashGet(this.props.plaidData, 'bankAccounts'))
                 || !_.isEmpty(lodashGet(this.props.plaidData, 'errors')));
+    }
+
+    /**
+     * Blocks the keyboard shortcuts that can navigate
+     */
+    subscribeToNavigationShortcuts() {
+        // find and block the shortcuts
+        const shortcutsToBlock = _.filter(CONST.KEYBOARD_SHORTCUTS, x => x.type === CONST.KEYBOARD_SHORTCUTS_TYPES.NAVIGATION_SHORTCUT);
+        this.subscribedKeyboardShortcuts = _.map(
+            shortcutsToBlock,
+            shortcut => KeyboardShortcut.subscribe(
+                shortcut.shortcutKey,
+                () => {}, // do nothing
+                shortcut.descriptionKey,
+                shortcut.modifiers,
+                false,
+                () => lodashGet(this.props.plaidData, 'bankAccounts', []).length > 0, // start bubbling when there are bank accounts
+            ),
+        );
+    }
+
+    /**
+     * Unblocks the keyboard shortcuts that can navigate
+     */
+    unsubscribeToNavigationShortcuts() {
+        _.each(this.subscribedKeyboardShortcuts, unsubscribe => unsubscribe());
+        this.subscribedKeyboardShortcuts = [];
     }
 
     render() {

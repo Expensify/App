@@ -652,7 +652,7 @@ function authenticatePusher(socketID, channelName, callback) {
  */
 function requestUnlinkValidationLink() {
     const optimisticData = [{
-        onyxMethod: CONST.ONYX.METHOD.MERGE,
+        onyxMethod: Onyx.METHOD.MERGE,
         key: ONYXKEYS.ACCOUNT,
         value: {
             isLoading: true,
@@ -661,7 +661,7 @@ function requestUnlinkValidationLink() {
         },
     }];
     const successData = [{
-        onyxMethod: CONST.ONYX.METHOD.MERGE,
+        onyxMethod: Onyx.METHOD.MERGE,
         key: ONYXKEYS.ACCOUNT,
         value: {
             isLoading: false,
@@ -669,7 +669,7 @@ function requestUnlinkValidationLink() {
         },
     }];
     const failureData = [{
-        onyxMethod: CONST.ONYX.METHOD.MERGE,
+        onyxMethod: Onyx.METHOD.MERGE,
         key: ONYXKEYS.ACCOUNT,
         value: {
             isLoading: false,
@@ -681,7 +681,7 @@ function requestUnlinkValidationLink() {
 
 function unlinkLogin(accountID, validateCode) {
     const optimisticData = [{
-        onyxMethod: CONST.ONYX.METHOD.MERGE,
+        onyxMethod: Onyx.METHOD.MERGE,
         key: ONYXKEYS.ACCOUNT,
         value: {
             ...CONST.DEFAULT_ACCOUNT_DATA,
@@ -689,7 +689,7 @@ function unlinkLogin(accountID, validateCode) {
         },
     }];
     const successData = [{
-        onyxMethod: CONST.ONYX.METHOD.MERGE,
+        onyxMethod: Onyx.METHOD.MERGE,
         key: ONYXKEYS.ACCOUNT,
         value: {
             isLoading: false,
@@ -697,14 +697,14 @@ function unlinkLogin(accountID, validateCode) {
         },
     },
     {
-        onyxMethod: CONST.ONYX.METHOD.MERGE,
+        onyxMethod: Onyx.METHOD.MERGE,
         key: ONYXKEYS.CREDENTIALS,
         value: {
             login: '',
         },
     }];
     const failureData = [{
-        onyxMethod: CONST.ONYX.METHOD.MERGE,
+        onyxMethod: Onyx.METHOD.MERGE,
         key: ONYXKEYS.ACCOUNT,
         value: {
             isLoading: false,
