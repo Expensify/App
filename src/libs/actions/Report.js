@@ -328,6 +328,10 @@ function addComment(reportID, text) {
     addActions(reportID, text);
 }
 
+function reportActionsExist(reportID) {
+    return allReportActions[reportID] !== undefined;
+}
+
 /**
  * Gets the latest page of report actions and updates the last read message
  * If a chat with the passed reportID is not found, we will create a chat based on the passed participantList
@@ -342,7 +346,7 @@ function openReport(reportID, participantList = [], newReportObject = {}) {
     const optimisticReportData = {
         onyxMethod: Onyx.METHOD.MERGE,
         key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
-        value: {
+        value: reportActionsExist(reportID) ? {} : {
             isLoadingReportActions: true,
             isLoadingMoreReportActions: false,
             lastReadTime: DateUtils.getDBTime(),
@@ -1516,7 +1520,6 @@ function openReportFromDeepLink(url) {
 function getCurrentUserAccountID() {
     return currentUserAccountID;
 }
-
 
 /**
  * @param {String|null} reportID
