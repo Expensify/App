@@ -16,6 +16,7 @@ import * as DeviceCapabilities from '../../libs/DeviceCapabilities';
 import {showContextMenuForReport} from '../ShowContextMenuContext';
 import * as StyleUtils from '../../styles/StyleUtils';
 import * as CurrencyUtils from '../../libs/CurrencyUtils';
+import * as ReportUtils from '../../libs/ReportUtils';
 import getButtonState from '../../libs/getButtonState';
 
 const propTypes = {
@@ -71,8 +72,10 @@ const defaultProps = {
 };
 
 const IOUQuote = (props) => {
-    const reportCurrency = CurrencyUtils.convertToDisplayString(props.iouReport.total, props.iouReport.currency);
-
+    const reportAmount = CurrencyUtils.convertToDisplayString(props.iouReport.total, props.iouReport.currency);
+    const isCurrentUserManager = true;
+    const ownerEmail = props.iouReport.ownerEmail || '';
+    const ownerName = ReportUtils.getDisplayNameForParticipant(ownerEmail, true);
     return (
         <View style={[styles.chatItemMessage, styles.mt4]}>
             {_.map(props.action.message, (fragment, index) => (
@@ -91,11 +94,16 @@ const IOUQuote = (props) => {
                     style={[styles.flexRow, styles.justifyContentBetween]}
                     focusable
                 >
-                    <Text style={[styles.flex1, styles.mr2]}>
-                        <Text style={[styles.chatItemMessage, styles.cursorPointer]}>
-                            {'Duraflame owes ' + reportCurrency}
-                        </Text>
-                    </Text>
+                    {isCurrentUserManager
+                        ? (
+                            <Text style={[styles.chatItemMessage, styles.cursorPointer]}>
+                                {props.translate('iou.managerOwes', {owner: ownerName, amount: reportAmount})}
+                            </Text>
+                        ) : (
+                            <Text style={[styles.chatItemMessage, styles.cursorPointer]}>
+                                {props.translate('iou.managerOwes', {owner: ownerName, amount: reportAmount})}
+                            </Text>
+                        )}
                     <Icon src={Expensicons.ArrowRight} fill={StyleUtils.getIconFillColor(getButtonState(props.isHovered))} />
                 </Pressable>
             ))}
