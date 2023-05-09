@@ -78,7 +78,6 @@ class CheckboxWithLabel extends React.Component {
 
         // We need to pick the first value that is strictly a boolean
         // https://github.com/Expensify/App/issues/16885#issuecomment-1520846065
-
         this.isChecked = _.find([props.value, props.defaultValue, props.isChecked], value => _.isBoolean(value));
 
         this.LabelComponent = props.LabelComponent;
