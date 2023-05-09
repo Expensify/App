@@ -17,6 +17,7 @@ import compose from '../../libs/compose';
 import personalDetailsPropType from '../personalDetailsPropType';
 import reportPropTypes from '../reportPropTypes';
 import Performance from '../../libs/Performance';
+
 import * as TaskUtils from '../../libs/actions/Task';
 
 const propTypes = {
@@ -29,10 +30,30 @@ const propTypes = {
     /** All reports shared with the user */
     reports: PropTypes.objectOf(reportPropTypes),
 
+    /** URL Route params */
+    route: PropTypes.shape({
+        /** Params from the URL path */
+        params: PropTypes.shape({
+            /** taskReportID passed via route: /r/:taskReportID/title */
+            taskReportID: PropTypes.string,
+        }),
+    }),
+
+    // /** The report currently being looked at */
+    // report: reportPropTypes.isRequired,
+
+    /** Current user session */
+    session: PropTypes.shape({
+        email: PropTypes.string.isRequired,
+    }),
+
     /** Grab the Share destination of the Task */
     task: PropTypes.shape({
         /** Share destination of the Task */
         shareDestination: PropTypes.string,
+
+        /** Whether a task is being edited */
+        isEditing: PropTypes.bool,
     }),
 
     ...withLocalizePropTypes,
@@ -42,6 +63,8 @@ const defaultProps = {
     betas: [],
     personalDetails: {},
     reports: {},
+    session: {},
+    route: {},
     task: {
         shareDestination: '',
     },
@@ -133,6 +156,13 @@ const TaskAssigneeSelectorModal = (props) => {
             return;
         }
 
+        // Check to see if we're editing a task and if so, update the assignee
+        if (props.task.isEditing) {
+            // Pass through the selected assignee
+            TaskUtils.editTaskAndNavigate(props.task.report, props.session.email, '', '', option.alternateText);
+        }
+
+        // Otherwise, we're creating a new task
         if (option.alternateText) {
             // Clear out the state value, set the assignee and navigate back to the NewTaskPage
             setSearchValue('');
@@ -192,6 +222,9 @@ export default compose(
         },
         task: {
             key: ONYXKEYS.TASK,
+        },
+        session: {
+            key: ONYXKEYS.SESSION,
         },
     }),
 )(TaskAssigneeSelectorModal);
