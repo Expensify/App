@@ -2,13 +2,26 @@ import React from 'react';
 import {Dimensions} from 'react-native';
 
 import lodashGet from 'lodash/get';
+import {withOnyx} from 'react-native-onyx';
+import PropTypes from 'prop-types';
 import withLocalize, {withLocalizePropTypes} from '../../../../components/withLocalize';
 import PopoverWithMeasuredContent from '../../../../components/PopoverWithMeasuredContent';
 
 import BaseReactionList from './BaseReactionList';
+import compose from '../../../../libs/compose';
+import reportActionPropTypes from '../reportActionPropTypes';
+import ONYXKEYS from '../../../../ONYXKEYS';
 
 const propTypes = {
+    /** Array of report actions for this report */
+    reportActions: PropTypes.objectOf(PropTypes.arrayOf(PropTypes.shape(reportActionPropTypes))),
+
     ...withLocalizePropTypes,
+};
+
+const defaultProps = {
+    reportActions: {},
+
 };
 
 class PopoverReactionList extends React.Component {
@@ -32,6 +45,8 @@ class PopoverReactionList extends React.Component {
             emojiName: '',
             emojiCount: 0,
             hasUserReacted: false,
+            reportActionID: '',
+            reportID: '',
         };
 
         this.onPopoverHideActionCallback = () => {};
@@ -58,6 +73,13 @@ class PopoverReactionList extends React.Component {
         return this.state.isPopoverVisible !== nextState.isPopoverVisible
             || this.state.popoverAnchorPosition !== nextState.popoverAnchorPosition
             || previousLocale !== nextLocale;
+    }
+
+    componentDidUpdate() {
+        console.log(this.state.reportActionID);
+        console.log(this.state.reportID);
+
+        console.log(this.props.reportActions);
     }
 
     componentWillUnmount() {
@@ -93,6 +115,8 @@ class PopoverReactionList extends React.Component {
      * @param {Array} emojiCodes - The emoji codes to display in the bubble.
      * @param {Number} emojiCount - Count of emoji
      * @param {Boolean} hasUserReacted - whether the current user has reacted to this emoji
+     * @param {String} reportActionID
+     * @param {String} reportID
 
      */
     showReactionList(
@@ -103,7 +127,19 @@ class PopoverReactionList extends React.Component {
         emojiCodes,
         emojiCount,
         hasUserReacted,
+
+        reportActionID,
+        reportID,
     ) {
+        console.log('POPOVER');
+        console.log('users', users);
+        console.log('emojiName', emojiName);
+        console.log('emojiCodes', emojiCodes);
+        console.log('emojiCount', emojiCount);
+        console.log('hasUserReacted', hasUserReacted);
+
+        console.log('reportActionID', reportActionID);
+        console.log('reportID', reportID);
         const nativeEvent = event.nativeEvent || {};
 
         this.reactionListAnchor = reactionListAnchor;
@@ -124,6 +160,9 @@ class PopoverReactionList extends React.Component {
                 emojiCount,
                 isPopoverVisible: true,
                 hasUserReacted,
+
+                reportActionID,
+                reportID,
             });
         });
     }
@@ -208,5 +247,16 @@ class PopoverReactionList extends React.Component {
 }
 
 PopoverReactionList.propTypes = propTypes;
+PopoverReactionList.defaultProps = defaultProps;
 
-export default withLocalize(PopoverReactionList);
+export default compose(
+    withLocalize,
+    withOnyx({
+
+        reportActions: {
+            key: ({reportID}) => `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`,
+            canEvict: false,
+
+        },
+    }),
+)(PopoverReactionList);
