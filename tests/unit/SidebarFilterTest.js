@@ -167,11 +167,11 @@ describe('Sidebar', () => {
                     [`${ONYXKEYS.COLLECTION.REPORT}${report3.reportID}`]: report3,
                 }))
 
-                // Then no reports are rendered in the LHN
+                // Then all non-domain rooms are rendered in the LHN
                 .then(() => {
                     const hintText = Localize.translateLocal('accessibilityHints.navigatesToChat');
                     const optionRows = screen.queryAllByAccessibilityHint(hintText);
-                    expect(optionRows).toHaveLength(0);
+                    expect(optionRows).toHaveLength(2);
                 })
 
                 // When the user is added to the default policy rooms beta and the sidebar re-renders
@@ -222,11 +222,11 @@ describe('Sidebar', () => {
                 // When the policy is a paid policy
                 .then(() => Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policy.policyID}`, {type: CONST.POLICY.TYPE.CORPORATE}))
 
-                // Then the report is not rendered in the LHN
+                // Then the report is still rendered in the LHN
                 .then(() => {
                     const hintText = Localize.translateLocal('accessibilityHints.navigatesToChat');
                     const optionRows = screen.queryAllByAccessibilityHint(hintText);
-                    expect(optionRows).toHaveLength(0);
+                    expect(optionRows).toHaveLength(1);
                 });
         });
 

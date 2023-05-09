@@ -6,6 +6,7 @@ import withLocalize, {withLocalizePropTypes} from './withLocalize';
 import compose from '../libs/compose';
 import ONYXKEYS from '../ONYXKEYS';
 import Text from './Text';
+import * as CurrencyUtils from '../libs/CurrencyUtils';
 
 const propTypes = {
     /** The user's wallet account */
@@ -31,10 +32,7 @@ const defaultProps = {
 };
 
 const CurrentWalletBalance = (props) => {
-    const formattedBalance = props.numberFormat(
-        props.userWallet.currentBalance / 100, // Divide by 100 because balance is in cents
-        {style: 'currency', currency: 'USD'},
-    );
+    const formattedBalance = CurrencyUtils.convertToDisplayString(props.userWallet.currentBalance);
     return (
         <Text
             style={[styles.pv5, styles.alignSelfCenter, styles.textHeadline, styles.textXXXLarge, ...props.balanceStyles]}
