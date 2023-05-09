@@ -1,4 +1,5 @@
 import React from 'react';
+import {withOnyx} from 'react-native-onyx';
 import {View} from 'react-native';
 import PropTypes from 'prop-types';
 import lodashGet from 'lodash/get';
@@ -18,6 +19,9 @@ import compose from '../libs/compose';
 import Navigation from '../libs/Navigation/Navigation';
 import ROUTES from '../ROUTES';
 import Icon from './Icon';
+import SettlementButton from './SettlementButton';
+import * as Policy from '../libs/actions/Policy';
+import ONYXKEYS from '../ONYXKEYS';
 
 const propTypes = {
     /** The report currently being looked at */
@@ -28,6 +32,9 @@ const propTypes = {
         /** Name of the policy */
         name: PropTypes.string,
     }).isRequired,
+
+    /** The chat report this is the report is tied to */
+    chatReport: iouReportPropTypes,
 
     /** Personal details so we can get the ones for the report participants */
     personalDetails: PropTypes.objectOf(participantPropTypes).isRequired,
@@ -40,6 +47,14 @@ const propTypes = {
 
 const defaultProps = {
     isSingleTransactionView: false,
+    chatReport: null,
+};
+
+const payRequest = (paymentType, chatReport) => {
+    if (chatReport && chatReport.chatType === CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT) {
+
+    } else {
+    }
 };
 
 const MoneyRequestHeader = (props) => {
@@ -53,6 +68,8 @@ const MoneyRequestHeader = (props) => {
     const payeeAvatar = isExpenseReport
         ? ReportUtils.getWorkspaceAvatar(props.report)
         : ReportUtils.getAvatar(lodashGet(props.personalDetails, [props.report.managerEmail, 'avatar']), props.report.managerEmail);
+    const policy = props.policies[`policy_${props.report.policyID}`];
+    const shouldShowSettlementButton = !isSettled && (Policy.isAdminOfFreePolicy([policy]) || props.report.type === CONST.REPORT.TYPE.IOU);
     return (
         <View style={[{backgroundColor: themeColors.highlightBG}, styles.pl0]}>
             <HeaderWithCloseButton
@@ -110,6 +127,14 @@ const MoneyRequestHeader = (props) => {
                                 />
                             </View>
                         )}
+                        {shouldShowSettlementButton && (
+                            <SettlementButton
+                                currency={props.report.currency}
+                                shouldShowPaypal={false}
+                                chatReportID={props.report.chatReportID}
+                                onPress={(paymentType) => payRequest(paymentType, props.chatReport)}
+                            />
+                        )}
                     </View>
                 </View>
             </View>
@@ -121,4 +146,12 @@ MoneyRequestHeader.displayName = 'MoneyRequestHeader';
 MoneyRequestHeader.propTypes = propTypes;
 MoneyRequestHeader.defaultProps = defaultProps;
 
-export default compose(withWindowDimensions, withLocalize)(MoneyRequestHeader);
+export default compose(
+    withWindowDimensions,
+    withLocalize,
+    withOnyx({
+        chatReport: {
+            key: ({report}) => `${ONYXKEYS.COLLECTION.REPORT}${report.chatReportID}`,
+        },
+    }),
+)(MoneyRequestHeader);

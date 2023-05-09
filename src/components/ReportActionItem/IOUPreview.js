@@ -75,6 +75,8 @@ const propTypes = {
 
         /** Does the iouReport have an outstanding IOU? */
         hasOutstandingIOU: PropTypes.bool,
+
+        state: PropTypes.string,
     }),
 
     /** True if this is this IOU is a split instead of a 1:1 request */
@@ -205,7 +207,7 @@ const IOUPreview = (props) => {
 
                     <Text>{Str.htmlDecode(lodashGet(props.action, 'originalMessage.comment', ''))}</Text>
 
-                    {isCurrentUserManager && !props.shouldHidePayButton && props.iouReport.stateNum === CONST.REPORT.STATE_NUM.PROCESSING && (
+                    {isCurrentUserManager && !props.shouldHidePayButton && props.iouReport.state === CONST.REPORT.STATE.PROCESSING && (
                         <Button
                             style={styles.mt4}
                             onPress={props.onPayButtonPressed}
