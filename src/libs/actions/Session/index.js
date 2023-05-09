@@ -1,8 +1,6 @@
 import Onyx from 'react-native-onyx';
 import _ from 'underscore';
 import lodashGet from 'lodash/get';
-import appleAuth, {appleAuthAndroid} from '@invertase/react-native-apple-authentication';
-import {Platform} from 'react-native';
 import ONYXKEYS from '../../../ONYXKEYS';
 import redirectToSignIn from '../SignInRedirect';
 import CONFIG from '../../../CONFIG';
@@ -206,170 +204,84 @@ function resendLinkWithValidateCode(login = credentials.login) {
     API.write('RequestNewValidateCode', {email: login}, {optimisticData, successData, failureData});
 }
 
+function generateResponseData() {
+    const errorMessage = Localize.translateLocal('loginForm.cannotGetAccountDetails');
+    return {
+        optimisticData: [
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: ONYXKEYS.ACCOUNT,
+                value: {
+                    ...CONST.DEFAULT_ACCOUNT_DATA,
+                    isLoading: true,
+                    message: null,
+                },
+            },
+        ],
+        successData: [
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: ONYXKEYS.ACCOUNT,
+                value: {
+                    isLoading: false,
+                },
+            },
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: ONYXKEYS.CREDENTIALS,
+                value: {
+                    validateCode: null,
+                },
+            },
+        ],
+        failureData: [
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: ONYXKEYS.ACCOUNT,
+                value: {
+                    isLoading: false,
+                    // eslint-disable-next-line rulesdir/prefer-localization
+                    errors: {
+                        [DateUtils.getMicroseconds()]: errorMessage,
+                    },
+                },
+            },
+        ],
+    };
+}
+
 /**
  * Checks the API to see if an account exists for the given login
  *
  * @param {String} login
  */
+
 function beginSignIn(login) {
-    const optimisticData = [
-        {
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: ONYXKEYS.ACCOUNT,
-            value: {
-                ...CONST.DEFAULT_ACCOUNT_DATA,
-                isLoading: true,
-                message: null,
-            },
-        },
-    ];
-
-    const successData = [
-        {
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: ONYXKEYS.ACCOUNT,
-            value: {
-                isLoading: false,
-            },
-        },
-        {
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: ONYXKEYS.CREDENTIALS,
-            value: {
-                validateCode: null,
-            },
-        },
-    ];
-
-    const failureData = [
-        {
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: ONYXKEYS.ACCOUNT,
-            value: {
-                isLoading: false,
-                errors: {
-                    [DateUtils.getMicroseconds()]: Localize.translateLocal('loginForm.cannotGetAccountDetails'),
-                },
-            },
-        },
-    ];
-
+    const {optimisticData, successData, failureData} = generateResponseData();
     API.read('BeginSignIn', {email: login}, {optimisticData, successData, failureData});
 }
 
-// TODO: Third-party provider sign-in logic should probably live somewhere else. Authentication lib file? Or new file?
-function iOSAppleSignIn(apiCallback) {
-    appleAuth.performRequest({
-        requestedOperation: appleAuth.Operation.LOGIN,
-
-        // FULL_NAME must come first, see https://github.com/invertase/react-native-apple-authentication/issues/293
-        requestedScopes: [appleAuth.Scope.FULL_NAME, appleAuth.Scope.EMAIL],
-    }).then((response) => {
-        appleAuth.getCredentialStateForUser(response.user).then((credentialState) => {
-            if (credentialState !== appleAuth.State.AUTHORIZED) {
-                Log.error('Authentication failed. Original response: ', response);
-                return;
-            }
-            apiCallback(response.identityToken).then(apiResponse => Log.error('API response: ', apiResponse)).catch(apiError => Log.error('API Callback error: ', apiError));
-        }).catch((e) => {
-            Log.error('Obtaining credential state for user failed. Error: ', e);
-        });
-    }).catch((e) => {
-        Log.error('Request to sign in with Apple failed. Error: ', e);
-    });
-}
-
-// Giving unhandled promise rejection? Not sure why.
-function androidAppleSignIn(apiCallback) {
-    appleAuthAndroid.configure({
-        clientId: 'com.expensify.expensifylite.AppleSignIn',
-        redirectUri: 'https://www.expensify.com/partners/apple/loginCallback',
-        responseType: appleAuthAndroid.ResponseType.ALL,
-        scope: appleAuthAndroid.Scope.ALL,
-    });
-
-    appleAuthAndroid.signIn().then((response) => {
-        apiCallback(response.id_token).then(apiResponse => Log.error('API response: ', apiResponse)).catch(apiError => Log.error('API Callback error: ', apiError));
-    }).catch((e) => {
-        Log.error('Request to sign in with Apple failed. Error: ', e);
-    });
-}
-
-async function aASIasync(apiCallback) {
-    appleAuthAndroid.configure({
-        clientId: 'com.expensify.expensifylite.AppleSignIn',
-        redirectUri: 'https://www.expensify.com/partners/apple/loginCallback',
-        responseType: appleAuthAndroid.ResponseType.ALL,
-        scope: appleAuthAndroid.Scope.ALL,
-    });
-
-    const response = await appleAuthAndroid.signIn();
-    console.log('RESPONSE', response);
-    apiCallback(response.id_token);
-}
-
-function appleSignInForPlatform(apiCallback) {
-    switch (Platform.OS) {
-        case 'ios':
-            iOSAppleSignIn(apiCallback);
-            break;
-        case 'android':
-            aASIasync(apiCallback);
-            break;
-        default:
-    }
+function handleAppleAuthApiResponse(token) {
+    const {optimisticData, successData, failureData} = generateResponseData();
+    // eslint-disable-next-line rulesdir/no-api-side-effects-method
+    API.makeRequestWithSideEffects('AuthenticateApple', {token}, {optimisticData, successData, failureData})
+        .then(apiResponse => Log.info('API response: ', apiResponse))
+        .catch(apiError => Log.error('API Callback error: ', apiError));
 }
 
 /**
- * Shows Apple sign-in process, and if an auth token is successfully obtained,
- * passes the token on to the Expensify API to sign in with
+ * Obtains the token from apple authentication and passes the token on to
+ * the Expensify API to sign in with
  *
  * @param {String} login
  */
-function beginAppleSignIn() {
-    const optimisticData = [
-        {
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: ONYXKEYS.ACCOUNT,
-            value: {
-                ...CONST.DEFAULT_ACCOUNT_DATA,
-                isLoading: true,
-            },
-        },
-    ];
 
-    const successData = [
-        {
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: ONYXKEYS.ACCOUNT,
-            value: {
-                isLoading: false,
-            },
-        },
-        {
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: ONYXKEYS.CREDENTIALS,
-            value: {
-                validateCode: null,
-            },
-        },
-    ];
-
-    const failureData = [
-        {
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: ONYXKEYS.ACCOUNT,
-            value: {
-                isLoading: false,
-                errors: {
-                    [DateUtils.getMicroseconds()]: Localize.translateLocal('loginForm.cannotGetAccountDetails'),
-                },
-            },
-        },
-    ];
-    // eslint-disable-next-line rulesdir/no-api-side-effects-method
-    const apiCallback = idToken => API.makeRequestWithSideEffects('AuthenticateApple', {idToken}, {optimisticData, successData, failureData});
-    appleSignInForPlatform(apiCallback);
+function beginAppleSignIn(token) {
+    try {
+        handleAppleAuthApiResponse(token);
+    } catch (error) {
+        Log.error('Request to sign in with Apple failed. Error: ', error);
+    }
 }
 
 /**
