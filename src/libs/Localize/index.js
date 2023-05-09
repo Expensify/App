@@ -12,6 +12,28 @@ import BaseLocaleListener from './LocaleListener/BaseLocaleListener';
 // Listener when an update in Onyx happens so we use the updated locale when translating/localizing items.
 LocaleListener.connect();
 
+// Note: This has to be initialized inside a function and not at the top level of the file, because Intl is polyfilled,
+// and if React Native executes this code upon import, then the polyfill will not be available yet and it will barf
+let CONJUNCTION_LIST_FORMATS_FOR_LOCALES;
+function init() {
+    CONJUNCTION_LIST_FORMATS_FOR_LOCALES = _.reduce(
+        CONST.LOCALES,
+        (memo, locale) => {
+            // This is not a supported locale, so we'll use ES_ES instead
+            if (locale === CONST.LOCALES.ES_ES_ONFIDO) {
+                // eslint-disable-next-line no-param-reassign
+                memo[locale] = new Intl.ListFormat(CONST.LOCALES.ES_ES, {style: 'long', type: 'conjunction'});
+                return memo;
+            }
+
+            // eslint-disable-next-line no-param-reassign
+            memo[locale] = new Intl.ListFormat(locale, {style: 'long', type: 'conjunction'});
+            return memo;
+        },
+        {},
+    );
+}
+
 /**
  * Return translated string for given locale and phrase
  *
@@ -76,16 +98,11 @@ function translateLocal(phrase, variables) {
  * @return {String}
  */
 function arrayToString(anArray) {
-    const and = translateLocal('common.and');
-    let aString = '';
-    if (_.size(anArray) === 1) {
-        aString = anArray[0];
-    } else if (_.size(anArray) === 2) {
-        aString = anArray.join(` ${and} `);
-    } else if (_.size(anArray) > 2) {
-        aString = `${anArray.slice(0, -1).join(', ')} ${and} ${anArray.slice(-1)}`;
+    if (!CONJUNCTION_LIST_FORMATS_FOR_LOCALES) {
+        init();
     }
-    return aString;
+    const listFormat = CONJUNCTION_LIST_FORMATS_FOR_LOCALES[BaseLocaleListener.getPreferredLocale()];
+    return listFormat.format(anArray);
 }
 
 /**
@@ -94,14 +111,7 @@ function arrayToString(anArray) {
  * @return {String}
  */
 function getDevicePreferredLocale() {
-    return lodashGet(
-        RNLocalize.findBestAvailableLanguage([CONST.LOCALES.EN, CONST.LOCALES.ES]), 'languageTag', CONST.LOCALES.DEFAULT,
-    );
+    return lodashGet(RNLocalize.findBestAvailableLanguage([CONST.LOCALES.EN, CONST.LOCALES.ES]), 'languageTag', CONST.LOCALES.DEFAULT);
 }
 
-export {
-    translate,
-    translateLocal,
-    arrayToString,
-    getDevicePreferredLocale,
-};
+export {translate, translateLocal, arrayToString, getDevicePreferredLocale};

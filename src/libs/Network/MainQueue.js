@@ -84,7 +84,7 @@ function process() {
  * Non-cancellable requests like Log would not be cleared
  */
 function clear() {
-    networkRequestQueue = _.filter(networkRequestQueue, request => !request.data.canCancel);
+    networkRequestQueue = _.filter(networkRequestQueue, (request) => !request.data.canCancel);
 }
 
 /**
@@ -94,10 +94,4 @@ function getAll() {
     return networkRequestQueue;
 }
 
-export {
-    clear,
-    replay,
-    push,
-    process,
-    getAll,
-};
+export {clear, replay, push, process, getAll};

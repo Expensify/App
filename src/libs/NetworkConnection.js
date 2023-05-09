@@ -18,10 +18,14 @@ const reconnectionCallbacks = {};
 /**
  * Loop over all reconnection callbacks and fire each one
  */
-const triggerReconnectionCallbacks = _.throttle((reason) => {
-    Log.info(`[NetworkConnection] Firing reconnection callbacks because ${reason}`);
-    _.each(reconnectionCallbacks, callback => callback());
-}, 5000, {trailing: false});
+const triggerReconnectionCallbacks = _.throttle(
+    (reason) => {
+        Log.info(`[NetworkConnection] Firing reconnection callbacks because ${reason}`);
+        _.each(reconnectionCallbacks, (callback) => callback());
+    },
+    5000,
+    {trailing: false},
+);
 
 /**
  * Called when the offline status of the app changes and if the network is "reconnecting" (going from offline to online)
@@ -58,8 +62,7 @@ Onyx.connect({
             setOfflineStatus(true);
         } else {
             // If we are no longer forcing offline fetch the NetInfo to set isOffline appropriately
-            NetInfo.fetch()
-                .then(state => setOfflineStatus(state.isInternetReachable === false));
+            NetInfo.fetch().then((state) => setOfflineStatus(state.isInternetReachable === false));
         }
     },
 });
@@ -78,7 +81,7 @@ function subscribeToNetInfo() {
             // By default, NetInfo uses `/` for `reachabilityUrl`
             // When App is served locally (or from Electron) this address is always reachable - even offline
             // Using the API url ensures reachability is tested over internet
-            reachabilityUrl: `${CONFIG.EXPENSIFY.DEFAULT_API_ROOT}api?command=Ping`,
+            reachabilityUrl: `${CONFIG.EXPENSIFY.DEFAULT_API_ROOT}api`,
             reachabilityMethod: 'GET',
             reachabilityTest: (response) => {
                 if (!response.ok) {
@@ -131,7 +134,7 @@ function onReconnect(callback) {
  * Delete all queued reconnection callbacks
  */
 function clearReconnectionCallbacks() {
-    _.each(_.keys(reconnectionCallbacks), key => delete reconnectionCallbacks[key]);
+    _.each(_.keys(reconnectionCallbacks), (key) => delete reconnectionCallbacks[key]);
 }
 
 /**
@@ -144,8 +147,7 @@ function recheckNetworkConnection() {
 
     Log.info('[NetworkConnection] recheck NetInfo');
     hasPendingNetworkCheck = true;
-    NetInfo.refresh()
-        .finally(() => hasPendingNetworkCheck = false);
+    NetInfo.refresh().finally(() => (hasPendingNetworkCheck = false));
 }
 
 export default {

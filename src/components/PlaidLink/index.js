@@ -7,9 +7,12 @@ const PlaidLink = (props) => {
     const [isPlaidLoaded, setIsPlaidLoaded] = useState(false);
     const onSuccess = props.onSuccess;
     const onError = props.onError;
-    const successCallback = useCallback((publicToken, metadata) => {
-        onSuccess({publicToken, metadata});
-    }, [onSuccess]);
+    const successCallback = useCallback(
+        (publicToken, metadata) => {
+            onSuccess({publicToken, metadata});
+        },
+        [onSuccess],
+    );
 
     const {open, ready, error} = usePlaidLink({
         token: props.token,

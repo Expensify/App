@@ -1,12 +1,7 @@
 import sanitizeStringForJSONParse from '../../.github/libs/sanitizeStringForJSONParse';
 
 // Bad inputs should cause an error to be thrown
-const badInputs = [
-    null,
-    undefined,
-    42,
-    true,
-];
+const badInputs = [null, undefined, 42, true];
 
 // Invalid JSON Data should be able to get parsed and the parsed result should match the input text.
 const invalidJSONData = [
