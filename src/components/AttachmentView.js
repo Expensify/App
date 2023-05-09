@@ -99,7 +99,14 @@ const AttachmentView = (props) => {
     // both PDFs and images will appear as images when pasted into the the text field
     const isImage = Str.isImage(props.source);
     if (isImage || (props.file && Str.isImage(props.file.name))) {
-        const children = <ImageView url={props.source} isAuthTokenRequired={isImage && props.isAuthTokenRequired} />;
+        const children = (
+            <ImageView
+                onScaleChanged={props.onScaleChanged}
+                url={props.source}
+                isAuthTokenRequired={isImage && props.isAuthTokenRequired}
+            />
+        );
+
         return (
             props.onPress ? (
                 <Pressable onPress={props.onPress} disabled={loadComplete} style={containerStyles}>

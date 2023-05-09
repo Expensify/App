@@ -21,6 +21,9 @@ const propTypes = {
     /** URL to full-sized image */
     url: PropTypes.string.isRequired,
 
+    /** Handles scale changed event in image zoom component. Used on native only */
+    onScaleChanged: PropTypes.func.isRequired,
+
     /** Function for handle on press */
     onPress: PropTypes.func,
 
@@ -198,12 +201,15 @@ class ImageView extends PureComponent {
                                     scale: 2,
                                     duration: 100,
                                 });
+
+                                this.props.onScaleChanged(2);
                             }
 
                             // We must be either swiping down or double tapping since we are at zoom scale 1
                             return false;
                         }}
                         onMove={({scale}) => {
+                            this.props.onScaleChanged(scale);
                             this.imageZoomScale = scale;
                         }}
                     >
