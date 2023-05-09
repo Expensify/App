@@ -75,7 +75,7 @@ class WorkspaceInviteMessagePage extends React.Component {
         this.validate = this.validate.bind(this);
         this.openPrivacyURL = this.openPrivacyURL.bind(this);
         this.state = {
-            welcomeNote: this.getWelcomeNote(),
+            welcomeNote: this.getDefaultWelcomeNote(),
         };
     }
 
@@ -86,10 +86,10 @@ class WorkspaceInviteMessagePage extends React.Component {
         ) {
             return;
         }
-        this.setState({welcomeNote: this.getWelcomeNote()});
+        this.setState({welcomeNote: this.getDefaultWelcomeNote()});
     }
 
-    getWelcomeNote() {
+    getDefaultWelcomeNote() {
         return this.props.translate('workspace.inviteMessage.welcomeNote', {
             workspaceName: this.props.policy.name,
         });
