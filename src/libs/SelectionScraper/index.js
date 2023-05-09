@@ -2,6 +2,7 @@ import render from 'dom-serializer';
 import {parseDocument} from 'htmlparser2';
 import _ from 'underscore';
 import Str from 'expensify-common/lib/str';
+import * as Localize from '../Localize';
 
 const elementsWillBeSkipped = ['html', 'body'];
 const tagAttribute = 'data-testid';
@@ -79,6 +80,13 @@ const getHTMLOfSelection = () => {
             div.appendChild(child);
         }
     }
+
+    // Get the div housing the UnreadActionIndicator and remove it from copied content.
+    // As it currently stands, 'accessibilityHints.newMessageLineIndicator' is only used inside
+    // UnreadActionIndicator.js which is also only used in ReportActionItem.js, so this is a relatively
+    // safe move.
+    div.querySelector(`[aria-label="${Localize.translateLocal('accessibilityHints.newMessageLineIndicator')}"]`)
+        .remove();
 
     return div.innerHTML;
 };
