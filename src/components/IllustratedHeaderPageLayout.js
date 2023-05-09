@@ -32,7 +32,6 @@ const IllustratedHeaderPageLayout = (props) => {
     const propsToPassToHeader = _.omit(props, ['illustration', 'footer']);
     return (
         <ScreenWrapper
-            includeSafeAreaPaddingBottom={false}
             style={[StyleUtils.getBackgroundColorStyle(props.backgroundColor)]}
             shouldEnablePickerAvoiding={false}
         >

@@ -3198,12 +3198,12 @@ const styles = {
     },
 
     illustratedPageHeader: {
-        height: '36%',
+        flex: 9,
         minHeight: 270,
     },
 
     illustratedPageBody: {
-        height: '64%',
+        flex: 16,
         backgroundColor: themeColors.appBG,
     },
 
