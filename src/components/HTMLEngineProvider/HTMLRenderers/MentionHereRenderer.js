@@ -8,7 +8,7 @@ const MentionHereRenderer = props => (
     <Text>
         <Text
 
-            // passing the true value to the function as here mention is always for the current user
+            // Passing the true value to the function as here mention is always for the current user
             color={StyleUtils.getMentionTextColor(true)}
             style={StyleUtils.getMentionStyle(true)}
         >
