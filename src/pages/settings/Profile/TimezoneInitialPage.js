@@ -59,6 +59,7 @@ const TimezoneInitialPage = (props) => {
                             {props.translate('timezonePage.getLocationAutomatically')}
                         </Text>
                         <Switch
+                            accessibilityLabel={props.translate('timezonePage.getLocationAutomatically')}
                             isOn={timezone.automatic}
                             onToggle={updateAutomaticTimezone}
                         />
