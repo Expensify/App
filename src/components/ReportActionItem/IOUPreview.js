@@ -31,6 +31,7 @@ import Button from '../Button';
 import * as CurrencyUtils from '../../libs/CurrencyUtils';
 import * as StyleUtils from '../../styles/StyleUtils';
 import getButtonState from '../../libs/getButtonState';
+import * as ReportUtils from '../../libs/reportUtils';
 
 const propTypes = {
     /** Additional logic for displaying the pay button */
@@ -158,6 +159,19 @@ const IOUPreview = (props) => {
     const requestAmount = props.isBillSplit ? props.action.originalMessage.amount : props.iouReport.total;
     const requestCurrency = props.isBillSplit ? lodashGet(props.action, 'originalMessage.currency', CONST.CURRENCY.USD) : props.iouReport.currency;
 
+    const getSettledMessage = () => {
+        switch (props.action.originalMessage.paymentType) {
+            case CONST.IOU.PAYMENT_TYPE.PAYPAL_ME:
+                return props.translate('iou.settledPaypalMe');
+            case CONST.IOU.PAYMENT_TYPE.ELSEWHERE:
+                return props.translate('iou.settledElsewhere');
+            case CONST.IOU.PAYMENT_TYPE.EXPENSIFY:
+                return props.translate('iou.settledExpensify');
+            default:
+                return null;
+        }
+    };
+
     const showContextMenu = (event) => {
         // Use action and shouldHidePayButton props to check if we are in IOUDetailsModal,
         // if it's true, do nothing when user long press, otherwise show context menu.
@@ -196,7 +210,7 @@ const IOUPreview = (props) => {
                                 <>
                                     <Icon src={Expensicons.DotIndicator} width={4} height={4} additionalStyles={[styles.mr1, styles.ml1]} />
                                     <Text>
-                                        {props.translate('iou.settled')}
+                                        {getSettledMessage()}
                                     </Text>
                                 </>
                             )}
