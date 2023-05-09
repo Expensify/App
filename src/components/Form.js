@@ -71,6 +71,9 @@ const propTypes = {
     /** Container styles */
     style: stylePropTypes,
 
+    /** Custom content to display in the footer after submit button */
+    footerContent: PropTypes.oneOfType([PropTypes.func, PropTypes.node]),
+
     ...withLocalizePropTypes,
 };
 
@@ -84,6 +87,7 @@ const defaultProps = {
     enabledWhenOffline: false,
     isSubmitActionDangerous: false,
     scrollContextEnabled: false,
+    footerContent: null,
     style: [],
 };
 
@@ -332,6 +336,7 @@ class Form extends React.Component {
                     isLoading={this.props.formState.isLoading}
                     message={_.isEmpty(this.props.formState.errorFields) ? this.getErrorMessage() : null}
                     onSubmit={this.submit}
+                    footerContent={this.props.footerContent}
                     onFixTheErrorsLinkPressed={() => {
                         const errors = !_.isEmpty(this.state.errors) ? this.state.errors : this.props.formState.errorFields;
                         const focusKey = _.find(_.keys(this.inputRefs), key => _.keys(errors).includes(key));
