@@ -906,9 +906,11 @@ function getMoneyRequestReportName(report) {
         style: 'currency',
         currency: report.currency,
     });
+    const payerName = isExpenseReport(report)
+        ? getPolicyName(report)
+        : getDisplayNameForParticipant(report.managerEmail);
 
-    return Localize.translateLocal('iou.payerOwesAmount',
-        {payer: isExpenseReport(report) ? getPolicyName(report) : getDisplayNameForParticipant(report.managerEmail), amount: formattedAmount});
+    return Localize.translateLocal('iou.payerOwesAmount', {payer: payerName, amount: formattedAmount});
 }
 
 /**
