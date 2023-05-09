@@ -1,5 +1,8 @@
 import React from 'react';
 import _ from 'underscore';
+import {
+    TNodeChildrenRenderer,
+} from 'react-native-render-html';
 import Navigation from '../../../libs/Navigation/Navigation';
 import ROUTES from '../../../ROUTES';
 import Text from '../../Text';
@@ -8,13 +11,13 @@ import htmlRendererPropTypes from './htmlRendererPropTypes';
 import withCurrentUserPersonalDetails from '../../withCurrentUserPersonalDetails';
 import personalDetailsPropType from '../../../pages/personalDetailsPropType';
 import * as StyleUtils from '../../../styles/StyleUtils';
-import InlineCodeBlock from '../../InlineCodeBlock';
-import styles from '../../../styles/styles';
 
 const propTypes = {
     ...htmlRendererPropTypes,
 
-    /* Stores info about currently logged in user */
+    /**
+     * Current user personal details
+     */
     currentUserPersonalDetails: personalDetailsPropType.isRequired,
 };
 
@@ -30,24 +33,23 @@ const MentionUserRenderer = (props) => {
 
     // We need to remove the leading @ from data as it is not part of the login
     const loginWhithoutLeadingAt = props.tnode.data.slice(1);
+
     const isOurMention = loginWhithoutLeadingAt === props.currentUserPersonalDetails.login;
 
     return (
-        <Tooltip absolute text={loginWhithoutLeadingAt}>
-            <Text onPress={() => showUserDetails(loginWhithoutLeadingAt)}>
-
-                {/* We are using here workaround from CodeRenderer.js in order to apply borderRadius and padding for nested Text */}
-                <InlineCodeBlock
-                    defaultRendererProps={defaultRendererProps}
-                    TDefaultRenderer={props.TDefaultRenderer}
-                    boxModelStyle={StyleUtils.getUserMentionStyle(isOurMention)}
-                    textStyle={StyleUtils.getUserMentionTextStyle(isOurMention)}
-                    codeFirstWordStyle={styles.mentionFirstWordStyle}
-                    codeLastWordStyle={styles.mentionLastWordStyle}
-                    key={props.key}
-                />
-            </Text>
-        </Tooltip>
+        <Text>
+            <Tooltip absolute text={loginWhithoutLeadingAt}>
+                <Text
+                    // eslint-disable-next-line react/jsx-props-no-spreading
+                    {...defaultRendererProps}
+                    color={StyleUtils.getUserMentionTextColor(isOurMention)}
+                    style={StyleUtils.getUserMentionStyle(isOurMention)}
+                    onPress={() => showUserDetails(loginWhithoutLeadingAt)}
+                >
+                    <TNodeChildrenRenderer tnode={props.tnode} />
+                </Text>
+            </Tooltip>
+        </Text>
     );
 };
 

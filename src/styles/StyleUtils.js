@@ -311,10 +311,14 @@ function getWidthStyle(width) {
  */
 function getAutoGrowHeightInputStyle(textInputHeight, maxHeight) {
     if (textInputHeight > maxHeight) {
-        return styles.overflowAuto;
+        return {
+            ...styles.pr0,
+            ...styles.overflowAuto,
+        };
     }
 
     return {
+        ...styles.pr0,
         ...styles.overflowHidden,
         height: maxHeight,
     };
@@ -1128,13 +1132,8 @@ function getUserMentionStyle(isOurMention) {
  * @param {Boolean} isOurMention
  * @returns {Object}
  */
-function getUserMentionTextStyle(isOurMention) {
-    return {
-        color: isOurMention ? themeColors.ourMentionText : themeColors.mentionText,
-
-        // font size is set to 13 to be in line with the font size used for code fragments so workaround will look better
-        fontSize: variables.fontSizeLabel,
-    };
+function getUserMentionTextColor(isOurMention) {
+    return isOurMention ? themeColors.ourMentionText : themeColors.mentionText;
 }
 
 export {
@@ -1198,5 +1197,5 @@ export {
     getSignInWordmarkWidthStyle,
     getGoogleListViewStyle,
     getUserMentionStyle,
-    getUserMentionTextStyle,
+    getUserMentionTextColor,
 };

@@ -821,7 +821,6 @@ const styles = {
         borderBottomWidth: 2,
         borderColor: themeColors.border,
         overflow: 'hidden',
-        scrollPaddingTop: '100%',
     },
 
     textInputLabel: {
@@ -862,7 +861,6 @@ const styles = {
         paddingTop: 23,
         paddingBottom: 8,
         paddingLeft: 0,
-        paddingRight: 0,
         borderWidth: 0,
     },
 
@@ -1674,6 +1672,15 @@ const styles = {
         backgroundColor: themeColors.transparent,
     },
 
+    taskSelectorLink: {
+        alignSelf: 'center',
+        height: 42,
+        width: '100%',
+        padding: 6,
+        margin: 3,
+        backgroundColor: themeColors.transparent,
+    },
+
     chatItemAttachmentPlaceholder: {
         backgroundColor: themeColors.sidebar,
         borderColor: themeColors.border,
@@ -2415,18 +2422,6 @@ const styles = {
         paddingRight: 5,
     },
 
-    mentionFirstWordStyle: {
-        paddingLeft: 2,
-        borderTopRightRadius: 4,
-        borderBottomRightRadius: 4,
-    },
-
-    mentionLastWordStyle: {
-        paddingRight: 2,
-        borderTopLeftRadius: 4,
-        borderBottomLeftRadius: 4,
-    },
-
     fullScreenLoading: {
         backgroundColor: themeColors.componentBG,
         opacity: 0.8,
@@ -2450,7 +2445,7 @@ const styles = {
 
     hiddenElementOutsideOfWindow: {
         position: 'absolute',
-        top: 0,
+        top: -10000,
         left: 0,
         opacity: 0,
     },

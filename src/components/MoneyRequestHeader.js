@@ -54,7 +54,7 @@ const MoneyRequestHeader = (props) => {
         : ReportUtils.getDisplayNameForParticipant(props.report.managerEmail);
     const payeeAvatar = isExpenseReport
         ? ReportUtils.getWorkspaceAvatar(props.report)
-        : ReportUtils.getAvatar(lodashGet(props.personalDetails, [props.report.managerEmail, 'avatar']), props.personalDetails);
+        : ReportUtils.getAvatar(lodashGet(props.personalDetails, [props.report.managerEmail, 'avatar']), props.report.managerEmail);
     return (
         <View style={[
             {backgroundColor: themeColors.highlightBG},
@@ -73,7 +73,6 @@ const MoneyRequestHeader = (props) => {
                 report={props.report}
                 policies={props.policies}
                 personalDetails={props.personalDetails}
-                containerStyles={[styles.pt5, styles.pb3, styles.pr1]}
                 shouldShowCloseButton={false}
                 shouldShowBackButton={props.isSmallScreenWidth}
                 onBackButtonPress={() => Navigation.navigate(ROUTES.HOME)}

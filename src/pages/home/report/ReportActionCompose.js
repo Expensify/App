@@ -56,6 +56,7 @@ import KeyboardShortcut from '../../../libs/KeyboardShortcut';
 import * as ComposerUtils from '../../../libs/ComposerUtils';
 import * as Welcome from '../../../libs/actions/Welcome';
 import Permissions from '../../../libs/Permissions';
+import * as TaskUtils from '../../../libs/actions/Task';
 
 const propTypes = {
     /** Beta features list */
@@ -431,7 +432,7 @@ class ReportActionCompose extends React.Component {
             {
                 icon: Expensicons.Task,
                 text: this.props.translate('newTaskPage.assignTask'),
-                onSelected: () => Navigation.navigate(ROUTES.getNewTaskRoute(this.props.reportID)),
+                onSelected: () => TaskUtils.clearOutTaskInfoAndNavigate(this.props.reportID),
             },
         ];
     }
