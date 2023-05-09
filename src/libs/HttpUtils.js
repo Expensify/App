@@ -88,10 +88,10 @@ function processHTTPRequest(url, method = 'get', body = null, canCancel = true, 
         })
         .then((response) => {
             // Some retried requests will result in a "Unique Constraints Violation" error from the server, which just means the record already exists
-            if (response.jsonCode === CONST.JSON_CODE.DUPLICATE_RECORD && response.message === CONST.ERROR_TITLE.DUPLICATE_RECORD) {
+            if (response.jsonCode === CONST.JSON_CODE.BAD_REQUEST && response.message === CONST.ERROR_TITLE.DUPLICATE_RECORD) {
                 throw new HttpsError({
                     message: CONST.ERROR.DUPLICATE_RECORD,
-                    status: CONST.JSON_CODE.DUPLICATE_RECORD,
+                    status: CONST.JSON_CODE.BAD_REQUEST,
                     title: CONST.ERROR_TITLE.DUPLICATE_RECORD,
                 });
             }

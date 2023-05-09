@@ -571,7 +571,7 @@ const CONST = {
     },
     JSON_CODE: {
         SUCCESS: 200,
-        DUPLICATE_RECORD: 400,
+        BAD_REQUEST: 400,
         NOT_AUTHENTICATED: 407,
         EXP_ERROR: 666,
         MANY_WRITES_ERROR: 665,
