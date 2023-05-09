@@ -1840,9 +1840,11 @@ function getWhisperDisplayNames(participants) {
  * @returns {Boolean}
  */
 function shouldReportShowSubscript(report) {
-    if (isPolicyExpenseChat(report)
-        && !report.isOwnPolicyExpenseChat
-        && !isArchivedRoom(report)) {
+    if (isArchivedRoom(report)) {
+        return false;
+    }
+
+    if (isPolicyExpenseChat(report) && !report.isOwnPolicyExpenseChat) {
         return true;
     }
 
