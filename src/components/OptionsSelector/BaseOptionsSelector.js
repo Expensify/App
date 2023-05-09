@@ -279,6 +279,7 @@ class BaseOptionsSelector extends Component {
                 value={this.props.value}
                 label={this.props.textInputLabel}
                 onChangeText={this.props.onChangeText}
+                placeholder={this.props.placeholderText}
                 maxLength={this.props.maxLength}
                 keyboardType={this.props.keyboardType}
                 onBlur={(e) => {
@@ -333,14 +334,14 @@ class BaseOptionsSelector extends Component {
                                     <View style={[styles.flexGrow0, styles.flexShrink1, styles.flexBasisAuto, styles.w100, styles.flexRow]}>
                                         {optionsList}
                                     </View>
-                                    <View style={[styles.ph5, styles.pv5, styles.flexGrow1, styles.flexShrink0]}>
+                                    <View style={this.props.shouldUseStyleForChildren ? [styles.ph5, styles.pv5, styles.flexGrow1, styles.flexShrink0] : []}>
                                         {this.props.children}
                                         {this.props.shouldShowTextInput && textInput}
                                     </View>
                                 </>
                             ) : (
                                 <>
-                                    <View style={[styles.ph5, styles.pb3]}>
+                                    <View style={this.props.shouldUseStyleForChildren ? [styles.ph5, styles.pb3] : []}>
                                         {this.props.children}
                                         {this.props.shouldShowTextInput && textInput}
                                     </View>

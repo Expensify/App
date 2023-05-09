@@ -101,6 +101,9 @@ const propTypes = {
 
     /** Key of the option that we should focus on when first opening the options list */
     initiallyFocusedOptionKey: PropTypes.string,
+
+    /** Whether to use default padding and flex styles for children */
+    shouldUseStyleForChildren: PropTypes.bool,
 };
 
 const defaultProps = {
@@ -130,6 +133,7 @@ const defaultProps = {
     maxLength: undefined,
     shouldShowTextInput: true,
     onChangeText: () => {},
+    shouldUseStyleForChildren: true,
 };
 
 export {propTypes, defaultProps};

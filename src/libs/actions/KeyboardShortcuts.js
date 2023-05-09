@@ -5,6 +5,7 @@ let isShortcutsModalOpen;
 Onyx.connect({
     key: ONYXKEYS.IS_SHORTCUTS_MODAL_OPEN,
     callback: flag => isShortcutsModalOpen = flag,
+    initWithStoredValues: false,
 });
 
 /**

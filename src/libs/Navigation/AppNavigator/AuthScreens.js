@@ -4,6 +4,7 @@ import PropTypes from 'prop-types';
 import moment from 'moment';
 import _ from 'underscore';
 import lodashGet from 'lodash/get';
+import Str from 'expensify-common/lib/str';
 import getNavigationModalCardStyle from '../../../styles/getNavigationModalCardStyles';
 import withWindowDimensions, {windowDimensionsPropTypes} from '../../../components/withWindowDimensions';
 import CONST from '../../../CONST';
@@ -126,10 +127,20 @@ class AuthScreens extends React.Component {
         // the chat switcher, or new group chat
         // based on the key modifiers pressed and the operating system
         this.unsubscribeSearchShortcut = KeyboardShortcut.subscribe(searchShortcutConfig.shortcutKey, () => {
-            Modal.close(() => Navigation.navigate(ROUTES.SEARCH));
+            Modal.close(() => {
+                if (Navigation.isActiveRoute(ROUTES.SEARCH)) {
+                    return;
+                }
+                return Navigation.navigate(ROUTES.SEARCH);
+            });
         }, searchShortcutConfig.descriptionKey, searchShortcutConfig.modifiers, true);
         this.unsubscribeGroupShortcut = KeyboardShortcut.subscribe(groupShortcutConfig.shortcutKey, () => {
-            Modal.close(() => Navigation.navigate(ROUTES.NEW_GROUP));
+            Modal.close(() => {
+                if (Navigation.isActiveRoute(ROUTES.NEW_GROUP)) {
+                    return;
+                }
+                Navigation.navigate(ROUTES.NEW_GROUP);
+            });
         }, groupShortcutConfig.descriptionKey, groupShortcutConfig.modifiers, true);
     }
 
@@ -199,7 +210,7 @@ class AuthScreens extends React.Component {
                         const MainDrawerNavigator = require('./MainDrawerNavigator').default;
                         return MainDrawerNavigator;
                     }}
-                    initialParams={{openOnAdminRoom: openOnAdminRoom === 'true'}}
+                    initialParams={{openOnAdminRoom: Str.toBool(openOnAdminRoom) || undefined}}
                 />
                 <RootStack.Screen
                     name="ValidateLogin"
@@ -292,6 +303,12 @@ class AuthScreens extends React.Component {
                     name="NewTask"
                     options={modalScreenOptions}
                     component={ModalStackNavigators.NewTaskModalStackNavigator}
+                    listeners={modalScreenListeners}
+                />
+                <RootStack.Screen
+                    name="Task_Details"
+                    options={modalScreenOptions}
+                    component={ModalStackNavigators.TaskModalStackNavigator}
                     listeners={modalScreenListeners}
                 />
                 <RootStack.Screen
