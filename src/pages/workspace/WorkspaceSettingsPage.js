@@ -146,7 +146,7 @@ function WorkspaceSettingsPage(props) {
                                 items={currencyItems}
                                 isDisabled={hasVBA}
                                 defaultValue={props.policy.outputCurrency}
-                                hintText={hasVBA ? props.translate('workspace.editor.currencyInputDisabledText') : this.props.translate('workspace.editor.currencyInputHelpText')}
+                                hintText={hasVBA ? props.translate('workspace.editor.currencyInputDisabledText') : props.translate('workspace.editor.currencyInputHelpText')}
                             />
                         </View>
                     </OfflineWithFeedback>
