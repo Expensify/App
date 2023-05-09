@@ -730,12 +730,14 @@ function getIcons(report, personalDetails, defaultIcon = null) {
         result.source = Expensicons.ActiveRoomAvatar;
         return [result];
     }
-    if (isPolicyExpenseChat(report) || isExpenseReport(report)) {
+    if (isPolicyExpenseChat(report)) {
         const workspaceName = lodashGet(allPolicies, [
             `${ONYXKEYS.COLLECTION.POLICY}${report.policyID}`, 'name',
         ]);
 
-        const policyExpenseChatAvatarSource = getWorkspaceAvatar(report);
+        const policyExpenseChatAvatarSource = lodashGet(allPolicies, [
+            `${ONYXKEYS.COLLECTION.POLICY}${report.policyID}`, 'avatar',
+        ]) || getDefaultWorkspaceAvatar(workspaceName);
 
         // Return the workspace avatar if the user is the owner of the policy expense chat
         if (report.isOwnPolicyExpenseChat && !isExpenseReport(report)) {
@@ -1383,6 +1385,32 @@ function buildOptimisticWorkspaceChats(policyID, policyName) {
 }
 
 /**
+ * Builds an optimistic Task Report with a randomly generated reportID
+ *
+ * @param {String} ownerEmail - Email of the person generating the Task.
+ * @param {String} assignee - Email of the other person participating in the Task.
+ * @param {String} parentReportID - Report ID of the chat where the Task is.
+ * @param {String} title - Task title.
+ * @param {String} description - Task description.
+ *
+ * @returns {Object}
+ */
+
+function buildOptimisticTaskReport(ownerEmail, assignee = null, parentReportID, title, description) {
+    return {
+        reportID: generateReportID(),
+        reportName: title,
+        description,
+        ownerEmail,
+        assignee,
+        type: CONST.REPORT.TYPE.TASK,
+        parentReportID,
+        stateNum: CONST.REPORT.STATE_NUM.OPEN,
+        statusNum: CONST.REPORT.STATUS.OPEN,
+    };
+}
+
+/**
  * @param {Object} report
  * @returns {Boolean}
  */
@@ -1599,7 +1627,7 @@ function getChatByParticipants(newParticipantList) {
 }
 
 /**
- * Attempts to find a report in onyx with the provided list of participants in given policy
+* Attempts to find a report in onyx with the provided list of participants in given policy
  * @param {Array} newParticipantList
  * @param {String} policyID
  * @returns {object|undefined}
@@ -1856,6 +1884,7 @@ export {
     isUnread,
     isUnreadWithMention,
     buildOptimisticWorkspaceChats,
+    buildOptimisticTaskReport,
     buildOptimisticChatReport,
     buildOptimisticClosedReportAction,
     buildOptimisticCreatedReportAction,
