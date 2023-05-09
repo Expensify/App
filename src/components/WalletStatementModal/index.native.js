@@ -38,7 +38,7 @@ class WalletStatementModal extends React.Component {
 
         if (type === 'STATEMENT_NAVIGATE' && url) {
             const iouRoutes = [ROUTES.IOU_REQUEST, ROUTES.IOU_SEND, ROUTES.IOU_BILL];
-            const navigateToIOURoute = _.find(iouRoutes, iouRoute => url.includes(iouRoute));
+            const navigateToIOURoute = _.find(iouRoutes, (iouRoute) => url.includes(iouRoute));
             if (navigateToIOURoute) {
                 this.webview.stopLoading();
                 Navigation.navigate(navigateToIOURoute);
@@ -49,7 +49,7 @@ class WalletStatementModal extends React.Component {
     render() {
         return (
             <WebView
-                ref={node => this.webview = node}
+                ref={(node) => (this.webview = node)}
                 originWhitelist={['https://*']}
                 source={{
                     uri: this.props.statementPageURL,

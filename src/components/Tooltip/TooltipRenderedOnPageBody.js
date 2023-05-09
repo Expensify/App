@@ -1,6 +1,4 @@
-import React, {
-    useLayoutEffect, useEffect, useState, useRef, useMemo,
-} from 'react';
+import React, {useLayoutEffect, useEffect, useState, useRef, useMemo} from 'react';
 import PropTypes from 'prop-types';
 import {Animated, View} from 'react-native';
 import ReactDOM from 'react-dom';
@@ -88,14 +86,23 @@ const TooltipRenderedOnPageBody = (props) => {
         setTooltipContentWidth(contentRef.current.offsetWidth);
     }, []);
 
-    const {
-        animationStyle,
-        tooltipWrapperStyle,
-        tooltipTextStyle,
-        pointerWrapperStyle,
-        pointerStyle,
-    } = useMemo(
-        () => getTooltipStyles(
+    const {animationStyle, tooltipWrapperStyle, tooltipTextStyle, pointerWrapperStyle, pointerStyle} = useMemo(
+        () =>
+            getTooltipStyles(
+                props.animation,
+                props.windowWidth,
+                props.xOffset,
+                props.yOffset,
+                props.wrapperWidth,
+                props.wrapperHeight,
+                props.maxWidth,
+                tooltipWidth,
+                tooltipHeight,
+                tooltipContentWidth,
+                props.shiftHorizontal,
+                props.shiftVertical,
+            ),
+        [
             props.animation,
             props.windowWidth,
             props.xOffset,
@@ -108,22 +115,22 @@ const TooltipRenderedOnPageBody = (props) => {
             tooltipContentWidth,
             props.shiftHorizontal,
             props.shiftVertical,
-        ),
-        [props.animation, props.windowWidth, props.xOffset, props.yOffset, props.wrapperWidth, props.wrapperHeight,
-            props.maxWidth, tooltipWidth, tooltipHeight, tooltipContentWidth, props.shiftHorizontal, props.shiftVertical],
+        ],
     );
 
     let content;
     if (props.renderTooltipContent) {
-        content = (
-            <View ref={contentRef}>
-                {props.renderTooltipContent()}
-            </View>
-        );
+        content = <View ref={contentRef}>{props.renderTooltipContent()}</View>;
     } else {
         content = (
-            <Text numberOfLines={props.numberOfLines} style={tooltipTextStyle}>
-                <Text style={tooltipTextStyle} ref={contentRef}>
+            <Text
+                numberOfLines={props.numberOfLines}
+                style={tooltipTextStyle}
+            >
+                <Text
+                    style={tooltipTextStyle}
+                    ref={contentRef}
+                >
                     {props.text}
                 </Text>
             </Text>

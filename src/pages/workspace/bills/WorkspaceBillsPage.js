@@ -19,7 +19,7 @@ const propTypes = {
     ...withLocalizePropTypes,
 };
 
-const WorkspaceBillsPage = props => (
+const WorkspaceBillsPage = (props) => (
     <WorkspacePageWithSections
         shouldUseScrollView
         headerText={props.translate('workspace.common.bills')}
@@ -28,12 +28,8 @@ const WorkspaceBillsPage = props => (
     >
         {(hasVBA, policyID) => (
             <>
-                {!hasVBA && (
-                    <WorkspaceBillsNoVBAView policyID={policyID} />
-                )}
-                {hasVBA && (
-                    <WorkspaceBillsVBAView policyID={policyID} />
-                )}
+                {!hasVBA && <WorkspaceBillsNoVBAView policyID={policyID} />}
+                {hasVBA && <WorkspaceBillsVBAView policyID={policyID} />}
             </>
         )}
     </WorkspacePageWithSections>

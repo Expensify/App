@@ -25,13 +25,9 @@ class TfaRequiredModal extends PureComponent {
                             src={Illustrations.SafeBlue}
                         />
                     </View>
-                    <Text style={[styles.textHeadline, styles.textXXLarge, styles.textAlignCenter]}>
-                        {this.props.translate('validateCodeModal.tfaRequiredTitle')}
-                    </Text>
+                    <Text style={[styles.textHeadline, styles.textXXLarge, styles.textAlignCenter]}>{this.props.translate('validateCodeModal.tfaRequiredTitle')}</Text>
                     <View style={[styles.mt2, styles.mb2]}>
-                        <Text style={[styles.fontSizeNormal, styles.textAlignCenter]}>
-                            {this.props.translate('validateCodeModal.tfaRequiredDescription')}
-                        </Text>
+                        <Text style={[styles.fontSizeNormal, styles.textAlignCenter]}>{this.props.translate('validateCodeModal.tfaRequiredDescription')}</Text>
                     </View>
                 </View>
                 <View style={styles.deeplinkWrapperFooter}>
