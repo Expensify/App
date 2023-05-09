@@ -17,6 +17,7 @@ import {showContextMenuForReport} from '../ShowContextMenuContext';
 import * as StyleUtils from '../../styles/StyleUtils';
 import * as CurrencyUtils from '../../libs/CurrencyUtils';
 import * as ReportUtils from '../../libs/ReportUtils';
+import themeColors from '../../styles/themes/default';
 import getButtonState from '../../libs/getButtonState';
 
 const propTypes = {
@@ -94,9 +95,17 @@ const IOUQuote = (props) => {
                     focusable
                 >
                     <View style={[styles.flexRow]}>
+                        {!props.iouReport.hasOutstandingIOU ? (
+                            <Text>s</Text>
+                        ) : (
+                            <Text>s</Text>
+                        )}
                         <Text style={[styles.chatItemMessage, styles.cursorPointer]}>
                             {props.translate('iou.managerOwes', {owner: managerName, amount: reportAmount})}
                         </Text>
+                        {!props.iouReport.hasOutstandingIOU && (
+                            <Icon style={[styles.ml10]} src={Expensicons.Checkmark} fill={themeColors.iconSuccessFill} />
+                        )}
                     </View>
                     <Icon src={Expensicons.ArrowRight} fill={StyleUtils.getIconFillColor(getButtonState(props.isHovered))} />
                 </Pressable>
