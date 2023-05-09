@@ -1,7 +1,7 @@
 import AnchorRenderer from './AnchorRenderer';
 import CodeRenderer from './CodeRenderer';
 import EditedRenderer from './EditedRenderer';
-import HereMentionRenderer from './HereMentionRenderer';
+import MentionHereRenderer from './MentionHereRenderer';
 import ImageRenderer from './ImageRenderer';
 import MentionUserRenderer from './MentionUserRenderer';
 import PreRenderer from './PreRenderer';
@@ -19,5 +19,5 @@ export default {
     edited: EditedRenderer,
     pre: PreRenderer,
     'mention-user': MentionUserRenderer,
-    'mention-here': HereMentionRenderer,
+    'mention-here': MentionHereRenderer,
 };

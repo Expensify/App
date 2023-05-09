@@ -4,7 +4,7 @@ import htmlRendererPropTypes from './htmlRendererPropTypes';
 import Text from '../../Text';
 import * as StyleUtils from '../../../styles/StyleUtils';
 
-const HereMentionRenderer = props => (
+const MentionHereRenderer = props => (
     <Text>
         <Text
 
@@ -17,7 +17,7 @@ const HereMentionRenderer = props => (
     </Text>
 );
 
-HereMentionRenderer.propTypes = htmlRendererPropTypes;
-HereMentionRenderer.displayName = 'HereMentionRenderer';
+MentionHereRenderer.propTypes = htmlRendererPropTypes;
+MentionHereRenderer.displayName = 'HereMentionRenderer';
 
-export default HereMentionRenderer;
+export default MentionHereRenderer;
