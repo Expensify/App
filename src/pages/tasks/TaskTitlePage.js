@@ -13,21 +13,14 @@ import styles from '../../styles/styles';
 import Navigation from '../../libs/Navigation/Navigation';
 import reportPropTypes from '../reportPropTypes';
 import compose from '../../libs/compose';
-import withReportOrNotFound from '../home/report/withReportOrNotFound';
 import * as TaskUtils from '../../libs/actions/Task';
 
 const propTypes = {
-    /** URL Route params */
-    route: PropTypes.shape({
-        /** Params from the URL path */
-        params: PropTypes.shape({
-            /** taskReportID passed via route: /r/:taskReportID/title */
-            taskReportID: PropTypes.string,
-        }),
-    }).isRequired,
-
-    /** The report currently being looked at */
-    report: reportPropTypes.isRequired,
+    /** Task Report Info */
+    task: PropTypes.shape({
+        /** Title of the Task */
+        report: reportPropTypes.isRequired,
+    }),
 
     /** Current user session */
     session: PropTypes.shape({
@@ -40,6 +33,7 @@ const propTypes = {
 
 const defaultProps = {
     session: {},
+    task: {},
 };
 
 function TaskTitlePage(props) {
@@ -94,8 +88,8 @@ function TaskTitlePage(props) {
                         inputID="title"
                         name="title"
                         label={props.translate('newTaskPage.title')}
-                        defaultValue={props.report.reportName || ''}
-                        ref={(el) => (inputRef.current = el)}
+                        defaultValue={props.task.report.reportName || ''}
+                        ref={el => inputRef.current = el}
                     />
                 </View>
             </Form>
@@ -108,10 +102,12 @@ TaskTitlePage.defaultProps = defaultProps;
 
 export default compose(
     withLocalize,
-    withReportOrNotFound,
     withOnyx({
         session: {
             key: ONYXKEYS.SESSION,
+        },
+        task: {
+            key: ONYXKEYS.TASK,
         },
     }),
 )(TaskTitlePage);

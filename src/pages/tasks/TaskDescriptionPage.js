@@ -93,8 +93,8 @@ function TaskDescriptionPage(props) {
                         inputID="description"
                         name="description"
                         label={props.translate('newTaskPage.description')}
-                        defaultValue={props.report.description || ''}
-                        ref={(el) => (inputRef.current = el)}
+                        defaultValue={props.task.report.description || ''}
+                        ref={el => inputRef.current = el}
                     />
                 </View>
             </Form>
