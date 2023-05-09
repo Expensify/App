@@ -1130,7 +1130,7 @@ function getEmojiPickerListHeight(hasAdditionalSpace) {
  * @param {Boolean} isOurMention
  * @returns {Object}
  */
-function getUserMentionStyle(isOurMention) {
+function getMentionStyle(isOurMention) {
     const backgroundColor = isOurMention ? themeColors.ourMentionBG : themeColors.mentionBG;
     return {
         backgroundColor,
@@ -1144,7 +1144,7 @@ function getUserMentionStyle(isOurMention) {
  * @param {Boolean} isOurMention
  * @returns {Object}
  */
-function getUserMentionTextColor(isOurMention) {
+function getMentionTextColor(isOurMention) {
     return isOurMention ? themeColors.ourMentionText : themeColors.mentionText;
 }
 
@@ -1209,6 +1209,6 @@ export {
     getSignInWordmarkWidthStyle,
     getGoogleListViewStyle,
     getEmojiPickerListHeight,
-    getUserMentionStyle,
-    getUserMentionTextColor,
+    getMentionStyle,
+    getMentionTextColor,
 };
