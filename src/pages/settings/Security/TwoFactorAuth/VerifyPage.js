@@ -1,6 +1,6 @@
 import React, {Component} from 'react';
 import {withOnyx} from 'react-native-onyx';
-import {View} from 'react-native';
+import {ScrollView, View} from 'react-native';
 import PropTypes from 'prop-types';
 import QRCode from 'react-qr-code';
 import HeaderWithCloseButton from '../../../../components/HeaderWithCloseButton';
@@ -109,51 +109,53 @@ class VerifyPage extends Component {
                 />
 
                 <FullPageOfflineBlockingView>
-                    <View style={[styles.ph5, styles.mt3]}>
-                        <Text>
-                            {this.props.translate('twoFactorAuth.scanCode')}
-                            <TextLink href="https://community.expensify.com/discussion/7736/faq-troubleshooting-two-factor-authentication-issues/p1?new=1">
-                                {' '}
-                                {this.props.translate('twoFactorAuth.authenticatorApp')}
-                            </TextLink>
-                            .
-                        </Text>
+                    <ScrollView style={[styles.mb5]}>
+                        <View style={[styles.ph5, styles.mt3]}>
+                            <Text>
+                                {this.props.translate('twoFactorAuth.scanCode')}
+                                <TextLink href="https://community.expensify.com/discussion/7736/faq-troubleshooting-two-factor-authentication-issues/p1?new=1">
+                                    {' '}
+                                    {this.props.translate('twoFactorAuth.authenticatorApp')}
+                                </TextLink>
+                                .
+                            </Text>
 
-                        <View style={[styles.alignItemsCenter, styles.mt5]}>
-                            <QRCode
-                                level="L"
-                                size={128}
-                                value={this.buildAuthenticatorUrl()}
-                                bgColor={themeColors.appBG}
-                                fgColor={themeColors.textSupporting}
-                            />
+                            <View style={[styles.alignItemsCenter, styles.mt5]}>
+                                <QRCode
+                                    level="L"
+                                    size={128}
+                                    value={this.buildAuthenticatorUrl()}
+                                    bgColor={themeColors.appBG}
+                                    fgColor={themeColors.textSupporting}
+                                />
+                            </View>
+
+                            <Text style={[styles.mt5]}>
+                                {this.props.translate('twoFactorAuth.addKey')}
+                            </Text>
+
+                            <View style={[styles.mt11, styles.flexRow, styles.alignItemsCenter, styles.justifyContentBetween]}>
+                                {Boolean(this.props.account.twoFactorAuthSecretKey) && (
+                                    <Text>
+                                        {this.splitSecretInChunks(this.props.account.twoFactorAuthSecretKey)}
+                                    </Text>
+                                )}
+                                <Button medium onPress={this.copySecret}>
+                                    <Text>
+                                        Copy
+                                    </Text>
+                                </Button>
+                            </View>
+
+                            <Text style={[styles.mt11]}>
+                                {this.props.translate('twoFactorAuth.enterCode')}
+                            </Text>
                         </View>
 
-                        <Text style={[styles.mt5]}>
-                            {this.props.translate('twoFactorAuth.addKey')}
-                        </Text>
-
-                        <View style={[styles.mt11, styles.flexRow, styles.alignItemsCenter, styles.justifyContentBetween]}>
-                            {Boolean(this.props.account.twoFactorAuthSecretKey) && (
-                                <Text>
-                                    {this.splitSecretInChunks(this.props.account.twoFactorAuthSecretKey)}
-                                </Text>
-                            )}
-                            <Button medium onPress={this.copySecret}>
-                                <Text>
-                                    Copy
-                                </Text>
-                            </Button>
+                        <View style={[styles.mt3, styles.mh5]}>
+                            <TwoFactorAuthForm />
                         </View>
-
-                        <Text style={[styles.mt11]}>
-                            {this.props.translate('twoFactorAuth.enterCode')}
-                        </Text>
-                    </View>
-
-                    <View style={[styles.mt3, styles.mh5]}>
-                        <TwoFactorAuthForm />
-                    </View>
+                    </ScrollView>
 
                     <FixedFooter style={[styles.twoFactorAuthFooter]}>
                         <Button

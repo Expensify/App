@@ -14,9 +14,12 @@ const propTypes = {
 
     /** The details about the account that the user is signing in with */
     account: PropTypes.shape({
-        /** Whether or not two factor authentication is required */
+        /** Whether two-factor authentication is required */
         requiresTwoFactorAuth: PropTypes.bool,
     }),
+
+    /** Specifies autocomplete hints for the system, so it can provide autofill */
+    autoComplete: PropTypes.oneOf(['sms-otp', 'one-time-code']).isRequired,
 
     ...withLocalizePropTypes,
 };
@@ -80,7 +83,7 @@ class BaseValidateCodeForm extends React.Component {
     render() {
         return (
             <MagicCodeInput
-                autoComplete="one-time-code"
+                autoComplete={this.props.autoComplete}
                 textContentType="oneTimeCode"
                 label={this.props.translate('common.twoFactorCode')}
                 nativeID="twoFactorAuthCode"
@@ -93,7 +96,6 @@ class BaseValidateCodeForm extends React.Component {
                         ? this.props.translate(this.state.formError.twoFactorAuthCode)
                         : ErrorUtils.getLatestErrorMessage(this.props.account)
                 }
-                autoFocus
             />
         );
     }
