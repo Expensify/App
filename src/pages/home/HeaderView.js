@@ -66,7 +66,6 @@ const HeaderView = (props) => {
     const isPolicyExpenseChat = ReportUtils.isPolicyExpenseChat(props.report);
     const isTaskReport = ReportUtils.isTaskReport(props.report);
     const title = ReportUtils.getReportName(props.report);
-
     const subtitle = ReportUtils.getChatRoomSubtitle(props.report);
     const isConcierge = participants.length === 1 && _.contains(participants, CONST.EMAIL.CONCIERGE);
     const isAutomatedExpensifyAccount = (participants.length === 1 && ReportUtils.hasAutomatedExpensifyEmails(participants));
@@ -113,7 +112,7 @@ const HeaderView = (props) => {
     }
 
     const avatarTooltip = isChatRoom ? undefined : _.pluck(displayNamesWithTooltips, 'tooltip');
-    const shouldShowSubscript = isPolicyExpenseChat && !props.report.isOwnPolicyExpenseChat && !ReportUtils.isArchivedRoom(props.report);
+    const shouldShowSubscript = isPolicyExpenseChat && !props.report.isOwnPolicyExpenseChat && !ReportUtils.isArchivedRoom(props.report) && !isTaskReport;
     const icons = ReportUtils.getIcons(props.report, props.personalDetails);
     const brickRoadIndicator = ReportUtils.hasReportNameError(props.report) ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : '';
     return (

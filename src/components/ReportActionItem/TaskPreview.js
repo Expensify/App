@@ -5,30 +5,14 @@ import {
 } from 'react-native';
 import PropTypes from 'prop-types';
 import {withOnyx} from 'react-native-onyx';
-import lodashGet from 'lodash/get';
-import _ from 'underscore';
-import Str from 'expensify-common/lib/str';
 import compose from '../../libs/compose';
 import styles from '../../styles/styles';
 import ONYXKEYS from '../../ONYXKEYS';
-import MultipleAvatars from '../MultipleAvatars';
 import withLocalize, {withLocalizePropTypes} from '../withLocalize';
-import * as Report from '../../libs/actions/Report';
-import themeColors from '../../styles/themes/default';
 import Icon from '../Icon';
 import CONST from '../../CONST';
 import * as Expensicons from '../Icon/Expensicons';
 import Text from '../Text';
-import * as PaymentMethods from '../../libs/actions/PaymentMethods';
-import OfflineWithFeedback from '../OfflineWithFeedback';
-import walletTermsPropTypes from '../../pages/EnablePayments/walletTermsPropTypes';
-import ControlSelection from '../../libs/ControlSelection';
-import * as DeviceCapabilities from '../../libs/DeviceCapabilities';
-import reportActionPropTypes from '../../pages/home/report/reportActionPropTypes';
-import {showContextMenuForReport} from '../ShowContextMenuContext';
-import * as OptionsListUtils from '../../libs/OptionsListUtils';
-import Button from '../Button';
-import * as CurrencyUtils from '../../libs/CurrencyUtils';
 import Checkbox from '../Checkbox';
 import * as StyleUtils from '../../styles/StyleUtils';
 import getButtonState from '../../libs/getButtonState';
@@ -40,9 +24,11 @@ const propTypes = {
     /** The ID of the associated taskReport */
     taskReportID: PropTypes.string.isRequired,
 
+    /** Whether the task preview is hovered so we can modify its style */
+    isHovered: PropTypes.bool,
+
     /* Onyx Props */
 
-    /** Active IOU Report for current report */
     taskReport: PropTypes.shape({
         /** Title of the task */
         reportName: PropTypes.string,
@@ -54,9 +40,6 @@ const propTypes = {
         ownerEmail: PropTypes.string,
     }),
 
-    /** Whether the task preview is hovered so we can modify its style */
-    isHovered: PropTypes.bool,
-
     ...withLocalizePropTypes,
 };
 
@@ -66,10 +49,6 @@ const defaultProps = {
 };
 
 const TaskPreview = (props) => {
-    const sessionEmail = lodashGet(props.session, 'email', null);
-    const managerEmail = props.taskReport.managerEmail || '';
-    const ownerEmail = props.taskReport.ownerEmail || '';
-
     const isTaskCompleted = props.taskReport.stateNum === CONST.REPORT.STATE_NUM.SUBMITTED && props.taskReport.statusNum === CONST.REPORT.STATUS.APPROVED;
 
     return (
@@ -83,7 +62,7 @@ const TaskPreview = (props) => {
                     containerStyle={[styles.taskCheckbox]}
                     isChecked={isTaskCompleted}
                     onPress={() => {
-                    // Being implemented in https://github.com/Expensify/App/issues/16858
+                        // Being implemented in https://github.com/Expensify/App/issues/16858
                     }}
                 />
                 <Text>{props.taskReport.reportName}</Text>
