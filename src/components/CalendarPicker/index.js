@@ -126,7 +126,7 @@ class CalendarPicker extends React.PureComponent {
     /**
      * Gives the new version of the state object,
      * changing both selected month and year based on the given moment date.
-     * @param {Object} momentDate - Moment date object.
+     * @param {moment.Moment} momentDate - Moment date object.
      * @returns {{currentDateView: Date, selectedMonth: string, selectedYear: string}} - The new version of the state.
      */
     getMonthState(momentDate) {
