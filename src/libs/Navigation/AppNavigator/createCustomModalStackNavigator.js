@@ -43,9 +43,7 @@ const CustomRootStackNavigator = ({
 
             {/* We need to superimpose a clickaway handler when showing modals so that they can be dismissed. Capturing
             press events on the cardOverlay element in react-navigation is not yet supported on web */}
-            <ClickAwayHandler
-                isDisplayingModal={isDisplayingModal && !isDisplayingFullScreenModal}
-            />
+            <ClickAwayHandler isDisplayingModal={isDisplayingModal && !isDisplayingFullScreenModal} />
         </>
     );
 };

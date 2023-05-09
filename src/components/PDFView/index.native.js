@@ -121,10 +121,7 @@ class PDFView extends Component {
     }
 
     render() {
-        const pdfStyles = [
-            styles.imageModalPDF,
-            StyleUtils.getWidthAndHeightStyle(this.props.windowWidth, this.props.windowHeight),
-        ];
+        const pdfStyles = [styles.imageModalPDF, StyleUtils.getWidthAndHeightStyle(this.props.windowWidth, this.props.windowHeight)];
 
         // If we haven't yet successfully validated the password and loaded the PDF,
         // then we need to hide the react-native-pdf/PDF component so that PDFPasswordForm
@@ -134,17 +131,13 @@ class PDFView extends Component {
             pdfStyles.push(styles.invisible);
         }
 
-        const containerStyles = this.state.shouldRequestPassword && this.props.isSmallScreenWidth
-            ? [styles.w100, styles.flex1]
-            : [styles.alignItemsCenter, styles.flex1];
+        const containerStyles = this.state.shouldRequestPassword && this.props.isSmallScreenWidth ? [styles.w100, styles.flex1] : [styles.alignItemsCenter, styles.flex1];
 
         return (
             <View style={containerStyles}>
                 {this.state.failedToLoadPDF && (
                     <View style={[styles.flex1, styles.justifyContentCenter]}>
-                        <Text style={[styles.textLabel, styles.textLarge]}>
-                            {this.props.translate('attachmentView.failedToLoadPDF')}
-                        </Text>
+                        <Text style={[styles.textLabel, styles.textLarge]}>{this.props.translate('attachmentView.failedToLoadPDF')}</Text>
                     </View>
                 )}
                 {this.state.shouldAttemptPDFLoad && (
@@ -178,8 +171,4 @@ class PDFView extends Component {
 PDFView.propTypes = propTypes;
 PDFView.defaultProps = defaultProps;
 
-export default compose(
-    withWindowDimensions,
-    withKeyboardState,
-    withLocalize,
-)(PDFView);
+export default compose(withWindowDimensions, withKeyboardState, withLocalize)(PDFView);

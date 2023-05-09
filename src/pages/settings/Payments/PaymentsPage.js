@@ -1,8 +1,6 @@
 import _ from 'underscore';
 import React from 'react';
-import {
-    ActivityIndicator, View, InteractionManager, LayoutAnimation,
-} from 'react-native';
+import {ActivityIndicator, View, InteractionManager, LayoutAnimation} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import PropTypes from 'prop-types';
 import PaymentMethodList from './PaymentMethodList';
@@ -187,7 +185,7 @@ class BasePaymentsPage extends React.Component {
             anchorPositionBottom: this.props.windowHeight - position.top,
 
             // We want the position to be 13px to the right of the left border
-            anchorPositionRight: (this.props.windowWidth - position.right) + 13,
+            anchorPositionRight: this.props.windowWidth - position.right + 13,
         });
     }
 
@@ -329,13 +327,10 @@ class BasePaymentsPage extends React.Component {
 
     makeDefaultPaymentMethod(password = '') {
         // Find the previous default payment method so we can revert if the MakeDefaultPaymentMethod command errors
-        const paymentMethods = PaymentUtils.formatPaymentMethods(
-            this.props.bankAccountList,
-            this.props.cardList,
-        );
+        const paymentMethods = PaymentUtils.formatPaymentMethods(this.props.bankAccountList, this.props.cardList);
 
-        const previousPaymentMethod = _.find(paymentMethods, method => method.isDefault);
-        const currentPaymentMethod = _.find(paymentMethods, method => method.methodID === this.state.methodID);
+        const previousPaymentMethod = _.find(paymentMethods, (method) => method.isDefault);
+        const currentPaymentMethod = _.find(paymentMethods, (method) => method.methodID === this.state.methodID);
         if (this.state.selectedPaymentMethodType === CONST.PAYMENT_METHODS.BANK_ACCOUNT) {
             PaymentMethods.makeDefaultPaymentMethod(password, this.state.selectedPaymentMethod.bankAccountID, null, previousPaymentMethod, currentPaymentMethod);
         } else if (this.state.selectedPaymentMethodType === CONST.PAYMENT_METHODS.DEBIT_CARD) {
@@ -366,7 +361,10 @@ class BasePaymentsPage extends React.Component {
                     <>
                         <View style={[styles.mv5]}>
                             {this.state.shouldShowLoadingSpinner ? (
-                                <ActivityIndicator color={themeColors.spinner} size="large" />
+                                <ActivityIndicator
+                                    color={themeColors.spinner}
+                                    size="large"
+                                />
                             ) : (
                                 <OfflineWithFeedback
                                     pendingAction={CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD}
@@ -387,7 +385,7 @@ class BasePaymentsPage extends React.Component {
                                     addDebitCardRoute={ROUTES.SETTINGS_ADD_DEBIT_CARD}
                                     popoverPlacement="bottom"
                                 >
-                                    {triggerKYCFlow => (
+                                    {(triggerKYCFlow) => (
                                         <MenuItem
                                             title={this.props.translate('common.transferBalance')}
                                             icon={Expensicons.Transfer}
@@ -401,21 +399,18 @@ class BasePaymentsPage extends React.Component {
                         )}
                     </>
                 )}
-                <Text
-                    style={[styles.ph5, styles.textLabelSupporting, styles.mb1]}
-                >
-                    {this.props.translate('paymentsPage.paymentMethodsTitle')}
-                </Text>
+                <Text style={[styles.ph5, styles.textLabelSupporting, styles.mb1]}>{this.props.translate('paymentsPage.paymentMethodsTitle')}</Text>
             </>
         );
     }
 
     render() {
         const isPayPalMeSelected = this.state.formattedSelectedPaymentMethod.type === CONST.PAYMENT_METHODS.PAYPAL;
-        const shouldShowMakeDefaultButton = !this.state.isSelectedPaymentMethodDefault
-            && Permissions.canUseWallet(this.props.betas)
-            && !isPayPalMeSelected
-            && !(this.state.formattedSelectedPaymentMethod.type === CONST.PAYMENT_METHODS.BANK_ACCOUNT && this.state.selectedPaymentMethod.type === CONST.BANK_ACCOUNT.TYPE.BUSINESS);
+        const shouldShowMakeDefaultButton =
+            !this.state.isSelectedPaymentMethodDefault &&
+            Permissions.canUseWallet(this.props.betas) &&
+            !isPayPalMeSelected &&
+            !(this.state.formattedSelectedPaymentMethod.type === CONST.PAYMENT_METHODS.BANK_ACCOUNT && this.state.selectedPaymentMethod.type === CONST.BANK_ACCOUNT.TYPE.BUSINESS);
 
         // Determines whether or not the modal popup is mounted from the bottom of the screen instead of the side mount on Web or Desktop screens
         const isPopoverBottomMount = this.state.anchorPositionTop === 0 || this.props.isSmallScreenWidth;
@@ -439,12 +434,8 @@ class BasePaymentsPage extends React.Component {
                             onPress={this.paymentMethodPressed}
                             style={[styles.flex4]}
                             isAddPaymentMenuActive={this.state.shouldShowAddPaymentMenu}
-                            actionPaymentMethodType={this.state.shouldShowDefaultDeleteMenu || this.state.shouldShowPasswordPrompt
-                                ? this.state.selectedPaymentMethodType
-                                : ''}
-                            activePaymentMethodID={this.state.shouldShowDefaultDeleteMenu || this.state.shouldShowPasswordPrompt
-                                ? this.getSelectedPaymentMethodID()
-                                : ''}
+                            actionPaymentMethodType={this.state.shouldShowDefaultDeleteMenu || this.state.shouldShowPasswordPrompt ? this.state.selectedPaymentMethodType : ''}
+                            activePaymentMethodID={this.state.shouldShowDefaultDeleteMenu || this.state.shouldShowPasswordPrompt ? this.getSelectedPaymentMethodID() : ''}
                             listHeaderComponent={this.listHeaderComponent}
                         />
                     </OfflineWithFeedback>
@@ -456,7 +447,7 @@ class BasePaymentsPage extends React.Component {
                         bottom: this.state.anchorPositionBottom,
                         right: this.state.anchorPositionRight - 10,
                     }}
-                    onItemSelected={method => this.addPaymentMethodTypePressed(method)}
+                    onItemSelected={(method) => this.addPaymentMethodTypePressed(method)}
                 />
                 <Popover
                     isVisible={this.state.shouldShowDefaultDeleteMenu}
@@ -467,12 +458,7 @@ class BasePaymentsPage extends React.Component {
                     }}
                 >
                     {!this.state.showConfirmDeleteContent ? (
-                        <View
-                            style={[
-                                styles.m5,
-                                !this.props.isSmallScreenWidth ? styles.sidebarPopover : '',
-                            ]}
-                        >
+                        <View style={[styles.m5, !this.props.isSmallScreenWidth ? styles.sidebarPopover : '']}>
                             {isPopoverBottomMount && (
                                 <MenuItem
                                     title={this.state.formattedSelectedPaymentMethod.title || ''}

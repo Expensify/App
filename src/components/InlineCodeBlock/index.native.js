@@ -12,12 +12,7 @@ const InlineCodeBlock = (props) => {
         >
             <WrappedText
                 textStyles={[props.textStyle]}
-                wordStyles={[
-                    props.boxModelStyle,
-                    styles.codeWordStyle,
-                ]}
-                codeFirstWordStyle={props.codeFirstWordStyle}
-                codeLastWordStyle={props.codeLastWordStyle}
+                wordStyles={[props.boxModelStyle, styles.codeWordStyle]}
             >
                 {props.defaultRendererProps.tnode.data}
             </WrappedText>

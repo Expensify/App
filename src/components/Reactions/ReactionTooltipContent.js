@@ -6,9 +6,7 @@ import styles from '../../styles/styles';
 import {withPersonalDetails} from '../OnyxProvider';
 import * as PersonalDetailsUtils from '../../libs/PersonalDetailsUtils';
 import Text from '../Text';
-import withCurrentUserPersonalDetails, {
-    withCurrentUserPersonalDetailsPropTypes,
-} from '../withCurrentUserPersonalDetails';
+import withCurrentUserPersonalDetails, {withCurrentUserPersonalDetailsPropTypes} from '../withCurrentUserPersonalDetails';
 import compose from '../../libs/compose';
 import withLocalize from '../withLocalize';
 
@@ -33,12 +31,15 @@ const propTypes = {
 
 const ReactionTooltipContent = (props) => {
     const users = PersonalDetailsUtils.getPersonalDetailsByIDs(props.accountIDs, true);
-    const namesString = _.filter(_.map(users, user => user && user.displayName), n => n).join(', ');
+    const namesString = _.filter(
+        _.map(users, (user) => user && user.displayName),
+        (n) => n,
+    ).join(', ');
 
     return (
         <View style={[styles.alignItemsCenter, styles.ph2]}>
             <View style={styles.flexRow}>
-                {_.map(props.emojiCodes, emojiCode => (
+                {_.map(props.emojiCodes, (emojiCode) => (
                     <Text
                         key={emojiCode}
                         style={styles.reactionEmojiTitle}
@@ -48,23 +49,9 @@ const ReactionTooltipContent = (props) => {
                 ))}
             </View>
 
-            <Text style={[
-                styles.mt1,
-                styles.textMicroBold,
-                styles.textReactionSenders,
-                styles.textAlignCenter,
-            ]}
-            >
-                {namesString}
-            </Text>
+            <Text style={[styles.mt1, styles.textMicroBold, styles.textReactionSenders, styles.textAlignCenter]}>{namesString}</Text>
 
-            <Text style={[
-                styles.textMicro,
-                styles.fontColorReactionLabel,
-            ]}
-            >
-                {`${props.translate('emojiReactions.reactedWith')} :${props.emojiName}:`}
-            </Text>
+            <Text style={[styles.textMicro, styles.fontColorReactionLabel]}>{`${props.translate('emojiReactions.reactedWith')} :${props.emojiName}:`}</Text>
         </View>
     );
 };
@@ -72,7 +59,4 @@ const ReactionTooltipContent = (props) => {
 ReactionTooltipContent.propTypes = propTypes;
 ReactionTooltipContent.defaultProps = withCurrentUserPersonalDetails;
 ReactionTooltipContent.displayName = 'ReactionTooltipContent';
-export default React.memo(compose(
-    withPersonalDetails(),
-    withLocalize,
-)(ReactionTooltipContent));
+export default React.memo(compose(withPersonalDetails(), withLocalize)(ReactionTooltipContent));

@@ -34,22 +34,24 @@ const propTypes = {
     /* Onyx Props */
 
     /** The list of this user's policies */
-    policies: PropTypes.objectOf(PropTypes.shape({
-        /** The ID of the policy */
-        ID: PropTypes.string,
+    policies: PropTypes.objectOf(
+        PropTypes.shape({
+            /** The ID of the policy */
+            ID: PropTypes.string,
 
-        /** The name of the policy */
-        name: PropTypes.string,
+            /** The name of the policy */
+            name: PropTypes.string,
 
-        /** The type of the policy */
-        type: PropTypes.string,
+            /** The type of the policy */
+            type: PropTypes.string,
 
-        /** The user's role in the policy */
-        role: PropTypes.string,
+            /** The user's role in the policy */
+            role: PropTypes.string,
 
-        /** The current action that is waiting to happen on the policy */
-        pendingAction: PropTypes.oneOf(_.values(CONST.RED_BRICK_ROAD_PENDING_ACTION)),
-    })),
+            /** The current action that is waiting to happen on the policy */
+            pendingAction: PropTypes.oneOf(_.values(CONST.RED_BRICK_ROAD_PENDING_ACTION)),
+        }),
+    ),
 
     /** Bank account attached to free plan */
     reimbursementAccount: ReimbursementAccountProps.reimbursementAccountPropTypes,
@@ -112,9 +114,7 @@ class WorkspacesListPage extends Component {
      * @returns {Number} the user wallet balance
      */
     getWalletBalance(isPaymentItem) {
-        return (isPaymentItem && Permissions.canUseWallet(this.props.betas))
-            ? CurrencyUtils.convertToDisplayString(this.props.userWallet.currentBalance)
-            : undefined;
+        return isPaymentItem && Permissions.canUseWallet(this.props.betas) ? CurrencyUtils.convertToDisplayString(this.props.userWallet.currentBalance) : undefined;
     }
 
     /**
@@ -124,8 +124,8 @@ class WorkspacesListPage extends Component {
     getWorkspaces() {
         const reimbursementAccountBrickRoadIndicator = !_.isEmpty(this.props.reimbursementAccount.errors) ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : '';
         return _.chain(this.props.policies)
-            .filter(policy => PolicyUtils.shouldShowPolicy(policy, this.props.network.isOffline))
-            .map(policy => ({
+            .filter((policy) => PolicyUtils.shouldShowPolicy(policy, this.props.network.isOffline))
+            .map((policy) => ({
                 title: policy.name,
                 icon: policy.avatar ? policy.avatar : ReportUtils.getDefaultWorkspaceAvatar(policy.name),
                 iconType: policy.avatar ? CONST.ICON_TYPE_AVATAR : CONST.ICON_TYPE_ICON,
@@ -138,7 +138,7 @@ class WorkspacesListPage extends Component {
                 dismissError: () => dismissWorkspaceError(policy.id, policy.pendingAction),
                 disabled: policy.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
             }))
-            .sortBy(policy => policy.title.toLowerCase())
+            .sortBy((policy) => policy.title.toLowerCase())
             .value();
     }
 

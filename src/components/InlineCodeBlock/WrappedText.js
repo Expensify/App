@@ -16,7 +16,7 @@ import Text from '../Text';
  * @returns {Array<String[]>}
  */
 function getTextMatrix(text) {
-    return _.map(text.split('\n'), row => _.without(row.split(/(\s)/), ''));
+    return _.map(text.split('\n'), (row) => _.without(row.split(/(\s)/), ''));
 }
 
 const propTypes = {
@@ -30,21 +30,11 @@ const propTypes = {
     /** Style for each word(Token) in the text, remember that token also includes whitespaces among words */
     // eslint-disable-next-line react/forbid-prop-types
     wordStyles: PropTypes.arrayOf(PropTypes.object),
-
-    /** Style for first word(Token) in the text */
-    // eslint-disable-next-line react/forbid-prop-types
-    codeFirstWordStyle: PropTypes.object,
-
-    /** Style for last word(Token) in the text */
-    // eslint-disable-next-line react/forbid-prop-types
-    codeLastWordStyle: PropTypes.object,
 };
 
 const defaultProps = {
     textStyles: [],
     wordStyles: [],
-    codeFirstWordStyle: undefined,
-    codeLastWordStyle: undefined,
 };
 
 const WrappedText = (props) => {
@@ -53,9 +43,6 @@ const WrappedText = (props) => {
     }
 
     const textMatrix = getTextMatrix(props.children);
-    const codeFirstWordStyle = props.codeFirstWordStyle || styles.codeFirstWordStyle;
-    const codeLastWordStyle = props.codeLastWordStyle || styles.codeLastWordStyle;
-
     return (
         <>
             {_.map(textMatrix, (rowText, rowIndex) => (
@@ -64,20 +51,13 @@ const WrappedText = (props) => {
                     key={`${rowText}-${rowIndex}`}
                 >
                     {_.map(rowText, (colText, colIndex) => (
-
                         // Outer View is important to vertically center the Text
                         <View
                             // eslint-disable-next-line react/no-array-index-key
                             key={`${colText}-${colIndex}`}
                             style={styles.codeWordWrapper}
                         >
-                            <View
-                                style={[
-                                    props.wordStyles,
-                                    colIndex === 0 && codeFirstWordStyle,
-                                    colIndex === rowText.length - 1 && codeLastWordStyle,
-                                ]}
-                            >
+                            <View style={[props.wordStyles, colIndex === 0 && styles.codeFirstWordStyle, colIndex === rowText.length - 1 && styles.codeLastWordStyle]}>
                                 <Text style={props.textStyles}>{colText}</Text>
                             </View>
                         </View>

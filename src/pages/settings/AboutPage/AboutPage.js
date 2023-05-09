@@ -151,7 +151,4 @@ const AboutPage = (props) => {
 AboutPage.propTypes = propTypes;
 AboutPage.displayName = 'AboutPage';
 
-export default compose(
-    withLocalize,
-    withWindowDimensions,
-)(AboutPage);
+export default compose(withLocalize, withWindowDimensions)(AboutPage);

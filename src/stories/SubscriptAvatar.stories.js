@@ -25,7 +25,7 @@ export default {
 };
 
 // eslint-disable-next-line react/jsx-props-no-spreading
-const Template = args => <SubscriptAvatar {...args} />;
+const Template = (args) => <SubscriptAvatar {...args} />;
 
 // Arguments can be passed to the component by binding
 // See: https://storybook.js.org/docs/react/writing-stories/introduction#using-args
@@ -37,7 +37,4 @@ AvatarURLStory.args = {
     secondaryAvatar: {source: defaultAvatars.Avatar3, name: '', type: CONST.ICON_TYPE_AVATAR},
 };
 
-export {
-    Default,
-    AvatarURLStory,
-};
+export {Default, AvatarURLStory};

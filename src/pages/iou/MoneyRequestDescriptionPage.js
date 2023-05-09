@@ -82,7 +82,7 @@ class MoneyRequestDescriptionPage extends Component {
                             name="moneyRequestComment"
                             defaultValue={this.props.iou.comment}
                             label={this.props.translate('moneyRequestConfirmationList.whatsItFor')}
-                            ref={el => this.descriptionInputRef = el}
+                            ref={(el) => (this.descriptionInputRef = el)}
                         />
                     </View>
                 </Form>
