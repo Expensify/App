@@ -73,6 +73,7 @@ function TaskHeaderView(props) {
                     />
                     )
                 }
+                {/* TO-DO: Add functionatility to mark task as done. Will be in: https://github.com/Expensify/App/issues/16858 */}
                 <Button success title="Done" />
             </View>
             <MenuItemWithTopDescription
