@@ -234,20 +234,19 @@ class BaseValidateCodeForm extends React.Component {
                             autoFocus
                         />
                         <View style={[styles.changeExpensifyLoginLinkContainer]}>
-                            {this.state.linkSent ? (
+                            <TouchableOpacity
+                                style={[styles.mt2]}
+                                onPress={this.resendValidateCode}
+                                underlayColor={themeColors.componentBG}
+                            >
+                                <Text style={[styles.link]}>
+                                    {this.props.translate('validateCodeForm.magicCodeNotReceived')}
+                                </Text>
+                            </TouchableOpacity>
+                            {this.state.linkSent && !hasError && (
                                 <Text style={[styles.mt2]}>
                                     {this.props.account.message ? this.props.translate(this.props.account.message) : ''}
                                 </Text>
-                            ) : (
-                                <TouchableOpacity
-                                    style={[styles.mt2]}
-                                    onPress={this.resendValidateCode}
-                                    underlayColor={themeColors.componentBG}
-                                >
-                                    <Text style={[styles.link]}>
-                                        {this.props.translate('validateCodeForm.magicCodeNotReceived')}
-                                    </Text>
-                                </TouchableOpacity>
                             )}
                         </View>
                     </View>
