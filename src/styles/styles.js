@@ -3199,6 +3199,7 @@ const styles = {
 
     illustratedPageHeader: {
         height: '36%',
+        minHeight: 270,
     },
 
     illustratedPageBody: {
