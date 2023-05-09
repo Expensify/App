@@ -64,7 +64,7 @@ class WorkspaceSettingsPage extends React.Component {
             return;
         }
         const outputCurrency = values.currency;
-        Policy.updateGeneralSettings(this.props.policy.id, values.name, outputCurrency);
+        Policy.updateGeneralSettings(this.props.policy.id, values.name.trim(), outputCurrency);
         Keyboard.dismiss();
         Navigation.navigate(ROUTES.getWorkspaceInitialRoute(this.props.policy.id));
     }

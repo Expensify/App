@@ -2,6 +2,7 @@ import AnchorRenderer from './AnchorRenderer';
 import CodeRenderer from './CodeRenderer';
 import EditedRenderer from './EditedRenderer';
 import ImageRenderer from './ImageRenderer';
+import MentionUserRenderer from './MentionUserRenderer';
 import PreRenderer from './PreRenderer';
 
 /**
@@ -16,4 +17,5 @@ export default {
     // Custom tag renderers
     edited: EditedRenderer,
     pre: PreRenderer,
+    'mention-user': MentionUserRenderer,
 };
