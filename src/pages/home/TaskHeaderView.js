@@ -42,6 +42,7 @@ function TaskHeaderView(props) {
     const [assignee, setAssignee] = useState('');
 
     useEffect(() => {
+        TaskUtils.setTaskReport(props.report);
         if (!props.report.assignee) {
             return;
         }
@@ -65,7 +66,7 @@ function TaskHeaderView(props) {
                         text={assignee.displayName}
                         alternateText={assignee.subtitle}
                         onPress={() => {
-                            TaskUtils.beginEditingTask(props.report);
+                            TaskUtils.beginEditingTask();
                             Navigation.navigate(ROUTES.getTaskReportAssigneeRoute(props.report.reportID));
                         }}
                         label="taskReport.to"
@@ -81,7 +82,7 @@ function TaskHeaderView(props) {
                 title={props.report.reportName}
                 description="Task"
                 onPress={() => {
-                    TaskUtils.beginEditingTask(props.report);
+                    TaskUtils.beginEditingTask();
                     Navigation.navigate(ROUTES.getTaskReportTitleRoute(props.report.reportID));
                 }}
             />

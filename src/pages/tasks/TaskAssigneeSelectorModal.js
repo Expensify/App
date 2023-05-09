@@ -54,6 +54,9 @@ const propTypes = {
 
         /** Whether a task is being edited */
         isEditing: PropTypes.bool,
+
+        /** The task report if it's currently being edited */
+        report: reportPropTypes,
     }),
 
     ...withLocalizePropTypes,
@@ -65,9 +68,7 @@ const defaultProps = {
     reports: {},
     session: {},
     route: {},
-    task: {
-        shareDestination: '',
-    },
+    task: {},
 };
 
 const TaskAssigneeSelectorModal = (props) => {

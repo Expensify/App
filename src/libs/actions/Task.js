@@ -151,6 +151,21 @@ function createTaskAndNavigate(currentUserEmail, parentReportID, title, descript
     Navigation.navigate(ROUTES.getReportRoute(optimisticTaskReport.reportID));
 }
 
+/**
+ * Sets the task editing property in the store to true
+ *
+ * @params {Object} report
+ */
+
+function beginEditingTask() {
+    Onyx.merge(ONYXKEYS.TASK, {isEditing: true});
+}
+
+/** Sets the task editing property in the store to false */
+function endEditingTask() {
+    Onyx.merge(ONYXKEYS.TASK, {isEditing: false});
+}
+
 // import ReportUtils from '../ReportUtils';
 
 /**
@@ -209,26 +224,23 @@ function editTaskAndNavigate(report, ownerEmail, title, description, assignee) {
         assignee,
     }, [optimisticData, successData, failureData]);
 
-    // Clear out the edited task info from the store,
-    clearOutTaskInfo();
     Navigation.navigate(ROUTES.getReportRoute(report.reportID));
+    endEditingTask();
 }
 
 /**
- * Sets the task editing property in the store to true
- * Also sets the data for the report being edited
+ * Sets the report info for the task being viewed
  *
- * @params {Object} report
+ * @param {Object} report
  */
-
-function beginEditingTask(report) {
-    Onyx.merge(ONYXKEYS.TASK, {isEditing: true, report});
+function setTaskReport(report) {
+    Onyx.merge(ONYXKEYS.TASK, {report});
 }
 
 /**
  * Sets the title and description values for the task
  * @param {string} title
-  @param {string} description
+ * @param {string} description
  */
 
 function setDetailsValue(title, description) {
@@ -344,6 +356,8 @@ export {
     setTitleValue,
     setDescriptionValue,
     beginEditingTask,
+    setTaskReport,
+    endEditingTask,
     setDetailsValue,
     setAssigneeValue,
     setShareDestinationValue,
