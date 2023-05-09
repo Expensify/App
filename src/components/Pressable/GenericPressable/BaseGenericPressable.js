@@ -121,11 +121,11 @@ const GenericPressable = forwardRef((props, ref) => {
             hitSlop={shouldUseAutoHitSlop && hitSlop}
             onLayout={onLayout}
             ref={ref}
-            onPress={!isDisabled && onPressHandler}
-            onLongPress={!isDisabled && onLongPressHandler}
-            onKeyPress={!isDisabled && onKeyPressHandler}
-            onPressIn={!isDisabled && onPressIn}
-            onPressOut={!isDisabled && onPressOut}
+            onPress={!isDisabled ? onPressHandler : undefined}
+            onLongPress={!isDisabled ? onLongPressHandler : undefined}
+            onKeyPress={!isDisabled ? onKeyPressHandler : undefined}
+            onPressIn={!isDisabled ? onPressIn : undefined}
+            onPressOut={!isDisabled ? onPressOut : undefined}
             style={state => [
                 getCursorStyle(isDisabled, [props.accessibilityRole, props.role].includes('text')),
                 props.style,
