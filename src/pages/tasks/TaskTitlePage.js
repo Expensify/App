@@ -2,6 +2,7 @@ import _ from 'underscore';
 import React, {useCallback, useRef} from 'react';
 import PropTypes from 'prop-types';
 import {View} from 'react-native';
+import {withOnyx} from 'react-native-onyx';
 import ScreenWrapper from '../../components/ScreenWrapper';
 import HeaderWithCloseButton from '../../components/HeaderWithCloseButton';
 import withLocalize, {withLocalizePropTypes} from '../../components/withLocalize';
@@ -13,6 +14,7 @@ import Navigation from '../../libs/Navigation/Navigation';
 import reportPropTypes from '../reportPropTypes';
 import compose from '../../libs/compose';
 import withReportOrNotFound from '../home/report/withReportOrNotFound';
+import * as TaskUtils from '../../libs/actions/Task';
 
 const propTypes = {
     /** URL Route params */
@@ -27,11 +29,18 @@ const propTypes = {
     /** The report currently being looked at */
     report: reportPropTypes.isRequired,
 
+    /** Current user session */
+    session: PropTypes.shape({
+        email: PropTypes.string.isRequired,
+    }),
+
     /* Onyx Props */
     ...withLocalizePropTypes,
 };
 
-const defaultProps = {};
+const defaultProps = {
+    session: {},
+};
 
 function TaskTitlePage(props) {
     /**
@@ -52,9 +61,12 @@ function TaskTitlePage(props) {
         [props],
     );
 
-    const submit = useCallback(() => {
-        // Functionality will be implemented in https://github.com/Expensify/App/issues/16856
-    }, []);
+    const submit = useCallback((values) => {
+        // Set the description of the report in the store and then call TaskUtils.editTaskReport
+        // to update the description of the report on the server
+
+        TaskUtils.editTaskAndNavigate(props.report, props.session.email, values.title, '', '');
+    }, [props]);
 
     const inputRef = useRef(null);
 
@@ -94,4 +106,12 @@ function TaskTitlePage(props) {
 TaskTitlePage.propTypes = propTypes;
 TaskTitlePage.defaultProps = defaultProps;
 
-export default compose(withLocalize, withReportOrNotFound)(TaskTitlePage);
+export default compose(
+    withLocalize,
+    withReportOrNotFound,
+    withOnyx({
+        session: {
+            key: ONYXKEYS.SESSION,
+        },
+    }),
+)(TaskTitlePage);

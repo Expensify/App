@@ -1467,12 +1467,12 @@ function buildOptimisticEditedTaskReportAction(ownerEmail) {
         reportActionID: NumberUtils.rand64(),
         actionName: CONST.REPORT.ACTIONS.TYPE.EDITED,
         pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
-        actorAccountID: ownerEmail,
+        actorAccountID: currentUserEmail,
         message: [
             {
                 type: CONST.REPORT.MESSAGE.TYPE.TEXT,
                 style: 'strong',
-                text: lodashGet(allPersonalDetails, [ownerEmail, 'displayName'], ownerEmail),
+                text: ownerEmail === currentUserEmail ? 'You' : ownerEmail,
             },
             {
                 type: CONST.REPORT.MESSAGE.TYPE.TEXT,
@@ -1484,11 +1484,11 @@ function buildOptimisticEditedTaskReportAction(ownerEmail) {
             {
                 type: CONST.REPORT.MESSAGE.TYPE.TEXT,
                 style: 'strong',
-                text: lodashGet(allPersonalDetails, [ownerEmail, 'displayName'], ownerEmail),
+                text: lodashGet(allPersonalDetails, [currentUserEmail, 'displayName'], currentUserEmail),
             },
         ],
         automatic: false,
-        avatar: lodashGet(allPersonalDetails, [ownerEmail, 'avatar'], getDefaultAvatar(ownerEmail)),
+        avatar: lodashGet(allPersonalDetails, [currentUserEmail, 'avatar'], getDefaultAvatar(currentUserEmail)),
         created: DateUtils.getDBTime(),
         shouldShow: true,
     };
