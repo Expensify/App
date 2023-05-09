@@ -12,7 +12,7 @@ const $googleContaierStyle = {
     height: 40, width: 40, alignItems: 'center',
 };
 
-const GoogleSignIn = (props) => {
+const GoogleSignIn = ({id, translate}) => {
     const handleCredentialResponse = (response) => { // handle the response
     };
 
@@ -28,7 +28,7 @@ const GoogleSignIn = (props) => {
                     client_id: '921154746561-gpsoaqgqfuqrfsjdf8l7vohfkfj7b9up.apps.googleusercontent.com',
                     callback: handleCredentialResponse,
                 });
-                google.accounts.id.renderButton(document.getElementById('buttonDiv'), {
+                google.accounts.id.renderButton(document.getElementById(id), {
                     theme: 'outline',
                     size: 'large',
                     type: 'icon',
@@ -49,8 +49,8 @@ const GoogleSignIn = (props) => {
         <View style={$googleContaierStyle}>
             <div
                 accessibilityrole="button"
-                accessibilitylabel={props.translate('common.signInWithGoogle')}
-                id="buttonDiv"
+                accessibilitylabel={translate('common.signInWithGoogle')}
+                id={id}
             />
         </View>
     );

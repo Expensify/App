@@ -26,7 +26,7 @@ const AppleAuthScreen = () => (
 const GoogleAuthScreen = () => {
     return (
         <View style={{flex: 1, justifyContent: 'center', alignItems: 'center'}}>
-            <GoogleSignIn />
+            <GoogleSignIn id="google-sign-in-desktop" />
         </View>
     );
 };

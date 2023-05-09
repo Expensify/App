@@ -219,7 +219,7 @@ class LoginForm extends React.Component {
                             }}
                             >
                                 <AppleSignIn />
-                                <GoogleSignIn />
+                                <GoogleSignIn id="google-sign-in-main" />
                             </View>
                         </View>
                     )
