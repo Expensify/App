@@ -78,7 +78,7 @@ const ReportPreview = (props) => {
     const managerName = ReportUtils.getDisplayNameForParticipant(managerEmail, true);
     return (
         <View style={[styles.chatItemMessage, styles.mt4]}>
-            {_.map(props.action.message, (index) => (
+            {_.map(props.action.message, index => (
                 <Pressable
                     key={`ReportPreview-${props.action.reportActionID}-${index}`}
                     onPress={props.onViewDetailsPressed}
