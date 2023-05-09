@@ -199,6 +199,8 @@ const styles = {
 
     mentionSuggestionsText: {
         fontSize: variables.fontSizeMedium,
+        flex: 1,
+        ...spacing.ml2,
     },
 
     unitCol: {
