@@ -206,7 +206,7 @@ const IOUPreview = (props) => {
                             <Text>
                                 {props.isBillSplit ? props.translate('iou.split') : props.translate('iou.cash')}
                             </Text>
-                            {true && (
+                            {(props.action.originalMessage.type === 'pay' || !ReportUtils.isPolicyExpenseChat(props.report)) && (
                                 <>
                                     <Icon src={Expensicons.DotIndicator} width={4} height={4} additionalStyles={[styles.mr1, styles.ml1]} />
                                     <Text>
