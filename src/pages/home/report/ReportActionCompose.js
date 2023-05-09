@@ -545,7 +545,9 @@ class ReportActionCompose extends React.Component {
             mentionPrefix: prefix,
         };
 
-        if (this.isMentionCode(lastWord)) {
+        const isCursorBeforeTheMention = valueAfterTheCursor.startsWith(lastWord);
+
+        if (!isCursorBeforeTheMention && this.isMentionCode(lastWord)) {
             const options = OptionsListUtils.getNewChatOptions(
                 this.props.reports,
                 this.props.personalDetails,
