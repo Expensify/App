@@ -188,10 +188,18 @@ const IOUPreview = (props) => {
             >
                 <View style={[styles.iouPreviewBox, ...props.containerStyles]}>
                     <View style={[styles.flexRow]}>
-                        <View style={[styles.flex1]}>
+                        <View style={[styles.flex1, styles.flexRow, styles.alignItemsCenter]}>
                             <Text>
                                 {props.isBillSplit ? props.translate('iou.split') : props.translate('iou.cash')}
                             </Text>
+                            {true && (
+                                <>
+                                    <Icon src={Expensicons.DotIndicator} width={4} height={4} additionalStyles={[styles.mr1, styles.ml1]} />
+                                    <Text>
+                                        {props.translate('iou.settled')}
+                                    </Text>
+                                </>
+                            )}
                         </View>
                         <Icon src={Expensicons.ArrowRight} fill={StyleUtils.getIconFillColor(getButtonState(props.isHovered))} />
                     </View>
