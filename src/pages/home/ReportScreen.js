@@ -245,7 +245,7 @@ class ReportScreen extends React.Component {
         // the moment the ReportScreen becomes unfrozen we want to start the animation of the placeholder skeleton content
         // (which is shown, until all the actual views of the ReportScreen have been rendered)
         const shouldAnimate = !shouldFreeze;
-
+        const isMoneyRequestThreadReport = ReportUtils.isMoneyRequestThreadReport(this.props.report);
         return (
             <ScreenWrapper style={screenWrapperStyle}>
                 <Freeze
@@ -284,12 +284,12 @@ class ReportScreen extends React.Component {
                                     errors={addWorkspaceRoomOrChatErrors}
                                     shouldShowErrorMessages={false}
                                 >
-                                    {(ReportUtils.isMoneyRequestReport(this.props.report) || ReportUtils.isMoneyRequestThreadReport(this.props.report)) ? (
+                                    {(ReportUtils.isMoneyRequestReport(this.props.report) || isMoneyRequestThreadReport) ? (
                                         <MoneyRequestHeader
                                             report={this.props.report}
                                             policies={this.props.policies}
                                             personalDetails={this.props.personalDetails}
-                                            isSingleTransactionView={ReportUtils.isMoneyRequestThreadReport(this.props.report)}
+                                            isSingleTransactionView={isMoneyRequestThreadReport}
                                         />
                                     ) : (
                                         <HeaderView
