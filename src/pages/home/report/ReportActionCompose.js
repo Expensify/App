@@ -243,7 +243,10 @@ class ReportActionCompose extends React.Component {
 
         const shortcutConfig = CONST.KEYBOARD_SHORTCUTS.ESCAPE;
         this.unsubscribeEscapeKey = KeyboardShortcut.subscribe(shortcutConfig.shortcutKey, () => {
-            if (!this.state.isFocused || this.comment.length === 0) {
+            const suggestionsExist = this.state.suggestedEmojis.length > 0
+                || this.state.suggestedMentions.length > 0;
+
+            if (!this.state.isFocused || this.comment.length === 0 || suggestionsExist) {
                 return;
             }
 
@@ -576,7 +579,7 @@ class ReportActionCompose extends React.Component {
      * @returns {Boolean}
      */
     isMentionCode(str) {
-        return CONST.REGEX.HAS_AT_MOST_TWO_AT_SIGNS.test(str) && str.length > 2;
+        return CONST.REGEX.HAS_AT_MOST_TWO_AT_SIGNS.test(str);
     }
 
     /**

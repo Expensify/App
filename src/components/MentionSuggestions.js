@@ -10,7 +10,6 @@ import Avatar from './Avatar';
 import AutoCompleteSuggestions from './AutoCompleteSuggestions';
 import getStyledTextArray from '../libs/GetStyledTextArray';
 import avatarPropTypes from './avatarPropTypes';
-import spacing from '../styles/utilities/spacing';
 
 const propTypes = {
     /** The index of the highlighted mention */
@@ -66,7 +65,7 @@ const MentionSuggestions = (props) => {
         const styledTextArray = getStyledTextArray(displayedText, props.prefix);
 
         return (
-            <View style={[styles.autoCompleteSuggestionContainer, spacing.ph2]}>
+            <View style={[styles.autoCompleteSuggestionContainer, styles.ph2]}>
                 <Avatar
                     source={item.icons[0].source}
                     size={CONST.AVATAR_SIZE.SMALLER}
