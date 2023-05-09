@@ -284,22 +284,20 @@ class ReportScreen extends React.Component {
                                     errors={addWorkspaceRoomOrChatErrors}
                                     shouldShowErrorMessages={false}
                                 >
-                                    {ReportUtils.isMoneyRequestReport(this.props.report)
-                                        ? (
-                                            <MoneyRequestHeader
-                                                report={this.props.report}
-                                                policies={this.props.policies}
-                                                personalDetails={this.props.personalDetails}
-                                            />
-                                        )
-                                        : (
-                                            <HeaderView
-                                                reportID={reportID}
-                                                onNavigationMenuButtonClicked={() => Navigation.navigate(ROUTES.HOME)}
-                                                personalDetails={this.props.personalDetails}
-                                                report={this.props.report}
-                                            />
-                                        )}
+                                    {ReportUtils.isMoneyRequestReport(this.props.report) ? (
+                                        <MoneyRequestHeader
+                                            report={this.props.report}
+                                            policies={this.props.policies}
+                                            personalDetails={this.props.personalDetails}
+                                        />
+                                    ) : (
+                                        <HeaderView
+                                            reportID={reportID}
+                                            onNavigationMenuButtonClicked={() => Navigation.navigate(ROUTES.HOME)}
+                                            personalDetails={this.props.personalDetails}
+                                            report={this.props.report}
+                                        />
+                                    )}
                                 </OfflineWithFeedback>
                                 {Boolean(this.props.accountManagerReportID) && ReportUtils.isConciergeChatReport(this.props.report) && this.state.isBannerVisible && (
                                     <Banner

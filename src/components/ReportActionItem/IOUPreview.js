@@ -84,11 +84,12 @@ const propTypes = {
     isHovered: PropTypes.bool,
 
     /** All of the personal details for everyone */
-    personalDetails: PropTypes.objectOf(PropTypes.shape({
-
-        /** This is either the user's full name, or their login if full name is an empty string */
-        displayName: PropTypes.string.isRequired,
-    })),
+    personalDetails: PropTypes.objectOf(
+        PropTypes.shape({
+            /** This is either the user's full name, or their login if full name is an empty string */
+            displayName: PropTypes.string.isRequired,
+        }),
+    ),
 
     /** Session info for the currently logged in user. */
     session: PropTypes.shape({

@@ -1,8 +1,6 @@
 import React from 'react';
 import _ from 'underscore';
-import {
-    TNodeChildrenRenderer,
-} from 'react-native-render-html';
+import {TNodeChildrenRenderer} from 'react-native-render-html';
 import Navigation from '../../../libs/Navigation/Navigation';
 import ROUTES from '../../../ROUTES';
 import Text from '../../Text';
@@ -26,7 +24,7 @@ const propTypes = {
  * @param {String} email
  * @returns {void}
  * */
-const showUserDetails = email => Navigation.navigate(ROUTES.getDetailsRoute(email));
+const showUserDetails = (email) => Navigation.navigate(ROUTES.getDetailsRoute(email));
 
 const MentionUserRenderer = (props) => {
     const defaultRendererProps = _.omit(props, ['TDefaultRenderer', 'style']);
@@ -38,7 +36,10 @@ const MentionUserRenderer = (props) => {
 
     return (
         <Text>
-            <Tooltip absolute text={loginWhithoutLeadingAt}>
+            <Tooltip
+                absolute
+                text={loginWhithoutLeadingAt}
+            >
                 <Text
                     // eslint-disable-next-line react/jsx-props-no-spreading
                     {...defaultRendererProps}

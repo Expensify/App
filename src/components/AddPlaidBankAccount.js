@@ -129,10 +129,9 @@ class AddPlaidBankAccount extends React.Component {
      */
     subscribeToNavigationShortcuts() {
         // find and block the shortcuts
-        const shortcutsToBlock = _.filter(CONST.KEYBOARD_SHORTCUTS, x => x.type === CONST.KEYBOARD_SHORTCUTS_TYPES.NAVIGATION_SHORTCUT);
-        this.subscribedKeyboardShortcuts = _.map(
-            shortcutsToBlock,
-            shortcut => KeyboardShortcut.subscribe(
+        const shortcutsToBlock = _.filter(CONST.KEYBOARD_SHORTCUTS, (x) => x.type === CONST.KEYBOARD_SHORTCUTS_TYPES.NAVIGATION_SHORTCUT);
+        this.subscribedKeyboardShortcuts = _.map(shortcutsToBlock, (shortcut) =>
+            KeyboardShortcut.subscribe(
                 shortcut.shortcutKey,
                 () => {}, // do nothing
                 shortcut.descriptionKey,
@@ -147,7 +146,7 @@ class AddPlaidBankAccount extends React.Component {
      * Unblocks the keyboard shortcuts that can navigate
      */
     unsubscribeToNavigationShortcuts() {
-        _.each(this.subscribedKeyboardShortcuts, unsubscribe => unsubscribe());
+        _.each(this.subscribedKeyboardShortcuts, (unsubscribe) => unsubscribe());
         this.subscribedKeyboardShortcuts = [];
     }
 

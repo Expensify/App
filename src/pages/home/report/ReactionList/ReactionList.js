@@ -13,27 +13,11 @@ const reactionListRef = React.createRef();
  * @param {Number} emojiCount - count of emoji
  * @param {Boolean} hasUserReacted - show if user has reacted
  */
-function showReactionList(
-    event,
-    reactionListPopoverAnchor,
-    users,
-    emojiName,
-    emojiCodes,
-    emojiCount,
-    hasUserReacted,
-) {
+function showReactionList(event, reactionListPopoverAnchor, users, emojiName, emojiCodes, emojiCount, hasUserReacted) {
     if (!reactionListRef.current) {
         return;
     }
-    reactionListRef.current.showReactionList(
-        event,
-        reactionListPopoverAnchor,
-        users,
-        emojiName,
-        emojiCodes,
-        emojiCount,
-        hasUserReacted,
-    );
+    reactionListRef.current.showReactionList(event, reactionListPopoverAnchor, users, emojiName, emojiCodes, emojiCount, hasUserReacted);
 }
 
 /**
@@ -48,8 +32,4 @@ function hideReactionList(onHideCallback = () => {}) {
     reactionListRef.current.hideReactionList(onHideCallback);
 }
 
-export {
-    reactionListRef,
-    showReactionList,
-    hideReactionList,
-};
+export {reactionListRef, showReactionList, hideReactionList};
