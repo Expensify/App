@@ -12,7 +12,7 @@ const story = {
 };
 
 // eslint-disable-next-line react/jsx-props-no-spreading
-const Template = args => <HeaderWithCloseButton {...args} />;
+const Template = (args) => <HeaderWithCloseButton {...args} />;
 
 // Arguments can be passed to the component by binding
 // See: https://storybook.js.org/docs/react/writing-stories/introduction#using-args
@@ -32,8 +32,4 @@ Profile.args = {
 };
 
 export default story;
-export {
-    Default,
-    Attachment,
-    Profile,
-};
+export {Default, Attachment, Profile};

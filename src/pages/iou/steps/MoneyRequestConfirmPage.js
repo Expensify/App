@@ -35,7 +35,7 @@ const defaultProps = {
     canModifyParticipants: false,
 };
 
-const MoneyRequestConfirmPage = props => (
+const MoneyRequestConfirmPage = (props) => (
     <MoneyRequestConfirmationList
         hasMultipleParticipants={props.hasMultipleParticipants}
         participants={props.participants}

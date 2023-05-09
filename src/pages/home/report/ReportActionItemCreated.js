@@ -63,9 +63,7 @@ const ReportActionItemCreated = (props) => {
                         onPress={() => ReportUtils.navigateToDetailsPage(props.report)}
                         style={[styles.ph5, styles.pb3, styles.alignSelfStart]}
                     >
-                        <RoomHeaderAvatars
-                            icons={icons}
-                        />
+                        <RoomHeaderAvatars icons={icons} />
                     </Pressable>
                     <View style={[styles.ph5]}>
                         <ReportWelcomeText report={props.report} />

@@ -73,34 +73,31 @@ class ContextMenuItem extends Component {
     render() {
         const icon = this.props.isDelayButtonStateComplete ? this.props.successIcon || this.props.icon : this.props.icon;
         const text = this.props.isDelayButtonStateComplete ? this.props.successText || this.props.text : this.props.text;
-        return (
-            this.props.isMini
-                ? (
-                    <BaseMiniContextMenuItem
-                        tooltipText={text}
-                        onPress={this.triggerPressAndUpdateSuccess}
-                        isDelayButtonStateComplete={this.props.isDelayButtonStateComplete}
-                    >
-                        {({hovered, pressed}) => (
-                            <Icon
-                                small
-                                src={icon}
-                                fill={StyleUtils.getIconFillColor(getButtonState(hovered, pressed, this.props.isDelayButtonStateComplete))}
-                            />
-                        )}
-                    </BaseMiniContextMenuItem>
-                ) : (
-                    <MenuItem
-                        title={text}
-                        icon={icon}
-                        onPress={this.triggerPressAndUpdateSuccess}
-                        wrapperStyle={styles.pr9}
-                        success={this.props.isDelayButtonStateComplete}
-                        description={this.props.description}
-                        descriptionTextStyle={styles.breakAll}
-                        style={getContextMenuItemStyles(this.props.windowWidth)}
+        return this.props.isMini ? (
+            <BaseMiniContextMenuItem
+                tooltipText={text}
+                onPress={this.triggerPressAndUpdateSuccess}
+                isDelayButtonStateComplete={this.props.isDelayButtonStateComplete}
+            >
+                {({hovered, pressed}) => (
+                    <Icon
+                        small
+                        src={icon}
+                        fill={StyleUtils.getIconFillColor(getButtonState(hovered, pressed, this.props.isDelayButtonStateComplete))}
                     />
-                )
+                )}
+            </BaseMiniContextMenuItem>
+        ) : (
+            <MenuItem
+                title={text}
+                icon={icon}
+                onPress={this.triggerPressAndUpdateSuccess}
+                wrapperStyle={styles.pr9}
+                success={this.props.isDelayButtonStateComplete}
+                description={this.props.description}
+                descriptionTextStyle={styles.breakAll}
+                style={getContextMenuItemStyles(this.props.windowWidth)}
+            />
         );
     }
 }
@@ -108,7 +105,4 @@ class ContextMenuItem extends Component {
 ContextMenuItem.propTypes = propTypes;
 ContextMenuItem.defaultProps = defaultProps;
 
-export default compose(
-    withWindowDimensions,
-    withDelayToggleButtonState,
-)(ContextMenuItem);
+export default compose(withWindowDimensions, withDelayToggleButtonState)(ContextMenuItem);
