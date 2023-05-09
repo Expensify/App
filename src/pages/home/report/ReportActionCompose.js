@@ -227,11 +227,25 @@ function ReportActionCompose(props) {
      */
     const [hasExceededMaxCommentLength, setExceededMaxCommentLength] = useState(false);
 
-    // TODO_S: double check useRefs
     const unsubscribeEscapeKey = useRef(null);
     const comment = useRef(props.comment);
     const textInput = useRef(null);
     const actionButton = useRef(null);
+
+    const reportParticipants = useMemo(
+        () => _.without(lodashGet(props.report, 'participants', []), props.currentUserPersonalDetails.login),
+        [props.report, props.currentUserPersonalDetails.login],
+    );
+    const participantsWithoutExpensifyEmails = useMemo(() => _.difference(reportParticipants, CONST.EXPENSIFY_EMAILS), [reportParticipants]);
+    const shouldShowReportRecipientLocalTime = useMemo(
+        () => ReportUtils.canShowReportRecipientLocalTime(props.personalDetails, props.report) && !props.isComposerFullSize,
+        [props.personalDetails, props.report, props.isComposerFullSize],
+    );
+
+    const isBlockedFromConcierge = useMemo(
+        () => ReportUtils.chatIncludesConcierge(props.report) && User.isBlockedFromConcierge(props.blockedFromConcierge),
+        [props.report, props.blockedFromConcierge],
+    );
 
     // If we are on a small width device then don't show last 3 items from conciergePlaceholderOptions
     const conciergePlaceholderRandomIndex = useMemo(
@@ -475,12 +489,9 @@ function ReportActionCompose(props) {
 
     /**
      * Returns the list of IOU Options
-     *
-     * @param {Array} reportParticipants
      * @returns {Array<object>}
      */
-    // TODO: rewrite to useMemo
-    const getMoneyRequestOptions = useCallback((reportParticipants) => {
+    const moneyRequestOptions = useMemo(() => {
         const options = {
             [CONST.IOU.MONEY_REQUEST_TYPE.SPLIT]: {
                 icon: Expensicons.Receipt,
@@ -499,9 +510,8 @@ function ReportActionCompose(props) {
             },
         };
 
-        // TODO: check for props in dependency array
         return _.map(ReportUtils.getMoneyRequestOptions(props.report, reportParticipants, props.betas), option => options[option]);
-    }, [props]);
+    }, [reportParticipants, props.report, props.betas, props.translate, props.reportID]);
 
     // eslint-disable-next-line rulesdir/prefer-early-return
     const updateShouldShowSuggestionMenuToFalse = useCallback(() => {
@@ -519,11 +529,9 @@ function ReportActionCompose(props) {
 
     /**
      * Determines if we can show the task option
-     * @param {Array} reportParticipants
      * @returns {Boolean}
      */
-    // TODO: rewrite to useMemo
-    const getTaskOption = useCallback((reportParticipants) => {
+    const taskOption = useMemo(() => {
         // We only prevent the task option from showing if it's a DM and the other user is an Expensify default email
         if (!Permissions.canUseTasks(props.betas) || (lodashGet(props.report, 'participants', []).length === 1 && _.some(reportParticipants, email => _.contains(
             CONST.EXPENSIFY_EMAILS,
@@ -539,9 +547,7 @@ function ReportActionCompose(props) {
                 onSelected: () => Navigation.navigate(ROUTES.getNewTaskRoute(props.reportID)),
             },
         ];
-
-        // TODO: check for props in dependency array
-    }, [props]);
+    }, [props.betas, props.report, reportParticipants, props.translate, props.reportID]);
 
     /**
      * Replace the code of emoji and update selection
@@ -553,7 +559,6 @@ function ReportActionCompose(props) {
         const emojiCode = emojiObject.types && emojiObject.types[props.preferredSkinTone] ? emojiObject.types[props.preferredSkinTone] : emojiObject.code;
         const commentAfterColonWithEmojiNameRemoved = value.slice(selection.end).replace(CONST.REGEX.EMOJI_REPLACER, CONST.SPACE);
 
-        // TODO: check if prevState.colonIndex to coloIndex works correct
         updateComment(`${commentBeforeColon}${emojiCode} ${commentAfterColonWithEmojiNameRemoved}`, true);
         setSelection({
             start: colonIndex + emojiCode.length + CONST.SPACE_LENGTH,
@@ -629,9 +634,7 @@ function ReportActionCompose(props) {
         }
 
         props.onSubmit(newComment);
-
-        // TODO: check props dependency
-    }, [prepareCommentAndResetComposer, props]);
+    }, [prepareCommentAndResetComposer, props.onSubmit]);
 
     /**
      * Listens for keyboard shortcuts and applies the action
@@ -692,18 +695,9 @@ function ReportActionCompose(props) {
         setTextInputShouldClear(false);
     }, [props.reportID, prepareCommentAndResetComposer]);
 
-    // TODO: wrap things below in useMemo
-    const reportParticipants = _.without(lodashGet(props.report, 'participants', []), props.currentUserPersonalDetails.login);
-    const participantsWithoutExpensifyEmails = _.difference(reportParticipants, CONST.EXPENSIFY_EMAILS);
-    const reportRecipient = props.personalDetails[participantsWithoutExpensifyEmails[0]];
-
-    const shouldShowReportRecipientLocalTime = ReportUtils.canShowReportRecipientLocalTime(props.personalDetails, props.report)
-            && !props.isComposerFullSize;
-
     // Prevents focusing and showing the keyboard while the drawer is covering the chat.
     const isComposeDisabled = props.isDrawerOpen && props.isSmallScreenWidth;
-    const isBlockedFromConcierge = ReportUtils.chatIncludesConcierge(props.report) && User.isBlockedFromConcierge(props.blockedFromConcierge);
-
+    const reportRecipient = props.personalDetails[participantsWithoutExpensifyEmails[0]];
     const shouldUseFocusedColor = !isBlockedFromConcierge && !props.disabled && (isFocused || isDraggingOver);
 
     return (
@@ -803,7 +797,7 @@ function ReportActionCompose(props) {
                                                 onClose={() => setMenuVisibility(false)}
                                                 onItemSelected={() => setMenuVisibility(false)}
                                                 anchorPosition={styles.createMenuPositionReportActionCompose}
-                                                menuItems={[...getMoneyRequestOptions(reportParticipants), ...getTaskOption(reportParticipants),
+                                                menuItems={[...moneyRequestOptions, ...taskOption,
                                                     {
                                                         icon: Expensicons.Paperclip,
                                                         text: props.translate('reportActionCompose.addAttachment'),
