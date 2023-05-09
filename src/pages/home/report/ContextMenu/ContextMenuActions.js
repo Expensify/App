@@ -8,6 +8,7 @@ import * as Report from '../../../../libs/actions/Report';
 import * as Download from '../../../../libs/actions/Download';
 import Clipboard from '../../../../libs/Clipboard';
 import * as ReportUtils from '../../../../libs/ReportUtils';
+import * as ReportActionUtils from '../../../../libs/ReportActionsUtils';
 import ReportActionComposeFocusManager from '../../../../libs/ReportActionComposeFocusManager';
 import {hideContextMenu, showDeleteModal} from './ReportActionContextMenu';
 import CONST from '../../../../CONST';
@@ -139,6 +140,7 @@ export default [
         successIcon: Expensicons.Checkmark,
         shouldShow: (type, reportAction) => (type === CONTEXT_MENU_TYPES.REPORT_ACTION
             && reportAction.actionName !== CONST.REPORT.ACTIONS.TYPE.IOU
+            && !ReportActionUtils.isCreatedTaskReportAction(reportAction)
             && !ReportUtils.isReportMessageAttachment(_.last(lodashGet(reportAction, ['message'], [{}])))),
 
         // If return value is true, we switch the `text` and `icon` on

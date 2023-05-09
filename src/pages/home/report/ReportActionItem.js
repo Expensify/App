@@ -52,6 +52,7 @@ import DisplayNames from '../../../components/DisplayNames';
 import personalDetailsPropType from '../../personalDetailsPropType';
 import ReportActionItemDraft from './ReportActionItemDraft';
 import TaskPreview from '../../../components/ReportActionItem/TaskPreview';
+import * as ReportActionUtils from '../../../libs/ReportActionsUtils';
 
 const propTypes = {
     /** Report for this action */
@@ -194,7 +195,7 @@ class ReportActionItem extends Component {
                     checkIfContextMenuActive={this.checkIfContextMenuActive}
                 />
             );
-        } else if (this.props.action.actionName === CONST.REPORT.ACTIONS.TYPE.ADDCOMMENT && _.has(this.props.action.originalMessage, 'taskReportID')) {
+        } else if (ReportActionUtils.isCreatedTaskReportAction(this.props.action)) {
             children = (
                 <TaskPreview
                     taskReportID={this.props.action.originalMessage.taskReportID.toString()}

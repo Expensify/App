@@ -187,6 +187,7 @@ function canEditReportAction(reportAction) {
 function canDeleteReportAction(reportAction) {
     return reportAction.actorEmail === sessionEmail
         && reportAction.actionName === CONST.REPORT.ACTIONS.TYPE.ADDCOMMENT
+        && !ReportActionsUtils.isCreatedTaskReportAction(reportAction)
         && reportAction.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE;
 }
 
