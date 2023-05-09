@@ -241,7 +241,7 @@ function getOptionData(reportID) {
     result.isArchivedRoom = ReportUtils.isArchivedRoom(report);
     result.isPolicyExpenseChat = ReportUtils.isPolicyExpenseChat(report);
     result.isMoneyRequestReport = ReportUtils.isMoneyRequestReport(report);
-    result.shouldShowSubscript = (result.isPolicyExpenseChat && !report.isOwnPolicyExpenseChat && !result.isArchivedRoom) || ReportUtils.isExpenseReport(report);
+    result.shouldShowSubscript = ReportUtils.shouldReportShowSubscript(report);
     result.pendingAction = report.pendingFields ? (report.pendingFields.addWorkspaceRoom || report.pendingFields.createChat) : null;
     result.allReportErrors = OptionsListUtils.getAllReportErrors(report, reportActions);
     result.brickRoadIndicator = !_.isEmpty(result.allReportErrors) ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : '';

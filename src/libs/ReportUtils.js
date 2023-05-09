@@ -1834,6 +1834,21 @@ function getWhisperDisplayNames(participants) {
     return _.map(participants, login => getDisplayNameForParticipant(login, !isWhisperOnlyVisibleToCurrentUSer)).join(', ');
 }
 
+/**
+ * Show subscript on IOU or expense report
+ * @param {Object} report
+ * @returns {Boolean}
+ */
+function shouldReportShowSubscript(report) {
+    if (isPolicyExpenseChat(report)
+        && !report.isOwnPolicyExpenseChat
+        && !isArchivedRoom(report)) {
+        return true;
+    }
+
+    return isExpenseReport(report);
+}
+
 export {
     getReportParticipantsTitle,
     isReportMessageAttachment,
@@ -1910,4 +1925,5 @@ export {
     canRequestMoney,
     getWhisperDisplayNames,
     getWorkspaceAvatar,
+    shouldReportShowSubscript,
 };
