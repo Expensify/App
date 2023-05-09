@@ -6,7 +6,7 @@ import moment from 'moment';
 import _ from 'underscore';
 import lodashGet from 'lodash/get';
 import Str from 'expensify-common/lib/str';
-import {interpolateColor, useAnimatedProps, useSharedValue, withSpring} from 'react-native-reanimated';
+import {interpolateColor, useAnimatedProps, useSharedValue, withSpring, runOnJS} from 'react-native-reanimated';
 import getNavigationModalCardStyle from '../../../styles/getNavigationModalCardStyles';
 import withWindowDimensions, {windowDimensionsPropTypes} from '../../../components/withWindowDimensions';
 import CONST from '../../../CONST';
@@ -200,7 +200,7 @@ const AuthScreens = (props) => {
             [0, 1],
             [prevStatusBarBackgroundColor.current, statusBarBackgroundColor.current],
         );
-        StatusBar.setBackgroundColor(currentStatusBarBackgroundColor);
+        runOnJS(StatusBar.setBackgroundColor)(currentStatusBarBackgroundColor);
         return {};
     }, []);
 
