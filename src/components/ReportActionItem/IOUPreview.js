@@ -190,7 +190,7 @@ const IOUPreview = (props) => {
                     </Text>
                     <View style={[styles.flexRow]}>
                         <View style={[styles.flex1, styles.flexRow, styles.alignItemsCenter]}>
-                            <Text style={styles.h1}>
+                            <Text style={styles.textHeadline}>
                                 {CurrencyUtils.convertToDisplayString(requestAmount, requestCurrency)}
                             </Text>
                             {!props.iouReport.hasOutstandingIOU && !props.isBillSplit && (
