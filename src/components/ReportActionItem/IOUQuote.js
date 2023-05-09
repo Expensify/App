@@ -94,17 +94,20 @@ const IOUQuote = (props) => {
                     style={[styles.flexRow, styles.justifyContentBetween]}
                     focusable
                 >
-                    <View style={[styles.flexRow]}>
-                        {!props.iouReport.hasOutstandingIOU ? (
-                            <Text>s</Text>
+                    <View>
+                        {props.iouReport.hasOutstandingIOU ? (
+                            <Text style={[styles.chatItemMessage, styles.cursorPointer]}>
+                                {props.translate('iou.managerOwes', {owner: managerName, amount: reportAmount})}
+                            </Text>
                         ) : (
-                            <Text>s</Text>
-                        )}
-                        <Text style={[styles.chatItemMessage, styles.cursorPointer]}>
-                            {props.translate('iou.managerOwes', {owner: managerName, amount: reportAmount})}
-                        </Text>
-                        {!props.iouReport.hasOutstandingIOU && (
-                            <Icon style={[styles.ml10]} src={Expensicons.Checkmark} fill={themeColors.iconSuccessFill} />
+                            <View style={[styles.flexRow]}>
+                                <Text style={[styles.chatItemMessage, styles.cursorPointer]}>
+                                    {props.translate('iou.managerSettled', {owner: managerName, amount: reportAmount})}
+                                </Text>
+                                {!props.iouReport.hasOutstandingIOU && (
+                                    <Icon style={[styles.ml10]} src={Expensicons.Checkmark} fill={themeColors.iconSuccessFill} />
+                                )}
+                            </View>
                         )}
                     </View>
                     <Icon src={Expensicons.ArrowRight} fill={StyleUtils.getIconFillColor(getButtonState(props.isHovered))} />
