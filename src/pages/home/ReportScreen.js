@@ -284,7 +284,7 @@ class ReportScreen extends React.Component {
                                     errors={addWorkspaceRoomOrChatErrors}
                                     shouldShowErrorMessages={false}
                                 >
-                                    {ReportUtils.isMoneyRequestReport(this.props.report) ? (
+                                    {(ReportUtils.isMoneyRequestReport(this.props.report) || ReportUtils.isMoneyRequestReport(this.props.report)) ? (
                                         <MoneyRequestHeader
                                             report={this.props.report}
                                             policies={this.props.policies}
