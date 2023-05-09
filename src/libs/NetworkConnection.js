@@ -87,8 +87,9 @@ function subscribeToNetInfo() {
                 if (!response.ok) {
                     return Promise.resolve(false);
                 }
-                return response.json()
-                    .then(json => Promise.resolve(json.jsonCode === 200))
+                return response
+                    .json()
+                    .then((json) => Promise.resolve(json.jsonCode === 200))
                     .catch(() => Promise.resolve(false));
             },
 
