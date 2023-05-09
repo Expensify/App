@@ -26,7 +26,6 @@ import colors from '../../styles/colors';
 import reportPropTypes from '../reportPropTypes';
 import ONYXKEYS from '../../ONYXKEYS';
 import ThreeDotsMenu from '../../components/ThreeDotsMenu';
-import withParentReportAction, {withParentReportActionPropTypes} from '../../components/withParentReportAction';
 
 const propTypes = {
     /** Toggles the navigationMenu open and closed */
@@ -48,7 +47,6 @@ const propTypes = {
 
     ...windowDimensionsPropTypes,
     ...withLocalizePropTypes,
-    ...withParentReportActionPropTypes,
 };
 
 const defaultProps = {
@@ -60,8 +58,6 @@ const defaultProps = {
 };
 
 const HeaderView = (props) => {
-    // eslint-disable-next-line no-console
-    console.log('HEADER PROPS: ', props);
     const participants = lodashGet(props.report, 'participants', []);
     const participantPersonalDetails = OptionsListUtils.getPersonalDetailsForLogins(participants, props.personalDetails);
     const isMultipleParticipant = participants.length > 1;
@@ -220,7 +216,6 @@ HeaderView.displayName = 'HeaderView';
 HeaderView.defaultProps = defaultProps;
 
 export default compose(
-    withParentReportAction,
     withWindowDimensions,
     withLocalize,
     withOnyx({
