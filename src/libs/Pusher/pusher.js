@@ -17,6 +17,7 @@ Onyx.connect({
 });
 
 let socket;
+let pusherSocketID = '';
 const socketEventCallbacks = [];
 let customAuthorizer;
 
@@ -81,6 +82,7 @@ function init(args, params) {
         });
 
         socket.connection.bind('connected', () => {
+            pusherSocketID = socket.connection.socket_id;
             callSocketEventCallbacks('connected');
             resolve();
         });
@@ -355,6 +357,7 @@ function disconnect() {
 
     socket.disconnect();
     socket = null;
+    pusherSocketID = '';
 }
 
 /**
@@ -369,6 +372,13 @@ function reconnect() {
     Log.info('[Pusher] Reconnecting to Pusher');
     socket.disconnect();
     socket.connect();
+}
+
+/**
+ * @returns {String}
+ */
+function getPusherSocketID() {
+    return pusherSocketID;
 }
 
 if (window) {
@@ -393,4 +403,5 @@ export {
     registerSocketEventCallback,
     registerCustomAuthorizer,
     TYPE,
+    getPusherSocketID,
 };

@@ -303,6 +303,28 @@ function getWidthStyle(width) {
 }
 
 /**
+ * Returns auto grow height text input style
+ *
+ * @param {Number} textInputHeight
+ * @param {Number} maxHeight
+ * @returns {Object}
+ */
+function getAutoGrowHeightInputStyle(textInputHeight, maxHeight) {
+    if (textInputHeight > maxHeight) {
+        return {
+            ...styles.pr0,
+            ...styles.overflowAuto,
+        };
+    }
+
+    return {
+        ...styles.pr0,
+        ...styles.overflowHidden,
+        height: maxHeight,
+    };
+}
+
+/**
  * Returns a style with backgroundColor and borderColor set to the same color
  *
  * @param {String} backgroundColor
@@ -1091,6 +1113,29 @@ function getGoogleListViewStyle(shouldDisplayBorder) {
     };
 }
 
+/**
+ * Returns style object for the user mention component based on whether the mention is ours or not.
+ * @param {Boolean} isOurMention
+ * @returns {Object}
+ */
+function getUserMentionStyle(isOurMention) {
+    const backgroundColor = isOurMention ? themeColors.ourMentionBG : themeColors.mentionBG;
+    return {
+        backgroundColor,
+        borderRadius: variables.componentBorderRadiusSmall,
+        paddingHorizontal: 2,
+    };
+}
+
+/**
+ * Returns text color for the user mention text based on whether the mention is ours or not.
+ * @param {Boolean} isOurMention
+ * @returns {Object}
+ */
+function getUserMentionTextColor(isOurMention) {
+    return isOurMention ? themeColors.ourMentionText : themeColors.mentionText;
+}
+
 export {
     getAvatarSize,
     getAvatarStyle,
@@ -1105,6 +1150,7 @@ export {
     getZoomCursorStyle,
     getZoomSizingStyle,
     getWidthStyle,
+    getAutoGrowHeightInputStyle,
     getBackgroundAndBorderStyle,
     getBackgroundColorStyle,
     getBackgroundColorWithOpacityStyle,
@@ -1150,4 +1196,6 @@ export {
     getFontSizeStyle,
     getSignInWordmarkWidthStyle,
     getGoogleListViewStyle,
+    getUserMentionStyle,
+    getUserMentionTextColor,
 };

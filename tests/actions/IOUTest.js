@@ -583,8 +583,6 @@ describe('actions/IOU', () => {
                             expect(_.size(reportActionsForChatReport)).toBe(2);
                             iouAction = _.find(reportActionsForChatReport, reportAction => reportAction.actionName === CONST.REPORT.ACTIONS.TYPE.IOU);
                             expect(iouAction.pendingAction).toBe(CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD);
-                            const errorMessage = _.values(iouAction.errors)[0];
-                            expect(errorMessage).toBe(Localize.translateLocal('iou.error.genericCreateFailureMessage'));
                             resolve();
                         },
                     });

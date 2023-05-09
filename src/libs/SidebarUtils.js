@@ -65,14 +65,14 @@ Onyx.connect({
         }
         const reportID = CollectionUtils.extractCollectionItemID(key);
 
-        const actionsArray = _.toArray(actions);
+        const actionsArray = ReportActionsUtils.getSortedReportActions(_.toArray(actions));
         lastReportActions[reportID] = _.last(actionsArray);
 
         // The report is only visible if it is the last action not deleted that
         // does not match a closed or created state.
         const reportActionsForDisplay = _.filter(actionsArray, (reportAction, actionKey) => (ReportActionsUtils.shouldReportActionBeVisible(reportAction, actionKey)
             && (reportAction.actionName !== CONST.REPORT.ACTIONS.TYPE.CREATED)));
-        visibleReportActionItems[reportID] = _.first(ReportActionsUtils.getSortedReportActions(reportActionsForDisplay, true));
+        visibleReportActionItems[reportID] = _.last(reportActionsForDisplay);
 
         reportActions[key] = actions;
     },
@@ -283,7 +283,7 @@ function getOptionData(reportID) {
         : '';
     lastMessageText += report ? lastMessageTextFromReport : '';
 
-    if (result.isPolicyExpenseChat && result.isArchivedRoom) {
+    if (result.isArchivedRoom) {
         const archiveReason = (lastReportActions[report.reportID] && lastReportActions[report.reportID].originalMessage && lastReportActions[report.reportID].originalMessage.reason)
             || CONST.REPORT.ARCHIVE_REASON.DEFAULT;
         lastMessageText = Localize.translate(preferredLocale, `reportArchiveReasons.${archiveReason}`, {
@@ -292,7 +292,7 @@ function getOptionData(reportID) {
         });
     }
 
-    if (result.isChatRoom || result.isPolicyExpenseChat) {
+    if ((result.isChatRoom || result.isPolicyExpenseChat) && !result.isArchivedRoom) {
         result.alternateText = lastMessageTextFromReport.length > 0 ? lastMessageText : Localize.translate(preferredLocale, 'report.noActivityYet');
     } else {
         if (!lastMessageText) {

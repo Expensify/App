@@ -190,6 +190,22 @@ describe('OptionsListUtils', () => {
         },
     };
 
+    const REPORTS_WITH_WORKSPACE_ROOMS = {
+        ...REPORTS,
+        14: {
+            lastReadTime: '2021-01-14 11:25:39.302',
+            lastVisibleActionCreated: '2022-11-22 03:26:02.022',
+            isPinned: false,
+            reportID: 14,
+            participants: ['reedrichards@expensify.com', 'brucebanner@expensify.com', 'peterparker@expensify.com'],
+            reportName: '',
+            oldPolicyName: 'Avengers Room',
+            isArchivedRoom: false,
+            chatType: CONST.REPORT.CHAT_TYPE.POLICY_ADMINS,
+            isOwnPolicyExpenseChat: true,
+        },
+    };
+
     const PERSONAL_DETAILS_WITH_CONCIERGE = {
         ...PERSONAL_DETAILS,
 
@@ -609,6 +625,46 @@ describe('OptionsListUtils', () => {
                 expect.objectContaining({login: 'receipts@expensify.com'}),
             ]),
         );
+    });
+
+    it('getShareDestinationsOptions()', () => {
+        // When we pass an empty search value
+        let results = OptionsListUtils.getShareDestinationOptions(REPORTS, PERSONAL_DETAILS, [], '');
+
+        // Then we should expect 5 recent reports to show because we're grabbing DM chats and group chats
+        // because we've limited the number of recent reports to 5
+        expect(results.recentReports.length).toBe(5);
+
+        // When we pass a search value that doesn't match the group chat name
+        results = OptionsListUtils.getShareDestinationOptions(REPORTS, PERSONAL_DETAILS, [], 'mutants');
+
+        // Then we should expect no recent reports to show
+        expect(results.recentReports.length).toBe(0);
+
+        // When we pass a search value that matches the group chat name
+        results = OptionsListUtils.getShareDestinationOptions(REPORTS, PERSONAL_DETAILS, [], 'Iron Man, Mr. Fantastic');
+
+        // Then we should expect the group chat to show along with the contacts matching the search
+        expect(results.recentReports.length).toBe(4);
+
+        // When we also have a policy to return rooms in the results
+        results = OptionsListUtils.getShareDestinationOptions(REPORTS_WITH_WORKSPACE_ROOMS, PERSONAL_DETAILS, [], '');
+
+        // Then we should expect the DMS, the group chats and the workspace room to show
+        // We should expect 5 recent reports to show because we've limited the number of recent reports to 5
+        expect(results.recentReports.length).toBe(5);
+
+        // When we search for a workspace room
+        results = OptionsListUtils.getShareDestinationOptions(REPORTS_WITH_WORKSPACE_ROOMS, PERSONAL_DETAILS, [], 'Avengers Room');
+
+        // Then we should expect only the workspace room to show
+        expect(results.recentReports.length).toBe(1);
+
+        // When we search for a workspace room that doesn't exist
+        results = OptionsListUtils.getShareDestinationOptions(REPORTS_WITH_WORKSPACE_ROOMS, PERSONAL_DETAILS, [], 'Mutants Lair');
+
+        // Then we should expect no results to show
+        expect(results.recentReports.length).toBe(0);
     });
 
     it('getMemberInviteOptions()', () => {

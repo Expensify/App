@@ -187,6 +187,7 @@ function beginSignIn(login) {
             value: {
                 ...CONST.DEFAULT_ACCOUNT_DATA,
                 isLoading: true,
+                message: null,
             },
         },
     ];
@@ -646,6 +647,73 @@ function authenticatePusher(socketID, channelName, callback) {
     });
 }
 
+/**
+ * Request a new validation link / magic code to unlink an unvalidated secondary login from a primary login
+ */
+function requestUnlinkValidationLink() {
+    const optimisticData = [{
+        onyxMethod: Onyx.METHOD.MERGE,
+        key: ONYXKEYS.ACCOUNT,
+        value: {
+            isLoading: true,
+            errors: null,
+            message: null,
+        },
+    }];
+    const successData = [{
+        onyxMethod: Onyx.METHOD.MERGE,
+        key: ONYXKEYS.ACCOUNT,
+        value: {
+            isLoading: false,
+            message: Localize.translateLocal('unlinkLoginForm.linkSent'),
+        },
+    }];
+    const failureData = [{
+        onyxMethod: Onyx.METHOD.MERGE,
+        key: ONYXKEYS.ACCOUNT,
+        value: {
+            isLoading: false,
+        },
+    }];
+
+    API.write('RequestUnlinkValidationLink', {email: credentials.login}, {optimisticData, successData, failureData});
+}
+
+function unlinkLogin(accountID, validateCode) {
+    const optimisticData = [{
+        onyxMethod: Onyx.METHOD.MERGE,
+        key: ONYXKEYS.ACCOUNT,
+        value: {
+            ...CONST.DEFAULT_ACCOUNT_DATA,
+            isLoading: true,
+        },
+    }];
+    const successData = [{
+        onyxMethod: Onyx.METHOD.MERGE,
+        key: ONYXKEYS.ACCOUNT,
+        value: {
+            isLoading: false,
+            message: Localize.translateLocal('unlinkLoginForm.succesfullyUnlinkedLogin'),
+        },
+    },
+    {
+        onyxMethod: Onyx.METHOD.MERGE,
+        key: ONYXKEYS.CREDENTIALS,
+        value: {
+            login: '',
+        },
+    }];
+    const failureData = [{
+        onyxMethod: Onyx.METHOD.MERGE,
+        key: ONYXKEYS.ACCOUNT,
+        value: {
+            isLoading: false,
+        },
+    }];
+
+    API.write('UnlinkLogin', {accountID, validateCode}, {optimisticData, successData, failureData});
+}
+
 export {
     beginSignIn,
     updatePasswordAndSignin,
@@ -662,6 +730,8 @@ export {
     resendLinkWithValidateCode,
     resetPassword,
     resendResetPassword,
+    requestUnlinkValidationLink,
+    unlinkLogin,
     clearSignInData,
     clearAccountMessages,
     authenticatePusher,
