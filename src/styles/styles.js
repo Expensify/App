@@ -821,7 +821,6 @@ const styles = {
         borderBottomWidth: 2,
         borderColor: themeColors.border,
         overflow: 'hidden',
-        scrollPaddingTop: '100%',
     },
 
     textInputLabel: {
@@ -862,7 +861,6 @@ const styles = {
         paddingTop: 23,
         paddingBottom: 8,
         paddingLeft: 0,
-        paddingRight: 0,
         borderWidth: 0,
     },
 
@@ -1598,7 +1596,6 @@ const styles = {
     },
 
     emojiSkinToneTitle: {
-        backgroundColor: themeColors.componentBG,
         width: '100%',
         ...spacing.pv1,
         fontFamily: fontFamily.EXP_NEUE_BOLD,
@@ -2447,7 +2444,7 @@ const styles = {
 
     hiddenElementOutsideOfWindow: {
         position: 'absolute',
-        top: 0,
+        top: -10000,
         left: 0,
         opacity: 0,
     },

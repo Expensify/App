@@ -45,6 +45,15 @@ const propTypes = {
     /** The token required to initialize the Onfido SDK */
     onfidoToken: PropTypes.string,
 
+    /** Indicated whether the report data is loading */
+    isLoadingReportData: PropTypes.bool,
+
+    /** Holds information about the users account that is logging in */
+    account: PropTypes.shape({
+        /** Whether a sign on form is loading (being submitted) */
+        isLoading: PropTypes.bool,
+    }),
+
     /** Information about the network  */
     network: networkPropTypes.isRequired,
 
@@ -72,6 +81,8 @@ const defaultProps = {
     reimbursementAccountDraft: {},
     onfidoToken: '',
     plaidLinkToken: '',
+    isLoadingReportData: false,
+    account: {},
     session: {
         email: null,
     },
@@ -319,8 +330,11 @@ class ReimbursementAccountPage extends React.Component {
         const currentStep = achData.currentStep || CONST.BANK_ACCOUNT.STEP.BANK_ACCOUNT;
         const policyName = lodashGet(this.props.policy, 'name');
 
-        // Don't show the loading indicator if we're offline and restarted the bank account setup process
-        if (this.props.reimbursementAccount.isLoading && !(this.props.network.isOffline && currentStep === CONST.BANK_ACCOUNT.STEP.BANK_ACCOUNT)) {
+        const isLoading = this.props.isLoadingReportData || this.props.account.isLoading || this.props.reimbursementAccount.isLoading;
+
+        // Show loading indicator when page is first time being opened and props.reimbursementAccount yet to be loaded from the server
+        // or when data is being loaded. Don't show the loading indicator if we're offline and restarted the bank account setup process
+        if ((!this.state.hasACHDataBeenLoaded || isLoading) && !(this.props.network.isOffline && currentStep === CONST.BANK_ACCOUNT.STEP.BANK_ACCOUNT)) {
             const isSubmittingVerificationsData = _.contains([
                 CONST.BANK_ACCOUNT.STEP.COMPANY,
                 CONST.BANK_ACCOUNT.STEP.REQUESTOR,
@@ -466,6 +480,12 @@ export default compose(
         },
         onfidoToken: {
             key: ONYXKEYS.ONFIDO_TOKEN,
+        },
+        isLoadingReportData: {
+            key: ONYXKEYS.IS_LOADING_REPORT_DATA,
+        },
+        account: {
+            key: ONYXKEYS.ACCOUNT,
         },
     }),
     withLocalize,
