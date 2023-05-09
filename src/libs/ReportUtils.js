@@ -907,7 +907,7 @@ function getMoneyRequestReportName(report) {
         currency: report.currency,
     });
 
-    return Localize.translateLocal('iou.payerOwe',
+    return Localize.translateLocal('iou.payerOwesAmount',
         {payer: isExpenseReport(report) ? getPolicyName(report) : getDisplayNameForParticipant(report.managerEmail), amount: formattedAmount});
 }
 
