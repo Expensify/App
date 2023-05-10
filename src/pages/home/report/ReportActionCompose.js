@@ -518,7 +518,11 @@ class ReportActionCompose extends React.Component {
         const commentAfterColonWithEmojiNameRemoved = this.state.value.slice(this.state.selection.end).replace(CONST.REGEX.EMOJI_REPLACER, CONST.SPACE);
 
         this.updateComment(`${commentBeforeColon}${emojiCode} ${commentAfterColonWithEmojiNameRemoved}`, true);
-        RNTextInputReset && RNTextInputReset.resetKeyboardInput(findNodeHandle(this.textInput));
+
+        if (RNTextInputReset) {
+            RNTextInputReset.resetKeyboardInput(findNodeHandle(this.textInput));
+        }
+
         this.setState((prevState) => ({
             selection: {
                 start: prevState.colonIndex + emojiCode.length + CONST.SPACE_LENGTH,
