@@ -49,29 +49,44 @@ Onyx.connect({
  * @param {Object} report
  * @param {Number} amount - always in the smallest unit of the currency
  * @param {String} currency
- * @param {String} recipientEmail
+ * @param {String} payeeEmail
  * @param {Object} participant
  * @param {String} comment
  */
-function requestMoney(report, amount, currency, recipientEmail, participant, comment) {
-    const debtorEmail = OptionsListUtils.addSMSDomainIfPhoneNumber(participant.login);
+function requestMoney(report, amount, currency, payeeEmail, participant, comment) {
+    const payerEmail = OptionsListUtils.addSMSDomainIfPhoneNumber(participant.login);
     let chatReport = lodashGet(report, 'reportID', null) ? report : null;
+    const isPolicyExpenseChat = participant.isPolicyExpenseChat || participant.isOwnPolicyExpenseChat;
     let isNewChat = false;
-    if (!chatReport) {
-        chatReport = ReportUtils.getChatByParticipants([debtorEmail]);
-    }
-    if (!chatReport) {
-        chatReport = ReportUtils.buildOptimisticChatReport([debtorEmail]);
-        isNewChat = true;
-    }
-    let iouReport;
-    if (chatReport.iouReportID) {
-        iouReport = IOUUtils.updateIOUOwnerAndTotal(iouReports[`${ONYXKEYS.COLLECTION.REPORT}${chatReport.iouReportID}`], recipientEmail, amount, currency);
-    } else {
-        iouReport = ReportUtils.buildOptimisticIOUReport(recipientEmail, debtorEmail, amount, chatReport.reportID, currency);
+
+    // If this is a policyExpenseChat, the chatReport must exist and we can get it from Onyx.
+    // report is null if the flow is initiated from the global create menu. However, participant always stores the reportID if it exists, which is the case for policyExpenseChats
+    if (!chatReport && isPolicyExpenseChat) {
+        chatReport = chatReports[`${ONYXKEYS.COLLECTION.REPORT}${participant.reportID}`];
     }
 
-    const optimisticTransaction = TransactionUtils.buildOptimisticTransaction(amount, currency, iouReport.reportID, comment);
+    if (!chatReport) {
+        chatReport = ReportUtils.getChatByParticipants([payerEmail]);
+    }
+    if (!chatReport) {
+        chatReport = ReportUtils.buildOptimisticChatReport([payerEmail]);
+        isNewChat = true;
+    }
+    let moneyRequestReport;
+    if (chatReport.iouReportID) {
+        if (isPolicyExpenseChat) {
+            moneyRequestReport = {...iouReports[`${ONYXKEYS.COLLECTION.REPORT}${chatReport.iouReportID}`]};
+            moneyRequestReport.total += amount;
+        } else {
+            moneyRequestReport = IOUUtils.updateIOUOwnerAndTotal(iouReports[`${ONYXKEYS.COLLECTION.REPORT}${chatReport.iouReportID}`], payeeEmail, amount, currency);
+        }
+    } else {
+        moneyRequestReport = isPolicyExpenseChat
+            ? ReportUtils.buildOptimisticExpenseReport(chatReport.reportID, chatReport.policyID, payeeEmail, amount, currency)
+            : ReportUtils.buildOptimisticIOUReport(payeeEmail, payerEmail, amount, chatReport.reportID, currency);
+    }
+
+    const optimisticTransaction = TransactionUtils.buildOptimisticTransaction(amount, currency, moneyRequestReport.reportID, comment);
     const optimisticTransactionData = {
         onyxMethod: Onyx.METHOD.SET,
         key: `${ONYXKEYS.COLLECTION.TRANSACTION}${optimisticTransaction.transactionID}`,
@@ -95,16 +110,15 @@ function requestMoney(report, amount, currency, recipientEmail, participant, com
     };
 
     // Note: The created action must be optimistically generated before the IOU action so there's no chance that the created action appears after the IOU action in the chat
-    const optimisticCreatedAction = ReportUtils.buildOptimisticCreatedReportAction(recipientEmail);
+    const optimisticCreatedAction = ReportUtils.buildOptimisticCreatedReportAction(payeeEmail);
     const optimisticReportAction = ReportUtils.buildOptimisticIOUReportAction(
         CONST.IOU.REPORT_ACTION_TYPE.CREATE,
         amount,
         currency,
         comment,
-        [participant],
         optimisticTransaction.transactionID,
         '',
-        iouReport.reportID,
+        moneyRequestReport.reportID,
     );
 
     // First, add data that will be used in all cases
@@ -116,15 +130,15 @@ function requestMoney(report, amount, currency, recipientEmail, participant, com
             lastReadTime: DateUtils.getDBTime(),
             lastMessageText: optimisticReportAction.message[0].text,
             lastMessageHtml: optimisticReportAction.message[0].html,
-            hasOutstandingIOU: iouReport.total !== 0,
-            iouReportID: iouReport.reportID,
+            hasOutstandingIOU: moneyRequestReport.total !== 0,
+            iouReportID: moneyRequestReport.reportID,
         },
     };
 
     const optimisticIOUReportData = {
         onyxMethod: chatReport.hasOutstandingIOU ? Onyx.METHOD.MERGE : Onyx.METHOD.SET,
-        key: `${ONYXKEYS.COLLECTION.REPORT}${iouReport.reportID}`,
-        value: iouReport,
+        key: `${ONYXKEYS.COLLECTION.REPORT}${moneyRequestReport.reportID}`,
+        value: moneyRequestReport,
     };
 
     const optimisticReportActionsData = {
@@ -214,11 +228,11 @@ function requestMoney(report, amount, currency, recipientEmail, participant, com
     API.write(
         'RequestMoney',
         {
-            debtorEmail,
+            debtorEmail: payerEmail,
             amount,
             currency,
             comment: parsedComment,
-            iouReportID: iouReport.reportID,
+            iouReportID: moneyRequestReport.reportID,
             chatReportID: chatReport.reportID,
             transactionID: optimisticTransaction.transactionID,
             reportActionID: optimisticReportAction.reportActionID,
@@ -271,7 +285,7 @@ function createSplitsAndOnyxData(participants, currentUserLogin, amount, comment
 
     // Note: The created action must be optimistically generated before the IOU action so there's no chance that the created action appears after the IOU action in the chat
     const groupCreatedReportAction = ReportUtils.buildOptimisticCreatedReportAction(currentUserEmail);
-    const groupIOUReportAction = ReportUtils.buildOptimisticIOUReportAction(CONST.IOU.REPORT_ACTION_TYPE.SPLIT, amount, currency, comment, participants, groupTransaction.transactionID);
+    const groupIOUReportAction = ReportUtils.buildOptimisticIOUReportAction(CONST.IOU.REPORT_ACTION_TYPE.SPLIT, amount, currency, comment, groupTransaction.transactionID);
 
     groupChatReport.lastReadTime = DateUtils.getDBTime();
     groupChatReport.lastMessageText = groupIOUReportAction.message[0].text;
@@ -410,7 +424,6 @@ function createSplitsAndOnyxData(participants, currentUserLogin, amount, comment
             splitAmount,
             currency,
             comment,
-            [participant],
             oneOnOneTransaction.transactionID,
             '',
             oneOnOneIOUReport.reportID,
@@ -637,7 +650,6 @@ function deleteMoneyRequest(chatReportID, iouReportID, moneyRequestAction, shoul
         amount,
         moneyRequestAction.originalMessage.currency,
         Str.htmlDecode(moneyRequestAction.originalMessage.comment),
-        [],
         transactionID,
         '',
         iouReportID,
@@ -810,7 +822,6 @@ function getSendMoneyParams(report, amount, currency, comment, paymentMethodType
         amount,
         currency,
         comment,
-        [recipient],
         optimisticTransaction.transactionID,
         paymentMethodType,
         optimisticIOUReport.reportID,
@@ -951,7 +962,6 @@ function getPayMoneyRequestParams(chatReport, iouReport, recipient, paymentMetho
         iouReport.total,
         iouReport.currency,
         '',
-        [recipient],
         optimisticTransaction.transactionID,
         paymentMethodType,
         iouReport.reportID,
