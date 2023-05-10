@@ -442,7 +442,7 @@ function navigateToAndOpenChildReport(childReportID = '0', parentReportAction = 
         Navigation.navigate(ROUTES.getReportRoute(childReportID));
     } else {
         const participants = _.uniq([currentUserEmail, parentReportAction.actorEmail]);
-        const formattedUserLogins = _.map(participants, login => OptionsListUtils.addSMSDomainIfPhoneNumber(login).toLowerCase());
+        const formattedUserLogins = _.map(participants, (login) => OptionsListUtils.addSMSDomainIfPhoneNumber(login).toLowerCase());
         const newChat = ReportUtils.buildOptimisticChatReport(
             formattedUserLogins,
             lodashGet(parentReportAction, ['message', 0, 'text']),

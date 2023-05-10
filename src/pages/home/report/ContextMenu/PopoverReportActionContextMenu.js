@@ -128,20 +128,7 @@ class PopoverReportActionContextMenu extends React.Component {
      * @param {Boolean} isChronosReport - Flag to check if the chat participant is Chronos
      * @param {String} childReportID - ReportAction childReportID
      */
-    showContextMenu(
-        type,
-        event,
-        selection,
-        contextMenuAnchor,
-        reportID,
-        reportAction,
-        draftMessage,
-        onShow = () => {},
-        onHide = () => {},
-        isArchivedRoom,
-        isChronosReport,
-        childReportID,
-    ) {
+    showContextMenu(type, event, selection, contextMenuAnchor, reportID, reportAction, draftMessage, onShow = () => {}, onHide = () => {}, isArchivedRoom, isChronosReport, childReportID) {
         const nativeEvent = event.nativeEvent || {};
         this.contextMenuAnchor = contextMenuAnchor;
         this.contextMenuTargetNode = nativeEvent.target;

@@ -50,17 +50,16 @@ const ReportActionItemParentAction = (props) => {
         >
             <View style={StyleUtils.getReportWelcomeContainerStyle(props.isSmallScreenWidth)}>
                 <View style={[styles.p5, StyleUtils.getReportWelcomeTopMarginStyle(props.isSmallScreenWidth)]} />
-                { parentReportAction
-                    && (
-                        <ReportActionItem
-                            report={props.report}
-                            action={parentReportAction}
-                            displayAsGroup={false}
-                            isMostRecentIOUReportAction={false}
-                            shouldDisplayNewMarker={false}
-                            index={0}
-                        />
-                    )}
+                {parentReportAction && (
+                    <ReportActionItem
+                        report={props.report}
+                        action={parentReportAction}
+                        displayAsGroup={false}
+                        isMostRecentIOUReportAction={false}
+                        shouldDisplayNewMarker={false}
+                        index={0}
+                    />
+                )}
             </View>
             <View style={[styles.threadDividerLine]} />
         </OfflineWithFeedback>

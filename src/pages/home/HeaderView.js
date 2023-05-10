@@ -170,7 +170,7 @@ const HeaderView = (props) => {
                                     textStyles={[styles.headerText, styles.pre]}
                                     shouldUseFullTitle={isChatRoom || isPolicyExpenseChat || isThread}
                                 />
-                                {((isChatRoom || isPolicyExpenseChat || isThread) && !_.isEmpty(subtitle)) && (
+                                {(isChatRoom || isPolicyExpenseChat || isThread) && !_.isEmpty(subtitle) && (
                                     <Text
                                         style={[styles.sidebarLinkText, styles.optionAlternateText, styles.textLabelSupporting, styles.pre]}
                                         numberOfLines={1}

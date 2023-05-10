@@ -102,7 +102,7 @@ function getParentReportAction_DEV(parentReportActions, parentReportID) {
     if (!parentReportActions) {
         return {};
     }
-    const matchingKey = _.find(_.keys(parentReportActions), key => _.isEqual(key, parentReportID));
+    const matchingKey = _.find(_.keys(parentReportActions), (key) => _.isEqual(key, parentReportID));
     return matchingKey ? parentReportActions[matchingKey] : null;
 }
 
@@ -473,7 +473,7 @@ function getChatRoomSubtitle(report) {
         // If thread is not from a DM or group chat, the subtitle will follow the pattern 'Workspace Name • #roomName'
         const parentReport = lodashGet(allReports, [`${ONYXKEYS.COLLECTION.REPORT}${report.parentReportID}`]);
         const workspaceName = getPolicyName(parentReport);
-        const roomName = (parentReport.displayName === workspaceName) ? '' : parentReport.displayName;
+        const roomName = isChatRoom(parentReport) ? parentReport.displayName : '';
         return roomName ? `${workspaceName} • ${roomName}` : `${workspaceName}`;
     }
     if (!isDefaultRoom(report) && !isUserCreatedPolicyRoom(report) && !isPolicyExpenseChat(report)) {
@@ -763,9 +763,7 @@ function getIcons(report, personalDetails, defaultIcon = null) {
         return [result];
     }
     if (isThread(report)) {
-        const parentReport = lodashGet(allReports, [
-            `${ONYXKEYS.COLLECTION.REPORT}${report.parentReportID}`,
-        ]);
+        const parentReport = lodashGet(allReports, [`${ONYXKEYS.COLLECTION.REPORT}${report.parentReportID}`]);
 
         const parentReportActions = ReportActionsUtils.getReportActions(report.parentReportID);
         const parentReportAction = getParentReportAction_DEV(parentReportActions, `${report.parentReportActionID}`);

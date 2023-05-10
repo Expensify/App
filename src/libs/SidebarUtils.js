@@ -333,7 +333,9 @@ function getOptionData(reportID) {
 
     const reportName = ReportUtils.getReportName(report);
 
-    const parentReportActionMessage = lodashGet(parentReportAction, ['message', 0, 'text']);
+    const parentReportActionMessage = lodashGet(parentReportAction, ['message', 0, 'text'], '');
+    // eslint-disable-next-line no-console
+    console.log({result, parentReportActionMessage});
 
     result.text = ReportUtils.isThread(report) ? parentReportActionMessage : reportName;
     result.subtitle = subtitle;

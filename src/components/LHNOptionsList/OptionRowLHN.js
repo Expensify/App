@@ -82,7 +82,7 @@ const OptionRowLHN = (props) => {
     const shouldShowGreenDotIndicator = !hasBrickError && (optionItem.isUnreadWithMention || (optionItem.hasOutstandingIOU && !optionItem.isIOUReportOwner));
 
     // If the item is a thread within a workspace, we will show the subtitle as the second line instead of in a pill
-    const alternativeText = (optionItem.isThread && optionItem.subtitle) ? optionItem.subtitle : optionItem.alternateText;
+    const alternativeText = optionItem.isThread && optionItem.subtitle ? optionItem.subtitle : optionItem.alternateText;
 
     return (
         <OfflineWithFeedback
