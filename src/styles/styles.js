@@ -20,6 +20,8 @@ import pointerEventsNone from './pointerEventsNone';
 import pointerEventsAuto from './pointerEventsAuto';
 import overflowXHidden from './overflowXHidden';
 import CONST from '../CONST';
+import cursor from './utilities/cursor';
+import userSelect from './utilities/userSelect';
 
 const picker = {
     backgroundColor: themeColors.transparent,
@@ -157,6 +159,8 @@ const styles = {
     ...wordBreak,
     ...whiteSpace,
     ...writingDirection,
+    ...cursor,
+    ...userSelect,
     ...themeColors,
 
     rateCol: {
@@ -165,7 +169,7 @@ const styles = {
         flexBasis: '48%',
     },
 
-    emojiSuggestionsContainer: {
+    autoCompleteSuggestionsContainer: {
         backgroundColor: themeColors.appBG,
         borderRadius: 8,
         borderWidth: 1,
@@ -176,7 +180,8 @@ const styles = {
         left: 0,
         right: 0,
     },
-    emojiSuggestionContainer: {
+
+    autoCompleteSuggestionContainer: {
         flexDirection: 'row',
         alignItems: 'center',
     },
@@ -332,6 +337,13 @@ const styles = {
         ...whiteSpace.preWrap,
         color: themeColors.heading,
         fontSize: variables.fontSizeXLarge,
+    },
+
+    textHeadlineH1: {
+        ...headlineFont,
+        ...whiteSpace.preWrap,
+        color: themeColors.heading,
+        fontSize: variables.fontSizeh1,
     },
 
     textDecorationNoLine: {
@@ -628,8 +640,8 @@ const styles = {
             appearance: 'none',
             height: 26,
             opacity: 1,
-            cursor: 'pointer',
             backgroundColor,
+            ...cursor.cursorPointer,
         },
         inputAndroid: {
             fontFamily: fontFamily.EXP_NEUE,
@@ -750,7 +762,8 @@ const styles = {
 
     offlineIndicatorMobile: {
         paddingLeft: 20,
-        paddingBottom: 9,
+        paddingTop: 5,
+        paddingBottom: 5,
     },
 
     offlineIndicatorRow: {
@@ -795,6 +808,11 @@ const styles = {
         backgroundColor: themeColors.buttonDefaultBG,
     },
 
+    autoGrowHeightInputContainer: (textInputHeight, maxHeight) => ({
+        height: textInputHeight >= maxHeight ? maxHeight : textInputHeight,
+        minHeight: variables.componentSizeLarge,
+    }),
+
     textInputContainer: {
         flex: 1,
         justifyContent: 'center',
@@ -828,11 +846,7 @@ const styles = {
     },
 
     textInputLabelTransformation: (translateY, translateX, scale) => ({
-        transform: [
-            {translateY},
-            {translateX},
-            {scale},
-        ],
+        transform: [{translateY}, {translateX}, {scale}],
     }),
 
     baseTextInput: {
@@ -940,7 +954,7 @@ const styles = {
 
         inputWeb: {
             appearance: 'none',
-            cursor: disabled ? 'not-allowed' : 'pointer',
+            ...(disabled ? cursor.cursorDisabled : cursor.cursorPointer),
             ...picker,
             backgroundColor,
         },
@@ -1221,7 +1235,6 @@ const styles = {
 
     popoverMenuIcon: {
         width: variables.componentSizeNormal,
-        height: variables.componentSizeNormal,
         justifyContent: 'center',
         alignItems: 'center',
     },
@@ -1341,8 +1354,7 @@ const styles = {
         // Starting version 6.3.2 @react-navigation/drawer adds "user-select: none;" to its container.
         // We add user-select-auto to the inner component to prevent incorrect triple-click text selection.
         // For further explanation see - https://github.com/Expensify/App/pull/12730/files#r1022883823
-        userSelect: 'text',
-        WebkitUserSelect: 'text',
+        ...userSelect.userSelectText,
     },
 
     appContentHeader: {
@@ -1437,7 +1449,7 @@ const styles = {
         fontFamily: fontFamily.EXP_NEUE,
         lineHeight: variables.lineHeightXLarge,
         maxWidth: '100%',
-        cursor: 'auto',
+        ...cursor.cursorAuto,
         ...whiteSpace.preWrap,
         ...wordBreak.breakWord,
     },
@@ -1488,28 +1500,44 @@ const styles = {
         flex: 1,
     },
 
+    chatItemDraft: {
+        display: 'flex',
+        flexDirection: 'row',
+        paddingTop: 8,
+        paddingBottom: 8,
+        paddingLeft: 20,
+        paddingRight: 20,
+    },
+
+    chatItemReactionsDraftRight: {
+        marginLeft: 52,
+    },
+
     // Be extremely careful when editing the compose styles, as it is easy to introduce regressions.
     // Make sure you run the following tests against any changes: #12669
-    textInputCompose: addOutlineWidth({
-        backgroundColor: themeColors.componentBG,
-        borderColor: themeColors.border,
-        color: themeColors.text,
-        fontFamily: fontFamily.EMOJI_TEXT_FONT,
-        fontSize: variables.fontSizeNormal,
-        borderWidth: 0,
-        height: 'auto',
-        lineHeight: variables.lineHeightXLarge,
-        ...overflowXHidden,
+    textInputCompose: addOutlineWidth(
+        {
+            backgroundColor: themeColors.componentBG,
+            borderColor: themeColors.border,
+            color: themeColors.text,
+            fontFamily: fontFamily.EMOJI_TEXT_FONT,
+            fontSize: variables.fontSizeNormal,
+            borderWidth: 0,
+            height: 'auto',
+            lineHeight: variables.lineHeightXLarge,
+            ...overflowXHidden,
 
-        // On Android, multiline TextInput with height: 'auto' will show extra padding unless they are configured with
-        // paddingVertical: 0, alignSelf: 'center', and textAlignVertical: 'center'
+            // On Android, multiline TextInput with height: 'auto' will show extra padding unless they are configured with
+            // paddingVertical: 0, alignSelf: 'center', and textAlignVertical: 'center'
 
-        paddingHorizontal: variables.avatarChatSpacing,
-        paddingTop: 0,
-        paddingBottom: 0,
-        alignSelf: 'center',
-        textAlignVertical: 'center',
-    }, 0),
+            paddingHorizontal: variables.avatarChatSpacing,
+            paddingTop: 0,
+            paddingBottom: 0,
+            alignSelf: 'center',
+            textAlignVertical: 'center',
+        },
+        0,
+    ),
 
     textInputFullCompose: {
         alignSelf: 'stretch',
@@ -1520,7 +1548,7 @@ const styles = {
 
     editInputComposeSpacing: {
         backgroundColor: themeColors.transparent,
-        marginVertical: 6,
+        marginVertical: 8,
     },
 
     // composer padding should not be modified unless thoroughly tested against the cases in this PR: #12669
@@ -1528,6 +1556,11 @@ const styles = {
         paddingVertical: 5,
         ...flex.flexRow,
         flex: 1,
+    },
+
+    textInputComposeBorder: {
+        borderLeftWidth: 1,
+        borderColor: themeColors.border,
     },
 
     chatItemSubmitButton: {
@@ -1562,7 +1595,6 @@ const styles = {
     },
 
     emojiSkinToneTitle: {
-        backgroundColor: themeColors.componentBG,
         width: '100%',
         ...spacing.pv1,
         fontFamily: fontFamily.EXP_NEUE_BOLD,
@@ -1628,11 +1660,6 @@ const styles = {
         backgroundColor: themeColors.buttonHoveredBG,
     },
 
-    chatItemAttachBorder: {
-        borderRightColor: themeColors.border,
-        borderRightWidth: 1,
-    },
-
     composerSizeButton: {
         alignSelf: 'center',
         height: 32,
@@ -1640,6 +1667,15 @@ const styles = {
         padding: 6,
         margin: 3,
         borderRadius: variables.componentBorderRadiusRounded,
+        backgroundColor: themeColors.transparent,
+    },
+
+    taskSelectorLink: {
+        alignSelf: 'center',
+        height: 42,
+        width: '100%',
+        padding: 6,
+        margin: 3,
         backgroundColor: themeColors.transparent,
     },
 
@@ -1660,14 +1696,15 @@ const styles = {
     },
 
     navigationModalOverlay: {
-        userSelect: 'none',
-        WebkitUserSelect: 'none',
+        ...userSelect.userSelectNone,
         position: 'absolute',
         width: '100%',
         height: '100%',
-        transform: [{
-            translateX: -variables.sideBarWidth,
-        }],
+        transform: [
+            {
+                translateX: -variables.sideBarWidth,
+            },
+        ],
     },
 
     sidebarVisible: {
@@ -1692,14 +1729,6 @@ const styles = {
         width: 24,
         backgroundColor: themeColors.icon,
         borderRadius: 24,
-    },
-
-    horizontalStackedAvatar: {
-        height: 28,
-        width: 28,
-        backgroundColor: themeColors.appBG,
-        paddingTop: 2,
-        alignItems: 'center',
     },
 
     singleSubscript: {
@@ -1822,49 +1851,21 @@ const styles = {
     },
 
     emptyAvatar: {
-        marginRight: variables.avatarChatSpacing,
         height: variables.avatarSizeNormal,
         width: variables.avatarSizeNormal,
     },
 
     emptyAvatarSmall: {
-        marginRight: variables.avatarChatSpacing - 4,
         height: variables.avatarSizeSmall,
         width: variables.avatarSizeSmall,
     },
 
-    horizontalStackedAvatar1: {
-        left: -19,
-        top: -79,
-        zIndex: 2,
+    emptyAvatarMargin: {
+        marginRight: variables.avatarChatSpacing,
     },
 
-    horizontalStackedAvatar2: {
-        left: 1,
-        top: -51,
-        zIndex: 3,
-    },
-
-    horizontalStackedAvatar3: {
-        left: 21,
-        top: -23,
-        zIndex: 4,
-    },
-
-    horizontalStackedAvatar4: {
-        top: 5,
-        left: 41,
-        zIndex: 5,
-    },
-
-    horizontalStackedAvatar4Overlay: {
-        top: -107,
-        left: 41,
-        height: 28,
-        width: 28,
-        borderWidth: 2,
-        borderStyle: 'solid',
-        zIndex: 6,
+    emptyAvatarMarginSmall: {
+        marginRight: variables.avatarChatSpacing - 4,
     },
 
     modalViewContainer: {
@@ -2176,7 +2177,7 @@ const styles = {
         flexDirection: 'row',
         alignItems: 'center',
         zIndex: 1,
-        cursor: 'default',
+        ...cursor.cursorDefault,
     },
 
     unreadIndicatorLine: {
@@ -2232,26 +2233,23 @@ const styles = {
     attachmentModalArrowsContainer: {
         display: 'flex',
         justifyContent: 'center',
-        cursor: 'unset',
         height: '100%',
         width: '100%',
+        ...cursor.cursorUnset,
     },
 
-    leftAttachmentArrow: {
+    attachmentArrow: {
         zIndex: 23,
         position: 'absolute',
-        left: 32,
-    },
-
-    rightAttachmentArrow: {
-        zIndex: 23,
-        position: 'absolute',
-        right: 32,
     },
 
     arrowIcon: {
-        height: 52,
-        width: 52,
+        height: 40,
+        width: 40,
+        alignItems: 'center',
+        paddingHorizontal: 0,
+        paddingTop: 0,
+        paddingBottom: 0,
     },
 
     detailsPageSectionVersion: {
@@ -2310,6 +2308,18 @@ const styles = {
         backgroundColor: themeColors.checkBox,
     },
 
+    magicCodeInputContainer: {
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+        minHeight: variables.inputHeight,
+    },
+
+    magicCodeInput: {
+        fontSize: variables.fontSizeXLarge,
+        color: themeColors.heading,
+        lineHeight: variables.inputHeight,
+    },
+
     iouAmountText: {
         ...headlineFont,
         fontSize: variables.iouAmountTextSize,
@@ -2317,13 +2327,16 @@ const styles = {
         lineHeight: variables.inputHeight,
     },
 
-    iouAmountTextInput: addOutlineWidth({
-        ...headlineFont,
-        fontSize: variables.iouAmountTextSize,
-        color: themeColors.heading,
-        padding: 0,
-        lineHeight: undefined,
-    }, 0),
+    iouAmountTextInput: addOutlineWidth(
+        {
+            ...headlineFont,
+            fontSize: variables.iouAmountTextSize,
+            color: themeColors.heading,
+            padding: 0,
+            lineHeight: undefined,
+        },
+        0,
+    ),
 
     moneyRequestConfirmationAmount: {
         ...headlineFont,
@@ -2335,7 +2348,8 @@ const styles = {
         borderRadius: 0,
         justifyContent: 'space-between',
         width: '100%',
-        marginBottom: 20,
+        paddingHorizontal: 20,
+        paddingVertical: 12,
     },
 
     iouPreviewBox: {
@@ -2434,7 +2448,7 @@ const styles = {
 
     hiddenElementOutsideOfWindow: {
         position: 'absolute',
-        top: 0,
+        top: -10000,
         left: 0,
         opacity: 0,
     },
@@ -2459,7 +2473,7 @@ const styles = {
         position: 'fixed',
     },
 
-    growlNotificationTranslateY: y => ({
+    growlNotificationTranslateY: (y) => ({
         transform: [{translateY: y}],
     }),
 
@@ -2498,21 +2512,9 @@ const styles = {
         marginVertical: 4,
     },
 
-    cursorDefault: {
-        cursor: 'default',
-    },
-
-    cursorDisabled: {
-        cursor: 'not-allowed',
-    },
-
     noSelect: {
         boxShadow: 'none',
         outline: 'none',
-    },
-
-    cursorPointer: {
-        cursor: 'pointer',
     },
 
     fullscreenCard: {
@@ -2603,7 +2605,7 @@ const styles = {
     },
 
     workspaceInviteWelcome: {
-        minHeight: 115,
+        maxHeight: 115,
     },
 
     peopleRow: {
@@ -2766,10 +2768,8 @@ const styles = {
         ...visibility('visible'),
     },
 
-    floatingMessageCounterTransformation: translateY => ({
-        transform: [
-            {translateY},
-        ],
+    floatingMessageCounterTransformation: (translateY) => ({
+        transform: [{translateY}],
     }),
 
     confirmationAnimation: {
@@ -2800,6 +2800,11 @@ const styles = {
         right: 60,
     },
 
+    threeDotsPopoverOffsetNoCloseButton: {
+        top: 50,
+        right: 10,
+    },
+
     invert: {
         // It's important to invert the Y AND X axis to prevent a react native issue that can lead to ANRs on android 13
         transform: [{scaleX: -1}, {scaleY: -1}],
@@ -2807,7 +2812,9 @@ const styles = {
 
     keyboardShortcutModalContainer: {
         maxHeight: '100%',
-        flex: '0 0 auto',
+        flexShrink: 0,
+        flexGrow: 0,
+        flexBasis: 'auto',
     },
 
     keyboardShortcutTableWrapper: {
@@ -2873,7 +2880,7 @@ const styles = {
         alignItems: 'center',
         justifyContent: 'center',
         backgroundColor: themeColors.imageCropBackgroundColor,
-        cursor: 'move',
+        ...cursor.cursorMove,
     },
 
     sliderKnobTooltipView: {
@@ -2889,7 +2896,7 @@ const styles = {
         width: variables.sliderKnobSize,
         borderRadius: variables.sliderKnobSize / 2,
         left: -(variables.sliderKnobSize / 2),
-        cursor: 'pointer',
+        ...cursor.cursorPointer,
     },
 
     sliderBar: {
@@ -2898,16 +2905,6 @@ const styles = {
         borderRadius: variables.sliderBarHeight / 2,
         alignSelf: 'stretch',
         justifyContent: 'center',
-    },
-
-    userSelectText: {
-        userSelect: 'text',
-        WebkitUserSelect: 'text',
-    },
-
-    userSelectNone: {
-        userSelect: 'none',
-        WebkitUserSelect: 'none',
     },
 
     screenCenteredContainer: {
@@ -2970,6 +2967,10 @@ const styles = {
         textAlign: 'left',
     },
 
+    cardSectionTitle: {
+        lineHeight: variables.lineHeightXXLarge,
+    },
+
     cardMenuItem: {
         paddingLeft: 8,
         paddingRight: 0,
@@ -3021,8 +3022,35 @@ const styles = {
         justifyContent: 'center',
         flexDirection: 'row',
         alignSelf: 'flex-start',
+    },
+
+    emojiReactionListHeader: {
         marginTop: 8,
+        paddingBottom: 20,
+        borderBottomColor: themeColors.border,
+        borderBottomWidth: 1,
+        marginHorizontal: 20,
+    },
+    emojiReactionListHeaderBubble: {
+        paddingVertical: 2,
+        paddingHorizontal: 8,
+        borderRadius: 28,
+        backgroundColor: themeColors.border,
+        alignItems: 'center',
+        justifyContent: 'center',
+        flexDirection: 'row',
+        alignSelf: 'flex-start',
         marginRight: 4,
+    },
+    reactionListItem: {
+        flexDirection: 'row',
+        paddingVertical: 12,
+        paddingHorizontal: 20,
+    },
+    reactionListHeaderText: {
+        color: themeColors.textSupporting,
+        marginLeft: 8,
+        alignSelf: 'center',
     },
 
     miniQuickEmojiReactionText: {
@@ -3061,6 +3089,15 @@ const styles = {
         paddingHorizontal: 25,
         paddingVertical: 12,
         justifyContent: 'space-between',
+    },
+
+    reactionListContainer: {
+        maxHeight: variables.listItemHeightNormal * 5.75,
+        ...spacing.pv2,
+    },
+
+    reactionListContainerFixedWidth: {
+        maxWidth: variables.popoverWidth,
     },
 
     validateCodeDigits: {
@@ -3119,11 +3156,23 @@ const styles = {
         top: 60,
         zIndex: 100,
     },
+
     loginHeroHeader: {
         fontFamily: fontFamily.EXP_NEW_KANSAS_MEDIUM,
         color: themeColors.success,
         fontWeight: '500',
         textAlign: 'center',
+    },
+
+    newKansasLarge: {
+        ...headlineFont,
+        fontSize: variables.fontSizeXLarge,
+        lineHeight: 27,
+    },
+
+    moneyRequestHeaderCheckmark: {
+        marginLeft: 5,
+        alignSelf: 'center',
     },
 
     loginHeroBody: {
@@ -3138,7 +3187,10 @@ const styles = {
         textAlign: 'center',
     },
 
-    popoverMaxWidth: {
+    whisper: {
+        backgroundColor: themeColors.cardBG,
+    },
+    contextMenuItemPopoverMaxWidth: {
         maxWidth: 375,
     },
 };

@@ -1,5 +1,5 @@
-import React, {memo} from 'react';
-import {View, ActivityIndicator} from 'react-native';
+import React, {memo, useState} from 'react';
+import {View, ActivityIndicator, Pressable} from 'react-native';
 import _ from 'underscore';
 import PropTypes from 'prop-types';
 import Str from 'expensify-common/lib/str';
@@ -37,6 +37,9 @@ const propTypes = {
     /** Function for handle on press */
     onPress: PropTypes.func,
 
+    /** Handles scale changed event in PDF component */
+    onScaleChanged: PropTypes.func,
+
     /** Notify parent that the UI should be modified to accommodate keyboard */
     onToggleKeyboard: PropTypes.func,
 
@@ -50,47 +53,78 @@ const defaultProps = {
     },
     shouldShowDownloadIcon: false,
     shouldShowLoadingSpinnerIcon: false,
-    onPress: () => {},
+    onPress: undefined,
+    onScaleChanged: () => {},
     onToggleKeyboard: () => {},
 };
 
 const AttachmentView = (props) => {
+    const [loadComplete, setLoadComplete] = useState(false);
+    const containerStyles = [styles.flex1, styles.flexRow, styles.alignSelfStretch];
+
     // Handles case where source is a component (ex: SVG)
     if (_.isFunction(props.source)) {
         return (
-            <Icon src={props.source} height={variables.defaultAvatarPreviewSize} width={variables.defaultAvatarPreviewSize} />
+            <Icon
+                src={props.source}
+                height={variables.defaultAvatarPreviewSize}
+                width={variables.defaultAvatarPreviewSize}
+            />
         );
     }
 
     // Check both source and file.name since PDFs dragged into the the text field
     // will appear with a source that is a blob
-    if (Str.isPDF(props.source)
-        || (props.file && Str.isPDF(props.file.name || props.translate('attachmentView.unknownFilename')))) {
-        const sourceURL = props.isAuthTokenRequired
-            ? addEncryptedAuthTokenToURL(props.source)
-            : props.source;
-        return (
+    if (Str.isPDF(props.source) || (props.file && Str.isPDF(props.file.name || props.translate('attachmentView.unknownFilename')))) {
+        const sourceURL = props.isAuthTokenRequired ? addEncryptedAuthTokenToURL(props.source) : props.source;
+        const children = (
             <PDFView
                 onPress={props.onPress}
                 sourceURL={sourceURL}
                 style={styles.imageModalPDF}
                 onToggleKeyboard={props.onToggleKeyboard}
+                onScaleChanged={props.onScaleChanged}
+                onLoadComplete={() => !loadComplete && setLoadComplete(true)}
             />
+        );
+        return props.onPress ? (
+            <Pressable
+                onPress={props.onPress}
+                disabled={loadComplete}
+                style={containerStyles}
+            >
+                {children}
+            </Pressable>
+        ) : (
+            children
         );
     }
 
     // For this check we use both source and file.name since temporary file source is a blob
     // both PDFs and images will appear as images when pasted into the the text field
-    if (Str.isImage(props.source) || (props.file && Str.isImage(props.file.name))) {
-        return (
-            <ImageView onPress={props.onPress} url={props.source} isAuthTokenRequired={props.isAuthTokenRequired} />
+    const isImage = Str.isImage(props.source);
+    if (isImage || (props.file && Str.isImage(props.file.name))) {
+        const children = (
+            <ImageView
+                url={props.source}
+                isAuthTokenRequired={isImage && props.isAuthTokenRequired}
+            />
+        );
+        return props.onPress ? (
+            <Pressable
+                onPress={props.onPress}
+                disabled={loadComplete}
+                style={containerStyles}
+            >
+                {children}
+            </Pressable>
+        ) : (
+            children
         );
     }
 
     return (
-        <View
-            style={styles.defaultAttachmentView}
-        >
+        <View style={styles.defaultAttachmentView}>
             <View style={styles.mr2}>
                 <Icon src={Expensicons.Paperclip} />
             </View>
@@ -121,7 +155,4 @@ AttachmentView.propTypes = propTypes;
 AttachmentView.defaultProps = defaultProps;
 AttachmentView.displayName = 'AttachmentView';
 
-export default compose(
-    memo,
-    withLocalize,
-)(AttachmentView);
+export default compose(memo, withLocalize)(AttachmentView);

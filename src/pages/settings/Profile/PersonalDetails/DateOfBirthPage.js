@@ -73,9 +73,7 @@ class DateOfBirthPage extends Component {
      * @param {String} values.dob - date of birth
      */
     updateDateOfBirth(values) {
-        PersonalDetails.updateDateOfBirth(
-            values.dob,
-        );
+        PersonalDetails.updateDateOfBirth(values.dob);
     }
 
     /**
@@ -119,7 +117,6 @@ class DateOfBirthPage extends Component {
                     enabledWhenOffline
                 >
                     <NewDatePicker
-                        autoFocus
                         inputID="dob"
                         label={this.props.translate('common.date')}
                         defaultValue={privateDetails.dob || ''}
