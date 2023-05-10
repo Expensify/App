@@ -89,7 +89,7 @@ class ReportDetailsPage extends Component {
                 key: CONST.REPORT_DETAILS_MENU_ITEM.WELCOME_MESSAGE,
                 translationKey: 'welcomeMessagePage.welcomeMessage',
                 icon: Expensicons.ChatBubble,
-                action: () => { Navigation.navigate(ROUTES.getReportSettingsRoute(this.props.report.reportID)); },
+                action: () => { Navigation.navigate(ROUTES.getReportWelcomeMessageRoute(this.props.report.reportID)); },
             });
         }
 
