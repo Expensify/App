@@ -78,39 +78,36 @@ const ReportPreview = (props) => {
     const managerName = ReportUtils.getDisplayNameForParticipant(managerEmail, true);
     return (
         <View style={[styles.chatItemMessage, styles.mt4]}>
-            {_.map(props.action.message, index => (
+            {_.map(props.action.message, (index) => (
                 <Pressable
                     key={`ReportPreview-${props.action.reportActionID}-${index}`}
                     onPress={props.onViewDetailsPressed}
                     onPressIn={() => DeviceCapabilities.canUseTouchScreen() && ControlSelection.block()}
                     onPressOut={() => ControlSelection.unblock()}
-                    onLongPress={event => showContextMenuForReport(
-                        event,
-                        props.contextMenuAnchor,
-                        props.chatReportID,
-                        props.action,
-                        props.checkIfContextMenuActive,
-                    )}
+                    onLongPress={(event) => showContextMenuForReport(event, props.contextMenuAnchor, props.chatReportID, props.action, props.checkIfContextMenuActive)}
                     style={[styles.flexRow, styles.justifyContentBetween]}
                     focusable
                 >
                     <View>
                         {props.iouReport.hasOutstandingIOU ? (
-                            <Text style={[styles.chatItemMessage, styles.cursorPointer]}>
-                                {props.translate('iou.managerOwes', {owner: managerName, amount: reportAmount})}
-                            </Text>
+                            <Text style={[styles.chatItemMessage, styles.cursorPointer]}>{props.translate('iou.managerOwes', {owner: managerName, amount: reportAmount})}</Text>
                         ) : (
                             <View style={[styles.flexRow]}>
-                                <Text style={[styles.chatItemMessage, styles.cursorPointer]}>
-                                    {props.translate('iou.managerSettled', {owner: managerName, amount: reportAmount})}
-                                </Text>
+                                <Text style={[styles.chatItemMessage, styles.cursorPointer]}>{props.translate('iou.managerSettled', {owner: managerName, amount: reportAmount})}</Text>
                                 {!props.iouReport.hasOutstandingIOU && (
-                                    <Icon style={[styles.ml10]} src={Expensicons.Checkmark} fill={themeColors.iconSuccessFill} />
+                                    <Icon
+                                        style={[styles.ml10]}
+                                        src={Expensicons.Checkmark}
+                                        fill={themeColors.iconSuccessFill}
+                                    />
                                 )}
                             </View>
                         )}
                     </View>
-                    <Icon src={Expensicons.ArrowRight} fill={StyleUtils.getIconFillColor(getButtonState(props.isHovered))} />
+                    <Icon
+                        src={Expensicons.ArrowRight}
+                        fill={StyleUtils.getIconFillColor(getButtonState(props.isHovered))}
+                    />
                 </Pressable>
             ))}
         </View>
