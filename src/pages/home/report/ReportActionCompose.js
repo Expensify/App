@@ -191,7 +191,7 @@ class ReportActionCompose extends React.Component {
         this.willBlurTextInputOnTapOutside = willBlurTextInputOnTapOutside();
 
         this.state = {
-            isFocused: this.willBlurTextInputOnTapOutside && !this.props.modal.isVisible && !this.props.modal.willAlertModalBecomeVisible,
+            isFocused: this.willBlurTextInputOnTapOutside && !this.props.modal.isVisible && !this.props.modal.willAlertModalBecomeVisible && this.props.shouldShowComposeInput,
             isFullComposerAvailable: props.isComposerFullSize,
             textInputShouldClear: false,
             isCommentEmpty: props.comment.length === 0,
@@ -772,7 +772,7 @@ class ReportActionCompose extends React.Component {
         const isComposeDisabled = this.props.isDrawerOpen && this.props.isSmallScreenWidth;
         const isBlockedFromConcierge = ReportUtils.chatIncludesConcierge(this.props.report) && User.isBlockedFromConcierge(this.props.blockedFromConcierge);
         const inputPlaceholder = this.getInputPlaceholder();
-        const shouldUseFocusedColor = !isBlockedFromConcierge && !this.props.disabled && (this.state.isFocused || this.state.isDraggingOver) && this.props.shouldShowComposeInput;
+        const shouldUseFocusedColor = !isBlockedFromConcierge && !this.props.disabled && (this.state.isFocused || this.state.isDraggingOver);
         const hasExceededMaxCommentLength = this.state.hasExceededMaxCommentLength;
 
         return (
