@@ -20,6 +20,7 @@ import withWindowDimensions, {windowDimensionsPropTypes} from '../../../componen
 import withDrawerState from '../../../components/withDrawerState';
 import withLocalize, {withLocalizePropTypes} from '../../../components/withLocalize';
 import willBlurTextInputOnTapOutside from '../../../libs/willBlurTextInputOnTapOutside';
+import canFocusInputOnScreenFocus from '../../../libs/canFocusInputOnScreenFocus';
 import CONST from '../../../CONST';
 import Navigation from '../../../libs/Navigation/Navigation';
 import ROUTES from '../../../ROUTES';
@@ -186,9 +187,10 @@ class ReportActionCompose extends React.Component {
         // React Native will retain focus on an input for native devices but web/mWeb behave differently so we have some focus management
         // code that will refocus the compose input after a user closes a modal or some other actions, see usage of ReportActionComposeFocusManager
         this.willBlurTextInputOnTapOutside = willBlurTextInputOnTapOutside();
+        this.shouldFocusInputOnScreenFocus = canFocusInputOnScreenFocus();
 
         this.state = {
-            isFocused: this.willBlurTextInputOnTapOutside && !this.props.modal.isVisible && !this.props.modal.willAlertModalBecomeVisible,
+            isFocused: this.shouldFocusInputOnScreenFocus && !this.props.modal.isVisible && !this.props.modal.willAlertModalBecomeVisible,
             isFullComposerAvailable: props.isComposerFullSize,
             textInputShouldClear: false,
             isCommentEmpty: props.comment.length === 0,
@@ -917,7 +919,7 @@ class ReportActionCompose extends React.Component {
                                             disabled={this.props.disabled}
                                         >
                                             <Composer
-                                                autoFocus={!this.props.modal.isVisible && (this.willBlurTextInputOnTapOutside || this.isEmptyChat())}
+                                                autoFocus={!this.props.modal.isVisible && (this.shouldFocusInputOnScreenFocus || this.isEmptyChat())}
                                                 multiline
                                                 ref={this.setTextInputRef}
                                                 textAlignVertical="top"
