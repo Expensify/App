@@ -214,19 +214,10 @@ class ReportActionCompose extends React.Component {
 
             // If we are on a small width device then don't show last 3 items from conciergePlaceholderOptions
             conciergePlaceholderRandomIndex: _.random(this.props.translate('reportActionCompose.conciergePlaceholderOptions').length - (this.props.isSmallScreenWidth ? 4 : 1)),
-            suggestedEmojis: [],
-            highlightedEmojiIndex: 0,
-            colonIndex: -1,
-            shouldShowEmojiSuggestionMenu: false,
-            shouldShowMentionSuggestionMenu: false,
-            suggestedMentions: [],
-            highlightedMentionIndex: 0,
-            mentionPrefix: '',
-            atSignIndex: -1,
-            isAutoSuggestionPickerLarge: false,
             composerHeight: 0,
             hasExceededMaxCommentLength: false,
             isAttachmentPreviewActive: false,
+            ...this.getDefaultSuggestionsValues(),
         };
     }
 
@@ -313,6 +304,21 @@ class ReportActionCompose extends React.Component {
         this.setState({selection: e.nativeEvent.selection});
         this.calculateEmojiSuggestion();
         this.calculateMentionSuggestion();
+    }
+
+    getDefaultSuggestionsValues() {
+        return {
+            suggestedEmojis: [],
+            suggestedMentions: [],
+            highlightedEmojiIndex: 0,
+            highlightedMentionIndex: 0,
+            colonIndex: -1,
+            atSignIndex: -1,
+            shouldShowEmojiSuggestionMenu: false,
+            shouldShowMentionSuggestionMenu: false,
+            mentionPrefix: '',
+            isAutoSuggestionPickerLarge: false,
+        }
     }
 
     /**
@@ -467,14 +473,7 @@ class ReportActionCompose extends React.Component {
      */
     resetSuggestions() {
         this.setState({
-            suggestedEmojis: [],
-            suggestedMentions: [],
-            highlightedEmojiIndex: 0,
-            colonIndex: -1,
-            atSignIndex: -1,
-            shouldShowEmojiSuggestionMenu: false,
-            shouldShowMentionSuggestionMenu: false,
-            isAutoSuggestionPickerLarge: true,
+            ...this.getDefaultSuggestionsValues(),
         });
     }
 
