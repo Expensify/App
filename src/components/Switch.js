@@ -24,6 +24,7 @@ class Switch extends Component {
         this.offsetX = new Animated.Value(props.isOn ? this.onPosition : this.offPosition);
 
         this.toggleSwitch = this.toggleSwitch.bind(this);
+        this.toggleAction = this.toggleAction.bind(this);
     }
 
     componentDidUpdate(prevProps) {
@@ -34,6 +35,7 @@ class Switch extends Component {
         this.toggleSwitch();
     }
 
+    // animates the switch to the on or off position
     toggleSwitch() {
         Animated.timing(this.offsetX, {
             toValue: this.props.isOn ? this.onPosition : this.offPosition,
@@ -42,12 +44,18 @@ class Switch extends Component {
         }).start();
     }
 
+    // executes the callback passed in as a prop
+    toggleAction() {
+        this.props.onToggle(!this.props.isOn);
+    }
+
     render() {
         const switchTransform = {transform: [{translateX: this.offsetX}]};
         return (
             <PressableWithFeedback
                 style={[styles.switchTrack, !this.props.isOn && styles.switchInactive]}
-                onPress={() => this.props.onToggle(!this.props.isOn)}
+                onPress={this.toggleAction}
+                onLongPress={this.toggleAction}
                 accessibilityRole="switch"
                 accessibilityState={{checked: this.props.isOn}}
                 aria-checked={this.props.isOn}
