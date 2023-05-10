@@ -8,7 +8,6 @@ import emojis from '../../../assets/emojis';
 import AddReactionBubble from './AddReactionBubble';
 import withCurrentUserPersonalDetails, {withCurrentUserPersonalDetailsDefaultProps, withCurrentUserPersonalDetailsPropTypes} from '../withCurrentUserPersonalDetails';
 import getPreferredEmojiCode from './getPreferredEmojiCode';
-import * as PersonalDetailsUtils from '../../libs/PersonalDetailsUtils';
 import * as Report from '../../libs/actions/Report';
 import * as ReactionList from '../../pages/home/report/ReactionList/ReactionList';
 import Tooltip from '../Tooltip';
@@ -49,9 +48,7 @@ const propTypes = {
      */
     // eslint-disable-next-line react/forbid-prop-types
     reactions: PropTypes.arrayOf(PropTypes.object).isRequired,
-
-    reportActionID: PropTypes.string,
-    reportID: PropTypes.string,
+    reportActionID: PropTypes.string.isRequired,
 
     /**
      * Function to call when the user presses on an emoji.
@@ -89,27 +86,11 @@ const ReportActionItemReactions = (props) => {
                 };
 
                 const onReactionListOpen = (event) => {
-                    const users = PersonalDetailsUtils.getPersonalDetailsByIDs(reactionUsers);
-                    console.log('ITEM');
-                    console.log('users', users);
-                    console.log('emojiName', reaction.emoji);
-                    console.log('emojiCodes', emojiCodes);
-                    console.log('reactionCount', reactionCount);
-                    console.log('hasUserReacted', hasUserReacted);
-
-                    console.log('props.reportActionID', props.reportActionID);
-                    console.log('props.reportID', props.reportID);
                     ReactionList.showReactionList(
                         event,
                         popoverReactionListAnchor.current,
-                        users,
                         reaction.emoji,
-                        emojiCodes,
-                        reactionCount,
-                        hasUserReacted,
-
                         props.reportActionID,
-                        props.reportID,
                     );
                 };
 

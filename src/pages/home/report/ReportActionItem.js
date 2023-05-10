@@ -246,7 +246,6 @@ class ReportActionItem extends Component {
                     <View style={this.props.draftMessage ? styles.chatItemReactionsDraftRight : {}}>
                         <ReportActionItemReactions
                             reportActionID={this.props.action.reportActionID}
-                            reportID={this.props.report.reportID}
                             reactions={reactions}
                             toggleReaction={this.toggleReaction}
                         />
