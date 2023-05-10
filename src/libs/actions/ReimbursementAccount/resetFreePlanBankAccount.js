@@ -18,7 +18,8 @@ function resetFreePlanBankAccount(bankAccountID) {
         throw new Error('Missing credentials when attempting to reset free plan bank account');
     }
 
-    API.write('RestartBankAccountSetup',
+    API.write(
+        'RestartBankAccountSetup',
         {
             bankAccountID,
             ownerEmail: store.getCredentials().login,
@@ -69,7 +70,8 @@ function resetFreePlanBankAccount(bankAccountID) {
                     value: {isLoading: false, pendingAction: null},
                 },
             ],
-        });
+        },
+    );
 }
 
 export default resetFreePlanBankAccount;

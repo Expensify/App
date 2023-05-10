@@ -39,8 +39,8 @@ class BankAccountManualStep extends React.Component {
         const routingNumber = values.routingNumber && values.routingNumber.trim();
 
         if (
-            !values.accountNumber
-            || (!CONST.BANK_ACCOUNT.REGEX.US_ACCOUNT_NUMBER.test(values.accountNumber.trim()) && !CONST.BANK_ACCOUNT.REGEX.MASKED_US_ACCOUNT_NUMBER.test(values.accountNumber.trim()))
+            !values.accountNumber ||
+            (!CONST.BANK_ACCOUNT.REGEX.US_ACCOUNT_NUMBER.test(values.accountNumber.trim()) && !CONST.BANK_ACCOUNT.REGEX.MASKED_US_ACCOUNT_NUMBER.test(values.accountNumber.trim()))
         ) {
             errorFields.accountNumber = this.props.translate('bankAccount.error.accountNumber');
         }
@@ -84,9 +84,7 @@ class BankAccountManualStep extends React.Component {
                     submitButtonText={this.props.translate('common.continue')}
                     style={[styles.mh5, styles.flexGrow1]}
                 >
-                    <Text style={[styles.mb5]}>
-                        {this.props.translate('bankAccount.checkHelpLine')}
-                    </Text>
+                    <Text style={[styles.mb5]}>{this.props.translate('bankAccount.checkHelpLine')}</Text>
                     <Image
                         resizeMode="contain"
                         style={[styles.exampleCheckImage, styles.mb5]}
@@ -121,9 +119,8 @@ class BankAccountManualStep extends React.Component {
                                 {this.props.translate('common.iAcceptThe')}
                                 <TextLink
                                     href="https://use.expensify.com/terms"
-
                                     // to call the onPress in the TextLink before the input blur is fired and shift the link element
-                                    onMouseDown={e => e.preventDefault()}
+                                    onMouseDown={(e) => e.preventDefault()}
                                 >
                                     {this.props.translate('common.expensifyTermsOfService')}
                                 </TextLink>

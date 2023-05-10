@@ -1,10 +1,6 @@
 import _ from 'underscore';
 import React, {useMemo} from 'react';
-import {
-    TRenderEngineProvider,
-    RenderHTMLConfigProvider,
-    defaultHTMLElementModels,
-} from 'react-native-render-html';
+import {TRenderEngineProvider, RenderHTMLConfigProvider, defaultHTMLElementModels} from 'react-native-render-html';
 import PropTypes from 'prop-types';
 import htmlRenderers from './HTMLRenderers';
 import * as HTMLEngineUtils from './htmlEngineUtils';

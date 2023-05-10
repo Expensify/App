@@ -122,8 +122,7 @@ class ReimbursementAccountPage extends React.Component {
         if (!this.state.hasACHDataBeenLoaded) {
             // If the ACHData has not been loaded yet, and we are seeing the default data for props.reimbursementAccount
             // We don't need to do anything yet
-            if (this.props.reimbursementAccount !== ReimbursementAccountProps.reimbursementAccountDefaultProps
-                && !this.props.reimbursementAccount.isLoading) {
+            if (this.props.reimbursementAccount !== ReimbursementAccountProps.reimbursementAccountDefaultProps && !this.props.reimbursementAccount.isLoading) {
                 // If we are here, it is because this is the first time we load the ACHData from the server and
                 // this.props.reimbursementAccount.isLoading just changed to false. From now on, it makes sense to run the code
                 // below updating states and the route, and this will happen in the next react lifecycle.
@@ -135,8 +134,10 @@ class ReimbursementAccountPage extends React.Component {
             return;
         }
 
-        if (prevProps.reimbursementAccount.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE
-            && this.props.reimbursementAccount.pendingAction !== prevProps.reimbursementAccount.pendingAction) {
+        if (
+            prevProps.reimbursementAccount.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE &&
+            this.props.reimbursementAccount.pendingAction !== prevProps.reimbursementAccount.pendingAction
+        ) {
             // We are here after the user tried to delete the bank account. We will want to set
             // this.state.shouldShowContinueSetupButton to `false` if the bank account was deleted.
             this.setState({shouldShowContinueSetupButton: this.hasInProgressVBBA()});
@@ -167,9 +168,7 @@ class ReimbursementAccountPage extends React.Component {
         // When the step changes we will navigate to update the route params. This is mostly cosmetic as we only use
         // the route params when the component first mounts to jump to a specific route instead of picking up where the
         // user left off in the flow.
-        Navigation.navigate(ROUTES.getBankAccountRoute(
-            this.getRouteForCurrentStep(currentStep), lodashGet(this.props.route.params, 'policyID'),
-        ));
+        Navigation.navigate(ROUTES.getBankAccountRoute(this.getRouteForCurrentStep(currentStep), lodashGet(this.props.route.params, 'policyID')));
     }
 
     /*
@@ -182,8 +181,7 @@ class ReimbursementAccountPage extends React.Component {
             return false;
         }
         const achData = lodashGet(this.props.reimbursementAccount, 'achData', {});
-        return achData.state === BankAccount.STATE.PENDING
-            || _.contains([CONST.BANK_ACCOUNT.STEP.BANK_ACCOUNT, ''], this.getStepToOpenFromRouteParams());
+        return achData.state === BankAccount.STATE.PENDING || _.contains([CONST.BANK_ACCOUNT.STEP.BANK_ACCOUNT, ''], this.getStepToOpenFromRouteParams());
     }
 
     /**
@@ -316,7 +314,8 @@ class ReimbursementAccountPage extends React.Component {
                     Navigation.goBack();
                 }
                 break;
-            default: Navigation.goBack();
+            default:
+                Navigation.goBack();
         }
     }
 
@@ -335,11 +334,7 @@ class ReimbursementAccountPage extends React.Component {
         // Show loading indicator when page is first time being opened and props.reimbursementAccount yet to be loaded from the server
         // or when data is being loaded. Don't show the loading indicator if we're offline and restarted the bank account setup process
         if ((!this.state.hasACHDataBeenLoaded || isLoading) && !(this.props.network.isOffline && currentStep === CONST.BANK_ACCOUNT.STEP.BANK_ACCOUNT)) {
-            const isSubmittingVerificationsData = _.contains([
-                CONST.BANK_ACCOUNT.STEP.COMPANY,
-                CONST.BANK_ACCOUNT.STEP.REQUESTOR,
-                CONST.BANK_ACCOUNT.STEP.ACH_CONTRACT,
-            ], currentStep);
+            const isSubmittingVerificationsData = _.contains([CONST.BANK_ACCOUNT.STEP.COMPANY, CONST.BANK_ACCOUNT.STEP.REQUESTOR, CONST.BANK_ACCOUNT.STEP.ACH_CONTRACT], currentStep);
             return (
                 <ReimbursementAccountLoadingIndicator
                     isSubmittingVerificationsData={isSubmittingVerificationsData}
@@ -373,9 +368,7 @@ class ReimbursementAccountPage extends React.Component {
         if (throttledDate) {
             errorComponent = (
                 <View style={[styles.m5]}>
-                    <Text>
-                        {this.props.translate('bankAccount.hasBeenThrottledError')}
-                    </Text>
+                    <Text>{this.props.translate('bankAccount.hasBeenThrottledError')}</Text>
                 </View>
             );
         }
@@ -454,7 +447,10 @@ class ReimbursementAccountPage extends React.Component {
 
         if (currentStep === CONST.BANK_ACCOUNT.STEP.ENABLE) {
             return (
-                <EnableStep reimbursementAccount={this.props.reimbursementAccount} policyName={policyName} />
+                <EnableStep
+                    reimbursementAccount={this.props.reimbursementAccount}
+                    policyName={policyName}
+                />
             );
         }
     }

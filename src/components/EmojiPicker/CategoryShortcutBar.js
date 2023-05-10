@@ -10,14 +10,16 @@ const propTypes = {
     onPress: PropTypes.func.isRequired,
 
     /** The emojis consisting emoji code and indices that the icons should link to */
-    headerEmojis: PropTypes.arrayOf(PropTypes.shape({
-        code: PropTypes.string.isRequired,
-        index: PropTypes.number.isRequired,
-        icon: PropTypes.func.isRequired,
-    })).isRequired,
+    headerEmojis: PropTypes.arrayOf(
+        PropTypes.shape({
+            code: PropTypes.string.isRequired,
+            index: PropTypes.number.isRequired,
+            icon: PropTypes.func.isRequired,
+        }),
+    ).isRequired,
 };
 
-const CategoryShortcutBar = props => (
+const CategoryShortcutBar = (props) => (
     <View style={[styles.pt2, styles.ph4, styles.flexRow]}>
         {_.map(props.headerEmojis, (headerEmoji, i) => (
             <CategoryShortcutButton
