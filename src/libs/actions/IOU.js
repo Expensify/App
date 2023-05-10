@@ -116,6 +116,7 @@ function requestMoney(report, amount, currency, payeeEmail, participant, comment
         amount,
         currency,
         comment,
+        [participant],
         optimisticTransaction.transactionID,
         '',
         moneyRequestReport.reportID,
@@ -285,7 +286,7 @@ function createSplitsAndOnyxData(participants, currentUserLogin, amount, comment
 
     // Note: The created action must be optimistically generated before the IOU action so there's no chance that the created action appears after the IOU action in the chat
     const groupCreatedReportAction = ReportUtils.buildOptimisticCreatedReportAction(currentUserEmail);
-    const groupIOUReportAction = ReportUtils.buildOptimisticIOUReportAction(CONST.IOU.REPORT_ACTION_TYPE.SPLIT, amount, currency, comment, groupTransaction.transactionID);
+    const groupIOUReportAction = ReportUtils.buildOptimisticIOUReportAction(CONST.IOU.REPORT_ACTION_TYPE.SPLIT, amount, currency, comment, participants, groupTransaction.transactionID);
 
     groupChatReport.lastReadTime = DateUtils.getDBTime();
     groupChatReport.lastMessageText = groupIOUReportAction.message[0].text;
@@ -424,6 +425,7 @@ function createSplitsAndOnyxData(participants, currentUserLogin, amount, comment
             splitAmount,
             currency,
             comment,
+            [participant],
             oneOnOneTransaction.transactionID,
             '',
             oneOnOneIOUReport.reportID,
@@ -650,6 +652,7 @@ function deleteMoneyRequest(chatReportID, iouReportID, moneyRequestAction, shoul
         amount,
         moneyRequestAction.originalMessage.currency,
         Str.htmlDecode(moneyRequestAction.originalMessage.comment),
+        [],
         transactionID,
         '',
         iouReportID,
@@ -822,6 +825,7 @@ function getSendMoneyParams(report, amount, currency, comment, paymentMethodType
         amount,
         currency,
         comment,
+        [recipient],
         optimisticTransaction.transactionID,
         paymentMethodType,
         optimisticIOUReport.reportID,
@@ -962,6 +966,7 @@ function getPayMoneyRequestParams(chatReport, iouReport, recipient, paymentMetho
         iouReport.total,
         iouReport.currency,
         '',
+        [recipient],
         optimisticTransaction.transactionID,
         paymentMethodType,
         iouReport.reportID,
