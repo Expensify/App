@@ -3,6 +3,7 @@ import {View} from 'react-native';
 import {useIsFocused} from '@react-navigation/native';
 import withLocalize, {withLocalizePropTypes} from '../withLocalize';
 import getUserLanguage from './getUserLanguage';
+import { beginAppleSignIn } from '../../libs/actions/Session';
 
 const propTypes = {...withLocalizePropTypes};
 
@@ -43,6 +44,23 @@ const SingletonAppleDiv = () => {
 
 const listenerHandler = event => console.log(event.detail);
 
+const hardcodedToken = "";
+const successListener = event => {
+    // successful response:
+    // { code: "...",
+    // id_token: "..." }
+    // should be: beginAppleSignIn(event.detail.id_token);
+    // using:
+    console.log("logging in with hardcoded token")
+    beginAppleSignIn({token: hardcodedToken});
+}
+
+const failureListener = event => {
+    console.log(event);
+}
+
+// TODO: we get response twice with this approach. Hide it under useFocus, or create a single component for the script loading/listening elsewhere.
+
 const AppleSignIn = (props) => {
     React.useEffect(() => {
         const localeCode = getUserLanguage();
@@ -64,10 +82,10 @@ const AppleSignIn = (props) => {
 
     // result listeners
     React.useEffect(() => {
-        document.addEventListener('AppleIDSignInOnSuccess', listenerHandler);
+        document.addEventListener('AppleIDSignInOnSuccess', successListener);
         document.addEventListener('AppleIDSignInOnFailure', listenerHandler);
         return () => {
-            document.removeEventListener('AppleIDSignInOnSuccess', listenerHandler);
+            document.removeEventListener('AppleIDSignInOnSuccess', successListener);
             document.removeEventListener('AppleIDSignInOnFailure', listenerHandler);
         };
     }, []);

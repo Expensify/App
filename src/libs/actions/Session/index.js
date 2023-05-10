@@ -216,7 +216,7 @@ function beginAppleSignIn({token}) {
             },
         },
     ];
-    API.makeRequestWithSideEffects('AuthenticateApple', {token}, {optimisticData, successData, failureData});
+    API.makeRequestWithSideEffects('AuthenticateApple', {idToken: token}, {optimisticData, successData, failureData});
 }
 
 function beginGoogleSignIn({token}) {
