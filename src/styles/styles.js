@@ -169,7 +169,7 @@ const styles = {
         flexBasis: '48%',
     },
 
-    emojiSuggestionsContainer: {
+    autoCompleteSuggestionsContainer: {
         backgroundColor: themeColors.appBG,
         borderRadius: 8,
         borderWidth: 1,
@@ -180,7 +180,8 @@ const styles = {
         left: 0,
         right: 0,
     },
-    emojiSuggestionContainer: {
+
+    autoCompleteSuggestionContainer: {
         flexDirection: 'row',
         alignItems: 'center',
     },
@@ -807,6 +808,11 @@ const styles = {
         backgroundColor: themeColors.buttonDefaultBG,
     },
 
+    autoGrowHeightInputContainer: (textInputHeight, maxHeight) => ({
+        height: textInputHeight >= maxHeight ? maxHeight : textInputHeight,
+        minHeight: variables.componentSizeLarge,
+    }),
+
     textInputContainer: {
         flex: 1,
         justifyContent: 'center',
@@ -815,6 +821,7 @@ const styles = {
         borderBottomWidth: 2,
         borderColor: themeColors.border,
         overflow: 'hidden',
+        scrollPaddingTop: '100%',
     },
 
     textInputLabel: {
@@ -855,6 +862,7 @@ const styles = {
         paddingTop: 23,
         paddingBottom: 8,
         paddingLeft: 0,
+        paddingRight: 0,
         borderWidth: 0,
     },
 
@@ -1498,6 +1506,19 @@ const styles = {
         flex: 1,
     },
 
+    chatItemDraft: {
+        display: 'flex',
+        flexDirection: 'row',
+        paddingTop: 8,
+        paddingBottom: 8,
+        paddingLeft: 20,
+        paddingRight: 20,
+    },
+
+    chatItemReactionsDraftRight: {
+        marginLeft: 52,
+    },
+
     // Be extremely careful when editing the compose styles, as it is easy to introduce regressions.
     // Make sure you run the following tests against any changes: #12669
     textInputCompose: addOutlineWidth({
@@ -1530,7 +1551,7 @@ const styles = {
 
     editInputComposeSpacing: {
         backgroundColor: themeColors.transparent,
-        marginVertical: 6,
+        marginVertical: 8,
     },
 
     // composer padding should not be modified unless thoroughly tested against the cases in this PR: #12669
@@ -1650,6 +1671,15 @@ const styles = {
         padding: 6,
         margin: 3,
         borderRadius: variables.componentBorderRadiusRounded,
+        backgroundColor: themeColors.transparent,
+    },
+
+    taskSelectorLink: {
+        alignSelf: 'center',
+        height: 42,
+        width: '100%',
+        padding: 6,
+        margin: 3,
         backgroundColor: themeColors.transparent,
     },
 
@@ -2317,7 +2347,8 @@ const styles = {
         borderRadius: 0,
         justifyContent: 'space-between',
         width: '100%',
-        marginBottom: 20,
+        paddingHorizontal: 20,
+        paddingVertical: 12,
     },
 
     iouPreviewBox: {
@@ -2573,7 +2604,7 @@ const styles = {
     },
 
     workspaceInviteWelcome: {
-        minHeight: 115,
+        maxHeight: 115,
     },
 
     peopleRow: {
@@ -2768,6 +2799,11 @@ const styles = {
     threeDotsPopoverOffset: {
         top: 50,
         right: 60,
+    },
+
+    threeDotsPopoverOffsetNoCloseButton: {
+        top: 50,
+        right: 10,
     },
 
     invert: {
@@ -2989,6 +3025,35 @@ const styles = {
         alignSelf: 'flex-start',
     },
 
+    emojiReactionListHeader: {
+        marginTop: 8,
+        paddingBottom: 20,
+        borderBottomColor: themeColors.border,
+        borderBottomWidth: 1,
+        marginHorizontal: 20,
+    },
+    emojiReactionListHeaderBubble: {
+        paddingVertical: 2,
+        paddingHorizontal: 8,
+        borderRadius: 28,
+        backgroundColor: themeColors.border,
+        alignItems: 'center',
+        justifyContent: 'center',
+        flexDirection: 'row',
+        alignSelf: 'flex-start',
+        marginRight: 4,
+    },
+    reactionListItem: {
+        flexDirection: 'row',
+        paddingVertical: 12,
+        paddingHorizontal: 20,
+    },
+    reactionListHeaderText: {
+        color: themeColors.textSupporting,
+        marginLeft: 8,
+        alignSelf: 'center',
+    },
+
     miniQuickEmojiReactionText: {
         fontSize: 15,
         lineHeight: 20,
@@ -3003,7 +3068,6 @@ const styles = {
         fontSize: 13,
         marginLeft: 4,
         fontWeight: 'bold',
-        fontVariant: ['tabular-nums'],
     },
 
     fontColorReactionLabel: {
@@ -3026,6 +3090,15 @@ const styles = {
         paddingHorizontal: 25,
         paddingVertical: 12,
         justifyContent: 'space-between',
+    },
+
+    reactionListContainer: {
+        maxHeight: variables.listItemHeightNormal * 5.75,
+        ...spacing.pv2,
+    },
+
+    reactionListContainerFixedWidth: {
+        maxWidth: variables.popoverWidth,
     },
 
     validateCodeDigits: {
@@ -3084,11 +3157,23 @@ const styles = {
         top: 60,
         zIndex: 100,
     },
+
     loginHeroHeader: {
         fontFamily: fontFamily.EXP_NEW_KANSAS_MEDIUM,
         color: themeColors.success,
         fontWeight: '500',
         textAlign: 'center',
+    },
+
+    newKansasLarge: {
+        ...headlineFont,
+        fontSize: variables.fontSizeXLarge,
+        lineHeight: 27,
+    },
+
+    moneyRequestHeaderCheckmark: {
+        marginLeft: 5,
+        alignSelf: 'center',
     },
 
     loginHeroBody: {
