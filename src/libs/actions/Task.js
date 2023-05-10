@@ -1,11 +1,13 @@
 import Onyx from 'react-native-onyx';
 import lodashGet from 'lodash/get';
+import Str from 'expensify-common/lib/str';
 import ONYXKEYS from '../../ONYXKEYS';
 import * as API from '../API';
 import * as ReportUtils from '../ReportUtils';
 import * as Report from './Report';
 import Navigation from '../Navigation/Navigation';
 import ROUTES from '../../ROUTES';
+import DateUtils from '../DateUtils';
 
 /**
  * Clears out the task info from the store
@@ -43,6 +45,17 @@ function createTaskAndNavigate(currentUserEmail, parentReportID, title, descript
     const optimisticTaskCreatedAction = ReportUtils.buildOptimisticCreatedReportAction(optimisticTaskReport.reportID);
     const optimisticAddCommentReport = ReportUtils.buildOptimisticTaskCommentReportAction(taskReportID, title, assignee, `Created a task: ${title}`);
 
+    const currentTime = DateUtils.getDBTime();
+
+    const lastCommentText = ReportUtils.formatReportLastMessageText(optimisticAddCommentReport.reportAction.message[0].text);
+
+    const optimisticReport = {
+        lastVisibleActionCreated: currentTime,
+        lastMessageText: Str.htmlDecode(lastCommentText),
+        lastActorEmail: currentUserEmail,
+        lastReadTime: currentTime,
+    };
+
     const optimisticData = [
         {
             onyxMethod: Onyx.METHOD.SET,
@@ -59,15 +72,12 @@ function createTaskAndNavigate(currentUserEmail, parentReportID, title, descript
             key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${parentReportID}`,
             value: {[optimisticAddCommentReport.reportAction.reportActionID]: optimisticAddCommentReport.reportAction},
         },
-    ];
-
-    if (optimisticAssigneeAddComment) {
-        optimisticData.push({
+        {
             onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${assigneeChatReportID}`,
-            value: {[optimisticAssigneeAddComment.reportAction.reportActionID]: optimisticAssigneeAddComment.reportAction},
-        });
-    }
+            key: `${ONYXKEYS.COLLECTION.REPORT}${parentReportID}`,
+            value: optimisticReport,
+        },
+    ];
 
     const successData = [];
 
@@ -90,6 +100,28 @@ function createTaskAndNavigate(currentUserEmail, parentReportID, title, descript
     ];
 
     if (optimisticAssigneeAddComment) {
+        const lastAssigneeCommentText = ReportUtils.formatReportLastMessageText(optimisticAssigneeAddComment.reportAction.message[0].text);
+
+        const optimisticAssigneeReport = {
+            lastVisibleActionCreated: currentTime,
+            lastMessageText: Str.htmlDecode(lastAssigneeCommentText),
+            lastActorEmail: currentUserEmail,
+            lastReadTime: currentTime,
+        };
+
+        optimisticData.push(
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${assigneeChatReportID}`,
+                value: {[optimisticAssigneeAddComment.reportAction.reportActionID]: optimisticAssigneeAddComment.reportAction},
+            },
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.REPORT}${assigneeChatReportID}`,
+                value: optimisticAssigneeReport,
+            },
+        );
+
         failureData.push({
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${assigneeChatReportID}`,
