@@ -55,6 +55,7 @@ class Switch extends Component {
 
                 // disable hover dim for switch
                 hoverDimmingValue={1}
+                pressDimmingValue={0.8}
             >
                 <Animated.View style={[styles.switchThumb, switchTransform]} />
             </PressableWithFeedback>
