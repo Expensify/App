@@ -12,9 +12,7 @@ import Icon from '../Icon';
 import * as Expensicons from '../Icon/Expensicons';
 import getButtonState from '../../libs/getButtonState';
 import * as EmojiPickerAction from '../../libs/actions/EmojiPickerAction';
-import {
-    baseQuickEmojiReactionsPropTypes,
-} from './QuickEmojiReactions/BaseQuickEmojiReactions';
+import {baseQuickEmojiReactionsPropTypes} from './QuickEmojiReactions/BaseQuickEmojiReactions';
 import withLocalize, {withLocalizePropTypes} from '../withLocalize';
 import compose from '../../libs/compose';
 import ONYXKEYS from '../../ONYXKEYS';
@@ -31,7 +29,6 @@ const propTypes = {
 
     ...withLocalizePropTypes,
     preferredSkinTone: PropTypes.oneOfType([PropTypes.number, PropTypes.string]),
-
 };
 
 const defaultProps = {
@@ -63,20 +60,14 @@ const MiniQuickEmojiReactions = (props) => {
 
     return (
         <View style={styles.flexRow}>
-            {_.map(CONST.QUICK_REACTIONS, emoji => (
+            {_.map(CONST.QUICK_REACTIONS, (emoji) => (
                 <BaseMiniContextMenuItem
                     key={emoji.name}
                     isDelayButtonStateComplete={false}
                     tooltipText={`:${emoji.name}:`}
                     onPress={() => props.onEmojiSelected(emoji)}
                 >
-                    <Text style={[
-                        styles.miniQuickEmojiReactionText,
-                        styles.userSelectNone,
-                    ]}
-                    >
-                        {getPreferredEmojiCode(emoji, props.preferredSkinTone)}
-                    </Text>
+                    <Text style={[styles.miniQuickEmojiReactionText, styles.userSelectNone]}>{getPreferredEmojiCode(emoji, props.preferredSkinTone)}</Text>
                 </BaseMiniContextMenuItem>
             ))}
             <BaseMiniContextMenuItem
