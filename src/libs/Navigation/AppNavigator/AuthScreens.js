@@ -1,5 +1,5 @@
 import React, {useEffect, useMemo, useRef, useCallback} from 'react';
-import {Animated} from 'react-native';
+import {Animated, Easing} from 'react-native';
 import Onyx, {withOnyx} from 'react-native-onyx';
 import {getFocusedRouteNameFromRoute} from '@react-navigation/native';
 import PropTypes from 'prop-types';
@@ -215,8 +215,10 @@ const AuthScreens = (props) => {
                 statusBarAnimation.setValue(0);
                 Animated.timing(statusBarAnimation, {
                     toValue: 1,
-                    duration: 500,
-                    useNativeDriver: true,
+                    duration: 300,
+                    delay: 300,
+                    easing: Easing.in(Easing.ease),
+                    useNativeDriver: false,
                 }).start();
             }
         },
