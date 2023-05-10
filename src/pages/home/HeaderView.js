@@ -69,7 +69,7 @@ const HeaderView = (props) => {
 
     const subtitle = ReportUtils.getChatRoomSubtitle(props.report);
     const isConcierge = participants.length === 1 && _.contains(participants, CONST.EMAIL.CONCIERGE);
-    const isAutomatedExpensifyAccount = (participants.length === 1 && ReportUtils.hasAutomatedExpensifyEmails(participants));
+    const isAutomatedExpensifyAccount = participants.length === 1 && ReportUtils.hasAutomatedExpensifyEmails(participants);
     const guideCalendarLink = lodashGet(props.account, 'guideCalendarLink');
 
     // We hide the button when we are chatting with an automated Expensify account since it's not possible to contact
@@ -117,7 +117,10 @@ const HeaderView = (props) => {
     const icons = ReportUtils.getIcons(props.report, props.personalDetails);
     const brickRoadIndicator = ReportUtils.hasReportNameError(props.report) ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : '';
     return (
-        <View style={[styles.appContentHeader]} nativeID="drag-area">
+        <View
+            style={[styles.appContentHeader]}
+            nativeID="drag-area"
+        >
             <View style={[styles.appContentHeaderTitle, !props.isSmallScreenWidth && styles.pl5]}>
                 {props.isSmallScreenWidth && (
                     <Pressable
@@ -125,20 +128,16 @@ const HeaderView = (props) => {
                         style={[styles.LHNToggle]}
                         accessibilityHint={props.translate('accessibilityHints.navigateToChatsList')}
                     >
-                        <Tooltip text={props.translate('common.back')} shiftVertical={4}>
+                        <Tooltip
+                            text={props.translate('common.back')}
+                            shiftVertical={4}
+                        >
                             <Icon src={Expensicons.BackArrow} />
                         </Tooltip>
                     </Pressable>
                 )}
                 {Boolean(props.report && title) && (
-                    <View
-                        style={[
-                            styles.flex1,
-                            styles.flexRow,
-                            styles.alignItemsCenter,
-                            styles.justifyContentBetween,
-                        ]}
-                    >
+                    <View style={[styles.flex1, styles.flexRow, styles.alignItemsCenter, styles.justifyContentBetween]}>
                         <Pressable
                             onPress={() => ReportUtils.navigateToDetailsPage(props.report)}
                             style={[styles.flexRow, styles.alignItemsCenter, styles.flex1]}
@@ -167,12 +166,7 @@ const HeaderView = (props) => {
                                 />
                                 {(isChatRoom || isPolicyExpenseChat) && (
                                     <Text
-                                        style={[
-                                            styles.sidebarLinkText,
-                                            styles.optionAlternateText,
-                                            styles.textLabelSupporting,
-                                            styles.pre,
-                                        ]}
+                                        style={[styles.sidebarLinkText, styles.optionAlternateText, styles.textLabelSupporting, styles.pre]}
                                         numberOfLines={1}
                                     >
                                         {subtitle}
@@ -189,13 +183,21 @@ const HeaderView = (props) => {
                             )}
                         </Pressable>
                         <View style={[styles.reportOptions, styles.flexRow, styles.alignItemsCenter]}>
-                            {shouldShowCallButton && <VideoChatButtonAndMenu isConcierge={isConcierge} guideCalendarLink={guideCalendarLink} />}
+                            {shouldShowCallButton && (
+                                <VideoChatButtonAndMenu
+                                    isConcierge={isConcierge}
+                                    guideCalendarLink={guideCalendarLink}
+                                />
+                            )}
                             <Tooltip text={props.report.isPinned ? props.translate('common.unPin') : props.translate('common.pin')}>
                                 <Pressable
                                     onPress={() => Report.togglePinnedState(props.report)}
                                     style={[styles.touchableButtonImage]}
                                 >
-                                    <Icon src={Expensicons.Pin} fill={props.report.isPinned ? themeColors.heading : themeColors.icon} />
+                                    <Icon
+                                        src={Expensicons.Pin}
+                                        fill={props.report.isPinned ? themeColors.heading : themeColors.icon}
+                                    />
                                 </Pressable>
                             </Tooltip>
                             {shouldShowThreeDotsButton && (
@@ -221,7 +223,7 @@ export default compose(
     withOnyx({
         account: {
             key: ONYXKEYS.ACCOUNT,
-            selector: account => account && ({guideCalendarLink: account.guideCalendarLink}),
+            selector: (account) => account && {guideCalendarLink: account.guideCalendarLink},
         },
     }),
 )(HeaderView);

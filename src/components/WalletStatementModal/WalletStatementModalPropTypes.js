@@ -4,7 +4,6 @@ const walletStatementPropTypes = {
     /* Onyx Props */
     /** Session info for the currently logged in user. */
     session: PropTypes.shape({
-
         /** Currently logged in user authToken */
         authToken: PropTypes.string,
     }),
@@ -19,7 +18,4 @@ const walletStatementDefaultProps = {
     },
 };
 
-export {
-    walletStatementPropTypes,
-    walletStatementDefaultProps,
-};
+export {walletStatementPropTypes, walletStatementDefaultProps};

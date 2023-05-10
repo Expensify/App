@@ -38,10 +38,7 @@ const defaultProps = {
 };
 
 const updateLegalName = (values) => {
-    PersonalDetails.updateLegalName(
-        values.legalFirstName.trim(),
-        values.legalLastName.trim(),
-    );
+    PersonalDetails.updateLegalName(values.legalFirstName.trim(), values.legalLastName.trim());
 };
 
 function LegalNamePage(props) {
@@ -49,23 +46,26 @@ function LegalNamePage(props) {
     const legalLastName = lodashGet(props.privatePersonalDetails, 'legalLastName', '');
     const translate = props.translate;
 
-    const validate = useCallback((values) => {
-        const errors = {};
+    const validate = useCallback(
+        (values) => {
+            const errors = {};
 
-        if (!ValidationUtils.isValidLegalName(values.legalFirstName)) {
-            errors.legalFirstName = translate('privatePersonalDetails.error.hasInvalidCharacter');
-        } else if (_.isEmpty(values.legalFirstName)) {
-            errors.legalFirstName = translate('common.error.fieldRequired');
-        }
+            if (!ValidationUtils.isValidLegalName(values.legalFirstName)) {
+                errors.legalFirstName = translate('privatePersonalDetails.error.hasInvalidCharacter');
+            } else if (_.isEmpty(values.legalFirstName)) {
+                errors.legalFirstName = translate('common.error.fieldRequired');
+            }
 
-        if (!ValidationUtils.isValidLegalName(values.legalLastName)) {
-            errors.legalLastName = translate('privatePersonalDetails.error.hasInvalidCharacter');
-        } else if (_.isEmpty(values.legalLastName)) {
-            errors.legalLastName = translate('common.error.fieldRequired');
-        }
+            if (!ValidationUtils.isValidLegalName(values.legalLastName)) {
+                errors.legalLastName = translate('privatePersonalDetails.error.hasInvalidCharacter');
+            } else if (_.isEmpty(values.legalLastName)) {
+                errors.legalLastName = translate('common.error.fieldRequired');
+            }
 
-        return errors;
-    }, [translate]);
+            return errors;
+        },
+        [translate],
+    );
 
     return (
         <ScreenWrapper includeSafeAreaPaddingBottom={false}>
