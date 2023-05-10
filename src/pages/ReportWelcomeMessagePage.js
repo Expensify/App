@@ -27,12 +27,6 @@ const propTypes = {
     /** The report currently being looked at */
     report: reportPropTypes.isRequired,
 
-    /** The policies which the user has access to and which the report could be tied to */
-    policies: PropTypes.shape({
-        /** Name of the policy */
-        name: PropTypes.string,
-    }),
-
     /** Route params */
     route: PropTypes.shape({
         params: PropTypes.shape({
@@ -40,10 +34,6 @@ const propTypes = {
             reportID: PropTypes.string,
         }),
     }).isRequired,
-};
-
-const defaultProps = {
-    policies: {},
 };
 
 function ReportWelcomeMessagePage(props) {
@@ -103,13 +93,7 @@ function ReportWelcomeMessagePage(props) {
 }
 
 ReportWelcomeMessagePage.propTypes = propTypes;
-ReportWelcomeMessagePage.defaultProps = defaultProps;
 export default compose(
     withLocalize,
     withReportOrNotFound,
-    withOnyx({
-        policies: {
-            key: ONYXKEYS.COLLECTION.POLICY,
-        },
-    }),
 )(ReportWelcomeMessagePage);

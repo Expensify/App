@@ -21,6 +21,7 @@ import * as ReportActionsUtils from '../ReportActionsUtils';
 import * as OptionsListUtils from '../OptionsListUtils';
 import * as Localize from '../Localize';
 import * as CollectionUtils from '../CollectionUtils';
+import {getParsedComment} from "../ReportUtils";
 
 let currentUserEmail;
 let currentUserAccountID;
@@ -1029,6 +1030,7 @@ function updateNotificationPreference(reportID, previousValue, newValue) {
  * @param {String} newValue
  */
 function updateWelcomeMessage(reportID, previousValue, newValue) {
+    const parsedWelcomeMessage = ReportUtils.getParsedComment(newValue);
     const optimisticData = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
@@ -1043,7 +1045,8 @@ function updateWelcomeMessage(reportID, previousValue, newValue) {
             value: {welcomeMessage: previousValue},
         },
     ];
-    API.write('UpdateWelcomeMessage', {reportID, welcomeMessage: newValue}, {optimisticData, failureData});
+    API.write('UpdateWelcomeMessage', {reportID, welcomeMessage: parsedWelcomeMessage}, {optimisticData, failureData});
+    Navigation.goBack();
 }
 
 /**
