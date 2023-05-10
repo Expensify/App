@@ -1761,4 +1761,7 @@ export default {
         chatUserDisplayNames: 'Nombres de los usuarios del chat',
         scrollToNewestMessages: 'Desplázate a los mensajes más recientes',
     },
+    threads: {
+        deletedMessage: '[Mensaje Eliminado]',
+    },
 };

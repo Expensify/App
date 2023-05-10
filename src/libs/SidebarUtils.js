@@ -258,11 +258,6 @@ function getOptionData(reportID) {
     // We only create tooltips for the first 10 users or so since some reports have hundreds of users, causing performance to degrade.
     const displayNamesWithTooltips = ReportUtils.getDisplayNamesWithTooltips((participantPersonalDetailList || []).slice(0, 10), hasMultipleParticipants);
 
-    const parentReportAction =
-        ReportUtils.isThread(report) && reportActions[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.parentReportID}`]
-            ? ReportUtils.getParentReportAction_DEV(reportActions[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.parentReportID}`], `${report.parentReportActionID}`)
-            : {};
-
     let lastMessageTextFromReport = '';
     if (ReportUtils.isReportMessageAttachment({text: report.lastMessageText, html: report.lastMessageHtml})) {
         lastMessageTextFromReport = `[${Localize.translateLocal('common.attachment')}]`;
@@ -333,11 +328,16 @@ function getOptionData(reportID) {
 
     const reportName = ReportUtils.getReportName(report);
 
-    const parentReportActionMessage = lodashGet(parentReportAction, ['message', 0, 'text'], '');
-    // eslint-disable-next-line no-console
-    console.log({result, parentReportActionMessage});
+    result.text = reportName;
+    if (result.isThread) {
+        const parentReportAction =
+            ReportUtils.isThread(report) && reportActions[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.parentReportID}`]
+                ? ReportUtils.getParentReportAction_DEV(reportActions[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.parentReportID}`], `${report.parentReportActionID}`)
+                : {};
+        const parentReportActionMessage = lodashGet(parentReportAction, ['message', 0, 'text']);
+        result.text = parentReportActionMessage || Localize.translateLocal('threads.deletedMessage');
+    }
 
-    result.text = ReportUtils.isThread(report) ? parentReportActionMessage : reportName;
     result.subtitle = subtitle;
     result.participantsList = participantPersonalDetailList;
 
