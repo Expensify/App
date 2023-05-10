@@ -9,32 +9,46 @@ import LogInWithShortLivedAuthTokenPage from '../../../pages/LogInWithShortLived
 import SCREENS from '../../../SCREENS';
 import defaultScreenOptions from './defaultScreenOptions';
 import Text from '../../../components/Text';
-import AppleSignInScript from '../../../pages/signin/AppleSignInScript';
 import GoogleSignIn from '../../../components/SignInButtons/GoogleSignIn';
+import AppleSignIn from '../../../components/SignInButtons/AppleSignIn';
 
 const RootStack = createStackNavigator();
 
 const AppleAuthScreen = () => (
-    <View style={{
-        height: '100%', width: '100%', justifyContent: 'center', alignItems: 'center',
-    }}
+    <View
+        style={{
+            height: '100%',
+            width: '100%',
+            justifyContent: 'center',
+            alignItems: 'center',
+        }}
     >
-        <AppleSignInScript />
+        <View
+            style={{
+                flexDirection: 'row',
+                width: '100%',
+                justifyContent: 'center',
+            }}
+        >
+            <AppleSignIn />
+        </View>
     </View>
 );
 
-const GoogleAuthScreen = () => {
-    return (
-        <View style={{flex: 1, justifyContent: 'center', alignItems: 'center'}}>
-            <GoogleSignIn id="google-sign-in-desktop" />
-        </View>
-    );
-};
+const GoogleAuthScreen = () => (
+    <View style={{flex: 1, justifyContent: 'center', alignItems: 'center'}}>
+        <GoogleSignIn id="google-sign-in-desktop" />
+    </View>
+);
 
 const AppleAuthScreenReceiver = ({route}) => {
-    const {params: {token}} = route;
+    const {
+        params: {token},
+    } = route;
     const [showToken, setShowToken] = useState(false);
-    useEffect(() => { window.open('new-expensify://settings'); }, []);
+    useEffect(() => {
+        window.open('new-expensify://settings');
+    }, []);
     return (
         <View style={{flex: 1, justifyContent: 'center', alignItems: 'center'}}>
             <Text>User has been signed in.</Text>
