@@ -1,6 +1,4 @@
-import _ from 'underscore';
 import PropTypes from 'prop-types';
-import CONST from '../../../CONST';
 import reportActionFragmentPropTypes from './reportActionFragmentPropTypes';
 
 export default {
