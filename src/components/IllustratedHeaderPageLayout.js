@@ -39,8 +39,8 @@ const IllustratedHeaderPageLayout = (props) => {
             {({safeAreaPaddingBottomStyle}) => (
                 <>
                     <View style={styles.illustratedPageHeader}>
-                        {/* eslint-disable-next-line react/jsx-props-no-spreading */}
                         <HeaderWithCloseButton
+                            // eslint-disable-next-line react/jsx-props-no-spreading
                             {...propsToPassToHeader}
                             containerStyles={[styles.z1]}
                         />
