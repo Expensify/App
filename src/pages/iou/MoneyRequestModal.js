@@ -1,7 +1,5 @@
 import _ from 'underscore';
-import React, {
-    useState, useEffect, useRef, useCallback, useMemo,
-} from 'react';
+import React, {useState, useEffect, useRef, useCallback, useMemo} from 'react';
 import {View} from 'react-native';
 import PropTypes from 'prop-types';
 import lodashGet from 'lodash/get';
@@ -104,10 +102,10 @@ const Steps = {
 const MoneyRequestModal = (props) => {
     // Skip MoneyRequestParticipants step if participants are passed in
     const reportParticipants = lodashGet(props, 'report.participants', []);
-    const steps = useMemo(() => (reportParticipants.length
-        ? [Steps.MoneyRequestAmount, Steps.MoneyRequestConfirm]
-        : [Steps.MoneyRequestAmount, Steps.MoneyRequestParticipants, Steps.MoneyRequestConfirm]),
-    [reportParticipants.length]);
+    const steps = useMemo(
+        () => (reportParticipants.length ? [Steps.MoneyRequestAmount, Steps.MoneyRequestConfirm] : [Steps.MoneyRequestAmount, Steps.MoneyRequestParticipants, Steps.MoneyRequestConfirm]),
+        [reportParticipants.length],
+    );
     const prevCreatingIOUTransactionStatusRef = useRef(lodashGet(props.iou, 'creatingIOUTransaction'));
 
     const [previousStepIndex, setPreviousStepIndex] = useState(-1);
@@ -123,7 +121,7 @@ const MoneyRequestModal = (props) => {
         PersonalDetails.openMoneyRequestModalPage();
         IOU.setIOUSelectedCurrency(props.currentUserPersonalDetails.localCurrencyCode);
         IOU.setMoneyRequestDescription('');
-    // eslint-disable-next-line react-hooks/exhaustive-deps -- props.currentUserPersonalDetails will always exist from Onyx and we don't want this effect to run again
+        // eslint-disable-next-line react-hooks/exhaustive-deps -- props.currentUserPersonalDetails will always exist from Onyx and we don't want this effect to run again
     }, []);
 
     useEffect(() => {
@@ -152,7 +150,7 @@ const MoneyRequestModal = (props) => {
      * Decides our animation type based on whether we're increasing or decreasing
      * our step index.
      * @returns {String|null}
-    */
+     */
     const direction = useMemo(() => {
         // If we're going to the "amount" step from the "confirm" step, push it in and pop it out like we're moving
         // forward instead of backwards.
@@ -204,18 +202,21 @@ const MoneyRequestModal = (props) => {
      * @param {Number} stepIndex
      * @type {(function(*): void)|*}
      */
-    const navigateToStep = useCallback((stepIndex) => {
-        if (stepIndex < 0 || stepIndex > steps.length) {
-            return;
-        }
+    const navigateToStep = useCallback(
+        (stepIndex) => {
+            if (stepIndex < 0 || stepIndex > steps.length) {
+                return;
+            }
 
-        if (currentStepIndex === stepIndex) {
-            return;
-        }
+            if (currentStepIndex === stepIndex) {
+                return;
+            }
 
-        setPreviousStepIndex(currentStepIndex);
-        setCurrentStepIndex(stepIndex);
-    }, [currentStepIndex, steps.length]);
+            setPreviousStepIndex(currentStepIndex);
+            setCurrentStepIndex(stepIndex);
+        },
+        [currentStepIndex, steps.length],
+    );
 
     /**
      * Navigate to the previous request step if possible
@@ -253,86 +254,58 @@ const MoneyRequestModal = (props) => {
      *
      * @param {String} paymentMethodType
      */
-    const sendMoney = useCallback((paymentMethodType) => {
-        const currency = props.iou.selectedCurrencyCode;
-        const trimmedComment = props.iou.comment.trim();
-        const participant = selectedOptions[0];
+    const sendMoney = useCallback(
+        (paymentMethodType) => {
+            const currency = props.iou.selectedCurrencyCode;
+            const trimmedComment = props.iou.comment.trim();
+            const participant = selectedOptions[0];
 
-        if (paymentMethodType === CONST.IOU.PAYMENT_TYPE.ELSEWHERE) {
-            IOU.sendMoneyElsewhere(
-                props.report,
-                amount,
-                currency,
-                trimmedComment,
-                props.currentUserPersonalDetails.login,
-                participant,
-            );
-            return;
-        }
+            if (paymentMethodType === CONST.IOU.PAYMENT_TYPE.ELSEWHERE) {
+                IOU.sendMoneyElsewhere(props.report, amount, currency, trimmedComment, props.currentUserPersonalDetails.login, participant);
+                return;
+            }
 
-        if (paymentMethodType === CONST.IOU.PAYMENT_TYPE.PAYPAL_ME) {
-            IOU.sendMoneyViaPaypal(
-                props.report,
-                amount,
-                currency,
-                trimmedComment,
-                props.currentUserPersonalDetails.login,
-                participant,
-            );
-            return;
-        }
+            if (paymentMethodType === CONST.IOU.PAYMENT_TYPE.PAYPAL_ME) {
+                IOU.sendMoneyViaPaypal(props.report, amount, currency, trimmedComment, props.currentUserPersonalDetails.login, participant);
+                return;
+            }
 
-        if (paymentMethodType === CONST.IOU.PAYMENT_TYPE.EXPENSIFY) {
-            IOU.sendMoneyWithWallet(
-                props.report,
-                amount,
-                currency,
-                trimmedComment,
-                props.currentUserPersonalDetails.login,
-                participant,
-            );
-        }
-    }, [amount, props.iou.comment, selectedOptions, props.currentUserPersonalDetails.login, props.iou.selectedCurrencyCode, props.report]);
+            if (paymentMethodType === CONST.IOU.PAYMENT_TYPE.EXPENSIFY) {
+                IOU.sendMoneyWithWallet(props.report, amount, currency, trimmedComment, props.currentUserPersonalDetails.login, participant);
+            }
+        },
+        [amount, props.iou.comment, selectedOptions, props.currentUserPersonalDetails.login, props.iou.selectedCurrencyCode, props.report],
+    );
 
     /**
      * @param {Array} selectedParticipants
      */
-    const createTransaction = useCallback((selectedParticipants) => {
-        const reportID = lodashGet(props.route, 'params.reportID', '');
-        const trimmedComment = props.iou.comment.trim();
+    const createTransaction = useCallback(
+        (selectedParticipants) => {
+            const reportID = lodashGet(props.route, 'params.reportID', '');
+            const trimmedComment = props.iou.comment.trim();
 
-        // IOUs created from a group report will have a reportID param in the route.
-        // Since the user is already viewing the report, we don't need to navigate them to the report
-        if (props.hasMultipleParticipants && CONST.REGEX.NUMBER.test(reportID)) {
-            IOU.splitBill(selectedParticipants, props.currentUserPersonalDetails.login, amount, trimmedComment, props.iou.selectedCurrencyCode, reportID);
-            return;
-        }
+            // IOUs created from a group report will have a reportID param in the route.
+            // Since the user is already viewing the report, we don't need to navigate them to the report
+            if (props.hasMultipleParticipants && CONST.REGEX.NUMBER.test(reportID)) {
+                IOU.splitBill(selectedParticipants, props.currentUserPersonalDetails.login, amount, trimmedComment, props.iou.selectedCurrencyCode, reportID);
+                return;
+            }
 
-        // If the request is created from the global create menu, we also navigate the user to the group report
-        if (props.hasMultipleParticipants) {
-            IOU.splitBillAndOpenReport(
-                selectedParticipants,
-                props.currentUserPersonalDetails.login,
-                amount,
-                trimmedComment,
-                props.iou.selectedCurrencyCode,
-            );
-            return;
-        }
-        if (!selectedParticipants[0].login) {
-            // TODO - request to the policy expense chat. Not implemented yet!
-            // Will be implemented here: https://github.com/Expensify/Expensify/issues/270581
-            return;
-        }
-        IOU.requestMoney(
-            props.report,
-            amount,
-            props.iou.selectedCurrencyCode,
-            props.currentUserPersonalDetails.login,
-            selectedParticipants[0],
-            trimmedComment,
-        );
-    }, [amount, props.iou.comment, props.currentUserPersonalDetails.login, props.hasMultipleParticipants, props.iou.selectedCurrencyCode, props.report, props.route]);
+            // If the request is created from the global create menu, we also navigate the user to the group report
+            if (props.hasMultipleParticipants) {
+                IOU.splitBillAndOpenReport(selectedParticipants, props.currentUserPersonalDetails.login, amount, trimmedComment, props.iou.selectedCurrencyCode);
+                return;
+            }
+            if (!selectedParticipants[0].login) {
+                // TODO - request to the policy expense chat. Not implemented yet!
+                // Will be implemented here: https://github.com/Expensify/Expensify/issues/270581
+                return;
+            }
+            IOU.requestMoney(props.report, amount, props.iou.selectedCurrencyCode, props.currentUserPersonalDetails.login, selectedParticipants[0], trimmedComment);
+        },
+        [amount, props.iou.comment, props.currentUserPersonalDetails.login, props.hasMultipleParticipants, props.iou.selectedCurrencyCode, props.report, props.route],
+    );
 
     const currentStep = steps[currentStepIndex];
     const moneyRequestStepIndex = _.indexOf(steps, Steps.MoneyRequestConfirm);
@@ -350,7 +323,10 @@ const MoneyRequestModal = (props) => {
     const enableMaxHeight = DeviceCapabilities.canUseTouchScreen() && currentStep === Steps.MoneyRequestParticipants;
 
     return (
-        <ScreenWrapper includeSafeAreaPaddingBottom={false} shouldEnableMaxHeight={enableMaxHeight}>
+        <ScreenWrapper
+            includeSafeAreaPaddingBottom={false}
+            shouldEnableMaxHeight={enableMaxHeight}
+        >
             {({didScreenTransitionEnd, safeAreaPaddingBottomStyle}) => (
                 <>
                     <View style={[styles.pRelative, styles.flex1]}>
@@ -412,10 +388,9 @@ const MoneyRequestModal = (props) => {
                                                 ReportScrollManager.scrollToBottom();
                                             }}
                                             hasMultipleParticipants={props.hasMultipleParticipants}
-                                            participants={_.filter(selectedOptions, email => props.currentUserPersonalDetails.login !== email.login)}
+                                            participants={_.filter(selectedOptions, (email) => props.currentUserPersonalDetails.login !== email.login)}
                                             iouAmount={amount}
                                             iouType={props.iouType}
-
                                             // The participants can only be modified when the action is initiated from directly within a group chat and not the floating-action-button.
                                             // This is because when there is a group of people, say they are on a trip, and you have some shared expenses with some of the people,
                                             // but not all of them (maybe someone skipped out on dinner). Then it's nice to be able to select/deselect people from the group chat bill

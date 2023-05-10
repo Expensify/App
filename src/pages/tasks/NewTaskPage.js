@@ -128,11 +128,7 @@ const NewTaskPage = (props) => {
         // the share destination data
         if (props.task.shareDestination) {
             setParentReport(lodashGet(props.reports, `report_${props.task.shareDestination}`, {}));
-            const displayDetails = constructShareDestination(
-                props.task.shareDestination,
-                props.reports,
-                props.personalDetails,
-            );
+            const displayDetails = constructShareDestination(props.task.shareDestination, props.reports, props.personalDetails);
             setShareDestination(displayDetails);
         }
     }, [props]);
@@ -145,13 +141,7 @@ const NewTaskPage = (props) => {
             return;
         }
 
-        TaskUtils.createTaskAndNavigate(
-            props.session.email,
-            parentReport.reportID,
-            props.task.title,
-            props.task.description,
-            props.task.assignee,
-        );
+        TaskUtils.createTaskAndNavigate(props.session.email, parentReport.reportID, props.task.title, props.task.description, props.task.assignee);
     }
 
     if (!Permissions.canUseTasks(props.betas)) {

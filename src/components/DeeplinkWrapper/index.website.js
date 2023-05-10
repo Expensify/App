@@ -30,12 +30,7 @@ class DeeplinkWrapper extends PureComponent {
     }
 
     isMacOSWeb() {
-        return !Browser.isMobile() && (
-            typeof navigator === 'object'
-            && typeof navigator.userAgent === 'string'
-            && /Mac/i.test(navigator.userAgent)
-            && !/Electron/i.test(navigator.userAgent)
-        );
+        return !Browser.isMobile() && typeof navigator === 'object' && typeof navigator.userAgent === 'string' && /Mac/i.test(navigator.userAgent) && !/Electron/i.test(navigator.userAgent);
     }
 
     render() {

@@ -15,7 +15,7 @@ function getBrowser() {
         return 'IE';
     }
 
-    if (match[1] && (match[1].toLowerCase() === 'chrome')) {
+    if (match[1] && match[1].toLowerCase() === 'chrome') {
         temp = userAgent.match(/\b(OPR)/);
         if (temp !== null) {
             return 'Opera';
@@ -48,7 +48,7 @@ function isMobile() {
  */
 function isMobileSafari() {
     const userAgent = navigator.userAgent;
-    return /iP(ad|od|hone)/i.test(userAgent) && /WebKit/i.test(userAgent) && !(/(CriOS|FxiOS|OPiOS|mercury)/i.test(userAgent));
+    return /iP(ad|od|hone)/i.test(userAgent) && /WebKit/i.test(userAgent) && !/(CriOS|FxiOS|OPiOS|mercury)/i.test(userAgent);
 }
 
 /**
@@ -96,10 +96,4 @@ function openRouteInDesktopApp(shortLivedAuthToken = '', email = '') {
     }
 }
 
-export {
-    getBrowser,
-    isMobile,
-    isMobileSafari,
-    isMobileChrome,
-    openRouteInDesktopApp,
-};
+export {getBrowser, isMobile, isMobileSafari, isMobileChrome, openRouteInDesktopApp};

@@ -73,41 +73,32 @@ class ExpiredValidateCodeModal extends PureComponent {
                             src={Illustrations.ToddBehindCloud}
                         />
                     </View>
-                    <Text style={[styles.textHeadline, styles.textXXLarge, styles.textAlignCenter]}>
-                        {this.props.translate('validateCodeModal.expiredCodeTitle')}
-                    </Text>
+                    <Text style={[styles.textHeadline, styles.textXXLarge, styles.textAlignCenter]}>{this.props.translate('validateCodeModal.expiredCodeTitle')}</Text>
                     <View style={[styles.mt2, styles.mb2]}>
                         <Text style={[styles.fontSizeNormal, styles.textAlignCenter]}>
                             {this.props.translate('validateCodeModal.expiredCodeDescription')}
-                            {this.shouldShowRequestCodeLink() && !codeRequestedMessage
-                                && (
-                                    <>
-                                        <br />
-                                        {this.props.translate('validateCodeModal.requestNewCode')}
-                                        {' '}
-                                        <TextLink onPress={this.requestNewCode}>
-                                            {this.props.translate('validateCodeModal.requestNewCodeLink')}
-                                        </TextLink>
-                                        !
-                                    </>
-                                )}
+                            {this.shouldShowRequestCodeLink() && !codeRequestedMessage && (
+                                <>
+                                    <br />
+                                    {this.props.translate('validateCodeModal.requestNewCode')}{' '}
+                                    <TextLink onPress={this.requestNewCode}>{this.props.translate('validateCodeModal.requestNewCodeLink')}</TextLink>!
+                                </>
+                            )}
                         </Text>
-                        {this.shouldShowRequestCodeLink() && Boolean(codeRequestedErrors)
-                            && (
-                                <Text style={[styles.textDanger, styles.validateCodeMessage]}>
-                                    <br />
-                                    <br />
-                                    {codeRequestedErrors}
-                                </Text>
-                            )}
-                        {this.shouldShowRequestCodeLink() && Boolean(codeRequestedMessage)
-                            && (
-                                <Text style={styles.validateCodeMessage}>
-                                    <br />
-                                    <br />
-                                    {this.props.translate(codeRequestedMessage)}
-                                </Text>
-                            )}
+                        {this.shouldShowRequestCodeLink() && Boolean(codeRequestedErrors) && (
+                            <Text style={[styles.textDanger, styles.validateCodeMessage]}>
+                                <br />
+                                <br />
+                                {codeRequestedErrors}
+                            </Text>
+                        )}
+                        {this.shouldShowRequestCodeLink() && Boolean(codeRequestedMessage) && (
+                            <Text style={styles.validateCodeMessage}>
+                                <br />
+                                <br />
+                                {this.props.translate(codeRequestedMessage)}
+                            </Text>
+                        )}
                     </View>
                 </View>
                 <View style={styles.deeplinkWrapperFooter}>

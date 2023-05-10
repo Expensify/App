@@ -34,13 +34,8 @@ const BaseAutoCompleteSuggestions = (props) => {
      */
     const renderSuggestionMenuItem = ({item, index}) => (
         <Pressable
-            style={({hovered}) => StyleUtils.getAutoCompleteSuggestionItemStyle(
-                props.highlightedSuggestionIndex,
-                CONST.AUTO_COMPLETE_SUGGESTER.ITEM_HEIGHT,
-                hovered,
-                index,
-            )}
-            onMouseDown={e => e.preventDefault()}
+            style={({hovered}) => StyleUtils.getAutoCompleteSuggestionItemStyle(props.highlightedSuggestionIndex, CONST.AUTO_COMPLETE_SUGGESTER.ITEM_HEIGHT, hovered, index)}
+            onMouseDown={(e) => e.preventDefault()}
             onPress={() => props.onSelect(index)}
             onLongPress={() => {}}
         >
@@ -48,21 +43,12 @@ const BaseAutoCompleteSuggestions = (props) => {
         </Pressable>
     );
 
-    const rowHeight = measureHeightOfSuggestionRows(
-        props.suggestions.length,
-        props.isSuggestionPickerLarge,
-    );
+    const rowHeight = measureHeightOfSuggestionRows(props.suggestions.length, props.isSuggestionPickerLarge);
 
     return (
         <View
             ref={props.forwardedRef}
-            style={[
-                styles.autoCompleteSuggestionsContainer,
-                StyleUtils.getAutoCompleteSuggestionContainerStyle(
-                    rowHeight,
-                    props.shouldIncludeReportRecipientLocalTimeHeight,
-                ),
-            ]}
+            style={[styles.autoCompleteSuggestionsContainer, StyleUtils.getAutoCompleteSuggestionContainerStyle(rowHeight, props.shouldIncludeReportRecipientLocalTimeHeight)]}
         >
             <FlatList
                 keyboardShouldPersistTaps="handled"
@@ -80,6 +66,9 @@ BaseAutoCompleteSuggestions.propTypes = propTypes;
 BaseAutoCompleteSuggestions.displayName = 'BaseAutoCompleteSuggestions';
 
 export default React.forwardRef((props, ref) => (
-    // eslint-disable-next-line react/jsx-props-no-spreading
-    <BaseAutoCompleteSuggestions {...props} forwardedRef={ref} />
+    <BaseAutoCompleteSuggestions
+        // eslint-disable-next-line react/jsx-props-no-spreading
+        {...props}
+        forwardedRef={ref}
+    />
 ));

@@ -30,7 +30,4 @@ const defaultProps = {
     type: CONST.ATTACHMENT_PICKER_TYPE.FILE,
 };
 
-export {
-    propTypes,
-    defaultProps,
-};
+export {propTypes, defaultProps};

@@ -47,7 +47,7 @@ Onyx.connect({
 let lastAccessedWorkspacePolicyID = null;
 Onyx.connect({
     key: ONYXKEYS.LAST_ACCESSED_WORKSPACE_POLICY_ID,
-    callback: value => lastAccessedWorkspacePolicyID = value,
+    callback: (value) => (lastAccessedWorkspacePolicyID = value),
 });
 
 let sessionEmail = '';
@@ -96,11 +96,7 @@ function deleteWorkspace(policyID, reports, policyName) {
 
         // Add closed actions to all chat reports linked to this policy
         ..._.map(reports, ({reportID, ownerEmail}) => {
-            const optimisticClosedReportAction = ReportUtils.buildOptimisticClosedReportAction(
-                ownerEmail,
-                policyName,
-                CONST.REPORT.ARCHIVE_REASON.POLICY_DELETED,
-            );
+            const optimisticClosedReportAction = ReportUtils.buildOptimisticClosedReportAction(ownerEmail, policyName, CONST.REPORT.ARCHIVE_REASON.POLICY_DELETED);
             const optimisticReportActions = {};
             optimisticReportActions[optimisticClosedReportAction.reportActionID] = optimisticClosedReportAction;
             return {
@@ -113,9 +109,7 @@ function deleteWorkspace(policyID, reports, policyName) {
 
     // Restore the old report stateNum and statusNum
     const failureData = [
-        ..._.map(reports, ({
-            reportID, stateNum, statusNum, hasDraft, oldPolicyName,
-        }) => ({
+        ..._.map(reports, ({reportID, stateNum, statusNum, hasDraft, oldPolicyName}) => ({
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
             value: {
@@ -145,9 +139,7 @@ function deleteWorkspace(policyID, reports, policyName) {
  * @returns {Boolean}
  */
 function isAdminOfFreePolicy(policies) {
-    return _.some(policies, policy => policy
-        && policy.type === CONST.POLICY.TYPE.FREE
-        && policy.role === CONST.POLICY.ROLE.ADMIN);
+    return _.some(policies, (policy) => policy && policy.type === CONST.POLICY.TYPE.FREE && policy.role === CONST.POLICY.ROLE.ADMIN);
 }
 
 /**
@@ -161,29 +153,27 @@ function isPolicyOwner(policy) {
 }
 
 /**
-* Check if the user has any active free policies (aka workspaces)
-*
-* @param {Array} policies
-* @returns {Boolean}
-*/
+ * Check if the user has any active free policies (aka workspaces)
+ *
+ * @param {Array} policies
+ * @returns {Boolean}
+ */
 function hasActiveFreePolicy(policies) {
-    const adminFreePolicies = _.filter(policies, policy => policy
-        && policy.type === CONST.POLICY.TYPE.FREE
-        && policy.role === CONST.POLICY.ROLE.ADMIN);
+    const adminFreePolicies = _.filter(policies, (policy) => policy && policy.type === CONST.POLICY.TYPE.FREE && policy.role === CONST.POLICY.ROLE.ADMIN);
 
     if (adminFreePolicies.length === 0) {
         return false;
     }
 
-    if (_.some(adminFreePolicies, policy => !policy.pendingAction)) {
+    if (_.some(adminFreePolicies, (policy) => !policy.pendingAction)) {
         return true;
     }
 
-    if (_.some(adminFreePolicies, policy => policy.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD)) {
+    if (_.some(adminFreePolicies, (policy) => policy.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD)) {
         return true;
     }
 
-    if (_.some(adminFreePolicies, policy => policy.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE)) {
+    if (_.some(adminFreePolicies, (policy) => policy.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE)) {
         return false;
     }
 
@@ -205,35 +195,45 @@ function removeMembers(members, policyID) {
         return;
     }
     const membersListKey = `${ONYXKEYS.COLLECTION.POLICY_MEMBER_LIST}${policyID}`;
-    const optimisticData = [{
-        onyxMethod: Onyx.METHOD.MERGE,
-        key: membersListKey,
-        value: _.object(members, Array(members.length).fill({pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE})),
-    }];
-    const successData = [{
-        onyxMethod: Onyx.METHOD.MERGE,
-        key: membersListKey,
-        value: _.object(members, Array(members.length).fill(null)),
-    }];
-    const failureData = [{
-        onyxMethod: Onyx.METHOD.MERGE,
-        key: membersListKey,
-        value: _.object(members, Array(members.length).fill({errors: {[DateUtils.getMicroseconds()]: Localize.translateLocal('workspace.people.error.genericRemove')}})),
-    }];
-    API.write('DeleteMembersFromWorkspace', {
-        emailList: members.join(','),
-        policyID,
-    }, {optimisticData, successData, failureData});
+    const optimisticData = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: membersListKey,
+            value: _.object(members, Array(members.length).fill({pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE})),
+        },
+    ];
+    const successData = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: membersListKey,
+            value: _.object(members, Array(members.length).fill(null)),
+        },
+    ];
+    const failureData = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: membersListKey,
+            value: _.object(members, Array(members.length).fill({errors: {[DateUtils.getMicroseconds()]: Localize.translateLocal('workspace.people.error.genericRemove')}})),
+        },
+    ];
+    API.write(
+        'DeleteMembersFromWorkspace',
+        {
+            emailList: members.join(','),
+            policyID,
+        },
+        {optimisticData, successData, failureData},
+    );
 }
 
 /**
-* Optimistically create a chat for each member of the workspace, creates both optimistic and success data for onyx.
-*
-* @param {String} policyID
-* @param {Array} members
-* @param {Array} betas
-* @returns {Object} - object with onyxSuccessData, onyxOptimisticData, and optimisticReportIDs (map login to reportID)
-*/
+ * Optimistically create a chat for each member of the workspace, creates both optimistic and success data for onyx.
+ *
+ * @param {String} policyID
+ * @param {Array} members
+ * @param {Array} betas
+ * @returns {Object} - object with onyxSuccessData, onyxOptimisticData, and optimisticReportIDs (map login to reportID)
+ */
 function createPolicyExpenseChats(policyID, members, betas) {
     const workspaceMembersChats = {
         onyxSuccessData: [],
@@ -265,13 +265,7 @@ function createPolicyExpenseChats(policyID, members, betas) {
             });
             return;
         }
-        const optimisticReport = ReportUtils.buildOptimisticChatReport(
-            [sessionEmail, login],
-            undefined,
-            CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT,
-            policyID,
-            login,
-        );
+        const optimisticReport = ReportUtils.buildOptimisticChatReport([sessionEmail, login], undefined, CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT, policyID, login);
         const optimisticCreatedAction = ReportUtils.buildOptimisticCreatedReportAction(optimisticReport.ownerEmail);
 
         workspaceMembersChats.reportCreationData[login] = {
@@ -336,7 +330,7 @@ function createPolicyExpenseChats(policyID, members, betas) {
  */
 function addMembersToWorkspace(memberLogins, welcomeNote, policyID, betas) {
     const membersListKey = `${ONYXKEYS.COLLECTION.POLICY_MEMBER_LIST}${policyID}`;
-    const logins = _.map(memberLogins, memberLogin => OptionsListUtils.addSMSDomainIfPhoneNumber(memberLogin));
+    const logins = _.map(memberLogins, (memberLogin) => OptionsListUtils.addSMSDomainIfPhoneNumber(memberLogin));
 
     // create onyx data for policy expense chats for each new member
     const membersChats = createPolicyExpenseChats(policyID, logins, betas);
@@ -371,23 +365,30 @@ function addMembersToWorkspace(memberLogins, welcomeNote, policyID, betas) {
 
             // Convert to object with each key containing the error. We don’t
             // need to remove the members since that is handled by onClose of OfflineWithFeedback.
-            value: _.object(logins, Array(logins.length).fill({
-                errors: {
-                    [DateUtils.getMicroseconds()]: Localize.translateLocal('workspace.people.error.genericAdd'),
-                },
-            })),
+            value: _.object(
+                logins,
+                Array(logins.length).fill({
+                    errors: {
+                        [DateUtils.getMicroseconds()]: Localize.translateLocal('workspace.people.error.genericAdd'),
+                    },
+                }),
+            ),
         },
         ...membersChats.onyxFailureData,
     ];
 
-    API.write('AddMembersToWorkspace', {
-        employees: JSON.stringify(_.map(logins, login => ({email: login}))),
+    API.write(
+        'AddMembersToWorkspace',
+        {
+            employees: JSON.stringify(_.map(logins, (login) => ({email: login}))),
 
-        // Escape HTML special chars to enable them to appear in the invite email
-        welcomeNote: _.escape(welcomeNote),
-        policyID,
-        reportCreationData: JSON.stringify(membersChats.reportCreationData),
-    }, {optimisticData, successData, failureData});
+            // Escape HTML special chars to enable them to appear in the invite email
+            welcomeNote: _.escape(welcomeNote),
+            policyID,
+            reportCreationData: JSON.stringify(membersChats.reportCreationData),
+        },
+        {optimisticData, successData, failureData},
+    );
 }
 
 /**
@@ -397,38 +398,44 @@ function addMembersToWorkspace(memberLogins, welcomeNote, policyID, betas) {
  * @param {File|Object} file
  */
 function updateWorkspaceAvatar(policyID, file) {
-    const optimisticData = [{
-        onyxMethod: Onyx.METHOD.MERGE,
-        key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
-        value: {
-            avatar: file.uri,
-            errorFields: {
-                avatar: null,
-            },
-            pendingFields: {
-                avatar: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
-            },
-        },
-    }];
-    const successData = [{
-        onyxMethod: Onyx.METHOD.MERGE,
-        key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
-        value: {
-            pendingFields: {
-                avatar: null,
+    const optimisticData = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+            value: {
+                avatar: file.uri,
+                errorFields: {
+                    avatar: null,
+                },
+                pendingFields: {
+                    avatar: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
+                },
             },
         },
-    }];
-    const failureData = [{
-        onyxMethod: Onyx.METHOD.MERGE,
-        key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
-        value: {
-            avatar: allPolicies[`${ONYXKEYS.COLLECTION.POLICY}${policyID}`].avatar,
-            pendingFields: {
-                avatar: null,
+    ];
+    const successData = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+            value: {
+                pendingFields: {
+                    avatar: null,
+                },
             },
         },
-    }];
+    ];
+    const failureData = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+            value: {
+                avatar: allPolicies[`${ONYXKEYS.COLLECTION.POLICY}${policyID}`].avatar,
+                pendingFields: {
+                    avatar: null,
+                },
+            },
+        },
+    ];
 
     API.write('UpdateWorkspaceAvatar', {policyID, file}, {optimisticData, successData, failureData});
 }
@@ -666,11 +673,15 @@ function updateWorkspaceCustomUnit(policyID, currentCustomUnit, newCustomUnit, l
         },
     ];
 
-    API.write('UpdateWorkspaceCustomUnit', {
-        policyID,
-        lastModified,
-        customUnit: JSON.stringify(newCustomUnit),
-    }, {optimisticData, successData, failureData});
+    API.write(
+        'UpdateWorkspaceCustomUnit',
+        {
+            policyID,
+            lastModified,
+            customUnit: JSON.stringify(newCustomUnit),
+        },
+        {optimisticData, successData, failureData},
+    );
 }
 
 /**
@@ -740,12 +751,16 @@ function updateCustomUnitRate(policyID, currentCustomUnitRate, customUnitID, new
         },
     ];
 
-    API.write('UpdateWorkspaceCustomUnitRate', {
-        policyID,
-        customUnitID,
-        lastModified,
-        customUnitRate: JSON.stringify(newCustomUnitRate),
-    }, {optimisticData, successData, failureData});
+    API.write(
+        'UpdateWorkspaceCustomUnitRate',
+        {
+            policyID,
+            customUnitID,
+            lastModified,
+            customUnitRate: JSON.stringify(newCustomUnitRate),
+        },
+        {optimisticData, successData, failureData},
+    );
 }
 
 /**
@@ -827,8 +842,8 @@ function generateDefaultWorkspaceName(email = '') {
     // find default named workspaces and increment the last number
     const numberRegEx = new RegExp(`${escapeRegExp(defaultWorkspaceName)} ?(\\d*)`, 'i');
     const lastWorkspaceNumber = _.chain(allPolicies)
-        .filter(policy => policy.name && numberRegEx.test(policy.name))
-        .map(policy => parseInt(numberRegEx.exec(policy.name)[1] || 1, 10)) // parse the number at the end
+        .filter((policy) => policy.name && numberRegEx.test(policy.name))
+        .map((policy) => parseInt(numberRegEx.exec(policy.name)[1] || 1, 10)) // parse the number at the end
         .max()
         .value();
     return lastWorkspaceNumber !== -Infinity ? `${defaultWorkspaceName} ${lastWorkspaceNumber + 1}` : defaultWorkspaceName;
@@ -839,7 +854,9 @@ function generateDefaultWorkspaceName(email = '') {
  * @returns {String}
  */
 function generatePolicyID() {
-    return _.times(16, () => Math.floor(Math.random() * 16).toString(16)).join('').toUpperCase();
+    return _.times(16, () => Math.floor(Math.random() * 16).toString(16))
+        .join('')
+        .toUpperCase();
 }
 
 /**
@@ -868,192 +885,195 @@ function createWorkspace(ownerEmail = '', makeMeAdmin = false, policyName = '', 
         expenseCreatedReportActionID,
     } = ReportUtils.buildOptimisticWorkspaceChats(policyID, workspaceName);
 
-    API.write('CreateWorkspace', {
-        policyID,
-        announceChatReportID,
-        adminsChatReportID,
-        expenseChatReportID,
-        ownerEmail,
-        makeMeAdmin,
-        policyName: workspaceName,
-        type: CONST.POLICY.TYPE.FREE,
-        announceCreatedReportActionID,
-        adminsCreatedReportActionID,
-        expenseCreatedReportActionID,
-    },
-    {
-        optimisticData: [
-            {
-                onyxMethod: Onyx.METHOD.SET,
-                key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
-                value: {
-                    id: policyID,
-                    type: CONST.POLICY.TYPE.FREE,
-                    name: workspaceName,
-                    role: CONST.POLICY.ROLE.ADMIN,
-                    owner: sessionEmail,
-                    outputCurrency: 'USD',
-                    pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
-                },
-            },
-            {
-                onyxMethod: Onyx.METHOD.SET,
-                key: `${ONYXKEYS.COLLECTION.POLICY_MEMBER_LIST}${policyID}`,
-                value: {
-                    [sessionEmail]: {
+    API.write(
+        'CreateWorkspace',
+        {
+            policyID,
+            announceChatReportID,
+            adminsChatReportID,
+            expenseChatReportID,
+            ownerEmail,
+            makeMeAdmin,
+            policyName: workspaceName,
+            type: CONST.POLICY.TYPE.FREE,
+            announceCreatedReportActionID,
+            adminsCreatedReportActionID,
+            expenseCreatedReportActionID,
+        },
+        {
+            optimisticData: [
+                {
+                    onyxMethod: Onyx.METHOD.SET,
+                    key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+                    value: {
+                        id: policyID,
+                        type: CONST.POLICY.TYPE.FREE,
+                        name: workspaceName,
                         role: CONST.POLICY.ROLE.ADMIN,
-                        errors: {},
+                        owner: sessionEmail,
+                        outputCurrency: 'USD',
+                        pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
                     },
                 },
-            },
-            {
-                onyxMethod: Onyx.METHOD.SET,
-                key: `${ONYXKEYS.COLLECTION.REPORT}${announceChatReportID}`,
-                value: {
-                    pendingFields: {
-                        addWorkspaceRoom: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
+                {
+                    onyxMethod: Onyx.METHOD.SET,
+                    key: `${ONYXKEYS.COLLECTION.POLICY_MEMBER_LIST}${policyID}`,
+                    value: {
+                        [sessionEmail]: {
+                            role: CONST.POLICY.ROLE.ADMIN,
+                            errors: {},
+                        },
                     },
-                    ...announceChatData,
                 },
-            },
-            {
-                onyxMethod: Onyx.METHOD.SET,
-                key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${announceChatReportID}`,
-                value: announceReportActionData,
-            },
-            {
-                onyxMethod: Onyx.METHOD.SET,
-                key: `${ONYXKEYS.COLLECTION.REPORT}${adminsChatReportID}`,
-                value: {
-                    pendingFields: {
-                        addWorkspaceRoom: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
+                {
+                    onyxMethod: Onyx.METHOD.SET,
+                    key: `${ONYXKEYS.COLLECTION.REPORT}${announceChatReportID}`,
+                    value: {
+                        pendingFields: {
+                            addWorkspaceRoom: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
+                        },
+                        ...announceChatData,
                     },
-                    ...adminsChatData,
                 },
-            },
-            {
-                onyxMethod: Onyx.METHOD.SET,
-                key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${adminsChatReportID}`,
-                value: adminsReportActionData,
-            },
-            {
-                onyxMethod: Onyx.METHOD.SET,
-                key: `${ONYXKEYS.COLLECTION.REPORT}${expenseChatReportID}`,
-                value: {
-                    pendingFields: {
-                        addWorkspaceRoom: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
+                {
+                    onyxMethod: Onyx.METHOD.SET,
+                    key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${announceChatReportID}`,
+                    value: announceReportActionData,
+                },
+                {
+                    onyxMethod: Onyx.METHOD.SET,
+                    key: `${ONYXKEYS.COLLECTION.REPORT}${adminsChatReportID}`,
+                    value: {
+                        pendingFields: {
+                            addWorkspaceRoom: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
+                        },
+                        ...adminsChatData,
                     },
-                    ...expenseChatData,
                 },
-            },
-            {
-                onyxMethod: Onyx.METHOD.SET,
-                key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${expenseChatReportID}`,
-                value: expenseReportActionData,
-            },
-        ],
-        successData: [
-            {
-                onyxMethod: Onyx.METHOD.MERGE,
-                key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
-                value: {pendingAction: null},
-            },
-            {
-                onyxMethod: Onyx.METHOD.MERGE,
-                key: `${ONYXKEYS.COLLECTION.REPORT}${announceChatReportID}`,
-                value: {
-                    pendingFields: {
-                        addWorkspaceRoom: null,
+                {
+                    onyxMethod: Onyx.METHOD.SET,
+                    key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${adminsChatReportID}`,
+                    value: adminsReportActionData,
+                },
+                {
+                    onyxMethod: Onyx.METHOD.SET,
+                    key: `${ONYXKEYS.COLLECTION.REPORT}${expenseChatReportID}`,
+                    value: {
+                        pendingFields: {
+                            addWorkspaceRoom: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
+                        },
+                        ...expenseChatData,
                     },
-                    pendingAction: null,
                 },
-            },
-            {
-                onyxMethod: Onyx.METHOD.MERGE,
-                key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${announceChatReportID}`,
-                value: {
-                    [_.keys(announceChatData)[0]]: {
+                {
+                    onyxMethod: Onyx.METHOD.SET,
+                    key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${expenseChatReportID}`,
+                    value: expenseReportActionData,
+                },
+            ],
+            successData: [
+                {
+                    onyxMethod: Onyx.METHOD.MERGE,
+                    key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+                    value: {pendingAction: null},
+                },
+                {
+                    onyxMethod: Onyx.METHOD.MERGE,
+                    key: `${ONYXKEYS.COLLECTION.REPORT}${announceChatReportID}`,
+                    value: {
+                        pendingFields: {
+                            addWorkspaceRoom: null,
+                        },
                         pendingAction: null,
                     },
                 },
-            },
-            {
-                onyxMethod: Onyx.METHOD.MERGE,
-                key: `${ONYXKEYS.COLLECTION.REPORT}${adminsChatReportID}`,
-                value: {
-                    pendingFields: {
-                        addWorkspaceRoom: null,
+                {
+                    onyxMethod: Onyx.METHOD.MERGE,
+                    key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${announceChatReportID}`,
+                    value: {
+                        [_.keys(announceChatData)[0]]: {
+                            pendingAction: null,
+                        },
                     },
-                    pendingAction: null,
                 },
-            },
-            {
-                onyxMethod: Onyx.METHOD.MERGE,
-                key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${adminsChatReportID}`,
-                value: {
-                    [_.keys(adminsChatData)[0]]: {
+                {
+                    onyxMethod: Onyx.METHOD.MERGE,
+                    key: `${ONYXKEYS.COLLECTION.REPORT}${adminsChatReportID}`,
+                    value: {
+                        pendingFields: {
+                            addWorkspaceRoom: null,
+                        },
                         pendingAction: null,
                     },
                 },
-            },
-            {
-                onyxMethod: Onyx.METHOD.MERGE,
-                key: `${ONYXKEYS.COLLECTION.REPORT}${expenseChatReportID}`,
-                value: {
-                    pendingFields: {
-                        addWorkspaceRoom: null,
+                {
+                    onyxMethod: Onyx.METHOD.MERGE,
+                    key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${adminsChatReportID}`,
+                    value: {
+                        [_.keys(adminsChatData)[0]]: {
+                            pendingAction: null,
+                        },
                     },
-                    pendingAction: null,
                 },
-            },
-            {
-                onyxMethod: Onyx.METHOD.MERGE,
-                key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${expenseChatReportID}`,
-                value: {
-                    [_.keys(expenseChatData)[0]]: {
+                {
+                    onyxMethod: Onyx.METHOD.MERGE,
+                    key: `${ONYXKEYS.COLLECTION.REPORT}${expenseChatReportID}`,
+                    value: {
+                        pendingFields: {
+                            addWorkspaceRoom: null,
+                        },
                         pendingAction: null,
                     },
                 },
-            },
-        ],
-        failureData: [
-            {
-                onyxMethod: Onyx.METHOD.SET,
-                key: `${ONYXKEYS.COLLECTION.POLICY_MEMBER_LIST}${policyID}`,
-                value: null,
-            },
-            {
-                onyxMethod: Onyx.METHOD.SET,
-                key: `${ONYXKEYS.COLLECTION.REPORT}${announceChatReportID}`,
-                value: null,
-            },
-            {
-                onyxMethod: Onyx.METHOD.SET,
-                key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${announceChatReportID}`,
-                value: null,
-            },
-            {
-                onyxMethod: Onyx.METHOD.SET,
-                key: `${ONYXKEYS.COLLECTION.REPORT}${adminsChatReportID}`,
-                value: null,
-            },
-            {
-                onyxMethod: Onyx.METHOD.SET,
-                key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${adminsChatReportID}`,
-                value: null,
-            },
-            {
-                onyxMethod: Onyx.METHOD.SET,
-                key: `${ONYXKEYS.COLLECTION.REPORT}${expenseChatReportID}`,
-                value: null,
-            },
-            {
-                onyxMethod: Onyx.METHOD.SET,
-                key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${expenseChatReportID}`,
-                value: null,
-            },
-        ],
-    });
+                {
+                    onyxMethod: Onyx.METHOD.MERGE,
+                    key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${expenseChatReportID}`,
+                    value: {
+                        [_.keys(expenseChatData)[0]]: {
+                            pendingAction: null,
+                        },
+                    },
+                },
+            ],
+            failureData: [
+                {
+                    onyxMethod: Onyx.METHOD.SET,
+                    key: `${ONYXKEYS.COLLECTION.POLICY_MEMBER_LIST}${policyID}`,
+                    value: null,
+                },
+                {
+                    onyxMethod: Onyx.METHOD.SET,
+                    key: `${ONYXKEYS.COLLECTION.REPORT}${announceChatReportID}`,
+                    value: null,
+                },
+                {
+                    onyxMethod: Onyx.METHOD.SET,
+                    key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${announceChatReportID}`,
+                    value: null,
+                },
+                {
+                    onyxMethod: Onyx.METHOD.SET,
+                    key: `${ONYXKEYS.COLLECTION.REPORT}${adminsChatReportID}`,
+                    value: null,
+                },
+                {
+                    onyxMethod: Onyx.METHOD.SET,
+                    key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${adminsChatReportID}`,
+                    value: null,
+                },
+                {
+                    onyxMethod: Onyx.METHOD.SET,
+                    key: `${ONYXKEYS.COLLECTION.REPORT}${expenseChatReportID}`,
+                    value: null,
+                },
+                {
+                    onyxMethod: Onyx.METHOD.SET,
+                    key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${expenseChatReportID}`,
+                    value: null,
+                },
+            ],
+        },
+    );
 }
 
 /**
@@ -1122,30 +1142,34 @@ function setWorkspaceInviteMembersDraft(policyID, memberEmails) {
  * @param {String} reportID
  */
 function leaveRoom(reportID) {
-    API.write('LeaveRoom', {
-        reportID,
-    }, {
-        optimisticData: [
-            {
-                onyxMethod: Onyx.METHOD.SET,
-                key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
-                value: {
-                    stateNum: CONST.REPORT.STATE_NUM.SUBMITTED,
-                    statusNum: CONST.REPORT.STATUS.CLOSED,
+    API.write(
+        'LeaveRoom',
+        {
+            reportID,
+        },
+        {
+            optimisticData: [
+                {
+                    onyxMethod: Onyx.METHOD.SET,
+                    key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
+                    value: {
+                        stateNum: CONST.REPORT.STATE_NUM.SUBMITTED,
+                        statusNum: CONST.REPORT.STATUS.CLOSED,
+                    },
                 },
-            },
-        ],
-        failureData: [
-            {
-                onyxMethod: Onyx.METHOD.SET,
-                key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
-                value: {
-                    stateNum: CONST.REPORT.STATE_NUM.OPEN,
-                    statusNum: CONST.REPORT.STATUS.OPEN,
+            ],
+            failureData: [
+                {
+                    onyxMethod: Onyx.METHOD.SET,
+                    key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
+                    value: {
+                        stateNum: CONST.REPORT.STATE_NUM.OPEN,
+                        statusNum: CONST.REPORT.STATUS.OPEN,
+                    },
                 },
-            },
-        ],
-    });
+            ],
+        },
+    );
     Report.navigateToConciergeChat();
 }
 

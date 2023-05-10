@@ -1,8 +1,6 @@
 import React from 'react';
 import _ from 'underscore';
-import {
-    View,
-} from 'react-native';
+import {View} from 'react-native';
 import PropTypes from 'prop-types';
 import {withOnyx} from 'react-native-onyx';
 import Str from 'expensify-common/lib/str';
@@ -61,20 +59,22 @@ const getAllParticipants = (report, personalDetails) => {
         const userLogin = Str.removeSMSDomain(login);
         const userPersonalDetail = lodashGet(personalDetails, login, {displayName: userLogin, avatar: ''});
 
-        return ({
+        return {
             alternateText: userLogin,
             displayName: userPersonalDetail.displayName,
-            icons: [{
-                source: ReportUtils.getAvatar(userPersonalDetail.avatar, login),
-                name: login,
-                type: CONST.ICON_TYPE_AVATAR,
-            }],
+            icons: [
+                {
+                    source: ReportUtils.getAvatar(userPersonalDetail.avatar, login),
+                    name: login,
+                    type: CONST.ICON_TYPE_AVATAR,
+                },
+            ],
             keyForList: userLogin,
             login,
             text: userPersonalDetail.displayName,
             tooltipText: userLogin,
             participantsList: [{login, displayName: userPersonalDetail.displayName}],
-        });
+        };
     });
 };
 
@@ -86,26 +86,27 @@ const ReportParticipantsPage = (props) => {
             {({safeAreaPaddingBottomStyle}) => (
                 <FullPageNotFoundView shouldShow={_.isEmpty(props.report)}>
                     <HeaderWithCloseButton
-                        title={props.translate((ReportUtils.isChatRoom(props.report) || ReportUtils.isPolicyExpenseChat(props.report)) ? 'common.members' : 'common.details')}
+                        title={props.translate(ReportUtils.isChatRoom(props.report) || ReportUtils.isPolicyExpenseChat(props.report) ? 'common.members' : 'common.details')}
                         onCloseButtonPress={Navigation.dismissModal}
                         onBackButtonPress={Navigation.goBack}
                         shouldShowBackButton={ReportUtils.isChatRoom(props.report) || ReportUtils.isPolicyExpenseChat(props.report)}
                     />
                     <View
                         pointerEvents="box-none"
-                        style={[
-                            styles.containerWithSpaceBetween,
-                        ]}
+                        style={[styles.containerWithSpaceBetween]}
                     >
                         {Boolean(participants.length) && (
                             <OptionsList
-                                sections={[{
-                                    title: '', data: participants, shouldShow: true, indexOffset: 0,
-                                }]}
+                                sections={[
+                                    {
+                                        title: '',
+                                        data: participants,
+                                        shouldShow: true,
+                                        indexOffset: 0,
+                                    },
+                                ]}
                                 onSelectRow={(option) => {
-                                    Navigation.navigate(ROUTES.getReportParticipantRoute(
-                                        props.route.params.reportID, option.login,
-                                    ));
+                                    Navigation.navigate(ROUTES.getReportParticipantRoute(props.route.params.reportID, option.login));
                                 }}
                                 hideSectionHeaders
                                 showTitleTooltip

@@ -6,7 +6,7 @@ const propTypes = {
     ...menuItemPropTypes,
 };
 
-const MenuItemWithTopDescription = props => (
+const MenuItemWithTopDescription = (props) => (
     <MenuItem
         // eslint-disable-next-line react/jsx-props-no-spreading
         {...props}

@@ -59,12 +59,7 @@ const ImageCropView = (props) => {
         const aspectRatio = height > width ? height / width : width / height;
         const rotate = interpolate(props.rotation.value, [0, 360], [0, 360]);
         return {
-            transform: [
-                {translateX: props.translateX.value},
-                {translateY: props.translateY.value},
-                {scale: props.scale.value * aspectRatio},
-                {rotate: `${rotate}deg`},
-            ],
+            transform: [{translateX: props.translateX.value}, {translateY: props.translateY.value}, {scale: props.scale.value * aspectRatio}, {rotate: `${rotate}deg`}],
         };
     }, [props.originalImageHeight, props.originalImageWidth]);
 
@@ -72,10 +67,21 @@ const ImageCropView = (props) => {
     // default behaviour of cursor - I-beam cursor on drag. See https://github.com/Expensify/App/issues/13688
     return (
         <PanGestureHandler onGestureEvent={props.panGestureEventHandler}>
-            <Animated.View ref={ControlSelection.blockElement} style={[containerStyle, styles.imageCropContainer]}>
-                <Animated.Image style={[imageStyle, styles.h100, styles.w100]} source={{uri: props.imageUri}} resizeMode="contain" />
+            <Animated.View
+                ref={ControlSelection.blockElement}
+                style={[containerStyle, styles.imageCropContainer]}
+            >
+                <Animated.Image
+                    style={[imageStyle, styles.h100, styles.w100]}
+                    source={{uri: props.imageUri}}
+                    resizeMode="contain"
+                />
                 <View style={[containerStyle, styles.l0, styles.b0, styles.pAbsolute]}>
-                    <Icon src={props.maskImage} width={props.containerSize} height={props.containerSize} />
+                    <Icon
+                        src={props.maskImage}
+                        width={props.containerSize}
+                        height={props.containerSize}
+                    />
                 </View>
             </Animated.View>
         </PanGestureHandler>
