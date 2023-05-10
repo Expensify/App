@@ -916,12 +916,6 @@ const CONST = {
         AMOUNT_MAX_LENGTH: 10,
     },
 
-    TASK: {
-        REPORT_ACTION_TYPE: {
-            CANCEL: 'cancel',
-        },
-    },
-
     GROWL: {
         SUCCESS: 'success',
         ERROR: 'error',
