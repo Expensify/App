@@ -13,7 +13,6 @@ import ROUTES from '../../ROUTES';
 import * as TaskUtils from '../../libs/actions/Task';
 import ONYXKEYS from '../../ONYXKEYS';
 import withLocalize from '../../components/withLocalize';
-import Button from '../../components/Button';
 
 const propTypes = {
     /** The report currently being looked at */
@@ -56,7 +55,7 @@ function TaskHeaderView(props) {
     console.log('TaskHeaderView.js props', props);
     return (
         <>
-            <View style={[styles.peopleRow, styles.sidebarLinkActive]}>
+            <View style={[styles.sidebarLinkActive, styles.ph3]}>
                 {props.report.assignee && (
                     <TaskSelectorLink
                         icons={assignee.icons}
@@ -70,11 +69,7 @@ function TaskHeaderView(props) {
                         isNewTask={false}
                     />
                 )}
-                {/* TO-DO: Add functionatility to mark task as done. Will be in: https://github.com/Expensify/App/issues/16858 */}
-                <Button
-                    success
-                    title="Done"
-                />
+                {/* TO-DO: Add functionality to mark task as done. Will be in: https://github.com/Expensify/App/issues/16858 */}
             </View>
             <MenuItemWithTopDescription
                 shouldShowHeaderTitle

@@ -55,10 +55,9 @@ const TaskSelectorLink = (props) => {
     const shortenedText = props.text.length > 35 ? `${props.text.substring(0, 35)}...` : props.text;
     const displayNameStyle = StyleUtils.combineStyles(styles.optionDisplayName, styles.pre);
     const alternateTextStyle = StyleUtils.combineStyles(styles.sidebarLinkText, styles.optionAlternateText, styles.textLabelSupporting, styles.pre);
-    const linkBottomMargin = props.icons.length !== 0 ? styles.mb6 : styles.mb2;
     return (
         <TouchableOpacity
-            style={[styles.flexRow, styles.taskSelectorLink, linkBottomMargin]}
+            style={[styles.flexRow, styles.taskSelectorLink, styles.mb1]}
             onPress={props.onPress}
             disabled={props.disabled}
         >

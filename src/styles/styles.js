@@ -1690,7 +1690,6 @@ const styles = {
         alignSelf: 'center',
         width: '100%',
         padding: 6,
-        margin: 3,
         backgroundColor: themeColors.transparent,
     },
 
