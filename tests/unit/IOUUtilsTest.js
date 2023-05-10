@@ -13,16 +13,7 @@ const ownerEmail = 'owner@iou.com';
 const managerEmail = 'manager@iou.com';
 
 function createIOUReportAction(type, amount, currency, isOffline = false, IOUTransactionID = NumberUtils.rand64()) {
-    const moneyRequestAction = ReportUtils.buildOptimisticIOUReportAction(
-        type,
-        amount,
-        currency,
-        'Test comment',
-        [managerEmail],
-        IOUTransactionID,
-        '',
-        iouReport.reportID,
-    );
+    const moneyRequestAction = ReportUtils.buildOptimisticIOUReportAction(type, amount, currency, 'Test comment', [managerEmail], IOUTransactionID, '', iouReport.reportID);
 
     // Default is to create requests online, if `isOffline` is not specified then we need to remove the pendingAction
     if (!isOffline) {
@@ -100,7 +91,7 @@ describe('IOUUtils', () => {
             expect(IOUUtils.isIOUReportPendingCurrencyConversion(reportActions, iouReport)).toBe(true);
         });
 
-        test('Deleting a request made offline while there\'s a previous one made online will not show the pending conversion message', () => {
+        test("Deleting a request made offline while there's a previous one made online will not show the pending conversion message", () => {
             // Request money online in AED
             createIOUReportAction('create', 1000, 'AED');
 
@@ -127,7 +118,7 @@ describe('IOUUtils', () => {
             expect(IOUUtils.isIOUReportPendingCurrencyConversion(reportActions, iouReport)).toBe(true);
         });
 
-        test('Deleting a request offline in the report\'s currency when we have requests in a different currency does not show the pending conversion message', () => {
+        test("Deleting a request offline in the report's currency when we have requests in a different currency does not show the pending conversion message", () => {
             // Request money in the report's currency (USD)
             const onlineMoneyRequestInUSD = createIOUReportAction('create', 1000, 'USD');
 

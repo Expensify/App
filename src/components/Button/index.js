@@ -73,10 +73,7 @@ const propTypes = {
     enterKeyEventListenerPriority: PropTypes.number,
 
     /** Additional styles to add after local styles. Applied to Pressable portion of button */
-    style: PropTypes.oneOfType([
-        PropTypes.arrayOf(PropTypes.object),
-        PropTypes.object,
-    ]),
+    style: PropTypes.oneOfType([PropTypes.arrayOf(PropTypes.object), PropTypes.object]),
 
     /** Additional button styles. Specific to the OpacityView of button */
     // eslint-disable-next-line react/forbid-prop-types
@@ -157,12 +154,21 @@ class Button extends Component {
         const shortcutConfig = CONST.KEYBOARD_SHORTCUTS.ENTER;
 
         // Setup and attach keypress handler for pressing the button with Enter key
-        this.unsubscribe = KeyboardShortcut.subscribe(shortcutConfig.shortcutKey, (e) => {
-            if (!validateSubmitShortcut(this.props.isFocused, this.props.isDisabled, this.props.isLoading, e)) {
-                return;
-            }
-            this.props.onPress();
-        }, shortcutConfig.descriptionKey, shortcutConfig.modifiers, true, false, this.props.enterKeyEventListenerPriority, false);
+        this.unsubscribe = KeyboardShortcut.subscribe(
+            shortcutConfig.shortcutKey,
+            (e) => {
+                if (!validateSubmitShortcut(this.props.isFocused, this.props.isDisabled, this.props.isLoading, e)) {
+                    return;
+                }
+                this.props.onPress();
+            },
+            shortcutConfig.descriptionKey,
+            shortcutConfig.modifiers,
+            true,
+            false,
+            this.props.enterKeyEventListenerPriority,
+            false,
+        );
     }
 
     componentWillUnmount() {
@@ -203,11 +209,7 @@ class Button extends Component {
             return (
                 <View style={[styles.justifyContentBetween, styles.flexRow]}>
                     <View style={[styles.alignItemsCenter, styles.flexRow, styles.flexShrink1]}>
-                        <View style={[
-                            styles.mr1,
-                            ...this.props.iconStyles,
-                        ]}
-                        >
+                        <View style={[styles.mr1, ...this.props.iconStyles]}>
                             <Icon
                                 src={this.props.icon}
                                 fill={this.props.iconFill}
@@ -275,10 +277,10 @@ class Button extends Component {
                                 this.props.large ? styles.buttonLarge : undefined,
                                 this.props.success ? styles.buttonSuccess : undefined,
                                 this.props.danger ? styles.buttonDanger : undefined,
-                                (this.props.isDisabled && (this.props.success || this.props.danger)) ? styles.buttonOpacityDisabled : undefined,
-                                (this.props.isDisabled && !this.props.danger && !this.props.success) ? styles.buttonDisabled : undefined,
-                                (this.props.success && activeAndHovered) ? styles.buttonSuccessHovered : undefined,
-                                (this.props.danger && activeAndHovered) ? styles.buttonDangerHovered : undefined,
+                                this.props.isDisabled && (this.props.success || this.props.danger) ? styles.buttonOpacityDisabled : undefined,
+                                this.props.isDisabled && !this.props.danger && !this.props.success ? styles.buttonDisabled : undefined,
+                                this.props.success && activeAndHovered ? styles.buttonSuccessHovered : undefined,
+                                this.props.danger && activeAndHovered ? styles.buttonDangerHovered : undefined,
                                 this.props.shouldRemoveRightBorderRadius ? styles.noRightBorderRadius : undefined,
                                 this.props.shouldRemoveLeftBorderRadius ? styles.noLeftBorderRadius : undefined,
                                 ...this.props.innerStyles,
@@ -287,7 +289,7 @@ class Button extends Component {
                             {this.renderContent()}
                             {this.props.isLoading && (
                                 <ActivityIndicator
-                                    color={(this.props.success || this.props.danger) ? themeColors.textLight : themeColors.text}
+                                    color={this.props.success || this.props.danger ? themeColors.textLight : themeColors.text}
                                     style={[styles.pAbsolute, styles.l0, styles.r0]}
                                 />
                             )}
@@ -302,7 +304,4 @@ class Button extends Component {
 Button.propTypes = propTypes;
 Button.defaultProps = defaultProps;
 
-export default compose(
-    withNavigationFallback,
-    withNavigationFocus,
-)(Button);
+export default compose(withNavigationFallback, withNavigationFocus)(Button);

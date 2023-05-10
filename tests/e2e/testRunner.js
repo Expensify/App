@@ -174,13 +174,16 @@ const runTestsOnBranch = async (baselineOrCompare, branch) => {
 
             await restartApp();
 
-            await withFailTimeout(new Promise((resolve) => {
-                const cleanup = server.addTestDoneListener(() => {
-                    Logger.log(`Warmup ${warmUpRuns + 1} done!`);
-                    cleanup();
-                    resolve();
-                });
-            }), progressText);
+            await withFailTimeout(
+                new Promise((resolve) => {
+                    const cleanup = server.addTestDoneListener(() => {
+                        Logger.log(`Warmup ${warmUpRuns + 1} done!`);
+                        cleanup();
+                        resolve();
+                    });
+                }),
+                progressText,
+            );
         }
         warmupLogs.done();
 
@@ -194,13 +197,16 @@ const runTestsOnBranch = async (baselineOrCompare, branch) => {
 
             // Wait for a test to finish by waiting on its done call to the http server
             try {
-                await withFailTimeout(new Promise((resolve) => {
-                    const cleanup = server.addTestDoneListener(() => {
-                        Logger.log(`Test iteration ${i + 1} done!`);
-                        cleanup();
-                        resolve();
-                    });
-                }), progressText);
+                await withFailTimeout(
+                    new Promise((resolve) => {
+                        const cleanup = server.addTestDoneListener(() => {
+                            Logger.log(`Test iteration ${i + 1} done!`);
+                            cleanup();
+                            resolve();
+                        });
+                    }),
+                    progressText,
+                );
             } catch (e) {
                 // When we fail due to a timeout it's interesting to take a screenshot of the emulator to see whats going on
                 testLog.done();

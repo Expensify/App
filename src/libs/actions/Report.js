@@ -137,10 +137,9 @@ function subscribeToReportTypingEvents(reportID) {
             Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_USER_IS_TYPING}${reportID}`, typingStoppedStatus);
             delete typingWatchTimers[reportUserIdentifier];
         }, 1500);
-    })
-        .catch((error) => {
-            Log.hmmm('[Report] Failed to initially subscribe to Pusher channel', false, {errorType: error.type, pusherChannelName});
-        });
+    }).catch((error) => {
+        Log.hmmm('[Report] Failed to initially subscribe to Pusher channel', false, {errorType: error.type, pusherChannelName});
+    });
 }
 
 /**
@@ -266,7 +265,10 @@ function addActions(reportID, text = '', file) {
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`,
-            value: _.mapObject(optimisticReportActions, action => ({...action, errors: {[DateUtils.getMicroseconds()]: Localize.translateLocal('report.genericAddCommentFailureMessage')}})),
+            value: _.mapObject(optimisticReportActions, (action) => ({
+                ...action,
+                errors: {[DateUtils.getMicroseconds()]: Localize.translateLocal('report.genericAddCommentFailureMessage')},
+            })),
         },
     ];
 
@@ -408,7 +410,7 @@ function openReport(reportID, participantList = [], newReportObject = {}) {
  * @param {Array} userLogins list of user logins.
  */
 function navigateToAndOpenReport(userLogins) {
-    const formattedUserLogins = _.map(userLogins, login => OptionsListUtils.addSMSDomainIfPhoneNumber(login).toLowerCase());
+    const formattedUserLogins = _.map(userLogins, (login) => OptionsListUtils.addSMSDomainIfPhoneNumber(login).toLowerCase());
     let newChat = {};
     const chat = ReportUtils.getChatByParticipants(formattedUserLogins);
     if (!chat) {
@@ -427,35 +429,43 @@ function navigateToAndOpenReport(userLogins) {
  * @param {String} reportID
  */
 function reconnect(reportID) {
-    API.write('ReconnectToReport',
+    API.write(
+        'ReconnectToReport',
         {
             reportID,
         },
         {
-            optimisticData: [{
-                onyxMethod: Onyx.METHOD.MERGE,
-                key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
-                value: {
-                    isLoadingReportActions: true,
-                    isLoadingMoreReportActions: false,
-                    reportName: lodashGet(allReports, [reportID, 'reportName'], CONST.REPORT.DEFAULT_REPORT_NAME),
+            optimisticData: [
+                {
+                    onyxMethod: Onyx.METHOD.MERGE,
+                    key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
+                    value: {
+                        isLoadingReportActions: true,
+                        isLoadingMoreReportActions: false,
+                        reportName: lodashGet(allReports, [reportID, 'reportName'], CONST.REPORT.DEFAULT_REPORT_NAME),
+                    },
                 },
-            }],
-            successData: [{
-                onyxMethod: Onyx.METHOD.MERGE,
-                key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
-                value: {
-                    isLoadingReportActions: false,
+            ],
+            successData: [
+                {
+                    onyxMethod: Onyx.METHOD.MERGE,
+                    key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
+                    value: {
+                        isLoadingReportActions: false,
+                    },
                 },
-            }],
-            failureData: [{
-                onyxMethod: Onyx.METHOD.MERGE,
-                key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
-                value: {
-                    isLoadingReportActions: false,
+            ],
+            failureData: [
+                {
+                    onyxMethod: Onyx.METHOD.MERGE,
+                    key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
+                    value: {
+                        isLoadingReportActions: false,
+                    },
                 },
-            }],
-        });
+            ],
+        },
+    );
 }
 
 /**
@@ -466,34 +476,42 @@ function reconnect(reportID) {
  * @param {String} reportActionID
  */
 function readOldestAction(reportID, reportActionID) {
-    API.read('ReadOldestAction',
+    API.read(
+        'ReadOldestAction',
         {
             reportID,
             reportActionID,
         },
         {
-            optimisticData: [{
-                onyxMethod: Onyx.METHOD.MERGE,
-                key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
-                value: {
-                    isLoadingMoreReportActions: true,
+            optimisticData: [
+                {
+                    onyxMethod: Onyx.METHOD.MERGE,
+                    key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
+                    value: {
+                        isLoadingMoreReportActions: true,
+                    },
                 },
-            }],
-            successData: [{
-                onyxMethod: Onyx.METHOD.MERGE,
-                key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
-                value: {
-                    isLoadingMoreReportActions: false,
+            ],
+            successData: [
+                {
+                    onyxMethod: Onyx.METHOD.MERGE,
+                    key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
+                    value: {
+                        isLoadingMoreReportActions: false,
+                    },
                 },
-            }],
-            failureData: [{
-                onyxMethod: Onyx.METHOD.MERGE,
-                key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
-                value: {
-                    isLoadingMoreReportActions: false,
+            ],
+            failureData: [
+                {
+                    onyxMethod: Onyx.METHOD.MERGE,
+                    key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
+                    value: {
+                        isLoadingMoreReportActions: false,
+                    },
                 },
-            }],
-        });
+            ],
+        },
+    );
 }
 
 /**
@@ -503,38 +521,42 @@ function readOldestAction(reportID, reportActionID) {
  * @param {Number} iouReportID
  */
 function openPaymentDetailsPage(chatReportID, iouReportID) {
-    API.read('OpenPaymentDetailsPage', {
-        reportID: chatReportID,
-        iouReportID,
-    }, {
-        optimisticData: [
-            {
-                onyxMethod: Onyx.METHOD.MERGE,
-                key: ONYXKEYS.IOU,
-                value: {
-                    loading: true,
+    API.read(
+        'OpenPaymentDetailsPage',
+        {
+            reportID: chatReportID,
+            iouReportID,
+        },
+        {
+            optimisticData: [
+                {
+                    onyxMethod: Onyx.METHOD.MERGE,
+                    key: ONYXKEYS.IOU,
+                    value: {
+                        loading: true,
+                    },
                 },
-            },
-        ],
-        successData: [
-            {
-                onyxMethod: Onyx.METHOD.MERGE,
-                key: ONYXKEYS.IOU,
-                value: {
-                    loading: false,
+            ],
+            successData: [
+                {
+                    onyxMethod: Onyx.METHOD.MERGE,
+                    key: ONYXKEYS.IOU,
+                    value: {
+                        loading: false,
+                    },
                 },
-            },
-        ],
-        failureData: [
-            {
-                onyxMethod: Onyx.METHOD.MERGE,
-                key: ONYXKEYS.IOU,
-                value: {
-                    loading: false,
+            ],
+            failureData: [
+                {
+                    onyxMethod: Onyx.METHOD.MERGE,
+                    key: ONYXKEYS.IOU,
+                    value: {
+                        loading: false,
+                    },
                 },
-            },
-        ],
-    });
+            ],
+        },
+    );
 }
 
 /**
@@ -544,38 +566,42 @@ function openPaymentDetailsPage(chatReportID, iouReportID) {
  * @param {String} linkedReportID
  */
 function openMoneyRequestsReportPage(chatReportID, linkedReportID) {
-    API.read('OpenMoneyRequestsReportPage', {
-        reportID: chatReportID,
-        linkedReportID,
-    }, {
-        optimisticData: [
-            {
-                onyxMethod: Onyx.METHOD.MERGE,
-                key: ONYXKEYS.IOU,
-                value: {
-                    loading: true,
+    API.read(
+        'OpenMoneyRequestsReportPage',
+        {
+            reportID: chatReportID,
+            linkedReportID,
+        },
+        {
+            optimisticData: [
+                {
+                    onyxMethod: Onyx.METHOD.MERGE,
+                    key: ONYXKEYS.IOU,
+                    value: {
+                        loading: true,
+                    },
                 },
-            },
-        ],
-        successData: [
-            {
-                onyxMethod: Onyx.METHOD.MERGE,
-                key: ONYXKEYS.IOU,
-                value: {
-                    loading: false,
+            ],
+            successData: [
+                {
+                    onyxMethod: Onyx.METHOD.MERGE,
+                    key: ONYXKEYS.IOU,
+                    value: {
+                        loading: false,
+                    },
                 },
-            },
-        ],
-        failureData: [
-            {
-                onyxMethod: Onyx.METHOD.MERGE,
-                key: ONYXKEYS.IOU,
-                value: {
-                    loading: false,
+            ],
+            failureData: [
+                {
+                    onyxMethod: Onyx.METHOD.MERGE,
+                    key: ONYXKEYS.IOU,
+                    value: {
+                        loading: false,
+                    },
                 },
-            },
-        ],
-    });
+            ],
+        },
+    );
 }
 
 /**
@@ -584,19 +610,23 @@ function openMoneyRequestsReportPage(chatReportID, linkedReportID) {
  * @param {String} reportID
  */
 function readNewestAction(reportID) {
-    API.write('ReadNewestAction',
+    API.write(
+        'ReadNewestAction',
         {
             reportID,
         },
         {
-            optimisticData: [{
-                onyxMethod: Onyx.METHOD.MERGE,
-                key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
-                value: {
-                    lastReadTime: DateUtils.getDBTime(),
+            optimisticData: [
+                {
+                    onyxMethod: Onyx.METHOD.MERGE,
+                    key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
+                    value: {
+                        lastReadTime: DateUtils.getDBTime(),
+                    },
                 },
-            }],
-        });
+            ],
+        },
+    );
 }
 
 /**
@@ -610,20 +640,24 @@ function markCommentAsUnread(reportID, reportActionCreated) {
     // For example, if we want to mark a report action with ID 100 and created date '2014-04-01 16:07:02.999' unread, we set the lastReadTime to '2014-04-01 16:07:02.998'
     // Since the report action with ID 100 will be the first with a timestamp above '2014-04-01 16:07:02.998', it's the first one that will be shown as unread
     const lastReadTime = DateUtils.subtractMillisecondsFromDateTime(reportActionCreated, 1);
-    API.write('MarkAsUnread',
+    API.write(
+        'MarkAsUnread',
         {
             reportID,
             lastReadTime,
         },
         {
-            optimisticData: [{
-                onyxMethod: Onyx.METHOD.MERGE,
-                key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
-                value: {
-                    lastReadTime,
+            optimisticData: [
+                {
+                    onyxMethod: Onyx.METHOD.MERGE,
+                    key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
+                    value: {
+                        lastReadTime,
+                    },
                 },
-            }],
-        });
+            ],
+        },
+    );
 }
 
 /**
@@ -643,10 +677,14 @@ function togglePinnedState(report) {
         },
     ];
 
-    API.write('TogglePinnedChat', {
-        reportID: report.reportID,
-        pinnedValue,
-    }, {optimisticData});
+    API.write(
+        'TogglePinnedChat',
+        {
+            reportID: report.reportID,
+            pinnedValue,
+        },
+        {optimisticData},
+    );
 }
 
 /**
@@ -730,12 +768,14 @@ Onyx.connect({
  */
 function deleteReportComment(reportID, reportAction) {
     const reportActionID = reportAction.reportActionID;
-    const deletedMessage = [{
-        type: 'COMMENT',
-        html: '',
-        text: '',
-        isEdited: true,
-    }];
+    const deletedMessage = [
+        {
+            type: 'COMMENT',
+            html: '',
+            text: '',
+            isEdited: true,
+        },
+    ];
     const optimisticReportActions = {
         [reportActionID]: {
             pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
@@ -818,7 +858,7 @@ const extractLinksInMarkdownComment = (comment) => {
     const matches = [...comment.matchAll(regex)];
 
     // Element 1 from match is the regex group if it exists which contains the link URLs
-    const links = _.map(matches, match => match[1]);
+    const links = _.map(matches, (match) => match[1]);
     return links;
 };
 
@@ -894,7 +934,7 @@ function editReportComment(reportID, originalReportAction, textForNewComment) {
     // For longer comments, skip parsing and display plaintext for performance reasons. It takes over 40s to parse a 100k long string!!
     let parsedOriginalCommentHTML = originalCommentHTML;
     if (textForNewComment.length < CONST.MAX_MARKUP_LENGTH) {
-        const autolinkFilter = {filterRules: _.filter(_.pluck(parser.rules, 'name'), name => name !== 'autolink')};
+        const autolinkFilter = {filterRules: _.filter(_.pluck(parser.rules, 'name'), (name) => name !== 'autolink')};
         parsedOriginalCommentHTML = parser.replace(parser.htmlToMarkdown(originalCommentHTML).trim(), autolinkFilter);
     }
 
@@ -915,12 +955,14 @@ function editReportComment(reportID, originalReportAction, textForNewComment) {
     const optimisticReportActions = {
         [reportActionID]: {
             pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
-            message: [{
-                ...originalMessage,
-                isEdited: true,
-                html: htmlForNewComment,
-                text: textForNewComment,
-            }],
+            message: [
+                {
+                    ...originalMessage,
+                    isEdited: true,
+                    html: htmlForNewComment,
+                    text: textForNewComment,
+                },
+            ],
         },
     };
 
@@ -1131,10 +1173,10 @@ function deleteReport(reportID) {
     // Delete linked transactions
     const reportActionsForReport = allReportActions[reportID];
     _.chain(reportActionsForReport)
-        .filter(reportAction => reportAction.actionName === CONST.REPORT.ACTIONS.TYPE.IOU)
-        .map(reportAction => reportAction.originalMessage.IOUTransactionID)
+        .filter((reportAction) => reportAction.actionName === CONST.REPORT.ACTIONS.TYPE.IOU)
+        .map((reportAction) => reportAction.originalMessage.IOUTransactionID)
         .uniq()
-        .each(transactionID => onyxData[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`] = null);
+        .each((transactionID) => (onyxData[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`] = null));
 
     Onyx.multiSet(onyxData);
 
@@ -1178,7 +1220,6 @@ function updatePolicyRoomName(policyRoomReport, policyRoomName) {
     ];
     const successData = [
         {
-
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
             value: {
@@ -1190,7 +1231,6 @@ function updatePolicyRoomName(policyRoomReport, policyRoomName) {
     ];
     const failureData = [
         {
-
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
             value: {
@@ -1271,7 +1311,7 @@ function shouldShowReportActionNotification(reportID, action = null, isRemote = 
     }
 
     // Don't show a notification if no comment exists
-    if (action && !_.some(action.message, f => f.type === 'COMMENT')) {
+    if (action && !_.some(action.message, (f) => f.type === 'COMMENT')) {
         Log.info(`${tag} No notification because no comments exist for the current action`);
         return false;
     }
@@ -1344,16 +1384,18 @@ function getOptimisticDataForReportActionUpdate(originalReportAction, message, r
  * @returns {boolean}
  */
 function hasAccountIDReacted(accountID, users, skinTone) {
-    return _.find(users, (user) => {
-        let userAccountID;
-        if (typeof user === 'object') {
-            userAccountID = `${user.accountID}`;
-        } else {
-            userAccountID = `${user}`;
-        }
+    return (
+        _.find(users, (user) => {
+            let userAccountID;
+            if (typeof user === 'object') {
+                userAccountID = `${user.accountID}`;
+            } else {
+                userAccountID = `${user}`;
+            }
 
-        return userAccountID === `${accountID}` && (skinTone == null ? true : user.skinTone === skinTone);
-    }) !== undefined;
+            return userAccountID === `${accountID}` && (skinTone == null ? true : user.skinTone === skinTone);
+        }) !== undefined
+    );
 }
 
 /**
@@ -1365,7 +1407,7 @@ function hasAccountIDReacted(accountID, users, skinTone) {
  */
 function addEmojiReaction(reportID, originalReportAction, emoji, skinTone = preferredSkinTone) {
     const message = originalReportAction.message[0];
-    let reactionObject = message.reactions && _.find(message.reactions, reaction => reaction.emoji === emoji.name);
+    let reactionObject = message.reactions && _.find(message.reactions, (reaction) => reaction.emoji === emoji.name);
     const needToInsertReactionObject = !reactionObject;
     if (needToInsertReactionObject) {
         reactionObject = {
@@ -1386,7 +1428,7 @@ function addEmojiReaction(reportID, originalReportAction, emoji, skinTone = pref
     if (needToInsertReactionObject) {
         updatedReactions = [...updatedReactions, reactionObject];
     } else {
-        updatedReactions = _.map(updatedReactions, reaction => (reaction.emoji === emoji.name ? reactionObject : reaction));
+        updatedReactions = _.map(updatedReactions, (reaction) => (reaction.emoji === emoji.name ? reactionObject : reaction));
     }
 
     const updatedMessage = {
@@ -1415,7 +1457,7 @@ function addEmojiReaction(reportID, originalReportAction, emoji, skinTone = pref
  */
 function removeEmojiReaction(reportID, originalReportAction, emoji) {
     const message = originalReportAction.message[0];
-    const reactionObject = message.reactions && _.find(message.reactions, reaction => reaction.emoji === emoji.name);
+    const reactionObject = message.reactions && _.find(message.reactions, (reaction) => reaction.emoji === emoji.name);
     if (!reactionObject) {
         return;
     }
@@ -1423,9 +1465,8 @@ function removeEmojiReaction(reportID, originalReportAction, emoji) {
     const updatedReactionObject = {
         ...reactionObject,
     };
-    updatedReactionObject.users = _.filter(reactionObject.users, sender => sender.accountID !== currentUserAccountID);
+    updatedReactionObject.users = _.filter(reactionObject.users, (sender) => sender.accountID !== currentUserAccountID);
     const updatedReactions = _.filter(
-
         // Replace the reaction object either with the updated one or null if there are no users
         _.map(message.reactions, (reaction) => {
             if (reaction.emoji === emoji.name) {
@@ -1438,7 +1479,7 @@ function removeEmojiReaction(reportID, originalReportAction, emoji) {
         }),
 
         // Remove any null reactions
-        reportObject => reportObject !== null,
+        (reportObject) => reportObject !== null,
     );
 
     const updatedMessage = {
@@ -1468,7 +1509,7 @@ function removeEmojiReaction(reportID, originalReportAction, emoji) {
  */
 function toggleEmojiReaction(reportID, reportAction, emoji, paramSkinTone = preferredSkinTone) {
     const message = reportAction.message[0];
-    const reactionObject = message.reactions && _.find(message.reactions, reaction => reaction.emoji === emoji.name);
+    const reactionObject = message.reactions && _.find(message.reactions, (reaction) => reaction.emoji === emoji.name);
     const skinTone = emoji.types === undefined ? null : paramSkinTone; // only use skin tone if emoji supports it
     if (reactionObject) {
         if (hasAccountIDReacted(currentUserAccountID, reactionObject.users, skinTone)) {

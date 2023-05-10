@@ -25,18 +25,10 @@ const defaultProps = {
     containerStyles: [],
 };
 
-const CommunicationsLink = props => (
+const CommunicationsLink = (props) => (
     <View style={[styles.flexRow, styles.pRelative, ...props.containerStyles]}>
-        <View style={[
-            styles.flexRow,
-            styles.alignItemsCenter,
-            styles.w100,
-            styles.communicationsLinkHeight,
-        ]}
-        >
-            <View style={styles.flexShrink1}>
-                {props.children}
-            </View>
+        <View style={[styles.flexRow, styles.alignItemsCenter, styles.w100, styles.communicationsLinkHeight]}>
+            <View style={styles.flexShrink1}>{props.children}</View>
             <ContextMenuItem
                 icon={Expensicons.Copy}
                 text={props.translate('reportActionContextMenu.copyToClipboard')}
