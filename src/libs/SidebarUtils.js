@@ -258,10 +258,10 @@ function getOptionData(reportID) {
     // We only create tooltips for the first 10 users or so since some reports have hundreds of users, causing performance to degrade.
     const displayNamesWithTooltips = ReportUtils.getDisplayNamesWithTooltips((participantPersonalDetailList || []).slice(0, 10), hasMultipleParticipants);
 
-    const parentReportAction = (ReportUtils.isThread(report)
-                                    && reportActions[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.parentReportID}`])
-        ? ReportUtils.getParentReportAction_DEV(reportActions[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.parentReportID}`], `${report.parentReportActionID}`)
-        : {};
+    const parentReportAction =
+        ReportUtils.isThread(report) && reportActions[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.parentReportID}`]
+            ? ReportUtils.getParentReportAction_DEV(reportActions[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.parentReportID}`], `${report.parentReportActionID}`)
+            : {};
 
     let lastMessageTextFromReport = '';
     if (ReportUtils.isReportMessageAttachment({text: report.lastMessageText, html: report.lastMessageHtml})) {
