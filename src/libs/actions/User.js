@@ -33,32 +33,36 @@ Onyx.connect({
  * @param {String} password
  */
 function updatePassword(oldPassword, password) {
-    API.write('UpdatePassword', {
-        oldPassword,
-        password,
-    }, {
-        optimisticData: [
-            {
-                onyxMethod: CONST.ONYX.METHOD.MERGE,
-                key: ONYXKEYS.ACCOUNT,
-                value: {...CONST.DEFAULT_ACCOUNT_DATA, isLoading: true},
-            },
-        ],
-        successData: [
-            {
-                onyxMethod: CONST.ONYX.METHOD.MERGE,
-                key: ONYXKEYS.ACCOUNT,
-                value: {isLoading: false},
-            },
-        ],
-        failureData: [
-            {
-                onyxMethod: CONST.ONYX.METHOD.MERGE,
-                key: ONYXKEYS.ACCOUNT,
-                value: {isLoading: false},
-            },
-        ],
-    });
+    API.write(
+        'UpdatePassword',
+        {
+            oldPassword,
+            password,
+        },
+        {
+            optimisticData: [
+                {
+                    onyxMethod: Onyx.METHOD.MERGE,
+                    key: ONYXKEYS.ACCOUNT,
+                    value: {...CONST.DEFAULT_ACCOUNT_DATA, isLoading: true},
+                },
+            ],
+            successData: [
+                {
+                    onyxMethod: Onyx.METHOD.MERGE,
+                    key: ONYXKEYS.ACCOUNT,
+                    value: {isLoading: false},
+                },
+            ],
+            failureData: [
+                {
+                    onyxMethod: Onyx.METHOD.MERGE,
+                    key: ONYXKEYS.ACCOUNT,
+                    value: {isLoading: false},
+                },
+            ],
+        },
+    );
 }
 
 /**
@@ -69,22 +73,26 @@ function updatePassword(oldPassword, password) {
 function closeAccount(message) {
     // Note: successData does not need to set isLoading to false because if the CloseAccount
     // command succeeds, a Pusher response will clear all Onyx data.
-    API.write('CloseAccount', {message}, {
-        optimisticData: [
-            {
-                onyxMethod: CONST.ONYX.METHOD.MERGE,
-                key: ONYXKEYS.FORMS.CLOSE_ACCOUNT_FORM,
-                value: {isLoading: true},
-            },
-        ],
-        failureData: [
-            {
-                onyxMethod: CONST.ONYX.METHOD.MERGE,
-                key: ONYXKEYS.FORMS.CLOSE_ACCOUNT_FORM,
-                value: {isLoading: false},
-            },
-        ],
-    });
+    API.write(
+        'CloseAccount',
+        {message},
+        {
+            optimisticData: [
+                {
+                    onyxMethod: Onyx.METHOD.MERGE,
+                    key: ONYXKEYS.FORMS.CLOSE_ACCOUNT_FORM,
+                    value: {isLoading: true},
+                },
+            ],
+            failureData: [
+                {
+                    onyxMethod: Onyx.METHOD.MERGE,
+                    key: ONYXKEYS.FORMS.CLOSE_ACCOUNT_FORM,
+                    value: {isLoading: false},
+                },
+            ],
+        },
+    );
 }
 
 /**
@@ -103,54 +111,64 @@ function resendValidateCode(login) {
  * @param {String} contactMethod - the new contact method that the user is trying to verify
  */
 function requestContactMethodValidateCode(contactMethod) {
-    const optimisticData = [{
-        onyxMethod: CONST.ONYX.METHOD.MERGE,
-        key: ONYXKEYS.LOGIN_LIST,
-        value: {
-            [contactMethod]: {
-                validateCodeSent: false,
-                errorFields: {
-                    validateCodeSent: null,
-                },
-                pendingFields: {
-                    validateCodeSent: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
-                },
-            },
-        },
-    }];
-    const successData = [{
-        onyxMethod: CONST.ONYX.METHOD.MERGE,
-        key: ONYXKEYS.LOGIN_LIST,
-        value: {
-            [contactMethod]: {
-                validateCodeSent: true,
-                pendingFields: {
-                    validateCodeSent: null,
-                },
-            },
-        },
-    }];
-    const failureData = [{
-        onyxMethod: CONST.ONYX.METHOD.MERGE,
-        key: ONYXKEYS.LOGIN_LIST,
-        value: {
-            [contactMethod]: {
-                validateCodeSent: false,
-                errorFields: {
-                    validateCodeSent: {
-                        [DateUtils.getMicroseconds()]: Localize.translateLocal('contacts.genericFailureMessages.requestContactMethodValidateCode'),
+    const optimisticData = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: ONYXKEYS.LOGIN_LIST,
+            value: {
+                [contactMethod]: {
+                    validateCodeSent: false,
+                    errorFields: {
+                        validateCodeSent: null,
+                    },
+                    pendingFields: {
+                        validateCodeSent: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
                     },
                 },
-                pendingFields: {
-                    validateCodeSent: null,
+            },
+        },
+    ];
+    const successData = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: ONYXKEYS.LOGIN_LIST,
+            value: {
+                [contactMethod]: {
+                    validateCodeSent: true,
+                    pendingFields: {
+                        validateCodeSent: null,
+                    },
                 },
             },
         },
-    }];
+    ];
+    const failureData = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: ONYXKEYS.LOGIN_LIST,
+            value: {
+                [contactMethod]: {
+                    validateCodeSent: false,
+                    errorFields: {
+                        validateCodeSent: {
+                            [DateUtils.getMicroseconds()]: Localize.translateLocal('contacts.genericFailureMessages.requestContactMethodValidateCode'),
+                        },
+                    },
+                    pendingFields: {
+                        validateCodeSent: null,
+                    },
+                },
+            },
+        },
+    ];
 
-    API.write('RequestContactMethodValidateCode', {
-        email: contactMethod,
-    }, {optimisticData, successData, failureData});
+    API.write(
+        'RequestContactMethodValidateCode',
+        {
+            email: contactMethod,
+        },
+        {optimisticData, successData, failureData},
+    );
 }
 
 /**
@@ -159,24 +177,28 @@ function requestContactMethodValidateCode(contactMethod) {
  * @param {Boolean} isSubscribed
  */
 function updateNewsletterSubscription(isSubscribed) {
-    API.write('UpdateNewsletterSubscription', {
-        isSubscribed,
-    }, {
-        optimisticData: [
-            {
-                onyxMethod: CONST.ONYX.METHOD.MERGE,
-                key: ONYXKEYS.USER,
-                value: {isSubscribedToNewsletter: isSubscribed},
-            },
-        ],
-        failureData: [
-            {
-                onyxMethod: CONST.ONYX.METHOD.MERGE,
-                key: ONYXKEYS.USER,
-                value: {isSubscribedToNewsletter: !isSubscribed},
-            },
-        ],
-    });
+    API.write(
+        'UpdateNewsletterSubscription',
+        {
+            isSubscribed,
+        },
+        {
+            optimisticData: [
+                {
+                    onyxMethod: Onyx.METHOD.MERGE,
+                    key: ONYXKEYS.USER,
+                    value: {isSubscribedToNewsletter: isSubscribed},
+                },
+            ],
+            failureData: [
+                {
+                    onyxMethod: Onyx.METHOD.MERGE,
+                    key: ONYXKEYS.USER,
+                    value: {isSubscribedToNewsletter: !isSubscribed},
+                },
+            ],
+        },
+    );
 }
 
 /**
@@ -195,49 +217,59 @@ function deleteContactMethod(contactMethod, loginList) {
         return;
     }
 
-    const optimisticData = [{
-        onyxMethod: CONST.ONYX.METHOD.MERGE,
-        key: ONYXKEYS.LOGIN_LIST,
-        value: {
-            [contactMethod]: {
-                partnerUserID: '',
-                errorFields: {
-                    deletedLogin: null,
-                },
-                pendingFields: {
-                    deletedLogin: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
-                },
-            },
-        },
-    }];
-    const successData = [{
-        onyxMethod: CONST.ONYX.METHOD.MERGE,
-        key: ONYXKEYS.LOGIN_LIST,
-        value: {
-            [contactMethod]: null,
-        },
-    }];
-    const failureData = [{
-        onyxMethod: CONST.ONYX.METHOD.MERGE,
-        key: ONYXKEYS.LOGIN_LIST,
-        value: {
-            [contactMethod]: {
-                ...oldLoginData,
-                errorFields: {
-                    deletedLogin: {
-                        [DateUtils.getMicroseconds()]: Localize.translateLocal('contacts.genericFailureMessages.deleteContactMethod'),
+    const optimisticData = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: ONYXKEYS.LOGIN_LIST,
+            value: {
+                [contactMethod]: {
+                    partnerUserID: '',
+                    errorFields: {
+                        deletedLogin: null,
+                    },
+                    pendingFields: {
+                        deletedLogin: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
                     },
                 },
-                pendingFields: {
-                    deletedLogin: null,
+            },
+        },
+    ];
+    const successData = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: ONYXKEYS.LOGIN_LIST,
+            value: {
+                [contactMethod]: null,
+            },
+        },
+    ];
+    const failureData = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: ONYXKEYS.LOGIN_LIST,
+            value: {
+                [contactMethod]: {
+                    ...oldLoginData,
+                    errorFields: {
+                        deletedLogin: {
+                            [DateUtils.getMicroseconds()]: Localize.translateLocal('contacts.genericFailureMessages.deleteContactMethod'),
+                        },
+                    },
+                    pendingFields: {
+                        deletedLogin: null,
+                    },
                 },
             },
         },
-    }];
+    ];
 
-    API.write('DeleteContactMethod', {
-        partnerUserID: contactMethod,
-    }, {optimisticData, successData, failureData});
+    API.write(
+        'DeleteContactMethod',
+        {
+            partnerUserID: contactMethod,
+        },
+        {optimisticData, successData, failureData},
+    );
     Navigation.navigate(ROUTES.SETTINGS_CONTACT_METHODS);
 }
 
@@ -267,49 +299,55 @@ function clearContactMethodErrors(contactMethod, fieldName) {
  * @param {String} password
  */
 function addNewContactMethodAndNavigate(contactMethod, password) {
-    const optimisticData = [{
-        onyxMethod: CONST.ONYX.METHOD.MERGE,
-        key: ONYXKEYS.LOGIN_LIST,
-        value: {
-            [contactMethod]: {
-                partnerUserID: contactMethod,
-                validatedDate: '',
-                errorFields: {
-                    addedLogin: null,
-                },
-                pendingFields: {
-                    addedLogin: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
-                },
-            },
-        },
-    }];
-    const successData = [{
-        onyxMethod: CONST.ONYX.METHOD.MERGE,
-        key: ONYXKEYS.LOGIN_LIST,
-        value: {
-            [contactMethod]: {
-                pendingFields: {
-                    addedLogin: null,
-                },
-            },
-        },
-    }];
-    const failureData = [{
-        onyxMethod: CONST.ONYX.METHOD.MERGE,
-        key: ONYXKEYS.LOGIN_LIST,
-        value: {
-            [contactMethod]: {
-                errorFields: {
-                    addedLogin: {
-                        [DateUtils.getMicroseconds()]: Localize.translateLocal('contacts.genericFailureMessages.addContactMethod'),
+    const optimisticData = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: ONYXKEYS.LOGIN_LIST,
+            value: {
+                [contactMethod]: {
+                    partnerUserID: contactMethod,
+                    validatedDate: '',
+                    errorFields: {
+                        addedLogin: null,
+                    },
+                    pendingFields: {
+                        addedLogin: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
                     },
                 },
-                pendingFields: {
-                    addedLogin: null,
+            },
+        },
+    ];
+    const successData = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: ONYXKEYS.LOGIN_LIST,
+            value: {
+                [contactMethod]: {
+                    pendingFields: {
+                        addedLogin: null,
+                    },
                 },
             },
         },
-    }];
+    ];
+    const failureData = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: ONYXKEYS.LOGIN_LIST,
+            value: {
+                [contactMethod]: {
+                    errorFields: {
+                        addedLogin: {
+                            [DateUtils.getMicroseconds()]: Localize.translateLocal('contacts.genericFailureMessages.addContactMethod'),
+                        },
+                    },
+                    pendingFields: {
+                        addedLogin: null,
+                    },
+                },
+            },
+        },
+    ];
 
     API.write('AddNewContactMethod', {partnerUserID: contactMethod, password}, {optimisticData, successData, failureData});
     Navigation.navigate(ROUTES.SETTINGS_CONTACT_METHODS);
@@ -326,17 +364,21 @@ function validateLogin(accountID, validateCode) {
 
     const optimisticData = [
         {
-            onyxMethod: CONST.ONYX.METHOD.MERGE,
+            onyxMethod: Onyx.METHOD.MERGE,
             key: ONYXKEYS.ACCOUNT,
             value: {
                 isLoading: false,
             },
         },
     ];
-    API.write('ValidateLogin', {
-        accountID,
-        validateCode,
-    }, {optimisticData});
+    API.write(
+        'ValidateLogin',
+        {
+            accountID,
+            validateCode,
+        },
+        {optimisticData},
+    );
     Navigation.navigate(ROUTES.HOME);
 }
 
@@ -347,52 +389,62 @@ function validateLogin(accountID, validateCode) {
  * @param {String} validateCode
  */
 function validateSecondaryLogin(contactMethod, validateCode) {
-    const optimisticData = [{
-        onyxMethod: CONST.ONYX.METHOD.MERGE,
-        key: ONYXKEYS.LOGIN_LIST,
-        value: {
-            [contactMethod]: {
-                errorFields: {
-                    validateLogin: null,
-                },
-                pendingFields: {
-                    validateLogin: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
-                },
-            },
-        },
-    }];
-    const successData = [{
-        onyxMethod: CONST.ONYX.METHOD.MERGE,
-        key: ONYXKEYS.LOGIN_LIST,
-        value: {
-            [contactMethod]: {
-                pendingFields: {
-                    validateLogin: null,
-                },
-            },
-        },
-    }];
-    const failureData = [{
-        onyxMethod: CONST.ONYX.METHOD.MERGE,
-        key: ONYXKEYS.LOGIN_LIST,
-        value: {
-            [contactMethod]: {
-                errorFields: {
-                    validateLogin: {
-                        [DateUtils.getMicroseconds()]: Localize.translateLocal('contacts.genericFailureMessages.validateSecondaryLogin'),
+    const optimisticData = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: ONYXKEYS.LOGIN_LIST,
+            value: {
+                [contactMethod]: {
+                    errorFields: {
+                        validateLogin: null,
+                    },
+                    pendingFields: {
+                        validateLogin: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
                     },
                 },
-                pendingFields: {
-                    validateLogin: null,
+            },
+        },
+    ];
+    const successData = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: ONYXKEYS.LOGIN_LIST,
+            value: {
+                [contactMethod]: {
+                    pendingFields: {
+                        validateLogin: null,
+                    },
                 },
             },
         },
-    }];
+    ];
+    const failureData = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: ONYXKEYS.LOGIN_LIST,
+            value: {
+                [contactMethod]: {
+                    errorFields: {
+                        validateLogin: {
+                            [DateUtils.getMicroseconds()]: Localize.translateLocal('contacts.genericFailureMessages.validateSecondaryLogin'),
+                        },
+                    },
+                    pendingFields: {
+                        validateLogin: null,
+                    },
+                },
+            },
+        },
+    ];
 
-    API.write('ValidateSecondaryLogin', {
-        partnerUserID: contactMethod,
-        validateCode,
-    }, {optimisticData, successData, failureData});
+    API.write(
+        'ValidateSecondaryLogin',
+        {
+            partnerUserID: contactMethod,
+            validateCode,
+        },
+        {optimisticData, successData, failureData},
+    );
 }
 
 /**
@@ -422,12 +474,12 @@ function isBlockedFromConcierge(blockedFromConciergeNVP) {
 function addPaypalMeAddress(address) {
     const optimisticData = [
         {
-            onyxMethod: CONST.ONYX.METHOD.MERGE,
+            onyxMethod: Onyx.METHOD.MERGE,
             key: ONYXKEYS.NVP_PAYPAL_ME_ADDRESS,
             value: address,
         },
         {
-            onyxMethod: CONST.ONYX.METHOD.MERGE,
+            onyxMethod: Onyx.METHOD.MERGE,
             key: ONYXKEYS.PAYPAL,
             value: {
                 title: 'PayPal.me',
@@ -442,9 +494,13 @@ function addPaypalMeAddress(address) {
             },
         },
     ];
-    API.write('AddPaypalMeAddress', {
-        value: address,
-    }, {optimisticData});
+    API.write(
+        'AddPaypalMeAddress',
+        {
+            value: address,
+        },
+        {optimisticData},
+    );
 }
 
 /**
@@ -454,7 +510,7 @@ function addPaypalMeAddress(address) {
 function deletePaypalMeAddress() {
     const optimisticData = [
         {
-            onyxMethod: CONST.ONYX.METHOD.MERGE,
+            onyxMethod: Onyx.METHOD.MERGE,
             key: ONYXKEYS.PAYPAL,
             value: {pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE},
         },
@@ -463,12 +519,12 @@ function deletePaypalMeAddress() {
     // Success data required for Android, more info here https://github.com/Expensify/App/pull/17903#discussion_r1175763081
     const successData = [
         {
-            onyxMethod: CONST.ONYX.METHOD.SET,
+            onyxMethod: Onyx.METHOD.SET,
             key: ONYXKEYS.NVP_PAYPAL_ME_ADDRESS,
             value: '',
         },
         {
-            onyxMethod: CONST.ONYX.METHOD.SET,
+            onyxMethod: Onyx.METHOD.SET,
             key: ONYXKEYS.PAYPAL,
             value: {},
         },
@@ -549,14 +605,18 @@ function subscribeToUserEvents() {
 function updatePreferredSkinTone(skinTone) {
     const optimisticData = [
         {
-            onyxMethod: CONST.ONYX.METHOD.SET,
+            onyxMethod: Onyx.METHOD.SET,
             key: ONYXKEYS.PREFERRED_EMOJI_SKIN_TONE,
             value: skinTone,
         },
     ];
-    API.write('UpdatePreferredEmojiSkinTone', {
-        value: skinTone,
-    }, {optimisticData});
+    API.write(
+        'UpdatePreferredEmojiSkinTone',
+        {
+            value: skinTone,
+        },
+        {optimisticData},
+    );
 }
 
 /**
@@ -566,14 +626,18 @@ function updatePreferredSkinTone(skinTone) {
 function updateFrequentlyUsedEmojis(frequentlyUsedEmojis) {
     const optimisticData = [
         {
-            onyxMethod: CONST.ONYX.METHOD.SET,
+            onyxMethod: Onyx.METHOD.SET,
             key: ONYXKEYS.FREQUENTLY_USED_EMOJIS,
             value: frequentlyUsedEmojis,
         },
     ];
-    API.write('UpdateFrequentlyUsedEmojis', {
-        value: JSON.stringify(frequentlyUsedEmojis),
-    }, {optimisticData});
+    API.write(
+        'UpdateFrequentlyUsedEmojis',
+        {
+            value: JSON.stringify(frequentlyUsedEmojis),
+        },
+        {optimisticData},
+    );
 }
 
 /**
@@ -583,14 +647,18 @@ function updateFrequentlyUsedEmojis(frequentlyUsedEmojis) {
 function updateChatPriorityMode(mode) {
     const optimisticData = [
         {
-            onyxMethod: CONST.ONYX.METHOD.MERGE,
+            onyxMethod: Onyx.METHOD.MERGE,
             key: ONYXKEYS.NVP_PRIORITY_MODE,
             value: mode,
         },
     ];
-    API.write('UpdateChatPriorityMode', {
-        value: mode,
-    }, {optimisticData});
+    API.write(
+        'UpdateChatPriorityMode',
+        {
+            value: mode,
+        },
+        {optimisticData},
+    );
     Navigation.navigate(ROUTES.SETTINGS_PREFERENCES);
 }
 
@@ -627,35 +695,39 @@ function joinScreenShare(accessToken, roomName) {
  * @param {String} period YYYYMM format
  */
 function generateStatementPDF(period) {
-    API.read('GetStatementPDF', {period}, {
-        optimisticData: [
-            {
-                onyxMethod: CONST.ONYX.METHOD.MERGE,
-                key: ONYXKEYS.WALLET_STATEMENT,
-                value: {
-                    isGenerating: true,
+    API.read(
+        'GetStatementPDF',
+        {period},
+        {
+            optimisticData: [
+                {
+                    onyxMethod: Onyx.METHOD.MERGE,
+                    key: ONYXKEYS.WALLET_STATEMENT,
+                    value: {
+                        isGenerating: true,
+                    },
                 },
-            },
-        ],
-        successData: [
-            {
-                onyxMethod: CONST.ONYX.METHOD.MERGE,
-                key: ONYXKEYS.WALLET_STATEMENT,
-                value: {
-                    isGenerating: false,
+            ],
+            successData: [
+                {
+                    onyxMethod: Onyx.METHOD.MERGE,
+                    key: ONYXKEYS.WALLET_STATEMENT,
+                    value: {
+                        isGenerating: false,
+                    },
                 },
-            },
-        ],
-        failureData: [
-            {
-                onyxMethod: CONST.ONYX.METHOD.MERGE,
-                key: ONYXKEYS.WALLET_STATEMENT,
-                value: {
-                    isGenerating: false,
+            ],
+            failureData: [
+                {
+                    onyxMethod: Onyx.METHOD.MERGE,
+                    key: ONYXKEYS.WALLET_STATEMENT,
+                    value: {
+                        isGenerating: false,
+                    },
                 },
-            },
-        ],
-    });
+            ],
+        },
+    );
 }
 
 export {

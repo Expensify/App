@@ -9,9 +9,10 @@ reanimatedJestUtils.setUpTests();
 // https://reactnavigation.org/docs/testing/#mocking-native-modules
 jest.mock('react-native/Libraries/Animated/NativeAnimatedHelper');
 
-// We have to mock the SQLiteStorage provider because it uses the native module SQLiteStorage, which is not available in jest.
-// Mocking this file in __mocks__ does not work because jest doesn't support mocking files that are not directly used in the testing project
-jest.mock('react-native-onyx/lib/storage/providers/SQLiteStorage', () => require('react-native-onyx/lib/storage/__mocks__'));
+// Mock react-native-onyx storage layer because the SQLite storage layer doesn't work in jest.
+// Mocking this file in __mocks__ does not work because jest doesn't support mocking files that are not directly used in the testing project,
+// and we only want to mock the storage layer, not the whole Onyx module.
+jest.mock('react-native-onyx/lib/storage', () => require('react-native-onyx/lib/storage/__mocks__'));
 
 // Turn off the console logs for timing events. They are not relevant for unit tests and create a lot of noise
 jest.spyOn(console, 'debug').mockImplementation((...params) => {

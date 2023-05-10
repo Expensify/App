@@ -8,7 +8,7 @@ let persistedRequests = [];
 
 Onyx.connect({
     key: ONYXKEYS.PERSISTED_REQUESTS,
-    callback: val => persistedRequests = val || [],
+    callback: (val) => (persistedRequests = val || []),
 });
 
 function clear() {
@@ -22,7 +22,7 @@ function save(requestsToPersist) {
     HttpUtils.cancelPendingReconnectAppRequest();
     persistedRequests = _.chain(persistedRequests)
         .concat(requestsToPersist)
-        .partition(request => request.command !== CONST.NETWORK.COMMAND.RECONNECT_APP)
+        .partition((request) => request.command !== CONST.NETWORK.COMMAND.RECONNECT_APP)
         .flatten()
         .value();
     Onyx.set(ONYXKEYS.PERSISTED_REQUESTS, persistedRequests);
@@ -32,7 +32,7 @@ function save(requestsToPersist) {
  * @param {Object} requestToRemove
  */
 function remove(requestToRemove) {
-    persistedRequests = _.reject(persistedRequests, persistedRequest => _.isEqual(persistedRequest, requestToRemove));
+    persistedRequests = _.reject(persistedRequests, (persistedRequest) => _.isEqual(persistedRequest, requestToRemove));
     Onyx.set(ONYXKEYS.PERSISTED_REQUESTS, persistedRequests);
 }
 
@@ -43,9 +43,4 @@ function getAll() {
     return persistedRequests;
 }
 
-export {
-    clear,
-    save,
-    getAll,
-    remove,
-};
+export {clear, save, getAll, remove};

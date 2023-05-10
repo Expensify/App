@@ -51,13 +51,9 @@ const TimezoneInitialPage = (props) => {
             />
             <View style={styles.flex1}>
                 <View style={[styles.ph5]}>
-                    <Text style={[styles.mb5]}>
-                        {props.translate('timezonePage.isShownOnProfile')}
-                    </Text>
+                    <Text style={[styles.mb5]}>{props.translate('timezonePage.isShownOnProfile')}</Text>
                     <View style={[styles.flexRow, styles.mb5, styles.mr2, styles.alignItemsCenter, styles.justifyContentBetween]}>
-                        <Text>
-                            {props.translate('timezonePage.getLocationAutomatically')}
-                        </Text>
+                        <Text>{props.translate('timezonePage.getLocationAutomatically')}</Text>
                         <Switch
                             isOn={timezone.automatic}
                             onToggle={updateAutomaticTimezone}
@@ -80,7 +76,4 @@ TimezoneInitialPage.propTypes = propTypes;
 TimezoneInitialPage.defaultProps = defaultProps;
 TimezoneInitialPage.displayName = 'TimezoneInitialPage';
 
-export default compose(
-    withLocalize,
-    withCurrentUserPersonalDetails,
-)(TimezoneInitialPage);
+export default compose(withLocalize, withCurrentUserPersonalDetails)(TimezoneInitialPage);

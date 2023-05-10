@@ -16,7 +16,7 @@ const MAX_INCREMENTS = 99;
  */
 const getVersionNumberFromString = (versionString) => {
     const [version, build] = versionString.split('-');
-    const [major, minor, patch] = _.map(version.split('.'), n => Number(n));
+    const [major, minor, patch] = _.map(version.split('.'), (n) => Number(n));
 
     return [major, minor, patch, Number.isInteger(Number(build)) ? Number(build) : 0];
 };

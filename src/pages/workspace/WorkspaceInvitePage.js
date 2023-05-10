@@ -17,7 +17,6 @@ import FormSubmit from '../../components/FormSubmit';
 import OptionsSelector from '../../components/OptionsSelector';
 import * as OptionsListUtils from '../../libs/OptionsListUtils';
 import CONST from '../../CONST';
-import FullScreenLoadingIndicator from '../../components/FullscreenLoadingIndicator';
 import * as Link from '../../libs/actions/Link';
 import withPolicy, {policyPropTypes, policyDefaultProps} from './withPolicy';
 import {withNetwork} from '../../components/OnyxProvider';
@@ -75,15 +74,7 @@ class WorkspaceInvitePage extends React.Component {
         this.updateOptionsWithSearchTerm = this.updateOptionsWithSearchTerm.bind(this);
         this.openPrivacyURL = this.openPrivacyURL.bind(this);
 
-        const {
-            personalDetails,
-            userToInvite,
-        } = OptionsListUtils.getMemberInviteOptions(
-            props.personalDetails,
-            props.betas,
-            '',
-            this.getExcludedUsers(),
-        );
+        const {personalDetails, userToInvite} = OptionsListUtils.getMemberInviteOptions(props.personalDetails, props.betas, '', this.getExcludedUsers());
         this.state = {
             searchTerm: '',
             personalDetails,
@@ -100,6 +91,10 @@ class WorkspaceInvitePage extends React.Component {
     }
 
     componentDidUpdate(prevProps) {
+        if (!_.isEqual(prevProps.personalDetails, this.props.personalDetails)) {
+            this.updateOptionsWithSearchTerm(this.props.searchTerm);
+        }
+
         const isReconnecting = prevProps.network.isOffline && !this.props.network.isOffline;
         if (!isReconnecting) {
             return;
@@ -111,11 +106,13 @@ class WorkspaceInvitePage extends React.Component {
 
     getExcludedUsers() {
         const policyMemberList = lodashGet(this.props, 'policyMemberList', {});
-        const usersToExclude = _.filter(_.keys(policyMemberList), policyMember => (
-            this.props.network.isOffline
-            || policyMemberList[policyMember].pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE
-            || !_.isEmpty(policyMemberList[policyMember].errors)
-        ));
+        const usersToExclude = _.filter(
+            _.keys(policyMemberList),
+            (policyMember) =>
+                this.props.network.isOffline ||
+                policyMemberList[policyMember].pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE ||
+                !_.isEmpty(policyMemberList[policyMember].errors),
+        );
         return [...CONST.EXPENSIFY_EMAILS, ...usersToExclude];
     }
 
@@ -156,27 +153,19 @@ class WorkspaceInvitePage extends React.Component {
         indexOffset += personalDetailsWithoutSelected.length;
 
         if (hasUnselectedUserToInvite) {
-            sections.push(({
+            sections.push({
                 title: undefined,
                 data: [this.state.userToInvite],
                 shouldShow: true,
                 indexOffset,
-            }));
+            });
         }
 
         return sections;
     }
 
     updateOptionsWithSearchTerm(searchTerm = '') {
-        const {
-            personalDetails,
-            userToInvite,
-        } = OptionsListUtils.getMemberInviteOptions(
-            this.props.personalDetails,
-            this.props.betas,
-            searchTerm,
-            this.getExcludedUsers(),
-        );
+        const {personalDetails, userToInvite} = OptionsListUtils.getMemberInviteOptions(this.props.personalDetails, this.props.betas, searchTerm, this.getExcludedUsers());
         this.setState({
             searchTerm,
             userToInvite,
@@ -205,29 +194,17 @@ class WorkspaceInvitePage extends React.Component {
         this.clearErrors();
 
         this.setState((prevState) => {
-            const isOptionInList = _.some(prevState.selectedOptions, selectedOption => (
-                selectedOption.login === option.login
-            ));
+            const isOptionInList = _.some(prevState.selectedOptions, (selectedOption) => selectedOption.login === option.login);
 
             let newSelectedOptions;
 
             if (isOptionInList) {
-                newSelectedOptions = _.reject(prevState.selectedOptions, selectedOption => (
-                    selectedOption.login === option.login
-                ));
+                newSelectedOptions = _.reject(prevState.selectedOptions, (selectedOption) => selectedOption.login === option.login);
             } else {
                 newSelectedOptions = [...prevState.selectedOptions, option];
             }
 
-            const {
-                personalDetails,
-                userToInvite,
-            } = OptionsListUtils.getMemberInviteOptions(
-                this.props.personalDetails,
-                this.props.betas,
-                prevState.searchTerm,
-                this.getExcludedUsers(),
-            );
+            const {personalDetails, userToInvite} = OptionsListUtils.getMemberInviteOptions(this.props.personalDetails, this.props.betas, prevState.searchTerm, this.getExcludedUsers());
 
             return {
                 selectedOptions: newSelectedOptions,
@@ -246,9 +223,9 @@ class WorkspaceInvitePage extends React.Component {
             return;
         }
 
-        const logins = _.map(this.state.selectedOptions, option => option.login);
+        const logins = _.map(this.state.selectedOptions, (option) => option.login);
         const filteredLogins = _.chain(logins)
-            .map(login => login.toLowerCase().trim())
+            .map((login) => login.toLowerCase().trim())
             .compact()
             .uniq()
             .value();
@@ -271,11 +248,7 @@ class WorkspaceInvitePage extends React.Component {
 
     render() {
         const sections = this.getSections();
-        const headerMessage = OptionsListUtils.getHeaderMessage(
-            this.state.personalDetails.length !== 0,
-            Boolean(this.state.userToInvite),
-            this.state.searchTerm,
-        );
+        const headerMessage = OptionsListUtils.getHeaderMessage(this.state.personalDetails.length !== 0, Boolean(this.state.userToInvite), this.state.searchTerm);
         const policyName = lodashGet(this.props.policy, 'name');
 
         return (
@@ -285,7 +258,10 @@ class WorkspaceInvitePage extends React.Component {
                         shouldShow={_.isEmpty(this.props.policy)}
                         onBackButtonPress={() => Navigation.navigate(ROUTES.SETTINGS_WORKSPACES)}
                     >
-                        <FormSubmit style={[styles.flex1]} onSubmit={this.inviteUser}>
+                        <FormSubmit
+                            style={[styles.flex1]}
+                            onSubmit={this.inviteUser}
+                        >
                             <HeaderWithCloseButton
                                 title={this.props.translate('workspace.invite.invitePeople')}
                                 subtitle={policyName}
@@ -296,25 +272,22 @@ class WorkspaceInvitePage extends React.Component {
                                 onBackButtonPress={() => Navigation.goBack()}
                             />
                             <View style={[styles.flex1]}>
-                                {didScreenTransitionEnd ? (
-                                    <OptionsSelector
-                                        autoFocus={false}
-                                        canSelectMultipleOptions
-                                        sections={sections}
-                                        selectedOptions={this.state.selectedOptions}
-                                        value={this.state.searchTerm}
-                                        onSelectRow={this.toggleOption}
-                                        onChangeText={this.updateOptionsWithSearchTerm}
-                                        onConfirmSelection={this.inviteUser}
-                                        headerMessage={headerMessage}
-                                        hideSectionHeaders
-                                        boldStyle
-                                        shouldFocusOnSelectRow
-                                        textInputLabel={this.props.translate('optionsSelector.nameEmailOrPhoneNumber')}
-                                    />
-                                ) : (
-                                    <FullScreenLoadingIndicator />
-                                )}
+                                <OptionsSelector
+                                    autoFocus={false}
+                                    canSelectMultipleOptions
+                                    sections={sections}
+                                    selectedOptions={this.state.selectedOptions}
+                                    value={this.state.searchTerm}
+                                    shouldShowOptions={didScreenTransitionEnd && OptionsListUtils.isPersonalDetailsReady(this.props.personalDetails)}
+                                    onSelectRow={this.toggleOption}
+                                    onChangeText={this.updateOptionsWithSearchTerm}
+                                    onConfirmSelection={this.inviteUser}
+                                    headerMessage={headerMessage}
+                                    hideSectionHeaders
+                                    boldStyle
+                                    shouldFocusOnSelectRow
+                                    textInputLabel={this.props.translate('optionsSelector.nameEmailOrPhoneNumber')}
+                                />
                             </View>
                             <View style={[styles.flexShrink0]}>
                                 <FormAlertWithSubmitButton
