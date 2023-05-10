@@ -18,6 +18,8 @@ import * as StyleUtils from '../../styles/StyleUtils';
 import * as CurrencyUtils from '../../libs/CurrencyUtils';
 import * as ReportUtils from '../../libs/ReportUtils';
 import Button from '../Button';
+import Navigation from '../../libs/Navigation/Navigation';
+import ROUTES from '../../ROUTES';
 import themeColors from '../../styles/themes/default';
 import getButtonState from '../../libs/getButtonState';
 
@@ -113,7 +115,9 @@ const ReportPreview = (props) => {
             ))}
             <Button
                 style={[styles.requestPreviewBox]}
-                onPress={props.onPayButtonPressed}
+                onPress={() => {
+                    Navigation.navigate(ROUTES.getIouDetailsRoute(props.chatReportID, props.action.originalMessage.IOUReportID));
+                }}
                 onPressIn={() => DeviceCapabilities.canUseTouchScreen() && ControlSelection.block()}
                 onPressOut={() => ControlSelection.unblock()}
                 text={props.translate('iou.pay')}
