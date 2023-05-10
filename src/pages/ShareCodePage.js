@@ -37,11 +37,7 @@ const defaultProps = {
 // eslint-disable-next-line react/prefer-stateless-function
 class ShareCodePage extends React.Component {
     render() {
-        // eslint-disable-next-line es/no-optional-chaining
-        const reportId = this.props.route?.params?.reportID;
         const isReport = this.props.report != null && this.props.report.reportID != null;
-
-        console.log(this.props.report);
 
         return (
             <ScreenWrapper>
@@ -55,7 +51,7 @@ class ShareCodePage extends React.Component {
                 <View style={styles.shareCodePage}>
                     <QRShare
                         type={isReport ? 'report' : 'profile'}
-                        value={isReport ? reportId : this.props.session.email}
+                        value={isReport ? this.props.report.reportID : this.props.session.email}
                         title={isReport ? this.props.report.reportName : this.props.currentUserPersonalDetails.displayName}
                         subtitle={isReport ? ReportUtils.getPolicyName(this.props.report) : this.props.session.email}
                         logo={isReport ? roomAvatar : this.props.currentUserPersonalDetails.avatar}
