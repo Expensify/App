@@ -11,14 +11,14 @@ if (isUsingMockAPI) {
 }
 
 /**
-* Metro configuration
-* https://facebook.github.io/metro/docs/configuration
-*
-* @type {import('metro-config').MetroConfig}
-*/
+ * Metro configuration
+ * https://facebook.github.io/metro/docs/configuration
+ *
+ * @type {import('metro-config').MetroConfig}
+ */
 const config = {
     resolver: {
-        assetExts: _.filter(defaultConfig.resolver.assetExts, ext => ext !== 'svg'),
+        assetExts: _.filter(defaultConfig.resolver.assetExts, (ext) => ext !== 'svg'),
         sourceExts: ['jsx', 'js', 'ts', 'tsx', 'json', 'svg'],
         resolveRequest: (context, moduleName, platform) => {
             const resolution = context.resolveRequest(context, moduleName, platform);

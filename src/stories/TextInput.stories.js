@@ -12,7 +12,7 @@ const story = {
 };
 
 // eslint-disable-next-line react/jsx-props-no-spreading
-const Template = args => <TextInput {...args} />;
+const Template = (args) => <TextInput {...args} />;
 
 // Arguments can be passed to the component by binding
 // See: https://storybook.js.org/docs/react/writing-stories/introduction#using-args
@@ -41,7 +41,7 @@ const ErrorInput = Template.bind({});
 ErrorInput.args = {
     label: 'Error input',
     name: 'InputWithError',
-    errorText: 'Oops! Looks like there\'s an error',
+    errorText: "Oops! Looks like there's an error",
 };
 
 const ForceActiveLabel = Template.bind({});
@@ -64,9 +64,24 @@ AutoGrowInput.args = {
     name: 'AutoGrow',
     placeholder: 'My placeholder text',
     autoGrow: true,
-    textInputContainerStyles: [{
-        minWidth: 150,
-    }],
+    textInputContainerStyles: [
+        {
+            minWidth: 150,
+        },
+    ],
+};
+
+const AutoGrowHeightInput = Template.bind({});
+AutoGrowHeightInput.args = {
+    label: 'Autogrowheight input',
+    name: 'AutoGrowHeight',
+    placeholder: 'My placeholder text',
+    autoGrowHeight: true,
+    textInputContainerStyles: [
+        {
+            maxHeight: 115,
+        },
+    ],
 };
 
 const PrefixedInput = Template.bind({});
@@ -93,7 +108,7 @@ const HintAndErrorInput = (args) => {
             {...args}
             onChangeText={(value) => {
                 if (value && value.toLowerCase() === 'oops!') {
-                    setError('Oops! Looks like there\'s an error');
+                    setError("Oops! Looks like there's an error");
                     return;
                 }
                 setError('');
@@ -110,15 +125,4 @@ HintAndErrorInput.args = {
 };
 
 export default story;
-export {
-    AutoFocus,
-    DefaultInput,
-    DefaultValueInput,
-    ErrorInput,
-    ForceActiveLabel,
-    PlaceholderInput,
-    AutoGrowInput,
-    PrefixedInput,
-    MaxLengthInput,
-    HintAndErrorInput,
-};
+export {AutoFocus, DefaultInput, DefaultValueInput, ErrorInput, ForceActiveLabel, PlaceholderInput, AutoGrowInput, AutoGrowHeightInput, PrefixedInput, MaxLengthInput, HintAndErrorInput};

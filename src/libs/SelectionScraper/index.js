@@ -117,7 +117,7 @@ const replaceNodes = (dom) => {
     }
 
     if (dom.children) {
-        domChildren = _.map(dom.children, c => replaceNodes(c));
+        domChildren = _.map(dom.children, (c) => replaceNodes(c));
     }
 
     return {
