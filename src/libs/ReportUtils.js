@@ -190,12 +190,12 @@ function canEditReportAction(reportAction) {
  * @returns {Boolean}
  */
 function canDeleteReportAction(reportAction) {
-    const report = allReports[`${ONYXKEYS.COLLECTION.REPORT}${reportAction.reportID}`] || {};
-    const policy = allPolicies[`${ONYXKEYS.COLLECTION.POLICY}${report.policyID}`] || {};
-    const isPolicyAdmin = PolicyUtils.isPolicyAdmin(policy);
     if (reportAction.actionName !== CONST.REPORT.ACTIONS.TYPE.ADDCOMMENT || reportAction.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE) {
         return false;
     }
+    const report = allReports[`${ONYXKEYS.COLLECTION.REPORT}${reportAction.reportID}`] || {};
+    const policy = allPolicies[`${ONYXKEYS.COLLECTION.POLICY}${report.policyID}`] || {};
+    const isPolicyAdmin = PolicyUtils.isPolicyAdmin(policy);
     return isPolicyAdmin || reportAction.actorEmail === sessionEmail;
 }
 
