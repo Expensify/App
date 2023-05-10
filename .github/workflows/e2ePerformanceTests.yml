@@ -17,9 +17,9 @@ on:
 
 jobs:
   buildBaseline:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-20.04-64core
     name: Build apk from latest release as a baseline
-    outputs: 
+    outputs:
       VERSION: ${{ steps.getMostRecentRelease.outputs.VERSION }}
     steps:
       - uses: actions/checkout@93ea575cb5d8a053eaa0ac8fa3b40d7e05a33cc8
@@ -53,7 +53,7 @@ jobs:
           ARTIFACT_NAME: baseline-apk-${{ steps.getMostRecentRelease.outputs.VERSION }}
 
   buildDelta:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-20.04-64core
     name: Build apk from delta ref
     outputs:
       DELTA_REF: ${{ steps.getDeltaRef.outputs.DELTA_REF }}
@@ -64,7 +64,7 @@ jobs:
 
       - name: Get pull request details
         id: getPullRequestDetails
-        uses: jczekalski/App/.github/actions/javascript/getPullRequestDetails@fix/15605-run-e2e-performance-tests-for-unmerged-PRs
+        uses: Expensify/App/.github/actions/javascript/getPullRequestDetails@main
         with:
           GITHUB_TOKEN: ${{ github.token }}
           PULL_REQUEST_NUMBER: ${{ inputs.PR_NUMBER }}
@@ -115,7 +115,7 @@ jobs:
           ARTIFACT_NAME: delta-apk-${{ steps.getDeltaRef.outputs.DELTA_REF }}
 
   runTestsInAWS:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-20.04-64core
     needs: [buildBaseline, buildDelta]
     name: Run E2E tests in AWS device farm
     steps:
