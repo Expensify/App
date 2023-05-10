@@ -2,9 +2,11 @@ import React from 'react';
 import {View, Pressable} from 'react-native';
 import PropTypes from 'prop-types';
 import {withOnyx} from 'react-native-onyx';
+import lodashGet from 'lodash/get';
 import _ from 'underscore';
 import Text from '../Text';
 import Icon from '../Icon';
+import CONST from '../../CONST';
 import * as Expensicons from '../Icon/Expensicons';
 import styles from '../../styles/styles';
 import reportActionPropTypes from '../../pages/home/report/reportActionPropTypes';
@@ -73,12 +75,16 @@ const defaultProps = {
     iouReport: {},
     onViewDetailsPressed: () => {},
     checkIfContextMenuActive: () => {},
+    session: {
+        email: null,
+    },
 };
 
 const ReportPreview = (props) => {
     const reportAmount = CurrencyUtils.convertToDisplayString(props.iouReport.total, props.iouReport.currency);
     const managerEmail = props.iouReport.managerEmail || '';
     const managerName = ReportUtils.getDisplayNameForParticipant(managerEmail, true);
+    const isCurrentUserManager = managerEmail === lodashGet(props.session, 'email', null);
     return (
         <View style={[styles.chatItemMessage, styles.mt4]}>
             {_.map(props.action.message, (index) => (
@@ -113,17 +119,19 @@ const ReportPreview = (props) => {
                     />
                 </Pressable>
             ))}
-            <Button
-                style={[styles.requestPreviewBox]}
-                onPress={() => {
-                    Navigation.navigate(ROUTES.getIouDetailsRoute(props.chatReportID, props.action.originalMessage.IOUReportID));
-                }}
-                onPressIn={() => DeviceCapabilities.canUseTouchScreen() && ControlSelection.block()}
-                onPressOut={() => ControlSelection.unblock()}
-                text={props.translate('iou.pay')}
-                success
-                medium
-            />
+            {isCurrentUserManager && props.iouReport.stateNum === CONST.REPORT.STATE_NUM.PROCESSING && (
+                <Button
+                    style={[styles.requestPreviewBox]}
+                    onPress={() => {
+                        Navigation.navigate(ROUTES.getIouDetailsRoute(props.chatReportID, props.action.originalMessage.IOUReportID));
+                    }}
+                    onPressIn={() => DeviceCapabilities.canUseTouchScreen() && ControlSelection.block()}
+                    onPressOut={() => ControlSelection.unblock()}
+                    text={props.translate('iou.pay')}
+                    success
+                    medium
+                />
+            )}
         </View>
     );
 };
@@ -137,6 +145,9 @@ export default compose(
     withOnyx({
         iouReport: {
             key: ({iouReportID}) => `${ONYXKEYS.COLLECTION.REPORT}${iouReportID}`,
+        },
+        session: {
+            key: ONYXKEYS.SESSION,
         },
     }),
 )(ReportPreview);
