@@ -144,13 +144,7 @@ class SidebarLinks extends React.Component {
                 style={[styles.flex1, styles.h100]}
             >
                 <View
-                    style={[
-                        styles.flexRow,
-                        styles.ph5,
-                        styles.pv3,
-                        styles.justifyContentBetween,
-                        styles.alignItemsCenter,
-                    ]}
+                    style={[styles.flexRow, styles.ph5, styles.pv3, styles.justifyContentBetween, styles.alignItemsCenter]}
                     nativeID="drag-area"
                 >
                     <Header
@@ -175,9 +169,7 @@ class SidebarLinks extends React.Component {
                         accessibilityRole="button"
                         onPress={this.showSettingsPage}
                     >
-                        <OfflineWithFeedback
-                            pendingAction={lodashGet(this.props.currentUserPersonalDetails, 'pendingFields.avatar', null)}
-                        >
+                        <OfflineWithFeedback pendingAction={lodashGet(this.props.currentUserPersonalDetails, 'pendingFields.avatar', null)}>
                             <AvatarWithIndicator
                                 source={ReportUtils.getAvatar(this.props.currentUserPersonalDetails.avatar, this.props.currentUserPersonalDetails.login)}
                                 tooltipText={this.props.translate('common.settings')}
@@ -189,16 +181,13 @@ class SidebarLinks extends React.Component {
                     freeze={shouldFreeze}
                     placeholder={skeletonPlaceholder}
                 >
-                    {isLoading ? skeletonPlaceholder : (
+                    {isLoading ? (
+                        skeletonPlaceholder
+                    ) : (
                         <LHNOptionsList
-                            contentContainerStyles={[
-                                styles.sidebarListContainer,
-                                {paddingBottom: StyleUtils.getSafeAreaMargins(this.props.insets).marginBottom},
-                            ]}
+                            contentContainerStyles={[styles.sidebarListContainer, {paddingBottom: StyleUtils.getSafeAreaMargins(this.props.insets).marginBottom}]}
                             data={optionListItems}
-                            focusedIndex={_.findIndex(optionListItems, (
-                                option => option.toString() === this.props.reportIDFromRoute
-                            ))}
+                            focusedIndex={_.findIndex(optionListItems, (option) => option.toString() === this.props.reportIDFromRoute)}
                             onSelectRow={this.showReportPage}
                             shouldDisableFocusOptions={this.props.isSmallScreenWidth}
                             optionMode={this.props.priorityMode === CONST.PRIORITY_MODE.GSD ? CONST.OPTION_MODE.COMPACT : CONST.OPTION_MODE.DEFAULT}
@@ -228,61 +217,71 @@ const chatReportSelector = (report) => {
     if (ReportUtils.isIOUReport(report)) {
         return null;
     }
-    return report && ({
-        reportID: report.reportID,
-        participants: report.participants,
-        hasDraft: report.hasDraft,
-        isPinned: report.isPinned,
-        errorFields: {
-            addWorkspaceRoom: report.errorFields && report.errorFields.addWorkspaceRoom,
-        },
-        lastReadTime: report.lastReadTime,
-        lastMentionedTime: report.lastMentionedTime,
-        lastMessageText: report.lastMessageText,
-        lastVisibleActionCreated: report.lastVisibleActionCreated,
-        iouReportID: report.iouReportID,
-        hasOutstandingIOU: report.hasOutstandingIOU,
-        statusNum: report.statusNum,
-        stateNum: report.stateNum,
-        chatType: report.chatType,
-        policyID: report.policyID,
-        reportName: report.reportName,
-    });
+    return (
+        report && {
+            reportID: report.reportID,
+            participants: report.participants,
+            hasDraft: report.hasDraft,
+            isPinned: report.isPinned,
+            errorFields: {
+                addWorkspaceRoom: report.errorFields && report.errorFields.addWorkspaceRoom,
+            },
+            lastReadTime: report.lastReadTime,
+            lastMentionedTime: report.lastMentionedTime,
+            lastMessageText: report.lastMessageText,
+            lastVisibleActionCreated: report.lastVisibleActionCreated,
+            iouReportID: report.iouReportID,
+            hasOutstandingIOU: report.hasOutstandingIOU,
+            statusNum: report.statusNum,
+            stateNum: report.stateNum,
+            chatType: report.chatType,
+            policyID: report.policyID,
+            reportName: report.reportName,
+        }
+    );
 };
 
 /**
  * @param {Object} [personalDetails]
  * @returns {Object|undefined}
  */
-const personalDetailsSelector = personalDetails => _.reduce(personalDetails, (finalPersonalDetails, personalData, login) => {
-    // It's OK to do param-reassignment in _.reduce() because we absolutely know the starting state of finalPersonalDetails
-    // eslint-disable-next-line no-param-reassign
-    finalPersonalDetails[login] = {
-        login: personalData.login,
-        displayName: personalData.displayName,
-        firstName: personalData.firstName,
-        avatar: ReportUtils.getAvatar(personalData.avatar, personalData.login),
-    };
-    return finalPersonalDetails;
-}, {});
+const personalDetailsSelector = (personalDetails) =>
+    _.reduce(
+        personalDetails,
+        (finalPersonalDetails, personalData, login) => {
+            // It's OK to do param-reassignment in _.reduce() because we absolutely know the starting state of finalPersonalDetails
+            // eslint-disable-next-line no-param-reassign
+            finalPersonalDetails[login] = {
+                login: personalData.login,
+                displayName: personalData.displayName,
+                firstName: personalData.firstName,
+                avatar: ReportUtils.getAvatar(personalData.avatar, personalData.login),
+            };
+            return finalPersonalDetails;
+        },
+        {},
+    );
 
 /**
  * @param {Object} [reportActions]
  * @returns {Object|undefined}
  */
-const reportActionsSelector = reportActions => reportActions && _.map(reportActions, reportAction => ({
-    errors: reportAction.errors,
-}));
+const reportActionsSelector = (reportActions) =>
+    reportActions &&
+    _.map(reportActions, (reportAction) => ({
+        errors: reportAction.errors,
+    }));
 
 /**
  * @param {Object} [policy]
  * @returns {Object|undefined}
  */
-const policySelector = policy => policy && ({
-    type: policy.type,
-    name: policy.name,
-    avatar: policy.avatar,
-});
+const policySelector = (policy) =>
+    policy && {
+        type: policy.type,
+        name: policy.name,
+        avatar: policy.avatar,
+    };
 
 export default compose(
     withLocalize,

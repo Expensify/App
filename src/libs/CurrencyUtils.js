@@ -53,7 +53,7 @@ function getLocalizedCurrencySymbol(currencyCode) {
         style: 'currency',
         currency: currencyCode,
     });
-    return _.find(parts, part => part.type === 'currency').value;
+    return _.find(parts, (part) => part.type === 'currency').value;
 }
 
 /**
@@ -122,12 +122,4 @@ function convertToDisplayString(amountInSmallestUnit, currency = CONST.CURRENCY.
     });
 }
 
-export {
-    getCurrencyDecimals,
-    getCurrencyUnit,
-    getLocalizedCurrencySymbol,
-    isCurrencySymbolLTR,
-    convertToSmallestUnit,
-    convertToWholeUnit,
-    convertToDisplayString,
-};
+export {getCurrencyDecimals, getCurrencyUnit, getLocalizedCurrencySymbol, isCurrencySymbolLTR, convertToSmallestUnit, convertToWholeUnit, convertToDisplayString};

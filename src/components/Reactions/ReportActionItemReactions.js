@@ -66,18 +66,17 @@ const defaultProps = {
 
 const ReportActionItemReactions = (props) => {
     const popoverReactionListAnchor = useRef(null);
-    const reactionsWithCount = _.filter(props.reactions, reaction => reaction.users.length > 0);
+    const reactionsWithCount = _.filter(props.reactions, (reaction) => reaction.users.length > 0);
 
     return (
         <View
             ref={popoverReactionListAnchor}
             style={[styles.flexRow, styles.flexWrap, styles.gap1, styles.mt2]}
         >
-
             {_.map(reactionsWithCount, (reaction) => {
                 const reactionCount = reaction.users.length;
-                const reactionUsers = _.map(reaction.users, sender => sender.accountID.toString());
-                const emoji = _.find(emojis, e => e.name === reaction.emoji);
+                const reactionUsers = _.map(reaction.users, (sender) => sender.accountID.toString());
+                const emoji = _.find(emojis, (e) => e.name === reaction.emoji);
                 const emojiCodes = getUniqueEmojiCodes(emoji, reaction.users);
                 const hasUserReacted = Report.hasAccountIDReacted(props.currentUserPersonalDetails.accountID, reactionUsers);
 
@@ -86,15 +85,7 @@ const ReportActionItemReactions = (props) => {
                 };
                 const onReactionListOpen = (event) => {
                     const users = PersonalDetailsUtils.getPersonalDetailsByIDs(reactionUsers);
-                    ReactionList.showReactionList(
-                        event,
-                        popoverReactionListAnchor.current,
-                        users,
-                        reaction.emoji,
-                        emojiCodes,
-                        reactionCount,
-                        hasUserReacted,
-                    );
+                    ReactionList.showReactionList(event, popoverReactionListAnchor.current, users, reaction.emoji, emojiCodes, reactionCount, hasUserReacted);
                 };
 
                 return (
@@ -119,7 +110,6 @@ const ReportActionItemReactions = (props) => {
                             onReactionListOpen={onReactionListOpen}
                         />
                     </Tooltip>
-
                 );
             })}
             {reactionsWithCount.length > 0 && <AddReactionBubble onSelectEmoji={props.toggleReaction} />}
@@ -131,4 +121,3 @@ ReportActionItemReactions.displayName = 'ReportActionItemReactions';
 ReportActionItemReactions.propTypes = propTypes;
 ReportActionItemReactions.defaultProps = defaultProps;
 export default withCurrentUserPersonalDetails(ReportActionItemReactions);
-
