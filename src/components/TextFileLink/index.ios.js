@@ -20,16 +20,15 @@ const TextFileLink = (props) => {
         const dir = RNFetchBlob.fs.dirs.DocumentDir;
         const path = `${dir}/${props.fileName}.txt`;
 
-        RNFetchBlob.fs.writeFile(path, props.textContent, 'utf8')
-            .then(() => {
-                Share.share({url: path, title: props.fileName})
-                    .catch(() => {
-                        FileUtils.showGeneralErrorAlert();
-                    })
-                    .finally(() => {
-                        RNFetchBlob.fs.unlink(path);
-                    });
-            });
+        RNFetchBlob.fs.writeFile(path, props.textContent, 'utf8').then(() => {
+            Share.share({url: path, title: props.fileName})
+                .catch(() => {
+                    FileUtils.showGeneralErrorAlert();
+                })
+                .finally(() => {
+                    RNFetchBlob.fs.unlink(path);
+                });
+        });
     };
 
     return props.children(downloadFile);

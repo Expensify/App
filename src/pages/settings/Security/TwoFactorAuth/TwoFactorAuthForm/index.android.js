@@ -1,9 +1,7 @@
 import React from 'react';
 import BaseTwoFactorAuthForm from './BaseTwoFactorAuthForm';
 
-const TwoFactorAuthForm = () => (
-    <BaseTwoFactorAuthForm autoComplete="sms-otp" />
-);
+const TwoFactorAuthForm = () => <BaseTwoFactorAuthForm autoComplete="sms-otp" />;
 
 TwoFactorAuthForm.displayName = 'TwoFactorAuthForm';
 

@@ -612,7 +612,6 @@ const SettingsModalStackNavigator = createModalStackNavigator([
         },
         name: 'Settings_TwoFactorAuthSuccess',
     },
-
 ]);
 
 const EnablePaymentsStackNavigator = createModalStackNavigator([

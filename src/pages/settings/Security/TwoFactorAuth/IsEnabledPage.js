@@ -57,19 +57,21 @@ class IsEnabledPage extends Component {
                 <Section
                     title={this.props.translate('twoFactorAuth.twoFactorAuthEnabled')}
                     icon={Illustrations.ShieldYellow}
-                    menuItems={[{
-                        title: this.props.translate('twoFactorAuth.disableTwoFactorAuth'),
-                        onPress: () => { this.showConfirmModal(); },
-                        icon: Expensicons.Close,
-                        iconFill: themeColors.danger,
-                        wrapperStyle: [styles.cardMenuItem],
-                    }]}
+                    menuItems={[
+                        {
+                            title: this.props.translate('twoFactorAuth.disableTwoFactorAuth'),
+                            onPress: () => {
+                                this.showConfirmModal();
+                            },
+                            icon: Expensicons.Close,
+                            iconFill: themeColors.danger,
+                            wrapperStyle: [styles.cardMenuItem],
+                        },
+                    ]}
                     containerStyles={[styles.twoFactorAuthSection]}
                 >
                     <View style={[styles.mv3]}>
-                        <Text style={[styles.textLabel]}>
-                            {this.props.translate('twoFactorAuth.whatIsTwoFactorAuth')}
-                        </Text>
+                        <Text style={[styles.textLabel]}>{this.props.translate('twoFactorAuth.whatIsTwoFactorAuth')}</Text>
                     </View>
                 </Section>
 
@@ -84,7 +86,6 @@ class IsEnabledPage extends Component {
                     cancelText={this.props.translate('common.cancel')}
                     shouldShowCancelButton
                 />
-
             </ScreenWrapper>
         );
     }

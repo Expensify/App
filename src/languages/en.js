@@ -492,7 +492,8 @@ export default {
         noAuthenticatorApp: 'You’ll no longer require an authenticator app to log into Expensify.',
         stepCodes: 'Step 1: Recovery codes',
         keepCodesSafe: 'Keep these recovery codes safe!',
-        codesLoseAccess: 'If you lose access to your authenticator app and don’t have these codes, you will lose access to your account. \n\nNote: Setting up two factor authentication will log you out of all other active sessions.',
+        codesLoseAccess:
+            'If you lose access to your authenticator app and don’t have these codes, you will lose access to your account. \n\nNote: Setting up two factor authentication will log you out of all other active sessions.',
         stepVerify: 'Step 2: Verify',
         scanCode: 'Scan the QR code using your',
         authenticatorApp: 'authenticator app',
@@ -501,7 +502,6 @@ export default {
         stepSuccess: 'Step 3: Finished',
         enabled: 'Two-factor authentication is now enabled!',
         congrats: 'Congrats, now you’ve got that extra security.',
-
     },
     twoFactorAuthForm: {
         error: {

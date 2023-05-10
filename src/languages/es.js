@@ -484,14 +484,16 @@ export default {
     twoFactorAuth: {
         headerTitle: 'Autenticación de 2 factores',
         twoFactorAuthEnabled: 'Autenticación de dos factores habilitada',
-        whatIsTwoFactorAuth: 'La autenticación de dos factores (2FA) ayuda a mantener su cuenta segura. Al iniciar sesión, deberá ingresar un código generado por su aplicación de autenticación preferida.',
+        whatIsTwoFactorAuth:
+            'La autenticación de dos factores (2FA) ayuda a mantener su cuenta segura. Al iniciar sesión, deberá ingresar un código generado por su aplicación de autenticación preferida.',
         disableTwoFactorAuth: 'Deshabilitar la autenticación de dos factores',
         disableTwoFactorAuthConfirmation: 'La autenticación de dos factores mantiene su cuenta más segura. ¿Estás seguro de que quieres desactivarlo?',
         disabled: 'La autenticación de dos factores ahora está deshabilitada',
         noAuthenticatorApp: 'Ya no necesitará una aplicación de autenticación para iniciar sesión en Expensify.',
         stepCodes: 'Paso 1: Códigos de recuperación',
         keepCodesSafe: '¡Mantenga estos códigos de recuperación seguros!',
-        codesLoseAccess: 'Si pierde el acceso a su aplicación de autenticación y no tiene estos códigos, perderá el acceso a su cuenta. \n\nNota: Configurar la autenticación de dos factores cerrará la sesión de todas las demás sesiones activas.',
+        codesLoseAccess:
+            'Si pierde el acceso a su aplicación de autenticación y no tiene estos códigos, perderá el acceso a su cuenta. \n\nNota: Configurar la autenticación de dos factores cerrará la sesión de todas las demás sesiones activas.',
         stepVerify: 'Paso 2: Verificar',
         scanCode: 'Escanea el código QR con tu',
         authenticatorApp: 'aplicación de autenticación',

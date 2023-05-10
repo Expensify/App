@@ -61,16 +61,17 @@ class CodesPage extends Component {
                         containerStyles={[styles.twoFactorAuthSection]}
                     >
                         <View style={[styles.mv3]}>
-                            <Text>
-                                {this.props.translate('twoFactorAuth.codesLoseAccess')}
-                            </Text>
+                            <Text>{this.props.translate('twoFactorAuth.codesLoseAccess')}</Text>
                         </View>
 
                         <View style={[styles.twoFactorAuthCodesBox]}>
                             <View style={[styles.twoFactorAuthCodesContainer]}>
-                                {Boolean(this.props.account.recoveryCodes)
-                                    && _.map(this.props.account.recoveryCodes.split(', '), code => (
-                                        <Text style={[styles.twoFactorAuthCode]} key={code}>
+                                {Boolean(this.props.account.recoveryCodes) &&
+                                    _.map(this.props.account.recoveryCodes.split(', '), (code) => (
+                                        <Text
+                                            style={[styles.twoFactorAuthCode]}
+                                            key={code}
+                                        >
                                             {code}
                                         </Text>
                                     ))}
@@ -91,7 +92,7 @@ class CodesPage extends Component {
                                     fileName="two-factor-auth-codes"
                                     textContent={this.props.account.recoveryCodes}
                                 >
-                                    {downloadFile => (
+                                    {(downloadFile) => (
                                         <Button
                                             text="Download"
                                             medium

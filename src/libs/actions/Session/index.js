@@ -747,14 +747,18 @@ function unlinkLogin(accountID, validateCode) {
         },
     ];
 
-    API.write('UnlinkLogin', {
-        accountID,
-        validateCode,
-    }, {
-        optimisticData,
-        successData,
-        failureData,
-    });
+    API.write(
+        'UnlinkLogin',
+        {
+            accountID,
+            validateCode,
+        },
+        {
+            optimisticData,
+            successData,
+            failureData,
+        },
+    );
 }
 
 function enableTwoFactorAuth() {

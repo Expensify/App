@@ -89,13 +89,9 @@ class BaseTwoFactorAuthForm extends React.Component {
                 nativeID="twoFactorAuthCode"
                 name="twoFactorAuthCode"
                 value={this.state.twoFactorAuthCode}
-                onChangeText={text => this.onTextInput(text, 'twoFactorAuthCode')}
+                onChangeText={(text) => this.onTextInput(text, 'twoFactorAuthCode')}
                 onFulfill={this.validateAndSubmitForm}
-                errorText={
-                    this.state.formError.twoFactorAuthCode
-                        ? this.props.translate(this.state.formError.twoFactorAuthCode)
-                        : ErrorUtils.getLatestErrorMessage(this.props.account)
-                }
+                errorText={this.state.formError.twoFactorAuthCode ? this.props.translate(this.state.formError.twoFactorAuthCode) : ErrorUtils.getLatestErrorMessage(this.props.account)}
             />
         );
     }

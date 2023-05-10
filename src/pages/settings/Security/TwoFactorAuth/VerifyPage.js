@@ -130,26 +130,19 @@ class VerifyPage extends Component {
                                 />
                             </View>
 
-                            <Text style={[styles.mt5]}>
-                                {this.props.translate('twoFactorAuth.addKey')}
-                            </Text>
+                            <Text style={[styles.mt5]}>{this.props.translate('twoFactorAuth.addKey')}</Text>
 
                             <View style={[styles.mt11, styles.flexRow, styles.alignItemsCenter, styles.justifyContentBetween]}>
-                                {Boolean(this.props.account.twoFactorAuthSecretKey) && (
-                                    <Text>
-                                        {this.splitSecretInChunks(this.props.account.twoFactorAuthSecretKey)}
-                                    </Text>
-                                )}
-                                <Button medium onPress={this.copySecret}>
-                                    <Text>
-                                        Copy
-                                    </Text>
+                                {Boolean(this.props.account.twoFactorAuthSecretKey) && <Text>{this.splitSecretInChunks(this.props.account.twoFactorAuthSecretKey)}</Text>}
+                                <Button
+                                    medium
+                                    onPress={this.copySecret}
+                                >
+                                    <Text>Copy</Text>
                                 </Button>
                             </View>
 
-                            <Text style={[styles.mt11]}>
-                                {this.props.translate('twoFactorAuth.enterCode')}
-                            </Text>
+                            <Text style={[styles.mt11]}>{this.props.translate('twoFactorAuth.enterCode')}</Text>
                         </View>
 
                         <View style={[styles.mt3, styles.mh5]}>
