@@ -1,7 +1,6 @@
 import React from 'react';
 import PropTypes from 'prop-types';
 import { View, TouchableOpacity, InteractionManager, LayoutAnimation, NativeModules, findNodeHandle } from 'react-native';
-const { RNTextInputReset } = NativeModules;
 import _ from 'underscore';
 import lodashGet from 'lodash/get';
 import { withOnyx } from 'react-native-onyx';
@@ -125,6 +124,8 @@ const propTypes = {
     ...withCurrentUserPersonalDetailsPropTypes,
     ...keyboardStatePropTypes,
 };
+
+const { RNTextInputReset } = NativeModules;
 
 const defaultProps = {
     betas: [],
@@ -518,7 +519,6 @@ class ReportActionCompose extends React.Component {
 
         this.updateComment(`${commentBeforeColon}${emojiCode} ${commentAfterColonWithEmojiNameRemoved}`, true);
         RNTextInputReset && RNTextInputReset.resetKeyboardInput(findNodeHandle(this.textInput));
-
         this.setState((prevState) => ({
             selection: {
                 start: prevState.colonIndex + emojiCode.length + CONST.SPACE_LENGTH,
