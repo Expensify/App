@@ -36,9 +36,12 @@ const defaultProps = {
     },
 };
 
-const TestToolMenu = props => (
+const TestToolMenu = (props) => (
     <>
-        <Text style={[styles.textLabelSupporting, styles.mb4]} numberOfLines={1}>
+        <Text
+            style={[styles.textLabelSupporting, styles.mb4]}
+            numberOfLines={1}
+        >
             Test Preferences
         </Text>
 
@@ -50,9 +53,7 @@ const TestToolMenu = props => (
                 <Switch
                     accessibilityLabel="Use Staging Server"
                     isOn={lodashGet(props, 'user.shouldUseStagingServer', ApiUtils.isUsingStagingApi())}
-                    onToggle={() => User.setShouldUseStagingServer(
-                        !lodashGet(props, 'user.shouldUseStagingServer', ApiUtils.isUsingStagingApi()),
-                    )}
+                    onToggle={() => User.setShouldUseStagingServer(!lodashGet(props, 'user.shouldUseStagingServer', ApiUtils.isUsingStagingApi()))}
                 />
             </TestToolRow>
         )}

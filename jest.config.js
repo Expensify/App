@@ -11,12 +11,8 @@ module.exports = {
     transform: {
         '^.+\\.jsx?$': 'babel-jest',
     },
-    transformIgnorePatterns: [
-        '<rootDir>/node_modules/(?!react-native)/',
-    ],
-    testPathIgnorePatterns: [
-        '<rootDir>/node_modules',
-    ],
+    transformIgnorePatterns: ['<rootDir>/node_modules/(?!react-native)/'],
+    testPathIgnorePatterns: ['<rootDir>/node_modules'],
     globals: {
         __DEV__: true,
         WebSocket: {},
@@ -26,11 +22,7 @@ module.exports = {
         doNotFake: ['nextTick'],
     },
     testEnvironment: 'jsdom',
-    setupFiles: [
-        '<rootDir>/jest/setup.js',
-    ],
-    setupFilesAfterEnv: [
-        '@testing-library/jest-native/extend-expect',
-    ],
+    setupFiles: ['<rootDir>/jest/setup.js'],
+    setupFilesAfterEnv: ['@testing-library/jest-native/extend-expect'],
     cacheDirectory: '<rootDir>/.jest-cache',
 };
