@@ -7,7 +7,7 @@ import * as Localize from './Localize';
 let personalDetails = [];
 Onyx.connect({
     key: ONYXKEYS.PERSONAL_DETAILS,
-    callback: val => personalDetails = _.values(val),
+    callback: (val) => (personalDetails = _.values(val)),
 });
 
 /**
@@ -19,21 +19,19 @@ Onyx.connect({
 function getPersonalDetailsByIDs(accountIDs, shouldChangeUserDisplayName = false) {
     const result = [];
     const currentAccountID = Report.getCurrentUserAccountID();
-    _.each(personalDetails, (detail) => {
-        for (let i = 0; i < accountIDs.length; i++) {
-            if (detail.accountID === accountIDs[i]) {
-                if (shouldChangeUserDisplayName && currentAccountID.toString() === detail.accountID) {
-                    result[i] = {
-                        ...detail,
-                        displayName: Localize.translateLocal('common.you'),
-                    };
-                } else {
-                    result[i] = detail;
-                }
-                break;
+    _.each(
+        _.filter(personalDetails, (detail) => accountIDs.includes(detail.accountID)),
+        (detail) => {
+            if (shouldChangeUserDisplayName && currentAccountID.toString() === detail.accountID) {
+                result.push({
+                    ...detail,
+                    displayName: Localize.translateLocal('common.you'),
+                });
+            } else {
+                result.push(detail);
             }
-        }
-    });
+        },
+    );
     return result;
 }
 
