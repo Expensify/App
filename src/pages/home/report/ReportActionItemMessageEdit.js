@@ -1,9 +1,7 @@
 /* eslint-disable rulesdir/onyx-props-must-have-default */
 import lodashGet from 'lodash/get';
 import React from 'react';
-import {
-    InteractionManager, Keyboard, Pressable, TouchableOpacity, View,
-} from 'react-native';
+import {InteractionManager, Keyboard, Pressable, TouchableOpacity, View} from 'react-native';
 import PropTypes from 'prop-types';
 import _ from 'underscore';
 import ExpensiMark from 'expensify-common/lib/ExpensiMark';
@@ -214,12 +212,8 @@ class ReportActionItemMessageEdit extends React.Component {
 
         // When user tries to save the empty message, it will delete it. Prompt the user to confirm deleting.
         if (!trimmedNewDraft) {
-            ReportActionContextMenu.showDeleteModal(
-                this.props.reportID,
-                this.props.action,
-                false,
-                this.deleteDraft,
-                () => InteractionManager.runAfterInteractions(() => this.textInput.focus()),
+            ReportActionContextMenu.showDeleteModal(this.props.reportID, this.props.action, false, this.deleteDraft, () =>
+                InteractionManager.runAfterInteractions(() => this.textInput.focus()),
             );
             return;
         }
@@ -231,7 +225,7 @@ class ReportActionItemMessageEdit extends React.Component {
      * @param {String} emoji
      */
     addEmojiToTextBox(emoji) {
-        this.setState(prevState => ({
+        this.setState((prevState) => ({
             selection: {
                 start: prevState.selection.start + emoji.length,
                 end: prevState.selection.start + emoji.length,
@@ -246,8 +240,7 @@ class ReportActionItemMessageEdit extends React.Component {
      * @param {Event} e
      */
     triggerSaveOrCancel(e) {
-        // Do not trigger actions for mobileWeb or native clients that have the keyboard open because for those devices, we want the return key to insert newlines rather than submit the form
-        if (!e || this.props.isSmallScreenWidth || this.props.isKeyboardShown) {
+        if (!e || ComposerUtils.canSkipTriggerHotkeys(this.props.isSmallScreenWidth, this.props.isKeyboardShown)) {
             return;
         }
         if (e.key === CONST.KEYBOARD_SHORTCUTS.ENTER.shortcutKey && !e.shiftKey) {
@@ -264,20 +257,24 @@ class ReportActionItemMessageEdit extends React.Component {
         return (
             <>
                 <View style={[styles.chatItemMessage, styles.flexRow]}>
-                    <View
-                        style={[styles.justifyContentEnd]}
-                    >
+                    <View style={[styles.justifyContentEnd]}>
                         <Tooltip text={this.props.translate('common.cancel')}>
                             <Pressable
-                                style={({hovered, pressed}) => ([styles.chatItemSubmitButton, StyleUtils.getButtonBackgroundColorStyle(getButtonState(hovered, pressed))])}
+                                style={({hovered, pressed}) => [styles.chatItemSubmitButton, StyleUtils.getButtonBackgroundColorStyle(getButtonState(hovered, pressed))]}
                                 nativeID={this.cancelButtonID}
                                 onPress={this.deleteDraft}
                                 hitSlop={{
-                                    top: 3, right: 3, bottom: 3, left: 3,
+                                    top: 3,
+                                    right: 3,
+                                    bottom: 3,
+                                    left: 3,
                                 }}
                             >
                                 {({hovered, pressed}) => (
-                                    <Icon src={Expensicons.Close} fill={StyleUtils.getIconFillColor(getButtonState(hovered, pressed))} />
+                                    <Icon
+                                        src={Expensicons.Close}
+                                        fill={StyleUtils.getIconFillColor(getButtonState(hovered, pressed))}
+                                    />
                                 )}
                             </Pressable>
                         </Tooltip>
@@ -339,25 +336,30 @@ class ReportActionItemMessageEdit extends React.Component {
                         <View style={styles.alignSelfEnd}>
                             <Tooltip text={this.props.translate('common.saveChanges')}>
                                 <TouchableOpacity
-                                    style={[styles.chatItemSubmitButton,
-                                        hasExceededMaxCommentLength ? {} : styles.buttonSuccess,
-                                    ]}
-
+                                    style={[styles.chatItemSubmitButton, hasExceededMaxCommentLength ? {} : styles.buttonSuccess]}
                                     onPress={this.publishDraft}
                                     hitSlop={{
-                                        top: 3, right: 3, bottom: 3, left: 3,
+                                        top: 3,
+                                        right: 3,
+                                        bottom: 3,
+                                        left: 3,
                                     }}
                                     nativeID={this.saveButtonID}
                                     disabled={hasExceededMaxCommentLength}
                                 >
-                                    <Icon src={Expensicons.Checkmark} fill={hasExceededMaxCommentLength ? themeColors.icon : themeColors.textLight} />
+                                    <Icon
+                                        src={Expensicons.Checkmark}
+                                        fill={hasExceededMaxCommentLength ? themeColors.icon : themeColors.textLight}
+                                    />
                                 </TouchableOpacity>
                             </Tooltip>
                         </View>
                     </View>
-
                 </View>
-                <ExceededCommentLength comment={this.state.draft} onExceededMaxCommentLength={this.setExceededMaxCommentLength} />
+                <ExceededCommentLength
+                    comment={this.state.draft}
+                    onExceededMaxCommentLength={this.setExceededMaxCommentLength}
+                />
             </>
         );
     }
@@ -369,7 +371,12 @@ export default compose(
     withLocalize,
     withWindowDimensions,
     withKeyboardState,
-)(React.forwardRef((props, ref) => (
-    /* eslint-disable-next-line react/jsx-props-no-spreading */
-    <ReportActionItemMessageEdit {...props} forwardedRef={ref} />
-)));
+)(
+    React.forwardRef((props, ref) => (
+        <ReportActionItemMessageEdit
+            // eslint-disable-next-line react/jsx-props-no-spreading
+            {...props}
+            forwardedRef={ref}
+        />
+    )),
+);

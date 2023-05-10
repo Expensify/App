@@ -41,7 +41,7 @@ jest.doMock('react-native', () => {
                 },
                 emitCurrentTestState(state) {
                     appState = state;
-                    _.each(changeListeners, listener => listener(appState));
+                    _.each(changeListeners, (listener) => listener(appState));
                 },
                 addEventListener(type, listener) {
                     if (type === 'change') {
@@ -72,7 +72,7 @@ jest.doMock('react-native', () => {
             // so it seems easier to just run the callback immediately in tests.
             InteractionManager: {
                 ...ReactNative.InteractionManager,
-                runAfterInteractions: callback => callback(),
+                runAfterInteractions: (callback) => callback(),
             },
         },
         ReactNative,

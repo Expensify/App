@@ -88,7 +88,7 @@ class LHNOptionsList extends Component {
                     contentContainerStyle={this.props.contentContainerStyles}
                     showsVerticalScrollIndicator={false}
                     data={this.props.data}
-                    keyExtractor={item => item}
+                    keyExtractor={(item) => item}
                     stickySectionHeadersEnabled={false}
                     renderItem={this.renderItem}
                     getItemLayout={this.getItemLayout}

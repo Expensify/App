@@ -11,7 +11,7 @@ import HeaderWithCloseButton from '../../components/HeaderWithCloseButton';
 import compose from '../../libs/compose';
 import withLocalize, {withLocalizePropTypes} from '../../components/withLocalize';
 import * as IOU from '../../libs/actions/IOU';
-import * as CurrencySymbolUtils from '../../libs/CurrencySymbolUtils';
+import * as CurrencyUtils from '../../libs/CurrencyUtils';
 import {withNetwork} from '../../components/OnyxProvider';
 import CONST from '../../CONST';
 import themeColors from '../../styles/themes/default';
@@ -24,16 +24,18 @@ const greenCheckmark = {src: Expensicons.Checkmark, color: themeColors.success};
  */
 const propTypes = {
     // The currency list constant object from Onyx
-    currencyList: PropTypes.objectOf(PropTypes.shape({
-        // Symbol for the currency
-        symbol: PropTypes.string,
+    currencyList: PropTypes.objectOf(
+        PropTypes.shape({
+            // Symbol for the currency
+            symbol: PropTypes.string,
 
-        // Name of the currency
-        name: PropTypes.string,
+            // Name of the currency
+            name: PropTypes.string,
 
-        // ISO4217 Code for the currency
-        ISO4217: PropTypes.string,
-    })),
+            // ISO4217 Code for the currency
+            ISO4217: PropTypes.string,
+        }),
+    ),
 
     /* Onyx Props */
 
@@ -94,7 +96,7 @@ class IOUCurrencySelection extends Component {
         return _.map(this.props.currencyList, (currencyInfo, currencyCode) => {
             const isSelectedCurrency = currencyCode === this.props.iou.selectedCurrencyCode;
             return {
-                text: `${currencyCode} - ${CurrencySymbolUtils.getLocalizedCurrencySymbol(this.props.preferredLocale, currencyCode)}`,
+                text: `${currencyCode} - ${CurrencyUtils.getLocalizedCurrencySymbol(currencyCode)}`,
                 currencyCode,
                 keyForList: currencyCode,
                 customIcon: isSelectedCurrency ? greenCheckmark : undefined,
@@ -111,7 +113,7 @@ class IOUCurrencySelection extends Component {
     changeSearchValue(searchValue) {
         const currencyOptions = this.getCurrencyOptions(this.props.currencyList);
         const searchRegex = new RegExp(Str.escapeForRegExp(searchValue), 'i');
-        const filteredCurrencies = _.filter(currencyOptions, currencyOption => searchRegex.test(currencyOption.text));
+        const filteredCurrencies = _.filter(currencyOptions, (currencyOption) => searchRegex.test(currencyOption.text));
 
         this.setState({
             searchValue,
@@ -148,7 +150,10 @@ class IOUCurrencySelection extends Component {
                             textInputLabel={this.props.translate('common.search')}
                             headerMessage={headerMessage}
                             safeAreaPaddingBottomStyle={safeAreaPaddingBottomStyle}
-                            initiallyFocusedOptionKey={_.get(_.find(this.state.currencyData, currency => currency.currencyCode === this.props.iou.selectedCurrencyCode), 'keyForList')}
+                            initiallyFocusedOptionKey={_.get(
+                                _.find(this.state.currencyData, (currency) => currency.currencyCode === this.props.iou.selectedCurrencyCode),
+                                'keyForList',
+                            )}
                         />
                     </>
                 )}

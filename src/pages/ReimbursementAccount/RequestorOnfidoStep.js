@@ -35,10 +35,7 @@ class RequestorOnfidoStep extends React.Component {
     }
 
     submit(onfidoData) {
-        BankAccounts.verifyIdentityForBankAccount(
-            lodashGet(this.props.reimbursementAccount, 'achData.bankAccountID') || 0,
-            onfidoData,
-        );
+        BankAccounts.verifyIdentityForBankAccount(lodashGet(this.props.reimbursementAccount, 'achData.bankAccountID') || 0, onfidoData);
 
         BankAccounts.updateReimbursementAccountDraft({isOnfidoSetupComplete: true});
     }

@@ -61,9 +61,15 @@ class BigNumberPad extends React.PureComponent {
 
     render() {
         return (
-            <View style={[styles.flexColumn, styles.w100]} nativeID={this.props.nativeID}>
+            <View
+                style={[styles.flexColumn, styles.w100]}
+                nativeID={this.props.nativeID}
+            >
                 {_.map(padNumbers, (row, rowIndex) => (
-                    <View key={`NumberPadRow-${rowIndex}`} style={[styles.flexRow, styles.mt3]}>
+                    <View
+                        key={`NumberPadRow-${rowIndex}`}
+                        style={[styles.flexRow, styles.mt3]}
+                    >
                         {_.map(row, (column, columnIndex) => {
                             // Adding margin between buttons except first column to
                             // avoid unccessary space before the first column.
@@ -82,7 +88,7 @@ class BigNumberPad extends React.PureComponent {
                                         ControlSelection.unblock();
                                         this.props.longPressHandlerStateChanged(false);
                                     }}
-                                    onMouseDown={e => e.preventDefault()}
+                                    onMouseDown={(e) => e.preventDefault()}
                                 />
                             );
                         })}

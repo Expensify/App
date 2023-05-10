@@ -20,13 +20,15 @@ const propTypes = {
     betas: PropTypes.arrayOf(PropTypes.string),
 
     /** The policies which the user has access to */
-    policies: PropTypes.objectOf(PropTypes.shape({
-        /** The policy name */
-        name: PropTypes.string,
+    policies: PropTypes.objectOf(
+        PropTypes.shape({
+            /** The policy name */
+            name: PropTypes.string,
 
-        /** The type of the policy */
-        type: PropTypes.string,
-    })),
+            /** The type of the policy */
+            type: PropTypes.string,
+        }),
+    ),
 
     /** Navigation route context info provided by react navigation */
     route: PropTypes.shape({
@@ -71,12 +73,7 @@ class ReportScreenWrapper extends Component {
 
         // If there is no ReportID in route, try to find last accessed and use it for setParams
         if (!lodashGet(this.props.route, 'params.reportID', null)) {
-            const reportID = getLastAccessedReportID(
-                this.props.reports,
-                !Permissions.canUseDefaultRooms(this.props.betas),
-                this.props.policies,
-                this.props.route.params.openOnAdminRoom,
-            );
+            const reportID = getLastAccessedReportID(this.props.reports, !Permissions.canUseDefaultRooms(this.props.betas), this.props.policies, this.props.route.params.openOnAdminRoom);
 
             // It's possible that props.reports aren't fully loaded yet
             // in that case the reportID is undefined
@@ -88,7 +85,9 @@ class ReportScreenWrapper extends Component {
 
     shouldComponentUpdate(nextProps) {
         // Don't update if there is a reportID in the params already
-        if (lodashGet(this.props.route, 'params.reportID', null)) { return false; }
+        if (lodashGet(this.props.route, 'params.reportID', null)) {
+            return false;
+        }
 
         // If the reports weren't fully loaded in the contructor
         // try to get and set reportID again

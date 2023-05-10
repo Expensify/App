@@ -1,8 +1,6 @@
 import _ from 'lodash';
 import lodashGet from 'lodash/get';
-import {
-    CommonActions, getPathFromState, StackActions,
-} from '@react-navigation/native';
+import {CommonActions, getPathFromState, StackActions} from '@react-navigation/native';
 import Log from '../Log';
 import DomUtils from '../DomUtils';
 import linkTo from './linkTo';
@@ -231,6 +229,4 @@ export default {
     drawerGoBack,
 };
 
-export {
-    navigationRef,
-};
+export {navigationRef};

@@ -16,7 +16,6 @@ function CentralPaneNavigator() {
         <Stack.Navigator>
             <Stack.Screen
                 name={SCREENS.REPORT}
-
                 // We do it this way to avoid adding this to url
                 initialParams={{openOnAdminRoom: openOnAdminRoom ? 'true' : undefined}}
                 options={{

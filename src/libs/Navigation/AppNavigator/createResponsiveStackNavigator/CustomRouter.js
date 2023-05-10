@@ -6,7 +6,7 @@ import NAVIGATORS from '../../../../NAVIGATORS';
  * @param {Object} state - react-navigation state
  * @returns {Boolean}
  */
-const isAtLeastOneCentralPaneNavigatorInState = state => _.find(state.routes, r => r.name === NAVIGATORS.CENTRAL_PANE_NAVIGATOR);
+const isAtLeastOneCentralPaneNavigatorInState = (state) => _.find(state.routes, (r) => r.name === NAVIGATORS.CENTRAL_PANE_NAVIGATOR);
 
 /**
  * Adds report route without any specific reportID to the state.

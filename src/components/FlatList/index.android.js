@@ -14,10 +14,7 @@ const propTypes = {
     maintainVisibleContentPosition: PropTypes.object,
 
     /** Passed via forwardRef so we can access the FlatList ref */
-    innerRef: PropTypes.oneOfType([
-        PropTypes.func,
-        PropTypes.shape({current: PropTypes.instanceOf(FlatList)}),
-    ]).isRequired,
+    innerRef: PropTypes.oneOfType([PropTypes.func, PropTypes.shape({current: PropTypes.instanceOf(FlatList)})]).isRequired,
 };
 
 const defaultProps = {
@@ -82,4 +79,9 @@ CustomFlatList.propTypes = propTypes;
 CustomFlatList.defaultProps = defaultProps;
 
 // eslint-disable-next-line react/jsx-props-no-spreading
-export default forwardRef((props, ref) => <CustomFlatList {...props} innerRef={ref} />);
+export default forwardRef((props, ref) => (
+    <CustomFlatList
+        {...props}
+        innerRef={ref}
+    />
+));

@@ -10,10 +10,7 @@ const propTypes = {
     isSmallScreenWidth: PropTypes.bool.isRequired,
 
     /* Children for the useNavigationBuilder hook */
-    children: PropTypes.oneOfType([
-        PropTypes.func,
-        PropTypes.node,
-    ]).isRequired,
+    children: PropTypes.oneOfType([PropTypes.func, PropTypes.node]).isRequired,
 
     /* initialRouteName for this navigator */
     initialRouteName: PropTypes.oneOf([PropTypes.string, PropTypes.undefined]),
@@ -29,37 +26,34 @@ const defaultProps = {
 };
 
 function ResponsiveStackNavigator(props) {
-    const {
-        navigation, state, descriptors, NavigationContent,
-    } = useNavigationBuilder(CustomRouter, {
+    const {navigation, state, descriptors, NavigationContent} = useNavigationBuilder(CustomRouter, {
         children: props.children,
         screenOptions: props.screenOptions,
         initialRouteName: props.initialRouteName,
         isSmallScreenWidth: props.isSmallScreenWidth,
     });
 
-    return props.isSmallScreenWidth
-        ? (
-            <NavigationContent>
-                <StackView
-                    // eslint-disable-next-line react/jsx-props-no-spreading
-                    {...props}
-                    state={state}
-                    descriptors={descriptors}
-                    navigation={navigation}
-                />
-            </NavigationContent>
-        ) : (
-            <NavigationContent>
-                <ThreePaneView
+    return props.isSmallScreenWidth ? (
+        <NavigationContent>
+            <StackView
                 // eslint-disable-next-line react/jsx-props-no-spreading
-                    {...props}
-                    state={state}
-                    descriptors={descriptors}
-                    navigation={navigation}
-                />
-            </NavigationContent>
-        );
+                {...props}
+                state={state}
+                descriptors={descriptors}
+                navigation={navigation}
+            />
+        </NavigationContent>
+    ) : (
+        <NavigationContent>
+            <ThreePaneView
+                // eslint-disable-next-line react/jsx-props-no-spreading
+                {...props}
+                state={state}
+                descriptors={descriptors}
+                navigation={navigation}
+            />
+        </NavigationContent>
+    );
 }
 
 ResponsiveStackNavigator.defaultProps = defaultProps;
