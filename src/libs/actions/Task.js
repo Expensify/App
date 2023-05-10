@@ -217,12 +217,16 @@ function editTaskAndNavigate(report, ownerEmail, title, description, assignee) {
 
     console.log(optimisticData);
 
-    API.write('EditTask', {
-        taskID: report.reportID,
-        title,
-        description,
-        assignee,
-    }, {optimisticData, successData, failureData});
+    API.write(
+        'EditTask',
+        {
+            taskID: report.reportID,
+            title,
+            description,
+            assignee,
+        },
+        {optimisticData, successData, failureData},
+    );
 
     Navigation.navigate(ROUTES.getReportRoute(report.reportID));
     endEditingTask();

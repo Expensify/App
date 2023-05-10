@@ -55,12 +55,15 @@ function TaskTitlePage(props) {
         [props],
     );
 
-    const submit = useCallback((values) => {
-        // Set the description of the report in the store and then call TaskUtils.editTaskReport
-        // to update the description of the report on the server
+    const submit = useCallback(
+        (values) => {
+            // Set the description of the report in the store and then call TaskUtils.editTaskReport
+            // to update the description of the report on the server
 
-        TaskUtils.editTaskAndNavigate(props.task.report, props.session.email, values.title, '', '');
-    }, [props]);
+            TaskUtils.editTaskAndNavigate(props.task.report, props.session.email, values.title, '', '');
+        },
+        [props],
+    );
 
     const inputRef = useRef(null);
 
@@ -89,7 +92,7 @@ function TaskTitlePage(props) {
                         name="title"
                         label={props.translate('newTaskPage.title')}
                         defaultValue={props.task.report.reportName || ''}
-                        ref={el => inputRef.current = el}
+                        ref={(el) => (inputRef.current = el)}
                     />
                 </View>
             </Form>

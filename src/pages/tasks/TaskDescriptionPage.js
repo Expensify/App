@@ -55,11 +55,14 @@ function TaskDescriptionPage(props) {
         [props],
     );
 
-    const submit = useCallback((values) => {
-        // Set the description of the report in the store and then call TaskUtils.editTaskReport
-        // to update the description of the report on the server
-        TaskUtils.editTaskAndNavigate(props.task.report, props.session.email, '', values.description, '');
-    }, [props]);
+    const submit = useCallback(
+        (values) => {
+            // Set the description of the report in the store and then call TaskUtils.editTaskReport
+            // to update the description of the report on the server
+            TaskUtils.editTaskAndNavigate(props.task.report, props.session.email, '', values.description, '');
+        },
+        [props],
+    );
 
     const inputRef = useRef(null);
 
@@ -88,7 +91,7 @@ function TaskDescriptionPage(props) {
                         name="description"
                         label={props.translate('newTaskPage.description')}
                         defaultValue={props.task.report.description || ''}
-                        ref={el => inputRef.current = el}
+                        ref={(el) => (inputRef.current = el)}
                     />
                 </View>
             </Form>
