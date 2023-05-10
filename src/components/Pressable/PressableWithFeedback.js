@@ -25,26 +25,25 @@ const PressableWithFeedbackDefaultProps = {
 const PressableWithFeedback = forwardRef((props, ref) => {
     const propsWithoutStyling = _.omit(props, omittedProps);
     return (
-        <GenericPressable
-            ref={ref}
-            style={props.wrapperStyle}
-            // eslint-disable-next-line react/jsx-props-no-spreading
-            {...propsWithoutStyling}
-        >
-            {(state) => (
-                <OpacityView
-                    shouldDim={state.pressed || state.hovered || false}
-                    dimmingValue={state.pressed ? props.pressDimmingValue : props.hoverDimmingValue}
-                    style={[
-                        StyleUtils.parseStyleFromFunction(props.style, state),
-                        state.pressed && StyleUtils.parseStyleFromFunction(props.pressStyle, state),
-                        state.hovered && StyleUtils.parseStyleAsArray(props.hoverStyle, state),
-                        state.focused && StyleUtils.parseStyleAsArray(props.focusStyle, state),
-                    ]}
-                >
-                    {props.children}
-                </OpacityView>
-            )}
+        // eslint-disable-next-line react/jsx-props-no-spreading
+        <GenericPressable ref={ref} style={props.wrapperStyle} {...propsWithoutStyling}>
+            {(state) => {
+                const shouldDim = !props.disabled && (!!state.pressed || !!state.hovered);
+                return (
+                    <OpacityView
+                        shouldDim={shouldDim}
+                        dimmingValue={state.pressed ? props.pressDimmingValue : props.hoverDimmingValue}
+                        style={[
+                            StyleUtils.parseStyleFromFunction(props.style, state),
+                            state.pressed && StyleUtils.parseStyleFromFunction(props.pressStyle, state),
+                            state.hovered && StyleUtils.parseStyleAsArray(props.hoverStyle, state),
+                            state.focused && StyleUtils.parseStyleAsArray(props.focusStyle, state),
+                        ]}
+                    >
+                        {props.children}
+                    </OpacityView>
+                );
+            }}
         </GenericPressable>
     );
 });
