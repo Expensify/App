@@ -116,7 +116,7 @@ export default {
     REPORT_SETTINGS: 'r/:reportID/settings',
     getReportSettingsRoute: (reportID) => `r/${reportID}/settings`,
     REPORT_WELCOME_MESSAGE: 'r/:reportID/welcomeMessage',
-    getReportWelcomeMessageRoute: reportID => `r/${reportID}/welcomeMessage`,
+    getReportWelcomeMessageRoute: (reportID) => `r/${reportID}/welcomeMessage`,
     TRANSITION_FROM_OLD_DOT: 'transition',
     VALIDATE_LOGIN: 'v/:accountID/:validateCode',
     GET_ASSISTANCE: 'get-assistance/:taskID',

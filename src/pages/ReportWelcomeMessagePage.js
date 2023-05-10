@@ -1,6 +1,4 @@
-import React, {
-    useCallback, useRef, useState,
-} from 'react';
+import React, {useCallback, useRef, useState} from 'react';
 import PropTypes from 'prop-types';
 import _ from 'underscore';
 import {ScrollView, View} from 'react-native';
@@ -62,9 +60,7 @@ function ReportWelcomeMessagePage(props) {
                     onCloseButtonPress={() => Navigation.dismissModal()}
                 />
                 <ScrollView style={[styles.flex1]}>
-                    <Text style={[styles.ph5, styles.mb5]}>
-                        {props.translate('welcomeMessagePage.explainerText')}
-                    </Text>
+                    <Text style={[styles.ph5, styles.mb5]}>{props.translate('welcomeMessagePage.explainerText')}</Text>
                     <View style={[styles.ph5, styles.mb6]}>
                         <TextInput
                             label={props.translate('welcomeMessagePage.welcomeMessage')}
@@ -91,7 +87,4 @@ function ReportWelcomeMessagePage(props) {
 }
 
 ReportWelcomeMessagePage.propTypes = propTypes;
-export default compose(
-    withLocalize,
-    withReportOrNotFound,
-)(ReportWelcomeMessagePage);
+export default compose(withLocalize, withReportOrNotFound)(ReportWelcomeMessagePage);

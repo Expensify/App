@@ -21,7 +21,7 @@ import * as ReportActionsUtils from '../ReportActionsUtils';
 import * as OptionsListUtils from '../OptionsListUtils';
 import * as Localize from '../Localize';
 import * as CollectionUtils from '../CollectionUtils';
-import {getParsedComment} from "../ReportUtils";
+import {getParsedComment} from '../ReportUtils';
 
 let currentUserEmail;
 let currentUserAccountID;

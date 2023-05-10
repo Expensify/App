@@ -189,13 +189,15 @@ const ReportSettingsModalStackNavigator = createModalStackNavigator([
     },
 ]);
 
-const ReportWelcomeMessageModalStackNavigator = createModalStackNavigator([{
-    getComponent: () => {
-        const ReportWelcomeMessagePage = require('../../../pages/ReportWelcomeMessagePage').default;
-        return ReportWelcomeMessagePage;
+const ReportWelcomeMessageModalStackNavigator = createModalStackNavigator([
+    {
+        getComponent: () => {
+            const ReportWelcomeMessagePage = require('../../../pages/ReportWelcomeMessagePage').default;
+            return ReportWelcomeMessagePage;
+        },
+        name: 'Report_WelcomeMessage_Root',
     },
-    name: 'Report_WelcomeMessage_Root',
-}]);
+]);
 
 const ReportParticipantsModalStackNavigator = createModalStackNavigator([
     {
