@@ -312,7 +312,7 @@ class ReportScreen extends React.Component {
                         >
                             {(this.isReportReadyForDisplay() && !isLoadingInitialReportActions && !isLoading) && (
                                 <ReportActionsView
-                                    reportActions={ReportActionsUtils.getSortedReportActionsForDisplay(_.values(Report.getAllReportActions(reportID)))}
+                                    reportActions={this.props.reportActions}
                                     report={this.props.report}
                                     isComposerFullSize={this.props.isComposerFullSize}
                                     isDrawerOpen={this.props.isDrawerOpen}
