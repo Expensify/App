@@ -1,4 +1,5 @@
 import React, {useEffect, useMemo, useRef, useCallback} from 'react';
+import {Animated} from 'react-native';
 import Onyx, {withOnyx} from 'react-native-onyx';
 import {getFocusedRouteNameFromRoute} from '@react-navigation/native';
 import PropTypes from 'prop-types';
@@ -6,7 +7,6 @@ import moment from 'moment';
 import _ from 'underscore';
 import lodashGet from 'lodash/get';
 import Str from 'expensify-common/lib/str';
-import {interpolateColor, useAnimatedProps, useSharedValue, withSpring, runOnJS} from 'react-native-reanimated';
 import getNavigationModalCardStyle from '../../../styles/getNavigationModalCardStyles';
 import withWindowDimensions, {windowDimensionsPropTypes} from '../../../components/withWindowDimensions';
 import CONST from '../../../CONST';
@@ -28,8 +28,6 @@ import NotFoundPage from '../../../pages/ErrorPage/NotFoundPage';
 import getCurrentUrl from '../currentUrl';
 import themeColors from '../../../styles/themes/default';
 import useTiming from '../../../hooks/useTiming';
-
-// Modal Stack Navigators
 import * as ModalStackNavigators from './ModalStackNavigators';
 import SCREENS from '../../../SCREENS';
 import defaultScreenOptions from './defaultScreenOptions';
@@ -111,9 +109,6 @@ const commonModalScreenOptions = {
 };
 
 const AuthScreens = (props) => {
-    const prevStatusBarBackgroundColor = useRef(themeColors.appBG);
-    const statusBarBackgroundColor = useRef(themeColors.appBG);
-
     useTiming(CONST.TIMING.HOMEPAGE_INITIAL_RENDER);
 
     useEffect(() => {
@@ -192,31 +187,41 @@ const AuthScreens = (props) => {
         [props.isSmallScreenWidth],
     );
 
-    const statusBarBackgroundColorAnimationProgress = useSharedValue(0);
+    const prevStatusBarBackgroundColor = useRef(themeColors.appBG);
+    const statusBarBackgroundColor = useRef(themeColors.appBG);
+    const statusBarAnimation = useRef(new Animated.Value(0)).current;
 
-    useAnimatedProps(() => {
-        const currentStatusBarBackgroundColor = interpolateColor(
-            statusBarBackgroundColorAnimationProgress.value,
-            [0, 1],
-            [prevStatusBarBackgroundColor.current, statusBarBackgroundColor.current],
-        );
-        runOnJS(StatusBar.setBackgroundColor)(currentStatusBarBackgroundColor);
-        return {};
-    }, []);
+    useEffect(() => {
+        statusBarAnimation.addListener(() => {
+            const colorObj = statusBarAnimation.interpolate({
+                inputRange: [0, 1],
+                outputRange: [prevStatusBarBackgroundColor.current, statusBarBackgroundColor.current],
+            });
+            // eslint-disable-next-line no-underscore-dangle
+            StatusBar.setBackgroundColor(colorObj.__getValue());
+        });
+        return () => statusBarAnimation.removeAllListeners();
+    }, [statusBarAnimation]);
 
-    const animateStatusBarBackgroundColorChange = useCallback((e) => {
-        const focusedScreenName = getFocusedRouteNameFromRoute(_.last(lodashGet(e, 'data.state.routes', [{}])));
-        const focusedScreenBackgroundColor = themeColors.PAGE_BACKGROUND_COLORS[focusedScreenName] || themeColors.appBG;
+    const animateStatusBarBackgroundColorChange = useCallback(
+        (e) => {
+            const focusedScreenName = getFocusedRouteNameFromRoute(_.last(lodashGet(e, 'data.state.routes', [{}])));
+            const focusedScreenBackgroundColor = themeColors.PAGE_BACKGROUND_COLORS[focusedScreenName] || themeColors.appBG;
 
-        prevStatusBarBackgroundColor.current = statusBarBackgroundColor.current;
-        statusBarBackgroundColor.current = focusedScreenBackgroundColor;
-        if (focusedScreenBackgroundColor !== prevStatusBarBackgroundColor.current) {
-            statusBarBackgroundColorAnimationProgress.value = 0;
-            statusBarBackgroundColorAnimationProgress.value = withSpring(1);
-        }
+            prevStatusBarBackgroundColor.current = statusBarBackgroundColor.current;
+            statusBarBackgroundColor.current = focusedScreenBackgroundColor;
 
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, []);
+            if (focusedScreenBackgroundColor !== prevStatusBarBackgroundColor.current) {
+                statusBarAnimation.setValue(0);
+                Animated.timing(statusBarAnimation, {
+                    toValue: 1,
+                    duration: 500,
+                    useNativeDriver: true,
+                }).start();
+            }
+        },
+        [statusBarAnimation],
+    );
 
     const url = getCurrentUrl();
     const openOnAdminRoom = url ? new URL(url).searchParams.get('openOnAdminRoom') : '';
