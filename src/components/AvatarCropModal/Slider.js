@@ -37,15 +37,21 @@ const Slider = (props) => {
     // We're preventing text selection with ControlSelection.blockElement to prevent safari
     // default behaviour of cursor - I-beam cursor on drag. See https://github.com/Expensify/App/issues/13688
     return (
-        <View ref={ControlSelection.blockElement} style={styles.sliderBar}>
+        <View
+            ref={ControlSelection.blockElement}
+            style={styles.sliderBar}
+        >
             <PanGestureHandler
                 onBegan={() => setTooltipIsVisible(false)}
                 onEnded={() => setTooltipIsVisible(true)}
                 onGestureEvent={props.onGesture}
             >
                 <Animated.View style={[styles.sliderKnob, rSliderStyle]}>
-                    { tooltipIsVisible && (
-                        <Tooltip text={props.translate('common.zoom')} shiftVertical={-2}>
+                    {tooltipIsVisible && (
+                        <Tooltip
+                            text={props.translate('common.zoom')}
+                            shiftVertical={-2}
+                        >
                             <View style={[styles.sliderKnobTooltipView]} />
                         </Tooltip>
                     )}

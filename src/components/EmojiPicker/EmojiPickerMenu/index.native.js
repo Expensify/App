@@ -28,10 +28,12 @@ const propTypes = {
     preferredSkinTone: PropTypes.oneOfType([PropTypes.number, PropTypes.string]),
 
     /** User's frequently used emojis */
-    frequentlyUsedEmojis: PropTypes.arrayOf(PropTypes.shape({
-        code: PropTypes.string.isRequired,
-        keywords: PropTypes.arrayOf(PropTypes.string),
-    })),
+    frequentlyUsedEmojis: PropTypes.arrayOf(
+        PropTypes.shape({
+            code: PropTypes.string.isRequired,
+            keywords: PropTypes.arrayOf(PropTypes.string),
+        }),
+    ),
 
     /** Props related to the dimensions of the window */
     ...windowDimensionsPropTypes,
@@ -61,7 +63,7 @@ class EmojiPickerMenu extends Component {
         // This is the indices of each header's Row
         // The positions are static, and are calculated as index/numColumns (8 in our case)
         // This is because each row of 8 emojis counts as one index to the flatlist
-        this.headerRowIndices = _.map(this.headerEmojis, headerEmoji => Math.floor(headerEmoji.index / CONST.EMOJI_NUM_PER_ROW));
+        this.headerRowIndices = _.map(this.headerEmojis, (headerEmoji) => Math.floor(headerEmoji.index / CONST.EMOJI_NUM_PER_ROW));
 
         this.renderItem = this.renderItem.bind(this);
         this.isMobileLandscape = this.isMobileLandscape.bind(this);
@@ -155,7 +157,7 @@ class EmojiPickerMenu extends Component {
      * @returns {String}
      */
     keyExtractor(item) {
-        return (`emoji_picker_${item.code}`);
+        return `emoji_picker_${item.code}`;
     }
 
     /**
@@ -175,20 +177,16 @@ class EmojiPickerMenu extends Component {
         if (item.header) {
             return (
                 <View style={styles.emojiHeaderContainer}>
-                    <Text style={styles.textLabelSupporting}>
-                        {this.props.translate(`emojiPicker.headers.${item.code}`)}
-                    </Text>
+                    <Text style={styles.textLabelSupporting}>{this.props.translate(`emojiPicker.headers.${item.code}`)}</Text>
                 </View>
             );
         }
 
-        const emojiCode = types && types[this.props.preferredSkinTone]
-            ? types[this.props.preferredSkinTone]
-            : code;
+        const emojiCode = types && types[this.props.preferredSkinTone] ? types[this.props.preferredSkinTone] : code;
 
         return (
             <EmojiPickerMenuItem
-                onPress={emoji => this.addToFrequentAndSelectEmoji(emoji, item)}
+                onPress={(emoji) => this.addToFrequentAndSelectEmoji(emoji, item)}
                 emoji={emojiCode}
             />
         );
@@ -210,41 +208,26 @@ class EmojiPickerMenu extends Component {
                         onPress={this.scrollToHeader}
                     />
                 )}
-                {this.state.filteredEmojis.length === 0
-                    ? (
-                        <View style={[
-                            styles.alignItemsCenter,
-                            styles.justifyContentCenter,
-                            styles.emojiPickerListWithPadding,
-                            this.isMobileLandscape() && styles.emojiPickerListLandscape,
-                        ]}
-                        >
-                            <Text style={styles.disabledText}>
-                                {this.props.translate('common.noResultsFound')}
-                            </Text>
-                        </View>
-                    )
-                    : (
-                        <Animated.FlatList
-                            ref={el => this.emojiList = el}
-                            keyboardShouldPersistTaps="handled"
-                            data={this.state.filteredEmojis}
-                            renderItem={this.renderItem}
-                            keyExtractor={this.keyExtractor}
-                            numColumns={CONST.EMOJI_NUM_PER_ROW}
-                            style={[
-                                styles.emojiPickerList,
-                                StyleUtils.getEmojiPickerListHeight(isFiltered),
-                                this.isMobileLandscape() && styles.emojiPickerListLandscape,
-                            ]}
-                            stickyHeaderIndices={this.state.headerIndices}
-                            getItemLayout={this.getItemLayout}
-                            showsVerticalScrollIndicator
-
-                            // used because of a bug in RN where stickyHeaderIndices can't be updated after the list is rendered https://github.com/facebook/react-native/issues/25157
-                            removeClippedSubviews={false}
-                        />
-                    )}
+                {this.state.filteredEmojis.length === 0 ? (
+                    <View style={[styles.alignItemsCenter, styles.justifyContentCenter, styles.emojiPickerListWithPadding, this.isMobileLandscape() && styles.emojiPickerListLandscape]}>
+                        <Text style={styles.disabledText}>{this.props.translate('common.noResultsFound')}</Text>
+                    </View>
+                ) : (
+                    <Animated.FlatList
+                        ref={(el) => (this.emojiList = el)}
+                        keyboardShouldPersistTaps="handled"
+                        data={this.state.filteredEmojis}
+                        renderItem={this.renderItem}
+                        keyExtractor={this.keyExtractor}
+                        numColumns={CONST.EMOJI_NUM_PER_ROW}
+                        style={[styles.emojiPickerList, StyleUtils.getEmojiPickerListHeight(isFiltered), this.isMobileLandscape() && styles.emojiPickerListLandscape]}
+                        stickyHeaderIndices={this.state.headerIndices}
+                        getItemLayout={this.getItemLayout}
+                        showsVerticalScrollIndicator
+                        // used because of a bug in RN where stickyHeaderIndices can't be updated after the list is rendered https://github.com/facebook/react-native/issues/25157
+                        removeClippedSubviews={false}
+                    />
+                )}
                 <EmojiSkinToneList
                     updatePreferredSkinTone={this.updatePreferredSkinTone}
                     preferredSkinTone={this.props.preferredSkinTone}
@@ -268,7 +251,12 @@ export default compose(
             key: ONYXKEYS.FREQUENTLY_USED_EMOJIS,
         },
     }),
-)(React.forwardRef((props, ref) => (
-    // eslint-disable-next-line react/jsx-props-no-spreading
-    <EmojiPickerMenu {...props} forwardedRef={ref} />
-)));
+)(
+    React.forwardRef((props, ref) => (
+        <EmojiPickerMenu
+            // eslint-disable-next-line react/jsx-props-no-spreading
+            {...props}
+            forwardedRef={ref}
+        />
+    )),
+);
