@@ -33,14 +33,15 @@ function createTaskAndNavigate(currentUserEmail, parentReportID, title, descript
     // Grab the assigneeChatReportID if there is an assignee and if it's not the same as the parentReportID
     // then we create an optimistic add comment report action on the assignee's chat to notify them of the task
     const assigneeChatReportID = lodashGet(ReportUtils.getChatByParticipants([assignee]), 'reportID');
+    const taskReportID = optimisticTaskReport.reportID;
     let optimisticAssigneeAddComment;
     if (assigneeChatReportID && assigneeChatReportID !== parentReportID) {
-        optimisticAssigneeAddComment = ReportUtils.buildOptimisticTaskCommentReportAction(`Assigned a task to you: ${title}`);
+        optimisticAssigneeAddComment = ReportUtils.buildOptimisticTaskCommentReportAction(taskReportID, title, assignee, `Assigned a task to you: ${title}`);
     }
 
     // Create the CreatedReportAction on the task
     const optimisticTaskCreatedAction = ReportUtils.buildOptimisticCreatedReportAction(optimisticTaskReport.reportID);
-    const optimisticAddCommentReport = ReportUtils.buildOptimisticTaskCommentReportAction(`Created a task: ${title}`);
+    const optimisticAddCommentReport = ReportUtils.buildOptimisticTaskCommentReportAction(taskReportID, title, assignee, `Created a task: ${title}`);
 
     const optimisticData = [
         {
@@ -72,7 +73,7 @@ function createTaskAndNavigate(currentUserEmail, parentReportID, title, descript
 
     const failureData = [
         {
-            onyxMethod: Onyx.METHOD.MERGE,
+            onyxMethod: Onyx.METHOD.SET,
             key: `${ONYXKEYS.COLLECTION.REPORT}${optimisticTaskReport.reportID}`,
             value: null,
         },

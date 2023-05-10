@@ -1027,6 +1027,10 @@ function buildOptimisticAddCommentReportAction(text, file) {
  */
 function buildOptimisticTaskCommentReportAction(taskReportID, taskTitle, taskAssignee, text) {
     const reportAction = buildOptimisticAddCommentReportAction(text);
+    reportAction.reportAction.message[0].taskReportID = taskReportID;
+
+    // These parameters are not saved on the reportAction, but are used to display the task in the UI
+    // Added when we fetch the reportActions on a report
     reportAction.childReportID = taskReportID;
     reportAction.childType = CONST.REPORT.TYPE.TASK;
     reportAction.taskTitle = taskTitle;
