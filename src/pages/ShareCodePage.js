@@ -12,6 +12,9 @@ import withCurrentUserPersonalDetails, {withCurrentUserPersonalDetailsDefaultPro
 import styles from '../styles/styles';
 import roomAvatar from '../../assets/images/avatars/room.png';
 import * as ReportUtils from '../libs/ReportUtils';
+import MenuItem from '../components/MenuItem';
+import Clipboard from '../libs/Clipboard';
+import * as Expensicons from '../components/Icon/Expensicons';
 
 const propTypes = {
     /** Navigation route context info provided by react navigation */
@@ -36,8 +39,12 @@ const defaultProps = {
 
 // eslint-disable-next-line react/prefer-stateless-function
 class ShareCodePage extends React.Component {
+    qrCodeRef = React.createRef();
+
     render() {
         const isReport = this.props.report != null && this.props.report.reportID != null;
+
+        const url = isReport ? `https://new.expensify.com/r/${this.props.report.reportID}` : `https://new.expensify.com/details?login=${this.props.session.email}`;
 
         return (
             <ScreenWrapper>
@@ -50,13 +57,29 @@ class ShareCodePage extends React.Component {
 
                 <View style={styles.shareCodePage}>
                     <QRShare
-                        type={isReport ? 'report' : 'profile'}
-                        value={isReport ? this.props.report.reportID : this.props.session.email}
+                        ref={this.qrCodeRef}
                         title={isReport ? this.props.report.reportName : this.props.currentUserPersonalDetails.displayName}
                         subtitle={isReport ? ReportUtils.getPolicyName(this.props.report) : this.props.session.email}
                         logo={isReport ? roomAvatar : this.props.currentUserPersonalDetails.avatar}
                         download={() => null}
                     />
+                </View>
+
+                <View style={{marginTop: 36}}>
+                    <MenuItem
+                        title={this.props.translate('common.share')}
+                        shouldShowRightIcon
+                        icon={Expensicons.Link}
+                        onPress={() => Clipboard.setString(url)}
+                    />
+
+                    <MenuItem
+                        title={this.props.translate('common.download')}
+                        shouldShowRightIcon
+                        icon={Expensicons.Download}
+                        onPress={() => this.qrCodeRef.current?.download()}
+                    />
+
                 </View>
             </ScreenWrapper>
         );

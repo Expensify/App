@@ -12,12 +12,10 @@ import variables from '../styles/variables';
 import ExpensifyWordmark from '../../assets/images/expensify-wordmark.svg';
 
 const propTypes = {
-    type: PropTypes.string.isRequired,
-    value: PropTypes.oneOfType(PropTypes.string, PropTypes.number).isRequired,
+    url: PropTypes.string.isRequired,
     title: PropTypes.string.isRequired,
     subtitle: PropTypes.string,
     logo: PropTypes.func,
-    download: PropTypes.func,
 
     ...windowDimensionsPropTypes,
     ...withLocalizePropTypes,
@@ -26,7 +24,6 @@ const propTypes = {
 const defaultProps = {
     subtitle: undefined,
     logo: undefined,
-    download: undefined,
 };
 
 class QRShare extends React.Component {
@@ -39,15 +36,20 @@ class QRShare extends React.Component {
             qrCodeSize: defaultQrCodeSize,
         };
 
-        this.url = this.props.type === 'profile' ? `https://new.expensify.com/details?login=${this.props.value}` : `https://new.expensify.com/r/${this.props.value}`;
-
         this.onLayout = this.onLayout.bind(this);
+        this.download = this.download.bind(this);
     }
 
     onLayout = (event) => {
         this.setState({
             qrCodeSize: event.nativeEvent.layout.width - 64,
         });
+    }
+
+    download = () => {
+        console.log('download');
+
+        return 'TODO: Implement download';
     }
 
     render() {
@@ -67,7 +69,7 @@ class QRShare extends React.Component {
                     />
                 </View>
                 <QRCodeLibrary
-                    value={this.url}
+                    value={this.props.url}
                     logo={this.props.logo}
                     getRef={c => (this.svg = c)}
                     logoBackgroundColor="transparent"
