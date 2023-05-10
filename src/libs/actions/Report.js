@@ -454,8 +454,6 @@ function navigateToAndOpenChildReport(childReportID = '0', parentReportAction = 
             parentReportAction.reportActionID,
             parentReportID,
         );
-        // eslint-disable-next-line no-console
-        console.log('OPENING CHILD REPORT for ', parentReportAction, parentReportID, lodashGet(parentReportAction, ['message', 0, 'text']), newChat);
 
         openReport(newChat.reportID, newChat.participants, newChat, parentReportAction.reportActionID);
         Navigation.navigate(ROUTES.getReportRoute(newChat.reportID));
