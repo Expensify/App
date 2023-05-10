@@ -1036,8 +1036,8 @@ function buildOptimisticAddCommentReportAction(text, file) {
 /**
  * Builds an optimistic IOU report with a randomly generated reportID
  *
- * @param {String} ownerEmail - Email of the person generating the IOU.
- * @param {String} userEmail - Email of the other person participating in the IOU.
+ * @param {String} payeeEmail - Email of the person generating the IOU.
+ * @param {String} payerEmail - Email of the other person participating in the IOU.
  * @param {Number} total - IOU amount in the smallest unit of the currency.
  * @param {String} chatReportID - Report ID of the chat where the IOU is.
  * @param {String} currency - IOU currency.
@@ -1045,7 +1045,7 @@ function buildOptimisticAddCommentReportAction(text, file) {
  *
  * @returns {Object}
  */
-function buildOptimisticIOUReport(ownerEmail, userEmail, total, chatReportID, currency, isSendingMoney = false) {
+function buildOptimisticIOUReport(payeeEmail, payerEmail, total, chatReportID, currency, isSendingMoney = false) {
     const formattedTotal = CurrencyUtils.convertToDisplayString(total, currency);
     return {
         // If we're sending money, hasOutstandingIOU should be false
@@ -1054,26 +1054,63 @@ function buildOptimisticIOUReport(ownerEmail, userEmail, total, chatReportID, cu
         cachedTotal: formattedTotal,
         chatReportID,
         currency,
-        managerEmail: userEmail,
-        ownerEmail,
+        managerEmail: payerEmail,
+        ownerEmail: payeeEmail,
         reportID: generateReportID(),
         state: CONST.REPORT.STATE.SUBMITTED,
         stateNum: isSendingMoney ? CONST.REPORT.STATE_NUM.SUBMITTED : CONST.REPORT.STATE_NUM.PROCESSING,
+        total,
+
+        // We don't translate reportName because the server response is always in English
+        reportName: `${payerEmail} owes ${formattedTotal}`,
+    };
+}
+
+/**
+ * Builds an optimistic Expense report with a randomly generated reportID
+ *
+ * @param {String} chatReportID - Report ID of the PolicyExpenseChat where the Expense Report is
+ * @param {String} policyID - The policy ID of the PolicyExpenseChat
+ * @param {String} payeeEmail - Email of the employee (payee)
+ * @param {Number} total - Amount in cents
+ * @param {String} currency
+ *
+ * @returns {Object}
+ */
+function buildOptimisticExpenseReport(chatReportID, policyID, payeeEmail, total, currency) {
+    const policyName = getPolicyName(allReports[`${ONYXKEYS.COLLECTION.REPORT}${chatReportID}`]);
+    const formattedTotal = CurrencyUtils.convertToDisplayString(total, currency);
+
+    // The expense report is always created with the policy's output currency
+    const outputCurrency = lodashGet(allPolicies, [`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, 'outputCurrency'], CONST.CURRENCY.USD);
+
+    return {
+        reportID: generateReportID(),
+        chatReportID,
+        policyID,
+        type: CONST.REPORT.TYPE.EXPENSE,
+        ownerEmail: payeeEmail,
+        hasOutstandingIOU: true,
+        currency: outputCurrency,
+
+        // We don't translate reportName because the server response is always in English
+        reportName: `${policyName} owes ${formattedTotal}`,
+        state: CONST.REPORT.STATE.SUBMITTED,
+        stateNum: CONST.REPORT.STATE_NUM.PROCESSING,
         total,
     };
 }
 
 /**
- * @param {String} type - IOUReportAction type. Can be oneOf(create, delete, pay, split)
+ * @param {String} type - IOUReportAction type. Can be oneOf(create, decline, cancel, pay, split)
  * @param {Number} total - IOU total in cents
- * @param {Array} participants - List of logins for the IOU participants, excluding the current user login
  * @param {String} comment - IOU comment
  * @param {String} currency - IOU currency
  * @param {String} paymentType - IOU paymentMethodType. Can be oneOf(Elsewhere, Expensify, PayPal.me)
  * @param {Boolean} isSettlingUp - Whether we are settling up an IOU
  * @returns {Array}
  */
-function getIOUReportActionMessage(type, total, participants, comment, currency, paymentType = '', isSettlingUp = false) {
+function getIOUReportActionMessage(type, total, comment, currency, paymentType = '', isSettlingUp = false) {
     const amount = NumberFormatUtils.format(preferredLocale, total / 100, {style: 'currency', currency});
     let paymentMethodMessage;
     switch (paymentType) {
@@ -1125,14 +1162,13 @@ function getIOUReportActionMessage(type, total, participants, comment, currency,
  * @param {Number} amount - IOU amount in cents.
  * @param {String} currency
  * @param {String} comment - User comment for the IOU.
- * @param {Array}  participants - An array with participants details.
  * @param {String} transactionID
  * @param {String} [paymentType] - Only required if the IOUReportAction type is 'pay'. Can be oneOf(elsewhere, payPal, Expensify).
  * @param {String} [iouReportID] - Only required if the IOUReportActions type is oneOf(decline, cancel, pay). Generates a randomID as default.
  * @param {Boolean} [isSettlingUp] - Whether we are settling up an IOU.
  * @returns {Object}
  */
-function buildOptimisticIOUReportAction(type, amount, currency, comment, participants, transactionID, paymentType = '', iouReportID = '', isSettlingUp = false) {
+function buildOptimisticIOUReportAction(type, amount, currency, comment, transactionID, paymentType = '', iouReportID = '', isSettlingUp = false) {
     const IOUReportID = iouReportID || generateReportID();
     const parser = new ExpensiMark();
     const commentText = getParsedComment(comment);
@@ -1159,6 +1195,7 @@ function buildOptimisticIOUReportAction(type, amount, currency, comment, partici
     // IOUs of type split only exist in group DMs and those don't have an iouReport so we need to delete the IOUReportID key
     if (type === CONST.IOU.REPORT_ACTION_TYPE.SPLIT) {
         delete originalMessage.IOUReportID;
+        originalMessage.participants = [currentUserEmail, ..._.pluck(participants, 'login')];
     }
 
     return {
@@ -1169,7 +1206,7 @@ function buildOptimisticIOUReportAction(type, amount, currency, comment, partici
         avatar: lodashGet(currentUserPersonalDetails, 'avatar', getDefaultAvatar(currentUserEmail)),
         isAttachment: false,
         originalMessage,
-        message: getIOUReportActionMessage(type, amount, participants, textForNewCommentDecoded, currency, paymentType, isSettlingUp),
+        message: getIOUReportActionMessage(type, amount, textForNewCommentDecoded, currency, paymentType, isSettlingUp),
         person: [
             {
                 style: 'strong',
@@ -1892,6 +1929,7 @@ export {
     buildOptimisticClosedReportAction,
     buildOptimisticCreatedReportAction,
     buildOptimisticIOUReport,
+    buildOptimisticExpenseReport,
     buildOptimisticIOUReportAction,
     buildOptimisticAddCommentReportAction,
     shouldReportBeInOptionList,
