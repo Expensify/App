@@ -37,7 +37,7 @@ class TimezoneSelectPage extends Component {
 
         this.timezone = this.getUserTimezone(props.currentUserPersonalDetails);
         this.allTimezones = _.chain(moment.tz.names())
-            .filter(timezone => !timezone.startsWith('Etc/GMT'))
+            .filter((timezone) => !timezone.startsWith('Etc/GMT'))
             .map(this.getTimezoneOption)
             .value();
 
@@ -72,7 +72,7 @@ class TimezoneSelectPage extends Component {
      * @return {string} key for list item
      */
     getKey(text) {
-        return `${text}-${(new Date()).getTime()}`;
+        return `${text}-${new Date().getTime()}`;
     }
 
     /**
@@ -115,7 +115,7 @@ class TimezoneSelectPage extends Component {
     filterShownTimezones(searchText) {
         this.setState({
             timezoneInputText: searchText,
-            timezoneOptions: _.filter(this.allTimezones, (tz => tz.text.toLowerCase().includes(searchText.trim().toLowerCase()))),
+            timezoneOptions: _.filter(this.allTimezones, (tz) => tz.text.toLowerCase().includes(searchText.trim().toLowerCase())),
         });
     }
 
@@ -139,7 +139,7 @@ class TimezoneSelectPage extends Component {
                             sections={[{data: this.state.timezoneOptions, indexOffset: 0, isDisabled: this.timezone.automatic}]}
                             shouldHaveOptionSeparator
                             safeAreaPaddingBottomStyle={safeAreaPaddingBottomStyle}
-                            initiallyFocusedOptionKey={_.get(_.filter(this.state.timezoneOptions, tz => tz.text === this.timezone.selected)[0], 'keyForList')}
+                            initiallyFocusedOptionKey={_.get(_.filter(this.state.timezoneOptions, (tz) => tz.text === this.timezone.selected)[0], 'keyForList')}
                         />
                     </>
                 )}
@@ -151,7 +151,4 @@ class TimezoneSelectPage extends Component {
 TimezoneSelectPage.propTypes = propTypes;
 TimezoneSelectPage.defaultProps = defaultProps;
 
-export default compose(
-    withLocalize,
-    withCurrentUserPersonalDetails,
-)(TimezoneSelectPage);
+export default compose(withLocalize, withCurrentUserPersonalDetails)(TimezoneSelectPage);

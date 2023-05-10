@@ -3,4 +3,4 @@
  * @param {String} keyboardType
  * @return {String}
  */
-export default keyboardType => keyboardType;
+export default (keyboardType) => keyboardType;

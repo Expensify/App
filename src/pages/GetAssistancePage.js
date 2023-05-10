@@ -43,22 +43,24 @@ const defaultProps = {
 };
 
 const GetAssistancePage = (props) => {
-    const menuItems = [{
-        title: props.translate('getAssistancePage.chatWithConcierge'),
-        onPress: () => Report.navigateToConciergeChat(),
-        icon: Expensicons.ChatBubble,
-        shouldShowRightIcon: true,
-        wrapperStyle: [styles.cardMenuItem],
-    },
-    {
-        title: props.translate('getAssistancePage.exploreHelpDocs'),
-        onPress: () => Link.openExternalLink(CONST.NEWHELP_URL),
-        icon: Expensicons.QuestionMark,
-        shouldShowRightIcon: true,
-        iconRight: Expensicons.NewWindow,
-        wrapperStyle: [styles.cardMenuItem],
-        link: CONST.NEWHELP_URL,
-    }];
+    const menuItems = [
+        {
+            title: props.translate('getAssistancePage.chatWithConcierge'),
+            onPress: () => Report.navigateToConciergeChat(),
+            icon: Expensicons.ChatBubble,
+            shouldShowRightIcon: true,
+            wrapperStyle: [styles.cardMenuItem],
+        },
+        {
+            title: props.translate('getAssistancePage.exploreHelpDocs'),
+            onPress: () => Link.openExternalLink(CONST.NEWHELP_URL),
+            icon: Expensicons.QuestionMark,
+            shouldShowRightIcon: true,
+            iconRight: Expensicons.NewWindow,
+            wrapperStyle: [styles.cardMenuItem],
+            link: CONST.NEWHELP_URL,
+        },
+    ];
 
     // If the user is eligible for calls with their Guide, add the 'Schedule a setup call' item at the second position in the list
     const guideCalendarLink = lodashGet(props.account, 'guideCalendarLink');
@@ -105,7 +107,7 @@ export default compose(
     withOnyx({
         account: {
             key: ONYXKEYS.ACCOUNT,
-            selector: account => account && ({guideCalendarLink: account.guideCalendarLink}),
+            selector: (account) => account && {guideCalendarLink: account.guideCalendarLink},
         },
     }),
 )(GetAssistancePage);

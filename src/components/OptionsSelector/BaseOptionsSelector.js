@@ -20,10 +20,7 @@ const propTypes = {
     shouldDelayFocus: PropTypes.bool,
 
     /** padding bottom style of safe area */
-    safeAreaPaddingBottomStyle: PropTypes.oneOfType([
-        PropTypes.arrayOf(PropTypes.object),
-        PropTypes.object,
-    ]),
+    safeAreaPaddingBottomStyle: PropTypes.oneOfType([PropTypes.arrayOf(PropTypes.object), PropTypes.object]),
 
     ...optionsSelectorPropTypes,
     ...withLocalizePropTypes,
@@ -69,7 +66,6 @@ class BaseOptionsSelector extends Component {
             enterConfig.modifiers,
             true,
             () => !this.state.allOptions[this.state.focusedIndex],
-            1,
         );
 
         const CTRLEnterConfig = CONST.KEYBOARD_SHORTCUTS.CTRL_ENTER;
@@ -116,22 +112,25 @@ class BaseOptionsSelector extends Component {
         const newOptions = this.flattenSections();
         const newFocusedIndex = this.props.selectedOptions.length;
         // eslint-disable-next-line react/no-did-update-set-state
-        this.setState({
-            allOptions: newOptions,
-            focusedIndex: newFocusedIndex,
-        }, () => {
-            // If we just toggled an option on a multi-selection page or cleared the search input, scroll to top
-            if (this.props.selectedOptions.length !== prevProps.selectedOptions.length || this.props.value === '') {
-                this.scrollToIndex(0);
-                return;
-            }
+        this.setState(
+            {
+                allOptions: newOptions,
+                focusedIndex: newFocusedIndex,
+            },
+            () => {
+                // If we just toggled an option on a multi-selection page or cleared the search input, scroll to top
+                if (this.props.selectedOptions.length !== prevProps.selectedOptions.length || this.props.value === '') {
+                    this.scrollToIndex(0);
+                    return;
+                }
 
-            // Otherwise, scroll to the focused index (as long as it's in range)
-            if (this.state.allOptions.length <= this.state.focusedIndex) {
-                return;
-            }
-            this.scrollToIndex(this.state.focusedIndex);
-        });
+                // Otherwise, scroll to the focused index (as long as it's in range)
+                if (this.state.allOptions.length <= this.state.focusedIndex) {
+                    return;
+                }
+                this.scrollToIndex(this.state.focusedIndex);
+            },
+        );
     }
 
     componentWillUnmount() {
@@ -161,7 +160,7 @@ class BaseOptionsSelector extends Component {
             return defaultIndex;
         }
 
-        const indexOfInitiallyFocusedOption = _.findIndex(allOptions, option => option.keyForList === this.props.initiallyFocusedOptionKey);
+        const indexOfInitiallyFocusedOption = _.findIndex(allOptions, (option) => option.keyForList === this.props.initiallyFocusedOptionKey);
 
         if (indexOfInitiallyFocusedOption >= 0) {
             return indexOfInitiallyFocusedOption;
@@ -267,15 +266,12 @@ class BaseOptionsSelector extends Component {
     }
 
     render() {
-        const shouldShowFooter = (this.props.shouldShowConfirmButton || this.props.footerContent)
-            && !(this.props.canSelectMultipleOptions && _.isEmpty(this.props.selectedOptions));
-        const defaultConfirmButtonText = _.isUndefined(this.props.confirmButtonText)
-            ? this.props.translate('common.confirm')
-            : this.props.confirmButtonText;
+        const shouldShowFooter = (this.props.shouldShowConfirmButton || this.props.footerContent) && !(this.props.canSelectMultipleOptions && _.isEmpty(this.props.selectedOptions));
+        const defaultConfirmButtonText = _.isUndefined(this.props.confirmButtonText) ? this.props.translate('common.confirm') : this.props.confirmButtonText;
         const shouldShowDefaultConfirmButton = !this.props.footerContent && defaultConfirmButtonText;
         const textInput = (
             <TextInput
-                ref={el => this.textInput = el}
+                ref={(el) => (this.textInput = el)}
                 value={this.props.value}
                 label={this.props.textInputLabel}
                 onChangeText={this.props.onChangeText}
@@ -294,7 +290,7 @@ class BaseOptionsSelector extends Component {
         );
         const optionsList = (
             <OptionsList
-                ref={el => this.list = el}
+                ref={(el) => (this.list = el)}
                 optionHoveredStyle={this.props.optionHoveredStyle}
                 onSelectRow={this.selectRow}
                 sections={this.props.sections}
@@ -328,28 +324,23 @@ class BaseOptionsSelector extends Component {
                 onFocusedIndexChanged={this.props.disableArrowKeysActions ? () => {} : this.updateFocusedIndex}
             >
                 <View style={[styles.flex1]}>
-                    {
-                        this.props.shouldTextInputAppearBelowOptions
-                            ? (
-                                <>
-                                    <View style={[styles.flexGrow0, styles.flexShrink1, styles.flexBasisAuto, styles.w100, styles.flexRow]}>
-                                        {optionsList}
-                                    </View>
-                                    <View style={[styles.ph5, styles.pv5, styles.flexGrow1, styles.flexShrink0]}>
-                                        {this.props.children}
-                                        {this.props.shouldShowTextInput && textInput}
-                                    </View>
-                                </>
-                            ) : (
-                                <>
-                                    <View style={[styles.ph5, styles.pb3]}>
-                                        {this.props.children}
-                                        {this.props.shouldShowTextInput && textInput}
-                                    </View>
-                                    {optionsList}
-                                </>
-                            )
-                    }
+                    {this.props.shouldTextInputAppearBelowOptions ? (
+                        <>
+                            <View style={[styles.flexGrow0, styles.flexShrink1, styles.flexBasisAuto, styles.w100, styles.flexRow]}>{optionsList}</View>
+                            <View style={this.props.shouldUseStyleForChildren ? [styles.ph5, styles.pv5, styles.flexGrow1, styles.flexShrink0] : []}>
+                                {this.props.children}
+                                {this.props.shouldShowTextInput && textInput}
+                            </View>
+                        </>
+                    ) : (
+                        <>
+                            <View style={this.props.shouldUseStyleForChildren ? [styles.ph5, styles.pb3] : []}>
+                                {this.props.children}
+                                {this.props.shouldShowTextInput && textInput}
+                            </View>
+                            {optionsList}
+                        </>
+                    )}
                 </View>
                 {shouldShowFooter && (
                     <FixedFooter>
@@ -360,7 +351,7 @@ class BaseOptionsSelector extends Component {
                                 text={defaultConfirmButtonText}
                                 onPress={this.props.onConfirmSelection}
                                 pressOnEnter
-                                enterKeyEventListenerPriority={2}
+                                enterKeyEventListenerPriority={1}
                             />
                         )}
                         {this.props.footerContent}

@@ -29,13 +29,14 @@ export default function () {
         safeEvictionKeys: [ONYXKEYS.COLLECTION.REPORT_ACTIONS],
         captureMetrics: Metrics.canCaptureOnyxMetrics(),
         initialKeyStates: {
-
             // Clear any loading and error messages so they do not appear on app startup
             [ONYXKEYS.SESSION]: {loading: false},
             [ONYXKEYS.ACCOUNT]: CONST.DEFAULT_ACCOUNT_DATA,
             [ONYXKEYS.NETWORK]: {isOffline: false},
             [ONYXKEYS.IOU]: {
-                loading: false, error: false, creatingIOUTransaction: false,
+                loading: false,
+                error: false,
+                creatingIOUTransaction: false,
             },
             [ONYXKEYS.IS_SIDEBAR_LOADED]: false,
             [ONYXKEYS.SHOULD_SHOW_COMPOSE_INPUT]: true,

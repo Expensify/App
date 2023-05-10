@@ -40,7 +40,4 @@ function showContextMenuForReport(event, anchor, reportID, action, checkIfContex
     );
 }
 
-export {
-    ShowContextMenuContext,
-    showContextMenuForReport,
-};
+export {ShowContextMenuContext, showContextMenuForReport};

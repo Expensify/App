@@ -1,8 +1,6 @@
 import React from 'react';
 import {Linking} from 'react-native';
-import {
-    TNodeChildrenRenderer,
-} from 'react-native-render-html';
+import {TNodeChildrenRenderer} from 'react-native-render-html';
 import lodashGet from 'lodash/get';
 import htmlRendererPropTypes from './htmlRendererPropTypes';
 import * as HTMLEngineUtils from '../htmlEngineUtils';
@@ -28,12 +26,13 @@ const AnchorRenderer = (props) => {
     const attrHref = htmlAttribs.href || '';
     const attrPath = lodashGet(Url.getURLObject(attrHref), 'path', '').replace('/', '');
     const hasExpensifyOrigin = Url.hasSameExpensifyOrigin(attrHref, CONFIG.EXPENSIFY.EXPENSIFY_URL) || Url.hasSameExpensifyOrigin(attrHref, CONFIG.EXPENSIFY.STAGING_API_ROOT);
-    const internalNewExpensifyPath = (Url.hasSameExpensifyOrigin(attrHref, CONST.NEW_EXPENSIFY_URL) || Url.hasSameExpensifyOrigin(attrHref, CONST.STAGING_NEW_EXPENSIFY_URL))
-        && !CONST.PATHS_TO_TREAT_AS_EXTERNAL.includes(attrPath) ? attrPath : '';
-    const internalExpensifyPath = hasExpensifyOrigin
-                                    && !attrPath.startsWith(CONFIG.EXPENSIFY.CONCIERGE_URL_PATHNAME)
-                                    && !attrPath.startsWith(CONFIG.EXPENSIFY.DEVPORTAL_URL_PATHNAME)
-                                    && attrPath;
+    const internalNewExpensifyPath =
+        (Url.hasSameExpensifyOrigin(attrHref, CONST.NEW_EXPENSIFY_URL) || Url.hasSameExpensifyOrigin(attrHref, CONST.STAGING_NEW_EXPENSIFY_URL)) &&
+        !CONST.PATHS_TO_TREAT_AS_EXTERNAL.includes(attrPath)
+            ? attrPath
+            : '';
+    const internalExpensifyPath =
+        hasExpensifyOrigin && !attrPath.startsWith(CONFIG.EXPENSIFY.CONCIERGE_URL_PATHNAME) && !attrPath.startsWith(CONFIG.EXPENSIFY.DEVPORTAL_URL_PATHNAME) && attrPath;
     const navigateToLink = () => {
         // There can be messages from Concierge with links to specific NewDot reports. Those URLs look like this:
         // https://www.expensify.com.dev/newdotreport?reportID=3429600449838908 and they have a target="_blank" attribute. This is so that when a user is on OldDot,
@@ -90,7 +89,6 @@ const AnchorRenderer = (props) => {
     return (
         <AnchorForCommentsOnly
             href={attrHref}
-
             // Unless otherwise specified open all links in
             // a new window. On Desktop this means that we will
             // skip the default Save As... download prompt
@@ -101,9 +99,8 @@ const AnchorRenderer = (props) => {
             style={{...props.style, ...parentStyle}}
             key={props.key}
             displayName={displayName}
-
             // Only pass the press handler for internal links. For public links or whitelisted internal links fallback to default link handling
-            onPress={(internalNewExpensifyPath || internalExpensifyPath) ? navigateToLink : undefined}
+            onPress={internalNewExpensifyPath || internalExpensifyPath ? navigateToLink : undefined}
         >
             <TNodeChildrenRenderer tnode={props.tnode} />
         </AnchorForCommentsOnly>

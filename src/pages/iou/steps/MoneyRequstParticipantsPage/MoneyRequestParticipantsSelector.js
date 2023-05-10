@@ -31,10 +31,7 @@ const propTypes = {
     isLoadingReportData: PropTypes.bool,
 
     /** padding bottom style of safe area */
-    safeAreaPaddingBottomStyle: PropTypes.oneOfType([
-        PropTypes.arrayOf(PropTypes.object),
-        PropTypes.object,
-    ]),
+    safeAreaPaddingBottomStyle: PropTypes.oneOfType([PropTypes.arrayOf(PropTypes.object), PropTypes.object]),
 
     /** The type of IOU report, i.e. bill, request, send */
     iouType: PropTypes.string.isRequired,
@@ -57,11 +54,7 @@ class MoneyRequestParticipantsSelector extends Component {
         this.addSingleParticipant = this.addSingleParticipant.bind(this);
         this.updateOptionsWithSearchTerm = this.updateOptionsWithSearchTerm.bind(this);
 
-        const {
-            recentReports,
-            personalDetails,
-            userToInvite,
-        } = this.getRequestOptions();
+        const {recentReports, personalDetails, userToInvite} = this.getRequestOptions();
 
         this.state = {
             recentReports,
@@ -136,11 +129,7 @@ class MoneyRequestParticipantsSelector extends Component {
     }
 
     updateOptionsWithSearchTerm(searchTerm = '') {
-        const {
-            recentReports,
-            personalDetails,
-            userToInvite,
-        } = this.getRequestOptions(searchTerm);
+        const {recentReports, personalDetails, userToInvite} = this.getRequestOptions(searchTerm);
         this.setState({
             searchTerm,
             recentReports,

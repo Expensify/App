@@ -15,19 +15,21 @@ const propTypes = {
     contentContainerStyles: PropTypes.arrayOf(PropTypes.object),
 
     /** Sections for the section list */
-    sections: PropTypes.arrayOf(PropTypes.shape({
-        /** Title of the section */
-        title: PropTypes.string,
+    sections: PropTypes.arrayOf(
+        PropTypes.shape({
+            /** Title of the section */
+            title: PropTypes.string,
 
-        /** The initial index of this section given the total number of options in each section's data array */
-        indexOffset: PropTypes.number,
+            /** The initial index of this section given the total number of options in each section's data array */
+            indexOffset: PropTypes.number,
 
-        /** Array of options */
-        data: PropTypes.arrayOf(optionPropTypes),
+            /** Array of options */
+            data: PropTypes.arrayOf(optionPropTypes),
 
-        /** Whether this section should show or not */
-        shouldShow: PropTypes.bool,
-    })),
+            /** Whether this section should show or not */
+            shouldShow: PropTypes.bool,
+        }),
+    ),
 
     /** Index for option to focus on */
     focusedIndex: PropTypes.number,
@@ -54,10 +56,7 @@ const propTypes = {
     headerMessage: PropTypes.string,
 
     /** Passed via forwardRef so we can access the SectionList ref */
-    innerRef: PropTypes.oneOfType([
-        PropTypes.func,
-        PropTypes.shape({current: PropTypes.instanceOf(SectionList)}),
-    ]),
+    innerRef: PropTypes.oneOfType([PropTypes.func, PropTypes.shape({current: PropTypes.instanceOf(SectionList)})]),
 
     /** Whether to show the title tooltip */
     showTitleTooltip: PropTypes.bool,

@@ -57,11 +57,7 @@ class NewChatPage extends Component {
         this.updateOptionsWithSearchTerm = this.updateOptionsWithSearchTerm.bind(this);
         this.excludedGroupEmails = _.without(CONST.EXPENSIFY_EMAILS, CONST.EMAIL.CONCIERGE);
 
-        const {
-            recentReports,
-            personalDetails,
-            userToInvite,
-        } = OptionsListUtils.getNewChatOptions(
+        const {recentReports, personalDetails, userToInvite} = OptionsListUtils.getNewChatOptions(
             props.reports,
             props.personalDetails,
             props.betas,
@@ -132,23 +128,19 @@ class NewChatPage extends Component {
         indexOffset += personalDetailsWithoutSelected.length;
 
         if (hasUnselectedUserToInvite) {
-            sections.push(({
+            sections.push({
                 title: undefined,
                 data: [this.state.userToInvite],
                 shouldShow: true,
                 indexOffset,
-            }));
+            });
         }
 
         return sections;
     }
 
     updateOptionsWithSearchTerm(searchTerm = '') {
-        const {
-            recentReports,
-            personalDetails,
-            userToInvite,
-        } = OptionsListUtils.getNewChatOptions(
+        const {recentReports, personalDetails, userToInvite} = OptionsListUtils.getNewChatOptions(
             this.props.reports,
             this.props.personalDetails,
             this.props.betas,
@@ -170,25 +162,17 @@ class NewChatPage extends Component {
      */
     toggleOption(option) {
         this.setState((prevState) => {
-            const isOptionInList = _.some(prevState.selectedOptions, selectedOption => (
-                selectedOption.login === option.login
-            ));
+            const isOptionInList = _.some(prevState.selectedOptions, (selectedOption) => selectedOption.login === option.login);
 
             let newSelectedOptions;
 
             if (isOptionInList) {
-                newSelectedOptions = _.reject(prevState.selectedOptions, selectedOption => (
-                    selectedOption.login === option.login
-                ));
+                newSelectedOptions = _.reject(prevState.selectedOptions, (selectedOption) => selectedOption.login === option.login);
             } else {
                 newSelectedOptions = [...prevState.selectedOptions, option];
             }
 
-            const {
-                recentReports,
-                personalDetails,
-                userToInvite,
-            } = OptionsListUtils.getNewChatOptions(
+            const {recentReports, personalDetails, userToInvite} = OptionsListUtils.getNewChatOptions(
                 this.props.reports,
                 this.props.personalDetails,
                 this.props.betas,
@@ -237,7 +221,7 @@ class NewChatPage extends Component {
         const maxParticipantsReached = this.state.selectedOptions.length === CONST.REPORT.MAXIMUM_PARTICIPANTS;
         const sections = this.getSections(maxParticipantsReached);
         const headerMessage = OptionsListUtils.getHeaderMessage(
-            (this.state.personalDetails.length + this.state.recentReports.length) !== 0,
+            this.state.personalDetails.length + this.state.recentReports.length !== 0,
             Boolean(this.state.userToInvite),
             this.state.searchTerm,
             maxParticipantsReached,
@@ -245,13 +229,14 @@ class NewChatPage extends Component {
         const isOptionsDataReady = !this.props.isLoadingReportData && OptionsListUtils.isPersonalDetailsReady(this.props.personalDetails);
 
         return (
-            <ScreenWrapper includeSafeAreaPaddingBottom={false} shouldEnableMaxHeight>
+            <ScreenWrapper
+                includeSafeAreaPaddingBottom={false}
+                shouldEnableMaxHeight
+            >
                 {({didScreenTransitionEnd, safeAreaPaddingBottomStyle}) => (
                     <>
                         <HeaderWithCloseButton
-                            title={this.props.isGroupChat
-                                ? this.props.translate('sidebarScreen.newGroup')
-                                : this.props.translate('sidebarScreen.newChat')}
+                            title={this.props.isGroupChat ? this.props.translate('sidebarScreen.newGroup') : this.props.translate('sidebarScreen.newChat')}
                             onCloseButtonPress={() => Navigation.dismissModal(true)}
                         />
                         <View style={[styles.flex1, styles.w100, styles.pRelative, this.state.selectedOptions.length > 0 ? safeAreaPaddingBottomStyle : {}]}>
@@ -260,7 +245,7 @@ class NewChatPage extends Component {
                                 sections={sections}
                                 selectedOptions={this.state.selectedOptions}
                                 value={this.state.searchTerm}
-                                onSelectRow={option => (this.props.isGroupChat ? this.toggleOption(option) : this.createChat(option))}
+                                onSelectRow={(option) => (this.props.isGroupChat ? this.toggleOption(option) : this.createChat(option))}
                                 onChangeText={this.updateOptionsWithSearchTerm}
                                 headerMessage={headerMessage}
                                 boldStyle
@@ -272,7 +257,6 @@ class NewChatPage extends Component {
                                 textInputLabel={this.props.translate('optionsSelector.nameEmailOrPhoneNumber')}
                                 safeAreaPaddingBottomStyle={safeAreaPaddingBottomStyle}
                             />
-
                         </View>
                     </>
                 )}
