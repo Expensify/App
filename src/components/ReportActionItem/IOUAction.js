@@ -101,7 +101,6 @@ const IOUAction = (props) => {
                 contextMenuAnchor={props.contextMenuAnchor}
                 checkIfContextMenuActive={props.checkIfContextMenuActive}
                 shouldShowPendingConversionMessage={shouldShowPendingConversionMessage}
-                onPayButtonPressed={onIOUPreviewPressed}
                 onPreviewPressed={onIOUPreviewPressed}
                 containerStyles={[styles.cursorPointer, props.isHovered ? styles.iouPreviewBoxHover : undefined]}
                 isHovered={props.isHovered}

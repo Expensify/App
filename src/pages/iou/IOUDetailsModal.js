@@ -189,7 +189,6 @@ class IOUDetailsModal extends Component {
                                         isBillSplit={this.props.chatReport.participants.length > 1}
                                         isIOUAction={false}
                                         pendingAction={pendingAction}
-                                        shouldHidePayButton
                                     />
                                     <IOUTransactions
                                         chatReportID={this.props.route.params.chatReportID}
