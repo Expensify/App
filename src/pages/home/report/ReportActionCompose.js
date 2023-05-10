@@ -242,9 +242,8 @@ class ReportActionCompose extends React.Component {
         this.unsubscribeEscapeKey = KeyboardShortcut.subscribe(
             shortcutConfig.shortcutKey,
             () => {
-                const suggestionsExist = this.state.suggestedEmojis.length > 0
-                    || this.state.suggestedMentions.length > 0;
-                
+                const suggestionsExist = this.state.suggestedEmojis.length > 0 || this.state.suggestedMentions.length > 0;
+
                 if (!this.state.isFocused || this.comment.length === 0 || suggestionsExist) {
                     return;
                 }
@@ -551,12 +550,8 @@ class ReportActionCompose extends React.Component {
         const isCursorBeforeTheMention = valueAfterTheCursor.startsWith(lastWord);
 
         if (!isCursorBeforeTheMention && this.isMentionCode(lastWord)) {
-            const options = OptionsListUtils.getNewChatOptions(
-                this.props.reports,
-                this.props.personalDetails,
-                this.props.betas, prefix,
-            );
-            const suggestions = _.filter([...options.recentReports, options.userToInvite], x => !!x);
+            const options = OptionsListUtils.getNewChatOptions(this.props.reports, this.props.personalDetails, this.props.betas, prefix);
+            const suggestions = _.filter([...options.recentReports, options.userToInvite], (x) => !!x);
 
             nextState.suggestedMentions = suggestions;
             nextState.shouldShowMentionSuggestionMenu = !_.isEmpty(suggestions);
@@ -615,7 +610,7 @@ class ReportActionCompose extends React.Component {
         const commentAfterAtSignWithMentionRemoved = this.state.value.slice(this.state.atSignIndex).replace(CONST.REGEX.MENTION_REPLACER, '');
 
         this.updateComment(`${commentBeforeAtSign}${mentionCode} ${commentAfterAtSignWithMentionRemoved}`, true);
-        this.setState(prevState => ({
+        this.setState((prevState) => ({
             selection: {
                 start: prevState.atSignIndex + mentionCode.length + CONST.SPACE_LENGTH,
                 end: prevState.atSignIndex + mentionCode.length + CONST.SPACE_LENGTH,
@@ -748,8 +743,7 @@ class ReportActionCompose extends React.Component {
             return;
         }
 
-        const suggestionsExist = this.state.suggestedEmojis.length > 0
-            || this.state.suggestedMentions.length > 0;
+        const suggestionsExist = this.state.suggestedEmojis.length > 0 || this.state.suggestedMentions.length > 0;
 
         if ((e.key === CONST.KEYBOARD_SHORTCUTS.ENTER.shortcutKey || e.key === CONST.KEYBOARD_SHORTCUTS.TAB.shortcutKey) && suggestionsExist) {
             e.preventDefault();
@@ -1145,14 +1139,14 @@ class ReportActionCompose extends React.Component {
                         focusedIndex={this.state.highlightedMentionIndex}
                         maxIndex={getMaxArrowIndex(this.state.suggestedMentions.length, this.state.isEmojiPickerLarge)}
                         shouldExcludeTextAreaNodes={false}
-                        onFocusedIndexChanged={index => this.setState({highlightedMentionIndex: index})}
+                        onFocusedIndexChanged={(index) => this.setState({highlightedMentionIndex: index})}
                     >
                         <MentionSuggestions
                             onClose={() => this.setState({suggestedMentions: []})}
                             highlightedMentionIndex={this.state.highlightedMentionIndex}
                             mentions={this.state.suggestedMentions}
                             comment={this.state.value}
-                            updateComment={newComment => this.setState({value: newComment})}
+                            updateComment={(newComment) => this.setState({value: newComment})}
                             colonIndex={this.state.colonIndex}
                             prefix={this.state.mentionPrefix}
                             onSelect={this.insertSelectedMention}

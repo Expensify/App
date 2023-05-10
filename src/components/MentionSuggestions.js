@@ -16,16 +16,18 @@ const propTypes = {
     highlightedMentionIndex: PropTypes.number,
 
     /** Array of suggested mentions */
-    mentions: PropTypes.arrayOf(PropTypes.shape({
-        /** Display name of the user */
-        text: PropTypes.string,
+    mentions: PropTypes.arrayOf(
+        PropTypes.shape({
+            /** Display name of the user */
+            text: PropTypes.string,
 
-        /** Email/phone number of the user */
-        alternateText: PropTypes.string,
+            /** Email/phone number of the user */
+            alternateText: PropTypes.string,
 
-        /** Array of icons of the user. We use the first element of this array */
-        icons: PropTypes.arrayOf(avatarPropTypes),
-    })).isRequired,
+            /** Array of icons of the user. We use the first element of this array */
+            icons: PropTypes.arrayOf(avatarPropTypes),
+        }),
+    ).isRequired,
 
     /** Fired when the user selects an mention */
     onSelect: PropTypes.func.isRequired,
@@ -52,7 +54,7 @@ const defaultProps = {
  * @param {Number} index
  * @returns {String}
  */
-const keyExtractor = item => item.alternateText;
+const keyExtractor = (item) => item.alternateText;
 
 const MentionSuggestions = (props) => {
     /**
@@ -72,9 +74,15 @@ const MentionSuggestions = (props) => {
                     name={item.icons[0].name}
                     type={item.icons[0].type}
                 />
-                <Text style={styles.mentionSuggestionsText} numberOfLines={1}>
+                <Text
+                    style={styles.mentionSuggestionsText}
+                    numberOfLines={1}
+                >
                     {_.map(styledTextArray, ({text, isColored}, i) => (
-                        <Text key={`${text}${i}`} style={StyleUtils.getColoredBackgroundStyle(isColored)}>
+                        <Text
+                            key={`${text}${i}`}
+                            style={StyleUtils.getColoredBackgroundStyle(isColored)}
+                        >
                             {text}
                         </Text>
                     ))}
