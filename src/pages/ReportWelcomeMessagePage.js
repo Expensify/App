@@ -2,12 +2,10 @@ import React, {
     useCallback, useRef, useState,
 } from 'react';
 import PropTypes from 'prop-types';
-import {withOnyx} from 'react-native-onyx';
 import _ from 'underscore';
 import {ScrollView, View} from 'react-native';
 import compose from '../libs/compose';
 import withLocalize, {withLocalizePropTypes} from '../components/withLocalize';
-import ONYXKEYS from '../ONYXKEYS';
 import ScreenWrapper from '../components/ScreenWrapper';
 import Navigation from '../libs/Navigation/Navigation';
 import HeaderWithCloseButton from '../components/HeaderWithCloseButton';
@@ -37,7 +35,7 @@ const propTypes = {
 };
 
 function ReportWelcomeMessagePage(props) {
-    const [welcomeMessage, setWelcomeMessage] = useState('');
+    const [welcomeMessage, setWelcomeMessage] = useState(props.report.welcomeMessage);
     const welcomeMessageInputRef = useRef(null);
 
     const handleWelcomeMessageChange = useCallback((value) => {
@@ -46,7 +44,7 @@ function ReportWelcomeMessagePage(props) {
 
     const submitForm = useCallback(() => {
         Report.updateWelcomeMessage(props.report.reportID, props.report.welcomeMessage, welcomeMessage);
-    }, [welcomeMessage]);
+    }, [props.report.reportID, props.report.welcomeMessage, welcomeMessage]);
 
     return (
         <ScreenWrapper
