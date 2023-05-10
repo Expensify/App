@@ -190,7 +190,7 @@ function canEditReportAction(reportAction) {
  * @returns {Boolean}
  */
 function canDeleteReportAction(reportAction) {
-    if (reportAction.actionName !== CONST.REPORT.ACTIONS.TYPE.ADDCOMMENT || reportAction.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE) {
+    if (reportAction.actionName !== CONST.REPORT.ACTIONS.TYPE.ADDCOMMENT || reportAction.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE) {
         return false;
     }
     const report = allReports[`${ONYXKEYS.COLLECTION.REPORT}${reportAction.reportID}`] || {};
