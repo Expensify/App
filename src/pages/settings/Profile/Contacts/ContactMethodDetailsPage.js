@@ -110,7 +110,6 @@ class ContactMethodDetailsPage extends Component {
 
     /**
      * Gets the current contact method from the route params
-     *
      * @returns {string}
      */
     getContactMethod() {
