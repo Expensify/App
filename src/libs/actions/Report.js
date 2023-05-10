@@ -347,7 +347,6 @@ function openReport(reportID, participantList = [], newReportObject = {}) {
         value: {
             isLoadingReportActions: true,
             isLoadingMoreReportActions: false,
-            lastReadTime: DateUtils.getDBTime(),
             reportName: lodashGet(allReports, [reportID, 'reportName'], CONST.REPORT.DEFAULT_REPORT_NAME),
         },
     };
@@ -627,7 +626,8 @@ function openMoneyRequestsReportPage(chatReportID, linkedReportID) {
  */
 function readNewestAction(reportID) {
     console.log(`~~Monil marking comment as read ${reportID}`);
-    API.write('ReadNewestAction',
+    API.write(
+        'ReadNewestAction',
         {
             reportID,
         },
@@ -1556,7 +1556,6 @@ function openReportFromDeepLink(url) {
 function getCurrentUserAccountID() {
     return currentUserAccountID;
 }
-
 
 /**
  * @param {String|null} reportID
