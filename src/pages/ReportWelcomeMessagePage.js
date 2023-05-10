@@ -2,6 +2,7 @@ import React, {useCallback, useRef, useState} from 'react';
 import PropTypes from 'prop-types';
 import _ from 'underscore';
 import {ScrollView, View} from 'react-native';
+import Str from "expensify-common/lib/str";
 import compose from '../libs/compose';
 import withLocalize, {withLocalizePropTypes} from '../components/withLocalize';
 import ScreenWrapper from '../components/ScreenWrapper';
@@ -33,7 +34,7 @@ const propTypes = {
 };
 
 function ReportWelcomeMessagePage(props) {
-    const [welcomeMessage, setWelcomeMessage] = useState(props.report.welcomeMessage);
+    const [welcomeMessage, setWelcomeMessage] = useState(Str.htmlDecode(props.report.welcomeMessage));
     const welcomeMessageInputRef = useRef(null);
 
     const handleWelcomeMessageChange = useCallback((value) => {
