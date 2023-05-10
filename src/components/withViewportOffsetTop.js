@@ -53,20 +53,18 @@ export default function (WrappedComponent) {
 
     WithViewportOffsetTop.displayName = `WithViewportOffsetTop(${getComponentDisplayName(WrappedComponent)})`;
     WithViewportOffsetTop.propTypes = {
-        forwardedRef: PropTypes.oneOfType([
-            PropTypes.func,
-            PropTypes.shape({current: PropTypes.instanceOf(React.Component)}),
-        ]),
+        forwardedRef: PropTypes.oneOfType([PropTypes.func, PropTypes.shape({current: PropTypes.instanceOf(React.Component)})]),
     };
     WithViewportOffsetTop.defaultProps = {
         forwardedRef: undefined,
     };
     return React.forwardRef((props, ref) => (
-        // eslint-disable-next-line react/jsx-props-no-spreading
-        <WithViewportOffsetTop {...props} forwardedRef={ref} />
+        <WithViewportOffsetTop
+            // eslint-disable-next-line react/jsx-props-no-spreading
+            {...props}
+            forwardedRef={ref}
+        />
     ));
 }
 
-export {
-    viewportOffsetTopPropTypes,
-};
+export {viewportOffsetTopPropTypes};

@@ -18,7 +18,7 @@ const propTypes = {
     ...withLocalizePropTypes,
 };
 
-const WorkspaceInvoicesNoVBAView = props => (
+const WorkspaceInvoicesNoVBAView = (props) => (
     <>
         <WorkspaceInvoicesFirstSection policyID={props.policyID} />
 
