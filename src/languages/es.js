@@ -571,6 +571,10 @@ export default {
             },
         },
     },
+    welcomeMessagePage: {
+        welcomeMessage: 'Mensaje de bienvenida',
+        explainerText: 'Choose whether to show all chats by default sorted with most recent with pinned items at the top, or #focus on unread pinned items, sorted alphabetically.',
+    },
     languagePage: {
         language: 'Idioma',
         languages: {

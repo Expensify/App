@@ -82,7 +82,17 @@ class ReportDetailsPage extends Component {
             });
         }
 
+        // We only want policy owners and admins to be able to modify the welcome message.
         const policy = this.props.policies[`${ONYXKEYS.COLLECTION.POLICY}${this.props.report.policyID}`];
+        if (!ReportUtils.isArchivedRoom(this.props.report) && (Policy.isPolicyOwner(policy) && policy.role === CONST.POLICY.ROLE.ADMIN)) {
+            menuItems.push({
+                key: CONST.REPORT_DETAILS_MENU_ITEM.WELCOME_MESSAGE,
+                translationKey: 'welcomeMessagePage.welcomeMessage',
+                icon: Expensicons.ChatBubble,
+                action: () => { Navigation.navigate(ROUTES.getReportSettingsRoute(this.props.report.reportID)); },
+            });
+        }
+
         if (ReportUtils.isUserCreatedPolicyRoom(this.props.report) || ReportUtils.canLeaveRoom(this.props.report, !_.isEmpty(policy))) {
             menuItems.push({
                 key: CONST.REPORT_DETAILS_MENU_ITEM.LEAVE_ROOM,

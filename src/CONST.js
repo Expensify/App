@@ -1089,6 +1089,7 @@ const CONST = {
         MEMBERS: 'member',
         SETTINGS: 'settings',
         LEAVE_ROOM: 'leaveRoom',
+        WELCOME_MESSAGE: 'welcomeMessage',
     },
 
     FOOTER: {
