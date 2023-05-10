@@ -2052,7 +2052,7 @@ const styles = {
         ...flex.flexColumn,
         ...flex.alignItemsCenter,
         ...spacing.mt4,
-        height: 170,
+        height: 210,
     },
 
     reportDetailsRoomInfo: {

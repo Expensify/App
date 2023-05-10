@@ -151,8 +151,12 @@ class ReportDetailsPage extends Component {
 
                                     <Button
                                         text={this.props.translate('common.shareCode')}
-                                        iconRight={Expensicons.Shield}
+                                        medium
+
+                                        // TODO: Replace with "QrCode" icon from Figma
+                                        icon={Expensicons.Link}
                                         onPress={() => Navigation.navigate(ROUTES.getReportShareCodeRoute(this.props.report.reportID))}
+                                        style={{marginVertical: 20, alignSelf: 'center'}}
                                     />
                                 </View>
                             </View>
