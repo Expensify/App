@@ -124,7 +124,7 @@ const GenericPressable = forwardRef((props, ref) => {
             onKeyPress={!isDisabled ? onKeyPressHandler : undefined}
             onPressIn={!isDisabled ? onPressIn : undefined}
             onPressOut={!isDisabled ? onPressOut : undefined}
-            style={state => [
+            style={(state) => [
                 getCursorStyle(isDisabled, [props.accessibilityRole, props.role].includes('text')),
                 props.style,
                 isScreenReaderActive && StyleUtils.parseStyleFromFunction(props.screenReaderActiveStyle, state),

@@ -60,7 +60,6 @@ class Switch extends Component {
                 accessibilityState={{checked: this.props.isOn}}
                 aria-checked={this.props.isOn}
                 accessibilityLabel={this.props.accessibilityLabel}
-
                 // disable hover dim for switch
                 hoverDimmingValue={1}
                 pressDimmingValue={0.8}
