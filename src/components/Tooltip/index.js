@@ -45,8 +45,7 @@ class Tooltip extends PureComponent {
         }
 
         this.getWrapperPositionPromise = makeCancellablePromise(this.getWrapperPosition());
-        this.getWrapperPositionPromise.promise
-            .then(({x, y}) => this.setState({xOffset: x, yOffset: y}));
+        this.getWrapperPositionPromise.promise.then(({x, y}) => this.setState({xOffset: x, yOffset: y}));
     }
 
     componentWillUnmount() {
@@ -63,18 +62,26 @@ class Tooltip extends PureComponent {
      * @returns {Promise}
      */
     getWrapperPosition() {
-        return new Promise(((resolve) => {
+        return new Promise((resolve) => {
             // Make sure the wrapper is mounted before attempting to measure it.
             if (this.wrapperView && _.isFunction(this.wrapperView.measureInWindow)) {
-                this.wrapperView.measureInWindow((x, y, width, height) => resolve({
-                    x, y, width, height,
-                }));
+                this.wrapperView.measureInWindow((x, y, width, height) =>
+                    resolve({
+                        x,
+                        y,
+                        width,
+                        height,
+                    }),
+                );
             } else {
                 resolve({
-                    x: 0, y: 0, width: 0, height: 0,
+                    x: 0,
+                    y: 0,
+                    width: 0,
+                    height: 0,
                 });
             }
-        }));
+        });
     }
 
     /**
@@ -90,35 +97,32 @@ class Tooltip extends PureComponent {
         // We have to dynamically calculate the position here as tooltip could have been rendered on some elments
         // that has changed its position
         this.getWrapperPositionPromise = makeCancellablePromise(this.getWrapperPosition());
-        this.getWrapperPositionPromise.promise
-            .then(({
-                x, y, width, height,
-            }) => {
-                this.setState({
-                    wrapperWidth: width,
-                    wrapperHeight: height,
-                    xOffset: x,
-                    yOffset: y,
-                });
-
-                // We may need this check due to the reason that the animation start will fire async
-                // and hideTooltip could fire before it thus keeping the Tooltip visible
-                if (this.shouldStartShowAnimation) {
-                    // When TooltipSense is active, immediately show the tooltip
-                    if (TooltipSense.isActive()) {
-                        this.animation.setValue(1);
-                    } else {
-                        this.isTooltipSenseInitiator = true;
-                        Animated.timing(this.animation, {
-                            toValue: 1,
-                            duration: 140,
-                            delay: 500,
-                            useNativeDriver: false,
-                        }).start();
-                    }
-                    TooltipSense.activate();
-                }
+        this.getWrapperPositionPromise.promise.then(({x, y, width, height}) => {
+            this.setState({
+                wrapperWidth: width,
+                wrapperHeight: height,
+                xOffset: x,
+                yOffset: y,
             });
+
+            // We may need this check due to the reason that the animation start will fire async
+            // and hideTooltip could fire before it thus keeping the Tooltip visible
+            if (this.shouldStartShowAnimation) {
+                // When TooltipSense is active, immediately show the tooltip
+                if (TooltipSense.isActive()) {
+                    this.animation.setValue(1);
+                } else {
+                    this.isTooltipSenseInitiator = true;
+                    Animated.timing(this.animation, {
+                        toValue: 1,
+                        duration: 140,
+                        delay: 500,
+                        useNativeDriver: false,
+                    }).start();
+                }
+                TooltipSense.activate();
+            }
+        });
     }
 
     /**
@@ -149,7 +153,7 @@ class Tooltip extends PureComponent {
         }
         let child = (
             <View
-                ref={el => this.wrapperView = el}
+                ref={(el) => (this.wrapperView = el)}
                 onBlur={this.hideTooltip}
                 focusable={this.props.focusable}
                 style={this.props.containerStyles}
@@ -196,7 +200,6 @@ class Tooltip extends PureComponent {
                         maxWidth={this.props.maxWidth}
                         numberOfLines={this.props.numberOfLines}
                         renderTooltipContent={this.props.renderTooltipContent}
-
                         // We pass a key, so whenever the content changes this component will completely remount with a fresh state.
                         // This prevents flickering/moving while remaining performant.
                         key={[this.props.text, ...this.props.renderTooltipContentKey]}

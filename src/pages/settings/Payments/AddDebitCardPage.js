@@ -174,9 +174,7 @@ class DebitCardPage extends Component {
                         containerStyles={[styles.mt4]}
                     />
                     <View style={styles.mt4}>
-                        <StatePicker
-                            inputID="addressState"
-                        />
+                        <StatePicker inputID="addressState" />
                     </View>
                     {!Permissions.canUsePasswordlessLogins(this.props.betas) && (
                         <View style={[styles.mt4]}>
@@ -194,9 +192,7 @@ class DebitCardPage extends Component {
                         LabelComponent={() => (
                             <Text>
                                 {`${this.props.translate('common.iAcceptThe')}`}
-                                <TextLink href="https://use.expensify.com/terms">
-                                    {`${this.props.translate('common.expensifyTermsOfService')}`}
-                                </TextLink>
+                                <TextLink href="https://use.expensify.com/terms">{`${this.props.translate('common.expensifyTermsOfService')}`}</TextLink>
                             </Text>
                         )}
                         style={[styles.mt4]}

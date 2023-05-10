@@ -41,7 +41,6 @@ const propTypes = {
 
     /** User's account who is setting up bank account */
     account: PropTypes.shape({
-
         /** If user has Two factor authentication enabled */
         requiresTwoFactorAuth: PropTypes.bool,
     }),
@@ -130,7 +129,10 @@ class ValidationStep extends React.Component {
         const requiresTwoFactorAuth = lodashGet(this.props, 'account.requiresTwoFactorAuth');
 
         return (
-            <ScreenWrapper style={[styles.flex1, styles.justifyContentBetween]} includeSafeAreaPaddingBottom={false}>
+            <ScreenWrapper
+                style={[styles.flex1, styles.justifyContentBetween]}
+                includeSafeAreaPaddingBottom={false}
+            >
                 <HeaderWithCloseButton
                     title={isVerifying ? this.props.translate('validationStep.headerTitle') : this.props.translate('workspace.common.testTransactions')}
                     stepCounter={{step: 5, total: 5}}
@@ -144,14 +146,8 @@ class ValidationStep extends React.Component {
                 {maxAttemptsReached && (
                     <View style={[styles.m5, styles.flex1]}>
                         <Text>
-                            {this.props.translate('validationStep.maxAttemptsReached')}
-                            {' '}
-                            {this.props.translate('common.please')}
-                            {' '}
-                            <TextLink onPress={Report.navigateToConciergeChat}>
-                                {this.props.translate('common.contactUs')}
-                            </TextLink>
-                            .
+                            {this.props.translate('validationStep.maxAttemptsReached')} {this.props.translate('common.please')}{' '}
+                            <TextLink onPress={Report.navigateToConciergeChat}>{this.props.translate('common.contactUs')}</TextLink>.
                         </Text>
                     </View>
                 )}
@@ -164,12 +160,8 @@ class ValidationStep extends React.Component {
                         style={[styles.mh5, styles.flexGrow1]}
                     >
                         <View style={[styles.mb2]}>
-                            <Text style={[styles.mb5]}>
-                                {this.props.translate('validationStep.description')}
-                            </Text>
-                            <Text style={[styles.mb2]}>
-                                {this.props.translate('validationStep.descriptionCTA')}
-                            </Text>
+                            <Text style={[styles.mb5]}>{this.props.translate('validationStep.description')}</Text>
+                            <Text style={[styles.mb2]}>{this.props.translate('validationStep.descriptionCTA')}</Text>
                         </View>
                         <View style={[styles.mv5]}>
                             <TextInput
@@ -207,9 +199,7 @@ class ValidationStep extends React.Component {
                             title={this.props.translate('workspace.bankAccount.letsFinishInChat')}
                             icon={Illustrations.ConciergeBubble}
                         >
-                            <Text>
-                                {this.props.translate('validationStep.letsChatText')}
-                            </Text>
+                            <Text>{this.props.translate('validationStep.letsChatText')}</Text>
                             <Button
                                 text={this.props.translate('validationStep.letsChatCTA')}
                                 onPress={Report.navigateToConciergeChat}
@@ -228,14 +218,8 @@ class ValidationStep extends React.Component {
                                 wrapperStyle={[styles.cardMenuItem, styles.mv3]}
                             />
                         </Section>
-                        {this.props.reimbursementAccount.shouldShowResetModal && (
-                            <WorkspaceResetBankAccountModal
-                                reimbursementAccount={this.props.reimbursementAccount}
-                            />
-                        )}
-                        {!requiresTwoFactorAuth && (
-                            <Enable2FAPrompt />
-                        )}
+                        {this.props.reimbursementAccount.shouldShowResetModal && <WorkspaceResetBankAccountModal reimbursementAccount={this.props.reimbursementAccount} />}
+                        {!requiresTwoFactorAuth && <Enable2FAPrompt />}
                     </ScrollView>
                 )}
             </ScreenWrapper>

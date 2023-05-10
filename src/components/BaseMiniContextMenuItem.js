@@ -46,21 +46,19 @@ const defaultProps = {
  * @param {Object} props
  * @returns {JSX.Element}
  */
-const BaseMiniContextMenuItem = props => (
+const BaseMiniContextMenuItem = (props) => (
     <Tooltip text={props.tooltipText}>
         <Pressable
             ref={props.innerRef}
             focusable
             onPress={props.onPress}
             accessibilityLabel={props.tooltipText}
-            style={
-                ({hovered, pressed}) => [
-                    styles.reportActionContextMenuMiniButton,
-                    StyleUtils.getButtonBackgroundColorStyle(getButtonState(hovered, pressed, props.isDelayButtonStateComplete)),
-                ]
-            }
+            style={({hovered, pressed}) => [
+                styles.reportActionContextMenuMiniButton,
+                StyleUtils.getButtonBackgroundColorStyle(getButtonState(hovered, pressed, props.isDelayButtonStateComplete)),
+            ]}
         >
-            {pressableState => (
+            {(pressableState) => (
                 <View style={[StyleUtils.getWidthAndHeightStyle(variables.iconSizeNormal), styles.alignItemsCenter, styles.justifyContentCenter]}>
                     {_.isFunction(props.children) ? props.children(pressableState) : props.children}
                 </View>
@@ -73,5 +71,10 @@ BaseMiniContextMenuItem.propTypes = propTypes;
 BaseMiniContextMenuItem.defaultProps = defaultProps;
 BaseMiniContextMenuItem.displayName = 'BaseMiniContextMenuItem';
 
-// eslint-disable-next-line react/jsx-props-no-spreading
-export default React.forwardRef((props, ref) => <BaseMiniContextMenuItem {...props} innerRef={ref} />);
+export default React.forwardRef((props, ref) => (
+    <BaseMiniContextMenuItem
+        // eslint-disable-next-line react/jsx-props-no-spreading
+        {...props}
+        innerRef={ref}
+    />
+));
