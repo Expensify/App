@@ -219,10 +219,7 @@ class Composer extends React.Component {
 
     addCursorPositionToSelectionChange(event) {
         if (this.props.shouldCalculateCaretPosition) {
-            const newValueBeforeCaret = event.target.value.slice(
-                0,
-                event.nativeEvent.selection.start,
-            );
+            const newValueBeforeCaret = event.target.value.slice(0, event.nativeEvent.selection.start);
 
             this.setState(
                 {
@@ -442,13 +439,14 @@ class Composer extends React.Component {
             >
                 <Text
                     multiline
-                    style={[
-                        propStyles,
-                        this.state.numberOfLines < this.props.maxLines ? styles.overflowHidden : {},
-                        {maxWidth: this.state.width}]}
+                    style={[propStyles, this.state.numberOfLines < this.props.maxLines ? styles.overflowHidden : {}, {maxWidth: this.state.width}]}
                 >
                     {`${this.state.valueBeforeCaret} `}
-                    <Text numberOfLines={1} ref={this.textRef} style={{backgroundColor: 'green'}}>{`${this.state.caretContent}`}</Text>
+                    <Text
+                        numberOfLines={1}
+                        ref={this.textRef}
+                        style={{backgroundColor: 'green'}}
+                    >{`${this.state.caretContent}`}</Text>
                 </Text>
             </View>
         );
@@ -470,7 +468,7 @@ class Composer extends React.Component {
                         // so we can get the correct scroll height while calculating the number of lines.
                         this.state.numberOfLines < this.props.maxLines ? styles.overflowHidden : {},
                     ]}
-                /* eslint-disable-next-line react/jsx-props-no-spreading */
+                    /* eslint-disable-next-line react/jsx-props-no-spreading */
                     {...propsWithoutStyles}
                     onSelectionChange={this.addCursorPositionToSelectionChange}
                     numberOfLines={this.state.numberOfLines}
