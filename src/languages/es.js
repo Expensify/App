@@ -134,6 +134,7 @@ export default {
         description: 'Descripción',
         with: 'con',
         shareCode: 'Compartir código',
+        share: 'Compartir',
     },
     attachmentPicker: {
         cameraPermissionRequired: 'Permiso para acceder a la cámara',

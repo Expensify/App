@@ -135,6 +135,7 @@ export default {
         description: 'Description',
         with: 'with',
         shareCode: 'Share Code',
+        share: 'Share',
     },
     attachmentPicker: {
         cameraPermissionRequired: 'Camera access',
