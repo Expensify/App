@@ -123,7 +123,6 @@ class PopoverReactionList extends React.Component {
         if (!selectedReaction) {
             this.setState({
                 isPopoverVisible: false,
-
             });
         } else {
             const {
