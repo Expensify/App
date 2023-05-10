@@ -45,4 +45,7 @@ export default {
     b0: {
         bottom: 0,
     },
+    z1: {
+        zIndex: 1,
+    },
 };

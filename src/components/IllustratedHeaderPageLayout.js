@@ -29,7 +29,7 @@ const defaultProps = {
 };
 
 const IllustratedHeaderPageLayout = (props) => {
-    const propsToPassToHeader = _.omit(props, ['illustration', 'footer']);
+    const propsToPassToHeader = _.omit(props, ['illustration', 'footer', 'backgroundColor']);
     return (
         <ScreenWrapper
             style={[StyleUtils.getBackgroundColorStyle(props.backgroundColor)]}
@@ -40,7 +40,10 @@ const IllustratedHeaderPageLayout = (props) => {
                 <>
                     <View style={styles.illustratedPageHeader}>
                         {/* eslint-disable-next-line react/jsx-props-no-spreading */}
-                        <HeaderWithCloseButton {...propsToPassToHeader} />
+                        <HeaderWithCloseButton
+                            {...propsToPassToHeader}
+                            containerStyles={[styles.z1]}
+                        />
                         <View style={[styles.flex1, styles.alignItemsCenter, styles.justifyContentEnd]}>
                             {_.isFunction(props.illustration) ? (
                                 props.illustration()
