@@ -262,8 +262,6 @@ function getOptionData(reportID) {
     const displayNamesWithTooltips = ReportUtils.getDisplayNamesWithTooltips((participantPersonalDetailList || []).slice(0, 10), hasMultipleParticipants);
 
     const parentReportAction = (ReportUtils.isThread(report)
-                                    && report.parentReportActionID
-                                    && report.parentReportID
                                     && reportActions[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.parentReportID}`])
         ? ReportUtils.getParentReportAction_DEV(reportActions[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.parentReportID}`], `${report.parentReportActionID}`)
         : {};

@@ -90,12 +90,20 @@ function getChatType(report) {
     return report ? report.chatType : '';
 }
 
-function getParentReportAction_DEV(objList, parentID) {
-    if (!objList) {
+/**
+ * Returns the report action with key parentReportID.
+ * This function is to be replaced by a HOC.
+ *
+ * @param {Object} parentReportActions
+ * @param {string} parentReportID
+ * @returns {Object}
+ */
+function getParentReportAction_DEV(parentReportActions, parentReportID) {
+    if (!parentReportActions) {
         return {};
     }
-    const matchingKey = _.find(_.keys(objList), key => key.includes(`${parentID.substring(0, 8)}`));
-    return matchingKey ? objList[matchingKey] : null;
+    const matchingKey = _.find(_.keys(parentReportActions), key => _.isEqual(key, parentReportID));
+    return matchingKey ? parentReportActions[matchingKey] : null;
 }
 
 /**
@@ -450,6 +458,8 @@ function getChatRoomSubtitle(report) {
         if (!getChatType(report)) {
             return '';
         }
+
+        // If thread is not from a DM or group chat, the subtitle will follow the pattern 'Workspace Name • #roomName'
         const parentReport = lodashGet(allReports, [`${ONYXKEYS.COLLECTION.REPORT}${report.parentReportID}`]);
         const workspaceName = getPolicyName(parentReport);
         const roomName = (parentReport.displayName === workspaceName) ? '' : parentReport.displayName;
@@ -750,7 +760,7 @@ function getIcons(report, personalDetails, defaultIcon = null) {
         ]);
 
         const parentReportActions = ReportActionsUtils.getReportActions(report.parentReportID);
-        const parentReportActionTEST = getParentReportAction_DEV(parentReportActions, `${report.parentReportActionID}`);
+        const parentReportAction = getParentReportAction_DEV(parentReportActions, `${report.parentReportActionID}`);
 
         if (getChatType(parentReport)) {
             result.source = getWorkspaceAvatar(parentReport);
@@ -759,8 +769,8 @@ function getIcons(report, personalDetails, defaultIcon = null) {
             return [result];
         }
 
-        const actorEmail = lodashGet(parentReportActionTEST, 'actorEmail', '');
-        result.source = parentReportActionTEST ? getAvatar(lodashGet(personalDetails, [actorEmail, 'avatar']), actorEmail) : '';
+        const actorEmail = lodashGet(parentReportAction, 'actorEmail', '');
+        result.source = getAvatar(lodashGet(personalDetails, [actorEmail, 'avatar']), actorEmail);
         result.type = CONST.ICON_TYPE_AVATAR;
         result.name = actorEmail;
         return [result];
@@ -1674,7 +1684,7 @@ function getChatByParticipants(newParticipantList) {
     newParticipantList.sort();
     return _.find(allReports, (report) => {
         // If the report has been deleted, or there are no participants (like an empty #admins room) then skip it
-        if (!report || !report.participants || report.parentReportID) {
+        if (!report || !report.participants || isThread(report)) {
             return false;
         }
 

@@ -41,16 +41,8 @@ function isDeletedAction(reportAction) {
 }
 
 /**
- * @param {String} parentReportID
- * @param {String} parentReportActionID
- * @returns {Object}
- */
-function getParentReportAction(parentReportID, parentReportActionID) {
-    const reportAction = lodashGet(allReportActions, [parentReportID, parentReportActionID]);
-    return reportAction;
-}
-
-/**
+ * Returns the object of reportActions
+ *
  * @param {String} reportID
  * @returns {Object}
  */
@@ -320,6 +312,5 @@ export {
     getLastClosedReportAction,
     getLatestReportActionFromOnyxData,
     getLinkedTransactionID,
-    getParentReportAction,
     getReportActions,
 };
