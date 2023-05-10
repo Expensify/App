@@ -219,7 +219,7 @@ function beginAppleSignIn({token}) {
     API.makeRequestWithSideEffects('AuthenticateApple', {token}, {optimisticData, successData, failureData});
 }
 
-function beginGoogleSignIn({email, token}) {
+function beginGoogleSignIn({token}) {
     const optimisticData = [
         {
             onyxMethod: CONST.ONYX.METHOD.MERGE,
@@ -260,7 +260,7 @@ function beginGoogleSignIn({email, token}) {
             },
         },
     ];
-    API.makeRequestWithSideEffects('SignInGoogle', {email, token}, {optimisticData, successData, failureData});
+    API.makeRequestWithSideEffects('SignInGoogle', {token}, {optimisticData, successData, failureData});
 }
 
 /**
