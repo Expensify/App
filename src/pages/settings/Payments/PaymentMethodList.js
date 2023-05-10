@@ -103,11 +103,11 @@ class PaymentMethodList extends Component {
             return null;
         }
 
-        const defaultablePaymentMethodCount = _.reduce(this.getFilteredPaymentMethods(), (count, method) => (
-            (method.accountType === CONST.PAYMENT_METHODS.BANK_ACCOUNT || method.accountType === CONST.PAYMENT_METHODS.DEBIT_CARD)
-                ? count + 1
-                : count
-        ), 0);
+        const defaultablePaymentMethodCount = _.reduce(
+            this.getFilteredPaymentMethods(),
+            (count, method) => (method.accountType === CONST.PAYMENT_METHODS.BANK_ACCOUNT || method.accountType === CONST.PAYMENT_METHODS.DEBIT_CARD ? count + 1 : count),
+            0,
+        );
         if (defaultablePaymentMethodCount <= 1) {
             return null;
         }
@@ -120,21 +120,23 @@ class PaymentMethodList extends Component {
      */
     getFilteredPaymentMethods() {
         // Hide any billing cards that are not P2P debit cards for now because you cannot make them your default method, or delete them
-        const filteredCardList = _.filter(this.props.cardList, card => card.accountData.additionalData.isP2PDebitCard);
+        const filteredCardList = _.filter(this.props.cardList, (card) => card.accountData.additionalData.isP2PDebitCard);
         let combinedPaymentMethods = PaymentUtils.formatPaymentMethods(this.props.bankAccountList, filteredCardList, this.props.payPalMeData);
 
         if (!_.isEmpty(this.props.filterType)) {
-            combinedPaymentMethods = _.filter(combinedPaymentMethods, paymentMethod => paymentMethod.accountType === this.props.filterType);
+            combinedPaymentMethods = _.filter(combinedPaymentMethods, (paymentMethod) => paymentMethod.accountType === this.props.filterType);
         }
 
         if (!this.props.network.isOffline) {
-            combinedPaymentMethods = _.filter(combinedPaymentMethods, paymentMethod => paymentMethod.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE
-                || !_.isEmpty(paymentMethod.errors));
+            combinedPaymentMethods = _.filter(
+                combinedPaymentMethods,
+                (paymentMethod) => paymentMethod.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE || !_.isEmpty(paymentMethod.errors),
+            );
         }
 
-        combinedPaymentMethods = _.map(combinedPaymentMethods, paymentMethod => ({
+        combinedPaymentMethods = _.map(combinedPaymentMethods, (paymentMethod) => ({
             ...paymentMethod,
-            onPress: e => this.props.onPress(e, paymentMethod.accountType, paymentMethod.accountData, paymentMethod.isDefault, paymentMethod.methodID),
+            onPress: (e) => this.props.onPress(e, paymentMethod.accountType, paymentMethod.accountData, paymentMethod.isDefault, paymentMethod.methodID),
             iconFill: this.isPaymentMethodActive(paymentMethod) ? StyleUtils.getIconFillColor(CONST.BUTTON_STATES.PRESSED) : null,
             wrapperStyle: this.isPaymentMethodActive(paymentMethod) ? [StyleUtils.getButtonBackgroundColorStyle(CONST.BUTTON_STATES.PRESSED)] : null,
             disabled: paymentMethod.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
@@ -213,13 +215,7 @@ class PaymentMethodList extends Component {
      * @return {React.Component}
      */
     renderListEmptyComponent() {
-        return (
-            <Text
-                style={[styles.popoverMenuItem]}
-            >
-                {this.props.translate('paymentMethodList.addFirstPaymentMethod')}
-            </Text>
-        );
+        return <Text style={[styles.popoverMenuItem]}>{this.props.translate('paymentMethodList.addFirstPaymentMethod')}</Text>;
     }
 
     render() {
@@ -228,33 +224,28 @@ class PaymentMethodList extends Component {
                 <FlatList
                     data={this.getFilteredPaymentMethods()}
                     renderItem={this.renderItem}
-                    keyExtractor={item => item.key}
+                    keyExtractor={(item) => item.key}
                     ListEmptyComponent={this.renderListEmptyComponent()}
                     ListHeaderComponent={this.props.listHeaderComponent}
                 />
-                {
-                    this.props.shouldShowAddPaymentMethodButton
-                    && (
-                        <FormAlertWrapper>
-                            {
-                                isOffline => (
-                                    <Button
-                                        text={this.props.translate('paymentMethodList.addPaymentMethod')}
-                                        icon={Expensicons.CreditCard}
-                                        onPress={e => this.props.onPress(e)}
-                                        isDisabled={this.props.isLoadingPaymentMethods || isOffline}
-                                        style={[styles.mh4, styles.buttonCTA]}
-                                        iconStyles={[styles.buttonCTAIcon]}
-                                        key="addPaymentMethodButton"
-                                        success
-                                        shouldShowRightIcon
-                                        large
-                                    />
-                                )
-                            }
-                        </FormAlertWrapper>
-                    )
-                }
+                {this.props.shouldShowAddPaymentMethodButton && (
+                    <FormAlertWrapper>
+                        {(isOffline) => (
+                            <Button
+                                text={this.props.translate('paymentMethodList.addPaymentMethod')}
+                                icon={Expensicons.CreditCard}
+                                onPress={(e) => this.props.onPress(e)}
+                                isDisabled={this.props.isLoadingPaymentMethods || isOffline}
+                                style={[styles.mh4, styles.buttonCTA]}
+                                iconStyles={[styles.buttonCTAIcon]}
+                                key="addPaymentMethodButton"
+                                success
+                                shouldShowRightIcon
+                                large
+                            />
+                        )}
+                    </FormAlertWrapper>
+                )}
             </>
         );
     }

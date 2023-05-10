@@ -7,10 +7,7 @@ const propTypes = {
     style: PropTypes.arrayOf(PropTypes.object),
 
     /** Returns a function as a child to pass insets to or a node to render without insets */
-    children: PropTypes.oneOfType([
-        PropTypes.node,
-        PropTypes.func,
-    ]).isRequired,
+    children: PropTypes.oneOfType([PropTypes.node, PropTypes.func]).isRequired,
 
     /** Whether to include padding bottom */
     includeSafeAreaPaddingBottom: PropTypes.bool,
