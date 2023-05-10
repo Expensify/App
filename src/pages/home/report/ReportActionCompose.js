@@ -121,6 +121,7 @@ const propTypes = {
     /** The type of action that's pending  */
     pendingAction: PropTypes.oneOf(['add', 'update', 'delete']),
 
+    /** Collection of recent reports, used to calculate the mention suggestions */
     reports: PropTypes.objectOf(reportPropTypes),
 
     ...windowDimensionsPropTypes,
@@ -149,12 +150,14 @@ const defaultProps = {
 /**
  * Return the max available index for arrow manager.
  * @param {Number} numRows
- * @param {Boolean} isEmojiPickerLarge
+ * @param {Boolean} isAutoSuggestionPickerLarge
  * @returns {Number}
  */
-const getMaxArrowIndex = (numRows, isEmojiPickerLarge) => {
+const getMaxArrowIndex = (numRows, isAutoSuggestionPickerLarge) => {
     // EmojiRowCount is number of emoji suggestions. For small screen we can fit 3 items and for large we show up to 5 items
-    const emojiRowCount = isEmojiPickerLarge ? Math.max(numRows, CONST.AUTO_COMPLETE_SUGGESTER.MAX_AMOUNT_OF_ITEMS) : Math.max(numRows, CONST.AUTO_COMPLETE_SUGGESTER.MIN_AMOUNT_OF_ITEMS);
+    const emojiRowCount = isAutoSuggestionPickerLarge
+        ? Math.max(numRows, CONST.AUTO_COMPLETE_SUGGESTER.MAX_AMOUNT_OF_ITEMS)
+        : Math.max(numRows, CONST.AUTO_COMPLETE_SUGGESTER.MIN_AMOUNT_OF_ITEMS);
 
     // -1 because we start at 0
     return emojiRowCount - 1;
@@ -220,7 +223,7 @@ class ReportActionCompose extends React.Component {
             highlightedMentionIndex: 0,
             mentionPrefix: '',
             atSignIndex: -1,
-            isEmojiPickerLarge: false,
+            isAutoSuggestionPickerLarge: false,
             composerHeight: 0,
             hasExceededMaxCommentLength: false,
             isAttachmentPreviewActive: false,
@@ -471,7 +474,7 @@ class ReportActionCompose extends React.Component {
             atSignIndex: -1,
             shouldShowEmojiSuggestionMenu: false,
             shouldShowMentionSuggestionMenu: false,
-            isEmojiPickerLarge: true,
+            isAutoSuggestionPickerLarge: true,
         });
     }
 
@@ -493,14 +496,14 @@ class ReportActionCompose extends React.Component {
 
         // the larger composerHeight the less space for EmojiPicker, Pixel 2 has pretty small screen and this value equal 5.3
         const hasEnoughSpaceForLargeSuggestion = this.props.windowHeight / this.state.composerHeight >= 6.8;
-        const isEmojiPickerLarge = !this.props.isSmallScreenWidth || (this.props.isSmallScreenWidth && hasEnoughSpaceForLargeSuggestion);
+        const isAutoSuggestionPickerLarge = !this.props.isSmallScreenWidth || (this.props.isSmallScreenWidth && hasEnoughSpaceForLargeSuggestion);
 
         const nextState = {
             suggestedEmojis: [],
             highlightedEmojiIndex: 0,
             colonIndex,
             shouldShowEmojiSuggestionMenu: false,
-            isEmojiPickerLarge,
+            isAutoSuggestionPickerLarge,
         };
         const newSuggestedEmojis = EmojiUtils.suggestEmojis(leftString);
 
@@ -603,6 +606,10 @@ class ReportActionCompose extends React.Component {
         EmojiUtils.addToFrequentlyUsedEmojis(this.props.frequentlyUsedEmojis, emojiObject);
     }
 
+    /**
+     * Replace the code of mention and update selection
+     * @param {Number} highlightedEmojiIndex
+     */
     insertSelectedMention(highlightedMentionIndex) {
         const commentBeforeAtSign = this.state.value.slice(0, this.state.atSignIndex);
         const mentionObject = this.state.suggestedMentions[highlightedMentionIndex];
@@ -1113,7 +1120,7 @@ class ReportActionCompose extends React.Component {
                 {!_.isEmpty(this.state.suggestedEmojis) && this.state.shouldShowEmojiSuggestionMenu && (
                     <ArrowKeyFocusManager
                         focusedIndex={this.state.highlightedEmojiIndex}
-                        maxIndex={getMaxArrowIndex(this.state.suggestedEmojis.length, this.state.isEmojiPickerLarge)}
+                        maxIndex={getMaxArrowIndex(this.state.suggestedEmojis.length, this.state.isAutoSuggestionPickerLarge)}
                         shouldExcludeTextAreaNodes={false}
                         onFocusedIndexChanged={(index) => this.setState({highlightedEmojiIndex: index})}
                     >
@@ -1128,7 +1135,7 @@ class ReportActionCompose extends React.Component {
                             onSelect={this.insertSelectedEmoji}
                             isComposerFullSize={this.props.isComposerFullSize}
                             preferredSkinToneIndex={this.props.preferredSkinTone}
-                            isEmojiPickerLarge={this.state.isEmojiPickerLarge}
+                            isEmojiPickerLarge={this.state.isAutoSuggestionPickerLarge}
                             composerHeight={this.state.composerHeight}
                             shouldIncludeReportRecipientLocalTimeHeight={shouldShowReportRecipientLocalTime}
                         />
@@ -1137,7 +1144,7 @@ class ReportActionCompose extends React.Component {
                 {!_.isEmpty(this.state.suggestedMentions) && this.state.shouldShowMentionSuggestionMenu && (
                     <ArrowKeyFocusManager
                         focusedIndex={this.state.highlightedMentionIndex}
-                        maxIndex={getMaxArrowIndex(this.state.suggestedMentions.length, this.state.isEmojiPickerLarge)}
+                        maxIndex={getMaxArrowIndex(this.state.suggestedMentions.length, this.state.isAutoSuggestionPickerLarge)}
                         shouldExcludeTextAreaNodes={false}
                         onFocusedIndexChanged={(index) => this.setState({highlightedMentionIndex: index})}
                     >
@@ -1151,7 +1158,7 @@ class ReportActionCompose extends React.Component {
                             prefix={this.state.mentionPrefix}
                             onSelect={this.insertSelectedMention}
                             isComposerFullSize={this.props.isComposerFullSize}
-                            isMentionPickerLarge={this.state.isEmojiPickerLarge}
+                            isMentionPickerLarge={this.state.isAutoSuggestionPickerLarge}
                             composerHeight={this.state.composerHeight}
                             shouldIncludeReportRecipientLocalTimeHeight={shouldShowReportRecipientLocalTime}
                         />
