@@ -129,7 +129,7 @@ const ReportPreview = (props) => {
                 <Button
                     style={[styles.requestPreviewBox]}
                     onPress={() => {
-                        Navigation.navigate(ROUTES.getIouDetailsRoute(props.chatReportID, props.action.originalMessage.IOUReportID));
+                        Navigation.navigate(ROUTES.getIouDetailsRoute(props.chatReportID, props.iouReportID));
                     }}
                     onPressIn={() => DeviceCapabilities.canUseTouchScreen() && ControlSelection.block()}
                     onPressOut={() => ControlSelection.unblock()}
