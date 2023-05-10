@@ -2,10 +2,7 @@ const fs = require('fs/promises');
 const fsSync = require('fs');
 const _ = require('underscore');
 const {OUTPUT_DIR} = require('../config');
-const {
-    computeProbability,
-    computeZ,
-} = require('./math');
+const {computeProbability, computeZ} = require('./math');
 const printToConsole = require('./output/console');
 const writeToMarkdown = require('./output/markdown');
 
@@ -30,8 +27,8 @@ const PROBABILITY_CONSIDERED_SIGNIFICANCE = 0.02;
  */
 const DURATION_DIFF_THRESHOLD_SIGNIFICANCE = 50;
 
-const loadFile = path => fs.readFile(path, 'utf8')
-    .then((data) => {
+const loadFile = (path) =>
+    fs.readFile(path, 'utf8').then((data) => {
         const entries = JSON.parse(data);
 
         const result = {};
@@ -103,11 +100,11 @@ function compareResults(compareEntries, baselineEntries) {
     });
 
     const significance = _.chain(compared)
-        .filter(item => item.isDurationDiffOfSignificance)
+        .filter((item) => item.isDurationDiffOfSignificance)
         .sort((a, b) => b.diff - a.diff)
         .value();
     const meaningless = _.chain(compared)
-        .filter(item => !item.isDurationDiffOfSignificance)
+        .filter((item) => !item.isDurationDiffOfSignificance)
         .sort((a, b) => b.diff - a.diff)
         .value();
 
@@ -122,35 +119,25 @@ function compareResults(compareEntries, baselineEntries) {
     };
 }
 
-module.exports = (
-    baselineFile = `${OUTPUT_DIR}/baseline.json`,
-    compareFile = `${OUTPUT_DIR}/compare.json`,
-    outputFormat = 'all',
-) => {
+module.exports = (baselineFile = `${OUTPUT_DIR}/baseline.json`, compareFile = `${OUTPUT_DIR}/compare.json`, outputFormat = 'all') => {
     const hasBaselineFile = fsSync.existsSync(baselineFile);
     if (!hasBaselineFile) {
-        throw new Error(
-            `Baseline results files "${baselineFile}" does not exists.`,
-        );
+        throw new Error(`Baseline results files "${baselineFile}" does not exists.`);
     }
-    return loadFile(baselineFile)
-        .then((baseline) => {
-            const hasCompareFile = fsSync.existsSync(compareFile);
-            if (!hasCompareFile) {
-                throw new Error(
-                    `Compare results files "${compareFile}" does not exists.`,
-                );
-            }
-            return loadFile(compareFile)
-                .then((compare) => {
-                    const outputData = compareResults(compare, baseline);
+    return loadFile(baselineFile).then((baseline) => {
+        const hasCompareFile = fsSync.existsSync(compareFile);
+        if (!hasCompareFile) {
+            throw new Error(`Compare results files "${compareFile}" does not exists.`);
+        }
+        return loadFile(compareFile).then((compare) => {
+            const outputData = compareResults(compare, baseline);
 
-                    if (outputFormat === 'console' || outputFormat === 'all') {
-                        printToConsole(outputData);
-                    }
-                    if (outputFormat === 'markdown' || outputFormat === 'all') {
-                        return writeToMarkdown(`${OUTPUT_DIR}/output.md`, outputData);
-                    }
-                });
+            if (outputFormat === 'console' || outputFormat === 'all') {
+                printToConsole(outputData);
+            }
+            if (outputFormat === 'markdown' || outputFormat === 'all') {
+                return writeToMarkdown(`${OUTPUT_DIR}/output.md`, outputData);
+            }
         });
+    });
 };
