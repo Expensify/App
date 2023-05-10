@@ -66,11 +66,11 @@ Onyx.connect({
     },
 });
 
-let allReports;
+let allReports = {};
 Onyx.connect({
     key: ONYXKEYS.COLLECTION.REPORT,
     waitForCollectionCallback: true,
-    callback: (val) => (allReports = val),
+    callback: (val) => (allReports = val || {}),
 });
 
 let doesDomainHaveApprovedAccountant;
@@ -80,11 +80,11 @@ Onyx.connect({
     callback: (val) => (doesDomainHaveApprovedAccountant = lodashGet(val, 'doesDomainHaveApprovedAccountant', false)),
 });
 
-let allPolicies;
+let allPolicies = {};
 Onyx.connect({
     key: ONYXKEYS.COLLECTION.POLICY,
     waitForCollectionCallback: true,
-    callback: (val) => (allPolicies = val),
+    callback: (val) => (allPolicies = val || {}),
 });
 
 function getChatType(report) {
