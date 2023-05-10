@@ -14,7 +14,7 @@ const propTypes = {
     ...withLocalizePropTypes,
 };
 
-const WorkspaceTravelVBAView = props => (
+const WorkspaceTravelVBAView = (props) => (
     <Section
         title={props.translate('workspace.travel.packYourBags')}
         icon={Illustrations.Luggage}

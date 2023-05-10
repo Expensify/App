@@ -15,7 +15,7 @@ import Visibility from '../../libs/Visibility';
  */
 function webUpdate() {
     fetch('/version.json', {cache: 'no-cache'})
-        .then(response => response.json())
+        .then((response) => response.json())
         .then(({version}) => {
             if (version === pkg.version) {
                 return;

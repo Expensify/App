@@ -39,16 +39,18 @@ const propTypes = {
     betas: PropTypes.arrayOf(PropTypes.string),
 
     /** The list of policies the user has access to. */
-    policies: PropTypes.objectOf(PropTypes.shape({
-        /** The policy type */
-        type: PropTypes.oneOf(_.values(CONST.POLICY.TYPE)),
+    policies: PropTypes.objectOf(
+        PropTypes.shape({
+            /** The policy type */
+            type: PropTypes.oneOf(_.values(CONST.POLICY.TYPE)),
 
-        /** The name of the policy */
-        name: PropTypes.string,
+            /** The name of the policy */
+            name: PropTypes.string,
 
-        /** The ID of the policy */
-        id: PropTypes.string,
-    })),
+            /** The ID of the policy */
+            id: PropTypes.string,
+        }),
+    ),
 
     ...withLocalizePropTypes,
 };
@@ -127,15 +129,18 @@ class WorkspaceNewRoomPage extends React.Component {
 
         // Workspaces are policies with type === 'free'
         const workspaceOptions = _.map(
-            _.filter(this.props.policies, policy => policy && policy.type === CONST.POLICY.TYPE.FREE),
-            policy => ({label: policy.name, key: policy.id, value: policy.id}),
+            _.filter(this.props.policies, (policy) => policy && policy.type === CONST.POLICY.TYPE.FREE),
+            (policy) => ({label: policy.name, key: policy.id, value: policy.id}),
         );
 
-        const visibilityOptions = _.map(_.filter(_.values(CONST.REPORT.VISIBILITY), visibilityOption => visibilityOption !== CONST.REPORT.VISIBILITY.PUBLIC_ANNOUNCE), visibilityOption => ({
-            label: this.props.translate(`newRoomPage.visibilityOptions.${visibilityOption}`),
-            value: visibilityOption,
-            description: this.props.translate(`newRoomPage.${visibilityOption}Description`),
-        }));
+        const visibilityOptions = _.map(
+            _.filter(_.values(CONST.REPORT.VISIBILITY), (visibilityOption) => visibilityOption !== CONST.REPORT.VISIBILITY.PUBLIC_ANNOUNCE),
+            (visibilityOption) => ({
+                label: this.props.translate(`newRoomPage.visibilityOptions.${visibilityOption}`),
+                value: visibilityOption,
+                description: this.props.translate(`newRoomPage.${visibilityOption}Description`),
+            }),
+        );
 
         return (
             <ScreenWrapper
@@ -179,9 +184,7 @@ class WorkspaceNewRoomPage extends React.Component {
                             defaultValue={CONST.REPORT.VISIBILITY.RESTRICTED}
                         />
                     </View>
-                    <Text style={[styles.textLabel, styles.colorMuted]}>
-                        {this.state.visibilityDescription}
-                    </Text>
+                    <Text style={[styles.textLabel, styles.colorMuted]}>{this.state.visibilityDescription}</Text>
                 </Form>
             </ScreenWrapper>
         );
