@@ -34,7 +34,7 @@ class QRShare extends Component {
     constructor(props) {
         super(props);
 
-        const defaultQrCodeSize = this.props.isSmallScreenWidth ? (Dimensions.get('window').width) - 75 : variables.sideBarWidth;
+        const defaultQrCodeSize = this.props.isSmallScreenWidth ? Dimensions.get('window').width - 75 : variables.sideBarWidth;
 
         this.state = {
             qrCodeSize: defaultQrCodeSize,
@@ -46,50 +46,67 @@ class QRShare extends Component {
 
     onLayout(event) {
         this.setState({
-            qrCodeSize: event.nativeEvent.layout.width - (variables.qrShareHorizontalPadding * 2),
+            qrCodeSize: event.nativeEvent.layout.width - variables.qrShareHorizontalPadding * 2,
         });
     }
 
-    download(){
-        return this.qrCodeScreenshotRef.current.capture().then(uri => fileDownload(uri, `${this.props.title}-ShareCode.png`))
+    download() {
+        return this.qrCodeScreenshotRef.current.capture().then((uri) => fileDownload(uri, `${this.props.title}-ShareCode.png`));
     }
 
     render() {
         return (
-            <ViewShot ref={this.qrCodeScreenshotRef} options={{ format: "png" }}>
-            <View style={styles.shareCodeContainer} onLayout={this.onLayout}>
-                <View style={{
-                    alignSelf: 'stretch',
-                    height: 27,
-                    marginBottom: 20,
-                }}
+            <ViewShot
+                ref={this.qrCodeScreenshotRef}
+                options={{format: 'png'}}
+            >
+                <View
+                    style={styles.shareCodeContainer}
+                    onLayout={this.onLayout}
                 >
-                    <ExpensifyWordmark
-                        fill={defaultTheme.borderFocus}
-                        width="100%"
-                        height="100%"
-                        resizeMode="fill"
+                    <View
+                        style={{
+                            alignSelf: 'stretch',
+                            height: 27,
+                            marginBottom: 20,
+                        }}
+                    >
+                        <ExpensifyWordmark
+                            fill={defaultTheme.borderFocus}
+                            width="100%"
+                            height="100%"
+                        />
+                    </View>
+                    <QRCodeLibrary
+                        value={this.props.url}
+                        logo={this.props.logo}
+                        getRef={(c) => (this.svg = c)}
+                        logoBackgroundColor="transparent"
+                        logoSize={this.state.qrCodeSize * 0.3}
+                        logoBorderRadius={this.state.qrCodeSize}
+                        size={this.state.qrCodeSize}
+                        backgroundColor={defaultTheme.highlightBG}
+                        color={defaultTheme.text}
                     />
+
+                    <Text
+                        family="EXP_NEW_KANSAS_MEDIUM"
+                        fontSize={22}
+                        style={{marginTop: 15}}
+                    >
+                        {this.props.title}
+                    </Text>
+
+                    {this.props.subtitle && (
+                        <Text
+                            family="EXP_NEUE_BOLD"
+                            fontSize={13}
+                            style={{marginTop: 4}}
+                        >
+                            {this.props.subtitle}
+                        </Text>
+                    )}
                 </View>
-                <QRCodeLibrary
-                    value={this.props.url}
-                    logo={this.props.logo}
-                    getRef={c => (this.svg = c)}
-                    logoBackgroundColor="transparent"
-                    logoSize={this.state.qrCodeSize * 0.3}
-                    logoBorderRadius={this.state.qrCodeSize}
-                    size={this.state.qrCodeSize}
-                    backgroundColor={defaultTheme.highlightBG}
-                    color={defaultTheme.text}
-                />
-
-                <Text family="EXP_NEW_KANSAS_MEDIUM" fontSize={22} style={{marginTop: 15}}>{this.props.title}</Text>
-
-                {this.props.subtitle && (
-                <Text family="EXP_NEUE_BOLD" fontSize={13} style={{marginTop: 4}}>{this.props.subtitle}</Text>
-                )}
-            </View>
-
             </ViewShot>
         );
     }
@@ -100,7 +117,12 @@ QRShare.defaultProps = defaultProps;
 export default compose(
     withLocalize,
     withWindowDimensions,
-)(React.forwardRef((props, ref) => (
-    /* eslint-disable-next-line react/jsx-props-no-spreading */
-    <QRShare {...props} forwardedRef={ref} />
-)));
+)(
+    React.forwardRef((props, ref) => (
+        /* eslint-disable-next-line react/jsx-props-no-spreading */
+        <QRShare
+            {...props}
+            forwardedRef={ref}
+        />
+    )),
+);
