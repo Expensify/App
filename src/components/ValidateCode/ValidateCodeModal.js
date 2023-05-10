@@ -17,7 +17,6 @@ import ONYXKEYS from '../../ONYXKEYS';
 import * as Session from '../../libs/actions/Session';
 
 const propTypes = {
-
     /** Code to display. */
     code: PropTypes.string.isRequired,
 
@@ -52,29 +51,20 @@ function ValidateCodeModal(props) {
                         src={Illustrations.MagicCode}
                     />
                 </View>
-                <Text style={[styles.textHeadline, styles.textXXLarge, styles.textAlignCenter]}>
-                    {props.translate('validateCodeModal.title')}
-                </Text>
+                <Text style={[styles.textHeadline, styles.textXXLarge, styles.textAlignCenter]}>{props.translate('validateCodeModal.title')}</Text>
                 <View style={[styles.mt2, styles.mb2]}>
                     <Text style={[styles.fontSizeNormal, styles.textAlignCenter]}>
                         {props.translate('validateCodeModal.description')}
-                        {!lodashGet(props, 'session.authToken', null)
-                            && (
-                                <>
-                                    {props.translate('validateCodeModal.or')}
-                                    {' '}
-                                    <TextLink onPress={signInHere}>
-                                        {props.translate('validateCodeModal.signInHere')}
-                                    </TextLink>
-                                </>
-                            )}
+                        {!lodashGet(props, 'session.authToken', null) && (
+                            <>
+                                {props.translate('validateCodeModal.or')} <TextLink onPress={signInHere}>{props.translate('validateCodeModal.signInHere')}</TextLink>
+                            </>
+                        )}
                         {props.shouldShowSignInHere ? '!' : '.'}
                     </Text>
                 </View>
                 <View style={styles.mt6}>
-                    <Text style={styles.validateCodeDigits}>
-                        {props.code}
-                    </Text>
+                    <Text style={styles.validateCodeDigits}>{props.code}</Text>
                 </View>
             </View>
             <View style={styles.deeplinkWrapperFooter}>

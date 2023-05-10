@@ -9,15 +9,19 @@ const INVALID_NUMBER = '+4818332403627';
 const EMAIL_LOGIN = 'user@test.com';
 
 describe('LocalePhoneNumber utils', () => {
-    beforeAll(() => Onyx.init({
-        keys: ONYXKEYS,
-    }));
+    beforeAll(() =>
+        Onyx.init({
+            keys: ONYXKEYS,
+        }),
+    );
 
     describe('formatPhoneNumber function', () => {
-        beforeEach(() => Onyx.multiSet({
-            [ONYXKEYS.SESSION]: {email: 'current@user.com'},
-            [ONYXKEYS.COUNTRY_CODE]: 1,
-        }).then(waitForPromisesToResolve));
+        beforeEach(() =>
+            Onyx.multiSet({
+                [ONYXKEYS.SESSION]: {email: 'current@user.com'},
+                [ONYXKEYS.COUNTRY_CODE]: 1,
+            }).then(waitForPromisesToResolve),
+        );
 
         afterEach(() => Onyx.clear());
 
