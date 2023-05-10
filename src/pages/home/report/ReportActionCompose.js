@@ -1,9 +1,10 @@
 import React from 'react';
 import PropTypes from 'prop-types';
-import {View, TouchableOpacity, InteractionManager, LayoutAnimation} from 'react-native';
+import { View, TouchableOpacity, InteractionManager, LayoutAnimation, NativeModules, findNodeHandle } from 'react-native';
+const { RNTextInputReset } = NativeModules;
 import _ from 'underscore';
 import lodashGet from 'lodash/get';
-import {withOnyx} from 'react-native-onyx';
+import { withOnyx } from 'react-native-onyx';
 import styles from '../../../styles/styles';
 import themeColors from '../../../styles/themes/default';
 import Composer from '../../../components/Composer';
@@ -16,9 +17,9 @@ import ReportTypingIndicator from './ReportTypingIndicator';
 import AttachmentModal from '../../../components/AttachmentModal';
 import compose from '../../../libs/compose';
 import PopoverMenu from '../../../components/PopoverMenu';
-import withWindowDimensions, {windowDimensionsPropTypes} from '../../../components/withWindowDimensions';
+import withWindowDimensions, { windowDimensionsPropTypes } from '../../../components/withWindowDimensions';
 import withDrawerState from '../../../components/withDrawerState';
-import withLocalize, {withLocalizePropTypes} from '../../../components/withLocalize';
+import withLocalize, { withLocalizePropTypes } from '../../../components/withLocalize';
 import willBlurTextInputOnTapOutside from '../../../libs/willBlurTextInputOnTapOutside';
 import CONST from '../../../CONST';
 import Navigation from '../../../libs/Navigation/Navigation';
@@ -28,8 +29,8 @@ import * as ReportUtils from '../../../libs/ReportUtils';
 import ReportActionComposeFocusManager from '../../../libs/ReportActionComposeFocusManager';
 import participantPropTypes from '../../../components/participantPropTypes';
 import ParticipantLocalTime from './ParticipantLocalTime';
-import withCurrentUserPersonalDetails, {withCurrentUserPersonalDetailsPropTypes, withCurrentUserPersonalDetailsDefaultProps} from '../../../components/withCurrentUserPersonalDetails';
-import {withNetwork, withPersonalDetails} from '../../../components/OnyxProvider';
+import withCurrentUserPersonalDetails, { withCurrentUserPersonalDetailsPropTypes, withCurrentUserPersonalDetailsDefaultProps } from '../../../components/withCurrentUserPersonalDetails';
+import { withNetwork, withPersonalDetails } from '../../../components/OnyxProvider';
 import * as User from '../../../libs/actions/User';
 import Tooltip from '../../../components/Tooltip';
 import EmojiPickerButton from '../../../components/EmojiPicker/EmojiPickerButton';
@@ -44,7 +45,7 @@ import ReportDropUI from './ReportDropUI';
 import DragAndDrop from '../../../components/DragAndDrop';
 import reportPropTypes from '../../reportPropTypes';
 import EmojiSuggestions from '../../../components/EmojiSuggestions';
-import withKeyboardState, {keyboardStatePropTypes} from '../../../components/withKeyboardState';
+import withKeyboardState, { keyboardStatePropTypes } from '../../../components/withKeyboardState';
 import ArrowKeyFocusManager from '../../../components/ArrowKeyFocusManager';
 import OfflineWithFeedback from '../../../components/OfflineWithFeedback';
 import KeyboardShortcut from '../../../libs/KeyboardShortcut';
@@ -292,7 +293,7 @@ class ReportActionCompose extends React.Component {
     }
 
     onSelectionChange(e) {
-        this.setState({selection: e.nativeEvent.selection});
+        this.setState({ selection: e.nativeEvent.selection });
         this.calculateEmojiSuggestion();
     }
 
@@ -302,11 +303,11 @@ class ReportActionCompose extends React.Component {
      * @param {Boolean} shouldHighlight
      */
     setIsFocused(shouldHighlight) {
-        this.setState({isFocused: shouldHighlight});
+        this.setState({ isFocused: shouldHighlight });
     }
 
     setIsFullComposerAvailable(isFullComposerAvailable) {
-        this.setState({isFullComposerAvailable});
+        this.setState({ isFullComposerAvailable });
     }
 
     /**
@@ -315,7 +316,7 @@ class ReportActionCompose extends React.Component {
      * @param {Boolean} shouldClear
      */
     setTextInputShouldClear(shouldClear) {
-        this.setState({textInputShouldClear: shouldClear});
+        this.setState({ textInputShouldClear: shouldClear });
     }
 
     /**
@@ -324,7 +325,7 @@ class ReportActionCompose extends React.Component {
      * @param {Boolean} isMenuVisible
      */
     setMenuVisibility(isMenuVisible) {
-        this.setState({isMenuVisible});
+        this.setState({ isMenuVisible });
     }
 
     /**
@@ -389,7 +390,7 @@ class ReportActionCompose extends React.Component {
      * @param {Boolean} hasExceededMaxCommentLength
      */
     setExceededMaxCommentLength(hasExceededMaxCommentLength) {
-        this.setState({hasExceededMaxCommentLength});
+        this.setState({ hasExceededMaxCommentLength });
     }
 
     /**
@@ -400,20 +401,20 @@ class ReportActionCompose extends React.Component {
         if (this.props.isComposerFullSize) {
             maxLines = CONST.COMPOSER.MAX_LINES_FULL;
         }
-        this.setState({maxLines});
+        this.setState({ maxLines });
     }
 
     // eslint-disable-next-line rulesdir/prefer-early-return
     setShouldShowSuggestionMenuToFalse() {
         if (this.state && this.state.shouldShowSuggestionMenu) {
-            this.setState({shouldShowSuggestionMenu: false});
+            this.setState({ shouldShowSuggestionMenu: false });
         }
     }
 
     // eslint-disable-next-line rulesdir/prefer-early-return
     setShouldBlockEmojiCalcToFalse() {
         if (this.state && this.state.shouldBlockEmojiCalc) {
-            this.setState({shouldBlockEmojiCalc: false});
+            this.setState({ shouldBlockEmojiCalc: false });
         }
     }
 
@@ -462,7 +463,7 @@ class ReportActionCompose extends React.Component {
             return;
         }
         if (this.state.shouldBlockEmojiCalc) {
-            this.setState({shouldBlockEmojiCalc: false});
+            this.setState({ shouldBlockEmojiCalc: false });
             return;
         }
         const leftString = this.state.value.substring(0, this.state.selection.end);
@@ -516,6 +517,8 @@ class ReportActionCompose extends React.Component {
         const commentAfterColonWithEmojiNameRemoved = this.state.value.slice(this.state.selection.end).replace(CONST.REGEX.EMOJI_REPLACER, CONST.SPACE);
 
         this.updateComment(`${commentBeforeColon}${emojiCode} ${commentAfterColonWithEmojiNameRemoved}`, true);
+        RNTextInputReset && RNTextInputReset.resetKeyboardInput(findNodeHandle(this.textInput));
+
         this.setState((prevState) => ({
             selection: {
                 start: prevState.colonIndex + emojiCode.length + CONST.SPACE_LENGTH,
@@ -700,7 +703,7 @@ class ReportActionCompose extends React.Component {
         if (this.props.isComposerFullSize) {
             Report.setIsComposerFullSize(this.props.reportID, false);
         }
-        this.setState({isFullComposerAvailable: false});
+        this.setState({ isFullComposerAvailable: false });
 
         return trimmedComment;
     }
@@ -755,7 +758,7 @@ class ReportActionCompose extends React.Component {
      */
     attachmentPreviewClosed() {
         this.setShouldBlockEmojiCalcToFalse();
-        this.setState({isAttachmentPreviewActive: false});
+        this.setState({ isAttachmentPreviewActive: false });
     }
 
     render() {
@@ -799,10 +802,10 @@ class ReportActionCompose extends React.Component {
                             onConfirm={this.addAttachment}
                             onModalHide={this.attachmentPreviewClosed}
                         >
-                            {({displayFileInModal}) => (
+                            {({ displayFileInModal }) => (
                                 <>
                                     <AttachmentPicker>
-                                        {({openPicker}) => (
+                                        {({ openPicker }) => (
                                             <>
                                                 <View
                                                     style={[
@@ -878,7 +881,7 @@ class ReportActionCompose extends React.Component {
                                                                 // Set a flag to block emoji calculation until we're finished using the file picker,
                                                                 // which will stop any flickering as the file picker opens on non-native devices.
                                                                 if (this.willBlurTextInputOnTapOutside) {
-                                                                    this.setState({shouldBlockEmojiCalc: true});
+                                                                    this.setState({ shouldBlockEmojiCalc: true });
                                                                 }
 
                                                                 openPicker({
@@ -896,15 +899,15 @@ class ReportActionCompose extends React.Component {
                                             dropZoneId={CONST.REPORT.DROP_NATIVE_ID}
                                             activeDropZoneId={CONST.REPORT.ACTIVE_DROP_NATIVE_ID}
                                             onDragEnter={() => {
-                                                this.setState({isDraggingOver: true});
+                                                this.setState({ isDraggingOver: true });
                                             }}
                                             onDragLeave={() => {
-                                                this.setState({isDraggingOver: false});
+                                                this.setState({ isDraggingOver: false });
                                             }}
                                             onDrop={(e) => {
                                                 e.preventDefault();
                                                 if (this.state.isAttachmentPreviewActive) {
-                                                    this.setState({isDraggingOver: false});
+                                                    this.setState({ isDraggingOver: false });
                                                     return;
                                                 }
 
@@ -912,7 +915,7 @@ class ReportActionCompose extends React.Component {
 
                                                 displayFileInModal(file);
 
-                                                this.setState({isAttachmentPreviewActive: true, isDraggingOver: false});
+                                                this.setState({ isAttachmentPreviewActive: true, isDraggingOver: false });
                                             }}
                                             disabled={this.props.disabled}
                                         >
@@ -950,7 +953,7 @@ class ReportActionCompose extends React.Component {
                                                     if (this.state.composerHeight === composerHeight) {
                                                         return;
                                                     }
-                                                    this.setState({composerHeight});
+                                                    this.setState({ composerHeight });
                                                 }}
                                                 onScroll={() => this.setShouldShowSuggestionMenuToFalse()}
                                             />
@@ -1015,14 +1018,14 @@ class ReportActionCompose extends React.Component {
                         focusedIndex={this.state.highlightedEmojiIndex}
                         maxIndex={getMaxArrowIndex(this.state.suggestedEmojis.length, this.state.isEmojiPickerLarge)}
                         shouldExcludeTextAreaNodes={false}
-                        onFocusedIndexChanged={(index) => this.setState({highlightedEmojiIndex: index})}
+                        onFocusedIndexChanged={(index) => this.setState({ highlightedEmojiIndex: index })}
                     >
                         <EmojiSuggestions
-                            onClose={() => this.setState({suggestedEmojis: []})}
+                            onClose={() => this.setState({ suggestedEmojis: [] })}
                             highlightedEmojiIndex={this.state.highlightedEmojiIndex}
                             emojis={this.state.suggestedEmojis}
                             comment={this.state.value}
-                            updateComment={(newComment) => this.setState({value: newComment})}
+                            updateComment={(newComment) => this.setState({ value: newComment })}
                             colonIndex={this.state.colonIndex}
                             prefix={this.state.value.slice(this.state.colonIndex + 1, this.state.selection.start)}
                             onSelect={this.insertSelectedEmoji}
@@ -1057,10 +1060,10 @@ export default compose(
             key: ONYXKEYS.BETAS,
         },
         comment: {
-            key: ({reportID}) => `${ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT}${reportID}`,
+            key: ({ reportID }) => `${ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT}${reportID}`,
         },
         numberOfLines: {
-            key: ({reportID}) => `${ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT_NUMBER_OF_LINES}${reportID}`,
+            key: ({ reportID }) => `${ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT_NUMBER_OF_LINES}${reportID}`,
         },
         modal: {
             key: ONYXKEYS.MODAL,
