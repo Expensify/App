@@ -9,6 +9,7 @@ import ScreenWrapper from './ScreenWrapper';
 import styles from '../styles/styles';
 import * as StyleUtils from '../styles/StyleUtils';
 import FixedFooter from './FixedFooter';
+import themeColors from '../styles/themes/default';
 
 const propTypes = {
     ...headerWithCloseButtonPropTypes,
@@ -38,26 +39,21 @@ const IllustratedHeaderPageLayout = (props) => {
         >
             {({safeAreaPaddingBottomStyle}) => (
                 <>
-                    <View style={styles.illustratedPageHeader}>
-                        <HeaderWithCloseButton
-                            // eslint-disable-next-line react/jsx-props-no-spreading
-                            {...propsToPassToHeader}
-                            containerStyles={[styles.z1]}
-                        />
-                        <View style={[styles.flex1, styles.alignItemsCenter, styles.justifyContentEnd]}>
-                            {_.isFunction(props.illustration) ? (
-                                props.illustration()
-                            ) : (
-                                <Lottie
-                                    source={props.illustration}
-                                    style={styles.w100}
-                                    autoPlay
-                                    loop
-                                />
-                            )}
-                        </View>
+                    {/* eslint-disable-next-line react/jsx-props-no-spreading */}
+                    <HeaderWithCloseButton {...propsToPassToHeader} />
+                    <View style={[styles.alignItemsCenter, styles.justifyContentEnd]}>
+                        {_.isFunction(props.illustration) ? (
+                            props.illustration()
+                        ) : (
+                            <Lottie
+                                source={props.illustration}
+                                style={styles.w100}
+                                autoPlay
+                                loop
+                            />
+                        )}
                     </View>
-                    <View style={[styles.illustratedPageBody]}>
+                    <View style={[styles.flex1, StyleUtils.getBackgroundColorStyle(themeColors.appBG)]}>
                         <ScrollView contentContainerStyle={styles.illustratedPageScrollView(safeAreaPaddingBottomStyle)}>{props.children}</ScrollView>
                         {props.footer && <FixedFooter style={[styles.flexGrow0]}>{props.footer}</FixedFooter>}
                     </View>

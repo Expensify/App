@@ -22,7 +22,6 @@ import overflowXHidden from './overflowXHidden';
 import CONST from '../CONST';
 import cursor from './utilities/cursor';
 import userSelect from './utilities/userSelect';
-import getIllustratedPageStyles from './getIllustratedPageStyles';
 
 const picker = {
     backgroundColor: themeColors.transparent,
@@ -3213,7 +3212,7 @@ const styles = {
         maxWidth: 375,
     },
 
-    ...getIllustratedPageStyles,
+    illustratedPageScrollView: (safeAreaPaddingBottomStyle) => [flex.flex1, flex.flexColumn, spacing.pt5, safeAreaPaddingBottomStyle],
 };
 
 export default styles;

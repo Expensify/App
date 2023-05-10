@@ -309,7 +309,7 @@ class InitialSettingsPage extends React.Component {
                 title={this.props.translate('common.settings')}
                 onCloseButtonPress={() => Navigation.dismissModal(true)}
                 illustration={() => (
-                    <View style={[styles.flex1, styles.avatarSectionWrapper]}>
+                    <View style={[styles.avatarSectionWrapper]}>
                         <Pressable
                             style={[styles.mb3]}
                             onPress={this.openProfileSettings}
@@ -350,7 +350,7 @@ class InitialSettingsPage extends React.Component {
                     </View>
                 )}
             >
-                {_.map(this.getDefaultMenuItems(), (item, index) => this.getMenuItem(item, index))}
+                <View style={[styles.mtn5]}>{_.map(this.getDefaultMenuItems(), (item, index) => this.getMenuItem(item, index))}</View>
                 <ConfirmModal
                     danger
                     title={this.props.translate('common.areYouSure')}
