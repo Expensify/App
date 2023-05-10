@@ -28,7 +28,6 @@ import Button from '../Button';
 import * as CurrencyUtils from '../../libs/CurrencyUtils';
 import * as StyleUtils from '../../styles/StyleUtils';
 import getButtonState from '../../libs/getButtonState';
-import * as ReportUtils from '../../libs/reportUtils';
 
 const propTypes = {
     /** Additional logic for displaying the pay button */
