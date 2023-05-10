@@ -3194,17 +3194,18 @@ const styles = {
     },
 
     shareCodePage: {
-        alignItems: 'center',
+        paddingHorizontal: 38.5,
     },
 
     shareCodeContainer: {
+        width: '100%',
         alignItems: 'center',
-        paddingHorizontal: 30,
+        paddingHorizontal: 32,
         paddingVertical: 20,
-        marginHorizontal: 30,
         borderRadius: 20,
+        overflow: 'hidden',
         borderColor: themeColors.borderFocus,
-        borderWidth: 3,
+        borderWidth: 2,
         backgroundColor: themeColors.highlightBG,
     },
 };

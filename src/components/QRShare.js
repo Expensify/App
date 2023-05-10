@@ -9,6 +9,7 @@ import Text from './Text';
 import withWindowDimensions, {windowDimensionsPropTypes} from './withWindowDimensions';
 import compose from '../libs/compose';
 import variables from '../styles/variables';
+import ExpensifyWordmark from '../../assets/images/expensify-wordmark.svg';
 
 const propTypes = {
     type: PropTypes.string.isRequired,
@@ -32,33 +33,55 @@ class QRShare extends React.Component {
     constructor(props) {
         super(props);
 
-        this.size = (this.props.isSmallScreenWidth ? variables.sideBarWidth : Dimensions.get('window').width) - 100;
+        const defaultQrCodeSize = this.props.isSmallScreenWidth ? (Dimensions.get('window').width) - 75 : variables.sideBarWidth;
+
+        this.state = {
+            qrCodeSize: defaultQrCodeSize,
+        };
 
         this.url = this.props.type === 'profile' ? `https://new.expensify.com/details?login=${this.props.value}` : `https://new.expensify.com/r/${this.props.value}`;
+
+        this.onLayout = this.onLayout.bind(this);
+    }
+
+    onLayout = (event) => {
+        this.setState({
+            qrCodeSize: event.nativeEvent.layout.width - 64,
+        });
     }
 
     render() {
         return (
-            <View style={styles.shareCodeContainer}>
-                <Text family="EXP_NEUE_BOLD" fontSize={30} style={{marginBottom: 20}} color={defaultTheme.borderFocus}>Expensify</Text>
-
+            <View style={styles.shareCodeContainer} onLayout={this.onLayout}>
+                <View style={{
+                    alignSelf: 'stretch',
+                    height: 27,
+                    marginBottom: 20,
+                }}
+                >
+                    <ExpensifyWordmark
+                        fill={defaultTheme.borderFocus}
+                        width="100%"
+                        height="100%"
+                        resizeMode="fill"
+                    />
+                </View>
                 <QRCodeLibrary
                     value={this.url}
                     logo={this.props.logo}
                     getRef={c => (this.svg = c)}
                     logoBackgroundColor="transparent"
-                    logoSize={this.size * 0.3}
-                    logoBorderRadius={this.size}
-                    logoMargin={200}
-                    size={this.size}
+                    logoSize={this.state.qrCodeSize * 0.3}
+                    logoBorderRadius={this.state.qrCodeSize}
+                    size={this.state.qrCodeSize}
                     backgroundColor={defaultTheme.highlightBG}
                     color={defaultTheme.text}
                 />
 
-                <Text family="EXP_NEW_KANSAS_MEDIUM" fontSize={25} style={{marginTop: 20}}>{this.props.title}</Text>
+                <Text family="EXP_NEW_KANSAS_MEDIUM" fontSize={22} style={{marginTop: 15}}>{this.props.title}</Text>
 
                 {this.props.subtitle && (
-                <Text family="EXP_NEUE_BOLD" fontSize={15} style={{marginBottom: 20}}>{this.props.subtitle}</Text>
+                <Text family="EXP_NEUE_BOLD" fontSize={13} style={{marginTop: 4}}>{this.props.subtitle}</Text>
                 )}
             </View>
         );
