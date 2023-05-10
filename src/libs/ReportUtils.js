@@ -890,13 +890,8 @@ function getPolicyExpenseChatName(report) {
  * @returns  {String}
  */
 function getMoneyRequestReportName(report) {
-    const formattedAmount = NumberFormatUtils.format(preferredLocale, report.total / 100, {
-        style: 'currency',
-        currency: report.currency,
-    });
-    const payerName = isExpenseReport(report)
-        ? getPolicyName(report)
-        : getDisplayNameForParticipant(report.managerEmail);
+    const formattedAmount = CurrencyUtils.convertToDisplayString(report.total, report.currency);
+    const payerName = isExpenseReport(report) ? getPolicyName(report) : getDisplayNameForParticipant(report.managerEmail);
 
     return Localize.translateLocal('iou.payerOwesAmount', {payer: payerName, amount: formattedAmount});
 }
