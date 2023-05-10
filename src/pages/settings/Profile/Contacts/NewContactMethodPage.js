@@ -89,7 +89,7 @@ function NewContactMethodPage(props) {
             ErrorUtils.addErrorMessage(errors, 'phoneOrEmail', props.translate('contacts.genericFailureMessages.invalidContactMethod'));
         }
 
-        if (!_.isEmpty(values.phoneOrEmail) && lodashGet(props.loginList, validateIfnumber || (values.phoneOrEmail).toLowerCase())) {
+        if (!_.isEmpty(values.phoneOrEmail) && lodashGet(props.loginList, validateIfnumber || values.phoneOrEmail.toLowerCase())) {
             ErrorUtils.addErrorMessage(errors, 'phoneOrEmail', props.translate('contacts.genericFailureMessages.enteredMethodIsAlreadySubmited'));
         }
 
@@ -117,7 +117,6 @@ function NewContactMethodPage(props) {
 
                 loginInputRef.current.focus();
             }}
-
             includeSafeAreaPaddingBottom={false}
         >
             <HeaderWithCloseButton
@@ -134,29 +133,26 @@ function NewContactMethodPage(props) {
                 style={[styles.flexGrow1, styles.mh5]}
                 enabledWhenOffline
             >
-                <Text style={[styles.mb5]}>
-                    {props.translate('common.pleaseEnterEmailOrPhoneNumber')}
-                </Text>
+                <Text style={[styles.mb5]}>{props.translate('common.pleaseEnterEmailOrPhoneNumber')}</Text>
                 <View style={[styles.mb6]}>
                     <TextInput
                         label={`${props.translate('common.email')}/${props.translate('common.phoneNumber')}`}
                         keyboardType={CONST.KEYBOARD_TYPE.EMAIL_ADDRESS}
-                        ref={el => loginInputRef.current = el}
+                        ref={(el) => (loginInputRef.current = el)}
                         inputID="phoneOrEmail"
                         autoCapitalize="none"
                         returnKeyType={Permissions.canUsePasswordlessLogins(props.betas) ? 'done' : 'next'}
                     />
                 </View>
-                {!Permissions.canUsePasswordlessLogins(props.betas)
-                    && (
-                        <View style={[styles.mb6]}>
-                            <TextInput
-                                label={props.translate('common.password')}
-                                inputID="password"
-                                returnKeyType="done"
-                            />
-                        </View>
-                    )}
+                {!Permissions.canUsePasswordlessLogins(props.betas) && (
+                    <View style={[styles.mb6]}>
+                        <TextInput
+                            label={props.translate('common.password')}
+                            inputID="password"
+                            returnKeyType="done"
+                        />
+                    </View>
+                )}
             </Form>
         </ScreenWrapper>
     );
