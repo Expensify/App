@@ -22,6 +22,7 @@ import overflowXHidden from './overflowXHidden';
 import CONST from '../CONST';
 import cursor from './utilities/cursor';
 import userSelect from './utilities/userSelect';
+import getIllustratedPageStyles from './getIllustratedPageStyles';
 
 const picker = {
     backgroundColor: themeColors.transparent,
@@ -2161,6 +2162,7 @@ const styles = {
     avatarSectionWrapper: {
         width: '100%',
         alignItems: 'center',
+        justifyContent: 'center',
         paddingHorizontal: 20,
         paddingBottom: 20,
     },
@@ -3197,24 +3199,15 @@ const styles = {
         textAlign: 'center',
     },
 
-    illustratedPageHeader: {
-        flex: 9,
-        minHeight: 270,
-    },
-
-    illustratedPageBody: {
-        flex: 16,
-        backgroundColor: themeColors.appBG,
-    },
-
-    illustratedPageScrollView: (safeAreaPaddingBottomStyle) => [flex.flex1, flex.flexColumn, spacing.pt5, safeAreaPaddingBottomStyle],
-
     whisper: {
         backgroundColor: themeColors.cardBG,
     },
+
     contextMenuItemPopoverMaxWidth: {
         maxWidth: 375,
     },
+
+    ...getIllustratedPageStyles,
 };
 
 export default styles;

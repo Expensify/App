@@ -34,6 +34,7 @@ const IllustratedHeaderPageLayout = (props) => {
         <ScreenWrapper
             style={[StyleUtils.getBackgroundColorStyle(props.backgroundColor)]}
             shouldEnablePickerAvoiding={false}
+            includeSafeAreaPaddingBottom={false}
         >
             {({safeAreaPaddingBottomStyle}) => (
                 <>
