@@ -242,7 +242,7 @@ class ReportScreen extends React.Component {
         // the moment the ReportScreen becomes unfrozen we want to start the animation of the placeholder skeleton content
         // (which is shown, until all the actual views of the ReportScreen have been rendered)
         const shouldAnimate = !shouldFreeze;
-
+        console.log('ReportScreen:render(): ', this.props.reportActions);
         return (
             <ScreenWrapper
                 style={screenWrapperStyle}

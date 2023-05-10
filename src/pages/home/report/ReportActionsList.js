@@ -1,5 +1,7 @@
 import PropTypes from 'prop-types';
-import React, {useCallback, useEffect, useState} from 'react';
+import React, {
+    useCallback, useEffect, useState, useRef, useMemo,
+} from 'react';
 import Animated, {useSharedValue, useAnimatedStyle, withTiming} from 'react-native-reanimated';
 import _ from 'underscore';
 import InvertedFlatList from '../../../components/InvertedFlatList';
@@ -75,8 +77,14 @@ function keyExtractor(item) {
     return item.reportActionID;
 }
 
+function isUnreadMsg(message, lastRead) {
+    // console.log(`lastRead ${lastRead} < message ${message?.created}`, message);
+    return message && lastRead && message.created && lastRead < message.created;
+}
+
 const ReportActionsList = (props) => {
     const opacity = useSharedValue(0);
+    const currentUnreadMarker = useRef(null);
     const animatedStyles = useAnimatedStyle(() => ({
         opacity: withTiming(opacity.value, {duration: 100}),
     }));
@@ -92,7 +100,7 @@ const ReportActionsList = (props) => {
      * the height of the smallest report action possible.
      * @return {Number}
      */
-    const calculateInitialNumToRender = useCallback(() => {
+    const initialNumToRender = useMemo(() => {
         const minimumReportActionHeight = styles.chatItem.paddingTop + styles.chatItem.paddingBottom
             + variables.fontSizeNormalHeight;
         const availableHeight = windowHeight
@@ -102,7 +110,6 @@ const ReportActionsList = (props) => {
 
     const report = props.report;
     const hasOutstandingIOU = props.report.hasOutstandingIOU;
-    const newMarkerReportActionID = props.newMarkerReportActionID;
     const sortedReportActions = props.sortedReportActions;
     const mostRecentIOUReportActionID = props.mostRecentIOUReportActionID;
 
@@ -116,7 +123,40 @@ const ReportActionsList = (props) => {
         index,
     }) => {
         // When the new indicator should not be displayed we explicitly set it to null
-        const shouldDisplayNewMarker = reportAction.reportActionID === newMarkerReportActionID;
+        // const shouldDisplayNewMarker = reportAction.reportActionID === newMarkerReportActionID;
+
+        // console.log('----------Start renderItem----------');
+        let shouldDisplayNewMarker = false;
+
+        // console.log('currentUnreadMarker.current', currentUnreadMarker.current);
+        if (!currentUnreadMarker.current) {
+            // When the new indicator should not be displayed we explicitly set it to null
+            const nextMessage = sortedReportActions[index + 1];
+
+            // console.log('1) reportAction', reportAction, report.lastReadTime);
+
+            // console.log('nextMessage', nextMessage);
+            const isCurrentMessageUnread = !!isUnreadMsg(reportAction, report.lastReadTime);
+
+            shouldDisplayNewMarker = isCurrentMessageUnread && !isUnreadMsg(nextMessage, report.lastReadTime);
+
+            // console.log('>>>>>>>>>>shouldDisplayNewMarker', shouldDisplayNewMarker);
+
+            // console.log('shouldDisplayNewMarker', shouldDisplayNewMarker);
+
+            if (!currentUnreadMarker.current && shouldDisplayNewMarker) {
+                currentUnreadMarker.current = {id: reportAction.reportActionID, index, created: reportAction.created};
+
+                // console.log('1) currentUnreadMarker.current', currentUnreadMarker.current);
+            }
+        } else {
+            // console.log('2) reportAction', reportAction, report.lastReadTime, currentUnreadMarker.current);
+            shouldDisplayNewMarker = reportAction.reportActionID === currentUnreadMarker.current.id;
+
+            // console.log('>>>>>>>>>>shouldDisplayNewMarker', shouldDisplayNewMarker);
+
+            // console.log('2) currentUnreadMarker.current', currentUnreadMarker.current);
+        }
         return (
             <ReportActionItem
                 report={report}
@@ -129,7 +169,7 @@ const ReportActionsList = (props) => {
                 index={index}
             />
         );
-    }, [report, hasOutstandingIOU, newMarkerReportActionID, sortedReportActions, mostRecentIOUReportActionID]);
+    }, [report, hasOutstandingIOU, sortedReportActions, mostRecentIOUReportActionID]);
 
     // Native mobile does not render updates flatlist the changes even though component did update called.
     // To notify there something changes we can use extraData prop to flatlist
@@ -151,7 +191,7 @@ const ReportActionsList = (props) => {
                 ]}
                 keyExtractor={keyExtractor}
                 initialRowHeight={32}
-                initialNumToRender={calculateInitialNumToRender()}
+                initialNumToRender={initialNumToRender}
                 onEndReached={props.loadMoreChats}
                 onEndReachedThreshold={0.75}
                 ListFooterComponent={() => {
