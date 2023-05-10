@@ -85,7 +85,11 @@ const getHTMLOfSelection = () => {
     // As it currently stands, 'accessibilityHints.newMessageLineIndicator' is only used inside
     // UnreadActionIndicator.js which is also only used in ReportActionItem.js, so this is a relatively
     // safe move.
-    div.querySelector(`[aria-label="${Localize.translateLocal('accessibilityHints.newMessageLineIndicator')}"]`).remove();
+    const newMessageLineIndicatorDiv = div.querySelector(`[aria-label="${Localize.translateLocal('accessibilityHints.newMessageLineIndicator')}"]`);
+
+    if (newMessageLineIndicatorDiv) {
+        newMessageLineIndicatorDiv.remove();
+    }
 
     return div.innerHTML;
 };
