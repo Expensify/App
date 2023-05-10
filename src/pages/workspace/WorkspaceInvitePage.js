@@ -91,6 +91,9 @@ class WorkspaceInvitePage extends React.Component {
     }
 
     componentDidUpdate(prevProps) {
+        if (!_.isEqual(prevProps.personalDetails, this.props.personalDetails)) {
+            this.updateOptionsWithSearchTerm(this.props.searchTerm);
+        }
         if (!_.isEqual(prevProps.policyMemberList, this.props.policyMemberList)) {
             this.updateOptionsWithSearchTerm(this.state.searchTerm);
         }
