@@ -129,12 +129,25 @@ class ContactMethodDetailsPage extends Component {
     }
 
     /**
-     * Checks if the user is allowed to change their default contact method by looking at
-     * their security group settings on their primary domain.
+     * Checks if the user is allowed to change their default contact method. This should only be allowed if:
+     * 1. The viewed contact method is not already their default contact method
+     * 2. The viewed contact method is validated
+     * 3. If the user is on a private domain, their security group must allow primary login switching
      *
      * @returns {Boolean}
      */
-    getCanChangeDefaultContactMethod() {
+    canChangeDefaultContactMethod() {
+        const contactMethod = this.getContactMethod();
+        const loginData = lodashGet(this.props.loginList, contactMethod, {});
+        const isDefaultContactMethod = this.props.session.email === loginData.partnerUserID;
+
+        // Cannot set this contact method as default if:
+        // 1. This contact method is already their default
+        // 2. This contact method is not validated
+        if (isDefaultContactMethod || !loginData.validatedDate) {
+            return false;
+        }
+
         const domainName = Str.extractEmailDomain(this.props.session.email);
         const primaryDomainSecurityGroupID = lodashGet(this.props.myDomainSecurityGroups, domainName);
 
@@ -144,7 +157,8 @@ class ContactMethodDetailsPage extends Component {
             return true;
         }
 
-        // Return true if there's no security group with 'hasRestrictedPrimaryLogin' set to true.
+        // Allow user to change their default contact method if they don't have a security group OR if their security group
+        // does NOT restrict primary login switching.
         return !lodashGet(this.props.securityGroups, [`${ONYXKEYS.COLLECTION.SECURITY_GROUP}${primaryDomainSecurityGroupID}`, 'hasRestrictedPrimaryLogin'], false);
     }
 
@@ -206,7 +220,7 @@ class ContactMethodDetailsPage extends Component {
     render() {
         const contactMethod = this.getContactMethod();
 
-        // replacing spaces with "hard spaces" to prevent breaking the number
+        // Replacing spaces with "hard spaces" to prevent breaking the number
         const formattedContactMethod = Str.isSMSLogin(contactMethod) ? this.props.formatPhoneNumber(contactMethod).replace(/ /g, '\u00A0') : contactMethod;
 
         const loginData = this.props.loginList[contactMethod];
@@ -218,12 +232,6 @@ class ContactMethodDetailsPage extends Component {
         const hasMagicCodeBeenSent = lodashGet(this.props.loginList, [contactMethod, 'validateCodeSent'], false);
         const formErrorText = this.state.formError ? this.props.translate(this.state.formError) : '';
         const isFailedAddContactMethod = Boolean(lodashGet(loginData, 'errorFields.addedLogin'));
-
-        // Users are only allowed to change their default contact method to the current one if:
-        // 1. This contact method is not already their default
-        // 2. This contact method is validated
-        // 3. Default contact method switching is allowed by their domain security group (if this exists)
-        const canChangeDefaultContactMethod = !isDefaultContactMethod && loginData.validatedDate && this.getCanChangeDefaultContactMethod();
 
         return (
             <ScreenWrapper>
@@ -307,7 +315,7 @@ class ContactMethodDetailsPage extends Component {
                             </OfflineWithFeedback>
                         </View>
                     )}
-                    {canChangeDefaultContactMethod ? (
+                    {this.canChangeDefaultContactMethod() ? (
                         <OfflineWithFeedback
                             errors={ErrorUtils.getLatestErrorField(loginData, 'defaultLogin')}
                             errorRowStyles={[styles.ml8, styles.mr5]}
