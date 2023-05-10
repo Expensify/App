@@ -198,6 +198,12 @@ const styles = {
         fontSize: variables.fontSizeMedium,
     },
 
+    mentionSuggestionsText: {
+        fontSize: variables.fontSizeMedium,
+        flex: 1,
+        ...spacing.ml2,
+    },
+
     unitCol: {
         margin: 0,
         padding: 0,
