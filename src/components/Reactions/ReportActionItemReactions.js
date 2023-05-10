@@ -84,7 +84,7 @@ const ReportActionItemReactions = (props) => {
                     props.toggleReaction(emoji);
                 };
                 const onReactionListOpen = (event) => {
-                    const users = PersonalDetailsUtils.getPersonalDetailsByIDs(reactionUsers);
+                    const users = PersonalDetailsUtils.getPersonalDetailsByIDs(reactionUsers, props.currentUserPersonalDetails.accountID);
                     ReactionList.showReactionList(event, popoverReactionListAnchor.current, users, reaction.emoji, emojiCodes, reactionCount, hasUserReacted);
                 };
 
