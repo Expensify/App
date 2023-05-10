@@ -153,7 +153,7 @@ const ReportDetailsModalStackNavigator = createModalStackNavigator([{
 },
 {
     getComponent: () => {
-        const ShareCodePage = require('../../../pages/ShareCodePage').default;
+        const ShareCodePage = require('../../../pages/home/report/ReportDetailsShareCodePage').default;
         return ShareCodePage;
     },
     name: 'Report_Details_Share_Code',
