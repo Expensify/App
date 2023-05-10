@@ -62,9 +62,6 @@ export default PropTypes.shape({
     /** ID of the report */
     reportID: PropTypes.string,
 
-    /** ID of the linked parentReport */
-    parentReportID: PropTypes.string,
-
     /** The state that the report is currently in */
     stateNum: PropTypes.oneOf(_.values(CONST.REPORT.STATE_NUM)),
 
