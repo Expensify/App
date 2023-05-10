@@ -68,13 +68,15 @@ const propTypes = {
     betas: PropTypes.arrayOf(PropTypes.string),
 
     /** The policies which the user has access to */
-    policies: PropTypes.objectOf(PropTypes.shape({
-        /** The policy name */
-        name: PropTypes.string,
+    policies: PropTypes.objectOf(
+        PropTypes.shape({
+            /** The policy name */
+            name: PropTypes.string,
 
-        /** The type of the policy */
-        type: PropTypes.string,
-    })),
+            /** The type of the policy */
+            type: PropTypes.string,
+        }),
+    ),
 
     /** Information about the network */
     network: networkPropTypes.isRequired,
@@ -231,9 +233,9 @@ class ReportScreen extends React.Component {
         const isLoadingInitialReportActions = _.isEmpty(this.props.reportActions) && this.props.report.isLoadingReportActions;
 
         // Users not in the Default Room or Policy Room Betas can't view the report
-        const shouldHideReport = (
-            ReportUtils.isDefaultRoom(this.props.report) && !ReportUtils.canSeeDefaultRoom(this.props.report, this.props.policies, this.props.betas))
-            || (ReportUtils.isUserCreatedPolicyRoom(this.props.report) && !Permissions.canUsePolicyRooms(this.props.betas));
+        const shouldHideReport =
+            (ReportUtils.isDefaultRoom(this.props.report) && !ReportUtils.canSeeDefaultRoom(this.props.report, this.props.policies, this.props.betas)) ||
+            (ReportUtils.isUserCreatedPolicyRoom(this.props.report) && !Permissions.canUsePolicyRooms(this.props.betas));
 
         // When the ReportScreen is not open/in the viewport, we want to "freeze" it for performance reasons
         const shouldFreeze = this.props.isSmallScreenWidth && this.props.isDrawerOpen;
@@ -245,20 +247,24 @@ class ReportScreen extends React.Component {
         const shouldAnimate = !shouldFreeze;
 
         return (
-            <ScreenWrapper
-                style={screenWrapperStyle}
-            >
+            <ScreenWrapper style={screenWrapperStyle}>
                 <Freeze
                     freeze={shouldFreeze}
-                    placeholder={(
+                    placeholder={
                         <>
                             <ReportHeaderSkeletonView shouldAnimate={shouldAnimate} />
                             <View style={[styles.flex1, styles.justifyContentEnd, styles.overflowHidden]}>
-                                <ReportActionsSkeletonView shouldAnimate={shouldAnimate} containerHeight={this.state.skeletonViewContainerHeight} />
-                                <ReportFooter shouldDisableCompose isOffline={this.props.network.isOffline} />
+                                <ReportActionsSkeletonView
+                                    shouldAnimate={shouldAnimate}
+                                    containerHeight={this.state.skeletonViewContainerHeight}
+                                />
+                                <ReportFooter
+                                    shouldDisableCompose
+                                    isOffline={this.props.network.isOffline}
+                                />
                             </View>
                         </>
-                    )}
+                    }
                 >
                     <FullPageNotFoundView
                         shouldShow={(!this.props.report.reportID && !this.props.report.isLoadingReportActions && !isLoading) || shouldHideReport}
@@ -269,29 +275,29 @@ class ReportScreen extends React.Component {
                             Navigation.navigate(ROUTES.HOME);
                         }}
                     >
-                        {isLoading ? <ReportHeaderSkeletonView shouldAnimate={shouldAnimate} /> : (
+                        {isLoading ? (
+                            <ReportHeaderSkeletonView shouldAnimate={shouldAnimate} />
+                        ) : (
                             <>
                                 <OfflineWithFeedback
                                     pendingAction={addWorkspaceRoomOrChatPendingAction}
                                     errors={addWorkspaceRoomOrChatErrors}
                                     shouldShowErrorMessages={false}
                                 >
-                                    {ReportUtils.isMoneyRequestReport(this.props.report)
-                                        ? (
-                                            <MoneyRequestHeader
-                                                report={this.props.report}
-                                                policies={this.props.policies}
-                                                personalDetails={this.props.personalDetails}
-                                            />
-                                        )
-                                        : (
-                                            <HeaderView
-                                                reportID={reportID}
-                                                onNavigationMenuButtonClicked={() => Navigation.navigate(ROUTES.HOME)}
-                                                personalDetails={this.props.personalDetails}
-                                                report={this.props.report}
-                                            />
-                                        )}
+                                    {ReportUtils.isMoneyRequestReport(this.props.report) ? (
+                                        <MoneyRequestHeader
+                                            report={this.props.report}
+                                            policies={this.props.policies}
+                                            personalDetails={this.props.personalDetails}
+                                        />
+                                    ) : (
+                                        <HeaderView
+                                            reportID={reportID}
+                                            onNavigationMenuButtonClicked={() => Navigation.navigate(ROUTES.HOME)}
+                                            personalDetails={this.props.personalDetails}
+                                            report={this.props.report}
+                                        />
+                                    )}
                                 </OfflineWithFeedback>
                                 {Boolean(this.props.accountManagerReportID) && ReportUtils.isConciergeChatReport(this.props.report) && this.state.isBannerVisible && (
                                     <Banner
@@ -321,7 +327,7 @@ class ReportScreen extends React.Component {
                                 this.setState({skeletonViewContainerHeight});
                             }}
                         >
-                            {(this.isReportReadyForDisplay() && !isLoadingInitialReportActions && !isLoading) && (
+                            {this.isReportReadyForDisplay() && !isLoadingInitialReportActions && !isLoading && (
                                 <ReportActionsView
                                     reportActions={this.props.reportActions}
                                     report={this.props.report}
@@ -352,7 +358,10 @@ class ReportScreen extends React.Component {
                             )}
 
                             {!this.isReportReadyForDisplay() && (
-                                <ReportFooter shouldDisableCompose isOffline={this.props.network.isOffline} />
+                                <ReportFooter
+                                    shouldDisableCompose
+                                    isOffline={this.props.network.isOffline}
+                                />
                             )}
 
                             <EmojiPicker ref={EmojiPickerAction.emojiPickerRef} />
