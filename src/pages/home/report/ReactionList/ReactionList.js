@@ -40,8 +40,4 @@ function hideReactionList(onHideCallback = () => {}) {
     reactionListRef.current.hideReactionList(onHideCallback);
 }
 
-export {
-    reactionListRef,
-    showReactionList,
-    hideReactionList,
-};
+export {reactionListRef, showReactionList, hideReactionList};

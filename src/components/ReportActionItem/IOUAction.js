@@ -82,12 +82,12 @@ const IOUAction = (props) => {
 
     let shouldShowPendingConversionMessage = false;
     if (
-        !_.isEmpty(props.iouReport)
-        && !_.isEmpty(props.reportActions)
-        && props.chatReport.hasOutstandingIOU
-        && props.isMostRecentIOUReportAction
-        && props.action.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD
-        && props.network.isOffline
+        !_.isEmpty(props.iouReport) &&
+        !_.isEmpty(props.reportActions) &&
+        props.chatReport.hasOutstandingIOU &&
+        props.isMostRecentIOUReportAction &&
+        props.action.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD &&
+        props.network.isOffline
     ) {
         shouldShowPendingConversionMessage = IOUUtils.isIOUReportPendingCurrencyConversion(props.reportActions, props.iouReport);
     }
@@ -113,12 +113,7 @@ const IOUAction = (props) => {
                     shouldShowPendingConversionMessage={shouldShowPendingConversionMessage}
                     onPayButtonPressed={onIOUPreviewPressed}
                     onPreviewPressed={onIOUPreviewPressed}
-                    containerStyles={[
-                        styles.cursorPointer,
-                        props.isHovered
-                            ? styles.iouPreviewBoxHover
-                            : undefined,
-                    ]}
+                    containerStyles={[styles.cursorPointer, props.isHovered ? styles.iouPreviewBoxHover : undefined]}
                     isHovered={props.isHovered}
                 />
             )}
