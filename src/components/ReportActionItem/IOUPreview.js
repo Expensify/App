@@ -195,25 +195,27 @@ const IOUPreview = (props) => {
                 <View style={[styles.iouPreviewBox, ...props.containerStyles]}>
                     <View style={[styles.flexRow]}>
                         <View style={[styles.flex1, styles.flexRow, styles.alignItemsCenter]}>
-                            <Text style={[styles.textLabelSupporting, styles.lh16]}>
-                                {props.isBillSplit ? props.translate('iou.split') : props.translate('iou.cash')}
-                            </Text>
+                            <Text style={[styles.textLabelSupporting, styles.lh16]}>{props.isBillSplit ? props.translate('iou.split') : props.translate('iou.cash')}</Text>
                             {(lodashGet(props.action, 'originalMessage.type', '') === 'pay' || !ReportUtils.isPolicyExpenseChat(props.report)) && (
                                 <>
-                                    <Icon src={Expensicons.DotIndicator} width={4} height={4} additionalStyles={[styles.mr1, styles.ml1]} />
-                                    <Text style={[styles.textLabelSupporting, styles.lh16]}>
-                                        {getSettledMessage()}
-                                    </Text>
+                                    <Icon
+                                        src={Expensicons.DotIndicator}
+                                        width={4}
+                                        height={4}
+                                        additionalStyles={[styles.mr1, styles.ml1]}
+                                    />
+                                    <Text style={[styles.textLabelSupporting, styles.lh16]}>{getSettledMessage()}</Text>
                                 </>
                             )}
                         </View>
-                        <Icon src={Expensicons.ArrowRight} fill={StyleUtils.getIconFillColor(getButtonState(props.isHovered))} />
+                        <Icon
+                            src={Expensicons.ArrowRight}
+                            fill={StyleUtils.getIconFillColor(getButtonState(props.isHovered))}
+                        />
                     </View>
                     <View style={[styles.flexRow]}>
                         <View style={[styles.flex1, styles.flexRow, styles.alignItemsCenter]}>
-                            <Text style={styles.textHeadline}>
-                                {CurrencyUtils.convertToDisplayString(requestAmount, requestCurrency)}
-                            </Text>
+                            <Text style={styles.textHeadline}>{CurrencyUtils.convertToDisplayString(requestAmount, requestCurrency)}</Text>
                             {!props.iouReport.hasOutstandingIOU && !props.isBillSplit && (
                                 <View style={styles.iouPreviewBoxCheckmark}>
                                     <Icon
@@ -227,12 +229,7 @@ const IOUPreview = (props) => {
                             <View style={styles.iouPreviewBoxAvatar}>
                                 <MultipleAvatars
                                     icons={participantAvatars}
-                                    secondAvatarStyle={[
-                                        styles.secondAvatarInline,
-                                        props.isHovered
-                                            ? styles.iouPreviewBoxAvatarHover
-                                            : undefined,
-                                    ]}
+                                    secondAvatarStyle={[styles.secondAvatarInline, props.isHovered ? styles.iouPreviewBoxAvatarHover : undefined]}
                                     avatarTooltips={participantEmails}
                                 />
                             </View>
