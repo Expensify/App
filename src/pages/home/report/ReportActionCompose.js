@@ -523,14 +523,14 @@ class ReportActionCompose extends React.Component {
         }
 
         const valueAfterTheCursor = this.state.value.substring(this.state.selection.end);
-        const indexOfFirstWhitespaceCharAfterTheCursor = valueAfterTheCursor.search(CONST.REGEX.NEW_LINE_OR_WHITE_SPACE_OR_EMOJI);
+        const indexOfFirstWhitespaceCharOrEmojiAfterTheCursor = valueAfterTheCursor.search(CONST.REGEX.NEW_LINE_OR_WHITE_SPACE_OR_EMOJI);
 
         let indexOfLastNonWhitespaceCharAfterTheCursor;
-        if (indexOfFirstWhitespaceCharAfterTheCursor === -1) {
+        if (indexOfFirstWhitespaceCharOrEmojiAfterTheCursor === -1) {
             // we didn't find a whitespace/emoji after the cursor, so we will use the entire string
             indexOfLastNonWhitespaceCharAfterTheCursor = this.state.value.length;
         } else {
-            indexOfLastNonWhitespaceCharAfterTheCursor = indexOfFirstWhitespaceCharAfterTheCursor + this.state.selection.end;
+            indexOfLastNonWhitespaceCharAfterTheCursor = indexOfFirstWhitespaceCharOrEmojiAfterTheCursor + this.state.selection.end;
         }
 
         const leftString = this.state.value.substring(0, indexOfLastNonWhitespaceCharAfterTheCursor);
