@@ -54,6 +54,12 @@ const propTypes = {
         hasOutstandingIOU: PropTypes.bool,
     }),
 
+    /** Session info for the currently logged in user. */
+    session: PropTypes.shape({
+        /** Currently logged in user email */
+        email: PropTypes.string,
+    }),
+
     /** Popover context menu anchor, used for showing context menu */
     contextMenuAnchor: PropTypes.shape({current: PropTypes.elementType}),
 
