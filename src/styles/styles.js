@@ -3201,7 +3201,7 @@ const styles = {
     shareCodeContainer: {
         width: '100%',
         alignItems: 'center',
-        paddingHorizontal: 32,
+        paddingHorizontal: variables.qrShareHorizontalPadding,
         paddingVertical: 20,
         borderRadius: 20,
         overflow: 'hidden',

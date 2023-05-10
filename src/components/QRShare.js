@@ -1,7 +1,8 @@
-import React from 'react';
+import React, {Component} from 'react';
 import PropTypes from 'prop-types';
 import QRCodeLibrary from 'react-native-qrcode-svg';
 import {Dimensions, View} from 'react-native';
+import ViewShot from 'react-native-view-shot';
 import withLocalize, {withLocalizePropTypes} from './withLocalize';
 import defaultTheme from '../styles/themes/default';
 import styles from '../styles/styles';
@@ -10,6 +11,7 @@ import withWindowDimensions, {windowDimensionsPropTypes} from './withWindowDimen
 import compose from '../libs/compose';
 import variables from '../styles/variables';
 import ExpensifyWordmark from '../../assets/images/expensify-wordmark.svg';
+import fileDownload from '../libs/fileDownload';
 
 const propTypes = {
     url: PropTypes.string.isRequired,
@@ -26,7 +28,9 @@ const defaultProps = {
     logo: undefined,
 };
 
-class QRShare extends React.Component {
+class QRShare extends Component {
+    qrCodeScreenshotRef = React.createRef();
+
     constructor(props) {
         super(props);
 
@@ -40,20 +44,19 @@ class QRShare extends React.Component {
         this.download = this.download.bind(this);
     }
 
-    onLayout = (event) => {
+    onLayout(event) {
         this.setState({
-            qrCodeSize: event.nativeEvent.layout.width - 64,
+            qrCodeSize: event.nativeEvent.layout.width - (variables.qrShareHorizontalPadding * 2),
         });
     }
 
-    download = () => {
-        console.log('download');
-
-        return 'TODO: Implement download';
+    download(){
+        return this.qrCodeScreenshotRef.current.capture().then(uri => fileDownload(uri, `${this.props.title}-ShareCode.png`))
     }
 
     render() {
         return (
+            <ViewShot ref={this.qrCodeScreenshotRef} options={{ format: "png" }}>
             <View style={styles.shareCodeContainer} onLayout={this.onLayout}>
                 <View style={{
                     alignSelf: 'stretch',
@@ -86,6 +89,8 @@ class QRShare extends React.Component {
                 <Text family="EXP_NEUE_BOLD" fontSize={13} style={{marginTop: 4}}>{this.props.subtitle}</Text>
                 )}
             </View>
+
+            </ViewShot>
         );
     }
 }
