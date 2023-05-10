@@ -253,9 +253,9 @@ class ReportActionsView extends React.Component {
         // console.log(prevProps.report.reportID);
         // console.log(this.props.reportActions);
         // console.log(prevProps.reportActions);
-        const wasNewMessageReceived = (this.props.reportActions.length > prevProps.reportActions.length);
+        const wasNewMessageReceived = this.props.reportActions.length > prevProps.reportActions.length;
         if (wasNewMessageReceived) {
-            const newReportAction = _.filter(this.props.reportActions, obj => !_.findWhere(prevProps.reportActions, {reportActionID: obj.reportActionID}));
+            const newReportAction = _.filter(this.props.reportActions, (obj) => !_.findWhere(prevProps.reportActions, {reportActionID: obj.reportActionID}));
             console.log(`~~Monil new message received ${this.props.report.lastMessageText} marker prevState ${JSON.stringify(prevState)}`);
             this.unreadLogic(newReportAction);
             // if (_.isEmpty(prevState.newMarkerReportActionID)) {

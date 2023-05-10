@@ -1,7 +1,5 @@
 import PropTypes from 'prop-types';
-import React, {
-    useCallback, useEffect, useState, useRef, useMemo,
-} from 'react';
+import React, {useCallback, useEffect, useState, useRef, useMemo} from 'react';
 import Animated, {useSharedValue, useAnimatedStyle, withTiming} from 'react-native-reanimated';
 import _ from 'underscore';
 import InvertedFlatList from '../../../components/InvertedFlatList';
@@ -101,10 +99,8 @@ const ReportActionsList = (props) => {
      * @return {Number}
      */
     const initialNumToRender = useMemo(() => {
-        const minimumReportActionHeight = styles.chatItem.paddingTop + styles.chatItem.paddingBottom
-            + variables.fontSizeNormalHeight;
-        const availableHeight = windowHeight
-            - (CONST.CHAT_FOOTER_MIN_HEIGHT + variables.contentHeaderHeight);
+        const minimumReportActionHeight = styles.chatItem.paddingTop + styles.chatItem.paddingBottom + variables.fontSizeNormalHeight;
+        const availableHeight = windowHeight - (CONST.CHAT_FOOTER_MIN_HEIGHT + variables.contentHeaderHeight);
         return Math.ceil(availableHeight / minimumReportActionHeight);
     }, [windowHeight]);
 
@@ -118,58 +114,58 @@ const ReportActionsList = (props) => {
      * @param {Number} args.index
      * @returns {React.Component}
      */
-    const renderItem = useCallback(({
-        item: reportAction,
-        index,
-    }) => {
-        // When the new indicator should not be displayed we explicitly set it to null
-        // const shouldDisplayNewMarker = reportAction.reportActionID === newMarkerReportActionID;
-
-        // console.log('----------Start renderItem----------');
-        let shouldDisplayNewMarker = false;
-
-        // console.log('currentUnreadMarker.current', currentUnreadMarker.current);
-        if (!currentUnreadMarker.current) {
+    const renderItem = useCallback(
+        ({item: reportAction, index}) => {
             // When the new indicator should not be displayed we explicitly set it to null
-            const nextMessage = sortedReportActions[index + 1];
+            // const shouldDisplayNewMarker = reportAction.reportActionID === newMarkerReportActionID;
 
-            // console.log('1) reportAction', reportAction, report.lastReadTime);
+            // console.log('----------Start renderItem----------');
+            let shouldDisplayNewMarker = false;
 
-            // console.log('nextMessage', nextMessage);
-            const isCurrentMessageUnread = !!isUnreadMsg(reportAction, report.lastReadTime);
+            // console.log('currentUnreadMarker.current', currentUnreadMarker.current);
+            if (!currentUnreadMarker.current) {
+                // When the new indicator should not be displayed we explicitly set it to null
+                const nextMessage = sortedReportActions[index + 1];
 
-            shouldDisplayNewMarker = isCurrentMessageUnread && !isUnreadMsg(nextMessage, report.lastReadTime);
+                // console.log('1) reportAction', reportAction, report.lastReadTime);
 
-            // console.log('>>>>>>>>>>shouldDisplayNewMarker', shouldDisplayNewMarker);
+                // console.log('nextMessage', nextMessage);
+                const isCurrentMessageUnread = !!isUnreadMsg(reportAction, report.lastReadTime);
 
-            // console.log('shouldDisplayNewMarker', shouldDisplayNewMarker);
+                shouldDisplayNewMarker = isCurrentMessageUnread && !isUnreadMsg(nextMessage, report.lastReadTime);
 
-            if (!currentUnreadMarker.current && shouldDisplayNewMarker) {
-                currentUnreadMarker.current = {id: reportAction.reportActionID, index, created: reportAction.created};
+                // console.log('>>>>>>>>>>shouldDisplayNewMarker', shouldDisplayNewMarker);
 
-                // console.log('1) currentUnreadMarker.current', currentUnreadMarker.current);
+                // console.log('shouldDisplayNewMarker', shouldDisplayNewMarker);
+
+                if (!currentUnreadMarker.current && shouldDisplayNewMarker) {
+                    currentUnreadMarker.current = {id: reportAction.reportActionID, index, created: reportAction.created};
+
+                    // console.log('1) currentUnreadMarker.current', currentUnreadMarker.current);
+                }
+            } else {
+                // console.log('2) reportAction', reportAction, report.lastReadTime, currentUnreadMarker.current);
+                shouldDisplayNewMarker = reportAction.reportActionID === currentUnreadMarker.current.id;
+
+                // console.log('>>>>>>>>>>shouldDisplayNewMarker', shouldDisplayNewMarker);
+
+                // console.log('2) currentUnreadMarker.current', currentUnreadMarker.current);
             }
-        } else {
-            // console.log('2) reportAction', reportAction, report.lastReadTime, currentUnreadMarker.current);
-            shouldDisplayNewMarker = reportAction.reportActionID === currentUnreadMarker.current.id;
-
-            // console.log('>>>>>>>>>>shouldDisplayNewMarker', shouldDisplayNewMarker);
-
-            // console.log('2) currentUnreadMarker.current', currentUnreadMarker.current);
-        }
-        return (
-            <ReportActionItem
-                report={report}
-                action={reportAction}
-                displayAsGroup={ReportActionsUtils.isConsecutiveActionMadeByPreviousActor(sortedReportActions, index)}
-                shouldDisplayNewMarker={shouldDisplayNewMarker}
-                shouldShowSubscriptAvatar={ReportUtils.isPolicyExpenseChat(report) && reportAction.actionName === CONST.REPORT.ACTIONS.TYPE.IOU}
-                isMostRecentIOUReportAction={reportAction.reportActionID === mostRecentIOUReportActionID}
-                hasOutstandingIOU={hasOutstandingIOU}
-                index={index}
-            />
-        );
-    }, [report, hasOutstandingIOU, sortedReportActions, mostRecentIOUReportActionID]);
+            return (
+                <ReportActionItem
+                    report={report}
+                    action={reportAction}
+                    displayAsGroup={ReportActionsUtils.isConsecutiveActionMadeByPreviousActor(sortedReportActions, index)}
+                    shouldDisplayNewMarker={shouldDisplayNewMarker}
+                    shouldShowSubscriptAvatar={ReportUtils.isPolicyExpenseChat(report) && reportAction.actionName === CONST.REPORT.ACTIONS.TYPE.IOU}
+                    isMostRecentIOUReportAction={reportAction.reportActionID === mostRecentIOUReportActionID}
+                    hasOutstandingIOU={hasOutstandingIOU}
+                    index={index}
+                />
+            );
+        },
+        [report, hasOutstandingIOU, sortedReportActions, mostRecentIOUReportActionID],
+    );
 
     // Native mobile does not render updates flatlist the changes even though component did update called.
     // To notify there something changes we can use extraData prop to flatlist

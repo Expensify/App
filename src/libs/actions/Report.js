@@ -348,12 +348,14 @@ function openReport(reportID, participantList = [], newReportObject = {}) {
     const optimisticReportData = {
         onyxMethod: Onyx.METHOD.MERGE,
         key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
-        value: reportActionsExist(reportID) ? {} : {
-            isLoadingReportActions: true,
-            isLoadingMoreReportActions: false,
-            lastReadTime: DateUtils.getDBTime(),
-            reportName: lodashGet(allReports, [reportID, 'reportName'], CONST.REPORT.DEFAULT_REPORT_NAME),
-        },
+        value: reportActionsExist(reportID)
+            ? {}
+            : {
+                  isLoadingReportActions: true,
+                  isLoadingMoreReportActions: false,
+                  lastReadTime: DateUtils.getDBTime(),
+                  reportName: lodashGet(allReports, [reportID, 'reportName'], CONST.REPORT.DEFAULT_REPORT_NAME),
+              },
     };
     const reportSuccessData = {
         onyxMethod: Onyx.METHOD.MERGE,
