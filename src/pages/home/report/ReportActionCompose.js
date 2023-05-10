@@ -608,7 +608,7 @@ class ReportActionCompose extends React.Component {
 
     /**
      * Replace the code of mention and update selection
-     * @param {Number} highlightedEmojiIndex
+     * @param {Number} highlightedMentionIndex
      */
     insertSelectedMention(highlightedMentionIndex) {
         const commentBeforeAtSign = this.state.value.slice(0, this.state.atSignIndex);
