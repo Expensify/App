@@ -187,13 +187,14 @@ function canEditReportAction(reportAction) {
  * Can only delete if it's an ADDCOMMENT which is not pending delete, and the signed in user is a policy admin or it's their own comment.
  *
  * @param {Object} reportAction
+ * @param {String} reportID
  * @returns {Boolean}
  */
-function canDeleteReportAction(reportAction) {
+function canDeleteReportAction(reportAction, reportID) {
     if (reportAction.actionName !== CONST.REPORT.ACTIONS.TYPE.ADDCOMMENT || reportAction.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE) {
         return false;
     }
-    const report = allReports[`${ONYXKEYS.COLLECTION.REPORT}${reportAction.reportID}`] || {};
+    const report = allReports[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`] || {};
     const policy = allPolicies[`${ONYXKEYS.COLLECTION.POLICY}${report.policyID}`] || {};
     const isPolicyAdmin = PolicyUtils.isPolicyAdmin(policy);
     return isPolicyAdmin || reportAction.actorEmail === sessionEmail;
