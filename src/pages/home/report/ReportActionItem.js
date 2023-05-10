@@ -236,9 +236,12 @@ class ReportActionItem extends Component {
 
         const reactions = _.get(this.props, ['action', 'message', 0, 'reactions'], []);
         const hasReactions = reactions.length > 0;
-        const shouldDisplayThreadReplies = lodashGet(this.props.action, 'childReportID', 0) !== 0 && lodashGet(this.props.action, 'childCommenterCount', 1) > 0;
-        // eslint-disable-next-line no-console
-        console.log('action: ', this.props.action, !_.isEmpty(0));
+        const shouldDisplayThreadReplies = lodashGet(this.props.action, 'childReportID', 0) !== 0 && lodashGet(this.props.action, 'childCommenterCount', 0) > 0;
+
+        let oldestFourEmails = lodashGet(this.props.action, 'childOldestFourEmails', []);
+        if (!_.isArray(oldestFourEmails)) {
+            oldestFourEmails = oldestFourEmails.split(',');
+        }
 
         return (
             <>
@@ -252,9 +255,9 @@ class ReportActionItem extends Component {
                 {shouldDisplayThreadReplies && (
                     <ReportActionItemThread
                         childReportID={`${lodashGet(this.props.action, 'childReportID')}`}
-                        numberOfReplies={lodashGet(this.props.action, 'childVisibleActionCount', 1)}
+                        numberOfReplies={lodashGet(this.props.action, 'childVisibleActionCount', 0)}
                         mostRecentReply={`${lodashGet(this.props.action, 'childLastVisibleActionCreated')}`}
-                        icons={ReportUtils.getIcons(this.props.report, this.props.personalDetails)}
+                        icons={ReportUtils.getIconsFromParticipants(oldestFourEmails, this.props.personalDetails)}
                     />
                 )}
             </>

@@ -2,27 +2,28 @@ import React from 'react';
 import {View, Pressable, Text} from 'react-native';
 import PropTypes from 'prop-types';
 import _ from 'underscore';
-import lodashGet from 'lodash/get';
 import styles from '../../../styles/styles';
-import ReportActionItemFragment from './ReportActionItemFragment';
-import reportActionPropTypes from './reportActionPropTypes';
 import * as Report from '../../../libs/actions/Report';
 import withLocalize, {withLocalizePropTypes} from '../../../components/withLocalize';
-import CONST from "../../../CONST";
-import avatarPropTypes from "../../../components/avatarPropTypes";
-import themeColors from "../../../styles/themes/default";
+import CONST from '../../../CONST';
+import avatarPropTypes from '../../../components/avatarPropTypes';
 import MultipleAvatars from '../../../components/MultipleAvatars';
-import ReportActionItemDate from './ReportActionItemDate';
+import Navigation from '../../../libs/Navigation/Navigation';
+import ROUTES from '../../../ROUTES';
 
 const propTypes = {
-    // childReportID: PropTypes.number.isRequired,
 
+    /** List of participant icons for the thread */
     icons: PropTypes.arrayOf(avatarPropTypes).isRequired,
 
+    /** Number of comments under the thread */
     numberOfReplies: PropTypes.number.isRequired,
 
+    /** Time of the most recent reply */
     mostRecentReply: PropTypes.string.isRequired,
 
+    /** ID of child thread report */
+    // eslint-disable-next-line react/no-unused-prop-types
     childReportID: PropTypes.string.isRequired,
 
     /** localization props */
@@ -32,8 +33,11 @@ const propTypes = {
 const ReportActionItemThread = props => (
     <View style={[styles.chatItemMessage]}>
         <Pressable
+            // eslint-disable-next-line arrow-body-style
             onPress={() => {
-                // Report.OpenChildReport(props.childReportID)
+                // Report.navigateToAndOpenChildReport(props.childReportID);
+                // Report.openReport(props.childReportID);
+                // Navigation.navigate(ROUTES.getReportRoute(props.childReportID));
                 return '';
             }}
         >
@@ -45,8 +49,12 @@ const ReportActionItemThread = props => (
                     avatarTooltips={_.map(props.icons, icon => icon.name)}
                 />
                 <View style={[styles.flexRow, styles.lhPercent, styles.alignItemsEnd]}>
-                    <Text style={[styles.link, styles.ml2, styles.h4]}>{`${props.numberOfReplies} ${props.numberOfReplies === 1 ? props.translate('threads.reply') : props.translate('threads.replies')}`}</Text>
-                    <Text style={[styles.ml2, styles.textMicroSupporting]}>{`${props.translate('threads.lastReply')} ${props.datetimeToCalendarTime(props.mostRecentReply)}`}</Text>
+                    <Text style={[styles.link, styles.ml2, styles.h4]}>
+                        {`${props.numberOfReplies} ${props.numberOfReplies === 1 ? props.translate('threads.reply') : props.translate('threads.replies')}`}
+                    </Text>
+                    <Text style={[styles.ml2, styles.textMicroSupporting]}>
+                        {`${props.translate('threads.lastReply')} ${props.datetimeToCalendarTime(props.mostRecentReply)}`}
+                    </Text>
                 </View>
             </View>
 
