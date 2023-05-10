@@ -26,6 +26,7 @@ import {showContextMenuForReport} from '../ShowContextMenuContext';
 import * as OptionsListUtils from '../../libs/OptionsListUtils';
 import Button from '../Button';
 import * as CurrencyUtils from '../../libs/CurrencyUtils';
+import * as IOUUtils from '../../libs/IOUUtils';
 
 const propTypes = {
     /** Additional logic for displaying the pay button */
@@ -199,11 +200,21 @@ const IOUPreview = (props) => {
                         </View>
                     </View>
 
-                    {!isCurrentUserManager && props.shouldShowPendingConversionMessage && (
-                        <Text style={[styles.textLabel, styles.colorMuted]}>{props.translate('iou.pendingConversionMessage')}</Text>
-                    )}
-
-                    <Text>{Str.htmlDecode(lodashGet(props.action, 'originalMessage.comment', ''))}</Text>
+                    <View style={[styles.flexRow]}>
+                        <View style={[styles.flex1]}>
+                            {!isCurrentUserManager && props.shouldShowPendingConversionMessage && (
+                                <Text style={[styles.textLabel, styles.colorMuted]}>{props.translate('iou.pendingConversionMessage')}</Text>
+                            )}
+                            <Text>{Str.htmlDecode(lodashGet(props.action, 'originalMessage.comment', ''))}</Text>
+                        </View>
+                        {props.isBillSplit && !_.isEmpty(participantEmails) && (
+                            <Text style={[styles.textLabel, styles.colorMuted, styles.ml1]}>
+                                {props.translate('iou.amountEach', {
+                                    amount: CurrencyUtils.convertToDisplayString(IOUUtils.calculateAmount(participantEmails.length - 1, requestAmount), requestCurrency),
+                                })}
+                            </Text>
+                        )}
+                    </View>
 
                     {isCurrentUserManager && !props.shouldHidePayButton && props.iouReport.stateNum === CONST.REPORT.STATE_NUM.PROCESSING && (
                         <Button
