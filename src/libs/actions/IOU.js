@@ -78,12 +78,7 @@ function requestMoney(report, amount, currency, payeeEmail, participant, comment
             moneyRequestReport = {...iouReports[`${ONYXKEYS.COLLECTION.REPORT}${chatReport.iouReportID}`]};
             moneyRequestReport.total += amount;
         } else {
-            moneyRequestReport = IOUUtils.updateIOUOwnerAndTotal(
-                iouReports[`${ONYXKEYS.COLLECTION.REPORT}${chatReport.iouReportID}`],
-                payeeEmail,
-                amount,
-                currency,
-            );
+            moneyRequestReport = IOUUtils.updateIOUOwnerAndTotal(iouReports[`${ONYXKEYS.COLLECTION.REPORT}${chatReport.iouReportID}`], payeeEmail, amount, currency);
         }
     } else {
         moneyRequestReport = isPolicyExpenseChat
@@ -230,7 +225,8 @@ function requestMoney(report, amount, currency, payeeEmail, participant, comment
     const failureData = [chatReportFailureData, reportActionsFailureData, transactionFailureData];
 
     const parsedComment = ReportUtils.getParsedComment(comment);
-    API.write('RequestMoney',
+    API.write(
+        'RequestMoney',
         {
             debtorEmail: payerEmail,
             amount,
@@ -242,7 +238,8 @@ function requestMoney(report, amount, currency, payeeEmail, participant, comment
             reportActionID: optimisticReportAction.reportActionID,
             createdReportActionID: isNewChat ? optimisticCreatedAction.reportActionID : 0,
         },
-    {optimisticData, successData, failureData});
+        {optimisticData, successData, failureData},
+    );
     Navigation.navigate(ROUTES.getReportRoute(chatReport.reportID));
 }
 
