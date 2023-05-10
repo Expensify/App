@@ -22,6 +22,7 @@ import isReportMessageAttachment from './isReportMessageAttachment';
 import * as defaultWorkspaceAvatars from '../components/Icon/WorkspaceDefaultAvatars';
 import * as LocalePhoneNumber from './LocalePhoneNumber';
 import * as CurrencyUtils from './CurrencyUtils';
+import * as PolicyUtils from './PolicyUtils';
 
 let sessionEmail;
 Onyx.connect({
@@ -183,17 +184,19 @@ function canEditReportAction(reportAction) {
 }
 
 /**
- * Can only delete if it's an ADDCOMMENT, the author is this user.
+ * Can only delete if it's an ADDCOMMENT which is not pending delete, and the signed in user is a policy admin or it's their own comment.
  *
  * @param {Object} reportAction
  * @returns {Boolean}
  */
 function canDeleteReportAction(reportAction) {
-    return (
-        reportAction.actorEmail === sessionEmail &&
-        reportAction.actionName === CONST.REPORT.ACTIONS.TYPE.ADDCOMMENT &&
-        reportAction.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE
-    );
+    const report = allReports[`${ONYXKEYS.COLLECTION.REPORT}${reportAction.reportID}`] || {};
+    const policy = allPolicies[`${ONYXKEYS.COLLECTION.POLICY}${report.policyID}`] || {};
+    const isPolicyAdmin = PolicyUtils.isPolicyAdmin(policy);
+    if (reportAction.actionName !== CONST.REPORT.ACTIONS.TYPE.ADDCOMMENT || reportAction.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE) {
+        return false;
+    }
+    return isPolicyAdmin || reportAction.actorEmail === sessionEmail;
 }
 
 /**
