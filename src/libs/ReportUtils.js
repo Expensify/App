@@ -1159,11 +1159,7 @@ function buildOptimisticIOUReportAction(type, amount, currency, comment, partici
     // IOUs of type split only exist in group DMs and those don't have an iouReport so we need to delete the IOUReportID key
     if (type === CONST.IOU.REPORT_ACTION_TYPE.SPLIT) {
         delete originalMessage.IOUReportID;
-        const participantLogins = [currentUserEmail];
-        _.each(participants, (participant) => {
-            participantLogins.push(participant.login);
-        });
-        originalMessage.participants = participantLogins;
+        originalMessage.participants = [currentUserEmail, ..._.pluck(participants, 'login')];
     }
 
     return {
