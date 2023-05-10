@@ -17,6 +17,7 @@ import {showContextMenuForReport} from '../ShowContextMenuContext';
 import * as StyleUtils from '../../styles/StyleUtils';
 import * as CurrencyUtils from '../../libs/CurrencyUtils';
 import * as ReportUtils from '../../libs/ReportUtils';
+import Button from '../Button';
 import themeColors from '../../styles/themes/default';
 import getButtonState from '../../libs/getButtonState';
 
@@ -110,6 +111,15 @@ const ReportPreview = (props) => {
                     />
                 </Pressable>
             ))}
+            <Button
+                style={[styles.requestPreviewBox]}
+                onPress={props.onPayButtonPressed}
+                onPressIn={() => DeviceCapabilities.canUseTouchScreen() && ControlSelection.block()}
+                onPressOut={() => ControlSelection.unblock()}
+                text={props.translate('iou.pay')}
+                success
+                medium
+            />
         </View>
     );
 };
