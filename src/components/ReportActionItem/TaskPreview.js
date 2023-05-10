@@ -1,8 +1,5 @@
 import React from 'react';
-import {
-    View,
-    Pressable,
-} from 'react-native';
+import {View, Pressable} from 'react-native';
 import PropTypes from 'prop-types';
 import {withOnyx} from 'react-native-onyx';
 import compose from '../../libs/compose';
@@ -21,7 +18,6 @@ import ROUTES from '../../ROUTES';
 import reportActionPropTypes from '../../pages/home/report/reportActionPropTypes';
 
 const propTypes = {
-
     /** The ID of the associated taskReport */
     taskReportID: PropTypes.string.isRequired,
 
@@ -56,9 +52,9 @@ const TaskPreview = (props) => {
     // The reportAction might not contain details regarding the taskReport
     // Only the direct parent reportAction will contain details about the taskReport
     // Other linked reportActions will only contain the taskReportID and we will grab the details from there
-    const isTaskCompleted = 
-        props.taskReport.stateNum === CONST.REPORT.STATE_NUM.SUBMITTED && props.taskReport.statusNum === CONST.REPORT.STATUS.APPROVED
-        || props.action.childStateNum === CONST.REPORT.STATE_NUM.CLOSED && props.action.childStatusNum === CONST.REPORT.STATUS.APPROVED;
+    const isTaskCompleted =
+        (props.taskReport.stateNum === CONST.REPORT.STATE_NUM.SUBMITTED && props.taskReport.statusNum === CONST.REPORT.STATUS.APPROVED) ||
+        (props.action.childStateNum === CONST.REPORT.STATE_NUM.CLOSED && props.action.childStatusNum === CONST.REPORT.STATUS.APPROVED);
     const taskTitle = props.action.taskTitle || props.taskReport.reportName;
 
     return (
@@ -77,9 +73,11 @@ const TaskPreview = (props) => {
                 />
                 <Text>{taskTitle}</Text>
             </View>
-            <Icon src={Expensicons.ArrowRight} fill={StyleUtils.getIconFillColor(getButtonState(props.isHovered))} />
+            <Icon
+                src={Expensicons.ArrowRight}
+                fill={StyleUtils.getIconFillColor(getButtonState(props.isHovered))}
+            />
         </Pressable>
-
     );
 };
 
