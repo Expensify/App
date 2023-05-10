@@ -138,10 +138,11 @@ export default function getTooltipStyles(
     // Note: tooltipContentWidth ignores the fractions (OffsetWidth) so add 1px to fit the text properly.
     const wrapperWidth = tooltipContentWidth && tooltipContentWidth + spacing.ph2.paddingHorizontal * 2 + 1;
 
-    // Hide the tooltip entirely if it's position hasn't finished measuring yet. This prevents UI jank where the tooltip flashes in the top left corner of the screen.
-    const opacity = xOffset === 0 && yOffset === 0 ? 0 : 1;
-
     const isTooltipSizeReady = tooltipWidth !== 0 && tooltipHeight !== 0;
+
+    // Hide the tooltip entirely if it's size hasn't finished measuring yet. This prevents UI jank where the tooltip flashes close to its expected position.
+    const opacity = isTooltipSizeReady ? 1 : 0;
+
     const scale = !isTooltipSizeReady ? 1 : currentSize;
     let wrapperTop = 0;
     let wrapperLeft = 0;
