@@ -221,9 +221,9 @@ function editTaskAndNavigate(report, ownerEmail, title, description, assignee) {
         'EditTask',
         {
             taskID: report.reportID,
-            title,
-            description,
-            assignee,
+            title: title || report.reportName,
+            description: description || report.description,
+            assignee: assignee || report.assignee,
         },
         {optimisticData, successData, failureData},
     );
