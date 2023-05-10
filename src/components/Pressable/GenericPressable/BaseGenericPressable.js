@@ -1,9 +1,4 @@
-import React, {
-    useCallback,
-    useEffect,
-    useMemo,
-    forwardRef,
-} from 'react';
+import React, {useCallback, useEffect, useMemo, forwardRef} from 'react';
 import {Pressable} from 'react-native';
 import _ from 'underscore';
 import Accessibility from '../../../libs/Accessibility';
@@ -126,7 +121,7 @@ const GenericPressable = forwardRef((props, ref) => {
             onKeyPress={!isDisabled ? onKeyPressHandler : undefined}
             onPressIn={!isDisabled ? onPressIn : undefined}
             onPressOut={!isDisabled ? onPressOut : undefined}
-            style={state => [
+            style={(state) => [
                 getCursorStyle(isDisabled, [props.accessibilityRole, props.role].includes('text')),
                 StyleUtils.parseStyleFromFunction(props.style, state),
                 isScreenReaderActive && StyleUtils.parseStyleFromFunction(props.screenReaderActiveStyle, state),
@@ -135,7 +130,6 @@ const GenericPressable = forwardRef((props, ref) => {
                 state.pressed && StyleUtils.parseStyleFromFunction(props.pressStyle, state),
                 isDisabled && [...StyleUtils.parseStyleFromFunction(props.disabledStyle, state), styles.noSelect],
             ]}
-
             // accessibility props
             accessibilityState={{
                 disabled: isDisabled,
@@ -143,15 +137,13 @@ const GenericPressable = forwardRef((props, ref) => {
             }}
             aria-disabled={isDisabled}
             aria-keyshortcuts={keyboardShortcut && `${keyboardShortcut.modifiers}+${keyboardShortcut.shortcutKey}`}
-
             // ios-only form of inputs
             onMagicTap={!isDisabled && onPressHandler}
             onAccessibilityTap={!isDisabled && onPressHandler}
-
             // eslint-disable-next-line react/jsx-props-no-spreading
             {...rest}
         >
-            {state => (_.isFunction(props.children) ? props.children({...state, isScreenReaderActive, isDisabled}) : props.children)}
+            {(state) => (_.isFunction(props.children) ? props.children({...state, isScreenReaderActive, isDisabled}) : props.children)}
         </Pressable>
     );
 });

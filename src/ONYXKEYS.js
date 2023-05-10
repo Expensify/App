@@ -24,6 +24,9 @@ export default {
     // Note: These are Persisted Requests - not all requests in the main queue as the key name might lead one to believe
     PERSISTED_REQUESTS: 'networkRequestQueue',
 
+    // Onyx updates from a response, or success or failure data from a request.
+    QUEUED_ONYX_UPDATES: 'queuedOnyxUpdates',
+
     // Stores current date
     CURRENT_DATE: 'currentDate',
 
@@ -44,6 +47,9 @@ export default {
 
     // Contains all the private personal details of the user
     PRIVATE_PERSONAL_DETAILS: 'private_personalDetails',
+
+    // Contains all the info for Tasks
+    TASK: 'task',
 
     // Contains a list of all currencies available to the user - user can
     // select a currency based on the list
@@ -194,6 +200,7 @@ export default {
         NEW_ROOM_FORM: 'newRoomForm',
         ROOM_SETTINGS_FORM: 'roomSettingsForm',
         NEW_TASK_FORM: 'newTaskForm',
+        EDIT_TASK_FORM: 'editTaskForm',
         MONEY_REQUEST_DESCRIPTION_FORM: 'moneyRequestDescriptionForm',
     },
 
