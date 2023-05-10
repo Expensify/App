@@ -66,11 +66,12 @@ const SubscriptAvatar = (props) => {
                 </View>
             </Tooltip>
             <Tooltip text={props.secondaryTooltip}>
-                <View style={[
-                    props.size === CONST.AVATAR_SIZE.SMALL ? styles.secondAvatarSubscriptCompact : styles.secondAvatarSubscript,
-                    StyleUtils.getBackgroundAndBorderStyle(props.backgroundColor),
-                    StyleUtils.getAvatarBorderStyle(props.size, props.secondaryAvatar.type),
-                ]}
+                <View 
+                    style={[
+                        props.size === CONST.AVATAR_SIZE.SMALL ? styles.secondAvatarSubscriptCompact : styles.secondAvatarSubscript,
+                        StyleUtils.getBackgroundAndBorderStyle(props.backgroundColor),
+                        StyleUtils.getAvatarBorderStyle(props.size, props.secondaryAvatar.type),
+                    ]}
                 >
                     <Avatar
                         source={props.secondaryAvatar.source}

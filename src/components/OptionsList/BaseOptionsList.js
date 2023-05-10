@@ -45,11 +45,13 @@ class BaseOptionsList extends Component {
     }
 
     shouldComponentUpdate(nextProps) {
-        return nextProps.focusedIndex !== this.props.focusedIndex
-            || nextProps.selectedOptions.length !== this.props.selectedOptions.length
-            || nextProps.headerMessage !== this.props.headerMessage
-            || !_.isEqual(nextProps.sections, this.props.sections)
-            || !_.isEqual(nextProps.sections, this.props.sections);
+        return (
+            nextProps.focusedIndex !== this.props.focusedIndex ||
+            nextProps.selectedOptions.length !== this.props.selectedOptions.length ||
+            nextProps.headerMessage !== this.props.headerMessage ||
+            !_.isEqual(nextProps.sections, this.props.sections) ||
+            !_.isEqual(nextProps.sections, this.props.sections)
+        );
     }
 
     componentDidUpdate(prevProps) {
@@ -163,11 +165,9 @@ class BaseOptionsList extends Component {
                 option={item}
                 showTitleTooltip={this.props.showTitleTooltip}
                 hoverStyle={this.props.optionHoveredStyle}
-                optionIsFocused={!this.props.disableFocusOptions
-                    && !isDisabled
-                    && this.props.focusedIndex === (index + section.indexOffset)}
+                optionIsFocused={!this.props.disableFocusOptions && !isDisabled && this.props.focusedIndex === index + section.indexOffset}
                 onSelectRow={this.props.onSelectRow}
-                isSelected={Boolean(_.find(this.props.selectedOptions, option => option.login === item.login))}
+                isSelected={Boolean(_.find(this.props.selectedOptions, (option) => option.login === item.login))}
                 showSelectedState={this.props.canSelectMultipleOptions}
                 boldStyle={this.props.boldStyle}
                 isDisabled={isDisabled}
@@ -190,15 +190,12 @@ class BaseOptionsList extends Component {
     renderSectionHeader({section: {title, shouldShow}}) {
         if (title && shouldShow && !this.props.hideSectionHeaders) {
             return (
-
                 // Note: The `optionsListSectionHeader` style provides an explicit height to section headers.
                 // We do this so that we can reference the height in `getItemLayout` –
                 // we need to know the heights of all list items up-front in order to synchronously compute the layout of any given list item.
                 // So be aware that if you adjust the content of the section header (for example, change the font size), you may need to adjust this explicit height as well.
                 <View style={[styles.optionsListSectionHeader, styles.justifyContentCenter]}>
-                    <Text style={[styles.ph5, styles.textLabelSupporting]}>
-                        {title}
-                    </Text>
+                    <Text style={[styles.ph5, styles.textLabelSupporting]}>{title}</Text>
                 </View>
             );
         }
@@ -211,9 +208,7 @@ class BaseOptionsList extends Component {
             <View style={this.props.listContainerStyles}>
                 {this.props.headerMessage ? (
                     <View style={[styles.ph5, styles.pb5]}>
-                        <Text style={[styles.textLabel, styles.colorMuted]}>
-                            {this.props.headerMessage}
-                        </Text>
+                        <Text style={[styles.textLabel, styles.colorMuted]}>{this.props.headerMessage}</Text>
                     </View>
                 ) : null}
                 <SectionList
@@ -247,6 +242,9 @@ BaseOptionsList.propTypes = propTypes;
 BaseOptionsList.defaultProps = defaultProps;
 
 export default forwardRef((props, ref) => (
-    // eslint-disable-next-line react/jsx-props-no-spreading
-    <BaseOptionsList {...props} innerRef={ref} />
+    <BaseOptionsList
+        // eslint-disable-next-line react/jsx-props-no-spreading
+        {...props}
+        innerRef={ref}
+    />
 ));

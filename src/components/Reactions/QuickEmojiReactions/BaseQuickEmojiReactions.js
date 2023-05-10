@@ -45,10 +45,13 @@ const defaultProps = {
     preferredSkinTone: CONST.EMOJI_DEFAULT_SKIN_TONE,
 };
 
-const BaseQuickEmojiReactions = props => (
+const BaseQuickEmojiReactions = (props) => (
     <View style={styles.quickReactionsContainer}>
         {_.map(CONST.QUICK_REACTIONS, emoji => (
-            <Tooltip text={`:${emoji.name}:`} key={emoji.name}>
+            <Tooltip
+                text={`:${emoji.name}:`}
+                key={emoji.name}
+            >
                 <View>
                     <EmojiReactionBubble
                         emojiCodes={[getPreferredEmojiCode(emoji, props.preferredSkinTone)]}
@@ -78,6 +81,4 @@ export default withOnyx({
     },
 })(BaseQuickEmojiReactions);
 
-export {
-    baseQuickEmojiReactionsPropTypes,
-};
+export {baseQuickEmojiReactionsPropTypes};

@@ -32,6 +32,9 @@ const propTypes = {
 
     /** Render custom content inside the tooltip. Note: This cannot be used together with the text props. */
     renderTooltipContent: PropTypes.func,
+
+    /** Unique key of renderTooltipContent to rerender the tooltip when one of the key changes */
+    renderTooltipContentKey: PropTypes.arrayOf(PropTypes.string),
 };
 
 const defaultProps = {
@@ -42,9 +45,7 @@ const defaultProps = {
     maxWidth: variables.sideBarWidth,
     numberOfLines: CONST.TOOLTIP_MAX_LINES,
     renderTooltipContent: undefined,
+    renderTooltipContentKey: [],
 };
 
-export {
-    propTypes,
-    defaultProps,
-};
+export {propTypes, defaultProps};

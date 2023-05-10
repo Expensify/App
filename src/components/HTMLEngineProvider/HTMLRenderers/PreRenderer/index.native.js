@@ -3,7 +3,7 @@ import withLocalize from '../../../withLocalize';
 import htmlRendererPropTypes from '../htmlRendererPropTypes';
 import BasePreRenderer from './BasePreRenderer';
 
-const PreRenderer = props => (
+const PreRenderer = (props) => (
     // eslint-disable-next-line react/jsx-props-no-spreading
     <BasePreRenderer {...props} />
 );

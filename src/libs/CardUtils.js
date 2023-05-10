@@ -25,15 +25,9 @@ function getMonthFromExpirationDateString(expirationDateString) {
  */
 function getYearFromExpirationDateString(expirationDateString) {
     const stringContainsNumbersOnly = /^\d+$/.test(expirationDateString);
-    const cardYear = stringContainsNumbersOnly
-        ? expirationDateString.substr(2)
-        : expirationDateString.substr(3);
+    const cardYear = stringContainsNumbersOnly ? expirationDateString.substr(2) : expirationDateString.substr(3);
 
     return cardYear.length === 2 ? `20${cardYear}` : cardYear;
 }
 
-export {
-    maskCardNumber,
-    getMonthFromExpirationDateString,
-    getYearFromExpirationDateString,
-};
+export {maskCardNumber, getMonthFromExpirationDateString, getYearFromExpirationDateString};

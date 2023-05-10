@@ -36,11 +36,9 @@ const socialsList = [
 
 const Socials = () => (
     <Text>
-        {_.map(socialsList, social => (
-            <Hoverable
-                key={social.link}
-            >
-                {hovered => (
+        {_.map(socialsList, (social) => (
+            <Hoverable key={social.link}>
+                {(hovered) => (
                     <View>
                         <TextLink
                             style={styles.pr1}

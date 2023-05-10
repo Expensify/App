@@ -73,9 +73,7 @@ class DateOfBirthPage extends Component {
      * @param {String} values.dob - date of birth
      */
     updateDateOfBirth(values) {
-        PersonalDetails.updateDateOfBirth(
-            values.dob,
-        );
+        PersonalDetails.updateDateOfBirth(values.dob);
     }
 
     /**

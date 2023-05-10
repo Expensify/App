@@ -33,7 +33,7 @@ let pendingRoute = null;
 
 Onyx.connect({
     key: ONYXKEYS.SESSION,
-    callback: val => isLoggedIn = Boolean(val && val.authToken),
+    callback: (val) => (isLoggedIn = Boolean(val && val.authToken)),
 });
 
 // This flag indicates that we're trying to deeplink to a report when react-navigation is not fully loaded yet.
@@ -188,9 +188,7 @@ function dismissModal(shouldOpenDrawer = false) {
         return;
     }
 
-    const normalizedShouldOpenDrawer = _.isBoolean(shouldOpenDrawer)
-        ? shouldOpenDrawer
-        : false;
+    const normalizedShouldOpenDrawer = _.isBoolean(shouldOpenDrawer) ? shouldOpenDrawer : false;
 
     DeprecatedCustomActions.navigateBackToRootDrawer();
     if (normalizedShouldOpenDrawer) {
@@ -345,6 +343,4 @@ export default {
     drawerGoBack,
 };
 
-export {
-    navigationRef,
-};
+export {navigationRef};
