@@ -238,7 +238,7 @@ class ReportActionItem extends Component {
 
         let oldestFourEmails = lodashGet(this.props.action, 'childOldestFourEmails', []);
         if (!_.isArray(oldestFourEmails)) {
-            oldestFourEmails = oldestFourEmails.split(', ');
+            oldestFourEmails = oldestFourEmails.split(',');
         }
         return (
             <>
