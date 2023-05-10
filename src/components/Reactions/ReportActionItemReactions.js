@@ -85,12 +85,7 @@ const ReportActionItemReactions = (props) => {
                 };
 
                 const onReactionListOpen = (event) => {
-                    ReactionList.showReactionList(
-                        event,
-                        popoverReactionListAnchor.current,
-                        reaction.emoji,
-                        props.reportActionID,
-                    );
+                    ReactionList.showReactionList(event, popoverReactionListAnchor.current, reaction.emoji, props.reportActionID);
                 };
 
                 return (
@@ -100,6 +95,7 @@ const ReportActionItemReactions = (props) => {
                                 emojiName={reaction.emoji}
                                 emojiCodes={emojiCodes}
                                 accountIDs={reactionUsers}
+                                currentUserPersonalDetails={props.currentUserPersonalDetails}
                             />
                         )}
                         renderTooltipContentKey={[...reactionUsers, ...emojiCodes]}
