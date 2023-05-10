@@ -210,6 +210,7 @@ const IOUPreview = (props) => {
                         <Icon
                             src={Expensicons.ArrowRight}
                             fill={StyleUtils.getIconFillColor(getButtonState(props.isHovered))}
+                            additionalStyles={[styles.mb1]}
                         />
                     </View>
                     <View style={[styles.flexRow]}>
