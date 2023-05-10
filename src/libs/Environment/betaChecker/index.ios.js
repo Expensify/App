@@ -7,9 +7,10 @@ import {NativeModules} from 'react-native';
  */
 function isBetaBuild() {
     return new Promise((resolve) => {
-        NativeModules.EnvironmentChecker.isBeta().then((isBeta) => {
-            resolve(isBeta);
-        });
+        NativeModules.EnvironmentChecker.isBeta()
+            .then((isBeta) => {
+                resolve(isBeta);
+            });
     });
 }
 

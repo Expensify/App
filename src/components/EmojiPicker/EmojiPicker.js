@@ -84,9 +84,7 @@ class EmojiPicker extends React.Component {
      * @param {Boolean} isNavigating
      */
     hideEmojiPicker(isNavigating) {
-        if (isNavigating) {
-            this.onModalHide = () => {};
-        }
+        if (isNavigating) { this.onModalHide = () => {}; }
         this.emojiPopoverAnchor = null;
         this.setState({isEmojiPickerVisible: false});
     }
@@ -140,7 +138,7 @@ class EmojiPicker extends React.Component {
         return (
             <EmojiPickerMenu
                 onEmojiSelected={this.selectEmoji}
-                ref={(el) => (this.emojiSearchInput = el)}
+                ref={el => this.emojiSearchInput = el}
             />
         );
     }
@@ -181,7 +179,7 @@ class EmojiPicker extends React.Component {
             >
                 <EmojiPickerMenu
                     onEmojiSelected={this.selectEmoji}
-                    ref={(el) => (this.emojiSearchInput = el)}
+                    ref={el => this.emojiSearchInput = el}
                 />
             </PopoverWithMeasuredContent>
         );

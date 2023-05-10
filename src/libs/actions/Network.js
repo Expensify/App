@@ -24,4 +24,8 @@ function setShouldFailAllRequests(shouldFailAllRequests) {
     Onyx.merge(ONYXKEYS.NETWORK, {shouldFailAllRequests});
 }
 
-export {setIsOffline, setShouldForceOffline, setShouldFailAllRequests};
+export {
+    setIsOffline,
+    setShouldForceOffline,
+    setShouldFailAllRequests,
+};

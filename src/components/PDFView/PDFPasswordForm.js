@@ -89,7 +89,9 @@ class PDFPasswordForm extends Component {
     }
 
     render() {
-        const containerStyle = this.props.isSmallScreenWidth ? [styles.flex1, styles.w100] : styles.pdfPasswordForm.wideScreenWidth;
+        const containerStyle = this.props.isSmallScreenWidth
+            ? [styles.flex1, styles.w100]
+            : styles.pdfPasswordForm.wideScreenWidth;
 
         return (
             <>
@@ -100,7 +102,9 @@ class PDFPasswordForm extends Component {
                         contentContainerStyle={styles.p5}
                     >
                         <View style={styles.mb4}>
-                            <Text>{this.props.translate('attachmentView.pdfPasswordForm.formLabel')}</Text>
+                            <Text>
+                                {this.props.translate('attachmentView.pdfPasswordForm.formLabel')}
+                            </Text>
                         </View>
                         <TextInput
                             label={this.props.translate('common.password')}
@@ -138,4 +142,7 @@ class PDFPasswordForm extends Component {
 PDFPasswordForm.propTypes = propTypes;
 PDFPasswordForm.defaultProps = defaultProps;
 
-export default compose(withWindowDimensions, withLocalize)(PDFPasswordForm);
+export default compose(
+    withWindowDimensions,
+    withLocalize,
+)(PDFPasswordForm);

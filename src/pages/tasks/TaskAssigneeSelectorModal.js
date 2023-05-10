@@ -1,5 +1,7 @@
 /* eslint-disable es/no-optional-chaining */
-import React, {useState, useEffect, useCallback, useMemo} from 'react';
+import React, {
+    useState, useEffect, useCallback, useMemo,
+} from 'react';
 import {View} from 'react-native';
 import PropTypes from 'prop-types';
 import {withOnyx} from 'react-native-onyx';
@@ -55,7 +57,15 @@ const TaskAssigneeSelectorModal = (props) => {
     const [filteredUserToInvite, setFilteredUserToInvite] = useState(null);
 
     useEffect(() => {
-        const results = OptionsListUtils.getNewChatOptions(props.reports, props.personalDetails, props.betas, '', [], CONST.EXPENSIFY_EMAILS, false);
+        const results = OptionsListUtils.getNewChatOptions(
+            props.reports,
+            props.personalDetails,
+            props.betas,
+            '',
+            [],
+            CONST.EXPENSIFY_EMAILS,
+            false,
+        );
 
         setFilteredRecentReports(results.recentReports);
         setFilteredPersonalDetails(results.personalDetails);

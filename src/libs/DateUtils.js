@@ -172,7 +172,9 @@ function getMicroseconds() {
  */
 function getDBTime(timestamp = '') {
     const datetime = timestamp ? new Date(timestamp) : new Date();
-    return datetime.toISOString().replace('T', ' ').replace('Z', '');
+    return datetime.toISOString()
+        .replace('T', ' ')
+        .replace('Z', '');
 }
 
 /**

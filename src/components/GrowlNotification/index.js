@@ -1,6 +1,10 @@
 import React, {Component} from 'react';
-import {View, Animated} from 'react-native';
-import {Directions, FlingGestureHandler, State, TouchableWithoutFeedback} from 'react-native-gesture-handler';
+import {
+    View, Animated,
+} from 'react-native';
+import {
+    Directions, FlingGestureHandler, State, TouchableWithoutFeedback,
+} from 'react-native-gesture-handler';
 import colors from '../../styles/colors';
 import Text from '../Text';
 import Icon from '../Icon';
@@ -51,27 +55,24 @@ class GrowlNotification extends Component {
      * @param {String} bodyText
      * @param {String} type
      * @param {Number} duration
-     */
+    */
     show(bodyText, type, duration) {
-        this.setState(
-            {
-                bodyText,
-                type,
-            },
-            () => {
-                this.fling(0);
-                setTimeout(() => {
-                    this.fling(INACTIVE_POSITION_Y);
-                }, duration);
-            },
-        );
+        this.setState({
+            bodyText,
+            type,
+        }, () => {
+            this.fling(0);
+            setTimeout(() => {
+                this.fling(INACTIVE_POSITION_Y);
+            }, duration);
+        });
     }
 
     /**
      * Animate growl notification
      *
      * @param {Number} val
-     */
+    */
     fling(val = INACTIVE_POSITION_Y) {
         Animated.spring(this.state.translateY, {
             toValue: val,
@@ -96,11 +97,10 @@ class GrowlNotification extends Component {
                     <GrowlNotificationContainer translateY={this.state.translateY}>
                         <TouchableWithoutFeedback onPress={this.fling}>
                             <View style={styles.growlNotificationBox}>
-                                <Icon
-                                    src={types[this.state.type].icon}
-                                    fill={types[this.state.type].iconColor}
-                                />
-                                <Text style={styles.growlNotificationText}>{this.state.bodyText}</Text>
+                                <Icon src={types[this.state.type].icon} fill={types[this.state.type].iconColor} />
+                                <Text style={styles.growlNotificationText}>
+                                    {this.state.bodyText}
+                                </Text>
                             </View>
                         </TouchableWithoutFeedback>
                     </GrowlNotificationContainer>

@@ -32,4 +32,9 @@ function setDraftValues(formID, draftValues) {
     Onyx.merge(`${formID}Draft`, draftValues);
 }
 
-export {setIsLoading, setErrors, setErrorFields, setDraftValues};
+export {
+    setIsLoading,
+    setErrors,
+    setErrorFields,
+    setDraftValues,
+};

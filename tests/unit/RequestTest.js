@@ -19,13 +19,14 @@ test('Request.use() can register a middleware and it will run', () => {
     };
 
     Request.processWithMiddleware(request, true);
-    return waitForPromisesToResolve().then(() => {
-        const [promise, returnedRequest, isFromSequentialQueue] = testMiddleware.mock.calls[0];
-        expect(testMiddleware).toHaveBeenCalled();
-        expect(returnedRequest).toEqual(request);
-        expect(isFromSequentialQueue).toBe(true);
-        expect(promise).toBeInstanceOf(Promise);
-    });
+    return waitForPromisesToResolve()
+        .then(() => {
+            const [promise, returnedRequest, isFromSequentialQueue] = testMiddleware.mock.calls[0];
+            expect(testMiddleware).toHaveBeenCalled();
+            expect(returnedRequest).toEqual(request);
+            expect(isFromSequentialQueue).toBe(true);
+            expect(promise).toBeInstanceOf(Promise);
+        });
 });
 
 test('Request.use() can register two middlewares. They can pass a response to the next and throw errors', () => {
@@ -35,17 +36,13 @@ test('Request.use() can register two middlewares. They can pass a response to th
     });
 
     // And another middleware that will throw when it sees this jsonCode
-    const errorThrowingMiddleware = (promise) =>
-        promise.then(
-            (response) =>
-                new Promise((resolve, reject) => {
-                    if (response.jsonCode !== 404) {
-                        return;
-                    }
+    const errorThrowingMiddleware = promise => promise.then(response => new Promise((resolve, reject) => {
+        if (response.jsonCode !== 404) {
+            return;
+        }
 
-                    reject(new Error('Oops'));
-                }),
-        );
+        reject(new Error('Oops'));
+    }));
 
     Request.use(testMiddleware);
     Request.use(errorThrowingMiddleware);
@@ -57,8 +54,9 @@ test('Request.use() can register two middlewares. They can pass a response to th
 
     const catchHandler = jest.fn();
     Request.processWithMiddleware(request).catch(catchHandler);
-    return waitForPromisesToResolve().then(() => {
-        expect(catchHandler).toHaveBeenCalled();
-        expect(catchHandler).toHaveBeenCalledWith(new Error('Oops'));
-    });
+    return waitForPromisesToResolve()
+        .then(() => {
+            expect(catchHandler).toHaveBeenCalled();
+            expect(catchHandler).toHaveBeenCalledWith(new Error('Oops'));
+        });
 });

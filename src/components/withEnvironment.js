@@ -20,9 +20,10 @@ export default function (WrappedComponent) {
         }
 
         componentDidMount() {
-            Environment.getEnvironment().then((environment) => {
-                this.setState({environment});
-            });
+            Environment.getEnvironment()
+                .then((environment) => {
+                    this.setState({environment});
+                });
         }
 
         render() {
@@ -39,18 +40,20 @@ export default function (WrappedComponent) {
 
     WithEnvironment.displayName = `withEnvironment(${getComponentDisplayName(WrappedComponent)})`;
     WithEnvironment.propTypes = {
-        forwardedRef: PropTypes.oneOfType([PropTypes.func, PropTypes.shape({current: PropTypes.instanceOf(React.Component)})]),
+        forwardedRef: PropTypes.oneOfType([
+            PropTypes.func,
+            PropTypes.shape({current: PropTypes.instanceOf(React.Component)}),
+        ]),
     };
     WithEnvironment.defaultProps = {
         forwardedRef: undefined,
     };
     return React.forwardRef((props, ref) => (
-        <WithEnvironment
-            // eslint-disable-next-line react/jsx-props-no-spreading
-            {...props}
-            forwardedRef={ref}
-        />
+        // eslint-disable-next-line react/jsx-props-no-spreading
+        <WithEnvironment {...props} forwardedRef={ref} />
     ));
 }
 
-export {environmentPropTypes};
+export {
+    environmentPropTypes,
+};

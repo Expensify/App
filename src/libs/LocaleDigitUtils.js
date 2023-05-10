@@ -67,4 +67,7 @@ function fromLocaleDigit(locale, localeDigit) {
     return STANDARD_DIGITS[index];
 }
 
-export {toLocaleDigit, fromLocaleDigit};
+export {
+    toLocaleDigit,
+    fromLocaleDigit,
+};

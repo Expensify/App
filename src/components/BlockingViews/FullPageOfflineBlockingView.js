@@ -35,4 +35,7 @@ const FullPageOfflineBlockingView = (props) => {
 FullPageOfflineBlockingView.propTypes = propTypes;
 FullPageOfflineBlockingView.displayName = 'FullPageOfflineBlockingView';
 
-export default compose(withLocalize, withNetwork())(FullPageOfflineBlockingView);
+export default compose(
+    withLocalize,
+    withNetwork(),
+)(FullPageOfflineBlockingView);

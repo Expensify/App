@@ -11,7 +11,10 @@ const propTypes = {
 };
 
 // eslint-disable-next-line react/destructuring-assignment
-const CustomRootStackNavigator = ({children, ...rest}) => {
+const CustomRootStackNavigator = ({
+    children,
+    ...rest
+}) => {
     const {state, navigation, descriptors} = useNavigationBuilder(StackRouter, {
         children,
     });
@@ -30,7 +33,9 @@ const CustomRootStackNavigator = ({children, ...rest}) => {
 
             {/* We need to superimpose a clickaway handler when showing modals so that they can be dismissed. Capturing
             press events on the cardOverlay element in react-navigation is not yet supported on web */}
-            <ClickAwayHandler isDisplayingModal={isDisplayingModal && !isDisplayingFullScreenModal} />
+            <ClickAwayHandler
+                isDisplayingModal={isDisplayingModal && !isDisplayingFullScreenModal}
+            />
         </>
     );
 };

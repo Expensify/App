@@ -9,11 +9,8 @@ const defaultProps = {
 const propTypes = {
     isVisible: PropTypes.bool,
 };
-const ValidateCodeForm = (props) => (
-    <BaseValidateCodeForm
-        isVisible={props.isVisible}
-        autoComplete="one-time-code"
-    />
+const ValidateCodeForm = props => (
+    <BaseValidateCodeForm isVisible={props.isVisible} autoComplete="one-time-code" />
 );
 
 ValidateCodeForm.displayName = 'ValidateCodeForm';

@@ -25,9 +25,13 @@ class AbracadabraModal extends PureComponent {
                             src={Illustrations.Abracadabra}
                         />
                     </View>
-                    <Text style={[styles.textHeadline, styles.textXXLarge, styles.textAlignCenter]}>{this.props.translate('validateCodeModal.successfulSignInTitle')}</Text>
+                    <Text style={[styles.textHeadline, styles.textXXLarge, styles.textAlignCenter]}>
+                        {this.props.translate('validateCodeModal.successfulSignInTitle')}
+                    </Text>
                     <View style={[styles.mt2, styles.mb2]}>
-                        <Text style={[styles.fontSizeNormal, styles.textAlignCenter]}>{this.props.translate('validateCodeModal.successfulSignInDescription')}</Text>
+                        <Text style={[styles.fontSizeNormal, styles.textAlignCenter]}>
+                            {this.props.translate('validateCodeModal.successfulSignInDescription')}
+                        </Text>
                     </View>
                 </View>
                 <View style={styles.deeplinkWrapperFooter}>

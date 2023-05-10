@@ -51,7 +51,9 @@ const OpacityView = (props) => {
 
     return (
         <Animated.View style={[opacityStyle]}>
-            <View style={StyleUtils.parseStyleAsArray(props.style)}>{props.children}</View>
+            <View style={StyleUtils.parseStyleAsArray(props.style)}>
+                {props.children}
+            </View>
         </Animated.View>
     );
 };

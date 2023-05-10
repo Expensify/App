@@ -24,4 +24,7 @@ function extractCollectionItemID(key) {
     return key.split('_')[1];
 }
 
-export {lastItem, extractCollectionItemID};
+export {
+    lastItem,
+    extractCollectionItemID,
+};

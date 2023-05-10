@@ -32,15 +32,19 @@ const BasePreRenderer = forwardRef((props, ref) => {
         <ScrollView
             ref={ref}
             horizontal
-            style={[styles.mv2, styles.overscrollBehaviorNone]}
-            bounces={false}
+            style={styles.mv2}
         >
             <ShowContextMenuContext.Consumer>
-                {({anchor, report, action, checkIfContextMenuActive}) => (
+                {({
+                    anchor,
+                    report,
+                    action,
+                    checkIfContextMenuActive,
+                }) => (
                     <TouchableWithoutFeedback
                         onPressIn={props.onPressIn}
                         onPressOut={props.onPressOut}
-                        onLongPress={(event) => showContextMenuForReport(event, anchor, report.reportID, action, checkIfContextMenuActive, ReportUtils.isArchivedRoom(report))}
+                        onLongPress={event => showContextMenuForReport(event, anchor, report.reportID, action, checkIfContextMenuActive, ReportUtils.isArchivedRoom(report))}
                     >
                         <View>
                             {/* eslint-disable-next-line react/jsx-props-no-spreading */}

@@ -53,22 +53,21 @@ const defaultProps = {
     textStyles: [],
 };
 
-const Banner = (props) => (
+const Banner = props => (
     <Hoverable>
         {(isHovered) => {
             const isClickable = props.onClose || props.onPress;
             const shouldHighlight = isClickable && isHovered;
             return (
-                <View
-                    style={[
-                        styles.flexRow,
-                        styles.alignItemsCenter,
-                        styles.p5,
-                        styles.borderRadiusNormal,
-                        shouldHighlight ? styles.activeComponentBG : styles.hoveredComponentBG,
-                        styles.breakAll,
-                        ...props.containerStyles,
-                    ]}
+                <View style={[
+                    styles.flexRow,
+                    styles.alignItemsCenter,
+                    styles.p5,
+                    styles.borderRadiusNormal,
+                    shouldHighlight ? styles.activeComponentBG : styles.hoveredComponentBG,
+                    styles.breakAll,
+                    ...props.containerStyles,
+                ]}
                 >
                     <View style={[styles.flexRow, styles.flexGrow1, styles.mw100, styles.alignItemsCenter]}>
                         {props.shouldShowIcon && (
@@ -79,16 +78,11 @@ const Banner = (props) => (
                                 />
                             </View>
                         )}
-                        {props.shouldRenderHTML ? (
-                            <RenderHTML html={props.text} />
-                        ) : (
-                            <Text
-                                style={[...props.textStyles]}
-                                onPress={props.onPress}
-                            >
-                                {props.text}
-                            </Text>
-                        )}
+                        {
+                            props.shouldRenderHTML
+                                ? <RenderHTML html={props.text} />
+                                : <Text style={[...props.textStyles]} onPress={props.onPress}>{props.text}</Text>
+                        }
                     </View>
                     {props.shouldShowCloseButton && (
                         <Tooltip text={props.translate('common.close')}>
@@ -111,4 +105,7 @@ Banner.propTypes = propTypes;
 Banner.defaultProps = defaultProps;
 Banner.displayName = 'Banner';
 
-export default compose(withLocalize, memo)(Banner);
+export default compose(
+    withLocalize,
+    memo,
+)(Banner);

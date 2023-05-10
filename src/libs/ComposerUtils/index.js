@@ -25,4 +25,9 @@ function canSkipTriggerHotkeys(isSmallScreenWidth, isKeyboardShown) {
     return (isSmallScreenWidth && DeviceCapabilities.canUseTouchScreen()) || isKeyboardShown;
 }
 
-export {getNumberOfLines, updateNumberOfLines, insertText, canSkipTriggerHotkeys};
+export {
+    getNumberOfLines,
+    updateNumberOfLines,
+    insertText,
+    canSkipTriggerHotkeys,
+};

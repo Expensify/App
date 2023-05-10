@@ -9,7 +9,10 @@ const propTypes = {
     formattedAmount: PropTypes.string.isRequired,
 
     /** A ref to forward to amount text input */
-    forwardedRef: PropTypes.oneOfType([PropTypes.func, PropTypes.shape({current: PropTypes.instanceOf(React.Component)})]),
+    forwardedRef: PropTypes.oneOfType([
+        PropTypes.func,
+        PropTypes.shape({current: PropTypes.instanceOf(React.Component)}),
+    ]),
 
     /** Function to call when amount in text input is changed */
     onChangeAmount: PropTypes.func.isRequired,
@@ -58,9 +61,6 @@ AmountTextInput.defaultProps = defaultProps;
 AmountTextInput.displayName = 'AmountTextInput';
 
 export default React.forwardRef((props, ref) => (
-    <AmountTextInput
-        // eslint-disable-next-line react/jsx-props-no-spreading
-        {...props}
-        forwardedRef={ref}
-    />
+    // eslint-disable-next-line react/jsx-props-no-spreading
+    <AmountTextInput {...props} forwardedRef={ref} />
 ));

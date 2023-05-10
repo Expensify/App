@@ -19,8 +19,7 @@ function startTrace(customEventName) {
         return;
     }
 
-    perf()
-        .startTrace(customEventName)
+    perf().startTrace(customEventName)
         .then((trace) => {
             traceMap[customEventName] = {
                 trace,

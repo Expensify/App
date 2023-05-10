@@ -45,7 +45,12 @@ class ReportTransaction extends Component {
     }
 
     deleteMoneyRequest() {
-        IOU.deleteMoneyRequest(this.props.chatReportID, this.props.iouReportID, this.props.action, this.props.shouldCloseOnDelete);
+        IOU.deleteMoneyRequest(
+            this.props.chatReportID,
+            this.props.iouReportID,
+            this.props.action,
+            this.props.shouldCloseOnDelete,
+        );
     }
 
     render() {
@@ -61,7 +66,9 @@ class ReportTransaction extends Component {
                         action={this.props.action}
                         wrapperStyles={[styles.reportTransactionWrapper]}
                     >
-                        <Text style={[styles.chatItemMessage]}>{this.props.action.message[0].text}</Text>
+                        <Text style={[styles.chatItemMessage]}>
+                            {this.props.action.message[0].text}
+                        </Text>
                     </ReportActionItemSingle>
                     {this.props.canBeDeleted && (
                         <View style={[styles.flexRow, styles.justifyContentStart]}>

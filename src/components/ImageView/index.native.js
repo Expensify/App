@@ -1,6 +1,8 @@
 import React, {PureComponent} from 'react';
 import PropTypes from 'prop-types';
-import {View, InteractionManager, PanResponder} from 'react-native';
+import {
+    View, InteractionManager, PanResponder,
+} from 'react-native';
 import ImageZoom from 'react-native-image-pan-zoom';
 import _ from 'underscore';
 import styles from '../../styles/styles';
@@ -114,8 +116,8 @@ class ImageView extends PureComponent {
 
             // Resize the image to max dimensions possible on the Native platforms to prevent crashes on Android. To keep the same behavior, apply to IOS as well.
             const maxDimensionsScale = 11;
-            imageWidth = Math.min(imageWidth, containerWidth * maxDimensionsScale);
-            imageHeight = Math.min(imageHeight, containerHeight * maxDimensionsScale);
+            imageWidth = Math.min(imageWidth, (containerWidth * maxDimensionsScale));
+            imageHeight = Math.min(imageHeight, (containerHeight * maxDimensionsScale));
             this.setState({imageHeight, imageWidth, isLoading: false});
         });
     }
@@ -156,7 +158,13 @@ class ImageView extends PureComponent {
         // Zoom view should be loaded only after measuring actual image dimensions, otherwise it causes blurred images on Android
         return (
             <View
-                style={[styles.w100, styles.h100, styles.alignItemsCenter, styles.justifyContentCenter, styles.overflowHidden]}
+                style={[
+                    styles.w100,
+                    styles.h100,
+                    styles.alignItemsCenter,
+                    styles.justifyContentCenter,
+                    styles.overflowHidden,
+                ]}
                 onLayout={(event) => {
                     const layout = event.nativeEvent.layout;
                     this.setState({
@@ -166,7 +174,7 @@ class ImageView extends PureComponent {
             >
                 {Boolean(this.state.containerHeight) && (
                     <ImageZoom
-                        ref={(el) => (this.zoom = el)}
+                        ref={el => this.zoom = el}
                         onClick={() => this.props.onPress()}
                         cropWidth={this.props.windowWidth}
                         cropHeight={windowHeight}
@@ -225,11 +233,19 @@ class ImageView extends PureComponent {
                         <View
                             /* eslint-disable-next-line react/jsx-props-no-spreading */
                             {...this.panResponder.panHandlers}
-                            style={[styles.w100, styles.h100, styles.invisible]}
+                            style={[
+                                styles.w100,
+                                styles.h100,
+                                styles.invisible,
+                            ]}
                         />
                     </ImageZoom>
                 )}
-                {shouldShowLoadingIndicator && <FullscreenLoadingIndicator style={[styles.opacity1, styles.bgTransparent]} />}
+                {shouldShowLoadingIndicator && (
+                    <FullscreenLoadingIndicator
+                        style={[styles.opacity1, styles.bgTransparent]}
+                    />
+                )}
             </View>
         );
     }

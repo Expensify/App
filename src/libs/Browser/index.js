@@ -13,4 +13,9 @@ function isMobileChrome() {
     return false;
 }
 
-export {getBrowser, isMobile, isMobileSafari, isMobileChrome};
+export {
+    getBrowser,
+    isMobile,
+    isMobileSafari,
+    isMobileChrome,
+};

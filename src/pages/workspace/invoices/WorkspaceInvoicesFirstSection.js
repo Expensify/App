@@ -36,7 +36,9 @@ const WorkspaceInvoicesFirstSection = (props) => {
                 },
                 {
                     title: props.translate('workspace.invoices.viewAllInvoices'),
-                    onPress: () => Link.openOldDotLink(viewAllInvoicesUrl),
+                    onPress: () => (
+                        Link.openOldDotLink(viewAllInvoicesUrl)
+                    ),
                     icon: Expensicons.Invoice,
                     shouldShowRightIcon: true,
                     iconRight: Expensicons.NewWindow,
@@ -47,7 +49,9 @@ const WorkspaceInvoicesFirstSection = (props) => {
             containerStyles={[styles.cardSection]}
         >
             <View style={[styles.mv3]}>
-                <Text>{props.translate('workspace.invoices.invoiceFirstSectionCopy')}</Text>
+                <Text>
+                    {props.translate('workspace.invoices.invoiceFirstSectionCopy')}
+                </Text>
             </View>
         </Section>
     );

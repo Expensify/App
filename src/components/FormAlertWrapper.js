@@ -71,10 +71,7 @@ const FormAlertWrapper = (props) => {
     return (
         <View style={props.containerStyles}>
             {props.isAlertVisible && (
-                <FormHelpMessage
-                    message={props.message}
-                    style={[styles.mb3]}
-                >
+                <FormHelpMessage message={props.message} style={[styles.mb3]}>
                     {children}
                 </FormHelpMessage>
             )}
@@ -87,4 +84,7 @@ FormAlertWrapper.propTypes = propTypes;
 FormAlertWrapper.defaultProps = defaultProps;
 FormAlertWrapper.displayName = 'FormAlertWrapper';
 
-export default compose(withLocalize, withNetwork())(FormAlertWrapper);
+export default compose(
+    withLocalize,
+    withNetwork(),
+)(FormAlertWrapper);

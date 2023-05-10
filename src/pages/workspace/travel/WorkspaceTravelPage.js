@@ -19,7 +19,7 @@ const propTypes = {
     ...withLocalizePropTypes,
 };
 
-const WorkspaceTravelPage = (props) => (
+const WorkspaceTravelPage = props => (
     <WorkspacePageWithSections
         shouldUseScrollView
         headerText={props.translate('workspace.common.travel')}
@@ -28,8 +28,12 @@ const WorkspaceTravelPage = (props) => (
     >
         {(hasVBA, policyID) => (
             <>
-                {!hasVBA && <WorkspaceTravelNoVBAView policyID={policyID} />}
-                {hasVBA && <WorkspaceTravelVBAView />}
+                {!hasVBA && (
+                    <WorkspaceTravelNoVBAView policyID={policyID} />
+                )}
+                {hasVBA && (
+                    <WorkspaceTravelVBAView />
+                )}
             </>
         )}
     </WorkspacePageWithSections>

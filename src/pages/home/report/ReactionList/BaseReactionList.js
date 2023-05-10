@@ -14,9 +14,10 @@ import variables from '../../../../styles/variables';
 import withWindowDimensions from '../../../../components/withWindowDimensions';
 
 const propTypes = {
+
     /**
-     *  Array of personal detail objects
-     */
+    *  Array of personal detail objects
+    */
     users: PropTypes.arrayOf(participantPropTypes).isRequired,
 
     /**
@@ -50,13 +51,11 @@ const renderItem = ({item}) => (
             text: Str.removeSMSDomain(item.displayName),
             alternateText: Str.removeSMSDomain(item.login),
             participantsList: [item],
-            icons: [
-                {
-                    source: ReportUtils.getAvatar(item.avatar, item.login),
-                    name: item.login,
-                    type: CONST.ICON_TYPE_AVATAR,
-                },
-            ],
+            icons: [{
+                source: ReportUtils.getAvatar(item.avatar, item.login),
+                name: item.login,
+                type: CONST.ICON_TYPE_AVATAR,
+            }],
             keyForList: item.login,
         }}
     />

@@ -1,4 +1,6 @@
-import React, {forwardRef} from 'react';
+import React, {
+    forwardRef,
+} from 'react';
 import PropTypes from 'prop-types';
 import {FlatList, StyleSheet} from 'react-native';
 import _ from 'underscore';
@@ -40,7 +42,7 @@ class InvertedFlatList extends React.Component {
                 // eslint-disable-next-line react/jsx-props-no-spreading
                 {...this.props}
                 inverted
-                ref={(el) => (this.list = el)}
+                ref={el => this.list = el}
                 shouldMeasureItems
                 contentContainerStyle={StyleSheet.compose(this.props.contentContainerStyle, styles.justifyContentEnd)}
             />
@@ -54,9 +56,6 @@ InvertedFlatList.defaultProps = {
 };
 
 export default forwardRef((props, ref) => (
-    <InvertedFlatList
-        // eslint-disable-next-line react/jsx-props-no-spreading
-        {...props}
-        innerRef={ref}
-    />
+    // eslint-disable-next-line react/jsx-props-no-spreading
+    <InvertedFlatList {...props} innerRef={ref} />
 ));

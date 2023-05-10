@@ -22,4 +22,7 @@ function navigateToBankAccountRoute(policyId) {
     Navigation.navigate(ROUTES.getBankAccountRoute('', policyId));
 }
 
-export {goToWithdrawalAccountSetupStep, navigateToBankAccountRoute};
+export {
+    goToWithdrawalAccountSetupStep,
+    navigateToBankAccountRoute,
+};

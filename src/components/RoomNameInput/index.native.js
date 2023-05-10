@@ -57,10 +57,7 @@ RoomNameInput.defaultProps = roomNameInputPropTypes.defaultProps;
 
 export default withLocalize(
     React.forwardRef((props, ref) => (
-        <RoomNameInput
-            // eslint-disable-next-line react/jsx-props-no-spreading
-            {...props}
-            forwardedRef={ref}
-        />
+    // eslint-disable-next-line react/jsx-props-no-spreading
+        <RoomNameInput {...props} forwardedRef={ref} />
     )),
 );

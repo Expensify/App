@@ -26,17 +26,15 @@ const WorkspaceResetBankAccountModal = (props) => {
             title={props.translate('workspace.bankAccount.areYouSure')}
             confirmText={isInOpenState ? props.translate('workspace.bankAccount.yesDisconnectMyBankAccount') : props.translate('workspace.bankAccount.yesStartOver')}
             cancelText={props.translate('common.cancel')}
-            prompt={
-                isInOpenState ? (
-                    <Text>
-                        <Text>{props.translate('workspace.bankAccount.disconnectYour')}</Text>
-                        <Text style={styles.textStrong}>{bankShortName}</Text>
-                        <Text>{props.translate('workspace.bankAccount.bankAccountAnyTransactions')}</Text>
+            prompt={isInOpenState ? (
+                <Text>
+                    <Text>{props.translate('workspace.bankAccount.disconnectYour')}</Text>
+                    <Text style={styles.textStrong}>
+                        {bankShortName}
                     </Text>
-                ) : (
-                    props.translate('workspace.bankAccount.clearProgress')
-                )
-            }
+                    <Text>{props.translate('workspace.bankAccount.bankAccountAnyTransactions')}</Text>
+                </Text>
+            ) : props.translate('workspace.bankAccount.clearProgress')}
             danger
             onCancel={BankAccounts.cancelResetFreePlanBankAccount}
             onConfirm={() => BankAccounts.resetFreePlanBankAccount(bankAccountID)}

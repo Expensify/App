@@ -44,20 +44,12 @@ const Default = () => {
                 }}
             >
                 <View
-                    style={[
-                        {
-                            width: 200,
-                            height: 200,
-                            backgroundColor: 'beige',
-                            borderColor: 'black',
-                            borderWidth: 1,
-                        },
-                        styles.alignItemsCenter,
-                        styles.justifyContentCenter,
-                    ]}
+                    style={[{
+                        width: 200, height: 200, backgroundColor: 'beige', borderColor: 'black', borderWidth: 1,
+                    }, styles.alignItemsCenter, styles.justifyContentCenter]}
                     nativeID="dropId"
                 >
-                    {fileUrl ? (
+                    { fileUrl ? (
                         <Image
                             source={{uri: fileUrl}}
                             style={{
@@ -65,9 +57,7 @@ const Default = () => {
                                 height: 200,
                             }}
                         />
-                    ) : (
-                        <Text color="black">Drop a picture here!</Text>
-                    )}
+                    ) : <Text color="black">Drop a picture here!</Text>}
                     {/* Portals give us flexibility to render active drag overlay regardless of your react component structure */}
                     <PortalHost name="portalHost" />
                 </View>
@@ -83,4 +73,6 @@ const Default = () => {
 };
 
 export default story;
-export {Default};
+export {
+    Default,
+};

@@ -68,4 +68,8 @@ function isClientTheLeader() {
     return _.last(activeClients) === clientID;
 }
 
-export {init, isClientTheLeader, isReady};
+export {
+    init,
+    isClientTheLeader,
+    isReady,
+};

@@ -2,7 +2,10 @@ import React from 'react';
 import {Pressable} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import PropTypes from 'prop-types';
-import {propTypes as anchorForAttachmentsOnlyPropTypes, defaultProps as anchorForAttachmentsOnlyDefaultProps} from './anchorForAttachmentsOnlyPropTypes';
+import {
+    propTypes as anchorForAttachmentsOnlyPropTypes,
+    defaultProps as anchorForAttachmentsOnlyDefaultProps,
+} from './anchorForAttachmentsOnlyPropTypes';
 import CONST from '../../CONST';
 import ONYXKEYS from '../../ONYXKEYS';
 import AttachmentView from '../AttachmentView';
@@ -44,7 +47,12 @@ const BaseAnchorForAttachmentsOnly = (props) => {
 
     return (
         <ShowContextMenuContext.Consumer>
-            {({anchor, report, action, checkIfContextMenuActive}) => (
+            {({
+                anchor,
+                report,
+                action,
+                checkIfContextMenuActive,
+            }) => (
                 <Pressable
                     style={props.style}
                     onPress={() => {
@@ -56,7 +64,14 @@ const BaseAnchorForAttachmentsOnly = (props) => {
                     }}
                     onPressIn={props.onPressIn}
                     onPressOut={props.onPressOut}
-                    onLongPress={(event) => showContextMenuForReport(event, anchor, report.reportID, action, checkIfContextMenuActive, ReportUtils.isArchivedRoom(report))}
+                    onLongPress={event => showContextMenuForReport(
+                        event,
+                        anchor,
+                        report.reportID,
+                        action,
+                        checkIfContextMenuActive,
+                        ReportUtils.isArchivedRoom(report),
+                    )}
                 >
                     <AttachmentView
                         source={sourceURLWithAuth}

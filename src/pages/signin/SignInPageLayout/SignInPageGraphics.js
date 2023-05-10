@@ -12,9 +12,12 @@ const propTypes = {
     ...windowDimensionsPropTypes,
 };
 
-const SignInPageGraphics = (props) => (
+const SignInPageGraphics = props => (
     <Pressable
-        style={[StyleUtils.getHeight(props.windowHeight), StyleUtils.getBackgroundColorStyle(backgroundStyle.backgroundColor)]}
+        style={[
+            StyleUtils.getHeight(props.windowHeight),
+            StyleUtils.getBackgroundColorStyle(backgroundStyle.backgroundColor),
+        ]}
         onPress={() => {
             Link.openExternalLink(backgroundStyle.redirectUri);
         }}

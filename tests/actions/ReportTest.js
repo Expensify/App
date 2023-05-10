@@ -2,7 +2,9 @@ import _ from 'underscore';
 import Onyx from 'react-native-onyx';
 import lodashGet from 'lodash/get';
 import moment from 'moment';
-import {beforeEach, beforeAll, afterEach, describe, it, expect} from '@jest/globals';
+import {
+    beforeEach, beforeAll, afterEach, describe, it, expect,
+} from '@jest/globals';
 import ONYXKEYS from '../../src/ONYXKEYS';
 import CONST from '../../src/CONST';
 import * as Report from '../../src/libs/actions/Report';
@@ -58,7 +60,7 @@ describe('actions/Report', () => {
         let reportActions;
         Onyx.connect({
             key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${REPORT_ID}`,
-            callback: (val) => (reportActions = val),
+            callback: val => reportActions = val,
         });
 
         // Set up Onyx with some test user data
@@ -133,7 +135,7 @@ describe('actions/Report', () => {
         let reportIsPinned;
         Onyx.connect({
             key: `${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`,
-            callback: (val) => (reportIsPinned = lodashGet(val, 'isPinned')),
+            callback: val => reportIsPinned = lodashGet(val, 'isPinned'),
         });
 
         // Set up Onyx with some test user data
@@ -177,7 +179,7 @@ describe('actions/Report', () => {
             .then(() => {
                 // THEN only ONE call to AddComment will happen
                 const URL_ARGUMENT_INDEX = 0;
-                const addCommentCalls = _.filter(global.fetch.mock.calls, (callArguments) => callArguments[URL_ARGUMENT_INDEX].includes('AddComment'));
+                const addCommentCalls = _.filter(global.fetch.mock.calls, callArguments => callArguments[URL_ARGUMENT_INDEX].includes('AddComment'));
                 expect(addCommentCalls.length).toBe(1);
             });
     });
@@ -189,13 +191,13 @@ describe('actions/Report', () => {
         let currentTime;
         Onyx.connect({
             key: `${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`,
-            callback: (val) => (report = val),
+            callback: val => report = val,
         });
 
         let reportActions;
         Onyx.connect({
             key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${REPORT_ID}`,
-            callback: (val) => (reportActions = val),
+            callback: val => reportActions = val,
         });
 
         const USER_1_LOGIN = 'user@test.com';
@@ -440,9 +442,8 @@ describe('actions/Report', () => {
         originalCommentHTML = 'Comment';
         afterEditCommentText = 'Comment www.google.com www.facebook.com';
         newCommentHTML = Report.handleUserDeletedLinksInHtml(afterEditCommentText, originalCommentHTML);
-        expectedOutput =
-            'Comment <a href="https://www.google.com" target="_blank" rel="noreferrer noopener">www.google.com</a> ' +
-            '<a href="https://www.facebook.com" target="_blank" rel="noreferrer noopener">www.facebook.com</a>';
+        expectedOutput = 'Comment <a href="https://www.google.com" target="_blank" rel="noreferrer noopener">www.google.com</a> '
+            + '<a href="https://www.facebook.com" target="_blank" rel="noreferrer noopener">www.facebook.com</a>';
         expect(newCommentHTML).toBe(expectedOutput);
 
         // Comment has two links but user deletes only one of them
@@ -510,8 +511,7 @@ describe('actions/Report', () => {
                     },
                 ]);
                 return waitForPromisesToResolve();
-            })
-            .then(() => {
+            }).then(() => {
                 // Ensure we show a notification for this new report action
                 expect(Report.showReportActionNotification).toBeCalledWith(REPORT_ID, REPORT_ACTION);
             });
@@ -535,7 +535,7 @@ describe('actions/Report', () => {
 
         Onyx.connect({
             key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${REPORT_ID}`,
-            callback: (val) => (reportActions = val),
+            callback: val => reportActions = val,
         });
 
         // Set up Onyx with some test user data
@@ -562,14 +562,14 @@ describe('actions/Report', () => {
                 const resultAction = _.first(_.values(reportActions));
 
                 // Expect to have the reaction on the message
-                expect(resultAction.message[0].reactions).toEqual(
-                    expect.arrayContaining([
+                expect(resultAction.message[0].reactions)
+                    .toEqual(expect.arrayContaining([
                         expect.objectContaining({
                             emoji: EMOJI_NAME,
-                            users: expect.arrayContaining([expect.objectContaining({accountID: TEST_USER_ACCOUNT_ID})]),
-                        }),
-                    ]),
-                );
+                            users: expect.arrayContaining([
+                                expect.objectContaining({accountID: TEST_USER_ACCOUNT_ID}),
+                            ]),
+                        })]));
 
                 // Now we remove the reaction
                 Report.removeEmojiReaction(REPORT_ID, resultAction, EMOJI);
@@ -589,15 +589,20 @@ describe('actions/Report', () => {
                 return waitForPromisesToResolve()
                     .then(() => {
                         const updatedResultAction = _.first(_.values(reportActions));
-                        Report.addEmojiReaction(REPORT_ID, updatedResultAction, EMOJI, 2);
+                        Report.addEmojiReaction(
+                            REPORT_ID,
+                            updatedResultAction,
+                            EMOJI,
+                            2,
+                        );
                         return waitForPromisesToResolve();
                     })
                     .then(() => {
                         const updatedResultAction = _.first(_.values(reportActions));
 
                         // Expect to have the reaction on the message
-                        expect(updatedResultAction.message[0].reactions).toEqual(
-                            expect.arrayContaining([
+                        expect(updatedResultAction.message[0].reactions)
+                            .toEqual(expect.arrayContaining([
                                 expect.objectContaining({
                                     emoji: EMOJI_NAME,
                                     users: expect.arrayContaining([
@@ -609,9 +614,7 @@ describe('actions/Report', () => {
                                             skinTone: EMOJI_SKIN_TONE,
                                         }),
                                     ]),
-                                }),
-                            ]),
-                        );
+                                })]));
 
                         // Now we remove the reaction, and expect that both variations are removed
                         Report.removeEmojiReaction(REPORT_ID, updatedResultAction, EMOJI);
@@ -626,7 +629,7 @@ describe('actions/Report', () => {
             });
     });
 
-    it("shouldn't add the same reaction twice when changing preferred skin color and reaction doesn't support skin colors", () => {
+    it('shouldn\'t add the same reaction twice when changing preferred skin color and reaction doesn\'t support skin colors', () => {
         global.fetch = TestHelper.getGlobalFetchMock();
 
         const TEST_USER_ACCOUNT_ID = 1;
@@ -643,7 +646,7 @@ describe('actions/Report', () => {
 
         Onyx.connect({
             key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${REPORT_ID}`,
-            callback: (val) => (reportActions = val),
+            callback: val => reportActions = val,
         });
 
         // Set up Onyx with some test user data

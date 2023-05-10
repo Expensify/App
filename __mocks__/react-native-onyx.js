@@ -8,19 +8,18 @@ function addDelayToConnectCallback(delay) {
 
 export default {
     ...Onyx,
-    connect: (mapping) =>
-        Onyx.connect({
-            ...mapping,
-            callback: (...params) => {
-                if (connectCallbackDelay > 0) {
-                    setTimeout(() => {
-                        mapping.callback(...params);
-                    }, connectCallbackDelay);
-                } else {
+    connect: mapping => Onyx.connect({
+        ...mapping,
+        callback: (...params) => {
+            if (connectCallbackDelay > 0) {
+                setTimeout(() => {
                     mapping.callback(...params);
-                }
-            },
-        }),
+                }, connectCallbackDelay);
+            } else {
+                mapping.callback(...params);
+            }
+        },
+    }),
     addDelayToConnectCallback,
 };
 export {withOnyx};

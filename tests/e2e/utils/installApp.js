@@ -16,10 +16,8 @@ module.exports = function (platform = 'android', path) {
     }
 
     // Uninstall first, then install
-    return execAsync(`adb uninstall ${APP_PACKAGE}`)
-        .catch((e) => {
-            // Ignore errors
-            Logger.warn('Failed to uninstall app:', e);
-        })
-        .finally(() => execAsync(`adb install ${path}`));
+    return execAsync(`adb uninstall ${APP_PACKAGE}`).catch((e) => {
+        // Ignore errors
+        Logger.warn('Failed to uninstall app:', e);
+    }).finally(() => execAsync(`adb install ${path}`));
 };

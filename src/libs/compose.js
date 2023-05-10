@@ -20,17 +20,12 @@ import _ from 'underscore';
  */
 export default function compose(...funcs) {
     if (funcs.length === 0) {
-        return (arg) => arg;
+        return arg => arg;
     }
 
     if (funcs.length === 1) {
         return funcs[0];
     }
 
-    return _.reduce(
-        funcs,
-        (a, b) =>
-            (...args) =>
-                a(b(...args)),
-    );
+    return _.reduce(funcs, (a, b) => (...args) => a(b(...args)));
 }

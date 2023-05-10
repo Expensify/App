@@ -10,3 +10,4 @@ describe('libs/NumberUtils', () => {
         expect(BigInt(id)).toBeGreaterThanOrEqual(0);
     });
 });
+

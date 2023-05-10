@@ -100,7 +100,10 @@ const propTypes = {
     shouldBlockSelection: PropTypes.bool,
 
     /** The ref to the menu item */
-    forwardedRef: PropTypes.oneOfType([PropTypes.func, PropTypes.object]),
+    forwardedRef: PropTypes.oneOfType([
+        PropTypes.func,
+        PropTypes.object,
+    ]),
 };
 
 export default propTypes;

@@ -24,10 +24,11 @@ export default function () {
                 Onyx.merge(ONYXKEYS.USER, {
                     expensifyNewsStatus: null,
                     isSubscribedToNewsletter: user.expensifyNewsStatus,
-                }).then(() => {
-                    Log.info('[Migrate Onyx] Ran migration RenameExpensifyNewsStatus');
-                    resolve();
-                });
+                })
+                    .then(() => {
+                        Log.info('[Migrate Onyx] Ran migration RenameExpensifyNewsStatus');
+                        resolve();
+                    });
             },
         });
     });

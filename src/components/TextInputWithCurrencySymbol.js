@@ -6,7 +6,10 @@ import * as CurrencyUtils from '../libs/CurrencyUtils';
 
 const propTypes = {
     /** A ref to forward to amount text input */
-    forwardedRef: PropTypes.oneOfType([PropTypes.func, PropTypes.shape({current: PropTypes.instanceOf(React.Component)})]),
+    forwardedRef: PropTypes.oneOfType([
+        PropTypes.func,
+        PropTypes.shape({current: PropTypes.instanceOf(React.Component)}),
+    ]),
 
     /** Formatted amount in local currency  */
     formattedAmount: PropTypes.string.isRequired,
@@ -85,9 +88,6 @@ TextInputWithCurrencySymbol.defaultProps = defaultProps;
 TextInputWithCurrencySymbol.displayName = 'TextInputWithCurrencySymbol';
 
 export default React.forwardRef((props, ref) => (
-    <TextInputWithCurrencySymbol
-        // eslint-disable-next-line react/jsx-props-no-spreading
-        {...props}
-        forwardedRef={ref}
-    />
+    // eslint-disable-next-line react/jsx-props-no-spreading
+    <TextInputWithCurrencySymbol {...props} forwardedRef={ref} />
 ));

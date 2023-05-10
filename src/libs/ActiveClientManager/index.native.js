@@ -11,4 +11,8 @@ function isReady() {
     return Promise.resolve();
 }
 
-export {init, isReady, isClientTheLeader};
+export {
+    init,
+    isReady,
+    isClientTheLeader,
+};

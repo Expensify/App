@@ -80,10 +80,7 @@ class WorkspaceReimburseSection extends React.Component {
         if (this.state.shouldShowLoadingSpinner) {
             return (
                 <View style={[styles.flex1, styles.alignItemsCenter, styles.justifyContentCenter]}>
-                    <ActivityIndicator
-                        color={themeColors.spinner}
-                        size="large"
-                    />
+                    <ActivityIndicator color={themeColors.spinner} size="large" />
                 </View>
             );
         }

@@ -15,7 +15,8 @@ let middlewares = [];
  */
 function makeXHR(request) {
     const finalParameters = enhanceParameters(request.command, request.data);
-    return NetworkStore.hasReadRequiredDataFromStorage().then(() => HttpUtils.xhr(request.command, finalParameters, request.type, request.shouldUseSecure));
+    return NetworkStore.hasReadRequiredDataFromStorage()
+        .then(() => HttpUtils.xhr(request.command, finalParameters, request.type, request.shouldUseSecure));
 }
 
 /**
@@ -24,7 +25,11 @@ function makeXHR(request) {
  * @returns {Promise}
  */
 function processWithMiddleware(request, isFromSequentialQueue = false) {
-    return _.reduce(middlewares, (last, middleware) => middleware(last, request, isFromSequentialQueue), makeXHR(request));
+    return _.reduce(
+        middlewares,
+        (last, middleware) => middleware(last, request, isFromSequentialQueue),
+        makeXHR(request),
+    );
 }
 
 /**
@@ -38,4 +43,8 @@ function clearMiddlewares() {
     middlewares = [];
 }
 
-export {clearMiddlewares, processWithMiddleware, use};
+export {
+    clearMiddlewares,
+    processWithMiddleware,
+    use,
+};

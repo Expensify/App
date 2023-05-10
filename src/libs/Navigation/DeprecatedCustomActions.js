@@ -1,5 +1,7 @@
 import _ from 'underscore';
-import {CommonActions, StackActions, DrawerActions, getStateFromPath} from '@react-navigation/native';
+import {
+    CommonActions, StackActions, DrawerActions, getStateFromPath,
+} from '@react-navigation/native';
 import lodashGet from 'lodash/get';
 import linkingConfig from './linkingConfig';
 import navigationRef from './navigationRef';
@@ -101,7 +103,7 @@ function pushDrawerRoute(route) {
         const screenRoute = {type: 'route', name: newScreenName};
         const history = _.map(state.history ? [...state.history] : [screenRoute], () => screenRoute);
 
-        const drawerHistoryItem = _.find(state.history || [], (h) => h.type === 'drawer');
+        const drawerHistoryItem = _.find(state.history || [], h => h.type === 'drawer');
         const isDrawerClosed = drawerHistoryItem && drawerHistoryItem.status === 'closed';
         if (!drawerHistoryItem || currentState.type !== 'drawer') {
             // Add the drawer item to the navigation history to control if the drawer should be in open or closed state
@@ -120,12 +122,10 @@ function pushDrawerRoute(route) {
             });
         }
 
-        const routes = [
-            {
-                name: newScreenName,
-                params: newScreenParams,
-            },
-        ];
+        const routes = [{
+            name: newScreenName,
+            params: newScreenParams,
+        }];
 
         // Keep the same key so the ReportScreen does not completely re-mount
         if (newScreenName === SCREENS.REPORT) {

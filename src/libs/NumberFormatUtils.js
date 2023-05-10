@@ -6,4 +6,7 @@ function formatToParts(locale, number, options) {
     return new Intl.NumberFormat(locale, options).formatToParts(number);
 }
 
-export {format, formatToParts};
+export {
+    format,
+    formatToParts,
+};

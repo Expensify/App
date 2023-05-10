@@ -34,10 +34,16 @@ const propTypes = {
     }).isRequired,
 
     /** A react-native-animatable animation definition for the modal display animation. */
-    animationIn: PropTypes.oneOfType([PropTypes.string, PropTypes.object]),
+    animationIn: PropTypes.oneOfType([
+        PropTypes.string,
+        PropTypes.object,
+    ]),
 
     /** A react-native-animatable animation definition for the modal hide animation. */
-    animationOut: PropTypes.oneOfType([PropTypes.string, PropTypes.object]),
+    animationOut: PropTypes.oneOfType([
+        PropTypes.string,
+        PropTypes.object,
+    ]),
 
     /** A react-native-animatable animation timing for the modal display animation. */
     animationInTiming: PropTypes.number,

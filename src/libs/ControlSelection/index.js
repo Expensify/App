@@ -21,9 +21,7 @@ function unblock() {
  * @param {Element} ref
  */
 function blockElement(ref) {
-    if (_.isNull(ref)) {
-        return;
-    }
+    if (_.isNull(ref)) { return; }
 
     // eslint-disable-next-line no-param-reassign
     ref.onselectstart = () => false;
@@ -34,9 +32,7 @@ function blockElement(ref) {
  * @param {Element} ref
  */
 function unblockElement(ref) {
-    if (_.isNull(ref)) {
-        return;
-    }
+    if (_.isNull(ref)) { return; }
 
     // eslint-disable-next-line no-param-reassign
     ref.onselectstart = () => true;

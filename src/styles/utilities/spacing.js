@@ -449,4 +449,5 @@ export default {
     gap7: {
         gap: 28,
     },
+
 };

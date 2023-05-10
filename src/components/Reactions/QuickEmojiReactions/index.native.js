@@ -28,11 +28,8 @@ const QuickEmojiReactions = (props) => {
     };
 
     return (
-        <BaseQuickEmojiReactions
-            // eslint-disable-next-line react/jsx-props-no-spreading
-            {...props}
-            onPressOpenPicker={onPressOpenPicker}
-        />
+        // eslint-disable-next-line react/jsx-props-no-spreading
+        <BaseQuickEmojiReactions {...props} onPressOpenPicker={onPressOpenPicker} />
     );
 };
 

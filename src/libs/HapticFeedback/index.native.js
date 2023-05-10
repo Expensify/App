@@ -1,3 +1,4 @@
+
 import ReactNativeHapticFeedback from 'react-native-haptic-feedback';
 
 function press() {

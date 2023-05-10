@@ -31,7 +31,9 @@ const propTypes = {
     ...withLocalizePropTypes,
 };
 
-const defaultProps = {};
+const defaultProps = {
+
+};
 
 function TaskDescriptionPage(props) {
     /**
@@ -39,18 +41,15 @@ function TaskDescriptionPage(props) {
      * @param {String} values.description
      * @returns {Object} - An object containing the errors for each inputID
      */
-    const validate = useCallback(
-        (values) => {
-            const errors = {};
+    const validate = useCallback((values) => {
+        const errors = {};
 
-            if (_.isEmpty(values.description)) {
-                errors.description = props.translate('common.error.fieldRequired');
-            }
+        if (_.isEmpty(values.description)) {
+            errors.description = props.translate('common.error.fieldRequired');
+        }
 
-            return errors;
-        },
-        [props],
-    );
+        return errors;
+    }, [props]);
 
     const submit = useCallback(() => {
         // Functionality will be implemented in https://github.com/Expensify/App/issues/16856
@@ -83,7 +82,7 @@ function TaskDescriptionPage(props) {
                         name="description"
                         label={props.translate('newTaskPage.description')}
                         defaultValue={props.report.description || ''}
-                        ref={(el) => (inputRef.current = el)}
+                        ref={el => inputRef.current = el}
                     />
                 </View>
             </Form>
@@ -94,4 +93,7 @@ function TaskDescriptionPage(props) {
 TaskDescriptionPage.propTypes = propTypes;
 TaskDescriptionPage.defaultProps = defaultProps;
 
-export default compose(withLocalize, withReportOrNotFound)(TaskDescriptionPage);
+export default compose(
+    withLocalize,
+    withReportOrNotFound,
+)(TaskDescriptionPage);

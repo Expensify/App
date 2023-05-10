@@ -33,7 +33,9 @@ class NewDatePicker extends React.Component {
         // We're using uncontrolled input otherwise it wont be possible to
         // raise change events with a date value - each change will produce a date
         // and make us reset the text input
-        this.defaultValue = props.defaultValue ? moment(props.defaultValue).format(CONST.DATE.MOMENT_FORMAT_STRING) : '';
+        this.defaultValue = props.defaultValue
+            ? moment(props.defaultValue).format(CONST.DATE.MOMENT_FORMAT_STRING)
+            : '';
     }
 
     /**
@@ -74,7 +76,9 @@ class NewDatePicker extends React.Component {
                         editable={false}
                     />
                 </View>
-                <View style={[styles.datePickerPopover, styles.border]}>
+                <View
+                    style={[styles.datePickerPopover, styles.border]}
+                >
                     <CalendarPicker
                         minDate={this.props.minDate}
                         maxDate={this.props.maxDate}

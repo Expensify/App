@@ -43,8 +43,10 @@ const defaultProps = {
     iconHeight: variables.iconSizeSuperLarge,
 };
 
-const BlockingView = (props) => (
-    <View style={[styles.flex1, styles.alignItemsCenter, styles.justifyContentCenter, styles.ph10]}>
+const BlockingView = props => (
+    <View
+        style={[styles.flex1, styles.alignItemsCenter, styles.justifyContentCenter, styles.ph10]}
+    >
         <Icon
             src={props.icon}
             fill={props.iconColor}
@@ -53,14 +55,15 @@ const BlockingView = (props) => (
         />
         <Text style={[styles.notFoundTextHeader]}>{props.title}</Text>
         <Text style={[styles.textAlignCenter]}>{props.subtitle}</Text>
-        {props.shouldShowBackHomeLink ? (
-            <TextLink
-                onPress={() => Navigation.dismissModal(true)}
-                style={[styles.link, styles.mt2]}
-            >
-                {props.link}
-            </TextLink>
-        ) : null}
+        {props.shouldShowBackHomeLink
+            ? (
+                <TextLink
+                    onPress={() => Navigation.dismissModal(true)}
+                    style={[styles.link, styles.mt2]}
+                >
+                    {props.link}
+                </TextLink>
+            ) : null}
     </View>
 );
 

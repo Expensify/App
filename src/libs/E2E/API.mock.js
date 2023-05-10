@@ -75,4 +75,8 @@ function read(command, apiCommandParameters) {
     return mockCall(command, apiCommandParameters, 'API.read');
 }
 
-export {write, makeRequestWithSideEffects, read};
+export {
+    write,
+    makeRequestWithSideEffects,
+    read,
+};

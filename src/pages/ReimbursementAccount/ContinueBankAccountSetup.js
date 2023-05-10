@@ -69,7 +69,9 @@ const ContinueBankAccountSetup = (props) => {
                             shouldShowErrorMessage
                             onClose={BankAccounts.resetReimbursementAccount}
                         >
-                            <Text>{props.translate('workspace.bankAccount.youreAlmostDone')}</Text>
+                            <Text>
+                                {props.translate('workspace.bankAccount.youreAlmostDone')}
+                            </Text>
                             <Button
                                 text={props.translate('workspace.bankAccount.continueWithSetup')}
                                 onPress={props.continue}
@@ -94,7 +96,11 @@ const ContinueBankAccountSetup = (props) => {
                 </ScrollView>
             </FullPageNotFoundView>
 
-            {props.reimbursementAccount.shouldShowResetModal && <WorkspaceResetBankAccountModal reimbursementAccount={props.reimbursementAccount} />}
+            {props.reimbursementAccount.shouldShowResetModal && (
+                <WorkspaceResetBankAccountModal
+                    reimbursementAccount={props.reimbursementAccount}
+                />
+            )}
         </ScreenWrapper>
     );
 };
@@ -103,4 +109,7 @@ ContinueBankAccountSetup.propTypes = propTypes;
 ContinueBankAccountSetup.defaultProps = defaultProps;
 ContinueBankAccountSetup.displayName = 'ContinueBankAccountSetup';
 
-export default compose(withPolicy, withLocalize)(ContinueBankAccountSetup);
+export default compose(
+    withPolicy,
+    withLocalize,
+)(ContinueBankAccountSetup);

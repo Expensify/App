@@ -1,6 +1,9 @@
 import PropTypes from 'prop-types';
 import moment from 'moment';
-import {propTypes as baseTextInputPropTypes, defaultProps as defaultBaseTextInputPropTypes} from '../TextInput/baseTextInputPropTypes';
+import {
+    propTypes as baseTextInputPropTypes,
+    defaultProps as defaultBaseTextInputPropTypes,
+} from '../TextInput/baseTextInputPropTypes';
 import CONST from '../../CONST';
 
 const propTypes = {

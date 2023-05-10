@@ -9,28 +9,23 @@ import RESIZE_MODES from './resizeModes';
 
 const Image = (props) => {
     // eslint-disable-next-line react/destructuring-assignment
-    const {source, isAuthTokenRequired, session, ...rest} = props;
+    const {
+        source, isAuthTokenRequired, session, ...rest
+    } = props;
 
     let imageSource = source;
     if (typeof source !== 'number' && isAuthTokenRequired) {
         const authToken = lodashGet(props, 'session.encryptedAuthToken', null);
         imageSource = {
             ...source,
-            headers: authToken
-                ? {
-                      [CONST.CHAT_ATTACHMENT_TOKEN_KEY]: authToken,
-                  }
-                : null,
+            headers: authToken ? {
+                [CONST.CHAT_ATTACHMENT_TOKEN_KEY]: authToken,
+            } : null,
         };
     }
 
-    return (
-        <RNFastImage
-            // eslint-disable-next-line react/jsx-props-no-spreading
-            {...rest}
-            source={imageSource}
-        />
-    );
+    // eslint-disable-next-line react/jsx-props-no-spreading
+    return <RNFastImage {...rest} source={imageSource} />;
 };
 
 Image.propTypes = imagePropTypes;

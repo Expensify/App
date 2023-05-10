@@ -1,12 +1,7 @@
 import React from 'react';
 import MoneyRequestModal from './MoneyRequestModal';
 
-const IOUBillPage = (props) => (
-    <MoneyRequestModal
-        // eslint-disable-next-line react/jsx-props-no-spreading
-        {...props}
-        hasMultipleParticipants
-    />
-);
+// eslint-disable-next-line react/jsx-props-no-spreading
+const IOUBillPage = props => <MoneyRequestModal {...props} hasMultipleParticipants />;
 IOUBillPage.displayName = 'IOUBillPage';
 export default IOUBillPage;

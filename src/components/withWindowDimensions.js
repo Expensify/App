@@ -36,7 +36,8 @@ class WindowDimensionsProvider extends React.Component {
 
         const initialDimensions = Dimensions.get('window');
         const isSmallScreenWidth = initialDimensions.width <= variables.mobileResponsiveWidthBreakpoint;
-        const isMediumScreenWidth = initialDimensions.width > variables.mobileResponsiveWidthBreakpoint && initialDimensions.width <= variables.tabletResponsiveWidthBreakpoint;
+        const isMediumScreenWidth = initialDimensions.width > variables.mobileResponsiveWidthBreakpoint
+          && initialDimensions.width <= variables.tabletResponsiveWidthBreakpoint;
         const isLargeScreenWidth = !isSmallScreenWidth && !isMediumScreenWidth;
 
         this.dimensionsEventListener = null;
@@ -82,7 +83,11 @@ class WindowDimensionsProvider extends React.Component {
     }
 
     render() {
-        return <WindowDimensionsContext.Provider value={this.state}>{this.props.children}</WindowDimensionsContext.Provider>;
+        return (
+            <WindowDimensionsContext.Provider value={this.state}>
+                {this.props.children}
+            </WindowDimensionsContext.Provider>
+        );
     }
 }
 
@@ -95,14 +100,9 @@ WindowDimensionsProvider.propTypes = windowDimensionsProviderPropTypes;
 export default function withWindowDimensions(WrappedComponent) {
     const WithWindowDimensions = forwardRef((props, ref) => (
         <WindowDimensionsContext.Consumer>
-            {(windowDimensionsProps) => (
-                <WrappedComponent
-                    // eslint-disable-next-line react/jsx-props-no-spreading
-                    {...windowDimensionsProps}
-                    // eslint-disable-next-line react/jsx-props-no-spreading
-                    {...props}
-                    ref={ref}
-                />
+            {windowDimensionsProps => (
+                // eslint-disable-next-line react/jsx-props-no-spreading
+                <WrappedComponent {...windowDimensionsProps} {...props} ref={ref} />
             )}
         </WindowDimensionsContext.Consumer>
     ));
@@ -111,4 +111,7 @@ export default function withWindowDimensions(WrappedComponent) {
     return WithWindowDimensions;
 }
 
-export {WindowDimensionsProvider, windowDimensionsPropTypes};
+export {
+    WindowDimensionsProvider,
+    windowDimensionsPropTypes,
+};

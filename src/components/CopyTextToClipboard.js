@@ -3,7 +3,6 @@ import {Pressable} from 'react-native';
 import PropTypes from 'prop-types';
 import Text from './Text';
 import * as Expensicons from './Icon/Expensicons';
-import compose from '../libs/compose';
 import Clipboard from '../libs/Clipboard';
 import getButtonState from '../libs/getButtonState';
 import Icon from './Icon';
@@ -12,7 +11,6 @@ import styles from '../styles/styles';
 import * as StyleUtils from '../styles/StyleUtils';
 import variables from '../styles/variables';
 import withLocalize, {withLocalizePropTypes} from './withLocalize';
-import withDelayToggleButtonState, {withDelayToggleButtonStatePropTypes} from './withDelayToggleButtonState';
 
 const propTypes = {
     /** The text to display and copy to the clipboard */
@@ -23,8 +21,6 @@ const propTypes = {
     textStyles: PropTypes.arrayOf(PropTypes.object),
 
     ...withLocalizePropTypes,
-
-    ...withDelayToggleButtonStatePropTypes,
 };
 
 const defaultProps = {
@@ -36,14 +32,25 @@ class CopyTextToClipboard extends React.Component {
         super(props);
 
         this.copyToClipboard = this.copyToClipboard.bind(this);
+
+        this.state = {
+            showCheckmark: false,
+        };
+    }
+
+    componentWillUnmount() {
+        // Clear the interval when the component unmounts so that if the user navigates
+        // away quickly, then setState() won't try to update a component that's been unmounted
+        clearInterval(this.showCheckmarkInterval);
     }
 
     copyToClipboard() {
-        if (this.props.isDelayButtonStateComplete) {
-            return;
-        }
         Clipboard.setString(this.props.text);
-        this.props.toggleDelayButtonState(true);
+        this.setState({showCheckmark: true}, () => {
+            this.showCheckmarkInterval = setTimeout(() => {
+                this.setState({showCheckmark: false});
+            }, 2000);
+        });
     }
 
     render() {
@@ -54,12 +61,12 @@ class CopyTextToClipboard extends React.Component {
                 suppressHighlighting
             >
                 <Text style={this.props.textStyles}>{`${this.props.text} `}</Text>
-                <Tooltip text={this.props.translate(`reportActionContextMenu.${this.props.isDelayButtonStateComplete ? 'copied' : 'copyToClipboard'}`)}>
+                <Tooltip text={this.props.translate(`reportActionContextMenu.${this.state.showCheckmark ? 'copied' : 'copyToClipboard'}`)}>
                     <Pressable onPress={this.copyToClipboard}>
                         {({hovered, pressed}) => (
                             <Icon
-                                src={this.props.isDelayButtonStateComplete ? Expensicons.Checkmark : Expensicons.Copy}
-                                fill={StyleUtils.getIconFillColor(getButtonState(hovered, pressed, this.props.isDelayButtonStateComplete))}
+                                src={this.state.showCheckmark ? Expensicons.Checkmark : Expensicons.Copy}
+                                fill={StyleUtils.getIconFillColor(getButtonState(hovered, pressed, this.state.showCheckmark))}
                                 width={variables.iconSizeSmall}
                                 height={variables.iconSizeSmall}
                                 inline
@@ -75,4 +82,4 @@ class CopyTextToClipboard extends React.Component {
 CopyTextToClipboard.propTypes = propTypes;
 CopyTextToClipboard.defaultProps = defaultProps;
 
-export default compose(withLocalize, withDelayToggleButtonState)(CopyTextToClipboard);
+export default withLocalize(CopyTextToClipboard);

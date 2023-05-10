@@ -71,17 +71,15 @@ class SpinningIndicatorAnimation {
      */
     getSyncingStyles() {
         return {
-            transform: [
-                {
-                    rotate: this.rotate.interpolate({
-                        inputRange: [0, 1],
-                        outputRange: ['0deg', '-360deg'],
-                    }),
-                },
-                {
-                    scale: this.scale,
-                },
-            ],
+            transform: [{
+                rotate: this.rotate.interpolate({
+                    inputRange: [0, 1],
+                    outputRange: ['0deg', '-360deg'],
+                }),
+            },
+            {
+                scale: this.scale,
+            }],
         };
     }
 }

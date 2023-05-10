@@ -133,4 +133,8 @@ function read(command, apiCommandParameters, onyxData) {
     SequentialQueue.waitForIdle().then(() => makeRequestWithSideEffects(command, apiCommandParameters, onyxData, CONST.API_REQUEST_TYPE.READ));
 }
 
-export {write, makeRequestWithSideEffects, read};
+export {
+    write,
+    makeRequestWithSideEffects,
+    read,
+};

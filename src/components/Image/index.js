@@ -60,13 +60,8 @@ class Image extends React.Component {
         const forwardedProps = _.omit(this.props, ['source', 'onLoad', 'session', 'isAuthTokenRequired']);
         const source = this.getImageSource();
 
-        return (
-            <RNImage
-                // eslint-disable-next-line react/jsx-props-no-spreading
-                {...forwardedProps}
-                source={source}
-            />
-        );
+        // eslint-disable-next-line react/jsx-props-no-spreading
+        return <RNImage {...forwardedProps} source={source} />;
     }
 }
 

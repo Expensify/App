@@ -12,7 +12,9 @@ const s3Bucket = {
 const s3Path = {
     production: '/',
     staging: '/',
-    adhoc: process.env.PULL_REQUEST_NUMBER ? `/desktop/${pullRequestNumber}/` : '/',
+    adhoc: process.env.PULL_REQUEST_NUMBER
+        ? `/desktop/${pullRequestNumber}/`
+        : '/',
 };
 
 const macIcon = {
@@ -21,7 +23,9 @@ const macIcon = {
     adhoc: './desktop/icon-adhoc.png',
 };
 
-const isCorrectElectronEnv = ['production', 'staging', 'adhoc'].includes(process.env.ELECTRON_ENV);
+const isCorrectElectronEnv = ['production', 'staging', 'adhoc'].includes(
+    process.env.ELECTRON_ENV,
+);
 
 if (!isCorrectElectronEnv) {
     throw new Error('Invalid ELECTRON_ENV!');

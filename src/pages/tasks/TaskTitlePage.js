@@ -31,7 +31,9 @@ const propTypes = {
     ...withLocalizePropTypes,
 };
 
-const defaultProps = {};
+const defaultProps = {
+
+};
 
 function TaskTitlePage(props) {
     /**
@@ -39,18 +41,15 @@ function TaskTitlePage(props) {
      * @param {String} values.title
      * @returns {Object} - An object containing the errors for each inputID
      */
-    const validate = useCallback(
-        (values) => {
-            const errors = {};
+    const validate = useCallback((values) => {
+        const errors = {};
 
-            if (_.isEmpty(values.title)) {
-                errors.title = props.translate('common.error.fieldRequired');
-            }
+        if (_.isEmpty(values.title)) {
+            errors.title = props.translate('common.error.fieldRequired');
+        }
 
-            return errors;
-        },
-        [props],
-    );
+        return errors;
+    }, [props]);
 
     const submit = useCallback(() => {
         // Functionality will be implemented in https://github.com/Expensify/App/issues/16856
@@ -83,7 +82,7 @@ function TaskTitlePage(props) {
                         name="title"
                         label={props.translate('newTaskPage.title')}
                         defaultValue={props.report.reportName || ''}
-                        ref={(el) => (inputRef.current = el)}
+                        ref={el => inputRef.current = el}
                     />
                 </View>
             </Form>
@@ -94,4 +93,7 @@ function TaskTitlePage(props) {
 TaskTitlePage.propTypes = propTypes;
 TaskTitlePage.defaultProps = defaultProps;
 
-export default compose(withLocalize, withReportOrNotFound)(TaskTitlePage);
+export default compose(
+    withLocalize,
+    withReportOrNotFound,
+)(TaskTitlePage);

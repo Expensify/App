@@ -41,7 +41,7 @@ export default {
     },
 };
 
-const Template = (args) => (
+const Template = args => (
     <OnyxProvider>
         <OptionRow {...args} />
     </OnyxProvider>
@@ -51,4 +51,6 @@ const Template = (args) => (
 // See: https://storybook.js.org/docs/react/writing-stories/introduction#using-args
 const Default = Template.bind({});
 
-export {Default};
+export {
+    Default,
+};

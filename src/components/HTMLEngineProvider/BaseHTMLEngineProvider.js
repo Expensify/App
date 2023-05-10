@@ -1,6 +1,10 @@
 import _ from 'underscore';
 import React, {useMemo} from 'react';
-import {TRenderEngineProvider, RenderHTMLConfigProvider, defaultHTMLElementModels} from 'react-native-render-html';
+import {
+    TRenderEngineProvider,
+    RenderHTMLConfigProvider,
+    defaultHTMLElementModels,
+} from 'react-native-render-html';
 import PropTypes from 'prop-types';
 import htmlRenderers from './HTMLRenderers';
 import * as HTMLEngineUtils from './htmlEngineUtils';
@@ -46,7 +50,6 @@ const customHTMLElementModels = {
         mixedUAStyles: {whiteSpace: 'pre'},
     }),
     'mention-user': defaultHTMLElementModels.span.extend({tagName: 'mention-user'}),
-    'mention-here': defaultHTMLElementModels.span.extend({tagName: 'mention-here'}),
 };
 
 // We are using the explicit composite architecture for performance gains.

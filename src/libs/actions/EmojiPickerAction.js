@@ -11,12 +11,27 @@ const emojiPickerRef = React.createRef();
  * @param {Object} [anchorOrigin] - Anchor origin for Popover
  * @param {Function} [onWillShow=() => {}] - Run a callback when Popover will show
  */
-function showEmojiPicker(onModalHide = () => {}, onEmojiSelected = () => {}, emojiPopoverAnchor, anchorOrigin = undefined, onWillShow = () => {}) {
+function showEmojiPicker(
+    onModalHide = () => {},
+    onEmojiSelected = () => {},
+    emojiPopoverAnchor,
+    anchorOrigin = undefined,
+    onWillShow = () => {},
+) {
     if (!emojiPickerRef.current) {
         return;
     }
 
-    emojiPickerRef.current.showEmojiPicker(onModalHide, onEmojiSelected, emojiPopoverAnchor, anchorOrigin, onWillShow);
+    emojiPickerRef.current.showEmojiPicker(
+        onModalHide,
+        onEmojiSelected,
+        emojiPopoverAnchor,
+        anchorOrigin,
+        onWillShow,
+    );
 }
 
-export {emojiPickerRef, showEmojiPicker};
+export {
+    emojiPickerRef,
+    showEmojiPicker,
+};

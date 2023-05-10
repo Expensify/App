@@ -30,11 +30,9 @@ export default function () {
                         const reportActionsForReportEntries = Object.entries(reportActionsForReport);
                         for (let j = 0; j < reportActionsForReportEntries.length; j++) {
                             const [reportActionKey, reportAction] = reportActionsForReportEntries[j];
-                            if (
-                                !_.isNaN(Number(reportActionKey)) &&
-                                Number(reportActionKey) === Number(reportAction.reportActionID) &&
-                                Number(reportActionKey) !== Number(reportAction.sequenceNumber)
-                            ) {
+                            if (!_.isNaN(Number(reportActionKey))
+                                && Number(reportActionKey) === Number(reportAction.reportActionID)
+                                && Number(reportActionKey) !== Number(reportAction.sequenceNumber)) {
                                 Log.info('[Migrate Onyx] Skipped migration KeyReportActionsByReportActionID because we already migrated it');
                                 return resolve();
                             }
@@ -53,7 +51,8 @@ export default function () {
 
                 Log.info(`[Migrate Onyx] Re-keying reportActions by reportActionID for ${_.keys(newReportActions).length} reports`);
                 // eslint-disable-next-line rulesdir/prefer-actions-set-data
-                return Onyx.multiSet(newReportActions).then(resolve);
+                return Onyx.multiSet(newReportActions)
+                    .then(resolve);
             },
         });
     });

@@ -16,7 +16,10 @@ const miniWrapperStyle = [
     },
 ];
 
-const bigWrapperStyle = [styles.flexColumn, defaultWrapperStyle];
+const bigWrapperStyle = [
+    styles.flexColumn,
+    defaultWrapperStyle,
+];
 
 /**
  * Generate the wrapper styles for the ReportActionContextMenu.

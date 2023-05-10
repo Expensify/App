@@ -12,4 +12,7 @@ function setIsAppInBeta(isBeta) {
     Onyx.set(ONYXKEYS.IS_BETA, isBeta);
 }
 
-export {triggerUpdateAvailable, setIsAppInBeta};
+export {
+    triggerUpdateAvailable,
+    setIsAppInBeta,
+};

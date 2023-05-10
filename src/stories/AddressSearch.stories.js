@@ -36,4 +36,7 @@ ErrorStory.args = {
     errorText: 'The street you are looking for does not exist',
 };
 
-export {Default, ErrorStory};
+export {
+    Default,
+    ErrorStory,
+};
