@@ -129,6 +129,13 @@ class ContactMethodDetailsPage extends Component {
     }
 
     /**
+     * Attempt to set this contact method as user's "Default contact method"
+     */
+    setAsDefault() {
+        User.setContactMethodAsDefault(this.getContactMethod());
+    }
+
+    /**
      * Checks if the user is allowed to change their default contact method. This should only be allowed if:
      * 1. The viewed contact method is not already their default contact method
      * 2. The viewed contact method is validated
@@ -160,13 +167,6 @@ class ContactMethodDetailsPage extends Component {
         // Allow user to change their default contact method if they don't have a security group OR if their security group
         // does NOT restrict primary login switching.
         return !lodashGet(this.props.securityGroups, [`${ONYXKEYS.COLLECTION.SECURITY_GROUP}${primaryDomainSecurityGroupID}`, 'hasRestrictedPrimaryLogin'], false);
-    }
-
-    /**
-     * Attempt to set this contact method as user's "Default contact method"
-     */
-    setAsDefault() {
-        User.setContactMethodAsDefault(this.getContactMethod());
     }
 
     /**
