@@ -70,7 +70,9 @@ class ReportDetailsPage extends Component {
                 translationKey: 'common.members',
                 icon: Expensicons.Users,
                 subtitle: lodashGet(this.props.report, 'participants', []).length,
-                action: () => { Navigation.navigate(ROUTES.getReportParticipantsRoute(this.props.report.reportID)); },
+                action: () => {
+                    Navigation.navigate(ROUTES.getReportParticipantsRoute(this.props.report.reportID));
+                },
             });
         }
 
@@ -79,7 +81,9 @@ class ReportDetailsPage extends Component {
                 key: CONST.REPORT_DETAILS_MENU_ITEM.SETTINGS,
                 translationKey: 'common.settings',
                 icon: Expensicons.Gear,
-                action: () => { Navigation.navigate(ROUTES.getReportSettingsRoute(this.props.report.reportID)); },
+                action: () => {
+                    Navigation.navigate(ROUTES.getReportSettingsRoute(this.props.report.reportID));
+                },
             });
         }
 
@@ -117,13 +121,9 @@ class ReportDetailsPage extends Component {
                     />
                     <ScrollView style={[styles.flex1]}>
                         <View style={[styles.m5]}>
-                            <View
-                                style={styles.reportDetailsTitleContainer}
-                            >
+                            <View style={styles.reportDetailsTitleContainer}>
                                 <View style={styles.mb4}>
-                                    <RoomHeaderAvatars
-                                        icons={ReportUtils.getIcons(this.props.report, this.props.personalDetails, this.props.policies)}
-                                    />
+                                    <RoomHeaderAvatars icons={ReportUtils.getIcons(this.props.report, this.props.personalDetails, this.props.policies)} />
                                 </View>
                                 <View style={[styles.reportDetailsRoomInfo, styles.mw100]}>
                                     <View style={[styles.alignSelfCenter, styles.w100]}>
@@ -137,13 +137,7 @@ class ReportDetailsPage extends Component {
                                         />
                                     </View>
                                     <Text
-                                        style={[
-                                            styles.sidebarLinkText,
-                                            styles.optionAlternateText,
-                                            styles.textLabelSupporting,
-                                            styles.mb2,
-                                            styles.pre,
-                                        ]}
+                                        style={[styles.sidebarLinkText, styles.optionAlternateText, styles.textLabelSupporting, styles.mb2, styles.pre]}
                                         numberOfLines={1}
                                     >
                                         {chatRoomSubtitle}
@@ -162,12 +156,8 @@ class ReportDetailsPage extends Component {
                             </View>
                         </View>
                         {_.map(menuItems, (item) => {
-                            const brickRoadIndicator = (
-                                ReportUtils.hasReportNameError(this.props.report)
-                                && item.key === CONST.REPORT_DETAILS_MENU_ITEM.SETTINGS
-                            )
-                                ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR
-                                : '';
+                            const brickRoadIndicator =
+                                ReportUtils.hasReportNameError(this.props.report) && item.key === CONST.REPORT_DETAILS_MENU_ITEM.SETTINGS ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : '';
                             return (
                                 <MenuItem
                                     key={item.key}

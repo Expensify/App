@@ -37,19 +37,21 @@ function process() {
     const requestToProcess = persistedRequests[0];
 
     // Set the current request to a promise awaiting its processing so that getCurrentRequest can be used to take some action after the current request has processed.
-    currentRequest = Request.processWithMiddleware(requestToProcess, true).then(() => {
-        PersistedRequests.remove(requestToProcess);
-        RequestThrottle.clear();
-        return process();
-    }).catch((error) => {
-        // On sign out we cancel any in flight requests from the user. Since that user is no longer signed in their requests should not be retried.
-        if (error.name === CONST.ERROR.REQUEST_CANCELLED) {
+    currentRequest = Request.processWithMiddleware(requestToProcess, true)
+        .then(() => {
             PersistedRequests.remove(requestToProcess);
             RequestThrottle.clear();
             return process();
-        }
-        return RequestThrottle.sleep().then(process);
-    });
+        })
+        .catch((error) => {
+            // On sign out we cancel any in flight requests from the user. Since that user is no longer signed in their requests should not be retried.
+            if (error.name === CONST.ERROR.REQUEST_CANCELLED) {
+                PersistedRequests.remove(requestToProcess);
+                RequestThrottle.clear();
+                return process();
+            }
+            return RequestThrottle.sleep().then(process);
+        });
     return currentRequest;
 }
 
@@ -76,13 +78,12 @@ function flush() {
         key: ONYXKEYS.PERSISTED_REQUESTS,
         callback: () => {
             Onyx.disconnect(connectionID);
-            process()
-                .finally(() => {
-                    isSequentialQueueRunning = false;
-                    resolveIsReadyPromise();
-                    currentRequest = null;
-                    Onyx.update(QueuedOnyxUpdates.getQueuedUpdates()).then(QueuedOnyxUpdates.clear);
-                });
+            process().finally(() => {
+                isSequentialQueueRunning = false;
+                resolveIsReadyPromise();
+                currentRequest = null;
+                Onyx.update(QueuedOnyxUpdates.getQueuedUpdates()).then(QueuedOnyxUpdates.clear);
+            });
         },
     });
 }
@@ -136,10 +137,4 @@ function waitForIdle() {
     return isReadyPromise;
 }
 
-export {
-    flush,
-    getCurrentRequest,
-    isRunning,
-    push,
-    waitForIdle,
-};
+export {flush, getCurrentRequest, isRunning, push, waitForIdle};

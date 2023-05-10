@@ -49,26 +49,22 @@ const MoneyRequestHeader = (props) => {
     });
     const isSettled = false; // TODO: use ReportUtils.isSettled(props.report.reportID) once that method is added
     const isExpenseReport = ReportUtils.isExpenseReport(props.report);
-    const payeeName = isExpenseReport
-        ? ReportUtils.getPolicyName(props.report, props.policies)
-        : ReportUtils.getDisplayNameForParticipant(props.report.managerEmail);
+    const payeeName = isExpenseReport ? ReportUtils.getPolicyName(props.report, props.policies) : ReportUtils.getDisplayNameForParticipant(props.report.managerEmail);
     const payeeAvatar = isExpenseReport
         ? ReportUtils.getWorkspaceAvatar(props.report)
         : ReportUtils.getAvatar(lodashGet(props.personalDetails, [props.report.managerEmail, 'avatar']), props.report.managerEmail);
     return (
-        <View style={[
-            {backgroundColor: themeColors.highlightBG},
-            styles.pl0,
-        ]}
-        >
+        <View style={[{backgroundColor: themeColors.highlightBG}, styles.pl0]}>
             <HeaderWithCloseButton
                 shouldShowAvatarWithDisplay
                 shouldShowThreeDotsButton={!isSettled}
-                threeDotsMenuItems={[{
-                    icon: Expensicons.Trashcan,
-                    text: props.translate('common.delete'),
-                    onSelected: () => {},
-                }]}
+                threeDotsMenuItems={[
+                    {
+                        icon: Expensicons.Trashcan,
+                        text: props.translate('common.delete'),
+                        onSelected: () => {},
+                    },
+                ]}
                 threeDotsAnchorPosition={styles.threeDotsPopoverOffsetNoCloseButton}
                 report={props.report}
                 policies={props.policies}
@@ -79,19 +75,8 @@ const MoneyRequestHeader = (props) => {
             />
             <View style={[styles.ph5, styles.pb5]}>
                 <Text style={[styles.textLabelSupporting, styles.lh16]}>{props.translate('common.to')}</Text>
-                <View style={[
-                    styles.flexRow,
-                    styles.alignItemsCenter,
-                    styles.justifyContentBetween,
-                    styles.pv3,
-                ]}
-                >
-                    <View style={[
-                        styles.flexRow,
-                        styles.alignItemsCenter,
-                        styles.justifyContentBetween,
-                    ]}
-                    >
+                <View style={[styles.flexRow, styles.alignItemsCenter, styles.justifyContentBetween, styles.pv3]}>
+                    <View style={[styles.flexRow, styles.alignItemsCenter, styles.justifyContentBetween]}>
                         <Avatar
                             source={payeeAvatar}
                             type={isExpenseReport ? CONST.ICON_TYPE_WORKSPACE : CONST.ICON_TYPE_AVATAR}
@@ -116,12 +101,13 @@ const MoneyRequestHeader = (props) => {
                         </View>
                     </View>
                     <View style={[styles.flexRow]}>
-                        {!props.isSingleTransactionView && (
-                            <Text style={[styles.newKansasLarge]}>{formattedAmount}</Text>
-                        )}
+                        {!props.isSingleTransactionView && <Text style={[styles.newKansasLarge]}>{formattedAmount}</Text>}
                         {isSettled && (
                             <View style={styles.moneyRequestHeaderCheckmark}>
-                                <Icon src={Expensicons.Checkmark} fill={themeColors.iconSuccessFill} />
+                                <Icon
+                                    src={Expensicons.Checkmark}
+                                    fill={themeColors.iconSuccessFill}
+                                />
                             </View>
                         )}
                     </View>
@@ -135,7 +121,4 @@ MoneyRequestHeader.displayName = 'MoneyRequestHeader';
 MoneyRequestHeader.propTypes = propTypes;
 MoneyRequestHeader.defaultProps = defaultProps;
 
-export default compose(
-    withWindowDimensions,
-    withLocalize,
-)(MoneyRequestHeader);
+export default compose(withWindowDimensions, withLocalize)(MoneyRequestHeader);
