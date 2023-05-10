@@ -4,7 +4,6 @@ import CONST from '../CONST';
 import avatarPropTypes from '../components/avatarPropTypes';
 
 export default PropTypes.shape({
-
     /** The specific type of chat */
     chatType: PropTypes.oneOf(['', ..._.values(CONST.REPORT.CHAT_TYPE)]),
 

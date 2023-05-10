@@ -22,14 +22,16 @@ const propTypes = {
 
     /** Menu options to display */
     /** e.g. [{text: 'Pay with Expensify', icon: Wallet}, {text: 'PayPal', icon: PayPal}] */
-    options: PropTypes.arrayOf(PropTypes.shape({
-        value: PropTypes.string.isRequired,
-        text: PropTypes.string.isRequired,
-        icon: PropTypes.elementType,
-        iconWidth: PropTypes.number,
-        iconHeight: PropTypes.number,
-        iconDescription: PropTypes.string,
-    })).isRequired,
+    options: PropTypes.arrayOf(
+        PropTypes.shape({
+            value: PropTypes.string.isRequired,
+            text: PropTypes.string.isRequired,
+            icon: PropTypes.elementType,
+            iconWidth: PropTypes.number,
+            iconHeight: PropTypes.number,
+            iconDescription: PropTypes.string,
+        }),
+    ).isRequired,
 };
 
 const defaultProps = {
@@ -61,7 +63,7 @@ class ButtonWithMenu extends PureComponent {
                         buttonText={selectedItem.text}
                         isLoading={this.props.isLoading}
                         isDisabled={this.props.isDisabled}
-                        onButtonPress={event => this.props.onPress(event, selectedItem.value)}
+                        onButtonPress={(event) => this.props.onPress(event, selectedItem.value)}
                         onDropdownPress={() => {
                             this.setMenuVisibility(true);
                         }}
@@ -73,7 +75,7 @@ class ButtonWithMenu extends PureComponent {
                         style={[styles.w100]}
                         isLoading={this.props.isLoading}
                         text={selectedItem.text}
-                        onPress={event => this.props.onPress(event, this.props.options[0].value)}
+                        onPress={(event) => this.props.onPress(event, this.props.options[0].value)}
                         pressOnEnter
                     />
                 )}

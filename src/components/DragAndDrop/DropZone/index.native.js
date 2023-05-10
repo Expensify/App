@@ -1,4 +1,4 @@
-const DropZone = props => props.children;
+const DropZone = (props) => props.children;
 
 DropZone.displayName = 'DropZone';
 

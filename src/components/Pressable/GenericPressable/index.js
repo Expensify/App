@@ -7,9 +7,8 @@ const WebGenericPressable = forwardRef((props, ref) => (
         // eslint-disable-next-line react/jsx-props-no-spreading
         {...props}
         ref={ref}
-
         // change native accessibility props to web accessibility props
-        tabIndex={(!props.accessible || !props.focusable) ? -1 : 0}
+        tabIndex={!props.accessible || !props.focusable ? -1 : 0}
         role={props.accessibilityRole}
         id={props.nativeID}
         aria-label={props.accessibilityLabel}

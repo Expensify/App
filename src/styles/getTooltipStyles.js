@@ -31,16 +31,16 @@ const POINTER_WIDTH = 12;
  */
 function computeHorizontalShift(windowWidth, xOffset, componentWidth, tooltipWidth, manualShiftHorizontal) {
     // First find the left and right edges of the tooltip (by default, it is centered on the component).
-    const componentCenter = xOffset + (componentWidth / 2) + manualShiftHorizontal;
-    const tooltipLeftEdge = componentCenter - (tooltipWidth / 2);
-    const tooltipRightEdge = componentCenter + (tooltipWidth / 2);
+    const componentCenter = xOffset + componentWidth / 2 + manualShiftHorizontal;
+    const tooltipLeftEdge = componentCenter - tooltipWidth / 2;
+    const tooltipRightEdge = componentCenter + tooltipWidth / 2;
 
     if (tooltipLeftEdge < GUTTER_WIDTH) {
         // Tooltip is in left gutter, shift right by a multiple of four.
         return roundToNearestMultipleOfFour(GUTTER_WIDTH - tooltipLeftEdge);
     }
 
-    if (tooltipRightEdge > (windowWidth - GUTTER_WIDTH)) {
+    if (tooltipRightEdge > windowWidth - GUTTER_WIDTH) {
         // Tooltip is in right gutter, shift left by a multiple of four.
         return roundToNearestMultipleOfFour(windowWidth - GUTTER_WIDTH - tooltipRightEdge);
     }
@@ -116,7 +116,7 @@ export default function getTooltipStyles(
     // If either a tooltip will try to render within GUTTER_WIDTH logical pixels of the top of the screen,
     // Or the wrapped component is overlapping at top-left with another element
     // we'll display it beneath its wrapped component rather than above it as usual.
-    const shouldShowBelow = (yOffset - tooltipHeight) < GUTTER_WIDTH || isOverlappingAtTop(xOffset, yOffset);
+    const shouldShowBelow = yOffset - tooltipHeight < GUTTER_WIDTH || isOverlappingAtTop(xOffset, yOffset);
 
     // Determine if we need to shift the tooltip horizontally to prevent it
     // from displaying too near to the edge of the screen.
@@ -125,8 +125,10 @@ export default function getTooltipStyles(
     // Determine if we need to shift the pointer horizontally to prevent it from being too near to the edge of the tooltip
     // We shift it to the right a bit if the tooltip is positioned on the extreme left
     // and shift it to left a bit if the tooltip is positioned on the extreme right.
-    const horizontalShiftPointer = horizontalShift > 0 ? Math.max(-horizontalShift, -(tooltipWidth / 2) + (POINTER_WIDTH / 2) + variables.componentBorderRadiusSmall)
-        : Math.min(-horizontalShift, (tooltipWidth / 2) - (POINTER_WIDTH / 2) - variables.componentBorderRadiusSmall);
+    const horizontalShiftPointer =
+        horizontalShift > 0
+            ? Math.max(-horizontalShift, -(tooltipWidth / 2) + POINTER_WIDTH / 2 + variables.componentBorderRadiusSmall)
+            : Math.min(-horizontalShift, tooltipWidth / 2 - POINTER_WIDTH / 2 - variables.componentBorderRadiusSmall);
 
     const tooltipVerticalPadding = spacing.pv1;
     const tooltipFontSize = variables.fontSizeSmall;
@@ -134,10 +136,10 @@ export default function getTooltipStyles(
     // We get wrapper width based on the tooltip's inner text width so the wrapper is just big enough to fit text and prevent white space.
     // If the text width is less than the maximum available width, add horizontal padding.
     // Note: tooltipContentWidth ignores the fractions (OffsetWidth) so add 1px to fit the text properly.
-    const wrapperWidth = tooltipContentWidth && (tooltipContentWidth + (spacing.ph2.paddingHorizontal * 2) + 1);
+    const wrapperWidth = tooltipContentWidth && tooltipContentWidth + spacing.ph2.paddingHorizontal * 2 + 1;
 
     // Hide the tooltip entirely if it's position hasn't finished measuring yet. This prevents UI jank where the tooltip flashes in the top left corner of the screen.
-    const opacity = (xOffset === 0 && yOffset === 0) ? 0 : 1;
+    const opacity = xOffset === 0 && yOffset === 0 ? 0 : 1;
 
     const isTooltipSizeReady = tooltipWidth !== 0 && tooltipHeight !== 0;
     const scale = !isTooltipSizeReady ? 1 : currentSize;
@@ -154,12 +156,10 @@ export default function getTooltipStyles(
         // To shift the tooltip down, we'll give `top` a positive value.
         // To shift the tooltip up, we'll give `top` a negative value.
         wrapperTop = shouldShowBelow
-
-            // We need to shift the tooltip down below the component. So shift the tooltip down (+) by...
-            ? (yOffset + componentHeight + POINTER_HEIGHT + manualShiftVertical)
-
-            // We need to shift the tooltip up above the component. So shift the tooltip up (-) by...
-            : ((yOffset - (tooltipHeight + POINTER_HEIGHT)) + manualShiftVertical);
+            ? // We need to shift the tooltip down below the component. So shift the tooltip down (+) by...
+              yOffset + componentHeight + POINTER_HEIGHT + manualShiftVertical
+            : // We need to shift the tooltip up above the component. So shift the tooltip up (-) by...
+              yOffset - (tooltipHeight + POINTER_HEIGHT) + manualShiftVertical;
 
         // Next, we'll position it horizontally.
         // we will use xOffset to position the tooltip relative to the Wrapped Component
@@ -173,7 +173,7 @@ export default function getTooltipStyles(
         //      so the tooltip's center lines up with the center of the wrapped component.
         //   3) Add the horizontal shift (left or right) computed above to keep it out of the gutters.
         //   4) Lastly, add the manual horizontal shift passed in as a parameter.
-        wrapperLeft = xOffset + ((componentWidth / 2) - (tooltipWidth / 2)) + horizontalShift + manualShiftHorizontal;
+        wrapperLeft = xOffset + (componentWidth / 2 - tooltipWidth / 2) + horizontalShift + manualShiftHorizontal;
     }
 
     return {
@@ -226,7 +226,7 @@ export default function getTooltipStyles(
             //      so the pointer's center lines up with the tooltipWidth's center.
             //   3) Due to the tip start from the left edge of wrapper Tooltip so we have to remove the
             //      horizontalShift which is added to adjust it into the Window
-            left: horizontalShiftPointer + ((tooltipWidth / 2) - (POINTER_WIDTH / 2)),
+            left: horizontalShiftPointer + (tooltipWidth / 2 - POINTER_WIDTH / 2),
 
             opacity,
         },

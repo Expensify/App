@@ -71,21 +71,13 @@ class ReportFooter extends React.Component {
             <>
                 {(isArchivedRoom || hideComposer) && (
                     <View style={[styles.chatFooter, this.props.isSmallScreenWidth ? styles.mb5 : null]}>
-                        {isArchivedRoom && (
-                            <ArchivedReportFooter
-                                report={this.props.report}
-                            />
-                        )}
+                        {isArchivedRoom && <ArchivedReportFooter report={this.props.report} />}
                         {!this.props.isSmallScreenWidth && (
-                            <View style={styles.offlineIndicatorRow}>
-                                {hideComposer && (
-                                    <OfflineIndicator containerStyles={[styles.chatItemComposeSecondaryRow]} />
-                                )}
-                            </View>
+                            <View style={styles.offlineIndicatorRow}>{hideComposer && <OfflineIndicator containerStyles={[styles.chatItemComposeSecondaryRow]} />}</View>
                         )}
                     </View>
                 )}
-                {(!hideComposer && this.props.shouldShowComposeInput) && (
+                {!hideComposer && this.props.shouldShowComposeInput && (
                     <View style={[this.getChatFooterStyles(), this.props.isComposerFullSize && styles.chatFooterFullCompose]}>
                         <SwipeableView onSwipeDown={Keyboard.dismiss}>
                             <ReportActionCompose

@@ -200,13 +200,4 @@ function clearOutTaskInfoAndNavigate(reportID) {
     Navigation.navigate(ROUTES.NEW_TASK_DETAILS);
 }
 
-export {
-    createTaskAndNavigate,
-    setTitleValue,
-    setDescriptionValue,
-    setDetailsValue,
-    setAssigneeValue,
-    setShareDestinationValue,
-    clearOutTaskInfo,
-    clearOutTaskInfoAndNavigate,
-};
+export {createTaskAndNavigate, setTitleValue, setDescriptionValue, setDetailsValue, setAssigneeValue, setShareDestinationValue, clearOutTaskInfo, clearOutTaskInfoAndNavigate};
