@@ -21,6 +21,10 @@ const propTypes = {
     /** The id of the report */
     reportID: PropTypes.string.isRequired,
 
+    /** The id of the parent report */
+    // eslint-disable-next-line react/no-unused-prop-types
+    parentReportID: PropTypes.string.isRequired,
+
     /** The report currently being looked at */
     report: reportPropTypes,
 
