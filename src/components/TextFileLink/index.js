@@ -1,16 +1,4 @@
-import PropTypes from 'prop-types';
-
-const propTypes = {
-    fileName: PropTypes.string,
-    textContent: PropTypes.string,
-    children: PropTypes.func,
-};
-
-const defaultProps = {
-    fileName: '',
-    textContent: '',
-    children: () => {},
-};
+import {propTypes, defaultProps} from './textFileLinkPropTypes';
 
 const TextFileLink = (props) => {
     const downloadFile = () => {

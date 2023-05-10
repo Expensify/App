@@ -1,4 +1,4 @@
-import React, {Component} from 'react';
+import React, {useState} from 'react';
 import {withOnyx} from 'react-native-onyx';
 import {View} from 'react-native';
 import _ from 'underscore';
@@ -21,11 +21,11 @@ import ONYXKEYS from '../../../../ONYXKEYS';
 import Clipboard from '../../../../libs/Clipboard';
 
 const propTypes = {
+    ...withLocalizePropTypes,
     account: PropTypes.shape({
         /** User recovery codes for setting up 2-FA */
         recoveryCodes: PropTypes.string,
     }),
-    ...withLocalizePropTypes,
 };
 
 const defaultProps = {
@@ -34,92 +34,79 @@ const defaultProps = {
     },
 };
 
-class CodesPage extends Component {
-    constructor(props) {
-        super(props);
+function CodesPage(props) {
+    const [isNextButtonDisabled, setIsNextButtonDisabled] = useState(true);
 
-        this.state = {
-            isNextButtonDisabled: true,
-        };
-    }
-
-    render() {
-        return (
-            <ScreenWrapper>
-                <HeaderWithCloseButton
-                    title={this.props.translate('twoFactorAuth.headerTitle')}
-                    subtitle={this.props.translate('twoFactorAuth.stepCodes')}
-                    shouldShowBackButton
-                    onBackButtonPress={() => Navigation.navigate(ROUTES.SETTINGS_SECURITY)}
-                    onCloseButtonPress={() => Navigation.dismissModal(true)}
-                />
-
-                <FullPageOfflineBlockingView>
-                    <Section
-                        title={this.props.translate('twoFactorAuth.keepCodesSafe')}
-                        icon={Illustrations.ShieldYellow}
-                        containerStyles={[styles.twoFactorAuthSection]}
-                    >
-                        <View style={[styles.mv3]}>
-                            <Text>{this.props.translate('twoFactorAuth.codesLoseAccess')}</Text>
+    return (
+        <ScreenWrapper>
+            <HeaderWithCloseButton
+                title={props.translate('twoFactorAuth.headerTitle')}
+                subtitle={props.translate('twoFactorAuth.stepCodes')}
+                shouldShowBackButton
+                onBackButtonPress={() => Navigation.navigate(ROUTES.SETTINGS_SECURITY)}
+                onCloseButtonPress={() => Navigation.dismissModal(true)}
+            />
+            <FullPageOfflineBlockingView>
+                <Section
+                    title={props.translate('twoFactorAuth.keepCodesSafe')}
+                    icon={Illustrations.ShieldYellow}
+                    containerStyles={[styles.twoFactorAuthSection]}
+                >
+                    <View style={styles.mv3}>
+                        <Text>{props.translate('twoFactorAuth.codesLoseAccess')}</Text>
+                    </View>
+                    <View style={styles.twoFactorAuthCodesBox}>
+                        <View style={styles.twoFactorAuthCodesContainer}>
+                            {Boolean(props.account.recoveryCodes) &&
+                                _.map(props.account.recoveryCodes.split(', '), (code) => (
+                                    <Text
+                                        style={styles.twoFactorAuthCode}
+                                        key={code}
+                                    >
+                                        {code}
+                                    </Text>
+                                ))}
                         </View>
-
-                        <View style={[styles.twoFactorAuthCodesBox]}>
-                            <View style={[styles.twoFactorAuthCodesContainer]}>
-                                {Boolean(this.props.account.recoveryCodes) &&
-                                    _.map(this.props.account.recoveryCodes.split(', '), (code) => (
-                                        <Text
-                                            style={[styles.twoFactorAuthCode]}
-                                            key={code}
-                                        >
-                                            {code}
-                                        </Text>
-                                    ))}
-                            </View>
-
-                            <View style={[styles.twoFactorAuthCodesButtonsContainer]}>
-                                <Button
-                                    text="Copy codes"
-                                    medium
-                                    onPress={() => {
-                                        Clipboard.setString(this.props.account.recoveryCodes);
-                                        this.setState({isNextButtonDisabled: false});
-                                    }}
-                                    style={[styles.twoFactorAuthCodesButton]}
-                                />
-
-                                <TextFileLink
-                                    fileName="two-factor-auth-codes"
-                                    textContent={this.props.account.recoveryCodes}
-                                >
-                                    {(downloadFile) => (
-                                        <Button
-                                            text="Download"
-                                            medium
-                                            onPress={() => {
-                                                downloadFile();
-                                                this.setState({isNextButtonDisabled: false});
-                                            }}
-                                            style={[styles.twoFactorAuthCodesButton]}
-                                        />
-                                    )}
-                                </TextFileLink>
-                            </View>
+                        <View style={styles.twoFactorAuthCodesButtonsContainer}>
+                            <Button
+                                text="Copy codes"
+                                medium
+                                onPress={() => {
+                                    Clipboard.setString(props.account.recoveryCodes);
+                                    setIsNextButtonDisabled(false);
+                                }}
+                                style={styles.twoFactorAuthCodesButton}
+                            />
+                            <TextFileLink
+                                fileName="two-factor-auth-codes"
+                                textContent={props.account.recoveryCodes}
+                            >
+                                {(downloadFile) => (
+                                    <Button
+                                        text="Download"
+                                        medium
+                                        onPress={() => {
+                                            downloadFile();
+                                            setIsNextButtonDisabled(false);
+                                        }}
+                                        style={styles.twoFactorAuthCodesButton}
+                                    />
+                                )}
+                            </TextFileLink>
                         </View>
-                    </Section>
-
-                    <FixedFooter style={[styles.twoFactorAuthFooter]}>
-                        <Button
-                            success
-                            text={this.props.translate('common.next')}
-                            onPress={() => Navigation.navigate(ROUTES.SETTINGS_TWO_FACTOR_VERIFY)}
-                            isDisabled={this.state.isNextButtonDisabled}
-                        />
-                    </FixedFooter>
-                </FullPageOfflineBlockingView>
-            </ScreenWrapper>
-        );
-    }
+                    </View>
+                </Section>
+                <FixedFooter style={[styles.twoFactorAuthFooter]}>
+                    <Button
+                        success
+                        text={props.translate('common.next')}
+                        onPress={() => Navigation.navigate(ROUTES.SETTINGS_TWO_FACTOR_VERIFY)}
+                        isDisabled={isNextButtonDisabled}
+                    />
+                </FixedFooter>
+            </FullPageOfflineBlockingView>
+        </ScreenWrapper>
+    );
 }
 
 CodesPage.propTypes = propTypes;

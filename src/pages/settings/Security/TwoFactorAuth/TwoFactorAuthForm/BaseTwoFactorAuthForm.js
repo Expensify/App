@@ -1,4 +1,4 @@
-import React from 'react';
+import React, {useCallback, useState} from 'react';
 import PropTypes from 'prop-types';
 import {withOnyx} from 'react-native-onyx';
 import MagicCodeInput from '../../../../../components/MagicCodeInput';
@@ -10,6 +10,8 @@ import * as ValidationUtils from '../../../../../libs/ValidationUtils';
 import * as Session from '../../../../../libs/actions/Session';
 
 const propTypes = {
+    ...withLocalizePropTypes,
+
     /* Onyx Props */
 
     /** The details about the account that the user is signing in with */
@@ -20,81 +22,66 @@ const propTypes = {
 
     /** Specifies autocomplete hints for the system, so it can provide autofill */
     autoComplete: PropTypes.oneOf(['sms-otp', 'one-time-code']).isRequired,
-
-    ...withLocalizePropTypes,
 };
 
 const defaultProps = {
     account: {},
 };
 
-class BaseTwoFactorAuthForm extends React.Component {
-    constructor(props) {
-        super(props);
-
-        this.state = {
-            formError: {},
-            twoFactorAuthCode: '',
-        };
-
-        this.validateAndSubmitForm = this.validateAndSubmitForm.bind(this);
-    }
+function BaseTwoFactorAuthForm(props) {
+    const [formError, setFormError] = useState({});
+    const [twoFactorAuthCode, setTwoFactorAuthCode] = useState('');
 
     /**
      * Handle text input and clear formError upon text change
      *
      * @param {String} text
-     * @param {String} key
      */
-    onTextInput(text, key) {
-        this.setState({
-            [key]: text,
-            formError: {[key]: ''},
-        });
+    const onTextInput = useCallback(
+        (text) => {
+            setTwoFactorAuthCode(text);
+            setFormError({});
 
-        if (this.props.account.errors) {
-            Session.clearAccountMessages();
-        }
-    }
+            if (props.account.errors) {
+                Session.clearAccountMessages();
+            }
+        },
+        [props.account.errors],
+    );
 
     /**
      * Check that all the form fields are valid, then trigger the submit callback
      */
-    validateAndSubmitForm() {
-        const requiresTwoFactorAuth = this.props.account.requiresTwoFactorAuth;
+    const validateAndSubmitForm = useCallback(() => {
+        const requiresTwoFactorAuth = props.account.requiresTwoFactorAuth;
 
-        if (requiresTwoFactorAuth && !this.state.twoFactorAuthCode.trim()) {
-            this.setState({formError: {twoFactorAuthCode: 'twoFactorAuthForm.error.pleaseFillTwoFactorAuth'}});
+        if (requiresTwoFactorAuth && !twoFactorAuthCode.trim()) {
+            setFormError({twoFactorAuthCode: 'twoFactorAuthForm.error.pleaseFillTwoFactorAuth'});
             return;
         }
 
-        if (requiresTwoFactorAuth && !ValidationUtils.isValidTwoFactorCode(this.state.twoFactorAuthCode)) {
-            this.setState({formError: {twoFactorAuthCode: 'twoFactorAuthForm.error.incorrect2fa'}});
+        if (requiresTwoFactorAuth && !ValidationUtils.isValidTwoFactorCode(twoFactorAuthCode)) {
+            setFormError({twoFactorAuthCode: 'twoFactorAuthForm.error.incorrect2fa'});
             return;
         }
 
-        this.setState({
-            formError: {},
-        });
+        setFormError({});
+        Session.validateTwoFactorAuth(twoFactorAuthCode);
+    }, [props.account.requiresTwoFactorAuth, twoFactorAuthCode]);
 
-        Session.validateTwoFactorAuth(this.state.twoFactorAuthCode);
-    }
-
-    render() {
-        return (
-            <MagicCodeInput
-                autoComplete={this.props.autoComplete}
-                textContentType="oneTimeCode"
-                label={this.props.translate('common.twoFactorCode')}
-                nativeID="twoFactorAuthCode"
-                name="twoFactorAuthCode"
-                value={this.state.twoFactorAuthCode}
-                onChangeText={(text) => this.onTextInput(text, 'twoFactorAuthCode')}
-                onFulfill={this.validateAndSubmitForm}
-                errorText={this.state.formError.twoFactorAuthCode ? this.props.translate(this.state.formError.twoFactorAuthCode) : ErrorUtils.getLatestErrorMessage(this.props.account)}
-            />
-        );
-    }
+    return (
+        <MagicCodeInput
+            autoComplete={props.autoComplete}
+            textContentType="oneTimeCode"
+            label={props.translate('common.twoFactorCode')}
+            nativeID="twoFactorAuthCode"
+            name="twoFactorAuthCode"
+            value={twoFactorAuthCode}
+            onChangeText={onTextInput}
+            onFulfill={validateAndSubmitForm}
+            errorText={formError.twoFactorAuthCode ? props.translate(formError.twoFactorAuthCode) : ErrorUtils.getLatestErrorMessage(props.account)}
+        />
+    );
 }
 
 BaseTwoFactorAuthForm.propTypes = propTypes;

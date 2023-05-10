@@ -1,19 +1,7 @@
 import {Share} from 'react-native';
-import PropTypes from 'prop-types';
 import RNFetchBlob from 'react-native-blob-util';
 import * as FileUtils from '../../libs/fileDownload/FileUtils';
-
-const propTypes = {
-    fileName: PropTypes.string,
-    textContent: PropTypes.string,
-    children: PropTypes.func,
-};
-
-const defaultProps = {
-    fileName: '',
-    textContent: '',
-    children: () => {},
-};
+import {propTypes, defaultProps} from './textFileLinkPropTypes';
 
 const TextFileLink = (props) => {
     const downloadFile = () => {

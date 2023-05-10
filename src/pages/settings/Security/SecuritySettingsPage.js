@@ -16,6 +16,8 @@ import ONYXKEYS from '../../../ONYXKEYS';
 import * as Session from '../../../libs/actions/Session';
 
 const propTypes = {
+    ...withLocalizePropTypes,
+
     /* Onyx Props */
 
     /** Holds information about the users account that is logging in */
@@ -23,15 +25,13 @@ const propTypes = {
         /** Whether this account has 2-FA enabled or not */
         requiresTwoFactorAuth: PropTypes.bool,
     }),
-
-    ...withLocalizePropTypes,
 };
 
 const defaultProps = {
     account: {},
 };
 
-const SecuritySettingsPage = (props) => {
+function SecuritySettingsPage(props) {
     const menuItems = [
         {
             translationKey: 'twoFactorAuth.headerTitle',
@@ -85,7 +85,7 @@ const SecuritySettingsPage = (props) => {
             </ScrollView>
         </ScreenWrapper>
     );
-};
+}
 
 SecuritySettingsPage.propTypes = propTypes;
 SecuritySettingsPage.defaultProps = defaultProps;

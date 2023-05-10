@@ -8,10 +8,6 @@ import FullPageOfflineBlockingView from '../../../../components/BlockingViews/Fu
 import FireworksAnimation from '../../../../../assets/animations/Fireworks.json';
 import ConfirmationPage from '../../../../components/ConfirmationPage';
 
-const propTypes = {
-    ...withLocalizePropTypes,
-};
-
 const defaultProps = {};
 
 function SuccessPage(props) {
@@ -24,7 +20,6 @@ function SuccessPage(props) {
                 onBackButtonPress={() => Navigation.navigate(ROUTES.SETTINGS_SECURITY)}
                 onCloseButtonPress={() => Navigation.dismissModal(true)}
             />
-
             <FullPageOfflineBlockingView>
                 <ConfirmationPage
                     animation={FireworksAnimation}
@@ -39,7 +34,7 @@ function SuccessPage(props) {
     );
 }
 
-SuccessPage.propTypes = propTypes;
+SuccessPage.propTypes = withLocalizePropTypes;
 SuccessPage.defaultProps = defaultProps;
 
 export default withLocalize(SuccessPage);
