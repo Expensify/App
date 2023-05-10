@@ -205,6 +205,9 @@ function clearOutTaskInfoAndNavigate(reportID) {
 }
 
 function cancelTask(taskReportID, parentReportID, originalStateNum, originalStatusNum) {
+    const optimisticCancelReportAction = ReportUtils.buildOptimisticCancelTaskReportAction(taskReportID);
+    const optimisticReportActionID = optimisticCancelReportAction.reportActionID;
+
     const optimisticData = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
@@ -212,6 +215,13 @@ function cancelTask(taskReportID, parentReportID, originalStateNum, originalStat
             value: {
                 stateNum: CONST.REPORT.STATE_NUM.SUBMITTED,
                 statusNum: CONST.REPORT.STATUS.CLOSED,
+            },
+        },
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${parentReportID}`,
+            value: {
+                [optimisticReportActionID]: optimisticCancelReportAction,
             },
         },
     ];
@@ -225,9 +235,16 @@ function cancelTask(taskReportID, parentReportID, originalStateNum, originalStat
                 statusNum: originalStatusNum,
             },
         },
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${parentReportID}`,
+            value: {
+                [optimisticReportActionID]: null,
+            },
+        },
     ];
 
-    API.write('CancelTask', {taskReportID}, {optimisticData, failureData});
+    API.write('CancelTask', {taskReportID, optimisticReportActionID}, {optimisticData, failureData});
 }
 
 export {createTaskAndNavigate, setTitleValue, setDescriptionValue, setDetailsValue, setAssigneeValue, setShareDestinationValue, clearOutTaskInfo, clearOutTaskInfoAndNavigate, cancelTask};

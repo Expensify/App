@@ -464,6 +464,9 @@ const CONST = {
                     UPDATE_TIME_ENABLED: 'POLICYCHANGELOG_UPDATE_TIME_ENABLED',
                     UPDATE_TIME_RATE: 'POLICYCHANGELOG_UPDATE_TIME_RATE',
                 },
+                TASK: {
+                    CANCEL: 'TASK_CANCEL',
+                },
             },
         },
         ARCHIVE_REASON: {
@@ -911,6 +914,12 @@ const CONST = {
             DELETE: 'delete',
         },
         AMOUNT_MAX_LENGTH: 10,
+    },
+
+    TASK: {
+        REPORT_ACTION_TYPE: {
+            CANCEL: 'cancel',
+        },
     },
 
     GROWL: {

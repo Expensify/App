@@ -1847,6 +1847,28 @@ function getWhisperDisplayNames(participants) {
     return _.map(participants, (login) => getDisplayNameForParticipant(login, !isWhisperOnlyVisibleToCurrentUSer)).join(', ');
 }
 
+function buildOptimisticCancelTaskReportAction(taskReportID) {
+    return {
+        taskReportID,
+        actionName: CONST.REPORT.ACTIONS.TYPE.TASK.CANCEL,
+        actorAccountID: currentUserAccountID,
+        actorEmail: currentUserEmail,
+        automatic: false,
+        avatar: lodashGet(currentUserPersonalDetails, 'avatar', getDefaultAvatar(currentUserEmail)),
+        isAttachment: false,
+        person: [
+            {
+                style: 'strong',
+                text: lodashGet(currentUserPersonalDetails, 'displayName', currentUserEmail),
+                type: 'TEXT',
+            },
+        ],
+        reportActionID: NumberUtils.rand64(),
+        shouldShow: true,
+        created: DateUtils.getDBTime(),
+    };
+}
+
 export {
     getReportParticipantsTitle,
     isReportMessageAttachment,
@@ -1925,4 +1947,5 @@ export {
     canRequestMoney,
     getWhisperDisplayNames,
     getWorkspaceAvatar,
+    buildOptimisticCancelTaskReportAction,
 };
