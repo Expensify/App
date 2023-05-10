@@ -1024,6 +1024,29 @@ function updateNotificationPreference(reportID, previousValue, newValue) {
 }
 
 /**
+ * @param {String} reportID
+ * @param {String} previousValue
+ * @param {String} newValue
+ */
+function updateWelcomeMessage(reportID, previousValue, newValue) {
+    const optimisticData = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
+            value: {welcomeMessage: newValue},
+        },
+    ];
+    const failureData = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
+            value: {welcomeMessage: previousValue},
+        },
+    ];
+    API.write('UpdateWelcomeMessage', {reportID, welcomeMessage: newValue}, {optimisticData, failureData});
+}
+
+/**
  * Navigates to the 1:1 report with Concierge
  */
 function navigateToConciergeChat() {
@@ -1505,6 +1528,7 @@ export {
     addAttachment,
     reconnect,
     updateNotificationPreference,
+    updateWelcomeMessage,
     subscribeToReportTypingEvents,
     unsubscribeFromReportChannel,
     saveReportComment,

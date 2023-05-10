@@ -19,6 +19,7 @@ import FixedFooter from '../components/FixedFooter';
 import Button from '../components/Button';
 import Text from '../components/Text';
 import TextInput from '../components/TextInput';
+import * as Report from '../libs/actions/Report';
 
 const propTypes = {
     ...withLocalizePropTypes,
@@ -54,7 +55,7 @@ function ReportWelcomeMessagePage(props) {
     }, []);
 
     const submitForm = useCallback(() => {
-        // TODO: Save welcome message
+        Report.updateWelcomeMessage(props.report.reportID, props.report.welcomeMessage, welcomeMessage);
     }, [welcomeMessage]);
 
     return (
