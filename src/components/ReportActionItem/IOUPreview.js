@@ -196,7 +196,7 @@ const IOUPreview = (props) => {
                     <View style={[styles.flexRow]}>
                         <View style={[styles.flex1, styles.flexRow, styles.alignItemsCenter]}>
                             <Text style={[styles.textLabelSupporting, styles.lh16]}>{props.isBillSplit ? props.translate('iou.split') : props.translate('iou.cash')}</Text>
-                            {getSettledMessage() && (
+                            {Boolean(getSettledMessage()) && (
                                 <>
                                     <Icon
                                         src={Expensicons.DotIndicator}
