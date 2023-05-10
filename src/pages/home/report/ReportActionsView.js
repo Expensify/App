@@ -228,12 +228,13 @@ class ReportActionsView extends React.Component {
             this.setState({newMarkerReportActionID: ''});
         }
 
+        console.log(`~~Monil component updated prev ${prevProps.report.lastReadTime} now ${this.props.report.lastReadTime}`);
         // Checks to see if a report comment has been manually "marked as unread". All other times when the lastReadTime
         // changes it will be because we marked the entire report as read.
-        const didManuallyMarkReportAsUnread = prevProps.report.lastReadTime !== this.props.report.lastReadTime && ReportUtils.isUnread(this.props.report);
+        const didManuallyMarkReportAsUnread = prevProps.report.lastReadTime > this.props.report.lastReadTime && ReportUtils.isUnread(this.props.report);
         if (didManuallyMarkReportAsUnread) {
-            console.log(`~~Monil possibly wrong logic!`);
-            // this.setState({newMarkerReportActionID: ReportUtils.getNewMarkerReportActionID(this.props.report, this.props.reportActions)});
+            console.log(`~~Monil marking report as unread?`);
+            this.setState({newMarkerReportActionID: ReportUtils.getNewMarkerReportActionID(this.props.report, this.props.reportActions)});
         }
 
         // Ensures subscription event succeeds when the report/workspace room is created optimistically.
