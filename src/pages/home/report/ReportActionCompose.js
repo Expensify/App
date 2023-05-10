@@ -110,6 +110,8 @@ const propTypes = {
         expiresAt: PropTypes.string,
     }),
 
+    shouldShowComposeInput: PropTypes.bool,
+
     /** Stores user's preferred skin tone */
     preferredSkinTone: PropTypes.oneOfType([PropTypes.number, PropTypes.string]),
 
@@ -141,6 +143,7 @@ const defaultProps = {
     frequentlyUsedEmojis: [],
     isComposerFullSize: false,
     pendingAction: null,
+    shouldShowComposeInput: true,
     ...withCurrentUserPersonalDetailsDefaultProps,
 };
 
@@ -759,7 +762,7 @@ class ReportActionCompose extends React.Component {
         const isComposeDisabled = this.props.isDrawerOpen && this.props.isSmallScreenWidth;
         const isBlockedFromConcierge = ReportUtils.chatIncludesConcierge(this.props.report) && User.isBlockedFromConcierge(this.props.blockedFromConcierge);
         const inputPlaceholder = this.getInputPlaceholder();
-        const shouldUseFocusedColor = !isBlockedFromConcierge && !this.props.disabled && (this.state.isFocused || this.state.isDraggingOver);
+        const shouldUseFocusedColor = !isBlockedFromConcierge && !this.props.disabled && (this.state.isFocused || this.state.isDraggingOver) && this.props.shouldShowComposeInput;
         const hasExceededMaxCommentLength = this.state.hasExceededMaxCommentLength;
 
         return (
@@ -902,7 +905,7 @@ class ReportActionCompose extends React.Component {
                                             disabled={this.props.disabled}
                                         >
                                             <Composer
-                                                autoFocus={!this.props.modal.isVisible && (this.willBlurTextInputOnTapOutside || this.isEmptyChat())}
+                                                autoFocus={!this.props.modal.isVisible && (this.willBlurTextInputOnTapOutside || this.isEmptyChat()) && this.props.shouldShowComposeInput}
                                                 multiline
                                                 ref={this.setTextInputRef}
                                                 textAlignVertical="top"
@@ -1050,6 +1053,9 @@ export default compose(
         },
         preferredSkinTone: {
             key: ONYXKEYS.PREFERRED_EMOJI_SKIN_TONE,
+        },
+        shouldShowComposeInput: {
+            key: ONYXKEYS.SHOULD_SHOW_COMPOSE_INPUT,
         },
     }),
 )(ReportActionCompose);

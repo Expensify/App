@@ -1,9 +1,5 @@
 import * as Composer from '../actions/Composer';
 
-export default (shouldShowComposeInput, isSmallScreenWidth = true) => {
-    if (!isSmallScreenWidth) {
-        return;
-    }
-
+export default (shouldShowComposeInput) => {
     Composer.setShouldShowComposeInput(shouldShowComposeInput);
 };

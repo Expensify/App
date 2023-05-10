@@ -85,7 +85,7 @@ class ReportFooter extends React.Component {
                         )}
                     </View>
                 )}
-                {(!hideComposer && this.props.shouldShowComposeInput) && (
+                {(!hideComposer && (this.props.shouldShowComposeInput || !this.props.isSmallScreenWidth)) && (
                     <View style={[this.getChatFooterStyles(), this.props.isComposerFullSize && styles.chatFooterFullCompose]}>
                         <SwipeableView onSwipeDown={Keyboard.dismiss}>
                             <ReportActionCompose
