@@ -181,19 +181,18 @@ class WorkspacesListPage extends Component {
     render() {
         const workspaces = this.getWorkspaces();
 
-        // TODO: translations
         const workspaceFeatures = [
             {
                 icon: Illustrations.MoneyReceipts,
-                text: 'Track and collect receipts',
+                text: this.props.translate('workspace.emptyWorkspace.features.trackAndCollect'),
             },
             {
                 icon: Illustrations.CreditCardsNew,
-                text: 'Company credit cards',
+                text: this.props.translate('workspace.emptyWorkspace.features.companyCards'),
             },
             {
                 icon: Illustrations.MoneyWings,
-                text: 'Easy reimbursements',
+                text: this.props.translate('workspace.emptyWorkspace.features.reimbursements'),
             },
         ];
         return (
