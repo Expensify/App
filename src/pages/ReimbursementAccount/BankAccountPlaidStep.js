@@ -124,10 +124,7 @@ class BankAccountPlaidStep extends React.Component {
                                 <Text>
                                     {this.props.translate('common.iAcceptThe')}
                                     <TextLink
-                                        href="https://use.expensify.com/terms"
-
-                                        // to call the onPress in the TextLink before the input blur is fired and shift the link element
-                                        onMouseDown={e => e.preventDefault()}
+                                        href={CONST.TERMS_URL}
                                     >
                                         {this.props.translate('common.expensifyTermsOfService')}
                                     </TextLink>
