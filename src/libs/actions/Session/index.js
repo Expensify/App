@@ -431,12 +431,16 @@ function signInWithValidateCode(accountID, code, twoFactorAuthCode) {
         },
     ];
 
-    API.write('SigninUserWithLink', {
-        accountID,
-        validateCode,
-        twoFactorAuthCode,
-        deviceInfo: getDeviceInfoForLogin(),
-    }, {optimisticData, successData, failureData});
+    API.write(
+        'SigninUserWithLink',
+        {
+            accountID,
+            validateCode,
+            twoFactorAuthCode,
+            deviceInfo: getDeviceInfoForLogin(),
+        },
+        {optimisticData, successData, failureData},
+    );
 }
 
 function signInWithValidateCodeAndNavigate(accountID, validateCode, twoFactorAuthCode) {
