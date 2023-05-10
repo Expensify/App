@@ -14,10 +14,7 @@ const getStyledTextArray = (name, prefix) => {
     if (prefixLocation === 0 && prefix.length === name.length) {
         texts.push({text: prefixLowercase, isColored: true});
     } else if (prefixLocation === 0 && prefix.length !== name.length) {
-        texts.push(
-            {text: name.slice(0, prefix.length), isColored: true},
-            {text: name.slice(prefix.length), isColored: false},
-        );
+        texts.push({text: name.slice(0, prefix.length), isColored: true}, {text: name.slice(prefix.length), isColored: false});
     } else if (prefixLocation > 0 && prefix.length !== name.length) {
         texts.push(
             {text: name.slice(0, prefixLocation), isColored: false},

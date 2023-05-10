@@ -7,25 +7,26 @@ const APP_VERSION = require('../../package.json').version;
  */
 class CustomVersionFilePlugin {
     apply(compiler) {
-        compiler.hooks.done.tap(this.constructor.name, () => new Promise((resolve, reject) => {
-            const versionPath = path.join(__dirname, '/../../dist/version.json');
-            fs.mkdir(path.dirname(versionPath), {recursive: true}, (dirErr) => {
-                if (dirErr) {
-                    reject(dirErr);
-                    return;
-                }
-                fs.writeFile(versionPath,
-                    JSON.stringify({version: APP_VERSION}),
-                    'utf8',
-                    (fileErr) => {
-                        if (fileErr) {
-                            reject(fileErr);
+        compiler.hooks.done.tap(
+            this.constructor.name,
+            () =>
+                new Promise((resolve, reject) => {
+                    const versionPath = path.join(__dirname, '/../../dist/version.json');
+                    fs.mkdir(path.dirname(versionPath), {recursive: true}, (dirErr) => {
+                        if (dirErr) {
+                            reject(dirErr);
                             return;
                         }
-                        resolve();
+                        fs.writeFile(versionPath, JSON.stringify({version: APP_VERSION}), 'utf8', (fileErr) => {
+                            if (fileErr) {
+                                reject(fileErr);
+                                return;
+                            }
+                            resolve();
+                        });
                     });
-            });
-        }));
+                }),
+        );
     }
 }
 

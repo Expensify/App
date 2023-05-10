@@ -1,8 +1,5 @@
 import React from 'react';
-import {
-    View,
-    Pressable,
-} from 'react-native';
+import {View, Pressable} from 'react-native';
 import PropTypes from 'prop-types';
 import {withOnyx} from 'react-native-onyx';
 import lodashGet from 'lodash/get';
@@ -87,11 +84,12 @@ const propTypes = {
     isHovered: PropTypes.bool,
 
     /** All of the personal details for everyone */
-    personalDetails: PropTypes.objectOf(PropTypes.shape({
-
-        /** This is either the user's full name, or their login if full name is an empty string */
-        displayName: PropTypes.string.isRequired,
-    })),
+    personalDetails: PropTypes.objectOf(
+        PropTypes.shape({
+            /** This is either the user's full name, or their login if full name is an empty string */
+            displayName: PropTypes.string.isRequired,
+        }),
+    ),
 
     /** Session info for the currently logged in user. */
     session: PropTypes.shape({
@@ -107,7 +105,7 @@ const propTypes = {
 
     /** Whether or not an IOU report contains money requests in a different currency
      * that are either created or cancelled offline, and thus haven't been converted to the report's currency yet
-    */
+     */
     shouldShowPendingConversionMessage: PropTypes.bool,
 
     ...withLocalizePropTypes,
@@ -163,13 +161,7 @@ const IOUPreview = (props) => {
             return;
         }
 
-        showContextMenuForReport(
-            event,
-            props.contextMenuAnchor,
-            props.chatReportID,
-            props.action,
-            props.checkIfContextMenuActive,
-        );
+        showContextMenuForReport(event, props.contextMenuAnchor, props.chatReportID, props.action, props.checkIfContextMenuActive);
     };
 
     const childContainer = (
@@ -185,56 +177,46 @@ const IOUPreview = (props) => {
                 needsOffscreenAlphaCompositing
             >
                 <View style={[styles.iouPreviewBox, ...props.containerStyles]}>
-                    <Text>
-                        {props.isBillSplit ? props.translate('iou.split') : props.translate('iou.cash')}
-                    </Text>
+                    <Text>{props.isBillSplit ? props.translate('iou.split') : props.translate('iou.cash')}</Text>
                     <View style={[styles.flexRow]}>
                         <View style={[styles.flex1, styles.flexRow, styles.alignItemsCenter]}>
-                            <Text style={styles.h1}>
-                                {CurrencyUtils.convertToDisplayString(requestAmount, requestCurrency)}
-                            </Text>
+                            <Text style={styles.h1}>{CurrencyUtils.convertToDisplayString(requestAmount, requestCurrency)}</Text>
                             {!props.iouReport.hasOutstandingIOU && !props.isBillSplit && (
                                 <View style={styles.iouPreviewBoxCheckmark}>
-                                    <Icon src={Expensicons.Checkmark} fill={themeColors.iconSuccessFill} />
+                                    <Icon
+                                        src={Expensicons.Checkmark}
+                                        fill={themeColors.iconSuccessFill}
+                                    />
                                 </View>
                             )}
                         </View>
                         <View style={styles.iouPreviewBoxAvatar}>
                             <MultipleAvatars
                                 icons={participantAvatars}
-                                secondAvatarStyle={[
-                                    styles.secondAvatarInline,
-                                    props.isHovered
-                                        ? styles.iouPreviewBoxAvatarHover
-                                        : undefined,
-                                ]}
+                                secondAvatarStyle={[styles.secondAvatarInline, props.isHovered ? styles.iouPreviewBoxAvatarHover : undefined]}
                                 avatarTooltips={participantEmails}
                             />
                         </View>
                     </View>
 
                     {!isCurrentUserManager && props.shouldShowPendingConversionMessage && (
-                        <Text style={[styles.textLabel, styles.colorMuted]}>
-                            {props.translate('iou.pendingConversionMessage')}
-                        </Text>
+                        <Text style={[styles.textLabel, styles.colorMuted]}>{props.translate('iou.pendingConversionMessage')}</Text>
                     )}
 
                     <Text>{Str.htmlDecode(lodashGet(props.action, 'originalMessage.comment', ''))}</Text>
 
-                    {(isCurrentUserManager
-                        && !props.shouldHidePayButton
-                        && props.iouReport.stateNum === CONST.REPORT.STATE_NUM.PROCESSING && (
-                            <Button
-                                style={styles.mt4}
-                                onPress={props.onPayButtonPressed}
-                                onPressIn={() => DeviceCapabilities.canUseTouchScreen() && ControlSelection.block()}
-                                onPressOut={() => ControlSelection.unblock()}
-                                onLongPress={showContextMenu}
-                                text={props.translate('iou.pay')}
-                                success
-                                medium
-                            />
-                    ))}
+                    {isCurrentUserManager && !props.shouldHidePayButton && props.iouReport.stateNum === CONST.REPORT.STATE_NUM.PROCESSING && (
+                        <Button
+                            style={styles.mt4}
+                            onPress={props.onPayButtonPressed}
+                            onPressIn={() => DeviceCapabilities.canUseTouchScreen() && ControlSelection.block()}
+                            onPressOut={() => ControlSelection.unblock()}
+                            onLongPress={showContextMenu}
+                            text={props.translate('iou.pay')}
+                            success
+                            medium
+                        />
+                    )}
                 </View>
             </OfflineWithFeedback>
         </View>

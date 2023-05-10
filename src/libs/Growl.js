@@ -17,7 +17,7 @@ function setIsReady() {
  * @param {String} bodyText
  * @param {String} type
  * @param {Number} [duration]
-*/
+ */
 function show(bodyText, type, duration = CONST.GROWL.DURATION) {
     isReadyPromise.then(() => growlRef.current.show(bodyText, type, duration));
 }
@@ -48,7 +48,4 @@ export default {
     success,
 };
 
-export {
-    growlRef,
-    setIsReady,
-};
+export {growlRef, setIsReady};
