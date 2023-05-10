@@ -21,7 +21,6 @@ import ROUTES from '../../../../ROUTES';
 import styles from '../../../../styles/styles';
 import * as User from '../../../../libs/actions/User';
 import * as LoginUtils from '../../../../libs/LoginUtils';
-import * as OptionsListUtils from '../../../../libs/OptionsListUtils';
 import CONST from '../../../../CONST';
 
 const propTypes = {
@@ -85,7 +84,7 @@ function NewContactMethodPage(props) {
             return;
         }
 
-        User.addNewContactMethodAndNavigate(OptionsListUtils.addSMSDomainIfPhoneNumber(userLogin), password);
+        User.addNewContactMethodAndNavigate(userLogin, password);
     }, [login, props.loginList, password]);
 
     return (

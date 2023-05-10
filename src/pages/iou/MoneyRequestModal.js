@@ -297,11 +297,7 @@ const MoneyRequestModal = (props) => {
                 IOU.splitBillAndOpenReport(selectedParticipants, props.currentUserPersonalDetails.login, amount, trimmedComment, props.iou.selectedCurrencyCode);
                 return;
             }
-            if (!selectedParticipants[0].login) {
-                // TODO - request to the policy expense chat. Not implemented yet!
-                // Will be implemented here: https://github.com/Expensify/Expensify/issues/270581
-                return;
-            }
+
             IOU.requestMoney(props.report, amount, props.iou.selectedCurrencyCode, props.currentUserPersonalDetails.login, selectedParticipants[0], trimmedComment);
         },
         [amount, props.iou.comment, props.currentUserPersonalDetails.login, props.hasMultipleParticipants, props.iou.selectedCurrencyCode, props.report, props.route],
