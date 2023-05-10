@@ -392,7 +392,7 @@ export default {
             setDefaultContactMethod: 'No se pudo establecer un nuevo método de contacto predeterminado. Por favor contacta con Concierge para obtener ayuda.',
             addContactMethod: 'Hubo un error al añadir este método de contacto. Por favor, contacta con Concierge para obtener ayuda.',
             enteredMethodIsAlreadySubmited: 'El método de contacto ingresado ya existe.',
-            passwordRequired: 'se requiere contraseña',
+            passwordRequired: 'Se requiere contraseña',
             contactMethodRequired: 'Se requiere método de contacto.',
             invalidContactMethod: 'Método de contacto no válido.',
         },
