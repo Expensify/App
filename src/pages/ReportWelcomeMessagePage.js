@@ -1,4 +1,6 @@
-import React, {Component} from 'react';
+import React, {
+    useCallback, useMemo, useRef, useState,
+} from 'react';
 import PropTypes from 'prop-types';
 import {withOnyx} from 'react-native-onyx';
 import _ from 'underscore';
@@ -39,23 +41,33 @@ const defaultProps = {
     policies: {},
 };
 
-class ReportWelcomeMessagePage extends Component {
-    render() {
-        return (
-            <ScreenWrapper>
-                <FullPageNotFoundView shouldShow={_.isEmpty(this.props.report)}>
-                    <HeaderWithCloseButton
-                        title={this.props.translate('common.details')}
-                        onBackButtonPress={() => Navigation.goBack()}
-                        onCloseButtonPress={() => Navigation.dismissModal()}
-                    />
-                    <ScrollView style={[styles.flex1]}>
-                        <Text>Example</Text>
-                    </ScrollView>
-                </FullPageNotFoundView>
-            </ScreenWrapper>
-        );
-    }
+function ReportWelcomeMessagePage(props) {
+    const [welcomeMessage, setWelcomeMessage] = useState('');
+
+    const handleWelcomeMessageChange = useCallback((value) => {
+        setWelcomeMessage(value);
+    }, []);
+
+    const submitForm = useCallback(() => {
+        // TODO: Save welcome message
+    }, [welcomeMessage]);
+
+    return (
+        <ScreenWrapper>
+            <FullPageNotFoundView shouldShow={_.isEmpty(this.props.report)}>
+                <HeaderWithCloseButton
+                    title={props.translate('welcomeMessagePage.welcomeMessage')}
+                    onBackButtonPress={() => Navigation.goBack()}
+                    onCloseButtonPress={() => Navigation.dismissModal()}
+                />
+                <ScrollView style={[styles.flex1]}>
+                    <Text style={[styles.ph5, styles.mb5]}>
+                        {props.translate('welcomeMessagePage.explainerText')}
+                    </Text>
+                </ScrollView>
+            </FullPageNotFoundView>
+        </ScreenWrapper>
+    );
 }
 
 ReportWelcomeMessagePage.propTypes = propTypes;

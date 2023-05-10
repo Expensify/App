@@ -574,7 +574,7 @@ export default {
     },
     welcomeMessagePage: {
         welcomeMessage: 'Welcome message',
-        explainerText: 'Choose whether to show all chats by default sorted with most recent with pinned items at the top, or #focus on unread pinned items, sorted alphabetically.',
+        explainerText: 'Set a custom welcome message that will be sent users when they join this room.',
     },
     languagePage: {
         language: 'Language',
