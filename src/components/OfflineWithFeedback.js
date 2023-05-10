@@ -100,18 +100,18 @@ const OfflineWithFeedback = (props) => {
             {!hideChildren && (
                 <View
                     style={[needsOpacity ? styles.offlineFeedback.pending : {}, props.contentContainerStyle]}
-                    needsOffscreenAlphaCompositing={
-                        shouldRenderOffscreen
-                            ? (needsOpacity && props.needsOffscreenAlphaCompositing)
-                            : undefined
-                    }
+                    needsOffscreenAlphaCompositing={shouldRenderOffscreen ? needsOpacity && props.needsOffscreenAlphaCompositing : undefined}
                 >
                     {children}
                 </View>
             )}
-            {(props.shouldShowErrorMessages && hasErrors) && (
+            {props.shouldShowErrorMessages && hasErrors && (
                 <View style={StyleUtils.combineStyles(styles.offlineFeedback.error, props.errorRowStyles)}>
-                    <DotIndicatorMessage style={[styles.flex1]} messages={props.errors} type="error" />
+                    <DotIndicatorMessage
+                        style={[styles.flex1]}
+                        messages={props.errors}
+                        type="error"
+                    />
                     <Tooltip text={props.translate('common.close')}>
                         <Pressable
                             onPress={props.onClose}
@@ -132,7 +132,4 @@ OfflineWithFeedback.propTypes = propTypes;
 OfflineWithFeedback.defaultProps = defaultProps;
 OfflineWithFeedback.displayName = 'OfflineWithFeedback';
 
-export default compose(
-    withLocalize,
-    withNetwork(),
-)(OfflineWithFeedback);
+export default compose(withLocalize, withNetwork())(OfflineWithFeedback);

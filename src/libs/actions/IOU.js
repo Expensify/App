@@ -50,34 +50,44 @@ Onyx.connect({
  * @param {Object} report
  * @param {Number} amount - always in the smallest unit of the currency
  * @param {String} currency
- * @param {String} recipientEmail
+ * @param {String} payeeEmail
  * @param {Object} participant
  * @param {String} comment
  */
-function requestMoney(report, amount, currency, recipientEmail, participant, comment) {
-    const debtorEmail = OptionsListUtils.addSMSDomainIfPhoneNumber(participant.login);
+function requestMoney(report, amount, currency, payeeEmail, participant, comment) {
+    const payerEmail = OptionsListUtils.addSMSDomainIfPhoneNumber(participant.login);
     let chatReport = lodashGet(report, 'reportID', null) ? report : null;
+    const isPolicyExpenseChat = participant.isPolicyExpenseChat || participant.isOwnPolicyExpenseChat;
     let isNewChat = false;
-    if (!chatReport) {
-        chatReport = ReportUtils.getChatByParticipants([debtorEmail]);
-    }
-    if (!chatReport) {
-        chatReport = ReportUtils.buildOptimisticChatReport([debtorEmail]);
-        isNewChat = true;
-    }
-    let iouReport;
-    if (chatReport.iouReportID) {
-        iouReport = IOUUtils.updateIOUOwnerAndTotal(
-            iouReports[`${ONYXKEYS.COLLECTION.REPORT}${chatReport.iouReportID}`],
-            recipientEmail,
-            amount,
-            currency,
-        );
-    } else {
-        iouReport = ReportUtils.buildOptimisticIOUReport(recipientEmail, debtorEmail, amount, chatReport.reportID, currency);
+
+    // If this is a policyExpenseChat, the chatReport must exist and we can get it from Onyx.
+    // report is null if the flow is initiated from the global create menu. However, participant always stores the reportID if it exists, which is the case for policyExpenseChats
+    if (!chatReport && isPolicyExpenseChat) {
+        chatReport = chatReports[`${ONYXKEYS.COLLECTION.REPORT}${participant.reportID}`];
     }
 
-    const optimisticTransaction = TransactionUtils.buildOptimisticTransaction(amount, currency, iouReport.reportID, comment);
+    if (!chatReport) {
+        chatReport = ReportUtils.getChatByParticipants([payerEmail]);
+    }
+    if (!chatReport) {
+        chatReport = ReportUtils.buildOptimisticChatReport([payerEmail]);
+        isNewChat = true;
+    }
+    let moneyRequestReport;
+    if (chatReport.iouReportID) {
+        if (isPolicyExpenseChat) {
+            moneyRequestReport = {...iouReports[`${ONYXKEYS.COLLECTION.REPORT}${chatReport.iouReportID}`]};
+            moneyRequestReport.total += amount;
+        } else {
+            moneyRequestReport = IOUUtils.updateIOUOwnerAndTotal(iouReports[`${ONYXKEYS.COLLECTION.REPORT}${chatReport.iouReportID}`], payeeEmail, amount, currency);
+        }
+    } else {
+        moneyRequestReport = isPolicyExpenseChat
+            ? ReportUtils.buildOptimisticExpenseReport(chatReport.reportID, chatReport.policyID, payeeEmail, amount, currency)
+            : ReportUtils.buildOptimisticIOUReport(payeeEmail, payerEmail, amount, chatReport.reportID, currency);
+    }
+
+    const optimisticTransaction = TransactionUtils.buildOptimisticTransaction(amount, currency, moneyRequestReport.reportID, comment);
     const optimisticTransactionData = {
         onyxMethod: Onyx.METHOD.SET,
         key: `${ONYXKEYS.COLLECTION.TRANSACTION}${optimisticTransaction.transactionID}`,
@@ -101,7 +111,7 @@ function requestMoney(report, amount, currency, recipientEmail, participant, com
     };
 
     // Note: The created action must be optimistically generated before the IOU action so there's no chance that the created action appears after the IOU action in the chat
-    const optimisticCreatedAction = ReportUtils.buildOptimisticCreatedReportAction(recipientEmail);
+    const optimisticCreatedAction = ReportUtils.buildOptimisticCreatedReportAction(payeeEmail);
     const optimisticReportAction = ReportUtils.buildOptimisticIOUReportAction(
         CONST.IOU.REPORT_ACTION_TYPE.CREATE,
         amount,
@@ -110,7 +120,7 @@ function requestMoney(report, amount, currency, recipientEmail, participant, com
         [participant],
         optimisticTransaction.transactionID,
         '',
-        iouReport.reportID,
+        moneyRequestReport.reportID,
     );
     
     let reportPreview = ReportActionsUtils.getReportPreviewAction(chatReport.reportID, iouReport.reportID);
@@ -127,15 +137,15 @@ function requestMoney(report, amount, currency, recipientEmail, participant, com
             lastReadTime: DateUtils.getDBTime(),
             lastMessageText: optimisticReportAction.message[0].text,
             lastMessageHtml: optimisticReportAction.message[0].html,
-            hasOutstandingIOU: iouReport.total !== 0,
-            iouReportID: iouReport.reportID,
+            hasOutstandingIOU: moneyRequestReport.total !== 0,
+            iouReportID: moneyRequestReport.reportID,
         },
     };
 
     const optimisticIOUReportData = {
         onyxMethod: chatReport.hasOutstandingIOU ? Onyx.METHOD.MERGE : Onyx.METHOD.SET,
-        key: `${ONYXKEYS.COLLECTION.REPORT}${iouReport.reportID}`,
-        value: iouReport,
+        key: `${ONYXKEYS.COLLECTION.REPORT}${moneyRequestReport.reportID}`,
+        value: moneyRequestReport,
     };
 
     const optimisticReportActionsData = {
@@ -214,40 +224,32 @@ function requestMoney(report, amount, currency, recipientEmail, participant, com
         reportActionsFailureData.value[optimisticReportAction.reportActionID] = {pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD};
     }
 
-    const optimisticData = [
-        optimisticChatReportData,
-        optimisticIOUReportData,
-        optimisticReportActionsData,
-        optimisticTransactionData,
-    ];
+    const optimisticData = [optimisticChatReportData, optimisticIOUReportData, optimisticReportActionsData, optimisticTransactionData];
 
-    const successData = [
-        reportActionsSuccessData,
-        transactionSuccessData,
-    ];
+    const successData = [reportActionsSuccessData, transactionSuccessData];
     if (!_.isEmpty(chatReportSuccessData)) {
         successData.push(chatReportSuccessData);
     }
 
-    const failureData = [
-        chatReportFailureData,
-        reportActionsFailureData,
-        transactionFailureData,
-    ];
+    const failureData = [chatReportFailureData, reportActionsFailureData, transactionFailureData];
 
     const parsedComment = ReportUtils.getParsedComment(comment);
-    API.write('RequestMoney', {
-        debtorEmail,
-        amount,
-        currency,
-        comment: parsedComment,
-        iouReportID: iouReport.reportID,
-        chatReportID: chatReport.reportID,
-        transactionID: optimisticTransaction.transactionID,
-        reportActionID: optimisticReportAction.reportActionID,
-        createdReportActionID: isNewChat ? optimisticCreatedAction.reportActionID : 0,
-        reportPreviewReportActionID: reportPreview.reportActionID,
-    }, {optimisticData, successData, failureData});
+    API.write(
+        'RequestMoney',
+        {
+            debtorEmail: payerEmail,
+            amount,
+            currency,
+            comment: parsedComment,
+            iouReportID: moneyRequestReport.reportID,
+            chatReportID: chatReport.reportID,
+            transactionID: optimisticTransaction.transactionID,
+            reportActionID: optimisticReportAction.reportActionID,
+            createdReportActionID: isNewChat ? optimisticCreatedAction.reportActionID : 0,
+            reportPreviewReportActionID: reportPreview.reportActionID,
+    },
+        {optimisticData, successData, failureData},
+    );
     Navigation.navigate(ROUTES.getReportRoute(chatReport.reportID));
 }
 
@@ -273,14 +275,14 @@ function requestMoney(report, amount, currency, recipientEmail, participant, com
  */
 function createSplitsAndOnyxData(participants, currentUserLogin, amount, comment, currency, existingGroupChatReportID = '') {
     const currentUserEmail = OptionsListUtils.addSMSDomainIfPhoneNumber(currentUserLogin);
-    const participantLogins = _.map(participants, participant => OptionsListUtils.addSMSDomainIfPhoneNumber(participant.login).toLowerCase());
+    const participantLogins = _.map(participants, (participant) => OptionsListUtils.addSMSDomainIfPhoneNumber(participant.login).toLowerCase());
     const existingGroupChatReport = existingGroupChatReportID
         ? chatReports[`${ONYXKEYS.COLLECTION.REPORT}${existingGroupChatReportID}`]
         : ReportUtils.getChatByParticipants(participantLogins);
     const groupChatReport = existingGroupChatReport || ReportUtils.buildOptimisticChatReport(participantLogins);
 
     // ReportID is -2 (aka "deleted") on the group transaction: https://github.com/Expensify/Auth/blob/3fa2698654cd4fbc30f9de38acfca3fbeb7842e4/auth/command/SplitTransaction.cpp#L24-L27
-    const formattedParticipants = Localize.arrayToString([currentUserLogin, ..._.map(participants, participant => participant.login)]);
+    const formattedParticipants = Localize.arrayToString([currentUserLogin, ..._.map(participants, (participant) => participant.login)]);
     const groupTransaction = TransactionUtils.buildOptimisticTransaction(
         amount,
         currency,
@@ -293,14 +295,7 @@ function createSplitsAndOnyxData(participants, currentUserLogin, amount, comment
 
     // Note: The created action must be optimistically generated before the IOU action so there's no chance that the created action appears after the IOU action in the chat
     const groupCreatedReportAction = ReportUtils.buildOptimisticCreatedReportAction(currentUserEmail);
-    const groupIOUReportAction = ReportUtils.buildOptimisticIOUReportAction(
-        CONST.IOU.REPORT_ACTION_TYPE.SPLIT,
-        amount,
-        currency,
-        comment,
-        participants,
-        groupTransaction.transactionID,
-    );
+    const groupIOUReportAction = ReportUtils.buildOptimisticIOUReportAction(CONST.IOU.REPORT_ACTION_TYPE.SPLIT, amount, currency, comment, participants, groupTransaction.transactionID);
 
     groupChatReport.lastReadTime = DateUtils.getDBTime();
     groupChatReport.lastMessageText = groupIOUReportAction.message[0].text;
@@ -409,18 +404,13 @@ function createSplitsAndOnyxData(participants, currentUserLogin, amount, comment
         }
 
         // If we only have one participant and the request was initiated from the global create menu, i.e. !existingGroupChatReportID, the oneOnOneChatReport is the groupChatReport
-        const existingOneOnOneChatReport = (!hasMultipleParticipants && !existingGroupChatReportID) ? groupChatReport : ReportUtils.getChatByParticipants([email]);
+        const existingOneOnOneChatReport = !hasMultipleParticipants && !existingGroupChatReportID ? groupChatReport : ReportUtils.getChatByParticipants([email]);
         const oneOnOneChatReport = existingOneOnOneChatReport || ReportUtils.buildOptimisticChatReport([email]);
         let oneOnOneIOUReport;
         let existingIOUReport = null;
         if (oneOnOneChatReport.iouReportID) {
             existingIOUReport = iouReports[`${ONYXKEYS.COLLECTION.REPORT}${oneOnOneChatReport.iouReportID}`];
-            oneOnOneIOUReport = IOUUtils.updateIOUOwnerAndTotal(
-                existingIOUReport,
-                currentUserEmail,
-                splitAmount,
-                currency,
-            );
+            oneOnOneIOUReport = IOUUtils.updateIOUOwnerAndTotal(existingIOUReport, currentUserEmail, splitAmount, currency);
             oneOnOneChatReport.hasOutstandingIOU = oneOnOneIOUReport.total !== 0;
         } else {
             oneOnOneIOUReport = ReportUtils.buildOptimisticIOUReport(currentUserEmail, email, splitAmount, oneOnOneChatReport.reportID, currency);
@@ -474,10 +464,7 @@ function createSplitsAndOnyxData(participants, currentUserLogin, amount, comment
                 onyxMethod: existingOneOnOneChatReport ? Onyx.METHOD.MERGE : Onyx.METHOD.SET,
                 key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${oneOnOneChatReport.reportID}`,
                 value: {
-                    ...(existingOneOnOneChatReport
-                        ? {}
-                        : {[oneOnOneCreatedReportAction.reportActionID]: oneOnOneCreatedReportAction}
-                    ),
+                    ...(existingOneOnOneChatReport ? {} : {[oneOnOneCreatedReportAction.reportActionID]: oneOnOneCreatedReportAction}),
                     [oneOnOneIOUReportAction.reportActionID]: oneOnOneIOUReportAction,
                 },
             },
@@ -493,10 +480,7 @@ function createSplitsAndOnyxData(participants, currentUserLogin, amount, comment
                 onyxMethod: Onyx.METHOD.MERGE,
                 key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${oneOnOneChatReport.reportID}`,
                 value: {
-                    ...(existingOneOnOneChatReport
-                        ? {}
-                        : {[oneOnOneCreatedReportAction.reportActionID]: {pendingAction: null}}
-                    ),
+                    ...(existingOneOnOneChatReport ? {} : {[oneOnOneCreatedReportAction.reportActionID]: {pendingAction: null}}),
                     [oneOnOneIOUReportAction.reportActionID]: {pendingAction: null},
                 },
             },
@@ -559,7 +543,7 @@ function createSplitsAndOnyxData(participants, currentUserLogin, amount, comment
             // We want to use set in case we are creating the the optimistic chat.
             // If we have multiple participants selected, we need to check if the 1:1 chat between the users already exists
             // If we have only one other participant, the group chat is the 1:1 chat and we need to check if that already exists
-            onyxMethod: ((hasMultipleParticipants && existingOneOnOneChatReport) || (!hasMultipleParticipants && existingGroupChatReport)) ? Onyx.METHOD.MERGE : Onyx.METHOD.SET,
+            onyxMethod: (hasMultipleParticipants && existingOneOnOneChatReport) || (!hasMultipleParticipants && existingGroupChatReport) ? Onyx.METHOD.MERGE : Onyx.METHOD.SET,
             key: `${ONYXKEYS.COLLECTION.REPORT}${oneOnOneIOUReport.reportID}`,
             value: oneOnOneIOUReport,
         });
@@ -616,16 +600,20 @@ function splitBill(participants, currentUserLogin, amount, comment, currency, ex
     const {groupData, splits, onyxData} = createSplitsAndOnyxData(participants, currentUserLogin, amount, comment, currency, existingGroupChatReportID);
     const parsedComment = ReportUtils.getParsedComment(comment);
 
-    API.write('SplitBill', {
-        reportID: groupData.chatReportID,
-        amount,
-        splits: JSON.stringify(splits),
-        currency,
-        comment: parsedComment,
-        transactionID: groupData.transactionID,
-        reportActionID: groupData.reportActionID,
-        createdReportActionID: groupData.createdReportActionID,
-    }, onyxData);
+    API.write(
+        'SplitBill',
+        {
+            reportID: groupData.chatReportID,
+            amount,
+            splits: JSON.stringify(splits),
+            currency,
+            comment: parsedComment,
+            transactionID: groupData.transactionID,
+            reportActionID: groupData.reportActionID,
+            createdReportActionID: groupData.createdReportActionID,
+        },
+        onyxData,
+    );
 
     Navigation.dismissModal();
 }
@@ -641,16 +629,20 @@ function splitBillAndOpenReport(participants, currentUserLogin, amount, comment,
     const {groupData, splits, onyxData} = createSplitsAndOnyxData(participants, currentUserLogin, amount, comment, currency);
     const parsedComment = ReportUtils.getParsedComment(comment);
 
-    API.write('SplitBillAndOpenReport', {
-        reportID: groupData.chatReportID,
-        amount,
-        splits: JSON.stringify(splits),
-        currency,
-        comment: parsedComment,
-        transactionID: groupData.transactionID,
-        reportActionID: groupData.reportActionID,
-        createdReportActionID: groupData.createdReportActionID,
-    }, onyxData);
+    API.write(
+        'SplitBillAndOpenReport',
+        {
+            reportID: groupData.chatReportID,
+            amount,
+            splits: JSON.stringify(splits),
+            currency,
+            comment: parsedComment,
+            transactionID: groupData.transactionID,
+            reportActionID: groupData.reportActionID,
+            createdReportActionID: groupData.createdReportActionID,
+        },
+        onyxData,
+    );
 
     Navigation.navigate(ROUTES.getReportRoute(groupData.chatReportID));
 }
@@ -758,12 +750,16 @@ function deleteMoneyRequest(chatReportID, iouReportID, moneyRequestAction, shoul
         },
     ];
 
-    API.write('DeleteMoneyRequest', {
-        transactionID,
-        chatReportID,
-        reportActionID: optimisticReportAction.reportActionID,
-        iouReportID: updatedIOUReport.reportID,
-    }, {optimisticData, successData, failureData});
+    API.write(
+        'DeleteMoneyRequest',
+        {
+            transactionID,
+            chatReportID,
+            reportActionID: optimisticReportAction.reportActionID,
+            iouReportID: updatedIOUReport.reportID,
+        },
+        {optimisticData, successData, failureData},
+    );
 
     if (shouldCloseOnDelete) {
         Navigation.navigate(ROUTES.getReportRoute(chatReportID));
@@ -795,7 +791,7 @@ function setMoneyRequestDescription(comment) {
  * @returns {String}
  */
 function buildPayPalPaymentUrl(amount, submitterPayPalMeAddress, currency) {
-    return `https://paypal.me/${submitterPayPalMeAddress}/${(amount / 100)}${currency}`;
+    return `https://paypal.me/${submitterPayPalMeAddress}/${amount / 100}${currency}`;
 }
 
 /**
@@ -953,12 +949,7 @@ function getSendMoneyParams(report, amount, currency, comment, paymentMethodType
         failureData[0].value[optimisticIOUReportAction.reportActionID] = {pendingAction: null};
     }
 
-    const optimisticData = [
-        optimisticChatReportData,
-        optimisticIOUReportData,
-        optimisticReportActionsData,
-        optimisticTransactionData,
-    ];
+    const optimisticData = [optimisticChatReportData, optimisticIOUReportData, optimisticReportActionsData, optimisticTransactionData];
 
     return {
         params: {
@@ -1110,9 +1101,7 @@ function getPayMoneyRequestParams(chatReport, iouReport, recipient, paymentMetho
  * @param {Object} recipient - The user receiving the money
  */
 function sendMoneyElsewhere(report, amount, currency, comment, managerEmail, recipient) {
-    const {
-        params, optimisticData, successData, failureData,
-    } = getSendMoneyParams(report, amount, currency, comment, CONST.IOU.PAYMENT_TYPE.ELSEWHERE, managerEmail, recipient);
+    const {params, optimisticData, successData, failureData} = getSendMoneyParams(report, amount, currency, comment, CONST.IOU.PAYMENT_TYPE.ELSEWHERE, managerEmail, recipient);
 
     API.write('SendMoneyElsewhere', params, {optimisticData, successData, failureData});
 
@@ -1128,9 +1117,7 @@ function sendMoneyElsewhere(report, amount, currency, comment, managerEmail, rec
  * @param {Object} recipient - The user receiving the money
  */
 function sendMoneyWithWallet(report, amount, currency, comment, managerEmail, recipient) {
-    const {
-        params, optimisticData, successData, failureData,
-    } = getSendMoneyParams(report, amount, currency, comment, CONST.IOU.PAYMENT_TYPE.EXPENSIFY, managerEmail, recipient);
+    const {params, optimisticData, successData, failureData} = getSendMoneyParams(report, amount, currency, comment, CONST.IOU.PAYMENT_TYPE.EXPENSIFY, managerEmail, recipient);
 
     API.write('SendMoneyWithWallet', params, {optimisticData, successData, failureData});
 
@@ -1146,9 +1133,7 @@ function sendMoneyWithWallet(report, amount, currency, comment, managerEmail, re
  * @param {Object} recipient - The user receiving the money
  */
 function sendMoneyViaPaypal(report, amount, currency, comment, managerEmail, recipient) {
-    const {
-        params, optimisticData, successData, failureData,
-    } = getSendMoneyParams(report, amount, currency, comment, CONST.IOU.PAYMENT_TYPE.PAYPAL_ME, managerEmail, recipient);
+    const {params, optimisticData, successData, failureData} = getSendMoneyParams(report, amount, currency, comment, CONST.IOU.PAYMENT_TYPE.PAYPAL_ME, managerEmail, recipient);
 
     API.write('SendMoneyViaPaypal', params, {optimisticData, successData, failureData});
 
@@ -1163,9 +1148,7 @@ function sendMoneyViaPaypal(report, amount, currency, comment, managerEmail, rec
  * @param {Object} recipient
  */
 function payMoneyRequestElsewhere(chatReport, iouReport, recipient) {
-    const {
-        params, optimisticData, successData, failureData,
-    } = getPayMoneyRequestParams(chatReport, iouReport, recipient, CONST.IOU.PAYMENT_TYPE.ELSEWHERE);
+    const {params, optimisticData, successData, failureData} = getPayMoneyRequestParams(chatReport, iouReport, recipient, CONST.IOU.PAYMENT_TYPE.ELSEWHERE);
 
     API.write('PayMoneyRequestElsewhere', params, {optimisticData, successData, failureData});
 
@@ -1178,9 +1161,7 @@ function payMoneyRequestElsewhere(chatReport, iouReport, recipient) {
  * @param {Object} recipient
  */
 function payMoneyRequestWithWallet(chatReport, iouReport, recipient) {
-    const {
-        params, optimisticData, successData, failureData,
-    } = getPayMoneyRequestParams(chatReport, iouReport, recipient, CONST.IOU.PAYMENT_TYPE.EXPENSIFY);
+    const {params, optimisticData, successData, failureData} = getPayMoneyRequestParams(chatReport, iouReport, recipient, CONST.IOU.PAYMENT_TYPE.EXPENSIFY);
 
     API.write('PayMoneyRequestWithWallet', params, {optimisticData, successData, failureData});
 
@@ -1193,9 +1174,7 @@ function payMoneyRequestWithWallet(chatReport, iouReport, recipient) {
  * @param {Object} recipient
  */
 function payMoneyRequestViaPaypal(chatReport, iouReport, recipient) {
-    const {
-        params, optimisticData, successData, failureData,
-    } = getPayMoneyRequestParams(chatReport, iouReport, recipient, CONST.IOU.PAYMENT_TYPE.PAYPAL_ME);
+    const {params, optimisticData, successData, failureData} = getPayMoneyRequestParams(chatReport, iouReport, recipient, CONST.IOU.PAYMENT_TYPE.PAYPAL_ME);
 
     API.write('PayMoneyRequestViaPaypal', params, {optimisticData, successData, failureData});
 

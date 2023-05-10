@@ -40,15 +40,9 @@ const SecuritySettingsPage = (props) => {
                 onBackButtonPress={() => Navigation.navigate(ROUTES.SETTINGS)}
                 onCloseButtonPress={() => Navigation.dismissModal(true)}
             />
-            <ScrollView
-                contentContainerStyle={[
-                    styles.flexGrow1,
-                    styles.flexColumn,
-                    styles.justifyContentBetween,
-                ]}
-            >
+            <ScrollView contentContainerStyle={[styles.flexGrow1, styles.flexColumn, styles.justifyContentBetween]}>
                 <View style={[styles.flex1]}>
-                    {_.map(menuItems, item => (
+                    {_.map(menuItems, (item) => (
                         <MenuItem
                             key={item.translationKey}
                             title={props.translate(item.translationKey)}
