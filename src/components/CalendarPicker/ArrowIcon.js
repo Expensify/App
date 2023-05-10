@@ -20,13 +20,8 @@ const defaultProps = {
     direction: CONST.DIRECTION.RIGHT,
 };
 
-const ArrowIcon = props => (
-    <View style={[
-        styles.p1,
-        StyleUtils.getDirectionStyle(props.direction),
-        props.disabled ? styles.buttonOpacityDisabled : {},
-    ]}
-    >
+const ArrowIcon = (props) => (
+    <View style={[styles.p1, StyleUtils.getDirectionStyle(props.direction), props.disabled ? styles.buttonOpacityDisabled : {}]}>
         <Icon src={Expensicons.ArrowRight} />
     </View>
 );
