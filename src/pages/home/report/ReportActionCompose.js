@@ -318,7 +318,7 @@ class ReportActionCompose extends React.Component {
             shouldShowMentionSuggestionMenu: false,
             mentionPrefix: '',
             isAutoSuggestionPickerLarge: false,
-        }
+        };
     }
 
     /**
