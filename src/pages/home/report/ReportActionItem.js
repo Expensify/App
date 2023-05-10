@@ -12,7 +12,7 @@ import PressableWithSecondaryInteraction from '../../../components/PressableWith
 import Hoverable from '../../../components/Hoverable';
 import ReportActionItemSingle from './ReportActionItemSingle';
 import ReportActionItemGrouped from './ReportActionItemGrouped';
-import IOUAction from '../../../components/ReportActionItem/IOUAction';
+import MoneyRequestAction from '../../../components/ReportActionItem/MoneyRequestAction';
 import ReportActionItemMessage from './ReportActionItemMessage';
 import UnreadActionIndicator from '../../../components/UnreadActionIndicator';
 import ReportActionItemMessageEdit from './ReportActionItemMessageEdit';
@@ -183,7 +183,7 @@ class ReportActionItem extends Component {
             const iouReportID = this.props.action.originalMessage.IOUReportID ? this.props.action.originalMessage.IOUReportID.toString() : '0';
 
             children = (
-                <IOUAction
+                <MoneyRequestAction
                     chatReportID={this.props.report.reportID}
                     requestReportID={iouReportID}
                     action={this.props.action}

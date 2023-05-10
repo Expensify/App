@@ -68,7 +68,7 @@ const defaultProps = {
     isHovered: false,
 };
 
-const IOUAction = (props) => {
+const MoneyRequestAction = (props) => {
     const hasMultipleParticipants = props.chatReport.participants.length > 1;
     const onIOUPreviewPressed = () => {
         if (hasMultipleParticipants) {
@@ -126,9 +126,9 @@ const IOUAction = (props) => {
     );
 };
 
-IOUAction.propTypes = propTypes;
-IOUAction.defaultProps = defaultProps;
-IOUAction.displayName = 'IOUAction';
+MoneyRequestAction.propTypes = propTypes;
+MoneyRequestAction.defaultProps = defaultProps;
+MoneyRequestAction.displayName = 'MoneyRequestAction';
 
 export default compose(
     withOnyx({
@@ -144,4 +144,4 @@ export default compose(
         },
     }),
     withNetwork(),
-)(IOUAction);
+)(MoneyRequestAction);
