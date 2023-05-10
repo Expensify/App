@@ -815,7 +815,7 @@ const styles = {
 
     autoGrowHeightHiddenInput: (maxWidth, maxHeight) => ({
         maxWidth,
-        maxHeight: maxHeight && (maxHeight + 1),
+        maxHeight: maxHeight && maxHeight + 1,
         overflow: 'hidden',
     }),
 
