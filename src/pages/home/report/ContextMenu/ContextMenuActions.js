@@ -114,8 +114,8 @@ export default [
         successTextTranslateKey: '',
         successIcon: null,
         shouldShow: (type, reportAction) => Environment.isDevelopment() && type === CONTEXT_MENU_TYPES.REPORT_ACTION && reportAction.actionName === CONST.REPORT.ACTIONS.TYPE.ADDCOMMENT,
-        onPress: (closePopover, {childReportID, reportAction, reportID}) => {
-            Report.navigateToAndOpenChildReport(childReportID, reportAction, reportID);
+        onPress: (closePopover, {reportAction, reportID}) => {
+            Report.navigateToAndOpenChildReport(lodashGet(reportAction, 'childReportID', 0), reportAction, reportID);
             if (closePopover) {
                 hideContextMenu(true, ReportActionComposeFocusManager.focus);
             }
