@@ -573,7 +573,7 @@ export default {
     },
     welcomeMessagePage: {
         welcomeMessage: 'Mensaje de bienvenida',
-        explainerText: 'Set a custom welcome message that will be sent users when they join this room.',
+        explainerText: 'Configura un mensaje de bienvenida privado y personalizado que se enviará cuando los usuarios se unan a esta sala de chat.',
     },
     languagePage: {
         language: 'Idioma',

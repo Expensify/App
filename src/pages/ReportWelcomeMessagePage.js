@@ -4,7 +4,7 @@ import React, {
 import PropTypes from 'prop-types';
 import {withOnyx} from 'react-native-onyx';
 import _ from 'underscore';
-import {ScrollView, TextInput, View} from 'react-native';
+import {ScrollView, View} from 'react-native';
 import compose from '../libs/compose';
 import withLocalize, {withLocalizePropTypes} from '../components/withLocalize';
 import ONYXKEYS from '../ONYXKEYS';
@@ -17,6 +17,8 @@ import withReportOrNotFound from './home/report/withReportOrNotFound';
 import FullPageNotFoundView from '../components/BlockingViews/FullPageNotFoundView';
 import FixedFooter from '../components/FixedFooter';
 import Button from '../components/Button';
+import Text from '../components/Text';
+import TextInput from '../components/TextInput';
 
 const propTypes = {
     ...withLocalizePropTypes,
@@ -33,7 +35,7 @@ const propTypes = {
     /** Route params */
     route: PropTypes.shape({
         params: PropTypes.shape({
-            /** Report ID passed via route r/:reportID/details */
+            /** Report ID passed via route r/:reportID/welcomeMessage */
             reportID: PropTypes.string,
         }),
     }).isRequired,
@@ -64,7 +66,7 @@ function ReportWelcomeMessagePage(props) {
                 welcomeMessageInputRef.current.focus();
             }}
         >
-            <FullPageNotFoundView shouldShow={_.isEmpty(this.props.report)}>
+            <FullPageNotFoundView shouldShow={_.isEmpty(props.report)}>
                 <HeaderWithCloseButton
                     title={props.translate('welcomeMessagePage.welcomeMessage')}
                     onBackButtonPress={() => Navigation.goBack()}
@@ -78,7 +80,7 @@ function ReportWelcomeMessagePage(props) {
                         <TextInput
                             label={props.translate('welcomeMessagePage.welcomeMessage')}
                             multiline
-                            numberOfLines={4}
+                            numberOfLines={8}
                             ref={welcomeMessageInputRef}
                             value={welcomeMessage}
                             onChangeText={handleWelcomeMessageChange}
