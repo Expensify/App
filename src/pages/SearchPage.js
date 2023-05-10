@@ -33,6 +33,9 @@ const propTypes = {
     /** All reports shared with the user */
     reports: PropTypes.objectOf(reportPropTypes),
 
+    /** Indicates whether report data is ready */
+    isLoadingReportData: PropTypes.bool,
+
     /** Window Dimensions Props */
     ...windowDimensionsPropTypes,
 
@@ -43,6 +46,7 @@ const defaultProps = {
     betas: [],
     personalDetails: {},
     reports: {},
+    isLoadingReportData: true,
 };
 
 class SearchPage extends Component {
@@ -66,6 +70,13 @@ class SearchPage extends Component {
             personalDetails,
             userToInvite,
         };
+    }
+
+    componentDidUpdate(prevProps) {
+        if (_.isEqual(prevProps.reports, this.props.reports) && _.isEqual(prevProps.personalDetails, this.props.personalDetails)) {
+            return;
+        }
+        this.updateOptions();
     }
 
     onChangeText(searchValue = '') {
@@ -159,6 +170,8 @@ class SearchPage extends Component {
 
     render() {
         const sections = this.getSections();
+        const isOptionsDataReady = !this.props.isLoadingReportData && OptionsListUtils.isPersonalDetailsReady(this.props.personalDetails);
+
         return (
             <ScreenWrapper includeSafeAreaPaddingBottom={false}>
                 {({didScreenTransitionEnd, safeAreaPaddingBottomStyle}) => (
@@ -176,7 +189,7 @@ class SearchPage extends Component {
                                 headerMessage={this.state.headerMessage}
                                 hideSectionHeaders
                                 showTitleTooltip
-                                shouldShowOptions={didScreenTransitionEnd}
+                                shouldShowOptions={didScreenTransitionEnd && isOptionsDataReady}
                                 textInputLabel={this.props.translate('optionsSelector.nameEmailOrPhoneNumber')}
                                 onLayout={this.searchRendered}
                                 safeAreaPaddingBottomStyle={safeAreaPaddingBottomStyle}
@@ -204,6 +217,9 @@ export default compose(
         },
         betas: {
             key: ONYXKEYS.BETAS,
+        },
+        isLoadingReportData: {
+            key: ONYXKEYS.IS_LOADING_REPORT_DATA,
         },
     }),
 )(SearchPage);
