@@ -180,8 +180,7 @@ function endEditingTask() {
  */
 
 function editTaskAndNavigate(report, ownerEmail, title, description, assignee) {
-    console.log('parameters', report, ownerEmail, title, description, assignee);
-
+    // Create the EditedReportAction on the task
     const editTaskReportAction = ReportUtils.buildOptimisticEditedTaskReportAction(ownerEmail);
 
     const optimisticData = [
@@ -203,19 +202,17 @@ function editTaskAndNavigate(report, ownerEmail, title, description, assignee) {
     ];
     const successData = [];
     const failureData = [
-        // {
-        //     onyxMethod: Onyx.METHOD.MERGE,
-        //     key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.reportID}`,
-        //     value: {[editTaskReportAction.reportActionID]: {pendingAction: null}},
-        // },
-        // {
-        //     onyxMethod: Onyx.METHOD.MERGE,
-        //     key: `${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`,
-        //     value: {reportName: report.reportName, description: report.description, assignee: report.assignee},
-        // },
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.reportID}`,
+            value: {[editTaskReportAction.reportActionID]: {pendingAction: null}},
+        },
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`,
+            value: {reportName: report.reportName, description: report.description, assignee: report.assignee},
+        },
     ];
-
-    console.log(optimisticData);
 
     API.write(
         'EditTask',
