@@ -1576,10 +1576,6 @@ function openReportFromDeepLink(url) {
     });
 }
 
-function getCurrentUserAccountID() {
-    return currentUserAccountID;
-}
-
 export {
     addComment,
     addAttachment,
@@ -1620,6 +1616,5 @@ export {
     removeEmojiReaction,
     toggleEmojiReaction,
     hasAccountIDReacted,
-    getCurrentUserAccountID,
     shouldShowReportActionNotification,
 };

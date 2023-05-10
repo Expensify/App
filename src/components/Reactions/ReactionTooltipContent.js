@@ -1,13 +1,11 @@
-import React from 'react';
+import React, {useMemo} from 'react';
 import {View} from 'react-native';
 import PropTypes from 'prop-types';
 import _ from 'underscore';
 import styles from '../../styles/styles';
-import {withPersonalDetails} from '../OnyxProvider';
 import * as PersonalDetailsUtils from '../../libs/PersonalDetailsUtils';
 import Text from '../Text';
-import withCurrentUserPersonalDetails, {withCurrentUserPersonalDetailsPropTypes} from '../withCurrentUserPersonalDetails';
-import compose from '../../libs/compose';
+import {withCurrentUserPersonalDetailsDefaultProps, withCurrentUserPersonalDetailsPropTypes} from '../withCurrentUserPersonalDetails';
 import withLocalize from '../withLocalize';
 
 const propTypes = {
@@ -29,13 +27,19 @@ const propTypes = {
     ...withCurrentUserPersonalDetailsPropTypes,
 };
 
+const defaultProps = {
+    ...withCurrentUserPersonalDetailsDefaultProps,
+};
+
 const ReactionTooltipContent = (props) => {
-    const users = PersonalDetailsUtils.getPersonalDetailsByIDs(props.accountIDs, true);
+    const users = useMemo(
+        () => PersonalDetailsUtils.getPersonalDetailsByIDs(props.accountIDs, props.currentUserPersonalDetails.accountID, true),
+        [props.currentUserPersonalDetails.accountID, props.accountIDs],
+    );
     const namesString = _.filter(
         _.map(users, (user) => user && user.displayName),
         (n) => n,
     ).join(', ');
-
     return (
         <View style={[styles.alignItemsCenter, styles.ph2]}>
             <View style={styles.flexRow}>
@@ -57,6 +61,6 @@ const ReactionTooltipContent = (props) => {
 };
 
 ReactionTooltipContent.propTypes = propTypes;
-ReactionTooltipContent.defaultProps = withCurrentUserPersonalDetails;
+ReactionTooltipContent.defaultProps = defaultProps;
 ReactionTooltipContent.displayName = 'ReactionTooltipContent';
-export default React.memo(compose(withPersonalDetails(), withLocalize)(ReactionTooltipContent));
+export default React.memo(withLocalize(ReactionTooltipContent));
