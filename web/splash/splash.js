@@ -7,32 +7,35 @@ document.fonts.ready.then(() => {
     areFontsReady = true;
 });
 
-document.addEventListener('DOMContentLoaded', () => {
-    const minMilisecondsToWait = 1.5 * 1000;
-    let passedMiliseconds = 0;
-    let isRootMounted = false;
-    const splash = document.getElementById('splash');
-    const splashLogo = document.querySelector('.splash-logo');
-    const root = document.getElementById('root');
-    splash.style.backgroundColor = themeColors.appBG;
+document.addEventListener(
+    'DOMContentLoaded',
+    () => {
+        const minMilisecondsToWait = 1.5 * 1000;
+        let passedMiliseconds = 0;
+        let isRootMounted = false;
+        const splash = document.getElementById('splash');
+        const splashLogo = document.querySelector('.splash-logo');
+        const root = document.getElementById('root');
+        splash.style.backgroundColor = themeColors.appBG;
 
-    // Set app background color for overflow scrolling
-    const body = document.querySelector('body');
-    body.style.backgroundColor = themeColors.appBG;
+        // Set app background color for overflow scrolling
+        const body = document.querySelector('body');
+        body.style.backgroundColor = themeColors.appBG;
 
-    splashLogo.innerHTML = newExpensifyLogo;
+        splashLogo.innerHTML = newExpensifyLogo;
 
-    const intervalId = setInterval(() => {
-        passedMiliseconds += 250;
-        isRootMounted = root.children.length > 0;
-        if (passedMiliseconds >= minMilisecondsToWait && isRootMounted && areFontsReady) {
-            clearInterval(intervalId);
-            splash.style.opacity = 0;
+        const intervalId = setInterval(() => {
+            passedMiliseconds += 250;
+            isRootMounted = root.children.length > 0;
+            if (passedMiliseconds >= minMilisecondsToWait && isRootMounted && areFontsReady) {
+                clearInterval(intervalId);
+                splash.style.opacity = 0;
 
-            setTimeout(() => {
-                splash.parentNode.removeChild(splash);
-            }, 250);
-        }
-    }, 250);
-}, false);
-
+                setTimeout(() => {
+                    splash.parentNode.removeChild(splash);
+                }, 250);
+            }
+        }, 250);
+    },
+    false,
+);

@@ -36,9 +36,7 @@ const Enable2FAPrompt = (props) => {
             ]}
         >
             <View style={[styles.mv3]}>
-                <Text>
-                    {props.translate('validationStep.enable2FAText')}
-                </Text>
+                <Text>{props.translate('validationStep.enable2FAText')}</Text>
             </View>
         </Section>
     );
