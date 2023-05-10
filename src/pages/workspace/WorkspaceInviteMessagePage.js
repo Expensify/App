@@ -19,7 +19,7 @@ import CONST from '../../CONST';
 import * as Link from '../../libs/actions/Link';
 import Text from '../../components/Text';
 import withPolicy, {policyPropTypes, policyDefaultProps} from './withPolicy';
-import * as ReportUtils from '../../libs/ReportUtils';
+import * as OptionsListUtils from '../../libs/OptionsListUtils';
 import ROUTES from '../../ROUTES';
 import * as Localize from '../../libs/Localize';
 import Form from '../../components/Form';
@@ -38,9 +38,11 @@ const personalDetailsPropTypes = PropTypes.shape({
 });
 
 const propTypes = {
-
     /** All of the personal details for everyone */
     personalDetails: PropTypes.objectOf(personalDetailsPropTypes),
+
+    /** Beta features list */
+    betas: PropTypes.arrayOf(PropTypes.string),
 
     invitedMembersDraft: PropTypes.arrayOf(PropTypes.string),
 
@@ -60,6 +62,7 @@ const propTypes = {
 const defaultProps = {
     ...policyDefaultProps,
     personalDetails: {},
+    betas: [],
     invitedMembersDraft: [],
 };
 
@@ -77,24 +80,14 @@ class WorkspaceInviteMessagePage extends React.Component {
 
     componentDidUpdate(prevProps) {
         if (
-            !(prevProps.preferredLocale !== this.props.preferredLocale
-            && this.state.welcomeNote === Localize.translate(prevProps.preferredLocale, 'workspace.inviteMessage.welcomeNote', {workspaceName: this.props.policy.name})
+            !(
+                prevProps.preferredLocale !== this.props.preferredLocale &&
+                this.state.welcomeNote === Localize.translate(prevProps.preferredLocale, 'workspace.inviteMessage.welcomeNote', {workspaceName: this.props.policy.name})
             )
         ) {
             return;
         }
         this.setState({welcomeNote: this.getWelcomeNote()});
-    }
-
-    getAvatars() {
-        return _.map(this.props.invitedMembersDraft, (memberlogin) => {
-            const userPersonalDetail = lodashGet(this.props.personalDetails, memberlogin, {login: memberlogin, avatar: ''});
-            return {
-                source: ReportUtils.getAvatar(userPersonalDetail.avatar, userPersonalDetail.login),
-                type: CONST.ICON_TYPE_AVATAR,
-                name: userPersonalDetail.login,
-            };
-        });
     }
 
     getWelcomeNote() {
@@ -105,11 +98,11 @@ class WorkspaceInviteMessagePage extends React.Component {
 
     getAvatarTooltips() {
         const filteredPersonalDetails = _.pick(this.props.personalDetails, this.props.invitedMembersDraft);
-        return _.map(filteredPersonalDetails, personalDetail => Str.removeSMSDomain(personalDetail.login));
+        return _.map(filteredPersonalDetails, (personalDetail) => Str.removeSMSDomain(personalDetail.login));
     }
 
     sendInvitation() {
-        Policy.addMembersToWorkspace(this.props.invitedMembersDraft, this.state.welcomeNote || this.getWelcomeNote(), this.props.route.params.policyID);
+        Policy.addMembersToWorkspace(this.props.invitedMembersDraft, this.state.welcomeNote || this.getWelcomeNote(), this.props.route.params.policyID, this.props.betas);
         Policy.setWorkspaceInviteMembersDraft(this.props.route.params.policyID, []);
         Navigation.navigate(ROUTES.getWorkspaceMembersRoute(this.props.route.params.policyID));
     }
@@ -157,37 +150,29 @@ class WorkspaceInviteMessagePage extends React.Component {
                         submitButtonText={this.props.translate('common.invite')}
                         enabledWhenOffline
                         footerContent={
-                            (
-                                <Pressable
-                                    onPress={this.openPrivacyURL}
-                                    accessibilityRole="link"
-                                    href={CONST.PRIVACY_URL}
-                                    style={[styles.mv2, styles.alignSelfStart]}
-                                >
-                                    <View style={[styles.flexRow]}>
-                                        <Text style={[styles.mr1, styles.label, styles.link]}>
-                                            {this.props.translate('common.privacy')}
-                                        </Text>
-                                    </View>
-                                </Pressable>
-                            )
+                            <Pressable
+                                onPress={this.openPrivacyURL}
+                                accessibilityRole="link"
+                                href={CONST.PRIVACY_URL}
+                                style={[styles.mv2, styles.alignSelfStart]}
+                            >
+                                <View style={[styles.flexRow]}>
+                                    <Text style={[styles.mr1, styles.label, styles.link]}>{this.props.translate('common.privacy')}</Text>
+                                </View>
+                            </Pressable>
                         }
                     >
                         <View style={[styles.mv4, styles.justifyContentCenter, styles.alignItemsCenter]}>
                             <MultipleAvatars
                                 size={CONST.AVATAR_SIZE.LARGE}
-                                icons={this.getAvatars()}
+                                icons={OptionsListUtils.getAvatarsForLogins(this.props.invitedMembersDraft, this.props.personalDetails)}
                                 shouldStackHorizontally
-                                secondAvatarStyle={[
-                                    styles.secondAvatarInline,
-                                ]}
+                                secondAvatarStyle={[styles.secondAvatarInline]}
                                 avatarTooltips={this.getAvatarTooltips()}
                             />
                         </View>
                         <View style={[styles.mb5]}>
-                            <Text>
-                                {this.props.translate('workspace.inviteMessage.inviteMessagePrompt')}
-                            </Text>
+                            <Text>{this.props.translate('workspace.inviteMessage.inviteMessagePrompt')}</Text>
                         </View>
                         <View style={[styles.mb3]}>
                             <TextInput
@@ -195,13 +180,12 @@ class WorkspaceInviteMessagePage extends React.Component {
                                 label={this.props.translate('workspace.inviteMessage.personalMessagePrompt')}
                                 autoCompleteType="off"
                                 autoCorrect={false}
-                                numberOfLines={4}
+                                autoGrowHeight
                                 textAlignVertical="top"
-                                multiline
                                 containerStyles={[styles.workspaceInviteWelcome]}
                                 defaultValue={this.state.welcomeNote}
                                 value={this.state.welcomeNote}
-                                onChangeText={text => this.setState({welcomeNote: text})}
+                                onChangeText={(text) => this.setState({welcomeNote: text})}
                             />
                         </View>
                     </Form>
@@ -220,6 +204,9 @@ export default compose(
     withOnyx({
         personalDetails: {
             key: ONYXKEYS.PERSONAL_DETAILS,
+        },
+        betas: {
+            key: ONYXKEYS.BETAS,
         },
         invitedMembersDraft: {
             key: ({route}) => `${ONYXKEYS.COLLECTION.WORKSPACE_INVITE_MEMBERS_DRAFT}${route.params.policyID.toString()}`,

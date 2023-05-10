@@ -132,6 +132,7 @@ export default {
         websiteExample: 'p. ej. https://www.expensify.com',
         zipCodeExampleFormat: ({zipSampleFormat}) => (zipSampleFormat ? `p. ej. ${zipSampleFormat}` : ''),
         description: 'Descripción',
+        with: 'con',
     },
     attachmentPicker: {
         cameraPermissionRequired: 'Permiso para acceder a la cámara',
@@ -285,8 +286,10 @@ export default {
     reportArchiveReasons: {
         [CONST.REPORT.ARCHIVE_REASON.DEFAULT]: 'Esta sala de chat ha sido eliminada.',
         [CONST.REPORT.ARCHIVE_REASON.ACCOUNT_CLOSED]: ({displayName}) => `Este chat de espacio de trabajo esta desactivado porque ${displayName} ha cerrado su cuenta.`,
-        [CONST.REPORT.ARCHIVE_REASON.ACCOUNT_MERGED]: ({displayName, oldDisplayName}) => `Este chat de espacio de trabajo esta desactivado porque ${oldDisplayName} ha combinado su cuenta con ${displayName}.`,
-        [CONST.REPORT.ARCHIVE_REASON.REMOVED_FROM_POLICY]: ({displayName, policyName}) => `Este chat de espacio de trabajo esta desactivado porque ${displayName} ha dejado de ser miembro del espacio de trabajo ${policyName}.`,
+        [CONST.REPORT.ARCHIVE_REASON.ACCOUNT_MERGED]: ({displayName, oldDisplayName}) =>
+            `Este chat de espacio de trabajo esta desactivado porque ${oldDisplayName} ha combinado su cuenta con ${displayName}.`,
+        [CONST.REPORT.ARCHIVE_REASON.REMOVED_FROM_POLICY]: ({displayName, policyName}) =>
+            `Este chat de espacio de trabajo esta desactivado porque ${displayName} ha dejado de ser miembro del espacio de trabajo ${policyName}.`,
         [CONST.REPORT.ARCHIVE_REASON.POLICY_DELETED]: ({policyName}) => `Este chat de espacio de trabajo esta desactivado porque el espacio de trabajo ${policyName} se ha eliminado.`,
     },
     sidebarScreen: {
@@ -306,6 +309,7 @@ export default {
     iou: {
         amount: 'Importe',
         cash: 'Efectivo',
+        split: 'Dividir',
         participants: 'Participantes',
         splitBill: 'Dividir factura',
         requestMoney: 'Pedir dinero',
@@ -315,20 +319,15 @@ export default {
         settleExpensify: 'Pagar con Expensify',
         settleElsewhere: 'Voy a pagar de otra forma',
         settlePaypalMe: 'Pagar con PayPal.me',
-        request: ({amount}) => `Solicitar ${amount}`,
-        youowe: ({owner}) => `Le debes a ${owner}`,
-        youpaid: ({owner}) => `Le pagaste a ${owner}`,
-        owesyou: ({manager}) => `${manager} te debe`,
-        paidyou: ({manager}) => `${manager} te pagó`,
-        split: ({amount}) => `Dividir ${amount}`,
-        send: ({amount}) => `Enviar ${amount}`,
+        requestAmount: ({amount}) => `solicitar ${amount}`,
+        splitAmount: ({amount}) => `dividir ${amount}`,
         noReimbursableExpenses: 'El monto de este informe es inválido',
         pendingConversionMessage: 'El total se actualizará cuando estés online',
         error: {
             invalidSplit: 'La suma de las partes no equivale al monto total',
             other: 'Error inesperado, por favor inténtalo más tarde',
             genericCreateFailureMessage: 'Error inesperado solicitando dinero, Por favor, inténtalo más tarde',
-            genericCancelFailureMessage: ({type}) => `Error inesperado al ${type === 'decline' ? 'rechazar' : 'cancelar'} la solicitud de dinero. Por favor, inténtalo más tarde`,
+            genericDeleteFailureMessage: 'Error inesperado eliminando la solicitud de dinero. Por favor, inténtalo más tarde',
         },
     },
     notificationPreferences: {
@@ -348,9 +347,8 @@ export default {
         imageUploadFailed: 'Error al cargar la imagen',
         deleteWorkspaceError: 'Lo sentimos, hubo un problema eliminando el avatar de su espacio de trabajo.',
         sizeExceeded: ({maxUploadSizeInMB}) => `La imagen supera el tamaño máximo de ${maxUploadSizeInMB}MB.`,
-        resolutionConstraints: ({
-            minHeightInPx, minWidthInPx, maxHeightInPx, maxWidthInPx,
-        }) => `Por favor, elige una imagen más grande que ${minHeightInPx}x${minWidthInPx} píxeles y más pequeña que ${maxHeightInPx}x${maxWidthInPx} píxeles.`,
+        resolutionConstraints: ({minHeightInPx, minWidthInPx, maxHeightInPx, maxWidthInPx}) =>
+            `Por favor, elige una imagen más grande que ${minHeightInPx}x${minWidthInPx} píxeles y más pequeña que ${maxHeightInPx}x${maxWidthInPx} píxeles.`,
         notAllowedExtension: ({allowedExtensions}) => `La foto de perfil debe ser de uno de los siguientes tipos: ${allowedExtensions.join(', ')}.`,
     },
     profilePage: {
@@ -380,7 +378,8 @@ export default {
         pleaseVerify: 'Por favor, verifica este método de contacto',
         getInTouch: 'Utilizaremos este método de contacto cuando necesitemos contactarte.',
         enterMagicCode: ({contactMethod}) => `Por favor, introduce el código mágico enviado a ${contactMethod}`,
-        yourDefaultContactMethod: 'Este es tu método de contacto predeterminado. No podrás eliminarlo hasta que añadas otro método de contacto y lo marques como predeterminado pulsando "Establecer como predeterminado".',
+        yourDefaultContactMethod:
+            'Este es tu método de contacto predeterminado. No podrás eliminarlo hasta que añadas otro método de contacto y lo marques como predeterminado pulsando "Establecer como predeterminado".',
         removeContactMethod: 'Eliminar método de contacto',
         removeAreYouSure: '¿Estás seguro de que quieres eliminar este método de contacto? Esta acción no se puede deshacer.',
         resendMagicCode: 'Reenviar código mágico',
@@ -461,7 +460,8 @@ export default {
         reasonForLeavingPrompt: '¡Lamentamos verte partir! ¿Serías tan amable de decirnos por qué, para que podamos mejorar?',
         enterMessageHere: 'Escribe aquí tu mensaje',
         closeAccountWarning: 'Una vez cerrada tu cuenta no se puede revertir.',
-        closeAccountPermanentlyDeleteData: 'Esta acción eliminará permanentemente toda la información de tus gastos no enviados y cancelará o rechazará cualquier solicitud de dinero pendiente. ¿Estás seguro de que quieres eliminar tu cuenta?',
+        closeAccountPermanentlyDeleteData:
+            'Esta acción eliminará permanentemente toda la información de tus gastos no enviados y cancelará o rechazará cualquier solicitud de dinero pendiente. ¿Estás seguro de que quieres eliminar tu cuenta?',
         enterDefaultContactToConfirm: 'Por favor, escribe tu método de contacto predeterminado para confirmar que deseas eliminar tu cuenta. Tu método de contacto predeterminado es:',
         enterDefaultContact: 'Tu método de contacto predeterminado',
         defaultContact: 'Método de contacto predeterminado:',
@@ -562,7 +562,8 @@ export default {
     },
     priorityModePage: {
         priorityMode: 'Modo prioridad',
-        explainerText: 'Elija si desea mostrar por defecto todos los chats ordenados desde el más reciente y con los elementos anclados en la parte superior, o elija el modo #concentración, con los elementos no leídos anclados en la parte superior y ordenados alfabéticamente.',
+        explainerText:
+            'Elija si desea mostrar por defecto todos los chats ordenados desde el más reciente y con los elementos anclados en la parte superior, o elija el modo #concentración, con los elementos no leídos anclados en la parte superior y ordenados alfabéticamente.',
         priorityModes: {
             default: {
                 label: 'Más recientes',
@@ -632,7 +633,8 @@ export default {
             incorrect2fa: 'Código de autenticación de 2 factores incorrecto. Por favor, inténtalo de nuevo',
             twoFactorAuthenticationEnabled: 'Tienes autenticación de 2 factores activada en esta cuenta. Por favor, conéctate usando tu email o número de teléfono',
             invalidLoginOrPassword: 'Usuario o clave incorrectos. Por favor, inténtalo de nuevo o restablece la contraseña',
-            unableToResetPassword: 'No se pudo cambiar tu clave. Probablemente porque el enlace para restablecer la contrasenña ha expirado. Te hemos enviado un nuevo enlace. Comprueba tu bandeja de entrada y carpeta de Spam',
+            unableToResetPassword:
+                'No se pudo cambiar tu clave. Probablemente porque el enlace para restablecer la contrasenña ha expirado. Te hemos enviado un nuevo enlace. Comprueba tu bandeja de entrada y carpeta de Spam',
             noAccess: 'No tienes acceso a esta aplicación. Por favor, agrega tu usuario de GitHub para acceder',
             accountLocked: 'Tu cuenta ha sido bloqueada tras varios intentos fallidos. Por favor, inténtalo de nuevo dentro de una hora',
             fallback: 'Ha ocurrido un error. Por favor, inténtalo mas tarde',
@@ -671,7 +673,13 @@ export default {
         linkHasBeenResent: 'El enlace se ha reenviado',
         weSentYouMagicSignInLink: ({login, loginType}) => `Te he enviado un hiperenlace mágico para iniciar sesión a ${login}. Por favor, revisa tu ${loginType}`,
         resendLink: 'Reenviar enlace',
-        validationCodeFailedMessage: 'Parece que hubo un error con el enlace de validación o ha caducado.',
+    },
+    unlinkLoginForm: {
+        toValidateLogin: ({primaryLogin, secondaryLogin}) => `Para validar ${secondaryLogin}, reenvía el código mágico desde la Configuración de la cuenta de ${primaryLogin}.`,
+        noLongerHaveAccess: ({primaryLogin}) => `Si ya no tienes acceso a ${primaryLogin} por favor, desvincula las cuentas.`,
+        unlink: 'Desvincular',
+        linkSent: '¡Enlace enviado!',
+        succesfullyUnlinkedLogin: '¡Nombre de usuario secundario desvinculado correctamente!',
     },
     detailsPage: {
         localTime: 'Hora local',
@@ -714,8 +722,10 @@ export default {
         toGetStarted: 'Añade una cuenta bancaria y emite tarjetas corporativas, reembolsa gastos y cobra y paga facturas, todo desde un mismo lugar.',
         plaidBodyCopy: 'Ofrezca a sus empleados una forma más sencilla de pagar - y recuperar - los gastos de la empresa.',
         checkHelpLine: 'Su número de ruta y número de cuenta se pueden encontrar en un cheque de la cuenta bancaria.',
-        validateAccountError: 'Para terminar de configurar tu cuenta bancaria, debes validar tu cuenta de Expensify. Por favor, revisa tu correo electrónico para validar tu cuenta y vuelve aquí para continuar.',
-        hasPhoneLoginError: 'Para agregar una cuenta bancaria verificada, asegúrate de que tu nombre de usuario principal sea un correo electrónico válido y vuelve a intentarlo. Puedes agregar tu número de teléfono como nombre de usuario secundario.',
+        validateAccountError:
+            'Para terminar de configurar tu cuenta bancaria, debes validar tu cuenta de Expensify. Por favor, revisa tu correo electrónico para validar tu cuenta y vuelve aquí para continuar.',
+        hasPhoneLoginError:
+            'Para agregar una cuenta bancaria verificada, asegúrate de que tu nombre de usuario principal sea un correo electrónico válido y vuelve a intentarlo. Puedes agregar tu número de teléfono como nombre de usuario secundario.',
         hasBeenThrottledError: 'Se produjo un error al intentar agregar tu cuenta bancaria. Por favor, espera unos minutos e inténtalo de nuevo.',
         buttonConfirm: 'OK',
         error: {
@@ -736,7 +746,8 @@ export default {
             routingNumber: 'Por favor, introduce un número de ruta válido',
             accountNumber: 'Por favor, introduce un número de cuenta válido',
             companyType: 'Por favor, selecciona un tipo de compañía válido',
-            tooManyAttempts: 'Debido a la gran cantidad de intentos de inicio de sesión, esta opción se ha desactivado temporalmente durante 24 horas. Vuelve a intentarlo más tarde o introduce los detalles manualmente.',
+            tooManyAttempts:
+                'Debido a la gran cantidad de intentos de inicio de sesión, esta opción se ha desactivado temporalmente durante 24 horas. Vuelve a intentarlo más tarde o introduce los detalles manualmente.',
             address: 'Por favor, introduce una dirección válida',
             dob: 'Por favor, selecciona una fecha de nacimiento válida',
             age: 'Debe ser mayor de 18 años',
@@ -781,7 +792,8 @@ export default {
         cameraPermissionsNotGranted: 'No has habilitado los permisos para acceder a la cámara',
         cameraRequestMessage: 'No has habilitado los permisos para acceder a la cámara. Necesitamos acceso para completar la verificaciôn.',
         originalDocumentNeeded: 'Por favor, sube una imagen original de tu identificación en lugar de una captura de pantalla o imagen escaneada.',
-        documentNeedsBetterQuality: 'Parece que tu identificación esta dañado o le faltan características de seguridad. Por favor, sube una imagen de tu documento sin daños y que se vea completamente.',
+        documentNeedsBetterQuality:
+            'Parece que tu identificación esta dañado o le faltan características de seguridad. Por favor, sube una imagen de tu documento sin daños y que se vea completamente.',
         imageNeedsBetterQuality: 'Hay un problema con la calidad de la imagen de tu identificación. Por favor, sube una nueva imagen donde el identificación se vea con claridad.',
         selfieIssue: 'Hay un problema con tu selfie/video. Por favor, sube un nuevo selfie/video grabado en el momento',
         selfieNotMatching: 'Tu selfie/video no concuerda con tu identificación. Por favor, sube un nuevo selfie/video donde se vea tu cara con claridad.',
@@ -849,25 +861,25 @@ export default {
             customerServiceDetails: 'No hay tarifas de servicio al cliente.',
             inactivityDetails: 'No hay tarifa de inactividad.',
             sendingFundsTitle: 'Enviar fondos a otro titular de cuenta',
-            sendingFundsDetails: 'No se aplica ningún cargo por enviar fondos a otro titular de cuenta utilizando su '
-                + 'saldo cuenta bancaria o tarjeta de débito',
-            electronicFundsStandardDetails: 'No hay cargo por transferir fondos desde su billetera Expensify '
-                + 'a su cuenta bancaria utilizando la opción estándar. Esta transferencia generalmente se completa en'
-                + '1-3 negocios días.',
-            electronicFundsInstantDetails: 'Hay una tarifa para transferir fondos desde su billetera Expensify a '
-                + 'su tarjeta de débito vinculada utilizando la opción de transferencia instantánea. Esta transferencia '
-                + 'generalmente se completa dentro de varios minutos. La tarifa es el 1.5% del monto de la '
-                + 'transferencia (con una tarifa mínima de $ 0.25). ',
-            fdicInsuranceBancorp: 'Sus fondos son elegibles para el seguro de la FDIC. Sus fondos se mantendrán en o '
-                + 'transferido a The Bancorp Bank, una institución asegurada por la FDIC. Una vez allí, sus fondos '
-                + 'están asegurados a $ 250,000 por la FDIC en caso de que The Bancorp Bank quiebre. Ver',
+            sendingFundsDetails: 'No se aplica ningún cargo por enviar fondos a otro titular de cuenta utilizando su saldo cuenta bancaria o tarjeta de débito',
+            electronicFundsStandardDetails:
+                'No hay cargo por transferir fondos desde su billetera Expensify ' +
+                'a su cuenta bancaria utilizando la opción estándar. Esta transferencia generalmente se completa en' +
+                '1-3 negocios días.',
+            electronicFundsInstantDetails:
+                'Hay una tarifa para transferir fondos desde su billetera Expensify a ' +
+                'su tarjeta de débito vinculada utilizando la opción de transferencia instantánea. Esta transferencia ' +
+                'generalmente se completa dentro de varios minutos. La tarifa es el 1.5% del monto de la ' +
+                'transferencia (con una tarifa mínima de $ 0.25). ',
+            fdicInsuranceBancorp:
+                'Sus fondos son elegibles para el seguro de la FDIC. Sus fondos se mantendrán en o ' +
+                'transferido a The Bancorp Bank, una institución asegurada por la FDIC. Una vez allí, sus fondos ' +
+                'están asegurados a $ 250,000 por la FDIC en caso de que The Bancorp Bank quiebre. Ver',
             fdicInsuranceBancorp2: 'para detalles.',
-            contactExpensifyPayments: 'Comuníquese con Expensify Payments llamando al + 1833-400-0904, por correo'
-                + 'electrónico a',
+            contactExpensifyPayments: 'Comuníquese con Expensify Payments llamando al + 1833-400-0904, por correoelectrónico a',
             contactExpensifyPayments2: 'o inicie sesión en',
             generalInformation: 'Para obtener información general sobre cuentas prepagas, visite',
-            generalInformation2: 'Si tiene una queja sobre una cuenta prepaga, llame al Consumer Financial Oficina de '
-                + 'Protección al 1-855-411-2372 o visite',
+            generalInformation2: 'Si tiene una queja sobre una cuenta prepaga, llame al Consumer Financial Oficina de Protección al 1-855-411-2372 o visite',
             printerFriendlyView: 'Ver versión para imprimir',
             automated: 'Automatizado',
             liveAgent: 'Agente en vivo',
@@ -928,7 +940,8 @@ export default {
         letsChatText: 'Gracias. Necesitamos tu ayuda para verificar la información, pero podemos hacerlo rápidamente a través del chat. ¿Estás listo?',
         letsChatTitle: '¡Vamos a chatear!',
         enable2FATitle: 'Evita fraudes, activa la autenticación de dos factores!',
-        enable2FAText: 'Tu seguridad es importante para nosotros. Por favor, configura ahora la autenticación de dos factores. Eso nos permitirá disputar las transacciones de la Tarjeta Expensify y reducirá tu riesgo de fraude.',
+        enable2FAText:
+            'Tu seguridad es importante para nosotros. Por favor, configura ahora la autenticación de dos factores. Eso nos permitirá disputar las transacciones de la Tarjeta Expensify y reducirá tu riesgo de fraude.',
         secureYourAccount: 'Asegura tu cuenta',
     },
     beneficialOwnersStep: {
@@ -999,7 +1012,8 @@ export default {
             header: 'Desbloquea Tarjetas Expensify gratis',
             headerWithEcard: '¡Tus tarjetas están listas!',
             noVBACopy: 'Conecte una cuenta bancaria para emitir tarjetas Expensify a los miembros de su espacio de trabajo y acceda a estos increíbles beneficios y más:',
-            VBANoECardCopy: 'Agrega tu correo electrónico de trabajo para emitir Tarjetas Expensify ilimitadas para los miembros de tu espacio de trabajo y acceder a todas estas increíbles ventajas:',
+            VBANoECardCopy:
+                'Agrega tu correo electrónico de trabajo para emitir Tarjetas Expensify ilimitadas para los miembros de tu espacio de trabajo y acceder a todas estas increíbles ventajas:',
             VBAWithECardCopy: 'Acceda a estos increíbles beneficios y más:',
             benefit1: 'Hasta un 4% de devolución en tus gastos',
             benefit2: 'Tarjetas digitales y físicas',
@@ -1065,7 +1079,8 @@ export default {
             personalMessagePrompt: 'Mensaje',
             inviteNoMembersError: 'Por favor, selecciona al menos un miembro a invitar',
             genericFailureMessage: 'Se produjo un error al invitar al usuario al espacio de trabajo. Vuelva a intentarlo..',
-            welcomeNote: ({workspaceName}) => `¡Has sido invitado a ${workspaceName}! Descargue la aplicación móvil Expensify en use.expensify.com/download para comenzar a rastrear sus gastos.`,
+            welcomeNote: ({workspaceName}) =>
+                `¡Has sido invitado a ${workspaceName}! Descargue la aplicación móvil Expensify en use.expensify.com/download para comenzar a rastrear sus gastos.`,
         },
         editor: {
             nameInputLabel: 'Nombre',
@@ -1080,11 +1095,13 @@ export default {
         },
         bankAccount: {
             continueWithSetup: 'Continuar con la configuración',
-            youreAlmostDone: 'Casi has acabado de configurar tu cuenta bancaria, que te permitirá emitir tarjetas corporativas, reembolsar gastos y cobrar pagar facturas, todo desde la misma cuenta bancaria.',
+            youreAlmostDone:
+                'Casi has acabado de configurar tu cuenta bancaria, que te permitirá emitir tarjetas corporativas, reembolsar gastos y cobrar pagar facturas, todo desde la misma cuenta bancaria.',
             streamlinePayments: 'Optimiza pagos',
             oneMoreThing: '¡Una cosa más!',
             allSet: '¡Todo listo!',
-            accountDescriptionNoCards: 'Esta cuenta bancaria se utilizará para reembolsar gastos y cobrar y pagar facturas, todo desde la misma cuenta.\n\nPor favor, añade un correo electrónico de trabajo como tu nombre de usuario secundario para activar la Tarjeta Expensify.',
+            accountDescriptionNoCards:
+                'Esta cuenta bancaria se utilizará para reembolsar gastos y cobrar y pagar facturas, todo desde la misma cuenta.\n\nPor favor, añade un correo electrónico de trabajo como tu nombre de usuario secundario para activar la Tarjeta Expensify.',
             accountDescriptionWithCards: 'Esta cuenta bancaria se utilizará para emitir tarjetas corporativas, reembolsar gastos y cobrar y pagar facturas, todo desde la misma cuenta.',
             addWorkEmail: 'Añadir correo electrónico de trabajo',
             letsFinishInChat: '¡Continuemos en el chat!',
@@ -1149,11 +1166,21 @@ export default {
         },
     },
     newTaskPage: {
+        task: 'Tarea',
         assignTask: 'Asignar tarea',
+        assignee: 'Cesionario',
+        assigneeError: 'Hubo un error al asignar esta tarea, intente con otro cesionario',
+        confirmTask: 'Confirmar tarea',
+        confirmError: 'Por favor introduce un título y selecciona un destino de tarea',
         title: 'Título',
         description: 'Descripción',
-        shareIn: 'Compartir en',
+        descriptionOptional: 'Descripción (opcional)',
+        shareSomewhere: 'Compartir en algún lugar',
         pleaseEnterTaskName: 'Por favor introduce un título',
+        markAsComplete: 'Marcar como completa',
+        markAsIncomplete: 'Marcar como incompleta',
+        pleaseEnterTaskAssignee: 'Por favor, asigna una persona a esta tarea',
+        pleaseEnterTaskDestination: 'Por favor, selecciona un destino de tarea',
     },
     statementPage: {
         generatingPDF: 'Estamos generando tu PDF ahora mismo. ¡Por favor, vuelve más tarde!',
@@ -1223,6 +1250,7 @@ export default {
         },
     },
     report: {
+        genericCreateReportFailureMessage: 'Error inesperado al crear el chat. Por favor, inténtalo más tarde',
         genericAddCommentFailureMessage: 'Error inesperado al agregar el comentario. Por favor, inténtalo más tarde',
         noActivityYet: 'Sin actividad todavía',
     },

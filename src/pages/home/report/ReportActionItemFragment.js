@@ -18,7 +18,6 @@ import * as StyleUtils from '../../../styles/StyleUtils';
 import {withNetwork} from '../../../components/OnyxProvider';
 import CONST from '../../../CONST';
 import applyStrikethrough from '../../../components/HTMLEngineProvider/applyStrikethrough';
-import editedLabelStyles from '../../../styles/editedLabelStyles';
 
 const propTypes = {
     /** The message fragment needing to be displayed */
@@ -32,7 +31,6 @@ const propTypes = {
 
     /** If this fragment is attachment than has info? */
     attachmentInfo: PropTypes.shape({
-
         /** The file name of attachment */
         name: PropTypes.string,
 
@@ -56,10 +54,7 @@ const propTypes = {
     isSingleLine: PropTypes.bool,
 
     // Additional styles to add after local styles
-    style: PropTypes.oneOfType([
-        PropTypes.arrayOf(PropTypes.object),
-        PropTypes.object,
-    ]),
+    style: PropTypes.oneOfType([PropTypes.arrayOf(PropTypes.object), PropTypes.object]),
 
     ...windowDimensionsPropTypes,
 
@@ -87,19 +82,16 @@ const ReportActionItemFragment = (props) => {
         case 'COMMENT': {
             // If this is an attachment placeholder, return the placeholder component
             if (props.isAttachment && props.loading) {
-                return (
-                    Str.isImage(props.attachmentInfo.name)
-                        ? (
-                            <RenderHTML html={`<comment><img src="${props.attachmentInfo.source}" data-expensify-preview-modal-disabled="true"/></comment>`} />
-                        ) : (
-                            <View style={[styles.chatItemAttachmentPlaceholder]}>
-                                <ActivityIndicator
-                                    size="large"
-                                    color={themeColors.textSupporting}
-                                    style={[styles.flex1]}
-                                />
-                            </View>
-                        )
+                return Str.isImage(props.attachmentInfo.name) ? (
+                    <RenderHTML html={`<comment><img src="${props.attachmentInfo.source}" data-expensify-preview-modal-disabled="true"/></comment>`} />
+                ) : (
+                    <View style={[styles.chatItemAttachmentPlaceholder]}>
+                        <ActivityIndicator
+                            size="large"
+                            color={themeColors.textSupporting}
+                            style={[styles.flex1]}
+                        />
+                    </View>
                 );
             }
             const {html, text} = props.fragment;
@@ -115,13 +107,7 @@ const ReportActionItemFragment = (props) => {
                 const editedTag = props.fragment.isEdited ? '<edited></edited>' : '';
                 const htmlContent = applyStrikethrough(html + editedTag, isPendingDelete);
 
-                return (
-                    <RenderHTML
-                        html={props.source === 'email'
-                            ? `<email-comment>${htmlContent}</email-comment>`
-                            : `<comment>${htmlContent}</comment>`}
-                    />
-                );
+                return <RenderHTML html={props.source === 'email' ? `<email-comment>${htmlContent}</email-comment>` : `<comment>${htmlContent}</comment>`} />;
             }
             return (
                 <Text
@@ -131,14 +117,12 @@ const ReportActionItemFragment = (props) => {
                 >
                     {StyleUtils.convertToLTR(Str.htmlDecode(text))}
                     {Boolean(props.fragment.isEdited) && (
-                    <Text
-                        fontSize={variables.fontSizeSmall}
-                        color={themeColors.textSupporting}
-                        style={[styles.alignItemsBaseline, editedLabelStyles]}
-                    >
-                        <Text style={[styles.w1, styles.userSelectNone]}>{' '}</Text>
-                        {props.translate('reportActionCompose.edited')}
-                    </Text>
+                        <Text
+                            fontSize={variables.fontSizeSmall}
+                            color={themeColors.textSupporting}
+                        >
+                            {` ${props.translate('reportActionCompose.edited')}`}
+                        </Text>
                     )}
                 </Text>
             );
@@ -148,7 +132,7 @@ const ReportActionItemFragment = (props) => {
                 <Tooltip text={props.tooltipText}>
                     <Text
                         numberOfLines={props.isSingleLine ? 1 : undefined}
-                        style={[styles.chatItemMessageHeaderSender, (props.isSingleLine ? styles.pre : styles.preWrap)]}
+                        style={[styles.chatItemMessageHeaderSender, props.isSingleLine ? styles.pre : styles.preWrap]}
                     >
                         {props.fragment.text}
                     </Text>
@@ -177,8 +161,4 @@ ReportActionItemFragment.propTypes = propTypes;
 ReportActionItemFragment.defaultProps = defaultProps;
 ReportActionItemFragment.displayName = 'ReportActionItemFragment';
 
-export default compose(
-    withWindowDimensions,
-    withLocalize,
-    withNetwork(),
-)(memo(ReportActionItemFragment));
+export default compose(withWindowDimensions, withLocalize, withNetwork())(memo(ReportActionItemFragment));

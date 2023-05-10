@@ -23,6 +23,9 @@ const keyInputEnter = lodashGet(KeyCommand, 'constants.keyInputEnter', 'keyInput
 const keyInputUpArrow = lodashGet(KeyCommand, 'constants.keyInputUpArrow', 'keyInputUpArrow');
 const keyInputDownArrow = lodashGet(KeyCommand, 'constants.keyInputDownArrow', 'keyInputDownArrow');
 
+// describes if a shortcut key can cause navigation
+const KEYBOARD_SHORTCUT_NAVIGATION_TYPE = 'NAVIGATION_SHORTCUT';
+
 const CONST = {
     ANDROID_PACKAGE_NAME,
     ANIMATED_TRANSITION: 300,
@@ -255,6 +258,7 @@ const CONST = {
                 [PLATFORM_OS_MACOS]: {input: 'k', modifierFlags: keyModifierCommand},
                 [PLATFORM_IOS]: {input: 'k', modifierFlags: keyModifierCommand},
             },
+            type: KEYBOARD_SHORTCUT_NAVIGATION_TYPE,
         },
         NEW_GROUP: {
             descriptionKey: 'newGroup',
@@ -265,6 +269,7 @@ const CONST = {
                 [PLATFORM_OS_MACOS]: {input: 'k', modifierFlags: keyModifierShiftCommand},
                 [PLATFORM_IOS]: {input: 'k', modifierFlags: keyModifierShiftCommand},
             },
+            type: KEYBOARD_SHORTCUT_NAVIGATION_TYPE,
         },
         SHORTCUT_MODAL: {
             descriptionKey: 'openShortcutDialog',
@@ -342,6 +347,9 @@ const CONST = {
             modifiers: [],
         },
     },
+    KEYBOARD_SHORTCUTS_TYPES: {
+        NAVIGATION_SHORTCUT: KEYBOARD_SHORTCUT_NAVIGATION_TYPE,
+    },
     KEYBOARD_SHORTCUT_KEY_DISPLAY_NAME: {
         CONTROL: 'CTRL',
         ESCAPE: 'ESC',
@@ -391,6 +399,7 @@ const CONST = {
         DROP_NATIVE_ID: 'report-dropzone',
         ACTIVE_DROP_NATIVE_ID: 'report-dropzone',
         MAXIMUM_PARTICIPANTS: 8,
+        SPLIT_REPORTID: '-2',
         ACTIONS: {
             LIMIT: 50,
             TYPE: {
@@ -474,6 +483,7 @@ const CONST = {
             CHAT: 'chat',
             EXPENSE: 'expense',
             IOU: 'iou',
+            TASK: 'task',
         },
         CHAT_TYPE: {
             POLICY_ANNOUNCE: 'policyAnnounce',
@@ -719,7 +729,7 @@ const CONST = {
     EMOJI_PICKER_ITEM_HEIGHT: 32,
     EMOJI_PICKER_HEADER_HEIGHT: 32,
     RECIPIENT_LOCAL_TIME_HEIGHT: 25,
-    EMOJI_SUGGESTER: {
+    AUTO_COMPLETE_SUGGESTER: {
         SUGGESTER_PADDING: 6,
         ITEM_HEIGHT: 36,
         SMALL_CONTAINER_HEIGHT_FACTOR: 2.5,
@@ -844,7 +854,8 @@ const CONST = {
             USER_CAMERA_DENINED: 'Onfido.OnfidoFlowError',
             USER_CAMERA_PERMISSION: 'Encountered an error: cameraPermission',
             // eslint-disable-next-line max-len
-            USER_CAMERA_CONSENT_DENIED: 'Unexpected result Intent. It might be a result of incorrect integration, make sure you only pass Onfido intent to handleActivityResult. It might be due to unpredictable crash or error. Please report the problem to android-sdk@onfido.com. Intent: null \n resultCode: 0',
+            USER_CAMERA_CONSENT_DENIED:
+                'Unexpected result Intent. It might be a result of incorrect integration, make sure you only pass Onfido intent to handleActivityResult. It might be due to unpredictable crash or error. Please report the problem to android-sdk@onfido.com. Intent: null \n resultCode: 0',
         },
     },
 
@@ -897,6 +908,7 @@ const CONST = {
             SPLIT: 'split',
             DECLINE: 'decline',
             CANCEL: 'cancel',
+            DELETE: 'delete',
         },
         AMOUNT_MAX_LENGTH: 10,
     },
@@ -960,6 +972,7 @@ const CONST = {
         SMALL_SUBSCRIPT: 'small-subscript',
         MID_SUBSCRIPT: 'mid-subscript',
         LARGE_BORDERED: 'large-bordered',
+        HEADER: 'header',
     },
     OPTION_MODE: {
         COMPACT: 'compact',
@@ -1063,13 +1076,6 @@ const CONST = {
         // Since size cant be null, we have to define some initial value.
         INITIAL_SIZE: 1, // 1 was chosen because there is a very low probability that initialized component will have such size.
     },
-
-    ONYX: {
-        METHOD: {
-            MERGE: 'merge',
-            SET: 'set',
-        },
-    },
     MICROSECONDS_PER_MS: 1000,
     RED_BRICK_ROAD_PENDING_ACTION: {
         ADD: 'add',
@@ -1137,7 +1143,10 @@ const CONST = {
     TESTING: {
         SCREEN_SIZE: {
             SMALL: {
-                width: 300, height: 700, scale: 1, fontScale: 1,
+                width: 300,
+                height: 700,
+                scale: 1,
+                fontScale: 1,
             },
         },
     },
@@ -1151,13 +1160,7 @@ const CONST = {
         {
             name: '+1',
             code: '👍',
-            types: [
-                '👍🏿',
-                '👍🏾',
-                '👍🏽',
-                '👍🏼',
-                '👍🏻',
-            ],
+            types: ['👍🏿', '👍🏾', '👍🏽', '👍🏼', '👍🏻'],
         },
         {
             name: 'heart',
@@ -1236,7 +1239,7 @@ const CONST = {
         CD: 'Congo - Kinshasa',
         CK: 'Cook Islands',
         CR: 'Costa Rica',
-        CI: 'Côte d\'Ivoire',
+        CI: "Côte d'Ivoire",
         HR: 'Croatia',
         CU: 'Cuba',
         CW: 'Curaçao',
@@ -2263,9 +2266,7 @@ const CONST = {
         EXPECTED_OUTPUT: 'FCFA 123,457',
     },
 
-    PATHS_TO_TREAT_AS_EXTERNAL: [
-        'NewExpensify.dmg',
-    ],
+    PATHS_TO_TREAT_AS_EXTERNAL: ['NewExpensify.dmg'],
 
     // Test tool menu parameters
     TEST_TOOL: {
@@ -2274,9 +2275,30 @@ const CONST = {
     },
 
     PAYPAL_SUPPORTED_CURRENCIES: [
-        'AUD', 'BRL', 'CAD', 'CZK', 'DKK', 'EUR', 'HKD', 'HUF',
-        'ILS', 'JPY', 'MYR', 'MXN', 'TWD', 'NZD', 'NOK', 'PHP',
-        'PLN', 'GBP', 'RUB', 'SGD', 'SEK', 'CHF', 'THB', 'USD',
+        'AUD',
+        'BRL',
+        'CAD',
+        'CZK',
+        'DKK',
+        'EUR',
+        'HKD',
+        'HUF',
+        'ILS',
+        'JPY',
+        'MYR',
+        'MXN',
+        'TWD',
+        'NZD',
+        'NOK',
+        'PHP',
+        'PLN',
+        'GBP',
+        'RUB',
+        'SGD',
+        'SEK',
+        'CHF',
+        'THB',
+        'USD',
     ],
     CONCIERGE_TRAVEL_URL: 'https://community.expensify.com/discussion/7066/introducing-concierge-travel',
     SCREEN_READER_STATES: {

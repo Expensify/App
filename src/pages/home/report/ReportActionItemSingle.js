@@ -61,21 +61,19 @@ const showUserDetails = (email) => {
 
 const ReportActionItemSingle = (props) => {
     const actorEmail = props.action.actorEmail.replace(CONST.REGEX.MERGED_ACCOUNT_PREFIX, '');
-    const {
-        avatar,
-        displayName,
-        pendingFields,
-    } = props.personalDetails[actorEmail] || {};
+    const {avatar, displayName, pendingFields} = props.personalDetails[actorEmail] || {};
     const avatarSource = ReportUtils.getAvatar(avatar, actorEmail);
 
     // Since the display name for a report action message is delivered with the report history as an array of fragments
     // we'll need to take the displayName from personal details and have it be in the same format for now. Eventually,
     // we should stop referring to the report history items entirely for this information.
     const personArray = displayName
-        ? [{
-            type: 'TEXT',
-            text: displayName,
-        }]
+        ? [
+              {
+                  type: 'TEXT',
+                  text: displayName,
+              },
+          ]
         : props.action.person;
 
     return (
@@ -86,9 +84,7 @@ const ReportActionItemSingle = (props) => {
                 onPressOut={ControlSelection.unblock}
                 onPress={() => showUserDetails(actorEmail)}
             >
-                <OfflineWithFeedback
-                    pendingAction={lodashGet(pendingFields, 'avatar', null)}
-                >
+                <OfflineWithFeedback pendingAction={lodashGet(pendingFields, 'avatar', null)}>
                     {props.shouldShowSubscriptAvatar ? (
                         <SubscriptAvatar
                             mainAvatar={{source: avatarSource, type: CONST.ICON_TYPE_AVATAR}}
@@ -140,7 +136,4 @@ ReportActionItemSingle.propTypes = propTypes;
 ReportActionItemSingle.defaultProps = defaultProps;
 ReportActionItemSingle.displayName = 'ReportActionItemSingle';
 
-export default compose(
-    withLocalize,
-    withPersonalDetails(),
-)(ReportActionItemSingle);
+export default compose(withLocalize, withPersonalDetails())(ReportActionItemSingle);
