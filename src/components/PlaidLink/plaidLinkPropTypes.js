@@ -25,7 +25,4 @@ const plaidLinkDefaultProps = {
     receivedRedirectURI: null,
 };
 
-export {
-    plaidLinkPropTypes,
-    plaidLinkDefaultProps,
-};
+export {plaidLinkPropTypes, plaidLinkDefaultProps};
