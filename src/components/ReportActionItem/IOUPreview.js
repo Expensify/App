@@ -166,7 +166,7 @@ const IOUPreview = (props) => {
             case CONST.IOU.PAYMENT_TYPE.EXPENSIFY:
                 return props.translate('iou.settledExpensify');
             default:
-                return null;
+                return '';
         }
     };
 
@@ -196,7 +196,7 @@ const IOUPreview = (props) => {
                     <View style={[styles.flexRow]}>
                         <View style={[styles.flex1, styles.flexRow, styles.alignItemsCenter]}>
                             <Text style={[styles.textLabelSupporting, styles.lh16]}>{props.isBillSplit ? props.translate('iou.split') : props.translate('iou.cash')}</Text>
-                            {(lodashGet(props.action, 'originalMessage.type', '') === 'pay' || !ReportUtils.isPolicyExpenseChat(props.report)) && (
+                            {getSettledMessage() && (
                                 <>
                                     <Icon
                                         src={Expensicons.DotIndicator}
