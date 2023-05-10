@@ -57,8 +57,8 @@ describe('ErrorUtils', () => {
         ErrorUtils.addErrorMessage(errors, 'username', 'Username must contain at least one letter');
         ErrorUtils.addErrorMessage(errors, 'username', 'Username must not contain special characters');
 
-        expect(errors).toEqual(
-            {username: 'Username cannot be empty\nUsername must be at least 6 characters long\nUsername must contain at least one letter\nUsername must not contain special characters'},
-        );
+        expect(errors).toEqual({
+            username: 'Username cannot be empty\nUsername must be at least 6 characters long\nUsername must contain at least one letter\nUsername must not contain special characters',
+        });
     });
 });

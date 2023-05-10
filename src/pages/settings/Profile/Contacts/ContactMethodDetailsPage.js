@@ -169,9 +169,7 @@ class ContactMethodDetailsPage extends Component {
         const contactMethod = this.getContactMethod();
 
         // replacing spaces with "hard spaces" to prevent breaking the number
-        const formattedContactMethod = Str.isSMSLogin(contactMethod)
-            ? this.props.formatPhoneNumber(contactMethod).replace(/ /g, '\u00A0')
-            : contactMethod;
+        const formattedContactMethod = Str.isSMSLogin(contactMethod) ? this.props.formatPhoneNumber(contactMethod).replace(/ /g, '\u00A0') : contactMethod;
 
         const loginData = this.props.loginList[contactMethod];
         if (!contactMethod || !loginData) {
@@ -201,22 +199,29 @@ class ContactMethodDetailsPage extends Component {
                         isVisible={this.state.isDeleteModalOpen}
                         danger
                     />
-                    {isFailedAddContactMethod && <DotIndicatorMessage style={[styles.mh5, styles.mv3]} messages={ErrorUtils.getLatestErrorField(loginData, 'addedLogin')} type="error" />}
+                    {isFailedAddContactMethod && (
+                        <DotIndicatorMessage
+                            style={[styles.mh5, styles.mv3]}
+                            messages={ErrorUtils.getLatestErrorField(loginData, 'addedLogin')}
+                            type="error"
+                        />
+                    )}
                     {!loginData.validatedDate && !isFailedAddContactMethod && (
                         <View style={[styles.ph5, styles.mt3, styles.mb7]}>
                             <View style={[styles.flexRow, styles.alignItemsCenter, styles.mb1]}>
-                                <Icon src={Expensicons.DotIndicator} fill={colors.green} />
+                                <Icon
+                                    src={Expensicons.DotIndicator}
+                                    fill={colors.green}
+                                />
                                 <View style={[styles.flex1, styles.ml4]}>
-                                    <Text>
-                                        {this.props.translate('contacts.enterMagicCode', {contactMethod: formattedContactMethod})}
-                                    </Text>
+                                    <Text>{this.props.translate('contacts.enterMagicCode', {contactMethod: formattedContactMethod})}</Text>
                                 </View>
                             </View>
                             <TextInput
                                 label={this.props.translate('common.magicCode')}
                                 name="validateCode"
                                 value={this.state.validateCode}
-                                onChangeText={text => this.setState({validateCode: text})}
+                                onChangeText={(text) => this.setState({validateCode: text})}
                                 keyboardType={CONST.KEYBOARD_TYPE.NUMBER_PAD}
                                 errorText={formErrorText}
                             />
@@ -226,14 +231,19 @@ class ContactMethodDetailsPage extends Component {
                                 errorRowStyles={[styles.mt2]}
                                 onClose={() => User.clearContactMethodErrors(contactMethod, 'validateCodeSent')}
                             >
-                                <View
-                                    style={[styles.mt2, styles.dFlex, styles.flexRow]}
-                                >
-                                    <Text style={[styles.link, styles.mr1]} onPress={this.resendValidateCode}>
+                                <View style={[styles.mt2, styles.dFlex, styles.flexColumn]}>
+                                    <Text
+                                        style={[styles.link, styles.mr1]}
+                                        onPress={this.resendValidateCode}
+                                    >
                                         {this.props.translate('contacts.resendMagicCode')}
                                     </Text>
                                     {hasMagicCodeBeenSent && (
-                                        <Icon src={Expensicons.Checkmark} fill={colors.green} />
+                                        <DotIndicatorMessage
+                                            type="success"
+                                            style={[styles.mt6, styles.flex0]}
+                                            messages={{0: this.props.translate('resendValidationForm.linkHasBeenResent')}}
+                                        />
                                     )}
                                 </View>
                             </OfflineWithFeedback>
@@ -254,14 +264,12 @@ class ContactMethodDetailsPage extends Component {
                         </View>
                     )}
                     {isDefaultContactMethod ? (
-                        <Text style={[styles.ph5, styles.mv3]}>
-                            {this.props.translate('contacts.yourDefaultContactMethod')}
-                        </Text>
+                        <Text style={[styles.ph5, styles.mv3]}>{this.props.translate('contacts.yourDefaultContactMethod')}</Text>
                     ) : (
                         <OfflineWithFeedback
                             pendingAction={lodashGet(loginData, 'pendingFields.deletedLogin', null)}
                             errors={ErrorUtils.getLatestErrorField(loginData, 'deletedLogin')}
-                            errorRowStyles={[styles.mt6]}
+                            errorRowStyles={[styles.mt6, styles.ph5]}
                             onClose={() => User.clearContactMethodErrors(contactMethod, 'deletedLogin')}
                         >
                             <MenuItem

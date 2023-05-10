@@ -23,11 +23,10 @@ export default function () {
                 Onyx.multiSet({
                     priorityMode: null,
                     [ONYXKEYS.NVP_PRIORITY_MODE]: oldPriorityMode,
-                })
-                    .then(() => {
-                        Log.info('[Migrate Onyx] Ran migration RenamePriorityModeKey');
-                        resolve();
-                    });
+                }).then(() => {
+                    Log.info('[Migrate Onyx] Ran migration RenamePriorityModeKey');
+                    resolve();
+                });
             },
         });
     });

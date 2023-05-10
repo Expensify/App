@@ -2,7 +2,6 @@ import React, {Component} from 'react';
 import {View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import PropTypes from 'prop-types';
-import Str from 'expensify-common/lib/str';
 import _ from 'underscore';
 import HeaderWithCloseButton from '../../../components/HeaderWithCloseButton';
 import Navigation from '../../../libs/Navigation/Navigation';
@@ -22,7 +21,6 @@ import CONST from '../../../CONST';
 import ConfirmModal from '../../../components/ConfirmModal';
 
 const propTypes = {
-
     /** Session of currently logged in user */
     session: PropTypes.shape({
         /** Email address */
@@ -75,7 +73,7 @@ class CloseAccountPage extends Component {
     }
 
     validate(values) {
-        const userEmailOrPhone = Str.removeSMSDomain(this.props.session.email);
+        const userEmailOrPhone = this.props.formatPhoneNumber(this.props.session.email);
         const errors = {};
 
         if (_.isEmpty(values.phoneOrEmail) || userEmailOrPhone.toLowerCase() !== values.phoneOrEmail.toLowerCase()) {
@@ -113,12 +111,7 @@ class CloseAccountPage extends Component {
                             containerStyles={[styles.mt5, styles.closeAccountMessageInput]}
                         />
                         <Text style={[styles.mt5]}>
-                            {this.props.translate('closeAccountPage.enterDefaultContactToConfirm')}
-                            {' '}
-                            <Text style={[styles.textStrong]}>
-                                {userEmailOrPhone}
-                            </Text>
-                            .
+                            {this.props.translate('closeAccountPage.enterDefaultContactToConfirm')} <Text style={[styles.textStrong]}>{userEmailOrPhone}</Text>.
                         </Text>
                         <TextInput
                             inputID="phoneOrEmail"

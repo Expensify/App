@@ -73,25 +73,29 @@ function handleUnknownError(err) {
 }
 
 if (pullRequestNumber) {
-    GithubUtils.octokit.pulls.get({
-        ...DEFAULT_PAYLOAD,
-        pull_number: pullRequestNumber,
-    })
+    GithubUtils.octokit.pulls
+        .get({
+            ...DEFAULT_PAYLOAD,
+            pull_number: pullRequestNumber,
+        })
         .then(({data}) => {
             outputMergeCommitHash(data);
             outputMergeActor(data);
         })
         .catch(handleUnknownError);
 } else {
-    GithubUtils.octokit.pulls.list({
-        ...DEFAULT_PAYLOAD,
-        state: 'all',
-    })
-        .then(({data}) => _.find(data, PR => PR.user.login === user && titleRegex.test(PR.title)).number)
-        .then(matchingPRNum => GithubUtils.octokit.pulls.get({
+    GithubUtils.octokit.pulls
+        .list({
             ...DEFAULT_PAYLOAD,
-            pull_number: matchingPRNum,
-        }))
+            state: 'all',
+        })
+        .then(({data}) => _.find(data, (PR) => PR.user.login === user && titleRegex.test(PR.title)).number)
+        .then((matchingPRNum) =>
+            GithubUtils.octokit.pulls.get({
+                ...DEFAULT_PAYLOAD,
+                pull_number: matchingPRNum,
+            }),
+        )
         .then(({data}) => {
             outputMergeCommitHash(data);
             outputMergeActor(data);

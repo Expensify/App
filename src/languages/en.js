@@ -74,7 +74,7 @@ export default {
         country: 'Country',
         zip: 'Zip code',
         zipPostCode: 'Zip / Postcode',
-        whatThis: 'What\'s this?',
+        whatThis: "What's this?",
         iAcceptThe: 'I accept the ',
         remove: 'Remove',
         admin: 'Admin',
@@ -83,7 +83,7 @@ export default {
         notifications: 'Notifications',
         na: 'N/A',
         noResultsFound: 'No results found',
-        timePrefix: 'It\'s',
+        timePrefix: "It's",
         conjunctionFor: 'for',
         todayAt: 'Today at',
         tomorrowAt: 'Tomorrow at',
@@ -116,7 +116,7 @@ export default {
         join: 'Join',
         decline: 'Decline',
         transferBalance: 'Transfer balance',
-        cantFindAddress: 'Can\'t find your address? ',
+        cantFindAddress: "Can't find your address? ",
         enterManually: 'Enter it manually',
         message: 'Message ',
         leaveRoom: 'Leave room',
@@ -133,10 +133,11 @@ export default {
         websiteExample: 'e.g. https://www.expensify.com',
         zipCodeExampleFormat: ({zipSampleFormat}) => (zipSampleFormat ? `e.g. ${zipSampleFormat}` : ''),
         description: 'Description',
+        with: 'with',
     },
     attachmentPicker: {
         cameraPermissionRequired: 'Camera access',
-        expensifyDoesntHaveAccessToCamera: 'Expensify can\'t take photos without access to your camera. Tap Settings to update permissions.',
+        expensifyDoesntHaveAccessToCamera: "Expensify can't take photos without access to your camera. Tap Settings to update permissions.",
         attachmentError: 'Attachment error',
         errorWhileSelectingAttachment: 'An error occurred while selecting an attachment, please try again',
         errorWhileSelectingCorruptedImage: 'An error occurred while selecting a corrupted attachment, please try another file',
@@ -185,7 +186,7 @@ export default {
     moneyRequestConfirmationList: {
         whoPaid: 'Who paid?',
         whoWasThere: 'Who was there?',
-        whatsItFor: 'What\'s it for?',
+        whatsItFor: "What's it for?",
     },
     iOUCurrencySelection: {
         selectCurrency: 'Select a currency',
@@ -206,7 +207,7 @@ export default {
         getStarted: 'Get started below.',
         welcomeBack: 'Welcome back!',
         welcome: 'Welcome!',
-        phrase2: 'Money talks. And now that chat and payments are in one place, it\'s also easy.',
+        phrase2: "Money talks. And now that chat and payments are in one place, it's also easy.",
         phrase3: 'Your payments get to you as fast as you can get your point across.',
         enterPassword: 'Please enter your password',
         newFaceEnterMagicCode: ({login}) => `It's always great to see a new face around here! Please enter the magic code sent to ${login}`,
@@ -260,7 +261,7 @@ export default {
     },
     reportActionsView: {
         beginningOfArchivedRoomPartOne: 'You missed the party in ',
-        beginningOfArchivedRoomPartTwo: ', there\'s nothing to see here.',
+        beginningOfArchivedRoomPartTwo: ", there's nothing to see here.",
         beginningOfChatHistoryDomainRoomPartOne: ({domainRoom}) => `Collaboration with everyone at ${domainRoom} starts here! 🎉\nUse `,
         beginningOfChatHistoryDomainRoomPartTwo: ' to chat with colleagues, share tips, and ask questions.',
         beginningOfChatHistoryAdminRoomPartOne: ({workspaceName}) => `Collaboration among ${workspaceName} admins starts here! 🎉\nUse `,
@@ -286,8 +287,10 @@ export default {
     reportArchiveReasons: {
         [CONST.REPORT.ARCHIVE_REASON.DEFAULT]: 'This chat room has been archived.',
         [CONST.REPORT.ARCHIVE_REASON.ACCOUNT_CLOSED]: ({displayName}) => `This workspace chat is no longer active because ${displayName} closed their account.`,
-        [CONST.REPORT.ARCHIVE_REASON.ACCOUNT_MERGED]: ({displayName, oldDisplayName}) => `This workspace chat is no longer active because ${oldDisplayName} has merged their account with ${displayName}.`,
-        [CONST.REPORT.ARCHIVE_REASON.REMOVED_FROM_POLICY]: ({displayName, policyName}) => `This workspace chat is no longer active because ${displayName} is no longer a member of the ${policyName} workspace.`,
+        [CONST.REPORT.ARCHIVE_REASON.ACCOUNT_MERGED]: ({displayName, oldDisplayName}) =>
+            `This workspace chat is no longer active because ${oldDisplayName} has merged their account with ${displayName}.`,
+        [CONST.REPORT.ARCHIVE_REASON.REMOVED_FROM_POLICY]: ({displayName, policyName}) =>
+            `This workspace chat is no longer active because ${displayName} is no longer a member of the ${policyName} workspace.`,
         [CONST.REPORT.ARCHIVE_REASON.POLICY_DELETED]: ({policyName}) => `This workspace chat is no longer active because ${policyName} is no longer an active workspace.`,
     },
     sidebarScreen: {
@@ -307,6 +310,7 @@ export default {
     iou: {
         amount: 'Amount',
         cash: 'Cash',
+        split: 'Split',
         participants: 'Participants',
         splitBill: 'Split bill',
         requestMoney: 'Request money',
@@ -314,22 +318,17 @@ export default {
         pay: 'Pay',
         viewDetails: 'View details',
         settleExpensify: 'Pay with Expensify',
-        settleElsewhere: 'I\'ll settle up elsewhere',
+        settleElsewhere: "I'll settle up elsewhere",
         settlePaypalMe: 'Pay with PayPal.me',
-        request: ({amount}) => `Request ${amount}`,
-        youowe: ({owner}) => `You owe ${owner}`,
-        youpaid: ({owner}) => `You paid ${owner}`,
-        owesyou: ({manager}) => `${manager} owes you`,
-        paidyou: ({manager}) => `${manager} paid you`,
-        split: ({amount}) => `Split ${amount}`,
-        send: ({amount}) => `Send ${amount}`,
+        requestAmount: ({amount}) => `request ${amount}`,
+        splitAmount: ({amount}) => `split ${amount}`,
         noReimbursableExpenses: 'This report has an invalid amount',
-        pendingConversionMessage: 'Total will update when you\'re back online',
+        pendingConversionMessage: "Total will update when you're back online",
         error: {
             invalidSplit: 'Split amounts do not equal total amount',
             other: 'Unexpected error, please try again later',
             genericCreateFailureMessage: 'Unexpected error requesting money, please try again later',
-            genericCancelFailureMessage: ({type}) => `Unexpected error ${type === 'decline' ? 'declining' : 'cancelling'} the money request, please try again later`,
+            genericDeleteFailureMessage: 'Unexpected error deleting the money request, please try again later',
         },
     },
     notificationPreferences: {
@@ -349,9 +348,8 @@ export default {
         imageUploadFailed: 'Image upload failed',
         deleteWorkspaceError: 'Sorry, there was an unexpected problem deleting your workspace avatar.',
         sizeExceeded: ({maxUploadSizeInMB}) => `The selected image exceeds the maximum upload size of ${maxUploadSizeInMB}MB.`,
-        resolutionConstraints: ({
-            minHeightInPx, minWidthInPx, maxHeightInPx, maxWidthInPx,
-        }) => `Please upload an image larger than ${minHeightInPx}x${minWidthInPx} pixels and smaller than ${maxHeightInPx}x${maxWidthInPx} pixels.`,
+        resolutionConstraints: ({minHeightInPx, minWidthInPx, maxHeightInPx, maxWidthInPx}) =>
+            `Please upload an image larger than ${minHeightInPx}x${minWidthInPx} pixels and smaller than ${maxHeightInPx}x${maxWidthInPx} pixels.`,
         notAllowedExtension: ({allowedExtensions}) => `Profile picture must be one of the following types: ${allowedExtensions.join(', ')}.`,
     },
     profilePage: {
@@ -381,7 +379,8 @@ export default {
         pleaseVerify: 'Please verify this contact method',
         getInTouch: "Whenever we need to get in touch with you, we'll use this contact method.",
         enterMagicCode: ({contactMethod}) => `Please enter the magic code sent to ${contactMethod}`,
-        yourDefaultContactMethod: 'This is your current default contact method. You will not be able to delete this contact method until you set an alternative default by selecting another contact method and pressing “Set as default”.',
+        yourDefaultContactMethod:
+            'This is your current default contact method. You will not be able to delete this contact method until you set an alternative default by selecting another contact method and pressing “Set as default”.',
         removeContactMethod: 'Remove contact method',
         removeAreYouSure: 'Are you sure you want to remove this contact method? This action cannot be undone.',
         resendMagicCode: 'Resend magic code',
@@ -447,7 +446,7 @@ export default {
         },
         security: 'Security',
         signOut: 'Sign out',
-        signOutConfirmationText: 'You\'ll lose any offline changes if you sign-out.',
+        signOutConfirmationText: "You'll lose any offline changes if you sign-out.",
         versionLetter: 'v',
         readTheTermsAndPrivacy: {
             phrase1: 'Read the',
@@ -462,7 +461,8 @@ export default {
         reasonForLeavingPrompt: 'We’d hate to see you go! Would you kindly tell us why, so we can improve?',
         enterMessageHere: 'Enter message here',
         closeAccountWarning: 'Closing your account cannot be undone.',
-        closeAccountPermanentlyDeleteData: 'This will permanently delete all of your unsubmitted expense data and will cancel and decline any outstanding money requests. Are you sure you want to delete the account?',
+        closeAccountPermanentlyDeleteData:
+            'This will permanently delete all of your unsubmitted expense data and will cancel and decline any outstanding money requests. Are you sure you want to delete the account?',
         enterDefaultContactToConfirm: 'Please type your default contact method to confirm you wish to close your account. Your default contact method is:',
         enterDefaultContact: 'Enter your default contact method',
         defaultContact: 'Default contact method:',
@@ -592,7 +592,7 @@ export default {
         openJobs: 'open jobs',
         heroHeading: 'Split bills\nand chat with friends.',
         heroDescription: {
-            phrase1: 'Money talks. And now that chat and payments are in one place, it\'s also easy. Your payments get to you as fast as you can get your point across.',
+            phrase1: "Money talks. And now that chat and payments are in one place, it's also easy. Your payments get to you as fast as you can get your point across.",
             phrase2: 'The New Expensify is open source. View',
             phrase3: 'the code',
             phrase4: 'View',
@@ -633,7 +633,8 @@ export default {
             incorrect2fa: 'Incorrect two factor authentication code. Please try again.',
             twoFactorAuthenticationEnabled: 'You have 2FA enabled on this account. Please sign in using your email or phone number.',
             invalidLoginOrPassword: 'Invalid login or password. Please try again or reset your password.',
-            unableToResetPassword: 'We were unable to change your password. This is likely due to an expired password reset link in an old password reset email. We have emailed you a new link so you can try again. Check your Inbox and your Spam folder; it should arrive in just a few minutes.',
+            unableToResetPassword:
+                'We were unable to change your password. This is likely due to an expired password reset link in an old password reset email. We have emailed you a new link so you can try again. Check your Inbox and your Spam folder; it should arrive in just a few minutes.',
             noAccess: 'You do not have access to this application. Please add your GitHub username for access.',
             accountLocked: 'Your account has been locked after too many unsuccessful attempts. Please try again after 1 hour.',
             fallback: 'Something went wrong. Please try again later.',
@@ -644,7 +645,7 @@ export default {
         error: {
             invalidFormatEmailLogin: 'The email entered is invalid. Please fix the format and try again.',
         },
-        cannotGetAccountDetails: 'Couldn\'t retrieve account details, please try to sign in again.',
+        cannotGetAccountDetails: "Couldn't retrieve account details, please try to sign in again.",
         loginForm: 'Login form',
         notYou: ({user}) => `Not ${user}?`,
     },
@@ -672,7 +673,13 @@ export default {
         linkHasBeenResent: 'Link has been re-sent',
         weSentYouMagicSignInLink: ({login, loginType}) => `I've sent a magic sign-in link to ${login}. Please check your ${loginType} to sign in.`,
         resendLink: 'Resend link',
-        validationCodeFailedMessage: 'It looks like there was an error with your validation link or it has expired.',
+    },
+    unlinkLoginForm: {
+        toValidateLogin: ({primaryLogin, secondaryLogin}) => `To validate ${secondaryLogin}, please resend the magic code from the Account Settings of ${primaryLogin}.`,
+        noLongerHaveAccess: ({primaryLogin}) => `If you no longer have access to ${primaryLogin}, please unlink your accounts.`,
+        unlink: 'Unlink',
+        linkSent: 'Link sent!',
+        succesfullyUnlinkedLogin: 'Secondary login successfully unlinked!',
     },
     detailsPage: {
         localTime: 'Local time',
@@ -690,7 +697,7 @@ export default {
         iouReportNotFound: 'The payment details you are looking for cannot be found.',
         notHere: "Hmm... it's not here",
         pageNotFound: 'That page is nowhere to be found.',
-        noAccess: 'You don\'t have access to this chat',
+        noAccess: "You don't have access to this chat",
         goBackHome: 'Go back to Home page',
     },
     setPasswordPage: {
@@ -715,7 +722,8 @@ export default {
         toGetStarted: 'Add a bank account and issue corporate cards, reimburse expenses, collect invoice payments, and pay bills, all from one place.',
         plaidBodyCopy: 'Give your employees an easier way to pay - and get paid back - for company expenses.',
         checkHelpLine: 'Your routing number and account number can be found on a check for the account.',
-        validateAccountError: 'In order to finish setting up your bank account, you must validate your account. Please check your email to validate your account, and return here to finish up!',
+        validateAccountError:
+            'In order to finish setting up your bank account, you must validate your account. Please check your email to validate your account, and return here to finish up!',
         hasPhoneLoginError: 'To add a verified bank account please ensure your primary login is a valid email and try again. You can add your phone number as a secondary login.',
         hasBeenThrottledError: 'There was an error adding your bank account. Please wait a few minutes and try again.',
         buttonConfirm: 'Got it',
@@ -783,10 +791,10 @@ export default {
         cameraRequestMessage: 'You have not granted us camera access. We need access to complete verification.',
         originalDocumentNeeded: 'Please upload an original image of your ID rather than a screenshot or scanned image.',
         documentNeedsBetterQuality: 'Your ID appears to be damaged or has missing security features. Please upload an original image of an undamaged ID that is entirely visible.',
-        imageNeedsBetterQuality: 'There\'s an issue with the image quality of your ID. Please upload a new image where your entire ID can be seen clearly.',
-        selfieIssue: 'There\'s an issue with your selfie/video. Please upload a new selfie/video in real time.',
-        selfieNotMatching: 'Your selfie/video doesn\'t match your ID. Please upload a new selfie/video where your face can be clearly seen.',
-        selfieNotLive: 'Your selfie/video doesn\'t appear to be a live photo/video. Please upload a live selfie/video.',
+        imageNeedsBetterQuality: "There's an issue with the image quality of your ID. Please upload a new image where your entire ID can be seen clearly.",
+        selfieIssue: "There's an issue with your selfie/video. Please upload a new selfie/video in real time.",
+        selfieNotMatching: "Your selfie/video doesn't match your ID. Please upload a new selfie/video where your face can be clearly seen.",
+        selfieNotLive: "Your selfie/video doesn't appear to be a live photo/video. Please upload a live selfie/video.",
     },
     additionalDetailsStep: {
         headerTitle: 'Additional details',
@@ -798,10 +806,10 @@ export default {
         legalLastNameLabel: 'Legal last name',
         selectAnswer: 'You need to select a response to proceed.',
         ssnFull9Error: 'Please enter a valid 9 digit SSN',
-        needSSNFull9: 'We\'re having trouble verifying your SSN. Please enter the full 9 digits of your SSN.',
+        needSSNFull9: "We're having trouble verifying your SSN. Please enter the full 9 digits of your SSN.",
         weCouldNotVerify: 'We could not verify',
         pleaseFixIt: 'Please fix this information before continuing.',
-        failedKYCTextBefore: 'We weren\'t able to successfully verify your identity. Please try again later and reach out to ',
+        failedKYCTextBefore: "We weren't able to successfully verify your identity. Please try again later and reach out to ",
         failedKYCTextAfter: ' if you have any questions.',
     },
     termsStep: {
@@ -850,23 +858,24 @@ export default {
             customerServiceDetails: 'There are no customer service fees.',
             inactivityDetails: 'There is no inactivity fee.',
             sendingFundsTitle: 'Sending funds to another account holder',
-            sendingFundsDetails: 'There is no fee to send funds to another account holder using your balance, '
-                + 'bank account, or debit card.',
-            electronicFundsStandardDetails: 'There is no fee to transfer funds from your Expensify Wallet '
-                + 'to your bank account using the standard option. This transfer usually completes within 1-3 business'
-                + ' days.',
-            electronicFundsInstantDetails: 'There is a fee to transfer funds from your Expensify Wallet to '
-                + 'your linked debit card using the instant transfer option. This transfer usually completes within '
-                + 'several minutes. The fee is 1.5% of the transfer amount (with a minimum fee of $0.25).',
-            fdicInsuranceBancorp: 'Your funds are eligible for FDIC insurance. Your funds will be held at or '
-                + 'transferred to The Bancorp Bank, an FDIC-insured institution. Once there, your funds are insured up '
-                + 'to $250,000 by the FDIC in the event The Bancorp Bank fails. See',
+            sendingFundsDetails: 'There is no fee to send funds to another account holder using your balance, bank account, or debit card.',
+            electronicFundsStandardDetails:
+                'There is no fee to transfer funds from your Expensify Wallet ' +
+                'to your bank account using the standard option. This transfer usually completes within 1-3 business' +
+                ' days.',
+            electronicFundsInstantDetails:
+                'There is a fee to transfer funds from your Expensify Wallet to ' +
+                'your linked debit card using the instant transfer option. This transfer usually completes within ' +
+                'several minutes. The fee is 1.5% of the transfer amount (with a minimum fee of $0.25).',
+            fdicInsuranceBancorp:
+                'Your funds are eligible for FDIC insurance. Your funds will be held at or ' +
+                'transferred to The Bancorp Bank, an FDIC-insured institution. Once there, your funds are insured up ' +
+                'to $250,000 by the FDIC in the event The Bancorp Bank fails. See',
             fdicInsuranceBancorp2: 'for details.',
             contactExpensifyPayments: 'Contact Expensify Payments by calling +1 833-400-0904, by email at',
             contactExpensifyPayments2: 'or sign in at',
             generalInformation: 'For general information about prepaid accounts, visit',
-            generalInformation2: 'If you have a complaint about a prepaid account, call the Consumer Financial '
-                + 'Protection Bureau at 1-855-411-2372 or visit',
+            generalInformation2: 'If you have a complaint about a prepaid account, call the Consumer Financial Protection Bureau at 1-855-411-2372 or visit',
             printerFriendlyView: 'View printer-friendly version',
             automated: 'Automated',
             liveAgent: 'Live Agent',
@@ -879,7 +888,7 @@ export default {
         activatedTitle: 'Wallet activated!',
         activatedMessage: 'Congrats, your wallet is set up and ready to make payments.',
         checkBackLaterTitle: 'Just a minute...',
-        checkBackLaterMessage: 'We\'re still reviewing your information. Please check back later.',
+        checkBackLaterMessage: "We're still reviewing your information. Please check back later.",
         continueToPayment: 'Continue to payment',
         continueToTransfer: 'Continue to transfer',
     },
@@ -921,13 +930,14 @@ export default {
         maxAttemptsReached: 'Validation for this bank account has been disabled due to too many incorrect attempts.',
         description: 'A day or two after you add your account to Expensify we send three (3) transactions to your account. They have a merchant line like "Expensify, Inc. Validation".',
         descriptionCTA: 'Please enter each transaction amount in the fields below. Example: 1.51.',
-        reviewingInfo: 'Thanks! We\'re reviewing your information, and will be in touch shortly. Please check your chat with Concierge ',
+        reviewingInfo: "Thanks! We're reviewing your information, and will be in touch shortly. Please check your chat with Concierge ",
         forNextSteps: ' for next steps to finish setting up your bank account.',
-        letsChatCTA: 'Yes, let\'s chat',
+        letsChatCTA: "Yes, let's chat",
         letsChatText: 'Thanks for doing that. We need your help verifying a few pieces of information, but we can work this out quickly over chat. Ready?',
-        letsChatTitle: 'Let\'s chat!',
+        letsChatTitle: "Let's chat!",
         enable2FATitle: 'Prevent fraud, enable two-factor authentication!',
-        enable2FAText: 'We take your security seriously, so please set up two-factor authentication for your account now. That will allow us to dispute Expensify Card digital transactions, and will reduce your risk for fraud.',
+        enable2FAText:
+            'We take your security seriously, so please set up two-factor authentication for your account now. That will allow us to dispute Expensify Card digital transactions, and will reduce your risk for fraud.',
         secureYourAccount: 'Secure your account',
     },
     beneficialOwnersStep: {
@@ -950,7 +960,7 @@ export default {
         explanationLine: 'We’re taking a look at your information. You will be able to continue with next steps shortly.',
     },
     session: {
-        offlineMessageRetry: 'Looks like you\'re offline. Please check your connection and try again.',
+        offlineMessageRetry: "Looks like you're offline. Please check your connection and try again.",
     },
     workspace: {
         common: {
@@ -977,7 +987,7 @@ export default {
         },
         emptyWorkspace: {
             title: 'Create a new workspace',
-            subtitle: 'Workspaces are where you\'ll chat with your team, reimburse expenses, issue cards, send invoices, pay bills, and more — all in one place.',
+            subtitle: "Workspaces are where you'll chat with your team, reimburse expenses, issue cards, send invoices, pay bills, and more — all in one place.",
         },
         new: {
             newWorkspace: 'New workspace',
@@ -1022,18 +1032,18 @@ export default {
             captureNoVBACopyBeforeEmail: 'Ask your workspace members to forward receipts to ',
             captureNoVBACopyAfterEmail: ' and download the Expensify App to track cash expenses on the go.',
             unlockNoVBACopy: 'Connect a bank account to reimburse your workspace members online.',
-            fastReimbursementsVBACopy: 'You\'re all set to reimburse receipts from your bank account!',
+            fastReimbursementsVBACopy: "You're all set to reimburse receipts from your bank account!",
             updateCustomUnitError: "Your changes couldn't be saved. The workspace was modified while you were offline, please try again.",
         },
         bills: {
             manageYourBills: 'Manage your bills',
             askYourVendorsBeforeEmail: 'Ask your vendors to forward their invoices to ',
-            askYourVendorsAfterEmail: ' and we\'ll scan them for you to pay.',
+            askYourVendorsAfterEmail: " and we'll scan them for you to pay.",
             viewAllBills: 'View all bills',
             unlockOnlineBillPayment: 'Unlock online bill payment',
             unlockNoVBACopy: 'Connect your bank account to pay bills online for free!',
             hassleFreeBills: 'Hassle-free bills!',
-            VBACopy: 'You\'re all set to make payments from your bank account!',
+            VBACopy: "You're all set to make payments from your bank account!",
         },
         invoices: {
             invoiceClientsAndCustomers: 'Invoice clients and customers',
@@ -1042,7 +1052,7 @@ export default {
             unlockOnlineInvoiceCollection: 'Unlock online invoice collection',
             unlockNoVBACopy: 'Connect your bank account to accept online payments for invoices - by ACH or credit card - to be deposited straight into your account.',
             moneyBackInAFlash: 'Money back, in a flash!',
-            unlockVBACopy: 'You\'re all set to accept payments by ACH or credit card!',
+            unlockVBACopy: "You're all set to accept payments by ACH or credit card!",
             viewUnpaidInvoices: 'View unpaid invoices',
             sendInvoice: 'Send invoice',
         },
@@ -1064,7 +1074,8 @@ export default {
             personalMessagePrompt: 'Message',
             genericFailureMessage: 'An error occurred inviting the user to the workspace, please try again.',
             inviteNoMembersError: 'Please select at least one member to invite',
-            welcomeNote: ({workspaceName}) => `You have been invited to ${workspaceName || 'a workspace'}! Download the Expensify mobile app at use.expensify.com/download to start tracking your expenses.`,
+            welcomeNote: ({workspaceName}) =>
+                `You have been invited to ${workspaceName || 'a workspace'}! Download the Expensify mobile app at use.expensify.com/download to start tracking your expenses.`,
         },
         editor: {
             nameInputLabel: 'Name',
@@ -1072,24 +1083,26 @@ export default {
             nameIsRequiredError: 'You need to define a name for your workspace.',
             currencyInputLabel: 'Default currency',
             currencyInputHelpText: 'All expenses on this workspace will be converted to this currency.',
-            currencyInputDisabledText: 'The default currency can\'t be changed because this workspace is linked to a USD bank account.',
+            currencyInputDisabledText: "The default currency can't be changed because this workspace is linked to a USD bank account.",
             save: 'Save',
             genericFailureMessage: 'An error occurred updating the workspace, please try again.',
             avatarUploadFailureMessage: 'An error occurred uploading the avatar, please try again.',
         },
         bankAccount: {
             continueWithSetup: 'Continue with setup',
-            youreAlmostDone: 'You\'re almost done setting up your bank account, which will let you issue corporate cards, reimburse expenses, collect invoices, and pay bills all from the same bank account.',
+            youreAlmostDone:
+                "You're almost done setting up your bank account, which will let you issue corporate cards, reimburse expenses, collect invoices, and pay bills all from the same bank account.",
             streamlinePayments: 'Streamline payments',
             oneMoreThing: 'One more thing!',
-            allSet: 'You\'re all set!',
-            accountDescriptionNoCards: 'This bank account will be used to reimburse expenses, collect invoices, and pay bills all from the same account.\n\nPlease add a work email address as a secondary login to enable the Expensify Card.',
+            allSet: "You're all set!",
+            accountDescriptionNoCards:
+                'This bank account will be used to reimburse expenses, collect invoices, and pay bills all from the same account.\n\nPlease add a work email address as a secondary login to enable the Expensify Card.',
             accountDescriptionWithCards: 'This bank account will be used to issue corporate cards, reimburse expenses, collect invoices, and pay bills all from the same account.',
             addWorkEmail: 'Add work email address',
-            letsFinishInChat: 'Let\'s finish in chat!',
+            letsFinishInChat: "Let's finish in chat!",
             almostDone: 'Almost done!',
             disconnectBankAccount: 'Disconnect bank account',
-            noLetsStartOver: 'No, let\'s start over',
+            noLetsStartOver: "No, let's start over",
             startOver: 'Start over',
             yesDisconnectMyBankAccount: 'Yes, disconnect my bank account',
             yesStartOver: 'Yes, start over',
@@ -1101,7 +1114,7 @@ export default {
     },
     getAssistancePage: {
         title: 'Get assistance',
-        subtitle: 'We\'re here to clear your path to greatness!',
+        subtitle: "We're here to clear your path to greatness!",
         description: 'Choose from the support options below:',
         chatWithConcierge: 'Chat with Concierge',
         scheduleSetupCall: 'Schedule a setup call',
@@ -1148,14 +1161,24 @@ export default {
         },
     },
     newTaskPage: {
+        task: 'Task',
         assignTask: 'Assign task',
+        assignee: 'Assignee',
+        assigneeError: 'There was an error assigning this task, please try another assignee',
+        confirmTask: 'Confirm task',
+        confirmError: 'Please enter a title and select a share destination',
         title: 'Title',
         description: 'Description',
-        shareIn: 'Share in',
+        descriptionOptional: 'Description (optional)',
+        shareSomewhere: 'Share somewhere',
         pleaseEnterTaskName: 'Please enter a title',
+        markAsComplete: 'Mark as complete',
+        markAsIncomplete: 'Mark as incomplete',
+        pleaseEnterTaskAssignee: 'Please select an assignee',
+        pleaseEnterTaskDestination: 'Please select a share destination',
     },
     statementPage: {
-        generatingPDF: 'We\'re generating your PDF right now. Please come back later!',
+        generatingPDF: "We're generating your PDF right now. Please come back later!",
     },
     keyboardShortcutModal: {
         title: 'Keyboard shortcuts',
@@ -1192,7 +1215,7 @@ export default {
         },
         permissionError: {
             title: 'Storage access',
-            message: 'Expensify can\'t save attachments without storage access. Tap Settings to update permissions.',
+            message: "Expensify can't save attachments without storage access. Tap Settings to update permissions.",
         },
     },
     desktopApplicationMenu: {
@@ -1208,7 +1231,7 @@ export default {
     checkForUpdatesModal: {
         available: {
             title: 'Update Available',
-            message: 'The new version will be available shortly. We\'ll notify you when we\'re ready to update.',
+            message: "The new version will be available shortly. We'll notify you when we're ready to update.",
             soundsGood: 'Sounds good',
         },
         notAvailable: {
@@ -1218,10 +1241,11 @@ export default {
         },
         error: {
             title: 'Update Check Failed',
-            message: 'We couldn\'t look for an update. Please check again in a bit!',
+            message: "We couldn't look for an update. Please check again in a bit!",
         },
     },
     report: {
+        genericCreateReportFailureMessage: 'Unexpected error creating this chat, please try again later',
         genericAddCommentFailureMessage: 'Unexpected error while posting the comment, please try again later',
         noActivityYet: 'No activity yet',
     },
