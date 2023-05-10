@@ -53,54 +53,43 @@ const AvatarWithDisplayName = (props) => {
     return (
         <View style={[styles.appContentHeaderTitle, styles.flex1]}>
             {Boolean(props.report && title) && (
-            <View
-                style={[
-                    styles.flexRow,
-                    styles.alignItemsCenter,
-                    styles.justifyContentBetween,
-                ]}
-            >
-                {isExpenseReport ? (
-                    <SubscriptAvatar
-                        mainAvatar={icons[0]}
-                        secondaryAvatar={icons[1]}
-                        mainTooltip={props.report.ownerEmail}
-                        secondaryTooltip={subtitle}
-                        size={props.size}
-                    />
-                ) : (
-                    <Avatar
-                        size={props.size}
-                        source={icons[0].source}
-                        type={icons[0].type}
-                        name={icons[0].name}
-                        containerStyles={props.size === CONST.AVATAR_SIZE.SMALL ? styles.emptyAvatarSmall : styles.emptyAvatar}
-                    />
-                )}
-                <View style={[styles.flex1, styles.flexColumn, styles.ml3]}>
-                    <DisplayNames
-                        fullTitle={title}
-                        displayNamesWithTooltips={displayNamesWithTooltips}
-                        tooltipEnabled
-                        numberOfLines={1}
-                        textStyles={[styles.headerText, styles.pre]}
-                        shouldUseFullTitle={isExpenseReport}
-                    />
-                    {!_.isEmpty(subtitle) && (
-                    <Text
-                        style={[
-                            styles.sidebarLinkText,
-                            styles.optionAlternateText,
-                            styles.textLabelSupporting,
-                            styles.pre,
-                        ]}
-                        numberOfLines={1}
-                    >
-                        {subtitle}
-                    </Text>
+                <View style={[styles.flexRow, styles.alignItemsCenter, styles.justifyContentBetween]}>
+                    {isExpenseReport ? (
+                        <SubscriptAvatar
+                            mainAvatar={icons[0]}
+                            secondaryAvatar={icons[1]}
+                            mainTooltip={props.report.ownerEmail}
+                            secondaryTooltip={subtitle}
+                            size={props.size}
+                        />
+                    ) : (
+                        <Avatar
+                            size={props.size}
+                            source={icons[0].source}
+                            type={icons[0].type}
+                            name={icons[0].name}
+                            containerStyles={props.size === CONST.AVATAR_SIZE.SMALL ? styles.emptyAvatarSmall : styles.emptyAvatar}
+                        />
                     )}
+                    <View style={[styles.flex1, styles.flexColumn, styles.ml3]}>
+                        <DisplayNames
+                            fullTitle={title}
+                            displayNamesWithTooltips={displayNamesWithTooltips}
+                            tooltipEnabled
+                            numberOfLines={1}
+                            textStyles={[styles.headerText, styles.pre]}
+                            shouldUseFullTitle={isExpenseReport}
+                        />
+                        {!_.isEmpty(subtitle) && (
+                            <Text
+                                style={[styles.sidebarLinkText, styles.optionAlternateText, styles.textLabelSupporting, styles.pre]}
+                                numberOfLines={1}
+                            >
+                                {subtitle}
+                            </Text>
+                        )}
+                    </View>
                 </View>
-            </View>
             )}
         </View>
     );
@@ -109,7 +98,4 @@ AvatarWithDisplayName.propTypes = propTypes;
 AvatarWithDisplayName.displayName = 'AvatarWithDisplayName';
 AvatarWithDisplayName.defaultProps = defaultProps;
 
-export default compose(
-    withWindowDimensions,
-    withLocalize,
-)(AvatarWithDisplayName);
+export default compose(withWindowDimensions, withLocalize)(AvatarWithDisplayName);

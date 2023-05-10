@@ -21,7 +21,4 @@ const defaultProps = {
     params: {},
 };
 
-export {
-    propTypes,
-    defaultProps,
-};
+export {propTypes, defaultProps};

@@ -38,7 +38,6 @@ const personalDetailsPropTypes = PropTypes.shape({
 });
 
 const propTypes = {
-
     /** All of the personal details for everyone */
     personalDetails: PropTypes.objectOf(personalDetailsPropTypes),
 
@@ -75,22 +74,23 @@ class WorkspaceInviteMessagePage extends React.Component {
         this.validate = this.validate.bind(this);
         this.openPrivacyURL = this.openPrivacyURL.bind(this);
         this.state = {
-            welcomeNote: this.getWelcomeNote(),
+            welcomeNote: this.getDefaultWelcomeNote(),
         };
     }
 
     componentDidUpdate(prevProps) {
         if (
-            !(prevProps.preferredLocale !== this.props.preferredLocale
-            && this.state.welcomeNote === Localize.translate(prevProps.preferredLocale, 'workspace.inviteMessage.welcomeNote', {workspaceName: this.props.policy.name})
+            !(
+                (prevProps.preferredLocale !== this.props.preferredLocale || prevProps.policy.name !== this.props.policy.name) &&
+                this.state.welcomeNote === Localize.translate(prevProps.preferredLocale, 'workspace.inviteMessage.welcomeNote', {workspaceName: prevProps.policy.name})
             )
         ) {
             return;
         }
-        this.setState({welcomeNote: this.getWelcomeNote()});
+        this.setState({welcomeNote: this.getDefaultWelcomeNote()});
     }
 
-    getWelcomeNote() {
+    getDefaultWelcomeNote() {
         return this.props.translate('workspace.inviteMessage.welcomeNote', {
             workspaceName: this.props.policy.name,
         });
@@ -98,11 +98,11 @@ class WorkspaceInviteMessagePage extends React.Component {
 
     getAvatarTooltips() {
         const filteredPersonalDetails = _.pick(this.props.personalDetails, this.props.invitedMembersDraft);
-        return _.map(filteredPersonalDetails, personalDetail => Str.removeSMSDomain(personalDetail.login));
+        return _.map(filteredPersonalDetails, (personalDetail) => Str.removeSMSDomain(personalDetail.login));
     }
 
     sendInvitation() {
-        Policy.addMembersToWorkspace(this.props.invitedMembersDraft, this.state.welcomeNote || this.getWelcomeNote(), this.props.route.params.policyID, this.props.betas);
+        Policy.addMembersToWorkspace(this.props.invitedMembersDraft, this.state.welcomeNote, this.props.route.params.policyID, this.props.betas);
         Policy.setWorkspaceInviteMembersDraft(this.props.route.params.policyID, []);
         Navigation.navigate(ROUTES.getWorkspaceMembersRoute(this.props.route.params.policyID));
     }
@@ -150,37 +150,29 @@ class WorkspaceInviteMessagePage extends React.Component {
                         submitButtonText={this.props.translate('common.invite')}
                         enabledWhenOffline
                         footerContent={
-                            (
-                                <Pressable
-                                    onPress={this.openPrivacyURL}
-                                    accessibilityRole="link"
-                                    href={CONST.PRIVACY_URL}
-                                    style={[styles.mv2, styles.alignSelfStart]}
-                                >
-                                    <View style={[styles.flexRow]}>
-                                        <Text style={[styles.mr1, styles.label, styles.link]}>
-                                            {this.props.translate('common.privacy')}
-                                        </Text>
-                                    </View>
-                                </Pressable>
-                            )
+                            <Pressable
+                                onPress={this.openPrivacyURL}
+                                accessibilityRole="link"
+                                href={CONST.PRIVACY_URL}
+                                style={[styles.mv2, styles.alignSelfStart]}
+                            >
+                                <View style={[styles.flexRow]}>
+                                    <Text style={[styles.mr1, styles.label, styles.link]}>{this.props.translate('common.privacy')}</Text>
+                                </View>
+                            </Pressable>
                         }
                     >
                         <View style={[styles.mv4, styles.justifyContentCenter, styles.alignItemsCenter]}>
                             <MultipleAvatars
                                 size={CONST.AVATAR_SIZE.LARGE}
-                                icons={OptionsListUtils.getAvatarsForLogins(this.props.invitedMembersDraft)}
+                                icons={OptionsListUtils.getAvatarsForLogins(this.props.invitedMembersDraft, this.props.personalDetails)}
                                 shouldStackHorizontally
-                                secondAvatarStyle={[
-                                    styles.secondAvatarInline,
-                                ]}
+                                secondAvatarStyle={[styles.secondAvatarInline]}
                                 avatarTooltips={this.getAvatarTooltips()}
                             />
                         </View>
                         <View style={[styles.mb5]}>
-                            <Text>
-                                {this.props.translate('workspace.inviteMessage.inviteMessagePrompt')}
-                            </Text>
+                            <Text>{this.props.translate('workspace.inviteMessage.inviteMessagePrompt')}</Text>
                         </View>
                         <View style={[styles.mb3]}>
                             <TextInput
@@ -193,7 +185,7 @@ class WorkspaceInviteMessagePage extends React.Component {
                                 containerStyles={[styles.workspaceInviteWelcome]}
                                 defaultValue={this.state.welcomeNote}
                                 value={this.state.welcomeNote}
-                                onChangeText={text => this.setState({welcomeNote: text})}
+                                onChangeText={(text) => this.setState({welcomeNote: text})}
                             />
                         </View>
                     </Form>
