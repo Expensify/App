@@ -1,5 +1,6 @@
+import _ from 'underscore';
 import PropTypes from 'prop-types';
-
+import CONST from '../../../CONST';
 import reportActionFragmentPropTypes from './reportActionFragmentPropTypes';
 
 export default {
@@ -35,4 +36,22 @@ export default {
 
     /** Emails of the people to which the whisper was sent to (if any). Returns empty array if it is not a whisper */
     whisperedTo: PropTypes.arrayOf(PropTypes.string),
+
+    /** ReportID of linked report */
+    childReportID: PropTypes.string,
+
+    /** Type of linked report */
+    childType: PropTypes.string,
+
+    /** Title of linked task report */
+    taskTitle: PropTypes.string,
+
+    /** Assignee of linked task report */
+    taskAssignee: PropTypes.string,
+
+    /** Status of child report */
+    childStatusNum: PropTypes.oneOf(_.values(CONST.REPORT.STATUS)),
+
+    /** State of child report */
+    childStateNum: PropTypes.oneOf(_.values(CONST.REPORT.STATE_NUM)),
 };

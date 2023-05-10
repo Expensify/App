@@ -1033,6 +1033,26 @@ function buildOptimisticAddCommentReportAction(text, file) {
 }
 
 /**
+ * Builds an optimistic reportAction for the parent report when a task is created
+ * @param {String} taskReportID - Report ID of the task
+ * @param {String} taskTitle - Title of the task
+ * @param {String} taskAssignee - Email of the person assigned to the task
+ * @param {String} text - Text of the comment
+ * @returns {Object}
+ */
+function buildOptimisticTaskCommentReportAction(taskReportID, taskTitle, taskAssignee, text) {
+    const reportAction = buildOptimisticAddCommentReportAction(text);
+    reportAction.childReportID = taskReportID;
+    reportAction.childType = CONST.REPORT.TYPE.TASK;
+    reportAction.taskTitle = taskTitle;
+    reportAction.taskAssignee = taskAssignee;
+    reportAction.childStatusNum = CONST.REPORT.STATUS.OPEN;
+    reportAction.childStateNum = CONST.REPORT.STATE_NUM.OPEN;
+
+    return reportAction;
+}
+
+/**
  * Builds an optimistic IOU report with a randomly generated reportID
  *
  * @param {String} ownerEmail - Email of the person generating the IOU.
@@ -1892,6 +1912,7 @@ export {
     buildOptimisticIOUReport,
     buildOptimisticIOUReportAction,
     buildOptimisticAddCommentReportAction,
+    buildOptimisticTaskCommentReportAction,
     shouldReportBeInOptionList,
     getChatByParticipants,
     getChatByParticipantsAndPolicy,

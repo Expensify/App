@@ -18,6 +18,7 @@ import * as StyleUtils from '../../styles/StyleUtils';
 import getButtonState from '../../libs/getButtonState';
 import Navigation from '../../libs/Navigation/Navigation';
 import ROUTES from '../../ROUTES';
+import reportActionPropTypes from '../../pages/home/report/reportActionPropTypes';
 
 const propTypes = {
 
@@ -26,6 +27,9 @@ const propTypes = {
 
     /** Whether the task preview is hovered so we can modify its style */
     isHovered: PropTypes.bool,
+
+    /** The linked reportAction */
+    action: PropTypes.shape(reportActionPropTypes).isRequired,
 
     /* Onyx Props */
 
@@ -50,6 +54,7 @@ const defaultProps = {
 
 const TaskPreview = (props) => {
     const isTaskCompleted = props.taskReport.stateNum === CONST.REPORT.STATE_NUM.SUBMITTED && props.taskReport.statusNum === CONST.REPORT.STATUS.APPROVED;
+    const taskTitle = props.action.taskTitle;
 
     return (
         <Pressable
@@ -65,7 +70,7 @@ const TaskPreview = (props) => {
                         // Being implemented in https://github.com/Expensify/App/issues/16858
                     }}
                 />
-                <Text>{props.taskReport.reportName}</Text>
+                <Text>{taskTitle}</Text>
             </View>
             <Icon src={Expensicons.ArrowRight} fill={StyleUtils.getIconFillColor(getButtonState(props.isHovered))} />
         </Pressable>

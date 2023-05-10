@@ -198,7 +198,8 @@ class ReportActionItem extends Component {
         } else if (ReportActionUtils.isCreatedTaskReportAction(this.props.action)) {
             children = (
                 <TaskPreview
-                    taskReportID={this.props.action.originalMessage.taskReportID.toString()}
+                    taskReportID={this.props.action.childReportID.toString()}
+                    action={this.props.action}
                     isHovered={hovered}
                 />
             );
