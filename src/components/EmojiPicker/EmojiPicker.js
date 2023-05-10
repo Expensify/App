@@ -202,7 +202,4 @@ class EmojiPicker extends React.Component {
 
 EmojiPicker.propTypes = propTypes;
 
-export default compose(
-    withViewportOffsetTop,
-    withWindowDimensions,
-)(EmojiPicker);
+export default compose(withViewportOffsetTop, withWindowDimensions)(EmojiPicker);
