@@ -20,12 +20,27 @@ import * as Report from './Report';
 import * as ReportActionsUtils from '../ReportActionsUtils';
 import DateUtils from '../DateUtils';
 import * as Session from './Session';
+import * as PersonalDetails from './PersonalDetails';
 
 let currentUserAccountID = '';
+let currentEmail = '';
 Onyx.connect({
     key: ONYXKEYS.SESSION,
     callback: (val) => {
         currentUserAccountID = lodashGet(val, 'accountID', '');
+        currentEmail = lodashGet(val, 'email', '');
+    },
+});
+
+let myPersonalDetails = {};
+Onyx.connect({
+    key: ONYXKEYS.PERSONAL_DETAILS,
+    callback: (val) => {
+        if (!val || !currentEmail) {
+            return;
+        }
+
+        myPersonalDetails = val[currentEmail];
     },
 });
 
@@ -760,6 +775,98 @@ function generateStatementPDF(period) {
     );
 }
 
+/**
+ * Sets a contact method / secondary login as the user's "Default" contact method.
+ *
+ * @param {String} newDefaultContactMethod
+ */
+function setContactMethodAsDefault(newDefaultContactMethod) {
+    const oldDefaultContactMethod = currentEmail;
+    const optimisticData = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: ONYXKEYS.SESSION,
+            value: {
+                email: newDefaultContactMethod,
+            },
+        },
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: ONYXKEYS.LOGIN_LIST,
+            value: {
+                [newDefaultContactMethod]: {
+                    pendingFields: {
+                        defaultLogin: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
+                    },
+                    errorFields: {
+                        defaultLogin: null,
+                    },
+                },
+            },
+        },
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: ONYXKEYS.PERSONAL_DETAILS,
+            value: {
+                [newDefaultContactMethod]: {
+                    ...myPersonalDetails,
+                    login: newDefaultContactMethod,
+                    displayName: PersonalDetails.getDisplayName(newDefaultContactMethod, myPersonalDetails),
+                },
+                [oldDefaultContactMethod]: null,
+            },
+        },
+    ];
+    const successData = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: ONYXKEYS.LOGIN_LIST,
+            value: {
+                [newDefaultContactMethod]: {
+                    pendingFields: {
+                        defaultLogin: null,
+                    },
+                },
+            },
+        },
+    ];
+    const failureData = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: ONYXKEYS.SESSION,
+            value: {
+                email: oldDefaultContactMethod,
+            },
+        },
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: ONYXKEYS.LOGIN_LIST,
+            value: {
+                [newDefaultContactMethod]: {
+                    pendingFields: {
+                        defaultLogin: null,
+                    },
+                    errorFields: {
+                        defaultLogin: {
+                            [DateUtils.getMicroseconds()]: Localize.translateLocal('contacts.genericFailureMessages.setDefaultContactMethod'),
+                        },
+                    },
+                },
+            },
+        },
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: ONYXKEYS.PERSONAL_DETAILS,
+            value: {
+                [newDefaultContactMethod]: null,
+                [oldDefaultContactMethod]: {...myPersonalDetails},
+            },
+        },
+    ];
+    API.write('SetContactMethodAsDefault', {partnerUserID: newDefaultContactMethod}, {optimisticData, successData, failureData});
+    Navigation.navigate(ROUTES.SETTINGS_CONTACT_METHODS);
+}
+
 export {
     updatePassword,
     closeAccount,
@@ -784,4 +891,5 @@ export {
     deletePaypalMeAddress,
     addPaypalMeAddress,
     updateChatPriorityMode,
+    setContactMethodAsDefault,
 };
