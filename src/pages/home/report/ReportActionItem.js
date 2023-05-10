@@ -299,11 +299,7 @@ class ReportActionItem extends Component {
         if (this.props.action.actionName === CONST.REPORT.ACTIONS.TYPE.CREATED) {
             if (ReportUtils.isThread(this.props.report)) {
                 return (
-                    <ReportActionItemParentAction
-                        reportID={this.props.report.reportID}
-                        parentReportID={`${this.props.report.parentReportID}`}
-                        parentReportActionID={`${this.props.report.parentReportActionID}`}
-                    />
+                    <ReportActionItemParentAction reportID={this.props.report.reportID} />
                 );
             }
             return <ReportActionItemCreated reportID={this.props.report.reportID} />;

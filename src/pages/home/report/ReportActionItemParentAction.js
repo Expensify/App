@@ -1,5 +1,5 @@
 import React from 'react';
-import {View, Text} from 'react-native';
+import {View} from 'react-native';
 import lodashGet from 'lodash/get';
 import {withOnyx} from 'react-native-onyx';
 import PropTypes from 'prop-types';
@@ -21,10 +21,6 @@ const propTypes = {
     /** The id of the report */
     reportID: PropTypes.string.isRequired,
 
-    parentReportID: PropTypes.string.isRequired,
-
-    parentReportActionID: PropTypes.string.isRequired,
-
     /** The report currently being looked at */
     report: reportPropTypes,
 
@@ -39,7 +35,8 @@ const defaultProps = {
 };
 
 const ReportActionItemParentAction = (props) => {
-    const parentReportAction = ReportUtils.getParentReportAction_DEV(props.parentReportActions, `${props.report.parentReportActionID}`);
+    // Will update in subsequent PR to use HOC to subscribe to action
+    const parentReportAction = ReportUtils.getParentReportAction_DEV(props.parentReportActions, props.report.parentReportActionID);
     return (
         <OfflineWithFeedback
             pendingAction={lodashGet(props.report, 'pendingFields.addWorkspaceRoom') || lodashGet(props.report, 'pendingFields.createChat')}
@@ -50,7 +47,7 @@ const ReportActionItemParentAction = (props) => {
             <View style={StyleUtils.getReportWelcomeContainerStyle(props.isSmallScreenWidth)}>
                 <View style={[styles.p5, StyleUtils.getReportWelcomeTopMarginStyle(props.isSmallScreenWidth)]} />
                 { parentReportAction
-                    ? (
+                    && (
                         <ReportActionItem
                             report={props.report}
                             action={parentReportAction}
@@ -59,12 +56,6 @@ const ReportActionItemParentAction = (props) => {
                             shouldDisplayNewMarker={false}
                             index={0}
                         />
-                    ) : (
-                        <View>
-                            <Text style={[styles.textHero, styles.fontColorReactionLabel]}>
-                                {`Error Displaying ReportName: ${props.report.reportName} The parent report is: ${props.parentReportID} and the action is: ${props.parentReportActionID}!`}
-                            </Text>
-                        </View>
                     )}
             </View>
             <View style={[styles.threadDividerLine]} />
