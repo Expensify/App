@@ -23,12 +23,15 @@ const AutoCompleteSuggestions = (props) => {
             }
             e.preventDefault();
         };
-        return () => container.onpointerdown = null;
+        return () => (container.onpointerdown = null);
     }, []);
 
     return (
-        // eslint-disable-next-line react/jsx-props-no-spreading
-        <BaseAutoCompleteSuggestions {...props} ref={containerRef} />
+        <BaseAutoCompleteSuggestions
+            // eslint-disable-next-line react/jsx-props-no-spreading
+            {...props}
+            ref={containerRef}
+        />
     );
 };
 

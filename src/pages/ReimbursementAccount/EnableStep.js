@@ -49,17 +49,16 @@ const EnableStep = (props) => {
     const isUsingExpensifyCard = props.user.isUsingExpensifyCard;
     const achData = lodashGet(props.reimbursementAccount, 'achData') || {};
     const {icon, iconSize} = getBankIcon(achData.bankName);
-    const formattedBankAccountNumber = achData.accountNumber
-        ? `${props.translate('paymentMethodList.accountLastFour')} ${
-            achData.accountNumber.slice(-4)
-        }`
-        : '';
+    const formattedBankAccountNumber = achData.accountNumber ? `${props.translate('paymentMethodList.accountLastFour')} ${achData.accountNumber.slice(-4)}` : '';
     const bankName = achData.addressName;
 
     const errors = lodashGet(props.reimbursementAccount, 'errors', {});
     const pendingAction = lodashGet(props.reimbursementAccount, 'pendingAction', null);
     return (
-        <ScreenWrapper style={[styles.flex1, styles.justifyContentBetween]} includeSafeAreaPaddingBottom={false}>
+        <ScreenWrapper
+            style={[styles.flex1, styles.justifyContentBetween]}
+            includeSafeAreaPaddingBottom={false}
+        >
             <HeaderWithCloseButton
                 title={props.translate('workspace.common.bankAccount')}
                 subtitle={props.policyName}
@@ -74,7 +73,6 @@ const EnableStep = (props) => {
                     title={!isUsingExpensifyCard ? props.translate('workspace.bankAccount.oneMoreThing') : props.translate('workspace.bankAccount.allSet')}
                     icon={!isUsingExpensifyCard ? Illustrations.ConciergeNew : Illustrations.ThumbsUpStars}
                 >
-
                     <OfflineWithFeedback
                         pendingAction={pendingAction}
                         errors={errors}
@@ -120,17 +118,9 @@ const EnableStep = (props) => {
                         />
                     </OfflineWithFeedback>
                 </Section>
-                {Boolean(props.user.isCheckingDomain) && (
-                    <Text style={[styles.formError, styles.mh5]}>
-                        {props.translate('workspace.card.checkingDomain')}
-                    </Text>
-                )}
+                {Boolean(props.user.isCheckingDomain) && <Text style={[styles.formError, styles.mh5]}>{props.translate('workspace.card.checkingDomain')}</Text>}
             </ScrollView>
-            {props.reimbursementAccount.shouldShowResetModal && (
-                <WorkspaceResetBankAccountModal
-                    reimbursementAccount={props.reimbursementAccount}
-                />
-            )}
+            {props.reimbursementAccount.shouldShowResetModal && <WorkspaceResetBankAccountModal reimbursementAccount={props.reimbursementAccount} />}
         </ScreenWrapper>
     );
 };

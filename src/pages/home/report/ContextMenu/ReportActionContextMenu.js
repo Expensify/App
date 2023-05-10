@@ -33,19 +33,7 @@ function showContextMenu(
     if (!contextMenuRef.current) {
         return;
     }
-    contextMenuRef.current.showContextMenu(
-        type,
-        event,
-        selection,
-        contextMenuAnchor,
-        reportID,
-        reportAction,
-        draftMessage,
-        onShow,
-        onHide,
-        isArchivedRoom,
-        isChronosReport,
-    );
+    contextMenuRef.current.showContextMenu(type, event, selection, contextMenuAnchor, reportID, reportAction, draftMessage, onShow, onHide, isArchivedRoom, isChronosReport);
 }
 
 /**
@@ -112,11 +100,4 @@ function isActiveReportAction(actionID) {
     return contextMenuRef.current.isActiveReportAction(actionID);
 }
 
-export {
-    contextMenuRef,
-    showContextMenu,
-    hideContextMenu,
-    isActiveReportAction,
-    showDeleteModal,
-    hideDeleteModal,
-};
+export {contextMenuRef, showContextMenu, hideContextMenu, isActiveReportAction, showDeleteModal, hideDeleteModal};

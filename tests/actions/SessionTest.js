@@ -33,13 +33,13 @@ describe('Session', () => {
         let credentials;
         Onyx.connect({
             key: ONYXKEYS.CREDENTIALS,
-            callback: val => credentials = val || {},
+            callback: (val) => (credentials = val || {}),
         });
 
         let session;
         Onyx.connect({
             key: ONYXKEYS.SESSION,
-            callback: val => session = val,
+            callback: (val) => (session = val),
         });
 
         // When we sign in with the test user
@@ -62,17 +62,21 @@ describe('Session', () => {
                 HttpUtils.xhr
 
                     // This will make the call to OpenApp below return with an expired session code
-                    .mockImplementationOnce(() => Promise.resolve({
-                        jsonCode: CONST.JSON_CODE.NOT_AUTHENTICATED,
-                    }))
+                    .mockImplementationOnce(() =>
+                        Promise.resolve({
+                            jsonCode: CONST.JSON_CODE.NOT_AUTHENTICATED,
+                        }),
+                    )
 
                     // The next call should be Authenticate since we are reauthenticating
-                    .mockImplementationOnce(() => Promise.resolve({
-                        jsonCode: CONST.JSON_CODE.SUCCESS,
-                        accountID: TEST_USER_ACCOUNT_ID,
-                        authToken: TEST_REFRESHED_AUTH_TOKEN,
-                        email: TEST_USER_LOGIN,
-                    }));
+                    .mockImplementationOnce(() =>
+                        Promise.resolve({
+                            jsonCode: CONST.JSON_CODE.SUCCESS,
+                            accountID: TEST_USER_ACCOUNT_ID,
+                            authToken: TEST_REFRESHED_AUTH_TOKEN,
+                            email: TEST_USER_LOGIN,
+                        }),
+                    );
 
                 // When we attempt to fetch the initial app data via the API
                 App.confirmReadyToOpenApp();
@@ -86,14 +90,10 @@ describe('Session', () => {
             });
     });
 
-    test('Push notifications are subscribed after signing in', () => (
-        TestHelper.signInWithTestUser()
-            .then(() => expect(PushNotification.register).toBeCalled())
-    ));
+    test('Push notifications are subscribed after signing in', () => TestHelper.signInWithTestUser().then(() => expect(PushNotification.register).toBeCalled()));
 
-    test('Push notifications are unsubscribed after signing out', () => (
+    test('Push notifications are unsubscribed after signing out', () =>
         TestHelper.signInWithTestUser()
             .then(TestHelper.signOutTestUser)
-            .then(() => expect(PushNotification.deregister).toBeCalled())
-    ));
+            .then(() => expect(PushNotification.deregister).toBeCalled()));
 });
