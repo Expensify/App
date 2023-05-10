@@ -854,7 +854,8 @@ const CONST = {
             USER_CAMERA_DENINED: 'Onfido.OnfidoFlowError',
             USER_CAMERA_PERMISSION: 'Encountered an error: cameraPermission',
             // eslint-disable-next-line max-len
-            USER_CAMERA_CONSENT_DENIED: 'Unexpected result Intent. It might be a result of incorrect integration, make sure you only pass Onfido intent to handleActivityResult. It might be due to unpredictable crash or error. Please report the problem to android-sdk@onfido.com. Intent: null \n resultCode: 0',
+            USER_CAMERA_CONSENT_DENIED:
+                'Unexpected result Intent. It might be a result of incorrect integration, make sure you only pass Onfido intent to handleActivityResult. It might be due to unpredictable crash or error. Please report the problem to android-sdk@onfido.com. Intent: null \n resultCode: 0',
         },
     },
 
@@ -1142,7 +1143,10 @@ const CONST = {
     TESTING: {
         SCREEN_SIZE: {
             SMALL: {
-                width: 300, height: 700, scale: 1, fontScale: 1,
+                width: 300,
+                height: 700,
+                scale: 1,
+                fontScale: 1,
             },
         },
     },
@@ -1156,13 +1160,7 @@ const CONST = {
         {
             name: '+1',
             code: '👍',
-            types: [
-                '👍🏿',
-                '👍🏾',
-                '👍🏽',
-                '👍🏼',
-                '👍🏻',
-            ],
+            types: ['👍🏿', '👍🏾', '👍🏽', '👍🏼', '👍🏻'],
         },
         {
             name: 'heart',
@@ -1241,7 +1239,7 @@ const CONST = {
         CD: 'Congo - Kinshasa',
         CK: 'Cook Islands',
         CR: 'Costa Rica',
-        CI: 'Côte d\'Ivoire',
+        CI: "Côte d'Ivoire",
         HR: 'Croatia',
         CU: 'Cuba',
         CW: 'Curaçao',
@@ -2268,9 +2266,7 @@ const CONST = {
         EXPECTED_OUTPUT: 'FCFA 123,457',
     },
 
-    PATHS_TO_TREAT_AS_EXTERNAL: [
-        'NewExpensify.dmg',
-    ],
+    PATHS_TO_TREAT_AS_EXTERNAL: ['NewExpensify.dmg'],
 
     // Test tool menu parameters
     TEST_TOOL: {
@@ -2279,9 +2275,30 @@ const CONST = {
     },
 
     PAYPAL_SUPPORTED_CURRENCIES: [
-        'AUD', 'BRL', 'CAD', 'CZK', 'DKK', 'EUR', 'HKD', 'HUF',
-        'ILS', 'JPY', 'MYR', 'MXN', 'TWD', 'NZD', 'NOK', 'PHP',
-        'PLN', 'GBP', 'RUB', 'SGD', 'SEK', 'CHF', 'THB', 'USD',
+        'AUD',
+        'BRL',
+        'CAD',
+        'CZK',
+        'DKK',
+        'EUR',
+        'HKD',
+        'HUF',
+        'ILS',
+        'JPY',
+        'MYR',
+        'MXN',
+        'TWD',
+        'NZD',
+        'NOK',
+        'PHP',
+        'PLN',
+        'GBP',
+        'RUB',
+        'SGD',
+        'SEK',
+        'CHF',
+        'THB',
+        'USD',
     ],
     CONCIERGE_TRAVEL_URL: 'https://community.expensify.com/discussion/7066/introducing-concierge-travel',
     SCREEN_READER_STATES: {

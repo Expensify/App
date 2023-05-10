@@ -103,12 +103,7 @@ const IOUAction = (props) => {
                 shouldShowPendingConversionMessage={shouldShowPendingConversionMessage}
                 onPayButtonPressed={onIOUPreviewPressed}
                 onPreviewPressed={onIOUPreviewPressed}
-                containerStyles={[
-                    styles.cursorPointer,
-                    props.isHovered
-                        ? styles.iouPreviewBoxHover
-                        : undefined,
-                ]}
+                containerStyles={[styles.cursorPointer, props.isHovered ? styles.iouPreviewBoxHover : undefined]}
                 isHovered={props.isHovered}
             />
             {props.isMostRecentIOUReportAction && !hasMultipleParticipants && (

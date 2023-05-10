@@ -37,13 +37,8 @@ class ACHContractStep extends React.Component {
         this.submit = this.submit.bind(this);
 
         this.state = {
-
             // Array of strings containing the keys to render associated Identity Forms
-            beneficialOwners: lodashGet(
-                this.props.reimbursementAccountDraft,
-                'beneficialOwners',
-                lodashGet(this.props.reimbursementAccount, 'achData.beneficialOwners', []),
-            ),
+            beneficialOwners: lodashGet(this.props.reimbursementAccountDraft, 'beneficialOwners', lodashGet(this.props.reimbursementAccount, 'achData.beneficialOwners', [])),
         };
     }
 
@@ -132,8 +127,7 @@ class ACHContractStep extends React.Component {
      * @returns {Boolean}
      */
     canAddMoreBeneficialOwners(ownsMoreThan25Percent) {
-        return _.size(this.state.beneficialOwners) < 3
-            || (_.size(this.state.beneficialOwners) === 3 && !ownsMoreThan25Percent);
+        return _.size(this.state.beneficialOwners) < 3 || (_.size(this.state.beneficialOwners) === 3 && !ownsMoreThan25Percent);
     }
 
     /**
@@ -142,17 +136,18 @@ class ACHContractStep extends React.Component {
     submit(values) {
         const bankAccountID = lodashGet(this.props.reimbursementAccount, 'achData.bankAccountID') || 0;
 
-        const beneficialOwners = !values.hasOtherBeneficialOwners ? []
-            : _.map(this.state.beneficialOwners, ownerKey => ({
-                firstName: lodashGet(values, `beneficialOwner_${ownerKey}_firstName`),
-                lastName: lodashGet(values, `beneficialOwner_${ownerKey}_lastName`),
-                dob: lodashGet(values, `beneficialOwner_${ownerKey}_dob`),
-                ssnLast4: lodashGet(values, `beneficialOwner_${ownerKey}_ssnLast4`),
-                street: lodashGet(values, `beneficialOwner_${ownerKey}_street`),
-                city: lodashGet(values, `beneficialOwner_${ownerKey}_city`),
-                state: lodashGet(values, `beneficialOwner_${ownerKey}_state`),
-                zipCode: lodashGet(values, `beneficialOwner_${ownerKey}_zipCode`),
-            }));
+        const beneficialOwners = !values.hasOtherBeneficialOwners
+            ? []
+            : _.map(this.state.beneficialOwners, (ownerKey) => ({
+                  firstName: lodashGet(values, `beneficialOwner_${ownerKey}_firstName`),
+                  lastName: lodashGet(values, `beneficialOwner_${ownerKey}_lastName`),
+                  dob: lodashGet(values, `beneficialOwner_${ownerKey}_dob`),
+                  ssnLast4: lodashGet(values, `beneficialOwner_${ownerKey}_ssnLast4`),
+                  street: lodashGet(values, `beneficialOwner_${ownerKey}_street`),
+                  city: lodashGet(values, `beneficialOwner_${ownerKey}_city`),
+                  state: lodashGet(values, `beneficialOwner_${ownerKey}_state`),
+                  zipCode: lodashGet(values, `beneficialOwner_${ownerKey}_zipCode`),
+              }));
 
         BankAccounts.updateBeneficialOwnersForBankAccount({
             ownsMoreThan25Percent: values.ownsMoreThan25Percent,
@@ -202,7 +197,7 @@ class ACHContractStep extends React.Component {
                                     if (ownsMoreThan25Percent && this.state.beneficialOwners.length > 3) {
                                         // If the user owns more than 25% of the company, then there can only be a maximum of 3 other beneficial owners who owns more than 25%.
                                         // We have to remove the 4th beneficial owner if the checkbox is checked.
-                                        this.setState(prevState => ({beneficialOwners: prevState.beneficialOwners.slice(0, -1)}));
+                                        this.setState((prevState) => ({beneficialOwners: prevState.beneficialOwners.slice(0, -1)}));
                                     }
                                 }}
                                 defaultValue={this.props.getDefaultStateForField('ownsMoreThan25Percent', false)}
@@ -229,10 +224,11 @@ class ACHContractStep extends React.Component {
                             {Boolean(inputValues.hasOtherBeneficialOwners) && (
                                 <View style={[styles.mb2]}>
                                     {_.map(this.state.beneficialOwners, (ownerKey, index) => (
-                                        <View key={index} style={[styles.p5, styles.border, styles.mb2]}>
-                                            <Text style={[styles.textStrong, styles.mb2, styles.textWhite]}>
-                                                {this.props.translate('beneficialOwnersStep.additionalOwner')}
-                                            </Text>
+                                        <View
+                                            key={index}
+                                            style={[styles.p5, styles.border, styles.mb2]}
+                                        >
+                                            <Text style={[styles.textStrong, styles.mb2, styles.textWhite]}>{this.props.translate('beneficialOwnersStep.additionalOwner')}</Text>
                                             <IdentityForm
                                                 translate={this.props.translate}
                                                 style={[styles.mb2]}
@@ -259,9 +255,7 @@ class ACHContractStep extends React.Component {
                                                 shouldSaveDraft
                                             />
                                             {this.state.beneficialOwners.length > 1 && (
-                                                <TextLink onPress={() => this.removeBeneficialOwner(ownerKey)}>
-                                                    {this.props.translate('beneficialOwnersStep.removeOwner')}
-                                                </TextLink>
+                                                <TextLink onPress={() => this.removeBeneficialOwner(ownerKey)}>{this.props.translate('beneficialOwnersStep.removeOwner')}</TextLink>
                                             )}
                                         </View>
                                     ))}
@@ -273,18 +267,14 @@ class ACHContractStep extends React.Component {
                                     )}
                                 </View>
                             )}
-                            <Text style={[styles.mv5]}>
-                                {this.props.translate('beneficialOwnersStep.agreement')}
-                            </Text>
+                            <Text style={[styles.mv5]}>{this.props.translate('beneficialOwnersStep.agreement')}</Text>
                             <CheckboxWithLabel
                                 inputID="acceptTermsAndConditions"
                                 style={[styles.mt4]}
                                 LabelComponent={() => (
                                     <Text>
                                         {this.props.translate('common.iAcceptThe')}
-                                        <TextLink href="https://use.expensify.com/achterms">
-                                            {`${this.props.translate('beneficialOwnersStep.termsAndConditions')}`}
-                                        </TextLink>
+                                        <TextLink href="https://use.expensify.com/achterms">{`${this.props.translate('beneficialOwnersStep.termsAndConditions')}`}</TextLink>
                                     </Text>
                                 )}
                                 defaultValue={this.props.getDefaultStateForField('acceptTermsAndConditions', false)}
@@ -293,9 +283,7 @@ class ACHContractStep extends React.Component {
                             <CheckboxWithLabel
                                 inputID="certifyTrueInformation"
                                 style={[styles.mt4]}
-                                LabelComponent={() => (
-                                    <Text>{this.props.translate('beneficialOwnersStep.certifyTrueAndAccurate')}</Text>
-                                )}
+                                LabelComponent={() => <Text>{this.props.translate('beneficialOwnersStep.certifyTrueAndAccurate')}</Text>}
                                 defaultValue={this.props.getDefaultStateForField('certifyTrueInformation', false)}
                                 shouldSaveDraft
                             />

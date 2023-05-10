@@ -12,10 +12,7 @@ import Tooltip from '../Tooltip';
 import * as DeviceCapabilities from '../../libs/DeviceCapabilities';
 import styles from '../../styles/styles';
 import withWindowDimensions, {windowDimensionsPropTypes} from '../withWindowDimensions';
-import {
-    propTypes as anchorForCommentsOnlyPropTypes,
-    defaultProps as anchorForCommentsOnlyDefaultProps,
-} from './anchorForCommentsOnlyPropTypes';
+import {propTypes as anchorForCommentsOnlyPropTypes, defaultProps as anchorForCommentsOnlyDefaultProps} from './anchorForCommentsOnlyPropTypes';
 
 const propTypes = {
     /** Press in handler for the link */
@@ -51,23 +48,24 @@ const BaseAnchorForCommentsOnly = (props) => {
     return (
         <PressableWithSecondaryInteraction
             inline
-            onSecondaryInteraction={
-                (event) => {
-                    ReportActionContextMenu.showContextMenu(
-                        Str.isValidEmailMarkdown(props.displayName) ? ContextMenuActions.CONTEXT_MENU_TYPES.EMAIL : ContextMenuActions.CONTEXT_MENU_TYPES.LINK,
-                        event,
-                        props.href,
-                        lodashGet(linkRef, 'current'),
-                    );
-                }
-            }
+            onSecondaryInteraction={(event) => {
+                ReportActionContextMenu.showContextMenu(
+                    Str.isValidEmailMarkdown(props.displayName) ? ContextMenuActions.CONTEXT_MENU_TYPES.EMAIL : ContextMenuActions.CONTEXT_MENU_TYPES.LINK,
+                    event,
+                    props.href,
+                    lodashGet(linkRef, 'current'),
+                );
+            }}
             onPress={linkProps.onPress}
             onPressIn={props.onPressIn}
             onPressOut={props.onPressOut}
         >
-            <Tooltip containerStyles={[styles.dInline]} text={props.href}>
+            <Tooltip
+                containerStyles={[styles.dInline]}
+                text={props.href}
+            >
                 <Text
-                    ref={el => linkRef = el}
+                    ref={(el) => (linkRef = el)}
                     style={StyleSheet.flatten([props.style, defaultTextStyle])}
                     accessibilityRole="link"
                     hrefAttrs={{
@@ -75,10 +73,8 @@ const BaseAnchorForCommentsOnly = (props) => {
                         target: props.target,
                     }}
                     href={linkProps.href}
-
                     // Add testID so it gets selected as an anchor tag by SelectionScraper
                     testID="a"
-
                     // eslint-disable-next-line react/jsx-props-no-spreading
                     {...rest}
                 >

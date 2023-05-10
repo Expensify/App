@@ -67,19 +67,15 @@ class EmojiPickerMenuItem extends PureComponent {
                 onHoverOut={this.props.onHoverOut}
                 onFocus={this.props.onFocus}
                 onBlur={this.props.onBlur}
-                ref={ref => this.ref = ref}
-                style={({
-                    pressed,
-                }) => ([
+                ref={(ref) => (this.ref = ref)}
+                style={({pressed}) => [
                     StyleUtils.getButtonBackgroundColorStyle(getButtonState(false, pressed)),
                     this.props.isHighlighted && this.props.isUsingKeyboardMovement ? styles.emojiItemKeyboardHighlighted : {},
                     this.props.isHighlighted && !this.props.isUsingKeyboardMovement ? styles.emojiItemHighlighted : {},
                     styles.emojiItem,
-                ])}
+                ]}
             >
-                <Text style={[styles.emojiText]}>
-                    {this.props.emoji}
-                </Text>
+                <Text style={[styles.emojiText]}>{this.props.emoji}</Text>
             </Pressable>
         );
     }
@@ -100,7 +96,6 @@ EmojiPickerMenuItem.defaultProps = {
 // by only re-rendering at most two EmojiPickerMenuItems that are highlighted/un-highlighted per user action.
 export default React.memo(
     EmojiPickerMenuItem,
-    (prevProps, nextProps) => prevProps.isHighlighted === nextProps.isHighlighted
-        && prevProps.emoji === nextProps.emoji
-        && prevProps.isUsingKeyboardMovement === nextProps.isUsingKeyboardMovement,
+    (prevProps, nextProps) =>
+        prevProps.isHighlighted === nextProps.isHighlighted && prevProps.emoji === nextProps.emoji && prevProps.isUsingKeyboardMovement === nextProps.isUsingKeyboardMovement,
 );
