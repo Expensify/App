@@ -253,7 +253,7 @@ class AttachmentCarousel extends React.Component {
      */
     renderCell(props) {
         // We are isolating the method this function uses to update the width of the container to make it respond faster
-        const style = [props.style, styles.h100, {width: useWindowDimensions().width}];
+        const style = [props.style, styles.h100, {width: this.props.isSmallScreenWidth ? this.props.windowWidth - 1 : this.props.windowWidth - 39}];
 
         // eslint-disable-next-line react/jsx-props-no-spreading
         return <View {...props} style={style} />;
