@@ -3,7 +3,7 @@ import {propTypes, defaultProps} from './checkboxWithTooltipPropTypes';
 import withWindowDimensions from '../withWindowDimensions';
 import CheckboxWithTooltipForMobileWebAndNative from './CheckboxWithTooltipForMobileWebAndNative';
 
-const CheckboxWithTooltip = props => (
+const CheckboxWithTooltip = (props) => (
     <CheckboxWithTooltipForMobileWebAndNative
         style={props.style}
         isChecked={props.isChecked}
