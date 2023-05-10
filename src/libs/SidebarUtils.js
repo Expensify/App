@@ -159,6 +159,10 @@ function getOrderedReportIDs(reportIDFromRoute) {
             return;
         }
 
+        if (ReportUtils.isTaskReport(report)) {
+            return;
+        }
+
         nonArchivedReports.push(report);
     });
 
@@ -293,8 +297,10 @@ function getOptionData(reportID) {
         });
     }
 
-    if ((result.isChatRoom || result.isPolicyExpenseChat || result.isTaskReport) && !result.isArchivedRoom) {
+    if ((result.isChatRoom || result.isPolicyExpenseChat) && !result.isArchivedRoom) {
         result.alternateText = lastMessageTextFromReport.length > 0 ? lastMessageText : Localize.translate(preferredLocale, 'report.noActivityYet');
+    } else if (result.isTaskReport) {
+        result.alternateText = Localize.translate(preferredLocale, 'newTaskPage.task');
     } else {
         if (!lastMessageText) {
             // Here we get the beginning of chat history message and append the display name for each user, adding pronouns if there are any.
