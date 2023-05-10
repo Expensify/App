@@ -23,7 +23,6 @@ const propTypes = {
     mostRecentReply: PropTypes.string.isRequired,
 
     /** ID of child thread report */
-    // eslint-disable-next-line react/no-unused-prop-types
     childReportID: PropTypes.string.isRequired,
 
     /** localization props */
@@ -35,9 +34,9 @@ const ReportActionItemThread = props => (
         <Pressable
             // eslint-disable-next-line arrow-body-style
             onPress={() => {
-                // Report.navigateToAndOpenChildReport(props.childReportID);
-                // Report.openReport(props.childReportID);
-                // Navigation.navigate(ROUTES.getReportRoute(props.childReportID));
+                // Replace the following with Report.navigateToAndOpenChildReport(props.childReportID);
+                Report.openReport(props.childReportID);
+                Navigation.navigate(ROUTES.getReportRoute(props.childReportID));
                 return '';
             }}
         >
