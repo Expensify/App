@@ -17,6 +17,7 @@ import OfflineWithFeedback from '../../../components/OfflineWithFeedback';
 import Form from '../../../components/Form';
 import Navigation from '../../../libs/Navigation/Navigation';
 import ROUTES from '../../../ROUTES';
+import getPermittedDecimalSeparator from '../../../libs/getPermittedDecimalSeparator';
 
 const propTypes = {
     ...policyPropTypes,
@@ -30,22 +31,9 @@ const defaultProps = {
 class WorkspaceRateAndUnitPage extends React.Component {
     constructor(props) {
         super(props);
-        const distanceCustomUnit = _.find(lodashGet(props, 'policy.customUnits', {}), unit => unit.name === 'Distance');
-        const customUnitRate = _.find(lodashGet(distanceCustomUnit, 'rates', {}), rate => rate.name === 'Default Rate');
-
-        this.state = {
-            unitID: lodashGet(distanceCustomUnit, 'customUnitID', ''),
-            unitName: lodashGet(distanceCustomUnit, 'name', ''),
-            unitValue: lodashGet(distanceCustomUnit, 'attributes.unit', 'mi'),
-            unitRateID: lodashGet(customUnitRate, 'customUnitRateID', ''),
-            unitRateValue: this.getUnitRateValue(customUnitRate),
-            outputCurrency: lodashGet(props, 'policy.outputCurrency', ''),
-        };
-        this.getUnitItems = this.getUnitItems.bind(this);
         this.submit = this.submit.bind(this);
         this.validate = this.validate.bind(this);
     }
-
     getUnitRateValue(customUnitRate) {
         return this.getRateDisplayValue(lodashGet(customUnitRate, 'rate', 0) / CONST.POLICY.CUSTOM_UNIT_RATE_BASE_OFFSET);
     }
@@ -78,13 +66,14 @@ class WorkspaceRateAndUnitPage extends React.Component {
         if (!distanceCustomUnit) {
             return;
         }
-
+        const currentCustomUnitRate = _.find(lodashGet(distanceCustomUnit, 'rates', {}), rate => rate.name === 'Default Rate');
+        const unitID = lodashGet(distanceCustomUnit, 'customUnitID', '');
+        const unitName = lodashGet(distanceCustomUnit, 'name', '');
         const rateNumValue = this.getNumericValue(rate);
-        const currentCustomUnitRate = lodashGet(distanceCustomUnit, ['rates', this.state.unitRateID], {});
 
         const newCustomUnit = {
-            customUnitID: this.state.unitID,
-            name: this.state.unitName,
+            customUnitID: unitID,
+            name: unitName,
             attributes: {unit},
             rates: {
                 ...currentCustomUnitRate,
@@ -104,13 +93,19 @@ class WorkspaceRateAndUnitPage extends React.Component {
         const errors = {};
         const decimalNumberRegex = new RegExp(CONST.REGEX.DECIMAL_NUMBER);
         if (!decimalNumberRegex.test(values.rate)) {
+        const rateValue = values.rate.replace(/[^0-9.,]/g, '');
+
+        const decimalSeparator = this.props.toLocaleDigit('.');
+        const rateValueRegex = RegExp(String.raw`^\d{1,8}([${getPermittedDecimalSeparator(decimalSeparator)}]\d{0,3})?$`, 'i');
+        if (!rateValueRegex.test(rateValue)) {
             errors.rate = this.props.translate('workspace.reimburse.invalidRateError');
         }
-
         return errors;
     }
 
     render() {
+        const distanceCustomUnit = _.find(lodashGet(this.props, 'policy.customUnits', {}), unit => unit.name === 'Distance');
+        const distanceCustomRate = _.find(lodashGet(distanceCustomUnit, 'rates', {}), rate => rate.name === 'Default Rate');
         return (
             <WorkspacePageWithSections
                 shouldUseScrollView
@@ -123,7 +118,7 @@ class WorkspaceRateAndUnitPage extends React.Component {
                 {() => (
                     <Form
                         formID={ONYXKEYS.FORMS.WORKSPACE_RATE_AND_UNIT_FORM}
-                        submitButtonText={this.props.translate('workspace.editor.save')}
+                        submitButtonText={this.props.translate('common.save')}
                         style={[styles.mh5, styles.flexGrow1]}
                         scrollContextEnabled
                         validate={this.validate}
@@ -131,14 +126,15 @@ class WorkspaceRateAndUnitPage extends React.Component {
                         enabledWhenOffline
                     >
                         <OfflineWithFeedback
-                            pendingAction={lodashGet(this.props.policy, 'pendingFields.generalSettings')}
+                            pendingAction={distanceCustomUnit.pendingFields}
+                            errors={distanceCustomUnit.errors}
                         >
                             <TextInput
                                 inputID="rate"
                                 containerStyles={[styles.mt4]}
-                                defaultValue={this.state.unitRateValue}
+                                defaultValue={this.getUnitRateValue(distanceCustomRate)}
                                 label={this.props.translate('workspace.reimburse.trackDistanceRate')}
-                                placeholder={this.state.outputCurrency}
+                                placeholder={lodashGet(this.props, 'policy.outputCurrency', '')}
                                 autoCompleteType="off"
                                 autoCorrect={false}
                                 keyboardType={CONST.KEYBOARD_TYPE.DECIMAL_PAD}
@@ -147,7 +143,7 @@ class WorkspaceRateAndUnitPage extends React.Component {
                             <View style={[styles.mt4]}>
                                 <Picker
                                     inputID="unit"
-                                    defaultValue={this.state.unitValue}
+                                    defaultValue={lodashGet(distanceCustomUnit, 'attributes.unit', 'mi')}
                                     label={this.props.translate('workspace.reimburse.trackDistanceUnit')}
                                     items={this.getUnitItems()}
                                 />

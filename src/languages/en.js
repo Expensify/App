@@ -134,6 +134,9 @@ export default {
         zipCodeExampleFormat: ({zipSampleFormat}) => (zipSampleFormat ? `e.g. ${zipSampleFormat}` : ''),
         description: 'Description',
         with: 'with',
+        per: 'per',
+        mi: 'mile',
+        km: 'kilometer',
     },
     attachmentPicker: {
         cameraPermissionRequired: 'Camera access',
@@ -1014,9 +1017,7 @@ export default {
             captureReceipts: 'Capture receipts',
             fastReimbursementsHappyMembers: 'Fast reimbursements = happy members!',
             kilometers: 'Kilometers',
-            km: 'kilometer',
             miles: 'Miles',
-            mi: 'mile',
             viewAllReceipts: 'View all receipts',
             reimburseReceipts: 'Reimburse receipts',
             trackDistance: 'Track distance',
@@ -1030,7 +1031,6 @@ export default {
             fastReimbursementsVBACopy: 'You\'re all set to reimburse receipts from your bank account!',
             updateCustomUnitError: "Your changes couldn't be saved. The workspace was modified while you were offline, please try again.",
             invalidRateError: 'Please enter a valid rate',
-            per: 'per',
         },
         bills: {
             manageYourBills: 'Manage your bills',

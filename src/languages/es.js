@@ -133,6 +133,9 @@ export default {
         zipCodeExampleFormat: ({zipSampleFormat}) => (zipSampleFormat ? `p. ej. ${zipSampleFormat}` : ''),
         description: 'Descripción',
         with: 'con',
+        per: 'por',
+        mi: 'milla',
+        km: 'kilómetro',
     },
     attachmentPicker: {
         cameraPermissionRequired: 'Permiso para acceder a la cámara',
@@ -1015,9 +1018,7 @@ export default {
             captureReceipts: 'Captura recibos',
             fastReimbursementsHappyMembers: '¡Reembolsos rápidos = miembros felices!',
             kilometers: 'Kilómetros',
-            km: 'kilómetro',
             miles: 'Millas',
-            mi: 'milla',
             viewAllReceipts: 'Ver todos los recibos',
             reimburseReceipts: 'Reembolsar recibos',
             trackDistance: 'Medir distancia',
@@ -1031,7 +1032,6 @@ export default {
             fastReimbursementsVBACopy: '¡Todo listo para reembolsar recibos desde tu cuenta bancaria!',
             updateCustomUnitError: 'Los cambios no han podido ser guardados. El espacio de trabajo ha sido modificado mientras estabas desconectado. Por favor, inténtalo de nuevo.',
             invalidRateError: 'Por favor ingrese una tarifa válida',
-            per: 'por',
         },
         bills: {
             manageYourBills: 'Gestiona tus facturas',
