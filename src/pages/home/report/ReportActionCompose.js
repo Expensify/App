@@ -146,16 +146,14 @@ const defaultProps = {
 };
 
 /**
-  * Return the max available index for arrow manager.
+ * Return the max available index for arrow manager.
  * @param {Number} numRows
  * @param {Boolean} isEmojiPickerLarge
  * @returns {Number}
  */
 const getMaxArrowIndex = (numRows, isEmojiPickerLarge) => {
     // EmojiRowCount is number of emoji suggestions. For small screen we can fit 3 items and for large we show up to 5 items
-    const emojiRowCount = isEmojiPickerLarge
-        ? Math.max(numRows, CONST.EMOJI_SUGGESTER.MAX_AMOUNT_OF_ITEMS)
-        : Math.max(numRows, CONST.EMOJI_SUGGESTER.MIN_AMOUNT_OF_ITEMS);
+    const emojiRowCount = isEmojiPickerLarge ? Math.max(numRows, CONST.AUTO_COMPLETE_SUGGESTER.MAX_AMOUNT_OF_ITEMS) : Math.max(numRows, CONST.AUTO_COMPLETE_SUGGESTER.MIN_AMOUNT_OF_ITEMS);
 
     // -1 because we start at 0
     return emojiRowCount - 1;
@@ -220,6 +218,7 @@ function ReportActionCompose(props) {
     const [shouldBlockEmojiCalc, setShouldBlockEmojiCalc] = useState(false);
     const [isEmojiPickerLarge, setIsEmojiPickerLarge] = useState(false);
     const [composerHeight, setComposerHeight] = useState(0);
+    const [isAttachmentPreviewActive, setIsAttachmentPreviewActive] = useState(false);
 
     /**
      * Updates the composer when the comment length is exceeded
@@ -642,8 +641,7 @@ function ReportActionCompose(props) {
      * @param {Object} e
      */
     const triggerHotkeyActions = useCallback((e) => {
-        // Do not trigger actions for mobileWeb or native clients that have the keyboard open because for those devices, we want the return key to insert newlines rather than submit the form
-        if (!e || props.isSmallScreenWidth || props.isKeyboardShown) {
+        if (!e || ComposerUtils.canSkipTriggerHotkeys(props.isSmallScreenWidth, props.isKeyboardShown)) {
             return;
         }
 
@@ -666,14 +664,14 @@ function ReportActionCompose(props) {
 
         // Trigger the edit box for last sent message if ArrowUp is pressed and the comment is empty and Chronos is not in the participants
         if (
-            e.key === CONST.KEYBOARD_SHORTCUTS.ARROW_UP.shortcutKey && textInput.current.selectionStart === 0 && isCommentEmpty && !ReportUtils.chatIncludesChronos(props.report)
+            e.key === CONST.KEYBOARD_SHORTCUTS.ARROW_UP.shortcutKey &&
+            textInput.current.selectionStart === 0 &&
+            isCommentEmpty &&
+            !ReportUtils.chatIncludesChronos(props.report)
         ) {
             e.preventDefault();
 
-            const lastReportAction = _.find(
-                props.reportActions,
-                action => ReportUtils.canEditReportAction(action),
-            );
+            const lastReportAction = _.find(props.reportActions, (action) => ReportUtils.canEditReportAction(action));
 
             if (lastReportAction !== -1 && lastReportAction) {
                 Report.saveReportActionDraft(props.reportID, lastReportAction.reportActionID, _.last(lastReportAction.message).html);
@@ -694,6 +692,14 @@ function ReportActionCompose(props) {
         Report.addAttachment(props.reportID, file, newComment);
         setTextInputShouldClear(false);
     }, [props.reportID, prepareCommentAndResetComposer]);
+
+    /**
+     * Event handler to update the state after the attachment preview is closed.
+     */
+    const attachmentPreviewClosed = useCallback(() => {
+        updateShouldBlockEmojiCalcToFalse();
+        setIsAttachmentPreviewActive(false);
+    }, [updateShouldBlockEmojiCalcToFalse]);
 
     // Prevents focusing and showing the keyboard while the drawer is covering the chat.
     const isComposeDisabled = props.isDrawerOpen && props.isSmallScreenWidth;
@@ -725,7 +731,7 @@ function ReportActionCompose(props) {
                     <AttachmentModal
                         headerTitle={props.translate('reportActionCompose.sendAttachment')}
                         onConfirm={addAttachment}
-                        onModalHide={updateShouldBlockEmojiCalcToFalse}
+                        onModalHide={attachmentPreviewClosed}
                     >
                         {({displayFileInModal}) => (
                             <>
@@ -826,12 +832,17 @@ function ReportActionCompose(props) {
                                         onDragLeave={() => setIsDraggingOver(false)}
                                         onDrop={(e) => {
                                             e.preventDefault();
+                                            if (isAttachmentPreviewActive) {
+                                                setIsDraggingOver(false);
+                                                return;
+                                            }
 
                                             const file = lodashGet(e, ['dataTransfer', 'files', 0]);
 
                                             displayFileInModal(file);
 
                                             setIsDraggingOver(false);
+                                            setIsAttachmentPreviewActive(true);
                                         }}
                                         disabled={props.disabled}
                                     >

@@ -3,7 +3,7 @@ import {Animated} from 'react-native';
 import styles from '../../../../../styles/styles';
 import floatingMessageCounterContainerPropTypes from './floatingMessageCounterContainerPropTypes';
 
-const FloatingMessageCounterContainer = props => (
+const FloatingMessageCounterContainer = (props) => (
     <Animated.View
         accessibilityHint={props.accessibilityHint}
         style={[styles.floatingMessageCounterWrapper, ...props.containerStyles]}

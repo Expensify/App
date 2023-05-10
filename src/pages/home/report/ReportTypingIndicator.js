@@ -30,9 +30,7 @@ class ReportTypingIndicator extends React.Component {
     constructor(props) {
         super(props);
 
-        const usersTyping = props.userTypingStatuses
-            ? _.filter(_.keys(props.userTypingStatuses), login => props.userTypingStatuses[login])
-            : [];
+        const usersTyping = props.userTypingStatuses ? _.filter(_.keys(props.userTypingStatuses), (login) => props.userTypingStatuses[login]) : [];
         this.state = {usersTyping};
     }
 
@@ -42,7 +40,7 @@ class ReportTypingIndicator extends React.Component {
             return;
         }
 
-        const usersTyping = _.filter(_.keys(this.props.userTypingStatuses), login => this.props.userTypingStatuses[login]);
+        const usersTyping = _.filter(_.keys(this.props.userTypingStatuses), (login) => this.props.userTypingStatuses[login]);
 
         // eslint-disable-next-line react/no-did-update-set-state
         this.setState({usersTyping});
@@ -75,10 +73,7 @@ class ReportTypingIndicator extends React.Component {
             default:
                 return (
                     <Text
-                        style={[
-                            styles.chatItemComposeSecondaryRowSubText,
-                            styles.chatItemComposeSecondaryRowOffset,
-                        ]}
+                        style={[styles.chatItemComposeSecondaryRowSubText, styles.chatItemComposeSecondaryRowOffset]}
                         numberOfLines={1}
                     >
                         {this.props.translate('reportTypingIndicator.multipleUsers')}
