@@ -240,7 +240,8 @@ export default [
         textTranslateKey: 'reportActionContextMenu.deleteComment',
         icon: Expensicons.Trashcan,
         shouldShow: (type, reportAction, isArchivedRoom, betas, menuTarget, isChronosReport) =>
-            type === CONTEXT_MENU_TYPES.REPORT_ACTION && ReportUtils.canDeleteReportAction(reportAction) && !isArchivedRoom && !isChronosReport,
+            // Until deleting parent threads is supported in FE, we will prevent the user from deleting a thread parent
+            type === CONTEXT_MENU_TYPES.REPORT_ACTION && ReportUtils.canDeleteReportAction(reportAction) && !isArchivedRoom && !isChronosReport && !ReportUtils.isThreadParent(reportAction),
         onPress: (closePopover, {reportID, reportAction}) => {
             if (closePopover) {
                 // Hide popover, then call showDeleteConfirmModal

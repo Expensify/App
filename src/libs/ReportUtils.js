@@ -447,6 +447,19 @@ function isThread(report) {
 }
 
 /**
+ * Returns true if reportAction has a child.
+ *
+ * @param {Object} reportAction
+ * @returns {Boolean}
+ */
+function isThreadParent(reportAction) {
+    if (!reportAction || !reportAction.childReportID || reportAction.childReportID === '0') {
+        return false;
+    }
+    return true;
+}
+
+/**
  * Get either the policyName or domainName the chat is tied to
  * @param {Object} report
  * @returns {String}
@@ -1954,5 +1967,6 @@ export {
     getWhisperDisplayNames,
     getWorkspaceAvatar,
     isThread,
+    isThreadParent,
     getParentReportAction_DEV,
 };
