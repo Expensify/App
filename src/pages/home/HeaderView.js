@@ -26,6 +26,7 @@ import colors from '../../styles/colors';
 import reportPropTypes from '../reportPropTypes';
 import ONYXKEYS from '../../ONYXKEYS';
 import ThreeDotsMenu from '../../components/ThreeDotsMenu';
+import * as Task from '../../libs/actions/Task';
 
 const propTypes = {
     /** Toggles the navigationMenu open and closed */
@@ -105,9 +106,7 @@ const HeaderView = (props) => {
             threeDotMenuItems.push({
                 icon: Expensicons.Trashcan,
                 text: props.translate('common.cancel'),
-
-                // Implementing in https://github.com/Expensify/App/issues/16857
-                onSelected: () => {},
+                onSelected: () => Task.cancelTask(props.report.reportID, props.report.parentReportID, props.report.stateNum, props.report.statusNum),
             });
         }
     }

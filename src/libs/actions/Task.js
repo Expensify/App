@@ -6,6 +6,7 @@ import * as ReportUtils from '../ReportUtils';
 import * as Report from './Report';
 import Navigation from '../Navigation/Navigation';
 import ROUTES from '../../ROUTES';
+import CONST from '../../CONST';
 
 /**
  * Clears out the task info from the store
@@ -203,4 +204,30 @@ function clearOutTaskInfoAndNavigate(reportID) {
     Navigation.navigate(ROUTES.NEW_TASK_DETAILS);
 }
 
-export {createTaskAndNavigate, setTitleValue, setDescriptionValue, setDetailsValue, setAssigneeValue, setShareDestinationValue, clearOutTaskInfo, clearOutTaskInfoAndNavigate};
+function cancelTask(taskReportID, parentReportID, originalStateNum, originalStatusNum) {
+    const optimisticData = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT}${taskReportID}`,
+            value: {
+                stateNum: CONST.REPORT.STATE_NUM.SUBMITTED,
+                statusNum: CONST.REPORT.STATUS.CLOSED,
+            },
+        },
+    ];
+
+    const failureData = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT}${taskReportID}`,
+            value: {
+                stateNum: originalStateNum,
+                statusNum: originalStatusNum,
+            },
+        },
+    ];
+
+    API.write('CancelTask', {taskReportID}, {optimisticData, failureData});
+}
+
+export {createTaskAndNavigate, setTitleValue, setDescriptionValue, setDetailsValue, setAssigneeValue, setShareDestinationValue, clearOutTaskInfo, clearOutTaskInfoAndNavigate, cancelTask};
