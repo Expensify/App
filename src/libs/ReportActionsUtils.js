@@ -285,6 +285,39 @@ function getLinkedTransactionID(reportID, reportActionID) {
     return reportAction.originalMessage.IOUTransactionID;
 }
 
+/**
+ * @returns {object}
+ */
+function getMostRecentStoredReportAction() {
+    let mostRecentReportAction;
+    let mostRecentReportActionCreated = new Date(0).toISOString();
+
+    // Flatten all the actions
+    // Loop over them all to find the one that is the most recent
+    const flatReportActions = _.flatten(_.map(allReportActions, actions => _.values(actions)));
+    _.each(flatReportActions, (action) => {
+        // Pending actions should not be counted here as a user could create a comment or some other action while offline and the server might know about
+        // messages they have not seen yet.
+        if (!_.isEmpty(action.pendingAction)) {
+            return;
+        }
+
+        // All actions should have this, but if not they are not useful to us.
+        if (!action.created) {
+            return;
+        }
+
+        if (action.created < mostRecentReportActionCreated) {
+            return;
+        }
+
+        mostRecentReportActionCreated = action.created;
+        mostRecentReportAction = action;
+    });
+
+    return mostRecentReportAction;
+}
+
 export {
     getSortedReportActions,
     getLastVisibleAction,
@@ -298,4 +331,5 @@ export {
     getLastClosedReportAction,
     getLatestReportActionFromOnyxData,
     getLinkedTransactionID,
+    getMostRecentStoredReportAction,
 };

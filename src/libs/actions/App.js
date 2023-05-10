@@ -15,6 +15,7 @@ import ROUTES from '../../ROUTES';
 import * as SessionUtils from '../SessionUtils';
 import getCurrentUrl from '../Navigation/currentUrl';
 import * as Session from './Session';
+import * as ReportActionsUtils from '../ReportActionsUtils';
 
 let currentUserAccountID;
 let currentUserEmail = '';
@@ -184,9 +185,15 @@ function openApp() {
  * Refreshes data when the app reconnects
  */
 function reconnectApp() {
+    // When the app reconnects we do a fast "sync" of the LHN and only return chats that have new messages. We achieve this by sending the most recent reportActionID
+    // we have locally. And then only update the user about chats with messages that have occurred after that reportActionID.
+    //
+    // 1. Look through the local report actions to find the most recent reportActionID out of all of them
+    // 2. Send this to the server so that it can compute which chats are critical for the user to see and then follow up with a more complete sync later
+    const mostRecentReportAction = ReportActionsUtils.getMostRecentStoredReportAction();
     API.write(
         CONST.NETWORK.COMMAND.RECONNECT_APP,
-        {policyIDList: getNonOptimisticPolicyIDs(allPolicies)},
+        {policyIDList: getNonOptimisticPolicyIDs(allPolicies), mostRecentReportActionID: mostRecentReportAction.reportActionID},
         {
             optimisticData: [
                 {
