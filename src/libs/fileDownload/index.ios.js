@@ -51,14 +51,17 @@ function downloadVideo(fileUrl, fileName) {
         let cameraRollUri = null;
 
         // Because CameraRoll doesn't allow direct downloads of video with remote URIs, we first download as documents, then copy to photo lib and unlink the original file.
-        downloadFile(fileUrl, fileName).then((attachment) => {
-            documentPathUri = lodashGet(attachment, 'data');
-            return CameraRoll.save(documentPathUri);
-        }).then((attachment) => {
-            cameraRollUri = attachment;
-            return RNFetchBlob.fs.unlink(documentPathUri);
-        }).then(() => resolve(cameraRollUri))
-            .catch(err => reject(err));
+        downloadFile(fileUrl, fileName)
+            .then((attachment) => {
+                documentPathUri = lodashGet(attachment, 'data');
+                return CameraRoll.save(documentPathUri);
+            })
+            .then((attachment) => {
+                cameraRollUri = attachment;
+                return RNFetchBlob.fs.unlink(documentPathUri);
+            })
+            .then(() => resolve(cameraRollUri))
+            .catch((err) => reject(err));
     });
 }
 
@@ -86,20 +89,23 @@ export default function fileDownload(fileUrl, fileName) {
                 break;
         }
 
-        fileDownloadPromise.then((attachment) => {
-            if (!attachment) {
-                return;
-            }
+        fileDownloadPromise
+            .then((attachment) => {
+                if (!attachment) {
+                    return;
+                }
 
-            FileUtils.showSuccessAlert();
-        }).catch((err) => {
-            // iOS shows permission popup only once. Subsequent request will only throw an error.
-            // We catch the error and show a redirection link to the settings screen
-            if (err.message === CONST.IOS_CAMERAROLL_ACCESS_ERROR) {
-                FileUtils.showPermissionErrorAlert();
-            } else {
-                FileUtils.showGeneralErrorAlert();
-            }
-        }).finally(() => resolve());
+                FileUtils.showSuccessAlert();
+            })
+            .catch((err) => {
+                // iOS shows permission popup only once. Subsequent request will only throw an error.
+                // We catch the error and show a redirection link to the settings screen
+                if (err.message === CONST.IOS_CAMERAROLL_ACCESS_ERROR) {
+                    FileUtils.showPermissionErrorAlert();
+                } else {
+                    FileUtils.showGeneralErrorAlert();
+                }
+            })
+            .finally(() => resolve());
     });
 }

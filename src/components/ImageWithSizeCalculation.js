@@ -68,31 +68,18 @@ class ImageWithSizeCalculation extends PureComponent {
 
     render() {
         return (
-            <View
-                style={[
-                    styles.w100,
-                    styles.h100,
-                    this.props.style,
-                ]}
-            >
+            <View style={[styles.w100, styles.h100, this.props.style]}>
                 <Image
-                    style={[
-                        styles.w100,
-                        styles.h100,
-                    ]}
+                    style={[styles.w100, styles.h100]}
                     source={{uri: this.props.url}}
                     isAuthTokenRequired={this.props.isAuthTokenRequired}
-                    resizeMode={Image.resizeMode.contain}
+                    resizeMode={Image.resizeMode.cover}
                     onLoadStart={this.imageLoadingStart}
                     onLoadEnd={this.imageLoadingEnd}
                     onError={this.onError}
                     onLoad={this.imageLoadedSuccessfully}
                 />
-                {this.state.isLoading && (
-                    <FullscreenLoadingIndicator
-                        style={[styles.opacity1, styles.bgTransparent]}
-                    />
-                )}
+                {this.state.isLoading && <FullscreenLoadingIndicator style={[styles.opacity1, styles.bgTransparent]} />}
             </View>
         );
     }
