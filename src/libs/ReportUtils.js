@@ -1680,7 +1680,7 @@ function getNewMarkerReportActionID(report, sortedAndFilteredReportActions) {
         return '';
     }
 
-    const newMarkerIndex = _.findLastIndex(sortedAndFilteredReportActions, (reportAction) => (reportAction.created || '') > report.lastReadTime);
+    const newMarkerIndex = _.findLastIndex(sortedAndFilteredReportActions, (reportAction) => (reportAction.actorAccountID !== currentUserAccountID) && (reportAction.created || '') > report.lastReadTime );
 
     return _.has(sortedAndFilteredReportActions[newMarkerIndex], 'reportActionID') ? sortedAndFilteredReportActions[newMarkerIndex].reportActionID : '';
 }
