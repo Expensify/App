@@ -145,10 +145,7 @@ class ContactMethodDetailsPage extends Component {
         }
 
         // Return true if there's no security group with 'hasRestrictedPrimaryLogin' set to true.
-        return !lodashGet(this.props.securityGroups, [
-            `${ONYXKEYS.COLLECTION.SECURITY_GROUP}${primaryDomainSecurityGroupID}`,
-            'hasRestrictedPrimaryLogin',
-        ], false);
+        return !lodashGet(this.props.securityGroups, [`${ONYXKEYS.COLLECTION.SECURITY_GROUP}${primaryDomainSecurityGroupID}`, 'hasRestrictedPrimaryLogin'], false);
     }
 
     /**
@@ -226,9 +223,7 @@ class ContactMethodDetailsPage extends Component {
         // 1. This contact method is not already their default
         // 2. This contact method is validated
         // 3. Default contact method switching is allowed by their domain security group (if this exists)
-        const canChangeDefaultContactMethod = !isDefaultContactMethod
-            && loginData.validatedDate
-            && this.getCanChangeDefaultContactMethod();
+        const canChangeDefaultContactMethod = !isDefaultContactMethod && loginData.validatedDate && this.getCanChangeDefaultContactMethod();
 
         return (
             <ScreenWrapper>
@@ -332,9 +327,7 @@ class ContactMethodDetailsPage extends Component {
                             errorRowStyles={[styles.ml8, styles.mr5]}
                             onClose={() => User.clearContactMethodErrors(contactMethod, 'defaultLogin')}
                         >
-                            <Text style={[styles.ph5, styles.mv3]}>
-                                {this.props.translate('contacts.yourDefaultContactMethod')}
-                            </Text>
+                            <Text style={[styles.ph5, styles.mv3]}>{this.props.translate('contacts.yourDefaultContactMethod')}</Text>
                         </OfflineWithFeedback>
                     ) : (
                         <>

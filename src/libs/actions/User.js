@@ -811,26 +811,25 @@ function setContactMethodAsDefault(newDefaultContactMethod) {
                 [newDefaultContactMethod]: {
                     ...myPersonalDetails,
                     login: newDefaultContactMethod,
-                    displayName: PersonalDetails.getDisplayName(
-                        newDefaultContactMethod,
-                        myPersonalDetails,
-                    ),
+                    displayName: PersonalDetails.getDisplayName(newDefaultContactMethod, myPersonalDetails),
                 },
                 [oldDefaultContactMethod]: null,
             },
         },
     ];
-    const successData = [{
-        onyxMethod: Onyx.METHOD.MERGE,
-        key: ONYXKEYS.LOGIN_LIST,
-        value: {
-            [newDefaultContactMethod]: {
-                pendingFields: {
-                    defaultLogin: null,
+    const successData = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: ONYXKEYS.LOGIN_LIST,
+            value: {
+                [newDefaultContactMethod]: {
+                    pendingFields: {
+                        defaultLogin: null,
+                    },
                 },
             },
         },
-    }];
+    ];
     const failureData = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
