@@ -180,19 +180,18 @@ class WorkspacesListPage extends Component {
 
     render() {
         const workspaces = this.getWorkspaces();
-
         const workspaceFeatures = [
             {
                 icon: Illustrations.MoneyReceipts,
-                text: this.props.translate('workspace.emptyWorkspace.features.trackAndCollect'),
+                translationKey: 'workspace.emptyWorkspace.features.trackAndCollect',
             },
             {
                 icon: Illustrations.CreditCardsNew,
-                text: this.props.translate('workspace.emptyWorkspace.features.companyCards'),
+                translationKey: 'workspace.emptyWorkspace.features.companyCards',
             },
             {
                 icon: Illustrations.MoneyWings,
-                text: this.props.translate('workspace.emptyWorkspace.features.reimbursements'),
+                translationKey: 'workspace.emptyWorkspace.features.reimbursements',
             },
         ];
         return (
@@ -216,14 +215,17 @@ class WorkspacesListPage extends Component {
                         <Text style={[styles.textHeadline]}>{this.props.translate('workspace.emptyWorkspace.title')}</Text>
                         <Text style={[styles.textBody, styles.mt2]}>{this.props.translate('workspace.emptyWorkspace.subtitle')}</Text>
                         <View style={[styles.flex1, styles.justifyContentStart, styles.mt4]}>
-                            {_.map(workspaceFeatures, ({icon, text}) => (
-                                <View style={[styles.flexRow, styles.alignItemsCenter, styles.mv2]}>
+                            {_.map(workspaceFeatures, ({icon, translationKey}) => (
+                                <View
+                                    style={[styles.flexRow, styles.alignItemsCenter, styles.mv2]}
+                                    key={translationKey}
+                                >
                                     <Icon
                                         src={icon}
                                         width={variables.iconSizeSuperLarge}
                                         height={variables.iconSizeSuperLarge}
                                     />
-                                    <Text style={[styles.h3, styles.pl2]}>{text}</Text>
+                                    <Text style={[styles.h3, styles.pl2]}>{this.props.translate(translationKey)}</Text>
                                 </View>
                             ))}
                         </View>
