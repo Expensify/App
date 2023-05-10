@@ -10,11 +10,15 @@ const propTypes = {
     children: PropTypes.node.isRequired,
 };
 
-const ComposeProviders = props => (
+const ComposeProviders = (props) => (
     <>
-        {_.reduceRight(props.components, (memo, Component) => (
-            <Component>{memo}</Component>
-        ), props.children)}
+        {_.reduceRight(
+            props.components,
+            (memo, Component) => (
+                <Component>{memo}</Component>
+            ),
+            props.children,
+        )}
     </>
 );
 

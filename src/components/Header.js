@@ -26,20 +26,28 @@ const defaultProps = {
     subtitle: '',
     textStyles: [],
 };
-const Header = props => (
+const Header = (props) => (
     <View style={[styles.flex1, styles.flexRow]}>
         <View style={styles.mw100}>
-            <Text numberOfLines={2} style={[styles.headerText, styles.textLarge, ...props.textStyles]}>
+            <Text
+                numberOfLines={2}
+                style={[styles.headerText, styles.textLarge, ...props.textStyles]}
+            >
                 {props.title}
             </Text>
             {/* If there's no subtitle then display a fragment to avoid an empty space which moves the main title */}
             {_.isString(props.subtitle)
-                ? Boolean(props.subtitle) && <Text style={[styles.mutedTextLabel, styles.pre]} numberOfLines={1}>{props.subtitle}</Text>
+                ? Boolean(props.subtitle) && (
+                      <Text
+                          style={[styles.mutedTextLabel, styles.pre]}
+                          numberOfLines={1}
+                      >
+                          {props.subtitle}
+                      </Text>
+                  )
                 : props.subtitle}
         </View>
-        {props.shouldShowEnvironmentBadge && (
-            <EnvironmentBadge />
-        )}
+        {props.shouldShowEnvironmentBadge && <EnvironmentBadge />}
     </View>
 );
 

@@ -44,8 +44,7 @@ const desktopResult = getDeployTableMessage(core.getInput('DESKTOP', {required: 
 const iOSResult = getDeployTableMessage(core.getInput('IOS', {required: true}));
 const webResult = getDeployTableMessage(core.getInput('WEB', {required: true}));
 
-const workflowURL = `${process.env.GITHUB_SERVER_URL}/${process.env.GITHUB_REPOSITORY}`
-    + `/actions/runs/${process.env.GITHUB_RUN_ID}`;
+const workflowURL = `${process.env.GITHUB_SERVER_URL}/${process.env.GITHUB_REPOSITORY}/actions/runs/${process.env.GITHUB_RUN_ID}`;
 
 /**
  * @param {String} deployer
@@ -59,9 +58,10 @@ function getDeployMessage(deployer, deployVerb, prTitle) {
     message += `\n\n platform | result \n ---|--- \n🤖 android 🤖|${androidResult} \n🖥 desktop 🖥|${desktopResult}`;
     message += `\n🍎 iOS 🍎|${iOSResult} \n🕸 web 🕸|${webResult}`;
 
-    if (deployVerb === 'Cherry-picked' && !(/no qa/gi).test(prTitle)) {
+    if (deployVerb === 'Cherry-picked' && !/no qa/gi.test(prTitle)) {
         // eslint-disable-next-line max-len
-        message += '\n\n@Expensify/applauseleads please QA this PR and check it off on the [deploy checklist](https://github.com/Expensify/App/issues?q=is%3Aopen+is%3Aissue+label%3AStagingDeployCash) if it passes.';
+        message +=
+            '\n\n@Expensify/applauseleads please QA this PR and check it off on the [deploy checklist](https://github.com/Expensify/App/issues?q=is%3Aopen+is%3Aissue+label%3AStagingDeployCash) if it passes.';
     }
 
     return message;
@@ -86,14 +86,15 @@ function commentPR(PR, message) {
 const run = function () {
     if (isProd) {
         // First find the deployer (who closed the last deploy checklist)?
-        return GithubUtils.octokit.issues.listForRepo({
-            owner: GithubUtils.GITHUB_OWNER,
-            repo: GithubUtils.APP_REPO,
-            labels: GithubUtils.STAGING_DEPLOY_CASH_LABEL,
-            state: 'closed',
-        })
+        return GithubUtils.octokit.issues
+            .listForRepo({
+                owner: GithubUtils.GITHUB_OWNER,
+                repo: GithubUtils.APP_REPO,
+                labels: GithubUtils.STAGING_DEPLOY_CASH_LABEL,
+                state: 'closed',
+            })
             .then(({data}) => _.first(data).number)
-            .then(lastDeployChecklistNumber => GithubUtils.getActorWhoClosedIssue(lastDeployChecklistNumber))
+            .then((lastDeployChecklistNumber) => GithubUtils.getActorWhoClosedIssue(lastDeployChecklistNumber))
             .then((actor) => {
                 // Create comment on each pull request (one after another to avoid throttling issues)
                 const deployMessage = getDeployMessage(actor, 'Deployed');
@@ -102,13 +103,14 @@ const run = function () {
     }
 
     // First find out if this is a normal staging deploy or a CP by looking at the commit message on the tag
-    return GithubUtils.octokit.repos.listTags({
-        owner: GithubUtils.GITHUB_OWNER,
-        repo: GithubUtils.APP_REPO,
-        per_page: 100,
-    })
+    return GithubUtils.octokit.repos
+        .listTags({
+            owner: GithubUtils.GITHUB_OWNER,
+            repo: GithubUtils.APP_REPO,
+            per_page: 100,
+        })
         .then(({data}) => {
-            const tagSHA = _.find(data, tag => tag.name === version).commit.sha;
+            const tagSHA = _.find(data, (tag) => tag.name === version).commit.sha;
             return GithubUtils.octokit.git.getCommit({
                 owner: GithubUtils.GITHUB_OWNER,
                 repo: GithubUtils.APP_REPO,
@@ -117,35 +119,40 @@ const run = function () {
         })
         .then(({data}) => {
             const isCP = /Merge pull request #\d+ from Expensify\/.*-?cherry-pick-staging-\d+/.test(data.message);
-            _.reduce(prList, (promise, PR) => promise
+            _.reduce(
+                prList,
+                (promise, PR) =>
+                    promise
 
-                // Then, for each PR, find out who merged it and determine the deployer
-                .then(() => GithubUtils.octokit.pulls.get({
-                    owner: GithubUtils.GITHUB_OWNER,
-                    repo: GithubUtils.APP_REPO,
-                    pull_number: PR,
-                }))
-                .then((response) => {
-                    /*
-                     * The deployer for staging deploys is:
-                     *   1. For regular staging deploys, the person who merged the PR.
-                     *   2. For automatic CPs (using the label), the person who merged the PR.
-                     *   3. For manual CPs (using the GH UI), the person who triggered the workflow
-                     *      (reflected in the branch name).
-                     */
-                    let deployer = lodashGet(response, 'data.merged_by.login', '');
-                    const issueTitle = lodashGet(response, 'data.title', '');
-                    const CPActorMatches = data.message
-                        .match(/Merge pull request #\d+ from Expensify\/(.+)-cherry-pick-staging-\d+/);
-                    if (_.isArray(CPActorMatches) && CPActorMatches.length === 2 && CPActorMatches[1] !== 'OSBotify') {
-                        deployer = CPActorMatches[1];
-                    }
+                        // Then, for each PR, find out who merged it and determine the deployer
+                        .then(() =>
+                            GithubUtils.octokit.pulls.get({
+                                owner: GithubUtils.GITHUB_OWNER,
+                                repo: GithubUtils.APP_REPO,
+                                pull_number: PR,
+                            }),
+                        )
+                        .then((response) => {
+                            /*
+                             * The deployer for staging deploys is:
+                             *   1. For regular staging deploys, the person who merged the PR.
+                             *   2. For automatic CPs (using the label), the person who merged the PR.
+                             *   3. For manual CPs (using the GH UI), the person who triggered the workflow
+                             *      (reflected in the branch name).
+                             */
+                            let deployer = lodashGet(response, 'data.merged_by.login', '');
+                            const issueTitle = lodashGet(response, 'data.title', '');
+                            const CPActorMatches = data.message.match(/Merge pull request #\d+ from Expensify\/(.+)-cherry-pick-staging-\d+/);
+                            if (_.isArray(CPActorMatches) && CPActorMatches.length === 2 && CPActorMatches[1] !== 'OSBotify') {
+                                deployer = CPActorMatches[1];
+                            }
 
-                    // Finally, comment on the PR
-                    const deployMessage = getDeployMessage(deployer, isCP ? 'Cherry-picked' : 'Deployed', issueTitle);
-                    return commentPR(PR, deployMessage);
-                }),
-            Promise.resolve());
+                            // Finally, comment on the PR
+                            const deployMessage = getDeployMessage(deployer, isCP ? 'Cherry-picked' : 'Deployed', issueTitle);
+                            return commentPR(PR, deployMessage);
+                        }),
+                Promise.resolve(),
+            );
         });
 };
 
@@ -246,27 +253,25 @@ class GithubUtils {
         const token = core.getInput('GITHUB_TOKEN', {required: true});
 
         // Save a copy of octokit used in this class
-        this.internalOctokit = new Octokit(getOctokitOptions(token, {
-            throttle: {
-                onRateLimit: (retryAfter, options) => {
-                    console.warn(
-                        `Request quota exhausted for request ${options.method} ${options.url}`,
-                    );
+        this.internalOctokit = new Octokit(
+            getOctokitOptions(token, {
+                throttle: {
+                    onRateLimit: (retryAfter, options) => {
+                        console.warn(`Request quota exhausted for request ${options.method} ${options.url}`);
 
-                    // Retry once after hitting a rate limit error, then give up
-                    if (options.request.retryCount <= 1) {
-                        console.log(`Retrying after ${retryAfter} seconds!`);
-                        return true;
-                    }
+                        // Retry once after hitting a rate limit error, then give up
+                        if (options.request.retryCount <= 1) {
+                            console.log(`Retrying after ${retryAfter} seconds!`);
+                            return true;
+                        }
+                    },
+                    onAbuseLimit: (retryAfter, options) => {
+                        // does not retry, only logs a warning
+                        console.warn(`Abuse detected for request ${options.method} ${options.url}`);
+                    },
                 },
-                onAbuseLimit: (retryAfter, options) => {
-                    // does not retry, only logs a warning
-                    console.warn(
-                        `Abuse detected for request ${options.method} ${options.url}`,
-                    );
-                },
-            },
-        }));
+            }),
+        );
     }
 
     /**
@@ -305,12 +310,13 @@ class GithubUtils {
      * @returns {Promise}
      */
     static getStagingDeployCash() {
-        return this.octokit.issues.listForRepo({
-            owner: GITHUB_OWNER,
-            repo: APP_REPO,
-            labels: STAGING_DEPLOY_CASH_LABEL,
-            state: 'open',
-        })
+        return this.octokit.issues
+            .listForRepo({
+                owner: GITHUB_OWNER,
+                repo: APP_REPO,
+                labels: STAGING_DEPLOY_CASH_LABEL,
+                state: 'open',
+            })
             .then(({data}) => {
                 if (!data.length) {
                     const error = new Error(`Unable to find ${STAGING_DEPLOY_CASH_LABEL} issue.`);
@@ -372,14 +378,11 @@ class GithubUtils {
             return [];
         }
         PRListSection = PRListSection[1];
-        const PRList = _.map(
-            [...PRListSection.matchAll(new RegExp(`- \\[([ x])] (${PULL_REQUEST_REGEX.source})`, 'g'))],
-            match => ({
-                url: match[2],
-                number: Number.parseInt(match[3], 10),
-                isVerified: match[1] === 'x',
-            }),
-        );
+        const PRList = _.map([...PRListSection.matchAll(new RegExp(`- \\[([ x])] (${PULL_REQUEST_REGEX.source})`, 'g'))], (match) => ({
+            url: match[2],
+            number: Number.parseInt(match[3], 10),
+            isVerified: match[1] === 'x',
+        }));
         return _.sortBy(PRList, 'number');
     }
 
@@ -397,14 +400,11 @@ class GithubUtils {
             return [];
         }
         deployBlockerSection = deployBlockerSection[1];
-        const deployBlockers = _.map(
-            [...deployBlockerSection.matchAll(new RegExp(`- \\[([ x])]\\s(${ISSUE_OR_PULL_REQUEST_REGEX.source})`, 'g'))],
-            match => ({
-                url: match[2],
-                number: Number.parseInt(match[3], 10),
-                isResolved: match[1] === 'x',
-            }),
-        );
+        const deployBlockers = _.map([...deployBlockerSection.matchAll(new RegExp(`- \\[([ x])]\\s(${ISSUE_OR_PULL_REQUEST_REGEX.source})`, 'g'))], (match) => ({
+            url: match[2],
+            number: Number.parseInt(match[3], 10),
+            isResolved: match[1] === 'x',
+        }));
         return _.sortBy(deployBlockers, 'number');
     }
 
@@ -422,14 +422,11 @@ class GithubUtils {
             return [];
         }
         internalQASection = internalQASection[1];
-        const internalQAPRs = _.map(
-            [...internalQASection.matchAll(new RegExp(`- \\[([ x])]\\s(${PULL_REQUEST_REGEX.source})`, 'g'))],
-            match => ({
-                url: match[2].split('-')[0].trim(),
-                number: Number.parseInt(match[3], 10),
-                isResolved: match[1] === 'x',
-            }),
-        );
+        const internalQAPRs = _.map([...internalQASection.matchAll(new RegExp(`- \\[([ x])]\\s(${PULL_REQUEST_REGEX.source})`, 'g'))], (match) => ({
+            url: match[2].split('-')[0].trim(),
+            number: Number.parseInt(match[3], 10),
+            isResolved: match[1] === 'x',
+        }));
         return _.sortBy(internalQAPRs, 'number');
     }
 
@@ -460,10 +457,7 @@ class GithubUtils {
     ) {
         return this.fetchAllPullRequests(_.map(PRList, this.getPullRequestNumberFromURL))
             .then((data) => {
-                const automatedPRs = _.pluck(
-                    _.filter(data, GithubUtils.isAutomatedPullRequest),
-                    'html_url',
-                );
+                const automatedPRs = _.pluck(_.filter(data, GithubUtils.isAutomatedPullRequest), 'html_url');
                 console.log('Filtering out the following automated pull requests:', automatedPRs);
 
                 // The format of this map is following:
@@ -472,7 +466,7 @@ class GithubUtils {
                 //    'https://github.com/Expensify/App/pull/9642': [ 'mountiny', 'kidroca' ]
                 // }
                 const internalQAPRMap = _.reduce(
-                    _.filter(data, pr => !_.isEmpty(_.findWhere(pr.labels, {name: INTERNAL_QA_LABEL}))),
+                    _.filter(data, (pr) => !_.isEmpty(_.findWhere(pr.labels, {name: INTERNAL_QA_LABEL}))),
                     (map, pr) => {
                         // eslint-disable-next-line no-param-reassign
                         map[pr.html_url] = _.compact(_.pluck(pr.assignees, 'login'));
@@ -483,22 +477,14 @@ class GithubUtils {
                 console.log('Found the following Internal QA PRs:', internalQAPRMap);
 
                 const noQAPRs = _.pluck(
-                    _.filter(data, PR => /\[No\s?QA]/i.test(PR.title)),
+                    _.filter(data, (PR) => /\[No\s?QA]/i.test(PR.title)),
                     'html_url',
                 );
                 console.log('Found the following NO QA PRs:', noQAPRs);
                 const verifiedOrNoQAPRs = _.union(verifiedPRList, noQAPRs);
 
-                const sortedPRList = _.chain(PRList)
-                    .difference(automatedPRs)
-                    .difference(_.keys(internalQAPRMap))
-                    .unique()
-                    .sortBy(GithubUtils.getPullRequestNumberFromURL)
-                    .value();
-                const sortedDeployBlockers = _.sortBy(
-                    _.unique(deployBlockers),
-                    GithubUtils.getIssueOrPullRequestNumberFromURL,
-                );
+                const sortedPRList = _.chain(PRList).difference(automatedPRs).difference(_.keys(internalQAPRMap)).unique().sortBy(GithubUtils.getPullRequestNumberFromURL).value();
+                const sortedDeployBlockers = _.sortBy(_.unique(deployBlockers), GithubUtils.getIssueOrPullRequestNumberFromURL);
 
                 // Tag version and comparison URL
                 // eslint-disable-next-line max-len
@@ -541,20 +527,20 @@ class GithubUtils {
 
                 issueBody += '**Deployer verifications:**';
                 // eslint-disable-next-line max-len
-                issueBody += `\r\n- [${isTimingDashboardChecked ? 'x' : ' '}] I checked the [App Timing Dashboard](https://graphs.expensify.com/grafana/d/yj2EobAGz/app-timing?orgId=1) and verified this release does not cause a noticeable performance regression.`;
+                issueBody += `\r\n- [${
+                    isTimingDashboardChecked ? 'x' : ' '
+                }] I checked the [App Timing Dashboard](https://graphs.expensify.com/grafana/d/yj2EobAGz/app-timing?orgId=1) and verified this release does not cause a noticeable performance regression.`;
                 // eslint-disable-next-line max-len
-                issueBody += `\r\n- [${isFirebaseChecked ? 'x' : ' '}] I checked [Firebase Crashlytics](https://console.firebase.google.com/u/0/project/expensify-chat/crashlytics/app/android:com.expensify.chat/issues?state=open&time=last-seven-days&tag=all) and verified that this release does not introduce any new crashes. More detailed instructions on this verification can be found [here](https://stackoverflowteams.com/c/expensify/questions/15095/15096).`;
+                issueBody += `\r\n- [${
+                    isFirebaseChecked ? 'x' : ' '
+                }] I checked [Firebase Crashlytics](https://console.firebase.google.com/u/0/project/expensify-chat/crashlytics/app/android:com.expensify.chat/issues?state=open&time=last-seven-days&tag=all) and verified that this release does not introduce any new crashes. More detailed instructions on this verification can be found [here](https://stackoverflowteams.com/c/expensify/questions/15095/15096).`;
                 // eslint-disable-next-line max-len
                 issueBody += `\r\n- [${isGHStatusChecked ? 'x' : ' '}] I checked [GitHub Status](https://www.githubstatus.com/) and verified there is no reported incident with Actions.`;
 
                 issueBody += '\r\n\r\ncc @Expensify/applauseleads\r\n';
                 return issueBody;
             })
-            .catch(err => console.warn(
-                'Error generating StagingDeployCash issue body!',
-                'Automated PRs may not be properly filtered out. Continuing...',
-                err,
-            ));
+            .catch((err) => console.warn('Error generating StagingDeployCash issue body!', 'Automated PRs may not be properly filtered out. Continuing...', err));
     }
 
     /**
@@ -565,21 +551,25 @@ class GithubUtils {
      */
     static fetchAllPullRequests(pullRequestNumbers) {
         const oldestPR = _.first(_.sortBy(pullRequestNumbers));
-        return this.paginate(this.octokit.pulls.list, {
-            owner: GITHUB_OWNER,
-            repo: APP_REPO,
-            state: 'all',
-            sort: 'created',
-            direction: 'desc',
-            per_page: 100,
-        }, ({data}, done) => {
-            if (_.find(data, pr => pr.number === oldestPR)) {
-                done();
-            }
-            return data;
-        })
-            .then(prList => _.filter(prList, pr => _.contains(pullRequestNumbers, pr.number)))
-            .catch(err => console.error('Failed to get PR list', err));
+        return this.paginate(
+            this.octokit.pulls.list,
+            {
+                owner: GITHUB_OWNER,
+                repo: APP_REPO,
+                state: 'all',
+                sort: 'created',
+                direction: 'desc',
+                per_page: 100,
+            },
+            ({data}, done) => {
+                if (_.find(data, (pr) => pr.number === oldestPR)) {
+                    done();
+                }
+                return data;
+            },
+        )
+            .then((prList) => _.filter(prList, (pr) => _.contains(pullRequestNumbers, pr.number)))
+            .catch((err) => console.error('Failed to get PR list', err));
     }
 
     /**
@@ -587,11 +577,13 @@ class GithubUtils {
      * @returns {Promise}
      */
     static getPullRequestBody(pullRequestNumber) {
-        return this.octokit.pulls.get({
-            owner: GITHUB_OWNER,
-            repo: APP_REPO,
-            pull_number: pullRequestNumber,
-        }).then(({data: pullRequestComment}) => pullRequestComment.body);
+        return this.octokit.pulls
+            .get({
+                owner: GITHUB_OWNER,
+                repo: APP_REPO,
+                pull_number: pullRequestNumber,
+            })
+            .then(({data: pullRequestComment}) => pullRequestComment.body);
     }
 
     /**
@@ -599,12 +591,16 @@ class GithubUtils {
      * @returns {Promise}
      */
     static getAllReviewComments(pullRequestNumber) {
-        return this.paginate(this.octokit.pulls.listReviews, {
-            owner: GITHUB_OWNER,
-            repo: APP_REPO,
-            pull_number: pullRequestNumber,
-            per_page: 100,
-        }, response => _.map(response.data, review => review.body));
+        return this.paginate(
+            this.octokit.pulls.listReviews,
+            {
+                owner: GITHUB_OWNER,
+                repo: APP_REPO,
+                pull_number: pullRequestNumber,
+                per_page: 100,
+            },
+            (response) => _.map(response.data, (review) => review.body),
+        );
     }
 
     /**
@@ -612,12 +608,16 @@ class GithubUtils {
      * @returns {Promise}
      */
     static getAllComments(issueNumber) {
-        return this.paginate(this.octokit.issues.listComments, {
-            owner: GITHUB_OWNER,
-            repo: APP_REPO,
-            issue_number: issueNumber,
-            per_page: 100,
-        }, response => _.map(response.data, comment => comment.body));
+        return this.paginate(
+            this.octokit.issues.listComments,
+            {
+                owner: GITHUB_OWNER,
+                repo: APP_REPO,
+                issue_number: issueNumber,
+                per_page: 100,
+            },
+            (response) => _.map(response.data, (comment) => comment.body),
+        );
     }
 
     /**
@@ -646,12 +646,13 @@ class GithubUtils {
      */
     static getLatestWorkflowRunID(workflow) {
         console.log(`Fetching New Expensify workflow runs for ${workflow}...`);
-        return this.octokit.actions.listWorkflowRuns({
-            owner: GITHUB_OWNER,
-            repo: APP_REPO,
-            workflow_id: workflow,
-        })
-            .then(response => lodashGet(response, 'data.workflow_runs[0].id'));
+        return this.octokit.actions
+            .listWorkflowRuns({
+                owner: GITHUB_OWNER,
+                repo: APP_REPO,
+                workflow_id: workflow,
+            })
+            .then((response) => lodashGet(response, 'data.workflow_runs[0].id'));
     }
 
     /**
@@ -661,10 +662,7 @@ class GithubUtils {
      * @returns {String}
      */
     static getReleaseBody(pullRequests) {
-        return _.map(
-            pullRequests,
-            number => `- ${this.getPullRequestURLFromNumber(number)}`,
-        ).join('\r\n');
+        return _.map(pullRequests, (number) => `- ${this.getPullRequestURLFromNumber(number)}`).join('\r\n');
     }
 
     /**
@@ -745,8 +743,8 @@ class GithubUtils {
             issue_number: issueNumber,
             per_page: 100,
         })
-            .then(events => _.filter(events, event => event.event === 'closed'))
-            .then(closedEvents => lodashGet(_.last(closedEvents), 'actor.login', ''));
+            .then((events) => _.filter(events, (event) => event.event === 'closed'))
+            .then((closedEvents) => lodashGet(_.last(closedEvents), 'actor.login', ''));
     }
 }
 
