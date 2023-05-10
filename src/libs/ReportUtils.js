@@ -178,6 +178,7 @@ function canEditReportAction(reportAction) {
         reportAction.actionName === CONST.REPORT.ACTIONS.TYPE.ADDCOMMENT &&
         !isReportMessageAttachment(lodashGet(reportAction, ['message', 0], {})) &&
         !ReportActionsUtils.isDeletedAction(reportAction) &&
+        !ReportActionsUtils.isCreatedTaskReportAction(reportAction) &&
         reportAction.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE
     );
 }
@@ -1031,12 +1032,16 @@ function buildOptimisticTaskCommentReportAction(taskReportID, taskTitle, taskAss
 
     // These parameters are not saved on the reportAction, but are used to display the task in the UI
     // Added when we fetch the reportActions on a report
-    reportAction.childReportID = taskReportID;
-    reportAction.childType = CONST.REPORT.TYPE.TASK;
-    reportAction.taskTitle = taskTitle;
-    reportAction.taskAssignee = taskAssignee;
-    reportAction.childStatusNum = CONST.REPORT.STATUS.OPEN;
-    reportAction.childStateNum = CONST.REPORT.STATE_NUM.OPEN;
+    reportAction.reportAction.originalMessage = {
+        html: reportAction.reportAction.message[0].html,
+        taskReportID: reportAction.reportAction.message[0].taskReportID,
+    };
+    reportAction.reportAction.childReportID = taskReportID;
+    reportAction.reportAction.childType = CONST.REPORT.TYPE.TASK;
+    reportAction.reportAction.taskTitle = taskTitle;
+    reportAction.reportAction.taskAssignee = taskAssignee;
+    reportAction.reportAction.childStatusNum = CONST.REPORT.STATUS.OPEN;
+    reportAction.reportAction.childStateNum = CONST.REPORT.STATE_NUM.OPEN;
 
     return reportAction;
 }
