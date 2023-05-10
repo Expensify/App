@@ -104,7 +104,8 @@ const propTypes = {
         // The date that the user will be unblocked
         expiresAt: PropTypes.string,
     }),
-
+    
+    /** Whether the composer input should be shown */
     shouldShowComposeInput: PropTypes.bool,
 
     /** Stores user's preferred skin tone */
