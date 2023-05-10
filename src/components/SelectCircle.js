@@ -15,10 +15,13 @@ const defaultProps = {
     isChecked: false,
 };
 
-const SelectCircle = props => (
+const SelectCircle = (props) => (
     <View style={[styles.selectCircle, styles.alignSelfCenter]}>
         {props.isChecked && (
-            <Icon src={Expensicons.Checkmark} fill={themeColors.iconSuccessFill} />
+            <Icon
+                src={Expensicons.Checkmark}
+                fill={themeColors.iconSuccessFill}
+            />
         )}
     </View>
 );

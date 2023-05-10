@@ -67,7 +67,7 @@ const NewTaskDescriptionPage = (props) => {
                 formID={ONYXKEYS.FORMS.NEW_TASK_FORM}
                 submitButtonText={props.translate('common.next')}
                 style={[styles.mh5, styles.mt5, styles.flexGrow1]}
-                onSubmit={values => onSubmit(values)}
+                onSubmit={(values) => onSubmit(values)}
                 validate={() => validate()}
                 enabledWhenOffline
             >

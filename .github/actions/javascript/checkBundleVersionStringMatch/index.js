@@ -45,9 +45,7 @@ const getPatchVersion = __nccwpck_require__(866);
 const getBuildVersion = __nccwpck_require__(14);
 
 // Filepath constants
-const BUILD_GRADLE_PATH = process.env.NODE_ENV === 'test'
-    ? path.resolve(__dirname, '../../android/app/build.gradle')
-    : './android/app/build.gradle';
+const BUILD_GRADLE_PATH = process.env.NODE_ENV === 'test' ? path.resolve(__dirname, '../../android/app/build.gradle') : './android/app/build.gradle';
 const PLIST_PATH = './ios/NewExpensify/Info.plist';
 const PLIST_PATH_TEST = './ios/NewExpensifyTests/Info.plist';
 
@@ -97,12 +95,13 @@ exports.generateAndroidVersionCode = function generateAndroidVersionCode(npmVers
  */
 exports.updateAndroidVersion = function updateAndroidVersion(versionName, versionCode) {
     console.log('Updating android:', `versionName: ${versionName}`, `versionCode: ${versionCode}`);
-    return fs.readFile(BUILD_GRADLE_PATH, {encoding: 'utf8'})
+    return fs
+        .readFile(BUILD_GRADLE_PATH, {encoding: 'utf8'})
         .then((content) => {
             let updatedContent = content.toString().replace(/versionName "([0-9.-]*)"/, `versionName "${versionName}"`);
-            return updatedContent = updatedContent.replace(/versionCode ([0-9]*)/, `versionCode ${versionCode}`);
+            return (updatedContent = updatedContent.replace(/versionCode ([0-9]*)/, `versionCode ${versionCode}`));
         })
-        .then(updatedContent => fs.writeFile(BUILD_GRADLE_PATH, updatedContent, {encoding: 'utf8'}));
+        .then((updatedContent) => fs.writeFile(BUILD_GRADLE_PATH, updatedContent, {encoding: 'utf8'}));
 };
 
 /**
