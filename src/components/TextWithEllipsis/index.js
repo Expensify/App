@@ -29,17 +29,18 @@ const defaultProps = {
     wrapperStyle: {},
 };
 
-const TextWithEllipsis = props => (
+const TextWithEllipsis = (props) => (
     <View style={[styles.flexRow, ...StyleUtils.parseStyleAsArray(props.wrapperStyle)]}>
         <View style={[styles.flexShrink1, ...StyleUtils.parseStyleAsArray(props.leadingTextParentStyle)]}>
-            <Text style={[...StyleUtils.parseStyleAsArray(props.textStyle)]} numberOfLines={1}>
+            <Text
+                style={[...StyleUtils.parseStyleAsArray(props.textStyle)]}
+                numberOfLines={1}
+            >
                 {props.leadingText}
             </Text>
         </View>
         <View style={styles.flexShrink0}>
-            <Text style={props.textStyle}>
-                {props.trailingText}
-            </Text>
+            <Text style={props.textStyle}>{props.trailingText}</Text>
         </View>
     </View>
 );

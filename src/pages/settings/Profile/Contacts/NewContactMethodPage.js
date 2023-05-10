@@ -1,6 +1,4 @@
-import React, {
-    useCallback, useMemo, useRef, useState,
-} from 'react';
+import React, {useCallback, useMemo, useRef, useState} from 'react';
 import PropTypes from 'prop-types';
 import {View} from 'react-native';
 import {ScrollView} from 'react-native-gesture-handler';
@@ -73,8 +71,7 @@ function NewContactMethodPage(props) {
     const isFormValid = useMemo(() => {
         const phoneLogin = LoginUtils.appendCountryCode(LoginUtils.getPhoneNumberWithoutSpecialChars(login));
 
-        return (Permissions.canUsePasswordlessLogins(props.betas) || password)
-            && (Str.isValidEmail(login) || parsePhoneNumber(phoneLogin).possible);
+        return (Permissions.canUsePasswordlessLogins(props.betas) || password) && (Str.isValidEmail(login) || parsePhoneNumber(phoneLogin).possible);
     }, [login, password, props.betas]);
 
     const submitForm = useCallback(() => {
@@ -107,31 +104,28 @@ function NewContactMethodPage(props) {
                 onCloseButtonPress={() => Navigation.dismissModal(true)}
             />
             <ScrollView>
-                <Text style={[styles.ph5, styles.mb5]}>
-                    {props.translate('common.pleaseEnterEmailOrPhoneNumber')}
-                </Text>
+                <Text style={[styles.ph5, styles.mb5]}>{props.translate('common.pleaseEnterEmailOrPhoneNumber')}</Text>
                 <View style={[styles.ph5, styles.mb6]}>
                     <TextInput
                         label={`${props.translate('common.email')}/${props.translate('common.phoneNumber')}`}
                         keyboardType={CONST.KEYBOARD_TYPE.EMAIL_ADDRESS}
-                        ref={el => loginInputRef.current = el}
+                        ref={(el) => (loginInputRef.current = el)}
                         value={login}
                         onChangeText={handleLoginChange}
                         autoCapitalize="none"
                         returnKeyType={Permissions.canUsePasswordlessLogins(props.betas) ? 'done' : 'next'}
                     />
                 </View>
-                {!Permissions.canUsePasswordlessLogins(props.betas)
-                    && (
-                        <View style={[styles.ph5, styles.mb6]}>
-                            <TextInput
-                                label={props.translate('common.password')}
-                                value={password}
-                                onChangeText={handlePasswordChange}
-                                returnKeyType="done"
-                            />
-                        </View>
-                    )}
+                {!Permissions.canUsePasswordlessLogins(props.betas) && (
+                    <View style={[styles.ph5, styles.mb6]}>
+                        <TextInput
+                            label={props.translate('common.password')}
+                            value={password}
+                            onChangeText={handlePasswordChange}
+                            returnKeyType="done"
+                        />
+                    </View>
+                )}
             </ScrollView>
             <FixedFooter style={[styles.flexGrow0]}>
                 <Button

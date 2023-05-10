@@ -2,9 +2,7 @@ import React, {useState, useEffect} from 'react';
 import PropTypes from 'prop-types';
 import {View} from 'react-native';
 import Text from '../../components/Text';
-import withLocalize, {
-    withLocalizePropTypes,
-} from '../../components/withLocalize';
+import withLocalize, {withLocalizePropTypes} from '../../components/withLocalize';
 import CONST from '../../CONST';
 import styles from '../../styles/styles';
 import TextInput from '../../components/TextInput';
@@ -40,7 +38,7 @@ const NewPasswordForm = (props) => {
     /**
      * checks if the password invalid
      * @returns {Boolean}
-    */
+     */
     const isInvalidPassword = () => passwordHintError && props.password && !isValidPassword();
 
     useEffect(() => {
@@ -57,18 +55,10 @@ const NewPasswordForm = (props) => {
                 autoComplete={ComponentUtils.NEW_PASSWORD_AUTOCOMPLETE_TYPE}
                 textContentType="newPassword"
                 value={props.password}
-                onChangeText={password => props.updatePassword(password)}
+                onChangeText={(password) => props.updatePassword(password)}
                 onBlur={onBlurNewPassword}
             />
-            <Text
-                style={[
-                    styles.formHelp,
-                    styles.mt1,
-                    isInvalidPassword() && styles.formError,
-                ]}
-            >
-                {props.translate('setPasswordPage.newPasswordPrompt')}
-            </Text>
+            <Text style={[styles.formHelp, styles.mt1, isInvalidPassword() && styles.formError]}>{props.translate('setPasswordPage.newPasswordPrompt')}</Text>
         </View>
     );
 };

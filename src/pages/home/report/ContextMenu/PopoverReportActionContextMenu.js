@@ -1,7 +1,5 @@
 import React from 'react';
-import {
-    Dimensions,
-} from 'react-native';
+import {Dimensions} from 'react-native';
 import _ from 'underscore';
 import lodashGet from 'lodash/get';
 import * as Report from '../../../../libs/actions/Report';
@@ -73,10 +71,12 @@ class PopoverReportActionContextMenu extends React.Component {
     shouldComponentUpdate(nextProps, nextState) {
         const previousLocale = lodashGet(this.props, 'preferredLocale', CONST.LOCALES.DEFAULT);
         const nextLocale = lodashGet(nextProps, 'preferredLocale', CONST.LOCALES.DEFAULT);
-        return this.state.isPopoverVisible !== nextState.isPopoverVisible
-            || this.state.popoverAnchorPosition !== nextState.popoverAnchorPosition
-            || this.state.isDeleteCommentConfirmModalVisible !== nextState.isDeleteCommentConfirmModalVisible
-            || previousLocale !== nextLocale;
+        return (
+            this.state.isPopoverVisible !== nextState.isPopoverVisible ||
+            this.state.popoverAnchorPosition !== nextState.popoverAnchorPosition ||
+            this.state.isDeleteCommentConfirmModalVisible !== nextState.isDeleteCommentConfirmModalVisible ||
+            previousLocale !== nextLocale
+        );
     }
 
     componentWillUnmount() {
@@ -126,6 +126,7 @@ class PopoverReportActionContextMenu extends React.Component {
      * @param {Function} [onHide] - Run a callback when Menu is hidden
      * @param {Boolean} isArchivedRoom - Whether the provided report is an archived room
      * @param {Boolean} isChronosReport - Flag to check if the chat participant is Chronos
+     * @param {String} childReportID - ReportAction childReportID
      */
     showContextMenu(
         type,
@@ -186,7 +187,7 @@ class PopoverReportActionContextMenu extends React.Component {
             if (!x || !y) {
                 return;
             }
-            this.setState(prev => ({
+            this.setState((prev) => ({
                 popoverAnchorPosition: {
                     horizontal: prev.cursorRelativePosition.horizontal + x,
                     vertical: prev.cursorRelativePosition.vertical + y,
@@ -262,13 +263,13 @@ class PopoverReportActionContextMenu extends React.Component {
     }
 
     confirmDeleteAndHideModal() {
-        this.callbackWhenDeleteModalHide = () => this.onComfirmDeleteModal = this.runAndResetCallback(this.onComfirmDeleteModal);
+        this.callbackWhenDeleteModalHide = () => (this.onComfirmDeleteModal = this.runAndResetCallback(this.onComfirmDeleteModal));
         Report.deleteReportComment(this.state.reportID, this.state.reportAction);
         this.setState({isDeleteCommentConfirmModalVisible: false});
     }
 
     hideDeleteModal() {
-        this.callbackWhenDeleteModalHide = () => this.onCancelDeleteModal = this.runAndResetCallback(this.onCancelDeleteModal);
+        this.callbackWhenDeleteModalHide = () => (this.onCancelDeleteModal = this.runAndResetCallback(this.onCancelDeleteModal));
         this.setState({
             reportID: '0',
             reportAction: {},

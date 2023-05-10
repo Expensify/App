@@ -115,11 +115,4 @@ function isActiveReportAction(actionID) {
     return contextMenuRef.current.isActiveReportAction(actionID);
 }
 
-export {
-    contextMenuRef,
-    showContextMenu,
-    hideContextMenu,
-    isActiveReportAction,
-    showDeleteModal,
-    hideDeleteModal,
-};
+export {contextMenuRef, showContextMenu, hideContextMenu, isActiveReportAction, showDeleteModal, hideDeleteModal};

@@ -35,18 +35,14 @@ function createTaskAndNavigate(currentUserEmail, parentReportID, title, descript
     const assigneeChatReportID = lodashGet(ReportUtils.getChatByParticipants([assignee]), 'reportID');
     let optimisticAssigneeAddComment;
     if (assigneeChatReportID && assigneeChatReportID !== parentReportID) {
-        optimisticAssigneeAddComment = ReportUtils.buildOptimisticAddCommentReportAction(
-            `${currentUserEmail} has[created a task for you](tbd/r/${optimisticTaskReport.reportID}): ${title}`,
-        );
+        optimisticAssigneeAddComment = ReportUtils.buildOptimisticAddCommentReportAction(`${currentUserEmail} has[created a task for you](tbd/r/${optimisticTaskReport.reportID}): ${title}`);
         optimisticAssigneeAddComment.reportAction.message[0].taskReportID = optimisticTaskReport.reportID;
     }
 
     // Create the CreatedReportAction on the task
     const optimisticTaskCreatedAction = ReportUtils.buildOptimisticCreatedReportAction(optimisticTaskReport.reportID);
 
-    const optimisticAddCommentReport = ReportUtils.buildOptimisticAddCommentReportAction(
-        `[Created a task](tbd/r/${optimisticTaskReport.reportID}): ${title}`,
-    );
+    const optimisticAddCommentReport = ReportUtils.buildOptimisticAddCommentReportAction(`[Created a task](tbd/r/${optimisticTaskReport.reportID}): ${title}`);
     optimisticAddCommentReport.reportAction.message[0].taskReportID = optimisticTaskReport.reportID;
 
     const optimisticData = [
@@ -207,13 +203,4 @@ function clearOutTaskInfoAndNavigate(reportID) {
     Navigation.navigate(ROUTES.NEW_TASK_DETAILS);
 }
 
-export {
-    createTaskAndNavigate,
-    setTitleValue,
-    setDescriptionValue,
-    setDetailsValue,
-    setAssigneeValue,
-    setShareDestinationValue,
-    clearOutTaskInfo,
-    clearOutTaskInfoAndNavigate,
-};
+export {createTaskAndNavigate, setTitleValue, setDescriptionValue, setDetailsValue, setAssigneeValue, setShareDestinationValue, clearOutTaskInfo, clearOutTaskInfoAndNavigate};
