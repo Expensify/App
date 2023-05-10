@@ -1,13 +1,6 @@
-import React, {
-    useCallback, useEffect, useMemo, useRef, useState,
-} from 'react';
+import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import PropTypes from 'prop-types';
-import {
-    View,
-    TouchableOpacity,
-    InteractionManager,
-    LayoutAnimation,
-} from 'react-native';
+import {View, TouchableOpacity, InteractionManager, LayoutAnimation} from 'react-native';
 import _ from 'underscore';
 import lodashGet from 'lodash/get';
 import {withOnyx} from 'react-native-onyx';
@@ -115,10 +108,12 @@ const propTypes = {
     preferredSkinTone: PropTypes.oneOfType([PropTypes.number, PropTypes.string]),
 
     /** User's frequently used emojis */
-    frequentlyUsedEmojis: PropTypes.arrayOf(PropTypes.shape({
-        code: PropTypes.string.isRequired,
-        keywords: PropTypes.arrayOf(PropTypes.string),
-    })),
+    frequentlyUsedEmojis: PropTypes.arrayOf(
+        PropTypes.shape({
+            code: PropTypes.string.isRequired,
+            keywords: PropTypes.arrayOf(PropTypes.string),
+        }),
+    ),
 
     /** The type of action that's pending  */
     pendingAction: PropTypes.oneOf(['add', 'update', 'delete']),
@@ -179,11 +174,11 @@ const debouncedBroadcastUserIsTyping = _.debounce((reportID) => {
 }, 100);
 
 /**
-     * Check if this piece of string looks like an emoji
-     * @param {String} str
-     * @param {Number} pos
-     * @returns {Boolean}
-     */
+ * Check if this piece of string looks like an emoji
+ * @param {String} str
+ * @param {Number} pos
+ * @returns {Boolean}
+ */
 const isEmojiCode = (str, pos) => {
     const leftWords = str.slice(0, pos).split(CONST.REGEX.NEW_LINE_OR_WHITE_SPACE_OR_EMOJI);
     const leftWord = _.last(leftWords);
@@ -296,39 +291,42 @@ function ReportActionCompose(props) {
      * @param {String} comment
      * @param {Boolean} shouldDebounceSaveComment
      */
-    const updateComment = useCallback((commentValue, shouldDebounceSaveComment) => {
-        const newComment = EmojiUtils.replaceEmojis(commentValue, props.isSmallScreenWidth, props.preferredSkinTone);
+    const updateComment = useCallback(
+        (commentValue, shouldDebounceSaveComment) => {
+            const newComment = EmojiUtils.replaceEmojis(commentValue, props.isSmallScreenWidth, props.preferredSkinTone);
 
-        setIsCommentEmpty(!!newComment.match(/^(\s)*$/));
-        setValue(newComment);
-        if (commentValue !== newComment) {
-            const remainder = value.slice(selection.end).length;
-            setSelection({
-                start: newComment.length - remainder,
-                end: newComment.length - remainder,
-            });
-        }
+            setIsCommentEmpty(!!newComment.match(/^(\s)*$/));
+            setValue(newComment);
+            if (commentValue !== newComment) {
+                const remainder = value.slice(selection.end).length;
+                setSelection({
+                    start: newComment.length - remainder,
+                    end: newComment.length - remainder,
+                });
+            }
 
-        // Indicate that draft has been created.
-        if (comment.current.length === 0 && newComment.length !== 0) {
-            Report.setReportWithDraft(props.reportID, true);
-        }
+            // Indicate that draft has been created.
+            if (comment.current.length === 0 && newComment.length !== 0) {
+                Report.setReportWithDraft(props.reportID, true);
+            }
 
-        // The draft has been deleted.
-        if (newComment.length === 0) {
-            Report.setReportWithDraft(props.reportID, false);
-        }
+            // The draft has been deleted.
+            if (newComment.length === 0) {
+                Report.setReportWithDraft(props.reportID, false);
+            }
 
-        comment.current = newComment;
-        if (shouldDebounceSaveComment) {
-            debouncedSaveReportComment(props.reportID, newComment);
-        } else {
-            Report.saveReportComment(props.reportID, newComment || '');
-        }
-        if (newComment) {
-            debouncedBroadcastUserIsTyping(props.reportID);
-        }
-    }, [props.isSmallScreenWidth, props.preferredSkinTone, props.reportID, selection.end, value]);
+            comment.current = newComment;
+            if (shouldDebounceSaveComment) {
+                debouncedSaveReportComment(props.reportID, newComment);
+            } else {
+                Report.saveReportComment(props.reportID, newComment || '');
+            }
+            if (newComment) {
+                debouncedBroadcastUserIsTyping(props.reportID);
+            }
+        },
+        [props.isSmallScreenWidth, props.preferredSkinTone, props.reportID, selection.end, value],
+    );
 
     /**
      * Set the maximum number of lines for the composer
@@ -362,13 +360,20 @@ function ReportActionCompose(props) {
         });
 
         const shortcutConfig = CONST.KEYBOARD_SHORTCUTS.ESCAPE;
-        unsubscribeEscapeKey.current = KeyboardShortcut.subscribe(shortcutConfig.shortcutKey, () => {
-            if (!isFocused || comment.current.length === 0) {
-                return;
-            }
+        unsubscribeEscapeKey.current = KeyboardShortcut.subscribe(
+            shortcutConfig.shortcutKey,
+            () => {
+                if (!isFocused || comment.current.length === 0) {
+                    return;
+                }
 
-            updateComment('', true);
-        }, shortcutConfig.descriptionKey, shortcutConfig.modifiers, true, true);
+                updateComment('', true);
+            },
+            shortcutConfig.descriptionKey,
+            shortcutConfig.modifiers,
+            true,
+            true,
+        );
 
         updateMaxLines();
         updateComment(comment.current);
@@ -461,19 +466,23 @@ function ReportActionCompose(props) {
             setIsEmojiPickerLarge(!props.isSmallScreenWidth || (props.isSmallScreenWidth && hasEnoughSpaceForLargeSuggestion));
             setColonIndex(leftString.lastIndexOf(':'));
             setHighlightedEmojiIndex(0);
-        }, [composerHeight, value, props.windowHeight, props.isSmallScreenWidth, resetSuggestedEmojis, shouldBlockEmojiCalc],
+        },
+        [composerHeight, value, props.windowHeight, props.isSmallScreenWidth, resetSuggestedEmojis, shouldBlockEmojiCalc],
     );
 
-    const onSelectionChange = useCallback((e) => {
-        setSelection(e.nativeEvent.selection);
+    const onSelectionChange = useCallback(
+        (e) => {
+            setSelection(e.nativeEvent.selection);
 
-        /**
-         * we pass here e.nativeEvent.selection.end directly to calculateEmojiSuggestion
-         * because in other case calculateEmojiSuggestion will have an old calculation value
-         * of suggestion instead of current one
-         */
-        calculateEmojiSuggestion(e.nativeEvent.selection.end);
-    }, [calculateEmojiSuggestion]);
+            /**
+             * we pass here e.nativeEvent.selection.end directly to calculateEmojiSuggestion
+             * because in other case calculateEmojiSuggestion will have an old calculation value
+             * of suggestion instead of current one
+             */
+            calculateEmojiSuggestion(e.nativeEvent.selection.end);
+        },
+        [calculateEmojiSuggestion],
+    );
 
     /**
      * Set the TextInput Ref
@@ -509,7 +518,7 @@ function ReportActionCompose(props) {
             },
         };
 
-        return _.map(ReportUtils.getMoneyRequestOptions(props.report, reportParticipants, props.betas), option => options[option]);
+        return _.map(ReportUtils.getMoneyRequestOptions(props.report, reportParticipants, props.betas), (option) => options[option]);
     }, [reportParticipants, props.report, props.betas, props.translate, props.reportID]);
 
     // eslint-disable-next-line rulesdir/prefer-early-return
@@ -532,10 +541,10 @@ function ReportActionCompose(props) {
      */
     const taskOption = useMemo(() => {
         // We only prevent the task option from showing if it's a DM and the other user is an Expensify default email
-        if (!Permissions.canUseTasks(props.betas) || (lodashGet(props.report, 'participants', []).length === 1 && _.some(reportParticipants, email => _.contains(
-            CONST.EXPENSIFY_EMAILS,
-            email,
-        )))) {
+        if (
+            !Permissions.canUseTasks(props.betas) ||
+            (lodashGet(props.report, 'participants', []).length === 1 && _.some(reportParticipants, (email) => _.contains(CONST.EXPENSIFY_EMAILS, email)))
+        ) {
             return [];
         }
 
@@ -552,21 +561,24 @@ function ReportActionCompose(props) {
      * Replace the code of emoji and update selection
      * @param {Number} highlightedEmojiIndex
      */
-    const insertSelectedEmoji = useCallback((selectedEmoji) => {
-        const commentBeforeColon = value.slice(0, colonIndex);
-        const emojiObject = suggestedEmojis[selectedEmoji];
-        const emojiCode = emojiObject.types && emojiObject.types[props.preferredSkinTone] ? emojiObject.types[props.preferredSkinTone] : emojiObject.code;
-        const commentAfterColonWithEmojiNameRemoved = value.slice(selection.end).replace(CONST.REGEX.EMOJI_REPLACER, CONST.SPACE);
+    const insertSelectedEmoji = useCallback(
+        (selectedEmoji) => {
+            const commentBeforeColon = value.slice(0, colonIndex);
+            const emojiObject = suggestedEmojis[selectedEmoji];
+            const emojiCode = emojiObject.types && emojiObject.types[props.preferredSkinTone] ? emojiObject.types[props.preferredSkinTone] : emojiObject.code;
+            const commentAfterColonWithEmojiNameRemoved = value.slice(selection.end).replace(CONST.REGEX.EMOJI_REPLACER, CONST.SPACE);
 
-        updateComment(`${commentBeforeColon}${emojiCode} ${commentAfterColonWithEmojiNameRemoved}`, true);
-        setSelection({
-            start: colonIndex + emojiCode.length + CONST.SPACE_LENGTH,
-            end: colonIndex + emojiCode.length + CONST.SPACE_LENGTH,
-        });
-        setSuggestedEmojis([]);
+            updateComment(`${commentBeforeColon}${emojiCode} ${commentAfterColonWithEmojiNameRemoved}`, true);
+            setSelection({
+                start: colonIndex + emojiCode.length + CONST.SPACE_LENGTH,
+                end: colonIndex + emojiCode.length + CONST.SPACE_LENGTH,
+            });
+            setSuggestedEmojis([]);
 
-        EmojiUtils.addToFrequentlyUsedEmojis(props.frequentlyUsedEmojis, emojiObject);
-    }, [colonIndex, props.frequentlyUsedEmojis, suggestedEmojis, value, props.preferredSkinTone, selection, updateComment]);
+            EmojiUtils.addToFrequentlyUsedEmojis(props.frequentlyUsedEmojis, emojiObject);
+        },
+        [colonIndex, props.frequentlyUsedEmojis, suggestedEmojis, value, props.preferredSkinTone, selection, updateComment],
+    );
 
     const isEmptyChat = useCallback(() => _.size(props.reportActions) === 1, [props.reportActions]);
 
@@ -575,22 +587,28 @@ function ReportActionCompose(props) {
      *
      * @param {String} emoji
      */
-    const addEmojiToTextBox = useCallback((emoji) => {
-        setSelection({
-            start: selection.start + emoji.length,
-            end: selection.start + emoji.length,
-        });
+    const addEmojiToTextBox = useCallback(
+        (emoji) => {
+            setSelection({
+                start: selection.start + emoji.length,
+                end: selection.start + emoji.length,
+            });
 
-        updateComment(ComposerUtils.insertText(comment.current, selection, emoji));
-    }, [selection, updateComment]);
+            updateComment(ComposerUtils.insertText(comment.current, selection, emoji));
+        },
+        [selection, updateComment],
+    );
 
     /**
      * Update the number of lines for a comment in Onyx
      * @param {Number} numberOfLines
      */
-    const updateNumberOfLines = useCallback((numberOfLines) => {
-        Report.saveReportCommentNumberOfLines(props.reportID, numberOfLines);
-    }, [props.reportID]);
+    const updateNumberOfLines = useCallback(
+        (numberOfLines) => {
+            Report.saveReportCommentNumberOfLines(props.reportID, numberOfLines);
+        },
+        [props.reportID],
+    );
 
     /**
      * @returns {String}
@@ -617,81 +635,96 @@ function ReportActionCompose(props) {
      *
      * @param {SyntheticEvent} [e]
      */
-    const submitForm = useCallback((e) => {
-        if (e) {
-            e.preventDefault();
-        }
+    const submitForm = useCallback(
+        (e) => {
+            if (e) {
+                e.preventDefault();
+            }
 
-        // Since we're submitting the form here which should clear the composer
-        // We don't really care about saving the draft the user was typing
-        // We need to make sure an empty draft gets saved instead
-        debouncedSaveReportComment.cancel();
+            // Since we're submitting the form here which should clear the composer
+            // We don't really care about saving the draft the user was typing
+            // We need to make sure an empty draft gets saved instead
+            debouncedSaveReportComment.cancel();
 
-        const newComment = prepareCommentAndResetComposer();
-        if (!newComment) {
-            return;
-        }
+            const newComment = prepareCommentAndResetComposer();
+            if (!newComment) {
+                return;
+            }
 
-        props.onSubmit(newComment);
-    }, [prepareCommentAndResetComposer, props.onSubmit]);
+            props.onSubmit(newComment);
+        },
+        [prepareCommentAndResetComposer, props.onSubmit],
+    );
 
     /**
      * Listens for keyboard shortcuts and applies the action
      *
      * @param {Object} e
      */
-    const triggerHotkeyActions = useCallback((e) => {
-        if (!e || ComposerUtils.canSkipTriggerHotkeys(props.isSmallScreenWidth, props.isKeyboardShown)) {
-            return;
-        }
-
-        if ((e.key === CONST.KEYBOARD_SHORTCUTS.ENTER.shortcutKey || e.key === CONST.KEYBOARD_SHORTCUTS.TAB.shortcutKey) && suggestedEmojis.length) {
-            e.preventDefault();
-            insertSelectedEmoji(highlightedEmojiIndex);
-            return;
-        }
-        if (e.key === CONST.KEYBOARD_SHORTCUTS.ESCAPE.shortcutKey && suggestedEmojis.length) {
-            e.preventDefault();
-            resetSuggestedEmojis();
-            return;
-        }
-
-        // Submit the form when Enter is pressed
-        if (e.key === CONST.KEYBOARD_SHORTCUTS.ENTER.shortcutKey && !e.shiftKey) {
-            e.preventDefault();
-            submitForm();
-        }
-
-        // Trigger the edit box for last sent message if ArrowUp is pressed and the comment is empty and Chronos is not in the participants
-        if (
-            e.key === CONST.KEYBOARD_SHORTCUTS.ARROW_UP.shortcutKey &&
-            textInput.current.selectionStart === 0 &&
-            isCommentEmpty &&
-            !ReportUtils.chatIncludesChronos(props.report)
-        ) {
-            e.preventDefault();
-
-            const lastReportAction = _.find(props.reportActions, (action) => ReportUtils.canEditReportAction(action));
-
-            if (lastReportAction !== -1 && lastReportAction) {
-                Report.saveReportActionDraft(props.reportID, lastReportAction.reportActionID, _.last(lastReportAction.message).html);
+    const triggerHotkeyActions = useCallback(
+        (e) => {
+            if (!e || ComposerUtils.canSkipTriggerHotkeys(props.isSmallScreenWidth, props.isKeyboardShown)) {
+                return;
             }
-        }
-    }, [isCommentEmpty, props.isSmallScreenWidth, props.report, props.reportActions, props.reportID, resetSuggestedEmojis,
-        submitForm, suggestedEmojis.length, props.isKeyboardShown, highlightedEmojiIndex, insertSelectedEmoji]);
+
+            if ((e.key === CONST.KEYBOARD_SHORTCUTS.ENTER.shortcutKey || e.key === CONST.KEYBOARD_SHORTCUTS.TAB.shortcutKey) && suggestedEmojis.length) {
+                e.preventDefault();
+                insertSelectedEmoji(highlightedEmojiIndex);
+                return;
+            }
+            if (e.key === CONST.KEYBOARD_SHORTCUTS.ESCAPE.shortcutKey && suggestedEmojis.length) {
+                e.preventDefault();
+                resetSuggestedEmojis();
+                return;
+            }
+
+            // Submit the form when Enter is pressed
+            if (e.key === CONST.KEYBOARD_SHORTCUTS.ENTER.shortcutKey && !e.shiftKey) {
+                e.preventDefault();
+                submitForm();
+            }
+
+            // Trigger the edit box for last sent message if ArrowUp is pressed and the comment is empty and Chronos is not in the participants
+            if (e.key === CONST.KEYBOARD_SHORTCUTS.ARROW_UP.shortcutKey && textInput.current.selectionStart === 0 && isCommentEmpty && !ReportUtils.chatIncludesChronos(props.report)) {
+                e.preventDefault();
+
+                const lastReportAction = _.find(props.reportActions, (action) => ReportUtils.canEditReportAction(action));
+
+                if (lastReportAction !== -1 && lastReportAction) {
+                    Report.saveReportActionDraft(props.reportID, lastReportAction.reportActionID, _.last(lastReportAction.message).html);
+                }
+            }
+        },
+        [
+            isCommentEmpty,
+            props.isSmallScreenWidth,
+            props.report,
+            props.reportActions,
+            props.reportID,
+            resetSuggestedEmojis,
+            submitForm,
+            suggestedEmojis.length,
+            props.isKeyboardShown,
+            highlightedEmojiIndex,
+            insertSelectedEmoji,
+        ],
+    );
 
     /**
      * @param {Object} file
      */
-    const addAttachment = useCallback((file) => {
-        // Since we're submitting the form here which should clear the composer
-        // We don't really care about saving the draft the user was typing
-        // We need to make sure an empty draft gets saved instead
-        debouncedSaveReportComment.cancel();
-        const newComment = prepareCommentAndResetComposer();
-        Report.addAttachment(props.reportID, file, newComment);
-        setTextInputShouldClear(false);
-    }, [props.reportID, prepareCommentAndResetComposer]);
+    const addAttachment = useCallback(
+        (file) => {
+            // Since we're submitting the form here which should clear the composer
+            // We don't really care about saving the draft the user was typing
+            // We need to make sure an empty draft gets saved instead
+            debouncedSaveReportComment.cancel();
+            const newComment = prepareCommentAndResetComposer();
+            Report.addAttachment(props.reportID, file, newComment);
+            setTextInputShouldClear(false);
+        },
+        [props.reportID, prepareCommentAndResetComposer],
+    );
 
     /**
      * Event handler to update the state after the attachment preview is closed.
@@ -701,16 +734,32 @@ function ReportActionCompose(props) {
         setIsAttachmentPreviewActive(false);
     }, [updateShouldBlockEmojiCalcToFalse]);
 
+    const onDropAttachment = useCallback((e, displayFileInModal) => {
+        e.preventDefault();
+        if (isAttachmentPreviewActive) {
+            setIsDraggingOver(false);
+            return;
+        }
+
+        const file = lodashGet(e, ['dataTransfer', 'files', 0]);
+
+        displayFileInModal(file);
+
+        setIsDraggingOver(false);
+        setIsAttachmentPreviewActive(true);
+    }, []);
+
     // Prevents focusing and showing the keyboard while the drawer is covering the chat.
     const isComposeDisabled = props.isDrawerOpen && props.isSmallScreenWidth;
     const reportRecipient = props.personalDetails[participantsWithoutExpensifyEmails[0]];
     const shouldUseFocusedColor = !isBlockedFromConcierge && !props.disabled && (isFocused || isDraggingOver);
 
     return (
-        <View style={[
-            shouldShowReportRecipientLocalTime && !lodashGet(props.network, 'isOffline') && styles.chatItemComposeWithFirstRow,
-            props.isComposerFullSize && styles.chatItemFullComposeRow,
-        ]}
+        <View
+            style={[
+                shouldShowReportRecipientLocalTime && !lodashGet(props.network, 'isOffline') && styles.chatItemComposeWithFirstRow,
+                props.isComposerFullSize && styles.chatItemFullComposeRow,
+            ]}
         >
             <OfflineWithFeedback
                 pendingAction={props.pendingAction}
@@ -718,15 +767,14 @@ function ReportActionCompose(props) {
                 contentContainerStyle={props.isComposerFullSize ? styles.flex1 : {}}
             >
                 {shouldShowReportRecipientLocalTime && <ParticipantLocalTime participant={reportRecipient} />}
-                <View style={[
-                    shouldUseFocusedColor
-                        ? styles.chatItemComposeBoxFocusedColor
-                        : styles.chatItemComposeBoxColor,
-                    styles.flexRow,
-                    styles.chatItemComposeBox,
-                    props.isComposerFullSize && styles.chatItemFullComposeBox,
-                    hasExceededMaxCommentLength && styles.borderColorDanger,
-                ]}
+                <View
+                    style={[
+                        shouldUseFocusedColor ? styles.chatItemComposeBoxFocusedColor : styles.chatItemComposeBoxColor,
+                        styles.flexRow,
+                        styles.chatItemComposeBox,
+                        props.isComposerFullSize && styles.chatItemFullComposeBox,
+                        hasExceededMaxCommentLength && styles.borderColorDanger,
+                    ]}
                 >
                     <AttachmentModal
                         headerTitle={props.translate('reportActionCompose.sendAttachment')}
@@ -738,47 +786,46 @@ function ReportActionCompose(props) {
                                 <AttachmentPicker>
                                     {({openPicker}) => (
                                         <>
-                                            <View style={[
-                                                styles.dFlex, styles.flexColumn,
-                                                (isFullComposerAvailable || props.isComposerFullSize) ? styles.justifyContentBetween : styles.justifyContentEnd,
-                                            ]}
+                                            <View
+                                                style={[
+                                                    styles.dFlex,
+                                                    styles.flexColumn,
+                                                    isFullComposerAvailable || props.isComposerFullSize ? styles.justifyContentBetween : styles.justifyContentEnd,
+                                                ]}
                                             >
                                                 {props.isComposerFullSize && (
-                                                <Tooltip text={props.translate('reportActionCompose.collapse')}>
-                                                    <TouchableOpacity
-                                                        onPress={(e) => {
-                                                            e.preventDefault();
-                                                            updateShouldShowSuggestionMenuToFalse();
-                                                            Report.setIsComposerFullSize(props.reportID, false);
-                                                        }}
-
-                                                                // Keep focus on the composer when Collapse button is clicked.
-                                                        onMouseDown={e => e.preventDefault()}
-                                                        style={styles.composerSizeButton}
-                                                        disabled={isBlockedFromConcierge || props.disabled}
-                                                    >
-                                                        <Icon src={Expensicons.Collapse} />
-                                                    </TouchableOpacity>
-                                                </Tooltip>
-
+                                                    <Tooltip text={props.translate('reportActionCompose.collapse')}>
+                                                        <TouchableOpacity
+                                                            onPress={(e) => {
+                                                                e.preventDefault();
+                                                                updateShouldShowSuggestionMenuToFalse();
+                                                                Report.setIsComposerFullSize(props.reportID, false);
+                                                            }}
+                                                            // Keep focus on the composer when Collapse button is clicked.
+                                                            onMouseDown={(e) => e.preventDefault()}
+                                                            style={styles.composerSizeButton}
+                                                            disabled={isBlockedFromConcierge || props.disabled}
+                                                        >
+                                                            <Icon src={Expensicons.Collapse} />
+                                                        </TouchableOpacity>
+                                                    </Tooltip>
                                                 )}
-                                                {(!props.isComposerFullSize && isFullComposerAvailable) && (
-                                                <Tooltip text={props.translate('reportActionCompose.expand')}>
-                                                    <TouchableOpacity
-                                                        onPress={(e) => {
-                                                            e.preventDefault();
-                                                            updateShouldShowSuggestionMenuToFalse();
-                                                            Report.setIsComposerFullSize(props.reportID, true);
-                                                        }}
-
-                                                                // Keep focus on the composer when Expand button is clicked.
-                                                        onMouseDown={e => e.preventDefault()}
-                                                        style={styles.composerSizeButton}
-                                                        disabled={isBlockedFromConcierge || props.disabled}
-                                                    >
-                                                        <Icon src={Expensicons.Expand} />
-                                                    </TouchableOpacity>
-                                                </Tooltip>
+                                                {!props.isComposerFullSize && isFullComposerAvailable && (
+                                                    <Tooltip text={props.translate('reportActionCompose.expand')}>
+                                                        <TouchableOpacity
+                                                            onPress={(e) => {
+                                                                e.preventDefault();
+                                                                updateShouldShowSuggestionMenuToFalse();
+                                                                Report.setIsComposerFullSize(props.reportID, true);
+                                                            }}
+                                                            // Keep focus on the composer when Expand button is clicked.
+                                                            onMouseDown={(e) => e.preventDefault()}
+                                                            style={styles.composerSizeButton}
+                                                            disabled={isBlockedFromConcierge || props.disabled}
+                                                        >
+                                                            <Icon src={Expensicons.Expand} />
+                                                        </TouchableOpacity>
+                                                    </Tooltip>
                                                 )}
                                                 <Tooltip text={props.translate('reportActionCompose.addAction')}>
                                                     <TouchableOpacity
@@ -803,7 +850,9 @@ function ReportActionCompose(props) {
                                                 onClose={() => setMenuVisibility(false)}
                                                 onItemSelected={() => setMenuVisibility(false)}
                                                 anchorPosition={styles.createMenuPositionReportActionCompose}
-                                                menuItems={[...moneyRequestOptions, ...taskOption,
+                                                menuItems={[
+                                                    ...moneyRequestOptions,
+                                                    ...taskOption,
                                                     {
                                                         icon: Expensicons.Paperclip,
                                                         text: props.translate('reportActionCompose.addAttachment'),
@@ -830,20 +879,7 @@ function ReportActionCompose(props) {
                                         activeDropZoneId={CONST.REPORT.ACTIVE_DROP_NATIVE_ID}
                                         onDragEnter={() => setIsDraggingOver(true)}
                                         onDragLeave={() => setIsDraggingOver(false)}
-                                        onDrop={(e) => {
-                                            e.preventDefault();
-                                            if (isAttachmentPreviewActive) {
-                                                setIsDraggingOver(false);
-                                                return;
-                                            }
-
-                                            const file = lodashGet(e, ['dataTransfer', 'files', 0]);
-
-                                            displayFileInModal(file);
-
-                                            setIsDraggingOver(false);
-                                            setIsAttachmentPreviewActive(true);
-                                        }}
+                                        onDrop={(e) => onDropAttachment(e, displayFileInModal)}
                                         disabled={props.disabled}
                                     >
                                         <Composer
@@ -853,7 +889,7 @@ function ReportActionCompose(props) {
                                             textAlignVertical="top"
                                             placeholder={inputPlaceholder}
                                             placeholderTextColor={themeColors.placeholderText}
-                                            onChangeText={commentValue => updateComment(commentValue, true)}
+                                            onChangeText={(commentValue) => updateComment(commentValue, true)}
                                             onKeyPress={triggerHotkeyActions}
                                             style={[styles.textInputCompose, props.isComposerFullSize ? styles.textInputFullCompose : styles.flex4]}
                                             maxLines={maxLines}
@@ -898,61 +934,69 @@ function ReportActionCompose(props) {
                     )}
                     <View
                         style={[styles.justifyContentEnd]}
-
-                            // Keep focus on the composer when Send message is clicked.
-                        onMouseDown={e => e.preventDefault()}
+                        // Keep focus on the composer when Send message is clicked.
+                        onMouseDown={(e) => e.preventDefault()}
                     >
                         <Tooltip text={props.translate('common.send')}>
                             <TouchableOpacity
-                                style={[styles.chatItemSubmitButton,
-                                    (isCommentEmpty || hasExceededMaxCommentLength) ? undefined : styles.buttonSuccess,
-                                ]}
+                                style={[styles.chatItemSubmitButton, isCommentEmpty || hasExceededMaxCommentLength ? undefined : styles.buttonSuccess]}
                                 onPress={submitForm}
                                 disabled={isCommentEmpty || isBlockedFromConcierge || props.disabled || hasExceededMaxCommentLength}
                                 hitSlop={{
-                                    top: 3, right: 3, bottom: 3, left: 3,
+                                    top: 3,
+                                    right: 3,
+                                    bottom: 3,
+                                    left: 3,
                                 }}
                             >
-                                <Icon src={Expensicons.Send} fill={(isCommentEmpty || hasExceededMaxCommentLength) ? themeColors.icon : themeColors.textLight} />
+                                <Icon
+                                    src={Expensicons.Send}
+                                    fill={isCommentEmpty || hasExceededMaxCommentLength ? themeColors.icon : themeColors.textLight}
+                                />
                             </TouchableOpacity>
                         </Tooltip>
                     </View>
                 </View>
-                <View style={[
-                    styles.flexRow,
-                    styles.justifyContentBetween,
-                    styles.alignItemsCenter,
-                    (!props.isSmallScreenWidth || (props.isSmallScreenWidth && !props.network.isOffline)) && styles.chatItemComposeSecondaryRow]}
+                <View
+                    style={[
+                        styles.flexRow,
+                        styles.justifyContentBetween,
+                        styles.alignItemsCenter,
+                        (!props.isSmallScreenWidth || (props.isSmallScreenWidth && !props.network.isOffline)) && styles.chatItemComposeSecondaryRow,
+                    ]}
                 >
                     {!props.isSmallScreenWidth && <OfflineIndicator containerStyles={[styles.chatItemComposeSecondaryRow]} />}
                     <ReportTypingIndicator reportID={props.reportID} />
-                    <ExceededCommentLength comment={comment.current} onExceededMaxCommentLength={setExceededMaxCommentLength} />
+                    <ExceededCommentLength
+                        comment={comment.current}
+                        onExceededMaxCommentLength={setExceededMaxCommentLength}
+                    />
                 </View>
             </OfflineWithFeedback>
             {isDraggingOver && <ReportDropUI />}
             {!_.isEmpty(suggestedEmojis) && shouldShowSuggestionMenu && (
-            <ArrowKeyFocusManager
-                focusedIndex={highlightedEmojiIndex}
-                maxIndex={getMaxArrowIndex(suggestedEmojis.length, isEmojiPickerLarge)}
-                shouldExcludeTextAreaNodes={false}
-                onFocusedIndexChanged={index => setHighlightedEmojiIndex(index)}
-            >
-                <EmojiSuggestions
-                    onClose={() => setSuggestedEmojis([])}
-                    highlightedEmojiIndex={highlightedEmojiIndex}
-                    emojis={suggestedEmojis}
-                    comment={value}
-                    updateComment={newComment => setValue(newComment)}
-                    colonIndex={colonIndex}
-                    prefix={value.slice(colonIndex + 1, selection.start)}
-                    onSelect={insertSelectedEmoji}
-                    isComposerFullSize={props.isComposerFullSize}
-                    preferredSkinToneIndex={props.preferredSkinTone}
-                    isEmojiPickerLarge={isEmojiPickerLarge}
-                    composerHeight={composerHeight}
-                    shouldIncludeReportRecipientLocalTimeHeight={shouldShowReportRecipientLocalTime}
-                />
-            </ArrowKeyFocusManager>
+                <ArrowKeyFocusManager
+                    focusedIndex={highlightedEmojiIndex}
+                    maxIndex={getMaxArrowIndex(suggestedEmojis.length, isEmojiPickerLarge)}
+                    shouldExcludeTextAreaNodes={false}
+                    onFocusedIndexChanged={(index) => setHighlightedEmojiIndex(index)}
+                >
+                    <EmojiSuggestions
+                        onClose={() => setSuggestedEmojis([])}
+                        highlightedEmojiIndex={highlightedEmojiIndex}
+                        emojis={suggestedEmojis}
+                        comment={value}
+                        updateComment={(newComment) => setValue(newComment)}
+                        colonIndex={colonIndex}
+                        prefix={value.slice(colonIndex + 1, selection.start)}
+                        onSelect={insertSelectedEmoji}
+                        isComposerFullSize={props.isComposerFullSize}
+                        preferredSkinToneIndex={props.preferredSkinTone}
+                        isEmojiPickerLarge={isEmojiPickerLarge}
+                        composerHeight={composerHeight}
+                        shouldIncludeReportRecipientLocalTimeHeight={shouldShowReportRecipientLocalTime}
+                    />
+                </ArrowKeyFocusManager>
             )}
         </View>
     );
