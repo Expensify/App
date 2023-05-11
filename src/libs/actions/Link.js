@@ -14,13 +14,13 @@ import * as Url from '../Url';
 let isNetworkOffline = false;
 Onyx.connect({
     key: ONYXKEYS.NETWORK,
-    callback: val => isNetworkOffline = lodashGet(val, 'isOffline', false),
+    callback: (val) => (isNetworkOffline = lodashGet(val, 'isOffline', false)),
 });
 
 let currentUserEmail;
 Onyx.connect({
     key: ONYXKEYS.SESSION,
-    callback: val => currentUserEmail = lodashGet(val, 'email', ''),
+    callback: (val) => (currentUserEmail = lodashGet(val, 'email', '')),
 });
 
 /**
@@ -48,13 +48,12 @@ function buildOldDotURL(url, shortLivedAuthToken) {
 
     const params = _.compact([authTokenParam, emailParam]).join('&');
 
-    return Environment.getOldDotEnvironmentURL()
-        .then((environmentURL) => {
-            const oldDotDomain = Url.addTrailingForwardSlash(environmentURL);
+    return Environment.getOldDotEnvironmentURL().then((environmentURL) => {
+        const oldDotDomain = Url.addTrailingForwardSlash(environmentURL);
 
-            // If the URL contains # or ?, we can assume they don't need to have the `?` token to start listing url parameters.
-            return `${oldDotDomain}${url}${hasHashParams || hasURLParams ? '&' : '?'}${params}`;
-        });
+        // If the URL contains # or ?, we can assume they don't need to have the `?` token to start listing url parameters.
+        return `${oldDotDomain}${url}${hasHashParams || hasURLParams ? '&' : '?'}${params}`;
+    });
 }
 
 /**
@@ -62,23 +61,23 @@ function buildOldDotURL(url, shortLivedAuthToken) {
  */
 function openOldDotLink(url) {
     if (isNetworkOffline) {
-        buildOldDotURL(url).then(oldDotURL => Linking.openURL(oldDotURL));
+        buildOldDotURL(url).then((oldDotURL) => Linking.openURL(oldDotURL));
         return;
     }
 
     // If shortLivedAuthToken is not accessible, fallback to opening the link without the token.
     // eslint-disable-next-line rulesdir/no-api-side-effects-method
-    API.makeRequestWithSideEffects(
-        'OpenOldDotLink', {}, {},
-    ).then((response) => {
-        buildOldDotURL(url, response.shortLivedAuthToken).then((oldDotUrl) => {
-            Linking.openURL(oldDotUrl);
+    API.makeRequestWithSideEffects('OpenOldDotLink', {}, {})
+        .then((response) => {
+            buildOldDotURL(url, response.shortLivedAuthToken).then((oldDotUrl) => {
+                Linking.openURL(oldDotUrl);
+            });
+        })
+        .catch(() => {
+            buildOldDotURL(url).then((oldDotUrl) => {
+                Linking.openURL(oldDotUrl);
+            });
         });
-    }).catch(() => {
-        buildOldDotURL(url).then((oldDotUrl) => {
-            Linking.openURL(oldDotUrl);
-        });
-    });
 }
 
 /**
@@ -93,8 +92,4 @@ function openExternalLink(url, shouldSkipCustomSafariLogic = false) {
     asyncOpenURL(Promise.resolve(), url, shouldSkipCustomSafariLogic);
 }
 
-export {
-    buildOldDotURL,
-    openOldDotLink,
-    openExternalLink,
-};
+export {buildOldDotURL, openOldDotLink, openExternalLink};

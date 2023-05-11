@@ -56,7 +56,5 @@ const ExpensifyWordmark = (props) => {
 ExpensifyWordmark.displayName = 'ExpensifyWordmark';
 ExpensifyWordmark.propTypes = propTypes;
 ExpensifyWordmark.defaultProps = defaultProps;
-export default compose(
-    withEnvironment,
-    withWindowDimensions,
-)(ExpensifyWordmark);
+
+export default compose(withEnvironment, withWindowDimensions)(ExpensifyWordmark);

@@ -95,7 +95,7 @@ const createServerInstance = () => {
         res.statusCode = 200;
         switch (req.url) {
             case Routes.testConfig: {
-                testStartedListeners.forEach(listener => listener(activeTestConfig));
+                testStartedListeners.forEach((listener) => listener(activeTestConfig));
                 if (activeTestConfig == null) {
                     throw new Error('No test config set');
                 }
@@ -136,8 +136,8 @@ const createServerInstance = () => {
         addTestStartedListener,
         addTestResultListener,
         addTestDoneListener,
-        start: () => new Promise(resolve => server.listen(PORT, resolve)),
-        stop: () => new Promise(resolve => server.close(resolve)),
+        start: () => new Promise((resolve) => server.listen(PORT, resolve)),
+        stop: () => new Promise((resolve) => server.close(resolve)),
     };
 };
 

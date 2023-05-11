@@ -1,4 +1,4 @@
-import React, {useRef} from 'react';
+import React, {useRef, useEffect} from 'react';
 import {View, ScrollView} from 'react-native';
 import {withSafeAreaInsets} from 'react-native-safe-area-context';
 import PropTypes from 'prop-types';
@@ -38,7 +38,7 @@ const propTypes = {
 };
 
 const SignInPageLayout = (props) => {
-    const scrollViewRef = useRef(null);
+    const scrollViewRef = useRef();
     let containerStyles = [styles.flex1, styles.signInPageInner];
     let contentContainerStyles = [styles.flex1, styles.flexRow];
 
@@ -50,11 +50,73 @@ const SignInPageLayout = (props) => {
         contentContainerStyles = [styles.flex1, styles.flexColumn];
     }
 
+    const scrollPageToTop = (animated = false) => {
+        if (!scrollViewRef.current) {
+            return;
+        }
+        scrollViewRef.current.scrollTo({y: 0, animated});
+    };
+
+    useEffect(scrollPageToTop, [props.welcomeHeader, props.welcomeText]);
+
     return (
         <View style={containerStyles}>
-            {!props.isSmallScreenWidth
-                ? (
-                    <View style={contentContainerStyles}>
+            {!props.isSmallScreenWidth ? (
+                <View style={contentContainerStyles}>
+                    <SignInPageContent
+                        welcomeHeader={props.welcomeHeader}
+                        welcomeText={props.welcomeText}
+                        shouldShowWelcomeText={props.shouldShowWelcomeText}
+                        shouldShowWelcomeHeader={props.shouldShowWelcomeHeader}
+                    >
+                        {props.children}
+                    </SignInPageContent>
+                    <ScrollView
+                        style={[styles.flex1, StyleUtils.getBackgroundColorStyle(themeColors.signInPage)]}
+                        contentContainerStyle={[styles.flex1]}
+                        ref={scrollViewRef}
+                    >
+                        <View style={[styles.flex1]}>
+                            <View style={styles.signInPageHeroCenter}>
+                                <SignInHeroBackgroundImage
+                                    pointerEvents="none"
+                                    width={variables.signInHeroBackgroundWidth}
+                                />
+                            </View>
+                            <View>
+                                <View style={[styles.t0, styles.l0, styles.h100, styles.pAbsolute, styles.signInPageGradient]}>
+                                    <SignInGradient
+                                        height="100%"
+                                        preserveAspectRatio="none"
+                                    />
+                                </View>
+                                <View
+                                    style={[
+                                        styles.alignSelfCenter,
+                                        StyleUtils.getMaximumWidth(variables.signInContentMaxWidth),
+                                        props.isMediumScreenWidth ? styles.ph10 : {},
+                                        props.isLargeScreenWidth ? styles.ph25 : {},
+                                    ]}
+                                >
+                                    <SignInPageHero />
+                                    <Footer scrollPageToTop={scrollPageToTop} />
+                                </View>
+                            </View>
+                        </View>
+                    </ScrollView>
+                </View>
+            ) : (
+                <ScrollView
+                    contentContainerStyle={scrollViewContentContainerStyles}
+                    keyboardShouldPersistTaps="handled"
+                    ref={scrollViewRef}
+                >
+                    <View style={[styles.flex1, styles.flexColumn, StyleUtils.getMinimumHeight(Math.max(variables.signInContentMinHeight, containerHeight))]}>
+                        <SignInHeroBackgroundImageMobile
+                            pointerEvents="none"
+                            width={variables.signInHeroBackgroundWidthMobile}
+                            style={styles.signInBackgroundMobile}
+                        />
                         <SignInPageContent
                             welcomeHeader={props.welcomeHeader}
                             welcomeText={props.welcomeText}
@@ -63,61 +125,12 @@ const SignInPageLayout = (props) => {
                         >
                             {props.children}
                         </SignInPageContent>
-                        <ScrollView
-                            style={[styles.flex1, StyleUtils.getBackgroundColorStyle(themeColors.signInPage)]}
-                            contentContainerStyle={[styles.flex1]}
-                            ref={scrollViewRef}
-                        >
-                            <View style={[styles.flex1]}>
-                                <View style={styles.signInPageHeroCenter}>
-                                    <SignInHeroBackgroundImage
-                                        pointerEvents="none"
-                                        width={variables.signInHeroBackgroundWidth}
-                                    />
-                                </View>
-                                <View>
-                                    <View style={[styles.t0, styles.l0, styles.h100, styles.pAbsolute, styles.signInPageGradient]}>
-                                        <SignInGradient height="100%" preserveAspectRatio="none" />
-                                    </View>
-                                    <View style={[
-                                        styles.alignSelfCenter,
-                                        StyleUtils.getMaximumWidth(variables.signInContentMaxWidth),
-                                        props.isMediumScreenWidth ? styles.ph10 : {},
-                                        props.isLargeScreenWidth ? styles.ph25 : {}]}
-                                    >
-                                        <SignInPageHero />
-                                        <Footer scrollViewRef={scrollViewRef} />
-                                    </View>
-                                </View>
-                            </View>
-                        </ScrollView>
                     </View>
-                ) : (
-                    <ScrollView
-                        contentContainerStyle={scrollViewContentContainerStyles}
-                        keyboardShouldPersistTaps="handled"
-                        ref={scrollViewRef}
-                    >
-                        <View style={[styles.flex1, styles.flexColumn, StyleUtils.getMinimumHeight(Math.max(variables.signInContentMinHeight, containerHeight))]}>
-                            <SignInHeroBackgroundImageMobile
-                                pointerEvents="none"
-                                width={variables.signInHeroBackgroundWidthMobile}
-                                style={styles.signInBackgroundMobile}
-                            />
-                            <SignInPageContent
-                                welcomeHeader={props.welcomeHeader}
-                                welcomeText={props.welcomeText}
-                                shouldShowWelcomeText={props.shouldShowWelcomeText}
-                                shouldShowWelcomeHeader={props.shouldShowWelcomeHeader}
-                            >
-                                {props.children}
-                            </SignInPageContent>
-                        </View>
-                        <View style={[styles.flex0]}>
-                            <Footer scrollViewRef={scrollViewRef} />
-                        </View>
-                    </ScrollView>
-                )}
+                    <View style={[styles.flex0]}>
+                        <Footer scrollPageToTop={scrollPageToTop} />
+                    </View>
+                </ScrollView>
+            )}
         </View>
     );
 };
@@ -125,7 +138,4 @@ const SignInPageLayout = (props) => {
 SignInPageLayout.propTypes = propTypes;
 SignInPageLayout.displayName = 'SignInPageLayout';
 
-export default compose(
-    withWindowDimensions,
-    withSafeAreaInsets,
-)(SignInPageLayout);
+export default compose(withWindowDimensions, withSafeAreaInsets)(SignInPageLayout);

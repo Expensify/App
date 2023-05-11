@@ -54,8 +54,10 @@ const run = function () {
             } else {
                 console.log(
                     'Latest StagingDeployCash is open, updating it instead of creating a new one.',
-                    'Current:', stagingDeployResponse.data[0],
-                    'Previous:', stagingDeployResponse.data[1],
+                    'Current:',
+                    stagingDeployResponse.data[0],
+                    'Previous:',
+                    stagingDeployResponse.data[1],
                 );
             }
 
@@ -84,10 +86,7 @@ const run = function () {
             console.log(`The following PRs have been merged between the previous StagingDeployCash (${previousStagingDeployCashData.tag}) and new version (${newVersion}):`, mergedPRs);
 
             if (shouldCreateNewStagingDeployCash) {
-                return GithubUtils.generateStagingDeployCashBody(
-                    newTag,
-                    _.map(mergedPRs, GithubUtils.getPullRequestURLFromNumber),
-                );
+                return GithubUtils.generateStagingDeployCashBody(newTag, _.map(mergedPRs, GithubUtils.getPullRequestURLFromNumber));
             }
 
             const didVersionChange = newVersion ? newVersion !== currentStagingDeployCashData.tag : false;
@@ -95,37 +94,33 @@ const run = function () {
             // Generate the PR list, preserving the previous state of `isVerified` for existing PRs
             const PRList = _.sortBy(
                 _.unique(
-                    _.union(currentStagingDeployCashData.PRList, _.map(mergedPRs, number => ({
-                        number: Number.parseInt(number, 10),
-                        url: GithubUtils.getPullRequestURLFromNumber(number),
+                    _.union(
+                        currentStagingDeployCashData.PRList,
+                        _.map(mergedPRs, (number) => ({
+                            number: Number.parseInt(number, 10),
+                            url: GithubUtils.getPullRequestURLFromNumber(number),
 
-                        // Since this is the second argument to _.union,
-                        // it will appear later in the array than any duplicate.
-                        // Since it is later in the array, it will be truncated by _.unique,
-                        // and the original value of isVerified will be preserved.
-                        isVerified: false,
-                    }))),
+                            // Since this is the second argument to _.union,
+                            // it will appear later in the array than any duplicate.
+                            // Since it is later in the array, it will be truncated by _.unique,
+                            // and the original value of isVerified will be preserved.
+                            isVerified: false,
+                        })),
+                    ),
                     false,
-                    item => item.number,
+                    (item) => item.number,
                 ),
                 'number',
             );
 
             // Generate the deploy blocker list, preserving the previous state of `isResolved`
             const deployBlockers = _.sortBy(
-                _.unique(
-                    _.union(currentStagingDeployCashData.deployBlockers, newDeployBlockers),
-                    false,
-                    item => item.number,
-                ),
+                _.unique(_.union(currentStagingDeployCashData.deployBlockers, newDeployBlockers), false, (item) => item.number),
                 'number',
             );
 
             // Get the internalQA PR list, preserving the previous state of `isResolved`
-            const internalQAPRList = _.sortBy(
-                currentStagingDeployCashData.internalQAPRList,
-                'number',
-            );
+            const internalQAPRList = _.sortBy(currentStagingDeployCashData.internalQAPRList, 'number');
 
             return GithubUtils.generateStagingDeployCashBody(
                 newTag,

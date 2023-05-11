@@ -75,7 +75,4 @@ class CopyTextToClipboard extends React.Component {
 CopyTextToClipboard.propTypes = propTypes;
 CopyTextToClipboard.defaultProps = defaultProps;
 
-export default compose(
-    withLocalize,
-    withDelayToggleButtonState,
-)(CopyTextToClipboard);
+export default compose(withLocalize, withDelayToggleButtonState)(CopyTextToClipboard);
