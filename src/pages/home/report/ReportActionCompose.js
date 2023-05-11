@@ -199,7 +199,7 @@ class ReportActionCompose extends React.Component {
         // code that will refocus the compose input after a user closes a modal or some other actions, see usage of ReportActionComposeFocusManager
         this.willBlurTextInputOnTapOutside = willBlurTextInputOnTapOutside();
 
-        // We want consistent auto focus behavior on input between native and mWeb so we have some auto focus management code that will 
+        // We want consistent auto focus behavior on input between native and mWeb so we have some auto focus management code that will
         // prevent auto focus on existing chat for mobile device
         this.shouldFocusInputOnScreenFocus = canFocusInputOnScreenFocus();
 
