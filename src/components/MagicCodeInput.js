@@ -8,6 +8,7 @@ import CONST from '../CONST';
 import Text from './Text';
 import TextInput from './TextInput';
 import FormHelpMessage from './FormHelpMessage';
+import * as Browser from '../libs/Browser';
 
 const propTypes = {
     /** Name attribute for the input */
@@ -83,6 +84,10 @@ function MagicCodeInput(props) {
     const [input, setInput] = useState('');
     const [focusedIndex, setFocusedIndex] = useState(0);
     const [editIndex, setEditIndex] = useState(0);
+
+    // For Safari on iOS, a transparent background will be used instead of opacity: 0, so that magic code pasting can work.
+    // Alternate styling will be applied based on this condition.
+    const isMobileSafari = Browser.isMobileSafari();
 
     useImperativeHandle(props.innerRef, () => ({
         focus() {
@@ -266,7 +271,7 @@ function MagicCodeInput(props) {
                         <View style={[styles.textInputContainer, focusedIndex === index ? styles.borderColorFocus : {}]}>
                             <Text style={[styles.magicCodeInput, styles.textAlignCenter]}>{decomposeString(props.value)[index] || ''}</Text>
                         </View>
-                        <View style={[StyleSheet.absoluteFillObject, styles.w100, styles.opacity0]}>
+                        <View style={[StyleSheet.absoluteFillObject, styles.w100, isMobileSafari ? styles.bgTransparent : styles.opacity0]}>
                             <TextInput
                                 ref={(ref) => (inputRefs.current[index] = ref)}
                                 autoFocus={index === 0 && props.autoFocus}
@@ -291,6 +296,8 @@ function MagicCodeInput(props) {
                                 onKeyPress={onKeyPress}
                                 onPress={(event) => onPress(event, index)}
                                 onFocus={onFocus}
+                                caretHidden={isMobileSafari}
+                                inputStyle={[isMobileSafari ? styles.magicCodeInputTransparent : undefined]}
                             />
                         </View>
                     </View>
