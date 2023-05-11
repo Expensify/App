@@ -325,8 +325,8 @@ export default {
         settlePaypalMe: 'Pay with PayPal.me',
         requestAmount: ({amount}) => `request ${amount}`,
         splitAmount: ({amount}) => `split ${amount}`,
-        managerOwes: ({owner, amount}) => `${owner} owes ${amount}`,
-        managerSettled: ({amount}) => `settled up ${amount}`,
+        payerOwesAmount: ({payer, amount}) => `${payer} owes ${amount}`,
+        payerSettled: ({amount}) => `settled up ${amount}`,
         noReimbursableExpenses: 'This report has an invalid amount',
         pendingConversionMessage: "Total will update when you're back online",
         error: {

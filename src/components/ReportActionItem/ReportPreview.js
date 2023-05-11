@@ -105,10 +105,10 @@ const ReportPreview = (props) => {
                 >
                     <View>
                         {props.iouReport.hasOutstandingIOU ? (
-                            <Text style={[styles.chatItemMessage, styles.cursorPointer]}>{props.translate('iou.managerOwes', {owner: managerName, amount: reportAmount})}</Text>
+                            <Text style={[styles.chatItemMessage, styles.cursorPointer]}>{props.translate('iou.payerOwesAmount', {owner: managerName, amount: reportAmount})}</Text>
                         ) : (
                             <View style={[styles.flexRow]}>
-                                <Text style={[styles.chatItemMessage, styles.cursorPointer]}>{props.translate('iou.managerSettled', {owner: managerName, amount: reportAmount})}</Text>
+                                <Text style={[styles.chatItemMessage, styles.cursorPointer]}>{props.translate('iou.payerSettled', {owner: managerName, amount: reportAmount})}</Text>
                                 {!props.iouReport.hasOutstandingIOU && (
                                     <Icon
                                         style={[styles.ml10]}
