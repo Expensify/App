@@ -24,6 +24,9 @@ export default {
     // Note: These are Persisted Requests - not all requests in the main queue as the key name might lead one to believe
     PERSISTED_REQUESTS: 'networkRequestQueue',
 
+    // Onyx updates from a response, or success or failure data from a request.
+    QUEUED_ONYX_UPDATES: 'queuedOnyxUpdates',
+
     // Stores current date
     CURRENT_DATE: 'currentDate',
 
@@ -44,6 +47,9 @@ export default {
 
     // Contains all the private personal details of the user
     PRIVATE_PERSONAL_DETAILS: 'private_personalDetails',
+
+    // Contains all the info for Tasks
+    TASK: 'task',
 
     // Contains a list of all currencies available to the user - user can
     // select a currency based on the list
@@ -105,6 +111,7 @@ export default {
         DOWNLOAD: 'download_',
         POLICY: 'policy_',
         POLICY_MEMBER_LIST: 'policyMemberList_',
+        WORKSPACE_INVITE_MEMBERS_DRAFT: 'workspaceInviteMembersDraft_',
         REPORT: 'report_',
         REPORT_ACTIONS: 'reportActions_',
         REPORT_ACTIONS_DRAFTS: 'reportActionsDrafts_',
@@ -112,6 +119,7 @@ export default {
         REPORT_DRAFT_COMMENT_NUMBER_OF_LINES: 'reportDraftCommentNumberOfLines_',
         REPORT_IS_COMPOSER_FULL_SIZE: 'reportIsComposerFullSize_',
         REPORT_USER_IS_TYPING: 'reportUserIsTyping_',
+        SECURITY_GROUP: 'securityGroup_',
         TRANSACTION: 'transactions_',
     },
 
@@ -187,11 +195,13 @@ export default {
         PROFILE_SETTINGS_FORM: 'profileSettingsForm',
         DISPLAY_NAME_FORM: 'displayNameForm',
         LEGAL_NAME_FORM: 'legalNameForm',
+        WORKSPACE_INVITE_MESSAGE_FORM: 'workspaceInviteMessageForm',
         DATE_OF_BIRTH_FORM: 'dateOfBirthForm',
         HOME_ADDRESS_FORM: 'homeAddressForm',
         NEW_ROOM_FORM: 'newRoomForm',
         ROOM_SETTINGS_FORM: 'roomSettingsForm',
         NEW_TASK_FORM: 'newTaskForm',
+        EDIT_TASK_FORM: 'editTaskForm',
         MONEY_REQUEST_DESCRIPTION_FORM: 'moneyRequestDescriptionForm',
     },
 
@@ -203,4 +213,7 @@ export default {
 
     // Whether the auth token is valid
     IS_TOKEN_VALID: 'isTokenValid',
+
+    // A map of the user's security group IDs they belong to in specific domains
+    MY_DOMAIN_SECURITY_GROUPS: 'myDomainSecurityGroups',
 };

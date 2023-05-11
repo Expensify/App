@@ -22,20 +22,17 @@ const propTypes = {
 };
 
 const LanguagePage = (props) => {
-    const localesToLanguages = _.map(props.translate('languagePage.languages'),
-        (language, key) => (
-            {
-                value: key,
-                text: language.label,
-                keyForList: key,
+    const localesToLanguages = _.map(props.translate('languagePage.languages'), (language, key) => ({
+        value: key,
+        text: language.label,
+        keyForList: key,
 
-                // Include the green checkmark icon to indicate the currently selected value
-                customIcon: props.preferredLocale === key ? greenCheckmark : undefined,
+        // Include the green checkmark icon to indicate the currently selected value
+        customIcon: props.preferredLocale === key ? greenCheckmark : undefined,
 
-                // This property will make the currently selected value have bold text
-                boldStyle: props.preferredLocale === key,
-            }
-        ));
+        // This property will make the currently selected value have bold text
+        boldStyle: props.preferredLocale === key,
+    }));
 
     return (
         <ScreenWrapper includeSafeAreaPaddingBottom={false}>
@@ -47,15 +44,13 @@ const LanguagePage = (props) => {
             />
             <OptionsList
                 sections={[{data: localesToLanguages}]}
-                onSelectRow={language => App.setLocaleAndNavigate(language.value)}
+                onSelectRow={(language) => App.setLocaleAndNavigate(language.value)}
                 hideSectionHeaders
-                optionHoveredStyle={
-                    {
-                        ...styles.hoveredComponentBG,
-                        ...styles.mhn5,
-                        ...styles.ph5,
-                    }
-                }
+                optionHoveredStyle={{
+                    ...styles.hoveredComponentBG,
+                    ...styles.mhn5,
+                    ...styles.ph5,
+                }}
                 shouldHaveOptionSeparator
                 shouldDisableRowInnerPadding
                 contentContainerStyles={[styles.ph5]}

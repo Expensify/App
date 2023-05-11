@@ -27,11 +27,11 @@ const propTypes = {
     /** All reports shared with the user */
     reports: PropTypes.objectOf(reportPropTypes),
 
+    /** Indicates whether report data is ready */
+    isLoadingReportData: PropTypes.bool,
+
     /** padding bottom style of safe area */
-    safeAreaPaddingBottomStyle: PropTypes.oneOfType([
-        PropTypes.arrayOf(PropTypes.object),
-        PropTypes.object,
-    ]),
+    safeAreaPaddingBottomStyle: PropTypes.oneOfType([PropTypes.arrayOf(PropTypes.object), PropTypes.object]),
 
     /** The type of IOU report, i.e. bill, request, send */
     iouType: PropTypes.string.isRequired,
@@ -44,6 +44,7 @@ const defaultProps = {
     personalDetails: {},
     reports: {},
     betas: [],
+    isLoadingReportData: true,
 };
 
 class MoneyRequestParticipantsSelector extends Component {
@@ -53,11 +54,7 @@ class MoneyRequestParticipantsSelector extends Component {
         this.addSingleParticipant = this.addSingleParticipant.bind(this);
         this.updateOptionsWithSearchTerm = this.updateOptionsWithSearchTerm.bind(this);
 
-        const {
-            recentReports,
-            personalDetails,
-            userToInvite,
-        } = this.getRequestOptions();
+        const {recentReports, personalDetails, userToInvite} = this.getRequestOptions();
 
         this.state = {
             recentReports,
@@ -65,6 +62,13 @@ class MoneyRequestParticipantsSelector extends Component {
             userToInvite,
             searchTerm: '',
         };
+    }
+
+    componentDidUpdate(prevProps) {
+        if (_.isEqual(prevProps.reports, this.props.reports) && _.isEqual(prevProps.personalDetails, this.props.personalDetails)) {
+            return;
+        }
+        this.updateOptionsWithSearchTerm(this.state.searchTerm);
     }
 
     /**
@@ -125,11 +129,7 @@ class MoneyRequestParticipantsSelector extends Component {
     }
 
     updateOptionsWithSearchTerm(searchTerm = '') {
-        const {
-            recentReports,
-            personalDetails,
-            userToInvite,
-        } = this.getRequestOptions(searchTerm);
+        const {recentReports, personalDetails, userToInvite} = this.getRequestOptions(searchTerm);
         this.setState({
             searchTerm,
             recentReports,
@@ -154,6 +154,8 @@ class MoneyRequestParticipantsSelector extends Component {
             Boolean(this.state.userToInvite),
             this.state.searchTerm,
         );
+        const isOptionsDataReady = !this.props.isLoadingReportData && OptionsListUtils.isPersonalDetailsReady(this.props.personalDetails);
+
         return (
             <OptionsSelector
                 sections={this.getSections()}
@@ -161,9 +163,10 @@ class MoneyRequestParticipantsSelector extends Component {
                 onSelectRow={this.addSingleParticipant}
                 onChangeText={this.updateOptionsWithSearchTerm}
                 headerMessage={headerMessage}
-                placeholderText={this.props.translate('optionsSelector.nameEmailOrPhoneNumber')}
+                textInputLabel={this.props.translate('optionsSelector.nameEmailOrPhoneNumber')}
                 boldStyle
                 safeAreaPaddingBottomStyle={this.props.safeAreaPaddingBottomStyle}
+                shouldShowOptions={isOptionsDataReady}
             />
         );
     }
@@ -183,6 +186,9 @@ export default compose(
         },
         betas: {
             key: ONYXKEYS.BETAS,
+        },
+        isLoadingReportData: {
+            key: ONYXKEYS.IS_LOADING_REPORT_DATA,
         },
     }),
 )(MoneyRequestParticipantsSelector);

@@ -19,6 +19,7 @@ import tryResolveUrlFromApiRoot from '../../libs/tryResolveUrlFromApiRoot';
 import Tooltip from '../Tooltip';
 import withLocalize, {withLocalizePropTypes} from '../withLocalize';
 import compose from '../../libs/compose';
+import withWindowDimensions from '../withWindowDimensions';
 
 const propTypes = {
     /** source is used to determine the starting index in the array of attachments */
@@ -52,6 +53,8 @@ class AttachmentCarousel extends React.Component {
         };
 
         this.cycleThroughAttachments = this.cycleThroughAttachments.bind(this);
+        this.autoHideArrow = this.autoHideArrow.bind(this);
+        this.cancelAutoHideArrow = this.cancelAutoHideArrow.bind(this);
         this.getItemLayout = this.getItemLayout.bind(this);
         this.renderItem = this.renderItem.bind(this);
         this.renderCell = this.renderCell.bind(this);
@@ -70,6 +73,7 @@ class AttachmentCarousel extends React.Component {
 
     componentDidMount() {
         this.makeStateWithReports();
+        this.autoHideArrow();
     }
 
     componentDidUpdate(prevProps) {
@@ -104,11 +108,32 @@ class AttachmentCarousel extends React.Component {
      * @returns {{offset: Number, length: Number, index: Number}}
      */
     getItemLayout(data, index) {
-        return ({
+        return {
             length: this.state.containerWidth,
             offset: this.state.containerWidth * index,
             index,
-        });
+        };
+    }
+
+    /**
+     * On a touch screen device, automatically hide the arrows
+     * if there is no interaction for 3 seconds.
+     */
+    autoHideArrow() {
+        if (!this.canUseTouchScreen) {
+            return;
+        }
+        this.cancelAutoHideArrow();
+        this.autoHideArrowTimeout = setTimeout(() => {
+            this.toggleArrowsVisibility(false);
+        }, CONST.ARROW_HIDE_DELAY);
+    }
+
+    /**
+     * Cancels the automatic hiding of the arrows.
+     */
+    cancelAutoHideArrow() {
+        clearTimeout(this.autoHideArrowTimeout);
     }
 
     /**
@@ -120,11 +145,19 @@ class AttachmentCarousel extends React.Component {
         if (this.state.isZoomed) {
             return;
         }
-        if (_.isBoolean(shouldShowArrow)) {
-            this.setState({shouldShowArrow});
-            return;
-        }
-        this.setState(current => ({shouldShowArrow: !current.shouldShowArrow}));
+        this.setState(
+            (current) => {
+                const newShouldShowArrow = _.isBoolean(shouldShowArrow) ? shouldShowArrow : !current.shouldShowArrow;
+                return {shouldShowArrow: newShouldShowArrow};
+            },
+            () => {
+                if (this.state.shouldShowArrow) {
+                    this.autoHideArrow();
+                } else {
+                    this.cancelAutoHideArrow();
+                }
+            },
+        );
     }
 
     /**
@@ -155,14 +188,14 @@ class AttachmentCarousel extends React.Component {
         const attachments = [];
         _.forEach(actions, ({originalMessage, message}) => {
             // Check for attachment which hasn't been deleted
-            if (!originalMessage || !originalMessage.html || _.some(message, m => m.isEdited)) {
+            if (!originalMessage || !originalMessage.html || _.some(message, (m) => m.isEdited)) {
                 return;
             }
             const matches = [...originalMessage.html.matchAll(CONST.REGEX.ATTACHMENT_DATA)];
 
             // matchAll captured both source url and name of the attachment
             if (matches.length === 2) {
-                const [originalSource, name] = _.map(matches, m => m[2]);
+                const [originalSource, name] = _.map(matches, (m) => m[2]);
 
                 // Update the image URL so the images can be accessed depending on the config environment.
                 // Eg: while using Ngrok the image path is from an Ngrok URL and not an Expensify URL.
@@ -224,8 +257,13 @@ class AttachmentCarousel extends React.Component {
     renderCell(props) {
         const style = [props.style, styles.h100, {width: this.state.containerWidth}];
 
-        // eslint-disable-next-line react/jsx-props-no-spreading
-        return <View {...props} style={style} />;
+        return (
+            <View
+                // eslint-disable-next-line react/jsx-props-no-spreading
+                {...props}
+                style={style}
+            />
+        );
     }
 
     /**
@@ -236,7 +274,12 @@ class AttachmentCarousel extends React.Component {
     renderItem({item}) {
         const authSource = addEncryptedAuthTokenToURL(item.source);
         if (!this.canUseTouchScreen) {
-            return <AttachmentView source={authSource} file={item.file} />;
+            return (
+                <AttachmentView
+                    source={authSource}
+                    file={item.file}
+                />
+            );
         }
 
         return (
@@ -257,35 +300,45 @@ class AttachmentCarousel extends React.Component {
             <View
                 style={[styles.attachmentModalArrowsContainer, styles.flex1]}
                 onLayout={({nativeEvent}) => this.setState({containerWidth: nativeEvent.layout.width + 1})}
-                onMouseEnter={() => this.toggleArrowsVisibility(true)}
-                onMouseLeave={() => this.toggleArrowsVisibility(false)}
+                onMouseEnter={() => !this.canUseTouchScreen && this.toggleArrowsVisibility(true)}
+                onMouseLeave={() => !this.canUseTouchScreen && this.toggleArrowsVisibility(false)}
             >
                 {this.state.shouldShowArrow && (
                     <>
                         {!isBackDisabled && (
-                            <View style={styles.leftAttachmentArrow}>
+                            <View style={[styles.attachmentArrow, this.props.isSmallScreenWidth ? styles.l2 : styles.l8]}>
                                 <Tooltip text={this.props.translate('common.previous')}>
                                     <Button
-                                        medium
+                                        small
                                         innerStyles={[styles.arrowIcon]}
                                         icon={Expensicons.BackArrow}
                                         iconFill={themeColors.text}
                                         iconStyles={[styles.mr0]}
-                                        onPress={() => this.cycleThroughAttachments(-1)}
+                                        onPress={() => {
+                                            this.cycleThroughAttachments(-1);
+                                            this.autoHideArrow();
+                                        }}
+                                        onPressIn={this.cancelAutoHideArrow}
+                                        onPressOut={this.autoHideArrow}
                                     />
                                 </Tooltip>
                             </View>
                         )}
                         {!isForwardDisabled && (
-                            <View style={styles.rightAttachmentArrow}>
+                            <View style={[styles.attachmentArrow, this.props.isSmallScreenWidth ? styles.r2 : styles.r8]}>
                                 <Tooltip text={this.props.translate('common.next')}>
                                     <Button
-                                        medium
+                                        small
                                         innerStyles={[styles.arrowIcon]}
                                         icon={Expensicons.ArrowRight}
                                         iconFill={themeColors.text}
                                         iconStyles={[styles.mr0]}
-                                        onPress={() => this.cycleThroughAttachments(1)}
+                                        onPress={() => {
+                                            this.cycleThroughAttachments(1);
+                                            this.autoHideArrow();
+                                        }}
+                                        onPressIn={this.cancelAutoHideArrow}
+                                        onPressOut={this.autoHideArrow}
                                     />
                                 </Tooltip>
                             </View>
@@ -297,23 +350,19 @@ class AttachmentCarousel extends React.Component {
                     <FlatList
                         listKey="AttachmentCarousel"
                         horizontal
-
                         // Inverting the list for touchscreen devices that can swipe or have an animation when scrolling
                         // promotes the natural feeling of swiping left/right to go to the next/previous image
                         // We don't want to invert the list for desktop/web because this interferes with mouse
                         // wheel or trackpad scrolling (in cases like document preview where you can scroll vertically)
                         inverted={this.canUseTouchScreen}
-
                         decelerationRate="fast"
                         showsHorizontalScrollIndicator={false}
                         bounces={false}
-
                         // Scroll only one image at a time no matter how fast the user swipes
                         disableIntervalMomentum
                         pagingEnabled
                         snapToAlignment="start"
                         snapToInterval={this.state.containerWidth}
-
                         // Enable scrolling by swiping on mobile (touch) devices only
                         // disable scroll for desktop/browsers because they add their scrollbars
                         // Enable scrolling FlatList only when PDF is not in a zoomed state
@@ -327,7 +376,7 @@ class AttachmentCarousel extends React.Component {
                         CellRendererComponent={this.renderCell}
                         renderItem={this.renderItem}
                         getItemLayout={this.getItemLayout}
-                        keyExtractor={item => item.source}
+                        keyExtractor={(item) => item.source}
                         viewabilityConfig={this.viewabilityConfig}
                         onViewableItemsChanged={this.updatePage}
                     />
@@ -350,4 +399,5 @@ export default compose(
         },
     }),
     withLocalize,
+    withWindowDimensions,
 )(AttachmentCarousel);

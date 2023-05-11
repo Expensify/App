@@ -126,7 +126,6 @@ class DebitCardPage extends Component {
                     onSubmit={PaymentMethods.addPaymentCard}
                     submitButtonText={this.props.translate('common.save')}
                     scrollContextEnabled
-                    scrollToOverflowEnabled
                     style={[styles.mh5, styles.flexGrow1]}
                 >
                     <TextInput
@@ -163,6 +162,7 @@ class DebitCardPage extends Component {
                             inputID="addressStreet"
                             label={this.props.translate('addDebitCardPage.billingAddress')}
                             containerStyles={[styles.mt4]}
+                            maxInputLength={CONST.FORM_CHARACTER_LIMIT}
                         />
                     </View>
                     <TextInput
@@ -174,9 +174,7 @@ class DebitCardPage extends Component {
                         containerStyles={[styles.mt4]}
                     />
                     <View style={styles.mt4}>
-                        <StatePicker
-                            inputID="addressState"
-                        />
+                        <StatePicker inputID="addressState" />
                     </View>
                     {!Permissions.canUsePasswordlessLogins(this.props.betas) && (
                         <View style={[styles.mt4]}>
@@ -194,9 +192,7 @@ class DebitCardPage extends Component {
                         LabelComponent={() => (
                             <Text>
                                 {`${this.props.translate('common.iAcceptThe')}`}
-                                <TextLink href="https://use.expensify.com/terms">
-                                    {`${this.props.translate('common.expensifyTermsOfService')}`}
-                                </TextLink>
+                                <TextLink href="https://use.expensify.com/terms">{`${this.props.translate('common.expensifyTermsOfService')}`}</TextLink>
                             </Text>
                         )}
                         style={[styles.mt4]}

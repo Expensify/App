@@ -36,6 +36,7 @@ const avatarBorderSizes = {
     [CONST.AVATAR_SIZE.SUBSCRIPT]: variables.componentBorderRadiusSmall,
     [CONST.AVATAR_SIZE.SMALLER]: variables.componentBorderRadiusMedium,
     [CONST.AVATAR_SIZE.SMALL]: variables.componentBorderRadiusMedium,
+    [CONST.AVATAR_SIZE.HEADER]: variables.componentBorderRadiusMedium,
     [CONST.AVATAR_SIZE.DEFAULT]: variables.componentBorderRadiusNormal,
     [CONST.AVATAR_SIZE.MEDIUM]: variables.componentBorderRadiusLarge,
     [CONST.AVATAR_SIZE.LARGE]: variables.componentBorderRadiusLarge,
@@ -52,6 +53,7 @@ const avatarSizes = {
     [CONST.AVATAR_SIZE.LARGE]: variables.avatarSizeLarge,
     [CONST.AVATAR_SIZE.MEDIUM]: variables.avatarSizeMedium,
     [CONST.AVATAR_SIZE.LARGE_BORDERED]: variables.avatarSizeLargeBordered,
+    [CONST.AVATAR_SIZE.HEADER]: variables.avatarSizeHeader,
 };
 
 /**
@@ -81,12 +83,54 @@ function getAvatarStyle(size) {
 }
 
 /**
-* Return the border radius for an avatar
-*
-* @param {String} size
-* @param {String} type
-* @returns {Object}
-*/
+ * Get Font size of '+1' text on avatar overlay
+ * @param {String} size
+ * @returns {Number}
+ */
+function getAvatarExtraFontSizeStyle(size) {
+    const AVATAR_SIZES = {
+        [CONST.AVATAR_SIZE.DEFAULT]: variables.fontSizeNormal,
+        [CONST.AVATAR_SIZE.SMALL_SUBSCRIPT]: variables.fontSizeExtraSmall,
+        [CONST.AVATAR_SIZE.MID_SUBSCRIPT]: variables.fontSizeExtraSmall,
+        [CONST.AVATAR_SIZE.SUBSCRIPT]: variables.fontSizeExtraSmall,
+        [CONST.AVATAR_SIZE.SMALL]: variables.fontSizeSmall,
+        [CONST.AVATAR_SIZE.SMALLER]: variables.fontSizeExtraSmall,
+        [CONST.AVATAR_SIZE.LARGE]: variables.fontSizeXLarge,
+        [CONST.AVATAR_SIZE.MEDIUM]: variables.fontSizeMedium,
+        [CONST.AVATAR_SIZE.LARGE_BORDERED]: variables.fontSizeXLarge,
+    };
+    return {
+        fontSize: AVATAR_SIZES[size],
+    };
+}
+
+/**
+ * Get Bordersize of Avatar based on avatar size
+ * @param {String} size
+ * @returns {Number}
+ */
+function getAvatarBorderWidth(size) {
+    const AVATAR_SIZES = {
+        [CONST.AVATAR_SIZE.DEFAULT]: 3,
+        [CONST.AVATAR_SIZE.SMALL_SUBSCRIPT]: 2,
+        [CONST.AVATAR_SIZE.MID_SUBSCRIPT]: 2,
+        [CONST.AVATAR_SIZE.SUBSCRIPT]: 2,
+        [CONST.AVATAR_SIZE.SMALL]: 3,
+        [CONST.AVATAR_SIZE.SMALLER]: 2,
+        [CONST.AVATAR_SIZE.LARGE]: 4,
+        [CONST.AVATAR_SIZE.MEDIUM]: 3,
+        [CONST.AVATAR_SIZE.LARGE_BORDERED]: 4,
+    };
+    return AVATAR_SIZES[size];
+}
+
+/**
+ * Return the border radius for an avatar
+ *
+ * @param {String} size
+ * @param {String} type
+ * @returns {Object}
+ */
 function getAvatarBorderRadius(size, type) {
     if (type === CONST.ICON_TYPE_WORKSPACE) {
         return {borderRadius: avatarBorderSizes[size]};
@@ -157,17 +201,17 @@ function getSafeAreaMargins(insets) {
 function getNavigationDrawerStyle(isSmallScreenWidth) {
     return isSmallScreenWidth
         ? {
-            width: '100%',
-            height: '100%',
-            borderColor: themeColors.border,
-            backgroundColor: themeColors.appBG,
-        }
+              width: '100%',
+              height: '100%',
+              borderColor: themeColors.border,
+              backgroundColor: themeColors.appBG,
+          }
         : {
-            height: '100%',
-            width: variables.sideBarWidth,
-            borderRightColor: themeColors.border,
-            backgroundColor: themeColors.appBG,
-        };
+              height: '100%',
+              width: variables.sideBarWidth,
+              borderRightColor: themeColors.border,
+              backgroundColor: themeColors.appBG,
+          };
 }
 
 function getNavigationDrawerType(isSmallScreenWidth) {
@@ -181,12 +225,10 @@ function getNavigationDrawerType(isSmallScreenWidth) {
  */
 function getZoomCursorStyle(isZoomed, isDragging) {
     if (!isZoomed) {
-        return {cursor: 'zoom-in'};
+        return styles.cursorZoomIn;
     }
 
-    return {
-        cursor: isDragging ? 'grabbing' : 'zoom-out',
-    };
+    return isDragging ? styles.cursorGrabbing : styles.cursorZoomOut;
 }
 
 /**
@@ -196,14 +238,13 @@ function getZoomCursorStyle(isZoomed, isDragging) {
  * @param {Number} zoomScale
  * @param {Number} containerHeight
  * @param {Number} containerWidth
- * @return {Object}
+ * @param {Boolean} isLoading
+ * @returns {Object | undefined}
  */
-function getZoomSizingStyle(isZoomed, imgWidth, imgHeight, zoomScale, containerHeight, containerWidth) {
-    if (imgWidth === 0 || imgHeight === 0) {
-        return {
-            height: isZoomed ? '250%' : '100%',
-            width: isZoomed ? '250%' : '100%',
-        };
+function getZoomSizingStyle(isZoomed, imgWidth, imgHeight, zoomScale, containerHeight, containerWidth, isLoading) {
+    // Hide image until finished loading to prevent showing preview with wrong dimensions
+    if (isLoading || imgWidth === 0 || imgHeight === 0) {
+        return undefined;
     }
     const top = `${Math.max((containerHeight - imgHeight) / 2, 0)}px`;
     const left = `${Math.max((containerWidth - imgWidth) / 2, 0)}px`;
@@ -239,8 +280,8 @@ function getZoomSizingStyle(isZoomed, imgWidth, imgHeight, zoomScale, containerH
 
     // If image is bigger than container size, display full image in the screen with scaled size (fit by container size) and position absolute.
     // top, left offset should be different when displaying long or wide image.
-    const scaledTop = `${Math.max((containerHeight - (imgHeight * zoomScale)) / 2, 0)}px`;
-    const scaledLeft = `${Math.max((containerWidth - (imgWidth * zoomScale)) / 2, 0)}px`;
+    const scaledTop = `${Math.max((containerHeight - imgHeight * zoomScale) / 2, 0)}px`;
+    const scaledLeft = `${Math.max((containerWidth - imgWidth * zoomScale) / 2, 0)}px`;
     return {
         height: `${imgHeight * zoomScale}px`,
         width: `${imgWidth * zoomScale}px`,
@@ -258,6 +299,28 @@ function getZoomSizingStyle(isZoomed, imgWidth, imgHeight, zoomScale, containerH
 function getWidthStyle(width) {
     return {
         width,
+    };
+}
+
+/**
+ * Returns auto grow height text input style
+ *
+ * @param {Number} textInputHeight
+ * @param {Number} maxHeight
+ * @returns {Object}
+ */
+function getAutoGrowHeightInputStyle(textInputHeight, maxHeight) {
+    if (textInputHeight > maxHeight) {
+        return {
+            ...styles.pr0,
+            ...styles.overflowAuto,
+        };
+    }
+
+    return {
+        ...styles.pr0,
+        ...styles.overflowHidden,
+        height: maxHeight,
     };
 }
 
@@ -315,9 +378,11 @@ function getSignInWordmarkWidthStyle(environment, isSmallScreenWidth) {
 function hexadecimalToRGBArray(hexadecimal) {
     const components = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hexadecimal);
 
-    if (components === null) { return undefined; }
+    if (components === null) {
+        return undefined;
+    }
 
-    return _.map(components.slice(1), component => parseInt(component, 16));
+    return _.map(components.slice(1), (component) => parseInt(component, 16));
 }
 
 /**
@@ -448,16 +513,12 @@ function getModalPaddingStyles({
 }) {
     // use fallback value for safeAreaPaddingBottom to keep padding bottom consistent with padding top.
     // More info: issue #17376
-    const safeAreaPaddingBottomWithFallback = insets.bottom === 0 ? (modalContainerStylePaddingTop || 0) : safeAreaPaddingBottom;
+    const safeAreaPaddingBottomWithFallback = insets.bottom === 0 ? modalContainerStylePaddingTop || 0 : safeAreaPaddingBottom;
     return {
         marginTop: (modalContainerStyleMarginTop || 0) + (shouldAddTopSafeAreaMargin ? safeAreaPaddingTop : 0),
         marginBottom: (modalContainerStyleMarginBottom || 0) + (shouldAddBottomSafeAreaMargin ? safeAreaPaddingBottomWithFallback : 0),
-        paddingTop: shouldAddTopSafeAreaPadding
-            ? (modalContainerStylePaddingTop || 0) + safeAreaPaddingTop
-            : modalContainerStylePaddingTop || 0,
-        paddingBottom: shouldAddBottomSafeAreaPadding
-            ? (modalContainerStylePaddingBottom || 0) + safeAreaPaddingBottomWithFallback
-            : modalContainerStylePaddingBottom || 0,
+        paddingTop: shouldAddTopSafeAreaPadding ? (modalContainerStylePaddingTop || 0) + safeAreaPaddingTop : modalContainerStylePaddingTop || 0,
+        paddingBottom: shouldAddBottomSafeAreaPadding ? (modalContainerStylePaddingBottom || 0) + safeAreaPaddingBottomWithFallback : modalContainerStylePaddingBottom || 0,
         paddingLeft: safeAreaPaddingLeft || 0,
         paddingRight: safeAreaPaddingRight || 0,
     };
@@ -540,11 +601,10 @@ function getReportActionItemStyle(isHovered = false, isLoading = false) {
         justifyContent: 'space-between',
         backgroundColor: isHovered
             ? themeColors.hoverComponentBG
-
-            // Warning: Setting this to a non-transparent color will cause unread indicator to break on Android
-            : colors.transparent,
+            : // Warning: Setting this to a non-transparent color will cause unread indicator to break on Android
+              colors.transparent,
         opacity: isLoading ? 0.5 : 1,
-        cursor: 'initial',
+        ...styles.cursorInitial,
     };
 }
 
@@ -569,7 +629,7 @@ function getMiniReportActionContextMenuWrapperStyle(isReportActionItemGrouped) {
  */
 function getPaymentMethodMenuWidth(isSmallScreenWidth) {
     const margin = 20;
-    return {width: !isSmallScreenWidth ? variables.sideBarWidth - (margin * 2) : undefined};
+    return {width: !isSmallScreenWidth ? variables.sideBarWidth - margin * 2 : undefined};
 }
 
 /**
@@ -584,11 +644,7 @@ function convertRGBAToRGB(foregroundRGB, backgroundRGB, opacity) {
     const [foregroundRed, foregroundGreen, foregroundBlue] = foregroundRGB;
     const [backgroundRed, backgroundGreen, backgroundBlue] = backgroundRGB;
 
-    return [
-        ((1 - opacity) * backgroundRed) + (opacity * foregroundRed),
-        ((1 - opacity) * backgroundGreen) + (opacity * foregroundGreen),
-        ((1 - opacity) * backgroundBlue) + (opacity * foregroundBlue),
-    ];
+    return [(1 - opacity) * backgroundRed + opacity * foregroundRed, (1 - opacity) * backgroundGreen + opacity * foregroundGreen, (1 - opacity) * backgroundBlue + opacity * foregroundBlue];
 }
 
 /**
@@ -627,16 +683,8 @@ function getThemeBackgroundColor() {
     const [backgroundRed, backgroundGreen, backgroundBlue] = hexadecimalToRGBArray(themeColors.appBG);
     const [backdropRed, backdropGreen, backdropBlue] = hexadecimalToRGBArray(themeColors.modalBackdrop);
     const normalizedBackdropRGB = convertRGBToUnitValues(backdropRed, backdropGreen, backdropBlue);
-    const normalizedBackgroundRGB = convertRGBToUnitValues(
-        backgroundRed,
-        backgroundGreen,
-        backgroundBlue,
-    );
-    const themeRGBNormalized = convertRGBAToRGB(
-        normalizedBackdropRGB,
-        normalizedBackgroundRGB,
-        backdropOpacity,
-    );
+    const normalizedBackgroundRGB = convertRGBToUnitValues(backgroundRed, backgroundGreen, backgroundBlue);
+    const themeRGBNormalized = convertRGBAToRGB(normalizedBackdropRGB, normalizedBackgroundRGB, backdropOpacity);
     const themeRGB = convertUnitValuesToRGB(...themeRGBNormalized);
 
     return `rgb(${themeRGB.join(', ')})`;
@@ -649,6 +697,17 @@ function getThemeBackgroundColor() {
  */
 function parseStyleAsArray(styleParam) {
     return _.isArray(styleParam) ? styleParam : [styleParam];
+}
+
+/**
+ * Parse style function and return Styles object
+ * @param {Object|Object[]|Function} style
+ * @param {Object} state
+ * @returns {Object[]}
+ */
+function parseStyleFromFunction(style, state) {
+    const functionAppliedStyle = _.isFunction(style) ? style(state) : style;
+    return parseStyleAsArray(functionAppliedStyle);
 }
 
 /**
@@ -778,6 +837,39 @@ function getHorizontalStackedAvatarBorderStyle(isHovered, isPressed) {
 }
 
 /**
+ * Get computed avatar styles based on position and border size
+ * @param {Number} index
+ * @param {Number} overlapSize
+ * @param {Number} borderWidth
+ * @param {Number} borderRadius
+ * @returns {Object}
+ */
+function getHorizontalStackedAvatarStyle(index, overlapSize, borderWidth, borderRadius) {
+    return {
+        left: -(overlapSize * index),
+        borderRadius,
+        borderWidth,
+        zIndex: index + 2,
+    };
+}
+
+/**
+ * Get computed avatar styles of '+1' overlay based on size
+ * @param {Object} oneAvatarSize
+ * @param {Numer} oneAvatarBorderWidth
+ * @returns {Object}
+ */
+function getHorizontalStackedOverlayAvatarStyle(oneAvatarSize, oneAvatarBorderWidth) {
+    return {
+        borderWidth: oneAvatarBorderWidth,
+        borderRadius: oneAvatarSize.width,
+        left: -(oneAvatarSize.width * 2 + oneAvatarBorderWidth * 2),
+        zIndex: 6,
+        borderStyle: 'solid',
+    };
+}
+
+/**
  * @param {Number} safeAreaPaddingBottom
  * @returns {Object}
  */
@@ -863,7 +955,7 @@ function getReportWelcomeContainerStyle(isSmallScreenWidth) {
 }
 
 /**
- * Gets styles for Emoji Suggestion row
+ * Gets styles for AutoCompleteSuggestion row
  *
  * @param {Number} highlightedEmojiIndex
  * @param {Number} rowHeight
@@ -871,12 +963,7 @@ function getReportWelcomeContainerStyle(isSmallScreenWidth) {
  * @param {Number} currentEmojiIndex
  * @returns {Object}
  */
-function getEmojiSuggestionItemStyle(
-    highlightedEmojiIndex,
-    rowHeight,
-    hovered,
-    currentEmojiIndex,
-) {
+function getAutoCompleteSuggestionItemStyle(highlightedEmojiIndex, rowHeight, hovered, currentEmojiIndex) {
     let backgroundColor;
 
     if (currentEmojiIndex === highlightedEmojiIndex) {
@@ -890,25 +977,24 @@ function getEmojiSuggestionItemStyle(
             height: rowHeight,
             justifyContent: 'center',
         },
-        backgroundColor ? {
-            backgroundColor,
-        } : {},
+        backgroundColor
+            ? {
+                  backgroundColor,
+              }
+            : {},
     ];
 }
 
 /**
- * Gets the correct position for emoji suggestion container
+ * Gets the correct position for auto complete suggestion container
  *
  * @param {Number} itemsHeight
  * @param {Boolean} shouldIncludeReportRecipientLocalTimeHeight
  * @returns {Object}
  */
-function getEmojiSuggestionContainerStyle(
-    itemsHeight,
-    shouldIncludeReportRecipientLocalTimeHeight,
-) {
+function getAutoCompleteSuggestionContainerStyle(itemsHeight, shouldIncludeReportRecipientLocalTimeHeight) {
     const optionalPadding = shouldIncludeReportRecipientLocalTimeHeight ? CONST.RECIPIENT_LOCAL_TIME_HEIGHT : 0;
-    const padding = CONST.EMOJI_SUGGESTER.SUGGESTER_PADDING - optionalPadding;
+    const padding = CONST.AUTO_COMPLETE_SUGGESTER.SUGGESTER_PADDING - optionalPadding;
 
     // The suggester is positioned absolutely within the component that includes the input and RecipientLocalTime view (for non-expanded mode only). To position it correctly,
     // we need to shift it by the suggester's height plus its padding and, if applicable, the height of the RecipientLocalTime view.
@@ -923,7 +1009,7 @@ function getEmojiSuggestionContainerStyle(
  * @param {Boolean} isColored
  * @returns {String | null}
  */
-const getColoredBackgroundStyle = isColored => ({backgroundColor: isColored ? colors.blueLink : null});
+const getColoredBackgroundStyle = (isColored) => ({backgroundColor: isColored ? colors.blueLink : null});
 
 function getEmojiReactionBubbleStyle(isHovered, hasUserReacted, isContextMenu = false) {
     let backgroundColor = themeColors.border;
@@ -1006,9 +1092,34 @@ function getGoogleListViewStyle(shouldDisplayBorder) {
     };
 }
 
+/**
+ * Returns style object for the user mention component based on whether the mention is ours or not.
+ * @param {Boolean} isOurMention
+ * @returns {Object}
+ */
+function getMentionStyle(isOurMention) {
+    const backgroundColor = isOurMention ? themeColors.ourMentionBG : themeColors.mentionBG;
+    return {
+        backgroundColor,
+        borderRadius: variables.componentBorderRadiusSmall,
+        paddingHorizontal: 2,
+    };
+}
+
+/**
+ * Returns text color for the user mention text based on whether the mention is ours or not.
+ * @param {Boolean} isOurMention
+ * @returns {Object}
+ */
+function getMentionTextColor(isOurMention) {
+    return isOurMention ? themeColors.ourMentionText : themeColors.mentionText;
+}
+
 export {
     getAvatarSize,
     getAvatarStyle,
+    getAvatarExtraFontSizeStyle,
+    getAvatarBorderWidth,
     getAvatarBorderStyle,
     getErrorPageContainerStyle,
     getSafeAreaPadding,
@@ -1018,6 +1129,7 @@ export {
     getZoomCursorStyle,
     getZoomSizingStyle,
     getWidthStyle,
+    getAutoGrowHeightInputStyle,
     getBackgroundAndBorderStyle,
     getBackgroundColorStyle,
     getBackgroundColorWithOpacityStyle,
@@ -1036,6 +1148,7 @@ export {
     getPaymentMethodMenuWidth,
     getThemeBackgroundColor,
     parseStyleAsArray,
+    parseStyleFromFunction,
     combineStyles,
     getPaddingLeft,
     convertToLTR,
@@ -1045,11 +1158,13 @@ export {
     getMaximumWidth,
     fade,
     getHorizontalStackedAvatarBorderStyle,
+    getHorizontalStackedAvatarStyle,
+    getHorizontalStackedOverlayAvatarStyle,
     getReportWelcomeBackgroundImageStyle,
     getReportWelcomeTopMarginStyle,
     getReportWelcomeContainerStyle,
-    getEmojiSuggestionItemStyle,
-    getEmojiSuggestionContainerStyle,
+    getAutoCompleteSuggestionItemStyle,
+    getAutoCompleteSuggestionContainerStyle,
     getColoredBackgroundStyle,
     getDefaultWorkspaceAvatarColor,
     getAvatarBorderRadius,
@@ -1060,4 +1175,6 @@ export {
     getFontSizeStyle,
     getSignInWordmarkWidthStyle,
     getGoogleListViewStyle,
+    getMentionStyle,
+    getMentionTextColor,
 };

@@ -35,12 +35,7 @@ class TextInput extends React.Component {
 
                     this.props.innerRef.current = el;
                 }}
-                inputStyle={[
-                    styles.baseTextInput,
-                    styles.textInputDesktop,
-                    isLabeledMultiline ? styles.textInputMultiline : {},
-                    ...this.props.inputStyle,
-                ]}
+                inputStyle={[styles.baseTextInput, styles.textInputDesktop, isLabeledMultiline ? styles.textInputMultiline : {}, ...this.props.inputStyle]}
             />
         );
     }
@@ -50,6 +45,9 @@ TextInput.propTypes = baseTextInputPropTypes.propTypes;
 TextInput.defaultProps = baseTextInputPropTypes.defaultProps;
 
 export default React.forwardRef((props, ref) => (
-    /* eslint-disable-next-line react/jsx-props-no-spreading */
-    <TextInput {...props} innerRef={ref} />
+    <TextInput
+        // eslint-disable-next-line react/jsx-props-no-spreading
+        {...props}
+        innerRef={ref}
+    />
 ));

@@ -65,17 +65,18 @@ const AttachmentView = (props) => {
     // Handles case where source is a component (ex: SVG)
     if (_.isFunction(props.source)) {
         return (
-            <Icon src={props.source} height={variables.defaultAvatarPreviewSize} width={variables.defaultAvatarPreviewSize} />
+            <Icon
+                src={props.source}
+                height={variables.defaultAvatarPreviewSize}
+                width={variables.defaultAvatarPreviewSize}
+            />
         );
     }
 
     // Check both source and file.name since PDFs dragged into the the text field
     // will appear with a source that is a blob
-    if (Str.isPDF(props.source)
-        || (props.file && Str.isPDF(props.file.name || props.translate('attachmentView.unknownFilename')))) {
-        const sourceURL = props.isAuthTokenRequired
-            ? addEncryptedAuthTokenToURL(props.source)
-            : props.source;
+    if (Str.isPDF(props.source) || (props.file && Str.isPDF(props.file.name || props.translate('attachmentView.unknownFilename')))) {
+        const sourceURL = props.isAuthTokenRequired ? addEncryptedAuthTokenToURL(props.source) : props.source;
         const children = (
             <PDFView
                 onPress={props.onPress}
@@ -86,32 +87,44 @@ const AttachmentView = (props) => {
                 onLoadComplete={() => !loadComplete && setLoadComplete(true)}
             />
         );
-        return (
-            props.onPress ? (
-                <Pressable onPress={props.onPress} disabled={loadComplete} style={containerStyles}>
-                    {children}
-                </Pressable>
-            ) : children
+        return props.onPress ? (
+            <Pressable
+                onPress={props.onPress}
+                disabled={loadComplete}
+                style={containerStyles}
+            >
+                {children}
+            </Pressable>
+        ) : (
+            children
         );
     }
 
     // For this check we use both source and file.name since temporary file source is a blob
     // both PDFs and images will appear as images when pasted into the the text field
-    if (Str.isImage(props.source) || (props.file && Str.isImage(props.file.name))) {
-        const children = <ImageView url={props.source} isAuthTokenRequired={props.isAuthTokenRequired} />;
-        return (
-            props.onPress ? (
-                <Pressable onPress={props.onPress} disabled={loadComplete} style={containerStyles}>
-                    {children}
-                </Pressable>
-            ) : children
+    const isImage = Str.isImage(props.source);
+    if (isImage || (props.file && Str.isImage(props.file.name))) {
+        const children = (
+            <ImageView
+                url={props.source}
+                isAuthTokenRequired={isImage && props.isAuthTokenRequired}
+            />
+        );
+        return props.onPress ? (
+            <Pressable
+                onPress={props.onPress}
+                disabled={loadComplete}
+                style={containerStyles}
+            >
+                {children}
+            </Pressable>
+        ) : (
+            children
         );
     }
 
     return (
-        <View
-            style={styles.defaultAttachmentView}
-        >
+        <View style={styles.defaultAttachmentView}>
             <View style={styles.mr2}>
                 <Icon src={Expensicons.Paperclip} />
             </View>
@@ -142,7 +155,4 @@ AttachmentView.propTypes = propTypes;
 AttachmentView.defaultProps = defaultProps;
 AttachmentView.displayName = 'AttachmentView';
 
-export default compose(
-    memo,
-    withLocalize,
-)(AttachmentView);
+export default compose(memo, withLocalize)(AttachmentView);

@@ -26,16 +26,18 @@ const propTypes = {
     onAddParticipants: PropTypes.func.isRequired,
 
     /** Selected participants from MoneyRequestModal with login */
-    participants: PropTypes.arrayOf(PropTypes.shape({
-        login: PropTypes.string.isRequired,
-        alternateText: PropTypes.string,
-        hasDraftComment: PropTypes.bool,
-        icons: PropTypes.arrayOf(avatarPropTypes),
-        searchText: PropTypes.string,
-        text: PropTypes.string,
-        keyForList: PropTypes.string,
-        reportID: PropTypes.string,
-    })),
+    participants: PropTypes.arrayOf(
+        PropTypes.shape({
+            login: PropTypes.string.isRequired,
+            alternateText: PropTypes.string,
+            hasDraftComment: PropTypes.bool,
+            icons: PropTypes.arrayOf(avatarPropTypes),
+            searchText: PropTypes.string,
+            text: PropTypes.string,
+            keyForList: PropTypes.string,
+            reportID: PropTypes.string,
+        }),
+    ),
 
     /** All of the personal details for everyone */
     personalDetails: PropTypes.objectOf(personalDetailsPropType),
@@ -44,10 +46,10 @@ const propTypes = {
     reports: PropTypes.objectOf(reportPropTypes),
 
     /** padding bottom style of safe area */
-    safeAreaPaddingBottomStyle: PropTypes.oneOfType([
-        PropTypes.arrayOf(PropTypes.object),
-        PropTypes.object,
-    ]),
+    safeAreaPaddingBottomStyle: PropTypes.oneOfType([PropTypes.arrayOf(PropTypes.object), PropTypes.object]),
+
+    /** Indicates whether report data is ready */
+    isLoadingReportData: PropTypes.bool,
 
     ...withLocalizePropTypes,
 };
@@ -58,6 +60,7 @@ const defaultProps = {
     personalDetails: {},
     reports: {},
     safeAreaPaddingBottomStyle: {},
+    isLoadingReportData: true,
 };
 
 class MoneyRequestParticipantsSplitSelector extends Component {
@@ -68,11 +71,7 @@ class MoneyRequestParticipantsSplitSelector extends Component {
         this.finalizeParticipants = this.finalizeParticipants.bind(this);
         this.updateOptionsWithSearchTerm = this.updateOptionsWithSearchTerm.bind(this);
 
-        const {
-            recentReports,
-            personalDetails,
-            userToInvite,
-        } = OptionsListUtils.getNewChatOptions(
+        const {recentReports, personalDetails, userToInvite} = OptionsListUtils.getNewChatOptions(
             props.reports,
             props.personalDetails,
             props.betas,
@@ -87,6 +86,13 @@ class MoneyRequestParticipantsSplitSelector extends Component {
             personalDetails,
             userToInvite,
         };
+    }
+
+    componentDidUpdate(prevProps) {
+        if (_.isEqual(prevProps.reports, this.props.reports) && _.isEqual(prevProps.personalDetails, this.props.personalDetails)) {
+            return;
+        }
+        this.updateOptionsWithSearchTerm(this.state.searchTerm);
     }
 
     /**
@@ -128,23 +134,19 @@ class MoneyRequestParticipantsSplitSelector extends Component {
         indexOffset += this.state.personalDetails.length;
 
         if (this.state.userToInvite && !OptionsListUtils.isCurrentUser(this.state.userToInvite)) {
-            sections.push(({
+            sections.push({
                 undefined,
                 data: [this.state.userToInvite],
                 shouldShow: true,
                 indexOffset,
-            }));
+            });
         }
 
         return sections;
     }
 
     updateOptionsWithSearchTerm(searchTerm = '') {
-        const {
-            recentReports,
-            personalDetails,
-            userToInvite,
-        } = OptionsListUtils.getNewChatOptions(
+        const {recentReports, personalDetails, userToInvite} = OptionsListUtils.getNewChatOptions(
             this.props.reports,
             this.props.personalDetails,
             this.props.betas,
@@ -172,16 +174,12 @@ class MoneyRequestParticipantsSplitSelector extends Component {
      * @param {Object} option
      */
     toggleOption(option) {
-        const isOptionInList = _.some(this.props.participants, selectedOption => (
-            selectedOption.login === option.login
-        ));
+        const isOptionInList = _.some(this.props.participants, (selectedOption) => selectedOption.login === option.login);
 
         let newSelectedOptions;
 
         if (isOptionInList) {
-            newSelectedOptions = _.reject(this.props.participants, selectedOption => (
-                selectedOption.login === option.login
-            ));
+            newSelectedOptions = _.reject(this.props.participants, (selectedOption) => selectedOption.login === option.login);
         } else {
             newSelectedOptions = [...this.props.participants, option];
         }
@@ -189,11 +187,7 @@ class MoneyRequestParticipantsSplitSelector extends Component {
         this.props.onAddParticipants(newSelectedOptions);
 
         this.setState((prevState) => {
-            const {
-                recentReports,
-                personalDetails,
-                userToInvite,
-            } = OptionsListUtils.getNewChatOptions(
+            const {recentReports, personalDetails, userToInvite} = OptionsListUtils.getNewChatOptions(
                 this.props.reports,
                 this.props.personalDetails,
                 this.props.betas,
@@ -219,11 +213,11 @@ class MoneyRequestParticipantsSplitSelector extends Component {
             this.state.searchTerm,
             maxParticipantsReached,
         );
+        const isOptionsDataReady = !this.props.isLoadingReportData && OptionsListUtils.isPersonalDetailsReady(this.props.personalDetails);
+
         return (
-            <View style={[styles.flex1, styles.w100, (this.props.participants.length > 0 ? this.props.safeAreaPaddingBottomStyle : {})]}>
-                <Text style={[styles.textLabelSupporting, styles.pt3, styles.ph5]}>
-                    {this.props.translate('common.to')}
-                </Text>
+            <View style={[styles.flex1, styles.w100, this.props.participants.length > 0 ? this.props.safeAreaPaddingBottomStyle : {}]}>
+                <Text style={[styles.textLabelSupporting, styles.pt3, styles.ph5]}>{this.props.translate('common.to')}</Text>
                 <OptionsSelector
                     canSelectMultipleOptions
                     sections={sections}
@@ -236,8 +230,9 @@ class MoneyRequestParticipantsSplitSelector extends Component {
                     shouldShowConfirmButton
                     confirmButtonText={this.props.translate('common.next')}
                     onConfirmSelection={this.finalizeParticipants}
-                    placeholderText={this.props.translate('optionsSelector.nameEmailOrPhoneNumber')}
+                    textInputLabel={this.props.translate('optionsSelector.nameEmailOrPhoneNumber')}
                     safeAreaPaddingBottomStyle={this.props.safeAreaPaddingBottomStyle}
+                    shouldShowOptions={isOptionsDataReady}
                 />
             </View>
         );
@@ -258,6 +253,9 @@ export default compose(
         },
         betas: {
             key: ONYXKEYS.BETAS,
+        },
+        isLoadingReportData: {
+            key: ONYXKEYS.IS_LOADING_REPORT_DATA,
         },
     }),
 )(MoneyRequestParticipantsSplitSelector);
