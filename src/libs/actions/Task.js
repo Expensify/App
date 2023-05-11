@@ -188,8 +188,15 @@ function completeTask(taskReportID, parentReportID) {
             value: {[completedTaskReportAction.reportAction.reportActionID]: {pendingAction: null}},
         },
     ];
-
-    API.write('CompleteTask', {taskReportID}, {optimisticData, successData, failureData});
+    console.log('completeTask', taskReportID, parentReportID, optimisticData, successData, failureData);
+    API.write(
+        'CompleteTask',
+        {
+            taskReportID,
+            completedTaskReportActionID: completedTaskReportAction.reportAction.reportActionID,
+        },
+        {optimisticData, successData, failureData},
+    );
 }
 
 /**
@@ -274,4 +281,4 @@ function clearOutTaskInfoAndNavigate(reportID) {
     Navigation.navigate(ROUTES.NEW_TASK_DETAILS);
 }
 
-export {createTaskAndNavigate, setTitleValue, setDescriptionValue, setDetailsValue, setAssigneeValue, setShareDestinationValue, clearOutTaskInfo, clearOutTaskInfoAndNavigate};
+export {createTaskAndNavigate, completeTask, setTitleValue, setDescriptionValue, setDetailsValue, setAssigneeValue, setShareDestinationValue, clearOutTaskInfo, clearOutTaskInfoAndNavigate};

@@ -1074,6 +1074,8 @@ function buildOptimisticTaskReportAction(taskReportID, text, actionName) {
         html: reportAction.reportAction.message[0].html,
         taskReportID: reportAction.reportAction.message[0].taskReportID,
     };
+
+    return reportAction;
 }
 
 /**
