@@ -107,10 +107,10 @@ const ProfilePage = (props) => {
 
                     <Button
                         text={props.translate('common.shareCode')}
-                        medium
+                        small
                         icon={Expensicons.QrCode}
                         onPress={() => Navigation.navigate(ROUTES.SETTINGS_PROFILE_SHARE_CODE)}
-                        style={{marginTop: 30, alignSelf: 'center'}}
+                        style={{marginTop: 20, alignSelf: 'center'}}
                     />
                 </OfflineWithFeedback>
                 <View style={[styles.mt4]}>

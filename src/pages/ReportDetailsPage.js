@@ -145,10 +145,10 @@ class ReportDetailsPage extends Component {
 
                                     <Button
                                         text={this.props.translate('common.shareCode')}
-                                        medium
+                                        small
                                         icon={Expensicons.QrCode}
                                         onPress={() => Navigation.navigate(ROUTES.getReportShareCodeRoute(this.props.report.reportID))}
-                                        style={{marginVertical: 20, alignSelf: 'center'}}
+                                        style={{marginVertical: 10, alignSelf: 'center'}}
                                     />
                                 </View>
                             </View>
