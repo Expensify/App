@@ -1967,6 +1967,11 @@ const styles = {
         backgroundColor: themeColors.modalBackdrop,
     },
 
+    centeredModalStyles: (isSmallScreenWidth) => ({
+        borderWidth: isSmallScreenWidth ? 1 : 0,
+        marginHorizontal: isSmallScreenWidth ? 0 : 20,
+    }),
+
     imageModalImageCenterContainer: {
         alignItems: 'center',
         flex: 1,

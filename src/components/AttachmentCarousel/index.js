@@ -1,5 +1,5 @@
 import React from 'react';
-import {View, FlatList, useWindowDimensions} from 'react-native';
+import {View, FlatList} from 'react-native';
 import PropTypes from 'prop-types';
 import {withOnyx} from 'react-native-onyx';
 import _ from 'underscore';
@@ -252,8 +252,10 @@ class AttachmentCarousel extends React.Component {
      * @returns {JSX.Element}
      */
     renderCell(props) {
-        // We are isolating the method this function uses to update the width of the container to make it respond faster
-        const style = [props.style, styles.h100, {width: this.props.isSmallScreenWidth ? this.props.windowWidth - 1 : this.props.windowWidth - 39}];
+        // We are using a new style for central modals to address the issue in https://github.com/Expensify/App/issues/17760
+        // Keep in mind that the +1 is to keep the layout stylings the exact same to prevent regressions
+        const modalStyles = styles.centeredModalStyles(this.props.isSmallScreenWidth);
+        const style = [props.style, styles.h100, {width: this.props.windowWidth - (modalStyles.marginHorizontal + modalStyles.borderWidth) * 2 + 1}];
 
         // eslint-disable-next-line react/jsx-props-no-spreading
         return <View {...props} style={style} />;
