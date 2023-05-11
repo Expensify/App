@@ -76,14 +76,14 @@ const MoneyRequestHeader = (props) => {
             <View style={[styles.ph5, styles.pb5]}>
                 <Text style={[styles.textLabelSupporting, styles.lh16]}>{props.translate('common.to')}</Text>
                 <View style={[styles.flexRow, styles.alignItemsCenter, styles.justifyContentBetween, styles.pv3]}>
-                    <View style={[styles.flexRow, styles.alignItemsCenter, styles.justifyContentBetween]}>
+                    <View style={[styles.flex1, styles.flexRow, styles.alignItemsCenter, styles.justifyContentBetween]}>
                         <Avatar
                             source={payeeAvatar}
                             type={isExpenseReport ? CONST.ICON_TYPE_WORKSPACE : CONST.ICON_TYPE_AVATAR}
                             name={payeeName}
                             size={CONST.AVATAR_SIZE.HEADER}
                         />
-                        <View style={[styles.flexColumn, styles.ml3]}>
+                        <View style={[styles.flex1, styles.flexColumn, styles.ml3]}>
                             <Text
                                 style={[styles.headerText, styles.pre]}
                                 numberOfLines={1}

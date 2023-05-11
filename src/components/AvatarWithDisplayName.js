@@ -53,7 +53,7 @@ const AvatarWithDisplayName = (props) => {
     return (
         <View style={[styles.appContentHeaderTitle, styles.flex1]}>
             {Boolean(props.report && title) && (
-                <View style={[styles.flexRow, styles.alignItemsCenter, styles.justifyContentBetween]}>
+                <View style={[styles.flex1, styles.flexRow, styles.alignItemsCenter, styles.justifyContentBetween]}>
                     {isExpenseReport ? (
                         <SubscriptAvatar
                             mainAvatar={icons[0]}
