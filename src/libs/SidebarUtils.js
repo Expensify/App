@@ -21,15 +21,15 @@ import * as LocalePhoneNumber from './LocalePhoneNumber';
 // data anyway and cause SidebarLinks to rerender.
 
 const chatReports = {};
-const iouReports = {};
+const moneyRequestReports = {};
 Onyx.connect({
     key: ONYXKEYS.COLLECTION.REPORT,
     callback: (report, key) => {
         if (!report) {
-            delete iouReports[key];
+            delete moneyRequestReports[key];
             delete chatReports[key];
-        } else if (ReportUtils.isIOUReport(report)) {
-            iouReports[key] = report;
+        } else if (ReportUtils.isMoneyRequestReport(report)) {
+            moneyRequestReports[key] = report;
         } else {
             chatReports[key] = report;
         }
@@ -108,7 +108,9 @@ function getOrderedReportIDs(reportIDFromRoute) {
     const isInDefaultMode = !isInGSDMode;
 
     // Filter out all the reports that shouldn't be displayed
-    const reportsToDisplay = _.filter(chatReports, (report) => ReportUtils.shouldReportBeInOptionList(report, reportIDFromRoute, isInGSDMode, currentUserLogin, iouReports, betas, policies));
+    const reportsToDisplay = _.filter({...chatReports, ...moneyRequestReports}, (report) =>
+        ReportUtils.shouldReportBeInOptionList(report, reportIDFromRoute, isInGSDMode, currentUserLogin, moneyRequestReports, betas, policies),
+    );
 
     // There are a few properties that need to be calculated for the report which are used when sorting reports.
     _.each(reportsToDisplay, (report) => {
@@ -119,7 +121,7 @@ function getOrderedReportIDs(reportIDFromRoute) {
         report.displayName = ReportUtils.getReportName(report);
 
         // eslint-disable-next-line no-param-reassign
-        report.iouReportAmount = ReportUtils.getIOUTotal(report, iouReports);
+        report.iouReportAmount = ReportUtils.getIOUTotal(report, moneyRequestReports);
     });
 
     // The LHN is split into five distinct groups, and each group is sorted a little differently. The groups will ALWAYS be in this order:
@@ -144,7 +146,7 @@ function getOrderedReportIDs(reportIDFromRoute) {
             return;
         }
 
-        if (report.hasOutstandingIOU && !ReportUtils.isIOUOwnedByCurrentUser(report, iouReports)) {
+        if (report.hasOutstandingIOU && !ReportUtils.isIOUOwnedByCurrentUser(report, moneyRequestReports)) {
             outstandingIOUReports.push(report);
             return;
         }
@@ -192,7 +194,8 @@ function getOrderedReportIDs(reportIDFromRoute) {
  * @returns {Object}
  */
 function getOptionData(reportID) {
-    const report = chatReports[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`];
+    const reportKey = `${ONYXKEYS.COLLECTION.REPORT}${reportID}`;
+    const report = chatReports[reportKey] || moneyRequestReports[reportKey];
 
     // When a user signs out, Onyx is cleared. Due to the lazy rendering with a virtual list, it's possible for
     // this method to be called after the Onyx data has been cleared out. In that case, it's fine to do
@@ -229,6 +232,7 @@ function getOptionData(reportID) {
         isArchivedRoom: false,
         shouldShowSubscript: false,
         isPolicyExpenseChat: false,
+        isMoneyRequestReport: false,
     };
 
     const participantPersonalDetailList = _.values(OptionsListUtils.getPersonalDetailsForLogins(report.participants, personalDetails));
@@ -238,7 +242,8 @@ function getOptionData(reportID) {
     result.isTaskReport = ReportUtils.isTaskReport(report);
     result.isArchivedRoom = ReportUtils.isArchivedRoom(report);
     result.isPolicyExpenseChat = ReportUtils.isPolicyExpenseChat(report);
-    result.shouldShowSubscript = result.isPolicyExpenseChat && !report.isOwnPolicyExpenseChat && !result.isArchivedRoom;
+    result.isMoneyRequestReport = ReportUtils.isMoneyRequestReport(report);
+    result.shouldShowSubscript = ReportUtils.shouldReportShowSubscript(report);
     result.pendingAction = report.pendingFields ? report.pendingFields.addWorkspaceRoom || report.pendingFields.createChat : null;
     result.allReportErrors = OptionsListUtils.getAllReportErrors(report, reportActions);
     result.brickRoadIndicator = !_.isEmpty(result.allReportErrors) ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : '';
@@ -325,8 +330,8 @@ function getOptionData(reportID) {
         result.alternateText = lastMessageText || formattedLogin;
     }
 
-    result.isIOUReportOwner = ReportUtils.isIOUOwnedByCurrentUser(result, iouReports);
-    result.iouReportAmount = ReportUtils.getIOUTotal(result, iouReports);
+    result.isIOUReportOwner = ReportUtils.isIOUOwnedByCurrentUser(result, moneyRequestReports);
+    result.iouReportAmount = ReportUtils.getIOUTotal(result, moneyRequestReports);
 
     if (!hasMultipleParticipants) {
         result.login = personalDetail.login;
