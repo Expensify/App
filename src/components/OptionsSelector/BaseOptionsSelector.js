@@ -12,7 +12,6 @@ import withLocalize, {withLocalizePropTypes} from '../withLocalize';
 import TextInput from '../TextInput';
 import ArrowKeyFocusManager from '../ArrowKeyFocusManager';
 import KeyboardShortcut from '../../libs/KeyboardShortcut';
-import FullScreenLoadingIndicator from '../FullscreenLoadingIndicator';
 import {propTypes as optionsSelectorPropTypes, defaultProps as optionsSelectorDefaultProps} from './optionsSelectorPropTypes';
 import setSelection from '../../libs/setSelection';
 
@@ -289,7 +288,7 @@ class BaseOptionsSelector extends Component {
                 blurOnSubmit={Boolean(this.state.allOptions.length)}
             />
         );
-        const optionsList = this.props.shouldShowOptions ? (
+        const optionsList = (
             <OptionsList
                 ref={(el) => (this.list = el)}
                 optionHoveredStyle={this.props.optionHoveredStyle}
@@ -314,9 +313,8 @@ class BaseOptionsSelector extends Component {
                     }
                 }}
                 contentContainerStyles={shouldShowFooter ? undefined : [this.props.safeAreaPaddingBottomStyle]}
+                isLoading={!this.props.shouldShowOptions}
             />
-        ) : (
-            <FullScreenLoadingIndicator />
         );
         return (
             <ArrowKeyFocusManager
