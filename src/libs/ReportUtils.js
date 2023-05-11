@@ -457,9 +457,8 @@ function getChatRoomSubtitle(report) {
         }
 
         // If thread is not from a DM or group chat, the subtitle will follow the pattern 'Workspace Name • #roomName'
-        const parentReport = allReports[`${ONYXKEYS.COLLECTION.REPORT}${report.parentReportID}`];
-        const workspaceName = getPolicyName(parentReport);
-        const roomName = isChatRoom(parentReport) ? parentReport.displayName : '';
+        const workspaceName = getPolicyName(report);
+        const roomName = isChatRoom(report) ? lodashGet(report, 'displayName') : '';
         return roomName ? `${workspaceName} • ${roomName}` : `${workspaceName}`;
     }
     if (!isDefaultRoom(report) && !isUserCreatedPolicyRoom(report) && !isPolicyExpenseChat(report)) {
@@ -751,6 +750,11 @@ function getIcons(report, personalDetails, defaultIcon = null) {
     if (isThread(report)) {
         const parentReport = lodashGet(allReports, [`${ONYXKEYS.COLLECTION.REPORT}${report.parentReportID}`]);
         const parentReportAction = ReportActionsUtils.getParentReportAction(report);
+
+        if (!parentReport) {
+            result.source = Expensicons.ActiveRoomAvatar;
+            return [result];
+        }
 
         if (getChatType(parentReport)) {
             result.source = getWorkspaceAvatar(parentReport);
