@@ -4,7 +4,7 @@ import ScreenWrapper from '../components/ScreenWrapper';
 import HeaderWithCloseButton from '../components/HeaderWithCloseButton';
 import Navigation from '../libs/Navigation/Navigation';
 import withLocalize, {withLocalizePropTypes} from '../components/withLocalize';
-import QRShare from '../components/QRShare';
+import QRShareWithDownload from '../components/QRShare/QRShareWithDownload';
 import compose from '../libs/compose';
 import reportPropTypes from './reportPropTypes';
 import withCurrentUserPersonalDetails, {withCurrentUserPersonalDetailsDefaultProps, withCurrentUserPersonalDetailsPropTypes} from '../components/withCurrentUserPersonalDetails';
@@ -47,12 +47,11 @@ class ShareCodePage extends React.Component {
                 />
 
                 <View style={styles.shareCodePage}>
-                    <QRShare
+                    <QRShareWithDownload
                         ref={this.qrCodeRef}
                         title={isReport ? this.props.report.reportName : this.props.currentUserPersonalDetails.displayName}
                         subtitle={isReport ? ReportUtils.getPolicyName(this.props.report) : this.props.session.email}
                         logo={isReport ? roomAvatar : this.props.currentUserPersonalDetails.avatar}
-                        download={() => null}
                     />
                 </View>
 
