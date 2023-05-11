@@ -119,6 +119,7 @@ export default {
         REPORT_DRAFT_COMMENT_NUMBER_OF_LINES: 'reportDraftCommentNumberOfLines_',
         REPORT_IS_COMPOSER_FULL_SIZE: 'reportIsComposerFullSize_',
         REPORT_USER_IS_TYPING: 'reportUserIsTyping_',
+        SECURITY_GROUP: 'securityGroup_',
         TRANSACTION: 'transactions_',
     },
 
@@ -215,4 +216,7 @@ export default {
 
     // The route from the deep link which the user use to open the app
     REPORT_SCREEN_ROUTE: 'reportScreenRoute',
+    
+    // A map of the user's security group IDs they belong to in specific domains
+    MY_DOMAIN_SECURITY_GROUPS: 'myDomainSecurityGroups',
 };

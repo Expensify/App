@@ -1591,4 +1591,5 @@ export {
     hasAccountIDReacted,
     shouldShowReportActionNotification,
     setReportScreenRoute,
+    getCurrentUserAccountID
 };
