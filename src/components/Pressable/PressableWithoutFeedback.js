@@ -3,16 +3,7 @@ import _ from 'underscore';
 import GenericPressable from './GenericPressable';
 import GenericPressableProps from './GenericPressable/PropTypes';
 
-const omittedProps = [
-    'pressStyle',
-    'hoverStyle',
-    'focusStyle',
-    'activeStyle',
-    'disabledStyle',
-    'screenReaderActiveStyle',
-    'shouldUseHapticsOnPress',
-    'shouldUseHapticsOnLongPress',
-];
+const omittedProps = ['pressStyle', 'hoverStyle', 'focusStyle', 'activeStyle', 'disabledStyle', 'screenReaderActiveStyle', 'shouldUseHapticsOnPress', 'shouldUseHapticsOnLongPress'];
 
 const PressableWithoutFeedback = (props) => {
     const propsWithoutStyling = _.omit(props, omittedProps);

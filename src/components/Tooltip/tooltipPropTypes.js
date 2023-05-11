@@ -56,7 +56,4 @@ const defaultProps = {
     focusable: true,
 };
 
-export {
-    propTypes,
-    defaultProps,
-};
+export {propTypes, defaultProps};

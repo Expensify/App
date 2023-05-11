@@ -75,7 +75,4 @@ class BaseSidebarScreen extends Component {
 
 BaseSidebarScreen.propTypes = propTypes;
 
-export default compose(
-    withWindowDimensions,
-    withDrawerState,
-)(BaseSidebarScreen);
+export default compose(withWindowDimensions, withDrawerState)(BaseSidebarScreen);

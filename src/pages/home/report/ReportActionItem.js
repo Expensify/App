@@ -12,7 +12,7 @@ import PressableWithSecondaryInteraction from '../../../components/PressableWith
 import Hoverable from '../../../components/Hoverable';
 import ReportActionItemSingle from './ReportActionItemSingle';
 import ReportActionItemGrouped from './ReportActionItemGrouped';
-import IOUAction from '../../../components/ReportActionItem/IOUAction';
+import MoneyRequestAction from '../../../components/ReportActionItem/MoneyRequestAction';
 import ReportActionItemMessage from './ReportActionItemMessage';
 import UnreadActionIndicator from '../../../components/UnreadActionIndicator';
 import ReportActionItemMessageEdit from './ReportActionItemMessageEdit';
@@ -24,12 +24,7 @@ import * as DeviceCapabilities from '../../../libs/DeviceCapabilities';
 import MiniReportActionContextMenu from './ContextMenu/MiniReportActionContextMenu';
 import * as ReportActionContextMenu from './ContextMenu/ReportActionContextMenu';
 import * as ContextMenuActions from './ContextMenu/ContextMenuActions';
-import {
-    withBlockedFromConcierge,
-    withNetwork,
-    withPersonalDetails,
-    withReportActionsDrafts,
-} from '../../../components/OnyxProvider';
+import {withBlockedFromConcierge, withNetwork, withPersonalDetails, withReportActionsDrafts} from '../../../components/OnyxProvider';
 import RenameAction from '../../../components/ReportActionItem/RenameAction';
 import InlineSystemMessage from '../../../components/InlineSystemMessage';
 import styles from '../../../styles/styles';
@@ -51,6 +46,8 @@ import Text from '../../../components/Text';
 import DisplayNames from '../../../components/DisplayNames';
 import personalDetailsPropType from '../../personalDetailsPropType';
 import ReportActionItemDraft from './ReportActionItemDraft';
+import TaskPreview from '../../../components/ReportActionItem/TaskPreview';
+import * as ReportActionUtils from '../../../libs/ReportActionsUtils';
 
 const propTypes = {
     /** Report for this action */
@@ -111,16 +108,18 @@ class ReportActionItem extends Component {
     }
 
     shouldComponentUpdate(nextProps, nextState) {
-        return this.props.displayAsGroup !== nextProps.displayAsGroup
-            || this.props.draftMessage !== nextProps.draftMessage
-            || this.props.isMostRecentIOUReportAction !== nextProps.isMostRecentIOUReportAction
-            || this.props.hasOutstandingIOU !== nextProps.hasOutstandingIOU
-            || this.props.shouldDisplayNewMarker !== nextProps.shouldDisplayNewMarker
-            || !_.isEqual(this.props.action, nextProps.action)
-            || this.state.isContextMenuActive !== nextState.isContextMenuActive
-            || lodashGet(this.props.report, 'statusNum') !== lodashGet(nextProps.report, 'statusNum')
-            || lodashGet(this.props.report, 'stateNum') !== lodashGet(nextProps.report, 'stateNum')
-            || this.props.translate !== nextProps.translate;
+        return (
+            this.props.displayAsGroup !== nextProps.displayAsGroup ||
+            this.props.draftMessage !== nextProps.draftMessage ||
+            this.props.isMostRecentIOUReportAction !== nextProps.isMostRecentIOUReportAction ||
+            this.props.hasOutstandingIOU !== nextProps.hasOutstandingIOU ||
+            this.props.shouldDisplayNewMarker !== nextProps.shouldDisplayNewMarker ||
+            !_.isEqual(this.props.action, nextProps.action) ||
+            this.state.isContextMenuActive !== nextState.isContextMenuActive ||
+            lodashGet(this.props.report, 'statusNum') !== lodashGet(nextProps.report, 'statusNum') ||
+            lodashGet(this.props.report, 'stateNum') !== lodashGet(nextProps.report, 'stateNum') ||
+            this.props.translate !== nextProps.translate
+        );
     }
 
     componentDidUpdate(prevProps) {
@@ -183,7 +182,7 @@ class ReportActionItem extends Component {
             const iouReportID = this.props.action.originalMessage.IOUReportID ? this.props.action.originalMessage.IOUReportID.toString() : '0';
 
             children = (
-                <IOUAction
+                <MoneyRequestAction
                     chatReportID={this.props.report.reportID}
                     requestReportID={iouReportID}
                     action={this.props.action}
@@ -193,11 +192,17 @@ class ReportActionItem extends Component {
                     checkIfContextMenuActive={this.checkIfContextMenuActive}
                 />
             );
+        } else if (ReportActionUtils.isCreatedTaskReportAction(this.props.action)) {
+            children = (
+                <TaskPreview
+                    taskReportID={this.props.action.originalMessage.taskReportID.toString()}
+                    action={this.props.action}
+                    isHovered={hovered}
+                />
+            );
         } else {
             const message = _.last(lodashGet(this.props.action, 'message', [{}]));
-            const isAttachment = _.has(this.props.action, 'isAttachment')
-                ? this.props.action.isAttachment
-                : ReportUtils.isReportMessageAttachment(message);
+            const isAttachment = _.has(this.props.action, 'isAttachment') ? this.props.action.isAttachment : ReportUtils.isReportMessageAttachment(message);
             children = (
                 <ShowContextMenuContext.Provider
                     value={{
@@ -207,32 +212,30 @@ class ReportActionItem extends Component {
                         checkIfContextMenuActive: this.checkIfContextMenuActive,
                     }}
                 >
-                    {!this.props.draftMessage
-                        ? (
-                            <ReportActionItemMessage
-                                action={this.props.action}
-                                style={[
-                                    (!this.props.displayAsGroup && isAttachment) ? styles.mt2 : undefined,
-                                    _.contains(_.values(CONST.REPORT.ACTIONS.TYPE.POLICYCHANGELOG), this.props.action.actionName) ? styles.colorMuted : undefined,
-                                ]}
-                            />
-                        ) : (
-                            <ReportActionItemMessageEdit
-                                action={this.props.action}
-                                draftMessage={this.props.draftMessage}
-                                reportID={this.props.report.reportID}
-                                index={this.props.index}
-                                ref={el => this.textInput = el}
-                                report={this.props.report}
-
-                                // Avoid defining within component due to an existing Onyx bug
-                                preferredSkinTone={this.props.preferredSkinTone}
-                                shouldDisableEmojiPicker={
-                                    (ReportUtils.chatIncludesConcierge(this.props.report) && User.isBlockedFromConcierge(this.props.blockedFromConcierge))
-                                    || ReportUtils.isArchivedRoom(this.props.report)
-                                }
-                            />
-                        )}
+                    {!this.props.draftMessage ? (
+                        <ReportActionItemMessage
+                            action={this.props.action}
+                            style={[
+                                !this.props.displayAsGroup && isAttachment ? styles.mt2 : undefined,
+                                _.contains(_.values(CONST.REPORT.ACTIONS.TYPE.POLICYCHANGELOG), this.props.action.actionName) ? styles.colorMuted : undefined,
+                            ]}
+                        />
+                    ) : (
+                        <ReportActionItemMessageEdit
+                            action={this.props.action}
+                            draftMessage={this.props.draftMessage}
+                            reportID={this.props.report.reportID}
+                            index={this.props.index}
+                            ref={(el) => (this.textInput = el)}
+                            report={this.props.report}
+                            // Avoid defining within component due to an existing Onyx bug
+                            preferredSkinTone={this.props.preferredSkinTone}
+                            shouldDisableEmojiPicker={
+                                (ReportUtils.chatIncludesConcierge(this.props.report) && User.isBlockedFromConcierge(this.props.blockedFromConcierge)) ||
+                                ReportUtils.isArchivedRoom(this.props.report)
+                            }
+                        />
+                    )}
                 </ShowContextMenuContext.Provider>
             );
         }
@@ -264,11 +267,7 @@ class ReportActionItem extends Component {
         const content = this.renderItemContent(hovered || this.state.isContextMenuActive);
 
         if (this.props.draftMessage) {
-            return (
-                <ReportActionItemDraft>
-                    {content}
-                </ReportActionItemDraft>
-            );
+            return <ReportActionItemDraft>{content}</ReportActionItemDraft>;
         }
 
         if (!this.props.displayAsGroup) {
@@ -285,11 +284,7 @@ class ReportActionItem extends Component {
             );
         }
 
-        return (
-            <ReportActionItemGrouped wrapperStyles={[styles.chatItem, isWhisper ? styles.pt1 : {}]}>
-                {content}
-            </ReportActionItemGrouped>
-        );
+        return <ReportActionItemGrouped wrapperStyles={[styles.chatItem, isWhisper ? styles.pt1 : {}]}>{content}</ReportActionItemGrouped>;
     }
 
     render() {
@@ -300,7 +295,12 @@ class ReportActionItem extends Component {
             return <RenameAction action={this.props.action} />;
         }
         if (this.props.action.actionName === CONST.REPORT.ACTIONS.TYPE.CHRONOSOOOLIST) {
-            return <ChronosOOOListActions action={this.props.action} reportID={this.props.report.reportID} />;
+            return (
+                <ChronosOOOListActions
+                    action={this.props.action}
+                    reportID={this.props.report.reportID}
+                />
+            );
         }
 
         const hasErrors = !_.isEmpty(this.props.action.errors);
@@ -308,12 +308,12 @@ class ReportActionItem extends Component {
         const isWhisper = whisperedTo.length > 0;
         const isMultipleParticipant = whisperedTo.length > 1;
         const isWhisperOnlyVisibleByUser = isWhisper && ReportUtils.isCurrentUserTheOnlyParticipant(whisperedTo);
-        const whisperedToPersonalDetails = isWhisper ? _.filter(this.props.personalDetails, details => _.includes(whisperedTo, details.login)) : [];
+        const whisperedToPersonalDetails = isWhisper ? _.filter(this.props.personalDetails, (details) => _.includes(whisperedTo, details.login)) : [];
         const displayNamesWithTooltips = isWhisper ? ReportUtils.getDisplayNamesWithTooltips(whisperedToPersonalDetails, isMultipleParticipant) : [];
         return (
             <PressableWithSecondaryInteraction
                 pointerEvents={this.props.action.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE ? 'none' : 'auto'}
-                ref={el => this.popoverAnchor = el}
+                ref={(el) => (this.popoverAnchor = el)}
                 onPressIn={() => this.props.isSmallScreenWidth && DeviceCapabilities.canUseTouchScreen() && ControlSelection.block()}
                 onPressOut={() => ControlSelection.unblock()}
                 onSecondaryInteraction={this.showPopover}
@@ -321,17 +321,12 @@ class ReportActionItem extends Component {
                 withoutFocusOnSecondaryInteraction
             >
                 <Hoverable>
-                    {hovered => (
+                    {(hovered) => (
                         <View accessibilityLabel={this.props.translate('accessibilityHints.chatMessage')}>
-                            {this.props.shouldDisplayNewMarker && (
-                                <UnreadActionIndicator reportActionID={this.props.action.reportActionID} />
-                            )}
+                            {this.props.shouldDisplayNewMarker && <UnreadActionIndicator reportActionID={this.props.action.reportActionID} />}
                             <View
                                 style={StyleUtils.getReportActionItemStyle(
-                                    hovered
-                                    || isWhisper
-                                    || this.state.isContextMenuActive
-                                    || this.props.draftMessage,
+                                    hovered || isWhisper || this.state.isContextMenuActive || this.props.draftMessage,
                                     (this.props.network.isOffline && this.props.action.isLoading) || this.props.action.error,
                                 )}
                             >
@@ -345,7 +340,10 @@ class ReportActionItem extends Component {
                                     {isWhisper && (
                                         <View style={[styles.flexRow, styles.pl5, styles.pt2]}>
                                             <View style={[styles.pl6, styles.mr3]}>
-                                                <Icon src={Expensicons.Eye} small />
+                                                <Icon
+                                                    src={Expensicons.Eye}
+                                                    small
+                                                />
                                             </View>
                                             <Text style={[styles.chatItemMessageHeaderTimestamp]}>
                                                 {this.props.translate('reportActionContextMenu.onlyVisible')}
@@ -369,11 +367,7 @@ class ReportActionItem extends Component {
                                 reportAction={this.props.action}
                                 isArchivedRoom={ReportUtils.isArchivedRoom(this.props.report)}
                                 displayAsGroup={this.props.displayAsGroup}
-                                isVisible={
-                                    hovered
-                                    && !this.props.draftMessage
-                                    && !hasErrors
-                                }
+                                isVisible={hovered && !this.props.draftMessage && !hasErrors}
                                 draftMessage={this.props.draftMessage}
                                 isChronosReport={ReportUtils.chatIncludesChronos(this.props.report)}
                             />
