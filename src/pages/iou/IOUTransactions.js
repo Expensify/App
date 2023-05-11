@@ -79,7 +79,11 @@ class IOUTransactions extends Component {
             <View style={[styles.mt3]}>
                 {_.map(sortedReportActions, (reportAction) => {
                     // iouReportIDs should be strings, but we still have places that send them as ints so we convert them both to Numbers for comparison
-                    if (!reportAction.originalMessage || Number(reportAction.originalMessage.IOUReportID) !== Number(this.props.iouReportID)) {
+                    if (
+                        !reportAction.originalMessage ||
+                        reportAction.actionName !== CONST.REPORT.ACTIONS.TYPE.IOU ||
+                        Number(reportAction.originalMessage.IOUReportID) !== Number(this.props.iouReportID)
+                    ) {
                         return;
                     }
 
