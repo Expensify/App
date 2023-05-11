@@ -30,7 +30,7 @@ function showContextMenu(
     onHide = () => {},
     isArchivedRoom = false,
     isChronosReport = false,
-    childReportID = '',
+    childReportID = '0',
 ) {
     if (!contextMenuRef.current) {
         return;
