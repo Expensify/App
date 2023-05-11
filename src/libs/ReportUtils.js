@@ -178,6 +178,7 @@ function canEditReportAction(reportAction) {
         reportAction.actionName === CONST.REPORT.ACTIONS.TYPE.ADDCOMMENT &&
         !isReportMessageAttachment(lodashGet(reportAction, ['message', 0], {})) &&
         !ReportActionsUtils.isDeletedAction(reportAction) &&
+        !ReportActionsUtils.isCreatedTaskReportAction(reportAction) &&
         reportAction.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE
     );
 }
@@ -192,6 +193,7 @@ function canDeleteReportAction(reportAction) {
     return (
         reportAction.actorEmail === sessionEmail &&
         reportAction.actionName === CONST.REPORT.ACTIONS.TYPE.ADDCOMMENT &&
+        !ReportActionsUtils.isCreatedTaskReportAction(reportAction) &&
         reportAction.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE
     );
 }
@@ -725,7 +727,7 @@ function getIcons(report, personalDetails, defaultIcon = null) {
         result.source = Expensicons.ActiveRoomAvatar;
         return [result];
     }
-    if (isPolicyExpenseChat(report)) {
+    if (isPolicyExpenseChat(report) || isExpenseReport(report)) {
         const workspaceName = lodashGet(allPolicies, [`${ONYXKEYS.COLLECTION.POLICY}${report.policyID}`, 'name']);
 
         const policyExpenseChatAvatarSource = lodashGet(allPolicies, [`${ONYXKEYS.COLLECTION.POLICY}${report.policyID}`, 'avatar']) || getDefaultWorkspaceAvatar(workspaceName);
@@ -884,6 +886,19 @@ function getPolicyExpenseChatName(report) {
 }
 
 /**
+ * Get the title for a IOU or expense chat which will be showing the payer and the amount
+ *
+ * @param {Object} report
+ * @returns  {String}
+ */
+function getMoneyRequestReportName(report) {
+    const formattedAmount = CurrencyUtils.convertToDisplayString(report.total || 0, report.currency);
+    const payerName = isExpenseReport(report) ? getPolicyName(report) : getDisplayNameForParticipant(report.managerEmail);
+
+    return Localize.translateLocal('iou.payerOwesAmount', {payer: payerName, amount: formattedAmount});
+}
+
+/**
  * Get the title for a report.
  *
  * @param {Object} report
@@ -891,12 +906,16 @@ function getPolicyExpenseChatName(report) {
  */
 function getReportName(report) {
     let formattedName;
-    if (isChatRoom(report)) {
+    if (isChatRoom(report) || isTaskReport(report)) {
         formattedName = report.reportName;
     }
 
     if (isPolicyExpenseChat(report)) {
         formattedName = getPolicyExpenseChatName(report);
+    }
+
+    if (isMoneyRequestReport(report)) {
+        formattedName = getMoneyRequestReportName(report);
     }
 
     if (isArchivedRoom(report)) {
@@ -1014,6 +1033,34 @@ function buildOptimisticAddCommentReportAction(text, file) {
             shouldShow: true,
         },
     };
+}
+
+/**
+ * Builds an optimistic reportAction for the parent report when a task is created
+ * @param {String} taskReportID - Report ID of the task
+ * @param {String} taskTitle - Title of the task
+ * @param {String} taskAssignee - Email of the person assigned to the task
+ * @param {String} text - Text of the comment
+ * @returns {Object}
+ */
+function buildOptimisticTaskCommentReportAction(taskReportID, taskTitle, taskAssignee, text) {
+    const reportAction = buildOptimisticAddCommentReportAction(text);
+    reportAction.reportAction.message[0].taskReportID = taskReportID;
+
+    // These parameters are not saved on the reportAction, but are used to display the task in the UI
+    // Added when we fetch the reportActions on a report
+    reportAction.reportAction.originalMessage = {
+        html: reportAction.reportAction.message[0].html,
+        taskReportID: reportAction.reportAction.message[0].taskReportID,
+    };
+    reportAction.reportAction.childReportID = taskReportID;
+    reportAction.reportAction.childType = CONST.REPORT.TYPE.TASK;
+    reportAction.reportAction.taskTitle = taskTitle;
+    reportAction.reportAction.taskAssignee = taskAssignee;
+    reportAction.reportAction.childStatusNum = CONST.REPORT.STATUS.OPEN;
+    reportAction.reportAction.childStateNum = CONST.REPORT.STATE_NUM.OPEN;
+
+    return reportAction;
 }
 
 /**
@@ -1566,7 +1613,7 @@ function shouldReportBeInOptionList(report, reportIDFromRoute, isInGSDMode, curr
     // Exclude reports that have no data because there wouldn't be anything to show in the option item.
     // This can happen if data is currently loading from the server or a report is in various stages of being created.
     // This can also happen for anyone accessing a public room or archived room for which they don't have access to the underlying policy.
-    if (!report || !report.reportID || !report.participants || (_.isEmpty(report.participants) && !isPublicRoom(report) && !isArchivedRoom(report)) || isIOUReport(report)) {
+    if (!report || !report.reportID || (_.isEmpty(report.participants) && !isPublicRoom(report) && !isArchivedRoom(report) && !isMoneyRequestReport(report))) {
         return false;
     }
 
@@ -1847,6 +1894,23 @@ function getWhisperDisplayNames(participants) {
     return _.map(participants, (login) => getDisplayNameForParticipant(login, !isWhisperOnlyVisibleToCurrentUSer)).join(', ');
 }
 
+/**
+ * Show subscript on IOU or expense report
+ * @param {Object} report
+ * @returns {Boolean}
+ */
+function shouldReportShowSubscript(report) {
+    if (isArchivedRoom(report)) {
+        return false;
+    }
+
+    if (isPolicyExpenseChat(report) && !report.isOwnPolicyExpenseChat) {
+        return true;
+    }
+
+    return isExpenseReport(report);
+}
+
 export {
     getReportParticipantsTitle,
     isReportMessageAttachment,
@@ -1899,6 +1963,7 @@ export {
     buildOptimisticExpenseReport,
     buildOptimisticIOUReportAction,
     buildOptimisticAddCommentReportAction,
+    buildOptimisticTaskCommentReportAction,
     shouldReportBeInOptionList,
     getChatByParticipants,
     getChatByParticipantsAndPolicy,
@@ -1925,4 +1990,5 @@ export {
     canRequestMoney,
     getWhisperDisplayNames,
     getWorkspaceAvatar,
+    shouldReportShowSubscript,
 };
