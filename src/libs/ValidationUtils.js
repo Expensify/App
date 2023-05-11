@@ -26,7 +26,7 @@ function validateCardNumber(val) {
         }
         sum += intVal;
     }
-    return (sum % 10) === 0;
+    return sum % 10 === 0;
 }
 
 /**
@@ -347,9 +347,7 @@ function isNumericWithSpecialChars(input) {
 function isValidRoutingNumber(number) {
     let n = 0;
     for (let i = 0; i < number.length; i += 3) {
-        n += (parseInt(number.charAt(i), 10) * 3)
-            + (parseInt(number.charAt(i + 1), 10) * 7)
-            + parseInt(number.charAt(i + 2), 10);
+        n += parseInt(number.charAt(i), 10) * 3 + parseInt(number.charAt(i + 1), 10) * 7 + parseInt(number.charAt(i + 2), 10);
     }
 
     // If the resulting sum is an even multiple of ten (but not zero),
@@ -389,7 +387,7 @@ function isValidLegalName(name) {
  */
 function doesContainReservedWord(value, reservedWords) {
     const valueToCheck = value.trim().toLowerCase();
-    return _.some(reservedWords, reservedWord => valueToCheck.includes(reservedWord.toLowerCase()));
+    return _.some(reservedWords, (reservedWord) => valueToCheck.includes(reservedWord.toLowerCase()));
 }
 
 /**
@@ -412,11 +410,7 @@ function isReservedRoomName(roomName) {
  * @returns {Boolean}
  */
 function isExistingRoomName(roomName, reports, policyID) {
-    return _.some(
-        reports,
-        report => report && report.policyID === policyID
-        && report.reportName === roomName,
-    );
+    return _.some(reports, (report) => report && report.policyID === policyID && report.reportName === roomName);
 }
 
 /**
@@ -449,7 +443,9 @@ function isValidTaxID(taxID) {
  * @returns {Boolean}
  */
 function isNumeric(value) {
-    if (typeof value !== 'string') { return false; }
+    if (typeof value !== 'string') {
+        return false;
+    }
     return /^\d*$/.test(value);
 }
 

@@ -99,8 +99,7 @@ describe('isPullRequestMergeable', () => {
     });
 
     test('Pull request mergeability never resolves', () => {
-        mockGetPullRequest
-            .mockResolvedValue({data: {mergeable: null, head: {sha: 'abcd'}}});
+        mockGetPullRequest.mockResolvedValue({data: {mergeable: null, head: {sha: 'abcd'}}});
         mockListChecks.mockResolvedValue({data: {check_runs: [{status: 'completed'}]}});
         return run().then(() => {
             expect(mockGetPullRequest).toHaveBeenCalledTimes(31);
