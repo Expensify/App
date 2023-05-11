@@ -73,7 +73,7 @@ const MoneyRequestHeader = (props) => {
                 shouldShowBackButton={props.isSmallScreenWidth}
                 onBackButtonPress={() => Navigation.navigate(ROUTES.HOME)}
             />
-            <View style={[styles.ph5, styles.pb5]}>
+            <View style={[styles.ph5, styles.pb2]}>
                 <Text style={[styles.textLabelSupporting, styles.lh16]}>{props.translate('common.to')}</Text>
                 <View style={[styles.flexRow, styles.alignItemsCenter, styles.justifyContentBetween, styles.pv3]}>
                     <View style={[styles.flex1, styles.flexRow, styles.alignItemsCenter, styles.justifyContentBetween]}>
