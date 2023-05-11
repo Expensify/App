@@ -326,7 +326,6 @@ function addComment(reportID, text) {
  * @param {String} reportID
  * @param {Array} participantList The list of users that are included in a new chat, not including the user creating it
  * @param {Object} newReportObject The optimistic report object created when making a new chat, saved as optimistic data
- * @param {String} parentReportActionID The report action that a thread was created off of (only passed for threads)
  */
 function openReport(reportID, participantList = [], newReportObject = {}) {
     const optimisticReportData = {
