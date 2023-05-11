@@ -50,12 +50,7 @@ const defaultProps = {
 const TaskSelectorLink = (props) => {
     const shortenedText = props.text.length > 35 ? `${props.text.substring(0, 35)}...` : props.text;
     const displayNameStyle = StyleUtils.combineStyles(styles.optionDisplayName, styles.pre);
-    const alternateTextStyle = StyleUtils.combineStyles(
-        styles.sidebarLinkText,
-        styles.optionAlternateText,
-        styles.textLabelSupporting,
-        styles.pre,
-    );
+    const alternateTextStyle = StyleUtils.combineStyles(styles.sidebarLinkText, styles.optionAlternateText, styles.textLabelSupporting, styles.pre);
     const linkBottomMargin = props.icons.length !== 0 ? styles.mb6 : styles.mb2;
     return (
         <TouchableOpacity
@@ -66,9 +61,7 @@ const TaskSelectorLink = (props) => {
             <View style={[styles.flexRow, styles.containerWithSpaceBetween, styles.alignItemsCenter]}>
                 {props.icons.length !== 0 || props.text !== '' ? (
                     <View style={[styles.flexColumn, styles.justify, styles.alignItemsStart]}>
-                        <Text style={[styles.label, styles.textWhite, styles.mb2]}>
-                            {props.translate(props.label)}
-                        </Text>
+                        <Text style={[styles.label, styles.textWhite, styles.mb2]}>{props.translate(props.label)}</Text>
                         <View style={[styles.flexRow, styles.justifyContentCenter]}>
                             <View style={[styles.flexRow, styles.alignItemsCenter]}>
                                 <MultipleAvatars
@@ -86,7 +79,10 @@ const TaskSelectorLink = (props) => {
                                         shouldUseFullTitle={props.isShareDestination}
                                     />
                                     {props.alternateText ? (
-                                        <Text style={alternateTextStyle} numberOfLines={1}>
+                                        <Text
+                                            style={alternateTextStyle}
+                                            numberOfLines={1}
+                                        >
                                             {props.alternateText}
                                         </Text>
                                     ) : null}
@@ -95,9 +91,7 @@ const TaskSelectorLink = (props) => {
                         </View>
                     </View>
                 ) : (
-                    <Text style={[styles.textWhite, styles.textNormal]}>
-                        {props.translate(props.label)}
-                    </Text>
+                    <Text style={[styles.textWhite, styles.textNormal]}>{props.translate(props.label)}</Text>
                 )}
                 {props.disabled ? null : (
                     <Icon

@@ -65,10 +65,11 @@ class EmojiPickerMenu extends Component {
 
         // If we're on Windows, don't display the flag emojis (the last category),
         // since Windows doesn't support them
-        const flagHeaderIndex = _.findIndex(emojis, emoji => emoji.header && emoji.code === 'flags');
-        this.emojis = getOperatingSystem() === CONST.OS.WINDOWS
-            ? EmojiUtils.mergeEmojisWithFrequentlyUsedEmojis(emojis.slice(0, flagHeaderIndex), this.props.frequentlyUsedEmojis)
-            : EmojiUtils.mergeEmojisWithFrequentlyUsedEmojis(emojis, this.props.frequentlyUsedEmojis);
+        const flagHeaderIndex = _.findIndex(emojis, (emoji) => emoji.header && emoji.code === 'flags');
+        this.emojis =
+            getOperatingSystem() === CONST.OS.WINDOWS
+                ? EmojiUtils.mergeEmojisWithFrequentlyUsedEmojis(emojis.slice(0, flagHeaderIndex), this.props.frequentlyUsedEmojis)
+                : EmojiUtils.mergeEmojisWithFrequentlyUsedEmojis(emojis, this.props.frequentlyUsedEmojis);
 
         // Get the header emojis along with the code, index and icon.
         // index is the actual header index starting at the first emoji and counting each one
@@ -77,7 +78,7 @@ class EmojiPickerMenu extends Component {
         // This is the indices of each header's Row
         // The positions are static, and are calculated as index/numColumns (8 in our case)
         // This is because each row of 8 emojis counts as one index to the flatlist
-        this.headerRowIndices = _.map(this.headerEmojis, headerEmoji => Math.floor(headerEmoji.index / CONST.EMOJI_NUM_PER_ROW));
+        this.headerRowIndices = _.map(this.headerEmojis, (headerEmoji) => Math.floor(headerEmoji.index / CONST.EMOJI_NUM_PER_ROW));
 
         this.filterEmojis = _.debounce(this.filterEmojis.bind(this), 300);
         this.highlightAdjacentEmoji = this.highlightAdjacentEmoji.bind(this);
@@ -139,7 +140,7 @@ class EmojiPickerMenu extends Component {
      * @param {Array} filteredEmojis
      */
     setFirstNonHeaderIndex(filteredEmojis) {
-        this.firstNonHeaderIndex = _.findIndex(filteredEmojis, item => !item.spacer && !item.header);
+        this.firstNonHeaderIndex = _.findIndex(filteredEmojis, (item) => !item.spacer && !item.header);
     }
 
     /**
@@ -298,7 +299,7 @@ class EmojiPickerMenu extends Component {
             }
 
             // Move in the prescribed direction until we reach an element that isn't a header
-            const isHeader = e => e.header || e.spacer;
+            const isHeader = (e) => e.header || e.spacer;
             do {
                 newIndex += steps;
                 if (newIndex < 0) {
@@ -469,7 +470,7 @@ class EmojiPickerMenu extends Component {
 
         return (
             <EmojiPickerMenuItem
-                onPress={emoji => this.addToFrequentAndSelectEmoji(emoji, item)}
+                onPress={(emoji) => this.addToFrequentAndSelectEmoji(emoji, item)}
                 onHoverIn={() => this.setState({highlightedIndex: index, isUsingKeyboardMovement: false})}
                 onHoverOut={() => {
                     if (this.state.arePointerEventsDisabled) {
@@ -479,11 +480,13 @@ class EmojiPickerMenu extends Component {
                 }}
                 emoji={emojiCode}
                 onFocus={() => this.setState({highlightedIndex: index})}
-                onBlur={() => this.setState(prevState => ({
-                    // Only clear the highlighted index if the highlighted index is the same,
-                    // meaning that the focus changed to an element that is not an emoji item.
-                    highlightedIndex: prevState.highlightedIndex === index ? -1 : prevState.highlightedIndex,
-                }))}
+                onBlur={() =>
+                    this.setState((prevState) => ({
+                        // Only clear the highlighted index if the highlighted index is the same,
+                        // meaning that the focus changed to an element that is not an emoji item.
+                        highlightedIndex: prevState.highlightedIndex === index ? -1 : prevState.highlightedIndex,
+                    }))
+                }
                 isFocused={isEmojiFocused}
                 isHighlighted={index === this.state.highlightedIndex}
                 isUsingKeyboardMovement={this.state.isUsingKeyboardMovement}
@@ -503,7 +506,7 @@ class EmojiPickerMenu extends Component {
                         label={this.props.translate('common.search')}
                         onChangeText={this.filterEmojis}
                         defaultValue=""
-                        ref={el => (this.searchInput = el)}
+                        ref={(el) => (this.searchInput = el)}
                         autoFocus={!this.props.isSmallScreenWidth}
                         selectTextOnFocus={this.state.selectTextOnFocus}
                         onSelectionChange={this.onSelectionChange}
@@ -535,18 +538,15 @@ class EmojiPickerMenu extends Component {
                     </Text>
                 ) : (
                     <FlatList
-                        ref={el => (this.emojiList = el)}
+                        ref={(el) => (this.emojiList = el)}
                         data={this.state.filteredEmojis}
                         renderItem={this.renderItem}
                         keyExtractor={this.keyExtractor}
                         numColumns={CONST.EMOJI_NUM_PER_ROW}
-                        style={[
-                            styles.emojiPickerList,
-                            StyleUtils.getEmojiPickerListHeight(isFiltered, Browser.isMobile()),
-                        ]}
+                        style={[styles.emojiPickerList, StyleUtils.getEmojiPickerListHeight(isFiltered, Browser.isMobile())]}
                         extraData={[this.state.filteredEmojis, this.state.highlightedIndex, this.props.preferredSkinTone]}
                         stickyHeaderIndices={this.state.headerIndices}
-                        onScroll={e => (this.currentScrollOffset = e.nativeEvent.contentOffset.y)}
+                        onScroll={(e) => (this.currentScrollOffset = e.nativeEvent.contentOffset.y)}
                         getItemLayout={this.getItemLayout}
                     />
                 )}
