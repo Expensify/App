@@ -10,7 +10,6 @@ import withWindowDimensions, {windowDimensionsPropTypes} from '../withWindowDime
 import compose from '../../libs/compose';
 import variables from '../../styles/variables';
 import ExpensifyWordmark from '../../../assets/images/expensify-wordmark.svg';
-import FullScreenLoadingIndicator from '../FullscreenLoadingIndicator';
 
 const propTypes = {
     url: PropTypes.string.isRequired,
