@@ -96,7 +96,6 @@ const MoneyRequestAction = (props) => {
                 iouReportID={props.requestReportID}
                 chatReportID={props.chatReportID}
                 isBillSplit={hasMultipleParticipants}
-                isIOUAction
                 action={props.action}
                 contextMenuAnchor={props.contextMenuAnchor}
                 checkIfContextMenuActive={props.checkIfContextMenuActive}

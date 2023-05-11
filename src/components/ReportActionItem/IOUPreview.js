@@ -228,7 +228,7 @@ const IOUPreview = (props) => {
                         <Text style={[styles.textLabel, styles.colorMuted]}>{props.translate('iou.pendingConversionMessage')}</Text>
                     )}
 
-                    <Text style={[styles.colorMuted]}>{Str.htmlDecode(lodashGet(props.action, 'originalMessage.comment', requestCurrency))}</Text>
+                    <Text style={[styles.colorMuted]}>{Str.htmlDecode(lodashGet(props.action, 'originalMessage.comment', ''))}</Text>
                 </View>
             </OfflineWithFeedback>
         </View>
