@@ -12,7 +12,6 @@ import Navigation from '../../../libs/Navigation/Navigation';
 import ROUTES from '../../../ROUTES';
 
 const propTypes = {
-
     /** List of participant icons for the thread */
     icons: PropTypes.arrayOf(avatarPropTypes).isRequired,
 
@@ -29,15 +28,12 @@ const propTypes = {
     ...withLocalizePropTypes,
 };
 
-const ReportActionItemThread = props => (
+const ReportActionItemThread = (props) => (
     <View style={[styles.chatItemMessage]}>
         <Pressable
-            // eslint-disable-next-line arrow-body-style
             onPress={() => {
-                // Replace the following with Report.navigateToAndOpenChildReport(props.childReportID);
                 Report.openReport(props.childReportID);
                 Navigation.navigate(ROUTES.getReportRoute(props.childReportID));
-                return '';
             }}
         >
             <View style={[styles.flexRow, styles.alignItemsCenter, styles.mt2]}>
@@ -45,18 +41,15 @@ const ReportActionItemThread = props => (
                     size={CONST.AVATAR_SIZE.SMALLER}
                     icons={props.icons}
                     shouldStackHorizontally
-                    avatarTooltips={_.map(props.icons, icon => icon.name)}
+                    avatarTooltips={_.map(props.icons, (icon) => icon.name)}
                 />
-                <View style={[styles.flexRow, styles.lhPercent, styles.alignItemsEnd]}>
+                <View style={[styles.flexRow, styles.lh140Percent, styles.alignItemsEnd]}>
                     <Text style={[styles.link, styles.ml2, styles.h4]}>
                         {`${props.numberOfReplies} ${props.numberOfReplies === 1 ? props.translate('threads.reply') : props.translate('threads.replies')}`}
                     </Text>
-                    <Text style={[styles.ml2, styles.textMicroSupporting]}>
-                        {`${props.translate('threads.lastReply')} ${props.datetimeToCalendarTime(props.mostRecentReply)}`}
-                    </Text>
+                    <Text style={[styles.ml2, styles.textMicroSupporting]}>{`${props.translate('threads.lastReply')} ${props.datetimeToCalendarTime(props.mostRecentReply)}`}</Text>
                 </View>
             </View>
-
         </Pressable>
     </View>
 );

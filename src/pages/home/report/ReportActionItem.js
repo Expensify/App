@@ -234,12 +234,9 @@ class ReportActionItem extends Component {
 
         const reactions = _.get(this.props, ['action', 'message', 0, 'reactions'], []);
         const hasReactions = reactions.length > 0;
-        const shouldDisplayThreadReplies = lodashGet(this.props.action, 'childReportID', 0) !== 0 && lodashGet(this.props.action, 'childCommenterCount', 0) > 0;
+        const shouldDisplayThreadReplies = (this.props.action.childCommenterCount || 0) > 0;
+        const oldestFourEmails = lodashGet(this.props.action, 'childOldestFourEmails', '').split(',');
 
-        let oldestFourEmails = lodashGet(this.props.action, 'childOldestFourEmails', []);
-        if (!_.isArray(oldestFourEmails)) {
-            oldestFourEmails = oldestFourEmails.split(',');
-        }
         return (
             <>
                 {children}
@@ -253,9 +250,9 @@ class ReportActionItem extends Component {
                 )}
                 {shouldDisplayThreadReplies && (
                     <ReportActionItemThread
-                        childReportID={`${lodashGet(this.props.action, 'childReportID')}`}
-                        numberOfReplies={lodashGet(this.props.action, 'childVisibleActionCount', 0)}
-                        mostRecentReply={`${lodashGet(this.props.action, 'childLastVisibleActionCreated')}`}
+                        childReportID={`${this.props.action.childReportID}`}
+                        numberOfReplies={this.props.action.childVisibleActionCount || 0}
+                        mostRecentReply={`${this.props.action.childLastVisibleActionCreated}`}
                         icons={ReportUtils.getIconsFromParticipants(oldestFourEmails, this.props.personalDetails)}
                     />
                 )}
