@@ -1,7 +1,7 @@
 require_relative '../node_modules/react-native/scripts/react_native_pods'
 require_relative '../node_modules/@react-native-community/cli-platform-ios/native_modules'
 
-# Our min iOS versionis higher than the default ('min_ios_version_supported') to support libraires such as Airship
+# Our min supported iOS version is higher than the default (min_ios_version_supported) to support libraires such as Airship
 platform :ios, 13
 prepare_react_native_project!
 
