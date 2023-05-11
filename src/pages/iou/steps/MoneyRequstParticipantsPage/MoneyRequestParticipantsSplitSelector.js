@@ -48,6 +48,9 @@ const propTypes = {
     /** padding bottom style of safe area */
     safeAreaPaddingBottomStyle: PropTypes.oneOfType([PropTypes.arrayOf(PropTypes.object), PropTypes.object]),
 
+    /** Indicates whether report data is ready */
+    isLoadingReportData: PropTypes.bool,
+
     ...withLocalizePropTypes,
 };
 
@@ -57,6 +60,7 @@ const defaultProps = {
     personalDetails: {},
     reports: {},
     safeAreaPaddingBottomStyle: {},
+    isLoadingReportData: true,
 };
 
 class MoneyRequestParticipantsSplitSelector extends Component {
@@ -82,6 +86,13 @@ class MoneyRequestParticipantsSplitSelector extends Component {
             personalDetails,
             userToInvite,
         };
+    }
+
+    componentDidUpdate(prevProps) {
+        if (_.isEqual(prevProps.reports, this.props.reports) && _.isEqual(prevProps.personalDetails, this.props.personalDetails)) {
+            return;
+        }
+        this.updateOptionsWithSearchTerm(this.state.searchTerm);
     }
 
     /**
@@ -202,6 +213,8 @@ class MoneyRequestParticipantsSplitSelector extends Component {
             this.state.searchTerm,
             maxParticipantsReached,
         );
+        const isOptionsDataReady = !this.props.isLoadingReportData && OptionsListUtils.isPersonalDetailsReady(this.props.personalDetails);
+
         return (
             <View style={[styles.flex1, styles.w100, this.props.participants.length > 0 ? this.props.safeAreaPaddingBottomStyle : {}]}>
                 <Text style={[styles.textLabelSupporting, styles.pt3, styles.ph5]}>{this.props.translate('common.to')}</Text>
@@ -219,6 +232,7 @@ class MoneyRequestParticipantsSplitSelector extends Component {
                     onConfirmSelection={this.finalizeParticipants}
                     textInputLabel={this.props.translate('optionsSelector.nameEmailOrPhoneNumber')}
                     safeAreaPaddingBottomStyle={this.props.safeAreaPaddingBottomStyle}
+                    shouldShowOptions={isOptionsDataReady}
                 />
             </View>
         );
@@ -239,6 +253,9 @@ export default compose(
         },
         betas: {
             key: ONYXKEYS.BETAS,
+        },
+        isLoadingReportData: {
+            key: ONYXKEYS.IS_LOADING_REPORT_DATA,
         },
     }),
 )(MoneyRequestParticipantsSplitSelector);

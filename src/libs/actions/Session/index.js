@@ -17,6 +17,7 @@ import * as API from '../../API';
 import * as NetworkStore from '../../Network/NetworkStore';
 import DateUtils from '../../DateUtils';
 import Navigation from '../../Navigation/Navigation';
+import * as Device from '../Device';
 import subscribeToReportCommentPushNotifications from '../../Notification/PushNotification/subscribeToReportCommentPushNotifications';
 import ROUTES from '../../../ROUTES';
 
@@ -47,6 +48,17 @@ Onyx.connect({
         }
     },
 });
+
+/**
+ * @private
+ * @returns {string}
+ */
+function getDeviceInfoForLogin() {
+    return JSON.stringify({
+        ...Device.getDeviceInfo(),
+        parentLogin: credentials.login,
+    });
+}
 
 /**
  * Clears the Onyx store and redirects user to the sign in page
@@ -347,7 +359,12 @@ function signIn(password, validateCode, twoFactorAuthCode, preferredLocale = CON
         },
     ];
 
-    const params = {twoFactorAuthCode, email: credentials.login, preferredLocale};
+    const params = {
+        twoFactorAuthCode,
+        email: credentials.login,
+        preferredLocale,
+        deviceInfo: getDeviceInfoForLogin(),
+    };
 
     // Conditionally pass a password or validateCode to command since we temporarily allow both flows
     if (validateCode) {
@@ -420,6 +437,7 @@ function signInWithValidateCode(accountID, code, twoFactorAuthCode) {
             accountID,
             validateCode,
             twoFactorAuthCode,
+            deviceInfo: getDeviceInfoForLogin(),
         },
         {optimisticData, successData, failureData},
     );
