@@ -8,47 +8,63 @@ import emojis from '../../../assets/emojis';
 import AddReactionBubble from './AddReactionBubble';
 import withCurrentUserPersonalDetails, {withCurrentUserPersonalDetailsDefaultProps, withCurrentUserPersonalDetailsPropTypes} from '../withCurrentUserPersonalDetails';
 import getPreferredEmojiCode from './getPreferredEmojiCode';
-import * as PersonalDetailsUtils from '../../libs/PersonalDetailsUtils';
-import * as Report from '../../libs/actions/Report';
-import * as ReactionList from '../../pages/home/report/ReactionList/ReactionList';
 import Tooltip from '../Tooltip';
 import ReactionTooltipContent from './ReactionTooltipContent';
+import * as Report from '../../libs/actions/Report';
+import * as PersonalDetailsUtils from '../../libs/PersonalDetailsUtils';
+import * as ReactionList from '../../pages/home/report/ReactionList/ReactionList';
 
 /**
  * Given an emoji object and a list of senders it will return an
  * array of emoji codes, that represents all used variations of the
  * emoji.
- * @param {{ name: string, code: string, types: string[] }} emoji
- * @param {Array} users
+ * @param {{ name: string, code: string, types: string[] }} emojiAsset
+ * @param {Object} users
  * @return {string[]}
  * */
-const getUniqueEmojiCodes = (emoji, users) => {
-    const emojiCodes = [];
-    _.forEach(users, (user) => {
-        const emojiCode = getPreferredEmojiCode(emoji, user.skinTone);
-
-        if (emojiCode && !emojiCodes.includes(emojiCode)) {
-            emojiCodes.push(emojiCode);
-        }
+const getUniqueEmojiCodes = (emojiAsset, users) => {
+    const uniqueEmojiCodes = [];
+    _.each(users, (userSkinTones) => {
+        _.each(userSkinTones.skinTones, (createdAt, skinTone) => {
+            const emojiCode = getPreferredEmojiCode(emojiAsset, skinTone);
+            if (emojiCode && !uniqueEmojiCodes.includes(emojiCode)) {
+                uniqueEmojiCodes.push(emojiCode);
+            }
+        });
     });
-    return emojiCodes;
+    return uniqueEmojiCodes;
 };
 
 const propTypes = {
-    /**
-     * An array of objects containing the reaction data.
-     * The shape of a reaction looks like this:
-     *
-     * "reactionName": {
-     *     emoji: string,
-     *     users: {
-     *         accountID: string,
-     *         skinTone: number,
-     *     }[]
-     * }
-     */
-    // eslint-disable-next-line react/forbid-prop-types
-    reactions: PropTypes.arrayOf(PropTypes.object).isRequired,
+    /** All the emoji reactions for the report action. An object that looks like this:
+        "emojiReactions": {
+            "+1": { // The emoji added to the action
+                "createdAt": "2021-01-01 00:00:00",
+                "users": {
+                    2352342: { // The accountID of the user who added this emoji
+                        "skinTones": {
+                            "1": "2021-01-01 00:00:00",
+                            "2": "2021-01-01 00:00:00",
+                        },
+                    },
+                },
+            },
+        },
+    */
+    emojiReactions: PropTypes.objectOf(
+        PropTypes.shape({
+            /** The time the emoji was added */
+            createdAt: PropTypes.string,
+
+            /** All the users who have added this emoji */
+            users: PropTypes.objectOf(
+                PropTypes.shape({
+                    /** The skin tone which was used and also the timestamp of when it was added */
+                    skinTones: PropTypes.objectOf(PropTypes.string),
+                }),
+            ),
+        }),
+    ),
 
     /**
      * Function to call when the user presses on an emoji.
@@ -62,26 +78,27 @@ const propTypes = {
 
 const defaultProps = {
     ...withCurrentUserPersonalDetailsDefaultProps,
+
+    emojiReactions: {},
 };
 
-const ReportActionItemReactions = (props) => {
+const ReportActionItemEmojiReactions = (props) => {
     const popoverReactionListAnchor = useRef(null);
-    const reactionsWithCount = _.filter(props.reactions, (reaction) => reaction.users.length > 0);
-
     return (
         <View
             ref={popoverReactionListAnchor}
             style={[styles.flexRow, styles.flexWrap, styles.gap1, styles.mt2]}
         >
-            {_.map(reactionsWithCount, (reaction) => {
-                const reactionCount = reaction.users.length;
-                const reactionUsers = _.map(reaction.users, (sender) => sender.accountID.toString());
-                const emoji = _.find(emojis, (e) => e.name === reaction.emoji);
-                const emojiCodes = getUniqueEmojiCodes(emoji, reaction.users);
+            {_.map(props.emojiReactions, (reaction, reactionEmoji) => {
+                // @TODO: need to sort everything so that emojis and users are in the order they were added
+                const reactionCount = _.size(reaction.users);
+                const emojiAsset = _.find(emojis, (emoji) => emoji.name === reactionEmoji);
+                const emojiCodes = getUniqueEmojiCodes(emojiAsset, reaction.users);
+                const reactionUsers = _.keys(reaction.users);
                 const hasUserReacted = Report.hasAccountIDReacted(props.currentUserPersonalDetails.accountID, reactionUsers);
 
                 const onPress = () => {
-                    props.toggleReaction(emoji);
+                    props.toggleReaction(emojiAsset);
                 };
                 const onReactionListOpen = (event) => {
                     const users = PersonalDetailsUtils.getPersonalDetailsByIDs(reactionUsers, props.currentUserPersonalDetails.accountID);
@@ -92,17 +109,15 @@ const ReportActionItemReactions = (props) => {
                     <Tooltip
                         renderTooltipContent={() => (
                             <ReactionTooltipContent
-                                emojiName={reaction.emoji}
+                                emojiName={reactionEmoji}
                                 emojiCodes={emojiCodes}
                                 accountIDs={reactionUsers}
                                 currentUserPersonalDetails={props.currentUserPersonalDetails}
                             />
                         )}
-                        renderTooltipContentKey={[...reactionUsers, ...emojiCodes]}
-                        key={reaction.emoji}
+                        key={reactionEmoji}
                     >
                         <EmojiReactionBubble
-                            ref={props.forwardedRef}
                             count={reactionCount}
                             emojiCodes={emojiCodes}
                             onPress={onPress}
@@ -113,12 +128,12 @@ const ReportActionItemReactions = (props) => {
                     </Tooltip>
                 );
             })}
-            {reactionsWithCount.length > 0 && <AddReactionBubble onSelectEmoji={props.toggleReaction} />}
+            {_.size(props.reactions) > 0 && <AddReactionBubble onSelectEmoji={props.toggleReaction} />}
         </View>
     );
 };
 
-ReportActionItemReactions.displayName = 'ReportActionItemReactions';
-ReportActionItemReactions.propTypes = propTypes;
-ReportActionItemReactions.defaultProps = defaultProps;
-export default withCurrentUserPersonalDetails(ReportActionItemReactions);
+ReportActionItemEmojiReactions.displayName = 'ReportActionItemEmojiReactions';
+ReportActionItemEmojiReactions.propTypes = propTypes;
+ReportActionItemEmojiReactions.defaultProps = defaultProps;
+export default withCurrentUserPersonalDetails(ReportActionItemEmojiReactions);

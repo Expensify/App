@@ -38,6 +38,7 @@ import {ShowContextMenuContext} from '../../../components/ShowContextMenuContext
 import focusTextInputAfterAnimation from '../../../libs/focusTextInputAfterAnimation';
 import ChronosOOOListActions from '../../../components/ReportActionItem/ChronosOOOListActions';
 import ReportActionItemReactions from '../../../components/Reactions/ReportActionItemReactions';
+import ReportActionItemEmojiReactions from '../../../components/Reactions/ReportActionItemEmojiReactions';
 import * as Report from '../../../libs/actions/Report';
 import withLocalize from '../../../components/withLocalize';
 import Icon from '../../../components/Icon';
@@ -83,7 +84,7 @@ const propTypes = {
     /** All of the personalDetails */
     personalDetails: PropTypes.objectOf(personalDetailsPropType),
 
-    reactions: PropTypes.objectOf(
+    emojiReactions: PropTypes.objectOf(
         PropTypes.shape({
             emoji: PropTypes.string,
             users: PropTypes.objectOf(
@@ -103,7 +104,7 @@ const defaultProps = {
     hasOutstandingIOU: false,
     preferredSkinTone: CONST.EMOJI_DEFAULT_SKIN_TONE,
     personalDetails: {},
-    reactions: {},
+    emojiReactions: {},
     shouldShowSubscriptAvatar: false,
 };
 
@@ -128,7 +129,7 @@ class ReportActionItem extends Component {
             this.props.hasOutstandingIOU !== nextProps.hasOutstandingIOU ||
             this.props.shouldDisplayNewMarker !== nextProps.shouldDisplayNewMarker ||
             !_.isEqual(this.props.action, nextProps.action) ||
-            !_.isEqual(this.props.reactions, nextProps.reactions) ||
+            !_.isEqual(this.props.emojiReactions, nextProps.emojiReactions) ||
             this.state.isContextMenuActive !== nextState.isContextMenuActive ||
             lodashGet(this.props.report, 'statusNum') !== lodashGet(nextProps.report, 'statusNum') ||
             lodashGet(this.props.report, 'stateNum') !== lodashGet(nextProps.report, 'stateNum') ||
@@ -254,12 +255,29 @@ class ReportActionItem extends Component {
             );
         }
 
+        // This will get cleaned up as part of https://github.com/Expensify/App/issues/16506 once the old emoji
+        // format is no longer being used
+
+        // Support NEW FORMAT "emojiReactions" in their own collection
+        const emojiReactions = _.get(this.props, ['emojiReactions'], {});
+        const hasEmojiReactions = _.size(emojiReactions) > 0;
+
+        // Support OLD FORMAT "reactions" on the report action's message
         const reactions = _.get(this.props, ['action', 'message', 0, 'reactions'], []);
         const hasReactions = reactions.length > 0;
+
         return (
             <>
                 {children}
-                {hasReactions && (
+                {hasEmojiReactions && (
+                    <View style={this.props.draftMessage ? styles.chatItemReactionsDraftRight : {}}>
+                        <ReportActionItemEmojiReactions
+                            emojiReactions={emojiReactions}
+                            toggleReaction={this.toggleReaction}
+                        />
+                    </View>
+                )}
+                {!hasEmojiReactions && hasReactions && (
                     <View style={this.props.draftMessage ? styles.chatItemReactionsDraftRight : {}}>
                         <ReportActionItemReactions
                             reactions={reactions}
@@ -415,7 +433,7 @@ export default compose(
         preferredSkinTone: {
             key: ONYXKEYS.PREFERRED_EMOJI_SKIN_TONE,
         },
-        reactions: {
+        emojiReactions: {
             key: ({report, action}) => `${ONYXKEYS.COLLECTION.REPORT_ACTIONS_REACTIONS}${report.reportID}${action.reportActionID}`,
         },
     }),
