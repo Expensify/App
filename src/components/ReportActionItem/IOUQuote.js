@@ -43,7 +43,7 @@ const defaultProps = {
     checkIfContextMenuActive: () => {},
 };
 
-const IOUQuote = props => (
+const IOUQuote = (props) => (
     <View style={[styles.chatItemMessage]}>
         {_.map(props.action.message, (fragment, index) => (
             <Pressable
@@ -51,13 +51,7 @@ const IOUQuote = props => (
                 onPress={props.onViewDetailsPressed}
                 onPressIn={() => DeviceCapabilities.canUseTouchScreen() && ControlSelection.block()}
                 onPressOut={() => ControlSelection.unblock()}
-                onLongPress={event => showContextMenuForReport(
-                    event,
-                    props.contextMenuAnchor,
-                    props.chatReportID,
-                    props.action,
-                    props.checkIfContextMenuActive,
-                )}
+                onLongPress={(event) => showContextMenuForReport(event, props.contextMenuAnchor, props.chatReportID, props.action, props.checkIfContextMenuActive)}
                 style={[styles.flexRow, styles.justifyContentBetween]}
                 focusable
             >
@@ -71,7 +65,10 @@ const IOUQuote = props => (
                         {fragment.text.substring(fragment.text.indexOf(' '))}
                     </Text>
                 </Text>
-                <Icon src={Expensicons.ArrowRight} fill={StyleUtils.getIconFillColor(getButtonState(props.isHovered))} />
+                <Icon
+                    src={Expensicons.ArrowRight}
+                    fill={StyleUtils.getIconFillColor(getButtonState(props.isHovered))}
+                />
             </Pressable>
         ))}
     </View>

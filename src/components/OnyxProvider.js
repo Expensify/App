@@ -18,17 +18,8 @@ const propTypes = {
     children: PropTypes.node.isRequired,
 };
 
-const OnyxProvider = props => (
-    <ComposeProviders
-        components={[
-            NetworkProvider,
-            PersonalDetailsProvider,
-            ReportActionsDraftsProvider,
-            CurrentDateProvider,
-            BlockedFromConciergeProvider,
-            BetasProvider,
-        ]}
-    >
+const OnyxProvider = (props) => (
+    <ComposeProviders components={[NetworkProvider, PersonalDetailsProvider, ReportActionsDraftsProvider, CurrentDateProvider, BlockedFromConciergeProvider, BetasProvider]}>
         {props.children}
     </ComposeProviders>
 );
@@ -38,12 +29,4 @@ OnyxProvider.propTypes = propTypes;
 
 export default OnyxProvider;
 
-export {
-    withNetwork,
-    withPersonalDetails,
-    withReportActionsDrafts,
-    withCurrentDate,
-    withBlockedFromConcierge,
-    withBetas,
-    NetworkContext,
-};
+export {withNetwork, withPersonalDetails, withReportActionsDrafts, withCurrentDate, withBlockedFromConcierge, withBetas, NetworkContext};

@@ -20,7 +20,7 @@ const propTypes = {
     ...withLocalizePropTypes,
 };
 
-const WorkspaceCardPage = props => (
+const WorkspaceCardPage = (props) => (
     <WorkspacePageWithSections
         shouldUseScrollView
         headerText={props.translate('workspace.common.card')}
@@ -29,17 +29,11 @@ const WorkspaceCardPage = props => (
     >
         {(hasVBA, policyID, isUsingECard) => (
             <>
-                {!hasVBA && (
-                    <WorkspaceCardNoVBAView policyID={policyID} />
-                )}
+                {!hasVBA && <WorkspaceCardNoVBAView policyID={policyID} />}
 
-                {hasVBA && !isUsingECard && (
-                    <WorkspaceCardVBANoECardView />
-                )}
+                {hasVBA && !isUsingECard && <WorkspaceCardVBANoECardView />}
 
-                {hasVBA && isUsingECard && (
-                    <WorkspaceCardVBAWithECardView />
-                )}
+                {hasVBA && isUsingECard && <WorkspaceCardVBAWithECardView />}
             </>
         )}
     </WorkspacePageWithSections>
