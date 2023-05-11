@@ -16,11 +16,9 @@ const defaultProps = {
     wrapperStyles: [styles.chatItem],
 };
 
-const ReportActionItemGrouped = props => (
+const ReportActionItemGrouped = (props) => (
     <View style={props.wrapperStyles}>
-        <View style={[styles.chatItemRightGrouped]}>
-            {props.children}
-        </View>
+        <View style={[styles.chatItemRightGrouped]}>{props.children}</View>
     </View>
 );
 

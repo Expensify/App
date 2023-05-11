@@ -11,9 +11,7 @@ const UnreadActionIndicator = props => (
         style={[styles.unreadIndicatorContainer, styles.userSelectNone]}
     >
         <View style={styles.unreadIndicatorLine} />
-        <Text style={styles.unreadIndicatorText}>
-            {props.translate('common.new')}
-        </Text>
+        <Text style={styles.unreadIndicatorText}>{props.translate('common.new')}</Text>
     </View>
 );
 

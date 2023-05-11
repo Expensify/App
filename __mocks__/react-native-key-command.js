@@ -4,10 +4,4 @@ const constants = {};
 const eventEmitter = () => {};
 const addListener = () => {};
 
-export {
-    registerKeyCommands,
-    unregisterKeyCommands,
-    constants,
-    eventEmitter,
-    addListener,
-};
+export {registerKeyCommands, unregisterKeyCommands, constants, eventEmitter, addListener};
