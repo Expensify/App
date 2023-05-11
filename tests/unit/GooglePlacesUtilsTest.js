@@ -186,7 +186,7 @@ describe('GooglePlacesUtilsTest', () => {
             // When timing this method it was roughly 1.211708999999928ms locally
             // but 3.2214480000000094ms on github actions so using 5ms arbitrarily here for now
             // and we can change if needed later.
-            expect(executionTime).toBeLessThan(5.00);
+            expect(executionTime).toBeLessThan(5.0);
         });
     });
 });

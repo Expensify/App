@@ -174,15 +174,11 @@ const Footer = (props) => {
                                 key={column.translationPath}
                                 style={footerColumn}
                             >
-                                <Text style={[styles.textHeadline, styles.footerTitle]}>
-                                    {props.translate(column.translationPath)}
-                                </Text>
+                                <Text style={[styles.textHeadline, styles.footerTitle]}>{props.translate(column.translationPath)}</Text>
                                 <View style={[styles.footerRow]}>
-                                    {_.map(column.rows, row => (
-                                        <Hoverable
-                                            key={row.translationPath}
-                                        >
-                                            {hovered => (
+                                    {_.map(column.rows, (row) => (
+                                        <Hoverable key={row.translationPath}>
+                                            {(hovered) => (
                                                 <TextLink
                                                     style={[styles.footerRow, hovered ? styles.textBlue : {}]}
                                                     href={row.link}
@@ -193,12 +189,12 @@ const Footer = (props) => {
                                             )}
                                         </Hoverable>
                                     ))}
-                                    {(i === 2) && (
+                                    {i === 2 && (
                                         <View style={styles.mt5}>
                                             <Socials />
                                         </View>
                                     )}
-                                    {(i === 3) && (
+                                    {i === 3 && (
                                         <View style={styles.mv4}>
                                             <Licenses />
                                         </View>
@@ -208,12 +204,14 @@ const Footer = (props) => {
                         ))}
                     </View>
                     <View style={[!isVertical && styles.footerBottomLogo]}>
-                        {!isVertical
-                            ? (
-                                <Expensicons.ExpensifyFooterLogo />
-                            ) : (
-                                <Expensicons.ExpensifyFooterLogoVertical height={variables.verticalLogoHeight} width={variables.verticalLogoWidth} />
-                            )}
+                        {!isVertical ? (
+                            <Expensicons.ExpensifyFooterLogo />
+                        ) : (
+                            <Expensicons.ExpensifyFooterLogoVertical
+                                height={variables.verticalLogoHeight}
+                                width={variables.verticalLogoWidth}
+                            />
+                        )}
                     </View>
                 </View>
             </View>
@@ -225,7 +223,4 @@ Footer.propTypes = propTypes;
 Footer.displayName = 'Footer';
 Footer.defaultProps = defaultProps;
 
-export default compose(
-    withLocalize,
-    withWindowDimensions,
-)(Footer);
+export default compose(withLocalize, withWindowDimensions)(Footer);
