@@ -1557,11 +1557,6 @@ function leaveRoom(reportID) {
                         statusNum: CONST.REPORT.STATUS.CLOSED,
                     },
                 },
-                {
-                    onyxMethod: Onyx.METHOD.SET,
-                    key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`,
-                    value: null,
-                },
             ],
             failureData: [
                 {
