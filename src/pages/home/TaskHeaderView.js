@@ -61,10 +61,7 @@ function TaskHeaderView(props) {
                         icons={assignee.icons}
                         text={assignee.displayName}
                         alternateText={assignee.subtitle}
-                        onPress={() => {
-                            TaskUtils.beginEditingTask();
-                            Navigation.navigate(ROUTES.getTaskReportAssigneeRoute(props.report.reportID));
-                        }}
+                        onPress={() => Navigation.navigate(ROUTES.getTaskReportAssigneeRoute(props.report.reportID))}
                         label="taskReport.to"
                         isNewTask={false}
                     />
@@ -75,18 +72,12 @@ function TaskHeaderView(props) {
                 shouldShowHeaderTitle
                 title={props.report.reportName}
                 description="Task"
-                onPress={() => {
-                    TaskUtils.beginEditingTask();
-                    Navigation.navigate(ROUTES.getTaskReportTitleRoute(props.report.reportID));
-                }}
+                onPress={() => Navigation.navigate(ROUTES.getTaskReportTitleRoute(props.report.reportID))}
             />
             <MenuItemWithTopDescription
                 title={lodashGet(props.report, 'description', '')}
                 description="Description"
-                onPress={() => {
-                    TaskUtils.beginEditingTask(props.report);
-                    Navigation.navigate(ROUTES.getTaskReportDescriptionRoute(props.report.reportID));
-                }}
+                onPress={() => Navigation.navigate(ROUTES.getTaskReportDescriptionRoute(props.report.reportID))}
             />
         </>
     );

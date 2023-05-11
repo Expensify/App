@@ -34,8 +34,8 @@ const propTypes = {
     route: PropTypes.shape({
         /** Params from the URL path */
         params: PropTypes.shape({
-            /** taskReportID passed via route: /r/:taskReportID/title */
-            taskReportID: PropTypes.string,
+            /** reportID passed via route: /r/:reportID/title */
+            reportID: PropTypes.string,
         }),
     }),
 
@@ -154,18 +154,19 @@ const TaskAssigneeSelectorModal = (props) => {
             return;
         }
 
-        // Check to see if we're editing a task and if so, update the assignee
-        if (props.task.report === props.route.params.taskReportID) {
-            // Pass through the selected assignee
-            TaskUtils.editTaskAndNavigate(props.task.report, props.session.email, '', '', option.alternateText);
-        }
-
-        // Otherwise, we're creating a new task
-        if (option.alternateText) {
+        // Check to see if we're creating a new task
+        // If there's no route params, we're creating a new task
+        if (!props.route.params && option.alternateText) {
             // Clear out the state value, set the assignee and navigate back to the NewTaskPage
             setSearchValue('');
             TaskUtils.setAssigneeValue(option.alternateText, props.task.shareDestination);
-            Navigation.goBack();
+            return Navigation.goBack();
+        }
+
+        // Check to see if we're editing a task and if so, update the assignee
+        if (props.route.params.reportID && props.task.report.reportID === props.route.params.reportID) {
+            // Pass through the selected assignee
+            TaskUtils.editTaskAndNavigate(props.task.report, props.session.email, '', '', option.alternateText);
         }
     };
 
