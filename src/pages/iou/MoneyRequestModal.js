@@ -43,9 +43,6 @@ const propTypes = {
 
     // Holds data related to request view state, rather than the underlying request data.
     iou: PropTypes.shape({
-        /** Whether or not transaction creation has started */
-        creatingIOUTransaction: PropTypes.bool,
-
         /** Whether or not transaction creation has resulted to error */
         error: PropTypes.bool,
 
@@ -85,7 +82,6 @@ const defaultProps = {
     },
     personalDetails: {},
     iou: {
-        creatingIOUTransaction: false,
         error: false,
         selectedCurrencyCode: null,
     },
@@ -101,11 +97,10 @@ const Steps = {
 const MoneyRequestModal = (props) => {
     // Skip MoneyRequestParticipants step if participants are passed in
     const reportParticipants = lodashGet(props, 'report.participants', []);
-    const steps = useMemo(() => (reportParticipants.length
-        ? [Steps.MoneyRequestAmount, Steps.MoneyRequestConfirm]
-        : [Steps.MoneyRequestAmount, Steps.MoneyRequestParticipants, Steps.MoneyRequestConfirm]),
-    [reportParticipants.length]);
-    const prevCreatingIOUTransactionStatusRef = useRef(lodashGet(props.iou, 'creatingIOUTransaction'));
+    const steps = useMemo(
+        () => (reportParticipants.length ? [Steps.MoneyRequestAmount, Steps.MoneyRequestConfirm] : [Steps.MoneyRequestAmount, Steps.MoneyRequestParticipants, Steps.MoneyRequestConfirm]),
+        [reportParticipants.length],
+    );
 
     const [previousStepIndex, setPreviousStepIndex] = useState(-1);
     const [currentStepIndex, setCurrentStepIndex] = useState(0);
@@ -123,27 +118,8 @@ const MoneyRequestModal = (props) => {
         // eslint-disable-next-line react-hooks/exhaustive-deps -- props.currentUserPersonalDetails will always exist from Onyx and we don't want this effect to run again
     }, []);
 
-    useEffect(() => {
-        // We only want to check if we just finished creating an IOU transaction
-        // We check it within this effect because we're sending the request optimistically but if an error occurs from the API, we will update the iou state with the error later
-        if (!prevCreatingIOUTransactionStatusRef.current || lodashGet(props.iou, 'creatingIOUTransaction')) {
-            return;
-        }
-
-        if (lodashGet(props.iou, 'error') === true) {
-            setCurrentStepIndex(0);
-        } else {
-            Navigation.dismissModal();
-        }
-    }, [props.iou]);
-
     // User came back online, so let's refetch the currency details based on location
     useOnNetworkReconnect(PersonalDetails.openMoneyRequestModalPage);
-
-    useEffect(() => {
-        // Used to store previous prop values to compare on next render
-        prevCreatingIOUTransactionStatusRef.current = lodashGet(props.iou, 'creatingIOUTransaction');
-    });
 
     /**
      * Decides our animation type based on whether we're increasing or decreasing
