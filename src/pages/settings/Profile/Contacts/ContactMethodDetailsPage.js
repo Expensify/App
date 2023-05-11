@@ -259,15 +259,11 @@ class ContactMethodDetailsPage extends Component {
                     )}
                     {!loginData.validatedDate && !isFailedAddContactMethod && (
                         <View style={[styles.ph5, styles.mt3, styles.mb7]}>
-                            <View style={[styles.flexRow, styles.alignItemsCenter, styles.mb1]}>
-                                <Icon
-                                    src={Expensicons.DotIndicator}
-                                    fill={colors.green}
-                                />
-                                <View style={[styles.flex1, styles.ml4]}>
-                                    <Text>{this.props.translate('contacts.enterMagicCode', {contactMethod: formattedContactMethod})}</Text>
-                                </View>
-                            </View>
+                            <DotIndicatorMessage
+                                type="success"
+                                style={[styles.mb3,]}
+                                messages={{0: this.props.translate('contacts.enterMagicCode', {contactMethod: formattedContactMethod})}}
+                            />
                             <TextInput
                                 label={this.props.translate('common.magicCode')}
                                 name="validateCode"
