@@ -210,6 +210,7 @@ const CONST = {
         POLICY_EXPENSE_CHAT: 'policyExpenseChat',
         PASSWORDLESS: 'passwordless',
         TASKS: 'tasks',
+        THREADS: 'threads',
     },
     BUTTON_STATES: {
         DEFAULT: 'default',
