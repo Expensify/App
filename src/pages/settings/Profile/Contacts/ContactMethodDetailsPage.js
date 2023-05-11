@@ -56,6 +56,14 @@ const propTypes = {
         email: PropTypes.string.isRequired,
     }),
 
+    /** User's security group IDs by domain */
+    myDomainSecurityGroups: PropTypes.objectOf(PropTypes.string),
+
+    /** All of the user's security groups and their settings */
+    securityGroups: PropTypes.shape({
+        hasRestrictedPrimaryLogin: PropTypes.bool,
+    }),
+
     /** Route params */
     route: PropTypes.shape({
         params: PropTypes.shape({
@@ -72,6 +80,8 @@ const defaultProps = {
     session: {
         email: null,
     },
+    myDomainSecurityGroups: {},
+    securityGroups: {},
     route: {
         params: {
             contactMethod: '',
@@ -89,6 +99,7 @@ class ContactMethodDetailsPage extends Component {
         this.resendValidateCode = this.resendValidateCode.bind(this);
         this.getContactMethod = this.getContactMethod.bind(this);
         this.validateAndSubmitCode = this.validateAndSubmitCode.bind(this);
+        this.setAsDefault = this.setAsDefault.bind(this);
 
         this.state = {
             formError: '',
@@ -110,11 +121,51 @@ class ContactMethodDetailsPage extends Component {
 
     /**
      * Gets the current contact method from the route params
-     *
      * @returns {string}
      */
     getContactMethod() {
         return decodeURIComponent(lodashGet(this.props.route, 'params.contactMethod'));
+    }
+
+    /**
+     * Attempt to set this contact method as user's "Default contact method"
+     */
+    setAsDefault() {
+        User.setContactMethodAsDefault(this.getContactMethod());
+    }
+
+    /**
+     * Checks if the user is allowed to change their default contact method. This should only be allowed if:
+     * 1. The viewed contact method is not already their default contact method
+     * 2. The viewed contact method is validated
+     * 3. If the user is on a private domain, their security group must allow primary login switching
+     *
+     * @returns {Boolean}
+     */
+    canChangeDefaultContactMethod() {
+        const contactMethod = this.getContactMethod();
+        const loginData = lodashGet(this.props.loginList, contactMethod, {});
+        const isDefaultContactMethod = this.props.session.email === loginData.partnerUserID;
+
+        // Cannot set this contact method as default if:
+        // 1. This contact method is already their default
+        // 2. This contact method is not validated
+        if (isDefaultContactMethod || !loginData.validatedDate) {
+            return false;
+        }
+
+        const domainName = Str.extractEmailDomain(this.props.session.email);
+        const primaryDomainSecurityGroupID = lodashGet(this.props.myDomainSecurityGroups, domainName);
+
+        // If there's no security group associated with the user for the primary domain,
+        // default to allowing the user to change their default contact method.
+        if (!primaryDomainSecurityGroupID) {
+            return true;
+        }
+
+        // Allow user to change their default contact method if they don't have a security group OR if their security group
+        // does NOT restrict primary login switching.
+        return !lodashGet(this.props.securityGroups, [`${ONYXKEYS.COLLECTION.SECURITY_GROUP}${primaryDomainSecurityGroupID}`, 'hasRestrictedPrimaryLogin'], false);
     }
 
     /**
@@ -168,7 +219,7 @@ class ContactMethodDetailsPage extends Component {
     render() {
         const contactMethod = this.getContactMethod();
 
-        // replacing spaces with "hard spaces" to prevent breaking the number
+        // Replacing spaces with "hard spaces" to prevent breaking the number
         const formattedContactMethod = Str.isSMSLogin(contactMethod) ? this.props.formatPhoneNumber(contactMethod).replace(/ /g, '\u00A0') : contactMethod;
 
         const loginData = this.props.loginList[contactMethod];
@@ -263,8 +314,28 @@ class ContactMethodDetailsPage extends Component {
                             </OfflineWithFeedback>
                         </View>
                     )}
+                    {this.canChangeDefaultContactMethod() ? (
+                        <OfflineWithFeedback
+                            errors={ErrorUtils.getLatestErrorField(loginData, 'defaultLogin')}
+                            errorRowStyles={[styles.ml8, styles.mr5]}
+                            onClose={() => User.clearContactMethodErrors(contactMethod, 'defaultLogin')}
+                        >
+                            <MenuItem
+                                title={this.props.translate('contacts.setAsDefault')}
+                                icon={Expensicons.Profile}
+                                onPress={this.setAsDefault}
+                            />
+                        </OfflineWithFeedback>
+                    ) : null}
                     {isDefaultContactMethod ? (
-                        <Text style={[styles.ph5, styles.mv3]}>{this.props.translate('contacts.yourDefaultContactMethod')}</Text>
+                        <OfflineWithFeedback
+                            pendingAction={lodashGet(loginData, 'pendingFields.defaultLogin', null)}
+                            errors={ErrorUtils.getLatestErrorField(loginData, 'defaultLogin')}
+                            errorRowStyles={[styles.ml8, styles.mr5]}
+                            onClose={() => User.clearContactMethodErrors(contactMethod, 'defaultLogin')}
+                        >
+                            <Text style={[styles.ph5, styles.mv3]}>{this.props.translate('contacts.yourDefaultContactMethod')}</Text>
+                        </OfflineWithFeedback>
                     ) : (
                         <OfflineWithFeedback
                             pendingAction={lodashGet(loginData, 'pendingFields.deletedLogin', null)}
@@ -276,7 +347,7 @@ class ContactMethodDetailsPage extends Component {
                                 title={this.props.translate('common.remove')}
                                 icon={Expensicons.Trashcan}
                                 iconFill={themeColors.danger}
-                                onPress={this.deleteContactMethod}
+                                onPress={() => this.toggleDeleteModal(true)}
                             />
                         </OfflineWithFeedback>
                     )}
@@ -297,6 +368,12 @@ export default compose(
         },
         session: {
             key: ONYXKEYS.SESSION,
+        },
+        myDomainSecurityGroups: {
+            key: ONYXKEYS.MY_DOMAIN_SECURITY_GROUPS,
+        },
+        securityGroups: {
+            key: `${ONYXKEYS.COLLECTION.SECURITY_GROUP}`,
         },
     }),
 )(ContactMethodDetailsPage);

@@ -1,11 +1,13 @@
 import Onyx from 'react-native-onyx';
 import lodashGet from 'lodash/get';
+import Str from 'expensify-common/lib/str';
 import ONYXKEYS from '../../ONYXKEYS';
 import * as API from '../API';
 import * as ReportUtils from '../ReportUtils';
 import * as Report from './Report';
 import Navigation from '../Navigation/Navigation';
 import ROUTES from '../../ROUTES';
+import DateUtils from '../DateUtils';
 
 /**
  * Clears out the task info from the store
@@ -33,17 +35,26 @@ function createTaskAndNavigate(currentUserEmail, parentReportID, title, descript
     // Grab the assigneeChatReportID if there is an assignee and if it's not the same as the parentReportID
     // then we create an optimistic add comment report action on the assignee's chat to notify them of the task
     const assigneeChatReportID = lodashGet(ReportUtils.getChatByParticipants([assignee]), 'reportID');
+    const taskReportID = optimisticTaskReport.reportID;
     let optimisticAssigneeAddComment;
     if (assigneeChatReportID && assigneeChatReportID !== parentReportID) {
-        optimisticAssigneeAddComment = ReportUtils.buildOptimisticAddCommentReportAction(`${currentUserEmail} has[created a task for you](tbd/r/${optimisticTaskReport.reportID}): ${title}`);
-        optimisticAssigneeAddComment.reportAction.message[0].taskReportID = optimisticTaskReport.reportID;
+        optimisticAssigneeAddComment = ReportUtils.buildOptimisticTaskCommentReportAction(taskReportID, title, assignee, `Assigned a task to you: ${title}`);
     }
 
     // Create the CreatedReportAction on the task
     const optimisticTaskCreatedAction = ReportUtils.buildOptimisticCreatedReportAction(optimisticTaskReport.reportID);
+    const optimisticAddCommentReport = ReportUtils.buildOptimisticTaskCommentReportAction(taskReportID, title, assignee, `Created a task: ${title}`);
 
-    const optimisticAddCommentReport = ReportUtils.buildOptimisticAddCommentReportAction(`[Created a task](tbd/r/${optimisticTaskReport.reportID}): ${title}`);
-    optimisticAddCommentReport.reportAction.message[0].taskReportID = optimisticTaskReport.reportID;
+    const currentTime = DateUtils.getDBTime();
+
+    const lastCommentText = ReportUtils.formatReportLastMessageText(optimisticAddCommentReport.reportAction.message[0].text);
+
+    const optimisticReport = {
+        lastVisibleActionCreated: currentTime,
+        lastMessageText: Str.htmlDecode(lastCommentText),
+        lastActorEmail: currentUserEmail,
+        lastReadTime: currentTime,
+    };
 
     const optimisticData = [
         {
@@ -61,21 +72,18 @@ function createTaskAndNavigate(currentUserEmail, parentReportID, title, descript
             key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${parentReportID}`,
             value: {[optimisticAddCommentReport.reportAction.reportActionID]: optimisticAddCommentReport.reportAction},
         },
-    ];
-
-    if (optimisticAssigneeAddComment) {
-        optimisticData.push({
+        {
             onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${assigneeChatReportID}`,
-            value: {[optimisticAssigneeAddComment.reportAction.reportActionID]: optimisticAssigneeAddComment.reportAction},
-        });
-    }
+            key: `${ONYXKEYS.COLLECTION.REPORT}${parentReportID}`,
+            value: optimisticReport,
+        },
+    ];
 
     const successData = [];
 
     const failureData = [
         {
-            onyxMethod: Onyx.METHOD.MERGE,
+            onyxMethod: Onyx.METHOD.SET,
             key: `${ONYXKEYS.COLLECTION.REPORT}${optimisticTaskReport.reportID}`,
             value: null,
         },
@@ -92,6 +100,28 @@ function createTaskAndNavigate(currentUserEmail, parentReportID, title, descript
     ];
 
     if (optimisticAssigneeAddComment) {
+        const lastAssigneeCommentText = ReportUtils.formatReportLastMessageText(optimisticAssigneeAddComment.reportAction.message[0].text);
+
+        const optimisticAssigneeReport = {
+            lastVisibleActionCreated: currentTime,
+            lastMessageText: Str.htmlDecode(lastAssigneeCommentText),
+            lastActorEmail: currentUserEmail,
+            lastReadTime: currentTime,
+        };
+
+        optimisticData.push(
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${assigneeChatReportID}`,
+                value: {[optimisticAssigneeAddComment.reportAction.reportActionID]: optimisticAssigneeAddComment.reportAction},
+            },
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.REPORT}${assigneeChatReportID}`,
+                value: optimisticAssigneeReport,
+            },
+        );
+
         failureData.push({
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${assigneeChatReportID}`,

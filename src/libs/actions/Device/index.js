@@ -2,6 +2,7 @@ import Onyx from 'react-native-onyx';
 import ONYXKEYS from '../../../ONYXKEYS';
 import Log from '../../Log';
 import generateDeviceID from './generateDeviceID';
+import getDeviceInfo from './getDeviceInfo';
 
 let deviceID;
 
@@ -44,4 +45,4 @@ function setDeviceID() {
         .catch((err) => Log.info('Found existing deviceID', false, err.message));
 }
 
-export {getDeviceID, setDeviceID};
+export {getDeviceInfo, getDeviceID, setDeviceID};
