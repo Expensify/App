@@ -96,6 +96,10 @@ const ReportActionItemFragment = (props) => {
             }
             const {html, text} = props.fragment;
 
+            if (props.fragment.isDeletedParentAction) {
+                return <RenderHTML html={`<comment>${props.translate('parentReportAction.deletedMessage')}</comment>`} />;
+            }
+
             // If the only difference between fragment.text and fragment.html is <br /> tags
             // we render it as text, not as html.
             // This is done to render emojis with line breaks between them as text.

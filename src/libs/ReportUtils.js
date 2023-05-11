@@ -759,7 +759,7 @@ function getIcons(report, personalDetails, defaultIcon = null) {
             return [result];
         }
 
-        const actorEmail = parentReportAction.actorEmail;
+        const actorEmail = lodashGet(parentReportAction, 'actorEmail', '');
         result.source = getAvatar(lodashGet(personalDetails, [actorEmail, 'avatar']), actorEmail);
         result.name = actorEmail;
         return [result];
