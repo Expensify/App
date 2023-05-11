@@ -120,6 +120,7 @@ export default {
         enterManually: 'Enter it manually',
         message: 'Message ',
         leaveRoom: 'Leave room',
+        leaveThread: 'Leave thread',
         you: 'You',
         youAfterPreposition: 'you',
         your: 'your',

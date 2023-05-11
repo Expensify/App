@@ -15,7 +15,7 @@ import styles from '../styles/styles';
 import DisplayNames from '../components/DisplayNames';
 import * as OptionsListUtils from '../libs/OptionsListUtils';
 import * as ReportUtils from '../libs/ReportUtils';
-import * as Policy from '../libs/actions/Policy';
+import * as Report from '../libs/actions/Report';
 import participantPropTypes from '../components/participantPropTypes';
 import * as Expensicons from '../components/Icon/Expensicons';
 import ROUTES from '../ROUTES';
@@ -87,12 +87,24 @@ class ReportDetailsPage extends Component {
         }
 
         const policy = this.props.policies[`${ONYXKEYS.COLLECTION.POLICY}${this.props.report.policyID}`];
-        if (ReportUtils.isUserCreatedPolicyRoom(this.props.report) || ReportUtils.canLeaveRoom(this.props.report, !_.isEmpty(policy))) {
+        if (
+            (ReportUtils.isUserCreatedPolicyRoom(this.props.report) || ReportUtils.canLeaveRoom(this.props.report, !_.isEmpty(policy))) &&
+            _.isEmpty(this.props.report.parentReportActionID)
+        ) {
             menuItems.push({
                 key: CONST.REPORT_DETAILS_MENU_ITEM.LEAVE_ROOM,
                 translationKey: 'common.leaveRoom',
                 icon: Expensicons.Exit,
-                action: () => Policy.leaveRoom(this.props.report.reportID),
+                action: () => Report.leaveRoom(this.props.report.reportID),
+            });
+        }
+
+        if (this.props.report.parentReportActionID) {
+            menuItems.push({
+                key: CONST.REPORT_DETAILS_MENU_ITEM.LEAVE_ROOM,
+                translationKey: 'common.leaveThread',
+                icon: Expensicons.Exit,
+                action: () => Report.leaveRoom(this.props.report.reportID),
             });
         }
 
