@@ -143,6 +143,7 @@ const IOUPreview = (props) => {
     const sessionEmail = lodashGet(props.session, 'email', null);
     const managerEmail = props.iouReport.managerEmail || '';
     const ownerEmail = props.iouReport.ownerEmail || '';
+    const requestDescription = Str.htmlDecode(lodashGet(props.action, 'originalMessage.comment', ''));
 
     // When displaying within a IOUDetailsModal we cannot guarantee that participants are included in the originalMessage data
     // Because an IOUPreview of type split can never be rendered within the IOUDetailsModal, manually building the email array is only needed for non-billSplit ious
@@ -240,7 +241,7 @@ const IOUPreview = (props) => {
                         <Text style={[styles.textLabel, styles.colorMuted]}>{props.translate('iou.pendingConversionMessage')}</Text>
                     )}
 
-                    <Text style={[styles.colorMuted]}>{Str.htmlDecode(lodashGet(props.action, 'originalMessage.comment', ''))}</Text>
+                    {requestDescription ? <Text style={[styles.colorMuted]}>{requestDescription}</Text> : ''}
 
                     {isCurrentUserManager && !props.shouldHidePayButton && props.iouReport.stateNum === CONST.REPORT.STATE_NUM.PROCESSING && (
                         <Button
