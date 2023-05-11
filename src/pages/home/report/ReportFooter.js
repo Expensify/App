@@ -65,7 +65,7 @@ class ReportFooter extends React.Component {
 
     render() {
         const isArchivedRoom = ReportUtils.isArchivedRoom(this.props.report);
-        const hideComposer = isArchivedRoom || !_.isEmpty(this.props.errors);
+        const hideComposer = isArchivedRoom || !_.isEmpty(this.props.errors) || ReportUtils.isTaskReport(this.props.report);
 
         return (
             <>
@@ -77,7 +77,7 @@ class ReportFooter extends React.Component {
                         )}
                     </View>
                 )}
-                {(!hideComposer && (this.props.shouldShowComposeInput || !this.props.isSmallScreenWidth)) && (
+                {!hideComposer && (this.props.shouldShowComposeInput || !this.props.isSmallScreenWidth) && (
                     <View style={[this.getChatFooterStyles(), this.props.isComposerFullSize && styles.chatFooterFullCompose]}>
                         <SwipeableView onSwipeDown={Keyboard.dismiss}>
                             <ReportActionCompose
