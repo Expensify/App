@@ -101,6 +101,7 @@ const TooltipRenderedOnPageBody = (props) => {
                 tooltipContentWidth,
                 props.shiftHorizontal,
                 props.shiftVertical,
+                wrapper.current,
             ),
         [
             props.animation,

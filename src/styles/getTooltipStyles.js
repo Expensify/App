@@ -56,22 +56,24 @@ function computeHorizontalShift(windowWidth, xOffset, componentWidth, tooltipWid
  *                           and the left edge of the wrapped component.
  * @param {Number} yOffset - The distance between the top edge of the window
  *                           and the top edge of the wrapped component.
+ * @param {Element} wrapper - The reference to the tooltip wrapper
  * @returns {Boolean}
  */
-function isOverlappingAtTop(xOffset, yOffset) {
+function isOverlappingAtTop(xOffset, yOffset, wrapper) {
     if (typeof document.elementFromPoint !== 'function') {
         return false;
     }
 
     const element = document.elementFromPoint(xOffset, yOffset);
 
-    if (!element) {
+    // Ensure it's not itself
+    if (!element || element === wrapper) {
         return false;
     }
 
     const rect = element.getBoundingClientRect();
 
-    // Ensure it's not itself + overlapping with another element by checking if the yOffset is greater than the top of the element
+    // Ensure it's not overlapping with another element by checking if the yOffset is greater than the top of the element
     // and less than the bottom of the element
     return yOffset > rect.top && yOffset < rect.bottom;
 }
@@ -96,6 +98,7 @@ function isOverlappingAtTop(xOffset, yOffset) {
  *                                         and a negative value shifts it to the left.
  * @param {Number} [manualShiftVertical] - Any additional amount to manually shift the tooltip up or down.
  *                                       A positive value shifts it down, and a negative value shifts it up.
+ * @param {Element} wrapper - The reference to the tooltip wrapper
  * @returns {Object}
  */
 export default function getTooltipStyles(
@@ -111,12 +114,13 @@ export default function getTooltipStyles(
     tooltipContentWidth,
     manualShiftHorizontal = 0,
     manualShiftVertical = 0,
+    wrapper,
 ) {
     // Determine if the tooltip should display below the wrapped component.
     // If either a tooltip will try to render within GUTTER_WIDTH logical pixels of the top of the screen,
     // Or the wrapped component is overlapping at top-left with another element
     // we'll display it beneath its wrapped component rather than above it as usual.
-    const shouldShowBelow = yOffset - tooltipHeight < GUTTER_WIDTH || isOverlappingAtTop(xOffset, yOffset);
+    const shouldShowBelow = yOffset - tooltipHeight < GUTTER_WIDTH || isOverlappingAtTop(xOffset, yOffset, wrapper);
 
     // Determine if we need to shift the tooltip horizontally to prevent it
     // from displaying too near to the edge of the screen.
