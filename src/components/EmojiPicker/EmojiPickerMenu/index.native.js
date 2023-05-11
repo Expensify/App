@@ -26,10 +26,12 @@ const propTypes = {
     preferredSkinTone: PropTypes.oneOfType([PropTypes.number, PropTypes.string]),
 
     /** User's frequently used emojis */
-    frequentlyUsedEmojis: PropTypes.arrayOf(PropTypes.shape({
-        code: PropTypes.string.isRequired,
-        keywords: PropTypes.arrayOf(PropTypes.string),
-    })),
+    frequentlyUsedEmojis: PropTypes.arrayOf(
+        PropTypes.shape({
+            code: PropTypes.string.isRequired,
+            keywords: PropTypes.arrayOf(PropTypes.string),
+        }),
+    ),
 
     /** Props related to the dimensions of the window */
     ...windowDimensionsPropTypes,
@@ -59,7 +61,7 @@ class EmojiPickerMenu extends Component {
         // This is the indices of each header's Row
         // The positions are static, and are calculated as index/numColumns (8 in our case)
         // This is because each row of 8 emojis counts as one index to the flatlist
-        this.headerRowIndices = _.map(this.headerEmojis, headerEmoji => Math.floor(headerEmoji.index / CONST.EMOJI_NUM_PER_ROW));
+        this.headerRowIndices = _.map(this.headerEmojis, (headerEmoji) => Math.floor(headerEmoji.index / CONST.EMOJI_NUM_PER_ROW));
 
         this.renderItem = this.renderItem.bind(this);
         this.isMobileLandscape = this.isMobileLandscape.bind(this);
@@ -129,20 +131,16 @@ class EmojiPickerMenu extends Component {
         if (item.header) {
             return (
                 <View style={styles.emojiHeaderContainer}>
-                    <Text style={styles.textLabelSupporting}>
-                        {this.props.translate(`emojiPicker.headers.${item.code}`)}
-                    </Text>
+                    <Text style={styles.textLabelSupporting}>{this.props.translate(`emojiPicker.headers.${item.code}`)}</Text>
                 </View>
             );
         }
 
-        const emojiCode = types && types[this.props.preferredSkinTone]
-            ? types[this.props.preferredSkinTone]
-            : code;
+        const emojiCode = types && types[this.props.preferredSkinTone] ? types[this.props.preferredSkinTone] : code;
 
         return (
             <EmojiPickerMenuItem
-                onPress={emoji => this.addToFrequentAndSelectEmoji(emoji, item)}
+                onPress={(emoji) => this.addToFrequentAndSelectEmoji(emoji, item)}
                 emoji={emojiCode}
             />
         );
@@ -158,15 +156,12 @@ class EmojiPickerMenu extends Component {
                     />
                 </View>
                 <Animated.FlatList
-                    ref={el => this.emojiList = el}
+                    ref={(el) => (this.emojiList = el)}
                     data={this.emojis}
                     renderItem={this.renderItem}
-                    keyExtractor={item => (`emoji_picker_${item.code}`)}
+                    keyExtractor={(item) => `emoji_picker_${item.code}`}
                     numColumns={CONST.EMOJI_NUM_PER_ROW}
-                    style={[
-                        styles.emojiPickerList,
-                        this.isMobileLandscape() && styles.emojiPickerListLandscape,
-                    ]}
+                    style={[styles.emojiPickerList, this.isMobileLandscape() && styles.emojiPickerListLandscape]}
                     stickyHeaderIndices={this.headerRowIndices}
                     getItemLayout={this.getItemLayout}
                     showsVerticalScrollIndicator
@@ -194,7 +189,12 @@ export default compose(
             key: ONYXKEYS.FREQUENTLY_USED_EMOJIS,
         },
     }),
-)(React.forwardRef((props, ref) => (
-    // eslint-disable-next-line react/jsx-props-no-spreading
-    <EmojiPickerMenu {...props} forwardedRef={ref} />
-)));
+)(
+    React.forwardRef((props, ref) => (
+        <EmojiPickerMenu
+            // eslint-disable-next-line react/jsx-props-no-spreading
+            {...props}
+            forwardedRef={ref}
+        />
+    )),
+);
