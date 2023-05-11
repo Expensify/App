@@ -19,6 +19,7 @@ const SETTINGS_CONTACT_METHODS = 'settings/profile/contact-methods';
 
 export default {
     BANK_ACCOUNT: 'bank-account',
+    BANK_ACCOUNT_NEW: 'bank-account/new',
     BANK_ACCOUNT_WITH_STEP_TO_OPEN: 'bank-account/:stepToOpen?',
     BANK_ACCOUNT_PERSONAL: 'bank-account/personal',
     getBankAccountRoute: (stepToOpen = '', policyID = '') => `bank-account/${stepToOpen}?policyID=${policyID}`,

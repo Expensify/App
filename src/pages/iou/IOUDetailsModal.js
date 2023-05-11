@@ -24,6 +24,7 @@ import networkPropTypes from '../../components/networkPropTypes';
 import reportActionPropTypes from '../home/report/reportActionPropTypes';
 import FullPageNotFoundView from '../../components/BlockingViews/FullPageNotFoundView';
 import FullScreenLoadingIndicator from '../../components/FullscreenLoadingIndicator';
+import {payMoneyRequest} from '../../libs/actions/IOU';
 
 const propTypes = {
     /** URL Route params */
@@ -123,31 +124,6 @@ class IOUDetailsModal extends Component {
         Report.openPaymentDetailsPage(this.props.route.params.chatReportID, this.props.route.params.iouReportID);
     }
 
-    /**
-     * @param {String} paymentMethodType
-     */
-    payMoneyRequest(paymentMethodType) {
-        const recipient = {
-            login: this.props.iouReport.ownerEmail,
-            payPalMeAddress: this.props.iouReport.submitterPayPalMeAddress,
-        };
-
-        if (paymentMethodType === CONST.IOU.PAYMENT_TYPE.ELSEWHERE) {
-            IOU.payMoneyRequestElsewhere(this.props.chatReport, this.props.iouReport, recipient);
-            return;
-        }
-
-        if (paymentMethodType === CONST.IOU.PAYMENT_TYPE.PAYPAL_ME) {
-            IOU.payMoneyRequestViaPaypal(this.props.chatReport, this.props.iouReport, recipient);
-            return;
-        }
-
-        if (paymentMethodType === CONST.IOU.PAYMENT_TYPE.EXPENSIFY) {
-            IOU.payMoneyRequestWithWallet(this.props.chatReport, this.props.iouReport, recipient);
-            Navigation.navigate(ROUTES.getReportRoute(this.props.route.params.chatReportID));
-        }
-    }
-
     // Finds if there is a reportAction pending for this IOU
     findPendingAction() {
         const reportActionWithPendingAction = _.find(
@@ -200,7 +176,7 @@ class IOUDetailsModal extends Component {
                                 {hasOutstandingIOU && this.props.iouReport.managerEmail === sessionEmail && (
                                     <FixedFooter>
                                         <SettlementButton
-                                            onPress={(paymentMethodType) => this.payMoneyRequest(paymentMethodType)}
+                                            onPress={(paymentMethodType) => payMoneyRequest(paymentMethodType, this.props.chatReport, this.props.iouReport)}
                                             shouldShowPaypal={Boolean(lodashGet(this.props, 'iouReport.submitterPayPalMeAddress'))}
                                             currency={lodashGet(this.props, 'iouReport.currency')}
                                             enablePaymentsRoute={ROUTES.IOU_DETAILS_ENABLE_PAYMENTS}

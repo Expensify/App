@@ -22,6 +22,8 @@ import Icon from './Icon';
 import SettlementButton from './SettlementButton';
 import * as Policy from '../libs/actions/Policy';
 import ONYXKEYS from '../ONYXKEYS';
+import {payMoneyRequest} from '../libs/actions/IOU';
+import * as ReimbursementAccountProps from '../pages/ReimbursementAccount/reimbursementAccountPropTypes';
 
 const propTypes = {
     /** The report currently being looked at */
@@ -42,19 +44,16 @@ const propTypes = {
     /** Whether we're viewing a report with a single transaction in it */
     isSingleTransactionView: PropTypes.bool,
 
+    /** The reimbursement account to use */
+    reimbursementAccount: ReimbursementAccountProps.reimbursementAccountPropTypes,
+
     ...withLocalizePropTypes,
 };
 
 const defaultProps = {
     isSingleTransactionView: false,
     chatReport: null,
-};
-
-const payRequest = (paymentType, chatReport) => {
-    if (chatReport && chatReport.chatType === CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT) {
-
-    } else {
-    }
+    reimbursementAccount: null,
 };
 
 const MoneyRequestHeader = (props) => {
@@ -127,16 +126,16 @@ const MoneyRequestHeader = (props) => {
                                 />
                             </View>
                         )}
-                        {shouldShowSettlementButton && (
-                            <SettlementButton
-                                currency={props.report.currency}
-                                shouldShowPaypal={false}
-                                chatReportID={props.report.chatReportID}
-                                onPress={(paymentType) => payRequest(paymentType, props.chatReport)}
-                            />
-                        )}
                     </View>
                 </View>
+                {shouldShowSettlementButton && (
+                    <SettlementButton
+                        currency={props.report.currency}
+                        shouldShowPaypal={false}
+                        chatReportID={props.report.chatReportID}
+                        onPress={(paymentType) => payMoneyRequest(paymentType, props.chatReport, props.report, props.reimbursementAccount.state)}
+                    />
+                )}
             </View>
         </View>
     );
@@ -153,5 +152,8 @@ export default compose(
         chatReport: {
             key: ({report}) => `${ONYXKEYS.COLLECTION.REPORT}${report.chatReportID}`,
         },
+        reimbursementAccount: {
+            key: ONYXKEYS.REIMBURSEMENT_ACCOUNT,
+        }
     }),
 )(MoneyRequestHeader);

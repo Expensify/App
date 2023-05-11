@@ -1057,12 +1057,17 @@ function getPayMoneyRequestParams(chatReport, iouReport, recipient, paymentMetho
         },
     ];
 
+    const policyID = null;
+    if (chatReport.chatType === CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT) {
+
+    }
     return {
         params: {
             iouReportID: iouReport.reportID,
             chatReportID: chatReport.reportID,
             reportActionID: optimisticIOUReportAction.reportActionID,
             paymentMethodType,
+            policyID,
         },
         optimisticData,
         successData,
@@ -1121,44 +1126,44 @@ function sendMoneyViaPaypal(report, amount, currency, comment, managerEmail, rec
 }
 
 /**
+ * @parqm {String} paymentType
  * @param {Object} chatReport
  * @param {Object} iouReport
  * @param {Object} recipient
+ * @param {String} reimbursementBankAccountState
  */
-function payMoneyRequestElsewhere(chatReport, iouReport, recipient) {
-    const {params, optimisticData, successData, failureData} = getPayMoneyRequestParams(chatReport, iouReport, recipient, CONST.IOU.PAYMENT_TYPE.ELSEWHERE);
+function payMoneyRequest(paymentType, chatReport, iouReport, reimbursementBankAccountState) {
+    if (chatReport.chatType === CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT
+        && reimbursementBankAccountState === CONST.BANK_ACCOUNT.STATE.OPEN
+        && paymentType ===  CONST.IOU.PAYMENT_TYPE.EXPENSIFY) {
+        Navigation.navigate(ROUTES.BANK_ACCOUNT_NEW);
+        return;
+    }
 
-    API.write('PayMoneyRequestElsewhere', params, {optimisticData, successData, failureData});
-
+    const recipient = {
+        login: iouReport.ownerEmail,
+        payPalMeAddress: iouReport.submitterPayPalMeAddress,
+    };
+    const {params, optimisticData, successData, failureData} = getPayMoneyRequestParams(chatReport, iouReport, recipient, paymentType);
+    let command;
+    switch (paymentType) {
+        case CONST.IOU.PAYMENT_TYPE.PAYPAL_ME:
+            command = 'PayMoneyRequestViaPaypal';
+            break;
+        case CONST.IOU.PAYMENT_TYPE.EXPENSIFY:
+            command = 'PayMoneyRequestWithWallet';
+            break;
+        case CONST.IOU.PAYMENT_TYPE.ELSEWHERE:
+            command = 'PayMoneyRequestElsewhere';
+            break;
+        default:
+            throw new Error('Unsupported payment method');
+    }
+    API.write(command, params, {optimisticData, successData, failureData});
     Navigation.navigate(ROUTES.getReportRoute(chatReport.reportID));
-}
-
-/**
- * @param {Object} chatReport
- * @param {Object} iouReport
- * @param {Object} recipient
- */
-function payMoneyRequestWithWallet(chatReport, iouReport, recipient) {
-    const {params, optimisticData, successData, failureData} = getPayMoneyRequestParams(chatReport, iouReport, recipient, CONST.IOU.PAYMENT_TYPE.EXPENSIFY);
-
-    API.write('PayMoneyRequestWithWallet', params, {optimisticData, successData, failureData});
-
-    Navigation.navigate(ROUTES.getReportRoute(chatReport.reportID));
-}
-
-/**
- * @param {Object} chatReport
- * @param {Object} iouReport
- * @param {Object} recipient
- */
-function payMoneyRequestViaPaypal(chatReport, iouReport, recipient) {
-    const {params, optimisticData, successData, failureData} = getPayMoneyRequestParams(chatReport, iouReport, recipient, CONST.IOU.PAYMENT_TYPE.PAYPAL_ME);
-
-    API.write('PayMoneyRequestViaPaypal', params, {optimisticData, successData, failureData});
-
-    Navigation.navigate(ROUTES.getReportRoute(chatReport.reportID));
-
-    asyncOpenURL(Promise.resolve(), buildPayPalPaymentUrl(iouReport.total, recipient.payPalMeAddress, iouReport.currency));
+    if (paymentType === CONST.IOU.PAYMENT_TYPE.PAYPAL_ME) {
+        asyncOpenURL(Promise.resolve(), buildPayPalPaymentUrl(iouReport.total, recipient.payPalMeAddress, iouReport.currency));
+    }
 }
 
 export {
@@ -1168,10 +1173,8 @@ export {
     requestMoney,
     sendMoneyElsewhere,
     sendMoneyViaPaypal,
-    payMoneyRequestElsewhere,
-    payMoneyRequestViaPaypal,
+    payMoneyRequest,
     setIOUSelectedCurrency,
     setMoneyRequestDescription,
     sendMoneyWithWallet,
-    payMoneyRequestWithWallet,
 };
