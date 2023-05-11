@@ -289,7 +289,7 @@ function getLinkedTransactionID(reportID, reportActionID) {
  * @returns {string}
  */
 function getMostRecentReportActionLastModified() {
-    let mostRecentlyModifiedReportAction;
+    // Start with the oldest date possible
     let mostRecentReportActionLastModified = new Date(0).toISOString();
 
     // Flatten all the actions
@@ -312,10 +312,9 @@ function getMostRecentReportActionLastModified() {
         }
 
         mostRecentReportActionLastModified = action.lastModified;
-        mostRecentlyModifiedReportAction = action;
     });
 
-    return mostRecentlyModifiedReportAction;
+    return mostRecentReportActionLastModified;
 }
 
 function isCreatedTaskReportAction(reportAction) {
