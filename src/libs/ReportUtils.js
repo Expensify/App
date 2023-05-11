@@ -1063,6 +1063,19 @@ function buildOptimisticTaskCommentReportAction(taskReportID, taskTitle, taskAss
     return reportAction;
 }
 
+function buildOptimisticTaskReportAction(taskReportID, text, actionName) {
+    const reportAction = buildOptimisticAddCommentReportAction(text);
+    reportAction.reportAction.message[0].taskReportID = taskReportID;
+    reportAction.reportAction.actionName = actionName;
+
+    // These parameters are not saved on the reportAction, but are used to display the task in the UI
+    // Added when we fetch the reportActions on a report
+    reportAction.reportAction.originalMessage = {
+        html: reportAction.reportAction.message[0].html,
+        taskReportID: reportAction.reportAction.message[0].taskReportID,
+    };
+}
+
 /**
  * Builds an optimistic IOU report with a randomly generated reportID
  *
@@ -1964,6 +1977,7 @@ export {
     buildOptimisticIOUReportAction,
     buildOptimisticAddCommentReportAction,
     buildOptimisticTaskCommentReportAction,
+    buildOptimisticTaskReportAction,
     shouldReportBeInOptionList,
     getChatByParticipants,
     getChatByParticipantsAndPolicy,
