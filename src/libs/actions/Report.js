@@ -21,6 +21,7 @@ import * as ReportActionsUtils from '../ReportActionsUtils';
 import * as OptionsListUtils from '../OptionsListUtils';
 import * as Localize from '../Localize';
 import * as CollectionUtils from '../CollectionUtils';
+import * as EmojiUtils from '../EmojiUtils';
 
 let currentUserEmail;
 let currentUserAccountID;
@@ -40,15 +41,7 @@ Onyx.connect({
 let preferredSkinTone;
 Onyx.connect({
     key: ONYXKEYS.PREFERRED_EMOJI_SKIN_TONE,
-    callback: (val) => {
-        // the preferred skin tone is sometimes still "default", although it
-        // was changed that "default" has become -1.
-        if (!_.isNull(val) && Number.isInteger(Number(val))) {
-            preferredSkinTone = val;
-        } else {
-            preferredSkinTone = -1;
-        }
-    },
+    callback: EmojiUtils.getPreferredSkinToneIndex,
 });
 
 const allReportActions = {};

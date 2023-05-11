@@ -1208,6 +1208,7 @@ export default compose(
         },
         preferredSkinTone: {
             key: ONYXKEYS.PREFERRED_EMOJI_SKIN_TONE,
+            selector: EmojiUtils.getPreferredSkinToneIndex,
         },
         reports: {
             key: ONYXKEYS.COLLECTION.REPORT,

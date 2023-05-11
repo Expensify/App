@@ -270,4 +270,28 @@ function suggestEmojis(text, limit = 5) {
     return [];
 }
 
-export {getHeaderEmojis, mergeEmojisWithFrequentlyUsedEmojis, addToFrequentlyUsedEmojis, containsOnlyEmojis, replaceEmojis, suggestEmojis, trimEmojiUnicode, getEmojiCodeWithSkinColor};
+/**
+ * Retrieve preferredSkinTone as Number to prevent legacy 'default' String value
+ *
+ * @param {Number | String} val
+ * @returns {Number}
+ */
+const getPreferredSkinToneIndex = (val) => {
+    if (!_.isNull(val) && Number.isInteger(Number(val))) {
+        return val;
+    }
+
+    return CONST.EMOJI_DEFAULT_SKIN_TONE;
+};
+
+export {
+    getHeaderEmojis,
+    mergeEmojisWithFrequentlyUsedEmojis,
+    addToFrequentlyUsedEmojis,
+    containsOnlyEmojis,
+    replaceEmojis,
+    suggestEmojis,
+    trimEmojiUnicode,
+    getEmojiCodeWithSkinColor,
+    getPreferredSkinToneIndex,
+};
