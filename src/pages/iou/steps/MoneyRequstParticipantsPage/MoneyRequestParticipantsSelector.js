@@ -3,6 +3,7 @@ import PropTypes from 'prop-types';
 import {withOnyx} from 'react-native-onyx';
 import _ from 'underscore';
 import * as OptionsListUtils from '../../../../libs/OptionsListUtils';
+import * as ReportUtils from '../../../../libs/ReportUtils';
 import OptionsSelector from '../../../../components/OptionsSelector';
 import ONYXKEYS from '../../../../ONYXKEYS';
 import withLocalize, {withLocalizePropTypes} from '../../../../components/withLocalize';
@@ -27,9 +28,6 @@ const propTypes = {
     /** All reports shared with the user */
     reports: PropTypes.objectOf(reportPropTypes),
 
-    /** Indicates whether report data is ready */
-    isLoadingReportData: PropTypes.bool,
-
     /** padding bottom style of safe area */
     safeAreaPaddingBottomStyle: PropTypes.oneOfType([PropTypes.arrayOf(PropTypes.object), PropTypes.object]),
 
@@ -44,7 +42,6 @@ const defaultProps = {
     personalDetails: {},
     reports: {},
     betas: [],
-    isLoadingReportData: true,
 };
 
 class MoneyRequestParticipantsSelector extends Component {
@@ -154,7 +151,7 @@ class MoneyRequestParticipantsSelector extends Component {
             Boolean(this.state.userToInvite),
             this.state.searchTerm,
         );
-        const isOptionsDataReady = !this.props.isLoadingReportData && OptionsListUtils.isPersonalDetailsReady(this.props.personalDetails);
+        const isOptionsDataReady = ReportUtils.isReportsReady() && OptionsListUtils.isPersonalDetailsReady(this.props.personalDetails);
 
         return (
             <OptionsSelector
@@ -186,9 +183,6 @@ export default compose(
         },
         betas: {
             key: ONYXKEYS.BETAS,
-        },
-        isLoadingReportData: {
-            key: ONYXKEYS.IS_LOADING_REPORT_DATA,
         },
     }),
 )(MoneyRequestParticipantsSelector);

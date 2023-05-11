@@ -1911,6 +1911,14 @@ function shouldReportShowSubscript(report) {
     return isExpenseReport(report);
 }
 
+/**
+ * Return true if reports data exists
+ * @returns {Boolean}
+ */
+function isReportsReady() {
+    return !_.isEmpty(allReports) && _.some(_.keys(allReports), (key) => allReports[key].reportID);
+}
+
 export {
     getReportParticipantsTitle,
     isReportMessageAttachment,
@@ -1991,4 +1999,5 @@ export {
     getWhisperDisplayNames,
     getWorkspaceAvatar,
     shouldReportShowSubscript,
+    isReportsReady,
 };
