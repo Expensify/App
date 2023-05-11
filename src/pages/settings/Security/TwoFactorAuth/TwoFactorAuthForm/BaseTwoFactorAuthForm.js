@@ -53,21 +53,19 @@ function BaseTwoFactorAuthForm(props) {
      * Check that all the form fields are valid, then trigger the submit callback
      */
     const validateAndSubmitForm = useCallback(() => {
-        const requiresTwoFactorAuth = props.account.requiresTwoFactorAuth;
-
-        if (requiresTwoFactorAuth && !twoFactorAuthCode.trim()) {
+        if (!twoFactorAuthCode.trim()) {
             setFormError({twoFactorAuthCode: 'twoFactorAuthForm.error.pleaseFillTwoFactorAuth'});
             return;
         }
 
-        if (requiresTwoFactorAuth && !ValidationUtils.isValidTwoFactorCode(twoFactorAuthCode)) {
+        if (!ValidationUtils.isValidTwoFactorCode(twoFactorAuthCode)) {
             setFormError({twoFactorAuthCode: 'twoFactorAuthForm.error.incorrect2fa'});
             return;
         }
 
         setFormError({});
         Session.validateTwoFactorAuth(twoFactorAuthCode);
-    }, [props.account.requiresTwoFactorAuth, twoFactorAuthCode]);
+    }, [twoFactorAuthCode]);
 
     return (
         <MagicCodeInput
