@@ -21,6 +21,7 @@ import * as EmojiUtils from '../../../libs/EmojiUtils';
 import CategoryShortcutBar from '../CategoryShortcutBar';
 import TextInput from '../../TextInput';
 import isEnterWhileComposition from '../../../libs/KeyboardShortcut/isEnterWhileComposition';
+import * as Browser from '../../../libs/Browser';
 
 const propTypes = {
     /** Function to add the selected emoji to the main compose text input */
@@ -33,10 +34,12 @@ const propTypes = {
     preferredSkinTone: PropTypes.oneOfType([PropTypes.number, PropTypes.string]),
 
     /** User's frequently used emojis */
-    frequentlyUsedEmojis: PropTypes.arrayOf(PropTypes.shape({
-        code: PropTypes.string.isRequired,
-        keywords: PropTypes.arrayOf(PropTypes.string),
-    })),
+    frequentlyUsedEmojis: PropTypes.arrayOf(
+        PropTypes.shape({
+            code: PropTypes.string.isRequired,
+            keywords: PropTypes.arrayOf(PropTypes.string),
+        }),
+    ),
 
     /** Props related to the dimensions of the window */
     ...windowDimensionsPropTypes,
@@ -172,8 +175,7 @@ class EmojiPickerMenu extends Component {
             // Enable keyboard movement if tab or enter is pressed or if shift is pressed while the input
             // is not focused, so that the navigation and tab cycling can be done using the keyboard without
             // interfering with the input behaviour.
-            if (keyBoardEvent.key === 'Tab' || keyBoardEvent.key === 'Enter'
-                || (keyBoardEvent.key === 'Shift' && this.searchInput && !this.searchInput.isFocused())) {
+            if (keyBoardEvent.key === 'Tab' || keyBoardEvent.key === 'Enter' || (keyBoardEvent.key === 'Shift' && this.searchInput && !this.searchInput.isFocused())) {
                 this.setState({isUsingKeyboardMovement: true});
                 return;
             }
@@ -265,12 +267,7 @@ class EmojiPickerMenu extends Component {
                 return;
             }
 
-            if (arrowKey === 'ArrowRight'
-                  && !(
-                      this.searchInput.value.length === this.state.selection.start
-                      && this.state.selection.start === this.state.selection.end
-                  )
-            ) {
+            if (arrowKey === 'ArrowRight' && !(this.searchInput.value.length === this.state.selection.start && this.state.selection.start === this.state.selection.end)) {
                 return;
             }
 
@@ -312,19 +309,18 @@ class EmojiPickerMenu extends Component {
 
         switch (arrowKey) {
             case 'ArrowDown':
-                move(
-                    CONST.EMOJI_NUM_PER_ROW,
-                    () => this.state.highlightedIndex + CONST.EMOJI_NUM_PER_ROW > this.state.filteredEmojis.length - 1,
-                );
+                move(CONST.EMOJI_NUM_PER_ROW, () => this.state.highlightedIndex + CONST.EMOJI_NUM_PER_ROW > this.state.filteredEmojis.length - 1);
                 break;
             case 'ArrowLeft':
-                move(-1,
+                move(
+                    -1,
                     () => this.state.highlightedIndex - 1 < this.firstNonHeaderIndex,
                     () => {
                         // Reaching start of the list, arrow left set the focus to searchInput.
                         this.focusInputWithTextSelect();
                         newIndex = -1;
-                    });
+                    },
+                );
                 break;
             case 'ArrowRight':
                 move(1, () => this.state.highlightedIndex + 1 > this.state.filteredEmojis.length - 1);
@@ -441,7 +437,7 @@ class EmojiPickerMenu extends Component {
      * @returns {String}
      */
     keyExtractor(item) {
-        return (`emoji_picker_${item.code}`);
+        return `emoji_picker_${item.code}`;
     }
 
     /**
@@ -462,16 +458,12 @@ class EmojiPickerMenu extends Component {
         if (header) {
             return (
                 <View style={styles.emojiHeaderContainer}>
-                    <Text style={styles.textLabelSupporting}>
-                        {this.props.translate(`emojiPicker.headers.${code}`)}
-                    </Text>
+                    <Text style={styles.textLabelSupporting}>{this.props.translate(`emojiPicker.headers.${code}`)}</Text>
                 </View>
             );
         }
 
-        const emojiCode = types && types[this.props.preferredSkinTone]
-            ? types[this.props.preferredSkinTone]
-            : code;
+        const emojiCode = types && types[this.props.preferredSkinTone] ? types[this.props.preferredSkinTone] : code;
 
         const isEmojiFocused = index === this.state.highlightedIndex && this.state.isUsingKeyboardMovement;
 
@@ -511,7 +503,7 @@ class EmojiPickerMenu extends Component {
                         label={this.props.translate('common.search')}
                         onChangeText={this.filterEmojis}
                         defaultValue=""
-                        ref={el => this.searchInput = el}
+                        ref={el => (this.searchInput = el)}
                         autoFocus={!this.props.isSmallScreenWidth}
                         selectTextOnFocus={this.state.selectTextOnFocus}
                         onSelectionChange={this.onSelectionChange}
@@ -526,43 +518,38 @@ class EmojiPickerMenu extends Component {
                         onPress={this.scrollToHeader}
                     />
                 )}
-                {this.state.filteredEmojis.length === 0
-                    ? (
-                        <Text
-                            style={[
-                                styles.disabledText,
-                                styles.emojiPickerListWithPadding,
-                                styles.dFlex,
-                                styles.alignItemsCenter,
-                                styles.justifyContentCenter,
-                                styles.textLabel,
-                                styles.colorMuted,
-                                this.isMobileLandscape() && styles.emojiPickerListLandscape,
-                            ]}
-                        >
-                            {this.props.translate('common.noResultsFound')}
-                        </Text>
-                    )
-                    : (
-                        <FlatList
-                            ref={el => this.emojiList = el}
-                            data={this.state.filteredEmojis}
-                            renderItem={this.renderItem}
-                            keyExtractor={this.keyExtractor}
-                            numColumns={CONST.EMOJI_NUM_PER_ROW}
-                            style={[
-                                styles.emojiPickerList,
-                                StyleUtils.getEmojiPickerListHeight(isFiltered),
-                                this.isMobileLandscape() && styles.emojiPickerListLandscape,
-                            ]}
-                            extraData={
-                              [this.state.filteredEmojis, this.state.highlightedIndex, this.props.preferredSkinTone]
-                            }
-                            stickyHeaderIndices={this.state.headerIndices}
-                            onScroll={e => this.currentScrollOffset = e.nativeEvent.contentOffset.y}
-                            getItemLayout={this.getItemLayout}
-                        />
-                    )}
+                {this.state.filteredEmojis.length === 0 ? (
+                    <Text
+                        style={[
+                            styles.disabledText,
+                            styles.emojiPickerListWithPadding,
+                            styles.dFlex,
+                            styles.alignItemsCenter,
+                            styles.justifyContentCenter,
+                            styles.textLabel,
+                            styles.colorMuted,
+                            StyleUtils.getEmojiPickerListHeight(true, Browser.isMobile()),
+                        ]}
+                    >
+                        {this.props.translate('common.noResultsFound')}
+                    </Text>
+                ) : (
+                    <FlatList
+                        ref={el => (this.emojiList = el)}
+                        data={this.state.filteredEmojis}
+                        renderItem={this.renderItem}
+                        keyExtractor={this.keyExtractor}
+                        numColumns={CONST.EMOJI_NUM_PER_ROW}
+                        style={[
+                            styles.emojiPickerList,
+                            StyleUtils.getEmojiPickerListHeight(isFiltered, Browser.isMobile()),
+                        ]}
+                        extraData={[this.state.filteredEmojis, this.state.highlightedIndex, this.props.preferredSkinTone]}
+                        stickyHeaderIndices={this.state.headerIndices}
+                        onScroll={e => (this.currentScrollOffset = e.nativeEvent.contentOffset.y)}
+                        getItemLayout={this.getItemLayout}
+                    />
+                )}
                 <EmojiSkinToneList
                     updatePreferredSkinTone={this.updatePreferredSkinTone}
                     preferredSkinTone={this.props.preferredSkinTone}
@@ -586,7 +573,12 @@ export default compose(
             key: ONYXKEYS.FREQUENTLY_USED_EMOJIS,
         },
     }),
-)(React.forwardRef((props, ref) => (
-    // eslint-disable-next-line react/jsx-props-no-spreading
-    <EmojiPickerMenu {...props} forwardedRef={ref} />
-)));
+)(
+    React.forwardRef((props, ref) => (
+        <EmojiPickerMenu
+            // eslint-disable-next-line react/jsx-props-no-spreading
+            {...props}
+            forwardedRef={ref}
+        />
+    )),
+);

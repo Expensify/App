@@ -216,7 +216,7 @@ class EmojiPickerMenu extends Component {
                             styles.alignItemsCenter,
                             styles.justifyContentCenter,
                             styles.emojiPickerListWithPadding,
-                            this.isMobileLandscape() && styles.emojiPickerListLandscape,
+                            StyleUtils.getEmojiPickerListHeight(isFiltered),
                         ]}
                         >
                             <Text style={styles.disabledText}>
@@ -235,7 +235,6 @@ class EmojiPickerMenu extends Component {
                             style={[
                                 styles.emojiPickerList,
                                 StyleUtils.getEmojiPickerListHeight(isFiltered),
-                                this.isMobileLandscape() && styles.emojiPickerListLandscape,
                             ]}
                             stickyHeaderIndices={this.state.headerIndices}
                             getItemLayout={this.getItemLayout}
