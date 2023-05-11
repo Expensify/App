@@ -3,7 +3,6 @@ import lodashOrderBy from 'lodash/orderBy';
 import moment from 'moment';
 import Str from 'expensify-common/lib/str';
 import CONST from '../CONST';
-import * as User from './actions/User';
 import emojisTrie from './EmojiTrie';
 import FrequentlyUsed from '../../assets/images/history.svg';
 
@@ -164,9 +163,10 @@ function mergeEmojisWithFrequentlyUsedEmojis(emojis, frequentlyUsedEmojis = []) 
 }
 
 /**
- * Update the frequently used emojis list by usage and sync with API
+ * Get the updated frequently used emojis list by usage
  * @param {Object[]} frequentlyUsedEmojis
  * @param {Object} newEmoji
+ * @return {Object[]}
  */
 function addToFrequentlyUsedEmojis(frequentlyUsedEmojis, newEmoji) {
     let frequentEmojiList = frequentlyUsedEmojis;
@@ -188,7 +188,7 @@ function addToFrequentlyUsedEmojis(frequentlyUsedEmojis, newEmoji) {
 
     // Second sorting is required so that new emoji is properly placed at sort-ordered location
     frequentEmojiList = lodashOrderBy(frequentEmojiList, ['count', 'lastUpdatedAt'], ['desc', 'desc']);
-    User.updateFrequentlyUsedEmojis(frequentEmojiList);
+    return frequentEmojiList;
 }
 
 /**
