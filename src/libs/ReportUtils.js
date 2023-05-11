@@ -1847,6 +1847,24 @@ function getWhisperDisplayNames(participants) {
     return _.map(participants, (login) => getDisplayNameForParticipant(login, !isWhisperOnlyVisibleToCurrentUSer)).join(', ');
 }
 
+/**
+ * Used to determine if a thread exists already or not for a given reportActionID
+ *
+ * @param {String}
+ * @returns {Boolean}
+ */
+function doesThreadExistForReportActionID(reportActionID) {
+    const thread = _.find(allReports, (report) => {
+        if (!report.parentReportActionID) {
+            return false;
+        }
+
+        return report.parentReportActionID === reportActionID;
+    });
+
+    return !_.isEmpty(thread);
+}
+
 export {
     getReportParticipantsTitle,
     isReportMessageAttachment,
@@ -1925,4 +1943,5 @@ export {
     canRequestMoney,
     getWhisperDisplayNames,
     getWorkspaceAvatar,
+    doesThreadExistForReportActionID,
 };
