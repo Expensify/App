@@ -318,6 +318,10 @@ function getMostRecentReportActionLastModified() {
     return mostRecentlyModifiedReportAction;
 }
 
+function isCreatedTaskReportAction(reportAction) {
+    return reportAction.actionName === CONST.REPORT.ACTIONS.TYPE.ADDCOMMENT && _.has(reportAction.originalMessage, 'taskReportID');
+}
+
 export {
     getSortedReportActions,
     getLastVisibleAction,
@@ -332,4 +336,5 @@ export {
     getLatestReportActionFromOnyxData,
     getLinkedTransactionID,
     getMostRecentReportActionLastModified,
+    isCreatedTaskReportAction,
 };
