@@ -15,6 +15,7 @@ import Navigation from '../../libs/Navigation/Navigation';
 import ROUTES from '../../ROUTES';
 import styles from '../../styles/styles';
 import * as IOUUtils from '../../libs/IOUUtils';
+import {doesThreadExistForReportActionID} from '../../libs/ReportUtils';
 
 const propTypes = {
     /** All the data of the action */
@@ -71,6 +72,10 @@ const defaultProps = {
 const IOUAction = (props) => {
     const hasMultipleParticipants = props.chatReport.participants.length > 1;
     const onIOUPreviewPressed = () => {
+        if (!doesThreadExistForReportActionID(props.action.reportActionID)) {
+            // optimistically create reportID
+            // pass it along to OpenReport since that is build to create a thread when needed, not sure what to do about the navigation stuff below...
+        }
         if (hasMultipleParticipants) {
             Navigation.navigate(ROUTES.getReportParticipantsRoute(props.chatReportID));
         } else {
