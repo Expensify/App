@@ -114,7 +114,7 @@ function isConsecutiveActionMadeByPreviousActor(reportActions, actionIndex) {
     }
 
     // Comments are only grouped if they happen within 5 minutes of each other
-    if (moment(currentAction.created).unix() - moment(previousAction.created).unix() > 300) {
+    if (new Date(currentAction.created).getTime() - new Date(previousAction.created).getTime() > 300000) {
         return false;
     }
 
