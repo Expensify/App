@@ -337,6 +337,10 @@ function buildOptimisticReportPreview(reportID, iouReportID, payeeAccountID) {
     });
 }
 
+function isCreatedTaskReportAction(reportAction) {
+    return reportAction.actionName === CONST.REPORT.ACTIONS.TYPE.ADDCOMMENT && _.has(reportAction.originalMessage, 'taskReportID');
+}
+
 export {
     getSortedReportActions,
     getLastVisibleAction,
@@ -352,4 +356,5 @@ export {
     getLinkedTransactionID,
     getReportPreviewAction,
     buildOptimisticReportPreview,
+    isCreatedTaskReportAction,
 };
