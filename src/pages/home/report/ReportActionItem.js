@@ -12,7 +12,7 @@ import PressableWithSecondaryInteraction from '../../../components/PressableWith
 import Hoverable from '../../../components/Hoverable';
 import ReportActionItemSingle from './ReportActionItemSingle';
 import ReportActionItemGrouped from './ReportActionItemGrouped';
-import IOUAction from '../../../components/ReportActionItem/IOUAction';
+import MoneyRequestAction from '../../../components/ReportActionItem/MoneyRequestAction';
 import ReportActionItemMessage from './ReportActionItemMessage';
 import UnreadActionIndicator from '../../../components/UnreadActionIndicator';
 import ReportActionItemMessageEdit from './ReportActionItemMessageEdit';
@@ -47,6 +47,8 @@ import Text from '../../../components/Text';
 import DisplayNames from '../../../components/DisplayNames';
 import personalDetailsPropType from '../../personalDetailsPropType';
 import ReportActionItemDraft from './ReportActionItemDraft';
+import TaskPreview from '../../../components/ReportActionItem/TaskPreview';
+import * as ReportActionUtils from '../../../libs/ReportActionsUtils';
 
 const propTypes = {
     /** Report for this action */
@@ -182,7 +184,7 @@ class ReportActionItem extends Component {
             const iouReportID = this.props.action.originalMessage.IOUReportID ? this.props.action.originalMessage.IOUReportID.toString() : '0';
 
             children = (
-                <IOUAction
+                <MoneyRequestAction
                     chatReportID={this.props.report.reportID}
                     requestReportID={iouReportID}
                     action={this.props.action}
@@ -190,6 +192,14 @@ class ReportActionItem extends Component {
                     isHovered={hovered}
                     contextMenuAnchor={this.popoverAnchor}
                     checkIfContextMenuActive={this.checkIfContextMenuActive}
+                />
+            );
+        } else if (ReportActionUtils.isCreatedTaskReportAction(this.props.action)) {
+            children = (
+                <TaskPreview
+                    taskReportID={this.props.action.originalMessage.taskReportID.toString()}
+                    action={this.props.action}
+                    isHovered={hovered}
                 />
             );
         } else {
