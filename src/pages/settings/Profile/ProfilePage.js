@@ -108,9 +108,7 @@ const ProfilePage = (props) => {
                     <Button
                         text={props.translate('common.shareCode')}
                         medium
-
-                        // TODO: Replace with "QrCode" icon from Figma
-                        icon={Expensicons.Link}
+                        icon={Expensicons.QrCode}
                         onPress={() => Navigation.navigate(ROUTES.SETTINGS_PROFILE_SHARE_CODE)}
                         style={{marginTop: 30, alignSelf: 'center'}}
                     />
