@@ -1043,7 +1043,7 @@ function buildOptimisticAddCommentReportAction(text, file) {
  * @param {String} text - Text of the comment
  * @returns {Object}
  */
-function buildOptimisticTaskCommentReportAction(taskReportID, taskTitle, taskAssignee, text) {
+function buildOptimisticTaskCommentReportAction(taskReportID, taskTitle, taskAssignee, text, parentReportID) {
     const reportAction = buildOptimisticAddCommentReportAction(text);
     reportAction.reportAction.message[0].taskReportID = taskReportID;
 
@@ -1054,6 +1054,7 @@ function buildOptimisticTaskCommentReportAction(taskReportID, taskTitle, taskAss
         taskReportID: reportAction.reportAction.message[0].taskReportID,
     };
     reportAction.reportAction.childReportID = taskReportID;
+    reportAction.reportAction.parentReportID = parentReportID;
     reportAction.reportAction.childType = CONST.REPORT.TYPE.TASK;
     reportAction.reportAction.taskTitle = taskTitle;
     reportAction.reportAction.taskAssignee = taskAssignee;

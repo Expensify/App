@@ -57,7 +57,7 @@ const TaskPreview = (props) => {
         (props.taskReport.stateNum === CONST.REPORT.STATE_NUM.SUBMITTED && props.taskReport.statusNum === CONST.REPORT.STATUS.APPROVED) ||
         (props.action.childStateNum === CONST.REPORT.STATE_NUM.CLOSED && props.action.childStatusNum === CONST.REPORT.STATUS.APPROVED);
     const taskTitle = props.action.taskTitle || props.taskReport.reportName;
-    const parentReportID = props.taskReport.parentReportID;
+    const parentReportID = props.action.parentReportID || props.taskReport.parentReportID;
 
     return (
         <Pressable
@@ -70,7 +70,7 @@ const TaskPreview = (props) => {
                     containerStyle={[styles.taskCheckbox]}
                     isChecked={isTaskCompleted}
                     onPress={() => {
-                        TaskUtils.completeTask(props.taskReportID, parentReportID);
+                        TaskUtils.completeTask(props.taskReportID, parentReportID, taskTitle);
                     }}
                 />
                 <Text>{taskTitle}</Text>

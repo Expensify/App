@@ -39,12 +39,12 @@ function createTaskAndNavigate(currentUserEmail, parentReportID, title, descript
     const taskReportID = optimisticTaskReport.reportID;
     let optimisticAssigneeAddComment;
     if (assigneeChatReportID && assigneeChatReportID !== parentReportID) {
-        optimisticAssigneeAddComment = ReportUtils.buildOptimisticTaskCommentReportAction(taskReportID, title, assignee, `Assigned a task to you: ${title}`);
+        optimisticAssigneeAddComment = ReportUtils.buildOptimisticTaskCommentReportAction(taskReportID, title, assignee, `Assigned a task to you: ${title}`, parentReportID);
     }
 
     // Create the CreatedReportAction on the task
     const optimisticTaskCreatedAction = ReportUtils.buildOptimisticCreatedReportAction(optimisticTaskReport.reportID);
-    const optimisticAddCommentReport = ReportUtils.buildOptimisticTaskCommentReportAction(taskReportID, title, assignee, `Created a task: ${title}`);
+    const optimisticAddCommentReport = ReportUtils.buildOptimisticTaskCommentReportAction(taskReportID, title, assignee, `Created a task: ${title}`, parentReportID);
 
     const currentTime = DateUtils.getDBTime();
 
@@ -152,10 +152,8 @@ function createTaskAndNavigate(currentUserEmail, parentReportID, title, descript
     Navigation.navigate(ROUTES.getReportRoute(optimisticTaskReport.reportID));
 }
 
-function completeTask(taskReportID, parentReportID) {
-    // TODO: Update the text to be the task title
-    const completedTaskReportAction = ReportUtils.buildOptimisticTaskReportAction(taskReportID, 'Completed task: ', CONST.REPORT.ACTIONS.TYPE.TASKCOMPLETED);
-
+function completeTask(taskReportID, parentReportID, taskTitle) {
+    const completedTaskReportAction = ReportUtils.buildOptimisticTaskReportAction(taskReportID, `Completed task: ${taskTitle}`, CONST.REPORT.ACTIONS.TYPE.TASKCOMPLETED);
     const optimisticData = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
