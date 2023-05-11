@@ -103,7 +103,10 @@ function getPolicyExpenseReportOptions(report) {
     if (!ReportUtils.isPolicyExpenseChat(report)) {
         return [];
     }
-    const filteredPolicyExpenseReports = _.filter(policyExpenseReports, (policyExpenseReport) => policyExpenseReport.policyID === report.policyID);
+    const filteredPolicyExpenseReports = _.filter(
+        policyExpenseReports,
+        (policyExpenseReport) => policyExpenseReport.policyID === report.policyID && policyExpenseReport.isOwnPolicyExpenseChat,
+    );
     return _.map(filteredPolicyExpenseReports, (expenseReport) => {
         const policyExpenseChatAvatarSource = ReportUtils.getWorkspaceAvatar(expenseReport);
         return {
@@ -195,7 +198,7 @@ function getPersonalDetailsForLogins(logins, personalDetails) {
  * @returns {boolean}
  */
 function isPersonalDetailsReady(personalDetails) {
-    return !_.isEmpty(personalDetails) && !_.some(_.keys(personalDetails), key => !personalDetails[key].login);
+    return !_.isEmpty(personalDetails) && !_.some(_.keys(personalDetails), (key) => !personalDetails[key].login);
 }
 
 /**
