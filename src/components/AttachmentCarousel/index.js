@@ -242,7 +242,7 @@ class AttachmentCarousel extends React.Component {
      * @returns {JSX.Element}
      */
     renderCell(props) {
-        // We are using a new style for central modals to address the issue in https://github.com/Expensify/App/issues/17760
+        // Use window width instead of layout width to address the issue in https://github.com/Expensify/App/issues/17760
         // Keep in mind that the +1 is to keep the layout stylings the exact same to prevent regressions
         const modalStyles = styles.centeredModalStyles(this.props.isSmallScreenWidth);
         const style = [props.style, styles.h100, {width: this.props.windowWidth - (modalStyles.marginHorizontal + modalStyles.borderWidth) * 2 + 1}];
