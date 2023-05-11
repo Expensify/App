@@ -205,7 +205,7 @@ class ReportActionItem extends Component {
             children = (
                 <TaskAction
                     taskReportID={this.props.action.originalMessage.taskReportID.toString()}
-                    action={this.props.action}
+                    actionName={this.props.action.actionName}
                     isHovered={hovered}
                 />
             );
