@@ -286,8 +286,8 @@ describe('OptionsListUtils', () => {
 
         // Value with latest lastVisibleActionCreated should be at the top.
         expect(results.recentReports.length).toBe(2);
-        expect(results.recentReports[0].text).toBe('Mister Fantastic');
-        expect(results.recentReports[1].text).toBe('Mister Fantastic');
+        expect(results.recentReports[0].displayName).toBe('Mister Fantastic');
+        expect(results.recentReports[1].displayName).toBe('Mister Fantastic');
 
         return waitForPromisesToResolve()
             .then(() => Onyx.set(ONYXKEYS.PERSONAL_DETAILS, PERSONAL_DETAILS_WITH_PERIODS))
@@ -297,7 +297,7 @@ describe('OptionsListUtils', () => {
 
                 // Then we expect to have the personal detail with period filtered
                 expect(results.recentReports.length).toBe(1);
-                expect(results.recentReports[0].text).toBe('The Flash');
+                expect(results.recentReports[0].displayName).toBe('The Flash');
             });
     });
 
@@ -316,10 +316,10 @@ describe('OptionsListUtils', () => {
         expect(results.personalDetails.length).toBe(_.size(PERSONAL_DETAILS) - 1 - MAX_RECENT_REPORTS);
 
         // We should expect personal details sorted alphabetically
-        expect(results.personalDetails[0].text).toBe('Black Widow');
-        expect(results.personalDetails[1].text).toBe('Invisible Woman');
-        expect(results.personalDetails[2].text).toBe('Spider-Man');
-        expect(results.personalDetails[3].text).toBe('The Incredible Hulk');
+        expect(results.personalDetails[0].displayName).toBe('Black Widow');
+        expect(results.personalDetails[1].displayName).toBe('Invisible Woman');
+        expect(results.personalDetails[2].displayName).toBe('Spider-Man');
+        expect(results.personalDetails[3].displayName).toBe('The Incredible Hulk');
 
         // Then the result which has an existing report should also have the reportID attached
         const personalDetailWithExistingReport = _.find(results.personalDetails, (personalDetail) => personalDetail.login === 'peterparker@expensify.com');
@@ -329,10 +329,10 @@ describe('OptionsListUtils', () => {
         results = OptionsListUtils.getNewChatOptions([], PERSONAL_DETAILS, [], '');
 
         // We should expect personal details sorted alphabetically
-        expect(results.personalDetails[0].text).toBe('Black Panther');
-        expect(results.personalDetails[1].text).toBe('Black Widow');
-        expect(results.personalDetails[2].text).toBe('Captain America');
-        expect(results.personalDetails[3].text).toBe('Invisible Woman');
+        expect(results.personalDetails[0].displayName).toBe('Black Panther');
+        expect(results.personalDetails[1].displayName).toBe('Black Widow');
+        expect(results.personalDetails[2].displayName).toBe('Captain America');
+        expect(results.personalDetails[3].displayName).toBe('Invisible Woman');
 
         // When we provide a search value that does not match any personal details
         results = OptionsListUtils.getNewChatOptions(REPORTS, PERSONAL_DETAILS, [], 'magneto');
@@ -346,7 +346,7 @@ describe('OptionsListUtils', () => {
         // Then one recentReports will be returned and it will be the correct option
         // personalDetails should be empty array
         expect(results.recentReports.length).toBe(1);
-        expect(results.recentReports[0].text).toBe('Spider-Man');
+        expect(results.recentReports[0].displayName).toBe('Spider-Man');
         expect(results.personalDetails.length).toBe(0);
 
         // When we provide a search value that matches a partial display name or email
@@ -358,9 +358,9 @@ describe('OptionsListUtils', () => {
         expect(results.personalDetails.length).toBe(4);
         expect(results.recentReports.length).toBe(5);
         expect(results.personalDetails[0].login).toBe('natasharomanoff@expensify.com');
-        expect(results.recentReports[0].text).toBe('Captain America');
-        expect(results.recentReports[1].text).toBe('Mr Sinister');
-        expect(results.recentReports[2].text).toBe('Black Panther');
+        expect(results.recentReports[0].displayName).toBe('Captain America');
+        expect(results.recentReports[1].displayName).toBe('Mr Sinister');
+        expect(results.recentReports[2].displayName).toBe('Black Panther');
 
         // Test for Concierge's existence in chat options
         results = OptionsListUtils.getNewChatOptions(REPORTS_WITH_CONCIERGE, PERSONAL_DETAILS_WITH_CONCIERGE);
@@ -404,10 +404,10 @@ describe('OptionsListUtils', () => {
         expect(results.personalDetails.length).toBe(_.size(PERSONAL_DETAILS) - 6);
 
         // We should expect personal details sorted alphabetically
-        expect(results.personalDetails[0].text).toBe('Black Widow');
-        expect(results.personalDetails[1].text).toBe('Invisible Woman');
-        expect(results.personalDetails[2].text).toBe('Spider-Man');
-        expect(results.personalDetails[3].text).toBe('The Incredible Hulk');
+        expect(results.personalDetails[0].displayName).toBe('Black Widow');
+        expect(results.personalDetails[1].displayName).toBe('Invisible Woman');
+        expect(results.personalDetails[2].displayName).toBe('Spider-Man');
+        expect(results.personalDetails[3].displayName).toBe('The Incredible Hulk');
 
         // And none of our personalDetails should include any of the users with recent reports
         const reportLogins = _.map(results.recentReports, (reportOption) => reportOption.login);
@@ -429,7 +429,7 @@ describe('OptionsListUtils', () => {
 
         // Then all single participant reports that match will show up in the recentReports array, Recently used contact should be at the top
         expect(results.recentReports.length).toBe(5);
-        expect(results.recentReports[0].text).toBe('Captain America');
+        expect(results.recentReports[0].displayName).toBe('Captain America');
 
         // And logins with no single participant reports will show up in personalDetails
         expect(results.personalDetails.length).toBe(4);
@@ -589,10 +589,10 @@ describe('OptionsListUtils', () => {
         let results = OptionsListUtils.getMemberInviteOptions(PERSONAL_DETAILS, [], '');
 
         // We should expect personal details PERSONAL_DETAILS order
-        expect(results.personalDetails[0].text).toBe('Mister Fantastic');
-        expect(results.personalDetails[1].text).toBe('Spider-Man');
-        expect(results.personalDetails[2].text).toBe('Black Panther');
-        expect(results.personalDetails[3].text).toBe('Invisible Woman');
+        expect(results.personalDetails[0].displayName).toBe('Mister Fantastic');
+        expect(results.personalDetails[1].displayName).toBe('Spider-Man');
+        expect(results.personalDetails[2].displayName).toBe('Black Panther');
+        expect(results.personalDetails[3].displayName).toBe('Invisible Woman');
 
         // When we provide a search value that does not match any personal details
         results = OptionsListUtils.getMemberInviteOptions(PERSONAL_DETAILS, [], 'magneto');
@@ -605,6 +605,6 @@ describe('OptionsListUtils', () => {
 
         // Then one personal should be in personalDetails list
         expect(results.personalDetails.length).toBe(1);
-        expect(results.personalDetails[0].text).toBe('Spider-Man');
+        expect(results.personalDetails[0].displayName).toBe('Spider-Man');
     });
 });
