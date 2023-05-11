@@ -26,6 +26,7 @@ import colors from '../../styles/colors';
 import reportPropTypes from '../reportPropTypes';
 import ONYXKEYS from '../../ONYXKEYS';
 import ThreeDotsMenu from '../../components/ThreeDotsMenu';
+import withParentReportAction, {withParentReportActionDefaultProps, withParentReportActionPropTypes} from '../../components/withParentReportAction';
 
 const propTypes = {
     /** Toggles the navigationMenu open and closed */
@@ -48,6 +49,7 @@ const propTypes = {
 
     ...windowDimensionsPropTypes,
     ...withLocalizePropTypes,
+    ...withParentReportActionPropTypes,
 };
 
 const defaultProps = {
@@ -57,6 +59,7 @@ const defaultProps = {
         guideCalendarLink: null,
     },
     parentReport: {},
+    ...withParentReportActionDefaultProps,
 };
 
 const HeaderView = (props) => {
@@ -221,6 +224,7 @@ HeaderView.displayName = 'HeaderView';
 HeaderView.defaultProps = defaultProps;
 
 export default compose(
+    withParentReportAction,
     withWindowDimensions,
     withLocalize,
     withOnyx({

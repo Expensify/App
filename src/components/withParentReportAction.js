@@ -1,7 +1,6 @@
 import React from 'react';
 import PropTypes from 'prop-types';
 import {withOnyx} from 'react-native-onyx';
-import lodashGet from 'lodash/get';
 import getComponentDisplayName from '../libs/getComponentDisplayName';
 import ONYXKEYS from '../ONYXKEYS';
 import reportActionPropTypes from '../pages/home/report/reportActionPropTypes';
@@ -17,10 +16,7 @@ const withParentReportActionDefaultProps = {
 
 export default function (WrappedComponent) {
     const propTypes = {
-        forwardedRef: PropTypes.oneOfType([
-            PropTypes.func,
-            PropTypes.shape({current: PropTypes.instanceOf(React.Component)}),
-        ]),
+        forwardedRef: PropTypes.oneOfType([PropTypes.func, PropTypes.shape({current: PropTypes.instanceOf(React.Component)})]),
 
         /** All Report actions for the parent report */
         parentReportActions: PropTypes.objectOf(PropTypes.shape(reportActionPropTypes)),
@@ -35,8 +31,8 @@ export default function (WrappedComponent) {
     };
 
     const WithParentReportAction = (props) => {
-        const parentReportActionID = props.report ? `${lodashGet(props.report, 'parentReportActionID', '')}` : '';
-        const parentReportAction = parentReportActionID ? lodashGet(props.parentReportActions, parentReportActionID, {}) : {};
+        const parentReportActionID = props.report ? props.report.parentReportActionID : '';
+        const parentReportAction = props.parentReportActions[parentReportActionID] || {};
 
         return (
             <WrappedComponent
@@ -54,8 +50,11 @@ export default function (WrappedComponent) {
     WithParentReportAction.defaultProps = defaultProps;
 
     const withParentReportAction = React.forwardRef((props, ref) => (
-        // eslint-disable-next-line react/jsx-props-no-spreading
-        <WithParentReportAction {...props} forwardedRef={ref} />
+        <WithParentReportAction
+            // eslint-disable-next-line react/jsx-props-no-spreading
+            {...props}
+            forwardedRef={ref}
+        />
     ));
 
     return withOnyx({
@@ -67,7 +66,4 @@ export default function (WrappedComponent) {
     })(withParentReportAction);
 }
 
-export {
-    withParentReportActionPropTypes,
-    withParentReportActionDefaultProps,
-};
+export {withParentReportActionPropTypes, withParentReportActionDefaultProps};
