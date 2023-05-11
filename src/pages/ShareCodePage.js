@@ -1,6 +1,5 @@
 import React from 'react';
 import {View} from 'react-native';
-import PropTypes from 'prop-types';
 import ScreenWrapper from '../components/ScreenWrapper';
 import HeaderWithCloseButton from '../components/HeaderWithCloseButton';
 import Navigation from '../libs/Navigation/Navigation';
@@ -17,14 +16,6 @@ import Clipboard from '../libs/Clipboard';
 import * as Expensicons from '../components/Icon/Expensicons';
 
 const propTypes = {
-    /** Navigation route context info provided by react navigation */
-    route: PropTypes.shape({
-        /** Route specific parameters used on this screen */
-        params: PropTypes.shape({
-            reportID: PropTypes.string,
-        }).isRequired,
-    }).isRequired,
-
     /** The report currently being looked at */
     report: reportPropTypes,
 
@@ -80,7 +71,6 @@ class ShareCodePage extends React.Component {
                         // eslint-disable-next-line es/no-optional-chaining
                         onPress={() => this.qrCodeRef.current?.download()}
                     />
-
                 </View>
             </ScreenWrapper>
         );
@@ -90,7 +80,4 @@ class ShareCodePage extends React.Component {
 ShareCodePage.propTypes = propTypes;
 ShareCodePage.defaultProps = defaultProps;
 
-export default compose(
-    withLocalize,
-    withCurrentUserPersonalDetails,
-)(ShareCodePage);
+export default compose(withLocalize, withCurrentUserPersonalDetails)(ShareCodePage);
