@@ -752,6 +752,11 @@ function getIcons(report, personalDetails, defaultIcon = null) {
         const parentReport = lodashGet(allReports, [`${ONYXKEYS.COLLECTION.REPORT}${report.parentReportID}`]);
         const parentReportAction = ReportActionsUtils.getParentReportAction(report);
 
+        if (!parentReport) {
+            result.source = Expensicons.ActiveRoomAvatar;
+            return [result];
+        }
+
         if (getChatType(parentReport)) {
             result.source = getWorkspaceAvatar(parentReport);
             result.type = CONST.ICON_TYPE_WORKSPACE;
