@@ -122,10 +122,10 @@ function requestMoney(report, amount, currency, payeeEmail, participant, comment
         '',
         moneyRequestReport.reportID,
     );
-    
-    let reportPreview = ReportActionsUtils.getReportPreviewAction(chatReport.reportID, iouReport.reportID);
+
+    let reportPreview = ReportActionsUtils.getReportPreviewAction(chatReport.reportID, moneyRequestReport.reportID);
     if (!reportPreview) {
-        reportPreview = ReportActionsUtils.buildOptimisticReportPreview(chatReport.reportID, iouReport.reportID);
+        reportPreview = ReportActionsUtils.buildOptimisticReportPreview(chatReport.reportID, moneyRequestReport.reportID);
     }
 
     // First, add data that will be used in all cases
@@ -247,7 +247,7 @@ function requestMoney(report, amount, currency, payeeEmail, participant, comment
             reportActionID: optimisticReportAction.reportActionID,
             createdReportActionID: isNewChat ? optimisticCreatedAction.reportActionID : 0,
             reportPreviewReportActionID: reportPreview.reportActionID,
-    },
+        },
         {optimisticData, successData, failureData},
     );
     Navigation.navigate(ROUTES.getReportRoute(chatReport.reportID));

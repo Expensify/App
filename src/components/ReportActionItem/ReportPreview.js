@@ -1,6 +1,7 @@
-import _, {compose} from 'underscore';
+import {compose} from 'underscore';
 import lodashGet from 'lodash/get';
 import React from 'react';
+import {withOnyx} from 'react-native-onyx';
 import {View, Pressable} from 'react-native';
 import PropTypes from 'prop-types';
 import Text from '../Text';
@@ -16,7 +17,6 @@ import * as StyleUtils from '../../styles/StyleUtils';
 import getButtonState from '../../libs/getButtonState';
 import Navigation from '../../libs/Navigation/Navigation';
 import ROUTES from '../../ROUTES';
-import {withOnyx} from 'react-native-onyx';
 import ONYXKEYS from '../../ONYXKEYS';
 import Button from '../Button';
 import CONST from '../../CONST';
@@ -60,6 +60,18 @@ const propTypes = {
         hasOutstandingIOU: PropTypes.bool,
     }),
 
+    /** chatReport that is associated with this request */
+    chatReport: PropTypes.shape({
+        /** Display name for report */
+        displayName: PropTypes.string,
+    }),
+
+    /** Session info for the currently logged in user. */
+    session: PropTypes.shape({
+        /** Currently logged in user email */
+        email: PropTypes.string,
+    }),
+
     ...withLocalizePropTypes,
 };
 
@@ -67,10 +79,14 @@ const defaultProps = {
     contextMenuAnchor: undefined,
     checkIfContextMenuActive: () => {},
     isHovered: false,
+    chatReport: {},
+    iouReport: {},
+    session: {
+        email: null,
+    },
 };
 
 const ReportPreview = (props) => {
-
     if (props.iouReport.total === 0) {
         return null;
     }
@@ -84,54 +100,40 @@ const ReportPreview = (props) => {
         Navigation.navigate(ROUTES.getIouDetailsRoute(props.chatReportID, props.action.originalMessage.IOUReportID));
     };
 
-    const cachedTotal = props.iouReport.total && props.iouReport.currency
-        ? props.numberFormat(
-            Math.abs(props.iouReport.total) / 100,
-            {style: 'currency', currency: props.iouReport.currency},
-        ) : '';
-    
+    const cachedTotal =
+        props.iouReport.total && props.iouReport.currency ? props.numberFormat(Math.abs(props.iouReport.total) / 100, {style: 'currency', currency: props.iouReport.currency}) : '';
+
     const text = props.iouReport.hasOutstandingIOU ? `${props.chatReport.displayName} owes ${cachedTotal}` : `Settled up ${cachedTotal}`;
-    
+
     return (
         <View style={[styles.chatItemMessage]}>
             <Pressable
                 onPress={launchDetailsModal}
                 onPressIn={() => DeviceCapabilities.canUseTouchScreen() && ControlSelection.block()}
                 onPressOut={() => ControlSelection.unblock()}
-                onLongPress={event => showContextMenuForReport(
-                    event,
-                    props.contextMenuAnchor,
-                    props.chatReportID,
-                    props.action,
-                    props.checkIfContextMenuActive,
-                )}
+                onLongPress={(event) => showContextMenuForReport(event, props.contextMenuAnchor, props.chatReportID, props.action, props.checkIfContextMenuActive)}
                 style={[styles.flexRow, styles.justifyContentBetween]}
                 focusable
             >
                 <View>
-                    <Text style={[styles.flex1, styles.mr2, styles.chatItemMessage, styles.cursorPointer]}>
-                        {text}
-                    </Text>
-                    {(isCurrentUserManager && props.iouReport.stateNum === CONST.REPORT.STATE_NUM.PROCESSING && (
+                    <Text style={[styles.flex1, styles.mr2, styles.chatItemMessage, styles.cursorPointer]}>{text}</Text>
+                    {isCurrentUserManager && props.iouReport.stateNum === CONST.REPORT.STATE_NUM.PROCESSING && (
                         <Button
                             style={styles.mt4}
-                            onPress={() => { }}
+                            onPress={() => {}}
                             onPressIn={() => DeviceCapabilities.canUseTouchScreen() && ControlSelection.block()}
                             onPressOut={() => ControlSelection.unblock()}
-                            onLongPress={event => showContextMenuForReport(
-                                event,
-                                props.contextMenuAnchor,
-                                props.chatReportID,
-                                props.action,
-                                props.checkIfContextMenuActive,
-                            )}
+                            onLongPress={(event) => showContextMenuForReport(event, props.contextMenuAnchor, props.chatReportID, props.action, props.checkIfContextMenuActive)}
                             text={props.translate('iou.pay')}
                             success
                             medium
                         />
-                    ))}
+                    )}
                 </View>
-                <Icon src={Expensicons.ArrowRight} fill={StyleUtils.getIconFillColor(getButtonState(props.isHovered))} />
+                <Icon
+                    src={Expensicons.ArrowRight}
+                    fill={StyleUtils.getIconFillColor(getButtonState(props.isHovered))}
+                />
             </Pressable>
         </View>
     );

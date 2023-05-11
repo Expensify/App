@@ -83,7 +83,7 @@ function getSortedReportActions(reportActions, shouldSortInDescendingOrder = fal
             }
             // Ensure that `REPORTPREVIEW` actions always come after if they have the same timestamp as another action type
             if ((first.actionName === CONST.REPORT.ACTIONS.TYPE.REPORTPREVIEW || second.actionName === CONST.REPORT.ACTIONS.TYPE.REPORTPREVIEW) && first.actionName !== second.actionName) {
-                return ((first.actionName === CONST.REPORT.ACTIONS.TYPE.REPORTPREVIEW) ? 1 : -1) * invertedMultiplier;
+                return (first.actionName === CONST.REPORT.ACTIONS.TYPE.REPORTPREVIEW ? 1 : -1) * invertedMultiplier;
             }
 
             // Then fallback on reportActionID as the final sorting criteria. It is a random number,
@@ -305,36 +305,38 @@ function getLinkedTransactionID(reportID, reportActionID) {
 }
 
 /**
- * @param {*} chatReportID 
+ * @param {*} chatReportID
  * @param {*} iouReportID
  * @returns {Object} The report preview action or `null` if one couldn't be found
  */
 function getReportPreviewAction(chatReportID, iouReportID) {
-    return _.find(allReportActions[chatReportID], (reportAction) => {
-        return reportAction.actionName === CONST.REPORT.ACTIONS.TYPE.REPORTPREVIEW
-            && lodashGet(reportAction, 'originalMessage.IOUReportID') == iouReportID;
-    });
+    return _.find(
+        allReportActions[chatReportID],
+        (reportAction) => reportAction.actionName === CONST.REPORT.ACTIONS.TYPE.REPORTPREVIEW && lodashGet(reportAction, 'originalMessage.IOUReportID') == iouReportID,
+    );
 }
 
 function buildOptimisticReportPreview(reportID, iouReportID, payeeAccountID) {
-    return ({
+    return {
         reportActionID: NumberUtils.rand64(),
-        reportID: reportID,
+        reportID,
         created: DateUtils.getDBTime(),
         actionName: CONST.REPORT.ACTIONS.TYPE.REPORTPREVIEW,
         pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
         accountID: payeeAccountID,
-        message: [{
-            html: '',
-            text: '',
-            isEdited: false,
-            type: CONST.REPORT.MESSAGE.TYPE.COMMENT
-        }],
+        message: [
+            {
+                html: '',
+                text: '',
+                isEdited: false,
+                type: CONST.REPORT.MESSAGE.TYPE.COMMENT,
+            },
+        ],
         originalMessage: {
             IOUReportID: iouReportID,
         },
         actorEmail: currentUserEmail,
-    });
+    };
 }
 
 function isCreatedTaskReportAction(reportAction) {
