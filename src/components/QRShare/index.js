@@ -27,8 +27,6 @@ const defaultProps = {
 };
 
 class QRShare extends Component {
-    qrCodeScreenshotRef = React.createRef();
-
     constructor(props) {
         super(props);
 
@@ -37,12 +35,17 @@ class QRShare extends Component {
         };
 
         this.onLayout = this.onLayout.bind(this);
+        this.getSvg = this.getSvg.bind(this);
     }
 
     onLayout(event) {
         this.setState({
             qrCodeSize: event.nativeEvent.layout.width - variables.qrShareHorizontalPadding * 2,
         });
+    }
+
+    getSvg() {
+        return this.svg;
     }
 
     render() {
@@ -68,7 +71,7 @@ class QRShare extends Component {
                 <QRCodeLibrary
                     value={this.props.url}
                     logo={this.props.logo}
-                    getRef={(c) => (this.svg = c)}
+                    getRef={(svg) => (this.svg = svg)}
                     logoBackgroundColor="transparent"
                     logoSize={this.state.qrCodeSize * 0.3}
                     logoBorderRadius={this.state.qrCodeSize}
