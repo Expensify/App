@@ -55,6 +55,7 @@ class ShareCodePage extends React.Component {
                     <View style={styles.shareCodePage}>
                         <QRShareWithDownload
                             ref={this.qrCodeRef}
+                            url={url}
                             title={isReport ? this.props.report.reportName : this.props.currentUserPersonalDetails.displayName}
                             subtitle={isReport ? ReportUtils.getPolicyName(this.props.report) : this.props.session.email}
                             logo={isReport ? roomAvatar : this.props.currentUserPersonalDetails.avatar}
