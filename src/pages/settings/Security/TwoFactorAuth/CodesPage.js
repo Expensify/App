@@ -41,7 +41,11 @@ function CodesPage(props) {
         <ScreenWrapper>
             <HeaderWithCloseButton
                 title={props.translate('twoFactorAuth.headerTitle')}
-                subtitle={props.translate('twoFactorAuth.stepCodes')}
+                shouldShowStepCounter
+                stepCounter={{
+                    step: 1,
+                    text: props.translate('twoFactorAuth.stepCodes'),
+                }}
                 shouldShowBackButton
                 onBackButtonPress={() => Navigation.navigate(ROUTES.SETTINGS_SECURITY)}
                 onCloseButtonPress={() => Navigation.dismissModal(true)}

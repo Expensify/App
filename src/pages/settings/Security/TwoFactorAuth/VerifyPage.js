@@ -86,7 +86,11 @@ function VerifyPage(props) {
         <ScreenWrapper>
             <HeaderWithCloseButton
                 title={props.translate('twoFactorAuth.headerTitle')}
-                subtitle={props.translate('twoFactorAuth.stepVerify')}
+                shouldShowStepCounter
+                stepCounter={{
+                    step: 2,
+                    text: props.translate('twoFactorAuth.stepVerify'),
+                }}
                 shouldShowBackButton
                 onBackButtonPress={() => Navigation.navigate(ROUTES.SETTINGS_TWO_FACTOR_CODES)}
                 onCloseButtonPress={() => Navigation.dismissModal(true)}

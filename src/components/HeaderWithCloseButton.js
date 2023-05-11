@@ -77,6 +77,7 @@ const propTypes = {
     stepCounter: PropTypes.shape({
         step: PropTypes.number,
         total: PropTypes.number,
+        text: PropTypes.string,
     }),
 
     /** Whether we should show an avatar */

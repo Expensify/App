@@ -490,16 +490,16 @@ export default {
         disableTwoFactorAuthConfirmation: 'Two-factor authentication keeps your account more secure. Are you sure you want to disable it?',
         disabled: 'Two-factor authentication is now disabled',
         noAuthenticatorApp: 'You’ll no longer require an authenticator app to log into Expensify.',
-        stepCodes: 'Step 1: Recovery codes',
+        stepCodes: 'Recovery codes',
         keepCodesSafe: 'Keep these recovery codes safe!',
         codesLoseAccess:
             'If you lose access to your authenticator app and don’t have these codes, you will lose access to your account. \n\nNote: Setting up two factor authentication will log you out of all other active sessions.',
-        stepVerify: 'Step 2: Verify',
+        stepVerify: 'Verify',
         scanCode: 'Scan the QR code using your',
         authenticatorApp: 'authenticator app',
         addKey: 'Or add this secret key to your authenticator app:',
         enterCode: 'Then enter the six digit code generated from your authenticator app.',
-        stepSuccess: 'Step 3: Finished',
+        stepSuccess: 'Finished',
         enabled: 'Two-factor authentication is now enabled!',
         congrats: 'Congrats, now you’ve got that extra security.',
         copyCodes: 'Copy codes',
@@ -737,7 +737,18 @@ export default {
         setPasswordLinkInvalid: 'This set password link is invalid or has expired. A new one is waiting for you in your email inbox!',
         validateAccount: 'Verify account',
     },
-    stepCounter: ({step, total}) => `Step ${step} of ${total}`,
+    stepCounter: ({step, total, text}) => {
+        let result = `Step ${step}`;
+
+        if (total) {
+            result = `${result} of ${total}`;
+        }
+
+        if (text) {
+            result = `${result}: ${text}`;
+        }
+        return result;
+    },
     bankAccount: {
         accountNumber: 'Account number',
         routingNumber: 'Routing number',

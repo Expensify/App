@@ -15,7 +15,11 @@ function SuccessPage(props) {
         <ScreenWrapper>
             <HeaderWithCloseButton
                 title={props.translate('twoFactorAuth.headerTitle')}
-                subtitle={props.translate('twoFactorAuth.stepSuccess')}
+                shouldShowStepCounter
+                stepCounter={{
+                    step: 3,
+                    text: props.translate('twoFactorAuth.stepSuccess'),
+                }}
                 shouldShowBackButton
                 onBackButtonPress={() => Navigation.navigate(ROUTES.SETTINGS_SECURITY)}
                 onCloseButtonPress={() => Navigation.dismissModal(true)}

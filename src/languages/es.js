@@ -490,16 +490,16 @@ export default {
         disableTwoFactorAuthConfirmation: 'La autenticación de dos factores mantiene tu cuenta más segura. ¿Estás seguro de que quieres desactivarla?',
         disabled: 'La autenticación de dos factores ahora está deshabilitada',
         noAuthenticatorApp: 'Ya no necesitarás una aplicación de autenticación para iniciar sesión en Expensify.',
-        stepCodes: 'Paso 1: Códigos de recuperación',
+        stepCodes: 'Códigos de recuperación',
         keepCodesSafe: '¡Guarda los códigos de recuperación en un lugar seguro!',
         codesLoseAccess:
             'Si pierdes el acceso a tu aplicación de autenticación y no tienes estos códigos, perderás el acceso a tu cuenta. \n\nNota: Configurar la autenticación de dos factores cerrará la sesión de todas las demás sesiones activas.',
-        stepVerify: 'Paso 2: Verificar',
+        stepVerify: 'Verificar',
         scanCode: 'Escanea el código QR usando tu',
         authenticatorApp: 'aplicación de autenticación',
         addKey: 'O agrega esta clave secreta a su aplicación de autenticación:',
         enterCode: 'Luego ingresa el código de seis dígitos generado por su aplicación de autenticación.',
-        stepSuccess: 'Paso 3: Terminado',
+        stepSuccess: 'Finalizado',
         enabled: '¡La autenticación de dos factores ahora está habilitada!',
         congrats: 'Felicidades, ahora tienes esa seguridad adicional.',
         copyCodes: 'Copiar códigos',
@@ -738,7 +738,18 @@ export default {
         setPasswordLinkInvalid: 'El enlace para configurar tu contraseña ha expirado. Te hemos enviado un nuevo enlace a tu correo.',
         validateAccount: 'Verificar cuenta',
     },
-    stepCounter: ({step, total}) => `Paso ${step} de ${total}`,
+    stepCounter: ({step, total, text}) => {
+        let result = `Paso ${step}`;
+
+        if (total) {
+            result = `${result} de ${total}`;
+        }
+
+        if (text) {
+            result = `${result}: ${text}`;
+        }
+        return result;
+    },
     bankAccount: {
         accountNumber: 'Número de cuenta',
         routingNumber: 'Número de ruta',
