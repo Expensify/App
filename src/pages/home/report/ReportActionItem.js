@@ -48,6 +48,7 @@ import personalDetailsPropType from '../../personalDetailsPropType';
 import ReportActionItemDraft from './ReportActionItemDraft';
 import TaskPreview from '../../../components/ReportActionItem/TaskPreview';
 import * as ReportActionUtils from '../../../libs/ReportActionsUtils';
+import * as EmojiUtils from '../../../libs/EmojiUtils';
 
 const propTypes = {
     /** Report for this action */
@@ -400,6 +401,7 @@ export default compose(
     withOnyx({
         preferredSkinTone: {
             key: ONYXKEYS.PREFERRED_EMOJI_SKIN_TONE,
+            selector: EmojiUtils.getPreferredSkinToneIndex,
         },
     }),
 )(ReportActionItem);

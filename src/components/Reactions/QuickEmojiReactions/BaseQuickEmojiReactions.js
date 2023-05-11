@@ -10,6 +10,7 @@ import styles from '../../../styles/styles';
 import ONYXKEYS from '../../../ONYXKEYS';
 import getPreferredEmojiCode from '../getPreferredEmojiCode';
 import Tooltip from '../../Tooltip';
+import * as EmojiUtils from '../../../libs/EmojiUtils';
 
 const baseQuickEmojiReactionsPropTypes = {
     /**
@@ -78,6 +79,7 @@ BaseQuickEmojiReactions.defaultProps = defaultProps;
 export default withOnyx({
     preferredSkinTone: {
         key: ONYXKEYS.PREFERRED_EMOJI_SKIN_TONE,
+        selector: EmojiUtils.getPreferredSkinToneIndex,
     },
 })(BaseQuickEmojiReactions);
 

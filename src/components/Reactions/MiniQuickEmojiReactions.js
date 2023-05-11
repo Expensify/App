@@ -17,6 +17,7 @@ import withLocalize, {withLocalizePropTypes} from '../withLocalize';
 import compose from '../../libs/compose';
 import ONYXKEYS from '../../ONYXKEYS';
 import getPreferredEmojiCode from './getPreferredEmojiCode';
+import * as EmojiUtils from '../../libs/EmojiUtils';
 
 const propTypes = {
     ...baseQuickEmojiReactionsPropTypes,
@@ -96,6 +97,7 @@ export default compose(
     withOnyx({
         preferredSkinTone: {
             key: ONYXKEYS.PREFERRED_EMOJI_SKIN_TONE,
+            selector: EmojiUtils.getPreferredSkinToneIndex,
         },
     }),
 )(MiniQuickEmojiReactions);
