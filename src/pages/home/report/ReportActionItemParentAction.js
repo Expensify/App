@@ -4,7 +4,6 @@ import lodashGet from 'lodash/get';
 import {withOnyx} from 'react-native-onyx';
 import PropTypes from 'prop-types';
 import ONYXKEYS from '../../../ONYXKEYS';
-import * as ReportUtils from '../../../libs/ReportUtils';
 import styles from '../../../styles/styles';
 import OfflineWithFeedback from '../../../components/OfflineWithFeedback';
 import * as Report from '../../../libs/actions/Report';
@@ -25,6 +24,8 @@ const propTypes = {
     // eslint-disable-next-line react/no-unused-prop-types
     parentReportID: PropTypes.string.isRequired,
 
+    /** ONYX PROPS */
+
     /** The report currently being looked at */
     report: reportPropTypes,
 
@@ -39,8 +40,8 @@ const defaultProps = {
 };
 
 const ReportActionItemParentAction = (props) => {
-    // Will update in subsequent PR to use HOC to subscribe to action
-    const parentReportAction = ReportUtils.getParentReportAction_DEV(props.parentReportActions, props.report.parentReportActionID);
+    // TO DO: Replace with HOC https://github.com/Expensify/App/issues/18769.
+    const parentReportAction = props.parentReportActions[`${props.report.parentReportActionID}`];
     return (
         <OfflineWithFeedback
             pendingAction={lodashGet(props.report, 'pendingFields.addWorkspaceRoom') || lodashGet(props.report, 'pendingFields.createChat')}

@@ -41,14 +41,16 @@ function isDeletedAction(reportAction) {
 }
 
 /**
- * Returns the object of reportActions
+ * Returns the parentReportAction if the given report is a thread.
  *
- * @param {String} reportID
+ * @param {Object} report
  * @returns {Object}
  */
-function getReportActions(reportID) {
-    const reportAction = lodashGet(allReportActions, [reportID]);
-    return reportAction;
+function getParentReportAction(report) {
+    if (!report || !report.parentReportID || !report.parentReportActionID) {
+        return {};
+    }
+    return lodashGet(allReportActions, [report.parentReportID, report.parentReportActionID], {});
 }
 
 /**
@@ -309,5 +311,5 @@ export {
     getLastClosedReportAction,
     getLatestReportActionFromOnyxData,
     getLinkedTransactionID,
-    getReportActions,
+    getParentReportAction,
 };

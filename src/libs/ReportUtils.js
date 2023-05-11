@@ -91,22 +91,6 @@ function getChatType(report) {
 }
 
 /**
- * Returns the report action with key parentReportID.
- * This function is to be replaced by a HOC.
- *
- * @param {Object} parentReportActions
- * @param {string} parentReportID
- * @returns {Object}
- */
-function getParentReportAction_DEV(parentReportActions, parentReportID) {
-    if (!parentReportActions) {
-        return {};
-    }
-    const matchingKey = _.find(_.keys(parentReportActions), (key) => _.isEqual(key, parentReportID));
-    return matchingKey ? parentReportActions[matchingKey] : null;
-}
-
-/**
  * Returns the concatenated title for the PrimaryLogins of a report
  *
  * @param {Array} logins
@@ -453,7 +437,7 @@ function isThread(report) {
  * @returns {Boolean}
  */
 function isThreadParent(reportAction) {
-    if (!reportAction || !reportAction.childReportID || reportAction.childReportID === '0') {
+    if (!reportAction || !reportAction.childReportID || reportAction.childReportID === 0) {
         return false;
     }
     return true;
@@ -764,9 +748,7 @@ function getIcons(report, personalDetails, defaultIcon = null) {
     }
     if (isThread(report)) {
         const parentReport = lodashGet(allReports, [`${ONYXKEYS.COLLECTION.REPORT}${report.parentReportID}`]);
-
-        const parentReportActions = ReportActionsUtils.getReportActions(report.parentReportID);
-        const parentReportAction = getParentReportAction_DEV(parentReportActions, `${report.parentReportActionID}`);
+        const parentReportAction = ReportActionsUtils.getParentReportAction(report);
 
         if (getChatType(parentReport)) {
             result.source = getWorkspaceAvatar(parentReport);
@@ -963,7 +945,12 @@ function getPolicyExpenseChatName(report) {
  */
 function getReportName(report) {
     let formattedName;
-    if (isChatRoom(report) || isThread(report)) {
+    if (isThread(report)) {
+        const parentReportAction = ReportActionsUtils.getParentReportAction(report);
+        const parentReportActionMessage = lodashGet(parentReportAction, ['message', 0, 'text']);
+        return parentReportActionMessage || Localize.translateLocal('parentReportAction.deletedMessage');
+    }
+    if (isChatRoom(report)) {
         formattedName = report.reportName;
     }
 
@@ -2005,5 +1992,4 @@ export {
     getWorkspaceAvatar,
     isThread,
     isThreadParent,
-    getParentReportAction_DEV,
 };

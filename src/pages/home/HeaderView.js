@@ -62,8 +62,8 @@ const defaultProps = {
 };
 
 const HeaderView = (props) => {
-    // TO DO: Replace with subscribing to specific action rather than all.
-    const parentReportAction = ReportUtils.getParentReportAction_DEV(props.parentReportActions, `${props.report.parentReportActionID}`);
+    // TO DO: Replace with HOC https://github.com/Expensify/App/issues/18769.
+    const parentReportAction = props.parentReportActions[`${props.report.parentReportActionID}`];
     const participants = lodashGet(props.report, 'participants', []);
     const participantPersonalDetails = OptionsListUtils.getPersonalDetailsForLogins(participants, props.personalDetails);
     const isMultipleParticipant = participants.length > 1;

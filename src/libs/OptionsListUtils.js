@@ -467,15 +467,6 @@ function createOption(logins, personalDetails, report, reportActions = {}, {show
     }
 
     result.text = reportName;
-
-    if (result.isThread) {
-        const parentReportAction =
-            ReportUtils.isThread(report) && allReportActions[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.parentReportID}`]
-                ? ReportUtils.getParentReportAction_DEV(allReportActions[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.parentReportID}`], `${report.parentReportActionID}`)
-                : {};
-        const parentReportActionMessage = lodashGet(parentReportAction, ['message', 0, 'text']);
-        result.text = parentReportActionMessage || Localize.translateLocal('threads.deletedMessage');
-    }
     result.searchText = getSearchText(report, reportName, personalDetailList, result.isChatRoom || result.isPolicyExpenseChat);
     result.icons = ReportUtils.getIcons(report, personalDetails, ReportUtils.getAvatar(personalDetail.avatar, personalDetail.login));
     result.subtitle = subtitle;

@@ -1296,7 +1296,7 @@ export default {
         chatUserDisplayNames: 'Chat user display names',
         scrollToNewestMessages: 'Scroll to newest messages',
     },
-    threads: {
+    parentReportAction: {
         deletedMessage: '[Deleted Message]',
     },
 };

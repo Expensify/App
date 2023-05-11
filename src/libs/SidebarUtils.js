@@ -329,15 +329,6 @@ function getOptionData(reportID) {
     const reportName = ReportUtils.getReportName(report);
 
     result.text = reportName;
-    if (result.isThread) {
-        const parentReportAction =
-            ReportUtils.isThread(report) && reportActions[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.parentReportID}`]
-                ? ReportUtils.getParentReportAction_DEV(reportActions[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.parentReportID}`], `${report.parentReportActionID}`)
-                : {};
-        const parentReportActionMessage = lodashGet(parentReportAction, ['message', 0, 'text']);
-        result.text = parentReportActionMessage || Localize.translateLocal('threads.deletedMessage');
-    }
-
     result.subtitle = subtitle;
     result.participantsList = participantPersonalDetailList;
 
