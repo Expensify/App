@@ -148,7 +148,7 @@ class SidebarLinks extends React.Component {
                     style={[styles.flexRow, styles.ph5, styles.pv3, styles.justifyContentBetween, styles.alignItemsCenter]}
                     nativeID="drag-area"
                 >
-                    <View>
+                    <View style={[styles.flex1, styles.flexRows]}>
                         <ExpensifyWordmark
                             color={defaultTheme.textLight}
                         />
