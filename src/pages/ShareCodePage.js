@@ -1,5 +1,5 @@
 import React from 'react';
-import {View} from 'react-native';
+import {View, ScrollView} from 'react-native';
 import ScreenWrapper from '../components/ScreenWrapper';
 import HeaderWithCloseButton from '../components/HeaderWithCloseButton';
 import Navigation from '../libs/Navigation/Navigation';
@@ -46,31 +46,33 @@ class ShareCodePage extends React.Component {
                     onCloseButtonPress={() => Navigation.dismissModal(true)}
                 />
 
-                <View style={styles.shareCodePage}>
-                    <QRShareWithDownload
-                        ref={this.qrCodeRef}
-                        title={isReport ? this.props.report.reportName : this.props.currentUserPersonalDetails.displayName}
-                        subtitle={isReport ? ReportUtils.getPolicyName(this.props.report) : this.props.session.email}
-                        logo={isReport ? roomAvatar : this.props.currentUserPersonalDetails.avatar}
-                    />
-                </View>
+                <ScrollView style={[styles.flex1, styles.mt3]}>
+                    <View style={styles.shareCodePage}>
+                        <QRShareWithDownload
+                            ref={this.qrCodeRef}
+                            title={isReport ? this.props.report.reportName : this.props.currentUserPersonalDetails.displayName}
+                            subtitle={isReport ? ReportUtils.getPolicyName(this.props.report) : this.props.session.email}
+                            logo={isReport ? roomAvatar : this.props.currentUserPersonalDetails.avatar}
+                        />
+                    </View>
 
-                <View style={{marginTop: 36}}>
-                    <MenuItem
-                        title={this.props.translate('common.share')}
-                        shouldShowRightIcon
-                        icon={Expensicons.Link}
-                        onPress={() => Clipboard.setString(url)}
-                    />
+                    <View style={{marginTop: 36}}>
+                        <MenuItem
+                            title={this.props.translate('common.share')}
+                            shouldShowRightIcon
+                            icon={Expensicons.Link}
+                            onPress={() => Clipboard.setString(url)}
+                        />
 
-                    <MenuItem
-                        title={this.props.translate('common.download')}
-                        shouldShowRightIcon
-                        icon={Expensicons.Download}
-                        // eslint-disable-next-line es/no-optional-chaining
-                        onPress={() => this.qrCodeRef.current?.download()}
-                    />
-                </View>
+                        <MenuItem
+                            title={this.props.translate('common.download')}
+                            shouldShowRightIcon
+                            icon={Expensicons.Download}
+                            // eslint-disable-next-line es/no-optional-chaining
+                            onPress={() => this.qrCodeRef.current?.download()}
+                        />
+                    </View>
+                </ScrollView>
             </ScreenWrapper>
         );
     }
