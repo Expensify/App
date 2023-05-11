@@ -1188,6 +1188,11 @@ export default {
         pleaseEnterTaskAssignee: 'Por favor, asigna una persona a esta tarea',
         pleaseEnterTaskDestination: 'Por favor, selecciona un destino de tarea',
     },
+    task: {
+        messages: {
+            completed: 'Completed task',
+        },
+    },
     statementPage: {
         generatingPDF: 'Estamos generando tu PDF ahora mismo. ¡Por favor, vuelve más tarde!',
     },
