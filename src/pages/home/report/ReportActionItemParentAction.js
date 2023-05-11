@@ -30,6 +30,7 @@ const propTypes = {
     report: reportPropTypes,
 
     /** The actions from the parent report */
+    // TO DO: Replace with HOC https://github.com/Expensify/App/issues/18769.
     parentReportActions: PropTypes.objectOf(PropTypes.shape(reportActionPropTypes)),
 
     ...windowDimensionsPropTypes,
@@ -40,7 +41,6 @@ const defaultProps = {
 };
 
 const ReportActionItemParentAction = (props) => {
-    // TO DO: Replace with HOC https://github.com/Expensify/App/issues/18769.
     const parentReportAction = props.parentReportActions[`${props.report.parentReportActionID}`];
     return (
         <OfflineWithFeedback

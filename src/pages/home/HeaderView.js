@@ -47,6 +47,8 @@ const propTypes = {
     }),
 
     /** The report actions from the parent report */
+    // TO DO: Replace with HOC https://github.com/Expensify/App/issues/18769.
+    // eslint-disable-next-line react/no-unused-prop-types
     parentReportActions: PropTypes.objectOf(PropTypes.shape(reportActionPropTypes)),
 
     ...windowDimensionsPropTypes,
@@ -63,8 +65,6 @@ const defaultProps = {
 };
 
 const HeaderView = (props) => {
-    // TO DO: Replace with HOC https://github.com/Expensify/App/issues/18769.
-    const parentReportAction = props.parentReportActions[`${props.report.parentReportActionID}`];
     const participants = lodashGet(props.report, 'participants', []);
     const participantPersonalDetails = OptionsListUtils.getPersonalDetailsForLogins(participants, props.personalDetails);
     const isMultipleParticipant = participants.length > 1;
@@ -73,7 +73,7 @@ const HeaderView = (props) => {
     const isChatRoom = ReportUtils.isChatRoom(props.report);
     const isPolicyExpenseChat = ReportUtils.isPolicyExpenseChat(props.report);
     const isTaskReport = ReportUtils.isTaskReport(props.report);
-    const title = isThread ? lodashGet(parentReportAction, ['message', 0, 'text'], '') : ReportUtils.getReportName(props.report);
+    const title = ReportUtils.getReportName(props.report);
     const subtitle = ReportUtils.getChatRoomSubtitle(props.report);
     const isConcierge = participants.length === 1 && _.contains(participants, CONST.EMAIL.CONCIERGE);
     const isAutomatedExpensifyAccount = participants.length === 1 && ReportUtils.hasAutomatedExpensifyEmails(participants);
