@@ -46,6 +46,7 @@ const propTypes = {
         guideCalendarLink: PropTypes.string,
     }),
 
+    /** The report actions from the parent report */
     parentReportActions: PropTypes.objectOf(PropTypes.shape(reportActionPropTypes)),
 
     ...windowDimensionsPropTypes,
@@ -232,7 +233,7 @@ export default compose(
             selector: (account) => account && {guideCalendarLink: account.guideCalendarLink},
         },
         parentReportActions: {
-            key: ({report}) => `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${lodashGet(report, 'parentReportID')}`,
+            key: ({report}) => `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.parentReportID}`,
             canEvict: false,
         },
     }),

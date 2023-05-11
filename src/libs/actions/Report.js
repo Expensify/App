@@ -370,7 +370,7 @@ function openReport(reportID, participantList = [], newReportObject = {}, parent
     const params = {
         reportID,
         emailList: participantList ? participantList.join(',') : '',
-        parentReportActionID: parentReportActionID === '0' ? null : parentReportActionID,
+        parentReportActionID,
     };
 
     // If we are creating a new report, we need to add the optimistic report data and a report action

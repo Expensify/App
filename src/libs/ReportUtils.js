@@ -424,10 +424,10 @@ function isPolicyExpenseChatAdmin(report, policies) {
  * @returns {Boolean}
  */
 function isThread(report) {
-    if (!report || !report.parentReportID || !report.parentReportActionID) {
-        return false;
+    if (report && report.parentReportID && report.parentReportActionID) {
+        return true;
     }
-    return true;
+    return false;
 }
 
 /**
@@ -437,10 +437,10 @@ function isThread(report) {
  * @returns {Boolean}
  */
 function isThreadParent(reportAction) {
-    if (!reportAction || !reportAction.childReportID || reportAction.childReportID === 0) {
-        return false;
+    if (reportAction && reportAction.childReportID && reportAction.childReportID !== 0) {
+        return true;
     }
-    return true;
+    return false;
 }
 
 /**
@@ -455,7 +455,7 @@ function getChatRoomSubtitle(report) {
         }
 
         // If thread is not from a DM or group chat, the subtitle will follow the pattern 'Workspace Name • #roomName'
-        const parentReport = lodashGet(allReports, [`${ONYXKEYS.COLLECTION.REPORT}${report.parentReportID}`]);
+        const parentReport = allReports[`${ONYXKEYS.COLLECTION.REPORT}${report.parentReportID}`];
         const workspaceName = getPolicyName(parentReport);
         const roomName = isChatRoom(parentReport) ? parentReport.displayName : '';
         return roomName ? `${workspaceName} • ${roomName}` : `${workspaceName}`;
@@ -757,9 +757,8 @@ function getIcons(report, personalDetails, defaultIcon = null) {
             return [result];
         }
 
-        const actorEmail = lodashGet(parentReportAction, 'actorEmail', '');
+        const actorEmail = parentReportAction.actorEmail;
         result.source = getAvatar(lodashGet(personalDetails, [actorEmail, 'avatar']), actorEmail);
-        result.type = CONST.ICON_TYPE_AVATAR;
         result.name = actorEmail;
         return [result];
     }
