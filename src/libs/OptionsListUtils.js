@@ -195,7 +195,7 @@ function getPersonalDetailsForLogins(logins, personalDetails) {
  * @returns {boolean}
  */
 function isPersonalDetailsReady(personalDetails) {
-    return !_.isEmpty(personalDetails) && !_.some(_.keys(personalDetails), key => !personalDetails[key].login);
+    return !_.isEmpty(personalDetails) && !_.some(_.keys(personalDetails), (key) => !personalDetails[key].login);
 }
 
 /**
