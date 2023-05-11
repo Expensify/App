@@ -70,7 +70,6 @@ const TaskPreview = (props) => {
                     containerStyle={[styles.taskCheckbox]}
                     isChecked={isTaskCompleted}
                     onPress={() => {
-                        // Being implemented in https://github.com/Expensify/App/issues/16858
                         TaskUtils.completeTask(props.taskReportID, parentReportID);
                     }}
                 />
