@@ -1778,8 +1778,8 @@ const styles = {
 
     secondAvatarSubscript: {
         position: 'absolute',
-        right: -4,
-        bottom: -2,
+        right: -6,
+        bottom: -6,
         borderWidth: 2,
         borderRadius: 18,
         borderColor: 'transparent',
