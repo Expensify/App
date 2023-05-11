@@ -502,6 +502,8 @@ export default {
         stepSuccess: 'Step 3: Finished',
         enabled: 'Two-factor authentication is now enabled!',
         congrats: 'Congrats, now you’ve got that extra security.',
+        copyCodes: 'Copy codes',
+        copy: 'Copy',
     },
     twoFactorAuthForm: {
         error: {

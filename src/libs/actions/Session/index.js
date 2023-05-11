@@ -761,7 +761,12 @@ function unlinkLogin(accountID, validateCode) {
     );
 }
 
-function enableTwoFactorAuth() {
+/**
+ * Toggles two-factor authentication based on the `enable` parameter
+ *
+ * @param {Boolean} enable
+ */
+function toggleTwoFactorAuth(enable) {
     const optimisticData = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
@@ -792,41 +797,7 @@ function enableTwoFactorAuth() {
         },
     ];
 
-    API.write('EnableTwoFactorAuth', {enable: true}, {optimisticData, successData, failureData});
-}
-
-function disableTwoFactorAuth() {
-    const optimisticData = [
-        {
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: ONYXKEYS.ACCOUNT,
-            value: {
-                isLoading: true,
-            },
-        },
-    ];
-
-    const successData = [
-        {
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: ONYXKEYS.ACCOUNT,
-            value: {
-                isLoading: false,
-            },
-        },
-    ];
-
-    const failureData = [
-        {
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: ONYXKEYS.ACCOUNT,
-            value: {
-                isLoading: false,
-            },
-        },
-    ];
-
-    API.write('DisableTwoFactorAuth', {enable: false}, {optimisticData, successData, failureData});
+    API.write(enable ? 'EnableTwoFactorAuth' : 'DisableTwoFactorAuth', {}, {optimisticData, successData, failureData});
 }
 
 function validateTwoFactorAuth(twoFactorAuthCode) {
@@ -887,7 +858,6 @@ export {
     reauthenticatePusher,
     invalidateCredentials,
     invalidateAuthToken,
-    enableTwoFactorAuth,
-    disableTwoFactorAuth,
+    toggleTwoFactorAuth,
     validateTwoFactorAuth,
 };

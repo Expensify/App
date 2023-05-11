@@ -52,9 +52,10 @@ const defaultProps = {
 
 function VerifyPage(props) {
     useEffect(() => {
-        if (props.account.requiresTwoFactorAuth) {
-            Navigation.navigate(ROUTES.SETTINGS_TWO_FACTOR_SUCCESS);
+        if (!props.account.requiresTwoFactorAuth) {
+            return;
         }
+        Navigation.navigate(ROUTES.SETTINGS_TWO_FACTOR_SUCCESS);
     }, [props.account.requiresTwoFactorAuth]);
 
     /**
@@ -117,7 +118,7 @@ function VerifyPage(props) {
                                 medium
                                 onPress={() => Clipboard.setString(props.account.twoFactorAuthSecretKey)}
                             >
-                                <Text>Copy</Text>
+                                <Text>{props.translate('twoFactorAuth.copy')}</Text>
                             </Button>
                         </View>
                         <Text style={styles.mt11}>{props.translate('twoFactorAuth.enterCode')}</Text>

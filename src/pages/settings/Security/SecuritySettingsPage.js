@@ -40,7 +40,7 @@ function SecuritySettingsPage(props) {
                 if (props.account.requiresTwoFactorAuth) {
                     Navigation.navigate(ROUTES.SETTINGS_TWO_FACTOR_IS_ENABLED);
                 } else {
-                    Session.enableTwoFactorAuth();
+                    Session.toggleTwoFactorAuth(true);
                     Navigation.navigate(ROUTES.SETTINGS_TWO_FACTOR_CODES);
                 }
             },

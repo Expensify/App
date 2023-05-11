@@ -21,7 +21,7 @@ const defaultProps = {};
 
 function DisablePage(props) {
     useEffect(() => {
-        Session.disableTwoFactorAuth();
+        Session.toggleTwoFactorAuth(false);
     }, []);
 
     return (

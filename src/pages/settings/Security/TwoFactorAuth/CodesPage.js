@@ -69,7 +69,7 @@ function CodesPage(props) {
                         </View>
                         <View style={styles.twoFactorAuthCodesButtonsContainer}>
                             <Button
-                                text="Copy codes"
+                                text={props.translate('twoFactorAuth.copyCodes')}
                                 medium
                                 onPress={() => {
                                     Clipboard.setString(props.account.recoveryCodes);
