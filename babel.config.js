@@ -17,8 +17,6 @@ const defaultPlugins = [
 ];
 
 const webpack = {
-	sourceType: 'unambiguous',
-	compact: false,
     env: {
         production: {
             presets: defaultPresets,
