@@ -25,8 +25,6 @@ import reportActionPropTypes from '../../pages/home/report/reportActionPropTypes
 import {showContextMenuForReport} from '../ShowContextMenuContext';
 import * as OptionsListUtils from '../../libs/OptionsListUtils';
 import * as CurrencyUtils from '../../libs/CurrencyUtils';
-import * as StyleUtils from '../../styles/StyleUtils';
-import getButtonState from '../../libs/getButtonState';
 
 const propTypes = {
     /** The active IOUReport, used for Onyx subscription */
@@ -202,11 +200,6 @@ const IOUPreview = (props) => {
                                 </>
                             )}
                         </View>
-                        <Icon
-                            src={Expensicons.ArrowRight}
-                            fill={StyleUtils.getIconFillColor(getButtonState(props.isHovered))}
-                            additionalStyles={[styles.mb1]}
-                        />
                     </View>
                     <View style={[styles.flexRow]}>
                         <View style={[styles.flex1, styles.flexRow, styles.alignItemsCenter]}>
