@@ -1466,9 +1466,10 @@ function buildOptimisticCreatedReportAction(ownerEmail) {
 function buildOptimisticEditedTaskReportAction(ownerEmail) {
     return {
         reportActionID: NumberUtils.rand64(),
-        actionName: CONST.REPORT.ACTIONS.TYPE.EDITED,
+        actionName: CONST.REPORT.ACTIONS.TYPE.TASKEDITED,
         pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
         actorAccountID: currentUserAccountID,
+        actorEmail: currentUserEmail,
         message: [
             {
                 type: CONST.REPORT.MESSAGE.TYPE.TEXT,

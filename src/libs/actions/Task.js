@@ -244,6 +244,7 @@ function editTaskAndNavigate(report, ownerEmail, title, description, assignee) {
             description: description || report.description,
             assignee: assignee || report.assignee,
             editedTaskReportActionID: editTaskReportAction.reportActionID,
+            assigneeChatReportActionID: optimisticAssigneeAddComment ? optimisticAssigneeAddComment.reportAction.reportActionID : 0,
         },
         {optimisticData, successData, failureData},
     );
