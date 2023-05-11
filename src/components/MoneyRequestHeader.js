@@ -134,6 +134,7 @@ const MoneyRequestHeader = (props) => {
                         shouldShowPaypal={false}
                         chatReportID={props.report.chatReportID}
                         onPress={(paymentType) => payMoneyRequest(paymentType, props.chatReport, props.report, props.reimbursementAccount && props.reimbursementAccount.state)}
+                        enablePaymentsRoute={ROUTES.BANK_ACCOUNT_NEW}
                     />
                 )}
             </View>

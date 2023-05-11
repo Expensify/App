@@ -1126,7 +1126,7 @@ function sendMoneyViaPaypal(report, amount, currency, comment, managerEmail, rec
 }
 
 /**
- * @parqm {String} paymentType
+ * @param {String} paymentType
  * @param {Object} chatReport
  * @param {Object} iouReport
  * @param {Object} recipient
@@ -1135,7 +1135,7 @@ function sendMoneyViaPaypal(report, amount, currency, comment, managerEmail, rec
 function payMoneyRequest(paymentType, chatReport, iouReport, reimbursementBankAccountState) {
     if (
         chatReport.chatType === CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT &&
-        reimbursementBankAccountState === CONST.BANK_ACCOUNT.STATE.OPEN &&
+        reimbursementBankAccountState !== CONST.BANK_ACCOUNT.STATE.OPEN &&
         paymentType === CONST.IOU.PAYMENT_TYPE.EXPENSIFY
     ) {
         Navigation.navigate(ROUTES.BANK_ACCOUNT_NEW);

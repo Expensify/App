@@ -34,6 +34,9 @@ const propTypes = {
     /** List of betas available to current user */
     betas: PropTypes.arrayOf(PropTypes.string),
 
+    /** The route to redirect if user does not have a payment method setup */
+    enablePaymentsRoute: PropTypes.string.isRequired,
+
     ...withLocalizePropTypes,
 };
 
