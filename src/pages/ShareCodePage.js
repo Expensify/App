@@ -14,6 +14,8 @@ import * as ReportUtils from '../libs/ReportUtils';
 import MenuItem from '../components/MenuItem';
 import Clipboard from '../libs/Clipboard';
 import * as Expensicons from '../components/Icon/Expensicons';
+import getPlatform from '../libs/getPlatform';
+import CONST from '../CONST';
 
 const propTypes = {
     /** The report currently being looked at */
@@ -36,6 +38,9 @@ class ShareCodePage extends React.Component {
         const isReport = this.props.report != null && this.props.report.reportID != null;
 
         const url = isReport ? `https://new.expensify.com/r/${this.props.report.reportID}` : `https://new.expensify.com/details?login=${this.props.session.email}`;
+
+        const platform = getPlatform();
+        const isNative = platform === CONST.PLATFORM.IOS || platform === CONST.PLATFORM.ANDROID;
 
         return (
             <ScreenWrapper>
@@ -64,13 +69,15 @@ class ShareCodePage extends React.Component {
                             onPress={() => Clipboard.setString(url)}
                         />
 
-                        <MenuItem
-                            title={this.props.translate('common.download')}
-                            shouldShowRightIcon
-                            icon={Expensicons.Download}
-                            // eslint-disable-next-line es/no-optional-chaining
-                            onPress={() => this.qrCodeRef.current?.download()}
-                        />
+                        {isNative && (
+                            <MenuItem
+                                title={this.props.translate('common.download')}
+                                shouldShowRightIcon
+                                icon={Expensicons.Download}
+                                // eslint-disable-next-line es/no-optional-chaining
+                                onPress={() => this.qrCodeRef.current?.download()}
+                            />
+                        )}
                     </View>
                 </ScrollView>
             </ScreenWrapper>
