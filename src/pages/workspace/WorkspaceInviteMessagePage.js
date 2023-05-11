@@ -128,7 +128,20 @@ class WorkspaceInviteMessagePage extends React.Component {
         const policyName = lodashGet(this.props.policy, 'name');
 
         return (
-            <ScreenWrapper includeSafeAreaPaddingBottom={false}>
+            <ScreenWrapper
+                onEntryTransitionEnd={() => {
+                    if (!this.welcomeMessageInputRef) {
+                        return;
+                    }
+                    this.welcomeMessageInputRef.focus();
+                    // Below condition is needed for web, desktop and mweb only, for native cursor is set at end by default.
+                    if (this.welcomeMessageInputRef.value && this.welcomeMessageInputRef.setSelectionRange) {
+                        const length = this.welcomeMessageInputRef.value.length;
+                        this.welcomeMessageInputRef.setSelectionRange(length, length);
+                    }
+                }}
+                includeSafeAreaPaddingBottom={false}
+            >
                 <FullPageNotFoundView
                     shouldShow={_.isEmpty(this.props.policy)}
                     onBackButtonPress={() => Navigation.navigate(ROUTES.SETTINGS_WORKSPACES)}
@@ -176,6 +189,7 @@ class WorkspaceInviteMessagePage extends React.Component {
                         </View>
                         <View style={[styles.mb3]}>
                             <TextInput
+                                ref={(el) => (this.welcomeMessageInputRef = el)}
                                 inputID="welcomeMessage"
                                 label={this.props.translate('workspace.inviteMessage.personalMessagePrompt')}
                                 autoCompleteType="off"
