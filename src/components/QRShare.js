@@ -1,7 +1,7 @@
 import React, {Component} from 'react';
 import PropTypes from 'prop-types';
 import QRCodeLibrary from 'react-native-qrcode-svg';
-import {Dimensions, View} from 'react-native';
+import {View} from 'react-native';
 import ViewShot from 'react-native-view-shot';
 import withLocalize, {withLocalizePropTypes} from './withLocalize';
 import defaultTheme from '../styles/themes/default';
@@ -17,7 +17,7 @@ const propTypes = {
     url: PropTypes.string.isRequired,
     title: PropTypes.string.isRequired,
     subtitle: PropTypes.string,
-    logo: PropTypes.func,
+    logo: PropTypes.string,
 
     ...windowDimensionsPropTypes,
     ...withLocalizePropTypes,
@@ -34,10 +34,8 @@ class QRShare extends Component {
     constructor(props) {
         super(props);
 
-        const defaultQrCodeSize = this.props.isSmallScreenWidth ? Dimensions.get('window').width - 75 : variables.sideBarWidth;
-
         this.state = {
-            qrCodeSize: defaultQrCodeSize,
+            qrCodeSize: 0,
         };
 
         this.onLayout = this.onLayout.bind(this);
@@ -51,15 +49,16 @@ class QRShare extends Component {
     }
 
     download() {
-        return this.qrCodeScreenshotRef.current.capture().then((uri) => fileDownload(uri, `${this.props.title}-ShareCode.png`));
+        return this.qrCodeScreenshotRef.current.capture().then((uri) => {
+            console.log('File download');
+            console.log(uri);
+            return fileDownload(uri, `${this.props.title}-ShareCode.png`);
+        });
     }
 
     render() {
         return (
-            <ViewShot
-                ref={this.qrCodeScreenshotRef}
-                options={{format: 'png'}}
-            >
+            <ViewShot ref={this.qrCodeScreenshotRef}>
                 <View
                     style={styles.shareCodeContainer}
                     onLayout={this.onLayout}
@@ -114,15 +113,4 @@ class QRShare extends Component {
 QRShare.propTypes = propTypes;
 QRShare.defaultProps = defaultProps;
 
-export default compose(
-    withLocalize,
-    withWindowDimensions,
-)(
-    React.forwardRef((props, ref) => (
-        /* eslint-disable-next-line react/jsx-props-no-spreading */
-        <QRShare
-            {...props}
-            forwardedRef={ref}
-        />
-    )),
-);
+export default compose(withLocalize, withWindowDimensions)(QRShare);
