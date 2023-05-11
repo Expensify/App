@@ -49,6 +49,7 @@ import personalDetailsPropType from '../../personalDetailsPropType';
 import ReportActionItemDraft from './ReportActionItemDraft';
 import TaskPreview from '../../../components/ReportActionItem/TaskPreview';
 import * as ReportActionUtils from '../../../libs/ReportActionsUtils';
+import Permissions from '../../../libs/Permissions';
 
 const propTypes = {
     /** Report for this action */
@@ -244,7 +245,7 @@ class ReportActionItem extends Component {
 
         const reactions = _.get(this.props, ['action', 'message', 0, 'reactions'], []);
         const hasReactions = reactions.length > 0;
-        const shouldDisplayThreadReplies = (this.props.action.childCommenterCount || 0) > 0;
+        const shouldDisplayThreadReplies = (this.props.action.childCommenterCount || 0) > 0 && Permissions.canUseThreads(this.props.betas);
         const oldestFourEmails = lodashGet(this.props.action, 'childOldestFourEmails', '').split(',');
 
         return (
@@ -414,6 +415,9 @@ export default compose(
     withOnyx({
         preferredSkinTone: {
             key: ONYXKEYS.PREFERRED_EMOJI_SKIN_TONE,
+        },
+        betas: {
+            key: ONYXKEYS.BETAS,
         },
     }),
 )(ReportActionItem);
