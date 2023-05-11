@@ -3223,6 +3223,15 @@ const styles = {
     },
 
     illustratedPageScrollView: (safeAreaPaddingBottomStyle) => [flex.flex1, flex.flexColumn, spacing.pt5, safeAreaPaddingBottomStyle],
+
+    workspacesListPageFeatureContainer: (numItems) => [
+        styles.flex1,
+        {
+            justifyContent: 'space-evenly',
+            maxHeight: numItems * (variables.iconSizeSuperLarge + 40),
+            minHeight: numItems * variables.iconSizeSuperLarge,
+        },
+    ],
 };
 
 export default styles;

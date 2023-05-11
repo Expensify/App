@@ -214,10 +214,10 @@ class WorkspacesListPage extends Component {
                     <View style={[styles.flex1, styles.ph4]}>
                         <Text style={[styles.textHeadline]}>{this.props.translate('workspace.emptyWorkspace.title')}</Text>
                         <Text style={[styles.textBody, styles.mt2]}>{this.props.translate('workspace.emptyWorkspace.subtitle')}</Text>
-                        <View style={[styles.flex1, styles.justifyContentStart, styles.mt4]}>
+                        <View style={styles.workspacesListPageFeatureContainer(workspaceFeatures.length)}>
                             {_.map(workspaceFeatures, ({icon, translationKey}) => (
                                 <View
-                                    style={[styles.flexRow, styles.alignItemsCenter, styles.mv2]}
+                                    style={[styles.flexRow, styles.alignItemsCenter]}
                                     key={translationKey}
                                 >
                                     <Icon
