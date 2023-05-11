@@ -12,7 +12,7 @@ import Navigation from '../../libs/Navigation/Navigation';
 import ROUTES from '../../ROUTES';
 import * as TaskUtils from '../../libs/actions/Task';
 import ONYXKEYS from '../../ONYXKEYS';
-import withLocalize from '../../components/withLocalize';
+import withLocalize, {withLocalizePropTypes} from '../../components/withLocalize';
 
 const propTypes = {
     /** The report currently being looked at */
@@ -31,6 +31,8 @@ const propTypes = {
             login: PropTypes.string,
         }),
     ),
+
+    ...withLocalizePropTypes,
 };
 
 const defaultProps = {
