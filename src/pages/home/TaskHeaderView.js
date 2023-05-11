@@ -52,8 +52,8 @@ function TaskHeaderView(props) {
     }, [props]);
     return (
         <>
-            <View style={[styles.sidebarLinkActive, styles.ph3]}>
-                {props.report.assignee && (
+            {props.report.assignee ? (
+                <View style={[styles.sidebarLinkActive, styles.ph3]}>
                     <TaskSelectorLink
                         icons={assignee.icons}
                         text={assignee.displayName}
@@ -62,9 +62,15 @@ function TaskHeaderView(props) {
                         label="common.to"
                         isNewTask={false}
                     />
-                )}
-                {/* TO-DO: Add functionality to mark task as done. Will be in: https://github.com/Expensify/App/issues/16858 */}
-            </View>
+                </View>
+            ) : (
+                <MenuItemWithTopDescription
+                    shouldShowHeaderTitle
+                    title=""
+                    description={props.translate('common.to')}
+                    onPress={() => Navigation.navigate(ROUTES.getTaskReportAssigneeRoute(props.report.reportID))}
+                />
+            )}
             <MenuItemWithTopDescription
                 shouldShowHeaderTitle
                 title={props.report.reportName}

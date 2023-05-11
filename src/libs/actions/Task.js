@@ -166,6 +166,14 @@ function editTaskAndNavigate(report, ownerEmail, title, description, assignee) {
     // Create the EditedReportAction on the task
     const editTaskReportAction = ReportUtils.buildOptimisticEditedTaskReportAction(ownerEmail);
 
+    // If we make a change to the assignee, we want to add a comment to the assignee's chat
+    let optimisticAssigneeAddComment;
+    let assigneeChatReportID;
+    if (assignee && assignee !== report.assignee) {
+        assigneeChatReportID = ReportUtils.getChatByParticipants([assignee]);
+        optimisticAssigneeAddComment = ReportUtils.buildOptimisticTaskCommentReportAction(report.reportID, title, assignee, `Assigned a task to you: ${title}`);
+    }
+
     const optimisticData = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
@@ -197,6 +205,37 @@ function editTaskAndNavigate(report, ownerEmail, title, description, assignee) {
         },
     ];
 
+    if (optimisticAssigneeAddComment) {
+        const currentTime = DateUtils.getDBTime();
+        const lastAssigneeCommentText = ReportUtils.formatReportLastMessageText(optimisticAssigneeAddComment.reportAction.message[0].text);
+
+        const optimisticAssigneeReport = {
+            lastVisibleActionCreated: currentTime,
+            lastMessageText: Str.htmlDecode(lastAssigneeCommentText),
+            lastActorEmail: ownerEmail,
+            lastReadTime: currentTime,
+        };
+
+        optimisticData.push(
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${assigneeChatReportID}`,
+                value: {[optimisticAssigneeAddComment.reportAction.reportActionID]: optimisticAssigneeAddComment.reportAction},
+            },
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.REPORT}${assigneeChatReportID}`,
+                value: optimisticAssigneeReport,
+            },
+        );
+
+        failureData.push({
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${assigneeChatReportID}`,
+            value: {[optimisticAssigneeAddComment.reportAction.reportActionID]: {pendingAction: null}},
+        });
+    }
+
     API.write(
         'EditTask',
         {
@@ -204,6 +243,7 @@ function editTaskAndNavigate(report, ownerEmail, title, description, assignee) {
             title: title || report.reportName,
             description: description || report.description,
             assignee: assignee || report.assignee,
+            editedTaskReportActionID: editTaskReportAction.reportActionID,
         },
         {optimisticData, successData, failureData},
     );
