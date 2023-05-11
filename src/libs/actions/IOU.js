@@ -1057,9 +1057,9 @@ function getPayMoneyRequestParams(chatReport, iouReport, recipient, paymentMetho
         },
     ];
 
-    const policyID = null;
+    let policyID = null;
     if (chatReport.chatType === CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT) {
-
+        policyID = iouReport.policyID;
     }
     return {
         params: {
@@ -1133,9 +1133,11 @@ function sendMoneyViaPaypal(report, amount, currency, comment, managerEmail, rec
  * @param {String} reimbursementBankAccountState
  */
 function payMoneyRequest(paymentType, chatReport, iouReport, reimbursementBankAccountState) {
-    if (chatReport.chatType === CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT
-        && reimbursementBankAccountState === CONST.BANK_ACCOUNT.STATE.OPEN
-        && paymentType ===  CONST.IOU.PAYMENT_TYPE.EXPENSIFY) {
+    if (
+        chatReport.chatType === CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT &&
+        reimbursementBankAccountState === CONST.BANK_ACCOUNT.STATE.OPEN &&
+        paymentType === CONST.IOU.PAYMENT_TYPE.EXPENSIFY
+    ) {
         Navigation.navigate(ROUTES.BANK_ACCOUNT_NEW);
         return;
     }

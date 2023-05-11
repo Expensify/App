@@ -133,7 +133,7 @@ const MoneyRequestHeader = (props) => {
                         currency={props.report.currency}
                         shouldShowPaypal={false}
                         chatReportID={props.report.chatReportID}
-                        onPress={(paymentType) => payMoneyRequest(paymentType, props.chatReport, props.report, props.reimbursementAccount.state)}
+                        onPress={(paymentType) => payMoneyRequest(paymentType, props.chatReport, props.report, props.reimbursementAccount && props.reimbursementAccount.state)}
                     />
                 )}
             </View>
@@ -154,6 +154,6 @@ export default compose(
         },
         reimbursementAccount: {
             key: ONYXKEYS.REIMBURSEMENT_ACCOUNT,
-        }
+        },
     }),
 )(MoneyRequestHeader);
