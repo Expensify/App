@@ -544,6 +544,20 @@ function hashLogin(login, range) {
 }
 
 /**
+ * There is a possibility that if the Expense report has a negative total.
+ * This is because there are instances where you can get a credit back on your card,
+ * or you enter a negative expense to “offset” future expenses
+ *
+ * @param {Object} moneyRequestReport
+ * @returns {Number}
+ */
+function getMoneyRequestAmount(moneyRequestReport) {
+    const moneyRequestAmount = lodashGet(moneyRequestReport, 'total', 0);
+
+    return isExpenseReport(moneyRequestReport) ? moneyRequestAmount * -1 : Math.abs(moneyRequestAmount);
+}
+
+/**
  * Helper method to return the default avatar associated with the given login
  * @param {String} [login]
  * @returns {String}
@@ -892,7 +906,7 @@ function getPolicyExpenseChatName(report) {
  * @returns  {String}
  */
 function getMoneyRequestReportName(report) {
-    const formattedAmount = CurrencyUtils.convertToDisplayString(report.total || 0, report.currency);
+    const formattedAmount = CurrencyUtils.convertToDisplayString(getMoneyRequestAmount(report), report.currency);
     const payerName = isExpenseReport(report) ? getPolicyName(report) : getDisplayNameForParticipant(report.managerEmail);
 
     return Localize.translateLocal('iou.payerOwesAmount', {payer: payerName, amount: formattedAmount});
@@ -1991,4 +2005,5 @@ export {
     getWhisperDisplayNames,
     getWorkspaceAvatar,
     shouldReportShowSubscript,
+    getMoneyRequestAmount,
 };
