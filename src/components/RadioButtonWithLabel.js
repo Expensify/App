@@ -57,22 +57,10 @@ const RadioButtonWithLabel = (props) => {
                 />
                 <TouchableOpacity
                     onPress={() => props.onPress()}
-                    style={[
-                        styles.ml3,
-                        styles.pr2,
-                        styles.w100,
-                        styles.flexRow,
-                        styles.flexWrap,
-                        styles.flexShrink1,
-                        styles.alignItemsCenter,
-                    ]}
+                    style={[styles.ml3, styles.pr2, styles.w100, styles.flexRow, styles.flexWrap, styles.flexShrink1, styles.alignItemsCenter]}
                 >
-                    {Boolean(props.label) && (
-                        <Text style={[styles.ml1]}>
-                            {props.label}
-                        </Text>
-                    )}
-                    {Boolean(LabelComponent) && (<LabelComponent />)}
+                    {Boolean(props.label) && <Text style={[styles.ml1]}>{props.label}</Text>}
+                    {Boolean(LabelComponent) && <LabelComponent />}
                 </TouchableOpacity>
             </View>
             <FormHelpMessage message={props.errorText} />

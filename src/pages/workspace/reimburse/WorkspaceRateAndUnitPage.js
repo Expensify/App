@@ -123,16 +123,26 @@ class WorkspaceRateAndUnitPage extends React.Component {
                         onSubmit={this.submit}
                         enabledWhenOffline
                     >
-                        <OfflineWithFeedback
-                            pendingAction={distanceCustomUnit.pendingFields}
-                            errors={distanceCustomUnit.errors}
-                        >
+                    <OfflineWithFeedback
+                        errors={{
+                            ...lodashGet(distanceCustomUnit, 'errors', {}),
+                            ...lodashGet(distanceCustomRate.errors, 'errors', {}),
+                        }}
+                        pendingAction={
+                            distanceCustomUnit.pendingAction || distanceCustomRate.pendingAction
+                        }
+                        onClose={() => Policy.clearCustomUnitErrors(
+                            this.props.policy.id,
+                            lodashGet(distanceCustomUnit, 'customUnitID', ''),
+                            lodashGet(distanceCustomRate, 'customUnitRateID', ''),
+                        )}
+                    >
                             <TextInput
                                 inputID="rate"
                                 containerStyles={[styles.mt4]}
                                 defaultValue={this.getUnitRateValue(distanceCustomRate)}
                                 label={this.props.translate('workspace.reimburse.trackDistanceRate')}
-                                placeholder={lodashGet(this.props, 'policy.outputCurrency', '')}
+                                placeholder={lodashGet(this.props, 'policy.outputCurrency', CONST.CURRENCY.USD)}
                                 autoCompleteType="off"
                                 autoCorrect={false}
                                 keyboardType={CONST.KEYBOARD_TYPE.DECIMAL_PAD}

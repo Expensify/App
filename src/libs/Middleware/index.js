@@ -3,9 +3,4 @@ import Reauthentication from './Reauthentication';
 import RecheckConnection from './RecheckConnection';
 import SaveResponseInOnyx from './SaveResponseInOnyx';
 
-export {
-    Logging,
-    Reauthentication,
-    RecheckConnection,
-    SaveResponseInOnyx,
-};
+export {Logging, Reauthentication, RecheckConnection, SaveResponseInOnyx};

@@ -48,6 +48,9 @@ export default {
     // Contains all the private personal details of the user
     PRIVATE_PERSONAL_DETAILS: 'private_personalDetails',
 
+    // Contains all the info for Tasks
+    TASK: 'task',
+
     // Contains a list of all currencies available to the user - user can
     // select a currency based on the list
     CURRENCY_LIST: 'currencyList',
@@ -116,6 +119,7 @@ export default {
         REPORT_DRAFT_COMMENT_NUMBER_OF_LINES: 'reportDraftCommentNumberOfLines_',
         REPORT_IS_COMPOSER_FULL_SIZE: 'reportIsComposerFullSize_',
         REPORT_USER_IS_TYPING: 'reportUserIsTyping_',
+        SECURITY_GROUP: 'securityGroup_',
         TRANSACTION: 'transactions_',
     },
 
@@ -210,4 +214,7 @@ export default {
 
     // Whether the auth token is valid
     IS_TOKEN_VALID: 'isTokenValid',
+
+    // A map of the user's security group IDs they belong to in specific domains
+    MY_DOMAIN_SECURITY_GROUPS: 'myDomainSecurityGroups',
 };

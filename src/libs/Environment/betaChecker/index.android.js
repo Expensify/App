@@ -8,7 +8,7 @@ import * as AppUpdate from '../../actions/AppUpdate';
 let isLastSavedBeta = false;
 Onyx.connect({
     key: ONYXKEYS.IS_BETA,
-    callback: value => isLastSavedBeta = value,
+    callback: (value) => (isLastSavedBeta = value),
 });
 
 /**
@@ -19,7 +19,7 @@ Onyx.connect({
 function isBetaBuild() {
     return new Promise((resolve) => {
         fetch(CONST.GITHUB_RELEASE_URL)
-            .then(res => res.json())
+            .then((res) => res.json())
             .then((json) => {
                 const productionVersion = json.tag_name;
                 if (!productionVersion) {

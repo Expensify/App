@@ -127,20 +127,16 @@ class WorkspacePageWithSections extends React.Component {
                         onBackButtonPress={() => Navigation.navigate(this.props.backButtonRoute || ROUTES.getWorkspaceInitialRoute(policyID))}
                         onCloseButtonPress={() => Navigation.dismissModal()}
                     />
-                    {this.props.shouldUseScrollView
-                        ? (
-                            <ScrollViewWithContext
-                                keyboardShouldPersistTaps="handled"
-                                style={[styles.settingsPageBackground, styles.flex1, styles.w100]}
-                            >
-                                <View style={[styles.w100, styles.flex1]}>
-
-                                    {this.props.children(hasVBA, policyID, isUsingECard)}
-
-                                </View>
-                            </ScrollViewWithContext>
-                        )
-                        : this.props.children(hasVBA, policyID, isUsingECard)}
+                    {this.props.shouldUseScrollView ? (
+                        <ScrollViewWithContext
+                            keyboardShouldPersistTaps="handled"
+                            style={[styles.settingsPageBackground, styles.flex1, styles.w100]}
+                        >
+                            <View style={[styles.w100, styles.flex1]}>{this.props.children(hasVBA, policyID, isUsingECard)}</View>
+                        </ScrollViewWithContext>
+                    ) : (
+                        this.props.children(hasVBA, policyID, isUsingECard)
+                    )}
                     {this.props.footer}
                 </FullPageNotFoundView>
             </ScreenWrapper>
