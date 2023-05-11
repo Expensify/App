@@ -8,6 +8,7 @@ import * as Report from './Report';
 import Navigation from '../Navigation/Navigation';
 import ROUTES from '../../ROUTES';
 import DateUtils from '../DateUtils';
+import CONST from '../../CONST';
 
 /**
  * Clears out the task info from the store
@@ -149,6 +150,46 @@ function createTaskAndNavigate(currentUserEmail, parentReportID, title, descript
     clearOutTaskInfo();
 
     Navigation.navigate(ROUTES.getReportRoute(optimisticTaskReport.reportID));
+}
+
+function completeTask(taskReportID, parentReportID) {
+    // TODO: Update the text to be the task title
+    const completedTaskReportAction = ReportUtils.buildOptimisticTaskReportAction(taskReportID, 'Completed task: ', CONST.REPORT.ACTIONS.TYPE.TASKCOMPLETED);
+
+    const optimisticData = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT}${taskReportID}`,
+            value: {
+                stateNum: CONST.REPORT.STATE_NUM.SUBMITTED,
+                statusNum: CONST.REPORT.STATUS.APPROVED,
+            },
+        },
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${parentReportID}`,
+            value: {[completedTaskReportAction.reportAction.reportActionID]: completedTaskReportAction.reportAction},
+        },
+    ];
+
+    const successData = [];
+    const failureData = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT}${taskReportID}`,
+            value: {
+                stateNum: CONST.REPORT.STATE_NUM.OPEN,
+                statusNum: CONST.REPORT.STATUS.PENDING,
+            },
+        },
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${parentReportID}`,
+            value: {[completedTaskReportAction.reportAction.reportActionID]: {pendingAction: null}},
+        },
+    ];
+
+    API.write('CompleteTask', {taskReportID}, {optimisticData, successData, failureData});
 }
 
 /**
