@@ -10,6 +10,7 @@ import * as Localize from '../Localize';
 import asyncOpenURL from '../asyncOpenURL';
 import * as API from '../API';
 import * as ReportUtils from '../ReportUtils';
+import * as ReportActionsUtils from '../ReportActionsUtils';
 import * as IOUUtils from '../IOUUtils';
 import * as OptionsListUtils from '../OptionsListUtils';
 import DateUtils from '../DateUtils';
@@ -122,6 +123,11 @@ function requestMoney(report, amount, currency, payeeEmail, participant, comment
         moneyRequestReport.reportID,
     );
 
+    let reportPreview = ReportActionsUtils.getReportPreviewAction(chatReport.reportID, moneyRequestReport.reportID);
+    if (!reportPreview) {
+        reportPreview = ReportActionsUtils.buildOptimisticReportPreview(chatReport.reportID, moneyRequestReport.reportID);
+    }
+
     // First, add data that will be used in all cases
     const optimisticChatReportData = {
         onyxMethod: Onyx.METHOD.MERGE,
@@ -147,6 +153,7 @@ function requestMoney(report, amount, currency, payeeEmail, participant, comment
         key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${chatReport.reportID}`,
         value: {
             [optimisticReportAction.reportActionID]: optimisticReportAction,
+            [reportPreview.reportActionID]: reportPreview,
         },
     };
 
@@ -158,6 +165,7 @@ function requestMoney(report, amount, currency, payeeEmail, participant, comment
             [optimisticReportAction.reportActionID]: {
                 pendingAction: null,
             },
+            [reportPreview.reportActionID]: reportPreview,
         },
     };
 
@@ -238,6 +246,7 @@ function requestMoney(report, amount, currency, payeeEmail, participant, comment
             transactionID: optimisticTransaction.transactionID,
             reportActionID: optimisticReportAction.reportActionID,
             createdReportActionID: isNewChat ? optimisticCreatedAction.reportActionID : 0,
+            reportPreviewReportActionID: reportPreview.reportActionID,
         },
         {optimisticData, successData, failureData},
     );
@@ -418,6 +427,11 @@ function createSplitsAndOnyxData(participants, currentUserLogin, amount, comment
             groupTransaction.transactionID,
         );
 
+        let reportPreview = ReportActionsUtils.getReportPreviewAction(oneOnOneChatReport.reportID, oneOnOneIOUReport.reportID);
+        if (!reportPreview) {
+            reportPreview = ReportActionsUtils.buildOptimisticReportPreview(oneOnOneChatReport.reportID, oneOnOneIOUReport.reportID);
+        }
+
         // Note: The created action must be optimistically generated before the IOU action so there's no chance that the created action appears after the IOU action in the chat
         const oneOnOneCreatedReportAction = ReportUtils.buildOptimisticCreatedReportAction(currentUserEmail);
         const oneOnOneIOUReportAction = ReportUtils.buildOptimisticIOUReportAction(
@@ -547,6 +561,7 @@ function createSplitsAndOnyxData(participants, currentUserLogin, amount, comment
             chatReportID: oneOnOneChatReport.reportID,
             transactionID: oneOnOneTransaction.transactionID,
             reportActionID: oneOnOneIOUReportAction.reportActionID,
+            reportPreviewReportActionID: reportPreview.reportActionID,
         };
 
         if (!_.isEmpty(oneOnOneCreatedReportAction)) {

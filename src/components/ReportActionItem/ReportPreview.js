@@ -12,7 +12,6 @@ import styles from '../../styles/styles';
 import reportActionPropTypes from '../../pages/home/report/reportActionPropTypes';
 import withLocalize, {withLocalizePropTypes} from '../withLocalize';
 import compose from '../../libs/compose';
-import ONYXKEYS from '../../ONYXKEYS';
 import ControlSelection from '../../libs/ControlSelection';
 import * as DeviceCapabilities from '../../libs/DeviceCapabilities';
 import {showContextMenuForReport} from '../ShowContextMenuContext';
@@ -20,10 +19,11 @@ import * as StyleUtils from '../../styles/StyleUtils';
 import * as CurrencyUtils from '../../libs/CurrencyUtils';
 import * as ReportUtils from '../../libs/ReportUtils';
 import Button from '../Button';
-import Navigation from '../../libs/Navigation/Navigation';
-import ROUTES from '../../ROUTES';
 import themeColors from '../../styles/themes/default';
 import getButtonState from '../../libs/getButtonState';
+import Navigation from '../../libs/Navigation/Navigation';
+import ROUTES from '../../ROUTES';
+import ONYXKEYS from '../../ONYXKEYS';
 
 const propTypes = {
     /** All the data of the action */
@@ -36,6 +36,7 @@ const propTypes = {
     // eslint-disable-next-line react/no-unused-prop-types
     iouReportID: PropTypes.string.isRequired,
 
+    /* Onyx Props */
     /** Active IOU Report for current report */
     iouReport: PropTypes.shape({
         /** Email address of the manager in this iou report */
@@ -157,3 +158,55 @@ export default compose(
         },
     }),
 )(ReportPreview);
+
+// CRISTI
+// if (props.iouReport.total === 0) {
+//     return null;
+// }
+
+// const sessionEmail = lodashGet(props.session, 'email', null);
+// const managerEmail = props.iouReport.managerEmail || '';
+// // Pay button should only be visible to the manager of the report.
+// const isCurrentUserManager = managerEmail === sessionEmail;
+
+// const launchDetailsModal = () => {
+//     Navigation.navigate(ROUTES.getIouDetailsRoute(props.chatReportID, props.action.originalMessage.IOUReportID));
+// };
+
+// const cachedTotal =
+//     props.iouReport.total && props.iouReport.currency ? props.numberFormat(Math.abs(props.iouReport.total) / 100, {style: 'currency', currency: props.iouReport.currency}) : '';
+
+// const text = props.iouReport.hasOutstandingIOU ? `${props.chatReport.displayName} owes ${cachedTotal}` : `Settled up ${cachedTotal}`;
+
+// return (
+//     <View style={[styles.chatItemMessage]}>
+//         <Pressable
+//             onPress={launchDetailsModal}
+//             onPressIn={() => DeviceCapabilities.canUseTouchScreen() && ControlSelection.block()}
+//             onPressOut={() => ControlSelection.unblock()}
+//             onLongPress={(event) => showContextMenuForReport(event, props.contextMenuAnchor, props.chatReportID, props.action, props.checkIfContextMenuActive)}
+//             style={[styles.flexRow, styles.justifyContentBetween]}
+//             focusable
+//         >
+//             <View>
+//                 <Text style={[styles.flex1, styles.mr2, styles.chatItemMessage, styles.cursorPointer]}>{text}</Text>
+//                 {isCurrentUserManager && props.iouReport.stateNum === CONST.REPORT.STATE_NUM.PROCESSING && (
+//                     <Button
+//                         style={styles.mt4}
+//                         onPress={() => {}}
+//                         onPressIn={() => DeviceCapabilities.canUseTouchScreen() && ControlSelection.block()}
+//                         onPressOut={() => ControlSelection.unblock()}
+//                         onLongPress={(event) => showContextMenuForReport(event, props.contextMenuAnchor, props.chatReportID, props.action, props.checkIfContextMenuActive)}
+//                         text={props.translate('iou.pay')}
+//                         success
+//                         medium
+//                     />
+//                 )}
+//             </View>
+//             <Icon
+//                 src={Expensicons.ArrowRight}
+//                 fill={StyleUtils.getIconFillColor(getButtonState(props.isHovered))}
+//             />
+//         </Pressable>
+//     </View>
+// );
