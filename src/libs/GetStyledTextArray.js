@@ -9,7 +9,7 @@ import Str from 'expensify-common/lib/str';
 const getStyledTextArray = (name, prefix) => {
     const texts = [];
     const prefixLowercase = prefix.toLowerCase();
-    const prefixLocation = name.search(Str.escapeForRegExp(prefixLowercase));
+    const prefixLocation = name.toLowerCase().search(Str.escapeForRegExp(prefixLowercase));
 
     if (prefixLocation === 0 && prefix.length === name.length) {
         texts.push({text: prefixLowercase, isColored: true});
