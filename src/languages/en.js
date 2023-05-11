@@ -1183,6 +1183,9 @@ export default {
         pleaseEnterTaskAssignee: 'Please select an assignee',
         pleaseEnterTaskDestination: 'Please select a share destination',
     },
+    task: {
+        canceled: 'Canceled task',
+    },
     statementPage: {
         generatingPDF: "We're generating your PDF right now. Please come back later!",
     },
