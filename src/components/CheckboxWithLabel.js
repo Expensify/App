@@ -1,12 +1,13 @@
 import React from 'react';
 import PropTypes from 'prop-types';
-import {View, TouchableOpacity} from 'react-native';
+import {View} from 'react-native';
 import _ from 'underscore';
 import styles from '../styles/styles';
 import Checkbox from './Checkbox';
 import Text from './Text';
 import FormHelpMessage from './FormHelpMessage';
 import variables from '../styles/variables';
+import * as Pressables from './Pressable';
 
 const requiredPropsCheck = (props) => {
     if (!props.label && !props.LabelComponent) {
@@ -76,18 +77,22 @@ class CheckboxWithLabel extends React.Component {
     constructor(props) {
         super(props);
 
-        // We need to pick the first value that is strictly a boolean
-        // https://github.com/Expensify/App/issues/16885#issuecomment-1520846065
-        this.isChecked = _.find([props.value, props.defaultValue, props.isChecked], (value) => _.isBoolean(value));
+        this.state = {
+            // We need to pick the first value that is strictly a boolean
+            // https://github.com/Expensify/App/issues/16885#issuecomment-1520846065
+            isChecked: _.find([props.value, props.defaultValue, props.isChecked], (value) => _.isBoolean(value)),
+        };
 
         this.LabelComponent = props.LabelComponent;
 
         this.toggleCheckbox = this.toggleCheckbox.bind(this);
+
+        this.PressableComponent = Pressables.PressableWithFeedback;
     }
 
     toggleCheckbox() {
         this.props.onInputChange(!this.isChecked);
-        this.isChecked = !this.isChecked;
+        this.setState((prevState) => ({isChecked: !prevState.isChecked}));
     }
 
     render() {
@@ -95,21 +100,25 @@ class CheckboxWithLabel extends React.Component {
             <View style={this.props.style}>
                 <View style={[styles.flexRow, styles.alignItemsCenter, styles.breakWord]}>
                     <Checkbox
-                        isChecked={this.isChecked}
+                        isChecked={this.state.isChecked}
                         onPress={this.toggleCheckbox}
                         label={this.props.label}
                         hasError={Boolean(this.props.errorText)}
                         forwardedRef={this.props.forwardedRef}
                     />
-                    <TouchableOpacity
+                    <this.PressableComponent
                         focusable={false}
+                        accessible={false}
                         onPress={this.toggleCheckbox}
-                        activeOpacity={variables.checkboxLabelActiveOpacity}
-                        style={[styles.ml3, styles.pr2, styles.w100, styles.flexRow, styles.flexWrap, styles.flexShrink1, styles.alignItemsCenter, styles.noSelect]}
+                        onLongPress={this.toggleCheckbox}
+                        pressDimmingValue={variables.checkboxLabelActiveOpacity}
+                        // We want to disable hover dimming
+                        hoverDimmingValue={1}
+                        wrapperStyle={[styles.ml3, styles.pr2, styles.w100, styles.flexRow, styles.flexWrap, styles.flexShrink1, styles.alignItemsCenter, styles.noSelect]}
                     >
                         {this.props.label && <Text style={[styles.ml1]}>{this.props.label}</Text>}
                         {this.LabelComponent && <this.LabelComponent />}
-                    </TouchableOpacity>
+                    </this.PressableComponent>
                 </View>
                 <FormHelpMessage message={this.props.errorText} />
             </View>
