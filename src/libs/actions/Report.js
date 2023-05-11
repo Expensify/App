@@ -353,7 +353,6 @@ function openReport(reportID, participantList = [], newReportObject = {}) {
             : {
                   isLoadingReportActions: true,
                   isLoadingMoreReportActions: false,
-                  lastReadTime: DateUtils.getDBTime(),
                   reportName: lodashGet(allReports, [reportID, 'reportName'], CONST.REPORT.DEFAULT_REPORT_NAME),
               },
     };

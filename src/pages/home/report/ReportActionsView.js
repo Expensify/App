@@ -60,7 +60,6 @@ class ReportActionsView extends React.Component {
         console.log(this.props.reportActions);
         this.state = {
             isFloatingMessageCounterVisible: false,
-            newMarkerReportActionID: ReportUtils.getNewMarkerReportActionID(this.props.report, props.reportActions),
         };
 
         this.currentScrollOffset = 0;
@@ -91,29 +90,31 @@ class ReportActionsView extends React.Component {
         if (this.isReportFullyVisible()) {
             this.openReportIfNecessary();
         }
+
+        console.log(`~~Monil not active action`);
+        this.unreadLogic(this.props.reportActions);
+        Report.readNewestAction(this.props.report.reportID);
     }
 
-    unreadLogic(reportActions) {
+    unreadLogic(reportActions, isActiveOnChat = false) {
         if (!reportActions) {
             return;
         }
-        const currentUserAccountID = Report.getCurrentUserAccountID();
-        const lastReadTime = this.props.report.lastReadTime;
-
-        const sortedReportActions = ReportActionsUtils.getSortedReportActions(reportActions, true);
-        const unreadReportAction = _.find(sortedReportActions, (reportAction) => {
-            return reportAction.actorAccountID !== currentUserAccountID && reportAction.created > lastReadTime;
-        });
-        if (!unreadReportAction) {
+        console.log(`~~Monil state ${this.state.newMarkerReportActionID}`);
+        const isNewMarkerReportActionIDSet = !_.isEmpty(this.state.newMarkerReportActionID);
+        if (isNewMarkerReportActionIDSet) {
             return;
         }
-        const newActionID = unreadReportAction.reportActionID;
-        console.log(`~~Monil nra ${JSON.stringify(unreadReportAction)} na ${newActionID}`);
+        if (isActiveOnChat) {
+            console.log(`~~Monil returning as active`);
+            return;
+        }
+
+        const newActionID = ReportUtils.getNewMarkerReportActionID(this.props.report, reportActions);
+        console.log(`~~Monil newActionID ${newActionID}`);
 
         // This callback is triggered when a new action arrives via Pusher and the event is emitted from Report.js. This allows us to maintain
         // a single source of truth for the "new action" event instead of trying to derive that a new action has appeared from looking at props.
-        const isNewMarkerReportActionIDSet = !_.isEmpty(this.state.newMarkerReportActionID);
-        console.log(`~~Monil state ${this.state.newMarkerReportActionID}`);
         if (!isNewMarkerReportActionIDSet) {
             console.log(`~~Monil 11`);
             this.setState({newMarkerReportActionID: newActionID}, () => {
@@ -227,12 +228,13 @@ class ReportActionsView extends React.Component {
             this.setState({newMarkerReportActionID: ''});
         }
 
+        console.log(`~~Monil component updated prev ${prevProps.report.lastReadTime} now ${this.props.report.lastReadTime}`);
         // Checks to see if a report comment has been manually "marked as unread". All other times when the lastReadTime
         // changes it will be because we marked the entire report as read.
-        const didManuallyMarkReportAsUnread = prevProps.report.lastReadTime !== this.props.report.lastReadTime && ReportUtils.isUnread(this.props.report);
+        const didManuallyMarkReportAsUnread = prevProps.report.lastReadTime > this.props.report.lastReadTime && ReportUtils.isUnread(this.props.report);
         if (didManuallyMarkReportAsUnread) {
-            console.log(`~~Monil possibly wrong logic!`);
-            // this.setState({newMarkerReportActionID: ReportUtils.getNewMarkerReportActionID(this.props.report, this.props.reportActions)});
+            console.log(`~~Monil marking report as unread?`);
+            this.setState({newMarkerReportActionID: ReportUtils.getNewMarkerReportActionID(this.props.report, this.props.reportActions)});
         }
 
         // Ensures subscription event succeeds when the report/workspace room is created optimistically.
@@ -257,7 +259,7 @@ class ReportActionsView extends React.Component {
         if (wasNewMessageReceived) {
             const newReportAction = _.filter(this.props.reportActions, (obj) => !_.findWhere(prevProps.reportActions, {reportActionID: obj.reportActionID}));
             console.log(`~~Monil new message received ${this.props.report.lastMessageText} marker prevState ${JSON.stringify(prevState)}`);
-            this.unreadLogic(newReportAction);
+            this.unreadLogic(newReportAction, true);
             // if (_.isEmpty(prevState.newMarkerReportActionID)) {
             //     console.log(`~~Monil setting new marker`);
             //     this.setState({
