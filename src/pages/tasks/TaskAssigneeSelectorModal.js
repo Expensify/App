@@ -52,9 +52,6 @@ const propTypes = {
         /** Share destination of the Task */
         shareDestination: PropTypes.string,
 
-        /** Whether a task is being edited */
-        isEditing: PropTypes.bool,
-
         /** The task report if it's currently being edited */
         report: reportPropTypes,
     }),
@@ -158,7 +155,7 @@ const TaskAssigneeSelectorModal = (props) => {
         }
 
         // Check to see if we're editing a task and if so, update the assignee
-        if (props.task.isEditing) {
+        if (props.task.report === props.route.params.taskReportID) {
             // Pass through the selected assignee
             TaskUtils.editTaskAndNavigate(props.task.report, props.session.email, '', '', option.alternateText);
         }

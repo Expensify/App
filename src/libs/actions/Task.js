@@ -152,23 +152,6 @@ function createTaskAndNavigate(currentUserEmail, parentReportID, title, descript
 }
 
 /**
- * Sets the task editing property in the store to true
- *
- * @params {Object} report
- */
-
-function beginEditingTask() {
-    Onyx.merge(ONYXKEYS.TASK, {isEditing: true});
-}
-
-/** Sets the task editing property in the store to false */
-function endEditingTask() {
-    Onyx.merge(ONYXKEYS.TASK, {isEditing: false});
-}
-
-// import ReportUtils from '../ReportUtils';
-
-/**
  * @function editTask
  * @param {object} report
  * @param {string} ownerEmail
@@ -226,7 +209,6 @@ function editTaskAndNavigate(report, ownerEmail, title, description, assignee) {
     );
 
     Navigation.navigate(ROUTES.getReportRoute(report.reportID));
-    endEditingTask();
 }
 
 /**
@@ -356,9 +338,7 @@ export {
     editTaskAndNavigate,
     setTitleValue,
     setDescriptionValue,
-    beginEditingTask,
     setTaskReport,
-    endEditingTask,
     setDetailsValue,
     setAssigneeValue,
     setShareDestinationValue,
