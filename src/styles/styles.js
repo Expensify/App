@@ -197,6 +197,12 @@ const styles = {
         fontSize: variables.fontSizeMedium,
     },
 
+    mentionSuggestionsText: {
+        fontSize: variables.fontSizeMedium,
+        flex: 1,
+        ...spacing.ml2,
+    },
+
     unitCol: {
         margin: 0,
         padding: 0,
@@ -3192,6 +3198,10 @@ const styles = {
     },
     contextMenuItemPopoverMaxWidth: {
         maxWidth: 375,
+    },
+    taskCheckbox: {
+        height: 16,
+        width: 16,
     },
 };
 

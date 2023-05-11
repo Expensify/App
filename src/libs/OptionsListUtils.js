@@ -190,6 +190,15 @@ function getPersonalDetailsForLogins(logins, personalDetails) {
 }
 
 /**
+ * Return true if personal details data is ready, i.e. report list options can be created.
+ * @param {Object} personalDetails
+ * @returns {boolean}
+ */
+function isPersonalDetailsReady(personalDetails) {
+    return !_.isEmpty(personalDetails) && !_.some(_.keys(personalDetails), (key) => !personalDetails[key].login);
+}
+
+/**
  * Get the participant options for a report.
  * @param {Object} report
  * @param {Array<Object>} personalDetails
@@ -523,7 +532,6 @@ function getOptions(
         includeMultipleParticipantReports = false,
         includePersonalDetails = false,
         includeRecentReports = false,
-
         // When sortByReportTypeInSearch flag is true, recentReports will include the personalDetails options as well.
         sortByReportTypeInSearch = false,
         searchInputValue = '',
@@ -533,6 +541,14 @@ function getOptions(
         includeOwnedWorkspaceChats = false,
     },
 ) {
+    if (!isPersonalDetailsReady(personalDetails)) {
+        return {
+            recentReports: [],
+            personalDetails: [],
+            userToInvite: null,
+        };
+    }
+
     let recentReportOptions = [];
     let personalDetailsOptions = [];
     const reportMapForLogins = {};
@@ -897,6 +913,7 @@ export {
     addSMSDomainIfPhoneNumber,
     getAvatarsForLogins,
     isCurrentUser,
+    isPersonalDetailsReady,
     getSearchOptions,
     getNewChatOptions,
     getShareDestinationOptions,
