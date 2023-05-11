@@ -23,7 +23,7 @@ describe('EmojiTest', () => {
             let skinToneMatched = true;
             if (emoji.types) {
                 // and every skin tone variant of the Emoji code
-                skinToneMatched = _.every(emoji.types, emojiWithSkinTone => EmojiUtils.containsOnlyEmojis(emojiWithSkinTone));
+                skinToneMatched = _.every(emoji.types, (emojiWithSkinTone) => EmojiUtils.containsOnlyEmojis(emojiWithSkinTone));
             }
             return skinToneMatched && isEmojiMatched;
         });
@@ -115,7 +115,7 @@ describe('EmojiTest', () => {
         expect(EmojiUtils.replaceEmojis(text, true)).toBe('Hi 😄👋no space after last emoji');
     });
 
-    it('will not add a space after the last emoji if we\'re not on mobile', () => {
+    it("will not add a space after the last emoji if we're not on mobile", () => {
         const text = 'Hi :smile:';
         expect(EmojiUtils.replaceEmojis(text)).toBe('Hi 😄');
     });
@@ -133,26 +133,18 @@ describe('EmojiTest', () => {
 
     it('correct suggests emojis accounting for keywords', () => {
         const text = ':thumb';
-        expect(EmojiUtils.suggestEmojis(text)).toEqual([{
-            code: '👍',
-            name: '+1',
-            types: ['👍🏿',
-                '👍🏾',
-                '👍🏽',
-                '👍🏼',
-                '👍🏻',
-            ],
-        }, {
-            code: '👎',
-            name: '-1',
-            types: [
-                '👎🏿',
-                '👎🏾',
-                '👎🏽',
-                '👎🏼',
-                '👎🏻',
-            ],
-        }]);
+        expect(EmojiUtils.suggestEmojis(text)).toEqual([
+            {
+                code: '👍',
+                name: '+1',
+                types: ['👍🏿', '👍🏾', '👍🏽', '👍🏼', '👍🏻'],
+            },
+            {
+                code: '👎',
+                name: '-1',
+                types: ['👎🏿', '👎🏾', '👎🏽', '👎🏼', '👎🏻'],
+            },
+        ]);
     });
 
     describe('update frequently used emojis', () => {

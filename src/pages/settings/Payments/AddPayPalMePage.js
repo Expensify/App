@@ -1,9 +1,5 @@
-import React, {
-    useRef, useState, useCallback,
-} from 'react';
-import {
-    View, TouchableWithoutFeedback, Linking,
-} from 'react-native';
+import React, {useRef, useState, useCallback} from 'react';
+import {View, TouchableWithoutFeedback, Linking} from 'react-native';
 import _ from 'underscore';
 import CONST from '../../../CONST';
 import ROUTES from '../../../ROUTES';
@@ -56,9 +52,7 @@ const AddPayPalMePage = (props) => {
             />
             <View style={[styles.flex1, styles.p5]}>
                 <View style={[styles.flex1]}>
-                    <Text style={[styles.mb4]}>
-                        {props.translate('addPayPalMePage.enterYourUsernameToGetPaidViaPayPal')}
-                    </Text>
+                    <Text style={[styles.mb4]}>{props.translate('addPayPalMePage.enterYourUsernameToGetPaidViaPayPal')}</Text>
                     <TextInput
                         ref={payPalMeInput}
                         label={props.translate('addPayPalMePage.payPalMe')}
@@ -75,9 +69,7 @@ const AddPayPalMePage = (props) => {
                         errorText={payPalMeUsernameError ? props.translate('addPayPalMePage.formatError') : ''}
                     />
                     <View style={[styles.mt3, styles.flexRow, styles.justifyContentBetween, styles.alignSelfStart]}>
-                        <Text style={[styles.textMicro, styles.flexRow]}>
-                            {props.translate('addPayPalMePage.checkListOf')}
-                        </Text>
+                        <Text style={[styles.textMicro, styles.flexRow]}>{props.translate('addPayPalMePage.checkListOf')}</Text>
                         <TouchableWithoutFeedback
                             // eslint-disable-next-line max-len
                             onPress={() => Linking.openURL('https://developer.paypal.com/docs/reports/reference/paypal-supported-currencies')}
@@ -91,7 +83,11 @@ const AddPayPalMePage = (props) => {
                                     {props.translate('addPayPalMePage.supportedCurrencies')}
                                 </TextLink>
                                 <View style={[styles.ml1]}>
-                                    <Icon src={Expensicons.NewWindow} height={variables.iconSizeExtraSmall} width={variables.iconSizeExtraSmall} />
+                                    <Icon
+                                        src={Expensicons.NewWindow}
+                                        height={variables.iconSizeExtraSmall}
+                                        width={variables.iconSizeExtraSmall}
+                                    />
                                 </View>
                             </View>
                         </TouchableWithoutFeedback>

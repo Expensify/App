@@ -33,17 +33,16 @@ function getMergeLogsAsJSON(fromRef, toRef) {
 
             resolve(stdout);
         });
-        spawnedProcess.on('error', err => reject(err));
-    })
-        .then((stdout) => {
-            // Sanitize just the text within commit subjects as that's the only potentially un-parseable text.
-            const sanitizedOutput = stdout.replace(/(?<="subject": ").*?(?="})/g, subject => sanitizeStringForJSONParse(subject));
+        spawnedProcess.on('error', (err) => reject(err));
+    }).then((stdout) => {
+        // Sanitize just the text within commit subjects as that's the only potentially un-parseable text.
+        const sanitizedOutput = stdout.replace(/(?<="subject": ").*?(?="})/g, (subject) => sanitizeStringForJSONParse(subject));
 
-            // Then remove newlines, format as JSON and convert to a proper JS object
-            const json = `[${sanitizedOutput}]`.replace(/(\r\n|\n|\r)/gm, '').replace('},]', '}]');
+        // Then remove newlines, format as JSON and convert to a proper JS object
+        const json = `[${sanitizedOutput}]`.replace(/(\r\n|\n|\r)/gm, '').replace('},]', '}]');
 
-            return JSON.parse(json);
-        });
+        return JSON.parse(json);
+    });
 }
 
 /**
@@ -53,18 +52,22 @@ function getMergeLogsAsJSON(fromRef, toRef) {
  * @returns {Array<String>}
  */
 function getValidMergedPRs(commitMessages) {
-    return _.reduce(commitMessages, (mergedPRs, commitMessage) => {
-        if (!_.isString(commitMessage)) {
+    return _.reduce(
+        commitMessages,
+        (mergedPRs, commitMessage) => {
+            if (!_.isString(commitMessage)) {
+                return mergedPRs;
+            }
+
+            const match = commitMessage.match(/Merge pull request #(\d+) from (?!Expensify\/(?:main|version-|update-staging-from-main|update-production-from-staging))/);
+            if (!_.isNull(match) && match[1]) {
+                mergedPRs.push(match[1]);
+            }
+
             return mergedPRs;
-        }
-
-        const match = commitMessage.match(/Merge pull request #(\d+) from (?!Expensify\/(?:main|version-|update-staging-from-main|update-production-from-staging))/);
-        if (!_.isNull(match) && match[1]) {
-            mergedPRs.push(match[1]);
-        }
-
-        return mergedPRs;
-    }, []);
+        },
+        [],
+    );
 }
 
 /**
@@ -92,11 +95,11 @@ function getPullRequestsMergedBetween(fromRef, toRef) {
             const duplicateMergeList = _.chain(fullMergeList)
                 .groupBy('subject')
                 .values()
-                .filter(i => i.length > 1)
+                .filter((i) => i.length > 1)
                 .flatten()
                 .pluck('commit')
                 .value();
-            const finalMergeList = _.filter(targetMergeList, i => !_.contains(duplicateMergeList, i.commit));
+            const finalMergeList = _.filter(targetMergeList, (i) => !_.contains(duplicateMergeList, i.commit));
             console.log('Filtered out the following commits which were duplicated in the full git log:', _.difference(targetMergeList, finalMergeList));
 
             // Find which commit messages correspond to merged PR's

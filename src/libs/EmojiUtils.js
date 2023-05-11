@@ -11,7 +11,7 @@ import FrequentlyUsed from '../../assets/images/history.svg';
 let frequentlyUsedEmojis = [];
 Onyx.connect({
     key: ONYXKEYS.FREQUENTLY_USED_EMOJIS,
-    callback: val => frequentlyUsedEmojis = val,
+    callback: (val) => (frequentlyUsedEmojis = val),
 });
 
 /**
@@ -25,7 +25,7 @@ const getEmojiUnicode = _.memoize((input) => {
     }
 
     if (input.length === 1) {
-        return _.map(input.charCodeAt(0).toString().split(' '), val => parseInt(val, 10).toString(16)).join(' ');
+        return _.map(input.charCodeAt(0).toString().split(' '), (val) => parseInt(val, 10).toString(16)).join(' ');
     }
 
     const pairs = [];
@@ -37,19 +37,18 @@ const getEmojiUnicode = _.memoize((input) => {
     // 1. https://docs.microsoft.com/en-us/windows/win32/intl/surrogates-and-supplementary-characters
     // 2. https://thekevinscott.com/emojis-in-javascript/
     for (let i = 0; i < input.length; i++) {
-        if (input.charCodeAt(i) >= 0xd800 && input.charCodeAt(i) <= 0xdbff) { // high surrogate
-            if (input.charCodeAt(i + 1) >= 0xdc00 && input.charCodeAt(i + 1) <= 0xdfff) { // low surrogate
-                pairs.push(
-                    ((input.charCodeAt(i) - 0xd800) * 0x400)
-                      + (input.charCodeAt(i + 1) - 0xdc00) + 0x10000,
-                );
+        if (input.charCodeAt(i) >= 0xd800 && input.charCodeAt(i) <= 0xdbff) {
+            // high surrogate
+            if (input.charCodeAt(i + 1) >= 0xdc00 && input.charCodeAt(i + 1) <= 0xdfff) {
+                // low surrogate
+                pairs.push((input.charCodeAt(i) - 0xd800) * 0x400 + (input.charCodeAt(i + 1) - 0xdc00) + 0x10000);
             }
         } else if (input.charCodeAt(i) < 0xd800 || input.charCodeAt(i) > 0xdfff) {
             // modifiers and joiners
             pairs.push(input.charCodeAt(i));
         }
     }
-    return _.map(pairs, val => parseInt(val, 10).toString(16)).join(' ');
+    return _.map(pairs, (val) => parseInt(val, 10).toString(16)).join(' ');
 });
 
 /**
@@ -76,16 +75,21 @@ function containsOnlyEmojis(message) {
     }
 
     const codes = [];
-    _.map(match, emoji => _.map(getEmojiUnicode(emoji).split(' '), (code) => {
-        if (!CONST.INVISIBLE_CODEPOINTS.includes(code)) {
-            codes.push(code);
-        }
-        return code;
-    }));
+    _.map(match, (emoji) =>
+        _.map(getEmojiUnicode(emoji).split(' '), (code) => {
+            if (!CONST.INVISIBLE_CODEPOINTS.includes(code)) {
+                codes.push(code);
+            }
+            return code;
+        }),
+    );
 
     // Emojis are stored as multiple characters, so we're using spread operator
     // to iterate over the actual emojis, not just characters that compose them
-    const messageCodes = _.filter(_.map([...trimmedMessage], char => getEmojiUnicode(char)), string => string.length > 0 && !CONST.INVISIBLE_CODEPOINTS.includes(string));
+    const messageCodes = _.filter(
+        _.map([...trimmedMessage], (char) => getEmojiUnicode(char)),
+        (string) => string.length > 0 && !CONST.INVISIBLE_CODEPOINTS.includes(string),
+    );
     return codes.length === messageCodes.length;
 }
 
@@ -153,11 +157,13 @@ function mergeEmojisWithFrequentlyUsedEmojis(emojis) {
         return addSpacesToEmojiCategories(emojis);
     }
 
-    let allEmojis = [{
-        header: true,
-        code: 'frequentlyUsed',
-        icon: FrequentlyUsed,
-    }];
+    let allEmojis = [
+        {
+            header: true,
+            code: 'frequentlyUsed',
+            icon: FrequentlyUsed,
+        },
+    ];
 
     allEmojis = allEmojis.concat(frequentlyUsedEmojis, emojis);
     return addSpacesToEmojiCategories(allEmojis);
@@ -170,11 +176,11 @@ function mergeEmojisWithFrequentlyUsedEmojis(emojis) {
 function addToFrequentlyUsedEmojis(newEmoji) {
     let frequentEmojiList = [...frequentlyUsedEmojis];
 
-    const maxFrequentEmojiCount = (CONST.EMOJI_FREQUENT_ROW_COUNT * CONST.EMOJI_NUM_PER_ROW) - 1;
+    const maxFrequentEmojiCount = CONST.EMOJI_FREQUENT_ROW_COUNT * CONST.EMOJI_NUM_PER_ROW - 1;
     const currentTimestamp = moment().unix();
     _.each([].concat(newEmoji), (emoji) => {
         let currentEmojiCount = 1;
-        const emojiIndex = _.findIndex(frequentEmojiList, e => e.code === emoji.code);
+        const emojiIndex = _.findIndex(frequentEmojiList, (e) => e.code === emoji.code);
         if (emojiIndex >= 0) {
             currentEmojiCount = frequentEmojiList[emojiIndex].count + 1;
             frequentEmojiList.splice(emojiIndex, 1);
@@ -266,7 +272,7 @@ function suggestEmojis(text, limit = 5) {
         const matching = [];
         const nodes = emojisTrie.getAllMatchingWords(emojiData[0].toLowerCase().slice(1), limit);
         for (let j = 0; j < nodes.length; j++) {
-            if (nodes[j].metaData.code && !_.find(matching, obj => obj.name === nodes[j].name)) {
+            if (nodes[j].metaData.code && !_.find(matching, (obj) => obj.name === nodes[j].name)) {
                 if (matching.length === limit) {
                     return matching;
                 }
@@ -277,7 +283,7 @@ function suggestEmojis(text, limit = 5) {
                 if (matching.length === limit) {
                     return matching;
                 }
-                if (!_.find(matching, obj => obj.name === suggestions[i].name)) {
+                if (!_.find(matching, (obj) => obj.name === suggestions[i].name)) {
                     matching.push(suggestions[i]);
                 }
             }
@@ -287,13 +293,4 @@ function suggestEmojis(text, limit = 5) {
     return [];
 }
 
-export {
-    getHeaderEmojis,
-    mergeEmojisWithFrequentlyUsedEmojis,
-    addToFrequentlyUsedEmojis,
-    containsOnlyEmojis,
-    replaceEmojis,
-    suggestEmojis,
-    trimEmojiUnicode,
-    getEmojiCodeWithSkinColor,
-};
+export {getHeaderEmojis, mergeEmojisWithFrequentlyUsedEmojis, addToFrequentlyUsedEmojis, containsOnlyEmojis, replaceEmojis, suggestEmojis, trimEmojiUnicode, getEmojiCodeWithSkinColor};
