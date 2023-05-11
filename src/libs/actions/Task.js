@@ -308,7 +308,7 @@ function clearOutTaskInfoAndNavigate(reportID) {
  * @param {Object} details
  * @returns {Object}
  */
-function constructAssignee(details) {
+function getAssignee(details) {
     const source = ReportUtils.getAvatar(lodashGet(details, 'avatar', ''), lodashGet(details, 'login', ''));
     return {
         icons: [{source, type: 'avatar', name: details.login}],
@@ -324,7 +324,7 @@ function constructAssignee(details) {
  * @param {Object} personalDetails
  * @returns {Object}
  * */
-function constructShareDestination(reportID, reports, personalDetails) {
+function getShareDestination(reportID, reports, personalDetails) {
     const report = lodashGet(reports, `report_${reportID}`, {});
     return {
         icons: ReportUtils.getIcons(report, personalDetails),
@@ -344,6 +344,6 @@ export {
     setShareDestinationValue,
     clearOutTaskInfo,
     clearOutTaskInfoAndNavigate,
-    constructAssignee,
-    constructShareDestination,
+    getAssignee,
+    getShareDestination,
 };

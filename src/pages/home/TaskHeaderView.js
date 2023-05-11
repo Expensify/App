@@ -46,11 +46,9 @@ function TaskHeaderView(props) {
         if (!props.report.assignee) {
             return;
         }
-        if (props.report.assignee) {
-            const assigneeDetails = lodashGet(props.personalDetails, props.report.assignee);
-            const displayDetails = TaskUtils.constructAssignee(assigneeDetails);
-            setAssignee(displayDetails);
-        }
+        const assigneeDetails = lodashGet(props.personalDetails, props.report.assignee);
+        const displayDetails = TaskUtils.getAssignee(assigneeDetails);
+        setAssignee(displayDetails);
     }, [props]);
     return (
         <>
@@ -61,7 +59,7 @@ function TaskHeaderView(props) {
                         text={assignee.displayName}
                         alternateText={assignee.subtitle}
                         onPress={() => Navigation.navigate(ROUTES.getTaskReportAssigneeRoute(props.report.reportID))}
-                        label="taskReport.to"
+                        label="common.to"
                         isNewTask={false}
                     />
                 )}

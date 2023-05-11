@@ -1490,7 +1490,7 @@ function buildOptimisticEditedTaskReportAction(ownerEmail) {
         automatic: false,
         avatar: lodashGet(allPersonalDetails, [currentUserEmail, 'avatar'], getDefaultAvatar(currentUserEmail)),
         created: DateUtils.getDBTime(),
-        shouldShow: true,
+        shouldShow: false,
     };
 }
 

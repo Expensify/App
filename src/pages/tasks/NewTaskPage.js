@@ -81,7 +81,7 @@ const NewTaskPage = (props) => {
                 setSubmitError(true);
                 return setErrorMessage(props.translate('newTaskPage.assigneeError'));
             }
-            const displayDetails = TaskUtils.constructAssignee(assigneeDetails);
+            const displayDetails = TaskUtils.getAssignee(assigneeDetails);
             setAssignee(displayDetails);
         }
 
@@ -96,7 +96,7 @@ const NewTaskPage = (props) => {
         // the share destination data
         if (props.task.shareDestination) {
             setParentReport(lodashGet(props.reports, `report_${props.task.shareDestination}`, {}));
-            const displayDetails = TaskUtils.constructShareDestination(props.task.shareDestination, props.reports, props.personalDetails);
+            const displayDetails = TaskUtils.getShareDestination(props.task.shareDestination, props.reports, props.personalDetails);
             setShareDestination(displayDetails);
         }
     }, [props]);
