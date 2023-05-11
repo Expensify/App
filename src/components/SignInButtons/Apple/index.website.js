@@ -7,7 +7,9 @@ import APPLE_CONFIG from './AppleConfig';
 const propTypes = {...withLocalizePropTypes};
 
 const $appleButtonContainerStyle = {
-    width: 40, height: 40, marginRight: 20,
+    width: 40,
+    height: 40,
+    marginRight: 20,
 };
 
 const AppleSignIn = (props) => {
@@ -54,7 +56,6 @@ const AppleSignIn = (props) => {
                 data-type="sign in"
             />
         </View>
-
     );
 };
 

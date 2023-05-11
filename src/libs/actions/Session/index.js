@@ -265,8 +265,8 @@ function handleAppleAuthApiResponse(token) {
     const {optimisticData, successData, failureData} = generateResponseData();
     // eslint-disable-next-line rulesdir/no-api-side-effects-method
     API.makeRequestWithSideEffects('AuthenticateApple', {token}, {optimisticData, successData, failureData})
-        .then(apiResponse => Log.info('API response: ', apiResponse))
-        .catch(apiError => Log.error('API Callback error: ', apiError));
+        .then((apiResponse) => Log.info('API response: ', apiResponse))
+        .catch((apiError) => Log.error('API Callback error: ', apiError));
 }
 
 /**
@@ -722,65 +722,77 @@ function authenticatePusher(socketID, channelName, callback) {
  * Request a new validation link / magic code to unlink an unvalidated secondary login from a primary login
  */
 function requestUnlinkValidationLink() {
-    const optimisticData = [{
-        onyxMethod: Onyx.METHOD.MERGE,
-        key: ONYXKEYS.ACCOUNT,
-        value: {
-            isLoading: true,
-            errors: null,
-            message: null,
+    const optimisticData = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: ONYXKEYS.ACCOUNT,
+            value: {
+                isLoading: true,
+                errors: null,
+                message: null,
+            },
         },
-    }];
-    const successData = [{
-        onyxMethod: Onyx.METHOD.MERGE,
-        key: ONYXKEYS.ACCOUNT,
-        value: {
-            isLoading: false,
-            message: Localize.translateLocal('unlinkLoginForm.linkSent'),
+    ];
+    const successData = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: ONYXKEYS.ACCOUNT,
+            value: {
+                isLoading: false,
+                message: Localize.translateLocal('unlinkLoginForm.linkSent'),
+            },
         },
-    }];
-    const failureData = [{
-        onyxMethod: Onyx.METHOD.MERGE,
-        key: ONYXKEYS.ACCOUNT,
-        value: {
-            isLoading: false,
+    ];
+    const failureData = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: ONYXKEYS.ACCOUNT,
+            value: {
+                isLoading: false,
+            },
         },
-    }];
+    ];
 
     API.write('RequestUnlinkValidationLink', {email: credentials.login}, {optimisticData, successData, failureData});
 }
 
 function unlinkLogin(accountID, validateCode) {
-    const optimisticData = [{
-        onyxMethod: Onyx.METHOD.MERGE,
-        key: ONYXKEYS.ACCOUNT,
-        value: {
-            ...CONST.DEFAULT_ACCOUNT_DATA,
-            isLoading: true,
+    const optimisticData = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: ONYXKEYS.ACCOUNT,
+            value: {
+                ...CONST.DEFAULT_ACCOUNT_DATA,
+                isLoading: true,
+            },
         },
-    }];
-    const successData = [{
-        onyxMethod: Onyx.METHOD.MERGE,
-        key: ONYXKEYS.ACCOUNT,
-        value: {
-            isLoading: false,
-            message: Localize.translateLocal('unlinkLoginForm.succesfullyUnlinkedLogin'),
+    ];
+    const successData = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: ONYXKEYS.ACCOUNT,
+            value: {
+                isLoading: false,
+                message: Localize.translateLocal('unlinkLoginForm.succesfullyUnlinkedLogin'),
+            },
         },
-    },
-    {
-        onyxMethod: Onyx.METHOD.MERGE,
-        key: ONYXKEYS.CREDENTIALS,
-        value: {
-            login: '',
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: ONYXKEYS.CREDENTIALS,
+            value: {
+                login: '',
+            },
         },
-    }];
-    const failureData = [{
-        onyxMethod: Onyx.METHOD.MERGE,
-        key: ONYXKEYS.ACCOUNT,
-        value: {
-            isLoading: false,
+    ];
+    const failureData = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: ONYXKEYS.ACCOUNT,
+            value: {
+                isLoading: false,
+            },
         },
-    }];
+    ];
 
     API.write('UnlinkLogin', {accountID, validateCode}, {optimisticData, successData, failureData});
 }

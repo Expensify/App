@@ -7,7 +7,10 @@ const style = {
 };
 
 const ButtonBase = ({onPress, icon}) => (
-    <Pressable onPress={onPress} style={style}>
+    <Pressable
+        onPress={onPress}
+        style={style}
+    >
         {icon}
     </Pressable>
 );
