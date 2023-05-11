@@ -6,6 +6,7 @@ import _ from 'underscore';
 import PropTypes from 'prop-types';
 import {withOnyx} from 'react-native-onyx';
 import {Freeze} from 'react-freeze';
+import withEnvironment, {environmentPropTypes} from '../../../components/withEnvironment';
 import styles from '../../../styles/styles';
 import * as StyleUtils from '../../../styles/StyleUtils';
 import ONYXKEYS from '../../../ONYXKEYS';
@@ -32,6 +33,7 @@ import OfflineWithFeedback from '../../../components/OfflineWithFeedback';
 import ExpensifyWordmark from '../../../components/ExpensifyWordmark';
 import defaultTheme from '../../../styles/themes/default';
 import OptionsListSkeletonView from '../../../components/OptionsListSkeletonView';
+import variables from '../../../styles/variables';
 
 const propTypes = {
     /** Toggles the navigation menu open and closed */
@@ -77,6 +79,7 @@ const propTypes = {
     priorityMode: PropTypes.string,
 
     ...withLocalizePropTypes,
+    ...environmentPropTypes,
 };
 
 const defaultProps = {
@@ -148,9 +151,10 @@ class SidebarLinks extends React.Component {
                     style={[styles.flexRow, styles.ph5, styles.pv3, styles.justifyContentBetween, styles.alignItemsCenter]}
                     nativeID="drag-area"
                 >
-                    <View style={[styles.flex1, styles.flexRows]}>
+                    <View style={[styles.flex1, styles.flexRow]}>
                         <ExpensifyWordmark
                             color={defaultTheme.textLight}
+                            containerStyles={[StyleUtils.getLHNWordmarkWidthStyle(this.props.environment, this.props.isSmallScreenWidth), StyleUtils.getHeight(variables.lhnLogoHeight)]}
                         />
                     </View>
                     <Tooltip text={this.props.translate('common.search')}>
@@ -286,6 +290,7 @@ export default compose(
     withLocalize,
     withCurrentUserPersonalDetails,
     withWindowDimensions,
+    withEnvironment,
     withOnyx({
         // Note: It is very important that the keys subscribed to here are the same
         // keys that are subscribed to at the top of SidebarUtils.js. If there was a key missing from here and data was updated
