@@ -286,11 +286,11 @@ function getLinkedTransactionID(reportID, reportActionID) {
 }
 
 /**
- * @returns {object}
+ * @returns {string}
  */
-function getMostRecentStoredReportAction() {
-    let mostRecentReportAction;
-    let mostRecentReportActionCreated = new Date(0).toISOString();
+function getMostRecentReportActionLastModified() {
+    let mostRecentlyModifiedReportAction;
+    let mostRecentReportActionLastModified = new Date(0).toISOString();
 
     // Flatten all the actions
     // Loop over them all to find the one that is the most recent
@@ -303,19 +303,19 @@ function getMostRecentStoredReportAction() {
         }
 
         // All actions should have this, but if not they are not useful to us.
-        if (!action.created) {
+        if (!action.lastModified) {
             return;
         }
 
-        if (action.created < mostRecentReportActionCreated) {
+        if (action.lastModified < mostRecentReportActionLastModified) {
             return;
         }
 
-        mostRecentReportActionCreated = action.created;
-        mostRecentReportAction = action;
+        mostRecentReportActionLastModified = action.lastModified;
+        mostRecentlyModifiedReportAction = action;
     });
 
-    return mostRecentReportAction;
+    return mostRecentlyModifiedReportAction;
 }
 
 export {
@@ -331,5 +331,5 @@ export {
     getLastClosedReportAction,
     getLatestReportActionFromOnyxData,
     getLinkedTransactionID,
-    getMostRecentStoredReportAction,
+    getMostRecentReportActionLastModified,
 };
