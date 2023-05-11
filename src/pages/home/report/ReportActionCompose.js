@@ -1181,5 +1181,8 @@ export default compose(
         preferredSkinTone: {
             key: ONYXKEYS.PREFERRED_EMOJI_SKIN_TONE,
         },
+        personalDetails: {
+            key: ONYXKEYS.PERSONAL_DETAILS,
+        },
     }),
 )(ReportActionCompose);
