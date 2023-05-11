@@ -285,6 +285,10 @@ function getLinkedTransactionID(reportID, reportActionID) {
     return reportAction.originalMessage.IOUTransactionID;
 }
 
+function isCreatedTaskReportAction(reportAction) {
+    return reportAction.actionName === CONST.REPORT.ACTIONS.TYPE.ADDCOMMENT && _.has(reportAction.originalMessage, 'taskReportID');
+}
+
 export {
     getSortedReportActions,
     getLastVisibleAction,
@@ -298,4 +302,5 @@ export {
     getLastClosedReportAction,
     getLatestReportActionFromOnyxData,
     getLinkedTransactionID,
+    isCreatedTaskReportAction,
 };

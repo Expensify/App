@@ -197,6 +197,12 @@ const styles = {
         fontSize: variables.fontSizeMedium,
     },
 
+    mentionSuggestionsText: {
+        fontSize: variables.fontSizeMedium,
+        flex: 1,
+        ...spacing.ml2,
+    },
+
     unitCol: {
         margin: 0,
         padding: 0,
@@ -811,6 +817,12 @@ const styles = {
     autoGrowHeightInputContainer: (textInputHeight, maxHeight) => ({
         height: textInputHeight >= maxHeight ? maxHeight : textInputHeight,
         minHeight: variables.componentSizeLarge,
+    }),
+
+    autoGrowHeightHiddenInput: (maxWidth, maxHeight) => ({
+        maxWidth,
+        maxHeight: maxHeight && maxHeight + 1,
+        overflow: 'hidden',
     }),
 
     textInputContainer: {
@@ -3197,6 +3209,10 @@ const styles = {
     },
     contextMenuItemPopoverMaxWidth: {
         maxWidth: 375,
+    },
+    taskCheckbox: {
+        height: 16,
+        width: 16,
     },
 };
 

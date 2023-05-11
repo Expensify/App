@@ -25,6 +25,8 @@ import reportActionPropTypes from '../../pages/home/report/reportActionPropTypes
 import {showContextMenuForReport} from '../ShowContextMenuContext';
 import * as OptionsListUtils from '../../libs/OptionsListUtils';
 import * as CurrencyUtils from '../../libs/CurrencyUtils';
+import * as StyleUtils from '../../styles/StyleUtils';
+import getButtonState from '../../libs/getButtonState';
 
 const propTypes = {
     /** The active IOUReport, used for Onyx subscription */
@@ -137,7 +139,7 @@ const IOUPreview = (props) => {
     const managerEmail = props.iouReport.managerEmail || '';
     const ownerEmail = props.iouReport.ownerEmail || '';
 
-    // When displaying within a IOUDetailsModal we cannot guarentee that participants are included in the originalMessage data
+    // When displaying within a IOUDetailsModal we cannot guarantee that participants are included in the originalMessage data
     // Because an IOUPreview of type split can never be rendered within the IOUDetailsModal, manually building the email array is only needed for non-billSplit ious
     const participantEmails = props.isBillSplit ? props.action.originalMessage.participants : [managerEmail, ownerEmail];
     const participantAvatars = OptionsListUtils.getAvatarsForLogins(participantEmails, props.personalDetails);
@@ -147,6 +149,19 @@ const IOUPreview = (props) => {
 
     // If props.action is undefined then we are displaying within IOUDetailsModal and should use the full report amount
     const requestAmount = props.isIOUAction ? lodashGet(props.action, 'originalMessage.amount', 0) : props.iouReport.total;
+
+    const getSettledMessage = () => {
+        switch (lodashGet(props.action, 'originalMessage.paymentType', '')) {
+            case CONST.IOU.PAYMENT_TYPE.PAYPAL_ME:
+                return props.translate('iou.settledPaypalMe');
+            case CONST.IOU.PAYMENT_TYPE.ELSEWHERE:
+                return props.translate('iou.settledElsewhere');
+            case CONST.IOU.PAYMENT_TYPE.EXPENSIFY:
+                return props.translate('iou.settledExpensify');
+            default:
+                return '';
+        }
+    };
 
     const showContextMenu = (event) => {
         // Use action prop to check if we are in IOUDetailsModal,
@@ -171,10 +186,30 @@ const IOUPreview = (props) => {
                 needsOffscreenAlphaCompositing
             >
                 <View style={[styles.iouPreviewBox, ...props.containerStyles]}>
-                    <Text>{props.isBillSplit ? props.translate('iou.split') : props.translate('iou.cash')}</Text>
                     <View style={[styles.flexRow]}>
                         <View style={[styles.flex1, styles.flexRow, styles.alignItemsCenter]}>
-                            <Text style={styles.h1}>{CurrencyUtils.convertToDisplayString(requestAmount, 'USD')}</Text>
+                            <Text style={[styles.textLabelSupporting, styles.lh16]}>{props.isBillSplit ? props.translate('iou.split') : props.translate('iou.cash')}</Text>
+                            {Boolean(getSettledMessage()) && (
+                                <>
+                                    <Icon
+                                        src={Expensicons.DotIndicator}
+                                        width={4}
+                                        height={4}
+                                        additionalStyles={[styles.mr1, styles.ml1]}
+                                    />
+                                    <Text style={[styles.textLabelSupporting, styles.lh16]}>{getSettledMessage()}</Text>
+                                </>
+                            )}
+                        </View>
+                        <Icon
+                            src={Expensicons.ArrowRight}
+                            fill={StyleUtils.getIconFillColor(getButtonState(props.isHovered))}
+                            additionalStyles={[styles.mb1]}
+                        />
+                    </View>
+                    <View style={[styles.flexRow]}>
+                        <View style={[styles.flex1, styles.flexRow, styles.alignItemsCenter]}>
+                            <Text style={styles.textHeadline}>{CurrencyUtils.convertToDisplayString(requestAmount, requestCurrency)}</Text>
                             {!props.iouReport.hasOutstandingIOU && !props.isBillSplit && (
                                 <View style={styles.iouPreviewBoxCheckmark}>
                                     <Icon
@@ -184,20 +219,35 @@ const IOUPreview = (props) => {
                                 </View>
                             )}
                         </View>
-                        <View style={styles.iouPreviewBoxAvatar}>
-                            <MultipleAvatars
-                                icons={participantAvatars}
-                                secondAvatarStyle={[styles.secondAvatarInline, props.isHovered ? styles.iouPreviewBoxAvatarHover : undefined]}
-                                avatarTooltips={participantEmails}
-                            />
-                        </View>
+                        {props.isBillSplit && (
+                            <View style={styles.iouPreviewBoxAvatar}>
+                                <MultipleAvatars
+                                    icons={participantAvatars}
+                                    secondAvatarStyle={[styles.secondAvatarInline, props.isHovered ? styles.iouPreviewBoxAvatarHover : undefined]}
+                                    avatarTooltips={participantEmails}
+                                />
+                            </View>
+                        )}
                     </View>
 
                     {!isCurrentUserManager && props.shouldShowPendingConversionMessage && (
                         <Text style={[styles.textLabel, styles.colorMuted]}>{props.translate('iou.pendingConversionMessage')}</Text>
                     )}
 
-                    <Text>{Str.htmlDecode(lodashGet(props.action, 'originalMessage.comment', ''))}</Text>
+                    <Text style={[styles.colorMuted]}>{Str.htmlDecode(lodashGet(props.action, 'originalMessage.comment', ''))}</Text>
+
+                    {isCurrentUserManager && !props.shouldHidePayButton && props.iouReport.stateNum === CONST.REPORT.STATE_NUM.PROCESSING && (
+                        <Button
+                            style={styles.mt4}
+                            onPress={props.onPayButtonPressed}
+                            onPressIn={() => DeviceCapabilities.canUseTouchScreen() && ControlSelection.block()}
+                            onPressOut={() => ControlSelection.unblock()}
+                            onLongPress={showContextMenu}
+                            text={props.translate('iou.pay')}
+                            success
+                            medium
+                        />
+                    )}
                 </View>
             </OfflineWithFeedback>
         </View>

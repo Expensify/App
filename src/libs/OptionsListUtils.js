@@ -103,7 +103,10 @@ function getPolicyExpenseReportOptions(report) {
     if (!ReportUtils.isPolicyExpenseChat(report)) {
         return [];
     }
-    const filteredPolicyExpenseReports = _.filter(policyExpenseReports, (policyExpenseReport) => policyExpenseReport.policyID === report.policyID);
+    const filteredPolicyExpenseReports = _.filter(
+        policyExpenseReports,
+        (policyExpenseReport) => policyExpenseReport.policyID === report.policyID && policyExpenseReport.isOwnPolicyExpenseChat,
+    );
     return _.map(filteredPolicyExpenseReports, (expenseReport) => {
         const policyExpenseChatAvatarSource = ReportUtils.getWorkspaceAvatar(expenseReport);
         return {
@@ -187,6 +190,15 @@ function getPersonalDetailsForLogins(logins, personalDetails) {
             personalDetailsForLogins[login] = personalDetail;
         });
     return personalDetailsForLogins;
+}
+
+/**
+ * Return true if personal details data is ready, i.e. report list options can be created.
+ * @param {Object} personalDetails
+ * @returns {boolean}
+ */
+function isPersonalDetailsReady(personalDetails) {
+    return !_.isEmpty(personalDetails) && !_.some(_.keys(personalDetails), (key) => !personalDetails[key].login);
 }
 
 /**
@@ -523,7 +535,6 @@ function getOptions(
         includeMultipleParticipantReports = false,
         includePersonalDetails = false,
         includeRecentReports = false,
-
         // When sortByReportTypeInSearch flag is true, recentReports will include the personalDetails options as well.
         sortByReportTypeInSearch = false,
         searchInputValue = '',
@@ -533,6 +544,14 @@ function getOptions(
         includeOwnedWorkspaceChats = false,
     },
 ) {
+    if (!isPersonalDetailsReady(personalDetails)) {
+        return {
+            recentReports: [],
+            personalDetails: [],
+            userToInvite: null,
+        };
+    }
+
     let recentReportOptions = [];
     let personalDetailsOptions = [];
     const reportMapForLogins = {};
@@ -897,6 +916,7 @@ export {
     addSMSDomainIfPhoneNumber,
     getAvatarsForLogins,
     isCurrentUser,
+    isPersonalDetailsReady,
     getSearchOptions,
     getNewChatOptions,
     getShareDestinationOptions,
