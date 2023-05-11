@@ -46,20 +46,21 @@ const Section = (props) => {
                         <Text style={[styles.textHeadline, styles.cardSectionTitle]}>{props.title}</Text>
                     </View>
                     <View style={[styles.flexGrow1, styles.flexRow, styles.justifyContentEnd]}>
-                        {Boolean(props.icon) && <Icon src={props.icon} height={68} width={68} />}
+                        {Boolean(props.icon) && (
+                            <Icon
+                                src={props.icon}
+                                height={68}
+                                width={68}
+                            />
+                        )}
                         {Boolean(IconComponent) && <IconComponent />}
                     </View>
                 </View>
 
-                <View style={[styles.w100]}>
-                    {props.children}
-                </View>
+                <View style={[styles.w100]}>{props.children}</View>
 
-                <View style={[styles.w100]}>
-                    {Boolean(props.menuItems) && <MenuItemList menuItems={props.menuItems} />}
-                </View>
+                <View style={[styles.w100]}>{Boolean(props.menuItems) && <MenuItemList menuItems={props.menuItems} />}</View>
             </View>
-
         </>
     );
 };

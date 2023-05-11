@@ -60,7 +60,7 @@ class PressableWithSecondaryInteraction extends Component {
          * When the modal is closed it focuses back to the last active element.
          * Therefore it shifts the element to bring it back to focus.
          * https://github.com/Expensify/App/issues/14148
-        */
+         */
         if (this.props.withoutFocusOnSecondaryInteraction && this.pressableRef) {
             this.pressableRef.blur();
         }
@@ -78,7 +78,7 @@ class PressableWithSecondaryInteraction extends Component {
                 onLongPress={this.props.onSecondaryInteraction ? this.executeSecondaryInteraction : undefined}
                 onPressOut={this.props.onPressOut}
                 onPress={this.props.onPress}
-                ref={el => this.pressableRef = el}
+                ref={(el) => (this.pressableRef = el)}
                 // eslint-disable-next-line react/jsx-props-no-spreading
                 {...defaultPressableProps}
             >
@@ -91,6 +91,9 @@ class PressableWithSecondaryInteraction extends Component {
 PressableWithSecondaryInteraction.propTypes = pressableWithSecondaryInteractionPropTypes.propTypes;
 PressableWithSecondaryInteraction.defaultProps = pressableWithSecondaryInteractionPropTypes.defaultProps;
 export default React.forwardRef((props, ref) => (
-    // eslint-disable-next-line react/jsx-props-no-spreading
-    <PressableWithSecondaryInteraction {...props} forwardedRef={ref} />
+    <PressableWithSecondaryInteraction
+        // eslint-disable-next-line react/jsx-props-no-spreading
+        {...props}
+        forwardedRef={ref}
+    />
 ));

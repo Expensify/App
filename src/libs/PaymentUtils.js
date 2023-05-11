@@ -20,7 +20,7 @@ function hasExpensifyPaymentMethod(cardList = [], bankAccountList = []) {
     });
 
     // Hide any billing cards that are not P2P debit cards for now because you cannot make them your default method, or delete them
-    const validDebitCard = _.some(cardList, card => lodashGet(card, 'accountData.additionalData.isP2PDebitCard', false));
+    const validDebitCard = _.some(cardList, (card) => lodashGet(card, 'accountData.additionalData.isP2PDebitCard', false));
 
     return validBankAccount || validDebitCard;
 }
@@ -99,16 +99,10 @@ function formatPaymentMethods(bankAccountList, cardList, payPalMeData = null) {
  * @returns {Number} the fee, in cents
  */
 function calculateWalletTransferBalanceFee(currentBalance, methodType) {
-    const transferMethodTypeFeeStructure = methodType === CONST.WALLET.TRANSFER_METHOD_TYPE.INSTANT
-        ? CONST.WALLET.TRANSFER_METHOD_TYPE_FEE.INSTANT
-        : CONST.WALLET.TRANSFER_METHOD_TYPE_FEE.ACH;
+    const transferMethodTypeFeeStructure =
+        methodType === CONST.WALLET.TRANSFER_METHOD_TYPE.INSTANT ? CONST.WALLET.TRANSFER_METHOD_TYPE_FEE.INSTANT : CONST.WALLET.TRANSFER_METHOD_TYPE_FEE.ACH;
     const calculateFee = Math.ceil(currentBalance * (transferMethodTypeFeeStructure.RATE / 100));
     return Math.max(calculateFee, transferMethodTypeFeeStructure.MINIMUM_FEE);
 }
 
-export {
-    hasExpensifyPaymentMethod,
-    getPaymentMethodDescription,
-    formatPaymentMethods,
-    calculateWalletTransferBalanceFee,
-};
+export {hasExpensifyPaymentMethod, getPaymentMethodDescription, formatPaymentMethods, calculateWalletTransferBalanceFee};

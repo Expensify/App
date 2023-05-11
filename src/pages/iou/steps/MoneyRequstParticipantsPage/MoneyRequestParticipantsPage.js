@@ -26,16 +26,12 @@ const propTypes = {
 
     /** Holds data related to IOU view state, rather than the underlying IOU data. */
     iou: PropTypes.shape({
-
         /** Whether or not the IOU step is loading (retrieving participants) */
         loading: PropTypes.bool,
     }),
 
     /** padding bottom style of safe area */
-    safeAreaPaddingBottomStyle: PropTypes.oneOfType([
-        PropTypes.arrayOf(PropTypes.object),
-        PropTypes.object,
-    ]),
+    safeAreaPaddingBottomStyle: PropTypes.oneOfType([PropTypes.arrayOf(PropTypes.object), PropTypes.object]),
 
     /** The type of IOU report, i.e. bill, request, send */
     iouType: PropTypes.string.isRequired,
@@ -56,23 +52,20 @@ const MoneyRequestParticipantsPage = (props) => {
         );
     }
 
-    return (props.hasMultipleParticipants
-        ? (
-            <MoneyRequestParticipantsSplitSelector
-                onStepComplete={props.onStepComplete}
-                participants={props.participants}
-                onAddParticipants={props.onAddParticipants}
-                safeAreaPaddingBottomStyle={props.safeAreaPaddingBottomStyle}
-            />
-        )
-        : (
-            <MoneyRequestParticipantsSelector
-                onStepComplete={props.onStepComplete}
-                onAddParticipants={props.onAddParticipants}
-                safeAreaPaddingBottomStyle={props.safeAreaPaddingBottomStyle}
-                iouType={props.iouType}
-            />
-        )
+    return props.hasMultipleParticipants ? (
+        <MoneyRequestParticipantsSplitSelector
+            onStepComplete={props.onStepComplete}
+            participants={props.participants}
+            onAddParticipants={props.onAddParticipants}
+            safeAreaPaddingBottomStyle={props.safeAreaPaddingBottomStyle}
+        />
+    ) : (
+        <MoneyRequestParticipantsSelector
+            onStepComplete={props.onStepComplete}
+            onAddParticipants={props.onAddParticipants}
+            safeAreaPaddingBottomStyle={props.safeAreaPaddingBottomStyle}
+            iouType={props.iouType}
+        />
     );
 };
 

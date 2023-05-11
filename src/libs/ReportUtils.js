@@ -26,7 +26,7 @@ import * as CurrencyUtils from './CurrencyUtils';
 let sessionEmail;
 Onyx.connect({
     key: ONYXKEYS.SESSION,
-    callback: val => sessionEmail = val ? val.email : null,
+    callback: (val) => (sessionEmail = val ? val.email : null),
 });
 
 let preferredLocale = CONST.LOCALES.DEFAULT;
@@ -69,21 +69,21 @@ let allReports;
 Onyx.connect({
     key: ONYXKEYS.COLLECTION.REPORT,
     waitForCollectionCallback: true,
-    callback: val => allReports = val,
+    callback: (val) => (allReports = val),
 });
 
 let doesDomainHaveApprovedAccountant;
 Onyx.connect({
     key: ONYXKEYS.ACCOUNT,
     waitForCollectionCallback: true,
-    callback: val => doesDomainHaveApprovedAccountant = lodashGet(val, 'doesDomainHaveApprovedAccountant', false),
+    callback: (val) => (doesDomainHaveApprovedAccountant = lodashGet(val, 'doesDomainHaveApprovedAccountant', false)),
 });
 
 let allPolicies;
 Onyx.connect({
     key: ONYXKEYS.COLLECTION.POLICY,
     waitForCollectionCallback: true,
-    callback: val => allPolicies = val,
+    callback: (val) => (allPolicies = val),
 });
 
 function getChatType(report) {
@@ -97,13 +97,15 @@ function getChatType(report) {
  * @returns {string}
  */
 function getReportParticipantsTitle(logins) {
-    return _.chain(logins)
+    return (
+        _.chain(logins)
 
-        // Somehow it's possible for the logins coming from report.participants to contain undefined values so we use compact to remove them.
-        .compact()
-        .map(login => Str.removeSMSDomain(login))
-        .value()
-        .join(', ');
+            // Somehow it's possible for the logins coming from report.participants to contain undefined values so we use compact to remove them.
+            .compact()
+            .map((login) => Str.removeSMSDomain(login))
+            .value()
+            .join(', ')
+    );
 }
 
 /**
@@ -155,7 +157,7 @@ function isMoneyRequestReport(report) {
 function sortReportsByLastRead(reports) {
     return _.chain(reports)
         .toArray()
-        .filter(report => report && report.reportID && !isIOUReport(report))
+        .filter((report) => report && report.reportID && !isIOUReport(report))
         .sortBy('lastReadTime')
         .value();
 }
@@ -171,11 +173,14 @@ function sortReportsByLastRead(reports) {
  * @returns {Boolean}
  */
 function canEditReportAction(reportAction) {
-    return reportAction.actorEmail === sessionEmail
-        && reportAction.actionName === CONST.REPORT.ACTIONS.TYPE.ADDCOMMENT
-        && !isReportMessageAttachment(lodashGet(reportAction, ['message', 0], {}))
-        && !ReportActionsUtils.isDeletedAction(reportAction)
-        && reportAction.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE;
+    return (
+        reportAction.actorEmail === sessionEmail &&
+        reportAction.actionName === CONST.REPORT.ACTIONS.TYPE.ADDCOMMENT &&
+        !isReportMessageAttachment(lodashGet(reportAction, ['message', 0], {})) &&
+        !ReportActionsUtils.isDeletedAction(reportAction) &&
+        !ReportActionsUtils.isCreatedTaskReportAction(reportAction) &&
+        reportAction.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE
+    );
 }
 
 /**
@@ -185,9 +190,12 @@ function canEditReportAction(reportAction) {
  * @returns {Boolean}
  */
 function canDeleteReportAction(reportAction) {
-    return reportAction.actorEmail === sessionEmail
-        && reportAction.actionName === CONST.REPORT.ACTIONS.TYPE.ADDCOMMENT
-        && reportAction.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE;
+    return (
+        reportAction.actorEmail === sessionEmail &&
+        reportAction.actionName === CONST.REPORT.ACTIONS.TYPE.ADDCOMMENT &&
+        !ReportActionsUtils.isCreatedTaskReportAction(reportAction) &&
+        reportAction.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE
+    );
 }
 
 /**
@@ -217,11 +225,7 @@ function isAnnounceRoom(report) {
  * @returns {Boolean}
  */
 function isDefaultRoom(report) {
-    return [
-        CONST.REPORT.CHAT_TYPE.POLICY_ADMINS,
-        CONST.REPORT.CHAT_TYPE.POLICY_ANNOUNCE,
-        CONST.REPORT.CHAT_TYPE.DOMAIN_ALL,
-    ].indexOf(getChatType(report)) > -1;
+    return [CONST.REPORT.CHAT_TYPE.POLICY_ADMINS, CONST.REPORT.CHAT_TYPE.POLICY_ANNOUNCE, CONST.REPORT.CHAT_TYPE.DOMAIN_ALL].indexOf(getChatType(report)) > -1;
 }
 
 /**
@@ -303,7 +307,7 @@ function getPolicyType(report, policies) {
  * @returns {Boolean}
  */
 function hasExpensifyGuidesEmails(emails) {
-    return _.some(emails, email => Str.extractEmailDomain(email) === CONST.EMAIL.GUIDES_DOMAIN);
+    return _.some(emails, (email) => Str.extractEmailDomain(email) === CONST.EMAIL.GUIDES_DOMAIN);
 }
 
 /**
@@ -313,8 +317,7 @@ function hasExpensifyGuidesEmails(emails) {
  * @returns {Boolean}
  */
 function isConciergeChatReport(report) {
-    return lodashGet(report, 'participants', []).length === 1
-        && report.participants[0] === CONST.EMAIL.CONCIERGE;
+    return lodashGet(report, 'participants', []).length === 1 && report.participants[0] === CONST.EMAIL.CONCIERGE;
 }
 
 /**
@@ -337,16 +340,17 @@ function findLastAccessedReport(reports, ignoreDomainRooms, policies, isFirstTim
         if (sortedReports.length === 1) {
             return sortedReports[0];
         }
-        return _.find(sortedReports, report => !isConciergeChatReport(report));
+        return _.find(sortedReports, (report) => !isConciergeChatReport(report));
     }
 
     if (ignoreDomainRooms) {
         // We allow public announce rooms, admins, and announce rooms through since we bypass the default rooms beta for them.
         // Check where ReportUtils.findLastAccessedReport is called in MainDrawerNavigator.js for more context.
         // Domain rooms are now the only type of default room that are on the defaultRooms beta.
-        sortedReports = _.filter(sortedReports, report => !isDomainRoom(report)
-            || getPolicyType(report, policies) === CONST.POLICY.TYPE.FREE
-            || hasExpensifyGuidesEmails(lodashGet(report, ['participants'], [])));
+        sortedReports = _.filter(
+            sortedReports,
+            (report) => !isDomainRoom(report) || getPolicyType(report, policies) === CONST.POLICY.TYPE.FREE || hasExpensifyGuidesEmails(lodashGet(report, ['participants'], [])),
+        );
     }
 
     let adminReport;
@@ -395,9 +399,7 @@ function getPolicyName(report) {
         return report.oldPolicyName || Localize.translateLocal('workspace.common.unavailable');
     }
 
-    return policy.name
-        || report.oldPolicyName
-        || Localize.translateLocal('workspace.common.unavailable');
+    return policy.name || report.oldPolicyName || Localize.translateLocal('workspace.common.unavailable');
 }
 
 /**
@@ -412,9 +414,7 @@ function isPolicyExpenseChatAdmin(report, policies) {
         return false;
     }
 
-    const policyRole = lodashGet(policies, [
-        `${ONYXKEYS.COLLECTION.POLICY}${report.policyID}`, 'role',
-    ]);
+    const policyRole = lodashGet(policies, [`${ONYXKEYS.COLLECTION.POLICY}${report.policyID}`, 'role']);
 
     return policyRole === CONST.POLICY.ROLE.ADMIN;
 }
@@ -478,8 +478,7 @@ function getRoomWelcomeMessage(report) {
  * @returns {Boolean}
  */
 function chatIncludesConcierge(report) {
-    return report.participants
-        && _.contains(report.participants, CONST.EMAIL.CONCIERGE);
+    return report.participants && _.contains(report.participants, CONST.EMAIL.CONCIERGE);
 }
 
 /**
@@ -498,7 +497,7 @@ function hasAutomatedExpensifyEmails(emails) {
  * @return {Boolean}
  */
 function hasExpensifyEmails(emails) {
-    return _.some(emails, email => Str.extractEmailDomain(email) === CONST.EXPENSIFY_PARTNER_NAME);
+    return _.some(emails, (email) => Str.extractEmailDomain(email) === CONST.EXPENSIFY_PARTNER_NAME);
 }
 
 /**
@@ -514,13 +513,15 @@ function canShowReportRecipientLocalTime(personalDetails, report) {
     const reportRecipient = personalDetails[participantsWithoutExpensifyEmails[0]];
     const reportRecipientTimezone = lodashGet(reportRecipient, 'timezone', CONST.DEFAULT_TIME_ZONE);
     const isReportParticipantValidated = lodashGet(reportRecipient, 'validated', false);
-    return Boolean(!hasMultipleParticipants
-        && !isChatRoom(report)
-        && !isPolicyExpenseChat(report)
-        && reportRecipient
-        && reportRecipientTimezone
-        && reportRecipientTimezone.selected
-        && isReportParticipantValidated);
+    return Boolean(
+        !hasMultipleParticipants &&
+            !isChatRoom(report) &&
+            !isPolicyExpenseChat(report) &&
+            reportRecipient &&
+            reportRecipientTimezone &&
+            reportRecipientTimezone.selected &&
+            isReportParticipantValidated,
+    );
 }
 
 /**
@@ -529,9 +530,7 @@ function canShowReportRecipientLocalTime(personalDetails, report) {
  * @returns {String}
  */
 function formatReportLastMessageText(lastMessageText) {
-    return String(lastMessageText)
-        .replace(CONST.REGEX.AFTER_FIRST_LINE_BREAK, '')
-        .substring(0, CONST.REPORT.LAST_MESSAGE_TEXT_MAX_LENGTH);
+    return String(lastMessageText).replace(CONST.REGEX.AFTER_FIRST_LINE_BREAK, '').substring(0, CONST.REPORT.LAST_MESSAGE_TEXT_MAX_LENGTH);
 }
 
 /**
@@ -541,7 +540,7 @@ function formatReportLastMessageText(lastMessageText) {
  * @returns {Number}
  */
 function hashLogin(login, range) {
-    return (Math.abs(hashCode(login.toLowerCase())) % range);
+    return Math.abs(hashCode(login.toLowerCase())) % range;
 }
 
 /**
@@ -575,16 +574,17 @@ function getDefaultWorkspaceAvatar(workspaceName) {
     }
 
     // Remove all chars not A-Z or 0-9 including underscore
-    const alphaNumeric = workspaceName.normalize('NFD').replace(/[^0-9a-z]/gi, '').toUpperCase();
+    const alphaNumeric = workspaceName
+        .normalize('NFD')
+        .replace(/[^0-9a-z]/gi, '')
+        .toUpperCase();
 
     return !alphaNumeric ? defaultWorkspaceAvatars.WorkspaceBuilding : defaultWorkspaceAvatars[`Workspace${alphaNumeric[0]}`];
 }
 
 function getWorkspaceAvatar(report) {
     const workspaceName = getPolicyName(report, allPolicies);
-    return lodashGet(allPolicies, [
-        `${ONYXKEYS.COLLECTION.POLICY}${report.policyID}`, 'avatar',
-    ]) || getDefaultWorkspaceAvatar(workspaceName);
+    return lodashGet(allPolicies, [`${ONYXKEYS.COLLECTION.POLICY}${report.policyID}`, 'avatar']) || getDefaultWorkspaceAvatar(workspaceName);
 }
 
 /**
@@ -611,12 +611,9 @@ function getOldDotDefaultAvatar(login = '') {
  * @returns {Boolean}
  */
 function isDefaultAvatar(avatarURL) {
-    if (_.isString(avatarURL)
-        && (
-            avatarURL.includes('images/avatars/avatar_')
-            || avatarURL.includes('images/avatars/default-avatar_')
-            || avatarURL.includes('images/avatars/user/default')
-        )
+    if (
+        _.isString(avatarURL) &&
+        (avatarURL.includes('images/avatars/avatar_') || avatarURL.includes('images/avatars/default-avatar_') || avatarURL.includes('images/avatars/user/default'))
     ) {
         return true;
     }
@@ -731,11 +728,9 @@ function getIcons(report, personalDetails, defaultIcon = null) {
         return [result];
     }
     if (isPolicyExpenseChat(report) || isExpenseReport(report)) {
-        const workspaceName = lodashGet(allPolicies, [
-            `${ONYXKEYS.COLLECTION.POLICY}${report.policyID}`, 'name',
-        ]);
+        const workspaceName = lodashGet(allPolicies, [`${ONYXKEYS.COLLECTION.POLICY}${report.policyID}`, 'name']);
 
-        const policyExpenseChatAvatarSource = getWorkspaceAvatar(report);
+        const policyExpenseChatAvatarSource = lodashGet(allPolicies, [`${ONYXKEYS.COLLECTION.POLICY}${report.policyID}`, 'avatar']) || getDefaultWorkspaceAvatar(workspaceName);
 
         // Return the workspace avatar if the user is the owner of the policy expense chat
         if (report.isOwnPolicyExpenseChat && !isExpenseReport(report)) {
@@ -759,17 +754,16 @@ function getIcons(report, personalDetails, defaultIcon = null) {
 
         // If the user is an admin, return avatar source of the other participant of the report
         // (their workspace chat) and the avatar source of the workspace
-        return [
-            adminIcon,
-            workspaceIcon,
-        ];
+        return [adminIcon, workspaceIcon];
     }
     if (isIOUReport(report)) {
-        return [{
-            source: getAvatar(lodashGet(personalDetails, [report.ownerEmail, 'avatar']), report.ownerEmail),
-            name: report.ownerEmail,
-            type: CONST.ICON_TYPE_AVATAR,
-        }];
+        return [
+            {
+                source: getAvatar(lodashGet(personalDetails, [report.ownerEmail, 'avatar']), report.ownerEmail),
+                name: report.ownerEmail,
+                type: CONST.ICON_TYPE_AVATAR,
+            },
+        ];
     }
 
     const participantDetails = [];
@@ -778,11 +772,7 @@ function getIcons(report, personalDetails, defaultIcon = null) {
     for (let i = 0; i < participants.length; i++) {
         const login = participants[i];
         const avatarSource = getAvatar(lodashGet(personalDetails, [login, 'avatar'], ''), login);
-        participantDetails.push([
-            login,
-            lodashGet(personalDetails, [login, 'firstName'], ''),
-            avatarSource,
-        ]);
+        participantDetails.push([login, lodashGet(personalDetails, [login, 'firstName'], ''), avatarSource]);
     }
 
     // Sort all logins by first name (which is the second element in the array)
@@ -812,11 +802,13 @@ function getPersonalDetailsForLogin(login) {
     if (!login) {
         return {};
     }
-    return (allPersonalDetails && allPersonalDetails[login]) || {
-        login,
-        displayName: LocalePhoneNumber.formatPhoneNumber(login),
-        avatar: getDefaultAvatar(login),
-    };
+    return (
+        (allPersonalDetails && allPersonalDetails[login]) || {
+            login,
+            displayName: LocalePhoneNumber.formatPhoneNumber(login),
+            avatar: getDefaultAvatar(login),
+        }
+    );
 }
 
 /**
@@ -877,9 +869,7 @@ function getPolicyExpenseChatName(report) {
         return getPolicyName(report);
     }
 
-    const policyExpenseChatRole = lodashGet(allPolicies, [
-        `${ONYXKEYS.COLLECTION.POLICY}${report.policyID}`, 'role',
-    ]) || 'user';
+    const policyExpenseChatRole = lodashGet(allPolicies, [`${ONYXKEYS.COLLECTION.POLICY}${report.policyID}`, 'role']) || 'user';
 
     // If this user is not admin and this policy expense chat has been archived because of account merging, this must be an old workspace chat
     // of the account which was merged into the current user's account. Use the name of the policy as the name of the report.
@@ -896,6 +886,19 @@ function getPolicyExpenseChatName(report) {
 }
 
 /**
+ * Get the title for a IOU or expense chat which will be showing the payer and the amount
+ *
+ * @param {Object} report
+ * @returns  {String}
+ */
+function getMoneyRequestReportName(report) {
+    const formattedAmount = CurrencyUtils.convertToDisplayString(report.total || 0, report.currency);
+    const payerName = isExpenseReport(report) ? getPolicyName(report) : getDisplayNameForParticipant(report.managerEmail);
+
+    return Localize.translateLocal('iou.payerOwesAmount', {payer: payerName, amount: formattedAmount});
+}
+
+/**
  * Get the title for a report.
  *
  * @param {Object} report
@@ -903,12 +906,16 @@ function getPolicyExpenseChatName(report) {
  */
 function getReportName(report) {
     let formattedName;
-    if (isChatRoom(report)) {
+    if (isChatRoom(report) || isTaskReport(report)) {
         formattedName = report.reportName;
     }
 
     if (isPolicyExpenseChat(report)) {
         formattedName = getPolicyExpenseChatName(report);
+    }
+
+    if (isMoneyRequestReport(report)) {
+        formattedName = getMoneyRequestReportName(report);
     }
 
     if (isArchivedRoom(report)) {
@@ -924,7 +931,7 @@ function getReportName(report) {
     const participantsWithoutCurrentUser = _.without(participants, sessionEmail);
     const isMultipleParticipantReport = participantsWithoutCurrentUser.length > 1;
 
-    return _.map(participantsWithoutCurrentUser, login => getDisplayNameForParticipant(login, isMultipleParticipantReport)).join(', ');
+    return _.map(participantsWithoutCurrentUser, (login) => getDisplayNameForParticipant(login, isMultipleParticipantReport)).join(', ');
 }
 
 /**
@@ -957,7 +964,7 @@ function navigateToDetailsPage(report) {
  * @returns {String}
  */
 function generateReportID() {
-    return ((Math.floor(Math.random() * (2 ** 21)) * (2 ** 32)) + Math.floor(Math.random() * (2 ** 32))).toString();
+    return (Math.floor(Math.random() * 2 ** 21) * 2 ** 32 + Math.floor(Math.random() * 2 ** 32)).toString();
 }
 
 /**
@@ -993,8 +1000,7 @@ function buildOptimisticAddCommentReportAction(text, file) {
     const htmlForNewComment = isAttachment ? 'Uploading attachment...' : commentText;
 
     // Remove HTML from text when applying optimistic offline comment
-    const textForNewComment = isAttachment ? CONST.ATTACHMENT_MESSAGE_TEXT
-        : parser.htmlToText(htmlForNewComment);
+    const textForNewComment = isAttachment ? CONST.ATTACHMENT_MESSAGE_TEXT : parser.htmlToText(htmlForNewComment);
 
     return {
         commentText,
@@ -1030,10 +1036,38 @@ function buildOptimisticAddCommentReportAction(text, file) {
 }
 
 /**
+ * Builds an optimistic reportAction for the parent report when a task is created
+ * @param {String} taskReportID - Report ID of the task
+ * @param {String} taskTitle - Title of the task
+ * @param {String} taskAssignee - Email of the person assigned to the task
+ * @param {String} text - Text of the comment
+ * @returns {Object}
+ */
+function buildOptimisticTaskCommentReportAction(taskReportID, taskTitle, taskAssignee, text) {
+    const reportAction = buildOptimisticAddCommentReportAction(text);
+    reportAction.reportAction.message[0].taskReportID = taskReportID;
+
+    // These parameters are not saved on the reportAction, but are used to display the task in the UI
+    // Added when we fetch the reportActions on a report
+    reportAction.reportAction.originalMessage = {
+        html: reportAction.reportAction.message[0].html,
+        taskReportID: reportAction.reportAction.message[0].taskReportID,
+    };
+    reportAction.reportAction.childReportID = taskReportID;
+    reportAction.reportAction.childType = CONST.REPORT.TYPE.TASK;
+    reportAction.reportAction.taskTitle = taskTitle;
+    reportAction.reportAction.taskAssignee = taskAssignee;
+    reportAction.reportAction.childStatusNum = CONST.REPORT.STATUS.OPEN;
+    reportAction.reportAction.childStateNum = CONST.REPORT.STATE_NUM.OPEN;
+
+    return reportAction;
+}
+
+/**
  * Builds an optimistic IOU report with a randomly generated reportID
  *
- * @param {String} ownerEmail - Email of the person generating the IOU.
- * @param {String} userEmail - Email of the other person participating in the IOU.
+ * @param {String} payeeEmail - Email of the person generating the IOU.
+ * @param {String} payerEmail - Email of the other person participating in the IOU.
  * @param {Number} total - IOU amount in the smallest unit of the currency.
  * @param {String} chatReportID - Report ID of the chat where the IOU is.
  * @param {String} currency - IOU currency.
@@ -1041,7 +1075,7 @@ function buildOptimisticAddCommentReportAction(text, file) {
  *
  * @returns {Object}
  */
-function buildOptimisticIOUReport(ownerEmail, userEmail, total, chatReportID, currency, isSendingMoney = false) {
+function buildOptimisticIOUReport(payeeEmail, payerEmail, total, chatReportID, currency, isSendingMoney = false) {
     const formattedTotal = CurrencyUtils.convertToDisplayString(total, currency);
     return {
         // If we're sending money, hasOutstandingIOU should be false
@@ -1050,28 +1084,63 @@ function buildOptimisticIOUReport(ownerEmail, userEmail, total, chatReportID, cu
         cachedTotal: formattedTotal,
         chatReportID,
         currency,
-        managerEmail: userEmail,
-        ownerEmail,
+        managerEmail: payerEmail,
+        ownerEmail: payeeEmail,
         reportID: generateReportID(),
         state: CONST.REPORT.STATE.SUBMITTED,
-        stateNum: isSendingMoney
-            ? CONST.REPORT.STATE_NUM.SUBMITTED
-            : CONST.REPORT.STATE_NUM.PROCESSING,
+        stateNum: isSendingMoney ? CONST.REPORT.STATE_NUM.SUBMITTED : CONST.REPORT.STATE_NUM.PROCESSING,
+        total,
+
+        // We don't translate reportName because the server response is always in English
+        reportName: `${payerEmail} owes ${formattedTotal}`,
+    };
+}
+
+/**
+ * Builds an optimistic Expense report with a randomly generated reportID
+ *
+ * @param {String} chatReportID - Report ID of the PolicyExpenseChat where the Expense Report is
+ * @param {String} policyID - The policy ID of the PolicyExpenseChat
+ * @param {String} payeeEmail - Email of the employee (payee)
+ * @param {Number} total - Amount in cents
+ * @param {String} currency
+ *
+ * @returns {Object}
+ */
+function buildOptimisticExpenseReport(chatReportID, policyID, payeeEmail, total, currency) {
+    const policyName = getPolicyName(allReports[`${ONYXKEYS.COLLECTION.REPORT}${chatReportID}`]);
+    const formattedTotal = CurrencyUtils.convertToDisplayString(total, currency);
+
+    // The expense report is always created with the policy's output currency
+    const outputCurrency = lodashGet(allPolicies, [`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, 'outputCurrency'], CONST.CURRENCY.USD);
+
+    return {
+        reportID: generateReportID(),
+        chatReportID,
+        policyID,
+        type: CONST.REPORT.TYPE.EXPENSE,
+        ownerEmail: payeeEmail,
+        hasOutstandingIOU: true,
+        currency: outputCurrency,
+
+        // We don't translate reportName because the server response is always in English
+        reportName: `${policyName} owes ${formattedTotal}`,
+        state: CONST.REPORT.STATE.SUBMITTED,
+        stateNum: CONST.REPORT.STATE_NUM.PROCESSING,
         total,
     };
 }
 
 /**
- * @param {String} type - IOUReportAction type. Can be oneOf(create, delete, pay, split)
+ * @param {String} type - IOUReportAction type. Can be oneOf(create, decline, cancel, pay, split)
  * @param {Number} total - IOU total in cents
- * @param {Array} participants - List of logins for the IOU participants, excluding the current user login
  * @param {String} comment - IOU comment
  * @param {String} currency - IOU currency
  * @param {String} paymentType - IOU paymentMethodType. Can be oneOf(Elsewhere, Expensify, PayPal.me)
  * @param {Boolean} isSettlingUp - Whether we are settling up an IOU
  * @returns {Array}
  */
-function getIOUReportActionMessage(type, total, participants, comment, currency, paymentType = '', isSettlingUp = false) {
+function getIOUReportActionMessage(type, total, comment, currency, paymentType = '', isSettlingUp = false) {
     const amount = NumberFormatUtils.format(preferredLocale, total / 100, {style: 'currency', currency});
     let paymentMethodMessage;
     switch (paymentType) {
@@ -1100,20 +1169,20 @@ function getIOUReportActionMessage(type, total, participants, comment, currency,
             iouMessage = `deleted the ${amount} request${comment && ` for ${comment}`}`;
             break;
         case CONST.IOU.REPORT_ACTION_TYPE.PAY:
-            iouMessage = isSettlingUp
-                ? `settled up ${amount}${paymentMethodMessage}`
-                : `sent ${amount}${comment && ` for ${comment}`}${paymentMethodMessage}`;
+            iouMessage = isSettlingUp ? `settled up ${amount}${paymentMethodMessage}` : `sent ${amount}${comment && ` for ${comment}`}${paymentMethodMessage}`;
             break;
         default:
             break;
     }
 
-    return [{
-        html: getParsedComment(iouMessage),
-        text: iouMessage,
-        isEdited: false,
-        type: CONST.REPORT.MESSAGE.TYPE.COMMENT,
-    }];
+    return [
+        {
+            html: getParsedComment(iouMessage),
+            text: iouMessage,
+            isEdited: false,
+            type: CONST.REPORT.MESSAGE.TYPE.COMMENT,
+        },
+    ];
 }
 
 /**
@@ -1157,6 +1226,7 @@ function buildOptimisticIOUReportAction(type, amount, currency, comment, partici
     // IOUs of type split only exist in group DMs and those don't have an iouReport so we need to delete the IOUReportID key
     if (type === CONST.IOU.REPORT_ACTION_TYPE.SPLIT) {
         delete originalMessage.IOUReportID;
+        originalMessage.participants = [currentUserEmail, ..._.pluck(participants, 'login')];
     }
 
     return {
@@ -1167,12 +1237,14 @@ function buildOptimisticIOUReportAction(type, amount, currency, comment, partici
         avatar: lodashGet(currentUserPersonalDetails, 'avatar', getDefaultAvatar(currentUserEmail)),
         isAttachment: false,
         originalMessage,
-        message: getIOUReportActionMessage(type, amount, participants, textForNewCommentDecoded, currency, paymentType, isSettlingUp),
-        person: [{
-            style: 'strong',
-            text: lodashGet(currentUserPersonalDetails, 'displayName', currentUserEmail),
-            type: 'TEXT',
-        }],
+        message: getIOUReportActionMessage(type, amount, textForNewCommentDecoded, currency, paymentType, isSettlingUp),
+        person: [
+            {
+                style: 'strong',
+                text: lodashGet(currentUserPersonalDetails, 'displayName', currentUserEmail),
+                type: 'TEXT',
+            },
+        ],
         reportActionID: NumberUtils.rand64(),
         shouldShow: true,
         created: DateUtils.getDBTime(),
@@ -1336,30 +1408,14 @@ function buildOptimisticWorkspaceChats(policyID, policyName) {
         [announceCreatedAction.reportActionID]: announceCreatedAction,
     };
 
-    const adminsChatData = buildOptimisticChatReport(
-        [currentUserEmail],
-        CONST.REPORT.WORKSPACE_CHAT_ROOMS.ADMINS,
-        CONST.REPORT.CHAT_TYPE.POLICY_ADMINS,
-        policyID,
-        null,
-        false,
-        policyName,
-    );
+    const adminsChatData = buildOptimisticChatReport([currentUserEmail], CONST.REPORT.WORKSPACE_CHAT_ROOMS.ADMINS, CONST.REPORT.CHAT_TYPE.POLICY_ADMINS, policyID, null, false, policyName);
     const adminsChatReportID = adminsChatData.reportID;
     const adminsCreatedAction = buildOptimisticCreatedReportAction(adminsChatData.ownerEmail);
     const adminsReportActionData = {
         [adminsCreatedAction.reportActionID]: adminsCreatedAction,
     };
 
-    const expenseChatData = buildOptimisticChatReport(
-        [currentUserEmail],
-        '',
-        CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT,
-        policyID,
-        currentUserEmail,
-        true,
-        policyName,
-    );
+    const expenseChatData = buildOptimisticChatReport([currentUserEmail], '', CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT, policyID, currentUserEmail, true, policyName);
     const expenseChatReportID = expenseChatData.reportID;
     const expenseReportCreatedAction = buildOptimisticCreatedReportAction(expenseChatData.ownerEmail);
     const expenseReportActionData = {
@@ -1379,6 +1435,32 @@ function buildOptimisticWorkspaceChats(policyID, policyName) {
         expenseChatData,
         expenseReportActionData,
         expenseCreatedReportActionID: expenseReportCreatedAction.reportActionID,
+    };
+}
+
+/**
+ * Builds an optimistic Task Report with a randomly generated reportID
+ *
+ * @param {String} ownerEmail - Email of the person generating the Task.
+ * @param {String} assignee - Email of the other person participating in the Task.
+ * @param {String} parentReportID - Report ID of the chat where the Task is.
+ * @param {String} title - Task title.
+ * @param {String} description - Task description.
+ *
+ * @returns {Object}
+ */
+
+function buildOptimisticTaskReport(ownerEmail, assignee = null, parentReportID, title, description) {
+    return {
+        reportID: generateReportID(),
+        reportName: title,
+        description,
+        ownerEmail,
+        assignee,
+        type: CONST.REPORT.TYPE.TASK,
+        parentReportID,
+        stateNum: CONST.REPORT.STATE_NUM.OPEN,
+        statusNum: CONST.REPORT.STATUS.OPEN,
     };
 }
 
@@ -1531,7 +1613,7 @@ function shouldReportBeInOptionList(report, reportIDFromRoute, isInGSDMode, curr
     // Exclude reports that have no data because there wouldn't be anything to show in the option item.
     // This can happen if data is currently loading from the server or a report is in various stages of being created.
     // This can also happen for anyone accessing a public room or archived room for which they don't have access to the underlying policy.
-    if (!report || !report.reportID || !report.participants || (_.isEmpty(report.participants) && !isPublicRoom(report) && !isArchivedRoom(report)) || isIOUReport(report)) {
+    if (!report || !report.reportID || (_.isEmpty(report.participants) && !isPublicRoom(report) && !isArchivedRoom(report) && !isMoneyRequestReport(report))) {
         return false;
     }
 
@@ -1622,7 +1704,7 @@ function getChatByParticipantsAndPolicy(newParticipantList, policyID) {
  * @returns {Array}
  */
 function getAllPolicyReports(policyID) {
-    return _.filter(allReports, report => report && report.policyID === policyID);
+    return _.filter(allReports, (report) => report && report.policyID === policyID);
 }
 
 /**
@@ -1631,8 +1713,7 @@ function getAllPolicyReports(policyID) {
  * @returns {Boolean}
  */
 function chatIncludesChronos(report) {
-    return report.participants
-        && _.contains(report.participants, CONST.EMAIL.CHRONOS);
+    return report.participants && _.contains(report.participants, CONST.EMAIL.CHRONOS);
 }
 
 /**
@@ -1647,13 +1728,9 @@ function getNewMarkerReportActionID(report, sortedAndFilteredReportActions) {
         return '';
     }
 
-    const newMarkerIndex = _.findLastIndex(sortedAndFilteredReportActions, reportAction => (
-        (reportAction.created || '') > report.lastReadTime
-    ));
+    const newMarkerIndex = _.findLastIndex(sortedAndFilteredReportActions, (reportAction) => (reportAction.created || '') > report.lastReadTime);
 
-    return _.has(sortedAndFilteredReportActions[newMarkerIndex], 'reportActionID')
-        ? sortedAndFilteredReportActions[newMarkerIndex].reportActionID
-        : '';
+    return _.has(sortedAndFilteredReportActions[newMarkerIndex], 'reportActionID') ? sortedAndFilteredReportActions[newMarkerIndex].reportActionID : '';
 }
 
 /**
@@ -1663,7 +1740,9 @@ function getNewMarkerReportActionID(report, sortedAndFilteredReportActions) {
  * @returns {Number} The comment's total length as seen from the backend
  */
 function getCommentLength(textComment) {
-    return getParsedComment(textComment).replace(/[^ -~]/g, '\\u????').trim().length;
+    return getParsedComment(textComment)
+        .replace(/[^ -~]/g, '\\u????')
+        .trim().length;
 }
 
 /**
@@ -1721,7 +1800,7 @@ function getReportIDFromLink(url) {
  * @returns {Boolean}
  */
 function canRequestMoney(report) {
-    return (!isPolicyExpenseChat(report) || report.isOwnPolicyExpenseChat);
+    return !isPolicyExpenseChat(report) || report.isOwnPolicyExpenseChat;
 }
 
 /**
@@ -1731,7 +1810,7 @@ function canRequestMoney(report) {
  * @returns {Array}
  */
 function getMoneyRequestOptions(report, reportParticipants, betas) {
-    const participants = _.filter(reportParticipants, email => currentUserPersonalDetails.login !== email);
+    const participants = _.filter(reportParticipants, (email) => currentUserPersonalDetails.login !== email);
     const hasExcludedIOUEmails = lodashIntersection(reportParticipants, CONST.EXPENSIFY_EMAILS).length > 0;
     const hasMultipleParticipants = participants.length > 1;
 
@@ -1774,10 +1853,13 @@ function getMoneyRequestOptions(report, reportParticipants, betas) {
  */
 function canLeaveRoom(report, isPolicyMember) {
     if (_.isEmpty(report.visibility)) {
-        if (report.chatType === CONST.REPORT.CHAT_TYPE.POLICY_ADMINS
-            || report.chatType === CONST.REPORT.CHAT_TYPE.POLICY_ANNOUNCE
-            || report.chatType === CONST.REPORT.CHAT_TYPE.DOMAIN_ALL
-            || _.isEmpty(report.chatType)) { // DM chats don't have a chatType
+        if (
+            report.chatType === CONST.REPORT.CHAT_TYPE.POLICY_ADMINS ||
+            report.chatType === CONST.REPORT.CHAT_TYPE.POLICY_ANNOUNCE ||
+            report.chatType === CONST.REPORT.CHAT_TYPE.DOMAIN_ALL ||
+            _.isEmpty(report.chatType)
+        ) {
+            // DM chats don't have a chatType
             return false;
         }
     } else if (isPublicAnnounceRoom(report) && isPolicyMember) {
@@ -1809,7 +1891,24 @@ function getWhisperDisplayNames(participants) {
         return Localize.translateLocal('common.youAfterPreposition');
     }
 
-    return _.map(participants, login => getDisplayNameForParticipant(login, !isWhisperOnlyVisibleToCurrentUSer)).join(', ');
+    return _.map(participants, (login) => getDisplayNameForParticipant(login, !isWhisperOnlyVisibleToCurrentUSer)).join(', ');
+}
+
+/**
+ * Show subscript on IOU or expense report
+ * @param {Object} report
+ * @returns {Boolean}
+ */
+function shouldReportShowSubscript(report) {
+    if (isArchivedRoom(report)) {
+        return false;
+    }
+
+    if (isPolicyExpenseChat(report) && !report.isOwnPolicyExpenseChat) {
+        return true;
+    }
+
+    return isExpenseReport(report);
 }
 
 export {
@@ -1856,12 +1955,15 @@ export {
     isUnread,
     isUnreadWithMention,
     buildOptimisticWorkspaceChats,
+    buildOptimisticTaskReport,
     buildOptimisticChatReport,
     buildOptimisticClosedReportAction,
     buildOptimisticCreatedReportAction,
     buildOptimisticIOUReport,
+    buildOptimisticExpenseReport,
     buildOptimisticIOUReportAction,
     buildOptimisticAddCommentReportAction,
+    buildOptimisticTaskCommentReportAction,
     shouldReportBeInOptionList,
     getChatByParticipants,
     getChatByParticipantsAndPolicy,
@@ -1888,4 +1990,5 @@ export {
     canRequestMoney,
     getWhisperDisplayNames,
     getWorkspaceAvatar,
+    shouldReportShowSubscript,
 };

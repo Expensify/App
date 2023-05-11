@@ -27,7 +27,7 @@ const defaultProps = {
     user: {},
 };
 
-const WorkspaceCardVBANoECardView = props => (
+const WorkspaceCardVBANoECardView = (props) => (
     <>
         <Section
             title={props.translate('workspace.card.header')}
@@ -57,11 +57,7 @@ const WorkspaceCardVBANoECardView = props => (
                 success
             />
         </Section>
-        {Boolean(props.user.isCheckingDomain) && (
-            <Text style={[styles.m5, styles.formError]}>
-                {props.translate('workspace.card.checkingDomain')}
-            </Text>
-        )}
+        {Boolean(props.user.isCheckingDomain) && <Text style={[styles.m5, styles.formError]}>{props.translate('workspace.card.checkingDomain')}</Text>}
     </>
 );
 
