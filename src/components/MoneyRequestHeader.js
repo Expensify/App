@@ -43,7 +43,7 @@ const defaultProps = {
 };
 
 const MoneyRequestHeader = (props) => {
-    const formattedAmount = props.numberFormat(props.report.total / 100, {
+    const formattedAmount = props.numberFormat(ReportUtils.getMoneyRequestAmount(props.report) / 100, {
         style: 'currency',
         currency: props.report.currency,
     });
