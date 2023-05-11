@@ -147,7 +147,10 @@ const IOUPreview = (props) => {
 
     // If props.action is undefined then we are displaying within IOUDetailsModal and should use the full report amount
     const requestAmount = props.isIOUAction ? lodashGet(props.action, 'originalMessage.amount', 0) : props.iouReport.total;
-    const requestCurrency = props.isIOUAction ? lodashGet(props.action, 'originalMessage.currency', CONST.CURRENCY.USD) : props.iouReport.currency;
+    let requestCurrency = props.isIOUAction ? lodashGet(props.action, 'originalMessage.currency', CONST.CURRENCY.USD) : props.iouReport.currency;
+    if (!requestCurrency) {
+        requestCurrency = CONST.CURRENCY.USD;
+    }
 
     const getSettledMessage = () => {
         switch (lodashGet(props.action, 'originalMessage.paymentType', '')) {
@@ -228,7 +231,7 @@ const IOUPreview = (props) => {
                         <Text style={[styles.textLabel, styles.colorMuted]}>{props.translate('iou.pendingConversionMessage')}</Text>
                     )}
 
-                    <Text style={[styles.colorMuted]}>{Str.htmlDecode(lodashGet(props.action, 'originalMessage.comment', requestCurrency))}</Text>
+                    <Text style={[styles.colorMuted]}>{Str.htmlDecode(lodashGet(props.action, 'originalMessage.comment', ''))}</Text>
                 </View>
             </OfflineWithFeedback>
         </View>
