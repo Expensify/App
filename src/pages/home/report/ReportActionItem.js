@@ -85,6 +85,9 @@ const propTypes = {
     /** All of the personalDetails */
     personalDetails: PropTypes.objectOf(personalDetailsPropType),
 
+    /** List of betas available to current user */
+    betas: PropTypes.arrayOf(PropTypes.string),
+
     ...windowDimensionsPropTypes,
 };
 
@@ -94,6 +97,7 @@ const defaultProps = {
     preferredSkinTone: CONST.EMOJI_DEFAULT_SKIN_TONE,
     personalDetails: {},
     shouldShowSubscriptAvatar: false,
+    betas: [],
 };
 
 class ReportActionItem extends Component {
