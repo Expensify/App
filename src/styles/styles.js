@@ -819,6 +819,12 @@ const styles = {
         minHeight: variables.componentSizeLarge,
     }),
 
+    autoGrowHeightHiddenInput: (maxWidth, maxHeight) => ({
+        maxWidth,
+        maxHeight: maxHeight && maxHeight + 1,
+        overflow: 'hidden',
+    }),
+
     textInputContainer: {
         flex: 1,
         justifyContent: 'center',
@@ -3200,6 +3206,10 @@ const styles = {
     },
     contextMenuItemPopoverMaxWidth: {
         maxWidth: 375,
+    },
+    taskCheckbox: {
+        height: 16,
+        width: 16,
     },
 };
 
