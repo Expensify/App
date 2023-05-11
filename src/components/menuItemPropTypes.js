@@ -1,4 +1,5 @@
 import PropTypes from 'prop-types';
+import _ from 'underscore';
 import CONST from '../CONST';
 import stylePropTypes from '../styles/stylePropTypes';
 import avatarPropTypes from './avatarPropTypes';
@@ -89,6 +90,9 @@ const propTypes = {
     /** Prop to identify if we should load avatars vertically instead of diagonally */
     shouldStackHorizontally: PropTypes.bool,
 
+    /** Prop to represent the size of the avatar images to be shown */
+    avatarSize: PropTypes.oneOf(_.values(CONST.AVATAR_SIZE)),
+
     /** The function that should be called when this component is LongPressed or right-clicked. */
     onSecondaryInteraction: PropTypes.func,
 
@@ -96,10 +100,7 @@ const propTypes = {
     shouldBlockSelection: PropTypes.bool,
 
     /** The ref to the menu item */
-    forwardedRef: PropTypes.oneOfType([
-        PropTypes.func,
-        PropTypes.object,
-    ]),
+    forwardedRef: PropTypes.oneOfType([PropTypes.func, PropTypes.object]),
 };
 
 export default propTypes;

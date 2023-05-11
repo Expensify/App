@@ -9,7 +9,7 @@ export default PropTypes.shape({
 
     /** Used to apply additional styling. Style refers to a predetermined constant and not a class name. e.g. 'normal'
      * or 'strong'
-    */
+     */
     style: PropTypes.string,
 
     /** ID of a report */

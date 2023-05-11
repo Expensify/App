@@ -23,6 +23,9 @@ const keyInputEnter = lodashGet(KeyCommand, 'constants.keyInputEnter', 'keyInput
 const keyInputUpArrow = lodashGet(KeyCommand, 'constants.keyInputUpArrow', 'keyInputUpArrow');
 const keyInputDownArrow = lodashGet(KeyCommand, 'constants.keyInputDownArrow', 'keyInputDownArrow');
 
+// describes if a shortcut key can cause navigation
+const KEYBOARD_SHORTCUT_NAVIGATION_TYPE = 'NAVIGATION_SHORTCUT';
+
 const CONST = {
     ANDROID_PACKAGE_NAME,
     ANIMATED_TRANSITION: 300,
@@ -255,6 +258,7 @@ const CONST = {
                 [PLATFORM_OS_MACOS]: {input: 'k', modifierFlags: keyModifierCommand},
                 [PLATFORM_IOS]: {input: 'k', modifierFlags: keyModifierCommand},
             },
+            type: KEYBOARD_SHORTCUT_NAVIGATION_TYPE,
         },
         NEW_GROUP: {
             descriptionKey: 'newGroup',
@@ -265,6 +269,7 @@ const CONST = {
                 [PLATFORM_OS_MACOS]: {input: 'k', modifierFlags: keyModifierShiftCommand},
                 [PLATFORM_IOS]: {input: 'k', modifierFlags: keyModifierShiftCommand},
             },
+            type: KEYBOARD_SHORTCUT_NAVIGATION_TYPE,
         },
         SHORTCUT_MODAL: {
             descriptionKey: 'openShortcutDialog',
@@ -342,6 +347,9 @@ const CONST = {
             modifiers: [],
         },
     },
+    KEYBOARD_SHORTCUTS_TYPES: {
+        NAVIGATION_SHORTCUT: KEYBOARD_SHORTCUT_NAVIGATION_TYPE,
+    },
     KEYBOARD_SHORTCUT_KEY_DISPLAY_NAME: {
         CONTROL: 'CTRL',
         ESCAPE: 'ESC',
@@ -391,6 +399,7 @@ const CONST = {
         DROP_NATIVE_ID: 'report-dropzone',
         ACTIVE_DROP_NATIVE_ID: 'report-dropzone',
         MAXIMUM_PARTICIPANTS: 8,
+        SPLIT_REPORTID: '-2',
         ACTIONS: {
             LIMIT: 50,
             TYPE: {
@@ -474,6 +483,7 @@ const CONST = {
             CHAT: 'chat',
             EXPENSE: 'expense',
             IOU: 'iou',
+            TASK: 'task',
         },
         CHAT_TYPE: {
             POLICY_ANNOUNCE: 'policyAnnounce',
@@ -569,6 +579,7 @@ const CONST = {
     },
     JSON_CODE: {
         SUCCESS: 200,
+        BAD_REQUEST: 400,
         NOT_AUTHENTICATED: 407,
         EXP_ERROR: 666,
         MANY_WRITES_ERROR: 665,
@@ -602,12 +613,14 @@ const CONST = {
         SAFARI_CANNOT_PARSE_RESPONSE: 'cannot parse response',
         GATEWAY_TIMEOUT: 'Gateway Timeout',
         EXPENSIFY_SERVICE_INTERRUPTED: 'Expensify service interrupted',
+        DUPLICATE_RECORD: 'A record already exists with this ID',
     },
     ERROR_TYPE: {
         SOCKET: 'Expensify\\Auth\\Error\\Socket',
     },
     ERROR_TITLE: {
         SOCKET: 'Issue connecting to database',
+        DUPLICATE_RECORD: '400 Unique Constraints Violation',
     },
     NETWORK: {
         METHOD: {
@@ -675,6 +688,9 @@ const CONST = {
         EMAIL: 'email',
     },
 
+    MAGIC_CODE_LENGTH: 6,
+    MAGIC_CODE_EMPTY_CHAR: ' ',
+
     KEYBOARD_TYPE: {
         PHONE_PAD: 'phone-pad',
         NUMBER_PAD: 'number-pad',
@@ -716,7 +732,7 @@ const CONST = {
     EMOJI_PICKER_ITEM_HEIGHT: 32,
     EMOJI_PICKER_HEADER_HEIGHT: 32,
     RECIPIENT_LOCAL_TIME_HEIGHT: 25,
-    EMOJI_SUGGESTER: {
+    AUTO_COMPLETE_SUGGESTER: {
         SUGGESTER_PADDING: 6,
         ITEM_HEIGHT: 36,
         SMALL_CONTAINER_HEIGHT_FACTOR: 2.5,
@@ -841,7 +857,8 @@ const CONST = {
             USER_CAMERA_DENINED: 'Onfido.OnfidoFlowError',
             USER_CAMERA_PERMISSION: 'Encountered an error: cameraPermission',
             // eslint-disable-next-line max-len
-            USER_CAMERA_CONSENT_DENIED: 'Unexpected result Intent. It might be a result of incorrect integration, make sure you only pass Onfido intent to handleActivityResult. It might be due to unpredictable crash or error. Please report the problem to android-sdk@onfido.com. Intent: null \n resultCode: 0',
+            USER_CAMERA_CONSENT_DENIED:
+                'Unexpected result Intent. It might be a result of incorrect integration, make sure you only pass Onfido intent to handleActivityResult. It might be due to unpredictable crash or error. Please report the problem to android-sdk@onfido.com. Intent: null \n resultCode: 0',
         },
     },
 
@@ -894,6 +911,7 @@ const CONST = {
             SPLIT: 'split',
             DECLINE: 'decline',
             CANCEL: 'cancel',
+            DELETE: 'delete',
         },
         AMOUNT_MAX_LENGTH: 10,
     },
@@ -908,8 +926,9 @@ const CONST = {
 
     LOCALES: {
         EN: 'en',
-        ES_ES: 'es-ES',
         ES: 'es',
+        ES_ES: 'es-ES',
+        ES_ES_ONFIDO: 'es_ES',
 
         DEFAULT: 'en',
     },
@@ -956,6 +975,7 @@ const CONST = {
         SMALL_SUBSCRIPT: 'small-subscript',
         MID_SUBSCRIPT: 'mid-subscript',
         LARGE_BORDERED: 'large-bordered',
+        HEADER: 'header',
     },
     OPTION_MODE: {
         COMPACT: 'compact',
@@ -963,15 +983,10 @@ const CONST = {
     },
     REGEX: {
         SPECIAL_CHARS_WITHOUT_NEWLINE: /((?!\n)[()-\s\t])/g,
-        US_PHONE: /^\+1\d{10}$/,
-        US_PHONE_WITH_OPTIONAL_COUNTRY_CODE: /^(\+1)?\d{10}$/,
         DIGITS_AND_PLUS: /^\+?[0-9]*$/,
-        PHONE_E164_PLUS: /^\+?[1-9]\d{1,14}$/,
-        PHONE_WITH_SPECIAL_CHARS: /^\s*(?:\+?(\d{1,3}))?[-. (]*(\d{3})[-. )]*(\d{3})[-. ]*(\d{4})(?: *x(\d+))?\s*$/,
         ALPHABETIC_CHARS: /[a-zA-Z]+/,
         ALPHABETIC_CHARS_WITH_NUMBER: /^[a-zA-Z0-9 ]*$/,
         POSITIVE_INTEGER: /^\d+$/,
-        NON_ALPHA_NUMERIC: /[^A-Za-z0-9+]/g,
         PO_BOX: /\b[P|p]?(OST|ost)?\.?\s*[O|o|0]?(ffice|FFICE)?\.?\s*[B|b][O|o|0]?[X|x]?\.?\s+[#]?(\d+)\b/,
         ANY_VALUE: /^.+$/,
         ZIP_CODE: /[0-9]{5}(?:[- ][0-9]{4})?/,
@@ -993,19 +1008,23 @@ const CONST = {
         // Extract attachment's source from the data's html string
         ATTACHMENT_DATA: /(data-expensify-source|data-name)="([^"]+)"/g,
 
-        NON_NUMERIC_WITH_PLUS: /[^0-9+]/g,
         EMOJI_NAME: /:[\w+-]+:/g,
         EMOJI_SUGGESTIONS: /:[a-zA-Z0-9_+-]{1,40}$/,
         AFTER_FIRST_LINE_BREAK: /\n.*/g,
         CODE_2FA: /^\d{6}$/,
         ATTACHMENT_ID: /chat-attachments\/(\d+)/,
         HAS_COLON_ONLY_AT_THE_BEGINNING: /^:[^:]+$/,
+        HAS_AT_MOST_TWO_AT_SIGNS: /^@[^@]*@?[^@]*$/,
 
         // eslint-disable-next-line no-misleading-character-class
         NEW_LINE_OR_WHITE_SPACE_OR_EMOJI: /[\n\s\p{Extended_Pictographic}\u200d\u{1f1e6}-\u{1f1ff}\u{1f3fb}-\u{1f3ff}\u{e0020}-\u{e007f}\u20E3\uFE0F]|[#*0-9]\uFE0F?\u20E3/gu,
 
         // Define the regular expression pattern to match a string starting with a colon and ending with a space or newline character
         EMOJI_REPLACER: /^:[^\n\r]+?(?=$|\s)/,
+
+        // Define the regular expression pattern to match a string starting with an at sign and ending with a space or newline character
+        MENTION_REPLACER: /^@[^\n\r]*?(?=$|\s)/,
+
         MERGED_ACCOUNT_PREFIX: /^(MERGED_\d+@)/,
     },
 
@@ -1064,13 +1083,6 @@ const CONST = {
         // This const defines the initial container size, before layout measurement.
         // Since size cant be null, we have to define some initial value.
         INITIAL_SIZE: 1, // 1 was chosen because there is a very low probability that initialized component will have such size.
-    },
-
-    ONYX: {
-        METHOD: {
-            MERGE: 'merge',
-            SET: 'set',
-        },
     },
     MICROSECONDS_PER_MS: 1000,
     RED_BRICK_ROAD_PENDING_ACTION: {
@@ -1139,7 +1151,10 @@ const CONST = {
     TESTING: {
         SCREEN_SIZE: {
             SMALL: {
-                width: 300, height: 700, scale: 1, fontScale: 1,
+                width: 300,
+                height: 700,
+                scale: 1,
+                fontScale: 1,
             },
         },
     },
@@ -1153,13 +1168,7 @@ const CONST = {
         {
             name: '+1',
             code: '👍',
-            types: [
-                '👍🏿',
-                '👍🏾',
-                '👍🏽',
-                '👍🏼',
-                '👍🏻',
-            ],
+            types: ['👍🏿', '👍🏾', '👍🏽', '👍🏼', '👍🏻'],
         },
         {
             name: 'heart',
@@ -1238,7 +1247,7 @@ const CONST = {
         CD: 'Congo - Kinshasa',
         CK: 'Cook Islands',
         CR: 'Costa Rica',
-        CI: 'Côte d\'Ivoire',
+        CI: "Côte d'Ivoire",
         HR: 'Croatia',
         CU: 'Cuba',
         CW: 'Curaçao',
@@ -2265,9 +2274,7 @@ const CONST = {
         EXPECTED_OUTPUT: 'FCFA 123,457',
     },
 
-    PATHS_TO_TREAT_AS_EXTERNAL: [
-        'NewExpensify.dmg',
-    ],
+    PATHS_TO_TREAT_AS_EXTERNAL: ['NewExpensify.dmg'],
 
     // Test tool menu parameters
     TEST_TOOL: {
@@ -2276,9 +2283,30 @@ const CONST = {
     },
 
     PAYPAL_SUPPORTED_CURRENCIES: [
-        'AUD', 'BRL', 'CAD', 'CZK', 'DKK', 'EUR', 'HKD', 'HUF',
-        'ILS', 'JPY', 'MYR', 'MXN', 'TWD', 'NZD', 'NOK', 'PHP',
-        'PLN', 'GBP', 'RUB', 'SGD', 'SEK', 'CHF', 'THB', 'USD',
+        'AUD',
+        'BRL',
+        'CAD',
+        'CZK',
+        'DKK',
+        'EUR',
+        'HKD',
+        'HUF',
+        'ILS',
+        'JPY',
+        'MYR',
+        'MXN',
+        'TWD',
+        'NZD',
+        'NOK',
+        'PHP',
+        'PLN',
+        'GBP',
+        'RUB',
+        'SGD',
+        'SEK',
+        'CHF',
+        'THB',
+        'USD',
     ],
     CONCIERGE_TRAVEL_URL: 'https://community.expensify.com/discussion/7066/introducing-concierge-travel',
     SCREEN_READER_STATES: {

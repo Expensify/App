@@ -1,4 +1,4 @@
-import React from 'react';
+import React, {useRef} from 'react';
 import _ from 'underscore';
 import {View} from 'react-native';
 import PropTypes from 'prop-types';
@@ -6,7 +6,11 @@ import styles from '../../styles/styles';
 import EmojiReactionBubble from './EmojiReactionBubble';
 import emojis from '../../../assets/emojis';
 import AddReactionBubble from './AddReactionBubble';
+import withCurrentUserPersonalDetails, {withCurrentUserPersonalDetailsDefaultProps, withCurrentUserPersonalDetailsPropTypes} from '../withCurrentUserPersonalDetails';
 import getPreferredEmojiCode from './getPreferredEmojiCode';
+import * as PersonalDetailsUtils from '../../libs/PersonalDetailsUtils';
+import * as Report from '../../libs/actions/Report';
+import * as ReactionList from '../../pages/home/report/ReactionList/ReactionList';
 import Tooltip from '../Tooltip';
 import ReactionTooltipContent from './ReactionTooltipContent';
 
@@ -52,6 +56,12 @@ const propTypes = {
      * hence this function asks to toggle the reaction by emoji.
      */
     toggleReaction: PropTypes.func.isRequired,
+
+    ...withCurrentUserPersonalDetailsPropTypes,
+};
+
+const defaultProps = {
+    ...withCurrentUserPersonalDetailsDefaultProps,
 };
 
 const ReportActionItemReactions = props => (
@@ -91,4 +101,5 @@ const ReportActionItemReactions = props => (
 
 ReportActionItemReactions.displayName = 'ReportActionItemReactions';
 ReportActionItemReactions.propTypes = propTypes;
-export default ReportActionItemReactions;
+ReportActionItemReactions.defaultProps = defaultProps;
+export default withCurrentUserPersonalDetails(ReportActionItemReactions);

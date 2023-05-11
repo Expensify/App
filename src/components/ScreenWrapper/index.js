@@ -3,6 +3,7 @@ import React from 'react';
 import _ from 'underscore';
 import {withOnyx} from 'react-native-onyx';
 import lodashGet from 'lodash/get';
+import {PickerAvoidingView} from 'react-native-picker-select';
 import KeyboardAvoidingView from '../KeyboardAvoidingView';
 import CONST from '../../CONST';
 import KeyboardShortcut from '../../libs/KeyboardShortcut';
@@ -39,13 +40,20 @@ class ScreenWrapper extends React.Component {
 
     componentDidMount() {
         const shortcutConfig = CONST.KEYBOARD_SHORTCUTS.ESCAPE;
-        this.unsubscribeEscapeKey = KeyboardShortcut.subscribe(shortcutConfig.shortcutKey, () => {
-            if (this.props.modal.willAlertModalBecomeVisible) {
-                return;
-            }
+        this.unsubscribeEscapeKey = KeyboardShortcut.subscribe(
+            shortcutConfig.shortcutKey,
+            () => {
+                if (this.props.modal.willAlertModalBecomeVisible) {
+                    return;
+                }
 
-            Navigation.dismissModal();
-        }, shortcutConfig.descriptionKey, shortcutConfig.modifiers, true, true);
+                Navigation.dismissModal();
+            },
+            shortcutConfig.descriptionKey,
+            shortcutConfig.modifiers,
+            true,
+            true,
+        );
 
         this.unsubscribeTransitionEnd = this.props.navigation.addListener('transitionEnd', (event) => {
             // Prevent firing the prop callback when user is exiting the page.
@@ -77,8 +85,7 @@ class ScreenWrapper extends React.Component {
      * @returns {boolean}
      */
     shouldComponentUpdate(nextProps, nextState) {
-        return !_.isEqual(this.state, nextState)
-            || !_.isEqual(_.omit(this.props, 'modal'), _.omit(nextProps, 'modal'));
+        return !_.isEqual(this.state, nextState) || !_.isEqual(_.omit(this.props, 'modal'), _.omit(nextProps, 'modal'));
     }
 
     componentWillUnmount() {
@@ -98,9 +105,7 @@ class ScreenWrapper extends React.Component {
 
         return (
             <SafeAreaConsumer>
-                {({
-                    insets, paddingTop, paddingBottom, safeAreaPaddingBottomStyle,
-                }) => {
+                {({insets, paddingTop, paddingBottom, safeAreaPaddingBottomStyle}) => {
                     const paddingStyle = {};
 
                     if (this.props.includePaddingTop) {
@@ -114,30 +119,33 @@ class ScreenWrapper extends React.Component {
 
                     return (
                         <View
-                            style={[
-                                ...this.props.style,
-                                styles.flex1,
-                                paddingStyle,
-                            ]}
+                            style={[...this.props.style, styles.flex1, paddingStyle]}
                             // eslint-disable-next-line react/jsx-props-no-spreading
                             {...(this.props.environment === CONST.ENVIRONMENT.DEV ? this.panResponder.panHandlers : {})}
                         >
-                            <KeyboardAvoidingView style={[styles.w100, styles.h100, {maxHeight}]} behavior={this.props.keyboardAvoidingViewBehavior}>
-                                <HeaderGap />
-                                {(this.props.environment === CONST.ENVIRONMENT.DEV) && <TestToolsModal />}
-                                {(this.props.environment === CONST.ENVIRONMENT.DEV) && <CustomDevMenu />}
-                                {// If props.children is a function, call it to provide the insets to the children.
-                                    _.isFunction(this.props.children)
-                                        ? this.props.children({
-                                            insets,
-                                            safeAreaPaddingBottomStyle,
-                                            didScreenTransitionEnd: this.state.didScreenTransitionEnd,
-                                        })
-                                        : this.props.children
-                                }
-                                {this.props.isSmallScreenWidth && (
-                                    <OfflineIndicator />
-                                )}
+                            <KeyboardAvoidingView
+                                style={[styles.w100, styles.h100, {maxHeight}]}
+                                behavior={this.props.keyboardAvoidingViewBehavior}
+                            >
+                                <PickerAvoidingView
+                                    style={styles.flex1}
+                                    enabled={this.props.shouldEnablePickerAvoiding}
+                                >
+                                    <HeaderGap />
+                                    {this.props.environment === CONST.ENVIRONMENT.DEV && <TestToolsModal />}
+                                    {this.props.environment === CONST.ENVIRONMENT.DEV && <CustomDevMenu />}
+                                    {
+                                        // If props.children is a function, call it to provide the insets to the children.
+                                        _.isFunction(this.props.children)
+                                            ? this.props.children({
+                                                  insets,
+                                                  safeAreaPaddingBottomStyle,
+                                                  didScreenTransitionEnd: this.state.didScreenTransitionEnd,
+                                              })
+                                            : this.props.children
+                                    }
+                                    {this.props.isSmallScreenWidth && <OfflineIndicator />}
+                                </PickerAvoidingView>
                             </KeyboardAvoidingView>
                         </View>
                     );
