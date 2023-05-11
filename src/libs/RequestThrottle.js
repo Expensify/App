@@ -23,11 +23,7 @@ function getRequestWaitTime() {
  * @returns {Promise}
  */
 function sleep() {
-    return new Promise(resolve => setTimeout(resolve, getRequestWaitTime()));
+    return new Promise((resolve) => setTimeout(resolve, getRequestWaitTime()));
 }
 
-export {
-    clear,
-    getRequestWaitTime,
-    sleep,
-};
+export {clear, getRequestWaitTime, sleep};

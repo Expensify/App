@@ -25,9 +25,13 @@ const PressableWithFeedbackDefaultProps = {
 const PressableWithFeedback = forwardRef((props, ref) => {
     const propsWithoutStyling = _.omit(props, omittedProps);
     return (
-        // eslint-disable-next-line react/jsx-props-no-spreading
-        <GenericPressable ref={ref} style={props.wrapperStyle} {...propsWithoutStyling}>
-            {state => (
+        <GenericPressable
+            ref={ref}
+            style={props.wrapperStyle}
+            // eslint-disable-next-line react/jsx-props-no-spreading
+            {...propsWithoutStyling}
+        >
+            {(state) => (
                 <OpacityView
                     shouldDim={state.pressed || state.hovered}
                     dimmingValue={state.pressed ? props.pressDimmingValue : props.hoverDimmingValue}

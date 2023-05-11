@@ -58,4 +58,3 @@ describe('Post test build comments action tests', () => {
         expect(GithubUtils.createComment).toBeCalledWith('repo', 12, message);
     });
 });
-

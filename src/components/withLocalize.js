@@ -49,10 +49,8 @@ const localeProviderPropTypes = {
 
     /** The current user's personalDetails */
     currentUserPersonalDetails: PropTypes.shape({
-
         /** Timezone of the current user */
         timezone: PropTypes.shape({
-
             /** Value of the selected timezone */
             selected: PropTypes.string,
         }),
@@ -114,12 +112,7 @@ class LocaleContextProvider extends React.Component {
      * @returns {String}
      */
     datetimeToCalendarTime(datetime, includeTimezone) {
-        return DateUtils.datetimeToCalendarTime(
-            this.props.preferredLocale,
-            datetime,
-            includeTimezone,
-            lodashGet(this.props, 'currentUserPersonalDetails.timezone.selected'),
-        );
+        return DateUtils.datetimeToCalendarTime(this.props.preferredLocale, datetime, includeTimezone, lodashGet(this.props, 'currentUserPersonalDetails.timezone.selected'));
     }
 
     /**
@@ -147,11 +140,7 @@ class LocaleContextProvider extends React.Component {
     }
 
     render() {
-        return (
-            <LocaleContext.Provider value={this.getContextValue()}>
-                {this.props.children}
-            </LocaleContext.Provider>
-        );
+        return <LocaleContext.Provider value={this.getContextValue()}>{this.props.children}</LocaleContext.Provider>;
     }
 }
 
@@ -172,8 +161,15 @@ Provider.displayName = 'withOnyx(LocaleContextProvider)';
 export default function withLocalize(WrappedComponent) {
     const WithLocalize = forwardRef((props, ref) => (
         <LocaleContext.Consumer>
-            {/* eslint-disable-next-line react/jsx-props-no-spreading */}
-            {translateUtils => <WrappedComponent {...translateUtils} {...props} ref={ref} />}
+            {(translateUtils) => (
+                <WrappedComponent
+                    // eslint-disable-next-line react/jsx-props-no-spreading
+                    {...translateUtils}
+                    // eslint-disable-next-line react/jsx-props-no-spreading
+                    {...props}
+                    ref={ref}
+                />
+            )}
         </LocaleContext.Consumer>
     ));
 
@@ -182,7 +178,4 @@ export default function withLocalize(WrappedComponent) {
     return WithLocalize;
 }
 
-export {
-    withLocalizePropTypes,
-    Provider as LocaleContextProvider,
-};
+export {withLocalizePropTypes, Provider as LocaleContextProvider};
