@@ -44,6 +44,7 @@ import ReportDropUI from './ReportDropUI';
 import DragAndDrop from '../../../components/DragAndDrop';
 import reportPropTypes from '../../reportPropTypes';
 import EmojiSuggestions from '../../../components/EmojiSuggestions';
+import MentionSuggestions from '../../../components/MentionSuggestions';
 import withKeyboardState, {keyboardStatePropTypes} from '../../../components/withKeyboardState';
 import ArrowKeyFocusManager from '../../../components/ArrowKeyFocusManager';
 import OfflineWithFeedback from '../../../components/OfflineWithFeedback';
@@ -51,6 +52,8 @@ import KeyboardShortcut from '../../../libs/KeyboardShortcut';
 import * as ComposerUtils from '../../../libs/ComposerUtils';
 import * as Welcome from '../../../libs/actions/Welcome';
 import Permissions from '../../../libs/Permissions';
+import * as TaskUtils from '../../../libs/actions/Task';
+import * as OptionsListUtils from '../../../libs/OptionsListUtils';
 
 const propTypes = {
     /** Beta features list */
@@ -115,6 +118,9 @@ const propTypes = {
         }),
     ),
 
+    /** Collection of recent reports, used to calculate the mention suggestions */
+    reports: PropTypes.objectOf(reportPropTypes),
+
     /** The type of action that's pending  */
     pendingAction: PropTypes.oneOf(['add', 'update', 'delete']),
 
@@ -137,18 +143,34 @@ const defaultProps = {
     frequentlyUsedEmojis: [],
     isComposerFullSize: false,
     pendingAction: null,
+    reports: {},
     ...withCurrentUserPersonalDetailsDefaultProps,
+};
+
+const defaultSuggestionsValues = {
+    suggestedEmojis: [],
+    suggestedMentions: [],
+    highlightedEmojiIndex: 0,
+    highlightedMentionIndex: 0,
+    colonIndex: -1,
+    atSignIndex: -1,
+    shouldShowEmojiSuggestionMenu: false,
+    shouldShowMentionSuggestionMenu: false,
+    mentionPrefix: '',
+    isAutoSuggestionPickerLarge: false,
 };
 
 /**
  * Return the max available index for arrow manager.
  * @param {Number} numRows
- * @param {Boolean} isEmojiPickerLarge
+ * @param {Boolean} isAutoSuggestionPickerLarge
  * @returns {Number}
  */
-const getMaxArrowIndex = (numRows, isEmojiPickerLarge) => {
+const getMaxArrowIndex = (numRows, isAutoSuggestionPickerLarge) => {
     // EmojiRowCount is number of emoji suggestions. For small screen we can fit 3 items and for large we show up to 5 items
-    const emojiRowCount = isEmojiPickerLarge ? Math.max(numRows, CONST.AUTO_COMPLETE_SUGGESTER.MAX_AMOUNT_OF_ITEMS) : Math.max(numRows, CONST.AUTO_COMPLETE_SUGGESTER.MIN_AMOUNT_OF_ITEMS);
+    const emojiRowCount = isAutoSuggestionPickerLarge
+        ? Math.max(numRows, CONST.AUTO_COMPLETE_SUGGESTER.MAX_AMOUNT_OF_ITEMS)
+        : Math.max(numRows, CONST.AUTO_COMPLETE_SUGGESTER.MIN_AMOUNT_OF_ITEMS);
 
     // -1 because we start at 0
     return emojiRowCount - 1;
@@ -184,6 +206,14 @@ const isEmojiCode = (str, pos) => {
     const leftWord = _.last(leftWords);
     return CONST.REGEX.HAS_COLON_ONLY_AT_THE_BEGINNING.test(leftWord) && leftWord.length > 2;
 };
+
+/**
+ * Check if this piece of string looks like a mention
+ * @param {String} str
+ * @returns {Boolean}
+ */
+const isMentionCode = (str) => CONST.REGEX.HAS_AT_MOST_TWO_AT_SIGNS.test(str);
+
 function ReportActionCompose(props) {
     /**
      * Updates the Highlight state of the composer
@@ -206,14 +236,12 @@ function ReportActionCompose(props) {
     const [maxLines, setMaxLines] = useState(props.isSmallScreenWidth ? CONST.COMPOSER.MAX_LINES_SMALL_SCREEN : CONST.COMPOSER.MAX_LINES);
     const [value, setValue] = useState(props.comment);
 
-    const [suggestedEmojis, setSuggestedEmojis] = useState([]);
-    const [highlightedEmojiIndex, setHighlightedEmojiIndex] = useState(0);
-    const [colonIndex, setColonIndex] = useState(-1);
-    const [shouldShowSuggestionMenu, setShouldShowSuggestionMenu] = useState(false);
     const [shouldBlockEmojiCalc, setShouldBlockEmojiCalc] = useState(false);
-    const [isEmojiPickerLarge, setIsEmojiPickerLarge] = useState(false);
     const [composerHeight, setComposerHeight] = useState(0);
     const [isAttachmentPreviewActive, setIsAttachmentPreviewActive] = useState(false);
+
+    // TODO: rewrite suggestion logic to some hook or state machine or util or something to not make it depend on ReportActionComposer
+    const [suggestionValues, setSuggestionValues] = useState(defaultSuggestionsValues);
 
     /**
      * Updates the composer when the comment length is exceeded
@@ -426,12 +454,8 @@ function ReportActionCompose(props) {
     /**
      * Clean data related to EmojiSuggestions
      */
-    const resetSuggestedEmojis = useCallback(() => {
-        setSuggestedEmojis([]);
-        setHighlightedEmojiIndex(0);
-        setColonIndex(-1);
-        setShouldShowSuggestionMenu(false);
-        setIsEmojiPickerLarge(true);
+    const resetSuggestions = useCallback(() => {
+        setSuggestionValues(defaultSuggestionsValues);
     }, []);
 
     /**
@@ -440,7 +464,7 @@ function ReportActionCompose(props) {
     const calculateEmojiSuggestion = useCallback(
         (selectionEnd) => {
             if (!value) {
-                resetSuggestedEmojis();
+                resetSuggestions();
                 return;
             }
             if (shouldBlockEmojiCalc) {
@@ -448,26 +472,82 @@ function ReportActionCompose(props) {
                 return;
             }
             const leftString = value.substring(0, selectionEnd);
+            const colonIndex = leftString.lastIndexOf(':');
             const isCurrentlyShowingEmojiSuggestion = isEmojiCode(value, selectionEnd);
+
+            // the larger composerHeight the less space for EmojiPicker, Pixel 2 has pretty small screen and this value equal 5.3
+            const hasEnoughSpaceForLargeSuggestion = props.windowHeight / composerHeight >= 6.8;
+            const isAutoSuggestionPickerLarge = !props.isSmallScreenWidth || (props.isSmallScreenWidth && hasEnoughSpaceForLargeSuggestion);
+            
+            const nextState = {
+                suggestedEmojis: [],
+                highlightedEmojiIndex: 0,
+                colonIndex,
+                shouldShowEmojiSuggestionMenu: false,
+                isAutoSuggestionPickerLarge,
+            };
             const newSuggestedEmojis = EmojiUtils.suggestEmojis(leftString);
 
             if (newSuggestedEmojis.length && isCurrentlyShowingEmojiSuggestion) {
-                setSuggestedEmojis(newSuggestedEmojis);
-                setShouldShowSuggestionMenu(!_.isEmpty(newSuggestedEmojis));
-            } else {
-                setSuggestedEmojis([]);
-                setShouldShowSuggestionMenu(false);
+                nextState.suggestedEmojis = newSuggestedEmojis;
+                nextState.shouldShowEmojiSuggestionMenu = !_.isEmpty(newSuggestedEmojis);
             }
 
             LayoutAnimation.configureNext(LayoutAnimation.create(50, LayoutAnimation.Types.easeInEaseOut, LayoutAnimation.Properties.opacity));
 
-            // the larger composerHeight the less space for EmojiPicker, Pixel 2 has pretty small screen and this value equal 5.3
-            const hasEnoughSpaceForLargeSuggestion = props.windowHeight / composerHeight >= 6.8;
-            setIsEmojiPickerLarge(!props.isSmallScreenWidth || (props.isSmallScreenWidth && hasEnoughSpaceForLargeSuggestion));
-            setColonIndex(leftString.lastIndexOf(':'));
-            setHighlightedEmojiIndex(0);
+            setSuggestionValues(prevState => ({...prevState, ...nextState}))
         },
-        [composerHeight, value, props.windowHeight, props.isSmallScreenWidth, resetSuggestedEmojis, shouldBlockEmojiCalc],
+        [composerHeight, value, props.windowHeight, props.isSmallScreenWidth, resetSuggestions, shouldBlockEmojiCalc],
+    );
+
+    const calculateMentionSuggestion = useCallback(
+        (selectionEnd) => {
+            if (selectionEnd < 1) {
+                return;
+            }
+
+            const valueAfterTheCursor = value.substring(selectionEnd);
+            const indexOfFirstWhitespaceCharOrEmojiAfterTheCursor = valueAfterTheCursor.search(CONST.REGEX.NEW_LINE_OR_WHITE_SPACE_OR_EMOJI);
+
+            let indexOfLastNonWhitespaceCharAfterTheCursor;
+            if (indexOfFirstWhitespaceCharOrEmojiAfterTheCursor === -1) {
+                // we didn't find a whitespace/emoji after the cursor, so we will use the entire string
+                indexOfLastNonWhitespaceCharAfterTheCursor = value.length;
+            } else {
+                indexOfLastNonWhitespaceCharAfterTheCursor = indexOfFirstWhitespaceCharOrEmojiAfterTheCursor + selectionEnd;
+            }
+
+            const leftString = value.substring(0, indexOfLastNonWhitespaceCharAfterTheCursor);
+            const words = leftString.split(CONST.REGEX.NEW_LINE_OR_WHITE_SPACE_OR_EMOJI);
+            const lastWord = _.last(words);
+
+            let atSignIndex;
+            if (lastWord.startsWith('@')) {
+                atSignIndex = leftString.lastIndexOf(lastWord);
+            }
+
+            const prefix = lastWord.substring(1);
+
+            const nextState = {
+                suggestedMentions: [],
+                atSignIndex,
+                mentionPrefix: prefix,
+            };
+
+            const isCursorBeforeTheMention = valueAfterTheCursor.startsWith(lastWord);
+            if (!isCursorBeforeTheMention && isMentionCode(lastWord)) {
+                const options = OptionsListUtils.getNewChatOptions(props.reports, props.personalDetails, props.betas, prefix);
+                const suggestions = _.filter([...options.recentReports, options.userToInvite], (x) => !!x);
+                nextState.suggestedMentions = suggestions;
+                nextState.shouldShowMentionSuggestionMenu = !_.isEmpty(suggestions);
+            }
+
+            setSuggestionValues((prevState) => ({
+                ...prevState,
+                ...nextState,
+            }));
+        },
+        [props.betas, props.personalDetails, props.reports, value],
     );
 
     const onSelectionChange = useCallback(
@@ -480,6 +560,7 @@ function ReportActionCompose(props) {
              * of suggestion instead of current one
              */
             calculateEmojiSuggestion(e.nativeEvent.selection.end);
+            calculateMentionSuggestion(e.nativeEvent.selection.end);
         },
         [calculateEmojiSuggestion],
     );
@@ -523,10 +604,13 @@ function ReportActionCompose(props) {
 
     // eslint-disable-next-line rulesdir/prefer-early-return
     const updateShouldShowSuggestionMenuToFalse = useCallback(() => {
-        if (shouldShowSuggestionMenu) {
-            setShouldShowSuggestionMenu(false);
+        if (suggestionValues.shouldShowEmojiSuggestionMenu) {
+            setSuggestionValues(prevState => ({...prevState, shouldShowEmojiSuggestionMenu: false }));
         }
-    }, [shouldShowSuggestionMenu]);
+        if (suggestionValues.shouldShowMentionSuggestionMenu) {
+            setSuggestionValues(prevState => ({...prevState, shouldShowMentionSuggestionMenu: false }));
+        }
+    }, [suggestionValues.shouldShowEmojiSuggestionMenu, suggestionValues.shouldShowMentionSuggestionMenu]);
 
     // eslint-disable-next-line rulesdir/prefer-early-return
     const updateShouldBlockEmojiCalcToFalse = useCallback(() => {
@@ -552,7 +636,7 @@ function ReportActionCompose(props) {
             {
                 icon: Expensicons.Task,
                 text: props.translate('newTaskPage.assignTask'),
-                onSelected: () => Navigation.navigate(ROUTES.getNewTaskRoute(props.reportID)),
+                onSelected: () => TaskUtils.clearOutTaskInfoAndNavigate(props.reportID),
             },
         ];
     }, [props.betas, props.report, reportParticipants, props.translate, props.reportID]);
@@ -563,21 +647,45 @@ function ReportActionCompose(props) {
      */
     const insertSelectedEmoji = useCallback(
         (selectedEmoji) => {
-            const commentBeforeColon = value.slice(0, colonIndex);
-            const emojiObject = suggestedEmojis[selectedEmoji];
+            const commentBeforeColon = value.slice(0, suggestionValues.colonIndex);
+            const emojiObject = suggestionValues.suggestedEmojis[selectedEmoji];
             const emojiCode = emojiObject.types && emojiObject.types[props.preferredSkinTone] ? emojiObject.types[props.preferredSkinTone] : emojiObject.code;
             const commentAfterColonWithEmojiNameRemoved = value.slice(selection.end).replace(CONST.REGEX.EMOJI_REPLACER, CONST.SPACE);
 
             updateComment(`${commentBeforeColon}${emojiCode} ${commentAfterColonWithEmojiNameRemoved}`, true);
             setSelection({
-                start: colonIndex + emojiCode.length + CONST.SPACE_LENGTH,
-                end: colonIndex + emojiCode.length + CONST.SPACE_LENGTH,
+                start: suggestionValues.colonIndex + emojiCode.length + CONST.SPACE_LENGTH,
+                end: suggestionValues.colonIndex + emojiCode.length + CONST.SPACE_LENGTH,
             });
-            setSuggestedEmojis([]);
+            setSuggestionValues(prevState => ({...prevState, suggestedEmojis: []}))
 
             EmojiUtils.addToFrequentlyUsedEmojis(props.frequentlyUsedEmojis, emojiObject);
         },
-        [colonIndex, props.frequentlyUsedEmojis, suggestedEmojis, value, props.preferredSkinTone, selection, updateComment],
+        [suggestionValues.colonIndex, props.frequentlyUsedEmojis, suggestionValues.suggestedEmojis, value, props.preferredSkinTone, selection, updateComment],
+    );
+
+    /**
+     * Replace the code of mention and update selection
+     * @param {Number} highlightedMentionIndex
+     */
+    const insertSelectedMention = useCallback(
+        (highlightedMentionIndex) => {
+            const commentBeforeAtSign = value.slice(0, suggestionValues.atSignIndex);
+            const mentionObject = suggestionValues.suggestedMentions[highlightedMentionIndex];
+            const mentionCode = `@${mentionObject.alternateText}`;
+            const commentAfterAtSignWithMentionRemoved = value.slice(suggestionValues.atSignIndex).replace(CONST.REGEX.MENTION_REPLACER, '');
+
+            updateComment(`${commentBeforeAtSign}${mentionCode} ${commentAfterAtSignWithMentionRemoved}`, true);
+            setSelection({
+                start: suggestionValues.atSignIndex + mentionCode.length + CONST.SPACE_LENGTH,
+                end: suggestionValues.atSignIndex + mentionCode.length + CONST.SPACE_LENGTH,
+            });
+            setSuggestionValues((prevState) => ({
+                ...prevState,
+                suggestedMentions: [],
+            }));
+        },
+        [suggestionValues, value, updateComment],
     );
 
     const isEmptyChat = useCallback(() => _.size(props.reportActions) === 1, [props.reportActions]);
@@ -667,14 +775,21 @@ function ReportActionCompose(props) {
                 return;
             }
 
-            if ((e.key === CONST.KEYBOARD_SHORTCUTS.ENTER.shortcutKey || e.key === CONST.KEYBOARD_SHORTCUTS.TAB.shortcutKey) && suggestedEmojis.length) {
+            const suggestionsExist = suggestionValues.suggestedEmojis.length > 0 || suggestionValues.suggestedMentions.length > 0;
+
+            if ((e.key === CONST.KEYBOARD_SHORTCUTS.ENTER.shortcutKey || e.key === CONST.KEYBOARD_SHORTCUTS.TAB.shortcutKey) && suggestionValues.suggestedEmojis.length) {
                 e.preventDefault();
-                insertSelectedEmoji(highlightedEmojiIndex);
+                if (suggestionValues.suggestedEmojis.length > 0) {
+                    insertSelectedEmoji(suggestionValues.highlightedEmojiIndex);
+                }
+                if (suggestionValues.suggestedMentions.length > 0) {
+                    insertSelectedMention(suggestionValues.highlightedMentionIndex);
+                }
                 return;
             }
-            if (e.key === CONST.KEYBOARD_SHORTCUTS.ESCAPE.shortcutKey && suggestedEmojis.length) {
+            if (e.key === CONST.KEYBOARD_SHORTCUTS.ESCAPE.shortcutKey && suggestionsExist) {
                 e.preventDefault();
-                resetSuggestedEmojis();
+                resetSuggestions();
                 return;
             }
 
@@ -701,12 +816,15 @@ function ReportActionCompose(props) {
             props.report,
             props.reportActions,
             props.reportID,
-            resetSuggestedEmojis,
+            resetSuggestions,
             submitForm,
-            suggestedEmojis.length,
             props.isKeyboardShown,
-            highlightedEmojiIndex,
             insertSelectedEmoji,
+            insertSelectedMention,
+            suggestionValues.highlightedEmojiIndex,
+            suggestionValues.highlightedMentionIndex,
+            suggestionValues.suggestedEmojis.length,
+            suggestionValues.suggestedMentions.length,
         ],
     );
 
@@ -747,7 +865,7 @@ function ReportActionCompose(props) {
 
         setIsDraggingOver(false);
         setIsAttachmentPreviewActive(true);
-    }, []);
+    }, [isAttachmentPreviewActive]);
 
     // Prevents focusing and showing the keyboard while the drawer is covering the chat.
     const isComposeDisabled = props.isDrawerOpen && props.isSmallScreenWidth;
@@ -896,7 +1014,7 @@ function ReportActionCompose(props) {
                                             onFocus={() => setIsFocused(true)}
                                             onBlur={() => {
                                                 setIsFocused(false);
-                                                resetSuggestedEmojis();
+                                                resetSuggestions();
                                             }}
                                             onClick={updateShouldBlockEmojiCalcToFalse}
                                             onPasteFile={displayFileInModal}
@@ -974,25 +1092,48 @@ function ReportActionCompose(props) {
                 </View>
             </OfflineWithFeedback>
             {isDraggingOver && <ReportDropUI />}
-            {!_.isEmpty(suggestedEmojis) && shouldShowSuggestionMenu && (
+            {!_.isEmpty(suggestionValues.suggestedEmojis) && suggestionValues.shouldShowEmojiSuggestionMenu && (
                 <ArrowKeyFocusManager
-                    focusedIndex={highlightedEmojiIndex}
-                    maxIndex={getMaxArrowIndex(suggestedEmojis.length, isEmojiPickerLarge)}
+                    focusedIndex={suggestionValues.highlightedEmojiIndex}
+                    maxIndex={getMaxArrowIndex(suggestionValues.suggestedEmojis.length, suggestionValues.isAutoSuggestionPickerLarge)}
                     shouldExcludeTextAreaNodes={false}
-                    onFocusedIndexChanged={(index) => setHighlightedEmojiIndex(index)}
+                    onFocusedIndexChanged={(index) => setSuggestionValues(prevState => ({ ...prevState, highlightedEmojiIndex: index}))}
                 >
                     <EmojiSuggestions
-                        onClose={() => setSuggestedEmojis([])}
-                        highlightedEmojiIndex={highlightedEmojiIndex}
-                        emojis={suggestedEmojis}
+                        onClose={() => setSuggestionValues(prevState => ({...prevState, suggestedEmojis: []}))}
+                        highlightedEmojiIndex={suggestionValues.highlightedEmojiIndex}
+                        emojis={suggestionValues.suggestedEmojis}
                         comment={value}
                         updateComment={(newComment) => setValue(newComment)}
-                        colonIndex={colonIndex}
-                        prefix={value.slice(colonIndex + 1, selection.start)}
+                        colonIndex={suggestionValues.colonIndex}
+                        prefix={value.slice(suggestionValues.colonIndex + 1, selection.start)}
                         onSelect={insertSelectedEmoji}
                         isComposerFullSize={props.isComposerFullSize}
                         preferredSkinToneIndex={props.preferredSkinTone}
-                        isEmojiPickerLarge={isEmojiPickerLarge}
+                        isEmojiPickerLarge={suggestionValues.isAutoSuggestionPickerLarge}
+                        composerHeight={composerHeight}
+                        shouldIncludeReportRecipientLocalTimeHeight={shouldShowReportRecipientLocalTime}
+                    />
+                </ArrowKeyFocusManager>
+            )}
+            {!_.isEmpty(suggestionValues.suggestedMentions) && suggestionValues.shouldShowMentionSuggestionMenu && (
+                <ArrowKeyFocusManager
+                    focusedIndex={suggestionValues.highlightedMentionIndex}
+                    maxIndex={getMaxArrowIndex(suggestionValues.suggestedMentions.length, suggestionValues.isAutoSuggestionPickerLarge)}
+                    shouldExcludeTextAreaNodes={false}
+                    onFocusedIndexChanged={(index) => setSuggestionValues(prevState => ({ ...prevState, highlightedMentionIndex: index }))}
+                >
+                    <MentionSuggestions
+                        onClose={() => setSuggestionValues((prevState) => ({...prevState, suggestedMentions: []}))}
+                        highlightedMentionIndex={suggestionValues.highlightedMentionIndex}
+                        mentions={suggestionValues.suggestedMentions}
+                        comment={value}
+                        updateComment={(newComment) => setValue(newComment)}
+                        colonIndex={suggestionValues.colonIndex}
+                        prefix={suggestionValues.mentionPrefix}
+                        onSelect={insertSelectedMention}
+                        isComposerFullSize={props.isComposerFullSize}
+                        isMentionPickerLarge={suggestionValues.isAutoSuggestionPickerLarge}
                         composerHeight={composerHeight}
                         shouldIncludeReportRecipientLocalTimeHeight={shouldShowReportRecipientLocalTime}
                     />
@@ -1033,6 +1174,9 @@ export default compose(
         },
         frequentlyUsedEmojis: {
             key: ONYXKEYS.FREQUENTLY_USED_EMOJIS,
+        },
+        reports: {
+            key: ONYXKEYS.COLLECTION.REPORT,
         },
         preferredSkinTone: {
             key: ONYXKEYS.PREFERRED_EMOJI_SKIN_TONE,
