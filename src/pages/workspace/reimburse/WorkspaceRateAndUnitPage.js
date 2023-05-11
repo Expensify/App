@@ -34,6 +34,7 @@ class WorkspaceRateAndUnitPage extends React.Component {
         this.submit = this.submit.bind(this);
         this.validate = this.validate.bind(this);
     }
+
     getUnitRateValue(customUnitRate) {
         return this.getRateDisplayValue(lodashGet(customUnitRate, 'rate', 0) / CONST.POLICY.CUSTOM_UNIT_RATE_BASE_OFFSET);
     }
@@ -66,7 +67,7 @@ class WorkspaceRateAndUnitPage extends React.Component {
         if (!distanceCustomUnit) {
             return;
         }
-        const currentCustomUnitRate = _.find(lodashGet(distanceCustomUnit, 'rates', {}), rate => rate.name === 'Default Rate');
+        const currentCustomUnitRate = _.find(lodashGet(distanceCustomUnit, 'rates', {}), r => r.name === 'Default Rate');
         const unitID = lodashGet(distanceCustomUnit, 'customUnitID', '');
         const unitName = lodashGet(distanceCustomUnit, 'name', '');
         const rateNumValue = this.getNumericValue(rate);
