@@ -1913,6 +1913,18 @@ function buildOptimisticCancelTaskReportAction(taskReportID) {
         reportActionID: NumberUtils.rand64(),
         shouldShow: true,
         created: DateUtils.getDBTime(),
+        message: [
+            {
+                type: CONST.REPORT.MESSAGE.TYPE.TEXT,
+                style: 'strong',
+                text: 'You',
+            },
+            {
+                type: CONST.REPORT.MESSAGE.TYPE.TEXT,
+                style: 'normal',
+                text: ' closed this report',
+            },
+        ],
     };
 }
 
