@@ -14,6 +14,7 @@ import * as Expensicons from '../Icon/Expensicons';
 import reportActionPropTypes from '../../pages/home/report/reportActionPropTypes';
 import * as StyleUtils from '../../styles/StyleUtils';
 import getButtonState from '../../libs/getButtonState';
+import CONST from '../../CONST';
 
 const propTypes = {
     /** The ID of the associated taskReport */
@@ -22,8 +23,8 @@ const propTypes = {
     /** Whether the task preview is hovered so we can modify its style */
     isHovered: PropTypes.bool,
 
-    /** The linked reportAction */
-    action: PropTypes.shape(reportActionPropTypes).isRequired,
+    /** Name of the reportAction action */
+    actionName: PropTypes.string.isRequired,
 
     /* Onyx Props */
 
@@ -48,14 +49,15 @@ const defaultProps = {
 const TaskAction = (props) => {
     const taskReportID = props.taskReportID;
     const taskReportName = props.taskReport.reportName || '';
-    console.log(props.action);
+
+    const messageLinkText = props.actionName === CONST.REPORT.ACTIONS.TYPE.TASKCOMPLETED ? props.translate('task.messages.completed') : props.translate('newTaskPage.task');
     return (
         <Pressable
             onPress={() => Navigation.navigate(ROUTES.getReportRoute(taskReportID))}
             style={[styles.flexRow, styles.justifyContentBetween]}
         >
             <View style={[styles.flex1, styles.flexRow, styles.alignItemsCenter]}>
-                <Text style={styles.chatItemMessageLink}>{'testeastadwa'}</Text>
+                <Text style={styles.chatItemMessageLink}>{messageLinkText}</Text>
                 <Text style={[styles.chatItemMessage]}>{` ${taskReportName}`}</Text>
             </View>
             <Icon
