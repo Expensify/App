@@ -58,80 +58,47 @@ const termsData = [
     },
 ];
 
-const getLongTermsSections = () => _.map(termsData, (section, index) => (
-    // eslint-disable-next-line react/no-array-index-key
-    <View key={section.title + index}>
-        <View style={[styles.longTermsRow]}>
-            <View style={[styles.flex4]}>
-                <Text>{section.title}</Text>
-                {
-                    Boolean(section.subTitle)
-                    && (
-                        <Text style={[styles.textMicroSupporting, styles.mt1]}>
-                            {section.subTitle}
-                        </Text>
-                    )
-                }
+const getLongTermsSections = () =>
+    _.map(termsData, (section, index) => (
+        // eslint-disable-next-line react/no-array-index-key
+        <View key={section.title + index}>
+            <View style={[styles.longTermsRow]}>
+                <View style={[styles.flex4]}>
+                    <Text>{section.title}</Text>
+                    {Boolean(section.subTitle) && <Text style={[styles.textMicroSupporting, styles.mt1]}>{section.subTitle}</Text>}
+                </View>
+                <View style={[styles.flex1, styles.termsCenterRight]}>
+                    <Text style={[styles.textStrong, styles.textAlignRight]}>{section.rightText}</Text>
+                    {Boolean(section.subRightText) && <Text style={[styles.textMicroSupporting, styles.mt1, styles.textAlignRight]}>{section.subRightText}</Text>}
+                </View>
             </View>
-            <View style={[styles.flex1, styles.termsCenterRight]}>
-                <Text style={[styles.textStrong, styles.textAlignRight]}>
-                    {section.rightText}
-                </Text>
-                {
-                    Boolean(section.subRightText)
-                    && (
-                        <Text style={[styles.textMicroSupporting, styles.mt1, styles.textAlignRight]}>
-                            {section.subRightText}
-                        </Text>
-                    )
-                }
-            </View>
+            <Text style={[styles.textLabelSupporting, styles.mt2]}>{section.details}</Text>
         </View>
-        <Text style={[styles.textLabelSupporting, styles.mt2]}>
-            {section.details}
-        </Text>
-    </View>
-));
+    ));
 
 const LongTermsForm = () => (
     <>
-        <CollapsibleSection title={Localize.translateLocal('termsStep.longTermsForm.listOfAllFees')}>
-            {getLongTermsSections()}
-        </CollapsibleSection>
+        <CollapsibleSection title={Localize.translateLocal('termsStep.longTermsForm.listOfAllFees')}>{getLongTermsSections()}</CollapsibleSection>
 
         <Text style={[styles.mb4, styles.mt6, styles.textMicroSupporting]}>
-            {Localize.translateLocal('termsStep.longTermsForm.fdicInsuranceBancorp')}
-            {' '}
-            {CONST.TERMS.FDIC_PREPAID}
-            {' '}
-            {Localize.translateLocal('termsStep.longTermsForm.fdicInsuranceBancorp2')}
+            {Localize.translateLocal('termsStep.longTermsForm.fdicInsuranceBancorp')} {CONST.TERMS.FDIC_PREPAID} {Localize.translateLocal('termsStep.longTermsForm.fdicInsuranceBancorp2')}
         </Text>
+        <Text style={[styles.mb4, styles.textMicroSupporting]}>{Localize.translateLocal('termsStep.noOverdraftOrCredit')}</Text>
         <Text style={[styles.mb4, styles.textMicroSupporting]}>
-            {Localize.translateLocal('termsStep.noOverdraftOrCredit')}
-        </Text>
-        <Text style={[styles.mb4, styles.textMicroSupporting]}>
-            {Localize.translateLocal('termsStep.longTermsForm.contactExpensifyPayments')}
-            {' '}
-            {CONST.EMAIL.CONCIERGE}
-            {' '}
-            {Localize.translateLocal('termsStep.longTermsForm.contactExpensifyPayments2')}
-            {' '}
-            {CONST.NEW_EXPENSIFY_URL}
-            .
+            {Localize.translateLocal('termsStep.longTermsForm.contactExpensifyPayments')} {CONST.EMAIL.CONCIERGE}{' '}
+            {Localize.translateLocal('termsStep.longTermsForm.contactExpensifyPayments2')} {CONST.NEW_EXPENSIFY_URL}.
         </Text>
         <Text style={[styles.mb6, styles.textMicroSupporting]}>
-            {Localize.translateLocal('termsStep.longTermsForm.generalInformation')}
-            {' '}
-            {CONST.TERMS.CFPB_PREPAID}
+            {Localize.translateLocal('termsStep.longTermsForm.generalInformation')} {CONST.TERMS.CFPB_PREPAID}
             {'. '}
-            {Localize.translateLocal('termsStep.longTermsForm.generalInformation2')}
-            {' '}
-            {CONST.TERMS.CFPB_COMPLAINT}
-            .
+            {Localize.translateLocal('termsStep.longTermsForm.generalInformation2')} {CONST.TERMS.CFPB_COMPLAINT}.
         </Text>
 
         <View style={styles.flexRow}>
-            <Icon style={styles.flex1} src={Expensicons.Printer} />
+            <Icon
+                style={styles.flex1}
+                src={Expensicons.Printer}
+            />
             <TextLink
                 style={styles.ml1}
                 href={CONST.FEES_URL}

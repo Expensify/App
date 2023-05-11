@@ -7,6 +7,7 @@ import PressableWithoutFocus from '../../PressableWithoutFocus';
 import CONST from '../../../CONST';
 import {ShowContextMenuContext, showContextMenuForReport} from '../../ShowContextMenuContext';
 import tryResolveUrlFromApiRoot from '../../../libs/tryResolveUrlFromApiRoot';
+import * as ReportUtils from '../../../libs/ReportUtils';
 
 const ImageRenderer = (props) => {
     const htmlAttribs = props.tnode.attributes;
@@ -33,9 +34,7 @@ const ImageRenderer = (props) => {
 
     // Files created/uploaded/hosted by App should resolve from API ROOT. Other URLs aren't modified
     const previewSource = tryResolveUrlFromApiRoot(htmlAttribs.src);
-    const source = tryResolveUrlFromApiRoot(isAttachment
-        ? htmlAttribs[CONST.ATTACHMENT_SOURCE_ATTRIBUTE]
-        : htmlAttribs.src);
+    const source = tryResolveUrlFromApiRoot(isAttachment ? htmlAttribs[CONST.ATTACHMENT_SOURCE_ATTRIBUTE] : htmlAttribs.src);
 
     const imageWidth = htmlAttribs['data-expensify-width'] ? parseInt(htmlAttribs['data-expensify-width'], 10) : undefined;
     const imageHeight = htmlAttribs['data-expensify-height'] ? parseInt(htmlAttribs['data-expensify-height'], 10) : undefined;
@@ -51,24 +50,19 @@ const ImageRenderer = (props) => {
         />
     ) : (
         <ShowContextMenuContext.Consumer>
-            {({
-                anchor,
-                reportID,
-                action,
-                checkIfContextMenuActive,
-            }) => (
+            {({anchor, report, action, checkIfContextMenuActive}) => (
                 <AttachmentModal
                     allowDownload
-                    reportID={reportID}
+                    reportID={report.reportID}
                     source={source}
                     isAuthTokenRequired={isAttachment}
                     originalFileName={originalFileName}
                 >
                     {({show}) => (
                         <PressableWithoutFocus
-                            style={styles.noOutline}
+                            styles={[styles.noOutline, styles.alignItemsStart]}
                             onPress={show}
-                            onLongPress={event => showContextMenuForReport(event, anchor, reportID, action, checkIfContextMenuActive)}
+                            onLongPress={(event) => showContextMenuForReport(event, anchor, report.reportID, action, checkIfContextMenuActive, ReportUtils.isArchivedRoom(report))}
                         >
                             <ThumbnailImage
                                 previewSourceURL={previewSource}

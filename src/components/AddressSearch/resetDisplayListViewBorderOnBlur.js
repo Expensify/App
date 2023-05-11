@@ -9,4 +9,3 @@ function resetDisplayListViewBorderOnBlur(setDisplayListViewBorder, event, conta
 }
 
 export default resetDisplayListViewBorderOnBlur;
-
