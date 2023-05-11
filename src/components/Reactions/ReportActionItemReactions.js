@@ -64,11 +64,11 @@ const defaultProps = {
     ...withCurrentUserPersonalDetailsDefaultProps,
 };
 
-const ReportActionItemReactions = props => (
+const ReportActionItemReactions = (props) => (
     <View style={[styles.flexRow, styles.flexWrap, styles.gap1, styles.mt2]}>
         {_.map(props.reactions, (reaction, reactionEmoji) => {
             const reactionCount = _.size(reaction.users);
-            const emoji = _.find(emojis, e => e.name === reactionEmoji);
+            const emoji = _.find(emojis, (e) => e.name === reactionEmoji);
             const emojiCodes = getUniqueEmojiCodes(emoji, reaction.users);
 
             const onPress = () => {

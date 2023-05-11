@@ -83,13 +83,17 @@ const propTypes = {
     /** All of the personalDetails */
     personalDetails: PropTypes.objectOf(personalDetailsPropType),
 
-    reactions: PropTypes.objectOf(PropTypes.shape({
-        emoji: PropTypes.string,
-        users: PropTypes.objectOf(PropTypes.shape({
-            accountID: PropTypes.number,
-            skinTone: PropTypes.string,
-        })),
-    })),
+    reactions: PropTypes.objectOf(
+        PropTypes.shape({
+            emoji: PropTypes.string,
+            users: PropTypes.objectOf(
+                PropTypes.shape({
+                    accountID: PropTypes.number,
+                    skinTone: PropTypes.string,
+                }),
+            ),
+        }),
+    ),
 
     ...windowDimensionsPropTypes,
 };
