@@ -52,7 +52,7 @@
     "@formatjs/intl-numberformat": "^8.5.0",
     "@formatjs/intl-pluralrules": "^5.2.2",
     "@gorhom/portal": "^1.0.14",
-    "@oguzhnatly/react-native-image-manipulator": "github:Expensify/react-native-image-manipulator#c5f654fc9d0ad7cc5b89d50b34ecf8b0e3f4d050",
+    "@oguzhnatly/react-native-image-manipulator": "github:Expensify/react-native-image-manipulator#5cdae3d4455b03a04c57f50be3863e2fe6c92c52",
     "@onfido/react-native-sdk": "7.4.0",
     "@react-native-async-storage/async-storage": "^1.17.10",
     "@react-native-camera-roll/camera-roll": "5.4.0",
