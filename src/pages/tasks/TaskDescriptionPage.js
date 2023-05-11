@@ -24,7 +24,7 @@ const propTypes = {
     /** Task Report Info */
     task: PropTypes.shape({
         /** Title of the Task */
-        report: reportPropTypes.isRequired,
+        report: reportPropTypes,
     }),
 
     /* Onyx Props */
@@ -59,6 +59,7 @@ function TaskDescriptionPage(props) {
         (values) => {
             // Set the description of the report in the store and then call TaskUtils.editTaskReport
             // to update the description of the report on the server
+            console.log(props);
             TaskUtils.editTaskAndNavigate(props.task.report, props.session.email, '', values.description, '');
         },
         [props],
@@ -90,7 +91,7 @@ function TaskDescriptionPage(props) {
                         inputID="description"
                         name="description"
                         label={props.translate('newTaskPage.description')}
-                        defaultValue={props.task.report.description || ''}
+                        defaultValue={(props.task.report && props.task.report.description) || ''}
                         ref={(el) => (inputRef.current = el)}
                     />
                 </View>

@@ -41,6 +41,7 @@ function TaskHeaderView(props) {
     const [assignee, setAssignee] = useState('');
 
     useEffect(() => {
+        TaskUtils.clearOutTaskInfo();
         TaskUtils.setTaskReport(props.report);
         if (!props.report.assignee) {
             return;
@@ -51,8 +52,6 @@ function TaskHeaderView(props) {
             setAssignee(displayDetails);
         }
     }, [props]);
-    // eslint-disable-next-line no-console
-    console.log('TaskHeaderView.js props', props);
     return (
         <>
             <View style={[styles.sidebarLinkActive, styles.ph3]}>

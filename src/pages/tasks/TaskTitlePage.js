@@ -19,7 +19,7 @@ const propTypes = {
     /** Task Report Info */
     task: PropTypes.shape({
         /** Title of the Task */
-        report: reportPropTypes.isRequired,
+        report: reportPropTypes,
     }),
 
     /** Current user session */
@@ -91,7 +91,7 @@ function TaskTitlePage(props) {
                         inputID="title"
                         name="title"
                         label={props.translate('newTaskPage.title')}
-                        defaultValue={props.task.report.reportName || ''}
+                        defaultValue={(props.task.report && props.task.report.reportName) || ''}
                         ref={(el) => (inputRef.current = el)}
                     />
                 </View>
