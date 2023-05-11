@@ -222,8 +222,8 @@ function shouldReportActionBeVisible(reportAction, key) {
     // All other actions are displayed except thread parents, deleted, or non-pending actions
     const isDeleted = isDeletedAction(reportAction);
     const isPending = !_.isEmpty(reportAction.pendingAction);
-    const isDeletedParent = lodashGet(reportAction, ['message', 0, 'isDeletedParentAction'], false);
-    return !isDeleted || isPending || isDeletedParent;
+    const isDeletedParentAction = lodashGet(reportAction, ['message', 0, 'isDeletedParentAction'], false);
+    return !isDeleted || isPending || isDeletedParentAction;
 }
 
 /**

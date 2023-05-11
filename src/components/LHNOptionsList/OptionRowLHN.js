@@ -150,7 +150,9 @@ const OptionRowLHN = (props) => {
                                             tooltipEnabled
                                             numberOfLines={1}
                                             textStyles={displayNameStyle}
-                                            shouldUseFullTitle={optionItem.isChatRoom || optionItem.isPolicyExpenseChat || optionItem.isTaskReport || optionItem.isThread || optionItem.isMoneyRequestReport}
+                                            shouldUseFullTitle={
+                                                optionItem.isChatRoom || optionItem.isPolicyExpenseChat || optionItem.isTaskReport || optionItem.isThread || optionItem.isMoneyRequestReport
+                                            }
                                         />
                                         {optionItem.isChatRoom && !optionItem.isThread && (
                                             <TextPill

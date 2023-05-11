@@ -37,7 +37,6 @@ class PopoverReportActionContextMenu extends React.Component {
             },
             isArchivedRoom: false,
             isChronosReport: false,
-            childReportID: '0',
         };
         this.onPopoverShow = () => {};
         this.onPopoverHide = () => {};
@@ -128,7 +127,7 @@ class PopoverReportActionContextMenu extends React.Component {
      * @param {Boolean} isChronosReport - Flag to check if the chat participant is Chronos
      * @param {String} childReportID - ReportAction childReportID
      */
-    showContextMenu(type, event, selection, contextMenuAnchor, reportID, reportAction, draftMessage, onShow = () => {}, onHide = () => {}, isArchivedRoom, isChronosReport, childReportID) {
+    showContextMenu(type, event, selection, contextMenuAnchor, reportID, reportAction, draftMessage, onShow = () => {}, onHide = () => {}, isArchivedRoom, isChronosReport) {
         const nativeEvent = event.nativeEvent || {};
         this.contextMenuAnchor = contextMenuAnchor;
         this.contextMenuTargetNode = nativeEvent.target;
@@ -158,7 +157,6 @@ class PopoverReportActionContextMenu extends React.Component {
                 reportActionDraftMessage: draftMessage,
                 isArchivedRoom,
                 isChronosReport,
-                childReportID,
             });
         });
     }
@@ -264,7 +262,6 @@ class PopoverReportActionContextMenu extends React.Component {
             shouldSetModalVisibilityForDeleteConfirmation: true,
             isArchivedRoom: false,
             isChronosReport: false,
-            childReportID: '0',
         });
     }
 
@@ -311,7 +308,6 @@ class PopoverReportActionContextMenu extends React.Component {
                         draftMessage={this.state.reportActionDraftMessage}
                         isArchivedRoom={this.state.isArchivedRoom}
                         isChronosReport={this.state.isChronosReport}
-                        childReportID={this.state.childReportID}
                         anchor={this.contextMenuTargetNode}
                         contentRef={this.contentRef}
                     />

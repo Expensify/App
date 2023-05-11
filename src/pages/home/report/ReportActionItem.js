@@ -371,7 +371,6 @@ class ReportActionItem extends Component {
                                 isVisible={hovered && !this.props.draftMessage && !hasErrors}
                                 draftMessage={this.props.draftMessage}
                                 isChronosReport={ReportUtils.chatIncludesChronos(this.props.report)}
-                                childReportActionID={this.props.action.childReportActionID}
                             />
                         </View>
                     )}
