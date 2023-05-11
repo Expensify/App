@@ -178,6 +178,7 @@ function canEditReportAction(reportAction) {
         reportAction.actionName === CONST.REPORT.ACTIONS.TYPE.ADDCOMMENT &&
         !isReportMessageAttachment(lodashGet(reportAction, ['message', 0], {})) &&
         !ReportActionsUtils.isDeletedAction(reportAction) &&
+        !ReportActionsUtils.isCreatedTaskReportAction(reportAction) &&
         reportAction.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE
     );
 }
@@ -192,6 +193,7 @@ function canDeleteReportAction(reportAction) {
     return (
         reportAction.actorEmail === sessionEmail &&
         reportAction.actionName === CONST.REPORT.ACTIONS.TYPE.ADDCOMMENT &&
+        !ReportActionsUtils.isCreatedTaskReportAction(reportAction) &&
         reportAction.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE
     );
 }
@@ -949,7 +951,7 @@ function getReportName(report) {
         const parentReportActionMessage = lodashGet(parentReportAction, ['message', 0, 'text']);
         return parentReportActionMessage || Localize.translateLocal('parentReportAction.deletedMessage');
     }
-    if (isChatRoom(report)) {
+    if (isChatRoom(report) || isTaskReport(report)) {
         formattedName = report.reportName;
     }
 
@@ -1072,6 +1074,34 @@ function buildOptimisticAddCommentReportAction(text, file) {
             shouldShow: true,
         },
     };
+}
+
+/**
+ * Builds an optimistic reportAction for the parent report when a task is created
+ * @param {String} taskReportID - Report ID of the task
+ * @param {String} taskTitle - Title of the task
+ * @param {String} taskAssignee - Email of the person assigned to the task
+ * @param {String} text - Text of the comment
+ * @returns {Object}
+ */
+function buildOptimisticTaskCommentReportAction(taskReportID, taskTitle, taskAssignee, text) {
+    const reportAction = buildOptimisticAddCommentReportAction(text);
+    reportAction.reportAction.message[0].taskReportID = taskReportID;
+
+    // These parameters are not saved on the reportAction, but are used to display the task in the UI
+    // Added when we fetch the reportActions on a report
+    reportAction.reportAction.originalMessage = {
+        html: reportAction.reportAction.message[0].html,
+        taskReportID: reportAction.reportAction.message[0].taskReportID,
+    };
+    reportAction.reportAction.childReportID = taskReportID;
+    reportAction.reportAction.childType = CONST.REPORT.TYPE.TASK;
+    reportAction.reportAction.taskTitle = taskTitle;
+    reportAction.reportAction.taskAssignee = taskAssignee;
+    reportAction.reportAction.childStatusNum = CONST.REPORT.STATUS.OPEN;
+    reportAction.reportAction.childStateNum = CONST.REPORT.STATE_NUM.OPEN;
+
+    return reportAction;
 }
 
 /**
@@ -1963,6 +1993,7 @@ export {
     buildOptimisticExpenseReport,
     buildOptimisticIOUReportAction,
     buildOptimisticAddCommentReportAction,
+    buildOptimisticTaskCommentReportAction,
     shouldReportBeInOptionList,
     getChatByParticipants,
     getChatByParticipantsAndPolicy,
