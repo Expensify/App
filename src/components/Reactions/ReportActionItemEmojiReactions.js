@@ -84,13 +84,13 @@ const defaultProps = {
 
 const ReportActionItemEmojiReactions = (props) => {
     const popoverReactionListAnchor = useRef(null);
+    // @TODO: need to sort everything so that emojis and users are in the order they were added
     return (
         <View
             ref={popoverReactionListAnchor}
             style={[styles.flexRow, styles.flexWrap, styles.gap1, styles.mt2]}
         >
             {_.map(props.emojiReactions, (reaction, reactionEmoji) => {
-                // @TODO: need to sort everything so that emojis and users are in the order they were added
                 const reactionCount = _.size(reaction.users);
                 const emojiAsset = _.find(emojis, (emoji) => emoji.name === reactionEmoji);
                 const emojiCodes = getUniqueEmojiCodes(emojiAsset, reaction.users);

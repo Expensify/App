@@ -4,6 +4,7 @@ import lodashGet from 'lodash/get';
 import ExpensiMark from 'expensify-common/lib/ExpensiMark';
 import Onyx from 'react-native-onyx';
 import Str from 'expensify-common/lib/str';
+import moment from 'moment';
 import ONYXKEYS from '../../ONYXKEYS';
 import * as Pusher from '../Pusher/pusher';
 import LocalNotification from '../Notification/LocalNotification';
@@ -1507,14 +1508,20 @@ function removeEmojiReaction(reportID, originalReportAction, emoji) {
  * @param {number} [skinTone] Optional.
  */
 function addEmojiReaction2(reportID, reportActionID, emoji, skinTone = preferredSkinTone) {
+    const createdAt = moment().utc().format(CONST.DATE.SQL_DATE_TIME);
     const optimisticData = [
         {
-            onyxMethod: CONST.ONYX.METHOD.MERGE,
+            onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS_REACTIONS}${reportID}${reportActionID}`,
             value: {
                 [emoji.name]: {
+                    createdAt,
                     users: {
-                        [currentUserAccountID]: {skinTone},
+                        [currentUserAccountID]: {
+                            skinTones: {
+                                [skinTone]: createdAt,
+                            },
+                        },
                     },
                 },
             },
@@ -1526,6 +1533,7 @@ function addEmojiReaction2(reportID, reportActionID, emoji, skinTone = preferred
         skinTone,
         emojiCode: emoji.name,
         reportActionID,
+        createdAt,
     };
     API.write('AddEmojiReaction', parameters, {optimisticData});
 }
@@ -1556,7 +1564,7 @@ function removeEmojiReaction2(reportID, reportActionID, emoji, existingReactions
 
     const optimisticData = [
         {
-            onyxMethod: CONST.ONYX.METHOD.MERGE,
+            onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS_REACTIONS}${reportID}${reportActionID}`,
             value: {
                 [emoji.name]: updatedReactionObject,
