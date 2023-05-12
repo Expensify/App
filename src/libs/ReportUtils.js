@@ -554,6 +554,10 @@ function hashLogin(login, range) {
 function getMoneyRequestAmount(moneyRequestReport) {
     const moneyRequestAmount = lodashGet(moneyRequestReport, 'total', 0);
 
+    if (moneyRequestAmount === 0) {
+        return 0;
+    }
+
     return isExpenseReport(moneyRequestReport) ? moneyRequestAmount * -1 : Math.abs(moneyRequestAmount);
 }
 
