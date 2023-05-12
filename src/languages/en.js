@@ -254,6 +254,7 @@ export default {
         deleteComment: 'Delete comment',
         deleteConfirmation: 'Are you sure you want to delete this comment?',
         onlyVisible: 'Only visible to',
+        replyInThread: 'Reply in thread',
     },
     emojiReactions: {
         addReactionTooltip: 'Add reaction',
@@ -1305,6 +1306,9 @@ export default {
         workspaceName: 'Workspace name',
         chatUserDisplayNames: 'Chat user display names',
         scrollToNewestMessages: 'Scroll to newest messages',
+    },
+    parentReportAction: {
+        deletedMessage: '[Deleted message]',
     },
     threads: {
         lastReply: 'Last Reply',
