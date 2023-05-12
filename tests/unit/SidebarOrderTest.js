@@ -360,6 +360,7 @@ describe('Sidebar', () => {
                 ...LHNTestUtils.getFakeReport(['email7@test.com', 'email8@test.com']),
                 type: CONST.REPORT.TYPE.IOU,
                 ownerEmail: 'email2@test.com',
+                managerEmail: 'email2@test.com',
                 hasOutstandingIOU: true,
                 total: 10000,
                 currency: 'USD',
@@ -391,12 +392,13 @@ describe('Sidebar', () => {
                     .then(() => {
                         const hintText = Localize.translateLocal('accessibilityHints.chatUserDisplayNames');
                         const displayNames = screen.queryAllByLabelText(hintText);
-                        expect(displayNames).toHaveLength(3);
+                        expect(displayNames).toHaveLength(4);
                         expect(screen.queryAllByTestId('Pin Icon')).toHaveLength(1);
                         expect(screen.queryAllByTestId('Pencil Icon')).toHaveLength(1);
                         expect(lodashGet(displayNames, [0, 'props', 'children'])).toBe('One, Two');
                         expect(lodashGet(displayNames, [1, 'props', 'children'])).toBe('Five, Six');
-                        expect(lodashGet(displayNames, [2, 'props', 'children'])).toBe('Three, Four');
+                        expect(lodashGet(displayNames, [2, 'props', 'children'])).toBe('Email Two owes $100.00');
+                        expect(lodashGet(displayNames, [3, 'props', 'children'])).toBe('Three, Four');
                     })
             );
         });
@@ -676,6 +678,7 @@ describe('Sidebar', () => {
                 ...LHNTestUtils.getFakeReport(['email7@test.com', 'email8@test.com']),
                 type: CONST.REPORT.TYPE.IOU,
                 ownerEmail: 'email2@test.com',
+                managerEmail: 'email2@test.com',
                 hasOutstandingIOU: true,
                 total: 10000,
                 currency: 'USD',
@@ -685,6 +688,7 @@ describe('Sidebar', () => {
                 ...LHNTestUtils.getFakeReport(['email9@test.com', 'email10@test.com']),
                 type: CONST.REPORT.TYPE.IOU,
                 ownerEmail: 'email2@test.com',
+                managerEmail: 'email2@test.com',
                 hasOutstandingIOU: true,
                 total: 10000,
                 currency: 'USD',
@@ -694,6 +698,7 @@ describe('Sidebar', () => {
                 ...LHNTestUtils.getFakeReport(['email11@test.com', 'email12@test.com']),
                 type: CONST.REPORT.TYPE.IOU,
                 ownerEmail: 'email2@test.com',
+                managerEmail: 'email2@test.com',
                 hasOutstandingIOU: true,
                 total: 10000,
                 currency: 'USD',
@@ -727,10 +732,12 @@ describe('Sidebar', () => {
                     .then(() => {
                         const hintText = Localize.translateLocal('accessibilityHints.chatUserDisplayNames');
                         const displayNames = screen.queryAllByLabelText(hintText);
-                        expect(displayNames).toHaveLength(3);
+                        expect(displayNames).toHaveLength(5);
                         expect(lodashGet(displayNames, [0, 'props', 'children'])).toBe('Five, Six');
                         expect(lodashGet(displayNames, [1, 'props', 'children'])).toBe('One, Two');
                         expect(lodashGet(displayNames, [2, 'props', 'children'])).toBe('Three, Four');
+                        expect(lodashGet(displayNames, [3, 'props', 'children'])).toBe('Email Two owes $100.00');
+                        expect(lodashGet(displayNames, [4, 'props', 'children'])).toBe('Email Two owes $100.00');
                     })
             );
         });

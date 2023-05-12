@@ -16,7 +16,7 @@ const defaultTypes = {
     shouldAnimate: true,
 };
 
-class LHNSkeletonView extends React.Component {
+class OptionsListSkeletonView extends React.Component {
     constructor(props) {
         super(props);
         this.state = {
@@ -105,7 +105,7 @@ class LHNSkeletonView extends React.Component {
     }
 }
 
-LHNSkeletonView.propTypes = propTypes;
-LHNSkeletonView.defaultProps = defaultTypes;
+OptionsListSkeletonView.propTypes = propTypes;
+OptionsListSkeletonView.defaultProps = defaultTypes;
 
-export default LHNSkeletonView;
+export default OptionsListSkeletonView;
