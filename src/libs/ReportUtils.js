@@ -461,6 +461,7 @@ function isThreadFirstChat(reportAction, reportID) {
 /**
  * Get either the policyName or domainName the chat is tied to
  * @param {Object} report
+ * @param {Object} parentReport
  * @returns {String}
  */
 function getChatRoomSubtitle(report, parentReport) {
