@@ -1977,6 +1977,11 @@ const styles = {
         backgroundColor: themeColors.modalBackdrop,
     },
 
+    centeredModalStyles: (isSmallScreenWidth) => ({
+        borderWidth: isSmallScreenWidth ? 1 : 0,
+        marginHorizontal: isSmallScreenWidth ? 0 : 20,
+    }),
+
     imageModalImageCenterContainer: {
         alignItems: 'center',
         flex: 1,
@@ -2200,6 +2205,13 @@ const styles = {
         opacity: 0.5,
     },
 
+    threadDividerLine: {
+        height: 1,
+        backgroundColor: themeColors.border,
+        flexGrow: 1,
+        marginHorizontal: 20,
+    },
+
     unreadIndicatorText: {
         color: themeColors.unreadIndicator,
         fontFamily: fontFamily.EXP_NEUE_BOLD,
@@ -2362,6 +2374,11 @@ const styles = {
         width: '100%',
         paddingHorizontal: 20,
         paddingVertical: 12,
+    },
+
+    requestPreviewBox: {
+        marginTop: 8,
+        maxWidth: variables.sideBarWidth,
     },
 
     iouPreviewBox: {
