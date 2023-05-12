@@ -55,9 +55,11 @@ Onyx.connect({
  */
 function requestMoney(report, amount, currency, payeeEmail, participant, comment) {
     const payerEmail = OptionsListUtils.addSMSDomainIfPhoneNumber(participant.login);
-    let chatReport = lodashGet(report, 'reportID', null) ? report : null;
     const isPolicyExpenseChat = participant.isPolicyExpenseChat || participant.isOwnPolicyExpenseChat;
-    let isNewChat = false;
+
+    // STEP 1: Get existing chat report OR build a new optimistic one
+    let isNewChatReport = false;
+    let chatReport = lodashGet(report, 'reportID', null) ? report : null;
 
     // If this is a policyExpenseChat, the chatReport must exist and we can get it from Onyx.
     // report is null if the flow is initiated from the global create menu. However, participant always stores the reportID if it exists, which is the case for policyExpenseChats
@@ -68,52 +70,40 @@ function requestMoney(report, amount, currency, payeeEmail, participant, comment
     if (!chatReport) {
         chatReport = ReportUtils.getChatByParticipants([payerEmail]);
     }
+
+    // If we still don't have a report, it likely doens't exist and we need to build an optimistic one
     if (!chatReport) {
+        isNewChatReport = true;
         chatReport = ReportUtils.buildOptimisticChatReport([payerEmail]);
-        isNewChat = true;
     }
-    let moneyRequestReport;
-    if (chatReport.iouReportID) {
+
+    // STEP 2: Get existing IOU report and update its total OR build a new optimistic one
+    const isNewIOUReport = !chatReport.iouReportID;
+    let iouReport;
+
+    if (!isNewIOUReport) {
         if (isPolicyExpenseChat) {
-            moneyRequestReport = {...iouReports[`${ONYXKEYS.COLLECTION.REPORT}${chatReport.iouReportID}`]};
+            iouReport = {...iouReports[`${ONYXKEYS.COLLECTION.REPORT}${chatReport.iouReportID}`]};
 
             // Because of the Expense reports are stored as negative values, we substract the total from the amount
-            moneyRequestReport.total = ReportUtils.isExpenseReport(moneyRequestReport) ? moneyRequestReport.total - amount : moneyRequestReport.total + amount;
+            iouReport.total = ReportUtils.isExpenseReport(iouReport) ? iouReport.total - amount : iouReport.total + amount;
         } else {
-            moneyRequestReport = IOUUtils.updateIOUOwnerAndTotal(iouReports[`${ONYXKEYS.COLLECTION.REPORT}${chatReport.iouReportID}`], payeeEmail, amount, currency);
+            iouReport = IOUUtils.updateIOUOwnerAndTotal(iouReports[`${ONYXKEYS.COLLECTION.REPORT}${chatReport.iouReportID}`], payeeEmail, amount, currency);
         }
     } else {
-        moneyRequestReport = isPolicyExpenseChat
+        iouReport = isPolicyExpenseChat
             ? ReportUtils.buildOptimisticExpenseReport(chatReport.reportID, chatReport.policyID, payeeEmail, amount, currency)
             : ReportUtils.buildOptimisticIOUReport(payeeEmail, payerEmail, amount, chatReport.reportID, currency);
     }
 
-    const optimisticTransaction = TransactionUtils.buildOptimisticTransaction(amount, currency, moneyRequestReport.reportID, comment);
-    const optimisticTransactionData = {
-        onyxMethod: Onyx.METHOD.SET,
-        key: `${ONYXKEYS.COLLECTION.TRANSACTION}${optimisticTransaction.transactionID}`,
-        value: optimisticTransaction,
-    };
-    const transactionSuccessData = {
-        onyxMethod: Onyx.METHOD.MERGE,
-        key: `${ONYXKEYS.COLLECTION.TRANSACTION}${optimisticTransaction.transactionID}`,
-        value: {
-            pendingAction: null,
-        },
-    };
-    const transactionFailureData = {
-        onyxMethod: Onyx.METHOD.MERGE,
-        key: `${ONYXKEYS.COLLECTION.TRANSACTION}${optimisticTransaction.transactionID}`,
-        value: {
-            errors: {
-                [DateUtils.getMicroseconds()]: Localize.translateLocal('iou.error.genericCreateFailureMessage'),
-            },
-        },
-    };
+    // STEP 3: Build optimistic transaction
+    const optimisticTransaction = TransactionUtils.buildOptimisticTransaction(amount, currency, iouReport.reportID, comment);
 
-    // Note: The created action must be optimistically generated before the IOU action so there's no chance that the created action appears after the IOU action in the chat
-    const optimisticCreatedAction = ReportUtils.buildOptimisticCreatedReportAction(payeeEmail);
-    const optimisticReportAction = ReportUtils.buildOptimisticIOUReportAction(
+    // STEP 4: Build optimistic reportActions. We need a CREATED action for each report and an IOU action for the IOU report
+    // Note: The CREATED action for the IOU report must be optimistically generated before the IOU action so there's no chance that it appears after the IOU action in the chat
+    const optimisticCreatedActionForChat = ReportUtils.buildOptimisticCreatedReportAction(payeeEmail);
+    const optimisticCreatedActionForIOU = ReportUtils.buildOptimisticCreatedReportAction(payeeEmail);
+    const optimisticIOUAction = ReportUtils.buildOptimisticIOUReportAction(
         CONST.IOU.REPORT_ACTION_TYPE.CREATE,
         amount,
         currency,
@@ -121,114 +111,167 @@ function requestMoney(report, amount, currency, payeeEmail, participant, comment
         [participant],
         optimisticTransaction.transactionID,
         '',
-        moneyRequestReport.reportID,
+        iouReport.reportID,
     );
 
-    // First, add data that will be used in all cases
-    const optimisticChatReportData = {
-        onyxMethod: Onyx.METHOD.MERGE,
-        key: `${ONYXKEYS.COLLECTION.REPORT}${chatReport.reportID}`,
-        value: {
-            ...chatReport,
-            lastReadTime: DateUtils.getDBTime(),
-            hasOutstandingIOU: moneyRequestReport.total !== 0,
-            iouReportID: moneyRequestReport.reportID,
-        },
-    };
-
-    const optimisticIOUReportData = {
-        onyxMethod: chatReport.hasOutstandingIOU ? Onyx.METHOD.MERGE : Onyx.METHOD.SET,
-        key: `${ONYXKEYS.COLLECTION.REPORT}${moneyRequestReport.reportID}`,
-        value: {
-            ...moneyRequestReport,
-            lastMessageText: optimisticReportAction.message[0].text,
-            lastMessageHtml: optimisticReportAction.message[0].html,
-        },
-    };
-
-    const optimisticReportActionsData = {
-        onyxMethod: Onyx.METHOD.MERGE,
-        key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${moneyRequestReport.reportID}`,
-        value: {
-            [optimisticReportAction.reportActionID]: optimisticReportAction,
-        },
-    };
-
-    let chatReportSuccessData = {};
-    const reportActionsSuccessData = {
-        onyxMethod: Onyx.METHOD.MERGE,
-        key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${moneyRequestReport.reportID}`,
-        value: {
-            [optimisticReportAction.reportActionID]: {
-                pendingAction: null,
+    // STEP 5: Build Onyx Data
+    const optimisticData = [
+        {
+            // Use SET for new reports because it doesn't exist yet, is faster and we need the data to be available when we navigate to the chat page
+            onyxMethod: isNewChatReport ? Onyx.METHOD.SET : Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT}${chatReport.reportID}`,
+            value: {
+                ...chatReport,
+                lastReadTime: DateUtils.getDBTime(),
+                hasOutstandingIOU: iouReport.total !== 0,
+                iouReportID: iouReport.reportID,
+                ...(isNewChatReport ? {pendingFields: {createChat: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD}} : {}),
             },
         },
-    };
-
-    const chatReportFailureData = {
-        onyxMethod: Onyx.METHOD.MERGE,
-        key: `${ONYXKEYS.COLLECTION.REPORT}${chatReport.reportID}`,
-        value: {
-            hasOutstandingIOU: chatReport.hasOutstandingIOU,
+        {
+            onyxMethod: isNewIOUReport ? Onyx.METHOD.SET : Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT}${iouReport.reportID}`,
+            value: {
+                ...iouReport,
+                lastMessageText: optimisticIOUAction.message[0].text,
+                lastMessageHtml: optimisticIOUAction.message[0].html,
+                ...(isNewIOUReport ? {pendingFields: {createChat: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD}} : {}),
+            },
         },
-    };
+        {
+            onyxMethod: Onyx.METHOD.SET,
+            key: `${ONYXKEYS.COLLECTION.TRANSACTION}${optimisticTransaction.transactionID}`,
+            value: optimisticTransaction,
+        },
+        ...(isNewChatReport
+            ? [
+                  {
+                      onyxMethod: Onyx.METHOD.SET,
+                      key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${chatReport.reportID}`,
+                      value: {
+                          [optimisticCreatedActionForChat.reportActionID]: optimisticCreatedActionForChat,
+                      },
+                  },
+              ]
+            : []),
+        {
+            onyxMethod: isNewIOUReport ? Onyx.METHOD.SET : Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${iouReport.reportID}`,
+            value: {
+                ...(isNewIOUReport ? {[optimisticCreatedActionForIOU.reportActionID]: optimisticCreatedActionForIOU} : {}),
+                [optimisticIOUAction.reportActionID]: optimisticIOUAction,
+            },
+        },
+    ];
 
-    const reportActionsFailureData = {
-        onyxMethod: Onyx.METHOD.MERGE,
-        key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${moneyRequestReport.reportID}`,
-        value: {
-            [optimisticReportAction.reportActionID]: {
+    const successData = [
+        ...(isNewChatReport
+            ? [
+                  {
+                      onyxMethod: Onyx.METHOD.MERGE,
+                      key: `${ONYXKEYS.COLLECTION.REPORT}${chatReport.reportID}`,
+                      value: {
+                          pendingFields: null,
+                          errorFields: null,
+                      },
+                  },
+              ]
+            : []),
+        ...(isNewIOUReport
+            ? [
+                  {
+                      onyxMethod: Onyx.METHOD.MERGE,
+                      key: `${ONYXKEYS.COLLECTION.REPORT}${iouReport.reportID}`,
+                      value: {
+                          pendingFields: null,
+                          errorFields: null,
+                      },
+                  },
+              ]
+            : []),
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.TRANSACTION}${optimisticTransaction.transactionID}`,
+            value: {pendingAction: null},
+        },
+        ...(isNewChatReport
+            ? [
+                  {
+                      onyxMethod: Onyx.METHOD.MERGE,
+                      key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${chatReport.reportID}`,
+                      value: {[optimisticCreatedActionForChat.reportActionID]: {pendingAction: null}},
+                  },
+              ]
+            : []),
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${iouReport.reportID}`,
+            value: {
+                ...(isNewIOUReport ? {[optimisticCreatedActionForIOU.reportActionID]: {pendingAction: null}} : {}),
+                [optimisticIOUAction.reportActionID]: {pendingAction: null},
+            },
+        },
+    ];
+
+    const failureData = [
+        ...(isNewChatReport
+            ? [
+                  {
+                      onyxMethod: Onyx.METHOD.MERGE,
+                      key: `${ONYXKEYS.COLLECTION.REPORT}${chatReport.reportID}`,
+                      value: {
+                          hasOutstandingIOU: false,
+                          pendingFields: {createChat: null},
+                          createChat: {
+                              [DateUtils.getMicroseconds()]: Localize.translateLocal('report.genericCreateReportFailureMessage'),
+                          },
+                      },
+                  },
+              ]
+            : []),
+        ...(isNewIOUReport
+            ? [
+                  {
+                      onyxMethod: Onyx.METHOD.MERGE,
+                      key: `${ONYXKEYS.COLLECTION.REPORT}${iouReport.reportID}`,
+                      value: {
+                          pendingFields: {createChat: null},
+                          createChat: {
+                              [DateUtils.getMicroseconds()]: Localize.translateLocal('report.genericCreateReportFailureMessage'),
+                          },
+                      },
+                  },
+              ]
+            : []),
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.TRANSACTION}${optimisticTransaction.transactionID}`,
+            value: {
                 errors: {
                     [DateUtils.getMicroseconds()]: Localize.translateLocal('iou.error.genericCreateFailureMessage'),
                 },
             },
         },
-    };
-
-    // Now, let's add the data we need just when we are creating a new chat report
-    if (isNewChat) {
-        // Change the method to set for new reports because it doesn't exist yet, is faster,
-        // and we need the data to be available when we navigate to the chat page
-        optimisticChatReportData.onyxMethod = Onyx.METHOD.SET;
-        optimisticIOUReportData.onyxMethod = Onyx.METHOD.SET;
-        optimisticReportActionsData.onyxMethod = Onyx.METHOD.SET;
-
-        // Then add and clear pending fields from the chat report
-        optimisticChatReportData.value.pendingFields = {createChat: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD};
-        chatReportSuccessData = {
+        ...(isNewChatReport
+            ? [
+                  {
+                      onyxMethod: Onyx.METHOD.MERGE,
+                      key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${chatReport.reportID}`,
+                      value: {[optimisticCreatedActionForChat.reportActionID]: {pendingAction: null}},
+                  },
+              ]
+            : []),
+        {
             onyxMethod: Onyx.METHOD.MERGE,
-            key: optimisticChatReportData.key,
+            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${iouReport.reportID}`,
             value: {
-                pendingFields: null,
-                errorFields: null,
+                ...(isNewIOUReport ? {[optimisticCreatedActionForIOU.reportActionID]: {pendingAction: null}} : {}),
+                [optimisticIOUAction.reportActionID]: {pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD},
             },
-        };
-        chatReportFailureData.value.pendingFields = {createChat: null};
-        delete chatReportFailureData.value.hasOutstandingIOU;
-        chatReportFailureData.value.errorFields = {
-            createChat: {
-                [DateUtils.getMicroseconds()]: Localize.translateLocal('report.genericCreateReportFailureMessage'),
-            },
-        };
+        },
+    ];
 
-        // Then add an optimistic created action
-        optimisticReportActionsData.value[optimisticCreatedAction.reportActionID] = optimisticCreatedAction;
-        reportActionsSuccessData.value[optimisticCreatedAction.reportActionID] = {pendingAction: null};
-
-        // Failure data should feature red brick road
-        reportActionsFailureData.value[optimisticCreatedAction.reportActionID] = {pendingAction: null};
-        reportActionsFailureData.value[optimisticReportAction.reportActionID] = {pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD};
-    }
-
-    const optimisticData = [optimisticChatReportData, optimisticIOUReportData, optimisticReportActionsData, optimisticTransactionData];
-
-    const successData = [reportActionsSuccessData, transactionSuccessData];
-    if (!_.isEmpty(chatReportSuccessData)) {
-        successData.push(chatReportSuccessData);
-    }
-
-    const failureData = [chatReportFailureData, reportActionsFailureData, transactionFailureData];
-
+    // STEP 6: Make the request
     const parsedComment = ReportUtils.getParsedComment(comment);
     API.write(
         'RequestMoney',
@@ -237,11 +280,11 @@ function requestMoney(report, amount, currency, payeeEmail, participant, comment
             amount,
             currency,
             comment: parsedComment,
-            iouReportID: moneyRequestReport.reportID,
+            iouReportID: iouReport.reportID,
             chatReportID: chatReport.reportID,
             transactionID: optimisticTransaction.transactionID,
-            reportActionID: optimisticReportAction.reportActionID,
-            createdReportActionID: isNewChat ? optimisticCreatedAction.reportActionID : 0,
+            reportActionID: optimisticIOUAction.reportActionID,
+            createdReportActionID: isNewChatReport ? optimisticCreatedActionForChat.reportActionID : 0,
         },
         {optimisticData, successData, failureData},
     );
