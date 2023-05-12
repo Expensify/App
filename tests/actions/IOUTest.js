@@ -32,7 +32,6 @@ describe('actions/IOU', () => {
         it('creates new chat if needed', () => {
             const amount = 10000;
             const comment = 'Giv money plz';
-            let chatReportID;
             let iouReportID;
             let createdAction;
             let iouAction;
@@ -55,7 +54,6 @@ describe('actions/IOU', () => {
                                     expect(_.size(chatReports)).toBe(1);
                                     expect(_.size(iouReports)).toBe(1);
                                     const chatReport = chatReports[0];
-                                    chatReportID = chatReport.reportID;
                                     const iouReport = iouReports[0];
                                     iouReportID = iouReport.reportID;
 
@@ -73,15 +71,15 @@ describe('actions/IOU', () => {
                     () =>
                         new Promise((resolve) => {
                             const connectionID = Onyx.connect({
-                                key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${chatReportID}`,
+                                key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${iouReportID}`,
                                 waitForCollectionCallback: true,
-                                callback: (reportActionsForChatReport) => {
+                                callback: (reportActionsForIOUReport) => {
                                     Onyx.disconnect(connectionID);
 
-                                    // The chat report should have a CREATED action and IOU action
-                                    expect(_.size(reportActionsForChatReport)).toBe(2);
-                                    const createdActions = _.filter(reportActionsForChatReport, (reportAction) => reportAction.actionName === CONST.REPORT.ACTIONS.TYPE.CREATED);
-                                    const iouActions = _.filter(reportActionsForChatReport, (reportAction) => reportAction.actionName === CONST.REPORT.ACTIONS.TYPE.IOU);
+                                    // The IOU report should have a CREATED action and IOU action
+                                    expect(_.size(reportActionsForIOUReport)).toBe(2);
+                                    const createdActions = _.filter(reportActionsForIOUReport, (reportAction) => reportAction.actionName === CONST.REPORT.ACTIONS.TYPE.CREATED);
+                                    const iouActions = _.filter(reportActionsForIOUReport, (reportAction) => reportAction.actionName === CONST.REPORT.ACTIONS.TYPE.IOU);
                                     expect(_.size(createdActions)).toBe(1);
                                     expect(_.size(iouActions)).toBe(1);
                                     createdAction = createdActions[0];
@@ -152,12 +150,12 @@ describe('actions/IOU', () => {
                     () =>
                         new Promise((resolve) => {
                             const connectionID = Onyx.connect({
-                                key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${chatReportID}`,
+                                key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${iouReportID}`,
                                 waitForCollectionCallback: true,
-                                callback: (reportActionsForChatReport) => {
+                                callback: (reportActionsForIOUReport) => {
                                     Onyx.disconnect(connectionID);
-                                    expect(_.size(reportActionsForChatReport)).toBe(2);
-                                    _.each(reportActionsForChatReport, (reportAction) => expect(reportAction.pendingAction).toBeFalsy());
+                                    expect(_.size(reportActionsForIOUReport)).toBe(2);
+                                    _.each(reportActionsForIOUReport, (reportAction) => expect(reportAction.pendingAction).toBeFalsy());
                                     resolve();
                                 },
                             });
@@ -236,12 +234,12 @@ describe('actions/IOU', () => {
                     () =>
                         new Promise((resolve) => {
                             const connectionID = Onyx.connect({
-                                key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${chatReport.reportID}`,
+                                key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${iouReportID}`,
                                 waitForCollectionCallback: true,
                                 callback: (allReportActions) => {
                                     Onyx.disconnect(connectionID);
 
-                                    // The chat report should have a CREATED and an IOU action
+                                    // The IOU report should have an IOU action
                                     expect(_.size(allReportActions)).toBe(2);
                                     iouAction = _.find(allReportActions, (reportAction) => reportAction.actionName === CONST.REPORT.ACTIONS.TYPE.IOU);
 
@@ -309,12 +307,12 @@ describe('actions/IOU', () => {
                     () =>
                         new Promise((resolve) => {
                             const connectionID = Onyx.connect({
-                                key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${chatReport.reportID}`,
+                                key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${iouReportID}`,
                                 waitForCollectionCallback: true,
-                                callback: (reportActionsForChatReport) => {
+                                callback: (reportActionsForIOUReport) => {
                                     Onyx.disconnect(connectionID);
-                                    expect(_.size(reportActionsForChatReport)).toBe(2);
-                                    _.each(reportActionsForChatReport, (reportAction) => expect(reportAction.pendingAction).toBeFalsy());
+                                    expect(_.size(reportActionsForIOUReport)).toBe(1);
+                                    _.each(reportActionsForIOUReport, (reportAction) => expect(reportAction.pendingAction).toBeFalsy());
                                     resolve();
                                 },
                             });
@@ -427,14 +425,14 @@ describe('actions/IOU', () => {
                     () =>
                         new Promise((resolve) => {
                             const connectionID = Onyx.connect({
-                                key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${chatReportID}`,
+                                key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${iouReportID}`,
                                 waitForCollectionCallback: true,
-                                callback: (reportActionsForChatReport) => {
+                                callback: (reportActionsForIOUReport) => {
                                     Onyx.disconnect(connectionID);
 
-                                    expect(_.size(reportActionsForChatReport)).toBe(3);
+                                    expect(_.size(reportActionsForIOUReport)).toBe(3);
                                     newIOUAction = _.find(
-                                        reportActionsForChatReport,
+                                        reportActionsForIOUReport,
                                         (reportAction) => reportAction.reportActionID !== createdAction.reportActionID && reportAction.reportActionID !== iouAction.reportActionID,
                                     );
 
@@ -491,12 +489,12 @@ describe('actions/IOU', () => {
                     () =>
                         new Promise((resolve) => {
                             const connectionID = Onyx.connect({
-                                key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${chatReport.reportID}`,
+                                key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${iouReportID}`,
                                 waitForCollectionCallback: true,
-                                callback: (reportActionsForChatReport) => {
+                                callback: (reportActionsForIOUReport) => {
                                     Onyx.disconnect(connectionID);
-                                    expect(_.size(reportActionsForChatReport)).toBe(3);
-                                    _.each(reportActionsForChatReport, (reportAction) => expect(reportAction.pendingAction).toBeFalsy());
+                                    expect(_.size(reportActionsForIOUReport)).toBe(3);
+                                    _.each(reportActionsForIOUReport, (reportAction) => expect(reportAction.pendingAction).toBeFalsy());
                                     resolve();
                                 },
                             });
@@ -563,15 +561,15 @@ describe('actions/IOU', () => {
                         () =>
                             new Promise((resolve) => {
                                 const connectionID = Onyx.connect({
-                                    key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${chatReportID}`,
+                                    key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${iouReportID}`,
                                     waitForCollectionCallback: true,
-                                    callback: (reportActionsForChatReport) => {
+                                    callback: (reportActionsForIOUReport) => {
                                         Onyx.disconnect(connectionID);
 
                                         // The chat report should have a CREATED action and IOU action
-                                        expect(_.size(reportActionsForChatReport)).toBe(2);
-                                        const createdActions = _.filter(reportActionsForChatReport, (reportAction) => reportAction.actionName === CONST.REPORT.ACTIONS.TYPE.CREATED);
-                                        const iouActions = _.filter(reportActionsForChatReport, (reportAction) => reportAction.actionName === CONST.REPORT.ACTIONS.TYPE.IOU);
+                                        expect(_.size(reportActionsForIOUReport)).toBe(2);
+                                        const createdActions = _.filter(reportActionsForIOUReport, (reportAction) => reportAction.actionName === CONST.REPORT.ACTIONS.TYPE.CREATED);
+                                        const iouActions = _.filter(reportActionsForIOUReport, (reportAction) => reportAction.actionName === CONST.REPORT.ACTIONS.TYPE.IOU);
                                         expect(_.size(createdActions)).toBe(1);
                                         expect(_.size(iouActions)).toBe(1);
                                         createdAction = createdActions[0];
@@ -637,12 +635,12 @@ describe('actions/IOU', () => {
                         () =>
                             new Promise((resolve) => {
                                 const connectionID = Onyx.connect({
-                                    key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${chatReportID}`,
+                                    key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${iouReportID}`,
                                     waitForCollectionCallback: true,
-                                    callback: (reportActionsForChatReport) => {
+                                    callback: (reportActionsForIOUReport) => {
                                         Onyx.disconnect(connectionID);
-                                        expect(_.size(reportActionsForChatReport)).toBe(2);
-                                        iouAction = _.find(reportActionsForChatReport, (reportAction) => reportAction.actionName === CONST.REPORT.ACTIONS.TYPE.IOU);
+                                        expect(_.size(reportActionsForIOUReport)).toBe(2);
+                                        iouAction = _.find(reportActionsForIOUReport, (reportAction) => reportAction.actionName === CONST.REPORT.ACTIONS.TYPE.IOU);
                                         expect(iouAction.pendingAction).toBe(CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD);
                                         resolve();
                                     },
@@ -1193,9 +1191,9 @@ describe('actions/IOU', () => {
                                 callback: (allReportActions) => {
                                     Onyx.disconnect(connectionID);
 
-                                    const reportActionsForChatReport = allReportActions[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${chatReport.reportID}`];
+                                    const reportActionsForIOUReport = allReportActions[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${iouReport.reportID}`];
 
-                                    createIOUAction = _.find(reportActionsForChatReport, (ra) => ra.actionName === CONST.REPORT.ACTIONS.TYPE.IOU);
+                                    createIOUAction = _.find(reportActionsForIOUReport, (ra) => ra.actionName === CONST.REPORT.ACTIONS.TYPE.IOU);
                                     expect(createIOUAction).toBeTruthy();
                                     expect(createIOUAction.originalMessage.IOUReportID).toBe(iouReport.reportID);
 
@@ -1263,11 +1261,11 @@ describe('actions/IOU', () => {
                                 callback: (allReportActions) => {
                                     Onyx.disconnect(connectionID);
 
-                                    const reportActionsForChatReport = allReportActions[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${chatReport.reportID}`];
-                                    expect(_.size(reportActionsForChatReport)).toBe(3);
+                                    const reportActionsForIOUReport = allReportActions[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${iouReport.reportID}`];
+                                    expect(_.size(reportActionsForIOUReport)).toBe(3);
 
                                     payIOUAction = _.find(
-                                        reportActionsForChatReport,
+                                        reportActionsForIOUReport,
                                         (ra) => ra.actionName === CONST.REPORT.ACTIONS.TYPE.IOU && ra.originalMessage.type === CONST.IOU.REPORT_ACTION_TYPE.PAY,
                                     );
                                     expect(payIOUAction).toBeTruthy();
@@ -1314,11 +1312,11 @@ describe('actions/IOU', () => {
                                 callback: (allReportActions) => {
                                     Onyx.disconnect(connectionID);
 
-                                    const reportActionsForChatReport = allReportActions[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${chatReport.reportID}`];
-                                    expect(_.size(reportActionsForChatReport)).toBe(3);
+                                    const reportActionsForIOUReport = allReportActions[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${iouReport.reportID}`];
+                                    expect(_.size(reportActionsForIOUReport)).toBe(3);
 
                                     payIOUAction = _.find(
-                                        reportActionsForChatReport,
+                                        reportActionsForIOUReport,
                                         (ra) => ra.actionName === CONST.REPORT.ACTIONS.TYPE.IOU && ra.originalMessage.type === CONST.IOU.REPORT_ACTION_TYPE.PAY,
                                     );
                                     expect(payIOUAction).toBeTruthy();
