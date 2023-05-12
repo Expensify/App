@@ -301,6 +301,7 @@ class ReportActionCompose extends React.Component {
     }
 
     onSelectionChange(e) {
+        LayoutAnimation.configureNext(LayoutAnimation.create(50, LayoutAnimation.Types.easeInEaseOut, LayoutAnimation.Properties.opacity));
         this.setState({selection: e.nativeEvent.selection});
         this.calculateEmojiSuggestion();
         this.calculateMentionSuggestion();
@@ -510,8 +511,6 @@ class ReportActionCompose extends React.Component {
             nextState.suggestedEmojis = newSuggestedEmojis;
             nextState.shouldShowEmojiSuggestionMenu = !_.isEmpty(newSuggestedEmojis);
         }
-
-        LayoutAnimation.configureNext(LayoutAnimation.create(50, LayoutAnimation.Types.easeInEaseOut, LayoutAnimation.Properties.opacity));
 
         this.setState(nextState);
     }
