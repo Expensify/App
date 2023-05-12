@@ -16,10 +16,9 @@ import Navigation from '../../libs/Navigation/Navigation';
 import ROUTES from '../../ROUTES';
 import styles from '../../styles/styles';
 import * as IOUUtils from '../../libs/IOUUtils';
-import {getThreadForReportActionID, buildOptimisticChatReport} from '../../libs/ReportUtils';
+import * as ReportUtils from '../../libs/ReportUtils';
 import * as Report from '../../libs/actions/Report';
 import withLocalize, {withLocalizePropTypes} from '../withLocalize';
-import lodashGet from 'lodash/get';
 
 const propTypes = {
     /** All the data of the action */
@@ -89,12 +88,12 @@ const MoneyRequestAction = (props) => {
     const onIOUPreviewPressed = () => {
         // This would ideally be passed as a prop or hooked up via withOnyx so that we are not be triggering a potentially intensive
         // search in an onPress handler, I think this could lead to performance issues but it probably ok for now.
-        const thread = getThreadForReportActionID(props.action.reportActionID);
+        const thread = ReportUtils.getThreadForReportActionID(props.action.reportActionID);
         console.log({thread});
         if (_.isEmpty(thread)) {
             // Since a thread does not exist yet then we need to create it now. This is done by creating the report object
             // and passing the parentReportActionID of the reportAction. OpenReport will then automatically create the thread for us.
-            const optimisticThreadReport = buildOptimisticChatReport(
+            const optimisticThreadReport = ReportUtils.buildOptimisticChatReport(
                 props.chatReport.participants,
                 props.translate('iou.threadReportName', {payee: props.action.actorEmail, comment: props.action.originalMessage.comment}),
                 '',
