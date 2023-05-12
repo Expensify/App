@@ -74,6 +74,8 @@ function WorkspaceSettingsPage(props) {
             if (!name || !name.length) {
                 errors.name = nameIsRequiredError;
             } else if ([...name].length > CONST.WORKSPACE_NAME_CHARACTER_LIMIT) {
+                // Uses the spread syntax to count the number of Unicode code points instead of the number of UTF-16
+                // code units.
                 errors.name = nameIsTooLongError;
             }
 
