@@ -47,7 +47,7 @@ class BaseOptionsSelector extends Component {
         this.state = {
             allOptions,
             focusedIndex,
-            isEnterDisabled: false,
+            shouldDisableRowSelection: false,
         };
     }
 
@@ -60,13 +60,13 @@ class BaseOptionsSelector extends Component {
                 if (!focusedOption) {
                     return;
                 }
-                if (!this.state.isEnterDisabled) {
-                    this.setState({isEnterDisabled: true});
+                if (!this.state.shouldDisableRowSelection) {
+                    this.setState({shouldDisableRowSelection: true});
                     let result = this.selectRow(focusedOption);
                     if (!(result instanceof Promise)) {
                         result = Promise.resolve();
                     }
-                    setTimeout(() => result.finally(() => this.setState({isEnterDisabled: false})), 300);
+                    setTimeout(() => result.finally(() => this.setState({shouldDisableRowSelection: false})), 300);
                 }
             },
             enterConfig.descriptionKey,
