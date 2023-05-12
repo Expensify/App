@@ -862,17 +862,15 @@ function getDisplayNamesWithTooltips(participants, isMultipleParticipantReport) 
  * @returns {Number}
  */
 function getMoneyRequestTotal(report, moneyRequestReports = {}) {
-    if (report.hasOutstandingIOU) {
-        const moneyRequestReport = moneyRequestReports[`${ONYXKEYS.COLLECTION.REPORT}${report.iouReportID}`];
-        if (moneyRequestReport) {
-            return moneyRequestReport.total;
-        }
+    if (report.hasOutstandingIOU || isMoneyRequestReport(report)) {
+        const moneyRequestReport = moneyRequestReports[`${ONYXKEYS.COLLECTION.REPORT}${report.iouReportID}`] || report;
+        const total = lodashGet(moneyRequestReport, 'total', 0);
 
-        if (isMoneyRequestReport(report) && report.total !== 0) {
+        if (total !== 0) {
             // There is a possibility that if the Expense report has a negative total.
             // This is because there are instances where you can get a credit back on your card,
             // or you enter a negative expense to “offset” future expenses
-            return isExpenseReport(report) ? report.total * -1 : Math.abs(report.total);
+            return isExpenseReport(moneyRequestReport) ? total * -1 : Math.abs(total);
         }
     }
     return 0;
