@@ -1,12 +1,10 @@
 import React, {Component} from 'react';
 import ViewShot from 'react-native-view-shot';
 import fileDownload from '../../../libs/fileDownload';
-import QRShare, {qrShareDefaultProps, qrSharePropTypes} from '..';
+import QRShare from '..'
+import {qrShareDefaultProps, qrSharePropTypes} from '../propTypes';
 import getQrCodeFileName from '../getQrCodeDownloadFileName';
 
-const propTypes = qrSharePropTypes;
-
-const defaultProps = qrShareDefaultProps;
 
 class QRShareWithDownload extends Component {
     qrCodeScreenshotRef = React.createRef();
@@ -32,7 +30,7 @@ class QRShareWithDownload extends Component {
         );
     }
 }
-QRShareWithDownload.propTypes = propTypes;
-QRShareWithDownload.defaultProps = defaultProps;
+QRShareWithDownload.propTypes = qrSharePropTypes;
+QRShareWithDownload.defaultProps = qrShareDefaultProps;
 
 export default QRShareWithDownload;

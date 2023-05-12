@@ -1,5 +1,4 @@
 import React, {Component} from 'react';
-import PropTypes from 'prop-types';
 import QRCodeLibrary from 'react-native-qrcode-svg';
 import {View} from 'react-native';
 import withLocalize, {withLocalizePropTypes} from '../withLocalize';
@@ -10,20 +9,12 @@ import withWindowDimensions, {windowDimensionsPropTypes} from '../withWindowDime
 import compose from '../../libs/compose';
 import variables from '../../styles/variables';
 import ExpensifyWordmark from '../../../assets/images/expensify-wordmark.svg';
+import {qrSharePropTypes, qrShareDefaultProps} from './propTypes'
 
 const propTypes = {
-    url: PropTypes.string.isRequired,
-    title: PropTypes.string.isRequired,
-    subtitle: PropTypes.string,
-    logo: PropTypes.string,
-
+    ...qrSharePropTypes,
     ...windowDimensionsPropTypes,
     ...withLocalizePropTypes,
-};
-
-const defaultProps = {
-    subtitle: undefined,
-    logo: undefined,
 };
 
 class QRShare extends Component {
@@ -102,8 +93,6 @@ class QRShare extends Component {
     }
 }
 QRShare.propTypes = propTypes;
-QRShare.defaultProps = defaultProps;
+QRShare.defaultProps = qrShareDefaultProps;
 
 export default compose(withLocalize, withWindowDimensions)(QRShare);
-
-export {propTypes as qrSharePropTypes, defaultProps as qrShareDefaultProps};
