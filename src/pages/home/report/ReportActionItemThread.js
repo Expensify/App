@@ -31,39 +31,44 @@ const propTypes = {
     ...withLocalizePropTypes,
 };
 
-const ReportActionItemThread = (props) => (
-    <View style={[styles.chatItemMessage]}>
-        <Pressable
-            onPress={() => {
-                Report.openReport(props.childReportID);
-                Navigation.navigate(ROUTES.getReportRoute(props.childReportID));
-            }}
-        >
-            <View style={[styles.flexRow, styles.alignItemsCenter, styles.mt2]}>
-                <MultipleAvatars
-                    size={CONST.AVATAR_SIZE.SMALL}
-                    icons={props.icons}
-                    shouldStackHorizontally
-                    avatarTooltips={_.map(props.icons, (icon) => icon.name)}
-                    isHovered={props.isHovered}
-                    isInReportView
-                />
-                <View style={[styles.flexRow, styles.lh140Percent, styles.alignItemsEnd]}>
-                    <Text
-                        selectable={false}
-                        style={[styles.link, styles.ml2, styles.h4]}
-                    >
-                        {`${props.numberOfReplies} ${props.numberOfReplies === 1 ? props.translate('threads.reply') : props.translate('threads.replies')}`}
-                    </Text>
-                    <Text
-                        selectable={false}
-                        style={[styles.ml2, styles.textMicroSupporting]}
-                    >{`${props.translate('threads.lastReply')} ${props.datetimeToCalendarTime(props.mostRecentReply)}`}</Text>
+const ReportActionItemThread = (props) => {
+    const numberReplies = props.numberOfReplies > 99 ? '99+' : `${props.numberOfReplies}`;
+    const replyText = props.numberOfReplies === 1 ? props.translate('threads.reply') : props.translate('threads.replies');
+
+    return (
+        <View style={[styles.chatItemMessage]}>
+            <Pressable
+                onPress={() => {
+                    Report.openReport(props.childReportID);
+                    Navigation.navigate(ROUTES.getReportRoute(props.childReportID));
+                }}
+            >
+                <View style={[styles.flexRow, styles.alignItemsCenter, styles.mt2]}>
+                    <MultipleAvatars
+                        size={CONST.AVATAR_SIZE.SMALL}
+                        icons={props.icons}
+                        shouldStackHorizontally
+                        avatarTooltips={_.map(props.icons, (icon) => icon.name)}
+                        isHovered={props.isHovered}
+                        isInReportView
+                    />
+                    <View style={[styles.flexRow, styles.lh140Percent, styles.alignItemsEnd]}>
+                        <Text
+                            selectable={false}
+                            style={[styles.link, styles.ml2, styles.h4]}
+                        >
+                            {`${numberReplies} ${replyText}`}
+                        </Text>
+                        <Text
+                            selectable={false}
+                            style={[styles.ml2, styles.textMicroSupporting]}
+                        >{`${props.translate('threads.lastReply')} ${props.datetimeToCalendarTime(props.mostRecentReply)}`}</Text>
+                    </View>
                 </View>
-            </View>
-        </Pressable>
-    </View>
-);
+            </Pressable>
+        </View>
+    );
+};
 
 ReportActionItemThread.propTypes = propTypes;
 ReportActionItemThread.displayName = 'ReportActionItemThread';
