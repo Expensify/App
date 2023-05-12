@@ -103,7 +103,7 @@ const MoneyRequestAction = (props) => {
                 '',
                 props.chatReport.policyID,
                 props.chatReport.owner,
-                props.chatReport.type === CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT,
+                props.chatReport.isOwnPolicyExpenseReport,
                 props.chatReport.oldPolicyName,
                 undefined,
                 CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS,
