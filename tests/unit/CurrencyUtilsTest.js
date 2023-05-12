@@ -89,7 +89,9 @@ describe('CurrencyUtils', () => {
         test.each([
             [CONST.CURRENCY.USD, 25, 2500],
             [CONST.CURRENCY.USD, 25.5, 2550],
-            [CONST.CURRENCY.USD, 25.5, 2550],
+            [CONST.CURRENCY.USD, 80.6, 8060],
+            [CONST.CURRENCY.USD, 80.9, 8090],
+            [CONST.CURRENCY.USD, 80.99, 8099],
             ['JPY', 25, 25],
             ['JPY', 2500, 2500],
             ['JPY', 25.5, 25],
