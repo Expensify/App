@@ -17,12 +17,9 @@ export default ({email}) => ({
         {
             onyxMethod: 'set',
             key: 'betas',
-            value: [
-                'passwordless',
-            ],
+            value: ['passwordless'],
         },
     ],
     jsonCode: 200,
     requestID: '783e54ef4b38cff5-SJC',
-}
-);
+});

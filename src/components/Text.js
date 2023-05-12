@@ -36,20 +36,18 @@ const defaultProps = {
     style: {},
 };
 
-const Text = React.forwardRef(({
-    color,
-    fontSize,
-    textAlign,
-    children,
-    family,
-    style,
-    ...props
-}, ref) => {
+const Text = React.forwardRef(({color, fontSize, textAlign, children, family, style, ...props}, ref) => {
     // If the style prop is an array of styles, we need to mix them all together
-    const mergedStyles = !_.isArray(style) ? style : _.reduce(style, (finalStyles, s) => ({
-        ...finalStyles,
-        ...s,
-    }), {});
+    const mergedStyles = !_.isArray(style)
+        ? style
+        : _.reduce(
+              style,
+              (finalStyles, s) => ({
+                  ...finalStyles,
+                  ...s,
+              }),
+              {},
+          );
     const componentStyle = {
         color,
         fontSize,
@@ -63,8 +61,15 @@ const Text = React.forwardRef(({
     }
 
     return (
-        // eslint-disable-next-line react/jsx-props-no-spreading
-        <RNText allowFontScaling={false} ref={ref} style={[componentStyle]} {...props}>{children}</RNText>
+        <RNText
+            allowFontScaling={false}
+            ref={ref}
+            style={[componentStyle]}
+            // eslint-disable-next-line react/jsx-props-no-spreading
+            {...props}
+        >
+            {children}
+        </RNText>
     );
 });
 
