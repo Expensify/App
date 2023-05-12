@@ -346,6 +346,43 @@ function signIn(password, validateCode, twoFactorAuthCode, preferredLocale = CON
     API.write('SigninUser', params, {optimisticData, successData, failureData});
 }
 
+function signUp(preferredLocale = CONST.LOCALES.DEFAULT) {
+    const optimisticData = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: ONYXKEYS.ACCOUNT,
+            value: {
+                ...CONST.DEFAULT_ACCOUNT_DATA,
+                isLoading: true,
+            },
+        },
+    ];
+
+    const successData = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: ONYXKEYS.ACCOUNT,
+            value: {
+                isLoading: false,
+            },
+        },
+    ];
+
+    const failureData = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: ONYXKEYS.ACCOUNT,
+            value: {
+                isLoading: false,
+            },
+        },
+    ];
+
+    const params = {email: credentials.login, preferredLocale};
+
+    API.write('SignupUser', params, {optimisticData, successData, failureData});
+}
+
 function signInWithValidateCode(accountID, code, twoFactorAuthCode) {
     // If this is called from the 2fa step, get the validateCode directly from onyx
     // instead of the one passed from the component state because the state is changing when this method is called.
@@ -718,6 +755,7 @@ export {
     beginSignIn,
     updatePasswordAndSignin,
     signIn,
+    signUp,
     signInWithValidateCode,
     signInWithValidateCodeAndNavigate,
     initAutoAuthState,

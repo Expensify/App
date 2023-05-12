@@ -14,7 +14,8 @@ import compose from '../../libs/compose';
 import redirectToSignIn from '../../libs/actions/SignInRedirect';
 import networkPropTypes from '../../components/networkPropTypes';
 import {withNetwork} from '../../components/OnyxProvider';
-import DotIndicatorMessage from '../../components/DotIndicatorMessage';
+import CONST from '../../CONST';
+import Terms from './Terms';
 
 const propTypes = {
     /* Onyx Props */
@@ -40,38 +41,21 @@ const propTypes = {
     /** Information about the network */
     network: networkPropTypes.isRequired,
 
+    /** Indicates which locale the user currently has selected */
+    preferredLocale: PropTypes.string,
+
     ...withLocalizePropTypes,
 };
 
 const defaultProps = {
     account: {},
     credentials: {},
+    preferredLocale: CONST.LOCALES.DEFAULT,
 };
 
 const WelcomeForm = (props) => {
-    const primaryLogin = Str.isSMSLogin(props.account.primaryLogin) ? Str.removeSMSDomain(props.account.primaryLogin) : props.account.primaryLogin;
-    const secondaryLogin = Str.isSMSLogin(props.credentials.login) ? Str.removeSMSDomain(props.credentials.login) : props.credentials.login;
-
     return (
         <>
-            <View style={[styles.mt5]}>
-                <Text>
-                    {props.translate('unlinkLoginForm.toValidateLogin', {primaryLogin, secondaryLogin})}
-                </Text>
-            </View>
-            <View style={[styles.mv5]}>
-                <Text>
-                    {props.translate('unlinkLoginForm.noLongerHaveAccess', {primaryLogin})}
-                </Text>
-            </View>
-            {!_.isEmpty(props.account.message) && (
-
-                // DotIndicatorMessage mostly expects onyxData errors so we need to mock an object so that the messages looks similar to prop.account.errors
-                <DotIndicatorMessage style={[styles.mb5, styles.flex0]} type="success" messages={{0: props.account.message}} />
-            )}
-            {!_.isEmpty(props.account.errors) && (
-                <DotIndicatorMessage style={[styles.mb5]} type="error" messages={props.account.errors} />
-            )}
             <View style={[styles.mb4, styles.flexRow, styles.justifyContentBetween, styles.alignItemsCenter]}>
                 <TouchableOpacity onPress={() => redirectToSignIn()}>
                     <Text style={[styles.link]}>
@@ -81,11 +65,14 @@ const WelcomeForm = (props) => {
                 <Button
                     medium
                     success
-                    text={props.translate('unlinkLoginForm.unlink')}
+                    text={props.translate('welcomeForm.join')}
                     isLoading={props.account.isLoading}
-                    onPress={() => Session.requestUnlinkValidationLink()}
+                    onPress={() => Session.signUp(props.preferredLocale)}
                     isDisabled={props.network.isOffline || !_.isEmpty(props.account.message)}
                 />
+            </View>
+            <View style={[styles.mt5, styles.signInPageWelcomeTextContainer]}>
+                <Terms />
             </View>
         </>
     );

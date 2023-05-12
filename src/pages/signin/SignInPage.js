@@ -19,6 +19,7 @@ import Permissions from '../../libs/Permissions';
 import UnlinkLoginForm from './UnlinkLoginForm';
 import withWindowDimensions, {windowDimensionsPropTypes} from '../../components/withWindowDimensions';
 import * as Localize from '../../libs/Localize';
+import WelcomeForm from './WelcomeForm';
 
 const propTypes = {
     /* Onyx Props */
@@ -33,6 +34,12 @@ const propTypes = {
 
         /** The primaryLogin associated with the account */
         primaryLogin: PropTypes.string,
+
+        /** Whether the provided account already exists or not */
+        accountExists: PropTypes.bool,
+
+        /** Whether the provided account is in a controlled domain or not */
+        domainControlled: PropTypes.bool,
     }),
 
     /** List of betas available to current user */
@@ -69,11 +76,19 @@ class SignInPage extends Component {
         // - AND a validateCode has not been cached with sign in link
         const showLoginForm = !this.props.credentials.login && !this.props.credentials.validateCode;
 
+        // Show the Welcome form if
+        // - A user is signing up for a new account in a domain that is not controlled
+        const showWelcomeForm = Boolean(this.props.credentials.login)
+            && !this.props.account.validated
+            && !this.props.account.accountExists
+            && !this.props.account.domainControlled;
+
         // Show the unlink form if
         // - A login has been entered
         // - AND the login is not the primary login
         // - AND the login is not validated
-        const showUnlinkLoginForm = this.props.credentials.login
+        const showUnlinkLoginForm = !showWelcomeForm
+            && this.props.credentials.login
             && this.props.account.primaryLogin
             && this.props.account.primaryLogin !== this.props.credentials.login
             && !this.props.account.validated;
@@ -85,7 +100,8 @@ class SignInPage extends Component {
         // - AND haven't forgotten password
         // - AND the login isn't an unvalidated secondary login
         // - AND the user is NOT on the passwordless beta
-        const showPasswordForm = Boolean(this.props.credentials.login)
+        const showPasswordForm = !showWelcomeForm
+            && Boolean(this.props.credentials.login)
             && this.props.account.validated
             && !this.props.credentials.password
             && !this.props.account.forgotPassword
@@ -96,7 +112,8 @@ class SignInPage extends Component {
         // - A login has been entered or a validateCode has been cached from sign in link
         // - AND the login isn't an unvalidated secondary login
         // - AND the user is on the 'passwordless' beta
-        const showValidateCodeForm = (this.props.credentials.login
+        const showValidateCodeForm = !showWelcomeForm
+            && (this.props.credentials.login
             || this.props.credentials.validateCode)
             && !showUnlinkLoginForm
             && Permissions.canUsePasswordlessLogins(this.props.betas);
@@ -106,39 +123,29 @@ class SignInPage extends Component {
         // - AND is not validated or password is forgotten
         // - AND the login isn't an unvalidated secondary login
         // - AND user is not on 'passwordless' beta
-        const showResendValidationForm = Boolean(this.props.credentials.login)
+        const showResendValidationForm = !showWelcomeForm
+            && Boolean(this.props.credentials.login)
             && (!this.props.account.validated || this.props.account.forgotPassword)
             && !showUnlinkLoginForm
             && !Permissions.canUsePasswordlessLogins(this.props.betas);
 
-        //TODO: create showWelcomeForm here
-        // If the user hasn't been validated and this is their first time signing in, showWelcomeForm
-
         let welcomeHeader = '';
         let welcomeText = '';
+
+        const userLogin = Str.removeSMSDomain(lodashGet(this.props, 'credentials.login', ''));
+        const userLoginToDisplay = Str.isSMSLogin(userLogin) ? this.props.formatPhoneNumber(userLogin).replace(/ /g, '\u00A0') : userLogin;
+
         if (showValidateCodeForm) {
             if (this.props.account.requiresTwoFactorAuth) {
                 // We will only know this after a user signs in successfully, without their 2FA code
                 welcomeHeader = this.props.isSmallScreenWidth ? '' : this.props.translate('welcomeText.welcomeBack');
                 welcomeText = this.props.translate('validateCodeForm.enterAuthenticatorCode');
             } else {
-                const userLogin = Str.removeSMSDomain(lodashGet(this.props, 'credentials.login', ''));
-
-                // replacing spaces with "hard spaces" to prevent breaking the number
-                const userLoginToDisplay = Str.isSMSLogin(userLogin) ? this.props.formatPhoneNumber(userLogin).replace(/ /g, '\u00A0') : userLogin;
                 if (this.props.account.validated) {
                     welcomeHeader = this.props.isSmallScreenWidth ? '' : this.props.translate('welcomeText.welcomeBack');
                     welcomeText = this.props.isSmallScreenWidth
                         ? `${this.props.translate('welcomeText.welcomeBack')} ${this.props.translate('welcomeText.welcomeEnterMagicCode', {login: userLoginToDisplay})}`
                         : this.props.translate('welcomeText.welcomeEnterMagicCode', {login: userLoginToDisplay});
-                } else {
-                    //TODO: Change the messages displayed to new (i.e. unvalidated user)
-                    //TODO: The welcomeHeader should be the same "Welcome"
-                    //TODO: userLoginToDisplay is the user's email
-                    welcomeHeader = this.props.isSmallScreenWidth ? '' : this.props.translate('welcomeText.welcome');
-                    welcomeText = this.props.isSmallScreenWidth
-                        ? `${this.props.translate('welcomeText.welcome')} ${this.props.translate('welcomeText.newFaceEnterMagicCode', {login: userLoginToDisplay})}`
-                        : this.props.translate('welcomeText.newFaceEnterMagicCode', {login: userLoginToDisplay});
                 }
             }
         } else if (showPasswordForm) {
@@ -148,6 +155,11 @@ class SignInPage extends Component {
                 : this.props.translate('welcomeText.enterPassword');
         } else if (showUnlinkLoginForm) {
             welcomeHeader = this.props.isSmallScreenWidth ? this.props.translate('login.hero.header') : this.props.translate('welcomeText.welcomeBack');
+        } else if (showWelcomeForm) {
+            welcomeHeader = this.props.isSmallScreenWidth ? '' : this.props.translate('welcomeText.welcome');
+            welcomeText = this.props.isSmallScreenWidth
+                ? `${this.props.translate('welcomeText.welcome')} ${this.props.translate('welcomeText.welcomeNewFace', {login: userLoginToDisplay})}`
+                : this.props.translate('welcomeText.welcomeNewFace', {login: userLoginToDisplay});
         } else if (!showResendValidationForm) {
             welcomeHeader = this.props.isSmallScreenWidth ? this.props.translate('login.hero.header') : this.props.translate('welcomeText.getStarted');
             welcomeText = this.props.isSmallScreenWidth ? this.props.translate('welcomeText.getStarted') : '';
@@ -158,18 +170,15 @@ class SignInPage extends Component {
                 <SignInPageLayout
                     welcomeHeader={welcomeHeader}
                     welcomeText={welcomeText}
-                    shouldShowWelcomeHeader={(showLoginForm || showPasswordForm || showValidateCodeForm || showUnlinkLoginForm) || !this.props.isSmallScreenWidth}
-                    shouldShowWelcomeText={showLoginForm || showPasswordForm || showValidateCodeForm}
+                    shouldShowWelcomeHeader={(showLoginForm || showPasswordForm || showValidateCodeForm || showUnlinkLoginForm || showWelcomeForm) || !this.props.isSmallScreenWidth}
+                    shouldShowWelcomeText={showLoginForm || showPasswordForm || showValidateCodeForm || showWelcomeForm}
                 >
                     {/* LoginForm and PasswordForm must use the isVisible prop. This keeps them mounted, but visually hidden
                     so that password managers can access the values. Conditionally rendering these components will break this feature. */}
                     <LoginForm isVisible={showLoginForm} blurOnSubmit={this.props.account.validated === false} />
-                    {/* TODO: add Welcome Form here (nested ternary operator is not allowed ) */}
-                    {showValidateCodeForm ? (
-                        <ValidateCodeForm isVisible={showValidateCodeForm} />
-                    ) : (
-                        <PasswordForm isVisible={showPasswordForm} />
-                    )}
+                    {showWelcomeForm && <WelcomeForm />}
+                    {showValidateCodeForm && <ValidateCodeForm isVisible={showValidateCodeForm} />}
+                    {showPasswordForm && <PasswordForm isVisible={showPasswordForm} />}
                     {showResendValidationForm && <ResendValidationForm />}
                     {showUnlinkLoginForm && <UnlinkLoginForm />}
                 </SignInPageLayout>

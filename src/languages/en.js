@@ -210,7 +210,7 @@ export default {
         phrase2: 'Money talks. And now that chat and payments are in one place, it\'s also easy.',
         phrase3: 'Your payments get to you as fast as you can get your point across.',
         enterPassword: 'Please enter your password',
-        newFaceEnterMagicCode: ({login}) => `It's always great to see a new face around here! Please enter the magic code sent to ${login}`,
+        welcomeNewFace: ({login}) => `${login}, it's always great to see a new face around here! Please continue by tapping the join button below.`,
         welcomeEnterMagicCode: ({login}) => `Please enter the magic code sent to ${login}`,
     },
     login: {
@@ -677,7 +677,9 @@ export default {
         linkSent: 'Link sent!',
         succesfullyUnlinkedLogin: 'Secondary login successfully unlinked!',
     },
-    //TODO: Add welcome form messages here
+    welcomeForm: {
+        join: 'Join',
+    },
     detailsPage: {
         localTime: 'Local time',
     },
