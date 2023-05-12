@@ -113,7 +113,7 @@ function requestMoney(report, amount, currency, payeeEmail, participant, comment
 
     // Note: The created action must be optimistically generated before the IOU action so there's no chance that the created action appears after the IOU action in the chat
     const optimisticCreatedAction = ReportUtils.buildOptimisticCreatedReportAction(payeeEmail);
-    const optimisticReportAction = ReportUtils.buildOptimisticIOUReportAction(
+    const optimisticIOUAction = ReportUtils.buildOptimisticIOUReportAction(
         CONST.IOU.REPORT_ACTION_TYPE.CREATE,
         amount,
         currency,
@@ -131,8 +131,6 @@ function requestMoney(report, amount, currency, payeeEmail, participant, comment
         value: {
             ...chatReport,
             lastReadTime: DateUtils.getDBTime(),
-            lastMessageText: optimisticReportAction.message[0].text,
-            lastMessageHtml: optimisticReportAction.message[0].html,
             hasOutstandingIOU: moneyRequestReport.total !== 0,
             iouReportID: moneyRequestReport.reportID,
         },
@@ -141,23 +139,27 @@ function requestMoney(report, amount, currency, payeeEmail, participant, comment
     const optimisticIOUReportData = {
         onyxMethod: chatReport.hasOutstandingIOU ? Onyx.METHOD.MERGE : Onyx.METHOD.SET,
         key: `${ONYXKEYS.COLLECTION.REPORT}${moneyRequestReport.reportID}`,
-        value: moneyRequestReport,
+        value: {
+            ...moneyRequestReport,
+            lastMessageText: optimisticIOUAction.message[0].text,
+            lastMessageHtml: optimisticIOUAction.message[0].html,
+        },
     };
 
     const optimisticReportActionsData = {
         onyxMethod: Onyx.METHOD.MERGE,
-        key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${chatReport.reportID}`,
+        key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${moneyRequestReport.reportID}`,
         value: {
-            [optimisticReportAction.reportActionID]: optimisticReportAction,
+            [optimisticIOUAction.reportActionID]: optimisticIOUAction,
         },
     };
 
     let chatReportSuccessData = {};
     const reportActionsSuccessData = {
         onyxMethod: Onyx.METHOD.MERGE,
-        key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${chatReport.reportID}`,
+        key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${moneyRequestReport.reportID}`,
         value: {
-            [optimisticReportAction.reportActionID]: {
+            [optimisticIOUAction.reportActionID]: {
                 pendingAction: null,
             },
         },
@@ -173,9 +175,9 @@ function requestMoney(report, amount, currency, payeeEmail, participant, comment
 
     const reportActionsFailureData = {
         onyxMethod: Onyx.METHOD.MERGE,
-        key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${chatReport.reportID}`,
+        key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${moneyRequestReport.reportID}`,
         value: {
-            [optimisticReportAction.reportActionID]: {
+            [optimisticIOUAction.reportActionID]: {
                 errors: {
                     [DateUtils.getMicroseconds()]: Localize.translateLocal('iou.error.genericCreateFailureMessage'),
                 },
@@ -215,7 +217,7 @@ function requestMoney(report, amount, currency, payeeEmail, participant, comment
 
         // Failure data should feature red brick road
         reportActionsFailureData.value[optimisticCreatedAction.reportActionID] = {pendingAction: null};
-        reportActionsFailureData.value[optimisticReportAction.reportActionID] = {pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD};
+        reportActionsFailureData.value[optimisticIOUAction.reportActionID] = {pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD};
     }
 
     const optimisticData = [optimisticChatReportData, optimisticIOUReportData, optimisticReportActionsData, optimisticTransactionData];
@@ -238,7 +240,7 @@ function requestMoney(report, amount, currency, payeeEmail, participant, comment
             iouReportID: moneyRequestReport.reportID,
             chatReportID: chatReport.reportID,
             transactionID: optimisticTransaction.transactionID,
-            reportActionID: optimisticReportAction.reportActionID,
+            reportActionID: optimisticIOUAction.reportActionID,
             createdReportActionID: isNewChat ? optimisticCreatedAction.reportActionID : 0,
         },
         {optimisticData, successData, failureData},
