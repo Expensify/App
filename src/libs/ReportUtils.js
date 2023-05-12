@@ -1900,16 +1900,14 @@ function getWhisperDisplayNames(participants) {
  * @param {String}
  * @returns {Boolean}
  */
-function doesThreadExistForReportActionID(reportActionID) {
-    const thread = _.find(allReports, (report) => {
+function getThreadForReportActionID(reportActionID) {
+    return _.find(allReports, (report) => {
         if (!report.parentReportActionID) {
             return false;
         }
 
         return report.parentReportActionID === reportActionID;
     });
-
-    return !_.isEmpty(thread);
 }
 
 /**
@@ -2008,6 +2006,6 @@ export {
     canRequestMoney,
     getWhisperDisplayNames,
     getWorkspaceAvatar,
-    doesThreadExistForReportActionID,
+    getThreadForReportActionID,
     shouldReportShowSubscript,
 };
