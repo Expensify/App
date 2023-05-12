@@ -1981,6 +1981,11 @@ const styles = {
         backgroundColor: themeColors.modalBackdrop,
     },
 
+    centeredModalStyles: (isSmallScreenWidth) => ({
+        borderWidth: isSmallScreenWidth ? 1 : 0,
+        marginHorizontal: isSmallScreenWidth ? 0 : 20,
+    }),
+
     imageModalImageCenterContainer: {
         alignItems: 'center',
         flex: 1,
@@ -2366,6 +2371,11 @@ const styles = {
         width: '100%',
         paddingHorizontal: 20,
         paddingVertical: 12,
+    },
+
+    requestPreviewBox: {
+        marginTop: 8,
+        maxWidth: variables.sideBarWidth,
     },
 
     iouPreviewBox: {
