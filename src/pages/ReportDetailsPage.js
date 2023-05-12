@@ -25,7 +25,6 @@ import CONST from '../CONST';
 import reportPropTypes from './reportPropTypes';
 import withReportOrNotFound from './home/report/withReportOrNotFound';
 import FullPageNotFoundView from '../components/BlockingViews/FullPageNotFoundView';
-import Button from '../components/Button';
 
 const propTypes = {
     ...withLocalizePropTypes,
@@ -58,7 +57,14 @@ const defaultProps = {
 
 class ReportDetailsPage extends Component {
     getMenuItems() {
-        const menuItems = [];
+        const menuItems = [
+            {
+                key: CONST.REPORT_DETAILS_MENU_ITEM.SHARE_CODE,
+                translationKey: 'common.shareCode',
+                icon: Expensicons.QrCode,
+                action: () => Navigation.navigate(ROUTES.getReportShareCodeRoute(this.props.report.reportID)),
+            },
+        ];
 
         if (ReportUtils.isArchivedRoom(this.props.report)) {
             return [];
@@ -142,14 +148,6 @@ class ReportDetailsPage extends Component {
                                     >
                                         {chatRoomSubtitle}
                                     </Text>
-
-                                    <Button
-                                        text={this.props.translate('common.shareCode')}
-                                        small
-                                        icon={Expensicons.QrCode}
-                                        onPress={() => Navigation.navigate(ROUTES.getReportShareCodeRoute(this.props.report.reportID))}
-                                        style={{marginVertical: 10, alignSelf: 'center'}}
-                                    />
                                 </View>
                             </View>
                         </View>
