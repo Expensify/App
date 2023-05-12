@@ -1303,6 +1303,6 @@ export default {
         scrollToNewestMessages: 'Scroll to newest messages',
     },
     parentReportAction: {
-        deletedMessage: '[Deleted Message]',
+        deletedMessage: '[Deleted message]',
     },
 };

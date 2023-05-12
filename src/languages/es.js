@@ -1768,6 +1768,6 @@ export default {
         scrollToNewestMessages: 'Desplázate a los mensajes más recientes',
     },
     parentReportAction: {
-        deletedMessage: '[Mensaje Eliminado]',
+        deletedMessage: '[Mensaje eliminado]',
     },
 };
