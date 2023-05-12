@@ -110,6 +110,7 @@ const propTypes = {
     /** Accessibility label for the component */
     accessibilityLabel: PropTypes.string,
 
+    /** A ref to forward the button */
     forwardedRef: PropTypes.oneOfType([PropTypes.func, PropTypes.shape({current: PropTypes.oneOfType([PropTypes.instanceOf(React.Component), PropTypes.func])})]),
 };
 

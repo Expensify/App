@@ -46,19 +46,16 @@ const ButtonWithDropdownMenu = (props) => {
     const [selectedItemIndex, setSelectedItemIndex] = useState(0);
     const [isMenuVisible, setIsMenuVisible] = useState(false);
     const [popoverAnchorPosition, setPopoverAnchorPosition] = useState(null);
-
     const {width, height} = useWindowDimensions();
-
     const caretButton = useRef(null);
     useEffect(() => {
         if (!caretButton.current) {
             return;
         }
-        caretButton.current.measureInWindow((x, y) => {
-            console.log('RORY_DEBUG measured thingy:', {x, y});
+        caretButton.current.measureInWindow((x, y, w, h) => {
             setPopoverAnchorPosition({
-                top: y,
-                right: x,
+                left: x,
+                top: y + w + 10,
             });
         });
     }, [width, height]);
