@@ -46,19 +46,20 @@ const ButtonWithDropdownMenu = (props) => {
     const [selectedItemIndex, setSelectedItemIndex] = useState(0);
     const [isMenuVisible, setIsMenuVisible] = useState(false);
     const [popoverAnchorPosition, setPopoverAnchorPosition] = useState(null);
+    const [popoverDimensions, setPopoverDimensions] = useState({});
     const {width, height} = useWindowDimensions();
     const caretButton = useRef(null);
     useEffect(() => {
-        if (!caretButton.current) {
+        if (!caretButton.current || !popoverDimensions.nativeEvent) {
             return;
         }
-        caretButton.current.measureInWindow((x, y, w, h) => {
+        caretButton.current.measureInWindow((x, y, w) => {
             setPopoverAnchorPosition({
-                left: x,
+                left: x - popoverDimensions.nativeEvent.layout.width,
                 top: y + w + 10,
             });
         });
-    }, [width, height]);
+    }, [width, height, popoverDimensions.nativeEvent]);
 
     const selectedItem = props.options[selectedItemIndex];
     return (
@@ -116,6 +117,7 @@ const ButtonWithDropdownMenu = (props) => {
                             setSelectedItemIndex(index);
                         },
                     }))}
+                    onLayout={setPopoverDimensions}
                 />
             )}
         </View>

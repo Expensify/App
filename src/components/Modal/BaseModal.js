@@ -132,6 +132,7 @@ class BaseModal extends PureComponent {
                 animationInTiming={this.props.animationInTiming}
                 animationOutTiming={this.props.animationOutTiming}
                 statusBarTranslucent={this.props.statusBarTranslucent}
+                onLayout={this.props.onLayout}
             >
                 <SafeAreaInsetsContext.Consumer>
                     {(insets) => {
