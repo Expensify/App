@@ -434,10 +434,7 @@ function isPolicyExpenseChatAdmin(report, policies) {
  * @returns {Boolean}
  */
 function isThread(report) {
-    if (report && report.parentReportID && report.parentReportActionID) {
-        return true;
-    }
-    return false;
+    return report && report.parentReportID && report.parentReportActionID;
 }
 
 /**
@@ -447,10 +444,7 @@ function isThread(report) {
  * @returns {Boolean}
  */
 function isThreadParent(reportAction) {
-    if (reportAction && reportAction.childReportID && reportAction.childReportID !== 0) {
-        return true;
-    }
-    return false;
+    return reportAction && reportAction.childReportID && reportAction.childReportID !== 0;
 }
 
 /**
@@ -467,7 +461,7 @@ function getChatRoomSubtitle(report) {
         // If thread is not from a DM or group chat, the subtitle will follow the pattern 'Workspace Name • #roomName'
         const workspaceName = getPolicyName(report);
         const roomName = isChatRoom(report) ? lodashGet(report, 'displayName') : '';
-        return roomName ? `${workspaceName} • ${roomName}` : `${workspaceName}`;
+        return [workspaceName, roomName].join(' • ');
     }
     if (!isDefaultRoom(report) && !isUserCreatedPolicyRoom(report) && !isPolicyExpenseChat(report)) {
         return '';
