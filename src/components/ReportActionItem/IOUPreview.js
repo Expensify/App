@@ -25,6 +25,7 @@ import reportActionPropTypes from '../../pages/home/report/reportActionPropTypes
 import {showContextMenuForReport} from '../ShowContextMenuContext';
 import * as OptionsListUtils from '../../libs/OptionsListUtils';
 import * as CurrencyUtils from '../../libs/CurrencyUtils';
+import * as ReportUtils from '../../libs/ReportUtils';
 
 const propTypes = {
     /** The active IOUReport, used for Onyx subscription */
@@ -146,7 +147,7 @@ const IOUPreview = (props) => {
     const isCurrentUserManager = managerEmail === sessionEmail;
 
     // If props.action is undefined then we are displaying within IOUDetailsModal and should use the full report amount
-    const requestAmount = props.isIOUAction ? lodashGet(props.action, 'originalMessage.amount', 0) : props.iouReport.total;
+    const requestAmount = props.isIOUAction ? lodashGet(props.action, 'originalMessage.amount', 0) : ReportUtils.getMoneyRequestTotal(props.iouReport);
     const requestCurrency = props.isIOUAction ? lodashGet(props.action, 'originalMessage.currency', CONST.CURRENCY.USD) : props.iouReport.currency;
 
     const getSettledMessage = () => {

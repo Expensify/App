@@ -87,7 +87,7 @@ const defaultProps = {
 };
 
 const ReportPreview = (props) => {
-    const reportAmount = CurrencyUtils.convertToDisplayString(props.iouReport.total, props.iouReport.currency);
+    const reportAmount = CurrencyUtils.convertToDisplayString(ReportUtils.getMoneyRequestTotal(props.iouReport), props.iouReport.currency);
     const managerEmail = props.iouReport.managerEmail || '';
     const managerName = ReportUtils.getDisplayNameForParticipant(managerEmail, true);
     const isCurrentUserManager = managerEmail === lodashGet(props.session, 'email', null);

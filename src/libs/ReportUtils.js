@@ -864,6 +864,27 @@ function getDisplayNamesWithTooltips(participants, isMultipleParticipantReport) 
 }
 
 /**
+ * @param {Object} report
+ * @param {String} report.iouReportID
+ * @param {Object} moneyRequestReports
+ * @returns {Number}
+ */
+function getMoneyRequestTotal(report, moneyRequestReports = {}) {
+    if (report.hasOutstandingIOU || isMoneyRequestReport(report)) {
+        const moneyRequestReport = moneyRequestReports[`${ONYXKEYS.COLLECTION.REPORT}${report.iouReportID}`] || report;
+        const total = lodashGet(moneyRequestReport, 'total', 0);
+
+        if (total !== 0) {
+            // There is a possibility that if the Expense report has a negative total.
+            // This is because there are instances where you can get a credit back on your card,
+            // or you enter a negative expense to “offset” future expenses
+            return isExpenseReport(moneyRequestReport) ? total * -1 : Math.abs(total);
+        }
+    }
+    return 0;
+}
+
+/**
  * Get the title for a policy expense chat which depends on the role of the policy member seeing this report
  *
  * @param {Object} report
@@ -900,7 +921,7 @@ function getPolicyExpenseChatName(report) {
  * @returns  {String}
  */
 function getMoneyRequestReportName(report) {
-    const formattedAmount = CurrencyUtils.convertToDisplayString(report.total || 0, report.currency);
+    const formattedAmount = CurrencyUtils.convertToDisplayString(getMoneyRequestTotal(report), report.currency);
     const payerName = isExpenseReport(report) ? getPolicyName(report) : getDisplayNameForParticipant(report.managerEmail);
 
     return Localize.translateLocal('iou.payerOwesAmount', {payer: payerName, amount: formattedAmount});
@@ -1116,8 +1137,10 @@ function buildOptimisticIOUReport(payeeEmail, payerEmail, total, chatReportID, c
  * @returns {Object}
  */
 function buildOptimisticExpenseReport(chatReportID, policyID, payeeEmail, total, currency) {
+    // The amount for Expense reports are stored as negative value in the database
+    const storedTotal = total * -1;
     const policyName = getPolicyName(allReports[`${ONYXKEYS.COLLECTION.REPORT}${chatReportID}`]);
-    const formattedTotal = CurrencyUtils.convertToDisplayString(total, currency);
+    const formattedTotal = CurrencyUtils.convertToDisplayString(storedTotal, currency);
 
     // The expense report is always created with the policy's output currency
     const outputCurrency = lodashGet(allPolicies, [`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, 'outputCurrency'], CONST.CURRENCY.USD);
@@ -1135,7 +1158,7 @@ function buildOptimisticExpenseReport(chatReportID, policyID, payeeEmail, total,
         reportName: `${policyName} owes ${formattedTotal}`,
         state: CONST.REPORT.STATE.SUBMITTED,
         stateNum: CONST.REPORT.STATE_NUM.PROCESSING,
-        total,
+        total: storedTotal,
     };
 }
 
@@ -1526,22 +1549,6 @@ function hasOutstandingIOU(report, currentUserLogin, iouReports) {
     }
 
     return report.hasOutstandingIOU;
-}
-
-/**
- * @param {Object} report
- * @param {String} report.iouReportID
- * @param {Object} iouReports
- * @returns {Number}
- */
-function getIOUTotal(report, iouReports = {}) {
-    if (report.hasOutstandingIOU) {
-        const iouReport = iouReports[`${ONYXKEYS.COLLECTION.REPORT}${report.iouReportID}`];
-        if (iouReport) {
-            return iouReport.total;
-        }
-    }
-    return 0;
 }
 
 /**
@@ -1945,7 +1952,7 @@ export {
     hasExpensifyGuidesEmails,
     hasOutstandingIOU,
     isIOUOwnedByCurrentUser,
-    getIOUTotal,
+    getMoneyRequestTotal,
     canShowReportRecipientLocalTime,
     formatReportLastMessageText,
     chatIncludesConcierge,
