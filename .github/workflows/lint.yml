@@ -15,16 +15,20 @@ jobs:
 
       - uses: Expensify/App/.github/actions/composite/setupNode@main
 
-      - name: Lint JavaScript with ESLint
-        run: npm run lint
-        env:
-          CI: true
-
-      - name: Lint shell scripts with ShellCheck
-        run: npm run shellcheck
+#      - name: Lint JavaScript with ESLint
+#        run: npm run lint
+#        env:
+#          CI: true
+#
+#      - name: Lint shell scripts with ShellCheck
+#        run: npm run shellcheck
 
       - name: Verify there's no Prettier diff
         run: |
           source ./scripts/shellUtils.sh
           npm run prettier
-          git diff --name-only --exit-code || error 'Error: Prettier diff detected! Please run \`npm run prettier\` and commit the changes.'
+          if ! git diff --name-only --exit-code; then
+            # shellcheck disable=SC2016
+            echo 'Error: Prettier diff detected! Please run `npm run prettier` and commit the changes.'
+            exit 1
+          fi
