@@ -1,15 +1,6 @@
 import CONST from '../../CONST';
 import variables from '../variables';
 import themeColors from '../themes/default';
-<<<<<<< HEAD
-=======
-import styles from '../styles';
-
-const getCenteredModalStyles = (windowWidth, isSmallScreenWidth) => ({
-    borderWidth: styles.centeredModalStyles(isSmallScreenWidth).borderWidth,
-    width: isSmallScreenWidth ? '100%' : windowWidth - styles.centeredModalStyles(isSmallScreenWidth).marginHorizontal * 2,
-});
->>>>>>> cb076db69e (Merge pull request #18486 from Expensify/jules-displayReportPreview)
 
 export default (type, windowDimensions, popoverAnchorPosition = {}, innerContainerStyle = {}, outerStyle = {}) => {
     const {isSmallScreenWidth, windowWidth} = windowDimensions;

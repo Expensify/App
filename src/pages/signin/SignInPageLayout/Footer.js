@@ -30,13 +30,9 @@ const propTypes = {
     ...withLocalizePropTypes,
 };
 
-<<<<<<< HEAD
 const defaultProps = {
     scrollViewRef: undefined,
 };
-=======
-const defaultProps = {};
->>>>>>> cb076db69e (Merge pull request #18486 from Expensify/jules-displayReportPreview)
 
 const navigateHome = (scrollViewRef) => {
     const currentRoute = navigationRef.current.getCurrentRoute();
@@ -53,11 +49,7 @@ const navigateHome = (scrollViewRef) => {
     Session.clearSignInData();
 };
 
-<<<<<<< HEAD
 const columns = [
-=======
-const columns = ({scrollPageToTop}) => [
->>>>>>> cb076db69e (Merge pull request #18486 from Expensify/jules-displayReportPreview)
     {
         translationPath: 'footer.features',
         rows: [

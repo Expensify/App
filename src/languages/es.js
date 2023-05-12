@@ -324,11 +324,8 @@ export default {
         settlePaypalMe: 'Pagar con PayPal.me',
         requestAmount: ({amount}) => `solicitar ${amount}`,
         splitAmount: ({amount}) => `dividir ${amount}`,
-<<<<<<< HEAD
-=======
         payerOwesAmount: ({payer, amount}) => `${payer} debe ${amount}`,
         payerSettled: ({amount}) => `pagado ${amount}`,
->>>>>>> cb076db69e (Merge pull request #18486 from Expensify/jules-displayReportPreview)
         noReimbursableExpenses: 'El monto de este informe es inválido',
         pendingConversionMessage: 'El total se actualizará cuando estés online',
         error: {

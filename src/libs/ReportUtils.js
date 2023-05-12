@@ -1964,9 +1964,5 @@ export {
     canRequestMoney,
     getWhisperDisplayNames,
     getWorkspaceAvatar,
-<<<<<<< HEAD
-=======
-    shouldReportShowSubscript,
     isSettled,
->>>>>>> cb076db69e (Merge pull request #18486 from Expensify/jules-displayReportPreview)
 };
