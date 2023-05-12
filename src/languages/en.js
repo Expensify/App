@@ -504,6 +504,7 @@ export default {
         congrats: 'Congrats, now you’ve got that extra security.',
         copyCodes: 'Copy codes',
         copy: 'Copy',
+        disable: 'Disable',
     },
     twoFactorAuthForm: {
         error: {

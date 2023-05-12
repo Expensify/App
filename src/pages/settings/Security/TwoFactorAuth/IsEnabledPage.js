@@ -55,9 +55,10 @@ function IsEnabledPage(props) {
                 onModalHide={() => setIsConfirmModalVisible(false)}
                 isVisible={isConfirmModalVisible}
                 prompt={props.translate('twoFactorAuth.disableTwoFactorAuthConfirmation')}
-                confirmText={props.translate('common.yes')}
+                confirmText={props.translate('twoFactorAuth.disable')}
                 cancelText={props.translate('common.cancel')}
                 shouldShowCancelButton
+                danger
             />
         </ScreenWrapper>
     );
