@@ -1310,4 +1310,9 @@ export default {
     parentReportAction: {
         deletedMessage: '[Deleted message]',
     },
+    threads: {
+        lastReply: 'Last Reply',
+        replies: 'Replies',
+        reply: 'Reply',
+    },
 };
