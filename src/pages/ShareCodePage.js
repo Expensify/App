@@ -37,7 +37,7 @@ class ShareCodePage extends React.Component {
     render() {
         const isReport = this.props.report != null && this.props.report.reportID != null;
 
-        const url = isReport ? `https://new.expensify.com/r/${this.props.report.reportID}` : `https://new.expensify.com/details?login=${this.props.session.email}`;
+        const url = isReport ? `${CONST.NEW_EXPENSIFY_URL}r/${this.props.report.reportID}` : `${CONST.NEW_EXPENSIFY_URL}details?login=${this.props.session.email}`;
 
         const platform = getPlatform();
         const isNative = platform === CONST.PLATFORM.IOS || platform === CONST.PLATFORM.ANDROID;
