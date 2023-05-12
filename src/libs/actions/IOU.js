@@ -651,7 +651,7 @@ function deleteMoneyRequest(chatReportID, iouReportID, moneyRequestAction, shoul
 
     // Get the amount we are deleting
     const amount = moneyRequestAction.originalMessage.amount;
-    const optimisticReportAction = ReportUtils.buildOptimisticIOUReportAction(
+    const optimisticIOUAction = ReportUtils.buildOptimisticIOUReportAction(
         CONST.IOU.REPORT_ACTION_TYPE.DELETE,
         amount,
         moneyRequestAction.originalMessage.currency,
@@ -662,19 +662,19 @@ function deleteMoneyRequest(chatReportID, iouReportID, moneyRequestAction, shoul
         iouReportID,
     );
 
-    const currentUserEmail = optimisticReportAction.actorEmail;
+    const currentUserEmail = optimisticIOUAction.actorEmail;
     const updatedIOUReport = IOUUtils.updateIOUOwnerAndTotal(iouReport, currentUserEmail, amount, moneyRequestAction.originalMessage.currency, CONST.IOU.REPORT_ACTION_TYPE.DELETE);
-    chatReport.lastMessageText = optimisticReportAction.message[0].text;
-    chatReport.lastMessageHtml = optimisticReportAction.message[0].html;
+    iouReport.lastMessageText = optimisticIOUAction.message[0].text;
+    iouReport.lastMessageHtml = optimisticIOUAction.message[0].html;
     chatReport.hasOutstandingIOU = updatedIOUReport.total !== 0;
 
     const optimisticData = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${chatReportID}`,
+            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${iouReportID}`,
             value: {
-                [optimisticReportAction.reportActionID]: {
-                    ...optimisticReportAction,
+                [optimisticIOUAction.reportActionID]: {
+                    ...optimisticIOUAction,
                     pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
                 },
             },
@@ -698,9 +698,9 @@ function deleteMoneyRequest(chatReportID, iouReportID, moneyRequestAction, shoul
     const successData = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${chatReportID}`,
+            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${iouReportID}`,
             value: {
-                [optimisticReportAction.reportActionID]: {
+                [optimisticIOUAction.reportActionID]: {
                     pendingAction: null,
                 },
             },
@@ -709,9 +709,9 @@ function deleteMoneyRequest(chatReportID, iouReportID, moneyRequestAction, shoul
     const failureData = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${chatReportID}`,
+            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${iouReportID}`,
             value: {
-                [optimisticReportAction.reportActionID]: {
+                [optimisticIOUAction.reportActionID]: {
                     errors: {
                         [DateUtils.getMicroseconds()]: Localize.translateLocal('iou.error.genericDeleteFailureMessage'),
                     },
@@ -722,15 +722,17 @@ function deleteMoneyRequest(chatReportID, iouReportID, moneyRequestAction, shoul
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT}${chatReportID}`,
             value: {
-                lastMessageText: chatReports[`${ONYXKEYS.COLLECTION.REPORT}${chatReportID}`].lastMessageText,
-                lastMessageHtml: chatReports[`${ONYXKEYS.COLLECTION.REPORT}${chatReportID}`].lastMessageHtml,
                 hasOutstandingIOU: iouReport.total !== 0,
             },
         },
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT}${iouReportID}`,
-            value: iouReport,
+            value: {
+                ...iouReport,
+                lastMessageText: iouReport.lastMessageText,
+                lastMessageHtml: iouReport.lastMessageHtml,
+            },
         },
         {
             onyxMethod: Onyx.METHOD.SET,
@@ -744,7 +746,7 @@ function deleteMoneyRequest(chatReportID, iouReportID, moneyRequestAction, shoul
         {
             transactionID,
             chatReportID,
-            reportActionID: optimisticReportAction.reportActionID,
+            reportActionID: optimisticIOUAction.reportActionID,
             iouReportID: updatedIOUReport.reportID,
         },
         {optimisticData, successData, failureData},
