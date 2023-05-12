@@ -51,8 +51,11 @@ const ButtonWithDropdownMenu = (props) => {
 
     const caretButton = useRef(null);
     useEffect(() => {
-        caretButton.current.measureInWindow && caretButton.current.measureInWindow(({x, y}) => {
-            // You probably need to fiddle with this
+        if (!caretButton.current) {
+            return;
+        }
+        caretButton.current.measureInWindow((x, y) => {
+            console.log('RORY_DEBUG measured thingy:', {x, y});
             setPopoverAnchorPosition({
                 top: y,
                 right: x,
