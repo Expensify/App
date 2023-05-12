@@ -157,7 +157,7 @@ jobs:
           ruby-version: '2.7'
           bundler-cache: true
 
-      - uses: actions/cache@v2
+      - uses: actions/cache@v3
         with:
           path: ios/Pods
           key: ${{ runner.os }}-pods-${{ hashFiles('**/Podfile.lock') }}
