@@ -420,6 +420,19 @@ function isPolicyExpenseChatAdmin(report, policies) {
 }
 
 /**
+ * Returns true if report has a parent and is therefore a Thread.
+ *
+ * @param {Object} report
+ * @returns {Boolean}
+ */
+function isThread(report) {
+    if (report && report.parentReportID && report.parentReportActionID) {
+        return true;
+    }
+    return false;
+}
+
+/**
  * Get either the policyName or domainName the chat is tied to
  * @param {Object} report
  * @returns {String}
@@ -925,7 +938,7 @@ function getReportName(report) {
 function navigateToDetailsPage(report) {
     const participants = lodashGet(report, 'participants', []);
 
-    if (isChatRoom(report) || isPolicyExpenseChat(report)) {
+    if (isChatRoom(report) || isPolicyExpenseChat(report) || isThread(report)) {
         Navigation.navigate(ROUTES.getReportDetailsRoute(report.reportID));
         return;
     }
@@ -1956,4 +1969,5 @@ export {
     canRequestMoney,
     getWhisperDisplayNames,
     getWorkspaceAvatar,
+    isThread,
 };

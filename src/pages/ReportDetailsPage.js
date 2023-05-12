@@ -99,7 +99,7 @@ class ReportDetailsPage extends Component {
             });
         }
 
-        if (this.props.report.parentReportActionID) {
+        if (ReportUtils.isThread(this.props.report)) {
             menuItems.push({
                 key: CONST.REPORT_DETAILS_MENU_ITEM.LEAVE_ROOM,
                 translationKey: 'common.leaveThread',
