@@ -22,7 +22,7 @@ import Icon from './Icon';
 import SettlementButton from './SettlementButton';
 import * as Policy from '../libs/actions/Policy';
 import ONYXKEYS from '../ONYXKEYS';
-import {payMoneyRequest} from '../libs/actions/IOU';
+import * as IOU from '../libs/actions/IOU';
 import * as ReimbursementAccountProps from '../pages/ReimbursementAccount/reimbursementAccountPropTypes';
 
 const propTypes = {
@@ -35,7 +35,7 @@ const propTypes = {
         name: PropTypes.string,
     }).isRequired,
 
-    /** The chat report this is the report is tied to */
+    /** The chat report this report is linked to */
     chatReport: iouReportPropTypes,
 
     /** Personal details so we can get the ones for the report participants */
@@ -47,6 +47,12 @@ const propTypes = {
     /** The reimbursement account to use */
     reimbursementAccount: ReimbursementAccountProps.reimbursementAccountPropTypes,
 
+    /** Holds information about the users account */
+    account: PropTypes.shape({
+        /** The user's primary login */
+        primaryLogin: PropTypes.string.isRequired,
+    }),
+
     ...withLocalizePropTypes,
 };
 
@@ -54,6 +60,7 @@ const defaultProps = {
     isSingleTransactionView: false,
     chatReport: null,
     reimbursementAccount: null,
+    account: null,
 };
 
 const MoneyRequestHeader = (props) => {
@@ -68,7 +75,8 @@ const MoneyRequestHeader = (props) => {
         ? ReportUtils.getWorkspaceAvatar(props.report)
         : ReportUtils.getAvatar(lodashGet(props.personalDetails, [props.report.managerEmail, 'avatar']), props.report.managerEmail);
     const policy = props.policies[`policy_${props.report.policyID}`];
-    const shouldShowSettlementButton = !isSettled && (Policy.isAdminOfFreePolicy([policy]) || props.report.type === CONST.REPORT.TYPE.IOU);
+    const shouldShowSettlementButton =
+        props.account && !isSettled && (Policy.isAdminOfFreePolicy([policy]) || (props.report.type === CONST.REPORT.TYPE.IOU && props.account.primaryLogin === props.report.managerEmail));
     return (
         <View style={[{backgroundColor: themeColors.highlightBG}, styles.pl0]}>
             <HeaderWithCloseButton
@@ -133,7 +141,7 @@ const MoneyRequestHeader = (props) => {
                         currency={props.report.currency}
                         shouldShowPaypal={false}
                         chatReportID={props.report.chatReportID}
-                        onPress={(paymentType) => payMoneyRequest(paymentType, props.chatReport, props.report, props.reimbursementAccount && props.reimbursementAccount.state)}
+                        onPress={(paymentType) => IOU.payMoneyRequest(paymentType, props.chatReport, props.report, props.reimbursementAccount && props.reimbursementAccount.state)}
                         enablePaymentsRoute={ROUTES.BANK_ACCOUNT_NEW}
                     />
                 )}
@@ -155,6 +163,9 @@ export default compose(
         },
         reimbursementAccount: {
             key: ONYXKEYS.REIMBURSEMENT_ACCOUNT,
+        },
+        account: {
+            key: ONYXKEYS.ACCOUNT,
         },
     }),
 )(MoneyRequestHeader);

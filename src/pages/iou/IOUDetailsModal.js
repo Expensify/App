@@ -10,7 +10,6 @@ import {withNetwork} from '../../components/OnyxProvider';
 import HeaderWithCloseButton from '../../components/HeaderWithCloseButton';
 import Navigation from '../../libs/Navigation/Navigation';
 import ScreenWrapper from '../../components/ScreenWrapper';
-import * as IOU from '../../libs/actions/IOU';
 import * as Report from '../../libs/actions/Report';
 import IOUPreview from '../../components/ReportActionItem/IOUPreview';
 import IOUTransactions from './IOUTransactions';
@@ -24,7 +23,7 @@ import networkPropTypes from '../../components/networkPropTypes';
 import reportActionPropTypes from '../home/report/reportActionPropTypes';
 import FullPageNotFoundView from '../../components/BlockingViews/FullPageNotFoundView';
 import FullScreenLoadingIndicator from '../../components/FullscreenLoadingIndicator';
-import {payMoneyRequest} from '../../libs/actions/IOU';
+import * as IOU from '../../libs/actions/IOU';
 
 const propTypes = {
     /** URL Route params */
@@ -176,7 +175,7 @@ class IOUDetailsModal extends Component {
                                 {hasOutstandingIOU && this.props.iouReport.managerEmail === sessionEmail && (
                                     <FixedFooter>
                                         <SettlementButton
-                                            onPress={(paymentMethodType) => payMoneyRequest(paymentMethodType, this.props.chatReport, this.props.iouReport)}
+                                            onPress={(paymentMethodType) => IOU.payMoneyRequest(paymentMethodType, this.props.chatReport, this.props.iouReport)}
                                             shouldShowPaypal={Boolean(lodashGet(this.props, 'iouReport.submitterPayPalMeAddress'))}
                                             currency={lodashGet(this.props, 'iouReport.currency')}
                                             enablePaymentsRoute={ROUTES.IOU_DETAILS_ENABLE_PAYMENTS}
