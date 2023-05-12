@@ -35,7 +35,6 @@ import * as User from '../../../libs/actions/User';
 import Tooltip from '../../../components/Tooltip';
 import EmojiPickerButton from '../../../components/EmojiPicker/EmojiPickerButton';
 import * as DeviceCapabilities from '../../../libs/DeviceCapabilities';
-import toggleReportActionComposeView from '../../../libs/toggleReportActionComposeView';
 import OfflineIndicator from '../../../components/OfflineIndicator';
 import ExceededCommentLength from '../../../components/ExceededCommentLength';
 import withNavigationFocus from '../../../components/withNavigationFocus';
@@ -51,6 +50,7 @@ import ArrowKeyFocusManager from '../../../components/ArrowKeyFocusManager';
 import OfflineWithFeedback from '../../../components/OfflineWithFeedback';
 import KeyboardShortcut from '../../../libs/KeyboardShortcut';
 import * as ComposerUtils from '../../../libs/ComposerUtils';
+import * as ComposerActions from '../../../libs/actions/Composer';
 import * as Welcome from '../../../libs/actions/Welcome';
 import Permissions from '../../../libs/Permissions';
 import * as TaskUtils from '../../../libs/actions/Task';
@@ -108,16 +108,11 @@ const propTypes = {
         expiresAt: PropTypes.string,
     }),
 
+    /** Whether the composer input should be shown */
+    shouldShowComposeInput: PropTypes.bool,
+
     /** Stores user's preferred skin tone */
     preferredSkinTone: PropTypes.oneOfType([PropTypes.number, PropTypes.string]),
-
-    /** User's frequently used emojis */
-    frequentlyUsedEmojis: PropTypes.arrayOf(
-        PropTypes.shape({
-            code: PropTypes.string.isRequired,
-            keywords: PropTypes.arrayOf(PropTypes.string),
-        }),
-    ),
 
     /** The type of action that's pending  */
     pendingAction: PropTypes.oneOf(['add', 'update', 'delete']),
@@ -141,10 +136,10 @@ const defaultProps = {
     blockedFromConcierge: {},
     personalDetails: {},
     preferredSkinTone: CONST.EMOJI_DEFAULT_SKIN_TONE,
-    frequentlyUsedEmojis: [],
     isComposerFullSize: false,
     pendingAction: null,
     reports: {},
+    shouldShowComposeInput: true,
     ...withCurrentUserPersonalDetailsDefaultProps,
 };
 
@@ -204,7 +199,7 @@ class ReportActionCompose extends React.Component {
         this.shouldFocusInputOnScreenFocus = canFocusInputOnScreenFocus();
 
         this.state = {
-            isFocused: this.shouldFocusInputOnScreenFocus && !this.props.modal.isVisible && !this.props.modal.willAlertModalBecomeVisible,
+            isFocused: this.shouldFocusInputOnScreenFocus && !this.props.modal.isVisible && !this.props.modal.willAlertModalBecomeVisible && this.props.shouldShowComposeInput,
             isFullComposerAvailable: props.isComposerFullSize,
             textInputShouldClear: false,
             isCommentEmpty: props.comment.length === 0,
@@ -270,7 +265,7 @@ class ReportActionCompose extends React.Component {
     componentDidUpdate(prevProps) {
         const sidebarOpened = !prevProps.isDrawerOpen && this.props.isDrawerOpen;
         if (sidebarOpened) {
-            toggleReportActionComposeView(true);
+            ComposerActions.setShouldShowComposeInput(true);
         }
 
         // We want to focus or refocus the input when a modal has been closed and the underlying screen is focused.
@@ -306,6 +301,7 @@ class ReportActionCompose extends React.Component {
     }
 
     onSelectionChange(e) {
+        LayoutAnimation.configureNext(LayoutAnimation.create(50, LayoutAnimation.Types.easeInEaseOut, LayoutAnimation.Properties.opacity));
         this.setState({selection: e.nativeEvent.selection});
         this.calculateEmojiSuggestion();
         this.calculateMentionSuggestion();
@@ -516,8 +512,6 @@ class ReportActionCompose extends React.Component {
             nextState.shouldShowEmojiSuggestionMenu = !_.isEmpty(newSuggestedEmojis);
         }
 
-        LayoutAnimation.configureNext(LayoutAnimation.create(50, LayoutAnimation.Types.easeInEaseOut, LayoutAnimation.Properties.opacity));
-
         this.setState(nextState);
     }
 
@@ -607,7 +601,7 @@ class ReportActionCompose extends React.Component {
             },
             suggestedEmojis: [],
         }));
-        EmojiUtils.addToFrequentlyUsedEmojis(this.props.frequentlyUsedEmojis, emojiObject);
+        EmojiUtils.addToFrequentlyUsedEmojis(emojiObject);
     }
 
     /**
@@ -1028,7 +1022,7 @@ class ReportActionCompose extends React.Component {
                                             disabled={this.props.disabled}
                                         >
                                             <Composer
-                                                autoFocus={!this.props.modal.isVisible && (this.shouldFocusInputOnScreenFocus || this.isEmptyChat())}
+                                                autoFocus={!this.props.modal.isVisible && (this.shouldFocusInputOnScreenFocus || this.isEmptyChat()) && this.props.shouldShowComposeInput}
                                                 multiline
                                                 ref={this.setTextInputRef}
                                                 textAlignVertical="top"
@@ -1202,9 +1196,6 @@ export default compose(
         blockedFromConcierge: {
             key: ONYXKEYS.NVP_BLOCKED_FROM_CONCIERGE,
         },
-        frequentlyUsedEmojis: {
-            key: ONYXKEYS.FREQUENTLY_USED_EMOJIS,
-        },
         preferredSkinTone: {
             key: ONYXKEYS.PREFERRED_EMOJI_SKIN_TONE,
         },
@@ -1213,6 +1204,9 @@ export default compose(
         },
         personalDetails: {
             key: ONYXKEYS.PERSONAL_DETAILS,
+        },
+        shouldShowComposeInput: {
+            key: ONYXKEYS.SHOULD_SHOW_COMPOSE_INPUT,
         },
     }),
 )(ReportActionCompose);

@@ -163,6 +163,7 @@ class ReportActionItem extends Component {
             this.checkIfContextMenuActive,
             ReportUtils.isArchivedRoom(this.props.report),
             ReportUtils.chatIncludesChronos(this.props.report),
+            this.props.action.childReportID,
         );
     }
 

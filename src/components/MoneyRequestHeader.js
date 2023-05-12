@@ -24,6 +24,7 @@ import * as Policy from '../libs/actions/Policy';
 import ONYXKEYS from '../ONYXKEYS';
 import * as IOU from '../libs/actions/IOU';
 import * as ReimbursementAccountProps from '../pages/ReimbursementAccount/reimbursementAccountPropTypes';
+import * as CurrencyUtils from '../libs/CurrencyUtils';
 
 const propTypes = {
     /** The report currently being looked at */
@@ -64,11 +65,8 @@ const defaultProps = {
 };
 
 const MoneyRequestHeader = (props) => {
-    const formattedAmount = props.numberFormat(props.report.total / 100, {
-        style: 'currency',
-        currency: props.report.currency,
-    });
-    const isSettled = false; // TODO: use ReportUtils.isSettled(props.report.reportID) once that method is added
+    const formattedAmount = CurrencyUtils.convertToDisplayString(ReportUtils.getMoneyRequestTotal(props.report), props.report.currency);
+    const isSettled = ReportUtils.isSettled(props.report.reportID);
     const isExpenseReport = ReportUtils.isExpenseReport(props.report);
     const payeeName = isExpenseReport ? ReportUtils.getPolicyName(props.report, props.policies) : ReportUtils.getDisplayNameForParticipant(props.report.managerEmail);
     const payeeAvatar = isExpenseReport
