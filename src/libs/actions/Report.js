@@ -1595,16 +1595,18 @@ function removeEmojiReaction(reportID, reportActionID, emoji, existingReactions)
  * @param {Number} [paramSkinTone]
  * @returns {Promise}
  */
-function toggleEmojiReaction(reportID, reportAction, emoji, existingReactions, paramSkinTone = preferredSkinTone) {
+function toggleReaction(reportID, reportAction, emoji, existingReactions, paramSkinTone = preferredSkinTone) {
+    // This will get cleaned up as part of https://github.com/Expensify/App/issues/16506 once the old emoji
+    // format is no longer being used
     const message = reportAction.message[0];
     const reactionObject = message.reactions && _.find(message.reactions, (reaction) => reaction.emoji === emoji.name);
     const skinTone = emoji.types === undefined ? null : paramSkinTone; // only use skin tone if emoji supports it
     if (reactionObject) {
         if (hasAccountIDReacted(currentUserAccountID, reactionObject.users, skinTone)) {
-            return removeEmojiReaction(reportID, reportAction.reportActionID, emoji, existingReactions);
+            return addReaction(reportID, reportAction.reportActionID, emoji, existingReactions);
         }
     }
-    return addEmojiReaction(reportID, reportAction.reportActionID, emoji, skinTone);
+    return removeReaction(reportID, reportAction.reportActionID, emoji, skinTone);
 }
 
 /**
@@ -1660,7 +1662,7 @@ export {
     clearIOUError,
     subscribeToNewActionEvent,
     showReportActionNotification,
-    toggleEmojiReaction,
+    toggleReaction,
     hasAccountIDReacted,
     shouldShowReportActionNotification,
 };

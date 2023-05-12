@@ -555,7 +555,7 @@ describe('actions/Report', () => {
                 const resultAction = _.first(_.values(reportActions));
 
                 // Add a reaction to the comment
-                Report.toggleEmojiReaction(REPORT_ID, resultAction, EMOJI);
+                Report.toggleReaction(REPORT_ID, resultAction, EMOJI);
                 return waitForPromisesToResolve();
             })
             .then(() => {
@@ -585,11 +585,11 @@ describe('actions/Report', () => {
                 const resultAction = _.first(_.values(reportActions));
 
                 // Add the reaction to the comment, but two times with different variations
-                Report.toggleEmojiReaction(REPORT_ID, resultAction, EMOJI);
+                Report.toggleReaction(REPORT_ID, resultAction, EMOJI);
                 return waitForPromisesToResolve()
                     .then(() => {
                         const updatedResultAction = _.first(_.values(reportActions));
-                        Report.toggleEmojiReaction(REPORT_ID, updatedResultAction, EMOJI, 2);
+                        Report.toggleReaction(REPORT_ID, updatedResultAction, EMOJI, 2);
                         return waitForPromisesToResolve();
                     })
                     .then(() => {
@@ -663,7 +663,7 @@ describe('actions/Report', () => {
                 const resultAction = _.first(_.values(reportActions));
 
                 // Add a reaction to the comment
-                Report.toggleEmojiReaction(REPORT_ID, resultAction, EMOJI);
+                Report.toggleReaction(REPORT_ID, resultAction, EMOJI);
                 return waitForPromisesToResolve();
             })
             .then(() => {
@@ -672,7 +672,7 @@ describe('actions/Report', () => {
                 // Now we toggle the reaction while the skin tone has changed.
                 // As the emoji doesn't support skin tones, the emoji
                 // should get removed instead of added again.
-                Report.toggleEmojiReaction(REPORT_ID, resultAction, EMOJI, 2);
+                Report.toggleReaction(REPORT_ID, resultAction, EMOJI, 2);
                 return waitForPromisesToResolve();
             })
             .then(() => {

@@ -182,7 +182,7 @@ class ReportActionItem extends Component {
     }
 
     toggleReaction(emoji) {
-        Report.toggleEmojiReaction(this.props.report.reportID, this.props.action, emoji, this.props.reactions);
+        Report.toggleReaction(this.props.report.reportID, this.props.action, emoji, this.props.reactions);
     }
 
     /**
