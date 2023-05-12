@@ -52,6 +52,9 @@ const propTypes = {
 
         // Selected Currency Code of the current request
         selectedCurrencyCode: PropTypes.string,
+
+        // Draft Currency Code
+        draftCurrencyCode: PropTypes.string,
     }),
 
     /** Personal details of all the users */
@@ -89,6 +92,7 @@ const defaultProps = {
         creatingIOUTransaction: false,
         error: false,
         selectedCurrencyCode: null,
+        draftCurrencyCode: null,
     },
 };
 
@@ -339,6 +343,9 @@ const MoneyRequestModal = (props) => {
                                             onStepComplete={(value) => {
                                                 const amountInSmallestCurrencyUnits = CurrencyUtils.convertToSmallestUnit(props.iou.selectedCurrencyCode, Number.parseFloat(value));
                                                 setAmount(amountInSmallestCurrencyUnits);
+                                                if (props.iou.draftCurrencyCode) {
+                                                    IOU.setIOUSelectedCurrency(props.iou.draftCurrencyCode);
+                                                }
                                                 navigateToNextStep();
                                             }}
                                             reportID={reportID}

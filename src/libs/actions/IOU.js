@@ -757,7 +757,16 @@ function deleteMoneyRequest(chatReportID, iouReportID, moneyRequestAction, shoul
  * @param {String} selectedCurrencyCode
  */
 function setIOUSelectedCurrency(selectedCurrencyCode) {
-    Onyx.merge(ONYXKEYS.IOU, {selectedCurrencyCode});
+    Onyx.merge(ONYXKEYS.IOU, {selectedCurrencyCode, draftCurrencyCode: null});
+}
+
+/**
+ * Sets IOU'S draft currency
+ *
+ * @param {String | null} draftCurrencyCode
+ */
+function setIOUDraftCurrency(draftCurrencyCode) {
+    Onyx.merge(ONYXKEYS.IOU, {draftCurrencyCode});
 }
 
 /**
@@ -1174,4 +1183,5 @@ export {
     setMoneyRequestDescription,
     sendMoneyWithWallet,
     payMoneyRequestWithWallet,
+    setIOUDraftCurrency
 };

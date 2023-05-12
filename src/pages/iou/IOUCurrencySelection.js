@@ -128,7 +128,7 @@ class IOUCurrencySelection extends Component {
      * @param {String} option.currencyCode
      */
     confirmCurrencySelection(option) {
-        IOU.setIOUSelectedCurrency(option.currencyCode);
+        IOU.setIOUDraftCurrency(option.currencyCode);
         Navigation.goBack();
     }
 
@@ -151,7 +151,10 @@ class IOUCurrencySelection extends Component {
                             headerMessage={headerMessage}
                             safeAreaPaddingBottomStyle={safeAreaPaddingBottomStyle}
                             initiallyFocusedOptionKey={_.get(
-                                _.find(this.state.currencyData, (currency) => currency.currencyCode === this.props.iou.selectedCurrencyCode),
+                                _.find(
+                                    this.state.currencyData,
+                                    (currency) => currency.currencyCode === this.props.iou.draftCurrencyCode || currency.currencyCode === this.props.iou.selectedCurrencyCode,
+                                ),
                                 'keyForList',
                             )}
                         />

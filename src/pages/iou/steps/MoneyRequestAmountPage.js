@@ -15,6 +15,7 @@ import Button from '../../../components/Button';
 import CONST from '../../../CONST';
 import * as DeviceCapabilities from '../../../libs/DeviceCapabilities';
 import TextInputWithCurrencySymbol from '../../../components/TextInputWithCurrencySymbol';
+import * as IOU from '../../../libs/actions/IOU';
 
 const propTypes = {
     /** Whether or not this IOU has multiple participants */
@@ -84,6 +85,7 @@ class MoneyRequestAmountPage extends React.Component {
     }
 
     componentWillUnmount() {
+        IOU.setIOUDraftCurrency(null);
         this.unsubscribeNavFocus();
     }
 
@@ -314,7 +316,7 @@ class MoneyRequestAmountPage extends React.Component {
                         onCurrencyButtonPress={this.navigateToCurrencySelectionPage}
                         placeholder={this.props.numberFormat(0)}
                         ref={(el) => (this.textInput = el)}
-                        selectedCurrencyCode={this.props.iou.selectedCurrencyCode}
+                        selectedCurrencyCode={this.props.iou.draftCurrencyCode || this.props.iou.selectedCurrencyCode}
                         selection={this.state.selection}
                         onSelectionChange={(e) => {
                             if (!this.state.shouldUpdateSelection) {
