@@ -86,7 +86,7 @@ function requestMoney(report, amount, currency, payeeEmail, participant, comment
             iouReport = {...iouReports[`${ONYXKEYS.COLLECTION.REPORT}${chatReport.iouReportID}`]};
 
             // Because of the Expense reports are stored as negative values, we substract the total from the amount
-            iouReport.total = ReportUtils.isExpenseReport(iouReport) ? iouReport.total - amount : iouReport.total + amount;
+            iouReport.total -= amount;
         } else {
             iouReport = IOUUtils.updateIOUOwnerAndTotal(iouReports[`${ONYXKEYS.COLLECTION.REPORT}${chatReport.iouReportID}`], payeeEmail, amount, currency);
         }
@@ -694,12 +694,12 @@ function splitBillAndOpenReport(participants, currentUserLogin, amount, comment,
  * @param {Boolean} shouldCloseOnDelete
  */
 function deleteMoneyRequest(chatReportID, iouReportID, moneyRequestAction, shouldCloseOnDelete) {
-    const iouReport = iouReports[`${ONYXKEYS.COLLECTION.REPORT}${iouReportID}`];
+    const iouReport = {...iouReports[`${ONYXKEYS.COLLECTION.REPORT}${iouReportID}`]};
     const transactionID = moneyRequestAction.originalMessage.IOUTransactionID;
 
     // Get the amount we are deleting
     const amount = moneyRequestAction.originalMessage.amount;
-    const optimisticReportAction = ReportUtils.buildOptimisticIOUReportAction(
+    const optimisticIOUAction = ReportUtils.buildOptimisticIOUReportAction(
         CONST.IOU.REPORT_ACTION_TYPE.DELETE,
         amount,
         moneyRequestAction.originalMessage.currency,
@@ -710,10 +710,16 @@ function deleteMoneyRequest(chatReportID, iouReportID, moneyRequestAction, shoul
         iouReportID,
     );
 
-    const currentUserEmail = optimisticReportAction.actorEmail;
+    const currentUserEmail = optimisticIOUAction.actorEmail;
+    if (isPolicyExpenseChat) {
+        // Because of the Expense reports are stored as negative values, we add the total from the amount
+        iouReport.total = ReportUtils.isExpenseReport(iouReport) ? iouReport.total - amount : iouReport.total + amount;
+    } else {
+        iouReport = IOUUtils.updateIOUOwnerAndTotal(iouReports[`${ONYXKEYS.COLLECTION.REPORT}${chatReport.iouReportID}`], payeeEmail, amount, currency);
+    }
     const updatedIOUReport = IOUUtils.updateIOUOwnerAndTotal(iouReport, currentUserEmail, amount, moneyRequestAction.originalMessage.currency, CONST.IOU.REPORT_ACTION_TYPE.DELETE);
-    updatedIOUReport.lastMessageText = optimisticReportAction.message[0].text;
-    updatedIOUReport.lastMessageHtml = optimisticReportAction.message[0].html;
+    updatedIOUReport.lastMessageText = optimisticIOUAction.message[0].text;
+    updatedIOUReport.lastMessageHtml = optimisticIOUAction.message[0].html;
     updatedIOUReport.hasOutstandingIOU = updatedIOUReport.total !== 0;
 
     const optimisticData = [
@@ -721,8 +727,8 @@ function deleteMoneyRequest(chatReportID, iouReportID, moneyRequestAction, shoul
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${iouReportID}`,
             value: {
-                [optimisticReportAction.reportActionID]: {
-                    ...optimisticReportAction,
+                [optimisticIOUAction.reportActionID]: {
+                    ...optimisticIOUAction,
                     pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
                 },
             },
@@ -743,7 +749,7 @@ function deleteMoneyRequest(chatReportID, iouReportID, moneyRequestAction, shoul
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${iouReportID}`,
             value: {
-                [optimisticReportAction.reportActionID]: {
+                [optimisticIOUAction.reportActionID]: {
                     pendingAction: null,
                 },
             },
@@ -754,7 +760,7 @@ function deleteMoneyRequest(chatReportID, iouReportID, moneyRequestAction, shoul
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${iouReportID}`,
             value: {
-                [optimisticReportAction.reportActionID]: {
+                [optimisticIOUAction.reportActionID]: {
                     errors: {
                         [DateUtils.getMicroseconds()]: Localize.translateLocal('iou.error.genericDeleteFailureMessage'),
                     },
@@ -778,7 +784,7 @@ function deleteMoneyRequest(chatReportID, iouReportID, moneyRequestAction, shoul
         {
             transactionID,
             chatReportID,
-            reportActionID: optimisticReportAction.reportActionID,
+            reportActionID: optimisticIOUAction.reportActionID,
             iouReportID: updatedIOUReport.reportID,
         },
         {optimisticData, successData, failureData},
