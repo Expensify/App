@@ -38,6 +38,7 @@ function deleteMoneyRequest(moneyRequestAction, isOffline = false) {
         moneyRequestAction.originalMessage.amount,
         moneyRequestAction.originalMessage.currency,
         isOffline,
+        false,
         moneyRequestAction.originalMessage.IOUTransactionID,
     );
 }
