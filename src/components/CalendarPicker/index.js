@@ -38,7 +38,7 @@ class CalendarPicker extends React.PureComponent {
             currentDateView,
             selectedYear: currentSelection.get('year').toString(),
             selectedMonth: this.getNumberStringWithLeadingZero(currentSelection.get('month') + 1),
-            selectedDay: this.getNumberStringWithLeadingZero(currentSelection.get('day')),
+            selectedDay: this.getNumberStringWithLeadingZero(currentSelection.get('date')),
         };
 
         this.moveToPrevMonth = this.moveToPrevMonth.bind(this);
