@@ -1,4 +1,5 @@
 import _ from 'underscore';
+import lodashGet from 'lodash/get';
 import CONST from '../CONST';
 
 /**
@@ -118,4 +119,42 @@ function isIOUReportPendingCurrencyConversion(reportActions, iouReport) {
     return hasPendingRequests;
 }
 
-export {calculateAmount, updateIOUOwnerAndTotal, getIOUReportActions, isIOUReportPendingCurrencyConversion};
+/**
+ * Builds and returns the deletableTransactionIDs array. A transaction must meet multiple requirements in order
+ * to be deletable. We must exclude transactions not associated with the iouReportID, actions which have already
+ * been deleted, those which are not of type 'create', and those with errors.
+ *
+ * @param {Object[]} reportActions
+ * @param {String} iouReportID
+ * @param {String} userEmail
+ * @param {Boolean} isIOUSettled
+ * @returns {Array}
+ */
+function getDeletableTransactions(reportActions, iouReportID, userEmail, isIOUSettled = false) {
+    if (isIOUSettled) {
+        return [];
+    }
+
+    // iouReportIDs should be strings, but we still have places that send them as ints so we convert them both to Numbers for comparison
+    const actionsForIOUReport = _.filter(
+        reportActions,
+        (action) => action.originalMessage && action.originalMessage.type && Number(action.originalMessage.IOUReportID) === Number(iouReportID),
+    );
+
+    const deletedTransactionIDs = _.chain(actionsForIOUReport)
+        .filter((action) => _.contains([CONST.IOU.REPORT_ACTION_TYPE.CANCEL, CONST.IOU.REPORT_ACTION_TYPE.DECLINE, CONST.IOU.REPORT_ACTION_TYPE.DELETE], action.originalMessage.type))
+        .map((deletedAction) => lodashGet(deletedAction, 'originalMessage.IOUTransactionID', ''))
+        .compact()
+        .value();
+
+    return _.chain(actionsForIOUReport)
+        .filter((action) => action.originalMessage.type === CONST.IOU.REPORT_ACTION_TYPE.CREATE)
+        .filter((action) => !_.contains(deletedTransactionIDs, action.originalMessage.IOUTransactionID))
+        .filter((action) => userEmail === action.actorEmail)
+        .filter((action) => _.isEmpty(action.errors))
+        .map((action) => lodashGet(action, 'originalMessage.IOUTransactionID', ''))
+        .compact()
+        .value();
+}
+
+export {calculateAmount, updateIOUOwnerAndTotal, getIOUReportActions, isIOUReportPendingCurrencyConversion, getDeletableTransactions};
