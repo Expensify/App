@@ -45,7 +45,7 @@ const defaultProps = {
 
 const MoneyRequestHeader = (props) => {
     const formattedAmount = CurrencyUtils.convertToDisplayString(ReportUtils.getMoneyRequestTotal(props.report), props.report.currency);
-    const isSettled = false; // TODO: use ReportUtils.isSettled(props.report.reportID) once that method is added
+    const isSettled = ReportUtils.isSettled(props.report.reportID);
     const isExpenseReport = ReportUtils.isExpenseReport(props.report);
     const payeeName = isExpenseReport ? ReportUtils.getPolicyName(props.report, props.policies) : ReportUtils.getDisplayNameForParticipant(props.report.managerEmail);
     const payeeAvatar = isExpenseReport

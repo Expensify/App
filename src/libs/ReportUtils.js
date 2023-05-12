@@ -184,6 +184,14 @@ function canEditReportAction(reportAction) {
 }
 
 /**
+ * @param {String} reportID
+ * @returns {Boolean}
+ */
+function isSettled(reportID) {
+    return !lodashGet(allReports, [`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, 'hasOutstandingIOU']);
+}
+
+/**
  * Can only delete if it's an ADDCOMMENT, the author is this user.
  *
  * @param {Object} reportAction
@@ -1998,4 +2006,5 @@ export {
     getWhisperDisplayNames,
     getWorkspaceAvatar,
     shouldReportShowSubscript,
+    isSettled,
 };

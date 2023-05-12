@@ -326,6 +326,7 @@ export default {
         requestAmount: ({amount}) => `request ${amount}`,
         splitAmount: ({amount}) => `split ${amount}`,
         payerOwesAmount: ({payer, amount}) => `${payer} owes ${amount}`,
+        payerSettled: ({amount}) => `settled up ${amount}`,
         noReimbursableExpenses: 'This report has an invalid amount',
         pendingConversionMessage: "Total will update when you're back online",
         error: {

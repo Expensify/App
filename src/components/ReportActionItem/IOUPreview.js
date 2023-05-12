@@ -24,19 +24,10 @@ import * as DeviceCapabilities from '../../libs/DeviceCapabilities';
 import reportActionPropTypes from '../../pages/home/report/reportActionPropTypes';
 import {showContextMenuForReport} from '../ShowContextMenuContext';
 import * as OptionsListUtils from '../../libs/OptionsListUtils';
-import Button from '../Button';
 import * as CurrencyUtils from '../../libs/CurrencyUtils';
 import * as ReportUtils from '../../libs/ReportUtils';
-import * as StyleUtils from '../../styles/StyleUtils';
-import getButtonState from '../../libs/getButtonState';
 
 const propTypes = {
-    /** Additional logic for displaying the pay button */
-    shouldHidePayButton: PropTypes.bool,
-
-    /** Callback for the Pay/Settle button */
-    onPayButtonPressed: PropTypes.func,
-
     /** The active IOUReport, used for Onyx subscription */
     // eslint-disable-next-line react/no-unused-prop-types
     iouReportID: PropTypes.string.isRequired,
@@ -83,6 +74,9 @@ const propTypes = {
     /** True if this is this IOU is a split instead of a 1:1 request */
     isBillSplit: PropTypes.bool.isRequired,
 
+    /** True if the IOU Preview is rendered within a single IOUAction */
+    isIOUAction: PropTypes.bool,
+
     /** True if the IOU Preview card is hovered */
     isHovered: PropTypes.bool,
 
@@ -116,8 +110,6 @@ const propTypes = {
 
 const defaultProps = {
     iouReport: {},
-    shouldHidePayButton: false,
-    onPayButtonPressed: null,
     onPreviewPressed: null,
     action: undefined,
     contextMenuAnchor: undefined,
@@ -125,6 +117,7 @@ const defaultProps = {
     containerStyles: [],
     walletTerms: {},
     pendingAction: null,
+    isIOUAction: true,
     isHovered: false,
     personalDetails: {},
     session: {
@@ -153,9 +146,9 @@ const IOUPreview = (props) => {
     // Pay button should only be visible to the manager of the report.
     const isCurrentUserManager = managerEmail === sessionEmail;
 
-    // Get request formatting options, as long as currency is provided
-    const requestAmount = props.isBillSplit ? props.action.originalMessage.amount : ReportUtils.getMoneyRequestTotal(props.iouReport);
-    const requestCurrency = props.isBillSplit ? lodashGet(props.action, 'originalMessage.currency', CONST.CURRENCY.USD) : props.iouReport.currency;
+    // If props.action is undefined then we are displaying within IOUDetailsModal and should use the full report amount
+    const requestAmount = props.isIOUAction ? lodashGet(props.action, 'originalMessage.amount', 0) : ReportUtils.getMoneyRequestTotal(props.iouReport);
+    const requestCurrency = props.isIOUAction ? lodashGet(props.action, 'originalMessage.currency', CONST.CURRENCY.USD) : props.iouReport.currency;
 
     const getSettledMessage = () => {
         switch (lodashGet(props.action, 'originalMessage.paymentType', '')) {
@@ -171,9 +164,9 @@ const IOUPreview = (props) => {
     };
 
     const showContextMenu = (event) => {
-        // Use action and shouldHidePayButton props to check if we are in IOUDetailsModal,
+        // Use action prop to check if we are in IOUDetailsModal,
         // if it's true, do nothing when user long press, otherwise show context menu.
-        if (!props.action && props.shouldHidePayButton) {
+        if (!props.action) {
             return;
         }
 
@@ -208,11 +201,6 @@ const IOUPreview = (props) => {
                                 </>
                             )}
                         </View>
-                        <Icon
-                            src={Expensicons.ArrowRight}
-                            fill={StyleUtils.getIconFillColor(getButtonState(props.isHovered))}
-                            additionalStyles={[styles.mb1]}
-                        />
                     </View>
                     <View style={[styles.flexRow]}>
                         <View style={[styles.flex1, styles.flexRow, styles.alignItemsCenter]}>
@@ -242,19 +230,6 @@ const IOUPreview = (props) => {
                     )}
 
                     <Text style={[styles.colorMuted]}>{Str.htmlDecode(lodashGet(props.action, 'originalMessage.comment', ''))}</Text>
-
-                    {isCurrentUserManager && !props.shouldHidePayButton && props.iouReport.stateNum === CONST.REPORT.STATE_NUM.PROCESSING && (
-                        <Button
-                            style={styles.mt4}
-                            onPress={props.onPayButtonPressed}
-                            onPressIn={() => DeviceCapabilities.canUseTouchScreen() && ControlSelection.block()}
-                            onPressOut={() => ControlSelection.unblock()}
-                            onLongPress={showContextMenu}
-                            text={props.translate('iou.pay')}
-                            success
-                            medium
-                        />
-                    )}
                 </View>
             </OfflineWithFeedback>
         </View>
