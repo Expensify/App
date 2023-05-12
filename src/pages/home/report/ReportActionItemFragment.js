@@ -14,7 +14,7 @@ import withWindowDimensions, {windowDimensionsPropTypes} from '../../../componen
 import withLocalize, {withLocalizePropTypes} from '../../../components/withLocalize';
 import * as DeviceCapabilities from '../../../libs/DeviceCapabilities';
 import compose from '../../../libs/compose';
-import * as StyleUtils from '../../../styles/StyleUtils';
+import convertToLTR from '../../../libs/convertToLTR';
 import {withNetwork} from '../../../components/OnyxProvider';
 import CONST from '../../../CONST';
 import applyStrikethrough from '../../../components/HTMLEngineProvider/applyStrikethrough';
@@ -115,7 +115,7 @@ const ReportActionItemFragment = (props) => {
                     selectable={!DeviceCapabilities.canUseTouchScreen() || !props.isSmallScreenWidth}
                     style={[EmojiUtils.containsOnlyEmojis(text) ? styles.onlyEmojisText : undefined, styles.ltr, ...props.style]}
                 >
-                    {StyleUtils.convertToLTR(Str.htmlDecode(text))}
+                    {convertToLTR(Str.htmlDecode(text))}
                     {Boolean(props.fragment.isEdited) && (
                         <Text
                             fontSize={variables.fontSizeSmall}
