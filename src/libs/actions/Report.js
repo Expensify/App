@@ -399,6 +399,11 @@ function openReport(reportID, participantList = [], newReportObject = {}) {
 
         // Add the createdReportActionID parameter to the API call
         params.createdReportActionID = optimisticCreatedAction.reportActionID;
+
+        // Only add the parentReportActionID if it's been added to the optimistic report
+        if (newReportObject.parentReportActionID) {
+            params.parentReportActionID = newReportObject.parentReportActionID;
+        }
     }
 
     API.write('OpenReport', params, onyxData);
