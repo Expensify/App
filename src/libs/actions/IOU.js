@@ -84,8 +84,7 @@ function requestMoney(report, amount, currency, payeeEmail, participant, comment
         }
     } else {
         moneyRequestReport = isPolicyExpenseChat
-            ? // The amount for Expense reports are stored as negative value in the database
-              ReportUtils.buildOptimisticExpenseReport(chatReport.reportID, chatReport.policyID, payeeEmail, amount * -1, currency)
+            ? ReportUtils.buildOptimisticExpenseReport(chatReport.reportID, chatReport.policyID, payeeEmail, amount, currency)
             : ReportUtils.buildOptimisticIOUReport(payeeEmail, payerEmail, amount, chatReport.reportID, currency);
     }
 
