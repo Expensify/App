@@ -47,12 +47,12 @@ class BaseOptionsSelector extends Component {
         this.state = {
             allOptions,
             focusedIndex,
+            isEnterDisabled: false,
         };
     }
 
     componentDidMount() {
         const enterConfig = CONST.KEYBOARD_SHORTCUTS.ENTER;
-        let isEnterDisabled = false;
         this.unsubscribeEnter = KeyboardShortcut.subscribe(
             enterConfig.shortcutKey,
             () => {
@@ -60,14 +60,13 @@ class BaseOptionsSelector extends Component {
                 if (!focusedOption) {
                     return;
                 }
-
-                // We are handeling multiple Enter events to address the issue in https://github.com/Expensify/App/issues/18265
-                if (!isEnterDisabled) {
-                    isEnterDisabled = true;
-                    this.selectRow(focusedOption);
-                    setTimeout(() => {
-                        isEnterDisabled = false;
-                    }, 300);
+                if (!this.state.isEnterDisabled) {
+                    this.setState({isEnterDisabled: true});
+                    let result = this.selectRow(focusedOption);
+                    if (!(result instanceof Promise)) {
+                        result = Promise.resolve();
+                    }
+                    setTimeout(() => result.finally(() => this.setState({isEnterDisabled: false})), 300);
                 }
             },
             enterConfig.descriptionKey,
