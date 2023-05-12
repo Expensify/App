@@ -20,9 +20,6 @@ import TextFileLink from '../../../../components/TextFileLink';
 import ONYXKEYS from '../../../../ONYXKEYS';
 import Clipboard from '../../../../libs/Clipboard';
 import themeColors from '../../../../styles/themes/default';
-import ContextMenuItem from '../../../../components/ContextMenuItem';
-import * as Expensicons from '../../../../components/Icon/Expensicons';
-import CommunicationsLink from '../../../../components/CommunicationsLink';
 
 const propTypes = {
     ...withLocalizePropTypes,
