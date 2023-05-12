@@ -2,7 +2,7 @@ import _ from 'underscore';
 import React from 'react';
 import PropTypes from 'prop-types';
 import {withOnyx} from 'react-native-onyx';
-import ButtonWithMenu from './ButtonWithMenu';
+import ButtonWithDropdownMenu from './ButtonWithDropdownMenu';
 import * as Expensicons from './Icon/Expensicons';
 import Permissions from '../libs/Permissions';
 import ONYXKEYS from '../ONYXKEYS';
@@ -91,7 +91,7 @@ class SettlementButton extends React.Component {
                 chatReportID={this.props.chatReportID}
             >
                 {(triggerKYCFlow) => (
-                    <ButtonWithMenu
+                    <ButtonWithDropdownMenu
                         isDisabled={this.props.isDisabled}
                         isLoading={this.props.isLoading}
                         onPress={(event, iouPaymentType) => {

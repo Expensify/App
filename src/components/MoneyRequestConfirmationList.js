@@ -11,7 +11,7 @@ import withLocalize, {withLocalizePropTypes} from './withLocalize';
 import withWindowDimensions, {windowDimensionsPropTypes} from './withWindowDimensions';
 import compose from '../libs/compose';
 import CONST from '../CONST';
-import ButtonWithMenu from './ButtonWithMenu';
+import ButtonWithDropdownMenu from './ButtonWithDropdownMenu';
 import Log from '../libs/Log';
 import SettlementButton from './SettlementButton';
 import ROUTES from '../ROUTES';
@@ -292,7 +292,7 @@ class MoneyRequestConfirmationList extends Component {
                             currency={this.props.iou.selectedCurrencyCode}
                         />
                     ) : (
-                        <ButtonWithMenu
+                        <ButtonWithDropdownMenu
                             isDisabled={shouldDisableButton}
                             onPress={(_event, value) => this.confirm(value)}
                             options={this.getSplitOrRequestOptions()}

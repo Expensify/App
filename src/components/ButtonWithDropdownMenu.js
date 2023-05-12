@@ -4,8 +4,10 @@ import {View} from 'react-native';
 import _ from 'underscore';
 import styles from '../styles/styles';
 import Button from './Button';
-import ButtonWithDropdown from './ButtonWithDropdown';
+import * as Expensicons from './Icon/Expensicons';
+import Icon from './Icon';
 import PopoverMenu from './PopoverMenu';
+import themeColors from '../styles/themes/default';
 
 const propTypes = {
     /** Text to display for the menu header */
@@ -40,7 +42,12 @@ const defaultProps = {
     menuHeaderText: '',
 };
 
-class ButtonWithMenu extends PureComponent {
+/**
+ * This component shows a button that has a separation on the right part that shows a pressable caret button if more than 1
+ * options was passed or a simple normal button if more than 1 option was passed.
+ * If there's more than one option, pressing the caret will show a popover menu with all options.
+ */
+class ButtonWithDropdownMenu extends PureComponent {
     constructor(props) {
         super(props);
 
@@ -59,15 +66,33 @@ class ButtonWithMenu extends PureComponent {
         return (
             <View>
                 {this.props.options.length > 1 ? (
-                    <ButtonWithDropdown
-                        buttonText={selectedItem.text}
-                        isLoading={this.props.isLoading}
-                        isDisabled={this.props.isDisabled}
-                        onButtonPress={(event) => this.props.onPress(event, selectedItem.value)}
-                        onDropdownPress={() => {
-                            this.setMenuVisibility(true);
-                        }}
-                    />
+                    <View style={[styles.flexRow, styles.justifyContentBetween, styles.alignItemsCenter]}>
+                        <Button
+                            success
+                            onButtonPress={(event) => this.props.onPress(event, selectedItem.value)}
+                            text={selectedItem.text}
+                            isDisabled={this.props.isDisabled}
+                            isLoading={this.props.isLoading}
+                            shouldRemoveRightBorderRadius
+                            style={[styles.flex1, styles.pr0]}
+                            pressOnEnter
+                        />
+                        <View style={styles.buttonDivider} />
+                        <Button
+                            success
+                            isDisabled={this.props.isDisabled}
+                            style={[styles.pl0]}
+                            onPress={() => {
+                                this.setMenuVisibility(true);
+                            }}
+                            shouldRemoveLeftBorderRadius
+                        >
+                            <Icon
+                                src={Expensicons.DownArrow}
+                                fill={themeColors.textLight}
+                            />
+                        </Button>
+                    </View>
                 ) : (
                     <Button
                         success
@@ -99,7 +124,7 @@ class ButtonWithMenu extends PureComponent {
     }
 }
 
-ButtonWithMenu.propTypes = propTypes;
-ButtonWithMenu.defaultProps = defaultProps;
+ButtonWithDropdownMenu.propTypes = propTypes;
+ButtonWithDropdownMenu.defaultProps = defaultProps;
 
-export default ButtonWithMenu;
+export default ButtonWithDropdownMenu;
