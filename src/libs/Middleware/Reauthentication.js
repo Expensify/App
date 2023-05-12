@@ -49,12 +49,12 @@ function Reauthentication(response, request, isFromSequentialQueue) {
                 return;
             }
 
-            if (NetworkStore.isOffline()) {
-                // If we are offline and somehow handling this response we do not want to reauthenticate
-                throw new Error('Unable to reauthenticate because we are offline');
-            }
-
             if (data.jsonCode === CONST.JSON_CODE.NOT_AUTHENTICATED) {
+                if (NetworkStore.isOffline()) {
+                    // If we are offline and somehow handling this response we do not want to reauthenticate
+                    throw new Error('Unable to reauthenticate because we are offline');
+                }
+
                 // There are some API requests that should not be retried when there is an auth failure like
                 // creating and deleting logins. In those cases, they should handle the original response instead
                 // of the new response created by handleExpiredAuthToken.

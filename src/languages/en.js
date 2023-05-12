@@ -327,6 +327,7 @@ export default {
         splitAmount: ({amount}) => `split ${amount}`,
         amountEach: ({amount}) => `${amount} each`,
         payerOwesAmount: ({payer, amount}) => `${payer} owes ${amount}`,
+        payerSettled: ({amount}) => `settled up ${amount}`,
         noReimbursableExpenses: 'This report has an invalid amount',
         pendingConversionMessage: "Total will update when you're back online",
         error: {
@@ -397,6 +398,10 @@ export default {
             deleteContactMethod: 'Failed to delete contact method. Please reach out to Concierge for help.',
             setDefaultContactMethod: 'Failed to set a new default contact method. Please reach out to Concierge for help.',
             addContactMethod: 'Failed to add this contact method. Please reach out to Concierge for help.',
+            enteredMethodIsAlreadySubmited: 'The Entered Contact Method already exists.',
+            passwordRequired: 'password required.',
+            contactMethodRequired: 'Contact method is required.',
+            invalidContactMethod: 'Invalid contact method.',
         },
         newContactMethod: 'New contact method',
     },

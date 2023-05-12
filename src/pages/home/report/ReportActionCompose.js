@@ -20,6 +20,7 @@ import withWindowDimensions, {windowDimensionsPropTypes} from '../../../componen
 import withDrawerState from '../../../components/withDrawerState';
 import withLocalize, {withLocalizePropTypes} from '../../../components/withLocalize';
 import willBlurTextInputOnTapOutside from '../../../libs/willBlurTextInputOnTapOutside';
+import canFocusInputOnScreenFocus from '../../../libs/canFocusInputOnScreenFocus';
 import CONST from '../../../CONST';
 import Navigation from '../../../libs/Navigation/Navigation';
 import ROUTES from '../../../ROUTES';
@@ -110,14 +111,6 @@ const propTypes = {
     /** Stores user's preferred skin tone */
     preferredSkinTone: PropTypes.oneOfType([PropTypes.number, PropTypes.string]),
 
-    /** User's frequently used emojis */
-    frequentlyUsedEmojis: PropTypes.arrayOf(
-        PropTypes.shape({
-            code: PropTypes.string.isRequired,
-            keywords: PropTypes.arrayOf(PropTypes.string),
-        }),
-    ),
-
     /** The type of action that's pending  */
     pendingAction: PropTypes.oneOf(['add', 'update', 'delete']),
 
@@ -140,7 +133,6 @@ const defaultProps = {
     blockedFromConcierge: {},
     personalDetails: {},
     preferredSkinTone: CONST.EMOJI_DEFAULT_SKIN_TONE,
-    frequentlyUsedEmojis: [],
     isComposerFullSize: false,
     pendingAction: null,
     reports: {},
@@ -198,8 +190,12 @@ class ReportActionCompose extends React.Component {
         // code that will refocus the compose input after a user closes a modal or some other actions, see usage of ReportActionComposeFocusManager
         this.willBlurTextInputOnTapOutside = willBlurTextInputOnTapOutside();
 
+        // We want consistent auto focus behavior on input between native and mWeb so we have some auto focus management code that will
+        // prevent auto focus on existing chat for mobile device
+        this.shouldFocusInputOnScreenFocus = canFocusInputOnScreenFocus();
+
         this.state = {
-            isFocused: this.willBlurTextInputOnTapOutside && !this.props.modal.isVisible && !this.props.modal.willAlertModalBecomeVisible,
+            isFocused: this.shouldFocusInputOnScreenFocus && !this.props.modal.isVisible && !this.props.modal.willAlertModalBecomeVisible,
             isFullComposerAvailable: props.isComposerFullSize,
             textInputShouldClear: false,
             isCommentEmpty: props.comment.length === 0,
@@ -301,6 +297,7 @@ class ReportActionCompose extends React.Component {
     }
 
     onSelectionChange(e) {
+        LayoutAnimation.configureNext(LayoutAnimation.create(50, LayoutAnimation.Types.easeInEaseOut, LayoutAnimation.Properties.opacity));
         this.setState({selection: e.nativeEvent.selection});
         this.calculateEmojiSuggestion();
         this.calculateMentionSuggestion();
@@ -511,8 +508,6 @@ class ReportActionCompose extends React.Component {
             nextState.shouldShowEmojiSuggestionMenu = !_.isEmpty(newSuggestedEmojis);
         }
 
-        LayoutAnimation.configureNext(LayoutAnimation.create(50, LayoutAnimation.Types.easeInEaseOut, LayoutAnimation.Properties.opacity));
-
         this.setState(nextState);
     }
 
@@ -602,7 +597,7 @@ class ReportActionCompose extends React.Component {
             },
             suggestedEmojis: [],
         }));
-        EmojiUtils.addToFrequentlyUsedEmojis(this.props.frequentlyUsedEmojis, emojiObject);
+        EmojiUtils.addToFrequentlyUsedEmojis(emojiObject);
     }
 
     /**
@@ -1023,7 +1018,7 @@ class ReportActionCompose extends React.Component {
                                             disabled={this.props.disabled}
                                         >
                                             <Composer
-                                                autoFocus={!this.props.modal.isVisible && (this.willBlurTextInputOnTapOutside || this.isEmptyChat())}
+                                                autoFocus={!this.props.modal.isVisible && (this.shouldFocusInputOnScreenFocus || this.isEmptyChat())}
                                                 multiline
                                                 ref={this.setTextInputRef}
                                                 textAlignVertical="top"
@@ -1196,9 +1191,6 @@ export default compose(
         },
         blockedFromConcierge: {
             key: ONYXKEYS.NVP_BLOCKED_FROM_CONCIERGE,
-        },
-        frequentlyUsedEmojis: {
-            key: ONYXKEYS.FREQUENTLY_USED_EMOJIS,
         },
         preferredSkinTone: {
             key: ONYXKEYS.PREFERRED_EMOJI_SKIN_TONE,

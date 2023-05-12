@@ -326,6 +326,7 @@ export default {
         splitAmount: ({amount}) => `dividir ${amount}`,
         amountEach: ({amount}) => `${amount} cada uno`,
         payerOwesAmount: ({payer, amount}) => `${payer} debe ${amount}`,
+        payerSettled: ({amount}) => `pagado ${amount}`,
         noReimbursableExpenses: 'El monto de este informe es inválido',
         pendingConversionMessage: 'El total se actualizará cuando estés online',
         error: {
@@ -396,6 +397,10 @@ export default {
             deleteContactMethod: 'No se ha podido eliminar este método de contacto. Por favor, contacta con Concierge para obtener ayuda.',
             setDefaultContactMethod: 'No se pudo establecer un nuevo método de contacto predeterminado. Por favor contacta con Concierge para obtener ayuda.',
             addContactMethod: 'Hubo un error al añadir este método de contacto. Por favor, contacta con Concierge para obtener ayuda.',
+            enteredMethodIsAlreadySubmited: 'El método de contacto ingresado ya existe.',
+            passwordRequired: 'Se requiere contraseña',
+            contactMethodRequired: 'Se requiere método de contacto.',
+            invalidContactMethod: 'Método de contacto no válido.',
         },
         newContactMethod: 'Nuevo método de contacto',
     },
