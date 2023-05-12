@@ -23,7 +23,6 @@ import styles from '../../../styles/styles';
 import * as Expensicons from '../../../components/Icon/Expensicons';
 import ONYXKEYS from '../../../ONYXKEYS';
 import * as UserUtils from '../../../libs/UserUtils';
-import Button from '../../../components/Button';
 
 const propTypes = {
     /* Onyx Props */
@@ -103,14 +102,6 @@ const ProfilePage = (props) => {
                         onImageRemoved={PersonalDetails.deleteAvatar}
                         anchorPosition={styles.createMenuPositionProfile}
                         size={CONST.AVATAR_SIZE.LARGE}
-                    />
-
-                    <Button
-                        text={props.translate('common.shareCode')}
-                        small
-                        icon={Expensicons.QrCode}
-                        onPress={() => Navigation.navigate(ROUTES.SETTINGS_SHARE_CODE)}
-                        style={{marginTop: 20, alignSelf: 'center'}}
                     />
                 </OfflineWithFeedback>
                 <View style={[styles.mt4]}>

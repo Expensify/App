@@ -27,9 +27,7 @@ class ReportDetailsShareCodePage extends React.Component {
     render() {
         // eslint-disable-next-line es/no-optional-chaining
 
-        return (
-            <ShareCodePage report={this.props.report} />
-        );
+        return <ShareCodePage report={this.props.report} />;
     }
 }
 
