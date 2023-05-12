@@ -965,7 +965,7 @@ function getReportName(report) {
     let formattedName;
     if (isThread(report)) {
         const parentReportAction = ReportActionsUtils.getParentReportAction(report);
-        const parentReportActionMessage = lodashGet(parentReportAction, ['message', 0, 'text']);
+        const parentReportActionMessage = lodashGet(parentReportAction, ['message', 0, 'text'], '').replace(/(\r\n|\n|\r)/gm, ' ');
         return parentReportActionMessage || Localize.translateLocal('parentReportAction.deletedMessage');
     }
     if (isChatRoom(report) || isTaskReport(report)) {
