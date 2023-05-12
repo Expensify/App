@@ -61,16 +61,19 @@ class CalendarPicker extends React.PureComponent {
         }
 
         // If the selectedYear prop has changed, update the currentDateView state with the new year value
-        this.setState((prev) => {
-            const newMomentDate = moment(prev.currentDateView).set('year', this.props.selectedYear);
+        this.setState(
+            (prev) => {
+                const newMomentDate = moment(prev.currentDateView).set('year', this.props.selectedYear);
 
-            return {
-                selectedYear: this.props.selectedYear,
-                currentDateView: this.clampDate(newMomentDate.toDate()),
-            };
-        }, () => {
-            this.props.onSelected(this.getSelectedDateString());
-        });
+                return {
+                    selectedYear: this.props.selectedYear,
+                    currentDateView: this.clampDate(newMomentDate.toDate()),
+                };
+            },
+            () => {
+                this.props.onSelected(this.getSelectedDateString());
+            },
+        );
     }
 
     /**
@@ -91,16 +94,19 @@ class CalendarPicker extends React.PureComponent {
      * @param {Number} day - The day of the month that was selected.
      */
     onDayPressed(day) {
-        this.setState((prev) => {
-            const momentDate = moment(prev.currentDateView).date(day);
+        this.setState(
+            (prev) => {
+                const momentDate = moment(prev.currentDateView).date(day);
 
-            return {
-                selectedDay: this.getNumberStringWithLeadingZero(day),
-                currentDateView: this.clampDate(momentDate.toDate()),
-            };
-        }, () => {
-            this.props.onSelected(this.getSelectedDateString());
-        });
+                return {
+                    selectedDay: this.getNumberStringWithLeadingZero(day),
+                    currentDateView: this.clampDate(momentDate.toDate()),
+                };
+            },
+            () => {
+                this.props.onSelected(this.getSelectedDateString());
+            },
+        );
     }
 
     /**
@@ -143,26 +149,32 @@ class CalendarPicker extends React.PureComponent {
      * Handles the user pressing the previous month arrow of the calendar picker.
      */
     moveToPrevMonth() {
-        this.setState((prev) => {
-            const momentDate = moment(prev.currentDateView).subtract(1, 'M');
+        this.setState(
+            (prev) => {
+                const momentDate = moment(prev.currentDateView).subtract(1, 'M');
 
-            return this.getMonthState(momentDate);
-        }, () => {
-            this.props.onSelected(this.getSelectedDateString());
-        });
+                return this.getMonthState(momentDate);
+            },
+            () => {
+                this.props.onSelected(this.getSelectedDateString());
+            },
+        );
     }
 
     /**
      * Handles the user pressing the next month arrow of the calendar picker.
      */
     moveToNextMonth() {
-        this.setState((prev) => {
-            const momentDate = moment(prev.currentDateView).add(1, 'M');
+        this.setState(
+            (prev) => {
+                const momentDate = moment(prev.currentDateView).add(1, 'M');
 
-            return this.getMonthState(momentDate);
-        }, () => {
-            this.props.onSelected(this.getSelectedDateString());
-        });
+                return this.getMonthState(momentDate);
+            },
+            () => {
+                this.props.onSelected(this.getSelectedDateString());
+            },
+        );
     }
 
     /**
