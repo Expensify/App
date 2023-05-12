@@ -6,7 +6,7 @@ import ONYXKEYS from '../../ONYXKEYS';
 import CONST from '../../CONST';
 import {withNetwork} from '../OnyxProvider';
 import compose from '../../libs/compose';
-import IOUQuote from './IOUQuote';
+import ReportPreview from './ReportPreview';
 import reportActionPropTypes from '../../pages/home/report/reportActionPropTypes';
 import networkPropTypes from '../networkPropTypes';
 import iouReportPropTypes from '../../pages/iouReportPropTypes';
@@ -119,8 +119,6 @@ const MoneyRequestAction = (props) => {
         }
     };
 
-    const shouldShowIOUPreview = props.isMostRecentIOUReportAction || props.action.originalMessage.type === 'pay';
-
     let shouldShowPendingConversionMessage = false;
     if (
         !_.isEmpty(props.iouReport) &&
@@ -135,26 +133,26 @@ const MoneyRequestAction = (props) => {
 
     return (
         <>
-            <IOUQuote
-                action={props.action}
+            <IOUPreview
+                iouReportID={props.requestReportID}
                 chatReportID={props.chatReportID}
+                isBillSplit={hasMultipleParticipants}
+                action={props.action}
                 contextMenuAnchor={props.contextMenuAnchor}
-                onViewDetailsPressed={onIOUPreviewPressed}
                 checkIfContextMenuActive={props.checkIfContextMenuActive}
+                shouldShowPendingConversionMessage={shouldShowPendingConversionMessage}
+                onPreviewPressed={onIOUPreviewPressed}
+                containerStyles={[styles.cursorPointer, props.isHovered ? styles.iouPreviewBoxHover : undefined]}
                 isHovered={props.isHovered}
             />
-            {shouldShowIOUPreview && (
-                <IOUPreview
-                    iouReportID={props.requestReportID}
-                    chatReportID={props.chatReportID}
-                    isBillSplit={hasMultipleParticipants}
+            {props.isMostRecentIOUReportAction && !hasMultipleParticipants && (
+                <ReportPreview
                     action={props.action}
+                    chatReportID={props.chatReportID}
+                    iouReportID={props.requestReportID}
                     contextMenuAnchor={props.contextMenuAnchor}
+                    onViewDetailsPressed={onIOUPreviewPressed}
                     checkIfContextMenuActive={props.checkIfContextMenuActive}
-                    shouldShowPendingConversionMessage={shouldShowPendingConversionMessage}
-                    onPayButtonPressed={onIOUPreviewPressed}
-                    onPreviewPressed={onIOUPreviewPressed}
-                    containerStyles={[styles.cursorPointer, props.isHovered ? styles.iouPreviewBoxHover : undefined]}
                     isHovered={props.isHovered}
                 />
             )}
