@@ -109,7 +109,7 @@ const ProfilePage = (props) => {
                         text={props.translate('common.shareCode')}
                         small
                         icon={Expensicons.QrCode}
-                        onPress={() => Navigation.navigate(ROUTES.SETTINGS_PROFILE_SHARE_CODE)}
+                        onPress={() => Navigation.navigate(ROUTES.SETTINGS_SHARE_CODE)}
                         style={{marginTop: 20, alignSelf: 'center'}}
                     />
                 </OfflineWithFeedback>

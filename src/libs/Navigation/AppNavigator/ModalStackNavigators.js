@@ -298,6 +298,13 @@ const SettingsModalStackNavigator = createModalStackNavigator([
     },
     {
         getComponent: () => {
+            const ShareCodePage = require('../../../pages/ShareCodePage').default;
+            return ShareCodePage;
+        },
+        name: 'Settings_Share_Code',
+    },
+    {
+        getComponent: () => {
             const SettingsWorkspacesPage = require('../../../pages/workspace/WorkspacesListPage').default;
             return SettingsWorkspacesPage;
         },
@@ -309,13 +316,6 @@ const SettingsModalStackNavigator = createModalStackNavigator([
             return SettingsProfilePage;
         },
         name: 'Settings_Profile',
-    },
-    {
-        getComponent: () => {
-            const ShareCodePage = require('../../../pages/ShareCodePage').default;
-            return ShareCodePage;
-        },
-        name: 'Settings_Profile_Share_Code',
     },
     {
         getComponent: () => {

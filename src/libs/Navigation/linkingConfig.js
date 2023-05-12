@@ -30,6 +30,10 @@ export default {
                     Settings_Root: {
                         path: ROUTES.SETTINGS,
                     },
+                    Settings_Share_Code: {
+                        path: ROUTES.SETTINGS_SHARE_CODE,
+                        exact: true,
+                    },
                     Settings_Workspaces: {
                         path: ROUTES.SETTINGS_WORKSPACES,
                         exact: true,
@@ -88,10 +92,6 @@ export default {
                     },
                     Settings_Profile: {
                         path: ROUTES.SETTINGS_PROFILE,
-                        exact: true,
-                    },
-                    Settings_Profile_Share_Code: {
-                        path: ROUTES.SETTINGS_PROFILE_SHARE_CODE,
                         exact: true,
                     },
                     Settings_Pronouns: {
