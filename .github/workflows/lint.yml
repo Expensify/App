@@ -25,7 +25,6 @@ jobs:
 
       - name: Verify there's no Prettier diff
         run: |
-          ls
-          source Expensify/App/scripts/shellUtils.sh
+          source ./scripts/shellUtils.sh
           npm run prettier
           git diff --name-only --exit-code || error 'Error: Prettier diff detected! Please run \`npm run prettier\` and commit the changes.'
