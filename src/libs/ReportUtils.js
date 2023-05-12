@@ -463,7 +463,7 @@ function isThreadFirstChat(reportAction, reportID) {
  * @param {Object} report
  * @returns {String}
  */
-function getChatRoomSubtitle(report) {
+function getChatRoomSubtitle(report, parentReport) {
     if (isThread(report)) {
         if (!getChatType(report)) {
             return '';
@@ -471,7 +471,15 @@ function getChatRoomSubtitle(report) {
 
         // If thread is not from a DM or group chat, the subtitle will follow the pattern 'Workspace Name • #roomName'
         const workspaceName = getPolicyName(report);
-        const roomName = isChatRoom(report) ? lodashGet(report, 'displayName') : '';
+        let roomName = '';
+        if (isChatRoom(report)) {
+            if (parentReport) {
+                roomName = lodashGet(parentReport, 'displayName', '');
+            } else {
+                roomName = lodashGet(report, 'displayName', '');
+            }
+        }
+
         return [workspaceName, roomName].join(' • ');
     }
     if (!isDefaultRoom(report) && !isUserCreatedPolicyRoom(report) && !isPolicyExpenseChat(report)) {
