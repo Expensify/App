@@ -184,6 +184,14 @@ function canEditReportAction(reportAction) {
 }
 
 /**
+ * @param {String} reportID
+ * @returns {Boolean}
+ */
+function isSettled(reportID) {
+    return !lodashGet(allReports, [`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, 'hasOutstandingIOU']);
+}
+
+/**
  * Can only delete if it's an ADDCOMMENT, the author is this user.
  *
  * @param {Object} reportAction
@@ -1956,4 +1964,9 @@ export {
     canRequestMoney,
     getWhisperDisplayNames,
     getWorkspaceAvatar,
+<<<<<<< HEAD
+=======
+    shouldReportShowSubscript,
+    isSettled,
+>>>>>>> cb076db69e (Merge pull request #18486 from Expensify/jules-displayReportPreview)
 };
