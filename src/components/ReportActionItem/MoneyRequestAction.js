@@ -106,11 +106,7 @@ const MoneyRequestAction = (props) => {
                 props.action.reportActionID,
             );
             console.log({optimisticThreadReport});
-            Report.openReport(
-                optimisticThreadReport.reportID,
-                [_.reject(optimisticThreadReport.participants, (login) => login === lodashGet(props.session, 'email', ''))],
-                optimisticThreadReport,
-            );
+            Report.openReport(optimisticThreadReport.reportID, optimisticThreadReport.participants, optimisticThreadReport);
         }
         if (hasMultipleParticipants) {
             Navigation.navigate(ROUTES.getReportParticipantsRoute(props.chatReportID));
