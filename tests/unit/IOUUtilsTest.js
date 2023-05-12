@@ -1,4 +1,5 @@
 import Onyx from 'react-native-onyx';
+import _ from 'underscore';
 import * as IOUUtils from '../../src/libs/IOUUtils';
 import * as ReportUtils from '../../src/libs/ReportUtils';
 import * as NumberUtils from '../../src/libs/NumberUtils';
@@ -6,18 +7,25 @@ import CONST from '../../src/CONST';
 import ONYXKEYS from '../../src/ONYXKEYS';
 import waitForPromisesToResolve from '../utils/waitForPromisesToResolve';
 import currencyList from './currencyList.json';
+import DateUtils from '../../src/libs/DateUtils';
 
 let iouReport;
 let reportActions;
 const ownerEmail = 'owner@iou.com';
 const managerEmail = 'manager@iou.com';
 
-function createIOUReportAction(type, amount, currency, isOffline = false, IOUTransactionID = NumberUtils.rand64()) {
+function createIOUReportAction(type, amount, currency, isOffline = false, isError = false, IOUTransactionID = NumberUtils.rand64()) {
     const moneyRequestAction = ReportUtils.buildOptimisticIOUReportAction(type, amount, currency, 'Test comment', [managerEmail], IOUTransactionID, '', iouReport.reportID);
 
     // Default is to create requests online, if `isOffline` is not specified then we need to remove the pendingAction
     if (!isOffline) {
         moneyRequestAction.pendingAction = null;
+    }
+
+    if (isError) {
+        moneyRequestAction.errors = {
+            [DateUtils.getMicroseconds()]: 'Unexpected error requesting money, please try again later',
+        };
     }
 
     reportActions.push(moneyRequestAction);
@@ -151,6 +159,34 @@ describe('IOUUtils', () => {
             const participants = ['tonystark@expensify.com', 'reedrichards@expensify.com', 'suestorm@expensify.com'];
             expect(IOUUtils.calculateAmount(participants, 2, true)).toBe(-1);
             expect(IOUUtils.calculateAmount(participants, 2)).toBe(1);
+        });
+    });
+
+    describe('getDeletableTransactions', () => {
+        beforeAll(() => {
+            Onyx.set(ONYXKEYS.SESSION, {email: managerEmail});
+        });
+
+        beforeEach(() => {
+            reportActions = [];
+            const chatReportID = ReportUtils.generateReportID();
+            const amount = 1000;
+            const currency = 'USD';
+
+            iouReport = ReportUtils.buildOptimisticIOUReport(ownerEmail, managerEmail, amount, chatReportID, currency);
+            createIOUReportAction('create', amount, currency);
+        });
+
+        test('Without failed request]', () => {
+            createIOUReportAction('create', 200, 'JPY');
+            const expectedOutput = _.map(reportActions, (action) => action.originalMessage.IOUTransactionID);
+            expect(IOUUtils.getDeletableTransactions(reportActions, iouReport.reportID, managerEmail)).toStrictEqual(expectedOutput);
+        });
+
+        test('With failed request', () => {
+            createIOUReportAction('create', 200, 'JPY', false, true);
+            const expectedOutput = _.map(reportActions.slice(0, 1), (action) => action.originalMessage.IOUTransactionID);
+            expect(IOUUtils.getDeletableTransactions(reportActions, iouReport.reportID, managerEmail)).toStrictEqual(expectedOutput);
         });
     });
 });
