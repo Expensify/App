@@ -1,4 +1,3 @@
-/* eslint-disable rulesdir/onyx-props-must-have-default */
 import React from 'react';
 import {StyleSheet, View} from 'react-native';
 import PropTypes from 'prop-types';
@@ -18,6 +17,7 @@ import compose from '../../libs/compose';
 import styles from '../../styles/styles';
 import Text from '../Text';
 import isEnterWhileComposition from '../../libs/KeyboardShortcut/isEnterWhileComposition';
+import CONST from '../../CONST';
 
 const propTypes = {
     /** Maximum number of lines in the text input */
@@ -76,7 +76,7 @@ const propTypes = {
     /** Whether the composer is full size */
     isComposerFullSize: PropTypes.bool,
 
-    /** Whether the composer is full size */
+    /** Should we calculate the caret position */
     shouldCalculateCaretPosition: PropTypes.bool,
 
     ...withLocalizePropTypes,
@@ -201,7 +201,7 @@ class Composer extends React.Component {
         this.textInput.removeEventListener('wheel', this.handleWheel);
     }
 
-    // get characters from the cursor to the next space or new line
+    // Get characters from the cursor to the next space or new line
     getNextChars(str, cursorPos) {
         // Get the substring starting from the cursor position
         const substr = str.substring(cursorPos);
@@ -217,6 +217,11 @@ class Composer extends React.Component {
         return substr.substring(0, spaceIndex);
     }
 
+    /**
+     *  Adds the cursor position to the selection change event.
+     *  
+     * @param {Event} event 
+     */
     addCursorPositionToSelectionChange(event) {
         if (this.props.shouldCalculateCaretPosition) {
             const newValueBeforeCaret = event.target.value.slice(0, event.nativeEvent.selection.start);
@@ -233,9 +238,7 @@ class Composer extends React.Component {
                             selection: {
                                 start: event.nativeEvent.selection.start,
                                 end: event.nativeEvent.selection.end,
-
-                                // 4 is a width of the space which we added manually
-                                positionX: this.textRef.current.offsetLeft - 4,
+                                positionX: this.textRef.current.offsetLeft - CONST.SPACE_CHARACTER_WIDTH,
                                 positionY: this.textRef.current.offsetTop,
                             },
                         },
@@ -445,8 +448,9 @@ class Composer extends React.Component {
                     <Text
                         numberOfLines={1}
                         ref={this.textRef}
-                        style={{backgroundColor: 'green'}}
-                    >{`${this.state.caretContent}`}</Text>
+                    >
+                        {`${this.state.caretContent}`}
+                    </Text>
                 </Text>
             </View>
         );

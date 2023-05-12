@@ -2311,6 +2311,7 @@ const CONST = {
         ACTIVE: 'active',
         DISABLED: 'disabled',
     },
+    SPACE_CHARACTER_WIDTH: 4
 };
 
 export default CONST;
