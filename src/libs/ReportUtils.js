@@ -544,24 +544,6 @@ function hashLogin(login, range) {
 }
 
 /**
- * There is a possibility that if the Expense report has a negative total.
- * This is because there are instances where you can get a credit back on your card,
- * or you enter a negative expense to “offset” future expenses
- *
- * @param {Object} moneyRequestReport
- * @returns {Number}
- */
-function getMoneyRequestAmount(moneyRequestReport) {
-    const moneyRequestAmount = lodashGet(moneyRequestReport, 'total', 0);
-
-    if (moneyRequestAmount === 0) {
-        return 0;
-    }
-
-    return isExpenseReport(moneyRequestReport) ? moneyRequestAmount * -1 : Math.abs(moneyRequestAmount);
-}
-
-/**
  * Helper method to return the default avatar associated with the given login
  * @param {String} [login]
  * @returns {String}
@@ -874,6 +856,29 @@ function getDisplayNamesWithTooltips(participants, isMultipleParticipantReport) 
 }
 
 /**
+ * @param {Object} report
+ * @param {String} report.iouReportID
+ * @param {Object} moneyRequestReports
+ * @returns {Number}
+ */
+function getMoneyRequestTotal(report, moneyRequestReports = {}) {
+    if (report.hasOutstandingIOU) {
+        const moneyRequestReport = moneyRequestReports[`${ONYXKEYS.COLLECTION.REPORT}${report.iouReportID}`];
+        if (moneyRequestReport) {
+            return moneyRequestReport.total;
+        }
+
+        if (isMoneyRequestReport(report) && report.total !== 0) {
+            // There is a possibility that if the Expense report has a negative total.
+            // This is because there are instances where you can get a credit back on your card,
+            // or you enter a negative expense to “offset” future expenses
+            return isExpenseReport(report) ? report.total * -1 : Math.abs(report.total);
+        }
+    }
+    return 0;
+}
+
+/**
  * Get the title for a policy expense chat which depends on the role of the policy member seeing this report
  *
  * @param {Object} report
@@ -910,7 +915,7 @@ function getPolicyExpenseChatName(report) {
  * @returns  {String}
  */
 function getMoneyRequestReportName(report) {
-    const formattedAmount = CurrencyUtils.convertToDisplayString(getMoneyRequestAmount(report), report.currency);
+    const formattedAmount = CurrencyUtils.convertToDisplayString(getMoneyRequestTotal(report), report.currency);
     const payerName = isExpenseReport(report) ? getPolicyName(report) : getDisplayNameForParticipant(report.managerEmail);
 
     return Localize.translateLocal('iou.payerOwesAmount', {payer: payerName, amount: formattedAmount});
@@ -1544,22 +1549,6 @@ function hasOutstandingIOU(report, currentUserLogin, iouReports) {
  * @param {Object} report
  * @param {String} report.iouReportID
  * @param {Object} iouReports
- * @returns {Number}
- */
-function getIOUTotal(report, iouReports = {}) {
-    if (report.hasOutstandingIOU) {
-        const iouReport = iouReports[`${ONYXKEYS.COLLECTION.REPORT}${report.iouReportID}`];
-        if (iouReport) {
-            return iouReport.total;
-        }
-    }
-    return 0;
-}
-
-/**
- * @param {Object} report
- * @param {String} report.iouReportID
- * @param {Object} iouReports
  * @returns {Boolean}
  */
 function isIOUOwnedByCurrentUser(report, iouReports = {}) {
@@ -1957,7 +1946,7 @@ export {
     hasExpensifyGuidesEmails,
     hasOutstandingIOU,
     isIOUOwnedByCurrentUser,
-    getIOUTotal,
+    getMoneyRequestTotal,
     canShowReportRecipientLocalTime,
     formatReportLastMessageText,
     chatIncludesConcierge,
@@ -2011,5 +2000,4 @@ export {
     getWhisperDisplayNames,
     getWorkspaceAvatar,
     shouldReportShowSubscript,
-    getMoneyRequestAmount,
 };
