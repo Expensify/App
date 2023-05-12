@@ -88,6 +88,37 @@ function datetimeToCalendarTime(locale, datetime, includeTimeZone = false, curre
 }
 
 /**
+ * Formats an ISO-formatted datetime string to local date and time string
+ *
+ * e.g.
+ *
+ * Jan 20 at 5:30 PM          within the past year
+ * Jan 20, 2019 at 5:30 PM    anything over 1 year ago
+ *
+ * @param {String} locale
+ * @param {String} datetime
+ * @param {String} [currentSelectedTimezone]
+ *
+ * @returns {String}
+ */
+function datetimeToCalendarTimeShort(locale, datetime, currentSelectedTimezone) {
+    const date = getLocalMomentFromDatetime(locale, datetime, currentSelectedTimezone);
+
+    const today = Localize.translate(locale, 'common.today');
+    const tomorrow = Localize.translate(locale, 'common.tomorrow');
+    const yesterday = Localize.translate(locale, 'common.yesterday');
+
+    return moment(date).calendar({
+        sameDay: `[${today}]`,
+        nextDay: `[${tomorrow}]`,
+        lastDay: `[${yesterday}]`,
+        nextWeek: `MMM D`,
+        lastWeek: `MMM D`,
+        sameElse: `MMM D, YYYY`,
+    });
+}
+
+/**
  * Converts an ISO-formatted datetime string into a localized string representation
  * that's relative to current moment in time.
  *
@@ -191,6 +222,7 @@ function subtractMillisecondsFromDateTime(dateTime, milliseconds) {
 const DateUtils = {
     datetimeToRelative,
     datetimeToCalendarTime,
+    datetimeToCalendarTimeShort,
     startCurrentDateUpdater,
     getLocalMomentFromDatetime,
     getCurrentTimezone,

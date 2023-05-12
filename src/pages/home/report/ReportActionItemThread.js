@@ -5,11 +5,14 @@ import _ from 'underscore';
 import styles from '../../../styles/styles';
 import * as Report from '../../../libs/actions/Report';
 import withLocalize, {withLocalizePropTypes} from '../../../components/withLocalize';
+import withWindowDimensions, {windowDimensionsPropTypes} from '../../../components/withWindowDimensions';
+
 import CONST from '../../../CONST';
 import avatarPropTypes from '../../../components/avatarPropTypes';
 import MultipleAvatars from '../../../components/MultipleAvatars';
 import Navigation from '../../../libs/Navigation/Navigation';
 import ROUTES from '../../../ROUTES';
+import compose from '../../../libs/compose';
 
 const propTypes = {
     /** List of participant icons for the thread */
@@ -27,13 +30,15 @@ const propTypes = {
     /** Is hovered */
     isHovered: PropTypes.bool.isRequired,
 
-    /** localization props */
     ...withLocalizePropTypes,
+    ...windowDimensionsPropTypes,
 };
 
 const ReportActionItemThread = (props) => {
     const numberReplies = props.numberOfReplies > 99 ? '99+' : `${props.numberOfReplies}`;
     const replyText = props.numberOfReplies === 1 ? props.translate('threads.reply') : props.translate('threads.replies');
+
+    const timeStamp = props.isSmallScreenWidth ? props.datetimeToCalendarTimeShort(props.mostRecentReply) : props.datetimeToCalendarTime(props.mostRecentReply);
 
     return (
         <View style={[styles.chatItemMessage]}>
@@ -62,7 +67,7 @@ const ReportActionItemThread = (props) => {
                         <Text
                             selectable={false}
                             style={[styles.ml2, styles.textMicroSupporting]}
-                        >{`${props.translate('threads.lastReply')} ${props.datetimeToCalendarTime(props.mostRecentReply)}`}</Text>
+                        >{`${props.translate('threads.lastReply')} ${timeStamp}`}</Text>
                     </View>
                 </View>
             </Pressable>
@@ -73,4 +78,4 @@ const ReportActionItemThread = (props) => {
 ReportActionItemThread.propTypes = propTypes;
 ReportActionItemThread.displayName = 'ReportActionItemThread';
 
-export default withLocalize(ReportActionItemThread);
+export default compose(withLocalize, withWindowDimensions)(ReportActionItemThread);

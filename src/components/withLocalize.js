@@ -29,6 +29,9 @@ const withLocalizePropTypes = {
     /** Formats a datetime to local date and time string */
     datetimeToCalendarTime: PropTypes.func.isRequired,
 
+    /** Formats a datetime to local date and time string, short version */
+    datetimeToCalendarTimeShort: PropTypes.func.isRequired,
+
     /** Returns a locally converted phone number for numbers from the same region
      * and an internationally converted phone number with the country code for numbers from other regions */
     formatPhoneNumber: PropTypes.func.isRequired,
@@ -73,6 +76,7 @@ class LocaleContextProvider extends React.Component {
             numberFormat: this.numberFormat.bind(this),
             datetimeToRelative: this.datetimeToRelative.bind(this),
             datetimeToCalendarTime: this.datetimeToCalendarTime.bind(this),
+            datetimeToCalendarTimeShort: this.datetimeToCalendarTimeShort.bind(this),
             formatPhoneNumber: this.formatPhoneNumber.bind(this),
             fromLocaleDigit: this.fromLocaleDigit.bind(this),
             toLocaleDigit: this.toLocaleDigit.bind(this),
@@ -113,6 +117,15 @@ class LocaleContextProvider extends React.Component {
      */
     datetimeToCalendarTime(datetime, includeTimezone) {
         return DateUtils.datetimeToCalendarTime(this.props.preferredLocale, datetime, includeTimezone, lodashGet(this.props, 'currentUserPersonalDetails.timezone.selected'));
+    }
+
+    /**
+     * @param {String} datetime - ISO-formatted datetime string
+     * @param {Boolean} [includeTimezone]
+     * @returns {String}
+     */
+    datetimeToCalendarTimeShort(datetime, includeTimezone) {
+        return DateUtils.datetimeToCalendarTimeShort(this.props.preferredLocale, datetime, includeTimezone, lodashGet(this.props, 'currentUserPersonalDetails.timezone.selected'));
     }
 
     /**
