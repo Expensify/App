@@ -826,7 +826,7 @@ function getSendMoneyParams(report, amount, currency, comment, paymentMethodType
 
     // Note: The created action must be optimistically generated before the IOU action so there's no chance that the created action appears after the IOU action in the chat
     const optimisticCreatedAction = ReportUtils.buildOptimisticCreatedReportAction(recipientEmail);
-    const optimisticIOUReportAction = ReportUtils.buildOptimisticIOUReportAction(
+    const optimisticIOUAction = ReportUtils.buildOptimisticIOUReportAction(
         CONST.IOU.REPORT_ACTION_TYPE.PAY,
         amount,
         currency,
@@ -844,33 +844,32 @@ function getSendMoneyParams(report, amount, currency, comment, paymentMethodType
         value: {
             ...chatReport,
             lastReadTime: DateUtils.getDBTime(),
-            lastVisibleActionCreated: optimisticIOUReportAction.created,
-            lastMessageText: optimisticIOUReportAction.message[0].text,
-            lastMessageHtml: optimisticIOUReportAction.message[0].html,
         },
     };
     const optimisticIOUReportData = {
         onyxMethod: Onyx.METHOD.SET,
         key: `${ONYXKEYS.COLLECTION.REPORT}${optimisticIOUReport.reportID}`,
-        value: optimisticIOUReport,
+        value: {
+            ...optimisticIOUReport,
+            lastMessageText: optimisticIOUAction.message[0].text,
+            lastMessageHtml: optimisticIOUAction.message[0].html,
+            lastVisibleActionCreated: optimisticIOUAction.created,
+        },
     };
     const optimisticReportActionsData = {
         onyxMethod: Onyx.METHOD.MERGE,
-        key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${chatReport.reportID}`,
+        key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${optimisticIOUReport.reportID}`,
         value: {
-            [optimisticIOUReportAction.reportActionID]: {
-                ...optimisticIOUReportAction,
-                pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
-            },
+            [optimisticIOUAction.reportActionID]: optimisticIOUAction,
         },
     };
 
     const successData = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${chatReport.reportID}`,
+            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${optimisticIOUReport.reportID}`,
             value: {
-                [optimisticIOUReportAction.reportActionID]: {
+                [optimisticIOUAction.reportActionID]: {
                     pendingAction: null,
                 },
             },
@@ -885,9 +884,9 @@ function getSendMoneyParams(report, amount, currency, comment, paymentMethodType
     const failureData = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${chatReport.reportID}`,
+            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${optimisticIOUReport.reportID}`,
             value: {
-                [optimisticIOUReportAction.reportActionID]: {
+                [optimisticIOUAction.reportActionID]: {
                     errors: {
                         [DateUtils.getMicroseconds()]: Localize.translateLocal('iou.error.other'),
                     },
@@ -937,7 +936,7 @@ function getSendMoneyParams(report, amount, currency, comment, paymentMethodType
         optimisticReportActionsData.value[optimisticCreatedAction.reportActionID] = optimisticCreatedAction;
 
         // If we're going to fail to create the report itself, let's not have redundant error messages for the IOU
-        failureData[0].value[optimisticIOUReportAction.reportActionID] = {pendingAction: null};
+        failureData[0].value[optimisticIOUAction.reportActionID] = {pendingAction: null};
     }
 
     const optimisticData = [optimisticChatReportData, optimisticIOUReportData, optimisticReportActionsData, optimisticTransactionData];
@@ -946,7 +945,7 @@ function getSendMoneyParams(report, amount, currency, comment, paymentMethodType
         params: {
             iouReportID: optimisticIOUReport.reportID,
             chatReportID: chatReport.reportID,
-            reportActionID: optimisticIOUReportAction.reportActionID,
+            reportActionID: optimisticIOUAction.reportActionID,
             paymentMethodType,
             transactionID: optimisticTransaction.transactionID,
             newIOUReportDetails,
@@ -967,7 +966,7 @@ function getSendMoneyParams(report, amount, currency, comment, paymentMethodType
  */
 function getPayMoneyRequestParams(chatReport, iouReport, recipient, paymentMethodType) {
     const optimisticTransaction = TransactionUtils.buildOptimisticTransaction(iouReport.total, iouReport.currency, iouReport.reportID);
-    const optimisticIOUReportAction = ReportUtils.buildOptimisticIOUReportAction(
+    const optimisticIOUAction = ReportUtils.buildOptimisticIOUReportAction(
         CONST.IOU.REPORT_ACTION_TYPE.PAY,
         iouReport.total,
         iouReport.currency,
@@ -986,19 +985,16 @@ function getPayMoneyRequestParams(chatReport, iouReport, recipient, paymentMetho
             value: {
                 ...chatReport,
                 lastReadTime: DateUtils.getDBTime(),
-                lastVisibleActionCreated: optimisticIOUReportAction.created,
-                lastMessageText: optimisticIOUReportAction.message[0].text,
-                lastMessageHtml: optimisticIOUReportAction.message[0].html,
                 hasOutstandingIOU: false,
                 iouReportID: null,
             },
         },
         {
             onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${chatReport.reportID}`,
+            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${iouReport.reportID}`,
             value: {
-                [optimisticIOUReportAction.reportActionID]: {
-                    ...optimisticIOUReportAction,
+                [optimisticIOUAction.reportActionID]: {
+                    ...optimisticIOUAction,
                     pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
                 },
             },
@@ -1008,6 +1004,9 @@ function getPayMoneyRequestParams(chatReport, iouReport, recipient, paymentMetho
             key: `${ONYXKEYS.COLLECTION.REPORT}${iouReport.reportID}`,
             value: {
                 ...iouReport,
+                lastVisibleActionCreated: optimisticIOUAction.created,
+                lastMessageText: optimisticIOUAction.message[0].text,
+                lastMessageHtml: optimisticIOUAction.message[0].html,
                 hasOutstandingIOU: false,
                 stateNum: CONST.REPORT.STATE_NUM.SUBMITTED,
             },
@@ -1022,9 +1021,9 @@ function getPayMoneyRequestParams(chatReport, iouReport, recipient, paymentMetho
     const successData = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${chatReport.reportID}`,
+            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${iouReport.reportID}`,
             value: {
-                [optimisticIOUReportAction.reportActionID]: {
+                [optimisticIOUAction.reportActionID]: {
                     pendingAction: null,
                 },
             },
@@ -1041,9 +1040,9 @@ function getPayMoneyRequestParams(chatReport, iouReport, recipient, paymentMetho
     const failureData = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${chatReport.reportID}`,
+            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${iouReport.reportID}`,
             value: {
-                [optimisticIOUReportAction.reportActionID]: {
+                [optimisticIOUAction.reportActionID]: {
                     pendingAction: null,
                     errors: {
                         [DateUtils.getMicroseconds()]: Localize.translateLocal('iou.error.other'),
@@ -1067,7 +1066,7 @@ function getPayMoneyRequestParams(chatReport, iouReport, recipient, paymentMetho
         params: {
             iouReportID: iouReport.reportID,
             chatReportID: chatReport.reportID,
-            reportActionID: optimisticIOUReportAction.reportActionID,
+            reportActionID: optimisticIOUAction.reportActionID,
             paymentMethodType,
         },
         optimisticData,
