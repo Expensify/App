@@ -154,7 +154,7 @@ const IOUPreview = (props) => {
     const isCurrentUserManager = managerEmail === sessionEmail;
 
     // Get request formatting options, as long as currency is provided
-    const requestAmount = props.isBillSplit ? props.action.originalMessage.amount : ReportUtils.getMoneyRequestAmount(props.iouReport);
+    const requestAmount = props.isBillSplit ? props.action.originalMessage.amount : ReportUtils.getMoneyRequestTotal(props.iouReport);
     const requestCurrency = props.isBillSplit ? lodashGet(props.action, 'originalMessage.currency', CONST.CURRENCY.USD) : props.iouReport.currency;
 
     const getSettledMessage = () => {
