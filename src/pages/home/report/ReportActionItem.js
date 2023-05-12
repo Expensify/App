@@ -1,8 +1,6 @@
 import _ from 'underscore';
 import lodashGet from 'lodash/get';
-import React, {
-    useState, useRef, useEffect, memo, useCallback,
-} from 'react';
+import React, {useState, useRef, useEffect, memo, useCallback} from 'react';
 import {View} from 'react-native';
 import PropTypes from 'prop-types';
 import {withOnyx} from 'react-native-onyx';
@@ -118,33 +116,39 @@ function ReportActionItem(props) {
      *
      * @param {Object} [event] - A press event.
      */
-    const showPopover = useCallback((event) => {
-        // Block menu on the message being Edited or if the report action item has errors
-        if (props.draftMessage || !_.isEmpty(props.action.errors)) {
-            return;
-        }
+    const showPopover = useCallback(
+        (event) => {
+            // Block menu on the message being Edited or if the report action item has errors
+            if (props.draftMessage || !_.isEmpty(props.action.errors)) {
+                return;
+            }
 
-        setIsContextMenuActive(true);
+            setIsContextMenuActive(true);
 
-        const selection = SelectionScraper.getCurrentSelection();
-        ReportActionContextMenu.showContextMenu(
-            ContextMenuActions.CONTEXT_MENU_TYPES.REPORT_ACTION,
-            event,
-            selection,
-            popoverAnchorRef.current,
-            props.report.reportID,
-            props.action,
-            props.draftMessage,
-            undefined,
-            toggleContextMenuFromActiveReportAction,
-            ReportUtils.isArchivedRoom(props.report),
-            ReportUtils.chatIncludesChronos(props.report),
-        );
-    }, [props.draftMessage, props.report, props.action, toggleContextMenuFromActiveReportAction]);
+            const selection = SelectionScraper.getCurrentSelection();
+            ReportActionContextMenu.showContextMenu(
+                ContextMenuActions.CONTEXT_MENU_TYPES.REPORT_ACTION,
+                event,
+                selection,
+                popoverAnchorRef.current,
+                props.report.reportID,
+                props.action,
+                props.draftMessage,
+                undefined,
+                toggleContextMenuFromActiveReportAction,
+                ReportUtils.isArchivedRoom(props.report),
+                ReportUtils.chatIncludesChronos(props.report),
+            );
+        },
+        [props.draftMessage, props.report, props.action, toggleContextMenuFromActiveReportAction],
+    );
 
-    const toggleReaction = useCallback((emoji) => {
-        Report.toggleEmojiReaction(props.report.reportID, props.action, emoji);
-    }, [props.report, props.action]);
+    const toggleReaction = useCallback(
+        (emoji) => {
+            Report.toggleEmojiReaction(props.report.reportID, props.action, emoji);
+        },
+        [props.report, props.action],
+    );
 
     /**
      * Get the content of ReportActionItem
@@ -178,9 +182,7 @@ function ReportActionItem(props) {
             );
         } else {
             const message = _.last(lodashGet(props.action, 'message', [{}]));
-            const isAttachment = _.has(props.action, 'isAttachment')
-                ? props.action.isAttachment
-                : ReportUtils.isReportMessageAttachment(message);
+            const isAttachment = _.has(props.action, 'isAttachment') ? props.action.isAttachment : ReportUtils.isReportMessageAttachment(message);
             children = (
                 <ShowContextMenuContext.Provider
                     value={{
@@ -190,32 +192,29 @@ function ReportActionItem(props) {
                         checkIfContextMenuActive: toggleContextMenuFromActiveReportAction,
                     }}
                 >
-                    {!props.draftMessage
-                        ? (
-                            <ReportActionItemMessage
-                                action={props.action}
-                                style={[
-                                    (!props.displayAsGroup && isAttachment) ? styles.mt2 : undefined,
-                                    _.contains(_.values(CONST.REPORT.ACTIONS.TYPE.POLICYCHANGELOG), props.action.actionName) ? styles.colorMuted : undefined,
-                                ]}
-                            />
-                        ) : (
-                            <ReportActionItemMessageEdit
-                                action={props.action}
-                                draftMessage={props.draftMessage}
-                                reportID={props.report.reportID}
-                                index={props.index}
-                                ref={textInputRef}
-                                report={props.report}
-
-                                // Avoid defining within component due to an existing Onyx bug
-                                preferredSkinTone={props.preferredSkinTone}
-                                shouldDisableEmojiPicker={
-                                    (ReportUtils.chatIncludesConcierge(props.report) && User.isBlockedFromConcierge(props.blockedFromConcierge))
-                                    || ReportUtils.isArchivedRoom(props.report)
-                                }
-                            />
-                        )}
+                    {!props.draftMessage ? (
+                        <ReportActionItemMessage
+                            action={props.action}
+                            style={[
+                                !props.displayAsGroup && isAttachment ? styles.mt2 : undefined,
+                                _.contains(_.values(CONST.REPORT.ACTIONS.TYPE.POLICYCHANGELOG), props.action.actionName) ? styles.colorMuted : undefined,
+                            ]}
+                        />
+                    ) : (
+                        <ReportActionItemMessageEdit
+                            action={props.action}
+                            draftMessage={props.draftMessage}
+                            reportID={props.report.reportID}
+                            index={props.index}
+                            ref={textInputRef}
+                            report={props.report}
+                            // Avoid defining within component due to an existing Onyx bug
+                            preferredSkinTone={props.preferredSkinTone}
+                            shouldDisableEmojiPicker={
+                                (ReportUtils.chatIncludesConcierge(props.report) && User.isBlockedFromConcierge(props.blockedFromConcierge)) || ReportUtils.isArchivedRoom(props.report)
+                            }
+                        />
+                    )}
                 </ShowContextMenuContext.Provider>
             );
         }
@@ -247,11 +246,7 @@ function ReportActionItem(props) {
         const content = renderItemContent(hovered || isContextMenuActive);
 
         if (props.draftMessage) {
-            return (
-                <ReportActionItemDraft>
-                    {content}
-                </ReportActionItemDraft>
-            );
+            return <ReportActionItemDraft>{content}</ReportActionItemDraft>;
         }
 
         if (!props.displayAsGroup) {
@@ -268,11 +263,7 @@ function ReportActionItem(props) {
             );
         }
 
-        return (
-            <ReportActionItemGrouped wrapperStyles={[styles.chatItem, isWhisper ? styles.pt1 : {}]}>
-                {content}
-            </ReportActionItemGrouped>
-        );
+        return <ReportActionItemGrouped wrapperStyles={[styles.chatItem, isWhisper ? styles.pt1 : {}]}>{content}</ReportActionItemGrouped>;
     };
 
     if (props.action.actionName === CONST.REPORT.ACTIONS.TYPE.CREATED) {
@@ -282,7 +273,12 @@ function ReportActionItem(props) {
         return <RenameAction action={props.action} />;
     }
     if (props.action.actionName === CONST.REPORT.ACTIONS.TYPE.CHRONOSOOOLIST) {
-        return <ChronosOOOListActions action={props.action} reportID={props.report.reportID} />;
+        return (
+            <ChronosOOOListActions
+                action={props.action}
+                reportID={props.report.reportID}
+            />
+        );
     }
 
     const hasErrors = !_.isEmpty(props.action.errors);
@@ -290,7 +286,7 @@ function ReportActionItem(props) {
     const isWhisper = whisperedTo.length > 0;
     const isMultipleParticipant = whisperedTo.length > 1;
     const isWhisperOnlyVisibleByUser = isWhisper && ReportUtils.isCurrentUserTheOnlyParticipant(whisperedTo);
-    const whisperedToPersonalDetails = isWhisper ? _.filter(props.personalDetails, details => _.includes(whisperedTo, details.login)) : [];
+    const whisperedToPersonalDetails = isWhisper ? _.filter(props.personalDetails, (details) => _.includes(whisperedTo, details.login)) : [];
     const displayNamesWithTooltips = isWhisper ? ReportUtils.getDisplayNamesWithTooltips(whisperedToPersonalDetails, isMultipleParticipant) : [];
     return (
         <PressableWithSecondaryInteraction
@@ -303,17 +299,12 @@ function ReportActionItem(props) {
             withoutFocusOnSecondaryInteraction
         >
             <Hoverable>
-                {hovered => (
+                {(hovered) => (
                     <View accessibilityLabel={props.translate('accessibilityHints.chatMessage')}>
-                        {props.shouldDisplayNewMarker && (
-                            <UnreadActionIndicator reportActionID={props.action.reportActionID} />
-                        )}
+                        {props.shouldDisplayNewMarker && <UnreadActionIndicator reportActionID={props.action.reportActionID} />}
                         <View
                             style={StyleUtils.getReportActionItemStyle(
-                                hovered
-                                || isWhisper
-                                || isContextMenuActive
-                                || props.draftMessage,
+                                hovered || isWhisper || isContextMenuActive || props.draftMessage,
                                 (props.network.isOffline && props.action.isLoading) || props.action.error,
                             )}
                         >
@@ -327,7 +318,10 @@ function ReportActionItem(props) {
                                 {isWhisper && (
                                     <View style={[styles.flexRow, styles.pl5, styles.pt2]}>
                                         <View style={[styles.pl6, styles.mr3]}>
-                                            <Icon src={Expensicons.Eye} small />
+                                            <Icon
+                                                src={Expensicons.Eye}
+                                                small
+                                            />
                                         </View>
                                         <Text style={[styles.chatItemMessageHeaderTimestamp]}>
                                             {props.translate('reportActionContextMenu.onlyVisible')}
@@ -351,11 +345,7 @@ function ReportActionItem(props) {
                             reportAction={props.action}
                             isArchivedRoom={ReportUtils.isArchivedRoom(props.report)}
                             displayAsGroup={props.displayAsGroup}
-                            isVisible={
-                                hovered
-                                && !props.draftMessage
-                                && !hasErrors
-                            }
+                            isVisible={hovered && !props.draftMessage && !hasErrors}
                             draftMessage={props.draftMessage}
                             isChronosReport={ReportUtils.chatIncludesChronos(props.report)}
                         />
@@ -390,14 +380,18 @@ export default compose(
             key: ONYXKEYS.PREFERRED_EMOJI_SKIN_TONE,
         },
     }),
-)(memo(ReportActionItem, (prevProps, nextProps) => (
-    prevProps.displayAsGroup === nextProps.displayAsGroup
-        && prevProps.draftMessage === nextProps.draftMessage
-        && prevProps.isMostRecentIOUReportAction !== nextProps.isMostRecentIOUReportAction
-        && prevProps.hasOutstandingIOU === nextProps.hasOutstandingIOU
-        && prevProps.shouldDisplayNewMarker === nextProps.shouldDisplayNewMarker
-        && !_.isEqual(prevProps.action, nextProps.action)
-        && lodashGet(prevProps.report, 'statusNum') === lodashGet(nextProps.report, 'statusNum')
-        && lodashGet(prevProps.report, 'stateNum') === lodashGet(nextProps.report, 'stateNum')
-        && prevProps.translate === nextProps.translate
-)));
+)(
+    memo(
+        ReportActionItem,
+        (prevProps, nextProps) =>
+            prevProps.displayAsGroup === nextProps.displayAsGroup &&
+            prevProps.draftMessage === nextProps.draftMessage &&
+            prevProps.isMostRecentIOUReportAction !== nextProps.isMostRecentIOUReportAction &&
+            prevProps.hasOutstandingIOU === nextProps.hasOutstandingIOU &&
+            prevProps.shouldDisplayNewMarker === nextProps.shouldDisplayNewMarker &&
+            !_.isEqual(prevProps.action, nextProps.action) &&
+            lodashGet(prevProps.report, 'statusNum') === lodashGet(nextProps.report, 'statusNum') &&
+            lodashGet(prevProps.report, 'stateNum') === lodashGet(nextProps.report, 'stateNum') &&
+            prevProps.translate === nextProps.translate,
+    ),
+);
