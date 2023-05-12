@@ -778,7 +778,7 @@ function setMoneyRequestDescription(comment) {
  * @returns {String}
  */
 function buildPayPalPaymentUrl(amount, submitterPayPalMeAddress, currency) {
-    return `https://paypal.me/${submitterPayPalMeAddress}/${amount / 100}${currency}`;
+    return `https://paypal.me/${submitterPayPalMeAddress}/${Math.abs(amount) / 100}${currency}`;
 }
 
 /**
