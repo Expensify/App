@@ -687,11 +687,11 @@ function getSmallSizeAvatar(avatarURL, login) {
  * Returns the appropriate icons for the given chat report using the stored personalDetails.
  * The Avatar sources can be URLs or Icon components according to the chat type.
  *
- * @param {Array<*>} participants
+ * @param {Array} participants
  * @param {Object} personalDetails
  * @returns {Array<*>}
  */
-function getIconsFromParticipants(participants, personalDetails) {
+function getIconsForParticipants(participants, personalDetails) {
     const participantDetails = [];
     const participantsList = participants || [];
 
@@ -801,7 +801,7 @@ function getIcons(report, personalDetails, defaultIcon = null) {
         ];
     }
 
-    return getIconsFromParticipants(report.participants, personalDetails);
+    return getIconsForParticipants(report.participants, personalDetails);
 }
 
 /**
@@ -1955,7 +1955,7 @@ export {
     chatIncludesConcierge,
     isPolicyExpenseChat,
     getDefaultAvatar,
-    getIconsFromParticipants,
+    getIconsForParticipants,
     getIcons,
     getRoomWelcomeMessage,
     getDisplayNamesWithTooltips,
