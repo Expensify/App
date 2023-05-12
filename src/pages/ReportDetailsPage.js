@@ -75,7 +75,7 @@ class ReportDetailsPage extends Component {
             });
         }
 
-        if (ReportUtils.isPolicyExpenseChat(this.props.report) || ReportUtils.isChatRoom(this.props.report)) {
+        if ((ReportUtils.isPolicyExpenseChat(this.props.report) || ReportUtils.isChatRoom(this.props.report)) && !ReportUtils.isThread(this.props.report)) {
             menuItems.push({
                 key: CONST.REPORT_DETAILS_MENU_ITEM.SETTINGS,
                 translationKey: 'common.settings',
