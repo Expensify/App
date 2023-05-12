@@ -24,6 +24,9 @@ const propTypes = {
     /** ID of child thread report */
     childReportID: PropTypes.string.isRequired,
 
+    /** Is hovered */
+    isHovered: PropTypes.bool.isRequired,
+
     /** localization props */
     ...withLocalizePropTypes,
 };
@@ -38,10 +41,12 @@ const ReportActionItemThread = (props) => (
         >
             <View style={[styles.flexRow, styles.alignItemsCenter, styles.mt2]}>
                 <MultipleAvatars
-                    size={CONST.AVATAR_SIZE.SMALLER}
+                    size={CONST.AVATAR_SIZE.SMALL}
                     icons={props.icons}
                     shouldStackHorizontally
                     avatarTooltips={_.map(props.icons, (icon) => icon.name)}
+                    isHovered={props.isHovered}
+                    isInReportView
                 />
                 <View style={[styles.flexRow, styles.lh140Percent, styles.alignItemsEnd]}>
                     <Text
