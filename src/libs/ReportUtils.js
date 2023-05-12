@@ -1295,6 +1295,7 @@ function buildOptimisticIOUReportAction(type, amount, currency, comment, partici
  * @param {String} oldPolicyName
  * @param {String} visibility
  * @param {String} notificationPreference
+ * @param {String} parentReportActionID
  * @returns {Object}
  */
 function buildOptimisticChatReport(
@@ -1912,9 +1913,9 @@ function getWhisperDisplayNames(participants) {
 }
 
 /**
- * Used to determine if a thread exists already or not for a given reportActionID
+ * Used to determine if a thread exists already for a given reportActionID
  *
- * @param {String}
+ * @param {String} reportActionID
  * @returns {Boolean}
  */
 function getThreadForReportActionID(reportActionID) {
