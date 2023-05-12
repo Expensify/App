@@ -3,7 +3,6 @@ import variables from '../variables';
 import themeColors from '../themes/default';
 import styles from '../styles';
 
-
 const getCenteredModalStyles = (windowWidth, isSmallScreenWidth) => ({
     borderWidth: styles.centeredModalStyles(isSmallScreenWidth).borderWidth,
     width: isSmallScreenWidth ? '100%' : windowWidth - styles.centeredModalStyles(isSmallScreenWidth).marginHorizontal * 2,
