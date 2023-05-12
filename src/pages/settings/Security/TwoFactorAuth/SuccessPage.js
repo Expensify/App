@@ -31,7 +31,7 @@ function SuccessPage(props) {
                     description={props.translate('twoFactorAuth.congrats')}
                     shouldShowButton
                     buttonText={props.translate('common.buttonConfirm')}
-                    onButtonPress={() => Navigation.navigate(ROUTES.SETTINGS_TWO_FACTOR_IS_ENABLED)}
+                    onButtonPress={() => Navigation.navigate(ROUTES.SETTINGS_2FA_IS_ENABLED)}
                 />
             </FullPageOfflineBlockingView>
         </ScreenWrapper>

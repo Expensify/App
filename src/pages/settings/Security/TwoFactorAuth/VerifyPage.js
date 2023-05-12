@@ -55,7 +55,7 @@ function VerifyPage(props) {
         if (!props.account.requiresTwoFactorAuth) {
             return;
         }
-        Navigation.navigate(ROUTES.SETTINGS_TWO_FACTOR_SUCCESS);
+        Navigation.navigate(ROUTES.SETTINGS_2FA_SUCCESS);
     }, [props.account.requiresTwoFactorAuth]);
 
     /**
@@ -92,7 +92,7 @@ function VerifyPage(props) {
                     text: props.translate('twoFactorAuth.stepVerify'),
                 }}
                 shouldShowBackButton
-                onBackButtonPress={() => Navigation.navigate(ROUTES.SETTINGS_TWO_FACTOR_CODES)}
+                onBackButtonPress={() => Navigation.navigate(ROUTES.SETTINGS_2FA_CODES)}
                 onCloseButtonPress={() => Navigation.dismissModal(true)}
             />
             <FullPageOfflineBlockingView>

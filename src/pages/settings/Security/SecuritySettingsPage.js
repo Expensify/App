@@ -38,10 +38,10 @@ function SecuritySettingsPage(props) {
             icon: Expensicons.Lock,
             action: () => {
                 if (props.account.requiresTwoFactorAuth) {
-                    Navigation.navigate(ROUTES.SETTINGS_TWO_FACTOR_IS_ENABLED);
+                    Navigation.navigate(ROUTES.SETTINGS_2FA_IS_ENABLED);
                 } else {
                     Session.toggleTwoFactorAuth(true);
-                    Navigation.navigate(ROUTES.SETTINGS_TWO_FACTOR_CODES);
+                    Navigation.navigate(ROUTES.SETTINGS_2FA_CODES);
                 }
             },
         },

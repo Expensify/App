@@ -142,23 +142,23 @@ export default {
                         exact: true,
                     },
                     Settings_TwoFactorAuthIsEnabled: {
-                        path: ROUTES.SETTINGS_TWO_FACTOR_IS_ENABLED,
+                        path: ROUTES.SETTINGS_2FA_IS_ENABLED,
                         exact: true,
                     },
                     Settings_TwoFactorAuthDisable: {
-                        path: ROUTES.SETTINGS_TWO_FACTOR_DISABLE,
+                        path: ROUTES.SETTINGS_2FA_DISABLE,
                         exact: true,
                     },
                     Settings_TwoFactorAuthCodes: {
-                        path: ROUTES.SETTINGS_TWO_FACTOR_CODES,
+                        path: ROUTES.SETTINGS_2FA_CODES,
                         exact: true,
                     },
                     Settings_TwoFactorAuthVerify: {
-                        path: ROUTES.SETTINGS_TWO_FACTOR_VERIFY,
+                        path: ROUTES.SETTINGS_2FA_VERIFY,
                         exact: true,
                     },
                     Settings_TwoFactorAuthSuccess: {
-                        path: ROUTES.SETTINGS_TWO_FACTOR_SUCCESS,
+                        path: ROUTES.SETTINGS_2FA_SUCCESS,
                         exact: true,
                     },
                     Workspace_Initial: {

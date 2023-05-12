@@ -104,7 +104,7 @@ function CodesPage(props) {
                     <Button
                         success
                         text={props.translate('common.next')}
-                        onPress={() => Navigation.navigate(ROUTES.SETTINGS_TWO_FACTOR_VERIFY)}
+                        onPress={() => Navigation.navigate(ROUTES.SETTINGS_2FA_VERIFY)}
                         isDisabled={isNextButtonDisabled}
                     />
                 </FixedFooter>

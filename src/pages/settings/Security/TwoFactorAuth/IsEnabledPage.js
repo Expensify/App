@@ -49,7 +49,7 @@ function IsEnabledPage(props) {
                 title={props.translate('twoFactorAuth.disableTwoFactorAuth')}
                 onConfirm={() => {
                     setIsConfirmModalVisible(false);
-                    Navigation.navigate(ROUTES.SETTINGS_TWO_FACTOR_DISABLE);
+                    Navigation.navigate(ROUTES.SETTINGS_2FA_DISABLE);
                 }}
                 onCancel={() => setIsConfirmModalVisible(false)}
                 onModalHide={() => setIsConfirmModalVisible(false)}
