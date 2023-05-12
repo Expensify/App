@@ -110,8 +110,14 @@ export default [
         icon: Expensicons.ChatBubble,
         successTextTranslateKey: '',
         successIcon: null,
-        shouldShow: (type, reportAction, betas) =>
-            Permissions.canUseThreads(betas) && type === CONTEXT_MENU_TYPES.REPORT_ACTION && reportAction.actionName === CONST.REPORT.ACTIONS.TYPE.ADDCOMMENT,
+        shouldShow: (type, reportAction, isArchivedRoom, betas, anchor, isChronosReport, reportID) => {
+            return (
+                Permissions.canUseThreads(betas) &&
+                type === CONTEXT_MENU_TYPES.REPORT_ACTION &&
+                reportAction.actionName === CONST.REPORT.ACTIONS.TYPE.ADDCOMMENT &&
+                reportAction.childReportID.toString() !== reportID
+            );
+        },
         onPress: (closePopover, {reportAction, reportID}) => {
             Report.navigateToAndOpenChildReport(lodashGet(reportAction, 'childReportID', '0'), reportAction, reportID);
             if (closePopover) {
