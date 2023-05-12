@@ -6,7 +6,7 @@ const qrSharePropTypes = {
      */
     url: PropTypes.string.isRequired,
     /**
-     * The title that is shown undedr the QR Code (usually the user or report name)
+     * The title that is displayed below the QR Code (usually the user or report name)
      */
     title: PropTypes.string.isRequired,
     /**
