@@ -11,6 +11,19 @@ import ONYXKEYS from '../ONYXKEYS';
 import Log from './Log';
 import isReportMessageAttachment from './isReportMessageAttachment';
 
+const allReports = {};
+Onyx.connect({
+    key: ONYXKEYS.COLLECTION.REPORT,
+    callback: (report, key) => {
+        if (!key || !report) {
+            return;
+        }
+
+        const reportID = CollectionUtils.extractCollectionItemID(key);
+        allReports[reportID] = report;
+    },
+});
+
 const allReportActions = {};
 Onyx.connect({
     key: ONYXKEYS.COLLECTION.REPORT_ACTIONS,
@@ -302,16 +315,27 @@ function getMostRecentReportActionLastModified() {
             return;
         }
 
-        // All actions should have this, but if not they are not useful to us.
-        if (!action.lastModified) {
+        let lastModified = action.lastModified;
+        if (!lastModified) {
+            lastModified = action.created;
+        }
+
+        if (lastModified < mostRecentReportActionLastModified) {
             return;
         }
 
-        if (action.lastModified < mostRecentReportActionLastModified) {
+        mostRecentReportActionLastModified = lastModified;
+    });
+
+    // We might not have actions so we also look at the report objects to see if any have a lastVisibleActionLastModified that is more recent. We don't need to get
+    // any reports that have been updated before either a recently updated report or reportAction as we should be up to date on these
+    _.each(allReports, (report) => {
+        const reportLastVisibleActionLastModified = report.lastVisibleActionLastModified || report.lastVisibleActionCreated;
+        if (reportLastVisibleActionLastModified < mostRecentReportActionLastModified) {
             return;
         }
 
-        mostRecentReportActionLastModified = action.lastModified;
+        mostRecentReportActionLastModified = reportLastVisibleActionLastModified;
     });
 
     return mostRecentReportActionLastModified;
