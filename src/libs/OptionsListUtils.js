@@ -545,6 +545,7 @@ function getOptions(
         sortPersonalDetailsByAlphaAsc = true,
         forcePolicyNamePreview = false,
         includeOwnedWorkspaceChats = false,
+        includeThreads = false,
     },
 ) {
     if (!isPersonalDetailsReady(personalDetails)) {
@@ -584,11 +585,16 @@ function getOptions(
             return;
         }
 
+        const isThread = ReportUtils.isThread(report);
         const isChatRoom = ReportUtils.isChatRoom(report);
         const isPolicyExpenseChat = ReportUtils.isPolicyExpenseChat(report);
         const logins = report.participants || [];
 
         if (isPolicyExpenseChat && report.isOwnPolicyExpenseChat && !includeOwnedWorkspaceChats) {
+            return;
+        }
+
+        if (isThread && !includeThreads) {
             return;
         }
 
