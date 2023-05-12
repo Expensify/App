@@ -1,12 +1,12 @@
-import React, {PureComponent} from 'react';
+import React, {useState, useRef, useEffect} from 'react';
 import PropTypes from 'prop-types';
-import {View} from 'react-native';
+import {View, useWindowDimensions} from 'react-native';
 import _ from 'underscore';
 import styles from '../styles/styles';
 import Button from './Button';
-import * as Expensicons from './Icon/Expensicons';
-import Icon from './Icon';
 import PopoverMenu from './PopoverMenu';
+import Icon from './Icon';
+import * as Expensicons from './Icon/Expensicons';
 import themeColors from '../styles/themes/default';
 
 const propTypes = {
@@ -42,89 +42,88 @@ const defaultProps = {
     menuHeaderText: '',
 };
 
-/**
- * This component shows a button that has a separation on the right part that shows a pressable caret button if more than 1
- * options was passed or a simple normal button if more than 1 option was passed.
- * If there's more than one option, pressing the caret will show a popover menu with all options.
- */
-class ButtonWithDropdownMenu extends PureComponent {
-    constructor(props) {
-        super(props);
+const ButtonWithDropdownMenu = (props) => {
+    const [selectedItemIndex, setSelectedItemIndex] = useState(0);
+    const [isMenuVisible, setIsMenuVisible] = useState(false);
+    const [popoverAnchorPosition, setPopoverAnchorPosition] = useState(null);
 
-        this.state = {
-            selectedItemIndex: 0,
-            isMenuVisible: false,
-        };
-    }
+    const {width, height} = useWindowDimensions();
 
-    setMenuVisibility(isMenuVisible) {
-        this.setState({isMenuVisible});
-    }
+    const caretButton = useRef(null);
+    useEffect(() => {
+        caretButton.current.measureInWindow && caretButton.current.measureInWindow(({x, y}) => {
+            // You probably need to fiddle with this
+            setPopoverAnchorPosition({
+                top: y,
+                right: x,
+            });
+        });
+    }, [width, height]);
 
-    render() {
-        const selectedItem = this.props.options[this.state.selectedItemIndex];
-        return (
-            <View>
-                {this.props.options.length > 1 ? (
-                    <View style={[styles.flexRow, styles.justifyContentBetween, styles.alignItemsCenter]}>
-                        <Button
-                            success
-                            onButtonPress={(event) => this.props.onPress(event, selectedItem.value)}
-                            text={selectedItem.text}
-                            isDisabled={this.props.isDisabled}
-                            isLoading={this.props.isLoading}
-                            shouldRemoveRightBorderRadius
-                            style={[styles.flex1, styles.pr0]}
-                            pressOnEnter
-                        />
-                        <View style={styles.buttonDivider} />
-                        <Button
-                            success
-                            isDisabled={this.props.isDisabled}
-                            style={[styles.pl0]}
-                            onPress={() => {
-                                this.setMenuVisibility(true);
-                            }}
-                            shouldRemoveLeftBorderRadius
-                        >
-                            <Icon
-                                src={Expensicons.DownArrow}
-                                fill={themeColors.textLight}
-                            />
-                        </Button>
-                    </View>
-                ) : (
+    const selectedItem = props.options[selectedItemIndex];
+    return (
+        <View>
+            {props.options.length > 1 ? (
+                <View style={[styles.flexRow, styles.justifyContentBetween, styles.alignItemsCenter]}>
                     <Button
                         success
-                        isDisabled={this.props.isDisabled}
-                        style={[styles.w100]}
-                        isLoading={this.props.isLoading}
+                        onPress={(event) => props.onPress(event, selectedItem.value)}
                         text={selectedItem.text}
-                        onPress={(event) => this.props.onPress(event, this.props.options[0].value)}
+                        isDisabled={props.isDisabled}
+                        isLoading={props.isLoading}
+                        shouldRemoveRightBorderRadius
+                        style={[styles.flex1, styles.pr0]}
                         pressOnEnter
                     />
-                )}
-                {this.props.options.length > 1 && (
-                    <PopoverMenu
-                        isVisible={this.state.isMenuVisible}
-                        onClose={() => this.setMenuVisibility(false)}
-                        onItemSelected={() => this.setMenuVisibility(false)}
-                        anchorPosition={styles.createMenuPositionRightSidepane}
-                        headerText={this.props.menuHeaderText}
-                        menuItems={_.map(this.props.options, (item, index) => ({
-                            ...item,
-                            onSelected: () => {
-                                this.setState({selectedItemIndex: index});
-                            },
-                        }))}
-                    />
-                )}
-            </View>
-        );
-    }
-}
+                    <View style={styles.buttonDivider} />
+                    <Button
+                        ref={caretButton}
+                        success
+                        isDisabled={props.isDisabled}
+                        style={[styles.pl0]}
+                        onPress={() => {
+                            setIsMenuVisible(true);
+                        }}
+                        shouldRemoveLeftBorderRadius
+                    >
+                        <Icon
+                            src={Expensicons.DownArrow}
+                            fill={themeColors.textLight}
+                        />
+                    </Button>
+                </View>
+            ) : (
+                <Button
+                    success
+                    isDisabled={props.isDisabled}
+                    style={[styles.w100]}
+                    isLoading={props.isLoading}
+                    text={selectedItem.text}
+                    onPress={(event) => props.onPress(event, props.options[0].value)}
+                    pressOnEnter
+                />
+            )}
+            {props.options.length > 1 && (
+                <PopoverMenu
+                    isVisible={isMenuVisible}
+                    onClose={() => setIsMenuVisible(false)}
+                    onItemSelected={() => setIsMenuVisible(false)}
+                    anchorPosition={popoverAnchorPosition}
+                    headerText={props.menuHeaderText}
+                    menuItems={_.map(props.options, (item, index) => ({
+                        ...item,
+                        onSelected: () => {
+                            setSelectedItemIndex(index);
+                        },
+                    }))}
+                />
+            )}
+        </View>
+    );
+};
 
 ButtonWithDropdownMenu.propTypes = propTypes;
 ButtonWithDropdownMenu.defaultProps = defaultProps;
+ButtonWithDropdownMenu.displayName = 'ButtonWithDropdownMenu';
 
-export default ButtonWithDropdownMenu;
+export default React.memo(ButtonWithDropdownMenu);
