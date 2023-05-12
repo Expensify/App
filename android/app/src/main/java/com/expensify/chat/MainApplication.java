@@ -37,6 +37,7 @@ public class MainApplication extends MultiDexApplication implements ReactApplica
           // packages.add(new MyReactNativePackage());
           packages.add(new BootSplashPackage());
           packages.add(new ExpensifyAppPackage());
+          packages.add(new RNTextInputResetPackage());
 
           return packages;
         }
