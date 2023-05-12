@@ -82,21 +82,21 @@ function createTaskAndNavigate(currentUserEmail, parentReportID, title, descript
     const successData = [];
 
     const failureData = [
-        {
-            onyxMethod: Onyx.METHOD.SET,
-            key: `${ONYXKEYS.COLLECTION.REPORT}${optimisticTaskReport.reportID}`,
-            value: null,
-        },
-        {
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${optimisticTaskReport.reportID}`,
-            value: {[optimisticTaskCreatedAction.reportActionID]: {pendingAction: null}},
-        },
-        {
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${parentReportID}`,
-            value: {[optimisticAddCommentReport.reportAction.reportActionID]: {pendingAction: null}},
-        },
+        // {
+        //     onyxMethod: Onyx.METHOD.SET,
+        //     key: `${ONYXKEYS.COLLECTION.REPORT}${optimisticTaskReport.reportID}`,
+        //     value: null,
+        // },
+        // {
+        //     onyxMethod: Onyx.METHOD.MERGE,
+        //     key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${optimisticTaskReport.reportID}`,
+        //     value: {[optimisticTaskCreatedAction.reportActionID]: {pendingAction: null}},
+        // },
+        // {
+        //     onyxMethod: Onyx.METHOD.MERGE,
+        //     key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${parentReportID}`,
+        //     value: {[optimisticAddCommentReport.reportAction.reportActionID]: {pendingAction: null}},
+        // },
     ];
 
     if (optimisticAssigneeAddComment) {
@@ -122,11 +122,11 @@ function createTaskAndNavigate(currentUserEmail, parentReportID, title, descript
             },
         );
 
-        failureData.push({
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${assigneeChatReportID}`,
-            value: {[optimisticAssigneeAddComment.reportAction.reportActionID]: {pendingAction: null}},
-        });
+        // failureData.push({
+        //     onyxMethod: Onyx.METHOD.MERGE,
+        //     key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${assigneeChatReportID}`,
+        //     value: {[optimisticAssigneeAddComment.reportAction.reportActionID]: {pendingAction: null}},
+        // });
     }
 
     API.write(
@@ -193,16 +193,16 @@ function editTaskAndNavigate(report, ownerEmail, title, description, assignee) {
     ];
     const successData = [];
     const failureData = [
-        {
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.reportID}`,
-            value: {[editTaskReportAction.reportActionID]: {pendingAction: null}},
-        },
-        {
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`,
-            value: {reportName: report.reportName, description: report.description, assignee: report.assignee},
-        },
+        // {
+        //     onyxMethod: Onyx.METHOD.MERGE,
+        //     key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.reportID}`,
+        //     value: {[editTaskReportAction.reportActionID]: {pendingAction: null}},
+        // },
+        // {
+        //     onyxMethod: Onyx.METHOD.MERGE,
+        //     key: `${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`,
+        //     value: {reportName: report.reportName, description: report.description, assignee: report.assignee},
+        // },
     ];
 
     if (optimisticAssigneeAddComment) {
@@ -229,17 +229,17 @@ function editTaskAndNavigate(report, ownerEmail, title, description, assignee) {
             },
         );
 
-        failureData.push({
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${assigneeChatReportID}`,
-            value: {[optimisticAssigneeAddComment.reportAction.reportActionID]: {pendingAction: null}},
-        });
+        // failureData.push({
+        //     onyxMethod: Onyx.METHOD.MERGE,
+        //     key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${assigneeChatReportID}`,
+        //     value: {[optimisticAssigneeAddComment.reportAction.reportActionID]: {pendingAction: null}},
+        // });
     }
 
     API.write(
         'EditTask',
         {
-            taskID: report.reportID,
+            taskReportID: report.reportID,
             title: title || report.reportName,
             description: description || report.description,
             assignee: assignee || report.assignee,
