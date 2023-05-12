@@ -166,12 +166,15 @@ function editTaskAndNavigate(report, ownerEmail, title, description, assignee) {
     // Create the EditedReportAction on the task
     const editTaskReportAction = ReportUtils.buildOptimisticEditedTaskReportAction(ownerEmail);
 
+    // Sometimes title is undefined, so we need to check for that, and we provide it to multiple functions
+    const reportName = title || report.reportName;
+
     // If we make a change to the assignee, we want to add a comment to the assignee's chat
     let optimisticAssigneeAddComment;
     let assigneeChatReportID;
     if (assignee && assignee !== report.assignee) {
         assigneeChatReportID = ReportUtils.getChatByParticipants([assignee]).reportID;
-        optimisticAssigneeAddComment = ReportUtils.buildOptimisticTaskCommentReportAction(report.reportID, title, assignee, `Assigned a task to you: ${title}`);
+        optimisticAssigneeAddComment = ReportUtils.buildOptimisticTaskCommentReportAction(report.reportID, reportName, assignee, `Assigned a task to you: ${title}`);
     }
 
     const optimisticData = [
@@ -185,7 +188,7 @@ function editTaskAndNavigate(report, ownerEmail, title, description, assignee) {
             key: `${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`,
             value: {
                 ...report,
-                reportName: title || report.reportName,
+                reportName,
                 description: description || report.description,
                 assignee: assignee || report.assignee,
             },
@@ -240,7 +243,7 @@ function editTaskAndNavigate(report, ownerEmail, title, description, assignee) {
         'EditTask',
         {
             taskReportID: report.reportID,
-            title: title || report.reportName,
+            title: reportName,
             description: description || report.description,
             assignee: assignee || report.assignee,
             editedTaskReportActionID: editTaskReportAction.reportActionID,

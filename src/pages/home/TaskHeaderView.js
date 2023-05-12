@@ -40,7 +40,7 @@ const defaultProps = {
 };
 
 function TaskHeaderView(props) {
-    const [assignee, setAssignee] = useState('');
+    const [assignee, setAssignee] = useState({});
 
     useEffect(() => {
         TaskUtils.clearOutTaskInfo();
