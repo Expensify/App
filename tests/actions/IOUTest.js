@@ -311,7 +311,7 @@ describe('actions/IOU', () => {
                                 waitForCollectionCallback: true,
                                 callback: (reportActionsForIOUReport) => {
                                     Onyx.disconnect(connectionID);
-                                    expect(_.size(reportActionsForIOUReport)).toBe(1);
+                                    expect(_.size(reportActionsForIOUReport)).toBe(2);
                                     _.each(reportActionsForIOUReport, (reportAction) => expect(reportAction.pendingAction).toBeFalsy());
                                     resolve();
                                 },

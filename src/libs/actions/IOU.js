@@ -112,7 +112,8 @@ function requestMoney(report, amount, currency, payeeEmail, participant, comment
     };
 
     // Note: The created action must be optimistically generated before the IOU action so there's no chance that the created action appears after the IOU action in the chat
-    const optimisticCreatedAction = ReportUtils.buildOptimisticCreatedReportAction(payeeEmail);
+    const optimisticCreatedActionForChat = ReportUtils.buildOptimisticCreatedReportAction(payeeEmail);
+    const optimisticCreatedActionForIOU = ReportUtils.buildOptimisticCreatedReportAction(payeeEmail);
     const optimisticIOUAction = ReportUtils.buildOptimisticIOUReportAction(
         CONST.IOU.REPORT_ACTION_TYPE.CREATE,
         amount,
@@ -150,6 +151,7 @@ function requestMoney(report, amount, currency, payeeEmail, participant, comment
         onyxMethod: Onyx.METHOD.MERGE,
         key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${moneyRequestReport.reportID}`,
         value: {
+            ...(chatReport.iouReportID ? {} : {[optimisticCreatedActionForIOU.reportActionID]: optimisticCreatedActionForIOU}),
             [optimisticIOUAction.reportActionID]: optimisticIOUAction,
         },
     };
@@ -212,11 +214,11 @@ function requestMoney(report, amount, currency, payeeEmail, participant, comment
         };
 
         // Then add an optimistic created action
-        optimisticReportActionsData.value[optimisticCreatedAction.reportActionID] = optimisticCreatedAction;
-        reportActionsSuccessData.value[optimisticCreatedAction.reportActionID] = {pendingAction: null};
+        optimisticReportActionsData.value[optimisticCreatedActionForChat.reportActionID] = optimisticCreatedActionForChat;
+        reportActionsSuccessData.value[optimisticCreatedActionForChat.reportActionID] = {pendingAction: null};
 
         // Failure data should feature red brick road
-        reportActionsFailureData.value[optimisticCreatedAction.reportActionID] = {pendingAction: null};
+        reportActionsFailureData.value[optimisticCreatedActionForChat.reportActionID] = {pendingAction: null};
         reportActionsFailureData.value[optimisticIOUAction.reportActionID] = {pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD};
     }
 
@@ -241,7 +243,7 @@ function requestMoney(report, amount, currency, payeeEmail, participant, comment
             chatReportID: chatReport.reportID,
             transactionID: optimisticTransaction.transactionID,
             reportActionID: optimisticIOUAction.reportActionID,
-            createdReportActionID: isNewChat ? optimisticCreatedAction.reportActionID : 0,
+            createdReportActionID: isNewChat ? optimisticCreatedActionForChat.reportActionID : 0,
         },
         {optimisticData, successData, failureData},
     );

@@ -63,13 +63,15 @@ const defaultProps = {
     chatReport: {
         participants: [],
     },
-    iouReport: {},
+    iouReport: {
+        participants: [],
+    },
     reportActions: {},
     isHovered: false,
 };
 
 const MoneyRequestAction = (props) => {
-    const hasMultipleParticipants = props.chatReport.participants.length > 1;
+    const hasMultipleParticipants = props.iouReport.participants.length > 1;
     const onIOUPreviewPressed = () => {
         if (hasMultipleParticipants) {
             Navigation.navigate(ROUTES.getReportParticipantsRoute(props.chatReportID));
