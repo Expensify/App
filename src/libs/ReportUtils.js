@@ -448,6 +448,17 @@ function isThreadParent(reportAction) {
 }
 
 /**
+ * Returns true if reportAction is the first chat preview of a Thread
+ *
+ * @param {Object} reportAction
+ *  @param {String} reportID
+ * @returns {Boolean}
+ */
+function isThreadFirstChat(reportAction, reportID) {
+    return !_.isUndefined(reportAction.childReportID) && reportAction.childReportID.toString() === reportID;
+}
+
+/**
  * Get either the policyName or domainName the chat is tied to
  * @param {Object} report
  * @returns {String}
@@ -2082,6 +2093,7 @@ export {
     getWorkspaceAvatar,
     isThread,
     isThreadParent,
+    isThreadFirstChat,
     shouldReportShowSubscript,
     isSettled,
 };

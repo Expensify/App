@@ -249,7 +249,8 @@ class ReportActionItem extends Component {
 
         const reactions = _.get(this.props, ['action', 'message', 0, 'reactions'], []);
         const hasReactions = reactions.length > 0;
-        const shouldDisplayThreadReplies = (this.props.action.childCommenterCount || 0) > 0 && Permissions.canUseThreads(this.props.betas);
+        const shouldDisplayThreadReplies =
+            this.props.action.childCommenterCount && Permissions.canUseThreads(this.props.betas) && !ReportUtils.isThreadFirstChat(this.props.action, this.props.report.reportID);
         const oldestFourEmails = lodashGet(this.props.action, 'childOldestFourEmails', '').split(',');
 
         return (
