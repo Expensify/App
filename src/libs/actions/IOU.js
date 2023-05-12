@@ -694,7 +694,7 @@ function splitBillAndOpenReport(participants, currentUserLogin, amount, comment,
  * @param {Boolean} shouldCloseOnDelete
  */
 function deleteMoneyRequest(chatReportID, iouReportID, moneyRequestAction, shouldCloseOnDelete) {
-    const iouReport = {...iouReports[`${ONYXKEYS.COLLECTION.REPORT}${iouReportID}`]};
+    const iouReport = iouReports[`${ONYXKEYS.COLLECTION.REPORT}${iouReportID}`];
     const transactionID = moneyRequestAction.originalMessage.IOUTransactionID;
 
     // Get the amount we are deleting
@@ -711,13 +711,21 @@ function deleteMoneyRequest(chatReportID, iouReportID, moneyRequestAction, shoul
     );
 
     const currentUserEmail = optimisticIOUAction.actorEmail;
-    if (isPolicyExpenseChat) {
+    let updatedIOUReport = {};
+    if (ReportUtils.isExpenseReport(iouReportID)) {
+        updatedIOUReport = {...iouReport};
+
         // Because of the Expense reports are stored as negative values, we add the total from the amount
-        iouReport.total = ReportUtils.isExpenseReport(iouReport) ? iouReport.total - amount : iouReport.total + amount;
+        updatedIOUReport.total += amount;
     } else {
-        iouReport = IOUUtils.updateIOUOwnerAndTotal(iouReports[`${ONYXKEYS.COLLECTION.REPORT}${chatReport.iouReportID}`], payeeEmail, amount, currency);
+        updatedIOUReport = IOUUtils.updateIOUOwnerAndTotal(
+            iouReports[`${ONYXKEYS.COLLECTION.REPORT}${iouReportID}`],
+            currentUserEmail,
+            amount,
+            moneyRequestAction.originalMessage.currency,
+            CONST.IOU.REPORT_ACTION_TYPE.DELETE,
+        );
     }
-    const updatedIOUReport = IOUUtils.updateIOUOwnerAndTotal(iouReport, currentUserEmail, amount, moneyRequestAction.originalMessage.currency, CONST.IOU.REPORT_ACTION_TYPE.DELETE);
     updatedIOUReport.lastMessageText = optimisticIOUAction.message[0].text;
     updatedIOUReport.lastMessageHtml = optimisticIOUAction.message[0].html;
     updatedIOUReport.hasOutstandingIOU = updatedIOUReport.total !== 0;
@@ -761,6 +769,7 @@ function deleteMoneyRequest(chatReportID, iouReportID, moneyRequestAction, shoul
             key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${iouReportID}`,
             value: {
                 [optimisticIOUAction.reportActionID]: {
+                    pendingAction: null,
                     errors: {
                         [DateUtils.getMicroseconds()]: Localize.translateLocal('iou.error.genericDeleteFailureMessage'),
                     },
