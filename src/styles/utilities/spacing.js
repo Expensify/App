@@ -133,6 +133,10 @@ export default {
         marginLeft: 20,
     },
 
+    ml6: {
+        marginLeft: 24,
+    },
+
     ml8: {
         marginLeft: 32,
     },

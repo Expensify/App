@@ -1,6 +1,6 @@
 import React, {useState} from 'react';
 import {withOnyx} from 'react-native-onyx';
-import {View} from 'react-native';
+import {ActivityIndicator, View} from 'react-native';
 import _ from 'underscore';
 import PropTypes from 'prop-types';
 import HeaderWithCloseButton from '../../../../components/HeaderWithCloseButton';
@@ -19,12 +19,19 @@ import Section from '../../../../components/Section';
 import TextFileLink from '../../../../components/TextFileLink';
 import ONYXKEYS from '../../../../ONYXKEYS';
 import Clipboard from '../../../../libs/Clipboard';
+import themeColors from '../../../../styles/themes/default';
+import ContextMenuItem from '../../../../components/ContextMenuItem';
+import * as Expensicons from '../../../../components/Icon/Expensicons';
+import CommunicationsLink from '../../../../components/CommunicationsLink';
 
 const propTypes = {
     ...withLocalizePropTypes,
     account: PropTypes.shape({
         /** User recovery codes for setting up 2-FA */
         recoveryCodes: PropTypes.string,
+
+        /** If recovery codes are loading */
+        isLoading: PropTypes.bool,
     }),
 };
 
@@ -55,49 +62,58 @@ function CodesPage(props) {
                     title={props.translate('twoFactorAuth.keepCodesSafe')}
                     icon={Illustrations.ShieldYellow}
                     containerStyles={[styles.twoFactorAuthSection]}
+                    iconContainerStyles={[styles.ml6]}
                 >
                     <View style={styles.mv3}>
                         <Text>{props.translate('twoFactorAuth.codesLoseAccess')}</Text>
                     </View>
                     <View style={styles.twoFactorAuthCodesBox}>
-                        <View style={styles.twoFactorAuthCodesContainer}>
-                            {Boolean(props.account.recoveryCodes) &&
-                                _.map(props.account.recoveryCodes.split(', '), (code) => (
-                                    <Text
-                                        style={styles.twoFactorAuthCode}
-                                        key={code}
-                                    >
-                                        {code}
-                                    </Text>
-                                ))}
-                        </View>
-                        <View style={styles.twoFactorAuthCodesButtonsContainer}>
-                            <Button
-                                text={props.translate('twoFactorAuth.copyCodes')}
-                                medium
-                                onPress={() => {
-                                    Clipboard.setString(props.account.recoveryCodes);
-                                    setIsNextButtonDisabled(false);
-                                }}
-                                style={styles.twoFactorAuthCodesButton}
-                            />
-                            <TextFileLink
-                                fileName="two-factor-auth-codes"
-                                textContent={props.account.recoveryCodes}
-                            >
-                                {(downloadFile) => (
+                        {props.account.isLoading ? (
+                            <View style={styles.twoFactorLoadingContainer}>
+                                <ActivityIndicator color={themeColors.spinner} />
+                            </View>
+                        ) : (
+                            <>
+                                <View style={styles.twoFactorAuthCodesContainer}>
+                                    {Boolean(props.account.recoveryCodes) &&
+                                        _.map(props.account.recoveryCodes.split(', '), (code) => (
+                                            <Text
+                                                style={styles.twoFactorAuthCode}
+                                                key={code}
+                                            >
+                                                {code}
+                                            </Text>
+                                        ))}
+                                </View>
+                                <View style={styles.twoFactorAuthCodesButtonsContainer}>
                                     <Button
-                                        text="Download"
+                                        text={props.translate('twoFactorAuth.copyCodes')}
                                         medium
                                         onPress={() => {
-                                            downloadFile();
+                                            Clipboard.setString(props.account.recoveryCodes);
                                             setIsNextButtonDisabled(false);
                                         }}
                                         style={styles.twoFactorAuthCodesButton}
                                     />
-                                )}
-                            </TextFileLink>
-                        </View>
+                                    <TextFileLink
+                                        fileName="two-factor-auth-codes"
+                                        textContent={props.account.recoveryCodes}
+                                    >
+                                        {(downloadFile) => (
+                                            <Button
+                                                text="Download"
+                                                medium
+                                                onPress={() => {
+                                                    downloadFile();
+                                                    setIsNextButtonDisabled(false);
+                                                }}
+                                                style={styles.twoFactorAuthCodesButton}
+                                            />
+                                        )}
+                                    </TextFileLink>
+                                </View>
+                            </>
+                        )}
                     </View>
                 </Section>
                 <FixedFooter style={[styles.twoFactorAuthFooter]}>

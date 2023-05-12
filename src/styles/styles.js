@@ -2110,17 +2110,25 @@ const styles = {
         marginTop: 32,
     },
 
+    twoFactorLoadingContainer: {
+        alignItems: 'center',
+        justifyContent: 'center',
+        height: 210,
+    },
+
     twoFactorAuthCodesContainer: {
         alignItems: 'center',
         justifyContent: 'center',
         flexDirection: 'row',
         flexWrap: 'wrap',
         gap: 12,
+        height: 148,
     },
 
     twoFactorAuthCode: {
         fontFamily: fontFamily.MONOSPACE,
         width: 100,
+        height: 18,
         textAlign: 'center',
     },
 
