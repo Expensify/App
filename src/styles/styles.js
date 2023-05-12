@@ -2369,6 +2369,11 @@ const styles = {
         paddingVertical: 12,
     },
 
+    requestPreviewBox: {
+        marginTop: 8,
+        maxWidth: variables.sideBarWidth,
+    },
+
     iouPreviewBox: {
         backgroundColor: themeColors.cardBG,
         borderRadius: variables.componentBorderRadiusCard,
