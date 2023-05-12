@@ -50,8 +50,8 @@ class BaseReportActionContextMenu extends React.Component {
     }
 
     render() {
-        const shouldShowFilter = (contextAction) => {
-            return contextAction.shouldShow(
+        const shouldShowFilter = (contextAction) =>
+            contextAction.shouldShow(
                 this.props.type,
                 this.props.reportAction,
                 this.props.isArchivedRoom,
@@ -60,7 +60,6 @@ class BaseReportActionContextMenu extends React.Component {
                 this.props.isChronosReport,
                 this.props.reportID,
             );
-        };
 
         return (
             (this.props.isVisible || this.state.shouldKeepOpen) && (
