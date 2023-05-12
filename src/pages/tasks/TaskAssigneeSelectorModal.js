@@ -165,6 +165,9 @@ const TaskAssigneeSelectorModal = (props) => {
 
         // Check to see if we're editing a task and if so, update the assignee
         if (props.route.params.reportID && props.task.report.reportID === props.route.params.reportID) {
+            // There was an issue where sometimes a new assignee didn't have a DM thread
+            // This would cause the app to crash, so we need to make sure we have a DM thread
+            TaskUtils.setAssigneeValue(option.alternateText, props.task.shareDestination);
             // Pass through the selected assignee
             TaskUtils.editTaskAndNavigate(props.task.report, props.session.email, '', '', option.alternateText);
         }
