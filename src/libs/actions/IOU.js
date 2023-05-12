@@ -23,7 +23,7 @@ Onyx.connect({
         if (!report) {
             delete iouReports[key];
             delete chatReports[key];
-        } else if (ReportUtils.isIOUReport(report)) {
+        } else if (ReportUtils.isMoneyRequestReport(report)) {
             iouReports[key] = report;
         } else {
             chatReports[key] = report;
@@ -76,7 +76,9 @@ function requestMoney(report, amount, currency, payeeEmail, participant, comment
     if (chatReport.iouReportID) {
         if (isPolicyExpenseChat) {
             moneyRequestReport = {...iouReports[`${ONYXKEYS.COLLECTION.REPORT}${chatReport.iouReportID}`]};
-            moneyRequestReport.total += amount;
+
+            // Because of the Expense reports are stored as negative values, we substract the total from the amount
+            moneyRequestReport.total = ReportUtils.isExpenseReport(moneyRequestReport) ? moneyRequestReport.total - amount : moneyRequestReport.total + amount;
         } else {
             moneyRequestReport = IOUUtils.updateIOUOwnerAndTotal(iouReports[`${ONYXKEYS.COLLECTION.REPORT}${chatReport.iouReportID}`], payeeEmail, amount, currency);
         }
@@ -769,7 +771,7 @@ function setMoneyRequestDescription(comment) {
  * @returns {String}
  */
 function buildPayPalPaymentUrl(amount, submitterPayPalMeAddress, currency) {
-    return `https://paypal.me/${submitterPayPalMeAddress}/${amount / 100}${currency}`;
+    return `https://paypal.me/${submitterPayPalMeAddress}/${Math.abs(amount) / 100}${currency}`;
 }
 
 /**
@@ -1016,13 +1018,6 @@ function getPayMoneyRequestParams(chatReport, iouReport, recipient, paymentMetho
                 [optimisticIOUReportAction.reportActionID]: {
                     pendingAction: null,
                 },
-            },
-        },
-        {
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.REPORT}${chatReport.reportID}`,
-            value: {
-                iouReportID: null,
             },
         },
         {

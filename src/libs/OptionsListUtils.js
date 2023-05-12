@@ -103,7 +103,10 @@ function getPolicyExpenseReportOptions(report) {
     if (!ReportUtils.isPolicyExpenseChat(report)) {
         return [];
     }
-    const filteredPolicyExpenseReports = _.filter(policyExpenseReports, (policyExpenseReport) => policyExpenseReport.policyID === report.policyID);
+    const filteredPolicyExpenseReports = _.filter(
+        policyExpenseReports,
+        (policyExpenseReport) => policyExpenseReport.policyID === report.policyID && policyExpenseReport.isOwnPolicyExpenseChat,
+    );
     return _.map(filteredPolicyExpenseReports, (expenseReport) => {
         const policyExpenseChatAvatarSource = ReportUtils.getWorkspaceAvatar(expenseReport);
         return {
@@ -455,7 +458,7 @@ function createOption(logins, personalDetails, report, reportActions = {}, {show
     }
 
     result.isIOUReportOwner = ReportUtils.isIOUOwnedByCurrentUser(result, iouReports);
-    result.iouReportAmount = ReportUtils.getIOUTotal(result, iouReports);
+    result.iouReportAmount = ReportUtils.getMoneyRequestTotal(result, iouReports);
 
     if (!hasMultipleParticipants) {
         result.login = personalDetail.login;
