@@ -80,7 +80,7 @@ const MultipleAvatars = (props) => {
     }
 
     const oneAvatarSize = StyleUtils.getAvatarStyle(props.size);
-    const oneAvatarBorderWidth = StyleUtils.getAvatarBorderWidth(props.size);
+    const oneAvatarBorderWidth = StyleUtils.getAvatarBorderWidth(props.size).borderWidth;
     const overlapSize = oneAvatarSize.width / 3;
 
     if (props.shouldStackHorizontally) {

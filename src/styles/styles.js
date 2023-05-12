@@ -1780,18 +1780,12 @@ const styles = {
         position: 'absolute',
         right: -6,
         bottom: -6,
-        borderWidth: 2,
-        borderRadius: 18,
-        borderColor: 'transparent',
     },
 
     secondAvatarSubscriptCompact: {
         position: 'absolute',
         bottom: -1,
         right: -1,
-        borderWidth: 1,
-        borderRadius: 18,
-        borderColor: 'transparent',
     },
 
     leftSideLargeAvatar: {
