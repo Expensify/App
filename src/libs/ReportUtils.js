@@ -464,7 +464,7 @@ function isThreadFirstChat(reportAction, reportID) {
  * @param {Object} parentReport
  * @returns {String}
  */
-function getChatRoomSubtitle(report, parentReport) {
+function getChatRoomSubtitle(report, parentReport = null) {
     if (isThread(report)) {
         if (!getChatType(report)) {
             return '';
