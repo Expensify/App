@@ -150,7 +150,7 @@ const NewTaskPage = (props) => {
     }
 
     return (
-        <ScreenWrapper includeSafeAreaPaddingBottom={false}>
+        <ScreenWrapper>
             <HeaderWithCloseButton
                 title={props.translate('newTaskPage.confirmTask')}
                 onCloseButtonPress={() => Navigation.dismissModal()}
