@@ -56,7 +56,21 @@ export default [
             };
 
             const onEmojiSelected = (emoji, existingReactions) => {
-                Report.toggleReaction(reportID, reportAction, emoji, existingReactions);
+                // This will get cleaned up as part of https://github.com/Expensify/App/issues/16506 once the old emoji
+                // format is no longer being used
+
+                // Look for OLD FORMAT "reactions" on the report action's message
+                const reactions = _.get(reportAction, ['message', 0, 'reactions'], []);
+                const hasReactions = reactions.length > 0;
+
+                // When there are no reactions in the OLD FORMAT, always use the NEW FORMAT
+                if (!hasReactions) {
+                    Report.toggleEmojiReaction(reportID, reportAction, emoji, existingReactions);
+                } else {
+                    // Only use the OLD when there are existing reactions in that format
+                    Report.toggleReaction(reportID, reportAction, emoji);
+                }
+
                 closeContextMenu();
             };
 

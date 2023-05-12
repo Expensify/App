@@ -1591,11 +1591,10 @@ function removeEmojiReaction(reportID, reportActionID, emoji, existingReactions)
  * @param {String} reportID
  * @param {Object} reportAction
  * @param {Object} emoji
- * @param {Object} existingReactions
  * @param {Number} [paramSkinTone]
  * @returns {Promise}
  */
-function toggleReaction(reportID, reportAction, emoji, existingReactions, paramSkinTone = preferredSkinTone) {
+function toggleReaction(reportID, reportAction, emoji, paramSkinTone = preferredSkinTone) {
     // This will get cleaned up as part of https://github.com/Expensify/App/issues/16506 once the old emoji
     // format is no longer being used
     const message = reportAction.message[0];
@@ -1603,10 +1602,33 @@ function toggleReaction(reportID, reportAction, emoji, existingReactions, paramS
     const skinTone = emoji.types === undefined ? null : paramSkinTone; // only use skin tone if emoji supports it
     if (reactionObject) {
         if (hasAccountIDReacted(currentUserAccountID, reactionObject.users, skinTone)) {
-            return addReaction(reportID, reportAction.reportActionID, emoji, existingReactions);
+            return addReaction(reportID, reportAction.reportActionID, emoji, skinTone);
         }
     }
     return removeReaction(reportID, reportAction.reportActionID, emoji, skinTone);
+}
+
+/**
+ * Calls either addReaction or removeEmojiReaction depending on if the current user has reacted to the report action.
+ * @param {String} reportID
+ * @param {Object} reportAction
+ * @param {Object} emoji
+ * @param {Object} existingReactions
+ * @param {Number} [paramSkinTone]
+ * @returns {Promise}
+ */
+function toggleEmojiReaction(reportID, reportAction, emoji, existingReactions, paramSkinTone = preferredSkinTone) {
+    // This will get cleaned up as part of https://github.com/Expensify/App/issues/16506 once the old emoji
+    // format is no longer being used
+    const message = reportAction.message[0];
+    const reactionObject = message.reactions && _.find(message.reactions, (reaction) => reaction.emoji === emoji.name);
+    const skinTone = emoji.types === undefined ? null : paramSkinTone; // only use skin tone if emoji supports it
+    if (reactionObject) {
+        if (hasAccountIDReacted(currentUserAccountID, reactionObject.users, skinTone)) {
+            return addEmojiReaction(reportID, reportAction.reportActionID, emoji, skinTone);
+        }
+    }
+    return removeEmojiReaction(reportID, reportAction.reportActionID, emoji, skinTone, existingReactions);
 }
 
 /**
@@ -1663,6 +1685,7 @@ export {
     subscribeToNewActionEvent,
     showReportActionNotification,
     toggleReaction,
+    toggleEmojiReaction,
     hasAccountIDReacted,
     shouldShowReportActionNotification,
 };

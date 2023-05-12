@@ -182,7 +182,21 @@ class ReportActionItem extends Component {
     }
 
     toggleReaction(emoji) {
-        Report.toggleReaction(this.props.report.reportID, this.props.action, emoji, this.props.reactions);
+        // This will get cleaned up as part of https://github.com/Expensify/App/issues/16506 once the old emoji
+        // format is no longer being used
+
+        // Look for OLD FORMAT "reactions" on the report action's message
+        const reactions = _.get(this.props, ['action', 'message', 0, 'reactions'], []);
+        const hasReactions = reactions.length > 0;
+
+        // When there are no reactions in the OLD FORMAT, always use the NEW FORMAT
+        if (!hasReactions) {
+            Report.toggleEmojiReaction(this.props.report.reportID, this.props.action, emoji, this.props.emojiReactions);
+            return;
+        }
+
+        // Only use the OLD FORMAT when there are existing reactions in that format
+        Report.toggleReaction(this.props.report.reportID, this.props.action, emoji);
     }
 
     /**
