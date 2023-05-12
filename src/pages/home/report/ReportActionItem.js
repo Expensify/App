@@ -162,7 +162,7 @@ function ReportActionItem(props) {
             const iouReportID = props.action.originalMessage.IOUReportID ? props.action.originalMessage.IOUReportID.toString() : '0';
 
             children = (
-                <IOUAction
+                <MoneyRequestAction
                     chatReportID={props.report.reportID}
                     requestReportID={iouReportID}
                     action={props.action}
@@ -172,11 +172,11 @@ function ReportActionItem(props) {
                     checkIfContextMenuActive={toggleContextMenuFromActiveReportAction}
                 />
             );
-        } else if (ReportActionUtils.isCreatedTaskReportAction(this.props.action)) {
+        } else if (ReportActionUtils.isCreatedTaskReportAction(props.action)) {
             children = (
                 <TaskPreview
-                    taskReportID={this.props.action.originalMessage.taskReportID.toString()}
-                    action={this.props.action}
+                    taskReportID={props.action.originalMessage.taskReportID.toString()}
+                    action={props.action}
                     isHovered={hovered}
                 />
             );
