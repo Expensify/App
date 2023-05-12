@@ -43,6 +43,7 @@ const defaultProps = {
 
 function WorkspaceSettingsPage(props) {
     const nameIsRequiredError = props.translate('workspace.editor.nameIsRequiredError');
+    const nameIsTooLongError = props.translate('workspace.editor.nameIsTooLongError');
 
     const currencyItems = useMemo(() => {
         const currencyListKeys = _.keys(props.currencyList);
@@ -72,11 +73,13 @@ function WorkspaceSettingsPage(props) {
 
             if (!name || !name.length) {
                 errors.name = nameIsRequiredError;
+            } else if ([...name].length > CONST.WORKSPACE_NAME_CHARACTER_LIMIT) {
+                errors.name = nameIsTooLongError;
             }
 
             return errors;
         },
-        [nameIsRequiredError],
+        [nameIsRequiredError, nameIsTooLongError],
     );
 
     const policyName = lodashGet(props.policy, 'name', '');
