@@ -5,13 +5,15 @@ const propTypes = {
     fullTitle: PropTypes.string,
 
     /** Array of objects that map display names to their corresponding tooltip */
-    displayNamesWithTooltips: PropTypes.arrayOf(PropTypes.shape({
-        /** The name to display in bold */
-        displayName: PropTypes.string,
+    displayNamesWithTooltips: PropTypes.arrayOf(
+        PropTypes.shape({
+            /** The name to display in bold */
+            displayName: PropTypes.string,
 
-        /** The tooltip to show when the associated name is hovered */
-        tooltip: PropTypes.string,
-    })),
+            /** The tooltip to show when the associated name is hovered */
+            tooltip: PropTypes.string,
+        }),
+    ),
 
     /** Number of lines before wrapping */
     numberOfLines: PropTypes.number,

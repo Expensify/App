@@ -22,7 +22,6 @@ import userPropTypes from '../settings/userPropTypes';
 import Section from '../../components/Section';
 import * as Illustrations from '../../components/Icon/Illustrations';
 import * as Link from '../../libs/actions/Link';
-import * as User from '../../libs/actions/User';
 import ScreenWrapper from '../../components/ScreenWrapper';
 import * as BankAccounts from '../../libs/actions/ReimbursementAccount';
 import WorkspaceResetBankAccountModal from '../workspace/WorkspaceResetBankAccountModal';
@@ -49,17 +48,16 @@ const EnableStep = (props) => {
     const isUsingExpensifyCard = props.user.isUsingExpensifyCard;
     const achData = lodashGet(props.reimbursementAccount, 'achData') || {};
     const {icon, iconSize} = getBankIcon(achData.bankName);
-    const formattedBankAccountNumber = achData.accountNumber
-        ? `${props.translate('paymentMethodList.accountLastFour')} ${
-            achData.accountNumber.slice(-4)
-        }`
-        : '';
+    const formattedBankAccountNumber = achData.accountNumber ? `${props.translate('paymentMethodList.accountLastFour')} ${achData.accountNumber.slice(-4)}` : '';
     const bankName = achData.addressName;
 
     const errors = lodashGet(props.reimbursementAccount, 'errors', {});
     const pendingAction = lodashGet(props.reimbursementAccount, 'pendingAction', null);
     return (
-        <ScreenWrapper style={[styles.flex1, styles.justifyContentBetween]} includeSafeAreaPaddingBottom={false}>
+        <ScreenWrapper
+            style={[styles.flex1, styles.justifyContentBetween]}
+            includeSafeAreaPaddingBottom={false}
+        >
             <HeaderWithCloseButton
                 title={props.translate('workspace.common.bankAccount')}
                 subtitle={props.policyName}
@@ -74,7 +72,6 @@ const EnableStep = (props) => {
                     title={!isUsingExpensifyCard ? props.translate('workspace.bankAccount.oneMoreThing') : props.translate('workspace.bankAccount.allSet')}
                     icon={!isUsingExpensifyCard ? Illustrations.ConciergeNew : Illustrations.ThumbsUpStars}
                 >
-
                     <OfflineWithFeedback
                         pendingAction={pendingAction}
                         errors={errors}
@@ -101,7 +98,6 @@ const EnableStep = (props) => {
                                 text={props.translate('workspace.bankAccount.addWorkEmail')}
                                 onPress={() => {
                                     Link.openOldDotLink(CONST.ADD_SECONDARY_LOGIN_URL);
-                                    User.subscribeToExpensifyCardUpdates();
                                 }}
                                 icon={Expensicons.Mail}
                                 style={[styles.mt4]}
@@ -120,17 +116,9 @@ const EnableStep = (props) => {
                         />
                     </OfflineWithFeedback>
                 </Section>
-                {Boolean(props.user.isCheckingDomain) && (
-                    <Text style={[styles.formError, styles.mh5]}>
-                        {props.translate('workspace.card.checkingDomain')}
-                    </Text>
-                )}
+                {Boolean(props.user.isCheckingDomain) && <Text style={[styles.formError, styles.mh5]}>{props.translate('workspace.card.checkingDomain')}</Text>}
             </ScrollView>
-            {props.reimbursementAccount.shouldShowResetModal && (
-                <WorkspaceResetBankAccountModal
-                    reimbursementAccount={props.reimbursementAccount}
-                />
-            )}
+            {props.reimbursementAccount.shouldShowResetModal && <WorkspaceResetBankAccountModal reimbursementAccount={props.reimbursementAccount} />}
         </ScreenWrapper>
     );
 };
