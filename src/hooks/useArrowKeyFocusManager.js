@@ -1,7 +1,11 @@
+import {useState, useEffect} from 'react';
 import useKeyboardShortcut from './useKeyboardShortcut';
 import CONST from '../CONST';
 
-export default function useArrowKeyFocusManager({focusedIndex, maxIndex, onFocusedIndexChange, disabledIndexes = [], shouldExcludeTextAreaNodes = true}) {
+export default function useArrowKeyFocusManager({maxIndex, onFocusedIndexChange, initialFocusedIndex = 0, disabledIndexes = [], shouldExcludeTextAreaNodes = true}) {
+    const [focusedIndex, setFocusedIndex] = useState(initialFocusedIndex);
+    useEffect(() => onFocusedIndexChange(focusedIndex), [focusedIndex, onFocusedIndexChange]);
+
     useKeyboardShortcut(
         CONST.KEYBOARD_SHORTCUTS.ARROW_UP,
         () => {
@@ -20,12 +24,13 @@ export default function useArrowKeyFocusManager({focusedIndex, maxIndex, onFocus
                 }
             }
 
-            onFocusedIndexChange(newFocusedIndex);
+            setFocusedIndex(newFocusedIndex);
         },
         {
             excludedNodes: shouldExcludeTextAreaNodes ? ['TEXTAREA'] : [],
         },
     );
+
     useKeyboardShortcut(
         CONST.KEYBOARD_SHORTCUTS.ARROW_DOWN,
         () => {
@@ -44,10 +49,12 @@ export default function useArrowKeyFocusManager({focusedIndex, maxIndex, onFocus
                 }
             }
 
-            onFocusedIndexChange(newFocusedIndex);
+            setFocusedIndex(newFocusedIndex);
         },
         {
             excludedNodes: shouldExcludeTextAreaNodes ? ['TEXTAREA'] : [],
         },
     );
+
+    return focusedIndex;
 }
