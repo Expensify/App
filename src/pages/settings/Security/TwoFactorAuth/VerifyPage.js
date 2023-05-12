@@ -119,11 +119,10 @@ function VerifyPage(props) {
                         <View style={[styles.mt11, styles.flexRow, styles.alignItemsCenter, styles.justifyContentBetween]}>
                             {Boolean(props.account.twoFactorAuthSecretKey) && <Text>{splitSecretInChunks(props.account.twoFactorAuthSecretKey)}</Text>}
                             <Button
-                                medium
+                                text={props.translate('twoFactorAuth.copy')}
                                 onPress={() => Clipboard.setString(props.account.twoFactorAuthSecretKey)}
-                            >
-                                <Text>{props.translate('twoFactorAuth.copy')}</Text>
-                            </Button>
+                                medium
+                            />
                         </View>
                         <Text style={styles.mt11}>{props.translate('twoFactorAuth.enterCode')}</Text>
                     </View>
