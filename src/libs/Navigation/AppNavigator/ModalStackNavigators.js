@@ -166,7 +166,7 @@ const ReportDetailsModalStackNavigator = createModalStackNavigator([
             return ShareCodePage;
         },
         name: 'Report_Details_Share_Code',
-    }
+    },
 ]);
 
 const TaskModalStackNavigator = createModalStackNavigator([

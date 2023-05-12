@@ -60,9 +60,9 @@ export default {
     NEW_TASK,
     REPORT,
     REPORT_WITH_ID: 'r/:reportID',
-    getReportRoute: reportID => `r/${reportID}`,
+    getReportRoute: (reportID) => `r/${reportID}`,
     REPORT_WITH_ID_DETAILS_SHARE_CODE: 'r/:reportID/details/shareCode',
-    getReportShareCodeRoute: reportID => `r/${reportID}/details/shareCode`,
+    getReportShareCodeRoute: (reportID) => `r/${reportID}/details/shareCode`,
     SELECT_YEAR: 'select-year',
     getYearSelectionRoute: (minYear, maxYear, currYear, backTo) => `select-year?min=${minYear}&max=${maxYear}&year=${currYear}&backTo=${backTo}`,
 
