@@ -44,10 +44,16 @@ const ReportActionItemThread = (props) => (
                     avatarTooltips={_.map(props.icons, (icon) => icon.name)}
                 />
                 <View style={[styles.flexRow, styles.lh140Percent, styles.alignItemsEnd]}>
-                    <Text style={[styles.link, styles.ml2, styles.h4]}>
+                    <Text
+                        selectable={false}
+                        style={[styles.link, styles.ml2, styles.h4]}
+                    >
                         {`${props.numberOfReplies} ${props.numberOfReplies === 1 ? props.translate('threads.reply') : props.translate('threads.replies')}`}
                     </Text>
-                    <Text style={[styles.ml2, styles.textMicroSupporting]}>{`${props.translate('threads.lastReply')} ${props.datetimeToCalendarTime(props.mostRecentReply)}`}</Text>
+                    <Text
+                        selectable={false}
+                        style={[styles.ml2, styles.textMicroSupporting]}
+                    >{`${props.translate('threads.lastReply')} ${props.datetimeToCalendarTime(props.mostRecentReply)}`}</Text>
                 </View>
             </View>
         </Pressable>
