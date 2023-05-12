@@ -115,7 +115,7 @@ export default [
                 Permissions.canUseThreads(betas) &&
                 type === CONTEXT_MENU_TYPES.REPORT_ACTION &&
                 reportAction.actionName === CONST.REPORT.ACTIONS.TYPE.ADDCOMMENT &&
-                reportAction.childReportID.toString() !== reportID
+                (_.isUndefined(reportAction.childReportID) || reportAction.childReportID.toString() !== reportID)
             );
         },
         onPress: (closePopover, {reportAction, reportID}) => {
