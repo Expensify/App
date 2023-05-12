@@ -1534,6 +1534,7 @@ function addEmojiReaction2(reportID, reportActionID, emoji, skinTone = preferred
         emojiCode: emoji.name,
         reportActionID,
         createdAt,
+        useEmojiReactions: true,
     };
     API.write('AddEmojiReaction', parameters, {optimisticData});
 }
@@ -1576,6 +1577,7 @@ function removeEmojiReaction2(reportID, reportActionID, emoji, existingReactions
         reportID,
         reportActionID,
         emojiCode: emoji.name,
+        useEmojiReactions: true,
     };
     API.write('RemoveEmojiReaction', parameters, {optimisticData});
 }
