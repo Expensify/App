@@ -19,6 +19,7 @@ import * as IOUUtils from '../../libs/IOUUtils';
 import * as ReportUtils from '../../libs/ReportUtils';
 import * as Report from '../../libs/actions/Report';
 import withLocalize, {withLocalizePropTypes} from '../withLocalize';
+import * as CurrencyUtils from '../../libs/CurrencyUtils';
 
 const propTypes = {
     /** All the data of the action */
@@ -95,7 +96,10 @@ const MoneyRequestAction = (props) => {
             // and passing the parentReportActionID of the reportAction. OpenReport will then automatically create the thread for us.
             const optimisticThreadReport = ReportUtils.buildOptimisticChatReport(
                 props.chatReport.participants,
-                props.translate('iou.threadReportName', {payee: props.action.actorEmail, comment: props.action.originalMessage.comment}),
+                props.translate('iou.threadReportName', {
+                    formattedAmount: CurrencyUtils.convertToDisplayString(props.iouReport.iouReportAmount, props.iouReport.currency),
+                    comment: props.action.originalMessage.comment,
+                }),
                 '',
                 props.chatReport.policyID,
                 props.chatReport.owner,
