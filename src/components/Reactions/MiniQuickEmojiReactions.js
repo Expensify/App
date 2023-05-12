@@ -97,7 +97,6 @@ export default compose(
     withOnyx({
         preferredSkinTone: {
             key: ONYXKEYS.PREFERRED_EMOJI_SKIN_TONE,
-            selector: EmojiUtils.getPreferredSkinToneIndex,
         },
     }),
 )(MiniQuickEmojiReactions);
