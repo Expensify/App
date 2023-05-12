@@ -25,8 +25,6 @@ const defaultProps = {
 // eslint-disable-next-line react/prefer-stateless-function
 class ReportDetailsShareCodePage extends React.Component {
     render() {
-        // eslint-disable-next-line es/no-optional-chaining
-
         return <ShareCodePage report={this.props.report} />;
     }
 }
