@@ -1401,12 +1401,13 @@ function hasAccountIDReacted(accountID, users, skinTone) {
 
 /**
  * Adds a reaction to the report action.
+ * Uses the OLD FORMAT for "reactions"
  * @param {String} reportID
  * @param {Object} originalReportAction
  * @param {{ name: string, code: string, types: string[] }} emoji
  * @param {number} [skinTone] Optional.
  */
-function addEmojiReaction(reportID, originalReportAction, emoji, skinTone = preferredSkinTone) {
+function addReaction(reportID, originalReportAction, emoji, skinTone = preferredSkinTone) {
     const message = originalReportAction.message[0];
     let reactionObject = message.reactions && _.find(message.reactions, (reaction) => reaction.emoji === emoji.name);
     const needToInsertReactionObject = !reactionObject;
@@ -1452,11 +1453,12 @@ function addEmojiReaction(reportID, originalReportAction, emoji, skinTone = pref
 
 /**
  * Removes a reaction to the report action.
+ * Uses the OLD FORMAT for "reactions"
  * @param {String} reportID
  * @param {Object} originalReportAction
  * @param {{ name: string, code: string, types: string[] }} emoji
  */
-function removeEmojiReaction(reportID, originalReportAction, emoji) {
+function removeReaction(reportID, originalReportAction, emoji) {
     const message = originalReportAction.message[0];
     const reactionObject = message.reactions && _.find(message.reactions, (reaction) => reaction.emoji === emoji.name);
     if (!reactionObject) {
@@ -1502,12 +1504,13 @@ function removeEmojiReaction(reportID, originalReportAction, emoji) {
 
 /**
  * Adds a reaction to the report action.
+ * Uses the NEW FORMAT for "emojiReactions"
  * @param {String} reportID
  * @param {String} reportActionID
  * @param {{ name: string, code: string, types: string[] }} emoji
  * @param {number} [skinTone] Optional.
  */
-function addEmojiReaction2(reportID, reportActionID, emoji, skinTone = preferredSkinTone) {
+function addEmojiReaction(reportID, reportActionID, emoji, skinTone = preferredSkinTone) {
     const createdAt = moment().utc().format(CONST.DATE.SQL_DATE_TIME);
     const optimisticData = [
         {
@@ -1541,12 +1544,13 @@ function addEmojiReaction2(reportID, reportActionID, emoji, skinTone = preferred
 
 /**
  * Removes a reaction to the report action.
+ * Uses the NEW FORMAT for "emojiReactions"
  * @param {String} reportID
  * @param {String} reportActionID
  * @param {{ name: string, code: string, types: string[] }} emoji
  * @param {Object} existingReactions
  */
-function removeEmojiReaction2(reportID, reportActionID, emoji, existingReactions) {
+function removeEmojiReaction(reportID, reportActionID, emoji, existingReactions) {
     const reactionObject = existingReactions[emoji.name];
     if (!reactionObject) {
         return;
@@ -1583,7 +1587,7 @@ function removeEmojiReaction2(reportID, reportActionID, emoji, existingReactions
 }
 
 /**
- * Calls either addEmojiReaction or removeEmojiReaction depending on if the current user has reacted to the report action.
+ * Calls either addReaction or removeEmojiReaction depending on if the current user has reacted to the report action.
  * @param {String} reportID
  * @param {Object} reportAction
  * @param {Object} emoji
@@ -1597,10 +1601,10 @@ function toggleEmojiReaction(reportID, reportAction, emoji, existingReactions, p
     const skinTone = emoji.types === undefined ? null : paramSkinTone; // only use skin tone if emoji supports it
     if (reactionObject) {
         if (hasAccountIDReacted(currentUserAccountID, reactionObject.users, skinTone)) {
-            return removeEmojiReaction2(reportID, reportAction.reportActionID, emoji, existingReactions);
+            return removeEmojiReaction(reportID, reportAction.reportActionID, emoji, existingReactions);
         }
     }
-    return addEmojiReaction2(reportID, reportAction.reportActionID, emoji, skinTone);
+    return addEmojiReaction(reportID, reportAction.reportActionID, emoji, skinTone);
 }
 
 /**
@@ -1656,10 +1660,6 @@ export {
     clearIOUError,
     subscribeToNewActionEvent,
     showReportActionNotification,
-    addEmojiReaction,
-    addEmojiReaction2,
-    removeEmojiReaction,
-    removeEmojiReaction2,
     toggleEmojiReaction,
     hasAccountIDReacted,
     shouldShowReportActionNotification,

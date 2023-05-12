@@ -555,7 +555,7 @@ describe('actions/Report', () => {
                 const resultAction = _.first(_.values(reportActions));
 
                 // Add a reaction to the comment
-                Report.addEmojiReaction(REPORT_ID, resultAction, EMOJI);
+                Report.toggleEmojiReaction(REPORT_ID, resultAction, EMOJI);
                 return waitForPromisesToResolve();
             })
             .then(() => {
@@ -585,11 +585,11 @@ describe('actions/Report', () => {
                 const resultAction = _.first(_.values(reportActions));
 
                 // Add the reaction to the comment, but two times with different variations
-                Report.addEmojiReaction(REPORT_ID, resultAction, EMOJI);
+                Report.toggleEmojiReaction(REPORT_ID, resultAction, EMOJI);
                 return waitForPromisesToResolve()
                     .then(() => {
                         const updatedResultAction = _.first(_.values(reportActions));
-                        Report.addEmojiReaction(REPORT_ID, updatedResultAction, EMOJI, 2);
+                        Report.toggleEmojiReaction(REPORT_ID, updatedResultAction, EMOJI, 2);
                         return waitForPromisesToResolve();
                     })
                     .then(() => {
