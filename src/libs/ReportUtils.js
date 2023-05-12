@@ -434,7 +434,7 @@ function isPolicyExpenseChatAdmin(report, policies) {
  * @returns {Boolean}
  */
 function isThread(report) {
-    return report && report.parentReportID && report.parentReportActionID;
+    return Boolean(report && report.parentReportID && report.parentReportActionID);
 }
 
 /**
