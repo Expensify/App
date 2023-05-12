@@ -25,14 +25,6 @@ const propTypes = {
     /** Stores user's preferred skin tone */
     preferredSkinTone: PropTypes.oneOfType([PropTypes.number, PropTypes.string]),
 
-    /** User's frequently used emojis */
-    frequentlyUsedEmojis: PropTypes.arrayOf(
-        PropTypes.shape({
-            code: PropTypes.string.isRequired,
-            keywords: PropTypes.arrayOf(PropTypes.string),
-        }),
-    ),
-
     /** Props related to the dimensions of the window */
     ...windowDimensionsPropTypes,
 
@@ -42,7 +34,6 @@ const propTypes = {
 
 const defaultProps = {
     preferredSkinTone: CONST.EMOJI_DEFAULT_SKIN_TONE,
-    frequentlyUsedEmojis: [],
 };
 
 class EmojiPickerMenu extends Component {
@@ -52,7 +43,7 @@ class EmojiPickerMenu extends Component {
         // Ref for emoji FlatList
         this.emojiList = undefined;
 
-        this.emojis = EmojiUtils.mergeEmojisWithFrequentlyUsedEmojis(emojis, this.props.frequentlyUsedEmojis);
+        this.emojis = EmojiUtils.mergeEmojisWithFrequentlyUsedEmojis(emojis);
 
         // Get the header emojis along with the code, index and icon.
         // index is the actual header index starting at the first emoji and counting each one
@@ -79,7 +70,7 @@ class EmojiPickerMenu extends Component {
      * @param {Object} emojiObject
      */
     addToFrequentAndSelectEmoji(emoji, emojiObject) {
-        const frequentEmojiList = EmojiUtils.addToFrequentlyUsedEmojis(this.props.frequentlyUsedEmojis, emojiObject);
+        const frequentEmojiList = EmojiUtils.addToFrequentlyUsedEmojis(emojiObject);
         User.updateFrequentlyUsedEmojis(frequentEmojiList);
         this.props.onEmojiSelected(emoji, emojiObject);
     }
@@ -186,9 +177,6 @@ export default compose(
         preferredSkinTone: {
             key: ONYXKEYS.PREFERRED_EMOJI_SKIN_TONE,
             selector: EmojiUtils.getPreferredSkinToneIndex,
-        },
-        frequentlyUsedEmojis: {
-            key: ONYXKEYS.FREQUENTLY_USED_EMOJIS,
         },
     }),
 )(

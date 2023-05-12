@@ -1,10 +1,17 @@
 import _ from 'underscore';
-import lodashOrderBy from 'lodash/orderBy';
 import moment from 'moment';
 import Str from 'expensify-common/lib/str';
+import Onyx from 'react-native-onyx';
+import ONYXKEYS from '../ONYXKEYS';
 import CONST from '../CONST';
 import emojisTrie from './EmojiTrie';
 import FrequentlyUsed from '../../assets/images/history.svg';
+
+let frequentlyUsedEmojis = [];
+Onyx.connect({
+    key: ONYXKEYS.FREQUENTLY_USED_EMOJIS,
+    callback: (val) => (frequentlyUsedEmojis = val),
+});
 
 /**
  * Get the unicode code of an emoji in base 16.
@@ -142,10 +149,9 @@ function addSpacesToEmojiCategories(emojis) {
 /**
  * Get a merged array with frequently used emojis
  * @param {Object[]} emojis
- * @param {Object[]} frequentlyUsedEmojis
  * @returns {Object[]}
  */
-function mergeEmojisWithFrequentlyUsedEmojis(emojis, frequentlyUsedEmojis = []) {
+function mergeEmojisWithFrequentlyUsedEmojis(emojis) {
     if (frequentlyUsedEmojis.length === 0) {
         return addSpacesToEmojiCategories(emojis);
     }
@@ -164,30 +170,31 @@ function mergeEmojisWithFrequentlyUsedEmojis(emojis, frequentlyUsedEmojis = []) 
 
 /**
  * Get the updated frequently used emojis list by usage
- * @param {Object[]} frequentlyUsedEmojis
- * @param {Object} newEmoji
- * @return {Object[]}
+ * @param {Object|Object[]} newEmoji
  */
-function addToFrequentlyUsedEmojis(frequentlyUsedEmojis, newEmoji) {
-    let frequentEmojiList = frequentlyUsedEmojis;
-    let currentEmojiCount = 1;
-    const currentTimestamp = moment().unix();
-    const emojiIndex = _.findIndex(frequentEmojiList, (e) => e.code === newEmoji.code);
-    if (emojiIndex >= 0) {
-        currentEmojiCount = frequentEmojiList[emojiIndex].count + 1;
-        frequentEmojiList.splice(emojiIndex, 1);
-    }
-    const updatedEmoji = {...newEmoji, ...{count: currentEmojiCount, lastUpdatedAt: currentTimestamp}};
+function addToFrequentlyUsedEmojis(newEmoji) {
+    let frequentEmojiList = [...frequentlyUsedEmojis];
+
     const maxFrequentEmojiCount = CONST.EMOJI_FREQUENT_ROW_COUNT * CONST.EMOJI_NUM_PER_ROW - 1;
+    const currentTimestamp = moment().unix();
+    _.each([].concat(newEmoji), (emoji) => {
+        let currentEmojiCount = 1;
+        const emojiIndex = _.findIndex(frequentEmojiList, (e) => e.code === emoji.code);
+        if (emojiIndex >= 0) {
+            currentEmojiCount = frequentEmojiList[emojiIndex].count + 1;
+            frequentEmojiList.splice(emojiIndex, 1);
+        }
+        const updatedEmoji = {...emoji, ...{count: currentEmojiCount, lastUpdatedAt: currentTimestamp}};
 
-    // We want to make sure the current emoji is added to the list
-    // Hence, we take one less than the current high frequent used emojis and if same then sorted by lastUpdatedAt
-    frequentEmojiList = lodashOrderBy(frequentEmojiList, ['count', 'lastUpdatedAt'], ['desc', 'desc']);
-    frequentEmojiList = frequentEmojiList.slice(0, maxFrequentEmojiCount);
-    frequentEmojiList.push(updatedEmoji);
+        // We want to make sure the current emoji is added to the list
+        // Hence, we take one less than the current frequent used emojis
+        frequentEmojiList = frequentEmojiList.slice(0, maxFrequentEmojiCount);
+        frequentEmojiList.push(updatedEmoji);
 
-    // Second sorting is required so that new emoji is properly placed at sort-ordered location
-    frequentEmojiList = lodashOrderBy(frequentEmojiList, ['count', 'lastUpdatedAt'], ['desc', 'desc']);
+        // Sort the list by count and lastUpdatedAt in descending order
+        frequentEmojiList.sort((a, b) => b.count - a.count || b.lastUpdatedAt - a.lastUpdatedAt);
+    });
+
     return frequentEmojiList;
 }
 
@@ -210,6 +217,9 @@ const getEmojiCodeWithSkinColor = (item, preferredSkinToneIndex) => {
 /**
  * Replace any emoji name in a text with the emoji icon.
  * If we're on mobile, we also add a space after the emoji granted there's no text after it.
+ *
+ * All replaced emojis will be added to the frequently used emojis list.
+ *
  * @param {String} text
  * @param {Boolean} isSmallScreenWidth
  * @param {Number} preferredSkinTone
@@ -221,10 +231,17 @@ function replaceEmojis(text, isSmallScreenWidth = false, preferredSkinTone = CON
     if (!emojiData || emojiData.length === 0) {
         return text;
     }
+    const emojis = [];
     for (let i = 0; i < emojiData.length; i++) {
-        const checkEmoji = emojisTrie.search(emojiData[i].slice(1, -1));
+        const name = emojiData[i].slice(1, -1);
+        const checkEmoji = emojisTrie.search(name);
         if (checkEmoji && checkEmoji.metaData.code) {
             let emojiReplacement = getEmojiCodeWithSkinColor(checkEmoji.metaData, preferredSkinTone);
+            emojis.push({
+                name,
+                code: checkEmoji.metaData.code,
+                types: checkEmoji.metaData.types,
+            });
 
             // If this is the last emoji in the message and it's the end of the message so far,
             // add a space after it so the user can keep typing easily.
@@ -233,6 +250,11 @@ function replaceEmojis(text, isSmallScreenWidth = false, preferredSkinTone = CON
             }
             newText = newText.replace(emojiData[i], emojiReplacement);
         }
+    }
+
+    // Add all replaced emojis to the frequently used emojis list
+    if (!_.isEmpty(emojis)) {
+        addToFrequentlyUsedEmojis(emojis);
     }
     return newText;
 }

@@ -271,9 +271,7 @@ class ReportScreen extends React.Component {
                         subtitleKey="notFound.noAccess"
                         shouldShowCloseButton={false}
                         shouldShowBackButton={this.props.isSmallScreenWidth}
-                        onBackButtonPress={() => {
-                            Navigation.navigate(ROUTES.HOME);
-                        }}
+                        onBackButtonPress={Navigation.goBack}
                     >
                         {isLoading ? (
                             <ReportHeaderSkeletonView shouldAnimate={shouldAnimate} />
@@ -293,7 +291,7 @@ class ReportScreen extends React.Component {
                                     ) : (
                                         <HeaderView
                                             reportID={reportID}
-                                            onNavigationMenuButtonClicked={() => Navigation.navigate(ROUTES.HOME)}
+                                            onNavigationMenuButtonClicked={Navigation.goBack}
                                             personalDetails={this.props.personalDetails}
                                             report={this.props.report}
                                         />
