@@ -17,7 +17,6 @@ import withLocalize, {withLocalizePropTypes} from '../withLocalize';
 import compose from '../../libs/compose';
 import ONYXKEYS from '../../ONYXKEYS';
 import getPreferredEmojiCode from './getPreferredEmojiCode';
-import * as EmojiUtils from '../../libs/EmojiUtils';
 
 const propTypes = {
     ...baseQuickEmojiReactionsPropTypes,

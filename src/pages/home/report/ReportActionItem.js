@@ -48,7 +48,6 @@ import personalDetailsPropType from '../../personalDetailsPropType';
 import ReportActionItemDraft from './ReportActionItemDraft';
 import TaskPreview from '../../../components/ReportActionItem/TaskPreview';
 import * as ReportActionUtils from '../../../libs/ReportActionsUtils';
-import * as EmojiUtils from '../../../libs/EmojiUtils';
 
 const propTypes = {
     /** Report for this action */
