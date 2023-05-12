@@ -183,7 +183,7 @@ class AttachmentCarousel extends React.Component {
 
         return {
             page,
-            attachments,
+            attachments: this.canUseTouchScreen ? attachments.reverse() : attachments,
             shouldShowArrow: this.canUseTouchScreen,
             containerWidth: 0,
             isZoomed: false,
@@ -262,8 +262,14 @@ class AttachmentCarousel extends React.Component {
     }
 
     render() {
-        const isForwardDisabled = this.state.page === 0;
-        const isBackDisabled = this.state.page === _.size(this.state.attachments) - 1;
+        let isForwardDisabled = this.state.page === 0;
+        let isBackDisabled = this.state.page === _.size(this.state.attachments) - 1;
+
+        if (this.canUseTouchScreen) {
+            const temp = isBackDisabled;
+            isBackDisabled = isForwardDisabled;
+            isForwardDisabled = temp;
+        }
 
         return (
             <View
@@ -284,7 +290,7 @@ class AttachmentCarousel extends React.Component {
                                         iconFill={themeColors.text}
                                         iconStyles={[styles.mr0]}
                                         onPress={() => {
-                                            this.cycleThroughAttachments(-1);
+                                            this.cycleThroughAttachments(this.canUseTouchScreen ? 1 : -1);
                                             this.autoHideArrow();
                                         }}
                                         onPressIn={this.cancelAutoHideArrow}
@@ -303,7 +309,7 @@ class AttachmentCarousel extends React.Component {
                                         iconFill={themeColors.text}
                                         iconStyles={[styles.mr0]}
                                         onPress={() => {
-                                            this.cycleThroughAttachments(1);
+                                            this.cycleThroughAttachments(this.canUseTouchScreen ? -1 : 1);
                                             this.autoHideArrow();
                                         }}
                                         onPressIn={this.cancelAutoHideArrow}
@@ -323,7 +329,7 @@ class AttachmentCarousel extends React.Component {
                         // promotes the natural feeling of swiping left/right to go to the next/previous image
                         // We don't want to invert the list for desktop/web because this interferes with mouse
                         // wheel or trackpad scrolling (in cases like document preview where you can scroll vertically)
-                        inverted={this.canUseTouchScreen}
+                        // inverted={this.canUseTouchScreen}
                         decelerationRate="fast"
                         showsHorizontalScrollIndicator={false}
                         bounces={false}
