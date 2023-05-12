@@ -253,6 +253,7 @@ export default {
         deleteComment: 'Eliminar comentario',
         deleteConfirmation: '¿Estás seguro de que quieres eliminar este comentario?',
         onlyVisible: 'Visible sólo para',
+        replyInThread: 'Responder en el hilo',
     },
     emojiReactions: {
         addReactionTooltip: 'Añadir una reacción',
@@ -1770,5 +1771,8 @@ export default {
         workspaceName: 'Nombre del espacio de trabajo',
         chatUserDisplayNames: 'Nombres de los usuarios del chat',
         scrollToNewestMessages: 'Desplázate a los mensajes más recientes',
+    },
+    parentReportAction: {
+        deletedMessage: '[Mensaje eliminado]',
     },
 };
