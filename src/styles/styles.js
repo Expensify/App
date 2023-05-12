@@ -819,6 +819,12 @@ const styles = {
         minHeight: variables.componentSizeLarge,
     }),
 
+    autoGrowHeightHiddenInput: (maxWidth, maxHeight) => ({
+        maxWidth,
+        maxHeight: maxHeight && maxHeight + 1,
+        overflow: 'hidden',
+    }),
+
     textInputContainer: {
         flex: 1,
         justifyContent: 'center',
@@ -1970,6 +1976,11 @@ const styles = {
         alignItems: 'center',
         backgroundColor: themeColors.modalBackdrop,
     },
+
+    centeredModalStyles: (isSmallScreenWidth) => ({
+        borderWidth: isSmallScreenWidth ? 1 : 0,
+        marginHorizontal: isSmallScreenWidth ? 0 : 20,
+    }),
 
     imageModalImageCenterContainer: {
         alignItems: 'center',
@@ -3198,6 +3209,10 @@ const styles = {
     },
     contextMenuItemPopoverMaxWidth: {
         maxWidth: 375,
+    },
+    taskCheckbox: {
+        height: 16,
+        width: 16,
     },
 };
 

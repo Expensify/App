@@ -112,6 +112,9 @@ function Logging(response, request) {
                 Log.hmmm('[Network] API request error: Expensify service interrupted or timed out', logParams);
             } else if (error.message === CONST.ERROR.THROTTLED) {
                 Log.hmmm('[Network] API request error: Expensify API throttled the request', logParams);
+            } else if (error.message === CONST.ERROR.DUPLICATE_RECORD) {
+                // Duplicate records can happen when a large upload is interrupted and we need to retry to see if the original request completed
+                Log.info('[Network] API request error: A record already exists with this ID', false, logParams);
             } else {
                 // If we get any error that is not known log an alert so we can learn more about it and document it here.
                 Log.alert(`${CONST.ERROR.ENSURE_BUGBOT} unknown API request error caught while processing request`, logParams, false);
