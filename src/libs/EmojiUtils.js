@@ -171,6 +171,7 @@ function mergeEmojisWithFrequentlyUsedEmojis(emojis) {
 /**
  * Get the updated frequently used emojis list by usage
  * @param {Object|Object[]} newEmoji
+ * @return {Object[]}
  */
 function addToFrequentlyUsedEmojis(newEmoji) {
     let frequentEmojiList = [...frequentlyUsedEmojis];
