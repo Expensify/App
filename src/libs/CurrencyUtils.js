@@ -86,7 +86,7 @@ function isCurrencySymbolLTR(currencyCode) {
  */
 function convertToSmallestUnit(currency, amountAsFloat) {
     const currencyUnit = getCurrencyUnit(currency);
-    return Math.trunc(amountAsFloat * currencyUnit);
+    return Math.round(amountAsFloat * currencyUnit);
 }
 
 /**
