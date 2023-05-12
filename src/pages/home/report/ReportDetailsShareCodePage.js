@@ -22,11 +22,8 @@ const defaultProps = {
     report: undefined,
 };
 
-// eslint-disable-next-line react/prefer-stateless-function
-class ReportDetailsShareCodePage extends React.Component {
-    render() {
-        return <ShareCodePage report={this.props.report} />;
-    }
+function ReportDetailsShareCodePage(props) {
+    return <ShareCodePage report={props.report} />;
 }
 
 ReportDetailsShareCodePage.propTypes = propTypes;
