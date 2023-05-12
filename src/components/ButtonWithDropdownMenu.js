@@ -47,18 +47,20 @@ const ButtonWithDropdownMenu = (props) => {
     const [isMenuVisible, setIsMenuVisible] = useState(false);
     const [popoverAnchorPosition, setPopoverAnchorPosition] = useState(null);
 
-    const {width, height} = useWindowDimensions();
+    const {width: windowWidth, height: windowHeight} = useWindowDimensions();
 
     const caretButton = useRef(null);
-    useEffect(() => {
-        caretButton.current.measureInWindow && caretButton.current.measureInWindow(({x, y}) => {
-            // You probably need to fiddle with this
-            setPopoverAnchorPosition({
-                top: y,
-                right: x,
-            });
+    const measurePopoverAnchorPosition = () => {
+        console.log('RORY_DEBUG trying to measure popover anchor position', caretButton.current);
+        if (!caretButton.current) {
+            return;
+        }
+        caretButton.current.measureInWindow((x, y) => {
+            console.log('RORY_DEBUG measured thingy:', {x, y});
+            setPopoverAnchorPosition({x, y});
         });
-    }, [width, height]);
+    };
+    useEffect(measurePopoverAnchorPosition, [windowWidth, windowHeight]);
 
     const selectedItem = props.options[selectedItemIndex];
     return (
@@ -103,7 +105,7 @@ const ButtonWithDropdownMenu = (props) => {
                     pressOnEnter
                 />
             )}
-            {props.options.length > 1 && (
+            {props.options.length > 1 && !_.isEmpty(popoverAnchorPosition) && (
                 <PopoverMenu
                     isVisible={isMenuVisible}
                     onClose={() => setIsMenuVisible(false)}

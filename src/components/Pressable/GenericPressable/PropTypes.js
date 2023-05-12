@@ -105,6 +105,8 @@ const pressablePropTypes = {
      * @default true
      */
     shouldUseAutoHitSlop: PropTypes.bool,
+
+    onLayout: PropTypes.func,
 };
 
 const defaultProps = {
@@ -119,6 +121,7 @@ const defaultProps = {
     enableInScreenReaderStates: CONST.SCREEN_READER_STATES.ALL,
     nextFocusRef: undefined,
     shouldUseAutoHitSlop: true,
+    onLayout: () => {},
 };
 
 export default {
