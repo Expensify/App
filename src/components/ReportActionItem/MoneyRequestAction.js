@@ -15,7 +15,10 @@ import Navigation from '../../libs/Navigation/Navigation';
 import ROUTES from '../../ROUTES';
 import styles from '../../styles/styles';
 import * as IOUUtils from '../../libs/IOUUtils';
-import {doesThreadExistForReportActionID} from '../../libs/ReportUtils';
+import {getThreadForReportActionID, buildOptimisticChatReport} from '../../libs/ReportUtils';
+import * as Report from '../../libs/actions/Report';
+import withLocalize, {withLocalizePropTypes} from '../withLocalize';
+import lodashGet from 'lodash/get';
 
 const propTypes = {
     /** All the data of the action */
@@ -56,6 +59,14 @@ const propTypes = {
     isHovered: PropTypes.bool,
 
     network: networkPropTypes.isRequired,
+
+    /** Session info for the currently logged in user. */
+    session: PropTypes.shape({
+        /** Currently logged in user email */
+        email: PropTypes.string,
+    }),
+
+    ...withLocalizePropTypes,
 };
 
 const defaultProps = {
@@ -67,14 +78,39 @@ const defaultProps = {
     iouReport: {},
     reportActions: {},
     isHovered: false,
+    session: {
+        email: null,
+    },
 };
 
 const MoneyRequestAction = (props) => {
     const hasMultipleParticipants = props.chatReport.participants.length > 1;
     const onIOUPreviewPressed = () => {
-        if (!doesThreadExistForReportActionID(props.action.reportActionID)) {
-            // optimistically create reportID
-            // pass it along to OpenReport since that is build to create a thread when needed, not sure what to do about the navigation stuff below...
+        // This would ideally be passed as a prop or hooked up via withOnyx so that we are not be triggering a potentially intensive
+        // search in an onPress handler, I think this could lead to performance issues but it probably ok for now.
+        const thread = getThreadForReportActionID(props.action.reportActionID);
+        console.log({thread});
+        if (_.isEmpty(thread)) {
+            // Since a thread does not exist yet then we need to create it now. This is done by creating the report object
+            // and passing the parentReportActionID of the reportAction. OpenReport will then automatically create the thread for us.
+            const optimisticThreadReport = buildOptimisticChatReport(
+                props.chatReport.participants,
+                props.translate('iou.threadReportName', {payee: props.action.actorEmail, comment: props.action.originalMessage.comment}),
+                '',
+                props.chatReport.policyID,
+                props.chatReport.owner,
+                props.chatReport.type === CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT,
+                props.chatReport.oldPolicyName,
+                undefined,
+                CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS,
+                props.action.reportActionID,
+            );
+            console.log({optimisticThreadReport});
+            Report.openReport(
+                optimisticThreadReport.reportID,
+                [_.reject(optimisticThreadReport.participants, (login) => login === lodashGet(props.session, 'email', ''))],
+                optimisticThreadReport,
+            );
         }
         if (hasMultipleParticipants) {
             Navigation.navigate(ROUTES.getReportParticipantsRoute(props.chatReportID));
@@ -131,6 +167,7 @@ MoneyRequestAction.defaultProps = defaultProps;
 MoneyRequestAction.displayName = 'MoneyRequestAction';
 
 export default compose(
+    withLocalize,
     withOnyx({
         chatReport: {
             key: ({chatReportID}) => `${ONYXKEYS.COLLECTION.REPORT}${chatReportID}`,
@@ -141,6 +178,9 @@ export default compose(
         reportActions: {
             key: ({chatReportID}) => `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${chatReportID}`,
             canEvict: false,
+        },
+        session: {
+            key: ONYXKEYS.SESSION,
         },
     }),
     withNetwork(),

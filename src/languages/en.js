@@ -328,6 +328,7 @@ export default {
         payerOwesAmount: ({payer, amount}) => `${payer} owes ${amount}`,
         noReimbursableExpenses: 'This report has an invalid amount',
         pendingConversionMessage: "Total will update when you're back online",
+        threadReportName: ({payee, comment}) => `${payee} request${comment ? ` for ${comment}` : ''}`,
         error: {
             invalidSplit: 'Split amounts do not equal total amount',
             other: 'Unexpected error, please try again later',
