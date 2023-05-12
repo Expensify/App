@@ -2205,6 +2205,13 @@ const styles = {
         opacity: 0.5,
     },
 
+    threadDividerLine: {
+        height: 1,
+        backgroundColor: themeColors.border,
+        flexGrow: 1,
+        marginHorizontal: 20,
+    },
+
     unreadIndicatorText: {
         color: themeColors.unreadIndicator,
         fontFamily: fontFamily.EXP_NEUE_BOLD,

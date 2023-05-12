@@ -428,11 +428,41 @@ function isPolicyExpenseChatAdmin(report, policies) {
 }
 
 /**
+ * Returns true if report has a parent and is therefore a Thread.
+ *
+ * @param {Object} report
+ * @returns {Boolean}
+ */
+function isThread(report) {
+    return Boolean(report && report.parentReportID && report.parentReportActionID);
+}
+
+/**
+ * Returns true if reportAction has a child.
+ *
+ * @param {Object} reportAction
+ * @returns {Boolean}
+ */
+function isThreadParent(reportAction) {
+    return reportAction && reportAction.childReportID && reportAction.childReportID !== 0;
+}
+
+/**
  * Get either the policyName or domainName the chat is tied to
  * @param {Object} report
  * @returns {String}
  */
 function getChatRoomSubtitle(report) {
+    if (isThread(report)) {
+        if (!getChatType(report)) {
+            return '';
+        }
+
+        // If thread is not from a DM or group chat, the subtitle will follow the pattern 'Workspace Name • #roomName'
+        const workspaceName = getPolicyName(report);
+        const roomName = isChatRoom(report) ? lodashGet(report, 'displayName') : '';
+        return [workspaceName, roomName].join(' • ');
+    }
     if (!isDefaultRoom(report) && !isUserCreatedPolicyRoom(report) && !isPolicyExpenseChat(report)) {
         return '';
     }
@@ -719,6 +749,27 @@ function getIcons(report, personalDetails, defaultIcon = null) {
         result.source = Expensicons.DeletedRoomAvatar;
         return [result];
     }
+    if (isThread(report)) {
+        const parentReport = lodashGet(allReports, [`${ONYXKEYS.COLLECTION.REPORT}${report.parentReportID}`]);
+        const parentReportAction = ReportActionsUtils.getParentReportAction(report);
+
+        if (!parentReport) {
+            result.source = Expensicons.ActiveRoomAvatar;
+            return [result];
+        }
+
+        if (getChatType(parentReport)) {
+            result.source = getWorkspaceAvatar(parentReport);
+            result.type = CONST.ICON_TYPE_WORKSPACE;
+            result.name = getPolicyName(parentReport);
+            return [result];
+        }
+
+        const actorEmail = lodashGet(parentReportAction, 'actorEmail', '');
+        result.source = getAvatar(lodashGet(personalDetails, [actorEmail, 'avatar']), actorEmail);
+        result.name = actorEmail;
+        return [result];
+    }
     if (isDomainRoom(report)) {
         result.source = Expensicons.DomainRoomAvatar;
         return [result];
@@ -935,6 +986,11 @@ function getMoneyRequestReportName(report) {
  */
 function getReportName(report) {
     let formattedName;
+    if (isThread(report)) {
+        const parentReportAction = ReportActionsUtils.getParentReportAction(report);
+        const parentReportActionMessage = lodashGet(parentReportAction, ['message', 0, 'text'], '').replace(/(\r\n|\n|\r)/gm, ' ');
+        return parentReportActionMessage || Localize.translateLocal('parentReportAction.deletedMessage');
+    }
     if (isChatRoom(report) || isTaskReport(report)) {
         formattedName = report.reportName;
     }
@@ -1295,6 +1351,8 @@ function buildOptimisticIOUReportAction(type, amount, currency, comment, partici
  * @param {String} oldPolicyName
  * @param {String} visibility
  * @param {String} notificationPreference
+ * @param {String} parentReportActionID
+ * @param {String} parentReportID
  * @returns {Object}
  */
 function buildOptimisticChatReport(
@@ -1307,6 +1365,8 @@ function buildOptimisticChatReport(
     oldPolicyName = '',
     visibility = undefined,
     notificationPreference = CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS,
+    parentReportActionID,
+    parentReportID,
 ) {
     const currentTime = DateUtils.getDBTime();
     return {
@@ -1323,6 +1383,8 @@ function buildOptimisticChatReport(
         notificationPreference,
         oldPolicyName,
         ownerEmail: ownerEmail || CONST.REPORT.OWNER_EMAIL_FAKE,
+        parentReportActionID,
+        parentReportID,
         participants: participantList,
         policyID,
         reportID: generateReportID(),
@@ -1628,7 +1690,7 @@ function shouldReportBeInOptionList(report, reportIDFromRoute, isInGSDMode, curr
     // Exclude reports that have no data because there wouldn't be anything to show in the option item.
     // This can happen if data is currently loading from the server or a report is in various stages of being created.
     // This can also happen for anyone accessing a public room or archived room for which they don't have access to the underlying policy.
-    if (!report || !report.reportID || (_.isEmpty(report.participants) && !isPublicRoom(report) && !isArchivedRoom(report) && !isMoneyRequestReport(report))) {
+    if (!report || !report.reportID || (_.isEmpty(report.participants) && !isThread(report) && !isPublicRoom(report) && !isArchivedRoom(report) && !isMoneyRequestReport(report))) {
         return false;
     }
 
@@ -1678,7 +1740,7 @@ function shouldReportBeInOptionList(report, reportIDFromRoute, isInGSDMode, curr
 }
 
 /**
- * Attempts to find a report in onyx with the provided list of participants
+ * Attempts to find a report in onyx with the provided list of participants. Does not include threads
  * @param {Array} newParticipantList
  * @returns {Array|undefined}
  */
@@ -1686,7 +1748,7 @@ function getChatByParticipants(newParticipantList) {
     newParticipantList.sort();
     return _.find(allReports, (report) => {
         // If the report has been deleted, or there are no participants (like an empty #admins room) then skip it
-        if (!report || !report.participants) {
+        if (!report || !report.participants || isThread(report)) {
             return false;
         }
 
@@ -2005,6 +2067,8 @@ export {
     canRequestMoney,
     getWhisperDisplayNames,
     getWorkspaceAvatar,
+    isThread,
+    isThreadParent,
     shouldReportShowSubscript,
     isSettled,
 };
