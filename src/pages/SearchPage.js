@@ -167,7 +167,7 @@ class SearchPage extends Component {
 
     render() {
         const sections = this.getSections();
-        const isOptionsDataReady = ReportUtils.isReportsReady() && OptionsListUtils.isPersonalDetailsReady(this.props.personalDetails);
+        const isOptionsDataReady = ReportUtils.isReportDataReady() && OptionsListUtils.isPersonalDetailsReady(this.props.personalDetails);
 
         return (
             <ScreenWrapper includeSafeAreaPaddingBottom={false}>

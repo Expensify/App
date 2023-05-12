@@ -223,7 +223,7 @@ class NewChatPage extends Component {
             this.state.searchTerm,
             maxParticipantsReached,
         );
-        const isOptionsDataReady = ReportUtils.isReportsReady() && OptionsListUtils.isPersonalDetailsReady(this.props.personalDetails);
+        const isOptionsDataReady = ReportUtils.isReportDataReady() && OptionsListUtils.isPersonalDetailsReady(this.props.personalDetails);
 
         return (
             <ScreenWrapper

@@ -210,7 +210,7 @@ class MoneyRequestParticipantsSplitSelector extends Component {
             this.state.searchTerm,
             maxParticipantsReached,
         );
-        const isOptionsDataReady = ReportUtils.isReportsReady() && OptionsListUtils.isPersonalDetailsReady(this.props.personalDetails);
+        const isOptionsDataReady = ReportUtils.isReportDataReady() && OptionsListUtils.isPersonalDetailsReady(this.props.personalDetails);
 
         return (
             <View style={[styles.flex1, styles.w100, this.props.participants.length > 0 ? this.props.safeAreaPaddingBottomStyle : {}]}>

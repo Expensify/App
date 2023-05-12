@@ -111,14 +111,6 @@ const propTypes = {
     /** Stores user's preferred skin tone */
     preferredSkinTone: PropTypes.oneOfType([PropTypes.number, PropTypes.string]),
 
-    /** User's frequently used emojis */
-    frequentlyUsedEmojis: PropTypes.arrayOf(
-        PropTypes.shape({
-            code: PropTypes.string.isRequired,
-            keywords: PropTypes.arrayOf(PropTypes.string),
-        }),
-    ),
-
     /** The type of action that's pending  */
     pendingAction: PropTypes.oneOf(['add', 'update', 'delete']),
 
@@ -141,7 +133,6 @@ const defaultProps = {
     blockedFromConcierge: {},
     personalDetails: {},
     preferredSkinTone: CONST.EMOJI_DEFAULT_SKIN_TONE,
-    frequentlyUsedEmojis: [],
     isComposerFullSize: false,
     pendingAction: null,
     reports: {},
@@ -607,7 +598,7 @@ class ReportActionCompose extends React.Component {
             },
             suggestedEmojis: [],
         }));
-        EmojiUtils.addToFrequentlyUsedEmojis(this.props.frequentlyUsedEmojis, emojiObject);
+        EmojiUtils.addToFrequentlyUsedEmojis(emojiObject);
     }
 
     /**
@@ -1201,9 +1192,6 @@ export default compose(
         },
         blockedFromConcierge: {
             key: ONYXKEYS.NVP_BLOCKED_FROM_CONCIERGE,
-        },
-        frequentlyUsedEmojis: {
-            key: ONYXKEYS.FREQUENTLY_USED_EMOJIS,
         },
         preferredSkinTone: {
             key: ONYXKEYS.PREFERRED_EMOJI_SKIN_TONE,

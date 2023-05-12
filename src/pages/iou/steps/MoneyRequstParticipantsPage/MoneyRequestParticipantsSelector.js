@@ -151,7 +151,7 @@ class MoneyRequestParticipantsSelector extends Component {
             Boolean(this.state.userToInvite),
             this.state.searchTerm,
         );
-        const isOptionsDataReady = ReportUtils.isReportsReady() && OptionsListUtils.isPersonalDetailsReady(this.props.personalDetails);
+        const isOptionsDataReady = ReportUtils.isReportDataReady() && OptionsListUtils.isPersonalDetailsReady(this.props.personalDetails);
 
         return (
             <OptionsSelector
