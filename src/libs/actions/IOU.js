@@ -333,7 +333,8 @@ function requestMoney(report, amount, currency, payeeEmail, participant, comment
             chatReportID: chatReport.reportID,
             transactionID: optimisticTransaction.transactionID,
             reportActionID: optimisticIOUAction.reportActionID,
-            createdReportActionID: isNewChatReport ? optimisticCreatedActionForChat.reportActionID : 0,
+            createdChatReportActionID: isNewChatReport ? optimisticCreatedActionForChat.reportActionID : 0,
+            createdIOUReportActionID: isNewIOUReport ? optimisticCreatedActionForIOU.reportActionID : 0,
         },
         {optimisticData, successData, failureData},
     );
@@ -739,6 +740,8 @@ function createSplitsAndOnyxData(participants, currentUserLogin, amount, comment
             iouReportID: oneOnOneIOUReport.reportID,
             chatReportID: oneOnOneChatReport.reportID,
             transactionID: oneOnOneTransaction.transactionID,
+            chatCreatedActionID: oneOnOneCreatedActionForChat.reportActionID,
+            iouCreatedActionID: oneOnOneCreatedActionForIOU.reportActionID,
             reportActionID: oneOnOneIOUAction.reportActionID,
         };
 
