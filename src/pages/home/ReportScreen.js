@@ -282,33 +282,27 @@ class ReportScreen extends React.Component {
                                     errors={addWorkspaceRoomOrChatErrors}
                                     shouldShowErrorMessages={false}
                                 >
-                                    {(() => {
-                                        if (ReportUtils.isMoneyRequestReport(this.props.report)) {
-                                            return (
-                                                <MoneyRequestHeader
-                                                    report={this.props.report}
-                                                    policies={this.props.policies}
-                                                    personalDetails={this.props.personalDetails}
-                                                />
-                                            );
-                                        }
-                                        if (ReportUtils.isTaskReport(this.props.report)) {
-                                            return (
-                                                <TaskHeader
-                                                    report={this.props.report}
-                                                    personalDetails={this.props.personalDetails}
-                                                />
-                                            );
-                                        }
-                                        return (
-                                            <HeaderView
-                                                reportID={reportID}
-                                                onNavigationMenuButtonClicked={Navigation.goBack}
-                                                personalDetails={this.props.personalDetails}
-                                                report={this.props.report}
-                                            />
-                                        );
-                                    })()}
+                                    {ReportUtils.isMoneyRequestReport(this.props.report) ? (
+                                        <MoneyRequestHeader
+                                            report={this.props.report}
+                                            policies={this.props.policies}
+                                            personalDetails={this.props.personalDetails}
+                                        />
+                                    ) : (
+                                        <HeaderView
+                                            reportID={reportID}
+                                            onNavigationMenuButtonClicked={Navigation.goBack}
+                                            personalDetails={this.props.personalDetails}
+                                            report={this.props.report}
+                                        />
+                                    )}
+
+                                    {ReportUtils.isTaskReport(this.props.report) && (
+                                        <TaskHeader
+                                            report={this.props.report}
+                                            personalDetails={this.props.personalDetails}
+                                        />
+                                    )}
                                 </OfflineWithFeedback>
                                 {Boolean(this.props.accountManagerReportID) && ReportUtils.isConciergeChatReport(this.props.report) && this.state.isBannerVisible && (
                                     <Banner
