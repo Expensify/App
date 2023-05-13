@@ -740,8 +740,8 @@ function createSplitsAndOnyxData(participants, currentUserLogin, amount, comment
             iouReportID: oneOnOneIOUReport.reportID,
             chatReportID: oneOnOneChatReport.reportID,
             transactionID: oneOnOneTransaction.transactionID,
-            chatCreatedActionID: oneOnOneCreatedActionForChat.reportActionID,
-            iouCreatedActionID: oneOnOneCreatedActionForIOU.reportActionID,
+            createdChatReportActionID: oneOnOneCreatedActionForChat.reportActionID,
+            createdIOUReportActionID: oneOnOneCreatedActionForIOU.reportActionID,
             reportActionID: oneOnOneIOUAction.reportActionID,
         };
 
