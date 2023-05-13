@@ -160,6 +160,7 @@ function buildOnyxDataForMoneyRequest(chatReport, iouReport, transaction, chatCr
             value: {
                 hasOutstandingIOU: chatReport.hasOutstandingIOU,
                 iouReportID: chatReport.iouReportID,
+                lastReadTime: chatReport.lastReadTime,
                 ...(isNewChatReport
                     ? {
                           errorFields: {
@@ -214,11 +215,21 @@ function buildOnyxDataForMoneyRequest(chatReport, iouReport, transaction, chatCr
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${iouReport.reportID}`,
             value: {
-                [iouCreatedAction.reportActionID]: {
-                    errors: {
-                        [DateUtils.getMicroseconds()]: Localize.translateLocal('iou.error.genericCreateFailureMessage'),
-                    },
-                },
+                ...(isNewIOUReport
+                    ? {
+                          [iouCreatedAction.reportActionID]: {
+                              errors: {
+                                  [DateUtils.getMicroseconds()]: Localize.translateLocal('iou.error.genericCreateFailureMessage'),
+                              },
+                          },
+                      }
+                    : {
+                          [iouAction.reportActionID]: {
+                              errors: {
+                                  [DateUtils.getMicroseconds()]: Localize.translateLocal('iou.error.genericCreateFailureMessage'),
+                              },
+                          },
+                      }),
             },
         },
     ];
@@ -631,6 +642,7 @@ function createSplitsAndOnyxData(participants, currentUserLogin, amount, comment
                 key: `${ONYXKEYS.COLLECTION.REPORT}${oneOnOneChatReport.reportID}`,
                 value: {
                     hasOutstandingIOU: oneOnOneChatReport.hasOutstandingIOU,
+                    lastReadTime: oneOnOneChatReport.lastReadTime,
                     iouReportID: oneOnOneChatReport.iouReportID,
                     ...(existingOneOnOneChatReport
                         ? {}
@@ -686,11 +698,21 @@ function createSplitsAndOnyxData(participants, currentUserLogin, amount, comment
                 onyxMethod: Onyx.METHOD.MERGE,
                 key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${oneOnOneIOUReport.reportID}`,
                 value: {
-                    [oneOnOneIOUAction.reportActionID]: {
-                        errors: {
-                            [DateUtils.getMicroseconds()]: Localize.translateLocal('iou.error.genericCreateFailureMessage'),
-                        },
-                    },
+                    ...(existingOneOnOneIOUReport
+                        ? {
+                              [oneOnOneIOUAction.reportActionID]: {
+                                  errors: {
+                                      [DateUtils.getMicroseconds()]: Localize.translateLocal('iou.error.genericCreateFailureMessage'),
+                                  },
+                              },
+                          }
+                        : {
+                              [oneOnOneCreatedActionForIOU.reportActionID]: {
+                                  errors: {
+                                      [DateUtils.getMicroseconds()]: Localize.translateLocal('iou.error.genericCreateFailureMessage'),
+                                  },
+                              },
+                          }),
                 },
             },
         );
