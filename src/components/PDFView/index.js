@@ -108,9 +108,7 @@ class PDFView extends Component {
     render() {
         const pdfContainerWidth = this.state.windowWidth - 100;
         const pageWidthOnLargeScreen = pdfContainerWidth <= variables.pdfPageMaxWidth ? pdfContainerWidth : variables.pdfPageMaxWidth;
-        // On android_chrome, the actual display width of the pdf will be slightly larger than pageWidth, maybe the react-pdf canvas decimal calculation is incorrect,
-        // or maybe because of window.visualViewport.width - window.innerWidth = 0.090911865234375, so we reduce it by 1px
-        const pageWidth = this.props.isSmallScreenWidth ? this.state.windowWidth - 1 : pageWidthOnLargeScreen;
+        const pageWidth = this.props.isSmallScreenWidth ? this.state.windowWidth : pageWidthOnLargeScreen;
         const outerContainerStyle = [styles.w100, styles.h100, styles.justifyContentCenter, styles.alignItemsCenter];
 
         // If we're requesting a password then we need to hide - but still render -
