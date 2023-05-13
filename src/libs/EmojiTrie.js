@@ -23,8 +23,10 @@ for (let i = 0; i < emojis.length; i++) {
                 if (!keywordNode) {
                     emojisTrie.add(emojis[i].keywords[j], {suggestions: [{code: emojis[i].code, types: emojis[i].types, name: emojis[i].name}]});
                 } else {
-                    emojisTrie.update(emojis[i].keywords[j],
-                        {...keywordNode.metaData, suggestions: [...keywordNode.metaData.suggestions, {code: emojis[i].code, types: emojis[i].types, name: emojis[i].name}]});
+                    emojisTrie.update(emojis[i].keywords[j], {
+                        ...keywordNode.metaData,
+                        suggestions: [...keywordNode.metaData.suggestions, {code: emojis[i].code, types: emojis[i].types, name: emojis[i].name}],
+                    });
                 }
             }
         }

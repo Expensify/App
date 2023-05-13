@@ -36,7 +36,7 @@ const propTypes = {
     ...windowDimensionsPropTypes,
 };
 
-const SignInPageContent = props => (
+const SignInPageContent = (props) => (
     <ScrollView
         contentContainerStyle={[styles.flex1, styles.signInPageLeftContainer]}
         keyboardShouldPersistTaps="handled"
@@ -52,22 +52,21 @@ const SignInPageContent = props => (
                         <ExpensifyWordmark />
                     </View>
                     <View style={[styles.signInPageWelcomeTextContainer]}>
-                        {(props.shouldShowWelcomeHeader && props.welcomeHeader) ? (
-                            <Text style={[
-                                styles.loginHeroHeader,
-                                StyleUtils.getFontSizeStyle(variables.fontSizeSignInHeroXSmall),
-                                !props.welcomeText ? styles.mb5 : {},
-                                !props.isSmallScreenWidth ? styles.textAlignLeft : {},
-                                styles.mb5,
-                            ]}
+                        {props.shouldShowWelcomeHeader && props.welcomeHeader ? (
+                            <Text
+                                style={[
+                                    styles.loginHeroHeader,
+                                    StyleUtils.getFontSizeStyle(variables.fontSizeSignInHeroXSmall),
+                                    !props.welcomeText ? styles.mb5 : {},
+                                    !props.isSmallScreenWidth ? styles.textAlignLeft : {},
+                                    styles.mb5,
+                                ]}
                             >
                                 {props.welcomeHeader}
                             </Text>
                         ) : null}
-                        {(props.shouldShowWelcomeText && props.welcomeText) ? (
-                            <Text style={[styles.loginHeroBody, styles.mb5, styles.textNormal, !props.isSmallScreenWidth ? styles.textAlignLeft : {}]}>
-                                {props.welcomeText}
-                            </Text>
+                        {props.shouldShowWelcomeText && props.welcomeText ? (
+                            <Text style={[styles.loginHeroBody, styles.mb5, styles.textNormal, !props.isSmallScreenWidth ? styles.textAlignLeft : {}]}>{props.welcomeText}</Text>
                         ) : null}
                     </View>
                     {props.children}
@@ -88,8 +87,4 @@ const SignInPageContent = props => (
 SignInPageContent.propTypes = propTypes;
 SignInPageContent.displayName = 'SignInPageContent';
 
-export default compose(
-    withWindowDimensions,
-    withLocalize,
-    withSafeAreaInsets,
-)(SignInPageContent);
+export default compose(withWindowDimensions, withLocalize, withSafeAreaInsets)(SignInPageContent);

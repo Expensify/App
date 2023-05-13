@@ -29,7 +29,10 @@ const defaultProps = {
 const EmojiPickerButton = (props) => {
     const emojiPopoverAnchor = useRef(null);
     return (
-        <Tooltip containerStyles={[styles.alignSelfEnd]} text={props.translate('reportActionCompose.emoji')}>
+        <Tooltip
+            containerStyles={[styles.alignSelfEnd]}
+            text={props.translate('reportActionCompose.emoji')}
+        >
             <Pressable
                 ref={emojiPopoverAnchor}
                 style={({hovered, pressed}) => ([

@@ -56,9 +56,7 @@ class PopoverReactionList extends React.Component {
     shouldComponentUpdate(nextProps, nextState) {
         const previousLocale = lodashGet(this.props, 'preferredLocale', 'en');
         const nextLocale = lodashGet(nextProps, 'preferredLocale', 'en');
-        return this.state.isPopoverVisible !== nextState.isPopoverVisible
-            || this.state.popoverAnchorPosition !== nextState.popoverAnchorPosition
-            || previousLocale !== nextLocale;
+        return this.state.isPopoverVisible !== nextState.isPopoverVisible || this.state.popoverAnchorPosition !== nextState.popoverAnchorPosition || previousLocale !== nextLocale;
     }
 
     componentWillUnmount() {
@@ -96,15 +94,7 @@ class PopoverReactionList extends React.Component {
      * @param {Boolean} hasUserReacted - whether the current user has reacted to this emoji
 
      */
-    showReactionList(
-        event,
-        reactionListAnchor,
-        users,
-        emojiName,
-        emojiCodes,
-        emojiCount,
-        hasUserReacted,
-    ) {
+    showReactionList(event, reactionListAnchor, users, emojiName, emojiCodes, emojiCount, hasUserReacted) {
         const nativeEvent = event.nativeEvent || {};
 
         this.reactionListAnchor = reactionListAnchor;
@@ -140,7 +130,7 @@ class PopoverReactionList extends React.Component {
             if (!x || !y) {
                 return;
             }
-            this.setState(prev => ({
+            this.setState((prev) => ({
                 popoverAnchorPosition: {
                     horizontal: prev.cursorRelativePosition.horizontal + x,
                     vertical: prev.cursorRelativePosition.vertical + y,
