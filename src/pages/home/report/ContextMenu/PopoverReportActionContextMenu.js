@@ -254,7 +254,6 @@ class PopoverReportActionContextMenu extends React.Component {
 
         if (ReportActionsUtils.isMoneyRequestAction(this.state.reportAction)) {
             IOU.deleteReportComment(this.state.reportID, this.state.reportAction);
-            // @TODO: Implement new DeleteMoneyRequest API command from issue https://github.com/Expensify/Expensify/issues/270502
         } else {
             Report.deleteReportComment(this.state.reportID, this.state.reportAction);
         }

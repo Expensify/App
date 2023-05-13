@@ -49,7 +49,6 @@ import DisplayNames from '../../../components/DisplayNames';
 import personalDetailsPropType from '../../personalDetailsPropType';
 import ReportActionItemDraft from './ReportActionItemDraft';
 import TaskPreview from '../../../components/ReportActionItem/TaskPreview';
-import * as ReportActionUtils from '../../../libs/ReportActionsUtils';
 import Permissions from '../../../libs/Permissions';
 
 const propTypes = {
@@ -185,14 +184,10 @@ class ReportActionItem extends Component {
      */
     renderItemContent(hovered = false) {
         let children;
-<<<<<<< HEAD
         if (ReportActionsUtils.isMoneyRequestAction(this.props.action)) {
-=======
-        if (this.props.action.actionName === CONST.REPORT.ACTIONS.TYPE.IOU) {
             // There is no single iouReport for bill splits, so only 1:1 requests require an iouReportID
             const iouReportID = this.props.action.originalMessage.IOUReportID ? this.props.action.originalMessage.IOUReportID.toString() : '0';
 
->>>>>>> main
             children = (
                 <MoneyRequestAction
                     chatReportID={this.props.report.reportID}
@@ -204,7 +199,7 @@ class ReportActionItem extends Component {
                     checkIfContextMenuActive={this.checkIfContextMenuActive}
                 />
             );
-        } else if (ReportActionUtils.isCreatedTaskReportAction(this.props.action)) {
+        } else if (ReportActionsUtils.isCreatedTaskReportAction(this.props.action)) {
             children = (
                 <TaskPreview
                     taskReportID={this.props.action.originalMessage.taskReportID.toString()}
