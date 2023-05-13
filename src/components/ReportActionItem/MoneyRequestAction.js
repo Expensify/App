@@ -2,6 +2,7 @@ import _ from 'underscore';
 import React from 'react';
 import PropTypes from 'prop-types';
 import {withOnyx} from 'react-native-onyx';
+import lodashGet from 'lodash/get';
 import ONYXKEYS from '../../ONYXKEYS';
 import CONST from '../../CONST';
 import {withNetwork} from '../OnyxProvider';
@@ -69,7 +70,7 @@ const defaultProps = {
 };
 
 const MoneyRequestAction = (props) => {
-    const hasMultipleParticipants = props.chatReport.participants.length > 1;
+    const hasMultipleParticipants = lodashGet(props.chatReport, 'participants', []).length > 1;
     const onIOUPreviewPressed = () => {
         if (hasMultipleParticipants) {
             Navigation.navigate(ROUTES.getReportParticipantsRoute(props.chatReportID));
