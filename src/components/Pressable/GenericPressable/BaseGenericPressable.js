@@ -65,54 +65,45 @@ const GenericPressable = forwardRef((props, ref) => {
 
     const [shouldUseDisabledCursor, setShouldUseDisabledCursor] = useState(isDisabled);
 
-    const onLongPressHandler = useCallback(
-        (event) => {
-            if (isDisabled) {
-                return;
-            }
-            if (!onLongPress) {
-                return;
-            }
-            if (shouldUseHapticsOnLongPress) {
-                HapticFeedback.longPress();
-            }
-            if (ref && ref.current) {
-                ref.current.blur();
-            }
-            onLongPress(event);
+    const onLongPressHandler = useCallback((event) => {
+        if (isDisabled) {
+            return;
+        }
+        if (!onLongPress) {
+            return;
+        }
+        if (shouldUseHapticsOnLongPress) {
+            HapticFeedback.longPress();
+        }
+        if (ref && ref.current) {
+            ref.current.blur();
+        }
+        onLongPress(event);
 
-            Accessibility.moveAccessibilityFocus(nextFocusRef);
-        },
-        [shouldUseHapticsOnLongPress, onLongPress, nextFocusRef, ref, isDisabled],
-    );
+        Accessibility.moveAccessibilityFocus(nextFocusRef);
+    }, [shouldUseHapticsOnLongPress, onLongPress, nextFocusRef, ref, isDisabled]);
 
-    const onPressHandler = useCallback(
-        (event) => {
-            if (isDisabled) {
-                return;
-            }
-            if (shouldUseHapticsOnPress) {
-                HapticFeedback.press();
-            }
-            if (ref && ref.current) {
-                ref.current.blur();
-            }
-            onPress(event);
+    const onPressHandler = useCallback((event) => {
+        if (isDisabled) {
+            return;
+        }
+        if (shouldUseHapticsOnPress) {
+            HapticFeedback.press();
+        }
+        if (ref && ref.current) {
+            ref.current.blur();
+        }
+        onPress(event);
 
-            Accessibility.moveAccessibilityFocus(nextFocusRef);
-        },
-        [shouldUseHapticsOnPress, onPress, nextFocusRef, ref, isDisabled],
-    );
+        Accessibility.moveAccessibilityFocus(nextFocusRef);
+    }, [shouldUseHapticsOnPress, onPress, nextFocusRef, ref, isDisabled]);
 
-    const onKeyPressHandler = useCallback(
-        (event) => {
-            if (event.key !== 'Enter') {
-                return;
-            }
-            onPressHandler(event);
-        },
-        [onPressHandler],
-    );
+    const onKeyPressHandler = useCallback((event) => {
+        if (event.key !== 'Enter') {
+            return;
+        }
+        onPressHandler(event);
+    }, [onPressHandler]);
 
     useEffect(() => {
         if (isDisabled) {
