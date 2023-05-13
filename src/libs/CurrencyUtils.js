@@ -86,13 +86,6 @@ function isCurrencySymbolLTR(currencyCode) {
  */
 function convertToSmallestUnit(currency, amountAsFloat) {
     const currencyUnit = getCurrencyUnit(currency);
-
-    // If the currency is zero-decimal, we simply drop everything after the
-    // decimal point.
-    if (currencyUnit === 1) {
-        return Math.trunc(amountAsFloat);
-    }
-    
     // We round off the number to resolve floating-point precision issues.
     return Math.round(amountAsFloat * currencyUnit);
 }
