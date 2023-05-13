@@ -22,6 +22,7 @@ import ROUTES from '../ROUTES';
 import Icon from './Icon';
 import * as CurrencyUtils from '../libs/CurrencyUtils';
 import MenuItemWithTopDescription from './MenuItemWithTopDescription';
+import Button from './Button';
 
 const propTypes = {
     /** The report currently being looked at */
@@ -48,8 +49,8 @@ function TaskHeader(props) {
     const title = ReportUtils.getReportName(props.parentReport);
     const assigneeName = ReportUtils.getDisplayNameForParticipant(props.report.managerEmail);
     const assigneeAvatar = ReportUtils.getAvatar(lodashGet(props.personalDetails, [props.report.managerEmail, 'avatar']), props.report.managerEmail);
+    const isCompleted = props.report.stateNum === CONST.REPORT.STATE_NUM.SUBMITTED && props.report.statusNum === CONST.REPORT.STATUS.APPROVED;
     const threeDotMenuItems = [];
-    const icons = ReportUtils.getIcons(props.parentReport, props.personalDetails);
 
     if (props.report.stateNum === CONST.REPORT.STATE_NUM.OPEN && props.report.statusNum === CONST.REPORT.STATUS.OPEN) {
         threeDotMenuItems.push({
@@ -86,21 +87,8 @@ function TaskHeader(props) {
     console.log('assigneeName', assigneeName);
 
     return (
-        <>
+        <View style={styles.borderBottom}>
             <View style={[{backgroundColor: themeColors.highlightBG}, styles.pl0]}>
-                <HeaderWithCloseButton
-                    shouldShowAvatarWithDisplay
-                    shouldShowThreeDotsButton
-                    threeDotsMenuItems={threeDotMenuItems}
-                    threeDotsAnchorPosition={styles.threeDotsPopoverOffsetNoCloseButton}
-                    report={props.parentReport}
-                    title={title}
-                    policies={props.policies}
-                    personalDetails={props.personalDetails}
-                    shouldShowCloseButton={false}
-                    shouldShowBackButton={props.isSmallScreenWidth}
-                    onBackButtonPress={() => Navigation.navigate(ROUTES.HOME)}
-                />
                 <View style={[styles.ph5, styles.pb5]}>
                     <Text style={[styles.textLabelSupporting, styles.lh16]}>{props.translate('common.to')}</Text>
                     <View style={[styles.flexRow, styles.alignItemsCenter, styles.justifyContentBetween, styles.pv3]}>
@@ -127,14 +115,23 @@ function TaskHeader(props) {
                             </View>
                         </TouchableWithoutFeedback>
                         <View style={[styles.flexRow]}>
-                            {!props.isSingleTransactionView && <Text style={[styles.newKansasLarge]}>{formattedAmount}</Text>}
-                            {isSettled && (
-                                <View style={styles.moneyRequestHeaderCheckmark}>
-                                    <Icon
-                                        src={Expensicons.Checkmark}
-                                        fill={themeColors.iconSuccessFill}
-                                    />
-                                </View>
+                            {isCompleted ? (
+                                <>
+                                    <Text>Completed</Text>
+                                    <View style={styles.moneyRequestHeaderCheckmark}>
+                                        <Icon
+                                            src={Expensicons.Checkmark}
+                                            fill={themeColors.iconSuccessFill}
+                                        />
+                                    </View>
+                                </>
+                            ) : (
+                                <Button
+                                    success
+                                    medium
+                                    text="Mark as Done"
+                                    onPress={() => console.log('completed')}
+                                />
                             )}
                         </View>
                     </View>
@@ -151,7 +148,7 @@ function TaskHeader(props) {
                 description="Description"
                 onPress={() => Navigation.navigate(ROUTES.getTaskReportDescriptionRoute(props.report.reportID))}
             />
-        </>
+        </View>
     );
 }
 
