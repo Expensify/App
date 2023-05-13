@@ -38,7 +38,7 @@ import personalDetailsPropType from '../personalDetailsPropType';
 import getIsReportFullyVisible from '../../libs/getIsReportFullyVisible';
 import EmojiPicker from '../../components/EmojiPicker/EmojiPicker';
 import * as EmojiPickerAction from '../../libs/actions/EmojiPickerAction';
-import TaskHeaderView from './TaskHeaderView';
+import TaskHeader from '../../components/TaskHeader';
 import MoneyRequestHeader from '../../components/MoneyRequestHeader';
 import * as ComposerActions from '../../libs/actions/Composer';
 
@@ -282,20 +282,33 @@ class ReportScreen extends React.Component {
                                     errors={addWorkspaceRoomOrChatErrors}
                                     shouldShowErrorMessages={false}
                                 >
-                                    {ReportUtils.isMoneyRequestReport(this.props.report) ? (
-                                        <MoneyRequestHeader
-                                            report={this.props.report}
-                                            policies={this.props.policies}
-                                            personalDetails={this.props.personalDetails}
-                                        />
-                                    ) : (
-                                        <HeaderView
-                                            reportID={reportID}
-                                            onNavigationMenuButtonClicked={Navigation.goBack}
-                                            personalDetails={this.props.personalDetails}
-                                            report={this.props.report}
-                                        />
-                                    )}
+                                    {(() => {
+                                        if (ReportUtils.isMoneyRequestReport(this.props.report)) {
+                                            return (
+                                                <MoneyRequestHeader
+                                                    report={this.props.report}
+                                                    policies={this.props.policies}
+                                                    personalDetails={this.props.personalDetails}
+                                                />
+                                            );
+                                        }
+                                        if (ReportUtils.isTaskReport(this.props.report)) {
+                                            return (
+                                                <TaskHeader
+                                                    report={this.props.report}
+                                                    personalDetails={this.props.personalDetails}
+                                                />
+                                            );
+                                        }
+                                        return (
+                                            <HeaderView
+                                                reportID={reportID}
+                                                onNavigationMenuButtonClicked={Navigation.goBack}
+                                                personalDetails={this.props.personalDetails}
+                                                report={this.props.report}
+                                            />
+                                        );
+                                    })()}
                                 </OfflineWithFeedback>
                                 {Boolean(this.props.accountManagerReportID) && ReportUtils.isConciergeChatReport(this.props.report) && this.state.isBannerVisible && (
                                     <Banner
@@ -307,7 +320,6 @@ class ReportScreen extends React.Component {
                                         shouldShowCloseButton
                                     />
                                 )}
-                                {isTaskReport && <TaskHeaderView report={this.props.report} />}
                             </>
                         )}
                         <View
