@@ -251,7 +251,6 @@ class ReportActionItem extends Component {
         const hasReactions = reactions.length > 0;
         const shouldDisplayThreadReplies =
             this.props.action.childCommenterCount && Permissions.canUseThreads(this.props.betas) && !ReportUtils.isThreadFirstChat(this.props.action, this.props.report.reportID);
-        const oldestFourEmails = lodashGet(this.props.action, 'childOldestFourEmails', '').split(',');
 
         return (
             <>
@@ -266,10 +265,10 @@ class ReportActionItem extends Component {
                 )}
                 {shouldDisplayThreadReplies && (
                     <ReportActionItemThread
+                        actionID={this.props.action.reportActionID}
+                        reportID={this.props.report.reportID}
+                        personalDetails={this.props.personalDetails}
                         childReportID={`${this.props.action.childReportID}`}
-                        numberOfReplies={this.props.action.childVisibleActionCount || 0}
-                        mostRecentReply={`${this.props.action.childLastVisibleActionCreated}`}
-                        icons={ReportUtils.getIconsForParticipants(oldestFourEmails, this.props.personalDetails)}
                     />
                 )}
             </>
