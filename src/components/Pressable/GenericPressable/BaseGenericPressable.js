@@ -115,17 +115,11 @@ const GenericPressable = forwardRef((props, ref) => {
     );
 
     useEffect(() => {
-        let timer = null;
-        if (!isDisabled) {
-            setShouldUseDisabledCursor(false);
-        } else {
-            timer = setTimeout(() => setShouldUseDisabledCursor(true), 1000);
+        if (isDisabled) {
+            const timer = setTimeout(() => setShouldUseDisabledCursor(true), 1000);
+            return () => clearTimeout(timer);
         }
-
-        return () => {
-            if (!timer) return;
-            clearTimeout(timer);
-        };
+        setShouldUseDisabledCursor(false);
     }, [isDisabled]);
 
     useEffect(() => {
