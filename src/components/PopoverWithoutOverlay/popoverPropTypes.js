@@ -4,7 +4,7 @@ import {propTypes as modalPropTypes, defaultProps as defaultModalProps} from '..
 import CONST from '../../CONST';
 
 const propTypes = {
-    ...(_.omit(modalPropTypes, ['type', 'popoverAnchorPosition'])),
+    ..._.omit(modalPropTypes, ['type', 'popoverAnchorPosition']),
 
     popoverId: PropTypes.string.isRequired,
 
@@ -24,7 +24,7 @@ const propTypes = {
 };
 
 const defaultProps = {
-    ...(_.omit(defaultModalProps, ['type', 'popoverAnchorPosition'])),
+    ..._.omit(defaultModalProps, ['type', 'popoverAnchorPosition']),
 
     animationIn: 'fadeIn',
     animationOut: 'fadeOut',

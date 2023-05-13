@@ -102,7 +102,7 @@ class BaseVideoChatButtonAndMenu extends Component {
                 >
                     <Tooltip text={this.props.translate('videoChatButtonAndMenu.tooltip')}>
                         <Pressable
-                            ref={el => this.videoChatButton = el}
+                            ref={(el) => (this.videoChatButton = el)}
                             onPress={(ev) => {
                                 // Drop focus to avoid blue focus ring.
                                 this.videoChatButton.blur();

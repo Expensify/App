@@ -34,6 +34,4 @@ PopoverContextProvider.displayName = 'PopoverContextProvider';
 
 export default PopoverContextProvider;
 
-export {
-    PopoverContext,
-};
+export {PopoverContext};

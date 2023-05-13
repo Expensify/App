@@ -262,7 +262,7 @@ class AvatarWithImagePicker extends React.Component {
                             return;
                         }
 
-                        this.setState(prev => ({isMenuVisible: !prev.isMenuVisible}));
+                        this.setState((prev) => ({isMenuVisible: !prev.isMenuVisible}));
                     }}
                 >
                     <View style={[styles.pRelative, styles.avatarLarge]}>

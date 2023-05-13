@@ -11,20 +11,8 @@ import withWindowDimensions from '../withWindowDimensions';
 
 const Popover = (props) => {
     const ref = React.useRef(null);
-    const {
-        onOpen,
-        isOpen,
-        activePopoverId,
-        close,
-    } = React.useContext(PopoverContext);
-    const {
-        modalStyle,
-        modalContainerStyle,
-        shouldAddTopSafeAreaMargin,
-        shouldAddBottomSafeAreaMargin,
-        shouldAddTopSafeAreaPadding,
-        shouldAddBottomSafeAreaPadding,
-    } = getModalStyles(
+    const {onOpen, isOpen, activePopoverId, close} = React.useContext(PopoverContext);
+    const {modalStyle, modalContainerStyle, shouldAddTopSafeAreaMargin, shouldAddBottomSafeAreaMargin, shouldAddTopSafeAreaPadding, shouldAddBottomSafeAreaPadding} = getModalStyles(
         'popover_without_overlay',
         {
             windowWidth: props.windowWidth,
@@ -55,7 +43,10 @@ const Popover = (props) => {
     }, [props.isVisible]);
 
     return props.isVisible ? (
-        <Pressable style={[modalStyle, {zIndex: 1}]} ref={ref}>
+        <Pressable
+            style={[modalStyle, {zIndex: 1}]}
+            ref={ref}
+        >
             <SafeAreaInsetsContext.Consumer>
                 {(insets) => {
                     const {

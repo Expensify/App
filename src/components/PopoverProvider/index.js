@@ -22,12 +22,7 @@ const PopoverContextProvider = (props) => {
     const activePopoverRef = React.useRef(null);
 
     const closePopover = (id) => {
-        if (
-            !activePopoverRef.current
-            || !activePopoverId
-            || !id
-            || id !== activePopoverId
-        ) {
+        if (!activePopoverRef.current || !activePopoverId || !id || id !== activePopoverId) {
             return;
         }
         activePopoverRef.current.close();
@@ -38,12 +33,7 @@ const PopoverContextProvider = (props) => {
 
     React.useEffect(() => {
         const listener = (e) => {
-            if (
-                !activePopoverRef.current
-                || !activePopoverRef.current.ref
-                || !activePopoverRef.current.ref.current
-                || activePopoverRef.current.ref.current.contains(e.target)
-            ) {
+            if (!activePopoverRef.current || !activePopoverRef.current.ref || !activePopoverRef.current.ref.current || activePopoverRef.current.ref.current.contains(e.target)) {
                 return;
             }
             closePopover(activePopoverId);
@@ -127,6 +117,4 @@ PopoverContextProvider.displayName = 'PopoverContextProvider';
 
 export default PopoverContextProvider;
 
-export {
-    PopoverContext,
-};
+export {PopoverContext};
