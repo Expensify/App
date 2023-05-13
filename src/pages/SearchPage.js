@@ -33,6 +33,9 @@ const propTypes = {
     /** All reports shared with the user */
     reports: PropTypes.objectOf(reportPropTypes),
 
+    /** Indicates whether report data is ready */
+    isLoadingReportData: PropTypes.bool,
+
     /** Window Dimensions Props */
     ...windowDimensionsPropTypes,
 
@@ -43,6 +46,7 @@ const defaultProps = {
     betas: [],
     personalDetails: {},
     reports: {},
+    isLoadingReportData: true,
 };
 
 class SearchPage extends Component {
@@ -57,23 +61,22 @@ class SearchPage extends Component {
         this.onChangeText = this.onChangeText.bind(this);
         this.debouncedUpdateOptions = _.debounce(this.updateOptions.bind(this), 75);
 
-        const {
-            recentReports,
-            personalDetails,
-            userToInvite,
-        } = OptionsListUtils.getSearchOptions(
-            props.reports,
-            props.personalDetails,
-            '',
-            props.betas,
-        );
+        const {recentReports, personalDetails, userToInvite} = OptionsListUtils.getSearchOptions(props.reports, props.personalDetails, '', props.betas);
 
         this.state = {
             searchValue: '',
+            headerMessage: '',
             recentReports,
             personalDetails,
             userToInvite,
         };
+    }
+
+    componentDidUpdate(prevProps) {
+        if (_.isEqual(prevProps.reports, this.props.reports) && _.isEqual(prevProps.personalDetails, this.props.personalDetails)) {
+            return;
+        }
+        this.updateOptions();
     }
 
     onChangeText(searchValue = '') {
@@ -90,29 +93,29 @@ class SearchPage extends Component {
         let indexOffset = 0;
 
         if (this.state.recentReports.length > 0) {
-            sections.push(({
+            sections.push({
                 data: this.state.recentReports,
                 shouldShow: true,
                 indexOffset,
-            }));
+            });
             indexOffset += this.state.recentReports.length;
         }
 
         if (this.state.personalDetails.length > 0) {
-            sections.push(({
+            sections.push({
                 data: this.state.personalDetails,
                 shouldShow: true,
                 indexOffset,
-            }));
+            });
             indexOffset += this.state.recentReports.length;
         }
 
         if (this.state.userToInvite) {
-            sections.push(({
+            sections.push({
                 data: [this.state.userToInvite],
                 shouldShow: true,
                 indexOffset,
-            }));
+            });
         }
 
         return sections;
@@ -124,20 +127,20 @@ class SearchPage extends Component {
     }
 
     updateOptions() {
-        const {
-            recentReports,
-            personalDetails,
-            userToInvite,
-        } = OptionsListUtils.getSearchOptions(
+        const {recentReports, personalDetails, userToInvite} = OptionsListUtils.getSearchOptions(
             this.props.reports,
             this.props.personalDetails,
             this.state.searchValue.trim(),
             this.props.betas,
         );
-        this.setState({
-            userToInvite,
-            recentReports,
-            personalDetails,
+        this.setState((prevState) => {
+            const headerMessage = OptionsListUtils.getHeaderMessage(recentReports.length + personalDetails.length !== 0, Boolean(userToInvite), prevState.searchValue);
+            return {
+                headerMessage,
+                userToInvite,
+                recentReports,
+                personalDetails,
+            };
         });
     }
 
@@ -152,11 +155,14 @@ class SearchPage extends Component {
         }
 
         if (option.reportID) {
-            this.setState({
-                searchValue: '',
-            }, () => {
-                Navigation.navigate(ROUTES.getReportRoute(option.reportID));
-            });
+            this.setState(
+                {
+                    searchValue: '',
+                },
+                () => {
+                    Navigation.navigate(ROUTES.getReportRoute(option.reportID));
+                },
+            );
         } else {
             Report.navigateToAndOpenReport([option.login]);
         }
@@ -164,11 +170,8 @@ class SearchPage extends Component {
 
     render() {
         const sections = this.getSections();
-        const headerMessage = OptionsListUtils.getHeaderMessage(
-            (this.state.recentReports.length + this.state.personalDetails.length) !== 0,
-            Boolean(this.state.userToInvite),
-            this.state.searchValue,
-        );
+        const isOptionsDataReady = !this.props.isLoadingReportData && OptionsListUtils.isPersonalDetailsReady(this.props.personalDetails);
+
         return (
             <ScreenWrapper includeSafeAreaPaddingBottom={false}>
                 {({didScreenTransitionEnd, safeAreaPaddingBottomStyle}) => (
@@ -183,11 +186,11 @@ class SearchPage extends Component {
                                 value={this.state.searchValue}
                                 onSelectRow={this.selectReport}
                                 onChangeText={this.onChangeText}
-                                headerMessage={headerMessage}
+                                headerMessage={this.state.headerMessage}
                                 hideSectionHeaders
                                 showTitleTooltip
-                                shouldShowOptions={didScreenTransitionEnd}
-                                placeholderText={this.props.translate('optionsSelector.nameEmailOrPhoneNumber')}
+                                shouldShowOptions={didScreenTransitionEnd && isOptionsDataReady}
+                                textInputLabel={this.props.translate('optionsSelector.nameEmailOrPhoneNumber')}
                                 onLayout={this.searchRendered}
                                 safeAreaPaddingBottomStyle={safeAreaPaddingBottomStyle}
                             />
@@ -214,6 +217,9 @@ export default compose(
         },
         betas: {
             key: ONYXKEYS.BETAS,
+        },
+        isLoadingReportData: {
+            key: ONYXKEYS.IS_LOADING_REPORT_DATA,
         },
     }),
 )(SearchPage);

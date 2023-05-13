@@ -1,8 +1,11 @@
 import {View} from 'react-native';
 import React from 'react';
+import PropTypes from 'prop-types';
 import _ from 'underscore';
 import Text from '../../../components/Text';
 import styles from '../../../styles/styles';
+import * as StyleUtils from '../../../styles/StyleUtils';
+import themeColors from '../../../styles/themes/default';
 import variables from '../../../styles/variables';
 import * as Expensicons from '../../../components/Icon/Expensicons';
 import TextLink from '../../../components/TextLink';
@@ -13,22 +16,25 @@ import Licenses from '../Licenses';
 import Socials from '../Socials';
 import Hoverable from '../../../components/Hoverable';
 import CONST from '../../../CONST';
-import Navigation from '../../../libs/Navigation/Navigation';
 import * as Session from '../../../libs/actions/Session';
+import SignInGradient from '../../../../assets/images/home-fade-gradient--mobile.svg';
 
 const propTypes = {
     ...windowDimensionsPropTypes,
     ...withLocalizePropTypes,
+    scrollPageToTop: PropTypes.func.isRequired,
 };
 
-const navigateHome = () => {
-    Navigation.navigate();
+const defaultProps = {};
+
+const navigateHome = (scrollPageToTop) => {
+    scrollPageToTop();
 
     // We need to clear sign in data in case the user is already in the ValidateCodeForm or PasswordForm pages
     Session.clearSignInData();
 };
 
-const columns = [
+const columns = ({scrollPageToTop}) => [
     {
         translationPath: 'footer.features',
         rows: [
@@ -132,11 +138,11 @@ const columns = [
         translationPath: 'footer.getStarted',
         rows: [
             {
-                onPress: navigateHome,
+                onPress: () => navigateHome(scrollPageToTop),
                 translationPath: 'footer.createAccount',
             },
             {
-                onPress: navigateHome,
+                onPress: () => navigateHome(scrollPageToTop),
                 translationPath: 'footer.logIn',
             },
         ],
@@ -148,29 +154,30 @@ const Footer = (props) => {
     const imageDirection = isVertical ? styles.flexRow : styles.flexColumn;
     const imageStyle = isVertical ? styles.pr0 : styles.alignSelfCenter;
     const columnDirection = isVertical ? styles.flexColumn : styles.flexRow;
-    const pageFooterWrapper = [styles.footerWrapper, imageDirection, imageStyle];
+    const pageFooterWrapper = [styles.footerWrapper, imageDirection, imageStyle, isVertical ? styles.pl10 : {}];
     const footerColumns = [styles.footerColumnsContainer, columnDirection];
     const footerColumn = isVertical ? [styles.p4] : [styles.p4, props.isMediumScreenWidth ? styles.w50 : styles.w25];
 
     return (
         <View style={[styles.flex1]}>
-            <View style={styles.footer}>
+            <View style={[props.isSmallScreenWidth ? StyleUtils.getBackgroundColorStyle(themeColors.signInPage) : {}]}>
+                {props.isSmallScreenWidth ? (
+                    <View style={[styles.signInPageGradientMobile]}>
+                        <SignInGradient height="100%" />
+                    </View>
+                ) : null}
                 <View style={pageFooterWrapper}>
                     <View style={footerColumns}>
-                        {_.map(columns, (column, i) => (
+                        {_.map(columns({scrollPageToTop: props.scrollPageToTop}), (column, i) => (
                             <View
                                 key={column.translationPath}
                                 style={footerColumn}
                             >
-                                <Text style={[styles.textHeadline, styles.footerTitle]}>
-                                    {props.translate(column.translationPath)}
-                                </Text>
+                                <Text style={[styles.textHeadline, styles.footerTitle]}>{props.translate(column.translationPath)}</Text>
                                 <View style={[styles.footerRow]}>
-                                    {_.map(column.rows, row => (
-                                        <Hoverable
-                                            key={row.translationPath}
-                                        >
-                                            {hovered => (
+                                    {_.map(column.rows, (row) => (
+                                        <Hoverable key={row.translationPath}>
+                                            {(hovered) => (
                                                 <TextLink
                                                     style={[styles.footerRow, hovered ? styles.textBlue : {}]}
                                                     href={row.link}
@@ -181,12 +188,12 @@ const Footer = (props) => {
                                             )}
                                         </Hoverable>
                                     ))}
-                                    {(i === 2) && (
+                                    {i === 2 && (
                                         <View style={styles.mt5}>
                                             <Socials />
                                         </View>
                                     )}
-                                    {(i === 3) && (
+                                    {i === 3 && (
                                         <View style={styles.mv4}>
                                             <Licenses />
                                         </View>
@@ -196,12 +203,14 @@ const Footer = (props) => {
                         ))}
                     </View>
                     <View style={[!isVertical && styles.footerBottomLogo]}>
-                        {!isVertical
-                            ? (
-                                <Expensicons.ExpensifyFooterLogo />
-                            ) : (
-                                <Expensicons.ExpensifyFooterLogoVertical height={variables.verticalLogoHeight} width={variables.verticalLogoWidth} />
-                            )}
+                        {!isVertical ? (
+                            <Expensicons.ExpensifyFooterLogo />
+                        ) : (
+                            <Expensicons.ExpensifyFooterLogoVertical
+                                height={variables.verticalLogoHeight}
+                                width={variables.verticalLogoWidth}
+                            />
+                        )}
                     </View>
                 </View>
             </View>
@@ -211,8 +220,6 @@ const Footer = (props) => {
 
 Footer.propTypes = propTypes;
 Footer.displayName = 'Footer';
+Footer.defaultProps = defaultProps;
 
-export default compose(
-    withLocalize,
-    withWindowDimensions,
-)(Footer);
+export default compose(withLocalize, withWindowDimensions)(Footer);

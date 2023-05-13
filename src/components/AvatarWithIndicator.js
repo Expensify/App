@@ -15,6 +15,7 @@ import {policyPropTypes} from '../pages/workspace/withPolicy';
 import walletTermsPropTypes from '../pages/EnablePayments/walletTermsPropTypes';
 import * as PolicyUtils from '../libs/PolicyUtils';
 import * as PaymentMethods from '../libs/actions/PaymentMethods';
+import * as ReimbursementAccountProps from '../pages/ReimbursementAccount/reimbursementAccountPropTypes';
 import * as ReportUtils from '../libs/ReportUtils';
 import * as UserUtils from '../libs/UserUtils';
 import themeColors from '../styles/themes/default';
@@ -43,6 +44,9 @@ const propTypes = {
     /** The user's wallet (coming from Onyx) */
     userWallet: userWalletPropTypes,
 
+    /** Bank account attached to free plan */
+    reimbursementAccount: ReimbursementAccountProps.reimbursementAccountPropTypes,
+
     /** Information about the user accepting the terms for payments */
     walletTerms: walletTermsPropTypes,
 
@@ -58,6 +62,7 @@ const propTypes = {
 
 const defaultProps = {
     tooltipText: '',
+    reimbursementAccount: {},
     policiesMemberList: {},
     policies: {},
     bankAccountList: {},
@@ -70,8 +75,8 @@ const defaultProps = {
 const AvatarWithIndicator = (props) => {
     // If a policy was just deleted from Onyx, then Onyx will pass a null value to the props, and
     // those should be cleaned out before doing any error checking
-    const cleanPolicies = _.pick(props.policies, policy => policy);
-    const cleanPolicyMembers = _.pick(props.policiesMemberList, member => member);
+    const cleanPolicies = _.pick(props.policies, (policy) => policy);
+    const cleanPolicyMembers = _.pick(props.policiesMemberList, (member) => member);
 
     // All of the error & info-checking methods are put into an array. This is so that using _.some() will return
     // early as soon as the first error / info condition is returned. This makes the checks very efficient since
@@ -82,31 +87,24 @@ const AvatarWithIndicator = (props) => {
         () => _.some(cleanPolicies, PolicyUtils.hasPolicyError),
         () => _.some(cleanPolicies, PolicyUtils.hasCustomUnitsError),
         () => _.some(cleanPolicyMembers, PolicyUtils.hasPolicyMemberError),
+        () => !_.isEmpty(props.reimbursementAccount.errors),
         () => UserUtils.hasLoginListError(props.loginList),
 
         // Wallet term errors that are not caused by an IOU (we show the red brick indicator for those in the LHN instead)
         () => !_.isEmpty(props.walletTerms.errors) && !props.walletTerms.chatReportID,
     ];
-    const infoCheckingMethods = [
-        () => UserUtils.hasLoginListInfo(props.loginList),
-    ];
-    const shouldShowErrorIndicator = _.some(errorCheckingMethods, errorCheckingMethod => errorCheckingMethod());
-    const shouldShowInfoIndicator = !shouldShowErrorIndicator && _.some(infoCheckingMethods, infoCheckingMethod => infoCheckingMethod());
+    const infoCheckingMethods = [() => UserUtils.hasLoginListInfo(props.loginList)];
+    const shouldShowErrorIndicator = _.some(errorCheckingMethods, (errorCheckingMethod) => errorCheckingMethod());
+    const shouldShowInfoIndicator = !shouldShowErrorIndicator && _.some(infoCheckingMethods, (infoCheckingMethod) => infoCheckingMethod());
 
     const indicatorColor = shouldShowErrorIndicator ? themeColors.danger : themeColors.success;
-    const indicatorStyles = [
-        styles.alignItemsCenter,
-        styles.justifyContentCenter,
-        styles.statusIndicator(indicatorColor),
-    ];
+    const indicatorStyles = [styles.alignItemsCenter, styles.justifyContentCenter, styles.statusIndicator(indicatorColor)];
 
     return (
         <View style={[styles.sidebarAvatar]}>
             <Tooltip text={props.tooltipText}>
                 <Avatar source={ReportUtils.getSmallSizeAvatar(props.source)} />
-                {(shouldShowErrorIndicator || shouldShowInfoIndicator) && (
-                    <View style={StyleSheet.flatten(indicatorStyles)} />
-                )}
+                {(shouldShowErrorIndicator || shouldShowInfoIndicator) && <View style={StyleSheet.flatten(indicatorStyles)} />}
             </Tooltip>
         </View>
     );
@@ -125,6 +123,9 @@ export default withOnyx({
     },
     bankAccountList: {
         key: ONYXKEYS.BANK_ACCOUNT_LIST,
+    },
+    reimbursementAccount: {
+        key: ONYXKEYS.REIMBURSEMENT_ACCOUNT,
     },
     cardList: {
         key: ONYXKEYS.CARD_LIST,

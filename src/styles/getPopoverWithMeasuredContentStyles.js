@@ -17,7 +17,7 @@ function computeHorizontalShift(anchorLeftEdge, menuWidth, windowWidth) {
         return roundToNearestMultipleOfFour(variables.gutterWidth - anchorLeftEdge);
     }
 
-    if (popoverRightEdge > (windowWidth - variables.gutterWidth)) {
+    if (popoverRightEdge > windowWidth - variables.gutterWidth) {
         // Anchor is in right gutter, shift left by a multiple of four.
         return roundToNearestMultipleOfFour(windowWidth - variables.gutterWidth - popoverRightEdge);
     }
@@ -52,7 +52,4 @@ function computeVerticalShift(anchorTopEdge, menuHeight, windowHeight) {
     return 0;
 }
 
-export {
-    computeHorizontalShift,
-    computeVerticalShift,
-};
+export {computeHorizontalShift, computeVerticalShift};

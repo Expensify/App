@@ -11,17 +11,19 @@ import Navigation from '../Navigation';
 
 const propTypes = {
     /** Screens to be passed in the Drawer */
-    screens: PropTypes.arrayOf(PropTypes.shape({
-        /** Name of the Screen */
-        name: PropTypes.string.isRequired,
+    screens: PropTypes.arrayOf(
+        PropTypes.shape({
+            /** Name of the Screen */
+            name: PropTypes.string.isRequired,
 
-        /** Component for the Screen */
-        component: PropTypes.elementType.isRequired,
+            /** Component for the Screen */
+            component: PropTypes.elementType.isRequired,
 
-        /** Optional params to be passed to the Screen */
-        // eslint-disable-next-line react/forbid-prop-types
-        initialParams: PropTypes.object,
-    })).isRequired,
+            /** Optional params to be passed to the Screen */
+            // eslint-disable-next-line react/forbid-prop-types
+            initialParams: PropTypes.object,
+        }),
+    ).isRequired,
 
     /** Drawer content Component */
     drawerContent: PropTypes.elementType.isRequired,
@@ -84,13 +86,11 @@ class BaseDrawerNavigator extends Component {
                     cardStyle: styles.navigationScreenCardStyle,
                     headerShown: false,
                     drawerType: StyleUtils.getNavigationDrawerType(this.props.isSmallScreenWidth),
-                    drawerStyle: StyleUtils.getNavigationDrawerStyle(
-                        this.props.isSmallScreenWidth,
-                    ),
+                    drawerStyle: StyleUtils.getNavigationDrawerStyle(this.props.isSmallScreenWidth),
                     swipeEdgeWidth: 500,
                 }}
             >
-                {_.map(this.props.screens, screen => (
+                {_.map(this.props.screens, (screen) => (
                     <Drawer.Screen
                         key={screen.name}
                         name={screen.name}
@@ -102,11 +102,7 @@ class BaseDrawerNavigator extends Component {
         );
 
         if (!this.props.isMainScreen && !this.props.isSmallScreenWidth) {
-            return (
-                <View style={styles.navigationSceneFullScreenWrapper}>
-                    {content}
-                </View>
-            );
+            return <View style={styles.navigationSceneFullScreenWrapper}>{content}</View>;
         }
 
         return content;

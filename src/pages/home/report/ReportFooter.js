@@ -7,7 +7,6 @@ import CONST from '../../../CONST';
 import ReportActionCompose from './ReportActionCompose';
 import SwipeableView from '../../../components/SwipeableView';
 import OfflineIndicator from '../../../components/OfflineIndicator';
-import OfflineWithFeedback from '../../../components/OfflineWithFeedback';
 import ArchivedReportFooter from '../../../components/ArchivedReportFooter';
 import compose from '../../../libs/compose';
 import ONYXKEYS from '../../../ONYXKEYS';
@@ -66,43 +65,30 @@ class ReportFooter extends React.Component {
 
     render() {
         const isArchivedRoom = ReportUtils.isArchivedRoom(this.props.report);
-        const hideComposer = isArchivedRoom || !_.isEmpty(this.props.errors);
+        const hideComposer = isArchivedRoom || !_.isEmpty(this.props.errors) || ReportUtils.isTaskReport(this.props.report);
 
         return (
             <>
                 {(isArchivedRoom || hideComposer) && (
                     <View style={[styles.chatFooter, this.props.isSmallScreenWidth ? styles.mb5 : null]}>
-                        {isArchivedRoom && (
-                            <ArchivedReportFooter
-                                report={this.props.report}
-                            />
-                        )}
+                        {isArchivedRoom && <ArchivedReportFooter report={this.props.report} />}
                         {!this.props.isSmallScreenWidth && (
-                            <View style={styles.offlineIndicatorRow}>
-                                {hideComposer && (
-                                    <OfflineIndicator containerStyles={[styles.chatItemComposeSecondaryRow]} />
-                                )}
-                            </View>
+                            <View style={styles.offlineIndicatorRow}>{hideComposer && <OfflineIndicator containerStyles={[styles.chatItemComposeSecondaryRow]} />}</View>
                         )}
                     </View>
                 )}
-                {(!hideComposer && this.props.shouldShowComposeInput) && (
+                {!hideComposer && this.props.shouldShowComposeInput && (
                     <View style={[this.getChatFooterStyles(), this.props.isComposerFullSize && styles.chatFooterFullCompose]}>
                         <SwipeableView onSwipeDown={Keyboard.dismiss}>
-                            <OfflineWithFeedback
+                            <ReportActionCompose
+                                onSubmit={this.props.onSubmitComment}
+                                reportID={this.props.report.reportID.toString()}
+                                reportActions={this.props.reportActions}
+                                report={this.props.report}
                                 pendingAction={this.props.pendingAction}
-                                style={this.props.isComposerFullSize ? styles.chatItemFullComposeRow : {}}
-                                contentContainerStyle={this.props.isComposerFullSize ? styles.flex1 : {}}
-                            >
-                                <ReportActionCompose
-                                    onSubmit={this.props.onSubmitComment}
-                                    reportID={this.props.report.reportID.toString()}
-                                    reportActions={this.props.reportActions}
-                                    report={this.props.report}
-                                    isComposerFullSize={this.props.isComposerFullSize}
-                                    disabled={this.props.shouldDisableCompose}
-                                />
-                            </OfflineWithFeedback>
+                                isComposerFullSize={this.props.isComposerFullSize}
+                                disabled={this.props.shouldDisableCompose}
+                            />
                         </SwipeableView>
                     </View>
                 )}

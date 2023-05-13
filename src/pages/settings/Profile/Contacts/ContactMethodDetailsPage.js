@@ -56,6 +56,14 @@ const propTypes = {
         email: PropTypes.string.isRequired,
     }),
 
+    /** User's security group IDs by domain */
+    myDomainSecurityGroups: PropTypes.objectOf(PropTypes.string),
+
+    /** All of the user's security groups and their settings */
+    securityGroups: PropTypes.shape({
+        hasRestrictedPrimaryLogin: PropTypes.bool,
+    }),
+
     /** Route params */
     route: PropTypes.shape({
         params: PropTypes.shape({
@@ -72,6 +80,8 @@ const defaultProps = {
     session: {
         email: null,
     },
+    myDomainSecurityGroups: {},
+    securityGroups: {},
     route: {
         params: {
             contactMethod: '',
@@ -89,6 +99,7 @@ class ContactMethodDetailsPage extends Component {
         this.resendValidateCode = this.resendValidateCode.bind(this);
         this.getContactMethod = this.getContactMethod.bind(this);
         this.validateAndSubmitCode = this.validateAndSubmitCode.bind(this);
+        this.setAsDefault = this.setAsDefault.bind(this);
 
         this.state = {
             formError: '',
@@ -97,9 +108,19 @@ class ContactMethodDetailsPage extends Component {
         };
     }
 
+    componentDidUpdate(prevProps) {
+        const errorFields = lodashGet(this.props.loginList, [this.getContactMethod(), 'errorFields'], {});
+        const prevPendingFields = lodashGet(prevProps.loginList, [this.getContactMethod(), 'pendingFields'], {});
+
+        // Navigate to methods page on successful magic code verification
+        // validateLogin property of errorFields & prev pendingFields is responsible to decide the status of the magic code verification
+        if (!errorFields.validateLogin && prevPendingFields.validateLogin === CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE) {
+            Navigation.navigate(ROUTES.SETTINGS_CONTACT_METHODS);
+        }
+    }
+
     /**
      * Gets the current contact method from the route params
-     *
      * @returns {string}
      */
     getContactMethod() {
@@ -107,11 +128,52 @@ class ContactMethodDetailsPage extends Component {
     }
 
     /**
+     * Attempt to set this contact method as user's "Default contact method"
+     */
+    setAsDefault() {
+        User.setContactMethodAsDefault(this.getContactMethod());
+    }
+
+    /**
+     * Checks if the user is allowed to change their default contact method. This should only be allowed if:
+     * 1. The viewed contact method is not already their default contact method
+     * 2. The viewed contact method is validated
+     * 3. If the user is on a private domain, their security group must allow primary login switching
+     *
+     * @returns {Boolean}
+     */
+    canChangeDefaultContactMethod() {
+        const contactMethod = this.getContactMethod();
+        const loginData = lodashGet(this.props.loginList, contactMethod, {});
+        const isDefaultContactMethod = this.props.session.email === loginData.partnerUserID;
+
+        // Cannot set this contact method as default if:
+        // 1. This contact method is already their default
+        // 2. This contact method is not validated
+        if (isDefaultContactMethod || !loginData.validatedDate) {
+            return false;
+        }
+
+        const domainName = Str.extractEmailDomain(this.props.session.email);
+        const primaryDomainSecurityGroupID = lodashGet(this.props.myDomainSecurityGroups, domainName);
+
+        // If there's no security group associated with the user for the primary domain,
+        // default to allowing the user to change their default contact method.
+        if (!primaryDomainSecurityGroupID) {
+            return true;
+        }
+
+        // Allow user to change their default contact method if they don't have a security group OR if their security group
+        // does NOT restrict primary login switching.
+        return !lodashGet(this.props.securityGroups, [`${ONYXKEYS.COLLECTION.SECURITY_GROUP}${primaryDomainSecurityGroupID}`, 'hasRestrictedPrimaryLogin'], false);
+    }
+
+    /**
      * Deletes the contact method if it has errors. Otherwise, it shows the confirmation alert and deletes it only if the user confirms.
      */
     deleteContactMethod() {
         if (!_.isEmpty(lodashGet(this.props.loginList, [this.getContactMethod(), 'errorFields'], {}))) {
-            User.deleteContactMethod(this.getContactMethod());
+            User.deleteContactMethod(this.getContactMethod(), this.props.loginList);
             return;
         }
         this.toggleDeleteModal(true);
@@ -130,7 +192,7 @@ class ContactMethodDetailsPage extends Component {
      */
     confirmDeleteAndHideModal() {
         this.toggleDeleteModal(false);
-        User.deleteContactMethod(this.getContactMethod());
+        User.deleteContactMethod(this.getContactMethod(), this.props.loginList);
     }
 
     /**
@@ -156,6 +218,10 @@ class ContactMethodDetailsPage extends Component {
 
     render() {
         const contactMethod = this.getContactMethod();
+
+        // Replacing spaces with "hard spaces" to prevent breaking the number
+        const formattedContactMethod = Str.isSMSLogin(contactMethod) ? this.props.formatPhoneNumber(contactMethod).replace(/ /g, '\u00A0') : contactMethod;
+
         const loginData = this.props.loginList[contactMethod];
         if (!contactMethod || !loginData) {
             return <NotFoundPage />;
@@ -169,7 +235,7 @@ class ContactMethodDetailsPage extends Component {
         return (
             <ScreenWrapper>
                 <HeaderWithCloseButton
-                    title={Str.removeSMSDomain(contactMethod)}
+                    title={formattedContactMethod}
                     shouldShowBackButton
                     onBackButtonPress={() => Navigation.navigate(ROUTES.SETTINGS_CONTACT_METHODS)}
                     onCloseButtonPress={() => Navigation.dismissModal(true)}
@@ -184,22 +250,29 @@ class ContactMethodDetailsPage extends Component {
                         isVisible={this.state.isDeleteModalOpen}
                         danger
                     />
-                    {isFailedAddContactMethod && <DotIndicatorMessage style={[styles.mh5]} messages={ErrorUtils.getLatestErrorField(loginData, 'addedLogin')} type="error" />}
+                    {isFailedAddContactMethod && (
+                        <DotIndicatorMessage
+                            style={[styles.mh5, styles.mv3]}
+                            messages={ErrorUtils.getLatestErrorField(loginData, 'addedLogin')}
+                            type="error"
+                        />
+                    )}
                     {!loginData.validatedDate && !isFailedAddContactMethod && (
                         <View style={[styles.ph5, styles.mt3, styles.mb7]}>
                             <View style={[styles.flexRow, styles.alignItemsCenter, styles.mb1]}>
-                                <Icon src={Expensicons.DotIndicator} fill={colors.green} />
+                                <Icon
+                                    src={Expensicons.DotIndicator}
+                                    fill={colors.green}
+                                />
                                 <View style={[styles.flex1, styles.ml4]}>
-                                    <Text>
-                                        {this.props.translate('contacts.enterMagicCode', {contactMethod})}
-                                    </Text>
+                                    <Text>{this.props.translate('contacts.enterMagicCode', {contactMethod: formattedContactMethod})}</Text>
                                 </View>
                             </View>
                             <TextInput
                                 label={this.props.translate('common.magicCode')}
                                 name="validateCode"
                                 value={this.state.validateCode}
-                                onChangeText={text => this.setState({validateCode: text})}
+                                onChangeText={(text) => this.setState({validateCode: text})}
                                 keyboardType={CONST.KEYBOARD_TYPE.NUMBER_PAD}
                                 errorText={formErrorText}
                             />
@@ -209,14 +282,19 @@ class ContactMethodDetailsPage extends Component {
                                 errorRowStyles={[styles.mt2]}
                                 onClose={() => User.clearContactMethodErrors(contactMethod, 'validateCodeSent')}
                             >
-                                <View
-                                    style={[styles.mt2, styles.dFlex, styles.flexRow]}
-                                >
-                                    <Text style={[styles.link, styles.mr1]} onPress={this.resendValidateCode}>
+                                <View style={[styles.mt2, styles.dFlex, styles.flexColumn]}>
+                                    <Text
+                                        style={[styles.link, styles.mr1]}
+                                        onPress={this.resendValidateCode}
+                                    >
                                         {this.props.translate('contacts.resendMagicCode')}
                                     </Text>
                                     {hasMagicCodeBeenSent && (
-                                        <Icon src={Expensicons.Checkmark} fill={colors.green} />
+                                        <DotIndicatorMessage
+                                            type="success"
+                                            style={[styles.mt6, styles.flex0]}
+                                            messages={{0: this.props.translate('resendValidationForm.linkHasBeenResent')}}
+                                        />
                                     )}
                                 </View>
                             </OfflineWithFeedback>
@@ -236,22 +314,40 @@ class ContactMethodDetailsPage extends Component {
                             </OfflineWithFeedback>
                         </View>
                     )}
+                    {this.canChangeDefaultContactMethod() ? (
+                        <OfflineWithFeedback
+                            errors={ErrorUtils.getLatestErrorField(loginData, 'defaultLogin')}
+                            errorRowStyles={[styles.ml8, styles.mr5]}
+                            onClose={() => User.clearContactMethodErrors(contactMethod, 'defaultLogin')}
+                        >
+                            <MenuItem
+                                title={this.props.translate('contacts.setAsDefault')}
+                                icon={Expensicons.Profile}
+                                onPress={this.setAsDefault}
+                            />
+                        </OfflineWithFeedback>
+                    ) : null}
                     {isDefaultContactMethod ? (
-                        <Text style={[styles.ph5, styles.mv3]}>
-                            {this.props.translate('contacts.yourDefaultContactMethod')}
-                        </Text>
+                        <OfflineWithFeedback
+                            pendingAction={lodashGet(loginData, 'pendingFields.defaultLogin', null)}
+                            errors={ErrorUtils.getLatestErrorField(loginData, 'defaultLogin')}
+                            errorRowStyles={[styles.ml8, styles.mr5]}
+                            onClose={() => User.clearContactMethodErrors(contactMethod, 'defaultLogin')}
+                        >
+                            <Text style={[styles.ph5, styles.mv3]}>{this.props.translate('contacts.yourDefaultContactMethod')}</Text>
+                        </OfflineWithFeedback>
                     ) : (
                         <OfflineWithFeedback
                             pendingAction={lodashGet(loginData, 'pendingFields.deletedLogin', null)}
                             errors={ErrorUtils.getLatestErrorField(loginData, 'deletedLogin')}
-                            errorRowStyles={[styles.mt6]}
+                            errorRowStyles={[styles.mt6, styles.ph5]}
                             onClose={() => User.clearContactMethodErrors(contactMethod, 'deletedLogin')}
                         >
                             <MenuItem
                                 title={this.props.translate('common.remove')}
                                 icon={Expensicons.Trashcan}
                                 iconFill={themeColors.danger}
-                                onPress={this.deleteContactMethod}
+                                onPress={() => this.toggleDeleteModal(true)}
                             />
                         </OfflineWithFeedback>
                     )}
@@ -272,6 +368,12 @@ export default compose(
         },
         session: {
             key: ONYXKEYS.SESSION,
+        },
+        myDomainSecurityGroups: {
+            key: ONYXKEYS.MY_DOMAIN_SECURITY_GROUPS,
+        },
+        securityGroups: {
+            key: `${ONYXKEYS.COLLECTION.SECURITY_GROUP}`,
         },
     }),
 )(ContactMethodDetailsPage);

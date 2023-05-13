@@ -12,7 +12,18 @@ import ONYXKEYS from '../ONYXKEYS';
  * @returns {Boolean}
  */
 function hasPolicyMemberError(policyMemberList) {
-    return _.some(policyMemberList, member => !_.isEmpty(member.errors));
+    return _.some(policyMemberList, (member) => !_.isEmpty(member.errors));
+}
+
+/**
+ * Check if the policy has any error fields.
+ *
+ * @param {Object} policy
+ * @param {Object} policy.errorFields
+ * @return {Boolean}
+ */
+function hasPolicyErrorFields(policy) {
+    return _.some(lodashGet(policy, 'errorFields', {}), (fieldErrors) => !_.isEmpty(fieldErrors));
 }
 
 /**
@@ -24,9 +35,7 @@ function hasPolicyMemberError(policyMemberList) {
  * @return {Boolean}
  */
 function hasPolicyError(policy) {
-    return !_.isEmpty(lodashGet(policy, 'errors', {}))
-        ? true
-        : _.some(lodashGet(policy, 'errorFields', {}), fieldErrors => !_.isEmpty(fieldErrors));
+    return !_.isEmpty(lodashGet(policy, 'errors', {})) ? true : hasPolicyErrorFields(policy);
 }
 
 /**
@@ -40,7 +49,7 @@ function hasCustomUnitsError(policy) {
 }
 
 /**
- * Get the brick road indicator status for a policy. The policy has an error status if there is a policy member error or a policy error.
+ * Get the brick road indicator status for a policy. The policy has an error status if there is a policy member error, a custom unit error or a field error.
  *
  * @param {Object} policy
  * @param {String} policy.id
@@ -49,7 +58,7 @@ function hasCustomUnitsError(policy) {
  */
 function getPolicyBrickRoadIndicatorStatus(policy, policyMembers) {
     const policyMemberList = lodashGet(policyMembers, `${ONYXKEYS.COLLECTION.POLICY_MEMBER_LIST}${policy.id}`, {});
-    if (hasPolicyMemberError(policyMemberList) || hasCustomUnitsError(policy)) {
+    if (hasPolicyMemberError(policyMemberList) || hasCustomUnitsError(policy) || hasPolicyErrorFields(policy)) {
         return CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR;
     }
     return '';
@@ -66,13 +75,11 @@ function getPolicyBrickRoadIndicatorStatus(policy, policyMembers) {
  * @returns {Boolean}
  */
 function shouldShowPolicy(policy, isOffline) {
-    return policy
-    && policy.type === CONST.POLICY.TYPE.FREE
-    && policy.role === CONST.POLICY.ROLE.ADMIN
-    && (
-        isOffline
-        || policy.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE
-        || !_.isEmpty(policy.errors)
+    return (
+        policy &&
+        policy.type === CONST.POLICY.TYPE.FREE &&
+        policy.role === CONST.POLICY.ROLE.ADMIN &&
+        (isOffline || policy.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE || !_.isEmpty(policy.errors))
     );
 }
 
@@ -85,11 +92,4 @@ function isExpensifyTeam(email) {
     return emailDomain === CONST.EXPENSIFY_PARTNER_NAME || emailDomain === CONST.EMAIL.GUIDES_DOMAIN;
 }
 
-export {
-    hasPolicyMemberError,
-    hasPolicyError,
-    hasCustomUnitsError,
-    getPolicyBrickRoadIndicatorStatus,
-    shouldShowPolicy,
-    isExpensifyTeam,
-};
+export {hasPolicyMemberError, hasPolicyError, hasPolicyErrorFields, hasCustomUnitsError, getPolicyBrickRoadIndicatorStatus, shouldShowPolicy, isExpensifyTeam};

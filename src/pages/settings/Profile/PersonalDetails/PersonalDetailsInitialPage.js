@@ -1,4 +1,4 @@
-import React from 'react';
+import React, {useEffect} from 'react';
 import PropTypes from 'prop-types';
 import {ScrollView, View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
@@ -13,6 +13,7 @@ import compose from '../../../../libs/compose';
 import MenuItemWithTopDescription from '../../../../components/MenuItemWithTopDescription';
 import * as PersonalDetails from '../../../../libs/actions/PersonalDetails';
 import ONYXKEYS from '../../../../ONYXKEYS';
+import {withNetwork} from '../../../../components/OnyxProvider';
 
 const propTypes = {
     /* Onyx Props */
@@ -53,7 +54,12 @@ const defaultProps = {
 };
 
 const PersonalDetailsInitialPage = (props) => {
-    PersonalDetails.openPersonalDetailsPage();
+    useEffect(() => {
+        if (props.network.isOffline) {
+            return;
+        }
+        PersonalDetails.openPersonalDetailsPage();
+    }, [props.network.isOffline]);
 
     const privateDetails = props.privatePersonalDetails || {};
     const address = privateDetails.address || {};
@@ -65,7 +71,7 @@ const PersonalDetailsInitialPage = (props) => {
      * @param {String} piece
      * @returns {String}
      */
-    const formatPiece = piece => (piece ? `${piece}, ` : '');
+    const formatPiece = (piece) => (piece ? `${piece}, ` : '');
 
     /**
      * Formats an address object into an easily readable string
@@ -74,12 +80,8 @@ const PersonalDetailsInitialPage = (props) => {
      */
     const getFormattedAddress = () => {
         const [street1, street2] = (address.street || '').split('\n');
-        const formattedAddress = formatPiece(street1)
-            + formatPiece(street2)
-            + formatPiece(address.city)
-            + formatPiece(address.state)
-            + formatPiece(address.zip)
-            + formatPiece(address.country);
+        const formattedAddress =
+            formatPiece(street1) + formatPiece(street2) + formatPiece(address.city) + formatPiece(address.state) + formatPiece(address.zip) + formatPiece(address.country);
 
         // Remove the last comma of the address
         return formattedAddress.trim().replace(/,$/, '');
@@ -96,9 +98,7 @@ const PersonalDetailsInitialPage = (props) => {
             <ScrollView>
                 <View style={styles.flex1}>
                     <View style={[styles.ph5, styles.mb5]}>
-                        <Text>
-                            {props.translate('privatePersonalDetails.privateDataMessage')}
-                        </Text>
+                        <Text>{props.translate('privatePersonalDetails.privateDataMessage')}</Text>
                     </View>
                     <MenuItemWithTopDescription
                         title={legalName}
@@ -135,4 +135,5 @@ export default compose(
             key: ONYXKEYS.PRIVATE_PERSONAL_DETAILS,
         },
     }),
+    withNetwork(),
 )(PersonalDetailsInitialPage);

@@ -1,7 +1,4 @@
-import {
-    getStateFromPath,
-    getActionFromState,
-} from '@react-navigation/core';
+import {getStateFromPath, getActionFromState} from '@react-navigation/core';
 import linkingConfig from './linkingConfig';
 
 export default function linkTo(navigation, path) {
@@ -10,9 +7,7 @@ export default function linkTo(navigation, path) {
         throw new Error("Couldn't find a navigation object. Is your component inside a screen in a navigator?");
     }
 
-    const state = linkingConfig.getStateFromPath
-        ? linkingConfig.getStateFromPath(normalizedPath, linkingConfig.config)
-        : getStateFromPath(normalizedPath, linkingConfig.config);
+    const state = linkingConfig.getStateFromPath ? linkingConfig.getStateFromPath(normalizedPath, linkingConfig.config) : getStateFromPath(normalizedPath, linkingConfig.config);
 
     if (!state) {
         throw new Error('Failed to parse the path to a navigation state.');

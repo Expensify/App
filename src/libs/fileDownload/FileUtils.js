@@ -24,36 +24,28 @@ function showSuccessAlert() {
  * Show alert on attachment download error
  */
 function showGeneralErrorAlert() {
-    Alert.alert(
-        Localize.translateLocal('fileDownload.generalError.title'),
-        Localize.translateLocal('fileDownload.generalError.message'),
-        [
-            {
-                text: Localize.translateLocal('common.cancel'),
-                style: 'cancel',
-            },
-        ],
-    );
+    Alert.alert(Localize.translateLocal('fileDownload.generalError.title'), Localize.translateLocal('fileDownload.generalError.message'), [
+        {
+            text: Localize.translateLocal('common.cancel'),
+            style: 'cancel',
+        },
+    ]);
 }
 
 /**
  * Show alert on attachment download permissions error
  */
 function showPermissionErrorAlert() {
-    Alert.alert(
-        Localize.translateLocal('fileDownload.permissionError.title'),
-        Localize.translateLocal('fileDownload.permissionError.message'),
-        [
-            {
-                text: Localize.translateLocal('common.cancel'),
-                style: 'cancel',
-            },
-            {
-                text: Localize.translateLocal('common.settings'),
-                onPress: () => Linking.openSettings(),
-            },
-        ],
-    );
+    Alert.alert(Localize.translateLocal('fileDownload.permissionError.title'), Localize.translateLocal('fileDownload.permissionError.message'), [
+        {
+            text: Localize.translateLocal('common.cancel'),
+            style: 'cancel',
+        },
+        {
+            text: Localize.translateLocal('common.settings'),
+            onPress: () => Linking.openSettings(),
+        },
+    ]);
 }
 
 /**
@@ -126,12 +118,4 @@ function cleanFileName(fileName) {
     return fileName.replace(/[^a-zA-Z0-9\-._]/g, '_');
 }
 
-export {
-    showGeneralErrorAlert,
-    showSuccessAlert,
-    showPermissionErrorAlert,
-    splitExtensionFromFileName,
-    getAttachmentName,
-    getFileType,
-    cleanFileName,
-};
+export {showGeneralErrorAlert, showSuccessAlert, showPermissionErrorAlert, splitExtensionFromFileName, getAttachmentName, getFileType, cleanFileName};

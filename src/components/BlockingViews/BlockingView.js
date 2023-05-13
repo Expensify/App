@@ -27,35 +27,40 @@ const propTypes = {
 
     /** Whether we should show a go back home link */
     shouldShowBackHomeLink: PropTypes.bool,
+
+    /** The custom icon width */
+    iconWidth: PropTypes.number,
+
+    /** The custom icon height */
+    iconHeight: PropTypes.number,
 };
 
 const defaultProps = {
     iconColor: themeColors.offline,
     shouldShowBackHomeLink: false,
     link: 'notFound.goBackHome',
+    iconWidth: variables.iconSizeSuperLarge,
+    iconHeight: variables.iconSizeSuperLarge,
 };
 
-const BlockingView = props => (
-    <View
-        style={[styles.flex1, styles.alignItemsCenter, styles.justifyContentCenter, styles.ph10]}
-    >
+const BlockingView = (props) => (
+    <View style={[styles.flex1, styles.alignItemsCenter, styles.justifyContentCenter, styles.ph10]}>
         <Icon
             src={props.icon}
             fill={props.iconColor}
-            width={variables.iconSizeSuperLarge}
-            height={variables.iconSizeSuperLarge}
+            width={props.iconWidth}
+            height={props.iconHeight}
         />
         <Text style={[styles.notFoundTextHeader]}>{props.title}</Text>
         <Text style={[styles.textAlignCenter]}>{props.subtitle}</Text>
-        {props.shouldShowBackHomeLink
-            ? (
-                <TextLink
-                    onPress={() => Navigation.dismissModal(true)}
-                    style={[styles.link, styles.mt2]}
-                >
-                    {props.link}
-                </TextLink>
-            ) : null}
+        {props.shouldShowBackHomeLink ? (
+            <TextLink
+                onPress={() => Navigation.dismissModal(true)}
+                style={[styles.link, styles.mt2]}
+            >
+                {props.link}
+            </TextLink>
+        ) : null}
     </View>
 );
 

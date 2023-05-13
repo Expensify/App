@@ -1,7 +1,5 @@
 const path = require('path');
-const {
-    IgnorePlugin, DefinePlugin, ProvidePlugin, EnvironmentPlugin,
-} = require('webpack');
+const {IgnorePlugin, DefinePlugin, ProvidePlugin, EnvironmentPlugin} = require('webpack');
 const {CleanWebpackPlugin} = require('clean-webpack-plugin');
 const HtmlWebpackPlugin = require('html-webpack-plugin');
 const CopyPlugin = require('copy-webpack-plugin');
@@ -29,6 +27,7 @@ const envToLogoSuffixMap = {
     production: '',
     staging: '-stg',
     dev: '-dev',
+    adhoc: '-adhoc',
 };
 
 function mapEnvToLogoSuffix(envFile) {
@@ -50,10 +49,7 @@ const webpackConfig = ({envFile = '.env', platform = 'web'}) => ({
     mode: 'production',
     devtool: 'source-map',
     entry: {
-        main: [
-            'babel-polyfill',
-            './index.js',
-        ],
+        main: ['babel-polyfill', './index.js'],
         splash: ['./web/splash/splash.js'],
     },
     output: {
@@ -113,14 +109,12 @@ const webpackConfig = ({envFile = '.env', platform = 'web'}) => ({
         ...(platform === 'web' ? [new CustomVersionFilePlugin()] : []),
         new DefinePlugin({
             ...(platform === 'desktop' ? {} : {process: {env: {}}}),
-            __REACT_WEB_CONFIG__: JSON.stringify(
-                dotenv.config({path: envFile}).parsed,
-            ),
+            __REACT_WEB_CONFIG__: JSON.stringify(dotenv.config({path: envFile}).parsed),
 
             // React Native JavaScript environment requires the global __DEV__ variable to be accessible.
             // react-native-render-html uses variable to log exclusively during development.
             // See https://reactnative.dev/docs/javascript-environment
-            __DEV__: /staging|prod/.test(envFile) === false,
+            __DEV__: /staging|prod|adhoc/.test(envFile) === false,
         }),
 
         // This allows us to interactively inspect JS bundle contents
@@ -141,9 +135,7 @@ const webpackConfig = ({envFile = '.env', platform = 'web'}) => ({
                  * You can remove something from this list if it doesn't use "react-native" as an import and it doesn't
                  * use JSX/JS that needs to be transformed by babel.
                  */
-                exclude: [
-                    new RegExp(`node_modules/(?!(${includeModules})/).*|.native.js$`),
-                ],
+                exclude: [new RegExp(`node_modules/(?!(${includeModules})/).*|.native.js$`)],
             },
 
             // We are importing this worker as a string by using asset/source otherwise it will default to loading via an HTTPS request later.
@@ -181,13 +173,15 @@ const webpackConfig = ({envFile = '.env', platform = 'web'}) => ({
             },
             {
                 test: /splash.css$/i,
-                use: [{
-                    loader: 'style-loader',
-                    options: {
-                        insert: 'head',
-                        injectType: 'singletonStyleTag',
+                use: [
+                    {
+                        loader: 'style-loader',
+                        options: {
+                            insert: 'head',
+                            injectType: 'singletonStyleTag',
+                        },
                     },
-                }],
+                ],
             },
             {
                 test: /\.css$/i,
@@ -218,7 +212,7 @@ const webpackConfig = ({envFile = '.env', platform = 'web'}) => ({
         // This is also why we have to use .website.js for our own web-specific files...
         // Because desktop also relies on "web-specific" module implementations
         // This also skips packing web only dependencies to desktop and vice versa
-        extensions: ['.web.js', (platform === 'web') ? '.website.js' : '.desktop.js', '.js', '.jsx'],
+        extensions: ['.web.js', platform === 'web' ? '.website.js' : '.desktop.js', '.js', '.jsx'],
         fallback: {
             'process/browser': require.resolve('process/browser'),
         },
