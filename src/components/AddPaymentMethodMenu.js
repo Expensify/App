@@ -1,6 +1,7 @@
 import React from 'react';
 import PropTypes from 'prop-types';
 import {withOnyx} from 'react-native-onyx';
+import _ from 'underscore';
 import * as Expensicons from './Icon/Expensicons';
 import withLocalize, {withLocalizePropTypes} from './withLocalize';
 import compose from '../libs/compose';
@@ -12,11 +13,16 @@ import PopoverMenu from './PopoverMenu';
 import paypalMeDataPropTypes from './paypalMeDataPropTypes';
 
 const propTypes = {
+    /** Should the component be visible? */
     isVisible: PropTypes.bool.isRequired,
+
+    /** Callback to execute when the component closes. */
     onClose: PropTypes.func.isRequired,
+
+    /** Anchor position for the AddPaymentMenu. */
     anchorPosition: PropTypes.shape({
-        top: PropTypes.number,
-        left: PropTypes.number,
+        horizontal: PropTypes.number,
+        vertical: PropTypes.number,
     }),
 
     /** Account details for PayPal.Me */
@@ -43,7 +49,7 @@ const AddPaymentMethodMenu = (props) => (
         isVisible={props.isVisible}
         onClose={props.onClose}
         anchorPosition={props.anchorPosition}
-        onItemSelected={() => props.onClose()}
+        onItemSelected={props.onClose}
         menuItems={[
             {
                 text: props.translate('common.bankAccount'),

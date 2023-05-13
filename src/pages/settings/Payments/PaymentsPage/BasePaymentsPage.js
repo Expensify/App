@@ -48,8 +48,9 @@ class BasePaymentsPage extends React.Component {
                 title: '',
             },
             selectedPaymentMethodType: null,
+            anchorPositionHorizontal: 0,
+            anchorPositionVertical: 0,
             anchorPositionTop: 0,
-            anchorPositionBottom: 0,
             anchorPositionRight: 0,
             addPaymentMethodButton: null,
             methodID: null,
@@ -151,10 +152,12 @@ class BasePaymentsPage extends React.Component {
     setPositionAddPaymentMenu(position) {
         this.setState({
             anchorPositionTop: position.top + position.height,
-            anchorPositionBottom: this.props.windowHeight - position.top,
 
             // We want the position to be 13px to the right of the left border
             anchorPositionRight: this.props.windowWidth - position.right + 13,
+
+            anchorPositionHorizontal: position.x,
+            anchorPositionVertical: position.y,
         });
     }
 
@@ -416,8 +419,8 @@ class BasePaymentsPage extends React.Component {
                     isVisible={this.state.shouldShowAddPaymentMenu}
                     onClose={this.hideAddPaymentMenu}
                     anchorPosition={{
-                        bottom: this.state.anchorPositionBottom,
-                        right: this.state.anchorPositionRight - 10,
+                        horizontal: this.state.anchorPositionHorizontal,
+                        vertical: this.state.anchorPositionVertical - 10,
                     }}
                     onItemSelected={(method) => this.addPaymentMethodTypePressed(method)}
                 />
