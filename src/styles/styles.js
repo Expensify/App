@@ -1018,6 +1018,10 @@ const styles = {
         lineHeight: 16,
     },
 
+    lh140Percent: {
+        lineHeight: '140%',
+    },
+
     formHelp: {
         color: themeColors.textSupporting,
         fontSize: variables.fontSizeLabel,
@@ -2203,6 +2207,13 @@ const styles = {
         flexGrow: 1,
         marginRight: 8,
         opacity: 0.5,
+    },
+
+    threadDividerLine: {
+        height: 1,
+        backgroundColor: themeColors.border,
+        flexGrow: 1,
+        marginHorizontal: 20,
     },
 
     unreadIndicatorText: {
