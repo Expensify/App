@@ -2,6 +2,17 @@ import {useState, useEffect} from 'react';
 import useKeyboardShortcut from './useKeyboardShortcut';
 import CONST from '../CONST';
 
+/**
+ * A hook that makes it easy to use the arrow keys to manage focus of items in a list
+ *
+ * @param {Object} config
+ * @param {Number} config.maxIndex – typically the number of items in your list
+ * @param {Function} [config.onFocusedIndexChange] – optional callback to execute when focusedIndex changes
+ * @param {Number} [config.initialFocusedIndex] – where to start in the list
+ * @param {Array} [config.disabledIndexes] – An array of indexes to disable + skip over
+ * @param {Boolean} [config.shouldExcludeTextAreaNodes] – Whether arrow keys should have any effect when a TextArea node is focused
+ * @returns {Array}
+ */
 export default function useArrowKeyFocusManager({maxIndex, onFocusedIndexChange = () => {}, initialFocusedIndex = 0, disabledIndexes = [], shouldExcludeTextAreaNodes = true}) {
     const [focusedIndex, setFocusedIndex] = useState(initialFocusedIndex);
     useEffect(() => onFocusedIndexChange(focusedIndex), [focusedIndex, onFocusedIndexChange]);
@@ -56,5 +67,6 @@ export default function useArrowKeyFocusManager({maxIndex, onFocusedIndexChange 
         },
     );
 
+    // Note: you don't need to manually manage focusedIndex in the parent. setFocusedIndex is only exposed in case you want to reset focusedIndex or focus a specific item
     return [focusedIndex, setFocusedIndex];
 }
