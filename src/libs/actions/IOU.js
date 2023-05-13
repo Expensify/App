@@ -773,13 +773,7 @@ function deleteMoneyRequest(chatReportID, iouReportID, moneyRequestAction, shoul
         // Because of the Expense reports are stored as negative values, we add the total from the amount
         updatedIOUReport.total += amount;
     } else {
-        updatedIOUReport = IOUUtils.updateIOUOwnerAndTotal(
-            iouReports[`${ONYXKEYS.COLLECTION.REPORT}${iouReportID}`],
-            currentUserEmail,
-            amount,
-            moneyRequestAction.originalMessage.currency,
-            CONST.IOU.REPORT_ACTION_TYPE.DELETE,
-        );
+        updatedIOUReport = IOUUtils.updateIOUOwnerAndTotal(iouReport, currentUserEmail, amount, moneyRequestAction.originalMessage.currency, CONST.IOU.REPORT_ACTION_TYPE.DELETE);
     }
     updatedIOUReport.lastMessageText = optimisticIOUAction.message[0].text;
     updatedIOUReport.lastMessageHtml = optimisticIOUAction.message[0].html;
