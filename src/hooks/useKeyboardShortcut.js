@@ -25,6 +25,6 @@ export default function useKeyboardShortcut(shortcut, callback, config = {}) {
         const unsubscribe = subscription.current || (() => {});
         unsubscribe();
         subscription.current = isActive ? subscribe() : null;
-        return unsubscribe;
+        return isActive ? subscription.current : () => {};
     }, [isActive, subscribe]);
 }
