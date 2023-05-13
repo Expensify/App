@@ -27,10 +27,6 @@ const propTypes = {
         vertical: PropTypes.oneOf(_.values(CONST.MODAL.ANCHOR_ORIGIN_VERTICAL)),
     }),
 
-    /** A function with content to measure. This component will use this.props.children by default,
-    but in the case the children are not displayed, the measurement will not work. */
-    measureContent: PropTypes.func.isRequired,
-
     /** Static dimensions for the popover.
      * Note: When passed, it will skip dimensions measuring of the popover, and provided dimensions will be used to calculate the anchor position.
      */
@@ -164,7 +160,7 @@ class PopoverWithMeasuredContent extends Component {
         const adjustedAnchorPosition = this.calculateAdjustedAnchorPosition();
         const horizontalShift = computeHorizontalShift(adjustedAnchorPosition.left, this.popoverWidth, this.props.windowWidth);
         const verticalShift = computeVerticalShift(adjustedAnchorPosition.top, this.popoverHeight, this.props.windowHeight);
-        const shifedAnchorPosition = {
+        const shiftedAnchorPosition = {
             left: adjustedAnchorPosition.left + horizontalShift,
             top: adjustedAnchorPosition.top + verticalShift,
         };
@@ -172,9 +168,9 @@ class PopoverWithMeasuredContent extends Component {
             <Popover
                 // eslint-disable-next-line react/jsx-props-no-spreading
                 {...this.props}
-                anchorPosition={shifedAnchorPosition}
+                anchorPosition={shiftedAnchorPosition}
             >
-                {this.props.measureContent()}
+                {this.props.children}
             </Popover>
         ) : (
             /*
