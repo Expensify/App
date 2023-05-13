@@ -32,7 +32,6 @@ describe('actions/IOU', () => {
         it('creates new chat if needed', () => {
             const amount = 10000;
             const comment = 'Giv money plz';
-            let chatReportID;
             let iouReportID;
             let createdAction;
             let iouAction;
@@ -55,7 +54,6 @@ describe('actions/IOU', () => {
                                     expect(_.size(chatReports)).toBe(1);
                                     expect(_.size(iouReports)).toBe(1);
                                     const chatReport = chatReports[0];
-                                    chatReportID = chatReport.reportID;
                                     const iouReport = iouReports[0];
                                     iouReportID = iouReport.reportID;
 
