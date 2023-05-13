@@ -187,7 +187,6 @@ function editTaskAndNavigate(report, ownerEmail, title, description, assignee) {
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`,
             value: {
-                ...report,
                 reportName,
                 description: description || report.description,
                 assignee: assignee || report.assignee,
