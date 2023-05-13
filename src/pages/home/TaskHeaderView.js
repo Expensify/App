@@ -55,7 +55,7 @@ function TaskHeaderView(props) {
     return (
         <>
             {props.report.assignee ? (
-                <View style={[styles.sidebarLinkActive, styles.ph3]}>
+                <View style={[styles.ph3]}>
                     <TaskSelectorLink
                         icons={assignee.icons}
                         text={assignee.displayName}
