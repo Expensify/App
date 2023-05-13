@@ -35,13 +35,10 @@ const EmojiPickerButton = (props) => {
         >
             <Pressable
                 ref={emojiPopoverAnchor}
-                style={({hovered, pressed}) => ([
-                    styles.chatItemEmojiButton,
-                    StyleUtils.getButtonBackgroundColorStyle(getButtonState(hovered, pressed)),
-                ])}
+                style={({hovered, pressed}) => [styles.chatItemEmojiButton, StyleUtils.getButtonBackgroundColorStyle(getButtonState(hovered, pressed))]}
                 disabled={props.isDisabled}
                 onPress={(ev) => {
-                    if (ev.nativeEvent.closedPopoverId === CONST.POPOVERS.EMOJI_PICKER) {
+                    if (ev.nativeEvent.closedPopoverId === CONST.POPOVERS.EMOJI_PICKER && EmojiPickerAction.emojiPickerRef.current.anchor === emojiPopoverAnchor.current) {
                         return;
                     }
 

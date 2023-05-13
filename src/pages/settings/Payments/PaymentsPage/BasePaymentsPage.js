@@ -227,7 +227,7 @@ class BasePaymentsPage extends React.Component {
             return;
         }
         if (nativeEvent.closedPopoverId !== CONST.POPOVERS.ADD_PAYMENT_METHOD) {
-            this.setState(prev => ({
+            this.setState((prev) => ({
                 shouldShowAddPaymentMenu: !prev.shouldShowAddPaymentMenu,
             }));
         }

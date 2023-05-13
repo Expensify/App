@@ -59,7 +59,7 @@ const AddReactionBubble = (props) => {
             );
         };
 
-        if (ev.nativeEvent.closedPopoverId === CONST.POPOVERS.EMOJI_PICKER) {
+        if (ev.nativeEvent.closedPopoverId === CONST.POPOVERS.EMOJI_PICKER && EmojiPickerAction.emojiPickerRef.current.anchor === ref.current) {
             return;
         }
 
