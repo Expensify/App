@@ -1,10 +1,12 @@
 import React from 'react';
-import {View} from 'react-native';
+import {View, TouchableWithoutFeedback} from 'react-native';
 import PropTypes from 'prop-types';
 import lodashGet from 'lodash/get';
+import {withOnyx} from 'react-native-onyx';
 import HeaderWithCloseButton from './HeaderWithCloseButton';
 import reportPropTypes from '../pages/reportPropTypes';
 import withLocalize, {withLocalizePropTypes} from './withLocalize';
+import ONYXKEYS from '../ONYXKEYS';
 import * as ReportUtils from '../libs/ReportUtils';
 import * as Expensicons from './Icon/Expensicons';
 import Text from './Text';
@@ -19,10 +21,14 @@ import Navigation from '../libs/Navigation/Navigation';
 import ROUTES from '../ROUTES';
 import Icon from './Icon';
 import * as CurrencyUtils from '../libs/CurrencyUtils';
+import MenuItemWithTopDescription from './MenuItemWithTopDescription';
 
 const propTypes = {
     /** The report currently being looked at */
     report: reportPropTypes.isRequired,
+
+    /** The parent report of the currently looked at report */
+    parentReport: reportPropTypes,
 
     /** Personal details so we can get the ones for the report participants */
     personalDetails: PropTypes.objectOf(participantPropTypes).isRequired,
@@ -30,78 +36,94 @@ const propTypes = {
     ...withLocalizePropTypes,
 };
 
-const defaultProps = {};
+const defaultProps = {
+    parentReport: {},
+};
 
 function TaskHeader(props) {
     const formattedAmount = CurrencyUtils.convertToDisplayString(ReportUtils.getMoneyRequestTotal(props.report), props.report.currency);
     const isSettled = ReportUtils.isSettled(props.report.reportID);
-    const isExpenseReport = ReportUtils.isExpenseReport(props.report);
-    const payeeName = isExpenseReport ? ReportUtils.getPolicyName(props.report, props.policies) : ReportUtils.getDisplayNameForParticipant(props.report.managerEmail);
-    const payeeAvatar = isExpenseReport
-        ? ReportUtils.getWorkspaceAvatar(props.report)
-        : ReportUtils.getAvatar(lodashGet(props.personalDetails, [props.report.managerEmail, 'avatar']), props.report.managerEmail);
+    console.log('report', props.report);
+    console.log('parentReport', props.parentReport);
+    const title = ReportUtils.getReportName(props.parentReport);
+    const assigneeName = ReportUtils.getDisplayNameForParticipant(props.report.managerEmail);
+    const assigneeAvatar = ReportUtils.getAvatar(lodashGet(props.personalDetails, [props.report.managerEmail, 'avatar']), props.report.managerEmail);
+    console.log('assigneeAvatar', assigneeAvatar);
+    console.log('assigneeName', assigneeName);
 
     return (
-        <View style={[{backgroundColor: themeColors.highlightBG}, styles.pl0]}>
-            <HeaderWithCloseButton
-                shouldShowAvatarWithDisplay
-                shouldShowThreeDotsButton={!isSettled}
-                threeDotsMenuItems={[
-                    {
-                        icon: Expensicons.Trashcan,
-                        text: props.translate('common.delete'),
-                        onSelected: () => {},
-                    },
-                ]}
-                threeDotsAnchorPosition={styles.threeDotsPopoverOffsetNoCloseButton}
-                report={props.report}
-                policies={props.policies}
-                personalDetails={props.personalDetails}
-                shouldShowCloseButton={false}
-                shouldShowBackButton={props.isSmallScreenWidth}
-                onBackButtonPress={() => Navigation.navigate(ROUTES.HOME)}
-            />
-            <View style={[styles.ph5, styles.pb5]}>
-                <Text style={[styles.textLabelSupporting, styles.lh16]}>{props.translate('common.to')}</Text>
-                <View style={[styles.flexRow, styles.alignItemsCenter, styles.justifyContentBetween, styles.pv3]}>
-                    <View style={[styles.flexRow, styles.alignItemsCenter, styles.justifyContentBetween]}>
-                        <Avatar
-                            source={payeeAvatar}
-                            type={isExpenseReport ? CONST.ICON_TYPE_WORKSPACE : CONST.ICON_TYPE_AVATAR}
-                            name={payeeName}
-                            size={CONST.AVATAR_SIZE.HEADER}
-                        />
-                        <View style={[styles.flexColumn, styles.ml3]}>
-                            <Text
-                                style={[styles.headerText, styles.pre]}
-                                numberOfLines={1}
-                            >
-                                {payeeName}
-                            </Text>
-                            {isExpenseReport && (
-                                <Text
-                                    style={[styles.textLabelSupporting, styles.lh16, styles.pre]}
-                                    numberOfLines={1}
-                                >
-                                    {props.translate('workspace.common.workspace')}
-                                </Text>
+        <>
+            <View style={[{backgroundColor: themeColors.highlightBG}, styles.pl0]}>
+                <HeaderWithCloseButton
+                    shouldShowAvatarWithDisplay
+                    shouldShowThreeDotsButton={!isSettled}
+                    threeDotsMenuItems={[
+                        {
+                            icon: Expensicons.Trashcan,
+                            text: props.translate('common.delete'),
+                            onSelected: () => {},
+                        },
+                    ]}
+                    threeDotsAnchorPosition={styles.threeDotsPopoverOffsetNoCloseButton}
+                    report={props.parentReport}
+                    title={title}
+                    policies={props.policies}
+                    personalDetails={props.personalDetails}
+                    shouldShowCloseButton={false}
+                    shouldShowBackButton={props.isSmallScreenWidth}
+                    onBackButtonPress={() => Navigation.navigate(ROUTES.HOME)}
+                />
+                <View style={[styles.ph5, styles.pb5]}>
+                    <Text style={[styles.textLabelSupporting, styles.lh16]}>{props.translate('common.to')}</Text>
+                    <View style={[styles.flexRow, styles.alignItemsCenter, styles.justifyContentBetween, styles.pv3]}>
+                        <TouchableWithoutFeedback onPress={() => Navigation.navigate(ROUTES.getTaskReportAssigneeRoute(props.report.reportID))}>
+                            <View style={[styles.flexRow, styles.alignItemsCenter, styles.justifyContentBetween]}>
+                                {assigneeName && (
+                                    <>
+                                        <Avatar
+                                            source={assigneeAvatar}
+                                            type={CONST.ICON_TYPE_AVATAR}
+                                            name={assigneeName}
+                                            size={CONST.AVATAR_SIZE.HEADER}
+                                        />
+                                        <View style={[styles.flexColumn, styles.ml3]}>
+                                            <Text
+                                                style={[styles.headerText, styles.pre]}
+                                                numberOfLines={1}
+                                            >
+                                                {assigneeName}
+                                            </Text>
+                                        </View>
+                                    </>
+                                )}
+                            </View>
+                        </TouchableWithoutFeedback>
+                        <View style={[styles.flexRow]}>
+                            {!props.isSingleTransactionView && <Text style={[styles.newKansasLarge]}>{formattedAmount}</Text>}
+                            {isSettled && (
+                                <View style={styles.moneyRequestHeaderCheckmark}>
+                                    <Icon
+                                        src={Expensicons.Checkmark}
+                                        fill={themeColors.iconSuccessFill}
+                                    />
+                                </View>
                             )}
                         </View>
                     </View>
-                    <View style={[styles.flexRow]}>
-                        {!props.isSingleTransactionView && <Text style={[styles.newKansasLarge]}>{formattedAmount}</Text>}
-                        {isSettled && (
-                            <View style={styles.moneyRequestHeaderCheckmark}>
-                                <Icon
-                                    src={Expensicons.Checkmark}
-                                    fill={themeColors.iconSuccessFill}
-                                />
-                            </View>
-                        )}
-                    </View>
                 </View>
             </View>
-        </View>
+            <MenuItemWithTopDescription
+                shouldShowHeaderTitle
+                title={props.report.reportName}
+                description="Task"
+                onPress={() => Navigation.navigate(ROUTES.getTaskReportTitleRoute(props.report.reportID))}
+            />
+            <MenuItemWithTopDescription
+                title={lodashGet(props.report, 'description', '')}
+                description="Description"
+                onPress={() => Navigation.navigate(ROUTES.getTaskReportDescriptionRoute(props.report.reportID))}
+            />
+        </>
     );
 }
 
@@ -109,4 +131,12 @@ TaskHeader.propTypes = propTypes;
 TaskHeader.displayName = 'TaskHeader';
 TaskHeader.defaultProps = defaultProps;
 
-export default compose(withWindowDimensions, withLocalize)(TaskHeader);
+export default compose(
+    withWindowDimensions,
+    withLocalize,
+    withOnyx({
+        parentReport: {
+            key: ({report}) => `${ONYXKEYS.COLLECTION.REPORT}${report.parentReportID}`,
+        },
+    }),
+)(TaskHeader);
