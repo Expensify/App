@@ -255,6 +255,7 @@ export default {
         deleteAction: ({action}) => `Delete ${ReportActionsUtils.isMoneyRequestAction(action) ? 'request' : 'comment'}`,
         deleteConfirmation: ({action}) => `Are you sure you want to delete this ${ReportActionsUtils.isMoneyRequestAction(action) ? 'request' : 'comment'}?`,
         onlyVisible: 'Only visible to',
+        replyInThread: 'Reply in thread',
     },
     emojiReactions: {
         addReactionTooltip: 'Add reaction',
@@ -398,6 +399,10 @@ export default {
             deleteContactMethod: 'Failed to delete contact method. Please reach out to Concierge for help.',
             setDefaultContactMethod: 'Failed to set a new default contact method. Please reach out to Concierge for help.',
             addContactMethod: 'Failed to add this contact method. Please reach out to Concierge for help.',
+            enteredMethodIsAlreadySubmited: 'The Entered Contact Method already exists.',
+            passwordRequired: 'password required.',
+            contactMethodRequired: 'Contact method is required.',
+            invalidContactMethod: 'Invalid contact method.',
         },
         newContactMethod: 'New contact method',
     },
@@ -1302,5 +1307,13 @@ export default {
         workspaceName: 'Workspace name',
         chatUserDisplayNames: 'Chat user display names',
         scrollToNewestMessages: 'Scroll to newest messages',
+    },
+    parentReportAction: {
+        deletedMessage: '[Deleted message]',
+    },
+    threads: {
+        lastReply: 'Last Reply',
+        replies: 'Replies',
+        reply: 'Reply',
     },
 };

@@ -254,6 +254,7 @@ export default {
         deleteAction: ({action}) => `Eliminar ${ReportActionsUtils.isMoneyRequestAction(action) ? 'pedido' : 'comentario'}`,
         deleteConfirmation: ({action}) => `¿Estás seguro de que quieres eliminar este ${ReportActionsUtils.isMoneyRequestAction(action) ? 'pedido' : 'comentario'}`,
         onlyVisible: 'Visible sólo para',
+        replyInThread: 'Responder en el hilo',
     },
     emojiReactions: {
         addReactionTooltip: 'Añadir una reacción',
@@ -397,6 +398,10 @@ export default {
             deleteContactMethod: 'No se ha podido eliminar este método de contacto. Por favor, contacta con Concierge para obtener ayuda.',
             setDefaultContactMethod: 'No se pudo establecer un nuevo método de contacto predeterminado. Por favor contacta con Concierge para obtener ayuda.',
             addContactMethod: 'Hubo un error al añadir este método de contacto. Por favor, contacta con Concierge para obtener ayuda.',
+            enteredMethodIsAlreadySubmited: 'El método de contacto ingresado ya existe.',
+            passwordRequired: 'Se requiere contraseña',
+            contactMethodRequired: 'Se requiere método de contacto.',
+            invalidContactMethod: 'Método de contacto no válido.',
         },
         newContactMethod: 'Nuevo método de contacto',
     },
@@ -1767,5 +1772,13 @@ export default {
         workspaceName: 'Nombre del espacio de trabajo',
         chatUserDisplayNames: 'Nombres de los usuarios del chat',
         scrollToNewestMessages: 'Desplázate a los mensajes más recientes',
+    },
+    parentReportAction: {
+        deletedMessage: '[Mensaje eliminado]',
+    },
+    threads: {
+        lastReply: 'Última respuesta',
+        replies: 'Respuestas',
+        reply: 'Respuesta',
     },
 };
