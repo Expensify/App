@@ -92,7 +92,6 @@ const NewTaskTitlePage = (props) => {
                 <View style={styles.mb5}>
                     <TextInput
                         defaultValue={props.task.title}
-                        // autoFocus
                         ref={(el) => (titleRef.current = el)}
                         inputID="taskTitle"
                         label={props.translate('newTaskPage.title')}
