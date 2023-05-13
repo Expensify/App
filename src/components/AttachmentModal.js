@@ -155,6 +155,9 @@ class AttachmentModal extends PureComponent {
      */
     closeConfirmModal() {
         this.setState({isAttachmentInvalid: false});
+        if (_.isFunction(this.props.onModalHide)) {
+            this.props.onModalHide();
+        }
     }
 
     /**
