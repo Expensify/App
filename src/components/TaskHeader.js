@@ -23,6 +23,7 @@ import Icon from './Icon';
 import * as CurrencyUtils from '../libs/CurrencyUtils';
 import MenuItemWithTopDescription from './MenuItemWithTopDescription';
 import Button from './Button';
+import * as TaskUtils from '../libs/actions/Task';
 
 const propTypes = {
     /** The report currently being looked at */
@@ -46,19 +47,20 @@ function TaskHeader(props) {
     const isSettled = ReportUtils.isSettled(props.report.reportID);
     console.log('report', props.report);
     console.log('parentReport', props.parentReport);
-    const title = ReportUtils.getReportName(props.parentReport);
+    const title = ReportUtils.getReportName(props.report);
     const assigneeName = ReportUtils.getDisplayNameForParticipant(props.report.managerEmail);
     const assigneeAvatar = ReportUtils.getAvatar(lodashGet(props.personalDetails, [props.report.managerEmail, 'avatar']), props.report.managerEmail);
     const isCompleted = props.report.stateNum === CONST.REPORT.STATE_NUM.SUBMITTED && props.report.statusNum === CONST.REPORT.STATUS.APPROVED;
+    const parentReportID = props.report.parentReportID;
     const threeDotMenuItems = [];
 
     if (props.report.stateNum === CONST.REPORT.STATE_NUM.OPEN && props.report.statusNum === CONST.REPORT.STATUS.OPEN) {
         threeDotMenuItems.push({
             icon: Expensicons.Checkmark,
             text: props.translate('newTaskPage.markAsComplete'),
-
-            // Implementing in https://github.com/Expensify/App/issues/16858
-            onSelected: () => {},
+            onSelected: () => {
+                TaskUtils.completeTask(props.report.reportID, parentReportID, title);
+            },
         });
     }
 
@@ -130,7 +132,7 @@ function TaskHeader(props) {
                                     success
                                     medium
                                     text="Mark as Done"
-                                    onPress={() => console.log('completed')}
+                                    onPress={() => TaskUtils.completeTask(props.report.reportID, parentReportID, title)}
                                 />
                             )}
                         </View>
