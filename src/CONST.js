@@ -2311,6 +2311,10 @@ const CONST = {
         ACTIVE: 'active',
         DISABLED: 'disabled',
     },
+
+    // This ID is used in SelectionScraper.js to query the DOM for UnreadActionIndicator's
+    // div and then remove it from copied contents in the getHTMLOfSelection() method.
+    UNREAD_ACTION_INDICATOR_ID: 'no-copy-area-unread-action-indicator',
 };
 
 export default CONST;

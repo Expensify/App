@@ -2,7 +2,7 @@ import render from 'dom-serializer';
 import {parseDocument} from 'htmlparser2';
 import _ from 'underscore';
 import Str from 'expensify-common/lib/str';
-import * as Localize from '../Localize';
+import CONST from '../../CONST';
 
 const elementsWillBeSkipped = ['html', 'body'];
 const tagAttribute = 'data-testid';
@@ -81,11 +81,9 @@ const getHTMLOfSelection = () => {
         }
     }
 
-    // Get the div housing the UnreadActionIndicator and remove it from copied content.
-    // As it currently stands, 'accessibilityHints.newMessageLineIndicator' is only used inside
-    // UnreadActionIndicator.js which is also only used in ReportActionItem.js, so this is a relatively
-    // safe move.
-    const newMessageLineIndicatorDiv = div.querySelector(`[aria-label="${Localize.translateLocal('accessibilityHints.newMessageLineIndicator')}"]`);
+    // Find and remove the div housing the UnreadActionIndicator because we don't want
+    // the 'New/Nuevo' text inside it being copied.
+    const newMessageLineIndicatorDiv = div.querySelector(`#${CONST.UNREAD_ACTION_INDICATOR_ID}`);
 
     if (newMessageLineIndicatorDiv) {
         newMessageLineIndicatorDiv.remove();
