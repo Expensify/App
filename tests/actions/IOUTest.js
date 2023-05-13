@@ -801,6 +801,11 @@ describe('actions/IOU', () => {
                 iouReportID: julesIOUReportID,
                 participants: [JULES_EMAIL],
             };
+            const julesChatCreatedAction = {
+                reportActionID: NumberUtils.rand64(),
+                actionName: CONST.REPORT.ACTIONS.TYPE.CREATED,
+                created: DateUtils.getDBTime(),
+            };
             const julesCreatedAction = {
                 reportActionID: NumberUtils.rand64(),
                 actionName: CONST.REPORT.ACTIONS.TYPE.CREATED,
@@ -866,6 +871,9 @@ describe('actions/IOU', () => {
                             [carlosCreatedAction.reportActionID]: carlosCreatedAction,
                         },
                         [`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${julesChatReport.reportID}`]: {
+                            [julesChatCreatedAction.reportActionID]: julesChatCreatedAction,
+                        },
+                        [`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${julesIOUReport.reportID}`]: {
                             [julesCreatedAction.reportActionID]: julesCreatedAction,
                             [julesExistingIOUAction.reportActionID]: julesExistingIOUAction,
                         },
@@ -962,17 +970,16 @@ describe('actions/IOU', () => {
                                 callback: (allReportActions) => {
                                     Onyx.disconnect(connectionID);
 
-                                    // There should be reportActions on all 4 chat reports
-                                    expect(_.size(allReportActions)).toBe(4);
+                                    // There should be reportActions on all 4 chat reports + 3 IOU reports in each 1:1 chat
+                                    expect(_.size(allReportActions)).toBe(7);
 
-                                    const carlosReportActions = allReportActions[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${carlosChatReport.reportID}`];
-                                    const julesReportActions = allReportActions[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${julesChatReport.reportID}`];
-                                    const vitReportActions = allReportActions[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${vitChatReport.reportID}`];
+                                    const carlosReportActions = allReportActions[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${carlosChatReport.iouReportID}`];
+                                    const julesReportActions = allReportActions[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${julesChatReport.iouReportID}`];
+                                    const vitReportActions = allReportActions[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${vitChatReport.iouReportID}`];
                                     const groupReportActions = allReportActions[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${groupChat.reportID}`];
 
-                                    // Carlos DM should have two reportActions – the existing CREATED action and an pending IOU action
+                                    // Carlos DM should have two reportActions – the existing CREATED action and a pending IOU action
                                     expect(_.size(carlosReportActions)).toBe(2);
-                                    expect(carlosReportActions[carlosCreatedAction.reportActionID]).toStrictEqual(carlosCreatedAction);
                                     carlosIOUAction = _.find(carlosReportActions, (reportAction) => reportAction.actionName === CONST.REPORT.ACTIONS.TYPE.IOU);
                                     expect(carlosIOUAction.pendingAction).toBe(CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD);
                                     expect(carlosIOUAction.originalMessage.IOUReportID).toBe(carlosIOUReport.reportID);
