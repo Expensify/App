@@ -548,7 +548,13 @@ function createSplitsAndOnyxData(participants, currentUserLogin, amount, comment
 
         successData.push(
             ...(existingOneOnOneChatReport
-                ? [
+                ? []
+                : [
+                      {
+                          onyxMethod: Onyx.METHOD.MERGE,
+                          key: `${ONYXKEYS.COLLECTION.REPORT}${oneOnOneChatReport.reportID}`,
+                          value: {pendingFields: null},
+                      },
                       {
                           onyxMethod: Onyx.METHOD.MERGE,
                           key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${oneOnOneChatReport.reportID}`,
@@ -556,19 +562,16 @@ function createSplitsAndOnyxData(participants, currentUserLogin, amount, comment
                               [oneOnOneCreatedActionForChat.reportActionID]: {pendingAction: null},
                           },
                       },
-                  ]
-                : []),
+                  ]),
             ...(existingOneOnOneIOUReport
-                ? [
+                ? []
+                : [
                       {
                           onyxMethod: Onyx.METHOD.MERGE,
-                          key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${oneOnOneChatReport.reportID}`,
-                          value: {
-                              [oneOnOneCreatedActionForChat.reportActionID]: {pendingAction: null},
-                          },
+                          key: `${ONYXKEYS.COLLECTION.REPORT}${oneOnOneIOUReport.reportID}`,
+                          value: {pendingFields: null},
                       },
-                  ]
-                : []),
+                  ]),
             {
                 onyxMethod: Onyx.METHOD.MERGE,
                 key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${oneOnOneIOUReport.reportID}`,
