@@ -253,7 +253,7 @@ class PopoverReportActionContextMenu extends React.Component {
         this.callbackWhenDeleteModalHide = () => (this.onComfirmDeleteModal = this.runAndResetCallback(this.onComfirmDeleteModal));
 
         if (ReportActionsUtils.isMoneyRequestAction(this.state.reportAction)) {
-            IOU.deleteReportComment(this.state.reportID, this.state.reportAction);
+            IOU.deleteMoneyRequest(this.state.reportID, this.state.reportAction.originalMessage.IOUReportID, this.state.reportAction, true);
         } else {
             Report.deleteReportComment(this.state.reportID, this.state.reportAction);
         }
