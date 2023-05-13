@@ -70,6 +70,9 @@ const TaskPreview = (props) => {
                     containerStyle={[styles.taskCheckbox]}
                     isChecked={isTaskCompleted}
                     onPress={() => {
+                        if (isTaskCompleted) {
+                            return;
+                        }
                         TaskUtils.completeTask(props.taskReportID, parentReportID, taskTitle);
                     }}
                 />
