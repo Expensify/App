@@ -1,5 +1,5 @@
-import toggleReportActionComposeView from '../toggleReportActionComposeView';
+import * as Composer from '../actions/Composer';
 
-export default (isSmallScreenWidth = true) => {
-    toggleReportActionComposeView(true, isSmallScreenWidth);
+export default () => {
+    Composer.setShouldShowComposeInput(true);
 };
