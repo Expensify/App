@@ -84,9 +84,7 @@ class BaseReportActionContextMenu extends React.Component {
                                 icon={contextAction.icon}
                                 text={this.props.translate(contextAction.textTranslateKey, {actionName: this.props.reportAction.actionName})}
                                 successIcon={contextAction.successIcon}
-                                successText={contextAction.successTextTranslateKey
-                                    ? this.props.translate(contextAction.successTextTranslateKey)
-                                    : undefined}
+                                successText={contextAction.successTextTranslateKey ? this.props.translate(contextAction.successTextTranslateKey) : undefined}
                                 isMini={this.props.isMini}
                                 key={contextAction.textTranslateKey}
                                 onPress={() => contextAction.onPress(closePopup, payload)}
@@ -94,9 +92,10 @@ class BaseReportActionContextMenu extends React.Component {
                                 autoReset={contextAction.autoReset}
                             />
                         );
-                })}
-            </View>
-        ));
+                    })}
+                </View>
+            )
+        );
     }
 }
 
