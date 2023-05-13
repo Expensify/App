@@ -48,6 +48,40 @@ function TaskHeader(props) {
     const title = ReportUtils.getReportName(props.parentReport);
     const assigneeName = ReportUtils.getDisplayNameForParticipant(props.report.managerEmail);
     const assigneeAvatar = ReportUtils.getAvatar(lodashGet(props.personalDetails, [props.report.managerEmail, 'avatar']), props.report.managerEmail);
+    const threeDotMenuItems = [];
+    const icons = ReportUtils.getIcons(props.parentReport, props.personalDetails);
+
+    if (props.report.stateNum === CONST.REPORT.STATE_NUM.OPEN && props.report.statusNum === CONST.REPORT.STATUS.OPEN) {
+        threeDotMenuItems.push({
+            icon: Expensicons.Checkmark,
+            text: props.translate('newTaskPage.markAsComplete'),
+
+            // Implementing in https://github.com/Expensify/App/issues/16858
+            onSelected: () => {},
+        });
+    }
+
+    // Task is marked as completed
+    if (props.report.stateNum === CONST.REPORT.STATE_NUM.SUBMITTED && props.report.statusNum === CONST.REPORT.STATUS.APPROVED) {
+        threeDotMenuItems.push({
+            icon: Expensicons.Checkmark,
+            text: props.translate('newTaskPage.markAsIncomplete'),
+
+            // Implementing in https://github.com/Expensify/App/issues/16858
+            onSelected: () => {},
+        });
+    }
+
+    // Task is not closed
+    if (props.report.stateNum !== CONST.REPORT.STATE_NUM.SUBMITTED && props.report.statusNum !== CONST.REPORT.STATUS.CLOSED) {
+        threeDotMenuItems.push({
+            icon: Expensicons.Trashcan,
+            text: props.translate('common.cancel'),
+
+            // Implementing in https://github.com/Expensify/App/issues/16857
+            onSelected: () => {},
+        });
+    }
     console.log('assigneeAvatar', assigneeAvatar);
     console.log('assigneeName', assigneeName);
 
@@ -56,14 +90,8 @@ function TaskHeader(props) {
             <View style={[{backgroundColor: themeColors.highlightBG}, styles.pl0]}>
                 <HeaderWithCloseButton
                     shouldShowAvatarWithDisplay
-                    shouldShowThreeDotsButton={!isSettled}
-                    threeDotsMenuItems={[
-                        {
-                            icon: Expensicons.Trashcan,
-                            text: props.translate('common.delete'),
-                            onSelected: () => {},
-                        },
-                    ]}
+                    shouldShowThreeDotsButton
+                    threeDotsMenuItems={threeDotMenuItems}
                     threeDotsAnchorPosition={styles.threeDotsPopoverOffsetNoCloseButton}
                     report={props.parentReport}
                     title={title}
