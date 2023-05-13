@@ -2,7 +2,7 @@ import {useState, useEffect} from 'react';
 import useKeyboardShortcut from './useKeyboardShortcut';
 import CONST from '../CONST';
 
-export default function useArrowKeyFocusManager({maxIndex, onFocusedIndexChange, initialFocusedIndex = 0, disabledIndexes = [], shouldExcludeTextAreaNodes = true}) {
+export default function useArrowKeyFocusManager({maxIndex, onFocusedIndexChange = () => {}, initialFocusedIndex = 0, disabledIndexes = [], shouldExcludeTextAreaNodes = true}) {
     const [focusedIndex, setFocusedIndex] = useState(initialFocusedIndex);
     useEffect(() => onFocusedIndexChange(focusedIndex), [focusedIndex, onFocusedIndexChange]);
 
@@ -56,5 +56,5 @@ export default function useArrowKeyFocusManager({maxIndex, onFocusedIndexChange,
         },
     );
 
-    return focusedIndex;
+    return [focusedIndex, setFocusedIndex];
 }

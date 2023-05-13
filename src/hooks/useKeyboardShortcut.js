@@ -1,25 +1,30 @@
-import {useEffect, useRef} from 'react';
+import {useEffect, useRef, useCallback} from 'react';
 import KeyboardShortcut from '../libs/KeyboardShortcut';
 
 export default function useKeyboardShortcut(shortcut, callback, config = {}) {
-    const {captureOnInputs = true, shouldBubble = false, priority = 0, shouldPreventDefault = true, excludedNodes = []} = config;
-    const unsubscribe = useRef(null);
+    const {captureOnInputs = true, shouldBubble = false, priority = 0, shouldPreventDefault = true, excludedNodes = [], isActive = true} = config;
+
+    const subscription = useRef(null);
+    const subscribe = useCallback(
+        () =>
+            KeyboardShortcut.subscribe(
+                shortcut.shortcutKey,
+                callback,
+                shortcut.descriptionKey,
+                shortcut.modifiers,
+                captureOnInputs,
+                shouldBubble,
+                priority,
+                shouldPreventDefault,
+                excludedNodes,
+            ),
+        [callback, captureOnInputs, excludedNodes, priority, shortcut.descriptionKey, shortcut.modifiers, shortcut.shortcutKey, shouldBubble, shouldPreventDefault],
+    );
+
     useEffect(() => {
-        if (unsubscribe.current) {
-            unsubscribe.current();
-        }
-        unsubscribe.current = KeyboardShortcut.subscribe(
-            shortcut.shortcutKey,
-            callback,
-            shortcut.descriptionKey,
-            shortcut.modifiers,
-            captureOnInputs,
-            shouldBubble,
-            priority,
-            shouldPreventDefault,
-            excludedNodes,
-            // eslint-disable-next-line react-hooks/exhaustive-deps
-        );
-        return unsubscribe.current;
-    }, [callback, captureOnInputs, excludedNodes, priority, shortcut.descriptionKey, shortcut.modifiers, shortcut.shortcutKey, shouldBubble, shouldPreventDefault]);
+        const unsubscribe = subscription.current || (() => {});
+        unsubscribe();
+        subscription.current = isActive ? subscribe() : null;
+        return unsubscribe;
+    }, [isActive, subscribe]);
 }
