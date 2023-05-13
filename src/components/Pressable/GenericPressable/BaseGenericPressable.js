@@ -63,7 +63,7 @@ const GenericPressable = forwardRef((props, ref) => {
         return props.disabled || shouldBeDisabledByScreenReader;
     }, [isScreenReaderActive, enableInScreenReaderStates, props.disabled]);
 
-    const onLongPressHandler = useCallback(() => {
+    const onLongPressHandler = useCallback((event) => {
         if (isDisabled) {
             return;
         }
@@ -76,12 +76,12 @@ const GenericPressable = forwardRef((props, ref) => {
         if (ref && ref.current) {
             ref.current.blur();
         }
-        onLongPress();
+        onLongPress(event);
 
         Accessibility.moveAccessibilityFocus(nextFocusRef);
     }, [shouldUseHapticsOnLongPress, onLongPress, nextFocusRef, ref, isDisabled]);
 
-    const onPressHandler = useCallback(() => {
+    const onPressHandler = useCallback((event) => {
         if (isDisabled) {
             return;
         }
@@ -91,20 +91,17 @@ const GenericPressable = forwardRef((props, ref) => {
         if (ref && ref.current) {
             ref.current.blur();
         }
-        onPress();
+        onPress(event);
 
         Accessibility.moveAccessibilityFocus(nextFocusRef);
     }, [shouldUseHapticsOnPress, onPress, nextFocusRef, ref, isDisabled]);
 
-    const onKeyPressHandler = useCallback(
-        (event) => {
-            if (event.key !== 'Enter') {
-                return;
-            }
-            onPressHandler();
-        },
-        [onPressHandler],
-    );
+    const onKeyPressHandler = useCallback((event) => {
+        if (event.key !== 'Enter') {
+            return;
+        }
+        onPressHandler(event);
+    }, [onPressHandler]);
 
     useEffect(() => {
         if (!keyboardShortcut) {
@@ -119,14 +116,14 @@ const GenericPressable = forwardRef((props, ref) => {
             hitSlop={shouldUseAutoHitSlop && hitSlop}
             onLayout={onLayout}
             ref={ref}
-            onPress={!isDisabled && onPressHandler}
-            onLongPress={!isDisabled && onLongPressHandler}
-            onKeyPress={!isDisabled && onKeyPressHandler}
-            onPressIn={!isDisabled && onPressIn}
-            onPressOut={!isDisabled && onPressOut}
+            onPress={!isDisabled ? onPressHandler : undefined}
+            onLongPress={!isDisabled ? onLongPressHandler : undefined}
+            onKeyPress={!isDisabled ? onKeyPressHandler : undefined}
+            onPressIn={!isDisabled ? onPressIn : undefined}
+            onPressOut={!isDisabled ? onPressOut : undefined}
             style={(state) => [
                 getCursorStyle(isDisabled, [props.accessibilityRole, props.role].includes('text')),
-                props.style,
+                StyleUtils.parseStyleFromFunction(props.style, state),
                 isScreenReaderActive && StyleUtils.parseStyleFromFunction(props.screenReaderActiveStyle, state),
                 state.focused && StyleUtils.parseStyleFromFunction(props.focusStyle, state),
                 state.hovered && StyleUtils.parseStyleFromFunction(props.hoverStyle, state),
