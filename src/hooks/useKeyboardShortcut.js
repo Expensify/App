@@ -1,6 +1,13 @@
 import {useEffect, useRef, useCallback} from 'react';
 import KeyboardShortcut from '../libs/KeyboardShortcut';
 
+/**
+ * Register a keyboard shortcut handler.
+ *
+ * @param {Object} shortcut
+ * @param {Function} callback
+ * @param {Object} [config]
+ */
 export default function useKeyboardShortcut(shortcut, callback, config = {}) {
     const {captureOnInputs = true, shouldBubble = false, priority = 0, shouldPreventDefault = true, excludedNodes = [], isActive = true} = config;
 
