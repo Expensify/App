@@ -174,11 +174,11 @@ class PopoverWithMeasuredContent extends Component {
             </Popover>
         ) : (
             /*
-                    This is an invisible view used to measure the size of the popover,
-                    before it ever needs to be displayed.
-                    We do this because we need to know its dimensions in order to correctly animate the popover,
-                    but we can't measure its dimensions without first rendering it.
-                */
+                This is an invisible view used to measure the size of the popover,
+                before it ever needs to be displayed.
+                We do this because we need to know its dimensions in order to correctly animate the popover,
+                but we can't measure its dimensions without first rendering it.
+            */
             <View
                 style={styles.invisible}
                 onLayout={this.measurePopover}
