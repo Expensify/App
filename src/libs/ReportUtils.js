@@ -1411,7 +1411,6 @@ function buildOptimisticChatReport(
         participants: participantList,
         policyID,
         reportID: generateReportID(),
-        parentReportActionID,
         reportName,
         stateNum: 0,
         statusNum: 0,

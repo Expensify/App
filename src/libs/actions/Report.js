@@ -401,8 +401,9 @@ function openReport(reportID, participantList = [], newReportObject = {}, parent
                 value: {[optimisticCreatedAction.reportActionID]: {pendingAction: null}},
             });
 
-        // Add the createdReportActionID parameter to the API call
-        params.createdReportActionID = optimisticCreatedAction.reportActionID;
+            // Add the createdReportActionID parameter to the API call
+            params.createdReportActionID = optimisticCreatedAction.reportActionID;
+        }
 
         // Only add the parentReportActionID if it's been added to the optimistic report
         if (newReportObject.parentReportActionID) {

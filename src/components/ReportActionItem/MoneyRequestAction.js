@@ -2,7 +2,6 @@ import _ from 'underscore';
 import React from 'react';
 import PropTypes from 'prop-types';
 import {withOnyx} from 'react-native-onyx';
-import lodashGet from 'lodash/get';
 import ONYXKEYS from '../../ONYXKEYS';
 import CONST from '../../CONST';
 import {withNetwork} from '../OnyxProvider';
@@ -90,14 +89,13 @@ const MoneyRequestAction = (props) => {
         // This would ideally be passed as a prop or hooked up via withOnyx so that we are not be triggering a potentially intensive
         // search in an onPress handler, I think this could lead to performance issues but it probably ok for now.
         const thread = ReportUtils.getThreadForReportActionID(props.action.reportActionID);
-        console.log({thread});
         if (_.isEmpty(thread)) {
             // Since a thread does not exist yet then we need to create it now. This is done by creating the report object
             // and passing the parentReportActionID of the reportAction. OpenReport will then automatically create the thread for us.
             const optimisticThreadReport = ReportUtils.buildOptimisticChatReport(
                 props.chatReport.participants,
                 props.translate('iou.threadReportName', {
-                    formattedAmount: CurrencyUtils.convertToDisplayString(props.iouReport.iouReportAmount, props.iouReport.currency),
+                    formattedAmount: CurrencyUtils.convertToDisplayString(props.iouReport.amount, props.iouReport.currency),
                     comment: props.action.originalMessage.comment,
                 }),
                 '',
@@ -109,8 +107,9 @@ const MoneyRequestAction = (props) => {
                 CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS,
                 props.action.reportActionID,
             );
-            console.log({optimisticThreadReport});
             Report.openReport(optimisticThreadReport.reportID, optimisticThreadReport.participants, optimisticThreadReport);
+        } else {
+            Report.openReport(thread.reportID, thread.participants, thread);
         }
         if (hasMultipleParticipants) {
             Navigation.navigate(ROUTES.getReportParticipantsRoute(props.chatReportID));
