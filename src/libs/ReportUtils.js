@@ -945,7 +945,7 @@ function getDisplayNamesWithTooltips(participants, isMultipleParticipantReport) 
  * @param {Number} reportAction.amount
  * @param {String} reportAction.currency
  * @param {String} reportAction.comment
- * @param {Object} reportAction.IOUDetails
+ * @param {Object} [reportAction.IOUDetails]
  * @returns {Object}
  */
 function getMoneyRequestAction(reportAction = {}) {
