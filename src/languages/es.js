@@ -330,6 +330,7 @@ export default {
         payerSettled: ({amount}) => `pagado ${amount}`,
         noReimbursableExpenses: 'El monto de este informe es inválido',
         pendingConversionMessage: 'El total se actualizará cuando estés online',
+        threadReportName: ({formattedAmount, comment}) => `${formattedAmount} pedido${comment ? ` per ${comment}` : ''}`,
         error: {
             invalidSplit: 'La suma de las partes no equivale al monto total',
             other: 'Error inesperado, por favor inténtalo más tarde',

@@ -16,6 +16,7 @@ import Navigation from '../../libs/Navigation/Navigation';
 import ROUTES from '../../ROUTES';
 import styles from '../../styles/styles';
 import * as IOUUtils from '../../libs/IOUUtils';
+import * as OptionsListUtils from '../../libs/OptionsListUtils';
 import * as ReportUtils from '../../libs/ReportUtils';
 import * as Report from '../../libs/actions/Report';
 import withLocalize, {withLocalizePropTypes} from '../withLocalize';
@@ -87,35 +88,38 @@ const defaultProps = {
 const MoneyRequestAction = (props) => {
     const hasMultipleParticipants = lodashGet(props.chatReport, 'participants', []).length > 1;
     const onIOUPreviewPressed = () => {
-        // This would ideally be passed as a prop or hooked up via withOnyx so that we are not be triggering a potentially intensive
-        // search in an onPress handler, I think this could lead to performance issues but it probably ok for now.
-        const thread = ReportUtils.getThreadForReportActionID(props.action.reportActionID);
-        if (_.isEmpty(thread)) {
-            // Since a thread does not exist yet then we need to create it now. This is done by creating the report object
-            // and passing the parentReportActionID of the reportAction. OpenReport will then automatically create the thread for us.
-            const optimisticThreadReport = ReportUtils.buildOptimisticChatReport(
-                props.chatReport.participants,
+        if (lodashGet(props.action, 'originalMessage.type', '') === CONST.IOU.REPORT_ACTION_TYPE.SPLIT && hasMultipleParticipants) {
+            Navigation.navigate(ROUTES.getReportParticipantsRoute(props.chatReportID));
+            return;
+        }
+
+        // If the childReportID is not present, we need to create a new thread
+        const childReportID = lodashGet(props.action, 'childReportID', '0');
+        if (childReportID === '0') {
+            const participants = _.uniq([props.session.email, props.action.actorEmail]);
+            const formattedUserLogins = _.map(participants, (login) => OptionsListUtils.addSMSDomainIfPhoneNumber(login).toLowerCase());
+            const thread = ReportUtils.buildOptimisticChatReport(
+                formattedUserLogins,
                 props.translate('iou.threadReportName', {
-                    formattedAmount: CurrencyUtils.convertToDisplayString(props.iouReport.amount, props.iouReport.currency),
+                    formattedAmount: CurrencyUtils.convertToDisplayString(lodashGet(props.action, 'originalMessage.amount', 0), lodashGet(props.action, 'originalMessage.currency', '')),
                     comment: props.action.originalMessage.comment,
                 }),
                 '',
-                props.chatReport.policyID,
-                props.chatReport.owner,
-                props.chatReport.isOwnPolicyExpenseReport,
-                props.chatReport.oldPolicyName,
+                CONST.POLICY.OWNER_EMAIL_FAKE,
+                CONST.POLICY.OWNER_EMAIL_FAKE,
+                false,
+                '',
                 undefined,
                 CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS,
                 props.action.reportActionID,
+                props.chatReportID, // Needs to be changed to iouReportID
             );
-            Report.openReport(optimisticThreadReport.reportID, optimisticThreadReport.participants, optimisticThreadReport);
+
+            Report.openReport(thread.reportID, thread.participants, thread, props.action.reportActionID);
+            Navigation.navigate(ROUTES.getReportRoute(thread.reportID));
         } else {
-            Report.openReport(thread.reportID, thread.participants, thread);
-        }
-        if (hasMultipleParticipants) {
-            Navigation.navigate(ROUTES.getReportParticipantsRoute(props.chatReportID));
-        } else {
-            Navigation.navigate(ROUTES.getIouDetailsRoute(props.chatReportID, props.action.originalMessage.IOUReportID));
+            Report.openReport(childReportID);
+            Navigation.navigate(ROUTES.getReportRoute(childReportID));
         }
     };
 
