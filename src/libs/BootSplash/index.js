@@ -15,7 +15,7 @@ function hide() {
 }
 
 function getVisibilityStatus() {
-    return document.getElementById('splash') ? 'visible' : 'hidden';
+    return Promise.resolve(document.getElementById('splash') ? 'visible' : 'hidden');
 }
 
 export default {
