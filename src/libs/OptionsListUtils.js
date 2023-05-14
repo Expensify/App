@@ -197,10 +197,10 @@ function getPersonalDetailsForLogins(logins, personalDetails) {
 /**
  * Return true if personal details data is ready, i.e. report list options can be created.
  * @param {Object} personalDetails
- * @returns {boolean}
+ * @returns {Boolean}
  */
 function isPersonalDetailsReady(personalDetails) {
-    return !_.isEmpty(personalDetails) && !_.some(_.keys(personalDetails), (key) => !personalDetails[key].login);
+    return !_.isEmpty(personalDetails) && _.some(_.keys(personalDetails), (key) => personalDetails[key].login);
 }
 
 /**
@@ -851,7 +851,9 @@ function getNewChatOptions(reports, personalDetails, betas = [], searchValue = '
  */
 
 function getShareDestinationOptions(reports, personalDetails, betas = [], searchValue = '', selectedOptions = [], excludeLogins = [], includeOwnedWorkspaceChats = true) {
-    return getOptions(reports, personalDetails, {
+    // We want to filter out any IOUs or expense reports
+    const filteredReports = _.filter(reports, (report) => !ReportUtils.isMoneyRequestReport(report));
+    return getOptions(filteredReports, personalDetails, {
         betas,
         searchInputValue: searchValue.trim(),
         selectedOptions,
