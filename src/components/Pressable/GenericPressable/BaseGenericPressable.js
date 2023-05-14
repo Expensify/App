@@ -65,20 +65,21 @@ const GenericPressable = forwardRef((props, ref) => {
 
     const [shouldUseDisabledCursor, setShouldUseDisabledCursor] = useState(isDisabled);
 
-    const onLongPressHandler = useCallback((event) => {
-        if (isDisabled) {
-            return;
-        }
-        if (!onLongPress) {
-            return;
-        }
-        if (shouldUseHapticsOnLongPress) {
-            HapticFeedback.longPress();
-        }
-        if (ref && ref.current) {
-            ref.current.blur();
-        }
-        onLongPress(event);
+    const onLongPressHandler = useCallback(
+        (event) => {
+            if (isDisabled) {
+                return;
+            }
+            if (!onLongPress) {
+                return;
+            }
+            if (shouldUseHapticsOnLongPress) {
+                HapticFeedback.longPress();
+            }
+            if (ref && ref.current) {
+                ref.current.blur();
+            }
+            onLongPress(event);
 
             Accessibility.moveAccessibilityFocus(nextFocusRef);
         },
