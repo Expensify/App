@@ -1172,21 +1172,6 @@ function buildOptimisticTaskCommentReportAction(taskReportID, taskTitle, taskAss
     return reportAction;
 }
 
-function buildOptimisticTaskReportAction(taskReportID, text, actionName) {
-    const reportAction = buildOptimisticAddCommentReportAction(text);
-    reportAction.reportAction.message[0].taskReportID = taskReportID;
-    reportAction.reportAction.actionName = actionName;
-
-    // These parameters are not saved on the reportAction, but are used to display the task in the UI
-    // Added when we fetch the reportActions on a report
-    reportAction.reportAction.originalMessage = {
-        html: reportAction.reportAction.message[0].html,
-        taskReportID: reportAction.reportAction.message[0].taskReportID,
-    };
-
-    return reportAction;
-}
-
 /**
  * Builds an optimistic IOU report with a randomly generated reportID
  *
@@ -1364,6 +1349,55 @@ function buildOptimisticIOUReportAction(type, amount, currency, comment, partici
         isAttachment: false,
         originalMessage,
         message: getIOUReportActionMessage(type, amount, textForNewCommentDecoded, currency, paymentType, isSettlingUp),
+        person: [
+            {
+                style: 'strong',
+                text: lodashGet(currentUserPersonalDetails, 'displayName', currentUserEmail),
+                type: 'TEXT',
+            },
+        ],
+        reportActionID: NumberUtils.rand64(),
+        shouldShow: true,
+        created: DateUtils.getDBTime(),
+        pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
+    };
+}
+
+function buildOptimisticTaskReportAction(taskReportID, actionName, taskTitle = '') {
+    let message = '';
+    switch (actionName) {
+        case CONST.REPORT.ACTIONS.TYPE.TASKCOMPLETED:
+            message = `Completed the task: ${taskTitle}`;
+            break;
+
+        default:
+            console.debug('Unknown actionName: ', actionName);
+            break;
+    }
+
+    const originalMessage = {
+        taskReportID,
+        type: actionName,
+        html: getParsedComment(message),
+        text: message,
+    };
+
+    return {
+        actionName,
+        actorAccountID: currentUserAccountID,
+        actorEmail: currentUserEmail,
+        automatic: false,
+        avatar: lodashGet(currentUserPersonalDetails, 'avatar', getDefaultAvatar(currentUserEmail)),
+        isAttachment: false,
+        originalMessage,
+        message: [
+            {
+                html: getParsedComment(message),
+                text: message,
+                taskReportID,
+                type: CONST.REPORT.MESSAGE.TYPE.COMMENT,
+            },
+        ],
         person: [
             {
                 style: 'strong',
@@ -2079,9 +2113,9 @@ export {
     buildOptimisticIOUReport,
     buildOptimisticExpenseReport,
     buildOptimisticIOUReportAction,
+    buildOptimisticTaskReportAction,
     buildOptimisticAddCommentReportAction,
     buildOptimisticTaskCommentReportAction,
-    buildOptimisticTaskReportAction,
     shouldReportBeInOptionList,
     getChatByParticipants,
     getChatByParticipantsAndPolicy,
