@@ -192,7 +192,6 @@ class ReportActionCompose extends React.Component {
         this.showPopoverMenu = this.showPopoverMenu.bind(this);
         this.comment = props.comment;
         this.setShouldBlockEmojiCalcToFalse = this.setShouldBlockEmojiCalcToFalse.bind(this);
-        this.attachmentPreviewClosed = this.attachmentPreviewClosed.bind(this);
 
         // React Native will retain focus on an input for native devices but web/mWeb behave differently so we have some focus management
         // code that will refocus the compose input after a user closes a modal or some other actions, see usage of ReportActionComposeFocusManager
@@ -855,14 +854,6 @@ class ReportActionCompose extends React.Component {
         return true;
     }
 
-    /**
-     * Event handler to update the state after the attachment preview is closed.
-     */
-    attachmentPreviewClosed() {
-        this.setShouldBlockEmojiCalcToFalse();
-        this.setState({isAttachmentPreviewActive: false});
-    }
-
     render() {
         const reportParticipants = _.without(lodashGet(this.props.report, 'participants', []), this.props.currentUserPersonalDetails.login);
         const participantsWithoutExpensifyEmails = _.difference(reportParticipants, CONST.EXPENSIFY_EMAILS);
@@ -902,7 +893,11 @@ class ReportActionCompose extends React.Component {
                         <AttachmentModal
                             headerTitle={this.props.translate('reportActionCompose.sendAttachment')}
                             onConfirm={this.addAttachment}
-                            onModalHide={this.attachmentPreviewClosed}
+                            onModalShow={() => this.setState({isAttachmentPreviewActive: true})}
+                            onModalHide={() => {
+                                this.setShouldBlockEmojiCalcToFalse();
+                                this.setState({isAttachmentPreviewActive: false});
+                            }}
                         >
                             {({displayFileInModal}) => (
                                 <>
@@ -1017,7 +1012,7 @@ class ReportActionCompose extends React.Component {
 
                                                 displayFileInModal(file);
 
-                                                this.setState({isAttachmentPreviewActive: true, isDraggingOver: false});
+                                                this.setState({isDraggingOver: false});
                                             }}
                                             disabled={this.props.disabled}
                                         >
