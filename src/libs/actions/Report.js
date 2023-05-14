@@ -41,7 +41,9 @@ Onyx.connect({
 let preferredSkinTone;
 Onyx.connect({
     key: ONYXKEYS.PREFERRED_EMOJI_SKIN_TONE,
-    callback: EmojiUtils.getPreferredSkinToneIndex,
+    callback: (val) => {
+        preferredSkinTone = EmojiUtils.getPreferredSkinToneIndex(val);
+    },
 });
 
 const allReportActions = {};
