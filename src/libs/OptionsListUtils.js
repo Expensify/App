@@ -851,7 +851,9 @@ function getNewChatOptions(reports, personalDetails, betas = [], searchValue = '
  */
 
 function getShareDestinationOptions(reports, personalDetails, betas = [], searchValue = '', selectedOptions = [], excludeLogins = [], includeOwnedWorkspaceChats = true) {
-    return getOptions(reports, personalDetails, {
+    // We want to filter out any IOUs or expense reports
+    const filteredReports = _.filter(reports, (report) => !ReportUtils.isMoneyRequestReport(report));
+    return getOptions(filteredReports, personalDetails, {
         betas,
         searchInputValue: searchValue.trim(),
         selectedOptions,
