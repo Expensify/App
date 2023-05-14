@@ -37,7 +37,8 @@ const defaultProps = {
 };
 
 const NewTaskTitlePage = (props) => {
-    const titleRef = useRef(null);
+    const inputRef = useRef(null);
+
     /**
      * @param {Object} values - form input values passed by the Form component
      * @returns {Boolean}
@@ -67,11 +68,11 @@ const NewTaskTitlePage = (props) => {
     return (
         <ScreenWrapper
             onEntryTransitionEnd={() => {
-                if (!titleRef.current) {
+                if (!inputRef.current) {
                     return;
                 }
 
-                titleRef.current.focus();
+                inputRef.current.focus();
             }}
             includeSafeAreaPaddingBottom={false}
         >
@@ -92,7 +93,7 @@ const NewTaskTitlePage = (props) => {
                 <View style={styles.mb5}>
                     <TextInput
                         defaultValue={props.task.title}
-                        ref={(el) => (titleRef.current = el)}
+                        ref={(el) => (inputRef.current = el)}
                         inputID="taskTitle"
                         label={props.translate('newTaskPage.title')}
                     />

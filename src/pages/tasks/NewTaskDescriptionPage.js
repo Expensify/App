@@ -36,7 +36,7 @@ const defaultProps = {
 };
 
 const NewTaskDescriptionPage = (props) => {
-    const descriptionRef = useRef(null);
+    const inputRef = useRef(null);
 
     /**
      * @param {Object} values - form input values passed by the Form component
@@ -61,11 +61,11 @@ const NewTaskDescriptionPage = (props) => {
         <ScreenWrapper
             includeSafeAreaPaddingBottom={false}
             onEntryTransitionEnd={() => {
-                if (!descriptionRef.current) {
+                if (!inputRef.current) {
                     return;
                 }
 
-                descriptionRef.current.focus();
+                inputRef.current.focus();
             }}
         >
             <HeaderWithCloseButton
@@ -87,7 +87,7 @@ const NewTaskDescriptionPage = (props) => {
                         defaultValue={props.task.description}
                         inputID="taskDescription"
                         label={props.translate('newTaskPage.description')}
-                        ref={(el) => (descriptionRef.current = el)}
+                        ref={(el) => (inputRef.current = el)}
                     />
                 </View>
             </Form>
