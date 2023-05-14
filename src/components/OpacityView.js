@@ -9,7 +9,7 @@ const propTypes = {
     /**
      * Should we dim the view
      */
-    shouldDim: PropTypes.bool,
+    shouldDim: PropTypes.bool.isRequired,
 
     /**
      * Content to render
@@ -31,7 +31,6 @@ const propTypes = {
 };
 
 const defaultProps = {
-    shouldDim: false,
     style: [],
     dimmingValue: variables.hoverDimValue,
 };
