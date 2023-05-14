@@ -405,9 +405,18 @@ function openReport(reportID, participantList = [], newReportObject = {}, parent
             params.createdReportActionID = optimisticCreatedAction.reportActionID;
         }
 
-        // Only add the parentReportActionID if it's been added to the optimistic report
-        if (newReportObject.parentReportActionID) {
-            params.parentReportActionID = newReportObject.parentReportActionID;
+        // If we are creating a thread, ensure the report action has childReportID property added
+        if (newReportObject.parentReportID && parentReportActionID) {
+            onyxData.optimisticData.push({
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${newReportObject.parentReportID}`,
+                value: {[parentReportActionID]: {childReportID: reportID}},
+            });
+            onyxData.failureData.push({
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${newReportObject.parentReportID}`,
+                value: {[parentReportActionID]: {childReportID: '0'}},
+            });
         }
     }
 
