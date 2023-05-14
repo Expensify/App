@@ -1,10 +1,5 @@
 import {useCallback, useRef, useState} from 'react';
-import {
-    Animated,
-    Easing,
-    StatusBar,
-    StyleSheet,
-} from 'react-native';
+import {Animated, Easing, StatusBar, StyleSheet} from 'react-native';
 import BootSplash from '../../libs/BootSplash';
 import Logo from '../../../assets/images/new-expensify-dark.svg';
 import styles from '../../styles/styles';
@@ -23,25 +18,23 @@ const SplashScreenHider = () => {
 
         hideHasBeenCalled.current = true;
 
-        BootSplash
-            .hide()
-            .then(() => {
-                Animated.timing(scale, {
-                    duration: 200,
-                    easing: Easing.back(2),
-                    toValue: 0,
-                    useNativeDriver: true,
-                }).start();
+        BootSplash.hide().then(() => {
+            Animated.timing(scale, {
+                duration: 200,
+                easing: Easing.back(2),
+                toValue: 0,
+                useNativeDriver: true,
+            }).start();
 
-                Animated.timing(opacity, {
-                    duration: 250,
-                    easing: Easing.out(Easing.ease),
-                    toValue: 0,
-                    useNativeDriver: true,
-                }).start(() => {
-                    setIsVisible(false);
-                });
+            Animated.timing(opacity, {
+                duration: 250,
+                easing: Easing.out(Easing.ease),
+                toValue: 0,
+                useNativeDriver: true,
+            }).start(() => {
+                setIsVisible(false);
             });
+        });
     }, [opacity, scale]);
 
     if (!isVisible) {
