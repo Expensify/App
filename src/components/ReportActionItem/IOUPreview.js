@@ -25,6 +25,7 @@ import reportActionPropTypes from '../../pages/home/report/reportActionPropTypes
 import {showContextMenuForReport} from '../ShowContextMenuContext';
 import * as OptionsListUtils from '../../libs/OptionsListUtils';
 import * as CurrencyUtils from '../../libs/CurrencyUtils';
+import * as IOUUtils from '../../libs/IOUUtils';
 import * as ReportUtils from '../../libs/ReportUtils';
 
 const propTypes = {
@@ -227,11 +228,21 @@ const IOUPreview = (props) => {
                         )}
                     </View>
 
-                    {!isCurrentUserManager && props.shouldShowPendingConversionMessage && (
-                        <Text style={[styles.textLabel, styles.colorMuted]}>{props.translate('iou.pendingConversionMessage')}</Text>
-                    )}
-
-                    <Text style={[styles.colorMuted]}>{Str.htmlDecode(moneyRequestAction.comment)}</Text>
+                    <View style={[styles.flexRow]}>
+                        <View style={[styles.flex1]}>
+                            {!isCurrentUserManager && props.shouldShowPendingConversionMessage && (
+                                <Text style={[styles.textLabel, styles.colorMuted]}>{props.translate('iou.pendingConversionMessage')}</Text>
+                            )}
+                            <Text style={[styles.colorMuted]}>{Str.htmlDecode(moneyRequestAction.comment)}</Text>
+                        </View>
+                        {props.isBillSplit && !_.isEmpty(participantEmails) && (
+                            <Text style={[styles.textLabel, styles.colorMuted, styles.ml1]}>
+                                {props.translate('iou.amountEach', {
+                                    amount: CurrencyUtils.convertToDisplayString(IOUUtils.calculateAmount(participantEmails.length - 1, requestAmount), requestCurrency),
+                                })}
+                            </Text>
+                        )}
+                    </View>
                 </View>
             </OfflineWithFeedback>
         </View>
