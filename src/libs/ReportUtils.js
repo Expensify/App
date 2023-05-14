@@ -2052,22 +2052,6 @@ function getWhisperDisplayNames(participants) {
 }
 
 /**
- * Used to determine if a thread exists already for a given reportActionID
- *
- * @param {String} reportActionID
- * @returns {Boolean}
- */
-function getThreadForReportActionID(reportActionID) {
-    return _.find(allReports, (report) => {
-        if (!report.parentReportActionID) {
-            return false;
-        }
-
-        return report.parentReportActionID === reportActionID;
-    });
-}
-
-/**
  * Show subscript on IOU or expense report
  * @param {Object} report
  * @returns {Boolean}
@@ -2173,7 +2157,6 @@ export {
     canRequestMoney,
     getWhisperDisplayNames,
     getWorkspaceAvatar,
-    getThreadForReportActionID,
     isThread,
     isThreadParent,
     isThreadFirstChat,
