@@ -192,7 +192,7 @@ class ReportActionCompose extends React.Component {
         this.showPopoverMenu = this.showPopoverMenu.bind(this);
         this.comment = props.comment;
         this.setShouldBlockEmojiCalcToFalse = this.setShouldBlockEmojiCalcToFalse.bind(this);
-        this.attachmentPreviewClosed = this.attachmentPreviewClosed.bind(this);
+        this.onAttachmentPreviewClosed = this.onAttachmentPreviewClosed.bind(this);
 
         // React Native will retain focus on an input for native devices but web/mWeb behave differently so we have some focus management
         // code that will refocus the compose input after a user closes a modal or some other actions, see usage of ReportActionComposeFocusManager
@@ -304,6 +304,14 @@ class ReportActionCompose extends React.Component {
         this.setState({selection: e.nativeEvent.selection});
         this.calculateEmojiSuggestion();
         this.calculateMentionSuggestion();
+    }
+
+    /**
+     * Event handler to update the state after the attachment preview is closed.
+     */
+    onAttachmentPreviewClosed() {
+        this.setShouldBlockEmojiCalcToFalse();
+        this.setState({isAttachmentPreviewActive: false});
     }
 
     getDefaultSuggestionsValues() {
@@ -856,14 +864,6 @@ class ReportActionCompose extends React.Component {
         return true;
     }
 
-    /**
-     * Event handler to update the state after the attachment preview is closed.
-     */
-    attachmentPreviewClosed() {
-        this.setShouldBlockEmojiCalcToFalse();
-        this.setState({isAttachmentPreviewActive: false});
-    }
-
     render() {
         const reportParticipants = _.without(lodashGet(this.props.report, 'participants', []), this.props.currentUserPersonalDetails.login);
         const participantsWithoutExpensifyEmails = _.difference(reportParticipants, CONST.EXPENSIFY_EMAILS);
@@ -903,7 +903,7 @@ class ReportActionCompose extends React.Component {
                         <AttachmentModal
                             headerTitle={this.props.translate('reportActionCompose.sendAttachment')}
                             onConfirm={this.addAttachment}
-                            onModalHide={this.attachmentPreviewClosed}
+                            onModalHide={this.onAttachmentPreviewClosed}
                         >
                             {({displayFileInModal}) => (
                                 <>
