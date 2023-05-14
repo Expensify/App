@@ -200,19 +200,19 @@ class ReportActionItem extends Component {
                     checkIfContextMenuActive={this.checkIfContextMenuActive}
                 />
             );
-        } else if (ReportActionUtils.isCreatedTaskReportAction(this.props.action)) {
-            children = (
-                <TaskPreview
-                    taskReportID={this.props.action.originalMessage.taskReportID.toString()}
-                    action={this.props.action}
-                    isHovered={hovered}
-                />
-            );
         } else if (this.props.action.actionName === CONST.REPORT.ACTIONS.TYPE.TASKCOMPLETED) {
             children = (
                 <TaskAction
                     taskReportID={this.props.action.originalMessage.taskReportID.toString()}
                     actionName={this.props.action.actionName}
+                    isHovered={hovered}
+                />
+            );
+        } else if (ReportActionUtils.isCreatedTaskReportAction(this.props.action)) {
+            children = (
+                <TaskPreview
+                    taskReportID={this.props.action.originalMessage.taskReportID.toString()}
+                    action={this.props.action}
                     isHovered={hovered}
                 />
             );
@@ -293,6 +293,7 @@ class ReportActionItem extends Component {
      */
     renderReportActionItem(hovered, isWhisper) {
         const content = this.renderItemContent(hovered || this.state.isContextMenuActive);
+        console.log('What is the action', this.props.action, content);
 
         if (this.props.draftMessage) {
             return <ReportActionItemDraft>{content}</ReportActionItemDraft>;
