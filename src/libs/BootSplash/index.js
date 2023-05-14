@@ -10,7 +10,10 @@ function hide() {
     return document.fonts.ready.then(() => {
         const splash = document.getElementById('splash');
         splash.style.opacity = 0;
-        return resolveAfter(250).then(() => splash.parentNode.removeChild(splash));
+
+        return resolveAfter(250).then(() => {
+            splash.parentNode.removeChild(splash);
+        });
     });
 }
 

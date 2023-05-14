@@ -1,14 +1,25 @@
 import {useCallback, useRef, useState} from 'react';
+import PropTypes from 'prop-types';
 import {Animated, Easing, StatusBar, StyleSheet} from 'react-native';
 import BootSplash from '../../libs/BootSplash';
 import Logo from '../../../assets/images/new-expensify-dark.svg';
 import styles from '../../styles/styles';
 
-const SplashScreenHider = () => {
+const propTypes = {
+    /** Splash screen has been hidden */
+    onHide: PropTypes.func,
+};
+
+const defaultProps = {
+    onHide: () => {},
+};
+
+const SplashScreenHider = (props) => {
+    const {onHide} = props;
+
     const [opacity] = useState(() => new Animated.Value(1));
     const [scale] = useState(() => new Animated.Value(1));
     const hideHasBeenCalled = useRef(false);
-    const [isVisible, setIsVisible] = useState(true);
 
     const hide = useCallback(() => {
         // hide can only be called once
@@ -32,14 +43,10 @@ const SplashScreenHider = () => {
                 toValue: 0,
                 useNativeDriver: true,
             }).start(() => {
-                setIsVisible(false);
+                onHide();
             });
         });
-    }, [opacity, scale]);
-
-    if (!isVisible) {
-        return null;
-    }
+    }, [opacity, scale, onHide]);
 
     return (
         <Animated.View
@@ -72,4 +79,7 @@ const SplashScreenHider = () => {
 };
 
 SplashScreenHider.displayName = 'SplashScreenHider';
+SplashScreenHider.propTypes = propTypes;
+SplashScreenHider.defaultProps = defaultProps;
+
 export default SplashScreenHider;

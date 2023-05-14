@@ -87,9 +87,10 @@ function Expensify(props) {
     const appStateChangeListener = useRef(null);
     const [isNavigationReady, setIsNavigationReady] = useState(false);
     const [isOnyxMigrated, setIsOnyxMigrated] = useState(false);
+    const [isSplashHidden, setIsSplashHidden] = useState(false);
 
     const isAuthenticated = useMemo(() => Boolean(lodashGet(props.session, 'authToken', null)), [props.session]);
-    const shouldHideSplash = isNavigationReady && (!isAuthenticated || props.isSidebarLoaded);
+    const shouldHideSplash = isNavigationReady && !isSplashHidden && (!isAuthenticated || props.isSidebarLoaded);
 
     const initializeClient = () => {
         if (!Visibility.isVisible()) {
@@ -104,6 +105,10 @@ function Expensify(props) {
 
         // Navigate to any pending routes now that the NavigationContainer is ready
         Navigation.setIsNavigationReady();
+    }, []);
+
+    const onSplashHide = useCallback(() => {
+        setIsSplashHidden(true);
     }, []);
 
     useLayoutEffect(() => {
@@ -192,7 +197,7 @@ function Expensify(props) {
                 authenticated={isAuthenticated}
             />
 
-            {shouldHideSplash && <SplashScreenHider />}
+            {shouldHideSplash && <SplashScreenHider onHide={onSplashHide} />}
         </DeeplinkWrapper>
     );
 }
