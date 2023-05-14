@@ -326,6 +326,7 @@ export default {
         settlePaypalMe: 'Pay with PayPal.me',
         requestAmount: ({amount}) => `request ${amount}`,
         splitAmount: ({amount}) => `split ${amount}`,
+        amountEach: ({amount}) => `${amount} each`,
         payerOwesAmount: ({payer, amount}) => `${payer} owes ${amount}`,
         payerSettled: ({amount}) => `settled up ${amount}`,
         noReimbursableExpenses: 'This report has an invalid amount',
@@ -1309,5 +1310,10 @@ export default {
     },
     parentReportAction: {
         deletedMessage: '[Deleted message]',
+    },
+    threads: {
+        lastReply: 'Last Reply',
+        replies: 'Replies',
+        reply: 'Reply',
     },
 };

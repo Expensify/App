@@ -1018,6 +1018,10 @@ const styles = {
         lineHeight: 16,
     },
 
+    lh140Percent: {
+        lineHeight: '140%',
+    },
+
     formHelp: {
         color: themeColors.textSupporting,
         fontSize: variables.fontSizeLabel,
