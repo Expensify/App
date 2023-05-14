@@ -1885,8 +1885,6 @@ function getWhisperDisplayNames(participants) {
     return _.map(participants, (login) => getDisplayNameForParticipant(login, !isWhisperOnlyVisibleToCurrentUSer)).join(', ');
 }
 
-<<<<<<< HEAD
-=======
 /**
  * Show subscript on IOU or expense report
  * @param {Object} report
@@ -1912,7 +1910,6 @@ function isReportDataReady() {
     return !_.isEmpty(allReports) && _.some(_.keys(allReports), (key) => allReports[key].reportID);
 }
 
->>>>>>> 365f43cb2d (Merge pull request #18788 from aimane-chnaif/issue-18781)
 export {
     getReportParticipantsTitle,
     isReportMessageAttachment,
@@ -1992,13 +1989,7 @@ export {
     canRequestMoney,
     getWhisperDisplayNames,
     getWorkspaceAvatar,
-<<<<<<< HEAD
-=======
-    isThread,
-    isThreadParent,
-    isThreadFirstChat,
     shouldReportShowSubscript,
     isReportDataReady,
->>>>>>> 365f43cb2d (Merge pull request #18788 from aimane-chnaif/issue-18781)
     isSettled,
 };
