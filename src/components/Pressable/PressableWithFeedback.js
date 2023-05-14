@@ -57,10 +57,10 @@ const PressableWithFeedback = forwardRef((props, ref) => {
                     shouldDim={!disabled && (state.pressed || state.hovered)}
                     dimmingValue={state.pressed ? props.pressDimmingValue : props.hoverDimmingValue}
                     style={[
-                        StyleUtils.parseStyleFromFunction(props.style, state),
-                        !disabled && state.pressed && StyleUtils.parseStyleFromFunction(props.pressStyle, state),
-                        !disabled && state.hovered && StyleUtils.parseStyleAsArray(props.hoverStyle, state),
-                        state.focused && StyleUtils.parseStyleAsArray(props.focusStyle, state),
+                        ...StyleUtils.parseStyleFromFunction(props.style, state),
+                        ...(!disabled && state.pressed ? StyleUtils.parseStyleFromFunction(props.pressStyle, state) : []),
+                        ...(!disabled && state.hovered ? StyleUtils.parseStyleAsArray(props.hoverStyle, state) : []),
+                        ...(state.focused ? StyleUtils.parseStyleAsArray(props.focusStyle, state) : []),
                     ]}
                 >
                     {props.children}
