@@ -325,6 +325,7 @@ export default {
         settlePaypalMe: 'Pagar con PayPal.me',
         requestAmount: ({amount}) => `solicitar ${amount}`,
         splitAmount: ({amount}) => `dividir ${amount}`,
+        amountEach: ({amount}) => `${amount} cada uno`,
         payerOwesAmount: ({payer, amount}) => `${payer} debe ${amount}`,
         payerSettled: ({amount}) => `pagado ${amount}`,
         noReimbursableExpenses: 'El monto de este informe es inválido',
