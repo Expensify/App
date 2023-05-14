@@ -55,7 +55,7 @@ const TaskPreview = (props) => {
     // Other linked reportActions will only contain the taskReportID and we will grab the details from there
     const isTaskCompleted =
         (props.taskReport.stateNum === CONST.REPORT.STATE_NUM.SUBMITTED && props.taskReport.statusNum === CONST.REPORT.STATUS.APPROVED) ||
-        (props.action.childStateNum === CONST.REPORT.STATE_NUM.CLOSED && props.action.childStatusNum === CONST.REPORT.STATUS.APPROVED);
+        (props.action.childStateNum === CONST.REPORT.STATE_NUM.SUBMITTED && props.action.childStatusNum === CONST.REPORT.STATUS.APPROVED);
     const taskTitle = props.action.taskTitle || props.taskReport.reportName;
     const parentReportID = props.action.parentReportID || props.taskReport.parentReportID;
 
