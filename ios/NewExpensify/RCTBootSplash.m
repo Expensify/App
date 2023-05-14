@@ -116,9 +116,8 @@ RCT_EXPORT_MODULE();
   [[NSNotificationCenter defaultCenter] removeObserver:self];
 }
 
-RCT_REMAP_METHOD(hide,
-                 hideWithResolver:(RCTPromiseResolveBlock)resolve
-                 rejecter:(RCTPromiseRejectBlock)reject) {
+RCT_EXPORT_METHOD(hide:(RCTPromiseResolveBlock)resolve
+                  rejecter:(RCTPromiseRejectBlock)reject) {
   if (_resolverQueue == nil)
     _resolverQueue = [[NSMutableArray alloc] init];
 
@@ -131,9 +130,8 @@ RCT_REMAP_METHOD(hide,
     return [RCTBootSplash hideAndClearResolverQueue];
 }
 
-RCT_REMAP_METHOD(getVisibilityStatus,
-                 getVisibilityStatusWithResolver:(RCTPromiseResolveBlock)resolve
-                 rejecter:(RCTPromiseRejectBlock)reject) {
+RCT_EXPORT_METHOD(getVisibilityStatus:(RCTPromiseResolveBlock)resolve
+                  rejecter:(RCTPromiseRejectBlock)reject) {
   resolve([RCTBootSplash isHidden] ? @"hidden" : @"visible");
 }
 
