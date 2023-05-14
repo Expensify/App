@@ -153,7 +153,7 @@ function createTaskAndNavigate(currentUserEmail, parentReportID, title, descript
 }
 
 function completeTask(taskReportID, parentReportID, taskTitle) {
-    const completedTaskReportAction = ReportUtils.buildOptimisticTaskReportAction(taskReportID, `Completed task: ${taskTitle}`, CONST.REPORT.ACTIONS.TYPE.TASKCOMPLETED);
+    const completedTaskReportAction = ReportUtils.buildOptimisticTaskReportAction(taskReportID, CONST.REPORT.ACTIONS.TYPE.TASKCOMPLETED, taskTitle);
     const optimisticData = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
@@ -166,7 +166,7 @@ function completeTask(taskReportID, parentReportID, taskTitle) {
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${parentReportID}`,
-            value: {[completedTaskReportAction.reportAction.reportActionID]: completedTaskReportAction.reportAction},
+            value: {[completedTaskReportAction.reportActionID]: completedTaskReportAction},
         },
     ];
 
@@ -177,21 +177,21 @@ function completeTask(taskReportID, parentReportID, taskTitle) {
             key: `${ONYXKEYS.COLLECTION.REPORT}${taskReportID}`,
             value: {
                 stateNum: CONST.REPORT.STATE_NUM.OPEN,
-                statusNum: CONST.REPORT.STATUS.PENDING,
+                statusNum: CONST.REPORT.STATUS.OPEN,
             },
         },
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${parentReportID}`,
-            value: {[completedTaskReportAction.reportAction.reportActionID]: {pendingAction: null}},
+            value: {[completedTaskReportAction.reportActionID]: {pendingAction: null}},
         },
     ];
-    console.log('completeTask', taskReportID, parentReportID, optimisticData, successData, failureData);
+
     API.write(
         'CompleteTask',
         {
             taskReportID,
-            completedTaskReportActionID: completedTaskReportAction.reportAction.reportActionID,
+            completedTaskReportActionID: completedTaskReportAction.reportActionID,
         },
         {optimisticData, successData, failureData},
     );
