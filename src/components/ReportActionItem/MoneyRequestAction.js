@@ -2,6 +2,7 @@ import _ from 'underscore';
 import React from 'react';
 import PropTypes from 'prop-types';
 import {withOnyx} from 'react-native-onyx';
+import lodashGet from 'lodash/get';
 import ONYXKEYS from '../../ONYXKEYS';
 import CONST from '../../CONST';
 import {withNetwork} from '../OnyxProvider';
@@ -84,7 +85,7 @@ const defaultProps = {
 };
 
 const MoneyRequestAction = (props) => {
-    const hasMultipleParticipants = props.chatReport.participants.length > 1;
+    const hasMultipleParticipants = lodashGet(props.chatReport, 'participants', []).length > 1;
     const onIOUPreviewPressed = () => {
         // This would ideally be passed as a prop or hooked up via withOnyx so that we are not be triggering a potentially intensive
         // search in an onPress handler, I think this could lead to performance issues but it probably ok for now.
