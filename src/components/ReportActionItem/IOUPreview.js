@@ -146,9 +146,11 @@ const IOUPreview = (props) => {
     // Pay button should only be visible to the manager of the report.
     const isCurrentUserManager = managerEmail === sessionEmail;
 
+    const moneyRequestAction = ReportUtils.getMoneyRequestAction(props.action);
+
     // If props.action is undefined then we are displaying within IOUDetailsModal and should use the full report amount
-    const requestAmount = props.isIOUAction ? lodashGet(props.action, 'originalMessage.amount', 0) : ReportUtils.getMoneyRequestTotal(props.iouReport);
-    const requestCurrency = props.isIOUAction ? lodashGet(props.action, 'originalMessage.currency', CONST.CURRENCY.USD) : props.iouReport.currency;
+    const requestAmount = props.isIOUAction ? moneyRequestAction.total : ReportUtils.getMoneyRequestTotal(props.iouReport);
+    const requestCurrency = props.isIOUAction ? moneyRequestAction.currency : props.iouReport.currency;
 
     const getSettledMessage = () => {
         switch (lodashGet(props.action, 'originalMessage.paymentType', '')) {
@@ -229,7 +231,7 @@ const IOUPreview = (props) => {
                         <Text style={[styles.textLabel, styles.colorMuted]}>{props.translate('iou.pendingConversionMessage')}</Text>
                     )}
 
-                    <Text style={[styles.colorMuted]}>{Str.htmlDecode(lodashGet(props.action, 'originalMessage.comment', ''))}</Text>
+                    <Text style={[styles.colorMuted]}>{Str.htmlDecode(moneyRequestAction.comment)}</Text>
                 </View>
             </OfflineWithFeedback>
         </View>
