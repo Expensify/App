@@ -894,6 +894,7 @@ class ReportActionCompose extends React.Component {
                         <AttachmentModal
                             headerTitle={this.props.translate('reportActionCompose.sendAttachment')}
                             onConfirm={this.addAttachment}
+                            onModalShow={() => this.setState({isAttachmentPreviewActive: true})}
                             onModalHide={() => {
                                 this.setShouldBlockEmojiCalcToFalse();
                                 this.setState({isAttachmentPreviewActive: false});
@@ -1012,7 +1013,7 @@ class ReportActionCompose extends React.Component {
 
                                                 displayFileInModal(file);
 
-                                                this.setState({isAttachmentPreviewActive: true, isDraggingOver: false});
+                                                this.setState({isDraggingOver: false});
                                             }}
                                             disabled={this.props.disabled}
                                         >

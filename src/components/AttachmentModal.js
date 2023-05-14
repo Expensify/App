@@ -35,6 +35,9 @@ const propTypes = {
     /** Optional callback to fire when we want to preview an image and approve it for use. */
     onConfirm: PropTypes.func,
 
+    /** Optional callback to fire when we want to do something after modal show. */
+    onModalShow: PropTypes.func,
+
     /** Optional callback to fire when we want to do something after modal hide. */
     onModalHide: PropTypes.func,
 
@@ -69,6 +72,7 @@ const defaultProps = {
     allowDownload: false,
     headerTitle: null,
     reportID: '',
+    onModalShow: () => {},
     onModalHide: () => {},
 };
 
@@ -155,9 +159,6 @@ class AttachmentModal extends PureComponent {
      */
     closeConfirmModal() {
         this.setState({isAttachmentInvalid: false});
-        if (this.props.onModalHide) {
-            this.props.onModalHide();
-        }
     }
 
     /**
@@ -258,7 +259,10 @@ class AttachmentModal extends PureComponent {
                     onClose={() => this.setState({isModalOpen: false})}
                     isVisible={this.state.isModalOpen}
                     backgroundColor={themeColors.componentBG}
-                    onModalShow={() => this.setState({shouldLoadAttachment: true})}
+                    onModalShow={() => {
+                        this.props.onModalShow();
+                        this.setState({shouldLoadAttachment: true})
+                    }}
                     onModalHide={(e) => {
                         this.props.onModalHide(e);
                         this.setState({shouldLoadAttachment: false});
