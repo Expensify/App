@@ -54,6 +54,15 @@ function getParentReportAction(report) {
     return lodashGet(allReportActions, [report.parentReportID, report.parentReportActionID], {});
 }
 
+function isSentMoneyReportAction(reportAction) {
+    return (
+        reportAction &&
+        reportAction.actionName === CONST.REPORT.ACTIONS.TYPE.IOU &&
+        lodashGet(reportAction, 'originalMessage.type') === CONST.IOU.REPORT_ACTION_TYPE.PAY &&
+        _.has(reportAction.originalMessage, 'IOUDetails')
+    );
+}
+
 /**
  * Returns the formatted amount of a money request. The request and money sent (from send money flow) have
  * currency and amount in IOUDetails object.
@@ -354,4 +363,5 @@ export {
     getParentReportAction,
     isTransactionThread,
     getFormattedAmount,
+    isSentMoneyReportAction,
 };

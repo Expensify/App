@@ -100,7 +100,7 @@ const MoneyRequestAction = (props) => {
             const formattedUserLogins = _.map(participants, (login) => OptionsListUtils.addSMSDomainIfPhoneNumber(login).toLowerCase());
             const thread = ReportUtils.buildOptimisticChatReport(
                 formattedUserLogins,
-                props.translate('iou.threadRequestReportName', {
+                props.translate(ReportActionsUtils.isSentMoneyReportAction(props.action) ? 'iou.threadSentMoneyReportName' : 'iou.threadRequestReportName', {
                     formattedAmount: ReportActionsUtils.getFormattedAmount(props.action),
                     comment: props.action.originalMessage.comment,
                 }),
