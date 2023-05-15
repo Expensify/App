@@ -134,6 +134,8 @@ export default {
         zipCodeExampleFormat: ({zipSampleFormat}) => (zipSampleFormat ? `e.g. ${zipSampleFormat}` : ''),
         description: 'Description',
         with: 'with',
+        shareCode: 'Share code',
+        share: 'Share',
     },
     attachmentPicker: {
         cameraPermissionRequired: 'Camera access',
