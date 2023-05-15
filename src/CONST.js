@@ -411,6 +411,7 @@ const CONST = {
                 IOU: 'IOU',
                 RENAMED: 'RENAMED',
                 CHRONOSOOOLIST: 'CHRONOSOOOLIST',
+                TASKCOMPLETED: 'TASKCOMPLETED',
                 POLICYCHANGELOG: {
                     ADD_APPROVER_RULE: 'POLICYCHANGELOG_ADD_APPROVER_RULE',
                     ADD_CATEGORY: 'POLICYCHANGELOG_ADD_CATEGORY',

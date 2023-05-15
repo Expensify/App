@@ -8,6 +8,7 @@ import * as Report from './Report';
 import Navigation from '../Navigation/Navigation';
 import ROUTES from '../../ROUTES';
 import DateUtils from '../DateUtils';
+import CONST from '../../CONST';
 
 /**
  * Clears out the task info from the store
@@ -38,12 +39,12 @@ function createTaskAndNavigate(currentUserEmail, parentReportID, title, descript
     const taskReportID = optimisticTaskReport.reportID;
     let optimisticAssigneeAddComment;
     if (assigneeChatReportID && assigneeChatReportID !== parentReportID) {
-        optimisticAssigneeAddComment = ReportUtils.buildOptimisticTaskCommentReportAction(taskReportID, title, assignee, `Assigned a task to you: ${title}`);
+        optimisticAssigneeAddComment = ReportUtils.buildOptimisticTaskCommentReportAction(taskReportID, title, assignee, `Assigned a task to you: ${title}`, parentReportID);
     }
 
     // Create the CreatedReportAction on the task
     const optimisticTaskCreatedAction = ReportUtils.buildOptimisticCreatedReportAction(optimisticTaskReport.reportID);
-    const optimisticAddCommentReport = ReportUtils.buildOptimisticTaskCommentReportAction(taskReportID, title, assignee, `Created a task: ${title}`);
+    const optimisticAddCommentReport = ReportUtils.buildOptimisticTaskCommentReportAction(taskReportID, title, assignee, `Created a task: ${title}`, parentReportID);
 
     const currentTime = DateUtils.getDBTime();
 
@@ -151,6 +152,62 @@ function createTaskAndNavigate(currentUserEmail, parentReportID, title, descript
     Navigation.navigate(ROUTES.getReportRoute(optimisticTaskReport.reportID));
 }
 
+function completeTask(taskReportID, parentReportID, taskTitle) {
+    const message = `Completed task: ${taskTitle}`;
+    const completedTaskReportAction = ReportUtils.buildOptimisticTaskReportAction(taskReportID, CONST.REPORT.ACTIONS.TYPE.TASKCOMPLETED, message);
+
+    const optimisticData = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT}${taskReportID}`,
+            value: {
+                stateNum: CONST.REPORT.STATE_NUM.SUBMITTED,
+                statusNum: CONST.REPORT.STATUS.APPROVED,
+            },
+        },
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT}${parentReportID}`,
+            value: {
+                lastVisibleActionCreated: completedTaskReportAction.created,
+                lastMessageText: message,
+                lastActorEmail: completedTaskReportAction.actorEmail,
+            },
+        },
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${parentReportID}`,
+            value: {[completedTaskReportAction.reportActionID]: completedTaskReportAction},
+        },
+    ];
+
+    const successData = [];
+    const failureData = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT}${taskReportID}`,
+            value: {
+                stateNum: CONST.REPORT.STATE_NUM.OPEN,
+                statusNum: CONST.REPORT.STATUS.OPEN,
+            },
+        },
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${parentReportID}`,
+            value: {[completedTaskReportAction.reportActionID]: {pendingAction: null}},
+        },
+    ];
+
+    API.write(
+        'CompleteTask',
+        {
+            taskReportID,
+            completedTaskReportActionID: completedTaskReportAction.reportActionID,
+        },
+        {optimisticData, successData, failureData},
+    );
+}
+
 /**
  * @function editTask
  * @param {object} report
@@ -172,7 +229,7 @@ function editTaskAndNavigate(report, ownerEmail, title, description, assignee) {
     // If we make a change to the assignee, we want to add a comment to the assignee's chat
     let optimisticAssigneeAddComment;
     let assigneeChatReportID;
-    if (assignee && assignee !== report.assignee) {
+    if (assignee && assignee !== report.managerEmail) {
         assigneeChatReportID = ReportUtils.getChatByParticipants([assignee]).reportID;
         optimisticAssigneeAddComment = ReportUtils.buildOptimisticTaskCommentReportAction(report.reportID, reportName, assignee, `Assigned a task to you: ${reportName}`);
     }
@@ -189,7 +246,7 @@ function editTaskAndNavigate(report, ownerEmail, title, description, assignee) {
             value: {
                 reportName,
                 description: description || report.description,
-                assignee: assignee || report.assignee,
+                managerEmail: assignee || report.managerEmail,
             },
         },
     ];
@@ -393,6 +450,7 @@ export {
     setAssigneeValue,
     setShareDestinationValue,
     clearOutTaskInfo,
+    completeTask,
     clearOutTaskInfoAndNavigate,
     getAssignee,
     getShareDestination,
