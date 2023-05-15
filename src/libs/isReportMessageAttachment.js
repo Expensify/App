@@ -8,6 +8,10 @@ import CONST from '../CONST';
  * @returns {Boolean}
  */
 export default function isReportMessageAttachment({text, html}) {
+    if (!text || !html) {
+        return false;
+    }
+
     const regex = new RegExp(` ${CONST.ATTACHMENT_SOURCE_ATTRIBUTE}="(.*)"`, 'i');
     return text === CONST.ATTACHMENT_MESSAGE_TEXT && !!html.match(regex);
 }
