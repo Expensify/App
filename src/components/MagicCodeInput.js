@@ -8,8 +8,14 @@ import CONST from '../CONST';
 import Text from './Text';
 import TextInput from './TextInput';
 import FormHelpMessage from './FormHelpMessage';
+import {withNetwork} from './OnyxProvider';
+import networkPropTypes from './networkPropTypes';
+import useOnNetworkReconnect from './hooks/useOnNetworkReconnect';
 
 const propTypes = {
+    /** Information about the network */
+    network: networkPropTypes.isRequired,
+
     /** Name attribute for the input */
     name: PropTypes.string,
 
@@ -102,11 +108,24 @@ function MagicCodeInput(props) {
         },
     }));
 
+    const isReadyToSubmit = () => {
+        const numbers = decomposeString(props.value);
+        return (props.shouldSubmitOnComplete || _.filter(numbers, (n) => ValidationUtils.isNumeric(n)).length === CONST.MAGIC_CODE_LENGTH) && !props.network.isOffline;
+    };
+
+    useOnNetworkReconnect(() => {
+        if (!isReadyToSubmit()) {
+            return;
+        }
+        inputRefs.current[editIndex].blur();
+        setFocusedIndex(undefined);
+        props.onFulfill(props.value);
+    });
+
     useEffect(() => {
         // Blurs the input and removes focus from the last input and, if it should submit
         // on complete, it will call the onFulfill callback.
-        const numbers = decomposeString(props.value);
-        if (!props.shouldSubmitOnComplete || _.filter(numbers, (n) => ValidationUtils.isNumeric(n)).length !== CONST.MAGIC_CODE_LENGTH) {
+        if (!isReadyToSubmit()) {
             return;
         }
         inputRefs.current[editIndex].blur();
@@ -254,6 +273,9 @@ function MagicCodeInput(props) {
             setEditIndex(newFocusedIndex);
             inputRefs.current[newFocusedIndex].focus();
         } else if (keyValue === 'Enter') {
+            if (!isReadyToSubmit()) {
+                return;
+            }
             setInput('');
             props.onFulfill(props.value);
         }
@@ -267,11 +289,7 @@ function MagicCodeInput(props) {
                         key={index}
                         style={[styles.w15]}
                     >
-                        <View style={[
-                            styles.textInputContainer,
-                            focusedIndex === index ? styles.borderColorFocus : {},
-                            props.hasError  || props.errorText ? styles.borderColorDanger : {},
-                        ]}>
+                        <View style={[styles.textInputContainer, focusedIndex === index ? styles.borderColorFocus : {}, props.hasError || props.errorText ? styles.borderColorDanger : {}]}>
                             <Text style={[styles.magicCodeInput, styles.textAlignCenter]}>{decomposeString(props.value)[index] || ''}</Text>
                         </View>
                         <View style={[StyleSheet.absoluteFillObject, styles.w100, styles.opacity0]}>
@@ -317,10 +335,12 @@ function MagicCodeInput(props) {
 MagicCodeInput.propTypes = propTypes;
 MagicCodeInput.defaultProps = defaultProps;
 
-export default forwardRef((props, ref) => (
-    <MagicCodeInput
-        // eslint-disable-next-line react/jsx-props-no-spreading
-        {...props}
-        innerRef={ref}
-    />
-));
+export default withNetwork()(
+    forwardRef((props, ref) => (
+        <MagicCodeInput
+            // eslint-disable-next-line react/jsx-props-no-spreading
+            {...props}
+            innerRef={ref}
+        />
+    )),
+);
