@@ -1,9 +1,9 @@
 import React from 'react';
 import MoneyRequestModal from './MoneyRequestModal';
 
-// eslint-disable-next-line react/jsx-props-no-spreading
 const IOUBillPage = (props) => (
     <MoneyRequestModal
+        // eslint-disable-next-line react/jsx-props-no-spreading
         {...props}
         hasMultipleParticipants
     />

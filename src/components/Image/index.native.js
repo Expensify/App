@@ -24,9 +24,9 @@ const Image = (props) => {
         };
     }
 
-    // eslint-disable-next-line react/jsx-props-no-spreading
     return (
         <RNFastImage
+            // eslint-disable-next-line react/jsx-props-no-spreading
             {...rest}
             source={imageSource}
         />

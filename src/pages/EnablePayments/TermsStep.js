@@ -69,6 +69,7 @@ class TermsStep extends React.Component {
         return (
             <>
                 <HeaderWithBackButton title={this.props.translate('termsStep.headerTitle')} />
+
                 <ScrollView
                     style={styles.flex1}
                     contentContainerStyle={styles.ph5}

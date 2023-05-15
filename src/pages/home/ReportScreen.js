@@ -40,7 +40,8 @@ import getIsReportFullyVisible from '../../libs/getIsReportFullyVisible';
 import EmojiPicker from '../../components/EmojiPicker/EmojiPicker';
 import * as EmojiPickerAction from '../../libs/actions/EmojiPickerAction';
 import TaskHeaderView from './TaskHeaderView';
-import withNavigation, {withNavigationPropTypes} from '../../components/withNavigation';
+import MoneyRequestHeader from '../../components/MoneyRequestHeader';
+import withNavigation from '../../components/withNavigation';
 
 const propTypes = {
     /** Navigation route context info provided by react navigation */
@@ -306,12 +307,20 @@ class ReportScreen extends React.Component {
                                     errors={addWorkspaceRoomOrChatErrors}
                                     shouldShowErrorMessages={false}
                                 >
-                                    <HeaderView
-                                        reportID={reportID}
-                                        onNavigationMenuButtonClicked={() => Navigation.goBack()}
-                                        personalDetails={this.props.personalDetails}
-                                        report={this.props.report}
-                                    />
+                                    {ReportUtils.isMoneyRequestReport(this.props.report) ? (
+                                        <MoneyRequestHeader
+                                            report={this.props.report}
+                                            policies={this.props.policies}
+                                            personalDetails={this.props.personalDetails}
+                                        />
+                                    ) : (
+                                        <HeaderView
+                                            reportID={reportID}
+                                            onNavigationMenuButtonClicked={() => Navigation.goBack()}
+                                            personalDetails={this.props.personalDetails}
+                                            report={this.props.report}
+                                        />
+                                    )}
                                 </OfflineWithFeedback>
                                 {Boolean(this.props.accountManagerReportID) && ReportUtils.isConciergeChatReport(this.props.report) && this.state.isBannerVisible && (
                                     <Banner

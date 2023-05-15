@@ -19,8 +19,8 @@ function withSafeAreaInsets(WrappedComponent) {
         />
     );
     return forwardRef((props, ref) => (
-        // eslint-disable-next-line react/jsx-props-no-spreading
         <WithSafeAreaInsets
+            // eslint-disable-next-line react/jsx-props-no-spreading
             {...props}
             forwardedRef={ref}
         />

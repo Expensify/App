@@ -57,7 +57,7 @@ class ArrowKeyFocusManager extends Component {
             arrowUpConfig.modifiers,
             true,
             false,
-            1,
+            0,
             true,
             [this.props.shouldExcludeTextAreaNodes && 'TEXTAREA'],
         );
@@ -86,7 +86,7 @@ class ArrowKeyFocusManager extends Component {
             arrowDownConfig.modifiers,
             true,
             false,
-            1,
+            0,
             true,
             [this.props.shouldExcludeTextAreaNodes && 'TEXTAREA'],
         );

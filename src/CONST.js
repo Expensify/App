@@ -23,6 +23,9 @@ const keyInputEnter = lodashGet(KeyCommand, 'constants.keyInputEnter', 'keyInput
 const keyInputUpArrow = lodashGet(KeyCommand, 'constants.keyInputUpArrow', 'keyInputUpArrow');
 const keyInputDownArrow = lodashGet(KeyCommand, 'constants.keyInputDownArrow', 'keyInputDownArrow');
 
+// describes if a shortcut key can cause navigation
+const KEYBOARD_SHORTCUT_NAVIGATION_TYPE = 'NAVIGATION_SHORTCUT';
+
 const CONST = {
     ANDROID_PACKAGE_NAME,
     ANIMATED_TRANSITION: 300,
@@ -257,6 +260,7 @@ const CONST = {
                 [PLATFORM_OS_MACOS]: {input: 'k', modifierFlags: keyModifierCommand},
                 [PLATFORM_IOS]: {input: 'k', modifierFlags: keyModifierCommand},
             },
+            type: KEYBOARD_SHORTCUT_NAVIGATION_TYPE,
         },
         NEW_GROUP: {
             descriptionKey: 'newGroup',
@@ -267,6 +271,7 @@ const CONST = {
                 [PLATFORM_OS_MACOS]: {input: 'k', modifierFlags: keyModifierShiftCommand},
                 [PLATFORM_IOS]: {input: 'k', modifierFlags: keyModifierShiftCommand},
             },
+            type: KEYBOARD_SHORTCUT_NAVIGATION_TYPE,
         },
         SHORTCUT_MODAL: {
             descriptionKey: 'openShortcutDialog',
@@ -344,6 +349,9 @@ const CONST = {
             modifiers: [],
         },
     },
+    KEYBOARD_SHORTCUTS_TYPES: {
+        NAVIGATION_SHORTCUT: KEYBOARD_SHORTCUT_NAVIGATION_TYPE,
+    },
     KEYBOARD_SHORTCUT_KEY_DISPLAY_NAME: {
         CONTROL: 'CTRL',
         ESCAPE: 'ESC',
@@ -393,6 +401,7 @@ const CONST = {
         DROP_NATIVE_ID: 'report-dropzone',
         ACTIVE_DROP_NATIVE_ID: 'report-dropzone',
         MAXIMUM_PARTICIPANTS: 8,
+        SPLIT_REPORTID: '-2',
         ACTIONS: {
             LIMIT: 50,
             TYPE: {
@@ -722,7 +731,7 @@ const CONST = {
     EMOJI_PICKER_ITEM_HEIGHT: 32,
     EMOJI_PICKER_HEADER_HEIGHT: 32,
     RECIPIENT_LOCAL_TIME_HEIGHT: 25,
-    EMOJI_SUGGESTER: {
+    AUTO_COMPLETE_SUGGESTER: {
         SUGGESTER_PADDING: 6,
         ITEM_HEIGHT: 36,
         SMALL_CONTAINER_HEIGHT_FACTOR: 2.5,
@@ -901,6 +910,7 @@ const CONST = {
             SPLIT: 'split',
             DECLINE: 'decline',
             CANCEL: 'cancel',
+            DELETE: 'delete',
         },
         AMOUNT_MAX_LENGTH: 10,
     },
@@ -964,6 +974,7 @@ const CONST = {
         SMALL_SUBSCRIPT: 'small-subscript',
         MID_SUBSCRIPT: 'mid-subscript',
         LARGE_BORDERED: 'large-bordered',
+        HEADER: 'header',
     },
     OPTION_MODE: {
         COMPACT: 'compact',
@@ -1066,13 +1077,6 @@ const CONST = {
         // This const defines the initial container size, before layout measurement.
         // Since size cant be null, we have to define some initial value.
         INITIAL_SIZE: 1, // 1 was chosen because there is a very low probability that initialized component will have such size.
-    },
-
-    ONYX: {
-        METHOD: {
-            MERGE: 'merge',
-            SET: 'set',
-        },
     },
     MICROSECONDS_PER_MS: 1000,
     RED_BRICK_ROAD_PENDING_ACTION: {

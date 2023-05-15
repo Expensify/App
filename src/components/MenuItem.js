@@ -61,6 +61,8 @@ const defaultProps = {
 };
 
 const MenuItem = (props) => {
+    const isDeleted = _.contains(props.style, styles.offlineFeedback.deleted);
+    const descriptionVerticalMargin = props.shouldShowDescriptionOnTop ? styles.mb1 : styles.mt1;
     const titleTextStyle = StyleUtils.combineStyles(
         [
             styles.popoverMenuText,
@@ -70,17 +72,17 @@ const MenuItem = (props) => {
             styles.pre,
             styles.ltr,
             props.shouldShowHeaderTitle ? styles.textHeadlineH1 : undefined,
-            _.contains(props.style, styles.offlineFeedback.deleted) ? styles.offlineFeedback.deleted : undefined,
+            isDeleted ? styles.offlineFeedback.deleted : undefined,
         ],
         props.titleStyle,
     );
-    const descriptionVerticalMargin = props.shouldShowDescriptionOnTop ? styles.mb1 : styles.mt1;
     const descriptionTextStyle = StyleUtils.combineStyles([
         styles.textLabelSupporting,
         props.icon ? styles.ml3 : undefined,
         styles.lineHeightNormal,
         props.title ? descriptionVerticalMargin : undefined,
         props.descriptionTextStyle,
+        isDeleted ? styles.offlineFeedback.deleted : undefined,
     ]);
 
     const fallbackAvatarSize = props.viewMode === CONST.OPTION_MODE.COMPACT ? CONST.AVATAR_SIZE.SMALL : CONST.AVATAR_SIZE.DEFAULT;
@@ -197,7 +199,7 @@ const MenuItem = (props) => {
                             </View>
                         )}
                         {Boolean(props.brickRoadIndicator) && (
-                            <View style={[styles.alignItemsCenter, styles.justifyContentCenter, styles.l1]}>
+                            <View style={[styles.alignItemsCenter, styles.justifyContentCenter, styles.ml1]}>
                                 <Icon
                                     src={Expensicons.DotIndicator}
                                     fill={props.brickRoadIndicator === 'error' ? colors.red : colors.green}
@@ -225,8 +227,8 @@ MenuItem.displayName = 'MenuItem';
 
 const MenuItemWithWindowDimensions = withWindowDimensions(
     React.forwardRef((props, ref) => (
-        // eslint-disable-next-line react/jsx-props-no-spreading
         <MenuItem
+            // eslint-disable-next-line react/jsx-props-no-spreading
             {...props}
             forwardedRef={ref}
         />

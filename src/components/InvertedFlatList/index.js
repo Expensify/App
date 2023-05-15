@@ -54,8 +54,8 @@ InvertedFlatList.defaultProps = {
 };
 
 export default forwardRef((props, ref) => (
-    // eslint-disable-next-line react/jsx-props-no-spreading
     <InvertedFlatList
+        // eslint-disable-next-line react/jsx-props-no-spreading
         {...props}
         innerRef={ref}
     />

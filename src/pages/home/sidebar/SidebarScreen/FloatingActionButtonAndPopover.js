@@ -20,6 +20,7 @@ import ONYXKEYS from '../../../../ONYXKEYS';
 import withNavigation from '../../../../components/withNavigation';
 import * as Welcome from '../../../../libs/actions/Welcome';
 import withNavigationFocus from '../../../../components/withNavigationFocus';
+import * as TaskUtils from '../../../../libs/actions/Task';
 
 /**
  * @param {Object} [policy]
@@ -198,7 +199,7 @@ class FloatingActionButtonAndPopover extends React.Component {
                                   {
                                       icon: Expensicons.Task,
                                       text: this.props.translate('newTaskPage.assignTask'),
-                                      onSelected: () => Navigation.navigate(ROUTES.NEW_TASK),
+                                      onSelected: () => TaskUtils.clearOutTaskInfoAndNavigate(),
                                   },
                               ]
                             : []),

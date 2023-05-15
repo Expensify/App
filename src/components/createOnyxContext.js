@@ -38,8 +38,8 @@ export default (onyxKeyName, defaultValue) => {
                             propsToPass[propName] = defaultValue;
                         }
                         return (
-                            // eslint-disable-next-line react/jsx-props-no-spreading
                             <WrappedComponent
+                                // eslint-disable-next-line react/jsx-props-no-spreading
                                 {...propsToPass}
                                 ref={ref}
                             />
@@ -52,5 +52,5 @@ export default (onyxKeyName, defaultValue) => {
             return Consumer;
         };
 
-    return [withOnyxKey, ProviderWithOnyx];
+    return [withOnyxKey, ProviderWithOnyx, Context];
 };

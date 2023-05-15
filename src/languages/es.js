@@ -132,6 +132,7 @@ export default {
         websiteExample: 'p. ej. https://www.expensify.com',
         zipCodeExampleFormat: ({zipSampleFormat}) => (zipSampleFormat ? `p. ej. ${zipSampleFormat}` : ''),
         description: 'Descripción',
+        with: 'con',
     },
     attachmentPicker: {
         cameraPermissionRequired: 'Permiso para acceder a la cámara',
@@ -308,6 +309,7 @@ export default {
     iou: {
         amount: 'Importe',
         cash: 'Efectivo',
+        split: 'Dividir',
         participants: 'Participantes',
         splitBill: 'Dividir factura',
         requestMoney: 'Pedir dinero',
@@ -317,20 +319,15 @@ export default {
         settleExpensify: 'Pagar con Expensify',
         settleElsewhere: 'Voy a pagar de otra forma',
         settlePaypalMe: 'Pagar con PayPal.me',
-        request: ({amount}) => `Solicitar ${amount}`,
-        youowe: ({owner}) => `Le debes a ${owner}`,
-        youpaid: ({owner}) => `Le pagaste a ${owner}`,
-        owesyou: ({manager}) => `${manager} te debe`,
-        paidyou: ({manager}) => `${manager} te pagó`,
-        split: ({amount}) => `Dividir ${amount}`,
-        send: ({amount}) => `Enviar ${amount}`,
+        requestAmount: ({amount}) => `solicitar ${amount}`,
+        splitAmount: ({amount}) => `dividir ${amount}`,
         noReimbursableExpenses: 'El monto de este informe es inválido',
         pendingConversionMessage: 'El total se actualizará cuando estés online',
         error: {
             invalidSplit: 'La suma de las partes no equivale al monto total',
             other: 'Error inesperado, por favor inténtalo más tarde',
             genericCreateFailureMessage: 'Error inesperado solicitando dinero, Por favor, inténtalo más tarde',
-            genericCancelFailureMessage: ({type}) => `Error inesperado al ${type === 'decline' ? 'rechazar' : 'cancelar'} la solicitud de dinero. Por favor, inténtalo más tarde`,
+            genericDeleteFailureMessage: 'Error inesperado eliminando la solicitud de dinero. Por favor, inténtalo más tarde',
         },
     },
     notificationPreferences: {
@@ -676,7 +673,13 @@ export default {
         linkHasBeenResent: 'El enlace se ha reenviado',
         weSentYouMagicSignInLink: ({login, loginType}) => `Te he enviado un hiperenlace mágico para iniciar sesión a ${login}. Por favor, revisa tu ${loginType}`,
         resendLink: 'Reenviar enlace',
-        validationCodeFailedMessage: 'Parece que hubo un error con el enlace de validación o ha caducado.',
+    },
+    unlinkLoginForm: {
+        toValidateLogin: ({primaryLogin, secondaryLogin}) => `Para validar ${secondaryLogin}, reenvía el código mágico desde la Configuración de la cuenta de ${primaryLogin}.`,
+        noLongerHaveAccess: ({primaryLogin}) => `Si ya no tienes acceso a ${primaryLogin} por favor, desvincula las cuentas.`,
+        unlink: 'Desvincular',
+        linkSent: '¡Enlace enviado!',
+        succesfullyUnlinkedLogin: '¡Nombre de usuario secundario desvinculado correctamente!',
     },
     detailsPage: {
         localTime: 'Hora local',
@@ -858,7 +861,7 @@ export default {
             customerServiceDetails: 'No hay tarifas de servicio al cliente.',
             inactivityDetails: 'No hay tarifa de inactividad.',
             sendingFundsTitle: 'Enviar fondos a otro titular de cuenta',
-            sendingFundsDetails: 'No se aplica ningún cargo por enviar fondos a otro titular de cuenta utilizando su ' + 'saldo cuenta bancaria o tarjeta de débito',
+            sendingFundsDetails: 'No se aplica ningún cargo por enviar fondos a otro titular de cuenta utilizando su saldo cuenta bancaria o tarjeta de débito',
             electronicFundsStandardDetails:
                 'No hay cargo por transferir fondos desde su billetera Expensify ' +
                 'a su cuenta bancaria utilizando la opción estándar. Esta transferencia generalmente se completa en' +
@@ -873,10 +876,10 @@ export default {
                 'transferido a The Bancorp Bank, una institución asegurada por la FDIC. Una vez allí, sus fondos ' +
                 'están asegurados a $ 250,000 por la FDIC en caso de que The Bancorp Bank quiebre. Ver',
             fdicInsuranceBancorp2: 'para detalles.',
-            contactExpensifyPayments: 'Comuníquese con Expensify Payments llamando al + 1833-400-0904, por correo' + 'electrónico a',
+            contactExpensifyPayments: 'Comuníquese con Expensify Payments llamando al + 1833-400-0904, por correoelectrónico a',
             contactExpensifyPayments2: 'o inicie sesión en',
             generalInformation: 'Para obtener información general sobre cuentas prepagas, visite',
-            generalInformation2: 'Si tiene una queja sobre una cuenta prepaga, llame al Consumer Financial Oficina de ' + 'Protección al 1-855-411-2372 o visite',
+            generalInformation2: 'Si tiene una queja sobre una cuenta prepaga, llame al Consumer Financial Oficina de Protección al 1-855-411-2372 o visite',
             printerFriendlyView: 'Ver versión para imprimir',
             automated: 'Automatizado',
             liveAgent: 'Agente en vivo',
@@ -1165,12 +1168,19 @@ export default {
     newTaskPage: {
         task: 'Tarea',
         assignTask: 'Asignar tarea',
+        assignee: 'Cesionario',
+        assigneeError: 'Hubo un error al asignar esta tarea, intente con otro cesionario',
+        confirmTask: 'Confirmar tarea',
+        confirmError: 'Por favor introduce un título y selecciona un destino de tarea',
         title: 'Título',
         description: 'Descripción',
-        shareIn: 'Compartir en',
+        descriptionOptional: 'Descripción (opcional)',
+        shareSomewhere: 'Compartir en algún lugar',
         pleaseEnterTaskName: 'Por favor introduce un título',
         markAsComplete: 'Marcar como completa',
         markAsIncomplete: 'Marcar como incompleta',
+        pleaseEnterTaskAssignee: 'Por favor, asigna una persona a esta tarea',
+        pleaseEnterTaskDestination: 'Por favor, selecciona un destino de tarea',
     },
     statementPage: {
         generatingPDF: 'Estamos generando tu PDF ahora mismo. ¡Por favor, vuelve más tarde!',
@@ -1240,6 +1250,7 @@ export default {
         },
     },
     report: {
+        genericCreateReportFailureMessage: 'Error inesperado al crear el chat. Por favor, inténtalo más tarde',
         genericAddCommentFailureMessage: 'Error inesperado al agregar el comentario. Por favor, inténtalo más tarde',
         noActivityYet: 'Sin actividad todavía',
     },

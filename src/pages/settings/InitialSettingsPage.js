@@ -38,6 +38,7 @@ import * as UserUtils from '../../libs/UserUtils';
 import policyMemberPropType from '../policyMemberPropType';
 import * as ReportActionContextMenu from '../home/report/ContextMenu/ReportActionContextMenu';
 import {CONTEXT_MENU_TYPES} from '../home/report/ContextMenu/ContextMenuActions';
+import * as CurrencyUtils from '../../libs/CurrencyUtils';
 
 const propTypes = {
     /* Onyx Props */
@@ -147,12 +148,7 @@ class InitialSettingsPage extends React.Component {
      * @returns {Number} the user wallet balance
      */
     getWalletBalance(isPaymentItem) {
-        return isPaymentItem && Permissions.canUseWallet(this.props.betas)
-            ? this.props.numberFormat(
-                  this.props.userWallet.currentBalance / 100, // Divide by 100 because balance is in cents
-                  {style: 'currency', currency: 'USD'},
-              )
-            : undefined;
+        return isPaymentItem && Permissions.canUseWallet(this.props.betas) ? CurrencyUtils.convertToDisplayString(this.props.userWallet.currentBalance) : undefined;
     }
 
     /**

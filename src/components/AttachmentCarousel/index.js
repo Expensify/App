@@ -257,9 +257,9 @@ class AttachmentCarousel extends React.Component {
     renderCell(props) {
         const style = [props.style, styles.h100, {width: this.state.containerWidth}];
 
-        // eslint-disable-next-line react/jsx-props-no-spreading
         return (
             <View
+                // eslint-disable-next-line react/jsx-props-no-spreading
                 {...props}
                 style={style}
             />

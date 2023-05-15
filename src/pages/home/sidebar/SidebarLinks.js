@@ -305,6 +305,7 @@ const policySelector = (policy) =>
     policy && {
         type: policy.type,
         name: policy.name,
+        avatar: policy.avatar,
     };
 
 export default compose(

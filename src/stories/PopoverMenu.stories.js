@@ -15,7 +15,6 @@ const story = {
     component: PopoverMenu,
 };
 
-// eslint-disable-next-line react/jsx-props-no-spreading
 const Template = (args) => {
     const [isVisible, setIsVisible] = React.useState(false);
     const toggleVisibility = () => setIsVisible(!isVisible);

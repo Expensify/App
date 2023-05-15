@@ -11,7 +11,7 @@ import HeaderWithBackButton from '../../components/HeaderWithBackButton';
 import compose from '../../libs/compose';
 import withLocalize, {withLocalizePropTypes} from '../../components/withLocalize';
 import * as IOU from '../../libs/actions/IOU';
-import * as CurrencySymbolUtils from '../../libs/CurrencySymbolUtils';
+import * as CurrencyUtils from '../../libs/CurrencyUtils';
 import {withNetwork} from '../../components/OnyxProvider';
 import ROUTES from '../../ROUTES';
 import CONST from '../../CONST';
@@ -97,7 +97,7 @@ class IOUCurrencySelection extends Component {
         return _.map(this.props.currencyList, (currencyInfo, currencyCode) => {
             const isSelectedCurrency = currencyCode === this.props.iou.selectedCurrencyCode;
             return {
-                text: `${currencyCode} - ${CurrencySymbolUtils.getLocalizedCurrencySymbol(this.props.preferredLocale, currencyCode)}`,
+                text: `${currencyCode} - ${CurrencyUtils.getLocalizedCurrencySymbol(currencyCode)}`,
                 currencyCode,
                 keyForList: currencyCode,
                 customIcon: isSelectedCurrency ? greenCheckmark : undefined,

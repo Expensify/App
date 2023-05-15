@@ -118,8 +118,8 @@ Composer.propTypes = propTypes;
 Composer.defaultProps = defaultProps;
 
 export default React.forwardRef((props, ref) => (
-    /* eslint-disable-next-line react/jsx-props-no-spreading */
     <Composer
+        // eslint-disable-next-line react/jsx-props-no-spreading
         {...props}
         forwardedRef={ref}
     />

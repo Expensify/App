@@ -192,12 +192,12 @@ class LoginForm extends React.Component {
                     />
                 </View>
                 {!_.isEmpty(this.props.account.success) && <Text style={[styles.formSuccess]}>{this.props.account.success}</Text>}
-                {!_.isEmpty(this.props.closeAccount.success) && (
+                {!_.isEmpty(this.props.closeAccount.success || this.props.account.message) && (
                     // DotIndicatorMessage mostly expects onyxData errors, so we need to mock an object so that the messages looks similar to prop.account.errors
                     <DotIndicatorMessage
                         style={[styles.mv2]}
                         type="success"
-                        messages={{0: this.props.closeAccount.success}}
+                        messages={{0: this.props.closeAccount.success || this.props.account.message}}
                     />
                 )}
                 {

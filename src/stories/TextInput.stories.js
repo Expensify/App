@@ -71,6 +71,19 @@ AutoGrowInput.args = {
     ],
 };
 
+const AutoGrowHeightInput = Template.bind({});
+AutoGrowHeightInput.args = {
+    label: 'Autogrowheight input',
+    name: 'AutoGrowHeight',
+    placeholder: 'My placeholder text',
+    autoGrowHeight: true,
+    textInputContainerStyles: [
+        {
+            maxHeight: 115,
+        },
+    ],
+};
+
 const PrefixedInput = Template.bind({});
 PrefixedInput.args = {
     label: 'Prefixed input',
@@ -112,4 +125,4 @@ HintAndErrorInput.args = {
 };
 
 export default story;
-export {AutoFocus, DefaultInput, DefaultValueInput, ErrorInput, ForceActiveLabel, PlaceholderInput, AutoGrowInput, PrefixedInput, MaxLengthInput, HintAndErrorInput};
+export {AutoFocus, DefaultInput, DefaultValueInput, ErrorInput, ForceActiveLabel, PlaceholderInput, AutoGrowInput, AutoGrowHeightInput, PrefixedInput, MaxLengthInput, HintAndErrorInput};

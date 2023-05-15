@@ -20,13 +20,13 @@ import ScreenWrapper from '../../components/ScreenWrapper';
 import CONST from '../../CONST';
 import * as PersonalDetails from '../../libs/actions/PersonalDetails';
 import withCurrentUserPersonalDetails from '../../components/withCurrentUserPersonalDetails';
-import networkPropTypes from '../../components/networkPropTypes';
-import {withNetwork} from '../../components/OnyxProvider';
 import reportPropTypes from '../reportPropTypes';
 import * as ReportUtils from '../../libs/ReportUtils';
 import * as ReportScrollManager from '../../libs/ReportScrollManager';
+import useOnNetworkReconnect from '../../components/hooks/useOnNetworkReconnect';
 import * as DeviceCapabilities from '../../libs/DeviceCapabilities';
 import HeaderWithBackButton from '../../components/HeaderWithBackButton';
+import * as CurrencyUtils from '../../libs/CurrencyUtils';
 
 /**
  * A modal used for requesting money, splitting bills or sending money.
@@ -41,9 +41,6 @@ const propTypes = {
     /** The report passed via the route */
     // eslint-disable-next-line react/no-unused-prop-types
     report: reportPropTypes,
-
-    /** Information about the network */
-    network: networkPropTypes.isRequired,
 
     // Holds data related to request view state, rather than the underlying request data.
     iou: PropTypes.shape({
@@ -110,7 +107,6 @@ const MoneyRequestModal = (props) => {
         [reportParticipants.length],
     );
     const prevCreatingIOUTransactionStatusRef = useRef(lodashGet(props.iou, 'creatingIOUTransaction'));
-    const prevNetworkStatusRef = useRef(props.network.isOffline);
 
     const [previousStepIndex, setPreviousStepIndex] = useState(-1);
     const [currentStepIndex, setCurrentStepIndex] = useState(0);
@@ -119,7 +115,7 @@ const MoneyRequestModal = (props) => {
             ? OptionsListUtils.getPolicyExpenseReportOptions(props.report)
             : OptionsListUtils.getParticipantsOptions(props.report, props.personalDetails),
     );
-    const [amount, setAmount] = useState('');
+    const [amount, setAmount] = useState(0);
 
     useEffect(() => {
         PersonalDetails.openMoneyRequestModalPage();
@@ -142,18 +138,11 @@ const MoneyRequestModal = (props) => {
         }
     }, [props.iou]);
 
-    useEffect(() => {
-        if (props.network.isOffline || !prevNetworkStatusRef.current) {
-            return;
-        }
-
-        // User came back online, so let's refetch the currency details based on location
-        PersonalDetails.openMoneyRequestModalPage();
-    }, [props.network.isOffline]);
+    // User came back online, so let's refetch the currency details based on location
+    useOnNetworkReconnect(PersonalDetails.openMoneyRequestModalPage);
 
     useEffect(() => {
         // Used to store previous prop values to compare on next render
-        prevNetworkStatusRef.current = props.network.isOffline;
         prevCreatingIOUTransactionStatusRef.current = lodashGet(props.iou, 'creatingIOUTransaction');
     });
 
@@ -267,23 +256,22 @@ const MoneyRequestModal = (props) => {
      */
     const sendMoney = useCallback(
         (paymentMethodType) => {
-            const amountInDollars = Math.round(amount * 100);
             const currency = props.iou.selectedCurrencyCode;
             const trimmedComment = props.iou.comment.trim();
             const participant = selectedOptions[0];
 
             if (paymentMethodType === CONST.IOU.PAYMENT_TYPE.ELSEWHERE) {
-                IOU.sendMoneyElsewhere(props.report, amountInDollars, currency, trimmedComment, props.currentUserPersonalDetails.login, participant);
+                IOU.sendMoneyElsewhere(props.report, amount, currency, trimmedComment, props.currentUserPersonalDetails.login, participant);
                 return;
             }
 
             if (paymentMethodType === CONST.IOU.PAYMENT_TYPE.PAYPAL_ME) {
-                IOU.sendMoneyViaPaypal(props.report, amountInDollars, currency, trimmedComment, props.currentUserPersonalDetails.login, participant);
+                IOU.sendMoneyViaPaypal(props.report, amount, currency, trimmedComment, props.currentUserPersonalDetails.login, participant);
                 return;
             }
 
             if (paymentMethodType === CONST.IOU.PAYMENT_TYPE.EXPENSIFY) {
-                IOU.sendMoneyWithWallet(props.report, amountInDollars, currency, trimmedComment, props.currentUserPersonalDetails.login, participant);
+                IOU.sendMoneyWithWallet(props.report, amount, currency, trimmedComment, props.currentUserPersonalDetails.login, participant);
             }
         },
         [amount, props.iou.comment, selectedOptions, props.currentUserPersonalDetails.login, props.iou.selectedCurrencyCode, props.report],
@@ -300,23 +288,19 @@ const MoneyRequestModal = (props) => {
             // IOUs created from a group report will have a reportID param in the route.
             // Since the user is already viewing the report, we don't need to navigate them to the report
             if (props.hasMultipleParticipants && CONST.REGEX.NUMBER.test(reportID)) {
-                IOU.splitBill(selectedParticipants, props.currentUserPersonalDetails.login, amount, trimmedComment, props.iou.selectedCurrencyCode, props.preferredLocale, reportID);
+                IOU.splitBill(selectedParticipants, props.currentUserPersonalDetails.login, amount, trimmedComment, props.iou.selectedCurrencyCode, reportID);
                 return;
             }
 
             // If the request is created from the global create menu, we also navigate the user to the group report
             if (props.hasMultipleParticipants) {
-                IOU.splitBillAndOpenReport(selectedParticipants, props.currentUserPersonalDetails.login, amount, trimmedComment, props.iou.selectedCurrencyCode, props.preferredLocale);
+                IOU.splitBillAndOpenReport(selectedParticipants, props.currentUserPersonalDetails.login, amount, trimmedComment, props.iou.selectedCurrencyCode);
                 return;
             }
-            if (!selectedParticipants[0].login) {
-                // TODO - request to the policy expense chat. Not implemented yet!
-                // Will be implemented here: https://github.com/Expensify/Expensify/issues/270581
-                return;
-            }
-            IOU.requestMoney(props.report, Math.round(amount * 100), props.iou.selectedCurrencyCode, props.currentUserPersonalDetails.login, selectedParticipants[0], trimmedComment);
+
+            IOU.requestMoney(props.report, amount, props.iou.selectedCurrencyCode, props.currentUserPersonalDetails.login, selectedParticipants[0], trimmedComment);
         },
-        [amount, props.iou.comment, props.currentUserPersonalDetails.login, props.hasMultipleParticipants, props.iou.selectedCurrencyCode, props.preferredLocale, props.report, props.route],
+        [amount, props.iou.comment, props.currentUserPersonalDetails.login, props.hasMultipleParticipants, props.iou.selectedCurrencyCode, props.report, props.route],
     );
 
     const currentStep = steps[currentStepIndex];
@@ -351,12 +335,13 @@ const MoneyRequestModal = (props) => {
                                         {modalHeader}
                                         <MoneyRequestAmountPage
                                             onStepComplete={(value) => {
-                                                setAmount(value);
+                                                const amountInSmallestCurrencyUnits = CurrencyUtils.convertToSmallestUnit(props.iou.selectedCurrencyCode, Number.parseFloat(value));
+                                                setAmount(amountInSmallestCurrencyUnits);
                                                 navigateToNextStep();
                                             }}
                                             reportID={reportID}
                                             hasMultipleParticipants={props.hasMultipleParticipants}
-                                            selectedAmount={amount}
+                                            selectedAmount={CurrencyUtils.convertToWholeUnit(props.iou.selectedCurrencyCode, amount)}
                                             navigation={props.navigation}
                                             iouType={props.iouType}
                                             buttonText={amountButtonText}
@@ -425,7 +410,6 @@ MoneyRequestModal.defaultProps = defaultProps;
 
 export default compose(
     withLocalize,
-    withNetwork(),
     withCurrentUserPersonalDetails,
     withOnyx({
         report: {

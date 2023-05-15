@@ -15,7 +15,7 @@ const propTypes = {
     hasMultipleParticipants: PropTypes.bool.isRequired,
 
     /** IOU amount */
-    iouAmount: PropTypes.string.isRequired,
+    iouAmount: PropTypes.number.isRequired,
 
     /** Selected participants from MoneyRequestModal with login */
     participants: PropTypes.arrayOf(optionPropTypes).isRequired,

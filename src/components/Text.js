@@ -61,11 +61,11 @@ const Text = React.forwardRef(({color, fontSize, textAlign, children, family, st
     }
 
     return (
-        // eslint-disable-next-line react/jsx-props-no-spreading
         <RNText
             allowFontScaling={false}
             ref={ref}
             style={[componentStyle]}
+            // eslint-disable-next-line react/jsx-props-no-spreading
             {...props}
         >
             {children}

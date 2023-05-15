@@ -110,7 +110,6 @@ class ContactMethodDetailsPage extends Component {
 
     /**
      * Gets the current contact method from the route params
-     *
      * @returns {string}
      */
     getContactMethod() {
@@ -267,7 +266,7 @@ class ContactMethodDetailsPage extends Component {
                         <OfflineWithFeedback
                             pendingAction={lodashGet(loginData, 'pendingFields.deletedLogin', null)}
                             errors={ErrorUtils.getLatestErrorField(loginData, 'deletedLogin')}
-                            errorRowStyles={[styles.mt6]}
+                            errorRowStyles={[styles.mt6, styles.ph5]}
                             onClose={() => User.clearContactMethodErrors(contactMethod, 'deletedLogin')}
                         >
                             <MenuItem

@@ -64,8 +64,8 @@ FormSubmit.propTypes = formSubmitPropTypes.propTypes;
 FormSubmit.defaultProps = formSubmitPropTypes.defaultProps;
 
 export default React.forwardRef((props, ref) => (
-    // eslint-disable-next-line react/jsx-props-no-spreading
     <FormSubmit
+        // eslint-disable-next-line react/jsx-props-no-spreading
         {...props}
         innerRef={ref}
     />

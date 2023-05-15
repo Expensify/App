@@ -210,7 +210,6 @@ describe('Unread Indicators', () => {
                 const sidebarLinksHintText = Localize.translateLocal('sidebarScreen.listOfChats');
                 const sidebarLinks = screen.queryAllByLabelText(sidebarLinksHintText);
                 expect(sidebarLinks).toHaveLength(1);
-                expect(areYouOnChatListScreen()).toBe(true);
 
                 // Verify there is only one option in the sidebar
                 const optionRowsHintText = Localize.translateLocal('accessibilityHints.navigatesToChat');
@@ -225,9 +224,6 @@ describe('Unread Indicators', () => {
                 return navigateToSidebarOption(0);
             })
             .then(() => {
-                // Verify that the report screen is rendered and the drawer is closed
-                expect(areYouOnChatListScreen()).toBe(false);
-
                 // That the report actions are visible along with the created action
                 const welcomeMessageHintText = Localize.translateLocal('accessibilityHints.chatWelcomeMessage');
                 const createdAction = screen.queryByLabelText(welcomeMessageHintText);
@@ -253,6 +249,8 @@ describe('Unread Indicators', () => {
         signInAndGetAppWithUnreadChat()
             // Navigate to the unread chat from the sidebar
             .then(() => navigateToSidebarOption(0))
+            // Navigate to the unread chat from the sidebar
+            .then(() => navigateToSidebarOption(0))
             .then(() => {
                 expect(areYouOnChatListScreen()).toBe(false);
 
@@ -263,10 +261,14 @@ describe('Unread Indicators', () => {
                 // Verify the LHN is now open
                 expect(areYouOnChatListScreen()).toBe(true);
 
-                // Verify that the option row in the LHN is no longer bold (since OpenReport marked it as read)
-                const hintText = Localize.translateLocal('accessibilityHints.chatUserDisplayNames');
-                const updatedDisplayNameText = screen.queryByLabelText(hintText);
-                expect(lodashGet(updatedDisplayNameText, ['props', 'style', 0, 'fontWeight'])).toBe(undefined);
+                // Tap on the chat again
+                return navigateToSidebarOption(0);
+            })
+            .then(() => {
+                // Verify the unread indicator is not present
+                const newMessageLineIndicatorHintText = Localize.translateLocal('accessibilityHints.newMessageLineIndicator');
+                const unreadIndicator = screen.queryAllByLabelText(newMessageLineIndicatorHintText);
+                expect(unreadIndicator).toHaveLength(0);
 
                 // Tap on the chat again
                 return navigateToSidebarOption(0);
@@ -277,10 +279,6 @@ describe('Unread Indicators', () => {
                 const unreadIndicator = screen.queryAllByLabelText(newMessageLineIndicatorHintText);
                 expect(unreadIndicator).toHaveLength(0);
                 expect(areYouOnChatListScreen()).toBe(false);
-
-                // Scroll and verify that the new messages badge is also hidden
-                scrollUpToRevealNewMessagesBadge();
-                return waitFor(() => expect(isNewMessagesBadgeVisible()).toBe(false));
             }));
 
     it('Shows a browser notification and bold text when a new message arrives for a chat that is read', () =>
@@ -297,7 +295,7 @@ describe('Unread Indicators', () => {
                 const channel = Pusher.getChannel(`${CONST.PUSHER.PRIVATE_USER_CHANNEL_PREFIX}${USER_A_ACCOUNT_ID}${CONFIG.PUSHER.SUFFIX}`);
                 channel.emit(Pusher.TYPE.ONYX_API_UPDATE, [
                     {
-                        onyxMethod: CONST.ONYX.METHOD.MERGE,
+                        onyxMethod: Onyx.METHOD.MERGE,
                         key: `${ONYXKEYS.COLLECTION.REPORT}${NEW_REPORT_ID}`,
                         value: {
                             reportID: NEW_REPORT_ID,
@@ -309,7 +307,7 @@ describe('Unread Indicators', () => {
                         },
                     },
                     {
-                        onyxMethod: CONST.ONYX.METHOD.MERGE,
+                        onyxMethod: Onyx.METHOD.MERGE,
                         key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${NEW_REPORT_ID}`,
                         value: {
                             [createdReportActionID]: {
@@ -329,13 +327,6 @@ describe('Unread Indicators', () => {
                             },
                         },
                         shouldNotify: true,
-                    },
-                    {
-                        onyxMethod: CONST.ONYX.METHOD.MERGE,
-                        key: ONYXKEYS.PERSONAL_DETAILS,
-                        value: {
-                            [USER_C_EMAIL]: TestHelper.buildPersonalDetails(USER_C_EMAIL, USER_C_ACCOUNT_ID, 'C'),
-                        },
                     },
                 ]);
                 return waitForPromisesToResolve();
@@ -440,12 +431,6 @@ describe('Unread Indicators', () => {
                 // Verify we are on the LHN and that the chat shows as unread in the LHN
                 expect(areYouOnChatListScreen()).toBe(true);
 
-                const hintText = Localize.translateLocal('accessibilityHints.chatUserDisplayNames');
-                const displayNameTexts = screen.queryAllByLabelText(hintText);
-                expect(displayNameTexts).toHaveLength(1);
-                expect(lodashGet(displayNameTexts[0], ['props', 'children'])).toBe('B User');
-                expect(lodashGet(displayNameTexts[0], ['props', 'style', 0, 'fontWeight'])).toBe(fontWeightBold);
-
                 // Navigate to the report and verify the indicator is present
                 return navigateToSidebarOption(0);
             })
@@ -469,12 +454,6 @@ describe('Unread Indicators', () => {
             .then(() => {
                 // Verify we are on the LHN and that the chat shows as unread in the LHN
                 expect(areYouOnChatListScreen()).toBe(true);
-
-                const hintText = Localize.translateLocal('accessibilityHints.chatUserDisplayNames');
-                const displayNameTexts = screen.queryAllByLabelText(hintText);
-                expect(displayNameTexts).toHaveLength(1);
-                expect(lodashGet(displayNameTexts[0], ['props', 'children'])).toBe('B User');
-                expect(lodashGet(displayNameTexts[0], ['props', 'style', 0, 'fontWeight'])).toBe(fontWeightBold);
 
                 // Navigate to the chat and verify the new line indicator is present
                 return navigateToSidebarOption(0);

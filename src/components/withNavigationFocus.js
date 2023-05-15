@@ -28,8 +28,8 @@ export default function withNavigationFocus(WrappedComponent) {
         forwardedRef: undefined,
     };
     return React.forwardRef((props, ref) => (
-        // eslint-disable-next-line react/jsx-props-no-spreading
         <WithNavigationFocus
+            // eslint-disable-next-line react/jsx-props-no-spreading
             {...props}
             forwardedRef={ref}
         />

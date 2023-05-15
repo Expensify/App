@@ -17,6 +17,7 @@ Onyx.connect({
 });
 
 let socket;
+let pusherSocketID = '';
 const socketEventCallbacks = [];
 let customAuthorizer;
 
@@ -81,6 +82,7 @@ function init(args, params) {
         });
 
         socket.connection.bind('connected', () => {
+            pusherSocketID = socket.connection.socket_id;
             callSocketEventCallbacks('connected');
             resolve();
         });
@@ -350,6 +352,7 @@ function disconnect() {
 
     socket.disconnect();
     socket = null;
+    pusherSocketID = '';
 }
 
 /**
@@ -366,6 +369,13 @@ function reconnect() {
     socket.connect();
 }
 
+/**
+ * @returns {String}
+ */
+function getPusherSocketID() {
+    return pusherSocketID;
+}
+
 if (window) {
     /**
      * Pusher socket for debugging purposes
@@ -375,4 +385,18 @@ if (window) {
     window.getPusherInstance = () => socket;
 }
 
-export {init, subscribe, unsubscribe, getChannel, isSubscribed, isAlreadySubscribing, sendEvent, disconnect, reconnect, registerSocketEventCallback, registerCustomAuthorizer, TYPE};
+export {
+    init,
+    subscribe,
+    unsubscribe,
+    getChannel,
+    isSubscribed,
+    isAlreadySubscribing,
+    sendEvent,
+    disconnect,
+    reconnect,
+    registerSocketEventCallback,
+    registerCustomAuthorizer,
+    TYPE,
+    getPusherSocketID,
+};

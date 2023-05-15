@@ -45,8 +45,8 @@ TextInput.propTypes = baseTextInputPropTypes.propTypes;
 TextInput.defaultProps = baseTextInputPropTypes.defaultProps;
 
 export default React.forwardRef((props, ref) => (
-    /* eslint-disable-next-line react/jsx-props-no-spreading */
     <TextInput
+        // eslint-disable-next-line react/jsx-props-no-spreading
         {...props}
         innerRef={ref}
     />

@@ -166,6 +166,7 @@ class BaseModal extends PureComponent {
                                     ...modalPaddingStyles,
                                 }}
                                 ref={this.props.forwardedRef}
+                                nativeID="no-drag-area"
                             >
                                 {this.props.children}
                             </View>
@@ -181,8 +182,8 @@ BaseModal.propTypes = propTypes;
 BaseModal.defaultProps = defaultProps;
 
 export default React.forwardRef((props, ref) => (
-    // eslint-disable-next-line react/jsx-props-no-spreading
     <BaseModal
+        // eslint-disable-next-line react/jsx-props-no-spreading
         {...props}
         forwardedRef={ref}
     />

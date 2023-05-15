@@ -1,6 +1,5 @@
 import Onyx from 'react-native-onyx';
 import ONYXKEYS from '../../ONYXKEYS';
-import CONST from '../../CONST';
 import * as API from '../API';
 
 /**
@@ -17,7 +16,7 @@ function openOnfidoFlow() {
             optimisticData: [
                 {
                     // Use Onyx.set() since we are resetting the Onfido flow completely.
-                    onyxMethod: CONST.ONYX.METHOD.SET,
+                    onyxMethod: Onyx.METHOD.SET,
                     key: ONYXKEYS.WALLET_ONFIDO,
                     value: {
                         isLoading: true,
@@ -26,7 +25,7 @@ function openOnfidoFlow() {
             ],
             successData: [
                 {
-                    onyxMethod: CONST.ONYX.METHOD.MERGE,
+                    onyxMethod: Onyx.METHOD.MERGE,
                     key: ONYXKEYS.WALLET_ONFIDO,
                     value: {
                         isLoading: false,
@@ -35,7 +34,7 @@ function openOnfidoFlow() {
             ],
             failureData: [
                 {
-                    onyxMethod: CONST.ONYX.METHOD.MERGE,
+                    onyxMethod: Onyx.METHOD.MERGE,
                     key: ONYXKEYS.WALLET_ONFIDO,
                     value: {
                         isLoading: false,
@@ -112,7 +111,7 @@ function updatePersonalDetails(personalDetails) {
         {
             optimisticData: [
                 {
-                    onyxMethod: CONST.ONYX.METHOD.MERGE,
+                    onyxMethod: Onyx.METHOD.MERGE,
                     key: ONYXKEYS.WALLET_ADDITIONAL_DETAILS,
                     value: {
                         isLoading: true,
@@ -123,7 +122,7 @@ function updatePersonalDetails(personalDetails) {
             ],
             successData: [
                 {
-                    onyxMethod: CONST.ONYX.METHOD.MERGE,
+                    onyxMethod: Onyx.METHOD.MERGE,
                     key: ONYXKEYS.WALLET_ADDITIONAL_DETAILS,
                     value: {
                         isLoading: false,
@@ -132,7 +131,7 @@ function updatePersonalDetails(personalDetails) {
             ],
             failureData: [
                 {
-                    onyxMethod: CONST.ONYX.METHOD.MERGE,
+                    onyxMethod: Onyx.METHOD.MERGE,
                     key: ONYXKEYS.WALLET_ADDITIONAL_DETAILS,
                     value: {
                         isLoading: false,
@@ -163,7 +162,7 @@ function verifyIdentity(parameters) {
         {
             optimisticData: [
                 {
-                    onyxMethod: CONST.ONYX.METHOD.MERGE,
+                    onyxMethod: Onyx.METHOD.MERGE,
                     key: ONYXKEYS.WALLET_ONFIDO,
                     value: {
                         isLoading: true,
@@ -172,7 +171,7 @@ function verifyIdentity(parameters) {
                     },
                 },
                 {
-                    onyxMethod: CONST.ONYX.METHOD.MERGE,
+                    onyxMethod: Onyx.METHOD.MERGE,
                     key: ONYXKEYS.USER_WALLET,
                     value: {
                         shouldShowFailedKYC: false,
@@ -181,7 +180,7 @@ function verifyIdentity(parameters) {
             ],
             successData: [
                 {
-                    onyxMethod: CONST.ONYX.METHOD.MERGE,
+                    onyxMethod: Onyx.METHOD.MERGE,
                     key: ONYXKEYS.WALLET_ONFIDO,
                     value: {
                         isLoading: false,
@@ -191,7 +190,7 @@ function verifyIdentity(parameters) {
             ],
             failureData: [
                 {
-                    onyxMethod: CONST.ONYX.METHOD.MERGE,
+                    onyxMethod: Onyx.METHOD.MERGE,
                     key: ONYXKEYS.WALLET_ONFIDO,
                     value: {
                         isLoading: false,
@@ -213,7 +212,7 @@ function verifyIdentity(parameters) {
 function acceptWalletTerms(parameters) {
     const optimisticData = [
         {
-            onyxMethod: CONST.ONYX.METHOD.MERGE,
+            onyxMethod: Onyx.METHOD.MERGE,
             key: ONYXKEYS.USER_WALLET,
             value: {
                 shouldShowWalletActivationSuccess: true,
@@ -223,7 +222,7 @@ function acceptWalletTerms(parameters) {
 
     const successData = [
         {
-            onyxMethod: CONST.ONYX.METHOD.MERGE,
+            onyxMethod: Onyx.METHOD.MERGE,
             key: ONYXKEYS.WALLET_TERMS,
             value: {
                 errors: null,
@@ -233,7 +232,7 @@ function acceptWalletTerms(parameters) {
 
     const failureData = [
         {
-            onyxMethod: CONST.ONYX.METHOD.MERGE,
+            onyxMethod: Onyx.METHOD.MERGE,
             key: ONYXKEYS.USER_WALLET,
             value: {
                 shouldShowWalletActivationSuccess: null,
@@ -293,7 +292,7 @@ function answerQuestionsForWallet(answers, idNumber) {
         {
             optimisticData: [
                 {
-                    onyxMethod: CONST.ONYX.METHOD.MERGE,
+                    onyxMethod: Onyx.METHOD.MERGE,
                     key: ONYXKEYS.WALLET_ADDITIONAL_DETAILS,
                     value: {
                         isLoading: true,
@@ -302,7 +301,7 @@ function answerQuestionsForWallet(answers, idNumber) {
             ],
             successData: [
                 {
-                    onyxMethod: CONST.ONYX.METHOD.MERGE,
+                    onyxMethod: Onyx.METHOD.MERGE,
                     key: ONYXKEYS.WALLET_ADDITIONAL_DETAILS,
                     value: {
                         isLoading: false,
@@ -311,7 +310,7 @@ function answerQuestionsForWallet(answers, idNumber) {
             ],
             failureData: [
                 {
-                    onyxMethod: CONST.ONYX.METHOD.MERGE,
+                    onyxMethod: Onyx.METHOD.MERGE,
                     key: ONYXKEYS.WALLET_ADDITIONAL_DETAILS,
                     value: {
                         isLoading: false,

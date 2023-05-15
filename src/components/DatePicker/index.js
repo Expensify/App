@@ -90,8 +90,8 @@ DatePicker.defaultProps = defaultProps;
 
 export default withWindowDimensions(
     React.forwardRef((props, ref) => (
-        /* eslint-disable-next-line react/jsx-props-no-spreading */
         <DatePicker
+            // eslint-disable-next-line react/jsx-props-no-spreading
             {...props}
             innerRef={ref}
         />

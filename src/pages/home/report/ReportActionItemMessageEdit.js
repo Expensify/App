@@ -240,8 +240,7 @@ class ReportActionItemMessageEdit extends React.Component {
      * @param {Event} e
      */
     triggerSaveOrCancel(e) {
-        // Do not trigger actions for mobileWeb or native clients that have the keyboard open because for those devices, we want the return key to insert newlines rather than submit the form
-        if (!e || this.props.isSmallScreenWidth || this.props.isKeyboardShown) {
+        if (!e || ComposerUtils.canSkipTriggerHotkeys(this.props.isSmallScreenWidth, this.props.isKeyboardShown)) {
             return;
         }
         if (e.key === CONST.KEYBOARD_SHORTCUTS.ENTER.shortcutKey && !e.shiftKey) {
@@ -374,8 +373,8 @@ export default compose(
     withKeyboardState,
 )(
     React.forwardRef((props, ref) => (
-        /* eslint-disable-next-line react/jsx-props-no-spreading */
         <ReportActionItemMessageEdit
+            // eslint-disable-next-line react/jsx-props-no-spreading
             {...props}
             forwardedRef={ref}
         />

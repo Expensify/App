@@ -31,7 +31,7 @@ class PressableWithSecondaryInteraction extends Component {
      * @param {Event} e - the secondary interaction event
      */
     executeSecondaryInteraction(e) {
-        if (DeviceCapabilities.hasHoverSupport()) {
+        if (DeviceCapabilities.hasHoverSupport() && !this.props.enableLongPressWithHover) {
             return;
         }
         if (this.props.withoutFocusOnSecondaryInteraction && this.pressableRef) {
@@ -91,8 +91,8 @@ class PressableWithSecondaryInteraction extends Component {
 PressableWithSecondaryInteraction.propTypes = pressableWithSecondaryInteractionPropTypes.propTypes;
 PressableWithSecondaryInteraction.defaultProps = pressableWithSecondaryInteractionPropTypes.defaultProps;
 export default React.forwardRef((props, ref) => (
-    // eslint-disable-next-line react/jsx-props-no-spreading
     <PressableWithSecondaryInteraction
+        // eslint-disable-next-line react/jsx-props-no-spreading
         {...props}
         forwardedRef={ref}
     />

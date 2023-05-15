@@ -209,8 +209,8 @@ if (Metrics.canCapturePerformanceMetrics()) {
                     id={id}
                     onRender={Performance.traceRender}
                 >
-                    {/* eslint-disable-next-line react/jsx-props-no-spreading */}
                     <WrappedComponent
+                        // eslint-disable-next-line react/jsx-props-no-spreading
                         {...props}
                         ref={ref}
                     />

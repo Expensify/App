@@ -21,6 +21,7 @@ import * as defaultAvatars from '../components/Icon/DefaultAvatars';
 import isReportMessageAttachment from './isReportMessageAttachment';
 import * as defaultWorkspaceAvatars from '../components/Icon/WorkspaceDefaultAvatars';
 import * as LocalePhoneNumber from './LocalePhoneNumber';
+import * as CurrencyUtils from './CurrencyUtils';
 
 let sessionEmail;
 Onyx.connect({
@@ -319,13 +320,13 @@ function isConciergeChatReport(report) {
 
 /**
  * @param {Record<String, {lastReadTime, reportID}>|Array<{lastReadTime, reportID}>} reports
- * @param {Boolean} [ignoreDefaultRooms]
+ * @param {Boolean} [ignoreDomainRooms]
  * @param {Object} policies
  * @param {Boolean} isFirstTimeNewExpensifyUser
  * @param {Boolean} openOnAdminRoom
  * @returns {Object}
  */
-function findLastAccessedReport(reports, ignoreDefaultRooms, policies, isFirstTimeNewExpensifyUser, openOnAdminRoom = false) {
+function findLastAccessedReport(reports, ignoreDomainRooms, policies, isFirstTimeNewExpensifyUser, openOnAdminRoom = false) {
     // If it's the user's first time using New Expensify, then they could either have:
     //   - just a Concierge report, if so we'll return that
     //   - their Concierge report, and a separate report that must have deeplinked them to the app before they created their account.
@@ -340,21 +341,18 @@ function findLastAccessedReport(reports, ignoreDefaultRooms, policies, isFirstTi
         return _.find(sortedReports, (report) => !isConciergeChatReport(report));
     }
 
-    if (ignoreDefaultRooms) {
-        // We allow public announce rooms to show as the last accessed report since we bypass the default rooms beta for them.
+    if (ignoreDomainRooms) {
+        // We allow public announce rooms, admins, and announce rooms through since we bypass the default rooms beta for them.
         // Check where ReportUtils.findLastAccessedReport is called in MainDrawerNavigator.js for more context.
+        // Domain rooms are now the only type of default room that are on the defaultRooms beta.
         sortedReports = _.filter(
             sortedReports,
-            (report) =>
-                !isDefaultRoom(report) ||
-                isPublicAnnounceRoom(report) ||
-                getPolicyType(report, policies) === CONST.POLICY.TYPE.FREE ||
-                hasExpensifyGuidesEmails(lodashGet(report, ['participants'], [])),
+            (report) => !isDomainRoom(report) || getPolicyType(report, policies) === CONST.POLICY.TYPE.FREE || hasExpensifyGuidesEmails(lodashGet(report, ['participants'], [])),
         );
     }
 
     let adminReport;
-    if (!ignoreDefaultRooms && openOnAdminRoom) {
+    if (openOnAdminRoom) {
         adminReport = _.find(sortedReports, (report) => {
             const chatType = getChatType(report);
             return chatType === CONST.REPORT.CHAT_TYPE.POLICY_ADMINS;
@@ -432,7 +430,7 @@ function getChatRoomSubtitle(report) {
         // The domainAll rooms are just #domainName, so we ignore the prefix '#' to get the domainName
         return report.reportName.substring(1);
     }
-    if (isPolicyExpenseChat(report) && report.isOwnPolicyExpenseChat) {
+    if ((isPolicyExpenseChat(report) && report.isOwnPolicyExpenseChat) || isExpenseReport(report)) {
         return Localize.translateLocal('workspace.common.workspace');
     }
     if (isArchivedRoom(report)) {
@@ -582,6 +580,11 @@ function getDefaultWorkspaceAvatar(workspaceName) {
     return !alphaNumeric ? defaultWorkspaceAvatars.WorkspaceBuilding : defaultWorkspaceAvatars[`Workspace${alphaNumeric[0]}`];
 }
 
+function getWorkspaceAvatar(report) {
+    const workspaceName = getPolicyName(report, allPolicies);
+    return lodashGet(allPolicies, [`${ONYXKEYS.COLLECTION.POLICY}${report.policyID}`, 'avatar']) || getDefaultWorkspaceAvatar(workspaceName);
+}
+
 /**
  * Helper method to return old dot default avatar associated with login
  *
@@ -728,7 +731,7 @@ function getIcons(report, personalDetails, defaultIcon = null) {
         const policyExpenseChatAvatarSource = lodashGet(allPolicies, [`${ONYXKEYS.COLLECTION.POLICY}${report.policyID}`, 'avatar']) || getDefaultWorkspaceAvatar(workspaceName);
 
         // Return the workspace avatar if the user is the owner of the policy expense chat
-        if (report.isOwnPolicyExpenseChat) {
+        if (report.isOwnPolicyExpenseChat && !isExpenseReport(report)) {
             result.source = policyExpenseChatAvatarSource;
             result.type = CONST.ICON_TYPE_WORKSPACE;
             result.name = workspaceName;
@@ -750,6 +753,15 @@ function getIcons(report, personalDetails, defaultIcon = null) {
         // If the user is an admin, return avatar source of the other participant of the report
         // (their workspace chat) and the avatar source of the workspace
         return [adminIcon, workspaceIcon];
+    }
+    if (isIOUReport(report)) {
+        return [
+            {
+                source: getAvatar(lodashGet(personalDetails, [report.ownerEmail, 'avatar']), report.ownerEmail),
+                name: report.ownerEmail,
+                type: CONST.ICON_TYPE_AVATAR,
+            },
+        ];
     }
 
     const participantDetails = [];
@@ -1007,22 +1019,17 @@ function buildOptimisticAddCommentReportAction(text, file) {
 /**
  * Builds an optimistic IOU report with a randomly generated reportID
  *
- * @param {String} ownerEmail - Email of the person generating the IOU.
- * @param {String} userEmail - Email of the other person participating in the IOU.
- * @param {Number} total - IOU amount in cents.
+ * @param {String} payeeEmail - Email of the person generating the IOU.
+ * @param {String} payerEmail - Email of the other person participating in the IOU.
+ * @param {Number} total - IOU amount in the smallest unit of the currency.
  * @param {String} chatReportID - Report ID of the chat where the IOU is.
  * @param {String} currency - IOU currency.
- * @param {String} locale - Locale where the IOU is created
  * @param {Boolean} isSendingMoney - If we send money the IOU should be created as settled
  *
  * @returns {Object}
  */
-function buildOptimisticIOUReport(ownerEmail, userEmail, total, chatReportID, currency, locale, isSendingMoney = false) {
-    const formattedTotal = NumberFormatUtils.format(locale, total, {
-        style: 'currency',
-        currency,
-    });
-
+function buildOptimisticIOUReport(payeeEmail, payerEmail, total, chatReportID, currency, isSendingMoney = false) {
+    const formattedTotal = CurrencyUtils.convertToDisplayString(total, currency);
     return {
         // If we're sending money, hasOutstandingIOU should be false
         hasOutstandingIOU: !isSendingMoney,
@@ -1030,11 +1037,49 @@ function buildOptimisticIOUReport(ownerEmail, userEmail, total, chatReportID, cu
         cachedTotal: formattedTotal,
         chatReportID,
         currency,
-        managerEmail: userEmail,
-        ownerEmail,
+        managerEmail: payerEmail,
+        ownerEmail: payeeEmail,
         reportID: generateReportID(),
         state: CONST.REPORT.STATE.SUBMITTED,
         stateNum: isSendingMoney ? CONST.REPORT.STATE_NUM.SUBMITTED : CONST.REPORT.STATE_NUM.PROCESSING,
+        total,
+
+        // We don't translate reportName because the server response is always in English
+        reportName: `${payerEmail} owes ${formattedTotal}`,
+    };
+}
+
+/**
+ * Builds an optimistic Expense report with a randomly generated reportID
+ *
+ * @param {String} chatReportID - Report ID of the PolicyExpenseChat where the Expense Report is
+ * @param {String} policyID - The policy ID of the PolicyExpenseChat
+ * @param {String} payeeEmail - Email of the employee (payee)
+ * @param {Number} total - Amount in cents
+ * @param {String} currency
+ *
+ * @returns {Object}
+ */
+function buildOptimisticExpenseReport(chatReportID, policyID, payeeEmail, total, currency) {
+    const policyName = getPolicyName(allReports[`${ONYXKEYS.COLLECTION.REPORT}${chatReportID}`]);
+    const formattedTotal = CurrencyUtils.convertToDisplayString(total, currency);
+
+    // The expense report is always created with the policy's output currency
+    const outputCurrency = lodashGet(allPolicies, [`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, 'outputCurrency'], CONST.CURRENCY.USD);
+
+    return {
+        reportID: generateReportID(),
+        chatReportID,
+        policyID,
+        type: CONST.REPORT.TYPE.EXPENSE,
+        ownerEmail: payeeEmail,
+        hasOutstandingIOU: true,
+        currency: outputCurrency,
+
+        // We don't translate reportName because the server response is always in English
+        reportName: `${policyName} owes ${formattedTotal}`,
+        state: CONST.REPORT.STATE.SUBMITTED,
+        stateNum: CONST.REPORT.STATE_NUM.PROCESSING,
         total,
     };
 }
@@ -1042,14 +1087,13 @@ function buildOptimisticIOUReport(ownerEmail, userEmail, total, chatReportID, cu
 /**
  * @param {String} type - IOUReportAction type. Can be oneOf(create, decline, cancel, pay, split)
  * @param {Number} total - IOU total in cents
- * @param {Array} participants - List of logins for the IOU participants, excluding the current user login
  * @param {String} comment - IOU comment
  * @param {String} currency - IOU currency
  * @param {String} paymentType - IOU paymentMethodType. Can be oneOf(Elsewhere, Expensify, PayPal.me)
  * @param {Boolean} isSettlingUp - Whether we are settling up an IOU
  * @returns {Array}
  */
-function getIOUReportActionMessage(type, total, participants, comment, currency, paymentType = '', isSettlingUp = false) {
+function getIOUReportActionMessage(type, total, comment, currency, paymentType = '', isSettlingUp = false) {
     const amount = NumberFormatUtils.format(preferredLocale, total / 100, {style: 'currency', currency});
     let paymentMethodMessage;
     switch (paymentType) {
@@ -1069,19 +1113,16 @@ function getIOUReportActionMessage(type, total, participants, comment, currency,
     let iouMessage;
     switch (type) {
         case CONST.IOU.REPORT_ACTION_TYPE.CREATE:
-            iouMessage = `Requested ${amount}${comment && ` for ${comment}`}`;
+            iouMessage = `requested ${amount}${comment && ` for ${comment}`}`;
             break;
         case CONST.IOU.REPORT_ACTION_TYPE.SPLIT:
-            iouMessage = `Split ${amount}${comment && ` for ${comment}`}`;
+            iouMessage = `split ${amount}${comment && ` for ${comment}`}`;
             break;
-        case CONST.IOU.REPORT_ACTION_TYPE.CANCEL:
-            iouMessage = `Cancelled the ${amount} request${comment && ` for ${comment}`}`;
-            break;
-        case CONST.IOU.REPORT_ACTION_TYPE.DECLINE:
-            iouMessage = `Declined the ${amount} request${comment && ` for ${comment}`}`;
+        case CONST.IOU.REPORT_ACTION_TYPE.DELETE:
+            iouMessage = `deleted the ${amount} request${comment && ` for ${comment}`}`;
             break;
         case CONST.IOU.REPORT_ACTION_TYPE.PAY:
-            iouMessage = isSettlingUp ? `Settled up ${amount}${paymentMethodMessage}` : `Sent ${amount}${comment && ` for ${comment}`}${paymentMethodMessage}`;
+            iouMessage = isSettlingUp ? `settled up ${amount}${paymentMethodMessage}` : `sent ${amount}${comment && ` for ${comment}`}${paymentMethodMessage}`;
             break;
         default:
             break;
@@ -1100,20 +1141,18 @@ function getIOUReportActionMessage(type, total, participants, comment, currency,
 /**
  * Builds an optimistic IOU reportAction object
  *
- * @param {String} type - IOUReportAction type. Can be oneOf(create, decline, cancel, pay, split).
+ * @param {String} type - IOUReportAction type. Can be oneOf(create, delete, pay, split).
  * @param {Number} amount - IOU amount in cents.
  * @param {String} currency
  * @param {String} comment - User comment for the IOU.
  * @param {Array}  participants - An array with participants details.
+ * @param {String} transactionID
  * @param {String} [paymentType] - Only required if the IOUReportAction type is 'pay'. Can be oneOf(elsewhere, payPal, Expensify).
- * @param {String} [iouTransactionID] - Only required if the IOUReportAction type is oneOf(cancel, decline). Generates a randomID as default.
  * @param {String} [iouReportID] - Only required if the IOUReportActions type is oneOf(decline, cancel, pay). Generates a randomID as default.
  * @param {Boolean} [isSettlingUp] - Whether we are settling up an IOU.
- *
  * @returns {Object}
  */
-function buildOptimisticIOUReportAction(type, amount, currency, comment, participants, paymentType = '', iouTransactionID = '', iouReportID = '', isSettlingUp = false) {
-    const IOUTransactionID = iouTransactionID || NumberUtils.rand64();
+function buildOptimisticIOUReportAction(type, amount, currency, comment, participants, transactionID, paymentType = '', iouReportID = '', isSettlingUp = false) {
     const IOUReportID = iouReportID || generateReportID();
     const parser = new ExpensiMark();
     const commentText = getParsedComment(comment);
@@ -1123,7 +1162,7 @@ function buildOptimisticIOUReportAction(type, amount, currency, comment, partici
         amount,
         comment: textForNewComment,
         currency,
-        IOUTransactionID,
+        IOUTransactionID: transactionID,
         IOUReportID,
         type,
     };
@@ -1140,6 +1179,7 @@ function buildOptimisticIOUReportAction(type, amount, currency, comment, partici
     // IOUs of type split only exist in group DMs and those don't have an iouReport so we need to delete the IOUReportID key
     if (type === CONST.IOU.REPORT_ACTION_TYPE.SPLIT) {
         delete originalMessage.IOUReportID;
+        originalMessage.participants = [currentUserEmail, ..._.pluck(participants, 'login')];
     }
 
     return {
@@ -1150,7 +1190,7 @@ function buildOptimisticIOUReportAction(type, amount, currency, comment, partici
         avatar: lodashGet(currentUserPersonalDetails, 'avatar', getDefaultAvatar(currentUserEmail)),
         isAttachment: false,
         originalMessage,
-        message: getIOUReportActionMessage(type, amount, participants, textForNewCommentDecoded, currency, paymentType, isSettlingUp),
+        message: getIOUReportActionMessage(type, amount, textForNewCommentDecoded, currency, paymentType, isSettlingUp),
         person: [
             {
                 style: 'strong',
@@ -1352,6 +1392,32 @@ function buildOptimisticWorkspaceChats(policyID, policyName) {
 }
 
 /**
+ * Builds an optimistic Task Report with a randomly generated reportID
+ *
+ * @param {String} ownerEmail - Email of the person generating the Task.
+ * @param {String} assignee - Email of the other person participating in the Task.
+ * @param {String} parentReportID - Report ID of the chat where the Task is.
+ * @param {String} title - Task title.
+ * @param {String} description - Task description.
+ *
+ * @returns {Object}
+ */
+
+function buildOptimisticTaskReport(ownerEmail, assignee = null, parentReportID, title, description) {
+    return {
+        reportID: generateReportID(),
+        reportName: title,
+        description,
+        ownerEmail,
+        assignee,
+        type: CONST.REPORT.TYPE.TASK,
+        parentReportID,
+        stateNum: CONST.REPORT.STATE_NUM.OPEN,
+        statusNum: CONST.REPORT.STATUS.OPEN,
+    };
+}
+
+/**
  * @param {Object} report
  * @returns {Boolean}
  */
@@ -1469,8 +1535,8 @@ function canSeeDefaultRoom(report, policies, betas) {
         return true;
     }
 
-    // Include any public announce rooms, since they could include people who should have access but we don't know to add to the beta
-    if (report.visibility === CONST.REPORT.VISIBILITY.PUBLIC_ANNOUNCE) {
+    // Include any admins and announce rooms, since only non partner-managed domain rooms are on the beta now.
+    if (isAdminRoom(report) || isAnnounceRoom(report)) {
         return true;
     }
 
@@ -1825,10 +1891,12 @@ export {
     isUnread,
     isUnreadWithMention,
     buildOptimisticWorkspaceChats,
+    buildOptimisticTaskReport,
     buildOptimisticChatReport,
     buildOptimisticClosedReportAction,
     buildOptimisticCreatedReportAction,
     buildOptimisticIOUReport,
+    buildOptimisticExpenseReport,
     buildOptimisticIOUReportAction,
     buildOptimisticAddCommentReportAction,
     shouldReportBeInOptionList,
@@ -1856,4 +1924,5 @@ export {
     getMoneyRequestOptions,
     canRequestMoney,
     getWhisperDisplayNames,
+    getWorkspaceAvatar,
 };

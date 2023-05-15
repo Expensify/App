@@ -82,7 +82,8 @@ function getSortedReportActions(reportActions, shouldSortInDescendingOrder = fal
  * @returns {String}
  */
 function getMostRecentIOURequestActionID(reportActions) {
-    const iouRequestActions = _.filter(reportActions, (action) => lodashGet(action, 'originalMessage.type') === CONST.IOU.REPORT_ACTION_TYPE.CREATE);
+    const iouRequestTypes = [CONST.IOU.REPORT_ACTION_TYPE.CREATE, CONST.IOU.REPORT_ACTION_TYPE.SPLIT];
+    const iouRequestActions = _.filter(reportActions, (action) => iouRequestTypes.includes(lodashGet(action, 'originalMessage.type')));
 
     if (_.isEmpty(iouRequestActions)) {
         return null;
@@ -269,6 +270,21 @@ function getLatestReportActionFromOnyxData(onyxData) {
     return _.last(sortedReportActions);
 }
 
+/**
+ * Find the transaction associated with this reportAction, if one exists.
+ *
+ * @param {String} reportID
+ * @param {String} reportActionID
+ * @returns {String|null}
+ */
+function getLinkedTransactionID(reportID, reportActionID) {
+    const reportAction = lodashGet(allReportActions, [reportID, reportActionID]);
+    if (!reportAction || reportAction.actionName !== CONST.REPORT.ACTIONS.TYPE.IOU) {
+        return null;
+    }
+    return reportAction.originalMessage.IOUTransactionID;
+}
+
 export {
     getSortedReportActions,
     getLastVisibleAction,
@@ -281,4 +297,5 @@ export {
     getSortedReportActionsForDisplay,
     getLastClosedReportAction,
     getLatestReportActionFromOnyxData,
+    getLinkedTransactionID,
 };

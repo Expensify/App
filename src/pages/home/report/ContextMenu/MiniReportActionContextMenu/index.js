@@ -21,9 +21,9 @@ const defaultProps = {
 
 const MiniReportActionContextMenu = (props) => (
     <View style={StyleUtils.getMiniReportActionContextMenuWrapperStyle(props.displayAsGroup)}>
-        {/* eslint-disable-next-line react/jsx-props-no-spreading */}
         <BaseReportActionContextMenu
             isMini
+            // eslint-disable-next-line react/jsx-props-no-spreading
             {...props}
         />
     </View>

@@ -101,7 +101,7 @@ function updatePronouns(pronouns) {
         {
             optimisticData: [
                 {
-                    onyxMethod: CONST.ONYX.METHOD.MERGE,
+                    onyxMethod: Onyx.METHOD.MERGE,
                     key: ONYXKEYS.PERSONAL_DETAILS,
                     value: {
                         [currentUserEmail]: {
@@ -126,7 +126,7 @@ function updateDisplayName(firstName, lastName) {
         {
             optimisticData: [
                 {
-                    onyxMethod: CONST.ONYX.METHOD.MERGE,
+                    onyxMethod: Onyx.METHOD.MERGE,
                     key: ONYXKEYS.PERSONAL_DETAILS,
                     value: {
                         [currentUserEmail]: {
@@ -156,7 +156,7 @@ function updateLegalName(legalFirstName, legalLastName) {
         {
             optimisticData: [
                 {
-                    onyxMethod: CONST.ONYX.METHOD.MERGE,
+                    onyxMethod: Onyx.METHOD.MERGE,
                     key: ONYXKEYS.PRIVATE_PERSONAL_DETAILS,
                     value: {
                         legalFirstName,
@@ -179,7 +179,7 @@ function updateDateOfBirth(dob) {
         {
             optimisticData: [
                 {
-                    onyxMethod: CONST.ONYX.METHOD.MERGE,
+                    onyxMethod: Onyx.METHOD.MERGE,
                     key: ONYXKEYS.PRIVATE_PERSONAL_DETAILS,
                     value: {
                         dob,
@@ -217,7 +217,7 @@ function updateAddress(street, street2, city, state, zip, country) {
     API.write('UpdateHomeAddress', parameters, {
         optimisticData: [
             {
-                onyxMethod: CONST.ONYX.METHOD.MERGE,
+                onyxMethod: Onyx.METHOD.MERGE,
                 key: ONYXKEYS.PRIVATE_PERSONAL_DETAILS,
                 value: {
                     address: {
@@ -251,7 +251,7 @@ function updateAutomaticTimezone(timezone) {
         {
             optimisticData: [
                 {
-                    onyxMethod: CONST.ONYX.METHOD.MERGE,
+                    onyxMethod: Onyx.METHOD.MERGE,
                     key: ONYXKEYS.PERSONAL_DETAILS,
                     value: {
                         [currentUserEmail]: {
@@ -282,7 +282,7 @@ function updateSelectedTimezone(selectedTimezone) {
         {
             optimisticData: [
                 {
-                    onyxMethod: CONST.ONYX.METHOD.MERGE,
+                    onyxMethod: Onyx.METHOD.MERGE,
                     key: ONYXKEYS.PERSONAL_DETAILS,
                     value: {
                         [currentUserEmail]: {
@@ -318,7 +318,7 @@ function openPersonalDetailsPage() {
 function updateAvatar(file) {
     const optimisticData = [
         {
-            onyxMethod: CONST.ONYX.METHOD.MERGE,
+            onyxMethod: Onyx.METHOD.MERGE,
             key: ONYXKEYS.PERSONAL_DETAILS,
             value: {
                 [currentUserEmail]: {
@@ -338,7 +338,7 @@ function updateAvatar(file) {
     ];
     const successData = [
         {
-            onyxMethod: CONST.ONYX.METHOD.MERGE,
+            onyxMethod: Onyx.METHOD.MERGE,
             key: ONYXKEYS.PERSONAL_DETAILS,
             value: {
                 [currentUserEmail]: {
@@ -351,7 +351,7 @@ function updateAvatar(file) {
     ];
     const failureData = [
         {
-            onyxMethod: CONST.ONYX.METHOD.MERGE,
+            onyxMethod: Onyx.METHOD.MERGE,
             key: ONYXKEYS.PERSONAL_DETAILS,
             value: {
                 [currentUserEmail]: {
@@ -381,7 +381,7 @@ function deleteAvatar() {
         {
             optimisticData: [
                 {
-                    onyxMethod: CONST.ONYX.METHOD.MERGE,
+                    onyxMethod: Onyx.METHOD.MERGE,
                     key: ONYXKEYS.PERSONAL_DETAILS,
                     value: {
                         [currentUserEmail]: {
@@ -392,7 +392,7 @@ function deleteAvatar() {
             ],
             failureData: [
                 {
-                    onyxMethod: CONST.ONYX.METHOD.MERGE,
+                    onyxMethod: Onyx.METHOD.MERGE,
                     key: ONYXKEYS.PERSONAL_DETAILS,
                     value: {
                         [currentUserEmail]: {

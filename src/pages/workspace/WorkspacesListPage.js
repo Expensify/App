@@ -26,6 +26,7 @@ import BlockingView from '../../components/BlockingViews/BlockingView';
 import {withNetwork} from '../../components/OnyxProvider';
 import * as ReimbursementAccountProps from '../ReimbursementAccount/reimbursementAccountPropTypes';
 import * as ReportUtils from '../../libs/ReportUtils';
+import * as CurrencyUtils from '../../libs/CurrencyUtils';
 
 const propTypes = {
     /* Onyx Props */
@@ -111,12 +112,7 @@ class WorkspacesListPage extends Component {
      * @returns {Number} the user wallet balance
      */
     getWalletBalance(isPaymentItem) {
-        return isPaymentItem && Permissions.canUseWallet(this.props.betas)
-            ? this.props.numberFormat(
-                  this.props.userWallet.currentBalance / 100, // Divide by 100 because balance is in cents
-                  {style: 'currency', currency: 'USD'},
-              )
-            : undefined;
+        return isPaymentItem && Permissions.canUseWallet(this.props.betas) ? CurrencyUtils.convertToDisplayString(this.props.userWallet.currentBalance) : undefined;
     }
 
     /**

@@ -72,7 +72,7 @@ class ThumbnailImage extends PureComponent {
         } else {
             thumbnailScreenHeight = Math.round(thumbnailScreenWidth * aspectRatio);
         }
-        return {thumbnailWidth: thumbnailScreenWidth, thumbnailHeight: Math.max(40, thumbnailScreenHeight)};
+        return {thumbnailWidth: Math.max(40, thumbnailScreenWidth), thumbnailHeight: Math.max(40, thumbnailScreenHeight)};
     }
 
     /**

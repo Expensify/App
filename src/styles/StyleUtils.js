@@ -36,6 +36,7 @@ const avatarBorderSizes = {
     [CONST.AVATAR_SIZE.SUBSCRIPT]: variables.componentBorderRadiusSmall,
     [CONST.AVATAR_SIZE.SMALLER]: variables.componentBorderRadiusMedium,
     [CONST.AVATAR_SIZE.SMALL]: variables.componentBorderRadiusMedium,
+    [CONST.AVATAR_SIZE.HEADER]: variables.componentBorderRadiusMedium,
     [CONST.AVATAR_SIZE.DEFAULT]: variables.componentBorderRadiusNormal,
     [CONST.AVATAR_SIZE.MEDIUM]: variables.componentBorderRadiusLarge,
     [CONST.AVATAR_SIZE.LARGE]: variables.componentBorderRadiusLarge,
@@ -52,6 +53,7 @@ const avatarSizes = {
     [CONST.AVATAR_SIZE.LARGE]: variables.avatarSizeLarge,
     [CONST.AVATAR_SIZE.MEDIUM]: variables.avatarSizeMedium,
     [CONST.AVATAR_SIZE.LARGE_BORDERED]: variables.avatarSizeLargeBordered,
+    [CONST.AVATAR_SIZE.HEADER]: variables.avatarSizeHeader,
 };
 
 /**
@@ -271,6 +273,28 @@ function getZoomSizingStyle(isZoomed, imgWidth, imgHeight, zoomScale, containerH
 function getWidthStyle(width) {
     return {
         width,
+    };
+}
+
+/**
+ * Returns auto grow height text input style
+ *
+ * @param {Number} textInputHeight
+ * @param {Number} maxHeight
+ * @returns {Object}
+ */
+function getAutoGrowHeightInputStyle(textInputHeight, maxHeight) {
+    if (textInputHeight > maxHeight) {
+        return {
+            ...styles.pr0,
+            ...styles.overflowAuto,
+        };
+    }
+
+    return {
+        ...styles.pr0,
+        ...styles.overflowHidden,
+        height: maxHeight,
     };
 }
 
@@ -905,7 +929,7 @@ function getReportWelcomeContainerStyle(isSmallScreenWidth) {
 }
 
 /**
- * Gets styles for Emoji Suggestion row
+ * Gets styles for AutoCompleteSuggestion row
  *
  * @param {Number} highlightedEmojiIndex
  * @param {Number} rowHeight
@@ -913,7 +937,7 @@ function getReportWelcomeContainerStyle(isSmallScreenWidth) {
  * @param {Number} currentEmojiIndex
  * @returns {Object}
  */
-function getEmojiSuggestionItemStyle(highlightedEmojiIndex, rowHeight, hovered, currentEmojiIndex) {
+function getAutoCompleteSuggestionItemStyle(highlightedEmojiIndex, rowHeight, hovered, currentEmojiIndex) {
     let backgroundColor;
 
     if (currentEmojiIndex === highlightedEmojiIndex) {
@@ -936,15 +960,15 @@ function getEmojiSuggestionItemStyle(highlightedEmojiIndex, rowHeight, hovered, 
 }
 
 /**
- * Gets the correct position for emoji suggestion container
+ * Gets the correct position for auto complete suggestion container
  *
  * @param {Number} itemsHeight
  * @param {Boolean} shouldIncludeReportRecipientLocalTimeHeight
  * @returns {Object}
  */
-function getEmojiSuggestionContainerStyle(itemsHeight, shouldIncludeReportRecipientLocalTimeHeight) {
+function getAutoCompleteSuggestionContainerStyle(itemsHeight, shouldIncludeReportRecipientLocalTimeHeight) {
     const optionalPadding = shouldIncludeReportRecipientLocalTimeHeight ? CONST.RECIPIENT_LOCAL_TIME_HEIGHT : 0;
-    const padding = CONST.EMOJI_SUGGESTER.SUGGESTER_PADDING - optionalPadding;
+    const padding = CONST.AUTO_COMPLETE_SUGGESTER.SUGGESTER_PADDING - optionalPadding;
 
     // The suggester is positioned absolutely within the component that includes the input and RecipientLocalTime view (for non-expanded mode only). To position it correctly,
     // we need to shift it by the suggester's height plus its padding and, if applicable, the height of the RecipientLocalTime view.
@@ -1050,6 +1074,29 @@ function getGoogleListViewStyle(shouldDisplayBorder) {
     };
 }
 
+/**
+ * Returns style object for the user mention component based on whether the mention is ours or not.
+ * @param {Boolean} isOurMention
+ * @returns {Object}
+ */
+function getMentionStyle(isOurMention) {
+    const backgroundColor = isOurMention ? themeColors.ourMentionBG : themeColors.mentionBG;
+    return {
+        backgroundColor,
+        borderRadius: variables.componentBorderRadiusSmall,
+        paddingHorizontal: 2,
+    };
+}
+
+/**
+ * Returns text color for the user mention text based on whether the mention is ours or not.
+ * @param {Boolean} isOurMention
+ * @returns {Object}
+ */
+function getMentionTextColor(isOurMention) {
+    return isOurMention ? themeColors.ourMentionText : themeColors.mentionText;
+}
+
 export {
     getAvatarSize,
     getAvatarStyle,
@@ -1062,6 +1109,7 @@ export {
     getZoomCursorStyle,
     getZoomSizingStyle,
     getWidthStyle,
+    getAutoGrowHeightInputStyle,
     getBackgroundAndBorderStyle,
     getBackgroundColorStyle,
     getBackgroundColorWithOpacityStyle,
@@ -1095,8 +1143,8 @@ export {
     getReportWelcomeBackgroundImageStyle,
     getReportWelcomeTopMarginStyle,
     getReportWelcomeContainerStyle,
-    getEmojiSuggestionItemStyle,
-    getEmojiSuggestionContainerStyle,
+    getAutoCompleteSuggestionItemStyle,
+    getAutoCompleteSuggestionContainerStyle,
     getColoredBackgroundStyle,
     getDefaultWorkspaceAvatarColor,
     getAvatarBorderRadius,
@@ -1108,4 +1156,6 @@ export {
     getFontSizeStyle,
     getSignInWordmarkWidthStyle,
     getGoogleListViewStyle,
+    getMentionStyle,
+    getMentionTextColor,
 };

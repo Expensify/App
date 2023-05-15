@@ -223,6 +223,7 @@ class NewChatPage extends Component {
                 {({didScreenTransitionEnd, safeAreaPaddingBottomStyle}) => (
                     <>
                         <HeaderWithBackButton title={this.props.isGroupChat ? this.props.translate('sidebarScreen.newGroup') : this.props.translate('sidebarScreen.newChat')} />
+
                         <View style={[styles.flex1, styles.w100, styles.pRelative, this.state.selectedOptions.length > 0 ? safeAreaPaddingBottomStyle : {}]}>
                             {didScreenTransitionEnd ? (
                                 <OptionsSelector

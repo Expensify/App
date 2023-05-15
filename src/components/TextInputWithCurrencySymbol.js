@@ -2,7 +2,7 @@ import React from 'react';
 import PropTypes from 'prop-types';
 import AmountTextInput from './AmountTextInput';
 import CurrencySymbolButton from './CurrencySymbolButton';
-import * as CurrencySymbolUtils from '../libs/CurrencySymbolUtils';
+import * as CurrencyUtils from '../libs/CurrencyUtils';
 
 const propTypes = {
     /** A ref to forward to amount text input */
@@ -19,9 +19,6 @@ const propTypes = {
 
     /** Placeholder value for amount text input */
     placeholder: PropTypes.string.isRequired,
-
-    /** Preferred locale of the user */
-    preferredLocale: PropTypes.string.isRequired,
 
     /** Currency code of user's selected currency */
     selectedCurrencyCode: PropTypes.string.isRequired,
@@ -45,8 +42,8 @@ const defaultProps = {
 };
 
 function TextInputWithCurrencySymbol(props) {
-    const currencySymbol = CurrencySymbolUtils.getLocalizedCurrencySymbol(props.preferredLocale, props.selectedCurrencyCode);
-    const isCurrencySymbolLTR = CurrencySymbolUtils.isCurrencySymbolLTR(props.preferredLocale, props.selectedCurrencyCode);
+    const currencySymbol = CurrencyUtils.getLocalizedCurrencySymbol(props.selectedCurrencyCode);
+    const isCurrencySymbolLTR = CurrencyUtils.isCurrencySymbolLTR(props.selectedCurrencyCode);
 
     const currencySymbolButton = (
         <CurrencySymbolButton
@@ -88,8 +85,8 @@ TextInputWithCurrencySymbol.defaultProps = defaultProps;
 TextInputWithCurrencySymbol.displayName = 'TextInputWithCurrencySymbol';
 
 export default React.forwardRef((props, ref) => (
-    // eslint-disable-next-line react/jsx-props-no-spreading
     <TextInputWithCurrencySymbol
+        // eslint-disable-next-line react/jsx-props-no-spreading
         {...props}
         forwardedRef={ref}
     />
