@@ -429,9 +429,11 @@ function getShareDestination(reportID, reports, personalDetails) {
     };
 }
 
-function cancelTask(taskReportID, parentReportID, originalStateNum, originalStatusNum) {
+function cancelTask(taskReportID, parentReportID, originalStateNum, originalStatusNum, currentUserEmail, cancelMessage) {
     const optimisticCancelReportAction = ReportUtils.buildOptimisticCancelTaskReportAction(taskReportID);
     const optimisticReportActionID = optimisticCancelReportAction.reportActionID;
+    const now = DateUtils.getDBTime();
+    const lastCommentText = ReportUtils.formatReportLastMessageText(cancelMessage);
 
     const optimisticData = [
         {
@@ -440,6 +442,16 @@ function cancelTask(taskReportID, parentReportID, originalStateNum, originalStat
             value: {
                 stateNum: CONST.REPORT.STATE_NUM.SUBMITTED,
                 statusNum: CONST.REPORT.STATUS.CLOSED,
+            },
+        },
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT}${parentReportID}`,
+            value: {
+                lastVisibleActionCreated: now,
+                lastMessageText: Str.htmlDecode(lastCommentText),
+                lastActorEmail: currentUserEmail,
+                lastReadTime: now,
             },
         },
         {

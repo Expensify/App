@@ -116,7 +116,15 @@ const HeaderView = (props) => {
             threeDotMenuItems.push({
                 icon: Expensicons.Trashcan,
                 text: props.translate('common.cancel'),
-                onSelected: () => Task.cancelTask(props.report.reportID, props.report.parentReportID, props.report.stateNum, props.report.statusNum),
+                onSelected: () =>
+                    Task.cancelTask(
+                        props.report.reportID,
+                        props.report.parentReportID,
+                        props.report.stateNum,
+                        props.report.statusNum,
+                        props.account.primaryLogin,
+                        props.translate('task.canceled'),
+                    ),
             });
         }
     }
@@ -233,7 +241,11 @@ export default compose(
     withOnyx({
         account: {
             key: ONYXKEYS.ACCOUNT,
-            selector: (account) => account && {guideCalendarLink: account.guideCalendarLink},
+            selector: (account) =>
+                account && {
+                    guideCalendarLink: account.guideCalendarLink,
+                    primaryLogin: account.primaryLogin,
+                },
         },
         parentReportActions: {
             key: ({report}) => `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.parentReportID}`,
