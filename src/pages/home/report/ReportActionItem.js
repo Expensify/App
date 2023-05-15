@@ -297,7 +297,6 @@ class ReportActionItem extends Component {
      */
     renderReportActionItem(hovered, isWhisper) {
         const content = this.renderItemContent(hovered || this.state.isContextMenuActive);
-        console.log('What is the action', this.props.action, content);
 
         if (this.props.draftMessage) {
             return <ReportActionItemDraft>{content}</ReportActionItemDraft>;

@@ -1200,7 +1200,7 @@ export default {
     task: {
         completed: 'Completada',
         messages: {
-            completed: 'Completed task',
+            completed: 'tarea completada',
         },
     },
     statementPage: {
