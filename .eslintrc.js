@@ -16,4 +16,18 @@ module.exports = {
     globals: {
         __DEV__: 'readonly',
     },
+    rules: {
+        'no-restricted-imports': [
+            'error',
+            {
+                paths: [
+                    {
+                        name: 'react-native',
+                        importNames: ['useWindowDimensions'],
+                        message: 'Please use useWindowDimensions from src/hooks/useWindowDimensions instead',
+                    },
+                ],
+            },
+        ],
+    },
 };
