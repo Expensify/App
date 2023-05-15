@@ -289,6 +289,7 @@ class AttachmentModal extends PureComponent {
                             Boolean(this.state.source) &&
                             this.state.shouldLoadAttachment && (
                                 <AttachmentView
+                                    containerStyles={[styles.mh5]}
                                     source={source}
                                     isAuthTokenRequired={this.props.isAuthTokenRequired}
                                     file={this.state.file}
