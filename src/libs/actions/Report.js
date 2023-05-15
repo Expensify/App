@@ -1457,109 +1457,6 @@ function hasAccountIDEmojiReacted(accountID, users, skinTone) {
 
 /**
  * Adds a reaction to the report action.
- * Uses the OLD FORMAT for "reactions"
- * @param {String} reportID
- * @param {Object} originalReportAction
- * @param {{ name: string, code: string, types: string[] }} emoji
- * @param {number} [skinTone] Optional.
- */
-function addReaction(reportID, originalReportAction, emoji, skinTone = preferredSkinTone) {
-    const message = originalReportAction.message[0];
-    let reactionObject = message.reactions && _.find(message.reactions, (reaction) => reaction.emoji === emoji.name);
-    const needToInsertReactionObject = !reactionObject;
-    if (needToInsertReactionObject) {
-        reactionObject = {
-            emoji: emoji.name,
-            users: [],
-        };
-    } else {
-        // Make a copy of the reaction object so that we can modify it without mutating the original
-        reactionObject = {...reactionObject};
-    }
-
-    if (hasAccountIDReacted(currentUserAccountID, reactionObject.users, skinTone)) {
-        return;
-    }
-
-    reactionObject.users = [...reactionObject.users, {accountID: currentUserAccountID, skinTone}];
-    let updatedReactions = [...(message.reactions || [])];
-    if (needToInsertReactionObject) {
-        updatedReactions = [...updatedReactions, reactionObject];
-    } else {
-        updatedReactions = _.map(updatedReactions, (reaction) => (reaction.emoji === emoji.name ? reactionObject : reaction));
-    }
-
-    const updatedMessage = {
-        ...message,
-        reactions: updatedReactions,
-    };
-
-    // Optimistically update the reportAction with the reaction
-    const optimisticData = getOptimisticDataForReportActionUpdate(originalReportAction, updatedMessage, reportID);
-
-    const parameters = {
-        reportID,
-        skinTone,
-        emojiCode: emoji.name,
-        sequenceNumber: originalReportAction.sequenceNumber,
-        reportActionID: originalReportAction.reportActionID,
-    };
-    API.write('AddEmojiReaction', parameters, {optimisticData});
-}
-
-/**
- * Removes a reaction to the report action.
- * Uses the OLD FORMAT for "reactions"
- * @param {String} reportID
- * @param {Object} originalReportAction
- * @param {{ name: string, code: string, types: string[] }} emoji
- */
-function removeReaction(reportID, originalReportAction, emoji) {
-    const message = originalReportAction.message[0];
-    const reactionObject = message.reactions && _.find(message.reactions, (reaction) => reaction.emoji === emoji.name);
-    if (!reactionObject) {
-        return;
-    }
-
-    const updatedReactionObject = {
-        ...reactionObject,
-    };
-    updatedReactionObject.users = _.filter(reactionObject.users, (sender) => sender.accountID !== currentUserAccountID);
-    const updatedReactions = _.filter(
-        // Replace the reaction object either with the updated one or null if there are no users
-        _.map(message.reactions, (reaction) => {
-            if (reaction.emoji === emoji.name) {
-                if (updatedReactionObject.users.length === 0) {
-                    return null;
-                }
-                return updatedReactionObject;
-            }
-            return reaction;
-        }),
-
-        // Remove any null reactions
-        (reportObject) => reportObject !== null,
-    );
-
-    const updatedMessage = {
-        ...message,
-        reactions: updatedReactions,
-    };
-
-    // Optimistically update the reportAction with the reaction
-    const optimisticData = getOptimisticDataForReportActionUpdate(originalReportAction, updatedMessage, reportID);
-
-    const parameters = {
-        reportID,
-        sequenceNumber: originalReportAction.sequenceNumber,
-        reportActionID: originalReportAction.reportActionID,
-        emojiCode: emoji.name,
-    };
-    API.write('RemoveEmojiReaction', parameters, {optimisticData});
-}
-
-/**
- * Adds a reaction to the report action.
  * Uses the NEW FORMAT for "emojiReactions"
  * @param {String} reportID
  * @param {String} reportActionID
@@ -1595,7 +1492,6 @@ function addEmojiReaction(reportID, reportActionID, emoji, skinTone = preferredS
         createdAt,
         useEmojiReactions: true,
     };
-    console.log('API.write() AddEmojiReaction', parameters, {optimisticData});
     API.write('AddEmojiReaction', parameters, {optimisticData});
 }
 
@@ -1640,32 +1536,7 @@ function removeEmojiReaction(reportID, reportActionID, emoji, existingReactions)
         emojiCode: emoji.name,
         useEmojiReactions: true,
     };
-    console.log('API.write() RemoveEmojiReaction', parameters, {optimisticData});
     API.write('RemoveEmojiReaction', parameters, {optimisticData});
-}
-
-/**
- * Calls either addReaction or removeEmojiReaction depending on if the current user has reacted to the report action.
- * Uses the OLD FORMAT for "reactions"
- * @param {String} reportID
- * @param {Object} reportAction
- * @param {{ name: string, code: string, types: string[] }} emoji
- * @param {Number} [paramSkinTone]
- */
-function toggleReaction(reportID, reportAction, emoji, paramSkinTone = preferredSkinTone) {
-    console.log('TIM toggleReaction(0)');
-    // This will get cleaned up as part of https://github.com/Expensify/App/issues/16506 once the old emoji
-    // format is no longer being used
-    const message = reportAction.message[0];
-    const reactionObject = message.reactions && _.find(message.reactions, (reaction) => reaction.emoji === emoji.name);
-
-    // Only use skin tone if emoji supports it
-    const skinTone = emoji.types === undefined ? null : paramSkinTone;
-    if (reactionObject && hasAccountIDReacted(currentUserAccountID, reactionObject.users, skinTone)) {
-        removeReaction(reportID, reportAction.reportActionID, emoji, skinTone);
-        return;
-    }
-    addReaction(reportID, reportAction.reportActionID, emoji, skinTone);
 }
 
 /**
@@ -1750,7 +1621,6 @@ export {
     clearIOUError,
     subscribeToNewActionEvent,
     showReportActionNotification,
-    toggleReaction,
     toggleEmojiReaction,
     hasAccountIDReacted,
     shouldShowReportActionNotification,
