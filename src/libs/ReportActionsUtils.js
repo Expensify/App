@@ -209,6 +209,10 @@ function shouldReportActionBeVisible(reportAction, key) {
         return false;
     }
 
+    if (reportAction.actionName === CONST.REPORT.ACTIONS.TYPE.TASKEDITED) {
+        return false;
+    }
+
     // Filter out any unsupported reportAction types
     if (!_.has(CONST.REPORT.ACTIONS.TYPE, reportAction.actionName) && !_.contains(_.values(CONST.REPORT.ACTIONS.TYPE.POLICYCHANGELOG), reportAction.actionName)) {
         return false;
