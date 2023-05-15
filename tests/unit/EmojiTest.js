@@ -197,7 +197,7 @@ describe('EmojiTest', () => {
                 const currentTime = moment().unix();
                 const smileEmoji = {code: '😄', name: 'smile'};
                 const newEmoji = [smileEmoji];
-                User.updateFrequentlyUsedEmojis(EmojiUtils.addToFrequentlyUsedEmojis(newEmoji));
+                User.updateFrequentlyUsedEmojis(EmojiUtils.getFrequentlyUsedEmojis(newEmoji));
 
                 // Then the new emoji should be at the last item of the list
                 const expectedSmileEmoji = {...smileEmoji, count: 1, lastUpdatedAt: currentTime};
@@ -242,7 +242,7 @@ describe('EmojiTest', () => {
                 // When add an emoji that exists in the list
                 const currentTime = moment().unix();
                 const newEmoji = [smileEmoji];
-                User.updateFrequentlyUsedEmojis(EmojiUtils.addToFrequentlyUsedEmojis(newEmoji));
+                User.updateFrequentlyUsedEmojis(EmojiUtils.getFrequentlyUsedEmojis(newEmoji));
 
                 // Then the count should be increased and put into the very front of the other emoji within the same count
                 const expectedFrequentlyEmojisList = [frequentlyEmojisList[0], {...smileEmoji, count: 2, lastUpdatedAt: currentTime}, ...frequentlyEmojisList.slice(1, -1)];
@@ -283,7 +283,7 @@ describe('EmojiTest', () => {
                 // When add multiple emojis that either exist or not exist in the list
                 const currentTime = moment().unix();
                 const newEmoji = [smileEmoji, zzzEmoji, impEmoji];
-                User.updateFrequentlyUsedEmojis(EmojiUtils.addToFrequentlyUsedEmojis(newEmoji));
+                User.updateFrequentlyUsedEmojis(EmojiUtils.getFrequentlyUsedEmojis(newEmoji));
 
                 // Then the count should be increased for existing emoji and sorted descending by count and lastUpdatedAt
                 const expectedFrequentlyEmojisList = [
@@ -452,7 +452,7 @@ describe('EmojiTest', () => {
                 // When add new emojis
                 const currentTime = moment().unix();
                 const newEmoji = [bookEmoji, smileEmoji, zzzEmoji, impEmoji, smileEmoji];
-                User.updateFrequentlyUsedEmojis(EmojiUtils.addToFrequentlyUsedEmojis(newEmoji));
+                User.updateFrequentlyUsedEmojis(EmojiUtils.getFrequentlyUsedEmojis(newEmoji));
 
                 // Then the last emojis from the list should be replaced with the most recent new emoji (smile)
                 const expectedFrequentlyEmojisList = [

@@ -598,7 +598,7 @@ class ReportActionCompose extends React.Component {
             },
             suggestedEmojis: [],
         }));
-        const frequentEmojiList = EmojiUtils.addToFrequentlyUsedEmojis(emojiObject);
+        const frequentEmojiList = EmojiUtils.getFrequentlyUsedEmojis(emojiObject);
         User.updateFrequentlyUsedEmojis(frequentEmojiList);
     }
 

@@ -173,7 +173,7 @@ function mergeEmojisWithFrequentlyUsedEmojis(emojis) {
  * @param {Object|Object[]} newEmoji
  * @return {Object[]}
  */
-function addToFrequentlyUsedEmojis(newEmoji) {
+function getFrequentlyUsedEmojis(newEmoji) {
     let frequentEmojiList = [...frequentlyUsedEmojis];
 
     const maxFrequentEmojiCount = CONST.EMOJI_FREQUENT_ROW_COUNT * CONST.EMOJI_NUM_PER_ROW - 1;
@@ -255,7 +255,7 @@ function replaceEmojis(text, isSmallScreenWidth = false, preferredSkinTone = CON
 
     // Add all replaced emojis to the frequently used emojis list
     if (!_.isEmpty(emojis)) {
-        addToFrequentlyUsedEmojis(emojis);
+        getFrequentlyUsedEmojis(emojis);
     }
     return newText;
 }
@@ -310,7 +310,7 @@ const getPreferredSkinToneIndex = (val) => {
 export {
     getHeaderEmojis,
     mergeEmojisWithFrequentlyUsedEmojis,
-    addToFrequentlyUsedEmojis,
+    getFrequentlyUsedEmojis,
     containsOnlyEmojis,
     replaceEmojis,
     suggestEmojis,
