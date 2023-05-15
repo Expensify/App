@@ -148,7 +148,7 @@ const IOUPreview = (props) => {
     // If props.action is undefined then we are displaying within IOUDetailsModal and should use the full report amount
     const requestAmount = props.isIOUAction ? moneyRequestAction.total : ReportUtils.getMoneyRequestTotal(props.iouReport);
     const requestCurrency = props.isIOUAction ? moneyRequestAction.currency : props.iouReport.currency;
-    const requestComment = Str.htmlDecode(moneyRequestAction.comment).trim()
+    const requestComment = Str.htmlDecode(moneyRequestAction.comment).trim();
 
     const getSettledMessage = () => {
         switch (lodashGet(props.action, 'originalMessage.paymentType', '')) {
