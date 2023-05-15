@@ -154,7 +154,7 @@ function createTaskAndNavigate(currentUserEmail, parentReportID, title, descript
 
 function completeTask(taskReportID, parentReportID, taskTitle) {
     const message = `Completed task: ${taskTitle}`;
-    const completedTaskReportAction = ReportUtils.buildOptimisticTaskReportAction(taskReportID, CONST.REPORT.ACTIONS.TYPE.TASKCOMPLETED, message);
+    const completedTaskReportAction = ReportUtils.buildOptimisticTaskReportAction(taskReportID, CONST.REPORT.ACTIONS.TYPE.TASKREOPENED, message);
 
     const optimisticData = [
         {
@@ -203,6 +203,62 @@ function completeTask(taskReportID, parentReportID, taskTitle) {
         {
             taskReportID,
             completedTaskReportActionID: completedTaskReportAction.reportActionID,
+        },
+        {optimisticData, successData, failureData},
+    );
+}
+
+function reopenTask(taskReportID, parentReportID, taskTitle) {
+    const message = `Reopened task: ${taskTitle}`;
+    const reopenedTaskReportAction = ReportUtils.buildOptimisticTaskReportAction(taskReportID, CONST.REPORT.ACTIONS.TYPE.TASKCOMPLETED, message);
+
+    const optimisticData = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT}${taskReportID}`,
+            value: {
+                stateNum: CONST.REPORT.STATE_NUM.OPEN,
+                statusNum: CONST.REPORT.STATUS.OPEN,
+            },
+        },
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT}${parentReportID}`,
+            value: {
+                lastVisibleActionCreated: reopenedTaskReportAction.created,
+                lastMessageText: message,
+                lastActorEmail: reopenedTaskReportAction.actorEmail,
+            },
+        },
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${parentReportID}`,
+            value: {[reopenedTaskReportAction.reportActionID]: reopenedTaskReportAction},
+        },
+    ];
+
+    const successData = [];
+    const failureData = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT}${taskReportID}`,
+            value: {
+                stateNum: CONST.REPORT.STATE_NUM.SUBMITTED,
+                statusNum: CONST.REPORT.STATUS.APPROVED,
+            },
+        },
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${parentReportID}`,
+            value: {[reopenedTaskReportAction.reportActionID]: {pendingAction: null}},
+        },
+    ];
+
+    API.write(
+        'ReopenTask',
+        {
+            taskReportID,
+            reopenedTaskReportActionID: reopenedTaskReportAction.reportActionID,
         },
         {optimisticData, successData, failureData},
     );
@@ -450,6 +506,7 @@ export {
     setAssigneeValue,
     setShareDestinationValue,
     clearOutTaskInfo,
+    reopenTask,
     completeTask,
     clearOutTaskInfoAndNavigate,
     getAssignee,
