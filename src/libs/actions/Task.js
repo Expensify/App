@@ -169,7 +169,7 @@ function completeTask(taskReportID, parentReportID, taskTitle) {
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT}${parentReportID}`,
             value: {
-                lastVisibleActionCreated: completedTaskReportAction.created,
+                lastVisibleActionCreated: completedTaskReportAction.created + 1,
                 lastMessageText: message,
                 lastActorEmail: completedTaskReportAction.actorEmail,
             },
