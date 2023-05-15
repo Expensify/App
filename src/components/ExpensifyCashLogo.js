@@ -27,7 +27,12 @@ const logoComponents = {
 const ExpensifyCashLogo = (props) => {
     // PascalCase is required for React components, so capitalize the const here
     const LogoComponent = logoComponents[props.environment];
-    return (<LogoComponent width={props.width} height={props.height} />);
+    return (
+        <LogoComponent
+            width={props.width}
+            height={props.height}
+        />
+    );
 };
 
 ExpensifyCashLogo.displayName = 'ExpensifyCashLogo';

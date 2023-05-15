@@ -1,9 +1,7 @@
 import _ from 'underscore';
 import React from 'react';
 import PropTypes from 'prop-types';
-import {
-    View,
-} from 'react-native';
+import {View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import RadioButtons from '../../components/RadioButtons';
 import withLocalize, {withLocalizePropTypes} from '../../components/withLocalize';
@@ -27,11 +25,13 @@ const propTypes = {
 
     /** Questions returned by Idology */
     /** example: [{"answer":["1251","6253","113","None of the above","Skip Question"],"prompt":"Which number goes with your address on MASONIC AVE?","type":"street.number.b"}, ...] */
-    questions: PropTypes.arrayOf(PropTypes.shape({
-        prompt: PropTypes.string,
-        type: PropTypes.string,
-        answer: PropTypes.arrayOf(PropTypes.string),
-    })),
+    questions: PropTypes.arrayOf(
+        PropTypes.shape({
+            prompt: PropTypes.string,
+            type: PropTypes.string,
+            answer: PropTypes.arrayOf(PropTypes.string),
+        }),
+    ),
 
     /** ID from Idology, referencing those questions */
     idNumber: PropTypes.string,
@@ -104,10 +104,10 @@ class IdologyQuestions extends React.Component {
             }
 
             // Get the number of questions that were skipped by the user.
-            const skippedQuestionsCount = _.filter(prevState.answers, answer => answer.answer === SKIP_QUESTION_TEXT).length;
+            const skippedQuestionsCount = _.filter(prevState.answers, (answer) => answer.answer === SKIP_QUESTION_TEXT).length;
 
             // We have enough answers, let's call expectID KBA to verify them
-            if ((prevState.answers.length - skippedQuestionsCount) >= (this.props.questions.length - MAX_SKIP)) {
+            if (prevState.answers.length - skippedQuestionsCount >= this.props.questions.length - MAX_SKIP) {
                 const answers = prevState.answers;
 
                 // Auto skip any remaining questions
@@ -132,16 +132,18 @@ class IdologyQuestions extends React.Component {
     render() {
         const questionIndex = this.state.questionNumber;
         const question = this.props.questions[questionIndex] || {};
-        const possibleAnswers = _.filter(_.map(question.answer, (answer) => {
-            if (this.state.hideSkip && answer === SKIP_QUESTION_TEXT) {
-                return;
-            }
+        const possibleAnswers = _.filter(
+            _.map(question.answer, (answer) => {
+                if (this.state.hideSkip && answer === SKIP_QUESTION_TEXT) {
+                    return;
+                }
 
-            return {
-                label: answer,
-                value: answer,
-            };
-        }));
+                return {
+                    label: answer,
+                    value: answer,
+                };
+            }),
+        );
 
         const errorMessage = ErrorUtils.getLatestErrorMessage(this.props.walletAdditionalDetails) || this.state.errorMessage;
 
@@ -156,13 +158,16 @@ class IdologyQuestions extends React.Component {
                         {this.props.translate('additionalDetailsStep.helpLink')}
                     </TextLink>
                 </View>
-                <FormScrollView ref={el => this.form = el}>
-                    <View style={[styles.mh5, styles.mb5, styles.mt5]} key={question.type}>
+                <FormScrollView ref={(el) => (this.form = el)}>
+                    <View
+                        style={[styles.mh5, styles.mb5, styles.mt5]}
+                        key={question.type}
+                    >
                         <Text style={[styles.textStrong, styles.mb5]}>{question.prompt}</Text>
                         <RadioButtons
                             items={possibleAnswers}
                             key={questionIndex}
-                            onPress={answer => this.chooseAnswer(questionIndex, answer)}
+                            onPress={(answer) => this.chooseAnswer(questionIndex, answer)}
                         />
                     </View>
                 </FormScrollView>

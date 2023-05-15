@@ -21,7 +21,7 @@ class Onfido extends Component {
     render() {
         return (
             <BaseOnfidoWeb
-                ref={e => this.baseOnfido = e}
+                ref={(e) => (this.baseOnfido = e)}
                 // eslint-disable-next-line react/jsx-props-no-spreading
                 {...this.props}
             />
