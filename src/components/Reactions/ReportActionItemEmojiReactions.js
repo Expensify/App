@@ -2,6 +2,7 @@ import React, {useRef} from 'react';
 import _ from 'underscore';
 import {View} from 'react-native';
 import PropTypes from 'prop-types';
+import lodashGet from 'lodash/get';
 import styles from '../../styles/styles';
 import EmojiReactionBubble from './EmojiReactionBubble';
 import emojis from '../../../assets/emojis';
@@ -25,7 +26,7 @@ import * as ReactionList from '../../pages/home/report/ReactionList/ReactionList
 const getUniqueEmojiCodes = (emojiAsset, users) => {
     const uniqueEmojiCodes = [];
     _.each(users, (userSkinTones) => {
-        _.each(userSkinTones.skinTones, (createdAt, skinTone) => {
+        _.each(lodashGet(userSkinTones, 'skinTones'), (createdAt, skinTone) => {
             const emojiCode = getPreferredEmojiCode(emojiAsset, skinTone);
             if (emojiCode && !uniqueEmojiCodes.includes(emojiCode)) {
                 uniqueEmojiCodes.push(emojiCode);
@@ -91,11 +92,15 @@ const ReportActionItemEmojiReactions = (props) => {
             style={[styles.flexRow, styles.flexWrap, styles.gap1, styles.mt2]}
         >
             {_.map(props.emojiReactions, (reaction, reactionEmoji) => {
-                const reactionCount = _.size(reaction.users);
+                const usersWithReactions = _.filter(reaction.users, (userData) => userData);
+                const reactionCount = _.size(usersWithReactions);
+                if (!reactionCount) {
+                    return null;
+                }
                 const emojiAsset = _.find(emojis, (emoji) => emoji.name === reactionEmoji);
                 const emojiCodes = getUniqueEmojiCodes(emojiAsset, reaction.users);
+                const hasUserReacted = Report.hasAccountIDEmojiReacted(props.currentUserPersonalDetails.accountID, reaction.users);
                 const reactionUsers = _.keys(reaction.users);
-                const hasUserReacted = Report.hasAccountIDReacted(props.currentUserPersonalDetails.accountID, reactionUsers);
 
                 const onPress = () => {
                     props.toggleReaction(emojiAsset);
@@ -128,7 +133,7 @@ const ReportActionItemEmojiReactions = (props) => {
                     </Tooltip>
                 );
             })}
-            {_.size(props.reactions) > 0 && <AddReactionBubble onSelectEmoji={props.toggleReaction} />}
+            {_.size(props.emojiReactions) > 0 && <AddReactionBubble onSelectEmoji={props.toggleReaction} />}
         </View>
     );
 };

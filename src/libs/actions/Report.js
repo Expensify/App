@@ -1448,6 +1448,9 @@ function hasAccountIDReacted(accountID, users, skinTone) {
  * @returns {boolean}
  */
 function hasAccountIDEmojiReacted(accountID, users, skinTone) {
+    if (!skinTone) {
+        return Boolean(users[accountID]);
+    }
     const usersReaction = users[accountID];
     if (!usersReaction || !usersReaction.skinTones || !_.size(usersReaction.skinTones)) {
         return false;
@@ -1509,35 +1512,17 @@ function removeEmojiReaction(reportID, reportActionID, emoji, existingReactions)
         return;
     }
 
-    // Make a copy of the original reaction object so that we don't update anything in existingReactions which could be unexpected
-    let updatedReactionObject = {...reactionObject};
-
-    // Remove the current user from the list of users who have used this emoji
-    updatedReactionObject.users = _.omit(reactionObject.users, currentUserAccountID);
-
-    // If there are no more users, then the entire reactions needs to be set to null so that it can be removed from Onyx
-    if (!_.size(updatedReactionObject.users)) {
-        updatedReactionObject = null;
-    }
-
-    // If the reaction object is being removed, then Onxy.set() must be used because there is no other way to set the value of a key to {}
-    const optimisticData = updatedReactionObject
-        ? [
-              {
-                  onyxMethod: Onyx.METHOD.MERGE,
-                  key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS_REACTIONS}${reportID}${reportActionID}`,
-                  value: {
-                      [emoji.name]: updatedReactionObject,
-                  },
-              },
-          ]
-        : [
-              {
-                  onyxMethod: Onyx.METHOD.SET,
-                  key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS_REACTIONS}${reportID}${reportActionID}`,
-                  value: null,
-              },
-          ];
+    const optimisticData = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS_REACTIONS}${reportID}${reportActionID}`,
+            value: {
+                [emoji.name]: {
+                    currentUserAccountID: null,
+                },
+            },
+        },
+    ];
 
     const parameters = {
         reportID,
@@ -1629,5 +1614,6 @@ export {
     showReportActionNotification,
     toggleEmojiReaction,
     hasAccountIDReacted,
+    hasAccountIDEmojiReacted,
     shouldShowReportActionNotification,
 };

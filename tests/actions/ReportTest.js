@@ -588,7 +588,7 @@ describe('actions/Report', () => {
                 // Expect the reaction to no longer exist
                 expect(reportActionsReactions).toHaveProperty(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS_REACTIONS}${REPORT_ID}${reportActionID}`);
                 const reportActionReaction = reportActionsReactions[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS_REACTIONS}${REPORT_ID}${reportActionID}`];
-                expect(reportActionReaction).toBeNull();
+                expect(reportActionReaction).not.toHaveProperty(EMOJI.name);
             })
             .then(() => {
                 // Add the same reaction to the same report action with a different skintone
@@ -624,7 +624,7 @@ describe('actions/Report', () => {
                         // Expect the reaction to no longer exist
                         expect(reportActionsReactions).toHaveProperty(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS_REACTIONS}${REPORT_ID}${reportActionID}`);
                         const reportActionReaction = reportActionsReactions[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS_REACTIONS}${REPORT_ID}${reportActionID}`];
-                        expect(reportActionReaction).toBeNull();
+                        expect(reportActionReaction).not.toHaveProperty(EMOJI.name);
                     });
             });
     });
@@ -688,7 +688,7 @@ describe('actions/Report', () => {
                 // Expect the reaction to no longer exist
                 expect(reportActionsReactions).toHaveProperty(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS_REACTIONS}${REPORT_ID}${reportActionID}`);
                 const reportActionReaction = reportActionsReactions[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS_REACTIONS}${REPORT_ID}${reportActionID}`];
-                expect(reportActionReaction).toBeNull();
+                expect(reportActionReaction).not.toHaveProperty(EMOJI.name);
             });
     });
 });
