@@ -114,7 +114,8 @@ class CheckboxWithLabel extends React.Component {
                         pressDimmingValue={variables.checkboxLabelActiveOpacity}
                         // We want to disable hover dimming
                         hoverDimmingValue={1}
-                        wrapperStyle={[styles.ml3, styles.pr2, styles.w100, styles.flexRow, styles.flexWrap, styles.flexShrink1, styles.alignItemsCenter, styles.noSelect]}
+                        style={[styles.flexRow, styles.flexWrap, styles.flexShrink1, styles.alignItemsCenter, styles.noSelect]}
+                        wrapperStyle={[styles.ml3, styles.pr2, styles.w100]}
                     >
                         {this.props.label && <Text style={[styles.ml1]}>{this.props.label}</Text>}
                         {this.LabelComponent && <this.LabelComponent />}
