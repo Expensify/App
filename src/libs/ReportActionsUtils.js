@@ -61,7 +61,9 @@ function getParentReportAction(report) {
  * @returns {Boolean}
  */
 function isTransactionThread(parentReportAction) {
-    return parentReportAction && parentReportAction.actionName === CONST.REPORT.ACTIONS.TYPE.IOU && lodashGet(parentReportAction, 'originalMessage.type') === CONST.IOU.REPORT_ACTION_TYPE.CREATE;
+    return (
+        parentReportAction && parentReportAction.actionName === CONST.REPORT.ACTIONS.TYPE.IOU && lodashGet(parentReportAction, 'originalMessage.type') === CONST.IOU.REPORT_ACTION_TYPE.CREATE
+    );
 }
 
 /**
