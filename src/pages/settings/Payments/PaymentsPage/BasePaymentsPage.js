@@ -150,7 +150,7 @@ class BasePaymentsPage extends React.Component {
      */
     setPositionAddPaymentMenu(position) {
         this.setState({
-            anchorPositionTop: position.top + position.height,
+            anchorPositionTop: position.top + position.height + 6,
             anchorPositionBottom: this.props.windowHeight - position.top,
 
             // We want the position to be 13px to the right of the left border
