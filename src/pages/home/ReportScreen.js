@@ -19,7 +19,6 @@ import ReportActionsView from './report/ReportActionsView';
 import CONST from '../../CONST';
 import ReportActionsSkeletonView from '../../components/ReportActionsSkeletonView';
 import reportActionPropTypes from './report/reportActionPropTypes';
-import toggleReportActionComposeView from '../../libs/toggleReportActionComposeView';
 import {withNetwork} from '../../components/OnyxProvider';
 import compose from '../../libs/compose';
 import Visibility from '../../libs/Visibility';
@@ -42,6 +41,7 @@ import * as EmojiPickerAction from '../../libs/actions/EmojiPickerAction';
 import TaskHeaderView from './TaskHeaderView';
 import MoneyRequestHeader from '../../components/MoneyRequestHeader';
 import withNavigation, {withNavigationPropTypes} from '../../components/withNavigation';
+import * as ComposerActions from '../../libs/actions/Composer';
 
 const propTypes = {
     /** Navigation route context info provided by react navigation */
@@ -154,7 +154,7 @@ class ReportScreen extends React.Component {
         });
 
         this.fetchReportIfNeeded();
-        toggleReportActionComposeView(true);
+        ComposerActions.setShouldShowComposeInput(true);
         Navigation.setIsReportScreenIsReady();
 
         InteractionManager.runAfterInteractions(() => {
@@ -183,7 +183,7 @@ class ReportScreen extends React.Component {
         }
 
         this.fetchReportIfNeeded();
-        toggleReportActionComposeView(true);
+        ComposerActions.setShouldShowComposeInput(true);
     }
 
     componentWillUnmount() {
@@ -294,9 +294,7 @@ class ReportScreen extends React.Component {
                         subtitleKey="notFound.noAccess"
                         shouldShowCloseButton={false}
                         shouldShowBackButton={this.props.isSmallScreenWidth}
-                        onBackButtonPress={() => {
-                            Navigation.navigate(ROUTES.HOME);
-                        }}
+                        onBackButtonPress={Navigation.goBack}
                     >
                         {isLoading ? (
                             <ReportHeaderSkeletonView shouldAnimate={shouldAnimate} />
@@ -316,7 +314,7 @@ class ReportScreen extends React.Component {
                                     ) : (
                                         <HeaderView
                                             reportID={reportID}
-                                            onNavigationMenuButtonClicked={() => Navigation.goBack()}
+                                            onNavigationMenuButtonClicked={Navigation.goBack}
                                             personalDetails={this.props.personalDetails}
                                             report={this.props.report}
                                         />

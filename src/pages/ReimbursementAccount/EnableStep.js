@@ -21,7 +21,6 @@ import userPropTypes from '../settings/userPropTypes';
 import Section from '../../components/Section';
 import * as Illustrations from '../../components/Icon/Illustrations';
 import * as Link from '../../libs/actions/Link';
-import * as User from '../../libs/actions/User';
 import ScreenWrapper from '../../components/ScreenWrapper';
 import * as BankAccounts from '../../libs/actions/ReimbursementAccount';
 import WorkspaceResetBankAccountModal from '../workspace/WorkspaceResetBankAccountModal';
@@ -95,7 +94,6 @@ const EnableStep = (props) => {
                                 text={props.translate('workspace.bankAccount.addWorkEmail')}
                                 onPress={() => {
                                     Link.openOldDotLink(CONST.ADD_SECONDARY_LOGIN_URL);
-                                    User.subscribeToExpensifyCardUpdates();
                                 }}
                                 icon={Expensicons.Mail}
                                 style={[styles.mt4]}

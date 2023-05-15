@@ -149,6 +149,10 @@ export default {
                                 path: ROUTES.SETTINGS_PERSONAL_DETAILS_ADDRESS,
                                 exact: true,
                             },
+                            Settings_Share_Code: {
+                                path: ROUTES.SETTINGS_SHARE_CODE,
+                                exact: true,
+                            },
                             Workspace_Initial: {
                                 path: ROUTES.WORKSPACE_INITIAL,
                             },
@@ -194,6 +198,7 @@ export default {
                     Report_Details: {
                         screens: {
                             Report_Details_Root: ROUTES.REPORT_WITH_ID_DETAILS,
+                            Report_Details_Share_Code: ROUTES.REPORT_WITH_ID_DETAILS_SHARE_CODE,
                         },
                     },
                     Report_Settings: {
@@ -271,6 +276,7 @@ export default {
                         screens: {
                             Task_Title: ROUTES.TASK_TITLE,
                             Task_Description: ROUTES.TASK_DESCRIPTION,
+                            Task_Assignee: ROUTES.TASK_ASSIGNEE,
                         },
                     },
                     AddPersonalBankAccount: {
