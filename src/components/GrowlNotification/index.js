@@ -1,6 +1,6 @@
 import React, {Component} from 'react';
 import {View, Animated} from 'react-native';
-import {Directions, FlingGestureHandler, State, TouchableWithoutFeedback} from 'react-native-gesture-handler';
+import {Directions, FlingGestureHandler, State} from 'react-native-gesture-handler';
 import colors from '../../styles/colors';
 import Text from '../Text';
 import Icon from '../Icon';
@@ -9,6 +9,7 @@ import styles from '../../styles/styles';
 import GrowlNotificationContainer from './GrowlNotificationContainer';
 import CONST from '../../CONST';
 import * as Growl from '../../libs/Growl';
+import * as Pressables from '../Pressable';
 
 const types = {
     [CONST.GROWL.SUCCESS]: {
@@ -26,6 +27,8 @@ const types = {
 };
 
 const INACTIVE_POSITION_Y = -255;
+
+const PressableWithoutFeedback = Pressables.PressableWithoutFeedback;
 
 class GrowlNotification extends Component {
     constructor(props) {
@@ -94,7 +97,10 @@ class GrowlNotification extends Component {
             >
                 <View style={styles.growlNotificationWrapper}>
                     <GrowlNotificationContainer translateY={this.state.translateY}>
-                        <TouchableWithoutFeedback onPress={this.fling}>
+                        <PressableWithoutFeedback
+                            accessibilityLabel={this.state.bodyText}
+                            onPress={() => this.fling(INACTIVE_POSITION_Y)}
+                        >
                             <View style={styles.growlNotificationBox}>
                                 <Icon
                                     src={types[this.state.type].icon}
@@ -102,7 +108,7 @@ class GrowlNotification extends Component {
                                 />
                                 <Text style={styles.growlNotificationText}>{this.state.bodyText}</Text>
                             </View>
-                        </TouchableWithoutFeedback>
+                        </PressableWithoutFeedback>
                     </GrowlNotificationContainer>
                 </View>
             </FlingGestureHandler>
