@@ -261,7 +261,7 @@ class AttachmentModal extends PureComponent {
                     backgroundColor={themeColors.componentBG}
                     onModalShow={() => {
                         this.props.onModalShow();
-                        this.setState({shouldLoadAttachment: true})
+                        this.setState({shouldLoadAttachment: true});
                     }}
                     onModalHide={(e) => {
                         this.props.onModalHide(e);

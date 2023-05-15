@@ -44,7 +44,7 @@ const defaultProps = {
 };
 
 const MoneyRequestHeader = (props) => {
-    const formattedAmount = CurrencyUtils.convertToDisplayString(props.report.total, props.report.currency);
+    const formattedAmount = CurrencyUtils.convertToDisplayString(ReportUtils.getMoneyRequestTotal(props.report), props.report.currency);
     const isSettled = ReportUtils.isSettled(props.report.reportID);
     const isExpenseReport = ReportUtils.isExpenseReport(props.report);
     const payeeName = isExpenseReport ? ReportUtils.getPolicyName(props.report, props.policies) : ReportUtils.getDisplayNameForParticipant(props.report.managerEmail);
