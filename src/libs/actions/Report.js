@@ -1448,12 +1448,11 @@ function hasAccountIDReacted(accountID, users, skinTone) {
  * @returns {boolean}
  */
 function hasAccountIDEmojiReacted(accountID, users, skinTone) {
-    return (
-        _.find(users, (userData, userAccountID) => {
-            const userReactedWithSkinTone = _.isNull(skinTone) ? true : lodashGet(userData, ['skinTones', skinTone]);
-            return userAccountID === accountID && userReactedWithSkinTone;
-        }) !== undefined
-    );
+    const usersReaction = users[accountID];
+    if (!usersReaction || !usersReaction.skinTones || !_.size(usersReaction.skinTones)) {
+        return false;
+    }
+    return Boolean(usersReaction.skinTones[skinTone]);
 }
 
 /**
@@ -1579,7 +1578,7 @@ function addEmojiReaction(reportID, reportActionID, emoji, skinTone = preferredS
                     users: {
                         [currentUserAccountID]: {
                             skinTones: {
-                                [skinTone]: createdAt,
+                                [skinTone || 'nothing']: createdAt,
                             },
                         },
                     },
@@ -1596,6 +1595,7 @@ function addEmojiReaction(reportID, reportActionID, emoji, skinTone = preferredS
         createdAt,
         useEmojiReactions: true,
     };
+    console.log('API.write() AddEmojiReaction', parameters, {optimisticData});
     API.write('AddEmojiReaction', parameters, {optimisticData});
 }
 
@@ -1640,6 +1640,7 @@ function removeEmojiReaction(reportID, reportActionID, emoji, existingReactions)
         emojiCode: emoji.name,
         useEmojiReactions: true,
     };
+    console.log('API.write() RemoveEmojiReaction', parameters, {optimisticData});
     API.write('RemoveEmojiReaction', parameters, {optimisticData});
 }
 
@@ -1652,6 +1653,7 @@ function removeEmojiReaction(reportID, reportActionID, emoji, existingReactions)
  * @param {Number} [paramSkinTone]
  */
 function toggleReaction(reportID, reportAction, emoji, paramSkinTone = preferredSkinTone) {
+    console.log('TIM toggleReaction(0)');
     // This will get cleaned up as part of https://github.com/Expensify/App/issues/16506 once the old emoji
     // format is no longer being used
     const message = reportAction.message[0];
@@ -1676,17 +1678,21 @@ function toggleReaction(reportID, reportAction, emoji, paramSkinTone = preferred
  * @param {Number} [paramSkinTone]
  */
 function toggleEmojiReaction(reportID, reportAction, emoji, existingReactions, paramSkinTone = preferredSkinTone) {
+    console.log('TIM toggleEmojiReaction(0)');
     // This will get cleaned up as part of https://github.com/Expensify/App/issues/16506 once the old emoji
     // format is no longer being used
     const reactionObject = lodashGet(existingReactions, [emoji.name]);
+    // console.log('TIM toggleEmojiReaction', emoji.name, existingReactions, reactionObject);
 
     // Only use skin tone if emoji supports it
-    const skinTone = emoji.types === undefined ? null : paramSkinTone;
+    const skinTone = emoji.types === undefined ? 'nothing' : paramSkinTone;
 
     if (reactionObject && hasAccountIDEmojiReacted(currentUserAccountID, reactionObject.users, skinTone)) {
-        removeEmojiReaction(reportID, reportAction.reportActionID, emoji, skinTone, existingReactions);
+        // console.log('TIM removing emoji reaction', existingReactions);
+        removeEmojiReaction(reportID, reportAction.reportActionID, emoji, existingReactions);
         return;
     }
+    // console.log('TIM adding emoji reaction');
     addEmojiReaction(reportID, reportAction.reportActionID, emoji, skinTone);
 }
 

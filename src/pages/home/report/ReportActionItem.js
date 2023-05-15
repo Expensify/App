@@ -189,21 +189,7 @@ class ReportActionItem extends Component {
     }
 
     toggleReaction(emoji) {
-        // This will get cleaned up as part of https://github.com/Expensify/App/issues/16506 once the old emoji
-        // format is no longer being used
-
-        // Look for OLD FORMAT "reactions" on the report action's message
-        const reactions = _.get(this.props, ['action', 'message', 0, 'reactions'], []);
-        const hasReactions = reactions.length > 0;
-
-        // When there are no reactions in the OLD FORMAT, always use the NEW FORMAT
-        if (!hasReactions) {
-            Report.toggleEmojiReaction(this.props.report.reportID, this.props.action, emoji, this.props.emojiReactions);
-            return;
-        }
-
-        // Only use the OLD FORMAT when there are existing reactions in that format
-        Report.toggleReaction(this.props.report.reportID, this.props.action, emoji);
+        Report.toggleEmojiReaction(this.props.report.reportID, this.props.action, emoji, this.props.emojiReactions);
     }
 
     /**
@@ -279,17 +265,7 @@ class ReportActionItem extends Component {
                 </ShowContextMenuContext.Provider>
             );
         }
-
-        // This will get cleaned up as part of https://github.com/Expensify/App/issues/16506 once the old emoji
-        // format is no longer being used
-
-        // Support NEW FORMAT "emojiReactions" in their own collection
-        const emojiReactions = _.get(this.props, ['emojiReactions'], {});
-        const hasEmojiReactions = _.size(emojiReactions) > 0;
-
-        // Support OLD FORMAT "reactions" on the report action's message
-        const reactions = _.get(this.props, ['action', 'message', 0, 'reactions'], []);
-        const hasReactions = reactions.length > 0;
+        const emojiReactions = lodashGet(this.props, ['emojiReactions'], {});
         const shouldDisplayThreadReplies =
             this.props.action.childCommenterCount && Permissions.canUseThreads(this.props.betas) && !ReportUtils.isThreadFirstChat(this.props.action, this.props.report.reportID);
         const oldestFourEmails = lodashGet(this.props.action, 'childOldestFourEmails', '').split(',');
@@ -297,22 +273,12 @@ class ReportActionItem extends Component {
         return (
             <>
                 {children}
-                {hasEmojiReactions && (
-                    <View style={this.props.draftMessage ? styles.chatItemReactionsDraftRight : {}}>
-                        <ReportActionItemEmojiReactions
-                            emojiReactions={emojiReactions}
-                            toggleReaction={this.toggleReaction}
-                        />
-                    </View>
-                )}
-                {!hasEmojiReactions && hasReactions && (
-                    <View style={this.props.draftMessage ? styles.chatItemReactionsDraftRight : {}}>
-                        <ReportActionItemReactions
-                            reactions={reactions}
-                            toggleReaction={this.toggleReaction}
-                        />
-                    </View>
-                )}
+                <View style={this.props.draftMessage ? styles.chatItemReactionsDraftRight : {}}>
+                    <ReportActionItemEmojiReactions
+                        emojiReactions={emojiReactions}
+                        toggleReaction={this.toggleReaction}
+                    />
+                </View>
                 {shouldDisplayThreadReplies && (
                     <ReportActionItemThread
                         childReportID={`${this.props.action.childReportID}`}
