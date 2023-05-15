@@ -28,7 +28,6 @@ import ONYXKEYS from '../../ONYXKEYS';
 import ThreeDotsMenu from '../../components/ThreeDotsMenu';
 import * as Task from '../../libs/actions/Task';
 import reportActionPropTypes from './report/reportActionPropTypes';
-import * as TaskUtils from '../../libs/actions/Task';
 
 const propTypes = {
     /** Toggles the navigationMenu open and closed */
@@ -95,7 +94,7 @@ const HeaderView = (props) => {
             threeDotMenuItems.push({
                 icon: Expensicons.Checkmark,
                 text: props.translate('newTaskPage.markAsDone'),
-                onSelected: () => TaskUtils.completeTask(props.report.reportID, props.report.parentReportID, title),
+                onSelected: () => Task.completeTask(props.report.reportID, props.report.parentReportID, title),
             });
         }
 
@@ -115,15 +114,7 @@ const HeaderView = (props) => {
             threeDotMenuItems.push({
                 icon: Expensicons.Trashcan,
                 text: props.translate('common.cancel'),
-                onSelected: () =>
-                    Task.cancelTask(
-                        props.report.reportID,
-                        props.report.parentReportID,
-                        props.report.stateNum,
-                        props.report.statusNum,
-                        props.account.primaryLogin,
-                        props.translate('task.canceled'),
-                    ),
+                onSelected: () => Task.cancelTask(props.report.reportID, props.report.parentReportID, props.report.reportName, props.report.stateNum, props.report.statusNum),
             });
         }
     }
