@@ -35,6 +35,7 @@ function TaskHeader(props) {
     const title = ReportUtils.getReportName(props.report);
     const assigneeName = ReportUtils.getDisplayNameForParticipant(props.report.managerEmail);
     const assigneeAvatar = ReportUtils.getAvatar(lodashGet(props.personalDetails, [props.report.managerEmail, 'avatar']), props.report.managerEmail);
+    const isOpen = props.report.stateNum === CONST.REPORT.STATE_NUM.OPEN && props.report.statusNum === CONST.REPORT.STATUS.OPEN;
     const isCompleted = props.report.stateNum === CONST.REPORT.STATE_NUM.SUBMITTED && props.report.statusNum === CONST.REPORT.STATUS.APPROVED;
     const parentReportID = props.report.parentReportID;
 
@@ -47,7 +48,10 @@ function TaskHeader(props) {
             <View style={[{backgroundColor: themeColors.highlightBG}, styles.pl0]}>
                 <View style={[styles.ph5, styles.pb5]}>
                     <Text style={[styles.textLabelSupporting, styles.lh16]}>{props.translate('common.to')}</Text>
-                    <TouchableOpacity onPress={() => Navigation.navigate(ROUTES.getTaskReportAssigneeRoute(props.report.reportID))}>
+                    <TouchableOpacity
+                        onPress={() => Navigation.navigate(ROUTES.getTaskReportAssigneeRoute(props.report.reportID))}
+                        disabled={!isOpen}
+                    >
                         <View style={[styles.flexRow, styles.alignItemsCenter, styles.justifyContentBetween, styles.pv3]}>
                             <View style={[styles.flexRow, styles.alignItemsCenter, styles.justifyContentBetween]}>
                                 {props.report.managerEmail && (
@@ -98,11 +102,13 @@ function TaskHeader(props) {
                 title={props.report.reportName}
                 description="Task"
                 onPress={() => Navigation.navigate(ROUTES.getTaskReportTitleRoute(props.report.reportID))}
+                disabled={!isOpen}
             />
             <MenuItemWithTopDescription
                 title={lodashGet(props.report, 'description', '')}
                 description="Description"
                 onPress={() => Navigation.navigate(ROUTES.getTaskReportDescriptionRoute(props.report.reportID))}
+                disabled={!isOpen}
             />
         </View>
     );
