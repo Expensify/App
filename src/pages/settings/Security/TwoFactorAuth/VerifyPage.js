@@ -2,7 +2,6 @@ import React, {useEffect} from 'react';
 import {withOnyx} from 'react-native-onyx';
 import {ScrollView, View} from 'react-native';
 import PropTypes from 'prop-types';
-import QRCode from 'react-qr-code';
 import HeaderWithCloseButton from '../../../../components/HeaderWithCloseButton';
 import Navigation from '../../../../libs/Navigation/Navigation';
 import ScreenWrapper from '../../../../components/ScreenWrapper';
@@ -16,9 +15,9 @@ import Text from '../../../../components/Text';
 import ONYXKEYS from '../../../../ONYXKEYS';
 import TextLink from '../../../../components/TextLink';
 import Clipboard from '../../../../libs/Clipboard';
-import themeColors from '../../../../styles/themes/default';
 import FixedFooter from '../../../../components/FixedFooter';
 import TwoFactorAuthForm from './TwoFactorAuthForm';
+import QRShare from '../../../../components/QRShare';
 
 const propTypes = {
     ...withLocalizePropTypes,
@@ -107,13 +106,7 @@ function VerifyPage(props) {
                             .
                         </Text>
                         <View style={[styles.alignItemsCenter, styles.mt5]}>
-                            <QRCode
-                                level="L"
-                                size={128}
-                                value={buildAuthenticatorUrl()}
-                                bgColor={themeColors.appBG}
-                                fgColor={themeColors.textSupporting}
-                            />
+                            <QRShare url={buildAuthenticatorUrl()} />
                         </View>
                         <Text style={styles.mt5}>{props.translate('twoFactorAuth.addKey')}</Text>
                         <View style={[styles.mt11, styles.flexRow, styles.alignItemsCenter, styles.justifyContentBetween]}>
