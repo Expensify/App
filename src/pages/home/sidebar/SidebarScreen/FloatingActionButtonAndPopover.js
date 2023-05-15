@@ -171,7 +171,7 @@ class FloatingActionButtonAndPopover extends React.Component {
                 <PopoverMenu
                     onClose={this.hideCreateMenu}
                     isVisible={this.state.isCreateMenuActive}
-                    anchorPosition={styles.createMenuPositionSidebar}
+                    anchorPosition={styles.createMenuPositionSidebar(this.props.windowHeight)}
                     onItemSelected={this.hideCreateMenu}
                     fromSidebarMediumScreen={!this.props.isSmallScreenWidth}
                     menuItems={[

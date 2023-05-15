@@ -25,7 +25,7 @@ const propTypes = {
     }).isRequired,
 
     /** Where the popover should be positioned relative to the anchor points. */
-    anchorOrigin: PropTypes.shape({
+    anchorAlignment: PropTypes.shape({
         horizontal: PropTypes.oneOf(_.values(CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL)),
         vertical: PropTypes.oneOf(_.values(CONST.MODAL.ANCHOR_ORIGIN_VERTICAL)),
     }),
@@ -33,7 +33,7 @@ const propTypes = {
 
 const defaultProps = {
     ...createMenuDefaultProps,
-    anchorOrigin: {
+    anchorAlignment: {
         horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.LEFT,
         vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.BOTTOM,
     },

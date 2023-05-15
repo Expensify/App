@@ -21,8 +21,9 @@ const propTypes = {
         vertical: PropTypes.number.isRequired,
     }).isRequired,
 
-    /** Where the popover should be positioned relative to the anchor points. */
-    anchorOrigin: PropTypes.shape({
+    /** How the popover should be aligned. The value you passed will is the part of the component that will be aligned to the
+     * anchorPosition. ie: vertical:top means the top of the menu will be positioned in the anchorPosition */
+    anchorAlignment: PropTypes.shape({
         horizontal: PropTypes.oneOf(_.values(CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL)),
         vertical: PropTypes.oneOf(_.values(CONST.MODAL.ANCHOR_ORIGIN_VERTICAL)),
     }),
@@ -42,7 +43,7 @@ const defaultProps = {
     ...defaultPopoverProps,
 
     // Default positioning of the popover
-    anchorOrigin: {
+    anchorAlignment: {
         horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.LEFT,
         vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.BOTTOM,
     },
@@ -121,7 +122,7 @@ class PopoverWithMeasuredContent extends Component {
      */
     calculateAdjustedAnchorPosition() {
         let horizontalConstraint;
-        switch (this.props.anchorOrigin.horizontal) {
+        switch (this.props.anchorAlignment.horizontal) {
             case CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.RIGHT:
                 horizontalConstraint = {left: this.props.anchorPosition.horizontal - this.popoverWidth};
                 break;
@@ -136,7 +137,7 @@ class PopoverWithMeasuredContent extends Component {
         }
 
         let verticalConstraint;
-        switch (this.props.anchorOrigin.vertical) {
+        switch (this.props.anchorAlignment.vertical) {
             case CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.BOTTOM:
                 verticalConstraint = {top: this.props.anchorPosition.vertical - this.popoverHeight};
                 break;

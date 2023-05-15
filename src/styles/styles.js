@@ -1205,20 +1205,20 @@ const styles = {
         lineHeight: variables.fontSizeOnlyEmojisHeight,
     },
 
-    createMenuPositionSidebar: {
-        left: 18,
-        bottom: 100,
-    },
+    createMenuPositionSidebar: (windowHeight) => ({
+        horizontal: 18,
+        vertical: windowHeight - 100,
+    }),
 
     createMenuPositionProfile: {
         right: 18,
         top: 180,
     },
 
-    createMenuPositionReportActionCompose: {
-        left: 18 + variables.sideBarWidth,
-        bottom: 75,
-    },
+    createMenuPositionReportActionCompose: (windowHeight) => ({
+        horizontal: 18 + variables.sideBarWidth,
+        vertical: windowHeight - 75,
+    }),
 
     createMenuPositionRightSidepane: {
         right: 18,
