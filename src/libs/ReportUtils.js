@@ -1479,6 +1479,7 @@ function buildOptimisticCreatedReportAction(ownerEmail) {
         actionName: CONST.REPORT.ACTIONS.TYPE.CREATED,
         pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
         actorAccountID: currentUserAccountID,
+        actorEmail: currentUserEmail,
         message: [
             {
                 type: CONST.REPORT.MESSAGE.TYPE.TEXT,
@@ -1502,6 +1503,46 @@ function buildOptimisticCreatedReportAction(ownerEmail) {
         avatar: lodashGet(allPersonalDetails, [currentUserEmail, 'avatar'], getDefaultAvatar(currentUserEmail)),
         created: DateUtils.getDBTime(),
         shouldShow: true,
+    };
+}
+
+/**
+ * Returns the necessary reportAction onyx data to indicate that a task report has been edited
+ *
+ * @param {String} ownerEmail
+ * @returns {Object}
+ */
+
+function buildOptimisticEditedTaskReportAction(ownerEmail) {
+    return {
+        reportActionID: NumberUtils.rand64(),
+        actionName: CONST.REPORT.ACTIONS.TYPE.TASKEDITED,
+        pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
+        actorAccountID: currentUserAccountID,
+        actorEmail: currentUserEmail,
+        message: [
+            {
+                type: CONST.REPORT.MESSAGE.TYPE.TEXT,
+                style: 'strong',
+                text: ownerEmail === currentUserEmail ? 'You' : ownerEmail,
+            },
+            {
+                type: CONST.REPORT.MESSAGE.TYPE.TEXT,
+                style: 'normal',
+                text: ' edited this task',
+            },
+        ],
+        person: [
+            {
+                type: CONST.REPORT.MESSAGE.TYPE.TEXT,
+                style: 'strong',
+                text: lodashGet(allPersonalDetails, [currentUserEmail, 'displayName'], currentUserEmail),
+            },
+        ],
+        automatic: false,
+        avatar: lodashGet(allPersonalDetails, [currentUserEmail, 'avatar'], getDefaultAvatar(currentUserEmail)),
+        created: DateUtils.getDBTime(),
+        shouldShow: false,
     };
 }
 
@@ -2061,6 +2102,14 @@ function shouldReportShowSubscript(report) {
     return isExpenseReport(report);
 }
 
+/**
+ * Return true if reports data exists
+ * @returns {Boolean}
+ */
+function isReportDataReady() {
+    return !_.isEmpty(allReports) && _.some(_.keys(allReports), (key) => allReports[key].reportID);
+}
+
 export {
     getReportParticipantsTitle,
     isReportMessageAttachment,
@@ -2110,6 +2159,7 @@ export {
     buildOptimisticChatReport,
     buildOptimisticClosedReportAction,
     buildOptimisticCreatedReportAction,
+    buildOptimisticEditedTaskReportAction,
     buildOptimisticIOUReport,
     buildOptimisticExpenseReport,
     buildOptimisticIOUReportAction,
@@ -2146,5 +2196,6 @@ export {
     isThreadParent,
     isThreadFirstChat,
     shouldReportShowSubscript,
+    isReportDataReady,
     isSettled,
 };
