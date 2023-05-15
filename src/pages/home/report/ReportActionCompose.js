@@ -567,7 +567,7 @@ class ReportActionCompose extends React.Component {
                 });
             }
 
-            if ('here'.includes(prefix) && ReportUtils.isDomainRoom(this.props.report)) {
+            if ('here'.includes(prefix)) {
                 suggestions.unshift({
                     text: CONST.MENTION_SUGGESTER.HERE_TEXT,
                     alternateText: this.props.translate('mentionSuggestions.hereAlternateText'),

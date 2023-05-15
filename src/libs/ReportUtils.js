@@ -2071,7 +2071,6 @@ export {
     isDefaultRoom,
     isAdminRoom,
     isAnnounceRoom,
-    isDomainRoom,
     isUserCreatedPolicyRoom,
     isChatRoom,
     getChatRoomSubtitle,
