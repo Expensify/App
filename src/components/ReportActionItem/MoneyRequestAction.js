@@ -98,10 +98,17 @@ const MoneyRequestAction = (props) => {
         if (childReportID === '0') {
             const participants = _.uniq([props.session.email, props.action.actorEmail]);
             const formattedUserLogins = _.map(participants, (login) => OptionsListUtils.addSMSDomainIfPhoneNumber(login).toLowerCase());
+            const formattedAmount =
+                lodashGet(props.action, 'originalMessage.type', '') === CONST.IOU.REPORT_ACTION_TYPE.PAY
+                    ? CurrencyUtils.convertToDisplayString(
+                          lodashGet(props.action, 'originalMessage.IOUDetails.amount', 0),
+                          lodashGet(props.action, 'originalMessage.IOUDetails.currency', ''),
+                      )
+                    : CurrencyUtils.convertToDisplayString(lodashGet(props.action, 'originalMessage.amount', 0), lodashGet(props.action, 'originalMessage.currency', ''));
             const thread = ReportUtils.buildOptimisticChatReport(
                 formattedUserLogins,
                 props.translate('iou.threadReportName', {
-                    formattedAmount: CurrencyUtils.convertToDisplayString(lodashGet(props.action, 'originalMessage.amount', 0), lodashGet(props.action, 'originalMessage.currency', '')),
+                    formattedAmount,
                     comment: props.action.originalMessage.comment,
                 }),
                 '',
