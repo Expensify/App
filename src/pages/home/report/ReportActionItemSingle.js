@@ -37,7 +37,7 @@ const propTypes = {
     children: PropTypes.node.isRequired,
 
     /** Report for this action */
-    report: reportPropTypes.isRequired,
+    report: reportPropTypes,
 
     /** Show header for action */
     showHeader: PropTypes.bool,
@@ -53,6 +53,7 @@ const defaultProps = {
     wrapperStyles: [styles.chatItem],
     showHeader: true,
     shouldShowSubscriptAvatar: false,
+    chatReport: undefined,
 };
 
 const showUserDetails = (email) => {
