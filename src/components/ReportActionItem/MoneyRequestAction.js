@@ -123,6 +123,11 @@ const MoneyRequestAction = (props) => {
         }
     };
 
+    const onReportPreviewPressed = () => {
+        Report.openReport(props.requestReportID);
+        Navigation.navigate(ROUTES.getReportRoute(props.requestReportID));
+    };
+
     let shouldShowPendingConversionMessage = false;
     if (
         !_.isEmpty(props.iouReport) &&
@@ -155,7 +160,7 @@ const MoneyRequestAction = (props) => {
                     chatReportID={props.chatReportID}
                     iouReportID={props.requestReportID}
                     contextMenuAnchor={props.contextMenuAnchor}
-                    onViewDetailsPressed={onIOUPreviewPressed}
+                    onViewDetailsPressed={onReportPreviewPressed}
                     checkIfContextMenuActive={props.checkIfContextMenuActive}
                     isHovered={props.isHovered}
                 />
