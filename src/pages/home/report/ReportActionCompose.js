@@ -592,7 +592,9 @@ class ReportActionCompose extends React.Component {
         const commentAfterColonWithEmojiNameRemoved = this.state.value.slice(this.state.selection.end).replace(CONST.REGEX.EMOJI_REPLACER, CONST.SPACE);
 
         this.updateComment(`${commentBeforeColon}${emojiCode} ${commentAfterColonWithEmojiNameRemoved}`, true);
-        // Clear the contents of a TextInput in some android keyboards
+        // In some Android phones keyboard, the text to search for the emoji is not cleared
+        // will be added after the user starts typing again on the keyboard. This package is 
+        // a workaround to reset the keyboard natively.
         if (RNTextInputReset) {
             RNTextInputReset.resetKeyboardInput(findNodeHandle(this.textInput));
         }
