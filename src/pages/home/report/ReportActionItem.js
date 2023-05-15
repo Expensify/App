@@ -184,13 +184,16 @@ class ReportActionItem extends Component {
      */
     renderItemContent(hovered = false) {
         let children;
+        const originalMessage = lodashGet(this.props.action, 'originalMessage', {});
+        // Only show the IOUPreview for the created IOU action and in case of send money flow
         if (
             this.props.action.actionName === CONST.REPORT.ACTIONS.TYPE.IOU &&
-            this.props.action.originalMessage.type !== CONST.IOU.REPORT_ACTION_TYPE.DELETE &&
-            this.props.action.originalMessage.type !== CONST.IOU.REPORT_ACTION_TYPE.PAY
+            originalMessage &&
+            originalMessage.type !== CONST.IOU.REPORT_ACTION_TYPE.DELETE &&
+            (originalMessage.type !== CONST.IOU.REPORT_ACTION_TYPE.PAY || originalMessage.IOUDetails)
         ) {
             // There is no single iouReport for bill splits, so only 1:1 requests require an iouReportID
-            const iouReportID = this.props.action.originalMessage.IOUReportID ? this.props.action.originalMessage.IOUReportID.toString() : '0';
+            const iouReportID = originalMessage.IOUReportID ? originalMessage.IOUReportID.toString() : '0';
 
             children = (
                 <MoneyRequestAction
