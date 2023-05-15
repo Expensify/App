@@ -19,7 +19,6 @@ import ReportActionsView from './report/ReportActionsView';
 import CONST from '../../CONST';
 import ReportActionsSkeletonView from '../../components/ReportActionsSkeletonView';
 import reportActionPropTypes from './report/reportActionPropTypes';
-import toggleReportActionComposeView from '../../libs/toggleReportActionComposeView';
 import {withNetwork} from '../../components/OnyxProvider';
 import compose from '../../libs/compose';
 import Visibility from '../../libs/Visibility';
@@ -40,6 +39,9 @@ import getIsReportFullyVisible from '../../libs/getIsReportFullyVisible';
 import EmojiPicker from '../../components/EmojiPicker/EmojiPicker';
 import * as EmojiPickerAction from '../../libs/actions/EmojiPickerAction';
 import StylesContext from '../../styles/StylesContext';
+import TaskHeaderView from './TaskHeaderView';
+import MoneyRequestHeader from '../../components/MoneyRequestHeader';
+import * as ComposerActions from '../../libs/actions/Composer';
 
 const propTypes = {
     /** Navigation route context info provided by react navigation */
@@ -67,13 +69,15 @@ const propTypes = {
     betas: PropTypes.arrayOf(PropTypes.string),
 
     /** The policies which the user has access to */
-    policies: PropTypes.objectOf(PropTypes.shape({
-        /** The policy name */
-        name: PropTypes.string,
+    policies: PropTypes.objectOf(
+        PropTypes.shape({
+            /** The policy name */
+            name: PropTypes.string,
 
-        /** The type of the policy */
-        type: PropTypes.string,
-    })),
+            /** The type of the policy */
+            type: PropTypes.string,
+        }),
+    ),
 
     /** Information about the network */
     network: networkPropTypes.isRequired,
@@ -144,7 +148,7 @@ class ReportScreen extends React.Component {
         });
 
         this.fetchReportIfNeeded();
-        toggleReportActionComposeView(true);
+        ComposerActions.setShouldShowComposeInput(true);
         Navigation.setIsReportScreenIsReady();
     }
 
@@ -160,7 +164,7 @@ class ReportScreen extends React.Component {
         }
 
         this.fetchReportIfNeeded();
-        toggleReportActionComposeView(true);
+        ComposerActions.setShouldShowComposeInput(true);
     }
 
     componentWillUnmount() {
@@ -226,15 +230,17 @@ class ReportScreen extends React.Component {
 
         const styles = this.context;
 
-        const screenWrapperStyle = [styles.flex1, {marginTop: this.props.viewportOffsetTop}];
+        const screenWrapperStyle = [styles.appContent, styles.flex1, {marginTop: this.props.viewportOffsetTop}];
+        const isTaskReport = ReportUtils.isTaskReport(this.props.report);
+
 
         // There are no reportActions at all to display and we are still in the process of loading the next set of actions.
         const isLoadingInitialReportActions = _.isEmpty(this.props.reportActions) && this.props.report.isLoadingReportActions;
 
         // Users not in the Default Room or Policy Room Betas can't view the report
-        const shouldHideReport = (
-            ReportUtils.isDefaultRoom(this.props.report) && !ReportUtils.canSeeDefaultRoom(this.props.report, this.props.policies, this.props.betas))
-            || (ReportUtils.isUserCreatedPolicyRoom(this.props.report) && !Permissions.canUsePolicyRooms(this.props.betas));
+        const shouldHideReport =
+            (ReportUtils.isDefaultRoom(this.props.report) && !ReportUtils.canSeeDefaultRoom(this.props.report, this.props.policies, this.props.betas)) ||
+            (ReportUtils.isUserCreatedPolicyRoom(this.props.report) && !Permissions.canUsePolicyRooms(this.props.betas));
 
         // When the ReportScreen is not open/in the viewport, we want to "freeze" it for performance reasons
         const shouldFreeze = this.props.isSmallScreenWidth && this.props.isDrawerOpen;
@@ -247,45 +253,57 @@ class ReportScreen extends React.Component {
 
         return (
             <Reanimated.View style={styles.appContent}>
-                <ScreenWrapper
-                    style={screenWrapperStyle}
+            <ScreenWrapper style={screenWrapperStyle}>
+                <Freeze
+                    freeze={shouldFreeze}
+                    placeholder={
+                        <>
+                            <ReportHeaderSkeletonView shouldAnimate={shouldAnimate} />
+                            <View style={[styles.flex1, styles.justifyContentEnd, styles.overflowHidden]}>
+                                <ReportActionsSkeletonView
+                                    shouldAnimate={shouldAnimate}
+                                    containerHeight={this.state.skeletonViewContainerHeight}
+                                />
+                                <ReportFooter
+                                    shouldDisableCompose
+                                    isOffline={this.props.network.isOffline}
+                                />
+                            </View>
+                        </>
+                    }
                 >
-                    <Freeze
-                        freeze={shouldFreeze}
-                        placeholder={(
-                            <>
-                                <ReportHeaderSkeletonView shouldAnimate={shouldAnimate} />
-                                <View style={[styles.flex1, styles.justifyContentEnd, styles.overflowHidden]}>
-                                    <ReportActionsSkeletonView shouldAnimate={shouldAnimate} containerHeight={this.state.skeletonViewContainerHeight} />
-                                    <ReportFooter shouldDisableCompose isOffline={this.props.network.isOffline} />
-                                </View>
-                            </>
-                    )}
+                    <FullPageNotFoundView
+                        shouldShow={(!this.props.report.reportID && !this.props.report.isLoadingReportActions && !isLoading) || shouldHideReport}
+                        subtitleKey="notFound.noAccess"
+                        shouldShowCloseButton={false}
+                        shouldShowBackButton={this.props.isSmallScreenWidth}
+                        onBackButtonPress={Navigation.goBack}
                     >
-                        <FullPageNotFoundView
-                            shouldShow={(!this.props.report.reportID && !this.props.report.isLoadingReportActions && !isLoading) || shouldHideReport}
-                            subtitleKey="notFound.noAccess"
-                            shouldShowCloseButton={false}
-                            shouldShowBackButton={this.props.isSmallScreenWidth}
-                            onBackButtonPress={() => {
-                                Navigation.navigate(ROUTES.HOME);
-                            }}
-                        >
-                            {isLoading ? <ReportHeaderSkeletonView shouldAnimate={shouldAnimate} /> : (
-                                <>
-                                    <OfflineWithFeedback
-                                        pendingAction={addWorkspaceRoomOrChatPendingAction}
-                                        errors={addWorkspaceRoomOrChatErrors}
-                                        shouldShowErrorMessages={false}
-                                    >
+                        {isLoading ? (
+                            <ReportHeaderSkeletonView shouldAnimate={shouldAnimate} />
+                        ) : (
+                            <>
+                                <OfflineWithFeedback
+                                    pendingAction={addWorkspaceRoomOrChatPendingAction}
+                                    errors={addWorkspaceRoomOrChatErrors}
+                                    shouldShowErrorMessages={false}
+                                >
+                                    {ReportUtils.isMoneyRequestReport(this.props.report) ? (
+                                        <MoneyRequestHeader
+                                            report={this.props.report}
+                                            policies={this.props.policies}
+                                            personalDetails={this.props.personalDetails}
+                                        />
+                                    ) : (
                                         <HeaderView
                                             reportID={reportID}
-                                            onNavigationMenuButtonClicked={() => Navigation.navigate(ROUTES.HOME)}
+                                            onNavigationMenuButtonClicked={Navigation.goBack}
                                             personalDetails={this.props.personalDetails}
                                             report={this.props.report}
                                         />
-                                    </OfflineWithFeedback>
-                                    {Boolean(this.props.accountManagerReportID) && ReportUtils.isConciergeChatReport(this.props.report) && this.state.isBannerVisible && (
+                                    )}
+                                </OfflineWithFeedback>
+                                {Boolean(this.props.accountManagerReportID) && ReportUtils.isConciergeChatReport(this.props.report) && this.state.isBannerVisible && (
                                     <Banner
                                         containerStyles={[styles.mh4, styles.mt4, styles.p4, styles.bgDark]}
                                         textStyles={[styles.colorReversed]}
@@ -294,25 +312,26 @@ class ReportScreen extends React.Component {
                                         onPress={this.chatWithAccountManager}
                                         shouldShowCloseButton
                                     />
-                                    )}
-                                </>
-                            )}
-                            <View
-                                nativeID={CONST.REPORT.DROP_NATIVE_ID}
-                                style={[styles.flex1, styles.justifyContentEnd, styles.overflowHidden]}
-                                onLayout={(event) => {
-                                    const skeletonViewContainerHeight = event.nativeEvent.layout.height;
+                                )}
+                                {isTaskReport && <TaskHeaderView report={this.props.report} />}
+                            </>
+                        )}
+                        <View
+                            nativeID={CONST.REPORT.DROP_NATIVE_ID}
+                            style={[styles.flex1, styles.justifyContentEnd, styles.overflowHidden]}
+                            onLayout={(event) => {
+                                const skeletonViewContainerHeight = event.nativeEvent.layout.height;
 
-                                    // The height can be 0 if the component unmounts - we are not interested in this value and want to know how much space it
-                                    // takes up so we can set the skeleton view container height.
-                                    if (skeletonViewContainerHeight === 0) {
-                                        return;
-                                    }
-                                    reportActionsListViewHeight = skeletonViewContainerHeight;
-                                    this.setState({skeletonViewContainerHeight});
-                                }}
-                            >
-                                {(this.isReportReadyForDisplay() && !isLoadingInitialReportActions && !isLoading) && (
+                                // The height can be 0 if the component unmounts - we are not interested in this value and want to know how much space it
+                                // takes up so we can set the skeleton view container height.
+                                if (skeletonViewContainerHeight === 0) {
+                                    return;
+                                }
+                                reportActionsListViewHeight = skeletonViewContainerHeight;
+                                this.setState({skeletonViewContainerHeight});
+                            }}
+                        >
+                            {this.isReportReadyForDisplay() && !isLoadingInitialReportActions && !isLoading && (
                                 <ReportActionsView
                                     reportActions={this.props.reportActions}
                                     report={this.props.report}
@@ -342,9 +361,12 @@ class ReportScreen extends React.Component {
                                     </>
                                 )}
 
-                                {!this.isReportReadyForDisplay() && (
-                                <ReportFooter shouldDisableCompose isOffline={this.props.network.isOffline} />
-                                )}
+                            {!this.isReportReadyForDisplay() && (
+                                <ReportFooter
+                                    shouldDisableCompose
+                                    isOffline={this.props.network.isOffline}
+                                />
+                            )}
 
                                 <EmojiPicker ref={EmojiPickerAction.emojiPickerRef} />
                                 <PortalHost name={CONST.REPORT.DROP_HOST_NAME} />
@@ -352,7 +374,6 @@ class ReportScreen extends React.Component {
                         </FullPageNotFoundView>
                     </Freeze>
                 </ScreenWrapper>
-
             </Reanimated.View>
         );
     }

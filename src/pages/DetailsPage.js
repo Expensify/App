@@ -111,7 +111,6 @@ class DetailsPage extends React.PureComponent {
         }
 
         const phoneNumber = getPhoneNumber(details);
-        const displayName = isSMSLogin ? this.props.formatPhoneNumber(phoneNumber) : details.displayName;
         const phoneOrEmail = isSMSLogin ? getPhoneNumber(details) : details.login;
 
         return (
@@ -125,15 +124,13 @@ class DetailsPage extends React.PureComponent {
                     />
                     <View
                         pointerEvents="box-none"
-                        style={[
-                            styles.containerWithSpaceBetween,
-                        ]}
+                        style={[styles.containerWithSpaceBetween]}
                     >
                         {details ? (
                             <ScrollView>
                                 <View style={styles.avatarSectionWrapper}>
                                     <AttachmentModal
-                                        headerTitle={displayName}
+                                        headerTitle={details.displayName}
                                         source={ReportUtils.getFullSizeAvatar(details.avatar, details.login)}
                                         isAuthTokenRequired
                                         originalFileName={details.originalFileName}
@@ -143,9 +140,7 @@ class DetailsPage extends React.PureComponent {
                                                 style={styles.noOutline}
                                                 onPress={show}
                                             >
-                                                <OfflineWithFeedback
-                                                    pendingAction={lodashGet(details, 'pendingFields.avatar', null)}
-                                                >
+                                                <OfflineWithFeedback pendingAction={lodashGet(details, 'pendingFields.avatar', null)}>
                                                     <Avatar
                                                         containerStyles={[styles.avatarLarge, styles.mb3]}
                                                         imageStyles={[styles.avatarLarge]}
@@ -157,45 +152,44 @@ class DetailsPage extends React.PureComponent {
                                         )}
                                     </AttachmentModal>
                                     {Boolean(details.displayName) && (
-                                        <Text style={[styles.textHeadline, styles.mb6, styles.pre]} numberOfLines={1}>
-                                            {displayName}
+                                        <Text
+                                            style={[styles.textHeadline, styles.mb6, styles.pre]}
+                                            numberOfLines={1}
+                                        >
+                                            {details.displayName}
                                         </Text>
                                     )}
                                     {details.login ? (
                                         <View style={[styles.mb6, styles.detailsPageSectionContainer, styles.w100]}>
-                                            <Text style={[styles.textLabelSupporting, styles.mb1]} numberOfLines={1}>
-                                                {this.props.translate(isSMSLogin
-                                                    ? 'common.phoneNumber'
-                                                    : 'common.email')}
-                                            </Text>
-                                            <CommunicationsLink
-                                                value={phoneOrEmail}
+                                            <Text
+                                                style={[styles.textLabelSupporting, styles.mb1]}
+                                                numberOfLines={1}
                                             >
+                                                {this.props.translate(isSMSLogin ? 'common.phoneNumber' : 'common.email')}
+                                            </Text>
+                                            <CommunicationsLink value={phoneOrEmail}>
                                                 <Tooltip text={phoneOrEmail}>
-                                                    <Text numberOfLines={1}>
-                                                        {isSMSLogin
-                                                            ? this.props.formatPhoneNumber(phoneNumber)
-                                                            : details.login}
-                                                    </Text>
+                                                    <Text numberOfLines={1}>{isSMSLogin ? this.props.formatPhoneNumber(phoneNumber) : details.login}</Text>
                                                 </Tooltip>
                                             </CommunicationsLink>
                                         </View>
                                     ) : null}
                                     {pronouns ? (
                                         <View style={[styles.mb6, styles.detailsPageSectionContainer]}>
-                                            <Text style={[styles.textLabelSupporting, styles.mb1]} numberOfLines={1}>
+                                            <Text
+                                                style={[styles.textLabelSupporting, styles.mb1]}
+                                                numberOfLines={1}
+                                            >
                                                 {this.props.translate('profilePage.preferredPronouns')}
                                             </Text>
-                                            <Text numberOfLines={1}>
-                                                {pronouns}
-                                            </Text>
+                                            <Text numberOfLines={1}>{pronouns}</Text>
                                         </View>
                                     ) : null}
                                     {shouldShowLocalTime && <AutoUpdateTime timezone={details.timezone} />}
                                 </View>
                                 {details.login !== this.props.session.email && (
                                     <MenuItem
-                                        title={`${this.props.translate('common.message')}${displayName}`}
+                                        title={`${this.props.translate('common.message')}${details.displayName}`}
                                         icon={Expensicons.ChatBubble}
                                         onPress={() => Report.navigateToAndOpenReport([details.login])}
                                         wrapperStyle={styles.breakAll}

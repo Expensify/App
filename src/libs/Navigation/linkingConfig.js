@@ -3,14 +3,7 @@ import SCREENS from '../../SCREENS';
 import CONST from '../../CONST';
 
 export default {
-    prefixes: [
-        'new-expensify://',
-        'https://www.expensify.cash',
-        'https://staging.expensify.cash',
-        'http://localhost',
-        CONST.NEW_EXPENSIFY_URL,
-        CONST.STAGING_NEW_EXPENSIFY_URL,
-    ],
+    prefixes: ['new-expensify://', 'https://www.expensify.cash', 'https://staging.expensify.cash', 'http://localhost', CONST.NEW_EXPENSIFY_URL, CONST.STAGING_NEW_EXPENSIFY_URL],
     config: {
         initialRouteName: SCREENS.HOME,
         screens: {
@@ -27,6 +20,7 @@ export default {
             // Main Routes
             SetPassword: ROUTES.SET_PASSWORD_WITH_VALIDATE_CODE,
             ValidateLogin: ROUTES.VALIDATE_LOGIN,
+            UnlinkLogin: ROUTES.UNLINK_LOGIN,
             [SCREENS.TRANSITION_FROM_OLD_DOT]: ROUTES.TRANSITION_FROM_OLD_DOT,
             Concierge: ROUTES.CONCIERGE,
 
@@ -35,6 +29,10 @@ export default {
                 screens: {
                     Settings_Root: {
                         path: ROUTES.SETTINGS,
+                    },
+                    Settings_Share_Code: {
+                        path: ROUTES.SETTINGS_SHARE_CODE,
+                        exact: true,
                     },
                     Settings_Workspaces: {
                         path: ROUTES.SETTINGS_WORKSPACES,
@@ -196,6 +194,7 @@ export default {
             Report_Details: {
                 screens: {
                     Report_Details_Root: ROUTES.REPORT_WITH_ID_DETAILS,
+                    Report_Details_Share_Code: ROUTES.REPORT_WITH_ID_DETAILS_SHARE_CODE,
                 },
             },
             Report_Settings: {
@@ -216,6 +215,11 @@ export default {
             NewTask: {
                 screens: {
                     NewTask_Root: ROUTES.NEW_TASK_WITH_REPORT_ID,
+                    NewTask_TaskAssigneeSelector: ROUTES.NEW_TASK_ASSIGNEE,
+                    NewTask_TaskShareDestinationSelector: ROUTES.NEW_TASK_SHARE_DESTINATION,
+                    NewTask_Details: ROUTES.NEW_TASK_DETAILS,
+                    NewTask_Title: ROUTES.NEW_TASK_TITLE,
+                    NewTask_Description: ROUTES.NEW_TASK_DESCRIPTION,
                 },
             },
             Search: {
@@ -262,6 +266,13 @@ export default {
                     IOU_Details_Enable_Payments: ROUTES.IOU_DETAILS_ENABLE_PAYMENTS,
                     IOU_Details_Add_Bank_Account: ROUTES.IOU_DETAILS_ADD_BANK_ACCOUNT,
                     IOU_Details_Add_Debit_Card: ROUTES.IOU_DETAILS_ADD_DEBIT_CARD,
+                },
+            },
+            Task_Details: {
+                screens: {
+                    Task_Title: ROUTES.TASK_TITLE,
+                    Task_Description: ROUTES.TASK_DESCRIPTION,
+                    Task_Assignee: ROUTES.TASK_ASSIGNEE,
                 },
             },
             AddPersonalBankAccount: {

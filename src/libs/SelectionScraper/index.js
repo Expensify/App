@@ -2,7 +2,7 @@ import render from 'dom-serializer';
 import {parseDocument} from 'htmlparser2';
 import _ from 'underscore';
 import Str from 'expensify-common/lib/str';
-import styles from '../../styles/styles';
+import CONST from '../../CONST';
 
 const elementsWillBeSkipped = ['html', 'body'];
 const tagAttribute = 'data-testid';
@@ -81,8 +81,13 @@ const getHTMLOfSelection = () => {
         }
     }
 
-    // Remove any element that isn't selectable to prevent copying unnecessary text/items
-    div.querySelectorAll(`div[style*="user-select: ${styles.userSelectNone.WebkitUserSelect}"]`).forEach(item => item.remove());
+    // Find and remove the div housing the UnreadActionIndicator because we don't want
+    // the 'New/Nuevo' text inside it being copied.
+    const newMessageLineIndicatorDiv = div.querySelector(`#${CONST.UNREAD_ACTION_INDICATOR_ID}`);
+
+    if (newMessageLineIndicatorDiv) {
+        newMessageLineIndicatorDiv.remove();
+    }
 
     return div.innerHTML;
 };
@@ -121,7 +126,7 @@ const replaceNodes = (dom) => {
     }
 
     if (dom.children) {
-        domChildren = _.map(dom.children, c => replaceNodes(c));
+        domChildren = _.map(dom.children, (c) => replaceNodes(c));
     }
 
     return {
