@@ -138,6 +138,7 @@ class PronounsPage extends Component {
                             onChangeText={this.onChangeText}
                             optionHoveredStyle={styles.hoveredComponentBG}
                             safeAreaPaddingBottomStyle={safeAreaPaddingBottomStyle}
+                            shouldDelayFocus
                             shouldFocusOnSelectRow
                             shouldHaveOptionSeparator
                             initiallyFocusedOptionKey={this.initiallyFocusedOption.keyForList}
