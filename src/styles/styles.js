@@ -199,8 +199,15 @@ const styles = {
 
     mentionSuggestionsText: {
         fontSize: variables.fontSizeMedium,
-        flex: 1,
         ...spacing.ml2,
+    },
+
+    mentionSuggestionsDisplayName: {
+        fontWeight: fontWeightBold,
+    },
+
+    mentionSuggestionsHandle: {
+        color: themeColors.textSupporting,
     },
 
     unitCol: {

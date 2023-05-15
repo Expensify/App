@@ -63,8 +63,8 @@ const MentionSuggestions = (props) => {
      * @returns {JSX.Element}
      */
     const renderSuggestionMenuItem = (item) => {
-        const displayedText = _.uniq([item.text, item.alternateText]).join(' - ');
-        const styledTextArray = getStyledTextArray(displayedText, props.prefix);
+        const styledDisplayName = getStyledTextArray(item.text, props.prefix);
+        const styledHandle = getStyledTextArray(item.alternateText, props.prefix);
 
         return (
             <View style={[styles.autoCompleteSuggestionContainer, styles.ph2]}>
@@ -75,13 +75,26 @@ const MentionSuggestions = (props) => {
                     type={item.icons[0].type}
                 />
                 <Text
-                    style={styles.mentionSuggestionsText}
+                    style={[styles.mentionSuggestionsText, styles.flexShrink1]}
                     numberOfLines={1}
                 >
-                    {_.map(styledTextArray, ({text, isColored}, i) => (
+                    {_.map(styledDisplayName, ({text, isColored}, i) => (
                         <Text
                             key={`${text}${i}`}
-                            style={StyleUtils.getColoredBackgroundStyle(isColored)}
+                            style={[StyleUtils.getColoredBackgroundStyle(isColored), styles.mentionSuggestionsDisplayName]}
+                        >
+                            {text}
+                        </Text>
+                    ))}
+                </Text>
+                <Text
+                    style={[styles.mentionSuggestionsText, styles.flex1]}
+                    numberOfLines={1}
+                >
+                    {_.map(styledHandle, ({text, isColored}, i) => (
+                        <Text
+                            key={`${text}${i}`}
+                            style={[StyleUtils.getColoredBackgroundStyle(isColored), styles.mentionSuggestionsHandle]}
                         >
                             {text}
                         </Text>
