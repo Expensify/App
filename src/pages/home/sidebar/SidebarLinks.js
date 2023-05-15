@@ -30,9 +30,9 @@ import LHNOptionsList from '../../../components/LHNOptionsList/LHNOptionsList';
 import SidebarUtils from '../../../libs/SidebarUtils';
 import reportPropTypes from '../../reportPropTypes';
 import OfflineWithFeedback from '../../../components/OfflineWithFeedback';
-import LHNSkeletonView from '../../../components/LHNSkeletonView';
 import withNavigationFocus from '../../../components/withNavigationFocus';
 import withCurrentReportId from '../../../components/withCurrentReportId';
+import OptionsListSkeletonView from '../../../components/OptionsListSkeletonView';
 
 const propTypes = {
     /** Toggles the navigation menu open and closed */
@@ -138,7 +138,7 @@ class SidebarLinks extends React.Component {
         const shouldFreeze = this.props.isSmallScreenWidth && !this.props.isFocused && this.isSidebarLoaded;
         const optionListItems = SidebarUtils.getOrderedReportIDs(this.props.reportIDFromRoute);
 
-        const skeletonPlaceholder = <LHNSkeletonView shouldAnimate={!shouldFreeze} />;
+        const skeletonPlaceholder = <OptionsListSkeletonView shouldAnimate={!shouldFreeze} />;
 
         return (
             <View
