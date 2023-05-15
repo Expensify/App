@@ -1,7 +1,7 @@
 import React from 'react';
-import {View, FlatList} from 'react-native';
+import { View, FlatList } from 'react-native';
 import PropTypes from 'prop-types';
-import {withOnyx} from 'react-native-onyx';
+import { withOnyx } from 'react-native-onyx';
 import _ from 'underscore';
 import * as Expensicons from '../Icon/Expensicons';
 import styles from '../../styles/styles';
@@ -17,9 +17,10 @@ import ONYXKEYS from '../../ONYXKEYS';
 import reportActionPropTypes from '../../pages/home/report/reportActionPropTypes';
 import tryResolveUrlFromApiRoot from '../../libs/tryResolveUrlFromApiRoot';
 import Tooltip from '../Tooltip';
-import withLocalize, {withLocalizePropTypes} from '../withLocalize';
+import withLocalize, { withLocalizePropTypes } from '../withLocalize';
 import compose from '../../libs/compose';
 import withWindowDimensions from '../withWindowDimensions';
+import Pager from './Lightbox';
 
 const propTypes = {
     /** source is used to determine the starting index in the array of attachments */
@@ -37,7 +38,7 @@ const propTypes = {
 const defaultProps = {
     source: '',
     reportActions: {},
-    onNavigate: () => {},
+    onNavigate: () => { },
 };
 
 class AttachmentCarousel extends React.Component {
@@ -76,7 +77,7 @@ class AttachmentCarousel extends React.Component {
      */
     getAttachment(attachmentItem) {
         const source = _.get(attachmentItem, 'source', '');
-        const file = _.get(attachmentItem, 'file', {name: ''});
+        const file = _.get(attachmentItem, 'file', { name: '' });
 
         return {
             source,
@@ -131,7 +132,7 @@ class AttachmentCarousel extends React.Component {
         this.setState(
             (current) => {
                 const newShouldShowArrow = _.isBoolean(shouldShowArrow) ? shouldShowArrow : !current.shouldShowArrow;
-                return {shouldShowArrow: newShouldShowArrow};
+                return { shouldShowArrow: newShouldShowArrow };
             },
             () => {
                 if (this.state.shouldShowArrow) {
@@ -155,7 +156,7 @@ class AttachmentCarousel extends React.Component {
         if (isZoomed) {
             this.toggleArrowsVisibility(false);
         }
-        this.setState({isZoomed});
+        this.setState({ isZoomed });
     }
 
     /**
@@ -170,7 +171,7 @@ class AttachmentCarousel extends React.Component {
          * Looping to filter out attachments and retrieve the src URL and name of attachments.
          */
         const attachments = [];
-        _.forEach(actions, ({originalMessage, message}) => {
+        _.forEach(actions, ({ originalMessage, message }) => {
             // Check for attachment which hasn't been deleted
             if (!originalMessage || !originalMessage.html || _.some(message, (m) => m.isEdited)) {
                 return;
@@ -188,7 +189,7 @@ class AttachmentCarousel extends React.Component {
                     page = attachments.length;
                 }
 
-                attachments.push({source, file: {name}});
+                attachments.push({ source, file: { name } });
             }
         });
 
@@ -215,14 +216,14 @@ class AttachmentCarousel extends React.Component {
 
         // The sliding transition is a bit too much on web, because of the wider and bigger images,
         // so we only enable it for mobile
-        this.scrollRef.current.scrollToIndex({index: nextIndex, animated: this.canUseTouchScreen});
+        this.scrollRef.current.scrollToIndex({ index: nextIndex, animated: this.canUseTouchScreen });
     }
 
     /**
      * Updates the page state when the user navigates between attachments
      * @param {Array<{item: *, index: Number}>} viewableItems
      */
-    updatePage({viewableItems}) {
+    updatePage({ viewableItems }) {
         // Since we can have only one item in view at a time, we can use the first item in the array
         // to get the index of the current page
         const entry = _.first(viewableItems);
@@ -231,9 +232,9 @@ class AttachmentCarousel extends React.Component {
         }
 
         const page = entry.index;
-        const {source, file} = this.getAttachment(entry.item);
-        this.props.onNavigate({source: addEncryptedAuthTokenToURL(source), file});
-        this.setState({page, isZoomed: false});
+        const { source, file } = this.getAttachment(entry.item);
+        this.props.onNavigate({ source: addEncryptedAuthTokenToURL(source), file });
+        this.setState({ page, isZoomed: false });
     }
 
     /**
@@ -242,7 +243,7 @@ class AttachmentCarousel extends React.Component {
      * @returns {JSX.Element}
      */
     renderCell(props) {
-        const style = [props.style, styles.h100, {width: this.state.containerWidth}];
+        const style = [props.style, styles.h100, { width: this.state.containerWidth }];
 
         return (
             <View
@@ -258,7 +259,7 @@ class AttachmentCarousel extends React.Component {
      * @param {{ source: String, file: { name: String } }} item
      * @returns {JSX.Element}
      */
-    renderItem({item}) {
+    renderItem({ item }) {
         const authSource = addEncryptedAuthTokenToURL(item.source);
         if (!this.canUseTouchScreen) {
             return (
@@ -286,7 +287,7 @@ class AttachmentCarousel extends React.Component {
         return (
             <View
                 style={[styles.attachmentModalArrowsContainer, styles.flex1]}
-                onLayout={({nativeEvent}) => this.setState({containerWidth: nativeEvent.layout.width + 1})}
+                onLayout={({ nativeEvent }) => this.setState({ containerWidth: nativeEvent.layout.width + 1 })}
                 onMouseEnter={() => !this.canUseTouchScreen && this.toggleArrowsVisibility(true)}
                 onMouseLeave={() => !this.canUseTouchScreen && this.toggleArrowsVisibility(false)}
             >
@@ -333,7 +334,13 @@ class AttachmentCarousel extends React.Component {
                     </>
                 )}
 
-                {this.state.containerWidth > 0 && (
+                <Pager
+                    items={this.state.attachments}
+                    initialIndex={this.state.page}
+                    itemExtractor={({ item }) => ({ key: item.source, url: addEncryptedAuthTokenToURL(item.source) })}
+                />
+
+                {/* {this.state.containerWidth > 0 && (
                     <FlatList
                         listKey="AttachmentCarousel"
                         horizontal
@@ -367,7 +374,7 @@ class AttachmentCarousel extends React.Component {
                         viewabilityConfig={this.viewabilityConfig}
                         onViewableItemsChanged={this.updatePage}
                     />
-                )}
+                )} */}
 
                 <CarouselActions onCycleThroughAttachments={this.cycleThroughAttachments} />
             </View>
@@ -381,7 +388,7 @@ AttachmentCarousel.defaultProps = defaultProps;
 export default compose(
     withOnyx({
         reportActions: {
-            key: ({reportID}) => `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`,
+            key: ({ reportID }) => `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`,
             canEvict: false,
         },
     }),
