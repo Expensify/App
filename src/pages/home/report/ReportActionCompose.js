@@ -478,7 +478,7 @@ function ReportActionCompose(props) {
             // the larger composerHeight the less space for EmojiPicker, Pixel 2 has pretty small screen and this value equal 5.3
             const hasEnoughSpaceForLargeSuggestion = props.windowHeight / composerHeight >= 6.8;
             const isAutoSuggestionPickerLarge = !props.isSmallScreenWidth || (props.isSmallScreenWidth && hasEnoughSpaceForLargeSuggestion);
-            
+
             const nextState = {
                 suggestedEmojis: [],
                 highlightedEmojiIndex: 0,
@@ -495,7 +495,7 @@ function ReportActionCompose(props) {
 
             LayoutAnimation.configureNext(LayoutAnimation.create(50, LayoutAnimation.Types.easeInEaseOut, LayoutAnimation.Properties.opacity));
 
-            setSuggestionValues(prevState => ({...prevState, ...nextState}))
+            setSuggestionValues((prevState) => ({...prevState, ...nextState}));
         },
         [composerHeight, value, props.windowHeight, props.isSmallScreenWidth, resetSuggestions, shouldBlockEmojiCalc],
     );
@@ -605,10 +605,10 @@ function ReportActionCompose(props) {
     // eslint-disable-next-line rulesdir/prefer-early-return
     const updateShouldShowSuggestionMenuToFalse = useCallback(() => {
         if (suggestionValues.shouldShowEmojiSuggestionMenu) {
-            setSuggestionValues(prevState => ({...prevState, shouldShowEmojiSuggestionMenu: false }));
+            setSuggestionValues((prevState) => ({...prevState, shouldShowEmojiSuggestionMenu: false}));
         }
         if (suggestionValues.shouldShowMentionSuggestionMenu) {
-            setSuggestionValues(prevState => ({...prevState, shouldShowMentionSuggestionMenu: false }));
+            setSuggestionValues((prevState) => ({...prevState, shouldShowMentionSuggestionMenu: false}));
         }
     }, [suggestionValues.shouldShowEmojiSuggestionMenu, suggestionValues.shouldShowMentionSuggestionMenu]);
 
@@ -657,7 +657,7 @@ function ReportActionCompose(props) {
                 start: suggestionValues.colonIndex + emojiCode.length + CONST.SPACE_LENGTH,
                 end: suggestionValues.colonIndex + emojiCode.length + CONST.SPACE_LENGTH,
             });
-            setSuggestionValues(prevState => ({...prevState, suggestedEmojis: []}))
+            setSuggestionValues((prevState) => ({...prevState, suggestedEmojis: []}));
 
             EmojiUtils.addToFrequentlyUsedEmojis(props.frequentlyUsedEmojis, emojiObject);
         },
@@ -777,7 +777,7 @@ function ReportActionCompose(props) {
 
             const suggestionsExist = suggestionValues.suggestedEmojis.length > 0 || suggestionValues.suggestedMentions.length > 0;
 
-            if ((e.key === CONST.KEYBOARD_SHORTCUTS.ENTER.shortcutKey || e.key === CONST.KEYBOARD_SHORTCUTS.TAB.shortcutKey) && suggestionValues.suggestedEmojis.length) {
+            if ((e.key === CONST.KEYBOARD_SHORTCUTS.ENTER.shortcutKey || e.key === CONST.KEYBOARD_SHORTCUTS.TAB.shortcutKey) && suggestionsExist) {
                 e.preventDefault();
                 if (suggestionValues.suggestedEmojis.length > 0) {
                     insertSelectedEmoji(suggestionValues.highlightedEmojiIndex);
@@ -852,20 +852,23 @@ function ReportActionCompose(props) {
         setIsAttachmentPreviewActive(false);
     }, [updateShouldBlockEmojiCalcToFalse]);
 
-    const onDropAttachment = useCallback((e, displayFileInModal) => {
-        e.preventDefault();
-        if (isAttachmentPreviewActive) {
+    const onDropAttachment = useCallback(
+        (e, displayFileInModal) => {
+            e.preventDefault();
+            if (isAttachmentPreviewActive) {
+                setIsDraggingOver(false);
+                return;
+            }
+
+            const file = lodashGet(e, ['dataTransfer', 'files', 0]);
+
+            displayFileInModal(file);
+
             setIsDraggingOver(false);
-            return;
-        }
-
-        const file = lodashGet(e, ['dataTransfer', 'files', 0]);
-
-        displayFileInModal(file);
-
-        setIsDraggingOver(false);
-        setIsAttachmentPreviewActive(true);
-    }, [isAttachmentPreviewActive]);
+            setIsAttachmentPreviewActive(true);
+        },
+        [isAttachmentPreviewActive],
+    );
 
     // Prevents focusing and showing the keyboard while the drawer is covering the chat.
     const isComposeDisabled = props.isDrawerOpen && props.isSmallScreenWidth;
@@ -1097,10 +1100,10 @@ function ReportActionCompose(props) {
                     focusedIndex={suggestionValues.highlightedEmojiIndex}
                     maxIndex={getMaxArrowIndex(suggestionValues.suggestedEmojis.length, suggestionValues.isAutoSuggestionPickerLarge)}
                     shouldExcludeTextAreaNodes={false}
-                    onFocusedIndexChanged={(index) => setSuggestionValues(prevState => ({ ...prevState, highlightedEmojiIndex: index}))}
+                    onFocusedIndexChanged={(index) => setSuggestionValues((prevState) => ({...prevState, highlightedEmojiIndex: index}))}
                 >
                     <EmojiSuggestions
-                        onClose={() => setSuggestionValues(prevState => ({...prevState, suggestedEmojis: []}))}
+                        onClose={() => setSuggestionValues((prevState) => ({...prevState, suggestedEmojis: []}))}
                         highlightedEmojiIndex={suggestionValues.highlightedEmojiIndex}
                         emojis={suggestionValues.suggestedEmojis}
                         comment={value}
@@ -1121,7 +1124,7 @@ function ReportActionCompose(props) {
                     focusedIndex={suggestionValues.highlightedMentionIndex}
                     maxIndex={getMaxArrowIndex(suggestionValues.suggestedMentions.length, suggestionValues.isAutoSuggestionPickerLarge)}
                     shouldExcludeTextAreaNodes={false}
-                    onFocusedIndexChanged={(index) => setSuggestionValues(prevState => ({ ...prevState, highlightedMentionIndex: index }))}
+                    onFocusedIndexChanged={(index) => setSuggestionValues((prevState) => ({...prevState, highlightedMentionIndex: index}))}
                 >
                     <MentionSuggestions
                         onClose={() => setSuggestionValues((prevState) => ({...prevState, suggestedMentions: []}))}
