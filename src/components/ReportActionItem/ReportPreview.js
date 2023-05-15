@@ -103,7 +103,7 @@ const ReportPreview = (props) => {
                     style={[styles.flexRow, styles.justifyContentBetween]}
                     focusable
                 >
-                    <View>
+                    <View style={[styles.flexShrink1]}>
                         {props.iouReport.hasOutstandingIOU ? (
                             <Text style={[styles.chatItemMessage, styles.cursorPointer]}>{props.translate('iou.payerOwesAmount', {payer: managerName, amount: reportAmount})}</Text>
                         ) : (
