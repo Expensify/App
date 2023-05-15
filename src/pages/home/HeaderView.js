@@ -26,6 +26,7 @@ import colors from '../../styles/colors';
 import reportPropTypes from '../reportPropTypes';
 import ONYXKEYS from '../../ONYXKEYS';
 import ThreeDotsMenu from '../../components/ThreeDotsMenu';
+import reportActionPropTypes from './report/reportActionPropTypes';
 
 const propTypes = {
     /** Toggles the navigationMenu open and closed */
@@ -46,12 +47,18 @@ const propTypes = {
         guideCalendarLink: PropTypes.string,
     }),
 
+    /** The report actions from the parent report */
+    // TO DO: Replace with HOC https://github.com/Expensify/App/issues/18769.
+    // eslint-disable-next-line react/no-unused-prop-types
+    parentReportActions: PropTypes.objectOf(PropTypes.shape(reportActionPropTypes)),
+
     ...windowDimensionsPropTypes,
     ...withLocalizePropTypes,
 };
 
 const defaultProps = {
     personalDetails: {},
+    parentReportActions: {},
     report: null,
     account: {
         guideCalendarLink: null,
@@ -64,10 +71,11 @@ const HeaderView = (props) => {
     const participantPersonalDetails = OptionsListUtils.getPersonalDetailsForLogins(participants, props.personalDetails);
     const isMultipleParticipant = participants.length > 1;
     const displayNamesWithTooltips = ReportUtils.getDisplayNamesWithTooltips(participantPersonalDetails, isMultipleParticipant);
+    const isThread = ReportUtils.isThread(props.report);
     const isChatRoom = ReportUtils.isChatRoom(props.report);
     const isPolicyExpenseChat = ReportUtils.isPolicyExpenseChat(props.report);
     const isTaskReport = ReportUtils.isTaskReport(props.report);
-    const reportHeaderData = isTaskReport && !_.isEmpty(props.parentReport) ? props.parentReport : props.report;
+    const reportHeaderData = isTaskReport && !_.isEmpty(props.parentReport) && (!isThread || isTaskReport) ? props.parentReport : props.report;
     const title = ReportUtils.getReportName(reportHeaderData);
     const subtitle = ReportUtils.getChatRoomSubtitle(reportHeaderData);
     const isConcierge = participants.length === 1 && _.contains(participants, CONST.EMAIL.CONCIERGE);
@@ -165,9 +173,9 @@ const HeaderView = (props) => {
                                     tooltipEnabled
                                     numberOfLines={1}
                                     textStyles={[styles.headerText, styles.pre]}
-                                    shouldUseFullTitle={isChatRoom || isPolicyExpenseChat || isTaskReport}
+                                    shouldUseFullTitle={isChatRoom || isPolicyExpenseChat || isThread || isTaskReport}
                                 />
-                                {(isChatRoom || isPolicyExpenseChat) && (
+                                {(isChatRoom || isPolicyExpenseChat || isThread) && !_.isEmpty(subtitle) && (
                                     <Text
                                         style={[styles.sidebarLinkText, styles.optionAlternateText, styles.textLabelSupporting, styles.pre]}
                                         numberOfLines={1}
@@ -227,6 +235,10 @@ export default compose(
         account: {
             key: ONYXKEYS.ACCOUNT,
             selector: (account) => account && {guideCalendarLink: account.guideCalendarLink},
+        },
+        parentReportActions: {
+            key: ({report}) => `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.parentReportID}`,
+            canEvict: false,
         },
         parentReport: {
             key: ({report}) => `${ONYXKEYS.COLLECTION.REPORT}${report.parentReportID}`,
