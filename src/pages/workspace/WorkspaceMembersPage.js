@@ -96,7 +96,7 @@ class WorkspaceMembersPage extends React.Component {
             this.validate();
         }
 
-        if (!_.isEqual(prevProps.policyMemberList, this.props.policyMemberList)) {
+        if (prevProps.policyMemberList !== this.props.policyMemberList) {
             this.setState((prevState) => {
                 const selectedEmployees = _.filter(prevState.selectedEmployees, (selectedEmployee) => _.has(this.props.policyMemberList, selectedEmployee));
                 return {
