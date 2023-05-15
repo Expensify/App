@@ -116,24 +116,20 @@ class BankAccountPlaidStep extends React.Component {
                         bankAccountID={bankAccountID}
                         selectedPlaidAccountID={selectedPlaidAccountID}
                     />
-                    {Boolean(selectedPlaidAccountID) && !_.isEmpty(lodashGet(this.props.plaidData, 'bankAccounts')) &&
+                    {Boolean(selectedPlaidAccountID) && !_.isEmpty(lodashGet(this.props.plaidData, 'bankAccounts')) && (
                         <CheckboxWithLabel
                             style={styles.mt4}
                             inputID="acceptTerms"
                             LabelComponent={() => (
                                 <Text>
                                     {this.props.translate('common.iAcceptThe')}
-                                    <TextLink
-                                        href={CONST.TERMS_URL}
-                                    >
-                                        {this.props.translate('common.expensifyTermsOfService')}
-                                    </TextLink>
+                                    <TextLink href={CONST.TERMS_URL}>{this.props.translate('common.expensifyTermsOfService')}</TextLink>
                                 </Text>
                             )}
                             defaultValue={this.props.getDefaultStateForField('acceptTerms', false)}
                             shouldSaveDraft
                         />
-                    }
+                    )}
                 </Form>
             </ScreenWrapper>
         );

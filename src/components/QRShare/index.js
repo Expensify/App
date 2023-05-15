@@ -9,7 +9,7 @@ import withWindowDimensions, {windowDimensionsPropTypes} from '../withWindowDime
 import compose from '../../libs/compose';
 import variables from '../../styles/variables';
 import ExpensifyWordmark from '../../../assets/images/expensify-wordmark.svg';
-import {qrSharePropTypes, qrShareDefaultProps} from './propTypes'
+import {qrSharePropTypes, qrShareDefaultProps} from './propTypes';
 
 const propTypes = {
     ...qrSharePropTypes,
