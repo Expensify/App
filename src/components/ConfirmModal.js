@@ -58,20 +58,17 @@ const defaultProps = {
     onModalHide: () => {},
 };
 
-const ConfirmModal = props => (
+const ConfirmModal = (props) => (
     <Modal
         onSubmit={props.onConfirm}
         onClose={props.onCancel}
         isVisible={props.isVisible}
         shouldSetModalVisibility={props.shouldSetModalVisibility}
         onModalHide={props.onModalHide}
-        type={props.isSmallScreenWidth
-            ? CONST.MODAL.MODAL_TYPE.BOTTOM_DOCKED
-            : CONST.MODAL.MODAL_TYPE.CONFIRM}
+        type={props.isSmallScreenWidth ? CONST.MODAL.MODAL_TYPE.BOTTOM_DOCKED : CONST.MODAL.MODAL_TYPE.CONFIRM}
     >
         <ConfirmContent
             title={props.title}
-
             /* Disable onConfirm function if the modal is being dismissed, otherwise the confirmation
             function can be triggered multiple times if the user clicks on the button multiple times. */
             onConfirm={() => (props.isVisible ? props.onConfirm() : null)}

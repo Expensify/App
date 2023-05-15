@@ -6,7 +6,7 @@ import ONYXKEYS from '../../ONYXKEYS';
 import CONST from '../../CONST';
 import {withNetwork} from '../OnyxProvider';
 import compose from '../../libs/compose';
-import IOUQuote from './IOUQuote';
+import ReportPreview from './ReportPreview';
 import reportActionPropTypes from '../../pages/home/report/reportActionPropTypes';
 import networkPropTypes from '../networkPropTypes';
 import iouReportPropTypes from '../../pages/iouReportPropTypes';
@@ -68,7 +68,7 @@ const defaultProps = {
     isHovered: false,
 };
 
-const IOUAction = (props) => {
+const MoneyRequestAction = (props) => {
     const hasMultipleParticipants = props.chatReport.participants.length > 1;
     const onIOUPreviewPressed = () => {
         if (hasMultipleParticipants) {
@@ -78,47 +78,40 @@ const IOUAction = (props) => {
         }
     };
 
-    const shouldShowIOUPreview = props.isMostRecentIOUReportAction || props.action.originalMessage.type === 'pay';
-
     let shouldShowPendingConversionMessage = false;
     if (
-        !_.isEmpty(props.iouReport)
-        && !_.isEmpty(props.reportActions)
-        && props.chatReport.hasOutstandingIOU
-        && props.isMostRecentIOUReportAction
-        && props.action.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD
-        && props.network.isOffline
+        !_.isEmpty(props.iouReport) &&
+        !_.isEmpty(props.reportActions) &&
+        props.chatReport.hasOutstandingIOU &&
+        props.isMostRecentIOUReportAction &&
+        props.action.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD &&
+        props.network.isOffline
     ) {
         shouldShowPendingConversionMessage = IOUUtils.isIOUReportPendingCurrencyConversion(props.reportActions, props.iouReport);
     }
 
     return (
         <>
-            <IOUQuote
-                action={props.action}
+            <IOUPreview
+                iouReportID={props.requestReportID}
                 chatReportID={props.chatReportID}
+                isBillSplit={hasMultipleParticipants}
+                action={props.action}
                 contextMenuAnchor={props.contextMenuAnchor}
-                onViewDetailsPressed={onIOUPreviewPressed}
                 checkIfContextMenuActive={props.checkIfContextMenuActive}
+                shouldShowPendingConversionMessage={shouldShowPendingConversionMessage}
+                onPreviewPressed={onIOUPreviewPressed}
+                containerStyles={[styles.cursorPointer, props.isHovered ? styles.iouPreviewBoxHover : undefined]}
                 isHovered={props.isHovered}
             />
-            {shouldShowIOUPreview && (
-                <IOUPreview
-                    iouReportID={props.requestReportID}
-                    chatReportID={props.chatReportID}
-                    isBillSplit={hasMultipleParticipants}
+            {props.isMostRecentIOUReportAction && !hasMultipleParticipants && (
+                <ReportPreview
                     action={props.action}
+                    chatReportID={props.chatReportID}
+                    iouReportID={props.requestReportID}
                     contextMenuAnchor={props.contextMenuAnchor}
+                    onViewDetailsPressed={onIOUPreviewPressed}
                     checkIfContextMenuActive={props.checkIfContextMenuActive}
-                    shouldShowPendingConversionMessage={shouldShowPendingConversionMessage}
-                    onPayButtonPressed={onIOUPreviewPressed}
-                    onPreviewPressed={onIOUPreviewPressed}
-                    containerStyles={[
-                        styles.cursorPointer,
-                        props.isHovered
-                            ? styles.iouPreviewBoxHover
-                            : undefined,
-                    ]}
                     isHovered={props.isHovered}
                 />
             )}
@@ -126,9 +119,9 @@ const IOUAction = (props) => {
     );
 };
 
-IOUAction.propTypes = propTypes;
-IOUAction.defaultProps = defaultProps;
-IOUAction.displayName = 'IOUAction';
+MoneyRequestAction.propTypes = propTypes;
+MoneyRequestAction.defaultProps = defaultProps;
+MoneyRequestAction.displayName = 'MoneyRequestAction';
 
 export default compose(
     withOnyx({
@@ -144,4 +137,4 @@ export default compose(
         },
     }),
     withNetwork(),
-)(IOUAction);
+)(MoneyRequestAction);

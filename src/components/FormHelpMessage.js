@@ -37,13 +37,14 @@ const FormHelpMessage = (props) => {
 
     return (
         <View style={[styles.flexRow, styles.alignItemsCenter, styles.mt2, styles.mb1, ...props.style]}>
-            {props.isError && <Icon src={Expensicons.DotIndicator} fill={colors.red} />}
+            {props.isError && (
+                <Icon
+                    src={Expensicons.DotIndicator}
+                    fill={colors.red}
+                />
+            )}
             <View style={[styles.flex1, props.isError && styles.ml2]}>
-                {props.children || (
-                    <Text style={[props.isError ? styles.formError : styles.formHelp, styles.mb0]}>
-                        {props.message}
-                    </Text>
-                )}
+                {props.children || <Text style={[props.isError ? styles.formError : styles.formHelp, styles.mb0]}>{props.message}</Text>}
             </View>
         </View>
     );

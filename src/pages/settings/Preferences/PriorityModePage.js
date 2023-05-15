@@ -30,24 +30,21 @@ const defaultProps = {
 };
 
 const PriorityModePage = (props) => {
-    const priorityModes = _.map(props.translate('priorityModePage.priorityModes'),
-        (mode, key) => (
-            {
-                value: key,
-                text: mode.label,
-                alternateText: mode.description,
+    const priorityModes = _.map(props.translate('priorityModePage.priorityModes'), (mode, key) => ({
+        value: key,
+        text: mode.label,
+        alternateText: mode.description,
 
-                // Set max line to undefined to reset line restriction
-                alternateTextMaxLines: undefined,
-                keyForList: key,
+        // Set max line to undefined to reset line restriction
+        alternateTextMaxLines: undefined,
+        keyForList: key,
 
-                // Include the green checkmark icon to indicate the currently selected value
-                customIcon: props.priorityMode === key ? greenCheckmark : undefined,
+        // Include the green checkmark icon to indicate the currently selected value
+        customIcon: props.priorityMode === key ? greenCheckmark : undefined,
 
-                // This property will make the currently selected value have bold text
-                boldStyle: props.priorityMode === key,
-            }
-        ));
+        // This property will make the currently selected value have bold text
+        boldStyle: props.priorityMode === key,
+    }));
 
     return (
         <ScreenWrapper includeSafeAreaPaddingBottom={false}>
@@ -57,20 +54,16 @@ const PriorityModePage = (props) => {
                 onBackButtonPress={() => Navigation.navigate(ROUTES.SETTINGS_PREFERENCES)}
                 onCloseButtonPress={() => Navigation.dismissModal(true)}
             />
-            <Text style={[styles.mh5, styles.mv4]}>
-                {props.translate('priorityModePage.explainerText')}
-            </Text>
+            <Text style={[styles.mh5, styles.mv4]}>{props.translate('priorityModePage.explainerText')}</Text>
             <OptionsList
                 sections={[{data: priorityModes}]}
-                onSelectRow={mode => User.updateChatPriorityMode(mode.value)}
+                onSelectRow={(mode) => User.updateChatPriorityMode(mode.value)}
                 hideSectionHeaders
-                optionHoveredStyle={
-                    {
-                        ...styles.hoveredComponentBG,
-                        ...styles.mhn5,
-                        ...styles.ph5,
-                    }
-                }
+                optionHoveredStyle={{
+                    ...styles.hoveredComponentBG,
+                    ...styles.mhn5,
+                    ...styles.ph5,
+                }}
                 shouldHaveOptionSeparator
                 shouldDisableRowInnerPadding
                 contentContainerStyles={[styles.ph5]}
