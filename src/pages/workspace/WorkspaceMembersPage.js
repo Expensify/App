@@ -26,6 +26,7 @@ import CONST from '../../CONST';
 import OfflineWithFeedback from '../../components/OfflineWithFeedback';
 import {withNetwork} from '../../components/OnyxProvider';
 import FullPageNotFoundView from '../../components/BlockingViews/FullPageNotFoundView';
+import FullscreenLoadingIndicator from '../../components/FullscreenLoadingIndicator';
 import networkPropTypes from '../../components/networkPropTypes';
 import * as ReportUtils from '../../libs/ReportUtils';
 import FormHelpMessage from '../../components/FormHelpMessage';
@@ -53,6 +54,9 @@ const propTypes = {
         email: PropTypes.string,
     }),
 
+    /** Indicated whether the report data is loading */
+    isLoadingReportData: PropTypes.bool,
+
     ...policyPropTypes,
     ...withLocalizePropTypes,
     ...windowDimensionsPropTypes,
@@ -64,6 +68,7 @@ const defaultProps = {
     session: {
         email: null,
     },
+    isLoadingReportData: true,
     ...policyDefaultProps,
 };
 
@@ -363,6 +368,10 @@ class WorkspaceMembersPage extends React.Component {
     }
 
     render() {
+        if (this.props.isLoadingReportData && _.isEmpty(this.props.policy)) {
+            return <FullscreenLoadingIndicator />;
+        }
+
         const policyMemberList = lodashGet(this.props, 'policyMemberList', {});
         const policyOwner = lodashGet(this.props.policy, 'owner');
         const currentUserLogin = lodashGet(this.props.currentUserPersonalDetails, 'login');
@@ -512,6 +521,9 @@ export default compose(
         },
         session: {
             key: ONYXKEYS.SESSION,
+        },
+        isLoadingReportData: {
+            key: ONYXKEYS.IS_LOADING_REPORT_DATA,
         },
     }),
     withCurrentUserPersonalDetails,

@@ -87,6 +87,9 @@ const propTypes = {
         hasOutstandingIOU: PropTypes.bool.isRequired,
     }),
 
+    /** Indicated whether the report data is loading */
+    isLoadingReportData: PropTypes.bool,
+
     ...withLocalizePropTypes,
 };
 
@@ -100,6 +103,7 @@ const defaultProps = {
     chatReport: {
         participants: [],
     },
+    isLoadingReportData: true,
 };
 
 class IOUDetailsModal extends Component {
@@ -159,6 +163,10 @@ class IOUDetailsModal extends Component {
     }
 
     render() {
+        if (this.props.isLoadingReportData && _.isEmpty(this.props.iouReport)) {
+            return <FullScreenLoadingIndicator />;
+        }
+
         const sessionEmail = lodashGet(this.props.session, 'email', null);
         const pendingAction = this.findPendingAction();
         const iouReportStateNum = lodashGet(this.props.iouReport, 'stateNum');
@@ -241,6 +249,9 @@ export default compose(
         reportActions: {
             key: ({route}) => `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${route.params.chatReportID}`,
             canEvict: false,
+        },
+        isLoadingReportData: {
+            key: ONYXKEYS.IS_LOADING_REPORT_DATA,
         },
     }),
 )(IOUDetailsModal);

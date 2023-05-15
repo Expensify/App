@@ -24,6 +24,7 @@ import ROUTES from '../../ROUTES';
 import * as Localize from '../../libs/Localize';
 import Form from '../../components/Form';
 import FullPageNotFoundView from '../../components/BlockingViews/FullPageNotFoundView';
+import FullscreenLoadingIndicator from '../../components/FullscreenLoadingIndicator';
 
 const personalDetailsPropTypes = PropTypes.shape({
     /** The login of the person (either email or phone number) */
@@ -54,6 +55,9 @@ const propTypes = {
             policyID: PropTypes.string,
         }),
     }).isRequired,
+    
+    /** Indicated whether the report data is loading */
+    isLoadingReportData: PropTypes.bool,
 
     ...policyPropTypes,
     ...withLocalizePropTypes,
@@ -64,6 +68,7 @@ const defaultProps = {
     personalDetails: {},
     betas: [],
     invitedMembersDraft: [],
+    isLoadingReportData: true
 };
 
 class WorkspaceInviteMessagePage extends React.Component {
@@ -125,6 +130,10 @@ class WorkspaceInviteMessagePage extends React.Component {
     }
 
     render() {
+        if (this.props.isLoadingReportData && _.isEmpty(this.props.policy)) {
+            return <FullscreenLoadingIndicator />;
+        }
+
         const policyName = lodashGet(this.props.policy, 'name');
 
         return (
@@ -210,6 +219,9 @@ export default compose(
         },
         invitedMembersDraft: {
             key: ({route}) => `${ONYXKEYS.COLLECTION.WORKSPACE_INVITE_MEMBERS_DRAFT}${route.params.policyID.toString()}`,
+        },
+        isLoadingReportData: {
+            key: ONYXKEYS.IS_LOADING_REPORT_DATA,
         },
     }),
 )(WorkspaceInviteMessagePage);

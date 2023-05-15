@@ -21,6 +21,7 @@ import {withNetwork} from '../../components/OnyxProvider';
 import networkPropTypes from '../../components/networkPropTypes';
 import FullPageNotFoundView from '../../components/BlockingViews/FullPageNotFoundView';
 import ScrollViewWithContext from '../../components/ScrollViewWithContext';
+import FullscreenLoadingIndicator from '../../components/FullscreenLoadingIndicator';
 
 const propTypes = {
     shouldSkipVBBACall: PropTypes.bool,
@@ -64,6 +65,9 @@ const propTypes = {
     /** Option to use the default scroll view  */
     shouldUseScrollView: PropTypes.bool,
 
+    /** Indicated whether the report data is loading */
+    isLoadingReportData: PropTypes.bool,
+
     ...withLocalizePropTypes,
 };
 
@@ -75,6 +79,7 @@ const defaultProps = {
     guidesCallTaskID: '',
     shouldUseScrollView: false,
     shouldSkipVBBACall: false,
+    isLoadingReportData: true,
 };
 
 class WorkspacePageWithSections extends React.Component {
@@ -99,6 +104,10 @@ class WorkspacePageWithSections extends React.Component {
     }
 
     render() {
+        if (this.props.isLoadingReportData && _.isEmpty(this.props.policy)) {
+            return <FullscreenLoadingIndicator />;
+        }
+
         const achState = lodashGet(this.props.reimbursementAccount, 'achData.state', '');
         const hasVBA = achState === BankAccount.STATE.OPEN;
         const isUsingECard = lodashGet(this.props.user, 'isUsingExpensifyCard', false);
@@ -151,6 +160,9 @@ export default compose(
         },
         reimbursementAccount: {
             key: ONYXKEYS.REIMBURSEMENT_ACCOUNT,
+        },
+        isLoadingReportData: {
+            key: ONYXKEYS.IS_LOADING_REPORT_DATA,
         },
     }),
     withPolicy,

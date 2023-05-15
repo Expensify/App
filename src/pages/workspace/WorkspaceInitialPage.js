@@ -18,6 +18,7 @@ import HeaderWithCloseButton from '../../components/HeaderWithCloseButton';
 import compose from '../../libs/compose';
 import Avatar from '../../components/Avatar';
 import FullPageNotFoundView from '../../components/BlockingViews/FullPageNotFoundView';
+import FullscreenLoadingIndicator from '../../components/FullscreenLoadingIndicator';
 import withPolicy, {policyPropTypes, policyDefaultProps} from './withPolicy';
 import reportPropTypes from '../reportPropTypes';
 import * as Policy from '../../libs/actions/Policy';
@@ -38,12 +39,16 @@ const propTypes = {
 
     /** Bank account attached to free plan */
     reimbursementAccount: ReimbursementAccountProps.reimbursementAccountPropTypes,
+
+    /** Indicated whether the report data is loading */
+    isLoadingReportData: PropTypes.bool,
 };
 
 const defaultProps = {
     reports: {},
     ...policyDefaultProps,
     reimbursementAccount: {},
+    isLoadingReportData: true,
 };
 
 /**
@@ -126,6 +131,10 @@ const WorkspaceInitialPage = (props) => {
             brickRoadIndicator: !_.isEmpty(props.reimbursementAccount.errors) ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : '',
         },
     ];
+
+    if (props.isLoadingReportData && _.isEmpty(props.policy)) {
+        return <FullscreenLoadingIndicator />;
+    }
 
     return (
         <ScreenWrapper includeSafeAreaPaddingBottom={false}>
@@ -241,6 +250,9 @@ export default compose(
         },
         reimbursementAccount: {
             key: ONYXKEYS.REIMBURSEMENT_ACCOUNT,
+        },
+        isLoadingReportData: {
+            key: ONYXKEYS.IS_LOADING_REPORT_DATA,
         },
     }),
 )(WorkspaceInitialPage);
