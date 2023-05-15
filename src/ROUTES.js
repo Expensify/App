@@ -25,6 +25,7 @@ export default {
     HOME: '',
     SETTINGS: 'settings',
     SETTINGS_PROFILE: 'settings/profile',
+    SETTINGS_SHARE_CODE: 'settings/shareCode',
     SETTINGS_DISPLAY_NAME: 'settings/profile/display-name',
     SETTINGS_TIMEZONE: 'settings/profile/timezone',
     SETTINGS_TIMEZONE_SELECT: 'settings/profile/timezone/select',
@@ -60,6 +61,8 @@ export default {
     REPORT,
     REPORT_WITH_ID: 'r/:reportID',
     getReportRoute: (reportID) => `r/${reportID}`,
+    REPORT_WITH_ID_DETAILS_SHARE_CODE: 'r/:reportID/details/shareCode',
+    getReportShareCodeRoute: (reportID) => `r/${reportID}/details/shareCode`,
     SELECT_YEAR: 'select-year',
     getYearSelectionRoute: (minYear, maxYear, currYear, backTo) => `select-year?min=${minYear}&max=${maxYear}&year=${currYear}&backTo=${backTo}`,
 

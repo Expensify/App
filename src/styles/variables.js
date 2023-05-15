@@ -136,4 +136,5 @@ export default {
     googleEmptyListViewHeight: 14,
     hoverDimValue: 0.5,
     pressDimValue: 0.8,
+    qrShareHorizontalPadding: 32,
 };
