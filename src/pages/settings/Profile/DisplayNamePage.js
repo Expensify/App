@@ -42,10 +42,7 @@ class DisplayNamePage extends Component {
      * @param {String} values.lastName
      */
     updateDisplayName(values) {
-        PersonalDetails.updateDisplayName(
-            values.firstName.trim(),
-            values.lastName.trim(),
-        );
+        PersonalDetails.updateDisplayName(values.firstName.trim(), values.lastName.trim());
     }
 
     /**
@@ -90,9 +87,7 @@ class DisplayNamePage extends Component {
                     submitButtonText={this.props.translate('common.save')}
                     enabledWhenOffline
                 >
-                    <Text style={[styles.mb6]}>
-                        {this.props.translate('displayNamePage.isShownOnProfile')}
-                    </Text>
+                    <Text style={[styles.mb6]}>{this.props.translate('displayNamePage.isShownOnProfile')}</Text>
                     <View style={styles.mb4}>
                         <TextInput
                             inputID="firstName"
@@ -122,7 +117,4 @@ class DisplayNamePage extends Component {
 DisplayNamePage.propTypes = propTypes;
 DisplayNamePage.defaultProps = defaultProps;
 
-export default compose(
-    withLocalize,
-    withCurrentUserPersonalDetails,
-)(DisplayNamePage);
+export default compose(withLocalize, withCurrentUserPersonalDetails)(DisplayNamePage);

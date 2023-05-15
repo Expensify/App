@@ -30,7 +30,10 @@ const ThreePaneView = (props) => {
             {_.map(props.state.routes, (route, i) => {
                 if (route.name === SCREENS.HOME) {
                     return (
-                        <View key={route.key} style={[styles.borderRight, styles.flex1, styles.leftPanelContainer]}>
+                        <View
+                            key={route.key}
+                            style={[styles.borderRight, styles.flex1, styles.leftPanelContainer]}
+                        >
                             {props.descriptors[route.key].render()}
                         </View>
                     );
@@ -39,10 +42,7 @@ const ThreePaneView = (props) => {
                     return (
                         <View
                             key={route.key}
-                            style={[
-                                styles.flex1,
-                                StyleUtils.displayIfTrue(lastCentralPaneIndex === i),
-                            ]}
+                            style={[styles.flex1, StyleUtils.displayIfTrue(lastCentralPaneIndex === i)]}
                         >
                             {props.descriptors[route.key].render()}
                         </View>
@@ -61,25 +61,18 @@ const ThreePaneView = (props) => {
                                 StyleUtils.displayIfTrue(props.state.index === i),
                             ]}
                         >
-                            <Pressable style={[styles.flex1]} onPress={() => props.navigation.goBack()} />
-                            <View
-                                style={styles.rightPanelContainer}
-                            >
-                                {props.descriptors[route.key].render()}
-                            </View>
+                            <Pressable
+                                style={[styles.flex1]}
+                                onPress={() => props.navigation.goBack()}
+                            />
+                            <View style={styles.rightPanelContainer}>{props.descriptors[route.key].render()}</View>
                         </View>
                     );
                 }
                 return (
                     <View
                         key={route.key}
-                        style={[
-                            styles.pAbsolute,
-                            styles.t0,
-                            styles.l0,
-                            styles.w100,
-                            styles.h100,
-                        ]}
+                        style={[styles.pAbsolute, styles.t0, styles.l0, styles.w100, styles.h100]}
                     >
                         {props.descriptors[route.key].render()}
                     </View>

@@ -61,20 +61,23 @@ const defaultProps = {
 };
 
 const MenuItem = (props) => {
-    const titleTextStyle = StyleUtils.combineStyles([
-        styles.popoverMenuText,
-        (props.icon ? styles.ml3 : undefined),
-        (props.shouldShowBasicTitle ? undefined : styles.textStrong),
-        (props.interactive && props.disabled ? {...styles.disabledText, ...styles.userSelectNone} : undefined),
-        styles.pre,
-        styles.ltr,
-        (props.shouldShowHeaderTitle ? styles.textHeadlineH1 : undefined),
-        (_.contains(props.style, styles.offlineFeedback.deleted) ? styles.offlineFeedback.deleted : undefined),
-    ], props.titleStyle);
+    const titleTextStyle = StyleUtils.combineStyles(
+        [
+            styles.popoverMenuText,
+            props.icon ? styles.ml3 : undefined,
+            props.shouldShowBasicTitle ? undefined : styles.textStrong,
+            props.interactive && props.disabled ? {...styles.disabledText, ...styles.userSelectNone} : undefined,
+            styles.pre,
+            styles.ltr,
+            props.shouldShowHeaderTitle ? styles.textHeadlineH1 : undefined,
+            _.contains(props.style, styles.offlineFeedback.deleted) ? styles.offlineFeedback.deleted : undefined,
+        ],
+        props.titleStyle,
+    );
     const descriptionVerticalMargin = props.shouldShowDescriptionOnTop ? styles.mb1 : styles.mt1;
     const descriptionTextStyle = StyleUtils.combineStyles([
         styles.textLabelSupporting,
-        (props.icon ? styles.ml3 : undefined),
+        props.icon ? styles.ml3 : undefined,
         styles.lineHeightNormal,
         props.title ? descriptionVerticalMargin : undefined,
         props.descriptionTextStyle,
@@ -98,11 +101,11 @@ const MenuItem = (props) => {
             onPressIn={() => props.shouldBlockSelection && props.isSmallScreenWidth && DeviceCapabilities.canUseTouchScreen() && ControlSelection.block()}
             onPressOut={ControlSelection.unblock}
             onSecondaryInteraction={props.onSecondaryInteraction}
-            style={({hovered, pressed}) => ([
+            style={({hovered, pressed}) => [
                 props.style,
                 StyleUtils.getButtonBackgroundColorStyle(getButtonState(props.focused || hovered, pressed, props.success, props.disabled, props.interactive), true),
-                ..._.isArray(props.wrapperStyle) ? props.wrapperStyle : [props.wrapperStyle],
-            ])}
+                ...(_.isArray(props.wrapperStyle) ? props.wrapperStyle : [props.wrapperStyle]),
+            ]}
             disabled={props.disabled}
             ref={props.forwardedRef}
         >
@@ -110,25 +113,19 @@ const MenuItem = (props) => {
                 <>
                     <View style={[styles.flexRow, styles.pointerEventsAuto, styles.flex1, props.disabled && styles.cursorDisabled]}>
                         {Boolean(props.icon) && (
-                            <View
-                                style={[
-                                    styles.popoverMenuIcon,
-                                    ...props.iconStyles,
-                                ]}
-                            >
-                                {(props.iconType === CONST.ICON_TYPE_ICON) && (
+                            <View style={[styles.popoverMenuIcon, ...props.iconStyles]}>
+                                {props.iconType === CONST.ICON_TYPE_ICON && (
                                     <Icon
                                         src={props.icon}
                                         width={props.iconWidth}
                                         height={props.iconHeight}
-                                        fill={props.iconFill || StyleUtils.getIconFillColor(
-                                            getButtonState(props.focused || hovered, pressed, props.success, props.disabled, props.interactive),
-                                            true,
-                                        )}
+                                        fill={
+                                            props.iconFill ||
+                                            StyleUtils.getIconFillColor(getButtonState(props.focused || hovered, pressed, props.success, props.disabled, props.interactive), true)
+                                        }
                                     />
                                 )}
-                                {(props.iconType === CONST.ICON_TYPE_WORKSPACE) && (
-
+                                {props.iconType === CONST.ICON_TYPE_WORKSPACE && (
                                     <Avatar
                                         imageStyles={[styles.alignSelfCenter]}
                                         size={CONST.AVATAR_SIZE.DEFAULT}
@@ -138,7 +135,7 @@ const MenuItem = (props) => {
                                         type={CONST.ICON_TYPE_WORKSPACE}
                                     />
                                 )}
-                                {(props.iconType === CONST.ICON_TYPE_AVATAR) && (
+                                {props.iconType === CONST.ICON_TYPE_AVATAR && (
                                     <Avatar
                                         imageStyles={[styles.avatarNormal, styles.alignSelfCenter]}
                                         source={props.icon}
@@ -176,25 +173,19 @@ const MenuItem = (props) => {
                     </View>
                     <View style={[styles.flexRow, styles.menuItemTextContainer, styles.pointerEventsNone]}>
                         {Boolean(props.badgeText) && (
-                        <Badge
-                            text={props.badgeText}
-                            badgeStyles={[styles.alignSelfCenter, (props.brickRoadIndicator ? styles.mr2 : undefined),
-                                (props.focused || hovered || pressed) ? styles.hoveredButton : {},
-                            ]}
-                        />
+                            <Badge
+                                text={props.badgeText}
+                                badgeStyles={[styles.alignSelfCenter, props.brickRoadIndicator ? styles.mr2 : undefined, props.focused || hovered || pressed ? styles.hoveredButton : {}]}
+                            />
                         )}
                         {/* Since subtitle can be of type number, we should allow 0 to be shown */}
                         {(props.subtitle || props.subtitle === 0) && (
                             <View style={[styles.justifyContentCenter, styles.mr1]}>
-                                <Text
-                                    style={[styles.textLabelSupporting, props.style]}
-                                >
-                                    {props.subtitle}
-                                </Text>
+                                <Text style={[styles.textLabelSupporting, props.style]}>{props.subtitle}</Text>
                             </View>
                         )}
                         {!_.isEmpty(props.floatRightAvatars) && (
-                            <View style={[styles.justifyContentCenter, (props.brickRoadIndicator ? styles.mr2 : undefined)]}>
+                            <View style={[styles.justifyContentCenter, props.brickRoadIndicator ? styles.mr2 : undefined]}>
                                 <MultipleAvatars
                                     isHovered={hovered}
                                     isPressed={pressed}
@@ -232,10 +223,15 @@ const MenuItem = (props) => {
 MenuItem.propTypes = propTypes;
 MenuItem.displayName = 'MenuItem';
 
-const MenuItemWithWindowDimensions = withWindowDimensions(React.forwardRef((props, ref) => (
-    // eslint-disable-next-line react/jsx-props-no-spreading
-    <MenuItem {...props} forwardedRef={ref} />
-)));
+const MenuItemWithWindowDimensions = withWindowDimensions(
+    React.forwardRef((props, ref) => (
+        // eslint-disable-next-line react/jsx-props-no-spreading
+        <MenuItem
+            {...props}
+            forwardedRef={ref}
+        />
+    )),
+);
 MenuItemWithWindowDimensions.defaultProps = defaultProps;
 
 export default MenuItemWithWindowDimensions;

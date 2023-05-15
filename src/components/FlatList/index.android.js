@@ -1,8 +1,4 @@
-import React, {
-    forwardRef,
-    useCallback,
-    useState,
-} from 'react';
+import React, {forwardRef, useCallback, useState} from 'react';
 import {FlatList} from 'react-native';
 import PropTypes from 'prop-types';
 import {useFocusEffect} from '@react-navigation/native';
@@ -19,10 +15,7 @@ const propTypes = {
     maintainVisibleContentPosition: PropTypes.object,
 
     /** Passed via forwardRef so we can access the FlatList ref */
-    innerRef: PropTypes.oneOfType([
-        PropTypes.func,
-        PropTypes.shape({current: PropTypes.instanceOf(FlatList)}),
-    ]).isRequired,
+    innerRef: PropTypes.oneOfType([PropTypes.func, PropTypes.shape({current: PropTypes.instanceOf(FlatList)})]).isRequired,
 };
 
 const defaultProps = {
@@ -60,7 +53,7 @@ function CustomFlatList(props) {
         <FlatList
             // eslint-disable-next-line react/jsx-props-no-spreading
             {...props}
-            onScroll={event => props.onScroll(event)}
+            onScroll={(event) => props.onScroll(event)}
             onMomentumScrollEnd={(event) => {
                 setScrollPosition({offset: event.nativeEvent.contentOffset.y});
             }}
@@ -73,4 +66,9 @@ CustomFlatList.propTypes = propTypes;
 CustomFlatList.defaultProps = defaultProps;
 
 // eslint-disable-next-line react/jsx-props-no-spreading
-export default forwardRef((props, ref) => <CustomFlatList {...props} innerRef={ref} />);
+export default forwardRef((props, ref) => (
+    <CustomFlatList
+        {...props}
+        innerRef={ref}
+    />
+));

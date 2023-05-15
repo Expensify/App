@@ -66,11 +66,7 @@ const NavigationRoot = (props) => {
     return (
         <NavigationContainer
             key={props.isSmallScreenWidth ? 'small' : 'big'}
-            fallback={(
-                <FullScreenLoadingIndicator
-                    style={styles.navigatorFullScreenLoading}
-                />
-            )}
+            fallback={<FullScreenLoadingIndicator style={styles.navigatorFullScreenLoading} />}
             onStateChange={updateSavedNavigationStateAndLogRoute}
             initialState={navigationStateRef.current}
             onReady={props.onReady}

@@ -41,9 +41,7 @@ const NewTaskPage = (props) => {
         return errors;
     }
 
-    function onSubmit() {
-
-    }
+    function onSubmit() {}
 
     if (!Permissions.canUseTasks(props.betas)) {
         Navigation.dismissModal();
@@ -52,14 +50,12 @@ const NewTaskPage = (props) => {
 
     return (
         <ScreenWrapper includeSafeAreaPaddingBottom={false}>
-            <HeaderWithBackButton
-                title={props.translate('newTaskPage.assignTask')}
-            />
+            <HeaderWithBackButton title={props.translate('newTaskPage.assignTask')} />
             <Form
                 formID={ONYXKEYS.FORMS.NEW_TASK_FORM}
                 submitButtonText={props.translate('newTaskPage.assignTask')}
                 style={[styles.mh5, styles.mt5, styles.flexGrow1]}
-                validate={values => validate(values)}
+                validate={(values) => validate(values)}
                 onSubmit={() => onSubmit()}
                 enabledWhenOffline
             >

@@ -21,13 +21,15 @@ const propTypes = {
     betas: PropTypes.arrayOf(PropTypes.string),
 
     /** The policies which the user has access to */
-    policies: PropTypes.objectOf(PropTypes.shape({
-        /** The policy name */
-        name: PropTypes.string,
+    policies: PropTypes.objectOf(
+        PropTypes.shape({
+            /** The policy name */
+            name: PropTypes.string,
 
-        /** The type of the policy */
-        type: PropTypes.string,
-    })),
+            /** The type of the policy */
+            type: PropTypes.string,
+        }),
+    ),
 
     /** Navigation route context info provided by react navigation */
     route: PropTypes.shape({
@@ -72,12 +74,7 @@ class ReportScreenWrapper extends Component {
 
         // If there is no ReportID in route, try to find last accessed and use it for setParams
         if (!lodashGet(this.props.route, 'params.reportID', null)) {
-            const reportID = getLastAccessedReportID(
-                this.props.reports,
-                !Permissions.canUseDefaultRooms(this.props.betas),
-                this.props.policies,
-                this.props.route.params.openOnAdminRoom,
-            );
+            const reportID = getLastAccessedReportID(this.props.reports, !Permissions.canUseDefaultRooms(this.props.betas), this.props.policies, this.props.route.params.openOnAdminRoom);
 
             // It's possible that props.reports aren't fully loaded yet
             // in that case the reportID is undefined

@@ -63,7 +63,7 @@ const ContactMethodsPage = (props) => {
 
     // Sort the login names by placing the one corresponding to the default contact method as the first item before displaying the contact methods.
     // The default contact method is determined by checking against the session email (the current login).
-    const sortedLoginNames = _.sortBy(loginNames, loginName => (props.loginList[loginName].partnerUserID === props.session.email ? 0 : 1));
+    const sortedLoginNames = _.sortBy(loginNames, (loginName) => (props.loginList[loginName].partnerUserID === props.session.email ? 0 : 1));
 
     const loginMenuItems = _.map(sortedLoginNames, (loginName) => {
         const login = props.loginList[loginName];
@@ -81,7 +81,7 @@ const ContactMethodsPage = (props) => {
             description = props.translate('contacts.pleaseVerify');
         }
         let indicator = null;
-        if (_.some(lodashGet(login, 'errorFields', {}), errorField => !_.isEmpty(errorField))) {
+        if (_.some(lodashGet(login, 'errorFields', {}), (errorField) => !_.isEmpty(errorField))) {
             indicator = CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR;
         } else if (!login.validatedDate) {
             indicator = CONST.BRICK_ROAD_INDICATOR_STATUS.INFO;

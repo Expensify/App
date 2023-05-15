@@ -42,11 +42,13 @@ const propTypes = {
         errors: PropTypes.objectOf(PropTypes.string),
 
         /** Questions returned by Idology */
-        questions: PropTypes.arrayOf(PropTypes.shape({
-            prompt: PropTypes.string,
-            type: PropTypes.string,
-            answer: PropTypes.arrayOf(PropTypes.string),
-        })),
+        questions: PropTypes.arrayOf(
+            PropTypes.shape({
+                prompt: PropTypes.string,
+                type: PropTypes.string,
+                answer: PropTypes.arrayOf(PropTypes.string),
+            }),
+        ),
 
         /** ExpectID ID number related to those questions */
         idNumber: PropTypes.string,
@@ -190,7 +192,10 @@ class AdditionalDetailsStep extends React.Component {
     render() {
         if (!_.isEmpty(this.props.walletAdditionalDetails.questions)) {
             return (
-                <ScreenWrapper style={[styles.flex1]} keyboardAvoidingViewBehavior="height">
+                <ScreenWrapper
+                    style={[styles.flex1]}
+                    keyboardAvoidingViewBehavior="height"
+                >
                     <HeaderWithBackButton
                         title={this.props.translate('additionalDetailsStep.headerTitle')}
                         onBackButtonPress={() => Wallet.setAdditionalDetailsQuestions(null)}
@@ -206,9 +211,7 @@ class AdditionalDetailsStep extends React.Component {
 
         return (
             <>
-                <HeaderWithBackButton
-                    title={this.props.translate('additionalDetailsStep.headerTitle')}
-                />
+                <HeaderWithBackButton title={this.props.translate('additionalDetailsStep.headerTitle')} />
                 <View style={[styles.flex1]}>
                     <View style={[styles.ph5]}>
                         <Text style={styles.mb3}>{this.props.translate('additionalDetailsStep.helpText')}</Text>

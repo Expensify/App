@@ -8,7 +8,7 @@ import lodashGet from 'lodash/get';
  * @returns {String | undefined} - It's possible that there is no any report screen
  */
 function getTopmostReportId(state) {
-    const topmostCentralPane = lodashFindLast(state.routes, route => route.name === 'CentralPaneNavigator');
+    const topmostCentralPane = lodashFindLast(state.routes, (route) => route.name === 'CentralPaneNavigator');
 
     if (!topmostCentralPane) {
         return;
@@ -24,7 +24,7 @@ function getTopmostReportId(state) {
         return directReportIdParam;
     }
 
-    const topmostReport = lodashFindLast(topmostCentralPane.state.routes, route => route.name === 'Report');
+    const topmostReport = lodashFindLast(topmostCentralPane.state.routes, (route) => route.name === 'Report');
     if (!topmostReport) {
         return;
     }

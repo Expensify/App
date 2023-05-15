@@ -88,5 +88,8 @@ DatePicker.defaultProps = defaultProps;
 
 export default React.forwardRef((props, ref) => (
     /* eslint-disable-next-line react/jsx-props-no-spreading */
-    <DatePicker {...props} innerRef={ref} />
+    <DatePicker
+        {...props}
+        innerRef={ref}
+    />
 ));

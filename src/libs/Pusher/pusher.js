@@ -27,7 +27,7 @@ let customAuthorizer;
  * @param {*} data
  */
 function callSocketEventCallbacks(eventName, data) {
-    _.each(socketEventCallbacks, cb => cb(eventName, data));
+    _.each(socketEventCallbacks, (cb) => cb(eventName, data));
 }
 
 /**
@@ -192,12 +192,7 @@ function bindEventToChannel(channel, eventName, eventCallback = () => {}) {
  *
  * @public
  */
-function subscribe(
-    channelName,
-    eventName,
-    eventCallback = () => {},
-    onResubscribe = () => {},
-) {
+function subscribe(channelName, eventName, eventCallback = () => {}, onResubscribe = () => {}) {
     return new Promise((resolve, reject) => {
         // We cannot call subscribe() before init(). Prevent any attempt to do this on dev.
         if (!socket) {
@@ -380,17 +375,4 @@ if (window) {
     window.getPusherInstance = () => socket;
 }
 
-export {
-    init,
-    subscribe,
-    unsubscribe,
-    getChannel,
-    isSubscribed,
-    isAlreadySubscribing,
-    sendEvent,
-    disconnect,
-    reconnect,
-    registerSocketEventCallback,
-    registerCustomAuthorizer,
-    TYPE,
-};
+export {init, subscribe, unsubscribe, getChannel, isSubscribed, isAlreadySubscribing, sendEvent, disconnect, reconnect, registerSocketEventCallback, registerCustomAuthorizer, TYPE};

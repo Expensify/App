@@ -40,11 +40,7 @@ class CurrentReportIdContextProvider extends React.Component {
     }
 
     render() {
-        return (
-            <CurrentReportIdContext.Provider value={this.getContextValue()}>
-                {this.props.children}
-            </CurrentReportIdContext.Provider>
-        );
+        return <CurrentReportIdContext.Provider value={this.getContextValue()}>{this.props.children}</CurrentReportIdContext.Provider>;
     }
 }
 
@@ -54,7 +50,13 @@ export default function withCurrentReportId(WrappedComponent) {
     const WithCurrentReportId = forwardRef((props, ref) => (
         <CurrentReportIdContext.Consumer>
             {/* eslint-disable-next-line react/jsx-props-no-spreading */}
-            {translateUtils => <WrappedComponent {...translateUtils} {...props} ref={ref} />}
+            {(translateUtils) => (
+                <WrappedComponent
+                    {...translateUtils}
+                    {...props}
+                    ref={ref}
+                />
+            )}
         </CurrentReportIdContext.Consumer>
     ));
 
@@ -63,7 +65,4 @@ export default function withCurrentReportId(WrappedComponent) {
     return WithCurrentReportId;
 }
 
-export {
-    withCurrentReportIdPropTypes,
-    CurrentReportIdContextProvider,
-};
+export {withCurrentReportIdPropTypes, CurrentReportIdContextProvider};

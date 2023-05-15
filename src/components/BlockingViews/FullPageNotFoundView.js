@@ -1,4 +1,3 @@
-
 import React from 'react';
 import PropTypes from 'prop-types';
 import {View} from 'react-native';
@@ -51,9 +50,7 @@ const FullPageNotFoundView = (props) => {
     if (props.shouldShow) {
         return (
             <>
-                <HeaderWithBackButton
-                    onBackButtonPress={props.onBackButtonPress}
-                />
+                <HeaderWithBackButton onBackButtonPress={props.onBackButtonPress} />
                 <View style={[styles.flex1, styles.blockingViewContainer]}>
                     <BlockingView
                         icon={Illustrations.ToddBehindCloud}
@@ -66,7 +63,6 @@ const FullPageNotFoundView = (props) => {
                     />
                 </View>
             </>
-
         );
     }
 

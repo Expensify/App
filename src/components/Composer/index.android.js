@@ -42,7 +42,6 @@ const propTypes = {
     /** General styles to apply to the text input */
     // eslint-disable-next-line react/forbid-prop-types
     style: PropTypes.any,
-
 };
 
 const defaultProps = {
@@ -96,9 +95,9 @@ class Composer extends React.Component {
             <RNTextInput
                 autoComplete="off"
                 placeholderTextColor={themeColors.placeholderText}
-                ref={el => this.textInput = el}
+                ref={(el) => (this.textInput = el)}
                 maxHeight={this.props.isComposerFullSize ? '100%' : CONST.COMPOSER_MAX_HEIGHT}
-                onContentSizeChange={e => ComposerUtils.updateNumberOfLines(this.props, e)}
+                onContentSizeChange={(e) => ComposerUtils.updateNumberOfLines(this.props, e)}
                 rejectResponderTermination={false}
                 textAlignVertical="center"
                 style={this.state.propStyles}
@@ -115,5 +114,8 @@ Composer.defaultProps = defaultProps;
 
 export default React.forwardRef((props, ref) => (
     /* eslint-disable-next-line react/jsx-props-no-spreading */
-    <Composer {...props} forwardedRef={ref} />
+    <Composer
+        {...props}
+        forwardedRef={ref}
+    />
 ));

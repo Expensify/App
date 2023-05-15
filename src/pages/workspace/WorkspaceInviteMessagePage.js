@@ -38,7 +38,6 @@ const personalDetailsPropTypes = PropTypes.shape({
 });
 
 const propTypes = {
-
     /** All of the personal details for everyone */
     personalDetails: PropTypes.objectOf(personalDetailsPropTypes),
 
@@ -81,8 +80,9 @@ class WorkspaceInviteMessagePage extends React.Component {
 
     componentDidUpdate(prevProps) {
         if (
-            !(prevProps.preferredLocale !== this.props.preferredLocale
-            && this.state.welcomeNote === Localize.translate(prevProps.preferredLocale, 'workspace.inviteMessage.welcomeNote', {workspaceName: this.props.policy.name})
+            !(
+                prevProps.preferredLocale !== this.props.preferredLocale &&
+                this.state.welcomeNote === Localize.translate(prevProps.preferredLocale, 'workspace.inviteMessage.welcomeNote', {workspaceName: this.props.policy.name})
             )
         ) {
             return;
@@ -109,7 +109,7 @@ class WorkspaceInviteMessagePage extends React.Component {
 
     getAvatarTooltips() {
         const filteredPersonalDetails = _.pick(this.props.personalDetails, this.props.invitedMembersDraft);
-        return _.map(filteredPersonalDetails, personalDetail => Str.removeSMSDomain(personalDetail.login));
+        return _.map(filteredPersonalDetails, (personalDetail) => Str.removeSMSDomain(personalDetail.login));
     }
 
     sendInvitation() {
@@ -161,20 +161,16 @@ class WorkspaceInviteMessagePage extends React.Component {
                         submitButtonText={this.props.translate('common.invite')}
                         enabledWhenOffline
                         footerContent={
-                            (
-                                <Pressable
-                                    onPress={this.openPrivacyURL}
-                                    accessibilityRole="link"
-                                    href={CONST.PRIVACY_URL}
-                                    style={[styles.mv2, styles.alignSelfStart]}
-                                >
-                                    <View style={[styles.flexRow]}>
-                                        <Text style={[styles.mr1, styles.label, styles.link]}>
-                                            {this.props.translate('common.privacy')}
-                                        </Text>
-                                    </View>
-                                </Pressable>
-                            )
+                            <Pressable
+                                onPress={this.openPrivacyURL}
+                                accessibilityRole="link"
+                                href={CONST.PRIVACY_URL}
+                                style={[styles.mv2, styles.alignSelfStart]}
+                            >
+                                <View style={[styles.flexRow]}>
+                                    <Text style={[styles.mr1, styles.label, styles.link]}>{this.props.translate('common.privacy')}</Text>
+                                </View>
+                            </Pressable>
                         }
                     >
                         <View style={[styles.mv4, styles.justifyContentCenter, styles.alignItemsCenter]}>
@@ -182,16 +178,12 @@ class WorkspaceInviteMessagePage extends React.Component {
                                 size={CONST.AVATAR_SIZE.LARGE}
                                 icons={this.getAvatars()}
                                 shouldStackHorizontally
-                                secondAvatarStyle={[
-                                    styles.secondAvatarInline,
-                                ]}
+                                secondAvatarStyle={[styles.secondAvatarInline]}
                                 avatarTooltips={this.getAvatarTooltips()}
                             />
                         </View>
                         <View style={[styles.mb5]}>
-                            <Text>
-                                {this.props.translate('workspace.inviteMessage.inviteMessagePrompt')}
-                            </Text>
+                            <Text>{this.props.translate('workspace.inviteMessage.inviteMessagePrompt')}</Text>
                         </View>
                         <View style={[styles.mb3]}>
                             <TextInput
@@ -205,7 +197,7 @@ class WorkspaceInviteMessagePage extends React.Component {
                                 containerStyles={[styles.workspaceInviteWelcome]}
                                 defaultValue={this.state.welcomeNote}
                                 value={this.state.welcomeNote}
-                                onChangeText={text => this.setState({welcomeNote: text})}
+                                onChangeText={(text) => this.setState({welcomeNote: text})}
                             />
                         </View>
                     </Form>

@@ -12,7 +12,7 @@ function getLocalizedCurrencySymbol(preferredLocale, currencyCode) {
         style: 'currency',
         currency: currencyCode,
     });
-    return _.find(parts, part => part.type === 'currency').value;
+    return _.find(parts, (part) => part.type === 'currency').value;
 }
 
 /**
@@ -31,7 +31,4 @@ function isCurrencySymbolLTR(preferredLocale, currencyCode) {
     return parts[0].type === 'currency';
 }
 
-export {
-    getLocalizedCurrencySymbol,
-    isCurrencySymbolLTR,
-};
+export {getLocalizedCurrencySymbol, isCurrencySymbolLTR};

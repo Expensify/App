@@ -12,16 +12,7 @@ const ownerEmail = 'owner@iou.com';
 const managerEmail = 'manager@iou.com';
 
 function createIOUReportAction(type, amount, currency, {IOUTransactionID, isOnline} = {}) {
-    const moneyRequestAction = ReportUtils.buildOptimisticIOUReportAction(
-        type,
-        amount,
-        currency,
-        'Test comment',
-        [managerEmail],
-        '',
-        IOUTransactionID,
-        iouReport.reportID,
-    );
+    const moneyRequestAction = ReportUtils.buildOptimisticIOUReportAction(type, amount, currency, 'Test comment', [managerEmail], '', IOUTransactionID, iouReport.reportID);
 
     // Default is to create requests offline, if this is specified then we need to remove the pendingAction
     moneyRequestAction.pendingAction = isOnline ? null : 'add';
@@ -31,15 +22,10 @@ function createIOUReportAction(type, amount, currency, {IOUTransactionID, isOnli
 }
 
 function cancelMoneyRequest(moneyRequestAction, {isOnline} = {}) {
-    createIOUReportAction(
-        'cancel',
-        moneyRequestAction.originalMessage.amount,
-        moneyRequestAction.originalMessage.currency,
-        {
-            IOUTransactionID: moneyRequestAction.originalMessage.IOUTransactionID,
-            isOnline,
-        },
-    );
+    createIOUReportAction('cancel', moneyRequestAction.originalMessage.amount, moneyRequestAction.originalMessage.currency, {
+        IOUTransactionID: moneyRequestAction.originalMessage.IOUTransactionID,
+        isOnline,
+    });
 }
 
 function initCurrencyList() {
@@ -59,14 +45,7 @@ describe('isIOUReportPendingCurrencyConversion', () => {
         const amount = 1000;
         const currency = 'USD';
 
-        iouReport = ReportUtils.buildOptimisticIOUReport(
-            ownerEmail,
-            managerEmail,
-            amount,
-            chatReportID,
-            currency,
-            CONST.LOCALES.EN,
-        );
+        iouReport = ReportUtils.buildOptimisticIOUReport(ownerEmail, managerEmail, amount, chatReportID, currency, CONST.LOCALES.EN);
 
         // The starting point of all tests is the IOUReport containing a single non-pending transaction in USD
         // All requests in the tests are assumed to be offline, unless isOnline is specified
@@ -105,7 +84,7 @@ describe('isIOUReportPendingCurrencyConversion', () => {
         expect(IOUUtils.isIOUReportPendingCurrencyConversion(reportActions, iouReport)).toBe(true);
     });
 
-    test('Cancelling a request made offline while there\'s a previous one made online will not show the pending conversion message', () => {
+    test("Cancelling a request made offline while there's a previous one made online will not show the pending conversion message", () => {
         // Request money online in AED
         createIOUReportAction('create', 1000, 'AED', {isOnline: true});
 
@@ -132,7 +111,7 @@ describe('isIOUReportPendingCurrencyConversion', () => {
         expect(IOUUtils.isIOUReportPendingCurrencyConversion(reportActions, iouReport)).toBe(true);
     });
 
-    test('Cancelling a request offline in the report\'s currency when we have requests in a different currency does not show the pending conversion message', () => {
+    test("Cancelling a request offline in the report's currency when we have requests in a different currency does not show the pending conversion message", () => {
         // Request money in the report's curreny (USD)
         const onlineMoneyRequestInUSD = createIOUReportAction('create', 1000, 'USD', {isOnline: true});
 

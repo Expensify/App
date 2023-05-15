@@ -157,14 +157,8 @@ function getDefaultRenderedSidebarLinks(reportIDFromRoute = '') {
     // are passed to the component. If this is not done, then all the locale props are missing
     // and there are a lot of render warnings. It needs to be done like this because normally in
     // our app (App.js) is when the react application is wrapped in the context providers
-    render((
-        <ComposeProviders
-            components={[
-                OnyxProvider,
-                LocaleContextProvider,
-                CurrentReportIdContextProvider,
-            ]}
-        >
+    render(
+        <ComposeProviders components={[OnyxProvider, LocaleContextProvider, CurrentReportIdContextProvider]}>
             <ErrorBoundary>
                 <SidebarLinks
                     onLinkClick={() => {}}
@@ -178,13 +172,8 @@ function getDefaultRenderedSidebarLinks(reportIDFromRoute = '') {
                     reportIDFromRoute={reportIDFromRoute}
                 />
             </ErrorBoundary>
-        </ComposeProviders>
-    ));
+        </ComposeProviders>,
+    );
 }
 
-export {
-    fakePersonalDetails,
-    getDefaultRenderedSidebarLinks,
-    getAdvancedFakeReport,
-    getFakeReport,
-};
+export {fakePersonalDetails, getDefaultRenderedSidebarLinks, getAdvancedFakeReport, getFakeReport};

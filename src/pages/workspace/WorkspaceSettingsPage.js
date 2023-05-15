@@ -26,10 +26,12 @@ import ROUTES from '../../ROUTES';
 
 const propTypes = {
     // The currency list constant object from Onyx
-    currencyList: PropTypes.objectOf(PropTypes.shape({
-        // Symbol for the currency
-        symbol: PropTypes.string,
-    })),
+    currencyList: PropTypes.objectOf(
+        PropTypes.shape({
+            // Symbol for the currency
+            symbol: PropTypes.string,
+        }),
+    ),
     ...policyPropTypes,
     ...withLocalizePropTypes,
 };
@@ -53,7 +55,7 @@ class WorkspaceSettingsPage extends React.Component {
      */
     getCurrencyItems() {
         const currencyListKeys = _.keys(this.props.currencyList);
-        return _.map(currencyListKeys, currencyCode => ({
+        return _.map(currencyListKeys, (currencyCode) => ({
             value: currencyCode,
             label: `${currencyCode} - ${this.props.currencyList[currencyCode].symbol}`,
         }));
@@ -88,7 +90,7 @@ class WorkspaceSettingsPage extends React.Component {
                 route={this.props.route}
                 guidesCallTaskID={CONST.GUIDES_CALL_TASK_IDS.WORKSPACE_SETTINGS}
             >
-                {hasVBA => (
+                {(hasVBA) => (
                     <Form
                         formID={ONYXKEYS.FORMS.WORKSPACE_SETTINGS_FORM}
                         submitButtonText={this.props.translate('workspace.editor.save')}
@@ -123,14 +125,12 @@ class WorkspaceSettingsPage extends React.Component {
                                 style={[styles.mb3]}
                                 anchorPosition={{top: 172, right: 18}}
                                 isUsingDefaultAvatar={!lodashGet(this.props.policy, 'avatar', null)}
-                                onImageSelected={file => Policy.updateWorkspaceAvatar(lodashGet(this.props.policy, 'id', ''), file)}
+                                onImageSelected={(file) => Policy.updateWorkspaceAvatar(lodashGet(this.props.policy, 'id', ''), file)}
                                 onImageRemoved={() => Policy.deleteWorkspaceAvatar(lodashGet(this.props.policy, 'id', ''))}
                                 editorMaskImage={Expensicons.ImageCropSquareMask}
                             />
                         </OfflineWithFeedback>
-                        <OfflineWithFeedback
-                            pendingAction={lodashGet(this.props.policy, 'pendingFields.generalSettings')}
-                        >
+                        <OfflineWithFeedback pendingAction={lodashGet(this.props.policy, 'pendingFields.generalSettings')}>
                             <TextInput
                                 inputID="name"
                                 label={this.props.translate('workspace.editor.nameInputLabel')}
@@ -145,11 +145,7 @@ class WorkspaceSettingsPage extends React.Component {
                                     items={this.getCurrencyItems()}
                                     isDisabled={hasVBA}
                                     defaultValue={this.props.policy.outputCurrency}
-                                    hintText={
-                                        hasVBA
-                                            ? this.props.translate('workspace.editor.currencyInputDisabledText')
-                                            : this.props.translate('workspace.editor.currencyInputHelpText')
-                                    }
+                                    hintText={hasVBA ? this.props.translate('workspace.editor.currencyInputDisabledText') : this.props.translate('workspace.editor.currencyInputHelpText')}
                                 />
                             </View>
                         </OfflineWithFeedback>

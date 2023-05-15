@@ -101,23 +101,10 @@ class CheckboxWithLabel extends React.Component {
                         focusable={false}
                         onPress={this.toggleCheckbox}
                         activeOpacity={variables.checkboxLabelActiveOpacity}
-                        style={[
-                            styles.ml3,
-                            styles.pr2,
-                            styles.w100,
-                            styles.flexRow,
-                            styles.flexWrap,
-                            styles.flexShrink1,
-                            styles.alignItemsCenter,
-                            styles.noSelect,
-                        ]}
+                        style={[styles.ml3, styles.pr2, styles.w100, styles.flexRow, styles.flexWrap, styles.flexShrink1, styles.alignItemsCenter, styles.noSelect]}
                     >
-                        {this.props.label && (
-                            <Text style={[styles.ml1]}>
-                                {this.props.label}
-                            </Text>
-                        )}
-                        {this.LabelComponent && (<this.LabelComponent />)}
+                        {this.props.label && <Text style={[styles.ml1]}>{this.props.label}</Text>}
+                        {this.LabelComponent && <this.LabelComponent />}
                     </TouchableOpacity>
                 </View>
                 <FormHelpMessage message={this.props.errorText} />
@@ -131,5 +118,8 @@ CheckboxWithLabel.defaultProps = defaultProps;
 
 export default React.forwardRef((props, ref) => (
     // eslint-disable-next-line react/jsx-props-no-spreading
-    <CheckboxWithLabel {...props} forwardedRef={ref} />
+    <CheckboxWithLabel
+        {...props}
+        forwardedRef={ref}
+    />
 ));

@@ -1,8 +1,5 @@
 import React from 'react';
-import {
-    View,
-    InteractionManager,
-} from 'react-native';
+import {View, InteractionManager} from 'react-native';
 import PropTypes from 'prop-types';
 import {withOnyx} from 'react-native-onyx';
 import lodashGet from 'lodash/get';
@@ -307,14 +304,8 @@ class MoneyRequestAmountPage extends React.Component {
             <>
                 <View
                     nativeID={this.amountViewID}
-                    onMouseDown={event => this.onMouseDown(event, [this.amountViewID])}
-                    style={[
-                        styles.flex1,
-                        styles.flexRow,
-                        styles.w100,
-                        styles.alignItemsCenter,
-                        styles.justifyContentCenter,
-                    ]}
+                    onMouseDown={(event) => this.onMouseDown(event, [this.amountViewID])}
+                    style={[styles.flex1, styles.flexRow, styles.w100, styles.alignItemsCenter, styles.justifyContentCenter]}
                 >
                     <TextInputWithCurrencySymbol
                         formattedAmount={formattedAmount}
@@ -322,7 +313,7 @@ class MoneyRequestAmountPage extends React.Component {
                         onCurrencyButtonPress={this.navigateToCurrencySelectionPage}
                         placeholder={this.props.numberFormat(0)}
                         preferredLocale={this.props.preferredLocale}
-                        ref={el => this.textInput = el}
+                        ref={(el) => (this.textInput = el)}
                         selectedCurrencyCode={this.props.iou.selectedCurrencyCode}
                         selection={this.state.selection}
                         onSelectionChange={(e) => {
@@ -334,18 +325,19 @@ class MoneyRequestAmountPage extends React.Component {
                     />
                 </View>
                 <View
-                    onMouseDown={event => this.onMouseDown(event, [this.numPadContainerViewID, this.numPadViewID])}
+                    onMouseDown={(event) => this.onMouseDown(event, [this.numPadContainerViewID, this.numPadViewID])}
                     style={[styles.w100, styles.justifyContentEnd, styles.pageWrapper]}
                     nativeID={this.numPadContainerViewID}
                 >
-                    {DeviceCapabilities.canUseTouchScreen()
-                        ? (
-                            <BigNumberPad
-                                nativeID={this.numPadViewID}
-                                numberPressed={this.updateAmountNumberPad}
-                                longPressHandlerStateChanged={this.updateLongPressHandlerState}
-                            />
-                        ) : <View />}
+                    {DeviceCapabilities.canUseTouchScreen() ? (
+                        <BigNumberPad
+                            nativeID={this.numPadViewID}
+                            numberPressed={this.updateAmountNumberPad}
+                            longPressHandlerStateChanged={this.updateLongPressHandlerState}
+                        />
+                    ) : (
+                        <View />
+                    )}
 
                     <Button
                         success

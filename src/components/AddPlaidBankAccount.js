@@ -1,9 +1,6 @@
 import _ from 'underscore';
 import React from 'react';
-import {
-    ActivityIndicator,
-    View,
-} from 'react-native';
+import {ActivityIndicator, View} from 'react-native';
 import PropTypes from 'prop-types';
 import {withOnyx} from 'react-native-onyx';
 import lodashGet from 'lodash/get';
@@ -111,15 +108,17 @@ class AddPlaidBankAccount extends React.Component {
      * @returns {Boolean}
      */
     isAuthenticatedWithPlaid() {
-        return ((this.props.receivedRedirectURI && this.props.plaidLinkOAuthToken)
-                || !_.isEmpty(lodashGet(this.props.plaidData, 'bankAccounts'))
-                || !_.isEmpty(lodashGet(this.props.plaidData, 'errors')));
+        return (
+            (this.props.receivedRedirectURI && this.props.plaidLinkOAuthToken) ||
+            !_.isEmpty(lodashGet(this.props.plaidData, 'bankAccounts')) ||
+            !_.isEmpty(lodashGet(this.props.plaidData, 'errors'))
+        );
     }
 
     render() {
         const plaidBankAccounts = lodashGet(this.props.plaidData, 'bankAccounts') || [];
         const token = this.getPlaidLinkToken();
-        const options = _.map(plaidBankAccounts, account => ({
+        const options = _.map(plaidBankAccounts, (account) => ({
             value: account.plaidAccountID,
             label: `${account.addressName} ${account.mask}`,
         }));
@@ -134,14 +133,13 @@ class AddPlaidBankAccount extends React.Component {
                 <FullPageOfflineBlockingView>
                     {lodashGet(this.props.plaidData, 'isLoading') && (
                         <View style={[styles.flex1, styles.alignItemsCenter, styles.justifyContentCenter]}>
-                            <ActivityIndicator color={themeColors.spinner} size="large" />
+                            <ActivityIndicator
+                                color={themeColors.spinner}
+                                size="large"
+                            />
                         </View>
                     )}
-                    {Boolean(plaidDataErrorMessage) && (
-                        <Text style={[styles.formError, styles.mh5]}>
-                            {plaidDataErrorMessage}
-                        </Text>
-                    )}
+                    {Boolean(plaidDataErrorMessage) && <Text style={[styles.formError, styles.mh5]}>{plaidDataErrorMessage}</Text>}
                     {Boolean(token) && !bankName && (
                         <PlaidLink
                             token={token}
@@ -152,7 +150,6 @@ class AddPlaidBankAccount extends React.Component {
                             onError={(error) => {
                                 Log.hmmm('[PlaidLink] Error: ', error.message);
                             }}
-
                             // User prematurely exited the Plaid flow
                             // eslint-disable-next-line react/jsx-props-no-multi-spaces
                             onExit={this.props.onExitPlaid}
@@ -166,9 +163,7 @@ class AddPlaidBankAccount extends React.Component {
         // Plaid bank accounts view
         return (
             <View>
-                {!_.isEmpty(this.props.text) && (
-                    <Text style={[styles.mb5]}>{this.props.text}</Text>
-                )}
+                {!_.isEmpty(this.props.text) && <Text style={[styles.mb5]}>{this.props.text}</Text>}
                 <View style={[styles.flexRow, styles.alignItemsCenter, styles.mb5]}>
                     <Icon
                         src={icon}

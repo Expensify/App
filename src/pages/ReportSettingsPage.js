@@ -143,21 +143,19 @@ class ReportSettingsPage extends Component {
 
     render() {
         const shouldShowRoomName = !ReportUtils.isPolicyExpenseChat(this.props.report);
-        const linkedWorkspace = _.find(this.props.policies, policy => policy && policy.id === this.props.report.policyID);
+        const linkedWorkspace = _.find(this.props.policies, (policy) => policy && policy.id === this.props.report.policyID);
         const shouldDisableRename = this.shouldDisableRename(linkedWorkspace);
 
         return (
             <ScreenWrapper>
                 <FullPageNotFoundView shouldShow={_.isEmpty(this.props.report)}>
-                    <HeaderWithBackButton
-                        title={this.props.translate('common.settings')}
-                    />
+                    <HeaderWithBackButton title={this.props.translate('common.settings')} />
                     <Form
                         formID={ONYXKEYS.FORMS.ROOM_SETTINGS_FORM}
                         submitButtonText={this.props.translate('common.save')}
                         style={[styles.mh5, styles.mt5, styles.flexGrow1]}
                         validate={this.validate}
-                        onSubmit={values => !shouldDisableRename && this.updatePolicyRoomName(values)}
+                        onSubmit={(values) => !shouldDisableRename && this.updatePolicyRoomName(values)}
                         scrollContextEnabled
                         isSubmitButtonVisible={shouldShowRoomName && !shouldDisableRename}
                         enabledWhenOffline
@@ -171,11 +169,7 @@ class ReportSettingsPage extends Component {
                                             return;
                                         }
 
-                                        Report.updateNotificationPreference(
-                                            this.props.report.reportID,
-                                            this.props.report.notificationPreference,
-                                            notificationPreference,
-                                        );
+                                        Report.updateNotificationPreference(this.props.report.reportID, this.props.report.notificationPreference, notificationPreference);
                                     }}
                                     items={this.getNotificationPreferenceOptions()}
                                     value={this.props.report.notificationPreference}
@@ -193,20 +187,25 @@ class ReportSettingsPage extends Component {
                                         <View style={[styles.flex3]}>
                                             {shouldDisableRename ? (
                                                 <View>
-                                                    <Text style={[styles.textLabelSupporting, styles.lh16, styles.mb1]} numberOfLines={1}>
+                                                    <Text
+                                                        style={[styles.textLabelSupporting, styles.lh16, styles.mb1]}
+                                                        numberOfLines={1}
+                                                    >
                                                         {this.props.translate('newRoomPage.roomName')}
                                                     </Text>
-                                                    <Text numberOfLines={1} style={[styles.optionAlternateText, styles.pre]}>
+                                                    <Text
+                                                        numberOfLines={1}
+                                                        style={[styles.optionAlternateText, styles.pre]}
+                                                    >
                                                         {this.props.report.reportName}
                                                     </Text>
                                                 </View>
-                                            )
-                                                : (
-                                                    <RoomNameInput
-                                                        inputID="newRoomName"
-                                                        defaultValue={this.props.report.reportName}
-                                                    />
-                                                )}
+                                            ) : (
+                                                <RoomNameInput
+                                                    inputID="newRoomName"
+                                                    defaultValue={this.props.report.reportName}
+                                                />
+                                            )}
                                         </View>
                                     </View>
                                 </OfflineWithFeedback>
@@ -214,28 +213,38 @@ class ReportSettingsPage extends Component {
                         )}
                         {Boolean(linkedWorkspace) && (
                             <View style={[styles.mt4]}>
-                                <Text style={[styles.textLabelSupporting, styles.lh16, styles.mb1]} numberOfLines={1}>
+                                <Text
+                                    style={[styles.textLabelSupporting, styles.lh16, styles.mb1]}
+                                    numberOfLines={1}
+                                >
                                     {this.props.translate('workspace.common.workspace')}
                                 </Text>
-                                <Text numberOfLines={1} style={[styles.optionAlternateText, styles.pre]}>
+                                <Text
+                                    numberOfLines={1}
+                                    style={[styles.optionAlternateText, styles.pre]}
+                                >
                                     {linkedWorkspace.name}
                                 </Text>
                             </View>
                         )}
                         {Boolean(this.props.report.visibility) && (
                             <View style={[styles.mt4]}>
-                                <Text style={[styles.textLabelSupporting, styles.lh16, styles.mb1]} numberOfLines={1}>
+                                <Text
+                                    style={[styles.textLabelSupporting, styles.lh16, styles.mb1]}
+                                    numberOfLines={1}
+                                >
                                     {this.props.translate('newRoomPage.visibility')}
                                 </Text>
-                                <Text numberOfLines={1} style={[styles.reportSettingsVisibilityText]}>
+                                <Text
+                                    numberOfLines={1}
+                                    style={[styles.reportSettingsVisibilityText]}
+                                >
                                     {this.props.translate(`newRoomPage.visibilityOptions.${this.props.report.visibility}`)}
                                 </Text>
                                 <Text style={[styles.textLabelSupporting, styles.mt1]}>
-                                    {
-                                        this.props.report.visibility === CONST.REPORT.VISIBILITY.RESTRICTED
-                                            ? this.props.translate('newRoomPage.restrictedDescription')
-                                            : this.props.translate('newRoomPage.privateDescription')
-                                    }
+                                    {this.props.report.visibility === CONST.REPORT.VISIBILITY.RESTRICTED
+                                        ? this.props.translate('newRoomPage.restrictedDescription')
+                                        : this.props.translate('newRoomPage.privateDescription')}
                                 </Text>
                             </View>
                         )}

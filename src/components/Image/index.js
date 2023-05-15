@@ -61,7 +61,12 @@ class Image extends React.Component {
         const source = this.getImageSource();
 
         // eslint-disable-next-line react/jsx-props-no-spreading
-        return <RNImage {...forwardedProps} source={source} />;
+        return (
+            <RNImage
+                {...forwardedProps}
+                source={source}
+            />
+        );
     }
 }
 

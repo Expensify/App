@@ -20,7 +20,15 @@ const TextPill = (props) => {
     const propsStyle = StyleUtils.parseStyleAsArray(props.style);
 
     // eslint-disable-next-line react/jsx-props-no-spreading
-    return <Text {...props} style={[styles.textPill, ...propsStyle]} numberOfLines={1}>{props.text}</Text>;
+    return (
+        <Text
+            {...props}
+            style={[styles.textPill, ...propsStyle]}
+            numberOfLines={1}
+        >
+            {props.text}
+        </Text>
+    );
 };
 
 TextPill.propTypes = propTypes;

@@ -22,7 +22,7 @@ const EditedRenderer = (props) => {
             color={themeColors.textSupporting}
         >
             {/* Native devices do not support margin between nested text */}
-            <Text style={styles.w1}>{' '}</Text>
+            <Text style={styles.w1}> </Text>
             {props.translate('reportActionCompose.edited')}
         </Text>
     );

@@ -840,11 +840,7 @@ const styles = {
     },
 
     textInputLabelTransformation: (translateY, translateX, scale) => ({
-        transform: [
-            {translateY},
-            {translateX},
-            {scale},
-        ],
+        transform: [{translateY}, {translateX}, {scale}],
     }),
 
     baseTextInput: {
@@ -1521,26 +1517,29 @@ const styles = {
 
     // Be extremely careful when editing the compose styles, as it is easy to introduce regressions.
     // Make sure you run the following tests against any changes: #12669
-    textInputCompose: addOutlineWidth({
-        backgroundColor: themeColors.componentBG,
-        borderColor: themeColors.border,
-        color: themeColors.text,
-        fontFamily: fontFamily.EMOJI_TEXT_FONT,
-        fontSize: variables.fontSizeNormal,
-        borderWidth: 0,
-        height: 'auto',
-        lineHeight: variables.lineHeightXLarge,
-        ...overflowXHidden,
+    textInputCompose: addOutlineWidth(
+        {
+            backgroundColor: themeColors.componentBG,
+            borderColor: themeColors.border,
+            color: themeColors.text,
+            fontFamily: fontFamily.EMOJI_TEXT_FONT,
+            fontSize: variables.fontSizeNormal,
+            borderWidth: 0,
+            height: 'auto',
+            lineHeight: variables.lineHeightXLarge,
+            ...overflowXHidden,
 
-        // On Android, multiline TextInput with height: 'auto' will show extra padding unless they are configured with
-        // paddingVertical: 0, alignSelf: 'center', and textAlignVertical: 'center'
+            // On Android, multiline TextInput with height: 'auto' will show extra padding unless they are configured with
+            // paddingVertical: 0, alignSelf: 'center', and textAlignVertical: 'center'
 
-        paddingHorizontal: variables.avatarChatSpacing,
-        paddingTop: 0,
-        paddingBottom: 0,
-        alignSelf: 'center',
-        textAlignVertical: 'center',
-    }, 0),
+            paddingHorizontal: variables.avatarChatSpacing,
+            paddingTop: 0,
+            paddingBottom: 0,
+            alignSelf: 'center',
+            textAlignVertical: 'center',
+        },
+        0,
+    ),
 
     textInputFullCompose: {
         alignSelf: 'stretch',
@@ -1690,7 +1689,7 @@ const styles = {
         marginRight: 4,
     },
 
-    navigationModalCard: isSmallScreenWidth => ({
+    navigationModalCard: (isSmallScreenWidth) => ({
         position: 'absolute',
         top: 0,
         right: 0,
@@ -1704,9 +1703,11 @@ const styles = {
         position: 'absolute',
         width: '100%',
         height: '100%',
-        transform: [{
-            translateX: -variables.sideBarWidth,
-        }],
+        transform: [
+            {
+                translateX: -variables.sideBarWidth,
+            },
+        ],
     },
 
     sidebarVisible: {
@@ -2329,13 +2330,16 @@ const styles = {
         lineHeight: variables.inputHeight,
     },
 
-    iouAmountTextInput: addOutlineWidth({
-        ...headlineFont,
-        fontSize: variables.iouAmountTextSize,
-        color: themeColors.heading,
-        padding: 0,
-        lineHeight: undefined,
-    }, 0),
+    iouAmountTextInput: addOutlineWidth(
+        {
+            ...headlineFont,
+            fontSize: variables.iouAmountTextSize,
+            color: themeColors.heading,
+            padding: 0,
+            lineHeight: undefined,
+        },
+        0,
+    ),
 
     moneyRequestConfirmationAmount: {
         ...headlineFont,
@@ -2471,7 +2475,7 @@ const styles = {
         position: 'fixed',
     },
 
-    growlNotificationTranslateY: y => ({
+    growlNotificationTranslateY: (y) => ({
         transform: [{translateY: y}],
     }),
 
@@ -2775,10 +2779,8 @@ const styles = {
         ...visibility('visible'),
     },
 
-    floatingMessageCounterTransformation: translateY => ({
-        transform: [
-            {translateY},
-        ],
+    floatingMessageCounterTransformation: (translateY) => ({
+        transform: [{translateY}],
     }),
 
     confirmationAnimation: {

@@ -94,14 +94,7 @@ function arrayToString(anArray) {
  * @return {String}
  */
 function getDevicePreferredLocale() {
-    return lodashGet(
-        RNLocalize.findBestAvailableLanguage([CONST.LOCALES.EN, CONST.LOCALES.ES]), 'languageTag', CONST.LOCALES.DEFAULT,
-    );
+    return lodashGet(RNLocalize.findBestAvailableLanguage([CONST.LOCALES.EN, CONST.LOCALES.ES]), 'languageTag', CONST.LOCALES.DEFAULT);
 }
 
-export {
-    translate,
-    translateLocal,
-    arrayToString,
-    getDevicePreferredLocale,
-};
+export {translate, translateLocal, arrayToString, getDevicePreferredLocale};

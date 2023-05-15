@@ -48,13 +48,8 @@ const BaseEmojiSuggestions = (props) => {
 
         return (
             <Pressable
-                style={({hovered}) => StyleUtils.getEmojiSuggestionItemStyle(
-                    props.highlightedEmojiIndex,
-                    CONST.EMOJI_SUGGESTER.ITEM_HEIGHT,
-                    hovered,
-                    index,
-                )}
-                onMouseDown={e => e.preventDefault()}
+                style={({hovered}) => StyleUtils.getEmojiSuggestionItemStyle(props.highlightedEmojiIndex, CONST.EMOJI_SUGGESTER.ITEM_HEIGHT, hovered, index)}
+                onMouseDown={(e) => e.preventDefault()}
                 onPress={() => props.onSelect(index)}
                 onLongPress={() => {}}
             >
@@ -63,7 +58,10 @@ const BaseEmojiSuggestions = (props) => {
                     <Text style={styles.emojiSuggestionsText}>
                         :
                         {_.map(styledTextArray, ({text, isColored}, i) => (
-                            <Text key={`${text}+${i}`} style={StyleUtils.getColoredBackgroundStyle(isColored)}>
+                            <Text
+                                key={`${text}+${i}`}
+                                style={StyleUtils.getColoredBackgroundStyle(isColored)}
+                            >
                                 {text}
                             </Text>
                         ))}
@@ -74,21 +72,12 @@ const BaseEmojiSuggestions = (props) => {
         );
     };
 
-    const rowHeight = measureHeightOfEmojiRows(
-        props.emojis.length,
-        props.isEmojiPickerLarge,
-    );
+    const rowHeight = measureHeightOfEmojiRows(props.emojis.length, props.isEmojiPickerLarge);
 
     return (
         <View
             ref={props.forwardedRef}
-            style={[
-                styles.emojiSuggestionsContainer,
-                StyleUtils.getEmojiSuggestionContainerStyle(
-                    rowHeight,
-                    props.shouldIncludeReportRecipientLocalTimeHeight,
-                ),
-            ]}
+            style={[styles.emojiSuggestionsContainer, StyleUtils.getEmojiSuggestionContainerStyle(rowHeight, props.shouldIncludeReportRecipientLocalTimeHeight)]}
         >
             <FlatList
                 keyboardShouldPersistTaps="handled"
@@ -108,5 +97,8 @@ BaseEmojiSuggestions.displayName = 'BaseEmojiSuggestions';
 
 export default React.forwardRef((props, ref) => (
     // eslint-disable-next-line react/jsx-props-no-spreading
-    <BaseEmojiSuggestions {...props} forwardedRef={ref} />
+    <BaseEmojiSuggestions
+        {...props}
+        forwardedRef={ref}
+    />
 ));

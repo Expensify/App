@@ -36,9 +36,7 @@ const ActivateStep = (props) => {
 
     return (
         <>
-            <HeaderWithBackButton
-                title={props.translate('activateStep.headerTitle')}
-            />
+            <HeaderWithBackButton title={props.translate('activateStep.headerTitle')} />
             <ConfirmationPage
                 animation={animation}
                 heading={props.translate(`activateStep.${isGoldWallet ? 'activated' : 'checkBackLater'}Title`)}

@@ -1,7 +1,4 @@
-import {
-    getStateFromPath,
-    getActionFromState,
-} from '@react-navigation/core';
+import {getStateFromPath, getActionFromState} from '@react-navigation/core';
 import _ from 'lodash';
 import NAVIGATORS from '../../NAVIGATORS';
 import linkingConfig from './linkingConfig';
@@ -13,9 +10,7 @@ export default function linkTo(navigation, path, type) {
         throw new Error("Couldn't find a navigation object. Is your component inside a screen in a navigator?");
     }
 
-    const state = linkingConfig.getStateFromPath
-        ? linkingConfig.getStateFromPath(normalizedPath, linkingConfig.config)
-        : getStateFromPath(normalizedPath, linkingConfig.config);
+    const state = linkingConfig.getStateFromPath ? linkingConfig.getStateFromPath(normalizedPath, linkingConfig.config) : getStateFromPath(normalizedPath, linkingConfig.config);
 
     if (!state) {
         throw new Error('Failed to parse the path to a navigation state.');
@@ -38,12 +33,12 @@ export default function linkTo(navigation, path, type) {
         if (action.payload.name === NAVIGATORS.CENTRAL_PANE_NAVIGATOR && getTopmostReportId(root.getState()) !== getTopmostReportId(state)) {
             action.type = 'PUSH';
 
-        // If this action is navigating to the RightModalNavigator and the last route on the root navigator is also RightModalNavigator
-        // then we want to replace the current RHP state with new one
+            // If this action is navigating to the RightModalNavigator and the last route on the root navigator is also RightModalNavigator
+            // then we want to replace the current RHP state with new one
         } else if (type === 'UP') {
             action.type = 'REPLACE';
 
-        // If this action is navigating to the RightModalNavigator and the last route on the root navigator is not RightModalNavigator then push
+            // If this action is navigating to the RightModalNavigator and the last route on the root navigator is not RightModalNavigator then push
         } else if (action.payload.name === NAVIGATORS.RIGHT_MODAL_NAVIGATOR && _.last(root.getState().routes).name !== NAVIGATORS.RIGHT_MODAL_NAVIGATOR) {
             action.type = 'PUSH';
         }

@@ -4,10 +4,7 @@ import {Pressable} from 'react-native';
 import styles from '../../styles/styles';
 import Text from '../Text';
 import * as StyleUtils from '../../styles/StyleUtils';
-import withCurrentUserPersonalDetails, {
-    withCurrentUserPersonalDetailsDefaultProps,
-    withCurrentUserPersonalDetailsPropTypes,
-} from '../withCurrentUserPersonalDetails';
+import withCurrentUserPersonalDetails, {withCurrentUserPersonalDetailsDefaultProps, withCurrentUserPersonalDetailsPropTypes} from '../withCurrentUserPersonalDetails';
 import * as Report from '../../libs/actions/Report';
 
 const propTypes = {
@@ -56,34 +53,14 @@ const EmojiReactionBubble = (props) => {
     const hasUserReacted = Report.hasAccountIDReacted(props.currentUserPersonalDetails.accountID, props.reactionUsers);
     return (
         <Pressable
-            style={({hovered, pressed}) => [
-                styles.emojiReactionBubble,
-                StyleUtils.getEmojiReactionBubbleStyle(hovered || pressed, hasUserReacted, props.isContextMenu),
-            ]}
+            style={({hovered, pressed}) => [styles.emojiReactionBubble, StyleUtils.getEmojiReactionBubbleStyle(hovered || pressed, hasUserReacted, props.isContextMenu)]}
             onPress={props.onPress}
             onLongPress={props.onReactionListOpen}
-
             // Prevent text input blur when emoji reaction is clicked
-            onMouseDown={e => e.preventDefault()}
+            onMouseDown={(e) => e.preventDefault()}
         >
-            <Text style={[
-                styles.emojiReactionBubbleText,
-                styles.userSelectNone,
-                StyleUtils.getEmojiReactionBubbleTextStyle(props.isContextMenu),
-            ]}
-            >
-                {props.emojiCodes.join('')}
-            </Text>
-            {props.count > 0 && (
-            <Text style={[
-                styles.reactionCounterText,
-                styles.userSelectNone,
-                StyleUtils.getEmojiReactionCounterTextStyle(hasUserReacted),
-            ]}
-            >
-                {props.count}
-            </Text>
-            )}
+            <Text style={[styles.emojiReactionBubbleText, styles.userSelectNone, StyleUtils.getEmojiReactionBubbleTextStyle(props.isContextMenu)]}>{props.emojiCodes.join('')}</Text>
+            {props.count > 0 && <Text style={[styles.reactionCounterText, styles.userSelectNone, StyleUtils.getEmojiReactionCounterTextStyle(hasUserReacted)]}>{props.count}</Text>}
         </Pressable>
     );
 };

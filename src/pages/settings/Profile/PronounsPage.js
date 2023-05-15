@@ -69,8 +69,7 @@ class PronounsPage extends Component {
         if (searchedValue.length === 0) {
             return [];
         }
-        return _.filter(this.pronounsList,
-            pronous => pronous.text.toLowerCase().indexOf(searchedValue.toLowerCase()) >= 0);
+        return _.filter(this.pronounsList, (pronous) => pronous.text.toLowerCase().indexOf(searchedValue.toLowerCase()) >= 0);
     }
 
     /**
@@ -105,7 +104,7 @@ class PronounsPage extends Component {
                     boldStyle: isCurrentPronouns,
                 };
             })
-            .sortBy(pronoun => pronoun.text.toLowerCase())
+            .sortBy((pronoun) => pronoun.text.toLowerCase())
             .value();
     }
 
@@ -128,9 +127,7 @@ class PronounsPage extends Component {
                             title={this.props.translate('pronounsPage.pronouns')}
                             onBackButtonPress={() => Navigation.goBack(ROUTES.SETTINGS_PROFILE)}
                         />
-                        <Text style={[styles.ph5, styles.mb3]}>
-                            {this.props.translate('pronounsPage.isShownOnProfile')}
-                        </Text>
+                        <Text style={[styles.ph5, styles.mb3]}>{this.props.translate('pronounsPage.isShownOnProfile')}</Text>
                         <OptionsSelector
                             textInputLabel={this.props.translate('pronounsPage.pronouns')}
                             placeholderText={this.props.translate('pronounsPage.placeholderText')}
@@ -155,7 +152,4 @@ class PronounsPage extends Component {
 PronounsPage.propTypes = propTypes;
 PronounsPage.defaultProps = defaultProps;
 
-export default compose(
-    withLocalize,
-    withCurrentUserPersonalDetails,
-)(PronounsPage);
+export default compose(withLocalize, withCurrentUserPersonalDetails)(PronounsPage);

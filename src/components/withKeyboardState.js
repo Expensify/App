@@ -25,18 +25,12 @@ class KeyboardStateProvider extends React.Component {
     }
 
     componentDidMount() {
-        this.keyboardDidShowListener = Keyboard.addListener(
-            'keyboardDidShow',
-            () => {
-                this.setState({isKeyboardShown: true});
-            },
-        );
-        this.keyboardDidHideListener = Keyboard.addListener(
-            'keyboardDidHide',
-            () => {
-                this.setState({isKeyboardShown: false});
-            },
-        );
+        this.keyboardDidShowListener = Keyboard.addListener('keyboardDidShow', () => {
+            this.setState({isKeyboardShown: true});
+        });
+        this.keyboardDidHideListener = Keyboard.addListener('keyboardDidHide', () => {
+            this.setState({isKeyboardShown: false});
+        });
     }
 
     componentWillUnmount() {
@@ -45,11 +39,7 @@ class KeyboardStateProvider extends React.Component {
     }
 
     render() {
-        return (
-            <KeyboardStateContext.Provider value={this.state}>
-                {this.props.children}
-            </KeyboardStateContext.Provider>
-        );
+        return <KeyboardStateContext.Provider value={this.state}>{this.props.children}</KeyboardStateContext.Provider>;
     }
 }
 
@@ -62,9 +52,13 @@ KeyboardStateProvider.propTypes = keyboardStateProviderPropTypes;
 export default function withKeyboardState(WrappedComponent) {
     const WithKeyboardState = forwardRef((props, ref) => (
         <KeyboardStateContext.Consumer>
-            {keyboardStateProps => (
+            {(keyboardStateProps) => (
                 // eslint-disable-next-line react/jsx-props-no-spreading
-                <WrappedComponent {...keyboardStateProps} {...props} ref={ref} />
+                <WrappedComponent
+                    {...keyboardStateProps}
+                    {...props}
+                    ref={ref}
+                />
             )}
         </KeyboardStateContext.Consumer>
     ));
@@ -73,7 +67,4 @@ export default function withKeyboardState(WrappedComponent) {
     return WithKeyboardState;
 }
 
-export {
-    KeyboardStateProvider,
-    keyboardStatePropTypes,
-};
+export {KeyboardStateProvider, keyboardStatePropTypes};

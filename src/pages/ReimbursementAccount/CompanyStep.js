@@ -56,9 +56,7 @@ class CompanyStep extends React.Component {
         this.submit = this.submit.bind(this);
         this.validate = this.validate.bind(this);
 
-        this.defaultWebsite = lodashGet(props, 'user.isFromPublicDomain', false)
-            ? 'https://'
-            : `https://www.${Str.extractEmailDomain(props.session.email, '')}`;
+        this.defaultWebsite = lodashGet(props, 'user.isFromPublicDomain', false) ? 'https://' : `https://www.${Str.extractEmailDomain(props.session.email, '')}`;
     }
 
     componentWillUnmount() {
@@ -194,7 +192,10 @@ class CompanyStep extends React.Component {
                             zipCode: this.props.getDefaultStateForField('addressZipCode'),
                         }}
                         inputKeys={{
-                            street: 'addressStreet', city: 'addressCity', state: 'addressState', zipCode: 'addressZipCode',
+                            street: 'addressStreet',
+                            city: 'addressCity',
+                            state: 'addressState',
+                            zipCode: 'addressZipCode',
                         }}
                         shouldSaveDraft
                         streetTranslationKey="common.companyAddress"

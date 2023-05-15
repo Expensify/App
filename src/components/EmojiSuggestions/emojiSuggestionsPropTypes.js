@@ -5,13 +5,15 @@ const propTypes = {
     highlightedEmojiIndex: PropTypes.number,
 
     /** Array of suggested emoji */
-    emojis: PropTypes.arrayOf(PropTypes.shape({
-        /** The emoji code */
-        code: PropTypes.string,
+    emojis: PropTypes.arrayOf(
+        PropTypes.shape({
+            /** The emoji code */
+            code: PropTypes.string,
 
-        /** The name of the emoji */
-        name: PropTypes.string,
-    })).isRequired,
+            /** The name of the emoji */
+            name: PropTypes.string,
+        }),
+    ).isRequired,
 
     /** Fired when the user selects an emoji */
     onSelect: PropTypes.func.isRequired,
