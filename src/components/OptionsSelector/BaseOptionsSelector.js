@@ -12,7 +12,6 @@ import withLocalize, {withLocalizePropTypes} from '../withLocalize';
 import TextInput from '../TextInput';
 import ArrowKeyFocusManager from '../ArrowKeyFocusManager';
 import KeyboardShortcut from '../../libs/KeyboardShortcut';
-import FullScreenLoadingIndicator from '../FullscreenLoadingIndicator';
 import {propTypes as optionsSelectorPropTypes, defaultProps as optionsSelectorDefaultProps} from './optionsSelectorPropTypes';
 import setSelection from '../../libs/setSelection';
 
@@ -48,6 +47,7 @@ class BaseOptionsSelector extends Component {
         this.state = {
             allOptions,
             focusedIndex,
+            shouldDisableRowSelection: false,
         };
     }
 
@@ -60,8 +60,16 @@ class BaseOptionsSelector extends Component {
                 if (!focusedOption) {
                     return;
                 }
-
-                this.selectRow(focusedOption);
+                if (this.props.canSelectMultipleOptions) {
+                    this.selectRow(focusedOption);
+                } else if (!this.state.shouldDisableRowSelection) {
+                    this.setState({shouldDisableRowSelection: true});
+                    let result = this.selectRow(focusedOption);
+                    if (!(result instanceof Promise)) {
+                        result = Promise.resolve();
+                    }
+                    setTimeout(() => result.finally(() => this.setState({shouldDisableRowSelection: false})), 500);
+                }
             },
             enterConfig.descriptionKey,
             enterConfig.modifiers,
@@ -289,7 +297,7 @@ class BaseOptionsSelector extends Component {
                 blurOnSubmit={Boolean(this.state.allOptions.length)}
             />
         );
-        const optionsList = this.props.shouldShowOptions ? (
+        const optionsList = (
             <OptionsList
                 ref={(el) => (this.list = el)}
                 optionHoveredStyle={this.props.optionHoveredStyle}
@@ -314,9 +322,8 @@ class BaseOptionsSelector extends Component {
                     }
                 }}
                 contentContainerStyles={shouldShowFooter ? undefined : [this.props.safeAreaPaddingBottomStyle]}
+                isLoading={!this.props.shouldShowOptions}
             />
-        ) : (
-            <FullScreenLoadingIndicator />
         );
         return (
             <ArrowKeyFocusManager

@@ -31,6 +31,8 @@ export default PropTypes.shape({
         selected: PropTypes.string,
 
         // Whether timezone is automatically set
-        automatic: PropTypes.bool,
+        // TODO: remove string type after backend fix
+        // Some personal details return 'true' (string) for this value instead of true (boolean)
+        automatic: PropTypes.oneOfType([PropTypes.bool, PropTypes.string]),
     }),
 });
