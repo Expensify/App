@@ -96,6 +96,13 @@ class WorkspaceMembersPage extends React.Component {
             this.validate();
         }
 
+        if (!_.isEqual(prevProps.policyMemberList, this.props.policyMemberList)) {
+            const selectedEmployees = _.filter(this.state.selectedEmployees, (selectedEmployee) => {
+                return _.has(this.props.policyMemberList, selectedEmployee);
+            });
+            this.setState({selectedEmployees});
+        }
+
         const isReconnecting = prevProps.network.isOffline && !this.props.network.isOffline;
         if (!isReconnecting) {
             return;
@@ -363,6 +370,7 @@ class WorkspaceMembersPage extends React.Component {
     }
 
     render() {
+        console.log(this.state.selectedEmployees);
         const policyMemberList = lodashGet(this.props, 'policyMemberList', {});
         const policyOwner = lodashGet(this.props.policy, 'owner');
         const currentUserLogin = lodashGet(this.props.currentUserPersonalDetails, 'login');
