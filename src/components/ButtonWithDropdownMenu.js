@@ -53,10 +53,10 @@ const ButtonWithDropdownMenu = (props) => {
         if (!caretButton.current) {
             return;
         }
-        caretButton.current.measureInWindow((x, y, w) => {
+        caretButton.current.measureInWindow((x, y, w, h) => {
             setPopoverAnchorPosition({
                 horizontal: x + w,
-                vertical: y - 16,
+                vertical: y + h,
             });
         });
     }, [windowWidth, windowHeight]);
