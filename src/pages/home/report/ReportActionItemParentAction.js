@@ -38,28 +38,28 @@ const defaultProps = {
 };
 
 const ReportActionItemParentAction = (props) => (
-        <OfflineWithFeedback
-            pendingAction={lodashGet(props.report, 'pendingFields.addWorkspaceRoom') || lodashGet(props.report, 'pendingFields.createChat')}
-            errors={lodashGet(props.report, 'errorFields.addWorkspaceRoom') || lodashGet(props.report, 'errorFields.createChat')}
-            errorRowStyles={[styles.ml10, styles.mr2]}
-            onClose={() => Report.navigateToConciergeChatAndDeleteReport(props.report.reportID)}
-        >
-            <View style={StyleUtils.getReportWelcomeContainerStyle(props.isSmallScreenWidth)}>
-                <View style={[styles.p5, StyleUtils.getReportWelcomeTopMarginStyle(props.isSmallScreenWidth)]} />
-                {props.parentReportAction && (
-                    <ReportActionItem
-                        report={props.report}
-                        action={props.parentReportAction}
-                        displayAsGroup={false}
-                        isMostRecentIOUReportAction={false}
-                        shouldDisplayNewMarker={false}
-                        index={0}
-                    />
-                )}
-            </View>
-            <View style={[styles.threadDividerLine]} />
-        </OfflineWithFeedback>
-    );
+    <OfflineWithFeedback
+        pendingAction={lodashGet(props.report, 'pendingFields.addWorkspaceRoom') || lodashGet(props.report, 'pendingFields.createChat')}
+        errors={lodashGet(props.report, 'errorFields.addWorkspaceRoom') || lodashGet(props.report, 'errorFields.createChat')}
+        errorRowStyles={[styles.ml10, styles.mr2]}
+        onClose={() => Report.navigateToConciergeChatAndDeleteReport(props.report.reportID)}
+    >
+        <View style={StyleUtils.getReportWelcomeContainerStyle(props.isSmallScreenWidth)}>
+            <View style={[styles.p5, StyleUtils.getReportWelcomeTopMarginStyle(props.isSmallScreenWidth)]} />
+            {props.parentReportAction && (
+                <ReportActionItem
+                    report={props.report}
+                    action={props.parentReportAction}
+                    displayAsGroup={false}
+                    isMostRecentIOUReportAction={false}
+                    shouldDisplayNewMarker={false}
+                    index={0}
+                />
+            )}
+        </View>
+        <View style={[styles.threadDividerLine]} />
+    </OfflineWithFeedback>
+);
 
 ReportActionItemParentAction.defaultProps = defaultProps;
 ReportActionItemParentAction.propTypes = propTypes;
