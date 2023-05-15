@@ -38,7 +38,6 @@ import reportPropTypes from '../../reportPropTypes';
 import {ShowContextMenuContext} from '../../../components/ShowContextMenuContext';
 import focusTextInputAfterAnimation from '../../../libs/focusTextInputAfterAnimation';
 import ChronosOOOListActions from '../../../components/ReportActionItem/ChronosOOOListActions';
-import ReportActionItemReactions from '../../../components/Reactions/ReportActionItemReactions';
 import ReportActionItemEmojiReactions from '../../../components/Reactions/ReportActionItemEmojiReactions';
 import * as Report from '../../../libs/actions/Report';
 import withLocalize from '../../../components/withLocalize';
