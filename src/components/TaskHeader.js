@@ -1,5 +1,5 @@
 import React, {useEffect, useState} from 'react';
-import {View, TouchableWithoutFeedback, Pressable} from 'react-native';
+import {View, TouchableOpacity} from 'react-native';
 import PropTypes from 'prop-types';
 import lodashGet from 'lodash/get';
 import {withOnyx} from 'react-native-onyx';
@@ -68,48 +68,50 @@ function TaskHeader(props) {
             <View style={[{backgroundColor: themeColors.highlightBG}, styles.pl0]}>
                 <View style={[styles.ph5, styles.pb5]}>
                     <Text style={[styles.textLabelSupporting, styles.lh16]}>{props.translate('common.to')}</Text>
-                    <View style={[styles.flexRow, styles.alignItemsCenter, styles.justifyContentBetween, styles.pv3]}>
-                        <TouchableWithoutFeedback onPress={() => Navigation.navigate(ROUTES.getTaskReportAssigneeRoute(props.report.reportID))}>
+                    <TouchableOpacity onPress={() => Navigation.navigate(ROUTES.getTaskReportAssigneeRoute(props.report.reportID))}>
+                        <View style={[styles.flexRow, styles.alignItemsCenter, styles.justifyContentBetween, styles.pv3]}>
                             <View style={[styles.flexRow, styles.alignItemsCenter, styles.justifyContentBetween]}>
-                                {props.report.managerEmail ? (
-                                    <View style={[styles.ph3]}>
-                                        <TaskSelectorLink
-                                            icons={assignee.icons}
-                                            text={assignee.displayName}
-                                            alternateText={assignee.subtitle}
-                                            onPress={() => Navigation.navigate(ROUTES.getTaskReportAssigneeRoute(props.report.reportID))}
-                                            label="common.to"
-                                            isNewTask={false}
-                                        />
-                                    </View>
-                                ) : (
+                                {props.report.managerEmail && (
                                     <>
-                                        <Pressable onPress={() => Navigation.navigate(ROUTES.getTaskReportAssigneeRoute(props.report.reportID))} />
+                                        <Avatar
+                                            source={assigneeAvatar}
+                                            type={CONST.ICON_TYPE_AVATAR}
+                                            name={assigneeName}
+                                            size={CONST.AVATAR_SIZE.HEADER}
+                                        />
+                                        <View style={[styles.flexColumn, styles.ml3]}>
+                                            <Text
+                                                style={[styles.headerText, styles.pre]}
+                                                numberOfLines={1}
+                                            >
+                                                {assigneeName}
+                                            </Text>
+                                        </View>
                                     </>
                                 )}
                             </View>
-                        </TouchableWithoutFeedback>
-                        <View style={[styles.flexRow]}>
-                            {isCompleted ? (
-                                <>
-                                    <Text>{props.translate('task.completed')}</Text>
-                                    <View style={styles.moneyRequestHeaderCheckmark}>
-                                        <Icon
-                                            src={Expensicons.Checkmark}
-                                            fill={themeColors.iconSuccessFill}
-                                        />
-                                    </View>
-                                </>
-                            ) : (
-                                <Button
-                                    success
-                                    medium
-                                    text={props.translate('newTaskPage.markAsDone')}
-                                    onPress={() => TaskUtils.completeTask(props.report.reportID, parentReportID, title)}
-                                />
-                            )}
+                            <View style={[styles.flexRow]}>
+                                {isCompleted ? (
+                                    <>
+                                        <Text>{props.translate('task.completed')}</Text>
+                                        <View style={styles.moneyRequestHeaderCheckmark}>
+                                            <Icon
+                                                src={Expensicons.Checkmark}
+                                                fill={themeColors.iconSuccessFill}
+                                            />
+                                        </View>
+                                    </>
+                                ) : (
+                                    <Button
+                                        success
+                                        medium
+                                        text={props.translate('newTaskPage.markAsDone')}
+                                        onPress={() => TaskUtils.completeTask(props.report.reportID, parentReportID, title)}
+                                    />
+                                )}
+                            </View>
                         </View>
-                    </View>
+                    </TouchableOpacity>
                 </View>
             </View>
             <MenuItemWithTopDescription
