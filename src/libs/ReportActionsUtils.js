@@ -62,6 +62,19 @@ function getParentReportAction(report) {
 }
 
 /**
+ * Returns whether the thread is a transaction thread, which is any thread with IOU parent
+ * report action of type create.
+ *
+ * @param {Object} parentReportAction
+ * @returns {Boolean}
+ */
+function isTransactionThread(parentReportAction) {
+    return (
+        parentReportAction && parentReportAction.actionName === CONST.REPORT.ACTIONS.TYPE.IOU && lodashGet(parentReportAction, 'originalMessage.type') === CONST.IOU.REPORT_ACTION_TYPE.CREATE
+    );
+}
+
+/**
  * Sort an array of reportActions by their created timestamp first, and reportActionID second
  * This gives us a stable order even in the case of multiple reportActions created on the same millisecond
  *
@@ -331,4 +344,5 @@ export {
     getLinkedTransactionID,
     isCreatedTaskReportAction,
     getParentReportAction,
+    isTransactionThread,
 };
