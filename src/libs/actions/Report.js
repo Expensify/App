@@ -1520,15 +1520,24 @@ function removeEmojiReaction(reportID, reportActionID, emoji, existingReactions)
         updatedReactionObject = null;
     }
 
-    const optimisticData = [
-        {
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS_REACTIONS}${reportID}${reportActionID}`,
-            value: {
-                [emoji.name]: updatedReactionObject,
-            },
-        },
-    ];
+    // If the reaction object is being removed, then Onxy.set() must be used because there is no other way to set the value of a key to {}
+    const optimisticData = updatedReactionObject
+        ? [
+              {
+                  onyxMethod: Onyx.METHOD.MERGE,
+                  key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS_REACTIONS}${reportID}${reportActionID}`,
+                  value: {
+                      [emoji.name]: updatedReactionObject,
+                  },
+              },
+          ]
+        : [
+              {
+                  onyxMethod: Onyx.METHOD.SET,
+                  key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS_REACTIONS}${reportID}${reportActionID}`,
+                  value: null,
+              },
+          ];
 
     const parameters = {
         reportID,
@@ -1549,21 +1558,18 @@ function removeEmojiReaction(reportID, reportActionID, emoji, existingReactions)
  * @param {Number} [paramSkinTone]
  */
 function toggleEmojiReaction(reportID, reportAction, emoji, existingReactions, paramSkinTone = preferredSkinTone) {
-    console.log('TIM toggleEmojiReaction(0)');
     // This will get cleaned up as part of https://github.com/Expensify/App/issues/16506 once the old emoji
     // format is no longer being used
     const reactionObject = lodashGet(existingReactions, [emoji.name]);
-    // console.log('TIM toggleEmojiReaction', emoji.name, existingReactions, reactionObject);
 
     // Only use skin tone if emoji supports it
     const skinTone = emoji.types === undefined ? 'nothing' : paramSkinTone;
 
     if (reactionObject && hasAccountIDEmojiReacted(currentUserAccountID, reactionObject.users, skinTone)) {
-        // console.log('TIM removing emoji reaction', existingReactions);
         removeEmojiReaction(reportID, reportAction.reportActionID, emoji, existingReactions);
         return;
     }
-    // console.log('TIM adding emoji reaction');
+
     addEmojiReaction(reportID, reportAction.reportActionID, emoji, skinTone);
 }
 
