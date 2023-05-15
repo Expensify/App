@@ -1,3 +1,33 @@
+diff --git a/node_modules/@react-navigation/stack/src/views/Stack/CardContainer.tsx b/node_modules/@react-navigation/stack/src/views/Stack/CardContainer.tsx
+index 1e9ee0e..d85c7b4 100644
+--- a/node_modules/@react-navigation/stack/src/views/Stack/CardContainer.tsx
++++ b/node_modules/@react-navigation/stack/src/views/Stack/CardContainer.tsx
+@@ -105,14 +105,14 @@ function CardContainer({
+   const handleOpen = () => {
+     const { route } = scene.descriptor;
+ 
+-    onTransitionEnd({ route }, false);
++    onTransitionEnd({ route }, false, scene.descriptor.navigation.getState());
+     onOpenRoute({ route });
+   };
+ 
+   const handleClose = () => {
+     const { route } = scene.descriptor;
+ 
+-    onTransitionEnd({ route }, true);
++    onTransitionEnd({ route }, true, scene.descriptor.navigation.getState());
+     onCloseRoute({ route });
+   };
+ 
+@@ -120,7 +120,7 @@ function CardContainer({
+     const { route } = scene.descriptor;
+ 
+     onPageChangeStart();
+-    onGestureStart({ route });
++    onGestureStart({ route }, scene.descriptor.navigation.getState());
+   };
+ 
+   const handleGestureCanceled = () => {
 diff --git a/node_modules/@react-navigation/stack/src/views/Stack/StackView.tsx b/node_modules/@react-navigation/stack/src/views/Stack/StackView.tsx
 index 6bbce10..5139382 100644
 --- a/node_modules/@react-navigation/stack/src/views/Stack/StackView.tsx
