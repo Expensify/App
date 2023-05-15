@@ -93,7 +93,7 @@ const HeaderView = (props) => {
         if (props.report.stateNum === CONST.REPORT.STATE_NUM.OPEN && props.report.statusNum === CONST.REPORT.STATUS.OPEN) {
             threeDotMenuItems.push({
                 icon: Expensicons.Checkmark,
-                text: props.translate('newTaskPage.markAsComplete'),
+                text: props.translate('newTaskPage.markAsDone'),
 
                 // Implementing in https://github.com/Expensify/App/issues/16858
                 onSelected: () => {},
@@ -127,7 +127,7 @@ const HeaderView = (props) => {
     const brickRoadIndicator = ReportUtils.hasReportNameError(props.report) ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : '';
     return (
         <View
-            style={[styles.appContentHeader]}
+            style={[styles.appContentHeader, isTaskReport && {backgroundColor: themeColors.highlightBG, borderBottomWidth: 0}]}
             nativeID="drag-area"
         >
             <View style={[styles.appContentHeaderTitle, !props.isSmallScreenWidth && styles.pl5]}>
