@@ -1176,6 +1176,13 @@ const styles = {
         justifyContent: 'center',
     },
 
+    threadRepliesTextContainer: {
+        width: 100,
+        textOverflow: 'ellipsis',
+        overflow: 'hidden',
+        ...whiteSpace.noWrap,
+    },
+
     sidebarFooterUsername: {
         color: themeColors.heading,
         fontSize: variables.fontSizeLabel,

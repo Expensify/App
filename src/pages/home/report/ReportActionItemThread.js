@@ -38,7 +38,7 @@ const ReportActionItemThread = (props) => {
     const numberReplies = props.numberOfReplies > 99 ? '99+' : `${props.numberOfReplies}`;
     const replyText = props.numberOfReplies === 1 ? props.translate('threads.reply') : props.translate('threads.replies');
 
-    const timeStamp = props.isSmallScreenWidth ? props.datetimeToCalendarTimeShort(props.mostRecentReply) : props.datetimeToCalendarTime(props.mostRecentReply);
+    const timeStamp = props.datetimeToCalendarTime(props.mostRecentReply);
 
     return (
         <View style={[styles.chatItemMessage]}>
@@ -66,7 +66,7 @@ const ReportActionItemThread = (props) => {
                         </Text>
                         <Text
                             selectable={false}
-                            style={[styles.ml2, styles.textMicroSupporting]}
+                            style={[styles.ml2, styles.textMicroSupporting, styles.threadRepliesTextContainer]}
                         >{`${props.translate('threads.lastReply')} ${timeStamp}`}</Text>
                     </View>
                 </View>

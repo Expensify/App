@@ -120,15 +120,6 @@ class LocaleContextProvider extends React.Component {
     }
 
     /**
-     * @param {String} datetime - ISO-formatted datetime string
-     * @param {Boolean} [includeTimezone]
-     * @returns {String}
-     */
-    datetimeToCalendarTimeShort(datetime, includeTimezone) {
-        return DateUtils.datetimeToCalendarTimeShort(this.props.preferredLocale, datetime, includeTimezone, lodashGet(this.props, 'currentUserPersonalDetails.timezone.selected'));
-    }
-
-    /**
      * @param {String} phoneNumber
      * @returns {String}
      */
