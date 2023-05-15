@@ -8,6 +8,7 @@ import * as Report from '../../../../libs/actions/Report';
 import * as Download from '../../../../libs/actions/Download';
 import Clipboard from '../../../../libs/Clipboard';
 import * as ReportUtils from '../../../../libs/ReportUtils';
+import * as ReportActionUtils from '../../../../libs/ReportActionsUtils';
 import ReportActionComposeFocusManager from '../../../../libs/ReportActionComposeFocusManager';
 import {hideContextMenu, showDeleteModal} from './ReportActionContextMenu';
 import CONST from '../../../../CONST';
@@ -105,6 +106,24 @@ export default [
         getDescription: () => {},
     },
     {
+        textTranslateKey: 'reportActionContextMenu.replyInThread',
+        icon: Expensicons.ChatBubble,
+        successTextTranslateKey: '',
+        successIcon: null,
+        shouldShow: (type, reportAction, isArchivedRoom, betas, anchor, isChronosReport, reportID) =>
+            Permissions.canUseThreads(betas) &&
+            type === CONTEXT_MENU_TYPES.REPORT_ACTION &&
+            reportAction.actionName === CONST.REPORT.ACTIONS.TYPE.ADDCOMMENT &&
+            !ReportUtils.isThreadFirstChat(reportAction, reportID),
+        onPress: (closePopover, {reportAction, reportID}) => {
+            Report.navigateToAndOpenChildReport(lodashGet(reportAction, 'childReportID', '0'), reportAction, reportID);
+            if (closePopover) {
+                hideContextMenu(true, ReportActionComposeFocusManager.focus);
+            }
+        },
+        getDescription: () => {},
+    },
+    {
         textTranslateKey: 'reportActionContextMenu.copyURLToClipboard',
         icon: Expensicons.Copy,
         successTextTranslateKey: 'reportActionContextMenu.copied',
@@ -136,6 +155,7 @@ export default [
         shouldShow: (type, reportAction) =>
             type === CONTEXT_MENU_TYPES.REPORT_ACTION &&
             reportAction.actionName !== CONST.REPORT.ACTIONS.TYPE.IOU &&
+            !ReportActionUtils.isCreatedTaskReportAction(reportAction) &&
             !ReportUtils.isReportMessageAttachment(_.last(lodashGet(reportAction, ['message'], [{}]))),
 
         // If return value is true, we switch the `text` and `icon` on
@@ -226,6 +246,7 @@ export default [
         textTranslateKey: 'reportActionContextMenu.deleteComment',
         icon: Expensicons.Trashcan,
         shouldShow: (type, reportAction, isArchivedRoom, betas, menuTarget, isChronosReport) =>
+            // Until deleting parent threads is supported in FE, we will prevent the user from deleting a thread parent
             type === CONTEXT_MENU_TYPES.REPORT_ACTION && ReportUtils.canDeleteReportAction(reportAction) && !isArchivedRoom && !isChronosReport,
         onPress: (closePopover, {reportID, reportAction}) => {
             if (closePopover) {
