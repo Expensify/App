@@ -408,6 +408,7 @@ const CONST = {
                 CLOSED: 'CLOSED',
                 CREATED: 'CREATED',
                 TASKEDITED: 'TASKEDITED',
+                TASKCANCELED: 'TASKCANCELED',
                 IOU: 'IOU',
                 RENAMED: 'RENAMED',
                 CHRONOSOOOLIST: 'CHRONOSOOOLIST',
@@ -465,9 +466,6 @@ const CONST = {
                     UPDATE_TAG_NAME: 'POLICYCHANGELOG_UPDATE_TAG_NAME',
                     UPDATE_TIME_ENABLED: 'POLICYCHANGELOG_UPDATE_TIME_ENABLED',
                     UPDATE_TIME_RATE: 'POLICYCHANGELOG_UPDATE_TIME_RATE',
-                },
-                TASK: {
-                    CANCEL: 'TASK_CANCEL',
                 },
             },
         },

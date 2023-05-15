@@ -2038,7 +2038,7 @@ function getWhisperDisplayNames(participants) {
 function buildOptimisticCancelTaskReportAction(taskReportID) {
     return {
         taskReportID,
-        actionName: CONST.REPORT.ACTIONS.TYPE.TASK.CANCEL,
+        actionName: CONST.REPORT.ACTIONS.TYPE.TASKCANCELED,
         actorAccountID: currentUserAccountID,
         actorEmail: currentUserEmail,
         automatic: false,
