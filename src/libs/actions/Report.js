@@ -1577,6 +1577,7 @@ function openReportFromDeepLink(url) {
 }
 
 /**
+ * Leave a report by setting the state to submitted and closed
  *
  * @param {String} reportID
  */
