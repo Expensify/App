@@ -41,7 +41,7 @@ import EmojiPicker from '../../components/EmojiPicker/EmojiPicker';
 import * as EmojiPickerAction from '../../libs/actions/EmojiPickerAction';
 import TaskHeaderView from './TaskHeaderView';
 import MoneyRequestHeader from '../../components/MoneyRequestHeader';
-import withNavigation from '../../components/withNavigation';
+import withNavigation, {withNavigationPropTypes} from '../../components/withNavigation';
 
 const propTypes = {
     /** Navigation route context info provided by react navigation */

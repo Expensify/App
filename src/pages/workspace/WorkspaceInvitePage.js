@@ -175,12 +175,9 @@ class WorkspaceInvitePage extends React.Component {
         Link.openExternalLink(CONST.PRIVACY_URL);
     }
 
-    clearErrors(closeModal = false) {
+    clearErrors() {
         Policy.setWorkspaceErrors(this.props.route.params.policyID, {});
         Policy.hideWorkspaceAlertMessage(this.props.route.params.policyID);
-        if (closeModal) {
-            Navigation.dismissModal();
-        }
     }
 
     /**
@@ -265,7 +262,7 @@ class WorkspaceInvitePage extends React.Component {
                                 shouldShowGetAssistanceButton
                                 guidesCallTaskID={CONST.GUIDES_CALL_TASK_IDS.WORKSPACE_MEMBERS}
                                 onBackButtonPress={() => {
-                                    this.clearErrors(true);
+                                    this.clearErrors();
                                     Navigation.goBack(ROUTES.getWorkspaceMembersRoute(this.props.route.params.policyID));
                                 }}
                             />

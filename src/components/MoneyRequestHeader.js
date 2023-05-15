@@ -2,7 +2,7 @@ import React from 'react';
 import {View} from 'react-native';
 import PropTypes from 'prop-types';
 import lodashGet from 'lodash/get';
-import HeaderWithCloseButton from './HeaderWithCloseButton';
+import HeaderWithBackButton from './HeaderWithBackButton';
 import iouReportPropTypes from '../pages/iouReportPropTypes';
 import withLocalize, {withLocalizePropTypes} from './withLocalize';
 import * as ReportUtils from '../libs/ReportUtils';
@@ -55,7 +55,7 @@ const MoneyRequestHeader = (props) => {
         : ReportUtils.getAvatar(lodashGet(props.personalDetails, [props.report.managerEmail, 'avatar']), props.report.managerEmail);
     return (
         <View style={[{backgroundColor: themeColors.highlightBG}, styles.pl0]}>
-            <HeaderWithCloseButton
+            <HeaderWithBackButton
                 shouldShowAvatarWithDisplay
                 shouldShowThreeDotsButton={!isSettled}
                 threeDotsMenuItems={[
@@ -69,9 +69,7 @@ const MoneyRequestHeader = (props) => {
                 report={props.report}
                 policies={props.policies}
                 personalDetails={props.personalDetails}
-                shouldShowCloseButton={false}
-                shouldShowBackButton={props.isSmallScreenWidth}
-                onBackButtonPress={() => Navigation.navigate(ROUTES.HOME)}
+                onBackButtonPress={() => Navigation.goBack(ROUTES.HOME)}
             />
             <View style={[styles.ph5, styles.pb5]}>
                 <Text style={[styles.textLabelSupporting, styles.lh16]}>{props.translate('common.to')}</Text>

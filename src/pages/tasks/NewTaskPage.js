@@ -5,7 +5,7 @@ import PropTypes from 'prop-types';
 import lodashGet from 'lodash/get';
 import withLocalize, {withLocalizePropTypes} from '../../components/withLocalize';
 import compose from '../../libs/compose';
-import HeaderWithCloseButton from '../../components/HeaderWithCloseButton';
+import HeaderWithBackButton from '../../components/HeaderWithBackButton';
 import Navigation from '../../libs/Navigation/Navigation';
 import ScreenWrapper from '../../components/ScreenWrapper';
 import styles from '../../styles/styles';
@@ -151,10 +151,8 @@ const NewTaskPage = (props) => {
 
     return (
         <ScreenWrapper includeSafeAreaPaddingBottom={false}>
-            <HeaderWithCloseButton
+            <HeaderWithBackButton
                 title={props.translate('newTaskPage.confirmTask')}
-                onCloseButtonPress={() => Navigation.dismissModal()}
-                shouldShowBackButton
                 onBackButtonPress={() => Navigation.goBack()}
             />
             <View style={[styles.mt5, styles.ph5, styles.containerWithSpaceBetween]}>
