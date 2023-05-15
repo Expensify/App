@@ -39,20 +39,20 @@ const DateOfBirthPage = ({translate, route, navigation, privatePersonalDetails})
     const maxDate = moment().subtract(CONST.DATE_BIRTH.MIN_AGE, 'Y').toDate();
 
     /**
-     * Function to be called to read year from params - necessary to read passed year from the Year picker which is a separate screen
-     * It allows to display selected year in the calendar picker without overwriting this value in Onyx
+     * Reads the year from route params. The year should be set on the route when navigating back from the calendar picker
+     * This lets us pass the selected year without having to overwrite the value in Onyx
      */
-    const getYearFromRouteParams = useCallback(() => {
-        const {params} = route;
-        if (params && params.year) {
-            setSelectedYear(params.year);
-        }
-    }, [route]);
-
     useEffect(() => {
+        const getYearFromRouteParams = () => {
+            const {params} = route;
+            if (params && params.year) {
+                setSelectedYear(params.year);
+            }
+        };
+
         navigation.addListener('focus', getYearFromRouteParams);
         return () => navigation.removeListener('focus', getYearFromRouteParams);
-    }, [navigation, getYearFromRouteParams]);
+    }, [navigation, route]);
 
     /**
      * @param {Object} values
