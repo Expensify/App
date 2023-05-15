@@ -218,7 +218,6 @@ class BaseValidateCodeForm extends React.Component {
                             autoComplete={this.props.autoComplete}
                             ref={(el) => (this.inputValidateCode = el)}
                             label={this.props.translate('common.magicCode')}
-                            nativeID="validateCode"
                             name="validateCode"
                             value={this.state.validateCode}
                             onChangeText={(text) => this.onTextInput(text, 'validateCode')}
