@@ -1364,22 +1364,10 @@ function buildOptimisticIOUReportAction(type, amount, currency, comment, partici
     };
 }
 
-function buildOptimisticTaskReportAction(taskReportID, actionName, taskTitle = '') {
-    let message = '';
-    switch (actionName) {
-        case CONST.REPORT.ACTIONS.TYPE.TASKCOMPLETED:
-            message = `Completed the task: ${taskTitle}`;
-            break;
-
-        default:
-            console.debug('Unknown actionName: ', actionName);
-            break;
-    }
-
+function buildOptimisticTaskReportAction(taskReportID, actionName, message = '') {
     const originalMessage = {
         taskReportID,
         type: actionName,
-        html: getParsedComment(message),
         text: message,
     };
 
@@ -1393,10 +1381,9 @@ function buildOptimisticTaskReportAction(taskReportID, actionName, taskTitle = '
         originalMessage,
         message: [
             {
-                html: getParsedComment(message),
                 text: message,
                 taskReportID,
-                type: CONST.REPORT.MESSAGE.TYPE.COMMENT,
+                type: CONST.REPORT.MESSAGE.TYPE.TEXT,
             },
         ],
         person: [
@@ -1409,6 +1396,7 @@ function buildOptimisticTaskReportAction(taskReportID, actionName, taskTitle = '
         reportActionID: NumberUtils.rand64(),
         shouldShow: true,
         created: DateUtils.getDBTime(),
+        isFirstItem: false,
         pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
     };
 }

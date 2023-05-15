@@ -153,7 +153,9 @@ function createTaskAndNavigate(currentUserEmail, parentReportID, title, descript
 }
 
 function completeTask(taskReportID, parentReportID, taskTitle) {
-    const completedTaskReportAction = ReportUtils.buildOptimisticTaskReportAction(taskReportID, CONST.REPORT.ACTIONS.TYPE.TASKCOMPLETED, taskTitle);
+    const message = `Completed task: ${taskTitle}`;
+    const completedTaskReportAction = ReportUtils.buildOptimisticTaskReportAction(taskReportID, CONST.REPORT.ACTIONS.TYPE.TASKCOMPLETED, message);
+
     const optimisticData = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
@@ -161,6 +163,15 @@ function completeTask(taskReportID, parentReportID, taskTitle) {
             value: {
                 stateNum: CONST.REPORT.STATE_NUM.SUBMITTED,
                 statusNum: CONST.REPORT.STATUS.APPROVED,
+            },
+        },
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT}${parentReportID}`,
+            value: {
+                lastVisibleActionCreated: completedTaskReportAction.created,
+                lastMessageText: message,
+                lastActorEmail: completedTaskReportAction.actorEmail,
             },
         },
         {
