@@ -9,6 +9,8 @@ import FormHelpMessage from './FormHelpMessage';
 import variables from '../styles/variables';
 import * as Pressables from './Pressable';
 
+const PressableWithFeedback = Pressables.PressableWithFeedback;
+
 const requiredPropsCheck = (props) => {
     if (!props.label && !props.LabelComponent) {
         return new Error('One of "label" or "LabelComponent" must be provided');
@@ -86,8 +88,6 @@ class CheckboxWithLabel extends React.Component {
         this.LabelComponent = props.LabelComponent;
 
         this.toggleCheckbox = this.toggleCheckbox.bind(this);
-
-        this.PressableComponent = Pressables.PressableWithFeedback;
     }
 
     toggleCheckbox() {
@@ -106,7 +106,7 @@ class CheckboxWithLabel extends React.Component {
                         hasError={Boolean(this.props.errorText)}
                         forwardedRef={this.props.forwardedRef}
                     />
-                    <this.PressableComponent
+                    <PressableWithFeedback
                         focusable={false}
                         accessible={false}
                         onPress={this.toggleCheckbox}
@@ -119,7 +119,7 @@ class CheckboxWithLabel extends React.Component {
                     >
                         {this.props.label && <Text style={[styles.ml1]}>{this.props.label}</Text>}
                         {this.LabelComponent && <this.LabelComponent />}
-                    </this.PressableComponent>
+                    </PressableWithFeedback>
                 </View>
                 <FormHelpMessage message={this.props.errorText} />
             </View>
