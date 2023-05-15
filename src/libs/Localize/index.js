@@ -16,18 +16,22 @@ LocaleListener.connect();
 // and if React Native executes this code upon import, then the polyfill will not be available yet and it will barf
 let CONJUNCTION_LIST_FORMATS_FOR_LOCALES;
 function init() {
-    CONJUNCTION_LIST_FORMATS_FOR_LOCALES = _.reduce(CONST.LOCALES, (memo, locale) => {
-        // This is not a supported locale, so we'll use ES_ES instead
-        if (locale === CONST.LOCALES.ES_ES_ONFIDO) {
-            // eslint-disable-next-line no-param-reassign
-            memo[locale] = new Intl.ListFormat(CONST.LOCALES.ES_ES, {style: 'long', type: 'conjunction'});
-            return memo;
-        }
+    CONJUNCTION_LIST_FORMATS_FOR_LOCALES = _.reduce(
+        CONST.LOCALES,
+        (memo, locale) => {
+            // This is not a supported locale, so we'll use ES_ES instead
+            if (locale === CONST.LOCALES.ES_ES_ONFIDO) {
+                // eslint-disable-next-line no-param-reassign
+                memo[locale] = new Intl.ListFormat(CONST.LOCALES.ES_ES, {style: 'long', type: 'conjunction'});
+                return memo;
+            }
 
-        // eslint-disable-next-line no-param-reassign
-        memo[locale] = new Intl.ListFormat(locale, {style: 'long', type: 'conjunction'});
-        return memo;
-    }, {});
+            // eslint-disable-next-line no-param-reassign
+            memo[locale] = new Intl.ListFormat(locale, {style: 'long', type: 'conjunction'});
+            return memo;
+        },
+        {},
+    );
 }
 
 /**
@@ -107,14 +111,7 @@ function arrayToString(anArray) {
  * @return {String}
  */
 function getDevicePreferredLocale() {
-    return lodashGet(
-        RNLocalize.findBestAvailableLanguage([CONST.LOCALES.EN, CONST.LOCALES.ES]), 'languageTag', CONST.LOCALES.DEFAULT,
-    );
+    return lodashGet(RNLocalize.findBestAvailableLanguage([CONST.LOCALES.EN, CONST.LOCALES.ES]), 'languageTag', CONST.LOCALES.DEFAULT);
 }
 
-export {
-    translate,
-    translateLocal,
-    arrayToString,
-    getDevicePreferredLocale,
-};
+export {translate, translateLocal, arrayToString, getDevicePreferredLocale};

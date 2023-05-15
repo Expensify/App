@@ -6,7 +6,7 @@
  */
 export default () => {
     const receivedRedirectURI = window.location.href;
-    const receivedRedirectSearchParams = (new URL(window.location.href)).searchParams;
+    const receivedRedirectSearchParams = new URL(window.location.href).searchParams;
     const oauthStateID = receivedRedirectSearchParams.get('oauth_state_id');
 
     // If no stateID passed in then we are either not in OAuth flow or flow is broken

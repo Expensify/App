@@ -18,7 +18,7 @@ const propTypes = {
     ...withLocalizePropTypes,
 };
 
-const WorkspaceCardNoVBAView = props => (
+const WorkspaceCardNoVBAView = (props) => (
     <Section
         title={props.translate('workspace.card.header')}
         icon={Illustrations.CreditCardsNew}
