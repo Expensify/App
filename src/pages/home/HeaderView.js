@@ -92,7 +92,7 @@ const HeaderView = (props) => {
         if (props.report.stateNum === CONST.REPORT.STATE_NUM.OPEN && props.report.statusNum === CONST.REPORT.STATUS.OPEN) {
             threeDotMenuItems.push({
                 icon: Expensicons.Checkmark,
-                text: props.translate('newTaskPage.markAsComplete'),
+                text: props.translate('newTaskPage.markAsDone'),
 
                 // Implementing in https://github.com/Expensify/App/issues/16858
                 onSelected: () => {},

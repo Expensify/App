@@ -1187,12 +1187,13 @@ export default {
         descriptionOptional: 'Description (optional)',
         shareSomewhere: 'Share somewhere',
         pleaseEnterTaskName: 'Please enter a title',
-        markAsComplete: 'Mark as complete',
+        markAsDone: 'Mark as done',
         markAsIncomplete: 'Mark as incomplete',
         pleaseEnterTaskAssignee: 'Please select an assignee',
         pleaseEnterTaskDestination: 'Please select a share destination',
     },
     task: {
+        completed: 'Completed',
         messages: {
             completed: 'Completed task',
         },

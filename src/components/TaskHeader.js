@@ -1,5 +1,5 @@
-import React from 'react';
-import {View, TouchableWithoutFeedback} from 'react-native';
+import React, {useEffect, useState} from 'react';
+import {View, TouchableWithoutFeedback, Pressable} from 'react-native';
 import PropTypes from 'prop-types';
 import lodashGet from 'lodash/get';
 import {withOnyx} from 'react-native-onyx';
@@ -24,6 +24,7 @@ import * as CurrencyUtils from '../libs/CurrencyUtils';
 import MenuItemWithTopDescription from './MenuItemWithTopDescription';
 import Button from './Button';
 import * as TaskUtils from '../libs/actions/Task';
+import TaskSelectorLink from './TaskSelectorLink';
 
 const propTypes = {
     /** The report currently being looked at */
@@ -43,50 +44,24 @@ const defaultProps = {
 };
 
 function TaskHeader(props) {
-    const formattedAmount = CurrencyUtils.convertToDisplayString(ReportUtils.getMoneyRequestTotal(props.report), props.report.currency);
-    const isSettled = ReportUtils.isSettled(props.report.reportID);
-    console.log('report', props.report);
-    console.log('parentReport', props.parentReport);
+    const [assignee, setAssignee] = useState({});
     const title = ReportUtils.getReportName(props.report);
     const assigneeName = ReportUtils.getDisplayNameForParticipant(props.report.managerEmail);
     const assigneeAvatar = ReportUtils.getAvatar(lodashGet(props.personalDetails, [props.report.managerEmail, 'avatar']), props.report.managerEmail);
     const isCompleted = props.report.stateNum === CONST.REPORT.STATE_NUM.SUBMITTED && props.report.statusNum === CONST.REPORT.STATUS.APPROVED;
     const parentReportID = props.report.parentReportID;
-    const threeDotMenuItems = [];
+    console.log('report prop', props.report);
 
-    if (props.report.stateNum === CONST.REPORT.STATE_NUM.OPEN && props.report.statusNum === CONST.REPORT.STATUS.OPEN) {
-        threeDotMenuItems.push({
-            icon: Expensicons.Checkmark,
-            text: props.translate('newTaskPage.markAsComplete'),
-            onSelected: () => {
-                TaskUtils.completeTask(props.report.reportID, parentReportID, title);
-            },
-        });
-    }
-
-    // Task is marked as completed
-    if (props.report.stateNum === CONST.REPORT.STATE_NUM.SUBMITTED && props.report.statusNum === CONST.REPORT.STATUS.APPROVED) {
-        threeDotMenuItems.push({
-            icon: Expensicons.Checkmark,
-            text: props.translate('newTaskPage.markAsIncomplete'),
-
-            // Implementing in https://github.com/Expensify/App/issues/16858
-            onSelected: () => {},
-        });
-    }
-
-    // Task is not closed
-    if (props.report.stateNum !== CONST.REPORT.STATE_NUM.SUBMITTED && props.report.statusNum !== CONST.REPORT.STATUS.CLOSED) {
-        threeDotMenuItems.push({
-            icon: Expensicons.Trashcan,
-            text: props.translate('common.cancel'),
-
-            // Implementing in https://github.com/Expensify/App/issues/16857
-            onSelected: () => {},
-        });
-    }
-    console.log('assigneeAvatar', assigneeAvatar);
-    console.log('assigneeName', assigneeName);
+    useEffect(() => {
+        TaskUtils.clearOutTaskInfo();
+        TaskUtils.setTaskReport(props.report);
+        if (!props.report.assignee) {
+            return;
+        }
+        const assigneeDetails = lodashGet(props.personalDetails, props.report.assignee);
+        const displayDetails = TaskUtils.getAssignee(assigneeDetails);
+        setAssignee(displayDetails);
+    }, [props]);
 
     return (
         <View style={styles.borderBottom}>
@@ -96,22 +71,20 @@ function TaskHeader(props) {
                     <View style={[styles.flexRow, styles.alignItemsCenter, styles.justifyContentBetween, styles.pv3]}>
                         <TouchableWithoutFeedback onPress={() => Navigation.navigate(ROUTES.getTaskReportAssigneeRoute(props.report.reportID))}>
                             <View style={[styles.flexRow, styles.alignItemsCenter, styles.justifyContentBetween]}>
-                                {assigneeName && (
-                                    <>
-                                        <Avatar
-                                            source={assigneeAvatar}
-                                            type={CONST.ICON_TYPE_AVATAR}
-                                            name={assigneeName}
-                                            size={CONST.AVATAR_SIZE.HEADER}
+                                {props.report.managerEmail ? (
+                                    <View style={[styles.ph3]}>
+                                        <TaskSelectorLink
+                                            icons={assignee.icons}
+                                            text={assignee.displayName}
+                                            alternateText={assignee.subtitle}
+                                            onPress={() => Navigation.navigate(ROUTES.getTaskReportAssigneeRoute(props.report.reportID))}
+                                            label="common.to"
+                                            isNewTask={false}
                                         />
-                                        <View style={[styles.flexColumn, styles.ml3]}>
-                                            <Text
-                                                style={[styles.headerText, styles.pre]}
-                                                numberOfLines={1}
-                                            >
-                                                {assigneeName}
-                                            </Text>
-                                        </View>
+                                    </View>
+                                ) : (
+                                    <>
+                                        <Pressable onPress={() => Navigation.navigate(ROUTES.getTaskReportAssigneeRoute(props.report.reportID))} />
                                     </>
                                 )}
                             </View>
@@ -119,7 +92,7 @@ function TaskHeader(props) {
                         <View style={[styles.flexRow]}>
                             {isCompleted ? (
                                 <>
-                                    <Text>Completed</Text>
+                                    <Text>{props.translate('task.completed')}</Text>
                                     <View style={styles.moneyRequestHeaderCheckmark}>
                                         <Icon
                                             src={Expensicons.Checkmark}
@@ -131,7 +104,7 @@ function TaskHeader(props) {
                                 <Button
                                     success
                                     medium
-                                    text="Mark as Done"
+                                    text={props.translate('newTaskPage.markAsDone')}
                                     onPress={() => TaskUtils.completeTask(props.report.reportID, parentReportID, title)}
                                 />
                             )}

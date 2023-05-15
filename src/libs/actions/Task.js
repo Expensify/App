@@ -439,6 +439,7 @@ export {
     setAssigneeValue,
     setShareDestinationValue,
     clearOutTaskInfo,
+    completeTask,
     clearOutTaskInfoAndNavigate,
     getAssignee,
     getShareDestination,
