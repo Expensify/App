@@ -36,10 +36,7 @@ const MentionUserRenderer = (props) => {
 
     return (
         <Text>
-            <Tooltip
-                absolute
-                text={loginWhithoutLeadingAt}
-            >
+            <Tooltip text={loginWhithoutLeadingAt}>
                 <Text
                     // eslint-disable-next-line react/jsx-props-no-spreading
                     {...defaultRendererProps}
