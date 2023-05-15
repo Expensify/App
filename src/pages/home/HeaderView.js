@@ -103,9 +103,7 @@ const HeaderView = (props) => {
             threeDotMenuItems.push({
                 icon: Expensicons.Checkmark,
                 text: props.translate('newTaskPage.markAsIncomplete'),
-
-                // Implementing in https://github.com/Expensify/App/issues/16858
-                onSelected: () => {},
+                onSelected: () => TaskUtils.reopenTask(props.report.reportID, props.report.parentReportID, title),
             });
         }
 
