@@ -643,11 +643,19 @@ describe('actions/Report', () => {
         };
 
         let reportActions;
-
         Onyx.connect({
             key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${REPORT_ID}`,
             callback: (val) => (reportActions = val),
         });
+        const reportActionsReactions = {};
+        Onyx.connect({
+            key: ONYXKEYS.COLLECTION.REPORT_ACTIONS_REACTIONS,
+            callback: (val, key) => {
+                reportActionsReactions[key] = val;
+            },
+        });
+        let reportAction;
+        let reportActionID;
 
         // Set up Onyx with some test user data
         return TestHelper.signInWithTestUser(TEST_USER_ACCOUNT_ID, TEST_USER_LOGIN)
@@ -663,26 +671,24 @@ describe('actions/Report', () => {
                 return waitForPromisesToResolve();
             })
             .then(() => {
-                const resultAction = _.first(_.values(reportActions));
+                reportAction = _.first(_.values(reportActions));
+                reportActionID = reportAction.reportActionID;
 
                 // Add a reaction to the comment
-                Report.toggleEmojiReaction(REPORT_ID, resultAction, EMOJI);
+                Report.toggleEmojiReaction(REPORT_ID, reportAction, EMOJI);
                 return waitForPromisesToResolve();
             })
             .then(() => {
-                const resultAction = _.first(_.values(reportActions));
-
-                // Now we toggle the reaction while the skin tone has changed.
-                // As the emoji doesn't support skin tones, the emoji
-                // should get removed instead of added again.
-                Report.toggleEmojiReaction(REPORT_ID, resultAction, EMOJI, 2);
+                // Now we toggle the reaction while the skin tone has changed. Since the emoji doesn't support skin tones, the emoji should get removed instead of added again.
+                const reportActionReaction = reportActionsReactions[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS_REACTIONS}${REPORT_ID}${reportActionID}`];
+                Report.toggleEmojiReaction(REPORT_ID, reportAction, EMOJI, reportActionReaction, 2);
                 return waitForPromisesToResolve();
             })
             .then(() => {
-                const resultAction = _.first(_.values(reportActions));
-
-                // Expect to have the reaction on the message
-                expect(resultAction.message[0].reactions).toHaveLength(0);
+                // Expect the reaction to no longer exist
+                expect(reportActionsReactions).toHaveProperty(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS_REACTIONS}${REPORT_ID}${reportActionID}`);
+                const reportActionReaction = reportActionsReactions[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS_REACTIONS}${REPORT_ID}${reportActionID}`];
+                expect(reportActionReaction).toBeNull();
             });
     });
 });
