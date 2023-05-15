@@ -8,6 +8,8 @@ import * as API from '../API';
 import ONYXKEYS from '../../ONYXKEYS';
 import CONST from '../../CONST';
 import * as Localize from '../Localize';
+import Navigation from '../Navigation/Navigation';
+import ROUTES from '../../ROUTES';
 import * as OptionsListUtils from '../OptionsListUtils';
 import DateUtils from '../DateUtils';
 import * as ReportUtils from '../ReportUtils';
@@ -865,9 +867,11 @@ function generatePolicyID() {
  * @param {String} [ownerEmail] Optional, the email of the account to make the owner of the policy
  * @param {Boolean} [makeMeAdmin] Optional, leave the calling account as an admin on the policy
  * @param {String} [policyName] Optional, custom policy name we will use for created workspace
- * @param {String} [policyID] Optional, custom policy id we will use for created workspace
+ * @param {Boolean} [transitionFromOldDot] Optional, if the user is transitioning from old dot
+ * @returns {Promise}
  */
-function createWorkspace(ownerEmail = '', makeMeAdmin = false, policyName = '', policyID = generatePolicyID()) {
+function createWorkspace(ownerEmail = '', makeMeAdmin = false, policyName = '', transitionFromOldDot = false) {
+    const policyID = generatePolicyID();
     const workspaceName = policyName || generateDefaultWorkspaceName(ownerEmail);
 
     const {
@@ -1074,6 +1078,13 @@ function createWorkspace(ownerEmail = '', makeMeAdmin = false, policyName = '', 
             ],
         },
     );
+
+    return Navigation.isNavigationReady().then(() => {
+        if (transitionFromOldDot) {
+            Navigation.dismissModal(); // Dismiss /transition route for OldDot to NewDot transitions
+        }
+        Navigation.navigate(ROUTES.getWorkspaceInitialRoute(policyID));
+    });
 }
 
 /**

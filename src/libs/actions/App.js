@@ -232,27 +232,6 @@ function endSignOnTransition() {
 }
 
 /**
- * Create a new workspace and navigate to it
- *
- * @param {String} [ownerEmail] Optional, the email of the account to make the owner of the policy
- * @param {Boolean} [makeMeAdmin] Optional, leave the calling account as an admin on the policy
- * @param {String} [policyName] Optional, custom policy name we will use for created workspace
- * @param {Boolean} [transitionFromOldDot] Optional, if the user is transitioning from old dot
- */
-function createWorkspaceAndNavigateToIt(ownerEmail = '', makeMeAdmin = false, policyName = '', transitionFromOldDot = false) {
-    const policyID = Policy.generatePolicyID();
-    Policy.createWorkspace(ownerEmail, makeMeAdmin, policyName, policyID);
-    Navigation.isNavigationReady()
-        .then(() => {
-            if (transitionFromOldDot) {
-                Navigation.dismissModal(); // Dismiss /transition route for OldDot to NewDot transitions
-            }
-            Navigation.navigate(ROUTES.getWorkspaceInitialRoute(policyID));
-        })
-        .then(endSignOnTransition);
-}
-
-/**
  * This action runs when the Navigator is ready and the current route changes
  *
  * currentPath should be the path as reported by the NavigationContainer
@@ -296,7 +275,7 @@ function setUpPoliciesAndNavigate(session) {
 
     const shouldCreateFreePolicy = !isLoggingInAsNewUser && isTransitioning && exitTo === ROUTES.WORKSPACE_NEW;
     if (shouldCreateFreePolicy) {
-        createWorkspaceAndNavigateToIt(ownerEmail, makeMeAdmin, policyName, true);
+        Policy.createWorkspace(ownerEmail, makeMeAdmin, policyName, true).then(endSignOnTransition);
         return;
     }
     if (!isLoggingInAsNewUser && exitTo) {
@@ -385,7 +364,6 @@ export {
     openApp,
     reconnectApp,
     confirmReadyToOpenApp,
-    createWorkspaceAndNavigateToIt,
     beginDeepLinkRedirect,
     beginDeepLinkRedirectAfterTransition,
 };
