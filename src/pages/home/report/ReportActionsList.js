@@ -8,6 +8,7 @@ import compose from '../../../libs/compose';
 import * as ReportScrollManager from '../../../libs/ReportScrollManager';
 import styles from '../../../styles/styles';
 import * as ReportUtils from '../../../libs/ReportUtils';
+import * as Report from '../../../libs/actions/Report';
 import withWindowDimensions, {windowDimensionsPropTypes} from '../../../components/withWindowDimensions';
 import {withNetwork, withPersonalDetails} from '../../../components/OnyxProvider';
 import ReportActionItem from './ReportActionItem';
@@ -80,9 +81,13 @@ function isUnreadMsg(message, lastRead) {
     return message && lastRead && message.created && lastRead < message.created;
 }
 
-const ReportActionsList = (props) => {
+function ReportActionsList(props) {
     const opacity = useSharedValue(0);
     const currentUnreadMarker = useRef(null);
+    const report = props.report;
+    const lastReadTimeRef = useRef(report.lastReadTime);
+    const sortedReportActions = props.sortedReportActions;
+    const [reportActionSize, setReportActionSize] = useState(sortedReportActions.lenght);
     const animatedStyles = useAnimatedStyle(() => ({
         opacity: withTiming(opacity.value, {duration: 100}),
     }));
@@ -92,6 +97,31 @@ const ReportActionsList = (props) => {
     const [skeletonViewHeight, setSkeletonViewHeight] = useState(0);
 
     const windowHeight = props.windowHeight;
+
+    useEffect(() => {
+        if (currentUnreadMarker.current) {
+            return;
+        }
+
+        if (reportActionSize === sortedReportActions.length) {
+            return;
+        }
+
+        setReportActionSize(sortedReportActions.length);
+        Report.readNewestAction(report.reportID);
+        currentUnreadMarker.current = null;
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [sortedReportActions.length, report.reportID]);
+
+    useEffect(() => {
+        if (lastReadTimeRef.current === report.lastReadTime && !ReportUtils.isUnread(report)) {
+            return;
+        }
+
+        lastReadTimeRef.current = report.lastReadTime;
+        currentUnreadMarker.current = null;
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [report.lastReadTime]);
 
     /**
      * Calculates the ideal number of report actions to render in the first render, based on the screen height and on
@@ -104,9 +134,8 @@ const ReportActionsList = (props) => {
         return Math.ceil(availableHeight / minimumReportActionHeight);
     }, [windowHeight]);
 
-    const report = props.report;
     const hasOutstandingIOU = props.report.hasOutstandingIOU;
-    const sortedReportActions = props.sortedReportActions;
+
     const mostRecentIOUReportActionID = props.mostRecentIOUReportActionID;
 
     /**
@@ -116,40 +145,18 @@ const ReportActionsList = (props) => {
      */
     const renderItem = useCallback(
         ({item: reportAction, index}) => {
-            // When the new indicator should not be displayed we explicitly set it to null
-            // const shouldDisplayNewMarker = reportAction.reportActionID === newMarkerReportActionID;
-
-            // console.log('----------Start renderItem----------');
             let shouldDisplayNewMarker = false;
 
-            // console.log('currentUnreadMarker.current', currentUnreadMarker.current);
             if (!currentUnreadMarker.current) {
-                // When the new indicator should not be displayed we explicitly set it to null
                 const nextMessage = sortedReportActions[index + 1];
-
-                // console.log('1) reportAction', reportAction, report.lastReadTime);
-
-                // console.log('nextMessage', nextMessage);
                 const isCurrentMessageUnread = !!isUnreadMsg(reportAction, report.lastReadTime);
-
                 shouldDisplayNewMarker = isCurrentMessageUnread && !isUnreadMsg(nextMessage, report.lastReadTime);
-
-                // console.log('>>>>>>>>>>shouldDisplayNewMarker', shouldDisplayNewMarker);
-
-                // console.log('shouldDisplayNewMarker', shouldDisplayNewMarker);
 
                 if (!currentUnreadMarker.current && shouldDisplayNewMarker) {
                     currentUnreadMarker.current = {id: reportAction.reportActionID, index, created: reportAction.created};
-
-                    // console.log('1) currentUnreadMarker.current', currentUnreadMarker.current);
                 }
             } else {
-                // console.log('2) reportAction', reportAction, report.lastReadTime, currentUnreadMarker.current);
                 shouldDisplayNewMarker = reportAction.reportActionID === currentUnreadMarker.current.id;
-
-                // console.log('>>>>>>>>>>shouldDisplayNewMarker', shouldDisplayNewMarker);
-
-                // console.log('2) currentUnreadMarker.current', currentUnreadMarker.current);
             }
             return (
                 <ReportActionItem
@@ -171,6 +178,7 @@ const ReportActionsList = (props) => {
     // To notify there something changes we can use extraData prop to flatlist
     const extraData = [!props.isDrawerOpen && props.isSmallScreenWidth ? props.newMarkerReportActionID : undefined, ReportUtils.isArchivedRoom(props.report)];
     const shouldShowReportRecipientLocalTime = ReportUtils.canShowReportRecipientLocalTime(props.personalDetails, props.report);
+
     return (
         <Animated.View style={[animatedStyles, styles.flex1]}>
             <InvertedFlatList
@@ -214,7 +222,7 @@ const ReportActionsList = (props) => {
             />
         </Animated.View>
     );
-};
+}
 
 ReportActionsList.propTypes = propTypes;
 ReportActionsList.defaultProps = defaultProps;

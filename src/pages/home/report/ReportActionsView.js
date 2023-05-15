@@ -4,7 +4,6 @@ import _ from 'underscore';
 import lodashGet from 'lodash/get';
 import * as Report from '../../../libs/actions/Report';
 import reportActionPropTypes from './reportActionPropTypes';
-import Visibility from '../../../libs/Visibility';
 import Timing from '../../../libs/actions/Timing';
 import CONST from '../../../CONST';
 import compose from '../../../libs/compose';
@@ -19,7 +18,6 @@ import networkPropTypes from '../../../components/networkPropTypes';
 import ReportActionsList from './ReportActionsList';
 import CopySelectionHelper from '../../../components/CopySelectionHelper';
 import * as ReportActionsUtils from '../../../libs/ReportActionsUtils';
-import * as ReportUtils from '../../../libs/ReportUtils';
 import reportPropTypes from '../../reportPropTypes';
 import * as ReactionList from './ReactionList/ReactionList';
 import PopoverReactionList from './ReactionList/PopoverReactionList';
@@ -56,8 +54,8 @@ class ReportActionsView extends React.Component {
         this.unsubscribeVisibilityListener = null;
         this.hasCachedActions = _.size(props.reportActions) > 0;
 
-        console.log(`~~Monil In constructor`);
-        console.log(this.props.reportActions);
+        // console.log(`~~Monil In constructor`);
+        // console.log(this.props.reportActions);
         this.state = {
             isFloatingMessageCounterVisible: false,
         };
@@ -73,63 +71,10 @@ class ReportActionsView extends React.Component {
     }
 
     componentDidMount() {
-        this.unsubscribeVisibilityListener = Visibility.onVisibilityChange(() => {
-            if (!this.isReportFullyVisible()) {
-                return;
-            }
-
-            // If the app user becomes active and they have no unread actions we clear the new marker to sync their device
-            // e.g. they could have read these messages on another device and only just become active here
-            const hasUnreadActions = ReportUtils.isUnread(this.props.report);
-            if (!hasUnreadActions) {
-                console.log(`~~Monil clearing`);
-                // this.setState({newMarkerReportActionID: ''});
-            }
-        });
-
-        if (this.isReportFullyVisible()) {
-            this.openReportIfNecessary();
-        }
-
-        console.log(`~~Monil not active action`);
-        this.unreadLogic(this.props.reportActions);
-        Report.readNewestAction(this.props.report.reportID);
-    }
-
-    unreadLogic(reportActions, isActiveOnChat = false) {
-        if (!reportActions) {
+        if (!this.isReportFullyVisible()) {
             return;
         }
-        console.log(`~~Monil state ${this.state.newMarkerReportActionID}`);
-        const isNewMarkerReportActionIDSet = !_.isEmpty(this.state.newMarkerReportActionID);
-        if (isNewMarkerReportActionIDSet) {
-            return;
-        }
-        if (isActiveOnChat) {
-            console.log(`~~Monil returning as active`);
-            return;
-        }
-
-        const newActionID = ReportUtils.getNewMarkerReportActionID(this.props.report, reportActions);
-        console.log(`~~Monil newActionID ${newActionID}`);
-
-        // This callback is triggered when a new action arrives via Pusher and the event is emitted from Report.js. This allows us to maintain
-        // a single source of truth for the "new action" event instead of trying to derive that a new action has appeared from looking at props.
-        if (!isNewMarkerReportActionIDSet) {
-            console.log(`~~Monil 11`);
-            this.setState({newMarkerReportActionID: newActionID}, () => {
-                console.log(`~~Monil after setting ${JSON.stringify(this.state)}`);
-            });
-        }
-
-        // If a new comment is added and it's from the current user scroll to the bottom otherwise leave the user positioned where
-        // they are now in the list.
-        // if (isFromCurrentUser) {
-        //     ReportScrollManager.scrollToBottom();
-        //
-        //     // If the current user sends a new message in the chat we clear the new marker since they have "read" the report
-        //     this.setState({newMarkerReportActionID: ''});
-        // }
+        this.openReportIfNecessary();
     }
 
     shouldComponentUpdate(nextProps, nextState) {
@@ -185,7 +130,7 @@ class ReportActionsView extends React.Component {
         return !_.isEqual(lodashGet(this.props.report, 'icons', []), lodashGet(nextProps.report, 'icons', []));
     }
 
-    componentDidUpdate(prevProps, prevState) {
+    componentDidUpdate(prevProps) {
         const isReportFullyVisible = this.isReportFullyVisible();
 
         // When returning from offline to online state we want to trigger a request to OpenReport which
@@ -206,35 +151,10 @@ class ReportActionsView extends React.Component {
         const didScreenSizeIncrease = prevProps.isSmallScreenWidth && !this.props.isSmallScreenWidth;
         const didReportBecomeVisible = isReportFullyVisible && (didSidebarClose || didScreenSizeIncrease);
         if (didReportBecomeVisible) {
-            this.setState({
-                newMarkerReportActionID: ReportUtils.isUnread(this.props.report) ? ReportUtils.getNewMarkerReportActionID(this.props.report, this.props.reportActions) : '',
-            });
+            // this.setState({
+            //     newMarkerReportActionID: ReportUtils.isUnread(this.props.report) ? ReportUtils.getNewMarkerReportActionID(this.props.report, this.props.reportActions) : '',
+            // });
             this.openReportIfNecessary();
-        }
-
-        // If the report is unread, we want to check if the number of actions has decreased. If so, then it seems that one of them was deleted. In this case, if the deleted action was the
-        // one marking the unread point, we need to recalculate which action should be the unread marker.
-        if (ReportUtils.isUnread(this.props.report) && prevProps.reportActions.length > this.props.reportActions.length) {
-            this.setState({
-                newMarkerReportActionID: ReportUtils.getNewMarkerReportActionID(this.props.report, this.props.reportActions),
-            });
-        }
-
-        // When the user navigates to the LHN the ReportActionsView doesn't unmount and just remains hidden.
-        // The next time we navigate to the same report (e.g. by swiping or tapping the LHN row) we want the new marker to clear.
-        const didSidebarOpen = !prevProps.isDrawerOpen && this.props.isDrawerOpen;
-        const didUserNavigateToSidebarAfterReadingReport = didSidebarOpen && !ReportUtils.isUnread(this.props.report);
-        if (didUserNavigateToSidebarAfterReadingReport) {
-            this.setState({newMarkerReportActionID: ''});
-        }
-
-        console.log(`~~Monil component updated prev ${prevProps.report.lastReadTime} now ${this.props.report.lastReadTime}`);
-        // Checks to see if a report comment has been manually "marked as unread". All other times when the lastReadTime
-        // changes it will be because we marked the entire report as read.
-        const didManuallyMarkReportAsUnread = prevProps.report.lastReadTime > this.props.report.lastReadTime && ReportUtils.isUnread(this.props.report);
-        if (didManuallyMarkReportAsUnread) {
-            console.log(`~~Monil marking report as unread?`);
-            this.setState({newMarkerReportActionID: ReportUtils.getNewMarkerReportActionID(this.props.report, this.props.reportActions)});
         }
 
         // Ensures subscription event succeeds when the report/workspace room is created optimistically.
@@ -246,30 +166,6 @@ class ReportActionsView extends React.Component {
             Report.subscribeToReportTypingEvents(this.props.report.reportID);
             this.didSubscribeToReportTypingEvents = true;
         }
-
-        // Check if we receive a new reportAction, either on an active chat or an inactive chat
-        // The find out the reportActions that arrived latest (i.e. we didn't had in our Onyx data)
-        // And the determine if and where to set the newMarker based on those newly received reportActions
-        // Finally ask the server to mark the report as read
-        // console.log(this.props.report.reportID);
-        // console.log(prevProps.report.reportID);
-        // console.log(this.props.reportActions);
-        // console.log(prevProps.reportActions);
-        const wasNewMessageReceived = this.props.reportActions.length > prevProps.reportActions.length;
-        if (wasNewMessageReceived) {
-            const newReportAction = _.filter(this.props.reportActions, (obj) => !_.findWhere(prevProps.reportActions, {reportActionID: obj.reportActionID}));
-            console.log(`~~Monil new message received ${this.props.report.lastMessageText} marker prevState ${JSON.stringify(prevState)}`);
-            this.unreadLogic(newReportAction, true);
-            // if (_.isEmpty(prevState.newMarkerReportActionID)) {
-            //     console.log(`~~Monil setting new marker`);
-            //     this.setState({
-            //         newMarkerReportActionID: ReportUtils.getNewMarkerReportActionID(this.props.report, this.props.reportActions),
-            //     }, () => {
-            //         console.log(`~~Monil's state ${JSON.stringify(this.state)}`);
-            //     });
-            // }
-            Report.readNewestAction(this.props.report.reportID);
-        }
     }
 
     componentWillUnmount() {
@@ -280,7 +176,7 @@ class ReportActionsView extends React.Component {
         if (this.unsubscribeFromNewActionEvent) {
             this.unsubscribeFromNewActionEvent();
         }
-
+        console.log('unsubscribing from report channel: reportID: ', this.props.report.reportID, 'reportName: ', this.props.report.name);
         Report.unsubscribeFromReportChannel(this.props.report.reportID);
     }
 
@@ -294,9 +190,11 @@ class ReportActionsView extends React.Component {
     // If the report is optimistic (AKA not yet created) we don't need to call openReport again
     openReportIfNecessary() {
         if (this.props.report.isOptimisticReport) {
+            console.log('optimistic report');
             return;
         }
 
+        console.log('opening report');
         Report.openReport(this.props.report.reportID);
     }
 
@@ -374,6 +272,7 @@ class ReportActionsView extends React.Component {
         if (!_.size(this.props.reportActions)) {
             return null;
         }
+        // console.log(`REPORT VIEW render - ID(${this.props.report.reportID}):  `, this.props.reportActions);
         return (
             <>
                 <FloatingMessageCounter
