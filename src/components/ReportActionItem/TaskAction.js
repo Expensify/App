@@ -11,7 +11,6 @@ import Text from '../Text';
 import styles from '../../styles/styles';
 import Icon from '../Icon';
 import * as Expensicons from '../Icon/Expensicons';
-import reportActionPropTypes from '../../pages/home/report/reportActionPropTypes';
 import * as StyleUtils from '../../styles/StyleUtils';
 import getButtonState from '../../libs/getButtonState';
 import CONST from '../../CONST';

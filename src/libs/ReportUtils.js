@@ -1149,6 +1149,7 @@ function buildOptimisticAddCommentReportAction(text, file) {
  * @param {String} taskTitle - Title of the task
  * @param {String} taskAssignee - Email of the person assigned to the task
  * @param {String} text - Text of the comment
+ * @param {String} parentReportID - Report ID of the parent report
  * @returns {Object}
  */
 function buildOptimisticTaskCommentReportAction(taskReportID, taskTitle, taskAssignee, text, parentReportID) {
