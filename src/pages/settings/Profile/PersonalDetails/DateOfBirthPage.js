@@ -37,7 +37,6 @@ const DateOfBirthPage = ({translate, route, navigation, privatePersonalDetails})
     const [selectedYear, setSelectedYear] = useState('');
     const minDate = moment().subtract(CONST.DATE_BIRTH.MAX_AGE, 'Y').toDate();
     const maxDate = moment().subtract(CONST.DATE_BIRTH.MIN_AGE, 'Y').toDate();
-    const updateDateOfBirth = (values) => PersonalDetails.updateDateOfBirth(values.dob);
 
     /**
      * Function to be called to read year from params - necessary to read passed year from the Year picker which is a separate screen
@@ -91,7 +90,7 @@ const DateOfBirthPage = ({translate, route, navigation, privatePersonalDetails})
                 style={[styles.flexGrow1, styles.ph5]}
                 formID={ONYXKEYS.FORMS.DATE_OF_BIRTH_FORM}
                 validate={validate}
-                onSubmit={updateDateOfBirth}
+                onSubmit={PersonalDetails.updateDateOfBirth}
                 submitButtonText={translate('common.save')}
                 enabledWhenOffline
             >
