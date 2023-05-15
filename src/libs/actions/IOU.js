@@ -1128,7 +1128,6 @@ function sendMoneyViaPaypal(report, amount, currency, comment, managerEmail, rec
  * @param {Object} chatReport
  * @param {Object} iouReport
  * @param {String} reimbursementBankAccountState
- * @param {String} reimbursementBankAccountState
  */
 function payMoneyRequest(paymentType, chatReport, iouReport, reimbursementBankAccountState) {
     if (

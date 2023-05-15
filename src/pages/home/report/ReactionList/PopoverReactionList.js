@@ -39,7 +39,6 @@ class PopoverReactionList extends React.Component {
         this.showReactionList = this.showReactionList.bind(this);
 
         this.hideReactionList = this.hideReactionList.bind(this);
-        this.measureContent = this.measureContent.bind(this);
         this.measureReactionListPosition = this.measureReactionListPosition.bind(this);
         this.getReactionListMeasuredLocation = this.getReactionListMeasuredLocation.bind(this);
 
@@ -147,26 +146,6 @@ class PopoverReactionList extends React.Component {
         });
     }
 
-    /**
-     * Used to calculate the PopoverReactionList Dimensions
-     *
-     * @returns {JSX}
-     */
-    measureContent() {
-        return (
-            <BaseReactionList
-                type={this.state.type}
-                isVisible
-                users={this.state.users}
-                emojiName={this.state.emojiName}
-                emojiCodes={this.state.emojiCodes}
-                emojiCount={this.state.emojiCount}
-                onClose={this.hideReactionList}
-                hasUserReacted={this.state.hasUserReacted}
-            />
-        );
-    }
-
     render() {
         return (
             <>
@@ -177,7 +156,6 @@ class PopoverReactionList extends React.Component {
                     animationIn="fadeIn"
                     disableAnimation={false}
                     animationOutTiming={1}
-                    measureContent={this.measureContent}
                     shouldSetModalVisibility={false}
                     fullscreen
                 >

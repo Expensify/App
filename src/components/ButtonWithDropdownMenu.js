@@ -8,6 +8,7 @@ import PopoverMenu from './PopoverMenu';
 import Icon from './Icon';
 import * as Expensicons from './Icon/Expensicons';
 import themeColors from '../styles/themes/default';
+import CONST from '../CONST';
 
 const propTypes = {
     /** Text to display for the menu header */
@@ -46,20 +47,19 @@ const ButtonWithDropdownMenu = (props) => {
     const [selectedItemIndex, setSelectedItemIndex] = useState(0);
     const [isMenuVisible, setIsMenuVisible] = useState(false);
     const [popoverAnchorPosition, setPopoverAnchorPosition] = useState(null);
-    const [popoverDimensions, setPopoverDimensions] = useState({});
-    const {width, height} = useWindowDimensions();
+    const {width: windowWidth, height: windowHeight} = useWindowDimensions();
     const caretButton = useRef(null);
     useEffect(() => {
-        if (!caretButton.current || !popoverDimensions.nativeEvent) {
+        if (!caretButton.current) {
             return;
         }
         caretButton.current.measureInWindow((x, y, w) => {
             setPopoverAnchorPosition({
-                left: x - popoverDimensions.nativeEvent.layout.width,
-                top: y + w + 10,
+                horizontal: x + w,
+                vertical: y - 16,
             });
         });
-    }, [width, height, popoverDimensions.nativeEvent]);
+    }, [windowWidth, windowHeight]);
 
     const selectedItem = props.options[selectedItemIndex];
     return (
@@ -104,12 +104,16 @@ const ButtonWithDropdownMenu = (props) => {
                     pressOnEnter
                 />
             )}
-            {props.options.length > 1 && (
+            {props.options.length > 1 && !_.isEmpty(popoverAnchorPosition) && (
                 <PopoverMenu
                     isVisible={isMenuVisible}
                     onClose={() => setIsMenuVisible(false)}
                     onItemSelected={() => setIsMenuVisible(false)}
                     anchorPosition={popoverAnchorPosition}
+                    anchorOrigin={{
+                        horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.RIGHT,
+                        vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.BOTTOM,
+                    }}
                     headerText={props.menuHeaderText}
                     menuItems={_.map(props.options, (item, index) => ({
                         ...item,
@@ -117,7 +121,6 @@ const ButtonWithDropdownMenu = (props) => {
                             setSelectedItemIndex(index);
                         },
                     }))}
-                    onLayout={setPopoverDimensions}
                 />
             )}
         </View>
