@@ -218,7 +218,7 @@ function editTaskAndNavigate(report, ownerEmail, title, description, assignee) {
     // If we make a change to the assignee, we want to add a comment to the assignee's chat
     let optimisticAssigneeAddComment;
     let assigneeChatReportID;
-    if (assignee && assignee !== report.assignee) {
+    if (assignee && assignee !== report.managerEmail) {
         assigneeChatReportID = ReportUtils.getChatByParticipants([assignee]).reportID;
         optimisticAssigneeAddComment = ReportUtils.buildOptimisticTaskCommentReportAction(report.reportID, reportName, assignee, `Assigned a task to you: ${reportName}`);
     }
@@ -235,7 +235,7 @@ function editTaskAndNavigate(report, ownerEmail, title, description, assignee) {
             value: {
                 reportName,
                 description: description || report.description,
-                assignee: assignee || report.assignee,
+                managerEmail: assignee || report.managerEmail,
             },
         },
     ];
