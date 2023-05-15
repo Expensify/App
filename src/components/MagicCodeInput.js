@@ -267,11 +267,7 @@ function MagicCodeInput(props) {
                         key={index}
                         style={[styles.w15]}
                     >
-                        <View style={[
-                            styles.textInputContainer,
-                            focusedIndex === index ? styles.borderColorFocus : {},
-                            props.hasError  || props.errorText ? styles.borderColorDanger : {},
-                        ]}>
+                        <View style={[styles.textInputContainer, focusedIndex === index ? styles.borderColorFocus : {}, props.hasError || props.errorText ? styles.borderColorDanger : {}]}>
                             <Text style={[styles.magicCodeInput, styles.textAlignCenter]}>{decomposeString(props.value)[index] || ''}</Text>
                         </View>
                         <View style={[StyleSheet.absoluteFillObject, styles.w100, styles.opacity0]}>
