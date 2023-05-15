@@ -42,10 +42,7 @@ function updateNativeVersions(version) {
 
 let semanticVersionLevel = core.getInput('SEMVER_LEVEL', {require: true});
 if (!semanticVersionLevel || !_.contains(versionUpdater.SEMANTIC_VERSION_LEVELS, semanticVersionLevel)) {
-    console.log(
-        `Invalid input for 'SEMVER_LEVEL': ${semanticVersionLevel}`,
-        `Defaulting to: ${versionUpdater.SEMANTIC_VERSION_LEVELS.BUILD}`,
-    );
+    console.log(`Invalid input for 'SEMVER_LEVEL': ${semanticVersionLevel}`, `Defaulting to: ${versionUpdater.SEMANTIC_VERSION_LEVELS.BUILD}`);
     semanticVersionLevel = versionUpdater.SEMANTIC_VERSION_LEVELS.BUILD;
 }
 

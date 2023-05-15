@@ -1,8 +1,5 @@
 import React from 'react';
-import {
-    View,
-    InteractionManager,
-} from 'react-native';
+import {View, InteractionManager} from 'react-native';
 import PropTypes from 'prop-types';
 import {withOnyx} from 'react-native-onyx';
 import lodashGet from 'lodash/get';
@@ -30,7 +27,7 @@ const propTypes = {
     onStepComplete: PropTypes.func.isRequired,
 
     /** Previously selected amount to show if the user comes back to this screen */
-    selectedAmount: PropTypes.string.isRequired,
+    selectedAmount: PropTypes.number.isRequired,
 
     /** Text to display on the button that "saves" the amount */
     buttonText: PropTypes.string.isRequired,
@@ -59,18 +56,20 @@ class MoneyRequestAmountPage extends React.Component {
         this.updateLongPressHandlerState = this.updateLongPressHandlerState.bind(this);
         this.updateAmount = this.updateAmount.bind(this);
         this.stripCommaFromAmount = this.stripCommaFromAmount.bind(this);
+        this.stripSpacesFromAmount = this.stripSpacesFromAmount.bind(this);
         this.focusTextInput = this.focusTextInput.bind(this);
         this.navigateToCurrencySelectionPage = this.navigateToCurrencySelectionPage.bind(this);
         this.amountViewID = 'amountView';
         this.numPadContainerViewID = 'numPadContainerView';
         this.numPadViewID = 'numPadView';
 
+        const selectedAmountAsString = props.selectedAmount ? props.selectedAmount.toString() : '';
         this.state = {
-            amount: props.selectedAmount,
+            amount: selectedAmountAsString,
             shouldUpdateSelection: true,
             selection: {
-                start: props.selectedAmount.length,
-                end: props.selectedAmount.length,
+                start: selectedAmountAsString.length,
+                end: selectedAmountAsString.length,
             },
         };
     }
@@ -126,13 +125,16 @@ class MoneyRequestAmountPage extends React.Component {
      * @returns {Object}
      */
     getNewState(prevState, newAmount) {
-        if (!this.validateAmount(newAmount)) {
+        // Remove spaces from the newAmount value because Safari on iOS adds spaces when pasting a copied value
+        // More info: https://github.com/Expensify/App/issues/16974
+        const newAmountWithoutSpaces = this.stripSpacesFromAmount(newAmount);
+        if (!this.validateAmount(newAmountWithoutSpaces)) {
             // Use a shallow copy of selection to trigger setSelection
             // More info: https://github.com/Expensify/App/issues/16385
             return {amount: prevState.amount, selection: {...prevState.selection}};
         }
-        const selection = this.getNewSelection(prevState.selection, prevState.amount.length, newAmount.length);
-        return {amount: this.stripCommaFromAmount(newAmount), selection};
+        const selection = this.getNewSelection(prevState.selection, prevState.amount.length, newAmountWithoutSpaces.length);
+        return {amount: this.stripCommaFromAmount(newAmountWithoutSpaces), selection};
     }
 
     /**
@@ -192,6 +194,16 @@ class MoneyRequestAmountPage extends React.Component {
      */
     stripCommaFromAmount(amount) {
         return amount.replace(/,/g, '');
+    }
+
+    /**
+     * Strip spaces from the amount
+     *
+     * @param {String} amount
+     * @returns {String}
+     */
+    stripSpacesFromAmount(amount) {
+        return amount.replace(/\s+/g, '');
     }
 
     /**
@@ -293,22 +305,15 @@ class MoneyRequestAmountPage extends React.Component {
             <>
                 <View
                     nativeID={this.amountViewID}
-                    onMouseDown={event => this.onMouseDown(event, [this.amountViewID])}
-                    style={[
-                        styles.flex1,
-                        styles.flexRow,
-                        styles.w100,
-                        styles.alignItemsCenter,
-                        styles.justifyContentCenter,
-                    ]}
+                    onMouseDown={(event) => this.onMouseDown(event, [this.amountViewID])}
+                    style={[styles.flex1, styles.flexRow, styles.w100, styles.alignItemsCenter, styles.justifyContentCenter]}
                 >
                     <TextInputWithCurrencySymbol
                         formattedAmount={formattedAmount}
                         onChangeAmount={this.updateAmount}
                         onCurrencyButtonPress={this.navigateToCurrencySelectionPage}
                         placeholder={this.props.numberFormat(0)}
-                        preferredLocale={this.props.preferredLocale}
-                        ref={el => this.textInput = el}
+                        ref={(el) => (this.textInput = el)}
                         selectedCurrencyCode={this.props.iou.selectedCurrencyCode}
                         selection={this.state.selection}
                         onSelectionChange={(e) => {
@@ -320,18 +325,19 @@ class MoneyRequestAmountPage extends React.Component {
                     />
                 </View>
                 <View
-                    onMouseDown={event => this.onMouseDown(event, [this.numPadContainerViewID, this.numPadViewID])}
+                    onMouseDown={(event) => this.onMouseDown(event, [this.numPadContainerViewID, this.numPadViewID])}
                     style={[styles.w100, styles.justifyContentEnd, styles.pageWrapper]}
                     nativeID={this.numPadContainerViewID}
                 >
-                    {DeviceCapabilities.canUseTouchScreen()
-                        ? (
-                            <BigNumberPad
-                                nativeID={this.numPadViewID}
-                                numberPressed={this.updateAmountNumberPad}
-                                longPressHandlerStateChanged={this.updateLongPressHandlerState}
-                            />
-                        ) : <View />}
+                    {DeviceCapabilities.canUseTouchScreen() ? (
+                        <BigNumberPad
+                            nativeID={this.numPadViewID}
+                            numberPressed={this.updateAmountNumberPad}
+                            longPressHandlerStateChanged={this.updateLongPressHandlerState}
+                        />
+                    ) : (
+                        <View />
+                    )}
 
                     <Button
                         success

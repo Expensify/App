@@ -23,11 +23,9 @@ function hasAndroidPermission() {
         }
 
         // Ask for permission if not given
-        return PermissionsAndroid.requestMultiple([
-            PermissionsAndroid.PERMISSIONS.READ_EXTERNAL_STORAGE,
-            PermissionsAndroid.PERMISSIONS.WRITE_EXTERNAL_STORAGE,
-        ]).then(status => status['android.permission.READ_EXTERNAL_STORAGE'] === 'granted'
-                    && status['android.permission.WRITE_EXTERNAL_STORAGE'] === 'granted');
+        return PermissionsAndroid.requestMultiple([PermissionsAndroid.PERMISSIONS.READ_EXTERNAL_STORAGE, PermissionsAndroid.PERMISSIONS.WRITE_EXTERNAL_STORAGE]).then(
+            (status) => status['android.permission.READ_EXTERNAL_STORAGE'] === 'granted' && status['android.permission.WRITE_EXTERNAL_STORAGE'] === 'granted',
+        );
     });
 }
 
@@ -51,21 +49,38 @@ function handleDownload(url, fileName) {
             path: `${path}/${attachmentName}`,
             addAndroidDownloads: {
                 useDownloadManager: true,
-                notification: true,
+                notification: false,
                 path: `${path}/Expensify/${attachmentName}`,
             },
         }).fetch('GET', url);
 
-        // Resolving the fetched attachment
-        fetchedAttachment.then((attachment) => {
-            if (!attachment || !attachment.info()) {
-                return;
-            }
+        let attachmentPath;
 
-            FileUtils.showSuccessAlert();
-        }).catch(() => {
-            FileUtils.showGeneralErrorAlert();
-        }).finally(() => resolve());
+        // Resolving the fetched attachment
+        fetchedAttachment
+            .then((attachment) => {
+                if (!attachment || !attachment.info()) {
+                    return Promise.reject();
+                }
+                attachmentPath = attachment.path();
+                return RNFetchBlob.MediaCollection.copyToMediaStore(
+                    {
+                        name: attachmentName,
+                        parentFolder: 'Expensify',
+                        mimeType: null,
+                    },
+                    'Download',
+                    attachmentPath,
+                );
+            })
+            .then(() => {
+                RNFetchBlob.fs.unlink(attachmentPath);
+                FileUtils.showSuccessAlert();
+            })
+            .catch(() => {
+                FileUtils.showGeneralErrorAlert();
+            })
+            .finally(() => resolve());
     });
 }
 
@@ -77,13 +92,16 @@ function handleDownload(url, fileName) {
  */
 export default function fileDownload(url, fileName) {
     return new Promise((resolve) => {
-        hasAndroidPermission().then((hasPermission) => {
-            if (hasPermission) {
-                return handleDownload(url, fileName);
-            }
-            FileUtils.showPermissionErrorAlert();
-        }).catch(() => {
-            FileUtils.showPermissionErrorAlert();
-        }).finally(() => resolve());
+        hasAndroidPermission()
+            .then((hasPermission) => {
+                if (hasPermission) {
+                    return handleDownload(url, fileName);
+                }
+                FileUtils.showPermissionErrorAlert();
+            })
+            .catch(() => {
+                FileUtils.showPermissionErrorAlert();
+            })
+            .finally(() => resolve());
     });
 }

@@ -1,12 +1,12 @@
-
 import React from 'react';
 import PropTypes from 'prop-types';
 import {View} from 'react-native';
 import BlockingView from './BlockingView';
-import * as Expensicons from '../Icon/Expensicons';
+import * as Illustrations from '../Icon/Illustrations';
 import withLocalize, {withLocalizePropTypes} from '../withLocalize';
 import HeaderWithCloseButton from '../HeaderWithCloseButton';
 import Navigation from '../../libs/Navigation/Navigation';
+import variables from '../../styles/variables';
 import styles from '../../styles/styles';
 
 const propTypes = {
@@ -66,7 +66,9 @@ const FullPageNotFoundView = (props) => {
                 />
                 <View style={[styles.flex1, styles.blockingViewContainer]}>
                     <BlockingView
-                        icon={Expensicons.QuestionMark}
+                        icon={Illustrations.ToddBehindCloud}
+                        iconWidth={variables.modalTopIconWidth}
+                        iconHeight={variables.modalTopIconHeight}
                         title={props.translate(props.titleKey)}
                         subtitle={props.translate(props.subtitleKey)}
                         link={props.translate(props.linkKey)}
@@ -74,7 +76,6 @@ const FullPageNotFoundView = (props) => {
                     />
                 </View>
             </>
-
         );
     }
 

@@ -67,6 +67,12 @@ const darkTheme = {
     imageCropBackgroundColor: colors.greenIcons,
     fallbackIconColor: colors.green700,
     reactionActive: '#003C73',
+    badgeAdHoc: colors.pink600,
+    badgeAdHocHover: colors.pink700,
+    mentionText: colors.blue100,
+    mentionBG: colors.blue600,
+    ourMentionText: colors.green100,
+    ourMentionBG: colors.green600,
 };
 
 const oldTheme = {

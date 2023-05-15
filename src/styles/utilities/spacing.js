@@ -370,6 +370,10 @@ export default {
         paddingLeft: 20,
     },
 
+    pl6: {
+        paddingLeft: 24,
+    },
+
     pl10: {
         paddingLeft: 40,
     },
@@ -438,8 +442,11 @@ export default {
         paddingBottom: '10%',
     },
 
+    gap1: {
+        gap: 4,
+    },
+
     gap7: {
         gap: 28,
     },
-
 };
