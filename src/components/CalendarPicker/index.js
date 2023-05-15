@@ -19,7 +19,7 @@ class CalendarPicker extends React.PureComponent {
     constructor(props) {
         super(props);
 
-        const currentSelection = moment(props.value);
+        const currentSelection = moment(props.value, CONST.DATE.MOMENT_FORMAT_STRING);
         let currentDateView = currentSelection.toDate();
 
         if (props.selectedYear) {
