@@ -186,6 +186,11 @@ const styles = {
         alignItems: 'center',
     },
 
+    autoCompleteSuggestionsAvatar: {
+        alignItems: 'center',
+        width: 24,
+    },
+
     emojiSuggestionsEmoji: {
         fontFamily: fontFamily.EMOJI_TEXT_FONT,
         fontSize: variables.fontSizeMedium,

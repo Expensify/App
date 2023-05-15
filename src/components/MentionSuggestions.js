@@ -65,14 +65,17 @@ const MentionSuggestions = (props) => {
     const renderSuggestionMenuItem = (item) => {
         const displayedText = _.uniq([item.text, item.alternateText]).join(' - ');
         const styledTextArray = getStyledTextArray(displayedText, props.prefix);
+        const avatarSize = item.text === CONST.MENTION_SUGGESTER.HERE_TEXT ? CONST.AVATAR_SIZE.MID_SUBSCRIPT : CONST.AVATAR_SIZE.SMALLER;
 
         return (
             <View style={[styles.autoCompleteSuggestionContainer, styles.ph2]}>
                 <Avatar
                     source={item.icons[0].source}
-                    size={CONST.AVATAR_SIZE.SMALLER}
+                    size={avatarSize}
                     name={item.icons[0].name}
                     type={item.icons[0].type}
+                    fill={styles.iconSuccessFill}
+                    containerStyles={styles.autoCompleteSuggestionsAvatar}
                 />
                 <Text
                     style={styles.mentionSuggestionsText}

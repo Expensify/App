@@ -553,7 +553,35 @@ class ReportActionCompose extends React.Component {
             const options = OptionsListUtils.getNewChatOptions(this.props.reports, this.props.personalDetails, this.props.betas, prefix);
             const suggestions = _.filter([...options.recentReports, options.userToInvite], (x) => !!x);
 
-            nextState.suggestedMentions = suggestions;
+            if (`${this.props.currentUserPersonalDetails.displayName} ${this.props.currentUserPersonalDetails.login}`.includes(prefix)) {
+                suggestions.unshift({
+                    text: this.props.currentUserPersonalDetails.displayName,
+                    alternateText: this.props.currentUserPersonalDetails.login,
+                    icons: [
+                        {
+                            name: this.props.currentUserPersonalDetails.login,
+                            source: this.props.currentUserPersonalDetails.avatar,
+                            type: 'avatar',
+                        },
+                    ],
+                });
+            }
+
+            if ('here'.includes(prefix) && ReportUtils.isDomainRoom(this.props.report)) {
+                suggestions.unshift({
+                    text: CONST.MENTION_SUGGESTER.HERE_TEXT,
+                    alternateText: this.props.translate('mentionSuggestions.hereAlternateText'),
+                    icons: [
+                        {
+                            name: '',
+                            source: Expensicons.Megaphone,
+                            type: 'avatar',
+                        },
+                    ],
+                });
+            }
+
+            nextState.suggestedMentions = suggestions.slice(0, CONST.AUTO_COMPLETE_SUGGESTER.MAX_AMOUNT_OF_ITEMS);
             nextState.shouldShowMentionSuggestionMenu = !_.isEmpty(suggestions);
         }
 
@@ -610,7 +638,7 @@ class ReportActionCompose extends React.Component {
     insertSelectedMention(highlightedMentionIndex) {
         const commentBeforeAtSign = this.state.value.slice(0, this.state.atSignIndex);
         const mentionObject = this.state.suggestedMentions[highlightedMentionIndex];
-        const mentionCode = `@${mentionObject.alternateText}`;
+        const mentionCode = `@${mentionObject.text === CONST.MENTION_SUGGESTER.HERE_TEXT ? 'here' : mentionObject.alternateText}`;
         const commentAfterAtSignWithMentionRemoved = this.state.value.slice(this.state.atSignIndex).replace(CONST.REGEX.MENTION_REPLACER, '');
 
         this.updateComment(`${commentBeforeAtSign}${mentionCode} ${commentAfterAtSignWithMentionRemoved}`, true);
