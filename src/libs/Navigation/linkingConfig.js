@@ -268,6 +268,7 @@ export default {
                 screens: {
                     Task_Title: ROUTES.TASK_TITLE,
                     Task_Description: ROUTES.TASK_DESCRIPTION,
+                    Task_Assignee: ROUTES.TASK_ASSIGNEE,
                 },
             },
             AddPersonalBankAccount: {
