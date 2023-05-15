@@ -10,10 +10,10 @@ import * as Report from '../../../libs/actions/Report';
 import reportPropTypes from '../../reportPropTypes';
 import * as StyleUtils from '../../../styles/StyleUtils';
 import withWindowDimensions, {windowDimensionsPropTypes} from '../../../components/withWindowDimensions';
+import withParentReportAction, {withParentReportActionPropTypes, withParentReportActionDefaultProps} from '../../../components/withParentReportAction';
 import compose from '../../../libs/compose';
 import withLocalize from '../../../components/withLocalize';
 import ReportActionItem from './ReportActionItem';
-import reportActionPropTypes from './reportActionPropTypes';
 
 const propTypes = {
     /** The id of the report */
@@ -28,20 +28,16 @@ const propTypes = {
     /** The report currently being looked at */
     report: reportPropTypes,
 
-    /** The actions from the parent report */
-    // TO DO: Replace with HOC https://github.com/Expensify/App/issues/18769.
-    parentReportActions: PropTypes.objectOf(PropTypes.shape(reportActionPropTypes)),
-
     ...windowDimensionsPropTypes,
+    ...withParentReportActionPropTypes,
 };
 const defaultProps = {
     report: {},
     parentReportActions: {},
+    ...withParentReportActionDefaultProps,
 };
 
-const ReportActionItemParentAction = (props) => {
-    const parentReportAction = props.parentReportActions[`${props.report.parentReportActionID}`];
-    return (
+const ReportActionItemParentAction = (props) => (
         <OfflineWithFeedback
             pendingAction={lodashGet(props.report, 'pendingFields.addWorkspaceRoom') || lodashGet(props.report, 'pendingFields.createChat')}
             errors={lodashGet(props.report, 'errorFields.addWorkspaceRoom') || lodashGet(props.report, 'errorFields.createChat')}
@@ -50,10 +46,10 @@ const ReportActionItemParentAction = (props) => {
         >
             <View style={StyleUtils.getReportWelcomeContainerStyle(props.isSmallScreenWidth)}>
                 <View style={[styles.p5, StyleUtils.getReportWelcomeTopMarginStyle(props.isSmallScreenWidth)]} />
-                {parentReportAction && (
+                {props.parentReportAction && (
                     <ReportActionItem
                         report={props.report}
-                        action={parentReportAction}
+                        action={props.parentReportAction}
                         displayAsGroup={false}
                         isMostRecentIOUReportAction={false}
                         shouldDisplayNewMarker={false}
@@ -64,22 +60,18 @@ const ReportActionItemParentAction = (props) => {
             <View style={[styles.threadDividerLine]} />
         </OfflineWithFeedback>
     );
-};
 
 ReportActionItemParentAction.defaultProps = defaultProps;
 ReportActionItemParentAction.propTypes = propTypes;
 ReportActionItemParentAction.displayName = 'ReportActionItemParentAction';
 
 export default compose(
+    withParentReportAction,
     withWindowDimensions,
     withLocalize,
     withOnyx({
         report: {
             key: ({reportID}) => `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
-        },
-        parentReportActions: {
-            key: ({parentReportID}) => `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${parentReportID}`,
-            canEvict: false,
         },
     }),
 )(ReportActionItemParentAction);
