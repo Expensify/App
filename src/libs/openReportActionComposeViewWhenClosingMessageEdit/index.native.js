@@ -1,9 +1,9 @@
 import {Keyboard} from 'react-native';
-import toggleReportActionComposeView from '../toggleReportActionComposeView';
+import * as Composer from '../actions/Composer';
 
-export default (isSmallScreenWidth = true) => {
+export default () => {
     const keyboardDidHideListener = Keyboard.addListener('keyboardDidHide', () => {
-        toggleReportActionComposeView(true, isSmallScreenWidth);
+        Composer.setShouldShowComposeInput(true);
         keyboardDidHideListener.remove();
     });
 };

@@ -434,10 +434,28 @@ function isPolicyExpenseChatAdmin(report, policies) {
  * @returns {Boolean}
  */
 function isThread(report) {
-    if (report && report.parentReportID && report.parentReportActionID) {
-        return true;
-    }
-    return false;
+    return Boolean(report && report.parentReportID && report.parentReportActionID);
+}
+
+/**
+ * Returns true if reportAction has a child.
+ *
+ * @param {Object} reportAction
+ * @returns {Boolean}
+ */
+function isThreadParent(reportAction) {
+    return reportAction && reportAction.childReportID && reportAction.childReportID !== 0;
+}
+
+/**
+ * Returns true if reportAction is the first chat preview of a Thread
+ *
+ * @param {Object} reportAction
+ *  @param {String} reportID
+ * @returns {Boolean}
+ */
+function isThreadFirstChat(reportAction, reportID) {
+    return !_.isUndefined(reportAction.childReportID) && reportAction.childReportID.toString() === reportID;
 }
 
 /**
@@ -446,6 +464,16 @@ function isThread(report) {
  * @returns {String}
  */
 function getChatRoomSubtitle(report) {
+    if (isThread(report)) {
+        if (!getChatType(report)) {
+            return '';
+        }
+
+        // If thread is not from a DM or group chat, the subtitle will follow the pattern 'Workspace Name • #roomName'
+        const workspaceName = getPolicyName(report);
+        const roomName = isChatRoom(report) ? lodashGet(report, 'displayName') : '';
+        return [workspaceName, roomName].join(' • ');
+    }
     if (!isDefaultRoom(report) && !isUserCreatedPolicyRoom(report) && !isPolicyExpenseChat(report)) {
         return '';
     }
@@ -708,6 +736,41 @@ function getSmallSizeAvatar(avatarURL, login) {
  * Returns the appropriate icons for the given chat report using the stored personalDetails.
  * The Avatar sources can be URLs or Icon components according to the chat type.
  *
+ * @param {Array} participants
+ * @param {Object} personalDetails
+ * @returns {Array<*>}
+ */
+function getIconsForParticipants(participants, personalDetails) {
+    const participantDetails = [];
+    const participantsList = participants || [];
+
+    for (let i = 0; i < participantsList.length; i++) {
+        const login = participantsList[i];
+        const avatarSource = getAvatar(lodashGet(personalDetails, [login, 'avatar'], ''), login);
+        participantDetails.push([login, lodashGet(personalDetails, [login, 'firstName'], ''), avatarSource]);
+    }
+
+    // Sort all logins by first name (which is the second element in the array)
+    const sortedParticipantDetails = participantDetails.sort((a, b) => a[1] - b[1]);
+
+    // Now that things are sorted, gather only the avatars (third element in the array) and return those
+    const avatars = [];
+    for (let i = 0; i < sortedParticipantDetails.length; i++) {
+        const userIcon = {
+            source: sortedParticipantDetails[i][2],
+            type: CONST.ICON_TYPE_AVATAR,
+            name: sortedParticipantDetails[i][0],
+        };
+        avatars.push(userIcon);
+    }
+
+    return avatars;
+}
+
+/**
+ * Returns the appropriate icons for the given chat report using the stored personalDetails.
+ * The Avatar sources can be URLs or Icon components according to the chat type.
+ *
  * @param {Object} report
  * @param {Object} personalDetails
  * @param {*} [defaultIcon]
@@ -730,6 +793,27 @@ function getIcons(report, personalDetails, defaultIcon = null) {
     }
     if (isArchivedRoom(report)) {
         result.source = Expensicons.DeletedRoomAvatar;
+        return [result];
+    }
+    if (isThread(report)) {
+        const parentReport = lodashGet(allReports, [`${ONYXKEYS.COLLECTION.REPORT}${report.parentReportID}`]);
+        const parentReportAction = ReportActionsUtils.getParentReportAction(report);
+
+        if (!parentReport) {
+            result.source = Expensicons.ActiveRoomAvatar;
+            return [result];
+        }
+
+        if (getChatType(parentReport)) {
+            result.source = getWorkspaceAvatar(parentReport);
+            result.type = CONST.ICON_TYPE_WORKSPACE;
+            result.name = getPolicyName(parentReport);
+            return [result];
+        }
+
+        const actorEmail = lodashGet(parentReportAction, 'actorEmail', '');
+        result.source = getAvatar(lodashGet(personalDetails, [actorEmail, 'avatar']), actorEmail);
+        result.name = actorEmail;
         return [result];
     }
     if (isDomainRoom(report)) {
@@ -787,30 +871,7 @@ function getIcons(report, personalDetails, defaultIcon = null) {
         ];
     }
 
-    const participantDetails = [];
-    const participants = report.participants || [];
-
-    for (let i = 0; i < participants.length; i++) {
-        const login = participants[i];
-        const avatarSource = getAvatar(lodashGet(personalDetails, [login, 'avatar'], ''), login);
-        participantDetails.push([login, lodashGet(personalDetails, [login, 'firstName'], ''), avatarSource]);
-    }
-
-    // Sort all logins by first name (which is the second element in the array)
-    const sortedParticipantDetails = participantDetails.sort((a, b) => a[1] - b[1]);
-
-    // Now that things are sorted, gather only the avatars (third element in the array) and return those
-    const avatars = [];
-    for (let i = 0; i < sortedParticipantDetails.length; i++) {
-        const userIcon = {
-            source: sortedParticipantDetails[i][2],
-            type: CONST.ICON_TYPE_AVATAR,
-            name: sortedParticipantDetails[i][0],
-        };
-        avatars.push(userIcon);
-    }
-
-    return avatars;
+    return getIconsForParticipants(report.participants, personalDetails);
 }
 
 /**
@@ -948,6 +1009,11 @@ function getMoneyRequestReportName(report) {
  */
 function getReportName(report) {
     let formattedName;
+    if (isThread(report)) {
+        const parentReportAction = ReportActionsUtils.getParentReportAction(report);
+        const parentReportActionMessage = lodashGet(parentReportAction, ['message', 0, 'text'], '').replace(/(\r\n|\n|\r)/gm, ' ');
+        return parentReportActionMessage || Localize.translateLocal('parentReportAction.deletedMessage');
+    }
     if (isChatRoom(report) || isTaskReport(report)) {
         formattedName = report.reportName;
     }
@@ -1308,6 +1374,8 @@ function buildOptimisticIOUReportAction(type, amount, currency, comment, partici
  * @param {String} oldPolicyName
  * @param {String} visibility
  * @param {String} notificationPreference
+ * @param {String} parentReportActionID
+ * @param {String} parentReportID
  * @returns {Object}
  */
 function buildOptimisticChatReport(
@@ -1320,6 +1388,8 @@ function buildOptimisticChatReport(
     oldPolicyName = '',
     visibility = undefined,
     notificationPreference = CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS,
+    parentReportActionID,
+    parentReportID,
 ) {
     const currentTime = DateUtils.getDBTime();
     return {
@@ -1336,6 +1406,8 @@ function buildOptimisticChatReport(
         notificationPreference,
         oldPolicyName,
         ownerEmail: ownerEmail || CONST.REPORT.OWNER_EMAIL_FAKE,
+        parentReportActionID,
+        parentReportID,
         participants: participantList,
         policyID,
         reportID: generateReportID(),
@@ -1357,6 +1429,7 @@ function buildOptimisticCreatedReportAction(ownerEmail) {
         actionName: CONST.REPORT.ACTIONS.TYPE.CREATED,
         pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
         actorAccountID: currentUserAccountID,
+        actorEmail: currentUserEmail,
         message: [
             {
                 type: CONST.REPORT.MESSAGE.TYPE.TEXT,
@@ -1380,6 +1453,46 @@ function buildOptimisticCreatedReportAction(ownerEmail) {
         avatar: lodashGet(allPersonalDetails, [currentUserEmail, 'avatar'], getDefaultAvatar(currentUserEmail)),
         created: DateUtils.getDBTime(),
         shouldShow: true,
+    };
+}
+
+/**
+ * Returns the necessary reportAction onyx data to indicate that a task report has been edited
+ *
+ * @param {String} ownerEmail
+ * @returns {Object}
+ */
+
+function buildOptimisticEditedTaskReportAction(ownerEmail) {
+    return {
+        reportActionID: NumberUtils.rand64(),
+        actionName: CONST.REPORT.ACTIONS.TYPE.TASKEDITED,
+        pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
+        actorAccountID: currentUserAccountID,
+        actorEmail: currentUserEmail,
+        message: [
+            {
+                type: CONST.REPORT.MESSAGE.TYPE.TEXT,
+                style: 'strong',
+                text: ownerEmail === currentUserEmail ? 'You' : ownerEmail,
+            },
+            {
+                type: CONST.REPORT.MESSAGE.TYPE.TEXT,
+                style: 'normal',
+                text: ' edited this task',
+            },
+        ],
+        person: [
+            {
+                type: CONST.REPORT.MESSAGE.TYPE.TEXT,
+                style: 'strong',
+                text: lodashGet(allPersonalDetails, [currentUserEmail, 'displayName'], currentUserEmail),
+            },
+        ],
+        automatic: false,
+        avatar: lodashGet(allPersonalDetails, [currentUserEmail, 'avatar'], getDefaultAvatar(currentUserEmail)),
+        created: DateUtils.getDBTime(),
+        shouldShow: false,
     };
 }
 
@@ -1641,7 +1754,7 @@ function shouldReportBeInOptionList(report, reportIDFromRoute, isInGSDMode, curr
     // Exclude reports that have no data because there wouldn't be anything to show in the option item.
     // This can happen if data is currently loading from the server or a report is in various stages of being created.
     // This can also happen for anyone accessing a public room or archived room for which they don't have access to the underlying policy.
-    if (!report || !report.reportID || (_.isEmpty(report.participants) && !isPublicRoom(report) && !isArchivedRoom(report) && !isMoneyRequestReport(report))) {
+    if (!report || !report.reportID || (_.isEmpty(report.participants) && !isThread(report) && !isPublicRoom(report) && !isArchivedRoom(report) && !isMoneyRequestReport(report))) {
         return false;
     }
 
@@ -1691,7 +1804,7 @@ function shouldReportBeInOptionList(report, reportIDFromRoute, isInGSDMode, curr
 }
 
 /**
- * Attempts to find a report in onyx with the provided list of participants
+ * Attempts to find a report in onyx with the provided list of participants. Does not include threads
  * @param {Array} newParticipantList
  * @returns {Array|undefined}
  */
@@ -1699,7 +1812,7 @@ function getChatByParticipants(newParticipantList) {
     newParticipantList.sort();
     return _.find(allReports, (report) => {
         // If the report has been deleted, or there are no participants (like an empty #admins room) then skip it
-        if (!report || !report.participants) {
+        if (!report || !report.participants || isThread(report)) {
             return false;
         }
 
@@ -1939,6 +2052,14 @@ function shouldReportShowSubscript(report) {
     return isExpenseReport(report);
 }
 
+/**
+ * Return true if reports data exists
+ * @returns {Boolean}
+ */
+function isReportDataReady() {
+    return !_.isEmpty(allReports) && _.some(_.keys(allReports), (key) => allReports[key].reportID);
+}
+
 export {
     getReportParticipantsTitle,
     isReportMessageAttachment,
@@ -1971,6 +2092,7 @@ export {
     chatIncludesConcierge,
     isPolicyExpenseChat,
     getDefaultAvatar,
+    getIconsForParticipants,
     getIcons,
     getRoomWelcomeMessage,
     getDisplayNamesWithTooltips,
@@ -1987,6 +2109,7 @@ export {
     buildOptimisticChatReport,
     buildOptimisticClosedReportAction,
     buildOptimisticCreatedReportAction,
+    buildOptimisticEditedTaskReportAction,
     buildOptimisticIOUReport,
     buildOptimisticExpenseReport,
     buildOptimisticIOUReportAction,
@@ -2019,6 +2142,9 @@ export {
     getWhisperDisplayNames,
     getWorkspaceAvatar,
     isThread,
+    isThreadParent,
+    isThreadFirstChat,
     shouldReportShowSubscript,
+    isReportDataReady,
     isSettled,
 };
