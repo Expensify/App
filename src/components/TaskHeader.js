@@ -41,7 +41,7 @@ function TaskHeader(props) {
 
     useEffect(() => {
         TaskUtils.setTaskReport(props.report);
-    }, [props]);
+    }, [props.report]);
 
     return (
         <View style={styles.borderBottom}>
