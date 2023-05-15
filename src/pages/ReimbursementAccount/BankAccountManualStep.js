@@ -117,11 +117,7 @@ class BankAccountManualStep extends React.Component {
                         LabelComponent={() => (
                             <Text>
                                 {this.props.translate('common.iAcceptThe')}
-                                <TextLink
-                                    href={CONST.TERMS_URL}
-                                >
-                                    {this.props.translate('common.expensifyTermsOfService')}
-                                </TextLink>
+                                <TextLink href={CONST.TERMS_URL}>{this.props.translate('common.expensifyTermsOfService')}</TextLink>
                             </Text>
                         )}
                         defaultValue={this.props.getDefaultStateForField('acceptTerms', false)}
