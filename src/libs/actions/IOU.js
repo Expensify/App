@@ -167,7 +167,9 @@ function requestMoney(report, amount, currency, payeeEmail, participant, comment
             [optimisticReportAction.reportActionID]: {
                 pendingAction: null,
             },
-            [reportPreview.reportActionID]: reportPreview,
+            [reportPreview.reportActionID]: {
+                pendingAction: null,
+            },
         },
     };
 
