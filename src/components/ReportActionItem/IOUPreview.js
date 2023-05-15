@@ -27,7 +27,6 @@ import * as OptionsListUtils from '../../libs/OptionsListUtils';
 import * as CurrencyUtils from '../../libs/CurrencyUtils';
 import * as IOUUtils from '../../libs/IOUUtils';
 import * as ReportUtils from '../../libs/ReportUtils';
-import Button from '../Button';
 
 const propTypes = {
     /** The active IOUReport, used for Onyx subscription */

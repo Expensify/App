@@ -125,7 +125,7 @@ const ReportPreview = (props) => {
                     />
                 </Pressable>
             ))}
-            {isCurrentUserManager && props.iouReport.stateNum === CONST.REPORT.STATE_NUM.PROCESSING && (
+            {isCurrentUserManager && props.iouReport.state === CONST.REPORT.STATE.PROCESSING && (
                 <Button
                     style={[styles.requestPreviewBox]}
                     onPress={() => {
