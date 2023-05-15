@@ -20,7 +20,7 @@ import * as OptionsListUtils from '../../libs/OptionsListUtils';
 import * as ReportUtils from '../../libs/ReportUtils';
 import * as Report from '../../libs/actions/Report';
 import withLocalize, {withLocalizePropTypes} from '../withLocalize';
-import * as CurrencyUtils from '../../libs/CurrencyUtils';
+import * as ReportActionsUtils from '../../libs/ReportActionsUtils';
 
 const propTypes = {
     /** All the data of the action */
@@ -98,17 +98,10 @@ const MoneyRequestAction = (props) => {
         if (childReportID === '0') {
             const participants = _.uniq([props.session.email, props.action.actorEmail]);
             const formattedUserLogins = _.map(participants, (login) => OptionsListUtils.addSMSDomainIfPhoneNumber(login).toLowerCase());
-            const formattedAmount =
-                lodashGet(props.action, 'originalMessage.type', '') === CONST.IOU.REPORT_ACTION_TYPE.PAY
-                    ? CurrencyUtils.convertToDisplayString(
-                          lodashGet(props.action, 'originalMessage.IOUDetails.amount', 0),
-                          lodashGet(props.action, 'originalMessage.IOUDetails.currency', ''),
-                      )
-                    : CurrencyUtils.convertToDisplayString(lodashGet(props.action, 'originalMessage.amount', 0), lodashGet(props.action, 'originalMessage.currency', ''));
             const thread = ReportUtils.buildOptimisticChatReport(
                 formattedUserLogins,
-                props.translate('iou.threadReportName', {
-                    formattedAmount,
+                props.translate('iou.threadRequestReportName', {
+                    formattedAmount: ReportActionsUtils.getFormattedAmount(props.action),
                     comment: props.action.originalMessage.comment,
                 }),
                 '',
