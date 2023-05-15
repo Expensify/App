@@ -76,6 +76,7 @@ class BaseDrawerNavigator extends Component {
         const content = (
             <Drawer.Navigator
                 backBehavior="none"
+                useLegacyImplementation={false}
                 key="BaseDrawerNavigator"
                 defaultStatus={this.state.defaultStatus}
                 sceneContainerStyle={styles.navigationSceneContainer}
