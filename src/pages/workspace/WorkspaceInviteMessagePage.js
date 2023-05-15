@@ -78,6 +78,17 @@ class WorkspaceInviteMessagePage extends React.Component {
         };
     }
 
+    componentDidMount() {
+        this.focusTimeout = setTimeout(() => {
+            this.welcomeMessageInputRef.focus();
+            // Below condition is needed for web, desktop and mweb only, for native cursor is set at end by default.
+            if (this.welcomeMessageInputRef.value && this.welcomeMessageInputRef.setSelectionRange) {
+                const length = this.welcomeMessageInputRef.value.length;
+                this.welcomeMessageInputRef.setSelectionRange(length, length);
+            }
+        }, CONST.ANIMATED_TRANSITION);
+    }
+
     componentDidUpdate(prevProps) {
         if (
             !(
@@ -88,6 +99,13 @@ class WorkspaceInviteMessagePage extends React.Component {
             return;
         }
         this.setState({welcomeNote: this.getDefaultWelcomeNote()});
+    }
+
+    componentWillUnmount() {
+        if (!this.focusTimeout) {
+            return;
+        }
+        clearTimeout(this.focusTimeout);
     }
 
     getDefaultWelcomeNote() {
@@ -128,20 +146,7 @@ class WorkspaceInviteMessagePage extends React.Component {
         const policyName = lodashGet(this.props.policy, 'name');
 
         return (
-            <ScreenWrapper
-                onEntryTransitionEnd={() => {
-                    if (!this.welcomeMessageInputRef) {
-                        return;
-                    }
-                    this.welcomeMessageInputRef.focus();
-                    // Below condition is needed for web, desktop and mweb only, for native cursor is set at end by default.
-                    if (this.welcomeMessageInputRef.value && this.welcomeMessageInputRef.setSelectionRange) {
-                        const length = this.welcomeMessageInputRef.value.length;
-                        this.welcomeMessageInputRef.setSelectionRange(length, length);
-                    }
-                }}
-                includeSafeAreaPaddingBottom={false}
-            >
+            <ScreenWrapper includeSafeAreaPaddingBottom={false}>
                 <FullPageNotFoundView
                     shouldShow={_.isEmpty(this.props.policy)}
                     onBackButtonPress={() => Navigation.navigate(ROUTES.SETTINGS_WORKSPACES)}
