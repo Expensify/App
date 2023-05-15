@@ -50,7 +50,18 @@ const TaskAction = (props) => {
     const taskReportID = props.taskReportID;
     const taskReportName = props.taskReport.reportName || '';
 
-    const messageLinkText = props.actionName === CONST.REPORT.ACTIONS.TYPE.TASKCOMPLETED ? props.translate('task.messages.completed') : props.translate('newTaskPage.task');
+    let messageLinkText = '';
+    switch (props.actionName) {
+        case CONST.REPORT.ACTIONS.TYPE.TASKCOMPLETED:
+            messageLinkText = props.translate('task.messages.completed');
+            break;
+        case CONST.REPORT.ACTIONS.TYPE.TASKCANCELED:
+            messageLinkText = props.translate('task.canceled');
+            break;
+        default:
+            messageLinkText = props.translate('newTaskPage.task');
+    }
+
     return (
         <Pressable
             onPress={() => Navigation.navigate(ROUTES.getReportRoute(taskReportID))}

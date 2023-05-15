@@ -38,7 +38,6 @@ import reportPropTypes from '../../reportPropTypes';
 import {ShowContextMenuContext} from '../../../components/ShowContextMenuContext';
 import focusTextInputAfterAnimation from '../../../libs/focusTextInputAfterAnimation';
 import ChronosOOOListActions from '../../../components/ReportActionItem/ChronosOOOListActions';
-import CancelTaskAction from '../../../components/ReportActionItem/CancelTaskAction';
 import ReportActionItemReactions from '../../../components/Reactions/ReportActionItemReactions';
 import * as Report from '../../../libs/actions/Report';
 import withLocalize from '../../../components/withLocalize';
@@ -213,6 +212,14 @@ class ReportActionItem extends Component {
                     isHovered={hovered}
                 />
             );
+        } else if (this.props.action.actionName === CONST.REPORT.ACTIONS.TYPE.TASKCANCELED) {
+            children = (
+                <TaskAction
+                    taskReportID={this.props.action.taskReportID}
+                    actionName={this.props.action.actionName}
+                    isHovered={hovered}
+                />
+            );
         } else if (ReportActionUtils.isCreatedTaskReportAction(this.props.action)) {
             children = (
                 <TaskPreview
@@ -221,8 +228,6 @@ class ReportActionItem extends Component {
                     isHovered={hovered}
                 />
             );
-        } else if (this.props.action.actionName === CONST.REPORT.ACTIONS.TYPE.TASK.CANCEL) {
-            children = <CancelTaskAction taskReportID={this.props.action.taskReportID} />;
         } else {
             const message = _.last(lodashGet(this.props.action, 'message', [{}]));
             const isAttachment = _.has(this.props.action, 'isAttachment') ? this.props.action.isAttachment : ReportUtils.isReportMessageAttachment(message);

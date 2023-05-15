@@ -9,7 +9,6 @@ import Navigation from '../Navigation/Navigation';
 import ROUTES from '../../ROUTES';
 import CONST from '../../CONST';
 import DateUtils from '../DateUtils';
-import CONST from '../../CONST';
 
 /**
  * Clears out the task info from the store
