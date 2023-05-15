@@ -735,16 +735,6 @@ function getPaddingLeft(paddingLeft) {
 }
 
 /**
- * Android only - convert RTL text to a LTR text using Unicode controls.
- * https://www.w3.org/International/questions/qa-bidi-unicode-controls
- * @param {String} text
- * @returns {String}
- */
-function convertToLTR(text) {
-    return `\u2066${text}`;
-}
-
-/**
  * Checks to see if the iOS device has safe areas or not
  *
  * @param {Number} windowWidth
@@ -1151,7 +1141,6 @@ export {
     parseStyleFromFunction,
     combineStyles,
     getPaddingLeft,
-    convertToLTR,
     hasSafeAreas,
     getHeight,
     getMinimumHeight,
