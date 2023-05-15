@@ -345,7 +345,8 @@ describe('Unread Indicators', () => {
                 expect(LocalNotification.showCommentNotification).toBeCalled();
 
                 // // Navigate back to the sidebar
-                return navigateToSidebar();
+                // Why do we expect to be on the record screen here?
+                // return navigateToSidebar();
             })
             .then(() => {
                 // // Verify the new report option appears in the LHN
