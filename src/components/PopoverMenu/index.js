@@ -45,6 +45,7 @@ const PopoverMenu = (props) => {
     const selectItem = (index) => {
         const selectedItem = props.menuItems[index];
         props.onItemSelected(selectedItem);
+        selectedItem.onSelected();
     };
 
     const [focusedIndex, setFocusedIndex] = useArrowKeyFocusManager({initialFocusedIndex: -1, maxIndex: props.menuItems.length - 1});
