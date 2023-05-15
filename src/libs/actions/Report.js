@@ -404,6 +404,20 @@ function openReport(reportID, participantList = [], newReportObject = {}, parent
             // Add the createdReportActionID parameter to the API call
             params.createdReportActionID = optimisticCreatedAction.reportActionID;
         }
+
+        // If we are creating a thread, ensure the report action has childReportID property added
+        if (newReportObject.parentReportID && parentReportActionID) {
+            onyxData.optimisticData.push({
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${newReportObject.parentReportID}`,
+                value: {[parentReportActionID]: {childReportID: reportID}},
+            });
+            onyxData.failureData.push({
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${newReportObject.parentReportID}`,
+                value: {[parentReportActionID]: {childReportID: '0'}},
+            });
+        }
     }
 
     API.write('OpenReport', params, onyxData);
