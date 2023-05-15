@@ -28,6 +28,7 @@ import ONYXKEYS from '../../ONYXKEYS';
 import ThreeDotsMenu from '../../components/ThreeDotsMenu';
 import * as Task from '../../libs/actions/Task';
 import reportActionPropTypes from './report/reportActionPropTypes';
+import * as TaskUtils from '../../libs/actions/Task';
 
 const propTypes = {
     /** Toggles the navigationMenu open and closed */
@@ -94,9 +95,7 @@ const HeaderView = (props) => {
             threeDotMenuItems.push({
                 icon: Expensicons.Checkmark,
                 text: props.translate('newTaskPage.markAsDone'),
-
-                // Implementing in https://github.com/Expensify/App/issues/16858
-                onSelected: () => {},
+                onSelected: () => TaskUtils.completeTask(props.report.reportID, props.report.parentReportID, title),
             });
         }
 

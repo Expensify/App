@@ -1002,6 +1002,19 @@ function getMoneyRequestReportName(report) {
 }
 
 /**
+ * Given a parent IOU report action get report name for the LHN.
+ *
+ * @param {Object} reportAction
+ * @returns {String}
+ */
+function getTransactionReportName(reportAction) {
+    return Localize.translateLocal('iou.threadReportName', {
+        formattedAmount: CurrencyUtils.convertToDisplayString(lodashGet(reportAction, 'originalMessage.amount', 0), lodashGet(reportAction, 'originalMessage.currency', '')),
+        comment: lodashGet(reportAction, 'originalMessage.comment'),
+    });
+}
+
+/**
  * Get the title for a report.
  *
  * @param {Object} report
@@ -1011,6 +1024,9 @@ function getReportName(report) {
     let formattedName;
     if (isThread(report)) {
         const parentReportAction = ReportActionsUtils.getParentReportAction(report);
+        if (ReportActionsUtils.isTransactionThread(parentReportAction)) {
+            return getTransactionReportName(parentReportAction);
+        }
         const parentReportActionMessage = lodashGet(parentReportAction, ['message', 0, 'text'], '').replace(/(\r\n|\n|\r)/gm, ' ');
         return parentReportActionMessage || Localize.translateLocal('parentReportAction.deletedMessage');
     }
@@ -1149,6 +1165,7 @@ function buildOptimisticAddCommentReportAction(text, file) {
  * @param {String} taskTitle - Title of the task
  * @param {String} taskAssignee - Email of the person assigned to the task
  * @param {String} text - Text of the comment
+ * @param {String} parentReportID - Report ID of the parent report
  * @returns {Object}
  */
 function buildOptimisticTaskCommentReportAction(taskReportID, taskTitle, taskAssignee, text, parentReportID) {
@@ -1363,22 +1380,10 @@ function buildOptimisticIOUReportAction(type, amount, currency, comment, partici
     };
 }
 
-function buildOptimisticTaskReportAction(taskReportID, actionName, taskTitle = '') {
-    let message = '';
-    switch (actionName) {
-        case CONST.REPORT.ACTIONS.TYPE.TASKCOMPLETED:
-            message = `Completed the task: ${taskTitle}`;
-            break;
-
-        default:
-            console.debug('Unknown actionName: ', actionName);
-            break;
-    }
-
+function buildOptimisticTaskReportAction(taskReportID, actionName, message = '') {
     const originalMessage = {
         taskReportID,
         type: actionName,
-        html: getParsedComment(message),
         text: message,
     };
 
@@ -1392,10 +1397,9 @@ function buildOptimisticTaskReportAction(taskReportID, actionName, taskTitle = '
         originalMessage,
         message: [
             {
-                html: getParsedComment(message),
                 text: message,
                 taskReportID,
-                type: CONST.REPORT.MESSAGE.TYPE.COMMENT,
+                type: CONST.REPORT.MESSAGE.TYPE.TEXT,
             },
         ],
         person: [
@@ -1408,6 +1412,7 @@ function buildOptimisticTaskReportAction(taskReportID, actionName, taskTitle = '
         reportActionID: NumberUtils.rand64(),
         shouldShow: true,
         created: DateUtils.getDBTime(),
+        isFirstItem: false,
         pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
     };
 }
@@ -1438,8 +1443,8 @@ function buildOptimisticChatReport(
     oldPolicyName = '',
     visibility = undefined,
     notificationPreference = CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS,
-    parentReportActionID,
-    parentReportID,
+    parentReportActionID = '',
+    parentReportID = '',
 ) {
     const currentTime = DateUtils.getDBTime();
     return {
