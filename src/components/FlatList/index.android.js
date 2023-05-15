@@ -65,9 +65,9 @@ function CustomFlatList(props) {
 CustomFlatList.propTypes = propTypes;
 CustomFlatList.defaultProps = defaultProps;
 
-// eslint-disable-next-line react/jsx-props-no-spreading
 export default forwardRef((props, ref) => (
     <CustomFlatList
+        // eslint-disable-next-line react/jsx-props-no-spreading
         {...props}
         innerRef={ref}
     />
