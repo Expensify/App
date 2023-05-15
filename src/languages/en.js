@@ -1194,10 +1194,10 @@ export default {
         pleaseEnterTaskDestination: 'Please select a share destination',
     },
     task: {
-        canceled: 'Canceled task',
         completed: 'Completed',
         messages: {
             completed: 'Completed task',
+            canceled: 'Canceled task',
         },
     },
     statementPage: {
