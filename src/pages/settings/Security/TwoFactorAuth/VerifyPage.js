@@ -17,7 +17,8 @@ import TextLink from '../../../../components/TextLink';
 import Clipboard from '../../../../libs/Clipboard';
 import FixedFooter from '../../../../components/FixedFooter';
 import TwoFactorAuthForm from './TwoFactorAuthForm';
-import QRShare from '../../../../components/QRShare';
+import QRCode from '../../../../components/QRCode';
+import defaultTheme from '../../../../styles/themes/default';
 
 const propTypes = {
     ...withLocalizePropTypes,
@@ -106,7 +107,10 @@ function VerifyPage(props) {
                             .
                         </Text>
                         <View style={[styles.alignItemsCenter, styles.mt5]}>
-                            <QRShare url={buildAuthenticatorUrl()} />
+                            <QRCode
+                                url={buildAuthenticatorUrl()}
+                                color={defaultTheme.textSupporting}
+                            />
                         </View>
                         <Text style={styles.mt5}>{props.translate('twoFactorAuth.addKey')}</Text>
                         <View style={[styles.mt11, styles.flexRow, styles.alignItemsCenter, styles.justifyContentBetween]}>

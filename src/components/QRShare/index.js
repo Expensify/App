@@ -1,5 +1,4 @@
 import React, {Component} from 'react';
-import QRCodeLibrary from 'react-native-qrcode-svg';
 import {View} from 'react-native';
 import withLocalize, {withLocalizePropTypes} from '../withLocalize';
 import defaultTheme from '../../styles/themes/default';
@@ -9,7 +8,8 @@ import withWindowDimensions, {windowDimensionsPropTypes} from '../withWindowDime
 import compose from '../../libs/compose';
 import variables from '../../styles/variables';
 import ExpensifyWordmark from '../../../assets/images/expensify-wordmark.svg';
-import {qrSharePropTypes, qrShareDefaultProps} from './propTypes'
+import {qrSharePropTypes, qrShareDefaultProps} from './propTypes';
+import QRCode from '../QRCode';
 
 const propTypes = {
     ...qrSharePropTypes,
@@ -59,16 +59,11 @@ class QRShare extends Component {
                     />
                 </View>
 
-                <QRCodeLibrary
-                    value={this.props.url}
-                    logo={this.props.logo}
+                <QRCode
                     getRef={(svg) => (this.svg = svg)}
-                    logoBackgroundColor="transparent"
-                    logoSize={this.state.qrCodeSize * 0.3}
-                    logoBorderRadius={this.state.qrCodeSize}
+                    url={this.props.url}
+                    logo={this.props.logo}
                     size={this.state.qrCodeSize}
-                    backgroundColor={defaultTheme.highlightBG}
-                    color={defaultTheme.text}
                 />
 
                 <Text
