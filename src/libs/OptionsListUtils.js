@@ -431,7 +431,7 @@ function createOption(logins, personalDetails, report, reportActions = {}, {show
         if (ReportUtils.isReportMessageAttachment({text: report.lastMessageText, html: report.lastMessageHtml})) {
             lastMessageTextFromReport = `[${Localize.translateLocal('common.attachment')}]`;
         } else {
-            lastMessageTextFromReport = report ? report.lastMessageText : '';
+            lastMessageTextFromReport = report ? report.lastMessageText || '' : '';
         }
 
         const lastActorDetails = personalDetailMap[report.lastActorEmail] || null;
@@ -451,7 +451,7 @@ function createOption(logins, personalDetails, report, reportActions = {}, {show
         if (result.isChatRoom || result.isPolicyExpenseChat) {
             result.alternateText = showChatPreviewLine && !forcePolicyNamePreview && lastMessageText ? lastMessageText : subtitle;
         } else if (result.isMoneyRequestReport) {
-            result.alternateText = lastMessageTextFromReport || Localize.translate(preferredLocale, 'report.noActivityYet');
+            result.alternateText = lastMessageTextFromReport.length > 0 ? lastMessageTextFromReport : Localize.translate(preferredLocale, 'report.noActivityYet');
         } else {
             result.alternateText = showChatPreviewLine && lastMessageText ? lastMessageText : LocalePhoneNumber.formatPhoneNumber(personalDetail.login);
         }
