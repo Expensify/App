@@ -177,6 +177,13 @@ const TaskModalStackNavigator = createModalStackNavigator([
         },
         name: 'Task_Description',
     },
+    {
+        getComponent: () => {
+            const TaskAssigneeSelectorPage = require('../../../pages/tasks/TaskAssigneeSelectorModal').default;
+            return TaskAssigneeSelectorPage;
+        },
+        name: 'Task_Assignee',
+    },
 ]);
 
 const ReportSettingsModalStackNavigator = createModalStackNavigator([

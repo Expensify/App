@@ -63,45 +63,51 @@ const GenericPressable = forwardRef((props, ref) => {
         return props.disabled || shouldBeDisabledByScreenReader;
     }, [isScreenReaderActive, enableInScreenReaderStates, props.disabled]);
 
-    const onLongPressHandler = useCallback(() => {
-        if (isDisabled) {
-            return;
-        }
-        if (!onLongPress) {
-            return;
-        }
-        if (shouldUseHapticsOnLongPress) {
-            HapticFeedback.longPress();
-        }
-        if (ref && ref.current) {
-            ref.current.blur();
-        }
-        onLongPress();
+    const onLongPressHandler = useCallback(
+        (event) => {
+            if (isDisabled) {
+                return;
+            }
+            if (!onLongPress) {
+                return;
+            }
+            if (shouldUseHapticsOnLongPress) {
+                HapticFeedback.longPress();
+            }
+            if (ref && ref.current) {
+                ref.current.blur();
+            }
+            onLongPress(event);
 
-        Accessibility.moveAccessibilityFocus(nextFocusRef);
-    }, [shouldUseHapticsOnLongPress, onLongPress, nextFocusRef, ref, isDisabled]);
+            Accessibility.moveAccessibilityFocus(nextFocusRef);
+        },
+        [shouldUseHapticsOnLongPress, onLongPress, nextFocusRef, ref, isDisabled],
+    );
 
-    const onPressHandler = useCallback(() => {
-        if (isDisabled) {
-            return;
-        }
-        if (shouldUseHapticsOnPress) {
-            HapticFeedback.press();
-        }
-        if (ref && ref.current) {
-            ref.current.blur();
-        }
-        onPress();
+    const onPressHandler = useCallback(
+        (event) => {
+            if (isDisabled) {
+                return;
+            }
+            if (shouldUseHapticsOnPress) {
+                HapticFeedback.press();
+            }
+            if (ref && ref.current) {
+                ref.current.blur();
+            }
+            onPress(event);
 
-        Accessibility.moveAccessibilityFocus(nextFocusRef);
-    }, [shouldUseHapticsOnPress, onPress, nextFocusRef, ref, isDisabled]);
+            Accessibility.moveAccessibilityFocus(nextFocusRef);
+        },
+        [shouldUseHapticsOnPress, onPress, nextFocusRef, ref, isDisabled],
+    );
 
     const onKeyPressHandler = useCallback(
         (event) => {
             if (event.key !== 'Enter') {
                 return;
             }
-            onPressHandler();
+            onPressHandler(event);
         },
         [onPressHandler],
     );
@@ -126,7 +132,7 @@ const GenericPressable = forwardRef((props, ref) => {
             onPressOut={!isDisabled ? onPressOut : undefined}
             style={(state) => [
                 getCursorStyle(isDisabled, [props.accessibilityRole, props.role].includes('text')),
-                props.style,
+                StyleUtils.parseStyleFromFunction(props.style, state),
                 isScreenReaderActive && StyleUtils.parseStyleFromFunction(props.screenReaderActiveStyle, state),
                 state.focused && StyleUtils.parseStyleFromFunction(props.focusStyle, state),
                 state.hovered && StyleUtils.parseStyleFromFunction(props.hoverStyle, state),
