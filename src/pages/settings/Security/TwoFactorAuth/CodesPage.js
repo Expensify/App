@@ -16,10 +16,10 @@ import FixedFooter from '../../../../components/FixedFooter';
 import Button from '../../../../components/Button';
 import Text from '../../../../components/Text';
 import Section from '../../../../components/Section';
-import TextFileLink from '../../../../components/TextFileLink';
 import ONYXKEYS from '../../../../ONYXKEYS';
 import Clipboard from '../../../../libs/Clipboard';
 import themeColors from '../../../../styles/themes/default';
+import localFileDownload from '../../../../libs/localFileDownload';
 
 const propTypes = {
     ...withLocalizePropTypes,
@@ -92,22 +92,15 @@ function CodesPage(props) {
                                         }}
                                         style={styles.twoFactorAuthCodesButton}
                                     />
-                                    <TextFileLink
-                                        fileName="two-factor-auth-codes"
-                                        textContent={props.account.recoveryCodes}
-                                    >
-                                        {(downloadFile) => (
-                                            <Button
-                                                text="Download"
-                                                medium
-                                                onPress={() => {
-                                                    downloadFile();
-                                                    setIsNextButtonDisabled(false);
-                                                }}
-                                                style={styles.twoFactorAuthCodesButton}
-                                            />
-                                        )}
-                                    </TextFileLink>
+                                    <Button
+                                        text="Download"
+                                        medium
+                                        onPress={() => {
+                                            localFileDownload('two-factor-auth-codes', props.account.recoveryCodes);
+                                            setIsNextButtonDisabled(false);
+                                        }}
+                                        style={styles.twoFactorAuthCodesButton}
+                                    />
                                 </View>
                             </>
                         )}
