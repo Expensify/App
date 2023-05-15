@@ -332,6 +332,7 @@ export default {
         payerSettled: ({amount}) => `pagado ${amount}`,
         noReimbursableExpenses: 'El monto de este informe es inválido',
         pendingConversionMessage: 'El total se actualizará cuando estés online',
+        threadReportName: ({formattedAmount, comment}) => `Solicitud de ${formattedAmount}${comment ? ` para ${comment}` : ''}`,
         error: {
             invalidSplit: 'La suma de las partes no equivale al monto total',
             other: 'Error inesperado, por favor inténtalo más tarde',
@@ -1192,10 +1193,16 @@ export default {
         descriptionOptional: 'Descripción (opcional)',
         shareSomewhere: 'Compartir en algún lugar',
         pleaseEnterTaskName: 'Por favor introduce un título',
-        markAsComplete: 'Marcar como completa',
+        markAsDone: 'Marcar como hecho',
         markAsIncomplete: 'Marcar como incompleta',
         pleaseEnterTaskAssignee: 'Por favor, asigna una persona a esta tarea',
         pleaseEnterTaskDestination: 'Por favor, selecciona un destino de tarea',
+    },
+    task: {
+        completed: 'Completada',
+        messages: {
+            completed: 'tarea completada',
+        },
     },
     statementPage: {
         generatingPDF: 'Estamos generando tu PDF ahora mismo. ¡Por favor, vuelve más tarde!',
