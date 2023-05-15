@@ -672,7 +672,7 @@ export default {
             dateShouldBeBefore: ({dateString}) => `La fecha debe ser anterior a ${dateString}.`,
             dateShouldBeAfter: ({dateString}) => `La fecha debe ser posterior a ${dateString}.`,
             incorrectZipFormat: ({zipFormat}) => `Formato de código postal incorrecto.${zipFormat ? ` Formato aceptable: ${zipFormat}` : ''}`,
-            hasInvalidCharacter: 'El nombre solo puede incluir letras y números latinos.',
+            hasInvalidCharacter: 'El nombre solo puede contener números y caracteres latinos.',
         },
     },
     resendValidationForm: {
