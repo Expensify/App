@@ -80,12 +80,12 @@ class BaseTextInput extends Component {
             return;
         }
 
-        if (this.props.autoGrow) {
+        if (this.props.autoGrow && this.props.shouldWaitWidthCalculation) {
             if (inputValue !== this.state.hiddenInputValue) {
                 this.setState({hiddenInputValue: inputValue, selection: this.props.selection});
             }
 
-            if (prevState.textInputWidth === this.state.textInputWidth && this.props.shouldWaitWidthCalculation) {
+            if (prevState.textInputWidth === this.state.textInputWidth) {
                 return;
             }
         }
@@ -159,7 +159,7 @@ class BaseTextInput extends Component {
         if (this.props.onInputChange) {
             this.props.onInputChange(value);
         }
-        if (!this.props.autoGrow) {
+        if (!this.props.autoGrow || !this.props.shouldWaitWidthCalculation) {
             this.setState({value});
         }
         Str.result(this.props.onChangeText, value);
@@ -234,6 +234,8 @@ class BaseTextInput extends Component {
         ], (finalStyles, s) => ({...finalStyles, ...s}), {});
         const maxHeight = StyleSheet.flatten(this.props.containerStyles).maxHeight;
         const isMultiline = this.props.multiline || this.props.autoGrowHeight;
+        const defaultInputValue = this.state.value || this.props.placeholder;
+        const defaultHiddenInputValue = this.state.hiddenInputValue || this.props.placeholder;
 
         return (
             <>
@@ -393,7 +395,7 @@ class BaseTextInput extends Component {
                         style={[...this.props.inputStyle, this.props.autoGrowHeight ? {maxWidth: this.state.width} : {}, styles.hiddenElementOutsideOfWindow, styles.visibilityHidden]}
                         onLayout={e => this.setState({textInputWidth: e.nativeEvent.layout.width + 2, textInputHeight: e.nativeEvent.layout.height})}
                     >
-                        {this.props.autoGrowHeight ? this.state.value : this.state.hiddenInputValue || this.props.placeholder}
+                        {this.props.autoGrowHeight || !this.props.shouldWaitWidthCalculation ? defaultInputValue : defaultHiddenInputValue}
                     </Text>
                 )}
             </>

@@ -3,6 +3,7 @@ import _ from 'underscore';
 import styles from '../../styles/styles';
 import BaseTextInput from './BaseTextInput';
 import * as baseTextInputPropTypes from './baseTextInputPropTypes';
+import * as BrowserUtils from '../../libs/Browser';
 
 class TextInput extends React.Component {
     componentDidMount() {
@@ -22,7 +23,7 @@ class TextInput extends React.Component {
             <BaseTextInput
                 // eslint-disable-next-line react/jsx-props-no-spreading
                 {...this.props}
-                shouldWaitWidthCalculation
+                shouldWaitWidthCalculation={BrowserUtils.isMobile()}
                 innerRef={(el) => {
                     this.textInput = el;
                     if (!this.props.innerRef) {
