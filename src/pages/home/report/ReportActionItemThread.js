@@ -57,10 +57,10 @@ const ReportActionItemThread = (props) => {
                         isHovered={props.isHovered}
                         isInReportView
                     />
-                    <View style={[styles.flexRow, styles.lh140Percent, styles.alignItemsEnd]}>
+                    <View style={[styles.flex1, styles.flexRow, styles.lh140Percent, styles.alignItemsEnd]}>
                         <Text
                             selectable={false}
-                            style={[styles.link, styles.ml2, styles.h4]}
+                            style={[styles.link, styles.ml2, styles.h4, styles.noWrap]}
                         >
                             {`${numberReplies} ${replyText}`}
                         </Text>

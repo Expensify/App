@@ -1177,7 +1177,6 @@ const styles = {
     },
 
     threadRepliesTextContainer: {
-        width: 100,
         textOverflow: 'ellipsis',
         overflow: 'hidden',
         ...whiteSpace.noWrap,
