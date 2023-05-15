@@ -23,6 +23,7 @@ import styles from '../../../styles/styles';
 import * as Expensicons from '../../../components/Icon/Expensicons';
 import ONYXKEYS from '../../../ONYXKEYS';
 import * as UserUtils from '../../../libs/UserUtils';
+import withWindowDimensions, {windowDimensionsPropTypes} from '../../../components/withWindowDimensions';
 
 const propTypes = {
     /* Onyx Props */
@@ -37,6 +38,7 @@ const propTypes = {
     }),
 
     ...withLocalizePropTypes,
+    ...windowDimensionsPropTypes,
     ...withCurrentUserPersonalDetailsPropTypes,
 };
 
@@ -100,7 +102,8 @@ const ProfilePage = (props) => {
                         source={ReportUtils.getAvatar(lodashGet(currentUserDetails, 'avatar', ''), lodashGet(currentUserDetails, 'login', ''))}
                         onImageSelected={PersonalDetails.updateAvatar}
                         onImageRemoved={PersonalDetails.deleteAvatar}
-                        anchorPosition={styles.createMenuPositionProfile}
+                        anchorPosition={styles.createMenuPositionProfile(props.windowWidth)}
+                        anchorAlignment={{horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.CENTER, vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.TOP}}
                         size={CONST.AVATAR_SIZE.LARGE}
                     />
                 </OfflineWithFeedback>
@@ -133,6 +136,7 @@ ProfilePage.displayName = 'ProfilePage';
 
 export default compose(
     withLocalize,
+    withWindowDimensions,
     withCurrentUserPersonalDetails,
     withOnyx({
         loginList: {

@@ -23,6 +23,7 @@ import * as ReportUtils from '../../libs/ReportUtils';
 import Avatar from '../../components/Avatar';
 import Navigation from '../../libs/Navigation/Navigation';
 import ROUTES from '../../ROUTES';
+import withWindowDimensions, {windowDimensionsPropTypes} from '../../components/withWindowDimensions';
 
 const propTypes = {
     // The currency list constant object from Onyx
@@ -34,6 +35,7 @@ const propTypes = {
     ),
     ...policyPropTypes,
     ...withLocalizePropTypes,
+    ...windowDimensionsPropTypes,
 };
 
 const defaultProps = {
@@ -120,7 +122,8 @@ function WorkspaceSettingsPage(props) {
                             type={CONST.ICON_TYPE_WORKSPACE}
                             fallbackIcon={Expensicons.FallbackWorkspaceAvatar}
                             style={[styles.mb3]}
-                            anchorPosition={{top: 172, right: 18}}
+                            anchorPosition={{horizontal: props.windowWidth - 355, vertical: 250}}
+                            anchorAlignment={{horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.CENTER, vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.TOP}}
                             isUsingDefaultAvatar={!lodashGet(props.policy, 'avatar', null)}
                             onImageSelected={(file) => Policy.updateWorkspaceAvatar(lodashGet(props.policy, 'id', ''), file)}
                             onImageRemoved={() => Policy.deleteWorkspaceAvatar(lodashGet(props.policy, 'id', ''))}
@@ -158,6 +161,7 @@ WorkspaceSettingsPage.displayName = 'WorkspaceSettingsPage';
 
 export default compose(
     withPolicy,
+    withWindowDimensions,
     withOnyx({
         currencyList: {key: ONYXKEYS.CURRENCY_LIST},
     }),
