@@ -219,20 +219,18 @@ const getEmojiCodeWithSkinColor = (item, preferredSkinToneIndex) => {
  * Replace any emoji name in a text with the emoji icon.
  * If we're on mobile, we also add a space after the emoji granted there's no text after it.
  *
- * All replaced emojis will be added to the frequently used emojis list.
- *
  * @param {String} text
  * @param {Boolean} isSmallScreenWidth
  * @param {Number} preferredSkinTone
- * @returns {String}
+ * @returns {Object}
  */
 function replaceEmojis(text, isSmallScreenWidth = false, preferredSkinTone = CONST.EMOJI_DEFAULT_SKIN_TONE) {
     let newText = text;
+    const emojis = [];
     const emojiData = text.match(CONST.REGEX.EMOJI_NAME);
     if (!emojiData || emojiData.length === 0) {
-        return text;
+        return {text: newText, emojis};
     }
-    const emojis = [];
     for (let i = 0; i < emojiData.length; i++) {
         const name = emojiData[i].slice(1, -1);
         const checkEmoji = emojisTrie.search(name);
@@ -253,11 +251,7 @@ function replaceEmojis(text, isSmallScreenWidth = false, preferredSkinTone = CON
         }
     }
 
-    // Add all replaced emojis to the frequently used emojis list
-    if (!_.isEmpty(emojis)) {
-        getFrequentlyUsedEmojis(emojis);
-    }
-    return newText;
+    return {text: newText, emojis};
 }
 
 /**
