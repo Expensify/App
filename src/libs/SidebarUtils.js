@@ -121,7 +121,7 @@ function getOrderedReportIDs(reportIDFromRoute) {
         report.displayName = ReportUtils.getReportName(report);
 
         // eslint-disable-next-line no-param-reassign
-        report.iouReportAmount = ReportUtils.getIOUTotal(report, moneyRequestReports);
+        report.iouReportAmount = ReportUtils.getMoneyRequestTotal(report, moneyRequestReports);
     });
 
     // The LHN is split into five distinct groups, and each group is sorted a little differently. The groups will ALWAYS be in this order:
@@ -238,6 +238,7 @@ function getOptionData(reportID) {
     const participantPersonalDetailList = _.values(OptionsListUtils.getPersonalDetailsForLogins(report.participants, personalDetails));
     const personalDetail = participantPersonalDetailList[0] || {};
 
+    result.isThread = ReportUtils.isThread(report);
     result.isChatRoom = ReportUtils.isChatRoom(report);
     result.isTaskReport = ReportUtils.isTaskReport(report);
     result.isArchivedRoom = ReportUtils.isArchivedRoom(report);
@@ -302,7 +303,7 @@ function getOptionData(reportID) {
         });
     }
 
-    if ((result.isChatRoom || result.isPolicyExpenseChat) && !result.isArchivedRoom) {
+    if ((result.isChatRoom || result.isPolicyExpenseChat || result.isThread) && !result.isArchivedRoom) {
         result.alternateText = lastMessageTextFromReport.length > 0 ? lastMessageText : Localize.translate(preferredLocale, 'report.noActivityYet');
     } else if (result.isTaskReport) {
         result.alternateText = Localize.translate(preferredLocale, 'newTaskPage.task');
@@ -331,7 +332,7 @@ function getOptionData(reportID) {
     }
 
     result.isIOUReportOwner = ReportUtils.isIOUOwnedByCurrentUser(result, moneyRequestReports);
-    result.iouReportAmount = ReportUtils.getIOUTotal(result, moneyRequestReports);
+    result.iouReportAmount = ReportUtils.getMoneyRequestTotal(result, moneyRequestReports);
 
     if (!hasMultipleParticipants) {
         result.login = personalDetail.login;
@@ -340,6 +341,7 @@ function getOptionData(reportID) {
     }
 
     const reportName = ReportUtils.getReportName(report);
+
     result.text = reportName;
     result.subtitle = subtitle;
     result.participantsList = participantPersonalDetailList;

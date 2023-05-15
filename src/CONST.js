@@ -210,6 +210,7 @@ const CONST = {
         POLICY_EXPENSE_CHAT: 'policyExpenseChat',
         PASSWORDLESS: 'passwordless',
         TASKS: 'tasks',
+        THREADS: 'threads',
     },
     BUTTON_STATES: {
         DEFAULT: 'default',
@@ -406,6 +407,7 @@ const CONST = {
                 ADDCOMMENT: 'ADDCOMMENT',
                 CLOSED: 'CLOSED',
                 CREATED: 'CREATED',
+                TASKEDITED: 'TASKEDITED',
                 IOU: 'IOU',
                 RENAMED: 'RENAMED',
                 CHRONOSOOOLIST: 'CHRONOSOOOLIST',
@@ -1095,6 +1097,7 @@ const CONST = {
         INFO: 'info',
     },
     REPORT_DETAILS_MENU_ITEM: {
+        SHARE_CODE: 'shareCode',
         MEMBERS: 'member',
         SETTINGS: 'settings',
         LEAVE_ROOM: 'leaveRoom',
@@ -2314,6 +2317,10 @@ const CONST = {
         ACTIVE: 'active',
         DISABLED: 'disabled',
     },
+
+    // This ID is used in SelectionScraper.js to query the DOM for UnreadActionIndicator's
+    // div and then remove it from copied contents in the getHTMLOfSelection() method.
+    UNREAD_ACTION_INDICATOR_ID: 'no-copy-area-unread-action-indicator',
 };
 
 export default CONST;

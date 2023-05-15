@@ -23,7 +23,7 @@ Onyx.connect({
         if (!report) {
             delete iouReports[key];
             delete chatReports[key];
-        } else if (ReportUtils.isIOUReport(report)) {
+        } else if (ReportUtils.isMoneyRequestReport(report)) {
             iouReports[key] = report;
         } else {
             chatReports[key] = report;
@@ -76,7 +76,9 @@ function requestMoney(report, amount, currency, payeeEmail, participant, comment
     if (chatReport.iouReportID) {
         if (isPolicyExpenseChat) {
             moneyRequestReport = {...iouReports[`${ONYXKEYS.COLLECTION.REPORT}${chatReport.iouReportID}`]};
-            moneyRequestReport.total += amount;
+
+            // Because of the Expense reports are stored as negative values, we substract the total from the amount
+            moneyRequestReport.total = ReportUtils.isExpenseReport(moneyRequestReport) ? moneyRequestReport.total - amount : moneyRequestReport.total + amount;
         } else {
             moneyRequestReport = IOUUtils.updateIOUOwnerAndTotal(iouReports[`${ONYXKEYS.COLLECTION.REPORT}${chatReport.iouReportID}`], payeeEmail, amount, currency);
         }
@@ -384,8 +386,8 @@ function createSplitsAndOnyxData(participants, currentUserLogin, amount, comment
     }
 
     // Loop through participants creating individual chats, iouReports and reportActionIDs as needed
-    const splitAmount = IOUUtils.calculateAmount(participants, amount, false);
-    const splits = [{email: currentUserEmail, amount: IOUUtils.calculateAmount(participants, amount, true)}];
+    const splitAmount = IOUUtils.calculateAmount(participants.length, amount, false);
+    const splits = [{email: currentUserEmail, amount: IOUUtils.calculateAmount(participants.length, amount, true)}];
 
     const hasMultipleParticipants = participants.length > 1;
     _.each(participants, (participant) => {
@@ -776,7 +778,7 @@ function setMoneyRequestDescription(comment) {
  * @returns {String}
  */
 function buildPayPalPaymentUrl(amount, submitterPayPalMeAddress, currency) {
-    return `https://paypal.me/${submitterPayPalMeAddress}/${amount / 100}${currency}`;
+    return `https://paypal.me/${submitterPayPalMeAddress}/${Math.abs(amount) / 100}${currency}`;
 }
 
 /**
