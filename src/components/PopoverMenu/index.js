@@ -13,7 +13,6 @@ import useArrowKeyFocusManager from '../../hooks/useArrowKeyFocusManager';
 import useKeyboardShortcut from '../../hooks/useKeyboardShortcut';
 import useWindowDimensions from '../../hooks/useWindowDimensions';
 
-// TODO: DRY props
 const propTypes = {
     ...createMenuPropTypes,
     ...windowDimensionsPropTypes,
@@ -71,9 +70,7 @@ const PopoverMenu = (props) => {
             animationIn={props.animationIn}
             animationOut={props.animationOut}
             animationInTiming={props.animationInTiming}
-            // TODO: rename to `shouldDisableAnimation`
             disableAnimation={props.disableAnimation}
-            // TODO: fuck this prop
             fromSidebarMediumScreen={props.fromSidebarMediumScreen}
         >
             <View style={isSmallScreenWidth ? {} : styles.createMenuContainer}>
