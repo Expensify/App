@@ -1,10 +1,9 @@
 import React, {Component} from 'react';
 import ViewShot from 'react-native-view-shot';
 import fileDownload from '../../../libs/fileDownload';
-import QRShare from '..'
+import QRShare from '..';
 import {qrShareDefaultProps, qrSharePropTypes} from '../propTypes';
 import getQrCodeFileName from '../getQrCodeDownloadFileName';
-
 
 class QRShareWithDownload extends Component {
     qrCodeScreenshotRef = React.createRef();
