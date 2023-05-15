@@ -66,7 +66,7 @@ const ReportActionItemThread = (props) => {
                         </Text>
                         <Text
                             selectable={false}
-                            style={[styles.ml2, styles.textMicroSupporting, styles.threadRepliesTextContainer]}
+                            style={[styles.ml2, styles.textMicroSupporting, props.isSmallScreenWidth ? styles.threadRepliesTextContainer : {}]}
                         >{`${props.translate('threads.lastReply')} ${timeStamp}`}</Text>
                     </View>
                 </View>
