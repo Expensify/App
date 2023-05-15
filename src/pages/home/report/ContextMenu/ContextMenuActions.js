@@ -114,7 +114,7 @@ export default [
             Permissions.canUseThreads(betas) &&
             type === CONTEXT_MENU_TYPES.REPORT_ACTION &&
             reportAction.actionName === CONST.REPORT.ACTIONS.TYPE.ADDCOMMENT &&
-            (_.isUndefined(reportAction.childReportID) || reportAction.childReportID.toString() !== reportID),
+            !ReportUtils.isThreadFirstChat(reportAction, reportID),
         onPress: (closePopover, {reportAction, reportID}) => {
             Report.navigateToAndOpenChildReport(lodashGet(reportAction, 'childReportID', '0'), reportAction, reportID);
             if (closePopover) {

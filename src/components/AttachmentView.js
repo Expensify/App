@@ -43,6 +43,10 @@ const propTypes = {
     /** Notify parent that the UI should be modified to accommodate keyboard */
     onToggleKeyboard: PropTypes.func,
 
+    /** Extra styles to pass to View wrapper */
+    // eslint-disable-next-line react/forbid-prop-types
+    containerStyles: PropTypes.arrayOf(PropTypes.object),
+
     ...withLocalizePropTypes,
 };
 
@@ -56,6 +60,7 @@ const defaultProps = {
     onPress: undefined,
     onScaleChanged: () => {},
     onToggleKeyboard: () => {},
+    containerStyles: [],
 };
 
 const AttachmentView = (props) => {
@@ -124,7 +129,7 @@ const AttachmentView = (props) => {
     }
 
     return (
-        <View style={styles.defaultAttachmentView}>
+        <View style={[styles.defaultAttachmentView, ...props.containerStyles]}>
             <View style={styles.mr2}>
                 <Icon src={Expensicons.Paperclip} />
             </View>

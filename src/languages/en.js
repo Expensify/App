@@ -134,6 +134,8 @@ export default {
         zipCodeExampleFormat: ({zipSampleFormat}) => (zipSampleFormat ? `e.g. ${zipSampleFormat}` : ''),
         description: 'Description',
         with: 'with',
+        shareCode: 'Share code',
+        share: 'Share',
     },
     attachmentPicker: {
         cameraPermissionRequired: 'Camera access',
@@ -326,10 +328,12 @@ export default {
         settlePaypalMe: 'Pay with PayPal.me',
         requestAmount: ({amount}) => `request ${amount}`,
         splitAmount: ({amount}) => `split ${amount}`,
+        amountEach: ({amount}) => `${amount} each`,
         payerOwesAmount: ({payer, amount}) => `${payer} owes ${amount}`,
         payerSettled: ({amount}) => `settled up ${amount}`,
         noReimbursableExpenses: 'This report has an invalid amount',
         pendingConversionMessage: "Total will update when you're back online",
+        threadReportName: ({formattedAmount, comment}) => `${formattedAmount} request${comment ? ` for ${comment}` : ''}`,
         error: {
             invalidSplit: 'Split amounts do not equal total amount',
             other: 'Unexpected error, please try again later',
@@ -1309,5 +1313,10 @@ export default {
     },
     parentReportAction: {
         deletedMessage: '[Deleted message]',
+    },
+    threads: {
+        lastReply: 'Last Reply',
+        replies: 'Replies',
+        reply: 'Reply',
     },
 };
