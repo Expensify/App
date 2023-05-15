@@ -48,6 +48,7 @@ import DisplayNames from '../../../components/DisplayNames';
 import personalDetailsPropType from '../../personalDetailsPropType';
 import ReportActionItemDraft from './ReportActionItemDraft';
 import TaskPreview from '../../../components/ReportActionItem/TaskPreview';
+import TaskAction from '../../../components/ReportActionItem/TaskAction';
 import * as ReportActionUtils from '../../../libs/ReportActionsUtils';
 import Permissions from '../../../libs/Permissions';
 
@@ -204,6 +205,14 @@ class ReportActionItem extends Component {
                     isHovered={hovered}
                     contextMenuAnchor={this.popoverAnchor}
                     checkIfContextMenuActive={this.checkIfContextMenuActive}
+                />
+            );
+        } else if (this.props.action.actionName === CONST.REPORT.ACTIONS.TYPE.TASKCOMPLETED) {
+            children = (
+                <TaskAction
+                    taskReportID={this.props.action.originalMessage.taskReportID.toString()}
+                    actionName={this.props.action.actionName}
+                    isHovered={hovered}
                 />
             );
         } else if (ReportActionUtils.isCreatedTaskReportAction(this.props.action)) {
