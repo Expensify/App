@@ -79,7 +79,7 @@ const MoneyRequestHeader = (props) => {
                             source={payeeAvatar}
                             type={isExpenseReport ? CONST.ICON_TYPE_WORKSPACE : CONST.ICON_TYPE_AVATAR}
                             name={payeeName}
-                            size={CONST.AVATAR_SIZE.HEADER}
+                            size={CONST.AVATAR_SIZE.DEFAULT}
                         />
                         <View style={[styles.flex1, styles.flexColumn, styles.ml3]}>
                             <Text
