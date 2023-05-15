@@ -26,6 +26,7 @@ import useOnNetworkReconnect from '../../components/hooks/useOnNetworkReconnect'
 import * as DeviceCapabilities from '../../libs/DeviceCapabilities';
 import HeaderWithBackButton from '../../components/HeaderWithBackButton';
 import * as CurrencyUtils from '../../libs/CurrencyUtils';
+import Navigation from '../../libs/Navigation/Navigation';
 
 /**
  * A modal used for requesting money, splitting bills or sending money.
