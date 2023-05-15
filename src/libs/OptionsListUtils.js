@@ -72,12 +72,14 @@ Onyx.connect({
 });
 
 const lastReportActions = {};
+const allReportActions = {};
 Onyx.connect({
     key: ONYXKEYS.COLLECTION.REPORT_ACTIONS,
     callback: (actions, key) => {
         if (!key || !actions) {
             return;
         }
+        allReportActions[key] = actions;
         const reportID = CollectionUtils.extractCollectionItemID(key);
         lastReportActions[reportID] = _.last(_.toArray(actions));
     },
@@ -103,7 +105,10 @@ function getPolicyExpenseReportOptions(report) {
     if (!ReportUtils.isPolicyExpenseChat(report)) {
         return [];
     }
-    const filteredPolicyExpenseReports = _.filter(policyExpenseReports, (policyExpenseReport) => policyExpenseReport.policyID === report.policyID);
+    const filteredPolicyExpenseReports = _.filter(
+        policyExpenseReports,
+        (policyExpenseReport) => policyExpenseReport.policyID === report.policyID && policyExpenseReport.isOwnPolicyExpenseChat,
+    );
     return _.map(filteredPolicyExpenseReports, (expenseReport) => {
         const policyExpenseChatAvatarSource = ReportUtils.getWorkspaceAvatar(expenseReport);
         return {
@@ -403,6 +408,7 @@ function createOption(logins, personalDetails, report, reportActions = {}, {show
         result.isDefaultRoom = ReportUtils.isDefaultRoom(report);
         result.isArchivedRoom = ReportUtils.isArchivedRoom(report);
         result.isPolicyExpenseChat = ReportUtils.isPolicyExpenseChat(report);
+        result.isThread = ReportUtils.isThread(report);
         result.shouldShowSubscript = result.isPolicyExpenseChat && !report.isOwnPolicyExpenseChat && !result.isArchivedRoom;
         result.allReportErrors = getAllReportErrors(report, reportActions);
         result.brickRoadIndicator = !_.isEmpty(result.allReportErrors) ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : '';
@@ -455,7 +461,7 @@ function createOption(logins, personalDetails, report, reportActions = {}, {show
     }
 
     result.isIOUReportOwner = ReportUtils.isIOUOwnedByCurrentUser(result, iouReports);
-    result.iouReportAmount = ReportUtils.getIOUTotal(result, iouReports);
+    result.iouReportAmount = ReportUtils.getMoneyRequestTotal(result, iouReports);
 
     if (!hasMultipleParticipants) {
         result.login = personalDetail.login;
@@ -539,6 +545,7 @@ function getOptions(
         sortPersonalDetailsByAlphaAsc = true,
         forcePolicyNamePreview = false,
         includeOwnedWorkspaceChats = false,
+        includeThreads = false,
     },
 ) {
     if (!isPersonalDetailsReady(personalDetails)) {
@@ -578,11 +585,16 @@ function getOptions(
             return;
         }
 
+        const isThread = ReportUtils.isThread(report);
         const isChatRoom = ReportUtils.isChatRoom(report);
         const isPolicyExpenseChat = ReportUtils.isPolicyExpenseChat(report);
         const logins = report.participants || [];
 
         if (isPolicyExpenseChat && report.isOwnPolicyExpenseChat && !includeOwnedWorkspaceChats) {
+            return;
+        }
+
+        if (isThread && !includeThreads) {
             return;
         }
 
@@ -839,7 +851,9 @@ function getNewChatOptions(reports, personalDetails, betas = [], searchValue = '
  */
 
 function getShareDestinationOptions(reports, personalDetails, betas = [], searchValue = '', selectedOptions = [], excludeLogins = [], includeOwnedWorkspaceChats = true) {
-    return getOptions(reports, personalDetails, {
+    // We want to filter out any IOUs or expense reports
+    const filteredReports = _.filter(reports, (report) => !ReportUtils.isMoneyRequestReport(report));
+    return getOptions(filteredReports, personalDetails, {
         betas,
         searchInputValue: searchValue.trim(),
         selectedOptions,

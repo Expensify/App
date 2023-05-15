@@ -254,6 +254,7 @@ export default {
         deleteComment: 'Delete comment',
         deleteConfirmation: 'Are you sure you want to delete this comment?',
         onlyVisible: 'Only visible to',
+        replyInThread: 'Reply in thread',
     },
     emojiReactions: {
         addReactionTooltip: 'Add reaction',
@@ -325,6 +326,7 @@ export default {
         settlePaypalMe: 'Pay with PayPal.me',
         requestAmount: ({amount}) => `request ${amount}`,
         splitAmount: ({amount}) => `split ${amount}`,
+        amountEach: ({amount}) => `${amount} each`,
         payerOwesAmount: ({payer, amount}) => `${payer} owes ${amount}`,
         payerSettled: ({amount}) => `settled up ${amount}`,
         noReimbursableExpenses: 'This report has an invalid amount',
@@ -397,6 +399,10 @@ export default {
             deleteContactMethod: 'Failed to delete contact method. Please reach out to Concierge for help.',
             setDefaultContactMethod: 'Failed to set a new default contact method. Please reach out to Concierge for help.',
             addContactMethod: 'Failed to add this contact method. Please reach out to Concierge for help.',
+            enteredMethodIsAlreadySubmited: 'The Entered Contact Method already exists.',
+            passwordRequired: 'password required.',
+            contactMethodRequired: 'Contact method is required.',
+            invalidContactMethod: 'Invalid contact method.',
         },
         newContactMethod: 'New contact method',
     },
@@ -1301,5 +1307,13 @@ export default {
         workspaceName: 'Workspace name',
         chatUserDisplayNames: 'Chat user display names',
         scrollToNewestMessages: 'Scroll to newest messages',
+    },
+    parentReportAction: {
+        deletedMessage: '[Deleted message]',
+    },
+    threads: {
+        lastReply: 'Last Reply',
+        replies: 'Replies',
+        reply: 'Reply',
     },
 };

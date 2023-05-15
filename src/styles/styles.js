@@ -819,6 +819,12 @@ const styles = {
         minHeight: variables.componentSizeLarge,
     }),
 
+    autoGrowHeightHiddenInput: (maxWidth, maxHeight) => ({
+        maxWidth,
+        maxHeight: maxHeight && maxHeight + 1,
+        overflow: 'hidden',
+    }),
+
     textInputContainer: {
         flex: 1,
         justifyContent: 'center',
@@ -1010,6 +1016,10 @@ const styles = {
 
     lh16: {
         lineHeight: 16,
+    },
+
+    lh140Percent: {
+        lineHeight: '140%',
     },
 
     formHelp: {
@@ -1678,10 +1688,8 @@ const styles = {
 
     taskSelectorLink: {
         alignSelf: 'center',
-        height: 42,
         width: '100%',
         padding: 6,
-        margin: 3,
         backgroundColor: themeColors.transparent,
     },
 
@@ -1971,6 +1979,11 @@ const styles = {
         backgroundColor: themeColors.modalBackdrop,
     },
 
+    centeredModalStyles: (isSmallScreenWidth) => ({
+        borderWidth: isSmallScreenWidth ? 1 : 0,
+        marginHorizontal: isSmallScreenWidth ? 0 : 20,
+    }),
+
     imageModalImageCenterContainer: {
         alignItems: 'center',
         flex: 1,
@@ -2192,6 +2205,13 @@ const styles = {
         flexGrow: 1,
         marginRight: 8,
         opacity: 0.5,
+    },
+
+    threadDividerLine: {
+        height: 1,
+        backgroundColor: themeColors.border,
+        flexGrow: 1,
+        marginHorizontal: 20,
     },
 
     unreadIndicatorText: {
