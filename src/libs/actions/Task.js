@@ -153,9 +153,121 @@ function createTaskAndNavigate(currentUserEmail, parentReportID, title, descript
 }
 
 /**
+ * @function editTask
+ * @param {object} report
+ * @param {string} ownerEmail
+ * @param {string} title
+ * @param {string} description
+ * @param {string} assignee
+ * @returns {object} action
+ *
+ */
+
+function editTaskAndNavigate(report, ownerEmail, title, description, assignee) {
+    // Create the EditedReportAction on the task
+    const editTaskReportAction = ReportUtils.buildOptimisticEditedTaskReportAction(ownerEmail);
+
+    // Sometimes title is undefined, so we need to check for that, and we provide it to multiple functions
+    const reportName = title || report.reportName;
+
+    // If we make a change to the assignee, we want to add a comment to the assignee's chat
+    let optimisticAssigneeAddComment;
+    let assigneeChatReportID;
+    if (assignee && assignee !== report.assignee) {
+        assigneeChatReportID = ReportUtils.getChatByParticipants([assignee]).reportID;
+        optimisticAssigneeAddComment = ReportUtils.buildOptimisticTaskCommentReportAction(report.reportID, reportName, assignee, `Assigned a task to you: ${reportName}`);
+    }
+
+    const optimisticData = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.reportID}`,
+            value: {[editTaskReportAction.reportActionID]: editTaskReportAction},
+        },
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`,
+            value: {
+                reportName,
+                description: description || report.description,
+                assignee: assignee || report.assignee,
+            },
+        },
+    ];
+    const successData = [];
+    const failureData = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.reportID}`,
+            value: {[editTaskReportAction.reportActionID]: {pendingAction: null}},
+        },
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`,
+            value: {reportName: report.reportName, description: report.description, assignee: report.assignee},
+        },
+    ];
+
+    if (optimisticAssigneeAddComment) {
+        const currentTime = DateUtils.getDBTime();
+        const lastAssigneeCommentText = ReportUtils.formatReportLastMessageText(optimisticAssigneeAddComment.reportAction.message[0].text);
+
+        const optimisticAssigneeReport = {
+            lastVisibleActionCreated: currentTime,
+            lastMessageText: Str.htmlDecode(lastAssigneeCommentText),
+            lastActorEmail: ownerEmail,
+            lastReadTime: currentTime,
+        };
+
+        optimisticData.push(
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${assigneeChatReportID}`,
+                value: {[optimisticAssigneeAddComment.reportAction.reportActionID]: optimisticAssigneeAddComment.reportAction},
+            },
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.REPORT}${assigneeChatReportID}`,
+                value: optimisticAssigneeReport,
+            },
+        );
+
+        failureData.push({
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${assigneeChatReportID}`,
+            value: {[optimisticAssigneeAddComment.reportAction.reportActionID]: {pendingAction: null}},
+        });
+    }
+
+    API.write(
+        'EditTask',
+        {
+            taskReportID: report.reportID,
+            title: reportName,
+            description: description || report.description,
+            assignee: assignee || report.assignee,
+            editedTaskReportActionID: editTaskReportAction.reportActionID,
+            assigneeChatReportActionID: optimisticAssigneeAddComment ? optimisticAssigneeAddComment.reportAction.reportActionID : 0,
+        },
+        {optimisticData, successData, failureData},
+    );
+
+    Navigation.navigate(ROUTES.getReportRoute(report.reportID));
+}
+
+/**
+ * Sets the report info for the task being viewed
+ *
+ * @param {Object} report
+ */
+function setTaskReport(report) {
+    Onyx.merge(ONYXKEYS.TASK, {report});
+}
+
+/**
  * Sets the title and description values for the task
  * @param {string} title
-  @param {string} description
+ * @param {string} description
  */
 
 function setDetailsValue(title, description) {
@@ -234,6 +346,44 @@ function clearOutTaskInfoAndNavigate(reportID) {
     Navigation.navigate(ROUTES.NEW_TASK_DETAILS);
 }
 
+/**
+ * Get the assignee data
+ *
+ * @param {Object} details
+ * @returns {Object}
+ */
+function getAssignee(details) {
+    if (!details) {
+        return {
+            icons: [],
+            displayName: '',
+            subtitle: '',
+        };
+    }
+    const source = ReportUtils.getAvatar(lodashGet(details, 'avatar', ''), lodashGet(details, 'login', ''));
+    return {
+        icons: [{source, type: 'avatar', name: details.login}],
+        displayName: details.displayName,
+        subtitle: details.login,
+    };
+}
+
+/**
+ * Get the share destination data
+ * @param {Object} reportID
+ * @param {Object} reports
+ * @param {Object} personalDetails
+ * @returns {Object}
+ * */
+function getShareDestination(reportID, reports, personalDetails) {
+    const report = lodashGet(reports, `report_${reportID}`, {});
+    return {
+        icons: ReportUtils.getIcons(report, personalDetails),
+        displayName: ReportUtils.getReportName(report),
+        subtitle: ReportUtils.getChatRoomSubtitle(report),
+    };
+}
+
 function cancelTask(taskReportID, parentReportID, originalStateNum, originalStatusNum) {
     const optimisticCancelReportAction = ReportUtils.buildOptimisticCancelTaskReportAction(taskReportID);
     const optimisticReportActionID = optimisticCancelReportAction.reportActionID;
@@ -277,4 +427,18 @@ function cancelTask(taskReportID, parentReportID, originalStateNum, originalStat
     API.write('CancelTask', {taskReportID, optimisticReportActionID}, {optimisticData, failureData});
 }
 
-export {createTaskAndNavigate, setTitleValue, setDescriptionValue, setDetailsValue, setAssigneeValue, setShareDestinationValue, clearOutTaskInfo, clearOutTaskInfoAndNavigate, cancelTask};
+export {
+    createTaskAndNavigate,
+    editTaskAndNavigate,
+    setTitleValue,
+    setDescriptionValue,
+    setTaskReport,
+    setDetailsValue,
+    setAssigneeValue,
+    setShareDestinationValue,
+    clearOutTaskInfo,
+    clearOutTaskInfoAndNavigate,
+    getAssignee,
+    getShareDestination,
+    cancelTask,
+};

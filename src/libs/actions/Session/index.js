@@ -347,6 +347,13 @@ function signIn(password, validateCode, twoFactorAuthCode, preferredLocale = CON
                 isLoading: false,
             },
         },
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: ONYXKEYS.CREDENTIALS,
+            value: {
+                validateCode,
+            },
+        },
     ];
 
     const failureData = [
@@ -367,8 +374,8 @@ function signIn(password, validateCode, twoFactorAuthCode, preferredLocale = CON
     };
 
     // Conditionally pass a password or validateCode to command since we temporarily allow both flows
-    if (validateCode) {
-        params.validateCode = validateCode;
+    if (validateCode || twoFactorAuthCode) {
+        params.validateCode = validateCode || credentials.validateCode;
     } else {
         params.password = password;
     }

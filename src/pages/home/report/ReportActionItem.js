@@ -17,6 +17,7 @@ import ReportActionItemMessage from './ReportActionItemMessage';
 import UnreadActionIndicator from '../../../components/UnreadActionIndicator';
 import ReportActionItemMessageEdit from './ReportActionItemMessageEdit';
 import ReportActionItemCreated from './ReportActionItemCreated';
+import ReportActionItemThread from './ReportActionItemThread';
 import compose from '../../../libs/compose';
 import withWindowDimensions, {windowDimensionsPropTypes} from '../../../components/withWindowDimensions';
 import ControlSelection from '../../../libs/ControlSelection';
@@ -49,6 +50,7 @@ import personalDetailsPropType from '../../personalDetailsPropType';
 import ReportActionItemDraft from './ReportActionItemDraft';
 import TaskPreview from '../../../components/ReportActionItem/TaskPreview';
 import * as ReportActionUtils from '../../../libs/ReportActionsUtils';
+import Permissions from '../../../libs/Permissions';
 
 const propTypes = {
     /** Report for this action */
@@ -84,6 +86,9 @@ const propTypes = {
     /** All of the personalDetails */
     personalDetails: PropTypes.objectOf(personalDetailsPropType),
 
+    /** List of betas available to current user */
+    betas: PropTypes.arrayOf(PropTypes.string),
+
     ...windowDimensionsPropTypes,
 };
 
@@ -93,6 +98,7 @@ const defaultProps = {
     preferredSkinTone: CONST.EMOJI_DEFAULT_SKIN_TONE,
     personalDetails: {},
     shouldShowSubscriptAvatar: false,
+    betas: [],
 };
 
 class ReportActionItem extends Component {
@@ -164,6 +170,7 @@ class ReportActionItem extends Component {
             this.checkIfContextMenuActive,
             ReportUtils.isArchivedRoom(this.props.report),
             ReportUtils.chatIncludesChronos(this.props.report),
+            this.props.action.childReportID,
         );
     }
 
@@ -178,7 +185,11 @@ class ReportActionItem extends Component {
      */
     renderItemContent(hovered = false) {
         let children;
-        if (this.props.action.actionName === CONST.REPORT.ACTIONS.TYPE.IOU) {
+        if (
+            this.props.action.actionName === CONST.REPORT.ACTIONS.TYPE.IOU &&
+            this.props.action.originalMessage.type !== CONST.IOU.REPORT_ACTION_TYPE.DELETE &&
+            this.props.action.originalMessage.type !== CONST.IOU.REPORT_ACTION_TYPE.PAY
+        ) {
             // There is no single iouReport for bill splits, so only 1:1 requests require an iouReportID
             const iouReportID = this.props.action.originalMessage.IOUReportID ? this.props.action.originalMessage.IOUReportID.toString() : '0';
 
@@ -245,6 +256,10 @@ class ReportActionItem extends Component {
 
         const reactions = _.get(this.props, ['action', 'message', 0, 'reactions'], []);
         const hasReactions = reactions.length > 0;
+        const shouldDisplayThreadReplies =
+            this.props.action.childCommenterCount && Permissions.canUseThreads(this.props.betas) && !ReportUtils.isThreadFirstChat(this.props.action, this.props.report.reportID);
+        const oldestFourEmails = lodashGet(this.props.action, 'childOldestFourEmails', '').split(',');
+
         return (
             <>
                 {children}
@@ -255,6 +270,14 @@ class ReportActionItem extends Component {
                             toggleReaction={this.toggleReaction}
                         />
                     </View>
+                )}
+                {shouldDisplayThreadReplies && (
+                    <ReportActionItemThread
+                        childReportID={`${this.props.action.childReportID}`}
+                        numberOfReplies={this.props.action.childVisibleActionCount || 0}
+                        mostRecentReply={`${this.props.action.childLastVisibleActionCreated}`}
+                        icons={ReportUtils.getIconsForParticipants(oldestFourEmails, this.props.personalDetails)}
+                    />
                 )}
             </>
         );
@@ -373,6 +396,7 @@ class ReportActionItem extends Component {
                                 isVisible={hovered && !this.props.draftMessage && !hasErrors}
                                 draftMessage={this.props.draftMessage}
                                 isChronosReport={ReportUtils.chatIncludesChronos(this.props.report)}
+                                childReportActionID={this.props.action.childReportActionID}
                             />
                         </View>
                     )}
@@ -403,6 +427,9 @@ export default compose(
     withOnyx({
         preferredSkinTone: {
             key: ONYXKEYS.PREFERRED_EMOJI_SKIN_TONE,
+        },
+        betas: {
+            key: ONYXKEYS.BETAS,
         },
     }),
 )(ReportActionItem);
