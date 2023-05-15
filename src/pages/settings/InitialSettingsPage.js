@@ -178,6 +178,13 @@ class InitialSettingsPage extends React.Component {
 
         return [
             {
+                translationKey: 'common.shareCode',
+                icon: Expensicons.QrCode,
+                action: () => {
+                    Navigation.navigate(ROUTES.SETTINGS_SHARE_CODE);
+                },
+            },
+            {
                 translationKey: 'common.workspaces',
                 icon: Expensicons.Building,
                 action: () => {

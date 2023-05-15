@@ -36,7 +36,6 @@ export default function () {
             [ONYXKEYS.IOU]: {
                 loading: false,
                 error: false,
-                creatingIOUTransaction: false,
             },
             [ONYXKEYS.IS_SIDEBAR_LOADED]: false,
             [ONYXKEYS.SHOULD_SHOW_COMPOSE_INPUT]: true,

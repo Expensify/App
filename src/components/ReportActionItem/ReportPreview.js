@@ -84,7 +84,7 @@ const defaultProps = {
 };
 
 const ReportPreview = (props) => {
-    const reportAmount = CurrencyUtils.convertToDisplayString(props.iouReport.total, props.iouReport.currency);
+    const reportAmount = CurrencyUtils.convertToDisplayString(ReportUtils.getMoneyRequestTotal(props.iouReport), props.iouReport.currency);
     const managerEmail = props.iouReport.managerEmail || '';
     const managerName = ReportUtils.getDisplayNameForParticipant(managerEmail, true);
     const isCurrentUserManager = managerEmail === lodashGet(props.session, 'email', null);
@@ -107,7 +107,7 @@ const ReportPreview = (props) => {
                             <Text style={[styles.chatItemMessage, styles.cursorPointer]}>{props.translate('iou.payerOwesAmount', {payer: managerName, amount: reportAmount})}</Text>
                         ) : (
                             <View style={[styles.flexRow]}>
-                                <Text style={[styles.chatItemMessage, styles.cursorPointer]}>{props.translate('iou.payerSettled', {payer: managerName, amount: reportAmount})}</Text>
+                                <Text style={[styles.chatItemMessage, styles.cursorPointer]}>{props.translate('iou.payerSettled', {amount: reportAmount})}</Text>
                                 {!props.iouReport.hasOutstandingIOU && (
                                     <Icon
                                         style={[styles.ml10]}

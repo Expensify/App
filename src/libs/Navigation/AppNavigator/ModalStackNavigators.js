@@ -160,6 +160,13 @@ const ReportDetailsModalStackNavigator = createModalStackNavigator([
         },
         name: 'Report_Details_Root',
     },
+    {
+        getComponent: () => {
+            const ShareCodePage = require('../../../pages/home/report/ReportDetailsShareCodePage').default;
+            return ShareCodePage;
+        },
+        name: 'Report_Details_Share_Code',
+    },
 ]);
 
 const TaskModalStackNavigator = createModalStackNavigator([
@@ -176,6 +183,13 @@ const TaskModalStackNavigator = createModalStackNavigator([
             return TaskDescriptionPage;
         },
         name: 'Task_Description',
+    },
+    {
+        getComponent: () => {
+            const TaskAssigneeSelectorPage = require('../../../pages/tasks/TaskAssigneeSelectorModal').default;
+            return TaskAssigneeSelectorPage;
+        },
+        name: 'Task_Assignee',
     },
 ]);
 
@@ -288,6 +302,13 @@ const SettingsModalStackNavigator = createModalStackNavigator([
             return SettingsInitialPage;
         },
         name: 'Settings_Root',
+    },
+    {
+        getComponent: () => {
+            const ShareCodePage = require('../../../pages/ShareCodePage').default;
+            return ShareCodePage;
+        },
+        name: 'Settings_Share_Code',
     },
     {
         getComponent: () => {

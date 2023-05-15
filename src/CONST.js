@@ -210,6 +210,7 @@ const CONST = {
         POLICY_EXPENSE_CHAT: 'policyExpenseChat',
         PASSWORDLESS: 'passwordless',
         TASKS: 'tasks',
+        THREADS: 'threads',
     },
     BUTTON_STATES: {
         DEFAULT: 'default',
@@ -406,6 +407,7 @@ const CONST = {
                 ADDCOMMENT: 'ADDCOMMENT',
                 CLOSED: 'CLOSED',
                 CREATED: 'CREATED',
+                TASKEDITED: 'TASKEDITED',
                 IOU: 'IOU',
                 RENAMED: 'RENAMED',
                 CHRONOSOOOLIST: 'CHRONOSOOOLIST',
@@ -580,6 +582,7 @@ const CONST = {
     },
     JSON_CODE: {
         SUCCESS: 200,
+        BAD_REQUEST: 400,
         NOT_AUTHENTICATED: 407,
         EXP_ERROR: 666,
         MANY_WRITES_ERROR: 665,
@@ -613,12 +616,14 @@ const CONST = {
         SAFARI_CANNOT_PARSE_RESPONSE: 'cannot parse response',
         GATEWAY_TIMEOUT: 'Gateway Timeout',
         EXPENSIFY_SERVICE_INTERRUPTED: 'Expensify service interrupted',
+        DUPLICATE_RECORD: 'A record already exists with this ID',
     },
     ERROR_TYPE: {
         SOCKET: 'Expensify\\Auth\\Error\\Socket',
     },
     ERROR_TITLE: {
         SOCKET: 'Issue connecting to database',
+        DUPLICATE_RECORD: '400 Unique Constraints Violation',
     },
     NETWORK: {
         METHOD: {
@@ -1093,6 +1098,7 @@ const CONST = {
         INFO: 'info',
     },
     REPORT_DETAILS_MENU_ITEM: {
+        SHARE_CODE: 'shareCode',
         MEMBERS: 'member',
         SETTINGS: 'settings',
         LEAVE_ROOM: 'leaveRoom',
@@ -2312,6 +2318,10 @@ const CONST = {
         ACTIVE: 'active',
         DISABLED: 'disabled',
     },
+
+    // This ID is used in SelectionScraper.js to query the DOM for UnreadActionIndicator's
+    // div and then remove it from copied contents in the getHTMLOfSelection() method.
+    UNREAD_ACTION_INDICATOR_ID: 'no-copy-area-unread-action-indicator',
 };
 
 export default CONST;
