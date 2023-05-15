@@ -68,6 +68,9 @@ const propTypes = {
 
     /** Callback function to navigate to a provided step in the MoneyRequestModal flow */
     navigateToStep: PropTypes.func.isRequired,
+
+    /** The policyID of the request */
+    policyID: PropTypes.string.isRequired,
 };
 
 const defaultProps = {
@@ -290,6 +293,7 @@ class MoneyRequestConfirmationList extends Component {
                             addBankAccountRoute={ROUTES.IOU_SEND_ADD_BANK_ACCOUNT}
                             addDebitCardRoute={ROUTES.IOU_SEND_ADD_DEBIT_CARD}
                             currency={this.props.iou.selectedCurrencyCode}
+                            policyID={this.props.policyID}
                         />
                     ) : (
                         <ButtonWithDropdownMenu

@@ -28,6 +28,9 @@ const propTypes = {
 
     /** Function to navigate to a given step in the parent MoneyRequestModal */
     navigateToStep: PropTypes.func.isRequired,
+
+    /** The policyID of the request */
+    policyID: PropTypes.string.isRequired,
 };
 
 const defaultProps = {
@@ -45,6 +48,7 @@ const MoneyRequestConfirmPage = (props) => (
         iouType={props.iouType}
         canModifyParticipants={props.canModifyParticipants}
         navigateToStep={props.navigateToStep}
+        policyID={props.policyID}
     />
 );
 

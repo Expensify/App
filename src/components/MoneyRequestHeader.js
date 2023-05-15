@@ -137,10 +137,12 @@ const MoneyRequestHeader = (props) => {
                 {shouldShowSettlementButton && (
                     <SettlementButton
                         currency={props.report.currency}
+                        policyID={props.report.policyID}
                         shouldShowPaypal={false}
                         chatReportID={props.report.chatReportID}
                         onPress={(paymentType) => IOU.payMoneyRequest(paymentType, props.chatReport, props.report, props.reimbursementAccount && props.reimbursementAccount.state)}
                         enablePaymentsRoute={ROUTES.BANK_ACCOUNT_NEW}
+                        shouldShowPaymentOptions
                     />
                 )}
             </View>

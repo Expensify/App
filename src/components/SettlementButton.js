@@ -37,6 +37,15 @@ const propTypes = {
     /** The route to redirect if user does not have a payment method setup */
     enablePaymentsRoute: PropTypes.string.isRequired,
 
+    /** Should we show the payment options? */
+    shouldShowPaymentOptions: PropTypes.bool,
+
+    /** The last payment method used per policy */
+    nvp_lastPaymentMethod: PropTypes.objectOf(PropTypes.string),
+
+    /** The policyID of the report we are paying */
+    policyID: PropTypes.string.isRequired,
+
     ...withLocalizePropTypes,
 };
 
@@ -45,6 +54,8 @@ const defaultProps = {
     shouldShowPaypal: false,
     chatReportID: '',
     betas: [],
+    shouldShowPaymentOptions: false,
+    nvp_lastPaymentMethod: {},
 };
 
 class SettlementButton extends React.Component {
@@ -54,29 +65,38 @@ class SettlementButton extends React.Component {
 
     getButtonOptionsFromProps() {
         const buttonOptions = [];
-
-        if (this.props.currency === CONST.CURRENCY.USD && Permissions.canUsePayWithExpensify(this.props.betas) && Permissions.canUseWallet(this.props.betas)) {
-            buttonOptions.push({
+        const paymentMethods = {
+            [CONST.IOU.PAYMENT_TYPE.EXPENSIFY]: {
                 text: this.props.translate('iou.settleExpensify'),
                 icon: Expensicons.Wallet,
                 value: CONST.IOU.PAYMENT_TYPE.EXPENSIFY,
-            });
+            },
+            [CONST.IOU.PAYMENT_TYPE.PAYPAL_ME]: {
+                text: this.props.translate('iou.settlePaypalMe'),
+                icon: Expensicons.PayPal,
+                value: CONST.IOU.PAYMENT_TYPE.PAYPAL_ME,
+            },
+            [CONST.IOU.PAYMENT_TYPE.ELSEWHERE]: {
+                text: this.props.translate('iou.settleElsewhere'),
+                icon: Expensicons.Cash,
+                value: CONST.IOU.PAYMENT_TYPE.ELSEWHERE,
+            },
+        };
+        if (!this.props.shouldShowPaymentOptions && this.props.nvp_lastPaymentMethod[this.props.policyID]) {
+            return [paymentMethods[this.props.nvp_lastPaymentMethod[this.props.policyID]]];
         }
-
+        if (this.props.currency === CONST.CURRENCY.USD && Permissions.canUsePayWithExpensify(this.props.betas) && Permissions.canUseWallet(this.props.betas)) {
+            buttonOptions.push(paymentMethods[CONST.IOU.PAYMENT_TYPE.EXPENSIFY]);
+        }
         if (this.props.shouldShowPaypal && _.includes(CONST.PAYPAL_SUPPORTED_CURRENCIES, this.props.currency)) {
+            buttonOptions.push(paymentMethods[CONST.IOU.PAYMENT_TYPE.PAYPAL_ME]);
             buttonOptions.push({
                 text: this.props.translate('iou.settlePaypalMe'),
                 icon: Expensicons.PayPal,
                 value: CONST.IOU.PAYMENT_TYPE.PAYPAL_ME,
             });
         }
-
-        buttonOptions.push({
-            text: this.props.translate('iou.settleElsewhere'),
-            icon: Expensicons.Cash,
-            value: CONST.IOU.PAYMENT_TYPE.ELSEWHERE,
-        });
-
+        buttonOptions.push(paymentMethods[CONST.IOU.PAYMENT_TYPE.ELSEWHERE]);
         return buttonOptions;
     }
 
@@ -121,5 +141,8 @@ export default compose(
         betas: {
             key: ONYXKEYS.BETAS,
         },
+        nvp_lastPaymentMethod: {
+            key: ONYXKEYS.NVP_LAST_PAYMENT_METHOD,
+        }
     }),
 )(SettlementButton);
