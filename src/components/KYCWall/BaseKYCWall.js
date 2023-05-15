@@ -24,8 +24,8 @@ class KYCWall extends React.Component {
 
         this.state = {
             shouldShowAddPaymentMenu: false,
-            anchorPositionTop: 0,
-            anchorPositionLeft: 0,
+            anchorPositionVertical: 0,
+            anchorPositionHorizontal: 0,
             transferBalanceButton: null,
         };
     }
@@ -61,14 +61,14 @@ class KYCWall extends React.Component {
     getAnchorPosition(domRect) {
         if (this.props.popoverPlacement === 'bottom') {
             return {
-                anchorPositionTop: domRect.top + (domRect.height - 2),
-                anchorPositionLeft: domRect.left + 20,
+                anchorPositionVertical: domRect.top + (domRect.height - 2),
+                anchorPositionHorizontal: domRect.left + 20,
             };
         }
 
         return {
-            anchorPositionTop: domRect.top - 150,
-            anchorPositionLeft: domRect.left,
+            anchorPositionVertical: domRect.top - 150,
+            anchorPositionHorizontal: domRect.left,
         };
     }
 
@@ -79,8 +79,8 @@ class KYCWall extends React.Component {
      */
     setPositionAddPaymentMenu(position) {
         this.setState({
-            anchorPositionTop: position.anchorPositionTop,
-            anchorPositionLeft: position.anchorPositionLeft,
+            anchorPositionVertical: position.anchorPositionVertical,
+            anchorPositionHorizontal: position.anchorPositionHorizontal,
         });
     }
 
@@ -128,10 +128,9 @@ class KYCWall extends React.Component {
                 <AddPaymentMethodMenu
                     isVisible={this.state.shouldShowAddPaymentMenu}
                     onClose={() => this.setState({shouldShowAddPaymentMenu: false})}
-                    // TODO: Fix this anchor position
                     anchorPosition={{
-                        top: this.state.anchorPositionTop,
-                        left: this.state.anchorPositionLeft,
+                        vertical: this.state.anchorPositionVertical,
+                        horizontal: this.state.anchorPositionHorizontal,
                     }}
                     shouldShowPaypal={false}
                     onItemSelected={(item) => {

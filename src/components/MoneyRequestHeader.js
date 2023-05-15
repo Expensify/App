@@ -87,7 +87,7 @@ const MoneyRequestHeader = (props) => {
                         onSelected: () => {},
                     },
                 ]}
-                threeDotsAnchorPosition={styles.threeDotsPopoverOffsetNoCloseButton}
+                threeDotsAnchorPosition={styles.threeDotsPopoverOffsetNoCloseButton(props.windowWidth)}
                 report={props.report}
                 policies={props.policies}
                 personalDetails={props.personalDetails}

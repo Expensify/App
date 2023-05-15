@@ -2825,14 +2825,14 @@ const styles = {
     },
 
     threeDotsPopoverOffset: {
-        top: 50,
-        right: 60,
+        vertical: 50,
+        horizontal: 60,
     },
 
-    threeDotsPopoverOffsetNoCloseButton: {
-        top: 50,
-        right: 10,
-    },
+    threeDotsPopoverOffsetNoCloseButton: (windowWidth) => ({
+        vertical: 50,
+        horizontal: windowWidth - 10,
+    }),
 
     invert: {
         // It's important to invert the Y AND X axis to prevent a react native issue that can lead to ANRs on android 13
