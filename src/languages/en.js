@@ -135,6 +135,8 @@ export default {
         zipCodeExampleFormat: ({zipSampleFormat}) => (zipSampleFormat ? `e.g. ${zipSampleFormat}` : ''),
         description: 'Description',
         with: 'with',
+        shareCode: 'Share code',
+        share: 'Share',
     },
     attachmentPicker: {
         cameraPermissionRequired: 'Camera access',
@@ -327,6 +329,7 @@ export default {
         settlePaypalMe: 'Pay with PayPal.me',
         requestAmount: ({amount}) => `request ${amount}`,
         splitAmount: ({amount}) => `split ${amount}`,
+        amountEach: ({amount}) => `${amount} each`,
         payerOwesAmount: ({payer, amount}) => `${payer} owes ${amount}`,
         payerSettled: ({amount}) => `settled up ${amount}`,
         noReimbursableExpenses: 'This report has an invalid amount',

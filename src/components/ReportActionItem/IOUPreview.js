@@ -25,6 +25,7 @@ import reportActionPropTypes from '../../pages/home/report/reportActionPropTypes
 import {showContextMenuForReport} from '../ShowContextMenuContext';
 import * as OptionsListUtils from '../../libs/OptionsListUtils';
 import * as CurrencyUtils from '../../libs/CurrencyUtils';
+import * as IOUUtils from '../../libs/IOUUtils';
 import * as ReportUtils from '../../libs/ReportUtils';
 
 const propTypes = {
@@ -127,16 +128,13 @@ const defaultProps = {
 };
 
 const IOUPreview = (props) => {
-    // Usually the parent determines whether the IOU Preview is displayed. But as the iouReport total cannot be known
-    // until it is stored locally, we need to make this check within the Component after retrieving it. This allows us
-    // to handle the loading UI from within this Component instead of needing to declare it within each parent, which
-    // would duplicate and complicate the logic
-    if (props.iouReport.total === 0) {
+    if (_.isEmpty(props.iouReport)) {
         return null;
     }
     const sessionEmail = lodashGet(props.session, 'email', null);
     const managerEmail = props.iouReport.managerEmail || '';
     const ownerEmail = props.iouReport.ownerEmail || '';
+    const comment = Str.htmlDecode(lodashGet(props.action, 'originalMessage.comment', '')).trim();
 
     // When displaying within a IOUDetailsModal we cannot guarantee that participants are included in the originalMessage data
     // Because an IOUPreview of type split can never be rendered within the IOUDetailsModal, manually building the email array is only needed for non-billSplit ious
@@ -225,11 +223,21 @@ const IOUPreview = (props) => {
                         )}
                     </View>
 
-                    {!isCurrentUserManager && props.shouldShowPendingConversionMessage && (
-                        <Text style={[styles.textLabel, styles.colorMuted]}>{props.translate('iou.pendingConversionMessage')}</Text>
-                    )}
-
-                    <Text style={[styles.colorMuted]}>{Str.htmlDecode(lodashGet(props.action, 'originalMessage.comment', ''))}</Text>
+                    <View style={[styles.flexRow]}>
+                        <View style={[styles.flex1]}>
+                            {!isCurrentUserManager && props.shouldShowPendingConversionMessage && (
+                                <Text style={[styles.textLabel, styles.colorMuted]}>{props.translate('iou.pendingConversionMessage')}</Text>
+                            )}
+                            {!_.isEmpty(comment) && <Text style={[styles.colorMuted]}>{comment}</Text>}
+                        </View>
+                        {props.isBillSplit && !_.isEmpty(participantEmails) && (
+                            <Text style={[styles.textLabel, styles.colorMuted, styles.ml1]}>
+                                {props.translate('iou.amountEach', {
+                                    amount: CurrencyUtils.convertToDisplayString(IOUUtils.calculateAmount(participantEmails.length - 1, requestAmount), requestCurrency),
+                                })}
+                            </Text>
+                        )}
+                    </View>
                 </View>
             </OfflineWithFeedback>
         </View>
