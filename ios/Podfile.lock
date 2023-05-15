@@ -516,7 +516,7 @@ PODS:
     - React-Core
   - react-native-key-command (1.0.0):
     - React-Core
-  - react-native-netinfo (8.3.1):
+  - react-native-netinfo (9.3.9):
     - React-Core
   - react-native-pdf (6.6.2):
     - React-Core
@@ -1085,7 +1085,7 @@ SPEC CHECKSUMS:
   react-native-image-manipulator: c48f64221cfcd46e9eec53619c4c0374f3328a56
   react-native-image-picker: c33d4e79f0a14a2b66e5065e14946ae63749660b
   react-native-key-command: 0b3aa7c9f5c052116413e81dce33a3b2153a6c5d
-  react-native-netinfo: 1a6035d3b9780221d407c277ebfb5722ace00658
+  react-native-netinfo: 22c082970cbd99071a4e5aa7a612ac20d66b08f0
   react-native-pdf: 33c622cbdf776a649929e8b9d1ce2d313347c4fa
   react-native-performance: 224bd53e6a835fda4353302cf891d088a0af7406
   react-native-plaid-link-sdk: 9eb0f71dad94b3bdde649c7a384cba93024af46c
