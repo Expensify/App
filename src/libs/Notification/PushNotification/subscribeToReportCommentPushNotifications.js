@@ -22,17 +22,15 @@ export default function subscribeToReportCommentPushNotifications() {
             if (Navigation.getActiveRoute().slice(1, 2) === ROUTES.REPORT && !Navigation.isActiveRoute(`r/${reportID}`)) {
                 Navigation.goBack();
             }
-            Navigation.isDrawerReady()
-                .then(() => {
-                    Navigation.navigate(ROUTES.getReportRoute(reportID));
-                });
+            Navigation.isDrawerReady().then(() => {
+                Navigation.navigate(ROUTES.getReportRoute(reportID));
+            });
         } else {
             // Navigation container is not yet ready, use deeplinking to open to correct report instead
             Navigation.setDidTapNotification();
-            Navigation.isDrawerReady()
-                .then(() => {
-                    Linking.openURL(`${CONST.DEEPLINK_BASE_URL}${ROUTES.getReportRoute(reportID)}`);
-                });
+            Navigation.isDrawerReady().then(() => {
+                Linking.openURL(`${CONST.DEEPLINK_BASE_URL}${ROUTES.getReportRoute(reportID)}`);
+            });
         }
     });
 }
