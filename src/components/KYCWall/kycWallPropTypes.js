@@ -2,6 +2,7 @@ import PropTypes from 'prop-types';
 import userWalletPropTypes from '../../pages/EnablePayments/userWalletPropTypes';
 import bankAccountPropTypes from '../bankAccountPropTypes';
 import cardPropTypes from '../cardPropTypes';
+import iouReportPropTypes from '../../pages/iouReportPropTypes';
 
 const propTypes = {
     /** Route for the Add Bank Account screen for a given navigation stack */
@@ -33,6 +34,9 @@ const propTypes = {
 
     /** List of bank accounts */
     bankAccountList: PropTypes.objectOf(bankAccountPropTypes),
+
+    /** The chat report this report is linked to */
+    chatReport: iouReportPropTypes,
 };
 
 const defaultProps = {
@@ -43,6 +47,7 @@ const defaultProps = {
     chatReportID: '',
     bankAccountList: {},
     cardList: {},
+    chatReport: null,
 };
 
 export {propTypes, defaultProps};

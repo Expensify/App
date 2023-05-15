@@ -108,15 +108,17 @@ class KYCWall extends React.Component {
             return;
         }
 
-        // Ask the user to upgrade to a gold wallet as this means they have not yet went through our Know Your Customer (KYC) checks
-        const hasGoldWallet = this.props.userWallet.tierName && this.props.userWallet.tierName === CONST.WALLET.TIER_NAME.GOLD;
-        if (!hasGoldWallet) {
-            Log.info('[KYC Wallet] User does not have gold wallet');
-            Navigation.navigate(this.props.enablePaymentsRoute);
-            return;
+        if (this.props.chatReport && this.props.chatReport.chatType !== CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT) {
+            // Ask the user to upgrade to a gold wallet as this means they have not yet went through our Know Your Customer (KYC) checks
+            const hasGoldWallet = this.props.userWallet.tierName && this.props.userWallet.tierName === CONST.WALLET.TIER_NAME.GOLD;
+            if (!hasGoldWallet) {
+                Log.info('[KYC Wallet] User does not have gold wallet');
+                Navigation.navigate(this.props.enablePaymentsRoute);
+                return;
+            }
         }
 
-        Log.info('[KYC Wallet] User has valid payment method and passed KYC checks');
+        Log.info('[KYC Wallet] User has valid payment method and passed KYC checks or did not need them');
         this.props.onSuccessfulKYC();
     }
 
@@ -159,5 +161,8 @@ export default withOnyx({
     },
     bankAccountList: {
         key: ONYXKEYS.BANK_ACCOUNT_LIST,
+    },
+    chatReport: {
+        key: ({chatReportID}) => `${ONYXKEYS.COLLECTION.REPORT}${chatReportID}`,
     },
 })(KYCWall);
