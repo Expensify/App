@@ -54,6 +54,12 @@ function getParentReportAction(report) {
     return lodashGet(allReportActions, [report.parentReportID, report.parentReportActionID], {});
 }
 
+/**
+ * Determines if the given report action is sent money report action by checking for 'pay' type and presence of IOUDetails object.
+ *
+ * @param {Object} reportAction
+ * @returns {Boolean}
+ */
 function isSentMoneyReportAction(reportAction) {
     return (
         reportAction &&
