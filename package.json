@@ -1,6 +1,6 @@
 {
   "name": "new.expensify",
-  "version": "1.3.14-2",
+  "version": "1.3.14-4",
   "author": "Expensify, Inc.",
   "homepage": "https://new.expensify.com",
   "description": "New Expensify is the next generation of Expensify: a reimagination of payments based atop a foundation of chat.",
@@ -58,7 +58,7 @@
     "@react-native-camera-roll/camera-roll": "5.4.0",
     "@react-native-community/clipboard": "^1.5.1",
     "@react-native-community/datetimepicker": "^3.5.2",
-    "@react-native-community/netinfo": "^9.3.9",
+    "@react-native-community/netinfo": "^8.3.0",
     "@react-native-community/progress-bar-android": "^1.0.4",
     "@react-native-community/progress-view": "^1.2.3",
     "@react-native-firebase/analytics": "^12.3.0",
