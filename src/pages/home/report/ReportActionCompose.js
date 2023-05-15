@@ -20,6 +20,7 @@ import withWindowDimensions, {windowDimensionsPropTypes} from '../../../componen
 import withDrawerState from '../../../components/withDrawerState';
 import withLocalize, {withLocalizePropTypes} from '../../../components/withLocalize';
 import willBlurTextInputOnTapOutsideFunc from '../../../libs/willBlurTextInputOnTapOutside';
+import canFocusInputOnScreenFocus from '../../../libs/canFocusInputOnScreenFocus';
 import CONST from '../../../CONST';
 import Navigation from '../../../libs/Navigation/Navigation';
 import ROUTES from '../../../ROUTES';
@@ -34,7 +35,6 @@ import * as User from '../../../libs/actions/User';
 import Tooltip from '../../../components/Tooltip';
 import EmojiPickerButton from '../../../components/EmojiPicker/EmojiPickerButton';
 import * as DeviceCapabilities from '../../../libs/DeviceCapabilities';
-import toggleReportActionComposeView from '../../../libs/toggleReportActionComposeView';
 import OfflineIndicator from '../../../components/OfflineIndicator';
 import ExceededCommentLength from '../../../components/ExceededCommentLength';
 import withNavigationFocus from '../../../components/withNavigationFocus';
@@ -50,6 +50,7 @@ import ArrowKeyFocusManager from '../../../components/ArrowKeyFocusManager';
 import OfflineWithFeedback from '../../../components/OfflineWithFeedback';
 import KeyboardShortcut from '../../../libs/KeyboardShortcut';
 import * as ComposerUtils from '../../../libs/ComposerUtils';
+import * as ComposerActions from '../../../libs/actions/Composer';
 import * as Welcome from '../../../libs/actions/Welcome';
 import Permissions from '../../../libs/Permissions';
 import * as TaskUtils from '../../../libs/actions/Task';
@@ -107,16 +108,11 @@ const propTypes = {
         expiresAt: PropTypes.string,
     }),
 
+    /** Whether the composer input should be shown */
+    shouldShowComposeInput: PropTypes.bool,
+
     /** Stores user's preferred skin tone */
     preferredSkinTone: PropTypes.oneOfType([PropTypes.number, PropTypes.string]),
-
-    /** User's frequently used emojis */
-    frequentlyUsedEmojis: PropTypes.arrayOf(
-        PropTypes.shape({
-            code: PropTypes.string.isRequired,
-            keywords: PropTypes.arrayOf(PropTypes.string),
-        }),
-    ),
 
     /** Collection of recent reports, used to calculate the mention suggestions */
     reports: PropTypes.objectOf(reportPropTypes),
@@ -140,10 +136,10 @@ const defaultProps = {
     blockedFromConcierge: {},
     personalDetails: {},
     preferredSkinTone: CONST.EMOJI_DEFAULT_SKIN_TONE,
-    frequentlyUsedEmojis: [],
     isComposerFullSize: false,
     pendingAction: null,
     reports: {},
+    shouldShowComposeInput: true,
     ...withCurrentUserPersonalDetailsDefaultProps,
 };
 
@@ -177,6 +173,7 @@ const getMaxArrowIndex = (numRows, isAutoSuggestionPickerLarge) => {
 };
 
 const willBlurTextInputOnTapOutside = willBlurTextInputOnTapOutsideFunc();
+const shouldFocusInputOnScreenFocus = canFocusInputOnScreenFocus();
 
 /**
  * Save draft report comment. Debounced to happen at most once per second.
@@ -218,7 +215,7 @@ function ReportActionCompose(props) {
     /**
      * Updates the Highlight state of the composer
      */
-    const [isFocused, setIsFocused] = useState(willBlurTextInputOnTapOutside && !props.modal.isVisible && !props.modal.willAlertModalBecomeVisible);
+    const [isFocused, setIsFocused] = useState(shouldFocusInputOnScreenFocus && !props.modal.isVisible && !props.modal.willAlertModalBecomeVisible && props.shouldShowComposeInput);
     const [isFullComposerAvailable, setIsFullComposerAvailable] = useState(props.isComposerFullSize);
 
     /**
@@ -426,7 +423,7 @@ function ReportActionCompose(props) {
     // eslint-disable-next-line rulesdir/prefer-early-return
     useEffect(() => {
         if (props.isDrawerOpen) {
-            toggleReportActionComposeView(true);
+            ComposerActions.setShouldShowComposeInput(true);
         }
     }, [props.isDrawerOpen]);
 
@@ -493,8 +490,6 @@ function ReportActionCompose(props) {
                 nextState.shouldShowEmojiSuggestionMenu = !_.isEmpty(newSuggestedEmojis);
             }
 
-            LayoutAnimation.configureNext(LayoutAnimation.create(50, LayoutAnimation.Types.easeInEaseOut, LayoutAnimation.Properties.opacity));
-
             setSuggestionValues((prevState) => ({...prevState, ...nextState}));
         },
         [composerHeight, value, props.windowHeight, props.isSmallScreenWidth, resetSuggestions, shouldBlockEmojiCalc],
@@ -552,6 +547,7 @@ function ReportActionCompose(props) {
 
     const onSelectionChange = useCallback(
         (e) => {
+            LayoutAnimation.configureNext(LayoutAnimation.create(50, LayoutAnimation.Types.easeInEaseOut, LayoutAnimation.Properties.opacity));
             setSelection(e.nativeEvent.selection);
 
             /**
@@ -659,9 +655,9 @@ function ReportActionCompose(props) {
             });
             setSuggestionValues((prevState) => ({...prevState, suggestedEmojis: []}));
 
-            EmojiUtils.addToFrequentlyUsedEmojis(props.frequentlyUsedEmojis, emojiObject);
+            EmojiUtils.addToFrequentlyUsedEmojis(emojiObject);
         },
-        [suggestionValues.colonIndex, props.frequentlyUsedEmojis, suggestionValues.suggestedEmojis, value, props.preferredSkinTone, selection, updateComment],
+        [suggestionValues.colonIndex, suggestionValues.suggestedEmojis, value, props.preferredSkinTone, selection, updateComment],
     );
 
     /**
@@ -865,7 +861,6 @@ function ReportActionCompose(props) {
             displayFileInModal(file);
 
             setIsDraggingOver(false);
-            setIsAttachmentPreviewActive(true);
         },
         [isAttachmentPreviewActive],
     );
@@ -900,6 +895,7 @@ function ReportActionCompose(props) {
                     <AttachmentModal
                         headerTitle={props.translate('reportActionCompose.sendAttachment')}
                         onConfirm={addAttachment}
+                        onModalShow={() => setIsAttachmentPreviewActive(true)}
                         onModalHide={attachmentPreviewClosed}
                     >
                         {({displayFileInModal}) => (
@@ -1004,7 +1000,7 @@ function ReportActionCompose(props) {
                                         disabled={props.disabled}
                                     >
                                         <Composer
-                                            autoFocus={!props.modal.isVisible && (willBlurTextInputOnTapOutside || isEmptyChat())}
+                                            autoFocus={!props.modal.isVisible && (shouldFocusInputOnScreenFocus || isEmptyChat()) && props.shouldShowComposeInput}
                                             multiline
                                             ref={setTextInputRef}
                                             textAlignVertical="top"
@@ -1175,17 +1171,17 @@ export default compose(
         blockedFromConcierge: {
             key: ONYXKEYS.NVP_BLOCKED_FROM_CONCIERGE,
         },
-        frequentlyUsedEmojis: {
-            key: ONYXKEYS.FREQUENTLY_USED_EMOJIS,
+        preferredSkinTone: {
+            key: ONYXKEYS.PREFERRED_EMOJI_SKIN_TONE,
         },
         reports: {
             key: ONYXKEYS.COLLECTION.REPORT,
         },
-        preferredSkinTone: {
-            key: ONYXKEYS.PREFERRED_EMOJI_SKIN_TONE,
-        },
         personalDetails: {
             key: ONYXKEYS.PERSONAL_DETAILS,
+        },
+        shouldShowComposeInput: {
+            key: ONYXKEYS.SHOULD_SHOW_COMPOSE_INPUT,
         },
     }),
 )(ReportActionCompose);
