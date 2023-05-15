@@ -26,12 +26,11 @@ import colors from '../../styles/colors';
 import reportPropTypes from '../reportPropTypes';
 import ONYXKEYS from '../../ONYXKEYS';
 import ThreeDotsMenu from '../../components/ThreeDotsMenu';
+import reportActionPropTypes from './report/reportActionPropTypes';
 
 const propTypes = {
     /** Toggles the navigationMenu open and closed */
     onNavigationMenuButtonClicked: PropTypes.func.isRequired,
-
-    /* Onyx Props */
 
     /** The report currently being looked at */
     report: reportPropTypes,
@@ -39,11 +38,19 @@ const propTypes = {
     /** Personal details of all the users */
     personalDetails: PropTypes.objectOf(participantPropTypes),
 
+    /** Onyx Props */
+    parentReport: reportPropTypes,
+
     /** The details about the account that the user is signing in with */
     account: PropTypes.shape({
         /** URL to the assigned guide's appointment booking calendar */
         guideCalendarLink: PropTypes.string,
     }),
+
+    /** The report actions from the parent report */
+    // TO DO: Replace with HOC https://github.com/Expensify/App/issues/18769.
+    // eslint-disable-next-line react/no-unused-prop-types
+    parentReportActions: PropTypes.objectOf(PropTypes.shape(reportActionPropTypes)),
 
     ...windowDimensionsPropTypes,
     ...withLocalizePropTypes,
@@ -51,10 +58,12 @@ const propTypes = {
 
 const defaultProps = {
     personalDetails: {},
+    parentReportActions: {},
     report: null,
     account: {
         guideCalendarLink: null,
     },
+    parentReport: {},
 };
 
 const HeaderView = (props) => {
@@ -62,19 +71,20 @@ const HeaderView = (props) => {
     const participantPersonalDetails = OptionsListUtils.getPersonalDetailsForLogins(participants, props.personalDetails);
     const isMultipleParticipant = participants.length > 1;
     const displayNamesWithTooltips = ReportUtils.getDisplayNamesWithTooltips(participantPersonalDetails, isMultipleParticipant);
+    const isThread = ReportUtils.isThread(props.report);
     const isChatRoom = ReportUtils.isChatRoom(props.report);
     const isPolicyExpenseChat = ReportUtils.isPolicyExpenseChat(props.report);
     const isTaskReport = ReportUtils.isTaskReport(props.report);
-    const title = ReportUtils.getReportName(props.report);
-
-    const subtitle = ReportUtils.getChatRoomSubtitle(props.report);
+    const reportHeaderData = isTaskReport && !_.isEmpty(props.parentReport) && (!isThread || isTaskReport) ? props.parentReport : props.report;
+    const title = ReportUtils.getReportName(reportHeaderData);
+    const subtitle = ReportUtils.getChatRoomSubtitle(reportHeaderData);
     const isConcierge = participants.length === 1 && _.contains(participants, CONST.EMAIL.CONCIERGE);
     const isAutomatedExpensifyAccount = participants.length === 1 && ReportUtils.hasAutomatedExpensifyEmails(participants);
     const guideCalendarLink = lodashGet(props.account, 'guideCalendarLink');
 
     // We hide the button when we are chatting with an automated Expensify account since it's not possible to contact
     // these users via alternative means. It is possible to request a call with Concierge so we leave the option for them.
-    const shouldShowCallButton = (isConcierge && guideCalendarLink) || !isAutomatedExpensifyAccount;
+    const shouldShowCallButton = (isConcierge && guideCalendarLink) || (!isAutomatedExpensifyAccount && !isTaskReport);
     const shouldShowThreeDotsButton = isTaskReport;
     const threeDotMenuItems = [];
 
@@ -113,8 +123,8 @@ const HeaderView = (props) => {
     }
 
     const avatarTooltip = isChatRoom ? undefined : _.pluck(displayNamesWithTooltips, 'tooltip');
-    const shouldShowSubscript = isPolicyExpenseChat && !props.report.isOwnPolicyExpenseChat && !ReportUtils.isArchivedRoom(props.report);
-    const icons = ReportUtils.getIcons(props.report, props.personalDetails);
+    const shouldShowSubscript = isPolicyExpenseChat && !props.report.isOwnPolicyExpenseChat && !ReportUtils.isArchivedRoom(props.report) && !isTaskReport;
+    const icons = ReportUtils.getIcons(reportHeaderData, props.personalDetails);
     const brickRoadIndicator = ReportUtils.hasReportNameError(props.report) ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : '';
     return (
         <View
@@ -143,6 +153,7 @@ const HeaderView = (props) => {
                         <Pressable
                             onPress={() => ReportUtils.navigateToDetailsPage(props.report)}
                             style={[styles.flexRow, styles.alignItemsCenter, styles.flex1]}
+                            disabled={isTaskReport}
                         >
                             {shouldShowSubscript ? (
                                 <SubscriptAvatar
@@ -164,9 +175,9 @@ const HeaderView = (props) => {
                                     tooltipEnabled
                                     numberOfLines={1}
                                     textStyles={[styles.headerText, styles.pre]}
-                                    shouldUseFullTitle={isChatRoom || isPolicyExpenseChat}
+                                    shouldUseFullTitle={isChatRoom || isPolicyExpenseChat || isThread || isTaskReport}
                                 />
-                                {(isChatRoom || isPolicyExpenseChat) && (
+                                {(isChatRoom || isPolicyExpenseChat || isThread) && !_.isEmpty(subtitle) && (
                                     <Text
                                         style={[styles.sidebarLinkText, styles.optionAlternateText, styles.textLabelSupporting, styles.pre]}
                                         numberOfLines={1}
@@ -226,6 +237,13 @@ export default compose(
         account: {
             key: ONYXKEYS.ACCOUNT,
             selector: (account) => account && {guideCalendarLink: account.guideCalendarLink},
+        },
+        parentReportActions: {
+            key: ({report}) => `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.parentReportID}`,
+            canEvict: false,
+        },
+        parentReport: {
+            key: ({report}) => `${ONYXKEYS.COLLECTION.REPORT}${report.parentReportID}`,
         },
     }),
 )(HeaderView);

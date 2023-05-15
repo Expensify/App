@@ -173,7 +173,12 @@ const MultipleAvatars = (props) => {
                         ) : (
                             <Tooltip text={props.avatarTooltips.slice(1).join(', ')}>
                                 <View style={[singleAvatarStyles, styles.alignItemsCenter, styles.justifyContentCenter]}>
-                                    <Text style={props.size === CONST.AVATAR_SIZE.SMALL ? styles.avatarInnerTextSmall : styles.avatarInnerText}>{`+${props.icons.length - 1}`}</Text>
+                                    <Text
+                                        selectable={false}
+                                        style={props.size === CONST.AVATAR_SIZE.SMALL ? styles.avatarInnerTextSmall : styles.avatarInnerText}
+                                    >
+                                        {`+${props.icons.length - 1}`}
+                                    </Text>
                                 </View>
                             </Tooltip>
                         )}
