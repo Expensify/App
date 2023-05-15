@@ -15,7 +15,7 @@ const darkTheme = {
     iconReversed: colors.greenAppBackground,
     textSupporting: colors.greenSupportingText,
     text: colors.white,
-    link: colors.green100,
+    link: colors.blueLink,
     linkHover: colors.blueLinkHover,
     buttonDefaultBG: colors.greenDefaultButton,
     buttonDisabledBG: colors.greenDefaultButtonDisabled,
