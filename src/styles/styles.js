@@ -3252,11 +3252,13 @@ const styles = {
         height: 12,
         paddingLeft: 4,
         paddingRight: 4,
+        alignItems: 'center',
     },
 
     headerEnvBadgeText: {
         fontSize: 7,
         fontWeight: fontWeightBold,
+        lineHeight: undefined,
     },
 };
 
