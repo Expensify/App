@@ -1202,6 +1202,7 @@ export default {
         completed: 'Completada',
         messages: {
             completed: 'Tarea completada',
+            canceled: 'Tarea cancelada',
             reopened: 'Tarea reabrir',
         },
     },

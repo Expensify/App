@@ -204,7 +204,7 @@ class ReportActionItem extends Component {
                     checkIfContextMenuActive={this.checkIfContextMenuActive}
                 />
             );
-        } else if (this.props.action.actionName === CONST.REPORT.ACTIONS.TYPE.TASKCOMPLETED) {
+        } else if (this.props.action.actionName === CONST.REPORT.ACTIONS.TYPE.TASKCOMPLETED || this.props.action.actionName === CONST.REPORT.ACTIONS.TYPE.TASKCANCELED) {
             children = (
                 <TaskAction
                     taskReportID={this.props.action.originalMessage.taskReportID.toString()}

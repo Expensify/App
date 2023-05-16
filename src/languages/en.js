@@ -1197,6 +1197,7 @@ export default {
         completed: 'Completed',
         messages: {
             completed: 'Completed task',
+            canceled: 'Canceled task',
             reopened: 'Reopened task',
         },
     },

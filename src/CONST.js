@@ -463,6 +463,7 @@ const CONST = {
                 CLOSED: 'CLOSED',
                 CREATED: 'CREATED',
                 TASKEDITED: 'TASKEDITED',
+                TASKCANCELED: 'TASKCANCELED',
                 IOU: 'IOU',
                 RENAMED: 'RENAMED',
                 CHRONOSOOOLIST: 'CHRONOSOOOLIST',
