@@ -209,6 +209,68 @@ function completeTask(taskReportID, parentReportID, taskTitle) {
 }
 
 /**
+ * Reopens a closed task
+ * @param {string} taskReportID ReportID of the task
+ * @param {string} parentReportID ReportID of the linked parent report of the task so we can add the action
+ * @param {string} taskTitle Title of the task
+ */
+function reopenTask(taskReportID, parentReportID, taskTitle) {
+    const message = `Reopened task: ${taskTitle}`;
+    const reopenedTaskReportAction = ReportUtils.buildOptimisticTaskReportAction(taskReportID, CONST.REPORT.ACTIONS.TYPE.TASKREOPENED, message);
+
+    const optimisticData = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT}${taskReportID}`,
+            value: {
+                stateNum: CONST.REPORT.STATE_NUM.OPEN,
+                statusNum: CONST.REPORT.STATUS.OPEN,
+            },
+        },
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT}${parentReportID}`,
+            value: {
+                lastVisibleActionCreated: reopenedTaskReportAction.created,
+                lastMessageText: message,
+                lastActorEmail: reopenedTaskReportAction.actorEmail,
+            },
+        },
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${parentReportID}`,
+            value: {[reopenedTaskReportAction.reportActionID]: reopenedTaskReportAction},
+        },
+    ];
+
+    const successData = [];
+    const failureData = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT}${taskReportID}`,
+            value: {
+                stateNum: CONST.REPORT.STATE_NUM.SUBMITTED,
+                statusNum: CONST.REPORT.STATUS.APPROVED,
+            },
+        },
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${parentReportID}`,
+            value: {[reopenedTaskReportAction.reportActionID]: {pendingAction: null}},
+        },
+    ];
+
+    API.write(
+        'ReopenTask',
+        {
+            taskReportID,
+            reopenedTaskReportActionID: reopenedTaskReportAction.reportActionID,
+        },
+        {optimisticData, successData, failureData},
+    );
+}
+
+/**
  * @function editTask
  * @param {object} report
  * @param {string} ownerEmail
@@ -450,6 +512,7 @@ export {
     setAssigneeValue,
     setShareDestinationValue,
     clearOutTaskInfo,
+    reopenTask,
     completeTask,
     clearOutTaskInfoAndNavigate,
     getAssignee,

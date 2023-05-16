@@ -1198,6 +1198,7 @@ export default {
         completed: 'Completed',
         messages: {
             completed: 'Completed task',
+            reopened: 'Reopened task',
         },
     },
     statementPage: {
