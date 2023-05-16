@@ -111,7 +111,7 @@ const MoneyRequestAction = (props) => {
                 undefined,
                 CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS,
                 props.action.reportActionID,
-                props.chatReportID, // Needs to be changed to iouReportID
+                props.requestReportID,
             );
 
             Report.openReport(thread.reportID, thread.participants, thread, props.action.reportActionID);
