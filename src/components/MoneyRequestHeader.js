@@ -2,6 +2,7 @@ import React from 'react';
 import {View} from 'react-native';
 import PropTypes from 'prop-types';
 import lodashGet from 'lodash/get';
+import {withOnyx} from 'react-native-onyx';
 import HeaderWithCloseButton from './HeaderWithCloseButton';
 import iouReportPropTypes from '../pages/iouReportPropTypes';
 import withLocalize, {withLocalizePropTypes} from './withLocalize';
@@ -21,10 +22,14 @@ import Icon from './Icon';
 import * as CurrencyUtils from '../libs/CurrencyUtils';
 import MenuItemWithTopDescription from './MenuItemWithTopDescription';
 import DateUtils from '../libs/DateUtils';
+import ONYXKEYS from '../ONYXKEYS';
 
 const propTypes = {
     /** The report currently being looked at */
     report: iouReportPropTypes.isRequired,
+
+    /** The expense report or iou report (only will have a value if this is a transaction thread) */
+    parentReport: iouReportPropTypes,
 
     /** The policies which the user has access to and which the report could be tied to */
     policies: PropTypes.shape({
@@ -43,6 +48,7 @@ const propTypes = {
 
 const defaultProps = {
     isSingleTransactionView: false,
+    parentReport: {},
 };
 
 const MoneyRequestHeader = (props) => {
@@ -55,11 +61,13 @@ const MoneyRequestHeader = (props) => {
     const formattedTransactionDate = DateUtils.getDateStringFromISOTimestamp(transactionDate);
 
     const formattedAmount = CurrencyUtils.convertToDisplayString(ReportUtils.getMoneyRequestTotal(props.report), props.report.currency);
-    const isSettled = ReportUtils.isSettled(props.report.reportID);
-    const isExpenseReport = ReportUtils.isExpenseReport(props.report);
-    const payeeName = isExpenseReport ? ReportUtils.getPolicyName(props.report, props.policies) : ReportUtils.getDisplayNameForParticipant(props.report.managerEmail);
+
+    const moneyRequestReport = props.isSingleTransactionView ? props.parentReport : props.report;
+    const isSettled = ReportUtils.isSettled(moneyRequestReport.reportID);
+    const isExpenseReport = ReportUtils.isExpenseReport(moneyRequestReport);
+    const payeeName = isExpenseReport ? ReportUtils.getPolicyName(moneyRequestReport, props.policies) : ReportUtils.getDisplayNameForParticipant(props.report.managerEmail);
     const payeeAvatar = isExpenseReport
-        ? ReportUtils.getWorkspaceAvatar(props.report)
+        ? ReportUtils.getWorkspaceAvatar(moneyRequestReport)
         : ReportUtils.getAvatar(lodashGet(props.personalDetails, [props.report.managerEmail, 'avatar']), props.report.managerEmail);
     return (
         <View style={[{backgroundColor: themeColors.highlightBG}, styles.pl0]}>
@@ -74,7 +82,7 @@ const MoneyRequestHeader = (props) => {
                     },
                 ]}
                 threeDotsAnchorPosition={styles.threeDotsPopoverOffsetNoCloseButton}
-                report={props.report}
+                report={moneyRequestReport}
                 policies={props.policies}
                 personalDetails={props.personalDetails}
                 shouldShowCloseButton={false}
@@ -146,4 +154,12 @@ MoneyRequestHeader.displayName = 'MoneyRequestHeader';
 MoneyRequestHeader.propTypes = propTypes;
 MoneyRequestHeader.defaultProps = defaultProps;
 
-export default compose(withWindowDimensions, withLocalize)(MoneyRequestHeader);
+export default compose(
+    withWindowDimensions,
+    withLocalize,
+    withOnyx({
+        parentReport: {
+            key: (props) => `${ONYXKEYS.COLLECTION.REPORT}${props.report.parentReportID}`,
+        },
+    }),
+)(MoneyRequestHeader);
