@@ -10,22 +10,12 @@ const reactionListRef = React.createRef();
  * @param {String} emojiName - the emoji codes to display near the bubble.
  * @param {String} reportActionID
  */
-function showReactionList(
-    event,
-    reactionListPopoverAnchor,
-    emojiName,
-    reportActionID,
-) {
+function showReactionList(event, reactionListPopoverAnchor, emojiName, reportActionID) {
     if (!reactionListRef.current) {
         return;
     }
 
-    reactionListRef.current.showReactionList(
-        event,
-        reactionListPopoverAnchor,
-        emojiName,
-        reportActionID,
-    );
+    reactionListRef.current.showReactionList(event, reactionListPopoverAnchor, emojiName, reportActionID);
 }
 
 /**
