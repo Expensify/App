@@ -285,6 +285,8 @@ function ReportActionCompose(props) {
         return props.translate('reportActionCompose.writeSomething');
     }, [props.translate, props.report, props.blockedFromConcierge, conciergePlaceholderRandomIndex]);
 
+    const isEmptyChat = useMemo(() => _.size(props.reportActions) === 1, [props.reportActions]);
+
     /**
      * Focus the composer text input
      * @param {Boolean} [shouldDelay=false] Impose delay before focusing the composer
@@ -684,8 +686,6 @@ function ReportActionCompose(props) {
         [suggestionValues, value, updateComment],
     );
 
-    const isEmptyChat = useCallback(() => _.size(props.reportActions) === 1, [props.reportActions]);
-
     /**
      * Callback for the emoji picker to add whatever emoji is chosen into the main input
      *
@@ -1000,7 +1000,7 @@ function ReportActionCompose(props) {
                                         disabled={props.disabled}
                                     >
                                         <Composer
-                                            autoFocus={!props.modal.isVisible && (shouldFocusInputOnScreenFocus || isEmptyChat()) && props.shouldShowComposeInput}
+                                            autoFocus={!props.modal.isVisible && (shouldFocusInputOnScreenFocus || isEmptyChat) && props.shouldShowComposeInput}
                                             multiline
                                             ref={setTextInputRef}
                                             textAlignVertical="top"
