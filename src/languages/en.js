@@ -1197,6 +1197,7 @@ export default {
         completed: 'Completed',
         messages: {
             completed: 'Completed task',
+            canceled: 'Canceled task',
             reopened: 'Reopened task',
         },
     },
@@ -1322,7 +1323,7 @@ export default {
         deletedMessage: '[Deleted message]',
     },
     threads: {
-        lastReply: 'Last Reply',
+        lastReply: 'Last reply',
         replies: 'Replies',
         reply: 'Reply',
     },
