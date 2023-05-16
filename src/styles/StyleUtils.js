@@ -827,10 +827,6 @@ function getKeyboardShortcutsModalWidth(isSmallScreenWidth) {
 function getHorizontalStackedAvatarBorderStyle(isHovered, isPressed, isInReportAction = false) {
     let backgroundColor = themeColors.appBG;
 
-    if (isInReportAction) {
-        backgroundColor = themeColors.cardBorder;
-    }
-
     if (isHovered) {
         backgroundColor = isInReportAction ? themeColors.highlightBG : themeColors.border;
     }
