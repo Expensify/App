@@ -218,7 +218,10 @@ const IOUPreview = (props) => {
                             <View style={styles.iouPreviewBoxAvatar}>
                                 <MultipleAvatars
                                     icons={participantAvatars}
-                                    secondAvatarStyle={[styles.secondAvatarInline, props.isHovered ? styles.iouPreviewBoxAvatarHover : undefined]}
+                                    shouldStackHorizontally
+                                    size="small"
+                                    isHovered={props.isHovered}
+                                    isInCard
                                     avatarTooltips={participantEmails}
                                 />
                             </View>

@@ -40,6 +40,9 @@ const propTypes = {
 
     /** Whether #focus mode is on */
     isFocusMode: PropTypes.bool,
+
+    /** Whether the avatar is in IOU card */
+    isInCard: PropTypes.bool,
 };
 
 const defaultProps = {
@@ -52,6 +55,7 @@ const defaultProps = {
     isHovered: false,
     isPressed: false,
     isFocusMode: false,
+    isInCard: false,
 };
 
 const MultipleAvatars = (props) => {
@@ -108,7 +112,7 @@ const MultipleAvatars = (props) => {
                             style={[
                                 styles.justifyContentCenter,
                                 styles.alignItemsCenter,
-                                StyleUtils.getHorizontalStackedAvatarBorderStyle(props.isHovered, props.isPressed),
+                                StyleUtils.getHorizontalStackedAvatarBorderStyle(props.isHovered, props.isPressed, props.isInCard),
                                 StyleUtils.getHorizontalStackedAvatarStyle(index, overlapSize, oneAvatarBorderWidth, oneAvatarSize.width),
                                 icon.type === CONST.ICON_TYPE_WORKSPACE ? StyleUtils.getAvatarBorderRadius(props.size, icon.type) : {},
                             ]}
@@ -127,7 +131,7 @@ const MultipleAvatars = (props) => {
                             style={[
                                 styles.alignItemsCenter,
                                 styles.justifyContentCenter,
-                                StyleUtils.getHorizontalStackedAvatarBorderStyle(props.isHovered, props.isPressed),
+                                StyleUtils.getHorizontalStackedAvatarBorderStyle(props.isHovered, props.isPressed, props.isInCard),
 
                                 // Set overlay background color with RGBA value so that the text will not inherit opacity
                                 StyleUtils.getBackgroundColorWithOpacityStyle(themeColors.overlay, variables.overlayOpacity),

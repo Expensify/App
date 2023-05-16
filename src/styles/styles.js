@@ -2406,12 +2406,7 @@ const styles = {
 
     iouPreviewBoxAvatar: {
         marginRight: -10,
-        marginBottom: -10,
-    },
-
-    iouPreviewBoxAvatarHover: {
-        borderColor: themeColors.border,
-        backgroundColor: themeColors.border,
+        marginBottom: 0,
     },
 
     iouPreviewBoxCheckmark: {
