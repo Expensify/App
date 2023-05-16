@@ -183,7 +183,7 @@ jobs:
         run: cat "./Host_Machine_Files/\$WORKING_DIRECTORY/output.md"
 
       - name: Print AWS Device Farm verbose run results
-        if: ${{ always() && fromJSON(runner.debug) }}
+        if: ${{ always() && runner.debug != null && fromJSON(runner.debug) }}
         run: cat "./Host_Machine_Files/\$WORKING_DIRECTORY/debug.log"
 
       - name: Check if test failed, if so post the results and add the DeployBlocker label
