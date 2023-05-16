@@ -297,6 +297,21 @@ function ReportActionItem(props) {
         return <ReportActionItemGrouped wrapperStyles={[styles.chatItem, isWhisper ? styles.pt1 : {}]}>{content}</ReportActionItemGrouped>;
     };
 
+    if (props.action.actionName === CONST.REPORT.ACTIONS.TYPE.CREATED) {
+        return <ReportActionItemCreated reportID={props.report.reportID} />;
+    }
+    if (props.action.actionName === CONST.REPORT.ACTIONS.TYPE.RENAMED) {
+        return <RenameAction action={props.action} />;
+    }
+    if (props.action.actionName === CONST.REPORT.ACTIONS.TYPE.CHRONOSOOOLIST) {
+        return (
+            <ChronosOOOListActions
+                action={props.action}
+                reportID={props.report.reportID}
+            />
+        );
+    }
+
     const hasErrors = !_.isEmpty(props.action.errors);
     const whisperedTo = lodashGet(props.action, 'whisperedTo', []);
     const isWhisper = whisperedTo.length > 0;
