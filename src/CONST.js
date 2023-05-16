@@ -518,6 +518,10 @@ const CONST = {
             DAILY: 'daily',
             ALWAYS: 'always',
         },
+        WRITE_CAPABILITIES: {
+            ALL: 'all',
+            ADMINS: 'admins',
+        },
         VISIBILITY: {
             PUBLIC: 'public',
             PUBLIC_ANNOUNCE: 'public_announce',

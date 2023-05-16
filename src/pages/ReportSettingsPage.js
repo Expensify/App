@@ -77,8 +77,8 @@ class ReportSettingsPage extends Component {
 
     getWriteCapabilityOptions() {
         return [
-            {value: 'all', label: this.props.translate('reportSettings.writeCapability.all')},
-            {value: 'admins', label: this.props.translate('reportSettings.writeCapability.admins')},
+            {value: CONST.REPORT.WRITE_CAPABILITIES.ALL, label: this.props.translate('reportSettings.writeCapability.all')},
+            {value: CONST.REPORT.WRITE_CAPABILITIES.ADMINS, label: this.props.translate('reportSettings.writeCapability.admins')},
         ];
     }
 
