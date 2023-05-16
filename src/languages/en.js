@@ -301,7 +301,6 @@ export default {
         newChat: 'New chat',
         newGroup: 'New group',
         newRoom: 'New room',
-        headerChat: 'Chats',
         buttonSearch: 'Search',
         buttonMySettings: 'My settings',
         fabNewChat: 'New chat (Floating action)',
