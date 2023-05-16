@@ -67,7 +67,7 @@ class QRShare extends Component {
                     getRef={(svg) => (this.svg = svg)}
                     logoBackgroundColor="transparent"
                     logoSize={this.state.qrCodeSize * 0.3}
-                    logoBorderRadius={(this.state.qrCodeSize * 0.3) / 2}
+                    logoBorderRadius={this.state.qrCodeSize}
                     size={this.state.qrCodeSize}
                     backgroundColor={defaultTheme.highlightBG}
                     color={defaultTheme.text}
