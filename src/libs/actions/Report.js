@@ -1378,6 +1378,7 @@ function showReportActionNotification(reportID, action) {
 
     Log.info('[LocalNotification] Creating notification');
     LocalNotification.showCommentNotification({
+        report: allReports[reportID],
         reportAction: action,
         onClick: () => {
             // Navigate to this report onClick

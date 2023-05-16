@@ -3,6 +3,7 @@ import _ from 'underscore';
 import focusApp from './focusApp';
 import * as AppUpdate from '../../actions/AppUpdate';
 import EXPENSIFY_ICON_URL from '../../../../assets/images/expensify-logo-round-clearspace.png';
+import * as ReportUtils from '../../ReportUtils';
 
 const DEFAULT_DELAY = 4000;
 
@@ -84,6 +85,27 @@ function push({title, body, delay = DEFAULT_DELAY, onClick = () => {}, tag = '',
 }
 
 /**
+ * Get notification based on reportRoom and reportAction
+ *
+ * @param {Object} report
+ * @param {Object} reportAction
+ *
+ * @return {String} - Notification title
+ */
+function getNotificationTitle(report, reportAction) {
+    const isChatRoom = ReportUtils.isChatRoom(report);
+
+    if (isChatRoom) {
+        const roomName = _.get(report, 'displayName', '');
+        return roomName;
+    }
+
+    const {person} = reportAction;
+    const plainTextPerson = _.map(person, (f) => f.text).join();
+    return plainTextPerson;
+}
+
+/**
  * BrowserNotification
  * @namespace
  */
@@ -92,19 +114,19 @@ export default {
      * Create a report comment notification
      *
      * @param {Object} params
+     * @param {Object} params.report
      * @param {Object} params.reportAction
      * @param {Function} params.onClick
      * @param {Boolean} usesIcon true if notification uses right circular icon
      */
-    pushReportCommentNotification({reportAction, onClick}, usesIcon = false) {
-        const {person, message} = reportAction;
-        const plainTextPerson = _.map(person, (f) => f.text).join();
+    pushReportCommentNotification({report, reportAction, onClick}, usesIcon = false) {
+        const {message} = reportAction;
 
         // Specifically target the comment part of the message
         const plainTextMessage = (_.find(message, (f) => f.type === 'COMMENT') || {}).text;
 
         push({
-            title: plainTextPerson,
+            title: getNotificationTitle(report, reportAction),
             body: plainTextMessage,
             delay: 0,
             onClick,
