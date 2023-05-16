@@ -1,5 +1,5 @@
 import React, { createContext, useContext, useEffect, useRef, useState } from 'react';
-import { Image, ActivityIndicator, StyleSheet, View, useWindowDimensions } from 'react-native';
+import { ActivityIndicator, StyleSheet, View, useWindowDimensions } from 'react-native';
 import { Gesture, GestureDetector, createNativeWrapper } from 'react-native-gesture-handler';
 import Animated, {
     cancelAnimation,
@@ -17,7 +17,7 @@ import Animated, {
     withSpring,
 } from 'react-native-reanimated';
 import PagerView from 'react-native-pager-view';
-// import Image from '../Image';
+import Image from '../Image';
 
 const Context = createContext(null);
 
@@ -38,10 +38,27 @@ const config = {
 };
 
 function getScaledDimensions({ canvasWidth, canvasHeight, imageWidth, imageHeight }) {
+    console.log({
+        canvasWidth,
+        canvasHeight,
+        imageWidth,
+        imageHeight,
+    })
+
     const scaleFactor = imageWidth / canvasWidth;
 
     const width = canvasWidth;
     const height = imageHeight / scaleFactor;
+
+    console.log({
+        canvasWidth,
+        canvasHeight,
+        imageWidth,
+        imageHeight,
+        width,
+        height,
+        scaleFactor,
+    })
 
     return { width, height };
 }
@@ -348,25 +365,25 @@ function ImageTransformer({ canvasWidth, canvasHeight, imageWidth, imageHeight, 
 
             // this is for swipe down to close
             // needs fine tuning to work properly
-            if (!isScrolling.value && scale.value === 1 && previousTouch.value != null) {
-                const velocityX = evt.allTouches[0].x - previousTouch.value.x;
-                const velocityY = evt.allTouches[0].y - previousTouch.value.y;
+            // if (!isScrolling.value && scale.value === 1 && previousTouch.value != null) {
+            //     const velocityX = evt.allTouches[0].x - previousTouch.value.x;
+            //     const velocityY = evt.allTouches[0].y - previousTouch.value.y;
 
-                // this needs tuning
-                if (Math.abs(velocityY) > Math.abs(velocityX) && Math.abs(velocityY) > 50) {
-                    state.activate();
+            //     // this needs tuning
+            //     if (Math.abs(velocityY) > Math.abs(velocityX) && Math.abs(velocityY) > 50) {
+            //         state.activate();
 
-                    isSwiping.value = true;
-                    previousTouch.value = null;
-                }
-            }
+            //         isSwiping.value = true;
+            //         previousTouch.value = null;
+            //     }
+            // }
 
-            if (previousTouch.value == null) {
-                previousTouch.value = {
-                    x: evt.allTouches[0].x,
-                    y: evt.allTouches[0].y,
-                };
-            }
+            // if (previousTouch.value == null) {
+            //     previousTouch.value = {
+            //         x: evt.allTouches[0].x,
+            //         y: evt.allTouches[0].y,
+            //     };
+            // }
         })
         .simultaneousWithExternalGesture(pagerRef, doubleTap, singleTap)
         .onBegin(() => {
@@ -612,9 +629,11 @@ function Page({ isActive, item, onSwipe, onSwipeSuccess, canvasWidth, canvasHeig
                 <Image
                     source={{ uri: item.url }}
                     onLoad={(evt) => {
+
+
                         cachedDimensions.set(item.url, {
-                            width: evt.nativeEvent.source.width,
-                            height: evt.nativeEvent.source.height,
+                            width: evt.nativeEvent?.width,
+                            height: evt.nativeEvent?.height,
                         });
                     }}
                     style={
@@ -644,18 +663,18 @@ function Page({ isActive, item, onSwipe, onSwipeSuccess, canvasWidth, canvasHeig
             renderFallback={() => <ActivityIndicator />}
             renderImage={({ onResolveImageDimensions, width, height, style }) => (
                 <Image
-                    source={{ uri: item.url }}
+                    source={{ uri: item.url, }}
                     style={[style, { width, height }]}
                     onLoad={(evt) => {
                         cachedDimensions.set(item.url, {
-                            width: evt.nativeEvent.source.width,
-                            height: evt.nativeEvent.source.height,
+                            width: evt.nativeEvent.width,
+                            height: evt.nativeEvent.height,
                         });
 
 
                         onResolveImageDimensions({
-                            width: evt.nativeEvent.source.width,
-                            height: evt.nativeEvent.source.height,
+                            width: evt.nativeEvent.width,
+                            height: evt.nativeEvent.height,
                         });
                     }}
                 />
