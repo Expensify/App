@@ -203,6 +203,7 @@ export default {
         NEW_TASK_FORM: 'newTaskForm',
         EDIT_TASK_FORM: 'editTaskForm',
         MONEY_REQUEST_DESCRIPTION_FORM: 'moneyRequestDescriptionForm',
+        NEW_CONTACT_METHOD_FORM: 'newContactMethodForm',
     },
 
     // Whether we should show the compose input or not
