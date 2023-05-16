@@ -16,6 +16,7 @@ import getButtonState from '../../libs/getButtonState';
 import Navigation from '../../libs/Navigation/Navigation';
 import ROUTES from '../../ROUTES';
 import reportActionPropTypes from '../../pages/home/report/reportActionPropTypes';
+import * as TaskUtils from '../../libs/actions/Task';
 
 const propTypes = {
     /** The ID of the associated taskReport */
@@ -54,8 +55,9 @@ const TaskPreview = (props) => {
     // Other linked reportActions will only contain the taskReportID and we will grab the details from there
     const isTaskCompleted =
         (props.taskReport.stateNum === CONST.REPORT.STATE_NUM.SUBMITTED && props.taskReport.statusNum === CONST.REPORT.STATUS.APPROVED) ||
-        (props.action.childStateNum === CONST.REPORT.STATE_NUM.CLOSED && props.action.childStatusNum === CONST.REPORT.STATUS.APPROVED);
+        (props.action.childStateNum === CONST.REPORT.STATE_NUM.SUBMITTED && props.action.childStatusNum === CONST.REPORT.STATUS.APPROVED);
     const taskTitle = props.action.taskTitle || props.taskReport.reportName;
+    const parentReportID = props.action.parentReportID || props.taskReport.parentReportID;
 
     return (
         <Pressable
@@ -68,7 +70,11 @@ const TaskPreview = (props) => {
                     containerStyle={[styles.taskCheckbox]}
                     isChecked={isTaskCompleted}
                     onPress={() => {
-                        // Being implemented in https://github.com/Expensify/App/issues/16858
+                        if (isTaskCompleted) {
+                            TaskUtils.reopenTask(props.taskReportID, parentReportID, taskTitle);
+                        } else {
+                            TaskUtils.completeTask(props.taskReportID, parentReportID, taskTitle);
+                        }
                     }}
                 />
                 <Text>{taskTitle}</Text>

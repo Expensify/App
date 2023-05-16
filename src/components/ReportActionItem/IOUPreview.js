@@ -134,22 +134,21 @@ const IOUPreview = (props) => {
     const sessionEmail = lodashGet(props.session, 'email', null);
     const managerEmail = props.iouReport.managerEmail || '';
     const ownerEmail = props.iouReport.ownerEmail || '';
-    const comment = Str.htmlDecode(lodashGet(props.action, 'originalMessage.comment', '')).trim();
 
     // When displaying within a IOUDetailsModal we cannot guarantee that participants are included in the originalMessage data
     // Because an IOUPreview of type split can never be rendered within the IOUDetailsModal, manually building the email array is only needed for non-billSplit ious
-    const participantEmails = props.isBillSplit ? props.action.originalMessage.participants : [managerEmail, ownerEmail];
+    const participantEmails = props.isBillSplit ? lodashGet(props.action, 'originalMessage.participants', []) : [managerEmail, ownerEmail];
     const participantAvatars = OptionsListUtils.getAvatarsForLogins(participantEmails, props.personalDetails);
 
     // Pay button should only be visible to the manager of the report.
     const isCurrentUserManager = managerEmail === sessionEmail;
 
+    const moneyRequestAction = ReportUtils.getMoneyRequestAction(props.action);
+
     // If props.action is undefined then we are displaying within IOUDetailsModal and should use the full report amount
-    const requestAmount = props.isIOUAction ? lodashGet(props.action, 'originalMessage.amount', 0) : ReportUtils.getMoneyRequestTotal(props.iouReport);
-    let requestCurrency = props.isIOUAction ? lodashGet(props.action, 'originalMessage.currency', CONST.CURRENCY.USD) : props.iouReport.currency;
-    if (!requestCurrency) {
-        requestCurrency = CONST.CURRENCY.USD;
-    }
+    const requestAmount = props.isIOUAction ? moneyRequestAction.total : ReportUtils.getMoneyRequestTotal(props.iouReport);
+    const requestCurrency = props.isIOUAction ? moneyRequestAction.currency : props.iouReport.currency;
+    const requestComment = Str.htmlDecode(moneyRequestAction.comment).trim();
 
     const getSettledMessage = () => {
         switch (lodashGet(props.action, 'originalMessage.paymentType', '')) {
@@ -231,7 +230,7 @@ const IOUPreview = (props) => {
                             {!isCurrentUserManager && props.shouldShowPendingConversionMessage && (
                                 <Text style={[styles.textLabel, styles.colorMuted]}>{props.translate('iou.pendingConversionMessage')}</Text>
                             )}
-                            {!_.isEmpty(comment) && <Text style={[styles.colorMuted]}>{comment}</Text>}
+                            {!_.isEmpty(requestComment) && <Text style={[styles.colorMuted]}>{requestComment}</Text>}
                         </View>
                         {props.isBillSplit && !_.isEmpty(participantEmails) && (
                             <Text style={[styles.textLabel, styles.colorMuted, styles.ml1]}>
