@@ -22,7 +22,7 @@ class QRShare extends Component {
         super(props);
 
         this.state = {
-            qrCodeSize: 0,
+            qrCodeSize: 1,
         };
 
         this.onLayout = this.onLayout.bind(this);
@@ -30,8 +30,10 @@ class QRShare extends Component {
     }
 
     onLayout(event) {
+        const containerWidth = event.nativeEvent.layout.width - variables.qrShareHorizontalPadding * 2 || 0;
+
         this.setState({
-            qrCodeSize: event.nativeEvent.layout.width - variables.qrShareHorizontalPadding * 2,
+            qrCodeSize: Math.max(1, containerWidth),
         });
     }
 
@@ -65,7 +67,7 @@ class QRShare extends Component {
                     getRef={(svg) => (this.svg = svg)}
                     logoBackgroundColor="transparent"
                     logoSize={this.state.qrCodeSize * 0.3}
-                    logoBorderRadius={this.state.qrCodeSize}
+                    logoBorderRadius={(this.state.qrCodeSize * 0.3) / 2}
                     size={this.state.qrCodeSize}
                     backgroundColor={defaultTheme.highlightBG}
                     color={defaultTheme.text}
