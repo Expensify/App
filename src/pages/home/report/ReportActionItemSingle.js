@@ -53,7 +53,7 @@ const defaultProps = {
     wrapperStyles: [styles.chatItem],
     showHeader: true,
     shouldShowSubscriptAvatar: false,
-    chatReport: undefined,
+    report: undefined,
 };
 
 const showUserDetails = (email) => {
