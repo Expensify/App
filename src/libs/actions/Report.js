@@ -1105,6 +1105,29 @@ function updateNotificationPreference(reportID, previousValue, newValue) {
 }
 
 /**
+ * @param {String} reportID
+ * @param {String} previousValue
+ * @param {String} newValue
+ */
+function updateWriteCapability(reportID, previousValue, newValue) {
+    const optimisticData = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
+            value: {writeCapability: newValue},
+        },
+    ];
+    const failureData = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
+            value: {writeCapability: previousValue},
+        },
+    ];
+    API.write('UpdateReportWriteCapability', {reportID, writeCapability: newValue}, {optimisticData, failureData});
+}
+
+/**
  * Navigates to the 1:1 report with Concierge
  */
 function navigateToConciergeChat() {
@@ -1581,6 +1604,7 @@ export {
     addAttachment,
     reconnect,
     updateNotificationPreference,
+    updateWriteCapability,
     subscribeToReportTypingEvents,
     unsubscribeFromReportChannel,
     saveReportComment,

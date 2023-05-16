@@ -233,8 +233,7 @@ class ReportSettingsPage extends Component {
                                             return;
                                         }
 
-                                        console.log(writeCapability);
-                                        // Report.updateWriteCapability(this.props.report.reportID, this.props.report.writeCapability, writeCapability);
+                                        Report.updateWriteCapability(this.props.report.reportID, this.props.report.writeCapability, writeCapability);
                                     }}
                                     items={this.getWriteCapabilityOptions()}
                                     value={this.props.report.writeCapability}
