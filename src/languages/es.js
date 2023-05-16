@@ -151,7 +151,7 @@ export default {
         attachmentTooSmall: 'Archivo adjunto demasiado pequeño',
         sizeNotMet: 'El archivo adjunto debe ser mas grande que 240 bytes.',
         wrongFileType: 'El tipo del archivo adjunto es incorrecto',
-        notAllowedExtension: 'Los archivos adjuntos deben ser de uno de los siguientes tipos:',
+        notAllowedExtension: 'Este tipo de archivo no está permitido',
     },
     avatarCropModal: {
         title: 'Editar foto',
@@ -1792,5 +1792,9 @@ export default {
         lastReply: 'Última respuesta',
         replies: 'Respuestas',
         reply: 'Respuesta',
+    },
+    qrCodes: {
+        copyUrlToClipboard: 'Copiar URL al portapapeles',
+        copied: '¡Copiado!',
     },
 };
