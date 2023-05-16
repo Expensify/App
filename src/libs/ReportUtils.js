@@ -22,7 +22,6 @@ import isReportMessageAttachment from './isReportMessageAttachment';
 import * as defaultWorkspaceAvatars from '../components/Icon/WorkspaceDefaultAvatars';
 import * as LocalePhoneNumber from './LocalePhoneNumber';
 import * as CurrencyUtils from './CurrencyUtils';
-import Log from './Log';
 
 let sessionEmail;
 Onyx.connect({
@@ -2142,25 +2141,6 @@ function isReportDataReady() {
     return !_.isEmpty(allReports) && _.some(_.keys(allReports), (key) => allReports[key].reportID);
 }
 
-/**
- * @param {object} report
- * @returns {boolean}
- */
-function isSingleTransactionThreadReport(report) {
-    const parentReportAction = ReportActionsUtils.getParentReportAction(report);
-    if (_.isEmpty(parentReportAction)) {
-        if (report.parentReportActionID) {
-            Log.alert('parentReportActionID found, but no reportAction exists locally for this ID!');
-        } else {
-            Log.info('No parentReportActionID for this report. Not a thread.');
-        }
-        console.log(report);
-        return false;
-    }
-
-    return ReportActionsUtils.isTransactionThread(parentReportAction);
-}
-
 export {
     getReportParticipantsTitle,
     isReportMessageAttachment,
@@ -2243,7 +2223,6 @@ export {
     canRequestMoney,
     getWhisperDisplayNames,
     getWorkspaceAvatar,
-    isSingleTransactionThreadReport,
     isThread,
     isThreadParent,
     isThreadFirstChat,

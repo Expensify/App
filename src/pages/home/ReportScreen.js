@@ -244,7 +244,8 @@ class ReportScreen extends React.Component {
         // the moment the ReportScreen becomes unfrozen we want to start the animation of the placeholder skeleton content
         // (which is shown, until all the actual views of the ReportScreen have been rendered)
         const shouldAnimate = !shouldFreeze;
-        const isSingleTransactionView = ReportUtils.isSingleTransactionThreadReport(this.props.report);
+        const parentReportAction = ReportActionsUtils.getParentReportAction(this.props.report);
+        const isSingleTransactionView = ReportActionsUtils.isTransactionThread(parentReportAction);
         return (
             <ScreenWrapper style={screenWrapperStyle}>
                 <Freeze
@@ -287,6 +288,7 @@ class ReportScreen extends React.Component {
                                             policies={this.props.policies}
                                             personalDetails={this.props.personalDetails}
                                             isSingleTransactionView={isSingleTransactionView}
+                                            parentReportAction={parentReportAction}
                                         />
                                     ) : (
                                         <HeaderView

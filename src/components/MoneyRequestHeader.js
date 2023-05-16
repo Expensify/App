@@ -19,6 +19,8 @@ import Navigation from '../libs/Navigation/Navigation';
 import ROUTES from '../ROUTES';
 import Icon from './Icon';
 import * as CurrencyUtils from '../libs/CurrencyUtils';
+import MenuItemWithTopDescription from './MenuItemWithTopDescription';
+import DateUtils from '../libs/DateUtils';
 
 const propTypes = {
     /** The report currently being looked at */
@@ -44,6 +46,14 @@ const defaultProps = {
 };
 
 const MoneyRequestHeader = (props) => {
+    // These are only used for the single transaction view and not "money requests"
+    const transactionAmount = lodashGet(props.parentReportAction, ['originalMessage', 'amount']);
+    const transactionCurrency = lodashGet(props.parentReportAction, ['originalMessage', 'currency']);
+    const transactionDescription = lodashGet(props.parentReportAction, ['originalMessage', 'comment']);
+    const formattedTransactionAmount = transactionAmount && transactionCurrency && CurrencyUtils.convertToDisplayString(transactionAmount, transactionCurrency);
+    const transactionDate = lodashGet(props.parentReportAction, ['created']);
+    const formattedTransactionDate = DateUtils.getDateStringFromISOTimestamp(transactionDate);
+
     const formattedAmount = CurrencyUtils.convertToDisplayString(ReportUtils.getMoneyRequestTotal(props.report), props.report.currency);
     const isSettled = ReportUtils.isSettled(props.report.reportID);
     const isExpenseReport = ReportUtils.isExpenseReport(props.report);
@@ -111,6 +121,22 @@ const MoneyRequestHeader = (props) => {
                     </View>
                 </View>
             </View>
+            {props.isSingleTransactionView && (
+                <>
+                    <MenuItemWithTopDescription
+                        title={formattedTransactionAmount}
+                        description="Amount • Cash"
+                    />
+                    <MenuItemWithTopDescription
+                        description="Description"
+                        title={transactionDescription}
+                    />
+                    <MenuItemWithTopDescription
+                        description="Date"
+                        title={formattedTransactionDate}
+                    />
+                </>
+            )}
         </View>
     );
 };
