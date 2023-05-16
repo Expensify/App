@@ -109,7 +109,7 @@ class MoneyRequestConfirmationList extends Component {
         });
         return [
             {
-                text: text.slice(0, 1).toUpperCase() + text.slice(1),
+                text: text[0].toUpperCase() + text.slice(1),
                 value: this.props.hasMultipleParticipants ? CONST.IOU.MONEY_REQUEST_TYPE.SPLIT : CONST.IOU.MONEY_REQUEST_TYPE.REQUEST,
             },
         ];
