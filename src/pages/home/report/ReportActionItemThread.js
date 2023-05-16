@@ -9,8 +9,6 @@ import withWindowDimensions, {windowDimensionsPropTypes} from '../../../componen
 import CONST from '../../../CONST';
 import avatarPropTypes from '../../../components/avatarPropTypes';
 import MultipleAvatars from '../../../components/MultipleAvatars';
-import Navigation from '../../../libs/Navigation/Navigation';
-import ROUTES from '../../../ROUTES';
 import compose from '../../../libs/compose';
 
 const propTypes = {
@@ -43,8 +41,7 @@ const ReportActionItemThread = (props) => {
         <View style={[styles.chatItemMessage]}>
             <Pressable
                 onPress={() => {
-                    Report.openReport(props.childReportID);
-                    Navigation.navigate(ROUTES.getReportRoute(props.childReportID));
+                    Report.navigateToAndOpenChildReport(props.childReportID);
                 }}
             >
                 <View style={[styles.flexRow, styles.alignItemsCenter, styles.mt2]}>
