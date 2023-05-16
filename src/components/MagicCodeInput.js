@@ -85,10 +85,6 @@ function MagicCodeInput(props) {
     const [focusedIndex, setFocusedIndex] = useState(0);
     const [editIndex, setEditIndex] = useState(0);
 
-    // For Safari on iOS, a transparent background will be used instead of opacity: 0, so that magic code pasting can work.
-    // Alternate styling will be applied based on this condition.
-    const isMobileSafari = Browser.isMobileSafari();
-
     useImperativeHandle(props.innerRef, () => ({
         focus() {
             setFocusedIndex(0);
@@ -259,6 +255,11 @@ function MagicCodeInput(props) {
             props.onFulfill(props.value);
         }
     };
+
+    // We need to check the browser because, in iOS Safari, an input in a container with its opacity set to
+    // 0 (completely transparent) cannot handle user interaction, hence the Paste option is never shown.
+    // Alternate styling will be applied based on this condition.
+    const isMobileSafari = Browser.isMobileSafari();
 
     return (
         <>
