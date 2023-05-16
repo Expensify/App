@@ -13,7 +13,6 @@ import * as StyleUtils from '../../../styles/StyleUtils';
 import Composer from '../../../components/Composer';
 import * as Report from '../../../libs/actions/Report';
 import * as ReportScrollManager from '../../../libs/ReportScrollManager';
-import toggleReportActionComposeView from '../../../libs/toggleReportActionComposeView';
 import openReportActionComposeViewWhenClosingMessageEdit from '../../../libs/openReportActionComposeViewWhenClosingMessageEdit';
 import ReportActionComposeFocusManager from '../../../libs/ReportActionComposeFocusManager';
 import compose from '../../../libs/compose';
@@ -33,6 +32,8 @@ import withLocalize, {withLocalizePropTypes} from '../../../components/withLocal
 import withKeyboardState, {keyboardStatePropTypes} from '../../../components/withKeyboardState';
 import refPropTypes from '../../../components/refPropTypes';
 import * as ComposerUtils from '../../../libs/ComposerUtils';
+import * as ComposerActions from '../../../libs/actions/Composer';
+import * as User from '../../../libs/actions/User';
 
 const propTypes = {
     /** All the data of the action */
@@ -117,7 +118,7 @@ class ReportActionItemMessageEdit extends React.Component {
 
         // Show the main composer when the focused message is deleted from another client
         // to prevent the main composer stays hidden until we swtich to another chat.
-        toggleReportActionComposeView(true, this.props.isSmallScreenWidth);
+        ComposerActions.setShouldShowComposeInput(true);
     }
 
     /**
@@ -145,7 +146,12 @@ class ReportActionItemMessageEdit extends React.Component {
      * @param {String} draft
      */
     updateDraft(draft) {
-        const newDraft = EmojiUtils.replaceEmojis(draft, this.props.isSmallScreenWidth, this.props.preferredSkinTone);
+        const {text: newDraft = '', emojis = []} = EmojiUtils.replaceEmojis(draft, this.props.isSmallScreenWidth, this.props.preferredSkinTone);
+
+        if (!_.isEmpty(emojis)) {
+            User.updateFrequentlyUsedEmojis(EmojiUtils.getFrequentlyUsedEmojis(emojis));
+        }
+
         this.setState((prevState) => {
             const newState = {draft: newDraft};
             if (draft !== newDraft) {
@@ -174,7 +180,7 @@ class ReportActionItemMessageEdit extends React.Component {
     deleteDraft() {
         this.debouncedSaveDraft.cancel();
         Report.saveReportActionDraft(this.props.reportID, this.props.action.reportActionID, '');
-        toggleReportActionComposeView(true, this.props.isSmallScreenWidth);
+        ComposerActions.setShouldShowComposeInput(true);
         ReportActionComposeFocusManager.focus();
 
         // Scroll to the last comment after editing to make sure the whole comment is clearly visible in the report.
@@ -305,7 +311,7 @@ class ReportActionItemMessageEdit extends React.Component {
                                 onFocus={() => {
                                     this.setState({isFocused: true});
                                     ReportScrollManager.scrollToIndex({animated: true, index: this.props.index}, true);
-                                    toggleReportActionComposeView(false, this.props.isSmallScreenWidth);
+                                    ComposerActions.setShouldShowComposeInput(false);
                                 }}
                                 onBlur={(event) => {
                                     this.setState({isFocused: false});
@@ -319,7 +325,7 @@ class ReportActionItemMessageEdit extends React.Component {
                                     if (this.messageEditInput === relatedTargetId) {
                                         return;
                                     }
-                                    openReportActionComposeViewWhenClosingMessageEdit(this.props.isSmallScreenWidth);
+                                    openReportActionComposeViewWhenClosingMessageEdit();
                                 }}
                                 selection={this.state.selection}
                                 onSelectionChange={this.onSelectionChange}

@@ -8,7 +8,7 @@ import EnvironmentBadge from './EnvironmentBadge';
 
 const propTypes = {
     /** Title of the Header */
-    title: PropTypes.string.isRequired,
+    title: PropTypes.oneOfType([PropTypes.string, PropTypes.element]),
 
     /** Subtitle of the header */
     subtitle: PropTypes.oneOfType([PropTypes.string, PropTypes.element]),
@@ -22,19 +22,24 @@ const propTypes = {
 };
 
 const defaultProps = {
-    shouldShowEnvironmentBadge: false,
+    title: '',
     subtitle: '',
     textStyles: [],
+    shouldShowEnvironmentBadge: false,
 };
 const Header = (props) => (
     <View style={[styles.flex1, styles.flexRow]}>
         <View style={styles.mw100}>
-            <Text
-                numberOfLines={2}
-                style={[styles.headerText, styles.textLarge, ...props.textStyles]}
-            >
-                {props.title}
-            </Text>
+            {_.isString(props.title)
+                ? Boolean(props.title) && (
+                      <Text
+                          numberOfLines={2}
+                          style={[styles.headerText, styles.textLarge, ...props.textStyles]}
+                      >
+                          {props.title}
+                      </Text>
+                  )
+                : props.title}
             {/* If there's no subtitle then display a fragment to avoid an empty space which moves the main title */}
             {_.isString(props.subtitle)
                 ? Boolean(props.subtitle) && (

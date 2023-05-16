@@ -77,6 +77,7 @@ import Pin from '../../../assets/images/pin.svg';
 import Plus from '../../../assets/images/plus.svg';
 import Printer from '../../../assets/images/printer.svg';
 import Profile from '../../../assets/images/profile.svg';
+import QrCode from '../../../assets/images/qrcode.svg';
 import QuestionMark from '../../../assets/images/question-mark-circle.svg';
 import Receipt from '../../../assets/images/receipt.svg';
 import ReceiptSearch from '../../../assets/images/receipt-search.svg';
@@ -197,6 +198,7 @@ export {
     Plus,
     Printer,
     Profile,
+    QrCode,
     QuestionMark,
     Receipt,
     ReceiptSearch,

@@ -17,6 +17,7 @@ import ReportActionItemMessage from './ReportActionItemMessage';
 import UnreadActionIndicator from '../../../components/UnreadActionIndicator';
 import ReportActionItemMessageEdit from './ReportActionItemMessageEdit';
 import ReportActionItemCreated from './ReportActionItemCreated';
+import ReportActionItemThread from './ReportActionItemThread';
 import compose from '../../../libs/compose';
 import withWindowDimensions, {windowDimensionsPropTypes} from '../../../components/withWindowDimensions';
 import ControlSelection from '../../../libs/ControlSelection';
@@ -33,6 +34,7 @@ import * as User from '../../../libs/actions/User';
 import * as ReportUtils from '../../../libs/ReportUtils';
 import OfflineWithFeedback from '../../../components/OfflineWithFeedback';
 import * as ReportActions from '../../../libs/actions/ReportActions';
+import * as ReportActionsUtils from '../../../libs/ReportActionsUtils';
 import reportPropTypes from '../../reportPropTypes';
 import {ShowContextMenuContext} from '../../../components/ShowContextMenuContext';
 import focusTextInputAfterAnimation from '../../../libs/focusTextInputAfterAnimation';
@@ -47,7 +49,8 @@ import DisplayNames from '../../../components/DisplayNames';
 import personalDetailsPropType from '../../personalDetailsPropType';
 import ReportActionItemDraft from './ReportActionItemDraft';
 import TaskPreview from '../../../components/ReportActionItem/TaskPreview';
-import * as ReportActionUtils from '../../../libs/ReportActionsUtils';
+import TaskAction from '../../../components/ReportActionItem/TaskAction';
+import Permissions from '../../../libs/Permissions';
 
 const propTypes = {
     /** Report for this action */
@@ -80,6 +83,9 @@ const propTypes = {
     /** All of the personalDetails */
     personalDetails: PropTypes.objectOf(personalDetailsPropType),
 
+    /** List of betas available to current user */
+    betas: PropTypes.arrayOf(PropTypes.string),
+
     ...windowDimensionsPropTypes,
 };
 
@@ -88,6 +94,7 @@ const defaultProps = {
     preferredSkinTone: CONST.EMOJI_DEFAULT_SKIN_TONE,
     personalDetails: {},
     shouldShowSubscriptAvatar: false,
+    betas: [],
 };
 
 function ReportActionItem(props) {
@@ -125,23 +132,22 @@ function ReportActionItem(props) {
 
             setIsContextMenuActive(true);
 
-            const selection = SelectionScraper.getCurrentSelection();
-            ReportActionContextMenu.showContextMenu(
-                ContextMenuActions.CONTEXT_MENU_TYPES.REPORT_ACTION,
-                event,
-                selection,
-                popoverAnchorRef.current,
-                props.report.reportID,
-                props.action,
-                props.draftMessage,
-                undefined,
-                toggleContextMenuFromActiveReportAction,
-                ReportUtils.isArchivedRoom(props.report),
-                ReportUtils.chatIncludesChronos(props.report),
-            );
-        },
-        [props.draftMessage, props.report, props.action, toggleContextMenuFromActiveReportAction],
-    );
+        const selection = SelectionScraper.getCurrentSelection();
+        ReportActionContextMenu.showContextMenu(
+            ContextMenuActions.CONTEXT_MENU_TYPES.REPORT_ACTION,
+            event,
+            selection,
+            popoverAnchor,
+            props.report.reportID,
+            props.action,
+            props.draftMessage,
+            undefined,
+            checkIfContextMenuActive,
+            ReportUtils.isArchivedRoom(props.report),
+            ReportUtils.chatIncludesChronos(props.report),
+            props.action.childReportID,
+        );
+    });
 
     const toggleReaction = useCallback(
         (emoji) => {
@@ -157,7 +163,11 @@ function ReportActionItem(props) {
      */
     const renderItemContent = (hovered = false) => {
         let children;
-        if (props.action.actionName === CONST.REPORT.ACTIONS.TYPE.IOU) {
+        if (
+            props.action.actionName === CONST.REPORT.ACTIONS.TYPE.IOU &&
+            props.action.originalMessage.type !== CONST.IOU.REPORT_ACTION_TYPE.DELETE &&
+            props.action.originalMessage.type !== CONST.IOU.REPORT_ACTION_TYPE.PAY
+        ) {
             // There is no single iouReport for bill splits, so only 1:1 requests require an iouReportID
             const iouReportID = props.action.originalMessage.IOUReportID ? props.action.originalMessage.IOUReportID.toString() : '0';
 
@@ -172,7 +182,15 @@ function ReportActionItem(props) {
                     checkIfContextMenuActive={toggleContextMenuFromActiveReportAction}
                 />
             );
-        } else if (ReportActionUtils.isCreatedTaskReportAction(props.action)) {
+        } else if (props.action.actionName === CONST.REPORT.ACTIONS.TYPE.TASKCOMPLETED || props.action.actionName === CONST.REPORT.ACTIONS.TYPE.TASKCANCELED) {
+            children = (
+                <TaskAction
+                    taskReportID={props.action.originalMessage.taskReportID.toString()}
+                    actionName={props.action.actionName}
+                    isHovered={hovered}
+                />
+            );
+        } else if (ReportActionsUtils.isCreatedTaskReportAction(props.action)) {
             children = (
                 <TaskPreview
                     taskReportID={props.action.originalMessage.taskReportID.toString()}
@@ -221,6 +239,10 @@ function ReportActionItem(props) {
 
         const reactions = _.get(props, ['action', 'message', 0, 'reactions'], []);
         const hasReactions = reactions.length > 0;
+        const shouldDisplayThreadReplies =
+            props.action.childCommenterCount && Permissions.canUseThreads(props.betas) && !ReportUtils.isThreadFirstChat(props.action, props.report.reportID);
+        const oldestFourEmails = lodashGet(props.action, 'childOldestFourEmails', '').split(',');
+
         return (
             <>
                 {children}
@@ -231,6 +253,15 @@ function ReportActionItem(props) {
                             toggleReaction={toggleReaction}
                         />
                     </View>
+                )}
+                {shouldDisplayThreadReplies && (
+                    <ReportActionItemThread
+                        childReportID={`${props.action.childReportID}`}
+                        numberOfReplies={props.action.childVisibleActionCount || 0}
+                        mostRecentReply={`${props.action.childLastVisibleActionCreated}`}
+                        isHovered={hovered}
+                        icons={ReportUtils.getIconsForParticipants(oldestFourEmails, props.personalDetails)}
+                    />
                 )}
             </>
         );
@@ -265,21 +296,6 @@ function ReportActionItem(props) {
 
         return <ReportActionItemGrouped wrapperStyles={[styles.chatItem, isWhisper ? styles.pt1 : {}]}>{content}</ReportActionItemGrouped>;
     };
-
-    if (props.action.actionName === CONST.REPORT.ACTIONS.TYPE.CREATED) {
-        return <ReportActionItemCreated reportID={props.report.reportID} />;
-    }
-    if (props.action.actionName === CONST.REPORT.ACTIONS.TYPE.RENAMED) {
-        return <RenameAction action={props.action} />;
-    }
-    if (props.action.actionName === CONST.REPORT.ACTIONS.TYPE.CHRONOSOOOLIST) {
-        return (
-            <ChronosOOOListActions
-                action={props.action}
-                reportID={props.report.reportID}
-            />
-        );
-    }
 
     const hasErrors = !_.isEmpty(props.action.errors);
     const whisperedTo = lodashGet(props.action, 'whisperedTo', []);
@@ -378,6 +394,9 @@ export default compose(
     withOnyx({
         preferredSkinTone: {
             key: ONYXKEYS.PREFERRED_EMOJI_SKIN_TONE,
+        },
+        betas: {
+            key: ONYXKEYS.BETAS,
         },
     }),
 )(
