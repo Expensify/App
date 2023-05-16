@@ -411,6 +411,30 @@ function getPolicyName(report) {
 }
 
 /**
+ * Checks if the current user is allowed to comment on the given report.
+ * @param {Object} report
+ * @param {String} report.writeCapability
+ * @param {Object} policy
+ * @returns {Boolean}
+ */
+function isAllowedToComment(report, policy) {
+    // If the capability is unset, default to allowing all users to post
+    const capability = lodashGet(report, 'writeCapability', 'all');
+
+    if (capability === CONST.REPORT.WRITE_CAPABILITIES.ALL) {
+        return true;
+    }
+
+    // If we've made it here, commenting on this report is restricted
+    // If the user is an admin, allow them to post
+    if (lodashGet(policy, 'role', '') === CONST.POLICY.ROLE.ADMIN) {
+        return true;
+    }
+
+    return false;
+}
+
+/**
  * Checks if the current user is the admin of the policy given the policy expense chat.
  * @param {Object} report
  * @param {String} report.policyID
@@ -2147,4 +2171,5 @@ export {
     shouldReportShowSubscript,
     isReportDataReady,
     isSettled,
+    isAllowedToComment,
 };

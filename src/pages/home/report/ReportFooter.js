@@ -36,6 +36,12 @@ const propTypes = {
     /** The pending action when we are adding a chat */
     pendingAction: PropTypes.string,
 
+    /** The policies which the user has access to and which the report could be tied to */
+    policies: PropTypes.shape({
+        /** Name of the policy */
+        name: PropTypes.string,
+    }),
+
     /** Whether the composer input should be shown */
     shouldShowComposeInput: PropTypes.bool,
 
@@ -51,6 +57,7 @@ const defaultProps = {
     onSubmitComment: () => {},
     errors: {},
     pendingAction: null,
+    policies: {},
     shouldShowComposeInput: true,
     shouldDisableCompose: false,
 };
@@ -65,7 +72,9 @@ class ReportFooter extends React.Component {
 
     render() {
         const isArchivedRoom = ReportUtils.isArchivedRoom(this.props.report);
-        const hideComposer = isArchivedRoom || !_.isEmpty(this.props.errors) || ReportUtils.isTaskReport(this.props.report);
+        const linkedWorkspace = _.find(this.props.policies, (policy) => policy && policy.id === this.props.report.policyID);
+        const isAllowedToComment = ReportUtils.isAllowedToComment(this.props.report, linkedWorkspace);
+        const hideComposer = isArchivedRoom || !_.isEmpty(this.props.errors) || ReportUtils.isTaskReport(this.props.report) || !isAllowedToComment;
 
         return (
             <>
@@ -103,5 +112,8 @@ export default compose(
     withWindowDimensions,
     withOnyx({
         shouldShowComposeInput: {key: ONYXKEYS.SHOULD_SHOW_COMPOSE_INPUT},
+        policies: {
+            key: ONYXKEYS.COLLECTION.POLICY,
+        },
     }),
 )(ReportFooter);
