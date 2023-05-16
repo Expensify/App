@@ -138,7 +138,7 @@ class ReportScreen extends React.Component {
             skeletonViewContainerHeight: reportActionsListViewHeight,
             isBannerVisible: true,
             animationFinished: false,
-            screenDisappeared: false,
+            isScreenBlurred: false,
         };
     }
 
@@ -163,11 +163,11 @@ class ReportScreen extends React.Component {
 
         // ReportScreen is nested inside another navigator, so we need to listen to the parent navigator's events
         this.transitionEndListener = this.props.navigation.getParent().addListener('transitionEnd', (e) => {
-            this.setState({screenDisappeared: e.data.closing});
+            this.setState({isScreenBlurred: e.data.closing});
         });
 
         this.gestureStartListener = this.props.navigation.getParent().addListener('gestureStart', () => {
-            this.setState({screenDisappeared: false});
+            this.setState({isScreenBlurred: false});
         });
     }
 
@@ -260,7 +260,7 @@ class ReportScreen extends React.Component {
             (ReportUtils.isUserCreatedPolicyRoom(this.props.report) && !Permissions.canUsePolicyRooms(this.props.betas));
 
         // When the ReportScreen is not open/in the viewport, we want to "freeze" it for performance reasons
-        const isVisible = this.props.isFocused || !this.state.screenDisappeared;
+        const isVisible = this.props.isFocused || !this.state.isScreenBlurred;
         const shouldFreeze = this.props.isSmallScreenWidth && !isVisible;
 
         const isLoading = !reportID || !this.props.isSidebarLoaded || _.isEmpty(this.props.personalDetails) || !this.state.animationFinished;

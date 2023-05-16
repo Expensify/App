@@ -29,10 +29,10 @@ index 1e9ee0e..d85c7b4 100644
  
    const handleGestureCanceled = () => {
 diff --git a/node_modules/@react-navigation/stack/src/views/Stack/StackView.tsx b/node_modules/@react-navigation/stack/src/views/Stack/StackView.tsx
-index 6bbce10..5139382 100644
+index 6bbce10..7f2eed3 100644
 --- a/node_modules/@react-navigation/stack/src/views/Stack/StackView.tsx
 +++ b/node_modules/@react-navigation/stack/src/views/Stack/StackView.tsx
-@@ -375,29 +375,48 @@ export default class StackView extends React.Component<Props, State> {
+@@ -375,29 +375,51 @@ export default class StackView extends React.Component<Props, State> {
  
    private handleTransitionStart = (
      { route }: { route: Route<string> },
@@ -59,6 +59,7 @@ index 6bbce10..5139382 100644
        data: { closing },
        target: route.key,
      });
++    // Patch introduced to pass information about events to screens lower in the stack, so they could be safely frozen
 +    if (state?.index > 1) {
 +      this.props.navigation.emit({
 +        type: 'transitionEnd',
@@ -73,10 +74,12 @@ index 6bbce10..5139382 100644
 +      { route }: { route: Route<string> },
 +      state: StackNavigationState<ParamListBase>
 +    ) => {
++    console.log(state)
      this.props.navigation.emit({
        type: 'gestureStart',
        target: route.key,
      });
++    // Patch introduced to pass information about events to screens lower in the stack, so they could be safely frozen
 +    if (state?.index > 1) {
 +      this.props.navigation.emit({
 +        type: 'gestureStart',

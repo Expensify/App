@@ -107,19 +107,20 @@ class SidebarLinks extends React.Component {
         }
 
         this.state = {
-            screenDisappeared: false,
+            isScreenBlurred: false,
         };
     }
 
     componentDidMount() {
         App.setSidebarLoaded();
         this.isSidebarLoaded = true;
+        // SidebarLinks need to have information if the screen is blurred in order to enable freeze
         this.transitionEndListener = this.props.navigation.addListener('transitionEnd', (e) => {
-            this.setState({screenDisappeared: e.data.closing});
+            this.setState({isScreenBlurred: e.data.closing});
         });
 
         this.gestureStartListener = this.props.navigation.addListener('gestureStart', () => {
-            this.setState({screenDisappeared: false});
+            this.setState({isScreenBlurred: false});
         });
     }
 
@@ -161,7 +162,7 @@ class SidebarLinks extends React.Component {
 
     render() {
         const isLoading = _.isEmpty(this.props.personalDetails) || _.isEmpty(this.props.chatReports);
-        const isVisible = this.props.isFocused || !this.state.screenDisappeared;
+        const isVisible = this.props.isFocused || !this.state.isScreenBlurred;
         const shouldFreeze = this.props.isSmallScreenWidth && this.isSidebarLoaded && !isVisible;
         const optionListItems = SidebarUtils.getOrderedReportIDs(this.props.reportIDFromRoute);
 
