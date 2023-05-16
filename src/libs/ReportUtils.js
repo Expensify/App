@@ -109,6 +109,16 @@ function getReportParticipantsTitle(logins) {
 }
 
 /**
+ * Checks if a report is an chat report.
+ *
+ * @param {Object} report
+ * @returns {Boolean}
+ */
+function isChatReport(report) {
+    return lodashGet(report, 'type') === CONST.REPORT.TYPE.CHAT;
+}
+
+/**
  * Checks if a report is an Expense report.
  *
  * @param {Object} report
@@ -2068,7 +2078,7 @@ function getMoneyRequestOptions(report, reportParticipants, betas) {
     // Workspace chats should only see the Request money option, as "easy overages" is not available.
     return [
         ...(canRequestMoney(report) ? [CONST.IOU.MONEY_REQUEST_TYPE.REQUEST] : []),
-        ...(Permissions.canUseIOUSend(betas) && !isPolicyExpenseChat(report) ? [CONST.IOU.MONEY_REQUEST_TYPE.SEND] : []),
+        ...(Permissions.canUseIOUSend(betas) && isChatReport(report) ? [CONST.IOU.MONEY_REQUEST_TYPE.SEND] : []),
     ];
 }
 
@@ -2219,6 +2229,7 @@ export {
     getAllPolicyReports,
     getIOUReportActionMessage,
     getDisplayNameForParticipant,
+    isChatReport,
     isExpenseReport,
     isIOUReport,
     isTaskReport,
