@@ -2,7 +2,7 @@ import React, {Component} from 'react';
 import PropTypes from 'prop-types';
 import {withOnyx} from 'react-native-onyx';
 import _ from 'underscore';
-import {View, ScrollView} from 'react-native';
+import {View, ScrollView, Pressable} from 'react-native';
 import lodashGet from 'lodash/get';
 import RoomHeaderAvatars from '../components/RoomHeaderAvatars';
 import compose from '../libs/compose';
@@ -117,6 +117,15 @@ class ReportDetailsPage extends Component {
             isMultipleParticipant,
         );
         const menuItems = this.getMenuItems();
+        const isPolicyAdmin = ReportUtils.isPolicyAdmin(this.props.report);
+        const chatRoomSubtitleText = (
+            <Text
+                style={[styles.sidebarLinkText, styles.optionAlternateText, styles.textLabelSupporting, styles.mb2, styles.pre]}
+                numberOfLines={1}
+            >
+                {chatRoomSubtitle}
+            </Text>
+        );
         return (
             <ScreenWrapper>
                 <FullPageNotFoundView shouldShow={_.isEmpty(this.props.report)}>
@@ -142,12 +151,20 @@ class ReportDetailsPage extends Component {
                                             shouldUseFullTitle={isChatRoom || isPolicyExpenseChat}
                                         />
                                     </View>
-                                    <Text
-                                        style={[styles.sidebarLinkText, styles.optionAlternateText, styles.textLabelSupporting, styles.mb2, styles.pre]}
-                                        numberOfLines={1}
-                                    >
-                                        {chatRoomSubtitle}
-                                    </Text>
+                                    {isPolicyAdmin ? (
+                                        <Pressable
+                                            onPress={() => {
+                                                if (!isPolicyAdmin) {
+                                                    return;
+                                                }
+                                                Navigation.navigate(ROUTES.getWorkspaceInitialRoute(this.props.report.policyID));
+                                            }}
+                                        >
+                                            {chatRoomSubtitleText}
+                                        </Pressable>
+                                    ) : (
+                                        chatRoomSubtitleText
+                                    )}
                                 </View>
                             </View>
                         </View>
