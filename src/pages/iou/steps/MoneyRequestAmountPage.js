@@ -298,6 +298,7 @@ class MoneyRequestAmountPage extends React.Component {
     }
 
     navigateToCurrencySelectionPage() {
+        // Remove query from the route and encode it.
         const activeRoute = encodeURIComponent(Navigation.getActiveRoute().replace(/\?.*/, ''));
         if (this.props.hasMultipleParticipants) {
             return Navigation.navigate(ROUTES.getIouBillCurrencyRoute(this.props.reportID, this.state.selectedCurrencyCode, activeRoute));
