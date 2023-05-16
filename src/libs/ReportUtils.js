@@ -2154,7 +2154,8 @@ function isReportDataReady() {
 
 /**
  * Return true if user is an admin of the report's policy
- * {Object} report
+ *
+ * @param {Object} report
  * @returns {boolean}
  */
 const isPolicyAdmin = (report) => {
