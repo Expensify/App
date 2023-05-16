@@ -1,11 +1,7 @@
 import _ from 'underscore';
 import React from 'react';
 import PropTypes from 'prop-types';
-import {
-    TouchableOpacity,
-    View,
-    StyleSheet,
-} from 'react-native';
+import {TouchableOpacity, View, StyleSheet} from 'react-native';
 import * as optionRowStyles from '../../styles/optionRowStyles';
 import styles from '../../styles/styles';
 import * as StyleUtils from '../../styles/StyleUtils';
@@ -64,11 +60,8 @@ const OptionRowLHN = (props) => {
     }
 
     let popoverAnchor = null;
-    const textStyle = props.isFocused
-        ? styles.sidebarLinkActiveText
-        : styles.sidebarLinkText;
-    const textUnreadStyle = optionItem.isUnread
-        ? [textStyle, styles.sidebarLinkTextBold] : [textStyle];
+    const textStyle = props.isFocused ? styles.sidebarLinkActiveText : styles.sidebarLinkText;
+    const textUnreadStyle = optionItem.isUnread ? [textStyle, styles.sidebarLinkTextBold] : [textStyle];
     const displayNameStyle = StyleUtils.combineStyles([styles.optionDisplayName, styles.optionDisplayNameCompact, styles.pre, ...textUnreadStyle], props.style);
     const textPillStyle = props.isFocused ? [styles.ml1, StyleUtils.getBackgroundColorWithOpacityStyle(themeColors.icon, 0.5)] : [styles.ml1];
     const alternateTextStyle = StyleUtils.combineStyles(
@@ -133,7 +126,7 @@ const OptionRowLHN = (props) => {
 
                             props.onSelectRow(optionItem, popoverAnchor);
                         }}
-                        onSecondaryInteraction={e => showPopover(e)}
+                        onSecondaryInteraction={(e) => showPopover(e)}
                         withoutFocusOnSecondaryInteraction
                         activeOpacity={0.8}
                         style={[

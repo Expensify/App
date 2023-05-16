@@ -16,8 +16,7 @@ const contextMenuRef = React.createRef();
  * @param {Function} [onHide=() => {}] - Run a callback when Menu is hidden
  * @param {Boolean} isArchivedRoom - Whether the provided report is an archived room
  * @param {Boolean} isChronosReport - Flag to check if the chat participant is Chronos
- * @param {String} childReportID - The child report (thread) of this action
- @param {Boolean} isPinnedChat - Flag to check if the chat is pinned in the LHN. Used for the Pin/Unpin action
+ * @param {Boolean} isPinnedChat - Flag to check if the chat is pinned in the LHN. Used for the Pin/Unpin action
  */
 function showContextMenu(
     type,
@@ -31,13 +30,13 @@ function showContextMenu(
     onHide = () => {},
     isArchivedRoom = false,
     isChronosReport = false,
-    childReportID = '0',
     isPinnedChat = false,
 ) {
+    console.log(isPinnedChat);
     if (!contextMenuRef.current) {
         return;
     }
-    contextMenuRef.current.showContextMenu(type, event, selection, contextMenuAnchor, reportID, reportAction, draftMessage, onShow, onHide, isArchivedRoom, isChronosReport, childReportID, isPinnedChat);
+    contextMenuRef.current.showContextMenu(type, event, selection, contextMenuAnchor, reportID, reportAction, draftMessage, onShow, onHide, isArchivedRoom, isChronosReport, isPinnedChat);
 }
 
 /**
