@@ -15,14 +15,14 @@ import variables from '../styles/variables';
 import stylePropTypes from '../styles/stylePropTypes';
 
 const propTypes = {
-    ...environmentPropTypes,
-    ...windowDimensionsPropTypes,
-
     /** The styles to apply for the View wrapping the svg */
     containerStyles: stylePropTypes,
 
     /** Fill color of the svg */
     color: PropTypes.string,
+
+    ...environmentPropTypes,
+    ...windowDimensionsPropTypes,
 };
 
 const defaultProps = {
@@ -45,7 +45,7 @@ const ExpensifyWordmark = (props) => {
                 style={[
                     StyleUtils.getSignInWordmarkWidthStyle(props.environment, props.isSmallScreenWidth),
                     StyleUtils.getHeight(props.isSmallScreenWidth ? variables.signInLogoHeightSmallScreen : variables.signInLogoHeight),
-                    ...props.containerStyles,
+                    ...StyleUtils.parseStyleAsArray(props.containerStyles),
                 ]}
             >
                 <LogoComponent fill={props.color} />

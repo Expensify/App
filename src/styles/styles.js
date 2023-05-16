@@ -3253,6 +3253,7 @@ const styles = {
         paddingLeft: 4,
         paddingRight: 4,
     },
+
     headerEnvBadgeText: {
         fontSize: 7,
     },
