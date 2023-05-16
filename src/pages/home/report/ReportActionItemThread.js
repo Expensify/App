@@ -34,7 +34,7 @@ const propTypes = {
 };
 
 const ReportActionItemThread = (props) => {
-    const numberReplies = props.numberOfReplies > CONST.MAX_THREAD_REPLIES_PREVIEW ? `${CONST.MAX_THREAD_REPLIES_PREVIEW}+` : `${props.numberOfReplies}`;
+    const numberOfRepliesText = props.numberOfReplies > CONST.MAX_THREAD_REPLIES_PREVIEW ? `${CONST.MAX_THREAD_REPLIES_PREVIEW}+` : `${props.numberOfReplies}`;
     const replyText = props.numberOfReplies === 1 ? props.translate('threads.reply') : props.translate('threads.replies');
 
     const timeStamp = props.datetimeToCalendarTime(props.mostRecentReply, false, true);
@@ -61,7 +61,7 @@ const ReportActionItemThread = (props) => {
                             selectable={false}
                             style={[styles.link, styles.ml2, styles.h4, styles.noWrap]}
                         >
-                            {`${numberReplies} ${replyText}`}
+                            {`${numberOfRepliesText} ${replyText}`}
                         </Text>
                         <Text
                             selectable={false}
