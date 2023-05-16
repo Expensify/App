@@ -66,7 +66,7 @@ const RadioButtonWithLabel = (props) => {
                     style={[styles.flexRow, styles.flexWrap, styles.flexShrink1, styles.alignItemsCenter]}
                     wrapperStyle={[styles.ml3, styles.pr2, styles.w100]}
                     // disable hover style when disabled
-                    pressDimmingStyle={1}
+                    hoverDimmingValue={1}
                 >
                     {Boolean(props.label) && <Text style={[styles.ml1]}>{props.label}</Text>}
                     {Boolean(LabelComponent) && <LabelComponent />}
