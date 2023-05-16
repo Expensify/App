@@ -463,9 +463,12 @@ const CONST = {
                 CLOSED: 'CLOSED',
                 CREATED: 'CREATED',
                 TASKEDITED: 'TASKEDITED',
+                TASKCANCELED: 'TASKCANCELED',
                 IOU: 'IOU',
                 RENAMED: 'RENAMED',
                 CHRONOSOOOLIST: 'CHRONOSOOOLIST',
+                TASKCOMPLETED: 'TASKCOMPLETED',
+                TASKREOPENED: 'TASKREOPENED',
                 POLICYCHANGELOG: {
                     ADD_APPROVER_RULE: 'POLICYCHANGELOG_ADD_APPROVER_RULE',
                     ADD_CATEGORY: 'POLICYCHANGELOG_ADD_CATEGORY',
@@ -1126,6 +1129,8 @@ const CONST = {
 
     // Furthermore, applying markup is very resource-consuming, so let's set a slightly lower limit for that
     MAX_MARKUP_LENGTH: 10000,
+
+    MAX_THREAD_REPLIES_PREVIEW: 99,
 
     FORM_CHARACTER_LIMIT: 50,
     LEGAL_NAMES_CHARACTER_LIMIT: 150,
