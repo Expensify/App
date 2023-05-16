@@ -1,7 +1,7 @@
 import _ from 'underscore';
 import moment from 'moment';
 import Onyx from 'react-native-onyx';
-import lodashGet from "lodash/get";
+import lodashGet from 'lodash/get';
 import Emoji from '../../assets/emojis';
 import * as EmojiUtils from '../../src/libs/EmojiUtils';
 import ONYXKEYS from '../../src/ONYXKEYS';
