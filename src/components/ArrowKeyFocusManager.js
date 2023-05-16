@@ -51,6 +51,7 @@ class ArrowKeyFocusManager extends Component {
             true,
             [this.props.shouldExcludeTextAreaNodes && 'TEXTAREA'],
         );
+        this.props.onFocusedIndexChanged(0);
     }
 
     componentDidUpdate(prevProps) {
