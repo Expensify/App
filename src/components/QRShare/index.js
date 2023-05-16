@@ -88,6 +88,7 @@ class QRShare extends Component {
                         numberOfLines={1}
                         ellipsizeMode="tail"
                         style={{marginTop: 4}}
+                        color={defaultTheme.textSupporting}
                     >
                         {this.props.subtitle}
                     </Text>
