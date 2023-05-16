@@ -1,7 +1,6 @@
 import React, {Component} from 'react';
 import PropTypes from 'prop-types';
 import {withOnyx} from 'react-native-onyx';
-import Str from 'expensify-common/lib/str';
 import _ from 'underscore';
 import styles from '../styles/styles';
 import * as OptionsListUtils from '../libs/OptionsListUtils';
@@ -105,13 +104,12 @@ class MoneyRequestConfirmationList extends Component {
      * @returns {Array}
      */
     getSplitOrRequestOptions() {
+        const text = this.props.translate(this.props.hasMultipleParticipants ? 'iou.splitAmount' : 'iou.requestAmount', {
+            amount: CurrencyUtils.convertToDisplayString(this.props.iouAmount, this.props.iou.selectedCurrencyCode),
+        });
         return [
             {
-                text: Str.recapitalize(
-                    this.props.translate(this.props.hasMultipleParticipants ? 'iou.splitAmount' : 'iou.requestAmount', {
-                        amount: CurrencyUtils.convertToDisplayString(this.props.iouAmount, this.props.iou.selectedCurrencyCode),
-                    }),
-                ),
+                text: text.slice(0, 1).toUpperCase() + text.slice(1),
                 value: this.props.hasMultipleParticipants ? CONST.IOU.MONEY_REQUEST_TYPE.SPLIT : CONST.IOU.MONEY_REQUEST_TYPE.REQUEST,
             },
         ];
