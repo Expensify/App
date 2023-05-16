@@ -1,8 +1,6 @@
 /* eslint-disable react/jsx-props-no-spreading */
 import React, {useEffect, useMemo} from 'react';
-import {
-    useSharedValue, interpolateColor, useDerivedValue, withSpring,
-} from 'react-native-reanimated';
+import {useSharedValue, interpolateColor, useDerivedValue, withSpring} from 'react-native-reanimated';
 import PropTypes from 'prop-types';
 import ThemeContext from './ThemeContext';
 import useColorPreference from './useColorPreference';
@@ -43,22 +41,22 @@ function ThemeProvider(props) {
     useEffect(() => {
         if (colorPreference === 'light') {
             themeAnimation.value = 0;
-        } else { themeAnimation.value = 1; }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+        } else {
+            themeAnimation.value = 1;
+        }
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 
     // Animating the color values based on the current theme
     useEffect(() => {
         if (colorPreference === 'light' && themeAnimation.value > 0) {
             themeAnimation.value = withSpring(0);
-        } else if (colorPreference === 'dark' && themeAnimation.value < 1) { themeAnimation.value = withSpring(1); }
+        } else if (colorPreference === 'dark' && themeAnimation.value < 1) {
+            themeAnimation.value = withSpring(1);
+        }
     }, [colorPreference, themeAnimation]);
 
-    return (
-        <ThemeContext.Provider value={theme}>
-            {props.children}
-        </ThemeContext.Provider>
-    );
+    return <ThemeContext.Provider value={theme}>{props.children}</ThemeContext.Provider>;
 }
 ThemeProvider.propTypes = propTypes;
 ThemeProvider.displayName = 'ThemeProvider';

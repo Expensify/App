@@ -16,9 +16,7 @@ function useColorPreference() {
         // eslint-disable-next-line rulesdir/prefer-onyx-connect-in-libs
         const connectionId = Onyx.connect({
             key: ONYXKEYS.COLOR_THEME,
-            callback: newColorTheme => (newColorTheme === 'system'
-                ? setColorPreference(systemColorTheme) : setColorPreference(newColorTheme))
-            ,
+            callback: (newColorTheme) => (newColorTheme === 'system' ? setColorPreference(systemColorTheme) : setColorPreference(newColorTheme)),
         });
 
         return () => Onyx.disconnect(connectionId);

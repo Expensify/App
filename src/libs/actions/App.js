@@ -120,8 +120,8 @@ function setLocaleAndNavigate(locale) {
 }
 
 /**
-* @param {String} colorTheme
-*/
+ * @param {String} colorTheme
+ */
 // eslint-disable-next-line rulesdir/prefer-early-return
 function setColorTheme(colorTheme) {
     // If user is not signed in, change just locally.
@@ -148,8 +148,8 @@ function setColorTheme(colorTheme) {
 }
 
 /**
-* @param {String} colorTheme
-*/
+ * @param {String} colorTheme
+ */
 function setColorThemeAndNavigate(colorTheme) {
     setColorTheme(colorTheme);
     Navigation.navigate(ROUTES.SETTINGS_PREFERENCES);

@@ -29,20 +29,17 @@ const defaultProps = {
 };
 
 const ColorThemePage = (props) => {
-    const localesToColorThemes = _.map(props.translate('colorThemePage.colorThemes'),
-        (colorTheme, key) => (
-            {
-                value: key,
-                text: colorTheme.label,
-                keyForList: key,
+    const localesToColorThemes = _.map(props.translate('colorThemePage.colorThemes'), (colorTheme, key) => ({
+        value: key,
+        text: colorTheme.label,
+        keyForList: key,
 
-                // Include the green checkmark icon to indicate the currently selected value
-                customIcon: props.colorTheme === key ? greenCheckmark : undefined,
+        // Include the green checkmark icon to indicate the currently selected value
+        customIcon: props.colorTheme === key ? greenCheckmark : undefined,
 
-                // This property will make the currently selected value have bold text
-                boldStyle: props.colorTheme === key,
-            }
-        ));
+        // This property will make the currently selected value have bold text
+        boldStyle: props.colorTheme === key,
+    }));
 
     return (
         <ScreenWrapper includeSafeAreaPaddingBottom={false}>
@@ -54,15 +51,13 @@ const ColorThemePage = (props) => {
             />
             <OptionsList
                 sections={[{data: localesToColorThemes}]}
-                onSelectRow={colorTheme => App.setColorThemeAndNavigate(colorTheme.value)}
+                onSelectRow={(colorTheme) => App.setColorThemeAndNavigate(colorTheme.value)}
                 hideSectionHeaders
-                optionHoveredStyle={
-                    {
-                        ...styles.hoveredComponentBG,
-                        ...styles.mhn5,
-                        ...styles.ph5,
-                    }
-                }
+                optionHoveredStyle={{
+                    ...styles.hoveredComponentBG,
+                    ...styles.mhn5,
+                    ...styles.ph5,
+                }}
                 shouldHaveOptionSeparator
                 shouldDisableRowInnerPadding
                 contentContainerStyles={[styles.ph5]}

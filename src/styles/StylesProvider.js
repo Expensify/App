@@ -1,8 +1,6 @@
 /* eslint-disable react/jsx-props-no-spreading */
 import React, {useMemo} from 'react';
-import {
-    useAnimatedStyle,
-} from 'react-native-reanimated';
+import {useAnimatedStyle} from 'react-native-reanimated';
 import PropTypes from 'prop-types';
 import useTheme from './themes/useTheme';
 import StylesContext from './StylesContext';
@@ -20,16 +18,15 @@ function StylesProvider(props) {
         backgroundColor: theme.appBG.value,
     }));
 
-    const styles = useMemo(() => ({
-        ...defaultStyles,
-        appContent: appContentStyle,
-    }), [appContentStyle]);
-
-    return (
-        <StylesContext.Provider value={styles}>
-            {props.children}
-        </StylesContext.Provider>
+    const styles = useMemo(
+        () => ({
+            ...defaultStyles,
+            appContent: appContentStyle,
+        }),
+        [appContentStyle],
     );
+
+    return <StylesContext.Provider value={styles}>{props.children}</StylesContext.Provider>;
 }
 StylesProvider.propTypes = propTypes;
 StylesProvider.displayName = 'StylesProvider';

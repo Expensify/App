@@ -56,7 +56,6 @@ const App = () => (
                 <Expensify />
             </ErrorBoundary>
         </ComposeProviders>
-
     </GestureHandlerRootView>
 );
 
