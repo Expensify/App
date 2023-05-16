@@ -2051,6 +2051,11 @@ function getMoneyRequestOptions(report, reportParticipants, betas) {
         return [];
     }
 
+    // Additional requests should be blocked for settled reports
+    if (isIOUReport(report) && !report.hasOutstandingIOU) {
+        return [];
+    }
+
     // User created policy rooms and default rooms like #admins or #announce will always have the Split Bill option
     // unless there are no participants at all (e.g. #admins room for a policy with only 1 admin)
     // DM chats will have the Split Bill option only when there are at least 3 people in the chat.
