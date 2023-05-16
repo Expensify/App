@@ -324,6 +324,15 @@ class ReportActionItem extends Component {
                     {(hovered) => (
                         <View accessibilityLabel={this.props.translate('accessibilityHints.chatMessage')}>
                             {this.props.shouldDisplayNewMarker && <UnreadActionIndicator reportActionID={this.props.action.reportActionID} />}
+                            <MiniReportActionContextMenu
+                                reportID={this.props.report.reportID}
+                                reportAction={this.props.action}
+                                isArchivedRoom={ReportUtils.isArchivedRoom(this.props.report)}
+                                displayAsGroup={this.props.displayAsGroup}
+                                isVisible={hovered && !this.props.draftMessage && !hasErrors}
+                                draftMessage={this.props.draftMessage}
+                                isChronosReport={ReportUtils.chatIncludesChronos(this.props.report)}
+                            />
                             <View
                                 style={StyleUtils.getReportActionItemStyle(
                                     hovered || isWhisper || this.state.isContextMenuActive || this.props.draftMessage,
@@ -362,15 +371,6 @@ class ReportActionItem extends Component {
                                     {this.renderReportActionItem(hovered, isWhisper)}
                                 </OfflineWithFeedback>
                             </View>
-                            <MiniReportActionContextMenu
-                                reportID={this.props.report.reportID}
-                                reportAction={this.props.action}
-                                isArchivedRoom={ReportUtils.isArchivedRoom(this.props.report)}
-                                displayAsGroup={this.props.displayAsGroup}
-                                isVisible={hovered && !this.props.draftMessage && !hasErrors}
-                                draftMessage={this.props.draftMessage}
-                                isChronosReport={ReportUtils.chatIncludesChronos(this.props.report)}
-                            />
                         </View>
                     )}
                 </Hoverable>
