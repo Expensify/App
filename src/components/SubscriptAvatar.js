@@ -63,23 +63,21 @@ const SubscriptAvatar = (props) => {
                     type={props.mainAvatar.type}
                 />
             </Tooltip>
-            <View
-                style={[
-                    props.size === CONST.AVATAR_SIZE.SMALL ? styles.secondAvatarSubscriptCompact : styles.secondAvatarSubscript,
-                    StyleUtils.getBackgroundAndBorderStyle(props.backgroundColor),
-                    StyleUtils.getAvatarBorderStyle(props.size, props.secondaryAvatar.type),
-                ]}
-            >
-                <Tooltip text={props.secondaryTooltip}>
-                    <Avatar
-                        source={props.secondaryAvatar.source}
-                        size={props.size === CONST.AVATAR_SIZE.SMALL ? CONST.AVATAR_SIZE.SMALL_SUBSCRIPT : CONST.AVATAR_SIZE.SUBSCRIPT}
-                        fill={themeColors.iconSuccessFill}
-                        name={props.secondaryAvatar.name}
-                        type={props.secondaryAvatar.type}
-                    />
-                </Tooltip>
-            </View>
+            <Tooltip text={props.secondaryTooltip}>
+                <Avatar
+                    imageStyles={null}
+                    containerStyles={[props.size === CONST.AVATAR_SIZE.SMALL ? styles.secondAvatarSubscriptCompact : styles.secondAvatarSubscript]}
+                    iconAdditionalStyles={[
+                        StyleUtils.getAvatarBorderWidth(props.size === CONST.AVATAR_SIZE.SMALL ? CONST.AVATAR_SIZE.SMALL_SUBSCRIPT : CONST.AVATAR_SIZE.SUBSCRIPT),
+                        StyleUtils.getBorderColorStyle(props.backgroundColor),
+                    ]}
+                    source={props.secondaryAvatar.source}
+                    size={props.size === CONST.AVATAR_SIZE.SMALL ? CONST.AVATAR_SIZE.SMALL_SUBSCRIPT : CONST.AVATAR_SIZE.SUBSCRIPT}
+                    fill={themeColors.iconSuccessFill}
+                    name={props.secondaryAvatar.name}
+                    type={props.secondaryAvatar.type}
+                />
+            </Tooltip>
         </View>
     );
 };

@@ -32,6 +32,7 @@ import OfflineWithFeedback from '../../../../components/OfflineWithFeedback';
 import ConfirmContent from '../../../../components/ConfirmContent';
 import Button from '../../../../components/Button';
 import themeColors from '../../../../styles/themes/default';
+import variables from '../../../../styles/variables';
 
 class BasePaymentsPage extends React.Component {
     constructor(props) {
@@ -151,11 +152,10 @@ class BasePaymentsPage extends React.Component {
      */
     setPositionAddPaymentMenu(position) {
         this.setState({
-            anchorPositionTop: position.top + position.height,
+            anchorPositionTop: position.top + position.height + variables.addPaymentPopoverTopSpacing,
 
             // We want the position to be 13px to the right of the left border
-            anchorPositionRight: this.props.windowWidth - position.right + 13,
-
+            anchorPositionRight: this.props.windowWidth - position.right + variables.addPaymentPopoverRightSpacing,
             anchorPositionHorizontal: position.x,
             anchorPositionVertical: position.y,
         });
