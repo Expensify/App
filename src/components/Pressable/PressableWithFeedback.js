@@ -46,9 +46,10 @@ const PressableWithFeedback = forwardRef((props, ref) => {
                         setDisabled(props.disabled);
                         return;
                     }
-                    onPress.then(() => {
-                        setDisabled(props.disabled);
-                    });
+                    onPress
+                        .finally(() => {
+                            setDisabled(props.disabled);
+                        });
                 });
             }}
         >
