@@ -502,6 +502,14 @@ function getShareDestination(reportID, reports, personalDetails) {
     };
 }
 
+/**
+ * Cancels a task by setting the report state to SUBMITTED and status to CLOSED
+ * @param {string} taskReportID
+ * @param {string} parentReportID
+ * @param {string} taskTitle
+ * @param {number} originalStateNum
+ * @param {number} originalStatusNum
+ */
 function cancelTask(taskReportID, parentReportID, taskTitle, originalStateNum, originalStatusNum) {
     const message = `Canceled task: ${taskTitle}`;
     const optimisticCancelReportAction = ReportUtils.buildOptimisticTaskReportAction(taskReportID, CONST.REPORT.ACTIONS.TYPE.TASKCANCELED, message);
