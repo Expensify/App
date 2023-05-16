@@ -185,7 +185,6 @@ function canEditReportAction(reportAction) {
 }
 
 /**
- *
  * Whether the Money Request report is settled
  *
  * @param {String} reportID
