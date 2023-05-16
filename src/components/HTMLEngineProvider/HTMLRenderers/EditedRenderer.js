@@ -24,7 +24,7 @@ const EditedRenderer = (props) => {
             style={[styles.alignItemsBaseline, editedLabelStyles]}
         >
             {/* Native devices do not support margin between nested text */}
-            <Text style={[styles.w1, styles.userSelectNone]}>{' '}</Text>
+            <Text style={[styles.w1, styles.userSelectNone]}> </Text>
             {props.translate('reportActionCompose.edited')}
         </Text>
     );

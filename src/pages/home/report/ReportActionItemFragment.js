@@ -118,14 +118,14 @@ const ReportActionItemFragment = (props) => {
                 >
                     {StyleUtils.convertToLTR(Str.htmlDecode(text))}
                     {Boolean(props.fragment.isEdited) && (
-                    <Text
-                        fontSize={variables.fontSizeSmall}
-                        color={themeColors.textSupporting}
-                        style={[styles.alignItemsBaseline, editedLabelStyles]}
-                    >
-                        <Text style={[styles.w1, styles.userSelectNone]}>{' '}</Text>
-                        {props.translate('reportActionCompose.edited')}
-                    </Text>
+                        <Text
+                            fontSize={variables.fontSizeSmall}
+                            color={themeColors.textSupporting}
+                            style={[styles.alignItemsBaseline, editedLabelStyles]}
+                        >
+                            <Text style={[styles.w1, styles.userSelectNone]}> </Text>
+                            {props.translate('reportActionCompose.edited')}
+                        </Text>
                     )}
                 </Text>
             );
