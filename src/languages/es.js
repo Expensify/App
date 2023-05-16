@@ -133,6 +133,8 @@ export default {
         zipCodeExampleFormat: ({zipSampleFormat}) => (zipSampleFormat ? `p. ej. ${zipSampleFormat}` : ''),
         description: 'Descripción',
         with: 'con',
+        shareCode: 'Compartir código',
+        share: 'Compartir',
     },
     attachmentPicker: {
         cameraPermissionRequired: 'Permiso para acceder a la cámara',
@@ -148,7 +150,7 @@ export default {
         attachmentTooSmall: 'Archivo adjunto demasiado pequeño',
         sizeNotMet: 'El archivo adjunto debe ser mas grande que 240 bytes.',
         wrongFileType: 'El tipo del archivo adjunto es incorrecto',
-        notAllowedExtension: 'Los archivos adjuntos deben ser de uno de los siguientes tipos:',
+        notAllowedExtension: 'Este tipo de archivo no está permitido',
     },
     avatarCropModal: {
         title: 'Editar foto',
@@ -253,6 +255,7 @@ export default {
         deleteComment: 'Eliminar comentario',
         deleteConfirmation: '¿Estás seguro de que quieres eliminar este comentario?',
         onlyVisible: 'Visible sólo para',
+        replyInThread: 'Responder en el hilo',
     },
     emojiReactions: {
         addReactionTooltip: 'Añadir una reacción',
@@ -297,7 +300,6 @@ export default {
         newChat: 'Nuevo chat',
         newGroup: 'Nuevo grupo',
         newRoom: 'Nueva sala de chat',
-        headerChat: 'Chats',
         buttonSearch: 'Buscar',
         buttonMySettings: 'Mi configuración',
         fabNewChat: 'Nuevo chat',
@@ -324,10 +326,12 @@ export default {
         settlePaypalMe: 'Pagar con PayPal.me',
         requestAmount: ({amount}) => `solicitar ${amount}`,
         splitAmount: ({amount}) => `dividir ${amount}`,
+        amountEach: ({amount}) => `${amount} cada uno`,
         payerOwesAmount: ({payer, amount}) => `${payer} debe ${amount}`,
         payerSettled: ({amount}) => `pagado ${amount}`,
         noReimbursableExpenses: 'El monto de este informe es inválido',
         pendingConversionMessage: 'El total se actualizará cuando estés online',
+        threadReportName: ({formattedAmount, comment}) => `Solicitud de ${formattedAmount}${comment ? ` para ${comment}` : ''}`,
         error: {
             invalidSplit: 'La suma de las partes no equivale al monto total',
             other: 'Error inesperado, por favor inténtalo más tarde',
@@ -396,6 +400,10 @@ export default {
             deleteContactMethod: 'No se ha podido eliminar este método de contacto. Por favor, contacta con Concierge para obtener ayuda.',
             setDefaultContactMethod: 'No se pudo establecer un nuevo método de contacto predeterminado. Por favor contacta con Concierge para obtener ayuda.',
             addContactMethod: 'Hubo un error al añadir este método de contacto. Por favor, contacta con Concierge para obtener ayuda.',
+            enteredMethodIsAlreadySubmited: 'El método de contacto ingresado ya existe.',
+            passwordRequired: 'Se requiere contraseña',
+            contactMethodRequired: 'Se requiere método de contacto.',
+            invalidContactMethod: 'Método de contacto no válido.',
         },
         newContactMethod: 'Nuevo método de contacto',
     },
@@ -1766,5 +1774,13 @@ export default {
         workspaceName: 'Nombre del espacio de trabajo',
         chatUserDisplayNames: 'Nombres de los usuarios del chat',
         scrollToNewestMessages: 'Desplázate a los mensajes más recientes',
+    },
+    parentReportAction: {
+        deletedMessage: '[Mensaje eliminado]',
+    },
+    threads: {
+        lastReply: 'Última respuesta',
+        replies: 'Respuestas',
+        reply: 'Respuesta',
     },
 };

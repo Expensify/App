@@ -13,7 +13,6 @@ import * as StyleUtils from '../../../styles/StyleUtils';
 import Composer from '../../../components/Composer';
 import * as Report from '../../../libs/actions/Report';
 import * as ReportScrollManager from '../../../libs/ReportScrollManager';
-import toggleReportActionComposeView from '../../../libs/toggleReportActionComposeView';
 import openReportActionComposeViewWhenClosingMessageEdit from '../../../libs/openReportActionComposeViewWhenClosingMessageEdit';
 import ReportActionComposeFocusManager from '../../../libs/ReportActionComposeFocusManager';
 import compose from '../../../libs/compose';
@@ -32,6 +31,7 @@ import withWindowDimensions, {windowDimensionsPropTypes} from '../../../componen
 import withLocalize, {withLocalizePropTypes} from '../../../components/withLocalize';
 import withKeyboardState, {keyboardStatePropTypes} from '../../../components/withKeyboardState';
 import * as ComposerUtils from '../../../libs/ComposerUtils';
+import * as ComposerActions from '../../../libs/actions/Composer';
 
 const propTypes = {
     /** All the data of the action */
@@ -116,7 +116,7 @@ class ReportActionItemMessageEdit extends React.Component {
 
         // Show the main composer when the focused message is deleted from another client
         // to prevent the main composer stays hidden until we swtich to another chat.
-        toggleReportActionComposeView(true, this.props.isSmallScreenWidth);
+        ComposerActions.setShouldShowComposeInput(true);
     }
 
     /**
@@ -173,7 +173,7 @@ class ReportActionItemMessageEdit extends React.Component {
     deleteDraft() {
         this.debouncedSaveDraft.cancel();
         Report.saveReportActionDraft(this.props.reportID, this.props.action.reportActionID, '');
-        toggleReportActionComposeView(true, this.props.isSmallScreenWidth);
+        ComposerActions.setShouldShowComposeInput(true);
         ReportActionComposeFocusManager.focus();
 
         // Scroll to the last comment after editing to make sure the whole comment is clearly visible in the report.
@@ -304,7 +304,7 @@ class ReportActionItemMessageEdit extends React.Component {
                                 onFocus={() => {
                                     this.setState({isFocused: true});
                                     ReportScrollManager.scrollToIndex({animated: true, index: this.props.index}, true);
-                                    toggleReportActionComposeView(false, this.props.isSmallScreenWidth);
+                                    ComposerActions.setShouldShowComposeInput(false);
                                 }}
                                 onBlur={(event) => {
                                     this.setState({isFocused: false});
@@ -318,7 +318,7 @@ class ReportActionItemMessageEdit extends React.Component {
                                     if (this.messageEditInput === relatedTargetId) {
                                         return;
                                     }
-                                    openReportActionComposeViewWhenClosingMessageEdit(this.props.isSmallScreenWidth);
+                                    openReportActionComposeViewWhenClosingMessageEdit();
                                 }}
                                 selection={this.state.selection}
                                 onSelectionChange={this.onSelectionChange}
