@@ -1792,4 +1792,8 @@ export default {
         replies: 'Respuestas',
         reply: 'Respuesta',
     },
+    qrCodes: {
+        copyUrlToClipboard: 'Copiar URL al portapapeles',
+        copied: '¡Copiado!',
+    },
 };

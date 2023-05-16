@@ -1327,4 +1327,8 @@ export default {
         replies: 'Replies',
         reply: 'Reply',
     },
+    qrCodes: {
+        copyUrlToClipboard: 'Copy URL to clipboard',
+        copied: 'Copied!',
+    },
 };
