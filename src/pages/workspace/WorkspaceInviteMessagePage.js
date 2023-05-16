@@ -55,7 +55,7 @@ const propTypes = {
             policyID: PropTypes.string,
         }),
     }).isRequired,
-    
+
     /** Indicated whether the report data is loading */
     isLoadingReportData: PropTypes.bool,
 
@@ -68,7 +68,7 @@ const defaultProps = {
     personalDetails: {},
     betas: [],
     invitedMembersDraft: [],
-    isLoadingReportData: true
+    isLoadingReportData: true,
 };
 
 class WorkspaceInviteMessagePage extends React.Component {
