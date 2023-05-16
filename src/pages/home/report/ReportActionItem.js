@@ -34,6 +34,7 @@ import * as User from '../../../libs/actions/User';
 import * as ReportUtils from '../../../libs/ReportUtils';
 import OfflineWithFeedback from '../../../components/OfflineWithFeedback';
 import * as ReportActions from '../../../libs/actions/ReportActions';
+import * as ReportActionsUtils from '../../../libs/ReportActionsUtils';
 import reportPropTypes from '../../reportPropTypes';
 import {ShowContextMenuContext} from '../../../components/ShowContextMenuContext';
 import focusTextInputAfterAnimation from '../../../libs/focusTextInputAfterAnimation';
@@ -48,7 +49,7 @@ import DisplayNames from '../../../components/DisplayNames';
 import personalDetailsPropType from '../../personalDetailsPropType';
 import ReportActionItemDraft from './ReportActionItemDraft';
 import TaskPreview from '../../../components/ReportActionItem/TaskPreview';
-import * as ReportActionUtils from '../../../libs/ReportActionsUtils';
+import TaskAction from '../../../components/ReportActionItem/TaskAction';
 import Permissions from '../../../libs/Permissions';
 
 const propTypes = {
@@ -184,7 +185,11 @@ class ReportActionItem extends Component {
      */
     renderItemContent(hovered = false) {
         let children;
-        if (this.props.action.actionName === CONST.REPORT.ACTIONS.TYPE.IOU) {
+        if (
+            this.props.action.actionName === CONST.REPORT.ACTIONS.TYPE.IOU &&
+            this.props.action.originalMessage.type !== CONST.IOU.REPORT_ACTION_TYPE.DELETE &&
+            this.props.action.originalMessage.type !== CONST.IOU.REPORT_ACTION_TYPE.PAY
+        ) {
             // There is no single iouReport for bill splits, so only 1:1 requests require an iouReportID
             const iouReportID = this.props.action.originalMessage.IOUReportID ? this.props.action.originalMessage.IOUReportID.toString() : '0';
 
@@ -199,7 +204,15 @@ class ReportActionItem extends Component {
                     checkIfContextMenuActive={this.checkIfContextMenuActive}
                 />
             );
-        } else if (ReportActionUtils.isCreatedTaskReportAction(this.props.action)) {
+        } else if (this.props.action.actionName === CONST.REPORT.ACTIONS.TYPE.TASKCOMPLETED) {
+            children = (
+                <TaskAction
+                    taskReportID={this.props.action.originalMessage.taskReportID.toString()}
+                    actionName={this.props.action.actionName}
+                    isHovered={hovered}
+                />
+            );
+        } else if (ReportActionsUtils.isCreatedTaskReportAction(this.props.action)) {
             children = (
                 <TaskPreview
                     taskReportID={this.props.action.originalMessage.taskReportID.toString()}
@@ -355,7 +368,7 @@ class ReportActionItem extends Component {
                                     pendingAction={this.props.draftMessage ? null : this.props.action.pendingAction}
                                     errors={this.props.action.errors}
                                     errorRowStyles={[styles.ml10, styles.mr2]}
-                                    needsOffscreenAlphaCompositing={this.props.action.actionName === CONST.REPORT.ACTIONS.TYPE.IOU}
+                                    needsOffscreenAlphaCompositing={ReportActionsUtils.isMoneyRequestAction(this.props.action)}
                                 >
                                     {isWhisper && (
                                         <View style={[styles.flexRow, styles.pl5, styles.pt2]}>

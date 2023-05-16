@@ -90,7 +90,7 @@ class BaseReportActionContextMenu extends React.Component {
                         return (
                             <ContextMenuItem
                                 icon={contextAction.icon}
-                                text={this.props.translate(contextAction.textTranslateKey)}
+                                text={this.props.translate(contextAction.textTranslateKey, {action: this.props.reportAction})}
                                 successIcon={contextAction.successIcon}
                                 successText={contextAction.successTextTranslateKey ? this.props.translate(contextAction.successTextTranslateKey) : undefined}
                                 isMini={this.props.isMini}
