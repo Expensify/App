@@ -410,6 +410,7 @@ function createOption(logins, personalDetails, report, reportActions = {}, {show
         result.isPolicyExpenseChat = ReportUtils.isPolicyExpenseChat(report);
         result.isMoneyRequestReport = ReportUtils.isMoneyRequestReport(report);
         result.isThread = ReportUtils.isThread(report);
+        result.isTaskReport = ReportUtils.isTaskReport(report);
         result.shouldShowSubscript = result.isPolicyExpenseChat && !report.isOwnPolicyExpenseChat && !result.isArchivedRoom;
         result.allReportErrors = getAllReportErrors(report, reportActions);
         result.brickRoadIndicator = !_.isEmpty(result.allReportErrors) ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : '';
@@ -780,7 +781,6 @@ function getSearchOptions(reports, personalDetails, searchValue = '', betas) {
         includePersonalDetails: true,
         forcePolicyNamePreview: true,
         includeOwnedWorkspaceChats: true,
-        includeTasks: true,
     });
 }
 
