@@ -20,7 +20,7 @@ import OfflineWithFeedback from '../../../../components/OfflineWithFeedback';
 import DotIndicatorMessage from '../../../../components/DotIndicatorMessage';
 import ConfirmModal from '../../../../components/ConfirmModal';
 import * as User from '../../../../libs/actions/User';
-import TextInput from '../../../../components/TextInput';
+import MagicCodeInput from '../../../../components/MagicCodeInput';
 import CONST from '../../../../CONST';
 import Button from '../../../../components/Button';
 import * as ErrorUtils from '../../../../libs/ErrorUtils';
@@ -262,13 +262,15 @@ class ContactMethodDetailsPage extends Component {
                                 style={[styles.mb3]}
                                 messages={{0: this.props.translate('contacts.enterMagicCode', {contactMethod: formattedContactMethod})}}
                             />
-                            <TextInput
+                            <MagicCodeInput
                                 label={this.props.translate('common.magicCode')}
                                 name="validateCode"
                                 value={this.state.validateCode}
                                 onChangeText={(text) => this.setState({validateCode: text})}
                                 keyboardType={CONST.KEYBOARD_TYPE.NUMBER_PAD}
                                 errorText={formErrorText}
+                                onFulfill={this.validateAndSubmitCode}
+                                autofocus
                             />
                             <OfflineWithFeedback
                                 pendingAction={lodashGet(loginData, 'pendingFields.validateCodeSent', null)}
@@ -303,7 +305,6 @@ class ContactMethodDetailsPage extends Component {
                                     onPress={this.validateAndSubmitCode}
                                     style={[styles.mt4]}
                                     success
-                                    pressOnEnter
                                 />
                             </OfflineWithFeedback>
                         </View>
