@@ -11,7 +11,6 @@ import getButtonState from '../../libs/getButtonState';
 import * as EmojiPickerAction from '../../libs/actions/EmojiPickerAction';
 import variables from '../../styles/variables';
 import withLocalize, {withLocalizePropTypes} from '../withLocalize';
-import CONST from '../../CONST';
 
 const propTypes = {
     /** Whether it is for context menu so we can modify its style */
@@ -59,7 +58,7 @@ const AddReactionBubble = (props) => {
             );
         };
 
-        if (ev.nativeEvent.closedPopoverId === CONST.POPOVERS.EMOJI_PICKER && EmojiPickerAction.emojiPickerRef.current.anchor === ref.current) {
+        if (ev.nativeEvent.anchorRef && ev.nativeEvent.anchorRef.current === ref.current) {
             return;
         }
 

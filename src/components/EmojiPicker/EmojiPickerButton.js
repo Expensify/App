@@ -9,7 +9,6 @@ import Tooltip from '../Tooltip';
 import Icon from '../Icon';
 import withLocalize, {withLocalizePropTypes} from '../withLocalize';
 import * as EmojiPickerAction from '../../libs/actions/EmojiPickerAction';
-import CONST from '../../CONST';
 
 const propTypes = {
     /** Flag to disable the emoji picker button */
@@ -37,8 +36,8 @@ const EmojiPickerButton = (props) => {
                 ref={emojiPopoverAnchor}
                 style={({hovered, pressed}) => [styles.chatItemEmojiButton, StyleUtils.getButtonBackgroundColorStyle(getButtonState(hovered, pressed))]}
                 disabled={props.isDisabled}
-                onPress={(ev) => {
-                    if (ev.nativeEvent.closedPopoverId === CONST.POPOVERS.EMOJI_PICKER && EmojiPickerAction.emojiPickerRef.current.anchor === emojiPopoverAnchor.current) {
+                onPress={(e) => {
+                    if (e.nativeEvent.anchorRef && e.nativeEvent.anchorRef.current === emojiPopoverAnchor.current) {
                         return;
                     }
 

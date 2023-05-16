@@ -218,6 +218,8 @@ class ReportActionCompose extends React.Component {
             isAttachmentPreviewActive: false,
             ...this.getDefaultSuggestionsValues(),
         };
+
+        this.actionButtonRef = React.createRef();
     }
 
     componentDidMount() {
@@ -948,13 +950,13 @@ class ReportActionCompose extends React.Component {
                                                     )}
                                                     <Tooltip text={this.props.translate('reportActionCompose.addAction')}>
                                                         <TouchableOpacity
-                                                            ref={(el) => (this.actionButton = el)}
+                                                            ref={this.actionButtonRef}
                                                             onPress={(e) => {
                                                                 e.preventDefault();
 
                                                                 // Drop focus to avoid blue focus ring.
-                                                                this.actionButton.blur();
-                                                                if (e.nativeEvent.closedPopoverId !== CONST.POPOVERS.ATTACHMENT) {
+                                                                this.actionButtonRef.current.blur();
+                                                                if (!e.nativeEvent.anchorRef || e.nativeEvent.anchorRef.current !== this.actionButtonRef.current) {
                                                                     this.setMenuVisibility(!this.state.isMenuVisible);
                                                                 }
                                                             }}
@@ -991,7 +993,7 @@ class ReportActionCompose extends React.Component {
                                                         },
                                                     ]}
                                                     withoutOverlay
-                                                    popoverId={CONST.POPOVERS.ATTACHMENT}
+                                                    anchorRef={this.actionButtonRef}
                                                 />
                                             </>
                                         )}

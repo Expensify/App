@@ -57,6 +57,7 @@ class BaseVideoChatButtonAndMenu extends Component {
             isVideoChatMenuActive: false,
             videoChatIconPosition: {x: 0, y: 0},
         };
+        this.videoChatButtonRef = React.createRef();
     }
 
     componentDidMount() {
@@ -102,17 +103,17 @@ class BaseVideoChatButtonAndMenu extends Component {
                 >
                     <Tooltip text={this.props.translate('videoChatButtonAndMenu.tooltip')}>
                         <Pressable
-                            ref={(el) => (this.videoChatButton = el)}
+                            ref={this.videoChatButtonRef}
                             onPress={(ev) => {
                                 // Drop focus to avoid blue focus ring.
-                                this.videoChatButton.blur();
+                                this.videoChatButtonRef.current.blur();
 
                                 // If this is the Concierge chat, we'll open the modal for requesting a setup call instead
                                 if (this.props.isConcierge && this.props.guideCalendarLink) {
                                     Linking.openURL(this.props.guideCalendarLink);
                                     return;
                                 }
-                                if (ev.nativeEvent.closedPopoverId !== CONST.POPOVERS.VIDEO_CHAT) {
+                                if (!ev.nativeEvent.anchorRef || ev.nativeEvent.anchorRef.current !== this.videoChatButtonRef.current) {
                                     this.setMenuVisibility(!this.state.isVideoChatMenuActive);
                                 }
                             }}
@@ -133,7 +134,7 @@ class BaseVideoChatButtonAndMenu extends Component {
                         top: this.state.videoChatIconPosition.y + 40,
                     }}
                     withoutOverlay
-                    popoverId={CONST.POPOVERS.VIDEO_CHAT}
+                    anchorRef={this.videoChatButtonRef}
                 >
                     <View style={this.props.isSmallScreenWidth ? {} : styles.pv3}>
                         {_.map(this.menuItemData, ({icon, text, onPress}) => (

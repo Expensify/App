@@ -90,6 +90,7 @@ class PopoverMenu extends PureComponent {
         return (
             <Popover
                 anchorPosition={this.props.anchorPosition}
+                anchorRef={this.props.anchorRef}
                 onClose={this.props.onClose}
                 isVisible={this.props.isVisible}
                 onModalHide={this.resetFocusAndHideModal}
@@ -99,7 +100,6 @@ class PopoverMenu extends PureComponent {
                 disableAnimation={this.props.disableAnimation}
                 fromSidebarMediumScreen={this.props.fromSidebarMediumScreen}
                 withoutOverlay={this.props.withoutOverlay}
-                popoverId={this.props.popoverId}
             >
                 <View style={this.props.isSmallScreenWidth ? {} : styles.createMenuContainer}>
                     {!_.isEmpty(this.props.headerText) && (

@@ -8,7 +8,6 @@ import withLocalize, {withLocalizePropTypes} from '../withLocalize';
 import Tooltip from '../Tooltip';
 import * as Expensicons from '../Icon/Expensicons';
 import ThreeDotsMenuItemPropTypes from './ThreeDotsMenuItemPropTypes';
-import CONST from '../../CONST';
 
 const propTypes = {
     ...withLocalizePropTypes,
@@ -58,7 +57,7 @@ class ThreeDotsMenu extends Component {
         this.state = {
             isPopupMenuVisible: false,
         };
-        this.button = null;
+        this.buttonRef = React.createRef(null);
     }
 
     showPopoverMenu() {
@@ -81,7 +80,7 @@ class ThreeDotsMenu extends Component {
                                     this.props.onIconPress();
                                 }
                             }}
-                            ref={(el) => (this.button = el)}
+                            ref={this.buttonRef}
                             style={[styles.touchableButtonImage, ...this.props.iconStyles]}
                         >
                             <Icon
@@ -97,7 +96,7 @@ class ThreeDotsMenu extends Component {
                     anchorPosition={this.props.anchorPosition}
                     onItemSelected={this.hidePopoverMenu}
                     menuItems={this.props.menuItems}
-                    popoverId={CONST.POPOVERS.THREE_DOTS}
+                    anchorRef={this.buttonRef}
                 />
             </>
         );

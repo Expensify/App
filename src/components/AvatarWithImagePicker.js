@@ -99,6 +99,7 @@ class AvatarWithImagePicker extends React.Component {
             imageUri: '',
             imageType: '',
         };
+        this.anchorRef = React.createRef();
     }
 
     componentDidMount() {
@@ -257,8 +258,9 @@ class AvatarWithImagePicker extends React.Component {
         return (
             <View style={[styles.alignItemsCenter, ...additionalStyles]}>
                 <Pressable
+                    ref={this.anchorRef}
                     onPress={(e) => {
-                        if (e.nativeEvent.closedPopoverId === CONST.POPOVERS.IMAGE_PICKER) {
+                        if (e.nativeEvent.anchorRef && e.nativeEvent.anchorRef.current === this.anchorRef.current) {
                             return;
                         }
 
@@ -303,7 +305,7 @@ class AvatarWithImagePicker extends React.Component {
                                         menuItems={this.createMenuItems(openPicker)}
                                         anchorPosition={this.props.anchorPosition}
                                         withoutOverlay
-                                        popoverId={CONST.POPOVERS.IMAGE_PICKER}
+                                        anchorRef={this.anchorRef}
                                     />
                                 </>
                             )}

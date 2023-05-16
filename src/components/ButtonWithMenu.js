@@ -32,7 +32,6 @@ const propTypes = {
             iconDescription: PropTypes.string,
         }),
     ).isRequired,
-    popoverId: PropTypes.string.isRequired,
 };
 
 const defaultProps = {
@@ -49,6 +48,8 @@ class ButtonWithMenu extends PureComponent {
             selectedItemIndex: 0,
             isMenuVisible: false,
         };
+
+        this.anchorRef = React.createRef();
     }
 
     setMenuVisibility(isMenuVisible) {
@@ -66,11 +67,12 @@ class ButtonWithMenu extends PureComponent {
                         isDisabled={this.props.isDisabled}
                         onButtonPress={(event) => this.props.onPress(event, selectedItem.value)}
                         onDropdownPress={(e) => {
-                            if (e.nativeEvent.closedPopoverId === this.props.popoverId) {
+                            if (e.nativeEvent.anchorRef && e.nativeEvent.anchorRef.current === this.anchorRef.current) {
                                 return;
                             }
                             this.setMenuVisibility(!this.state.isMenuVisible);
                         }}
+                        dropdownButtonRef={this.anchorRef}
                     />
                 ) : (
                     <Button
@@ -97,7 +99,7 @@ class ButtonWithMenu extends PureComponent {
                             },
                         }))}
                         withoutOverlay
-                        popoverId={this.props.popoverId}
+                        anchorRef={this.anchorRef}
                     />
                 )}
             </View>

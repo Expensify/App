@@ -76,6 +76,7 @@ class FloatingActionButtonAndPopover extends React.Component {
         this.state = {
             isCreateMenuActive: false,
         };
+        this.anchorRef = React.createRef();
     }
 
     componentDidMount() {
@@ -244,14 +245,15 @@ class FloatingActionButtonAndPopover extends React.Component {
                             : []),
                     ]}
                     withoutOverlay
-                    popoverId={CONST.POPOVERS.LHN_FLOATING_ACTION_BUTTON}
+                    anchorRef={this.anchorRef}
                 />
                 <FloatingActionButton
                     accessibilityLabel={this.props.translate('sidebarScreen.fabNewChat')}
                     accessibilityRole="button"
                     isActive={this.state.isCreateMenuActive}
+                    ref={this.anchorRef}
                     onPress={(e) => {
-                        if (e.nativeEvent.closedPopoverId === CONST.POPOVERS.LHN_FLOATING_ACTION_BUTTON) {
+                        if (e.nativeEvent.anchorRef && e.nativeEvent.anchorRef.current === this.anchorRef.current) {
                             return;
                         }
 

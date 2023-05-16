@@ -39,6 +39,9 @@ const propTypes = {
         width: PropTypes.number,
     }),
 
+    /** Anchor ref for the popover */
+    anchorRef: PropTypes.oneOfType([PropTypes.func, PropTypes.object]),
+
     ...windowDimensionsPropTypes,
     withoutOverlay: PropTypes.bool,
 };

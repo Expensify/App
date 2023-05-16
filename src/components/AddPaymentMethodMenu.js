@@ -28,6 +28,9 @@ const propTypes = {
     /** List of betas available to current user */
     betas: PropTypes.arrayOf(PropTypes.string),
 
+    /** Popover anchor ref */
+    anchorRef: PropTypes.oneOfType([PropTypes.func, PropTypes.object]),
+
     ...withLocalizePropTypes,
 };
 
@@ -36,6 +39,7 @@ const defaultProps = {
     payPalMeData: {},
     shouldShowPaypal: true,
     betas: [],
+    anchorRef: () => {},
 };
 
 const AddPaymentMethodMenu = (props) => (
@@ -43,6 +47,7 @@ const AddPaymentMethodMenu = (props) => (
         isVisible={props.isVisible}
         onClose={props.onClose}
         anchorPosition={props.anchorPosition}
+        anchorRef={props.anchorRef}
         onItemSelected={() => props.onClose()}
         menuItems={[
             {
@@ -72,7 +77,6 @@ const AddPaymentMethodMenu = (props) => (
                 : []),
         ]}
         withoutOverlay
-        popoverId={CONST.POPOVERS.ADD_PAYMENT_METHOD}
     />
 );
 

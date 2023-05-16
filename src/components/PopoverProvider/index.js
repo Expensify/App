@@ -13,22 +13,19 @@ const PopoverContext = React.createContext({
     popover: {},
     close: () => {},
     isOpen: false,
-    activePopoverId: '',
 });
 
 const PopoverContextProvider = (props) => {
     const [isOpen, setIsOpen] = React.useState(false);
-    const [activePopoverId, setActivePopoverId] = React.useState(null);
     const activePopoverRef = React.useRef(null);
 
-    const closePopover = (id) => {
-        if (!activePopoverRef.current || !activePopoverId || !id || id !== activePopoverId) {
+    const closePopover = (anchorRef) => {
+        if (!activePopoverRef.current || (anchorRef && anchorRef !== activePopoverRef.current.anchorRef)) {
             return;
         }
         activePopoverRef.current.close();
         activePopoverRef.current = null;
         setIsOpen(false);
-        setActivePopoverId(null);
     };
 
     React.useEffect(() => {
@@ -36,64 +33,64 @@ const PopoverContextProvider = (props) => {
             if (!activePopoverRef.current || !activePopoverRef.current.ref || !activePopoverRef.current.ref.current || activePopoverRef.current.ref.current.contains(e.target)) {
                 return;
             }
-            closePopover(activePopoverId);
-            e.closedPopoverId = activePopoverId;
+            const ref = activePopoverRef.current.anchorRef;
+            closePopover(ref);
+            e.anchorRef = ref;
         };
         document.addEventListener('click', listener, true);
         return () => {
             document.removeEventListener('click', listener, true);
         };
-    }, [activePopoverId]);
+    }, []);
 
     React.useEffect(() => {
         const listener = () => {
-            closePopover(activePopoverId);
+            closePopover();
         };
         document.addEventListener('contextmenu', listener);
         return () => {
             document.removeEventListener('contextmenu', listener);
         };
-    }, [activePopoverId]);
+    }, []);
 
     React.useEffect(() => {
         const listener = (e) => {
             if (e.key !== 'Escape') {
                 return;
             }
-            closePopover(activePopoverId);
+            closePopover();
         };
         document.addEventListener('keydown', listener);
         return () => {
             document.removeEventListener('keydown', listener);
         };
-    }, [activePopoverId]);
+    }, []);
 
     React.useEffect(() => {
         const listener = () => {
             if (document.hasFocus()) {
                 return;
             }
-            closePopover(activePopoverId);
+            closePopover();
         };
         document.addEventListener('visibilitychange', listener);
         return () => {
             document.removeEventListener('visibilitychange', listener);
         };
-    }, [activePopoverId]);
+    }, []);
 
     React.useEffect(() => {
-        document.addEventListener('scroll', () => closePopover(activePopoverId), true);
+        document.addEventListener('scroll', () => closePopover(), true);
         return () => {
-            document.removeEventListener('scroll', () => closePopover(activePopoverId), true);
+            document.removeEventListener('scroll', () => closePopover(), true);
         };
-    }, [activePopoverId]);
+    }, []);
 
     const onOpen = (popoverParams) => {
         if (activePopoverRef.current) {
-            closePopover(activePopoverId);
+            closePopover(activePopoverRef.current.anchorRef);
         }
         activePopoverRef.current = popoverParams;
-        setActivePopoverId(popoverParams.popoverId);
         setIsOpen(true);
     };
     return (
@@ -103,7 +100,6 @@ const PopoverContextProvider = (props) => {
                 close: closePopover,
                 popover: activePopoverRef.current,
                 isOpen,
-                activePopoverId,
             }}
         >
             {props.children}

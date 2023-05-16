@@ -68,6 +68,8 @@ class BasePaymentsPage extends React.Component {
         this.listHeaderComponent = this.listHeaderComponent.bind(this);
 
         this.debounceSetShouldShowLoadingSpinner = _.debounce(this.setShouldShowLoadingSpinner.bind(this), CONST.TIMING.SHOW_LOADING_SPINNER_DEBOUNCE_TIME);
+        this.addPaymentMethodAnchorRef = React.createRef();
+        this.deletePaymentMethodAnchorRef = React.createRef();
     }
 
     componentDidMount() {
@@ -178,16 +180,16 @@ class BasePaymentsPage extends React.Component {
     /**
      * Display the delete/default menu, or the add payment method menu
      *
-     * @param {Object} nativeEvent
+     * @param {Object} ev
      * @param {String} accountType
      * @param {String} account
      * @param {Boolean} isDefault
      * @param {String|Number} methodID
      */
-    paymentMethodPressed(nativeEvent, accountType, account, isDefault, methodID) {
-        const position = getClickedTargetLocation(nativeEvent.currentTarget);
+    paymentMethodPressed(ev, accountType, account, isDefault, methodID) {
+        const position = getClickedTargetLocation(ev.currentTarget);
         this.setState({
-            addPaymentMethodButton: nativeEvent.currentTarget,
+            addPaymentMethodButton: ev.currentTarget,
         });
 
         // The delete/default menu
@@ -226,7 +228,7 @@ class BasePaymentsPage extends React.Component {
             this.setPositionAddPaymentMenu(position);
             return;
         }
-        if (nativeEvent.closedPopoverId !== CONST.POPOVERS.ADD_PAYMENT_METHOD) {
+        if (!ev.nativeEvent.anchorRef || ev.nativeEvent.anchorRef.current !== this.addPaymentMethodAnchorRef.current) {
             this.setState((prev) => ({
                 shouldShowAddPaymentMenu: !prev.shouldShowAddPaymentMenu,
             }));
@@ -410,6 +412,7 @@ class BasePaymentsPage extends React.Component {
                             actionPaymentMethodType={this.state.shouldShowDefaultDeleteMenu || this.state.shouldShowPasswordPrompt ? this.state.selectedPaymentMethodType : ''}
                             activePaymentMethodID={this.state.shouldShowDefaultDeleteMenu || this.state.shouldShowPasswordPrompt ? this.getSelectedPaymentMethodID() : ''}
                             listHeaderComponent={this.listHeaderComponent}
+                            forwardedRef={this.addPaymentMethodAnchorRef}
                         />
                     </OfflineWithFeedback>
                 </View>
@@ -420,6 +423,7 @@ class BasePaymentsPage extends React.Component {
                         bottom: this.state.anchorPositionBottom,
                         right: this.state.anchorPositionRight - 10,
                     }}
+                    anchorRef={this.addPaymentMethodAnchorRef}
                     onItemSelected={(method) => this.addPaymentMethodTypePressed(method)}
                 />
                 <Popover
@@ -430,7 +434,7 @@ class BasePaymentsPage extends React.Component {
                         right: this.state.anchorPositionRight,
                     }}
                     withoutOverlay
-                    popoverId={CONST.POPOVERS.DELETE_PAYMENT_METHOD}
+                    anchorRef={this.deletePaymentMethodAnchorRef}
                 >
                     {!this.state.showConfirmDeleteContent ? (
                         <View style={[styles.m5, !this.props.isSmallScreenWidth ? styles.sidebarPopover : '']}>
@@ -477,6 +481,7 @@ class BasePaymentsPage extends React.Component {
                                 style={[shouldShowMakeDefaultButton && styles.mt4]}
                                 text={this.props.translate('common.delete')}
                                 danger
+                                ref={this.deletePaymentMethodAnchorRef}
                             />
                         </View>
                     ) : (

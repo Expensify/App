@@ -6,8 +6,6 @@ import CONST from '../../CONST';
 const propTypes = {
     ..._.omit(modalPropTypes, ['type', 'popoverAnchorPosition']),
 
-    popoverId: PropTypes.string.isRequired,
-
     /** The anchor position of the popover */
     anchorPosition: PropTypes.shape({
         top: PropTypes.number,
@@ -15,6 +13,9 @@ const propTypes = {
         bottom: PropTypes.number,
         left: PropTypes.number,
     }),
+
+    /** Popover anchor ref */
+    anchorRef: PropTypes.oneOfType([PropTypes.func, PropTypes.object]),
 
     /** A react-native-animatable animation timing for the modal display animation. */
     animationInTiming: PropTypes.number,
@@ -33,6 +34,7 @@ const defaultProps = {
     // Anchor position is optional only because it is not relevant on mobile
     anchorPosition: {},
     disableAnimation: true,
+    anchorRef: () => {},
 };
 
 export {propTypes, defaultProps};

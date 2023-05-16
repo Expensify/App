@@ -14,6 +14,9 @@ const propTypes = {
         left: PropTypes.number,
     }),
 
+    /** The anchor ref of the popover */
+    anchorRef: PropTypes.oneOfType([PropTypes.func, PropTypes.object]),
+
     /** A react-native-animatable animation timing for the modal display animation. */
     animationInTiming: PropTypes.number,
 
@@ -30,6 +33,7 @@ const defaultProps = {
 
     // Anchor position is optional only because it is not relevant on mobile
     anchorPosition: {},
+    anchorRef: () => {},
     disableAnimation: true,
 };
 

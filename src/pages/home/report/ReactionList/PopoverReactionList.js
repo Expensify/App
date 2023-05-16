@@ -6,7 +6,6 @@ import withLocalize, {withLocalizePropTypes} from '../../../../components/withLo
 import PopoverWithMeasuredContent from '../../../../components/PopoverWithMeasuredContent';
 
 import BaseReactionList from './BaseReactionList';
-import CONST from '../../../../CONST';
 
 const propTypes = {
     ...withLocalizePropTypes,
@@ -36,7 +35,7 @@ class PopoverReactionList extends React.Component {
         };
 
         this.onPopoverHideActionCallback = () => {};
-        this.reactionListAnchor = undefined;
+        this.reactionListAnchor = React.createRef();
         this.showReactionList = this.showReactionList.bind(this);
 
         this.hideReactionList = this.hideReactionList.bind(this);
@@ -74,8 +73,8 @@ class PopoverReactionList extends React.Component {
      */
     getReactionListMeasuredLocation() {
         return new Promise((resolve) => {
-            if (this.reactionListAnchor) {
-                this.reactionListAnchor.measureInWindow((x, y) => resolve({x, y}));
+            if (this.reactionListAnchor.current) {
+                this.reactionListAnchor.current.measureInWindow((x, y) => resolve({x, y}));
             } else {
                 resolve({x: 0, y: 0});
             }
@@ -97,7 +96,7 @@ class PopoverReactionList extends React.Component {
     showReactionList(event, reactionListAnchor, users, emojiName, emojiCodes, emojiCount, hasUserReacted) {
         const nativeEvent = event.nativeEvent || {};
 
-        this.reactionListAnchor = reactionListAnchor;
+        this.reactionListAnchor.current = reactionListAnchor;
 
         this.getReactionListMeasuredLocation().then(({x, y}) => {
             this.setState({
@@ -182,7 +181,7 @@ class PopoverReactionList extends React.Component {
                     shouldSetModalVisibility={false}
                     fullscreen
                     withoutOverlay
-                    popoverId={CONST.POPOVERS.EMOJI_REACTION_LIST}
+                    anchorRef={this.reactionListAnchor}
                 >
                     <BaseReactionList
                         type={this.state.type}

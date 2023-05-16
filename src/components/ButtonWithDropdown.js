@@ -22,6 +22,9 @@ const propTypes = {
 
     /** Should the button be disabled */
     isDisabled: PropTypes.bool,
+
+    /** Ref to the dropdown button */
+    dropdownButtonRef: PropTypes.func,
 };
 
 const defaultProps = {
@@ -29,6 +32,7 @@ const defaultProps = {
     onDropdownPress: () => {},
     isDisabled: false,
     isLoading: false,
+    dropdownButtonRef: () => {},
 };
 
 const ButtonWithDropdown = (props) => (
@@ -50,6 +54,7 @@ const ButtonWithDropdown = (props) => (
             style={[styles.pl0]}
             onPress={props.onDropdownPress}
             shouldRemoveLeftBorderRadius
+            ref={props.dropdownButtonRef}
         >
             <Icon
                 src={Expensicons.DownArrow}

@@ -73,7 +73,7 @@ const MiniQuickEmojiReactions = (props) => {
             <BaseMiniContextMenuItem
                 ref={ref}
                 onPress={(ev) => {
-                    if (ev.nativeEvent.closedPopoverId === CONST.POPOVERS.EMOJI_PICKER && EmojiPickerAction.emojiPickerRef.current.anchor === ref.current) {
+                    if (ev.nativeEvent.anchorRef && ev.nativeEvent.anchorRef === ref.current) {
                         return;
                     }
 

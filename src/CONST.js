@@ -665,21 +665,6 @@ const CONST = {
             VALIDATE_CODE_FAILED: 'Validate code failed',
         },
     },
-
-    POPOVERS: {
-        ADD_PAYMENT_METHOD: 'add-payment-method',
-        IMAGE_PICKER: 'image-picker',
-        THREE_DOTS: 'three-dots',
-        ATTACHMENT: 'attachment',
-        LHN_FLOATING_ACTION_BUTTON: 'lhn-floating-action-button',
-        VIDEO_CHAT: 'video-chat',
-        DELETE_PAYMENT_METHOD: 'delete-payment-method',
-        EMOJI_PICKER: 'emoji-picker',
-        CONTEXT_MENU: 'context-menu',
-        EMOJI_REACTION_LIST: 'emoji-reaction-list',
-        MONEY_REQUEST_CONFIRMATION: 'money-request-confirmation',
-        SETTLEMENT: 'settlement',
-    },
     PUSHER: {
         PRIVATE_USER_CHANNEL_PREFIX: 'private-encrypted-user-accountID-',
         PRIVATE_REPORT_CHANNEL_PREFIX: 'private-report-reportID-',

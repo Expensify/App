@@ -35,6 +35,8 @@ class EmojiPicker extends React.Component {
 
             emojiPopoverAnchorOrigin: DEFAULT_ANCHOR_ORIGIN,
         };
+
+        this.emojiPopoverAnchor = React.createRef();
     }
 
     componentDidMount() {
@@ -68,7 +70,7 @@ class EmojiPicker extends React.Component {
         // The first click will hide the emoji picker by calling the hideEmojiPicker() function
         // and in that function the emojiPopoverAnchor prop to will be set to null (synchronously)
         // thus we rely on that prop to prevent fast click / multiple emoji selection
-        if (!this.emojiPopoverAnchor) {
+        if (!this.emojiPopoverAnchor.current) {
             return;
         }
 
@@ -87,7 +89,6 @@ class EmojiPicker extends React.Component {
         if (isNavigating) {
             this.onModalHide = () => {};
         }
-        this.emojiPopoverAnchor = null;
         this.setState({isEmojiPickerVisible: false});
     }
 
@@ -103,9 +104,9 @@ class EmojiPicker extends React.Component {
     showEmojiPicker(onModalHide, onEmojiSelected, emojiPopoverAnchor, anchorOrigin, onWillShow = () => {}) {
         this.onModalHide = onModalHide;
         this.onEmojiSelected = onEmojiSelected;
-        this.emojiPopoverAnchor = emojiPopoverAnchor;
+        this.emojiPopoverAnchor.current = emojiPopoverAnchor;
 
-        if (this.emojiPopoverAnchor) {
+        if (this.emojiPopoverAnchor.current) {
             // Drop focus to avoid blue focus ring.
             emojiPopoverAnchor.blur();
         }
@@ -118,10 +119,10 @@ class EmojiPicker extends React.Component {
 
     measureEmojiPopoverAnchorPosition() {
         return new Promise((resolve) => {
-            if (!this.emojiPopoverAnchor) {
+            if (!this.emojiPopoverAnchor.current) {
                 return resolve({horizontal: 0, vertical: 0});
             }
-            this.emojiPopoverAnchor.measureInWindow((x, y, width) => resolve({horizontal: x + width, vertical: y}));
+            this.emojiPopoverAnchor.current.measureInWindow((x, y, width) => resolve({horizontal: x + width, vertical: y}));
         });
     }
 
@@ -177,9 +178,9 @@ class EmojiPicker extends React.Component {
                     height: CONST.EMOJI_PICKER_SIZE.HEIGHT,
                 }}
                 anchorOrigin={this.state.emojiPopoverAnchorOrigin}
+                anchorRef={this.emojiPopoverAnchor}
                 measureContent={this.measureContent}
                 withoutOverlay
-                popoverId={CONST.POPOVERS.EMOJI_PICKER}
             >
                 <EmojiPickerMenu
                     onEmojiSelected={this.selectEmoji}
