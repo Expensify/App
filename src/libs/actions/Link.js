@@ -61,7 +61,7 @@ function buildOldDotURL(url, shortLivedAuthToken) {
  */
 function openOldDotLink(url) {
     if (isNetworkOffline) {
-        buildOldDotURL(url).then(oldDotURL => Linking.openURL(oldDotURL));
+        buildOldDotURL(url).then((oldDotURL) => Linking.openURL(oldDotURL));
         return;
     }
 
