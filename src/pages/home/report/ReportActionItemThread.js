@@ -35,10 +35,10 @@ const propTypes = {
 };
 
 const ReportActionItemThread = (props) => {
-    const numberReplies = props.numberOfReplies > 99 ? '99+' : `${props.numberOfReplies}`;
+    const numberReplies = props.numberOfReplies > CONST.MAX_THREAD_REPLIES_PREVIEW ? `${CONST.MAX_THREAD_REPLIES_PREVIEW}+` : `${props.numberOfReplies}`;
     const replyText = props.numberOfReplies === 1 ? props.translate('threads.reply') : props.translate('threads.replies');
 
-    const timeStamp = props.datetimeToCalendarTime(props.mostRecentReply);
+    const timeStamp = props.datetimeToCalendarTime(props.mostRecentReply, false, true);
 
     return (
         <View style={[styles.chatItemMessage]}>
