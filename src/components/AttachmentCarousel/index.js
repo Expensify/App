@@ -195,7 +195,12 @@ class AttachmentCarousel extends React.Component {
      * @param {Number} deltaSlide
      */
     cycleThroughAttachments(deltaSlide) {
-        const nextIndex = this.state.page - deltaSlide;
+        let delta = deltaSlide;
+        if (this.canUseTouchScreen) {
+            delta = deltaSlide * -1;
+        }
+
+        const nextIndex = this.state.page - delta;
         const nextItem = this.state.attachments[nextIndex];
 
         if (!nextItem || !this.scrollRef.current) {
@@ -290,7 +295,7 @@ class AttachmentCarousel extends React.Component {
                                         iconFill={themeColors.text}
                                         iconStyles={[styles.mr0]}
                                         onPress={() => {
-                                            this.cycleThroughAttachments(this.canUseTouchScreen ? 1 : -1);
+                                            this.cycleThroughAttachments(-1);
                                             this.autoHideArrow();
                                         }}
                                         onPressIn={this.cancelAutoHideArrow}
@@ -309,7 +314,7 @@ class AttachmentCarousel extends React.Component {
                                         iconFill={themeColors.text}
                                         iconStyles={[styles.mr0]}
                                         onPress={() => {
-                                            this.cycleThroughAttachments(this.canUseTouchScreen ? -1 : 1);
+                                            this.cycleThroughAttachments(1);
                                             this.autoHideArrow();
                                         }}
                                         onPressIn={this.cancelAutoHideArrow}
