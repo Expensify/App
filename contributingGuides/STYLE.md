@@ -4,11 +4,9 @@ For almost all of our code style rules, refer to the [Airbnb JavaScript Style Gu
 
 When writing ES6 or React code, please also refer to the [Airbnb React/JSX Style Guide](https://github.com/airbnb/javascript/tree/master/react).
 
-We use Prettier to automatically style our code. 
-- Prettier runs as part of each build process (eg. `npm run web`)
-- It will automatically fix the styles on files when they are saved
-- You can manually run Prettier with `npm run prettier`
-- You can manually run Prettier in watch mode with `npm run prettier-watch`
+We use Prettier to automatically style our code.
+- You can run Prettier to fix the style on all files with `npm run prettier`
+- You can run Prettier in watch mode to fix the styles when they are saved with `npm run prettier-watch`
 
 There are a few things that we have customized for our tastes which will take precedence over Airbnb's guide.
 
