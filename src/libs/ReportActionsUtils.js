@@ -41,6 +41,32 @@ function isDeletedAction(reportAction) {
 }
 
 /**
+ * Returns the parentReportAction if the given report is a thread.
+ *
+ * @param {Object} report
+ * @returns {Object}
+ */
+function getParentReportAction(report) {
+    if (!report || !report.parentReportID || !report.parentReportActionID) {
+        return {};
+    }
+    return lodashGet(allReportActions, [report.parentReportID, report.parentReportActionID], {});
+}
+
+/**
+ * Returns whether the thread is a transaction thread, which is any thread with IOU parent
+ * report action of type create.
+ *
+ * @param {Object} parentReportAction
+ * @returns {Boolean}
+ */
+function isTransactionThread(parentReportAction) {
+    return (
+        parentReportAction && parentReportAction.actionName === CONST.REPORT.ACTIONS.TYPE.IOU && lodashGet(parentReportAction, 'originalMessage.type') === CONST.IOU.REPORT_ACTION_TYPE.CREATE
+    );
+}
+
+/**
  * Sort an array of reportActions by their created timestamp first, and reportActionID second
  * This gives us a stable order even in the case of multiple reportActions created on the same millisecond
  *
@@ -115,6 +141,11 @@ function isConsecutiveActionMadeByPreviousActor(reportActions, actionIndex) {
 
     // Comments are only grouped if they happen within 5 minutes of each other
     if (moment(currentAction.created).unix() - moment(previousAction.created).unix() > 300) {
+        return false;
+    }
+
+    // Do not group if previous action was a created action
+    if (previousAction.actionName === CONST.REPORT.ACTIONS.TYPE.CREATED) {
         return false;
     }
 
@@ -196,6 +227,10 @@ function shouldReportActionBeVisible(reportAction, key) {
         return false;
     }
 
+    if (reportAction.actionName === CONST.REPORT.ACTIONS.TYPE.TASKEDITED) {
+        return false;
+    }
+
     // Filter out any unsupported reportAction types
     if (!_.has(CONST.REPORT.ACTIONS.TYPE, reportAction.actionName) && !_.contains(_.values(CONST.REPORT.ACTIONS.TYPE.POLICYCHANGELOG), reportAction.actionName)) {
         return false;
@@ -206,10 +241,11 @@ function shouldReportActionBeVisible(reportAction, key) {
         return false;
     }
 
-    // All other actions are displayed except deleted, non-pending actions
+    // All other actions are displayed except thread parents, deleted, or non-pending actions
     const isDeleted = isDeletedAction(reportAction);
     const isPending = !_.isEmpty(reportAction.pendingAction);
-    return !isDeleted || isPending;
+    const isDeletedParentAction = lodashGet(reportAction, ['message', 0, 'isDeletedParentAction'], false);
+    return !isDeleted || isPending || isDeletedParentAction;
 }
 
 /**
@@ -303,4 +339,6 @@ export {
     getLatestReportActionFromOnyxData,
     getLinkedTransactionID,
     isCreatedTaskReportAction,
+    getParentReportAction,
+    isTransactionThread,
 };

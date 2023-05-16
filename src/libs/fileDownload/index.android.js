@@ -43,26 +43,33 @@ function handleDownload(url, fileName) {
         const path = dirs.DownloadDir;
         const attachmentName = fileName || FileUtils.getAttachmentName(url);
 
-        // Fetching the attachment
-        const fetchedAttachment = RNFetchBlob.config({
-            fileCache: true,
-            path: `${path}/${attachmentName}`,
-            addAndroidDownloads: {
-                useDownloadManager: true,
-                notification: false,
-                path: `${path}/Expensify/${attachmentName}`,
-            },
-        }).fetch('GET', url);
+        const isLocalFile = url.startsWith('file://');
 
-        let attachmentPath;
+        let attachmentPath = isLocalFile ? url : undefined;
+        let fetchedAttachment = Promise.resolve();
+
+        if (!isLocalFile) {
+            // Fetching the attachment
+            fetchedAttachment = RNFetchBlob.config({
+                fileCache: true,
+                path: `${path}/${attachmentName}`,
+                addAndroidDownloads: {
+                    useDownloadManager: true,
+                    notification: false,
+                    path: `${path}/Expensify/${attachmentName}`,
+                },
+            }).fetch('GET', url);
+        }
 
         // Resolving the fetched attachment
         fetchedAttachment
             .then((attachment) => {
-                if (!attachment || !attachment.info()) {
+                if (!isLocalFile && (!attachment || !attachment.info())) {
                     return Promise.reject();
                 }
-                attachmentPath = attachment.path();
+
+                if (!isLocalFile) attachmentPath = attachment.path();
+
                 return RNFetchBlob.MediaCollection.copyToMediaStore(
                     {
                         name: attachmentName,

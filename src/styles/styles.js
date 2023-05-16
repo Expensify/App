@@ -819,6 +819,12 @@ const styles = {
         minHeight: variables.componentSizeLarge,
     }),
 
+    autoGrowHeightHiddenInput: (maxWidth, maxHeight) => ({
+        maxWidth,
+        maxHeight: maxHeight && maxHeight + 1,
+        overflow: 'hidden',
+    }),
+
     textInputContainer: {
         flex: 1,
         justifyContent: 'center',
@@ -1010,6 +1016,10 @@ const styles = {
 
     lh16: {
         lineHeight: 16,
+    },
+
+    lh140Percent: {
+        lineHeight: '140%',
     },
 
     formHelp: {
@@ -1678,10 +1688,8 @@ const styles = {
 
     taskSelectorLink: {
         alignSelf: 'center',
-        height: 42,
         width: '100%',
         padding: 6,
-        margin: 3,
         backgroundColor: themeColors.transparent,
     },
 
@@ -1772,20 +1780,14 @@ const styles = {
 
     secondAvatarSubscript: {
         position: 'absolute',
-        right: -4,
-        bottom: -2,
-        borderWidth: 2,
-        borderRadius: 18,
-        borderColor: 'transparent',
+        right: -6,
+        bottom: -6,
     },
 
     secondAvatarSubscriptCompact: {
         position: 'absolute',
         bottom: -1,
         right: -1,
-        borderWidth: 1,
-        borderRadius: 18,
-        borderColor: 'transparent',
     },
 
     leftSideLargeAvatar: {
@@ -1970,6 +1972,11 @@ const styles = {
         alignItems: 'center',
         backgroundColor: themeColors.modalBackdrop,
     },
+
+    centeredModalStyles: (isSmallScreenWidth) => ({
+        borderWidth: isSmallScreenWidth ? 1 : 0,
+        marginHorizontal: isSmallScreenWidth ? 0 : 20,
+    }),
 
     imageModalImageCenterContainer: {
         alignItems: 'center',
@@ -2192,6 +2199,13 @@ const styles = {
         flexGrow: 1,
         marginRight: 8,
         opacity: 0.5,
+    },
+
+    threadDividerLine: {
+        height: 1,
+        backgroundColor: themeColors.border,
+        flexGrow: 1,
+        marginHorizontal: 20,
     },
 
     unreadIndicatorText: {
@@ -3204,9 +3218,41 @@ const styles = {
     contextMenuItemPopoverMaxWidth: {
         maxWidth: 375,
     },
+
     taskCheckbox: {
         height: 16,
         width: 16,
+    },
+
+    shareCodePage: {
+        paddingHorizontal: 38.5,
+    },
+
+    shareCodeContainer: {
+        width: '100%',
+        alignItems: 'center',
+        paddingHorizontal: variables.qrShareHorizontalPadding,
+        paddingVertical: 20,
+        borderRadius: 20,
+        overflow: 'hidden',
+        borderColor: themeColors.borderFocus,
+        borderWidth: 2,
+        backgroundColor: themeColors.highlightBG,
+    },
+
+    headerEnvBadge: {
+        marginLeft: 0,
+        marginBottom: 2,
+        height: 12,
+        paddingLeft: 4,
+        paddingRight: 4,
+        alignItems: 'center',
+    },
+
+    headerEnvBadgeText: {
+        fontSize: 7,
+        fontWeight: fontWeightBold,
+        lineHeight: undefined,
     },
 };
 
