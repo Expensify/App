@@ -16,6 +16,7 @@ import Clipboard from '../libs/Clipboard';
 import * as Expensicons from '../components/Icon/Expensicons';
 import getPlatform from '../libs/getPlatform';
 import CONST from '../CONST';
+import ContextMenuItem from '../components/ContextMenuItem';
 
 const propTypes = {
     /** The report currently being looked at */
@@ -63,10 +64,12 @@ class ShareCodePage extends React.Component {
                     </View>
 
                     <View style={{marginTop: 36}}>
-                        <MenuItem
-                            title={this.props.translate('common.share')}
+                        <ContextMenuItem
+                            text={this.props.translate('qrCodes.copyUrlToClipboard')}
                             shouldShowRightIcon
-                            icon={Expensicons.Link}
+                            icon={Expensicons.Copy}
+                            successIcon={Expensicons.Checkmark}
+                            successText={this.props.translate('qrCodes.copied')}
                             onPress={() => Clipboard.setString(url)}
                         />
 
