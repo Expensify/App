@@ -152,6 +152,11 @@ function isConsecutiveActionMadeByPreviousActor(reportActions, actionIndex) {
         return false;
     }
 
+    // Do not group if previous action was a created action
+    if (previousAction.actionName === CONST.REPORT.ACTIONS.TYPE.CREATED) {
+        return false;
+    }
+
     // Do not group if previous or current action was a renamed action
     if (previousAction.actionName === CONST.REPORT.ACTIONS.TYPE.RENAMED || currentAction.actionName === CONST.REPORT.ACTIONS.TYPE.RENAMED) {
         return false;
@@ -235,7 +240,11 @@ function shouldReportActionBeVisible(reportAction, key) {
     }
 
     // Filter out any unsupported reportAction types
-    if (!_.has(CONST.REPORT.ACTIONS.TYPE, reportAction.actionName) && !_.contains(_.values(CONST.REPORT.ACTIONS.TYPE.POLICYCHANGELOG), reportAction.actionName)) {
+    if (
+        !_.has(CONST.REPORT.ACTIONS.TYPE, reportAction.actionName) &&
+        !_.contains(_.values(CONST.REPORT.ACTIONS.TYPE.POLICYCHANGELOG), reportAction.actionName) &&
+        !_.contains(_.values(CONST.REPORT.ACTIONS.TYPE.TASK), reportAction.actionName)
+    ) {
         return false;
     }
 
