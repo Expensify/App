@@ -75,6 +75,13 @@ class ReportSettingsPage extends Component {
         ];
     }
 
+    getWriteCapabilityOptions() {
+        return [
+            {value: 'all', label: this.props.translate('reportSettings.writeCapability.all')},
+            {value: 'admins', label: this.props.translate('reportSettings.writeCapability.admins')},
+        ];
+    }
+
     /**
      * @param {Object|null} linkedWorkspace - the workspace the report is on, null if the user isn't a member of the workspace
      * @returns {Boolean}
@@ -217,6 +224,23 @@ class ReportSettingsPage extends Component {
                                 </OfflineWithFeedback>
                             </View>
                         )}
+                        <View>
+                            <View style={[styles.mt2]}>
+                                <Picker
+                                    label={this.props.translate('reportSettings.writeCapability.label')}
+                                    onInputChange={(writeCapability) => {
+                                        if (this.props.report.writeCapability === writeCapability) {
+                                            return;
+                                        }
+
+                                        console.log(writeCapability);
+                                        // Report.updateWriteCapability(this.props.report.reportID, this.props.report.writeCapability, writeCapability);
+                                    }}
+                                    items={this.getWriteCapabilityOptions()}
+                                    value={this.props.report.writeCapability}
+                                />
+                            </View>
+                        </View>
                         {Boolean(linkedWorkspace) && (
                             <View style={[styles.mt4]}>
                                 <Text
