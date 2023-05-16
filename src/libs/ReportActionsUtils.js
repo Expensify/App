@@ -41,6 +41,14 @@ function isDeletedAction(reportAction) {
 }
 
 /**
+ * @param {Object} reportAction
+ * @returns {Boolean}
+ */
+function isMoneyRequestAction(reportAction) {
+    return lodashGet(reportAction, 'actionName', '') === CONST.REPORT.ACTIONS.TYPE.IOU;
+}
+
+/**
  * Returns the parentReportAction if the given report is a thread.
  *
  * @param {Object} report
@@ -51,6 +59,19 @@ function getParentReportAction(report) {
         return {};
     }
     return lodashGet(allReportActions, [report.parentReportID, report.parentReportActionID], {});
+}
+
+/**
+ * Returns whether the thread is a transaction thread, which is any thread with IOU parent
+ * report action of type create.
+ *
+ * @param {Object} parentReportAction
+ * @returns {Boolean}
+ */
+function isTransactionThread(parentReportAction) {
+    return (
+        parentReportAction && parentReportAction.actionName === CONST.REPORT.ACTIONS.TYPE.IOU && lodashGet(parentReportAction, 'originalMessage.type') === CONST.IOU.REPORT_ACTION_TYPE.CREATE
+    );
 }
 
 /**
@@ -171,7 +192,7 @@ function getLastVisibleMessageText(reportID, actionsToMerge = {}) {
     const htmlText = lodashGet(lastVisibleAction, 'message[0].html', '');
     const parser = new ExpensiMark();
     const messageText = parser.htmlToText(htmlText);
-    return String(messageText).replace(CONST.REGEX.AFTER_FIRST_LINE_BREAK, '').substring(0, CONST.REPORT.LAST_MESSAGE_TEXT_MAX_LENGTH);
+    return String(messageText).replace(CONST.REGEX.AFTER_FIRST_LINE_BREAK, '').substring(0, CONST.REPORT.LAST_MESSAGE_TEXT_MAX_LENGTH).trim();
 }
 
 /**
@@ -206,6 +227,10 @@ function isReportActionDeprecated(reportAction, key) {
  */
 function shouldReportActionBeVisible(reportAction, key) {
     if (isReportActionDeprecated(reportAction, key)) {
+        return false;
+    }
+
+    if (reportAction.actionName === CONST.REPORT.ACTIONS.TYPE.TASKEDITED) {
         return false;
     }
 
@@ -315,7 +340,9 @@ export {
     getSortedReportActionsForDisplay,
     getLastClosedReportAction,
     getLatestReportActionFromOnyxData,
+    isMoneyRequestAction,
     getLinkedTransactionID,
     isCreatedTaskReportAction,
     getParentReportAction,
+    isTransactionThread,
 };

@@ -36,6 +36,15 @@ const propTypes = {
     // eslint-disable-next-line react/no-unused-prop-types
     iouReportID: PropTypes.string.isRequired,
 
+    /** chatReport associated with iouReport */
+    chatReport: PropTypes.shape({
+        /** The participants of this report */
+        participants: PropTypes.arrayOf(PropTypes.string),
+
+        /** Whether the chat report has an outstanding IOU */
+        hasOutstandingIOU: PropTypes.bool.isRequired,
+    }),
+
     /** Active IOU Report for current report */
     iouReport: PropTypes.shape({
         /** Email address of the manager in this iou report */
@@ -78,6 +87,7 @@ const propTypes = {
 const defaultProps = {
     contextMenuAnchor: null,
     isHovered: false,
+    chatReport: {},
     iouReport: {},
     onViewDetailsPressed: () => {},
     checkIfContextMenuActive: () => {},
@@ -89,7 +99,7 @@ const defaultProps = {
 const ReportPreview = (props) => {
     const reportAmount = CurrencyUtils.convertToDisplayString(ReportUtils.getMoneyRequestTotal(props.iouReport), props.iouReport.currency);
     const managerEmail = props.iouReport.managerEmail || '';
-    const managerName = ReportUtils.getDisplayNameForParticipant(managerEmail, true);
+    const managerName = ReportUtils.isPolicyExpenseChat(props.chatReport) ? ReportUtils.getPolicyName(props.chatReport) : ReportUtils.getDisplayNameForParticipant(managerEmail, true);
     const isCurrentUserManager = managerEmail === lodashGet(props.session, 'email', null);
     return (
         <View style={[styles.chatItemMessage, styles.mt4]}>
@@ -103,7 +113,7 @@ const ReportPreview = (props) => {
                     style={[styles.flexRow, styles.justifyContentBetween]}
                     focusable
                 >
-                    <View>
+                    <View style={[styles.flexShrink1]}>
                         {props.iouReport.hasOutstandingIOU ? (
                             <Text style={[styles.chatItemMessage, styles.cursorPointer]}>{props.translate('iou.payerOwesAmount', {payer: managerName, amount: reportAmount})}</Text>
                         ) : (
@@ -149,6 +159,9 @@ ReportPreview.displayName = 'ReportPreview';
 export default compose(
     withLocalize,
     withOnyx({
+        chatReport: {
+            key: ({chatReportID}) => `${ONYXKEYS.COLLECTION.REPORT}${chatReportID}`,
+        },
         iouReport: {
             key: ({iouReportID}) => `${ONYXKEYS.COLLECTION.REPORT}${iouReportID}`,
         },

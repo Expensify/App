@@ -1,7 +1,6 @@
 import React, {Component} from 'react';
 import PropTypes from 'prop-types';
 import {withOnyx} from 'react-native-onyx';
-import Str from 'expensify-common/lib/str';
 import _ from 'underscore';
 import styles from '../styles/styles';
 import * as OptionsListUtils from '../libs/OptionsListUtils';
@@ -105,13 +104,12 @@ class MoneyRequestConfirmationList extends Component {
      * @returns {Array}
      */
     getSplitOrRequestOptions() {
+        const text = this.props.translate(this.props.hasMultipleParticipants ? 'iou.splitAmount' : 'iou.requestAmount', {
+            amount: CurrencyUtils.convertToDisplayString(this.props.iouAmount, this.props.iou.selectedCurrencyCode),
+        });
         return [
             {
-                text: Str.recapitalize(
-                    this.props.translate(this.props.hasMultipleParticipants ? 'iou.splitAmount' : 'iou.requestAmount', {
-                        amount: CurrencyUtils.convertToDisplayString(this.props.iouAmount, this.props.iou.selectedCurrencyCode),
-                    }),
-                ),
+                text: text[0].toUpperCase() + text.slice(1),
                 value: this.props.hasMultipleParticipants ? CONST.IOU.MONEY_REQUEST_TYPE.SPLIT : CONST.IOU.MONEY_REQUEST_TYPE.REQUEST,
             },
         ];
@@ -139,7 +137,7 @@ class MoneyRequestConfirmationList extends Component {
      * @returns {Array}
      */
     getParticipantsWithAmount(participants) {
-        const iouAmount = IOUUtils.calculateAmount(participants, this.props.iouAmount);
+        const iouAmount = IOUUtils.calculateAmount(participants.length, this.props.iouAmount);
         return OptionsListUtils.getIOUConfirmationOptionsFromParticipants(participants, CurrencyUtils.convertToDisplayString(iouAmount, this.props.iou.selectedCurrencyCode));
     }
 
@@ -168,7 +166,7 @@ class MoneyRequestConfirmationList extends Component {
             const formattedUnselectedParticipants = this.getParticipantsWithoutAmount(unselectedParticipants);
             const formattedParticipants = _.union(formattedSelectedParticipants, formattedUnselectedParticipants);
 
-            const myIOUAmount = IOUUtils.calculateAmount(selectedParticipants, this.props.iouAmount, true);
+            const myIOUAmount = IOUUtils.calculateAmount(selectedParticipants.length, this.props.iouAmount, true);
             const formattedMyPersonalDetails = OptionsListUtils.getIOUConfirmationOptionsFromMyPersonalDetail(
                 this.props.currentUserPersonalDetails,
                 CurrencyUtils.convertToDisplayString(myIOUAmount, this.props.iou.selectedCurrencyCode),

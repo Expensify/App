@@ -1018,6 +1018,10 @@ const styles = {
         lineHeight: 16,
     },
 
+    lh140Percent: {
+        lineHeight: '140%',
+    },
+
     formHelp: {
         color: themeColors.textSupporting,
         fontSize: variables.fontSizeLabel,
@@ -1684,10 +1688,8 @@ const styles = {
 
     taskSelectorLink: {
         alignSelf: 'center',
-        height: 42,
         width: '100%',
         padding: 6,
-        margin: 3,
         backgroundColor: themeColors.transparent,
     },
 
@@ -3222,9 +3224,26 @@ const styles = {
     contextMenuItemPopoverMaxWidth: {
         maxWidth: 375,
     },
+
     taskCheckbox: {
         height: 16,
         width: 16,
+    },
+
+    shareCodePage: {
+        paddingHorizontal: 38.5,
+    },
+
+    shareCodeContainer: {
+        width: '100%',
+        alignItems: 'center',
+        paddingHorizontal: variables.qrShareHorizontalPadding,
+        paddingVertical: 20,
+        borderRadius: 20,
+        overflow: 'hidden',
+        borderColor: themeColors.borderFocus,
+        borderWidth: 2,
+        backgroundColor: themeColors.highlightBG,
     },
 };
 

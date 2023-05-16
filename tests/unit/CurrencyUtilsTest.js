@@ -88,11 +88,19 @@ describe('CurrencyUtils', () => {
     describe('convertToSmallestUnit', () => {
         test.each([
             [CONST.CURRENCY.USD, 25, 2500],
+            [CONST.CURRENCY.USD, 25.25, 2525],
             [CONST.CURRENCY.USD, 25.5, 2550],
-            [CONST.CURRENCY.USD, 25.5, 2550],
+            [CONST.CURRENCY.USD, 2500, 250000],
+            [CONST.CURRENCY.USD, 80.6, 8060],
+            [CONST.CURRENCY.USD, 80.9, 8090],
+            [CONST.CURRENCY.USD, 80.99, 8099],
             ['JPY', 25, 25],
+            ['JPY', 25.25, 25],
+            ['JPY', 25.5, 26],
             ['JPY', 2500, 2500],
-            ['JPY', 25.5, 25],
+            ['JPY', 80.6, 81],
+            ['JPY', 80.9, 81],
+            ['JPY', 80.99, 81],
         ])('Correctly converts %s to amount in smallest units', (currency, amount, expectedResult) => {
             expect(CurrencyUtils.convertToSmallestUnit(currency, amount)).toBe(expectedResult);
         });

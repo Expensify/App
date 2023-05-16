@@ -152,8 +152,8 @@ const defaultProps = {
 const getMaxArrowIndex = (numRows, isAutoSuggestionPickerLarge) => {
     // EmojiRowCount is number of emoji suggestions. For small screen we can fit 3 items and for large we show up to 5 items
     const emojiRowCount = isAutoSuggestionPickerLarge
-        ? Math.max(numRows, CONST.AUTO_COMPLETE_SUGGESTER.MAX_AMOUNT_OF_ITEMS)
-        : Math.max(numRows, CONST.AUTO_COMPLETE_SUGGESTER.MIN_AMOUNT_OF_ITEMS);
+        ? Math.min(numRows, CONST.AUTO_COMPLETE_SUGGESTER.MAX_AMOUNT_OF_ITEMS)
+        : Math.min(numRows, CONST.AUTO_COMPLETE_SUGGESTER.MIN_AMOUNT_OF_ITEMS);
 
     // -1 because we start at 0
     return emojiRowCount - 1;
@@ -188,7 +188,6 @@ class ReportActionCompose extends React.Component {
         this.showPopoverMenu = this.showPopoverMenu.bind(this);
         this.comment = props.comment;
         this.setShouldBlockEmojiCalcToFalse = this.setShouldBlockEmojiCalcToFalse.bind(this);
-        this.attachmentPreviewClosed = this.attachmentPreviewClosed.bind(this);
 
         // React Native will retain focus on an input for native devices but web/mWeb behave differently so we have some focus management
         // code that will refocus the compose input after a user closes a modal or some other actions, see usage of ReportActionComposeFocusManager
@@ -601,7 +600,8 @@ class ReportActionCompose extends React.Component {
             },
             suggestedEmojis: [],
         }));
-        EmojiUtils.addToFrequentlyUsedEmojis(emojiObject);
+        const frequentEmojiList = EmojiUtils.getFrequentlyUsedEmojis(emojiObject);
+        User.updateFrequentlyUsedEmojis(frequentEmojiList);
     }
 
     /**
@@ -634,13 +634,13 @@ class ReportActionCompose extends React.Component {
      * @param {String} emoji
      */
     addEmojiToTextBox(emoji) {
+        this.updateComment(ComposerUtils.insertText(this.comment, this.state.selection, emoji));
         this.setState((prevState) => ({
             selection: {
                 start: prevState.selection.start + emoji.length,
                 end: prevState.selection.start + emoji.length,
             },
         }));
-        this.updateComment(ComposerUtils.insertText(this.comment, this.state.selection, emoji));
     }
 
     /**
@@ -693,7 +693,12 @@ class ReportActionCompose extends React.Component {
      * @param {Boolean} shouldDebounceSaveComment
      */
     updateComment(comment, shouldDebounceSaveComment) {
-        const newComment = EmojiUtils.replaceEmojis(comment, this.props.isSmallScreenWidth, this.props.preferredSkinTone);
+        const {text: newComment = '', emojis = []} = EmojiUtils.replaceEmojis(comment, this.props.isSmallScreenWidth, this.props.preferredSkinTone);
+
+        if (!_.isEmpty(emojis)) {
+            User.updateFrequentlyUsedEmojis(EmojiUtils.getFrequentlyUsedEmojis(emojis));
+        }
+
         this.setState((prevState) => {
             const newState = {
                 isCommentEmpty: !!newComment.match(/^(\s)*$/),
@@ -855,14 +860,6 @@ class ReportActionCompose extends React.Component {
         return true;
     }
 
-    /**
-     * Event handler to update the state after the attachment preview is closed.
-     */
-    attachmentPreviewClosed() {
-        this.setShouldBlockEmojiCalcToFalse();
-        this.setState({isAttachmentPreviewActive: false});
-    }
-
     render() {
         const reportParticipants = _.without(lodashGet(this.props.report, 'participants', []), this.props.currentUserPersonalDetails.login);
         const participantsWithoutExpensifyEmails = _.difference(reportParticipants, CONST.EXPENSIFY_EMAILS);
@@ -876,6 +873,7 @@ class ReportActionCompose extends React.Component {
         const inputPlaceholder = this.getInputPlaceholder();
         const shouldUseFocusedColor = !isBlockedFromConcierge && !this.props.disabled && (this.state.isFocused || this.state.isDraggingOver);
         const hasExceededMaxCommentLength = this.state.hasExceededMaxCommentLength;
+        const isFullComposerAvailable = this.state.isFullComposerAvailable && !_.isEmpty(this.state.value);
 
         return (
             <View
@@ -902,7 +900,11 @@ class ReportActionCompose extends React.Component {
                         <AttachmentModal
                             headerTitle={this.props.translate('reportActionCompose.sendAttachment')}
                             onConfirm={this.addAttachment}
-                            onModalHide={this.attachmentPreviewClosed}
+                            onModalShow={() => this.setState({isAttachmentPreviewActive: true})}
+                            onModalHide={() => {
+                                this.setShouldBlockEmojiCalcToFalse();
+                                this.setState({isAttachmentPreviewActive: false});
+                            }}
                         >
                             {({displayFileInModal}) => (
                                 <>
@@ -913,7 +915,7 @@ class ReportActionCompose extends React.Component {
                                                     style={[
                                                         styles.dFlex,
                                                         styles.flexColumn,
-                                                        this.state.isFullComposerAvailable || this.props.isComposerFullSize ? styles.justifyContentBetween : styles.justifyContentEnd,
+                                                        isFullComposerAvailable || this.props.isComposerFullSize ? styles.justifyContentBetween : styles.justifyContentEnd,
                                                     ]}
                                                 >
                                                     {this.props.isComposerFullSize && (
@@ -933,7 +935,7 @@ class ReportActionCompose extends React.Component {
                                                             </TouchableOpacity>
                                                         </Tooltip>
                                                     )}
-                                                    {!this.props.isComposerFullSize && this.state.isFullComposerAvailable && (
+                                                    {!this.props.isComposerFullSize && isFullComposerAvailable && (
                                                         <Tooltip text={this.props.translate('reportActionCompose.expand')}>
                                                             <TouchableOpacity
                                                                 onPress={(e) => {
@@ -1017,7 +1019,7 @@ class ReportActionCompose extends React.Component {
 
                                                 displayFileInModal(file);
 
-                                                this.setState({isAttachmentPreviewActive: true, isDraggingOver: false});
+                                                this.setState({isDraggingOver: false});
                                             }}
                                             disabled={this.props.disabled}
                                         >
@@ -1044,7 +1046,7 @@ class ReportActionCompose extends React.Component {
                                                 isDisabled={isComposeDisabled || isBlockedFromConcierge || this.props.disabled}
                                                 selection={this.state.selection}
                                                 onSelectionChange={this.onSelectionChange}
-                                                isFullComposerAvailable={this.state.isFullComposerAvailable}
+                                                isFullComposerAvailable={isFullComposerAvailable}
                                                 setIsFullComposerAvailable={this.setIsFullComposerAvailable}
                                                 isComposerFullSize={this.props.isComposerFullSize}
                                                 value={this.state.value}
@@ -1198,6 +1200,7 @@ export default compose(
         },
         preferredSkinTone: {
             key: ONYXKEYS.PREFERRED_EMOJI_SKIN_TONE,
+            selector: EmojiUtils.getPreferredSkinToneIndex,
         },
         reports: {
             key: ONYXKEYS.COLLECTION.REPORT,

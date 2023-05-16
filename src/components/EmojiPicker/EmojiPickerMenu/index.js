@@ -227,7 +227,8 @@ class EmojiPickerMenu extends Component {
      * @param {Object} emojiObject
      */
     addToFrequentAndSelectEmoji(emoji, emojiObject) {
-        EmojiUtils.addToFrequentlyUsedEmojis(emojiObject);
+        const frequentEmojiList = EmojiUtils.getFrequentlyUsedEmojis(emojiObject);
+        User.updateFrequentlyUsedEmojis(frequentEmojiList);
         this.props.onEmojiSelected(emoji, emojiObject);
     }
 
