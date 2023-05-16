@@ -3256,6 +3256,21 @@ const styles = {
         backgroundColor: themeColors.highlightBG,
     },
 
+    headerEnvBadge: {
+        marginLeft: 0,
+        marginBottom: 2,
+        height: 12,
+        paddingLeft: 4,
+        paddingRight: 4,
+        alignItems: 'center',
+    },
+
+    headerEnvBadgeText: {
+        fontSize: 7,
+        fontWeight: fontWeightBold,
+        lineHeight: undefined,
+    },
+
     illustratedPageScrollView: (safeAreaPaddingBottomStyle) => [flex.flex1, flex.flexColumn, spacing.pt5, safeAreaPaddingBottomStyle],
 
     workspacesListPageFeatureContainer: (numItems) => [

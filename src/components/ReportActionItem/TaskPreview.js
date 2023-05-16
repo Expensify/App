@@ -69,6 +69,7 @@ const TaskPreview = (props) => {
                     style={[styles.mr2]}
                     containerStyle={[styles.taskCheckbox]}
                     isChecked={isTaskCompleted}
+                    disabled={TaskUtils.isTaskCanceled(props.taskReport)}
                     onPress={() => {
                         if (isTaskCompleted) {
                             TaskUtils.reopenTask(props.taskReportID, parentReportID, taskTitle);
