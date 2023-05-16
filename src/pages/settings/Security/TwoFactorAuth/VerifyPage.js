@@ -18,7 +18,7 @@ import Clipboard from '../../../../libs/Clipboard';
 import FixedFooter from '../../../../components/FixedFooter';
 import TwoFactorAuthForm from './TwoFactorAuthForm';
 import QRCode from '../../../../components/QRCode';
-import defaultTheme from '../../../../styles/themes/default';
+import expensifyLogo from '../../../../../assets/images/expensify-logo-round-dark.png';
 
 const propTypes = {
     ...withLocalizePropTypes,
@@ -109,7 +109,7 @@ function VerifyPage(props) {
                         <View style={[styles.alignItemsCenter, styles.mt5]}>
                             <QRCode
                                 url={buildAuthenticatorUrl()}
-                                color={defaultTheme.textSupporting}
+                                logo={expensifyLogo}
                             />
                         </View>
                         <Text style={styles.mt5}>{props.translate('twoFactorAuth.addKey')}</Text>
