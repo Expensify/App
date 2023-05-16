@@ -11,14 +11,24 @@ const propTypes = {
 class Carousel extends React.Component {
     componentDidMount() {
         const shortcutLeftConfig = CONST.KEYBOARD_SHORTCUTS.ARROW_LEFT;
-        this.unsubscribeLeftKey = KeyboardShortcut.subscribe(shortcutLeftConfig.shortcutKey, () => {
-            this.props.onCycleThroughAttachments(-1);
-        }, shortcutLeftConfig.descriptionKey, shortcutLeftConfig.modifiers);
+        this.unsubscribeLeftKey = KeyboardShortcut.subscribe(
+            shortcutLeftConfig.shortcutKey,
+            () => {
+                this.props.onCycleThroughAttachments(-1);
+            },
+            shortcutLeftConfig.descriptionKey,
+            shortcutLeftConfig.modifiers,
+        );
 
         const shortcutRightConfig = CONST.KEYBOARD_SHORTCUTS.ARROW_RIGHT;
-        this.unsubscribeLeftKey = KeyboardShortcut.subscribe(shortcutRightConfig.shortcutKey, () => {
-            this.props.onCycleThroughAttachments(1);
-        }, shortcutRightConfig.descriptionKey, shortcutRightConfig.modifiers);
+        this.unsubscribeLeftKey = KeyboardShortcut.subscribe(
+            shortcutRightConfig.shortcutKey,
+            () => {
+                this.props.onCycleThroughAttachments(1);
+            },
+            shortcutRightConfig.descriptionKey,
+            shortcutRightConfig.modifiers,
+        );
     }
 
     componentWillUnmount() {

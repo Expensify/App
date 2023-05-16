@@ -150,13 +150,19 @@ class AttachmentPicker extends Component {
 
     attachKeyboardListener() {
         const shortcutConfig = CONST.KEYBOARD_SHORTCUTS.ENTER;
-        this.unsubscribeEnterKey = KeyboardShortcut.subscribe(shortcutConfig.shortcutKey, () => {
-            if (this.state.focusedIndex === -1) {
-                return;
-            }
-            this.selectItem(this.menuItemData[this.state.focusedIndex]);
-            this.setState({focusedIndex: -1}); // Reset the focusedIndex on selecting any menu
-        }, shortcutConfig.descriptionKey, shortcutConfig.modifiers, true);
+        this.unsubscribeEnterKey = KeyboardShortcut.subscribe(
+            shortcutConfig.shortcutKey,
+            () => {
+                if (this.state.focusedIndex === -1) {
+                    return;
+                }
+                this.selectItem(this.menuItemData[this.state.focusedIndex]);
+                this.setState({focusedIndex: -1}); // Reset the focusedIndex on selecting any menu
+            },
+            shortcutConfig.descriptionKey,
+            shortcutConfig.modifiers,
+            true,
+        );
     }
 
     removeKeyboardListener() {
@@ -352,7 +358,7 @@ class AttachmentPicker extends Component {
                         <ArrowKeyFocusManager
                             focusedIndex={this.state.focusedIndex}
                             maxIndex={this.menuItemData.length - 1}
-                            onFocusedIndexChanged={index => this.setState({focusedIndex: index})}
+                            onFocusedIndexChanged={(index) => this.setState({focusedIndex: index})}
                         >
                             {_.map(this.menuItemData, (item, menuIndex) => (
                                 <MenuItem
