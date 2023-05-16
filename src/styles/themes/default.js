@@ -66,7 +66,7 @@ const darkTheme = {
     pickerOptionsTextColor: colors.white,
     imageCropBackgroundColor: colors.greenIcons,
     fallbackIconColor: colors.green700,
-    reactionActive: colors.green600,
+    reactionActiveBackground: colors.green600,
     reactionActiveText: colors.green100,
     badgeAdHoc: colors.pink600,
     badgeAdHocHover: colors.pink700,

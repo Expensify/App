@@ -1019,7 +1019,7 @@ function getEmojiReactionBubbleStyle(isHovered, hasUserReacted, isContextMenu = 
     }
 
     if (hasUserReacted) {
-        backgroundColor = themeColors.reactionActive;
+        backgroundColor = themeColors.reactionActiveBackground;
     }
 
     if (isContextMenu) {
