@@ -41,8 +41,8 @@ const propTypes = {
     /** Whether #focus mode is on */
     isFocusMode: PropTypes.bool,
 
-    /** Whether the avatar is in IOU card */
-    isInCard: PropTypes.bool,
+    /** Whether avatars are displayed within a reportAction */
+    isInReportAction: PropTypes.bool,
 };
 
 const defaultProps = {
@@ -55,7 +55,7 @@ const defaultProps = {
     isHovered: false,
     isPressed: false,
     isFocusMode: false,
-    isInCard: false,
+    isInReportAction: false,
 };
 
 const MultipleAvatars = (props) => {
@@ -84,7 +84,7 @@ const MultipleAvatars = (props) => {
     }
 
     const oneAvatarSize = StyleUtils.getAvatarStyle(props.size);
-    const oneAvatarBorderWidth = StyleUtils.getAvatarBorderWidth(props.size);
+    const oneAvatarBorderWidth = StyleUtils.getAvatarBorderWidth(props.size).borderWidth;
     const overlapSize = oneAvatarSize.width / 3;
 
     if (props.shouldStackHorizontally) {
@@ -112,7 +112,7 @@ const MultipleAvatars = (props) => {
                             style={[
                                 styles.justifyContentCenter,
                                 styles.alignItemsCenter,
-                                StyleUtils.getHorizontalStackedAvatarBorderStyle(props.isHovered, props.isPressed, props.isInCard),
+                                StyleUtils.getHorizontalStackedAvatarBorderStyle(props.isHovered, props.isPressed, props.isInReportAction),
                                 StyleUtils.getHorizontalStackedAvatarStyle(index, overlapSize, oneAvatarBorderWidth, oneAvatarSize.width),
                                 icon.type === CONST.ICON_TYPE_WORKSPACE ? StyleUtils.getAvatarBorderRadius(props.size, icon.type) : {},
                             ]}
@@ -131,7 +131,7 @@ const MultipleAvatars = (props) => {
                             style={[
                                 styles.alignItemsCenter,
                                 styles.justifyContentCenter,
-                                StyleUtils.getHorizontalStackedAvatarBorderStyle(props.isHovered, props.isPressed, props.isInCard),
+                                StyleUtils.getHorizontalStackedAvatarBorderStyle(props.isHovered, props.isPressed, props.isInReportAction),
 
                                 // Set overlay background color with RGBA value so that the text will not inherit opacity
                                 StyleUtils.getBackgroundColorWithOpacityStyle(themeColors.overlay, variables.overlayOpacity),

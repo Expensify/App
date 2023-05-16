@@ -1780,20 +1780,14 @@ const styles = {
 
     secondAvatarSubscript: {
         position: 'absolute',
-        right: -4,
-        bottom: -2,
-        borderWidth: 2,
-        borderRadius: 18,
-        borderColor: 'transparent',
+        right: -6,
+        bottom: -6,
     },
 
     secondAvatarSubscriptCompact: {
         position: 'absolute',
         bottom: -1,
         right: -1,
-        borderWidth: 1,
-        borderRadius: 18,
-        borderColor: 'transparent',
     },
 
     leftSideLargeAvatar: {
@@ -1979,8 +1973,8 @@ const styles = {
         backgroundColor: themeColors.modalBackdrop,
     },
 
-    centeredModalStyles: (isSmallScreenWidth) => ({
-        borderWidth: isSmallScreenWidth ? 1 : 0,
+    centeredModalStyles: (isSmallScreenWidth, isFullScreenWhenSmall) => ({
+        borderWidth: isSmallScreenWidth && !isFullScreenWhenSmall ? 1 : 0,
         marginHorizontal: isSmallScreenWidth ? 0 : 20,
     }),
 
@@ -2344,6 +2338,10 @@ const styles = {
         fontSize: variables.fontSizeXLarge,
         color: themeColors.heading,
         lineHeight: variables.inputHeight,
+    },
+
+    magicCodeInputTransparent: {
+        color: 'transparent',
     },
 
     iouAmountText: {
@@ -3239,6 +3237,21 @@ const styles = {
         borderColor: themeColors.borderFocus,
         borderWidth: 2,
         backgroundColor: themeColors.highlightBG,
+    },
+
+    headerEnvBadge: {
+        marginLeft: 0,
+        marginBottom: 2,
+        height: 12,
+        paddingLeft: 4,
+        paddingRight: 4,
+        alignItems: 'center',
+    },
+
+    headerEnvBadgeText: {
+        fontSize: 7,
+        fontWeight: fontWeightBold,
+        lineHeight: undefined,
     },
 };
 

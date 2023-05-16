@@ -34,6 +34,7 @@ import * as User from '../../../libs/actions/User';
 import * as ReportUtils from '../../../libs/ReportUtils';
 import OfflineWithFeedback from '../../../components/OfflineWithFeedback';
 import * as ReportActions from '../../../libs/actions/ReportActions';
+import * as ReportActionsUtils from '../../../libs/ReportActionsUtils';
 import reportPropTypes from '../../reportPropTypes';
 import {ShowContextMenuContext} from '../../../components/ShowContextMenuContext';
 import focusTextInputAfterAnimation from '../../../libs/focusTextInputAfterAnimation';
@@ -49,7 +50,6 @@ import personalDetailsPropType from '../../personalDetailsPropType';
 import ReportActionItemDraft from './ReportActionItemDraft';
 import TaskPreview from '../../../components/ReportActionItem/TaskPreview';
 import TaskAction from '../../../components/ReportActionItem/TaskAction';
-import * as ReportActionUtils from '../../../libs/ReportActionsUtils';
 import Permissions from '../../../libs/Permissions';
 
 const propTypes = {
@@ -204,7 +204,7 @@ class ReportActionItem extends Component {
                     checkIfContextMenuActive={this.checkIfContextMenuActive}
                 />
             );
-        } else if (this.props.action.actionName === CONST.REPORT.ACTIONS.TYPE.TASKCOMPLETED) {
+        } else if (this.props.action.actionName === CONST.REPORT.ACTIONS.TYPE.TASKCOMPLETED || this.props.action.actionName === CONST.REPORT.ACTIONS.TYPE.TASKCANCELED) {
             children = (
                 <TaskAction
                     taskReportID={this.props.action.originalMessage.taskReportID.toString()}
@@ -212,7 +212,7 @@ class ReportActionItem extends Component {
                     isHovered={hovered}
                 />
             );
-        } else if (ReportActionUtils.isCreatedTaskReportAction(this.props.action)) {
+        } else if (ReportActionsUtils.isCreatedTaskReportAction(this.props.action)) {
             children = (
                 <TaskPreview
                     taskReportID={this.props.action.originalMessage.taskReportID.toString()}
@@ -282,6 +282,7 @@ class ReportActionItem extends Component {
                         childReportID={`${this.props.action.childReportID}`}
                         numberOfReplies={this.props.action.childVisibleActionCount || 0}
                         mostRecentReply={`${this.props.action.childLastVisibleActionCreated}`}
+                        isHovered={hovered}
                         icons={ReportUtils.getIconsForParticipants(oldestFourEmails, this.props.personalDetails)}
                     />
                 )}
@@ -367,7 +368,7 @@ class ReportActionItem extends Component {
                                     pendingAction={this.props.draftMessage ? null : this.props.action.pendingAction}
                                     errors={this.props.action.errors}
                                     errorRowStyles={[styles.ml10, styles.mr2]}
-                                    needsOffscreenAlphaCompositing={this.props.action.actionName === CONST.REPORT.ACTIONS.TYPE.IOU}
+                                    needsOffscreenAlphaCompositing={ReportActionsUtils.isMoneyRequestAction(this.props.action)}
                                 >
                                     {isWhisper && (
                                         <View style={[styles.flexRow, styles.pl5, styles.pt2]}>
