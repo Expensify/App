@@ -8,6 +8,7 @@ import participantPropTypes from './participantPropTypes';
 import withWindowDimensions, {windowDimensionsPropTypes} from './withWindowDimensions';
 import withLocalize, {withLocalizePropTypes} from './withLocalize';
 import styles from '../styles/styles';
+import themeColors from '../styles/themes/default';
 import SubscriptAvatar from './SubscriptAvatar';
 import * as ReportUtils from '../libs/ReportUtils';
 import Avatar from './Avatar';
@@ -53,9 +54,10 @@ const AvatarWithDisplayName = (props) => {
     return (
         <View style={[styles.appContentHeaderTitle, styles.flex1]}>
             {Boolean(props.report && title) && (
-                <View style={[styles.flexRow, styles.alignItemsCenter, styles.justifyContentBetween]}>
+                <View style={[styles.flex1, styles.flexRow, styles.alignItemsCenter, styles.justifyContentBetween]}>
                     {isExpenseReport ? (
                         <SubscriptAvatar
+                            backgroundColor={themeColors.highlightBG}
                             mainAvatar={icons[0]}
                             secondaryAvatar={icons[1]}
                             mainTooltip={props.report.ownerEmail}
