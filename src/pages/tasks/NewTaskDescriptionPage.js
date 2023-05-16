@@ -1,4 +1,4 @@
-import React from 'react';
+import React, {useRef} from 'react';
 import {View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import PropTypes from 'prop-types';
@@ -36,6 +36,8 @@ const defaultProps = {
 };
 
 const NewTaskDescriptionPage = (props) => {
+    const inputRef = useRef(null);
+
     /**
      * @param {Object} values - form input values passed by the Form component
      * @returns {Object}
@@ -56,7 +58,16 @@ const NewTaskDescriptionPage = (props) => {
         return null;
     }
     return (
-        <ScreenWrapper includeSafeAreaPaddingBottom={false}>
+        <ScreenWrapper
+            includeSafeAreaPaddingBottom={false}
+            onEntryTransitionEnd={() => {
+                if (!inputRef.current) {
+                    return;
+                }
+
+                inputRef.current.focus();
+            }}
+        >
             <HeaderWithCloseButton
                 title={props.translate('newTaskPage.description')}
                 onCloseButtonPress={() => Navigation.dismissModal()}
@@ -76,6 +87,7 @@ const NewTaskDescriptionPage = (props) => {
                         defaultValue={props.task.description}
                         inputID="taskDescription"
                         label={props.translate('newTaskPage.description')}
+                        ref={(el) => (inputRef.current = el)}
                     />
                 </View>
             </Form>
