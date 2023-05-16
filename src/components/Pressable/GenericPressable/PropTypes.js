@@ -4,6 +4,19 @@ import CONST from '../../../CONST';
 
 const stylePropTypeWithFunction = PropTypes.oneOfType([stylePropType, PropTypes.func]);
 
+/**
+ * Marks prop as required if the component is accessible
+ * @param {Object} props
+ * @param {String} propName
+ * @returns {Error} Error if prop is required
+ */
+const requireIfAccessible = (props, propName) => {
+    if (!props.accessible || !!props[propName]) {
+        return;
+    }
+    return new Error(`Prop "${propName}" is required when "accessible" is true`);
+};
+
 const pressablePropTypes = {
     /**
      * onPress callback
@@ -92,7 +105,7 @@ const pressablePropTypes = {
      * @example 'Search'
      * @example 'Close'
      */
-    accessibilityLabel: PropTypes.string.isRequired,
+    accessibilityLabel: requireIfAccessible,
 
     /**
      * Specifies the accessibility hint for the component
