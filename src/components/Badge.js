@@ -26,7 +26,7 @@ const propTypes = {
     // eslint-disable-next-line react/forbid-prop-types
     badgeStyles: PropTypes.arrayOf(PropTypes.object),
 
-    /** Styles for Badge */
+    /** Styles for Badge Text */
     // eslint-disable-next-line react/forbid-prop-types
     textStyles: PropTypes.arrayOf(PropTypes.object),
 
