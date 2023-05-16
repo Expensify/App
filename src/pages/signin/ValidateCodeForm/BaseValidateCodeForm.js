@@ -155,7 +155,6 @@ class BaseValidateCodeForm extends React.Component {
      * Check that all the form fields are valid, then trigger the submit callback
      */
     validateAndSubmitForm() {
-        console.log('validateAndSubmitForm');
         const requiresTwoFactorAuth = this.props.account.requiresTwoFactorAuth;
 
         if (requiresTwoFactorAuth) {
