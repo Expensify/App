@@ -62,7 +62,6 @@ const RadioButtonWithLabel = (props) => {
                     focusable={false}
                     accessible={false}
                     onPress={() => props.onPress()}
-                    onLongPress={() => props.onPress()}
                     style={[styles.flexRow, styles.flexWrap, styles.flexShrink1, styles.alignItemsCenter]}
                     wrapperStyle={[styles.ml3, styles.pr2, styles.w100]}
                     // disable hover style when disabled
