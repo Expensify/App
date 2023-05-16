@@ -208,6 +208,12 @@ function completeTask(taskReportID, parentReportID, taskTitle) {
     );
 }
 
+/**
+ * Reopens a closed task
+ * @param {*} taskReportID ReportID of the task
+ * @param {*} parentReportID ReportID of the linked parent report of the task so we can add the action
+ * @param {*} taskTitle Title of the task
+ */
 function reopenTask(taskReportID, parentReportID, taskTitle) {
     const message = `Reopened task: ${taskTitle}`;
     const reopenedTaskReportAction = ReportUtils.buildOptimisticTaskReportAction(taskReportID, CONST.REPORT.ACTIONS.TYPE.TASKREOPENED, message);
