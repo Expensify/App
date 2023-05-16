@@ -218,7 +218,7 @@ function addActions(reportID, text = '', file) {
 
     const optimisticReport = {
         lastVisibleActionCreated: currentTime,
-        lastMessageText: Str.htmlDecode(lastCommentText),
+        lastMessageText: lastCommentText,
         lastActorEmail: currentUserEmail,
         lastReadTime: currentTime,
     };
@@ -1032,7 +1032,7 @@ function editReportComment(reportID, originalReportAction, textForNewComment) {
         const reportComment = parser.htmlToText(htmlForNewComment);
         const lastMessageText = ReportUtils.formatReportLastMessageText(reportComment);
         const optimisticReport = {
-            lastMessageText: Str.htmlDecode(lastMessageText),
+            lastMessageText,
         };
         optimisticData.push({
             onyxMethod: Onyx.METHOD.MERGE,
