@@ -107,16 +107,10 @@ class PDFView extends Component {
 
     render() {
         const pdfContainerWidth = this.state.windowWidth - 100;
-        const pageWidthOnLargeScreen = (pdfContainerWidth <= variables.pdfPageMaxWidth)
-            ? pdfContainerWidth : variables.pdfPageMaxWidth;
+        const pageWidthOnLargeScreen = pdfContainerWidth <= variables.pdfPageMaxWidth ? pdfContainerWidth : variables.pdfPageMaxWidth;
         const pageWidth = this.props.isSmallScreenWidth ? this.state.windowWidth - 30 : pageWidthOnLargeScreen;
 
-        const outerContainerStyle = [
-            styles.w100,
-            styles.h100,
-            styles.justifyContentCenter,
-            styles.alignItemsCenter,
-        ];
+        const outerContainerStyle = [styles.w100, styles.h100, styles.justifyContentCenter, styles.alignItemsCenter];
 
         // If we're requesting a password then we need to hide - but still render -
         // the PDF component.
@@ -129,7 +123,7 @@ class PDFView extends Component {
                 <View
                     focusable
                     style={pdfContainerStyle}
-                    onLayout={event => this.setState({windowWidth: event.nativeEvent.layout.width})}
+                    onLayout={(event) => this.setState({windowWidth: event.nativeEvent.layout.width})}
                 >
                     <Document
                         error={<Text style={[styles.textLabel, styles.textLarge]}>{this.props.translate('attachmentView.failedToLoadPDF')}</Text>}
@@ -148,7 +142,6 @@ class PDFView extends Component {
                                 width={pageWidth}
                                 key={`page_${index + 1}`}
                                 pageNumber={index + 1}
-
                                 // This needs to be empty to avoid multiple loading texts which show per page and look ugly
                                 // See https://github.com/Expensify/App/issues/14358 for more details
                                 loading=""
@@ -172,7 +165,4 @@ class PDFView extends Component {
 PDFView.propTypes = pdfViewPropTypes.propTypes;
 PDFView.defaultProps = pdfViewPropTypes.defaultProps;
 
-export default compose(
-    withLocalize,
-    withWindowDimensions,
-)(PDFView);
+export default compose(withLocalize, withWindowDimensions)(PDFView);

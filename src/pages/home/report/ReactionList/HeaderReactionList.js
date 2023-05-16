@@ -26,16 +26,12 @@ const defaultProps = {
     hasUserReacted: false,
 };
 
-const HeaderReactionList = props => (
+const HeaderReactionList = (props) => (
     <View style={[styles.flexRow, styles.justifyContentBetween, styles.alignItemsCenter, styles.emojiReactionListHeader, !props.isSmallScreenWidth && styles.pt4]}>
         <View style={styles.flexRow}>
             <View style={[styles.emojiReactionListHeaderBubble, StyleUtils.getEmojiReactionBubbleStyle(false, props.hasUserReacted)]}>
-                <Text style={[styles.miniQuickEmojiReactionText, StyleUtils.getEmojiReactionBubbleTextStyle(true)]}>
-                    {props.emojiCodes.join('')}
-                </Text>
-                <Text style={[styles.reactionCounterText, StyleUtils.getEmojiReactionCounterTextStyle(props.hasUserReacted)]}>
-                    {props.emojiCount}
-                </Text>
+                <Text style={[styles.miniQuickEmojiReactionText, StyleUtils.getEmojiReactionBubbleTextStyle(true)]}>{props.emojiCodes.join('')}</Text>
+                <Text style={[styles.reactionCounterText, StyleUtils.getEmojiReactionCounterTextStyle(props.hasUserReacted)]}>{props.emojiCount}</Text>
             </View>
             <Text style={styles.reactionListHeaderText}>{`:${props.emojiName}:`}</Text>
         </View>
@@ -56,8 +52,4 @@ HeaderReactionList.propTypes = propTypes;
 HeaderReactionList.defaultProps = defaultProps;
 HeaderReactionList.displayName = 'HeaderReactionList';
 
-export default compose(
-    withWindowDimensions,
-    withLocalize,
-)(HeaderReactionList);
-
+export default compose(withWindowDimensions, withLocalize)(HeaderReactionList);

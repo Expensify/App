@@ -6,7 +6,7 @@ import ONYXKEYS from '../../ONYXKEYS';
 let queuedOnyxUpdates = [];
 Onyx.connect({
     key: ONYXKEYS.QUEUED_ONYX_UPDATES,
-    callback: val => queuedOnyxUpdates = val || [],
+    callback: (val) => (queuedOnyxUpdates = val || []),
 });
 
 /**
@@ -28,8 +28,4 @@ function getQueuedUpdates() {
     return queuedOnyxUpdates;
 }
 
-export {
-    queueOnyxUpdates,
-    clear,
-    getQueuedUpdates,
-};
+export {queueOnyxUpdates, clear, getQueuedUpdates};

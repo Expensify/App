@@ -20,9 +20,7 @@ const RenameAction = (props) => {
 
     return (
         <Text style={[styles.pv3, styles.ph5, styles.textAlignCenter, styles.textLabelSupporting]}>
-            <Text style={[styles.textLabelSupporting, styles.textStrong, styles.textAlignCenter]}>
-                {displayName}
-            </Text>
+            <Text style={[styles.textLabelSupporting, styles.textStrong, styles.textAlignCenter]}>{displayName}</Text>
             {props.translate('newRoomPage.renamedRoomAction', {oldName, newName})}
         </Text>
     );

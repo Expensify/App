@@ -9,10 +9,7 @@ import _ from 'underscore';
  */
 export default function requireParameters(parameterNames, parameters, commandName) {
     parameterNames.forEach((parameterName) => {
-        if (_(parameters).has(parameterName)
-            && parameters[parameterName] !== null
-            && parameters[parameterName] !== undefined
-        ) {
+        if (_(parameters).has(parameterName) && parameters[parameterName] !== null && parameters[parameterName] !== undefined) {
             return;
         }
 

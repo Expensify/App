@@ -15,13 +15,14 @@ const propTypes = {
     dropZoneId: PropTypes.string.isRequired,
 };
 
-const DropZone = props => (
+const DropZone = (props) => (
     <Portal hostName={props.dropZoneViewHolderName}>
-        <View style={[styles.fullScreenTransparentOverlay, styles.alignItemsCenter, styles.justifyContentCenter]}>
-            {props.children}
-        </View>
+        <View style={[styles.fullScreenTransparentOverlay, styles.alignItemsCenter, styles.justifyContentCenter]}>{props.children}</View>
         {/* Necessary for blocking events on content which can publish unwanted dragleave even if we are inside dropzone  */}
-        <View nativeID={props.dropZoneId} style={styles.dropZoneTopInvisibleOverlay} />
+        <View
+            nativeID={props.dropZoneId}
+            style={styles.dropZoneTopInvisibleOverlay}
+        />
     </Portal>
 );
 

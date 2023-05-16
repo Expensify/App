@@ -8,7 +8,6 @@ import CONST from '../../CONST';
 import StatePicker from '../../components/StatePicker';
 
 const propTypes = {
-
     /** Translate key for Street name */
     streetTranslationKey: PropTypes.string.isRequired,
 
@@ -92,7 +91,7 @@ const defaultProps = {
     onFieldChange: () => {},
 };
 
-const AddressForm = props => (
+const AddressForm = (props) => (
     <>
         <View>
             <AddressSearch
@@ -115,7 +114,7 @@ const AddressForm = props => (
             label={props.translate('common.city')}
             value={props.values.city}
             defaultValue={props.defaultValues.city}
-            onChangeText={value => props.onFieldChange({city: value})}
+            onChangeText={(value) => props.onFieldChange({city: value})}
             errorText={props.errors.city ? props.translate('bankAccount.error.addressCity') : ''}
             containerStyles={[styles.mt4]}
         />
@@ -125,7 +124,7 @@ const AddressForm = props => (
                 shouldSaveDraft={props.shouldSaveDraft}
                 value={props.values.state}
                 defaultValue={props.defaultValues.state}
-                onInputChange={value => props.onFieldChange({state: value})}
+                onInputChange={(value) => props.onFieldChange({state: value})}
                 errorText={props.errors.state ? props.translate('bankAccount.error.addressState') : ''}
             />
         </View>
@@ -137,7 +136,7 @@ const AddressForm = props => (
             keyboardType={CONST.KEYBOARD_TYPE.NUMBER_PAD}
             value={props.values.zipCode}
             defaultValue={props.defaultValues.zipCode}
-            onChangeText={value => props.onFieldChange({zipCode: value})}
+            onChangeText={(value) => props.onFieldChange({zipCode: value})}
             errorText={props.errors.zipCode ? props.translate('bankAccount.error.zipCode') : ''}
             maxLength={CONST.BANK_ACCOUNT.MAX_LENGTH.ZIP_CODE}
             hint={props.translate('common.zipCodeExampleFormat', {zipSampleFormat: CONST.COUNTRY_ZIP_REGEX_DATA.US.samples})}

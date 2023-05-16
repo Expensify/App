@@ -2,10 +2,7 @@ import PropTypes from 'prop-types';
 import stylePropType from '../../../styles/stylePropTypes';
 import CONST from '../../../CONST';
 
-const stylePropTypeWithFunction = PropTypes.oneOfType([
-    stylePropType,
-    PropTypes.func,
-]);
+const stylePropTypeWithFunction = PropTypes.oneOfType([stylePropType, PropTypes.func]);
 
 const pressablePropTypes = {
     /**

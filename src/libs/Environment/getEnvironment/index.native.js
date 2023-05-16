@@ -28,11 +28,10 @@ function getEnvironment() {
         }
 
         // If we haven't set the environment yet and we aren't on dev/adhoc, check to see if this is a beta build
-        betaChecker.isBetaBuild()
-            .then((isBeta) => {
-                environment = isBeta ? CONST.ENVIRONMENT.STAGING : CONST.ENVIRONMENT.PRODUCTION;
-                resolve(environment);
-            });
+        betaChecker.isBetaBuild().then((isBeta) => {
+            environment = isBeta ? CONST.ENVIRONMENT.STAGING : CONST.ENVIRONMENT.PRODUCTION;
+            resolve(environment);
+        });
     });
 }
 

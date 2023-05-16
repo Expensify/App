@@ -29,11 +29,12 @@ const ExpensifyWordmark = (props) => {
     const LogoComponent = logoComponents[props.environment] || AdHocLogo;
     return (
         <>
-            <View style={[
-                StyleUtils.getSignInWordmarkWidthStyle(props.environment, props.isSmallScreenWidth),
-                StyleUtils.getHeight(props.isSmallScreenWidth ? variables.signInLogoHeightSmallScreen : variables.signInLogoHeight),
-                (props.isSmallScreenWidth && (props.environment === CONST.ENVIRONMENT.DEV || props.environment === CONST.ENVIRONMENT.STAGING)) ? styles.ml3 : {},
-            ]}
+            <View
+                style={[
+                    StyleUtils.getSignInWordmarkWidthStyle(props.environment, props.isSmallScreenWidth),
+                    StyleUtils.getHeight(props.isSmallScreenWidth ? variables.signInLogoHeightSmallScreen : variables.signInLogoHeight),
+                    props.isSmallScreenWidth && (props.environment === CONST.ENVIRONMENT.DEV || props.environment === CONST.ENVIRONMENT.STAGING) ? styles.ml3 : {},
+                ]}
             >
                 <LogoComponent fill={themeColors.success} />
             </View>
@@ -43,7 +44,4 @@ const ExpensifyWordmark = (props) => {
 
 ExpensifyWordmark.displayName = 'ExpensifyWordmark';
 ExpensifyWordmark.propTypes = propTypes;
-export default compose(
-    withEnvironment,
-    withWindowDimensions,
-)(ExpensifyWordmark);
+export default compose(withEnvironment, withWindowDimensions)(ExpensifyWordmark);

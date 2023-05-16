@@ -100,11 +100,13 @@ function getFakeReportAction(actor = 'email1@test.com', millisecondsInThePast = 
         shouldShow: true,
         timestamp,
         reportActionTimestamp: timestamp,
-        person: [{
-            type: 'TEXT',
-            style: 'strong',
-            text: 'Email One',
-        }],
+        person: [
+            {
+                type: 'TEXT',
+                style: 'strong',
+                text: 'Email One',
+            },
+        ],
         whisperedTo: [],
         automatic: false,
     };
@@ -165,13 +167,8 @@ function getDefaultRenderedSidebarLinks(reportIDFromRoute = '') {
     // are passed to the component. If this is not done, then all the locale props are missing
     // and there are a lot of render warnings. It needs to be done like this because normally in
     // our app (App.js) is when the react application is wrapped in the context providers
-    render((
-        <ComposeProviders
-            components={[
-                OnyxProvider,
-                LocaleContextProvider,
-            ]}
-        >
+    render(
+        <ComposeProviders components={[OnyxProvider, LocaleContextProvider]}>
             <ErrorBoundary>
                 <SidebarLinks
                     onLinkClick={() => {}}
@@ -185,14 +182,8 @@ function getDefaultRenderedSidebarLinks(reportIDFromRoute = '') {
                     reportIDFromRoute={reportIDFromRoute}
                 />
             </ErrorBoundary>
-        </ComposeProviders>
-    ));
+        </ComposeProviders>,
+    );
 }
 
-export {
-    fakePersonalDetails,
-    getDefaultRenderedSidebarLinks,
-    getAdvancedFakeReport,
-    getFakeReport,
-    getFakeReportAction,
-};
+export {fakePersonalDetails, getDefaultRenderedSidebarLinks, getAdvancedFakeReport, getFakeReport, getFakeReportAction};

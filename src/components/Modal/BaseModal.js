@@ -31,7 +31,9 @@ class BaseModal extends PureComponent {
     }
 
     componentDidMount() {
-        if (!this.props.isVisible) { return; }
+        if (!this.props.isVisible) {
+            return;
+        }
 
         // To handle closing any modal already visible when this modal is mounted, i.e. PopoverReportActionContextMenu
         Modal.setCloseModal(this.props.onClose);
@@ -99,7 +101,6 @@ class BaseModal extends PureComponent {
                     }
                     this.props.onClose();
                 }}
-
                 // Note: Escape key on web/desktop will trigger onBackButtonPress callback
                 // eslint-disable-next-line react/jsx-props-no-multi-spaces
                 onBackButtonPress={this.props.onClose}
@@ -120,7 +121,6 @@ class BaseModal extends PureComponent {
                 hasBackdrop={this.props.fullscreen}
                 coverScreen={this.props.fullscreen}
                 style={modalStyle}
-
                 // When `statusBarTranslucent` is true on Android, the modal fully covers the status bar.
                 // Since `windowHeight` doesn't include status bar height, it should be added in the `deviceHeight` calculation.
                 deviceHeight={this.props.windowHeight + ((this.props.statusBarTranslucent && StatusBar.currentHeight) || 0)}
@@ -182,6 +182,9 @@ BaseModal.propTypes = propTypes;
 BaseModal.defaultProps = defaultProps;
 
 export default React.forwardRef((props, ref) => (
-    // eslint-disable-next-line react/jsx-props-no-spreading
-    <BaseModal {...props} forwardedRef={ref} />
+    <BaseModal
+        // eslint-disable-next-line react/jsx-props-no-spreading
+        {...props}
+        forwardedRef={ref}
+    />
 ));

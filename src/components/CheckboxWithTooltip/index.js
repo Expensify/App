@@ -26,17 +26,7 @@ const CheckboxWithTooltip = (props) => {
             disabled={props.disabled}
         />
     );
-    return (
-        <View style={props.style}>
-            {props.toggleTooltip
-                ? (
-                    <Tooltip text={props.text}>
-                        {checkbox}
-                    </Tooltip>
-                )
-                : checkbox}
-        </View>
-    );
+    return <View style={props.style}>{props.toggleTooltip ? <Tooltip text={props.text}>{checkbox}</Tooltip> : checkbox}</View>;
 };
 
 CheckboxWithTooltip.propTypes = propTypes;

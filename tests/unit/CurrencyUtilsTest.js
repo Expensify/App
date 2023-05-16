@@ -36,29 +36,27 @@ describe('CurrencyUtils', () => {
     afterEach(() => Onyx.clear());
 
     describe('getLocalizedCurrencySymbol', () => {
-        test.each(AVAILABLE_LOCALES)('Returns non empty string for all currencyCode with preferredLocale %s', prefrredLocale => (
-            Onyx.set(ONYXKEYS.NVP_PREFERRED_LOCALE, prefrredLocale)
-                .then(() => {
-                    _.forEach(currencyCodeList, (currencyCode) => {
-                        const localizedSymbol = CurrencyUtils.getLocalizedCurrencySymbol(currencyCode);
+        test.each(AVAILABLE_LOCALES)('Returns non empty string for all currencyCode with preferredLocale %s', (prefrredLocale) =>
+            Onyx.set(ONYXKEYS.NVP_PREFERRED_LOCALE, prefrredLocale).then(() => {
+                _.forEach(currencyCodeList, (currencyCode) => {
+                    const localizedSymbol = CurrencyUtils.getLocalizedCurrencySymbol(currencyCode);
 
-                        expect(localizedSymbol).toBeTruthy();
-                    });
-                })
-        ));
+                    expect(localizedSymbol).toBeTruthy();
+                });
+            }),
+        );
     });
 
     describe('isCurrencySymbolLTR', () => {
         test.each([
             [true, CONST.LOCALES.EN, 'USD'],
             [false, CONST.LOCALES.ES, 'USD'],
-        ])('Returns %s for preferredLocale %s and currencyCode %s', (isLeft, locale, currencyCode) => (
-            Onyx.set(ONYXKEYS.NVP_PREFERRED_LOCALE, locale)
-                .then(() => {
-                    const isSymbolLeft = CurrencyUtils.isCurrencySymbolLTR(currencyCode);
-                    expect(isSymbolLeft).toBe(isLeft);
-                })
-        ));
+        ])('Returns %s for preferredLocale %s and currencyCode %s', (isLeft, locale, currencyCode) =>
+            Onyx.set(ONYXKEYS.NVP_PREFERRED_LOCALE, locale).then(() => {
+                const isSymbolLeft = CurrencyUtils.isCurrencySymbolLTR(currencyCode);
+                expect(isSymbolLeft).toBe(isLeft);
+            }),
+        );
     });
 
     describe('getCurrencyDecimals', () => {
@@ -90,11 +88,19 @@ describe('CurrencyUtils', () => {
     describe('convertToSmallestUnit', () => {
         test.each([
             [CONST.CURRENCY.USD, 25, 2500],
+            [CONST.CURRENCY.USD, 25.25, 2525],
             [CONST.CURRENCY.USD, 25.5, 2550],
-            [CONST.CURRENCY.USD, 25.50, 2550],
+            [CONST.CURRENCY.USD, 2500, 250000],
+            [CONST.CURRENCY.USD, 80.6, 8060],
+            [CONST.CURRENCY.USD, 80.9, 8090],
+            [CONST.CURRENCY.USD, 80.99, 8099],
             ['JPY', 25, 25],
+            ['JPY', 25.25, 25],
+            ['JPY', 25.5, 26],
             ['JPY', 2500, 2500],
-            ['JPY', 25.5, 25],
+            ['JPY', 80.6, 81],
+            ['JPY', 80.9, 81],
+            ['JPY', 80.99, 81],
         ])('Correctly converts %s to amount in smallest units', (currency, amount, expectedResult) => {
             expect(CurrencyUtils.convertToSmallestUnit(currency, amount)).toBe(expectedResult);
         });
@@ -130,9 +136,8 @@ describe('CurrencyUtils', () => {
             ['EUR', 2500, '25,00\xa0€'],
             ['EUR', 250000, '2500,00\xa0€'],
             ['EUR', 250000000, '2.500.000,00\xa0€'],
-        ])('Correctly displays %s in ES locale', (currency, amount, expectedResult) => (
-            Onyx.set(ONYXKEYS.NVP_PREFERRED_LOCALE, CONST.LOCALES.ES)
-                .then(() => expect(CurrencyUtils.convertToDisplayString(amount, currency)).toBe(expectedResult))
-        ));
+        ])('Correctly displays %s in ES locale', (currency, amount, expectedResult) =>
+            Onyx.set(ONYXKEYS.NVP_PREFERRED_LOCALE, CONST.LOCALES.ES).then(() => expect(CurrencyUtils.convertToDisplayString(amount, currency)).toBe(expectedResult)),
+        );
     });
 });

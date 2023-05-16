@@ -5,7 +5,7 @@ import ONYXKEYS from '../ONYXKEYS';
 let countryCodeByIP;
 Onyx.connect({
     key: ONYXKEYS.COUNTRY_CODE,
-    callback: val => countryCodeByIP = val || 1,
+    callback: (val) => (countryCodeByIP = val || 1),
 });
 
 /**
@@ -28,7 +28,4 @@ function appendCountryCode(phone) {
     return phone.startsWith('+') ? phone : `+${countryCodeByIP}${phone}`;
 }
 
-export {
-    getPhoneNumberWithoutSpecialChars,
-    appendCountryCode,
-};
+export {getPhoneNumberWithoutSpecialChars, appendCountryCode};

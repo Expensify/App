@@ -1,9 +1,7 @@
 import React from 'react';
 import _ from 'underscore';
 import lodashGet from 'lodash/get';
-import {
-    View, TouchableOpacity,
-} from 'react-native';
+import {View, TouchableOpacity} from 'react-native';
 import PropTypes from 'prop-types';
 import {withOnyx} from 'react-native-onyx';
 import styles from '../../styles/styles';
@@ -98,6 +96,12 @@ class WorkspaceMembersPage extends React.Component {
             this.validate();
         }
 
+        if (prevProps.policyMemberList !== this.props.policyMemberList) {
+            this.setState((prevState) => ({
+                selectedEmployees: _.intersection(prevState.selectedEmployees, _.keys(this.props.policyMemberList)),
+            }));
+        }
+
         const isReconnecting = prevProps.network.isOffline && !this.props.network.isOffline;
         if (!isReconnecting) {
             return;
@@ -114,7 +118,7 @@ class WorkspaceMembersPage extends React.Component {
          * We filter clientMemberEmails to only pass members without errors
          * Otherwise, the members with errors would immediately be removed before the user has a chance to read the error
          */
-        const clientMemberEmails = _.keys(_.pick(this.props.policyMemberList, member => _.isEmpty(member.errors)));
+        const clientMemberEmails = _.keys(_.pick(this.props.policyMemberList, (member) => _.isEmpty(member.errors)));
         Policy.openWorkspaceMembersPage(this.props.route.params.policyID, clientMemberEmails);
     }
 
@@ -209,11 +213,12 @@ class WorkspaceMembersPage extends React.Component {
      */
     toggleAllUsers(memberList) {
         const emailList = _.keys(memberList);
-        this.setState(prevState => ({
-            selectedEmployees: !_.every(emailList, memberEmail => _.contains(prevState.selectedEmployees, memberEmail))
-                ? emailList
-                : [],
-        }), () => this.validate());
+        this.setState(
+            (prevState) => ({
+                selectedEmployees: !_.every(emailList, (memberEmail) => _.contains(prevState.selectedEmployees, memberEmail)) ? emailList : [],
+            }),
+            () => this.validate(),
+        );
     }
 
     /**
@@ -242,9 +247,12 @@ class WorkspaceMembersPage extends React.Component {
      * @param {String} login
      */
     addUser(login) {
-        this.setState(prevState => ({
-            selectedEmployees: [...prevState.selectedEmployees, login],
-        }), () => this.validate());
+        this.setState(
+            (prevState) => ({
+                selectedEmployees: [...prevState.selectedEmployees, login],
+            }),
+            () => this.validate(),
+        );
     }
 
     /**
@@ -253,9 +261,12 @@ class WorkspaceMembersPage extends React.Component {
      * @param {String} login
      */
     removeUser(login) {
-        this.setState(prevState => ({
-            selectedEmployees: _.without(prevState.selectedEmployees, login),
-        }), () => this.validate());
+        this.setState(
+            (prevState) => ({
+                selectedEmployees: _.without(prevState.selectedEmployees, login),
+            }),
+            () => this.validate(),
+        );
     }
 
     /**
@@ -305,11 +316,14 @@ class WorkspaceMembersPage extends React.Component {
      *
      * @returns {React.Component}
      */
-    renderItem({
-        item,
-    }) {
+    renderItem({item}) {
         return (
-            <OfflineWithFeedback errorRowStyles={[styles.peopleRowBorderBottom]} onClose={() => this.dismissError(item)} pendingAction={item.pendingAction} errors={item.errors}>
+            <OfflineWithFeedback
+                errorRowStyles={[styles.peopleRowBorderBottom]}
+                onClose={() => this.dismissError(item)}
+                pendingAction={item.pendingAction}
+                errors={item.errors}
+            >
                 <TouchableOpacity
                     style={[styles.peopleRow, (_.isEmpty(item.errors) || this.state.errors[item.login]) && styles.peopleRowBorderBottom]}
                     onPress={() => this.toggleUser(item.login, item.pendingAction)}
@@ -327,25 +341,28 @@ class WorkspaceMembersPage extends React.Component {
                                 text: this.props.formatPhoneNumber(item.displayName),
                                 alternateText: this.props.formatPhoneNumber(item.login),
                                 participantsList: [item],
-                                icons: [{
-                                    source: ReportUtils.getAvatar(item.avatar, item.login),
-                                    name: item.login,
-                                    type: CONST.ICON_TYPE_AVATAR,
-                                }],
+                                icons: [
+                                    {
+                                        source: ReportUtils.getAvatar(item.avatar, item.login),
+                                        name: item.login,
+                                        type: CONST.ICON_TYPE_AVATAR,
+                                    },
+                                ],
                                 keyForList: item.login,
                             }}
                         />
                     </View>
                     {(this.props.session.email === item.login || item.role === 'admin') && (
                         <View style={[styles.badge, styles.peopleBadge]}>
-                            <Text style={[styles.peopleBadgeText]}>
-                                {this.props.translate('common.admin')}
-                            </Text>
+                            <Text style={[styles.peopleBadgeText]}>{this.props.translate('common.admin')}</Text>
                         </View>
                     )}
                 </TouchableOpacity>
                 {!_.isEmpty(this.state.errors[item.login]) && (
-                    <FormHelpMessage isError message={this.state.errors[item.login]} />
+                    <FormHelpMessage
+                        isError
+                        message={this.state.errors[item.login]}
+                    />
                 )}
             </OfflineWithFeedback>
         );
@@ -353,6 +370,8 @@ class WorkspaceMembersPage extends React.Component {
 
     render() {
         const policyMemberList = lodashGet(this.props, 'policyMemberList', {});
+        const policyOwner = lodashGet(this.props.policy, 'owner');
+        const currentUserLogin = lodashGet(this.props.currentUserPersonalDetails, 'login');
         const removableMembers = {};
         let data = [];
         _.each(policyMemberList, (policyMember, email) => {
@@ -365,18 +384,22 @@ class WorkspaceMembersPage extends React.Component {
                 ...details,
             });
         });
-        data = _.sortBy(data, value => value.displayName.toLowerCase());
+        data = _.sortBy(data, (value) => value.displayName.toLowerCase());
         data = this.getMemberOptions(data, this.state.searchValue.trim().toLowerCase());
 
         data = _.reject(data, (member) => {
+            if (!policyOwner || !currentUserLogin) {
+                return;
+            }
+
             // If this policy is owned by Expensify then show all support (expensify.com or team.expensify.com) emails
-            if (PolicyUtils.isExpensifyTeam(lodashGet(this.props.policy, 'owner'))) {
+            if (PolicyUtils.isExpensifyTeam(policyOwner)) {
                 return;
             }
 
             // We don't want to show guides as policy members unless the user is not a guide. Some customers get confused when they
             // see random people added to their policy, but guides having access to the policies help set them up.
-            const isCurrentUserExpensifyTeam = PolicyUtils.isExpensifyTeam(this.props.currentUserPersonalDetails.login);
+            const isCurrentUserExpensifyTeam = PolicyUtils.isExpensifyTeam(currentUserLogin);
             return !isCurrentUserExpensifyTeam && PolicyUtils.isExpensifyTeam(member.login);
         });
 
@@ -442,27 +465,26 @@ class WorkspaceMembersPage extends React.Component {
                                 <TextInput
                                     value={this.state.searchValue}
                                     onChangeText={this.updateSearchValue}
-                                    placeholder={this.props.translate('optionsSelector.findMember')}
+                                    label={this.props.translate('optionsSelector.findMember')}
                                 />
                             </View>
                             {data.length > 0 ? (
                                 <View style={[styles.w100, styles.mt4, styles.flex1]}>
                                     <View style={[styles.peopleRow, styles.ph5, styles.pb3]}>
                                         <Checkbox
-                                            isChecked={!_.isEmpty(removableMembers)
-                                                && _.every(_.keys(removableMembers), memberEmail => _.contains(this.state.selectedEmployees, memberEmail))}
+                                            isChecked={
+                                                !_.isEmpty(removableMembers) && _.every(_.keys(removableMembers), (memberEmail) => _.contains(this.state.selectedEmployees, memberEmail))
+                                            }
                                             onPress={() => this.toggleAllUsers(removableMembers)}
                                         />
                                         <View style={[styles.flex1]}>
-                                            <Text style={[styles.textStrong, styles.ph5]}>
-                                                {this.props.translate('workspace.people.selectAll')}
-                                            </Text>
+                                            <Text style={[styles.textStrong, styles.ph5]}>{this.props.translate('workspace.people.selectAll')}</Text>
                                         </View>
                                     </View>
                                     <KeyboardDismissingFlatList
                                         renderItem={this.renderItem}
                                         data={data}
-                                        keyExtractor={item => item.login}
+                                        keyExtractor={(item) => item.login}
                                         showsVerticalScrollIndicator
                                         style={[styles.ph5, styles.pb5]}
                                         contentContainerStyle={safeAreaPaddingBottomStyle}
@@ -471,9 +493,7 @@ class WorkspaceMembersPage extends React.Component {
                                 </View>
                             ) : (
                                 <View style={[styles.ph5]}>
-                                    <Text style={[styles.textLabel, styles.colorMuted]}>
-                                        {this.props.translate('workspace.common.memberNotFound')}
-                                    </Text>
+                                    <Text style={[styles.textLabel, styles.colorMuted]}>{this.props.translate('workspace.common.memberNotFound')}</Text>
                                 </View>
                             )}
                         </View>

@@ -2,6 +2,7 @@ import _ from 'underscore';
 import React, {useCallback, useRef} from 'react';
 import PropTypes from 'prop-types';
 import {View} from 'react-native';
+import {withOnyx} from 'react-native-onyx';
 import ScreenWrapper from '../../components/ScreenWrapper';
 import HeaderWithCloseButton from '../../components/HeaderWithCloseButton';
 import withLocalize, {withLocalizePropTypes} from '../../components/withLocalize';
@@ -10,29 +11,29 @@ import ONYXKEYS from '../../ONYXKEYS';
 import TextInput from '../../components/TextInput';
 import styles from '../../styles/styles';
 import Navigation from '../../libs/Navigation/Navigation';
-import reportPropTypes from '../reportPropTypes';
 import compose from '../../libs/compose';
-import withReportOrNotFound from '../home/report/withReportOrNotFound';
+import reportPropTypes from '../reportPropTypes';
+import * as TaskUtils from '../../libs/actions/Task';
 
 const propTypes = {
-    /** URL Route params */
-    route: PropTypes.shape({
-        /** Params from the URL path */
-        params: PropTypes.shape({
-            /** taskReportID passed via route: /r/:taskReportID/title */
-            taskReportID: PropTypes.string,
-        }),
-    }).isRequired,
+    /** Current user session */
+    session: PropTypes.shape({
+        email: PropTypes.string.isRequired,
+    }),
 
-    /** The report currently being looked at */
-    report: reportPropTypes.isRequired,
+    /** Task Report Info */
+    task: PropTypes.shape({
+        /** Title of the Task */
+        report: reportPropTypes,
+    }),
 
     /* Onyx Props */
     ...withLocalizePropTypes,
 };
 
 const defaultProps = {
-
+    session: {},
+    task: {},
 };
 
 function TaskDescriptionPage(props) {
@@ -41,19 +42,27 @@ function TaskDescriptionPage(props) {
      * @param {String} values.description
      * @returns {Object} - An object containing the errors for each inputID
      */
-    const validate = useCallback((values) => {
-        const errors = {};
+    const validate = useCallback(
+        (values) => {
+            const errors = {};
 
-        if (_.isEmpty(values.description)) {
-            errors.description = props.translate('common.error.fieldRequired');
-        }
+            if (_.isEmpty(values.description)) {
+                errors.description = props.translate('common.error.fieldRequired');
+            }
 
-        return errors;
-    }, [props]);
+            return errors;
+        },
+        [props],
+    );
 
-    const submit = useCallback(() => {
-        // Functionality will be implemented in https://github.com/Expensify/App/issues/16856
-    }, []);
+    const submit = useCallback(
+        (values) => {
+            // Set the description of the report in the store and then call TaskUtils.editTaskReport
+            // to update the description of the report on the server
+            TaskUtils.editTaskAndNavigate(props.task.report, props.session.email, '', values.description, '');
+        },
+        [props],
+    );
 
     const inputRef = useRef(null);
 
@@ -81,8 +90,8 @@ function TaskDescriptionPage(props) {
                         inputID="description"
                         name="description"
                         label={props.translate('newTaskPage.description')}
-                        defaultValue={props.report.description || ''}
-                        ref={el => inputRef.current = el}
+                        defaultValue={(props.task.report && props.task.report.description) || ''}
+                        ref={(el) => (inputRef.current = el)}
                     />
                 </View>
             </Form>
@@ -95,5 +104,12 @@ TaskDescriptionPage.defaultProps = defaultProps;
 
 export default compose(
     withLocalize,
-    withReportOrNotFound,
+    withOnyx({
+        session: {
+            key: ONYXKEYS.SESSION,
+        },
+        task: {
+            key: ONYXKEYS.TASK,
+        },
+    }),
 )(TaskDescriptionPage);

@@ -65,27 +65,19 @@ class ReportFooter extends React.Component {
 
     render() {
         const isArchivedRoom = ReportUtils.isArchivedRoom(this.props.report);
-        const hideComposer = isArchivedRoom || !_.isEmpty(this.props.errors);
+        const hideComposer = isArchivedRoom || !_.isEmpty(this.props.errors) || ReportUtils.isTaskReport(this.props.report);
 
         return (
             <>
                 {(isArchivedRoom || hideComposer) && (
                     <View style={[styles.chatFooter, this.props.isSmallScreenWidth ? styles.mb5 : null]}>
-                        {isArchivedRoom && (
-                            <ArchivedReportFooter
-                                report={this.props.report}
-                            />
-                        )}
+                        {isArchivedRoom && <ArchivedReportFooter report={this.props.report} />}
                         {!this.props.isSmallScreenWidth && (
-                            <View style={styles.offlineIndicatorRow}>
-                                {hideComposer && (
-                                    <OfflineIndicator containerStyles={[styles.chatItemComposeSecondaryRow]} />
-                                )}
-                            </View>
+                            <View style={styles.offlineIndicatorRow}>{hideComposer && <OfflineIndicator containerStyles={[styles.chatItemComposeSecondaryRow]} />}</View>
                         )}
                     </View>
                 )}
-                {(!hideComposer && this.props.shouldShowComposeInput) && (
+                {!hideComposer && (this.props.shouldShowComposeInput || !this.props.isSmallScreenWidth) && (
                     <View style={[this.getChatFooterStyles(), this.props.isComposerFullSize && styles.chatFooterFullCompose]}>
                         <SwipeableView onSwipeDown={Keyboard.dismiss}>
                             <ReportActionCompose

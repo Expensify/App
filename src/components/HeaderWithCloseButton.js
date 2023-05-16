@@ -1,8 +1,6 @@
 import React, {Component} from 'react';
 import PropTypes from 'prop-types';
-import {
-    View, Keyboard, Pressable,
-} from 'react-native';
+import {View, Keyboard, Pressable} from 'react-native';
 import styles from '../styles/styles';
 import Header from './Header';
 import Navigation from '../libs/Navigation/Navigation';
@@ -151,29 +149,21 @@ class HeaderWithCloseButton extends Component {
     render() {
         return (
             <View style={[styles.headerBar, this.props.shouldShowBorderBottom && styles.borderBottom, this.props.shouldShowBackButton && styles.pl2]}>
-                <View style={[
-                    styles.dFlex,
-                    styles.flexRow,
-                    styles.alignItemsCenter,
-                    styles.flexGrow1,
-                    styles.justifyContentBetween,
-                    styles.overflowHidden,
-                ]}
-                >
+                <View style={[styles.dFlex, styles.flexRow, styles.alignItemsCenter, styles.flexGrow1, styles.justifyContentBetween, styles.overflowHidden]}>
                     {this.props.shouldShowBackButton && (
-                    <Tooltip text={this.props.translate('common.back')}>
-                        <Pressable
-                            onPress={() => {
-                                if (this.props.isKeyboardShown) {
-                                    Keyboard.dismiss();
-                                }
-                                this.props.onBackButtonPress();
-                            }}
-                            style={[styles.touchableButtonImage]}
-                        >
-                            <Icon src={Expensicons.BackArrow} />
-                        </Pressable>
-                    </Tooltip>
+                        <Tooltip text={this.props.translate('common.back')}>
+                            <Pressable
+                                onPress={() => {
+                                    if (this.props.isKeyboardShown) {
+                                        Keyboard.dismiss();
+                                    }
+                                    this.props.onBackButtonPress();
+                                }}
+                                style={[styles.touchableButtonImage]}
+                            >
+                                <Icon src={Expensicons.BackArrow} />
+                            </Pressable>
+                        </Tooltip>
                     )}
                     {this.props.shouldShowAvatarWithDisplay && (
                         <AvatarWithDisplayName
@@ -189,10 +179,8 @@ class HeaderWithCloseButton extends Component {
                         />
                     )}
                     <View style={[styles.reportOptions, styles.flexRow, styles.pr5]}>
-                        {
-                            this.props.shouldShowDownloadButton && (
+                        {this.props.shouldShowDownloadButton && (
                             <Tooltip text={this.props.translate('common.download')}>
-
                                 <Pressable
                                     onPress={(e) => {
                                         // Blur the pressable in case this button triggers a Growl notification
@@ -208,21 +196,19 @@ class HeaderWithCloseButton extends Component {
                                     />
                                 </Pressable>
                             </Tooltip>
-                            )
-                        }
+                        )}
 
-                        {this.props.shouldShowGetAssistanceButton
-                        && (
-                        <Tooltip text={this.props.translate('getAssistancePage.questionMarkButtonTooltip')}>
-                            <Pressable
-                                onPress={() => Navigation.navigate(ROUTES.getGetAssistanceRoute(this.props.guidesCallTaskID))}
-                                style={[styles.touchableButtonImage]}
-                                accessibilityRole="button"
-                                accessibilityLabel={this.props.translate('getAssistancePage.questionMarkButtonTooltip')}
-                            >
-                                <Icon src={Expensicons.QuestionMark} />
-                            </Pressable>
-                        </Tooltip>
+                        {this.props.shouldShowGetAssistanceButton && (
+                            <Tooltip text={this.props.translate('getAssistancePage.questionMarkButtonTooltip')}>
+                                <Pressable
+                                    onPress={() => Navigation.navigate(ROUTES.getGetAssistanceRoute(this.props.guidesCallTaskID))}
+                                    style={[styles.touchableButtonImage]}
+                                    accessibilityRole="button"
+                                    accessibilityLabel={this.props.translate('getAssistancePage.questionMarkButtonTooltip')}
+                                >
+                                    <Icon src={Expensicons.QuestionMark} />
+                                </Pressable>
+                            </Tooltip>
                         )}
 
                         {this.props.shouldShowThreeDotsButton && (
@@ -233,18 +219,17 @@ class HeaderWithCloseButton extends Component {
                             />
                         )}
 
-                        {this.props.shouldShowCloseButton
-                        && (
-                        <Tooltip text={this.props.translate('common.close')}>
-                            <Pressable
-                                onPress={this.props.onCloseButtonPress}
-                                style={[styles.touchableButtonImage]}
-                                accessibilityRole="button"
-                                accessibilityLabel={this.props.translate('common.close')}
-                            >
-                                <Icon src={Expensicons.Close} />
-                            </Pressable>
-                        </Tooltip>
+                        {this.props.shouldShowCloseButton && (
+                            <Tooltip text={this.props.translate('common.close')}>
+                                <Pressable
+                                    onPress={this.props.onCloseButtonPress}
+                                    style={[styles.touchableButtonImage]}
+                                    accessibilityRole="button"
+                                    accessibilityLabel={this.props.translate('common.close')}
+                                >
+                                    <Icon src={Expensicons.Close} />
+                                </Pressable>
+                            </Tooltip>
                         )}
                     </View>
                 </View>
@@ -256,8 +241,4 @@ class HeaderWithCloseButton extends Component {
 HeaderWithCloseButton.propTypes = propTypes;
 HeaderWithCloseButton.defaultProps = defaultProps;
 
-export default compose(
-    withLocalize,
-    withDelayToggleButtonState,
-    withKeyboardState,
-)(HeaderWithCloseButton);
+export default compose(withLocalize, withDelayToggleButtonState, withKeyboardState)(HeaderWithCloseButton);

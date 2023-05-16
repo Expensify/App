@@ -75,16 +75,10 @@ class LogInWithShortLivedAuthTokenPage extends Component {
                             src={Illustrations.RocketBlue}
                         />
                     </View>
-                    <Text style={[styles.textHeadline, styles.textXXLarge]}>
-                        {this.props.translate('deeplinkWrapper.launching')}
-                    </Text>
+                    <Text style={[styles.textHeadline, styles.textXXLarge]}>{this.props.translate('deeplinkWrapper.launching')}</Text>
                     <View style={styles.mt2}>
                         <Text style={[styles.fontSizeNormal, styles.textAlignCenter]}>
-                            {this.props.translate('deeplinkWrapper.expired')}
-                            {' '}
-                            <TextLink onPress={() => Navigation.navigate()}>
-                                {this.props.translate('deeplinkWrapper.signIn')}
-                            </TextLink>
+                            {this.props.translate('deeplinkWrapper.expired')} <TextLink onPress={() => Navigation.navigate()}>{this.props.translate('deeplinkWrapper.signIn')}</TextLink>
                         </Text>
                     </View>
                 </View>

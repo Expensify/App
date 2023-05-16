@@ -9,14 +9,9 @@ const propTypes = {
     ...windowDimensionsPropTypes,
 };
 
-const GrowlNotificationContainer = props => (
+const GrowlNotificationContainer = (props) => (
     <Animated.View
-        style={[
-            styles.growlNotificationContainer,
-            styles.growlNotificationDesktopContainer,
-            styles.growlNotificationTranslateY(props.translateY),
-            props.isSmallScreenWidth && styles.mwn,
-        ]}
+        style={[styles.growlNotificationContainer, styles.growlNotificationDesktopContainer, styles.growlNotificationTranslateY(props.translateY), props.isSmallScreenWidth && styles.mwn]}
     >
         {props.children}
     </Animated.View>

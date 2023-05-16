@@ -123,13 +123,16 @@ class ImageView extends PureComponent {
             this.setState({isDragging: false, isMouseDown: false});
         } else {
             // We first zoom and once its done then we scroll to the location the user clicked.
-            this.setState(prevState => ({
-                isZoomed: !prevState.isZoomed,
-                isMouseDown: false,
-            }), () => {
-                this.scrollableRef.scrollTop = scrollY;
-                this.scrollableRef.scrollLeft = scrollX;
-            });
+            this.setState(
+                (prevState) => ({
+                    isZoomed: !prevState.isZoomed,
+                    isMouseDown: false,
+                }),
+                () => {
+                    this.scrollableRef.scrollTop = scrollY;
+                    this.scrollableRef.scrollLeft = scrollX;
+                },
+            );
         }
     }
 
@@ -179,13 +182,13 @@ class ImageView extends PureComponent {
             offsetX = 0;
         } else if (x > this.state.containerWidth / 2) {
             // Minus half of container size because we want to be center clicked position
-            offsetX = x - (this.state.containerWidth / 2);
+            offsetX = x - this.state.containerWidth / 2;
         }
         if (y <= this.state.containerHeight / 2) {
             offsetY = 0;
         } else if (y > this.state.containerHeight / 2) {
             // Minus half of container size because we want to be center clicked position
-            offsetY = y - (this.state.containerHeight / 2);
+            offsetY = y - this.state.containerHeight / 2;
         }
         return {offsetX, offsetY};
     }
@@ -216,7 +219,7 @@ class ImageView extends PureComponent {
             this.scrollableRef.scrollTop = this.state.initialScrollTop + moveY;
         }
 
-        this.setState(prevState => ({isDragging: prevState.isMouseDown}));
+        this.setState((prevState) => ({isDragging: prevState.isMouseDown}));
     }
 
     imageLoad({nativeEvent}) {
@@ -241,43 +244,37 @@ class ImageView extends PureComponent {
                     <Image
                         source={{uri: this.props.url}}
                         isAuthTokenRequired={this.props.isAuthTokenRequired}
-
                         // Hide image until finished loading to prevent showing preview with wrong dimensions.
-                        style={this.state.isLoading ? undefined : [
-                            styles.w100,
-                            styles.h100,
-                        ]}
-
+                        style={this.state.isLoading ? undefined : [styles.w100, styles.h100]}
                         // When Image dimensions are lower than the container boundary(zoomscale <= 1), use `contain` to render the image with natural dimensions.
                         // Both `center` and `contain` keeps the image centered on both x and y axis.
                         resizeMode={this.state.zoomScale > 1 ? Image.resizeMode.center : Image.resizeMode.contain}
                         onLoadStart={this.imageLoadingStart}
                         onLoad={this.imageLoad}
                     />
-                    {this.state.isLoading && (
-                        <FullscreenLoadingIndicator
-                            style={[styles.opacity1, styles.bgTransparent]}
-                        />
-                    )}
+                    {this.state.isLoading && <FullscreenLoadingIndicator style={[styles.opacity1, styles.bgTransparent]} />}
                 </View>
             );
         }
         return (
             <View
-                ref={el => this.scrollableRef = el}
+                ref={(el) => (this.scrollableRef = el)}
                 onLayout={this.onContainerLayoutChanged}
-                style={[
-                    styles.imageViewContainer,
-                    styles.overflowAuto,
-                    styles.pRelative,
-                ]}
+                style={[styles.imageViewContainer, styles.overflowAuto, styles.pRelative]}
             >
                 <Pressable
                     style={{
-                        ...StyleUtils.getZoomSizingStyle(this.state.isZoomed, this.state.imgWidth, this.state.imgHeight, this.state.zoomScale,
-                            this.state.containerHeight, this.state.containerWidth, this.state.isLoading),
+                        ...StyleUtils.getZoomSizingStyle(
+                            this.state.isZoomed,
+                            this.state.imgWidth,
+                            this.state.imgHeight,
+                            this.state.zoomScale,
+                            this.state.containerHeight,
+                            this.state.containerWidth,
+                            this.state.isLoading,
+                        ),
                         ...StyleUtils.getZoomCursorStyle(this.state.isZoomed, this.state.isDragging),
-                        ...this.state.isZoomed && this.state.zoomScale >= 1 ? styles.pRelative : styles.pAbsolute,
+                        ...(this.state.isZoomed && this.state.zoomScale >= 1 ? styles.pRelative : styles.pAbsolute),
                         ...styles.flex1,
                     }}
                     onPressIn={this.onContainerPressIn}
@@ -285,21 +282,14 @@ class ImageView extends PureComponent {
                 >
                     <Image
                         source={{uri: this.props.url}}
-                        style={[
-                            styles.h100,
-                            styles.w100,
-                        ]}
+                        style={[styles.h100, styles.w100]}
                         resizeMode={Image.resizeMode.contain}
                         onLoadStart={this.imageLoadingStart}
                         onLoad={this.imageLoad}
                     />
                 </Pressable>
 
-                {this.state.isLoading && (
-                    <FullscreenLoadingIndicator
-                        style={[styles.opacity1, styles.bgTransparent]}
-                    />
-                )}
+                {this.state.isLoading && <FullscreenLoadingIndicator style={[styles.opacity1, styles.bgTransparent]} />}
             </View>
         );
     }

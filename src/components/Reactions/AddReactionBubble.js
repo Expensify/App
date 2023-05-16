@@ -66,50 +66,34 @@ const AddReactionBubble = (props) => {
     };
 
     return (
-        <Tooltip text={props.translate('emojiReactions.addReactionTooltip')} focusable={false}>
+        <Tooltip
+            text={props.translate('emojiReactions.addReactionTooltip')}
+            focusable={false}
+        >
             <Pressable
                 ref={ref}
-                style={({
-                    hovered,
-                    pressed,
-                }) => [
-                    styles.emojiReactionBubble,
-                    StyleUtils.getEmojiReactionBubbleStyle(hovered || pressed, false, props.isContextMenu),
-                ]}
+                style={({hovered, pressed}) => [styles.emojiReactionBubble, StyleUtils.getEmojiReactionBubbleStyle(hovered || pressed, false, props.isContextMenu)]}
                 onPress={onPress}
-
                 // Prevent text input blur when Add reaction is clicked
-                onMouseDown={e => e.preventDefault()}
+                onMouseDown={(e) => e.preventDefault()}
             >
-                {({
-                    hovered,
-                    pressed,
-                }) => (
+                {({hovered, pressed}) => (
                     <>
                         {/* This (invisible) text will make the view have the same size as a regular
                             emoji reaction. We make the text invisible and put the
                             icon on top of it. */}
-                        <Text style={[
-                            styles.opacity0,
-                            StyleUtils.getEmojiReactionBubbleTextStyle(props.isContextMenu),
-                        ]}
-                        >
-                            {'\u2800\u2800'}
-                        </Text>
+                        <Text style={[styles.opacity0, StyleUtils.getEmojiReactionBubbleTextStyle(props.isContextMenu)]}>{'\u2800\u2800'}</Text>
                         <View style={styles.pAbsolute}>
                             <Icon
                                 src={Expensicons.AddReaction}
                                 width={props.isContextMenu ? variables.iconSizeNormal : variables.iconSizeSmall}
                                 height={props.isContextMenu ? variables.iconSizeNormal : variables.iconSizeSmall}
-                                fill={StyleUtils.getIconFillColor(
-                                    getButtonState(hovered, pressed),
-                                )}
+                                fill={StyleUtils.getIconFillColor(getButtonState(hovered, pressed))}
                             />
                         </View>
                     </>
                 )}
             </Pressable>
-
         </Tooltip>
     );
 };

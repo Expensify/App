@@ -23,6 +23,9 @@ const keyInputEnter = lodashGet(KeyCommand, 'constants.keyInputEnter', 'keyInput
 const keyInputUpArrow = lodashGet(KeyCommand, 'constants.keyInputUpArrow', 'keyInputUpArrow');
 const keyInputDownArrow = lodashGet(KeyCommand, 'constants.keyInputDownArrow', 'keyInputDownArrow');
 
+// describes if a shortcut key can cause navigation
+const KEYBOARD_SHORTCUT_NAVIGATION_TYPE = 'NAVIGATION_SHORTCUT';
+
 const CONST = {
     ANDROID_PACKAGE_NAME,
     ANIMATED_TRANSITION: 300,
@@ -208,6 +211,7 @@ const CONST = {
         POLICY_EXPENSE_CHAT: 'policyExpenseChat',
         PASSWORDLESS: 'passwordless',
         TASKS: 'tasks',
+        THREADS: 'threads',
     },
     BUTTON_STATES: {
         DEFAULT: 'default',
@@ -256,6 +260,7 @@ const CONST = {
                 [PLATFORM_OS_MACOS]: {input: 'k', modifierFlags: keyModifierCommand},
                 [PLATFORM_IOS]: {input: 'k', modifierFlags: keyModifierCommand},
             },
+            type: KEYBOARD_SHORTCUT_NAVIGATION_TYPE,
         },
         NEW_GROUP: {
             descriptionKey: 'newGroup',
@@ -266,6 +271,7 @@ const CONST = {
                 [PLATFORM_OS_MACOS]: {input: 'k', modifierFlags: keyModifierShiftCommand},
                 [PLATFORM_IOS]: {input: 'k', modifierFlags: keyModifierShiftCommand},
             },
+            type: KEYBOARD_SHORTCUT_NAVIGATION_TYPE,
         },
         SHORTCUT_MODAL: {
             descriptionKey: 'openShortcutDialog',
@@ -343,6 +349,9 @@ const CONST = {
             modifiers: [],
         },
     },
+    KEYBOARD_SHORTCUTS_TYPES: {
+        NAVIGATION_SHORTCUT: KEYBOARD_SHORTCUT_NAVIGATION_TYPE,
+    },
     KEYBOARD_SHORTCUT_KEY_DISPLAY_NAME: {
         CONTROL: 'CTRL',
         ESCAPE: 'ESC',
@@ -399,9 +408,12 @@ const CONST = {
                 ADDCOMMENT: 'ADDCOMMENT',
                 CLOSED: 'CLOSED',
                 CREATED: 'CREATED',
+                TASKEDITED: 'TASKEDITED',
                 IOU: 'IOU',
                 RENAMED: 'RENAMED',
                 CHRONOSOOOLIST: 'CHRONOSOOOLIST',
+                TASKCOMPLETED: 'TASKCOMPLETED',
+                TASKREOPENED: 'TASKREOPENED',
                 POLICYCHANGELOG: {
                     ADD_APPROVER_RULE: 'POLICYCHANGELOG_ADD_APPROVER_RULE',
                     ADD_CATEGORY: 'POLICYCHANGELOG_ADD_CATEGORY',
@@ -572,6 +584,7 @@ const CONST = {
     },
     JSON_CODE: {
         SUCCESS: 200,
+        BAD_REQUEST: 400,
         NOT_AUTHENTICATED: 407,
         EXP_ERROR: 666,
         MANY_WRITES_ERROR: 665,
@@ -605,12 +618,14 @@ const CONST = {
         SAFARI_CANNOT_PARSE_RESPONSE: 'cannot parse response',
         GATEWAY_TIMEOUT: 'Gateway Timeout',
         EXPENSIFY_SERVICE_INTERRUPTED: 'Expensify service interrupted',
+        DUPLICATE_RECORD: 'A record already exists with this ID',
     },
     ERROR_TYPE: {
         SOCKET: 'Expensify\\Auth\\Error\\Socket',
     },
     ERROR_TITLE: {
         SOCKET: 'Issue connecting to database',
+        DUPLICATE_RECORD: '400 Unique Constraints Violation',
     },
     NETWORK: {
         METHOD: {
@@ -847,7 +862,8 @@ const CONST = {
             USER_CAMERA_DENINED: 'Onfido.OnfidoFlowError',
             USER_CAMERA_PERMISSION: 'Encountered an error: cameraPermission',
             // eslint-disable-next-line max-len
-            USER_CAMERA_CONSENT_DENIED: 'Unexpected result Intent. It might be a result of incorrect integration, make sure you only pass Onfido intent to handleActivityResult. It might be due to unpredictable crash or error. Please report the problem to android-sdk@onfido.com. Intent: null \n resultCode: 0',
+            USER_CAMERA_CONSENT_DENIED:
+                'Unexpected result Intent. It might be a result of incorrect integration, make sure you only pass Onfido intent to handleActivityResult. It might be due to unpredictable crash or error. Please report the problem to android-sdk@onfido.com. Intent: null \n resultCode: 0',
         },
     },
 
@@ -1003,12 +1019,17 @@ const CONST = {
         CODE_2FA: /^\d{6}$/,
         ATTACHMENT_ID: /chat-attachments\/(\d+)/,
         HAS_COLON_ONLY_AT_THE_BEGINNING: /^:[^:]+$/,
+        HAS_AT_MOST_TWO_AT_SIGNS: /^@[^@]*@?[^@]*$/,
 
         // eslint-disable-next-line no-misleading-character-class
         NEW_LINE_OR_WHITE_SPACE_OR_EMOJI: /[\n\s\p{Extended_Pictographic}\u200d\u{1f1e6}-\u{1f1ff}\u{1f3fb}-\u{1f3ff}\u{e0020}-\u{e007f}\u20E3\uFE0F]|[#*0-9]\uFE0F?\u20E3/gu,
 
         // Define the regular expression pattern to match a string starting with a colon and ending with a space or newline character
         EMOJI_REPLACER: /^:[^\n\r]+?(?=$|\s)/,
+
+        // Define the regular expression pattern to match a string starting with an at sign and ending with a space or newline character
+        MENTION_REPLACER: /^@[^\n\r]*?(?=$|\s)/,
+
         MERGED_ACCOUNT_PREFIX: /^(MERGED_\d+@)/,
     },
 
@@ -1079,6 +1100,7 @@ const CONST = {
         INFO: 'info',
     },
     REPORT_DETAILS_MENU_ITEM: {
+        SHARE_CODE: 'shareCode',
         MEMBERS: 'member',
         SETTINGS: 'settings',
         LEAVE_ROOM: 'leaveRoom',
@@ -1135,7 +1157,10 @@ const CONST = {
     TESTING: {
         SCREEN_SIZE: {
             SMALL: {
-                width: 300, height: 700, scale: 1, fontScale: 1,
+                width: 300,
+                height: 700,
+                scale: 1,
+                fontScale: 1,
             },
         },
     },
@@ -1149,13 +1174,7 @@ const CONST = {
         {
             name: '+1',
             code: '👍',
-            types: [
-                '👍🏿',
-                '👍🏾',
-                '👍🏽',
-                '👍🏼',
-                '👍🏻',
-            ],
+            types: ['👍🏿', '👍🏾', '👍🏽', '👍🏼', '👍🏻'],
         },
         {
             name: 'heart',
@@ -1234,7 +1253,7 @@ const CONST = {
         CD: 'Congo - Kinshasa',
         CK: 'Cook Islands',
         CR: 'Costa Rica',
-        CI: 'Côte d\'Ivoire',
+        CI: "Côte d'Ivoire",
         HR: 'Croatia',
         CU: 'Cuba',
         CW: 'Curaçao',
@@ -2261,9 +2280,7 @@ const CONST = {
         EXPECTED_OUTPUT: 'FCFA 123,457',
     },
 
-    PATHS_TO_TREAT_AS_EXTERNAL: [
-        'NewExpensify.dmg',
-    ],
+    PATHS_TO_TREAT_AS_EXTERNAL: ['NewExpensify.dmg'],
 
     // Test tool menu parameters
     TEST_TOOL: {
@@ -2272,9 +2289,30 @@ const CONST = {
     },
 
     PAYPAL_SUPPORTED_CURRENCIES: [
-        'AUD', 'BRL', 'CAD', 'CZK', 'DKK', 'EUR', 'HKD', 'HUF',
-        'ILS', 'JPY', 'MYR', 'MXN', 'TWD', 'NZD', 'NOK', 'PHP',
-        'PLN', 'GBP', 'RUB', 'SGD', 'SEK', 'CHF', 'THB', 'USD',
+        'AUD',
+        'BRL',
+        'CAD',
+        'CZK',
+        'DKK',
+        'EUR',
+        'HKD',
+        'HUF',
+        'ILS',
+        'JPY',
+        'MYR',
+        'MXN',
+        'TWD',
+        'NZD',
+        'NOK',
+        'PHP',
+        'PLN',
+        'GBP',
+        'RUB',
+        'SGD',
+        'SEK',
+        'CHF',
+        'THB',
+        'USD',
     ],
     CONCIERGE_TRAVEL_URL: 'https://community.expensify.com/discussion/7066/introducing-concierge-travel',
     SCREEN_READER_STATES: {
@@ -2282,6 +2320,10 @@ const CONST = {
         ACTIVE: 'active',
         DISABLED: 'disabled',
     },
+
+    // This ID is used in SelectionScraper.js to query the DOM for UnreadActionIndicator's
+    // div and then remove it from copied contents in the getHTMLOfSelection() method.
+    UNREAD_ACTION_INDICATOR_ID: 'no-copy-area-unread-action-indicator',
 };
 
 export default CONST;

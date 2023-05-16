@@ -53,20 +53,22 @@ class IOUTransactions extends Component {
         }
 
         // iouReportIDs should be strings, but we still have places that send them as ints so we convert them both to Numbers for comparison
-        const actionsForIOUReport = _.filter(this.props.reportActions, action => action.originalMessage
-            && action.originalMessage.type && Number(action.originalMessage.IOUReportID) === Number(this.props.iouReportID));
+        const actionsForIOUReport = _.filter(
+            this.props.reportActions,
+            (action) => action.originalMessage && action.originalMessage.type && Number(action.originalMessage.IOUReportID) === Number(this.props.iouReportID),
+        );
 
         const deletedTransactionIDs = _.chain(actionsForIOUReport)
-            .filter(action => _.contains([CONST.IOU.REPORT_ACTION_TYPE.CANCEL, CONST.IOU.REPORT_ACTION_TYPE.DECLINE, CONST.IOU.REPORT_ACTION_TYPE.DELETE], action.originalMessage.type))
-            .map(deletedAction => lodashGet(deletedAction, 'originalMessage.IOUTransactionID', ''))
+            .filter((action) => _.contains([CONST.IOU.REPORT_ACTION_TYPE.CANCEL, CONST.IOU.REPORT_ACTION_TYPE.DECLINE, CONST.IOU.REPORT_ACTION_TYPE.DELETE], action.originalMessage.type))
+            .map((deletedAction) => lodashGet(deletedAction, 'originalMessage.IOUTransactionID', ''))
             .compact()
             .value();
 
         return _.chain(actionsForIOUReport)
-            .filter(action => action.originalMessage.type === CONST.IOU.REPORT_ACTION_TYPE.CREATE)
-            .filter(action => !_.contains(deletedTransactionIDs, action.originalMessage.IOUTransactionID))
-            .filter(action => this.props.userEmail === action.actorEmail)
-            .map(action => lodashGet(action, 'originalMessage.IOUTransactionID', ''))
+            .filter((action) => action.originalMessage.type === CONST.IOU.REPORT_ACTION_TYPE.CREATE)
+            .filter((action) => !_.contains(deletedTransactionIDs, action.originalMessage.IOUTransactionID))
+            .filter((action) => this.props.userEmail === action.actorEmail)
+            .map((action) => lodashGet(action, 'originalMessage.IOUTransactionID', ''))
             .compact()
             .value();
     }
@@ -82,8 +84,7 @@ class IOUTransactions extends Component {
                     }
 
                     const deletableTransactions = this.getDeletableTransactions();
-                    const canBeDeleted = _.contains(deletableTransactions,
-                        reportAction.originalMessage.IOUTransactionID);
+                    const canBeDeleted = _.contains(deletableTransactions, reportAction.originalMessage.IOUTransactionID);
                     return (
                         <ReportTransaction
                             chatReportID={this.props.chatReportID}
