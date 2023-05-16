@@ -101,6 +101,12 @@ class WorkspaceMembersPage extends React.Component {
             this.validate();
         }
 
+        if (prevProps.policyMemberList !== this.props.policyMemberList) {
+            this.setState((prevState) => ({
+                selectedEmployees: _.intersection(prevState.selectedEmployees, _.keys(this.props.policyMemberList)),
+            }));
+        }
+
         const isReconnecting = prevProps.network.isOffline && !this.props.network.isOffline;
         if (!isReconnecting) {
             return;
