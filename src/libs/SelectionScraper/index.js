@@ -114,7 +114,7 @@ const replaceNodes = (dom) => {
         if (!elementsWillBeSkipped.includes(dom.attribs[tagAttribute])) {
             domName = dom.attribs[tagAttribute];
         }
-    } else if (dom.name === 'div' && dom.children.length === 1 && dom.children[0].type !== 'text') {
+    } else if (dom.name === 'div' && dom.children.length === 1) {
         // We are excluding divs that have only one child and no text nodes and don't have a tagAttribute to prevent
         // additional newlines from being added in the HTML to Markdown conversion process.
         return replaceNodes(dom.children[0]);
