@@ -3247,7 +3247,7 @@ const styles = {
     },
 
     headerEnvBadge: {
-        marginLeft: 2,
+        marginLeft: 0,
         marginBottom: 2,
         height: 12,
         paddingLeft: 4,
