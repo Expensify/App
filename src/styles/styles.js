@@ -3256,6 +3256,7 @@ const styles = {
 
     headerEnvBadgeText: {
         fontSize: 7,
+        fontWeight: fontWeightBold,
     },
 };
 
