@@ -197,6 +197,12 @@ const styles = {
         fontSize: variables.fontSizeMedium,
     },
 
+    mentionSuggestionsText: {
+        fontSize: variables.fontSizeMedium,
+        flex: 1,
+        ...spacing.ml2,
+    },
+
     unitCol: {
         margin: 0,
         padding: 0,
@@ -813,6 +819,12 @@ const styles = {
         minHeight: variables.componentSizeLarge,
     }),
 
+    autoGrowHeightHiddenInput: (maxWidth, maxHeight) => ({
+        maxWidth,
+        maxHeight: maxHeight && maxHeight + 1,
+        overflow: 'hidden',
+    }),
+
     textInputContainer: {
         flex: 1,
         justifyContent: 'center',
@@ -846,11 +858,7 @@ const styles = {
     },
 
     textInputLabelTransformation: (translateY, translateX, scale) => ({
-        transform: [
-            {translateY},
-            {translateX},
-            {scale},
-        ],
+        transform: [{translateY}, {translateX}, {scale}],
     }),
 
     baseTextInput: {
@@ -1008,6 +1016,10 @@ const styles = {
 
     lh16: {
         lineHeight: 16,
+    },
+
+    lh140Percent: {
+        lineHeight: '140%',
     },
 
     formHelp: {
@@ -1519,26 +1531,29 @@ const styles = {
 
     // Be extremely careful when editing the compose styles, as it is easy to introduce regressions.
     // Make sure you run the following tests against any changes: #12669
-    textInputCompose: addOutlineWidth({
-        backgroundColor: themeColors.componentBG,
-        borderColor: themeColors.border,
-        color: themeColors.text,
-        fontFamily: fontFamily.EMOJI_TEXT_FONT,
-        fontSize: variables.fontSizeNormal,
-        borderWidth: 0,
-        height: 'auto',
-        lineHeight: variables.lineHeightXLarge,
-        ...overflowXHidden,
+    textInputCompose: addOutlineWidth(
+        {
+            backgroundColor: themeColors.componentBG,
+            borderColor: themeColors.border,
+            color: themeColors.text,
+            fontFamily: fontFamily.EMOJI_TEXT_FONT,
+            fontSize: variables.fontSizeNormal,
+            borderWidth: 0,
+            height: 'auto',
+            lineHeight: variables.lineHeightXLarge,
+            ...overflowXHidden,
 
-        // On Android, multiline TextInput with height: 'auto' will show extra padding unless they are configured with
-        // paddingVertical: 0, alignSelf: 'center', and textAlignVertical: 'center'
+            // On Android, multiline TextInput with height: 'auto' will show extra padding unless they are configured with
+            // paddingVertical: 0, alignSelf: 'center', and textAlignVertical: 'center'
 
-        paddingHorizontal: variables.avatarChatSpacing,
-        paddingTop: 0,
-        paddingBottom: 0,
-        alignSelf: 'center',
-        textAlignVertical: 'center',
-    }, 0),
+            paddingHorizontal: variables.avatarChatSpacing,
+            paddingTop: 0,
+            paddingBottom: 0,
+            alignSelf: 'center',
+            textAlignVertical: 'center',
+        },
+        0,
+    ),
 
     textInputFullCompose: {
         alignSelf: 'stretch',
@@ -1596,7 +1611,6 @@ const styles = {
     },
 
     emojiSkinToneTitle: {
-        backgroundColor: themeColors.componentBG,
         width: '100%',
         ...spacing.pv1,
         fontFamily: fontFamily.EXP_NEUE_BOLD,
@@ -1674,10 +1688,8 @@ const styles = {
 
     taskSelectorLink: {
         alignSelf: 'center',
-        height: 42,
         width: '100%',
         padding: 6,
-        margin: 3,
         backgroundColor: themeColors.transparent,
     },
 
@@ -1702,9 +1714,11 @@ const styles = {
         position: 'absolute',
         width: '100%',
         height: '100%',
-        transform: [{
-            translateX: -variables.sideBarWidth,
-        }],
+        transform: [
+            {
+                translateX: -variables.sideBarWidth,
+            },
+        ],
     },
 
     sidebarVisible: {
@@ -1965,6 +1979,11 @@ const styles = {
         backgroundColor: themeColors.modalBackdrop,
     },
 
+    centeredModalStyles: (isSmallScreenWidth) => ({
+        borderWidth: isSmallScreenWidth ? 1 : 0,
+        marginHorizontal: isSmallScreenWidth ? 0 : 20,
+    }),
+
     imageModalImageCenterContainer: {
         alignItems: 'center',
         flex: 1,
@@ -2188,6 +2207,13 @@ const styles = {
         opacity: 0.5,
     },
 
+    threadDividerLine: {
+        height: 1,
+        backgroundColor: themeColors.border,
+        flexGrow: 1,
+        marginHorizontal: 20,
+    },
+
     unreadIndicatorText: {
         color: themeColors.unreadIndicator,
         fontFamily: fontFamily.EXP_NEUE_BOLD,
@@ -2327,13 +2353,16 @@ const styles = {
         lineHeight: variables.inputHeight,
     },
 
-    iouAmountTextInput: addOutlineWidth({
-        ...headlineFont,
-        fontSize: variables.iouAmountTextSize,
-        color: themeColors.heading,
-        padding: 0,
-        lineHeight: undefined,
-    }, 0),
+    iouAmountTextInput: addOutlineWidth(
+        {
+            ...headlineFont,
+            fontSize: variables.iouAmountTextSize,
+            color: themeColors.heading,
+            padding: 0,
+            lineHeight: undefined,
+        },
+        0,
+    ),
 
     moneyRequestConfirmationAmount: {
         ...headlineFont,
@@ -2347,6 +2376,11 @@ const styles = {
         width: '100%',
         paddingHorizontal: 20,
         paddingVertical: 12,
+    },
+
+    requestPreviewBox: {
+        marginTop: 8,
+        maxWidth: variables.sideBarWidth,
     },
 
     iouPreviewBox: {
@@ -2470,7 +2504,7 @@ const styles = {
         position: 'fixed',
     },
 
-    growlNotificationTranslateY: y => ({
+    growlNotificationTranslateY: (y) => ({
         transform: [{translateY: y}],
     }),
 
@@ -2765,10 +2799,8 @@ const styles = {
         ...visibility('visible'),
     },
 
-    floatingMessageCounterTransformation: translateY => ({
-        transform: [
-            {translateY},
-        ],
+    floatingMessageCounterTransformation: (translateY) => ({
+        transform: [{translateY}],
     }),
 
     confirmationAnimation: {
@@ -3191,6 +3223,27 @@ const styles = {
     },
     contextMenuItemPopoverMaxWidth: {
         maxWidth: 375,
+    },
+
+    taskCheckbox: {
+        height: 16,
+        width: 16,
+    },
+
+    shareCodePage: {
+        paddingHorizontal: 38.5,
+    },
+
+    shareCodeContainer: {
+        width: '100%',
+        alignItems: 'center',
+        paddingHorizontal: variables.qrShareHorizontalPadding,
+        paddingVertical: 20,
+        borderRadius: 20,
+        overflow: 'hidden',
+        borderColor: themeColors.borderFocus,
+        borderWidth: 2,
+        backgroundColor: themeColors.highlightBG,
     },
 };
 

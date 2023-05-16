@@ -3,14 +3,7 @@ import SCREENS from '../../SCREENS';
 import CONST from '../../CONST';
 
 export default {
-    prefixes: [
-        'new-expensify://',
-        'https://www.expensify.cash',
-        'https://staging.expensify.cash',
-        'http://localhost',
-        CONST.NEW_EXPENSIFY_URL,
-        CONST.STAGING_NEW_EXPENSIFY_URL,
-    ],
+    prefixes: ['new-expensify://', 'https://www.expensify.cash', 'https://staging.expensify.cash', 'http://localhost', CONST.NEW_EXPENSIFY_URL, CONST.STAGING_NEW_EXPENSIFY_URL],
     config: {
         initialRouteName: SCREENS.HOME,
         screens: {
@@ -36,6 +29,10 @@ export default {
                 screens: {
                     Settings_Root: {
                         path: ROUTES.SETTINGS,
+                    },
+                    Settings_Share_Code: {
+                        path: ROUTES.SETTINGS_SHARE_CODE,
+                        exact: true,
                     },
                     Settings_Workspaces: {
                         path: ROUTES.SETTINGS_WORKSPACES,
@@ -193,6 +190,7 @@ export default {
             Report_Details: {
                 screens: {
                     Report_Details_Root: ROUTES.REPORT_WITH_ID_DETAILS,
+                    Report_Details_Share_Code: ROUTES.REPORT_WITH_ID_DETAILS_SHARE_CODE,
                 },
             },
             Report_Settings: {
@@ -270,6 +268,7 @@ export default {
                 screens: {
                     Task_Title: ROUTES.TASK_TITLE,
                     Task_Description: ROUTES.TASK_DESCRIPTION,
+                    Task_Assignee: ROUTES.TASK_ASSIGNEE,
                 },
             },
             AddPersonalBankAccount: {

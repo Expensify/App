@@ -14,7 +14,7 @@ const story = {
 };
 
 // eslint-disable-next-line react/jsx-props-no-spreading
-const Template = args => <CheckboxWithLabel {...args} />;
+const Template = (args) => <CheckboxWithLabel {...args} />;
 
 // Arguments can be passed to the component by binding
 // See: https://storybook.js.org/docs/react/writing-stories/introduction#using-args
@@ -48,8 +48,4 @@ WithErrors.args = {
 };
 
 export default story;
-export {
-    Default,
-    WithLabelComponent,
-    WithErrors,
-};
+export {Default, WithLabelComponent, WithErrors};

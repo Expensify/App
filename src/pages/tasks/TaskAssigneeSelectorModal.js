@@ -1,7 +1,5 @@
 /* eslint-disable es/no-optional-chaining */
-import React, {
-    useState, useEffect, useCallback, useMemo,
-} from 'react';
+import React, {useState, useEffect, useCallback, useMemo} from 'react';
 import {View} from 'react-native';
 import PropTypes from 'prop-types';
 import {withOnyx} from 'react-native-onyx';
@@ -19,6 +17,7 @@ import compose from '../../libs/compose';
 import personalDetailsPropType from '../personalDetailsPropType';
 import reportPropTypes from '../reportPropTypes';
 import Performance from '../../libs/Performance';
+
 import * as TaskUtils from '../../libs/actions/Task';
 
 const propTypes = {
@@ -31,10 +30,30 @@ const propTypes = {
     /** All reports shared with the user */
     reports: PropTypes.objectOf(reportPropTypes),
 
+    /** URL Route params */
+    route: PropTypes.shape({
+        /** Params from the URL path */
+        params: PropTypes.shape({
+            /** reportID passed via route: /r/:reportID/title */
+            reportID: PropTypes.string,
+        }),
+    }),
+
+    // /** The report currently being looked at */
+    // report: reportPropTypes.isRequired,
+
+    /** Current user session */
+    session: PropTypes.shape({
+        email: PropTypes.string.isRequired,
+    }),
+
     /** Grab the Share destination of the Task */
     task: PropTypes.shape({
         /** Share destination of the Task */
         shareDestination: PropTypes.string,
+
+        /** The task report if it's currently being edited */
+        report: reportPropTypes,
     }),
 
     ...withLocalizePropTypes,
@@ -44,9 +63,9 @@ const defaultProps = {
     betas: [],
     personalDetails: {},
     reports: {},
-    task: {
-        shareDestination: '',
-    },
+    session: {},
+    route: {},
+    task: {},
 };
 
 const TaskAssigneeSelectorModal = (props) => {
@@ -57,15 +76,7 @@ const TaskAssigneeSelectorModal = (props) => {
     const [filteredUserToInvite, setFilteredUserToInvite] = useState(null);
 
     useEffect(() => {
-        const results = OptionsListUtils.getNewChatOptions(
-            props.reports,
-            props.personalDetails,
-            props.betas,
-            '',
-            [],
-            CONST.EXPENSIFY_EMAILS,
-            false,
-        );
+        const results = OptionsListUtils.getNewChatOptions(props.reports, props.personalDetails, props.betas, '', [], CONST.EXPENSIFY_EMAILS, false);
 
         setFilteredRecentReports(results.recentReports);
         setFilteredPersonalDetails(results.personalDetails);
@@ -143,11 +154,22 @@ const TaskAssigneeSelectorModal = (props) => {
             return;
         }
 
-        if (option.alternateText) {
+        // Check to see if we're creating a new task
+        // If there's no route params, we're creating a new task
+        if (!props.route.params && option.alternateText) {
             // Clear out the state value, set the assignee and navigate back to the NewTaskPage
             setSearchValue('');
             TaskUtils.setAssigneeValue(option.alternateText, props.task.shareDestination);
-            Navigation.goBack();
+            return Navigation.goBack();
+        }
+
+        // Check to see if we're editing a task and if so, update the assignee
+        if (props.route.params.reportID && props.task.report.reportID === props.route.params.reportID) {
+            // There was an issue where sometimes a new assignee didn't have a DM thread
+            // This would cause the app to crash, so we need to make sure we have a DM thread
+            TaskUtils.setAssigneeValue(option.alternateText, props.task.shareDestination);
+            // Pass through the selected assignee
+            TaskUtils.editTaskAndNavigate(props.task.report, props.session.email, '', '', option.alternateText);
         }
     };
 
@@ -202,6 +224,9 @@ export default compose(
         },
         task: {
             key: ONYXKEYS.TASK,
+        },
+        session: {
+            key: ONYXKEYS.SESSION,
         },
     }),
 )(TaskAssigneeSelectorModal);

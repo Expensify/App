@@ -33,10 +33,7 @@ class OnfidoStep extends React.Component {
      * @returns {boolean|*}
      */
     canShowOnfido() {
-        return this.props.walletOnfidoData.hasAcceptedPrivacyPolicy
-            && !this.props.walletOnfidoData.isLoading
-            && !this.props.walletOnfidoData.error
-            && this.props.walletOnfidoData.sdkToken;
+        return this.props.walletOnfidoData.hasAcceptedPrivacyPolicy && !this.props.walletOnfidoData.isLoading && !this.props.walletOnfidoData.error && this.props.walletOnfidoData.sdkToken;
     }
 
     render() {
@@ -49,31 +46,28 @@ class OnfidoStep extends React.Component {
                     onBackButtonPress={() => Wallet.updateCurrentStep(CONST.WALLET.STEP.ADDITIONAL_DETAILS)}
                 />
                 <FullPageOfflineBlockingView>
-                    {
-                        this.canShowOnfido() ? (
-                            <Onfido
-                                sdkToken={this.props.walletOnfidoData.sdkToken}
-                                onError={() => {
-                                    Growl.error(this.props.translate('onfidoStep.genericError'), 10000);
-                                }}
-                                onUserExit={() => {
-                                    Navigation.goBack();
-                                }}
-                                onSuccess={(data) => {
-                                    BankAccounts.verifyIdentity({
-                                        onfidoData: JSON.stringify({
-                                            ...data,
-                                            applicantID: this.props.walletOnfidoData.applicantID,
-                                        }),
-                                    });
-                                }}
-                            />
-                        ) : (
-                            <OnfidoPrivacy walletOnfidoData={this.props.walletOnfidoData} />
-                        )
-                    }
+                    {this.canShowOnfido() ? (
+                        <Onfido
+                            sdkToken={this.props.walletOnfidoData.sdkToken}
+                            onError={() => {
+                                Growl.error(this.props.translate('onfidoStep.genericError'), 10000);
+                            }}
+                            onUserExit={() => {
+                                Navigation.goBack();
+                            }}
+                            onSuccess={(data) => {
+                                BankAccounts.verifyIdentity({
+                                    onfidoData: JSON.stringify({
+                                        ...data,
+                                        applicantID: this.props.walletOnfidoData.applicantID,
+                                    }),
+                                });
+                            }}
+                        />
+                    ) : (
+                        <OnfidoPrivacy walletOnfidoData={this.props.walletOnfidoData} />
+                    )}
                 </FullPageOfflineBlockingView>
-
             </>
         );
     }

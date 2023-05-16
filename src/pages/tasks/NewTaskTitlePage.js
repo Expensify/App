@@ -1,4 +1,4 @@
-import React from 'react';
+import React, {useRef} from 'react';
 import {View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import PropTypes from 'prop-types';
@@ -37,6 +37,8 @@ const defaultProps = {
 };
 
 const NewTaskTitlePage = (props) => {
+    const inputRef = useRef(null);
+
     /**
      * @param {Object} values - form input values passed by the Form component
      * @returns {Boolean}
@@ -64,7 +66,16 @@ const NewTaskTitlePage = (props) => {
         return null;
     }
     return (
-        <ScreenWrapper includeSafeAreaPaddingBottom={false}>
+        <ScreenWrapper
+            onEntryTransitionEnd={() => {
+                if (!inputRef.current) {
+                    return;
+                }
+
+                inputRef.current.focus();
+            }}
+            includeSafeAreaPaddingBottom={false}
+        >
             <HeaderWithCloseButton
                 title={props.translate('newTaskPage.title')}
                 onCloseButtonPress={() => Navigation.dismissModal()}
@@ -75,14 +86,14 @@ const NewTaskTitlePage = (props) => {
                 formID={ONYXKEYS.FORMS.NEW_TASK_FORM}
                 submitButtonText={props.translate('common.next')}
                 style={[styles.mh5, styles.mt5, styles.flexGrow1]}
-                validate={values => validate(values)}
-                onSubmit={values => onSubmit(values)}
+                validate={(values) => validate(values)}
+                onSubmit={(values) => onSubmit(values)}
                 enabledWhenOffline
             >
                 <View style={styles.mb5}>
                     <TextInput
                         defaultValue={props.task.title}
-                        autoFocus
+                        ref={(el) => (inputRef.current = el)}
                         inputID="taskTitle"
                         label={props.translate('newTaskPage.title')}
                     />

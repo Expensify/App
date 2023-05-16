@@ -14,7 +14,10 @@ function cropOrRotateImage(uri, actions, options = {}) {
         RNImageManipulator.manipulate(uri, actions, options).then((result) => {
             RNFetchBlob.fs.stat(result.uri.replace('file://', '')).then(({size}) => {
                 resolve({
-                    ...result, size, type: options.type || 'image/jpeg', name: options.name || 'fileName.jpg',
+                    ...result,
+                    size,
+                    type: options.type || 'image/jpeg',
+                    name: options.name || 'fileName.jpg',
                 });
             });
         });

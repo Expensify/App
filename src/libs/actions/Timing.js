@@ -41,9 +41,7 @@ function end(eventName, secondaryName = '') {
         }
 
         const baseEventName = `${envName}.new.expensify.${eventName}`;
-        const grafanaEventName = secondaryName
-            ? `${baseEventName}.${secondaryName}`
-            : baseEventName;
+        const grafanaEventName = secondaryName ? `${baseEventName}.${secondaryName}` : baseEventName;
 
         console.debug(`Timing:${grafanaEventName}`, eventTime);
         delete timestampData[eventName];

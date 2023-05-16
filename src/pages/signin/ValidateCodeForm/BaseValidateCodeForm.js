@@ -1,7 +1,5 @@
 import React from 'react';
-import {
-    TouchableOpacity, View,
-} from 'react-native';
+import {TouchableOpacity, View} from 'react-native';
 import PropTypes from 'prop-types';
 import {withOnyx} from 'react-native-onyx';
 import _ from 'underscore';
@@ -150,8 +148,8 @@ class BaseValidateCodeForm extends React.Component {
     }
 
     /**
-    * Clears local and Onyx sign in states
-    */
+     * Clears local and Onyx sign in states
+     */
     clearSignInData() {
         this.setState({twoFactorAuthCode: '', formError: {}});
         Session.clearSignInData();
@@ -163,24 +161,25 @@ class BaseValidateCodeForm extends React.Component {
     validateAndSubmitForm() {
         const requiresTwoFactorAuth = this.props.account.requiresTwoFactorAuth;
 
-        if (!this.state.validateCode.trim()) {
-            this.setState({formError: {validateCode: 'validateCodeForm.error.pleaseFillMagicCode'}});
-            return;
-        }
+        if (requiresTwoFactorAuth) {
+            if (!this.state.twoFactorAuthCode.trim()) {
+                this.setState({formError: {twoFactorAuthCode: 'validateCodeForm.error.pleaseFillTwoFactorAuth'}});
+                return;
+            }
 
-        if (!ValidationUtils.isValidValidateCode(this.state.validateCode)) {
-            this.setState({formError: {validateCode: 'validateCodeForm.error.incorrectMagicCode'}});
-            return;
-        }
-
-        if (requiresTwoFactorAuth && !this.state.twoFactorAuthCode.trim()) {
-            this.setState({formError: {twoFactorAuthCode: 'validateCodeForm.error.pleaseFillTwoFactorAuth'}});
-            return;
-        }
-
-        if (requiresTwoFactorAuth && !ValidationUtils.isValidTwoFactorCode(this.state.twoFactorAuthCode)) {
-            this.setState({formError: {twoFactorAuthCode: 'passwordForm.error.incorrect2fa'}});
-            return;
+            if (!ValidationUtils.isValidTwoFactorCode(this.state.twoFactorAuthCode)) {
+                this.setState({formError: {twoFactorAuthCode: 'passwordForm.error.incorrect2fa'}});
+                return;
+            }
+        } else {
+            if (!this.state.validateCode.trim()) {
+                this.setState({formError: {validateCode: 'validateCodeForm.error.pleaseFillMagicCode'}});
+                return;
+            }
+            if (!ValidationUtils.isValidValidateCode(this.state.validateCode)) {
+                this.setState({formError: {validateCode: 'validateCodeForm.error.incorrectMagicCode'}});
+                return;
+            }
         }
 
         this.setState({
@@ -203,12 +202,12 @@ class BaseValidateCodeForm extends React.Component {
                 {this.props.account.requiresTwoFactorAuth ? (
                     <View style={[styles.mv3]}>
                         <TextInput
-                            ref={el => this.input2FA = el}
+                            ref={(el) => (this.input2FA = el)}
                             label={this.props.translate('validateCodeForm.twoFactorCode')}
                             value={this.state.twoFactorAuthCode}
                             placeholder={this.props.translate('validateCodeForm.requiredWhen2FAEnabled')}
                             placeholderTextColor={themeColors.placeholderText}
-                            onChangeText={text => this.onTextInput(text, 'twoFactorAuthCode')}
+                            onChangeText={(text) => this.onTextInput(text, 'twoFactorAuthCode')}
                             onSubmitEditing={this.validateAndSubmitForm}
                             keyboardType={CONST.KEYBOARD_TYPE.NUMBER_PAD}
                             blurOnSubmit={false}
@@ -222,12 +221,12 @@ class BaseValidateCodeForm extends React.Component {
                         <MagicCodeInput
                             autoComplete={this.props.autoComplete}
                             textContentType="oneTimeCode"
-                            ref={el => this.inputValidateCode = el}
+                            ref={(el) => (this.inputValidateCode = el)}
                             label={this.props.translate('common.magicCode')}
                             nativeID="validateCode"
                             name="validateCode"
                             value={this.state.validateCode}
-                            onChangeText={text => this.onTextInput(text, 'validateCode')}
+                            onChangeText={(text) => this.onTextInput(text, 'validateCode')}
                             onFulfill={this.validateAndSubmitForm}
                             errorText={this.state.formError.validateCode ? this.props.translate(this.state.formError.validateCode) : ''}
                             hasError={hasError}
@@ -235,27 +234,21 @@ class BaseValidateCodeForm extends React.Component {
                         />
                         <View style={[styles.changeExpensifyLoginLinkContainer]}>
                             {this.state.linkSent ? (
-                                <Text style={[styles.mt2]}>
-                                    {this.props.account.message ? this.props.translate(this.props.account.message) : ''}
-                                </Text>
+                                <Text style={[styles.mt2]}>{this.props.account.message ? this.props.translate(this.props.account.message) : ''}</Text>
                             ) : (
                                 <TouchableOpacity
                                     style={[styles.mt2]}
                                     onPress={this.resendValidateCode}
                                     underlayColor={themeColors.componentBG}
                                 >
-                                    <Text style={[styles.link]}>
-                                        {this.props.translate('validateCodeForm.magicCodeNotReceived')}
-                                    </Text>
+                                    <Text style={[styles.link]}>{this.props.translate('validateCodeForm.magicCodeNotReceived')}</Text>
                                 </TouchableOpacity>
                             )}
                         </View>
                     </View>
                 )}
 
-                {hasError && (
-                    <FormHelpMessage message={ErrorUtils.getLatestErrorMessage(this.props.account)} />
-                )}
+                {hasError && <FormHelpMessage message={ErrorUtils.getLatestErrorMessage(this.props.account)} />}
                 <View>
                     <Button
                         isDisabled={this.props.network.isOffline}

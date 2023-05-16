@@ -53,7 +53,7 @@ function getLocalizedCurrencySymbol(currencyCode) {
         style: 'currency',
         currency: currencyCode,
     });
-    return _.find(parts, part => part.type === 'currency').value;
+    return _.find(parts, (part) => part.type === 'currency').value;
 }
 
 /**
@@ -86,7 +86,8 @@ function isCurrencySymbolLTR(currencyCode) {
  */
 function convertToSmallestUnit(currency, amountAsFloat) {
     const currencyUnit = getCurrencyUnit(currency);
-    return Math.trunc(amountAsFloat * currencyUnit);
+    // We round off the number to resolve floating-point precision issues.
+    return Math.round(amountAsFloat * currencyUnit);
 }
 
 /**
@@ -122,12 +123,4 @@ function convertToDisplayString(amountInSmallestUnit, currency = CONST.CURRENCY.
     });
 }
 
-export {
-    getCurrencyDecimals,
-    getCurrencyUnit,
-    getLocalizedCurrencySymbol,
-    isCurrencySymbolLTR,
-    convertToSmallestUnit,
-    convertToWholeUnit,
-    convertToDisplayString,
-};
+export {getCurrencyDecimals, getCurrencyUnit, getLocalizedCurrencySymbol, isCurrencySymbolLTR, convertToSmallestUnit, convertToWholeUnit, convertToDisplayString};
