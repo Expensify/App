@@ -74,8 +74,8 @@ class DatePicker extends React.Component {
                         value={this.props.value || this.props.defaultValue ? moment(this.props.value || this.props.defaultValue).toDate() : new Date()}
                         mode="date"
                         onChange={this.setDate}
-                        maximumDate={new Date(CONST.DATE.MAX_DATE)}
-                        minimumDate={new Date(CONST.DATE.MIN_DATE)}
+                        maximumDate={this.props.maxDate}
+                        minimumDate={this.props.minDate}
                     />
                 )}
             </>
@@ -87,6 +87,9 @@ DatePicker.propTypes = propTypes;
 DatePicker.defaultProps = defaultProps;
 
 export default React.forwardRef((props, ref) => (
-    /* eslint-disable-next-line react/jsx-props-no-spreading */
-    <DatePicker {...props} innerRef={ref} />
+    <DatePicker
+        // eslint-disable-next-line react/jsx-props-no-spreading
+        {...props}
+        innerRef={ref}
+    />
 ));

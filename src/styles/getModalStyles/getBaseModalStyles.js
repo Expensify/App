@@ -1,6 +1,12 @@
 import CONST from '../../CONST';
 import variables from '../variables';
 import themeColors from '../themes/default';
+import styles from '../styles';
+
+const getCenteredModalStyles = (windowWidth, isSmallScreenWidth) => ({
+    borderWidth: styles.centeredModalStyles(isSmallScreenWidth).borderWidth,
+    width: isSmallScreenWidth ? '100%' : windowWidth - styles.centeredModalStyles(isSmallScreenWidth).marginHorizontal * 2,
+});
 
 export default (type, windowDimensions, popoverAnchorPosition = {}, innerContainerStyle = {}, outerStyle = {}) => {
     const {isSmallScreenWidth, windowWidth} = windowDimensions;
@@ -76,9 +82,8 @@ export default (type, windowDimensions, popoverAnchorPosition = {}, innerContain
                 marginTop: isSmallScreenWidth ? 0 : 20,
                 marginBottom: isSmallScreenWidth ? 0 : 20,
                 borderRadius: isSmallScreenWidth ? 0 : 12,
-                borderWidth: isSmallScreenWidth ? 1 : 0,
                 overflow: 'hidden',
-                width: isSmallScreenWidth ? '100%' : windowWidth - 40,
+                ...getCenteredModalStyles(windowWidth, isSmallScreenWidth),
             };
 
             // Allow this modal to be dismissed with a swipe down or swipe right
@@ -112,9 +117,8 @@ export default (type, windowDimensions, popoverAnchorPosition = {}, innerContain
                 marginTop: isSmallScreenWidth ? 0 : 20,
                 marginBottom: isSmallScreenWidth ? 0 : 20,
                 borderRadius: isSmallScreenWidth ? 0 : 12,
-                borderWidth: isSmallScreenWidth ? 1 : 0,
                 overflow: 'hidden',
-                width: isSmallScreenWidth ? '100%' : windowWidth - 40,
+                ...getCenteredModalStyles(windowWidth, isSmallScreenWidth),
             };
             swipeDirection = undefined;
             animationIn = isSmallScreenWidth ? 'slideInRight' : 'fadeIn';
@@ -122,6 +126,37 @@ export default (type, windowDimensions, popoverAnchorPosition = {}, innerContain
             shouldAddTopSafeAreaMargin = !isSmallScreenWidth;
             shouldAddBottomSafeAreaMargin = !isSmallScreenWidth;
             shouldAddTopSafeAreaPadding = isSmallScreenWidth;
+            shouldAddBottomSafeAreaPadding = false;
+            break;
+        case CONST.MODAL.MODAL_TYPE.CENTERED_SMALL:
+            // A centered modal that takes up the minimum possible screen space on all devices
+            modalStyle = {
+                ...modalStyle,
+                ...{
+                    alignItems: 'center',
+                },
+            };
+            modalContainerStyle = {
+                // Shadow Styles
+                shadowColor: themeColors.shadow,
+                shadowOffset: {
+                    width: 0,
+                    height: 0,
+                },
+                shadowOpacity: 0.1,
+                shadowRadius: 5,
+
+                borderRadius: 12,
+                borderWidth: 0,
+            };
+
+            // Allow this modal to be dismissed with a swipe down or swipe right
+            swipeDirection = ['down', 'right'];
+            animationIn = 'fadeIn';
+            animationOut = 'fadeOut';
+            shouldAddTopSafeAreaMargin = false;
+            shouldAddBottomSafeAreaMargin = false;
+            shouldAddTopSafeAreaPadding = false;
             shouldAddBottomSafeAreaPadding = false;
             break;
         case CONST.MODAL.MODAL_TYPE.BOTTOM_DOCKED:

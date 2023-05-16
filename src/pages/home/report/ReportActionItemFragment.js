@@ -14,7 +14,7 @@ import withWindowDimensions, {windowDimensionsPropTypes} from '../../../componen
 import withLocalize, {withLocalizePropTypes} from '../../../components/withLocalize';
 import * as DeviceCapabilities from '../../../libs/DeviceCapabilities';
 import compose from '../../../libs/compose';
-import * as StyleUtils from '../../../styles/StyleUtils';
+import convertToLTR from '../../../libs/convertToLTR';
 import {withNetwork} from '../../../components/OnyxProvider';
 import CONST from '../../../CONST';
 import applyStrikethrough from '../../../components/HTMLEngineProvider/applyStrikethrough';
@@ -31,7 +31,6 @@ const propTypes = {
 
     /** If this fragment is attachment than has info? */
     attachmentInfo: PropTypes.shape({
-
         /** The file name of attachment */
         name: PropTypes.string,
 
@@ -55,10 +54,7 @@ const propTypes = {
     isSingleLine: PropTypes.bool,
 
     // Additional styles to add after local styles
-    style: PropTypes.oneOfType([
-        PropTypes.arrayOf(PropTypes.object),
-        PropTypes.object,
-    ]),
+    style: PropTypes.oneOfType([PropTypes.arrayOf(PropTypes.object), PropTypes.object]),
 
     ...windowDimensionsPropTypes,
 
@@ -86,22 +82,23 @@ const ReportActionItemFragment = (props) => {
         case 'COMMENT': {
             // If this is an attachment placeholder, return the placeholder component
             if (props.isAttachment && props.loading) {
-                return (
-                    Str.isImage(props.attachmentInfo.name)
-                        ? (
-                            <RenderHTML html={`<comment><img src="${props.attachmentInfo.source}" data-expensify-preview-modal-disabled="true"/></comment>`} />
-                        ) : (
-                            <View style={[styles.chatItemAttachmentPlaceholder]}>
-                                <ActivityIndicator
-                                    size="large"
-                                    color={themeColors.textSupporting}
-                                    style={[styles.flex1]}
-                                />
-                            </View>
-                        )
+                return Str.isImage(props.attachmentInfo.name) ? (
+                    <RenderHTML html={`<comment><img src="${props.attachmentInfo.source}" data-expensify-preview-modal-disabled="true"/></comment>`} />
+                ) : (
+                    <View style={[styles.chatItemAttachmentPlaceholder]}>
+                        <ActivityIndicator
+                            size="large"
+                            color={themeColors.textSupporting}
+                            style={[styles.flex1]}
+                        />
+                    </View>
                 );
             }
             const {html, text} = props.fragment;
+
+            if (props.fragment.isDeletedParentAction) {
+                return <RenderHTML html={`<comment>${props.translate('parentReportAction.deletedMessage')}</comment>`} />;
+            }
 
             // If the only difference between fragment.text and fragment.html is <br /> tags
             // we render it as text, not as html.
@@ -114,13 +111,7 @@ const ReportActionItemFragment = (props) => {
                 const editedTag = props.fragment.isEdited ? '<edited></edited>' : '';
                 const htmlContent = applyStrikethrough(html + editedTag, isPendingDelete);
 
-                return (
-                    <RenderHTML
-                        html={props.source === 'email'
-                            ? `<email-comment>${htmlContent}</email-comment>`
-                            : `<comment>${htmlContent}</comment>`}
-                    />
-                );
+                return <RenderHTML html={props.source === 'email' ? `<email-comment>${htmlContent}</email-comment>` : `<comment>${htmlContent}</comment>`} />;
             }
             return (
                 <Text
@@ -128,14 +119,14 @@ const ReportActionItemFragment = (props) => {
                     selectable={!DeviceCapabilities.canUseTouchScreen() || !props.isSmallScreenWidth}
                     style={[EmojiUtils.containsOnlyEmojis(text) ? styles.onlyEmojisText : undefined, styles.ltr, ...props.style]}
                 >
-                    {StyleUtils.convertToLTR(Str.htmlDecode(text))}
-                    {props.fragment.isEdited && (
-                    <Text
-                        fontSize={variables.fontSizeSmall}
-                        color={themeColors.textSupporting}
-                    >
-                        {` ${props.translate('reportActionCompose.edited')}`}
-                    </Text>
+                    {convertToLTR(Str.htmlDecode(text))}
+                    {Boolean(props.fragment.isEdited) && (
+                        <Text
+                            fontSize={variables.fontSizeSmall}
+                            color={themeColors.textSupporting}
+                        >
+                            {` ${props.translate('reportActionCompose.edited')}`}
+                        </Text>
                     )}
                 </Text>
             );
@@ -145,7 +136,7 @@ const ReportActionItemFragment = (props) => {
                 <Tooltip text={props.tooltipText}>
                     <Text
                         numberOfLines={props.isSingleLine ? 1 : undefined}
-                        style={[styles.chatItemMessageHeaderSender, (props.isSingleLine ? styles.pre : styles.preWrap)]}
+                        style={[styles.chatItemMessageHeaderSender, props.isSingleLine ? styles.pre : styles.preWrap]}
                     >
                         {props.fragment.text}
                     </Text>
@@ -166,7 +157,7 @@ const ReportActionItemFragment = (props) => {
         case 'OLD_MESSAGE':
             return <Text>OLD_MESSAGE</Text>;
         default:
-            return <Text>fragment.text</Text>;
+            return <Text>props.fragment.text</Text>;
     }
 };
 
@@ -174,8 +165,4 @@ ReportActionItemFragment.propTypes = propTypes;
 ReportActionItemFragment.defaultProps = defaultProps;
 ReportActionItemFragment.displayName = 'ReportActionItemFragment';
 
-export default compose(
-    withWindowDimensions,
-    withLocalize,
-    withNetwork(),
-)(memo(ReportActionItemFragment));
+export default compose(withWindowDimensions, withLocalize, withNetwork())(memo(ReportActionItemFragment));

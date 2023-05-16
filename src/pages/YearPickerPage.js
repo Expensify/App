@@ -33,17 +33,20 @@ class YearPickerPage extends React.Component {
         const currentYear = Number(params.year);
 
         this.currentYear = currentYear;
-        this.yearList = _.map(Array.from({length: (maxYear - minYear) + 1}, (v, i) => i + minYear), value => ({
-            text: value.toString(),
-            value,
-            keyForList: value.toString(),
+        this.yearList = _.map(
+            Array.from({length: maxYear - minYear + 1}, (v, i) => i + minYear),
+            (value) => ({
+                text: value.toString(),
+                value,
+                keyForList: value.toString(),
 
-            // Include the green checkmark icon to indicate the currently selected value
-            customIcon: value === currentYear ? greenCheckmark : undefined,
+                // Include the green checkmark icon to indicate the currently selected value
+                customIcon: value === currentYear ? greenCheckmark : undefined,
 
-            // This property will make the currently selected value have bold text
-            boldStyle: value === currentYear,
-        }));
+                // This property will make the currently selected value have bold text
+                boldStyle: value === currentYear,
+            }),
+        );
 
         this.updateYearOfBirth = this.updateSelectedYear.bind(this);
         this.filterYearList = this.filterYearList.bind(this);
@@ -70,9 +73,15 @@ class YearPickerPage extends React.Component {
      * @param {String} text
      */
     filterYearList(text) {
-        this.setState({
-            inputText: text,
-            yearOptions: _.filter(this.yearList, year => year.text.includes(text.trim())),
+        const searchText = text.replace(CONST.REGEX.NON_NUMERIC, '');
+        this.setState((prevState) => {
+            if (searchText === prevState.inputText) {
+                return {};
+            }
+            return {
+                inputText: searchText,
+                yearOptions: _.filter(this.yearList, (year) => year.text.includes(searchText)),
+            };
         });
     }
 
@@ -93,7 +102,7 @@ class YearPickerPage extends React.Component {
                     maxLength={4}
                     value={this.state.inputText}
                     sections={[{data: this.state.yearOptions, indexOffset: 0}]}
-                    onSelectRow={option => this.updateSelectedYear(option.value)}
+                    onSelectRow={(option) => this.updateSelectedYear(option.value)}
                     headerMessage={headerMessage}
                     initiallyFocusedOptionKey={this.currentYear.toString()}
                     hideSectionHeaders

@@ -6,26 +6,22 @@ const pullRequestNumber = process.env.PULL_REQUEST_NUMBER;
 const s3Bucket = {
     production: 'expensify-cash',
     staging: 'staging-expensify-cash',
-    internal: 'ad-hoc-expensify-cash',
+    adhoc: 'ad-hoc-expensify-cash',
 };
 
 const s3Path = {
     production: '/',
     staging: '/',
-    internal: process.env.PULL_REQUEST_NUMBER
-        ? `/desktop/${pullRequestNumber}/`
-        : '/',
+    adhoc: process.env.PULL_REQUEST_NUMBER ? `/desktop/${pullRequestNumber}/` : '/',
 };
 
 const macIcon = {
     production: './desktop/icon.png',
     staging: './desktop/icon-stg.png',
-    internal: './desktop/icon-stg.png',
+    adhoc: './desktop/icon-adhoc.png',
 };
 
-const isCorrectElectronEnv = ['production', 'staging', 'internal'].includes(
-    process.env.ELECTRON_ENV,
-);
+const isCorrectElectronEnv = ['production', 'staging', 'adhoc'].includes(process.env.ELECTRON_ENV);
 
 if (!isCorrectElectronEnv) {
     throw new Error('Invalid ELECTRON_ENV!');

@@ -23,11 +23,9 @@ function hasAndroidPermission() {
         }
 
         // Ask for permission if not given
-        return PermissionsAndroid.requestMultiple([
-            PermissionsAndroid.PERMISSIONS.READ_EXTERNAL_STORAGE,
-            PermissionsAndroid.PERMISSIONS.WRITE_EXTERNAL_STORAGE,
-        ]).then(status => status['android.permission.READ_EXTERNAL_STORAGE'] === 'granted'
-                    && status['android.permission.WRITE_EXTERNAL_STORAGE'] === 'granted');
+        return PermissionsAndroid.requestMultiple([PermissionsAndroid.PERMISSIONS.READ_EXTERNAL_STORAGE, PermissionsAndroid.PERMISSIONS.WRITE_EXTERNAL_STORAGE]).then(
+            (status) => status['android.permission.READ_EXTERNAL_STORAGE'] === 'granted' && status['android.permission.WRITE_EXTERNAL_STORAGE'] === 'granted',
+        );
     });
 }
 
@@ -45,27 +43,51 @@ function handleDownload(url, fileName) {
         const path = dirs.DownloadDir;
         const attachmentName = fileName || FileUtils.getAttachmentName(url);
 
-        // Fetching the attachment
-        const fetchedAttachment = RNFetchBlob.config({
-            fileCache: true,
-            path: `${path}/${attachmentName}`,
-            addAndroidDownloads: {
-                useDownloadManager: true,
-                notification: true,
-                path: `${path}/Expensify/${attachmentName}`,
-            },
-        }).fetch('GET', url);
+        const isLocalFile = url.startsWith('file://');
+
+        let attachmentPath = isLocalFile ? url : undefined;
+        let fetchedAttachment = Promise.resolve();
+
+        if (!isLocalFile) {
+            // Fetching the attachment
+            fetchedAttachment = RNFetchBlob.config({
+                fileCache: true,
+                path: `${path}/${attachmentName}`,
+                addAndroidDownloads: {
+                    useDownloadManager: true,
+                    notification: false,
+                    path: `${path}/Expensify/${attachmentName}`,
+                },
+            }).fetch('GET', url);
+        }
 
         // Resolving the fetched attachment
-        fetchedAttachment.then((attachment) => {
-            if (!attachment || !attachment.info()) {
-                return;
-            }
+        fetchedAttachment
+            .then((attachment) => {
+                if (!isLocalFile && (!attachment || !attachment.info())) {
+                    return Promise.reject();
+                }
 
-            FileUtils.showSuccessAlert();
-        }).catch(() => {
-            FileUtils.showGeneralErrorAlert();
-        }).finally(() => resolve());
+                if (!isLocalFile) attachmentPath = attachment.path();
+
+                return RNFetchBlob.MediaCollection.copyToMediaStore(
+                    {
+                        name: attachmentName,
+                        parentFolder: 'Expensify',
+                        mimeType: null,
+                    },
+                    'Download',
+                    attachmentPath,
+                );
+            })
+            .then(() => {
+                RNFetchBlob.fs.unlink(attachmentPath);
+                FileUtils.showSuccessAlert();
+            })
+            .catch(() => {
+                FileUtils.showGeneralErrorAlert();
+            })
+            .finally(() => resolve());
     });
 }
 
@@ -77,13 +99,16 @@ function handleDownload(url, fileName) {
  */
 export default function fileDownload(url, fileName) {
     return new Promise((resolve) => {
-        hasAndroidPermission().then((hasPermission) => {
-            if (hasPermission) {
-                return handleDownload(url, fileName);
-            }
-            FileUtils.showPermissionErrorAlert();
-        }).catch(() => {
-            FileUtils.showPermissionErrorAlert();
-        }).finally(() => resolve());
+        hasAndroidPermission()
+            .then((hasPermission) => {
+                if (hasPermission) {
+                    return handleDownload(url, fileName);
+                }
+                FileUtils.showPermissionErrorAlert();
+            })
+            .catch(() => {
+                FileUtils.showPermissionErrorAlert();
+            })
+            .finally(() => resolve());
     });
 }

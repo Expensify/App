@@ -1,3 +1,4 @@
+import _ from 'underscore';
 import React from 'react';
 import PropTypes from 'prop-types';
 import {withOnyx} from 'react-native-onyx';
@@ -59,7 +60,7 @@ class SettlementButton extends React.Component {
             });
         }
 
-        if (this.props.shouldShowPaypal) {
+        if (this.props.shouldShowPaypal && _.includes(CONST.PAYPAL_SUPPORTED_CURRENCIES, this.props.currency)) {
             buttonOptions.push({
                 text: this.props.translate('iou.settlePaypalMe'),
                 icon: Expensicons.PayPal,
@@ -86,7 +87,7 @@ class SettlementButton extends React.Component {
                 isDisabled={this.props.network.isOffline}
                 chatReportID={this.props.chatReportID}
             >
-                {triggerKYCFlow => (
+                {(triggerKYCFlow) => (
                     <ButtonWithMenu
                         isDisabled={this.props.isDisabled}
                         isLoading={this.props.isLoading}

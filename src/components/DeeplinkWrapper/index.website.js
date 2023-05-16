@@ -1,8 +1,6 @@
-import _ from 'underscore';
 import PropTypes from 'prop-types';
 import React, {PureComponent} from 'react';
 import {withOnyx} from 'react-native-onyx';
-import deeplinkRoutes from './deeplinkRoutes';
 import FullScreenLoadingIndicator from '../FullscreenLoadingIndicator';
 import styles from '../../styles/styles';
 import CONST from '../../CONST';
@@ -15,12 +13,8 @@ const propTypes = {
     /** Children to render. */
     children: PropTypes.node.isRequired,
 
-    /** List of betas available to current user */
-    betas: PropTypes.arrayOf(PropTypes.string),
-
     /** Session info for the currently logged-in user. */
     session: PropTypes.shape({
-
         /** Currently logged-in user email */
         email: PropTypes.string,
 
@@ -30,7 +24,6 @@ const propTypes = {
 };
 
 const defaultProps = {
-    betas: [],
     session: {
         email: '',
         authToken: '',
@@ -42,8 +35,8 @@ class DeeplinkWrapper extends PureComponent {
         super(props);
 
         this.state = {
-            appInstallationCheckStatus: (this.isMacOSWeb() && CONFIG.ENVIRONMENT !== CONST.ENVIRONMENT.DEV)
-                ? CONST.DESKTOP_DEEPLINK_APP_STATE.CHECKING : CONST.DESKTOP_DEEPLINK_APP_STATE.NOT_INSTALLED,
+            appInstallationCheckStatus:
+                this.isMacOSWeb() && CONFIG.ENVIRONMENT !== CONST.ENVIRONMENT.DEV ? CONST.DESKTOP_DEEPLINK_APP_STATE.CHECKING : CONST.DESKTOP_DEEPLINK_APP_STATE.NOT_INSTALLED,
         };
         this.focused = true;
     }
@@ -57,19 +50,6 @@ class DeeplinkWrapper extends PureComponent {
             this.focused = false;
         });
 
-        // check if pathname matches with deeplink routes
-        const matchedRoute = _.find(deeplinkRoutes, (route) => {
-            if (route.isDisabled && route.isDisabled(this.props.betas)) {
-                return false;
-            }
-            const routeRegex = new RegExp(route.pattern);
-            return routeRegex.test(window.location.pathname);
-        });
-
-        if (!matchedRoute) {
-            this.updateAppInstallationCheckStatus();
-            return;
-        }
         const expensifyUrl = new URL(CONFIG.EXPENSIFY.NEW_EXPENSIFY_URL);
         const params = new URLSearchParams();
         params.set('exitTo', `${window.location.pathname}${window.location.search}${window.location.hash}`);
@@ -78,16 +58,18 @@ class DeeplinkWrapper extends PureComponent {
             this.openRouteInDesktopApp(expensifyDeeplinkUrl);
             return;
         }
-        Authentication.getShortLivedAuthToken().then((shortLivedAuthToken) => {
-            params.set('email', this.props.session.email);
-            params.set('shortLivedAuthToken', `${shortLivedAuthToken}`);
-            const expensifyDeeplinkUrl = `${CONST.DEEPLINK_BASE_URL}${expensifyUrl.host}/transition?${params.toString()}`;
-            this.openRouteInDesktopApp(expensifyDeeplinkUrl);
-        }).catch(() => {
-            // If the request is successful, we call the updateAppInstallationCheckStatus before the prompt pops up.
-            // If not, we only need to make sure that the state will be updated.
-            this.updateAppInstallationCheckStatus();
-        });
+        Authentication.getShortLivedAuthToken()
+            .then((shortLivedAuthToken) => {
+                params.set('email', this.props.session.email);
+                params.set('shortLivedAuthToken', `${shortLivedAuthToken}`);
+                const expensifyDeeplinkUrl = `${CONST.DEEPLINK_BASE_URL}${expensifyUrl.host}/transition?${params.toString()}`;
+                this.openRouteInDesktopApp(expensifyDeeplinkUrl);
+            })
+            .catch(() => {
+                // If the request is successful, we call the updateAppInstallationCheckStatus before the prompt pops up.
+                // If not, we only need to make sure that the state will be updated.
+                this.updateAppInstallationCheckStatus();
+            });
     }
 
     updateAppInstallationCheckStatus() {
@@ -129,12 +111,7 @@ class DeeplinkWrapper extends PureComponent {
     }
 
     isMacOSWeb() {
-        return !Browser.isMobile() && (
-            typeof navigator === 'object'
-            && typeof navigator.userAgent === 'string'
-            && /Mac/i.test(navigator.userAgent)
-            && !/Electron/i.test(navigator.userAgent)
-        );
+        return !Browser.isMobile() && typeof navigator === 'object' && typeof navigator.userAgent === 'string' && /Mac/i.test(navigator.userAgent) && !/Electron/i.test(navigator.userAgent);
     }
 
     render() {
@@ -149,6 +126,5 @@ class DeeplinkWrapper extends PureComponent {
 DeeplinkWrapper.propTypes = propTypes;
 DeeplinkWrapper.defaultProps = defaultProps;
 export default withOnyx({
-    betas: {key: ONYXKEYS.BETAS},
     session: {key: ONYXKEYS.SESSION},
 })(DeeplinkWrapper);

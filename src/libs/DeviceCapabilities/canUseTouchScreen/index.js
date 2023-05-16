@@ -20,10 +20,7 @@ function canUseTouchScreen() {
         } else {
             // Only as a last resort, fall back to user agent sniffing
             const UA = navigator.userAgent;
-            hasTouchScreen = (
-                /\b(BlackBerry|webOS|iPhone|IEMobile)\b/i.test(UA)
-                || /\b(Android|Windows Phone|iPad|iPod)\b/i.test(UA)
-            );
+            hasTouchScreen = /\b(BlackBerry|webOS|iPhone|IEMobile)\b/i.test(UA) || /\b(Android|Windows Phone|iPad|iPod)\b/i.test(UA);
         }
     }
     return hasTouchScreen;
