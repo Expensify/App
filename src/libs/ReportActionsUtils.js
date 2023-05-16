@@ -10,8 +10,6 @@ import CONST from '../CONST';
 import ONYXKEYS from '../ONYXKEYS';
 import Log from './Log';
 import isReportMessageAttachment from './isReportMessageAttachment';
-import * as NumberUtils from './NumberUtils';
-import DateUtils from './DateUtils';
 
 const allReportActions = {};
 Onyx.connect({
@@ -30,19 +28,6 @@ let isNetworkOffline = false;
 Onyx.connect({
     key: ONYXKEYS.NETWORK,
     callback: (val) => (isNetworkOffline = lodashGet(val, 'isOffline', false)),
-});
-
-let currentUserEmail;
-Onyx.connect({
-    key: ONYXKEYS.SESSION,
-    callback: (val) => {
-        // When signed out, val is undefined
-        if (!val) {
-            return;
-        }
-
-        currentUserEmail = val.email;
-    },
 });
 
 /**
@@ -360,29 +345,6 @@ function getReportPreviewAction(chatReportID, iouReportID) {
     );
 }
 
-function buildOptimisticReportPreview(reportID, iouReportID, payeeAccountID) {
-    return {
-        reportActionID: NumberUtils.rand64(),
-        reportID,
-        created: DateUtils.getDBTime(),
-        actionName: CONST.REPORT.ACTIONS.TYPE.REPORTPREVIEW,
-        pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
-        accountID: payeeAccountID,
-        message: [
-            {
-                html: '',
-                text: '',
-                isEdited: false,
-                type: CONST.REPORT.MESSAGE.TYPE.COMMENT,
-            },
-        ],
-        originalMessage: {
-            linkedReportID: iouReportID,
-        },
-        actorEmail: currentUserEmail,
-    };
-}
-
 function isCreatedTaskReportAction(reportAction) {
     return reportAction.actionName === CONST.REPORT.ACTIONS.TYPE.ADDCOMMENT && _.has(reportAction.originalMessage, 'taskReportID');
 }
@@ -402,7 +364,6 @@ export {
     isMoneyRequestAction,
     getLinkedTransactionID,
     getReportPreviewAction,
-    buildOptimisticReportPreview,
     isCreatedTaskReportAction,
     getParentReportAction,
     isTransactionThread,

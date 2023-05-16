@@ -342,7 +342,7 @@ function requestMoney(report, amount, currency, payeeEmail, participant, comment
     let reportPreviewAction = ReportActionsUtils.getReportPreviewAction(chatReport.reportID, iouReport.reportID);
     if (!reportPreviewAction) {
         isNewReportPreviewAction = true;
-        reportPreviewAction = ReportActionsUtils.buildOptimisticReportPreview(chatReport.reportID, iouReport.reportID);
+        reportPreviewAction = ReportUtils.buildOptimisticReportPreview(chatReport.reportID, iouReport.reportID);
     }
 
     // STEP 5: Build Onyx Data
@@ -557,7 +557,7 @@ function createSplitsAndOnyxData(participants, currentUserLogin, amount, comment
 
         let reportPreview = ReportActionsUtils.getReportPreviewAction(oneOnOneChatReport.reportID, oneOnOneIOUReport.reportID);
         if (!reportPreview) {
-            reportPreview = ReportActionsUtils.buildOptimisticReportPreview(oneOnOneChatReport.reportID, oneOnOneIOUReport.reportID);
+            reportPreview = ReportUtils.buildOptimisticReportPreview(oneOnOneChatReport.reportID, oneOnOneIOUReport.reportID);
         }
 
         // Note: The created action must be optimistically generated before the IOU action so there's no chance that the created action appears after the IOU action in the chat
