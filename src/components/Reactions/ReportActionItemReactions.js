@@ -48,6 +48,8 @@ const propTypes = {
      */
     // eslint-disable-next-line react/forbid-prop-types
     reactions: PropTypes.arrayOf(PropTypes.object).isRequired,
+
+    /** The ID of the reportAction. It is the string representation of the a 64-bit integer. */
     reportActionID: PropTypes.string.isRequired,
 
     /**
