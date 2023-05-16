@@ -2426,9 +2426,9 @@ const CONST = {
     },
     SPACE_CHARACTER_WIDTH: 4,
 
-    // This ID is used in SelectionScraper.js to query the DOM for UnreadActionIndicator's
-    // div and then remove it from copied contents in the getHTMLOfSelection() method.
-    UNREAD_ACTION_INDICATOR_ID: 'no-copy-area-unread-action-indicator',
+    // This attribute is used in SelectionScraper.js to query the DOM elements
+    // and then remove them from copied contents in the getHTMLOfSelection() method.
+    SELECTION_SCRAPER_HIDDEN_ELEMENT: 'selection-scrapper-hidden-element',
     MODERATION: {
         MODERATOR_DECISION_PENDING: 'pending',
         MODERATOR_DECISION_PENDING_HIDE: 'pendingHide',
