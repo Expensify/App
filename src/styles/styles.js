@@ -2346,6 +2346,10 @@ const styles = {
         lineHeight: variables.inputHeight,
     },
 
+    magicCodeInputTransparent: {
+        color: 'transparent',
+    },
+
     iouAmountText: {
         ...headlineFont,
         fontSize: variables.iouAmountTextSize,
