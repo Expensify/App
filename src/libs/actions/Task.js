@@ -154,7 +154,7 @@ function createTaskAndNavigate(currentUserEmail, parentReportID, title, descript
 
 function completeTask(taskReportID, parentReportID, taskTitle) {
     const message = `Completed task: ${taskTitle}`;
-    const completedTaskReportAction = ReportUtils.buildOptimisticTaskReportAction(taskReportID, CONST.REPORT.ACTIONS.TYPE.TASKREOPENED, message);
+    const completedTaskReportAction = ReportUtils.buildOptimisticTaskReportAction(taskReportID, CONST.REPORT.ACTIONS.TYPE.TASKCOMPLETED, message);
 
     const optimisticData = [
         {
