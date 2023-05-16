@@ -2824,10 +2824,10 @@ const styles = {
         flex: 1,
     },
 
-    threeDotsPopoverOffset: {
+    threeDotsPopoverOffset: (windowWidth) => ({
         vertical: 50,
-        horizontal: 60,
-    },
+        horizontal: windowWidth - 60,
+    }),
 
     threeDotsPopoverOffsetNoCloseButton: (windowWidth) => ({
         vertical: 50,
