@@ -1979,8 +1979,8 @@ const styles = {
         backgroundColor: themeColors.modalBackdrop,
     },
 
-    centeredModalStyles: (isSmallScreenWidth) => ({
-        borderWidth: isSmallScreenWidth ? 1 : 0,
+    centeredModalStyles: (isSmallScreenWidth, isFullScreenWhenSmall) => ({
+        borderWidth: isSmallScreenWidth && !isFullScreenWhenSmall ? 1 : 0,
         marginHorizontal: isSmallScreenWidth ? 0 : 20,
     }),
 
