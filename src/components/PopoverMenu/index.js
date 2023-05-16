@@ -84,7 +84,6 @@ const PopoverMenu = (props) => {
                         title={item.text}
                         description={item.description}
                         onPress={() => selectItem(menuIndex)}
-                        // TODO: rename to isFocused
                         focused={focusedIndex === menuIndex}
                     />
                 ))}

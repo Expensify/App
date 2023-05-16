@@ -500,6 +500,7 @@ const CONST = {
         },
         STATE: {
             SUBMITTED: 'SUBMITTED',
+            PROCESSING: 'PROCESSING',
         },
         STATE_NUM: {
             OPEN: 0,

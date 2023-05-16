@@ -1065,7 +1065,7 @@ function getPayMoneyRequestParams(chatReport, iouReport, recipient, paymentMetho
             chatReportID: chatReport.reportID,
             reportActionID: optimisticIOUReportAction.reportActionID,
             paymentMethodType,
-            policyID: chatReport.chatType === CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT ? iouReport.policyID : null,
+            policyExpenseChatID: chatReport.chatType === CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT ? iouReport.policyID : null,
         },
         optimisticData,
         successData,
@@ -1129,9 +1129,9 @@ function sendMoneyViaPaypal(report, amount, currency, comment, managerEmail, rec
  * @param {Object} iouReport
  * @param {String} reimbursementBankAccountState
  */
-function payMoneyRequest(paymentType, chatReport, iouReport, reimbursementBankAccountState) {
+function payMoneyRequest(paymentType, chatReport, iouReport, reimbursementBankAccountState= null) {
     if (
-        chatReport.chatType === CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT &&
+        ReportUtils.isPolicyExpenseChat(chatReport) &&
         reimbursementBankAccountState !== CONST.BANK_ACCOUNT.STATE.OPEN &&
         paymentType === CONST.IOU.PAYMENT_TYPE.EXPENSIFY
     ) {

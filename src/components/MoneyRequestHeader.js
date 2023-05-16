@@ -59,9 +59,9 @@ const propTypes = {
 
 const defaultProps = {
     isSingleTransactionView: false,
-    chatReport: null,
-    reimbursementAccount: null,
-    account: null,
+    chatReport: {},
+    reimbursementAccount: {},
+    account: {},
 };
 
 const MoneyRequestHeader = (props) => {
@@ -73,8 +73,7 @@ const MoneyRequestHeader = (props) => {
         ? ReportUtils.getWorkspaceAvatar(props.report)
         : ReportUtils.getAvatar(lodashGet(props.personalDetails, [props.report.managerEmail, 'avatar']), props.report.managerEmail);
     const policy = props.policies[`policy_${props.report.policyID}`];
-    const shouldShowSettlementButton =
-        props.account && !isSettled && (Policy.isAdminOfFreePolicy([policy]) || (props.report.type === CONST.REPORT.TYPE.IOU && props.account.primaryLogin === props.report.managerEmail));
+    const shouldShowSettlementButton = !isSettled && (Policy.isAdminOfFreePolicy([policy]) || (ReportUtils.isExpenseReport(props.report) && props.account.primaryLogin === props.report.managerEmail));
     return (
         <View style={[{backgroundColor: themeColors.highlightBG}, styles.pl0]}>
             <HeaderWithCloseButton

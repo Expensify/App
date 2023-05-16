@@ -91,7 +91,7 @@ export default {
     // A unique identifier that each user has that's used to send notifications
     NVP_PRIVATE_PUSH_NOTIFICATION_ID: 'private_pushNotificationID',
 
-    // The NVP with the last payment method use per policy
+    // The NVP with the last payment method used per policy
     NVP_LAST_PAYMENT_METHOD: 'nvp_lastPaymentMethod',
 
     // Does this user have push notifications enabled for this device?

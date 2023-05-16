@@ -109,7 +109,7 @@ class KYCWall extends React.Component {
         }
 
         if (this.props.chatReport && this.props.chatReport.chatType !== CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT) {
-            // Ask the user to upgrade to a gold wallet as this means they have not yet went through our Know Your Customer (KYC) checks
+            // Ask the user to upgrade to a gold wallet as this means they have not yet gone through our Know Your Customer (KYC) checks
             const hasGoldWallet = this.props.userWallet.tierName && this.props.userWallet.tierName === CONST.WALLET.TIER_NAME.GOLD;
             if (!hasGoldWallet) {
                 Log.info('[KYC Wallet] User does not have gold wallet');
