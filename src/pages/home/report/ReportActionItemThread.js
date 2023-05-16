@@ -6,7 +6,6 @@ import styles from '../../../styles/styles';
 import * as Report from '../../../libs/actions/Report';
 import withLocalize, {withLocalizePropTypes} from '../../../components/withLocalize';
 import withWindowDimensions, {windowDimensionsPropTypes} from '../../../components/withWindowDimensions';
-
 import CONST from '../../../CONST';
 import avatarPropTypes from '../../../components/avatarPropTypes';
 import MultipleAvatars from '../../../components/MultipleAvatars';
@@ -27,7 +26,7 @@ const propTypes = {
     /** ID of child thread report */
     childReportID: PropTypes.string.isRequired,
 
-    /** Is hovered */
+    /** Whether the thread item / message is being hovered */
     isHovered: PropTypes.bool.isRequired,
 
     ...withLocalizePropTypes,
@@ -55,7 +54,7 @@ const ReportActionItemThread = (props) => {
                         shouldStackHorizontally
                         avatarTooltips={_.map(props.icons, (icon) => icon.name)}
                         isHovered={props.isHovered}
-                        isInReportView
+                        isInReportAction
                     />
                     <View style={[styles.flex1, styles.flexRow, styles.lh140Percent, styles.alignItemsEnd]}>
                         <Text

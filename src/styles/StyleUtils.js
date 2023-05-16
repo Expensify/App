@@ -807,18 +807,18 @@ function getKeyboardShortcutsModalWidth(isSmallScreenWidth) {
 /**
  * @param {Boolean} isHovered
  * @param {Boolean} isPressed
- * @param {Boolean} isInReportView
+ * @param {Boolean} isInReportAction
  * @returns {Object}
  */
-function getHorizontalStackedAvatarBorderStyle(isHovered, isPressed, isInReportView = false) {
+function getHorizontalStackedAvatarBorderStyle(isHovered, isPressed, isInReportAction = false) {
     let backgroundColor = themeColors.appBG;
 
     if (isHovered) {
-        backgroundColor = isInReportView ? themeColors.highlightBG : themeColors.border;
+        backgroundColor = isInReportAction ? themeColors.highlightBG : themeColors.border;
     }
 
     if (isPressed) {
-        backgroundColor = isInReportView ? themeColors.highlightBG : themeColors.buttonPressedBG;
+        backgroundColor = isInReportAction ? themeColors.highlightBG : themeColors.buttonPressedBG;
     }
 
     return {
