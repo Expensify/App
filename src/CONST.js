@@ -1027,7 +1027,7 @@ const CONST = {
         EMOJI_REPLACER: /^:[^\n\r]+?(?=$|\s)/,
 
         // Define the regular expression pattern to match a string starting with an at sign and ending with a space or newline character
-        MENTION_REPLACER: /^@[^\n\r]*?(?=$|\s)/,
+        MENTION_REPLACER: /^@[^\n\r]*?(?=$|[\s\u2700-\u27BF]|[\uE000-\uF8FF]|\uD83C[\uDC00-\uDFFF]|\uD83D[\uDC00-\uDFFF]|[\u2011-\u26FF]|\uD83E[\uDD10-\uDDFF])/,
 
         MERGED_ACCOUNT_PREFIX: /^(MERGED_\d+@)/,
     },
