@@ -19,6 +19,7 @@ const Template = (args) => <Header {...args} />;
 const Default = Template.bind({});
 Default.args = {
     title: 'Chats',
+    shouldShowEnvironmentBadge: true,
 };
 
 export default story;

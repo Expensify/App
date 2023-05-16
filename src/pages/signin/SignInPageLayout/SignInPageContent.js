@@ -13,8 +13,6 @@ import OfflineIndicator from '../../../components/OfflineIndicator';
 import SignInHeroImage from '../SignInHeroImage';
 import * as StyleUtils from '../../../styles/StyleUtils';
 import variables from '../../../styles/variables';
-import withEnvironment, {environmentPropTypes} from '../../../components/withEnvironment';
-import CONST from '../../../CONST';
 
 const propTypes = {
     /** The children to show inside the layout */
@@ -36,7 +34,6 @@ const propTypes = {
 
     ...withLocalizePropTypes,
     ...windowDimensionsPropTypes,
-    ...environmentPropTypes,
 };
 
 const SignInPageContent = (props) => (
@@ -52,9 +49,7 @@ const SignInPageContent = (props) => (
             <View style={[styles.flexGrow2, styles.mb8]}>
                 <SignInPageForm style={[styles.alignSelfStretch]}>
                     <View style={[props.isSmallScreenWidth ? styles.mb8 : styles.mb15, props.isSmallScreenWidth ? styles.alignItemsCenter : styles.alignSelfStart]}>
-                        <ExpensifyWordmark
-                            containerStyles={[(props.isSmallScreenWidth && (props.environment === CONST.ENVIRONMENT.DEV || props.environment === CONST.ENVIRONMENT.STAGING)) ? styles.ml3 : {}]}
-                        />
+                        <ExpensifyWordmark />
                     </View>
                     <View style={[styles.signInPageWelcomeTextContainer]}>
                         {props.shouldShowWelcomeHeader && props.welcomeHeader ? (
@@ -92,4 +87,4 @@ const SignInPageContent = (props) => (
 SignInPageContent.propTypes = propTypes;
 SignInPageContent.displayName = 'SignInPageContent';
 
-export default compose(withWindowDimensions, withLocalize, withSafeAreaInsets, withEnvironment)(SignInPageContent);
+export default compose(withWindowDimensions, withLocalize, withSafeAreaInsets)(SignInPageContent);
