@@ -76,7 +76,6 @@ class ShareCodePage extends React.Component {
                         {isNative && (
                             <MenuItem
                                 title={this.props.translate('common.download')}
-                                shouldShowRightIcon
                                 icon={Expensicons.Download}
                                 // eslint-disable-next-line es/no-optional-chaining
                                 onPress={() => this.qrCodeRef.current?.download()}
