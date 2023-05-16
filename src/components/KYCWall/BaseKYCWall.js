@@ -11,6 +11,7 @@ import ONYXKEYS from '../../ONYXKEYS';
 import Log from '../../libs/Log';
 import {propTypes, defaultProps} from './kycWallPropTypes';
 import * as Wallet from '../../libs/actions/Wallet';
+import * as ReportUtils from '../../libs/ReportUtils';
 
 // This component allows us to block various actions by forcing the user to first add a default payment method and successfully make it through our Know Your Customer flow
 // before continuing to take whatever action they originally intended to take. It requires a button as a child and a native event so we can get the coordinates and use it
@@ -108,7 +109,7 @@ class KYCWall extends React.Component {
             return;
         }
 
-        if (this.props.chatReport && this.props.chatReport.chatType !== CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT) {
+        if (this.props.chatReport && !ReportUtils.isPolicyExpenseChat(this.props.chatReport)) {
             // Ask the user to upgrade to a gold wallet as this means they have not yet gone through our Know Your Customer (KYC) checks
             const hasGoldWallet = this.props.userWallet.tierName && this.props.userWallet.tierName === CONST.WALLET.TIER_NAME.GOLD;
             if (!hasGoldWallet) {

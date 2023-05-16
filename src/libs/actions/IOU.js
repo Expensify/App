@@ -1065,7 +1065,7 @@ function getPayMoneyRequestParams(chatReport, iouReport, recipient, paymentMetho
             chatReportID: chatReport.reportID,
             reportActionID: optimisticIOUReportAction.reportActionID,
             paymentMethodType,
-            policyExpenseChatID: chatReport.chatType === CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT ? iouReport.policyID : null,
+            policyExpenseChatID: ReportUtils.isPolicyExpenseChat(chatReport) ? iouReport.policyID : null,
         },
         optimisticData,
         successData,
