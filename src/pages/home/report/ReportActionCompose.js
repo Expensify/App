@@ -165,8 +165,8 @@ const defaultSuggestionsValues = {
 const getMaxArrowIndex = (numRows, isAutoSuggestionPickerLarge) => {
     // EmojiRowCount is number of emoji suggestions. For small screen we can fit 3 items and for large we show up to 5 items
     const emojiRowCount = isAutoSuggestionPickerLarge
-        ? Math.max(numRows, CONST.AUTO_COMPLETE_SUGGESTER.MAX_AMOUNT_OF_ITEMS)
-        : Math.max(numRows, CONST.AUTO_COMPLETE_SUGGESTER.MIN_AMOUNT_OF_ITEMS);
+        ? Math.min(numRows, CONST.AUTO_COMPLETE_SUGGESTER.MAX_AMOUNT_OF_ITEMS)
+        : Math.min(numRows, CONST.AUTO_COMPLETE_SUGGESTER.MIN_AMOUNT_OF_ITEMS);
 
     // -1 because we start at 0
     return emojiRowCount - 1;
@@ -693,12 +693,11 @@ function ReportActionCompose(props) {
      */
     const addEmojiToTextBox = useCallback(
         (emoji) => {
+            updateComment(ComposerUtils.insertText(comment.current, selection, emoji));
             setSelection({
                 start: selection.start + emoji.length,
                 end: selection.start + emoji.length,
             });
-
-            updateComment(ComposerUtils.insertText(comment.current, selection, emoji));
         },
         [selection, updateComment],
     );
@@ -869,6 +868,7 @@ function ReportActionCompose(props) {
     const isComposeDisabled = props.isDrawerOpen && props.isSmallScreenWidth;
     const reportRecipient = props.personalDetails[participantsWithoutExpensifyEmails[0]];
     const shouldUseFocusedColor = !isBlockedFromConcierge && !props.disabled && (isFocused || isDraggingOver);
+    const isFullSizeComposerAvailable = isFullComposerAvailable && !_.isEmpty(value);
 
     return (
         <View
@@ -907,10 +907,10 @@ function ReportActionCompose(props) {
                                                 style={[
                                                     styles.dFlex,
                                                     styles.flexColumn,
-                                                    isFullComposerAvailable || props.isComposerFullSize ? styles.justifyContentBetween : styles.justifyContentEnd,
+                                                    isFullSizeComposerAvailable || props.isComposerFullSize ? styles.justifyContentBetween : styles.justifyContentEnd,
                                                 ]}
                                             >
-                                                {props.isComposerFullSize && (
+                                                {props.isComposerFullSize &&  isFullSizeComposerAvailable && (
                                                     <Tooltip text={props.translate('reportActionCompose.collapse')}>
                                                         <TouchableOpacity
                                                             onPress={(e) => {
@@ -1022,7 +1022,7 @@ function ReportActionCompose(props) {
                                             isDisabled={isComposeDisabled || isBlockedFromConcierge || props.disabled}
                                             selection={selection}
                                             onSelectionChange={onSelectionChange}
-                                            isFullComposerAvailable={isFullComposerAvailable}
+                                            isFullComposerAvailable={isFullSizeComposerAvailable}
                                             setIsFullComposerAvailable={setIsFullComposerAvailable}
                                             isComposerFullSize={props.isComposerFullSize}
                                             value={value}
