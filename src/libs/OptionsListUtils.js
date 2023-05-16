@@ -549,6 +549,7 @@ function getOptions(
         forcePolicyNamePreview = false,
         includeOwnedWorkspaceChats = false,
         includeThreads = false,
+        includeMoneyRequestReports = true,
     },
 ) {
     if (!isPersonalDetailsReady(personalDetails)) {
@@ -589,6 +590,7 @@ function getOptions(
         }
 
         const isThread = ReportUtils.isThread(report);
+        const isMoneyRequestReport = ReportUtils.isMoneyRequestReport(report);
         const isChatRoom = ReportUtils.isChatRoom(report);
         const isPolicyExpenseChat = ReportUtils.isPolicyExpenseChat(report);
         const logins = report.participants || [];
@@ -598,6 +600,10 @@ function getOptions(
         }
 
         if (isThread && !includeThreads) {
+            return;
+        }
+
+        if (isMoneyRequestReport && !includeMoneyRequestReports) {
             return;
         }
 
@@ -840,6 +846,61 @@ function getNewChatOptions(reports, personalDetails, betas = [], searchValue = '
 }
 
 /**
+ * Build the suggestions for mentions
+ * @param {Object} reports
+ * @param {Object} personalDetails
+ * @param {Array<String>} [betas]
+ * @param {String} [searchValue]
+ * @returns {Object}
+ */
+function getMentionOptions(reports, personalDetails, betas = [], searchValue = '') {
+    const currentUser = _.find(personalDetails, isCurrentUser);
+    const suggestions = [];
+    if (searchValue && `${currentUser.displayName} ${currentUser.login}`.includes(searchValue)) {
+        suggestions.push({
+            text: currentUser.displayName,
+            alternateText: currentUser.login,
+            icons: [
+                {
+                    name: currentUser.login,
+                    type: 'avatar',
+                    source: currentUser.avatar,
+                },
+            ],
+        });
+    }
+
+    if ('here'.includes(searchValue)) {
+        suggestions.push({
+            text: '@here',
+            alternateText: 'Notify everyone online in this room',
+            icons: [
+                {
+                    name: '',
+                    source: () => {},
+                    type: 'avatar',
+                },
+            ],
+        });
+    }
+    const {recentReports, userToInvite} = getOptions(reports, personalDetails, {
+        betas,
+        searchInputValue: searchValue.trim(),
+        selectedOptions: [],
+        includeRecentReports: true,
+        includePersonalDetails: true,
+        maxRecentReportsToShow: 5 - suggestions.length,
+        excludeLogins: [{login: currentUser.login}],
+        includeOwnedWorkspaceChats: false,
+        includeMoneyRequestReports: false,
+    });
+
+    suggestions.push(...recentReports);
+    suggestions.push(userToInvite);
+    return _.filter(suggestions, (x) => !!x);
+}
+
+/**
  * Build the options for the Share Destination for a Task
  * *
  * @param {Object} reports
@@ -933,6 +994,7 @@ export {
     isPersonalDetailsReady,
     getSearchOptions,
     getNewChatOptions,
+    getMentionOptions,
     getShareDestinationOptions,
     getMemberInviteOptions,
     getHeaderMessage,

@@ -550,9 +550,7 @@ class ReportActionCompose extends React.Component {
         const isCursorBeforeTheMention = valueAfterTheCursor.startsWith(lastWord);
 
         if (!isCursorBeforeTheMention && this.isMentionCode(lastWord)) {
-            const options = OptionsListUtils.getNewChatOptions(this.props.reports, this.props.personalDetails, this.props.betas, prefix);
-            const suggestions = _.filter([...options.recentReports, options.userToInvite], (x) => !!x);
-
+            const suggestions = OptionsListUtils.getMentionOptions(this.props.reports, this.props.personalDetails, this.props.betas, prefix);
             nextState.suggestedMentions = suggestions;
             nextState.shouldShowMentionSuggestionMenu = !_.isEmpty(suggestions);
         }
@@ -610,7 +608,7 @@ class ReportActionCompose extends React.Component {
     insertSelectedMention(highlightedMentionIndex) {
         const commentBeforeAtSign = this.state.value.slice(0, this.state.atSignIndex);
         const mentionObject = this.state.suggestedMentions[highlightedMentionIndex];
-        const mentionCode = `@${mentionObject.alternateText}`;
+        const mentionCode = `@${mentionObject.text === '@here' ? 'here' : mentionObject.alternateText}`;
         const commentAfterAtSignWithMentionRemoved = this.state.value.slice(this.state.atSignIndex).replace(CONST.REGEX.MENTION_REPLACER, '');
 
         this.updateComment(`${commentBeforeAtSign}${mentionCode} ${commentAfterAtSignWithMentionRemoved}`, true);
