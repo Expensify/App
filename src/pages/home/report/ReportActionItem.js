@@ -282,6 +282,7 @@ class ReportActionItem extends Component {
                         childReportID={`${this.props.action.childReportID}`}
                         numberOfReplies={this.props.action.childVisibleActionCount || 0}
                         mostRecentReply={`${this.props.action.childLastVisibleActionCreated}`}
+                        isHovered={hovered}
                         icons={ReportUtils.getIconsForParticipants(oldestFourEmails, this.props.personalDetails)}
                     />
                 )}

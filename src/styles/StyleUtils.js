@@ -115,7 +115,7 @@ function getAvatarBorderWidth(size) {
         [CONST.AVATAR_SIZE.SMALL_SUBSCRIPT]: 1,
         [CONST.AVATAR_SIZE.MID_SUBSCRIPT]: 2,
         [CONST.AVATAR_SIZE.SUBSCRIPT]: 2,
-        [CONST.AVATAR_SIZE.SMALL]: 3,
+        [CONST.AVATAR_SIZE.SMALL]: 2,
         [CONST.AVATAR_SIZE.SMALLER]: 2,
         [CONST.AVATAR_SIZE.LARGE]: 4,
         [CONST.AVATAR_SIZE.MEDIUM]: 3,
@@ -821,17 +821,18 @@ function getKeyboardShortcutsModalWidth(isSmallScreenWidth) {
 /**
  * @param {Boolean} isHovered
  * @param {Boolean} isPressed
+ * @param {Boolean} isInReportAction
  * @returns {Object}
  */
-function getHorizontalStackedAvatarBorderStyle(isHovered, isPressed) {
+function getHorizontalStackedAvatarBorderStyle(isHovered, isPressed, isInReportAction = false) {
     let backgroundColor = themeColors.appBG;
 
     if (isHovered) {
-        backgroundColor = themeColors.border;
+        backgroundColor = isInReportAction ? themeColors.highlightBG : themeColors.border;
     }
 
     if (isPressed) {
-        backgroundColor = themeColors.buttonPressedBG;
+        backgroundColor = isInReportAction ? themeColors.highlightBG : themeColors.buttonPressedBG;
     }
 
     return {

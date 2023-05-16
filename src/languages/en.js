@@ -1323,7 +1323,7 @@ export default {
         deletedMessage: '[Deleted message]',
     },
     threads: {
-        lastReply: 'Last Reply',
+        lastReply: 'Last reply',
         replies: 'Replies',
         reply: 'Reply',
     },
