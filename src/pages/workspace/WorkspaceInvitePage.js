@@ -23,6 +23,7 @@ import {withNetwork} from '../../components/OnyxProvider';
 import FullPageNotFoundView from '../../components/BlockingViews/FullPageNotFoundView';
 import networkPropTypes from '../../components/networkPropTypes';
 import ROUTES from '../../ROUTES';
+import FullscreenLoadingIndicator from '../../components/FullscreenLoadingIndicator';
 
 const personalDetailsPropTypes = PropTypes.shape({
     /** The login of the person (either email or phone number) */
@@ -52,6 +53,9 @@ const propTypes = {
         }),
     }).isRequired,
 
+    /** Indicated whether the report data is loading */
+    isLoadingReportData: PropTypes.bool,
+
     ...policyPropTypes,
     ...withLocalizePropTypes,
     network: networkPropTypes.isRequired,
@@ -60,6 +64,7 @@ const propTypes = {
 const defaultProps = {
     personalDetails: {},
     betas: [],
+    isLoadingReportData: true,
     ...policyDefaultProps,
 };
 
@@ -256,57 +261,62 @@ class WorkspaceInvitePage extends React.Component {
 
         return (
             <ScreenWrapper shouldEnableMaxHeight>
-                {({didScreenTransitionEnd}) => (
-                    <FullPageNotFoundView
-                        shouldShow={_.isEmpty(this.props.policy)}
-                        onBackButtonPress={() => Navigation.navigate(ROUTES.SETTINGS_WORKSPACES)}
-                    >
-                        <FormSubmit
-                            style={[styles.flex1]}
-                            onSubmit={this.inviteUser}
+                {({didScreenTransitionEnd}) => {
+                    if (this.props.isLoadingReportData && _.isEmpty(this.props.policy)) {
+                        return <FullscreenLoadingIndicator />;
+                    }
+                    return (
+                        <FullPageNotFoundView
+                            shouldShow={_.isEmpty(this.props.policy)}
+                            onBackButtonPress={() => Navigation.navigate(ROUTES.SETTINGS_WORKSPACES)}
                         >
-                            <HeaderWithCloseButton
-                                title={this.props.translate('workspace.invite.invitePeople')}
-                                subtitle={policyName}
-                                onCloseButtonPress={() => this.clearErrors(true)}
-                                shouldShowGetAssistanceButton
-                                guidesCallTaskID={CONST.GUIDES_CALL_TASK_IDS.WORKSPACE_MEMBERS}
-                                shouldShowBackButton
-                                onBackButtonPress={() => Navigation.goBack()}
-                            />
-                            <View style={[styles.flex1]}>
-                                <OptionsSelector
-                                    autoFocus={false}
-                                    canSelectMultipleOptions
-                                    sections={sections}
-                                    selectedOptions={this.state.selectedOptions}
-                                    value={this.state.searchTerm}
-                                    shouldShowOptions={didScreenTransitionEnd && OptionsListUtils.isPersonalDetailsReady(this.props.personalDetails)}
-                                    onSelectRow={this.toggleOption}
-                                    onChangeText={this.updateOptionsWithSearchTerm}
-                                    onConfirmSelection={this.inviteUser}
-                                    headerMessage={headerMessage}
-                                    hideSectionHeaders
-                                    boldStyle
-                                    shouldFocusOnSelectRow
-                                    textInputLabel={this.props.translate('optionsSelector.nameEmailOrPhoneNumber')}
+                            <FormSubmit
+                                style={[styles.flex1]}
+                                onSubmit={this.inviteUser}
+                            >
+                                <HeaderWithCloseButton
+                                    title={this.props.translate('workspace.invite.invitePeople')}
+                                    subtitle={policyName}
+                                    onCloseButtonPress={() => this.clearErrors(true)}
+                                    shouldShowGetAssistanceButton
+                                    guidesCallTaskID={CONST.GUIDES_CALL_TASK_IDS.WORKSPACE_MEMBERS}
+                                    shouldShowBackButton
+                                    onBackButtonPress={() => Navigation.goBack()}
                                 />
-                            </View>
-                            <View style={[styles.flexShrink0]}>
-                                <FormAlertWithSubmitButton
-                                    isDisabled={!this.state.selectedOptions.length}
-                                    isAlertVisible={this.getShouldShowAlertPrompt()}
-                                    buttonText={this.props.translate('common.next')}
-                                    onSubmit={this.inviteUser}
-                                    message={this.props.policy.alertMessage}
-                                    containerStyles={[styles.flexReset, styles.flexGrow0, styles.flexShrink0, styles.flexBasisAuto, styles.mb5]}
-                                    enabledWhenOffline
-                                    disablePressOnEnter
-                                />
-                            </View>
-                        </FormSubmit>
-                    </FullPageNotFoundView>
-                )}
+                                <View style={[styles.flex1]}>
+                                    <OptionsSelector
+                                        autoFocus={false}
+                                        canSelectMultipleOptions
+                                        sections={sections}
+                                        selectedOptions={this.state.selectedOptions}
+                                        value={this.state.searchTerm}
+                                        shouldShowOptions={didScreenTransitionEnd && OptionsListUtils.isPersonalDetailsReady(this.props.personalDetails)}
+                                        onSelectRow={this.toggleOption}
+                                        onChangeText={this.updateOptionsWithSearchTerm}
+                                        onConfirmSelection={this.inviteUser}
+                                        headerMessage={headerMessage}
+                                        hideSectionHeaders
+                                        boldStyle
+                                        shouldFocusOnSelectRow
+                                        textInputLabel={this.props.translate('optionsSelector.nameEmailOrPhoneNumber')}
+                                    />
+                                </View>
+                                <View style={[styles.flexShrink0]}>
+                                    <FormAlertWithSubmitButton
+                                        isDisabled={!this.state.selectedOptions.length}
+                                        isAlertVisible={this.getShouldShowAlertPrompt()}
+                                        buttonText={this.props.translate('common.next')}
+                                        onSubmit={this.inviteUser}
+                                        message={this.props.policy.alertMessage}
+                                        containerStyles={[styles.flexReset, styles.flexGrow0, styles.flexShrink0, styles.flexBasisAuto, styles.mb5]}
+                                        enabledWhenOffline
+                                        disablePressOnEnter
+                                    />
+                                </View>
+                            </FormSubmit>
+                        </FullPageNotFoundView>
+                    );
+                }}
             </ScreenWrapper>
         );
     }
@@ -325,6 +335,9 @@ export default compose(
         },
         betas: {
             key: ONYXKEYS.BETAS,
+        },
+        isLoadingReportData: {
+            key: ONYXKEYS.IS_LOADING_REPORT_DATA,
         },
     }),
 )(WorkspaceInvitePage);
