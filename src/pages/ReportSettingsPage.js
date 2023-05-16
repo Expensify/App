@@ -153,6 +153,7 @@ class ReportSettingsPage extends Component {
         const shouldShowRoomName = !ReportUtils.isPolicyExpenseChat(this.props.report);
         const linkedWorkspace = _.find(this.props.policies, (policy) => policy && policy.id === this.props.report.policyID);
         const shouldDisableRename = this.shouldDisableRename(linkedWorkspace);
+        const shouldAllowWriteCapabilityEditing = lodashGet(linkedWorkspace, 'role', '') === CONST.POLICY.ROLE.ADMIN;
 
         return (
             <ScreenWrapper>
@@ -226,18 +227,20 @@ class ReportSettingsPage extends Component {
                         )}
                         <View>
                             <View style={[styles.mt2]}>
-                                <Picker
-                                    label={this.props.translate('reportSettings.writeCapability.label')}
-                                    onInputChange={(writeCapability) => {
-                                        if (this.props.report.writeCapability === writeCapability) {
-                                            return;
-                                        }
+                                {shouldAllowWriteCapabilityEditing && (
+                                    <Picker
+                                        label={this.props.translate('reportSettings.writeCapability.label')}
+                                        onInputChange={(writeCapability) => {
+                                            if (this.props.report.writeCapability === writeCapability) {
+                                                return;
+                                            }
 
-                                        Report.updateWriteCapability(this.props.report.reportID, this.props.report.writeCapability, writeCapability);
-                                    }}
-                                    items={this.getWriteCapabilityOptions()}
-                                    value={this.props.report.writeCapability}
-                                />
+                                            Report.updateWriteCapability(this.props.report.reportID, this.props.report.writeCapability, writeCapability);
+                                        }}
+                                        items={this.getWriteCapabilityOptions()}
+                                        value={this.props.report.writeCapability}
+                                    />
+                                )}
                             </View>
                         </View>
                         {Boolean(linkedWorkspace) && (
