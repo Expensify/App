@@ -126,6 +126,7 @@ const MoneyRequestHeader = (props) => {
                     <MenuItemWithTopDescription
                         title={formattedTransactionAmount}
                         description="Amount • Cash"
+                        titleStyle={styles.newKansasLarge}
                     />
                     <MenuItemWithTopDescription
                         description="Description"
