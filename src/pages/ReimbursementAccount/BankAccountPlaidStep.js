@@ -11,6 +11,9 @@ import withLocalize from '../../components/withLocalize';
 import compose from '../../libs/compose';
 import ONYXKEYS from '../../ONYXKEYS';
 import AddPlaidBankAccount from '../../components/AddPlaidBankAccount';
+import CheckboxWithLabel from '../../components/CheckboxWithLabel';
+import TextLink from '../../components/TextLink';
+import Text from '../../components/Text';
 import * as ReimbursementAccount from '../../libs/actions/ReimbursementAccount';
 import Form from '../../components/Form';
 import styles from '../../styles/styles';
@@ -40,7 +43,17 @@ const defaultProps = {
 class BankAccountPlaidStep extends React.Component {
     constructor(props) {
         super(props);
+        this.validate = this.validate.bind(this);
         this.submit = this.submit.bind(this);
+    }
+
+    validate(values) {
+        const errorFields = {};
+        if (!values.acceptTerms) {
+            errorFields.acceptTerms = this.props.translate('common.error.acceptTerms');
+        }
+
+        return errorFields;
     }
 
     submit() {
@@ -83,7 +96,7 @@ class BankAccountPlaidStep extends React.Component {
                 />
                 <Form
                     formID={ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM}
-                    validate={() => ({})}
+                    validate={this.validate}
                     onSubmit={this.submit}
                     scrollContextEnabled
                     submitButtonText={this.props.translate('common.saveAndContinue')}
@@ -103,6 +116,20 @@ class BankAccountPlaidStep extends React.Component {
                         bankAccountID={bankAccountID}
                         selectedPlaidAccountID={selectedPlaidAccountID}
                     />
+                    {Boolean(selectedPlaidAccountID) && !_.isEmpty(lodashGet(this.props.plaidData, 'bankAccounts')) && (
+                        <CheckboxWithLabel
+                            style={styles.mt4}
+                            inputID="acceptTerms"
+                            LabelComponent={() => (
+                                <Text>
+                                    {this.props.translate('common.iAcceptThe')}
+                                    <TextLink href={CONST.TERMS_URL}>{this.props.translate('common.expensifyTermsOfService')}</TextLink>
+                                </Text>
+                            )}
+                            defaultValue={this.props.getDefaultStateForField('acceptTerms', false)}
+                            shouldSaveDraft
+                        />
+                    )}
                 </Form>
             </ScreenWrapper>
         );

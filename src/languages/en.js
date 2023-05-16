@@ -134,6 +134,8 @@ export default {
         zipCodeExampleFormat: ({zipSampleFormat}) => (zipSampleFormat ? `e.g. ${zipSampleFormat}` : ''),
         description: 'Description',
         with: 'with',
+        shareCode: 'Share code',
+        share: 'Share',
     },
     attachmentPicker: {
         cameraPermissionRequired: 'Camera access',
@@ -254,6 +256,7 @@ export default {
         deleteComment: 'Delete comment',
         deleteConfirmation: 'Are you sure you want to delete this comment?',
         onlyVisible: 'Only visible to',
+        replyInThread: 'Reply in thread',
     },
     emojiReactions: {
         addReactionTooltip: 'Add reaction',
@@ -325,10 +328,12 @@ export default {
         settlePaypalMe: 'Pay with PayPal.me',
         requestAmount: ({amount}) => `request ${amount}`,
         splitAmount: ({amount}) => `split ${amount}`,
+        amountEach: ({amount}) => `${amount} each`,
         payerOwesAmount: ({payer, amount}) => `${payer} owes ${amount}`,
         payerSettled: ({amount}) => `settled up ${amount}`,
         noReimbursableExpenses: 'This report has an invalid amount',
         pendingConversionMessage: "Total will update when you're back online",
+        threadReportName: ({formattedAmount, comment}) => `${formattedAmount} request${comment ? ` for ${comment}` : ''}`,
         error: {
             invalidSplit: 'Split amounts do not equal total amount',
             other: 'Unexpected error, please try again later',
@@ -1183,10 +1188,17 @@ export default {
         descriptionOptional: 'Description (optional)',
         shareSomewhere: 'Share somewhere',
         pleaseEnterTaskName: 'Please enter a title',
-        markAsComplete: 'Mark as complete',
+        markAsDone: 'Mark as done',
         markAsIncomplete: 'Mark as incomplete',
         pleaseEnterTaskAssignee: 'Please select an assignee',
         pleaseEnterTaskDestination: 'Please select a share destination',
+    },
+    task: {
+        completed: 'Completed',
+        messages: {
+            completed: 'Completed task',
+            reopened: 'Reopened task',
+        },
     },
     statementPage: {
         generatingPDF: "We're generating your PDF right now. Please come back later!",
@@ -1305,5 +1317,13 @@ export default {
         workspaceName: 'Workspace name',
         chatUserDisplayNames: 'Chat user display names',
         scrollToNewestMessages: 'Scroll to newest messages',
+    },
+    parentReportAction: {
+        deletedMessage: '[Deleted message]',
+    },
+    threads: {
+        lastReply: 'Last Reply',
+        replies: 'Replies',
+        reply: 'Reply',
     },
 };

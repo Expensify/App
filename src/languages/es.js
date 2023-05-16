@@ -133,6 +133,8 @@ export default {
         zipCodeExampleFormat: ({zipSampleFormat}) => (zipSampleFormat ? `p. ej. ${zipSampleFormat}` : ''),
         description: 'Descripción',
         with: 'con',
+        shareCode: 'Compartir código',
+        share: 'Compartir',
     },
     attachmentPicker: {
         cameraPermissionRequired: 'Permiso para acceder a la cámara',
@@ -253,6 +255,7 @@ export default {
         deleteComment: 'Eliminar comentario',
         deleteConfirmation: '¿Estás seguro de que quieres eliminar este comentario?',
         onlyVisible: 'Visible sólo para',
+        replyInThread: 'Responder en el hilo',
     },
     emojiReactions: {
         addReactionTooltip: 'Añadir una reacción',
@@ -324,10 +327,12 @@ export default {
         settlePaypalMe: 'Pagar con PayPal.me',
         requestAmount: ({amount}) => `solicitar ${amount}`,
         splitAmount: ({amount}) => `dividir ${amount}`,
+        amountEach: ({amount}) => `${amount} cada uno`,
         payerOwesAmount: ({payer, amount}) => `${payer} debe ${amount}`,
         payerSettled: ({amount}) => `pagado ${amount}`,
         noReimbursableExpenses: 'El monto de este informe es inválido',
         pendingConversionMessage: 'El total se actualizará cuando estés online',
+        threadReportName: ({formattedAmount, comment}) => `Solicitud de ${formattedAmount}${comment ? ` para ${comment}` : ''}`,
         error: {
             invalidSplit: 'La suma de las partes no equivale al monto total',
             other: 'Error inesperado, por favor inténtalo más tarde',
@@ -1188,10 +1193,17 @@ export default {
         descriptionOptional: 'Descripción (opcional)',
         shareSomewhere: 'Compartir en algún lugar',
         pleaseEnterTaskName: 'Por favor introduce un título',
-        markAsComplete: 'Marcar como completa',
+        markAsDone: 'Marcar como hecho',
         markAsIncomplete: 'Marcar como incompleta',
         pleaseEnterTaskAssignee: 'Por favor, asigna una persona a esta tarea',
         pleaseEnterTaskDestination: 'Por favor, selecciona un destino de tarea',
+    },
+    task: {
+        completed: 'Completada',
+        messages: {
+            completed: 'Tarea completada',
+            reopened: 'Tarea reabrir',
+        },
     },
     statementPage: {
         generatingPDF: 'Estamos generando tu PDF ahora mismo. ¡Por favor, vuelve más tarde!',
@@ -1770,5 +1782,13 @@ export default {
         workspaceName: 'Nombre del espacio de trabajo',
         chatUserDisplayNames: 'Nombres de los usuarios del chat',
         scrollToNewestMessages: 'Desplázate a los mensajes más recientes',
+    },
+    parentReportAction: {
+        deletedMessage: '[Mensaje eliminado]',
+    },
+    threads: {
+        lastReply: 'Última respuesta',
+        replies: 'Respuestas',
+        reply: 'Respuesta',
     },
 };
