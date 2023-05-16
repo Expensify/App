@@ -39,7 +39,7 @@ import getIsReportFullyVisible from '../../libs/getIsReportFullyVisible';
 import EmojiPicker from '../../components/EmojiPicker/EmojiPicker';
 import * as EmojiPickerAction from '../../libs/actions/EmojiPickerAction';
 import StylesContext from '../../styles/StylesContext';
-import TaskHeaderView from './TaskHeaderView';
+import TaskHeader from '../../components/TaskHeader';
 import MoneyRequestHeader from '../../components/MoneyRequestHeader';
 import * as ComposerActions from '../../libs/actions/Composer';
 
@@ -231,7 +231,6 @@ class ReportScreen extends React.Component {
         const styles = this.context;
 
         const screenWrapperStyle = [styles.appContent, styles.flex1, {marginTop: this.props.viewportOffsetTop}];
-        const isTaskReport = ReportUtils.isTaskReport(this.props.report);
 
 
         // There are no reportActions at all to display and we are still in the process of loading the next set of actions.
@@ -302,6 +301,13 @@ class ReportScreen extends React.Component {
                                             report={this.props.report}
                                         />
                                     )}
+
+                                    {ReportUtils.isTaskReport(this.props.report) && (
+                                        <TaskHeader
+                                            report={this.props.report}
+                                            personalDetails={this.props.personalDetails}
+                                        />
+                                    )}
                                 </OfflineWithFeedback>
                                 {Boolean(this.props.accountManagerReportID) && ReportUtils.isConciergeChatReport(this.props.report) && this.state.isBannerVisible && (
                                     <Banner
@@ -313,7 +319,6 @@ class ReportScreen extends React.Component {
                                         shouldShowCloseButton
                                     />
                                 )}
-                                {isTaskReport && <TaskHeaderView report={this.props.report} />}
                             </>
                         )}
                         <View
