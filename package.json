@@ -75,7 +75,7 @@
     "babel-polyfill": "^6.26.0",
     "dom-serializer": "^0.2.2",
     "domhandler": "^4.3.0",
-    "expensify-common": "git+ssh://git@github.com/Expensify/expensify-common.git#e7e765d47eeafbeac588bbf88044d91bf680437d",
+    "expensify-common": "git+ssh://git@github.com/Expensify/expensify-common.git#879df466155918ec0e0a6b36176af4211302b184",
     "fbjs": "^3.0.2",
     "html-entities": "^1.3.1",
     "htmlparser2": "^7.2.0",
