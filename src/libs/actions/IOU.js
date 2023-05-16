@@ -85,13 +85,12 @@ function buildOnyxDataForMoneyRequest(
             value: transaction,
         },
         {
-            onyxMethod: Onyx.METHOD.SET,
+            onyxMethod: isNewChatReport ? Onyx.METHOD.SET : Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${chatReport.reportID}`,
             value: {
                 ...(isNewChatReport ? {[chatCreatedAction.reportActionID]: chatCreatedAction} : {}),
                 [reportPreviewAction.reportActionID]: {
-                    ...reportPreviewAction,
-                    ...(isNewReportPreviewAction ? {} : {created: DateUtils.getDBTime()}),
+                    ...(isNewReportPreviewAction ? reportPreviewAction : {created: DateUtils.getDBTime()}),
                 },
             },
         },

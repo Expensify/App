@@ -104,7 +104,7 @@ const ReportPreview = (props) => {
                 <Pressable
                     key={`ReportPreview-${props.action.reportActionID}-${index}`}
                     onPress={() => {
-                        Navigation.navigate(ROUTES.getIouDetailsRoute(props.chatReportID, props.iouReportID));
+                        Navigation.navigate(ROUTES.getReportRoute(props.iouReportID));
                     }}
                     onPressIn={() => DeviceCapabilities.canUseTouchScreen() && ControlSelection.block()}
                     onPressOut={() => ControlSelection.unblock()}
