@@ -148,6 +148,6 @@ export default compose(
         },
         nvp_lastPaymentMethod: {
             key: ONYXKEYS.NVP_LAST_PAYMENT_METHOD,
-        }
+        },
     }),
 )(SettlementButton);

@@ -73,7 +73,8 @@ const MoneyRequestHeader = (props) => {
         ? ReportUtils.getWorkspaceAvatar(props.report)
         : ReportUtils.getAvatar(lodashGet(props.personalDetails, [props.report.managerEmail, 'avatar']), props.report.managerEmail);
     const policy = props.policies[`policy_${props.report.policyID}`];
-    const shouldShowSettlementButton = !isSettled && (Policy.isAdminOfFreePolicy([policy]) || (ReportUtils.isExpenseReport(props.report) && props.account.primaryLogin === props.report.managerEmail));
+    const shouldShowSettlementButton =
+        !isSettled && (Policy.isAdminOfFreePolicy([policy]) || (ReportUtils.isExpenseReport(props.report) && props.account.primaryLogin === props.report.managerEmail));
     return (
         <View style={[{backgroundColor: themeColors.highlightBG}, styles.pl0]}>
             <HeaderWithCloseButton

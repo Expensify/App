@@ -1313,12 +1313,8 @@ function sendMoneyViaPaypal(report, amount, currency, comment, managerEmail, rec
  * @param {Object} iouReport
  * @param {String} reimbursementBankAccountState
  */
-function payMoneyRequest(paymentType, chatReport, iouReport, reimbursementBankAccountState= null) {
-    if (
-        ReportUtils.isPolicyExpenseChat(chatReport) &&
-        reimbursementBankAccountState !== CONST.BANK_ACCOUNT.STATE.OPEN &&
-        paymentType === CONST.IOU.PAYMENT_TYPE.EXPENSIFY
-    ) {
+function payMoneyRequest(paymentType, chatReport, iouReport, reimbursementBankAccountState = null) {
+    if (ReportUtils.isPolicyExpenseChat(chatReport) && reimbursementBankAccountState !== CONST.BANK_ACCOUNT.STATE.OPEN && paymentType === CONST.IOU.PAYMENT_TYPE.EXPENSIFY) {
         Navigation.navigate(ROUTES.BANK_ACCOUNT_NEW);
         return;
     }
