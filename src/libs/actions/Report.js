@@ -1516,18 +1516,15 @@ function addEmojiReaction(reportID, reportActionID, emoji, skinTone = preferredS
  * @param {Object} existingReactions
  */
 function removeEmojiReaction(reportID, reportActionID, emoji, existingReactions) {
-    const reactionObject = existingReactions[emoji.name];
-    if (!reactionObject) {
-        return;
-    }
-
     const optimisticData = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS_REACTIONS}${reportID}${reportActionID}`,
             value: {
                 [emoji.name]: {
-                    currentUserAccountID: null,
+                    users: {
+                        [currentUserAccountID]: null,
+                    },
                 },
             },
         },
@@ -1560,7 +1557,7 @@ function toggleEmojiReaction(reportID, reportAction, emoji, existingReactions, p
     const skinTone = emoji.types === undefined ? 'nothing' : paramSkinTone;
 
     if (reactionObject && hasAccountIDEmojiReacted(currentUserAccountID, reactionObject.users, skinTone)) {
-        removeEmojiReaction(reportID, reportAction.reportActionID, emoji, existingReactions);
+        removeEmojiReaction(reportID, reportAction.reportActionID, emoji);
         return;
     }
 

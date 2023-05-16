@@ -85,6 +85,7 @@ const defaultProps = {
 
 const ReportActionItemEmojiReactions = (props) => {
     const popoverReactionListAnchor = useRef(null);
+    let totalReactionCount = 0;
     // @TODO: need to sort everything so that emojis and users are in the order they were added
     return (
         <View
@@ -97,6 +98,7 @@ const ReportActionItemEmojiReactions = (props) => {
                 if (!reactionCount) {
                     return null;
                 }
+                totalReactionCount += reactionCount;
                 const emojiAsset = _.find(emojis, (emoji) => emoji.name === reactionEmoji);
                 const emojiCodes = getUniqueEmojiCodes(emojiAsset, reaction.users);
                 const hasUserReacted = Report.hasAccountIDEmojiReacted(props.currentUserPersonalDetails.accountID, reaction.users);
@@ -133,7 +135,7 @@ const ReportActionItemEmojiReactions = (props) => {
                     </Tooltip>
                 );
             })}
-            {_.size(props.emojiReactions) > 0 && <AddReactionBubble onSelectEmoji={props.toggleReaction} />}
+            {totalReactionCount > 0 && <AddReactionBubble onSelectEmoji={props.toggleReaction} />}
         </View>
     );
 };
