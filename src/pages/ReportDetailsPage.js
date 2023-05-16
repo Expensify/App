@@ -57,7 +57,14 @@ const defaultProps = {
 
 class ReportDetailsPage extends Component {
     getMenuItems() {
-        const menuItems = [];
+        const menuItems = [
+            {
+                key: CONST.REPORT_DETAILS_MENU_ITEM.SHARE_CODE,
+                translationKey: 'common.shareCode',
+                icon: Expensicons.QrCode,
+                action: () => Navigation.navigate(ROUTES.getReportShareCodeRoute(this.props.report.reportID)),
+            },
+        ];
 
         if (ReportUtils.isArchivedRoom(this.props.report)) {
             return [];

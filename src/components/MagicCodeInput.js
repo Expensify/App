@@ -8,6 +8,7 @@ import CONST from '../CONST';
 import Text from './Text';
 import TextInput from './TextInput';
 import FormHelpMessage from './FormHelpMessage';
+import * as Browser from '../libs/Browser';
 
 const propTypes = {
     /** Name attribute for the input */
@@ -38,6 +39,9 @@ const propTypes = {
 
     /** Function to call when the input is submitted or fully complete */
     onFulfill: PropTypes.func,
+
+    /** Specifies if the input has a validation error */
+    hasError: PropTypes.bool,
 };
 
 const defaultProps = {
@@ -50,6 +54,7 @@ const defaultProps = {
     innerRef: null,
     onChangeText: () => {},
     onFulfill: () => {},
+    hasError: false,
 };
 
 /**
@@ -255,6 +260,11 @@ function MagicCodeInput(props) {
         }
     };
 
+    // We need to check the browser because, in iOS Safari, an input in a container with its opacity set to
+    // 0 (completely transparent) cannot handle user interaction, hence the Paste option is never shown.
+    // Alternate styling will be applied based on this condition.
+    const isMobileSafari = Browser.isMobileSafari();
+
     return (
         <>
             <View style={[styles.magicCodeInputContainer]}>
@@ -263,10 +273,10 @@ function MagicCodeInput(props) {
                         key={index}
                         style={[styles.w15]}
                     >
-                        <View style={[styles.textInputContainer, focusedIndex === index ? styles.borderColorFocus : {}]}>
+                        <View style={[styles.textInputContainer, focusedIndex === index ? styles.borderColorFocus : {}, props.hasError || props.errorText ? styles.borderColorDanger : {}]}>
                             <Text style={[styles.magicCodeInput, styles.textAlignCenter]}>{decomposeString(props.value)[index] || ''}</Text>
                         </View>
-                        <View style={[StyleSheet.absoluteFillObject, styles.w100, styles.opacity0]}>
+                        <View style={[StyleSheet.absoluteFillObject, styles.w100, isMobileSafari ? styles.bgTransparent : styles.opacity0]}>
                             <TextInput
                                 ref={(ref) => (inputRefs.current[index] = ref)}
                                 autoFocus={index === 0 && props.autoFocus}
@@ -291,6 +301,8 @@ function MagicCodeInput(props) {
                                 onKeyPress={onKeyPress}
                                 onPress={(event) => onPress(event, index)}
                                 onFocus={onFocus}
+                                caretHidden={isMobileSafari}
+                                inputStyle={[isMobileSafari ? styles.magicCodeInputTransparent : undefined]}
                             />
                         </View>
                     </View>

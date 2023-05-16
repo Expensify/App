@@ -197,10 +197,10 @@ function getPersonalDetailsForLogins(logins, personalDetails) {
 /**
  * Return true if personal details data is ready, i.e. report list options can be created.
  * @param {Object} personalDetails
- * @returns {boolean}
+ * @returns {Boolean}
  */
 function isPersonalDetailsReady(personalDetails) {
-    return !_.isEmpty(personalDetails) && !_.some(_.keys(personalDetails), (key) => !personalDetails[key].login);
+    return !_.isEmpty(personalDetails) && _.some(_.keys(personalDetails), (key) => personalDetails[key].login);
 }
 
 /**
@@ -408,7 +408,9 @@ function createOption(logins, personalDetails, report, reportActions = {}, {show
         result.isDefaultRoom = ReportUtils.isDefaultRoom(report);
         result.isArchivedRoom = ReportUtils.isArchivedRoom(report);
         result.isPolicyExpenseChat = ReportUtils.isPolicyExpenseChat(report);
+        result.isMoneyRequestReport = ReportUtils.isMoneyRequestReport(report);
         result.isThread = ReportUtils.isThread(report);
+        result.isTaskReport = ReportUtils.isTaskReport(report);
         result.shouldShowSubscript = result.isPolicyExpenseChat && !report.isOwnPolicyExpenseChat && !result.isArchivedRoom;
         result.allReportErrors = getAllReportErrors(report, reportActions);
         result.brickRoadIndicator = !_.isEmpty(result.allReportErrors) ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : '';
@@ -430,7 +432,7 @@ function createOption(logins, personalDetails, report, reportActions = {}, {show
         if (ReportUtils.isReportMessageAttachment({text: report.lastMessageText, html: report.lastMessageHtml})) {
             lastMessageTextFromReport = `[${Localize.translateLocal('common.attachment')}]`;
         } else {
-            lastMessageTextFromReport = report ? report.lastMessageText : '';
+            lastMessageTextFromReport = report ? report.lastMessageText || '' : '';
         }
 
         const lastActorDetails = personalDetailMap[report.lastActorEmail] || null;
@@ -449,6 +451,8 @@ function createOption(logins, personalDetails, report, reportActions = {}, {show
 
         if (result.isChatRoom || result.isPolicyExpenseChat) {
             result.alternateText = showChatPreviewLine && !forcePolicyNamePreview && lastMessageText ? lastMessageText : subtitle;
+        } else if (result.isMoneyRequestReport) {
+            result.alternateText = lastMessageTextFromReport.length > 0 ? lastMessageText : Localize.translate(preferredLocale, 'report.noActivityYet');
         } else {
             result.alternateText = showChatPreviewLine && lastMessageText ? lastMessageText : LocalePhoneNumber.formatPhoneNumber(personalDetail.login);
         }
@@ -546,6 +550,7 @@ function getOptions(
         forcePolicyNamePreview = false,
         includeOwnedWorkspaceChats = false,
         includeThreads = false,
+        includeTasks = false,
     },
 ) {
     if (!isPersonalDetailsReady(personalDetails)) {
@@ -587,6 +592,7 @@ function getOptions(
 
         const isThread = ReportUtils.isThread(report);
         const isChatRoom = ReportUtils.isChatRoom(report);
+        const isTaskReport = ReportUtils.isTaskReport(report);
         const isPolicyExpenseChat = ReportUtils.isPolicyExpenseChat(report);
         const logins = report.participants || [];
 
@@ -595,6 +601,10 @@ function getOptions(
         }
 
         if (isThread && !includeThreads) {
+            return;
+        }
+
+        if (isTaskReport && !includeTasks) {
             return;
         }
 
@@ -851,7 +861,9 @@ function getNewChatOptions(reports, personalDetails, betas = [], searchValue = '
  */
 
 function getShareDestinationOptions(reports, personalDetails, betas = [], searchValue = '', selectedOptions = [], excludeLogins = [], includeOwnedWorkspaceChats = true) {
-    return getOptions(reports, personalDetails, {
+    // We want to filter out any IOUs or expense reports
+    const filteredReports = _.filter(reports, (report) => !ReportUtils.isMoneyRequestReport(report));
+    return getOptions(filteredReports, personalDetails, {
         betas,
         searchInputValue: searchValue.trim(),
         selectedOptions,

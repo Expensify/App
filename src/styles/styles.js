@@ -1688,10 +1688,8 @@ const styles = {
 
     taskSelectorLink: {
         alignSelf: 'center',
-        height: 42,
         width: '100%',
         padding: 6,
-        margin: 3,
         backgroundColor: themeColors.transparent,
     },
 
@@ -1975,8 +1973,8 @@ const styles = {
         backgroundColor: themeColors.modalBackdrop,
     },
 
-    centeredModalStyles: (isSmallScreenWidth) => ({
-        borderWidth: isSmallScreenWidth ? 1 : 0,
+    centeredModalStyles: (isSmallScreenWidth, isFullScreenWhenSmall) => ({
+        borderWidth: isSmallScreenWidth && !isFullScreenWhenSmall ? 1 : 0,
         marginHorizontal: isSmallScreenWidth ? 0 : 20,
     }),
 
@@ -2340,6 +2338,10 @@ const styles = {
         fontSize: variables.fontSizeXLarge,
         color: themeColors.heading,
         lineHeight: variables.inputHeight,
+    },
+
+    magicCodeInputTransparent: {
+        color: 'transparent',
     },
 
     iouAmountText: {
@@ -3220,9 +3222,26 @@ const styles = {
     contextMenuItemPopoverMaxWidth: {
         maxWidth: 375,
     },
+
     taskCheckbox: {
         height: 16,
         width: 16,
+    },
+
+    shareCodePage: {
+        paddingHorizontal: 38.5,
+    },
+
+    shareCodeContainer: {
+        width: '100%',
+        alignItems: 'center',
+        paddingHorizontal: variables.qrShareHorizontalPadding,
+        paddingVertical: 20,
+        borderRadius: 20,
+        overflow: 'hidden',
+        borderColor: themeColors.borderFocus,
+        borderWidth: 2,
+        backgroundColor: themeColors.highlightBG,
     },
 };
 
