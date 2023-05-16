@@ -1,6 +1,6 @@
-import PropTypes from 'prop-types';
 import {View} from 'react-native';
 import React from 'react';
+import PropTypes from 'prop-types';
 import _ from 'underscore';
 import Text from '../../../components/Text';
 import styles from '../../../styles/styles';
@@ -16,44 +16,25 @@ import Licenses from '../Licenses';
 import Socials from '../Socials';
 import Hoverable from '../../../components/Hoverable';
 import CONST from '../../../CONST';
-import Navigation, {navigationRef} from '../../../libs/Navigation/Navigation';
 import * as Session from '../../../libs/actions/Session';
 import SignInGradient from '../../../../assets/images/home-fade-gradient--mobile.svg';
-import screens from '../../../SCREENS';
 
 const propTypes = {
-    scrollViewRef: PropTypes.shape({
-        // eslint-disable-next-line react/forbid-prop-types
-        current: PropTypes.any,
-    }),
     ...windowDimensionsPropTypes,
     ...withLocalizePropTypes,
+    scrollPageToTop: PropTypes.func.isRequired,
 };
 
-const defaultProps = {
-    scrollViewRef: undefined,
-};
+const defaultProps = {};
 
-const navigateHome = (scrollViewRef) => {
-    const currentRoute = navigationRef.current.getCurrentRoute();
-    if (
-        currentRoute.name === screens.HOME
-        && scrollViewRef
-        && scrollViewRef.current
-    ) {
-        scrollViewRef.current.scrollTo({
-            y: 0,
-            animated: true,
-        });
-    } else {
-        Navigation.navigate();
-    }
+const navigateHome = (scrollPageToTop) => {
+    scrollPageToTop();
 
     // We need to clear sign in data in case the user is already in the ValidateCodeForm or PasswordForm pages
     Session.clearSignInData();
 };
 
-const columns = [
+const columns = ({scrollPageToTop}) => [
     {
         translationPath: 'footer.features',
         rows: [
@@ -157,11 +138,11 @@ const columns = [
         translationPath: 'footer.getStarted',
         rows: [
             {
-                onPress: navigateHome,
+                onPress: () => navigateHome(scrollPageToTop),
                 translationPath: 'footer.createAccount',
             },
             {
-                onPress: navigateHome,
+                onPress: () => navigateHome(scrollPageToTop),
                 translationPath: 'footer.logIn',
             },
         ],
@@ -187,36 +168,32 @@ const Footer = (props) => {
                 ) : null}
                 <View style={pageFooterWrapper}>
                     <View style={footerColumns}>
-                        {_.map(columns, (column, i) => (
+                        {_.map(columns({scrollPageToTop: props.scrollPageToTop}), (column, i) => (
                             <View
                                 key={column.translationPath}
                                 style={footerColumn}
                             >
-                                <Text style={[styles.textHeadline, styles.footerTitle]}>
-                                    {props.translate(column.translationPath)}
-                                </Text>
+                                <Text style={[styles.textHeadline, styles.footerTitle]}>{props.translate(column.translationPath)}</Text>
                                 <View style={[styles.footerRow]}>
-                                    {_.map(column.rows, row => (
-                                        <Hoverable
-                                            key={row.translationPath}
-                                        >
-                                            {hovered => (
+                                    {_.map(column.rows, (row) => (
+                                        <Hoverable key={row.translationPath}>
+                                            {(hovered) => (
                                                 <TextLink
                                                     style={[styles.footerRow, hovered ? styles.textBlue : {}]}
                                                     href={row.link}
-                                                    onPress={row.onPress ? () => row.onPress(props.scrollViewRef) : undefined}
+                                                    onPress={row.onPress}
                                                 >
                                                     {props.translate(row.translationPath)}
                                                 </TextLink>
                                             )}
                                         </Hoverable>
                                     ))}
-                                    {(i === 2) && (
+                                    {i === 2 && (
                                         <View style={styles.mt5}>
                                             <Socials />
                                         </View>
                                     )}
-                                    {(i === 3) && (
+                                    {i === 3 && (
                                         <View style={styles.mv4}>
                                             <Licenses />
                                         </View>
@@ -226,12 +203,14 @@ const Footer = (props) => {
                         ))}
                     </View>
                     <View style={[!isVertical && styles.footerBottomLogo]}>
-                        {!isVertical
-                            ? (
-                                <Expensicons.ExpensifyFooterLogo />
-                            ) : (
-                                <Expensicons.ExpensifyFooterLogoVertical height={variables.verticalLogoHeight} width={variables.verticalLogoWidth} />
-                            )}
+                        {!isVertical ? (
+                            <Expensicons.ExpensifyFooterLogo />
+                        ) : (
+                            <Expensicons.ExpensifyFooterLogoVertical
+                                height={variables.verticalLogoHeight}
+                                width={variables.verticalLogoWidth}
+                            />
+                        )}
                     </View>
                 </View>
             </View>
@@ -243,7 +222,4 @@ Footer.propTypes = propTypes;
 Footer.displayName = 'Footer';
 Footer.defaultProps = defaultProps;
 
-export default compose(
-    withLocalize,
-    withWindowDimensions,
-)(Footer);
+export default compose(withLocalize, withWindowDimensions)(Footer);

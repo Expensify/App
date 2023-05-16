@@ -12,7 +12,7 @@ const story = {
 };
 
 // eslint-disable-next-line react/jsx-props-no-spreading
-const Template = args => <MagicCodeInput {...args} />;
+const Template = (args) => <MagicCodeInput {...args} />;
 
 // Arguments can be passed to the component by binding
 // See: https://storybook.js.org/docs/react/writing-stories/introduction#using-args
@@ -35,7 +35,4 @@ SubmitOnComplete.args = {
 };
 
 export default story;
-export {
-    AutoFocus,
-    SubmitOnComplete,
-};
+export {AutoFocus, SubmitOnComplete};

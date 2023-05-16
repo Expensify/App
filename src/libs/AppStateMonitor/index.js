@@ -15,11 +15,7 @@ function addBecameActiveListener(callback) {
      * @param {String} state
      */
     function appStateChangeCallback(state) {
-        if (
-            shouldReportActivity
-            && (appState === CONST.APP_STATE.INACTIVE || appState === CONST.APP_STATE.BACKGROUND)
-            && state === CONST.APP_STATE.ACTIVE
-        ) {
+        if (shouldReportActivity && (appState === CONST.APP_STATE.INACTIVE || appState === CONST.APP_STATE.BACKGROUND) && state === CONST.APP_STATE.ACTIVE) {
             callback();
         }
         appState = state;

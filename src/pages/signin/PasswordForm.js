@@ -1,7 +1,5 @@
 import React from 'react';
-import {
-    TouchableOpacity, View,
-} from 'react-native';
+import {TouchableOpacity, View} from 'react-native';
 import PropTypes from 'prop-types';
 import {withOnyx} from 'react-native-onyx';
 import _ from 'underscore';
@@ -125,8 +123,8 @@ class PasswordForm extends React.Component {
     }
 
     /**
-    * Clears local and Onyx sign in states
-    */
+     * Clears local and Onyx sign in states
+     */
     clearSignInData() {
         this.setState({twoFactorAuthCode: '', formError: {}});
         Session.clearSignInData();
@@ -178,7 +176,7 @@ class PasswordForm extends React.Component {
             <>
                 <View style={[styles.mv3]}>
                     <TextInput
-                        ref={el => this.inputPassword = el}
+                        ref={(el) => (this.inputPassword = el)}
                         label={this.props.translate('common.password')}
                         secureTextEntry
                         autoCompleteType={ComponentUtils.PASSWORD_AUTOCOMPLETE_TYPE}
@@ -186,7 +184,7 @@ class PasswordForm extends React.Component {
                         nativeID="password"
                         name="password"
                         value={this.state.password}
-                        onChangeText={text => this.onTextInput(text, 'password')}
+                        onChangeText={(text) => this.onTextInput(text, 'password')}
                         onSubmitEditing={this.validateAndSubmitForm}
                         blurOnSubmit={false}
                         errorText={this.state.formError.password ? this.props.translate(this.state.formError.password) : ''}
@@ -197,9 +195,7 @@ class PasswordForm extends React.Component {
                             style={[styles.mt2]}
                             onPress={this.resetPassword}
                         >
-                            <Text style={[styles.link]}>
-                                {this.props.translate('passwordForm.forgot')}
-                            </Text>
+                            <Text style={[styles.link]}>{this.props.translate('passwordForm.forgot')}</Text>
                         </TouchableOpacity>
                     </View>
                 </View>
@@ -207,12 +203,12 @@ class PasswordForm extends React.Component {
                 {isTwoFactorAuthRequired && (
                     <View style={[styles.mv3]}>
                         <TextInput
-                            ref={el => this.input2FA = el}
+                            ref={(el) => (this.input2FA = el)}
                             label={this.props.translate('passwordForm.twoFactorCode')}
                             value={this.state.twoFactorAuthCode}
                             placeholder={this.props.translate('passwordForm.requiredWhen2FAEnabled')}
                             placeholderTextColor={themeColors.placeholderText}
-                            onChangeText={text => this.onTextInput(text, 'twoFactorAuthCode')}
+                            onChangeText={(text) => this.onTextInput(text, 'twoFactorAuthCode')}
                             onSubmitEditing={this.validateAndSubmitForm}
                             keyboardType={CONST.KEYBOARD_TYPE.NUMBER_PAD}
                             blurOnSubmit={false}
@@ -223,9 +219,7 @@ class PasswordForm extends React.Component {
                     </View>
                 )}
 
-                {hasServerError && (
-                    <FormHelpMessage message={ErrorUtils.getLatestErrorMessage(this.props.account)} />
-                )}
+                {hasServerError && <FormHelpMessage message={ErrorUtils.getLatestErrorMessage(this.props.account)} />}
                 <View>
                     <Button
                         isDisabled={this.props.network.isOffline}

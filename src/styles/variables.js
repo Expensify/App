@@ -83,7 +83,7 @@ export default {
     popoverMenuShadow: '0px 4px 12px 0px rgba(0, 0, 0, 0.06)',
     optionRowHeight: 64,
     optionRowHeightCompact: 52,
-    optionsListSectionHeaderHeight: getValueUsingPixelRatio(54, 60),
+    optionsListSectionHeaderHeight: getValueUsingPixelRatio(32, 38),
     overlayOpacity: 0.6,
     lineHeightSmall: getValueUsingPixelRatio(14, 16),
     lineHeightNormal: getValueUsingPixelRatio(16, 21),
@@ -135,5 +135,6 @@ export default {
     // This is calculated based on the values specified in the 'getGoogleListViewStyle' function of the 'StyleUtils' utility
     googleEmptyListViewHeight: 14,
     hoverDimValue: 0.5,
-    pressDimValue: 0.2,
+    pressDimValue: 0.8,
+    qrShareHorizontalPadding: 32,
 };

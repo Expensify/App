@@ -3,13 +3,7 @@
  * The time auto-update logic is extracted to this component to avoid re-rendering a more complex component, e.g. DetailsPage.
  */
 import {View} from 'react-native';
-import React, {
-    useCallback,
-    useEffect,
-    useMemo,
-    useRef,
-    useState,
-} from 'react';
+import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import PropTypes from 'prop-types';
 import styles from '../styles/styles';
 import DateUtils from '../libs/DateUtils';
@@ -32,13 +26,10 @@ function AutoUpdateTime(props) {
     /**
      * @returns {moment} Returns the locale moment object
      */
-    const getCurrentUserLocalTime = useCallback(() => (
-        DateUtils.getLocalMomentFromDatetime(
-            props.preferredLocale,
-            null,
-            props.timezone.selected,
-        )
-    ), [props.preferredLocale, props.timezone.selected]);
+    const getCurrentUserLocalTime = useCallback(
+        () => DateUtils.getLocalMomentFromDatetime(props.preferredLocale, null, props.timezone.selected),
+        [props.preferredLocale, props.timezone.selected],
+    );
 
     const [currentUserLocalTime, setCurrentUserLocalTime] = useState(getCurrentUserLocalTime);
     const minuteRef = useRef(new Date().getMinutes());
@@ -70,13 +61,14 @@ function AutoUpdateTime(props) {
 
     return (
         <View style={[styles.mb6, styles.detailsPageSectionContainer]}>
-            <Text style={[styles.textLabelSupporting, styles.mb1]} numberOfLines={1}>
+            <Text
+                style={[styles.textLabelSupporting, styles.mb1]}
+                numberOfLines={1}
+            >
                 {props.translate('detailsPage.localTime')}
             </Text>
             <Text numberOfLines={1}>
-                {currentUserLocalTime.format('LT')}
-                {' '}
-                {timezoneName}
+                {currentUserLocalTime.format('LT')} {timezoneName}
             </Text>
         </View>
     );

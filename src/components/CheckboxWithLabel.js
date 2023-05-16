@@ -1,6 +1,7 @@
 import React from 'react';
 import PropTypes from 'prop-types';
 import {View, TouchableOpacity} from 'react-native';
+import _ from 'underscore';
 import styles from '../styles/styles';
 import Checkbox from './Checkbox';
 import Text from './Text';
@@ -75,7 +76,10 @@ class CheckboxWithLabel extends React.Component {
     constructor(props) {
         super(props);
 
-        this.isChecked = props.value || props.defaultValue || props.isChecked;
+        // We need to pick the first value that is strictly a boolean
+        // https://github.com/Expensify/App/issues/16885#issuecomment-1520846065
+        this.isChecked = _.find([props.value, props.defaultValue, props.isChecked], (value) => _.isBoolean(value));
+
         this.LabelComponent = props.LabelComponent;
 
         this.toggleCheckbox = this.toggleCheckbox.bind(this);
@@ -89,7 +93,7 @@ class CheckboxWithLabel extends React.Component {
     render() {
         return (
             <View style={this.props.style}>
-                <View style={[styles.flexRow, styles.alignItemsCenter]}>
+                <View style={[styles.flexRow, styles.alignItemsCenter, styles.breakWord]}>
                     <Checkbox
                         isChecked={this.isChecked}
                         onPress={this.toggleCheckbox}
@@ -101,23 +105,10 @@ class CheckboxWithLabel extends React.Component {
                         focusable={false}
                         onPress={this.toggleCheckbox}
                         activeOpacity={variables.checkboxLabelActiveOpacity}
-                        style={[
-                            styles.ml3,
-                            styles.pr2,
-                            styles.w100,
-                            styles.flexRow,
-                            styles.flexWrap,
-                            styles.flexShrink1,
-                            styles.alignItemsCenter,
-                            styles.noSelect,
-                        ]}
+                        style={[styles.ml3, styles.pr2, styles.w100, styles.flexRow, styles.flexWrap, styles.flexShrink1, styles.alignItemsCenter, styles.noSelect]}
                     >
-                        {this.props.label && (
-                            <Text style={[styles.ml1]}>
-                                {this.props.label}
-                            </Text>
-                        )}
-                        {this.LabelComponent && (<this.LabelComponent />)}
+                        {this.props.label && <Text style={[styles.ml1]}>{this.props.label}</Text>}
+                        {this.LabelComponent && <this.LabelComponent />}
                     </TouchableOpacity>
                 </View>
                 <FormHelpMessage message={this.props.errorText} />
@@ -130,6 +121,9 @@ CheckboxWithLabel.propTypes = propTypes;
 CheckboxWithLabel.defaultProps = defaultProps;
 
 export default React.forwardRef((props, ref) => (
-    // eslint-disable-next-line react/jsx-props-no-spreading
-    <CheckboxWithLabel {...props} forwardedRef={ref} />
+    <CheckboxWithLabel
+        // eslint-disable-next-line react/jsx-props-no-spreading
+        {...props}
+        forwardedRef={ref}
+    />
 ));

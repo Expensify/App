@@ -25,7 +25,7 @@ const defaultProps = {
     isTestToolsModalOpen: false,
 };
 
-const TestToolsModal = props => (
+const TestToolsModal = (props) => (
     <Modal
         isVisible={props.isTestToolsModalOpen}
         type={CONST.MODAL.MODAL_TYPE.CENTERED_SMALL}

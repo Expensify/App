@@ -12,7 +12,7 @@ const routes = yaml.load(fs.readFileSync(`${docsDir}/_data/_routes.yml`, 'utf8')
  * @returns {String}
  */
 function toTitleCase(str) {
-    return str.replace(/\w\S*/g, txt => txt.charAt(0).toUpperCase() + txt.substr(1).toLowerCase());
+    return str.replace(/\w\S*/g, (txt) => txt.charAt(0).toUpperCase() + txt.substr(1).toLowerCase());
 }
 
 /**
@@ -36,7 +36,7 @@ function getArticleObj(filename) {
  * @param {*} entry - The article / section to push
  */
 function pushOrCreateEntry(hubs, hub, key, entry) {
-    const hubObj = _.find(hubs, obj => obj.href === hub);
+    const hubObj = _.find(hubs, (obj) => obj.href === hub);
     if (hubObj[key]) {
         hubObj[key].push(entry);
     } else {

@@ -18,16 +18,20 @@ const test = () => {
 
         // underscore promises in sequence without for-loop
         Promise.all(
-            _.map(metrics, metric => E2EClient.submitTestResults({
-                name: `App start ${metric.name}`,
-                duration: metric.duration,
-            })),
-        ).then(() => {
-            console.debug('[E2E] Done, exiting…');
-            E2EClient.submitTestDone();
-        }).catch((err) => {
-            console.debug('[E2E] Error while submitting test results:', err);
-        });
+            _.map(metrics, (metric) =>
+                E2EClient.submitTestResults({
+                    name: `App start ${metric.name}`,
+                    duration: metric.duration,
+                }),
+            ),
+        )
+            .then(() => {
+                console.debug('[E2E] Done, exiting…');
+                E2EClient.submitTestDone();
+            })
+            .catch((err) => {
+                console.debug('[E2E] Error while submitting test results:', err);
+            });
     });
 };
 

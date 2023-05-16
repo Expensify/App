@@ -23,10 +23,8 @@ import networkPropTypes from '../../components/networkPropTypes';
 const propTypes = {
     /** The route object passed to this page from the navigator */
     route: PropTypes.shape({
-
         /** Each parameter passed via the URL */
         params: PropTypes.shape({
-
             /** The statement year and month as one string, i.e. 202110 */
             yearMonth: PropTypes.string.isRequired,
         }).isRequired,
@@ -103,9 +101,7 @@ class WalletStatementPage extends React.Component {
                     onDownloadButtonPress={() => this.processDownload(this.yearMonth)}
                 />
                 <FullPageOfflineBlockingView>
-                    <WalletStatementModal
-                        statementPageURL={url}
-                    />
+                    <WalletStatementModal statementPageURL={url} />
                 </FullPageOfflineBlockingView>
             </ScreenWrapper>
         );

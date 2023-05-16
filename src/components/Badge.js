@@ -42,12 +42,12 @@ const defaultProps = {
 const Badge = (props) => {
     const textStyles = props.success || props.error ? styles.textWhite : undefined;
     const Wrapper = props.pressable ? Pressable : View;
-    const wrapperStyles = ({pressed}) => ([
+    const wrapperStyles = ({pressed}) => [
         styles.badge,
         styles.ml2,
         StyleUtils.getBadgeColorStyle(props.success, props.error, pressed, props.environment === CONST.ENVIRONMENT.ADHOC),
         ...props.badgeStyles,
-    ]);
+    ];
 
     return (
         <Wrapper

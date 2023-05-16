@@ -42,13 +42,9 @@ class ReimbursementAccountForm extends React.Component {
         }
 
         return (
-            <FormScrollView
-                ref={el => this.form = el}
-            >
+            <FormScrollView ref={(el) => (this.form = el)}>
                 {/* Form elements */}
-                <View style={viewStyles}>
-                    {this.props.children}
-                </View>
+                <View style={viewStyles}>{this.props.children}</View>
                 {!this.props.hideSubmitButton && (
                     <FormAlertWithSubmitButton
                         isAlertVisible={isErrorVisible}

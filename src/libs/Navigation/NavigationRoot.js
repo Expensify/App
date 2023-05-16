@@ -52,11 +52,7 @@ const NavigationRoot = (props) => {
     useFlipper(navigationRef);
     return (
         <NavigationContainer
-            fallback={(
-                <FullScreenLoadingIndicator
-                    style={styles.navigatorFullScreenLoading}
-                />
-            )}
+            fallback={<FullScreenLoadingIndicator style={styles.navigatorFullScreenLoading} />}
             onStateChange={parseAndLogRoute}
             onReady={props.onReady}
             theme={navigationTheme}

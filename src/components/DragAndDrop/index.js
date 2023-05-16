@@ -118,8 +118,7 @@ export default class DragAndDrop extends React.Component {
         return {
             width: boundingClientRect.width,
             left: window.innerWidth <= variables.mobileResponsiveWidthBreakpoint ? 0 : boundingClientRect.left,
-            right: window.innerWidth <= variables.mobileResponsiveWidthBreakpoint
-                ? window.innerWidth : boundingClientRect.right,
+            right: window.innerWidth <= variables.mobileResponsiveWidthBreakpoint ? window.innerWidth : boundingClientRect.right,
             top: boundingClientRect.top,
             bottom: boundingClientRect.bottom,
         };
@@ -149,13 +148,12 @@ export default class DragAndDrop extends React.Component {
             case 'dragleave':
                 if (this.dropZoneDragState === 'dragenter') {
                     if (
-                        event.clientY <= this.dropZoneRect.top
-                                || event.clientY >= this.dropZoneRect.bottom
-                                || event.clientX <= this.dropZoneRect.left
-                                || event.clientX >= this.dropZoneRect.right
-
-                                // Cancel drag when file manager is on top of the drop zone area - works only on chromium
-                                || (event.target.getAttribute('id') === this.props.activeDropZoneId && !event.relatedTarget)
+                        event.clientY <= this.dropZoneRect.top ||
+                        event.clientY >= this.dropZoneRect.bottom ||
+                        event.clientX <= this.dropZoneRect.left ||
+                        event.clientX >= this.dropZoneRect.right ||
+                        // Cancel drag when file manager is on top of the drop zone area - works only on chromium
+                        (event.target.getAttribute('id') === this.props.activeDropZoneId && !event.relatedTarget)
                     ) {
                         this.dropZoneDragState = 'dragleave';
                         this.props.onDragLeave(event);
@@ -166,7 +164,8 @@ export default class DragAndDrop extends React.Component {
                 this.dropZoneDragState = 'dragleave';
                 this.props.onDrop(event);
                 break;
-            default: break;
+            default:
+                break;
         }
     }
 
@@ -193,4 +192,3 @@ export default class DragAndDrop extends React.Component {
 
 DragAndDrop.propTypes = propTypes;
 DragAndDrop.defaultProps = defaultProps;
-

@@ -47,34 +47,34 @@ const run = function () {
     let newWorkflowRunURL;
     let hasNewWorkflowStarted = false;
     let workflowCompleted = false;
-    return GithubUtils.getLatestWorkflowRunID(workflow)
-        .then((lastWorkflowRunID) => {
-            console.log(`Latest ${workflow} workflow run has ID: ${lastWorkflowRunID}`);
-            previousWorkflowRunID = lastWorkflowRunID;
+    return (
+        GithubUtils.getLatestWorkflowRunID(workflow)
+            .then((lastWorkflowRunID) => {
+                console.log(`Latest ${workflow} workflow run has ID: ${lastWorkflowRunID}`);
+                previousWorkflowRunID = lastWorkflowRunID;
 
-            console.log(`Dispatching workflow: ${workflow}`);
-            return GithubUtils.octokit.actions.createWorkflowDispatch({
-                owner: GithubUtils.GITHUB_OWNER,
-                repo: GithubUtils.APP_REPO,
-                workflow_id: workflow,
-                ref: 'main',
-                inputs,
-            });
-        })
+                console.log(`Dispatching workflow: ${workflow}`);
+                return GithubUtils.octokit.actions.createWorkflowDispatch({
+                    owner: GithubUtils.GITHUB_OWNER,
+                    repo: GithubUtils.APP_REPO,
+                    workflow_id: workflow,
+                    ref: 'main',
+                    inputs,
+                });
+            })
 
-        .catch((err) => {
-            console.error(`Failed to dispatch workflow ${workflow}`, err);
-            core.setFailed(err);
-            process.exit(1);
-        })
+            .catch((err) => {
+                console.error(`Failed to dispatch workflow ${workflow}`, err);
+                core.setFailed(err);
+                process.exit(1);
+            })
 
-        // Wait for the new workflow to start
-        .then(() => {
-            let waitTimer = -GithubUtils.POLL_RATE;
-            return promiseWhile(
-                () => !hasNewWorkflowStarted && waitTimer < NEW_WORKFLOW_TIMEOUT,
-                _.throttle(
-                    () => {
+            // Wait for the new workflow to start
+            .then(() => {
+                let waitTimer = -GithubUtils.POLL_RATE;
+                return promiseWhile(
+                    () => !hasNewWorkflowStarted && waitTimer < NEW_WORKFLOW_TIMEOUT,
+                    _.throttle(() => {
                         console.log(`\n🤚 Waiting for a new ${workflow} workflow run to begin...`);
                         return GithubUtils.getLatestWorkflowRunID(workflow)
                             .then((lastWorkflowRunID) => {
@@ -101,25 +101,23 @@ const run = function () {
                             .catch((err) => {
                                 console.warn('Failed to fetch latest workflow run.', err);
                             });
-                    },
-                    GithubUtils.POLL_RATE,
-                ),
-            );
-        })
+                    }, GithubUtils.POLL_RATE),
+                );
+            })
 
-        // Wait for the new workflow run to finish
-        .then(() => {
-            let waitTimer = -GithubUtils.POLL_RATE;
-            return promiseWhile(
-                () => !workflowCompleted && waitTimer < WORKFLOW_COMPLETION_TIMEOUT,
-                _.throttle(
-                    () => {
+            // Wait for the new workflow run to finish
+            .then(() => {
+                let waitTimer = -GithubUtils.POLL_RATE;
+                return promiseWhile(
+                    () => !workflowCompleted && waitTimer < WORKFLOW_COMPLETION_TIMEOUT,
+                    _.throttle(() => {
                         console.log(`\n⏳ Waiting for workflow run ${newWorkflowRunURL} to finish...`);
-                        return GithubUtils.octokit.actions.getWorkflowRun({
-                            owner: GithubUtils.GITHUB_OWNER,
-                            repo: GithubUtils.APP_REPO,
-                            run_id: newWorkflowRunID,
-                        })
+                        return GithubUtils.octokit.actions
+                            .getWorkflowRun({
+                                owner: GithubUtils.GITHUB_OWNER,
+                                repo: GithubUtils.APP_REPO,
+                                run_id: newWorkflowRunID,
+                            })
                             .then(({data}) => {
                                 workflowCompleted = data.status === 'completed' && data.conclusion !== null;
                                 waitTimer += GithubUtils.POLL_RATE;
@@ -143,11 +141,10 @@ const run = function () {
                                     }
                                 }
                             });
-                    },
-                    GithubUtils.POLL_RATE,
-                ),
-            );
-        });
+                    }, GithubUtils.POLL_RATE),
+                );
+            })
+    );
 };
 
 if (require.main === module) {

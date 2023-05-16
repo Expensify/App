@@ -48,39 +48,19 @@ const defaultProps = {
     ...withCurrentUserPersonalDetailsDefaultProps,
 };
 
-const EmojiReactionBubble = props => (
+const EmojiReactionBubble = (props) => (
     <PressableWithSecondaryInteraction
-        style={({hovered, pressed}) => [
-            styles.emojiReactionBubble,
-            StyleUtils.getEmojiReactionBubbleStyle(hovered || pressed, props.hasUserReacted, props.isContextMenu),
-        ]}
+        style={({hovered, pressed}) => [styles.emojiReactionBubble, StyleUtils.getEmojiReactionBubbleStyle(hovered || pressed, props.hasUserReacted, props.isContextMenu)]}
         onPress={props.onPress}
         onLongPress={props.onReactionListOpen}
         onSecondaryInteraction={props.onReactionListOpen}
         ref={props.forwardedRef}
         enableLongPressWithHover={props.isSmallScreenWidth}
-
         // Prevent text input blur when emoji reaction is clicked
-        onMouseDown={e => e.preventDefault()}
+        onMouseDown={(e) => e.preventDefault()}
     >
-        <Text style={[
-            styles.emojiReactionBubbleText,
-            styles.userSelectNone,
-            StyleUtils.getEmojiReactionBubbleTextStyle(props.isContextMenu),
-        ]}
-        >
-            {props.emojiCodes.join('')}
-        </Text>
-        {props.count > 0 && (
-            <Text style={[
-                styles.reactionCounterText,
-                styles.userSelectNone,
-                StyleUtils.getEmojiReactionCounterTextStyle(props.hasUserReacted),
-            ]}
-            >
-                {props.count}
-            </Text>
-        )}
+        <Text style={[styles.emojiReactionBubbleText, styles.userSelectNone, StyleUtils.getEmojiReactionBubbleTextStyle(props.isContextMenu)]}>{props.emojiCodes.join('')}</Text>
+        {props.count > 0 && <Text style={[styles.reactionCounterText, styles.userSelectNone, StyleUtils.getEmojiReactionCounterTextStyle(props.hasUserReacted)]}>{props.count}</Text>}
     </PressableWithSecondaryInteraction>
 );
 
@@ -88,7 +68,12 @@ EmojiReactionBubble.propTypes = propTypes;
 EmojiReactionBubble.defaultProps = defaultProps;
 EmojiReactionBubble.displayName = 'EmojiReactionBubble';
 
-export default withWindowDimensions(React.forwardRef((props, ref) => (
-    /* eslint-disable-next-line react/jsx-props-no-spreading */
-    <EmojiReactionBubble {...props} forwardedRef={ref} />
-)));
+export default withWindowDimensions(
+    React.forwardRef((props, ref) => (
+        <EmojiReactionBubble
+            // eslint-disable-next-line react/jsx-props-no-spreading
+            {...props}
+            forwardedRef={ref}
+        />
+    )),
+);

@@ -33,16 +33,12 @@ const propTypes = {
     onSubmit: PropTypes.func.isRequired,
 
     /** Children to render. */
-    children: PropTypes.oneOfType([
-        PropTypes.func,
-        PropTypes.node,
-    ]).isRequired,
+    children: PropTypes.oneOfType([PropTypes.func, PropTypes.node]).isRequired,
 
     /* Onyx Props */
 
     /** Contains the form state that must be accessed outside of the component */
     formState: PropTypes.shape({
-
         /** Controls the loading state of the form */
         isLoading: PropTypes.bool,
 
@@ -151,9 +147,7 @@ class Form extends React.Component {
         }
 
         // Touches all form inputs so we can validate the entire form
-        _.each(this.inputRefs, (inputRef, inputID) => (
-            this.touchedInputs[inputID] = true
-        ));
+        _.each(this.inputRefs, (inputRef, inputID) => (this.touchedInputs[inputID] = true));
 
         // Validate form and return early if any errors are found
         if (!_.isEmpty(this.validate(this.state.inputValues))) {
@@ -172,7 +166,7 @@ class Form extends React.Component {
         const trimmedStringValues = {};
         _.each(values, (inputValue, inputID) => {
             if (_.isString(inputValue)) {
-                (trimmedStringValues[inputID] = inputValue.trim());
+                trimmedStringValues[inputID] = inputValue.trim();
             } else {
                 trimmedStringValues[inputID] = inputValue;
             }
@@ -199,9 +193,7 @@ class Form extends React.Component {
             throw new Error('Validate callback must return an empty object or an object with shape {inputID: error}');
         }
 
-        const errors = _.pick(validationErrors, (inputValue, inputID) => (
-            Boolean(this.touchedInputs[inputID])
-        ));
+        const errors = _.pick(validationErrors, (inputValue, inputID) => Boolean(this.touchedInputs[inputID]));
 
         if (!_.isEqual(errors, this.state.errors)) {
             this.setState({errors});
@@ -255,7 +247,16 @@ class Form extends React.Component {
 
             // We clone the child passing down all form props
             const inputID = child.props.inputID;
-            const defaultValue = this.props.draftValues[inputID] || child.props.defaultValue;
+            let defaultValue;
+
+            // We need to make sure that checkboxes have correct
+            // value assigned from the list of draft values
+            // https://github.com/Expensify/App/issues/16885#issuecomment-1520846065
+            if (_.isBoolean(this.props.draftValues[inputID])) {
+                defaultValue = this.props.draftValues[inputID];
+            } else {
+                defaultValue = this.props.draftValues[inputID] || child.props.defaultValue;
+            }
 
             // We want to initialize the input value if it's undefined
             if (_.isUndefined(this.state.inputValues[inputID])) {
@@ -272,13 +273,14 @@ class Form extends React.Component {
             }
 
             const errorFields = lodashGet(this.props.formState, 'errorFields', {});
-            const fieldErrorMessage = _.chain(errorFields[inputID])
-                .keys()
-                .sortBy()
-                .reverse()
-                .map(key => errorFields[inputID][key])
-                .first()
-                .value() || '';
+            const fieldErrorMessage =
+                _.chain(errorFields[inputID])
+                    .keys()
+                    .sortBy()
+                    .reverse()
+                    .map((key) => errorFields[inputID][key])
+                    .first()
+                    .value() || '';
 
             return React.cloneElement(child, {
                 ref: (node) => {
@@ -306,12 +308,15 @@ class Form extends React.Component {
                 },
                 onInputChange: (value, key) => {
                     const inputKey = key || inputID;
-                    this.setState(prevState => ({
-                        inputValues: {
-                            ...prevState.inputValues,
-                            [inputKey]: value,
-                        },
-                    }), () => this.validate(this.state.inputValues));
+                    this.setState(
+                        (prevState) => ({
+                            inputValues: {
+                                ...prevState.inputValues,
+                                [inputKey]: value,
+                            },
+                        }),
+                        () => this.validate(this.state.inputValues),
+                    );
 
                     if (child.props.shouldSaveDraft) {
                         FormActions.setDraftValues(this.props.formID, {[inputKey]: value});
@@ -326,70 +331,76 @@ class Form extends React.Component {
     }
 
     render() {
-        const scrollViewContent = safeAreaPaddingBottomStyle => (
-            <FormSubmit ref={this.formContentRef} style={StyleSheet.flatten([this.props.style, safeAreaPaddingBottomStyle])} onSubmit={this.submit}>
+        const scrollViewContent = (safeAreaPaddingBottomStyle) => (
+            <FormSubmit
+                ref={this.formContentRef}
+                style={StyleSheet.flatten([this.props.style, safeAreaPaddingBottomStyle])}
+                onSubmit={this.submit}
+            >
                 {this.childrenWrapperWithProps(_.isFunction(this.props.children) ? this.props.children({inputValues: this.state.inputValues}) : this.props.children)}
                 {this.props.isSubmitButtonVisible && (
-                <FormAlertWithSubmitButton
-                    buttonText={this.props.submitButtonText}
-                    isAlertVisible={_.size(this.state.errors) > 0 || Boolean(this.getErrorMessage()) || !_.isEmpty(this.props.formState.errorFields)}
-                    isLoading={this.props.formState.isLoading}
-                    message={_.isEmpty(this.props.formState.errorFields) ? this.getErrorMessage() : null}
-                    onSubmit={this.submit}
-                    footerContent={this.props.footerContent}
-                    onFixTheErrorsLinkPressed={() => {
-                        const errors = !_.isEmpty(this.state.errors) ? this.state.errors : this.props.formState.errorFields;
-                        const focusKey = _.find(_.keys(this.inputRefs), key => _.keys(errors).includes(key));
-                        const focusInput = this.inputRefs[focusKey];
+                    <FormAlertWithSubmitButton
+                        buttonText={this.props.submitButtonText}
+                        isAlertVisible={_.size(this.state.errors) > 0 || Boolean(this.getErrorMessage()) || !_.isEmpty(this.props.formState.errorFields)}
+                        isLoading={this.props.formState.isLoading}
+                        message={_.isEmpty(this.props.formState.errorFields) ? this.getErrorMessage() : null}
+                        onSubmit={this.submit}
+                        footerContent={this.props.footerContent}
+                        onFixTheErrorsLinkPressed={() => {
+                            const errors = !_.isEmpty(this.state.errors) ? this.state.errors : this.props.formState.errorFields;
+                            const focusKey = _.find(_.keys(this.inputRefs), (key) => _.keys(errors).includes(key));
+                            const focusInput = this.inputRefs[focusKey];
 
-                        const formRef = this.formRef.current;
-                        const formContentRef = this.formContentRef.current;
+                            const formRef = this.formRef.current;
+                            const formContentRef = this.formContentRef.current;
 
-                        // Start with dismissing the keyboard, so when we focus a non-text input, the keyboard is hidden
-                        Keyboard.dismiss();
+                            // Start with dismissing the keyboard, so when we focus a non-text input, the keyboard is hidden
+                            Keyboard.dismiss();
 
-                        // We subtract 10 to scroll slightly above the input
-                        if (focusInput.measureLayout && typeof focusInput.measureLayout === 'function') {
-                            // We measure relative to the content root, not the scroll view, as that gives
-                            // consistent results across mobile and web
-                            focusInput.measureLayout(formContentRef, (x, y) => formRef.scrollTo({y: y - 10, animated: false}));
-                        }
+                            // We subtract 10 to scroll slightly above the input
+                            if (focusInput.measureLayout && typeof focusInput.measureLayout === 'function') {
+                                // We measure relative to the content root, not the scroll view, as that gives
+                                // consistent results across mobile and web
+                                focusInput.measureLayout(formContentRef, (x, y) => formRef.scrollTo({y: y - 10, animated: false}));
+                            }
 
-                        // Focus the input after scrolling, as on the Web it gives a slightly better visual result
-                        if (focusInput.focus && typeof focusInput.focus === 'function') {
-                            focusInput.focus();
-                        }
-                    }}
-                    containerStyles={[styles.mh0, styles.mt5, styles.flex1]}
-                    enabledWhenOffline={this.props.enabledWhenOffline}
-                    isSubmitActionDangerous={this.props.isSubmitActionDangerous}
-                    disablePressOnEnter
-                />
+                            // Focus the input after scrolling, as on the Web it gives a slightly better visual result
+                            if (focusInput.focus && typeof focusInput.focus === 'function') {
+                                focusInput.focus();
+                            }
+                        }}
+                        containerStyles={[styles.mh0, styles.mt5, styles.flex1]}
+                        enabledWhenOffline={this.props.enabledWhenOffline}
+                        isSubmitActionDangerous={this.props.isSubmitActionDangerous}
+                        disablePressOnEnter
+                    />
                 )}
             </FormSubmit>
         );
 
         return (
             <SafeAreaConsumer>
-                {({safeAreaPaddingBottomStyle}) => (this.props.scrollContextEnabled ? (
-                    <ScrollViewWithContext
-                        style={[styles.w100, styles.flex1]}
-                        contentContainerStyle={styles.flexGrow1}
-                        keyboardShouldPersistTaps="handled"
-                        ref={this.formRef}
-                    >
-                        {scrollViewContent(safeAreaPaddingBottomStyle)}
-                    </ScrollViewWithContext>
-                ) : (
-                    <ScrollView
-                        style={[styles.w100, styles.flex1]}
-                        contentContainerStyle={styles.flexGrow1}
-                        keyboardShouldPersistTaps="handled"
-                        ref={this.formRef}
-                    >
-                        {scrollViewContent(safeAreaPaddingBottomStyle)}
-                    </ScrollView>
-                ))}
+                {({safeAreaPaddingBottomStyle}) =>
+                    this.props.scrollContextEnabled ? (
+                        <ScrollViewWithContext
+                            style={[styles.w100, styles.flex1]}
+                            contentContainerStyle={styles.flexGrow1}
+                            keyboardShouldPersistTaps="handled"
+                            ref={this.formRef}
+                        >
+                            {scrollViewContent(safeAreaPaddingBottomStyle)}
+                        </ScrollViewWithContext>
+                    ) : (
+                        <ScrollView
+                            style={[styles.w100, styles.flex1]}
+                            contentContainerStyle={styles.flexGrow1}
+                            keyboardShouldPersistTaps="handled"
+                            ref={this.formRef}
+                        >
+                            {scrollViewContent(safeAreaPaddingBottomStyle)}
+                        </ScrollView>
+                    )
+                }
             </SafeAreaConsumer>
         );
     }
@@ -402,10 +413,10 @@ export default compose(
     withLocalize,
     withOnyx({
         formState: {
-            key: props => props.formID,
+            key: (props) => props.formID,
         },
         draftValues: {
-            key: props => `${props.formID}Draft`,
+            key: (props) => `${props.formID}Draft`,
         },
     }),
 )(Form);

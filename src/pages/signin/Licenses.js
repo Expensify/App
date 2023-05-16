@@ -9,14 +9,15 @@ import LocalePicker from '../../components/LocalePicker';
 
 const currentYear = new Date().getFullYear();
 
-const Licenses = props => (
+const Licenses = (props) => (
     <>
-        <Text style={[styles.textExtraSmallSupporting, styles.mb4]}>
-            {`© ${currentYear} Expensify`}
-        </Text>
+        <Text style={[styles.textExtraSmallSupporting, styles.mb4]}>{`© ${currentYear} Expensify`}</Text>
         <Text style={[styles.textExtraSmallSupporting]}>
             {props.translate('termsOfUse.phrase5')}
-            <TextLink style={[styles.textExtraSmallSupporting, styles.link]} href={CONST.LICENSES_URL}>
+            <TextLink
+                style={[styles.textExtraSmallSupporting, styles.link]}
+                href={CONST.LICENSES_URL}
+            >
                 {' '}
                 {props.translate('termsOfUse.phrase6')}
             </TextLink>

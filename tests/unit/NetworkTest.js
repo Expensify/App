@@ -63,64 +63,67 @@ describe('NetworkTests', () => {
         });
 
         // Given a test user login and account ID
-        return TestHelper.signInWithTestUser(TEST_USER_ACCOUNT_ID, TEST_USER_LOGIN)
-            .then(() => {
-                expect(isOffline).toBe(null);
+        return TestHelper.signInWithTestUser(TEST_USER_ACCOUNT_ID, TEST_USER_LOGIN).then(() => {
+            expect(isOffline).toBe(null);
 
-                // Mock fetch() so that it throws a TypeError to simulate a bad network connection
-                global.fetch = jest.fn().mockRejectedValue(new TypeError(CONST.ERROR.FAILED_TO_FETCH));
+            // Mock fetch() so that it throws a TypeError to simulate a bad network connection
+            global.fetch = jest.fn().mockRejectedValue(new TypeError(CONST.ERROR.FAILED_TO_FETCH));
 
-                const actualXhr = HttpUtils.xhr;
-                HttpUtils.xhr = jest.fn();
-                HttpUtils.xhr
-                    .mockImplementationOnce(() => Promise.resolve({
+            const actualXhr = HttpUtils.xhr;
+            HttpUtils.xhr = jest.fn();
+            HttpUtils.xhr
+                .mockImplementationOnce(() =>
+                    Promise.resolve({
                         jsonCode: CONST.JSON_CODE.NOT_AUTHENTICATED,
-                    }))
+                    }),
+                )
 
-                    // Fail the call to re-authenticate
-                    .mockImplementationOnce(actualXhr)
+                // Fail the call to re-authenticate
+                .mockImplementationOnce(actualXhr)
 
-                    // The next call should still be using the old authToken
-                    .mockImplementationOnce(() => Promise.resolve({
+                // The next call should still be using the old authToken
+                .mockImplementationOnce(() =>
+                    Promise.resolve({
                         jsonCode: CONST.JSON_CODE.NOT_AUTHENTICATED,
-                    }))
+                    }),
+                )
 
-                    // Succeed the call to set a new authToken
-                    .mockImplementationOnce(() => Promise.resolve({
+                // Succeed the call to set a new authToken
+                .mockImplementationOnce(() =>
+                    Promise.resolve({
                         jsonCode: CONST.JSON_CODE.SUCCESS,
                         authToken: 'qwerty12345',
-                    }))
+                    }),
+                )
 
-                    // All remaining requests should succeed
-                    .mockImplementation(() => Promise.resolve({
+                // All remaining requests should succeed
+                .mockImplementation(() =>
+                    Promise.resolve({
                         jsonCode: CONST.JSON_CODE.SUCCESS,
-                    }));
+                    }),
+                );
 
-                // This should first trigger re-authentication and then a Failed to fetch
-                App.confirmReadyToOpenApp();
-                App.openApp();
-                return waitForPromisesToResolve()
-                    .then(() => Onyx.set(ONYXKEYS.NETWORK, {isOffline: false}))
-                    .then(() => {
-                        expect(isOffline).toBe(false);
+            // This should first trigger re-authentication and then a Failed to fetch
+            App.confirmReadyToOpenApp();
+            App.openApp();
+            return waitForPromisesToResolve()
+                .then(() => Onyx.set(ONYXKEYS.NETWORK, {isOffline: false}))
+                .then(() => {
+                    expect(isOffline).toBe(false);
 
-                        // Advance the network request queue by 1 second so that it can realize it's back online
-                        jest.advanceTimersByTime(CONST.NETWORK.PROCESS_REQUEST_DELAY_MS);
-                        return waitForPromisesToResolve();
-                    })
-                    .then(() => {
-                        // Then we will eventually have 3 calls to chatList and 2 calls to Authenticate
-                        const callsToOpenApp = _.filter(HttpUtils.xhr.mock.calls, ([command]) => (
-                            command === 'OpenApp'
-                        ));
-                        const callsToAuthenticate = _.filter(HttpUtils.xhr.mock.calls, ([command]) => (
-                            command === 'Authenticate'
-                        ));
+                    // Advance the network request queue by 1 second so that it can realize it's back online
+                    jest.advanceTimersByTime(CONST.NETWORK.PROCESS_REQUEST_DELAY_MS);
+                    return waitForPromisesToResolve();
+                })
+                .then(() => {
+                    // Then we will eventually have 3 calls to chatList and 2 calls to Authenticate
+                    const callsToOpenApp = _.filter(HttpUtils.xhr.mock.calls, ([command]) => command === 'OpenApp');
+                    const callsToAuthenticate = _.filter(HttpUtils.xhr.mock.calls, ([command]) => command === 'Authenticate');
 
-                        expect(callsToOpenApp.length).toBe(1);
-                        expect(callsToAuthenticate.length).toBe(1);
-                    });
-            });
+                    expect(callsToOpenApp.length).toBe(1);
+                    expect(callsToAuthenticate.length).toBe(1);
+                });
+        });
     });
 
     test('consecutive API calls eventually succeed when authToken is expired', () => {
@@ -138,24 +141,32 @@ describe('NetworkTests', () => {
                 HttpUtils.xhr
 
                     // And mock the first call to OpenApp return with an expired session code
-                    .mockImplementationOnce(() => Promise.resolve({
-                        jsonCode: CONST.JSON_CODE.NOT_AUTHENTICATED,
-                    }))
+                    .mockImplementationOnce(() =>
+                        Promise.resolve({
+                            jsonCode: CONST.JSON_CODE.NOT_AUTHENTICATED,
+                        }),
+                    )
 
                     // The next 2 API calls will also fire and also return a 407
-                    .mockImplementationOnce(() => Promise.resolve({
-                        jsonCode: CONST.JSON_CODE.NOT_AUTHENTICATED,
-                    }))
+                    .mockImplementationOnce(() =>
+                        Promise.resolve({
+                            jsonCode: CONST.JSON_CODE.NOT_AUTHENTICATED,
+                        }),
+                    )
 
-                    .mockImplementationOnce(() => Promise.resolve({
-                        jsonCode: CONST.JSON_CODE.NOT_AUTHENTICATED,
-                    }))
+                    .mockImplementationOnce(() =>
+                        Promise.resolve({
+                            jsonCode: CONST.JSON_CODE.NOT_AUTHENTICATED,
+                        }),
+                    )
 
                     // The request to Authenticate should succeed and we mock the responses for the remaining calls
-                    .mockImplementationOnce(() => Promise.resolve({
-                        jsonCode: CONST.JSON_CODE.SUCCESS,
-                        authToken: 'qwerty12345',
-                    }));
+                    .mockImplementationOnce(() =>
+                        Promise.resolve({
+                            jsonCode: CONST.JSON_CODE.SUCCESS,
+                            authToken: 'qwerty12345',
+                        }),
+                    );
 
                 // And then make 3 API requests in quick succession with an expired authToken and handle the response
                 // It doesn't matter which requests these are really as all the response is mocked we just want to see
@@ -211,11 +222,10 @@ describe('NetworkTests', () => {
 
     test('Non-retryable request will not be retried if connection is lost in flight', () => {
         // Given a xhr mock that will fail as if network connection dropped
-        const xhr = jest.spyOn(HttpUtils, 'xhr')
-            .mockImplementationOnce(() => {
-                Onyx.merge(ONYXKEYS.NETWORK, {isOffline: true});
-                return Promise.reject(new Error(CONST.ERROR.FAILED_TO_FETCH));
-            });
+        const xhr = jest.spyOn(HttpUtils, 'xhr').mockImplementationOnce(() => {
+            Onyx.merge(ONYXKEYS.NETWORK, {isOffline: true});
+            return Promise.reject(new Error(CONST.ERROR.FAILED_TO_FETCH));
+        });
 
         // Given a non-retryable request (that is bound to fail)
         const promise = Network.post('Get');
@@ -276,39 +286,41 @@ describe('NetworkTests', () => {
         const xhr = jest.spyOn(HttpUtils, 'xhr').mockResolvedValue({jsonCode: CONST.JSON_CODE.SUCCESS});
 
         // Given we have some requests made while we're offline
-        return Onyx.multiSet({
-            [ONYXKEYS.NETWORK]: {isOffline: true},
-            [ONYXKEYS.CREDENTIALS]: {autoGeneratedLogin: 'test', autoGeneratedPassword: 'passwd'},
-            [ONYXKEYS.SESSION]: {authToken: 'testToken'},
-        })
-            .then(() => {
-                // When network calls with `persist` are made
-                Network.post('mock command', {param1: 'value1', persist: true});
-                Network.post('mock command', {param2: 'value2', persist: true});
-                return waitForPromisesToResolve();
+        return (
+            Onyx.multiSet({
+                [ONYXKEYS.NETWORK]: {isOffline: true},
+                [ONYXKEYS.CREDENTIALS]: {autoGeneratedLogin: 'test', autoGeneratedPassword: 'passwd'},
+                [ONYXKEYS.SESSION]: {authToken: 'testToken'},
             })
-            .then(() => {
-                const persisted = PersistedRequests.getAll();
-                expect(persisted).toHaveLength(2);
-            })
+                .then(() => {
+                    // When network calls with `persist` are made
+                    Network.post('mock command', {param1: 'value1', persist: true});
+                    Network.post('mock command', {param2: 'value2', persist: true});
+                    return waitForPromisesToResolve();
+                })
+                .then(() => {
+                    const persisted = PersistedRequests.getAll();
+                    expect(persisted).toHaveLength(2);
+                })
 
-            // When we resume connectivity
-            .then(() => Onyx.set(ONYXKEYS.NETWORK, {isOffline: false}))
-            .then(waitForPromisesToResolve)
-            .then(() => {
-                expect(NetworkStore.isOffline()).toBe(false);
-                expect(SequentialQueue.isRunning()).toBe(false);
+                // When we resume connectivity
+                .then(() => Onyx.set(ONYXKEYS.NETWORK, {isOffline: false}))
+                .then(waitForPromisesToResolve)
+                .then(() => {
+                    expect(NetworkStore.isOffline()).toBe(false);
+                    expect(SequentialQueue.isRunning()).toBe(false);
 
-                // Then `xhr` should be called with expected data, and the persisted queue should be empty
-                expect(xhr).toHaveBeenCalledTimes(2);
-                expect(xhr.mock.calls).toEqual([
-                    expect.arrayContaining(['mock command', expect.objectContaining({param1: 'value1'})]),
-                    expect.arrayContaining(['mock command', expect.objectContaining({param2: 'value2'})]),
-                ]);
+                    // Then `xhr` should be called with expected data, and the persisted queue should be empty
+                    expect(xhr).toHaveBeenCalledTimes(2);
+                    expect(xhr.mock.calls).toEqual([
+                        expect.arrayContaining(['mock command', expect.objectContaining({param1: 'value1'})]),
+                        expect.arrayContaining(['mock command', expect.objectContaining({param2: 'value2'})]),
+                    ]);
 
-                const persisted = PersistedRequests.getAll();
-                expect(persisted).toEqual([]);
-            });
+                    const persisted = PersistedRequests.getAll();
+                    expect(persisted).toEqual([]);
+                })
+        );
     });
 
     test('persisted request should not be cleared until a backend response occurs', () => {
@@ -316,63 +328,62 @@ describe('NetworkTests', () => {
         const xhrCalls = [];
         const promises = [];
 
-        jest.spyOn(HttpUtils, 'xhr')
-            .mockImplementation(() => {
-                promises.push(new Promise((resolve, reject) => {
+        jest.spyOn(HttpUtils, 'xhr').mockImplementation(() => {
+            promises.push(
+                new Promise((resolve, reject) => {
                     xhrCalls.push({resolve, reject});
-                }));
+                }),
+            );
 
-                return _.last(promises);
-            });
+            return _.last(promises);
+        });
 
         // Given we have some requests made while we're offline
-        return Onyx.set(ONYXKEYS.NETWORK, {isOffline: true})
-            .then(() => {
-                // When network calls with `persist` are made
-                Network.post('mock command', {param1: 'value1', persist: true});
-                Network.post('mock command', {param2: 'value2', persist: true});
-                return waitForPromisesToResolve();
-            })
+        return (
+            Onyx.set(ONYXKEYS.NETWORK, {isOffline: true})
+                .then(() => {
+                    // When network calls with `persist` are made
+                    Network.post('mock command', {param1: 'value1', persist: true});
+                    Network.post('mock command', {param2: 'value2', persist: true});
+                    return waitForPromisesToResolve();
+                })
 
-            // When we resume connectivity
-            .then(() => Onyx.set(ONYXKEYS.NETWORK, {isOffline: false}))
-            .then(waitForPromisesToResolve)
-            .then(() => {
-                // Then requests should remain persisted until the xhr call is resolved
-                expect(_.size(PersistedRequests.getAll())).toEqual(2);
+                // When we resume connectivity
+                .then(() => Onyx.set(ONYXKEYS.NETWORK, {isOffline: false}))
+                .then(waitForPromisesToResolve)
+                .then(() => {
+                    // Then requests should remain persisted until the xhr call is resolved
+                    expect(_.size(PersistedRequests.getAll())).toEqual(2);
 
-                xhrCalls[0].resolve({jsonCode: CONST.JSON_CODE.SUCCESS});
-                return waitForPromisesToResolve();
-            })
-            .then(waitForPromisesToResolve)
-            .then(() => {
-                expect(_.size(PersistedRequests.getAll())).toEqual(1);
-                expect(PersistedRequests.getAll()).toEqual([
-                    expect.objectContaining({command: 'mock command', data: expect.objectContaining({param2: 'value2'})}),
-                ]);
+                    xhrCalls[0].resolve({jsonCode: CONST.JSON_CODE.SUCCESS});
+                    return waitForPromisesToResolve();
+                })
+                .then(waitForPromisesToResolve)
+                .then(() => {
+                    expect(_.size(PersistedRequests.getAll())).toEqual(1);
+                    expect(PersistedRequests.getAll()).toEqual([expect.objectContaining({command: 'mock command', data: expect.objectContaining({param2: 'value2'})})]);
 
-                // When a request fails it should be retried
-                xhrCalls[1].reject(new Error(CONST.ERROR.FAILED_TO_FETCH));
-                return waitForPromisesToResolve();
-            })
-            .then(() => {
-                expect(_.size(PersistedRequests.getAll())).toEqual(1);
-                expect(PersistedRequests.getAll()).toEqual([
-                    expect.objectContaining({command: 'mock command', data: expect.objectContaining({param2: 'value2'})}),
-                ]);
+                    // When a request fails it should be retried
+                    xhrCalls[1].reject(new Error(CONST.ERROR.FAILED_TO_FETCH));
+                    return waitForPromisesToResolve();
+                })
+                .then(() => {
+                    expect(_.size(PersistedRequests.getAll())).toEqual(1);
+                    expect(PersistedRequests.getAll()).toEqual([expect.objectContaining({command: 'mock command', data: expect.objectContaining({param2: 'value2'})})]);
 
-                // We need to advance past the request throttle back off timer because the request won't be retried until then
-                jest.advanceTimersByTime(CONST.NETWORK.MAX_RANDOM_RETRY_WAIT_TIME_MS);
-                return waitForPromisesToResolve();
-            })
-            .then(() => {
-                // Finally, after it succeeds the queue should be empty
-                xhrCalls[2].resolve({jsonCode: CONST.JSON_CODE.SUCCESS});
-                return waitForPromisesToResolve();
-            })
-            .then(() => {
-                expect(_.size(PersistedRequests.getAll())).toEqual(0);
-            });
+                    // We need to advance past the request throttle back off timer because the request won't be retried until then
+                    jest.advanceTimersByTime(CONST.NETWORK.MAX_RANDOM_RETRY_WAIT_TIME_MS);
+                    return waitForPromisesToResolve();
+                })
+                .then(() => {
+                    // Finally, after it succeeds the queue should be empty
+                    xhrCalls[2].resolve({jsonCode: CONST.JSON_CODE.SUCCESS});
+                    return waitForPromisesToResolve();
+                })
+                .then(() => {
+                    expect(_.size(PersistedRequests.getAll())).toEqual(0);
+                })
+        );
     });
 
     // Given a retry response create a mock and run some expectations for retrying requests
@@ -389,70 +400,60 @@ describe('NetworkTests', () => {
         };
 
         // Given a mock where a retry response is returned twice before a successful response
-        global.fetch = jest.fn()
-            .mockResolvedValueOnce(retryResponse)
-            .mockResolvedValueOnce(retryResponse)
-            .mockResolvedValueOnce(successfulResponse);
+        global.fetch = jest.fn().mockResolvedValueOnce(retryResponse).mockResolvedValueOnce(retryResponse).mockResolvedValueOnce(successfulResponse);
 
         // Given we have a request made while we're offline
-        return Onyx.set(ONYXKEYS.NETWORK, {isOffline: true})
-            .then(() => {
-                // When network calls with `persist` are made
-                Network.post('mock command', {param1: 'value1', persist: true});
-                return waitForPromisesToResolve();
-            })
+        return (
+            Onyx.set(ONYXKEYS.NETWORK, {isOffline: true})
+                .then(() => {
+                    // When network calls with `persist` are made
+                    Network.post('mock command', {param1: 'value1', persist: true});
+                    return waitForPromisesToResolve();
+                })
 
-            // When we resume connectivity
-            .then(() => Onyx.set(ONYXKEYS.NETWORK, {isOffline: false}))
-            .then(waitForPromisesToResolve)
-            .then(() => {
-                // Then there has only been one request so far
-                expect(global.fetch).toHaveBeenCalledTimes(1);
+                // When we resume connectivity
+                .then(() => Onyx.set(ONYXKEYS.NETWORK, {isOffline: false}))
+                .then(waitForPromisesToResolve)
+                .then(() => {
+                    // Then there has only been one request so far
+                    expect(global.fetch).toHaveBeenCalledTimes(1);
 
-                // And we still have 1 persisted request since it failed
-                expect(_.size(PersistedRequests.getAll())).toEqual(1);
-                expect(PersistedRequests.getAll()).toEqual([
-                    expect.objectContaining({command: 'mock command', data: expect.objectContaining({param1: 'value1'})}),
-                ]);
+                    // And we still have 1 persisted request since it failed
+                    expect(_.size(PersistedRequests.getAll())).toEqual(1);
+                    expect(PersistedRequests.getAll()).toEqual([expect.objectContaining({command: 'mock command', data: expect.objectContaining({param1: 'value1'})})]);
 
-                // We let the SequentialQueue process again after its wait time
-                jest.runOnlyPendingTimers();
-                return waitForPromisesToResolve();
-            })
-            .then(() => {
-                // Then we have retried the failing request
-                expect(global.fetch).toHaveBeenCalledTimes(2);
+                    // We let the SequentialQueue process again after its wait time
+                    jest.runOnlyPendingTimers();
+                    return waitForPromisesToResolve();
+                })
+                .then(() => {
+                    // Then we have retried the failing request
+                    expect(global.fetch).toHaveBeenCalledTimes(2);
 
-                // And we still have 1 persisted request since it failed
-                expect(_.size(PersistedRequests.getAll())).toEqual(1);
-                expect(PersistedRequests.getAll()).toEqual([
-                    expect.objectContaining({command: 'mock command', data: expect.objectContaining({param1: 'value1'})}),
-                ]);
+                    // And we still have 1 persisted request since it failed
+                    expect(_.size(PersistedRequests.getAll())).toEqual(1);
+                    expect(PersistedRequests.getAll()).toEqual([expect.objectContaining({command: 'mock command', data: expect.objectContaining({param1: 'value1'})})]);
 
-                // We let the SequentialQueue process again after its wait time
-                jest.runOnlyPendingTimers();
-                return waitForPromisesToResolve();
-            })
-            .then(() => {
-                // Then the request is retried again
-                expect(global.fetch).toHaveBeenCalledTimes(3);
+                    // We let the SequentialQueue process again after its wait time
+                    jest.runOnlyPendingTimers();
+                    return waitForPromisesToResolve();
+                })
+                .then(() => {
+                    // Then the request is retried again
+                    expect(global.fetch).toHaveBeenCalledTimes(3);
 
-                // The request succeeds so the queue is empty
-                expect(_.size(PersistedRequests.getAll())).toEqual(0);
-            });
+                    // The request succeeds so the queue is empty
+                    expect(_.size(PersistedRequests.getAll())).toEqual(0);
+                })
+        );
     };
 
-    test.each([
-        CONST.HTTP_STATUS.INTERNAL_SERVER_ERROR,
-        CONST.HTTP_STATUS.BAD_GATEWAY,
-        CONST.HTTP_STATUS.GATEWAY_TIMEOUT,
-        CONST.HTTP_STATUS.UNKNOWN_ERROR,
-    ])(
+    test.each([CONST.HTTP_STATUS.INTERNAL_SERVER_ERROR, CONST.HTTP_STATUS.BAD_GATEWAY, CONST.HTTP_STATUS.GATEWAY_TIMEOUT, CONST.HTTP_STATUS.UNKNOWN_ERROR])(
         'request with http status %d are retried',
 
         // Given that a request resolves as not ok and with a particular http status
         // When we make a persisted request and the http status represents a server error then it is retried with exponential back off
-        httpStatus => retryExpectations({ok: false, status: httpStatus}),
+        (httpStatus) => retryExpectations({ok: false, status: httpStatus}),
     );
 
     test('write requests are retried when Auth is down', () => {
@@ -476,8 +477,7 @@ describe('NetworkTests', () => {
     });
 
     test('test Bad Gateway status will log hmmm', () => {
-        global.fetch = jest.fn()
-            .mockResolvedValueOnce({ok: false, status: CONST.HTTP_STATUS.BAD_GATEWAY, statusText: 'Bad Gateway'});
+        global.fetch = jest.fn().mockResolvedValueOnce({ok: false, status: CONST.HTTP_STATUS.BAD_GATEWAY, statusText: 'Bad Gateway'});
 
         const logHmmmSpy = jest.spyOn(Log, 'hmmm');
 
@@ -493,8 +493,7 @@ describe('NetworkTests', () => {
     });
 
     test('test unknown status will log alert', () => {
-        global.fetch = jest.fn()
-            .mockResolvedValueOnce({ok: false, status: 418, statusText: 'I\'m a teapot'});
+        global.fetch = jest.fn().mockResolvedValueOnce({ok: false, status: 418, statusText: "I'm a teapot"});
 
         const logAlertSpy = jest.spyOn(Log, 'alert');
 
@@ -520,8 +519,7 @@ describe('NetworkTests', () => {
                 expect(NetworkStore.isOffline()).toBe(false);
 
                 // When network calls with are made
-                Network.post('mock command', {param1: 'value1'})
-                    .then(onResolved);
+                Network.post('mock command', {param1: 'value1'}).then(onResolved);
                 return waitForPromisesToResolve();
             })
             .then(() => {
@@ -533,7 +531,8 @@ describe('NetworkTests', () => {
 
     test('persisted request can trigger reauthentication for anything retryable', () => {
         // We're setting up xhr handler that rejects once with a 407 code and again with success
-        const xhr = jest.spyOn(HttpUtils, 'xhr')
+        const xhr = jest
+            .spyOn(HttpUtils, 'xhr')
             .mockResolvedValue({jsonCode: CONST.JSON_CODE.SUCCESS}) // Default
             .mockResolvedValueOnce({jsonCode: CONST.JSON_CODE.NOT_AUTHENTICATED}) // Initial call to test command return 407
             .mockResolvedValueOnce({jsonCode: CONST.JSON_CODE.SUCCESS}) // Call to Authenticate return 200
@@ -541,35 +540,36 @@ describe('NetworkTests', () => {
 
         // Given we have a request made while we're offline and we have credentials available to reauthenticate
         Onyx.merge(ONYXKEYS.CREDENTIALS, {autoGeneratedLogin: 'test', autoGeneratedPassword: 'passwd'});
-        return waitForPromisesToResolve()
-            .then(() => Onyx.set(ONYXKEYS.NETWORK, {isOffline: true}))
-            .then(() => {
-                Network.post('Mock', {param1: 'value1', persist: true, shouldRetry: true});
-                return waitForPromisesToResolve();
-            })
+        return (
+            waitForPromisesToResolve()
+                .then(() => Onyx.set(ONYXKEYS.NETWORK, {isOffline: true}))
+                .then(() => {
+                    Network.post('Mock', {param1: 'value1', persist: true, shouldRetry: true});
+                    return waitForPromisesToResolve();
+                })
 
-            // When we resume connectivity
-            .then(() => Onyx.set(ONYXKEYS.NETWORK, {isOffline: false}))
-            .then(waitForPromisesToResolve)
-            .then(() => {
-                const nonLogCalls = _.filter(xhr.mock.calls, ([commandName]) => commandName !== 'Log');
+                // When we resume connectivity
+                .then(() => Onyx.set(ONYXKEYS.NETWORK, {isOffline: false}))
+                .then(waitForPromisesToResolve)
+                .then(() => {
+                    const nonLogCalls = _.filter(xhr.mock.calls, ([commandName]) => commandName !== 'Log');
 
-                // The request should be retried once and reauthenticate should be called the second time
-                // expect(xhr).toHaveBeenCalledTimes(3);
-                const [call1, call2, call3] = nonLogCalls;
-                const [commandName1] = call1;
-                const [commandName2] = call2;
-                const [commandName3] = call3;
-                expect(commandName1).toBe('Mock');
-                expect(commandName2).toBe('Authenticate');
-                expect(commandName3).toBe('Mock');
-            });
+                    // The request should be retried once and reauthenticate should be called the second time
+                    // expect(xhr).toHaveBeenCalledTimes(3);
+                    const [call1, call2, call3] = nonLogCalls;
+                    const [commandName1] = call1;
+                    const [commandName2] = call2;
+                    const [commandName3] = call3;
+                    expect(commandName1).toBe('Mock');
+                    expect(commandName2).toBe('Authenticate');
+                    expect(commandName3).toBe('Mock');
+                })
+        );
     });
 
     test('several actions made while offline will get added in the order they are created', () => {
         // Given offline state where all requests will eventualy succeed without issue
-        const xhr = jest.spyOn(HttpUtils, 'xhr')
-            .mockResolvedValue({jsonCode: CONST.JSON_CODE.SUCCESS});
+        const xhr = jest.spyOn(HttpUtils, 'xhr').mockResolvedValue({jsonCode: CONST.JSON_CODE.SUCCESS});
         return Onyx.multiSet({
             [ONYXKEYS.SESSION]: {authToken: 'anyToken'},
             [ONYXKEYS.NETWORK]: {isOffline: true},
@@ -604,9 +604,7 @@ describe('NetworkTests', () => {
 
     test('several actions made while offline will get added in the order they are created when we need to reauthenticate', () => {
         // Given offline state where all requests will eventualy succeed without issue and assumed to be valid credentials
-        const xhr = jest.spyOn(HttpUtils, 'xhr')
-            .mockResolvedValueOnce({jsonCode: CONST.JSON_CODE.NOT_AUTHENTICATED})
-            .mockResolvedValue({jsonCode: CONST.JSON_CODE.SUCCESS});
+        const xhr = jest.spyOn(HttpUtils, 'xhr').mockResolvedValueOnce({jsonCode: CONST.JSON_CODE.NOT_AUTHENTICATED}).mockResolvedValue({jsonCode: CONST.JSON_CODE.SUCCESS});
 
         return Onyx.multiSet({
             [ONYXKEYS.NETWORK]: {isOffline: true},
@@ -645,7 +643,8 @@ describe('NetworkTests', () => {
 
     test('Sequential queue will succeed if triggered while reauthentication via main queue is in progress', () => {
         // Given offline state where all requests will eventualy succeed without issue and assumed to be valid credentials
-        const xhr = jest.spyOn(HttpUtils, 'xhr')
+        const xhr = jest
+            .spyOn(HttpUtils, 'xhr')
             .mockResolvedValueOnce({jsonCode: CONST.JSON_CODE.NOT_AUTHENTICATED})
             .mockResolvedValueOnce({jsonCode: CONST.JSON_CODE.NOT_AUTHENTICATED})
             .mockResolvedValue({jsonCode: CONST.JSON_CODE.SUCCESS, authToken: 'newToken'});
@@ -807,8 +806,7 @@ describe('NetworkTests', () => {
         const xhr = jest.spyOn(HttpUtils, 'xhr');
 
         // GIVEN a mock that will return a "cancelled" request error
-        global.fetch = jest.fn()
-            .mockRejectedValue(new DOMException('Aborted', CONST.ERROR.REQUEST_CANCELLED));
+        global.fetch = jest.fn().mockRejectedValue(new DOMException('Aborted', CONST.ERROR.REQUEST_CANCELLED));
 
         return Onyx.set(ONYXKEYS.NETWORK, {isOffline: false})
             .then(() => {

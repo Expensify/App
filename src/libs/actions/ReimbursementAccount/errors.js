@@ -47,9 +47,4 @@ function showBankAccountFormValidationError(error) {
     });
 }
 
-export {
-    setBankAccountFormValidationErrors,
-    setPersonalBankAccountFormValidationErrorFields,
-    showBankAccountFormValidationError,
-    resetReimbursementAccount,
-};
+export {setBankAccountFormValidationErrors, setPersonalBankAccountFormValidationErrorFields, showBankAccountFormValidationError, resetReimbursementAccount};
