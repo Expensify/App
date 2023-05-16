@@ -461,9 +461,10 @@ function isThreadFirstChat(reportAction, reportID) {
 /**
  * Get either the policyName or domainName the chat is tied to
  * @param {Object} report
+ * @param {Object} parentReport
  * @returns {String}
  */
-function getChatRoomSubtitle(report) {
+function getChatRoomSubtitle(report, parentReport = null) {
     if (isThread(report)) {
         if (!getChatType(report)) {
             return '';
@@ -471,7 +472,15 @@ function getChatRoomSubtitle(report) {
 
         // If thread is not from a DM or group chat, the subtitle will follow the pattern 'Workspace Name • #roomName'
         const workspaceName = getPolicyName(report);
-        const roomName = isChatRoom(report) ? lodashGet(report, 'displayName') : '';
+        let roomName = '';
+        if (isChatRoom(report)) {
+            if (parentReport) {
+                roomName = lodashGet(parentReport, 'displayName', '');
+            } else {
+                roomName = lodashGet(report, 'displayName', '');
+            }
+        }
+
         return [workspaceName, roomName].join(' • ');
     }
     if (!isDefaultRoom(report) && !isUserCreatedPolicyRoom(report) && !isPolicyExpenseChat(report)) {
@@ -574,12 +583,12 @@ function canShowReportRecipientLocalTime(personalDetails, report) {
 }
 
 /**
- * Trim the last message text to a fixed limit.
+ * Html decode, shorten last message text to fixed length and trim spaces.
  * @param {String} lastMessageText
  * @returns {String}
  */
 function formatReportLastMessageText(lastMessageText) {
-    return String(lastMessageText).replace(CONST.REGEX.AFTER_FIRST_LINE_BREAK, '').substring(0, CONST.REPORT.LAST_MESSAGE_TEXT_MAX_LENGTH);
+    return Str.htmlDecode(String(lastMessageText)).replace(CONST.REGEX.AFTER_FIRST_LINE_BREAK, '').substring(0, CONST.REPORT.LAST_MESSAGE_TEXT_MAX_LENGTH).trim();
 }
 
 /**
