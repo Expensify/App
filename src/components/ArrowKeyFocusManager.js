@@ -33,55 +33,16 @@ class ArrowKeyFocusManager extends Component {
         const arrowUpConfig = CONST.KEYBOARD_SHORTCUTS.ARROW_UP;
         const arrowDownConfig = CONST.KEYBOARD_SHORTCUTS.ARROW_DOWN;
 
-        this.unsubscribeArrowUpKey = KeyboardShortcut.subscribe(
-            arrowUpConfig.shortcutKey,
-            () => {
-                if (this.props.maxIndex < 0) {
-                    return;
-                }
+        this.onArrowUpKey = this.onArrowUpKey.bind(this);
+        this.onArrowDownKey = this.onArrowDownKey.bind(this);
 
-                const currentFocusedIndex = this.props.focusedIndex > 0 ? this.props.focusedIndex - 1 : this.props.maxIndex;
-                let newFocusedIndex = currentFocusedIndex;
-
-                while (this.props.disabledIndexes.includes(newFocusedIndex)) {
-                    newFocusedIndex = newFocusedIndex > 0 ? newFocusedIndex - 1 : this.props.maxIndex;
-                    if (newFocusedIndex === currentFocusedIndex) {
-                        // all indexes are disabled
-                        return; // no-op
-                    }
-                }
-
-                this.props.onFocusedIndexChanged(newFocusedIndex);
-            },
-            arrowUpConfig.descriptionKey,
-            arrowUpConfig.modifiers,
-            true,
-            false,
-            0,
-            true,
-            [this.props.shouldExcludeTextAreaNodes && 'TEXTAREA'],
-        );
+        this.unsubscribeArrowUpKey = KeyboardShortcut.subscribe(arrowUpConfig.shortcutKey, this.onArrowUpKey, arrowUpConfig.descriptionKey, arrowUpConfig.modifiers, true, false, 0, true, [
+            this.props.shouldExcludeTextAreaNodes && 'TEXTAREA',
+        ]);
 
         this.unsubscribeArrowDownKey = KeyboardShortcut.subscribe(
             arrowDownConfig.shortcutKey,
-            () => {
-                if (this.props.maxIndex < 0) {
-                    return;
-                }
-
-                const currentFocusedIndex = this.props.focusedIndex < this.props.maxIndex ? this.props.focusedIndex + 1 : 0;
-                let newFocusedIndex = currentFocusedIndex;
-
-                while (this.props.disabledIndexes.includes(newFocusedIndex)) {
-                    newFocusedIndex = newFocusedIndex < this.props.maxIndex ? newFocusedIndex + 1 : 0;
-                    if (newFocusedIndex === currentFocusedIndex) {
-                        // all indexes are disabled
-                        return; // no-op
-                    }
-                }
-
-                this.props.onFocusedIndexChanged(newFocusedIndex);
-            },
+            this.onArrowDownKey,
             arrowDownConfig.descriptionKey,
             arrowDownConfig.modifiers,
             true,
@@ -92,6 +53,15 @@ class ArrowKeyFocusManager extends Component {
         );
     }
 
+    componentDidUpdate(prevProps) {
+        if (prevProps.maxIndex === this.props.maxIndex) {
+            return;
+        }
+        if (this.props.focusedIndex > this.props.maxIndex) {
+            this.onArrowDownKey();
+        }
+    }
+
     componentWillUnmount() {
         if (this.unsubscribeArrowUpKey) {
             this.unsubscribeArrowUpKey();
@@ -100,6 +70,44 @@ class ArrowKeyFocusManager extends Component {
         if (this.unsubscribeArrowDownKey) {
             this.unsubscribeArrowDownKey();
         }
+    }
+
+    onArrowUpKey() {
+        if (this.props.maxIndex < 0) {
+            return;
+        }
+
+        const currentFocusedIndex = this.props.focusedIndex > 0 ? this.props.focusedIndex - 1 : this.props.maxIndex;
+        let newFocusedIndex = currentFocusedIndex;
+
+        while (this.props.disabledIndexes.includes(newFocusedIndex)) {
+            newFocusedIndex = newFocusedIndex > 0 ? newFocusedIndex - 1 : this.props.maxIndex;
+            if (newFocusedIndex === currentFocusedIndex) {
+                // all indexes are disabled
+                return; // no-op
+            }
+        }
+
+        this.props.onFocusedIndexChanged(newFocusedIndex);
+    }
+
+    onArrowDownKey() {
+        if (this.props.maxIndex < 0) {
+            return;
+        }
+
+        const currentFocusedIndex = this.props.focusedIndex < this.props.maxIndex ? this.props.focusedIndex + 1 : 0;
+        let newFocusedIndex = currentFocusedIndex;
+
+        while (this.props.disabledIndexes.includes(newFocusedIndex)) {
+            newFocusedIndex = newFocusedIndex < this.props.maxIndex ? newFocusedIndex + 1 : 0;
+            if (newFocusedIndex === currentFocusedIndex) {
+                // all indexes are disabled
+                return; // no-op
+            }
+        }
+
+        this.props.onFocusedIndexChanged(newFocusedIndex);
     }
 
     render() {
