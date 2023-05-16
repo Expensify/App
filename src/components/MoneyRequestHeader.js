@@ -142,6 +142,7 @@ const MoneyRequestHeader = (props) => {
                         chatReportID={props.report.chatReportID}
                         onPress={(paymentType) => IOU.payMoneyRequest(paymentType, props.chatReport, props.report, props.reimbursementAccount && props.reimbursementAccount.state)}
                         enablePaymentsRoute={ROUTES.BANK_ACCOUNT_NEW}
+                        addBankAccountRoute={ROUTES.IOU_DETAILS_ADD_BANK_ACCOUNT}
                         shouldShowPaymentOptions
                     />
                 )}

@@ -144,6 +144,7 @@ const ReportPreview = (props) => {
                         Navigation.navigate(ROUTES.getIouDetailsRoute(props.chatReportID, props.iouReportID));
                     }}
                     enablePaymentsRoute={ROUTES.BANK_ACCOUNT_NEW}
+                    addBankAccountRoute={ROUTES.IOU_DETAILS_ADD_BANK_ACCOUNT}
                     style={styles.requestPreviewBox}
                 />
             )}
