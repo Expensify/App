@@ -32,12 +32,12 @@ const Header = (props) => (
         <View style={styles.mw100}>
             {_.isString(props.title)
                 ? Boolean(props.title) && (
-                    <Text
-                    numberOfLines={2}
-                    style={[styles.headerText, styles.textLarge, ...props.textStyles]}
-                >
-                    {props.title}
-                </Text>
+                      <Text
+                          numberOfLines={2}
+                          style={[styles.headerText, styles.textLarge, ...props.textStyles]}
+                      >
+                          {props.title}
+                      </Text>
                   )
                 : props.title}
             {/* If there's no subtitle then display a fragment to avoid an empty space which moves the main title */}
