@@ -19,11 +19,11 @@ import {showContextMenuForReport} from '../ShowContextMenuContext';
 import * as StyleUtils from '../../styles/StyleUtils';
 import * as CurrencyUtils from '../../libs/CurrencyUtils';
 import * as ReportUtils from '../../libs/ReportUtils';
-import Button from '../Button';
 import Navigation from '../../libs/Navigation/Navigation';
 import ROUTES from '../../ROUTES';
 import themeColors from '../../styles/themes/default';
 import getButtonState from '../../libs/getButtonState';
+import SettlementButton from '../SettlementButton';
 
 const propTypes = {
     /** All the data of the action */
@@ -125,17 +125,15 @@ const ReportPreview = (props) => {
                     />
                 </Pressable>
             ))}
-            {isCurrentUserManager && props.iouReport.state === CONST.REPORT.STATE.PROCESSING && (
-                <Button
-                    style={[styles.requestPreviewBox]}
+            {isCurrentUserManager && props.iouReport.state === CONST.REPORT.STATE.SUBMITTED && (
+                <SettlementButton
+                    currency={props.iouReport.currency}
+                    policyID={props.iouReport.policyID}
+                    chatReportID={props.chatReportID}
                     onPress={() => {
                         Navigation.navigate(ROUTES.getIouDetailsRoute(props.chatReportID, props.iouReportID));
                     }}
-                    onPressIn={() => DeviceCapabilities.canUseTouchScreen() && ControlSelection.block()}
-                    onPressOut={() => ControlSelection.unblock()}
-                    text={props.translate('iou.pay')}
-                    success
-                    medium
+                    enablePaymentsRoute={ROUTES.BANK_ACCOUNT_NEW}
                 />
             )}
         </View>
