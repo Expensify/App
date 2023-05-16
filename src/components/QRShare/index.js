@@ -77,7 +77,6 @@ class QRShare extends Component {
                     family="EXP_NEW_KANSAS_MEDIUM"
                     fontSize={22}
                     numberOfLines={2}
-                    ellipsizeMode="tail"
                     style={{marginTop: 15}}
                 >
                     {this.props.title}
@@ -88,7 +87,6 @@ class QRShare extends Component {
                         family="EXP_NEUE_BOLD"
                         fontSize={13}
                         numberOfLines={1}
-                        ellipsizeMode="tail"
                         style={{marginTop: 4}}
                         color={defaultTheme.textSupporting}
                     >
