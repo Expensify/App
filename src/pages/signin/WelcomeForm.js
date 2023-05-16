@@ -3,7 +3,6 @@ import _ from 'underscore';
 import {TouchableOpacity, View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import PropTypes from 'prop-types';
-import Str from 'expensify-common/lib/str';
 import styles from '../../styles/styles';
 import Button from '../../components/Button';
 import Text from '../../components/Text';
@@ -53,28 +52,26 @@ const defaultProps = {
     preferredLocale: CONST.LOCALES.DEFAULT,
 };
 
-const WelcomeForm = (props) => {
-    return (
-        <>
-            <View style={[styles.mb4, styles.flexRow, styles.justifyContentBetween, styles.alignItemsCenter]}>
-                <TouchableOpacity onPress={() => redirectToSignIn()}>
-                    <Text style={[styles.link]}>{props.translate('common.back')}</Text>
-                </TouchableOpacity>
-                <Button
-                    medium
-                    success
-                    text={props.translate('welcomeForm.join')}
-                    isLoading={props.account.isLoading}
-                    onPress={() => Session.signUp(props.preferredLocale)}
-                    isDisabled={props.network.isOffline || !_.isEmpty(props.account.message)}
-                />
-            </View>
-            <View style={[styles.mt5, styles.signInPageWelcomeTextContainer]}>
-                <Terms />
-            </View>
-        </>
-    );
-};
+const WelcomeForm = (props) => (
+    <>
+        <View style={[styles.mb4, styles.flexRow, styles.justifyContentBetween, styles.alignItemsCenter]}>
+            <TouchableOpacity onPress={() => redirectToSignIn()}>
+                <Text style={[styles.link]}>{props.translate('common.back')}</Text>
+            </TouchableOpacity>
+            <Button
+                medium
+                success
+                text={props.translate('welcomeForm.join')}
+                isLoading={props.account.isLoading}
+                onPress={() => Session.signUp(props.preferredLocale)}
+                isDisabled={props.network.isOffline || !_.isEmpty(props.account.message)}
+            />
+        </View>
+        <View style={[styles.mt5, styles.signInPageWelcomeTextContainer]}>
+            <Terms />
+        </View>
+    </>
+);
 
 WelcomeForm.propTypes = propTypes;
 WelcomeForm.defaultProps = defaultProps;

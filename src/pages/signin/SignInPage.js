@@ -137,13 +137,11 @@ class SignInPage extends Component {
                 // We will only know this after a user signs in successfully, without their 2FA code
                 welcomeHeader = this.props.isSmallScreenWidth ? '' : this.props.translate('welcomeText.welcomeBack');
                 welcomeText = this.props.translate('validateCodeForm.enterAuthenticatorCode');
-            } else {
-                if (this.props.account.validated) {
-                    welcomeHeader = this.props.isSmallScreenWidth ? '' : this.props.translate('welcomeText.welcomeBack');
-                    welcomeText = this.props.isSmallScreenWidth
-                        ? `${this.props.translate('welcomeText.welcomeBack')} ${this.props.translate('welcomeText.welcomeEnterMagicCode', {login: userLoginToDisplay})}`
-                        : this.props.translate('welcomeText.welcomeEnterMagicCode', {login: userLoginToDisplay});
-                }
+            } else if (this.props.account.validated) {
+                welcomeHeader = this.props.isSmallScreenWidth ? '' : this.props.translate('welcomeText.welcomeBack');
+                welcomeText = this.props.isSmallScreenWidth
+                    ? `${this.props.translate('welcomeText.welcomeBack')} ${this.props.translate('welcomeText.welcomeEnterMagicCode', {login: userLoginToDisplay})}`
+                    : this.props.translate('welcomeText.welcomeEnterMagicCode', {login: userLoginToDisplay});
             }
         } else if (showPasswordForm) {
             welcomeHeader = this.props.isSmallScreenWidth ? '' : this.props.translate('welcomeText.welcomeBack');
