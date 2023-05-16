@@ -184,7 +184,7 @@ function getLastVisibleMessageText(reportID, actionsToMerge = {}) {
     const htmlText = lodashGet(lastVisibleAction, 'message[0].html', '');
     const parser = new ExpensiMark();
     const messageText = parser.htmlToText(htmlText);
-    return String(messageText).replace(CONST.REGEX.AFTER_FIRST_LINE_BREAK, '').substring(0, CONST.REPORT.LAST_MESSAGE_TEXT_MAX_LENGTH);
+    return String(messageText).replace(CONST.REGEX.AFTER_FIRST_LINE_BREAK, '').substring(0, CONST.REPORT.LAST_MESSAGE_TEXT_MAX_LENGTH).trim();
 }
 
 /**

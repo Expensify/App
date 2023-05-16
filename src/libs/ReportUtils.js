@@ -461,9 +461,10 @@ function isThreadFirstChat(reportAction, reportID) {
 /**
  * Get either the policyName or domainName the chat is tied to
  * @param {Object} report
+ * @param {Object} parentReport
  * @returns {String}
  */
-function getChatRoomSubtitle(report) {
+function getChatRoomSubtitle(report, parentReport = null) {
     if (isThread(report)) {
         if (!getChatType(report)) {
             return '';
@@ -471,7 +472,15 @@ function getChatRoomSubtitle(report) {
 
         // If thread is not from a DM or group chat, the subtitle will follow the pattern 'Workspace Name • #roomName'
         const workspaceName = getPolicyName(report);
-        const roomName = isChatRoom(report) ? lodashGet(report, 'displayName') : '';
+        let roomName = '';
+        if (isChatRoom(report)) {
+            if (parentReport) {
+                roomName = lodashGet(parentReport, 'displayName', '');
+            } else {
+                roomName = lodashGet(report, 'displayName', '');
+            }
+        }
+
         return [workspaceName, roomName].join(' • ');
     }
     if (!isDefaultRoom(report) && !isUserCreatedPolicyRoom(report) && !isPolicyExpenseChat(report)) {
@@ -574,12 +583,12 @@ function canShowReportRecipientLocalTime(personalDetails, report) {
 }
 
 /**
- * Trim the last message text to a fixed limit.
+ * Html decode, shorten last message text to fixed length and trim spaces.
  * @param {String} lastMessageText
  * @returns {String}
  */
 function formatReportLastMessageText(lastMessageText) {
-    return String(lastMessageText).replace(CONST.REGEX.AFTER_FIRST_LINE_BREAK, '').substring(0, CONST.REPORT.LAST_MESSAGE_TEXT_MAX_LENGTH);
+    return Str.htmlDecode(String(lastMessageText)).replace(CONST.REGEX.AFTER_FIRST_LINE_BREAK, '').substring(0, CONST.REPORT.LAST_MESSAGE_TEXT_MAX_LENGTH).trim();
 }
 
 /**
@@ -935,6 +944,32 @@ function getDisplayNamesWithTooltips(participants, isMultipleParticipantReport) 
             pronouns,
         };
     });
+}
+
+/**
+ * We get the amount, currency and comment money request value from the action.originalMessage.
+ * But for the send money action, the above value is put in the IOUDetails object.
+ *
+ * @param {Object} reportAction
+ * @param {Number} reportAction.amount
+ * @param {String} reportAction.currency
+ * @param {String} reportAction.comment
+ * @param {Object} [reportAction.IOUDetails]
+ * @returns {Object}
+ */
+function getMoneyRequestAction(reportAction = {}) {
+    const originalMessage = lodashGet(reportAction, 'originalMessage', {});
+    let total = originalMessage.amount || 0;
+    let currency = originalMessage.currency || CONST.CURRENCY.USD;
+    let comment = originalMessage.comment || '';
+
+    if (_.has(originalMessage, 'IOUDetails')) {
+        total = lodashGet(originalMessage, 'IOUDetails.amount', 0);
+        currency = lodashGet(originalMessage, 'IOUDetails.currency', CONST.CURRENCY.USD);
+        comment = lodashGet(originalMessage, 'IOUDetails.comment', '');
+    }
+
+    return {total, currency, comment};
 }
 
 /**
@@ -2203,4 +2238,5 @@ export {
     shouldReportShowSubscript,
     isReportDataReady,
     isSettled,
+    getMoneyRequestAction,
 };
