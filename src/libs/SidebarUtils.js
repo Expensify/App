@@ -121,7 +121,7 @@ function getOrderedReportIDs(reportIDFromRoute) {
         report.displayName = ReportUtils.getReportName(report);
 
         // eslint-disable-next-line no-param-reassign
-        report.iouReportAmount = ReportUtils.getIOUTotal(report, moneyRequestReports);
+        report.iouReportAmount = ReportUtils.getMoneyRequestTotal(report, moneyRequestReports);
     });
 
     // The LHN is split into five distinct groups, and each group is sorted a little differently. The groups will ALWAYS be in this order:
@@ -161,7 +161,8 @@ function getOrderedReportIDs(reportIDFromRoute) {
             return;
         }
 
-        if (ReportUtils.isTaskReport(report)) {
+        if (ReportUtils.isTaskReport(report) && report.stateNum !== CONST.REPORT.STATE.OPEN && report.statusNum !== CONST.REPORT.STATUS.OPEN) {
+            archivedReports.push(report);
             return;
         }
 
@@ -238,6 +239,7 @@ function getOptionData(reportID) {
     const participantPersonalDetailList = _.values(OptionsListUtils.getPersonalDetailsForLogins(report.participants, personalDetails));
     const personalDetail = participantPersonalDetailList[0] || {};
 
+    result.isThread = ReportUtils.isThread(report);
     result.isChatRoom = ReportUtils.isChatRoom(report);
     result.isTaskReport = ReportUtils.isTaskReport(report);
     result.isArchivedRoom = ReportUtils.isArchivedRoom(report);
@@ -261,7 +263,7 @@ function getOptionData(reportID) {
 
     const parentReport = result.parentReportID ? chatReports[`${ONYXKEYS.COLLECTION.REPORT}${result.parentReportID}`] : null;
     const hasMultipleParticipants = participantPersonalDetailList.length > 1 || result.isChatRoom || result.isPolicyExpenseChat;
-    const subtitle = ReportUtils.getChatRoomSubtitle(report);
+    const subtitle = ReportUtils.getChatRoomSubtitle(report, parentReport);
 
     const login = Str.removeSMSDomain(lodashGet(personalDetail, 'login', ''));
     const formattedLogin = Str.isSMSLogin(login) ? LocalePhoneNumber.formatPhoneNumber(login) : login;
@@ -302,10 +304,8 @@ function getOptionData(reportID) {
         });
     }
 
-    if ((result.isChatRoom || result.isPolicyExpenseChat) && !result.isArchivedRoom) {
+    if ((result.isChatRoom || result.isPolicyExpenseChat || result.isThread || result.isTaskReport) && !result.isArchivedRoom) {
         result.alternateText = lastMessageTextFromReport.length > 0 ? lastMessageText : Localize.translate(preferredLocale, 'report.noActivityYet');
-    } else if (result.isTaskReport) {
-        result.alternateText = Localize.translate(preferredLocale, 'newTaskPage.task');
     } else {
         if (!lastMessageText) {
             // Here we get the beginning of chat history message and append the display name for each user, adding pronouns if there are any.
@@ -331,7 +331,7 @@ function getOptionData(reportID) {
     }
 
     result.isIOUReportOwner = ReportUtils.isIOUOwnedByCurrentUser(result, moneyRequestReports);
-    result.iouReportAmount = ReportUtils.getIOUTotal(result, moneyRequestReports);
+    result.iouReportAmount = ReportUtils.getMoneyRequestTotal(result, moneyRequestReports);
 
     if (!hasMultipleParticipants) {
         result.login = personalDetail.login;
@@ -340,6 +340,7 @@ function getOptionData(reportID) {
     }
 
     const reportName = ReportUtils.getReportName(report);
+
     result.text = reportName;
     result.subtitle = subtitle;
     result.participantsList = participantPersonalDetailList;
@@ -347,7 +348,6 @@ function getOptionData(reportID) {
     result.icons = ReportUtils.getIcons(result.isTaskReport ? parentReport : report, personalDetails, policies, ReportUtils.getAvatar(personalDetail.avatar, personalDetail.login));
     result.searchText = OptionsListUtils.getSearchText(report, reportName, participantPersonalDetailList, result.isChatRoom || result.isPolicyExpenseChat);
     result.displayNamesWithTooltips = displayNamesWithTooltips;
-
     return result;
 }
 
