@@ -71,9 +71,10 @@ const TaskPreview = (props) => {
                     isChecked={isTaskCompleted}
                     onPress={() => {
                         if (isTaskCompleted) {
-                            return;
+                            TaskUtils.reopenTask(props.taskReportID, parentReportID, taskTitle);
+                        } else {
+                            TaskUtils.completeTask(props.taskReportID, parentReportID, taskTitle);
                         }
-                        TaskUtils.completeTask(props.taskReportID, parentReportID, taskTitle);
                     }}
                 />
                 <Text>{taskTitle}</Text>

@@ -600,7 +600,8 @@ class ReportActionCompose extends React.Component {
             },
             suggestedEmojis: [],
         }));
-        EmojiUtils.addToFrequentlyUsedEmojis(emojiObject);
+        const frequentEmojiList = EmojiUtils.getFrequentlyUsedEmojis(emojiObject);
+        User.updateFrequentlyUsedEmojis(frequentEmojiList);
     }
 
     /**
@@ -692,7 +693,12 @@ class ReportActionCompose extends React.Component {
      * @param {Boolean} shouldDebounceSaveComment
      */
     updateComment(comment, shouldDebounceSaveComment) {
-        const newComment = EmojiUtils.replaceEmojis(comment, this.props.isSmallScreenWidth, this.props.preferredSkinTone);
+        const {text: newComment = '', emojis = []} = EmojiUtils.replaceEmojis(comment, this.props.isSmallScreenWidth, this.props.preferredSkinTone);
+
+        if (!_.isEmpty(emojis)) {
+            User.updateFrequentlyUsedEmojis(EmojiUtils.getFrequentlyUsedEmojis(emojis));
+        }
+
         this.setState((prevState) => {
             const newState = {
                 isCommentEmpty: !!newComment.match(/^(\s)*$/),
@@ -1194,6 +1200,7 @@ export default compose(
         },
         preferredSkinTone: {
             key: ONYXKEYS.PREFERRED_EMOJI_SKIN_TONE,
+            selector: EmojiUtils.getPreferredSkinToneIndex,
         },
         reports: {
             key: ONYXKEYS.COLLECTION.REPORT,

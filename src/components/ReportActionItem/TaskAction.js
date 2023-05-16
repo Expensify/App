@@ -57,6 +57,9 @@ const TaskAction = (props) => {
         case CONST.REPORT.ACTIONS.TYPE.TASKCANCELED:
             messageLinkText = props.translate('task.messages.canceled');
             break;
+        case CONST.REPORT.ACTIONS.TYPE.TASKREOPENED:
+            messageLinkText = props.translate('task.messages.reopened');
+            break;
         default:
             messageLinkText = props.translate('newTaskPage.task');
     }
