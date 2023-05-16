@@ -563,6 +563,10 @@ function cancelTask(taskReportID, parentReportID, taskTitle, originalStateNum, o
     API.write('CancelTask', {taskReportID, optimisticReportActionID}, {optimisticData, failureData});
 }
 
+function isTaskCanceled(taskReport) {
+    return taskReport.stateNum === CONST.REPORT.STATE_NUM.SUBMITTED && taskReport.statusNum === CONST.REPORT.STATUS.CLOSED;
+}
+
 export {
     createTaskAndNavigate,
     editTaskAndNavigate,
@@ -579,4 +583,5 @@ export {
     getAssignee,
     getShareDestination,
     cancelTask,
+    isTaskCanceled,
 };
