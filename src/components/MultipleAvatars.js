@@ -80,7 +80,7 @@ const MultipleAvatars = (props) => {
     }
 
     const oneAvatarSize = StyleUtils.getAvatarStyle(props.size);
-    const oneAvatarBorderWidth = StyleUtils.getAvatarBorderWidth(props.size);
+    const oneAvatarBorderWidth = StyleUtils.getAvatarBorderWidth(props.size).borderWidth;
     const overlapSize = oneAvatarSize.width / 3;
 
     if (props.shouldStackHorizontally) {
@@ -182,7 +182,12 @@ const MultipleAvatars = (props) => {
                                 absolute
                             >
                                 <View style={[singleAvatarStyles, styles.alignItemsCenter, styles.justifyContentCenter]}>
-                                    <Text style={props.size === CONST.AVATAR_SIZE.SMALL ? styles.avatarInnerTextSmall : styles.avatarInnerText}>{`+${props.icons.length - 1}`}</Text>
+                                    <Text
+                                        selectable={false}
+                                        style={props.size === CONST.AVATAR_SIZE.SMALL ? styles.avatarInnerTextSmall : styles.avatarInnerText}
+                                    >
+                                        {`+${props.icons.length - 1}`}
+                                    </Text>
                                 </View>
                             </Tooltip>
                         )}

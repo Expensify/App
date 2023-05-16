@@ -35,6 +35,9 @@ const propTypes = {
     /** Optional callback to fire when we want to preview an image and approve it for use. */
     onConfirm: PropTypes.func,
 
+    /** Optional callback to fire when we want to do something after modal show. */
+    onModalShow: PropTypes.func,
+
     /** Optional callback to fire when we want to do something after modal hide. */
     onModalHide: PropTypes.func,
 
@@ -69,6 +72,7 @@ const defaultProps = {
     allowDownload: false,
     headerTitle: null,
     reportID: '',
+    onModalShow: () => {},
     onModalHide: () => {},
 };
 
@@ -163,8 +167,8 @@ class AttachmentModal extends PureComponent {
      */
     isValidFile(file) {
         const {fileExtension} = FileUtils.splitExtensionFromFileName(lodashGet(file, 'name', ''));
-        if (!_.contains(CONST.API_ATTACHMENT_VALIDATIONS.ALLOWED_EXTENSIONS, fileExtension.toLowerCase())) {
-            const invalidReason = `${this.props.translate('attachmentPicker.notAllowedExtension')} ${CONST.API_ATTACHMENT_VALIDATIONS.ALLOWED_EXTENSIONS.join(', ')}`;
+        if (_.contains(CONST.API_ATTACHMENT_VALIDATIONS.UNALLOWED_EXTENSIONS, fileExtension.toLowerCase())) {
+            const invalidReason = this.props.translate('attachmentPicker.notAllowedExtension');
             this.setState({
                 isAttachmentInvalid: true,
                 attachmentInvalidReasonTitle: this.props.translate('attachmentPicker.wrongFileType'),
@@ -255,7 +259,10 @@ class AttachmentModal extends PureComponent {
                     onClose={() => this.setState({isModalOpen: false})}
                     isVisible={this.state.isModalOpen}
                     backgroundColor={themeColors.componentBG}
-                    onModalShow={() => this.setState({shouldLoadAttachment: true})}
+                    onModalShow={() => {
+                        this.props.onModalShow();
+                        this.setState({shouldLoadAttachment: true});
+                    }}
                     onModalHide={(e) => {
                         this.props.onModalHide(e);
                         this.setState({shouldLoadAttachment: false});
@@ -282,6 +289,7 @@ class AttachmentModal extends PureComponent {
                             Boolean(this.state.source) &&
                             this.state.shouldLoadAttachment && (
                                 <AttachmentView
+                                    containerStyles={[styles.mh5]}
                                     source={source}
                                     isAuthTokenRequired={this.props.isAuthTokenRequired}
                                     file={this.state.file}

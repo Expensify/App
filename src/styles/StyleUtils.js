@@ -33,7 +33,7 @@ const workspaceColorOptions = [
 const avatarBorderSizes = {
     [CONST.AVATAR_SIZE.SMALL_SUBSCRIPT]: variables.componentBorderRadiusSmall,
     [CONST.AVATAR_SIZE.MID_SUBSCRIPT]: variables.componentBorderRadiusSmall,
-    [CONST.AVATAR_SIZE.SUBSCRIPT]: variables.componentBorderRadiusSmall,
+    [CONST.AVATAR_SIZE.SUBSCRIPT]: variables.componentBorderRadiusMedium,
     [CONST.AVATAR_SIZE.SMALLER]: variables.componentBorderRadiusMedium,
     [CONST.AVATAR_SIZE.SMALL]: variables.componentBorderRadiusMedium,
     [CONST.AVATAR_SIZE.HEADER]: variables.componentBorderRadiusMedium,
@@ -85,7 +85,7 @@ function getAvatarStyle(size) {
 /**
  * Get Font size of '+1' text on avatar overlay
  * @param {String} size
- * @returns {Number}
+ * @returns {Object}
  */
 function getAvatarExtraFontSizeStyle(size) {
     const AVATAR_SIZES = {
@@ -107,12 +107,12 @@ function getAvatarExtraFontSizeStyle(size) {
 /**
  * Get Bordersize of Avatar based on avatar size
  * @param {String} size
- * @returns {Number}
+ * @returns {Object}
  */
 function getAvatarBorderWidth(size) {
     const AVATAR_SIZES = {
         [CONST.AVATAR_SIZE.DEFAULT]: 3,
-        [CONST.AVATAR_SIZE.SMALL_SUBSCRIPT]: 2,
+        [CONST.AVATAR_SIZE.SMALL_SUBSCRIPT]: 1,
         [CONST.AVATAR_SIZE.MID_SUBSCRIPT]: 2,
         [CONST.AVATAR_SIZE.SUBSCRIPT]: 2,
         [CONST.AVATAR_SIZE.SMALL]: 3,
@@ -121,7 +121,9 @@ function getAvatarBorderWidth(size) {
         [CONST.AVATAR_SIZE.MEDIUM]: 3,
         [CONST.AVATAR_SIZE.LARGE_BORDERED]: 4,
     };
-    return AVATAR_SIZES[size];
+    return {
+        borderWidth: AVATAR_SIZES[size],
+    };
 }
 
 /**
@@ -346,6 +348,18 @@ function getBackgroundAndBorderStyle(backgroundColor) {
 function getBackgroundColorStyle(backgroundColor) {
     return {
         backgroundColor,
+    };
+}
+
+/**
+ * Returns a style with the specified borderColor
+ *
+ * @param {String} borderColor
+ * @returns {Object}
+ */
+function getBorderColorStyle(borderColor) {
+    return {
+        borderColor,
     };
 }
 
@@ -732,16 +746,6 @@ function getPaddingLeft(paddingLeft) {
     return {
         paddingLeft,
     };
-}
-
-/**
- * Android only - convert RTL text to a LTR text using Unicode controls.
- * https://www.w3.org/International/questions/qa-bidi-unicode-controls
- * @param {String} text
- * @returns {String}
- */
-function convertToLTR(text) {
-    return `\u2066${text}`;
 }
 
 /**
@@ -1132,6 +1136,7 @@ export {
     getAutoGrowHeightInputStyle,
     getBackgroundAndBorderStyle,
     getBackgroundColorStyle,
+    getBorderColorStyle,
     getBackgroundColorWithOpacityStyle,
     getBadgeColorStyle,
     getButtonBackgroundColorStyle,
@@ -1151,7 +1156,6 @@ export {
     parseStyleFromFunction,
     combineStyles,
     getPaddingLeft,
-    convertToLTR,
     hasSafeAreas,
     getHeight,
     getMinimumHeight,
