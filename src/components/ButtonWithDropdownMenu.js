@@ -1,6 +1,6 @@
 import React, {useState, useRef, useEffect} from 'react';
 import PropTypes from 'prop-types';
-import View from 'react-native';
+import {View} from 'react-native';
 import _ from 'underscore';
 import useWindowDimensions from '../hooks/useWindowDimensions';
 import styles from '../styles/styles';
