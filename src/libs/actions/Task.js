@@ -210,7 +210,7 @@ function completeTask(taskReportID, parentReportID, taskTitle) {
 
 function reopenTask(taskReportID, parentReportID, taskTitle) {
     const message = `Reopened task: ${taskTitle}`;
-    const reopenedTaskReportAction = ReportUtils.buildOptimisticTaskReportAction(taskReportID, CONST.REPORT.ACTIONS.TYPE.TASKCOMPLETED, message);
+    const reopenedTaskReportAction = ReportUtils.buildOptimisticTaskReportAction(taskReportID, CONST.REPORT.ACTIONS.TYPE.TASKREOPENED, message);
 
     const optimisticData = [
         {
